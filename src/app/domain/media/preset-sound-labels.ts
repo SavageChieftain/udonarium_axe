@@ -25,6 +25,7 @@ const PRESET_SOUND_FILES: ReadonlySet<string> = new Set([
   'charge',
   'cleanse',
   'cointoss',
+  'collapse',
   'cure-large',
   'cure-medium',
   'cure-small',

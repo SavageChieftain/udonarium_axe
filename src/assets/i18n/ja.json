@@ -551,7 +551,10 @@
         "arc": "電流",
         "bash": "打撃",
         "curse": "呪印",
-        "beam": "極太ビーム"
+        "beam": "極太ビーム",
+        "dissolve": "崩壊",
+        "gore": "血しぶき",
+        "bisect": "両断"
       },
       "targeting": {
         "self": "自分",
@@ -612,6 +615,7 @@
         "charge": "溜め",
         "cleanse": "浄化",
         "cointoss": "コイン",
+        "collapse": "崩れ落ちる",
         "cure-large": "治癒（大）",
         "cure-medium": "治癒（中）",
         "cure-small": "治癒（小）",

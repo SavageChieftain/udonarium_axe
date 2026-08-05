@@ -76,6 +76,7 @@ export class TableEffectOverlayComponent {
         hiddenIdentifiers,
         viewRotation: this.uiSignalService.tableViewRotation(),
         resolvePosition: (identifier) => this.centerOf(identifier, gridSize),
+        resolveImage: (identifier) => this.imageUrlOf(identifier),
       });
       for (const part of parts) sprites.push({ ...part, key: `${active.key}-${part.key}` });
     }
@@ -195,6 +196,13 @@ export class TableEffectOverlayComponent {
     parts.push('translate(-50%, -50%)');
 
     return parts.join(' ');
+  }
+
+  /** 崩壊や両断は、コマの絵そのものを切り分けて動かす。 */
+  private imageUrlOf(identifier: string): string {
+    const object = this.objectStore.get<TabletopObject>(identifier);
+    if (!(object instanceof TabletopObject)) return '';
+    return object.imageFile?.url ?? '';
   }
 
   private hiddenIdentifiersOf(identifiers: readonly string[]): ReadonlySet<string> {

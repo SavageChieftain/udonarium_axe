@@ -23,6 +23,7 @@ const TAG_ORDER: readonly string[] = [
   '状態異常',
   '防御',
   '強化',
+  '撃破',
   '範囲',
 ];
 

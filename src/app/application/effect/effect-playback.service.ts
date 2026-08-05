@@ -1,7 +1,8 @@
-import { DestroyRef, inject, Injectable, signal } from '@angular/core';
+import { computed, DestroyRef, inject, Injectable, signal } from '@angular/core';
 import { effectCast$ } from '@axe/core/event/domain-events';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { EffectCast, normalizeEffectCast } from '@axe/domain/effect/effect-cast';
+import { DefeatReaction, defeatReactionOf } from '@axe/domain/effect/effect-defeat';
 import { EffectPreset } from '@axe/domain/effect/effect-preset';
 import { effectFlashColor, EffectShake, effectShakeOf } from '@axe/domain/effect/effect-shake';
 import { impactSoundTimes, isEffectFinished } from '@axe/domain/effect/effect-timeline';
@@ -27,6 +28,20 @@ export class EffectPlaybackService {
   readonly activeCasts = this._activeCasts.asReadonly();
 
   readonly now = signal(0);
+
+  /**
+   * 倒れたコマ自身に掛ける反応。identifier → 崩れ方。
+   * 周りに演出を出すだけでは倒れたことにならないので、コマ側へも合図を渡す。
+   */
+  readonly tokenReactions = computed<ReadonlyMap<string, DefeatReaction>>(() => {
+    const reactions = new Map<string, DefeatReaction>();
+    for (const active of this._activeCasts()) {
+      const reaction = defeatReactionOf(active.preset.effectKind);
+      if (reaction.length < 1) continue;
+      for (const target of active.cast.targets) reactions.set(target.identifier, reaction);
+    }
+    return reactions;
+  });
 
   /** 画面の揺れの強さ。空なら揺らさない。 */
   private readonly _shake = signal<EffectShake>('');

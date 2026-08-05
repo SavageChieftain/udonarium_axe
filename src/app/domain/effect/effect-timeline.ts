@@ -67,6 +67,11 @@ export interface EffectSpriteOptions {
   hiddenIdentifiers?: ReadonlySet<string>;
   /** 追従表示のため、対象の現在位置を解決する。省略時は発火時の座標を使う。 */
   resolvePosition?: (identifier: string) => { x: number; y: number; z: number } | null;
+  /**
+   * 対象コマの絵。崩壊や両断は、コマの絵そのものを切り分けて動かす。
+   * 絵が無いコマでは光の欠片で代用する。
+   */
+  resolveImage?: (identifier: string) => string;
 }
 
 interface Point3 {
@@ -117,6 +122,29 @@ const BREATH_LAYERS = [
 const DRAIN_MOTE_COUNT = 10;
 const CURSE_RING_COUNT = 3;
 const ARC_NODE_COUNT = 10;
+const DEFEAT_SHARD_COUNT = 9;
+const DISSOLVE_COLUMNS = 4;
+const DISSOLVE_ROWS = 6;
+/** 破片 1 マスの大きさ。コマの絵はマス目 1 つぶんに収まっている。 */
+const DISSOLVE_PIECE_SCALE = 0.34;
+const BISECT_PIECE_SCALE = 0.62;
+const BISECT_GUSH_COUNT = 7;
+/** 斬り口で分けた 2 枚。`clip` は絵のどちら側を残すか。 */
+const BISECT_HALVES = [
+  { key: 'upper', side: 1, drop: 0.3, clip: 'polygon(-40% -40%, 140% -110%, 140% 40%, -40% 110%)' },
+  { key: 'lower', side: -1, drop: 1.5, clip: 'polygon(-40% 110%, 140% 40%, 140% 140%, -40% 140%)' },
+];
+const GORE_DROP_COUNT = 14;
+const GORE_DRIP_COUNT = 5;
+const GORE_STAIN_COUNT = 9;
+const GORE_PULSE_COUNT = 3;
+/** 噴出の向き(度)。心拍ごとに少し振れる。 */
+const GORE_JET_ANGLES = [-88, -104, -72];
+/** 滴の飛ぶ向き(度)。斬り抜けた側へ偏らせ、真上と真下は薄くする。 */
+const GORE_SPRAY_ANGLES = [-142, -118, -101, -84, -66, -49, -32, -14, 6, 26, -160, -75, -40, 44];
+/** 斬り抜けるまで。 */
+const BISECT_CUT_END = 0.22;
+const BISECT_ANGLE = -28;
 /** レーザーが溜めを終えて発射する位置。 */
 const BEAM_CHARGE_END = 0.28;
 /** 溜めの終わり際、光を一度潰す位置。ここで撃つ前の「タメ」が生まれる。 */
@@ -325,6 +353,18 @@ export function effectSprites(
       );
       return;
     }
+    if (preset.effectKind === 'dissolve') {
+      appendDissolve(sprites, prefix, center, base, progress, preset, random, imageOf(options, target.identifier));
+      return;
+    }
+    if (preset.effectKind === 'gore') {
+      appendGore(sprites, prefix, center, base, progress, preset, random);
+      return;
+    }
+    if (preset.effectKind === 'bisect') {
+      appendBisect(sprites, prefix, center, base, progress, preset, random, imageOf(options, target.identifier));
+      return;
+    }
     if (preset.effectKind === 'beam') {
       appendBeam(
         sprites,
@@ -492,6 +532,11 @@ function appendFlareSpikes(
       borderRadius: '50%',
     });
   }
+}
+
+/** 対象コマの絵。取れないときは空を返し、呼び出し側が光の欠片で代用する。 */
+function imageOf(options: EffectSpriteOptions, identifier: string): string {
+  return options.resolveImage?.(identifier) ?? '';
 }
 
 /** 発射元。指定が無ければ対象の斜め上から飛んでくる扱いにする。 */
@@ -687,6 +732,420 @@ function flightPoint(origin: Point3, center: Point3, base: number, value: number
     y: origin.y + (center.y - origin.y) * eased,
     z: origin.z + (center.z + base * 0.6 - origin.z) * eased + Math.sin(Math.PI * clamped) * arc,
   };
+}
+
+/**
+ * 崩壊。コマの絵そのものを格子に切り分け、破片として散らす。
+ *
+ * 光の粒だけを出しても「消えた」にしかならない。コマの絵を切って動かすと、
+ * その場に立っていた物が砕けたことになる。絵が無いコマは光の欠片で代用する。
+ */
+function appendDissolve(
+  sprites: EffectSprite[],
+  prefix: string,
+  center: Point3,
+  base: number,
+  progress: number,
+  preset: EffectPreset,
+  random: () => number,
+  image: string
+): void {
+  const life = 1 - clamp01((progress - 0.55) / 0.45);
+  const jitters = takeRandoms(random, DISSOLVE_COLUMNS * DISSOLVE_ROWS * 3);
+  const piece = base * DISSOLVE_PIECE_SCALE;
+
+  if (image.length > 0) {
+    for (let row = 0; row < DISSOLVE_ROWS; row++) {
+      for (let column = 0; column < DISSOLVE_COLUMNS; column++) {
+        const index = row * DISSOLVE_COLUMNS + column;
+        const seed = jitters[index * 3];
+        const spin = jitters[index * 3 + 1] - 0.5;
+        const lift = jitters[index * 3 + 2];
+        // 下の段から先に崩れる。一斉に散ると爆発に見える。
+        const born = (1 - row / DISSOLVE_ROWS) * 0.3 + seed * 0.12;
+        const local = clamp01((progress - born) / 0.6);
+        if (local <= 0) continue;
+
+        const fly = easeOutCubic(local);
+        const away = (column / (DISSOLVE_COLUMNS - 1) - 0.5) * 2;
+        sprites.push({
+          ...blank(),
+          key: `${prefix}-dissolve-piece-${index}`,
+          x: center.x,
+          y: center.y,
+          z: center.z + base * 0.9,
+          // 格子の 1 マスだけを見せ、そのマスごと飛ばす。
+          offsetX: away * piece * (0.5 + fly * 2.2) + spin * piece * fly * 1.6,
+          offsetY: (row / (DISSOLVE_ROWS - 1) - 0.5) * piece * DISSOLVE_ROWS * 0.5 - piece * fly * (1.6 + lift * 2.4),
+          width: piece * DISSOLVE_COLUMNS,
+          height: piece * DISSOLVE_ROWS,
+          rotate: spin * 90 * fly,
+          opacity: life * (1 - local) ** 0.7,
+          background: `url(${image}) center/contain no-repeat`,
+          clipPath: cellClipPath(column, row),
+        });
+      }
+    }
+  }
+
+  // 砕けた縁から立ち上る光。破片だけだと、ただ散らばって見える。
+  for (let shard = 0; shard < DEFEAT_SHARD_COUNT; shard++) {
+    const seed = jitters[shard % jitters.length];
+    const phase = (progress * 1.5 + seed) % 1;
+    const rise = easeOutCubic(phase);
+    const height = base * (0.4 + seed * 0.7);
+    sprites.push({
+      ...blank(),
+      key: `${prefix}-dissolve-shard-${shard}`,
+      x: center.x,
+      y: center.y,
+      z: center.z + base * (0.2 + rise * 2.6),
+      offsetX: (seed - 0.5) * base * 1.6 * (1 - rise * 0.4),
+      offsetY: -height / 2,
+      width: base * 0.09,
+      height,
+      opacity: life * (1 - phase) * 0.75,
+      background: `linear-gradient(180deg, transparent, ${preset.colorPrimary} 55%, #ffffff)`,
+      borderRadius: '50%',
+    });
+  }
+
+  const ring = base * (1.5 + easeOutCubic(progress) * 1.2);
+  sprites.push({
+    ...blank(),
+    key: `${prefix}-dissolve-ring`,
+    x: center.x,
+    y: center.y,
+    z: center.z + 1,
+    width: ring,
+    height: ring,
+    opacity: life * 0.6,
+    svg: ringSvg(colorsOf(preset), 6),
+    animation: 'effectSpinSlow 3s linear infinite',
+    flat: true,
+  });
+}
+
+/** 格子の 1 マスだけを見せる切り抜き。 */
+function cellClipPath(column: number, row: number): string {
+  const left = (column / DISSOLVE_COLUMNS) * 100;
+  const right = 100 - ((column + 1) / DISSOLVE_COLUMNS) * 100;
+  const top = (row / DISSOLVE_ROWS) * 100;
+  const bottom = 100 - ((row + 1) / DISSOLVE_ROWS) * 100;
+  return `inset(${round2(top)}% ${round2(right)}% ${round2(bottom)}% ${round2(left)}%)`;
+}
+
+function round2(value: number): number {
+  return Math.round(value * 100) / 100;
+}
+
+/**
+ * 血しぶき。
+ *
+ * 中心から直線を放射させると星形の閃光になってしまう。実際の血は
+ * 傷口の塊・飛んだ滴・したたり・地面の跡が別々に見えるので、層に分けて置く。
+ * 地面の跡は真円ではなく、主だまりの周りに大小の飛沫が散る形にする。
+ */
+function appendGore(
+  sprites: EffectSprite[],
+  prefix: string,
+  center: Point3,
+  base: number,
+  progress: number,
+  preset: EffectPreset,
+  random: () => number
+): void {
+  const life = fadeInOut(progress, 0.06);
+  const jitters = takeRandoms(random, GORE_DROP_COUNT * 3 + GORE_DRIP_COUNT * 2);
+  const burst = Math.min(1, progress / 0.18);
+  const wound = { x: center.x, y: center.y, z: center.z + base * 0.95 };
+
+  // 傷口の塊。まずここから出ていることを見せる。
+  const core = base * (0.5 + easeOutCubic(burst) * 0.45);
+  sprites.push({
+    ...blank(),
+    key: `${prefix}-gore-core`,
+    x: wound.x,
+    y: wound.y,
+    z: wound.z,
+    width: core * 1.3,
+    height: core,
+    rotate: -18,
+    opacity: life * (1 - progress * 0.5),
+    background: `radial-gradient(circle, ${preset.colorPrimary} 0%, ${preset.colorSecondary} 55%, transparent 78%)`,
+    borderRadius: '50%',
+  });
+
+  // 飛んだ滴。大小を混ぜ、飛んだ向きへ伸ばす。粒が揃うと作り物に見える。
+  for (let drop = 0; drop < GORE_DROP_COUNT; drop++) {
+    const seed = jitters[drop * 3];
+    const spin = jitters[drop * 3 + 1];
+    const grade = jitters[drop * 3 + 2];
+    const angle = GORE_SPRAY_ANGLES[drop % GORE_SPRAY_ANGLES.length] + (spin - 0.5) * 26;
+    const radians = (angle * Math.PI) / 180;
+    const flight = Math.min(1, burst * (0.6 + seed * 0.8));
+    const reach = base * (0.6 + seed * 2.2) * easeOutCubic(flight);
+    const size = base * (0.07 + grade * grade * 0.16);
+    sprites.push({
+      ...blank(),
+      key: `${prefix}-gore-drop-${drop}`,
+      x: wound.x,
+      y: wound.y,
+      z: wound.z,
+      offsetX: Math.cos(radians) * reach,
+      offsetY: Math.sin(radians) * reach + base * flight * flight * 0.9,
+      width: size * (1.4 + flight * 1.6),
+      height: size,
+      rotate: angle,
+      opacity: life * (1 - flight * 0.35),
+      background: `linear-gradient(90deg, transparent, ${preset.colorSecondary} 45%, ${preset.colorPrimary})`,
+      borderRadius: '50%',
+    });
+  }
+
+  // 傷口からしたたる血。落ちきる前に細くなって切れる。
+  for (let drip = 0; drip < GORE_DRIP_COUNT; drip++) {
+    const seed = jitters[GORE_DROP_COUNT * 3 + drip * 2];
+    const spread = jitters[GORE_DROP_COUNT * 3 + drip * 2 + 1];
+    const fall = easeOutCubic(Math.min(1, progress * (0.8 + seed * 1.1)));
+    const length = base * (0.3 + seed * 0.8) * (1 - fall * 0.35);
+    sprites.push({
+      ...blank(),
+      key: `${prefix}-gore-drip-${drip}`,
+      x: wound.x,
+      y: wound.y,
+      z: wound.z - base * fall * 1.5,
+      offsetX: (spread - 0.5) * base * 1.1,
+      offsetY: -length / 2,
+      width: base * (0.05 + seed * 0.04),
+      height: length,
+      opacity: life * (1 - fall * 0.5),
+      background: `linear-gradient(180deg, ${preset.colorSecondary}, ${preset.colorPrimary} 70%, transparent)`,
+      borderRadius: '50%',
+    });
+  }
+
+  appendGoreJet(sprites, `${prefix}-gore`, wound, base, progress, preset, life);
+  appendGoreStain(sprites, `${prefix}-gore`, center, base, progress, preset, jitters, life);
+}
+
+/**
+ * 噴き出す血。傷口から太い筋が脈打って伸びる。
+ *
+ * 滴を散らすだけでは「にじむ」で終わる。心拍で 3 度突き上げると噴出になる。
+ */
+function appendGoreJet(
+  sprites: EffectSprite[],
+  prefix: string,
+  wound: Point3,
+  base: number,
+  progress: number,
+  preset: EffectPreset,
+  life: number
+): void {
+  for (let pulse = 0; pulse < GORE_PULSE_COUNT; pulse++) {
+    const born = pulse * 0.16;
+    const local = clamp01((progress - born) / 0.5);
+    if (local <= 0 || local >= 1) continue;
+
+    const angle = GORE_JET_ANGLES[pulse % GORE_JET_ANGLES.length];
+    const radians = (angle * Math.PI) / 180;
+    // 突き上げてから伸びきる。等速で伸ばすと水道の流れに見える。
+    const reach = base * (1.4 + pulse * 0.4) * easeOutCubic(Math.min(1, local * 1.8)) * 2.1;
+    const thickness = base * (0.34 - pulse * 0.05) * (1 - local * 0.45);
+    sprites.push({
+      ...blank(),
+      key: `${prefix}-jet-${pulse}`,
+      x: wound.x,
+      y: wound.y,
+      z: wound.z,
+      offsetX: Math.cos(radians) * reach * 0.5,
+      offsetY: Math.sin(radians) * reach * 0.5,
+      width: reach,
+      height: thickness,
+      rotate: angle,
+      opacity: life * (1 - local) * 0.95,
+      background: `linear-gradient(90deg, ${preset.colorSecondary} 10%, ${preset.colorPrimary} 45%, ${preset.colorSecondary} 78%, transparent)`,
+      borderRadius: '50%',
+    });
+
+    // 噴き上がった先で割れる塊。ここが「ブシャッ」の頭になる。
+    const head = base * (0.3 + local * 0.5);
+    sprites.push({
+      ...blank(),
+      key: `${prefix}-jet-head-${pulse}`,
+      x: wound.x,
+      y: wound.y,
+      z: wound.z,
+      offsetX: Math.cos(radians) * reach,
+      offsetY: Math.sin(radians) * reach,
+      width: head * 1.25,
+      height: head,
+      rotate: angle,
+      opacity: life * (1 - local) * 0.9,
+      background: `radial-gradient(circle, ${preset.colorPrimary} 0%, ${preset.colorSecondary} 60%, transparent 80%)`,
+      borderRadius: '54% 46% 42% 58% / 46% 52% 48% 54%',
+    });
+  }
+}
+
+/** 地面の跡。真円のにじみではなく、主だまりと飛沫に分ける。 */
+function appendGoreStain(
+  sprites: EffectSprite[],
+  prefix: string,
+  center: Point3,
+  base: number,
+  progress: number,
+  preset: EffectPreset,
+  jitters: readonly number[],
+  life: number
+): void {
+  const spread = easeOutCubic(Math.min(1, progress * 1.4));
+  const pool = base * (0.5 + spread * 1.1);
+  sprites.push({
+    ...blank(),
+    key: `${prefix}-pool`,
+    x: center.x,
+    y: center.y,
+    z: center.z + 1,
+    width: pool * 1.25,
+    height: pool * 0.85,
+    rotate: -24,
+    opacity: life * 0.9,
+    background: `radial-gradient(circle, ${preset.colorSecondary} 0%, ${preset.colorSecondary} 62%, transparent 80%)`,
+    borderRadius: '46% 54% 60% 40% / 52% 44% 56% 48%',
+    flat: true,
+  });
+
+  for (let stain = 0; stain < GORE_STAIN_COUNT; stain++) {
+    const seed = jitters[stain % jitters.length];
+    const angle = (stain / GORE_STAIN_COUNT) * Math.PI * 2 + seed * 1.7;
+    const distance = base * (0.7 + seed * 2.1) * spread;
+    const size = base * (0.08 + (1 - seed) * 0.2);
+    sprites.push({
+      ...blank(),
+      key: `${prefix}-stain-${stain}`,
+      x: center.x + Math.cos(angle) * distance,
+      y: center.y + Math.sin(angle) * distance,
+      z: center.z + 1,
+      width: size * (1 + seed),
+      height: size,
+      rotate: (angle * 180) / Math.PI,
+      opacity: life * (0.55 + seed * 0.35),
+      background: preset.colorSecondary,
+      borderRadius: '52% 48% 44% 56% / 48% 56% 44% 52%',
+      flat: true,
+    });
+  }
+}
+
+/**
+ * 両断。一閃のあと、コマの絵が斬り口で 2 つにずれ、その間から血が噴き出す。
+ */
+function appendBisect(
+  sprites: EffectSprite[],
+  prefix: string,
+  center: Point3,
+  base: number,
+  progress: number,
+  preset: EffectPreset,
+  random: () => number,
+  image: string
+): void {
+  const cut = Math.min(1, progress / BISECT_CUT_END);
+  const after = clamp01(normalize((progress - BISECT_CUT_END) / (1 - BISECT_CUT_END)));
+  const body = { x: center.x, y: center.y, z: center.z + base * 0.9 };
+  const piece = base * BISECT_PIECE_SCALE;
+  const radians = (BISECT_ANGLE * Math.PI) / 180;
+  // 斬り口と直交する向き。2 つの断片はここへ開いていく。
+  const acrossX = -Math.sin(radians);
+  const acrossY = Math.cos(radians);
+
+  if (cut < 1) {
+    const reach = base * (1.5 + easeOutCubic(cut) * 5.5);
+    sprites.push({
+      ...blank(),
+      key: `${prefix}-bisect-slash`,
+      x: body.x,
+      y: body.y,
+      z: body.z,
+      width: reach,
+      height: base * 0.5 * (1 - cut * 0.6),
+      rotate: BISECT_ANGLE,
+      opacity: 1 - cut * 0.3,
+      background: `linear-gradient(90deg, transparent, #ffffff 45%, ${preset.colorPrimary} 60%, transparent)`,
+      borderRadius: '50%',
+      shadow: glow(base * 0.5, preset.colorPrimary),
+    });
+  }
+
+  if (after <= 0) return;
+
+  const slide = easeOutCubic(after);
+  const fade = 1 - clamp01((after - 0.55) / 0.45);
+
+  if (image.length > 0) {
+    // 上側と下側。斬り口で切り分け、互いに逆へ滑らせる。
+    for (const half of BISECT_HALVES) {
+      sprites.push({
+        ...blank(),
+        key: `${prefix}-bisect-${half.key}`,
+        x: body.x,
+        y: body.y,
+        z: body.z,
+        offsetX: acrossX * half.side * piece * slide * 0.9 + half.side * piece * slide * 0.25,
+        offsetY: acrossY * half.side * piece * slide * 0.9 + piece * slide * slide * half.drop,
+        width: piece * 2,
+        height: piece * 2,
+        rotate: half.side * slide * 7,
+        opacity: fade,
+        background: `url(${image}) center/contain no-repeat`,
+        clipPath: half.clip,
+      });
+    }
+  }
+
+  // 断面。ずれた隙間が光り、そこから血が噴く。
+  sprites.push({
+    ...blank(),
+    key: `${prefix}-bisect-seam`,
+    x: body.x,
+    y: body.y,
+    z: body.z,
+    width: base * 2.4,
+    height: base * 0.18 * (1 - after * 0.5),
+    rotate: BISECT_ANGLE,
+    opacity: fade * 0.95,
+    background: `linear-gradient(90deg, transparent, ${preset.colorPrimary} 25%, ${preset.colorSecondary} 65%, transparent)`,
+    borderRadius: '50%',
+  });
+
+  const gush = takeRandoms(random, BISECT_GUSH_COUNT * 2);
+  for (let jet = 0; jet < BISECT_GUSH_COUNT; jet++) {
+    const seed = gush[jet * 2];
+    const along = gush[jet * 2 + 1] - 0.5;
+    const spurt = Math.min(1, after * (1.4 + seed));
+    const reach = base * (0.7 + seed * 1.8) * easeOutCubic(spurt);
+    const angle = BISECT_ANGLE + 90 + (along * 40 - 20);
+    const jetRadians = (angle * Math.PI) / 180;
+    sprites.push({
+      ...blank(),
+      key: `${prefix}-bisect-gush-${jet}`,
+      x: body.x,
+      y: body.y,
+      z: body.z,
+      offsetX: Math.cos((BISECT_ANGLE * Math.PI) / 180) * along * base * 1.6 + Math.cos(jetRadians) * reach * 0.5,
+      offsetY: Math.sin((BISECT_ANGLE * Math.PI) / 180) * along * base * 1.6 + Math.sin(jetRadians) * reach * 0.5,
+      width: reach,
+      height: base * (0.07 + seed * 0.1),
+      rotate: angle,
+      opacity: fade * 0.9,
+      background: `linear-gradient(90deg, ${preset.colorSecondary}, ${preset.colorSecondary} 40%, transparent)`,
+      borderRadius: '50%',
+    });
+  }
+
+  appendGoreStain(sprites, `${prefix}-bisect`, center, base, after, preset, gush, fade);
 }
 
 /**

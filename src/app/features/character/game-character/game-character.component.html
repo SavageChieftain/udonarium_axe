@@ -37,7 +37,10 @@
       <div
         data-testid="piece-body"
         class="size-full [-webkit-transform-style:preserve-3d] transform-3d"
-        [class.animate-hit-shake]="hitFlash() === 'damage'"
+        [class.animate-hit-shake]="hitFlash() === 'damage' && !defeatReaction()"
+        [class.animate-defeat-dissolve]="defeatReaction() === 'dissolve'"
+        [class.animate-defeat-bisect]="defeatReaction() === 'bisect'"
+        [class.animate-defeat-flinch]="defeatReaction() === 'flinch'"
       >
         <div
           class="pointer-events-auto size-full [-webkit-transform-style:preserve-3d] transform-3d"

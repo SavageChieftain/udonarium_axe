@@ -22,7 +22,10 @@ export type EffectKind =
   | 'arc'
   | 'bash'
   | 'curse'
-  | 'beam';
+  | 'beam'
+  | 'dissolve'
+  | 'gore'
+  | 'bisect';
 
 export type EffectTargeting = 'self' | 'single' | 'multi';
 
@@ -67,6 +70,9 @@ export const EFFECT_KINDS: readonly EffectKind[] = [
   'bash',
   'curse',
   'beam',
+  'dissolve',
+  'gore',
+  'bisect',
 ];
 
 export const EFFECT_TARGETINGS: readonly EffectTargeting[] = ['self', 'single', 'multi'];

@@ -551,7 +551,10 @@
         "arc": "Arc",
         "bash": "Bash",
         "curse": "Curse mark",
-        "beam": "Beam"
+        "beam": "Beam",
+        "dissolve": "Disintegrate",
+        "gore": "Blood",
+        "bisect": "Bisect"
       },
       "targeting": {
         "self": "Self",
@@ -612,6 +615,7 @@
         "charge": "Charge",
         "cleanse": "Cleanse",
         "cointoss": "Coin toss",
+        "collapse": "Collapse",
         "cure-large": "Cure (large)",
         "cure-medium": "Cure (medium)",
         "cure-small": "Cure (small)",

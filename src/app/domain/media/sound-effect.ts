@@ -93,6 +93,7 @@ export class PresetSound {
   static statusPetrify: string = '';
   static statusCure: string = '';
   static beamSmall: string = '';
+  static collapse: string = '';
 }
 
 @SyncObject('sound-effect')

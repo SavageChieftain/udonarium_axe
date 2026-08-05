@@ -82,4 +82,18 @@ describe('EffectPlaybackService', () => {
 
     expect(service.shake()).toBe('hard');
   });
+
+  it('倒れる演出は対象のコマへ崩れ方を渡すこと', () => {
+    preset.kind = 'bisect';
+    service.play(cast());
+
+    expect(service.tokenReactions().get('char')).toBe('bisect');
+  });
+
+  it('倒れる演出でなければコマに触らないこと', () => {
+    preset.kind = 'burst';
+    service.play(cast());
+
+    expect(service.tokenReactions().size).toBe(0);
+  });
 });

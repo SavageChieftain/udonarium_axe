@@ -1,10 +1,13 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { EffectPlaybackService } from '@axe/application/effect/effect-playback.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { TabletopService } from '@axe/application/tabletop/tabletop.service';
 import { UiSignalService } from '@axe/application/ui/ui-signal.service';
 import { ImageStorage } from '@axe/core/storage/image-storage';
+import { ObjectStore } from '@axe/core/sync/object-store';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { DataElement, DataElementAttribute, DataElementType } from '@axe/domain/data/data-element';
+import { EffectPreset } from '@axe/domain/effect/effect-preset';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
 import { GameCharacterComponent } from '@axe/features/character/game-character/game-character.component';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
@@ -442,5 +445,31 @@ describe('GameCharacterComponent', () => {
       expect(() => fixture.detectChanges()).not.toThrow();
       expect(() => fixture.destroy()).not.toThrow();
     });
+  });
+
+  it('倒れる演出が当たっているあいだコマ本体を崩すこと', () => {
+    const character = GameCharacter.create('斬られ役', 1, '');
+    fixture.componentRef.setInput('gameCharacter', character);
+    const preset = new EffectPreset();
+    preset.kind = 'dissolve';
+    preset.durationMs = 5000;
+    ObjectStore.instance.add(preset, false);
+
+    try {
+      fixture.detectChanges();
+      TestBed.inject(EffectPlaybackService).play({
+        presetIdentifier: preset.identifier,
+        targets: [{ identifier: character.identifier, x: 0, y: 0, z: 0 }],
+        seed: 1,
+      });
+      fixture.detectChanges();
+
+      // 周りに演出を出すだけでは倒れたことにならない。コマ自身が崩れる必要がある。
+      const body = (fixture.nativeElement as HTMLElement).querySelector('[data-testid="piece-body"]')!;
+      expect(body.classList.contains('animate-defeat-dissolve')).toBe(true);
+    } finally {
+      ObjectStore.instance.remove(preset);
+      character.destroy();
+    }
   });
 });

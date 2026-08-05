@@ -1,3 +1,4 @@
+import { ObjectStore } from '@axe/core/sync/object-store';
 import { EffectKind, EffectTargeting, ProjectileStyle, SlashStyle } from '@axe/domain/effect/effect-kind';
 import { EffectPreset } from '@axe/domain/effect/effect-preset';
 import { PresetSound } from '@axe/domain/media/sound-effect';
@@ -38,6 +39,8 @@ export interface EffectPresetSeed {
   durationMs?: number;
   /** 巻き込む半径(マス)。1 クリックで範囲内をまとめて対象にする。 */
   areaRadius?: number;
+  /** 道中に散らす粒。空なら系統から決める。 */
+  moteStyle?: string;
 }
 
 /** 音が短すぎても長すぎても演出として成立しないので、この範囲に収める。 */
@@ -447,6 +450,56 @@ export const DEFAULT_EFFECT_PRESET_SEEDS: readonly EffectPresetSeed[] = [
     projectileStyle: 'bullet',
     durationMs: 750,
     impactSoundKey: 'rockBreak',
+  },
+  {
+    identifier: 'EffectPreset_defeat_dissolve',
+    name: '崩壊',
+    tagName: '撃破',
+    kind: 'dissolve',
+    colorPrimary: '#e8f6ff',
+    colorSecondary: '#5fb8ff',
+    soundMs: 3187,
+    staggerMs: 0,
+    scale: 1.3,
+    targeting: 'single',
+    maxTargets: 1,
+    soundKey: 'collapse',
+    grade: 3,
+    moteStyle: 'none',
+  },
+  {
+    identifier: 'EffectPreset_defeat_gore',
+    name: '血しぶき',
+    tagName: '撃破',
+    kind: 'gore',
+    colorPrimary: '#c1121f',
+    colorSecondary: '#5c0a11',
+    soundMs: 1332,
+    staggerMs: 0,
+    scale: 1.2,
+    targeting: 'single',
+    maxTargets: 1,
+    soundKey: 'damageLarge',
+    grade: 2,
+    moteStyle: 'none',
+  },
+  {
+    identifier: 'EffectPreset_defeat_bisect',
+    name: '両断',
+    tagName: '撃破',
+    kind: 'bisect',
+    colorPrimary: '#f2f6ff',
+    colorSecondary: '#7a0d15',
+    soundMs: 1752,
+    staggerMs: 0,
+    scale: 1.35,
+    targeting: 'single',
+    maxTargets: 1,
+    soundKey: 'slashLarge',
+    grade: 3,
+    impactSoundKey: 'bashFinish',
+    durationMs: 2000,
+    moteStyle: 'none',
   },
   {
     identifier: 'EffectPreset_beam_3',
@@ -1193,7 +1246,7 @@ export function applyEffectPresetSeed(preset: EffectPreset, seed: EffectPresetSe
   preset.areaRadius = seed.areaRadius ?? 0;
   preset.followTarget = true;
   preset.gmOnly = false;
-  preset.moteStyle = '';
+  preset.moteStyle = seed.moteStyle ?? '';
   preset.soundIdentifier = PresetSound[seed.soundKey];
 }
 
@@ -1205,5 +1258,10 @@ export function createEffectPreset(seed: EffectPresetSeed, identifier?: string):
 }
 
 export function createDefaultEffectPresets(): EffectPreset[] {
-  return DEFAULT_EFFECT_PRESET_SEEDS.map((seed) => createEffectPreset(seed, seed.identifier));
+  return DEFAULT_EFFECT_PRESET_SEEDS.map((seed) => {
+    const preset = createEffectPreset(seed, seed.identifier);
+    // 一度消された identifier は再利用できない。その場合だけ新しい id で作り直す。
+    if (ObjectStore.instance.get(seed.identifier) === preset) return preset;
+    return createEffectPreset(seed);
+  });
 }

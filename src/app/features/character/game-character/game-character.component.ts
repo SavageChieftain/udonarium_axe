@@ -16,6 +16,7 @@ import {
 import { EffectAutoPlayService } from '@axe/application/effect/effect-auto-play.service';
 import { EffectCastService } from '@axe/application/effect/effect-cast.service';
 import { EffectLibraryService } from '@axe/application/effect/effect-library.service';
+import { EffectPlaybackService } from '@axe/application/effect/effect-playback.service';
 import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { GameObjectInventoryService } from '@axe/application/inventory/game-object-inventory.service';
 import { DisclosureService } from '@axe/application/permission/disclosure.service';
@@ -131,6 +132,7 @@ export class GameCharacterComponent {
   private readonly effectLibrary = inject(EffectLibraryService);
   private readonly effectCast = inject(EffectCastService);
   private readonly effectAutoPlay = inject(EffectAutoPlayService);
+  private readonly effectPlayback = inject(EffectPlaybackService);
   private readonly rolePermission = inject(RolePermissionService);
   private readonly disclosureService = inject(DisclosureService);
   private readonly visionService = inject(VisionService);
@@ -702,6 +704,13 @@ export class GameCharacterComponent {
       this.name()
     );
   }
+
+  /** 倒れたときの崩れ方。演出が自分を狙っている間だけ入る。 */
+  readonly defeatReaction = computed<string>(() => {
+    const identifier = this.gameCharacter()?.identifier;
+    if (!identifier) return '';
+    return this.effectPlayback.tokenReactions().get(identifier) ?? '';
+  });
 
   private showResourceChanges(changes: ResourceChange[]) {
     const entries = changes.map((change) => ({ ...change, key: ++this.floatingKey }));

@@ -506,6 +506,63 @@ describe('effectSprites()', () => {
     expect(motes.some((mote) => Math.abs(mote.offsetX) > 1)).toBe(true);
   });
 
+  describe('倒れる演出', () => {
+    function defeatSprites(kind: EffectKind, elapsed: number, image = 'blob:token') {
+      return effectSprites(makePreset(kind), makeCast(), elapsed, { ...options, resolveImage: () => image });
+    }
+
+    it('崩壊はコマの絵を切り分けて散らすこと', () => {
+      const pieces = defeatSprites('dissolve', 600).filter((sprite) => sprite.key.includes('-dissolve-piece-'));
+
+      // 光の粒だけでは「消えた」にしかならない。絵そのものが割れている必要がある。
+      expect(pieces.length).toBeGreaterThan(8);
+      for (const piece of pieces) {
+        expect(piece.background).toContain('blob:token');
+        expect(piece.clipPath).toContain('inset(');
+      }
+      // 破片は同じ場所に留まらない。
+      expect(new Set(pieces.map((piece) => `${piece.offsetX}/${piece.offsetY}`)).size).toBe(pieces.length);
+    });
+
+    it('絵の無いコマでも光の欠片で崩れること', () => {
+      const sprites = defeatSprites('dissolve', 600, '');
+
+      expect(sprites.some((sprite) => sprite.key.includes('-dissolve-piece-'))).toBe(false);
+      expect(sprites.some((sprite) => sprite.key.includes('-dissolve-shard-'))).toBe(true);
+    });
+
+    it('両断はコマを 2 枚に分けてずらすこと', () => {
+      const halves = defeatSprites('bisect', 700).filter((sprite) => /-bisect-(upper|lower)$/.test(sprite.key));
+
+      expect(halves).toHaveLength(2);
+      expect(halves[0].clipPath).toContain('polygon(');
+      // 互いに逆へ滑る。
+      expect(Math.sign(halves[0].offsetX)).not.toBe(Math.sign(halves[1].offsetX));
+    });
+
+    it('両断は斬り口から血が噴くこと', () => {
+      const sprites = defeatSprites('bisect', 700);
+
+      expect(sprites.some((sprite) => sprite.key.includes('-bisect-gush-'))).toBe(true);
+      expect(sprites.some((sprite) => sprite.key.endsWith('-bisect-seam'))).toBe(true);
+    });
+
+    it('血しぶきは脈打って噴き出すこと', () => {
+      const early = defeatSprites('gore', 120).filter((sprite) => sprite.key.includes('-gore-jet-')).length;
+      const later = defeatSprites('gore', 420).filter((sprite) => sprite.key.includes('-gore-jet-')).length;
+
+      // 一度で終わらず、心拍で突き上げる。
+      expect(later).toBeGreaterThan(early);
+    });
+
+    it('血の跡を真円のにじみにしないこと', () => {
+      const stains = defeatSprites('gore', 600).filter((sprite) => sprite.key.includes('-gore-stain-'));
+
+      expect(stains.length).toBeGreaterThan(4);
+      expect(new Set(stains.map((stain) => Math.round(stain.width))).size).toBeGreaterThan(1);
+    });
+  });
+
   it('縦に伸ばす演出を足元へ揃えること', () => {
     const column = effectSprites(makePreset('warp'), makeCast(), 300, options).find((sprite) =>
       sprite.key.endsWith('-warp-column')
