@@ -1,5 +1,12 @@
 # Udonarium Axe
 
+[![Release](https://github.com/SavageChieftain/udonarium_axe/actions/workflows/release.yml/badge.svg)](https://github.com/SavageChieftain/udonarium_axe/actions/workflows/release.yml)
+[![Docs](https://github.com/SavageChieftain/udonarium_axe/actions/workflows/docs.yml/badge.svg)](https://savagechieftain.github.io/udonarium_axe/)
+[![Latest release](https://img.shields.io/github/v/release/SavageChieftain/udonarium_axe?logo=github)](https://github.com/SavageChieftain/udonarium_axe/releases/latest)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Angular](https://img.shields.io/badge/Angular-22-DD0031?logo=angular&logoColor=white)](https://angular.dev/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-6.0-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+
 Udonarium Axe は、ブラウザ上で動作する TRPG オンラインセッション支援ツールです。
 テーブル上のオブジェクト（コマ・カード・ダイスなど）は WebRTC（SkyWay SDK v2）の P2P 通信で
 ブラウザ間に直接同期され、ゲームデータが中央サーバーに保存されることはありません。
