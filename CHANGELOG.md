@@ -1,3 +1,20 @@
+## [1.27.0](https://github.com/SavageChieftain/udonarium_axe/compare/v1.26.0...v1.27.0) (2026-08-05)
+
+### ✨ Features
+
+* **effect:** break the token apart when it goes down ([c57f021](https://github.com/SavageChieftain/udonarium_axe/commit/c57f021281f98530f911ce3e2ff933b7fc9332b0))
+
+### 🐛 Bug Fixes
+
+* **character:** show a resource change only where someone made it ([c782800](https://github.com/SavageChieftain/udonarium_axe/commit/c78280049ab68769051fc486e5dce852de5e78f3))
+* **effect:** give the crumble a low hit and a rumble under it ([b4d0642](https://github.com/SavageChieftain/udonarium_axe/commit/b4d0642ea00121d15dae5afb7cecac0653930ea1))
+* **effect:** let the crumble sound like a building coming down ([f4a08b1](https://github.com/SavageChieftain/udonarium_axe/commit/f4a08b19edf4d14b1c96824f37c6506bbdd4c394))
+* **room:** keep the effects and stay quiet when loading a room ([463ff1d](https://github.com/SavageChieftain/udonarium_axe/commit/463ff1d368e4a2f99857ad12cc77f7c2e3ccfafe))
+
+### 📝 Documentation
+
+* **website:** add v1.26.0 release notes ([6914d72](https://github.com/SavageChieftain/udonarium_axe/commit/6914d72b916be834f9ea8397e9df1bb6684913bd))
+
 ## [1.26.0](https://github.com/SavageChieftain/udonarium_axe/compare/v1.25.0...v1.26.0) (2026-08-05)
 
 ### ✨ Features
