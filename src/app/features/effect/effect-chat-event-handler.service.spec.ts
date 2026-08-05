@@ -1,7 +1,10 @@
 import { TestBed } from '@angular/core/testing';
 import { EffectCastService } from '@axe/application/effect/effect-cast.service';
+import { EffectLibraryService } from '@axe/application/effect/effect-library.service';
 import { emitResourceEditMessage } from '@axe/core/event/domain-events';
-import { getPeerContext } from '@axe/core/network/peer-context-source';
+import { IPeerContext } from '@axe/core/network/peer-context';
+import { resetPeerContextProvider, setPeerContextProvider } from '@axe/core/network/peer-context-source';
+import { PeerSessionGrade } from '@axe/core/network/peer-session-state';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { ChatMessage } from '@axe/domain/chat/chat-message';
@@ -16,19 +19,39 @@ describe('EffectChatEventHandlerService', () => {
   let target: GameCharacter;
   let caster: GameCharacter;
 
+  const SELF_USER_ID = 'user-self';
+
+  /** 自分の発言かどうかは peer context の userId で決まる。周囲の状態に左右されないよう固定する。 */
+  function fixPeerContext(): void {
+    const self = {
+      peerId: 'peer-self',
+      userId: SELF_USER_ID,
+      roomId: '',
+      roomName: '',
+      password: '',
+      digestUserId: '',
+      digestRoomName: '',
+      digestPassword: '',
+      isOpen: true,
+      isRoom: false,
+      hasPassword: false,
+      session: { grade: PeerSessionGrade.UNSPECIFIED, name: '', isVisitor: false },
+    } as unknown as IPeerContext;
+    setPeerContextProvider({ peerContext: self, peerContexts: [self], peerIds: [self.peerId], peerId: self.peerId });
+  }
+
   function addMessage(text: string, sendFrom: string, fromSelf = true): ChatMessage {
     const message = new ChatMessage();
     message.text = text;
     message.sendFrom = sendFrom;
-    // 送信者の判定は peer context の userId と突き合わせる。
-    // 自分のカーソルの userId とは一致するとは限らない。
-    message.from = fromSelf ? getPeerContext().userId : 'someone-else';
+    message.from = fromSelf ? SELF_USER_ID : 'someone-else';
     message.originFrom = message.from;
     message.initialize();
     return message;
   }
 
   beforeEach(() => {
+    fixPeerContext();
     PeerCursor.createMyCursor();
     castStub = { fire: vi.fn(), candidateTargets: vi.fn().mockReturnValue([]) };
     TestBed.configureTestingModule({ providers: [...TEST_PROVIDERS] });
@@ -45,12 +68,18 @@ describe('EffectChatEventHandlerService', () => {
   });
 
   afterEach(() => {
+    resetPeerContextProvider();
     for (const object of ObjectStore.instance.getObjects()) ObjectStore.instance.delete(object, false);
     ObjectStore.instance.clearDeleteHistory();
   });
 
   it('演出トークンで発動すること', () => {
     const message = addMessage('2d6+3 t:HP-10 《爆炎》', caster.identifier);
+
+    // 発火しなかったときにどの条件で弾かれたか分かるよう、前提を先に確かめる。
+    expect(message.isSendFromSelf).toBe(true);
+    expect(message.isSystem).toBe(false);
+    expect(TestBed.inject(EffectLibraryService).findByName('爆炎')).toBe(preset);
 
     emitResourceEditMessage({ messageIdentifier: message.identifier, messageTargetContext: null });
 
