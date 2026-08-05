@@ -25,6 +25,31 @@ describe('effectParticles()', () => {
     }
   });
 
+  it('煙で画面を沈めないこと', () => {
+    // 煙は canvas 全体へ広がるので、規模なりに大きく濃くすると画面そのものが暗く落ちる。
+    // 対象が複数いれば canvas も重なるため、1 枚あたりの暗さを抑えておく必要がある。
+    const darkestSmoke = (kind: EffectKind, scale: number): number => {
+      const preset = makePreset(kind);
+      preset.grade = 3;
+      preset.scale = scale;
+      let worst = 0;
+      for (let step = 1; step < 20; step++) {
+        const layer = effectParticles(preset, 7, step / 20, base * scale);
+        const covered = layer.particles
+          .filter((particle) => particle.shape === 'smoke')
+          .reduce((sum, particle) => sum + Math.PI * (particle.size / 2) ** 2 * particle.alpha, 0);
+        worst = Math.max(worst, covered / (layer.width * layer.height));
+      }
+      return worst;
+    };
+
+    // 爆発は閃光が主役。煙で覆うものではない。
+    expect(darkestSmoke('nova', 1.8)).toBeLessThan(0.2);
+    expect(darkestSmoke('burst', 1.4)).toBeLessThan(0.2);
+    // 煙そのものが主役の種類でも、覆いきらない範囲に収める。
+    for (const kind of EFFECT_KINDS) expect(darkestSmoke(kind, 1.9)).toBeLessThan(0.45);
+  });
+
   it('ブレスは届くまで対象側に何も出さないこと', () => {
     // 吹き付ける前から燃えていると嘘になる。
     expect(effectParticles(makePreset('breath'), 7, 0.1, base).particles).toHaveLength(0);

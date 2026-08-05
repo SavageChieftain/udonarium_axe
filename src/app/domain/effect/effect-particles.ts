@@ -311,6 +311,8 @@ function emitExplosion(
     });
   }
 
+  // 煙は爆発を大きく見せるが、濃さと大きさを規模なりに増やすと画面そのものが暗く沈む。
+  // 数と広がりだけを規模で増やし、1 粒の濃さは規模に依らず薄いままにする。
   const smokes = Math.round(9 * power);
   for (let index = 0; index < smokes; index++) {
     const angle = random() * Math.PI * 2;
@@ -320,11 +322,11 @@ function emitExplosion(
     particles.push({
       x: Math.cos(angle) * base * (0.4 + local * 1.5) * power,
       y: -base * 0.6 + Math.sin(angle) * base * 0.5 - base * local * 1.6 * power,
-      size: base * (0.9 + local * 1.6) * power,
+      size: base * (0.7 + local * 1.1) * (0.75 + power * 0.25),
       angle: 0,
       stretch: 1,
-      color: '#2b2320',
-      alpha: fadeInOut(local, 0.3) * 0.3,
+      color: '#453a32',
+      alpha: fadeInOut(local, 0.3) * 0.11,
       shape: 'smoke',
     });
   }
@@ -759,18 +761,19 @@ function emitEngulf(
       });
     }
 
-    // 火球を包む黒煙。輪郭が出ることで「覆われている」ことが読める。
+    // 火球を包む煙。輪郭が出ることで「覆われている」ことが読める。
+    // 規模なりに大きく黒くすると、包むのを通り越して画面が沈む。
     for (let index = 0; index < 8; index++) {
       const angle = random() * Math.PI * 2;
       const radius = base * (0.9 + random() * 0.7) * power * (0.6 + swallow * 0.8);
       particles.push({
         x: Math.cos(angle) * radius,
         y: bodyY + Math.sin(angle) * radius * 0.6,
-        size: base * (1.4 + random() * 0.8) * power,
+        size: base * (1.1 + random() * 0.6) * (0.8 + power * 0.3),
         angle: 0,
         stretch: 1,
-        color: '#241c19',
-        alpha: hold * 0.4 * swallow,
+        color: '#3b2f28',
+        alpha: hold * 0.24 * swallow,
         shape: 'smoke',
       });
     }
@@ -830,11 +833,11 @@ function emitMushroom(
       particles.push({
         x: Math.cos(around) * (ringRadius + Math.cos(roll) * tube),
         y: -base * (3.6 + cap * 1.4) + Math.sin(around) * ringRadius * 0.4 + Math.sin(roll) * tube * 0.7,
-        size: base * (1.2 + random() * 0.9),
+        size: base * (1 + random() * 0.7),
         angle: 0,
         stretch: 1,
-        color: cap < 0.35 ? flameColor(cap + 0.2, ramp) : '#3a2c25',
-        alpha: (1 - cap * 0.85) * 0.55,
+        color: cap < 0.35 ? flameColor(cap + 0.2, ramp) : '#4a3a30',
+        alpha: (1 - cap * 0.85) * (cap < 0.3 ? 0.55 : 0.2),
         shape: cap < 0.3 ? 'glow' : 'smoke',
       });
     }
@@ -849,11 +852,11 @@ function emitMushroom(
       particles.push({
         x: Math.cos(angle) * distance,
         y: Math.sin(angle) * distance * 0.4 - base * 0.2,
-        size: base * (1 + skirt * 1.6),
+        size: base * (0.8 + skirt * 1.2),
         angle: 0,
         stretch: 1,
-        color: '#4a3b32',
-        alpha: fadeInOut(skirt, 0.25) * 0.34,
+        color: '#5a4a3e',
+        alpha: fadeInOut(skirt, 0.25) * 0.16,
         shape: 'smoke',
       });
     }
