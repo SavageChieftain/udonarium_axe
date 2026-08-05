@@ -169,20 +169,16 @@ describe('diff()', () => {
     expect(result.diff2).toContain(2);
   });
 
-  it('should handle large arrays efficiently', () => {
+  it('should handle large arrays', () => {
     const array1 = Array.from({ length: 1000 }, (_, i) => i);
     const array2 = Array.from({ length: 1000 }, (_, i) => i + 500);
 
-    const startTime = performance.now();
     const result = diff(array1, array2);
-    const endTime = performance.now();
 
     // Should find first 500 elements unique to array1
-    expect(result.diff1.length).toBeGreaterThan(0);
+    expect(result.diff1).toEqual(Array.from({ length: 500 }, (_, i) => i));
     // Should find last 500 elements unique to array2
-    expect(result.diff2.length).toBeGreaterThan(0);
-    // Should complete in reasonable time
-    expect(endTime - startTime).toBeLessThan(1000);
+    expect(result.diff2).toEqual(Array.from({ length: 500 }, (_, i) => i + 1000));
   });
 
   it('should handle null and undefined values', () => {

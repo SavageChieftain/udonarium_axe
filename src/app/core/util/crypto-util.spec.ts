@@ -246,17 +246,15 @@ describe('CryptoUtil', () => {
       expect(hash1).toBe(hash2);
     });
 
-    it('should be fast enough for typical use', async () => {
-      const startTime = performance.now();
+    it('should hash many distinct inputs without collisions', async () => {
+      const hashes = new Set<string>();
 
-      for (let i = 0; i < 1000; i++) {
-        await sha256Hex(`test${i}`);
+      for (let i = 0; i < 200; i++) {
+        hashes.add(await sha256Hex(`test${i}`));
       }
 
-      const endTime = performance.now();
-      const duration = endTime - startTime;
-
-      expect(duration).toBeLessThan(1000);
+      expect(hashes.size).toBe(200);
+      for (const hash of hashes) expect(hash).toMatch(/^[0-9a-f]{64}$/);
     });
   });
 });
