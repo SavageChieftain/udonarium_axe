@@ -1,5 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, effect, inject, input, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { EffectCastService } from '@axe/application/effect/effect-cast.service';
+import { EffectLibraryService } from '@axe/application/effect/effect-library.service';
 import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { RolePermissionService } from '@axe/application/permission/role-permission.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
@@ -89,6 +91,8 @@ export class GameDataElementComponent {
   private readonly t = inject(TRANSLATE_FN);
   private readonly panelService = inject(PanelService);
   private readonly rangeShapeInvoke = inject(RangeShapeInvokeService);
+  private readonly effectLibrary = inject(EffectLibraryService);
+  private readonly effectCast = inject(EffectCastService);
   private readonly rolePermission = inject(RolePermissionService);
 
   readonly isReadOnly = computed(() => {
@@ -458,7 +462,17 @@ export class GameDataElementComponent {
     { type: DataElementFieldType.CALC, label: this.t('feature.dataElement.fieldType.calc') },
     { type: DataElementFieldType.IMAGE, label: this.t('feature.dataElement.fieldType.image') },
     { type: DataElementFieldType.RANGE_SHAPE, label: this.t('feature.dataElement.fieldType.rangeShape') },
+    { type: DataElementFieldType.EFFECT, label: this.t('feature.dataElement.fieldType.effect') },
   ];
+
+  /** 演出の選択肢。名前で持つので、部屋をまたいでも同じ行が使える。 */
+  readonly effectNames = computed<string[]>(() => this.effectLibrary.presets().map((preset) => preset.name));
+
+  protected invokeEffect(): void {
+    const preset = this.effectLibrary.findByName(String(this.currentValue ?? ''));
+    const character = this.findOwningCharacter();
+    if (preset && character) this.effectCast.fireFromCharacter(preset, character);
+  }
 
   selectIcon(name: string): void {
     this.icon = name;

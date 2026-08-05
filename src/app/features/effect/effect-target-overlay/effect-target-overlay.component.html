@@ -1,0 +1,10 @@
+@if (area(); as areaShape) {
+  <div [ngStyle]="areaStyle(areaShape)"></div>
+}
+@for (link of links(); track link.identifier) {
+  <div [ngStyle]="linkStyle(link)"></div>
+}
+@for (mark of marks(); track mark.identifier) {
+  <div [ngStyle]="markStyle(mark)"></div>
+  <div [ngStyle]="badgeStyle(mark)">{{ mark.order }}</div>
+}

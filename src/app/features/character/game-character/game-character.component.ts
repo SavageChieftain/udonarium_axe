@@ -13,6 +13,9 @@ import {
   untracked,
   viewChild,
 } from '@angular/core';
+import { EffectAutoPlayService } from '@axe/application/effect/effect-auto-play.service';
+import { EffectCastService } from '@axe/application/effect/effect-cast.service';
+import { EffectLibraryService } from '@axe/application/effect/effect-library.service';
 import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { GameObjectInventoryService } from '@axe/application/inventory/game-object-inventory.service';
 import { DisclosureService } from '@axe/application/permission/disclosure.service';
@@ -125,6 +128,9 @@ export class GameCharacterComponent {
   private readonly destroyRef = inject(DestroyRef);
   private readonly translateFn = inject(TRANSLATE_FN);
   private readonly rangeShapeInvoke = inject(RangeShapeInvokeService);
+  private readonly effectLibrary = inject(EffectLibraryService);
+  private readonly effectCast = inject(EffectCastService);
+  private readonly effectAutoPlay = inject(EffectAutoPlayService);
   private readonly rolePermission = inject(RolePermissionService);
   private readonly disclosureService = inject(DisclosureService);
   private readonly visionService = inject(VisionService);
@@ -684,6 +690,7 @@ export class GameCharacterComponent {
         onSelectBuffView: (mode: string) => this.buffViewMode.set(mode as BuffViewMode),
         onShowLightSettings: () => this.showLightSettings(char),
         onInvokeRangeShape: (value) => this.rangeShapeInvoke.spawnForCharacter(char, value),
+        onInvokeEffect: (name) => this.invokeEffect(char, name),
       },
       this.translateFn,
       overlapEntries,
@@ -703,6 +710,9 @@ export class GameCharacterComponent {
     const kind = entries.some((entry) => entry.kind === 'damage') ? 'damage' : 'heal';
     this.hitFlash.set(kind);
     SoundEffect.playLocal(resourceChangeSound(kind, loudestChangeRatio(entries)));
+
+    const char = this.gameCharacter();
+    if (char) this.effectAutoPlay.play(char, entries);
 
     const flashTimer = setTimeout(
       () => {
@@ -760,6 +770,12 @@ export class GameCharacterComponent {
 
   private adjustMinBounds(value: number, min: number = 0): number {
     return value < min ? min : value;
+  }
+
+  /** キャラクターシートに登録した演出を撃つ。名前で引くので部屋をまたいでも同じ行が使える。 */
+  private invokeEffect(char: GameCharacter, name: string): void {
+    const preset = this.effectLibrary.findByName(name);
+    if (preset) this.effectCast.fireFromCharacter(preset, char);
   }
 
   private showDetail(gameObject: GameCharacter) {

@@ -38,6 +38,7 @@ import { GameCharacterSheetComponent } from '@axe/features/character/game-charac
 import { ImportCharacterComponent } from '@axe/features/character/import-character/import-character.component';
 import { ChatPortraitImageComponent } from '@axe/features/chat/chat-portrait-img/chat-portrait-img.component';
 import { ChatWindowComponent } from '@axe/features/chat/chat-window/chat-window.component';
+import { EffectChatEventHandlerService } from '@axe/features/effect/effect-chat-event-handler.service';
 import { FileStorageComponent } from '@axe/features/file/file-storage/file-storage.component';
 import { GameObjectListPanelComponent } from '@axe/features/gm-object-list/game-object-list-panel.component';
 import { GmToolbarComponent } from '@axe/features/gm-tools/gm-toolbar/gm-toolbar.component';
@@ -140,6 +141,7 @@ export class AppComponent {
     // 各サービスは @Injectable({ providedIn: 'root' }) で自身の constructor 内で購読を開始するため、
     // ここでは inject() の戻り値を保持する必要はない（副作用のみ目的）。
     inject(AlarmEventHandlerService);
+    inject(EffectChatEventHandlerService);
     inject(VoteEventHandlerService);
     inject(CutInEventHandlerService);
     inject(NetworkEventHandlerService);

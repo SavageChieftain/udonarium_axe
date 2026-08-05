@@ -33,6 +33,22 @@ export function collectRegisteredRangeShapes(char: GameCharacter): RegisteredRan
   return result;
 }
 
+/** キャラクターシートに登録された演出。技能行・バフ行から直接撃てるようにする。 */
+export function collectRegisteredEffects(char: GameCharacter): string[] {
+  const names: string[] = [];
+  const walk = (element: DataElement): void => {
+    if (element.fieldType === DataElementFieldType.EFFECT) {
+      const name = String(element.currentValue ?? '').trim();
+      if (name.length > 0 && !names.includes(name)) names.push(name);
+    }
+    for (const child of element.children) walk(child);
+  };
+  for (const child of char.children) {
+    if (child instanceof DataElement) walk(child);
+  }
+  return names;
+}
+
 const BUFF_VIEW_MENU_MODES = ['icon', 'detail', 'count'] as const;
 
 function capitalize(value: string): string {
@@ -51,12 +67,14 @@ export function buildGameCharacterContextMenu(
     onSelectBuffView?: (mode: string) => void;
     onShowLightSettings: () => void;
     onInvokeRangeShape?: (value: RangeShapeFieldValue) => void;
+    onInvokeEffect?: (name: string) => void;
   },
   t: TranslateFn,
   overlapEntries: ContextMenuAction[] = [],
   buffViewMode = 'icon'
 ): ContextMenuAction[] {
   const registeredShapes = callbacks.onInvokeRangeShape ? collectRegisteredRangeShapes(char) : [];
+  const registeredEffects = callbacks.onInvokeEffect ? collectRegisteredEffects(char) : [];
 
   // 1. 開く / 確認
   const openActions: ContextMenuAction[] = [
@@ -101,6 +119,20 @@ export function buildGameCharacterContextMenu(
               name: shape.label || t('feature.range.custom.unnamedShape', { index: index + 1 }),
               action: () => {
                 callbacks.onInvokeRangeShape?.(shape.value);
+              },
+            })),
+          } as ContextMenuAction,
+        ]
+      : []),
+    ...(registeredEffects.length > 0 && callbacks.onInvokeEffect
+      ? [
+          {
+            name: t('feature.character.contextMenu.invokeEffect'),
+            action: undefined,
+            subActions: registeredEffects.map((name) => ({
+              name,
+              action: () => {
+                callbacks.onInvokeEffect?.(name);
               },
             })),
           } as ContextMenuAction,

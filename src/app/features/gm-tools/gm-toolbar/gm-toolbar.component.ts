@@ -21,6 +21,7 @@ import { GameCharacter } from '@axe/domain/character/game-character';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { findOrphanedOwnership } from '@axe/domain/tabletop/ownership';
 import { HandRailService } from '@axe/features/card/hand-rail/hand-rail.service';
+import { EffectLibraryPanelComponent } from '@axe/features/effect/effect-library-panel/effect-library-panel.component';
 import { GameObjectListPanelComponent } from '@axe/features/gm-object-list/game-object-list-panel.component';
 import { NpcBarComponent } from '@axe/features/gm-tools/npc-bar/npc-bar.component';
 import { NpcBarService } from '@axe/features/gm-tools/npc-bar/npc-bar.service';
@@ -135,6 +136,16 @@ export class GmToolbarComponent {
       left: 120,
       top: 60,
       title: this.t('feature.gmTools.party.title'),
+    });
+  }
+
+  protected openEffectLibrary(): void {
+    this.panelService.open(EffectLibraryPanelComponent, {
+      width: 360,
+      height: 480,
+      left: 140,
+      top: 80,
+      title: this.t('feature.effect.panelTitle'),
     });
   }
 

@@ -11,6 +11,8 @@ import {
   viewChild,
 } from '@angular/core';
 import { CardTargetService } from '@axe/application/card/card-target.service';
+import { EffectPlaybackService } from '@axe/application/effect/effect-playback.service';
+import { EffectTargetingService } from '@axe/application/effect/effect-targeting.service';
 import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { ImageService } from '@axe/application/storage/image.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
@@ -41,6 +43,8 @@ import { GameCharacterComponent } from '@axe/features/character/game-character/g
 import { GameCharacterGeneratorComponent } from '@axe/features/character/game-character-generator/game-character-generator.component';
 import { CoinComponent } from '@axe/features/coin/coin/coin.component';
 import { DiceSymbolComponent } from '@axe/features/dice/dice-symbol/dice-symbol.component';
+import { EffectTargetOverlayComponent } from '@axe/features/effect/effect-target-overlay/effect-target-overlay.component';
+import { TableEffectOverlayComponent } from '@axe/features/effect/table-effect-overlay/table-effect-overlay.component';
 import { PeerCursorComponent } from '@axe/features/lobby/peer-cursor/peer-cursor.component';
 import { beamTopGridGeometry, beamWallFaceGrid } from '@axe/features/tabletop/game-table/beam-top-grid';
 import { GameTableGestureService } from '@axe/features/tabletop/game-table/game-table-gesture.service';
@@ -69,6 +73,13 @@ import {
 import { TooltipDirective } from '@axe/ui/directives/tooltip.directive';
 import { SafePipe } from '@axe/ui/pipes/safe.pipe';
 import { TranslocoModule } from '@jsverse/transloco';
+
+/** 入力欄で打っている最中かどうか。盤面のキー操作が横取りしないための判定。 */
+function isEditableTarget(target: EventTarget | null): boolean {
+  if (!(target instanceof HTMLElement)) return false;
+  if (target.isContentEditable) return true;
+  return ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName);
+}
 
 interface ActiveWall {
   surface: TableSurface;
@@ -125,6 +136,8 @@ interface BeamWallGrid {
     TableVisionOverlayComponent,
     TableBeamOverlayComponent,
     TableTargetOverlayComponent,
+    TableEffectOverlayComponent,
+    EffectTargetOverlayComponent,
     CoinComponent,
     TranslocoModule,
     LightSourceComponent,
@@ -136,6 +149,9 @@ interface BeamWallGrid {
     '(document:touchstart)': 'onDocumentTouchStart($event)',
     '(document:contextmenu)': 'onDocumentContextMenu($event)',
     '(document:keydown.escape)': 'onEscapeKey($event)',
+    '(document:keydown.enter)': 'onEnterKey($event)',
+    '[class.animate-effect-shake]': 'screenShake() > 0',
+    '[style.--effect-shake]': "screenShake() + 'px'",
   },
 })
 export class GameTableComponent {
@@ -151,6 +167,8 @@ export class GameTableComponent {
   private readonly objectStore = inject(ObjectStore);
   private readonly selectionSignalService = inject(SelectionSignalService);
   private readonly cardTargetService = inject(CardTargetService);
+  private readonly effectTargetingService = inject(EffectTargetingService);
+  private readonly effectPlaybackService = inject(EffectPlaybackService);
   private readonly mobileLayout = inject(MobileLayoutService);
   private readonly uiSignalService = inject(UiSignalService);
   private readonly objectChangeService = inject(ObjectChangeService);
@@ -688,11 +706,24 @@ export class GameTableComponent {
       e.preventDefault();
   }
 
+  /** 演出の衝撃。盤面ごと揺らすので、3D の入れ子の外側で受ける。 */
+  readonly screenShake = computed(() => this.effectPlaybackService.shake());
+  readonly screenFlash = computed(() => this.effectPlaybackService.flash());
+
   readonly isPickingTarget = computed(() => this.cardTargetService.isPicking());
+  readonly isPickingEffectTarget = computed(() => this.effectTargetingService.isPicking());
 
   onEscapeKey(_e: Event) {
+    if (this.effectTargetingService.cancel()) return;
     if (this.cardTargetService.cancelPicking()) return;
     this.selectionSignalService.clearSelection();
+  }
+
+  /** 対象選択中の決定。入力欄で打っている最中は横取りしない。 */
+  onEnterKey(event: Event) {
+    if (!this.effectTargetingService.isPicking() || isEditableTarget(event.target)) return;
+    event.preventDefault();
+    this.effectTargetingService.confirm();
   }
 
   private wallFaceFor(surface: TableSurface): WallFace | null {

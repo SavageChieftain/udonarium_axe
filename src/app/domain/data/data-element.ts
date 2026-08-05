@@ -40,6 +40,7 @@ export const DataElementFieldType = {
   IMAGE: 'image',
   CALC: 'calc',
   RANGE_SHAPE: 'rangeShape',
+  EFFECT: 'effect',
 } as const;
 
 export type DataElementFieldTypeValue = (typeof DataElementFieldType)[keyof typeof DataElementFieldType];

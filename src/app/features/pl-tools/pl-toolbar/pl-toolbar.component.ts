@@ -22,6 +22,7 @@ import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { PeerRole } from '@axe/domain/peer/peer-role';
 import { HandRailService } from '@axe/features/card/hand-rail/hand-rail.service';
+import { EffectLibraryPanelComponent } from '@axe/features/effect/effect-library-panel/effect-library-panel.component';
 import { ActiveCharacterService } from '@axe/features/pl-tools/active-character.service';
 import { CharacterPanelService } from '@axe/features/pl-tools/character-panel.service';
 import { OwnedCharacterListPanelComponent } from '@axe/features/pl-tools/owned-character-list/owned-character-list-panel.component';
@@ -142,6 +143,16 @@ export class PlToolbarComponent {
       left: 100,
       top: 40,
       title: this.t('common.panel.ownedCharacters'),
+    });
+  }
+
+  protected openEffectLibrary(): void {
+    this.panelService.open(EffectLibraryPanelComponent, {
+      width: 360,
+      height: 480,
+      left: 140,
+      top: 80,
+      title: this.t('feature.effect.panelTitle'),
     });
   }
 }

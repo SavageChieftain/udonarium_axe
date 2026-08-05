@@ -8,6 +8,8 @@ import { GameCharacter } from '@axe/domain/character/game-character';
 import { Coin } from '@axe/domain/coin/coin';
 import { DiceSymbol } from '@axe/domain/dice/dice-symbol';
 import { DiceTable } from '@axe/domain/dice/dice-table';
+import { EffectField } from '@axe/domain/effect/effect-field';
+import { EffectPreset } from '@axe/domain/effect/effect-preset';
 import { CutIn } from '@axe/domain/media/cut-in';
 import { Party } from '@axe/domain/party/party';
 import { ReloadCheck } from '@axe/domain/peer/reload-check';
@@ -49,6 +51,8 @@ export class Room extends GameObject implements InnerXml {
       ...ObjectStore.instance.getObjects(Coin),
       ...ObjectStore.instance.getObjects(CutIn),
       ...ObjectStore.instance.getObjects(DiceTable),
+      ...ObjectStore.instance.getObjects(EffectPreset),
+      ...ObjectStore.instance.getObjects(EffectField),
     ];
 
     for (const object of objects) {
@@ -74,6 +78,8 @@ export class Room extends GameObject implements InnerXml {
       ...ObjectStore.instance.getObjects(Coin),
       ...ObjectStore.instance.getObjects(CutIn),
       ...ObjectStore.instance.getObjects(DiceTable),
+      ...ObjectStore.instance.getObjects(EffectPreset),
+      ...ObjectStore.instance.getObjects(EffectField),
     ];
 
     const reLoadOk = this.reloadCheck.answerCheck();

@@ -1,0 +1,348 @@
+@let target = preset();
+@if (!target) {
+  <div class="text-ui-dim flex h-full items-center justify-center p-6 text-[13px]">
+    {{ 'feature.effect.editorMissing' | transloco }}
+  </div>
+} @else {
+  <div class="text-ui-text bg-ui-elevated flex h-full flex-col gap-3 overflow-y-auto px-3.5 py-3 text-[13px]">
+    <div class="flex items-center gap-2">
+      <span class="size-7 shrink-0" [innerHTML]="glyph() | safe: 'html'"></span>
+      <input
+        class="bg-ui-input border-ui-border-panel text-ui-text rounded-ui-sm focus:border-ui-accent min-w-0 flex-1 border border-solid px-2 py-1.25 text-[13px] outline-none"
+        name="effect-name"
+        [ngModel]="target.name"
+        (ngModelChange)="edit('name', $event)"
+        [placeholder]="'feature.effect.nameLabel' | transloco"
+      />
+      <button
+        class="bg-ui-input border-ui-border-panel text-ui-text hover:bg-ui-hover hover:border-ui-accent rounded-ui-sm inline-flex cursor-pointer items-center gap-1 border border-solid px-2 py-1 text-[12px] [&_.material-icons]:text-[15px]!"
+        type="button"
+        (click)="preview()"
+      >
+        <i class="material-icons">play_arrow</i>{{ 'feature.effect.preview' | transloco }}
+      </button>
+    </div>
+
+    @if (notice()) {
+      <p class="text-ui-muted m-0 text-[11px]">{{ notice() }}</p>
+    }
+
+    <fieldset class="border-ui-border-panel m-0 flex flex-col gap-2 rounded-sm border border-solid p-2.5">
+      <legend class="text-ui-muted px-1 text-[11px] font-semibold tracking-wider">
+        {{ 'feature.effect.sectionLook' | transloco }}
+      </legend>
+
+      <label class="flex items-center gap-2">
+        <span class="text-ui-muted w-20 shrink-0 text-[11px]">{{ 'feature.effect.kindLabel' | transloco }}</span>
+        <select
+          class="bg-ui-input border-ui-border-panel text-ui-text rounded-ui-sm min-w-0 flex-1 border border-solid px-2 py-1 text-[12px] outline-none"
+          name="effect-kind"
+          [ngModel]="target.kind"
+          (ngModelChange)="edit('kind', $event)"
+        >
+          @for (kind of kinds; track kind) {
+            <option [value]="kind">{{ kindLabel(kind) }}</option>
+          }
+        </select>
+      </label>
+
+      <label class="flex items-center gap-2">
+        <span class="text-ui-muted w-20 shrink-0 text-[11px]">{{ 'feature.effect.tagLabel' | transloco }}</span>
+        <input
+          class="bg-ui-input border-ui-border-panel text-ui-text rounded-ui-sm min-w-0 flex-1 border border-solid px-2 py-1 text-[12px] outline-none"
+          name="effect-tag"
+          list="effect-tag-options"
+          [ngModel]="target.tagName"
+          (ngModelChange)="edit('tagName', $event)"
+        />
+        <datalist id="effect-tag-options">
+          @for (tag of tagOptions(); track tag) {
+            <option [value]="tag"></option>
+          }
+        </datalist>
+      </label>
+
+      <label class="flex items-center gap-2">
+        <span class="text-ui-muted w-20 shrink-0 text-[11px]">{{ 'feature.effect.gradeLabel' | transloco }}</span>
+        <select
+          class="bg-ui-input border-ui-border-panel text-ui-text rounded-ui-sm min-w-0 flex-1 border border-solid px-2 py-1 text-[12px] outline-none"
+          name="effect-grade"
+          [ngModel]="target.grade"
+          (ngModelChange)="edit('grade', $event)"
+        >
+          @for (grade of grades; track grade) {
+            <option [ngValue]="grade">{{ gradeLabel(grade) }}</option>
+          }
+        </select>
+      </label>
+
+      <div class="flex items-center gap-2">
+        <span class="text-ui-muted w-20 shrink-0 text-[11px]">{{ 'feature.effect.colorLabel' | transloco }}</span>
+        <input
+          class="border-ui-border-panel size-7 cursor-pointer rounded-sm border border-solid bg-transparent p-0"
+          type="color"
+          name="effect-color-primary"
+          [ngModel]="target.colorPrimary"
+          (ngModelChange)="edit('colorPrimary', $event)"
+          [title]="'feature.effect.colorPrimary' | transloco"
+        />
+        <input
+          class="border-ui-border-panel size-7 cursor-pointer rounded-sm border border-solid bg-transparent p-0"
+          type="color"
+          name="effect-color-secondary"
+          [ngModel]="target.colorSecondary"
+          (ngModelChange)="edit('colorSecondary', $event)"
+          [title]="'feature.effect.colorSecondary' | transloco"
+        />
+        <span
+          class="border-ui-border-panel h-7 flex-1 rounded-sm border border-solid"
+          [style.background]="'linear-gradient(90deg,' + target.colorPrimary + ',' + target.colorSecondary + ')'"
+        ></span>
+      </div>
+
+      <label class="flex items-center gap-2">
+        <span class="text-ui-muted w-20 shrink-0 text-[11px]">{{ 'feature.effect.scaleLabel' | transloco }}</span>
+        <input
+          class="flex-1"
+          type="range"
+          name="effect-scale"
+          min="0.2"
+          max="4"
+          step="0.1"
+          [ngModel]="target.scale"
+          (ngModelChange)="editNumber('scale', $event)"
+        />
+        <span class="text-ui-dim w-10 text-right text-[11px]">{{ target.sizeScale.toFixed(1) }}</span>
+      </label>
+
+      <label class="flex items-center gap-2">
+        <span class="text-ui-muted w-20 shrink-0 text-[11px]">{{ 'feature.effect.durationLabel' | transloco }}</span>
+        <input
+          class="bg-ui-input border-ui-border-panel text-ui-text rounded-ui-sm w-24 border border-solid px-2 py-1 text-[12px] outline-none"
+          type="number"
+          name="effect-duration"
+          min="120"
+          max="6000"
+          step="50"
+          [ngModel]="target.durationMs"
+          (ngModelChange)="editNumber('durationMs', $event)"
+        />
+        <span class="text-ui-dim text-[11px]">ms</span>
+      </label>
+
+      <label class="flex items-center gap-2">
+        <span class="text-ui-muted w-20 shrink-0 text-[11px]">{{ 'feature.effect.staggerLabel' | transloco }}</span>
+        <input
+          class="bg-ui-input border-ui-border-panel text-ui-text rounded-ui-sm w-24 border border-solid px-2 py-1 text-[12px] outline-none"
+          type="number"
+          name="effect-stagger"
+          min="0"
+          max="2000"
+          step="10"
+          [ngModel]="target.staggerMs"
+          (ngModelChange)="editNumber('staggerMs', $event)"
+        />
+        <span class="text-ui-dim text-[11px]">ms</span>
+      </label>
+    </fieldset>
+
+    <fieldset class="border-ui-border-panel m-0 flex flex-col gap-2 rounded-sm border border-solid p-2.5">
+      <legend class="text-ui-muted px-1 text-[11px] font-semibold tracking-wider">
+        {{ 'feature.effect.sectionTarget' | transloco }}
+      </legend>
+
+      <label class="flex items-center gap-2">
+        <span class="text-ui-muted w-20 shrink-0 text-[11px]">{{ 'feature.effect.targetingLabel' | transloco }}</span>
+        <select
+          class="bg-ui-input border-ui-border-panel text-ui-text rounded-ui-sm min-w-0 flex-1 border border-solid px-2 py-1 text-[12px] outline-none"
+          name="effect-targeting"
+          [ngModel]="target.targeting"
+          (ngModelChange)="edit('targeting', $event)"
+        >
+          @for (targeting of targetings; track targeting) {
+            <option [value]="targeting">{{ targetingLabel(targeting) }}</option>
+          }
+        </select>
+      </label>
+
+      @if (showsTargetLimit()) {
+        <label class="flex items-center gap-2">
+          <span class="text-ui-muted w-20 shrink-0 text-[11px]">{{
+            'feature.effect.areaRadiusLabel' | transloco
+          }}</span>
+          <input
+            class="bg-ui-input border-ui-border-panel text-ui-text rounded-ui-sm w-24 border border-solid px-2 py-1 text-[12px] outline-none"
+            type="number"
+            name="effect-area-radius"
+            min="0"
+            max="12"
+            [ngModel]="target.areaRadius"
+            (ngModelChange)="editNumber('areaRadius', $event)"
+          />
+          <span class="text-ui-dim text-[11px]">{{ 'feature.effect.areaRadiusHint' | transloco }}</span>
+        </label>
+      }
+      @if (showsTargetLimit()) {
+        <label class="flex items-center gap-2">
+          <span class="text-ui-muted w-20 shrink-0 text-[11px]">{{
+            'feature.effect.maxTargetsLabel' | transloco
+          }}</span>
+          <input
+            class="bg-ui-input border-ui-border-panel text-ui-text rounded-ui-sm w-24 border border-solid px-2 py-1 text-[12px] outline-none"
+            type="number"
+            name="effect-max-targets"
+            min="1"
+            max="20"
+            [ngModel]="target.maxTargets"
+            (ngModelChange)="editNumber('maxTargets', $event)"
+          />
+        </label>
+      }
+
+      <label class="flex items-center gap-2 text-[12px]">
+        <input
+          type="checkbox"
+          name="effect-follow"
+          [ngModel]="target.followTarget"
+          (ngModelChange)="edit('followTarget', $event)"
+        />
+        {{ 'feature.effect.followTarget' | transloco }}
+      </label>
+
+      <label class="flex items-center gap-2 text-[12px]">
+        <input
+          type="checkbox"
+          name="effect-gm-only"
+          [ngModel]="target.gmOnly"
+          (ngModelChange)="edit('gmOnly', $event)"
+        />
+        {{ 'feature.effect.gmOnly' | transloco }}
+      </label>
+    </fieldset>
+
+    @if (showsProjectile() || showsSlash() || showsShots() || showsImpactKind()) {
+      <fieldset class="border-ui-border-panel m-0 flex flex-col gap-2 rounded-sm border border-solid p-2.5">
+        <legend class="text-ui-muted px-1 text-[11px] font-semibold tracking-wider">
+          {{ 'feature.effect.sectionKind' | transloco }}
+        </legend>
+
+        @if (showsProjectile()) {
+          <label class="flex items-center gap-2">
+            <span class="text-ui-muted w-20 shrink-0 text-[11px]">{{
+              'feature.effect.projectileStyleLabel' | transloco
+            }}</span>
+            <select
+              class="bg-ui-input border-ui-border-panel text-ui-text rounded-ui-sm min-w-0 flex-1 border border-solid px-2 py-1 text-[12px] outline-none"
+              name="effect-projectile-style"
+              [ngModel]="target.projectileStyle"
+              (ngModelChange)="edit('projectileStyle', $event)"
+            >
+              @for (style of projectileStyles; track style) {
+                <option [value]="style">{{ projectileLabel(style) }}</option>
+              }
+            </select>
+          </label>
+        }
+
+        @if (showsSlash()) {
+          <label class="flex items-center gap-2">
+            <span class="text-ui-muted w-20 shrink-0 text-[11px]">{{
+              'feature.effect.slashStyleLabel' | transloco
+            }}</span>
+            <select
+              class="bg-ui-input border-ui-border-panel text-ui-text rounded-ui-sm min-w-0 flex-1 border border-solid px-2 py-1 text-[12px] outline-none"
+              name="effect-slash-style"
+              [ngModel]="target.slashStyle"
+              (ngModelChange)="edit('slashStyle', $event)"
+            >
+              @for (style of slashStyles; track style) {
+                <option [value]="style">{{ slashLabel(style) }}</option>
+              }
+            </select>
+          </label>
+        }
+
+        @if (showsShots()) {
+          <label class="flex items-center gap-2">
+            <span class="text-ui-muted w-20 shrink-0 text-[11px]">{{ 'feature.effect.shotsLabel' | transloco }}</span>
+            <input
+              class="bg-ui-input border-ui-border-panel text-ui-text rounded-ui-sm w-20 border border-solid px-2 py-1 text-[12px] outline-none"
+              type="number"
+              name="effect-shots"
+              min="1"
+              max="24"
+              [ngModel]="target.shots"
+              (ngModelChange)="editNumber('shots', $event)"
+            />
+            <span class="text-ui-muted text-[11px]">{{ 'feature.effect.shotIntervalLabel' | transloco }}</span>
+            <input
+              class="bg-ui-input border-ui-border-panel text-ui-text rounded-ui-sm w-20 border border-solid px-2 py-1 text-[12px] outline-none"
+              type="number"
+              name="effect-shot-interval"
+              min="0"
+              max="2000"
+              step="10"
+              [ngModel]="target.shotInterval"
+              (ngModelChange)="editNumber('shotInterval', $event)"
+            />
+          </label>
+        }
+
+        @if (showsImpactKind()) {
+          <label class="flex items-center gap-2">
+            <span class="text-ui-muted w-20 shrink-0 text-[11px]">{{
+              'feature.effect.impactKindLabel' | transloco
+            }}</span>
+            <select
+              class="bg-ui-input border-ui-border-panel text-ui-text rounded-ui-sm min-w-0 flex-1 border border-solid px-2 py-1 text-[12px] outline-none"
+              name="effect-impact-kind"
+              [ngModel]="target.impactKind"
+              (ngModelChange)="edit('impactKind', $event)"
+            >
+              <option value="">{{ 'feature.effect.impactKindDefault' | transloco }}</option>
+              @for (kind of kinds; track kind) {
+                <option [value]="kind">{{ kindLabel(kind) }}</option>
+              }
+            </select>
+          </label>
+        }
+      </fieldset>
+    }
+
+    <fieldset class="border-ui-border-panel m-0 flex flex-col gap-2 rounded-sm border border-solid p-2.5">
+      <legend class="text-ui-muted px-1 text-[11px] font-semibold tracking-wider">
+        {{ 'feature.effect.sectionSound' | transloco }}
+      </legend>
+
+      <label class="flex items-center gap-2">
+        <span class="text-ui-muted w-20 shrink-0 text-[11px]">{{ 'feature.effect.soundLabel' | transloco }}</span>
+        <select
+          class="bg-ui-input border-ui-border-panel text-ui-text rounded-ui-sm min-w-0 flex-1 border border-solid px-2 py-1 text-[12px] outline-none"
+          name="effect-sound"
+          [ngModel]="target.soundIdentifier"
+          (ngModelChange)="edit('soundIdentifier', $event)"
+        >
+          <option value="">{{ 'feature.effect.soundNone' | transloco }}</option>
+          @for (sound of sounds(); track sound.identifier) {
+            <option [value]="sound.identifier">{{ sound.name }}</option>
+          }
+        </select>
+      </label>
+
+      <label class="flex items-center gap-2">
+        <span class="text-ui-muted w-20 shrink-0 text-[11px]">{{ 'feature.effect.impactSoundLabel' | transloco }}</span>
+        <select
+          class="bg-ui-input border-ui-border-panel text-ui-text rounded-ui-sm min-w-0 flex-1 border border-solid px-2 py-1 text-[12px] outline-none"
+          name="effect-impact-sound"
+          [ngModel]="target.impactSoundIdentifier"
+          (ngModelChange)="edit('impactSoundIdentifier', $event)"
+        >
+          <option value="">{{ 'feature.effect.soundNone' | transloco }}</option>
+          @for (sound of sounds(); track sound.identifier) {
+            <option [value]="sound.identifier">{{ sound.name }}</option>
+          }
+        </select>
+      </label>
+    </fieldset>
+  </div>
+}

@@ -17,6 +17,8 @@ import { ChatTabList } from '@axe/domain/chat/chat-tab-list';
 import { DataSummarySetting } from '@axe/domain/data/data-summary-setting';
 import { MarkDown } from '@axe/domain/data/mark-down';
 import { DiceBot } from '@axe/domain/dice/dice-bot';
+import { createDefaultEffectPresets } from '@axe/domain/effect/builtin-effect-presets';
+import { EffectPresetSet } from '@axe/domain/effect/effect-preset-set';
 import { AudioTag } from '@axe/domain/media/audio-tag';
 import { CutInLauncher } from '@axe/domain/media/cut-in-launcher';
 import { Jukebox } from '@axe/domain/media/jukebox';
@@ -67,7 +69,14 @@ export class AppInitializationService {
     this.initializeDomainObjects();
     this.initializeChatTabs();
     this.initializeAudioPresets();
+    this.initializeEffectPresets();
     this.initializePeerCursor();
+  }
+
+  private initializeEffectPresets(): void {
+    createDefaultEffectPresets();
+    // 落とされたエフェクト集を読めるよう、入れ物の型を先に登録しておく。
+    void EffectPresetSet;
   }
 
   private initializeDomainObjects(): void {
@@ -143,6 +152,67 @@ export class AppInitializationService {
       unlock: './assets/sounds/tm2/tm2_switch001.wav',
       sweep: './assets/sounds/tm2/tm2_swing003.wav',
       alarm: './assets/sounds/alarm/alarm.mp3',
+
+      fireSmall: './assets/sounds/soundeffect-lab/fire-small.mp3',
+      fireMedium: './assets/sounds/soundeffect-lab/fire-medium.mp3',
+      fireLarge: './assets/sounds/soundeffect-lab/fire-large.mp3',
+      explosionSmall: './assets/sounds/soundeffect-lab/explosion-small.mp3',
+      explosionLarge: './assets/sounds/soundeffect-lab/explosion-large.mp3',
+      explosionHuge: './assets/sounds/soundeffect-lab/explosion-huge.mp3',
+      iceSmall: './assets/sounds/soundeffect-lab/ice-small.mp3',
+      iceMedium: './assets/sounds/soundeffect-lab/ice-medium.mp3',
+      iceLarge: './assets/sounds/soundeffect-lab/ice-large.mp3',
+      thunderSmall: './assets/sounds/soundeffect-lab/thunder-small.mp3',
+      thunderBolt: './assets/sounds/soundeffect-lab/thunder-bolt.mp3',
+      thunderLarge: './assets/sounds/soundeffect-lab/thunder-large.mp3',
+      windSmall: './assets/sounds/soundeffect-lab/wind-small.mp3',
+      windLarge: './assets/sounds/soundeffect-lab/wind-large.mp3',
+      earthUpheaval: './assets/sounds/soundeffect-lab/earth-upheaval.mp3',
+      rockBreak: './assets/sounds/soundeffect-lab/rock-break.mp3',
+      stoneHit: './assets/sounds/soundeffect-lab/stone-hit.mp3',
+      cureSmall: './assets/sounds/soundeffect-lab/cure-small.mp3',
+      cureMedium: './assets/sounds/soundeffect-lab/cure-medium.mp3',
+      cureLarge: './assets/sounds/soundeffect-lab/cure-large.mp3',
+      poison: './assets/sounds/soundeffect-lab/poison.mp3',
+      buff: './assets/sounds/soundeffect-lab/buff.mp3',
+      holy: './assets/sounds/soundeffect-lab/holy.mp3',
+      dark: './assets/sounds/soundeffect-lab/dark.mp3',
+      charge: './assets/sounds/soundeffect-lab/charge.mp3',
+      slashSmall: './assets/sounds/soundeffect-lab/slash-small.mp3',
+      slashCombo: './assets/sounds/soundeffect-lab/slash-combo.mp3',
+      slashLarge: './assets/sounds/soundeffect-lab/slash-large.mp3',
+      bowRelease: './assets/sounds/soundeffect-lab/bow-release.mp3',
+      bowPierce: './assets/sounds/soundeffect-lab/bow-pierce.mp3',
+      gunHandgun: './assets/sounds/soundeffect-lab/gun-handgun.mp3',
+      gunRifle: './assets/sounds/soundeffect-lab/gun-rifle.mp3',
+      breathFire: './assets/sounds/soundeffect-lab/breath-fire.mp3',
+      breathIce: './assets/sounds/soundeffect-lab/breath-ice.mp3',
+      breathPoison: './assets/sounds/soundeffect-lab/breath-poison.mp3',
+      barrier: './assets/sounds/soundeffect-lab/barrier.mp3',
+      reflect: './assets/sounds/soundeffect-lab/reflect.mp3',
+      drain: './assets/sounds/soundeffect-lab/drain.mp3',
+      warp: './assets/sounds/soundeffect-lab/warp.mp3',
+      summon: './assets/sounds/soundeffect-lab/summon.mp3',
+      gravity: './assets/sounds/soundeffect-lab/gravity.mp3',
+      gravityLarge: './assets/sounds/soundeffect-lab/gravity-large.mp3',
+      cleanse: './assets/sounds/soundeffect-lab/cleanse.mp3',
+      qigong: './assets/sounds/soundeffect-lab/qigong.mp3',
+      superArts: './assets/sounds/soundeffect-lab/super-arts.mp3',
+      gunSmg: './assets/sounds/soundeffect-lab/gun-smg.mp3',
+      gunMachinegun: './assets/sounds/soundeffect-lab/gun-machinegun.mp3',
+      slashIai: './assets/sounds/soundeffect-lab/slash-iai.mp3',
+      slashCharged: './assets/sounds/soundeffect-lab/slash-charged.mp3',
+      breathWind: './assets/sounds/soundeffect-lab/breath-wind.mp3',
+      bashSmall: './assets/sounds/soundeffect-lab/bash-small.mp3',
+      bashMedium: './assets/sounds/soundeffect-lab/bash-medium.mp3',
+      bashLarge: './assets/sounds/soundeffect-lab/bash-large.mp3',
+      bashFinish: './assets/sounds/soundeffect-lab/bash-finish.mp3',
+      statusSleep: './assets/sounds/soundeffect-lab/status-sleep.mp3',
+      statusBind: './assets/sounds/soundeffect-lab/status-bind.mp3',
+      statusCurse: './assets/sounds/soundeffect-lab/status-curse.mp3',
+      statusPetrify: './assets/sounds/soundeffect-lab/status-petrify.mp3',
+      statusCure: './assets/sounds/soundeffect-lab/status-cure.mp3',
+      beamSmall: './assets/sounds/soundeffect-lab/beam-small.mp3',
     };
 
     for (const key of Object.keys(soundMap) as SoundKey[]) {

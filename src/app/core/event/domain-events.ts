@@ -70,11 +70,17 @@ export interface LoadConfigEvent {
   config: unknown;
 }
 
+export interface EffectCastEvent {
+  cast: unknown;
+}
+
 export const sendMessage$ = new EventChannel<SendMessageEvent>();
 export const diceTableMessage$ = new EventChannel<DiceTableMessageEvent>();
 export const resourceEditMessage$ = new EventChannel<ResourceEditMessageEvent>();
 export const domainPeerDisconnect$ = new EventChannel<DomainPeerDisconnectEvent>();
 export const soundEffect$ = new EventChannel<string>();
+
+export const effectCast$ = new EventChannel<EffectCastEvent>();
 
 export const selectGameTable$ = new EventChannel<SelectGameTableEvent>();
 export const updateAudioResource$ = new EventChannel<void>();
@@ -194,6 +200,10 @@ export function callSoundEffect(identifier: string) {
   networkSend('SOUND_EFFECT', identifier);
 }
 
+export function callEffectCast(cast: unknown) {
+  networkSend('EFFECT_CAST', cast);
+}
+
 export function callWritingAMessage(tabIdentifier: string, sendTo?: string | null, speakerIdentifier?: string | null) {
   networkSend('WRITING_A_MESSAGE', tabIdentifier, sendTo ?? undefined);
   if (speakerIdentifier) {
@@ -231,6 +241,9 @@ networkMessage$.subscribe((msg) => {
       break;
     case 'SOUND_EFFECT':
       soundEffect$.emit(msg.data as string);
+      break;
+    case 'EFFECT_CAST':
+      effectCast$.emit({ cast: msg.data });
       break;
   }
 });

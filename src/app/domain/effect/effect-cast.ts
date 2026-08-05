@@ -1,0 +1,73 @@
+export interface EffectCastTarget {
+  identifier: string;
+  x: number;
+  y: number;
+  z: number;
+}
+
+export interface EffectCast {
+  presetIdentifier: string;
+  casterIdentifier: string;
+  /** 飛翔体の発射位置。無ければ対象の真上から飛んでくる扱いにする。 */
+  origin: EffectCastPoint | null;
+  targets: EffectCastTarget[];
+  seed: number;
+}
+
+export interface EffectCastPoint {
+  x: number;
+  y: number;
+  z: number;
+}
+
+const MAX_TARGETS_PER_CAST = 32;
+
+export function normalizeEffectCast(raw: unknown): EffectCast | null {
+  if (!raw || typeof raw !== 'object') return null;
+  const source = raw as Record<string, unknown>;
+
+  const presetIdentifier = typeof source['presetIdentifier'] === 'string' ? source['presetIdentifier'] : '';
+  if (presetIdentifier.length < 1) return null;
+
+  const rawTargets = Array.isArray(source['targets']) ? source['targets'] : [];
+  const targets: EffectCastTarget[] = [];
+  for (const rawTarget of rawTargets.slice(0, MAX_TARGETS_PER_CAST)) {
+    const target = normalizeTarget(rawTarget);
+    if (target) targets.push(target);
+  }
+  if (targets.length < 1) return null;
+
+  return {
+    presetIdentifier,
+    casterIdentifier: typeof source['casterIdentifier'] === 'string' ? source['casterIdentifier'] : '',
+    origin: normalizePoint(source['origin']),
+    targets,
+    seed: coerceNumber(source['seed'], 0),
+  };
+}
+
+function normalizePoint(raw: unknown): EffectCastPoint | null {
+  if (!raw || typeof raw !== 'object') return null;
+  const source = raw as Record<string, unknown>;
+  return {
+    x: coerceNumber(source['x'], 0),
+    y: coerceNumber(source['y'], 0),
+    z: coerceNumber(source['z'], 0),
+  };
+}
+
+function normalizeTarget(raw: unknown): EffectCastTarget | null {
+  if (!raw || typeof raw !== 'object') return null;
+  const source = raw as Record<string, unknown>;
+  return {
+    identifier: typeof source['identifier'] === 'string' ? source['identifier'] : '',
+    x: coerceNumber(source['x'], 0),
+    y: coerceNumber(source['y'], 0),
+    z: coerceNumber(source['z'], 0),
+  };
+}
+
+function coerceNumber(value: unknown, fallback: number): number {
+  const numeric = Number(value);
+  return Number.isFinite(numeric) ? numeric : fallback;
+}

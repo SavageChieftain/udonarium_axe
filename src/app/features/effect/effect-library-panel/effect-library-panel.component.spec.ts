@@ -1,0 +1,94 @@
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ObjectStore } from '@axe/core/sync/object-store';
+import { EffectPreset } from '@axe/domain/effect/effect-preset';
+import { EffectLibraryPanelComponent } from '@axe/features/effect/effect-library-panel/effect-library-panel.component';
+import { TEST_PROVIDERS } from '@axe/testing/test-providers';
+
+describe('EffectLibraryPanelComponent', () => {
+  let fixture: ComponentFixture<EffectLibraryPanelComponent>;
+  let preset: EffectPreset;
+
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      imports: [EffectLibraryPanelComponent],
+      providers: [...TEST_PROVIDERS],
+    });
+    fixture = TestBed.createComponent(EffectLibraryPanelComponent);
+
+    preset = new EffectPreset();
+    preset.name = '爆炎';
+    preset.tagName = '炎';
+    ObjectStore.instance.add(preset, false);
+  });
+
+  afterEach(() => {
+    ObjectStore.instance.remove(preset);
+  });
+
+  it('登録済みのエフェクトを一覧に出すこと', () => {
+    fixture.detectChanges();
+
+    const text = (fixture.nativeElement as HTMLElement).textContent ?? '';
+    expect(text).toContain('爆炎');
+    expect(text).toContain('炎');
+  });
+
+  it('検索語で一覧を絞り込むこと', () => {
+    const other = new EffectPreset();
+    other.name = '氷結';
+    other.tagName = '氷';
+    ObjectStore.instance.add(other, false);
+
+    try {
+      fixture.detectChanges();
+      expect((fixture.nativeElement as HTMLElement).textContent).toContain('氷結');
+
+      fixture.componentInstance.query.set('爆炎');
+      fixture.detectChanges();
+
+      const text = (fixture.nativeElement as HTMLElement).textContent ?? '';
+      expect(text).toContain('爆炎');
+      expect(text).not.toContain('氷結');
+    } finally {
+      ObjectStore.instance.remove(other);
+    }
+  });
+
+  it('絞り込みが空振りしたら理由を出すこと', () => {
+    fixture.componentInstance.query.set('該当なし');
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.matchCount()).toBe(0);
+    expect((fixture.nativeElement as HTMLElement).textContent).toContain('一致するエフェクトがありません');
+  });
+
+  it('系統ごとの見出しを出すこと', () => {
+    fixture.detectChanges();
+
+    const headings = Array.from((fixture.nativeElement as HTMLElement).querySelectorAll('[role="button"]'));
+    expect(headings.map((heading) => heading.textContent?.replace(/\s+/g, ' ').trim())).toEqual(['expand_more 炎 1']);
+  });
+
+  it('系統を折りたためること', () => {
+    fixture.detectChanges();
+    expect((fixture.nativeElement as HTMLElement).textContent).toContain('爆炎');
+
+    const heading = (fixture.nativeElement as HTMLElement).querySelector('[role="button"]');
+    heading?.dispatchEvent(new MouseEvent('click'));
+    fixture.detectChanges();
+
+    // 見出しは残り、中身だけ隠れる。
+    expect((fixture.nativeElement as HTMLElement).textContent).toContain('炎');
+    expect((fixture.nativeElement as HTMLElement).textContent).not.toContain('爆炎');
+  });
+
+  it('対象がいなければ発動しても何も起きないこと', () => {
+    fixture.detectChanges();
+
+    const row = (fixture.nativeElement as HTMLElement).querySelector('li');
+    row?.dispatchEvent(new MouseEvent('click'));
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.lastFired()).toBe('');
+  });
+});

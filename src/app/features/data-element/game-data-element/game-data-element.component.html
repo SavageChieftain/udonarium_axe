@@ -326,6 +326,27 @@
               </div>
             </div>
           }
+          @case ('effect') {
+            <div class="flex w-full min-w-0 flex-wrap items-center gap-2">
+              <select
+                class="border-ui-border-input bg-ui-input text-ui-text min-w-0 flex-1 rounded-sm border px-1 py-0.5 text-[0.9em]"
+                [(ngModel)]="currentValue"
+                [attr.aria-label]="'feature.dataElement.fieldType.effect' | transloco"
+              >
+                <option value="">-</option>
+                @for (name of effectNames(); track name) {
+                  <option [value]="name">{{ name }}</option>
+                }
+              </select>
+              <button
+                type="button"
+                class="bg-ui-accent hover:bg-ui-accent-strong text-ui-on-accent shrink-0 cursor-pointer rounded-sm px-2 py-0.5 text-[0.85em]"
+                (click)="invokeEffect()"
+              >
+                {{ 'feature.effect.fire' | transloco }}
+              </button>
+            </div>
+          }
           @default {
             @if (!isImage()) {
               <div class="hidden-spacer font-[Cambria,Georgia] text-[1em]">
