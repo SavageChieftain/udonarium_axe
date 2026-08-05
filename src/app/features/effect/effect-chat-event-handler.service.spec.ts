@@ -1,6 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { EffectCastService } from '@axe/application/effect/effect-cast.service';
 import { emitResourceEditMessage } from '@axe/core/event/domain-events';
+import { getPeerContext } from '@axe/core/network/peer-context-source';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { ChatMessage } from '@axe/domain/chat/chat-message';
@@ -19,7 +20,9 @@ describe('EffectChatEventHandlerService', () => {
     const message = new ChatMessage();
     message.text = text;
     message.sendFrom = sendFrom;
-    message.from = fromSelf ? PeerCursor.myCursor.userId : 'someone-else';
+    // 送信者の判定は peer context の userId と突き合わせる。
+    // 自分のカーソルの userId とは一致するとは限らない。
+    message.from = fromSelf ? getPeerContext().userId : 'someone-else';
     message.originFrom = message.from;
     message.initialize();
     return message;
