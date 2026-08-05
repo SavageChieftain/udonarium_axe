@@ -94,7 +94,6 @@ export class PresetSound {
   static statusCure: string = '';
   static beamSmall: string = '';
   static collapse: string = '';
-  static collapseHit: string = '';
 }
 
 @SyncObject('sound-effect')

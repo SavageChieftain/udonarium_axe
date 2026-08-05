@@ -762,8 +762,9 @@ function appendDissolve(
         const spin = jitters[index * 3 + 1] - 0.5;
         const lift = jitters[index * 3 + 2];
         // 下の段から先に崩れる。一斉に散ると爆発に見える。
-        const born = (1 - row / DISSOLVE_ROWS) * 0.3 + seed * 0.12;
-        const local = clamp01((progress - born) / 0.6);
+        // 下の段から順に、間を空けて崩す。一斉に散ると爆発に見える。
+        const born = (1 - row / DISSOLVE_ROWS) * 0.42 + seed * 0.14;
+        const local = clamp01((progress - born) / 0.52);
         if (local <= 0) continue;
 
         const fly = easeOutCubic(local);
