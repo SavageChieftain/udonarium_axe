@@ -3,7 +3,7 @@ import { effectCast$ } from '@axe/core/event/domain-events';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { EffectCast, normalizeEffectCast } from '@axe/domain/effect/effect-cast';
 import { EffectPreset } from '@axe/domain/effect/effect-preset';
-import { effectFlashColor, effectShakeAmplitude } from '@axe/domain/effect/effect-shake';
+import { effectFlashColor, EffectShake, effectShakeOf } from '@axe/domain/effect/effect-shake';
 import { impactSoundTimes, isEffectFinished } from '@axe/domain/effect/effect-timeline';
 import { SoundEffect } from '@axe/domain/media/sound-effect';
 
@@ -28,8 +28,8 @@ export class EffectPlaybackService {
 
   readonly now = signal(0);
 
-  /** 画面の揺れ幅(px)。0 なら揺らさない。 */
-  private readonly _shake = signal(0);
+  /** 画面の揺れの強さ。空なら揺らさない。 */
+  private readonly _shake = signal<EffectShake>('');
   readonly shake = this._shake.asReadonly();
   /** 画面を焼く閃光の色。空なら焼かない。 */
   private readonly _flash = signal('');
@@ -82,17 +82,17 @@ export class EffectPlaybackService {
    * 続けて撃たれたら強いほうを採り、時間だけ延ばす（掛け直すと止まって見える）。
    */
   private startScreenShake(preset: EffectPreset): void {
-    const amplitude = effectShakeAmplitude(preset);
+    const shake = effectShakeOf(preset);
     const flash = effectFlashColor(preset);
-    if (amplitude <= 0 && flash.length < 1) return;
+    if (shake.length < 1 && flash.length < 1) return;
 
-    this._shake.update((current) => Math.max(current, amplitude));
+    this._shake.update((current) => (current === 'hard' || shake === 'hard' ? 'hard' : shake || current));
     if (flash.length > 0) this._flash.set(flash);
 
     if (this.shakeTimer != null) clearTimeout(this.shakeTimer);
     this.shakeTimer = setTimeout(() => {
       this.shakeTimer = null;
-      this._shake.set(0);
+      this._shake.set('');
       this._flash.set('');
     }, SHAKE_MS);
   }

@@ -58,7 +58,7 @@ describe('EffectPlaybackService', () => {
     preset.grade = 3;
     service.play(cast());
 
-    expect(service.shake()).toBeGreaterThan(0);
+    expect(service.shake()).toBe('hard');
   });
 
   it('回復では揺らさないこと', () => {
@@ -67,7 +67,7 @@ describe('EffectPlaybackService', () => {
     service.play(cast());
 
     // 何が起きても揺れると、衝撃の意味が無くなる。
-    expect(service.shake()).toBe(0);
+    expect(service.shake()).toBe('');
     expect(service.flash()).toBe('');
   });
 
@@ -75,11 +75,11 @@ describe('EffectPlaybackService', () => {
     preset.kind = 'burst';
     preset.grade = 2;
     service.play(cast());
-    const weak = service.shake();
+    expect(service.shake()).toBe('soft');
 
     preset.grade = 3;
     service.play(cast());
 
-    expect(service.shake()).toBeGreaterThan(weak);
+    expect(service.shake()).toBe('hard');
   });
 });

@@ -20,13 +20,18 @@ const SHAKING_KINDS: ReadonlySet<EffectKind> = new Set<EffectKind>([
   'bolt',
 ]);
 
-/** 等級ごとの揺れ幅(px)。 */
-const SHAKE_AMPLITUDE: Record<1 | 2 | 3, number> = { 1: 0, 2: 5, 3: 11 };
+/**
+ * 揺れの強さ。幅を数値で持たず段階で持つ。
+ * 幅を CSS 変数で渡すと、継承する変数の書き換えで盤面配下の style が全て無効になる。
+ */
+export type EffectShake = '' | 'soft' | 'hard';
 
-/** 画面の揺れ幅(px)。0 なら揺らさない。 */
-export function effectShakeAmplitude(preset: EffectPreset): number {
-  if (!SHAKING_KINDS.has(preset.effectKind)) return 0;
-  return SHAKE_AMPLITUDE[preset.gradeLevel];
+const SHAKE_BY_GRADE: Record<1 | 2 | 3, EffectShake> = { 1: '', 2: 'soft', 3: 'hard' };
+
+/** 画面の揺れの強さ。空なら揺らさない。 */
+export function effectShakeOf(preset: EffectPreset): EffectShake {
+  if (!SHAKING_KINDS.has(preset.effectKind)) return '';
+  return SHAKE_BY_GRADE[preset.gradeLevel];
 }
 
 /** 閃光の色。上級の閃光・きのこ雲・極太ビームだけ画面全体を焼く。 */

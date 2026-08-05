@@ -1,8 +1,8 @@
 import { EffectKind } from '@axe/domain/effect/effect-kind';
 import { EffectPreset } from '@axe/domain/effect/effect-preset';
-import { effectFlashColor, effectShakeAmplitude } from '@axe/domain/effect/effect-shake';
+import { effectFlashColor, effectShakeOf } from '@axe/domain/effect/effect-shake';
 
-describe('effectShakeAmplitude()', () => {
+describe('effectShakeOf()', () => {
   function makePreset(kind: EffectKind, grade: number): EffectPreset {
     const preset = new EffectPreset('preset');
     preset.kind = kind;
@@ -12,16 +12,17 @@ describe('effectShakeAmplitude()', () => {
   }
 
   it('衝撃が来る演出だけ揺らすこと', () => {
-    expect(effectShakeAmplitude(makePreset('burst', 3))).toBeGreaterThan(0);
-    expect(effectShakeAmplitude(makePreset('upheaval', 3))).toBeGreaterThan(0);
+    expect(effectShakeOf(makePreset('burst', 3))).toBe('hard');
+    expect(effectShakeOf(makePreset('upheaval', 3))).toBe('hard');
     // 回復や障壁まで揺らすと、何が起きても同じ手応えになる。
-    expect(effectShakeAmplitude(makePreset('heal', 3))).toBe(0);
-    expect(effectShakeAmplitude(makePreset('barrier', 3))).toBe(0);
+    expect(effectShakeOf(makePreset('heal', 3))).toBe('');
+    expect(effectShakeOf(makePreset('barrier', 3))).toBe('');
   });
 
-  it('等級が上がるほど大きく揺らし、初級は揺らさないこと', () => {
-    expect(effectShakeAmplitude(makePreset('burst', 1))).toBe(0);
-    expect(effectShakeAmplitude(makePreset('burst', 2))).toBeLessThan(effectShakeAmplitude(makePreset('burst', 3)));
+  it('等級で強さを分け、初級は揺らさないこと', () => {
+    expect(effectShakeOf(makePreset('burst', 1))).toBe('');
+    expect(effectShakeOf(makePreset('burst', 2))).toBe('soft');
+    expect(effectShakeOf(makePreset('burst', 3))).toBe('hard');
   });
 });
 

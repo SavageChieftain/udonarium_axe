@@ -137,8 +137,9 @@
   /* mini-jukebox のトラック名横スクロール。--scroll-dist は MiniJukeboxComponent が
      対象 element に直接 setProperty で注入する。 */
   --animate-title-scroll: title-scroll 7s ease-in-out infinite;
-  /* マップ演出の画面揺れ。揺れ幅は --effect-shake を盤面へ注入して決める。 */
-  --animate-effect-shake: effectShake 340ms cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+  /* マップ演出の画面揺れ。強さごとに別の keyframes を持つ。 */
+  --animate-effect-shake-soft: effectShakeSoft 340ms cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+  --animate-effect-shake-hard: effectShakeHard 340ms cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
   --animate-effect-flash: effectFlash 340ms ease-out both;
 }
 
@@ -2106,27 +2107,48 @@ game-data-element .elm-markdown-view,
 /**************** map effects ****************/
 
 /*
- * 衝撃で盤面を揺らす。減衰させないと、揺れが止まったのか分からない。
+ * 衝撃で画面を揺らす。減衰させないと、揺れが止まったのか分からない。
  *
- * transform ではなく translate を動かす。盤面は自分の transform を持っていて
- * 合成済みなので、そこへ translate を足すぶんには層が増えず、
- * 動き出しの 1 フレームだけ暗く落ちることがない。
+ * 揺れ幅は変数にせず、強さごとに別の keyframes として持つ。
+ * カスタムプロパティは継承するので、盤面に掛けると配下すべての style が
+ * 無効になり、6000px 四方のレイヤーが作り直されて未描画のまま数フレーム暗く出る。
  */
-@keyframes effectShake {
+@keyframes effectShakeSoft {
   0% {
     translate: 0 0;
   }
   15% {
-    translate: calc(var(--effect-shake, 0px) * -1) calc(var(--effect-shake, 0px) * 0.6);
+    translate: -5px 3px;
   }
   32% {
-    translate: calc(var(--effect-shake, 0px) * 0.8) calc(var(--effect-shake, 0px) * -0.5);
+    translate: 4px -2.5px;
   }
   52% {
-    translate: calc(var(--effect-shake, 0px) * -0.55) calc(var(--effect-shake, 0px) * -0.3);
+    translate: -2.75px -1.5px;
   }
   72% {
-    translate: calc(var(--effect-shake, 0px) * 0.32) calc(var(--effect-shake, 0px) * 0.2);
+    translate: 1.6px 1px;
+  }
+  100% {
+    translate: 0 0;
+  }
+}
+
+@keyframes effectShakeHard {
+  0% {
+    translate: 0 0;
+  }
+  15% {
+    translate: -11px 6.6px;
+  }
+  32% {
+    translate: 8.8px -5.5px;
+  }
+  52% {
+    translate: -6px -3.3px;
+  }
+  72% {
+    translate: 3.5px 2.2px;
   }
   100% {
     translate: 0 0;

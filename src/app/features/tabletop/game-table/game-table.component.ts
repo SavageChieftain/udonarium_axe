@@ -150,8 +150,6 @@ interface BeamWallGrid {
     '(document:contextmenu)': 'onDocumentContextMenu($event)',
     '(document:keydown.escape)': 'onEscapeKey($event)',
     '(document:keydown.enter)': 'onEnterKey($event)',
-    '[class.animate-effect-shake]': 'screenShake() > 0',
-    '[style.--effect-shake]': "screenShake() + 'px'",
   },
 })
 export class GameTableComponent {
@@ -706,7 +704,7 @@ export class GameTableComponent {
       e.preventDefault();
   }
 
-  /** 演出の衝撃。盤面ごと揺らすので、3D の入れ子の外側で受ける。 */
+  /** 演出の衝撃。カメラごと揺らす。 */
   readonly screenShake = computed(() => this.effectPlaybackService.shake());
   readonly screenFlash = computed(() => this.effectPlaybackService.flash());
 
