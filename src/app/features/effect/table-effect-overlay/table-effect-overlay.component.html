@@ -1,14 +1,10 @@
 @for (sprite of sprites(); track sprite.key) {
-  <div class="will-change-transform backface-visible" [ngStyle]="spriteStyle(sprite)">
+  <div class="backface-visible" [ngStyle]="spriteStyle(sprite)">
     @if (hasPaintLayer(sprite)) {
       <div class="size-full" [ngStyle]="paintStyle(sprite)" [innerHTML]="sprite.svg | safe: 'html'"></div>
     }
   </div>
 }
 @for (placement of canvases(); track placement.key) {
-  <effect-canvas
-    class="will-change-transform backface-visible"
-    [ngStyle]="canvasStyle(placement)"
-    [layer]="placement.layer"
-  ></effect-canvas>
+  <effect-canvas class="backface-visible" [ngStyle]="canvasStyle(placement)" [layer]="placement.layer"></effect-canvas>
 }

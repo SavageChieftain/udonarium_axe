@@ -89,6 +89,22 @@ describe('TableEffectOverlayComponent', () => {
     expect(elements.every((element) => element.style.filter === '')).toBe(true);
   });
 
+  it('スプライトを合成レイヤーへ昇格させないこと', () => {
+    playback.play({
+      presetIdentifier: preset.identifier,
+      targets: [{ identifier: 'char', x: 0, y: 0, z: 0 }],
+      seed: 3,
+    });
+    fixture.detectChanges();
+
+    // 派手な演出は数百枚を同じフレームで出す。全部に will-change を付けると
+    // その場で数百のレイヤーを確保することになり、確保が終わるまで画面が暗く落ちる。
+    const promoted = Array.from((fixture.nativeElement as HTMLElement).querySelectorAll<HTMLElement>('*')).filter(
+      (element) => element.className.includes('will-change')
+    );
+    expect(promoted).toHaveLength(0);
+  });
+
   it('光る粒は対象ごとの canvas に描くこと', () => {
     playback.play({
       presetIdentifier: preset.identifier,
