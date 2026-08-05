@@ -8,54 +8,63 @@ import {
 describe('diffResourceSnapshots()', () => {
   const nameOf = (identifier: string) => identifier.toUpperCase();
 
-  function snapshot(entries: Record<string, ResourceSnapshot>): Map<string, ResourceSnapshot> {
-    return new Map(Object.entries(entries));
+  /** 既定は「この端末が変えた直後」。読み込みや同期で入った値は別のテストで確かめる。 */
+  function snapshot(entries: Record<string, ResourceSnapshot>, changedBySelf = 0): Map<string, ResourceSnapshot> {
+    return new Map(Object.entries(entries).map(([key, value]) => [key, { changedBySelf, ...value }]));
+  }
+
+  function before(entries: Record<string, ResourceSnapshot>): Map<string, ResourceSnapshot> {
+    return snapshot(entries, 0);
+  }
+
+  function after(entries: Record<string, ResourceSnapshot>): Map<string, ResourceSnapshot> {
+    return snapshot(entries, 1);
   }
 
   it('現在値が減ればダメージとして返すこと', () => {
-    const before = snapshot({ hp: { current: 200, max: 200 } });
-    const after = snapshot({ hp: { current: 170, max: 200 } });
+    const from = before({ hp: { current: 200, max: 200 } });
+    const to = after({ hp: { current: 170, max: 200 } });
 
-    expect(diffResourceSnapshots(before, after, nameOf)).toEqual([
+    expect(diffResourceSnapshots(from, to, nameOf)).toEqual([
       { identifier: 'hp', name: 'HP', kind: 'damage', delta: -30, label: '-30', ratio: 0.15 },
     ]);
   });
 
   it('現在値が増えれば回復として返すこと', () => {
-    const before = snapshot({ hp: { current: 100, max: 200 } });
-    const after = snapshot({ hp: { current: 150, max: 200 } });
+    const from = before({ hp: { current: 100, max: 200 } });
+    const to = after({ hp: { current: 150, max: 200 } });
 
-    expect(diffResourceSnapshots(before, after, nameOf)[0]).toMatchObject({ kind: 'heal', delta: 50, label: '+50' });
+    expect(diffResourceSnapshots(from, to, nameOf)[0]).toMatchObject({ kind: 'heal', delta: 50, label: '+50' });
   });
 
   it('最大値の増減も同じ扱いにすること', () => {
-    const before = snapshot({ hp: { current: 100, max: 200 } });
+    const from = before({ hp: { current: 100, max: 200 } });
 
-    expect(diffResourceSnapshots(before, snapshot({ hp: { current: 100, max: 180 } }), nameOf)[0]).toMatchObject({
+    expect(diffResourceSnapshots(from, after({ hp: { current: 100, max: 180 } }), nameOf)[0]).toMatchObject({
       kind: 'damage',
       label: '-20',
     });
-    expect(diffResourceSnapshots(before, snapshot({ hp: { current: 100, max: 260 } }), nameOf)[0]).toMatchObject({
+    expect(diffResourceSnapshots(from, after({ hp: { current: 100, max: 260 } }), nameOf)[0]).toMatchObject({
       kind: 'heal',
       label: '+60',
     });
   });
 
   it('現在値と最大値が同時に動けば合算すること', () => {
-    const before = snapshot({ hp: { current: 100, max: 200 } });
-    const after = snapshot({ hp: { current: 90, max: 190 } });
+    const from = before({ hp: { current: 100, max: 200 } });
+    const to = after({ hp: { current: 90, max: 190 } });
 
-    expect(diffResourceSnapshots(before, after, nameOf)[0].label).toBe('-20');
+    expect(diffResourceSnapshots(from, to, nameOf)[0].label).toBe('-20');
   });
 
   it('マイナスリソースでは増減の意味を裏返すこと', () => {
-    const before = snapshot({ san: { current: 10, max: 100, inverted: true } });
+    const from = before({ san: { current: 10, max: 100, inverted: true } });
 
     expect(
-      diffResourceSnapshots(before, snapshot({ san: { current: 40, max: 100, inverted: true } }), nameOf)[0]
+      diffResourceSnapshots(from, after({ san: { current: 40, max: 100, inverted: true } }), nameOf)[0]
     ).toMatchObject({ kind: 'damage', label: '+30' });
     expect(
-      diffResourceSnapshots(before, snapshot({ san: { current: 4, max: 100, inverted: true } }), nameOf)[0]
+      diffResourceSnapshots(from, after({ san: { current: 4, max: 100, inverted: true } }), nameOf)[0]
     ).toMatchObject({ kind: 'heal', label: '-6' });
   });
 
@@ -69,6 +78,21 @@ describe('diffResourceSnapshots()', () => {
 
   it('新しく現れた項目は変化として扱わないこと', () => {
     expect(diffResourceSnapshots(new Map(), snapshot({ hp: { current: 100, max: 200 } }), nameOf)).toEqual([]);
+  });
+  it('自分が変えていない入れ替わりは増減としないこと', () => {
+    // 部屋を読み込むと値は丸ごと入れ替わる。差分だけを見ると本物の増減と区別が付かず、
+    // 読み込んだ瞬間に全員ぶんの回復音と数字が飛び出す。
+    const from = snapshot({ hp: { current: 200, max: 200 } }, 3);
+    const to = snapshot({ hp: { current: 999, max: 999 } }, 3);
+
+    expect(diffResourceSnapshots(from, to, nameOf)).toEqual([]);
+  });
+
+  it('自分が変えたぶんは拾うこと', () => {
+    const from = snapshot({ hp: { current: 200, max: 200 } }, 3);
+    const to = snapshot({ hp: { current: 170, max: 200 } }, 4);
+
+    expect(diffResourceSnapshots(from, to, nameOf)[0]).toMatchObject({ kind: 'damage', label: '-30' });
   });
 });
 
@@ -100,23 +124,5 @@ describe('loudestChangeRatio()', () => {
 
   it('変化が無ければ 0 を返すこと', () => {
     expect(loudestChangeRatio([])).toBe(0);
-  });
-
-  it('値が入っていなかったところへ入っただけなら増減としないこと', () => {
-    // 部屋データを読み込むと要素が段階的に組み上がる。これを増減と見ると
-    // 全員ぶんの回復音が一斉に鳴ってしまう。
-    const before = new Map([['HP', { current: 0, max: 0 }]]);
-    const after = new Map([['HP', { current: 200, max: 200 }]]);
-
-    expect(diffResourceSnapshots(before, after, () => 'HP')).toEqual([]);
-  });
-
-  it('最大値が入ったあとの増減は拾うこと', () => {
-    const before = new Map([['HP', { current: 200, max: 200 }]]);
-    const after = new Map([['HP', { current: 170, max: 200 }]]);
-
-    expect(diffResourceSnapshots(before, after, () => 'HP')).toEqual([
-      expect.objectContaining({ kind: 'damage', delta: -30 }),
-    ]);
   });
 });

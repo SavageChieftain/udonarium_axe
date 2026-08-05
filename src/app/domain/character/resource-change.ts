@@ -9,6 +9,11 @@ export interface ResourceSnapshot {
   current: number;
   max: number;
   inverted?: boolean;
+  /**
+   * この端末がその項目を変えた回数。
+   * 読み込みや同期で入ってきた値では増えないので、本物の増減と区別できる。
+   */
+  changedBySelf?: number;
 }
 
 export interface ResourceChange {
@@ -42,9 +47,8 @@ export function diffResourceSnapshots(
     const previous = before.get(identifier);
     if (!previous) continue;
 
-    // まだ値が入っていなかったところへ入っただけなら、増減ではない。
-    // 読み込み中は要素が段階的に組み上がるので、これを増減と見ると全員ぶん鳴り続ける。
-    if (previous.max <= 0 && next.max > 0) continue;
+    // 自分が変えたときだけ拾う。読み込みや同期で入れ替わった値は増減ではない。
+    if ((next.changedBySelf ?? 0) <= (previous.changedBySelf ?? 0)) continue;
 
     const delta = next.current - previous.current + (next.max - previous.max);
     if (delta === 0) continue;

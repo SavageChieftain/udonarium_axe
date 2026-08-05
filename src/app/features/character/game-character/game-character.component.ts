@@ -33,7 +33,9 @@ import { SelectionSignalService } from '@axe/application/ui/selection-signal.ser
 import { buildSurfaceSwitchContextMenu } from '@axe/application/ui/surface-switch-context-menu';
 import { TabletopOverlapService } from '@axe/application/ui/tabletop-overlap.service';
 import { UiSignalService } from '@axe/application/ui/ui-signal.service';
+import { callResourceChange, resourceChange$ } from '@axe/core/event/domain-events';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
+import { getPeerContext } from '@axe/core/network/peer-context-source';
 import { imageFileEqual } from '@axe/core/storage/image-file';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { BuffBadge, toBuffBadges } from '@axe/domain/character/buff-badge';
@@ -160,8 +162,21 @@ export class GameCharacterComponent {
       const names = untracked(this.resourceNames);
       const changes = diffResourceSnapshots(previous, snapshot, (identifier) => names.get(identifier) ?? '');
       if (changes.length < 1) return;
+
+      // その場で描き、他の端末へは知らせる。差分を各自が見張ると、
+      // 読み込みや同期で入れ替わった値まで増減として扱ってしまう。
+      const character = untracked(this.gameCharacter);
+      if (!character) return;
       untracked(() => this.showResourceChanges(changes));
+      callResourceChange({ characterIdentifier: character.identifier, changes });
     });
+
+    // 他の端末が変えたぶんを受けて描く。自分が知らせたぶんは既に描いている。
+    resourceChange$.subscribe((event) => {
+      if (event.emittedBy === getPeerContext().peerId) return;
+      if (event.characterIdentifier !== this.gameCharacter()?.identifier) return;
+      this.showResourceChanges(event.changes as ResourceChange[]);
+    }, this.destroyRef);
 
     effect(() => {
       const highlight = this.selectionSignalService.highlightedObject();
@@ -468,6 +483,7 @@ export class GameCharacterComponent {
         current: Number(element.currentValue),
         max: Number(element.value),
         inverted: isGaugeInverted(element),
+        changedBySelf: this.objectStore.localChangeCountOf(element.identifier),
       });
     }
     return snapshot;

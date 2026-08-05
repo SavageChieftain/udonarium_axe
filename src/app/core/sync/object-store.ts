@@ -21,6 +21,7 @@ export class ObjectStore {
   private aliasNameMap: Map<ObjectAliasName, Map<ObjectIdentifier, GameObject>> = new Map();
   private garbageMap: Map<ObjectIdentifier, TimeStamp> = new Map();
 
+  private readonly localChanges: Map<string, number> = new Map();
   private queueMap: Map<ObjectIdentifier, ObjectContext> = new Map();
   private updateInterval: number | null = null;
   private garbageCollectionInterval: NodeJS.Timeout | null = null;
@@ -97,6 +98,11 @@ export class ObjectStore {
     }
     if (!context) return;
 
+    // ここを通るのは自分が変えたときだけ。受信したデータは apply() で入る。
+    // 送信をまとめる前に数える。まとめられた 2 度目を数え落とすと、
+    // 立て続けの操作が「変えていない」ことになってしまう。
+    this.localChanges.set(context.identifier, (this.localChanges.get(context.identifier) ?? 0) + 1);
+
     if (this.queueMap.has(context.identifier)) {
       const queue = this.queueMap.get(context.identifier)!;
       Object.assign(queue, context);
@@ -107,6 +113,11 @@ export class ObjectStore {
     if (this.updateInterval === null) {
       this.updateInterval = setZeroTimeout(this.updateCallback);
     }
+  }
+
+  /** 自分がそのオブジェクトを変えた回数。読み込みや同期では増えない。 */
+  localChangeCountOf(identifier: string): number {
+    return this.localChanges.get(identifier) ?? 0;
   }
 
   private updateQueue() {

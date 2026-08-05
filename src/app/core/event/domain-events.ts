@@ -1,5 +1,6 @@
 import { EventChannel, ReplayEventChannel } from '@axe/core/event/event-channel';
 import { localDispatch, networkMessage$, networkSend } from '@axe/core/network/network-messaging';
+import { getPeerContext } from '@axe/core/network/peer-context-source';
 import { ArchiveEntries } from '@axe/core/storage/room-archive';
 
 export interface SendMessageEvent {
@@ -9,6 +10,15 @@ export interface SendMessageEvent {
 
 export interface DiceTableMessageEvent {
   messageIdentifier: string;
+}
+
+export interface ResourceChangeEvent {
+  /** 増減が起きたコマ。 */
+  characterIdentifier: string;
+  /** 何がどれだけ動いたか。描くのに要る情報だけを載せる。 */
+  changes: unknown[];
+  /** 知らせた端末。自分が知らせたぶんは、その場で描いているので受け流す。 */
+  emittedBy?: string;
 }
 
 export interface ResourceEditMessageEvent {
@@ -81,6 +91,7 @@ export const domainPeerDisconnect$ = new EventChannel<DomainPeerDisconnectEvent>
 export const soundEffect$ = new EventChannel<string>();
 
 export const effectCast$ = new EventChannel<EffectCastEvent>();
+export const resourceChange$ = new EventChannel<ResourceChangeEvent>();
 
 export const selectGameTable$ = new EventChannel<SelectGameTableEvent>();
 export const updateAudioResource$ = new EventChannel<void>();
@@ -204,6 +215,16 @@ export function callEffectCast(cast: unknown) {
   networkSend('EFFECT_CAST', cast);
 }
 
+/**
+ * リソースの増減を全員へ知らせる。
+ *
+ * 値の差分を各自が見張ると、部屋データの読み込みや同期で入れ替わった値まで
+ * 増減として扱ってしまう。変えた端末だけが知らせ、全員はこれを見て描く。
+ */
+export function callResourceChange(event: ResourceChangeEvent) {
+  networkSend('RESOURCE_CHANGE', { ...event, emittedBy: getPeerContext().peerId });
+}
+
 export function callWritingAMessage(tabIdentifier: string, sendTo?: string | null, speakerIdentifier?: string | null) {
   networkSend('WRITING_A_MESSAGE', tabIdentifier, sendTo ?? undefined);
   if (speakerIdentifier) {
@@ -244,6 +265,9 @@ networkMessage$.subscribe((msg) => {
       break;
     case 'EFFECT_CAST':
       effectCast$.emit({ cast: msg.data });
+      break;
+    case 'RESOURCE_CHANGE':
+      resourceChange$.emit(msg.data as ResourceChangeEvent);
       break;
   }
 });

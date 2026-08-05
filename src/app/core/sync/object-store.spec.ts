@@ -560,4 +560,19 @@ describe('ObjectStore', () => {
       sub2();
     });
   });
+
+  it('自分が変えた回数を数え、受信した更新では増えないこと', () => {
+    const object = new GameObject('counted');
+    object.initialize();
+    const before = ObjectStore.instance.localChangeCountOf(object.identifier);
+
+    object.update();
+
+    // 自分が変えたかどうかは、読み込みや同期で入れ替わった値と区別するのに要る。
+    expect(ObjectStore.instance.localChangeCountOf(object.identifier)).toBe(before + 1);
+
+    object.apply(object.toContext());
+
+    expect(ObjectStore.instance.localChangeCountOf(object.identifier)).toBe(before + 1);
+  });
 });
