@@ -13,7 +13,8 @@ describe('BCDiceLoader', () => {
 });
 
 describe('loadBCDiceGameSystems', () => {
-  it('読み込み後は同期的にゲームシステムクラスを取得できる', async () => {
+  // 実際にゲームシステムを読み込むので、他の処理と並んで走ると既定の制限に届きうる。
+  it('読み込み後は同期的にゲームシステムクラスを取得できる', { timeout: 20000 }, async () => {
     await loadBCDiceGameSystems();
     const loader = new BCDiceLoader();
 

@@ -23,7 +23,9 @@ describe('downscaleImageBlob', () => {
   it('type 未指定の画像 blob は拒否せず処理を試みる (実環境では必ず type が付く)', async () => {
     const blob = new Blob(['raw']);
     expect(blob.type).toBe('');
-    const result = await downscaleImageBlob(blob, 80);
+    // happy-dom では Image のイベントが来ないので、読み込み待ちは必ず上限まで待つ。
+    // 既定の 3 秒を待つとテスト自体の制限に近づき、負荷が乗ったときだけ落ちる。
+    const result = await downscaleImageBlob(blob, 80, { loadTimeoutMs: 20 });
     expect(result).toBeDefined();
   });
 });

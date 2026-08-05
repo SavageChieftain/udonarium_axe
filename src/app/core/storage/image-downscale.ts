@@ -4,6 +4,11 @@ export interface DownscaleOptions {
    * 立ち絵のサムネイル化など、サイズが揃ってほしい用途に。
    */
   square?: boolean;
+  /**
+   * 画像の読み込みを待つ上限(ms)。
+   * Image のイベントが来ない環境では必ずここまで待つので、テストからは短く与える。
+   */
+  loadTimeoutMs?: number;
 }
 
 /**
@@ -31,7 +36,7 @@ export async function downscaleImageBlob(
   let objectUrl: string | null = null;
   try {
     objectUrl = URL.createObjectURL(blob);
-    const img = await loadImage(objectUrl);
+    const img = await loadImage(objectUrl, options.loadTimeoutMs);
     const naturalW = img.naturalWidth || img.width;
     const naturalH = img.naturalHeight || img.height;
     if (naturalW <= 0 || naturalH <= 0) return blob;
@@ -85,13 +90,13 @@ export async function downscaleImageBlob(
 // タイムアウト。3 秒以内に load/error が来なければ呼び出し側のフォールバックに任せる。
 const LOAD_TIMEOUT_MS = 3000;
 
-function loadImage(src: string): Promise<HTMLImageElement> {
+function loadImage(src: string, timeoutMs: number = LOAD_TIMEOUT_MS): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
     const img = new Image();
     const timer = setTimeout(() => {
       img.onload = img.onerror = null;
       reject(new Error('image load timeout'));
-    }, LOAD_TIMEOUT_MS);
+    }, timeoutMs);
     img.onload = () => {
       clearTimeout(timer);
       resolve(img);
@@ -106,7 +111,7 @@ function loadImage(src: string): Promise<HTMLImageElement> {
 
 const SKIP_WEBP_CONVERT = new Set(['image/gif', 'image/apng', 'image/webp', 'image/svg+xml']);
 
-export async function convertBlobToWebP(blob: Blob): Promise<Blob> {
+export async function convertBlobToWebP(blob: Blob, loadTimeoutMs?: number): Promise<Blob> {
   if (!blob || blob.size === 0) return blob;
 
   const type = blob.type;
@@ -124,7 +129,7 @@ export async function convertBlobToWebP(blob: Blob): Promise<Blob> {
   let objectUrl: string | null = null;
   try {
     objectUrl = URL.createObjectURL(blob);
-    const img = await loadImage(objectUrl);
+    const img = await loadImage(objectUrl, loadTimeoutMs);
     const w = img.naturalWidth || img.width;
     const h = img.naturalHeight || img.height;
     if (w <= 0 || h <= 0) return blob;
