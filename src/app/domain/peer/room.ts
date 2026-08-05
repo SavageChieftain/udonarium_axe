@@ -8,6 +8,7 @@ import { GameCharacter } from '@axe/domain/character/game-character';
 import { Coin } from '@axe/domain/coin/coin';
 import { DiceSymbol } from '@axe/domain/dice/dice-symbol';
 import { DiceTable } from '@axe/domain/dice/dice-table';
+import { createDefaultEffectPresets } from '@axe/domain/effect/builtin-effect-presets';
 import { EffectField } from '@axe/domain/effect/effect-field';
 import { EffectPreset } from '@axe/domain/effect/effect-preset';
 import { CutIn } from '@axe/domain/media/cut-in';
@@ -90,6 +91,9 @@ export class Room extends GameObject implements InnerXml {
       for (let i = 0; i < element.children.length; i++) {
         ObjectSerializer.instance.parseXml(element.children[i]);
       }
+      // v1.26.0 より前の部屋データには演出が入っていない。
+      // 消したまま読み込むと、エフェクト集が空の卓になってしまう。
+      if (ObjectStore.instance.getObjects(EffectPreset).length < 1) createDefaultEffectPresets();
       clearOwnership(ObjectStore.instance.getObjects());
     }
   }

@@ -101,4 +101,22 @@ describe('loudestChangeRatio()', () => {
   it('変化が無ければ 0 を返すこと', () => {
     expect(loudestChangeRatio([])).toBe(0);
   });
+
+  it('値が入っていなかったところへ入っただけなら増減としないこと', () => {
+    // 部屋データを読み込むと要素が段階的に組み上がる。これを増減と見ると
+    // 全員ぶんの回復音が一斉に鳴ってしまう。
+    const before = new Map([['HP', { current: 0, max: 0 }]]);
+    const after = new Map([['HP', { current: 200, max: 200 }]]);
+
+    expect(diffResourceSnapshots(before, after, () => 'HP')).toEqual([]);
+  });
+
+  it('最大値が入ったあとの増減は拾うこと', () => {
+    const before = new Map([['HP', { current: 200, max: 200 }]]);
+    const after = new Map([['HP', { current: 170, max: 200 }]]);
+
+    expect(diffResourceSnapshots(before, after, () => 'HP')).toEqual([
+      expect.objectContaining({ kind: 'damage', delta: -30 }),
+    ]);
+  });
 });
