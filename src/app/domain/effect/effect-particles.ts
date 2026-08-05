@@ -997,40 +997,40 @@ function emitBreath(
   ramp: ColorRamp
 ): void {
   // この層は対象の上にある。届く前から出すと、吹き付ける前に燃えていることになる。
-  const arrived = clamp01((progress - 0.24) / 0.76);
-  if (arrived <= 0) return;
+  if (progress < 0.12) return;
 
   const life = progress > 0.74 ? 1 - (progress - 0.74) / 0.26 : 1;
 
-  // 当たった面で割れて外へ巻く気体。立ち上るだけだと焚き火に見える。
-  for (let index = 0; index < 34; index++) {
+  // 当たった面で割れて外へ噴き散る。ゆっくり漂わせると、そよ風に見えてしまう。
+  for (let index = 0; index < 38; index++) {
     const phase = random();
     const angle = random() * Math.PI * 2;
-    const local = (progress * 2.4 + phase) % 1;
-    const spread = base * (0.3 + local * 2.1);
-    const curl = Math.sin(phase * Math.PI * 2 + local * Math.PI * 1.6) * base * 0.3 * local;
+    const local = (progress * 4.2 + phase) % 1;
+    const speed = 0.7 + random() * 0.6;
+    const blast = base * (0.3 + easeOutQuad(local) * 2.6 * speed);
     particles.push({
-      x: Math.cos(angle) * spread + curl,
-      y: Math.sin(angle) * spread * 0.55 - base * (0.3 + local * local * 1.5),
-      size: base * (0.45 + random() * 0.5) * (1 - local * 0.3),
-      angle: 0,
-      stretch: 1 + local * 0.5,
+      x: Math.cos(angle) * blast,
+      y: Math.sin(angle) * blast * 0.55 - base * (0.25 + local * local * 1.7),
+      size: base * (0.4 + random() * 0.45) * (1 - local * 0.3),
+      angle,
+      // 進む向きへ引き伸ばす。丸のままだと速さが読めない。
+      stretch: 1.6 + local * 2.4,
       color: flameColor(local, ramp),
-      alpha: life * (1 - local) * 0.7,
-      shape: 'glow',
+      alpha: life * (1 - local) * 0.8,
+      shape: local < 0.5 ? 'streak' : 'glow',
     });
   }
 
   for (let index = 0; index < 10; index++) {
-    const local = (progress * 1.2 + random()) % 1;
+    const local = (progress * 1.6 + random()) % 1;
     particles.push({
-      x: (random() - 0.5) * base * 2.4,
-      y: -base * (0.8 + local * 2.2),
-      size: base * (0.8 + local * 1.2),
+      x: (random() - 0.5) * base * 2.6,
+      y: -base * (0.9 + local * 2.4),
+      size: base * (0.8 + local * 1.3),
       angle: 0,
       stretch: 1,
       color: '#2f2823',
-      alpha: life * (1 - local) * 0.24,
+      alpha: life * (1 - local) * 0.22,
       shape: 'smoke',
     });
   }

@@ -8,7 +8,12 @@
   [class.cursor-grabbing]="isPointerDragging"
   #root
 >
-  <div class="absolute inset-0 m-auto block size-1500 backface-hidden transform-3d" #gameTable>
+  <div
+    class="absolute inset-0 m-auto block size-1500 backface-hidden transform-3d"
+    [class.animate-effect-shake]="screenShake() > 0"
+    [style.--effect-shake]="screenShake() + 'px'"
+    #gameTable
+  >
     <div id="app-game-table" class="absolute size-full backface-hidden transform-3d" data-surface="floor" #gameObjects>
       <div
         class="pointer-events-none absolute top-0 left-0 size-full overflow-hidden bg-white/15 bg-size-[100%_100%] bg-no-repeat backface-hidden transform-3d"

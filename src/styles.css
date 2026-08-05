@@ -2105,25 +2105,31 @@ game-data-element .elm-markdown-view,
 
 /**************** map effects ****************/
 
-/* 衝撃で画面を揺らす。減衰させないと、揺れが止まったのか分からない。 */
+/*
+ * 衝撃で盤面を揺らす。減衰させないと、揺れが止まったのか分からない。
+ *
+ * transform ではなく translate を動かす。盤面は自分の transform を持っていて
+ * 合成済みなので、そこへ translate を足すぶんには層が増えず、
+ * 動き出しの 1 フレームだけ暗く落ちることがない。
+ */
 @keyframes effectShake {
   0% {
-    transform: translate3d(0, 0, 0);
+    translate: 0 0;
   }
   15% {
-    transform: translate3d(calc(var(--effect-shake, 0px) * -1), calc(var(--effect-shake, 0px) * 0.6), 0);
+    translate: calc(var(--effect-shake, 0px) * -1) calc(var(--effect-shake, 0px) * 0.6);
   }
   32% {
-    transform: translate3d(calc(var(--effect-shake, 0px) * 0.8), calc(var(--effect-shake, 0px) * -0.5), 0);
+    translate: calc(var(--effect-shake, 0px) * 0.8) calc(var(--effect-shake, 0px) * -0.5);
   }
   52% {
-    transform: translate3d(calc(var(--effect-shake, 0px) * -0.55), calc(var(--effect-shake, 0px) * -0.3), 0);
+    translate: calc(var(--effect-shake, 0px) * -0.55) calc(var(--effect-shake, 0px) * -0.3);
   }
   72% {
-    transform: translate3d(calc(var(--effect-shake, 0px) * 0.32), calc(var(--effect-shake, 0px) * 0.2), 0);
+    translate: calc(var(--effect-shake, 0px) * 0.32) calc(var(--effect-shake, 0px) * 0.2);
   }
   100% {
-    transform: translate3d(0, 0, 0);
+    translate: 0 0;
   }
 }
 

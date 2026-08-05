@@ -439,6 +439,48 @@ describe('effectSprites()', () => {
       expect(fading.height).toBeGreaterThan(sustained.height);
     });
 
+    it('尺が変わっても流れの速さを揃えること', () => {
+      // 再生位置で回すと、尺の長いブレスほど中身がゆっくり動いて勢いが死ぬ。
+      const shortPreset = makePreset('breath');
+      shortPreset.durationMs = 1000;
+      const longPreset = makePreset('breath');
+      longPreset.durationMs = 3000;
+
+      const streaksOf = (preset: EffectPreset, elapsed: number) =>
+        effectSprites(preset, breathCast, elapsed, options)
+          .filter((sprite) => sprite.key.includes('-breath-streak-'))
+          .map((sprite) => [Math.round(sprite.x * 1000) || 0, Math.round(sprite.y * 1000) || 0]);
+
+      // 同じ実時間には同じ位置まで流れているのが正しい。
+      expect(streaksOf(shortPreset, 520)).toEqual(streaksOf(longPreset, 520));
+      expect(streaksOf(shortPreset, 640)).toEqual(streaksOf(longPreset, 640));
+      expect(streaksOf(shortPreset, 520)).not.toEqual(streaksOf(shortPreset, 640));
+    });
+
+    it('属性ごとに違う粒を道中へ散らすこと', () => {
+      const moteAt = (tagName: string) => {
+        const preset = makePreset('breath');
+        preset.tagName = tagName;
+        return effectSprites(preset, breathCast, 500, options).filter((sprite) => sprite.key.includes('-breath-mote-'));
+      };
+
+      // 形と色だけだと、どの属性でも同じ物が色違いで飛んでいるように見える。
+      expect(moteAt('氷').some((mote) => mote.svg.length > 0)).toBe(true);
+      expect(moteAt('雷').some((mote) => mote.svg.length > 0)).toBe(true);
+      expect(moteAt('炎').every((mote) => mote.svg.length < 1)).toBe(true);
+      expect(moteAt('風')[0].borderRadius).toBe('60% 0 60% 0');
+      expect(moteAt('闇')[0].background).toContain('#120c18');
+    });
+
+    it('粒を出さない指定に従うこと', () => {
+      const preset = makePreset('breath');
+      preset.moteStyle = 'none';
+
+      const sprites = effectSprites(preset, breathCast, 500, options);
+
+      expect(sprites.some((sprite) => sprite.key.includes('-breath-mote-'))).toBe(false);
+    });
+
     it('縁に渦と、当たった面の巻き返しを出すこと', () => {
       const sprites = breathAt(500);
 

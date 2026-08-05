@@ -581,7 +581,17 @@
       "placeField": "Place as a lingering field",
       "fieldPlaced": "Placed \"{{name}}\" on the table.",
       "fields": "Placed fields",
-      "removeField": "Remove"
+      "removeField": "Remove",
+      "moteLabel": "Trail motes",
+      "moteAuto": "Match the category",
+      "mote": {
+        "spark": "Sparks",
+        "frost": "Ice crystals",
+        "arc": "Arcs",
+        "leaf": "Leaves",
+        "haze": "Dark haze",
+        "none": "None"
+      }
     },
     "turnOrder": {
       "title": "Turn order",

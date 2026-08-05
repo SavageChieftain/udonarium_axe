@@ -63,6 +63,20 @@
       </label>
 
       <label class="flex items-center gap-2">
+        <span class="text-ui-muted w-20 shrink-0 text-[11px]">{{ 'feature.effect.moteLabel' | transloco }}</span>
+        <select
+          class="bg-ui-input border-ui-border-panel text-ui-text rounded-ui-sm min-w-0 flex-1 border border-solid px-2 py-1 text-[12px] outline-none"
+          name="effect-mote"
+          [ngModel]="target.moteStyle"
+          (ngModelChange)="edit('moteStyle', $event)"
+        >
+          @for (mote of motes; track mote) {
+            <option [value]="mote">{{ moteLabel(mote) }}</option>
+          }
+        </select>
+      </label>
+
+      <label class="flex items-center gap-2">
         <span class="text-ui-muted w-20 shrink-0 text-[11px]">{{ 'feature.effect.gradeLabel' | transloco }}</span>
         <select
           class="bg-ui-input border-ui-border-panel text-ui-text rounded-ui-sm min-w-0 flex-1 border border-solid px-2 py-1 text-[12px] outline-none"

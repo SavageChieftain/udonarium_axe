@@ -8,6 +8,7 @@ import { ModalService } from '@axe/application/ui/modal.service';
 import { PanelService } from '@axe/application/ui/panel.service';
 import { AudioStorage } from '@axe/core/storage/audio-storage';
 import { EFFECT_KINDS, EffectKind } from '@axe/domain/effect/effect-kind';
+import { EFFECT_MOTE_OPTIONS } from '@axe/domain/effect/effect-motes';
 import { EffectPreset } from '@axe/domain/effect/effect-preset';
 import {
   EFFECT_GRADE_OPTIONS,
@@ -75,6 +76,7 @@ export class EffectPresetEditorComponent {
   protected readonly grades = EFFECT_GRADE_OPTIONS;
   protected readonly projectileStyles = PROJECTILE_STYLE_OPTIONS;
   protected readonly slashStyles = SLASH_STYLE_OPTIONS;
+  protected readonly motes = EFFECT_MOTE_OPTIONS;
 
   readonly notice = signal('');
 
@@ -128,6 +130,10 @@ export class EffectPresetEditorComponent {
 
   protected projectileLabel(style: string): string {
     return this.t(`feature.effect.projectileStyle.${style}`);
+  }
+
+  protected moteLabel(mote: string): string {
+    return mote.length < 1 ? this.t('feature.effect.moteAuto') : this.t(`feature.effect.mote.${mote}`);
   }
 
   protected slashLabel(style: string): string {

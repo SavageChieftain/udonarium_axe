@@ -581,7 +581,17 @@
       "placeField": "この場に置く（残り続ける）",
       "fieldPlaced": "「{{name}}」を盤面に置きました。",
       "fields": "置いてある演出",
-      "removeField": "片づける"
+      "removeField": "片づける",
+      "moteLabel": "道中の粒",
+      "moteAuto": "系統に合わせる",
+      "mote": {
+        "spark": "火の粉",
+        "frost": "氷晶",
+        "arc": "放電",
+        "leaf": "木の葉",
+        "haze": "黒い靄",
+        "none": "出さない"
+      }
     },
     "turnOrder": {
       "title": "行動順",

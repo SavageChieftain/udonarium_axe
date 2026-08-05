@@ -52,6 +52,8 @@ export class EffectPreset extends GameObject {
   @SyncVar() gmOnly: boolean = false;
   /** 巻き込む半径(マス)。0 なら 1 体ずつ選ぶ。 */
   @SyncVar() areaRadius: number = 0;
+  /** 道中に散らす粒。空なら系統から決める。 */
+  @SyncVar() moteStyle: string = '';
 
   static list(): EffectPreset[] {
     return ObjectStore.instance.getObjects<EffectPreset>(EffectPreset);
