@@ -126,6 +126,31 @@ describe('GameCharacterComponent', () => {
       }
     });
 
+    it('読み込みや同期で入れ替わった値では鳴らさないこと', async () => {
+      const character = GameCharacter.create('復元', 1, '');
+      fixture.componentRef.setInput('gameCharacter', character);
+      const objectChange = TestBed.inject(ObjectChangeService);
+      const hp = DataElement.findElementByReference(character.rootDataElement!, 'HP')!;
+
+      try {
+        fixture.detectChanges();
+
+        // 部屋データの読み込みと自動保存の復元、ピアからの同期は、
+        // setter ではなく apply() で値が入る。増減として扱ってはいけない。
+        const context = hp.toContext();
+        (context.syncData as Record<string, unknown>)['currentValue'] = 999;
+        context.majorVersion += 1;
+        hp.apply(context);
+        objectChange.notifyChanged(hp.identifier);
+        await fixture.whenStable();
+
+        expect(component.floatingChanges()).toEqual([]);
+        expect(component.hitFlash()).toBeNull();
+      } finally {
+        character.destroy();
+      }
+    });
+
     it('現在値が増えたら緑の数字と回復の閃光を出すこと', async () => {
       const character = GameCharacter.create('回復', 1, '');
       fixture.componentRef.setInput('gameCharacter', character);
