@@ -5,6 +5,7 @@ import {
   arrowSvg,
   barrierSvg,
   boltSvg,
+  breathConeSvg,
   bulletSvg,
   crackSvg,
   crescentSvg,
@@ -81,18 +82,22 @@ const BOLT_STRIKE_END = 0.45;
 const FROST_SHARD_COUNT = 8;
 const FROST_SPIKE_COUNT = 6;
 const UPHEAVAL_SLAB_COUNT = 7;
-const BREATH_SEGMENT_COUNT = 10;
 /** 口元から対象まで届くまで。 */
 const BREATH_REACH_END = 0.3;
 /** 息が切れはじめる位置。 */
 const BREATH_RELEASE_AT = 0.74;
 const BREATH_LOBE_COUNT = 8;
+const BREATH_TIP_COUNT = 4;
+const BREATH_SOOT_COUNT = 5;
 const BREATH_SPLASH_ANGLES = [-64, -34, 0, 34, 64];
-/** 円錐の層。外は薄く広く、芯は白熱して先へ行くほど冷める。 */
+/**
+ * 円錐の層。外は薄く広く、芯は細く濃い。
+ * `ripple` を変えて層ごとに違う輪郭にすると、重ねたときに縁が単調にならない。
+ */
 const BREATH_LAYERS = [
-  { key: 'haze', width: 1.45, opacity: 0.3, fade: 0.15 },
-  { key: 'body', width: 1, opacity: 0.72, fade: 0.3 },
-  { key: 'core', width: 0.42, opacity: 0.95, fade: 0.72 },
+  { key: 'haze', width: 1.5, opacity: 0.34, ripple: 0 },
+  { key: 'body', width: 1, opacity: 0.7, ripple: 1 },
+  { key: 'core', width: 0.44, opacity: 0.9, ripple: 2 },
 ];
 const DRAIN_MOTE_COUNT = 10;
 const CURSE_RING_COUNT = 3;
@@ -1163,50 +1168,43 @@ function appendBreath(
 
   // 吹き始め → 吹き続け → 息が切れる。
   const front = Math.min(1, progress / BREATH_REACH_END);
-  const release = normalize((progress - BREATH_RELEASE_AT) / (1 - BREATH_RELEASE_AT));
-  // 口元から順に切れる。息を止めたぶんが先へ流れていくように見える。
-  const tail = clamp01(release) ** 1.4;
-  const life = 1 - clamp01(release) * 0.25;
+  const release = clamp01(normalize((progress - BREATH_RELEASE_AT) / (1 - BREATH_RELEASE_AT)));
+  // 吹き終わりは薄れながら散る。1 枚の円錐なので、口元から削るより自然に消える。
+  const life = 1 - release ** 1.4;
+  const dissipate = 1 + release * 0.4;
   const swell = 1 + Math.sin(progress * 17) * 0.06;
 
-  for (let segment = 0; segment < BREATH_SEGMENT_COUNT; segment++) {
-    const from = Math.max(segment / BREATH_SEGMENT_COUNT, tail);
-    const to = Math.min((segment + 1) / BREATH_SEGMENT_COUNT, front);
-    if (to <= from) continue;
+  // 円錐は 1 枚で描く。区間に割ると、区間ごとの太さと濃さの差が縦縞になって出る。
+  const anchor = pointBetween(mouth, impact, front / 2);
+  const coneLength = link.length * front;
+  const coneSpread = breathSpread(front, progress) * base * swell * dissipate;
 
-    const mid = (from + to) / 2;
-    const anchor = pointBetween(mouth, impact, mid);
-    const length = link.length * (to - from) + base * 0.08;
-    const spread = breathSpread(mid) * base * swell;
-
-    for (const layer of BREATH_LAYERS) {
-      sprites.push({
-        ...blank(),
-        key: `${prefix}-breath-${segment}-${layer.key}`,
-        x: anchor.x,
-        y: anchor.y,
-        z: anchor.z,
-        width: length,
-        height: spread * layer.width,
-        rotate: link.angle,
-        // 芯は口元だけ白熱し、先へ行くほど散って冷める。
-        opacity: life * layer.opacity * (1 - mid * layer.fade),
-        background: breathPaint(layer.key, preset),
-        borderRadius: '0',
-      });
-    }
+  for (const layer of BREATH_LAYERS) {
+    sprites.push({
+      ...blank(),
+      key: `${prefix}-breath-cone-${layer.key}`,
+      x: anchor.x,
+      y: anchor.y,
+      z: anchor.z,
+      width: coneLength,
+      height: coneSpread * layer.width,
+      rotate: link.angle,
+      opacity: life * layer.opacity,
+      svg: breathConeSvg(colorsOf(preset), layer.ripple),
+    });
   }
 
   // 縁を転がる渦。まっすぐな円錐に乱れが出て、気体らしく見える。
+  // 左右と大きさを規則的にすると回転する飾りに見えるので、粒ごとに崩す。
   for (let lobe = 0; lobe < BREATH_LOBE_COUNT; lobe++) {
     const at = (progress * 1.6 + lobe / BREATH_LOBE_COUNT) % 1;
-    if (at < tail || at > front) continue;
+    if (at > front) continue;
 
-    const spread = breathSpread(at) * base * swell;
-    const side = lobe % 2 === 0 ? 1 : -1;
-    const shift = side * spread * (0.34 + Math.sin(progress * 9 + lobe) * 0.12);
+    const spread = breathSpread(at, progress) * base * swell;
+    const side = Math.sin(lobe * 2.4) >= 0 ? 1 : -1;
+    const shift = side * spread * (0.3 + Math.sin(progress * 9 + lobe * 1.7) * 0.16);
     const anchor = pointBetween(mouth, impact, at);
-    const size = spread * (0.5 + at * 0.25);
+    const size = spread * (0.42 + at * 0.3) * (1 + Math.sin(lobe * 3.1) * 0.22);
     sprites.push({
       ...blank(),
       key: `${prefix}-breath-lobe-${lobe}`,
@@ -1223,8 +1221,58 @@ function appendBreath(
     });
   }
 
-  if (tail <= 0) {
-    const flare = base * (0.7 + Math.sin(progress * 21) * 0.1);
+  // 先端はほどけて大きく散る。ここが細いままだと、ただの円錐に見える。
+  for (let puff = 0; puff < BREATH_TIP_COUNT; puff++) {
+    const at = 0.72 + ((progress * 1.1 + puff / BREATH_TIP_COUNT) % 1) * 0.28;
+    if (at > front) continue;
+
+    const spread = breathSpread(at, progress) * base * swell;
+    const shift = Math.sin(puff * 2.7 + progress * 5) * spread * 0.5;
+    const anchor = pointBetween(mouth, impact, at);
+    const size = spread * (0.7 + Math.sin(puff * 1.9) * 0.2);
+    sprites.push({
+      ...blank(),
+      key: `${prefix}-breath-tip-${puff}`,
+      x: anchor.x,
+      y: anchor.y,
+      z: anchor.z,
+      offsetX: acrossX * shift,
+      offsetY: acrossY * shift,
+      width: size,
+      height: size,
+      opacity: life * 0.34,
+      background: `radial-gradient(circle, ${preset.colorSecondary} 0%, ${preset.colorSecondary} 30%, transparent 74%)`,
+      borderRadius: '50%',
+    });
+  }
+
+  // 流れの中に混ざる煙。光だけだと気体の密度が出ない。
+  for (let soot = 0; soot < BREATH_SOOT_COUNT; soot++) {
+    const at = (progress * 0.9 + soot / BREATH_SOOT_COUNT) % 1;
+    if (at > front) continue;
+
+    const spread = breathSpread(at, progress) * base * swell;
+    const shift = Math.sin(soot * 4.3 + progress * 3.4) * spread * 0.42;
+    const anchor = pointBetween(mouth, impact, at);
+    const size = spread * (0.4 + at * 0.5);
+    sprites.push({
+      ...blank(),
+      key: `${prefix}-breath-soot-${soot}`,
+      x: anchor.x,
+      y: anchor.y,
+      z: anchor.z,
+      offsetX: acrossX * shift,
+      offsetY: acrossY * shift,
+      width: size,
+      height: size,
+      opacity: life * at * 0.18,
+      background: 'radial-gradient(circle, #2f2823 0%, transparent 70%)',
+      borderRadius: '50%',
+    });
+  }
+
+  {
+    const flare = base * (0.7 + Math.sin(progress * 21) * 0.1) * life;
     sprites.push({
       ...blank(),
       key: `${prefix}-breath-mouth`,
@@ -1281,19 +1329,15 @@ function appendBreath(
   });
 }
 
-/** 口元から先端へ向かう広がり。根元は細く、先ほど大きく散る。 */
-function breathSpread(at: number): number {
-  return 0.4 + at ** 0.8 * 2.1;
-}
-
-function breathPaint(layer: string, preset: EffectPreset): string {
-  if (layer === 'core') {
-    return `linear-gradient(180deg, transparent, ${preset.colorPrimary} 22%, #ffffff 50%, ${preset.colorPrimary} 78%, transparent)`;
-  }
-  if (layer === 'body') {
-    return `linear-gradient(180deg, transparent, ${preset.colorSecondary} 16%, ${preset.colorPrimary} 50%, ${preset.colorSecondary} 84%, transparent)`;
-  }
-  return `linear-gradient(180deg, transparent, ${preset.colorSecondary} 30%, ${preset.colorPrimary} 50%, ${preset.colorSecondary} 70%, transparent)`;
+/**
+ * 口元から先端へ向かう広がり。根元は細く、先ほど大きく散る。
+ *
+ * きれいな三角形にすると噴射口から出る一様な流れに見えるので、
+ * 位相の違う波を重ねて縁をうねらせ、そのうねりを先へ流す。
+ */
+function breathSpread(at: number, progress: number): number {
+  const roll = Math.sin(at * 7.3 - progress * 11) * 0.1 + Math.sin(at * 13.1 + progress * 6.2) * 0.05;
+  return (0.4 + at ** 0.8 * 2.1) * (1 + roll);
 }
 
 /** 吸収。対象から発射元へ、光が繰り返し流れ戻る。 */

@@ -404,32 +404,39 @@ describe('effectSprites()', () => {
       return effectSprites(makePreset('breath'), breathCast, elapsed, options);
     }
 
-    function bodyAt(elapsed: number) {
-      return breathAt(elapsed).filter((sprite) => /-breath-\d+-body$/.test(sprite.key));
+    function coneAt(elapsed: number) {
+      return breathAt(elapsed).filter((sprite) => sprite.key.includes('-breath-cone-'));
     }
 
-    it('口元から先へ広がる円錐にすること', () => {
-      const body = bodyAt(500);
-      expect(body.length).toBeGreaterThan(3);
+    it('円錐を 1 枚で描くこと', () => {
+      const cone = coneAt(500);
 
-      // 同じ丸を並べると数珠になるので、区間の端は丸めず太さで広がりを出す。
-      for (const segment of body) expect(segment.borderRadius).toBe('0');
-      for (let index = 1; index < body.length; index++) {
-        expect(body[index].height).toBeGreaterThan(body[index - 1].height);
+      // 区間に割ると、区間ごとの太さと濃さの差が縦縞の継ぎ目になって出る。
+      expect(cone).toHaveLength(3);
+      for (const layer of cone) {
+        expect(layer.svg.length).toBeGreaterThan(0);
+        expect(layer.background).toBe('');
       }
     });
 
-    it('吹き始めは先端まで届いていないこと', () => {
-      expect(bodyAt(60).length).toBeLessThan(bodyAt(500).length);
+    it('層ごとに違う輪郭を重ねること', () => {
+      const [haze, body, core] = coneAt(500);
+
+      expect(haze.height).toBeGreaterThan(body.height);
+      expect(body.height).toBeGreaterThan(core.height);
+      expect(new Set(coneAt(500).map((layer) => layer.svg)).size).toBe(3);
     });
 
-    it('息が切れると口元から消えること', () => {
-      const mouthSide = (elapsed: number) =>
-        bodyAt(elapsed).filter((sprite) => sprite.x < breathCast.origin!.x / 2).length;
+    it('吹き始めは先端まで届いていないこと', () => {
+      expect(coneAt(60)[0].width).toBeLessThan(coneAt(500)[0].width);
+    });
 
-      expect(mouthSide(500)).toBeGreaterThan(0);
-      expect(mouthSide(980)).toBe(0);
-      expect(bodyAt(980).length).toBeGreaterThan(0);
+    it('吹き終わりは薄れながら散ること', () => {
+      const sustained = coneAt(500)[0];
+      const fading = coneAt(980)[0];
+
+      expect(fading.opacity).toBeLessThan(sustained.opacity * 0.5);
+      expect(fading.height).toBeGreaterThan(sustained.height);
     });
 
     it('縁に渦と、当たった面の巻き返しを出すこと', () => {

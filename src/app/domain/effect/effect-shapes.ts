@@ -381,6 +381,60 @@ export function impactStarSvg(colors: ShapeColors, points = 12): string {
   );
 }
 
+/**
+ * ブレスの円錐。口元(左)から先端(右)へ広がる 1 枚の形。
+ *
+ * 区間に割って並べると、区間ごとの太さと濃さの差が縦縞の継ぎ目になって出る。
+ * 1 枚で描けば継ぎ目は原理的に生まれない。縁は縦方向のマスクでぼかし、
+ * 濃さは軸方向のグラデーションで口元から先へ薄くする。
+ */
+export function breathConeSvg(colors: ShapeColors, ripple = 0): string {
+  const id = idOf('bc', colors) + (ripple > 0 ? String(ripple) : '');
+  // 上下で違う揺れ方をさせて、左右対称のきれいな三角形にしない。
+  const top = [46, 37.5, 28, 20.5, 11, 4].map((y, index) => y + Math.sin(index * 1.7 + ripple) * 2.4);
+  const bottom = [54, 63.5, 71, 80.5, 89, 96].map((y, index) => y - Math.sin(index * 2.3 + ripple) * 2.4);
+  const step = 100 / (top.length - 1);
+
+  const edge = (points: number[], forward: boolean): string =>
+    points
+      .slice(1)
+      .map((y, index) => {
+        const from = points[index];
+        const x0 = step * (forward ? index : points.length - 1 - index);
+        const x1 = step * (forward ? index + 1 : points.length - 2 - index);
+        const bulge = (from + y) / 2 + (forward ? -1.8 : 1.8);
+        return `Q${round((x0 + x1) / 2)},${round(bulge)} ${round(x1)},${round(y)}`;
+      })
+      .join('');
+
+  const path =
+    `M0,${round(top[0])}` +
+    edge(top, true) +
+    // 先端は切り落とさず、外へ膨らませてほどけさせる。
+    `Q106,50 ${round(100)},${round(bottom[bottom.length - 1])}` +
+    edge([...bottom].reverse(), false) +
+    'Z';
+
+  return svg(
+    `<defs>` +
+      `<linearGradient id="${id}f" x1="0" y1="0" x2="1" y2="0">` +
+      `<stop offset="0" stop-color="#ffffff" stop-opacity="0.95"/>` +
+      `<stop offset="0.22" stop-color="${colors.core}" stop-opacity="0.9"/>` +
+      `<stop offset="0.68" stop-color="${colors.edge}" stop-opacity="0.66"/>` +
+      `<stop offset="1" stop-color="${colors.edge}" stop-opacity="0"/>` +
+      `</linearGradient>` +
+      `<linearGradient id="${id}m" x1="0" y1="0" x2="0" y2="1">` +
+      `<stop offset="0" stop-color="#000000"/>` +
+      `<stop offset="0.26" stop-color="#ffffff"/>` +
+      `<stop offset="0.74" stop-color="#ffffff"/>` +
+      `<stop offset="1" stop-color="#000000"/>` +
+      `</linearGradient>` +
+      `<mask id="${id}k"><rect width="100" height="100" fill="url(#${id}m)"/></mask>` +
+      `</defs>` +
+      `<path d="${path}" fill="url(#${id}f)" mask="url(#${id}k)"/>`
+  );
+}
+
 /** 集中線。殴った点から外へ引く線で勢いを出す。 */
 export function speedLinesSvg(colors: ShapeColors, count = 14): string {
   const lines: string[] = [];
