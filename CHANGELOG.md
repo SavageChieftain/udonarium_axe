@@ -1,3 +1,42 @@
+## [1.26.0](https://github.com/SavageChieftain/udonarium_axe/compare/v1.25.0...v1.26.0) (2026-08-05)
+
+### ✨ Features
+
+* **effect:** add map effects with presets, targeting and editing ([e838a87](https://github.com/SavageChieftain/udonarium_axe/commit/e838a873bac792d7df1223fe6caa7c9601b67e0c))
+* **effect:** drive breath with real momentum and per-element motes ([f937269](https://github.com/SavageChieftain/udonarium_axe/commit/f9372696142725e005cbe937fae622f781e9d82f))
+* **effect:** name the sounds in the preset editor ([fe82ecf](https://github.com/SavageChieftain/udonarium_axe/commit/fe82ecf9b42e08995947a28d0633769c66da54e3))
+* **lobby:** announce peer reconnection progress in chat ([0679a3c](https://github.com/SavageChieftain/udonarium_axe/commit/0679a3c6cdbd8c383faf461a50cba6c76ec75d58))
+* **lobby:** re-sync room data without reconnecting ([58b5940](https://github.com/SavageChieftain/udonarium_axe/commit/58b5940b5a321e0545fa956a1dc1bda026147426))
+* **lobby:** show connection quality in the GM and PL toolbars ([aeae6b3](https://github.com/SavageChieftain/udonarium_axe/commit/aeae6b3f0ebd25656bc397e790791d63b2c97b58))
+* **network:** reconnect to peers automatically after an unexpected drop ([2941ea2](https://github.com/SavageChieftain/udonarium_axe/commit/2941ea279ef823efead2d4324087876b7739f643))
+* **network:** treat a silent peer link as disconnected ([da160da](https://github.com/SavageChieftain/udonarium_axe/commit/da160da89fdcf4edf70870bbe7e80a4b9d621528))
+
+### 🐛 Bug Fixes
+
+* **effect:** close the gaps an audit of the effect feature turned up ([f40d940](https://github.com/SavageChieftain/udonarium_axe/commit/f40d940d6a694dfcf258014d5a475412c184a5d4))
+* **effect:** draw the breath cone as one shape and give wind a storm ([80dd218](https://github.com/SavageChieftain/udonarium_axe/commit/80dd218795cc0456c7c4b1a3251ba0d89d00f3fd))
+* **effect:** shake the camera instead of the six-thousand pixel board ([1ebd605](https://github.com/SavageChieftain/udonarium_axe/commit/1ebd605a68e24c6c8e3619e710677b7ee94b319c))
+* **effect:** shake without writing an inherited custom property ([b09f2d0](https://github.com/SavageChieftain/udonarium_axe/commit/b09f2d091cf651f6aad6a8281eba511d84eb9e43))
+* **effect:** shape breath as a cone and keep lateral offsets on screen ([7595de3](https://github.com/SavageChieftain/udonarium_axe/commit/7595de348ad9c94c4b55a9ab47238581b7d82cf0))
+* **effect:** stop explosion smoke from dimming the whole board ([b050cac](https://github.com/SavageChieftain/udonarium_axe/commit/b050cac6feee6f1f44882ba9545815440d718522))
+* **network:** measure links whose peer connection resolves late ([1bb94f6](https://github.com/SavageChieftain/udonarium_axe/commit/1bb94f640335b2b5f6cd90e054fe02688a899281))
+
+### ⚡ Performance
+
+* **effect:** stop promoting every effect sprite to its own layer ([dc59a71](https://github.com/SavageChieftain/udonarium_axe/commit/dc59a71bbf55974ffc198075b37de25518369655))
+
+### 📝 Documentation
+
+* **effect:** document the map effect system ([530583e](https://github.com/SavageChieftain/udonarium_axe/commit/530583ecf6ffbb182fe8ae01763109b784288f61))
+* **website:** add v1.25.0 release notes ([cf16de7](https://github.com/SavageChieftain/udonarium_axe/commit/cf16de7411d17eaab7815def675d03ee1af2cb5f))
+* **website:** document how a dropped connection recovers ([5377886](https://github.com/SavageChieftain/udonarium_axe/commit/5377886373d331d5eef3473d887883c1be244497))
+* **website:** document the connection quality indicator ([31a842c](https://github.com/SavageChieftain/udonarium_axe/commit/31a842c4b46046935b6822603f57d8f8196e3ecb))
+* **website:** show the app favicon on the docs site ([d1f6fc8](https://github.com/SavageChieftain/udonarium_axe/commit/d1f6fc87febdc7d3fcb0af5607aaf44e10ed91ef))
+
+### ♻️ Refactor
+
+* **widgets:** make the connection quality display a real widget ([25de376](https://github.com/SavageChieftain/udonarium_axe/commit/25de376ef7b844d4acda8d53f71083ec8fc76f17))
+
 ## [1.25.0](https://github.com/SavageChieftain/udonarium_axe/compare/v1.24.0...v1.25.0) (2026-08-04)
 
 ### ✨ Features
