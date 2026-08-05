@@ -86,6 +86,7 @@ export default defineConfig({
             { text: '画像', link: '/manual/images' },
             { text: 'ジュークボックス', link: '/manual/jukebox' },
             { text: 'カットイン', link: '/manual/cut-in' },
+            { text: 'マップ演出（エフェクト）', link: '/manual/map-effects' },
             { text: 'ビジュアルノベルモード', link: '/manual/visual-novel' },
           ],
         },
