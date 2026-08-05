@@ -62,4 +62,12 @@ describe('EffectPreset', () => {
     expect(preset.totalDuration(3)).toBe(700);
     expect(preset.totalDuration(0)).toBe(500);
   });
+
+  it('崩れる音を打撃のすぐ後ろに重ねること', () => {
+    const preset = new EffectPreset('preset');
+    preset.kind = 'dissolve';
+
+    // 間が空くと「ドーン」と「ゴゴゴ」が別々の音に聞こえる。
+    expect(preset.impactSoundAt).toBeLessThan(0.15);
+  });
 });

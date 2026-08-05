@@ -214,6 +214,7 @@ export class AppInitializationService {
       statusCure: './assets/sounds/soundeffect-lab/status-cure.mp3',
       beamSmall: './assets/sounds/soundeffect-lab/beam-small.mp3',
       collapse: './assets/sounds/soundeffect-lab/collapse.mp3',
+      collapseHit: './assets/sounds/soundeffect-lab/collapse-hit.mp3',
     };
 
     for (const key of Object.keys(soundMap) as SoundKey[]) {

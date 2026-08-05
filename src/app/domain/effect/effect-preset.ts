@@ -88,6 +88,8 @@ export class EffectPreset extends GameObject {
   /** 着弾音を鳴らす位置(0-1)。飛翔体は着弾の瞬間、それ以外は少し遅らせる。 */
   get impactSoundAt(): number {
     if (this.effectKind === 'arc') return 0.4;
+    // 崩れる音は打撃のすぐ後ろに重ねる。間が空くと 2 つの音に聞こえる。
+    if (this.effectKind === 'dissolve') return 0.09;
     // レーザーは撃った瞬間に鳴らす。着弾を待つと溜めのあいだ無音になる。
     if (this.effectKind === 'beam') return 0.28;
     return 0.5;
