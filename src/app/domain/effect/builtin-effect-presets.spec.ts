@@ -1,5 +1,6 @@
 import { ObjectStore } from '@axe/core/sync/object-store';
 import {
+  applyEffectPresetSeed,
   createDefaultEffectPresets,
   createEffectPreset,
   DEFAULT_EFFECT_PRESET_SEEDS,
@@ -110,5 +111,19 @@ describe('既定エフェクトプリセット', () => {
       for (const preset of created) ObjectStore.instance.remove(preset);
       PresetSound.slashSmall = '';
     }
+  });
+
+  it('種を当て直すと自分でいじった旗も戻ること', () => {
+    const preset = new EffectPreset('preset');
+    preset.gmOnly = true;
+    preset.followTarget = false;
+    preset.moteStyle = 'haze';
+
+    applyEffectPresetSeed(preset, DEFAULT_EFFECT_PRESET_SEEDS[0]);
+
+    // 「既定を反映」で戻らない項目があると、直したつもりの卓で挙動が残る。
+    expect(preset.gmOnly).toBe(false);
+    expect(preset.followTarget).toBe(true);
+    expect(preset.moteStyle).toBe('');
   });
 });

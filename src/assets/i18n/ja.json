@@ -466,7 +466,6 @@
     "effect": {
       "title": "エフェクト",
       "panelTitle": "エフェクト集",
-      "sidebarTitle": "エフェクト",
       "restoreDefaults": "既定を反映",
       "picking": "「{{name}}」の対象を選択中 {{count}}/{{max}}",
       "pickingHint": "コマをクリックで順に選択（もう一度で解除）／Enter で発動／Esc で中止",

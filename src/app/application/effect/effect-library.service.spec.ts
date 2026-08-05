@@ -3,6 +3,8 @@ import { EffectLibraryService } from '@axe/application/effect/effect-library.ser
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { DEFAULT_EFFECT_PRESET_SEEDS } from '@axe/domain/effect/builtin-effect-presets';
 import { EffectPreset } from '@axe/domain/effect/effect-preset';
+import { PeerCursor } from '@axe/domain/peer/peer-cursor';
+import { PeerRole } from '@axe/domain/peer/peer-role';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
 
 describe('EffectLibraryService', () => {
@@ -83,5 +85,18 @@ describe('EffectLibraryService', () => {
     service.remove(preset);
 
     expect(service.get(preset.identifier)).toBeNull();
+  });
+
+  it('GM 専用は名前でも PL に渡さないこと', () => {
+    PeerCursor.createMyCursor();
+    PeerCursor.myCursor.role = PeerRole.Player;
+    const secret = service.create('伏せ札の演出');
+    secret.gmOnly = true;
+
+    // 一覧に出さないだけでは、名前を知っていればチャット記法から撃ててしまう。
+    expect(service.findByName('伏せ札の演出')).toBeNull();
+
+    PeerCursor.myCursor.role = PeerRole.GameMaster;
+    expect(service.findByName('伏せ札の演出')).toBe(secret);
   });
 });

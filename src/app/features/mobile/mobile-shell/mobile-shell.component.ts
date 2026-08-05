@@ -20,6 +20,7 @@ import { ReloadCheck } from '@axe/domain/peer/reload-check';
 import { HandRailService } from '@axe/features/card/hand-rail/hand-rail.service';
 import { GameCharacterGeneratorComponent } from '@axe/features/character/game-character-generator/game-character-generator.component';
 import { ImportCharacterComponent } from '@axe/features/character/import-character/import-character.component';
+import { EffectLibraryPanelComponent } from '@axe/features/effect/effect-library-panel/effect-library-panel.component';
 import { FileStorageComponent } from '@axe/features/file/file-storage/file-storage.component';
 import { GameObjectListPanelComponent } from '@axe/features/gm-object-list/game-object-list-panel.component';
 import { PartyListPanelComponent } from '@axe/features/gm-tools/party-list/party-list-panel.component';
@@ -239,6 +240,8 @@ export class MobileShellComponent {
         return { component: JukeboxComponent, option: { title: this.t('common.panel.jukebox') } };
       case 'cutIn':
         return { component: CutInListComponent, option: { title: this.t('common.panel.cutInList') } };
+      case 'effect':
+        return { component: EffectLibraryPanelComponent, option: { title: this.t('feature.effect.panelTitle') } };
       case 'inventory':
         return { component: GameObjectInventoryComponent, option: { title: this.t('common.panel.inventory') } };
       case 'objectList':

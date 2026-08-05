@@ -8,6 +8,7 @@ import {
 } from '@axe/domain/effect/builtin-effect-presets';
 import { EffectPreset } from '@axe/domain/effect/effect-preset';
 import { duplicatedEffectName } from '@axe/domain/effect/effect-preset-form';
+import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 
 @Injectable({ providedIn: 'root' })
 export class EffectLibraryService {
@@ -26,11 +27,16 @@ export class EffectLibraryService {
     return preset instanceof EffectPreset ? preset : null;
   }
 
-  /** 名前で引く。チャット記法とキャラクターシートは名前で演出を指すため。 */
+  /**
+   * 名前で引く。チャット記法とキャラクターシートは名前で演出を指すため。
+   * GM 専用は一覧に出さないだけでなく、名前を知っていても PL からは引けないようにする。
+   */
   findByName(name: string): EffectPreset | null {
     const needle = name.trim();
     if (needle.length < 1) return null;
-    return this.presets().find((preset) => preset.name.trim() === needle) ?? null;
+    const found = this.presets().find((preset) => preset.name.trim() === needle);
+    if (!found) return null;
+    return found.gmOnly && !PeerCursor.isMyselfGameMaster ? null : found;
   }
 
   /** 白紙から 1 つ作る。 */

@@ -1191,6 +1191,9 @@ export function applyEffectPresetSeed(preset: EffectPreset, seed: EffectPresetSe
   preset.shots = seed.shots ?? 1;
   preset.shotInterval = seed.shotInterval ?? 0;
   preset.areaRadius = seed.areaRadius ?? 0;
+  preset.followTarget = true;
+  preset.gmOnly = false;
+  preset.moteStyle = '';
   preset.soundIdentifier = PresetSound[seed.soundKey];
 }
 
