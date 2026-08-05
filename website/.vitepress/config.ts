@@ -106,6 +106,7 @@ export default defineConfig({
           text: 'リリースノート',
           items: [
             { text: '一覧', link: '/release-notes/' },
+            { text: 'v1.27.0', link: '/release-notes/v1.27.0' },
             { text: 'v1.26.0', link: '/release-notes/v1.26.0' },
             { text: 'v1.25.0', link: '/release-notes/v1.25.0' },
             { text: 'v1.24.0', link: '/release-notes/v1.24.0' },
