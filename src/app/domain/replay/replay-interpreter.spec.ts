@@ -55,8 +55,8 @@ describe('interpretObjectChange()', () => {
     const draft = interpretObjectChange({
       aliasName: 'character',
       identifier: 'c1',
-      before: { location: { name: 'table', x: 0, y: 0 }, posZ: 0 },
-      after: { location: { name: 'table', x: 100, y: 50 }, posZ: 30 },
+      before: { attributes: { location: { name: 'table', x: 0, y: 0 }, posZ: 0 } },
+      after: { attributes: { location: { name: 'table', x: 100, y: 50 }, posZ: 30 } },
     });
     expect(draft?.kind).toBe(ReplayEventKind.ObjectMove);
     expect(draft?.targetIdentifier).toBe('c1');
@@ -68,14 +68,14 @@ describe('interpretObjectChange()', () => {
     const draft = interpretObjectChange({
       aliasName: 'character',
       identifier: 'c1',
-      before: { location: { name: 'table', x: 0, y: 0 }, posZ: 0 },
-      after: { location: { name: 'table', x: 100, y: 0 }, posZ: 0 },
+      before: { attributes: { location: { name: 'table', x: 0, y: 0 }, posZ: 0 } },
+      after: { attributes: { location: { name: 'table', x: 100, y: 0 }, posZ: 0 } },
     });
     expect(draft?.patch).toEqual({
       identifier: 'c1',
       aliasName: 'character',
-      before: { location: { name: 'table', x: 0, y: 0 } },
-      after: { location: { name: 'table', x: 100, y: 0 } },
+      before: { 'attributes.location': { name: 'table', x: 0, y: 0 } },
+      after: { 'attributes.location': { name: 'table', x: 100, y: 0 } },
     });
   });
 
@@ -83,8 +83,8 @@ describe('interpretObjectChange()', () => {
     const draft = interpretObjectChange({
       aliasName: 'character',
       identifier: 'c1',
-      before: { location: { name: 'table', x: 0, y: 0 }, posZ: 0 },
-      after: { location: { name: 'table', x: 0, y: 0, surface: 'north-wall' }, posZ: 0 },
+      before: { attributes: { location: { name: 'table', x: 0, y: 0 }, posZ: 0 } },
+      after: { attributes: { location: { name: 'table', x: 0, y: 0, surface: 'north-wall' }, posZ: 0 } },
     });
     expect(draft?.detail['to']).toEqual({ name: 'table', x: 0, y: 0, z: 0, surface: 'north-wall' });
   });
@@ -93,8 +93,8 @@ describe('interpretObjectChange()', () => {
     const draft = interpretObjectChange({
       aliasName: 'character',
       identifier: 'c1',
-      before: { rotate: 0, roll: 0 },
-      after: { rotate: 90, roll: 0 },
+      before: { attributes: { rotate: 0, roll: 0 } },
+      after: { attributes: { rotate: 90, roll: 0 } },
     });
     expect(draft?.kind).toBe(ReplayEventKind.ObjectRotate);
     expect(draft?.detail['rotate']).toEqual({ from: 0, to: 90 });
@@ -105,8 +105,8 @@ describe('interpretObjectChange()', () => {
     const draft = interpretObjectChange({
       aliasName: 'card',
       identifier: 'k1',
-      before: { state: 'back' },
-      after: { state: 'front' },
+      before: { attributes: { state: 'back' } },
+      after: { attributes: { state: 'front' } },
     });
     expect(draft?.kind).toBe(ReplayEventKind.ObjectFace);
     expect(draft?.detail).toEqual({ from: 'back', to: 'front' });
@@ -116,8 +116,8 @@ describe('interpretObjectChange()', () => {
     const draft = interpretObjectChange({
       aliasName: 'dice-symbol',
       identifier: 'd1',
-      before: { face: '1' },
-      after: { face: '6' },
+      before: { attributes: { face: '1' } },
+      after: { attributes: { face: '6' } },
     });
     expect(draft?.kind).toBe(ReplayEventKind.ObjectFace);
     expect(draft?.detail).toEqual({ from: '1', to: '6' });
@@ -127,8 +127,8 @@ describe('interpretObjectChange()', () => {
     const draft = interpretObjectChange({
       aliasName: 'data',
       identifier: 'hp1',
-      before: { value: 12, currentValue: 12, attributes: { name: 'HP' } },
-      after: { value: 12, currentValue: 7, attributes: { name: 'HP' } },
+      before: { value: 12, attributes: { name: 'HP', currentValue: 12 } },
+      after: { value: 12, attributes: { name: 'HP', currentValue: 7 } },
     });
     expect(draft?.kind).toBe(ReplayEventKind.ObjectValue);
     expect(draft?.detail).toEqual({ name: 'HP', current: { from: 12, to: 7 } });
@@ -138,8 +138,8 @@ describe('interpretObjectChange()', () => {
     const draft = interpretObjectChange({
       aliasName: 'character',
       identifier: 'c1',
-      before: { owner: '' },
-      after: { owner: 'alice' },
+      before: { attributes: { owner: '' } },
+      after: { attributes: { owner: 'alice' } },
     });
     expect(draft?.kind).toBe(ReplayEventKind.ObjectOwner);
     expect(draft?.detail).toEqual({ from: '', to: 'alice' });
@@ -149,8 +149,8 @@ describe('interpretObjectChange()', () => {
     const draft = interpretObjectChange({
       aliasName: 'character',
       identifier: 'c1',
-      before: { isLock: false },
-      after: { isLock: true },
+      before: { attributes: { isLock: false } },
+      after: { attributes: { isLock: true } },
     });
     expect(draft?.kind).toBe(ReplayEventKind.ObjectLock);
     expect(draft?.detail).toEqual({ locked: true });
@@ -161,7 +161,7 @@ describe('interpretObjectChange()', () => {
       aliasName: 'character',
       identifier: 'c1',
       before: null,
-      after: { location: { name: 'table', x: 0, y: 0 } },
+      after: { attributes: { location: { name: 'table', x: 0, y: 0 } } },
     });
     expect(draft?.kind).toBe(ReplayEventKind.ObjectCreate);
     expect(draft?.detail).toEqual({ aliasName: 'character' });
@@ -174,13 +174,8 @@ describe('interpretObjectChange()', () => {
       before: null,
       after: {
         value: 'こんばんは',
-        name: 'アリス',
-        from: 'alice',
-        to: '',
-        tag: '',
-        dicebot: '',
         parentIdentifier: 'tab1',
-        attributes: { timestamp: 1700000000000 },
+        attributes: { name: 'アリス', from: 'alice', to: '', tag: '', dicebot: '', timestamp: 1700000000000 },
       },
     });
     expect(draft?.kind).toBe(ReplayEventKind.ChatMessage);
@@ -201,7 +196,7 @@ describe('interpretObjectChange()', () => {
       aliasName: 'chat',
       identifier: 'm2',
       before: null,
-      after: { value: '(1D100) ＞ 42 ＞ 成功', from: 'System-BCDice', attributes: {} },
+      after: { value: '(1D100) ＞ 42 ＞ 成功', attributes: { from: 'System-BCDice' } },
     });
     expect(draft?.kind).toBe(ReplayEventKind.ChatDice);
   });
@@ -210,11 +205,11 @@ describe('interpretObjectChange()', () => {
     const draft = interpretObjectChange({
       aliasName: 'character',
       identifier: 'c1',
-      before: { hideName: false },
-      after: { hideName: true },
+      before: { attributes: { hideName: false } },
+      after: { attributes: { hideName: true } },
     });
     expect(draft?.kind).toBe(ReplayEventKind.ObjectUpdate);
-    expect(draft?.detail).toEqual({ keys: ['hideName'] });
+    expect(draft?.detail).toEqual({ keys: ['attributes.hideName'] });
   });
 });
 

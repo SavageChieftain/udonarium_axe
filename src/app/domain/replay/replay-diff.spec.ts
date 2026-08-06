@@ -1,4 +1,13 @@
-import { cloneSyncData, cloneSyncValue, diffSyncData, isSameSyncValue } from '@axe/domain/replay/replay-diff';
+import {
+  cloneSyncData,
+  cloneSyncValue,
+  diffSyncData,
+  expandSyncPaths,
+  flattenSyncData,
+  hasChangedKey,
+  isSameSyncValue,
+  syncValueOf,
+} from '@axe/domain/replay/replay-diff';
 
 describe('isSameSyncValue()', () => {
   it('プリミティブを値で比べること', () => {
@@ -73,6 +82,64 @@ describe('diffSyncData()', () => {
     const diff = diffSyncData(before, after)!;
     (after.location as { x: number }).x = 999;
     expect(diff.after['location']).toEqual({ name: 'table', x: 5, y: 0 });
+  });
+});
+
+describe('flattenSyncData() / expandSyncPaths()', () => {
+  const nested = {
+    value: '',
+    parentIdentifier: 'p1',
+    attributes: { location: { name: 'table', x: 10, y: 0 }, posZ: 30, name: 'HP' },
+  };
+  const flat = {
+    value: '',
+    parentIdentifier: 'p1',
+    'attributes.location': { name: 'table', x: 10, y: 0 },
+    'attributes.posZ': 30,
+    'attributes.name': 'HP',
+  };
+
+  it('属性を経路つきの平らな形にすること', () => {
+    expect(flattenSyncData(nested)).toEqual(flat);
+  });
+
+  it('平らな形から元の入れ子に戻すこと', () => {
+    expect(expandSyncPaths(flat)).toEqual(nested);
+  });
+
+  it('属性が無い形でも往復できること', () => {
+    const plain = { userId: 'alice', peerId: 'p1' };
+    expect(expandSyncPaths(flattenSyncData(plain))).toEqual(plain);
+  });
+
+  it('属性が入れ物でなければそのまま置くこと', () => {
+    expect(flattenSyncData({ attributes: 'not-a-record' })).toEqual({ attributes: 'not-a-record' });
+  });
+
+  it('最上位と属性で同じ名前が衝突しないこと', () => {
+    const collide = { value: '外', attributes: { value: '中' } };
+    expect(flattenSyncData(collide)).toEqual({ value: '外', 'attributes.value': '中' });
+    expect(expandSyncPaths(flattenSyncData(collide))).toEqual(collide);
+  });
+});
+
+describe('syncValueOf() / hasChangedKey()', () => {
+  const data = { value: '外', attributes: { posZ: 30, value: '中' } };
+
+  it('属性を先に見ること', () => {
+    expect(syncValueOf(data, 'posZ')).toBe(30);
+    expect(syncValueOf(data, 'value')).toBe('中');
+  });
+
+  it('属性に無ければ最上位を見ること', () => {
+    expect(syncValueOf({ value: '外' }, 'value')).toBe('外');
+    expect(syncValueOf(data, 'unknown')).toBeUndefined();
+  });
+
+  it('経路つきの名前でも変化を見つけること', () => {
+    expect(hasChangedKey(new Set(['attributes.location']), 'location')).toBe(true);
+    expect(hasChangedKey(new Set(['value']), 'value')).toBe(true);
+    expect(hasChangedKey(new Set(['attributes.posZ']), 'location')).toBe(false);
   });
 });
 

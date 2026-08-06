@@ -1,5 +1,48 @@
 export type SyncData = Readonly<Record<string, unknown>>;
 
+export const SYNC_ATTRIBUTES_KEY = 'attributes';
+const ATTRIBUTE_PREFIX = `${SYNC_ATTRIBUTES_KEY}.`;
+
+function isPlainRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+export function flattenSyncData(data: SyncData): Record<string, unknown> {
+  const flat: Record<string, unknown> = {};
+  for (const key of Object.keys(data)) {
+    const value = data[key];
+    if (key === SYNC_ATTRIBUTES_KEY && isPlainRecord(value)) {
+      for (const name of Object.keys(value)) flat[ATTRIBUTE_PREFIX + name] = value[name];
+      continue;
+    }
+    flat[key] = value;
+  }
+  return flat;
+}
+
+export function expandSyncPaths(flat: SyncData): Record<string, unknown> {
+  const data: Record<string, unknown> = {};
+  for (const key of Object.keys(flat)) {
+    if (!key.startsWith(ATTRIBUTE_PREFIX)) {
+      data[key] = flat[key];
+      continue;
+    }
+    const attributes = (data[SYNC_ATTRIBUTES_KEY] ??= {}) as Record<string, unknown>;
+    attributes[key.slice(ATTRIBUTE_PREFIX.length)] = flat[key];
+  }
+  return data;
+}
+
+export function syncValueOf(data: SyncData, name: string): unknown {
+  const attributes = data[SYNC_ATTRIBUTES_KEY];
+  if (isPlainRecord(attributes) && name in attributes) return attributes[name];
+  return data[name];
+}
+
+export function hasChangedKey(keys: ReadonlySet<string>, name: string): boolean {
+  return keys.has(name) || keys.has(ATTRIBUTE_PREFIX + name);
+}
+
 export interface SyncDataDiff {
   keys: readonly string[];
   before: Record<string, unknown>;

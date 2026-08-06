@@ -1,4 +1,11 @@
-import { diffSyncData, type SyncData, type SyncDataDiff } from '@axe/domain/replay/replay-diff';
+import {
+  diffSyncData,
+  flattenSyncData,
+  hasChangedKey,
+  type SyncData,
+  type SyncDataDiff,
+  syncValueOf,
+} from '@axe/domain/replay/replay-diff';
 import { ReplayDetailLevel, ReplayEventKind, type ReplayPatch } from '@axe/domain/replay/replay-event';
 
 export interface ReplayDraft {
@@ -58,7 +65,7 @@ export function isRecordableKind(kind: ReplayEventKind, level: ReplayDetailLevel
 }
 
 export function interpretObjectChange(input: ObjectChangeInput): ReplayDraft | null {
-  const diff = diffSyncData(input.before, input.after);
+  const diff = diffSyncData(input.before ? flattenSyncData(input.before) : null, flattenSyncData(input.after));
   if (!diff) return null;
 
   const patch: ReplayPatch = {
@@ -131,38 +138,42 @@ function describeChange(
   if (aliasName === CHAT_ALIAS && !before) return describeChatMessage(after);
   if (!before) return { kind: ReplayEventKind.ObjectCreate, detail: { aliasName } };
 
-  if (keys.has('location') || keys.has('posZ')) return describeMove(before, after);
-  if (keys.has('rotate') || keys.has('roll')) return describeRotate(before, after, keys);
-  if (aliasName === 'card' && keys.has('state')) return describeFace(before['state'], after['state']);
-  if (keys.has('face')) return describeFace(before['face'], after['face']);
-  if (aliasName === DATA_ALIAS && (keys.has('value') || keys.has('currentValue')))
+  if (hasChangedKey(keys, 'location') || hasChangedKey(keys, 'posZ')) return describeMove(before, after);
+  if (hasChangedKey(keys, 'rotate') || hasChangedKey(keys, 'roll')) return describeRotate(before, after, keys);
+  if (aliasName === 'card' && hasChangedKey(keys, 'state'))
+    return describeFace(syncValueOf(before, 'state'), syncValueOf(after, 'state'));
+  if (hasChangedKey(keys, 'face')) return describeFace(syncValueOf(before, 'face'), syncValueOf(after, 'face'));
+  if (aliasName === DATA_ALIAS && (hasChangedKey(keys, 'value') || hasChangedKey(keys, 'currentValue')))
     return describeValue(before, after, keys);
-  if (keys.has('owner')) return { kind: ReplayEventKind.ObjectOwner, detail: fromTo(before['owner'], after['owner']) };
-  if (keys.has('isLock') || keys.has('isLocked'))
+  if (hasChangedKey(keys, 'owner'))
+    return {
+      kind: ReplayEventKind.ObjectOwner,
+      detail: fromTo(syncValueOf(before, 'owner'), syncValueOf(after, 'owner')),
+    };
+  if (hasChangedKey(keys, 'isLock') || hasChangedKey(keys, 'isLocked'))
     return {
       kind: ReplayEventKind.ObjectLock,
-      detail: { locked: Boolean(after['isLock'] ?? after['isLocked']) },
+      detail: { locked: Boolean(syncValueOf(after, 'isLock') ?? syncValueOf(after, 'isLocked')) },
     };
-  if (keys.has('imageIdentifier'))
+  if (hasChangedKey(keys, 'imageIdentifier'))
     return {
       kind: ReplayEventKind.ObjectImage,
-      detail: fromTo(before['imageIdentifier'], after['imageIdentifier']),
+      detail: fromTo(syncValueOf(before, 'imageIdentifier'), syncValueOf(after, 'imageIdentifier')),
     };
 
   return { kind: ReplayEventKind.ObjectUpdate, detail: { keys: [...keys] } };
 }
 
 function describeChatMessage(after: SyncData): { kind: ReplayEventKind; detail: Record<string, unknown> } {
-  const attributes = (after['attributes'] ?? {}) as Record<string, unknown>;
-  const from = asString(after['from']);
+  const from = asString(syncValueOf(after, 'from'));
   const detail: Record<string, unknown> = {
     text: asString(after['value']),
-    name: asString(after['name']),
+    name: asString(syncValueOf(after, 'name')),
     from,
-    to: asString(after['to']),
-    tag: asString(after['tag']),
-    dicebot: asString(after['dicebot']),
-    timestamp: Number(attributes['timestamp'] ?? 0),
+    to: asString(syncValueOf(after, 'to')),
+    tag: asString(syncValueOf(after, 'tag')),
+    dicebot: asString(syncValueOf(after, 'dicebot')),
+    timestamp: Number(syncValueOf(after, 'timestamp') ?? 0),
     tabIdentifier: asString(after['parentIdentifier']),
   };
   const kind = from === DICEBOT_SENDER ? ReplayEventKind.ChatDice : ReplayEventKind.ChatMessage;
@@ -182,8 +193,9 @@ function describeRotate(
   keys: ReadonlySet<string>
 ): { kind: ReplayEventKind; detail: Record<string, unknown> } {
   const detail: Record<string, unknown> = {};
-  if (keys.has('rotate')) detail['rotate'] = fromTo(before['rotate'], after['rotate']);
-  if (keys.has('roll')) detail['roll'] = fromTo(before['roll'], after['roll']);
+  if (hasChangedKey(keys, 'rotate'))
+    detail['rotate'] = fromTo(syncValueOf(before, 'rotate'), syncValueOf(after, 'rotate'));
+  if (hasChangedKey(keys, 'roll')) detail['roll'] = fromTo(syncValueOf(before, 'roll'), syncValueOf(after, 'roll'));
   return { kind: ReplayEventKind.ObjectRotate, detail };
 }
 
@@ -196,20 +208,20 @@ function describeValue(
   after: SyncData,
   keys: ReadonlySet<string>
 ): { kind: ReplayEventKind; detail: Record<string, unknown> } {
-  const attributes = (after['attributes'] ?? {}) as Record<string, unknown>;
-  const detail: Record<string, unknown> = { name: asString(attributes['name']) };
-  if (keys.has('value')) detail['value'] = fromTo(before['value'], after['value']);
-  if (keys.has('currentValue')) detail['current'] = fromTo(before['currentValue'], after['currentValue']);
+  const detail: Record<string, unknown> = { name: asString(syncValueOf(after, 'name')) };
+  if (hasChangedKey(keys, 'value')) detail['value'] = fromTo(before['value'], after['value']);
+  if (hasChangedKey(keys, 'currentValue'))
+    detail['current'] = fromTo(syncValueOf(before, 'currentValue'), syncValueOf(after, 'currentValue'));
   return { kind: ReplayEventKind.ObjectValue, detail };
 }
 
 function positionOf(data: SyncData): Record<string, unknown> {
-  const location = (data['location'] ?? {}) as Record<string, unknown>;
+  const location = (syncValueOf(data, 'location') ?? {}) as Record<string, unknown>;
   const position: Record<string, unknown> = {
     name: asString(location['name']),
     x: Number(location['x'] ?? 0),
     y: Number(location['y'] ?? 0),
-    z: Number(data['posZ'] ?? 0),
+    z: Number(syncValueOf(data, 'posZ') ?? 0),
   };
   if (location['surface'] != null) position['surface'] = asString(location['surface']);
   return position;
