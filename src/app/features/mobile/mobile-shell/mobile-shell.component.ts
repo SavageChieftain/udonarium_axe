@@ -40,6 +40,7 @@ import { ActiveCharacterService } from '@axe/features/pl-tools/active-character.
 import { CharacterPanelService } from '@axe/features/pl-tools/character-panel.service';
 import { OwnedCharacterListPanelComponent } from '@axe/features/pl-tools/owned-character-list/owned-character-list-panel.component';
 import { isOwnedByUser } from '@axe/features/pl-tools/owned-character-list/owned-characters';
+import { ReplayLogPanelComponent } from '@axe/features/replay/replay-log-panel/replay-log-panel.component';
 import { RoomSnapshotPanelComponent } from '@axe/features/room-archive/room-snapshot-panel/room-snapshot-panel.component';
 import { GameTableSettingComponent } from '@axe/features/tabletop/game-table-setting/game-table-setting.component';
 import { VisualNovelModeService } from '@axe/features/visual-novel/visual-novel-mode.service';
@@ -259,6 +260,8 @@ export class MobileShellComponent {
         return { component: ImportCharacterComponent, option: { title: this.t('common.panel.characterImport') } };
       case 'roomSnapshot':
         return { component: RoomSnapshotPanelComponent, option: { title: this.t('common.panel.roomSnapshot') } };
+      case 'replayLog':
+        return { component: ReplayLogPanelComponent, option: { title: this.t('common.panel.replayLog') } };
       default:
         return null;
     }

@@ -57,6 +57,7 @@ import { MiniJukeboxComponent } from '@axe/features/media/mini-jukebox/mini-juke
 import { MobileShellComponent } from '@axe/features/mobile/mobile-shell/mobile-shell.component';
 import { PlToolbarComponent } from '@axe/features/pl-tools/pl-toolbar/pl-toolbar.component';
 import { ReplayEventHandlerService } from '@axe/features/replay/replay-event-handler.service';
+import { ReplayLogPanelComponent } from '@axe/features/replay/replay-log-panel/replay-log-panel.component';
 import { RoomArchiveEventHandlerService } from '@axe/features/room-archive/room-archive-event-handler.service';
 import { RoomRestoreBannerComponent } from '@axe/features/room-archive/room-restore-banner/room-restore-banner.component';
 import { RoomSnapshotPanelComponent } from '@axe/features/room-archive/room-snapshot-panel/room-snapshot-panel.component';
@@ -195,6 +196,7 @@ export class AppComponent {
       | 'GameObjectInventoryComponent'
       | 'GameObjectListPanelComponent'
       | 'RoomSnapshotPanelComponent'
+      | 'ReplayLogPanelComponent'
   ) {
     let component: { new (...args: unknown[]): unknown } | null = null;
     let option: PanelOption = { width: 450, height: 600, left: 100 };
@@ -250,6 +252,10 @@ export class AppComponent {
       case 'RoomSnapshotPanelComponent':
         component = RoomSnapshotPanelComponent;
         option = { width: 460, height: 460, left: 100, title: this.t('common.panel.roomSnapshot') };
+        break;
+      case 'ReplayLogPanelComponent':
+        component = ReplayLogPanelComponent;
+        option = { width: 480, height: 620, left: 100, title: this.t('common.panel.replayLog') };
         break;
     }
     if (component) {

@@ -99,6 +99,16 @@ export class ReplayRecorderService {
     this._detailLevel.set(level);
   }
 
+  actorNameOf(userId: string): string {
+    const history = this.actors.get(userId);
+    return history?.[history.length - 1]?.name || userId;
+  }
+
+  targetNameOf(identifier: string): string {
+    const history = this.targets.get(identifier);
+    return history?.[history.length - 1]?.name || '';
+  }
+
   async start(): Promise<boolean> {
     if (!this.isSupported || this._isRecording()) return false;
 

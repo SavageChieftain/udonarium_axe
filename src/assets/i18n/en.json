@@ -40,7 +40,8 @@
       "objectList": "Object list",
       "characterImport": "Import Character",
       "ownedCharacters": "My characters",
-      "roomSnapshot": "Auto Save"
+      "roomSnapshot": "Auto Save",
+      "replayLog": "Session log"
     },
     "party": {
       "unnamed": "Unnamed party"
@@ -1967,6 +1968,62 @@
       "characters": "Characters",
       "selectionCount": "{{count}} selected",
       "clearSelection": "Clear selection"
+    },
+    "replay": {
+      "panel": {
+        "hint": "Records who did what at this table, automatically, in this browser (for people who can edit). The log stays in this browser and is not shared with other players.",
+        "unsupported": "This browser cannot record a session log (IndexedDB is unavailable)",
+        "recording": "Recording",
+        "stopped": "Stopped",
+        "start": "Start recording",
+        "stop": "Stop recording",
+        "summary": "{{count}} entries · {{elapsed}}",
+        "mark": "Mark",
+        "markPlaceholder": "Name a chapter (e.g. Act two)",
+        "empty": "Nothing recorded yet",
+        "allActors": "Everyone",
+        "hideSecret": "Hide secrets",
+        "detailLevel": "Detail",
+        "pastRecordings": "Past recordings ({{count}})",
+        "entries": "{{count}} entries",
+        "offlineRoom": "Offline",
+        "remove": "Delete",
+        "removeConfirm": "Delete the recording from {{startedAt}}?",
+        "scope": {
+          "all": "All",
+          "chat": "Chat",
+          "board": "Board"
+        },
+        "level": {
+          "chat-only": "Chat only",
+          "notable": "Standard",
+          "full": "Everything"
+        }
+      },
+      "line": {
+        "chat": "{{speaker}}: {{text}}",
+        "dice": "{{text}}",
+        "move": "{{actor}} moved {{target}} to ({{x}}, {{y}})",
+        "rotate": "{{actor}} turned {{target}} to {{angle}}°",
+        "face": "{{actor}} turned {{target}} to {{face}}",
+        "diceRoll": "{{actor}} rolled {{target}}",
+        "shuffle": "{{actor}} shuffled {{target}}",
+        "value": "{{actor}} changed {{name}} of {{target}} from {{from}} to {{to}}",
+        "image": "{{actor}} changed the look of {{target}}",
+        "owner": "{{actor}} gave {{target}} to {{owner}}",
+        "lock": "{{actor}} locked {{target}}",
+        "unlock": "{{actor}} unlocked {{target}}",
+        "create": "{{actor}} put out {{target}}",
+        "remove": "{{actor}} put away {{target}}",
+        "update": "{{actor}} edited {{target}}",
+        "table": "{{actor}} switched the table to {{target}}",
+        "soundEffect": "{{actor}} played a sound",
+        "cutIn": "{{actor}} played a cut-in",
+        "effect": "{{actor}} cast an effect",
+        "join": "{{actor}} joined",
+        "leave": "{{actor}} left",
+        "marker": "— {{label}} —"
+      }
     }
   },
   "app": {
@@ -1998,7 +2055,8 @@
       "save": "Save",
       "importCharacter": "Import Character",
       "roomSnapshot": "Auto save / restore",
-      "createObject": "Create a piece"
+      "createObject": "Create a piece",
+      "replayLog": "Session log"
     },
     "roomDataDefault": "Room data"
   },

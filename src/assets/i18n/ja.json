@@ -40,7 +40,8 @@
       "objectList": "オブジェクト一覧",
       "characterImport": "キャラクター取り込み",
       "ownedCharacters": "所有キャラクター一覧",
-      "roomSnapshot": "自動保存"
+      "roomSnapshot": "自動保存",
+      "replayLog": "セッションログ"
     },
     "party": {
       "unnamed": "無名のパーティ"
@@ -1967,6 +1968,62 @@
       "characters": "キャラクター",
       "selectionCount": "{{count}} 個選択中",
       "clearSelection": "選択を解除"
+    },
+    "replay": {
+      "panel": {
+        "hint": "この卓で誰が何をしたかを、このブラウザに自動で記録します（編集権限のある人のみ）。記録はこのブラウザ内にとどまり、他の参加者には共有されません。",
+        "unsupported": "このブラウザではセッションログを記録できません（IndexedDB が使用できません）",
+        "recording": "記録中",
+        "stopped": "停止中",
+        "start": "記録開始",
+        "stop": "記録停止",
+        "summary": "{{count}} 件 ・ {{elapsed}}",
+        "mark": "目印",
+        "markPlaceholder": "見出しを付けて区切る（例: 第二幕）",
+        "empty": "まだ記録がありません",
+        "allActors": "全員",
+        "hideSecret": "秘匿を隠す",
+        "detailLevel": "記録の細かさ",
+        "pastRecordings": "過去の記録（{{count}}）",
+        "entries": "{{count}} 件",
+        "offlineRoom": "オフライン",
+        "remove": "削除",
+        "removeConfirm": "{{startedAt}} の記録を削除しますか？",
+        "scope": {
+          "all": "すべて",
+          "chat": "チャット",
+          "board": "盤面"
+        },
+        "level": {
+          "chat-only": "チャットのみ",
+          "notable": "標準",
+          "full": "すべて"
+        }
+      },
+      "line": {
+        "chat": "{{speaker}}「{{text}}」",
+        "dice": "{{text}}",
+        "move": "{{actor}} が {{target}} を ({{x}}, {{y}}) へ動かした",
+        "rotate": "{{actor}} が {{target}} を {{angle}}° に回した",
+        "face": "{{actor}} が {{target}} を {{face}} にした",
+        "diceRoll": "{{actor}} が {{target}} を振った",
+        "shuffle": "{{actor}} が {{target}} を切り混ぜた",
+        "value": "{{actor}} が {{target}} の {{name}} を {{from}} → {{to}} にした",
+        "image": "{{actor}} が {{target}} の見た目を変えた",
+        "owner": "{{actor}} が {{target}} の持ち主を {{owner}} にした",
+        "lock": "{{actor}} が {{target}} を固定した",
+        "unlock": "{{actor}} が {{target}} の固定を外した",
+        "create": "{{actor}} が {{target}} を出した",
+        "remove": "{{actor}} が {{target}} を片づけた",
+        "update": "{{actor}} が {{target}} を編集した",
+        "table": "{{actor}} がテーブルを {{target}} に切り替えた",
+        "soundEffect": "{{actor}} が効果音を鳴らした",
+        "cutIn": "{{actor}} がカットインを出した",
+        "effect": "{{actor}} が演出を出した",
+        "join": "{{actor}} が入室した",
+        "leave": "{{actor}} が退室した",
+        "marker": "― {{label}} ―"
+      }
     }
   },
   "app": {
@@ -1998,7 +2055,8 @@
       "save": "保存",
       "importCharacter": "キャラ取り込み",
       "roomSnapshot": "自動保存 / 復元",
-      "createObject": "コマを作る"
+      "createObject": "コマを作る",
+      "replayLog": "セッションログ"
     },
     "roomDataDefault": "ルームデータ"
   },
