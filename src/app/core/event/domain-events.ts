@@ -1,4 +1,4 @@
-import { EventChannel, ReplayEventChannel } from '@axe/core/event/event-channel';
+import { EventChannel, StickyEventChannel } from '@axe/core/event/event-channel';
 import { localDispatch, networkMessage$, networkSend } from '@axe/core/network/network-messaging';
 import { getPeerContext } from '@axe/core/network/peer-context-source';
 import { ArchiveEntries } from '@axe/core/storage/room-archive';
@@ -111,8 +111,8 @@ export const xmlLoaded$ = new EventChannel<XmlLoadedEvent>();
 export const imageDropped$ = new EventChannel<ImageDroppedEvent>();
 export const ccfoliaRoomDropped$ = new EventChannel<CcfoliaRoomDroppedEvent>();
 // APP_INITIALIZER の設定ロード(emit)が AppComponent 生成時の購読より先に走り得るため、
-// 取りこぼし（= openStandby 未実行で peerId が '???' のまま固定）を防ぐ replay チャネルにする。
-export const loadConfig$ = new ReplayEventChannel<LoadConfigEvent>();
+// 取りこぼし（= openStandby 未実行で peerId が '???' のまま固定）を防ぐ sticky チャネルにする。
+export const loadConfig$ = new StickyEventChannel<LoadConfigEvent>();
 export const fileResourceUpdated$ = new EventChannel<void>();
 
 export function emitSendMessage(event: SendMessageEvent) {

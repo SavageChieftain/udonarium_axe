@@ -37,7 +37,7 @@ export class EventChannel<T = void> implements ReadableChannel<T> {
  * イベントを取りこぼさないために使う。購読より前に emit 済みなら、subscribe した時点で
  * 直近の値がそのリスナーへ同期的に届く（既存の購読者には通常どおり emit 時に届く）。
  */
-export class ReplayEventChannel<T = void> extends EventChannel<T> {
+export class StickyEventChannel<T = void> extends EventChannel<T> {
   private hasLastEvent = false;
   private lastEvent!: T;
 
