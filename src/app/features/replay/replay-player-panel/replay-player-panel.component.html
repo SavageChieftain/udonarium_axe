@@ -97,17 +97,81 @@
       </button>
     </div>
 
+    <div class="flex flex-wrap items-center gap-1.5">
+      @if (!isEditing()) {
+        <button
+          class="rounded-ui-sm cursor-pointer px-[0.8em] py-[0.3em] text-[0.74rem]"
+          [disabled]="!canEdit || isBoardMode()"
+          (click)="beginEditing()"
+        >
+          {{ 'feature.replay.editor.begin' | transloco }}
+        </button>
+      } @else {
+        <span class="text-ui-muted text-[0.72rem]">{{ 'feature.replay.editor.hint' | transloco }}</span>
+        <button
+          class="rounded-ui-sm border-ui-accent bg-ui-accent hover:border-ui-accent-hover hover:bg-ui-accent-hover cursor-pointer border border-solid px-[0.8em] py-[0.3em] text-[0.74rem] text-white"
+          [disabled]="!isDirty() || isSaving()"
+          (click)="saveEdits()"
+        >
+          {{ 'feature.replay.editor.save' | transloco }}
+        </button>
+        <button
+          class="rounded-ui-sm cursor-pointer px-[0.8em] py-[0.3em] text-[0.74rem]"
+          [disabled]="!isDirty()"
+          (click)="revertEditing()"
+        >
+          {{ 'feature.replay.editor.revert' | transloco }}
+        </button>
+        <button class="rounded-ui-sm cursor-pointer px-[0.8em] py-[0.3em] text-[0.74rem]" (click)="cancelEditing()">
+          {{ 'feature.replay.editor.cancel' | transloco }}
+        </button>
+      }
+    </div>
+
     <ul class="m-0 flex min-h-0 flex-1 list-none flex-col gap-0.5 overflow-y-auto p-0">
       @for (row of rows(); track row.seq) {
         <li
-          class="hover:bg-ui-accent-bg rounded-ui-sm flex cursor-pointer items-start gap-1.5 px-1.5 py-1 text-[0.74rem]"
-          [class.bg-ui-accent-bg]="row.index === cursor()"
-          [class.text-ui-dim]="row.index > cursor()"
-          (click)="seekTo(row.index.toString())"
+          class="hover:bg-ui-accent-bg rounded-ui-sm flex items-start gap-1.5 px-1.5 py-1 text-[0.74rem]"
+          [class.bg-ui-accent-bg]="!isEditing() && row.index === cursor()"
+          [class.text-ui-dim]="!isEditing() && row.index > cursor()"
+          [class.cursor-pointer]="!isEditing()"
+          (click)="isEditing() ? null : seekTo(row.index.toString())"
         >
           <span class="text-ui-dim shrink-0 text-[0.66rem] tabular-nums">{{ row.elapsed }}</span>
           <i class="material-icons text-ui-dim shrink-0 text-[13px] leading-[1.4]">{{ row.line.icon }}</i>
-          <span class="min-w-0 flex-1 wrap-break-word">{{ row.line.key | transloco: row.line.params }}</span>
+          @if (isEditing() && row.editable) {
+            <input
+              class="border-ui-border bg-ui-panel rounded-ui-sm min-w-0 flex-1 border border-solid px-1.5 py-0.5 text-[0.72rem]"
+              type="text"
+              [value]="row.text"
+              (change)="retextRow(row.seq, $any($event.target).value)"
+            />
+          } @else {
+            <span class="min-w-0 flex-1 wrap-break-word">{{ row.line.key | transloco: row.line.params }}</span>
+          }
+          @if (isEditing()) {
+            <button
+              class="text-ui-dim hover:text-ui-accent shrink-0 cursor-pointer px-0.5"
+              [attr.aria-label]="'feature.replay.editor.up' | transloco"
+              (click)="moveRow(row.seq, -1)"
+            >
+              <i class="material-icons text-[14px]">arrow_upward</i>
+            </button>
+            <button
+              class="text-ui-dim hover:text-ui-accent shrink-0 cursor-pointer px-0.5"
+              [attr.aria-label]="'feature.replay.editor.down' | transloco"
+              (click)="moveRow(row.seq, 1)"
+            >
+              <i class="material-icons text-[14px]">arrow_downward</i>
+            </button>
+            <button
+              class="text-ui-dim shrink-0 cursor-pointer px-0.5 hover:text-red-400"
+              [attr.aria-label]="'feature.replay.editor.remove' | transloco"
+              (click)="removeRow(row.seq)"
+            >
+              <i class="material-icons text-[14px]">close</i>
+            </button>
+          }
         </li>
       }
     </ul>

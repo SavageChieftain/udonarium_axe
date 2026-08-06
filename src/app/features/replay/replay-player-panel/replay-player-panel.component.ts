@@ -1,10 +1,13 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { RolePermissionService } from '@axe/application/permission/role-permission.service';
+import { ReplayEditorService } from '@axe/application/replay/replay-editor.service';
+import { ReplayLibraryService } from '@axe/application/replay/replay-library.service';
 import { ReplayPlaybackService } from '@axe/application/replay/replay-playback.service';
 import { ReplayRecorderService } from '@axe/application/replay/replay-recorder.service';
 import { confirmDialog } from '@axe/core/input/confirm-dialog';
 import type { ReplayRecordingMeta } from '@axe/core/storage/replay-log-store';
+import { isTextEditable, textOf } from '@axe/domain/replay/replay-edit';
 import { findActorAt, findTargetAt, type ReplayManifest } from '@axe/domain/replay/replay-event';
 import { formatReplayElapsed, type ReplayNameLookup, toReplayLogLine } from '@axe/features/replay/replay-log-line';
 import { formatSnapshotSavedAt } from '@axe/features/room-archive/snapshot-format';
@@ -20,6 +23,8 @@ const EMPTY_DICTIONARY: Pick<ReplayManifest, 'actors' | 'targets'> = { actors: [
 })
 export class ReplayPlayerPanelComponent {
   private readonly playback = inject(ReplayPlaybackService);
+  private readonly editor = inject(ReplayEditorService);
+  private readonly library = inject(ReplayLibraryService);
   private readonly recorder = inject(ReplayRecorderService);
   private readonly rolePermission = inject(RolePermissionService);
   private readonly t = inject(TRANSLATE_FN);
@@ -32,6 +37,11 @@ export class ReplayPlayerPanelComponent {
   protected readonly isAtStart = this.playback.isAtStart;
   protected readonly isAtEnd = this.playback.isAtEnd;
   protected readonly recordings = this.recorder.recordings;
+  protected readonly isEditing = this.editor.isEditing;
+  protected readonly isDirty = this.editor.isDirty;
+  protected readonly isSaving = this.editor.isSaving;
+
+  private readonly shownEvents = computed(() => (this.isEditing() ? this.editor.edited() : this.playback.events()));
 
   protected readonly total = computed(() => this.playback.events().length);
 
@@ -39,10 +49,12 @@ export class ReplayPlayerPanelComponent {
 
   protected readonly rows = computed(() => {
     const manifest = this.playback.manifest() ?? EMPTY_DICTIONARY;
-    return this.playback.events().map((event, index) => ({
+    return this.shownEvents().map((event, index) => ({
       index,
       seq: event.seq,
       elapsed: formatReplayElapsed(event.t),
+      editable: isTextEditable(event),
+      text: textOf(event),
       line: toReplayLogLine(event, this.namesAt(manifest, event.seq)),
     }));
   });
@@ -103,6 +115,44 @@ export class ReplayPlayerPanelComponent {
     if (!this.canEdit) return;
     if (!confirmDialog(this.t('feature.replay.player.boardConfirm'))) return;
     await this.playback.enterBoardMode();
+  }
+
+  protected beginEditing(): void {
+    if (!this.canEdit) return;
+    this.editor.begin(this.playback.events());
+  }
+
+  protected cancelEditing(): void {
+    this.editor.cancel();
+  }
+
+  protected revertEditing(): void {
+    this.editor.revert();
+  }
+
+  protected removeRow(seq: number): void {
+    this.editor.remove(seq);
+  }
+
+  protected moveRow(seq: number, offset: number): void {
+    this.editor.move(seq, offset);
+  }
+
+  protected retextRow(seq: number, text: string): void {
+    this.editor.retext(seq, text);
+  }
+
+  protected async saveEdits(): Promise<void> {
+    const id = this.playback.recordingId();
+    const manifest = this.playback.manifest();
+    const first = this.editor.edited()[0];
+    if (id == null || !manifest || !first) return;
+
+    const base = await this.library.boardBefore(id, first.seq, this.playback.events());
+    const derived = await this.editor.saveAsDerived(manifest, base);
+    if (derived == null) return;
+    await this.recorder.refresh();
+    await this.playback.open(derived);
   }
 
   private namesAt(manifest: Pick<ReplayManifest, 'actors' | 'targets'>, seq: number): ReplayNameLookup {

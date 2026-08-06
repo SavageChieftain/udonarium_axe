@@ -2039,6 +2039,16 @@
         "boardStart": "Take the board",
         "boardStop": "Give it back",
         "boardConfirm": "This shows the recorded board. Your table is held aside and restored when you leave, and nothing you do meanwhile reaches the other players. Continue?"
+      },
+      "editor": {
+        "begin": "Edit",
+        "hint": "Reorder, delete, or reword. The original recording is left alone.",
+        "save": "Save as a new recording",
+        "revert": "Undo all",
+        "cancel": "Stop editing",
+        "up": "Move up",
+        "down": "Move down",
+        "remove": "Delete this entry"
       }
     }
   },

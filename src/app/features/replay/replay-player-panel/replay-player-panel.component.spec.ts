@@ -169,6 +169,40 @@ describe('ReplayPlayerPanelComponent', () => {
     expect(playback['exitBoardMode']).toHaveBeenCalledTimes(1);
   });
 
+  it('編集に入ると行に並べ替えと削除が出ること', async () => {
+    await setup();
+    expect(fixture.nativeElement.querySelectorAll('input[type="text"]')).toHaveLength(0);
+
+    buttonByText('編集')?.click();
+    fixture.detectChanges();
+
+    const rows = [...fixture.nativeElement.querySelectorAll('ul > li')] as HTMLElement[];
+    expect(rows[0].querySelector('input[type="text"]')).not.toBeNull();
+    expect(rows[1].querySelector('input[type="text"]')).toBeNull();
+  });
+
+  it('編集中は行を押しても位置が動かないこと', async () => {
+    await setup();
+    buttonByText('編集')?.click();
+    fixture.detectChanges();
+
+    const rows = [...fixture.nativeElement.querySelectorAll('ul > li')] as HTMLElement[];
+    rows[1].click();
+    expect(playback['seekTo']).not.toHaveBeenCalled();
+  });
+
+  it('行を消すと一覧から消えること', async () => {
+    await setup();
+    buttonByText('編集')?.click();
+    fixture.detectChanges();
+
+    const remove = fixture.nativeElement.querySelector('[aria-label="この行を消す"]') as HTMLButtonElement;
+    remove.click();
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelectorAll('ul > li')).toHaveLength(1);
+  });
+
   it('記録を開いていなければ案内を出すこと', async () => {
     isOpen = signal(false);
     await setup();
