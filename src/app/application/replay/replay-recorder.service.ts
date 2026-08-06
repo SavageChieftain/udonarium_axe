@@ -2,6 +2,7 @@ import { DestroyRef, inject, Injectable, signal } from '@angular/core';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { Logger } from '@axe/core/logging/logger';
 import { Network } from '@axe/core/network/network';
+import { isNetworkIsolated } from '@axe/core/network/network-isolation';
 import { networkMessage$ } from '@axe/core/network/network-messaging';
 import { ReplayLogStore, type ReplayRecordingMeta, selectExpiredRecordings } from '@axe/core/storage/replay-log-store';
 import type { ObjectContext } from '@axe/core/sync/game-object';
@@ -87,7 +88,7 @@ export class ReplayRecorderService {
 
   constructor() {
     networkMessage$.subscribe((message) => {
-      if (!this._isRecording()) return;
+      if (!this._isRecording() || isNetworkIsolated()) return;
       this.handleMessage(message.eventName, message.data, message.sendFrom);
     }, this.destroyRef);
     this.destroyRef.onDestroy(() => this.clearTimers());
@@ -232,6 +233,7 @@ export class ReplayRecorderService {
       targetId: draft.targetIdentifier,
       detail: draft.detail,
       patch: draft.patch,
+      signal: draft.signal,
       visibility: this.visibilityOf(draft),
     };
 

@@ -2,18 +2,20 @@ import { computed, inject, Injectable, signal } from '@angular/core';
 import { ReplayLibraryService } from '@axe/application/replay/replay-library.service';
 import { Logger } from '@axe/core/logging/logger';
 import { setNetworkIsolated } from '@axe/core/network/network-isolation';
-import type { ObjectContext } from '@axe/core/sync/game-object';
+import { localDispatch } from '@axe/core/network/network-messaging';
+import type { GameObject, ObjectContext } from '@axe/core/sync/game-object';
 import { markForChanged } from '@axe/core/sync/object-event-extension';
 import { ObjectFactory } from '@axe/core/sync/object-factory';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { ObjectSynchronizer } from '@axe/core/sync/object-synchronizer';
-import type { ReplayEvent, ReplayManifest } from '@axe/domain/replay/replay-event';
+import { mergeSyncData, type SyncData } from '@axe/domain/replay/replay-diff';
+import { type ReplayEvent, ReplayEventKind, type ReplayManifest } from '@axe/domain/replay/replay-event';
 import {
   decodeReplayKeyframe,
   encodeReplayKeyframe,
   type ReplayObjectSnapshot,
 } from '@axe/domain/replay/replay-keyframe';
-import { applyReplayEvents, indexOfSeq } from '@axe/domain/replay/replay-patch';
+import { applyReplayEvents, applyReplayPatch, indexOfSeq } from '@axe/domain/replay/replay-patch';
 
 export const REPLAY_AUTO_PLAY_BASE_MS = 1_200;
 export const REPLAY_AUTO_PLAY_MAX_MS = 4_000;
@@ -77,8 +79,15 @@ export class ReplayPlaybackService {
     const events = this._events();
     if (events.length < 1) return;
     const clamped = Math.max(0, Math.min(events.length - 1, index));
+    const isStepForward = clamped === this._cursor() + 1;
     this._cursor.set(clamped);
-    if (this._isBoardMode()) await this.applyBoard(clamped);
+    if (!this._isBoardMode()) return;
+
+    if (isStepForward) {
+      this.stepBoardForward(events[clamped]);
+      return;
+    }
+    await this.applyBoard(clamped);
   }
 
   async next(): Promise<void> {
@@ -174,6 +183,44 @@ export class ReplayPlaybackService {
     }
   }
 
+  private stepBoardForward(event: ReplayEvent): void {
+    if (event.kind === ReplayEventKind.ObjectRemove) {
+      const object = event.targetId ? this.objectStore.get(event.targetId) : null;
+      if (object) this.objectStore.remove(object);
+    } else if (event.patch) {
+      const existing = this.objectStore.get(event.patch.identifier);
+      if (existing) {
+        this.reviveObject(existing, applyReplayPatch(existing.toContext().syncData as SyncData, event.patch));
+      } else {
+        this.createObject({
+          identifier: event.patch.identifier,
+          aliasName: event.patch.aliasName,
+          syncData: applyReplayPatch(null, event.patch),
+        });
+      }
+    }
+    if (event.signal) localDispatch(event.signal.name, event.signal.data);
+  }
+
+  private reviveObject(object: GameObject, syncData: Record<string, unknown>): void {
+    const context = object.toContext();
+    object.apply({ ...context, majorVersion: context.majorVersion + 1, minorVersion: 0, syncData });
+    markForChanged(object);
+  }
+
+  private createObject(snapshot: ReplayObjectSnapshot): void {
+    const object = this.objectFactory.create(snapshot.aliasName, snapshot.identifier);
+    if (!object) return;
+    const context: ObjectContext = {
+      identifier: snapshot.identifier,
+      aliasName: snapshot.aliasName,
+      majorVersion: 1,
+      minorVersion: 0,
+      syncData: mergeSyncData(object.toContext().syncData as SyncData, snapshot.syncData),
+    };
+    this.objectStore.add(object, false, () => object.apply(context));
+  }
+
   private snapshotBoard(): ReplayObjectSnapshot[] {
     return decodeReplayKeyframe(
       encodeReplayKeyframe(
@@ -193,18 +240,7 @@ export class ReplayPlaybackService {
     for (const object of this.objectStore.getObjects()) this.objectStore.remove(object);
     this.objectStore.clearDeleteHistory();
 
-    for (const snapshot of snapshots) {
-      const object = this.objectFactory.create(snapshot.aliasName, snapshot.identifier);
-      if (!object) continue;
-      const context: ObjectContext = {
-        identifier: snapshot.identifier,
-        aliasName: snapshot.aliasName,
-        majorVersion: 1,
-        minorVersion: 0,
-        syncData: snapshot.syncData,
-      };
-      this.objectStore.add(object, false, () => object.apply(context));
-    }
+    for (const snapshot of snapshots) this.createObject(snapshot);
 
     for (const object of this.objectStore.getObjects()) markForChanged(object);
   }

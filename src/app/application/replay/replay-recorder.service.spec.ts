@@ -9,6 +9,7 @@ import {
   ReplayRecorderService,
 } from '@axe/application/replay/replay-recorder.service';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
+import { setNetworkIsolated } from '@axe/core/network/network-isolation';
 import { localDispatch } from '@axe/core/network/network-messaging';
 import {
   type ReplayChunkInput,
@@ -127,6 +128,7 @@ describe('ReplayRecorderService', () => {
   });
 
   afterEach(async () => {
+    setNetworkIsolated(false);
     if (service.isRecording()) await service.stop();
     vi.restoreAllMocks();
     for (const object of objectStore.getObjects()) objectStore.remove(object);
@@ -263,6 +265,20 @@ describe('ReplayRecorderService', () => {
       ReplayEventKind.ObjectDiceRoll,
       ReplayEventKind.ObjectShuffle,
     ]);
+  });
+
+  it('再生で卓を預かっているあいだは記録しないこと', async () => {
+    await service.start();
+    vi.advanceTimersByTime(REPLAY_BASELINE_GRACE_MS);
+
+    setNetworkIsolated(true);
+    localDispatch('SOUND_EFFECT', 'se-dice', 'peer-a');
+    sendUpdate('c1', 'character', { location: { name: 'table', x: 10, y: 0 }, posZ: 0 });
+    expect(service.recentEvents()).toHaveLength(0);
+
+    setNetworkIsolated(false);
+    localDispatch('SOUND_EFFECT', 'se-dice', 'peer-a');
+    expect(service.recentEvents()).toHaveLength(1);
   });
 
   it('削除を記録すること', async () => {

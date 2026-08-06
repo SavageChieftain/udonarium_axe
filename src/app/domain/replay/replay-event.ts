@@ -65,6 +65,11 @@ export interface ReplayPatch {
   after: Record<string, unknown>;
 }
 
+export interface ReplaySignal {
+  name: string;
+  data: unknown;
+}
+
 export interface ReplayEvent {
   seq: number;
   at: number;
@@ -74,6 +79,7 @@ export interface ReplayEvent {
   targetId?: string;
   detail: Readonly<Record<string, unknown>>;
   patch?: ReplayPatch;
+  signal?: ReplaySignal;
   visibility: ReplayVisibility;
   merged?: number;
 }

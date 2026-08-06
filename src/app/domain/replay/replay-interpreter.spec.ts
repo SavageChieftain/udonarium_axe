@@ -213,6 +213,56 @@ describe('interpretObjectChange()', () => {
   });
 });
 
+describe('カットインの読み取り', () => {
+  it('カットインの開始を読むこと', () => {
+    const draft = interpretObjectChange({
+      aliasName: 'cut-in-launcher',
+      identifier: 'launcher',
+      before: { attributes: { launchTimeStamp: 3, launchCutInIdentifier: 'cut-a', launchIsStart: true } },
+      after: { attributes: { launchTimeStamp: 4, launchCutInIdentifier: 'cut-b', launchIsStart: true } },
+    });
+    expect(draft?.kind).toBe(ReplayEventKind.MediaCutIn);
+    expect(draft?.targetIdentifier).toBe('cut-b');
+    expect(draft?.detail).toEqual({ soundOnly: false, isStart: true });
+  });
+
+  it('カットインの停止を読むこと', () => {
+    const draft = interpretObjectChange({
+      aliasName: 'cut-in-launcher',
+      identifier: 'launcher',
+      before: { attributes: { launchTimeStamp: 4, launchCutInIdentifier: 'cut-b', launchIsStart: true } },
+      after: { attributes: { launchTimeStamp: 5, launchCutInIdentifier: 'cut-b', launchIsStart: false } },
+    });
+    expect(draft?.detail['isStart']).toBe(false);
+  });
+
+  it('音だけのカットインを読むこと', () => {
+    const draft = interpretObjectChange({
+      aliasName: 'cut-in-launcher',
+      identifier: 'launcher',
+      before: { attributes: { soundOnlyTimeStamp: 1, soundOnlyCutInIdentifier: 'se-a' } },
+      after: { attributes: { soundOnlyTimeStamp: 2, soundOnlyCutInIdentifier: 'se-b' } },
+    });
+    expect(draft?.kind).toBe(ReplayEventKind.MediaCutIn);
+    expect(draft?.targetIdentifier).toBe('se-b');
+    expect(draft?.detail['soundOnly']).toBe(true);
+  });
+
+  it('標準の細かさでもカットインを残すこと', () => {
+    expect(isRecordableKind(ReplayEventKind.MediaCutIn, ReplayDetailLevel.Notable)).toBe(true);
+  });
+
+  it('関係ない変更はカットインとして読まないこと', () => {
+    const draft = interpretObjectChange({
+      aliasName: 'cut-in-launcher',
+      identifier: 'launcher',
+      before: { attributes: { sendTo: '' } },
+      after: { attributes: { sendTo: 'alice' } },
+    });
+    expect(draft?.kind).toBe(ReplayEventKind.ObjectUpdate);
+  });
+});
+
 describe('interpretObjectRemove()', () => {
   it('削除として読むこと', () => {
     const draft = interpretObjectRemove('c1', 'character');
@@ -227,6 +277,21 @@ describe('interpretSignal()', () => {
     const draft = interpretSignal('ROLL_DICE_SYMBOL', { identifier: 'd1' });
     expect(draft?.kind).toBe(ReplayEventKind.ObjectDiceRoll);
     expect(draft?.targetIdentifier).toBe('d1');
+  });
+
+  it('鳴らし直せる合図に元のイベントを添えること', () => {
+    expect(interpretSignal('SOUND_EFFECT', 'se-dice')?.signal).toEqual({ name: 'SOUND_EFFECT', data: 'se-dice' });
+    expect(interpretSignal('ROLL_DICE_SYMBOL', { identifier: 'd1' })?.signal?.name).toBe('ROLL_DICE_SYMBOL');
+    expect(interpretSignal('SHUFFLE_CARD_STACK', { identifier: 's1' })?.signal?.name).toBe('SHUFFLE_CARD_STACK');
+    expect(interpretSignal('FLIP_COIN', { identifier: 'c1', face: 'back' })?.signal?.name).toBe('FLIP_COIN');
+    expect(interpretSignal('EFFECT_CAST', {})?.signal?.name).toBe('EFFECT_CAST');
+    expect(interpretSignal('SELECT_GAME_TABLE', { identifier: 't1' })?.signal?.name).toBe('SELECT_GAME_TABLE');
+  });
+
+  it('鳴らし直してはいけない合図には添えないこと', () => {
+    expect(interpretSignal('CONNECT_PEER', { peerId: 'p1' })?.signal).toBeUndefined();
+    expect(interpretSignal('DISCONNECT_PEER', { peerId: 'p1' })?.signal).toBeUndefined();
+    expect(interpretSignal('RESOURCE_CHANGE', { characterIdentifier: 'c1' })?.signal).toBeUndefined();
   });
 
   it('コイン投げを読むこと', () => {

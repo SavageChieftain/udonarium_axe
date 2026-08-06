@@ -6,13 +6,19 @@ import {
   type SyncDataDiff,
   syncValueOf,
 } from '@axe/domain/replay/replay-diff';
-import { ReplayDetailLevel, ReplayEventKind, type ReplayPatch } from '@axe/domain/replay/replay-event';
+import {
+  ReplayDetailLevel,
+  ReplayEventKind,
+  type ReplayPatch,
+  type ReplaySignal,
+} from '@axe/domain/replay/replay-event';
 
 export interface ReplayDraft {
   kind: ReplayEventKind;
   targetIdentifier?: string;
   detail: Record<string, unknown>;
   patch?: ReplayPatch;
+  signal?: ReplaySignal;
 }
 
 export interface ObjectChangeInput {
@@ -45,6 +51,7 @@ export const REPLAY_IGNORED_EVENT_NAMES: ReadonlySet<string> = new Set([
 
 const CHAT_ALIAS = 'chat';
 const DATA_ALIAS = 'data';
+const CUT_IN_LAUNCHER_ALIAS = 'cut-in-launcher';
 const DICEBOT_SENDER = 'System-BCDice';
 
 const CHAT_ONLY_KINDS: ReadonlySet<ReplayEventKind> = new Set([
@@ -75,7 +82,7 @@ export function interpretObjectChange(input: ObjectChangeInput): ReplayDraft | n
     after: diff.after,
   };
   const draft = describeChange(input, diff);
-  return { ...draft, targetIdentifier: input.identifier, patch };
+  return { ...draft, targetIdentifier: draft.targetIdentifier ?? input.identifier, patch };
 }
 
 export function interpretObjectRemove(identifier: string, aliasName: string): ReplayDraft {
@@ -84,34 +91,39 @@ export function interpretObjectRemove(identifier: string, aliasName: string): Re
 
 export function interpretSignal(eventName: string, data: unknown): ReplayDraft | null {
   const record = (data ?? {}) as Record<string, unknown>;
+  const signal: ReplaySignal = { name: eventName, data };
   switch (eventName) {
     case 'ROLL_DICE_SYMBOL':
       return {
         kind: ReplayEventKind.ObjectDiceRoll,
         targetIdentifier: asString(record['identifier']),
         detail: {},
+        signal,
       };
     case 'FLIP_COIN':
       return {
         kind: ReplayEventKind.ObjectFace,
         targetIdentifier: asString(record['identifier']),
         detail: { to: asString(record['face']) },
+        signal,
       };
     case 'SHUFFLE_CARD_STACK':
       return {
         kind: ReplayEventKind.ObjectShuffle,
         targetIdentifier: asString(record['identifier']),
         detail: {},
+        signal,
       };
     case 'SOUND_EFFECT':
-      return { kind: ReplayEventKind.MediaSoundEffect, detail: { identifier: asString(data) } };
+      return { kind: ReplayEventKind.MediaSoundEffect, detail: { identifier: asString(data) }, signal };
     case 'EFFECT_CAST':
-      return { kind: ReplayEventKind.EffectCast, detail: { cast: data } };
+      return { kind: ReplayEventKind.EffectCast, detail: { cast: data }, signal };
     case 'SELECT_GAME_TABLE':
       return {
         kind: ReplayEventKind.TableChange,
         targetIdentifier: asString(record['identifier']),
         detail: {},
+        signal,
       };
     case 'RESOURCE_CHANGE':
       return {
@@ -131,11 +143,15 @@ export function interpretSignal(eventName: string, data: unknown): ReplayDraft |
 function describeChange(
   input: ObjectChangeInput,
   diff: SyncDataDiff
-): { kind: ReplayEventKind; detail: Record<string, unknown> } {
+): { kind: ReplayEventKind; detail: Record<string, unknown>; targetIdentifier?: string } {
   const { aliasName, before, after } = input;
   const keys = new Set(diff.keys);
 
   if (aliasName === CHAT_ALIAS && !before) return describeChatMessage(after);
+  if (aliasName === CUT_IN_LAUNCHER_ALIAS && before) {
+    const cutIn = describeCutIn(before, after, keys);
+    if (cutIn) return cutIn;
+  }
   if (!before) return { kind: ReplayEventKind.ObjectCreate, detail: { aliasName } };
 
   if (hasChangedKey(keys, 'location') || hasChangedKey(keys, 'posZ')) return describeMove(before, after);
@@ -162,6 +178,28 @@ function describeChange(
     };
 
   return { kind: ReplayEventKind.ObjectUpdate, detail: { keys: [...keys] } };
+}
+
+function describeCutIn(
+  before: SyncData,
+  after: SyncData,
+  keys: ReadonlySet<string>
+): { kind: ReplayEventKind; detail: Record<string, unknown>; targetIdentifier?: string } | null {
+  if (hasChangedKey(keys, 'soundOnlyTimeStamp')) {
+    return {
+      kind: ReplayEventKind.MediaCutIn,
+      targetIdentifier: asString(syncValueOf(after, 'soundOnlyCutInIdentifier')),
+      detail: { soundOnly: true, isStart: true },
+    };
+  }
+  if (hasChangedKey(keys, 'launchTimeStamp')) {
+    return {
+      kind: ReplayEventKind.MediaCutIn,
+      targetIdentifier: asString(syncValueOf(after, 'launchCutInIdentifier')),
+      detail: { soundOnly: false, isStart: Boolean(syncValueOf(after, 'launchIsStart')) },
+    };
+  }
+  return null;
 }
 
 function describeChatMessage(after: SyncData): { kind: ReplayEventKind; detail: Record<string, unknown> } {

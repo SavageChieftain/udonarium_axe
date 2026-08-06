@@ -33,6 +33,10 @@ export function expandSyncPaths(flat: SyncData): Record<string, unknown> {
   return data;
 }
 
+export function mergeSyncData(base: SyncData, overlay: SyncData): Record<string, unknown> {
+  return expandSyncPaths({ ...flattenSyncData(base), ...flattenSyncData(overlay) });
+}
+
 export function syncValueOf(data: SyncData, name: string): unknown {
   const attributes = data[SYNC_ATTRIBUTES_KEY];
   if (isPlainRecord(attributes) && name in attributes) return attributes[name];

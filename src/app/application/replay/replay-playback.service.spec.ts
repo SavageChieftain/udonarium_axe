@@ -2,6 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { ReplayLibraryService } from '@axe/application/replay/replay-library.service';
 import { ReplayPlaybackService } from '@axe/application/replay/replay-playback.service';
 import { isNetworkIsolated, setNetworkIsolated } from '@axe/core/network/network-isolation';
+import { networkMessage$ } from '@axe/core/network/network-messaging';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { ObjectSynchronizer } from '@axe/core/sync/object-synchronizer';
 import { GameCharacter } from '@axe/domain/character/game-character';
@@ -36,7 +37,17 @@ describe('ReplayPlaybackService', () => {
       syncData: { value: '', attributes: { location: { name: 'table', x: 0, y: 0 }, posZ: 0 } },
     },
   ];
-  const events = [moveEvent(1, 10, 0), moveEvent(2, 20, 10), moveEvent(3, 30, 20)];
+  const soundEvent: ReplayEvent = {
+    seq: 2,
+    at: 2000,
+    t: 2000,
+    kind: ReplayEventKind.MediaSoundEffect,
+    actorId: 'alice',
+    detail: { identifier: 'se-dice' },
+    signal: { name: 'SOUND_EFFECT', data: 'se-dice' },
+    visibility: PUBLIC_VISIBILITY,
+  };
+  const events = [moveEvent(1, 10, 0), soundEvent, moveEvent(3, 30, 20)];
 
   let service: ReplayPlaybackService;
   let objectStore: ObjectStore;
@@ -44,6 +55,12 @@ describe('ReplayPlaybackService', () => {
     load: ReturnType<typeof vi.fn>;
     keyframeBefore: ReturnType<typeof vi.fn>;
   };
+  let heard: string[];
+  let offHeard: () => void;
+
+  function soundsHeard(): string[] {
+    return heard;
+  }
 
   function characterX(): number | undefined {
     const character = objectStore.get<GameCharacter>('c1');
@@ -51,6 +68,10 @@ describe('ReplayPlaybackService', () => {
   }
 
   beforeEach(() => {
+    heard = [];
+    offHeard = networkMessage$.subscribe((message) => {
+      if (message.eventName === 'SOUND_EFFECT') heard.push(String(message.data));
+    });
     library = {
       load: vi.fn().mockResolvedValue({ manifest: null, events }),
       keyframeBefore: vi
@@ -67,6 +88,7 @@ describe('ReplayPlaybackService', () => {
   });
 
   afterEach(async () => {
+    offHeard();
     await service.close();
     setNetworkIsolated(false);
     for (const object of objectStore.getObjects()) objectStore.remove(object);
@@ -121,9 +143,6 @@ describe('ReplayPlaybackService', () => {
     await service.enterBoardMode();
     expect(characterX()).toBe(10);
 
-    await service.next();
-    expect(characterX()).toBe(20);
-
     await service.toEnd();
     expect(characterX()).toBe(30);
   });
@@ -136,6 +155,39 @@ describe('ReplayPlaybackService', () => {
 
     await service.toStart();
     expect(characterX()).toBe(10);
+    expect(soundsHeard()).toEqual([]);
+  });
+
+  it('1 つ送るときに効果音を鳴らし直すこと', async () => {
+    await service.open(1);
+    await service.enterBoardMode();
+    expect(soundsHeard()).toEqual([]);
+
+    await service.next();
+    expect(soundsHeard()).toEqual(['se-dice']);
+  });
+
+  it('飛ばしたときは効果音を鳴らさないこと', async () => {
+    await service.open(1);
+    await service.enterBoardMode();
+    await service.toEnd();
+    expect(soundsHeard()).toEqual([]);
+  });
+
+  it('読み物として送るだけなら効果音を鳴らさないこと', async () => {
+    await service.open(1);
+    await service.next();
+    expect(soundsHeard()).toEqual([]);
+  });
+
+  it('1 つ送るときは盤面を積み増しで進めること', async () => {
+    await service.open(1);
+    await service.enterBoardMode();
+    expect(characterX()).toBe(10);
+
+    await service.next();
+    await service.next();
+    expect(characterX()).toBe(30);
   });
 
   it('盤面再生を抜けたら元の卓に戻すこと', async () => {

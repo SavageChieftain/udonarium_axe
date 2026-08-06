@@ -49,6 +49,7 @@ function toWire(event: ReplayEvent): Record<string, unknown> {
   };
   if (event.targetId != null) wire['targetId'] = event.targetId;
   if (event.patch != null) wire['patch'] = event.patch;
+  if (event.signal != null) wire['signal'] = event.signal;
   if (event.merged != null) wire['merged'] = event.merged;
   return wire;
 }
