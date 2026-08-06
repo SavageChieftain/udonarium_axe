@@ -50,20 +50,30 @@ export class SaveDataService {
     return SaveDataService.queue.add(() => this.fileArchiver.createZipBlobAsync(this.buildRoomFiles()));
   }
 
+  createRoomStateArchiveAsync(): Promise<Blob> {
+    return SaveDataService.queue.add(() => this.fileArchiver.createZipBlobAsync(this.buildRoomXmlParts().files));
+  }
+
   private _saveRoomAsync(fileName: string = '', updateCallback?: UpdateCallback): Promise<void> {
     return this.saveAsync(this.buildRoomFiles(), this.appendTimestamp(fileName), updateCallback);
   }
 
-  private buildRoomFiles(): File[] {
-    const files: File[] = [];
+  private buildRoomXmlParts(): { roomXml: string; chatXml: string; files: File[] } {
     const roomXml = this.convertToXml(new Room());
     const chatXml = this.convertToXml(this.chatTabList);
     const configXml = this.convertToXml(this.appConfig);
     const summarySetting = this.convertToXml(this.dataSummarySetting);
-    files.push(new File([roomXml], 'data.xml', { type: 'text/plain' }));
-    files.push(new File([chatXml], 'chat.xml', { type: 'text/plain' }));
-    files.push(new File([configXml], 'config.xml', { type: 'text/plain' }));
-    files.push(new File([summarySetting], 'summary.xml', { type: 'text/plain' }));
+    const files: File[] = [
+      new File([roomXml], 'data.xml', { type: 'text/plain' }),
+      new File([chatXml], 'chat.xml', { type: 'text/plain' }),
+      new File([configXml], 'config.xml', { type: 'text/plain' }),
+      new File([summarySetting], 'summary.xml', { type: 'text/plain' }),
+    ];
+    return { roomXml, chatXml, files };
+  }
+
+  private buildRoomFiles(): File[] {
+    const { roomXml, chatXml, files } = this.buildRoomXmlParts();
 
     const images: ImageFile[] = [...this.searchImageFiles(roomXml), ...this.searchImageFiles(chatXml)];
     for (const image of images) {

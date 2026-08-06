@@ -24,6 +24,27 @@ describe('SaveDataService', () => {
     expect(service).toBeTruthy();
   }));
 
+  it('createRoomStateArchiveAsync: 盤面の XML だけを束ね、画像や音声は含めない', async () => {
+    const service = TestBed.inject(SaveDataService);
+    const privateApi = service as unknown as SaveDataServicePrivateApi;
+
+    const image = {
+      identifier: 'image-1',
+      state: ImageState.COMPLETE,
+      blob: new Blob(['image'], { type: 'image/png' }),
+    } as ImageFile;
+
+    vi.spyOn(privateApi, 'convertToXml').mockReturnValue('<node />');
+    vi.spyOn(privateApi, 'searchImageFiles').mockReturnValue([image]);
+    const archiver = TestBed.inject(FileArchiver);
+    const zipSpy = vi.spyOn(archiver, 'createZipBlobAsync').mockResolvedValue(new Blob());
+
+    await service.createRoomStateArchiveAsync();
+
+    const files = zipSpy.mock.calls[0][0] as File[];
+    expect(files.map((file) => file.name)).toEqual(['data.xml', 'chat.xml', 'config.xml', 'summary.xml']);
+  });
+
   it('saveRoomAsync: blob が null の COMPLETE 画像があっても保存処理が落ちない', async () => {
     const service = TestBed.inject(SaveDataService);
     const privateApi = service as unknown as SaveDataServicePrivateApi;
