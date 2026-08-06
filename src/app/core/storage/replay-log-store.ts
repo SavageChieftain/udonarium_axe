@@ -1,0 +1,103 @@
+export interface ReplayRecordingMeta {
+  id: number;
+  roomName: string;
+  startedAt: number;
+  endedAt: number | null;
+  eventCount: number;
+  byteSize: number;
+}
+
+export interface ReplayRecordingInput {
+  roomName: string;
+  startedAt: number;
+}
+
+export type ReplayRecordingUpdate = Partial<Pick<ReplayRecordingMeta, 'roomName' | 'endedAt'>> & {
+  manifest?: Uint8Array;
+};
+
+export interface ReplayChunkInput {
+  recordingId: number;
+  index: number;
+  seqStart: number;
+  seqEnd: number;
+  eventCount: number;
+  bytes: Uint8Array;
+}
+
+export interface ReplayChunkRecord extends ReplayChunkInput {
+  id: number;
+}
+
+export interface ReplayKeyframeInput {
+  recordingId: number;
+  seq: number;
+  at: number;
+  blob: Blob;
+}
+
+export interface ReplayKeyframeRecord extends ReplayKeyframeInput {
+  id: number;
+  byteSize: number;
+}
+
+export interface ReplayRetention {
+  maxCount: number;
+  maxTotalBytes: number;
+}
+
+const MEGA_BYTE = 1024 * 1024;
+
+export const DEFAULT_REPLAY_RETENTION: ReplayRetention = {
+  maxCount: 5,
+  maxTotalBytes: 512 * MEGA_BYTE,
+};
+
+export abstract class ReplayLogStore {
+  abstract isAvailable(): boolean;
+  abstract createRecording(input: ReplayRecordingInput): Promise<number | null>;
+  abstract updateRecording(id: number, update: ReplayRecordingUpdate): Promise<void>;
+  abstract listRecordings(): Promise<ReplayRecordingMeta[]>;
+  abstract getRecording(id: number): Promise<ReplayRecordingMeta | null>;
+  abstract getManifest(id: number): Promise<Uint8Array | null>;
+  abstract appendChunk(input: ReplayChunkInput): Promise<void>;
+  abstract listChunks(recordingId: number): Promise<ReplayChunkRecord[]>;
+  abstract putKeyframe(input: ReplayKeyframeInput): Promise<void>;
+  abstract listKeyframes(recordingId: number): Promise<ReplayKeyframeRecord[]>;
+  abstract removeRecording(id: number): Promise<void>;
+  abstract clear(): Promise<void>;
+}
+
+export function sortRecordingsByNewest(metas: readonly ReplayRecordingMeta[]): ReplayRecordingMeta[] {
+  return [...metas].sort((a, b) => b.startedAt - a.startedAt || b.id - a.id);
+}
+
+export function selectExpiredRecordings(
+  metas: readonly ReplayRecordingMeta[],
+  retention: ReplayRetention = DEFAULT_REPLAY_RETENTION,
+  protectedId: number | null = null
+): number[] {
+  const sorted = sortRecordingsByNewest(metas);
+  const expired: number[] = [];
+  let keptBytes = 0;
+  let isFull = false;
+
+  sorted.forEach((meta, index) => {
+    if (meta.id === protectedId) {
+      keptBytes += meta.byteSize;
+      return;
+    }
+    if (index === 0) {
+      keptBytes += meta.byteSize;
+      return;
+    }
+    if (isFull || index >= retention.maxCount || keptBytes + meta.byteSize > retention.maxTotalBytes) {
+      isFull = true;
+      expired.push(meta.id);
+      return;
+    }
+    keptBytes += meta.byteSize;
+  });
+
+  return expired;
+}

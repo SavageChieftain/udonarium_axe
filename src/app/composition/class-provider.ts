@@ -4,7 +4,9 @@ import { AudioStorage } from '@axe/core/storage/audio-storage';
 import { FileArchiver } from '@axe/core/storage/file-archiver';
 import { ImageSharingSystem } from '@axe/core/storage/image-sharing-system';
 import { ImageStorage } from '@axe/core/storage/image-storage';
+import { IndexedDbReplayLogStore } from '@axe/core/storage/indexed-db-replay-log-store';
 import { IndexedDbRoomSnapshotStore } from '@axe/core/storage/indexed-db-room-snapshot-store';
+import { ReplayLogStore } from '@axe/core/storage/replay-log-store';
 import { RoomSnapshotStore } from '@axe/core/storage/room-snapshot-store';
 import { ObjectFactory } from '@axe/core/sync/object-factory';
 import { ObjectSerializer } from '@axe/core/sync/object-serializer';
@@ -28,6 +30,7 @@ export const CLASS_SINGLETON_PROVIDERS: Provider[] = [
   { provide: AudioStorage, useFactory: () => AudioStorage.instance },
   { provide: AudioSharingSystem, useFactory: () => AudioSharingSystem.instance },
   { provide: RoomSnapshotStore, useFactory: () => IndexedDbRoomSnapshotStore.instance },
+  { provide: ReplayLogStore, useFactory: () => IndexedDbReplayLogStore.instance },
 
   { provide: ChatTabList, useFactory: () => ChatTabList.instance },
   { provide: Config, useFactory: () => Config.instance },
