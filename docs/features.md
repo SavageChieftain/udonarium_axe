@@ -167,6 +167,17 @@ Udonarium Axe が **追加** または **大きく拡張・再設計** した機
 - `TextTooltipDirective` とパネル / モーダルタイトルの省略表示
 - ウィンドウタイトルを `package.json` の version から生成
 
+## セッションログ（リプレイ基盤）
+
+- **自動記録** — 編集権限を持つピアが部屋にいる間、誰が・何を・どうしたかをこのブラウザに記録する。入室から 8 秒待って開始し、退室で停止（`features/replay/replay-event-handler.service`）
+- **記録の作り方** — `networkMessage$` を購読し、自分と他人の操作を同じ経路で拾う。`UPDATE_GAME_OBJECT` はオブジェクト全体が飛ぶため、シャドウコピーとの差分から「移動」「リソース増減」等の意味を起こす（`domain/replay/replay-diff`、`domain/replay/replay-interpreter`）
+- **記録される 3 層** — 読むための意味づけ済みイベント、巻き戻しと再生のための前後差分パッチ、復元の起点となるキーフレーム（画像・音声を含まない盤面 XML）
+- **初期同期の除外** — 開始時に現在の盤面をシャドウとして取り込み、同期由来の同値更新を差分ゼロで落とす。加えて開始直後 5 秒は未知オブジェクトを到着した状態として扱う
+- **畳み込み** — ドラッグ中の毎フレーム更新を、同一の人・同一のコマ・1.5 秒以内で 1 件にまとめ、始点と終点を残す（`domain/replay/replay-coalescer`）
+- **秘匿の保存** — 内緒話・GM 限定・非公開コマを当時の可視性ごと記録し、閲覧者のロールで絞り込む
+- **保存** — イベントは msgpack でチャンク化して IndexedDB へ。直近 5 本 / 合計 512MB を上限に古い録画を削除するが、記録中の録画は消さない（`core/storage/replay-log-store`、`application/replay/replay-recorder.service`）
+- **セッションログパネル** — 新しい順の一覧、チャット / 盤面 / 人での絞り込み、記録の開始停止、詳細度の切り替え、章の見出し（目印）を打てる（`features/replay/replay-log-panel`）
+
 ## 同期 / 内部基盤
 
 - `ObjectChangeService` のインデックス付きディスパッチ購読、`objectAdded$` / `objectRemoved$`、`aliasName` フィルタによる購読のスケール最適化
