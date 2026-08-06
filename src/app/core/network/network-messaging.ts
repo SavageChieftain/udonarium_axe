@@ -3,6 +3,7 @@ import { ServiceLocator } from '@axe/core/di/service-locator';
 import { EventChannel } from '@axe/core/event/event-channel';
 import { Logger } from '@axe/core/logging/logger';
 import { Network } from '@axe/core/network/network';
+import { isNetworkIsolated } from '@axe/core/network/network-isolation';
 
 export interface EventContext<T = unknown> {
   sendFrom: string;
@@ -20,6 +21,7 @@ export interface NetworkMessage<T = unknown> {
 export const networkMessage$ = new EventChannel<NetworkMessage>();
 
 export function networkSend(eventName: string, data: unknown, sendTo?: string): void {
+  if (isNetworkIsolated()) return;
   const context: EventContext = {
     eventName,
     data,

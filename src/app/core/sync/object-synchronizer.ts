@@ -1,5 +1,6 @@
 import { Logger } from '@axe/core/logging/logger';
 import { Network } from '@axe/core/network/network';
+import { isNetworkIsolated } from '@axe/core/network/network-isolation';
 import { NetworkMessage, networkMessage$, networkSend } from '@axe/core/network/network-messaging';
 import { GameObject, ObjectContext } from '@axe/core/sync/game-object';
 import { markForChanged } from '@axe/core/sync/object-event-extension';
@@ -9,6 +10,14 @@ import { SynchronizeRequest, SynchronizeTask } from '@axe/core/sync/synchronize-
 
 type PeerId = string;
 type ObjectIdentifier = string;
+
+const OBJECT_SYNC_EVENTS: ReadonlySet<string> = new Set([
+  'UPDATE_GAME_OBJECT',
+  'DELETE_GAME_OBJECT',
+  'SYNCHRONIZE_GAME_OBJECT',
+  'REQUEST_GAME_OBJECT',
+  'REQUEST_CATALOG',
+]);
 
 export class ObjectSynchronizer {
   private static _instance: ObjectSynchronizer;
@@ -29,6 +38,7 @@ export class ObjectSynchronizer {
 
     this.cleanups.push(
       networkMessage$.subscribe((msg) => {
+        if (isNetworkIsolated() && OBJECT_SYNC_EVENTS.has(msg.eventName)) return;
         switch (msg.eventName) {
           case 'CONNECT_PEER':
             if (msg.isSendFromSelf) this.sendCatalog((msg as NetworkMessage<{ peerId: string }>).data.peerId);
