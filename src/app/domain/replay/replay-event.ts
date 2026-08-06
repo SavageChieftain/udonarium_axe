@@ -99,6 +99,7 @@ export interface ReplayManifest {
   endedAt: number | null;
   recordedBy: ReplayActorSnapshot;
   detailLevel: ReplayDetailLevel;
+  derivedFrom?: { roomName: string; startedAt: number };
   actors: readonly ReplayActorSnapshot[];
   targets: readonly ReplayTargetSnapshot[];
   keyframes: readonly ReplayKeyframeMeta[];

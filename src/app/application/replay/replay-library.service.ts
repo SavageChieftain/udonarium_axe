@@ -18,6 +18,8 @@ import {
   encodeReplayManifest,
 } from '@axe/domain/replay/replay-codec';
 import type { ReplayEvent, ReplayManifest } from '@axe/domain/replay/replay-event';
+import { decodeReplayKeyframe, type ReplayObjectSnapshot } from '@axe/domain/replay/replay-keyframe';
+import { applyReplayEvents, indexOfSeq } from '@axe/domain/replay/replay-patch';
 
 export const REPLAY_IMPORT_CHUNK_SIZE = 500;
 
@@ -47,6 +49,14 @@ export class ReplayLibraryService {
     if (best) return best;
     const first = keyframes[0];
     return first ? { seq: first.seq, blob: first.blob } : null;
+  }
+
+  async boardBefore(id: number, seq: number, events: readonly ReplayEvent[]): Promise<ReplayObjectSnapshot[]> {
+    const keyframe = await this.keyframeBefore(id, seq);
+    const base = keyframe ? decodeReplayKeyframe(new Uint8Array(await keyframe.blob.arrayBuffer())) : [];
+    const from = keyframe ? indexOfSeq(events, keyframe.seq) : -1;
+    const upto = indexOfSeq(events, seq - 1);
+    return applyReplayEvents(base, events.slice(from + 1, upto + 1));
   }
 
   async export(meta: ReplayRecordingMeta, withAssets: boolean): Promise<boolean> {
