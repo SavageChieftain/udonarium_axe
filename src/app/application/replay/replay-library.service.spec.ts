@@ -160,13 +160,15 @@ describe('ReplayLibraryService', () => {
 
   it('指定より手前で一番近いキーフレームを返すこと', async () => {
     const meta = await seedRecording();
-    expect(await (await service.keyframeBefore(meta.id, 1))?.text()).toBe('<a/>');
-    expect(await (await service.keyframeBefore(meta.id, 5))?.text()).toBe('<b/>');
+    expect(await (await service.keyframeBefore(meta.id, 1))?.blob.text()).toBe('<a/>');
+    expect((await service.keyframeBefore(meta.id, 1))?.seq).toBe(0);
+    expect(await (await service.keyframeBefore(meta.id, 5))?.blob.text()).toBe('<b/>');
+    expect((await service.keyframeBefore(meta.id, 5))?.seq).toBe(2);
   });
 
   it('先頭より手前を求めても最初のキーフレームを返すこと', async () => {
     const meta = await seedRecording();
-    expect(await (await service.keyframeBefore(meta.id, -1))?.text()).toBe('<a/>');
+    expect(await (await service.keyframeBefore(meta.id, -1))?.blob.text()).toBe('<a/>');
   });
 
   it('書き出した束を読み戻して同じ記録になること', async () => {

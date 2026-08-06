@@ -37,14 +37,16 @@ export class ReplayLibraryService {
     return { manifest: manifestBytes ? decodeReplayManifest(manifestBytes) : null, events };
   }
 
-  async keyframeBefore(id: number, seq: number): Promise<Blob | null> {
+  async keyframeBefore(id: number, seq: number): Promise<{ seq: number; blob: Blob } | null> {
     const keyframes = await this.store.listKeyframes(id);
-    let best: Blob | null = null;
+    let best: { seq: number; blob: Blob } | null = null;
     for (const keyframe of keyframes) {
       if (keyframe.seq > seq) break;
-      best = keyframe.blob;
+      best = { seq: keyframe.seq, blob: keyframe.blob };
     }
-    return best ?? keyframes[0]?.blob ?? null;
+    if (best) return best;
+    const first = keyframes[0];
+    return first ? { seq: first.seq, blob: first.blob } : null;
   }
 
   async export(meta: ReplayRecordingMeta, withAssets: boolean): Promise<boolean> {
