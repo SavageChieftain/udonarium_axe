@@ -275,6 +275,139 @@ describe('GameCharacterComponent', () => {
     expect(typeof component.isTargeted).toBe('function');
   });
 
+  describe('ターゲットマーカー', () => {
+    const setTargeted = (character: GameCharacter, targeted: boolean) => {
+      character.targeted = targeted;
+      TestBed.inject(UiSignalService).notifyTargetChange(character.identifier, character.aliasName);
+      fixture.detectChanges();
+    };
+
+    const markerOf = () => fixture.nativeElement.querySelector('[data-testid="target-marker"]');
+
+    const ringOf = () => fixture.nativeElement.querySelector('[data-testid="target-ring"]');
+
+    it('ターゲット指定で出し、解除で消すこと', () => {
+      const character = GameCharacter.create('marker', 1, '');
+      fixture.componentRef.setInput('gameCharacter', character);
+
+      try {
+        fixture.detectChanges();
+        expect(markerOf()).toBeNull();
+
+        setTargeted(character, true);
+        expect(markerOf()).toBeTruthy();
+
+        setTargeted(character, false);
+        expect(markerOf()).toBeNull();
+      } finally {
+        character.destroy();
+      }
+    });
+
+    it('台座リングも同時に出し入れすること', () => {
+      const character = GameCharacter.create('marker-ring', 1, '');
+      fixture.componentRef.setInput('gameCharacter', character);
+
+      try {
+        fixture.detectChanges();
+        expect(ringOf()).toBeNull();
+
+        setTargeted(character, true);
+        expect(ringOf()).toBeTruthy();
+
+        setTargeted(character, false);
+        expect(ringOf()).toBeNull();
+      } finally {
+        character.destroy();
+      }
+    });
+
+    it('バフを隠しているキャラクターでも出すこと', () => {
+      const character = GameCharacter.create('marker-hidden-buff', 1, '');
+      character.addExtendData();
+      character.hideBuff = true;
+      fixture.componentRef.setInput('gameCharacter', character);
+
+      try {
+        setTargeted(character, true);
+        expect(markerOf()).toBeTruthy();
+      } finally {
+        character.destroy();
+      }
+    });
+
+    const wrapperTransform = () => (markerOf().parentElement as HTMLElement).style.transform;
+
+    const axisValues = (transform: string, axis: 'X' | 'Y' | 'Z') =>
+      [...transform.matchAll(new RegExp(`translate${axis}\\((-?[\\d.]+)px\\)`, 'g'))].map((match) => Number(match[1]));
+
+    const markerLift = () => {
+      const transform = wrapperTransform();
+      const x = axisValues(transform, 'X');
+      const y = axisValues(transform, 'Y');
+      const z = axisValues(transform, 'Z');
+      return Math.hypot(x[x.length - 1], y[0], z[0]);
+    };
+
+    it('コマ中心軸の真上に置くこと', () => {
+      const character = GameCharacter.create('marker-center', 1, '');
+      fixture.componentRef.setInput('gameCharacter', character);
+      TestBed.inject(UiSignalService).notifyTableViewRotation(50, 0, 10);
+
+      try {
+        setTargeted(character, true);
+
+        expect(axisValues(wrapperTransform(), 'X')[0]).toBe((component.size() * component.gridSize) / 2);
+        expect(component.targetStackTransform()).toContain('translateZ(0.00px)');
+      } finally {
+        character.destroy();
+      }
+    });
+
+    it('カメラを回してもコマからの距離を保つこと', () => {
+      const character = GameCharacter.create('marker-rotated-view', 1, '');
+      fixture.componentRef.setInput('gameCharacter', character);
+      const uiSignalService = TestBed.inject(UiSignalService);
+
+      try {
+        uiSignalService.notifyTableViewRotation(50, 0, 10);
+        setTargeted(character, true);
+        const straight = markerLift();
+
+        uiSignalService.notifyTableViewRotation(35, 0, 70);
+        fixture.detectChanges();
+
+        expect(markerLift()).toBeCloseTo(straight, 1);
+      } finally {
+        character.destroy();
+      }
+    });
+
+    it('バフより上に出ること', () => {
+      const character = GameCharacter.create('marker-above-buff', 1, '');
+      character.addExtendData();
+      fixture.componentRef.setInput('gameCharacter', character);
+      const objectChange = TestBed.inject(ObjectChangeService);
+      const buffRoot = character.buffDataElement!;
+      const container = DataElement.create('バフ', '', {});
+      buffRoot.appendChild(container);
+      const buff = DataElement.create('毒', 3, { type: DataElementType.NUMBER_RESOURCE, currentValue: 'ダメージ2' });
+      buff.setAttribute(DataElementAttribute.BUFF_ICON, '☠️');
+      container.appendChild(buff);
+      objectChange.notifyChanged(buffRoot.identifier);
+      TestBed.inject(UiSignalService).notifyTableViewRotation(50, 0, 10);
+
+      try {
+        setTargeted(character, true);
+        const buffDistance = -Number(/translateY\((-?[\d.]+)px\)/.exec(component.buffLabelOrbit())![1]);
+
+        expect(markerLift()).toBeGreaterThan(buffDistance);
+      } finally {
+        character.destroy();
+      }
+    });
+  });
+
   it('コマ高さ指定フラグがcomputed signalで更新されること', async () => {
     const char = GameCharacter.create('height-flag-test', 1, '');
     fixture.componentRef.setInput('gameCharacter', char);

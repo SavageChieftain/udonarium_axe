@@ -65,7 +65,11 @@ import { RotableOption } from '@axe/ui/directives/rotable.directive';
 import { RotableDirective } from '@axe/ui/directives/rotable.directive';
 import { SelectableDirective } from '@axe/ui/directives/selectable.directive';
 import { SafePipe } from '@axe/ui/pipes/safe.pipe';
-import { makeBillboardTransform, makeLabelOrbitTransform } from '@axe/ui/tabletop/billboard-transform';
+import {
+  makeBillboardTransform,
+  makeLabelOrbitTransform,
+  makeScreenLiftTransform,
+} from '@axe/ui/tabletop/billboard-transform';
 import { buildHexRingClipPath, calcHexFlowerParams, HexFlowerParams } from '@axe/ui/tabletop/hex-pedestal-geometry';
 import { setupInputHandler, setupMovableRotableForPiece } from '@axe/ui/tabletop/setup-tabletop-piece';
 import { supersampleFactor, supersampleInsetPercent, supersampleTransform } from '@axe/ui/tabletop/supersample';
@@ -94,6 +98,10 @@ const HIT_FLASH_MS = 420;
 const HEAL_AURA_MS = 760;
 const GAUGE_STACK_GAP_PX = 32;
 const BUFF_STACK_GAP_PX = 40;
+const TARGET_STACK_GAP_PX = 52;
+const BUFF_DETAIL_ROW_HEIGHT_PX = 12;
+const BUFF_BADGE_ROW_HEIGHT_PX = 22;
+const BUFF_BADGES_PER_ROW = 6;
 
 @Component({
   selector: 'game-character',
@@ -547,6 +555,43 @@ export class GameCharacterComponent {
       68 + this.gaugePanelHeightEstimate()
     );
   });
+
+  private readonly buffPanelHeightEstimate = computed(() => {
+    if (this.hideBuff() || this.buffNum() < 1) return 0;
+    if (this.buffViewMode() === 'detail') return this.buffChildren().length * BUFF_DETAIL_ROW_HEIGHT_PX;
+    if (this.buffViewMode() === 'count') return BUFF_BADGE_ROW_HEIGHT_PX;
+    return Math.ceil(this.buffBadges().length / BUFF_BADGES_PER_ROW) * BUFF_BADGE_ROW_HEIGHT_PX;
+  });
+
+  private readonly pieceImageHeightEstimate = computed(() => {
+    if (!this.gameCharacter() || this.imageFile().url.length < 1) return 0;
+    if (this.specifyKomaImageFlag()) return this.komaImageHeightSignal();
+    const natural = this.imageNaturalSize();
+    if (!natural) return this.size() * this.gridSize;
+    return (this.size() * this.gridSize * natural.height) / natural.width;
+  });
+
+  readonly targetLabelOrbit = computed(() => {
+    const stack = this.gaugePanelHeightEstimate() + this.buffPanelHeightEstimate();
+    if (this.isPoster()) return `translateY(${-(this.size() * this.gridSize + 20 + stack)}px)`;
+    return this.screenLiftOrbit(TARGET_STACK_GAP_PX + stack, 84 + stack);
+  });
+
+  readonly targetStackTransform = computed(
+    () => `${this.isPoster() ? '' : this.makeBillboardTransform(0)} ${this.decorScale} translateX(-50%)`
+  );
+
+  private screenLiftOrbit(screenLift3d: number, distance2d: number): string {
+    return makeScreenLiftTransform({
+      rotation: this.uiSignalService.tableViewRotation(),
+      pieceRotate: this.rotateSignal(),
+      pieceRoll: this.rollSignal(),
+      worldHeight3d: this.pieceImageHeightEstimate(),
+      screenLift3d,
+      distance2d,
+      mode2d: this.mode2dEnabled(),
+    });
+  }
 
   private makeBillboardTransform(verticalOffset3D: number): string {
     return makeBillboardTransform({

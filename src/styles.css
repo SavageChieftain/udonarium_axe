@@ -129,11 +129,11 @@
   --animate-disc-spin: spin 4s linear infinite;
   /* Tailwind 標準と同じ 1s spin。保存ボタンの sync アイコン等のローディング表現で利用。 */
   --animate-spin: spin 1s linear infinite;
-  /* game-character (タップ後フォーカス強調) と ターゲット矢印 (arrowmove*) アニメーション。
-     既存 @keyframes は styles.css 後半に定義済み。 */
+  /* game-character (タップ後フォーカス強調) と ターゲットマーカー (targetBob)
+     アニメーション。既存 @keyframes は styles.css 後半に定義済み。 */
   --animate-focused: focused 1s ease;
-  --animate-arrowmove: arrowmove 1s ease-in-out infinite;
-  --animate-arrowmove2: arrowmove2 1s ease-in-out infinite;
+  --animate-target-bob: targetBob 1.1s ease-in-out infinite;
+  --animate-target-ring: targetRing 1.1s ease-in-out infinite;
   /* mini-jukebox のトラック名横スクロール。--scroll-dist は MiniJukeboxComponent が
      対象 element に直接 setProperty で注入する。 */
   --animate-title-scroll: title-scroll 7s ease-in-out infinite;
@@ -1403,21 +1403,23 @@ input[type='range']::-moz-range-thumb {
   }
 }
 
-@keyframes arrowmove {
-  0% {
-    top: -80px;
-  }
+@keyframes targetBob {
+  0%,
   100% {
-    top: -60px;
+    top: -0.25em;
+  }
+  50% {
+    top: 0.3em;
   }
 }
 
-@keyframes arrowmove2 {
-  0% {
-    top: -50px;
-  }
+@keyframes targetRing {
+  0%,
   100% {
-    top: -30px;
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.35;
   }
 }
 

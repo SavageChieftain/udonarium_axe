@@ -66,6 +66,13 @@
             class="absolute box-border size-full rounded-[25px] border-2 border-solid border-[#212121] backface-hidden"
             [ngStyle]="pedestalOuterStyle()"
           ></div>
+          @if (isTargeted()) {
+            <div
+              data-testid="target-ring"
+              class="animate-target-ring pointer-events-none absolute box-border size-full rounded-[25px] border-[6px] border-solid border-[#ff3b30] filter-[drop-shadow(0_0_5px_rgba(255,59,48,0.95))] backface-hidden"
+              [ngStyle]="pedestalStyle('#ff3b30')"
+            ></div>
+          }
           @if (!isLock && !mode2dEnabled()) {
             <div
               class="rotate-grab absolute -top-5.5 -left-1.5 z-[-1] h-[calc(100%+44px)] w-[calc(100%+12px)] cursor-default rounded-[37px] opacity-0 will-change-[opacity] backface-hidden group-hover:opacity-50 group-active:opacity-0 hover:opacity-100! active:opacity-100!"
@@ -172,12 +179,6 @@
                         [style.font-size.px]="decorFontSizePx"
                         [ngStyle]="{ transform: buffStackTransform() }"
                       >
-                        <div
-                          [hidden]="!isTargeted()"
-                          class="animate-arrowmove2 absolute left-[-0.9em] ml-[50%] box-border w-[2.6em] text-[2em]"
-                        >
-                          <img src="./assets/images/target/target.png" />
-                        </div>
                         <div class="flex w-full items-end justify-start pl-[1.5em]">
                           <div
                             class="flex w-max flex-none justify-start rounded-[1.2em] border border-solid px-[0.5em] py-[0.15em]"
@@ -245,20 +246,6 @@
                     </div>
                   </div>
                 }
-                <div [hidden]="!(buffNum() === 0)">
-                  <div
-                    class="absolute left-1.5 [-webkit-transform-style:preserve-3d] transform-3d"
-                    [hidden]="!isTargeted()"
-                    [ngStyle]="{ transform: 'translateX(-50%) translateX(' + (size() * gridSize) / 2 + 'px)' }"
-                  >
-                    <div
-                      class="animate-arrowmove box-border w-7.5 text-[20px] [-webkit-transform-style:preserve-3d] transform-3d"
-                      [ngStyle]="{ transform: billboardTransform() }"
-                    >
-                      <img src="./assets/images/target/target.png" />
-                    </div>
-                  </div>
-                </div>
                 @if (floatingChanges().length > 0) {
                   <div
                     class="pointer-events-none absolute [-webkit-transform-style:preserve-3d] transform-3d"
@@ -421,6 +408,45 @@
                         }
                       </div>
                     }
+                  </div>
+                }
+                @if (isTargeted()) {
+                  <div
+                    class="pointer-events-none absolute bottom-0 left-0 [-webkit-transform-style:preserve-3d] transform-3d"
+                    [ngStyle]="{ transform: 'translateX(' + (size() * gridSize) / 2 + 'px) ' + targetLabelOrbit() }"
+                  >
+                    <div
+                      data-testid="target-marker"
+                      class="absolute bottom-0 left-0 origin-bottom-left [-webkit-transform-style:preserve-3d] transform-3d"
+                      [style.font-size.px]="decorFontSizePx"
+                      [ngStyle]="{ transform: targetStackTransform() }"
+                    >
+                      <svg
+                        class="animate-target-bob relative block w-[4.2em] drop-shadow-[0_0.08em_0.16em_rgba(0,0,0,0.85)]"
+                        viewBox="0 0 64 44"
+                        aria-hidden="true"
+                      >
+                        <path
+                          d="M7.5 2 H56.5 A5.5 5.5 0 0 1 62 7.5 V15.5 A5.5 5.5 0 0 1 56.5 21 H39 L32 41 L25 21 H7.5 A5.5 5.5 0 0 1 2 15.5 V7.5 A5.5 5.5 0 0 1 7.5 2 Z"
+                          fill="#ff3b30"
+                          stroke="#ffffff"
+                          stroke-width="2.6"
+                          stroke-linejoin="round"
+                        />
+                        <text
+                          x="32"
+                          y="15.4"
+                          text-anchor="middle"
+                          textLength="42"
+                          lengthAdjust="spacingAndGlyphs"
+                          font-size="11.5"
+                          font-weight="700"
+                          fill="#ffffff"
+                        >
+                          TARGET
+                        </text>
+                      </svg>
+                    </div>
                   </div>
                 }
               </div>
