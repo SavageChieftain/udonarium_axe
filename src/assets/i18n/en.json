@@ -1998,7 +1998,11 @@
           "chat-only": "Chat only",
           "notable": "Standard",
           "full": "Everything"
-        }
+        },
+        "export": "Export",
+        "import": "Import",
+        "withAssets": "Include images",
+        "noRecordings": "No saved recordings"
       },
       "line": {
         "chat": "{{speaker}}: {{text}}",

@@ -206,6 +206,10 @@ export class FileArchiver {
     }
   }
 
+  async readZipEntriesAsync(file: File | Blob): Promise<ZipEntry[]> {
+    return readZipEntries(file);
+  }
+
   async createZipBlobAsync(files: File[] | FileList, updateCallback?: UpdateCallback): Promise<Blob> {
     const saveFiles: File[] = files instanceof FileList ? toArrayOfFileList(files) : files;
 

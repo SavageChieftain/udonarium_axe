@@ -75,7 +75,8 @@ describe('ReplayLogPanelComponent', () => {
   }
 
   function rows(): HTMLElement[] {
-    return [...fixture.nativeElement.querySelectorAll('ul > li')] as HTMLElement[];
+    const list = fixture.nativeElement.querySelector('ul') as HTMLElement;
+    return [...list.querySelectorAll(':scope > li')] as HTMLElement[];
   }
 
   function buttonByText(text: string): HTMLButtonElement | undefined {

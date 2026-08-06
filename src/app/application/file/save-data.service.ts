@@ -54,6 +54,20 @@ export class SaveDataService {
     return SaveDataService.queue.add(() => this.fileArchiver.createZipBlobAsync(this.buildRoomXmlParts().files));
   }
 
+  buildRoomAssetFiles(): File[] {
+    const files: File[] = [];
+    const images = this.imageStorage.images.filter((image) => image.state === ImageState.COMPLETE);
+    for (const image of images) {
+      const file = this.createImageArchiveFile(image);
+      if (file) files.push(file);
+    }
+    files.push(new File([this.convertToXml(ImageTagList.create(images))], 'imagetag.xml', { type: 'text/plain' }));
+
+    const audios = this.audioStorage.audios.filter((audio) => !audio.isHidden);
+    files.push(new File([this.convertToXml(AudioTagList.create(audios))], 'audiotag.xml', { type: 'text/plain' }));
+    return files;
+  }
+
   private _saveRoomAsync(fileName: string = '', updateCallback?: UpdateCallback): Promise<void> {
     return this.saveAsync(this.buildRoomFiles(), this.appendTimestamp(fileName), updateCallback);
   }

@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { RolePermissionService } from '@axe/application/permission/role-permission.service';
+import { ReplayLibraryService } from '@axe/application/replay/replay-library.service';
 import { ReplayRecorderService } from '@axe/application/replay/replay-recorder.service';
 import { confirmDialog } from '@axe/core/input/confirm-dialog';
 import type { ReplayRecordingMeta } from '@axe/core/storage/replay-log-store';
@@ -25,8 +26,12 @@ import { TranslocoModule } from '@jsverse/transloco';
 })
 export class ReplayLogPanelComponent {
   private readonly recorder = inject(ReplayRecorderService);
+  private readonly library = inject(ReplayLibraryService);
   private readonly rolePermission = inject(RolePermissionService);
   private readonly t = inject(TRANSLATE_FN);
+
+  protected readonly isBusy = this.library.isBusy;
+  protected readonly withAssets = signal(true);
 
   protected readonly scopes = [ReplayLogScope.All, ReplayLogScope.Chat, ReplayLogScope.Board];
   protected readonly detailLevels = [ReplayDetailLevel.ChatOnly, ReplayDetailLevel.Notable, ReplayDetailLevel.Full];
@@ -117,6 +122,23 @@ export class ReplayLogPanelComponent {
     if (!this.canEdit || !this.isRecording() || label.length < 1) return;
     this.markLabel.set('');
     await this.recorder.mark(label);
+  }
+
+  protected toggleAssets(): void {
+    this.withAssets.update((value) => !value);
+  }
+
+  protected async exportRecording(meta: ReplayRecordingMeta): Promise<void> {
+    await this.library.export(meta, this.withAssets());
+  }
+
+  protected async importRecording(event: Event): Promise<void> {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    input.value = '';
+    if (!file) return;
+    await this.library.import(file);
+    await this.recorder.refresh();
   }
 
   protected async remove(meta: ReplayRecordingMeta): Promise<void> {

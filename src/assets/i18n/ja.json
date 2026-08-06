@@ -1998,7 +1998,11 @@
           "chat-only": "チャットのみ",
           "notable": "標準",
           "full": "すべて"
-        }
+        },
+        "export": "書き出し",
+        "import": "読み込み",
+        "withAssets": "画像も含める",
+        "noRecordings": "保存された記録はありません"
       },
       "line": {
         "chat": "{{speaker}}「{{text}}」",
