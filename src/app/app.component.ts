@@ -56,6 +56,7 @@ import { JukeboxComponent } from '@axe/features/media/jukebox/jukebox.component'
 import { MiniJukeboxComponent } from '@axe/features/media/mini-jukebox/mini-jukebox.component';
 import { MobileShellComponent } from '@axe/features/mobile/mobile-shell/mobile-shell.component';
 import { PlToolbarComponent } from '@axe/features/pl-tools/pl-toolbar/pl-toolbar.component';
+import { ReplayEventHandlerService } from '@axe/features/replay/replay-event-handler.service';
 import { RoomArchiveEventHandlerService } from '@axe/features/room-archive/room-archive-event-handler.service';
 import { RoomRestoreBannerComponent } from '@axe/features/room-archive/room-restore-banner/room-restore-banner.component';
 import { RoomSnapshotPanelComponent } from '@axe/features/room-archive/room-snapshot-panel/room-snapshot-panel.component';
@@ -146,6 +147,7 @@ export class AppComponent {
     inject(CutInEventHandlerService);
     inject(NetworkEventHandlerService);
     inject(RoomArchiveEventHandlerService);
+    inject(ReplayEventHandlerService);
     inject(ImageDropEventHandlerService);
     inject(CcfoliaRoomImportEventHandlerService);
     inject(CutInService);
