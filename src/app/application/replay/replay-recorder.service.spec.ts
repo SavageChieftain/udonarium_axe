@@ -1,6 +1,5 @@
 import { effect, Injector } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
-import { SaveDataService } from '@axe/application/file/save-data.service';
 import {
   REPLAY_BASELINE_GRACE_MS,
   REPLAY_CHUNK_INTERVAL_MS,
@@ -27,6 +26,7 @@ import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { PeerRole } from '@axe/domain/peer/peer-role';
 import { decodeReplayEvents, decodeReplayManifest } from '@axe/domain/replay/replay-codec';
 import { ReplayDetailLevel, ReplayEventKind } from '@axe/domain/replay/replay-event';
+import { decodeReplayKeyframe } from '@axe/domain/replay/replay-keyframe';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
 
 class FakeReplayLogStore extends ReplayLogStore {
@@ -97,8 +97,8 @@ function context(identifier: string, aliasName: string, syncData: Record<string,
   return { identifier, aliasName, majorVersion: 1, minorVersion: 0.5, syncData };
 }
 
-function sendUpdate(identifier: string, aliasName: string, syncData: Record<string, unknown>, sendFrom = 'peer-a') {
-  localDispatch('UPDATE_GAME_OBJECT', context(identifier, aliasName, syncData), sendFrom);
+function sendUpdate(identifier: string, aliasName: string, attributes: Record<string, unknown>, sendFrom = 'peer-a') {
+  localDispatch('UPDATE_GAME_OBJECT', context(identifier, aliasName, { value: '', attributes }), sendFrom);
 }
 
 describe('ReplayRecorderService', () => {
@@ -112,11 +112,7 @@ describe('ReplayRecorderService', () => {
     vi.setSystemTime(1_700_000_000_000);
     store = new FakeReplayLogStore();
     TestBed.configureTestingModule({
-      providers: [
-        ...TEST_PROVIDERS,
-        { provide: ReplayLogStore, useValue: store },
-        { provide: SaveDataService, useValue: { createRoomStateArchiveAsync: async () => new Blob(['<xml/>']) } },
-      ],
+      providers: [...TEST_PROVIDERS, { provide: ReplayLogStore, useValue: store }],
     });
     objectStore = TestBed.inject(ObjectStore);
     pointerDevice = TestBed.inject(PointerDeviceService);
@@ -159,7 +155,7 @@ describe('ReplayRecorderService', () => {
   it('録画開始時の盤面と同じ値の同期を記録しないこと', async () => {
     const character = { identifier: 'c1', aliasName: 'character', syncData: { posZ: 0 } };
     vi.spyOn(objectStore, 'getObjects').mockReturnValue([
-      { identifier: 'c1', toContext: () => context('c1', 'character', { posZ: 0 }) },
+      { identifier: 'c1', toContext: () => context('c1', 'character', { value: '', attributes: { posZ: 0 } }) },
     ] as never);
 
     await service.start();
@@ -280,7 +276,11 @@ describe('ReplayRecorderService', () => {
   it('内緒話を宛先つきの秘匿として記録すること', async () => {
     await service.start();
     vi.advanceTimersByTime(REPLAY_BASELINE_GRACE_MS);
-    sendUpdate('m1', 'chat', { value: 'ないしょ', from: 'alice', to: 'bob', tag: '', attributes: {} });
+    localDispatch(
+      'UPDATE_GAME_OBJECT',
+      context('m1', 'chat', { value: 'ないしょ', attributes: { from: 'alice', to: 'bob', tag: '' } }),
+      'peer-a'
+    );
 
     expect(service.recentEvents()[0].visibility).toEqual({ kind: 'direct', to: ['bob'] });
   });
@@ -290,7 +290,11 @@ describe('ReplayRecorderService', () => {
     await service.start();
     vi.advanceTimersByTime(REPLAY_BASELINE_GRACE_MS);
     sendUpdate('c1', 'character', { location: { name: 'table', x: 10, y: 0 }, posZ: 0 });
-    sendUpdate('m1', 'chat', { value: 'やあ', from: 'alice', attributes: {} });
+    localDispatch(
+      'UPDATE_GAME_OBJECT',
+      context('m1', 'chat', { value: 'やあ', attributes: { from: 'alice' } }),
+      'peer-a'
+    );
 
     expect(service.recentEvents().map((e) => e.kind)).toEqual([ReplayEventKind.ChatMessage]);
   });
@@ -327,6 +331,13 @@ describe('ReplayRecorderService', () => {
     expect(store.keyframes).toHaveLength(1);
     await service.stop();
     expect(store.keyframes).toHaveLength(2);
+  });
+
+  it('盤面を識別子つきで書き留めること', async () => {
+    await service.start();
+    const bytes = new Uint8Array(await store.keyframes[0].blob.arrayBuffer());
+    const snapshot = decodeReplayKeyframe(bytes);
+    expect(snapshot.some((object) => object.identifier === 'cursor-a')).toBe(true);
   });
 
   it('目印を打てること', async () => {

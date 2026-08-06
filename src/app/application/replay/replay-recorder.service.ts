@@ -1,5 +1,4 @@
 import { DestroyRef, inject, Injectable, signal } from '@angular/core';
-import { SaveDataService } from '@axe/application/file/save-data.service';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { Logger } from '@axe/core/logging/logger';
 import { Network } from '@axe/core/network/network';
@@ -34,6 +33,7 @@ import {
   isRecordableKind,
   type ReplayDraft,
 } from '@axe/domain/replay/replay-interpreter';
+import { encodeReplayKeyframe, type ReplayObjectSnapshot } from '@axe/domain/replay/replay-keyframe';
 import { TabletopObject } from '@axe/domain/tabletop/tabletop-object';
 
 export const REPLAY_CHUNK_EVENT_LIMIT = 500;
@@ -50,7 +50,6 @@ export class ReplayRecorderService {
   private readonly destroyRef = inject(DestroyRef);
   private readonly store = inject(ReplayLogStore);
   private readonly objectStore = inject(ObjectStore);
-  private readonly saveDataService = inject(SaveDataService);
   private readonly pointerDevice = inject(PointerDeviceService);
 
   private readonly _isRecording = signal(false);
@@ -300,7 +299,8 @@ export class ReplayRecorderService {
     }
 
     try {
-      const blob = await this.saveDataService.createRoomStateArchiveAsync();
+      const bytes = encodeReplayKeyframe(this.snapshotStore());
+      const blob = new Blob([bytes as BlobPart], { type: 'application/octet-stream' });
       const at = Date.now();
       await this.store.putKeyframe({ recordingId: id, seq: this.seq, at, blob });
       this.keyframes.push({ seq: this.seq, at, byteSize: blob.size });
@@ -323,9 +323,20 @@ export class ReplayRecorderService {
     return new Promise<void>((resolve) => idleCallback(() => resolve(), { timeout: REPLAY_IDLE_TIMEOUT_MS }));
   }
 
+  private snapshotStore(): ReplayObjectSnapshot[] {
+    return this.objectStore.getObjects().map((object) => {
+      const context = object.toContext();
+      return {
+        identifier: context.identifier,
+        aliasName: context.aliasName,
+        syncData: context.syncData as Record<string, unknown>,
+      };
+    });
+  }
+
   private seedShadows(): void {
-    for (const object of this.objectStore.getObjects()) {
-      this.shadows.set(object.identifier, cloneSyncData(object.toContext().syncData as SyncData));
+    for (const snapshot of this.snapshotStore()) {
+      this.shadows.set(snapshot.identifier, cloneSyncData(snapshot.syncData));
     }
   }
 

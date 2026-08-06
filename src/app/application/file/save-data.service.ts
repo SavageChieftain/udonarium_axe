@@ -50,10 +50,6 @@ export class SaveDataService {
     return SaveDataService.queue.add(() => this.fileArchiver.createZipBlobAsync(this.buildRoomFiles()));
   }
 
-  createRoomStateArchiveAsync(): Promise<Blob> {
-    return SaveDataService.queue.add(() => this.fileArchiver.createZipBlobAsync(this.buildRoomXmlParts().files));
-  }
-
   buildRoomAssetFiles(): File[] {
     const files: File[] = [];
     const images = this.imageStorage.images.filter((image) => image.state === ImageState.COMPLETE);
