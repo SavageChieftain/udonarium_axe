@@ -1,5 +1,6 @@
 import { DestroyRef, inject, Injectable, signal } from '@angular/core';
 import { SaveDataService } from '@axe/application/file/save-data.service';
+import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { Logger } from '@axe/core/logging/logger';
 import { Network } from '@axe/core/network/network';
 import { networkMessage$ } from '@axe/core/network/network-messaging';
@@ -40,6 +41,9 @@ export const REPLAY_CHUNK_INTERVAL_MS = 30_000;
 export const REPLAY_KEYFRAME_INTERVAL_MS = 600_000;
 export const REPLAY_BASELINE_GRACE_MS = 5_000;
 export const REPLAY_RECENT_EVENT_LIMIT = 300;
+export const REPLAY_RECENT_PUBLISH_MS = 250;
+export const REPLAY_KEYFRAME_BUSY_RETRY_MS = 5_000;
+export const REPLAY_IDLE_TIMEOUT_MS = 10_000;
 
 @Injectable({ providedIn: 'root' })
 export class ReplayRecorderService {
@@ -47,6 +51,7 @@ export class ReplayRecorderService {
   private readonly store = inject(ReplayLogStore);
   private readonly objectStore = inject(ObjectStore);
   private readonly saveDataService = inject(SaveDataService);
+  private readonly pointerDevice = inject(PointerDeviceService);
 
   private readonly _isRecording = signal(false);
   private readonly _eventCount = signal(0);
@@ -73,8 +78,13 @@ export class ReplayRecorderService {
   private readonly keyframes: ReplayManifest['keyframes'][number][] = [];
   private readonly chunks: ReplayManifest['chunks'][number][] = [];
   private baselineUntil = 0;
+  private recent: ReplayEvent[] = [];
+  private recentDirty = false;
+  private lastPublishAt = 0;
   private chunkTimer: ReturnType<typeof setTimeout> | null = null;
   private keyframeTimer: ReturnType<typeof setInterval> | null = null;
+  private publishTimer: ReturnType<typeof setTimeout> | null = null;
+  private keyframeRetryTimer: ReturnType<typeof setTimeout> | null = null;
 
   constructor() {
     networkMessage$.subscribe((message) => {
@@ -130,13 +140,15 @@ export class ReplayRecorderService {
     this.keyframes.length = 0;
     this.chunks.length = 0;
     this._eventCount.set(0);
+    this.recent = [];
+    this.recentDirty = false;
     this._recentEvents.set([]);
     this._startedAt.set(startedAt);
     this.seedShadows();
     this.baselineUntil = startedAt + REPLAY_BASELINE_GRACE_MS;
     this._isRecording.set(true);
 
-    await this.captureKeyframe();
+    await this.captureKeyframe(true);
     this.keyframeTimer = setInterval(() => void this.captureKeyframe(), REPLAY_KEYFRAME_INTERVAL_MS);
     await this.prune();
     await this.refresh();
@@ -148,7 +160,7 @@ export class ReplayRecorderService {
     this._isRecording.set(false);
     this.clearTimers();
     this.flushPending();
-    await this.captureKeyframe();
+    await this.captureKeyframe(true);
     await this.flushBuffer();
     const id = this.recordingId;
     if (id != null) {
@@ -161,7 +173,7 @@ export class ReplayRecorderService {
   async mark(label: string): Promise<void> {
     if (!this._isRecording()) return;
     this.push({ kind: ReplayEventKind.Marker, detail: { label } }, this.selfPeerId(), Date.now());
-    await this.captureKeyframe();
+    await this.captureKeyframe(true);
   }
 
   async remove(id: number): Promise<void> {
@@ -227,13 +239,13 @@ export class ReplayRecorderService {
     if (this.pending && canMergeReplayEvents(this.pending, event)) {
       this.seq--;
       this.pending = mergeReplayEvents(this.pending, event);
-      this.publishRecent(this.pending, true);
+      this.trackRecent(this.pending, true);
       return;
     }
 
     this.flushPending();
     this.pending = event;
-    this.publishRecent(event, false);
+    this.trackRecent(event, false);
     if (this.buffer.length + 1 >= REPLAY_CHUNK_EVENT_LIMIT) this.flushPending();
     this.scheduleChunkFlush();
   }
@@ -243,6 +255,7 @@ export class ReplayRecorderService {
     this.buffer.push(this.pending);
     this.pending = null;
     this._eventCount.update((count) => count + 1);
+    this.publishRecent();
     if (this.buffer.length >= REPLAY_CHUNK_EVENT_LIMIT) void this.flushBuffer();
   }
 
@@ -273,9 +286,19 @@ export class ReplayRecorderService {
     await this.store.appendChunk({ recordingId: id, ...chunk, bytes });
   }
 
-  private async captureKeyframe(): Promise<void> {
+  private async captureKeyframe(force = false): Promise<void> {
     const id = this.recordingId;
     if (id == null) return;
+
+    if (!force) {
+      await this.whenIdle();
+      if (this.recordingId !== id) return;
+      if (this.pointerDevice.isDragging) {
+        this.retryKeyframeLater();
+        return;
+      }
+    }
+
     try {
       const blob = await this.saveDataService.createRoomStateArchiveAsync();
       const at = Date.now();
@@ -286,18 +309,49 @@ export class ReplayRecorderService {
     }
   }
 
+  private retryKeyframeLater(): void {
+    if (this.keyframeRetryTimer !== null) return;
+    this.keyframeRetryTimer = setTimeout(() => {
+      this.keyframeRetryTimer = null;
+      void this.captureKeyframe();
+    }, REPLAY_KEYFRAME_BUSY_RETRY_MS);
+  }
+
+  private whenIdle(): Promise<void> {
+    const idleCallback = globalThis.requestIdleCallback;
+    if (typeof idleCallback !== 'function') return Promise.resolve();
+    return new Promise<void>((resolve) => idleCallback(() => resolve(), { timeout: REPLAY_IDLE_TIMEOUT_MS }));
+  }
+
   private seedShadows(): void {
     for (const object of this.objectStore.getObjects()) {
       this.shadows.set(object.identifier, cloneSyncData(object.toContext().syncData as SyncData));
     }
   }
 
-  private publishRecent(event: ReplayEvent, replaceLast: boolean): void {
-    this._recentEvents.update((events) => {
-      const next = replaceLast ? events.slice(0, -1) : events.slice();
-      next.push(event);
-      return next.length > REPLAY_RECENT_EVENT_LIMIT ? next.slice(next.length - REPLAY_RECENT_EVENT_LIMIT) : next;
-    });
+  private trackRecent(event: ReplayEvent, replaceLast: boolean): void {
+    if (replaceLast && this.recent.length > 0) this.recent[this.recent.length - 1] = event;
+    else this.recent.push(event);
+    if (this.recent.length > REPLAY_RECENT_EVENT_LIMIT) this.recent.shift();
+    this.recentDirty = true;
+
+    if (!replaceLast || Date.now() - this.lastPublishAt >= REPLAY_RECENT_PUBLISH_MS) {
+      this.publishRecent();
+      return;
+    }
+    if (this.publishTimer === null) {
+      this.publishTimer = setTimeout(() => {
+        this.publishTimer = null;
+        this.publishRecent();
+      }, REPLAY_RECENT_PUBLISH_MS);
+    }
+  }
+
+  private publishRecent(): void {
+    if (!this.recentDirty) return;
+    this.recentDirty = false;
+    this.lastPublishAt = Date.now();
+    this._recentEvents.set([...this.recent]);
   }
 
   private rememberActor(peerId: string): ReplayActorSnapshot {
@@ -395,8 +449,12 @@ export class ReplayRecorderService {
   private clearTimers(): void {
     if (this.chunkTimer !== null) clearTimeout(this.chunkTimer);
     if (this.keyframeTimer !== null) clearInterval(this.keyframeTimer);
+    if (this.publishTimer !== null) clearTimeout(this.publishTimer);
+    if (this.keyframeRetryTimer !== null) clearTimeout(this.keyframeRetryTimer);
     this.chunkTimer = null;
     this.keyframeTimer = null;
+    this.publishTimer = null;
+    this.keyframeRetryTimer = null;
   }
 }
 

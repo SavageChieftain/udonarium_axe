@@ -1,4 +1,4 @@
-import { cloneSyncData, diffSyncData, isSameSyncValue } from '@axe/domain/replay/replay-diff';
+import { cloneSyncData, cloneSyncValue, diffSyncData, isSameSyncValue } from '@axe/domain/replay/replay-diff';
 
 describe('isSameSyncValue()', () => {
   it('プリミティブを値で比べること', () => {
@@ -73,6 +73,24 @@ describe('diffSyncData()', () => {
     const diff = diffSyncData(before, after)!;
     (after.location as { x: number }).x = 999;
     expect(diff.after['location']).toEqual({ name: 'table', x: 5, y: 0 });
+  });
+});
+
+describe('cloneSyncValue()', () => {
+  it('プリミティブはそのまま返すこと', () => {
+    expect(cloneSyncValue(1)).toBe(1);
+    expect(cloneSyncValue('a')).toBe('a');
+    expect(cloneSyncValue(true)).toBe(true);
+    expect(cloneSyncValue(null)).toBeNull();
+    expect(cloneSyncValue(undefined)).toBeUndefined();
+  });
+
+  it('入れ子の配列とオブジェクトを複製すること', () => {
+    const source = { rows: [{ x: 1 }, { x: 2 }] };
+    const copy = cloneSyncValue(source);
+    expect(copy).toEqual(source);
+    source.rows[0].x = 99;
+    expect(copy.rows[0].x).toBe(1);
   });
 });
 

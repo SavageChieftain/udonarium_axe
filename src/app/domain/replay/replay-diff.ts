@@ -23,8 +23,20 @@ export function isSameSyncValue(a: unknown, b: unknown): boolean {
   return leftKeys.every((key) => key in right && isSameSyncValue(left[key], right[key]));
 }
 
+export function cloneSyncValue<T>(value: T): T {
+  if (typeof value !== 'object' || value === null) return value;
+  if (Array.isArray(value)) return value.map(cloneSyncValue) as T;
+
+  const source = value as Record<string, unknown>;
+  const clone: Record<string, unknown> = {};
+  for (const key of Object.keys(source)) clone[key] = cloneSyncValue(source[key]);
+  return clone as T;
+}
+
 export function cloneSyncData(data: SyncData): Record<string, unknown> {
-  return structuredClone(data) as Record<string, unknown>;
+  const clone: Record<string, unknown> = {};
+  for (const key of Object.keys(data)) clone[key] = cloneSyncValue(data[key]);
+  return clone;
 }
 
 export function diffSyncData(before: SyncData | null, after: SyncData): SyncDataDiff | null {
@@ -35,15 +47,15 @@ export function diffSyncData(before: SyncData | null, after: SyncData): SyncData
   for (const key of Object.keys(after)) {
     if (before && isSameSyncValue(before[key], after[key])) continue;
     keys.push(key);
-    if (before && key in before) beforeChanged[key] = structuredClone(before[key]);
-    afterChanged[key] = structuredClone(after[key]);
+    if (before && key in before) beforeChanged[key] = cloneSyncValue(before[key]);
+    afterChanged[key] = cloneSyncValue(after[key]);
   }
 
   if (before) {
     for (const key of Object.keys(before)) {
       if (key in after) continue;
       keys.push(key);
-      beforeChanged[key] = structuredClone(before[key]);
+      beforeChanged[key] = cloneSyncValue(before[key]);
     }
   }
 

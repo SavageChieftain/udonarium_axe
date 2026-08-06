@@ -1,10 +1,15 @@
+import { effect, Injector } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { SaveDataService } from '@axe/application/file/save-data.service';
 import {
   REPLAY_BASELINE_GRACE_MS,
   REPLAY_CHUNK_INTERVAL_MS,
+  REPLAY_KEYFRAME_BUSY_RETRY_MS,
+  REPLAY_KEYFRAME_INTERVAL_MS,
+  REPLAY_RECENT_PUBLISH_MS,
   ReplayRecorderService,
 } from '@axe/application/replay/replay-recorder.service';
+import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { localDispatch } from '@axe/core/network/network-messaging';
 import {
   type ReplayChunkInput,
@@ -100,6 +105,7 @@ describe('ReplayRecorderService', () => {
   let service: ReplayRecorderService;
   let store: FakeReplayLogStore;
   let objectStore: ObjectStore;
+  let pointerDevice: PointerDeviceService;
 
   beforeEach(() => {
     vi.useFakeTimers();
@@ -113,6 +119,7 @@ describe('ReplayRecorderService', () => {
       ],
     });
     objectStore = TestBed.inject(ObjectStore);
+    pointerDevice = TestBed.inject(PointerDeviceService);
     service = TestBed.inject(ReplayRecorderService);
 
     const cursor = new PeerCursor('cursor-a');
@@ -181,12 +188,65 @@ describe('ReplayRecorderService', () => {
       sendUpdate('c1', 'character', { location: { name: 'table', x, y: 0 }, posZ: 0 });
       vi.advanceTimersByTime(50);
     }
+    vi.advanceTimersByTime(REPLAY_RECENT_PUBLISH_MS);
 
     const events = service.recentEvents();
     expect(events).toHaveLength(1);
     expect(events[0].merged).toBe(5);
     expect(events[0].detail['from']).toEqual({ name: 'table', x: 0, y: 0, z: 0 });
     expect(events[0].detail['to']).toEqual({ name: 'table', x: 50, y: 0, z: 0 });
+  });
+
+  it('ドラッグ中は表示用のシグナルを毎フレーム書き換えないこと', async () => {
+    await service.start();
+    sendUpdate('c1', 'character', { location: { name: 'table', x: 0, y: 0 }, posZ: 0 });
+    vi.advanceTimersByTime(REPLAY_BASELINE_GRACE_MS);
+
+    let writes = 0;
+    const stop = effect(
+      () => {
+        service.recentEvents();
+        writes++;
+      },
+      { injector: TestBed.inject(Injector) }
+    );
+    TestBed.tick();
+    writes = 0;
+
+    for (let x = 10; x <= 300; x += 10) {
+      sendUpdate('c1', 'character', { location: { name: 'table', x, y: 0 }, posZ: 0 });
+      vi.advanceTimersByTime(16);
+      TestBed.tick();
+    }
+
+    expect(writes).toBeLessThan(5);
+    stop.destroy();
+  });
+
+  it('ドラッグを畳んでも最後の位置まで表示に届くこと', async () => {
+    await service.start();
+    sendUpdate('c1', 'character', { location: { name: 'table', x: 0, y: 0 }, posZ: 0 });
+    vi.advanceTimersByTime(REPLAY_BASELINE_GRACE_MS);
+
+    sendUpdate('c1', 'character', { location: { name: 'table', x: 10, y: 0 }, posZ: 0 });
+    vi.advanceTimersByTime(16);
+    sendUpdate('c1', 'character', { location: { name: 'table', x: 20, y: 0 }, posZ: 0 });
+    vi.advanceTimersByTime(REPLAY_RECENT_PUBLISH_MS);
+
+    expect(service.recentEvents()[0].detail['to']).toEqual({ name: 'table', x: 20, y: 0, z: 0 });
+  });
+
+  it('ドラッグ中は盤面の書き留めを見送り、落ち着いてから行うこと', async () => {
+    await service.start();
+    expect(store.keyframes).toHaveLength(1);
+
+    pointerDevice.isDragging = true;
+    await vi.advanceTimersByTimeAsync(REPLAY_KEYFRAME_INTERVAL_MS);
+    expect(store.keyframes).toHaveLength(1);
+
+    pointerDevice.isDragging = false;
+    await vi.advanceTimersByTimeAsync(REPLAY_KEYFRAME_BUSY_RETRY_MS);
+    expect(store.keyframes).toHaveLength(2);
   });
 
   it('雑音のイベントを記録しないこと', async () => {
