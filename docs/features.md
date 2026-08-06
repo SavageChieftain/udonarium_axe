@@ -177,6 +177,10 @@ Udonarium Axe が **追加** または **大きく拡張・再設計** した機
 - **秘匿の保存** — 内緒話・GM 限定・非公開コマを当時の可視性ごと記録し、閲覧者のロールで絞り込む
 - **保存** — イベントは msgpack でチャンク化して IndexedDB へ。直近 5 本 / 合計 512MB を上限に古い録画を削除するが、記録中の録画は消さない（`core/storage/replay-log-store`、`application/replay/replay-recorder.service`）
 - **セッションログパネル** — 新しい順の一覧、チャット / 盤面 / 人での絞り込み、記録の開始停止、詳細度の切り替え、章の見出し（目印）を打てる（`features/replay/replay-log-panel`）
+- **卓を邪魔しない工夫** — シャドウ複写は素の再帰コピー（`structuredClone` の約 4 倍速）、表示用シグナルはドラッグ中 250ms に間引き、10 分ごとのキーフレームは idle かつ非ドラッグまで待つ
+- **持ち出し** — `.axe-replay.zip`（目録 JSON + イベント msgpack + キーフレーム + 任意で画像）で書き出し / 読み込み（`domain/replay/replay-archive`、`application/replay/replay-library.service`）
+- **再生** — 読み物として送るだけなら卓に触れない。盤面再生は直近キーフレームを復元して patch を前向きに積む（巻き戻しも作り直し）。再生中は `setNetworkIsolated()` で送信を止めて同卓者に漏らさず、抜けるときに元の卓へ戻して再同期を求める（`core/network/network-isolation`、`application/replay/replay-playback.service`、`features/replay/replay-player-panel`）
+- **非破壊編集** — 削除・並べ替え・台詞の直しを行い、別の記録として保存する。派生先には編集後の並びで計算し直したキーフレームを書く（`domain/replay/replay-edit`、`application/replay/replay-editor.service`）
 
 ## 同期 / 内部基盤
 
