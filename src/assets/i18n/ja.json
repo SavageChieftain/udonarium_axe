@@ -41,7 +41,8 @@
       "characterImport": "キャラクター取り込み",
       "ownedCharacters": "所有キャラクター一覧",
       "roomSnapshot": "自動保存",
-      "replayLog": "セッションログ"
+      "replayLog": "セッションログ",
+      "replayPlayer": "リプレイ再生"
     },
     "party": {
       "unnamed": "無名のパーティ"
@@ -2027,6 +2028,17 @@
         "join": "{{actor}} が入室した",
         "leave": "{{actor}} が退室した",
         "marker": "― {{label}} ―"
+      },
+      "player": {
+        "choose": "記録を選ぶ",
+        "close": "閉じる",
+        "empty": "再生する記録を選んでください。読み進めるだけなら卓には触れません。",
+        "boardMode": "盤面も再生する",
+        "boardHint": "今の卓を預かって記録の盤面を映します。抜けると元に戻ります。",
+        "boardOn": "記録の盤面を映しています。この間の操作は同卓者に届きません。",
+        "boardStart": "盤面を映す",
+        "boardStop": "卓に戻す",
+        "boardConfirm": "記録の盤面を映します。今の卓は預かって、抜けるときに戻します。この間の操作は同卓者に届きません。よろしいですか？"
       }
     }
   },
@@ -2060,7 +2072,8 @@
       "importCharacter": "キャラ取り込み",
       "roomSnapshot": "自動保存 / 復元",
       "createObject": "コマを作る",
-      "replayLog": "セッションログ"
+      "replayLog": "セッションログ",
+      "replayPlayer": "リプレイ再生"
     },
     "roomDataDefault": "ルームデータ"
   },

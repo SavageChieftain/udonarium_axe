@@ -13,6 +13,7 @@ export type MobileMenuAction =
   | 'importCharacter'
   | 'roomSnapshot'
   | 'replayLog'
+  | 'replayPlayer'
   | 'visualNovel'
   | 'hand'
   | 'darkness'
@@ -47,6 +48,7 @@ export const MOBILE_MENU_ITEMS: readonly MobileMenuItem[] = [
   { action: 'importCharacter', icon: 'person_add', labelKey: 'app.fab.importCharacter' },
   { action: 'roomSnapshot', icon: 'history', labelKey: 'app.fab.roomSnapshot' },
   { action: 'replayLog', icon: 'receipt_long', labelKey: 'app.fab.replayLog' },
+  { action: 'replayPlayer', icon: 'play_circle', labelKey: 'app.fab.replayPlayer' },
   { action: 'visualNovel', icon: 'auto_stories', labelKey: 'app.fab.visualNovel' },
   { action: 'activePalette', icon: 'chat', labelKey: 'feature.mobile.activePalette' },
   { action: 'hand', icon: 'style', labelKey: 'app.fab.handCards' },

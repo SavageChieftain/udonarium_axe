@@ -1,0 +1,115 @@
+<div class="text-ui-text flex h-full flex-col gap-2 p-3">
+  <div class="flex items-center gap-1.5">
+    <select
+      class="border-ui-border bg-ui-panel rounded-ui-sm min-w-0 flex-1 border border-solid px-1.5 py-1 text-[0.76rem]"
+      (change)="openRecording($any($event.target).value)"
+    >
+      <option value="">{{ 'feature.replay.player.choose' | transloco }}</option>
+      @for (meta of recordings(); track meta.id) {
+        <option [value]="meta.id">
+          {{ startedAtLabel(meta) }} ・ {{ 'feature.replay.panel.entries' | transloco: { count: meta.eventCount } }}
+        </option>
+      }
+    </select>
+    @if (isOpen()) {
+      <button class="rounded-ui-sm cursor-pointer px-[0.7em] py-[0.25em] text-[0.72rem]" (click)="close()">
+        {{ 'feature.replay.player.close' | transloco }}
+      </button>
+    }
+  </div>
+
+  @if (!isOpen()) {
+    <p class="text-ui-muted text-[0.78rem] leading-[1.7]">{{ 'feature.replay.player.empty' | transloco }}</p>
+  } @else {
+    <div class="border-ui-border bg-ui-elevated rounded-ui flex min-h-20 flex-col gap-1 border border-solid p-2.5">
+      @if (currentRow(); as row) {
+        <span class="text-ui-dim text-[0.7rem] tabular-nums">{{ row.elapsed }}</span>
+        <span class="text-[0.9rem] leading-[1.6]">{{ row.line.key | transloco: row.line.params }}</span>
+      }
+    </div>
+
+    <input
+      class="w-full"
+      type="range"
+      min="0"
+      [max]="total() - 1"
+      [value]="cursor()"
+      [disabled]="isSeeking()"
+      (input)="seekTo($any($event.target).value)"
+    />
+
+    <div class="flex items-center justify-between gap-1">
+      <span class="text-ui-muted text-[0.7rem] tabular-nums">{{ cursor() + 1 }} / {{ total() }}</span>
+      <div class="flex items-center gap-0.5">
+        <button
+          class="rounded-ui-sm text-ui-dim hover:text-ui-accent cursor-pointer px-1.5 py-0.5"
+          [disabled]="isAtStart() || isSeeking()"
+          (click)="toStart()"
+        >
+          <i class="material-icons text-[18px]">first_page</i>
+        </button>
+        <button
+          class="rounded-ui-sm text-ui-dim hover:text-ui-accent cursor-pointer px-1.5 py-0.5"
+          [disabled]="isAtStart() || isSeeking()"
+          (click)="previous()"
+        >
+          <i class="material-icons text-[18px]">navigate_before</i>
+        </button>
+        <button
+          class="rounded-ui-sm text-ui-dim hover:text-ui-accent cursor-pointer px-1.5 py-0.5"
+          [disabled]="isAtEnd()"
+          (click)="toggleAutoPlay()"
+        >
+          <i class="material-icons text-[20px]">{{ autoPlay() ? 'pause' : 'play_arrow' }}</i>
+        </button>
+        <button
+          class="rounded-ui-sm text-ui-dim hover:text-ui-accent cursor-pointer px-1.5 py-0.5"
+          [disabled]="isAtEnd() || isSeeking()"
+          (click)="next()"
+        >
+          <i class="material-icons text-[18px]">navigate_next</i>
+        </button>
+        <button
+          class="rounded-ui-sm text-ui-dim hover:text-ui-accent cursor-pointer px-1.5 py-0.5"
+          [disabled]="isAtEnd() || isSeeking()"
+          (click)="toEnd()"
+        >
+          <i class="material-icons text-[18px]">last_page</i>
+        </button>
+      </div>
+      <span class="text-ui-muted text-[0.7rem] tabular-nums">{{ elapsedLabel() }}</span>
+    </div>
+
+    <div class="border-ui-border rounded-ui flex items-center gap-2 border border-solid px-2.5 py-2">
+      <div class="flex min-w-0 flex-1 flex-col">
+        <span class="text-[0.78rem]">{{ 'feature.replay.player.boardMode' | transloco }}</span>
+        <span class="text-ui-muted text-[0.7rem] leading-normal">
+          {{ (isBoardMode() ? 'feature.replay.player.boardOn' : 'feature.replay.player.boardHint') | transloco }}
+        </span>
+      </div>
+      <button
+        class="rounded-ui-sm cursor-pointer px-[0.8em] py-[0.3em] text-[0.74rem]"
+        [class.danger]="isBoardMode()"
+        [disabled]="!canEdit || isSeeking()"
+        (click)="toggleBoardMode()"
+      >
+        {{ (isBoardMode() ? 'feature.replay.player.boardStop' : 'feature.replay.player.boardStart') | transloco }}
+      </button>
+    </div>
+
+    <ul class="m-0 flex min-h-0 flex-1 list-none flex-col gap-0.5 overflow-y-auto p-0">
+      @for (row of rows(); track row.seq) {
+        <li
+          class="hover:bg-ui-accent-bg rounded-ui-sm flex cursor-pointer items-start gap-1.5 px-1.5 py-1 text-[0.74rem]"
+          [class.bg-ui-accent-bg]="row.index === cursor()"
+          [class.text-ui-dim]="row.index > cursor()"
+          (click)="seekTo(row.index.toString())"
+        >
+          <span class="text-ui-dim shrink-0 text-[0.66rem] tabular-nums">{{ row.elapsed }}</span>
+          <i class="material-icons text-ui-dim shrink-0 text-[13px] leading-[1.4]">{{ row.line.icon }}</i>
+          <span class="min-w-0 flex-1 wrap-break-word">{{ row.line.key | transloco: row.line.params }}</span>
+        </li>
+      }
+    </ul>
+  }
+</div>

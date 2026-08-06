@@ -41,7 +41,8 @@
       "characterImport": "Import Character",
       "ownedCharacters": "My characters",
       "roomSnapshot": "Auto Save",
-      "replayLog": "Session log"
+      "replayLog": "Session log",
+      "replayPlayer": "Replay player"
     },
     "party": {
       "unnamed": "Unnamed party"
@@ -2027,6 +2028,17 @@
         "join": "{{actor}} joined",
         "leave": "{{actor}} left",
         "marker": "— {{label}} —"
+      },
+      "player": {
+        "choose": "Choose a recording",
+        "close": "Close",
+        "empty": "Pick a recording to play. Reading through it does not touch the table.",
+        "boardMode": "Play on the board",
+        "boardHint": "Takes the table over to show the recorded board. Leaving puts it back.",
+        "boardOn": "Showing the recorded board. Nothing you do now reaches the other players.",
+        "boardStart": "Take the board",
+        "boardStop": "Give it back",
+        "boardConfirm": "This shows the recorded board. Your table is held aside and restored when you leave, and nothing you do meanwhile reaches the other players. Continue?"
       }
     }
   },
@@ -2060,7 +2072,8 @@
       "importCharacter": "Import Character",
       "roomSnapshot": "Auto save / restore",
       "createObject": "Create a piece",
-      "replayLog": "Session log"
+      "replayLog": "Session log",
+      "replayPlayer": "Replay player"
     },
     "roomDataDefault": "Room data"
   },
