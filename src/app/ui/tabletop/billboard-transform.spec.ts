@@ -1,4 +1,8 @@
-import { makeBillboardTransform, makeLabelOrbitTransform } from '@axe/ui/tabletop/billboard-transform';
+import {
+  makeBillboardTransform,
+  makeLabelOrbitTransform,
+  makeScreenLiftTransform,
+} from '@axe/ui/tabletop/billboard-transform';
 
 describe('makeBillboardTransform', () => {
   it('3Dモードでカメラチルト分の compensateZ を含む', () => {
@@ -96,5 +100,91 @@ describe('makeLabelOrbitTransform', () => {
     expect(out).toContain('translateX(-60.00px)');
     const z = Number(out.match(/translateZ\((-?[\d.]+)px\)/)?.[1] ?? NaN);
     expect(z).toBeCloseTo(0, 5);
+  });
+});
+
+describe('makeScreenLiftTransform', () => {
+  const axisOf = (transform: string, axis: 'X' | 'Y' | 'Z') =>
+    Number(new RegExp(`translate${axis}\\((-?[\\d.]+)px\\)`).exec(transform)![1]);
+
+  const worldOffsetOf = (transform: string, tilt: number, yaw: number, roll: number) => {
+    const local = {
+      x: axisOf(transform, 'X'),
+      y: axisOf(transform, 'Y'),
+      z: axisOf(transform, 'Z'),
+    };
+    const rollRad = (roll * Math.PI) / 180;
+    const rolled = {
+      x: local.x * Math.cos(rollRad) - local.y * Math.sin(rollRad),
+      y: local.x * Math.sin(rollRad) + local.y * Math.cos(rollRad),
+      z: local.z,
+    };
+    const table = { x: rolled.x, y: rolled.z, z: -rolled.y };
+    const yawRad = (yaw * Math.PI) / 180;
+    const yawed = {
+      x: table.x * Math.cos(yawRad) - table.y * Math.sin(yawRad),
+      y: table.x * Math.sin(yawRad) + table.y * Math.cos(yawRad),
+      z: table.z,
+    };
+    const tiltRad = (tilt * Math.PI) / 180;
+    return {
+      x: yawed.x,
+      y: yawed.y * Math.cos(tiltRad) - yawed.z * Math.sin(tiltRad),
+      z: yawed.y * Math.sin(tiltRad) + yawed.z * Math.cos(tiltRad),
+    };
+  };
+
+  it.each([
+    { tilt: 50, tableYaw: 10, pieceRotate: 0, pieceRoll: 0 },
+    { tilt: 35, tableYaw: 40, pieceRotate: 0, pieceRoll: 0 },
+    { tilt: 70, tableYaw: -25, pieceRotate: 90, pieceRoll: 0 },
+    { tilt: 50, tableYaw: 10, pieceRotate: 45, pieceRoll: 30 },
+  ])('カメラ・コマの向きに関わらず画面の真上にだけ動かすこと %o', ({ tilt, tableYaw, pieceRotate, pieceRoll }) => {
+    const out = makeScreenLiftTransform({
+      rotation: { x: tilt, y: 0, z: tableYaw },
+      pieceRotate,
+      pieceRoll,
+      worldHeight3d: 80,
+      screenLift3d: 52,
+      distance2d: 120,
+      mode2d: false,
+    });
+    const world = worldOffsetOf(out, tilt, tableYaw + pieceRotate, pieceRoll);
+
+    expect(world.x).toBeCloseTo(0, 1);
+    expect(world.z).toBeCloseTo(0, 1);
+    expect(world.y).toBeCloseTo(-(80 * Math.sin((tilt * Math.PI) / 180) + 52), 1);
+  });
+
+  it('2D モードではテーブル面上の距離で置くこと', () => {
+    const out = makeScreenLiftTransform({
+      rotation: { x: 0, y: 0, z: 0 },
+      pieceRotate: 0,
+      pieceRoll: 0,
+      worldHeight3d: 80,
+      screenLift3d: 52,
+      distance2d: 120,
+      mode2d: true,
+    });
+
+    expect(out).toContain('translateZ(-120.00px)');
+    expect(out).not.toContain('translateY');
+  });
+
+  it('rotation が null ならデフォルト (x=50, z=10) で計算する', () => {
+    const out = makeScreenLiftTransform({
+      rotation: null,
+      pieceRotate: 0,
+      pieceRoll: 0,
+      worldHeight3d: 0,
+      screenLift3d: 100,
+      distance2d: 120,
+      mode2d: false,
+    });
+    const world = worldOffsetOf(out, 50, 10, 0);
+
+    expect(world.x).toBeCloseTo(0, 1);
+    expect(world.z).toBeCloseTo(0, 1);
+    expect(world.y).toBeCloseTo(-100, 1);
   });
 });

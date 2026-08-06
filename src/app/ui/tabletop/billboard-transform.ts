@@ -49,3 +49,35 @@ export function makeLabelOrbitTransform(opts: LabelOrbitTransformOptions): strin
   const cos = Math.cos(yawRad);
   return `translateX(${(-opts.distance2d * sin).toFixed(2)}px) translateZ(${(-opts.distance2d * cos).toFixed(2)}px)`;
 }
+
+export interface ScreenLiftTransformOptions {
+  readonly rotation: TableViewRotation | null;
+  readonly pieceRotate: number;
+  readonly pieceRoll: number;
+  readonly worldHeight3d: number;
+  readonly screenLift3d: number;
+  readonly distance2d: number;
+  readonly mode2d: boolean;
+}
+
+export function makeScreenLiftTransform(opts: ScreenLiftTransformOptions): string {
+  if (opts.mode2d) {
+    return makeLabelOrbitTransform({
+      rotation: opts.rotation,
+      distance3d: 0,
+      distance2d: opts.distance2d,
+      mode2d: true,
+    });
+  }
+  const tilt = ((opts.rotation?.x ?? DEFAULT_TABLE_X) * Math.PI) / 180;
+  const yaw = (((opts.rotation?.z ?? DEFAULT_TABLE_Z) + opts.pieceRotate) * Math.PI) / 180;
+  const roll = (opts.pieceRoll * Math.PI) / 180;
+  const lift = opts.worldHeight3d * Math.sin(tilt) + opts.screenLift3d;
+  const flat = lift * Math.cos(tilt);
+  const x = -flat * Math.sin(yaw);
+  const y = -lift * Math.sin(tilt);
+  const z = -flat * Math.cos(yaw);
+  const rolledX = x * Math.cos(roll) + y * Math.sin(roll);
+  const rolledY = y * Math.cos(roll) - x * Math.sin(roll);
+  return `translateX(${rolledX.toFixed(2)}px) translateY(${rolledY.toFixed(2)}px) translateZ(${z.toFixed(2)}px)`;
+}
