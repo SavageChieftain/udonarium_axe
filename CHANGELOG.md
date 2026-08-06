@@ -1,3 +1,15 @@
+## [1.28.0](https://github.com/SavageChieftain/udonarium_axe/compare/v1.27.0...v1.28.0) (2026-08-06)
+
+### ✨ Features
+
+* **character:** redesign the ALT target marker ([6ed746e](https://github.com/SavageChieftain/udonarium_axe/commit/6ed746ed3280d2af9a988eca49d7ad8c2248e42e))
+* **tabletop:** add screen-space lift transform for billboarded labels ([894213b](https://github.com/SavageChieftain/udonarium_axe/commit/894213b3ebc275cf3357a951a145bfbd429fb0c5))
+
+### 📝 Documentation
+
+* **readme:** add CI, release, license and tech stack badges ([e08e301](https://github.com/SavageChieftain/udonarium_axe/commit/e08e30181446946052f303fd0021d046cbc9808f))
+* **website:** add v1.27.0 release notes ([565535d](https://github.com/SavageChieftain/udonarium_axe/commit/565535d8eb38d224f87cf8870b1c7c4f5fa598d8))
+
 ## [1.27.0](https://github.com/SavageChieftain/udonarium_axe/compare/v1.26.0...v1.27.0) (2026-08-05)
 
 ### ✨ Features
