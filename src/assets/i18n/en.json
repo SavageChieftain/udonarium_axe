@@ -2080,12 +2080,15 @@
           "marker": "Chapter"
         },
         "stageHere": "Stage from here",
-        "insertInto": "Insert at",
         "atStart": "the start",
-        "afterEntry": "after {{entry}}",
         "insert": "Insert",
         "credit": "Credited to",
-        "freeSpeaker": "Type a name"
+        "freeSpeaker": "Type a name",
+        "write": "Write",
+        "record": "Stage",
+        "insertHere": "Insert here",
+        "closeCompose": "Cancel",
+        "rewrite": "Reword"
       },
       "surface": {
         "floor": "floor",

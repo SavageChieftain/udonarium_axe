@@ -1,9 +1,14 @@
-import { ChangeDetectionStrategy, Component, computed, inject, input, output, signal } from '@angular/core';
+import { NgTemplateOutlet } from '@angular/common';
+import { ChangeDetectionStrategy, Component, computed, inject, input, signal } from '@angular/core';
+import { ChatMessageService } from '@axe/application/chat/chat-message.service';
 import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
+import { RolePermissionService } from '@axe/application/permission/role-permission.service';
 import { ReplayEditorService } from '@axe/application/replay/replay-editor.service';
 import { ReplayPlaybackService } from '@axe/application/replay/replay-playback.service';
+import { ReplayStagingService } from '@axe/application/replay/replay-staging.service';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
-import { isTextEditable, textOf } from '@axe/domain/replay/replay-edit';
+import type { ReplayCastMember } from '@axe/domain/replay/replay-cast';
+import { chatTabIdentifierNear, INSERTABLE_KINDS, isTextEditable, textOf } from '@axe/domain/replay/replay-edit';
 import { ReplayEventKind } from '@axe/domain/replay/replay-event';
 import {
   collectReplayActorIds,
@@ -13,7 +18,7 @@ import {
   ReplayLogScope,
 } from '@axe/features/replay/replay-log-filter';
 import { formatReplayElapsed, type ReplayLogLine, toReplayLogLine } from '@axe/features/replay/replay-log-line';
-import { EMPTY_REPLAY_DICTIONARY, replayNamesAt } from '@axe/features/replay/replay-names';
+import { EMPTY_REPLAY_DICTIONARY, replayActorsOf, replayNamesAt } from '@axe/features/replay/replay-names';
 import { TranslocoModule } from '@jsverse/transloco';
 
 export interface ReplayEntryRow {
@@ -22,6 +27,8 @@ export interface ReplayEntryRow {
   elapsed: string;
   isChapter: boolean;
   inserted: boolean;
+  editable: boolean;
+  text: string;
   line: ReplayLogLine;
 }
 
@@ -29,20 +36,35 @@ export interface ReplayEntryRow {
   changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'replay-entry-list',
   templateUrl: './replay-entry-list.component.html',
-  imports: [TranslocoModule],
+  imports: [TranslocoModule, NgTemplateOutlet],
 })
 export class ReplayEntryListComponent {
   private readonly playback = inject(ReplayPlaybackService);
   private readonly editor = inject(ReplayEditorService);
+  private readonly staging = inject(ReplayStagingService);
+  private readonly chatMessageService = inject(ChatMessageService);
+  private readonly rolePermission = inject(RolePermissionService);
   private readonly t = inject(TRANSLATE_FN);
 
   readonly editing = input(false);
-  readonly selectedIndex = input(-1);
-  readonly selectIndex = output<number>();
 
   protected readonly cursor = this.playback.cursor;
+  protected readonly isStaging = this.staging.isStaging;
   protected readonly scopes = [ReplayLogScope.All, ReplayLogScope.Chat, ReplayLogScope.Board];
+  protected readonly insertKinds = INSERTABLE_KINDS;
+
   protected readonly filter = signal<ReplayLogFilter>(DEFAULT_REPLAY_LOG_FILTER);
+  protected readonly composeAt = signal<number | null>(null);
+  protected readonly editingSeq = signal<number | null>(null);
+
+  protected readonly insertKind = signal<ReplayEventKind>(ReplayEventKind.ChatMessage);
+  protected readonly insertCastId = signal('');
+  protected readonly insertSpeaker = signal('');
+  protected readonly insertActorId = signal('');
+  protected readonly insertText = signal('');
+
+  protected readonly isMarkerDraft = computed(() => this.insertKind() === ReplayEventKind.Marker);
+  protected readonly isFreeSpeaker = computed(() => this.insertCastId().length < 1);
 
   private readonly viewer = computed(() => ({
     userId: PeerCursor.myCursor?.userId ?? '',
@@ -51,7 +73,18 @@ export class ReplayEntryListComponent {
 
   private readonly source = computed(() => (this.editing() ? this.editor.edited() : this.playback.events()));
 
-  protected readonly actors = computed(() => collectReplayActorIds(this.source()));
+  protected readonly actorIds = computed(() => collectReplayActorIds(this.source()));
+
+  protected readonly actors = computed(() =>
+    replayActorsOf(this.playback.manifest() ?? EMPTY_REPLAY_DICTIONARY, this.actorIds())
+  );
+
+  protected readonly cast = computed(() =>
+    this.playback
+      .cast()
+      .filter((member) => member.name.length > 0)
+      .sort((a, b) => a.name.localeCompare(b.name))
+  );
 
   protected readonly rows = computed<ReplayEntryRow[]>(() => {
     const dictionary = this.playback.manifest() ?? EMPTY_REPLAY_DICTIONARY;
@@ -67,9 +100,15 @@ export class ReplayEntryListComponent {
         elapsed: formatReplayElapsed(event.t),
         isChapter: event.kind === ReplayEventKind.Marker,
         inserted: this.editing() && this.editor.isInserted(event.seq),
+        editable: isTextEditable(event),
+        text: textOf(event),
         line: toReplayLogLine(event, replayNamesAt(dictionary, event.seq)),
       }));
   });
+
+  protected get canEdit(): boolean {
+    return this.rolePermission.canEditTabletop;
+  }
 
   protected actorLabel(userId: string): string {
     return replayNamesAt(this.playback.manifest() ?? EMPTY_REPLAY_DICTIONARY, 0).actorName(userId);
@@ -95,25 +134,18 @@ export class ReplayEntryListComponent {
   }
 
   protected async activate(row: ReplayEntryRow): Promise<void> {
-    if (this.editing()) {
-      this.selectIndex.emit(row.index);
-      return;
-    }
+    if (this.editing()) return;
     await this.playback.seekTo(row.index);
   }
 
-  protected isTextRow(seq: number): boolean {
-    const event = this.source().find((candidate) => candidate.seq === seq);
-    return event ? isTextEditable(event) : false;
+  protected beginRowEdit(row: ReplayEntryRow): void {
+    if (!this.editing() || !row.editable) return;
+    this.editingSeq.set(row.seq);
   }
 
-  protected textOfRow(seq: number): string {
-    const event = this.source().find((candidate) => candidate.seq === seq);
-    return event ? textOf(event) : '';
-  }
-
-  protected retext(seq: number, text: string): void {
+  protected commitRowEdit(seq: number, text: string): void {
     this.editor.retext(seq, text);
+    this.editingSeq.set(null);
   }
 
   protected move(seq: number, offset: number): void {
@@ -122,5 +154,59 @@ export class ReplayEntryListComponent {
 
   protected remove(seq: number): void {
     this.editor.remove(seq);
+  }
+
+  protected openCompose(index: number): void {
+    this.composeAt.set(index);
+    this.insertText.set('');
+  }
+
+  protected closeCompose(): void {
+    this.composeAt.set(null);
+    this.insertText.set('');
+  }
+
+  protected setInsertKind(kind: string): void {
+    this.insertKind.set(kind as ReplayEventKind);
+  }
+
+  protected setCastId(identifier: string): void {
+    this.insertCastId.set(identifier);
+  }
+
+  protected canInsert(): boolean {
+    return this.insertText().trim().length > 0;
+  }
+
+  protected insertHere(index: number): void {
+    if (!this.canInsert()) return;
+    const member = this.selectedCast();
+    this.editor.insert(index, {
+      kind: this.insertKind(),
+      actorId: this.insertActorId() || this.actors()[0]?.userId || '',
+      speaker: member?.name ?? this.insertSpeaker().trim(),
+      text: this.insertText().trim(),
+      tabIdentifier: this.insertTabIdentifier(index),
+      imageIdentifier: member?.imageIdentifier ?? '',
+      chatColor: member?.chatColor ?? '',
+    });
+    this.insertText.set('');
+  }
+
+  protected async stageAt(index: number): Promise<void> {
+    if (!this.canEdit || this.isStaging()) return;
+    this.composeAt.set(null);
+    if (!this.playback.isBoardMode() && !(await this.playback.enterBoardMode())) return;
+    this.staging.begin(index, this.insertActorId() || this.actors()[0]?.userId || '');
+  }
+
+  private selectedCast(): ReplayCastMember | null {
+    return this.cast().find((member) => member.identifier === this.insertCastId()) ?? null;
+  }
+
+  private insertTabIdentifier(index: number): string {
+    const fromRecording = chatTabIdentifierNear(this.editor.edited(), index);
+    if (fromRecording.length > 0) return fromRecording;
+    return this.chatMessageService.chatTabs[0]?.identifier ?? '';
   }
 }

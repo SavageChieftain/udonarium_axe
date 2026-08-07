@@ -1,4 +1,4 @@
-<div class="border-ui-border flex h-full w-72 shrink-0 flex-col gap-1.5 border-l border-solid pl-2">
+<div class="border-ui-border flex h-full w-80 shrink-0 flex-col gap-1.5 border-l border-solid pl-2">
   <div class="flex flex-wrap items-center gap-1">
     @for (scope of scopes; track scope) {
       <button
@@ -16,7 +16,7 @@
       (change)="setActor($any($event.target).value)"
     >
       <option value="">{{ 'feature.replay.panel.allActors' | transloco }}</option>
-      @for (actorId of actors(); track actorId) {
+      @for (actorId of actorIds(); track actorId) {
         <option [value]="actorId">{{ actorLabel(actorId) }}</option>
       }
     </select>
@@ -26,60 +26,176 @@
     </label>
   </div>
 
-  <ul class="m-0 flex min-h-0 flex-1 list-none flex-col gap-0.5 overflow-y-auto p-0">
+  <ul class="m-0 flex min-h-0 flex-1 list-none flex-col overflow-y-auto p-0">
+    <ng-container
+      *ngTemplateOutlet="gap; context: { $implicit: 0, label: 'feature.replay.editor.insertAtStart' }"
+    ></ng-container>
+
     @for (row of rows(); track row.seq) {
-      <li
-        class="hover:bg-ui-accent-bg rounded-ui-sm flex cursor-pointer items-start gap-1.5 px-1.5 py-1 text-[0.74rem]"
-        [class.bg-ui-accent-bg]="editing() ? row.index === selectedIndex() : row.index === cursor()"
-        [class.text-ui-dim]="!editing() && row.index > cursor()"
-        [class.font-semibold]="row.isChapter"
-        (click)="activate(row)"
-      >
-        <span class="text-ui-dim shrink-0 text-[0.66rem] tabular-nums">{{ row.elapsed }}</span>
-        @if (row.inserted) {
-          <i class="material-icons shrink-0 text-[13px] leading-[1.4] text-emerald-400">edit_note</i>
-        }
-        <i class="material-icons text-ui-dim shrink-0 text-[13px] leading-[1.4]">{{ row.line.icon }}</i>
-        <span class="min-w-0 flex-1 wrap-break-word">{{ row.line.key | transloco: lineParams(row.line) }}</span>
-        @if (row.line.isSecret) {
-          <i class="material-icons text-ui-dim shrink-0 text-[13px] leading-[1.4]">visibility_off</i>
-        }
-        @if (editing()) {
-          <button
-            class="text-ui-dim hover:text-ui-accent shrink-0 cursor-pointer px-0.5"
-            [attr.aria-label]="'feature.replay.editor.up' | transloco"
-            (click)="move(row.seq, -1); $event.stopPropagation()"
-          >
-            <i class="material-icons text-[14px]">arrow_upward</i>
-          </button>
-          <button
-            class="text-ui-dim hover:text-ui-accent shrink-0 cursor-pointer px-0.5"
-            [attr.aria-label]="'feature.replay.editor.down' | transloco"
-            (click)="move(row.seq, 1); $event.stopPropagation()"
-          >
-            <i class="material-icons text-[14px]">arrow_downward</i>
-          </button>
-          <button
-            class="text-ui-dim shrink-0 cursor-pointer px-0.5 hover:text-red-400"
-            [attr.aria-label]="'feature.replay.editor.remove' | transloco"
-            (click)="remove(row.seq); $event.stopPropagation()"
-          >
-            <i class="material-icons text-[14px]">close</i>
-          </button>
-        }
-      </li>
-      @if (editing() && row.index === selectedIndex() && isTextRow(row.seq)) {
-        <li class="px-1.5 pb-1">
+      @if (editingSeq() === row.seq) {
+        <li class="px-1.5 py-1">
           <input
-            class="border-ui-border bg-ui-panel rounded-ui-sm w-full border border-solid px-1.5 py-1 text-[0.72rem]"
+            class="border-ui-accent bg-ui-panel rounded-ui-sm w-full border border-solid px-1.5 py-1 text-[0.74rem]"
             type="text"
-            [value]="textOfRow(row.seq)"
-            (change)="retext(row.seq, $any($event.target).value)"
+            autofocus
+            [value]="row.text"
+            (keydown.enter)="commitRowEdit(row.seq, $any($event.target).value)"
+            (blur)="commitRowEdit(row.seq, $any($event.target).value)"
           />
         </li>
+      } @else {
+        <li
+          class="hover:bg-ui-accent-bg rounded-ui-sm group flex cursor-pointer items-start gap-1.5 px-1.5 py-1 text-[0.74rem]"
+          [class.bg-ui-accent-bg]="!editing() && row.index === cursor()"
+          [class.text-ui-dim]="!editing() && row.index > cursor()"
+          [class.font-semibold]="row.isChapter"
+          (click)="activate(row)"
+          (dblclick)="beginRowEdit(row)"
+        >
+          <span class="text-ui-dim shrink-0 text-[0.66rem] tabular-nums">{{ row.elapsed }}</span>
+          @if (row.inserted) {
+            <i class="material-icons shrink-0 text-[13px] leading-[1.4] text-emerald-400">edit_note</i>
+          }
+          <i class="material-icons text-ui-dim shrink-0 text-[13px] leading-[1.4]">{{ row.line.icon }}</i>
+          <span class="min-w-0 flex-1 wrap-break-word">{{ row.line.key | transloco: lineParams(row.line) }}</span>
+          @if (row.line.isSecret) {
+            <i class="material-icons text-ui-dim shrink-0 text-[13px] leading-[1.4]">visibility_off</i>
+          }
+          @if (editing()) {
+            <span class="flex shrink-0 gap-0 opacity-0 transition-opacity group-hover:opacity-100">
+              @if (row.editable) {
+                <button
+                  class="text-ui-dim hover:text-ui-accent cursor-pointer px-0.5"
+                  [attr.aria-label]="'feature.replay.editor.rewrite' | transloco"
+                  (click)="beginRowEdit(row); $event.stopPropagation()"
+                >
+                  <i class="material-icons text-[14px]">edit</i>
+                </button>
+              }
+              <button
+                class="text-ui-dim hover:text-ui-accent cursor-pointer px-0.5"
+                [attr.aria-label]="'feature.replay.editor.up' | transloco"
+                (click)="move(row.seq, -1); $event.stopPropagation()"
+              >
+                <i class="material-icons text-[14px]">arrow_upward</i>
+              </button>
+              <button
+                class="text-ui-dim hover:text-ui-accent cursor-pointer px-0.5"
+                [attr.aria-label]="'feature.replay.editor.down' | transloco"
+                (click)="move(row.seq, 1); $event.stopPropagation()"
+              >
+                <i class="material-icons text-[14px]">arrow_downward</i>
+              </button>
+              <button
+                class="text-ui-dim cursor-pointer px-0.5 hover:text-red-400"
+                [attr.aria-label]="'feature.replay.editor.remove' | transloco"
+                (click)="remove(row.seq); $event.stopPropagation()"
+              >
+                <i class="material-icons text-[14px]">close</i>
+              </button>
+            </span>
+          }
+        </li>
       }
+
+      <ng-container
+        *ngTemplateOutlet="gap; context: { $implicit: row.index + 1, label: 'feature.replay.editor.insertHere' }"
+      ></ng-container>
     } @empty {
       <li class="text-ui-muted px-1.5 py-2 text-[0.76rem]">{{ 'feature.replay.panel.empty' | transloco }}</li>
     }
   </ul>
 </div>
+
+<ng-template #gap let-index let-label="label">
+  @if (editing()) {
+    @if (composeAt() === index) {
+      <li class="border-ui-accent rounded-ui my-1 flex flex-col gap-1.5 border border-solid p-2">
+        <div class="flex flex-wrap items-center gap-1">
+          <select
+            class="border-ui-border bg-ui-panel rounded-ui-sm border border-solid px-1 py-0.5 text-[0.7rem]"
+            [value]="insertKind()"
+            (change)="setInsertKind($any($event.target).value)"
+          >
+            @for (kind of insertKinds; track kind) {
+              <option [value]="kind">{{ 'feature.replay.editor.kind.' + kind | transloco }}</option>
+            }
+          </select>
+          @if (!isMarkerDraft()) {
+            <select
+              class="border-ui-border bg-ui-panel rounded-ui-sm border border-solid px-1 py-0.5 text-[0.7rem]"
+              [value]="insertCastId()"
+              (change)="setCastId($any($event.target).value)"
+            >
+              @for (member of cast(); track member.identifier) {
+                <option [value]="member.identifier">{{ member.name }}</option>
+              }
+              <option value="">{{ 'feature.replay.editor.freeSpeaker' | transloco }}</option>
+            </select>
+            @if (isFreeSpeaker()) {
+              <input
+                class="border-ui-border bg-ui-panel rounded-ui-sm w-20 border border-solid px-1 py-0.5 text-[0.7rem]"
+                type="text"
+                [value]="insertSpeaker()"
+                [placeholder]="'feature.replay.editor.speaker' | transloco"
+                (input)="insertSpeaker.set($any($event.target).value)"
+              />
+            }
+            <select
+              class="border-ui-border bg-ui-panel rounded-ui-sm border border-solid px-1 py-0.5 text-[0.7rem]"
+              [value]="insertActorId()"
+              (change)="insertActorId.set($any($event.target).value)"
+            >
+              @for (actor of actors(); track actor.userId) {
+                <option [value]="actor.userId">{{ actor.name }}</option>
+              }
+            </select>
+          }
+        </div>
+        <input
+          class="border-ui-border bg-ui-panel rounded-ui-sm w-full border border-solid px-1.5 py-1 text-[0.74rem]"
+          type="text"
+          autofocus
+          [value]="insertText()"
+          [placeholder]="'feature.replay.editor.textPlaceholder' | transloco"
+          (input)="insertText.set($any($event.target).value)"
+          (keydown.enter)="insertHere(index)"
+        />
+        <div class="flex justify-end gap-1">
+          <button class="rounded-ui-sm cursor-pointer px-[0.7em] py-[0.2em] text-[0.7rem]" (click)="closeCompose()">
+            {{ 'feature.replay.editor.closeCompose' | transloco }}
+          </button>
+          <button
+            class="rounded-ui-sm border-ui-accent bg-ui-accent hover:bg-ui-accent-hover cursor-pointer border border-solid px-[0.7em] py-[0.2em] text-[0.7rem] text-white"
+            [disabled]="!canInsert()"
+            (click)="insertHere(index)"
+          >
+            {{ 'feature.replay.editor.insert' | transloco }}
+          </button>
+        </div>
+      </li>
+    } @else {
+      <li class="group/gap flex h-1.5 items-center justify-center hover:h-6">
+        <span class="flex gap-1 opacity-0 transition-opacity group-hover/gap:opacity-100">
+          <button
+            class="border-ui-border bg-ui-panel rounded-ui-sm text-ui-dim hover:text-ui-accent cursor-pointer border border-solid px-1.5 py-0 text-[0.66rem]"
+            [attr.aria-label]="label | transloco"
+            (click)="openCompose(index)"
+          >
+            <i class="material-icons align-middle text-[12px]">add</i>
+            {{ 'feature.replay.editor.write' | transloco }}
+          </button>
+          <button
+            class="border-ui-border bg-ui-panel rounded-ui-sm text-ui-dim hover:text-ui-accent cursor-pointer border border-solid px-1.5 py-0 text-[0.66rem]"
+            [disabled]="isStaging()"
+            [attr.aria-label]="'feature.replay.editor.stageHere' | transloco"
+            (click)="stageAt(index)"
+          >
+            <i class="material-icons align-middle text-[12px]">videocam</i>
+            {{ 'feature.replay.editor.record' | transloco }}
+          </button>
+        </span>
+      </li>
+    }
+  }
+</ng-template>

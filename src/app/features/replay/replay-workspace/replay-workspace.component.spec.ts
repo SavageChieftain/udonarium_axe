@@ -141,9 +141,18 @@ describe('ReplayWorkspaceComponent', () => {
     ) as HTMLButtonElement | undefined;
   }
 
+  function gapButtons(text: string): HTMLButtonElement[] {
+    return [...fixture.nativeElement.querySelectorAll('replay-entry-list button')].filter((button) =>
+      (button as HTMLButtonElement).textContent?.includes(text)
+    ) as HTMLButtonElement[];
+  }
+
   function entryRows(): HTMLElement[] {
     const list = fixture.nativeElement.querySelector('replay-entry-list ul') as HTMLElement | null;
-    return list ? ([...list.querySelectorAll(':scope > li')] as HTMLElement[]) : [];
+    if (!list) return [];
+    return [...list.querySelectorAll(':scope > li')].filter((li) =>
+      (li as HTMLElement).className.includes('rounded-ui-sm')
+    ) as HTMLElement[];
   }
 
   beforeEach(() => {
@@ -204,17 +213,31 @@ describe('ReplayWorkspaceComponent', () => {
     expect(begin).toHaveBeenCalledTimes(1);
   });
 
-  it('編集中は差し込みの操作を出すこと', async () => {
+  it('編集中は行と行のあいだに書く場所を出すこと', async () => {
     isEditing = signal(true);
     await setup();
-    expect(fixture.nativeElement.querySelector('input[placeholder="差し込む内容"]')).not.toBeNull();
-    expect(buttonByText('差し込む')).toBeDefined();
-    expect(buttonByText('ここから収録')).toBeDefined();
+
+    expect(fixture.nativeElement.querySelector('input[placeholder="差し込む内容"]')).toBeNull();
+    expect(gapButtons('書く').length).toBe(entryRows().length + 1);
+    expect(gapButtons('収録').length).toBe(entryRows().length + 1);
   });
 
-  it('選んだコマの立ち絵ごと差し込むこと', async () => {
+  it('あいだの ＋ を押すとその場に入力欄が開くこと', async () => {
     isEditing = signal(true);
     await setup();
+
+    gapButtons('書く')[1].click();
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('input[placeholder="差し込む内容"]')).not.toBeNull();
+  });
+
+  it('選んだコマの立ち絵ごと、押した場所に差し込むこと', async () => {
+    isEditing = signal(true);
+    await setup();
+
+    gapButtons('書く')[1].click();
+    fixture.detectChanges();
 
     const selects = [...fixture.nativeElement.querySelectorAll('select')] as HTMLSelectElement[];
     const speaker = selects.find((select) => [...select.options].some((option) => option.text === '魔術師'))!;
@@ -230,6 +253,7 @@ describe('ReplayWorkspaceComponent', () => {
     buttonByText('差し込む')?.click();
 
     expect(insert).toHaveBeenCalledTimes(1);
+    expect(insert.mock.calls[0][0]).toBe(1);
     expect(insert.mock.calls[0][1]).toMatchObject({
       speaker: '魔術師',
       text: 'そこまでだ',

@@ -2080,12 +2080,15 @@
           "marker": "目印"
         },
         "stageHere": "ここから収録",
-        "insertInto": "差し込み先",
         "atStart": "先頭",
-        "afterEntry": "{{entry}} の行の後",
         "insert": "差し込む",
         "credit": "記録者",
-        "freeSpeaker": "名前を直接入力"
+        "freeSpeaker": "名前を直接入力",
+        "write": "書く",
+        "record": "収録",
+        "insertHere": "ここに差し込む",
+        "closeCompose": "やめる",
+        "rewrite": "書き直す"
       },
       "surface": {
         "floor": "床",
