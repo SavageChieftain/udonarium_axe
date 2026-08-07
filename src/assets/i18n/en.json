@@ -2041,7 +2041,17 @@
         "vnDirectStart": "{{actor}} took over narration",
         "vnDirectStop": "{{actor}} handed narration back",
         "vnModeOn": "{{actor}} switched to the novel view",
-        "vnModeOff": "{{actor}} went back to the table"
+        "vnModeOff": "{{actor}} went back to the table",
+        "tableScene": "{{actor}} changed how the table looks",
+        "roundStart": "— Round {{round}} begins —",
+        "roundEnd": "— Round {{round}} ends —",
+        "turn": "{{target}} is up (round {{round}})",
+        "turnEmpty": "the turn passed (round {{round}})",
+        "turnEnd": "{{actor}} closed the turn order",
+        "vote": "{{actor}} opened the vote “{{title}}”",
+        "rollCall": "{{actor}} called the roll “{{title}}”",
+        "voteFinish": "the vote “{{title}}” closed",
+        "role": "{{actor}} became {{role}}"
       },
       "player": {
         "choose": "Choose a recording",

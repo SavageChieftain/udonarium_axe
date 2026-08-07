@@ -55,6 +55,22 @@ const DATA_ALIAS = 'data';
 const CUT_IN_LAUNCHER_ALIAS = 'cut-in-launcher';
 const JUKEBOX_ALIAS = 'jukebox';
 const VN_STAGE_ALIAS = 'vn-stage';
+const TURN_STATE_ALIAS = 'TurnState';
+const VOTE_ALIAS = 'Vote';
+const GAME_TABLE_ALIAS = 'game-table';
+const PEER_CURSOR_ALIAS = 'PeerCursor';
+
+const TABLE_SCENE_KEYS: readonly string[] = [
+  'imageIdentifier',
+  'backgroundImageIdentifier',
+  'northWallImageIdentifier',
+  'eastWallImageIdentifier',
+  'southWallImageIdentifier',
+  'westWallImageIdentifier',
+  'darknessEnabled',
+  'darknessLevel',
+  'ambientColor',
+];
 const DICEBOT_SENDER = 'System-BCDice';
 
 const CHAT_ONLY_KINDS: ReadonlySet<ReplayEventKind> = new Set([
@@ -169,6 +185,23 @@ function describeChange(
     const stage = describeVnStage(after, keys);
     if (stage) return stage;
   }
+  if (aliasName === TURN_STATE_ALIAS && before) {
+    const turn = describeTurn(after, keys);
+    if (turn) return turn;
+  }
+  if (aliasName === VOTE_ALIAS && before) {
+    const vote = describeVote(after, keys);
+    if (vote) return vote;
+  }
+  if (aliasName === GAME_TABLE_ALIAS && before && TABLE_SCENE_KEYS.some((key) => hasChangedKey(keys, key))) {
+    return { kind: ReplayEventKind.TableScene, detail: {} };
+  }
+  if (aliasName === PEER_CURSOR_ALIAS && before && hasChangedKey(keys, 'role')) {
+    return {
+      kind: ReplayEventKind.PeerRoleChange,
+      detail: { role: asString(syncValueOf(after, 'role')), name: asString(syncValueOf(after, 'name')) },
+    };
+  }
   if (!before) return { kind: ReplayEventKind.ObjectCreate, detail: { aliasName } };
 
   if (hasChangedKey(keys, 'location') || hasChangedKey(keys, 'posZ')) return describeMove(before, after);
@@ -209,6 +242,46 @@ function describeEffectCast(record: Record<string, unknown>, signal: ReplaySigna
     detail: { caster, targets },
     relatedIdentifiers: [caster, ...targets].filter((identifier) => identifier.length > 0),
     signal,
+  };
+}
+
+function describeTurn(
+  after: SyncData,
+  keys: ReadonlySet<string>
+): { kind: ReplayEventKind; detail: Record<string, unknown>; targetIdentifier?: string } | null {
+  if (!hasChangedKey(keys, 'round') && !hasChangedKey(keys, 'phase') && !hasChangedKey(keys, 'currentIdentifier')) {
+    return null;
+  }
+  return {
+    kind: ReplayEventKind.TurnChange,
+    targetIdentifier: asString(syncValueOf(after, 'currentIdentifier')),
+    detail: {
+      round: Number(syncValueOf(after, 'round') ?? 0),
+      phase: asString(syncValueOf(after, 'phase')),
+    },
+  };
+}
+
+function describeVote(
+  after: SyncData,
+  keys: ReadonlySet<string>
+): { kind: ReplayEventKind; detail: Record<string, unknown> } | null {
+  if (hasChangedKey(keys, 'isFinish') && syncValueOf(after, 'isFinish') === true) {
+    return {
+      kind: ReplayEventKind.VoteFinish,
+      detail: { title: asString(syncValueOf(after, 'voteTitle')) },
+    };
+  }
+  if (!hasChangedKey(keys, 'voteId') && !hasChangedKey(keys, 'voteTitle')) return null;
+
+  const choices = syncValueOf(after, 'choices');
+  return {
+    kind: ReplayEventKind.VoteStart,
+    detail: {
+      title: asString(syncValueOf(after, 'voteTitle')),
+      isRollCall: Boolean(syncValueOf(after, 'isRollCall')),
+      choices: Array.isArray(choices) ? choices.map((choice) => asString(choice)) : [],
+    },
   };
 }
 

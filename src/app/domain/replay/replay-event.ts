@@ -18,6 +18,10 @@ export const ReplayEventKind = {
   ObjectLock: 'object.lock',
   ObjectUpdate: 'object.update',
   TableChange: 'table.change',
+  TableScene: 'table.scene',
+  TurnChange: 'turn.change',
+  VoteStart: 'vote.start',
+  VoteFinish: 'vote.finish',
   MediaSoundEffect: 'media.se',
   MediaBgm: 'media.bgm',
   MediaCutIn: 'media.cutin',
@@ -28,6 +32,7 @@ export const ReplayEventKind = {
   VnMode: 'vn.mode',
   PeerJoin: 'peer.join',
   PeerLeave: 'peer.leave',
+  PeerRoleChange: 'peer.role',
   Marker: 'marker',
 } as const;
 

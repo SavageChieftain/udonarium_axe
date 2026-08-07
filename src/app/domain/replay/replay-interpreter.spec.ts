@@ -376,6 +376,115 @@ describe('ビジュアルノベルの読み取り', () => {
   });
 });
 
+describe('手番・投票・卓の見た目・役割の読み取り', () => {
+  it('ラウンドと手番の移りを読むこと', () => {
+    const draft = interpretObjectChange({
+      aliasName: 'TurnState',
+      identifier: 'TurnState',
+      before: { round: 1, phase: 'acting', currentIdentifier: 'c1' },
+      after: { round: 2, phase: 'roundStart', currentIdentifier: 'c2' },
+    });
+    expect(draft?.kind).toBe(ReplayEventKind.TurnChange);
+    expect(draft?.targetIdentifier).toBe('c2');
+    expect(draft?.detail).toEqual({ round: 2, phase: 'roundStart' });
+  });
+
+  it('手番に関係ない変更は読み流すこと', () => {
+    const draft = interpretObjectChange({
+      aliasName: 'TurnState',
+      identifier: 'TurnState',
+      before: { round: 1, buffDecay: true },
+      after: { round: 1, buffDecay: false },
+    });
+    expect(draft?.kind).toBe(ReplayEventKind.ObjectUpdate);
+  });
+
+  it('投票の開始を読むこと', () => {
+    const draft = interpretObjectChange({
+      aliasName: 'Vote',
+      identifier: 'Vote',
+      before: { voteId: 1, voteTitle: '前の投票', isRollCall: false, isFinish: true, choices: [] },
+      after: { voteId: 2, voteTitle: '進むか戻るか', isRollCall: false, isFinish: false, choices: ['進む', '戻る'] },
+    });
+    expect(draft?.kind).toBe(ReplayEventKind.VoteStart);
+    expect(draft?.detail).toEqual({ title: '進むか戻るか', isRollCall: false, choices: ['進む', '戻る'] });
+  });
+
+  it('点呼を投票と区別して読むこと', () => {
+    const draft = interpretObjectChange({
+      aliasName: 'Vote',
+      identifier: 'Vote',
+      before: { voteId: 1, isRollCall: false },
+      after: { voteId: 2, voteTitle: '点呼', isRollCall: true },
+    });
+    expect(draft?.detail['isRollCall']).toBe(true);
+  });
+
+  it('投票の締め切りを読むこと', () => {
+    const draft = interpretObjectChange({
+      aliasName: 'Vote',
+      identifier: 'Vote',
+      before: { voteId: 2, voteTitle: '進むか戻るか', isFinish: false },
+      after: { voteId: 2, voteTitle: '進むか戻るか', isFinish: true },
+    });
+    expect(draft?.kind).toBe(ReplayEventKind.VoteFinish);
+    expect(draft?.detail['title']).toBe('進むか戻るか');
+  });
+
+  it('テーブルの見た目の変更を読むこと', () => {
+    const draft = interpretObjectChange({
+      aliasName: 'game-table',
+      identifier: 't1',
+      before: { backgroundImageIdentifier: 'bg-a', darknessEnabled: false },
+      after: { backgroundImageIdentifier: 'bg-b', darknessEnabled: true },
+    });
+    expect(draft?.kind).toBe(ReplayEventKind.TableScene);
+  });
+
+  it('テーブルの選択状態は見た目として読まないこと', () => {
+    const draft = interpretObjectChange({
+      aliasName: 'game-table',
+      identifier: 't1',
+      before: { selected: false },
+      after: { selected: true },
+    });
+    expect(draft?.kind).toBe(ReplayEventKind.ObjectUpdate);
+  });
+
+  it('役割の変更を読むこと', () => {
+    const draft = interpretObjectChange({
+      aliasName: 'PeerCursor',
+      identifier: 'cursor-a',
+      before: { role: 'pl', name: 'アリス' },
+      after: { role: 'gm', name: 'アリス' },
+    });
+    expect(draft?.kind).toBe(ReplayEventKind.PeerRoleChange);
+    expect(draft?.detail['role']).toBe('gm');
+  });
+
+  it('直前操作コマの記録では役割の行を作らないこと', () => {
+    const draft = interpretObjectChange({
+      aliasName: 'PeerCursor',
+      identifier: 'cursor-a',
+      before: { role: 'pl', lastControlCharacterName: '' },
+      after: { role: 'pl', lastControlCharacterName: '盗賊' },
+    });
+    expect(draft?.kind).toBe(ReplayEventKind.ObjectUpdate);
+  });
+
+  it('標準の細かさでこれらを残すこと', () => {
+    for (const kind of [
+      ReplayEventKind.TurnChange,
+      ReplayEventKind.VoteStart,
+      ReplayEventKind.VoteFinish,
+      ReplayEventKind.TableScene,
+      ReplayEventKind.PeerRoleChange,
+    ]) {
+      expect(isRecordableKind(kind, ReplayDetailLevel.Notable)).toBe(true);
+    }
+  });
+});
+
 describe('interpretObjectRemove()', () => {
   it('削除として読むこと', () => {
     const draft = interpretObjectRemove('c1', 'character');

@@ -32,6 +32,10 @@ const ICONS: Record<string, string> = {
   [ReplayEventKind.ObjectLock]: 'lock',
   [ReplayEventKind.ObjectUpdate]: 'edit',
   [ReplayEventKind.TableChange]: 'grid_on',
+  [ReplayEventKind.TableScene]: 'wallpaper',
+  [ReplayEventKind.TurnChange]: 'hourglass_top',
+  [ReplayEventKind.VoteStart]: 'how_to_vote',
+  [ReplayEventKind.VoteFinish]: 'ballot',
   [ReplayEventKind.MediaSoundEffect]: 'volume_up',
   [ReplayEventKind.MediaBgm]: 'music_note',
   [ReplayEventKind.MediaCutIn]: 'movie',
@@ -42,6 +46,7 @@ const ICONS: Record<string, string> = {
   [ReplayEventKind.VnMode]: 'auto_stories',
   [ReplayEventKind.PeerJoin]: 'login',
   [ReplayEventKind.PeerLeave]: 'logout',
+  [ReplayEventKind.PeerRoleChange]: 'shield_person',
   [ReplayEventKind.Marker]: 'bookmark',
 };
 
@@ -108,6 +113,16 @@ export function toReplayLogLine(event: ReplayEvent, names: ReplayNameLookup): Re
       return line('remove');
     case ReplayEventKind.TableChange:
       return line('table');
+    case ReplayEventKind.TableScene:
+      return line('tableScene');
+    case ReplayEventKind.TurnChange:
+      return describeTurnLine(line, detail, target);
+    case ReplayEventKind.VoteStart:
+      return line(detail['isRollCall'] === true ? 'rollCall' : 'vote', { title: text(detail['title']) });
+    case ReplayEventKind.VoteFinish:
+      return line('voteFinish', { title: text(detail['title']) });
+    case ReplayEventKind.PeerRoleChange:
+      return line('role', { role: text(detail['role']) });
     case ReplayEventKind.MediaSoundEffect:
       return line('soundEffect');
     case ReplayEventKind.MediaBgm:
@@ -151,6 +166,15 @@ function describeEffectLine(
   if (targetNames.length < 1) return line('effect', { effect: presetName });
   if (caster.length > 0) return line('effectFrom', { ...params, caster });
   return line('effectOn', params);
+}
+
+function describeTurnLine(line: LineFactory, detail: Readonly<Record<string, unknown>>, target: string): ReplayLogLine {
+  const round = Math.round(numberOf(detail['round']));
+  const phase = text(detail['phase']);
+  if (phase === 'roundStart') return line('roundStart', { round });
+  if (phase === 'roundEnd') return line('roundEnd', { round });
+  if (phase === 'idle') return line('turnEnd');
+  return target.length > 0 ? line('turn', { round }) : line('turnEmpty', { round });
 }
 
 type LineFactory = (

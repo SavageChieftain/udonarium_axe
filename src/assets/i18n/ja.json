@@ -2041,7 +2041,17 @@
         "vnDirectStart": "{{actor}} が進行役になった",
         "vnDirectStop": "{{actor}} が進行役をやめた",
         "vnModeOn": "{{actor}} がノベル表示にした",
-        "vnModeOff": "{{actor}} が卓の表示に戻した"
+        "vnModeOff": "{{actor}} が卓の表示に戻した",
+        "tableScene": "{{actor}} がテーブルの見た目を変えた",
+        "roundStart": "― ラウンド {{round}} 開始 ―",
+        "roundEnd": "― ラウンド {{round}} 終了 ―",
+        "turn": "{{target}} の手番になった（ラウンド {{round}}）",
+        "turnEmpty": "手番が移った（ラウンド {{round}}）",
+        "turnEnd": "{{actor}} が手番管理を終えた",
+        "vote": "{{actor}} が投票「{{title}}」を始めた",
+        "rollCall": "{{actor}} が点呼「{{title}}」を取った",
+        "voteFinish": "投票「{{title}}」が締め切られた",
+        "role": "{{actor}} の役割が {{role}} になった"
       },
       "player": {
         "choose": "記録を選ぶ",
