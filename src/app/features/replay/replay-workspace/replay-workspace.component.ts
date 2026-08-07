@@ -29,6 +29,10 @@ export class ReplayWorkspaceComponent {
   protected readonly isDirty = this.editor.isDirty;
   protected readonly isSaving = this.editor.isSaving;
 
+  constructor() {
+    this.destroyRef.onDestroy(() => void this.playback.close());
+  }
+
   protected get canEdit(): boolean {
     return this.rolePermission.canEditTabletop;
   }

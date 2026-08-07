@@ -56,6 +56,7 @@ import { JukeboxComponent } from '@axe/features/media/jukebox/jukebox.component'
 import { MiniJukeboxComponent } from '@axe/features/media/mini-jukebox/mini-jukebox.component';
 import { MobileShellComponent } from '@axe/features/mobile/mobile-shell/mobile-shell.component';
 import { PlToolbarComponent } from '@axe/features/pl-tools/pl-toolbar/pl-toolbar.component';
+import { ReplayBoardBannerComponent } from '@axe/features/replay/replay-board-banner/replay-board-banner.component';
 import { ReplayEventHandlerService } from '@axe/features/replay/replay-event-handler.service';
 import { ReplayIndicatorComponent } from '@axe/features/replay/replay-indicator/replay-indicator.component';
 import { ReplayStagingBannerComponent } from '@axe/features/replay/replay-staging-banner/replay-staging-banner.component';
@@ -98,6 +99,7 @@ import { version as APP_VERSION } from '@pkg';
     RoomRestoreBannerComponent,
     ReplayStagingBannerComponent,
     ReplayIndicatorComponent,
+    ReplayBoardBannerComponent,
     InviteJoinComponent,
     LanguageSelectorComponent,
     VisualNovelOverlayComponent,

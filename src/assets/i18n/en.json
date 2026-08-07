@@ -2117,6 +2117,10 @@
       "workspace": {
         "recordings": "Recordings",
         "recording": "Recording"
+      },
+      "board": {
+        "title": "Showing a recorded board",
+        "hint": "Nothing you do now reaches the other players. Leaving restores your table."
       }
     }
   },
