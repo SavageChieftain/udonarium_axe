@@ -2114,7 +2114,15 @@
         "mark": "Mark",
         "markPlaceholder": "Name this moment",
         "stop": "Stop recording",
-        "hide": "Hide"
+        "hide": "Hide",
+        "idle": "Not recording",
+        "idleHint": "This table is not being recorded. Choose the detail first, then start.",
+        "start": "Start recording",
+        "startMode": "Starting",
+        "mode": {
+          "auto": "Start on its own",
+          "manual": "Start it myself"
+        }
       },
       "workspace": {
         "recordings": "Recordings",

@@ -1,5 +1,6 @@
 import { DestroyRef, inject, Injectable } from '@angular/core';
 import { RolePermissionService } from '@axe/application/permission/role-permission.service';
+import { ReplayPreferenceService, ReplayStartMode } from '@axe/application/replay/replay-preference.service';
 import { ReplayRecorderService } from '@axe/application/replay/replay-recorder.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { Network } from '@axe/core/network/network';
@@ -11,6 +12,7 @@ export const REPLAY_AUTO_START_SETTLE_MS = 8_000;
 export class ReplayEventHandlerService {
   private readonly destroyRef = inject(DestroyRef);
   private readonly recorder = inject(ReplayRecorderService);
+  private readonly preference = inject(ReplayPreferenceService);
   private readonly rolePermission = inject(RolePermissionService);
   private readonly objectChange = inject(ObjectChangeService);
 
@@ -25,9 +27,13 @@ export class ReplayEventHandlerService {
   private evaluate(): void {
     if (!this.recorder.isSupported) return;
 
-    if (!this.shouldRecord()) {
+    if (!this.isInRoom()) {
       this.clearTimer();
       if (this.recorder.isRecording()) void this.recorder.stop();
+      return;
+    }
+    if (!this.shouldRecord()) {
+      this.clearTimer();
       return;
     }
 
@@ -39,8 +45,12 @@ export class ReplayEventHandlerService {
   }
 
   private shouldRecord(): boolean {
-    const roomName = Network.peerContext?.roomName ?? '';
-    return roomName.length > 0 && this.rolePermission.canEditTabletop;
+    if (this.preference.startMode() !== ReplayStartMode.Auto) return false;
+    return this.isInRoom() && this.rolePermission.canEditTabletop;
+  }
+
+  private isInRoom(): boolean {
+    return (Network.peerContext?.roomName ?? '').length > 0;
   }
 
   private clearTimer(): void {

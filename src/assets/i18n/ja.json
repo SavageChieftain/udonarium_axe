@@ -2114,7 +2114,15 @@
         "mark": "目印",
         "markPlaceholder": "この場面に見出しを付ける",
         "stop": "記録を止める",
-        "hide": "表示を消す"
+        "hide": "表示を消す",
+        "idle": "記録なし",
+        "idleHint": "この卓はまだ記録していません。細かさを決めてから始められます。",
+        "start": "記録を始める",
+        "startMode": "始め方",
+        "mode": {
+          "auto": "自動で始める",
+          "manual": "自分で始める"
+        }
       },
       "workspace": {
         "recordings": "記録",

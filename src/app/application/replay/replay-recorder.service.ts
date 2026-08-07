@@ -1,4 +1,5 @@
 import { DestroyRef, inject, Injectable, signal } from '@angular/core';
+import { ReplayPreferenceService } from '@axe/application/replay/replay-preference.service';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { Logger } from '@axe/core/logging/logger';
 import { Network } from '@axe/core/network/network';
@@ -52,19 +53,19 @@ export class ReplayRecorderService {
   private readonly store = inject(ReplayLogStore);
   private readonly objectStore = inject(ObjectStore);
   private readonly pointerDevice = inject(PointerDeviceService);
+  private readonly preference = inject(ReplayPreferenceService);
 
   private readonly _isRecording = signal(false);
   private readonly _eventCount = signal(0);
   private readonly _startedAt = signal(0);
   private readonly _recentEvents = signal<readonly ReplayEvent[]>([]);
-  private readonly _detailLevel = signal<ReplayDetailLevel>(ReplayDetailLevel.Notable);
   private readonly _recordings = signal<readonly ReplayRecordingMeta[]>([]);
 
   readonly isRecording = this._isRecording.asReadonly();
   readonly eventCount = this._eventCount.asReadonly();
   readonly startedAt = this._startedAt.asReadonly();
   readonly recentEvents = this._recentEvents.asReadonly();
-  readonly detailLevel = this._detailLevel.asReadonly();
+  readonly detailLevel = this.preference.detailLevel.asReadonly();
   readonly recordings = this._recordings.asReadonly();
 
   private recordingId: number | null = null;
@@ -106,7 +107,7 @@ export class ReplayRecorderService {
   }
 
   setDetailLevel(level: ReplayDetailLevel): void {
-    this._detailLevel.set(level);
+    this.preference.setDetailLevel(level);
   }
 
   actorNameOf(userId: string): string {
@@ -219,7 +220,7 @@ export class ReplayRecorderService {
   }
 
   private push(draft: ReplayDraft, sendFrom: string, at: number): void {
-    if (!isRecordableKind(draft.kind, this._detailLevel())) return;
+    if (!isRecordableKind(draft.kind, this.preference.detailLevel())) return;
 
     const actor = this.rememberActor(sendFrom);
     if (draft.targetIdentifier) this.rememberTarget(draft.targetIdentifier);
@@ -443,7 +444,7 @@ export class ReplayRecorderService {
       startedAt: this._startedAt(),
       endedAt: Date.now(),
       recordedBy: self,
-      detailLevel: this._detailLevel(),
+      detailLevel: this.preference.detailLevel(),
       actors: [...this.actors.values()].flat(),
       targets: [...this.targets.values()].flat(),
       keyframes: [...this.keyframes],

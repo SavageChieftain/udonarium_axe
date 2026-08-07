@@ -1,7 +1,9 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { RolePermissionService } from '@axe/application/permission/role-permission.service';
+import { ReplayPreferenceService, ReplayStartMode } from '@axe/application/replay/replay-preference.service';
 import { ReplayRecorderService } from '@axe/application/replay/replay-recorder.service';
 import { WidgetVisibilityService } from '@axe/application/ui/widget-visibility.service';
+import { Network } from '@axe/core/network/network';
 import { ReplayDetailLevel } from '@axe/domain/replay/replay-event';
 import { formatReplayElapsed } from '@axe/features/replay/replay-log-line';
 import { TranslocoModule } from '@jsverse/transloco';
@@ -14,17 +16,25 @@ import { TranslocoModule } from '@jsverse/transloco';
 })
 export class ReplayIndicatorComponent {
   private readonly recorder = inject(ReplayRecorderService);
+  private readonly preference = inject(ReplayPreferenceService);
   private readonly rolePermission = inject(RolePermissionService);
   protected readonly widgets = inject(WidgetVisibilityService);
 
   protected readonly detailLevels = [ReplayDetailLevel.ChatOnly, ReplayDetailLevel.Notable, ReplayDetailLevel.Full];
+  protected readonly startModes = [ReplayStartMode.Auto, ReplayStartMode.Manual];
 
   protected readonly isRecording = this.recorder.isRecording;
   protected readonly eventCount = this.recorder.eventCount;
   protected readonly detailLevel = this.recorder.detailLevel;
+  protected readonly startMode = this.preference.startMode;
 
   protected readonly isOpen = signal(false);
   protected readonly markLabel = signal('');
+
+  protected readonly isShown = computed(() => {
+    if (!this.widgets.recording()) return false;
+    return this.isRecording() || (this.recorder.isSupported && this.isInRoom());
+  });
 
   protected readonly elapsed = computed(() => {
     this.eventCount();
@@ -39,10 +49,6 @@ export class ReplayIndicatorComponent {
     this.isOpen.update((open) => !open);
   }
 
-  protected close(): void {
-    this.isOpen.set(false);
-  }
-
   protected hide(): void {
     this.isOpen.set(false);
     this.widgets.recording.set(false);
@@ -52,6 +58,10 @@ export class ReplayIndicatorComponent {
     this.recorder.setDetailLevel(level as ReplayDetailLevel);
   }
 
+  protected setStartMode(mode: string): void {
+    this.preference.setStartMode(mode as ReplayStartMode);
+  }
+
   protected async mark(): Promise<void> {
     const label = this.markLabel().trim();
     if (!this.canEdit || !this.isRecording() || label.length < 1) return;
@@ -59,9 +69,19 @@ export class ReplayIndicatorComponent {
     await this.recorder.mark(label);
   }
 
+  protected async start(): Promise<void> {
+    if (!this.canEdit || this.isRecording()) return;
+    this.isOpen.set(false);
+    await this.recorder.start();
+  }
+
   protected async stop(): Promise<void> {
     if (!this.canEdit) return;
     this.isOpen.set(false);
     await this.recorder.stop();
+  }
+
+  private isInRoom(): boolean {
+    return (Network.peerContext?.roomName ?? '').length > 0;
   }
 }

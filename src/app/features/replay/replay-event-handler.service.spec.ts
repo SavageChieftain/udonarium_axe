@@ -1,5 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { RolePermissionService } from '@axe/application/permission/role-permission.service';
+import { ReplayPreferenceService, ReplayStartMode } from '@axe/application/replay/replay-preference.service';
 import { ReplayRecorderService } from '@axe/application/replay/replay-recorder.service';
 import { Network } from '@axe/core/network/network';
 import { localDispatch } from '@axe/core/network/network-messaging';
@@ -21,6 +22,7 @@ describe('ReplayEventHandlerService', () => {
   let roomName = '第一夜';
 
   beforeEach(() => {
+    localStorage.removeItem('axe-replay-preference');
     vi.useFakeTimers();
     recording = false;
     canEdit = true;
@@ -58,6 +60,7 @@ describe('ReplayEventHandlerService', () => {
   });
 
   afterEach(() => {
+    localStorage.removeItem('axe-replay-preference');
     vi.restoreAllMocks();
     vi.useRealTimers();
   });
@@ -103,6 +106,34 @@ describe('ReplayEventHandlerService', () => {
     vi.spyOn(Network, 'peerContext', 'get').mockReturnValue({ roomName: '' } as never);
     localDispatch('OPEN_NETWORK', { peerId: 'peer-a' });
     expect(recorder.stop).toHaveBeenCalledTimes(1);
+  });
+
+  it('自分で始める設定なら勝手に始めないこと', () => {
+    TestBed.inject(ReplayPreferenceService).setStartMode(ReplayStartMode.Manual);
+    localDispatch('OPEN_NETWORK', { peerId: 'peer-a' });
+
+    vi.advanceTimersByTime(REPLAY_AUTO_START_SETTLE_MS);
+    expect(recorder.start).not.toHaveBeenCalled();
+  });
+
+  it('自分で始める設定でも、部屋を出れば止めること', () => {
+    localDispatch('OPEN_NETWORK', { peerId: 'peer-a' });
+    vi.advanceTimersByTime(REPLAY_AUTO_START_SETTLE_MS);
+    expect(recording).toBe(true);
+
+    TestBed.inject(ReplayPreferenceService).setStartMode(ReplayStartMode.Manual);
+    vi.spyOn(Network, 'peerContext', 'get').mockReturnValue({ roomName: '' } as never);
+    localDispatch('OPEN_NETWORK', { peerId: 'peer-a' });
+    expect(recorder.stop).toHaveBeenCalledTimes(1);
+  });
+
+  it('自分で始めたものを勝手に止めないこと', () => {
+    TestBed.inject(ReplayPreferenceService).setStartMode(ReplayStartMode.Manual);
+    recording = true;
+    localDispatch('OPEN_NETWORK', { peerId: 'peer-a' });
+
+    vi.advanceTimersByTime(REPLAY_AUTO_START_SETTLE_MS);
+    expect(recorder.stop).not.toHaveBeenCalled();
   });
 
   it('保存できない環境では何もしないこと', () => {

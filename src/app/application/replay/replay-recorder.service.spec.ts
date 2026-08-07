@@ -109,6 +109,7 @@ describe('ReplayRecorderService', () => {
   let pointerDevice: PointerDeviceService;
 
   beforeEach(() => {
+    localStorage.removeItem('axe-replay-preference');
     vi.useFakeTimers();
     vi.setSystemTime(1_700_000_000_000);
     store = new FakeReplayLogStore();
@@ -128,6 +129,7 @@ describe('ReplayRecorderService', () => {
   });
 
   afterEach(async () => {
+    localStorage.removeItem('axe-replay-preference');
     setNetworkIsolated(false);
     if (service.isRecording()) await service.stop();
     vi.restoreAllMocks();
@@ -299,6 +301,11 @@ describe('ReplayRecorderService', () => {
     );
 
     expect(service.recentEvents()[0].visibility).toEqual({ kind: 'direct', to: ['bob'] });
+  });
+
+  it('選んだ細かさを次の卓へ持ち越すこと', () => {
+    service.setDetailLevel(ReplayDetailLevel.Full);
+    expect(localStorage.getItem('axe-replay-preference')).toContain('full');
   });
 
   it('チャットだけの詳細度では盤面の変化を記録しないこと', async () => {
