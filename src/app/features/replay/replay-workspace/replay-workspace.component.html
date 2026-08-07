@@ -25,6 +25,15 @@
           {{ 'feature.replay.editor.save' | transloco }}
         </button>
         <button
+          class="rounded-ui-sm flex cursor-pointer items-center gap-1 px-[0.8em] py-[0.3em] text-[0.74rem]"
+          [disabled]="!canUndo()"
+          [title]="'feature.replay.editor.undoHint' | transloco"
+          (click)="undo()"
+        >
+          <i class="material-icons text-[15px]">undo</i>
+          {{ 'feature.replay.editor.undo' | transloco }}
+        </button>
+        <button
           class="rounded-ui-sm cursor-pointer px-[0.8em] py-[0.3em] text-[0.74rem]"
           [disabled]="!isDirty()"
           (click)="revertEditing()"

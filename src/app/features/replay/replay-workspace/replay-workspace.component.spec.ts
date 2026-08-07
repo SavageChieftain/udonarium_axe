@@ -69,6 +69,8 @@ describe('ReplayWorkspaceComponent', () => {
   let begin: ReturnType<typeof vi.fn>;
   let insert: ReturnType<typeof vi.fn>;
   let isEditing: ReturnType<typeof signal<boolean>>;
+  let canUndo: ReturnType<typeof signal<boolean>>;
+  let undo: ReturnType<typeof vi.fn>;
   let edited: ReturnType<typeof signal<readonly ReplayEvent[]>>;
 
   async function setup(): Promise<void> {
@@ -118,6 +120,8 @@ describe('ReplayWorkspaceComponent', () => {
             isEditing: isEditing.asReadonly(),
             isDirty: signal(false).asReadonly(),
             isSaving: signal(false).asReadonly(),
+            canUndo: canUndo.asReadonly(),
+            undo,
             edited: edited.asReadonly(),
             begin,
             cancel: vi.fn(),
@@ -158,6 +162,8 @@ describe('ReplayWorkspaceComponent', () => {
   beforeEach(() => {
     isOpen = signal(true);
     isEditing = signal(false);
+    canUndo = signal(true);
+    undo = vi.fn();
     edited = signal<readonly ReplayEvent[]>(events);
     recordings = [{ id: 7, roomName: '第一夜', startedAt: 0, endedAt: null, eventCount: 2, byteSize: 100 }];
     open = vi.fn().mockResolvedValue(true);
@@ -211,6 +217,29 @@ describe('ReplayWorkspaceComponent', () => {
 
     buttonByText('編集')?.click();
     expect(begin).toHaveBeenCalledTimes(1);
+  });
+
+  it('Ctrl+Z で一手戻せること', async () => {
+    isEditing = signal(true);
+    await setup();
+
+    fixture.nativeElement.dispatchEvent(new KeyboardEvent('keydown', { key: 'z', ctrlKey: true, bubbles: true }));
+    expect(undo).toHaveBeenCalledTimes(1);
+  });
+
+  it('編集していないうちは Ctrl+Z を拾わないこと', async () => {
+    await setup();
+
+    fixture.nativeElement.dispatchEvent(new KeyboardEvent('keydown', { key: 'z', ctrlKey: true, bubbles: true }));
+    expect(undo).not.toHaveBeenCalled();
+  });
+
+  it('取り消せる手が無ければボタンを押せないこと', async () => {
+    isEditing = signal(true);
+    canUndo = signal(false);
+    await setup();
+
+    expect(buttonByText('取り消す')?.disabled).toBe(true);
   });
 
   it('編集中は行と行のあいだに書く場所を出すこと', async () => {

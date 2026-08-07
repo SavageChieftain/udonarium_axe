@@ -2067,7 +2067,7 @@
         "begin": "編集",
         "hint": "行を押すと差し込み先を選べます。並べ替え・削除・台詞の直しもここで。元の記録はそのまま残ります。",
         "save": "別の記録として保存",
-        "revert": "やり直す",
+        "revert": "全部戻す",
         "cancel": "取りやめ",
         "up": "ひとつ上へ",
         "down": "ひとつ下へ",
@@ -2088,7 +2088,9 @@
         "record": "収録",
         "insertHere": "ここに差し込む",
         "closeCompose": "やめる",
-        "rewrite": "書き直す"
+        "rewrite": "書き直す",
+        "undo": "取り消す",
+        "undoHint": "Ctrl+Z"
       },
       "surface": {
         "floor": "床",

@@ -2067,7 +2067,7 @@
         "begin": "Edit",
         "hint": "Click an entry to choose where things go in. Reorder, delete and reword here too. The original recording is left alone.",
         "save": "Save as a new recording",
-        "revert": "Undo all",
+        "revert": "Revert all",
         "cancel": "Stop editing",
         "up": "Move up",
         "down": "Move down",
@@ -2088,7 +2088,9 @@
         "record": "Stage",
         "insertHere": "Insert here",
         "closeCompose": "Cancel",
-        "rewrite": "Reword"
+        "rewrite": "Reword",
+        "undo": "Undo",
+        "undoHint": "Ctrl+Z"
       },
       "surface": {
         "floor": "floor",

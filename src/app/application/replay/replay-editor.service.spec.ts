@@ -234,6 +234,53 @@ describe('ReplayEditorService', () => {
     expect(service.isDirty()).toBe(false);
   });
 
+  it('一手ずつ取り消せること', () => {
+    service.remove(2);
+    service.remove(3);
+    expect(service.edited().map((e) => e.seq)).toEqual([1, 4]);
+
+    service.undo();
+    expect(service.edited().map((e) => e.seq)).toEqual([1, 3, 4]);
+
+    service.undo();
+    expect(service.edited().map((e) => e.seq)).toEqual([1, 2, 3, 4]);
+    expect(service.isDirty()).toBe(false);
+  });
+
+  it('取り消せる手が無ければ何もしないこと', () => {
+    expect(service.canUndo()).toBe(false);
+    service.undo();
+    expect(service.edited().map((e) => e.seq)).toEqual([1, 2, 3, 4]);
+  });
+
+  it('全部戻したことも取り消せること', () => {
+    service.remove(2);
+    service.revert();
+    expect(service.edited().map((e) => e.seq)).toEqual([1, 2, 3, 4]);
+
+    service.undo();
+    expect(service.edited().map((e) => e.seq)).toEqual([1, 3, 4]);
+  });
+
+  it('差し込み・並べ替え・書き直しも取り消せること', () => {
+    service.insert(0, { kind: ReplayEventKind.Marker, actorId: 'gm', speaker: '', text: '幕', tabIdentifier: '' });
+    service.move(1, 1);
+    service.retext(1, '書き直し');
+
+    service.undo();
+    service.undo();
+    service.undo();
+
+    expect(service.edited().map((e) => e.seq)).toEqual([1, 2, 3, 4]);
+    expect(service.canUndo()).toBe(false);
+  });
+
+  it('編集を始め直すと履歴を捨てること', () => {
+    service.remove(2);
+    service.begin(events);
+    expect(service.canUndo()).toBe(false);
+  });
+
   it('取りやめで編集を畳むこと', () => {
     service.remove(2);
     service.cancel();

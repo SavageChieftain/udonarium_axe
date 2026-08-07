@@ -12,6 +12,7 @@ import { TranslocoModule } from '@jsverse/transloco';
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-replay-workspace',
+  host: { '(keydown)': 'onKeydown($event)', tabindex: '0' },
   templateUrl: './replay-workspace.component.html',
   imports: [TranslocoModule, ReplayRecordingListComponent, ReplayStageComponent, ReplayEntryListComponent],
 })
@@ -28,6 +29,7 @@ export class ReplayWorkspaceComponent {
   protected readonly isEditing = this.editor.isEditing;
   protected readonly isDirty = this.editor.isDirty;
   protected readonly isSaving = this.editor.isSaving;
+  protected readonly canUndo = this.editor.canUndo;
 
   constructor() {
     this.destroyRef.onDestroy(() => void this.playback.close());
@@ -48,6 +50,17 @@ export class ReplayWorkspaceComponent {
 
   protected revertEditing(): void {
     this.editor.revert();
+  }
+
+  protected undo(): void {
+    this.editor.undo();
+  }
+
+  protected onKeydown(event: KeyboardEvent): void {
+    if (!this.isEditing()) return;
+    if (!(event.ctrlKey || event.metaKey) || event.key.toLowerCase() !== 'z') return;
+    event.preventDefault();
+    this.undo();
   }
 
   protected async saveEdits(): Promise<void> {

@@ -19,6 +19,7 @@ import { REPLAY_FORMAT_VERSION, type ReplayEvent, type ReplayManifest } from '@a
 import { encodeReplayKeyframe, type ReplayObjectSnapshot } from '@axe/domain/replay/replay-keyframe';
 import { applyReplayEvents } from '@axe/domain/replay/replay-patch';
 
+export const REPLAY_HISTORY_LIMIT = 100;
 export const REPLAY_DERIVED_CHUNK_SIZE = 500;
 export const REPLAY_DERIVED_KEYFRAME_STRIDE = 200;
 
@@ -30,29 +31,48 @@ export class ReplayEditorService {
   private readonly _edited = signal<readonly ReplayEvent[]>([]);
   private readonly _isEditing = signal(false);
   private readonly _isSaving = signal(false);
+  private readonly _history = signal<readonly (readonly ReplayEvent[])[]>([]);
 
   readonly edited = this._edited.asReadonly();
   readonly isEditing = this._isEditing.asReadonly();
   readonly isSaving = this._isSaving.asReadonly();
   readonly isDirty = computed(() => hasReplayEdits(this._original(), this._edited()));
+  readonly canUndo = computed(() => this._history().length > 0);
 
   begin(events: readonly ReplayEvent[]): void {
     this._original.set([...events]);
     this._edited.set([...events]);
+    this._history.set([]);
     this._isEditing.set(true);
+  }
+
+  undo(): void {
+    const history = this._history();
+    const previous = history[history.length - 1];
+    if (!previous) return;
+    this._history.set(history.slice(0, -1));
+    this._edited.set(previous);
+  }
+
+  private change(mutate: (events: readonly ReplayEvent[]) => readonly ReplayEvent[]): void {
+    const current = this._edited();
+    const next = mutate(current);
+    this._history.update((history) => [...history, current].slice(-REPLAY_HISTORY_LIMIT));
+    this._edited.set(next);
   }
 
   cancel(): void {
     this._edited.set([...this._original()]);
+    this._history.set([]);
     this._isEditing.set(false);
   }
 
   revert(): void {
-    this._edited.set([...this._original()]);
+    this.change(() => [...this._original()]);
   }
 
   insert(atIndex: number, draft: ReplayEntryDraft): void {
-    this._edited.update((events) => {
+    this.change((events) => {
       const index = Math.max(0, Math.min(events.length, atIndex));
       const entry = createReplayEntry(draft, nextInsertSeq(events), insertTimeAt(events, index));
       return insertReplayEvent(events, index, entry);
@@ -61,7 +81,7 @@ export class ReplayEditorService {
 
   insertMany(atIndex: number, entries: readonly ReplayEvent[]): void {
     if (entries.length < 1) return;
-    this._edited.update((events) => insertReplayEvents(events, atIndex, entries));
+    this.change((events) => insertReplayEvents(events, atIndex, entries));
   }
 
   isInserted(seq: number): boolean {
@@ -69,15 +89,15 @@ export class ReplayEditorService {
   }
 
   remove(seq: number): void {
-    this._edited.update((events) => removeReplayEvent(events, seq));
+    this.change((events) => removeReplayEvent(events, seq));
   }
 
   move(seq: number, offset: number): void {
-    this._edited.update((events) => moveReplayEvent(events, seq, offset));
+    this.change((events) => moveReplayEvent(events, seq, offset));
   }
 
   retext(seq: number, text: string): void {
-    this._edited.update((events) => retextReplayEvent(events, seq, text));
+    this.change((events) => retextReplayEvent(events, seq, text));
   }
 
   async saveAsDerived(source: ReplayManifest, base: readonly ReplayObjectSnapshot[]): Promise<number | null> {
@@ -107,6 +127,7 @@ export class ReplayEditorService {
       await this.store.updateRecording(id, { endedAt: manifest.endedAt, manifest: encodeReplayManifest(manifest) });
 
       this._original.set([...this._edited()]);
+      this._history.set([]);
       this._isEditing.set(false);
       return id;
     } catch (reason) {
