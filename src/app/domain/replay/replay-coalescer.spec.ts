@@ -79,6 +79,38 @@ describe('mergeReplayEvents()', () => {
     expect(merged.patch?.after).toEqual({ location: { name: 'table', x: 90, y: 0 } });
   });
 
+  it('通った経路を残すこと', () => {
+    const first = mergeReplayEvents(moveEvent(1, 0, 100, 0), moveEvent(2, 100, 200, 100));
+    const second = mergeReplayEvents(first, moveEvent(3, 200, 300, 200));
+
+    expect(second.detail['path']).toEqual([
+      { x: 100, y: 0, z: 0 },
+      { x: 200, y: 0, z: 0 },
+      { x: 300, y: 0, z: 0 },
+    ]);
+  });
+
+  it('動きの小さい刻みで経路を膨らませないこと', () => {
+    let merged = moveEvent(1, 0, 1, 0);
+    for (let x = 2; x <= 10; x++) merged = mergeReplayEvents(merged, moveEvent(x, x * 10, x, x - 1));
+    expect((merged.detail['path'] as unknown[]).length).toBeLessThan(3);
+  });
+
+  it('移動以外では経路を作らないこと', () => {
+    const previous: ReplayEvent = {
+      seq: 1,
+      at: 0,
+      t: 0,
+      kind: ReplayEventKind.ObjectValue,
+      actorId: 'alice',
+      targetId: 'hp1',
+      detail: { name: 'HP', current: { from: 12, to: 11 } },
+      visibility: PUBLIC_VISIBILITY,
+    };
+    const next: ReplayEvent = { ...previous, seq: 2, at: 100, detail: { name: 'HP', current: { from: 11, to: 7 } } };
+    expect(mergeReplayEvents(previous, next).detail['path']).toBeUndefined();
+  });
+
   it('畳んだ件数を数えること', () => {
     const first = mergeReplayEvents(moveEvent(1, 0, 10, 0), moveEvent(2, 100, 20, 10));
     const second = mergeReplayEvents(first, moveEvent(3, 200, 30, 20));

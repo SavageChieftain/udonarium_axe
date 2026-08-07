@@ -1,4 +1,5 @@
 import { type ReplayEvent, ReplayEventKind } from '@axe/domain/replay/replay-event';
+import { appendRoutePoint, type ReplayRoutePoint, toRoutePoint } from '@axe/domain/replay/replay-route';
 
 export interface CoalesceWindows {
   move: number;
@@ -33,15 +34,25 @@ export function canMergeReplayEvents(
 }
 
 export function mergeReplayEvents(previous: ReplayEvent, next: ReplayEvent): ReplayEvent {
+  const detail = mergeDetail(previous.detail, next.detail);
+  if (previous.kind === ReplayEventKind.ObjectMove) detail['path'] = mergePath(previous, next);
+
   return {
     ...next,
     seq: previous.seq,
     at: previous.at,
     t: previous.t,
-    detail: mergeDetail(previous.detail, next.detail),
+    detail,
     patch: mergePatch(previous, next),
     merged: (previous.merged ?? 1) + (next.merged ?? 1),
   };
+}
+
+function mergePath(previous: ReplayEvent, next: ReplayEvent): ReplayRoutePoint[] {
+  const path = Array.isArray(previous.detail['path'])
+    ? (previous.detail['path'] as ReplayRoutePoint[])
+    : [toRoutePoint(previous.detail['to'])];
+  return appendRoutePoint(path, toRoutePoint(next.detail['to']));
 }
 
 function mergeDetail(

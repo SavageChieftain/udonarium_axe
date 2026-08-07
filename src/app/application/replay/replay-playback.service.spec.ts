@@ -1,6 +1,10 @@
 import { TestBed } from '@angular/core/testing';
 import { ReplayLibraryService } from '@axe/application/replay/replay-library.service';
-import { ReplayPlaybackService } from '@axe/application/replay/replay-playback.service';
+import {
+  REPLAY_SLIDE_MAX_MS,
+  REPLAY_TRAIL_LINGER_MS,
+  ReplayPlaybackService,
+} from '@axe/application/replay/replay-playback.service';
 import { isNetworkIsolated, setNetworkIsolated } from '@axe/core/network/network-isolation';
 import { networkMessage$ } from '@axe/core/network/network-messaging';
 import { ObjectStore } from '@axe/core/sync/object-store';
@@ -18,7 +22,7 @@ function moveEvent(seq: number, x: number, previousX: number): ReplayEvent {
     kind: ReplayEventKind.ObjectMove,
     actorId: 'alice',
     targetId: 'c1',
-    detail: {},
+    detail: { from: { name: 'table', x: previousX, y: 0, z: 0 }, to: { name: 'table', x, y: 0, z: 0 } },
     patch: {
       identifier: 'c1',
       aliasName: 'character',
@@ -181,12 +185,62 @@ describe('ReplayPlaybackService', () => {
   });
 
   it('1 つ送るときは盤面を積み増しで進めること', async () => {
+    vi.useFakeTimers();
+    try {
+      await service.open(1);
+      await service.enterBoardMode();
+      expect(characterX()).toBe(10);
+
+      await service.next();
+      await vi.advanceTimersByTimeAsync(REPLAY_SLIDE_MAX_MS);
+      await service.next();
+      await vi.advanceTimersByTimeAsync(REPLAY_SLIDE_MAX_MS);
+
+      expect(characterX()).toBe(30);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('1 つ送るときはコマを経路に沿って滑らせること', async () => {
+    vi.useFakeTimers();
+    try {
+      await service.open(1);
+      await service.enterBoardMode();
+      await service.next();
+      await service.next();
+
+      expect(service.routeTrail()?.identifier).toBe('c1');
+      expect(characterX()).toBeLessThan(30);
+
+      await vi.advanceTimersByTimeAsync(REPLAY_SLIDE_MAX_MS);
+      expect(characterX()).toBe(30);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('滑り終わったら経路の表示を消すこと', async () => {
+    vi.useFakeTimers();
+    try {
+      await service.open(1);
+      await service.enterBoardMode();
+      await service.next();
+      await service.next();
+
+      await vi.advanceTimersByTimeAsync(REPLAY_SLIDE_MAX_MS + REPLAY_TRAIL_LINGER_MS);
+      expect(service.routeTrail()).toBeNull();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('飛ばしたときは滑らせず経路も出さないこと', async () => {
     await service.open(1);
     await service.enterBoardMode();
-    expect(characterX()).toBe(10);
+    await service.toEnd();
 
-    await service.next();
-    await service.next();
+    expect(service.routeTrail()).toBeNull();
     expect(characterX()).toBe(30);
   });
 

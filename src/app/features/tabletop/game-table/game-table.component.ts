@@ -46,6 +46,7 @@ import { DiceSymbolComponent } from '@axe/features/dice/dice-symbol/dice-symbol.
 import { EffectTargetOverlayComponent } from '@axe/features/effect/effect-target-overlay/effect-target-overlay.component';
 import { TableEffectOverlayComponent } from '@axe/features/effect/table-effect-overlay/table-effect-overlay.component';
 import { PeerCursorComponent } from '@axe/features/lobby/peer-cursor/peer-cursor.component';
+import { ReplayRouteOverlayComponent } from '@axe/features/replay/replay-route-overlay/replay-route-overlay.component';
 import { beamTopGridGeometry, beamWallFaceGrid } from '@axe/features/tabletop/game-table/beam-top-grid';
 import { GameTableGestureService } from '@axe/features/tabletop/game-table/game-table-gesture.service';
 import { GridLineRender } from '@axe/features/tabletop/game-table/grid-line-render';
@@ -138,6 +139,7 @@ interface BeamWallGrid {
     TableTargetOverlayComponent,
     TableEffectOverlayComponent,
     EffectTargetOverlayComponent,
+    ReplayRouteOverlayComponent,
     CoinComponent,
     TranslocoModule,
     LightSourceComponent,
