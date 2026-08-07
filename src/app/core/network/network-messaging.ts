@@ -21,7 +21,10 @@ export interface NetworkMessage<T = unknown> {
 export const networkMessage$ = new EventChannel<NetworkMessage>();
 
 export function networkSend(eventName: string, data: unknown, sendTo?: string): void {
-  if (isNetworkIsolated()) return;
+  if (isNetworkIsolated()) {
+    if (sendTo == null || sendTo === Network.peerId) localDispatch(eventName, data);
+    return;
+  }
   const context: EventContext = {
     eventName,
     data,

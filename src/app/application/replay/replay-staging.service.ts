@@ -43,7 +43,7 @@ export class ReplayStagingService {
 
   constructor() {
     networkMessage$.subscribe((message) => {
-      if (!this._isStaging()) return;
+      if (!this._isStaging() || !message.isSendFromSelf) return;
       this.handleMessage(message.eventName, message.data, Date.now());
     }, this.destroyRef);
   }

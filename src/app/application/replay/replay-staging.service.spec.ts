@@ -13,7 +13,7 @@ function context(identifier: string, aliasName: string, attributes: Record<strin
 }
 
 function sendUpdate(identifier: string, attributes: Record<string, unknown>): void {
-  localDispatch('UPDATE_GAME_OBJECT', context(identifier, 'character', attributes), 'peer-a');
+  localDispatch('UPDATE_GAME_OBJECT', context(identifier, 'character', attributes));
 }
 
 describe('ReplayStagingService', () => {
@@ -63,16 +63,28 @@ describe('ReplayStagingService', () => {
 
   it('合図も鳴らし直せる形で拾うこと', () => {
     service.begin(0, 'alice');
-    localDispatch('SOUND_EFFECT', 'se-dice', 'peer-a');
+    localDispatch('SOUND_EFFECT', 'se-dice');
 
     const [event] = service.captured();
     expect(event.kind).toBe(ReplayEventKind.MediaSoundEffect);
     expect(event.signal).toEqual({ name: 'SOUND_EFFECT', data: 'se-dice' });
   });
 
+  it('同卓者の操作は拾わないこと', () => {
+    service.begin(0, 'alice');
+    localDispatch(
+      'UPDATE_GAME_OBJECT',
+      context('c1', 'character', { location: { name: 'table', x: 50, y: 0 } }),
+      'peer-b'
+    );
+    localDispatch('SOUND_EFFECT', 'se-dice', 'peer-b');
+
+    expect(service.captured()).toHaveLength(0);
+  });
+
   it('雑音は拾わないこと', () => {
     service.begin(0, 'alice');
-    localDispatch('CURSOR_MOVE', [1, 2, 3], 'peer-a');
+    localDispatch('CURSOR_MOVE', [1, 2, 3]);
     expect(service.captured()).toHaveLength(0);
   });
 
@@ -115,7 +127,7 @@ describe('ReplayStagingService', () => {
     const character = objectStore.get<GameCharacter>('c1')!;
     character.location.x = 200;
     service.begin(0, 'alice');
-    localDispatch('UPDATE_GAME_OBJECT', character.toContext(), 'peer-a');
+    localDispatch('UPDATE_GAME_OBJECT', character.toContext());
 
     expect(service.captured()).toHaveLength(0);
   });
@@ -123,11 +135,11 @@ describe('ReplayStagingService', () => {
   it('始めたあとの変化だけを拾うこと', () => {
     const character = objectStore.get<GameCharacter>('c1')!;
     service.begin(0, 'alice');
-    localDispatch('UPDATE_GAME_OBJECT', character.toContext(), 'peer-a');
+    localDispatch('UPDATE_GAME_OBJECT', character.toContext());
     expect(service.captured()).toHaveLength(0);
 
     character.location.x = 120;
-    localDispatch('UPDATE_GAME_OBJECT', character.toContext(), 'peer-a');
+    localDispatch('UPDATE_GAME_OBJECT', character.toContext());
     expect(service.captured()).toHaveLength(1);
     expect(service.captured()[0].detail['to']).toMatchObject({ x: 120 });
   });
