@@ -49,14 +49,69 @@ describe('formatReplayElapsed()', () => {
 });
 
 describe('toReplayLogLine()', () => {
-  it('移動を行き先つきで表すこと', () => {
+  it('移動をどこからどこへとして表すこと', () => {
     const line = toReplayLogLine(
-      event(ReplayEventKind.ObjectMove, { to: { name: 'table', x: 100.4, y: 49.6, z: 0 } }),
+      event(ReplayEventKind.ObjectMove, {
+        from: { name: 'table', x: 0, y: 25.4, z: 0 },
+        to: { name: 'table', x: 100.4, y: 49.6, z: 0 },
+      }),
       names
     );
     expect(line.key).toBe('feature.replay.line.move');
-    expect(line.params).toEqual({ actor: 'アリス', target: '盗賊', x: 100, y: 50 });
+    expect(line.params).toEqual({ actor: 'アリス', target: '盗賊', fromX: 0, fromY: 25, toX: 100, toY: 50 });
     expect(line.icon).toBe('open_with');
+  });
+
+  it('高さが変わった移動を高さつきで表すこと', () => {
+    const line = toReplayLogLine(
+      event(ReplayEventKind.ObjectMove, {
+        from: { name: 'table', x: 0, y: 0, z: 0 },
+        to: { name: 'table', x: 0, y: 0, z: 30 },
+      }),
+      names
+    );
+    expect(line.key).toBe('feature.replay.line.moveHeight');
+    expect(line.params['fromZ']).toBe(0);
+    expect(line.params['toZ']).toBe(30);
+  });
+
+  it('壁を跨ぐ移動を面つきで表すこと', () => {
+    const line = toReplayLogLine(
+      event(ReplayEventKind.ObjectMove, {
+        from: { name: 'table', x: 0, y: 0, z: 0 },
+        to: { name: 'table', x: 0, y: 0, z: 0, surface: 'north-wall' },
+      }),
+      names
+    );
+    expect(line.key).toBe('feature.replay.line.moveSurface');
+    expect(line.paramKeys).toEqual({
+      fromSurface: 'feature.replay.surface.floor',
+      toSurface: 'feature.replay.surface.north-wall',
+    });
+  });
+
+  it('置き場所が変わった移動を場所つきで表すこと', () => {
+    const line = toReplayLogLine(
+      event(ReplayEventKind.ObjectMove, {
+        from: { name: 'table', x: 0, y: 0, z: 0 },
+        to: { name: 'd1', x: 0, y: 0, z: 0 },
+      }),
+      names
+    );
+    expect(line.key).toBe('feature.replay.line.movePlace');
+    expect(line.paramKeys).toEqual({ fromPlace: 'feature.replay.place.table' });
+    expect(line.params['toPlace']).toBe('ダイス');
+  });
+
+  it('名前の分からない置き場所は識別子のまま出すこと', () => {
+    const line = toReplayLogLine(
+      event(ReplayEventKind.ObjectMove, {
+        from: { name: 'table', x: 0, y: 0, z: 0 },
+        to: { name: 'unknown-stack', x: 0, y: 0, z: 0 },
+      }),
+      names
+    );
+    expect(line.params['toPlace']).toBe('unknown-stack');
   });
 
   it('発言を話者と本文で表すこと', () => {

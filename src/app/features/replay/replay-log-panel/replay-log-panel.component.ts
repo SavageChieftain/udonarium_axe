@@ -14,6 +14,7 @@ import {
   type ReplayLogFilter,
   ReplayLogScope,
 } from '@axe/features/replay/replay-log-filter';
+import type { ReplayLogLine } from '@axe/features/replay/replay-log-line';
 import { formatReplayElapsed, formatReplayTime, toReplayLogLine } from '@axe/features/replay/replay-log-line';
 import { formatSnapshotByteSize, formatSnapshotSavedAt } from '@axe/features/room-archive/snapshot-format';
 import { TranslocoModule } from '@jsverse/transloco';
@@ -78,6 +79,13 @@ export class ReplayLogPanelComponent {
 
   protected get canEdit(): boolean {
     return this.rolePermission.canEditTabletop;
+  }
+
+  protected lineParams(line: ReplayLogLine): Record<string, string | number> {
+    if (!line.paramKeys) return line.params;
+    const resolved: Record<string, string | number> = { ...line.params };
+    for (const [name, key] of Object.entries(line.paramKeys)) resolved[name] = this.t(key);
+    return resolved;
   }
 
   protected actorLabel(userId: string): string {

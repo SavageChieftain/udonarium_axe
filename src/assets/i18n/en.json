@@ -2008,7 +2008,7 @@
       "line": {
         "chat": "{{speaker}}: {{text}}",
         "dice": "{{text}}",
-        "move": "{{actor}} moved {{target}} to ({{x}}, {{y}})",
+        "move": "{{actor}} moved {{target}} from ({{fromX}}, {{fromY}}) to ({{toX}}, {{toY}})",
         "rotate": "{{actor}} turned {{target}} to {{angle}}°",
         "face": "{{actor}} turned {{target}} to {{face}}",
         "diceRoll": "{{actor}} rolled {{target}}",
@@ -2027,7 +2027,10 @@
         "effect": "{{actor}} cast an effect",
         "join": "{{actor}} joined",
         "leave": "{{actor}} left",
-        "marker": "— {{label}} —"
+        "marker": "— {{label}} —",
+        "moveHeight": "{{actor}} moved {{target}} from ({{fromX}}, {{fromY}}) at height {{fromZ}} to ({{toX}}, {{toY}}) at height {{toZ}}",
+        "moveSurface": "{{actor}} moved {{target}} from ({{fromX}}, {{fromY}}) on the {{fromSurface}} to ({{toX}}, {{toY}}) on the {{toSurface}}",
+        "movePlace": "{{actor}} moved {{target}} from {{fromPlace}} to {{toPlace}}"
       },
       "player": {
         "choose": "Choose a recording",
@@ -2049,6 +2052,16 @@
         "up": "Move up",
         "down": "Move down",
         "remove": "Delete this entry"
+      },
+      "surface": {
+        "floor": "floor",
+        "north-wall": "north wall",
+        "east-wall": "east wall",
+        "south-wall": "south wall",
+        "west-wall": "west wall"
+      },
+      "place": {
+        "table": "the table"
       }
     }
   },

@@ -24,7 +24,7 @@
     <div class="border-ui-border bg-ui-elevated rounded-ui flex min-h-20 flex-col gap-1 border border-solid p-2.5">
       @if (currentRow(); as row) {
         <span class="text-ui-dim text-[0.7rem] tabular-nums">{{ row.elapsed }}</span>
-        <span class="text-[0.9rem] leading-[1.6]">{{ row.line.key | transloco: row.line.params }}</span>
+        <span class="text-[0.9rem] leading-[1.6]">{{ row.line.key | transloco: lineParams(row.line) }}</span>
       }
     </div>
 
@@ -147,7 +147,7 @@
               (change)="retextRow(row.seq, $any($event.target).value)"
             />
           } @else {
-            <span class="min-w-0 flex-1 wrap-break-word">{{ row.line.key | transloco: row.line.params }}</span>
+            <span class="min-w-0 flex-1 wrap-break-word">{{ row.line.key | transloco: lineParams(row.line) }}</span>
           }
           @if (isEditing()) {
             <button

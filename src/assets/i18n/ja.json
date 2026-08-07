@@ -2008,7 +2008,7 @@
       "line": {
         "chat": "{{speaker}}「{{text}}」",
         "dice": "{{text}}",
-        "move": "{{actor}} が {{target}} を ({{x}}, {{y}}) へ動かした",
+        "move": "{{actor}} が {{target}} を ({{fromX}}, {{fromY}}) から ({{toX}}, {{toY}}) へ動かした",
         "rotate": "{{actor}} が {{target}} を {{angle}}° に回した",
         "face": "{{actor}} が {{target}} を {{face}} にした",
         "diceRoll": "{{actor}} が {{target}} を振った",
@@ -2027,7 +2027,10 @@
         "effect": "{{actor}} が演出を出した",
         "join": "{{actor}} が入室した",
         "leave": "{{actor}} が退室した",
-        "marker": "― {{label}} ―"
+        "marker": "― {{label}} ―",
+        "moveHeight": "{{actor}} が {{target}} を ({{fromX}}, {{fromY}}) 高さ {{fromZ}} から ({{toX}}, {{toY}}) 高さ {{toZ}} へ動かした",
+        "moveSurface": "{{actor}} が {{target}} を{{fromSurface}}の ({{fromX}}, {{fromY}}) から{{toSurface}}の ({{toX}}, {{toY}}) へ動かした",
+        "movePlace": "{{actor}} が {{target}} を{{fromPlace}}から{{toPlace}}へ移した"
       },
       "player": {
         "choose": "記録を選ぶ",
@@ -2049,6 +2052,16 @@
         "up": "ひとつ上へ",
         "down": "ひとつ下へ",
         "remove": "この行を消す"
+      },
+      "surface": {
+        "floor": "床",
+        "north-wall": "北の壁",
+        "east-wall": "東の壁",
+        "south-wall": "南の壁",
+        "west-wall": "西の壁"
+      },
+      "place": {
+        "table": "テーブル"
       }
     }
   },

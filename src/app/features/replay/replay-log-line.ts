@@ -8,9 +8,13 @@ export interface ReplayNameLookup {
 export interface ReplayLogLine {
   key: string;
   params: Record<string, string | number>;
+  paramKeys?: Record<string, string>;
   icon: string;
   isSecret: boolean;
 }
+
+const TABLE_PLACE = 'table';
+const DEFAULT_SURFACE = 'floor';
 
 const ICONS: Record<string, string> = {
   [ReplayEventKind.ChatMessage]: 'chat_bubble',
@@ -54,9 +58,14 @@ export function toReplayLogLine(event: ReplayEvent, names: ReplayNameLookup): Re
   const detail = event.detail;
   const isSecret = event.visibility.kind !== 'public';
   const icon = ICONS[event.kind] ?? 'radio_button_unchecked';
-  const line = (key: string, params: Record<string, string | number> = {}): ReplayLogLine => ({
+  const line = (
+    key: string,
+    params: Record<string, string | number> = {},
+    paramKeys?: Record<string, string>
+  ): ReplayLogLine => ({
     key: `feature.replay.line.${key}`,
     params: { actor, target, ...params },
+    ...(paramKeys ? { paramKeys } : {}),
     icon,
     isSecret,
   });
@@ -67,7 +76,7 @@ export function toReplayLogLine(event: ReplayEvent, names: ReplayNameLookup): Re
     case ReplayEventKind.ChatDice:
       return line('dice', { text: text(detail['text']) });
     case ReplayEventKind.ObjectMove:
-      return line('move', { ...position(detail['to']) });
+      return describeMoveLine(line, detail, names);
     case ReplayEventKind.ObjectRotate:
       return line('rotate', { angle: Math.round(numberOf(pick(detail['rotate'], 'to'))) });
     case ReplayEventKind.ObjectFace:
@@ -111,9 +120,64 @@ export function toReplayLogLine(event: ReplayEvent, names: ReplayNameLookup): Re
   }
 }
 
-function position(value: unknown): { x: number; y: number } {
+type LineFactory = (
+  key: string,
+  params?: Record<string, string | number>,
+  paramKeys?: Record<string, string>
+) => ReplayLogLine;
+
+function describeMoveLine(
+  line: LineFactory,
+  detail: Readonly<Record<string, unknown>>,
+  names: ReplayNameLookup
+): ReplayLogLine {
+  const from = position(detail['from']);
+  const to = position(detail['to']);
+  const params = { fromX: from.x, fromY: from.y, toX: to.x, toY: to.y };
+
+  if (from.place !== to.place) {
+    const placeParams: Record<string, string | number> = { ...params };
+    const placeKeys: Record<string, string> = {};
+    assignPlace(placeParams, placeKeys, 'fromPlace', from.place, names);
+    assignPlace(placeParams, placeKeys, 'toPlace', to.place, names);
+    return line('movePlace', placeParams, placeKeys);
+  }
+
+  if (from.surface !== to.surface) {
+    return line('moveSurface', params, {
+      fromSurface: `feature.replay.surface.${from.surface}`,
+      toSurface: `feature.replay.surface.${to.surface}`,
+    });
+  }
+
+  if (from.z !== to.z) return line('moveHeight', { ...params, fromZ: from.z, toZ: to.z });
+
+  return line('move', params);
+}
+
+function assignPlace(
+  params: Record<string, string | number>,
+  paramKeys: Record<string, string>,
+  name: string,
+  place: string,
+  names: ReplayNameLookup
+): void {
+  if (place === TABLE_PLACE || place.length < 1) {
+    paramKeys[name] = 'feature.replay.place.table';
+    return;
+  }
+  params[name] = names.targetName(place) || place;
+}
+
+function position(value: unknown): { x: number; y: number; z: number; place: string; surface: string } {
   const record = (value ?? {}) as Record<string, unknown>;
-  return { x: Math.round(numberOf(record['x'])), y: Math.round(numberOf(record['y'])) };
+  return {
+    x: Math.round(numberOf(record['x'])),
+    y: Math.round(numberOf(record['y'])),
+    z: Math.round(numberOf(record['z'])),
+    place: text(record['name']),
+    surface: text(record['surface']) || DEFAULT_SURFACE,
+  };
 }
 
 function pick(value: unknown, key: string): unknown {

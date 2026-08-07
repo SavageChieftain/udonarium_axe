@@ -80,7 +80,7 @@
           <span class="text-ui-dim shrink-0 text-[0.68rem] tabular-nums">{{ row.time }}</span>
           <i class="material-icons text-ui-dim shrink-0 text-[14px] leading-[1.4]">{{ row.line.icon }}</i>
           <span class="min-w-0 flex-1 wrap-break-word">
-            {{ row.line.key | transloco: row.line.params }}
+            {{ row.line.key | transloco: lineParams(row.line) }}
             @if (row.merged > 1) {
               <span class="text-ui-dim text-[0.68rem]">×{{ row.merged }}</span>
             }
