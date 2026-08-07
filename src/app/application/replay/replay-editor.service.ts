@@ -6,6 +6,7 @@ import {
   createReplayEntry,
   hasReplayEdits,
   insertReplayEvent,
+  insertReplayEvents,
   insertTimeAt,
   moveReplayEvent,
   nextInsertSeq,
@@ -56,6 +57,11 @@ export class ReplayEditorService {
       const entry = createReplayEntry(draft, nextInsertSeq(events), insertTimeAt(events, index));
       return insertReplayEvent(events, index, entry);
     });
+  }
+
+  insertMany(atIndex: number, entries: readonly ReplayEvent[]): void {
+    if (entries.length < 1) return;
+    this._edited.update((events) => insertReplayEvents(events, atIndex, entries));
   }
 
   isInserted(seq: number): boolean {

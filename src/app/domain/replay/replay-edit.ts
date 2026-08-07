@@ -42,6 +42,33 @@ export function insertReplayEvent(events: readonly ReplayEvent[], atIndex: numbe
   return next;
 }
 
+export function insertReplayEvents(
+  events: readonly ReplayEvent[],
+  atIndex: number,
+  entries: readonly ReplayEvent[]
+): ReplayEvent[] {
+  if (entries.length < 1) return [...events];
+
+  const index = Math.max(0, Math.min(events.length, atIndex));
+  const seqBase = nextInsertSeq(events);
+  const times = spreadInsertTimes(events, index, entries.length);
+  const placed = entries.map((entry, offset) => ({ ...entry, seq: seqBase + offset, at: times[offset] }));
+
+  const next = [...events];
+  next.splice(index, 0, ...placed);
+  return next;
+}
+
+export function spreadInsertTimes(events: readonly ReplayEvent[], atIndex: number, count: number): number[] {
+  const before = events[atIndex - 1]?.at;
+  const after = events[atIndex]?.at;
+  const start = before ?? after ?? 0;
+  const end = after ?? (before ?? 0) + count;
+  const span = Math.max(0, end - start);
+  const step = span > 0 ? span / (count + 1) : 1;
+  return Array.from({ length: count }, (_, offset) => Math.round(start + step * (offset + 1)));
+}
+
 export function nextInsertSeq(events: readonly ReplayEvent[]): number {
   return events.reduce((highest, event) => Math.max(highest, event.seq), 0) + 1;
 }

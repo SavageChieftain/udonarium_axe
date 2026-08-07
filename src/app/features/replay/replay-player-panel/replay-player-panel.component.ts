@@ -5,6 +5,7 @@ import { ReplayEditorService } from '@axe/application/replay/replay-editor.servi
 import { ReplayLibraryService } from '@axe/application/replay/replay-library.service';
 import { ReplayPlaybackService } from '@axe/application/replay/replay-playback.service';
 import { ReplayRecorderService } from '@axe/application/replay/replay-recorder.service';
+import { ReplayStagingService } from '@axe/application/replay/replay-staging.service';
 import { confirmDialog } from '@axe/core/input/confirm-dialog';
 import type { ReplayRecordingMeta } from '@axe/core/storage/replay-log-store';
 import { INSERTABLE_KINDS, isTextEditable, textOf } from '@axe/domain/replay/replay-edit';
@@ -26,6 +27,7 @@ export class ReplayPlayerPanelComponent {
   private readonly playback = inject(ReplayPlaybackService);
   private readonly editor = inject(ReplayEditorService);
   private readonly library = inject(ReplayLibraryService);
+  private readonly staging = inject(ReplayStagingService);
   private readonly recorder = inject(ReplayRecorderService);
   private readonly rolePermission = inject(RolePermissionService);
   private readonly t = inject(TRANSLATE_FN);
@@ -41,6 +43,7 @@ export class ReplayPlayerPanelComponent {
   protected readonly isEditing = this.editor.isEditing;
   protected readonly isDirty = this.editor.isDirty;
   protected readonly isSaving = this.editor.isSaving;
+  protected readonly isStaging = this.staging.isStaging;
 
   protected readonly insertKinds = INSERTABLE_KINDS;
   protected readonly insertKind = signal<ReplayEventKind>(ReplayEventKind.ChatMessage);
@@ -172,6 +175,12 @@ export class ReplayPlayerPanelComponent {
       text: this.insertText().trim(),
     });
     this.insertText.set('');
+  }
+
+  protected async stageAt(index: number): Promise<void> {
+    if (!this.isEditing() || this.isStaging() || !this.canEdit) return;
+    if (!this.isBoardMode() && !(await this.playback.enterBoardMode())) return;
+    this.staging.begin(index, this.insertActorId() || this.actors()[0]?.userId || '');
   }
 
   protected removeRow(seq: number): void {

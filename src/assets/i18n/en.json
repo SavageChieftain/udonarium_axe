@@ -2063,7 +2063,8 @@
           "chat.message": "Line",
           "chat.dice": "Dice",
           "marker": "Chapter"
-        }
+        },
+        "stageHere": "Stage from here"
       },
       "surface": {
         "floor": "floor",
@@ -2074,6 +2075,12 @@
       },
       "place": {
         "table": "the table"
+      },
+      "staging": {
+        "title": "Staging — {{count}} entries",
+        "hint": "Use the table as you normally would. What you move, roll and cast is captured and inserted at the point you are editing. Nothing reaches the other players.",
+        "accept": "Insert {{count}}",
+        "discard": "Discard"
       }
     }
   },

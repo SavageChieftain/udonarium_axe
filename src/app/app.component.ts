@@ -59,6 +59,7 @@ import { PlToolbarComponent } from '@axe/features/pl-tools/pl-toolbar/pl-toolbar
 import { ReplayEventHandlerService } from '@axe/features/replay/replay-event-handler.service';
 import { ReplayLogPanelComponent } from '@axe/features/replay/replay-log-panel/replay-log-panel.component';
 import { ReplayPlayerPanelComponent } from '@axe/features/replay/replay-player-panel/replay-player-panel.component';
+import { ReplayStagingBannerComponent } from '@axe/features/replay/replay-staging-banner/replay-staging-banner.component';
 import { RoomArchiveEventHandlerService } from '@axe/features/room-archive/room-archive-event-handler.service';
 import { RoomRestoreBannerComponent } from '@axe/features/room-archive/room-restore-banner/room-restore-banner.component';
 import { RoomSnapshotPanelComponent } from '@axe/features/room-archive/room-snapshot-panel/room-snapshot-panel.component';
@@ -95,6 +96,7 @@ import { version as APP_VERSION } from '@pkg';
     DigitalClockComponent,
     MobileShellComponent,
     RoomRestoreBannerComponent,
+    ReplayStagingBannerComponent,
     InviteJoinComponent,
     LanguageSelectorComponent,
     VisualNovelOverlayComponent,

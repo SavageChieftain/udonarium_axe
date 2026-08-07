@@ -2,6 +2,7 @@ import {
   createReplayEntry,
   hasReplayEdits,
   insertReplayEvent,
+  insertReplayEvents,
   insertTimeAt,
   isInsertableKind,
   isTextEditable,
@@ -87,6 +88,34 @@ describe('insertReplayEvent()', () => {
   it('元の配列を変えないこと', () => {
     insertReplayEvent(events, 1, event(9));
     expect(events.map((e) => e.seq)).toEqual([1, 2, 3]);
+  });
+});
+
+describe('insertReplayEvents()', () => {
+  it('まとめて差し込み、番号を続けて振ること', () => {
+    const block = [event(90), event(91)];
+    const merged = insertReplayEvents(events, 1, block);
+    expect(merged.map((e) => e.seq)).toEqual([1, 4, 5, 2, 3]);
+  });
+
+  it('前後の時刻の間に等間隔で並べること', () => {
+    const merged = insertReplayEvents(events, 1, [event(90), event(91)]);
+    expect(merged[1].at).toBe(1333);
+    expect(merged[2].at).toBe(1667);
+  });
+
+  it('末尾に足すときも時刻を進めること', () => {
+    const merged = insertReplayEvents(events, 3, [event(90)]);
+    expect(merged[3].at).toBeGreaterThanOrEqual(3000);
+  });
+
+  it('空なら何もしないこと', () => {
+    expect(insertReplayEvents(events, 1, []).map((e) => e.seq)).toEqual([1, 2, 3]);
+  });
+
+  it('元の配列を変えないこと', () => {
+    insertReplayEvents(events, 1, [event(90)]);
+    expect(events).toHaveLength(3);
   });
 });
 
