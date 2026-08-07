@@ -8,10 +8,10 @@ import { GameTable } from '@axe/domain/tabletop/game-table';
 export class TableSelecter extends GameObject {
   private static _instance: TableSelecter;
   static get instance(): TableSelecter {
-    if (!TableSelecter._instance) {
-      TableSelecter._instance = new TableSelecter('TableSelecter');
-      TableSelecter._instance.initialize();
-    }
+    const stored = ObjectStore.instance.get<TableSelecter>('TableSelecter');
+    if (stored) return (TableSelecter._instance = stored);
+    if (!TableSelecter._instance) TableSelecter._instance = new TableSelecter('TableSelecter');
+    TableSelecter._instance.initialize();
     return TableSelecter._instance;
   }
 

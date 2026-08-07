@@ -1,5 +1,6 @@
 import { SyncObject, SyncVar } from '@axe/core/sync/decorator';
 import { GameObject } from '@axe/core/sync/game-object';
+import { ObjectStore } from '@axe/core/sync/object-store';
 
 export type TurnPhase = 'idle' | 'roundStart' | 'acting' | 'roundEnd';
 
@@ -7,10 +8,10 @@ export type TurnPhase = 'idle' | 'roundStart' | 'acting' | 'roundEnd';
 export class TurnState extends GameObject {
   private static _instance: TurnState;
   static get instance(): TurnState {
-    if (!TurnState._instance) {
-      TurnState._instance = new TurnState('TurnState');
-      TurnState._instance.initialize();
-    }
+    const stored = ObjectStore.instance.get<TurnState>('TurnState');
+    if (stored) return (TurnState._instance = stored);
+    if (!TurnState._instance) TurnState._instance = new TurnState('TurnState');
+    TurnState._instance.initialize();
     return TurnState._instance;
   }
 

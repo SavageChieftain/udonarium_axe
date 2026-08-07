@@ -1,6 +1,7 @@
 import { SyncObject, SyncVar } from '@axe/core/sync/decorator';
 import { GameObject } from '@axe/core/sync/game-object';
 import { InnerXml } from '@axe/core/sync/object-serializer';
+import { ObjectStore } from '@axe/core/sync/object-store';
 
 export enum SortOrder {
   ASC = 'ASC',
@@ -11,10 +12,10 @@ export enum SortOrder {
 export class DataSummarySetting extends GameObject implements InnerXml {
   private static _instance: DataSummarySetting;
   static get instance(): DataSummarySetting {
-    if (!DataSummarySetting._instance) {
-      DataSummarySetting._instance = new DataSummarySetting('DataSummarySetting');
-      DataSummarySetting._instance.initialize();
-    }
+    const stored = ObjectStore.instance.get<DataSummarySetting>('DataSummarySetting');
+    if (stored) return (DataSummarySetting._instance = stored);
+    if (!DataSummarySetting._instance) DataSummarySetting._instance = new DataSummarySetting('DataSummarySetting');
+    DataSummarySetting._instance.initialize();
     return DataSummarySetting._instance;
   }
 

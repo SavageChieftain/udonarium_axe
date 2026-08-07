@@ -1,6 +1,7 @@
 import { computed, inject, Injectable, signal } from '@angular/core';
 import { prefersReducedMotion } from '@axe/application/effect/effect-playback.service';
 import { ReplayLibraryService } from '@axe/application/replay/replay-library.service';
+import { ReplayStagingService } from '@axe/application/replay/replay-staging.service';
 import { Logger } from '@axe/core/logging/logger';
 import { setNetworkIsolated } from '@axe/core/network/network-isolation';
 import { localDispatch } from '@axe/core/network/network-messaging';
@@ -54,6 +55,7 @@ export class ReplayPlaybackService {
   private readonly objectStore = inject(ObjectStore);
   private readonly objectFactory = inject(ObjectFactory);
   private readonly objectSynchronizer = inject(ObjectSynchronizer);
+  private readonly staging = inject(ReplayStagingService);
 
   private readonly _recordingId = signal<number | null>(null);
   private readonly _manifest = signal<ReplayManifest | null>(null);
@@ -81,6 +83,8 @@ export class ReplayPlaybackService {
   readonly isAtEnd = computed(() => this._cursor() >= this._events().length - 1);
 
   private savedBoard: ReplayObjectSnapshot[] | null = null;
+  private savedDeleteHistory: Map<string, number> | null = null;
+  private baseKeyframe: { seq: number; snapshots: readonly ReplayObjectSnapshot[] } | null = null;
   private autoPlayTimer: ReturnType<typeof setTimeout> | null = null;
   private seekToken = 0;
   private slideFrame: number | null = null;
@@ -104,6 +108,8 @@ export class ReplayPlaybackService {
   async close(): Promise<void> {
     this.stopAutoPlay();
     if (this._isBoardMode()) await this.exitBoardMode();
+    this.staging.discard();
+    this.baseKeyframe = null;
     this._recordingId.set(null);
     this._manifest.set(null);
     this._events.set([]);
@@ -173,6 +179,7 @@ export class ReplayPlaybackService {
   async enterBoardMode(): Promise<boolean> {
     if (this._isBoardMode() || !this.isOpen()) return false;
     this.savedBoard = this.snapshotBoard();
+    this.savedDeleteHistory = this.objectStore.snapshotDeleteHistory();
     setNetworkIsolated(true);
     this._isBoardMode.set(true);
     await this.applyBoard(this._cursor());
@@ -181,13 +188,22 @@ export class ReplayPlaybackService {
 
   async exitBoardMode(): Promise<void> {
     if (!this._isBoardMode()) return;
+    this.staging.discard();
     this.stopAutoPlay();
     this.stopSlide();
     this._isBoardMode.set(false);
-    if (this.savedBoard) this.restoreBoard(this.savedBoard);
-    this.savedBoard = null;
-    setNetworkIsolated(false);
-    this.objectSynchronizer.requestFullSync();
+    try {
+      if (this.savedBoard) this.restoreBoard(this.savedBoard);
+    } catch (reason) {
+      Logger.warn('[ReplayPlayback] 卓を戻しきれませんでした', reason);
+    } finally {
+      this.savedBoard = null;
+      this.baseKeyframe = null;
+      this.objectStore.replaceDeleteHistory(this.savedDeleteHistory ?? new Map());
+      this.savedDeleteHistory = null;
+      setNetworkIsolated(false);
+      this.objectSynchronizer.requestFullSync();
+    }
   }
 
   private scheduleAutoPlay(): void {
@@ -266,7 +282,7 @@ export class ReplayPlaybackService {
       const keyframe = await this.library.keyframeBefore(id, targetSeq);
       if (token !== this.seekToken) return;
 
-      const base = keyframe ? decodeReplayKeyframe(new Uint8Array(await keyframe.blob.arrayBuffer())) : [];
+      const base = await this.baseSnapshotsOf(keyframe);
       if (token !== this.seekToken) return;
 
       const from = keyframe ? indexOfSeq(events, keyframe.seq) : -1;
@@ -277,6 +293,16 @@ export class ReplayPlaybackService {
     } finally {
       if (token === this.seekToken) this._isSeeking.set(false);
     }
+  }
+
+  private async baseSnapshotsOf(
+    keyframe: { seq: number; blob: Blob } | null
+  ): Promise<readonly ReplayObjectSnapshot[]> {
+    if (!keyframe) return [];
+    if (this.baseKeyframe?.seq === keyframe.seq) return this.baseKeyframe.snapshots;
+    const snapshots = decodeReplayKeyframe(new Uint8Array(await keyframe.blob.arrayBuffer()));
+    this.baseKeyframe = { seq: keyframe.seq, snapshots };
+    return snapshots;
   }
 
   private stepBoardForward(event: ReplayEvent): void {
@@ -392,10 +418,17 @@ export class ReplayPlaybackService {
   }
 
   private restoreBoard(snapshots: readonly ReplayObjectSnapshot[]): void {
-    for (const object of this.objectStore.getObjects()) this.objectStore.remove(object);
+    const wanted = new Map(snapshots.map((snapshot) => [snapshot.identifier, snapshot]));
+    for (const object of this.objectStore.getObjects()) {
+      if (!wanted.has(object.identifier)) this.objectStore.remove(object);
+    }
     this.objectStore.clearDeleteHistory();
 
-    for (const snapshot of snapshots) this.createObject(snapshot);
+    for (const snapshot of snapshots) {
+      const existing = this.objectStore.get(snapshot.identifier);
+      if (existing) this.reviveObject(existing, snapshot.syncData);
+      else this.createObject(snapshot);
+    }
 
     for (const object of this.objectStore.getObjects()) markForChanged(object);
   }

@@ -34,10 +34,10 @@ export class Config extends ObjectNode implements InnerXml {
 
   private static _instance: Config;
   static get instance(): Config {
-    if (!Config._instance) {
-      Config._instance = new Config('Config');
-      Config._instance.initialize();
-    }
+    const stored = ObjectStore.instance.get<Config>('Config');
+    if (stored) return (Config._instance = stored);
+    if (!Config._instance) Config._instance = new Config('Config');
+    Config._instance.initialize();
     return Config._instance;
   }
 

@@ -7,12 +7,14 @@ import {
   REPLAY_TRAIL_LINGER_MS,
   ReplayPlaybackService,
 } from '@axe/application/replay/replay-playback.service';
+import { ReplayStagingService } from '@axe/application/replay/replay-staging.service';
 import { isNetworkIsolated, setNetworkIsolated } from '@axe/core/network/network-isolation';
 import { networkMessage$ } from '@axe/core/network/network-messaging';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { ObjectSynchronizer } from '@axe/core/sync/object-synchronizer';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { ChatMessage } from '@axe/domain/chat/chat-message';
+import { ChatTabList } from '@axe/domain/chat/chat-tab-list';
 import { CutIn } from '@axe/domain/media/cut-in';
 import { createReplayEntry, retextReplayEvent } from '@axe/domain/replay/replay-edit';
 import { PUBLIC_VISIBILITY, type ReplayEvent, ReplayEventKind } from '@axe/domain/replay/replay-event';
@@ -261,6 +263,67 @@ describe('ReplayPlaybackService', () => {
     await service.exitBoardMode();
     expect(objectStore.get<GameCharacter>('live-1')?.location.x).toBe(555);
     expect(objectStore.get('c1')).toBeNull();
+  });
+
+  it('盤面再生でも同じコマは同じ実体のまま入れ替えること', async () => {
+    const character = new GameCharacter('c1');
+    character.location.x = 999;
+    objectStore.add(character, false);
+
+    await service.open(1);
+    await service.enterBoardMode();
+
+    expect(objectStore.get('c1')).toBe(character);
+    expect(character.location.x).toBe(10);
+
+    await service.exitBoardMode();
+    expect(objectStore.get('c1')).toBe(character);
+    expect(character.location.x).toBe(999);
+  });
+
+  it('卓の名簿を持つ一枚物を盤面再生で置き去りにしないこと', async () => {
+    {
+      const tabs = ChatTabList.instance;
+      expect(objectStore.get('ChatTabList')).toBe(tabs);
+    }
+    objectStore.add(new GameCharacter('c1'), false);
+
+    await service.open(1);
+    await service.enterBoardMode();
+    {
+      const tabs = ChatTabList.instance;
+      expect(objectStore.get('ChatTabList')).toBe(tabs);
+    }
+
+    await service.exitBoardMode();
+    {
+      const tabs = ChatTabList.instance;
+      expect(objectStore.get('ChatTabList')).toBe(tabs);
+    }
+  });
+
+  it('生の卓で消したものを盤面再生のあとに蘇らせないこと', async () => {
+    const character = new GameCharacter('gone-1');
+    objectStore.add(character, false);
+    objectStore.delete(character, false);
+    expect(objectStore.isDeleted('gone-1')).toBe(true);
+
+    await service.open(1);
+    await service.enterBoardMode();
+    await service.exitBoardMode();
+
+    expect(objectStore.isDeleted('gone-1')).toBe(true);
+  });
+
+  it('盤面再生を抜けたら収録も畳むこと', async () => {
+    const staging = TestBed.inject(ReplayStagingService);
+    await service.open(1);
+    await service.enterBoardMode();
+    staging.begin(0, 'alice');
+    expect(staging.isStaging()).toBe(true);
+
+    await service.exitBoardMode();
+    expect(staging.isStaging()).toBe(false);
   });
 
   it('盤面再生を抜けたら同卓者へ再同期を求めること', async () => {

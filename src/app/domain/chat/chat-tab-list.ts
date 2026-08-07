@@ -56,10 +56,10 @@ export class ChatTabList extends ObjectNode implements InnerXml {
 
   private static _instance: ChatTabList;
   static get instance(): ChatTabList {
-    if (!ChatTabList._instance) {
-      ChatTabList._instance = new ChatTabList('ChatTabList');
-      ChatTabList._instance.initialize();
-    }
+    const stored = ObjectStore.instance.get<ChatTabList>('ChatTabList');
+    if (stored) return (ChatTabList._instance = stored);
+    if (!ChatTabList._instance) ChatTabList._instance = new ChatTabList('ChatTabList');
+    ChatTabList._instance.initialize();
     return ChatTabList._instance;
   }
 

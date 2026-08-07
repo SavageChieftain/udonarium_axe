@@ -133,6 +133,14 @@ export class ObjectStore {
     return Array.from(this.identifierMap.values(), (o) => ({ identifier: o.identifier, version: o.version }));
   }
 
+  snapshotDeleteHistory(): Map<ObjectIdentifier, TimeStamp> {
+    return new Map(this.garbageMap);
+  }
+
+  replaceDeleteHistory(history: ReadonlyMap<ObjectIdentifier, TimeStamp>) {
+    this.garbageMap = new Map(history);
+  }
+
   clearDeleteHistory() {
     this.garbageMap.clear();
   }
