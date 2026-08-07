@@ -1,22 +1,67 @@
 <div class="flex flex-col gap-2">
   <div class="border-ui-border bg-ui-elevated rounded-ui flex min-h-24 flex-col gap-1 border border-solid p-3">
     @if (line(); as row) {
-      <span class="text-ui-dim text-[0.7rem] tabular-nums">{{ elapsed() }}</span>
+      <span class="text-ui-dim flex items-center gap-1.5 text-[0.7rem] tabular-nums">
+        {{ elapsed() }}
+        @if (chapter(); as mark) {
+          <span class="text-ui-accent inline-flex items-center gap-0.5">
+            <i class="material-icons text-[13px]">bookmark</i>
+            {{ mark.label || ('feature.replay.player.chapter' | transloco) }}
+          </span>
+        }
+      </span>
       <span class="text-[0.95rem] leading-[1.7]">{{ row.key | transloco: lineParams(row) }}</span>
     } @else {
       <span class="text-ui-muted text-[0.8rem]">{{ 'feature.replay.player.empty' | transloco }}</span>
     }
   </div>
 
-  <input
-    class="w-full"
-    type="range"
-    min="0"
-    [max]="total() - 1"
-    [value]="cursor()"
-    [disabled]="isSeeking()"
-    (input)="seekTo($any($event.target).value)"
-  />
+  <div
+    class="relative h-10 cursor-pointer touch-none select-none"
+    role="slider"
+    tabindex="0"
+    [attr.aria-label]="'feature.replay.player.timeline' | transloco"
+    [attr.aria-valuemin]="1"
+    [attr.aria-valuemax]="total()"
+    [attr.aria-valuenow]="cursor() + 1"
+    (pointerdown)="scrubStart($event)"
+    (pointermove)="scrubMove($event)"
+    (keydown.arrowLeft)="scrubKey(-1)"
+    (keydown.arrowRight)="scrubKey(1)"
+    (keydown.home)="toStart()"
+    (keydown.end)="toEnd()"
+  >
+    <div class="absolute inset-x-0 bottom-1.5 flex h-7 items-end gap-px">
+      @for (bucket of timeline().buckets; track $index) {
+        <span
+          class="bg-ui-dim/40 min-h-px flex-1 rounded-t-[1px]"
+          [class.bg-ui-accent]="bucket.index <= cursor()"
+          [style.height.%]="bucket.ratio * 100"
+        ></span>
+      }
+    </div>
+
+    <div class="bg-ui-border absolute inset-x-0 bottom-1.5 h-px"></div>
+
+    @for (mark of timeline().chapters; track mark.index) {
+      <button
+        class="absolute inset-y-0 z-1 -ml-2 w-4 cursor-pointer border-none bg-transparent p-0"
+        [title]="mark.label || ('feature.replay.player.chapter' | transloco)"
+        [style.left.%]="mark.at * 100"
+        (pointerdown)="$event.stopPropagation()"
+        (click)="seekTo(mark.index)"
+      >
+        <span class="bg-ui-accent/60 absolute inset-y-1.5 left-1/2 w-px"></span>
+        <i class="material-icons text-ui-accent absolute -top-0.5 left-1/2 -translate-x-1/2 text-[13px]">bookmark</i>
+      </button>
+    }
+
+    <span
+      class="bg-ui-text pointer-events-none absolute inset-y-0 z-2 w-0.5 -translate-x-1/2 rounded-full"
+      [class.opacity-50]="isSeeking()"
+      [style.left.%]="playhead() * 100"
+    ></span>
+  </div>
 
   <div class="flex items-center justify-between gap-2">
     <span class="text-ui-muted text-[0.7rem] tabular-nums">{{ cursor() + 1 }} / {{ total() }}</span>

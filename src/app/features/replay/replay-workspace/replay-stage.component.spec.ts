@@ -1,0 +1,120 @@
+import { signal, type WritableSignal } from '@angular/core';
+import { type ComponentFixture, TestBed } from '@angular/core/testing';
+import { ReplayPlaybackService } from '@axe/application/replay/replay-playback.service';
+import { PeerCursor } from '@axe/domain/peer/peer-cursor';
+import { PeerRole } from '@axe/domain/peer/peer-role';
+import { PUBLIC_VISIBILITY, type ReplayEvent, ReplayEventKind } from '@axe/domain/replay/replay-event';
+import { ReplayStageComponent } from '@axe/features/replay/replay-workspace/replay-stage.component';
+import { TEST_PROVIDERS } from '@axe/testing/test-providers';
+
+function event(
+  seq: number,
+  t: number,
+  kind: ReplayEventKind = ReplayEventKind.ChatMessage,
+  detail: Record<string, unknown> = {}
+) {
+  return { seq, at: t, t, kind, actorId: 'alice', detail, visibility: PUBLIC_VISIBILITY } as ReplayEvent;
+}
+
+const events: readonly ReplayEvent[] = [
+  event(1, 0, ReplayEventKind.ChatMessage, { name: '盗賊', text: 'こんばんは' }),
+  event(2, 100),
+  event(3, 200),
+  event(4, 5000, ReplayEventKind.Marker, { label: '第二幕' }),
+  event(5, 10_000),
+];
+
+describe('ReplayStageComponent', () => {
+  let fixture: ComponentFixture<ReplayStageComponent>;
+  let cursor: WritableSignal<number>;
+  let seekTo: ReturnType<typeof vi.fn>;
+
+  async function setup(): Promise<void> {
+    await TestBed.configureTestingModule({
+      imports: [ReplayStageComponent],
+      providers: [
+        ...TEST_PROVIDERS,
+        {
+          provide: ReplayPlaybackService,
+          useValue: {
+            events: signal(events).asReadonly(),
+            cursor: cursor.asReadonly(),
+            manifest: signal(null).asReadonly(),
+            currentEvent: signal<ReplayEvent | null>(events[0]).asReadonly(),
+            isBoardMode: signal(false).asReadonly(),
+            isSeeking: signal(false).asReadonly(),
+            autoPlay: signal(false).asReadonly(),
+            isAtStart: signal(true).asReadonly(),
+            isAtEnd: signal(false).asReadonly(),
+            seekTo,
+            toStart: vi.fn(),
+            previous: vi.fn(),
+            next: vi.fn(),
+            toEnd: vi.fn(),
+            toggleAutoPlay: vi.fn(),
+            enterBoardMode: vi.fn(),
+            exitBoardMode: vi.fn(),
+          },
+        },
+      ],
+    }).compileComponents();
+
+    fixture = TestBed.createComponent(ReplayStageComponent);
+    fixture.detectChanges();
+  }
+
+  beforeEach(async () => {
+    cursor = signal(0);
+    seekTo = vi.fn().mockResolvedValue(undefined);
+    PeerCursor.myCursor = Object.assign(new PeerCursor(), { peerId: 'p', userId: 'gm', role: PeerRole.GameMaster });
+    await setup();
+  });
+
+  afterEach(() => {
+    PeerCursor.myCursor = null as unknown as PeerCursor;
+  });
+
+  it('賑わいを山として描くこと', () => {
+    const bars: HTMLElement[] = Array.from(fixture.nativeElement.querySelectorAll('[role="slider"] > div > span'));
+    expect(bars.length).toBeGreaterThan(1);
+    expect(bars.some((bar) => bar.style.height === '100%')).toBe(true);
+    expect(bars.some((bar) => bar.style.height === '0%')).toBe(true);
+  });
+
+  it('目印を章として並べること', () => {
+    const chapters: HTMLElement[] = Array.from(fixture.nativeElement.querySelectorAll('[role="slider"] button'));
+    expect(chapters).toHaveLength(1);
+    expect(chapters[0].title).toBe('第二幕');
+    expect(chapters[0].style.left).toBe('50%');
+  });
+
+  it('章を押せばそこへ飛ぶこと', () => {
+    const chapter: HTMLElement = fixture.nativeElement.querySelector('[role="slider"] button');
+    chapter.click();
+    expect(seekTo).toHaveBeenCalledWith(3);
+  });
+
+  it('今どのあたりかを示すこと', () => {
+    const track: HTMLElement = fixture.nativeElement.querySelector('[role="slider"]');
+    expect(track.getAttribute('aria-valuenow')).toBe('1');
+    expect(track.getAttribute('aria-valuemax')).toBe('5');
+
+    cursor.set(4);
+    fixture.detectChanges();
+    expect(track.getAttribute('aria-valuenow')).toBe('5');
+  });
+
+  it('通り過ぎた章を見出しとして出すこと', () => {
+    expect(fixture.nativeElement.textContent).not.toContain('第二幕');
+
+    cursor.set(3);
+    fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toContain('第二幕');
+  });
+
+  it('矢印キーで一つずつ進めること', () => {
+    const track: HTMLElement = fixture.nativeElement.querySelector('[role="slider"]');
+    track.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true }));
+    expect(seekTo).toHaveBeenCalledWith(1);
+  });
+});

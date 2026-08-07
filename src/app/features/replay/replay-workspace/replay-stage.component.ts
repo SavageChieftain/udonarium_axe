@@ -5,6 +5,12 @@ import { ReplayPlaybackService } from '@axe/application/replay/replay-playback.s
 import { confirmDialog } from '@axe/core/input/confirm-dialog';
 import { formatReplayElapsed, type ReplayLogLine, toReplayLogLine } from '@axe/features/replay/replay-log-line';
 import { EMPTY_REPLAY_DICTIONARY, replayNamesAt } from '@axe/features/replay/replay-names';
+import {
+  buildReplayTimeline,
+  type ReplayTimelineChapter,
+  replayTimelineIndexAt,
+  replayTimelinePosition,
+} from '@axe/features/replay/replay-timeline';
 import { TranslocoModule } from '@jsverse/transloco';
 
 @Component({
@@ -32,6 +38,19 @@ export class ReplayStageComponent {
     return formatReplayElapsed(events[events.length - 1]?.t ?? 0);
   });
 
+  protected readonly timeline = computed(() => buildReplayTimeline(this.playback.events()));
+  protected readonly playhead = computed(() => replayTimelinePosition(this.playback.events(), this.cursor()));
+
+  protected readonly chapter = computed<ReplayTimelineChapter | null>(() => {
+    const cursor = this.cursor();
+    let reached: ReplayTimelineChapter | null = null;
+    for (const chapter of this.timeline().chapters) {
+      if (chapter.index > cursor) break;
+      reached = chapter;
+    }
+    return reached;
+  });
+
   protected readonly line = computed<ReplayLogLine | null>(() => {
     const event = this.playback.currentEvent();
     if (!event) return null;
@@ -50,8 +69,31 @@ export class ReplayStageComponent {
     return resolved;
   }
 
-  protected async seekTo(value: string): Promise<void> {
-    await this.playback.seekTo(Number(value));
+  protected async seekTo(index: number): Promise<void> {
+    await this.playback.seekTo(index);
+  }
+
+  protected async scrubStart(event: PointerEvent): Promise<void> {
+    const track = event.currentTarget as HTMLElement;
+    track.setPointerCapture(event.pointerId);
+    await this.scrubTo(event);
+  }
+
+  protected async scrubMove(event: PointerEvent): Promise<void> {
+    const track = event.currentTarget as HTMLElement;
+    if (!track.hasPointerCapture(event.pointerId)) return;
+    await this.scrubTo(event);
+  }
+
+  protected async scrubKey(step: number): Promise<void> {
+    await this.playback.seekTo(this.cursor() + step);
+  }
+
+  private async scrubTo(event: PointerEvent): Promise<void> {
+    const bounds = (event.currentTarget as HTMLElement).getBoundingClientRect();
+    if (bounds.width < 1) return;
+    const ratio = (event.clientX - bounds.left) / bounds.width;
+    await this.playback.seekTo(replayTimelineIndexAt(this.playback.events(), ratio));
   }
 
   protected async toStart(): Promise<void> {
