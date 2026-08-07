@@ -1,0 +1,80 @@
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
+import { RolePermissionService } from '@axe/application/permission/role-permission.service';
+import { ReplayLibraryService } from '@axe/application/replay/replay-library.service';
+import { ReplayPlaybackService } from '@axe/application/replay/replay-playback.service';
+import { ReplayRecorderService } from '@axe/application/replay/replay-recorder.service';
+import { confirmDialog } from '@axe/core/input/confirm-dialog';
+import type { ReplayRecordingMeta } from '@axe/core/storage/replay-log-store';
+import { formatSnapshotByteSize, formatSnapshotSavedAt } from '@axe/features/room-archive/snapshot-format';
+import { TranslocoModule } from '@jsverse/transloco';
+
+@Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  selector: 'replay-recording-list',
+  templateUrl: './replay-recording-list.component.html',
+  imports: [TranslocoModule],
+})
+export class ReplayRecordingListComponent {
+  private readonly recorder = inject(ReplayRecorderService);
+  private readonly library = inject(ReplayLibraryService);
+  private readonly playback = inject(ReplayPlaybackService);
+  private readonly rolePermission = inject(RolePermissionService);
+  private readonly t = inject(TRANSLATE_FN);
+
+  protected readonly recordings = this.recorder.recordings;
+  protected readonly isBusy = this.library.isBusy;
+  protected readonly isRecording = this.recorder.isRecording;
+  protected readonly openedId = this.playback.recordingId;
+  protected readonly withAssets = signal(true);
+
+  protected readonly isEmpty = computed(() => this.recordings().length < 1);
+
+  constructor() {
+    void this.recorder.refresh();
+  }
+
+  protected get canEdit(): boolean {
+    return this.rolePermission.canEditTabletop;
+  }
+
+  protected startedAtLabel(meta: ReplayRecordingMeta): string {
+    return formatSnapshotSavedAt(meta.startedAt);
+  }
+
+  protected byteSizeLabel(meta: ReplayRecordingMeta): string {
+    return formatSnapshotByteSize(meta.byteSize);
+  }
+
+  protected isLive(meta: ReplayRecordingMeta): boolean {
+    return this.isRecording() && meta.endedAt === null;
+  }
+
+  protected async open(meta: ReplayRecordingMeta): Promise<void> {
+    await this.playback.open(meta.id);
+  }
+
+  protected toggleAssets(): void {
+    this.withAssets.update((value) => !value);
+  }
+
+  protected async exportRecording(meta: ReplayRecordingMeta): Promise<void> {
+    await this.library.export(meta, this.withAssets());
+  }
+
+  protected async importRecording(event: Event): Promise<void> {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    input.value = '';
+    if (!file) return;
+    await this.library.import(file);
+    await this.recorder.refresh();
+  }
+
+  protected async remove(meta: ReplayRecordingMeta): Promise<void> {
+    if (!this.canEdit) return;
+    if (!confirmDialog(this.t('feature.replay.panel.removeConfirm', { startedAt: this.startedAtLabel(meta) }))) return;
+    if (this.openedId() === meta.id) await this.playback.close();
+    await this.recorder.remove(meta.id);
+  }
+}

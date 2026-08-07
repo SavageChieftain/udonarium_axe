@@ -1,0 +1,86 @@
+import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
+import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
+import { RolePermissionService } from '@axe/application/permission/role-permission.service';
+import { ReplayPlaybackService } from '@axe/application/replay/replay-playback.service';
+import { confirmDialog } from '@axe/core/input/confirm-dialog';
+import { formatReplayElapsed, type ReplayLogLine, toReplayLogLine } from '@axe/features/replay/replay-log-line';
+import { EMPTY_REPLAY_DICTIONARY, replayNamesAt } from '@axe/features/replay/replay-names';
+import { TranslocoModule } from '@jsverse/transloco';
+
+@Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  selector: 'replay-stage',
+  templateUrl: './replay-stage.component.html',
+  imports: [TranslocoModule],
+})
+export class ReplayStageComponent {
+  private readonly playback = inject(ReplayPlaybackService);
+  private readonly rolePermission = inject(RolePermissionService);
+  private readonly t = inject(TRANSLATE_FN);
+
+  protected readonly cursor = this.playback.cursor;
+  protected readonly isBoardMode = this.playback.isBoardMode;
+  protected readonly isSeeking = this.playback.isSeeking;
+  protected readonly autoPlay = this.playback.autoPlay;
+  protected readonly isAtStart = this.playback.isAtStart;
+  protected readonly isAtEnd = this.playback.isAtEnd;
+
+  protected readonly total = computed(() => this.playback.events().length);
+  protected readonly elapsed = computed(() => formatReplayElapsed(this.playback.currentEvent()?.t ?? 0));
+  protected readonly duration = computed(() => {
+    const events = this.playback.events();
+    return formatReplayElapsed(events[events.length - 1]?.t ?? 0);
+  });
+
+  protected readonly line = computed<ReplayLogLine | null>(() => {
+    const event = this.playback.currentEvent();
+    if (!event) return null;
+    const dictionary = this.playback.manifest() ?? EMPTY_REPLAY_DICTIONARY;
+    return toReplayLogLine(event, replayNamesAt(dictionary, event.seq));
+  });
+
+  protected get canEdit(): boolean {
+    return this.rolePermission.canEditTabletop;
+  }
+
+  protected lineParams(line: ReplayLogLine): Record<string, string | number> {
+    if (!line.paramKeys) return line.params;
+    const resolved: Record<string, string | number> = { ...line.params };
+    for (const [name, key] of Object.entries(line.paramKeys)) resolved[name] = this.t(key);
+    return resolved;
+  }
+
+  protected async seekTo(value: string): Promise<void> {
+    await this.playback.seekTo(Number(value));
+  }
+
+  protected async toStart(): Promise<void> {
+    await this.playback.toStart();
+  }
+
+  protected async previous(): Promise<void> {
+    await this.playback.previous();
+  }
+
+  protected async next(): Promise<void> {
+    await this.playback.next();
+  }
+
+  protected async toEnd(): Promise<void> {
+    await this.playback.toEnd();
+  }
+
+  protected toggleAutoPlay(): void {
+    this.playback.toggleAutoPlay();
+  }
+
+  protected async toggleBoardMode(): Promise<void> {
+    if (this.isBoardMode()) {
+      await this.playback.exitBoardMode();
+      return;
+    }
+    if (!this.canEdit) return;
+    if (!confirmDialog(this.t('feature.replay.player.boardConfirm'))) return;
+    await this.playback.enterBoardMode();
+  }
+}

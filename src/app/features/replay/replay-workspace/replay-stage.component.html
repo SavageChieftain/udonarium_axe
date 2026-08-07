@@ -1,0 +1,72 @@
+<div class="flex flex-col gap-2">
+  <div class="border-ui-border bg-ui-elevated rounded-ui flex min-h-24 flex-col gap-1 border border-solid p-3">
+    @if (line(); as row) {
+      <span class="text-ui-dim text-[0.7rem] tabular-nums">{{ elapsed() }}</span>
+      <span class="text-[0.95rem] leading-[1.7]">{{ row.key | transloco: lineParams(row) }}</span>
+    } @else {
+      <span class="text-ui-muted text-[0.8rem]">{{ 'feature.replay.player.empty' | transloco }}</span>
+    }
+  </div>
+
+  <input
+    class="w-full"
+    type="range"
+    min="0"
+    [max]="total() - 1"
+    [value]="cursor()"
+    [disabled]="isSeeking()"
+    (input)="seekTo($any($event.target).value)"
+  />
+
+  <div class="flex items-center justify-between gap-2">
+    <span class="text-ui-muted text-[0.7rem] tabular-nums">{{ cursor() + 1 }} / {{ total() }}</span>
+    <div class="flex items-center gap-0.5">
+      <button
+        class="rounded-ui-sm text-ui-dim hover:text-ui-accent cursor-pointer px-1.5 py-0.5"
+        [disabled]="isAtStart() || isSeeking()"
+        (click)="toStart()"
+      >
+        <i class="material-icons text-[18px]">first_page</i>
+      </button>
+      <button
+        class="rounded-ui-sm text-ui-dim hover:text-ui-accent cursor-pointer px-1.5 py-0.5"
+        [disabled]="isAtStart() || isSeeking()"
+        (click)="previous()"
+      >
+        <i class="material-icons text-[18px]">navigate_before</i>
+      </button>
+      <button
+        class="rounded-ui-sm text-ui-dim hover:text-ui-accent cursor-pointer px-1.5 py-0.5"
+        [disabled]="isAtEnd()"
+        (click)="toggleAutoPlay()"
+      >
+        <i class="material-icons text-[22px]">{{ autoPlay() ? 'pause' : 'play_arrow' }}</i>
+      </button>
+      <button
+        class="rounded-ui-sm text-ui-dim hover:text-ui-accent cursor-pointer px-1.5 py-0.5"
+        [disabled]="isAtEnd() || isSeeking()"
+        (click)="next()"
+      >
+        <i class="material-icons text-[18px]">navigate_next</i>
+      </button>
+      <button
+        class="rounded-ui-sm text-ui-dim hover:text-ui-accent cursor-pointer px-1.5 py-0.5"
+        [disabled]="isAtEnd() || isSeeking()"
+        (click)="toEnd()"
+      >
+        <i class="material-icons text-[18px]">last_page</i>
+      </button>
+    </div>
+    <span class="text-ui-muted text-[0.7rem] tabular-nums">{{ elapsed() }} / {{ duration() }}</span>
+  </div>
+
+  <button
+    class="rounded-ui-sm flex cursor-pointer items-center justify-center gap-1.5 px-[0.8em] py-[0.35em] text-[0.76rem]"
+    [class.danger]="isBoardMode()"
+    [disabled]="!canEdit || isSeeking()"
+    (click)="toggleBoardMode()"
+  >
+    <i class="material-icons text-[16px]">{{ isBoardMode() ? 'undo' : 'cast' }}</i>
+    {{ (isBoardMode() ? 'feature.replay.player.boardStop' : 'feature.replay.player.boardStart') | transloco }}
+  </button>
+</div>

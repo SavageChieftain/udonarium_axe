@@ -41,8 +41,7 @@
       "characterImport": "Import Character",
       "ownedCharacters": "My characters",
       "roomSnapshot": "Auto Save",
-      "replayLog": "Session log",
-      "replayPlayer": "Replay player"
+      "replay": "Replay"
     },
     "party": {
       "unnamed": "Unnamed party"
@@ -2111,6 +2110,10 @@
         "markPlaceholder": "Name this moment",
         "stop": "Stop recording",
         "hide": "Hide"
+      },
+      "workspace": {
+        "recordings": "Recordings",
+        "recording": "Recording"
       }
     }
   },
@@ -2144,8 +2147,7 @@
       "importCharacter": "Import Character",
       "roomSnapshot": "Auto save / restore",
       "createObject": "Create a piece",
-      "replayLog": "Session log",
-      "replayPlayer": "Replay player"
+      "replay": "Replay"
     },
     "roomDataDefault": "Room data"
   },

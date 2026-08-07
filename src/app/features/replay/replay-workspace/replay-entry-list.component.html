@@ -1,0 +1,85 @@
+<div class="border-ui-border flex h-full w-72 shrink-0 flex-col gap-1.5 border-l border-solid pl-2">
+  <div class="flex flex-wrap items-center gap-1">
+    @for (scope of scopes; track scope) {
+      <button
+        class="rounded-ui-sm cursor-pointer px-[0.6em] py-[0.2em] text-[0.7rem]"
+        [class.border-ui-accent]="filter().scope === scope"
+        [class.text-ui-accent]="filter().scope === scope"
+        (click)="setScope(scope)"
+      >
+        {{ 'feature.replay.panel.scope.' + scope | transloco }}
+      </button>
+    }
+    <select
+      class="border-ui-border bg-ui-panel rounded-ui-sm border border-solid px-1 py-0.5 text-[0.7rem]"
+      [value]="filter().actorId"
+      (change)="setActor($any($event.target).value)"
+    >
+      <option value="">{{ 'feature.replay.panel.allActors' | transloco }}</option>
+      @for (actorId of actors(); track actorId) {
+        <option [value]="actorId">{{ actorLabel(actorId) }}</option>
+      }
+    </select>
+    <label class="text-ui-muted flex cursor-pointer items-center gap-1 text-[0.7rem]">
+      <input type="checkbox" [checked]="filter().hideSecret" (change)="toggleSecret()" />
+      {{ 'feature.replay.panel.hideSecret' | transloco }}
+    </label>
+  </div>
+
+  <ul class="m-0 flex min-h-0 flex-1 list-none flex-col gap-0.5 overflow-y-auto p-0">
+    @for (row of rows(); track row.seq) {
+      <li
+        class="hover:bg-ui-accent-bg rounded-ui-sm flex cursor-pointer items-start gap-1.5 px-1.5 py-1 text-[0.74rem]"
+        [class.bg-ui-accent-bg]="editing() ? row.index === selectedIndex() : row.index === cursor()"
+        [class.text-ui-dim]="!editing() && row.index > cursor()"
+        [class.font-semibold]="row.isChapter"
+        (click)="activate(row)"
+      >
+        <span class="text-ui-dim shrink-0 text-[0.66rem] tabular-nums">{{ row.elapsed }}</span>
+        @if (row.inserted) {
+          <i class="material-icons shrink-0 text-[13px] leading-[1.4] text-emerald-400">edit_note</i>
+        }
+        <i class="material-icons text-ui-dim shrink-0 text-[13px] leading-[1.4]">{{ row.line.icon }}</i>
+        <span class="min-w-0 flex-1 wrap-break-word">{{ row.line.key | transloco: lineParams(row.line) }}</span>
+        @if (row.line.isSecret) {
+          <i class="material-icons text-ui-dim shrink-0 text-[13px] leading-[1.4]">visibility_off</i>
+        }
+        @if (editing()) {
+          <button
+            class="text-ui-dim hover:text-ui-accent shrink-0 cursor-pointer px-0.5"
+            [attr.aria-label]="'feature.replay.editor.up' | transloco"
+            (click)="move(row.seq, -1); $event.stopPropagation()"
+          >
+            <i class="material-icons text-[14px]">arrow_upward</i>
+          </button>
+          <button
+            class="text-ui-dim hover:text-ui-accent shrink-0 cursor-pointer px-0.5"
+            [attr.aria-label]="'feature.replay.editor.down' | transloco"
+            (click)="move(row.seq, 1); $event.stopPropagation()"
+          >
+            <i class="material-icons text-[14px]">arrow_downward</i>
+          </button>
+          <button
+            class="text-ui-dim shrink-0 cursor-pointer px-0.5 hover:text-red-400"
+            [attr.aria-label]="'feature.replay.editor.remove' | transloco"
+            (click)="remove(row.seq); $event.stopPropagation()"
+          >
+            <i class="material-icons text-[14px]">close</i>
+          </button>
+        }
+      </li>
+      @if (editing() && row.index === selectedIndex() && isTextRow(row.seq)) {
+        <li class="px-1.5 pb-1">
+          <input
+            class="border-ui-border bg-ui-panel rounded-ui-sm w-full border border-solid px-1.5 py-1 text-[0.72rem]"
+            type="text"
+            [value]="textOfRow(row.seq)"
+            (change)="retext(row.seq, $any($event.target).value)"
+          />
+        </li>
+      }
+    } @empty {
+      <li class="text-ui-muted px-1.5 py-2 text-[0.76rem]">{{ 'feature.replay.panel.empty' | transloco }}</li>
+    }
+  </ul>
+</div>

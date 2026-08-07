@@ -58,9 +58,8 @@ import { MobileShellComponent } from '@axe/features/mobile/mobile-shell/mobile-s
 import { PlToolbarComponent } from '@axe/features/pl-tools/pl-toolbar/pl-toolbar.component';
 import { ReplayEventHandlerService } from '@axe/features/replay/replay-event-handler.service';
 import { ReplayIndicatorComponent } from '@axe/features/replay/replay-indicator/replay-indicator.component';
-import { ReplayLogPanelComponent } from '@axe/features/replay/replay-log-panel/replay-log-panel.component';
-import { ReplayPlayerPanelComponent } from '@axe/features/replay/replay-player-panel/replay-player-panel.component';
 import { ReplayStagingBannerComponent } from '@axe/features/replay/replay-staging-banner/replay-staging-banner.component';
+import { ReplayWorkspaceComponent } from '@axe/features/replay/replay-workspace/replay-workspace.component';
 import { RoomArchiveEventHandlerService } from '@axe/features/room-archive/room-archive-event-handler.service';
 import { RoomRestoreBannerComponent } from '@axe/features/room-archive/room-restore-banner/room-restore-banner.component';
 import { RoomSnapshotPanelComponent } from '@axe/features/room-archive/room-snapshot-panel/room-snapshot-panel.component';
@@ -201,8 +200,7 @@ export class AppComponent {
       | 'GameObjectInventoryComponent'
       | 'GameObjectListPanelComponent'
       | 'RoomSnapshotPanelComponent'
-      | 'ReplayLogPanelComponent'
-      | 'ReplayPlayerPanelComponent'
+      | 'ReplayWorkspaceComponent'
   ) {
     let component: { new (...args: unknown[]): unknown } | null = null;
     let option: PanelOption = { width: 450, height: 600, left: 100 };
@@ -259,13 +257,16 @@ export class AppComponent {
         component = RoomSnapshotPanelComponent;
         option = { width: 460, height: 460, left: 100, title: this.t('common.panel.roomSnapshot') };
         break;
-      case 'ReplayLogPanelComponent':
-        component = ReplayLogPanelComponent;
-        option = { width: 480, height: 620, left: 100, title: this.t('common.panel.replayLog') };
-        break;
-      case 'ReplayPlayerPanelComponent':
-        component = ReplayPlayerPanelComponent;
-        option = { width: 480, height: 620, left: 100, title: this.t('common.panel.replayPlayer') };
+      case 'ReplayWorkspaceComponent':
+        component = ReplayWorkspaceComponent;
+        option = {
+          width: 900,
+          height: 640,
+          left: 100,
+          minWidth: 600,
+          minHeight: 420,
+          title: this.t('common.panel.replay'),
+        };
         break;
     }
     if (component) {

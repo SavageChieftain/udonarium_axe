@@ -1,0 +1,56 @@
+<div class="border-ui-border flex h-full w-56 shrink-0 flex-col gap-1.5 border-r border-solid pr-2">
+  <span class="text-ui-muted text-[0.72rem]">{{ 'feature.replay.workspace.recordings' | transloco }}</span>
+
+  <ul class="m-0 flex min-h-0 flex-1 list-none flex-col gap-1 overflow-y-auto p-0">
+    @for (meta of recordings(); track meta.id) {
+      <li
+        class="border-ui-border rounded-ui hover:bg-ui-accent-bg flex cursor-pointer flex-col gap-0.5 border border-solid px-2 py-1.5"
+        [class.border-ui-accent]="meta.id === openedId()"
+        [class.bg-ui-accent-bg]="meta.id === openedId()"
+        (click)="open(meta)"
+      >
+        <span class="flex items-center gap-1 truncate text-[0.76rem]">
+          @if (isLive(meta)) {
+            <span class="size-1.5 shrink-0 animate-pulse rounded-full bg-red-500"></span>
+          }
+          {{ startedAtLabel(meta) }}
+        </span>
+        <span class="text-ui-muted truncate text-[0.68rem]">
+          {{ meta.roomName || ('feature.replay.panel.offlineRoom' | transloco) }} ・
+          {{ 'feature.replay.panel.entries' | transloco: { count: meta.eventCount } }} ・ {{ byteSizeLabel(meta) }}
+        </span>
+        <span class="mt-0.5 flex gap-1">
+          <button
+            class="rounded-ui-sm cursor-pointer px-[0.6em] py-[0.15em] text-[0.68rem]"
+            [disabled]="isBusy()"
+            (click)="exportRecording(meta); $event.stopPropagation()"
+          >
+            {{ 'feature.replay.panel.export' | transloco }}
+          </button>
+          <button
+            class="danger rounded-ui-sm cursor-pointer px-[0.6em] py-[0.15em] text-[0.68rem]"
+            [disabled]="!canEdit"
+            (click)="remove(meta); $event.stopPropagation()"
+          >
+            {{ 'feature.replay.panel.remove' | transloco }}
+          </button>
+        </span>
+      </li>
+    } @empty {
+      <li class="text-ui-muted text-[0.72rem]">{{ 'feature.replay.panel.noRecordings' | transloco }}</li>
+    }
+  </ul>
+
+  <div class="border-ui-border flex flex-col gap-1 border-t border-solid pt-1.5">
+    <label class="text-ui-muted flex cursor-pointer items-center gap-1 text-[0.68rem]">
+      <input type="checkbox" [checked]="withAssets()" (change)="toggleAssets()" />
+      {{ 'feature.replay.panel.withAssets' | transloco }}
+    </label>
+    <label
+      class="rounded-ui-sm border-ui-border cursor-pointer border border-solid px-[0.6em] py-[0.2em] text-center text-[0.7rem]"
+    >
+      {{ 'feature.replay.panel.import' | transloco }}
+      <input type="file" class="hidden" accept=".zip,application/zip" (change)="importRecording($event)" />
+    </label>
+  </div>
+</div>

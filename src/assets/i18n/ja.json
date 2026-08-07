@@ -41,8 +41,7 @@
       "characterImport": "キャラクター取り込み",
       "ownedCharacters": "所有キャラクター一覧",
       "roomSnapshot": "自動保存",
-      "replayLog": "セッションログ",
-      "replayPlayer": "リプレイ再生"
+      "replay": "リプレイ"
     },
     "party": {
       "unnamed": "無名のパーティ"
@@ -2111,6 +2110,10 @@
         "markPlaceholder": "この場面に見出しを付ける",
         "stop": "記録を止める",
         "hide": "表示を消す"
+      },
+      "workspace": {
+        "recordings": "記録",
+        "recording": "記録中"
       }
     }
   },
@@ -2144,8 +2147,7 @@
       "importCharacter": "キャラ取り込み",
       "roomSnapshot": "自動保存 / 復元",
       "createObject": "コマを作る",
-      "replayLog": "セッションログ",
-      "replayPlayer": "リプレイ再生"
+      "replay": "リプレイ"
     },
     "roomDataDefault": "ルームデータ"
   },
