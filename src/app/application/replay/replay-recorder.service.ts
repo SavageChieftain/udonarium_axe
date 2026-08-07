@@ -60,6 +60,7 @@ export class ReplayRecorderService {
   private readonly _startedAt = signal(0);
   private readonly _recentEvents = signal<readonly ReplayEvent[]>([]);
   private readonly _recordings = signal<readonly ReplayRecordingMeta[]>([]);
+  private readonly _roomName = signal('');
 
   readonly isRecording = this._isRecording.asReadonly();
   readonly eventCount = this._eventCount.asReadonly();
@@ -67,6 +68,7 @@ export class ReplayRecorderService {
   readonly recentEvents = this._recentEvents.asReadonly();
   readonly detailLevel = this.preference.detailLevel.asReadonly();
   readonly recordings = this._recordings.asReadonly();
+  readonly roomName = this._roomName.asReadonly();
 
   private recordingId: number | null = null;
   private seq = 0;
@@ -124,7 +126,8 @@ export class ReplayRecorderService {
     if (!this.isSupported || this._isRecording()) return false;
 
     const startedAt = Date.now();
-    const id = await this.store.createRecording({ roomName: currentRoomName(), startedAt });
+    const roomName = currentRoomName();
+    const id = await this.store.createRecording({ roomName, startedAt });
     if (id == null) {
       Logger.warn('[ReplayRecorder] 録画を開始できませんでした');
       return false;
@@ -145,6 +148,7 @@ export class ReplayRecorderService {
     this.recentDirty = false;
     this._recentEvents.set([]);
     this._startedAt.set(startedAt);
+    this._roomName.set(roomName);
     this.seedShadows();
     this.baselineUntil = startedAt + REPLAY_BASELINE_GRACE_MS;
     this._isRecording.set(true);
@@ -440,7 +444,7 @@ export class ReplayRecorderService {
     const self = this.rememberActor(this.selfPeerId());
     return {
       formatVersion: REPLAY_FORMAT_VERSION,
-      roomName: currentRoomName(),
+      roomName: this._roomName(),
       startedAt: this._startedAt(),
       endedAt: Date.now(),
       recordedBy: self,

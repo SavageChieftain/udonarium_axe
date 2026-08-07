@@ -3,7 +3,6 @@ import { RolePermissionService } from '@axe/application/permission/role-permissi
 import { ReplayPreferenceService, ReplayStartMode } from '@axe/application/replay/replay-preference.service';
 import { ReplayRecorderService } from '@axe/application/replay/replay-recorder.service';
 import { WidgetVisibilityService } from '@axe/application/ui/widget-visibility.service';
-import { Network } from '@axe/core/network/network';
 import { ReplayDetailLevel } from '@axe/domain/replay/replay-event';
 import { formatReplayElapsed } from '@axe/features/replay/replay-log-line';
 import { TranslocoModule } from '@jsverse/transloco';
@@ -33,7 +32,7 @@ export class ReplayIndicatorComponent {
 
   protected readonly isShown = computed(() => {
     if (!this.widgets.recording()) return false;
-    return this.isRecording() || (this.recorder.isSupported && this.isInRoom());
+    return this.isRecording() || this.recorder.isSupported;
   });
 
   protected readonly elapsed = computed(() => {
@@ -79,9 +78,5 @@ export class ReplayIndicatorComponent {
     if (!this.canEdit) return;
     this.isOpen.set(false);
     await this.recorder.stop();
-  }
-
-  private isInRoom(): boolean {
-    return (Network.peerContext?.roomName ?? '').length > 0;
   }
 }

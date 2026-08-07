@@ -9,6 +9,7 @@ import {
   ReplayRecorderService,
 } from '@axe/application/replay/replay-recorder.service';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
+import { Network } from '@axe/core/network/network';
 import { setNetworkIsolated } from '@axe/core/network/network-isolation';
 import { localDispatch } from '@axe/core/network/network-messaging';
 import {
@@ -347,6 +348,29 @@ describe('ReplayRecorderService', () => {
     expect(manifest?.endedAt).not.toBeNull();
     expect(manifest?.actors.some((actor) => actor.userId === 'alice')).toBe(true);
     expect(manifest?.keyframes.length).toBeGreaterThan(0);
+  });
+
+  it('部屋がなくても録画できること', async () => {
+    expect(await service.start()).toBe(true);
+    expect(service.roomName()).toBe('');
+
+    vi.advanceTimersByTime(REPLAY_BASELINE_GRACE_MS);
+    sendUpdate('c1', 'character', { posZ: 10 });
+    await service.stop();
+
+    expect(store.allEvents()).toHaveLength(1);
+    expect(decodeReplayManifest((await store.getManifest(1))!)?.roomName).toBe('');
+  });
+
+  it('始めた卓の名前を最後まで持つこと', async () => {
+    vi.spyOn(Network, 'peerContext', 'get').mockReturnValue({ roomName: '第一夜' } as never);
+    await service.start();
+    expect(service.roomName()).toBe('第一夜');
+
+    vi.spyOn(Network, 'peerContext', 'get').mockReturnValue({ roomName: '' } as never);
+    await service.stop();
+
+    expect(decodeReplayManifest((await store.getManifest(1))!)?.roomName).toBe('第一夜');
   });
 
   it('開始と停止で盤面を書き留めること', async () => {

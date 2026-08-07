@@ -1986,7 +1986,6 @@
         "detailLevel": "Detail",
         "pastRecordings": "Past recordings ({{count}})",
         "entries": "{{count}} entries",
-        "offlineRoom": "Offline",
         "remove": "Delete",
         "removeConfirm": "Delete the recording from {{startedAt}}?",
         "scope": {
@@ -2002,7 +2001,8 @@
         "export": "Export",
         "import": "Import",
         "withAssets": "Include images",
-        "noRecordings": "No saved recordings"
+        "noRecordings": "No saved recordings",
+        "soloRoom": "Solo table"
       },
       "line": {
         "chat": "{{speaker}}: {{text}}",

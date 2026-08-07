@@ -15,6 +15,7 @@ describe('ReplayIndicatorComponent', () => {
   let stop: ReturnType<typeof vi.fn>;
   let start: ReturnType<typeof vi.fn>;
   let setDetailLevel: ReturnType<typeof vi.fn>;
+  let isSupported = true;
 
   async function setup(): Promise<void> {
     await TestBed.configureTestingModule({
@@ -28,7 +29,9 @@ describe('ReplayIndicatorComponent', () => {
             eventCount: signal(42).asReadonly(),
             startedAt: signal(Date.now() - 65_000).asReadonly(),
             detailLevel: signal(ReplayDetailLevel.Notable).asReadonly(),
-            isSupported: true,
+            get isSupported() {
+              return isSupported;
+            },
             mark,
             stop,
             start,
@@ -55,6 +58,7 @@ describe('ReplayIndicatorComponent', () => {
     localStorage.removeItem('ui-widgets');
     localStorage.removeItem('axe-replay-preference');
     isRecording = signal(true);
+    isSupported = true;
     mark = vi.fn().mockResolvedValue(undefined);
     stop = vi.fn().mockResolvedValue(undefined);
     start = vi.fn().mockResolvedValue(true);
@@ -80,9 +84,16 @@ describe('ReplayIndicatorComponent', () => {
     expect(pill()?.textContent).toContain('記録なし');
   });
 
-  it('卓の外では出ないこと', async () => {
+  it('部屋がなくても出ること', async () => {
     isRecording = signal(false);
     vi.spyOn(Network, 'peerContext', 'get').mockReturnValue({ roomName: '' } as never);
+    await setup();
+    expect(pill()?.textContent).toContain('記録なし');
+  });
+
+  it('保存できない環境では出ないこと', async () => {
+    isRecording = signal(false);
+    isSupported = false;
     await setup();
     expect(pill()).toBeNull();
   });

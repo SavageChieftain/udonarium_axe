@@ -16,7 +16,7 @@
           {{ startedAtLabel(meta) }}
         </span>
         <span class="text-ui-muted truncate text-[0.68rem]">
-          {{ meta.roomName || ('feature.replay.panel.offlineRoom' | transloco) }} ・
+          {{ meta.roomName || ('feature.replay.panel.soloRoom' | transloco) }} ・
           {{ 'feature.replay.panel.entries' | transloco: { count: meta.eventCount } }} ・ {{ byteSizeLabel(meta) }}
         </span>
         <span class="mt-0.5 flex gap-1">

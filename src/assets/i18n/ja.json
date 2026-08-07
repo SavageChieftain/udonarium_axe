@@ -1986,7 +1986,6 @@
         "detailLevel": "記録の細かさ",
         "pastRecordings": "過去の記録（{{count}}）",
         "entries": "{{count}} 件",
-        "offlineRoom": "オフライン",
         "remove": "削除",
         "removeConfirm": "{{startedAt}} の記録を削除しますか？",
         "scope": {
@@ -2002,7 +2001,8 @@
         "export": "書き出し",
         "import": "読み込み",
         "withAssets": "画像も含める",
-        "noRecordings": "保存された記録はありません"
+        "noRecordings": "保存された記録はありません",
+        "soloRoom": "ひとりの卓"
       },
       "line": {
         "chat": "{{speaker}}「{{text}}」",

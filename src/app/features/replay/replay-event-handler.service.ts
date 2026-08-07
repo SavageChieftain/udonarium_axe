@@ -27,9 +27,10 @@ export class ReplayEventHandlerService {
   private evaluate(): void {
     if (!this.recorder.isSupported) return;
 
-    if (!this.isInRoom()) {
+    if (this.recorder.isRecording()) {
+      if (this.recorder.roomName() === currentRoomName()) return;
       this.clearTimer();
-      if (this.recorder.isRecording()) void this.recorder.stop();
+      void this.recorder.stop();
       return;
     }
     if (!this.shouldRecord()) {
@@ -37,7 +38,7 @@ export class ReplayEventHandlerService {
       return;
     }
 
-    if (this.recorder.isRecording() || this.settleTimer !== null) return;
+    if (this.settleTimer !== null) return;
     this.settleTimer = setTimeout(() => {
       this.settleTimer = null;
       if (this.shouldRecord() && !this.recorder.isRecording()) void this.recorder.start();
@@ -46,11 +47,7 @@ export class ReplayEventHandlerService {
 
   private shouldRecord(): boolean {
     if (this.preference.startMode() !== ReplayStartMode.Auto) return false;
-    return this.isInRoom() && this.rolePermission.canEditTabletop;
-  }
-
-  private isInRoom(): boolean {
-    return (Network.peerContext?.roomName ?? '').length > 0;
+    return this.rolePermission.canEditTabletop;
   }
 
   private clearTimer(): void {
@@ -58,4 +55,8 @@ export class ReplayEventHandlerService {
     clearTimeout(this.settleTimer);
     this.settleTimer = null;
   }
+}
+
+function currentRoomName(): string {
+  return Network.peerContext?.roomName ?? '';
 }

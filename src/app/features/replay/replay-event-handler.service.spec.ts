@@ -14,10 +14,12 @@ describe('ReplayEventHandlerService', () => {
   let recorder: {
     isSupported: boolean;
     isRecording: () => boolean;
+    roomName: () => string;
     start: () => Promise<boolean>;
     stop: () => Promise<void>;
   };
   let recording = false;
+  let startedIn = '';
   let canEdit = true;
   let roomName = '第一夜';
 
@@ -25,14 +27,17 @@ describe('ReplayEventHandlerService', () => {
     localStorage.removeItem('axe-replay-preference');
     vi.useFakeTimers();
     recording = false;
+    startedIn = '';
     canEdit = true;
     roomName = '第一夜';
 
     recorder = {
       isSupported: true,
       isRecording: () => recording,
+      roomName: () => startedIn,
       start: vi.fn(async () => {
         recording = true;
+        startedIn = Network.peerContext?.roomName ?? '';
         return true;
       }),
       stop: vi.fn(async () => {
@@ -82,12 +87,36 @@ describe('ReplayEventHandlerService', () => {
     expect(recorder.start).toHaveBeenCalledTimes(1);
   });
 
-  it('部屋の外では録画を始めないこと', () => {
+  it('部屋がなくてもひとりの卓を録画すること', () => {
     vi.spyOn(Network, 'peerContext', 'get').mockReturnValue({ roomName: '' } as never);
     localDispatch('OPEN_NETWORK', { peerId: 'peer-a' });
 
     vi.advanceTimersByTime(REPLAY_AUTO_START_SETTLE_MS);
-    expect(recorder.start).not.toHaveBeenCalled();
+    expect(recorder.start).toHaveBeenCalledTimes(1);
+  });
+
+  it('ひとりの卓から部屋へ移ったら録画を締めること', () => {
+    vi.spyOn(Network, 'peerContext', 'get').mockReturnValue({ roomName: '' } as never);
+    localDispatch('OPEN_NETWORK', { peerId: 'peer-a' });
+    vi.advanceTimersByTime(REPLAY_AUTO_START_SETTLE_MS);
+    expect(recording).toBe(true);
+
+    vi.spyOn(Network, 'peerContext', 'get').mockReturnValue({ roomName: '第一夜' } as never);
+    localDispatch('OPEN_NETWORK', { peerId: 'peer-a' });
+    expect(recorder.stop).toHaveBeenCalledTimes(1);
+  });
+
+  it('締めたあとは移った先の卓を録り直すこと', () => {
+    localDispatch('OPEN_NETWORK', { peerId: 'peer-a' });
+    vi.advanceTimersByTime(REPLAY_AUTO_START_SETTLE_MS);
+
+    vi.spyOn(Network, 'peerContext', 'get').mockReturnValue({ roomName: '第二夜' } as never);
+    localDispatch('OPEN_NETWORK', { peerId: 'peer-a' });
+    localDispatch('OPEN_NETWORK', { peerId: 'peer-a' });
+
+    vi.advanceTimersByTime(REPLAY_AUTO_START_SETTLE_MS);
+    expect(recorder.start).toHaveBeenCalledTimes(2);
+    expect(startedIn).toBe('第二夜');
   });
 
   it('見学者は録画しないこと', () => {
@@ -130,6 +159,7 @@ describe('ReplayEventHandlerService', () => {
   it('自分で始めたものを勝手に止めないこと', () => {
     TestBed.inject(ReplayPreferenceService).setStartMode(ReplayStartMode.Manual);
     recording = true;
+    startedIn = '第一夜';
     localDispatch('OPEN_NETWORK', { peerId: 'peer-a' });
 
     vi.advanceTimersByTime(REPLAY_AUTO_START_SETTLE_MS);
