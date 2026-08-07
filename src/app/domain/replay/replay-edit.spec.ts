@@ -1,4 +1,5 @@
 import {
+  chatTabIdentifierNear,
   createReplayEntry,
   hasReplayEdits,
   insertReplayEvent,
@@ -48,17 +49,72 @@ describe('isTextEditable() / textOf()', () => {
 describe('createReplayEntry()', () => {
   it('差し込む発言を組み立てること', () => {
     const entry = createReplayEntry(
-      { kind: ReplayEventKind.ChatMessage, actorId: 'alice', speaker: '盗賊', text: 'やあ' },
+      { kind: ReplayEventKind.ChatMessage, actorId: 'alice', speaker: '盗賊', text: 'やあ', tabIdentifier: 'tab1' },
       9,
       5000
     );
     expect(entry).toMatchObject({ seq: 9, at: 5000, kind: ReplayEventKind.ChatMessage, actorId: 'alice' });
-    expect(entry.detail).toEqual({ text: 'やあ', name: '盗賊', from: 'alice', to: '', tag: '' });
+    expect(entry.detail).toEqual({
+      text: 'やあ',
+      name: '盗賊',
+      from: 'alice',
+      to: '',
+      tag: '',
+      dicebot: '',
+      timestamp: 5000,
+      tabIdentifier: 'tab1',
+    });
   });
 
   it('目印は見出しとして組み立てること', () => {
-    const entry = createReplayEntry({ kind: ReplayEventKind.Marker, actorId: 'gm', speaker: '', text: '第二幕' }, 1, 0);
+    const entry = createReplayEntry(
+      { kind: ReplayEventKind.Marker, actorId: 'gm', speaker: '', text: '第二幕', tabIdentifier: 'tab1' },
+      1,
+      0
+    );
     expect(entry.detail).toEqual({ label: '第二幕' });
+  });
+
+  it('発言に実体を作るパッチを添えること', () => {
+    const entry = createReplayEntry(
+      { kind: ReplayEventKind.ChatMessage, actorId: 'alice', speaker: '盗賊', text: 'やあ', tabIdentifier: 'tab1' },
+      9,
+      5000
+    );
+    expect(entry.patch?.aliasName).toBe('chat');
+    expect(entry.patch?.identifier).toBe(entry.targetId);
+    expect(entry.patch?.after).toMatchObject({
+      value: 'やあ',
+      parentIdentifier: 'tab1',
+      'attributes.from': 'alice',
+      'attributes.name': '盗賊',
+      'attributes.timestamp': 5000,
+    });
+  });
+
+  it('ダイスの行はダイスボットの発言として作ること', () => {
+    const entry = createReplayEntry(
+      { kind: ReplayEventKind.ChatDice, actorId: 'alice', speaker: '', text: '(1d100) ＞ 42', tabIdentifier: 'tab1' },
+      9,
+      5000
+    );
+    expect(entry.detail['from']).toBe('System-BCDice');
+    expect(entry.patch?.after['attributes.from']).toBe('System-BCDice');
+    expect(entry.patch?.after['attributes.tag']).toBe('system');
+  });
+
+  it('目印には実体を作らないこと', () => {
+    const entry = createReplayEntry(
+      { kind: ReplayEventKind.Marker, actorId: 'gm', speaker: '', text: '第二幕', tabIdentifier: 'tab1' },
+      1,
+      0
+    );
+    expect(entry.patch).toBeUndefined();
+  });
+
+  it('差し込むたびに別の識別子を振ること', () => {
+    const draft = { kind: ReplayEventKind.ChatMessage, actorId: 'a', speaker: '', text: 'x', tabIdentifier: 't' };
+    expect(createReplayEntry(draft, 1, 0).targetId).not.toBe(createReplayEntry(draft, 2, 0).targetId);
   });
 
   it('差し込んだ行も書き直せる種類であること', () => {
@@ -66,6 +122,27 @@ describe('createReplayEntry()', () => {
       expect(isInsertableKind(kind)).toBe(true);
     }
     expect(isInsertableKind(ReplayEventKind.ObjectMove)).toBe(false);
+  });
+});
+
+describe('chatTabIdentifierNear()', () => {
+  const withTabs: ReplayEvent[] = [
+    { ...event(1), detail: { text: '一', tabIdentifier: 'tab-a' } },
+    { ...event(2), kind: ReplayEventKind.ObjectMove, detail: {} },
+    { ...event(3), detail: { text: '三', tabIdentifier: 'tab-b' } },
+  ];
+
+  it('手前で一番近いタブを使うこと', () => {
+    expect(chatTabIdentifierNear(withTabs, 2)).toBe('tab-a');
+    expect(chatTabIdentifierNear(withTabs, 3)).toBe('tab-b');
+  });
+
+  it('手前に無ければ後ろを見ること', () => {
+    expect(chatTabIdentifierNear(withTabs, 0)).toBe('tab-a');
+  });
+
+  it('どこにも無ければ空を返すこと', () => {
+    expect(chatTabIdentifierNear([event(1)], 0)).toBe('');
   });
 });
 

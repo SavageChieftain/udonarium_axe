@@ -1,3 +1,4 @@
+import { generateUuid } from '@axe/core/util/uuid';
 import { PUBLIC_VISIBILITY, type ReplayEvent, ReplayEventKind } from '@axe/domain/replay/replay-event';
 
 export const INSERTABLE_KINDS: readonly ReplayEventKind[] = [
@@ -13,6 +14,21 @@ export interface ReplayEntryDraft {
   actorId: string;
   speaker: string;
   text: string;
+  tabIdentifier: string;
+}
+
+export const DICEBOT_SENDER = 'System-BCDice';
+
+export function chatTabIdentifierNear(events: readonly ReplayEvent[], atIndex: number): string {
+  for (let index = Math.min(atIndex, events.length) - 1; index >= 0; index--) {
+    const tab = String(events[index].detail['tabIdentifier'] ?? '');
+    if (tab.length > 0) return tab;
+  }
+  for (let index = Math.max(0, atIndex); index < events.length; index++) {
+    const tab = String(events[index].detail['tabIdentifier'] ?? '');
+    if (tab.length > 0) return tab;
+  }
+  return '';
 }
 
 export function isInsertableKind(kind: ReplayEventKind): boolean {
@@ -20,10 +36,22 @@ export function isInsertableKind(kind: ReplayEventKind): boolean {
 }
 
 export function createReplayEntry(draft: ReplayEntryDraft, seq: number, at: number): ReplayEvent {
-  const detail =
-    draft.kind === ReplayEventKind.Marker
-      ? { label: draft.text }
-      : { text: draft.text, name: draft.speaker, from: draft.actorId, to: '', tag: '' };
+  if (draft.kind === ReplayEventKind.Marker) {
+    return {
+      seq,
+      at,
+      t: 0,
+      kind: draft.kind,
+      actorId: draft.actorId,
+      detail: { label: draft.text },
+      visibility: PUBLIC_VISIBILITY,
+    };
+  }
+
+  const isDice = draft.kind === ReplayEventKind.ChatDice;
+  const from = isDice ? DICEBOT_SENDER : draft.actorId;
+  const tag = isDice ? 'system' : '';
+  const identifier = generateUuid();
 
   return {
     seq,
@@ -31,7 +59,34 @@ export function createReplayEntry(draft: ReplayEntryDraft, seq: number, at: numb
     t: 0,
     kind: draft.kind,
     actorId: draft.actorId,
-    detail,
+    targetId: identifier,
+    detail: {
+      text: draft.text,
+      name: draft.speaker,
+      from,
+      to: '',
+      tag,
+      dicebot: '',
+      timestamp: at,
+      tabIdentifier: draft.tabIdentifier,
+    },
+    patch: {
+      identifier,
+      aliasName: 'chat',
+      before: {},
+      after: {
+        value: draft.text,
+        parentIdentifier: draft.tabIdentifier,
+        majorIndex: 0,
+        minorIndex: 0,
+        'attributes.from': from,
+        'attributes.to': '',
+        'attributes.name': draft.speaker,
+        'attributes.tag': tag,
+        'attributes.dicebot': '',
+        'attributes.timestamp': at,
+      },
+    },
     visibility: PUBLIC_VISIBILITY,
   };
 }

@@ -160,7 +160,13 @@ describe('ReplayEditorService', () => {
   });
 
   it('好きな位置に行を差し込めること', () => {
-    service.insert(2, { kind: ReplayEventKind.ChatMessage, actorId: 'gm', speaker: '語り', text: 'そのとき' });
+    service.insert(2, {
+      kind: ReplayEventKind.ChatMessage,
+      actorId: 'gm',
+      speaker: '語り',
+      text: 'そのとき',
+      tabIdentifier: 'tab1',
+    });
 
     const edited = service.edited();
     expect(edited).toHaveLength(5);
@@ -170,18 +176,36 @@ describe('ReplayEditorService', () => {
   });
 
   it('差し込んだ行の時刻を前後の間に置くこと', () => {
-    service.insert(2, { kind: ReplayEventKind.ChatMessage, actorId: 'gm', speaker: '', text: '間' });
+    service.insert(2, {
+      kind: ReplayEventKind.ChatMessage,
+      actorId: 'gm',
+      speaker: '',
+      text: '間',
+      tabIdentifier: 'tab1',
+    });
     expect(service.edited()[2].at).toBe(1_002_500);
   });
 
   it('差し込んだ行を見分けられること', () => {
-    service.insert(0, { kind: ReplayEventKind.Marker, actorId: 'gm', speaker: '', text: '第一幕' });
+    service.insert(0, {
+      kind: ReplayEventKind.Marker,
+      actorId: 'gm',
+      speaker: '',
+      text: '第一幕',
+      tabIdentifier: 'tab1',
+    });
     expect(service.isInserted(service.edited()[0].seq)).toBe(true);
     expect(service.isInserted(service.edited()[1].seq)).toBe(false);
   });
 
   it('差し込んだ行を保存に含めること', async () => {
-    service.insert(0, { kind: ReplayEventKind.Marker, actorId: 'gm', speaker: '', text: '第一幕' });
+    service.insert(0, {
+      kind: ReplayEventKind.Marker,
+      actorId: 'gm',
+      speaker: '',
+      text: '第一幕',
+      tabIdentifier: 'tab1',
+    });
     const id = await service.saveAsDerived(manifest, base);
     const saved = decodeReplayEvents((await store.listChunks(id!))[0].bytes);
 
@@ -191,7 +215,13 @@ describe('ReplayEditorService', () => {
   });
 
   it('差し込んだ行を消して元に戻せること', () => {
-    service.insert(0, { kind: ReplayEventKind.Marker, actorId: 'gm', speaker: '', text: '第一幕' });
+    service.insert(0, {
+      kind: ReplayEventKind.Marker,
+      actorId: 'gm',
+      speaker: '',
+      text: '第一幕',
+      tabIdentifier: 'tab1',
+    });
     service.revert();
     expect(service.edited()).toHaveLength(4);
     expect(service.isDirty()).toBe(false);

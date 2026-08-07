@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { ChatMessageService } from '@axe/application/chat/chat-message.service';
 import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { RolePermissionService } from '@axe/application/permission/role-permission.service';
 import { ReplayEditorService } from '@axe/application/replay/replay-editor.service';
@@ -8,7 +9,7 @@ import { ReplayRecorderService } from '@axe/application/replay/replay-recorder.s
 import { ReplayStagingService } from '@axe/application/replay/replay-staging.service';
 import { confirmDialog } from '@axe/core/input/confirm-dialog';
 import type { ReplayRecordingMeta } from '@axe/core/storage/replay-log-store';
-import { INSERTABLE_KINDS, isTextEditable, textOf } from '@axe/domain/replay/replay-edit';
+import { chatTabIdentifierNear, INSERTABLE_KINDS, isTextEditable, textOf } from '@axe/domain/replay/replay-edit';
 import { findActorAt, findTargetAt, ReplayEventKind, type ReplayManifest } from '@axe/domain/replay/replay-event';
 import type { ReplayLogLine } from '@axe/features/replay/replay-log-line';
 import { formatReplayElapsed, type ReplayNameLookup, toReplayLogLine } from '@axe/features/replay/replay-log-line';
@@ -28,6 +29,7 @@ export class ReplayPlayerPanelComponent {
   private readonly editor = inject(ReplayEditorService);
   private readonly library = inject(ReplayLibraryService);
   private readonly staging = inject(ReplayStagingService);
+  private readonly chatMessageService = inject(ChatMessageService);
   private readonly recorder = inject(ReplayRecorderService);
   private readonly rolePermission = inject(RolePermissionService);
   private readonly t = inject(TRANSLATE_FN);
@@ -186,6 +188,12 @@ export class ReplayPlayerPanelComponent {
     this.insertKind.set(kind as ReplayEventKind);
   }
 
+  private insertTabIdentifier(index: number): string {
+    const fromRecording = chatTabIdentifierNear(this.editor.edited(), index);
+    if (fromRecording.length > 0) return fromRecording;
+    return this.chatMessageService.chatTabs[0]?.identifier ?? '';
+  }
+
   protected selectRow(index: number): void {
     if (!this.isEditing()) return;
     this.selectedIndex.update((current) => (current === index ? -1 : index));
@@ -203,6 +211,7 @@ export class ReplayPlayerPanelComponent {
       actorId: this.insertActorId() || this.actors()[0]?.userId || '',
       speaker: this.insertSpeaker().trim(),
       text: this.insertText().trim(),
+      tabIdentifier: this.insertTabIdentifier(index),
     });
     this.insertText.set('');
     this.selectedIndex.set(index);
