@@ -2024,13 +2024,15 @@
         "table": "{{actor}} switched the table to {{target}}",
         "soundEffect": "{{actor}} played a sound",
         "cutIn": "{{actor}} played a cut-in",
-        "effect": "{{actor}} cast an effect",
+        "effect": "{{actor}} cast {{effect}}",
         "join": "{{actor}} joined",
         "leave": "{{actor}} left",
         "marker": "— {{label}} —",
         "moveHeight": "{{actor}} moved {{target}} from ({{fromX}}, {{fromY}}) at height {{fromZ}} to ({{toX}}, {{toY}}) at height {{toZ}}",
         "moveSurface": "{{actor}} moved {{target}} from ({{fromX}}, {{fromY}}) on the {{fromSurface}} to ({{toX}}, {{toY}}) on the {{toSurface}}",
-        "movePlace": "{{actor}} moved {{target}} from {{fromPlace}} to {{toPlace}}"
+        "movePlace": "{{actor}} moved {{target}} from {{fromPlace}} to {{toPlace}}",
+        "effectOn": "{{actor}} cast {{effect}} on {{targets}}",
+        "effectFrom": "{{actor}} cast {{effect}} from {{caster}} at {{targets}}"
       },
       "player": {
         "choose": "Choose a recording",

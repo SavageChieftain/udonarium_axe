@@ -326,6 +326,38 @@ describe('interpretSignal()', () => {
     expect(draft?.detail['changes']).toEqual([{ name: 'HP', diff: -5 }]);
   });
 
+  it('演出の発動を効果・撃ち手・対象で読むこと', () => {
+    const draft = interpretSignal('EFFECT_CAST', {
+      presetIdentifier: 'preset-fire',
+      casterIdentifier: 'c1',
+      targets: [
+        { identifier: 'c2', x: 0, y: 0, z: 0 },
+        { identifier: 'c3', x: 0, y: 0, z: 0 },
+      ],
+      seed: 42,
+    });
+    expect(draft?.kind).toBe(ReplayEventKind.EffectCast);
+    expect(draft?.targetIdentifier).toBe('preset-fire');
+    expect(draft?.detail).toEqual({ caster: 'c1', targets: ['c2', 'c3'] });
+    expect(draft?.relatedIdentifiers).toEqual(['c1', 'c2', 'c3']);
+    expect(draft?.signal?.name).toBe('EFFECT_CAST');
+  });
+
+  it('撃ち手のない演出も読むこと', () => {
+    const draft = interpretSignal('EFFECT_CAST', {
+      presetIdentifier: 'preset-heal',
+      casterIdentifier: '',
+      targets: [{ identifier: 'c1', x: 0, y: 0, z: 0 }],
+    });
+    expect(draft?.detail).toEqual({ caster: '', targets: ['c1'] });
+    expect(draft?.relatedIdentifiers).toEqual(['c1']);
+  });
+
+  it('壊れた演出でも落ちないこと', () => {
+    const draft = interpretSignal('EFFECT_CAST', { presetIdentifier: 'p', targets: 'not-an-array' });
+    expect(draft?.detail).toEqual({ caster: '', targets: [] });
+  });
+
   it('入退室を読むこと', () => {
     expect(interpretSignal('CONNECT_PEER', { peerId: 'p1' })?.kind).toBe(ReplayEventKind.PeerJoin);
     expect(interpretSignal('DISCONNECT_PEER', { peerId: 'p1' })?.kind).toBe(ReplayEventKind.PeerLeave);

@@ -160,6 +160,35 @@ describe('toReplayLogLine()', () => {
     expect(line.params['label']).toBe('第二幕');
   });
 
+  it('演出を効果名と対象で表すこと', () => {
+    const line = toReplayLogLine(
+      event(ReplayEventKind.EffectCast, { caster: '', targets: ['c1'] }, { targetId: 'preset-fire' }),
+      { ...names, targetName: (id) => ({ c1: '盗賊', 'preset-fire': '火炎' })[id] ?? '' }
+    );
+    expect(line.key).toBe('feature.replay.line.effectOn');
+    expect(line.params['effect']).toBe('火炎');
+    expect(line.params['targets']).toBe('盗賊');
+  });
+
+  it('撃ち手のある演出を放った形で表すこと', () => {
+    const line = toReplayLogLine(
+      event(ReplayEventKind.EffectCast, { caster: 'c1', targets: ['c2', 'c3'] }, { targetId: 'preset-fire' }),
+      { ...names, targetName: (id) => ({ c1: '術者', c2: '敵A', c3: '敵B', 'preset-fire': '火炎' })[id] ?? '' }
+    );
+    expect(line.key).toBe('feature.replay.line.effectFrom');
+    expect(line.params['caster']).toBe('術者');
+    expect(line.params['targets']).toBe('敵A、敵B');
+  });
+
+  it('対象の分からない演出も表せること', () => {
+    const line = toReplayLogLine(
+      event(ReplayEventKind.EffectCast, { caster: '', targets: [] }, { targetId: 'preset-fire' }),
+      { ...names, targetName: (id) => (id === 'preset-fire' ? '火炎' : '') }
+    );
+    expect(line.key).toBe('feature.replay.line.effect');
+    expect(line.params['effect']).toBe('火炎');
+  });
+
   it('秘匿のイベントに印を付けること', () => {
     const line = toReplayLogLine(
       event(ReplayEventKind.ChatMessage, { text: 'ないしょ' }, { visibility: { kind: 'direct', to: ['bob'] } }),

@@ -19,6 +19,7 @@ export interface ReplayDraft {
   detail: Record<string, unknown>;
   patch?: ReplayPatch;
   signal?: ReplaySignal;
+  relatedIdentifiers?: readonly string[];
 }
 
 export interface ObjectChangeInput {
@@ -117,7 +118,7 @@ export function interpretSignal(eventName: string, data: unknown): ReplayDraft |
     case 'SOUND_EFFECT':
       return { kind: ReplayEventKind.MediaSoundEffect, detail: { identifier: asString(data) }, signal };
     case 'EFFECT_CAST':
-      return { kind: ReplayEventKind.EffectCast, detail: { cast: data }, signal };
+      return describeEffectCast(record, signal);
     case 'SELECT_GAME_TABLE':
       return {
         kind: ReplayEventKind.TableChange,
@@ -178,6 +179,21 @@ function describeChange(
     };
 
   return { kind: ReplayEventKind.ObjectUpdate, detail: { keys: [...keys] } };
+}
+
+function describeEffectCast(record: Record<string, unknown>, signal: ReplaySignal): ReplayDraft {
+  const caster = asString(record['casterIdentifier']);
+  const targets = (Array.isArray(record['targets']) ? record['targets'] : [])
+    .map((target) => asString((target as Record<string, unknown>)?.['identifier']))
+    .filter((identifier) => identifier.length > 0);
+
+  return {
+    kind: ReplayEventKind.EffectCast,
+    targetIdentifier: asString(record['presetIdentifier']),
+    detail: { caster, targets },
+    relatedIdentifiers: [caster, ...targets].filter((identifier) => identifier.length > 0),
+    signal,
+  };
 }
 
 function describeCutIn(

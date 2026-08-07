@@ -108,7 +108,7 @@ export function toReplayLogLine(event: ReplayEvent, names: ReplayNameLookup): Re
     case ReplayEventKind.MediaCutIn:
       return line('cutIn');
     case ReplayEventKind.EffectCast:
-      return line('effect');
+      return describeEffectLine(line, detail, names, target);
     case ReplayEventKind.PeerJoin:
       return line('join');
     case ReplayEventKind.PeerLeave:
@@ -118,6 +118,24 @@ export function toReplayLogLine(event: ReplayEvent, names: ReplayNameLookup): Re
     default:
       return line('update');
   }
+}
+
+function describeEffectLine(
+  line: LineFactory,
+  detail: Readonly<Record<string, unknown>>,
+  names: ReplayNameLookup,
+  presetName: string
+): ReplayLogLine {
+  const targetNames = (Array.isArray(detail['targets']) ? detail['targets'] : [])
+    .map((identifier) => names.targetName(text(identifier)) || text(identifier))
+    .filter((name) => name.length > 0);
+  const casterId = text(detail['caster']);
+  const caster = casterId.length > 0 ? names.targetName(casterId) || casterId : '';
+  const params = { effect: presetName, targets: targetNames.join('、') };
+
+  if (targetNames.length < 1) return line('effect', { effect: presetName });
+  if (caster.length > 0) return line('effectFrom', { ...params, caster });
+  return line('effectOn', params);
 }
 
 type LineFactory = (

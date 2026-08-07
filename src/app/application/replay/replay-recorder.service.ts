@@ -223,6 +223,7 @@ export class ReplayRecorderService {
 
     const actor = this.rememberActor(sendFrom);
     if (draft.targetIdentifier) this.rememberTarget(draft.targetIdentifier);
+    for (const identifier of draft.relatedIdentifiers ?? []) this.rememberTarget(identifier);
 
     const event: ReplayEvent = {
       seq: ++this.seq,

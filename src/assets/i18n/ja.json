@@ -2024,13 +2024,15 @@
         "table": "{{actor}} がテーブルを {{target}} に切り替えた",
         "soundEffect": "{{actor}} が効果音を鳴らした",
         "cutIn": "{{actor}} がカットインを出した",
-        "effect": "{{actor}} が演出を出した",
+        "effect": "{{actor}} が〈{{effect}}〉を出した",
         "join": "{{actor}} が入室した",
         "leave": "{{actor}} が退室した",
         "marker": "― {{label}} ―",
         "moveHeight": "{{actor}} が {{target}} を ({{fromX}}, {{fromY}}) 高さ {{fromZ}} から ({{toX}}, {{toY}}) 高さ {{toZ}} へ動かした",
         "moveSurface": "{{actor}} が {{target}} を{{fromSurface}}の ({{fromX}}, {{fromY}}) から{{toSurface}}の ({{toX}}, {{toY}}) へ動かした",
-        "movePlace": "{{actor}} が {{target}} を{{fromPlace}}から{{toPlace}}へ移した"
+        "movePlace": "{{actor}} が {{target}} を{{fromPlace}}から{{toPlace}}へ移した",
+        "effectOn": "{{actor}} が {{targets}} に〈{{effect}}〉をかけた",
+        "effectFrom": "{{actor}} が {{caster}} から {{targets}} へ〈{{effect}}〉を放った"
       },
       "player": {
         "choose": "記録を選ぶ",
