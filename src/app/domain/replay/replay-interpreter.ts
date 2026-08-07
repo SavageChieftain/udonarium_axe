@@ -134,6 +134,12 @@ export function interpretSignal(eventName: string, data: unknown): ReplayDraft |
         targetIdentifier: asString(record['characterIdentifier']),
         detail: { changes: record['changes'] ?? [] },
       };
+    case 'VN_MODE':
+      return {
+        kind: ReplayEventKind.VnMode,
+        detail: { active: Boolean(record['active']) },
+        signal,
+      };
     case 'CONNECT_PEER':
       return { kind: ReplayEventKind.PeerJoin, detail: { peerId: asString(record['peerId']) } };
     case 'DISCONNECT_PEER':

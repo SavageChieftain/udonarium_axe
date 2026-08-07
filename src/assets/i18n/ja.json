@@ -2039,7 +2039,9 @@
         "vnSceneClear": "{{actor}} が場面の背景を外した",
         "vnPlayhead": "{{actor}} が語りを進めた",
         "vnDirectStart": "{{actor}} が進行役になった",
-        "vnDirectStop": "{{actor}} が進行役をやめた"
+        "vnDirectStop": "{{actor}} が進行役をやめた",
+        "vnModeOn": "{{actor}} がノベル表示にした",
+        "vnModeOff": "{{actor}} が卓の表示に戻した"
       },
       "player": {
         "choose": "記録を選ぶ",

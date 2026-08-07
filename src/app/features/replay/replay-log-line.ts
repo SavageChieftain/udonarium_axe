@@ -39,6 +39,7 @@ const ICONS: Record<string, string> = {
   [ReplayEventKind.VnScene]: 'wallpaper',
   [ReplayEventKind.VnPlayhead]: 'auto_stories',
   [ReplayEventKind.VnDirect]: 'theaters',
+  [ReplayEventKind.VnMode]: 'auto_stories',
   [ReplayEventKind.PeerJoin]: 'login',
   [ReplayEventKind.PeerLeave]: 'logout',
   [ReplayEventKind.Marker]: 'bookmark',
@@ -121,6 +122,8 @@ export function toReplayLogLine(event: ReplayEvent, names: ReplayNameLookup): Re
       return line('vnPlayhead');
     case ReplayEventKind.VnDirect:
       return line(detail['isDirected'] === true ? 'vnDirectStart' : 'vnDirectStop');
+    case ReplayEventKind.VnMode:
+      return line(detail['active'] === true ? 'vnModeOn' : 'vnModeOff');
     case ReplayEventKind.PeerJoin:
       return line('join');
     case ReplayEventKind.PeerLeave:

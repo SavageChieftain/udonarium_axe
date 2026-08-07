@@ -471,6 +471,15 @@ describe('interpretSignal()', () => {
     expect(draft?.detail).toEqual({ caster: '', targets: [] });
   });
 
+  it('ノベル表示の切り替えを読むこと', () => {
+    const on = interpretSignal('VN_MODE', { active: true });
+    expect(on?.kind).toBe(ReplayEventKind.VnMode);
+    expect(on?.detail['active']).toBe(true);
+    expect(on?.signal).toEqual({ name: 'VN_MODE', data: { active: true } });
+
+    expect(interpretSignal('VN_MODE', { active: false })?.detail['active']).toBe(false);
+  });
+
   it('入退室を読むこと', () => {
     expect(interpretSignal('CONNECT_PEER', { peerId: 'p1' })?.kind).toBe(ReplayEventKind.PeerJoin);
     expect(interpretSignal('DISCONNECT_PEER', { peerId: 'p1' })?.kind).toBe(ReplayEventKind.PeerLeave);

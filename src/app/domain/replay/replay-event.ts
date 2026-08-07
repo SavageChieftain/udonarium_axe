@@ -25,6 +25,7 @@ export const ReplayEventKind = {
   VnScene: 'vn.scene',
   VnPlayhead: 'vn.playhead',
   VnDirect: 'vn.direct',
+  VnMode: 'vn.mode',
   PeerJoin: 'peer.join',
   PeerLeave: 'peer.leave',
   Marker: 'marker',

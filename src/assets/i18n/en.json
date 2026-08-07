@@ -2039,7 +2039,9 @@
         "vnSceneClear": "{{actor}} cleared the backdrop",
         "vnPlayhead": "{{actor}} moved the story on",
         "vnDirectStart": "{{actor}} took over narration",
-        "vnDirectStop": "{{actor}} handed narration back"
+        "vnDirectStop": "{{actor}} handed narration back",
+        "vnModeOn": "{{actor}} switched to the novel view",
+        "vnModeOff": "{{actor}} went back to the table"
       },
       "player": {
         "choose": "Choose a recording",
