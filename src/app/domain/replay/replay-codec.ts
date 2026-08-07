@@ -1,5 +1,12 @@
 import { decode, encode } from '@axe/core/util/message-pack';
-import { REPLAY_FORMAT_VERSION, type ReplayEvent, type ReplayManifest } from '@axe/domain/replay/replay-event';
+import {
+  GM_ONLY_VISIBILITY,
+  PUBLIC_VISIBILITY,
+  REPLAY_FORMAT_VERSION,
+  type ReplayEvent,
+  type ReplayManifest,
+  type ReplayVisibility,
+} from '@axe/domain/replay/replay-event';
 
 interface ChunkEnvelope {
   v: number;
@@ -23,7 +30,7 @@ export function encodeReplayEvents(events: readonly ReplayEvent[]): Uint8Array {
 export function decodeReplayEvents(bytes: Uint8Array): ReplayEvent[] {
   const envelope = decode(bytes) as ChunkEnvelope | null;
   if (!envelope || !isSupportedReplayFormat(envelope.v) || !Array.isArray(envelope.events)) return [];
-  return envelope.events.map(fromWire);
+  return envelope.events.map(fromWire).filter((event): event is ReplayEvent => event !== null);
 }
 
 export function encodeReplayManifest(manifest: ReplayManifest): Uint8Array {
@@ -34,7 +41,44 @@ export function encodeReplayManifest(manifest: ReplayManifest): Uint8Array {
 export function decodeReplayManifest(bytes: Uint8Array): ReplayManifest | null {
   const envelope = decode(bytes) as ManifestEnvelope | null;
   if (!envelope || !isSupportedReplayFormat(envelope.v)) return null;
-  return (envelope.manifest as ReplayManifest) ?? null;
+  return toManifest(envelope.manifest);
+}
+
+export function toManifest(value: unknown): ReplayManifest | null {
+  if (!isRecord(value) || !isSupportedReplayFormat(value['formatVersion'])) return null;
+  return {
+    ...(value as unknown as ReplayManifest),
+    roomName: asString(value['roomName']),
+    startedAt: asNumber(value['startedAt']),
+    endedAt: typeof value['endedAt'] === 'number' ? value['endedAt'] : null,
+    actors: asArray(value['actors']),
+    targets: asArray(value['targets']),
+    keyframes: asArray(value['keyframes']),
+    chunks: asArray(value['chunks']),
+  };
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function asString(value: unknown): string {
+  return typeof value === 'string' ? value : '';
+}
+
+function asNumber(value: unknown): number {
+  return typeof value === 'number' && Number.isFinite(value) ? value : 0;
+}
+
+function asArray<T>(value: unknown): T[] {
+  return Array.isArray(value) ? (value as T[]) : [];
+}
+
+function asVisibility(value: unknown): ReplayVisibility {
+  if (!isRecord(value)) return PUBLIC_VISIBILITY;
+  if (value['kind'] === 'gm-only') return GM_ONLY_VISIBILITY;
+  if (value['kind'] === 'direct') return { kind: 'direct', to: asArray<string>(value['to']) };
+  return PUBLIC_VISIBILITY;
 }
 
 function toWire(event: ReplayEvent): Record<string, unknown> {
@@ -54,6 +98,21 @@ function toWire(event: ReplayEvent): Record<string, unknown> {
   return wire;
 }
 
-function fromWire(wire: unknown): ReplayEvent {
-  return wire as ReplayEvent;
+function fromWire(wire: unknown): ReplayEvent | null {
+  if (!isRecord(wire)) return null;
+  if (typeof wire['seq'] !== 'number' || typeof wire['kind'] !== 'string') return null;
+
+  const event: ReplayEvent = {
+    ...(wire as unknown as ReplayEvent),
+    seq: wire['seq'],
+    at: asNumber(wire['at']),
+    t: asNumber(wire['t']),
+    kind: wire['kind'] as ReplayEvent['kind'],
+    actorId: asString(wire['actorId']),
+    detail: isRecord(wire['detail']) ? wire['detail'] : {},
+    visibility: asVisibility(wire['visibility']),
+  };
+  if (!isRecord(wire['patch'])) delete event.patch;
+  if (!isRecord(wire['signal'])) delete event.signal;
+  return event;
 }

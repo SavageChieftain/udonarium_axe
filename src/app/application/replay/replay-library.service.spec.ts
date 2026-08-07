@@ -2,6 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { SaveDataService } from '@axe/application/file/save-data.service';
 import { ReplayLibraryService } from '@axe/application/replay/replay-library.service';
 import { FileArchiver } from '@axe/core/storage/file-archiver';
+import { ImageStorage } from '@axe/core/storage/image-storage';
 import {
   type ReplayChunkInput,
   type ReplayChunkRecord,
@@ -22,6 +23,7 @@ import {
   ReplayEventKind,
   type ReplayManifest,
 } from '@axe/domain/replay/replay-event';
+import { decodeReplayKeyframe, encodeReplayKeyframe } from '@axe/domain/replay/replay-keyframe';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
 
 const manifest: ReplayManifest = {
@@ -54,6 +56,27 @@ function event(seq: number): ReplayEvent {
     detail: { text: `発言 ${seq}` },
     visibility: PUBLIC_VISIBILITY,
   };
+}
+
+function soundEvent(seq: number): ReplayEvent {
+  return {
+    ...event(seq),
+    kind: ReplayEventKind.MediaSoundEffect,
+    detail: { identifier: 'se-used' },
+    signal: { name: 'SOUND_EFFECT', data: 'se-used' },
+  };
+}
+
+function keyframeBlob(identifier: string, imageIdentifier: string): Blob {
+  const bytes = encodeReplayKeyframe([
+    { identifier, aliasName: 'character', syncData: { attributes: { imageIdentifier } } },
+  ]);
+  return new Blob([bytes as BlobPart]);
+}
+
+async function firstIdentifierOf(blob: Blob | undefined): Promise<string | undefined> {
+  if (!blob) return undefined;
+  return decodeReplayKeyframe(new Uint8Array(await blob.arrayBuffer()))[0]?.identifier;
 }
 
 class FakeStore extends ReplayLogStore {
@@ -107,6 +130,7 @@ class FakeStore extends ReplayLogStore {
 
 describe('ReplayLibraryService', () => {
   let service: ReplayLibraryService;
+  let wantedAssets: { images: ReadonlySet<string>; audios: ReadonlySet<string> } | null = null;
   let store: FakeStore;
   let archiver: FileArchiver;
 
@@ -126,21 +150,30 @@ describe('ReplayLibraryService', () => {
       seqStart: 3,
       seqEnd: 3,
       eventCount: 1,
-      bytes: encodeReplayEvents([event(3)]),
+      bytes: encodeReplayEvents([soundEvent(4)]),
     });
-    await store.putKeyframe({ recordingId: id, seq: 0, at: manifest.startedAt, blob: new Blob(['<a/>']) });
-    await store.putKeyframe({ recordingId: id, seq: 2, at: manifest.startedAt, blob: new Blob(['<b/>']) });
+    await store.putKeyframe({ recordingId: id, seq: 0, at: manifest.startedAt, blob: keyframeBlob('a', 'img-used') });
+    await store.putKeyframe({ recordingId: id, seq: 2, at: manifest.startedAt, blob: keyframeBlob('b', 'img-used') });
     await store.updateRecording(id, { manifest: encodeReplayManifest(manifest) });
     return (await store.getRecording(id))!;
   }
 
   beforeEach(() => {
+    wantedAssets = null;
     store = new FakeStore();
     TestBed.configureTestingModule({
       providers: [
         ...TEST_PROVIDERS,
         { provide: ReplayLogStore, useValue: store },
-        { provide: SaveDataService, useValue: { buildRoomAssetFiles: () => [new File(['png'], 'image-1.png')] } },
+        {
+          provide: SaveDataService,
+          useValue: {
+            buildAssetFiles: (wanted: { images: ReadonlySet<string>; audios: ReadonlySet<string> }) => {
+              wantedAssets = wanted;
+              return [...wanted.images].map((identifier) => new File(['png'], `${identifier}.png`));
+            },
+          },
+        },
       ],
     });
     archiver = TestBed.inject(FileArchiver);
@@ -154,21 +187,21 @@ describe('ReplayLibraryService', () => {
   it('記録をつなげて seq 順に読み出すこと', async () => {
     const meta = await seedRecording();
     const loaded = await service.load(meta.id);
-    expect(loaded.events.map((e) => e.seq)).toEqual([1, 2, 3]);
+    expect(loaded.events.map((e) => e.seq)).toEqual([1, 2, 4]);
     expect(loaded.manifest?.roomName).toBe('第一夜');
   });
 
   it('指定より手前で一番近いキーフレームを返すこと', async () => {
     const meta = await seedRecording();
-    expect(await (await service.keyframeBefore(meta.id, 1))?.blob.text()).toBe('<a/>');
+    expect(await firstIdentifierOf((await service.keyframeBefore(meta.id, 1))?.blob)).toBe('a');
     expect((await service.keyframeBefore(meta.id, 1))?.seq).toBe(0);
-    expect(await (await service.keyframeBefore(meta.id, 5))?.blob.text()).toBe('<b/>');
+    expect(await firstIdentifierOf((await service.keyframeBefore(meta.id, 5))?.blob)).toBe('b');
     expect((await service.keyframeBefore(meta.id, 5))?.seq).toBe(2);
   });
 
   it('先頭より手前を求めても最初のキーフレームを返すこと', async () => {
     const meta = await seedRecording();
-    expect(await (await service.keyframeBefore(meta.id, -1))?.blob.text()).toBe('<a/>');
+    expect(await firstIdentifierOf((await service.keyframeBefore(meta.id, -1))?.blob)).toBe('a');
   });
 
   it('書き出した束を読み戻して同じ記録になること', async () => {
@@ -185,18 +218,45 @@ describe('ReplayLibraryService', () => {
     expect(importedId).not.toBeNull();
 
     const loaded = await service.load(importedId!);
-    expect(loaded.events.map((e) => e.seq)).toEqual([1, 2, 3]);
+    expect(loaded.events.map((e) => e.seq)).toEqual([1, 2, 4]);
     expect(loaded.manifest?.roomName).toBe('第一夜');
     expect((await store.listKeyframes(importedId!)).map((k) => k.seq)).toEqual([0, 2]);
   });
 
-  it('素材を含めるとイメージも束ねること', async () => {
+  it('記録が使っている素材だけを束ねること', async () => {
     const meta = await seedRecording();
     const zipSpy = vi.spyOn(archiver, 'createZipBlobAsync').mockResolvedValue(new Blob(['zip']));
 
     await service.export(meta, true);
+
+    expect([...(wantedAssets?.images ?? [])]).toEqual(['img-used']);
+    expect([...(wantedAssets?.audios ?? [])]).toEqual(['se-used']);
     const files = zipSpy.mock.calls[0][0] as File[];
-    expect(files.some((file) => file.name === 'assets/image-1.png')).toBe(true);
+    expect(files.some((file) => file.name === 'assets/img-used.png')).toBe(true);
+  });
+
+  it('読めないキーフレームがあっても書き出しを止めないこと', async () => {
+    const id = (await store.createRecording({ roomName: '', startedAt: 0 }))!;
+    await store.putKeyframe({ recordingId: id, seq: 0, at: 0, blob: new Blob(['壊れている']) });
+    await store.updateRecording(id, { manifest: encodeReplayManifest(manifest) });
+    vi.spyOn(archiver, 'createZipBlobAsync').mockResolvedValue(new Blob(['zip']));
+
+    expect(await service.export((await store.getRecording(id))!, true)).toBe(true);
+  });
+
+  it('画像でも音でもない添付は取り込まないこと', async () => {
+    const entries = [
+      { name: 'manifest.json', type: 'application/json', blob: new Blob([JSON.stringify(manifest)]) },
+      { name: 'events/000.msgpack', type: '', blob: new Blob([encodeReplayEvents([event(1)]) as BlobPart]) },
+      { name: 'x/assets/data.xml', type: 'text/xml', blob: new Blob(['<room/>']) },
+    ];
+    vi.spyOn(archiver, 'readZipEntriesAsync').mockResolvedValue(entries);
+    const load = vi.spyOn(archiver, 'load').mockResolvedValue(undefined);
+    const addImage = vi.spyOn(TestBed.inject(ImageStorage), 'addAsync');
+
+    expect(await service.import(new File(['zip'], 'replay.zip'))).not.toBeNull();
+    expect(load).not.toHaveBeenCalled();
+    expect(addImage).not.toHaveBeenCalled();
   });
 
   it('目録の無い記録は書き出さないこと', async () => {

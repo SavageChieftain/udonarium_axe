@@ -1,4 +1,4 @@
-import { decodeReplayEvents, encodeReplayEvents, isSupportedReplayFormat } from '@axe/domain/replay/replay-codec';
+import { decodeReplayEvents, encodeReplayEvents, toManifest } from '@axe/domain/replay/replay-codec';
 import type { ReplayEvent, ReplayManifest } from '@axe/domain/replay/replay-event';
 
 export const REPLAY_ARCHIVE_EXTENSION = 'axe-replay.zip';
@@ -87,9 +87,7 @@ export async function parseReplayArchive(entries: readonly ReplayArchiveEntry[])
 
 function parseManifest(text: string): ReplayManifest | null {
   try {
-    const parsed = JSON.parse(text) as ReplayManifest;
-    if (!parsed || !isSupportedReplayFormat(parsed.formatVersion)) return null;
-    return parsed;
+    return toManifest(JSON.parse(text));
   } catch {
     return null;
   }
@@ -106,7 +104,12 @@ function baseName(name: string): string {
 }
 
 function isInDirectory(name: string, directory: string): boolean {
-  return name.replace(/\\/g, '/').includes(directory);
+  const segments = name
+    .replace(/\\/g, '/')
+    .split('/')
+    .filter((segment) => segment.length > 0 && segment !== '.');
+  const at = segments.indexOf(directory.replace(/\/$/, ''));
+  return at >= 0 && at === segments.length - 2;
 }
 
 function seqOf(name: string): number {

@@ -1,7 +1,9 @@
 import { inject, Injectable, signal } from '@angular/core';
 import { SaveDataService } from '@axe/application/file/save-data.service';
 import { Logger } from '@axe/core/logging/logger';
+import { AudioStorage } from '@axe/core/storage/audio-storage';
 import { FileArchiver } from '@axe/core/storage/file-archiver';
+import { ImageStorage } from '@axe/core/storage/image-storage';
 import { ReplayLogStore, type ReplayRecordingMeta } from '@axe/core/storage/replay-log-store';
 import { downloadBlob } from '@axe/core/util/download-blob';
 import {
@@ -11,6 +13,7 @@ import {
   type ReplayArchiveContent,
   replayArchiveName,
 } from '@axe/domain/replay/replay-archive';
+import { collectReplayAssetIds } from '@axe/domain/replay/replay-assets';
 import {
   decodeReplayEvents,
   decodeReplayManifest,
@@ -28,6 +31,8 @@ export class ReplayLibraryService {
   private readonly store = inject(ReplayLogStore);
   private readonly saveDataService = inject(SaveDataService);
   private readonly fileArchiver = inject(FileArchiver);
+  private readonly imageStorage = inject(ImageStorage);
+  private readonly audioStorage = inject(AudioStorage);
 
   private readonly _isBusy = signal(false);
   readonly isBusy = this._isBusy.asReadonly();
@@ -72,11 +77,17 @@ export class ReplayLibraryService {
         return false;
       }
 
+      const chunked = chunks.map((chunk) => ({ index: chunk.index, events: decodeReplayEvents(chunk.bytes) }));
       const files = buildReplayArchiveFiles({
         manifest,
-        chunks: chunks.map((chunk) => ({ index: chunk.index, events: decodeReplayEvents(chunk.bytes) })),
+        chunks: chunked,
         keyframes: keyframes.map((keyframe) => ({ seq: keyframe.seq, blob: keyframe.blob })),
-        assets: withAssets ? this.saveDataService.buildRoomAssetFiles() : [],
+        assets: withAssets
+          ? await this.assetFilesFor(
+              keyframes,
+              chunked.flatMap((chunk) => chunk.events)
+            )
+          : [],
       });
 
       const blob = await this.fileArchiver.createZipBlobAsync(files);
@@ -88,6 +99,18 @@ export class ReplayLibraryService {
     } finally {
       this._isBusy.set(false);
     }
+  }
+
+  private async assetFilesFor(keyframes: readonly { blob: Blob }[], events: readonly ReplayEvent[]): Promise<File[]> {
+    const snapshots: ReplayObjectSnapshot[] = [];
+    for (const keyframe of keyframes) {
+      try {
+        snapshots.push(...decodeReplayKeyframe(new Uint8Array(await keyframe.blob.arrayBuffer())));
+      } catch (reason) {
+        Logger.warn('[ReplayLibrary] 読めない盤面は素材の数え上げから外します', reason);
+      }
+    }
+    return this.saveDataService.buildAssetFiles(collectReplayAssetIds(snapshots, events));
   }
 
   async import(file: File): Promise<number | null> {
@@ -107,6 +130,18 @@ export class ReplayLibraryService {
     } finally {
       this._isBusy.set(false);
     }
+  }
+
+  private async storeAsset(asset: File): Promise<void> {
+    if (asset.type.startsWith('image/')) {
+      await this.imageStorage.addAsync(asset);
+      return;
+    }
+    if (asset.type.startsWith('audio/')) {
+      await this.audioStorage.addAsync(asset);
+      return;
+    }
+    Logger.warn('[ReplayLibrary] 画像でも音でもない添付は取り込みません', asset.name);
   }
 
   private async saveImported(content: ReplayArchiveContent): Promise<number | null> {
@@ -139,7 +174,7 @@ export class ReplayLibraryService {
       });
     }
 
-    if (content.assets.length > 0) await this.fileArchiver.load(content.assets);
+    for (const asset of content.assets) await this.storeAsset(asset);
 
     await this.store.updateRecording(id, {
       endedAt: content.manifest.endedAt,

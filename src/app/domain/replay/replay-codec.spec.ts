@@ -115,3 +115,59 @@ describe('encodeReplayManifest() / decodeReplayManifest()', () => {
     expect(decodeReplayManifest(future)).toBeNull();
   });
 });
+
+describe('壊れた記録の読み込み', () => {
+  it('形の合わない出来事を落とすこと', () => {
+    const bytes = encode({ v: REPLAY_FORMAT_VERSION, events: [{ seq: 1 }, null, 'x', { kind: 'chat.message' }] });
+    expect(decodeReplayEvents(bytes)).toEqual([]);
+  });
+
+  it('欠けている項目を既定で埋めること', () => {
+    const bytes = encode({
+      v: REPLAY_FORMAT_VERSION,
+      events: [{ seq: 1, kind: ReplayEventKind.ChatMessage, patch: 'こわれている' }],
+    });
+    const [event] = decodeReplayEvents(bytes);
+
+    expect(event.detail).toEqual({});
+    expect(event.visibility).toEqual(PUBLIC_VISIBILITY);
+    expect(event.actorId).toBe('');
+    expect(event.at).toBe(0);
+    expect(event.patch).toBeUndefined();
+  });
+
+  it('宛先つきの秘匿を保つこと', () => {
+    const bytes = encode({
+      v: REPLAY_FORMAT_VERSION,
+      events: [
+        { seq: 1, kind: ReplayEventKind.ChatMessage, visibility: { kind: 'direct', to: ['bob'] } },
+        { seq: 2, kind: ReplayEventKind.ChatMessage, visibility: { kind: 'gm-only' } },
+      ],
+    });
+    const [direct, gmOnly] = decodeReplayEvents(bytes);
+
+    expect(direct.visibility).toEqual({ kind: 'direct', to: ['bob'] });
+    expect(gmOnly).toEqual(expect.objectContaining({ visibility: { kind: 'gm-only' } }));
+  });
+
+  it('目録の形が合わなければ読まないこと', () => {
+    expect(decodeReplayManifest(encode({ v: REPLAY_FORMAT_VERSION, manifest: null }))).toBeNull();
+    expect(decodeReplayManifest(encode({ v: REPLAY_FORMAT_VERSION, manifest: { formatVersion: 99 } }))).toBeNull();
+  });
+
+  it('目録の欠けた一覧を空で埋めること', () => {
+    const bytes = encode({
+      v: REPLAY_FORMAT_VERSION,
+      manifest: { formatVersion: REPLAY_FORMAT_VERSION, roomName: 7, endedAt: 'まだ' },
+    });
+    const manifest = decodeReplayManifest(bytes)!;
+
+    expect(manifest.roomName).toBe('');
+    expect(manifest.startedAt).toBe(0);
+    expect(manifest.endedAt).toBeNull();
+    expect(manifest.actors).toEqual([]);
+    expect(manifest.targets).toEqual([]);
+    expect(manifest.keyframes).toEqual([]);
+    expect(manifest.chunks).toEqual([]);
+  });
+});

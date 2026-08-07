@@ -50,16 +50,18 @@ export class SaveDataService {
     return SaveDataService.queue.add(() => this.fileArchiver.createZipBlobAsync(this.buildRoomFiles()));
   }
 
-  buildRoomAssetFiles(): File[] {
+  buildAssetFiles(wanted: { images: ReadonlySet<string>; audios: ReadonlySet<string> }): File[] {
     const files: File[] = [];
-    const images = this.imageStorage.images.filter((image) => image.state === ImageState.COMPLETE);
+    const images = this.imageStorage.images.filter(
+      (image) => image.state === ImageState.COMPLETE && wanted.images.has(image.identifier)
+    );
     for (const image of images) {
       const file = this.createImageArchiveFile(image);
       if (file) files.push(file);
     }
     files.push(new File([this.convertToXml(ImageTagList.create(images))], 'imagetag.xml', { type: 'text/plain' }));
 
-    const audios = this.audioStorage.audios.filter((audio) => !audio.isHidden);
+    const audios = this.audioStorage.audios.filter((audio) => !audio.isHidden && wanted.audios.has(audio.identifier));
     files.push(new File([this.convertToXml(AudioTagList.create(audios))], 'audiotag.xml', { type: 'text/plain' }));
     return files;
   }
