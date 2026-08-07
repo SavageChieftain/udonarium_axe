@@ -24,6 +24,14 @@ const events: readonly ReplayEvent[] = [
   event(5, 10_000),
 ];
 
+function scrub(track: HTMLElement, name: string, clientX: number): Promise<void> {
+  const fired = new Event(name, { bubbles: true, cancelable: true });
+  Object.defineProperty(fired, 'clientX', { value: clientX });
+  Object.defineProperty(fired, 'pointerId', { value: 1 });
+  track.dispatchEvent(fired);
+  return Promise.resolve();
+}
+
 describe('ReplayStageComponent', () => {
   let fixture: ComponentFixture<ReplayStageComponent>;
   let cursor: WritableSignal<number>;
@@ -110,6 +118,35 @@ describe('ReplayStageComponent', () => {
     cursor.set(3);
     fixture.detectChanges();
     expect(fixture.nativeElement.textContent).toContain('第二幕');
+  });
+
+  it('掴んで動かしても盤面の作り直しを重ねないこと', async () => {
+    const track: HTMLElement = fixture.nativeElement.querySelector('[role="slider"]');
+    Object.defineProperty(track, 'getBoundingClientRect', { value: () => ({ left: 0, width: 100 }) });
+    track.setPointerCapture = vi.fn();
+    track.hasPointerCapture = vi.fn().mockReturnValue(true);
+
+    let release: (() => void) | null = null;
+    seekTo.mockImplementation(
+      () =>
+        new Promise<void>((resolve) => {
+          release = resolve;
+        })
+    );
+
+    const drag = [
+      scrub(track, 'pointerdown', 0),
+      scrub(track, 'pointermove', 20),
+      scrub(track, 'pointermove', 60),
+      scrub(track, 'pointermove', 100),
+    ];
+    expect(seekTo).toHaveBeenCalledTimes(1);
+
+    release!();
+    await Promise.all(drag);
+
+    expect(seekTo).toHaveBeenCalledTimes(2);
+    expect(seekTo).toHaveBeenLastCalledWith(4);
   });
 
   it('矢印キーで一つずつ進めること', () => {

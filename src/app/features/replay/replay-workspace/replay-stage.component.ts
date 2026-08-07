@@ -58,6 +58,9 @@ export class ReplayStageComponent {
     return toReplayLogLine(event, replayNamesAt(dictionary, event.seq));
   });
 
+  private wantedIndex: number | null = null;
+  private isScrubbing = false;
+
   protected get canEdit(): boolean {
     return this.rolePermission.canEditTabletop;
   }
@@ -93,7 +96,22 @@ export class ReplayStageComponent {
     const bounds = (event.currentTarget as HTMLElement).getBoundingClientRect();
     if (bounds.width < 1) return;
     const ratio = (event.clientX - bounds.left) / bounds.width;
-    await this.playback.seekTo(replayTimelineIndexAt(this.playback.events(), ratio));
+    this.wantedIndex = replayTimelineIndexAt(this.playback.events(), ratio);
+    await this.pumpScrub();
+  }
+
+  private async pumpScrub(): Promise<void> {
+    if (this.isScrubbing) return;
+    this.isScrubbing = true;
+    try {
+      while (this.wantedIndex !== null) {
+        const index = this.wantedIndex;
+        this.wantedIndex = null;
+        await this.playback.seekTo(index);
+      }
+    } finally {
+      this.isScrubbing = false;
+    }
   }
 
   protected async toStart(): Promise<void> {

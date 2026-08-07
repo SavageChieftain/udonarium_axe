@@ -108,6 +108,17 @@
     <button
       type="button"
       class="rounded-ui-sm text-ui-text hover:bg-ui-menu-hover hover:text-ui-accent flex size-8 cursor-pointer items-center justify-center border-none bg-transparent transition-colors [&_i]:text-[20px]!"
+      [class.text-ui-accent]="widgets.recording()"
+      [class.bg-ui-accent-bg]="widgets.recording()"
+      [title]="'app.fab.recording' | transloco"
+      (click)="widgets.toggleRecording()"
+    >
+      <i class="material-icons">radio_button_checked</i>
+    </button>
+
+    <button
+      type="button"
+      class="rounded-ui-sm text-ui-text hover:bg-ui-menu-hover hover:text-ui-accent flex size-8 cursor-pointer items-center justify-center border-none bg-transparent transition-colors [&_i]:text-[20px]!"
       [class.text-ui-accent]="widgets.connectionQuality()"
       [class.bg-ui-accent-bg]="widgets.connectionQuality()"
       [title]="'app.fab.connectionQuality' | transloco"

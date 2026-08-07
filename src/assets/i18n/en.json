@@ -2167,7 +2167,8 @@
       "importCharacter": "Import Character",
       "roomSnapshot": "Auto save / restore",
       "createObject": "Create a piece",
-      "replay": "Replay"
+      "replay": "Replay",
+      "recording": "Recording"
     },
     "roomDataDefault": "Room data"
   },

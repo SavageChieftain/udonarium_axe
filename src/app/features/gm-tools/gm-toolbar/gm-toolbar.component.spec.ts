@@ -2,6 +2,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { VisionService } from '@axe/application/tabletop/vision.service';
 import { PanelService } from '@axe/application/ui/panel.service';
+import { WidgetVisibilityService } from '@axe/application/ui/widget-visibility.service';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { Card } from '@axe/domain/card/card';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
@@ -26,6 +27,21 @@ describe('GmToolbarComponent', () => {
     TestBed.overrideProvider(PanelService, { useValue: panelStub });
     fixture = TestBed.createComponent(GmToolbarComponent);
     component = fixture.componentInstance;
+  });
+
+  it('隠した録画ウィジェットを出し直せること', () => {
+    PeerCursor.myCursor = Object.assign(new PeerCursor('me'), { role: PeerRole.GameMaster });
+    const widgets = TestBed.inject(WidgetVisibilityService);
+    widgets.recording.set(false);
+    fixture.detectChanges();
+
+    const button = Array.from<HTMLElement>(fixture.nativeElement.querySelectorAll('button')).find((candidate) =>
+      candidate.textContent?.includes('radio_button_checked')
+    )!;
+    expect(button).toBeDefined();
+
+    button.click();
+    expect(widgets.recording()).toBe(true);
   });
 
   it('openObjectList でオブジェクト一覧パネルを開く', () => {
