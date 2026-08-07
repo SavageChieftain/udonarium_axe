@@ -99,10 +99,15 @@ export function createReplayEntry(draft: ReplayEntryDraft, seq: number, at: numb
   };
 }
 
+export function restampReplayTimes(events: readonly ReplayEvent[]): ReplayEvent[] {
+  const origin = events[0]?.at ?? 0;
+  return events.map((event) => ({ ...event, t: Math.max(0, event.at - origin) }));
+}
+
 export function insertReplayEvent(events: readonly ReplayEvent[], atIndex: number, event: ReplayEvent): ReplayEvent[] {
   const next = [...events];
   next.splice(Math.max(0, Math.min(next.length, atIndex)), 0, event);
-  return next;
+  return restampReplayTimes(next);
 }
 
 export function insertReplayEvents(
@@ -119,7 +124,7 @@ export function insertReplayEvents(
 
   const next = [...events];
   next.splice(index, 0, ...placed);
-  return next;
+  return restampReplayTimes(next);
 }
 
 export function spreadInsertTimes(events: readonly ReplayEvent[], atIndex: number, count: number): number[] {
@@ -154,7 +159,7 @@ export function textOf(event: ReplayEvent): string {
 }
 
 export function removeReplayEvent(events: readonly ReplayEvent[], seq: number): ReplayEvent[] {
-  return events.filter((event) => event.seq !== seq);
+  return restampReplayTimes(events.filter((event) => event.seq !== seq));
 }
 
 export function moveReplayEvent(events: readonly ReplayEvent[], seq: number, offset: number): ReplayEvent[] {
@@ -167,9 +172,7 @@ export function moveReplayEvent(events: readonly ReplayEvent[], seq: number, off
   const next = [...events];
   const [moved] = next.splice(index, 1);
   next.splice(target, 0, { ...moved, at: insertTimeAt(next, target) });
-
-  const origin = next[0].at;
-  return next.map((event) => ({ ...event, t: Math.max(0, event.at - origin) }));
+  return restampReplayTimes(next);
 }
 
 export function retextReplayEvent(events: readonly ReplayEvent[], seq: number, text: string): ReplayEvent[] {

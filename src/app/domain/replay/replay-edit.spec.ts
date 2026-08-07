@@ -251,6 +251,34 @@ describe('removeReplayEvent()', () => {
   });
 });
 
+describe('restampReplayTimes()', () => {
+  it('差し込んだ行にも経過時間を与えること', () => {
+    const entry = createReplayEntry(
+      { kind: ReplayEventKind.ChatMessage, actorId: 'alice', speaker: 'A', text: 'やあ', tabIdentifier: 'tab-1' },
+      9,
+      2500
+    );
+    const inserted = insertReplayEvent(events, 2, entry);
+
+    expect(inserted[2].t).toBe(1500);
+    expect(inserted.map((e) => e.t)).toEqual([0, 1000, 1500, 2000]);
+  });
+
+  it('まとめて差し込んだ行にも与えること', () => {
+    const staged = [
+      { ...events[0], seq: 90, at: 0, t: 0 },
+      { ...events[0], seq: 91, at: 40, t: 40 },
+    ];
+    const inserted = insertReplayEvents(events, 1, staged);
+
+    expect(inserted.map((e) => e.t)).toEqual([0, 333, 667, 1000, 2000]);
+  });
+
+  it('先頭を落としたら残りを数え直すこと', () => {
+    expect(removeReplayEvent(events, 1).map((e) => e.t)).toEqual([0, 1000]);
+  });
+});
+
 describe('moveReplayEvent()', () => {
   it('前後に動かせること', () => {
     expect(moveReplayEvent(events, 2, -1).map((e) => e.seq)).toEqual([2, 1, 3]);
