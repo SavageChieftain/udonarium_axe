@@ -350,6 +350,28 @@ describe('ReplayRecorderService', () => {
     expect(manifest?.keyframes.length).toBeGreaterThan(0);
   });
 
+  it('止め終わる前に始め直しても新しい録画を潰さないこと', async () => {
+    await service.start();
+    vi.advanceTimersByTime(REPLAY_BASELINE_GRACE_MS);
+    sendUpdate('c1', 'character', { posZ: 10 });
+
+    const stopping = service.stop();
+    const starting = service.start();
+    await vi.advanceTimersByTimeAsync(0);
+    await Promise.all([stopping, starting]);
+
+    expect(service.isRecording()).toBe(true);
+    expect([...store.recordings.keys()]).toEqual([1, 2]);
+
+    vi.advanceTimersByTime(REPLAY_BASELINE_GRACE_MS);
+    sendUpdate('c1', 'character', { posZ: 20 });
+    await service.stop();
+
+    expect(decodeReplayManifest((await store.getManifest(1))!)?.endedAt).not.toBeNull();
+    expect(decodeReplayManifest((await store.getManifest(2))!)?.endedAt).not.toBeNull();
+    expect(store.chunks.some((chunk) => chunk.recordingId === 2)).toBe(true);
+  });
+
   it('部屋がなくても録画できること', async () => {
     expect(await service.start()).toBe(true);
     expect(service.roomName()).toBe('');

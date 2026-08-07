@@ -70,6 +70,7 @@ export class ReplayRecorderService {
   readonly recordings = this._recordings.asReadonly();
   readonly roomName = this._roomName.asReadonly();
 
+  private transition: Promise<void> = Promise.resolve();
   private recordingId: number | null = null;
   private seq = 0;
   private chunkIndex = 0;
@@ -123,6 +124,23 @@ export class ReplayRecorderService {
   }
 
   async start(): Promise<boolean> {
+    return this.queue(() => this.startNow());
+  }
+
+  async stop(): Promise<void> {
+    await this.queue(() => this.stopNow());
+  }
+
+  private queue<T>(step: () => Promise<T>): Promise<T> {
+    const run = this.transition.then(step);
+    this.transition = run.then(
+      () => undefined,
+      () => undefined
+    );
+    return run;
+  }
+
+  private async startNow(): Promise<boolean> {
     if (!this.isSupported || this._isRecording()) return false;
 
     const startedAt = Date.now();
@@ -160,18 +178,19 @@ export class ReplayRecorderService {
     return true;
   }
 
-  async stop(): Promise<void> {
+  private async stopNow(): Promise<void> {
     if (!this._isRecording()) return;
     this._isRecording.set(false);
     this.clearTimers();
     this.flushPending();
     await this.captureKeyframe(true);
     await this.flushBuffer();
+
     const id = this.recordingId;
+    this.recordingId = null;
     if (id != null) {
       await this.store.updateRecording(id, { endedAt: Date.now(), manifest: encodeReplayManifest(this.manifest()) });
     }
-    this.recordingId = null;
     await this.refresh();
   }
 
