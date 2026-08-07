@@ -169,18 +169,21 @@ Udonarium Axe が **追加** または **大きく拡張・再設計** した機
 
 ## セッションログ（リプレイ基盤）
 
-- **自動記録** — 編集権限を持つピアが部屋にいる間、誰が・何を・どうしたかをこのブラウザに記録する。入室から 8 秒待って開始し、退室で停止（`features/replay/replay-event-handler.service`）
+- **記録の始め方** — 開始のしかた（自動 / 手動）と記録の細かさをこのブラウザに覚えさせ、次の卓へ持ち越す。自動なら編集権限を持つピアの入室から 8 秒待って開始し、退室で停止。手動なら時計脇のピルから始める（`application/replay/replay-preference.service`、`features/replay/replay-event-handler.service`）
 - **記録の作り方** — `networkMessage$` を購読し、自分と他人の操作を同じ経路で拾う。`UPDATE_GAME_OBJECT` はオブジェクト全体が飛ぶため、シャドウコピーとの差分から「移動」「リソース増減」等の意味を起こす（`domain/replay/replay-diff`、`domain/replay/replay-interpreter`）
-- **記録される 3 層** — 読むための意味づけ済みイベント、巻き戻しと再生のための前後差分パッチ、復元の起点となるキーフレーム（画像・音声を含まない盤面 XML）
+- **記録される 3 層** — 読むための意味づけ済みイベント、巻き戻しと再生のための前後差分パッチ、復元の起点となるキーフレーム（画像・音声を含まない msgpack のオブジェクト一覧。識別子を保つので patch が当たる）
 - **初期同期の除外** — 開始時に現在の盤面をシャドウとして取り込み、同期由来の同値更新を差分ゼロで落とす。加えて開始直後 5 秒は未知オブジェクトを到着した状態として扱う
 - **畳み込み** — ドラッグ中の毎フレーム更新を、同一の人・同一のコマ・1.5 秒以内で 1 件にまとめ、始点と終点を残す（`domain/replay/replay-coalescer`）
 - **秘匿の保存** — 内緒話・GM 限定・非公開コマを当時の可視性ごと記録し、閲覧者のロールで絞り込む
 - **保存** — イベントは msgpack でチャンク化して IndexedDB へ。直近 5 本 / 合計 512MB を上限に古い録画を削除するが、記録中の録画は消さない（`core/storage/replay-log-store`、`application/replay/replay-recorder.service`）
-- **セッションログパネル** — 新しい順の一覧、チャット / 盤面 / 人での絞り込み、記録の開始停止、詳細度の切り替え、章の見出し（目印）を打てる（`features/replay/replay-log-panel`）
+- **録画インジケータ** — 時計脇のピル。録画中は経過時間と件数、章の見出し（目印）打ち、停止。待機中は開始と、細かさ / 始め方の設定（`features/replay/replay-indicator`）
 - **卓を邪魔しない工夫** — シャドウ複写は素の再帰コピー（`structuredClone` の約 4 倍速）、表示用シグナルはドラッグ中 250ms に間引き、10 分ごとのキーフレームは idle かつ非ドラッグまで待つ
 - **持ち出し** — `.axe-replay.zip`（目録 JSON + イベント msgpack + キーフレーム + 任意で画像）で書き出し / 読み込み（`domain/replay/replay-archive`、`application/replay/replay-library.service`）
-- **再生** — 読み物として送るだけなら卓に触れない。盤面再生は直近キーフレームを復元して patch を前向きに積む（巻き戻しも作り直し）。再生中は `setNetworkIsolated()` で送信を止めて同卓者に漏らさず、抜けるときに元の卓へ戻して再同期を求める（`core/network/network-isolation`、`application/replay/replay-playback.service`、`features/replay/replay-player-panel`）
-- **非破壊編集** — 削除・並べ替え・台詞の直しを行い、別の記録として保存する。派生先には編集後の並びで計算し直したキーフレームを書く（`domain/replay/replay-edit`、`application/replay/replay-editor.service`）
+- **再生** — 読み物として送るだけなら卓に触れない。盤面再生は直近キーフレームを復元して patch を前向きに積む（巻き戻しも作り直し）。再生中は `setNetworkIsolated()` で送信を止めて同卓者に漏らさず、抜けるときに元の卓へ戻して再同期を求める（`core/network/network-isolation`、`application/replay/replay-playback.service`）
+- **ワークスペース** — 記録一覧・舞台・項目一覧を 1 枚のパネルに収め、選ぶところから編集して保存するまでを行き来なしで済ませる（`features/replay/replay-workspace`）
+- **タイムライン** — 目盛りは経過時間。各時点のできごとの多さを山として描き、通り過ぎた分を色で示す。目印は章のしおりとして並び、押せばその 1 件へ飛ぶ（`features/replay/replay-timeline`）
+- **非破壊編集** — 削除・並べ替え（つまんで移動、または矢印で 1 つずつ）・台詞の直し・任意のイベントの差し込みを行い、別の記録として保存する。移した項目は移した先の時刻を引き継ぐ。Ctrl+Z で 1 手ずつ戻せる。派生先には編集後の並びで計算し直したキーフレームを書く（`domain/replay/replay-edit`、`application/replay/replay-editor.service`）
+- **捏造の収録** — 手で打つ代わりに、盤面を預かった状態で実際に操作し、その結果をイベントとして任意の位置へ差し込む（`application/replay/replay-staging.service`、`features/replay/replay-staging-banner`）
 
 ## 同期 / 内部基盤
 
