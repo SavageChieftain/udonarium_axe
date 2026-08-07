@@ -128,6 +128,57 @@
       }
     </div>
 
+    @if (isEditing()) {
+      <div class="border-ui-border rounded-ui flex flex-col gap-1.5 border border-solid px-2 py-1.5">
+        <span class="text-ui-muted text-[0.72rem]">{{ 'feature.replay.editor.insertHint' | transloco }}</span>
+        <div class="flex flex-wrap items-center gap-1.5">
+          <select
+            class="border-ui-border bg-ui-panel rounded-ui-sm border border-solid px-1.5 py-1 text-[0.72rem]"
+            [value]="insertKind()"
+            (change)="setInsertKind($any($event.target).value)"
+          >
+            @for (kind of insertKinds; track kind) {
+              <option [value]="kind">{{ 'feature.replay.editor.kind.' + kind | transloco }}</option>
+            }
+          </select>
+          @if (!isMarkerDraft()) {
+            <select
+              class="border-ui-border bg-ui-panel rounded-ui-sm border border-solid px-1.5 py-1 text-[0.72rem]"
+              [value]="insertActorId()"
+              (change)="insertActorId.set($any($event.target).value)"
+            >
+              @for (actor of actors(); track actor.userId) {
+                <option [value]="actor.userId">{{ actor.name }}</option>
+              }
+            </select>
+            <input
+              class="border-ui-border bg-ui-panel rounded-ui-sm w-24 border border-solid px-1.5 py-1 text-[0.72rem]"
+              type="text"
+              [value]="insertSpeaker()"
+              [placeholder]="'feature.replay.editor.speaker' | transloco"
+              (input)="insertSpeaker.set($any($event.target).value)"
+            />
+          }
+        </div>
+        <div class="flex items-center gap-1.5">
+          <input
+            class="border-ui-border bg-ui-panel rounded-ui-sm min-w-0 flex-1 border border-solid px-1.5 py-1 text-[0.72rem]"
+            type="text"
+            [value]="insertText()"
+            [placeholder]="'feature.replay.editor.textPlaceholder' | transloco"
+            (input)="insertText.set($any($event.target).value)"
+          />
+          <button
+            class="rounded-ui-sm cursor-pointer px-[0.8em] py-[0.3em] text-[0.72rem]"
+            [disabled]="!canInsert()"
+            (click)="insertAt(0)"
+          >
+            {{ 'feature.replay.editor.insertAtStart' | transloco }}
+          </button>
+        </div>
+      </div>
+    }
+
     <ul class="m-0 flex min-h-0 flex-1 list-none flex-col gap-0.5 overflow-y-auto p-0">
       @for (row of rows(); track row.seq) {
         <li
@@ -138,6 +189,9 @@
           (click)="isEditing() ? null : seekTo(row.index.toString())"
         >
           <span class="text-ui-dim shrink-0 text-[0.66rem] tabular-nums">{{ row.elapsed }}</span>
+          @if (row.inserted) {
+            <i class="material-icons shrink-0 text-[13px] leading-[1.4] text-emerald-400">edit_note</i>
+          }
           <i class="material-icons text-ui-dim shrink-0 text-[13px] leading-[1.4]">{{ row.line.icon }}</i>
           @if (isEditing() && row.editable) {
             <input
@@ -163,6 +217,14 @@
               (click)="moveRow(row.seq, 1)"
             >
               <i class="material-icons text-[14px]">arrow_downward</i>
+            </button>
+            <button
+              class="text-ui-dim hover:text-ui-accent shrink-0 cursor-pointer px-0.5"
+              [disabled]="!canInsert()"
+              [attr.aria-label]="'feature.replay.editor.insertAfter' | transloco"
+              (click)="insertAt(row.index + 1)"
+            >
+              <i class="material-icons text-[14px]">add</i>
             </button>
             <button
               class="text-ui-dim shrink-0 cursor-pointer px-0.5 hover:text-red-400"

@@ -2053,7 +2053,17 @@
         "cancel": "取りやめ",
         "up": "ひとつ上へ",
         "down": "ひとつ下へ",
-        "remove": "この行を消す"
+        "remove": "この行を消す",
+        "insertHint": "行を差し込む（内容を入れてから、置きたい位置の ＋ を押す）",
+        "insertAtStart": "先頭へ",
+        "insertAfter": "この行の後ろに差し込む",
+        "speaker": "話者名",
+        "textPlaceholder": "差し込む内容",
+        "kind": {
+          "chat.message": "発言",
+          "chat.dice": "ダイス",
+          "marker": "目印"
+        }
       },
       "surface": {
         "floor": "床",

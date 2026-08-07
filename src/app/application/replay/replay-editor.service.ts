@@ -3,9 +3,14 @@ import { Logger } from '@axe/core/logging/logger';
 import { ReplayLogStore } from '@axe/core/storage/replay-log-store';
 import { encodeReplayEvents, encodeReplayManifest } from '@axe/domain/replay/replay-codec';
 import {
+  createReplayEntry,
   hasReplayEdits,
+  insertReplayEvent,
+  insertTimeAt,
   moveReplayEvent,
+  nextInsertSeq,
   removeReplayEvent,
+  type ReplayEntryDraft,
   resequenceReplayEvents,
   retextReplayEvent,
 } from '@axe/domain/replay/replay-edit';
@@ -43,6 +48,18 @@ export class ReplayEditorService {
 
   revert(): void {
     this._edited.set([...this._original()]);
+  }
+
+  insert(atIndex: number, draft: ReplayEntryDraft): void {
+    this._edited.update((events) => {
+      const index = Math.max(0, Math.min(events.length, atIndex));
+      const entry = createReplayEntry(draft, nextInsertSeq(events), insertTimeAt(events, index));
+      return insertReplayEvent(events, index, entry);
+    });
+  }
+
+  isInserted(seq: number): boolean {
+    return !this._original().some((event) => event.seq === seq);
   }
 
   remove(seq: number): void {

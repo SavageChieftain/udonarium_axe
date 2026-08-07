@@ -2053,7 +2053,17 @@
         "cancel": "Stop editing",
         "up": "Move up",
         "down": "Move down",
-        "remove": "Delete this entry"
+        "remove": "Delete this entry",
+        "insertHint": "Insert an entry (type it, then press + where it belongs)",
+        "insertAtStart": "At the start",
+        "insertAfter": "Insert after this entry",
+        "speaker": "Speaker",
+        "textPlaceholder": "What it says",
+        "kind": {
+          "chat.message": "Line",
+          "chat.dice": "Dice",
+          "marker": "Chapter"
+        }
       },
       "surface": {
         "floor": "floor",

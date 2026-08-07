@@ -1,7 +1,12 @@
 import {
+  createReplayEntry,
   hasReplayEdits,
+  insertReplayEvent,
+  insertTimeAt,
+  isInsertableKind,
   isTextEditable,
   moveReplayEvent,
+  nextInsertSeq,
   removeReplayEvent,
   resequenceReplayEvents,
   retextReplayEvent,
@@ -36,6 +41,72 @@ describe('isTextEditable() / textOf()', () => {
   it('種類ごとの置き場所から本文を取ること', () => {
     expect(textOf(event(1))).toBe('発言 1');
     expect(textOf(event(1, ReplayEventKind.Marker))).toBe('章 1');
+  });
+});
+
+describe('createReplayEntry()', () => {
+  it('差し込む発言を組み立てること', () => {
+    const entry = createReplayEntry(
+      { kind: ReplayEventKind.ChatMessage, actorId: 'alice', speaker: '盗賊', text: 'やあ' },
+      9,
+      5000
+    );
+    expect(entry).toMatchObject({ seq: 9, at: 5000, kind: ReplayEventKind.ChatMessage, actorId: 'alice' });
+    expect(entry.detail).toEqual({ text: 'やあ', name: '盗賊', from: 'alice', to: '', tag: '' });
+  });
+
+  it('目印は見出しとして組み立てること', () => {
+    const entry = createReplayEntry({ kind: ReplayEventKind.Marker, actorId: 'gm', speaker: '', text: '第二幕' }, 1, 0);
+    expect(entry.detail).toEqual({ label: '第二幕' });
+  });
+
+  it('差し込んだ行も書き直せる種類であること', () => {
+    for (const kind of [ReplayEventKind.ChatMessage, ReplayEventKind.ChatDice, ReplayEventKind.Marker]) {
+      expect(isInsertableKind(kind)).toBe(true);
+    }
+    expect(isInsertableKind(ReplayEventKind.ObjectMove)).toBe(false);
+  });
+});
+
+describe('insertReplayEvent()', () => {
+  it('指定した位置に差し込むこと', () => {
+    const entry = event(9);
+    expect(insertReplayEvent(events, 1, entry).map((e) => e.seq)).toEqual([1, 9, 2, 3]);
+  });
+
+  it('先頭と末尾にも差し込めること', () => {
+    expect(insertReplayEvent(events, 0, event(9)).map((e) => e.seq)).toEqual([9, 1, 2, 3]);
+    expect(insertReplayEvent(events, 3, event(9)).map((e) => e.seq)).toEqual([1, 2, 3, 9]);
+  });
+
+  it('範囲の外を丸めること', () => {
+    expect(insertReplayEvent(events, -5, event(9))[0].seq).toBe(9);
+    expect(insertReplayEvent(events, 99, event(9))[3].seq).toBe(9);
+  });
+
+  it('元の配列を変えないこと', () => {
+    insertReplayEvent(events, 1, event(9));
+    expect(events.map((e) => e.seq)).toEqual([1, 2, 3]);
+  });
+});
+
+describe('nextInsertSeq() / insertTimeAt()', () => {
+  it('使われていない番号を返すこと', () => {
+    expect(nextInsertSeq(events)).toBe(4);
+    expect(nextInsertSeq([])).toBe(1);
+  });
+
+  it('前後の時刻の間に置くこと', () => {
+    expect(insertTimeAt(events, 1)).toBe(1500);
+  });
+
+  it('端では隣の時刻を使うこと', () => {
+    expect(insertTimeAt(events, 0)).toBe(1000);
+    expect(insertTimeAt(events, 3)).toBe(3000);
+  });
+
+  it('空なら 0 を返すこと', () => {
+    expect(insertTimeAt([], 0)).toBe(0);
   });
 });
 

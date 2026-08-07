@@ -159,6 +159,44 @@ describe('ReplayEditorService', () => {
     expect(service.isDirty()).toBe(true);
   });
 
+  it('好きな位置に行を差し込めること', () => {
+    service.insert(2, { kind: ReplayEventKind.ChatMessage, actorId: 'gm', speaker: '語り', text: 'そのとき' });
+
+    const edited = service.edited();
+    expect(edited).toHaveLength(5);
+    expect(edited[2].detail['text']).toBe('そのとき');
+    expect(edited[2].actorId).toBe('gm');
+    expect(service.isDirty()).toBe(true);
+  });
+
+  it('差し込んだ行の時刻を前後の間に置くこと', () => {
+    service.insert(2, { kind: ReplayEventKind.ChatMessage, actorId: 'gm', speaker: '', text: '間' });
+    expect(service.edited()[2].at).toBe(1_002_500);
+  });
+
+  it('差し込んだ行を見分けられること', () => {
+    service.insert(0, { kind: ReplayEventKind.Marker, actorId: 'gm', speaker: '', text: '第一幕' });
+    expect(service.isInserted(service.edited()[0].seq)).toBe(true);
+    expect(service.isInserted(service.edited()[1].seq)).toBe(false);
+  });
+
+  it('差し込んだ行を保存に含めること', async () => {
+    service.insert(0, { kind: ReplayEventKind.Marker, actorId: 'gm', speaker: '', text: '第一幕' });
+    const id = await service.saveAsDerived(manifest, base);
+    const saved = decodeReplayEvents((await store.listChunks(id!))[0].bytes);
+
+    expect(saved).toHaveLength(5);
+    expect(saved[0].detail['label']).toBe('第一幕');
+    expect(saved.map((e) => e.seq)).toEqual([1, 2, 3, 4, 5]);
+  });
+
+  it('差し込んだ行を消して元に戻せること', () => {
+    service.insert(0, { kind: ReplayEventKind.Marker, actorId: 'gm', speaker: '', text: '第一幕' });
+    service.revert();
+    expect(service.edited()).toHaveLength(4);
+    expect(service.isDirty()).toBe(false);
+  });
+
   it('やり直しで元に戻せること', () => {
     service.remove(2);
     service.revert();

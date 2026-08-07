@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { RolePermissionService } from '@axe/application/permission/role-permission.service';
 import { ReplayEditorService } from '@axe/application/replay/replay-editor.service';
@@ -7,8 +7,8 @@ import { ReplayPlaybackService } from '@axe/application/replay/replay-playback.s
 import { ReplayRecorderService } from '@axe/application/replay/replay-recorder.service';
 import { confirmDialog } from '@axe/core/input/confirm-dialog';
 import type { ReplayRecordingMeta } from '@axe/core/storage/replay-log-store';
-import { isTextEditable, textOf } from '@axe/domain/replay/replay-edit';
-import { findActorAt, findTargetAt, type ReplayManifest } from '@axe/domain/replay/replay-event';
+import { INSERTABLE_KINDS, isTextEditable, textOf } from '@axe/domain/replay/replay-edit';
+import { findActorAt, findTargetAt, ReplayEventKind, type ReplayManifest } from '@axe/domain/replay/replay-event';
 import type { ReplayLogLine } from '@axe/features/replay/replay-log-line';
 import { formatReplayElapsed, type ReplayNameLookup, toReplayLogLine } from '@axe/features/replay/replay-log-line';
 import { formatSnapshotSavedAt } from '@axe/features/room-archive/snapshot-format';
@@ -42,6 +42,22 @@ export class ReplayPlayerPanelComponent {
   protected readonly isDirty = this.editor.isDirty;
   protected readonly isSaving = this.editor.isSaving;
 
+  protected readonly insertKinds = INSERTABLE_KINDS;
+  protected readonly insertKind = signal<ReplayEventKind>(ReplayEventKind.ChatMessage);
+  protected readonly insertActorId = signal('');
+  protected readonly insertSpeaker = signal('');
+  protected readonly insertText = signal('');
+
+  protected readonly isMarkerDraft = computed(() => this.insertKind() === ReplayEventKind.Marker);
+
+  protected readonly actors = computed(() => {
+    const manifest = this.playback.manifest();
+    const seen = new Map<string, string>();
+    for (const actor of manifest?.actors ?? []) seen.set(actor.userId, actor.name || actor.userId);
+    for (const event of this.playback.events()) if (!seen.has(event.actorId)) seen.set(event.actorId, event.actorId);
+    return [...seen].map(([userId, name]) => ({ userId, name }));
+  });
+
   private readonly shownEvents = computed(() => (this.isEditing() ? this.editor.edited() : this.playback.events()));
 
   protected readonly total = computed(() => this.playback.events().length);
@@ -55,6 +71,7 @@ export class ReplayPlayerPanelComponent {
       seq: event.seq,
       elapsed: formatReplayElapsed(event.t),
       editable: isTextEditable(event),
+      inserted: this.isEditing() && this.editor.isInserted(event.seq),
       text: textOf(event),
       line: toReplayLogLine(event, this.namesAt(manifest, event.seq)),
     }));
@@ -136,6 +153,25 @@ export class ReplayPlayerPanelComponent {
 
   protected revertEditing(): void {
     this.editor.revert();
+  }
+
+  protected setInsertKind(kind: string): void {
+    this.insertKind.set(kind as ReplayEventKind);
+  }
+
+  protected canInsert(): boolean {
+    return this.isEditing() && this.insertText().trim().length > 0;
+  }
+
+  protected insertAt(index: number): void {
+    if (!this.canInsert()) return;
+    this.editor.insert(index, {
+      kind: this.insertKind(),
+      actorId: this.insertActorId() || this.actors()[0]?.userId || '',
+      speaker: this.insertSpeaker().trim(),
+      text: this.insertText().trim(),
+    });
+    this.insertText.set('');
   }
 
   protected removeRow(seq: number): void {

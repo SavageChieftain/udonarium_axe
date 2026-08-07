@@ -203,6 +203,34 @@ describe('ReplayPlayerPanelComponent', () => {
     expect(fixture.nativeElement.querySelectorAll('ul > li')).toHaveLength(1);
   });
 
+  it('内容を入れて好きな位置に差し込めること', async () => {
+    await setup();
+    buttonByText('編集')?.click();
+    fixture.detectChanges();
+
+    const text = fixture.nativeElement.querySelector('input[placeholder="差し込む内容"]') as HTMLInputElement;
+    text.value = '語り: そのとき扉が開いた';
+    text.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+
+    const inserts = [...fixture.nativeElement.querySelectorAll('[aria-label="この行の後ろに差し込む"]')];
+    (inserts[0] as HTMLButtonElement).click();
+    fixture.detectChanges();
+
+    const rows = [...fixture.nativeElement.querySelectorAll('ul > li')] as HTMLElement[];
+    expect(rows).toHaveLength(3);
+    expect(rows[1].querySelector('input[type="text"]')).not.toBeNull();
+  });
+
+  it('内容が空なら差し込めないこと', async () => {
+    await setup();
+    buttonByText('編集')?.click();
+    fixture.detectChanges();
+
+    const insert = fixture.nativeElement.querySelector('[aria-label="この行の後ろに差し込む"]') as HTMLButtonElement;
+    expect(insert.disabled).toBe(true);
+  });
+
   it('記録を開いていなければ案内を出すこと', async () => {
     isOpen = signal(false);
     await setup();
