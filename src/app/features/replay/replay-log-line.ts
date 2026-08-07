@@ -33,6 +33,7 @@ const ICONS: Record<string, string> = {
   [ReplayEventKind.ObjectUpdate]: 'edit',
   [ReplayEventKind.TableChange]: 'grid_on',
   [ReplayEventKind.MediaSoundEffect]: 'volume_up',
+  [ReplayEventKind.MediaBgm]: 'music_note',
   [ReplayEventKind.MediaCutIn]: 'movie',
   [ReplayEventKind.EffectCast]: 'auto_awesome',
   [ReplayEventKind.PeerJoin]: 'login',
@@ -105,6 +106,8 @@ export function toReplayLogLine(event: ReplayEvent, names: ReplayNameLookup): Re
       return line('table');
     case ReplayEventKind.MediaSoundEffect:
       return line('soundEffect');
+    case ReplayEventKind.MediaBgm:
+      return line(detail['isPlaying'] === true ? 'bgmStart' : 'bgmStop');
     case ReplayEventKind.MediaCutIn:
       return line('cutIn');
     case ReplayEventKind.EffectCast:

@@ -2032,7 +2032,9 @@
         "moveSurface": "{{actor}} が {{target}} を{{fromSurface}}の ({{fromX}}, {{fromY}}) から{{toSurface}}の ({{toX}}, {{toY}}) へ動かした",
         "movePlace": "{{actor}} が {{target}} を{{fromPlace}}から{{toPlace}}へ移した",
         "effectOn": "{{actor}} が {{targets}} に〈{{effect}}〉をかけた",
-        "effectFrom": "{{actor}} が {{caster}} から {{targets}} へ〈{{effect}}〉を放った"
+        "effectFrom": "{{actor}} が {{caster}} から {{targets}} へ〈{{effect}}〉を放った",
+        "bgmStart": "{{actor}} が BGM を {{target}} に変えた",
+        "bgmStop": "{{actor}} が BGM を止めた"
       },
       "player": {
         "choose": "記録を選ぶ",

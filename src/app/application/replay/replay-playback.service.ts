@@ -9,6 +9,8 @@ import { markForChanged } from '@axe/core/sync/object-event-extension';
 import { ObjectFactory } from '@axe/core/sync/object-factory';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { ObjectSynchronizer } from '@axe/core/sync/object-synchronizer';
+import { EffectPreset } from '@axe/domain/effect/effect-preset';
+import { CutIn } from '@axe/domain/media/cut-in';
 import { collectReplayCast, type ReplayCastMember } from '@axe/domain/replay/replay-cast';
 import { mergeSyncData, type SyncData } from '@axe/domain/replay/replay-diff';
 import { type ReplayEvent, ReplayEventKind, type ReplayManifest } from '@axe/domain/replay/replay-event';
@@ -40,6 +42,10 @@ export interface ReplayRouteTrail {
 
 export const REPLAY_AUTO_PLAY_BASE_MS = 1_200;
 export const REPLAY_AUTO_PLAY_MAX_MS = 4_000;
+export const REPLAY_AUTO_PLAY_CUT_IN_MS = 5_000;
+export const REPLAY_AUTO_PLAY_CUT_IN_MAX_MS = 30_000;
+export const REPLAY_AUTO_PLAY_SETTLE_MS = 250;
+export const REPLAY_AUTO_PLAY_EFFECT_MS = 900;
 
 @Injectable({ providedIn: 'root' })
 export class ReplayPlaybackService {
@@ -77,6 +83,7 @@ export class ReplayPlaybackService {
   private autoPlayTimer: ReturnType<typeof setTimeout> | null = null;
   private seekToken = 0;
   private slideFrame: number | null = null;
+  private slideEndsAt = 0;
 
   async open(id: number): Promise<boolean> {
     await this.close();
@@ -184,8 +191,7 @@ export class ReplayPlaybackService {
 
   private scheduleAutoPlay(): void {
     if (this.autoPlayTimer !== null) clearTimeout(this.autoPlayTimer);
-    const text = String(this.currentEvent()?.detail['text'] ?? '');
-    const wait = Math.min(REPLAY_AUTO_PLAY_MAX_MS, REPLAY_AUTO_PLAY_BASE_MS + text.length * 35);
+    const wait = this.autoPlayWaitFor(this.currentEvent());
     this.autoPlayTimer = setTimeout(() => {
       this.autoPlayTimer = null;
       if (!this._autoPlay()) return;
@@ -197,6 +203,43 @@ export class ReplayPlaybackService {
         if (this._autoPlay()) this.scheduleAutoPlay();
       });
     }, wait);
+  }
+
+  private autoPlayWaitFor(event: ReplayEvent | null): number {
+    const text = String(event?.detail['text'] ?? '');
+    const reading = Math.min(REPLAY_AUTO_PLAY_MAX_MS, REPLAY_AUTO_PLAY_BASE_MS + text.length * 35);
+    if (!event || !this._isBoardMode()) return reading;
+
+    if (event.kind === ReplayEventKind.MediaCutIn && event.detail['isStart'] === true) {
+      return Math.max(reading, this.cutInWaitFor(event));
+    }
+    if (event.kind === ReplayEventKind.EffectCast) {
+      return Math.max(reading, this.effectWaitFor(event));
+    }
+    if (event.kind === ReplayEventKind.ObjectMove) {
+      return Math.max(reading, this.slideRemainingMs() + REPLAY_AUTO_PLAY_SETTLE_MS);
+    }
+    return reading;
+  }
+
+  private cutInWaitFor(event: ReplayEvent): number {
+    const cutIn = event.targetId ? this.objectStore.get<CutIn>(event.targetId) : null;
+    const seconds = Number(cutIn?.outTime ?? 0);
+    if (!Number.isFinite(seconds) || seconds <= 0) return REPLAY_AUTO_PLAY_CUT_IN_MS;
+    return Math.min(REPLAY_AUTO_PLAY_CUT_IN_MAX_MS, seconds * 1000);
+  }
+
+  private effectWaitFor(event: ReplayEvent): number {
+    const preset = event.targetId ? this.objectStore.get<EffectPreset>(event.targetId) : null;
+    if (!preset) return REPLAY_AUTO_PLAY_EFFECT_MS;
+
+    const targets = Array.isArray(event.detail['targets']) ? event.detail['targets'].length : 1;
+    const total = preset.duration + preset.stagger * Math.max(0, targets - 1);
+    return Math.min(REPLAY_AUTO_PLAY_CUT_IN_MAX_MS, Math.max(total, REPLAY_AUTO_PLAY_EFFECT_MS));
+  }
+
+  private slideRemainingMs(): number {
+    return Math.max(0, this.slideEndsAt - performance.now());
   }
 
   private async applyBoard(index: number): Promise<void> {
@@ -265,6 +308,7 @@ export class ReplayPlaybackService {
     const syncData = applyReplayPatch(object.toContext().syncData as SyncData, event.patch);
     const duration = Math.min(REPLAY_SLIDE_MAX_MS, REPLAY_SLIDE_BASE_MS + length * REPLAY_SLIDE_PER_PX_MS);
     const startedAt = performance.now();
+    this.slideEndsAt = startedAt + duration;
 
     const tick = (): void => {
       const progress = Math.min(1, (performance.now() - startedAt) / duration);
@@ -287,6 +331,7 @@ export class ReplayPlaybackService {
   }
 
   private stopSlide(): void {
+    this.slideEndsAt = 0;
     if (this.slideFrame === null) return;
     cancelAnimationFrame(this.slideFrame);
     this.slideFrame = null;

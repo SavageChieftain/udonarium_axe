@@ -263,6 +263,56 @@ describe('カットインの読み取り', () => {
   });
 });
 
+describe('BGM の読み取り', () => {
+  it('曲が変わったことを読むこと', () => {
+    const draft = interpretObjectChange({
+      aliasName: 'jukebox',
+      identifier: 'jukebox',
+      before: { audioIdentifier: 'bgm-a', isPlaying: true, startTime: 0 },
+      after: { audioIdentifier: 'bgm-b', isPlaying: true, startTime: 0 },
+    });
+    expect(draft?.kind).toBe(ReplayEventKind.MediaBgm);
+    expect(draft?.targetIdentifier).toBe('bgm-b');
+    expect(draft?.detail['isPlaying']).toBe(true);
+  });
+
+  it('止めたことを読むこと', () => {
+    const draft = interpretObjectChange({
+      aliasName: 'jukebox',
+      identifier: 'jukebox',
+      before: { audioIdentifier: 'bgm-a', isPlaying: true },
+      after: { audioIdentifier: 'bgm-a', isPlaying: false },
+    });
+    expect(draft?.kind).toBe(ReplayEventKind.MediaBgm);
+    expect(draft?.detail['isPlaying']).toBe(false);
+  });
+
+  it('標準の細かさでも BGM を残すこと', () => {
+    expect(isRecordableKind(ReplayEventKind.MediaBgm, ReplayDetailLevel.Notable)).toBe(true);
+  });
+
+  it('ジュークボックスの効果音を効果音として読むこと', () => {
+    const draft = interpretObjectChange({
+      aliasName: 'jukebox',
+      identifier: 'jukebox',
+      before: { seIdentifier: 'se-a', seTrigger: 1 },
+      after: { seIdentifier: 'se-b', seTrigger: 2 },
+    });
+    expect(draft?.kind).toBe(ReplayEventKind.MediaSoundEffect);
+    expect(draft?.detail['identifier']).toBe('se-b');
+  });
+
+  it('関係ない変更は BGM として読まないこと', () => {
+    const draft = interpretObjectChange({
+      aliasName: 'jukebox',
+      identifier: 'jukebox',
+      before: { isSeekLocked: true },
+      after: { isSeekLocked: false },
+    });
+    expect(draft?.kind).toBe(ReplayEventKind.ObjectUpdate);
+  });
+});
+
 describe('interpretObjectRemove()', () => {
   it('削除として読むこと', () => {
     const draft = interpretObjectRemove('c1', 'character');

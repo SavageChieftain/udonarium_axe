@@ -2032,7 +2032,9 @@
         "moveSurface": "{{actor}} moved {{target}} from ({{fromX}}, {{fromY}}) on the {{fromSurface}} to ({{toX}}, {{toY}}) on the {{toSurface}}",
         "movePlace": "{{actor}} moved {{target}} from {{fromPlace}} to {{toPlace}}",
         "effectOn": "{{actor}} cast {{effect}} on {{targets}}",
-        "effectFrom": "{{actor}} cast {{effect}} from {{caster}} at {{targets}}"
+        "effectFrom": "{{actor}} cast {{effect}} from {{caster}} at {{targets}}",
+        "bgmStart": "{{actor}} put on {{target}}",
+        "bgmStop": "{{actor}} stopped the music"
       },
       "player": {
         "choose": "Choose a recording",

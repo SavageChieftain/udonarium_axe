@@ -53,6 +53,7 @@ export const REPLAY_IGNORED_EVENT_NAMES: ReadonlySet<string> = new Set([
 const CHAT_ALIAS = 'chat';
 const DATA_ALIAS = 'data';
 const CUT_IN_LAUNCHER_ALIAS = 'cut-in-launcher';
+const JUKEBOX_ALIAS = 'jukebox';
 const DICEBOT_SENDER = 'System-BCDice';
 
 const CHAT_ONLY_KINDS: ReadonlySet<ReplayEventKind> = new Set([
@@ -153,6 +154,10 @@ function describeChange(
     const cutIn = describeCutIn(before, after, keys);
     if (cutIn) return cutIn;
   }
+  if (aliasName === JUKEBOX_ALIAS && before) {
+    const bgm = describeBgm(after, keys);
+    if (bgm) return bgm;
+  }
   if (!before) return { kind: ReplayEventKind.ObjectCreate, detail: { aliasName } };
 
   if (hasChangedKey(keys, 'location') || hasChangedKey(keys, 'posZ')) return describeMove(before, after);
@@ -193,6 +198,28 @@ function describeEffectCast(record: Record<string, unknown>, signal: ReplaySigna
     detail: { caster, targets },
     relatedIdentifiers: [caster, ...targets].filter((identifier) => identifier.length > 0),
     signal,
+  };
+}
+
+function describeBgm(
+  after: SyncData,
+  keys: ReadonlySet<string>
+): { kind: ReplayEventKind; detail: Record<string, unknown>; targetIdentifier?: string } | null {
+  if (hasChangedKey(keys, 'seTrigger')) {
+    return {
+      kind: ReplayEventKind.MediaSoundEffect,
+      detail: { identifier: asString(syncValueOf(after, 'seIdentifier')) },
+    };
+  }
+  if (!hasChangedKey(keys, 'audioIdentifier') && !hasChangedKey(keys, 'isPlaying')) return null;
+
+  return {
+    kind: ReplayEventKind.MediaBgm,
+    targetIdentifier: asString(syncValueOf(after, 'audioIdentifier')),
+    detail: {
+      isPlaying: Boolean(syncValueOf(after, 'isPlaying')),
+      startTime: Number(syncValueOf(after, 'startTime') ?? 0),
+    },
   };
 }
 

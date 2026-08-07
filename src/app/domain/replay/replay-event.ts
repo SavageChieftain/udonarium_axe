@@ -19,6 +19,7 @@ export const ReplayEventKind = {
   ObjectUpdate: 'object.update',
   TableChange: 'table.change',
   MediaSoundEffect: 'media.se',
+  MediaBgm: 'media.bgm',
   MediaCutIn: 'media.cutin',
   EffectCast: 'effect.cast',
   PeerJoin: 'peer.join',

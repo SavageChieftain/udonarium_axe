@@ -1,6 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { ReplayLibraryService } from '@axe/application/replay/replay-library.service';
 import {
+  REPLAY_AUTO_PLAY_MAX_MS,
   REPLAY_SLIDE_MAX_MS,
   REPLAY_TRAIL_LINGER_MS,
   ReplayPlaybackService,
@@ -11,6 +12,7 @@ import { ObjectStore } from '@axe/core/sync/object-store';
 import { ObjectSynchronizer } from '@axe/core/sync/object-synchronizer';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { ChatMessage } from '@axe/domain/chat/chat-message';
+import { CutIn } from '@axe/domain/media/cut-in';
 import { createReplayEntry, retextReplayEvent } from '@axe/domain/replay/replay-edit';
 import { PUBLIC_VISIBILITY, type ReplayEvent, ReplayEventKind } from '@axe/domain/replay/replay-event';
 import { encodeReplayKeyframe, type ReplayObjectSnapshot } from '@axe/domain/replay/replay-keyframe';
@@ -317,6 +319,72 @@ describe('ReplayPlaybackService', () => {
     await service.next();
 
     expect(objectStore.get<ChatMessage>(entry.targetId!)?.text).toBe('あらためた台詞');
+  });
+
+  it('カットインが終わるまで自動再生を進めないこと', async () => {
+    const cutIn = new CutIn('cut-1');
+    cutIn.outTime = 12;
+    objectStore.add(cutIn, false);
+
+    const cutInEvent: ReplayEvent = {
+      seq: 2,
+      at: 2000,
+      t: 2000,
+      kind: ReplayEventKind.MediaCutIn,
+      actorId: 'alice',
+      targetId: 'cut-1',
+      detail: { isStart: true, soundOnly: false },
+      visibility: PUBLIC_VISIBILITY,
+    };
+    library.load.mockResolvedValue({ manifest: null, events: [events[0], cutInEvent, events[2]] });
+
+    vi.useFakeTimers();
+    try {
+      await service.open(1);
+      await service.enterBoardMode();
+      await service.next();
+      service.toggleAutoPlay();
+
+      await vi.advanceTimersByTimeAsync(REPLAY_AUTO_PLAY_MAX_MS + 500);
+      expect(service.cursor()).toBe(1);
+
+      await vi.advanceTimersByTimeAsync(12_000);
+      expect(service.cursor()).toBe(2);
+    } finally {
+      service.stopAutoPlay();
+      vi.useRealTimers();
+    }
+  });
+
+  it('読み物として読むだけならカットインを待たないこと', async () => {
+    const cutIn = new CutIn('cut-1');
+    cutIn.outTime = 12;
+    objectStore.add(cutIn, false);
+
+    const cutInEvent: ReplayEvent = {
+      seq: 2,
+      at: 2000,
+      t: 2000,
+      kind: ReplayEventKind.MediaCutIn,
+      actorId: 'alice',
+      targetId: 'cut-1',
+      detail: { isStart: true, soundOnly: false },
+      visibility: PUBLIC_VISIBILITY,
+    };
+    library.load.mockResolvedValue({ manifest: null, events: [events[0], cutInEvent, events[2]] });
+
+    vi.useFakeTimers();
+    try {
+      await service.open(1);
+      await service.next();
+      service.toggleAutoPlay();
+
+      await vi.advanceTimersByTimeAsync(REPLAY_AUTO_PLAY_MAX_MS + 500);
+      expect(service.cursor()).toBe(2);
+    } finally {
+      service.stopAutoPlay();
+      vi.useRealTimers();
+    }
   });
 
   it('読み物として送るだけなら盤面に触れないこと', async () => {
