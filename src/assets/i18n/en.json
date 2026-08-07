@@ -2103,6 +2103,14 @@
         "hint": "Use the table as you normally would. What you move, roll and cast is captured and inserted at the point you are editing. Nothing reaches the other players.",
         "accept": "Insert {{count}}",
         "discard": "Discard"
+      },
+      "indicator": {
+        "title": "Recording this session",
+        "summary": "{{count}} entries so far",
+        "mark": "Mark",
+        "markPlaceholder": "Name this moment",
+        "stop": "Stop recording",
+        "hide": "Hide"
       }
     }
   },

@@ -1,0 +1,70 @@
+@if (widgets.recording() && isRecording()) {
+  <div class="fixed top-2 right-2 z-100 flex flex-col items-end gap-1">
+    <button
+      type="button"
+      class="rounded-ui-lg text-ui-text hover:bg-ui-panel/65 hover:border-ui-border-panel flex cursor-pointer items-center gap-1.5 border border-solid border-transparent bg-transparent px-2.5 py-1 transition-[background-color,border-color] hover:[backdrop-filter:blur(20px)_saturate(1.4)] hover:[-webkit-backdrop-filter:blur(20px)_saturate(1.4)]"
+      [class.bg-ui-panel/65]="isOpen()"
+      [title]="'feature.replay.indicator.title' | transloco"
+      (click)="toggle()"
+    >
+      <span class="size-2 shrink-0 animate-pulse rounded-full bg-red-500"></span>
+      <span class="font-mono text-[12px] leading-none tabular-nums">{{ elapsed() }}</span>
+    </button>
+
+    @if (isOpen()) {
+      <div
+        class="border-ui-border-panel bg-ui-panel text-ui-text rounded-ui shadow-ui-md flex w-64 flex-col gap-2 border border-solid p-2.5 [backdrop-filter:blur(24px)_saturate(1.5)] [-webkit-backdrop-filter:blur(24px)_saturate(1.5)]"
+      >
+        <span class="text-ui-muted text-[0.72rem]">
+          {{ 'feature.replay.indicator.summary' | transloco: { count: eventCount() } }}
+        </span>
+
+        <div class="flex items-center gap-1.5">
+          <input
+            class="border-ui-border bg-ui-elevated rounded-ui-sm min-w-0 flex-1 border border-solid px-1.5 py-1 text-[0.74rem]"
+            type="text"
+            [value]="markLabel()"
+            [disabled]="!canEdit"
+            [placeholder]="'feature.replay.indicator.markPlaceholder' | transloco"
+            (input)="markLabel.set($any($event.target).value)"
+            (keydown.enter)="mark()"
+          />
+          <button
+            class="rounded-ui-sm cursor-pointer px-[0.7em] py-[0.3em] text-[0.72rem]"
+            [disabled]="!canEdit || markLabel().trim().length < 1"
+            (click)="mark()"
+          >
+            {{ 'feature.replay.indicator.mark' | transloco }}
+          </button>
+        </div>
+
+        <label class="text-ui-muted flex items-center justify-between gap-1.5 text-[0.72rem]">
+          {{ 'feature.replay.panel.detailLevel' | transloco }}
+          <select
+            class="border-ui-border bg-ui-elevated rounded-ui-sm border border-solid px-1.5 py-0.5 text-[0.72rem]"
+            [value]="detailLevel()"
+            [disabled]="!canEdit"
+            (change)="setDetailLevel($any($event.target).value)"
+          >
+            @for (level of detailLevels; track level) {
+              <option [value]="level">{{ 'feature.replay.panel.level.' + level | transloco }}</option>
+            }
+          </select>
+        </label>
+
+        <div class="border-ui-border flex justify-between gap-1.5 border-t border-solid pt-2">
+          <button class="rounded-ui-sm cursor-pointer px-[0.7em] py-[0.3em] text-[0.72rem]" (click)="hide()">
+            {{ 'feature.replay.indicator.hide' | transloco }}
+          </button>
+          <button
+            class="danger rounded-ui-sm cursor-pointer px-[0.7em] py-[0.3em] text-[0.72rem]"
+            [disabled]="!canEdit"
+            (click)="stop()"
+          >
+            {{ 'feature.replay.indicator.stop' | transloco }}
+          </button>
+        </div>
+      </div>
+    }
+  </div>
+}

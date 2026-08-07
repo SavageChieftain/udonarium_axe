@@ -4,20 +4,38 @@ import { beforeEach, describe, expect, it } from 'vitest';
 
 describe('parseWidgetVisibility', () => {
   it('保存が無ければミニプレイヤーだけ出す', () => {
-    expect(parseWidgetVisibility(null)).toEqual({ clock: false, miniPlayer: true, connectionQuality: false });
+    expect(parseWidgetVisibility(null)).toEqual({
+      clock: false,
+      miniPlayer: true,
+      connectionQuality: false,
+      recording: true,
+    });
   });
 
   it('保存された状態を読む', () => {
-    expect(parseWidgetVisibility('{"clock":true,"miniPlayer":false,"connectionQuality":true}')).toEqual({
+    expect(
+      parseWidgetVisibility('{"clock":true,"miniPlayer":false,"connectionQuality":true,"recording":false}')
+    ).toEqual({
       clock: true,
       miniPlayer: false,
       connectionQuality: true,
+      recording: false,
     });
   });
 
   it('壊れた保存値は既定に倒す', () => {
-    expect(parseWidgetVisibility('{')).toEqual({ clock: false, miniPlayer: true, connectionQuality: false });
-    expect(parseWidgetVisibility('null')).toEqual({ clock: false, miniPlayer: true, connectionQuality: false });
+    expect(parseWidgetVisibility('{')).toEqual({
+      clock: false,
+      miniPlayer: true,
+      connectionQuality: false,
+      recording: true,
+    });
+    expect(parseWidgetVisibility('null')).toEqual({
+      clock: false,
+      miniPlayer: true,
+      connectionQuality: false,
+      recording: true,
+    });
   });
 
   it('欠けている項目だけ既定で埋める', () => {
@@ -25,6 +43,7 @@ describe('parseWidgetVisibility', () => {
       clock: true,
       miniPlayer: true,
       connectionQuality: false,
+      recording: true,
     });
   });
 });
@@ -42,6 +61,7 @@ describe('WidgetVisibilityService', () => {
     expect(service.clock()).toBe(false);
     expect(service.miniPlayer()).toBe(true);
     expect(service.connectionQuality()).toBe(false);
+    expect(service.recording()).toBe(true);
   });
 
   it('それぞれ独立に切り替わる', () => {
