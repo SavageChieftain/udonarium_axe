@@ -279,6 +279,31 @@ describe('retextReplayEvent()', () => {
     expect(textOf(retextReplayEvent(marked, 1, '第二幕')[0])).toBe('第二幕');
   });
 
+  it('書き直した本文をパッチにも通すこと', () => {
+    const recorded: ReplayEvent = {
+      ...event(1),
+      targetId: 'm1',
+      detail: { text: '元の台詞', name: '盗賊', tabIdentifier: 'tab1' },
+      patch: {
+        identifier: 'm1',
+        aliasName: 'chat',
+        before: {},
+        after: { value: '元の台詞', parentIdentifier: 'tab1', 'attributes.name': '盗賊' },
+      },
+    };
+
+    const [edited] = retextReplayEvent([recorded], 1, 'あらためて');
+    expect(edited.detail['text']).toBe('あらためて');
+    expect(edited.patch?.after['value']).toBe('あらためて');
+    expect(edited.patch?.after['attributes.name']).toBe('盗賊');
+  });
+
+  it('パッチの無い行を書き直しても壊さないこと', () => {
+    const [edited] = retextReplayEvent(events, 2, 'あらためて');
+    expect(edited).toBeDefined();
+    expect(retextReplayEvent(events, 2, 'あらためて')[1].patch).toBeUndefined();
+  });
+
   it('書き直せない種類には触れないこと', () => {
     const moves = [event(1, ReplayEventKind.ObjectMove)];
     expect(retextReplayEvent(moves, 1, 'むり')[0]).toBe(moves[0]);

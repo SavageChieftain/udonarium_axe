@@ -11,7 +11,7 @@ import { ObjectStore } from '@axe/core/sync/object-store';
 import { ObjectSynchronizer } from '@axe/core/sync/object-synchronizer';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { ChatMessage } from '@axe/domain/chat/chat-message';
-import { createReplayEntry } from '@axe/domain/replay/replay-edit';
+import { createReplayEntry, retextReplayEvent } from '@axe/domain/replay/replay-edit';
 import { PUBLIC_VISIBILITY, type ReplayEvent, ReplayEventKind } from '@axe/domain/replay/replay-event';
 import { encodeReplayKeyframe, type ReplayObjectSnapshot } from '@axe/domain/replay/replay-keyframe';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
@@ -301,6 +301,22 @@ describe('ReplayPlaybackService', () => {
     expect(message?.text).toBe('差し込んだ台詞');
     expect(message?.name).toBe('盗賊');
     expect(message?.from).toBe('alice');
+  });
+
+  it('書き直した発言を書き直した本文で出すこと', async () => {
+    const entry = createReplayEntry(
+      { kind: ReplayEventKind.ChatMessage, actorId: 'alice', speaker: '盗賊', text: '元の台詞', tabIdentifier: '' },
+      2,
+      2000
+    );
+    const [edited] = retextReplayEvent([entry], entry.seq, 'あらためた台詞');
+    library.load.mockResolvedValue({ manifest: null, events: [events[0], edited] });
+
+    await service.open(1);
+    await service.enterBoardMode();
+    await service.next();
+
+    expect(objectStore.get<ChatMessage>(entry.targetId!)?.text).toBe('あらためた台詞');
   });
 
   it('読み物として送るだけなら盤面に触れないこと', async () => {

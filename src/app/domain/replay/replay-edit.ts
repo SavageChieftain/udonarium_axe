@@ -173,8 +173,14 @@ export function moveReplayEvent(events: readonly ReplayEvent[], seq: number, off
 export function retextReplayEvent(events: readonly ReplayEvent[], seq: number, text: string): ReplayEvent[] {
   return events.map((event) => {
     if (event.seq !== seq || !isTextEditable(event)) return event;
-    const key = event.kind === ReplayEventKind.Marker ? 'label' : 'text';
-    return { ...event, detail: { ...event.detail, [key]: text } };
+    if (event.kind === ReplayEventKind.Marker) {
+      return { ...event, detail: { ...event.detail, label: text } };
+    }
+    return {
+      ...event,
+      detail: { ...event.detail, text },
+      patch: event.patch ? { ...event.patch, after: { ...event.patch.after, value: text } } : undefined,
+    };
   });
 }
 
