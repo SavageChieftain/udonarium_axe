@@ -2066,7 +2066,8 @@
         "atStart": "先頭",
         "afterEntry": "{{entry}} の行の後",
         "insert": "差し込む",
-        "credit": "記録者"
+        "credit": "記録者",
+        "freeSpeaker": "名前を直接入力"
       },
       "surface": {
         "floor": "床",

@@ -73,6 +73,10 @@ describe('ReplayPlayerPanelComponent', () => {
       events: signal<readonly ReplayEvent[]>(events).asReadonly(),
       manifest: signal<ReplayManifest | null>(manifest).asReadonly(),
       currentEvent: signal<ReplayEvent | null>(events[0]).asReadonly(),
+      cast: signal([
+        { identifier: 'c1', name: '盗賊', imageIdentifier: 'img-1', chatColor: '#112233' },
+        { identifier: 'c2', name: '魔術師', imageIdentifier: 'img-2', chatColor: '#445566' },
+      ]).asReadonly(),
       open: vi.fn().mockResolvedValue(true),
       close: vi.fn().mockResolvedValue(undefined),
       seekTo: vi.fn().mockResolvedValue(undefined),
@@ -254,17 +258,25 @@ describe('ReplayPlayerPanelComponent', () => {
     expect(buttonByText('差し込む')?.disabled).toBe(true);
   });
 
-  it('話者を記録に出てくる名前から選べること', async () => {
+  it('話者を記録の登場人物から選べること', async () => {
     await setup();
     buttonByText('編集')?.click();
     fixture.detectChanges();
 
-    const options = [
-      ...fixture.nativeElement.querySelectorAll('#replay-speaker-options option'),
-    ] as HTMLOptionElement[];
-    const values = options.map((option) => option.value);
-    expect(values).toContain('盗賊');
-    expect(values).toContain('アリス');
+    const selects = [...fixture.nativeElement.querySelectorAll('select')] as HTMLSelectElement[];
+    const speaker = selects.find((select) => [...select.options].some((option) => option.text === '盗賊'));
+    expect(speaker).toBeDefined();
+    expect([...speaker!.options].map((option) => option.text)).toContain('魔術師');
+  });
+
+  it('喋らなかったコマも話者に並ぶこと', async () => {
+    await setup();
+    buttonByText('編集')?.click();
+    fixture.detectChanges();
+
+    const selects = [...fixture.nativeElement.querySelectorAll('select')] as HTMLSelectElement[];
+    const speaker = selects.find((select) => [...select.options].some((option) => option.text === '盗賊'))!;
+    expect([...speaker.options].map((option) => option.value)).toContain('c2');
   });
 
   it('記録を開いていなければ案内を出すこと', async () => {

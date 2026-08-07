@@ -9,6 +9,7 @@ import { markForChanged } from '@axe/core/sync/object-event-extension';
 import { ObjectFactory } from '@axe/core/sync/object-factory';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { ObjectSynchronizer } from '@axe/core/sync/object-synchronizer';
+import { collectReplayCast, type ReplayCastMember } from '@axe/domain/replay/replay-cast';
 import { mergeSyncData, type SyncData } from '@axe/domain/replay/replay-diff';
 import { type ReplayEvent, ReplayEventKind, type ReplayManifest } from '@axe/domain/replay/replay-event';
 import {
@@ -55,6 +56,7 @@ export class ReplayPlaybackService {
   private readonly _isSeeking = signal(false);
   private readonly _autoPlay = signal(false);
   private readonly _routeTrail = signal<ReplayRouteTrail | null>(null);
+  private readonly _cast = signal<readonly ReplayCastMember[]>([]);
 
   readonly recordingId = this._recordingId.asReadonly();
   readonly manifest = this._manifest.asReadonly();
@@ -64,6 +66,7 @@ export class ReplayPlaybackService {
   readonly isSeeking = this._isSeeking.asReadonly();
   readonly autoPlay = this._autoPlay.asReadonly();
   readonly routeTrail = this._routeTrail.asReadonly();
+  readonly cast = this._cast.asReadonly();
 
   readonly isOpen = computed(() => this._recordingId() !== null);
   readonly currentEvent = computed(() => this._events()[this._cursor()] ?? null);
@@ -86,6 +89,7 @@ export class ReplayPlaybackService {
     this._manifest.set(manifest);
     this._events.set(events);
     this._cursor.set(0);
+    await this.loadCast(id, events);
     return true;
   }
 
@@ -96,6 +100,18 @@ export class ReplayPlaybackService {
     this._manifest.set(null);
     this._events.set([]);
     this._cursor.set(-1);
+    this._cast.set([]);
+  }
+
+  private async loadCast(id: number, events: readonly ReplayEvent[]): Promise<void> {
+    try {
+      const keyframe = await this.library.keyframeBefore(id, events[0]?.seq ?? 0);
+      if (!keyframe) return;
+      const snapshots = decodeReplayKeyframe(new Uint8Array(await keyframe.blob.arrayBuffer()));
+      this._cast.set(collectReplayCast(snapshots));
+    } catch (reason) {
+      Logger.warn('[ReplayPlayback] 登場人物を読めませんでした', reason);
+    }
   }
 
   async seekTo(index: number): Promise<void> {

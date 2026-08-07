@@ -15,6 +15,8 @@ export interface ReplayEntryDraft {
   speaker: string;
   text: string;
   tabIdentifier: string;
+  imageIdentifier?: string;
+  chatColor?: string;
 }
 
 export const DICEBOT_SENDER = 'System-BCDice';
@@ -52,6 +54,8 @@ export function createReplayEntry(draft: ReplayEntryDraft, seq: number, at: numb
   const from = isDice ? DICEBOT_SENDER : draft.actorId;
   const tag = isDice ? 'system' : '';
   const identifier = generateUuid();
+  const imageIdentifier = isDice ? '' : (draft.imageIdentifier ?? '');
+  const chatColor = isDice ? '' : (draft.chatColor ?? '');
 
   return {
     seq,
@@ -69,6 +73,7 @@ export function createReplayEntry(draft: ReplayEntryDraft, seq: number, at: numb
       dicebot: '',
       timestamp: at,
       tabIdentifier: draft.tabIdentifier,
+      imageIdentifier,
     },
     patch: {
       identifier,
@@ -85,6 +90,9 @@ export function createReplayEntry(draft: ReplayEntryDraft, seq: number, at: numb
         'attributes.tag': tag,
         'attributes.dicebot': '',
         'attributes.timestamp': at,
+        'attributes.imageIdentifier': imageIdentifier,
+        'attributes.messColor': chatColor,
+        'attributes.originFrom': draft.actorId,
       },
     },
     visibility: PUBLIC_VISIBILITY,

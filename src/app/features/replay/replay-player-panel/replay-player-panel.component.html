@@ -149,19 +149,26 @@
           @if (!isMarkerDraft()) {
             <label class="text-ui-muted flex items-center gap-1 text-[0.72rem]">
               {{ 'feature.replay.editor.speaker' | transloco }}
+              <select
+                class="border-ui-border bg-ui-panel rounded-ui-sm border border-solid px-1.5 py-1 text-[0.74rem]"
+                [value]="insertCastId()"
+                (change)="setCastId($any($event.target).value)"
+              >
+                @for (member of cast(); track member.identifier) {
+                  <option [value]="member.identifier">{{ member.name }}</option>
+                }
+                <option value="">{{ 'feature.replay.editor.freeSpeaker' | transloco }}</option>
+              </select>
+            </label>
+            @if (isFreeSpeaker()) {
               <input
                 class="border-ui-border bg-ui-panel rounded-ui-sm w-28 border border-solid px-1.5 py-1 text-[0.74rem]"
                 type="text"
-                list="replay-speaker-options"
                 [value]="insertSpeaker()"
+                [placeholder]="'feature.replay.editor.speaker' | transloco"
                 (input)="insertSpeaker.set($any($event.target).value)"
               />
-              <datalist id="replay-speaker-options">
-                @for (name of speakerOptions(); track name) {
-                  <option [value]="name"></option>
-                }
-              </datalist>
-            </label>
+            }
 
             <label class="text-ui-muted flex items-center gap-1 text-[0.72rem]">
               {{ 'feature.replay.editor.credit' | transloco }}

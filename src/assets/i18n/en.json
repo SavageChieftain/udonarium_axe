@@ -2066,7 +2066,8 @@
         "atStart": "the start",
         "afterEntry": "after {{entry}}",
         "insert": "Insert",
-        "credit": "Credited to"
+        "credit": "Credited to",
+        "freeSpeaker": "Type a name"
       },
       "surface": {
         "floor": "floor",

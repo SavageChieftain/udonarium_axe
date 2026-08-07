@@ -9,6 +9,7 @@ import { ReplayRecorderService } from '@axe/application/replay/replay-recorder.s
 import { ReplayStagingService } from '@axe/application/replay/replay-staging.service';
 import { confirmDialog } from '@axe/core/input/confirm-dialog';
 import type { ReplayRecordingMeta } from '@axe/core/storage/replay-log-store';
+import type { ReplayCastMember } from '@axe/domain/replay/replay-cast';
 import { chatTabIdentifierNear, INSERTABLE_KINDS, isTextEditable, textOf } from '@axe/domain/replay/replay-edit';
 import { findActorAt, findTargetAt, ReplayEventKind, type ReplayManifest } from '@axe/domain/replay/replay-event';
 import type { ReplayLogLine } from '@axe/features/replay/replay-log-line';
@@ -51,20 +52,20 @@ export class ReplayPlayerPanelComponent {
   protected readonly insertKind = signal<ReplayEventKind>(ReplayEventKind.ChatMessage);
   protected readonly insertActorId = signal('');
   protected readonly insertSpeaker = signal('');
+  protected readonly insertCastId = signal('');
   protected readonly insertText = signal('');
   protected readonly selectedIndex = signal(-1);
 
   protected readonly isMarkerDraft = computed(() => this.insertKind() === ReplayEventKind.Marker);
 
-  protected readonly speakerOptions = computed(() => {
-    const manifest = this.playback.manifest();
-    const names = new Set<string>();
-    for (const target of manifest?.targets ?? []) {
-      if (target.aliasName === 'character' && target.name.length > 0) names.add(target.name);
-    }
-    for (const actor of this.actors()) if (actor.name.length > 0) names.add(actor.name);
-    return [...names];
-  });
+  protected readonly cast = computed(() =>
+    this.playback
+      .cast()
+      .filter((member) => member.name.length > 0)
+      .sort((a, b) => a.name.localeCompare(b.name))
+  );
+
+  protected readonly isFreeSpeaker = computed(() => this.insertCastId().length < 1);
 
   protected readonly insertPosition = computed(() => {
     const index = this.selectedIndex();
@@ -188,6 +189,18 @@ export class ReplayPlayerPanelComponent {
     this.insertKind.set(kind as ReplayEventKind);
   }
 
+  protected setCastId(identifier: string): void {
+    this.insertCastId.set(identifier);
+  }
+
+  private selectedCast(): ReplayCastMember | null {
+    return this.cast().find((member) => member.identifier === this.insertCastId()) ?? null;
+  }
+
+  private speakerName(): string {
+    return this.selectedCast()?.name ?? this.insertSpeaker().trim();
+  }
+
   private insertTabIdentifier(index: number): string {
     const fromRecording = chatTabIdentifierNear(this.editor.edited(), index);
     if (fromRecording.length > 0) return fromRecording;
@@ -209,9 +222,11 @@ export class ReplayPlayerPanelComponent {
     this.editor.insert(index, {
       kind: this.insertKind(),
       actorId: this.insertActorId() || this.actors()[0]?.userId || '',
-      speaker: this.insertSpeaker().trim(),
+      speaker: this.speakerName(),
       text: this.insertText().trim(),
       tabIdentifier: this.insertTabIdentifier(index),
+      imageIdentifier: this.selectedCast()?.imageIdentifier ?? '',
+      chatColor: this.selectedCast()?.chatColor ?? '',
     });
     this.insertText.set('');
     this.selectedIndex.set(index);

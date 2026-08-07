@@ -63,6 +63,7 @@ describe('createReplayEntry()', () => {
       dicebot: '',
       timestamp: 5000,
       tabIdentifier: 'tab1',
+      imageIdentifier: '',
     });
   });
 
@@ -90,6 +91,25 @@ describe('createReplayEntry()', () => {
       'attributes.name': '盗賊',
       'attributes.timestamp': 5000,
     });
+  });
+
+  it('選んだコマの立ち絵と色を持たせること', () => {
+    const entry = createReplayEntry(
+      {
+        kind: ReplayEventKind.ChatMessage,
+        actorId: 'alice',
+        speaker: '盗賊',
+        text: 'やあ',
+        tabIdentifier: 'tab1',
+        imageIdentifier: 'img-1',
+        chatColor: '#112233',
+      },
+      9,
+      5000
+    );
+    expect(entry.patch?.after['attributes.imageIdentifier']).toBe('img-1');
+    expect(entry.patch?.after['attributes.messColor']).toBe('#112233');
+    expect(entry.patch?.after['attributes.originFrom']).toBe('alice');
   });
 
   it('ダイスの行はダイスボットの発言として作ること', () => {
