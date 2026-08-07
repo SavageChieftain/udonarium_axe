@@ -203,23 +203,47 @@ describe('ReplayPlayerPanelComponent', () => {
     expect(fixture.nativeElement.querySelectorAll('ul > li')).toHaveLength(1);
   });
 
-  it('内容を入れて好きな位置に差し込めること', async () => {
+  function composeText(value: string): void {
+    const text = fixture.nativeElement.querySelector('input[placeholder="差し込む内容"]') as HTMLInputElement;
+    text.value = value;
+    text.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+  }
+
+  it('選んだ行の後ろに差し込むこと', async () => {
     await setup();
     buttonByText('編集')?.click();
     fixture.detectChanges();
 
-    const text = fixture.nativeElement.querySelector('input[placeholder="差し込む内容"]') as HTMLInputElement;
-    text.value = '語り: そのとき扉が開いた';
-    text.dispatchEvent(new Event('input'));
+    const rows = [...fixture.nativeElement.querySelectorAll('ul > li')] as HTMLElement[];
+    rows[0].click();
+    fixture.detectChanges();
+    composeText('語り: そのとき扉が開いた');
+
+    buttonByText('差し込む')?.click();
     fixture.detectChanges();
 
-    const inserts = [...fixture.nativeElement.querySelectorAll('[aria-label="この行の後ろに差し込む"]')];
-    (inserts[0] as HTMLButtonElement).click();
+    const after = [...fixture.nativeElement.querySelectorAll('ul > li')] as HTMLElement[];
+    expect(after).toHaveLength(3);
+    expect(after[1].querySelector('input[type="text"]')).not.toBeNull();
+  });
+
+  it('選んだ行を外すと先頭に差し込むこと', async () => {
+    await setup();
+    buttonByText('編集')?.click();
     fixture.detectChanges();
 
     const rows = [...fixture.nativeElement.querySelectorAll('ul > li')] as HTMLElement[];
-    expect(rows).toHaveLength(3);
-    expect(rows[1].querySelector('input[type="text"]')).not.toBeNull();
+    rows[0].click();
+    fixture.detectChanges();
+    composeText('前口上');
+
+    expect(fixture.nativeElement.textContent).toContain('先頭');
+    buttonByText('差し込む')?.click();
+    fixture.detectChanges();
+
+    const after = [...fixture.nativeElement.querySelectorAll('ul > li')] as HTMLElement[];
+    expect(after[0].querySelector('input[type="text"]')).not.toBeNull();
   });
 
   it('内容が空なら差し込めないこと', async () => {
@@ -227,8 +251,20 @@ describe('ReplayPlayerPanelComponent', () => {
     buttonByText('編集')?.click();
     fixture.detectChanges();
 
-    const insert = fixture.nativeElement.querySelector('[aria-label="この行の後ろに差し込む"]') as HTMLButtonElement;
-    expect(insert.disabled).toBe(true);
+    expect(buttonByText('差し込む')?.disabled).toBe(true);
+  });
+
+  it('話者を記録に出てくる名前から選べること', async () => {
+    await setup();
+    buttonByText('編集')?.click();
+    fixture.detectChanges();
+
+    const options = [
+      ...fixture.nativeElement.querySelectorAll('#replay-speaker-options option'),
+    ] as HTMLOptionElement[];
+    const values = options.map((option) => option.value);
+    expect(values).toContain('盗賊');
+    expect(values).toContain('アリス');
   });
 
   it('記録を開いていなければ案内を出すこと', async () => {

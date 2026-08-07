@@ -50,8 +50,31 @@ export class ReplayPlayerPanelComponent {
   protected readonly insertActorId = signal('');
   protected readonly insertSpeaker = signal('');
   protected readonly insertText = signal('');
+  protected readonly selectedIndex = signal(-1);
 
   protected readonly isMarkerDraft = computed(() => this.insertKind() === ReplayEventKind.Marker);
+
+  protected readonly speakerOptions = computed(() => {
+    const manifest = this.playback.manifest();
+    const names = new Set<string>();
+    for (const target of manifest?.targets ?? []) {
+      if (target.aliasName === 'character' && target.name.length > 0) names.add(target.name);
+    }
+    for (const actor of this.actors()) if (actor.name.length > 0) names.add(actor.name);
+    return [...names];
+  });
+
+  protected readonly insertPosition = computed(() => {
+    const index = this.selectedIndex();
+    return index < 0 ? 0 : index + 1;
+  });
+
+  protected readonly insertPositionLabel = computed(() => {
+    const index = this.selectedIndex();
+    if (index < 0) return this.t('feature.replay.editor.atStart');
+    const row = this.rows()[index];
+    return this.t('feature.replay.editor.afterEntry', { entry: row ? row.elapsed : '' });
+  });
 
   protected readonly actors = computed(() => {
     const manifest = this.playback.manifest();
@@ -147,6 +170,7 @@ export class ReplayPlayerPanelComponent {
 
   protected beginEditing(): void {
     if (!this.canEdit) return;
+    this.selectedIndex.set(this.cursor());
     this.editor.begin(this.playback.events());
   }
 
@@ -162,12 +186,18 @@ export class ReplayPlayerPanelComponent {
     this.insertKind.set(kind as ReplayEventKind);
   }
 
+  protected selectRow(index: number): void {
+    if (!this.isEditing()) return;
+    this.selectedIndex.update((current) => (current === index ? -1 : index));
+  }
+
   protected canInsert(): boolean {
     return this.isEditing() && this.insertText().trim().length > 0;
   }
 
-  protected insertAt(index: number): void {
+  protected insertHere(): void {
     if (!this.canInsert()) return;
+    const index = this.insertPosition();
     this.editor.insert(index, {
       kind: this.insertKind(),
       actorId: this.insertActorId() || this.actors()[0]?.userId || '',
@@ -175,12 +205,13 @@ export class ReplayPlayerPanelComponent {
       text: this.insertText().trim(),
     });
     this.insertText.set('');
+    this.selectedIndex.set(index);
   }
 
-  protected async stageAt(index: number): Promise<void> {
+  protected async stageHere(): Promise<void> {
     if (!this.isEditing() || this.isStaging() || !this.canEdit) return;
     if (!this.isBoardMode() && !(await this.playback.enterBoardMode())) return;
-    this.staging.begin(index, this.insertActorId() || this.actors()[0]?.userId || '');
+    this.staging.begin(this.insertPosition(), this.insertActorId() || this.actors()[0]?.userId || '');
   }
 
   protected removeRow(seq: number): void {

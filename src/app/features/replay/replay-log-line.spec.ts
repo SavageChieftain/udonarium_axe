@@ -103,6 +103,14 @@ describe('toReplayLogLine()', () => {
     expect(line.params['toPlace']).toBe('ダイス');
   });
 
+  it('置き場所が分からない移動をただの移動として表すこと', () => {
+    const line = toReplayLogLine(
+      event(ReplayEventKind.ObjectMove, { to: { name: 'table', x: 10, y: 20, z: 0 } }),
+      names
+    );
+    expect(line.key).toBe('feature.replay.line.move');
+  });
+
   it('名前の分からない置き場所は識別子のまま出すこと', () => {
     const line = toReplayLogLine(
       event(ReplayEventKind.ObjectMove, {

@@ -2047,16 +2047,13 @@
       },
       "editor": {
         "begin": "Edit",
-        "hint": "Reorder, delete, or reword. The original recording is left alone.",
+        "hint": "Click an entry to choose where things go in. Reorder, delete and reword here too. The original recording is left alone.",
         "save": "Save as a new recording",
         "revert": "Undo all",
         "cancel": "Stop editing",
         "up": "Move up",
         "down": "Move down",
         "remove": "Delete this entry",
-        "insertHint": "Insert an entry (type it, then press + where it belongs)",
-        "insertAtStart": "At the start",
-        "insertAfter": "Insert after this entry",
         "speaker": "Speaker",
         "textPlaceholder": "What it says",
         "kind": {
@@ -2064,7 +2061,12 @@
           "chat.dice": "Dice",
           "marker": "Chapter"
         },
-        "stageHere": "Stage from here"
+        "stageHere": "Stage from here",
+        "insertInto": "Insert at",
+        "atStart": "the start",
+        "afterEntry": "after {{entry}}",
+        "insert": "Insert",
+        "credit": "Credited to"
       },
       "surface": {
         "floor": "floor",

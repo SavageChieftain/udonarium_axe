@@ -2047,24 +2047,26 @@
       },
       "editor": {
         "begin": "編集",
-        "hint": "並べ替え・削除・台詞の直しができます。元の記録はそのまま残ります。",
+        "hint": "行を押すと差し込み先を選べます。並べ替え・削除・台詞の直しもここで。元の記録はそのまま残ります。",
         "save": "別の記録として保存",
         "revert": "やり直す",
         "cancel": "取りやめ",
         "up": "ひとつ上へ",
         "down": "ひとつ下へ",
         "remove": "この行を消す",
-        "insertHint": "行を差し込む（内容を入れてから、置きたい位置の ＋ を押す）",
-        "insertAtStart": "先頭へ",
-        "insertAfter": "この行の後ろに差し込む",
-        "speaker": "話者名",
+        "speaker": "話者",
         "textPlaceholder": "差し込む内容",
         "kind": {
           "chat.message": "発言",
           "chat.dice": "ダイス",
           "marker": "目印"
         },
-        "stageHere": "ここから収録"
+        "stageHere": "ここから収録",
+        "insertInto": "差し込み先",
+        "atStart": "先頭",
+        "afterEntry": "{{entry}} の行の後",
+        "insert": "差し込む",
+        "credit": "記録者"
       },
       "surface": {
         "floor": "床",

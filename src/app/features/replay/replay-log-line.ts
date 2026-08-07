@@ -180,7 +180,7 @@ function assignPlace(
   place: string,
   names: ReplayNameLookup
 ): void {
-  if (place === TABLE_PLACE || place.length < 1) {
+  if (place === TABLE_PLACE) {
     paramKeys[name] = 'feature.replay.place.table';
     return;
   }
@@ -193,7 +193,7 @@ function position(value: unknown): { x: number; y: number; z: number; place: str
     x: Math.round(numberOf(record['x'])),
     y: Math.round(numberOf(record['y'])),
     z: Math.round(numberOf(record['z'])),
-    place: text(record['name']),
+    place: text(record['name']) || TABLE_PLACE,
     surface: text(record['surface']) || DEFAULT_SURFACE,
   };
 }
