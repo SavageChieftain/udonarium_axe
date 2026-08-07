@@ -2092,7 +2092,8 @@
         "closeCompose": "やめる",
         "rewrite": "書き直す",
         "undo": "取り消す",
-        "undoHint": "Ctrl+Z"
+        "undoHint": "Ctrl+Z",
+        "drag": "つまんで並べ替え"
       },
       "surface": {
         "floor": "床",

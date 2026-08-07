@@ -56,6 +56,8 @@ export class ReplayEntryListComponent {
   protected readonly filter = signal<ReplayLogFilter>(DEFAULT_REPLAY_LOG_FILTER);
   protected readonly composeAt = signal<number | null>(null);
   protected readonly editingSeq = signal<number | null>(null);
+  protected readonly draggingSeq = signal<number | null>(null);
+  protected readonly dropAt = signal<number | null>(null);
 
   protected readonly insertKind = signal<ReplayEventKind>(ReplayEventKind.ChatMessage);
   protected readonly insertCastId = signal('');
@@ -150,6 +152,48 @@ export class ReplayEntryListComponent {
 
   protected move(seq: number, offset: number): void {
     this.editor.move(seq, offset);
+  }
+
+  protected dragStart(row: ReplayEntryRow, event: DragEvent): void {
+    if (!this.editing()) return;
+    this.draggingSeq.set(row.seq);
+    if (!event.dataTransfer) return;
+    event.dataTransfer.effectAllowed = 'move';
+    event.dataTransfer.setData('text/plain', String(row.seq));
+  }
+
+  protected dragOver(row: ReplayEntryRow, event: DragEvent): void {
+    if (this.draggingSeq() === null) return;
+    event.preventDefault();
+    const bounds = (event.currentTarget as HTMLElement).getBoundingClientRect();
+    const isBelow = event.clientY > bounds.top + bounds.height / 2;
+    this.dropAt.set(isBelow ? row.index + 1 : row.index);
+  }
+
+  protected dropHere(event: DragEvent): void {
+    event.preventDefault();
+    const seq = this.draggingSeq();
+    const at = this.dropAt();
+    this.dragEnd();
+    if (seq === null || at === null) return;
+
+    const from = this.source().findIndex((entry) => entry.seq === seq);
+    if (from < 0) return;
+    const to = at > from ? at - 1 : at;
+    if (to === from) return;
+    this.editor.move(seq, to - from);
+  }
+
+  protected dragEnd(): void {
+    this.draggingSeq.set(null);
+    this.dropAt.set(null);
+  }
+
+  protected dropHint(row: ReplayEntryRow): string | null {
+    if (this.draggingSeq() === null || this.draggingSeq() === row.seq) return null;
+    if (this.dropAt() === row.index) return 'inset 0 2px 0 0 var(--color-ui-accent)';
+    if (this.dropAt() === row.index + 1) return 'inset 0 -2px 0 0 var(--color-ui-accent)';
+    return null;
   }
 
   protected remove(seq: number): void {

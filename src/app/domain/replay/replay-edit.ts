@@ -162,12 +162,14 @@ export function moveReplayEvent(events: readonly ReplayEvent[], seq: number, off
   if (index < 0) return [...events];
 
   const target = index + offset;
-  if (target < 0 || target >= events.length) return [...events];
+  if (offset === 0 || target < 0 || target >= events.length) return [...events];
 
   const next = [...events];
   const [moved] = next.splice(index, 1);
-  next.splice(target, 0, moved);
-  return next;
+  next.splice(target, 0, { ...moved, at: insertTimeAt(next, target) });
+
+  const origin = next[0].at;
+  return next.map((event) => ({ ...event, t: Math.max(0, event.at - origin) }));
 }
 
 export function retextReplayEvent(events: readonly ReplayEvent[], seq: number, text: string): ReplayEvent[] {

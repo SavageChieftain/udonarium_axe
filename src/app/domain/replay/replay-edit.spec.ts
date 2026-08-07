@@ -264,6 +264,25 @@ describe('moveReplayEvent()', () => {
 
   it('無い seq では並びを変えないこと', () => {
     expect(moveReplayEvent(events, 9, 1).map((e) => e.seq)).toEqual([1, 2, 3]);
+    expect(moveReplayEvent(events, 2, 0).map((e) => e.at)).toEqual([1000, 2000, 3000]);
+  });
+
+  it('移した先の時刻を引き継ぐこと', () => {
+    const moved = moveReplayEvent(events, 1, 2);
+    expect(moved.map((e) => e.seq)).toEqual([2, 3, 1]);
+    expect(moved.map((e) => e.at)).toEqual([2000, 3000, 3000]);
+  });
+
+  it('隣り合う 2 件のあいだに置くこと', () => {
+    const spaced = [event(1, ReplayEventKind.ChatMessage, 0), event(2), event(3, ReplayEventKind.ChatMessage, 9000)];
+    expect(moveReplayEvent(spaced, 2, 1).map((e) => e.at)).toEqual([0, 9000, 9000]);
+    expect(moveReplayEvent(spaced, 3, -1).map((e) => e.at)).toEqual([0, 1000, 2000]);
+  });
+
+  it('先頭へ移したら経過時間をそこから数え直すこと', () => {
+    const moved = moveReplayEvent(events, 3, -2);
+    expect(moved.map((e) => e.at)).toEqual([1000, 1000, 2000]);
+    expect(moved.map((e) => e.t)).toEqual([0, 0, 1000]);
   });
 });
 

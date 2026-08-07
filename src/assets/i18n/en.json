@@ -2092,7 +2092,8 @@
         "closeCompose": "Cancel",
         "rewrite": "Reword",
         "undo": "Undo",
-        "undoHint": "Ctrl+Z"
+        "undoHint": "Ctrl+Z",
+        "drag": "Drag to reorder"
       },
       "surface": {
         "floor": "floor",
