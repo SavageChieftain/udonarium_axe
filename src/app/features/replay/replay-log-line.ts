@@ -36,6 +36,9 @@ const ICONS: Record<string, string> = {
   [ReplayEventKind.MediaBgm]: 'music_note',
   [ReplayEventKind.MediaCutIn]: 'movie',
   [ReplayEventKind.EffectCast]: 'auto_awesome',
+  [ReplayEventKind.VnScene]: 'wallpaper',
+  [ReplayEventKind.VnPlayhead]: 'auto_stories',
+  [ReplayEventKind.VnDirect]: 'theaters',
   [ReplayEventKind.PeerJoin]: 'login',
   [ReplayEventKind.PeerLeave]: 'logout',
   [ReplayEventKind.Marker]: 'bookmark',
@@ -112,6 +115,12 @@ export function toReplayLogLine(event: ReplayEvent, names: ReplayNameLookup): Re
       return line('cutIn');
     case ReplayEventKind.EffectCast:
       return describeEffectLine(line, detail, names, target);
+    case ReplayEventKind.VnScene:
+      return line(target.length > 0 ? 'vnScene' : 'vnSceneClear');
+    case ReplayEventKind.VnPlayhead:
+      return line('vnPlayhead');
+    case ReplayEventKind.VnDirect:
+      return line(detail['isDirected'] === true ? 'vnDirectStart' : 'vnDirectStop');
     case ReplayEventKind.PeerJoin:
       return line('join');
     case ReplayEventKind.PeerLeave:

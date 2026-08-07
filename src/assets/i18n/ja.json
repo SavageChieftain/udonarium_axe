@@ -2034,7 +2034,12 @@
         "effectOn": "{{actor}} が {{targets}} に〈{{effect}}〉をかけた",
         "effectFrom": "{{actor}} が {{caster}} から {{targets}} へ〈{{effect}}〉を放った",
         "bgmStart": "{{actor}} が BGM を {{target}} に変えた",
-        "bgmStop": "{{actor}} が BGM を止めた"
+        "bgmStop": "{{actor}} が BGM を止めた",
+        "vnScene": "{{actor}} が場面を {{target}} に切り替えた",
+        "vnSceneClear": "{{actor}} が場面の背景を外した",
+        "vnPlayhead": "{{actor}} が語りを進めた",
+        "vnDirectStart": "{{actor}} が進行役になった",
+        "vnDirectStop": "{{actor}} が進行役をやめた"
       },
       "player": {
         "choose": "記録を選ぶ",

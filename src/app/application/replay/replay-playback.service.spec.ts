@@ -1,6 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { ReplayLibraryService } from '@axe/application/replay/replay-library.service';
 import {
+  REPLAY_AUTO_PLAY_BASE_MS,
   REPLAY_AUTO_PLAY_MAX_MS,
   REPLAY_SLIDE_MAX_MS,
   REPLAY_TRAIL_LINGER_MS,
@@ -380,6 +381,42 @@ describe('ReplayPlaybackService', () => {
       service.toggleAutoPlay();
 
       await vi.advanceTimersByTimeAsync(REPLAY_AUTO_PLAY_MAX_MS + 500);
+      expect(service.cursor()).toBe(2);
+    } finally {
+      service.stopAutoPlay();
+      vi.useRealTimers();
+    }
+  });
+
+  it('語りの送りをその台詞の長さで待つこと', async () => {
+    const playhead: ReplayEvent = {
+      seq: 2,
+      at: 2000,
+      t: 2000,
+      kind: ReplayEventKind.VnPlayhead,
+      actorId: 'alice',
+      targetId: 'm-long',
+      detail: { tabIdentifier: 'tab1' },
+      visibility: PUBLIC_VISIBILITY,
+    };
+    library.load.mockResolvedValue({ manifest: null, events: [events[0], playhead, events[2]] });
+
+    vi.useFakeTimers();
+    try {
+      await service.open(1);
+      await service.enterBoardMode();
+
+      const message = new ChatMessage('m-long');
+      message.text = 'あ'.repeat(200);
+      objectStore.add(message, false);
+
+      await service.next();
+      service.toggleAutoPlay();
+
+      await vi.advanceTimersByTimeAsync(REPLAY_AUTO_PLAY_BASE_MS + 100);
+      expect(service.cursor()).toBe(1);
+
+      await vi.advanceTimersByTimeAsync(REPLAY_AUTO_PLAY_MAX_MS);
       expect(service.cursor()).toBe(2);
     } finally {
       service.stopAutoPlay();

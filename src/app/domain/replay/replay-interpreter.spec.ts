@@ -313,6 +313,69 @@ describe('BGM の読み取り', () => {
   });
 });
 
+describe('ビジュアルノベルの読み取り', () => {
+  it('場面の切り替えを読むこと', () => {
+    const draft = interpretObjectChange({
+      aliasName: 'vn-stage',
+      identifier: 'VnStage',
+      before: { backgroundImageIdentifier: 'bg-a', transition: 'fade', transitionTrigger: 1 },
+      after: { backgroundImageIdentifier: 'bg-b', transition: 'wipe', transitionTrigger: 2 },
+    });
+    expect(draft?.kind).toBe(ReplayEventKind.VnScene);
+    expect(draft?.targetIdentifier).toBe('bg-b');
+    expect(draft?.detail['transition']).toBe('wipe');
+  });
+
+  it('背景を変えずに転換だけしたことも読むこと', () => {
+    const draft = interpretObjectChange({
+      aliasName: 'vn-stage',
+      identifier: 'VnStage',
+      before: { backgroundImageIdentifier: 'bg-a', transitionTrigger: 1 },
+      after: { backgroundImageIdentifier: 'bg-a', transitionTrigger: 2 },
+    });
+    expect(draft?.kind).toBe(ReplayEventKind.VnScene);
+  });
+
+  it('進行役の送りを読むこと', () => {
+    const draft = interpretObjectChange({
+      aliasName: 'vn-stage',
+      identifier: 'VnStage',
+      before: { playheadIdentifier: 'm1', playheadTabIdentifier: 'tab1' },
+      after: { playheadIdentifier: 'm2', playheadTabIdentifier: 'tab1' },
+    });
+    expect(draft?.kind).toBe(ReplayEventKind.VnPlayhead);
+    expect(draft?.targetIdentifier).toBe('m2');
+    expect(draft?.detail['tabIdentifier']).toBe('tab1');
+  });
+
+  it('進行役の交代を読むこと', () => {
+    const draft = interpretObjectChange({
+      aliasName: 'vn-stage',
+      identifier: 'VnStage',
+      before: { isDirected: false, directorPeerId: '' },
+      after: { isDirected: true, directorPeerId: 'p1' },
+    });
+    expect(draft?.kind).toBe(ReplayEventKind.VnDirect);
+    expect(draft?.detail['isDirected']).toBe(true);
+  });
+
+  it('標準の細かさでも VN の運びを残すこと', () => {
+    for (const kind of [ReplayEventKind.VnScene, ReplayEventKind.VnPlayhead, ReplayEventKind.VnDirect]) {
+      expect(isRecordableKind(kind, ReplayDetailLevel.Notable)).toBe(true);
+    }
+  });
+
+  it('関係ない変更は VN の運びとして読まないこと', () => {
+    const draft = interpretObjectChange({
+      aliasName: 'vn-stage',
+      identifier: 'VnStage',
+      before: { directorPeerId: 'p1' },
+      after: { directorPeerId: 'p2' },
+    });
+    expect(draft?.kind).toBe(ReplayEventKind.ObjectUpdate);
+  });
+});
+
 describe('interpretObjectRemove()', () => {
   it('削除として読むこと', () => {
     const draft = interpretObjectRemove('c1', 'character');

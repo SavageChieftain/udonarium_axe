@@ -54,6 +54,7 @@ const CHAT_ALIAS = 'chat';
 const DATA_ALIAS = 'data';
 const CUT_IN_LAUNCHER_ALIAS = 'cut-in-launcher';
 const JUKEBOX_ALIAS = 'jukebox';
+const VN_STAGE_ALIAS = 'vn-stage';
 const DICEBOT_SENDER = 'System-BCDice';
 
 const CHAT_ONLY_KINDS: ReadonlySet<ReplayEventKind> = new Set([
@@ -158,6 +159,10 @@ function describeChange(
     const bgm = describeBgm(after, keys);
     if (bgm) return bgm;
   }
+  if (aliasName === VN_STAGE_ALIAS && before) {
+    const stage = describeVnStage(after, keys);
+    if (stage) return stage;
+  }
   if (!before) return { kind: ReplayEventKind.ObjectCreate, detail: { aliasName } };
 
   if (hasChangedKey(keys, 'location') || hasChangedKey(keys, 'posZ')) return describeMove(before, after);
@@ -199,6 +204,33 @@ function describeEffectCast(record: Record<string, unknown>, signal: ReplaySigna
     relatedIdentifiers: [caster, ...targets].filter((identifier) => identifier.length > 0),
     signal,
   };
+}
+
+function describeVnStage(
+  after: SyncData,
+  keys: ReadonlySet<string>
+): { kind: ReplayEventKind; detail: Record<string, unknown>; targetIdentifier?: string } | null {
+  if (hasChangedKey(keys, 'transitionTrigger') || hasChangedKey(keys, 'backgroundImageIdentifier')) {
+    return {
+      kind: ReplayEventKind.VnScene,
+      targetIdentifier: asString(syncValueOf(after, 'backgroundImageIdentifier')),
+      detail: { transition: asString(syncValueOf(after, 'transition')) },
+    };
+  }
+  if (hasChangedKey(keys, 'playheadIdentifier')) {
+    return {
+      kind: ReplayEventKind.VnPlayhead,
+      targetIdentifier: asString(syncValueOf(after, 'playheadIdentifier')),
+      detail: { tabIdentifier: asString(syncValueOf(after, 'playheadTabIdentifier')) },
+    };
+  }
+  if (hasChangedKey(keys, 'isDirected')) {
+    return {
+      kind: ReplayEventKind.VnDirect,
+      detail: { isDirected: Boolean(syncValueOf(after, 'isDirected')) },
+    };
+  }
+  return null;
 }
 
 function describeBgm(

@@ -9,6 +9,7 @@ import { markForChanged } from '@axe/core/sync/object-event-extension';
 import { ObjectFactory } from '@axe/core/sync/object-factory';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { ObjectSynchronizer } from '@axe/core/sync/object-synchronizer';
+import { ChatMessage } from '@axe/domain/chat/chat-message';
 import { EffectPreset } from '@axe/domain/effect/effect-preset';
 import { CutIn } from '@axe/domain/media/cut-in';
 import { collectReplayCast, type ReplayCastMember } from '@axe/domain/replay/replay-cast';
@@ -206,8 +207,7 @@ export class ReplayPlaybackService {
   }
 
   private autoPlayWaitFor(event: ReplayEvent | null): number {
-    const text = String(event?.detail['text'] ?? '');
-    const reading = Math.min(REPLAY_AUTO_PLAY_MAX_MS, REPLAY_AUTO_PLAY_BASE_MS + text.length * 35);
+    const reading = this.readingWaitFor(String(event?.detail['text'] ?? ''));
     if (!event || !this._isBoardMode()) return reading;
 
     if (event.kind === ReplayEventKind.MediaCutIn && event.detail['isStart'] === true) {
@@ -216,10 +216,22 @@ export class ReplayPlaybackService {
     if (event.kind === ReplayEventKind.EffectCast) {
       return Math.max(reading, this.effectWaitFor(event));
     }
+    if (event.kind === ReplayEventKind.VnPlayhead) {
+      return this.readingWaitFor(this.playheadText(event));
+    }
     if (event.kind === ReplayEventKind.ObjectMove) {
       return Math.max(reading, this.slideRemainingMs() + REPLAY_AUTO_PLAY_SETTLE_MS);
     }
     return reading;
+  }
+
+  private readingWaitFor(text: string): number {
+    return Math.min(REPLAY_AUTO_PLAY_MAX_MS, REPLAY_AUTO_PLAY_BASE_MS + text.length * 35);
+  }
+
+  private playheadText(event: ReplayEvent): string {
+    const message = event.targetId ? this.objectStore.get<ChatMessage>(event.targetId) : null;
+    return message instanceof ChatMessage ? message.text : '';
   }
 
   private cutInWaitFor(event: ReplayEvent): number {

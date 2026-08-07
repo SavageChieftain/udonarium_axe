@@ -2034,7 +2034,12 @@
         "effectOn": "{{actor}} cast {{effect}} on {{targets}}",
         "effectFrom": "{{actor}} cast {{effect}} from {{caster}} at {{targets}}",
         "bgmStart": "{{actor}} put on {{target}}",
-        "bgmStop": "{{actor}} stopped the music"
+        "bgmStop": "{{actor}} stopped the music",
+        "vnScene": "{{actor}} changed the scene to {{target}}",
+        "vnSceneClear": "{{actor}} cleared the backdrop",
+        "vnPlayhead": "{{actor}} moved the story on",
+        "vnDirectStart": "{{actor}} took over narration",
+        "vnDirectStop": "{{actor}} handed narration back"
       },
       "player": {
         "choose": "Choose a recording",
