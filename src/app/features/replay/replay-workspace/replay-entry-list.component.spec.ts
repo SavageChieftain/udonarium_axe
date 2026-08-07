@@ -94,6 +94,14 @@ describe('ReplayEntryListComponent の並べ替え', () => {
     PeerCursor.myCursor = null as unknown as PeerCursor;
   });
 
+  it('行間の差し込みボタンに読める名前を付けること', () => {
+    const labels: string[] = Array.from(
+      fixture.nativeElement.querySelectorAll('button[aria-label]'),
+      (button) => (button as HTMLElement).getAttribute('aria-label') ?? ''
+    );
+    expect(labels.every((label) => !label.startsWith('feature.'))).toBe(true);
+  });
+
   it('編集中だけつまめること', () => {
     expect(rows()).toHaveLength(3);
 

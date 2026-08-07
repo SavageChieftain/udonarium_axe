@@ -25,7 +25,7 @@
         @for (row of lines(); track row.seq) {
           <li class="text-ui-muted flex items-start gap-1 text-[0.7rem]">
             <i class="material-icons shrink-0 text-[12px] leading-[1.4]">{{ row.line.icon }}</i>
-            <span class="min-w-0 flex-1 truncate">{{ row.line.key | transloco: row.line.params }}</span>
+            <span class="min-w-0 flex-1 truncate">{{ row.line.key | transloco: lineParams(row.line) }}</span>
           </li>
         }
       </ul>

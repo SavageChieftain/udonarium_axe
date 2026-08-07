@@ -1,9 +1,10 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
+import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { ReplayEditorService } from '@axe/application/replay/replay-editor.service';
 import { ReplayPlaybackService } from '@axe/application/replay/replay-playback.service';
 import { ReplayStagingService } from '@axe/application/replay/replay-staging.service';
 import { findActorAt, findTargetAt, type ReplayManifest } from '@axe/domain/replay/replay-event';
-import { toReplayLogLine } from '@axe/features/replay/replay-log-line';
+import { type ReplayLogLine, toReplayLogLine } from '@axe/features/replay/replay-log-line';
 import { TranslocoModule } from '@jsverse/transloco';
 
 const EMPTY_DICTIONARY: Pick<ReplayManifest, 'actors' | 'targets'> = { actors: [], targets: [] };
@@ -18,6 +19,7 @@ export class ReplayStagingBannerComponent {
   private readonly staging = inject(ReplayStagingService);
   private readonly editor = inject(ReplayEditorService);
   private readonly playback = inject(ReplayPlaybackService);
+  private readonly t = inject(TRANSLATE_FN);
 
   protected readonly isStaging = this.staging.isStaging;
   protected readonly captured = this.staging.captured;
@@ -43,6 +45,13 @@ export class ReplayStagingBannerComponent {
         }),
       }));
   });
+
+  protected lineParams(line: ReplayLogLine): Record<string, string | number> {
+    if (!line.paramKeys) return line.params;
+    const resolved: Record<string, string | number> = { ...line.params };
+    for (const [name, key] of Object.entries(line.paramKeys)) resolved[name] = this.t(key);
+    return resolved;
+  }
 
   protected setActorId(actorId: string): void {
     this.staging.setActorId(actorId);
