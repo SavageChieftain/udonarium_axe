@@ -372,6 +372,27 @@ describe('ReplayRecorderService', () => {
     expect(store.chunks.some((chunk) => chunk.recordingId === 2)).toBe(true);
   });
 
+  it('再生で卓を預かっているあいだは始めないこと', async () => {
+    setNetworkIsolated(true);
+    expect(await service.start()).toBe(false);
+    expect(service.isRecording()).toBe(false);
+    expect(store.keyframes).toHaveLength(0);
+  });
+
+  it('再生で卓を預かっているあいだは盤面を書き留めないこと', async () => {
+    await service.start();
+    expect(store.keyframes).toHaveLength(1);
+
+    setNetworkIsolated(true);
+    await service.mark('第二幕');
+    await vi.advanceTimersByTimeAsync(REPLAY_KEYFRAME_INTERVAL_MS);
+    expect(store.keyframes).toHaveLength(1);
+
+    setNetworkIsolated(false);
+    await service.stop();
+    expect(store.keyframes).toHaveLength(2);
+  });
+
   it('部屋がなくても録画できること', async () => {
     expect(await service.start()).toBe(true);
     expect(service.roomName()).toBe('');

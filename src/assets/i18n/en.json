@@ -2125,7 +2125,8 @@
         "mode": {
           "auto": "Start on its own",
           "manual": "Start it myself"
-        }
+        },
+        "heldHint": "Recording is paused while a recorded board is on the table. It resumes when you give the board back."
       },
       "workspace": {
         "recordings": "Recordings",

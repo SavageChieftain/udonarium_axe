@@ -7,8 +7,14 @@
       (click)="toggle()"
     >
       @if (isRecording()) {
-        <span class="size-2 shrink-0 animate-pulse rounded-full bg-red-500"></span>
-        <span class="font-mono text-[12px] leading-none tabular-nums">{{ elapsed() }}</span>
+        <span
+          class="size-2 shrink-0 rounded-full bg-red-500"
+          [class.animate-pulse]="!isHeld()"
+          [class.opacity-40]="isHeld()"
+        ></span>
+        <span class="font-mono text-[12px] leading-none tabular-nums" [class.text-ui-dim]="isHeld()">{{
+          elapsed()
+        }}</span>
       } @else {
         <span class="bg-ui-dim size-2 shrink-0 rounded-full"></span>
         <span class="text-[11px] leading-none">{{ 'feature.replay.indicator.idle' | transloco }}</span>
@@ -44,7 +50,13 @@
           </div>
         } @else {
           <span class="text-ui-muted text-[0.72rem] leading-normal">
-            {{ 'feature.replay.indicator.idleHint' | transloco }}
+            {{ (isHeld() ? 'feature.replay.indicator.heldHint' : 'feature.replay.indicator.idleHint') | transloco }}
+          </span>
+        }
+
+        @if (isRecording() && isHeld()) {
+          <span class="text-ui-muted text-[0.72rem] leading-normal">
+            {{ 'feature.replay.indicator.heldHint' | transloco }}
           </span>
         }
 
@@ -91,7 +103,7 @@
           } @else {
             <button
               class="rounded-ui-sm border-ui-accent bg-ui-accent hover:bg-ui-accent-hover cursor-pointer border border-solid px-[0.7em] py-[0.3em] text-[0.72rem] text-white"
-              [disabled]="!canEdit"
+              [disabled]="!canEdit || isHeld()"
               (click)="start()"
             >
               {{ 'feature.replay.indicator.start' | transloco }}

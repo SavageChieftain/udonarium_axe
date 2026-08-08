@@ -3,6 +3,7 @@ import { RolePermissionService } from '@axe/application/permission/role-permissi
 import { ReplayPreferenceService, ReplayStartMode } from '@axe/application/replay/replay-preference.service';
 import { ReplayRecorderService } from '@axe/application/replay/replay-recorder.service';
 import { Network } from '@axe/core/network/network';
+import { setNetworkIsolated } from '@axe/core/network/network-isolation';
 import { localDispatch } from '@axe/core/network/network-messaging';
 import {
   REPLAY_AUTO_START_SETTLE_MS,
@@ -65,6 +66,7 @@ describe('ReplayEventHandlerService', () => {
   });
 
   afterEach(() => {
+    setNetworkIsolated(false);
     localStorage.removeItem('axe-replay-preference');
     vi.restoreAllMocks();
     vi.useRealTimers();
@@ -117,6 +119,27 @@ describe('ReplayEventHandlerService', () => {
     vi.advanceTimersByTime(REPLAY_AUTO_START_SETTLE_MS);
     expect(recorder.start).toHaveBeenCalledTimes(2);
     expect(startedIn).toBe('第二夜');
+  });
+
+  it('再生で卓を預かっているあいだは始めないこと', () => {
+    setNetworkIsolated(true);
+    localDispatch('OPEN_NETWORK', { peerId: 'peer-a' });
+
+    vi.advanceTimersByTime(REPLAY_AUTO_START_SETTLE_MS);
+    expect(recorder.start).not.toHaveBeenCalled();
+  });
+
+  it('待っている間に再生へ入ったら始めないこと', () => {
+    localDispatch('OPEN_NETWORK', { peerId: 'peer-a' });
+    setNetworkIsolated(true);
+
+    vi.advanceTimersByTime(REPLAY_AUTO_START_SETTLE_MS);
+    expect(recorder.start).not.toHaveBeenCalled();
+
+    setNetworkIsolated(false);
+    localDispatch('OPEN_NETWORK', { peerId: 'peer-a' });
+    vi.advanceTimersByTime(REPLAY_AUTO_START_SETTLE_MS);
+    expect(recorder.start).toHaveBeenCalledTimes(1);
   });
 
   it('見学者は録画しないこと', () => {

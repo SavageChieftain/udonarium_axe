@@ -1,5 +1,6 @@
 import { signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ReplayPlaybackService } from '@axe/application/replay/replay-playback.service';
 import { ReplayPreferenceService, ReplayStartMode } from '@axe/application/replay/replay-preference.service';
 import { ReplayRecorderService } from '@axe/application/replay/replay-recorder.service';
 import { WidgetVisibilityService } from '@axe/application/ui/widget-visibility.service';
@@ -16,12 +17,14 @@ describe('ReplayIndicatorComponent', () => {
   let start: ReturnType<typeof vi.fn>;
   let setDetailLevel: ReturnType<typeof vi.fn>;
   let isSupported = true;
+  let isBoardMode: ReturnType<typeof signal<boolean>>;
 
   async function setup(): Promise<void> {
     await TestBed.configureTestingModule({
       imports: [ReplayIndicatorComponent],
       providers: [
         ...TEST_PROVIDERS,
+        { provide: ReplayPlaybackService, useValue: { isBoardMode: isBoardMode.asReadonly() } },
         {
           provide: ReplayRecorderService,
           useValue: {
@@ -58,6 +61,7 @@ describe('ReplayIndicatorComponent', () => {
     localStorage.removeItem('ui-widgets');
     localStorage.removeItem('axe-replay-preference');
     isRecording = signal(true);
+    isBoardMode = signal(false);
     isSupported = true;
     mark = vi.fn().mockResolvedValue(undefined);
     stop = vi.fn().mockResolvedValue(undefined);
@@ -82,6 +86,20 @@ describe('ReplayIndicatorComponent', () => {
     isRecording = signal(false);
     await setup();
     expect(pill()?.textContent).toContain('記録なし');
+  });
+
+  it('記録の盤面を映しているあいだは始められないこと', async () => {
+    isRecording = signal(false);
+    isBoardMode = signal(true);
+    await setup();
+
+    pill()?.click();
+    fixture.detectChanges();
+
+    const button = buttonByText('始める') as HTMLButtonElement;
+    expect(button.disabled).toBe(true);
+    button.click();
+    expect(start).not.toHaveBeenCalled();
   });
 
   it('部屋がなくても出ること', async () => {

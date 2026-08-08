@@ -4,6 +4,7 @@ import { ReplayPreferenceService, ReplayStartMode } from '@axe/application/repla
 import { ReplayRecorderService } from '@axe/application/replay/replay-recorder.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { Network } from '@axe/core/network/network';
+import { isNetworkIsolated } from '@axe/core/network/network-isolation';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 
 export const REPLAY_AUTO_START_SETTLE_MS = 8_000;
@@ -46,7 +47,7 @@ export class ReplayEventHandlerService {
   }
 
   private shouldRecord(): boolean {
-    if (this.preference.startMode() !== ReplayStartMode.Auto) return false;
+    if (this.preference.startMode() !== ReplayStartMode.Auto || isNetworkIsolated()) return false;
     return this.rolePermission.canEditTabletop;
   }
 

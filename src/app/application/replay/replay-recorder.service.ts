@@ -141,7 +141,7 @@ export class ReplayRecorderService {
   }
 
   private async startNow(): Promise<boolean> {
-    if (!this.isSupported || this._isRecording()) return false;
+    if (!this.isSupported || this._isRecording() || isNetworkIsolated()) return false;
 
     const startedAt = Date.now();
     const roomName = currentRoomName();
@@ -315,6 +315,7 @@ export class ReplayRecorderService {
   private async captureKeyframe(force = false): Promise<void> {
     const id = this.recordingId;
     if (id == null) return;
+    if (isNetworkIsolated()) return;
 
     if (!force) {
       await this.whenIdle();
