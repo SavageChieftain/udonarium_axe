@@ -15,6 +15,21 @@ describe('VisualNovelSettingsService', () => {
     expect(service.portraitAnimation()).toBe('slide');
   });
 
+  it('背景に何もかけない状態で始まること', () => {
+    const service = new VisualNovelSettingsService();
+    expect(service.readability()).toBe(0);
+  });
+
+  it('選んだ読みやすさは引き継ぐこと', () => {
+    new VisualNovelSettingsService().setReadability(2);
+    expect(new VisualNovelSettingsService().readability()).toBe(2);
+  });
+
+  it('知らない読みやすさは何もかけない状態に倒すこと', () => {
+    localStorage.setItem('vn-settings', JSON.stringify({ readability: 'つよい' }));
+    expect(new VisualNovelSettingsService().readability()).toBe(0);
+  });
+
   it('設定変更が永続化され、新しいインスタンスに引き継がれること', () => {
     const service = new VisualNovelSettingsService();
     service.setTypewriterSpeed('fast');

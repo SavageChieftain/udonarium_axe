@@ -14,6 +14,7 @@ export type VnLayout = 'bubble' | 'adv' | 'nvl';
 export const VN_LAYOUTS: readonly VnLayout[] = ['bubble', 'adv', 'nvl'];
 
 export const VN_READABILITY_LEVELS: readonly VnReadability[] = [0, 1, 2, 3];
+export const DEFAULT_VN_READABILITY: VnReadability = 0;
 
 export const VN_AUTO_PLAY_SPEED_MIN = 0.5;
 export const VN_AUTO_PLAY_SPEED_MAX = 2;
@@ -45,7 +46,7 @@ function clampSpeed(value: unknown): number {
 }
 
 function pickReadability(value: unknown): VnReadability {
-  return VN_READABILITY_LEVELS.includes(value as VnReadability) ? (value as VnReadability) : 1;
+  return VN_READABILITY_LEVELS.includes(value as VnReadability) ? (value as VnReadability) : DEFAULT_VN_READABILITY;
 }
 
 function pick<T extends string>(value: unknown, allowed: readonly T[], fallback: T): T {
@@ -60,7 +61,7 @@ export class VisualNovelSettingsService {
   private readonly _autoPlaySpeed = signal<number>(1);
   private readonly _reduceMotion = signal(false);
   private readonly _chatTabIdentifier = signal('');
-  private readonly _readability = signal<VnReadability>(1);
+  private readonly _readability = signal<VnReadability>(DEFAULT_VN_READABILITY);
   private readonly _layout = signal<VnLayout>('bubble');
 
   readonly typewriterSpeed = this._typewriterSpeed.asReadonly();
