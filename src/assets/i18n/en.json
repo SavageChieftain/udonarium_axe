@@ -555,7 +555,8 @@
         "beam": "Beam",
         "dissolve": "Disintegrate",
         "gore": "Blood",
-        "bisect": "Bisect"
+        "bisect": "Bisect",
+        "skyblade": "Sky blade"
       },
       "targeting": {
         "self": "Self",
@@ -645,6 +646,7 @@
         "heal-medium": "Heal (medium)",
         "heal-small": "Heal (small)",
         "holy": "Holy light",
+        "holy-blade": "Holy blade",
         "ice-large": "Ice (large)",
         "ice-medium": "Ice (medium)",
         "ice-small": "Ice (small)",
@@ -652,6 +654,10 @@
         "qigong": "Qigong",
         "reflect": "Reflect",
         "rock-break": "Shattering rock",
+        "sf-beam": "Arc beam",
+        "sf-hit": "Machine hit",
+        "sf-hit-hard": "Machine heavy hit",
+        "sf-shot": "Blaster",
         "shoulder-touch1": "Pick up",
         "slash-charged": "Charged slash",
         "slash-combo": "Slash combo",

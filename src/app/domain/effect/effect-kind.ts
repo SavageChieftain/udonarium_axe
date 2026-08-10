@@ -25,7 +25,8 @@ export type EffectKind =
   | 'beam'
   | 'dissolve'
   | 'gore'
-  | 'bisect';
+  | 'bisect'
+  | 'skyblade';
 
 export type EffectTargeting = 'self' | 'single' | 'multi';
 
@@ -91,6 +92,7 @@ export const EFFECT_KINDS: readonly EffectKind[] = [
   'dissolve',
   'gore',
   'bisect',
+  'skyblade',
 ];
 
 export const EFFECT_TARGETINGS: readonly EffectTargeting[] = ['self', 'single', 'multi'];

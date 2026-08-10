@@ -555,7 +555,8 @@
         "beam": "極太ビーム",
         "dissolve": "崩壊",
         "gore": "血しぶき",
-        "bisect": "両断"
+        "bisect": "両断",
+        "skyblade": "光の剣"
       },
       "targeting": {
         "self": "自分",
@@ -645,6 +646,7 @@
         "heal-medium": "回復（中）",
         "heal-small": "回復（小）",
         "holy": "聖なる光",
+        "holy-blade": "聖なる刃",
         "ice-large": "氷（大）",
         "ice-medium": "氷（中）",
         "ice-small": "氷（小）",
@@ -652,6 +654,10 @@
         "qigong": "気功",
         "reflect": "反射",
         "rock-break": "岩石破砕",
+        "sf-beam": "放電ビーム",
+        "sf-hit": "機械の被弾",
+        "sf-hit-hard": "機械の大被弾",
+        "sf-shot": "光線銃",
         "shoulder-touch1": "つまむ",
         "slash-charged": "溜め斬り",
         "slash-combo": "連斬",

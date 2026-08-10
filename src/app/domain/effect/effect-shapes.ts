@@ -227,8 +227,9 @@ export function blasterSvg(colors: ShapeColors): string {
       `<stop offset="0" stop-color="${colors.edge}" stop-opacity="0"/>` +
       `<stop offset="0.35" stop-color="${colors.edge}" stop-opacity="0.85"/>` +
       `<stop offset="1" stop-color="${colors.core}"/></linearGradient></defs>` +
-      `<rect x="4" y="42" width="92" height="16" rx="8" fill="url(#${idOf('l', colors)})"/>` +
-      `<rect x="34" y="46" width="60" height="8" rx="4" fill="#ffffff" fill-opacity="0.95"/>`
+      `<rect x="6" y="38" width="88" height="24" rx="12" fill="url(#${idOf('l', colors)})"/>` +
+      `<rect x="18" y="44" width="76" height="12" rx="6" fill="${colors.core}"/>` +
+      `<rect x="30" y="47" width="62" height="6" rx="3" fill="#ffffff"/>`
   );
 }
 

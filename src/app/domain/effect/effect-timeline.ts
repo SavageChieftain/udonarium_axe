@@ -269,12 +269,22 @@ export interface ProjectileShot {
  * 飛翔体の刻み。最後の 1 発が終端で着弾するよう、発射を等間隔に並べる。
  * 弾ごとに独立して飛ぶので、機関銃は弾幕として見える。
  */
+/** 進行方向に対する見た目の傾き。三日月は弧の腹を前へ向けたいので直交させる。 */
+const PROJECTILE_TURN: Record<ProjectileStyle, number> = {
+  bolt: 0,
+  arrow: 0,
+  bullet: 0,
+  crescent: 90,
+  blaster: 0,
+  tracer: 0,
+};
+
 const PROJECTILE_SIZE: Record<ProjectileStyle, { width: number; height: number }> = {
   bolt: { width: 1.9, height: 0.5 },
   arrow: { width: 1.8, height: 0.36 },
   bullet: { width: 1.25, height: 0.22 },
-  crescent: { width: 1.5, height: 1.5 },
-  blaster: { width: 1.6, height: 0.28 },
+  crescent: { width: 1.7, height: 1.7 },
+  blaster: { width: 1.05, height: 0.34 },
   tracer: { width: 2.2, height: 0.09 },
 };
 
@@ -521,9 +531,121 @@ function appendKind(
     case 'gravity':
       appendGravity(sprites, prefix, center, base, progress, preset);
       break;
+    case 'skyblade':
+      appendSkyblade(sprites, prefix, center, base, progress, preset);
+      break;
     default:
       appendBurst(sprites, prefix, center, base, progress, preset);
       break;
+  }
+}
+
+/** 光の剣がそびえ立ち終わる位置。ここまでが構え、ここから振り下ろし。 */
+const SKYBLADE_RISE_END = 0.45;
+/** 振り下ろしが終わる位置。残りは斬り跡と余韻。 */
+const SKYBLADE_FALL_END = 0.62;
+
+/**
+ * 頭上に光の大剣を立て、間を置いて振り下ろす。
+ * 立ち上がりは切っ先を上へ伸ばし、落ちるときは剣を縮めながら地面へ突き刺す。
+ */
+function appendSkyblade(
+  sprites: EffectSprite[],
+  prefix: string,
+  center: Point3,
+  base: number,
+  progress: number,
+  preset: EffectPreset
+): void {
+  const rise = clamp01(progress / SKYBLADE_RISE_END);
+  const fall = clamp01(normalize((progress - SKYBLADE_RISE_END) / (SKYBLADE_FALL_END - SKYBLADE_RISE_END)));
+  const after = clamp01(normalize((progress - SKYBLADE_FALL_END) / (1 - SKYBLADE_FALL_END)));
+
+  const length = base * (2.6 + easeOutCubic(rise) * 5.2) * (1 - fall * fall * fall * 0.55);
+  const lift = base * (3.4 + easeOutCubic(rise) * 2.6) * (1 - fall * fall * fall);
+  const sway = Math.sin(rise * Math.PI * 3) * base * 0.12 * (1 - rise);
+
+  if (progress < SKYBLADE_FALL_END) {
+    // 刃。立てている間は薄く光り、落ちる瞬間に白く灼ける。
+    sprites.push({
+      ...blank(),
+      key: `${prefix}-skyblade-blade`,
+      x: center.x,
+      y: center.y,
+      z: center.z,
+      offsetX: sway,
+      offsetY: -lift,
+      width: base * (0.5 + fall * 0.35),
+      height: length,
+      opacity: 0.35 + rise * 0.6,
+      background: `linear-gradient(180deg, ${preset.colorSecondary} 0%, ${preset.colorPrimary} 45%, #ffffff 100%)`,
+      borderRadius: '48% 48% 6% 6%',
+      shadow: glow(base * (0.7 + fall), preset.colorPrimary, base * (1.6 + fall * 2), preset.colorSecondary),
+    });
+
+    // 柄元の光輪。構えの間だけ脈打たせて、溜めていることを見せる。
+    sprites.push({
+      ...blank(),
+      key: `${prefix}-skyblade-hilt`,
+      x: center.x,
+      y: center.y,
+      z: center.z,
+      offsetX: sway,
+      offsetY: -lift - length * 0.5,
+      width: base * (1.1 + Math.sin(rise * Math.PI * 4) * 0.12) * (1 - fall * 0.5),
+      height: base * 0.22,
+      opacity: (0.5 + rise * 0.5) * (1 - fall),
+      background: `radial-gradient(circle, #ffffff, ${preset.colorPrimary} 55%, transparent 75%)`,
+      borderRadius: '50%',
+      shadow: glow(base * 0.6, preset.colorPrimary),
+    });
+  }
+
+  if (fall > 0) {
+    // 振り下ろした軌跡。上から下へ抜ける一本。
+    sprites.push({
+      ...blank(),
+      key: `${prefix}-skyblade-trail`,
+      x: center.x,
+      y: center.y,
+      z: center.z,
+      offsetY: -base * 2.2 * (1 - fall),
+      width: base * 0.9,
+      height: base * 7 * fall,
+      opacity: (1 - fall) * 0.7,
+      background: `linear-gradient(180deg, transparent, ${preset.colorPrimary} 60%, #ffffff)`,
+      borderRadius: '50%',
+    });
+  }
+
+  if (after > 0) {
+    // 着地。地面を舐める光の輪と、突き刺さった余韻。
+    sprites.push({
+      ...blank(),
+      key: `${prefix}-skyblade-ring`,
+      x: center.x,
+      y: center.y,
+      z: center.z,
+      width: base * (1.2 + easeOutCubic(after) * 6),
+      height: base * (0.5 + easeOutCubic(after) * 2.4),
+      opacity: (1 - after) * 0.85,
+      svg: ringSvg(colorsOf(preset)),
+      shadow: glow(base * 0.5 * (1 - after), preset.colorSecondary),
+    });
+    sprites.push({
+      ...blank(),
+      key: `${prefix}-skyblade-scar`,
+      x: center.x,
+      y: center.y,
+      z: center.z,
+      offsetY: -base * 0.6 * (1 - after),
+      width: base * 0.36 * (1 - after),
+      height: base * 2.4 * (1 - after * 0.7),
+      opacity: (1 - after) * 0.9,
+      background: `linear-gradient(180deg, #ffffff, ${preset.colorPrimary}, transparent)`,
+      borderRadius: '50%',
+      shadow: glow(base * 0.5 * (1 - after), preset.colorPrimary),
+    });
   }
 }
 
@@ -673,7 +795,7 @@ function appendFlyingShot(
       z: head.z,
       width: base * PROJECTILE_SIZE[look].width,
       height: base * PROJECTILE_SIZE[look].height,
-      rotate: heading.angle,
+      rotate: heading.angle + PROJECTILE_TURN[look],
       opacity: look === 'crescent' ? 0.95 : 1,
       svg: projectileSvg(look, colorsOf(preset)),
       shadow: look === 'blaster' || look === 'tracer' ? glow(base * 0.35, preset.colorPrimary) : '',

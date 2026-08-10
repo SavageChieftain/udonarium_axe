@@ -1,3 +1,4 @@
+import type { GameObject } from '@axe/core/sync/game-object';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { buildReplayBoardScene, collectBoardAssetIds, framingOf } from '@axe/domain/replay/replay-board-view';
@@ -156,34 +157,56 @@ describe('collectBoardAssetIds()', () => {
 });
 
 describe('本物のコマから起こすとき', () => {
+  const mine: GameObject[] = [];
+
   afterEach(() => {
-    for (const object of ObjectStore.instance.getObjects()) ObjectStore.instance.remove(object);
-    ObjectStore.instance.clearDeleteHistory();
+    for (const object of mine.splice(0)) ObjectStore.instance.remove(object);
   });
 
-  function snapshotStore(): ReplayObjectSnapshot[] {
-    return ObjectStore.instance.getObjects().map((object) => {
-      const context = object.toContext();
-      return {
-        identifier: context.identifier,
-        aliasName: context.aliasName,
-        syncData: context.syncData as Record<string, unknown>,
-      };
-    });
+  function keep<T extends GameObject>(object: T): T {
+    mine.push(object);
+    return object;
+  }
+
+  /** 同じ卓を見ている他のテストと混ざらないよう、自分が作った物だけを写す。 */
+  function snapshotStore(root: GameObject): ReplayObjectSnapshot[] {
+    const wanted = new Set(mine.map((object) => object.identifier));
+    const descend = (identifier: string): void => {
+      for (const object of ObjectStore.instance.getObjects()) {
+        const parent = String((object.toContext().syncData as Record<string, unknown>)['parentIdentifier'] ?? '');
+        if (parent === identifier && !wanted.has(object.identifier)) {
+          wanted.add(object.identifier);
+          descend(object.identifier);
+        }
+      }
+    };
+    descend(root.identifier);
+
+    return ObjectStore.instance
+      .getObjects()
+      .filter((object) => wanted.has(object.identifier))
+      .map((object) => {
+        const context = object.toContext();
+        return {
+          identifier: context.identifier,
+          aliasName: context.aliasName,
+          syncData: context.syncData as Record<string, unknown>,
+        };
+      });
   }
 
   it('実際のキャラクターから名前と絵と大きさを読めること', () => {
-    const table = new GameTable('t1');
+    const table = keep(new GameTable('board-view-table'));
     table.width = 12;
     table.height = 8;
     table.gridSize = 50;
     ObjectStore.instance.add(table, false);
 
-    const character = GameCharacter.create('盗賊', 2, 'img-1');
+    const character = keep(GameCharacter.create('盗賊', 2, 'img-1'));
     character.location.x = 150;
     character.location.y = 100;
 
-    const scene = buildReplayBoardScene(snapshotStore())!;
+    const scene = buildReplayBoardScene(snapshotStore(character))!;
     const piece = scene.pieces.find((one) => one.identifier === character.identifier)!;
 
     expect(scene).toMatchObject({ width: 12, height: 8, gridSize: 50 });
@@ -191,11 +214,11 @@ describe('本物のコマから起こすとき', () => {
   });
 
   it('しまったキャラクターは実物でも盤面から外れること', () => {
-    ObjectStore.instance.add(new GameTable('t1'), false);
-    const character = GameCharacter.create('盗賊', 1, 'img-1');
+    ObjectStore.instance.add(keep(new GameTable('board-view-empty')), false);
+    const character = keep(GameCharacter.create('盗賊', 1, 'img-1'));
     character.setLocation('stand');
 
-    const scene = buildReplayBoardScene(snapshotStore())!;
+    const scene = buildReplayBoardScene(snapshotStore(character))!;
     expect(scene.pieces.some((one) => one.identifier === character.identifier)).toBe(false);
   });
 });

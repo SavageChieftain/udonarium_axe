@@ -94,6 +94,11 @@ export class PresetSound {
   static statusCure: string = '';
   static beamSmall: string = '';
   static collapse: string = '';
+  static sfShot: string = '';
+  static sfHit: string = '';
+  static sfHitHard: string = '';
+  static sfBeam: string = '';
+  static holyBlade: string = '';
 }
 
 @SyncObject('sound-effect')

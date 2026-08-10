@@ -146,7 +146,38 @@ describe('飛ぶ物の新しい見た目', () => {
     expect(seed).toMatchObject({ kind: 'projectile', projectileStyle: 'blaster' });
     expect(seed.shots).toBeGreaterThan(1);
     expect(seed.shotInterval).toBeGreaterThan(0);
-    expect(seed.soundKey).toBe('beamSmall');
+    expect(seed.soundKey).toBe('sfShot');
+    expect(seed.impactSoundKey).toBe('sfHit');
+  });
+
+  it('光線銃は単発も選べること', () => {
+    const single = seedOf('EffectPreset_blaster_single');
+
+    expect(single).toMatchObject({ projectileStyle: 'blaster', soundKey: 'sfShot' });
+    expect(single.shots ?? 1).toBe(1);
+  });
+
+  it('飛ぶ連斬は三日月を続けて飛ばすこと', () => {
+    const combo = seedOf('EffectPreset_crescent_combo');
+
+    expect(combo).toMatchObject({ projectileStyle: 'crescent', impactKind: 'slash' });
+    expect(combo.shots).toBeGreaterThan(1);
+  });
+
+  it('光の剣は溜めてから振り下ろす尺を持つこと', () => {
+    const blade = seedOf('EffectPreset_skyblade');
+
+    expect(blade.kind).toBe('skyblade');
+    expect(blade.durationMs).toBeGreaterThan(1200);
+    expect(blade.soundKey).toBe('holyBlade');
+  });
+
+  it('レーザー照射は撃ち続ける尺を持つこと', () => {
+    const laser = seedOf('EffectPreset_laser_sustained');
+
+    expect(laser.kind).toBe('beam');
+    expect(laser.soundKey).toBe('sfBeam');
+    expect(laser.durationMs).toBeGreaterThan(seedOf('EffectPreset_blaster_single').durationMs!);
   });
 
   it('狙撃は一発で、どの飛び物より速く着くこと', () => {
