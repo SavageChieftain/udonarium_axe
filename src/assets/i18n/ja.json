@@ -2156,7 +2156,8 @@
         "start": "書き出す",
         "rendering": "書き出しています（{{percent}}%）",
         "cancel": "やめる",
-        "withSound": "効果音と BGM も入れる"
+        "withEffects": "効果音を入れる",
+        "withMusic": "BGM を入れる"
       }
     }
   },

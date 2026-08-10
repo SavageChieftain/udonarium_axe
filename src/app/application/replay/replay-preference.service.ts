@@ -3,26 +3,13 @@ import { ReplayDetailLevel } from '@axe/domain/replay/replay-event';
 
 const STORAGE_KEY = 'axe-replay-preference';
 
-export const ReplayStartMode = {
-  Auto: 'auto',
-  Manual: 'manual',
-} as const;
-
-export type ReplayStartMode = (typeof ReplayStartMode)[keyof typeof ReplayStartMode];
-
 export interface ReplayPreference {
-  readonly startMode: ReplayStartMode;
   readonly detailLevel: ReplayDetailLevel;
 }
 
 export const DEFAULT_REPLAY_PREFERENCE: ReplayPreference = {
-  startMode: ReplayStartMode.Auto,
   detailLevel: ReplayDetailLevel.Notable,
 };
-
-function isStartMode(value: unknown): value is ReplayStartMode {
-  return value === ReplayStartMode.Auto || value === ReplayStartMode.Manual;
-}
 
 function isDetailLevel(value: unknown): value is ReplayDetailLevel {
   return (
@@ -35,7 +22,6 @@ export function parseReplayPreference(raw: string | null): ReplayPreference {
   try {
     const parsed = JSON.parse(raw) as Partial<ReplayPreference>;
     return {
-      startMode: isStartMode(parsed?.startMode) ? parsed.startMode : DEFAULT_REPLAY_PREFERENCE.startMode,
       detailLevel: isDetailLevel(parsed?.detailLevel) ? parsed.detailLevel : DEFAULT_REPLAY_PREFERENCE.detailLevel,
     };
   } catch {
@@ -47,13 +33,7 @@ export function parseReplayPreference(raw: string | null): ReplayPreference {
 export class ReplayPreferenceService {
   private readonly restored = parseReplayPreference(localStorage.getItem(STORAGE_KEY));
 
-  readonly startMode = signal<ReplayStartMode>(this.restored.startMode);
   readonly detailLevel = signal<ReplayDetailLevel>(this.restored.detailLevel);
-
-  setStartMode(mode: ReplayStartMode): void {
-    this.startMode.set(mode);
-    this.persist();
-  }
 
   setDetailLevel(level: ReplayDetailLevel): void {
     this.detailLevel.set(level);
@@ -61,7 +41,7 @@ export class ReplayPreferenceService {
   }
 
   private persist(): void {
-    const state: ReplayPreference = { startMode: this.startMode(), detailLevel: this.detailLevel() };
+    const state: ReplayPreference = { detailLevel: this.detailLevel() };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
   }
 }

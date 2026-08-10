@@ -67,8 +67,12 @@
       </label>
 
       <label class="text-ui-muted flex cursor-pointer items-center gap-1.5 text-[0.72rem]">
-        <input type="checkbox" [checked]="withSound()" (change)="toggleSound()" />
-        {{ 'feature.replay.video.withSound' | transloco }}
+        <input type="checkbox" [checked]="withEffects()" (change)="toggleEffects()" />
+        {{ 'feature.replay.video.withEffects' | transloco }}
+      </label>
+      <label class="text-ui-muted flex cursor-pointer items-center gap-1.5 text-[0.72rem]">
+        <input type="checkbox" [checked]="withMusic()" (change)="toggleMusic()" />
+        {{ 'feature.replay.video.withMusic' | transloco }}
       </label>
 
       <span class="text-ui-muted border-ui-border border-t border-solid pt-1.5 text-[0.7rem] leading-normal">

@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { RolePermissionService } from '@axe/application/permission/role-permission.service';
 import { ReplayPlaybackService } from '@axe/application/replay/replay-playback.service';
-import { ReplayPreferenceService, ReplayStartMode } from '@axe/application/replay/replay-preference.service';
+import { ReplayPreferenceService } from '@axe/application/replay/replay-preference.service';
 import { ReplayRecorderService } from '@axe/application/replay/replay-recorder.service';
 import { WidgetVisibilityService } from '@axe/application/ui/widget-visibility.service';
 import { ReplayDetailLevel } from '@axe/domain/replay/replay-event';
@@ -22,12 +22,10 @@ export class ReplayIndicatorComponent {
   protected readonly widgets = inject(WidgetVisibilityService);
 
   protected readonly detailLevels = [ReplayDetailLevel.ChatOnly, ReplayDetailLevel.Notable, ReplayDetailLevel.Full];
-  protected readonly startModes = [ReplayStartMode.Auto, ReplayStartMode.Manual];
 
   protected readonly isRecording = this.recorder.isRecording;
   protected readonly eventCount = this.recorder.eventCount;
   protected readonly detailLevel = this.recorder.detailLevel;
-  protected readonly startMode = this.preference.startMode;
   protected readonly isHeld = this.playback.isBoardMode;
 
   protected readonly isOpen = signal(false);
@@ -58,10 +56,6 @@ export class ReplayIndicatorComponent {
 
   protected setDetailLevel(level: string): void {
     this.recorder.setDetailLevel(level as ReplayDetailLevel);
-  }
-
-  protected setStartMode(mode: string): void {
-    this.preference.setStartMode(mode as ReplayStartMode);
   }
 
   protected async mark(): Promise<void> {

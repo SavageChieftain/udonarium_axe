@@ -25,8 +25,20 @@ export interface ReplaySoundtrack {
 
 export const EMPTY_REPLAY_SOUNDTRACK: ReplaySoundtrack = { effects: [], music: [], totalMs: 0 };
 
-export function buildReplaySoundtrack(events: readonly ReplayEvent[], storyboard: ReplayStoryboard): ReplaySoundtrack {
+export interface ReplaySoundChoice {
+  withEffects: boolean;
+  withMusic: boolean;
+}
+
+export const DEFAULT_REPLAY_SOUND_CHOICE: ReplaySoundChoice = { withEffects: true, withMusic: true };
+
+export function buildReplaySoundtrack(
+  events: readonly ReplayEvent[],
+  storyboard: ReplayStoryboard,
+  choice: ReplaySoundChoice = DEFAULT_REPLAY_SOUND_CHOICE
+): ReplaySoundtrack {
   if (storyboard.totalMs < 1) return EMPTY_REPLAY_SOUNDTRACK;
+  if (!choice.withEffects && !choice.withMusic) return EMPTY_REPLAY_SOUNDTRACK;
 
   const effects: ReplaySoundCue[] = [];
   const music: ReplayBgmCue[] = [];
@@ -37,6 +49,7 @@ export function buildReplaySoundtrack(events: readonly ReplayEvent[], storyboard
     if (startMs === undefined || startMs >= storyboard.totalMs) continue;
 
     if (event.kind === ReplayEventKind.MediaSoundEffect) {
+      if (!choice.withEffects) continue;
       const audioIdentifier = String(event.detail['identifier'] ?? '').trim();
       if (audioIdentifier.length > 0) {
         effects.push({ audioIdentifier, startMs, offsetMs: 0, gain: REPLAY_SE_GAIN });
@@ -44,7 +57,7 @@ export function buildReplaySoundtrack(events: readonly ReplayEvent[], storyboard
       continue;
     }
 
-    if (event.kind !== ReplayEventKind.MediaBgm) continue;
+    if (event.kind !== ReplayEventKind.MediaBgm || !choice.withMusic) continue;
 
     if (playing) {
       playing.endMs = startMs;

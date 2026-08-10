@@ -41,7 +41,8 @@ export class ReplayVideoPanelComponent {
   protected readonly sizeKey = signal<(typeof REPLAY_VIDEO_SIZES)[number]>('1080p');
   protected readonly pacing = signal<ReplayShotPacing>(ReplayShotPacing.Reading);
   protected readonly scope = signal<ReplayShotScope>(ReplayShotScope.Everything);
-  protected readonly withSound = signal(true);
+  protected readonly withEffects = signal(true);
+  protected readonly withMusic = signal(true);
 
   protected readonly isSupported = this.video.isSupported;
 
@@ -87,8 +88,12 @@ export class ReplayVideoPanelComponent {
     this.scope.set(value as ReplayShotScope);
   }
 
-  protected toggleSound(): void {
-    this.withSound.update((value) => !value);
+  protected toggleEffects(): void {
+    this.withEffects.update((value) => !value);
+  }
+
+  protected toggleMusic(): void {
+    this.withMusic.update((value) => !value);
   }
 
   protected cancel(): void {
@@ -107,7 +112,7 @@ export class ReplayVideoPanelComponent {
         ...DEFAULT_REPLAY_VIDEO_OPTIONS,
         ...this.storyboardOptions(),
         size: REPLAY_FRAME_PRESETS[this.sizeKey()],
-        withSound: this.withSound(),
+        sound: { withEffects: this.withEffects(), withMusic: this.withMusic() },
       },
       { userId: PeerCursor.myCursor?.userId ?? '', role: PeerCursor.myRole }
     );

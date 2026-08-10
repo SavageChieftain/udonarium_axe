@@ -74,20 +74,6 @@
           </select>
         </label>
 
-        <label class="text-ui-muted flex items-center justify-between gap-1.5 text-[0.72rem]">
-          {{ 'feature.replay.indicator.startMode' | transloco }}
-          <select
-            class="border-ui-border bg-ui-elevated rounded-ui-sm border border-solid px-1.5 py-0.5 text-[0.72rem]"
-            [value]="startMode()"
-            [disabled]="!canEdit"
-            (change)="setStartMode($any($event.target).value)"
-          >
-            @for (mode of startModes; track mode) {
-              <option [value]="mode">{{ 'feature.replay.indicator.mode.' + mode | transloco }}</option>
-            }
-          </select>
-        </label>
-
         <div class="border-ui-border flex justify-between gap-1.5 border-t border-solid pt-2">
           <button class="rounded-ui-sm cursor-pointer px-[0.7em] py-[0.3em] text-[0.72rem]" (click)="hide()">
             {{ 'feature.replay.indicator.hide' | transloco }}

@@ -2156,7 +2156,8 @@
         "start": "Write it out",
         "rendering": "Writing it out ({{percent}}%)",
         "cancel": "Stop",
-        "withSound": "Include sound effects and music"
+        "withEffects": "Include sound effects",
+        "withMusic": "Include music"
       }
     }
   },

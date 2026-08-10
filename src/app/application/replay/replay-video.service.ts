@@ -17,7 +17,12 @@ import type { ReplayEvent, ReplayViewer } from '@axe/domain/replay/replay-event'
 import { REPLAY_FRAME_PRESETS, replayFrameLayout, type ReplayFrameSize } from '@axe/domain/replay/replay-frame-layout';
 import { decodeReplayKeyframe, type ReplayObjectSnapshot } from '@axe/domain/replay/replay-keyframe';
 import { applyReplayEvents } from '@axe/domain/replay/replay-patch';
-import { buildReplaySoundtrack, hasReplaySound } from '@axe/domain/replay/replay-soundtrack';
+import {
+  buildReplaySoundtrack,
+  DEFAULT_REPLAY_SOUND_CHOICE,
+  hasReplaySound,
+  type ReplaySoundChoice,
+} from '@axe/domain/replay/replay-soundtrack';
 import {
   buildReplayStoryboard,
   type ReplayShot,
@@ -43,7 +48,7 @@ export interface ReplayVideoOptions {
   fps: number;
   pacing: ReplayShotPacing;
   scope: ReplayShotScope;
-  withSound: boolean;
+  sound: ReplaySoundChoice;
   caption?: ReplayShotCaption;
 }
 
@@ -52,7 +57,7 @@ export const DEFAULT_REPLAY_VIDEO_OPTIONS: ReplayVideoOptions = {
   fps: REPLAY_VIDEO_FPS,
   pacing: Pacing.Reading,
   scope: Scope.Lines,
-  withSound: true,
+  sound: DEFAULT_REPLAY_SOUND_CHOICE,
 };
 
 @Injectable({ providedIn: 'root' })
@@ -119,7 +124,7 @@ export class ReplayVideoService {
         ...boards.flatMap((board) => collectBoardAssetIds(board)),
       ]);
       const msPerFrame = 1000 / options.fps;
-      const audio = options.withSound ? await this.soundOf(events, storyboard) : null;
+      const audio = await this.soundOf(events, storyboard, options.sound);
 
       try {
         const encoded = await this.encoder.encode({
@@ -166,9 +171,9 @@ export class ReplayVideoService {
     }
   }
 
-  private async soundOf(events: readonly ReplayEvent[], storyboard: ReplayStoryboard) {
+  private async soundOf(events: readonly ReplayEvent[], storyboard: ReplayStoryboard, choice: ReplaySoundChoice) {
     try {
-      const soundtrack = buildReplaySoundtrack(events, storyboard);
+      const soundtrack = buildReplaySoundtrack(events, storyboard, choice);
       if (!hasReplaySound(soundtrack)) return null;
       return await this.mixer.mix(soundtrack, async (identifier) => {
         const audio = this.audioStorage.get(identifier);

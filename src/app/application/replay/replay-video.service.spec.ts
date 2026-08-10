@@ -214,10 +214,35 @@ describe('ReplayVideoService', () => {
   });
 
   it('音を入れない指定なら混ぜないこと', async () => {
-    await service.render(meta, [say(1, 'やあ')], { ...DEFAULT_REPLAY_VIDEO_OPTIONS, withSound: false });
+    const events = [
+      say(1, 'やあ'),
+      { ...say(2, ''), kind: ReplayEventKind.MediaSoundEffect, detail: { identifier: 'se-1' } },
+      say(3, 'こんばんは'),
+    ];
+    await service.render(meta, events, {
+      ...DEFAULT_REPLAY_VIDEO_OPTIONS,
+      sound: { withEffects: false, withMusic: false },
+    });
 
     expect(mix).not.toHaveBeenCalled();
     expect(encode.mock.calls[0][0].audio).toBeNull();
+  });
+
+  it('効果音だけ入れる指定を守ること', async () => {
+    mix.mockResolvedValue({ sampleRate: 48_000, channels: [new Float32Array(8)] });
+    const events = [
+      say(1, 'やあ'),
+      { ...say(2, ''), kind: ReplayEventKind.MediaSoundEffect, detail: { identifier: 'se-1' } },
+      { ...say(3, ''), kind: ReplayEventKind.MediaBgm, targetId: 'bgm-1', detail: { isPlaying: true } },
+      say(4, 'こんばんは'),
+    ];
+    await service.render(meta, events, {
+      ...DEFAULT_REPLAY_VIDEO_OPTIONS,
+      sound: { withEffects: true, withMusic: false },
+    });
+
+    expect(mix.mock.calls[0][0].effects).toHaveLength(1);
+    expect(mix.mock.calls[0][0].music).toHaveLength(0);
   });
 
   it('鳴らす音が無ければ混ぜないこと', async () => {
