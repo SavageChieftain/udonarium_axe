@@ -1049,8 +1049,8 @@ describe('ミサイル', () => {
   });
 
   it('着弾する頃には的へ戻ってくること', () => {
-    const middle = Math.abs(sideOffset('cruise', 450, 0));
-    const arriving = Math.abs(sideOffset('cruise', 880, 0));
+    const middle = Math.abs(sideOffset('cruise', 600, 0));
+    const arriving = Math.abs(sideOffset('cruise', 1170, 0));
 
     expect(arriving).toBeLessThan(middle * 0.2);
   });
@@ -1076,7 +1076,7 @@ describe('ミサイル', () => {
   });
 
   it('噴煙が経路に沿うこと', () => {
-    const sprites = missileSprites('cruise', 300);
+    const sprites = missileSprites('cruise', 800);
     const head = sprites.find((sprite) => sprite.key === '0-s0-shot')!;
     const smoke = sprites.filter((sprite) => sprite.key.startsWith('0-s0-smoke-'));
 
@@ -1206,5 +1206,45 @@ describe('属性の大剣', () => {
 
   it('振り下ろす前は属性の演出を出さないこと', () => {
     expect(bladeImpact('flame', 300)).toHaveLength(0);
+  });
+});
+
+describe('巡航ミサイルの高度', () => {
+  function cruiseHeight(elapsedMs: number): number {
+    const preset = new EffectPreset('cruise-height-test');
+    Object.assign(preset, {
+      kind: 'projectile',
+      projectileStyle: 'cruise',
+      durationMs: 2600,
+      colorPrimary: '#ffffff',
+      colorSecondary: '#ff5a1f',
+    });
+    const cast: EffectCast = {
+      presetIdentifier: 'cruise-height-test',
+      casterIdentifier: '',
+      origin: { x: -600, y: 0, z: 0 },
+      seed: 3,
+      targets: [{ identifier: 'char0', x: 600, y: 0, z: 0 }],
+    };
+    return effectSprites(preset, cast, elapsedMs, { baseSize: 50 }).find((sprite) => sprite.key === '0-s0-shot')!.z;
+  }
+
+  it('巡航高度まで一気に上がって、そこを保つこと', () => {
+    // 放物線で放り投げると迫撃砲に見える。上がりきってから水平に飛ぶ。
+    expect(cruiseHeight(300)).toBeGreaterThan(cruiseHeight(60));
+    expect(Math.abs(cruiseHeight(700) - cruiseHeight(400))).toBeLessThan(cruiseHeight(400) * 0.35);
+  });
+
+  it('終末で的へ突っ込むこと', () => {
+    expect(cruiseHeight(1350)).toBeLessThan(cruiseHeight(700));
+  });
+
+  it('落ち始めたら一気に落とすこと', () => {
+    const top = cruiseHeight(700);
+    const late = cruiseHeight(1330);
+
+    // 緩く下ろすと着陸に見える。高度の大半は最後のひと息で捨てる。
+    expect(top - late).toBeLessThan(top * 0.25);
+    expect(late - cruiseHeight(1395)).toBeGreaterThan((top - late) * 2);
   });
 });

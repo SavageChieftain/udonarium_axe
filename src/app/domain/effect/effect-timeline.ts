@@ -11,6 +11,7 @@ import {
   bulletSvg,
   crackSvg,
   crescentSvg,
+  cruiseSvg,
   flyingCrescentSvg,
   gravitySvg,
   impactStarSvg,
@@ -257,7 +258,7 @@ const PROJECTILE_TRAVEL_MS: Record<ProjectileStyle, number> = {
   blaster: 110,
   tracer: 70,
   missile: 420,
-  cruise: 900,
+  cruise: 1400,
 };
 
 /** 着弾音が潰し合わないよう空ける最短間隔。 */
@@ -279,6 +280,14 @@ export interface ProjectileShot {
  * 飛翔体の刻み。最後の 1 発が終端で着弾するよう、発射を等間隔に並べる。
  * 弾ごとに独立して飛ぶので、機関銃は弾幕として見える。
  */
+/** 高さの取り方。放物線を描くか、巡航して終末で突っ込むか。 */
+function loft(at: number, level: boolean): number {
+  if (!level) return Math.sin(Math.PI * at);
+  // 巡航高度まで一気に上がり、そこを保ったまま的の直前で一気に落とす。
+  // 放り投げると迫撃砲に、緩く下ろすと着陸に見える。
+  return Math.min(at / 0.16, 1) - Math.max(0, (at - 0.88) / 0.12) ** 1.7;
+}
+
 /** 噴煙を継ぐ区間数。 */
 const SMOKE_SEGMENTS = 6;
 
@@ -304,7 +313,7 @@ const TRAIL_SPAN: Record<ProjectileStyle, number> = {
   blaster: 0.3,
   tracer: 0.55,
   missile: 0.34,
-  cruise: 0.4,
+  cruise: 0.55,
 };
 
 /** 進行方向に対する見た目の傾き。三日月は弧の腹を前へ向けたいので直交させる。 */
@@ -351,8 +360,8 @@ const TRAIL_THICKNESS: Record<ProjectileStyle, number> = {
   crescent: 0.5,
   blaster: 0.26,
   tracer: 0.09,
-  missile: 0.3,
-  cruise: 0.38,
+  missile: 0.34,
+  cruise: 0.5,
 };
 
 const PROJECTILE_SIZE: Record<ProjectileStyle, { width: number; height: number }> = {
@@ -362,8 +371,8 @@ const PROJECTILE_SIZE: Record<ProjectileStyle, { width: number; height: number }
   crescent: { width: 1.7, height: 1.7 },
   blaster: { width: 1.05, height: 0.34 },
   tracer: { width: 2.2, height: 0.09 },
-  missile: { width: 1.1, height: 0.34 },
-  cruise: { width: 1.9, height: 0.5 },
+  missile: { width: 1.7, height: 1.0 },
+  cruise: { width: 2.8, height: 1.24 },
 };
 
 function projectileSvg(look: ProjectileStyle, colors: ReturnType<typeof colorsOf>): string {
@@ -377,8 +386,9 @@ function projectileSvg(look: ProjectileStyle, colors: ReturnType<typeof colorsOf
     case 'tracer':
       return tracerSvg(colors);
     case 'missile':
-    case 'cruise':
       return missileSvg(colors);
+    case 'cruise':
+      return cruiseSvg(colors);
     default:
       return bulletSvg(colors);
   }
@@ -1278,7 +1288,7 @@ function appendFlyingShot(
 ): void {
   const solid = look !== 'bolt';
   const swerve = base * PROJECTILE_SWERVE[look] * SWERVE_SIDE[shotIndex % SWERVE_SIDE.length];
-  const at = (value: number): Point3 => flightPoint(origin, center, base, value, arc, swerve);
+  const at = (value: number): Point3 => flightPoint(origin, center, base, value, arc, swerve, look === 'cruise');
   const head = at(travel);
 
   // 尾。回り込むものは経路に沿って短い区間で継ぐ。1 本の弦で結ぶと弾だけ横を向いて見える。
@@ -1371,7 +1381,7 @@ function appendFlyingShot(
 
     // 推進炎。弾の後ろへ付けると、飛んでいるのではなく飛ばしているように見える。
     if (look === 'missile' || look === 'cruise') {
-      const flame = base * PROJECTILE_SIZE[look].width * 0.62;
+      const flame = base * PROJECTILE_SIZE[look].width * 0.55;
       // 弾の長さぶんだけ後ろへ置く。1 フレームの進みで測ると、速さや間合いで離れ方が変わる。
       const step = base * PROJECTILE_SIZE[look].width * 0.62;
       const reach = Math.hypot(head.x - nose.x, head.y - nose.y, head.z - nose.z);
@@ -1470,14 +1480,22 @@ function appendLaunchFlash(
 }
 
 /** 経路上の 1 点。`arc` を与えると山なりに飛ぶ。 */
-function flightPoint(origin: Point3, center: Point3, base: number, value: number, arc: number, swerve = 0): Point3 {
+function flightPoint(
+  origin: Point3,
+  center: Point3,
+  base: number,
+  value: number,
+  arc: number,
+  swerve = 0,
+  level = false
+): Point3 {
   const clamped = Math.min(Math.max(value, 0), 1);
   // わずかに加速させる。等速だと矢というより漂う光になる。
   const eased = clamped ** 1.25;
   const point = {
     x: origin.x + (center.x - origin.x) * eased,
     y: origin.y + (center.y - origin.y) * eased,
-    z: origin.z + (center.z + base * 0.6 - origin.z) * eased + Math.sin(Math.PI * clamped) * arc,
+    z: origin.z + (center.z + base * 0.6 - origin.z) * eased + loft(clamped, level) * arc,
   };
   if (swerve === 0) return point;
 

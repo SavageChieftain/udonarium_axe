@@ -261,15 +261,45 @@ export function tracerSvg(colors: ShapeColors): string {
   );
 }
 
-/** ミサイル。尖った弾頭・胴・尾翼を持ち、後ろへ噴射炎を引く。 */
+/**
+ * 小型ミサイル。右向きに描く。
+ *
+ * 直線で尖らせた弾頭・角ばった胴・後退角の付いた尾翼。数を撃つので、
+ * 1 発ずつは巡航ミサイルより翼を張って輪郭を太く取る。
+ */
 export function missileSvg(colors: ShapeColors): string {
   return svg(
-    `<path d="M0 44 L14 50 L0 56 Z" fill="${colors.edge}" fill-opacity="0.9"/>` +
-      `<rect x="12" y="43" width="62" height="14" rx="7" fill="${colors.edge}"/>` +
-      `<rect x="12" y="43" width="62" height="5" rx="2.5" fill="#ffffff" fill-opacity="0.45"/>` +
-      `<polygon points="70,36 86,44 86,56 70,64" fill="${colors.edge}"/>` +
-      `<path d="M74 41 Q99 50 74 59 Z" fill="${colors.core}"/>` +
-      `<path d="M80 46 Q95 50 80 54 Z" fill="#ffffff" fill-opacity="0.7"/>`
+    `<polygon points="36,40 22,12 14,12 26,40" fill="${colors.edge}" fill-opacity="0.85"/>` +
+      `<polygon points="36,60 22,88 14,88 26,60" fill="${colors.edge}" fill-opacity="0.85"/>` +
+      `<polygon points="70,38 98,50 70,62" fill="${colors.core}"/>` +
+      `<rect x="16" y="40" width="56" height="20" rx="4" fill="${colors.edge}"/>` +
+      `<rect x="20" y="43" width="48" height="6" rx="3" fill="#ffffff" fill-opacity="0.4"/>` +
+      `<polygon points="70,43 90,50 70,57" fill="#ffffff" fill-opacity="0.55"/>` +
+      `<rect x="8" y="42" width="10" height="16" rx="2" fill="${colors.core}" fill-opacity="0.9"/>`
+  );
+}
+
+/**
+ * 巡航ミサイル。右向きに描く。
+ *
+ * 実物は胴の長さに対して直径が 1/12 ほどしかなく、横から見た翼はごく小さい。
+ * 絵として読める太さまでは寄せるが、翼は控えめに留めて航空機と見分ける。
+ */
+export function cruiseSvg(colors: ShapeColors): string {
+  return svg(
+    // 主翼と尾翼。小さく後退させる。
+    `<polygon points="58,39 47,23 41,23 50,39" fill="${colors.edge}" fill-opacity="0.85"/>` +
+      `<polygon points="58,61 47,77 41,77 50,61" fill="${colors.edge}" fill-opacity="0.85"/>` +
+      `<polygon points="26,39 18,21 13,21 20,39" fill="${colors.edge}"/>` +
+      `<polygon points="26,61 18,79 13,79 20,61" fill="${colors.edge}"/>` +
+      // 弾頭 → 胴 → 尾。
+      `<polygon points="76,39 100,50 76,61" fill="${colors.core}"/>` +
+      `<polygon points="14,39 76,39 76,61 14,61 10,50" fill="${colors.edge}"/>` +
+      `<rect x="18" y="42" width="54" height="5" rx="2.5" fill="#ffffff" fill-opacity="0.4"/>` +
+      `<rect x="34" y="53" width="30" height="2.5" rx="1.25" fill="#ffffff" fill-opacity="0.28"/>` +
+      `<polygon points="76,43 92,50 76,57" fill="#ffffff" fill-opacity="0.55"/>` +
+      // ノズル。
+      `<rect x="4" y="43" width="10" height="14" rx="2" fill="${colors.core}" fill-opacity="0.9"/>`
   );
 }
 
