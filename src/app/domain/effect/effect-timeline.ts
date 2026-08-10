@@ -275,7 +275,7 @@ const PROJECTILE_SIZE: Record<ProjectileStyle, { width: number; height: number }
   bullet: { width: 1.25, height: 0.22 },
   crescent: { width: 1.5, height: 1.5 },
   blaster: { width: 1.6, height: 0.28 },
-  tracer: { width: 2.6, height: 0.16 },
+  tracer: { width: 2.2, height: 0.09 },
 };
 
 function projectileSvg(look: ProjectileStyle, colors: ReturnType<typeof colorsOf>): string {

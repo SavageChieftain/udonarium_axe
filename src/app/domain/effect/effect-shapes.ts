@@ -239,8 +239,8 @@ export function tracerSvg(colors: ShapeColors): string {
       `<stop offset="0" stop-color="${colors.edge}" stop-opacity="0"/>` +
       `<stop offset="0.8" stop-color="${colors.core}" stop-opacity="0.9"/>` +
       `<stop offset="1" stop-color="#ffffff"/></linearGradient></defs>` +
-      `<rect x="0" y="47" width="100" height="6" rx="3" fill="url(#${idOf('t', colors)})"/>` +
-      `<circle cx="95" cy="50" r="6" fill="#ffffff" fill-opacity="0.9"/>`
+      `<rect x="0" y="48.5" width="100" height="3" rx="1.5" fill="url(#${idOf('t', colors)})"/>` +
+      `<circle cx="96" cy="50" r="3.5" fill="#ffffff" fill-opacity="0.95"/>`
   );
 }
 

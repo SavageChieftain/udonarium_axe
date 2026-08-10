@@ -500,7 +500,7 @@ export const DEFAULT_EFFECT_PRESET_SEEDS: readonly EffectPresetSeed[] = [
     colorSecondary: '#ffd27f',
     soundMs: 2280,
     staggerMs: 0,
-    scale: 1.1,
+    scale: 0.8,
     targeting: 'single',
     maxTargets: 1,
     soundKey: 'gunRifle',
