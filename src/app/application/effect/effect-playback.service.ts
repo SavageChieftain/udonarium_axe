@@ -5,7 +5,7 @@ import { EffectCast, normalizeEffectCast } from '@axe/domain/effect/effect-cast'
 import { DefeatReaction, defeatReactionOf } from '@axe/domain/effect/effect-defeat';
 import { EffectPreset } from '@axe/domain/effect/effect-preset';
 import { effectFlashColor, EffectShake, effectShakeOf } from '@axe/domain/effect/effect-shake';
-import { impactSoundTimes, isEffectFinished } from '@axe/domain/effect/effect-timeline';
+import { impactSoundTimes, isEffectFinished, launchSoundTimes } from '@axe/domain/effect/effect-timeline';
 import { SoundEffect } from '@axe/domain/media/sound-effect';
 
 export interface ActiveEffectCast {
@@ -79,7 +79,7 @@ export class EffectPlaybackService {
     const preset = this.objectStore.get<EffectPreset>(cast.presetIdentifier);
     if (!(preset instanceof EffectPreset)) return null;
 
-    SoundEffect.playLocal(preset.soundIdentifier);
+    this.scheduleLaunchSound(preset);
     this.scheduleImpactSound(preset);
     if (prefersReducedMotion()) return null;
 
@@ -110,6 +110,21 @@ export class EffectPlaybackService {
       this._shake.set('');
       this._flash.set('');
     }, SHAKE_MS);
+  }
+
+  /** 発射音は撃つたびに鳴らす。連射で 1 回しか鳴らないと、弾数が耳に伝わらない。 */
+  private scheduleLaunchSound(preset: EffectPreset): void {
+    for (const delay of launchSoundTimes(preset)) {
+      if (delay <= 0) {
+        SoundEffect.playLocal(preset.soundIdentifier);
+        continue;
+      }
+      const timer = setTimeout(() => {
+        this.impactTimers.delete(timer);
+        SoundEffect.playLocal(preset.soundIdentifier);
+      }, delay);
+      this.impactTimers.add(timer);
+    }
   }
 
   /** 着弾音は当たった瞬間に鳴らす。発射と同時に鳴らすと当たった感じが出ない。 */

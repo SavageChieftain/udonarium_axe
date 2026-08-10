@@ -556,7 +556,8 @@
         "dissolve": "Disintegrate",
         "gore": "Blood",
         "bisect": "Bisect",
-        "skyblade": "Sky blade"
+        "skyblade": "Sky blade",
+        "raybeam": "Sustained ray"
       },
       "targeting": {
         "self": "Self",

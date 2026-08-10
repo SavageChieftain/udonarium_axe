@@ -175,7 +175,7 @@ describe('飛ぶ物の新しい見た目', () => {
   it('レーザー照射は撃ち続ける尺を持つこと', () => {
     const laser = seedOf('EffectPreset_laser_sustained');
 
-    expect(laser.kind).toBe('beam');
+    expect(laser.kind).toBe('raybeam');
     expect(laser.soundKey).toBe('sfBeam');
     expect(laser.durationMs).toBeGreaterThan(seedOf('EffectPreset_blaster_single').durationMs!);
   });

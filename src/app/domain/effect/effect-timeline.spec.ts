@@ -1,7 +1,13 @@
 import { EffectCast } from '@axe/domain/effect/effect-cast';
 import { EFFECT_KINDS, EffectKind } from '@axe/domain/effect/effect-kind';
 import { EffectPreset } from '@axe/domain/effect/effect-preset';
-import { effectSprites, impactSoundTimes, isEffectFinished, seededRandom } from '@axe/domain/effect/effect-timeline';
+import {
+  effectSprites,
+  impactSoundTimes,
+  isEffectFinished,
+  launchSoundTimes,
+  seededRandom,
+} from '@axe/domain/effect/effect-timeline';
 
 describe('effectSprites()', () => {
   interface PresetOverrides {
@@ -809,5 +815,83 @@ describe('seededRandom()', () => {
       expect(value).toBeGreaterThanOrEqual(0);
       expect(value).toBeLessThan(1);
     }
+  });
+});
+
+describe('launchSoundTimes()', () => {
+  function preset(overrides: Partial<Record<string, unknown>> = {}): EffectPreset {
+    const made = new EffectPreset('launch-sound-test');
+    Object.assign(made, {
+      kind: 'projectile',
+      projectileStyle: 'blaster',
+      durationMs: 1200,
+      soundIdentifier: 'shot',
+      impactSoundIdentifier: 'hit',
+      shots: 1,
+      shotInterval: 0,
+      ...overrides,
+    });
+    return made;
+  }
+
+  it('弾ごとに鳴らすこと', () => {
+    const times = launchSoundTimes(preset({ shots: 6, shotInterval: 110 }));
+
+    expect(times).toHaveLength(6);
+    expect(times[0]).toBe(0);
+    expect(times.every((at, index) => index === 0 || at > times[index - 1])).toBe(true);
+  });
+
+  it('単発なら 1 回だけ鳴らすこと', () => {
+    expect(launchSoundTimes(preset())).toEqual([0]);
+  });
+
+  it('詰まりすぎた発射は間引くこと', () => {
+    const times = launchSoundTimes(preset({ shots: 40, shotInterval: 1, durationMs: 300 }));
+    expect(times.length).toBeLessThan(40);
+  });
+
+  it('飛ばないものは撃ち始めに 1 回だけ鳴らすこと', () => {
+    expect(launchSoundTimes(preset({ kind: 'raybeam' }))).toEqual([0]);
+  });
+
+  it('鳴らす音が無ければ何も返さないこと', () => {
+    expect(launchSoundTimes(preset({ soundIdentifier: '' }))).toEqual([]);
+  });
+});
+
+describe('まっすぐ飛ぶ弾の尾', () => {
+  function shotSprites(style: string, elapsedMs: number) {
+    const preset = new EffectPreset('trail-test');
+    Object.assign(preset, {
+      kind: 'projectile',
+      projectileStyle: style,
+      durationMs: 1000,
+      shots: 1,
+      shotInterval: 0,
+      colorPrimary: '#ffffff',
+      colorSecondary: '#ff0000',
+    });
+    const cast: EffectCast = {
+      presetIdentifier: 'trail-test',
+      casterIdentifier: '',
+      origin: { x: -300, y: 0, z: 0 },
+      seed: 3,
+      targets: [{ identifier: 'char0', x: 300, y: 0, z: 0 }],
+    };
+    return effectSprites(preset, cast, elapsedMs, { baseSize: 50 });
+  }
+
+  it('銃弾・光線・曳光は尾を 1 本にすること', () => {
+    for (const style of ['bullet', 'blaster', 'tracer']) {
+      const keys = shotSprites(style, 60).map((sprite) => sprite.key);
+      expect(keys.filter((key) => key.includes('-ribbon-'))).toHaveLength(0);
+      expect(keys.filter((key) => key.includes('-trail')).length).toBeLessThanOrEqual(1);
+    }
+  });
+
+  it('魔法弾は今までどおり粒を連ねること', () => {
+    const keys = shotSprites('bolt', 160).map((sprite) => sprite.key);
+    expect(keys.filter((key) => key.includes('-ribbon-')).length).toBeGreaterThan(1);
   });
 });

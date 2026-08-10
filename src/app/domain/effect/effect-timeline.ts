@@ -258,6 +258,9 @@ const PROJECTILE_TRAVEL_MS: Record<ProjectileStyle, number> = {
 /** 着弾音が潰し合わないよう空ける最短間隔。 */
 const IMPACT_SOUND_MIN_GAP_MS = 70;
 
+/** 発射音が潰し合わないよう空ける最短間隔。連射の刻みが聞こえる程度には詰める。 */
+const LAUNCH_SOUND_MIN_GAP_MS = 55;
+
 export interface ProjectileShot {
   /** 撃ち出す位置(0-1)。 */
   launch: number;
@@ -269,6 +272,19 @@ export interface ProjectileShot {
  * 飛翔体の刻み。最後の 1 発が終端で着弾するよう、発射を等間隔に並べる。
  * 弾ごとに独立して飛ぶので、機関銃は弾幕として見える。
  */
+/** まっすぐ飛ぶ見た目。尾を粒に割らず 1 本に繋ぐ。 */
+const STRAIGHT_LOOKS: ReadonlySet<ProjectileStyle> = new Set(['bullet', 'blaster', 'tracer']);
+
+/** 尾の長さ(飛翔の割合)。速いものほど長く引く。 */
+const TRAIL_SPAN: Record<ProjectileStyle, number> = {
+  bolt: 0.3,
+  arrow: 0.2,
+  bullet: 0.22,
+  crescent: 0.24,
+  blaster: 0.3,
+  tracer: 0.55,
+};
+
 /** 進行方向に対する見た目の傾き。三日月は弧の腹を前へ向けたいので直交させる。 */
 const PROJECTILE_TURN: Record<ProjectileStyle, number> = {
   bolt: 0,
@@ -349,6 +365,23 @@ export function impactSoundTimes(preset: EffectPreset): number[] {
   return times;
 }
 
+/**
+ * 発射音を鳴らす時刻(ms)。連射は撃つたびに鳴らさないと弾数が耳に伝わらない。
+ * 1 発目は再生開始と同時なので 0 を含む。
+ */
+export function launchSoundTimes(preset: EffectPreset): number[] {
+  if (preset.soundIdentifier.length < 1) return [];
+  if (preset.effectKind !== 'projectile') return [0];
+
+  const times: number[] = [];
+  for (const shot of projectileTiming(preset).shots) {
+    const at = Math.round(shot.launch * preset.duration);
+    if (times.length > 0 && at - times[times.length - 1] < LAUNCH_SOUND_MIN_GAP_MS) continue;
+    times.push(at);
+  }
+  return times.length > 0 ? times : [0];
+}
+
 /** 対象ごとの再生位置。canvas 層と共有する。 */
 export function effectTargetProgress(preset: EffectPreset, elapsedMs: number, index: number): number {
   return (elapsedMs - preset.stagger * index) / preset.duration;
@@ -406,6 +439,19 @@ export function effectSprites(
     }
     if (preset.effectKind === 'bisect') {
       appendBisect(sprites, prefix, center, base, progress, preset, random, imageOf(options, target.identifier));
+      return;
+    }
+    if (preset.effectKind === 'raybeam') {
+      appendRaybeam(
+        sprites,
+        prefix,
+        center,
+        base,
+        progress,
+        preset,
+        projectileOrigin(cast, center, base),
+        options.viewRotation
+      );
       return;
     }
     if (preset.effectKind === 'beam') {
@@ -537,6 +583,92 @@ function appendKind(
     default:
       appendBurst(sprites, prefix, center, base, progress, preset);
       break;
+  }
+}
+
+/** 照射が立ち上がる位置と、切れる位置。間はずっと当て続ける。 */
+const RAY_OPEN_END = 0.12;
+const RAY_CLOSE_START = 0.86;
+
+/**
+ * 細いレーザーを当て続ける。極太ビームのような段組みは持たず、
+ * 「一本の線を保つ・当たっている所が焼ける・湯気のように光が上がる」だけで押す。
+ */
+function appendRaybeam(
+  sprites: EffectSprite[],
+  prefix: string,
+  center: Point3,
+  base: number,
+  progress: number,
+  preset: EffectPreset,
+  origin: Point3,
+  view: ViewRotation | null | undefined
+): void {
+  const open = clamp01(progress / RAY_OPEN_END);
+  const close = clamp01(normalize((progress - RAY_CLOSE_START) / (1 - RAY_CLOSE_START)));
+  const alive = open * (1 - close);
+  if (alive <= 0) return;
+
+  const link = projectDirection(center.x - origin.x, center.y - origin.y, center.z - origin.z, view);
+  if (link.length < 0.5) return;
+
+  const mid = { x: (origin.x + center.x) / 2, y: (origin.y + center.y) / 2, z: (origin.z + center.z) / 2 };
+  // 芯・鞘・外周の 3 層。太さの脈は時間で揺らして、照射し続けている感じを出す。
+  const pulse = 1 + Math.sin(progress * Math.PI * 22) * 0.12;
+  const layers = [
+    { thick: 0.34, color: preset.colorSecondary, alpha: 0.5 },
+    { thick: 0.18, color: preset.colorPrimary, alpha: 0.85 },
+    { thick: 0.07, color: '#ffffff', alpha: 1 },
+  ];
+  layers.forEach((layer, index) => {
+    sprites.push({
+      ...blank(),
+      key: `${prefix}-ray-${index}`,
+      x: mid.x,
+      y: mid.y,
+      z: mid.z,
+      width: link.length,
+      height: base * layer.thick * pulse * alive,
+      rotate: link.angle,
+      opacity: layer.alpha * alive,
+      background: layer.color,
+      borderRadius: '50%',
+      shadow: index === 0 ? glow(base * 0.5 * alive, preset.colorSecondary) : '',
+    });
+  });
+
+  // 焼けている一点。輪が小さく脈打つ。
+  sprites.push({
+    ...blank(),
+    key: `${prefix}-ray-burn`,
+    x: center.x,
+    y: center.y,
+    z: center.z,
+    width: base * (0.7 + Math.sin(progress * Math.PI * 16) * 0.1) * alive,
+    height: base * (0.7 + Math.sin(progress * Math.PI * 16) * 0.1) * alive,
+    opacity: alive,
+    background: `radial-gradient(circle, #ffffff, ${preset.colorPrimary} 45%, transparent 72%)`,
+    borderRadius: '50%',
+    shadow: glow(base * 0.8 * alive, preset.colorPrimary),
+  });
+
+  // 焼け跡から上がる光。当て続けていることを縦の動きで見せる。
+  for (let index = 0; index < 4; index += 1) {
+    const phase = (progress * 2.4 + index * 0.25) % 1;
+    sprites.push({
+      ...blank(),
+      key: `${prefix}-ray-smoke-${index}`,
+      x: center.x,
+      y: center.y,
+      z: center.z,
+      offsetX: (index - 1.5) * base * 0.16,
+      offsetY: -base * (0.4 + phase * 1.5),
+      width: base * 0.12 * (1 - phase),
+      height: base * 0.12 * (1 - phase),
+      opacity: (1 - phase) * 0.7 * alive,
+      background: preset.colorPrimary,
+      borderRadius: '50%',
+    });
   }
 }
 
@@ -757,30 +889,52 @@ function appendFlyingShot(
   const at = (value: number): Point3 => flightPoint(origin, center, base, value, arc);
   const head = at(travel);
 
-  // 帯。隣り合う 2 点を結ぶので、折れずに繋がった軌跡になる。
-  const span = solid ? 0.05 : 0.075;
-  for (let segment = 0; segment < PROJECTILE_RIBBON_COUNT; segment++) {
-    const back = at(travel - (segment + 1) * span);
-    const front = at(travel - segment * span);
-    const link = projectDirection(front.x - back.x, front.y - back.y, front.z - back.z, view);
-    if (link.length < 0.5) continue;
-    const age = segment / PROJECTILE_RIBBON_COUNT;
-    sprites.push({
-      ...blank(),
-      key: `${prefix}-ribbon-${segment}`,
-      x: (front.x + back.x) / 2,
-      y: (front.y + back.y) / 2,
-      z: (front.z + back.z) / 2,
-      width: link.length * 1.08,
-      height: base * (solid ? 0.1 : 0.34) * (1 - age * 0.75),
-      rotate: link.angle,
-      opacity: (1 - age) * (1 - age) * (solid ? 0.5 : 0.85),
-      background: solid
-        ? `linear-gradient(90deg, transparent, ${preset.colorSecondary})`
-        : `linear-gradient(90deg, transparent, ${preset.colorSecondary} 35%, ${preset.colorPrimary} 85%, #ffffff)`,
-      borderRadius: '50%',
-      shadow: solid ? '' : glow(base * 0.2 * (1 - age), preset.colorSecondary),
-    });
+  // 尾。まっすぐ飛ぶものは 1 本に繋げる。粒を並べると散弾のように見えてしまう。
+  if (STRAIGHT_LOOKS.has(look)) {
+    const tailAt = Math.max(0, travel - TRAIL_SPAN[look]);
+    const tail = at(tailAt);
+    const link = projectDirection(head.x - tail.x, head.y - tail.y, head.z - tail.z, view);
+    if (link.length >= 0.5) {
+      sprites.push({
+        ...blank(),
+        key: `${prefix}-trail`,
+        x: (head.x + tail.x) / 2,
+        y: (head.y + tail.y) / 2,
+        z: (head.z + tail.z) / 2,
+        width: link.length,
+        height: base * PROJECTILE_SIZE[look].height * 0.8,
+        rotate: link.angle,
+        opacity: 0.65,
+        background: `linear-gradient(90deg, transparent, ${preset.colorSecondary} 45%, ${preset.colorPrimary})`,
+        borderRadius: '2px',
+        shadow: glow(base * 0.16, preset.colorSecondary),
+      });
+    }
+  } else {
+    const span = solid ? 0.05 : 0.075;
+    for (let segment = 0; segment < PROJECTILE_RIBBON_COUNT; segment++) {
+      const back = at(travel - (segment + 1) * span);
+      const front = at(travel - segment * span);
+      const link = projectDirection(front.x - back.x, front.y - back.y, front.z - back.z, view);
+      if (link.length < 0.5) continue;
+      const age = segment / PROJECTILE_RIBBON_COUNT;
+      sprites.push({
+        ...blank(),
+        key: `${prefix}-ribbon-${segment}`,
+        x: (front.x + back.x) / 2,
+        y: (front.y + back.y) / 2,
+        z: (front.z + back.z) / 2,
+        width: link.length * 1.08,
+        height: base * (solid ? 0.1 : 0.34) * (1 - age * 0.75),
+        rotate: link.angle,
+        opacity: (1 - age) * (1 - age) * (solid ? 0.5 : 0.85),
+        background: solid
+          ? `linear-gradient(90deg, transparent, ${preset.colorSecondary})`
+          : `linear-gradient(90deg, transparent, ${preset.colorSecondary} 35%, ${preset.colorPrimary} 85%, #ffffff)`,
+        borderRadius: '50%',
+        shadow: solid ? '' : glow(base * 0.2 * (1 - age), preset.colorSecondary),
+      });
+    }
   }
 
   // 頭。速度方向へ引き伸ばすことで、止め絵でも速く見える。

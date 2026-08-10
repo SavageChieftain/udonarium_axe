@@ -556,7 +556,8 @@
         "dissolve": "崩壊",
         "gore": "血しぶき",
         "bisect": "両断",
-        "skyblade": "光の剣"
+        "skyblade": "光の剣",
+        "raybeam": "レーザー照射"
       },
       "targeting": {
         "self": "自分",
