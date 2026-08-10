@@ -170,6 +170,7 @@ describe('飛ぶ物の新しい見た目', () => {
     expect(blade.kind).toBe('skyblade');
     expect(blade.durationMs).toBeGreaterThan(1200);
     expect(blade.soundKey).toBe('holyBlade');
+    expect(blade.tagName).toBe('物理');
   });
 
   it('レーザー照射は撃ち続ける尺を持つこと', () => {

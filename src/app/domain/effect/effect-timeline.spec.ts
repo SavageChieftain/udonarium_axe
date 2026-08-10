@@ -7,6 +7,7 @@ import {
   isEffectFinished,
   launchSoundTimes,
   seededRandom,
+  swingTiltOf,
 } from '@axe/domain/effect/effect-timeline';
 
 describe('effectSprites()', () => {
@@ -916,5 +917,90 @@ describe('まっすぐ飛ぶ弾の尾', () => {
   it('魔法弾は今までどおり粒を連ねること', () => {
     const keys = shotSprites('bolt', 160).map((sprite) => sprite.key);
     expect(keys.filter((key) => key.includes('-ribbon-')).length).toBeGreaterThan(1);
+  });
+});
+
+describe('光の大剣', () => {
+  function bladeSprites(elapsedMs: number) {
+    const preset = new EffectPreset('excalibur-test');
+    Object.assign(preset, { kind: 'skyblade', durationMs: 3000, colorPrimary: '#fff', colorSecondary: '#fa0' });
+    const cast: EffectCast = {
+      presetIdentifier: 'excalibur-test',
+      casterIdentifier: 'caster',
+      origin: { x: -400, y: 0, z: 0 },
+      seed: 5,
+      targets: [{ identifier: 'char0', x: 400, y: 0, z: 0 }],
+    };
+    return effectSprites(preset, cast, elapsedMs, { baseSize: 50 });
+  }
+
+  function blade(elapsedMs: number) {
+    return bladeSprites(elapsedMs).find((sprite) => sprite.key.endsWith('-excalibur-blade-2'));
+  }
+
+  it('まず足元から光が立ち上ること', () => {
+    const rising = bladeSprites(300).filter((sprite) => sprite.key.includes('-excalibur-rise-'));
+
+    expect(rising.length).toBeGreaterThan(1);
+    expect(rising.every((sprite) => sprite.x === -400)).toBe(true);
+    expect(rising.some((sprite) => sprite.offsetY < 0)).toBe(true);
+  });
+
+  it('刃が伸び切ってから振り下ろされること', () => {
+    const forming = blade(900)!;
+    const formed = blade(1450)!;
+
+    expect(formed.height).toBeGreaterThan(forming.height);
+    expect(formed.rotate).toBeCloseTo(0, 5);
+  });
+
+  it('振り下ろしても根元が撃ち手の足元から動かないこと', () => {
+    const rootOf = (sprite: { offsetX: number; offsetY: number; height: number; rotate: number }) => {
+      const radians = (sprite.rotate * Math.PI) / 180;
+      return {
+        x: sprite.offsetX - (sprite.height / 2) * Math.sin(radians),
+        y: sprite.offsetY + (sprite.height / 2) * Math.cos(radians),
+      };
+    };
+
+    const standing = rootOf(blade(1450)!);
+    const swung = rootOf(blade(2000)!);
+
+    expect(swung.x).toBeCloseTo(standing.x, 5);
+    expect(swung.y).toBeCloseTo(standing.y, 5);
+  });
+
+  it('振り切ったら対象の側が光ること', () => {
+    const flash = bladeSprites(2400).find((sprite) => sprite.key.includes('-excalibur-burst'));
+
+    expect(flash).toBeDefined();
+    expect(flash!.x).toBe(400);
+  });
+
+  it('立ち上っているうちは弾けないこと', () => {
+    expect(bladeSprites(300).filter((sprite) => sprite.key.includes('-excalibur-burst'))).toHaveLength(0);
+  });
+});
+
+describe('swingTiltOf()', () => {
+  it('どの向きでも盤面の下をくぐらないこと', () => {
+    for (let heading = -360; heading <= 360; heading += 5) {
+      expect(Math.abs(swingTiltOf(heading))).toBeLessThanOrEqual(100);
+    }
+  });
+
+  it('撃ち手が対象より上にいても真下を向かないこと', () => {
+    expect(Math.abs(swingTiltOf(90))).toBeLessThan(180);
+    expect(Math.abs(swingTiltOf(95))).toBeLessThan(180);
+    expect(Math.abs(swingTiltOf(-95))).toBeLessThan(180);
+  });
+
+  it('横に並んでいるなら水平まで振ること', () => {
+    expect(swingTiltOf(0)).toBeCloseTo(90, 5);
+    expect(swingTiltOf(180)).toBeCloseTo(-90, 5);
+  });
+
+  it('近いほうへ回すこと', () => {
+    expect(swingTiltOf(-90)).toBeCloseTo(0, 5);
   });
 });

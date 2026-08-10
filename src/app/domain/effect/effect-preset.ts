@@ -91,6 +91,8 @@ export class EffectPreset extends GameObject {
     if (this.effectKind === 'arc') return 0.4;
     // レーザーは撃った瞬間に鳴らす。着弾を待つと溜めのあいだ無音になる。
     if (this.effectKind === 'beam') return 0.28;
+    // 光の大剣は振り下ろしてから光が届く。掲げている間に鳴らすと号砲になってしまう。
+    if (this.effectKind === 'skyblade') return 0.62;
     return 0.5;
   }
 

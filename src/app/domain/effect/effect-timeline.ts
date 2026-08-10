@@ -462,6 +462,19 @@ export function effectSprites(
       appendBisect(sprites, prefix, center, base, progress, preset, random, imageOf(options, target.identifier));
       return;
     }
+    if (preset.effectKind === 'skyblade') {
+      appendSkyblade(
+        sprites,
+        prefix,
+        center,
+        base,
+        progress,
+        preset,
+        projectileOrigin(cast, center, base),
+        options.viewRotation
+      );
+      return;
+    }
     if (preset.effectKind === 'raybeam') {
       appendRaybeam(
         sprites,
@@ -598,9 +611,6 @@ function appendKind(
     case 'gravity':
       appendGravity(sprites, prefix, center, base, progress, preset);
       break;
-    case 'skyblade':
-      appendSkyblade(sprites, prefix, center, base, progress, preset);
-      break;
     default:
       appendBurst(sprites, prefix, center, base, progress, preset);
       break;
@@ -609,6 +619,8 @@ function appendKind(
 
 /** 照射が立ち上がる位置と、切れる位置。間はずっと当て続ける。 */
 const RAY_OPEN_END = 0.12;
+/** 照射を並べる区間数。少ないと折れて見え、多いと継ぎ目が目立つ。 */
+const RAY_SEGMENTS = 14;
 const RAY_CLOSE_START = 0.86;
 
 /**
@@ -630,33 +642,40 @@ function appendRaybeam(
   const alive = open * (1 - close);
   if (alive <= 0) return;
 
-  const link = projectDirection(center.x - origin.x, center.y - origin.y, center.z - origin.z, view);
-  if (link.length < 0.5) return;
-
-  const mid = { x: (origin.x + center.x) / 2, y: (origin.y + center.y) / 2, z: (origin.z + center.z) / 2 };
-  // 芯・鞘・外周の 3 層。太さの脈は時間で揺らして、照射し続けている感じを出す。
+  // 経路を区間に割って並べる。1 枚の板で結ぶと、視線に沿う角度で投影長が縮んで途中で切れる。
   const pulse = 1 + Math.sin(progress * Math.PI * 22) * 0.12;
   const layers = [
     { thick: 0.34, color: preset.colorSecondary, alpha: 0.5 },
     { thick: 0.18, color: preset.colorPrimary, alpha: 0.85 },
     { thick: 0.07, color: '#ffffff', alpha: 1 },
   ];
-  layers.forEach((layer, index) => {
-    sprites.push({
-      ...blank(),
-      key: `${prefix}-ray-${index}`,
-      x: mid.x,
-      y: mid.y,
-      z: mid.z,
-      width: link.length,
-      height: base * layer.thick * pulse * alive,
-      rotate: link.angle,
-      opacity: layer.alpha * alive,
-      background: layer.color,
-      borderRadius: '50%',
-      shadow: index === 0 ? glow(base * 0.5 * alive, preset.colorSecondary) : '',
+
+  for (let segment = 0; segment < RAY_SEGMENTS; segment += 1) {
+    const from = segment / RAY_SEGMENTS;
+    const to = (segment + 1) / RAY_SEGMENTS;
+    const back = along(origin, center, from);
+    const front = along(origin, center, to);
+    const link = projectDirection(front.x - back.x, front.y - back.y, front.z - back.z, view);
+    if (link.length < 0.5) continue;
+
+    const mid = { x: (back.x + front.x) / 2, y: (back.y + front.y) / 2, z: (back.z + front.z) / 2 };
+    layers.forEach((layer, index) => {
+      sprites.push({
+        ...blank(),
+        key: `${prefix}-ray-${segment}-${index}`,
+        x: mid.x,
+        y: mid.y,
+        z: mid.z,
+        width: link.length * 1.12,
+        height: base * layer.thick * pulse * alive,
+        rotate: link.angle,
+        opacity: layer.alpha * alive,
+        background: layer.color,
+        borderRadius: '1px',
+        shadow: index === 0 ? glow(base * 0.4 * alive, preset.colorSecondary) : '',
+      });
     });
-  });
+  }
 
   // 焼けている一点。輪が小さく脈打つ。
   sprites.push({
@@ -693,14 +712,40 @@ function appendRaybeam(
   }
 }
 
-/** 光の剣がそびえ立ち終わる位置。ここまでが構え、ここから振り下ろし。 */
-const SKYBLADE_RISE_END = 0.45;
-/** 振り下ろしが終わる位置。残りは斬り跡と余韻。 */
-const SKYBLADE_FALL_END = 0.62;
+/**
+ * 振り下ろす先の角度。真上(0)からここまで回す。
+ *
+ * 素直に heading+90 を使うと、対象の向きによっては 180 度を跨いで
+ * 刃が盤面の下をくぐる。近いほうへ回し、水平を少し超えたところで止める。
+ */
+export function swingTiltOf(headingAngle: number): number {
+  let tilt = (headingAngle + 90) % 360;
+  if (tilt > 180) tilt -= 360;
+  if (tilt <= -180) tilt += 360;
+  return Math.max(-EXCALIBUR_MAX_TILT, Math.min(EXCALIBUR_MAX_TILT, tilt));
+}
+
+function along(origin: Point3, center: Point3, at: number): Point3 {
+  return {
+    x: origin.x + (center.x - origin.x) * at,
+    y: origin.y + (center.y - origin.y) * at,
+    z: origin.z + (center.z - origin.z) * at,
+  };
+}
+
+/** 光の大剣。立ち上る・刃になる・振り下ろす・弾ける、の四段。 */
+const EXCALIBUR_RISE_END = 0.24;
+const EXCALIBUR_FORM_END = 0.5;
+const EXCALIBUR_SWING_END = 0.68;
+/** 刃の最短の長さ。間合いが近くても剣に見える太さを保つ。 */
+const EXCALIBUR_MIN_REACH = 6;
+/** 振り下ろす角度の限界。これを超えると刃が盤面の下をくぐってしまう。 */
+const EXCALIBUR_MAX_TILT = 100;
 
 /**
- * 頭上に光の大剣を立て、間を置いて振り下ろす。
- * 立ち上がりは切っ先を上へ伸ばし、落ちるときは剣を縮めながら地面へ突き刺す。
+ * 撃ち手の足元から光が立ち上って巨大な刃になり、地面を支点に対象へ振り下ろされる。
+ *
+ * 刃は中心ではなく根元で回す。中心で回すと振り下ろしではなく回転に見える。
  */
 function appendSkyblade(
   sprites: EffectSprite[],
@@ -708,97 +753,136 @@ function appendSkyblade(
   center: Point3,
   base: number,
   progress: number,
-  preset: EffectPreset
+  preset: EffectPreset,
+  origin: Point3,
+  view: ViewRotation | null | undefined
 ): void {
-  const rise = clamp01(progress / SKYBLADE_RISE_END);
-  const fall = clamp01(normalize((progress - SKYBLADE_RISE_END) / (SKYBLADE_FALL_END - SKYBLADE_RISE_END)));
-  const after = clamp01(normalize((progress - SKYBLADE_FALL_END) / (1 - SKYBLADE_FALL_END)));
+  const rise = clamp01(progress / EXCALIBUR_RISE_END);
+  const form = clamp01(normalize((progress - EXCALIBUR_RISE_END) / (EXCALIBUR_FORM_END - EXCALIBUR_RISE_END)));
+  const swing = clamp01(normalize((progress - EXCALIBUR_FORM_END) / (EXCALIBUR_SWING_END - EXCALIBUR_FORM_END)));
+  const burst = clamp01(normalize((progress - EXCALIBUR_SWING_END) / (1 - EXCALIBUR_SWING_END)));
 
-  const length = base * (2.6 + easeOutCubic(rise) * 5.2) * (1 - fall * fall * fall * 0.55);
-  const lift = base * (3.4 + easeOutCubic(rise) * 2.6) * (1 - fall * fall * fall);
-  const sway = Math.sin(rise * Math.PI * 3) * base * 0.12 * (1 - rise);
+  const heading = projectDirection(center.x - origin.x, center.y - origin.y, center.z - origin.z, view);
+  const span = Math.hypot(center.x - origin.x, center.y - origin.y, center.z - origin.z);
+  const reach = Math.max(span, base * EXCALIBUR_MIN_REACH);
 
-  if (progress < SKYBLADE_FALL_END) {
-    // 刃。立てている間は薄く光り、落ちる瞬間に白く灼ける。
+  // 1. 立ち上る光。足元から吸い上がって刃の背丈まで届く。
+  if (rise > 0 && form < 1) {
+    for (let index = 0; index < 8; index += 1) {
+      const phase = (rise * 1.6 + index / 8) % 1;
+      sprites.push({
+        ...blank(),
+        key: `${prefix}-excalibur-rise-${index}`,
+        x: origin.x,
+        y: origin.y,
+        z: origin.z,
+        offsetX: Math.cos(index * 2.1) * base * 0.8 * (1 - phase),
+        offsetY: -reach * phase * 0.9,
+        width: base * 0.22 * (1 - phase),
+        height: base * 0.22 * (1 - phase),
+        opacity: (1 - phase) * 0.85 * (1 - form),
+        background: preset.colorPrimary,
+        borderRadius: '50%',
+        shadow: glow(base * 0.35 * (1 - phase), preset.colorPrimary),
+      });
+    }
+  }
+
+  // 2〜3. 刃。伸び切ってから、根元を軸に対象へ倒す。
+  if (rise >= 1 || form > 0 || swing < 1) {
+    const length = reach * (0.15 + easeOutCubic(form) * 0.85);
+    const eased = swing < 0.5 ? 2 * swing * swing : 1 - Math.pow(-2 * swing + 2, 2) / 2;
+    const tilt = eased * swingTiltOf(heading.angle);
+    const radians = (tilt * Math.PI) / 180;
+    // 根元を撃ち手の足元へ固定する。中心は刃の向きへ半分ぶんずれる。
+    const pivotX = (length / 2) * Math.sin(radians);
+    const pivotY = -(length / 2) * Math.cos(radians);
+    const alive = 1 - burst * 0.85;
+
+    for (const [index, layer] of [
+      { width: 2.6, alpha: 0.26, color: preset.colorSecondary, blur: 2.8 },
+      { width: 1.3, alpha: 0.78, color: preset.colorPrimary, blur: 1.5 },
+      { width: 0.45, alpha: 1, color: '#ffffff', blur: 0.8 },
+    ].entries()) {
+      sprites.push({
+        ...blank(),
+        key: `${prefix}-excalibur-blade-${index}`,
+        x: origin.x,
+        y: origin.y,
+        z: origin.z,
+        offsetX: pivotX,
+        offsetY: pivotY,
+        width: base * layer.width * (0.4 + form * 0.6),
+        height: length,
+        rotate: tilt,
+        opacity: layer.alpha * (0.3 + form * 0.7) * alive,
+        background: `linear-gradient(180deg, transparent, ${layer.color} 18%, #ffffff 100%)`,
+        borderRadius: '46% 46% 8% 8%',
+        shadow: glow(base * layer.blur, layer.color),
+      });
+    }
+
+    // 根元の光輪。支点がどこかを見せる。
     sprites.push({
       ...blank(),
-      key: `${prefix}-skyblade-blade`,
-      x: center.x,
-      y: center.y,
-      z: center.z,
-      offsetX: sway,
-      offsetY: -lift,
-      width: base * (0.5 + fall * 0.35),
-      height: length,
-      opacity: 0.35 + rise * 0.6,
-      background: `linear-gradient(180deg, ${preset.colorSecondary} 0%, ${preset.colorPrimary} 45%, #ffffff 100%)`,
-      borderRadius: '48% 48% 6% 6%',
-      shadow: glow(base * (0.7 + fall), preset.colorPrimary, base * (1.6 + fall * 2), preset.colorSecondary),
-    });
-
-    // 柄元の光輪。構えの間だけ脈打たせて、溜めていることを見せる。
-    sprites.push({
-      ...blank(),
-      key: `${prefix}-skyblade-hilt`,
-      x: center.x,
-      y: center.y,
-      z: center.z,
-      offsetX: sway,
-      offsetY: -lift - length * 0.5,
-      width: base * (1.1 + Math.sin(rise * Math.PI * 4) * 0.12) * (1 - fall * 0.5),
-      height: base * 0.22,
-      opacity: (0.5 + rise * 0.5) * (1 - fall),
-      background: `radial-gradient(circle, #ffffff, ${preset.colorPrimary} 55%, transparent 75%)`,
+      key: `${prefix}-excalibur-hilt`,
+      x: origin.x,
+      y: origin.y,
+      z: origin.z,
+      width: base * (1.6 + form * 1.2),
+      height: base * (0.6 + form * 0.4),
+      opacity: (0.4 + form * 0.5) * alive,
+      background: `radial-gradient(circle, #ffffff, ${preset.colorPrimary} 50%, transparent 74%)`,
       borderRadius: '50%',
-      shadow: glow(base * 0.6, preset.colorPrimary),
+      shadow: glow(base * 0.8, preset.colorPrimary),
     });
   }
 
-  if (fall > 0) {
-    // 振り下ろした軌跡。上から下へ抜ける一本。
+  // 4. 光の爆発。振り切った先で弾け、輪が広がる。
+  if (burst > 0) {
     sprites.push({
       ...blank(),
-      key: `${prefix}-skyblade-trail`,
+      key: `${prefix}-excalibur-burst`,
       x: center.x,
       y: center.y,
       z: center.z,
-      offsetY: -base * 2.2 * (1 - fall),
-      width: base * 0.9,
-      height: base * 7 * fall,
-      opacity: (1 - fall) * 0.7,
-      background: `linear-gradient(180deg, transparent, ${preset.colorPrimary} 60%, #ffffff)`,
+      width: base * (2.4 + easeOutCubic(burst) * 6),
+      height: base * (2.4 + easeOutCubic(burst) * 6),
+      opacity: 1 - burst,
+      background: `radial-gradient(circle, #ffffff 0%, ${preset.colorPrimary} 40%, ${preset.colorSecondary} 64%, transparent 80%)`,
       borderRadius: '50%',
+      shadow: glow(base * 2 * (1 - burst), preset.colorPrimary),
     });
-  }
-
-  if (after > 0) {
-    // 着地。地面を舐める光の輪と、突き刺さった余韻。
     sprites.push({
       ...blank(),
-      key: `${prefix}-skyblade-ring`,
+      key: `${prefix}-excalibur-ring`,
       x: center.x,
       y: center.y,
       z: center.z,
-      width: base * (1.2 + easeOutCubic(after) * 6),
-      height: base * (0.5 + easeOutCubic(after) * 2.4),
-      opacity: (1 - after) * 0.85,
+      width: base * (1.6 + easeOutCubic(burst) * 11),
+      height: base * (0.7 + easeOutCubic(burst) * 4.6),
+      opacity: (1 - burst) * 0.8,
       svg: ringSvg(colorsOf(preset)),
-      shadow: glow(base * 0.5 * (1 - after), preset.colorSecondary),
+      shadow: glow(base * 0.8 * (1 - burst), preset.colorSecondary),
     });
-    sprites.push({
-      ...blank(),
-      key: `${prefix}-skyblade-scar`,
-      x: center.x,
-      y: center.y,
-      z: center.z,
-      offsetY: -base * 0.6 * (1 - after),
-      width: base * 0.36 * (1 - after),
-      height: base * 2.4 * (1 - after * 0.7),
-      opacity: (1 - after) * 0.9,
-      background: `linear-gradient(180deg, #ffffff, ${preset.colorPrimary}, transparent)`,
-      borderRadius: '50%',
-      shadow: glow(base * 0.5 * (1 - after), preset.colorPrimary),
-    });
+    for (let index = 0; index < 10; index += 1) {
+      const phase = clamp01(burst * (1 + (index % 3) * 0.2));
+      sprites.push({
+        ...blank(),
+        key: `${prefix}-excalibur-shard-${index}`,
+        x: center.x,
+        y: center.y,
+        z: center.z,
+        offsetX: Math.cos(index * 0.63) * base * 5 * phase,
+        offsetY: -Math.abs(Math.sin(index * 0.63)) * base * 4 * phase,
+        width: base * 0.3 * (1 - phase),
+        height: base * 0.3 * (1 - phase),
+        opacity: (1 - phase) * 0.9,
+        background: '#ffffff',
+        borderRadius: '50%',
+        shadow: glow(base * 0.4 * (1 - phase), preset.colorPrimary),
+      });
+    }
   }
 }
 
