@@ -1,4 +1,5 @@
 import {
+  AUDIO_FRAME_SAMPLES,
   avcCodecFor,
   defaultVideoBitrate,
   encodeVideo,
@@ -29,6 +30,8 @@ let configured: Record<string, unknown> | null;
 let closed = false;
 let flushed = false;
 let failOn: number | null = null;
+let audioFrames: number[];
+let audioConfigured: Record<string, unknown> | null;
 
 class FakeEncodedVideoChunk {
   readonly type: string;
@@ -45,6 +48,46 @@ class FakeEncodedVideoChunk {
   }
   copyTo(destination: Uint8Array): void {
     destination.set(this.payload);
+  }
+}
+
+class FakeEncodedAudioChunk {
+  readonly type = 'key';
+  readonly byteLength = 4;
+  readonly duration = 21_333;
+  private readonly payload = new Uint8Array([1, 2, 3, 4]);
+  constructor(readonly timestamp: number) {}
+  copyTo(destination: Uint8Array): void {
+    destination.set(this.payload);
+  }
+}
+
+class FakeAudioData {
+  constructor(readonly init: { timestamp: number; numberOfFrames: number }) {}
+  close(): void {}
+}
+
+class FakeAudioEncoder {
+  state = 'unconfigured';
+  encodeQueueSize = 0;
+  private readonly output: (chunk: unknown, meta: unknown) => void;
+
+  constructor(init: { output: (chunk: unknown, meta: unknown) => void; error: (reason: unknown) => void }) {
+    this.output = init.output;
+  }
+  configure(config: Record<string, unknown>): void {
+    audioConfigured = config;
+    this.state = 'configured';
+  }
+  encode(data: FakeAudioData): void {
+    audioFrames.push(data.init.numberOfFrames);
+    this.output(new FakeEncodedAudioChunk(data.init.timestamp), {
+      decoderConfig: { codec: 'mp4a.40.2', description: new Uint8Array([18, 16]) },
+    });
+  }
+  async flush(): Promise<void> {}
+  close(): void {
+    this.state = 'closed';
   }
 }
 
@@ -106,6 +149,11 @@ describe('video encoding', () => {
     globals['VideoEncoder'] = FakeVideoEncoder;
     globals['VideoFrame'] = FakeVideoFrame;
     globals['EncodedVideoChunk'] = FakeEncodedVideoChunk;
+    audioFrames = [];
+    audioConfigured = null;
+    globals['AudioEncoder'] = FakeAudioEncoder;
+    globals['AudioData'] = FakeAudioData;
+    globals['EncodedAudioChunk'] = FakeEncodedAudioChunk;
   });
 
   afterEach(() => {
@@ -113,6 +161,9 @@ describe('video encoding', () => {
     delete globals['VideoEncoder'];
     delete globals['VideoFrame'];
     delete globals['EncodedVideoChunk'];
+    delete globals['AudioEncoder'];
+    delete globals['AudioData'];
+    delete globals['EncodedAudioChunk'];
   });
 
   function request(overrides: Record<string, unknown> = {}) {
@@ -197,6 +248,33 @@ describe('video encoding', () => {
     expect(avcCodecFor(1280, 720)).toBe('avc1.64001f');
     expect(avcCodecFor(1920, 1080)).toBe('avc1.640028');
     expect(avcCodecFor(3840, 2160)).toBe('avc1.640033');
+  });
+
+  it('音も渡されたら AAC の道を通すこと', async () => {
+    const channels = [new Float32Array(2048), new Float32Array(2048)];
+    const result = await encodeVideo(request({ audio: { sampleRate: 48_000, channels } }));
+
+    expect(audioConfigured).toMatchObject({ codec: 'mp4a.40.2', numberOfChannels: 2, sampleRate: 48_000 });
+    expect(audioFrames).toEqual([AUDIO_FRAME_SAMPLES, AUDIO_FRAME_SAMPLES]);
+    expect(result?.extension).toBe('mp4');
+  });
+
+  it('端数のコマも取りこぼさないこと', async () => {
+    await encodeVideo(request({ audio: { sampleRate: 48_000, channels: [new Float32Array(1500)] } }));
+    expect(audioFrames).toEqual([AUDIO_FRAME_SAMPLES, 1500 - AUDIO_FRAME_SAMPLES]);
+  });
+
+  it('音の道具が無ければ映像だけで出すこと', async () => {
+    delete globals['AudioEncoder'];
+    const result = await encodeVideo(request({ audio: { sampleRate: 48_000, channels: [new Float32Array(2048)] } }));
+
+    expect(audioFrames).toEqual([]);
+    expect(result?.extension).toBe('mp4');
+  });
+
+  it('音を渡さなければ音の道具を触らないこと', async () => {
+    await encodeVideo(request());
+    expect(audioConfigured).toBeNull();
   });
 
   it('帯域を指定したらそれを使うこと', async () => {

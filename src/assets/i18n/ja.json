@@ -2154,7 +2154,8 @@
         "estimate": "{{shots}} カット・およそ {{length}}",
         "start": "書き出す",
         "rendering": "書き出しています（{{percent}}%）",
-        "cancel": "やめる"
+        "cancel": "やめる",
+        "withSound": "効果音と BGM も入れる"
       }
     }
   },

@@ -2154,7 +2154,8 @@
         "estimate": "{{shots}} shots, about {{length}}",
         "start": "Write it out",
         "rendering": "Writing it out ({{percent}}%)",
-        "cancel": "Stop"
+        "cancel": "Stop",
+        "withSound": "Include sound effects and music"
       }
     }
   },

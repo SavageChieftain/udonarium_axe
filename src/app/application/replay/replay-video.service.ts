@@ -1,7 +1,9 @@
 import { computed, inject, Injectable, signal } from '@angular/core';
 import { ReplayLibraryService } from '@axe/application/replay/replay-library.service';
+import { ReplaySoundMixer } from '@axe/application/replay/replay-sound-mixer';
 import { Logger } from '@axe/core/logging/logger';
 import { VideoEncoderGateway } from '@axe/core/media/video-encoder';
+import { AudioStorage } from '@axe/core/storage/audio-storage';
 import { ImageStorage } from '@axe/core/storage/image-storage';
 import type { ReplayRecordingMeta } from '@axe/core/storage/replay-log-store';
 import { replayArchiveName } from '@axe/domain/replay/replay-archive';
@@ -15,6 +17,7 @@ import type { ReplayEvent, ReplayViewer } from '@axe/domain/replay/replay-event'
 import { REPLAY_FRAME_PRESETS, replayFrameLayout, type ReplayFrameSize } from '@axe/domain/replay/replay-frame-layout';
 import { decodeReplayKeyframe, type ReplayObjectSnapshot } from '@axe/domain/replay/replay-keyframe';
 import { applyReplayEvents } from '@axe/domain/replay/replay-patch';
+import { buildReplaySoundtrack, hasReplaySound } from '@axe/domain/replay/replay-soundtrack';
 import {
   buildReplayStoryboard,
   type ReplayShot,
@@ -23,6 +26,7 @@ import {
   type ReplayShotPacing,
   type ReplayShotScope,
   ReplayShotScope as Scope,
+  type ReplayStoryboard,
   shotAt,
 } from '@axe/domain/replay/replay-storyboard';
 import {
@@ -39,6 +43,7 @@ export interface ReplayVideoOptions {
   fps: number;
   pacing: ReplayShotPacing;
   scope: ReplayShotScope;
+  withSound: boolean;
   caption?: ReplayShotCaption;
 }
 
@@ -47,12 +52,15 @@ export const DEFAULT_REPLAY_VIDEO_OPTIONS: ReplayVideoOptions = {
   fps: REPLAY_VIDEO_FPS,
   pacing: Pacing.Reading,
   scope: Scope.Lines,
+  withSound: true,
 };
 
 @Injectable({ providedIn: 'root' })
 export class ReplayVideoService {
   private readonly library = inject(ReplayLibraryService);
   private readonly imageStorage = inject(ImageStorage);
+  private readonly audioStorage = inject(AudioStorage);
+  private readonly mixer = inject(ReplaySoundMixer);
   private readonly encoder = inject(VideoEncoderGateway);
 
   private readonly _isRendering = signal(false);
@@ -111,6 +119,7 @@ export class ReplayVideoService {
         ...boards.flatMap((board) => collectBoardAssetIds(board)),
       ]);
       const msPerFrame = 1000 / options.fps;
+      const audio = options.withSound ? await this.soundOf(events, storyboard) : null;
 
       try {
         const encoded = await this.encoder.encode({
@@ -118,6 +127,7 @@ export class ReplayVideoService {
           height: options.size.height,
           fps: options.fps,
           frameCount,
+          audio,
           isCancelled: () => this.cancelled,
           onProgress: (done, total) => {
             this._done.set(done);
@@ -151,6 +161,20 @@ export class ReplayVideoService {
       return false;
     } finally {
       this._isRendering.set(false);
+    }
+  }
+
+  private async soundOf(events: readonly ReplayEvent[], storyboard: ReplayStoryboard) {
+    try {
+      const soundtrack = buildReplaySoundtrack(events, storyboard);
+      if (!hasReplaySound(soundtrack)) return null;
+      return await this.mixer.mix(soundtrack, async (identifier) => {
+        const blob = this.audioStorage.get(identifier)?.blob;
+        return blob ? await blob.arrayBuffer() : null;
+      });
+    } catch (reason) {
+      Logger.warn('[ReplayVideo] 音を作れませんでした', reason);
+      return null;
     }
   }
 

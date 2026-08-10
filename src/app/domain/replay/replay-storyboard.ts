@@ -55,9 +55,10 @@ export interface ReplayShot {
 export interface ReplayStoryboard {
   shots: readonly ReplayShot[];
   totalMs: number;
+  timeOfSeq: ReadonlyMap<number, number>;
 }
 
-export const EMPTY_REPLAY_STORYBOARD: ReplayStoryboard = { shots: [], totalMs: 0 };
+export const EMPTY_REPLAY_STORYBOARD: ReplayStoryboard = { shots: [], totalMs: 0, timeOfSeq: new Map() };
 
 const SPOKEN_KINDS: ReadonlySet<ReplayEventKind> = new Set([ReplayEventKind.ChatMessage, ReplayEventKind.ChatDice]);
 
@@ -89,6 +90,7 @@ export function buildReplayStoryboard(
 ): ReplayStoryboard {
   const portraits = portraitsByName(cast);
   const shots: ReplayShot[] = [];
+  const timeOfSeq = new Map<number, number>();
 
   let chapter = '';
   let background = '';
@@ -97,6 +99,7 @@ export function buildReplayStoryboard(
   for (let index = 0; index < events.length; index += 1) {
     const event = events[index];
     if (options.viewer && !canViewReplayEvent(event, options.viewer)) continue;
+    timeOfSeq.set(event.seq, startMs);
 
     if (event.kind === ReplayEventKind.VnScene) {
       background = event.targetId ?? '';
@@ -131,7 +134,7 @@ export function buildReplayStoryboard(
     startMs += durationMs;
   }
 
-  return { shots, totalMs: startMs };
+  return { shots, totalMs: startMs, timeOfSeq };
 }
 
 export function shotAt(storyboard: ReplayStoryboard, atMs: number): ReplayShot | null {

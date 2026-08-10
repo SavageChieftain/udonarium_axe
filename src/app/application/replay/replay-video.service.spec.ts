@@ -1,5 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { ReplayLibraryService } from '@axe/application/replay/replay-library.service';
+import { ReplaySoundMixer } from '@axe/application/replay/replay-sound-mixer';
 import { DEFAULT_REPLAY_VIDEO_OPTIONS, ReplayVideoService } from '@axe/application/replay/replay-video.service';
 import {
   type EncodedVideo,
@@ -7,11 +8,13 @@ import {
   VideoEncoderGateway,
   type VideoPaintTarget,
 } from '@axe/core/media/video-encoder';
+import { AudioStorage } from '@axe/core/storage/audio-storage';
 import { ImageStorage } from '@axe/core/storage/image-storage';
 import type { ReplayRecordingMeta } from '@axe/core/storage/replay-log-store';
 import { PUBLIC_VISIBILITY, type ReplayEvent, ReplayEventKind } from '@axe/domain/replay/replay-event';
 import { REPLAY_FRAME_PRESETS } from '@axe/domain/replay/replay-frame-layout';
 import { encodeReplayKeyframe, type ReplayObjectSnapshot } from '@axe/domain/replay/replay-keyframe';
+import type { ReplaySoundtrack } from '@axe/domain/replay/replay-soundtrack';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
 
 function say(seq: number, text: string, name = 'アリス'): ReplayEvent {
@@ -64,12 +67,14 @@ describe('ReplayVideoService', () => {
   let encode: ReturnType<typeof vi.fn<(request: VideoEncodeRequest) => Promise<EncodedVideo | null>>>;
   let saved: { blob: Blob; name: string }[];
   let isSupported = true;
+  let mix: ReturnType<typeof vi.fn<(soundtrack: ReplaySoundtrack, read: unknown) => Promise<unknown>>>;
   let keyframe: { seq: number; blob: Blob } | null;
 
   beforeEach(() => {
     saved = [];
     isSupported = true;
     keyframe = { seq: 0, blob: new Blob([encodeReplayKeyframe(board) as BlobPart]) };
+    mix = vi.fn<(soundtrack: ReplaySoundtrack, read: unknown) => Promise<unknown>>().mockResolvedValue(null);
     encode = vi.fn<(request: VideoEncodeRequest) => Promise<EncodedVideo | null>>(async (request) => {
       const ctx = {
         fillStyle: '',
@@ -96,6 +101,10 @@ describe('ReplayVideoService', () => {
     TestBed.configureTestingModule({
       providers: [
         ...TEST_PROVIDERS,
+        {
+          provide: ReplaySoundMixer,
+          useValue: { isSupported: true, mix: (soundtrack: ReplaySoundtrack, read: unknown) => mix(soundtrack, read) },
+        },
         {
           provide: VideoEncoderGateway,
           useValue: {
@@ -186,6 +195,47 @@ describe('ReplayVideoService', () => {
     keyframe = null;
     expect(await service.render(meta, [say(1, 'やあ')])).toBe(true);
     expect(saved).toHaveLength(1);
+  });
+
+  it('効果音を混ぜて符号化器に渡すこと', async () => {
+    vi.spyOn(TestBed.inject(AudioStorage), 'get').mockReturnValue({ blob: new Blob(['se']) } as never);
+    const mixed = { sampleRate: 48_000, channels: [new Float32Array(8)] };
+    mix.mockResolvedValue(mixed);
+
+    await service.render(meta, [
+      say(1, 'やあ'),
+      { ...say(2, ''), kind: ReplayEventKind.MediaSoundEffect, detail: { identifier: 'se-1' } },
+      say(3, 'こんばんは'),
+    ]);
+
+    expect(mix).toHaveBeenCalledTimes(1);
+    expect(mix.mock.calls[0][0].effects.map((cue) => cue.audioIdentifier)).toEqual(['se-1']);
+    expect(encode.mock.calls[0][0].audio).toBe(mixed);
+  });
+
+  it('音を入れない指定なら混ぜないこと', async () => {
+    await service.render(meta, [say(1, 'やあ')], { ...DEFAULT_REPLAY_VIDEO_OPTIONS, withSound: false });
+
+    expect(mix).not.toHaveBeenCalled();
+    expect(encode.mock.calls[0][0].audio).toBeNull();
+  });
+
+  it('鳴らす音が無ければ混ぜないこと', async () => {
+    await service.render(meta, [say(1, 'やあ')]);
+
+    expect(mix).not.toHaveBeenCalled();
+  });
+
+  it('音を作れなくても映像は書き出すこと', async () => {
+    mix.mockRejectedValue(new Error('鳴らせない'));
+
+    const events = [
+      say(1, 'やあ'),
+      { ...say(2, ''), kind: ReplayEventKind.MediaSoundEffect, detail: { identifier: 'se-1' } },
+      say(3, 'こんばんは'),
+    ];
+    expect(await service.render(meta, events)).toBe(true);
+    expect(encode.mock.calls[0][0].audio).toBeNull();
   });
 
   it('進み具合を出すこと', async () => {
