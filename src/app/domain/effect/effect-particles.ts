@@ -1,6 +1,6 @@
 import { EffectKind } from '@axe/domain/effect/effect-kind';
 import { EffectPreset } from '@axe/domain/effect/effect-preset';
-import { projectileTiming, slashHits } from '@axe/domain/effect/effect-timeline';
+import { ARROW_RAIN_FALL, EXCALIBUR_SWING_END, projectileTiming, slashHits } from '@axe/domain/effect/effect-timeline';
 
 /**
  * 板ポリ面内で完結するパーティクル。canvas に加算合成で重ねて発光を作る。
@@ -83,6 +83,18 @@ function emitFor(
         emitImpact(particles, random, local, base, ramp);
       }
     }
+    return;
+  }
+  if (preset.effectKind === 'skyblade') {
+    // 振り下ろした先で弾ける。全体の進みで出すと、刃が立ち上る前に的が爆ぜる。
+    const burst = clamp01((progress - EXCALIBUR_SWING_END) / (1 - EXCALIBUR_SWING_END));
+    if (burst > 0 && burst < 1) emitKind(preset.impactEffectKind, particles, random, burst, base, ramp);
+    return;
+  }
+  if (preset.effectKind === 'arrowrain') {
+    // 1 本目が刺さってから土埃。降り始める前に出すと、当たる前に地面が爆ぜる。
+    const local = clamp01((progress - ARROW_RAIN_FALL) / (1 - ARROW_RAIN_FALL));
+    if (local > 0 && local < 1) emitImpact(particles, random, local, base * 0.7, ramp);
     return;
   }
   if (preset.effectKind === 'projectile') {

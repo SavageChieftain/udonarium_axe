@@ -15,8 +15,8 @@ describe('effectParticles()', () => {
   const base = 50;
 
   it('どの種類でも山場のあいだは粒子を返すこと', () => {
-    // 飛翔体とレーザーは届くまで対象側に何も出さないので別で確かめる。
-    const flying: EffectKind[] = ['projectile', 'beam'];
+    // 届くまで対象側に何も出さない種類は別で確かめる。
+    const flying: EffectKind[] = ['projectile', 'beam', 'skyblade', 'arrowrain'];
     for (const kind of EFFECT_KINDS.filter((candidate) => !flying.includes(candidate))) {
       for (const progress of [0.3, 0.6]) {
         const layer = effectParticles(makePreset(kind), 7, progress, base);
@@ -150,6 +150,32 @@ describe('effectParticles()', () => {
     const layer = effectParticles(makePreset('flame'), 5, 0.6, base);
 
     expect(layer.particles.some((particle) => particle.shape === 'smoke')).toBe(true);
+  });
+
+  it('大剣は振り下ろしてから的の側で弾けること', () => {
+    const countAt = (progress: number) => effectParticles(makePreset('skyblade'), 3, progress, base).particles.length;
+
+    // 立ち上って刃を成すあいだに弾けると、当たる前に的が爆ぜたように見える。
+    expect(countAt(0.2)).toBe(0);
+    expect(countAt(0.6)).toBe(0);
+    expect(countAt(0.8)).toBeGreaterThan(0);
+  });
+
+  it('属性を持つ大剣はその属性で弾けること', () => {
+    const blade = makePreset('skyblade');
+    blade.impactKind = 'frost';
+    const light = effectParticles(makePreset('skyblade'), 3, 0.8, base).particles;
+    const frost = effectParticles(blade, 3, 0.8, base).particles;
+
+    expect(frost.length).toBeGreaterThan(0);
+    expect(frost).not.toEqual(light);
+  });
+
+  it('降り注ぐ矢は刺さってから土埃を上げること', () => {
+    const countAt = (progress: number) => effectParticles(makePreset('arrowrain'), 3, progress, base).particles.length;
+
+    expect(countAt(0.1)).toBe(0);
+    expect(countAt(0.6)).toBeGreaterThan(0);
   });
 });
 

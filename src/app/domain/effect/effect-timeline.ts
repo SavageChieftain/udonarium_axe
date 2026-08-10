@@ -782,7 +782,7 @@ function along(origin: Point3, center: Point3, at: number): Point3 {
 /** 光の大剣。立ち上る・刃になる・振り下ろす・弾ける、の四段。 */
 const EXCALIBUR_RISE_END = 0.24;
 const EXCALIBUR_FORM_END = 0.5;
-const EXCALIBUR_SWING_END = 0.68;
+export const EXCALIBUR_SWING_END = 0.68;
 /** 刃の最短の長さ。間合いが近くても剣に見える太さを保つ。 */
 const EXCALIBUR_MIN_REACH = 6;
 /** 振り下ろす角度の限界。これを超えると刃が盤面の下をくぐってしまう。 */
@@ -948,7 +948,7 @@ function appendSkyblade(
 /** 降り注ぐ矢の本数。少ないと雨に見えず、多いと板が重なって潰れる。 */
 const ARROW_RAIN_COUNT = 18;
 /** 1 本が落ちきるまでの長さ(全体比)。 */
-const ARROW_RAIN_FALL = 0.2;
+export const ARROW_RAIN_FALL = 0.2;
 /** 落下を撒く区間。最後の 1 本が刺さり終わるまで尺に納める。 */
 const ARROW_RAIN_SPREAD = 0.62;
 /** 落下前に足元へ出す予告の長さ。どこへ落ちるか見せてから当てる。 */
