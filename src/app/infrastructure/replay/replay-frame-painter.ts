@@ -21,6 +21,9 @@ export interface ReplayFrameStyle {
   fontFamily: string;
 }
 
+export const REPLAY_FRAME_FONT_FAMILY =
+  "-apple-system, BlinkMacSystemFont, 'Helvetica Neue', Verdana, Meiryo, 'M+ 1p', sans-serif";
+
 export const DEFAULT_REPLAY_FRAME_STYLE: ReplayFrameStyle = {
   backdrop: '#0d0f14',
   veil: 'rgba(0, 0, 0, 0.35)',
@@ -31,7 +34,7 @@ export const DEFAULT_REPLAY_FRAME_STYLE: ReplayFrameStyle = {
   chapter: 'rgba(255, 255, 255, 0.85)',
   progress: '#7aa2ff',
   progressTrack: 'rgba(255, 255, 255, 0.16)',
-  fontFamily: "'Noto Sans JP', 'Hiragino Sans', 'Meiryo', sans-serif",
+  fontFamily: REPLAY_FRAME_FONT_FAMILY,
 };
 
 export function paintReplayFrame(
