@@ -50,14 +50,16 @@ class FakeStore extends ReplayLogStore {
   async getManifest(id: number): Promise<Uint8Array | null> {
     return this.recordings.get(id)?.manifest ?? null;
   }
-  async appendChunk(input: ReplayChunkInput): Promise<void> {
+  async appendChunk(input: ReplayChunkInput): Promise<boolean> {
     this.chunks.push(input);
+    return true;
   }
   async listChunks(recordingId: number): Promise<ReplayChunkRecord[]> {
     return this.chunks.filter((c) => c.recordingId === recordingId).map((c, index) => ({ ...c, id: index + 1 }));
   }
-  async putKeyframe(input: ReplayKeyframeInput): Promise<void> {
+  async putKeyframe(input: ReplayKeyframeInput): Promise<boolean> {
     this.keyframes.push(input);
+    return true;
   }
   async listKeyframes(recordingId: number): Promise<ReplayKeyframeRecord[]> {
     return this.keyframes

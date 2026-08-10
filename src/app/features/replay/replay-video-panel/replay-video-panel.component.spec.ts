@@ -60,6 +60,7 @@ describe('ReplayVideoPanelComponent', () => {
           useValue: {
             isRendering: isRendering.asReadonly(),
             progress: progress.asReadonly(),
+            failed: signal(false).asReadonly(),
             get isSupported() {
               return isSupported;
             },

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, DestroyRef, inject, signal } from '@angular/core';
 import { RolePermissionService } from '@axe/application/permission/role-permission.service';
 import { ReplayPlaybackService } from '@axe/application/replay/replay-playback.service';
 import { ReplayPreferenceService } from '@axe/application/replay/replay-preference.service';
@@ -27,6 +27,7 @@ export class ReplayIndicatorComponent {
   protected readonly eventCount = this.recorder.eventCount;
   protected readonly detailLevel = this.recorder.detailLevel;
   protected readonly isHeld = this.playback.isBoardMode;
+  protected readonly isFailing = this.recorder.isFailing;
 
   protected readonly isOpen = signal(false);
   protected readonly markLabel = signal('');
@@ -36,10 +37,20 @@ export class ReplayIndicatorComponent {
     return this.isRecording() || this.recorder.isSupported;
   });
 
+  private readonly tick = signal(0);
+
   protected readonly elapsed = computed(() => {
+    this.tick();
     this.eventCount();
     return formatReplayElapsed(this.isRecording() ? Date.now() - this.recorder.startedAt() : 0);
   });
+
+  constructor() {
+    const timer = setInterval(() => {
+      if (this.isRecording()) this.tick.update((count) => count + 1);
+    }, 1000);
+    inject(DestroyRef).onDestroy(() => clearInterval(timer));
+  }
 
   protected get canEdit(): boolean {
     return this.rolePermission.canEditTabletop;

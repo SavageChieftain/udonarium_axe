@@ -54,8 +54,8 @@ describe('replayFrameLayout()', () => {
 
     expect(layout.board.y).toBeGreaterThan(layout.chapter.y);
     expect(layout.board.width).toBeGreaterThan(layout.width * 0.9);
-    expect(layout.board.height).toBeGreaterThan(layout.height * 0.85);
-    expect(layout.board.y + layout.board.height).toBeLessThanOrEqual(layout.height);
+    expect(layout.board.height).toBeGreaterThan(layout.height * 0.5);
+    expect(layout.board.y + layout.board.height).toBeLessThanOrEqual(layout.box.y);
   });
 
   it('小さい画面では同じ割合で縮むこと', () => {

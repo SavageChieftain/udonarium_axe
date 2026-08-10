@@ -4,6 +4,7 @@ import { ReplayEditorService } from '@axe/application/replay/replay-editor.servi
 import { ReplayLibraryService } from '@axe/application/replay/replay-library.service';
 import { ReplayPlaybackService } from '@axe/application/replay/replay-playback.service';
 import { ReplayRecorderService } from '@axe/application/replay/replay-recorder.service';
+import { earliestReplaySeq } from '@axe/domain/replay/replay-edit';
 import { ReplayVideoPanelComponent } from '@axe/features/replay/replay-video-panel/replay-video-panel.component';
 import { ReplayEntryListComponent } from '@axe/features/replay/replay-workspace/replay-entry-list.component';
 import { ReplayRecordingListComponent } from '@axe/features/replay/replay-workspace/replay-recording-list.component';
@@ -73,10 +74,10 @@ export class ReplayWorkspaceComponent {
   protected async saveEdits(): Promise<void> {
     const id = this.playback.recordingId();
     const manifest = this.playback.manifest();
-    const first = this.editor.edited()[0];
-    if (id == null || !manifest || !first) return;
+    const edited = this.editor.edited();
+    if (id == null || !manifest || edited.length < 1) return;
 
-    const base = await this.library.boardBefore(id, first.seq, this.playback.events());
+    const base = await this.library.boardBefore(id, earliestReplaySeq(edited), this.playback.events());
     const derived = await this.editor.saveAsDerived(manifest, base);
     if (derived == null) return;
     await this.recorder.refresh();

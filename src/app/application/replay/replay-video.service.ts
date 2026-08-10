@@ -13,12 +13,14 @@ import {
   type ReplayBoardScene,
 } from '@axe/domain/replay/replay-board-view';
 import { collectReplayCast } from '@axe/domain/replay/replay-cast';
+import { earliestReplaySeq } from '@axe/domain/replay/replay-edit';
 import type { ReplayEvent, ReplayViewer } from '@axe/domain/replay/replay-event';
 import { REPLAY_FRAME_PRESETS, replayFrameLayout, type ReplayFrameSize } from '@axe/domain/replay/replay-frame-layout';
 import { decodeReplayKeyframe, type ReplayObjectSnapshot } from '@axe/domain/replay/replay-keyframe';
 import { applyReplayEvents } from '@axe/domain/replay/replay-patch';
 import {
   buildReplaySoundtrack,
+  clipReplaySoundtrack,
   DEFAULT_REPLAY_SOUND_CHOICE,
   hasReplaySound,
   type ReplaySoundChoice,
@@ -69,11 +71,13 @@ export class ReplayVideoService {
   private readonly encoder = inject(VideoEncoderGateway);
 
   private readonly _isRendering = signal(false);
+  private readonly _failed = signal(false);
   private readonly _done = signal(0);
   private readonly _total = signal(0);
   private cancelled = false;
 
   readonly isRendering = this._isRendering.asReadonly();
+  readonly failed = this._failed.asReadonly();
   readonly progress = computed(() => {
     const total = this._total();
     return total > 0 ? this._done() / total : 0;
@@ -96,6 +100,7 @@ export class ReplayVideoService {
     if (this._isRendering() || !this.isSupported || events.length < 1) return false;
 
     this._isRendering.set(true);
+    this._failed.set(false);
     this.cancelled = false;
     this._done.set(0);
     this._total.set(0);
@@ -106,6 +111,7 @@ export class ReplayVideoService {
       const storyboard = buildReplayStoryboard(events, cast, { ...options, viewer });
       if (storyboard.shots.length < 1) {
         Logger.warn('[ReplayVideo] 画にできる場面がありませんでした', meta.id);
+        this._failed.set(true);
         return false;
       }
 
@@ -119,12 +125,16 @@ export class ReplayVideoService {
       const layout = replayFrameLayout(options.size);
       const boards = this.boardsFor(storyboard.shots, events, base);
       const boardOfSeq = new Map(storyboard.shots.map((shot, index) => [shot.seq, boards[index]]));
+      if (this.cancelled) return false;
       const assets = await this.loadAssets([
         ...storyboard.shots.flatMap((shot) => [shot.portraitId, shot.backgroundId]),
         ...boards.flatMap((board) => collectBoardAssetIds(board)),
       ]);
       const msPerFrame = 1000 / options.fps;
-      const audio = await this.soundOf(events, storyboard, options.sound);
+      const audio = this.cancelled
+        ? null
+        : await this.soundOf(events, storyboard, options.sound, (frameCount / options.fps) * 1000);
+      if (this.cancelled) return false;
 
       try {
         const encoded = await this.encoder.encode({
@@ -153,7 +163,10 @@ export class ReplayVideoService {
             );
           },
         });
-        if (!encoded) return false;
+        if (!encoded) {
+          this._failed.set(!this.cancelled);
+          return false;
+        }
 
         this.encoder.save(
           encoded.blob,
@@ -165,15 +178,21 @@ export class ReplayVideoService {
       }
     } catch (reason) {
       Logger.warn('[ReplayVideo] 動画にできませんでした', reason);
+      this._failed.set(true);
       return false;
     } finally {
       this._isRendering.set(false);
     }
   }
 
-  private async soundOf(events: readonly ReplayEvent[], storyboard: ReplayStoryboard, choice: ReplaySoundChoice) {
+  private async soundOf(
+    events: readonly ReplayEvent[],
+    storyboard: ReplayStoryboard,
+    choice: ReplaySoundChoice,
+    videoMs: number
+  ) {
     try {
-      const soundtrack = buildReplaySoundtrack(events, storyboard, choice);
+      const soundtrack = clipReplaySoundtrack(buildReplaySoundtrack(events, storyboard, choice), videoMs);
       if (!hasReplaySound(soundtrack)) return null;
       return await this.mixer.mix(soundtrack, async (identifier) => {
         const audio = this.audioStorage.get(identifier);
@@ -194,7 +213,7 @@ export class ReplayVideoService {
 
   private async baseBoardOf(id: number, events: readonly ReplayEvent[]): Promise<ReplayObjectSnapshot[]> {
     try {
-      const keyframe = await this.library.keyframeBefore(id, events[0]?.seq ?? 0);
+      const keyframe = await this.library.keyframeBefore(id, earliestReplaySeq(events));
       if (!keyframe) return [];
       return decodeReplayKeyframe(new Uint8Array(await keyframe.blob.arrayBuffer()));
     } catch (reason) {

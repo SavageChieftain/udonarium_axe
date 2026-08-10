@@ -31,6 +31,7 @@ describe('ReplayIndicatorComponent', () => {
             eventCount: signal(42).asReadonly(),
             startedAt: signal(Date.now() - 65_000).asReadonly(),
             detailLevel: signal(ReplayDetailLevel.Notable).asReadonly(),
+            isFailing: signal(false).asReadonly(),
             get isSupported() {
               return isSupported;
             },

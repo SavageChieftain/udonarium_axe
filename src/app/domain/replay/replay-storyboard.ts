@@ -26,6 +26,7 @@ export const REPLAY_SHOT_MIN_MS = 1_200;
 export const REPLAY_SHOT_MAX_MS = 8_000;
 export const REPLAY_SHOT_PER_CHAR_MS = 55;
 export const REPLAY_CHAPTER_HOLD_MS = 2_400;
+export const REPLAY_SHOT_MAX_CHARS = 90;
 
 export interface ReplayStoryboardOptions {
   pacing: ReplayShotPacing;
@@ -122,24 +123,28 @@ export function buildReplayStoryboard(
     if (text.length < 1 && !isChapter) continue;
 
     const speaker = isChapter ? '' : String(event.detail['name'] ?? '').trim();
-    const durationMs = durationOf(event, events[index + 1], text, isChapter, options.pacing);
+    const parts = isChapter ? [text] : splitLongText(text);
+    const whole = durationOf(event, events[index + 1], text, isChapter, options.pacing);
 
-    shots.push({
-      seq: event.seq,
-      startMs,
-      durationMs,
-      kind: event.kind,
-      chapter,
-      isChapterStart: isChapter,
-      speaker,
-      speakerColor: String(event.detail['messColor'] ?? '').trim(),
-      portraitId: portraitOf(event, speaker, portraits),
-      backgroundId: background,
-      text,
-      isNarration: isChapter || speaker.length < 1,
-      move: moveOf(event),
-    });
-    startMs += durationMs;
+    for (const [part, piece] of parts.entries()) {
+      const durationMs = Math.max(REPLAY_SHOT_MIN_MS, Math.round(whole / parts.length));
+      shots.push({
+        seq: event.seq,
+        startMs,
+        durationMs,
+        kind: event.kind,
+        chapter,
+        isChapterStart: isChapter,
+        speaker,
+        speakerColor: String(event.detail['messColor'] ?? '').trim(),
+        portraitId: portraitOf(event, speaker, portraits),
+        backgroundId: background,
+        text: piece,
+        isNarration: isChapter || speaker.length < 1,
+        move: part === 0 ? moveOf(event) : null,
+      });
+      startMs += durationMs;
+    }
   }
 
   return { shots, totalMs: startMs, timeOfSeq };
@@ -187,6 +192,17 @@ function durationOf(
   }
   if (isChapter) return REPLAY_CHAPTER_HOLD_MS;
   return Math.min(REPLAY_SHOT_MAX_MS, REPLAY_SHOT_MIN_MS + text.length * REPLAY_SHOT_PER_CHAR_MS);
+}
+
+function splitLongText(text: string): string[] {
+  const characters = [...text];
+  if (characters.length <= REPLAY_SHOT_MAX_CHARS) return [text];
+
+  const parts: string[] = [];
+  for (let at = 0; at < characters.length; at += REPLAY_SHOT_MAX_CHARS) {
+    parts.push(characters.slice(at, at + REPLAY_SHOT_MAX_CHARS).join(''));
+  }
+  return parts;
 }
 
 function moveOf(event: ReplayEvent): ReplayShotMove | null {

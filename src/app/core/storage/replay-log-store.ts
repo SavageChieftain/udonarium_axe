@@ -60,9 +60,9 @@ export abstract class ReplayLogStore {
   abstract listRecordings(): Promise<ReplayRecordingMeta[]>;
   abstract getRecording(id: number): Promise<ReplayRecordingMeta | null>;
   abstract getManifest(id: number): Promise<Uint8Array | null>;
-  abstract appendChunk(input: ReplayChunkInput): Promise<void>;
+  abstract appendChunk(input: ReplayChunkInput): Promise<boolean>;
   abstract listChunks(recordingId: number): Promise<ReplayChunkRecord[]>;
-  abstract putKeyframe(input: ReplayKeyframeInput): Promise<void>;
+  abstract putKeyframe(input: ReplayKeyframeInput): Promise<boolean>;
   abstract listKeyframes(recordingId: number): Promise<ReplayKeyframeRecord[]>;
   abstract removeRecording(id: number): Promise<void>;
   abstract clear(): Promise<void>;

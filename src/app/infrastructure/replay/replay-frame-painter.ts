@@ -2,6 +2,7 @@ import { framingOf, type ReplayBoardScene } from '@axe/domain/replay/replay-boar
 import { containRect, coverRect, type ReplayFrameLayout, wrapReplayText } from '@axe/domain/replay/replay-frame-layout';
 import { easeInOut, pointAlongRoute } from '@axe/domain/replay/replay-route';
 import type { ReplayShot, ReplayShotMove } from '@axe/domain/replay/replay-storyboard';
+import { readableOn } from '@axe/domain/replay/replay-text-color';
 
 export type ReplayFrameCanvas = CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D;
 export type ReplayFrameImage = CanvasImageSource & { width: number; height: number };
@@ -27,6 +28,7 @@ export interface ReplayFrameStyle {
   progress: string;
   progressTrack: string;
   fontFamily: string;
+  boxLuminance: [number, number, number];
 }
 
 export const REPLAY_FRAME_FONT_FAMILY =
@@ -49,6 +51,7 @@ export const DEFAULT_REPLAY_FRAME_STYLE: ReplayFrameStyle = {
   progress: '#7aa2ff',
   progressTrack: 'rgba(255, 255, 255, 0.16)',
   fontFamily: REPLAY_FRAME_FONT_FAMILY,
+  boxLuminance: [0.03, 0.04, 0.055],
 };
 
 export function paintReplayFrame(
@@ -252,7 +255,8 @@ function paintDialogue(
 
   let bodyY = layout.body.y;
   if (shot.speaker.length > 0) {
-    ctx.fillStyle = shot.speakerColor.length > 0 ? shot.speakerColor : style.name;
+    ctx.fillStyle =
+      shot.speakerColor.length > 0 ? readableOn(shot.speakerColor, style.boxLuminance, style.name) : style.name;
     ctx.font = `700 ${layout.name.fontSize}px ${style.fontFamily}`;
     ctx.fillText(shot.speaker, layout.name.x, layout.name.y);
   } else {

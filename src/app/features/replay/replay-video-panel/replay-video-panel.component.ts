@@ -36,6 +36,7 @@ export class ReplayVideoPanelComponent {
 
   protected readonly isRendering = this.video.isRendering;
   protected readonly progress = this.video.progress;
+  protected readonly failed = this.video.failed;
   protected readonly isOpen = signal(false);
 
   protected readonly sizeKey = signal<(typeof REPLAY_VIDEO_SIZES)[number]>('1080p');

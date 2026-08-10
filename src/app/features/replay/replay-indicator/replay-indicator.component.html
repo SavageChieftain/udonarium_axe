@@ -54,6 +54,12 @@
           </span>
         }
 
+        @if (isFailing()) {
+          <span class="rounded-ui-sm bg-red-500/15 px-1.5 py-1 text-[0.7rem] leading-normal text-red-300">
+            {{ 'feature.replay.indicator.failing' | transloco }}
+          </span>
+        }
+
         @if (isRecording() && isHeld()) {
           <span class="text-ui-muted text-[0.72rem] leading-normal">
             {{ 'feature.replay.indicator.heldHint' | transloco }}

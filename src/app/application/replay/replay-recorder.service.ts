@@ -60,6 +60,7 @@ export class ReplayRecorderService {
   private readonly _startedAt = signal(0);
   private readonly _recentEvents = signal<readonly ReplayEvent[]>([]);
   private readonly _recordings = signal<readonly ReplayRecordingMeta[]>([]);
+  private readonly _isFailing = signal(false);
   private readonly _roomName = signal('');
 
   readonly isRecording = this._isRecording.asReadonly();
@@ -68,6 +69,7 @@ export class ReplayRecorderService {
   readonly recentEvents = this._recentEvents.asReadonly();
   readonly detailLevel = this.preference.detailLevel.asReadonly();
   readonly recordings = this._recordings.asReadonly();
+  readonly isFailing = this._isFailing.asReadonly();
   readonly roomName = this._roomName.asReadonly();
 
   private transition: Promise<void> = Promise.resolve();
@@ -95,7 +97,20 @@ export class ReplayRecorderService {
       if (!this._isRecording() || isNetworkIsolated()) return;
       this.handleMessage(message.eventName, message.data, message.sendFrom);
     }, this.destroyRef);
-    this.destroyRef.onDestroy(() => this.clearTimers());
+
+    const onLeaving = (): void => this.saveWhatWeHave();
+    window.addEventListener('pagehide', onLeaving);
+    this.destroyRef.onDestroy(() => {
+      window.removeEventListener('pagehide', onLeaving);
+      this.clearTimers();
+    });
+  }
+
+  private saveWhatWeHave(): void {
+    const id = this.recordingId;
+    if (!this._isRecording() || id == null) return;
+    this.flushPending();
+    void this.flushBuffer();
   }
 
   get isSupported(): boolean {
@@ -162,6 +177,7 @@ export class ReplayRecorderService {
     this.keyframes.length = 0;
     this.chunks.length = 0;
     this._eventCount.set(0);
+    this._isFailing.set(false);
     this.recent = [];
     this.recentDirty = false;
     this._recentEvents.set([]);
@@ -309,7 +325,21 @@ export class ReplayRecorderService {
       byteSize: bytes.byteLength,
     };
     this.chunks.push(chunk);
-    await this.store.appendChunk({ recordingId: id, ...chunk, bytes });
+    const written = await this.store.appendChunk({ recordingId: id, ...chunk, bytes });
+    if (!written) {
+      this._isFailing.set(true);
+      Logger.warn('[ReplayRecorder] 記録を書き足せませんでした', { chunk: chunk.index });
+      return;
+    }
+    await this.persistManifest(id);
+  }
+
+  private async persistManifest(id: number): Promise<void> {
+    try {
+      await this.store.updateRecording(id, { manifest: encodeReplayManifest(this.manifest()) });
+    } catch (reason) {
+      Logger.warn('[ReplayRecorder] 目録を書けませんでした', reason);
+    }
   }
 
   private async captureKeyframe(force = false): Promise<void> {
@@ -330,8 +360,13 @@ export class ReplayRecorderService {
       const bytes = encodeReplayKeyframe(this.snapshotStore());
       const blob = new Blob([bytes as BlobPart], { type: 'application/octet-stream' });
       const at = Date.now();
-      await this.store.putKeyframe({ recordingId: id, seq: this.seq, at, blob });
+      const written = await this.store.putKeyframe({ recordingId: id, seq: this.seq, at, blob });
+      if (!written) {
+        this._isFailing.set(true);
+        return;
+      }
       this.keyframes.push({ seq: this.seq, at, byteSize: blob.size });
+      await this.persistManifest(id);
     } catch (reason) {
       Logger.warn('[ReplayRecorder] 盤面の記録に失敗しました', reason);
     }

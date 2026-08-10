@@ -90,3 +90,17 @@ export function collectSoundtrackAssetIds(soundtrack: ReplaySoundtrack): string[
 export function hasReplaySound(soundtrack: ReplaySoundtrack): boolean {
   return soundtrack.effects.length > 0 || soundtrack.music.length > 0;
 }
+
+export function clipReplaySoundtrack(soundtrack: ReplaySoundtrack, totalMs: number): ReplaySoundtrack {
+  if (totalMs >= soundtrack.totalMs) return soundtrack;
+  if (totalMs < 1) return EMPTY_REPLAY_SOUNDTRACK;
+
+  return {
+    totalMs,
+    effects: soundtrack.effects.filter((cue) => cue.startMs < totalMs),
+    music: soundtrack.music
+      .filter((cue) => cue.startMs < totalMs)
+      .map((cue) => ({ ...cue, endMs: Math.min(cue.endMs, totalMs) }))
+      .filter((cue) => cue.endMs > cue.startMs),
+  };
+}

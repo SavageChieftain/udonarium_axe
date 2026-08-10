@@ -190,6 +190,14 @@ export function retextReplayEvent(events: readonly ReplayEvent[], seq: number, t
   });
 }
 
+export function earliestReplaySeq(events: readonly ReplayEvent[]): number {
+  return events.reduce((lowest, event) => Math.min(lowest, event.seq), Number.POSITIVE_INFINITY);
+}
+
+export function replaySeqRemap(events: readonly ReplayEvent[]): ReadonlyMap<number, number> {
+  return new Map(events.map((event, index) => [event.seq, index + 1]));
+}
+
 export function resequenceReplayEvents(events: readonly ReplayEvent[]): ReplayEvent[] {
   const origin = events[0]?.at ?? 0;
   return events.map((event, index) => ({ ...event, seq: index + 1, t: Math.max(0, event.at - origin) }));

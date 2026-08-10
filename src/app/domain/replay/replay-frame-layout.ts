@@ -59,7 +59,7 @@ export function replayFrameLayout(size: ReplayFrameSize): ReplayFrameLayout {
       x: at(24),
       y: at(96),
       width: size.width - at(48),
-      height: size.height - at(120),
+      height: boxY - at(112),
       minPiece: at(40),
     },
     progress: { x: 0, y: size.height - at(8), width: size.width, height: at(8) },

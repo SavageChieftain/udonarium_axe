@@ -10,6 +10,7 @@ import {
   buildReplayStoryboard,
   EMPTY_REPLAY_STORYBOARD,
   REPLAY_CHAPTER_HOLD_MS,
+  REPLAY_SHOT_MAX_CHARS,
   REPLAY_SHOT_MAX_MS,
   REPLAY_SHOT_MIN_MS,
   REPLAY_SHOT_PER_CHAR_MS,
@@ -50,9 +51,16 @@ describe('buildReplayStoryboard()', () => {
     expect(board.totalMs).toBe(board.shots[0].durationMs + board.shots[1].durationMs);
   });
 
-  it('長い台詞でも尺に上限を置くこと', () => {
+  it('長い台詞は切らずに続きのカットへ送ること', () => {
     const board = buildReplayStoryboard([say(1, 'あ'.repeat(500))], cast);
-    expect(board.shots[0].durationMs).toBe(REPLAY_SHOT_MAX_MS);
+
+    expect(board.shots.length).toBe(Math.ceil(500 / REPLAY_SHOT_MAX_CHARS));
+    expect(board.shots.map((shot) => shot.text).join('')).toBe('あ'.repeat(500));
+    expect(board.shots.every((shot) => shot.speaker === 'アリス')).toBe(true);
+  });
+
+  it('短い台詞は 1 カットのままにすること', () => {
+    expect(buildReplayStoryboard([say(1, 'やあ')], cast).shots).toHaveLength(1);
   });
 
   it('話し手の立ち絵をコマから補うこと', () => {

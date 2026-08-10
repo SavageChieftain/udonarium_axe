@@ -73,11 +73,13 @@ export class IndexedDbReplayLogStore extends ReplayLogStore {
     return row?.manifest ?? null;
   }
 
-  async appendChunk(input: ReplayChunkInput): Promise<void> {
-    await this.run<IDBValidKey>([CHUNK_STORE], 'readwrite', (stores) => stores[0].add(input));
-    await this.mutateRecording(input.recordingId, (row) => {
-      row.eventCount += input.eventCount;
-      row.byteSize += input.bytes.byteLength;
+  async appendChunk(input: ReplayChunkInput): Promise<boolean> {
+    return await this.runOk([CHUNK_STORE, RECORDING_STORE], ([chunks, recordings]) => {
+      chunks.add(input);
+      countInto(recordings, input.recordingId, (row) => {
+        row.eventCount += input.eventCount;
+        row.byteSize += input.bytes.byteLength;
+      });
     });
   }
 
@@ -88,11 +90,13 @@ export class IndexedDbReplayLogStore extends ReplayLogStore {
     return (rows ?? []).sort((a, b) => a.index - b.index);
   }
 
-  async putKeyframe(input: ReplayKeyframeInput): Promise<void> {
+  async putKeyframe(input: ReplayKeyframeInput): Promise<boolean> {
     const row = { ...input, byteSize: input.blob.size };
-    await this.run<IDBValidKey>([KEYFRAME_STORE], 'readwrite', (stores) => stores[0].add(row));
-    await this.mutateRecording(input.recordingId, (recording) => {
-      recording.byteSize += row.byteSize;
+    return await this.runOk([KEYFRAME_STORE, RECORDING_STORE], ([keyframes, recordings]) => {
+      keyframes.add(row);
+      countInto(recordings, input.recordingId, (recording) => {
+        recording.byteSize += row.byteSize;
+      });
     });
   }
 
@@ -124,16 +128,28 @@ export class IndexedDbReplayLogStore extends ReplayLogStore {
   }
 
   private async mutateRecording(id: number, mutate: (row: RecordingRow) => void): Promise<void> {
-    await this.run<IDBValidKey | undefined>([RECORDING_STORE], 'readwrite', (stores) => {
-      const store = stores[0];
-      const get = store.get(id);
-      get.onsuccess = () => {
-        const row = get.result as RecordingRow | undefined;
-        if (!row) return;
-        mutate(row);
-        store.put(row);
-      };
-      return get as unknown as IDBRequest<IDBValidKey | undefined>;
+    await this.runOk([RECORDING_STORE], ([store]) => countInto(store, id, mutate));
+  }
+
+  private async runOk(names: readonly string[], action: (stores: IDBObjectStore[]) => void): Promise<boolean> {
+    const db = await this.open();
+    if (!db) return false;
+
+    return new Promise<boolean>((resolve) => {
+      try {
+        const transaction = db.transaction(names as string[], 'readwrite');
+        action(names.map((name) => transaction.objectStore(name)));
+        const fail = (): void => {
+          Logger.warn('[ReplayLogStore] 録画を書き足せませんでした', transaction.error);
+          resolve(false);
+        };
+        transaction.oncomplete = () => resolve(true);
+        transaction.onerror = fail;
+        transaction.onabort = fail;
+      } catch (reason) {
+        Logger.warn('[ReplayLogStore] 録画を書き足せませんでした', reason);
+        resolve(false);
+      }
     });
   }
 
@@ -214,5 +230,15 @@ function toMeta(row: RecordingRow): ReplayRecordingMeta {
     endedAt: row.endedAt,
     eventCount: row.eventCount,
     byteSize: row.byteSize,
+  };
+}
+
+function countInto(store: IDBObjectStore, id: number, mutate: (row: RecordingRow) => void): void {
+  const get = store.get(id);
+  get.onsuccess = () => {
+    const row = get.result as RecordingRow | undefined;
+    if (!row) return;
+    mutate(row);
+    store.put(row);
   };
 }

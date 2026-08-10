@@ -94,11 +94,14 @@ describe('paintReplayFrame()', () => {
     expect(texts[0].y).toBeLessThan(texts[1].y);
   });
 
-  it('話し手の色を名前に使うこと', () => {
-    const { ctx, texts } = recorder();
-    paintReplayFrame(ctx, layout, shot({ speakerColor: '#112233' }), noAssets, 0);
+  it('話し手の色を読める明るさにして名前に使うこと', () => {
+    const bright = recorder();
+    paintReplayFrame(bright.ctx, layout, shot({ speakerColor: '#88ccff' }), noAssets, 0);
+    expect(bright.texts[0].color).toBe('#88ccff');
 
-    expect(texts[0].color).toBe('#112233');
+    const dark = recorder();
+    paintReplayFrame(dark.ctx, layout, shot({ speakerColor: '#000000' }), noAssets, 0);
+    expect(dark.texts[0].color).not.toBe('#000000');
   });
 
   it('名前の無い地の文では本文だけ描くこと', () => {

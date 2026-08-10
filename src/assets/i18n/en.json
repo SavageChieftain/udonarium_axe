@@ -2127,7 +2127,8 @@
           "auto": "Start on its own",
           "manual": "Start it myself"
         },
-        "heldHint": "Recording is paused while a recorded board is on the table. It resumes when you give the board back."
+        "heldHint": "Recording is paused while a recorded board is on the table. It resumes when you give the board back.",
+        "failing": "Some of this is not making it to disk. Check the space left."
       },
       "workspace": {
         "recordings": "Recordings",
@@ -2157,7 +2158,8 @@
         "rendering": "Writing it out ({{percent}}%)",
         "cancel": "Stop",
         "withEffects": "Include sound effects",
-        "withMusic": "Include music"
+        "withMusic": "Include music",
+        "failed": "The export did not go through. A smaller size or fewer details often helps."
       }
     }
   },

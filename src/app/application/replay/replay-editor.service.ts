@@ -12,6 +12,7 @@ import {
   nextInsertSeq,
   removeReplayEvent,
   type ReplayEntryDraft,
+  replaySeqRemap,
   resequenceReplayEvents,
   retextReplayEvent,
 } from '@axe/domain/replay/replay-edit';
@@ -104,8 +105,10 @@ export class ReplayEditorService {
     if (this._isSaving()) return null;
     this._isSaving.set(true);
     try {
-      const events = resequenceReplayEvents(this._edited());
+      const edited = this._edited();
+      const events = resequenceReplayEvents(edited);
       if (events.length < 1) return null;
+      const renumbered = replaySeqRemap(edited);
 
       const id = await this.store.createRecording({ roomName: source.roomName, startedAt: source.startedAt });
       if (id == null) {
@@ -119,6 +122,9 @@ export class ReplayEditorService {
       const manifest: ReplayManifest = {
         ...source,
         formatVersion: REPLAY_FORMAT_VERSION,
+        actors: restamped(source.actors, renumbered),
+        targets: restamped(source.targets, renumbered),
+        recordedBy: { ...source.recordedBy, sinceSeq: 0 },
         endedAt: events[events.length - 1].at,
         derivedFrom: { roomName: source.roomName, startedAt: source.startedAt },
         keyframes,
@@ -181,4 +187,17 @@ export class ReplayEditorService {
     }
     return written;
   }
+}
+
+function restamped<T extends { sinceSeq: number }>(
+  snapshots: readonly T[],
+  renumbered: ReadonlyMap<number, number>
+): T[] {
+  return snapshots.map((snapshot) => {
+    let sinceSeq = 0;
+    for (const [before, after] of renumbered) {
+      if (before <= snapshot.sinceSeq) sinceSeq = Math.max(sinceSeq, after);
+    }
+    return { ...snapshot, sinceSeq: snapshot.sinceSeq < 1 ? 0 : sinceSeq };
+  });
 }

@@ -98,16 +98,16 @@ export async function encodeVideo(request: VideoEncodeRequest): Promise<EncodedV
     },
   });
 
-  encoder.configure({
-    codec: avcCodecFor(request.width, request.height),
-    width: request.width,
-    height: request.height,
-    framerate: request.fps,
-    bitrate: request.bitrate ?? defaultVideoBitrate(request.width, request.height, request.fps),
-  });
-
   const microsPerFrame = 1_000_000 / request.fps;
   try {
+    encoder.configure({
+      codec: avcCodecFor(request.width, request.height),
+      width: request.width,
+      height: request.height,
+      framerate: request.fps,
+      bitrate: request.bitrate ?? defaultVideoBitrate(request.width, request.height, request.fps),
+    });
+
     for (let index = 0; index < request.frameCount; index += 1) {
       if (request.isCancelled?.()) return null;
       if (failure) throw failure;
