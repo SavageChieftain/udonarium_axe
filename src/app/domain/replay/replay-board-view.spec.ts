@@ -1,6 +1,6 @@
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { GameCharacter } from '@axe/domain/character/game-character';
-import { buildReplayBoardScene, collectBoardAssetIds } from '@axe/domain/replay/replay-board-view';
+import { buildReplayBoardScene, collectBoardAssetIds, framingOf } from '@axe/domain/replay/replay-board-view';
 import type { ReplayObjectSnapshot } from '@axe/domain/replay/replay-keyframe';
 import { GameTable } from '@axe/domain/tabletop/game-table';
 
@@ -110,6 +110,31 @@ describe('buildReplayBoardScene()', () => {
 
     expect(scene).toMatchObject({ width: 20, height: 20, gridSize: 1 });
     expect(scene.pieces[0].x).toBe(0);
+  });
+});
+
+describe('framingOf()', () => {
+  it('コマの居る辺りに余白を足して切り取ること', () => {
+    const scene = buildReplayBoardScene([
+      table('t1', { width: 40, height: 40, gridSize: 50 }),
+      piece('c1', 'character', { location: { name: 'table', x: 1000, y: 1000 } }),
+    ])!;
+
+    expect(framingOf(scene)).toEqual({ x: 900, y: 900, width: 250, height: 250 });
+  });
+
+  it('卓の外まではみ出さないこと', () => {
+    const scene = buildReplayBoardScene([
+      table('t1', { width: 4, height: 4, gridSize: 50 }),
+      piece('c1', 'character', { location: { name: 'table', x: 0, y: 0 } }),
+    ])!;
+
+    expect(framingOf(scene)).toEqual({ x: 0, y: 0, width: 150, height: 150 });
+  });
+
+  it('コマが無ければ卓ぜんたいを映すこと', () => {
+    const scene = buildReplayBoardScene([table('t1', { width: 10, height: 8, gridSize: 50 })])!;
+    expect(framingOf(scene)).toEqual({ x: 0, y: 0, width: 500, height: 400 });
   });
 });
 

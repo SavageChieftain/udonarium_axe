@@ -56,11 +56,11 @@ export function replayFrameLayout(size: ReplayFrameSize): ReplayFrameLayout {
     },
     chapter: { x: boxMargin, y: at(80), fontSize: at(36) },
     board: {
-      x: boxMargin,
-      y: at(104),
-      width: size.width - boxMargin * 2,
-      height: boxY - at(128),
-      minPiece: at(36),
+      x: at(24),
+      y: at(96),
+      width: size.width - at(48),
+      height: size.height - at(120),
+      minPiece: at(40),
     },
     progress: { x: 0, y: size.height - at(8), width: size.width, height: at(8) },
   };

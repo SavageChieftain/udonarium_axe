@@ -38,6 +38,12 @@ function recorder(): {
       fills.push({ x, y, width, height, color: String(ctx.fillStyle) });
     },
     strokeRect() {},
+    beginPath() {},
+    moveTo() {},
+    lineTo() {},
+    closePath() {},
+    stroke() {},
+    fill() {},
     fillText(text: string, x: number, y: number) {
       texts.push({ text, x, y, font: ctx.font, color: String(ctx.fillStyle) });
     },
@@ -180,13 +186,10 @@ describe('paintReplayFrame()', () => {
     });
 
     const table = images[0];
-    expect(table.x).toBeGreaterThanOrEqual(layout.board.x);
-    expect(table.y).toBeGreaterThanOrEqual(layout.board.y);
-    expect(table.width).toBeLessThanOrEqual(layout.board.width);
-    expect(table.height).toBeLessThanOrEqual(layout.board.height);
-
     const piece = images[1];
     expect(piece.width).toBeCloseTo(table.width / 10, 5);
+    expect(piece.x).toBeGreaterThanOrEqual(layout.board.x);
+    expect(piece.x + piece.width).toBeLessThanOrEqual(layout.board.x + layout.board.width);
     expect(fills.some((fill) => fill.width === table.width)).toBe(true);
   });
 
@@ -319,6 +322,17 @@ describe('paintReplayFrame()', () => {
   });
 
   it('小さすぎるコマは見える大きさまで底上げすること', () => {
+    const far = (identifier: string, x: number) => ({
+      identifier,
+      aliasName: 'character',
+      x,
+      y: 0,
+      z: 0,
+      size: 1,
+      rotate: 0,
+      name: '',
+      imageIdentifier: '',
+    });
     const { ctx, fills } = recorder();
     paintReplayFrame(ctx, layout, shot(), noAssets, 0, DEFAULT_REPLAY_FRAME_STYLE, {
       width: 400,
@@ -326,9 +340,25 @@ describe('paintReplayFrame()', () => {
       gridSize: 50,
       imageIdentifier: '',
       backgroundImageIdentifier: '',
+      pieces: [far('a', 0), far('b', 19_950)],
+    });
+
+    const squares = fills.filter((fill) => fill.width === fill.height);
+    expect(squares[squares.length - 1].width).toBe(layout.board.minPiece);
+  });
+
+  it('コマのある辺りに寄せて大きく映すこと', () => {
+    const assets: ReplayFrameAssets = { imageOf: () => image(100, 100) };
+    const { ctx, images } = recorder();
+    paintReplayFrame(ctx, layout, shot(), assets, 0, DEFAULT_REPLAY_FRAME_STYLE, {
+      width: 200,
+      height: 200,
+      gridSize: 50,
+      imageIdentifier: 'top',
+      backgroundImageIdentifier: '',
       pieces: [
         {
-          identifier: 'c1',
+          identifier: 'a',
           aliasName: 'character',
           x: 0,
           y: 0,
@@ -341,8 +371,91 @@ describe('paintReplayFrame()', () => {
       ],
     });
 
-    const piece = fills.filter((fill) => fill.width === fill.height).pop()!;
-    expect(piece.width).toBe(layout.board.minPiece);
+    expect(images[0].width).toBeGreaterThan(layout.board.width);
+  });
+
+  it('移動には道筋と行き先の矢印を描くこと', () => {
+    const marks: string[] = [];
+    const { ctx } = recorder();
+    const spy = ctx as unknown as Record<string, unknown>;
+    spy['beginPath'] = () => marks.push('begin');
+    spy['lineTo'] = () => marks.push('line');
+    spy['closePath'] = () => marks.push('close');
+    spy['fill'] = () => marks.push('fill');
+
+    paintReplayFrame(
+      ctx,
+      layout,
+      shot({
+        move: {
+          targetId: 'c1',
+          route: [
+            { x: 0, y: 0, z: 0 },
+            { x: 300, y: 0, z: 0 },
+          ],
+        },
+      }),
+      noAssets,
+      0,
+      DEFAULT_REPLAY_FRAME_STYLE,
+      {
+        width: 10,
+        height: 10,
+        gridSize: 50,
+        imageIdentifier: '',
+        backgroundImageIdentifier: '',
+        pieces: [
+          {
+            identifier: 'c1',
+            aliasName: 'character',
+            x: 300,
+            y: 0,
+            z: 0,
+            size: 1,
+            rotate: 0,
+            name: '',
+            imageIdentifier: '',
+          },
+        ],
+      },
+      0.5
+    );
+
+    expect(marks).toContain('close');
+    expect(marks).toContain('fill');
+  });
+
+  it('話し手のコマがある側へ立ち絵を寄せること', () => {
+    const assets: ReplayFrameAssets = { imageOf: () => image(1000, 2000) };
+    const scene = (x: number) => ({
+      width: 10,
+      height: 10,
+      gridSize: 50,
+      imageIdentifier: '',
+      backgroundImageIdentifier: '',
+      pieces: [
+        {
+          identifier: 'c1',
+          aliasName: 'character',
+          x,
+          y: 0,
+          z: 0,
+          size: 1,
+          rotate: 0,
+          name: 'アリス',
+          imageIdentifier: '',
+        },
+      ],
+    });
+
+    const near = recorder();
+    paintReplayFrame(near.ctx, layout, shot({ portraitId: 'p' }), assets, 0, DEFAULT_REPLAY_FRAME_STYLE, scene(0));
+    const far = recorder();
+    paintReplayFrame(far.ctx, layout, shot({ portraitId: 'p' }), assets, 0, DEFAULT_REPLAY_FRAME_STYLE, scene(450));
+
+    const portrait = (images: { x: number; width: number }[]) => images[images.length - 1];
+    expect(portrait(near.images).x).toBeLessThan(layout.width / 2);
+    expect(portrait(far.images).x).toBeGreaterThan(layout.width / 2);
   });
 
   it('進み具合を帯で示すこと', () => {

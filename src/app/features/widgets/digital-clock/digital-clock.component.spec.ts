@@ -18,6 +18,10 @@ describe('DigitalClockComponent', () => {
     await fixture.whenStable();
   }
 
+  beforeEach(() => {
+    localStorage.removeItem('ui-widget-layout');
+  });
+
   beforeEach(async () => {
     localStorage.clear();
     await TestBed.configureTestingModule({

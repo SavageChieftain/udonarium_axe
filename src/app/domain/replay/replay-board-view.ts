@@ -75,6 +75,41 @@ export function buildReplayBoardScene(snapshots: readonly ReplayObjectSnapshot[]
   };
 }
 
+export interface ReplayBoardFraming {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
+export const REPLAY_BOARD_PADDING_CELLS = 2;
+
+export function framingOf(scene: ReplayBoardScene, paddingCells = REPLAY_BOARD_PADDING_CELLS): ReplayBoardFraming {
+  const whole = { x: 0, y: 0, width: scene.width * scene.gridSize, height: scene.height * scene.gridSize };
+  if (scene.pieces.length < 1) return whole;
+
+  const pad = paddingCells * scene.gridSize;
+  let left = Infinity;
+  let top = Infinity;
+  let right = -Infinity;
+  let bottom = -Infinity;
+  for (const piece of scene.pieces) {
+    const span = piece.size * scene.gridSize;
+    left = Math.min(left, piece.x);
+    top = Math.min(top, piece.y);
+    right = Math.max(right, piece.x + span);
+    bottom = Math.max(bottom, piece.y + span);
+  }
+
+  left = Math.max(whole.x, left - pad);
+  top = Math.max(whole.y, top - pad);
+  right = Math.min(whole.width, right + pad);
+  bottom = Math.min(whole.height, bottom + pad);
+  if (right - left < scene.gridSize || bottom - top < scene.gridSize) return whole;
+
+  return { x: left, y: top, width: right - left, height: bottom - top };
+}
+
 export function collectBoardAssetIds(scene: ReplayBoardScene | null): string[] {
   if (!scene) return [];
   return [

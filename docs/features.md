@@ -187,6 +187,7 @@ Udonarium Axe が **追加** または **大きく拡張・再設計** した機
 - **捏造の収録** — 手で打つ代わりに、盤面を預かった状態で実際に操作し、その結果をイベントとして任意の位置へ差し込む（`application/replay/replay-staging.service`、`features/replay/replay-staging-banner`）
 - **MP4 書き出し** — 記録を絵コンテ（1 発言 = 1 カット、目印は章の扉、VN の場面転換が背景）に起こし、canvas に描いて WebCodecs で符号化する。720p / 1080p、読める速さ / 当日と同じ間、台詞と章だけ / 盤面の動きも（既定）、を選べる。盤面の動きは記録一覧と同じ言い回しで字幕にする。編集中なら編集後の並びが、秘匿は見る人のロールで絞られた結果が画になる（`domain/replay/replay-storyboard`、`domain/replay/replay-frame-layout`、`infrastructure/replay/replay-frame-painter`、`core/media/video-encoder`、`application/replay/replay-video.service`、`features/replay/replay-video-panel`）
 - **動画に映る盤面** — カットごとに、その時点の卓をキーフレームから patch を積んで組み直し、真上から描く。卓の絵・コマの絵と名前・大きさ（マス数）・重なり順を持ち、しまわれているコマは出さない。台詞窓はその下に敷く（`domain/replay/replay-board-view`）
+- **動画の構図** — 盤面が画面のほぼ全面を占め、台詞窓はその上に重ねる。卓が広くて空白が多いと小さく見えるので、コマのある範囲に余白 2 マスを足した所へ寄せて映す。マス目の線と、移動の道筋・行き先の矢印を描く。立ち絵は話し手のコマがある側（左右）へ寄せる
 - **コマの滑走** — 移動のカットでは記録した from / to（畳んだ移動は途中の道のりも）を経路として、カットの尺いっぱいを使って ease で滑らせる。滑り終わりは記録された置き場所にぴったり重なる（`domain/replay/replay-route` を再生と共有）
 - **小さすぎるコマ** — 広い卓ではマス目が数ピクセルになるので、コマは見える下限まで底上げして中心を保ったまま描く
 - **付随する音** — 効果音は移動や判定に付いて鳴るだけで、それ自体は出来事ではない。だから音としては残すが、動画の字幕にも記録一覧にも既定では出さない（一覧の「付随する音も出す」で編集用に出せる。`isIncidentalReplayEvent`）

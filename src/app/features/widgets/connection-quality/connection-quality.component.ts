@@ -1,5 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, effect, ElementRef, inject, viewChild } from '@angular/core';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
+import { WidgetLayoutService } from '@axe/application/ui/widget-layout.service';
+import { placeWidget, rememberWidget, WIDGET_CONNECTION_QUALITY } from '@axe/application/ui/widget-place';
 import { WidgetVisibilityService } from '@axe/application/ui/widget-visibility.service';
 import { Network } from '@axe/core/index';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
@@ -34,8 +36,7 @@ export class ConnectionQualityComponent {
   private readonly objectChange = inject(ObjectChangeService);
 
   private readonly panelRef = viewChild<ElementRef<HTMLElement>>('panel');
-  private savedLeft: string | null = null;
-  private savedTop: string | null = null;
+  private readonly layout = inject(WidgetLayoutService);
 
   protected readonly links = computed<PeerLinkView[]>(() => {
     this.objectChange.peerStatsVersion();
@@ -53,6 +54,11 @@ export class ConnectionQualityComponent {
 
   protected readonly hasRelayedLink = computed(() => this.links().some((link) => link.isRelayed));
 
+  protected rememberSpot(): void {
+    const el = this.panelRef()?.nativeElement;
+    if (el) rememberWidget(this.layout, WIDGET_CONNECTION_QUALITY, el);
+  }
+
   protected readonly icon = computed(() => linkQualityIcon(this.worst()));
   protected readonly colorClass = computed(() => linkQualityColorClass(this.worst()));
   protected readonly labelKey = computed(() => linkQualityLabelKey(this.worst()));
@@ -64,17 +70,11 @@ export class ConnectionQualityComponent {
     effect((onCleanup) => {
       const el = this.panelRef()?.nativeElement;
       if (!el) return;
-      if (this.savedLeft !== null && this.savedTop !== null) {
-        el.style.left = this.savedLeft;
-        el.style.top = this.savedTop;
-      } else {
-        el.style.left = `${Math.max(8, window.innerWidth - el.offsetWidth - 8)}px`;
-        el.style.top = '96px';
-      }
-      onCleanup(() => {
-        this.savedLeft = el.style.left;
-        this.savedTop = el.style.top;
-      });
+      placeWidget(this.layout, WIDGET_CONNECTION_QUALITY, el, () => ({
+        left: Math.max(8, window.innerWidth - el.offsetWidth - 8),
+        top: 96,
+      }));
+      onCleanup(() => rememberWidget(this.layout, WIDGET_CONNECTION_QUALITY, el));
     });
   }
 

@@ -1,4 +1,4 @@
-import type { ReplayBoardScene } from '@axe/domain/replay/replay-board-view';
+import { framingOf, type ReplayBoardScene } from '@axe/domain/replay/replay-board-view';
 import { containRect, coverRect, type ReplayFrameLayout, wrapReplayText } from '@axe/domain/replay/replay-frame-layout';
 import { easeInOut, pointAlongRoute } from '@axe/domain/replay/replay-route';
 import type { ReplayShot, ReplayShotMove } from '@axe/domain/replay/replay-storyboard';
@@ -20,6 +20,8 @@ export interface ReplayFrameStyle {
   chapter: string;
   boardSurface: string;
   boardEdge: string;
+  boardGrid: string;
+  boardTrail: string;
   boardPiece: string;
   boardLabel: string;
   progress: string;
@@ -40,6 +42,8 @@ export const DEFAULT_REPLAY_FRAME_STYLE: ReplayFrameStyle = {
   chapter: 'rgba(255, 255, 255, 0.85)',
   boardSurface: 'rgba(255, 255, 255, 0.06)',
   boardEdge: 'rgba(255, 255, 255, 0.28)',
+  boardGrid: 'rgba(255, 255, 255, 0.14)',
+  boardTrail: 'rgba(122, 162, 255, 0.85)',
   boardPiece: 'rgba(122, 162, 255, 0.85)',
   boardLabel: 'rgba(255, 255, 255, 0.92)',
   progress: '#7aa2ff',
@@ -61,7 +65,7 @@ export function paintReplayFrame(
   if (board) paintBoard(ctx, layout, board, assets, style, shot?.move ?? null, shotProgress);
   if (shot) {
     if (shot.isChapterStart) paintChapterCard(ctx, layout, shot, style);
-    else paintDialogue(ctx, layout, shot, assets, style, board !== null);
+    else paintDialogue(ctx, layout, shot, assets, style, board !== null, sideOf(board, shot));
   }
   paintProgress(ctx, layout, progress, style);
 }
@@ -77,20 +81,24 @@ function paintBoard(
 ): void {
   const tableWidth = board.width * board.gridSize;
   const tableHeight = board.height * board.gridSize;
-  const scale = Math.min(layout.board.width / tableWidth, layout.board.height / tableHeight);
-  const left = layout.board.x + (layout.board.width - tableWidth * scale) / 2;
-  const top = layout.board.y + (layout.board.height - tableHeight * scale) / 2;
+  const framing = framingOf(board);
+  const scale = Math.min(layout.board.width / framing.width, layout.board.height / framing.height);
   const onBoard = (value: number): number => value * scale;
+  const left = layout.board.x + (layout.board.width - onBoard(framing.width)) / 2 - onBoard(framing.x);
+  const top = layout.board.y + (layout.board.height - onBoard(framing.height)) / 2 - onBoard(framing.y);
 
   const surface = board.imageIdentifier.length > 0 ? assets.imageOf(board.imageIdentifier) : null;
   ctx.fillStyle = style.boardSurface;
   ctx.fillRect(left, top, onBoard(tableWidth), onBoard(tableHeight));
   if (surface) ctx.drawImage(surface, left, top, onBoard(tableWidth), onBoard(tableHeight));
 
+  paintGrid(ctx, board, style, left, top, onBoard);
+
   ctx.strokeStyle = style.boardEdge;
   ctx.lineWidth = Math.max(1, Math.round(layout.scale * 2));
   ctx.strokeRect(left, top, onBoard(tableWidth), onBoard(tableHeight));
 
+  if (move) paintTrail(ctx, style, move, board, left, top, onBoard, layout.scale);
   const sliding = move ? pointAlongRoute(move.route, easeInOut(shotProgress)) : null;
   const span0 = Math.max(layout.board.minPiece, onBoard(board.gridSize));
   const labelSize = Math.max(10, Math.round(span0 * 0.34));
@@ -139,6 +147,74 @@ function paintBackdrop(
   ctx.fillRect(0, 0, layout.width, layout.height);
 }
 
+function paintTrail(
+  ctx: ReplayFrameCanvas,
+  style: ReplayFrameStyle,
+  move: ReplayShotMove,
+  board: ReplayBoardScene,
+  left: number,
+  top: number,
+  onBoard: (value: number) => number,
+  scale: number
+): void {
+  const piece = board.pieces.find((one) => one.identifier === move.targetId);
+  const centre = onBoard((piece?.size ?? 1) * board.gridSize) / 2;
+  const at = (point: { x: number; y: number }) => ({
+    x: left + onBoard(point.x) + centre,
+    y: top + onBoard(point.y) + centre,
+  });
+
+  const points = move.route.map(at);
+  if (points.length < 2) return;
+
+  ctx.strokeStyle = style.boardTrail;
+  ctx.lineWidth = Math.max(2, Math.round(scale * 4));
+  ctx.beginPath();
+  ctx.moveTo(points[0].x, points[0].y);
+  for (const point of points.slice(1)) ctx.lineTo(point.x, point.y);
+  ctx.stroke();
+
+  const head = points[points.length - 1];
+  const tail = points[points.length - 2];
+  const angle = Math.atan2(head.y - tail.y, head.x - tail.x);
+  const wing = Math.max(8, Math.round(scale * 20));
+
+  ctx.fillStyle = style.boardTrail;
+  ctx.beginPath();
+  ctx.moveTo(head.x, head.y);
+  ctx.lineTo(head.x - wing * Math.cos(angle - Math.PI / 7), head.y - wing * Math.sin(angle - Math.PI / 7));
+  ctx.lineTo(head.x - wing * Math.cos(angle + Math.PI / 7), head.y - wing * Math.sin(angle + Math.PI / 7));
+  ctx.closePath();
+  ctx.fill();
+}
+
+function paintGrid(
+  ctx: ReplayFrameCanvas,
+  board: ReplayBoardScene,
+  style: ReplayFrameStyle,
+  left: number,
+  top: number,
+  onBoard: (value: number) => number
+): void {
+  const step = onBoard(board.gridSize);
+  if (step < 6) return;
+
+  ctx.strokeStyle = style.boardGrid;
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  for (let column = 0; column <= board.width; column += 1) {
+    const x = Math.round(left + step * column) + 0.5;
+    ctx.moveTo(x, top);
+    ctx.lineTo(x, top + step * board.height);
+  }
+  for (let row = 0; row <= board.height; row += 1) {
+    const y = Math.round(top + step * row) + 0.5;
+    ctx.moveTo(left, y);
+    ctx.lineTo(left + step * board.width, y);
+  }
+  ctx.stroke();
+}
+
 function paintChapterCard(
   ctx: ReplayFrameCanvas,
   layout: ReplayFrameLayout,
@@ -167,9 +243,10 @@ function paintDialogue(
   shot: ReplayShot,
   assets: ReplayFrameAssets,
   style: ReplayFrameStyle,
-  hasBoard: boolean
+  hasBoard: boolean,
+  side: 'left' | 'right'
 ): void {
-  paintPortrait(ctx, layout, shot, assets, hasBoard);
+  paintPortrait(ctx, layout, shot, assets, hasBoard, side);
   paintChapterLabel(ctx, layout, shot, style);
   paintBox(ctx, layout, style);
 
@@ -200,7 +277,8 @@ function paintPortrait(
   layout: ReplayFrameLayout,
   shot: ReplayShot,
   assets: ReplayFrameAssets,
-  besideBoard: boolean
+  besideBoard: boolean,
+  side: 'left' | 'right'
 ): void {
   if (shot.portraitId.length < 1) return;
   const portrait = assets.imageOf(shot.portraitId);
@@ -209,7 +287,16 @@ function paintPortrait(
   const shrink = besideBoard ? 0.55 : 1;
   const size = containRect(portrait, layout.portrait.maxWidth * shrink, layout.portrait.maxHeight * shrink);
   if (size.width < 1 || size.height < 1) return;
-  ctx.drawImage(portrait, layout.portrait.x, layout.portrait.y - size.height, size.width, size.height);
+
+  const x = side === 'right' ? layout.width - layout.portrait.x - size.width : layout.portrait.x;
+  ctx.drawImage(portrait, x, layout.portrait.y - size.height, size.width, size.height);
+}
+
+function sideOf(board: ReplayBoardScene | null, shot: ReplayShot): 'left' | 'right' {
+  if (!board || shot.speaker.length < 1) return 'left';
+  const speaking = board.pieces.find((piece) => piece.name === shot.speaker);
+  if (!speaking) return 'left';
+  return speaking.x + (speaking.size * board.gridSize) / 2 > (board.width * board.gridSize) / 2 ? 'right' : 'left';
 }
 
 function paintChapterLabel(

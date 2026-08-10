@@ -8,6 +8,8 @@ import {
   signal,
   viewChild,
 } from '@angular/core';
+import { WidgetLayoutService } from '@axe/application/ui/widget-layout.service';
+import { placeWidget, rememberWidget, WIDGET_CLOCK } from '@axe/application/ui/widget-place';
 import { WidgetVisibilityService } from '@axe/application/ui/widget-visibility.service';
 import { CLOCK_GHOST_PATTERN, formatClockParts } from '@axe/features/widgets/digital-clock/clock-format';
 import { DraggableDirective } from '@axe/ui/directives/draggable.directive';
@@ -26,9 +28,8 @@ export class DigitalClockComponent {
   protected readonly ghost = CLOCK_GHOST_PATTERN;
   protected readonly parts = signal(formatClockParts(new Date()));
 
+  private readonly layout = inject(WidgetLayoutService);
   private readonly clockRef = viewChild<ElementRef<HTMLElement>>('clock');
-  private savedLeft: string | null = null;
-  private savedTop: string | null = null;
 
   constructor() {
     const timer = setInterval(() => this.parts.set(formatClockParts(new Date())), 1000);
@@ -37,18 +38,17 @@ export class DigitalClockComponent {
     effect((onCleanup) => {
       const el = this.clockRef()?.nativeElement;
       if (!el) return;
-      if (this.savedLeft !== null && this.savedTop !== null) {
-        el.style.left = this.savedLeft;
-        el.style.top = this.savedTop;
-      } else {
-        el.style.left = `${Math.max(8, window.innerWidth - el.offsetWidth - 8)}px`;
-        el.style.top = '8px';
-      }
-      onCleanup(() => {
-        this.savedLeft = el.style.left;
-        this.savedTop = el.style.top;
-      });
+      placeWidget(this.layout, WIDGET_CLOCK, el, () => ({
+        left: Math.max(8, window.innerWidth - el.offsetWidth - 8),
+        top: 8,
+      }));
+      onCleanup(() => rememberWidget(this.layout, WIDGET_CLOCK, el));
     });
+  }
+
+  protected rememberSpot(): void {
+    const el = this.clockRef()?.nativeElement;
+    if (el) rememberWidget(this.layout, WIDGET_CLOCK, el);
   }
 
   protected close(): void {
