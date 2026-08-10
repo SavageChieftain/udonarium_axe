@@ -88,6 +88,7 @@ export default defineConfig({
             { text: 'カットイン', link: '/manual/cut-in' },
             { text: 'マップ演出（エフェクト）', link: '/manual/map-effects' },
             { text: 'ビジュアルノベルモード', link: '/manual/visual-novel' },
+            { text: 'セッションログ（リプレイ）', link: '/manual/replay' },
           ],
         },
         {
@@ -106,6 +107,7 @@ export default defineConfig({
           text: 'リリースノート',
           items: [
             { text: '一覧', link: '/release-notes/' },
+            { text: 'v1.29.0', link: '/release-notes/v1.29.0' },
             { text: 'v1.28.0', link: '/release-notes/v1.28.0' },
             { text: 'v1.27.0', link: '/release-notes/v1.27.0' },
             { text: 'v1.26.0', link: '/release-notes/v1.26.0' },

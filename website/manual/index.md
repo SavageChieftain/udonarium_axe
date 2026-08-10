@@ -70,6 +70,7 @@ Udonarium Axe の画面構成と基本操作をまとめた操作マニュアル
 - [画像](/manual/images) / [ジュークボックス](/manual/jukebox) / [カットイン](/manual/cut-in)
 - [マップ演出（エフェクト）](/manual/map-effects) — コマの上に落雷・氷結・大爆発・竜巻などを再生
 - [ビジュアルノベルモード](/manual/visual-novel) — 立ち絵とメッセージウィンドウでチャットを再生
+- [セッションログ（リプレイ）](/manual/replay) — 卓の進行を記録・再生・編集し、MP4 に書き出す
 
 **管理・全体**
 
