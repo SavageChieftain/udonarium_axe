@@ -1330,7 +1330,7 @@ function appendFlyingShot(
         rotate: link.angle,
         opacity: 0.65,
         background: `linear-gradient(90deg, transparent, ${preset.colorSecondary} 45%, ${preset.colorPrimary})`,
-        borderRadius: '2px',
+        borderRadius: '9999px',
         shadow: glow(base * 0.16, preset.colorSecondary),
       });
     }

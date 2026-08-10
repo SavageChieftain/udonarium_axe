@@ -163,7 +163,12 @@ export class TableEffectOverlayComponent {
     if (sprite.background.length > 0) style['background'] = sprite.background;
     if (sprite.borderRadius.length > 0) style['border-radius'] = sprite.borderRadius;
     if (sprite.clipPath.length > 0) style['clip-path'] = sprite.clipPath;
-    if (sprite.shadow.length > 0) style['box-shadow'] = sprite.shadow;
+    if (sprite.shadow.length > 0) {
+      // SVG は要素いっぱいに塗られるとは限らないので、box-shadow だと絵ではなく箱が光り、
+      // 四角い縁が見える。絵の輪郭に沿わせるため drop-shadow へ移す。
+      if (sprite.svg.length > 0) style['filter'] = dropShadowOf(sprite.shadow);
+      else style['box-shadow'] = sprite.shadow;
+    }
     return style;
   }
 
@@ -223,4 +228,12 @@ export class TableEffectOverlayComponent {
     const half = (gridSize * (typeof size === 'number' && size > 0 ? size : 1)) / 2;
     return { x: object.location.x + half, y: object.location.y + half, z: object.posZ };
   }
+}
+
+/** box-shadow の指定を、同じ広がりの drop-shadow へ読み替える。 */
+function dropShadowOf(shadow: string): string {
+  return shadow
+    .split(', ')
+    .map((layer) => `drop-shadow(${layer})`)
+    .join(' ');
 }
