@@ -214,10 +214,11 @@ export class AppInitializationService {
       statusCure: './assets/sounds/soundeffect-lab/status-cure.mp3',
       beamSmall: './assets/sounds/soundeffect-lab/beam-small.mp3',
       collapse: './assets/sounds/soundeffect-lab/collapse.mp3',
-      sfShot: './assets/sounds/soundeffect-lab/sf-shot.mp3',
+      sfShot: './assets/sounds/on-jin/lasergun.mp3',
       sfHit: './assets/sounds/soundeffect-lab/sf-hit.mp3',
       sfHitHard: './assets/sounds/soundeffect-lab/sf-hit-hard.mp3',
-      sfBeam: './assets/sounds/soundeffect-lab/sf-beam.mp3',
+      sfShotHeavy: './assets/sounds/on-jin/lasergun-heavy.mp3',
+      sfBeam: './assets/sounds/on-jin/laserbeam.mp3',
       holyBlade: './assets/sounds/soundeffect-lab/holy-blade.mp3',
     };
 
