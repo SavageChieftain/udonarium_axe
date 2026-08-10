@@ -1004,3 +1004,56 @@ describe('swingTiltOf()', () => {
     expect(swingTiltOf(-90)).toBeCloseTo(0, 5);
   });
 });
+
+describe('アローレイン', () => {
+  function rainSprites(elapsedMs: number) {
+    const preset = new EffectPreset('rain-test');
+    Object.assign(preset, {
+      kind: 'arrowrain',
+      durationMs: 2400,
+      colorPrimary: '#ffffff',
+      colorSecondary: '#8a6a3c',
+    });
+    const cast: EffectCast = {
+      presetIdentifier: 'rain-test',
+      casterIdentifier: '',
+      origin: null,
+      seed: 7,
+      targets: [{ identifier: 'char0', x: 0, y: 0, z: 0 }],
+    };
+    return effectSprites(preset, cast, elapsedMs, { baseSize: 50 });
+  }
+
+  function keysAt(elapsedMs: number, part: string) {
+    return rainSprites(elapsedMs).filter((sprite) => sprite.key.includes(part));
+  }
+
+  it('落ちてくる前に地面へ予告を出すこと', () => {
+    expect(keysAt(30, '-rain-mark-').length).toBeGreaterThan(0);
+    expect(keysAt(30, '-rain-arrow-')).toHaveLength(0);
+  });
+
+  it('矢が上から落ちてくること', () => {
+    const early = keysAt(300, '-rain-arrow-');
+    const late = keysAt(400, '-rain-arrow-');
+
+    expect(early.length).toBeGreaterThan(0);
+    expect(late.length).toBeGreaterThan(0);
+    expect(Math.min(...late.map((sprite) => sprite.z))).toBeLessThan(Math.max(...early.map((sprite) => sprite.z)));
+  });
+
+  it('中心のまわりに散らして刺さること', () => {
+    const stuck = keysAt(2000, '-rain-stuck-');
+
+    expect(stuck.length).toBeGreaterThan(4);
+    expect(new Set(stuck.map((sprite) => `${sprite.x},${sprite.y}`)).size).toBe(stuck.length);
+    expect(stuck.every((sprite) => Math.hypot(sprite.x, sprite.y) <= 50 * 2.1)).toBe(true);
+  });
+
+  it('毎フレーム同じ場所へ落ちること', () => {
+    const once = keysAt(800, '-rain-mark-').map((sprite) => `${sprite.x},${sprite.y}`);
+    const twice = keysAt(800, '-rain-mark-').map((sprite) => `${sprite.x},${sprite.y}`);
+
+    expect(once).toEqual(twice);
+  });
+});

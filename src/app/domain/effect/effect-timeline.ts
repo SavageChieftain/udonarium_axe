@@ -462,6 +462,10 @@ export function effectSprites(
       appendBisect(sprites, prefix, center, base, progress, preset, random, imageOf(options, target.identifier));
       return;
     }
+    if (preset.effectKind === 'arrowrain') {
+      appendArrowRain(sprites, prefix, center, base, progress, preset, random, options.viewRotation);
+      return;
+    }
     if (preset.effectKind === 'skyblade') {
       appendSkyblade(
         sprites,
@@ -881,6 +885,130 @@ function appendSkyblade(
         background: '#ffffff',
         borderRadius: '50%',
         shadow: glow(base * 0.4 * (1 - phase), preset.colorPrimary),
+      });
+    }
+  }
+}
+
+/** 降り注ぐ矢の本数。少ないと雨に見えず、多いと板が重なって潰れる。 */
+const ARROW_RAIN_COUNT = 18;
+/** 1 本が落ちきるまでの長さ(全体比)。 */
+const ARROW_RAIN_FALL = 0.2;
+/** 落下を撒く区間。最後の 1 本が刺さり終わるまで尺に納める。 */
+const ARROW_RAIN_SPREAD = 0.62;
+/** 落下前に足元へ出す予告の長さ。どこへ落ちるか見せてから当てる。 */
+const ARROW_RAIN_TELL = 0.14;
+/** 矢が湧く高さ(base 比)。画面の外から降ってきたように見せる。 */
+const ARROW_RAIN_HEIGHT = 9;
+
+/**
+ * 降り注ぐ矢。落ちる位置を先に地面へ描いてから当てる。
+ *
+ * 予告 → 落下 → 突き刺さり、の 3 段。予告を挟まないと、
+ * 見る側は当たった後で何が起きたかを知ることになり、避けようのない事故に見える。
+ */
+function appendArrowRain(
+  sprites: EffectSprite[],
+  prefix: string,
+  center: Point3,
+  base: number,
+  progress: number,
+  preset: EffectPreset,
+  random: () => number,
+  view: ViewRotation | null | undefined
+): void {
+  const colors = colorsOf(preset);
+
+  for (let index = 0; index < ARROW_RAIN_COUNT; index += 1) {
+    const angle = random() * Math.PI * 2;
+    const radius = base * (0.3 + random() * 1.7);
+    const jitter = random() * 0.05;
+    const lean = 0.6 + random() * 0.5;
+
+    const spot = { x: center.x + Math.cos(angle) * radius, y: center.y + Math.sin(angle) * radius, z: center.z };
+    const launch = (index / ARROW_RAIN_COUNT) * ARROW_RAIN_SPREAD + jitter;
+    const land = launch + ARROW_RAIN_FALL;
+    const sky = { x: spot.x - base * lean, y: spot.y - base * lean * 1.4, z: spot.z + base * ARROW_RAIN_HEIGHT };
+    const drop = projectDirection(spot.x - sky.x, spot.y - sky.y, spot.z - sky.z, view);
+
+    // 予告。落ちる位置の輪を絞り込んでいく。
+    const tell = normalize((progress - (launch - ARROW_RAIN_TELL)) / (ARROW_RAIN_TELL + ARROW_RAIN_FALL));
+    if (tell > 0 && tell < 1) {
+      sprites.push({
+        ...blank(),
+        key: `${prefix}-rain-mark-${index}`,
+        x: spot.x,
+        y: spot.y,
+        z: spot.z,
+        width: base * (1.4 - tell * 0.7),
+        height: base * (1.4 - tell * 0.7),
+        opacity: Math.min(tell * 3, 1) * 0.5,
+        svg: ringSvg(colors, 6, true),
+      });
+    }
+
+    // 落下。落ちる向きへ寝かせた矢と、後ろに引く細い筋。
+    const fall = normalize((progress - launch) / ARROW_RAIN_FALL);
+    if (fall > 0 && fall < 1) {
+      const eased = fall ** 1.4;
+      const head = {
+        x: sky.x + (spot.x - sky.x) * eased,
+        y: sky.y + (spot.y - sky.y) * eased,
+        z: sky.z + (spot.z - sky.z) * eased,
+      };
+      sprites.push({
+        ...blank(),
+        key: `${prefix}-rain-trail-${index}`,
+        x: head.x,
+        y: head.y,
+        z: head.z + base * 0.9,
+        width: base * 1.6,
+        height: base * 0.06,
+        rotate: drop.angle,
+        opacity: 0.35,
+        background: `linear-gradient(90deg, transparent, ${preset.colorSecondary})`,
+        borderRadius: '2px',
+      });
+      sprites.push({
+        ...blank(),
+        key: `${prefix}-rain-arrow-${index}`,
+        x: head.x,
+        y: head.y,
+        z: head.z,
+        width: base * 1.5,
+        height: base * 0.3,
+        rotate: drop.angle,
+        opacity: 1,
+        svg: arrowSvg(colors),
+      });
+    }
+
+    // 突き刺さり。土埃と、地面に残って震える矢。
+    const stuck = normalize((progress - land) / Math.max(1 - land, 0.01));
+    if (stuck > 0 && stuck < 1) {
+      sprites.push({
+        ...blank(),
+        key: `${prefix}-rain-dust-${index}`,
+        x: spot.x,
+        y: spot.y,
+        z: spot.z,
+        width: base * (0.5 + easeOutCubic(stuck) * 1.6),
+        height: base * (0.5 + easeOutCubic(stuck) * 1.6),
+        opacity: (1 - stuck) * 0.55,
+        background: `radial-gradient(circle, ${preset.colorSecondary} 0%, transparent 70%)`,
+        borderRadius: '50%',
+      });
+      sprites.push({
+        ...blank(),
+        key: `${prefix}-rain-stuck-${index}`,
+        x: spot.x,
+        y: spot.y,
+        z: spot.z,
+        width: base * 1.1,
+        height: base * 0.26,
+        rotate: drop.angle + Math.sin(stuck * 34) * (1 - stuck) * 6,
+        opacity: 1 - stuck * 0.8,
+        svg: arrowSvg(colors),
       });
     }
   }

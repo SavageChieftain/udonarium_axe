@@ -93,6 +93,8 @@ export class EffectPreset extends GameObject {
     if (this.effectKind === 'beam') return 0.28;
     // 光の大剣は振り下ろしてから光が届く。掲げている間に鳴らすと号砲になってしまう。
     if (this.effectKind === 'skyblade') return 0.62;
+    // 降り注ぐ矢は最初の一群が刺さる頃。撃ち終わりに寄せると刺さる絵と音が離れる。
+    if (this.effectKind === 'arrowrain') return 0.35;
     return 0.5;
   }
 

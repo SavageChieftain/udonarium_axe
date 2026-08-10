@@ -194,4 +194,23 @@ describe('飛ぶ物の新しい見た目', () => {
   it('新しい見た目が選べる一覧に載っていること', () => {
     expect([...PROJECTILE_STYLES]).toEqual(expect.arrayContaining(['crescent', 'blaster', 'tracer']));
   });
+
+  it('矢の連射は 1 本ずつ間を置いて撃つこと', () => {
+    const volley = seedOf('EffectPreset_arrow_volley');
+
+    expect(volley).toMatchObject({ kind: 'projectile', projectileStyle: 'arrow' });
+    expect(volley.shots).toBeGreaterThan(1);
+    expect(volley.shotInterval).toBeGreaterThan(0);
+    expect(volley.soundKey).toBe('bowRelease');
+    expect(volley.impactSoundKey).toBe('bowPierce');
+  });
+
+  it('アローレインは広く取って降らせること', () => {
+    const rain = seedOf('EffectPreset_arrow_rain');
+
+    expect(rain.kind).toBe('arrowrain');
+    expect(rain.maxTargets).toBeGreaterThan(seedOf('EffectPreset_arrow_volley').maxTargets);
+    expect(rain.scale).toBeGreaterThan(seedOf('EffectPreset_arrow_volley').scale);
+    expect(rain.durationMs).toBeGreaterThan(1200);
+  });
 });

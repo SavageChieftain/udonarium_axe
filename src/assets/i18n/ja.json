@@ -557,7 +557,8 @@
         "gore": "血しぶき",
         "bisect": "両断",
         "skyblade": "光の剣",
-        "raybeam": "レーザー照射"
+        "raybeam": "レーザー照射",
+        "arrowrain": "アローレイン"
       },
       "targeting": {
         "self": "自分",

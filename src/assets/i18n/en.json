@@ -557,7 +557,8 @@
         "gore": "Blood",
         "bisect": "Bisect",
         "skyblade": "Sky blade",
-        "raybeam": "Sustained ray"
+        "raybeam": "Sustained ray",
+        "arrowrain": "Arrow rain"
       },
       "targeting": {
         "self": "Self",
