@@ -1,3 +1,4 @@
+import type { ReplayBoardScene } from '@axe/domain/replay/replay-board-view';
 import { containRect, coverRect, type ReplayFrameLayout, wrapReplayText } from '@axe/domain/replay/replay-frame-layout';
 import type { ReplayShot } from '@axe/domain/replay/replay-storyboard';
 
@@ -16,6 +17,10 @@ export interface ReplayFrameStyle {
   name: string;
   body: string;
   chapter: string;
+  boardSurface: string;
+  boardEdge: string;
+  boardPiece: string;
+  boardLabel: string;
   progress: string;
   progressTrack: string;
   fontFamily: string;
@@ -32,6 +37,10 @@ export const DEFAULT_REPLAY_FRAME_STYLE: ReplayFrameStyle = {
   name: '#ffffff',
   body: 'rgba(255, 255, 255, 0.96)',
   chapter: 'rgba(255, 255, 255, 0.85)',
+  boardSurface: 'rgba(255, 255, 255, 0.06)',
+  boardEdge: 'rgba(255, 255, 255, 0.28)',
+  boardPiece: 'rgba(122, 162, 255, 0.85)',
+  boardLabel: 'rgba(255, 255, 255, 0.92)',
   progress: '#7aa2ff',
   progressTrack: 'rgba(255, 255, 255, 0.16)',
   fontFamily: REPLAY_FRAME_FONT_FAMILY,
@@ -43,14 +52,63 @@ export function paintReplayFrame(
   shot: ReplayShot | null,
   assets: ReplayFrameAssets,
   progress: number,
-  style: ReplayFrameStyle = DEFAULT_REPLAY_FRAME_STYLE
+  style: ReplayFrameStyle = DEFAULT_REPLAY_FRAME_STYLE,
+  board: ReplayBoardScene | null = null
 ): void {
   paintBackdrop(ctx, layout, shot, assets, style);
+  if (board) paintBoard(ctx, layout, board, assets, style);
   if (shot) {
     if (shot.isChapterStart) paintChapterCard(ctx, layout, shot, style);
-    else paintDialogue(ctx, layout, shot, assets, style);
+    else paintDialogue(ctx, layout, shot, assets, style, board !== null);
   }
   paintProgress(ctx, layout, progress, style);
+}
+
+function paintBoard(
+  ctx: ReplayFrameCanvas,
+  layout: ReplayFrameLayout,
+  board: ReplayBoardScene,
+  assets: ReplayFrameAssets,
+  style: ReplayFrameStyle
+): void {
+  const tableWidth = board.width * board.gridSize;
+  const tableHeight = board.height * board.gridSize;
+  const scale = Math.min(layout.board.width / tableWidth, layout.board.height / tableHeight);
+  const left = layout.board.x + (layout.board.width - tableWidth * scale) / 2;
+  const top = layout.board.y + (layout.board.height - tableHeight * scale) / 2;
+  const onBoard = (value: number): number => value * scale;
+
+  const surface = board.imageIdentifier.length > 0 ? assets.imageOf(board.imageIdentifier) : null;
+  ctx.fillStyle = style.boardSurface;
+  ctx.fillRect(left, top, onBoard(tableWidth), onBoard(tableHeight));
+  if (surface) ctx.drawImage(surface, left, top, onBoard(tableWidth), onBoard(tableHeight));
+
+  ctx.strokeStyle = style.boardEdge;
+  ctx.lineWidth = Math.max(1, Math.round(layout.scale * 2));
+  ctx.strokeRect(left, top, onBoard(tableWidth), onBoard(tableHeight));
+
+  const labelSize = Math.max(10, Math.round(board.gridSize * scale * 0.34));
+  for (const piece of board.pieces) {
+    const span = onBoard(piece.size * board.gridSize);
+    if (span < 1) continue;
+    const x = left + onBoard(piece.x);
+    const y = top + onBoard(piece.y);
+
+    const image = piece.imageIdentifier.length > 0 ? assets.imageOf(piece.imageIdentifier) : null;
+    if (image) {
+      ctx.drawImage(image, x, y, span, span);
+    } else {
+      ctx.fillStyle = style.boardPiece;
+      ctx.fillRect(x, y, span, span);
+    }
+
+    if (piece.name.length < 1) continue;
+    ctx.fillStyle = style.boardLabel;
+    ctx.font = `500 ${labelSize}px ${style.fontFamily}`;
+    ctx.textAlign = 'center';
+    ctx.fillText(piece.name, x + span / 2, y + span + labelSize);
+    ctx.textAlign = 'left';
+  }
 }
 
 function paintBackdrop(
@@ -100,9 +158,10 @@ function paintDialogue(
   layout: ReplayFrameLayout,
   shot: ReplayShot,
   assets: ReplayFrameAssets,
-  style: ReplayFrameStyle
+  style: ReplayFrameStyle,
+  hasBoard: boolean
 ): void {
-  paintPortrait(ctx, layout, shot, assets);
+  if (!hasBoard) paintPortrait(ctx, layout, shot, assets);
   paintChapterLabel(ctx, layout, shot, style);
   paintBox(ctx, layout, style);
 

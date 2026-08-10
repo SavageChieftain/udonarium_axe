@@ -186,7 +186,8 @@ Udonarium Axe が **追加** または **大きく拡張・再設計** した機
 - **非破壊編集** — 削除・並べ替え（つまんで移動、または矢印で 1 つずつ）・台詞の直し・任意のイベントの差し込みを行い、別の記録として保存する。移した項目は移した先の時刻を引き継ぐ。Ctrl+Z で 1 手ずつ戻せる。派生先には編集後の並びで計算し直したキーフレームを書く（`domain/replay/replay-edit`、`application/replay/replay-editor.service`）
 - **捏造の収録** — 手で打つ代わりに、盤面を預かった状態で実際に操作し、その結果をイベントとして任意の位置へ差し込む（`application/replay/replay-staging.service`、`features/replay/replay-staging-banner`）
 - **MP4 書き出し** — 記録を絵コンテ（1 発言 = 1 カット、目印は章の扉、VN の場面転換が背景）に起こし、canvas に描いて WebCodecs で符号化する。720p / 1080p、読める速さ / 当日と同じ間、台詞だけ / 出来事も、を選べる。編集中なら編集後の並びが、秘匿は見る人のロールで絞られた結果が画になる（`domain/replay/replay-storyboard`、`domain/replay/replay-frame-layout`、`infrastructure/replay/replay-frame-painter`、`core/media/video-encoder`、`application/replay/replay-video.service`、`features/replay/replay-video-panel`）
-- **書き出しの制約** — 音は入らない（映像のみ）。1 時間で打ち切る。WebCodecs と `VideoEncoder` が無いブラウザでは出せない（ボタンが押せない状態になる）
+- **動画に映る盤面** — カットごとに、その時点の卓をキーフレームから patch を積んで組み直し、真上から描く。卓の絵・コマの絵と名前・大きさ（マス数）・重なり順を持ち、しまわれているコマは出さない。台詞窓はその下に敷く（`domain/replay/replay-board-view`）
+- **書き出しの制約** — 音は入らない（映像のみ）。1 時間で打ち切る。盤面は真上からの 2D で、暗闇・視界・光源・3D の見え方は再現しない。WebCodecs と `VideoEncoder` が無いブラウザでは出せない（ボタンが押せない状態になる）
 
 ## 同期 / 内部基盤
 

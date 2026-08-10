@@ -5,19 +5,30 @@ import { VideoEncoderGateway } from '@axe/core/media/video-encoder';
 import { ImageStorage } from '@axe/core/storage/image-storage';
 import type { ReplayRecordingMeta } from '@axe/core/storage/replay-log-store';
 import { replayArchiveName } from '@axe/domain/replay/replay-archive';
+import {
+  buildReplayBoardScene,
+  collectBoardAssetIds,
+  type ReplayBoardScene,
+} from '@axe/domain/replay/replay-board-view';
 import { collectReplayCast } from '@axe/domain/replay/replay-cast';
 import type { ReplayEvent, ReplayViewer } from '@axe/domain/replay/replay-event';
 import { REPLAY_FRAME_PRESETS, replayFrameLayout, type ReplayFrameSize } from '@axe/domain/replay/replay-frame-layout';
-import { decodeReplayKeyframe } from '@axe/domain/replay/replay-keyframe';
+import { decodeReplayKeyframe, type ReplayObjectSnapshot } from '@axe/domain/replay/replay-keyframe';
+import { applyReplayEvents } from '@axe/domain/replay/replay-patch';
 import {
   buildReplayStoryboard,
+  type ReplayShot,
   ReplayShotPacing as Pacing,
   type ReplayShotPacing,
   type ReplayShotScope,
   ReplayShotScope as Scope,
   shotAt,
 } from '@axe/domain/replay/replay-storyboard';
-import { paintReplayFrame, type ReplayFrameImage } from '@axe/infrastructure/replay/replay-frame-painter';
+import {
+  DEFAULT_REPLAY_FRAME_STYLE,
+  paintReplayFrame,
+  type ReplayFrameImage,
+} from '@axe/infrastructure/replay/replay-frame-painter';
 
 export const REPLAY_VIDEO_FPS = 30;
 export const REPLAY_VIDEO_MAX_FRAMES = 30 * 60 * 60;
@@ -75,7 +86,8 @@ export class ReplayVideoService {
     this._total.set(0);
 
     try {
-      const cast = await this.castOf(meta.id, events);
+      const base = await this.baseBoardOf(meta.id, events);
+      const cast = collectReplayCast(base);
       const storyboard = buildReplayStoryboard(events, cast, { ...options, viewer });
       if (storyboard.shots.length < 1) {
         Logger.warn('[ReplayVideo] 画にできる場面がありませんでした', meta.id);
@@ -90,7 +102,12 @@ export class ReplayVideoService {
       this._total.set(frameCount);
 
       const layout = replayFrameLayout(options.size);
-      const assets = await this.loadAssets(storyboard.shots.flatMap((shot) => [shot.portraitId, shot.backgroundId]));
+      const boards = this.boardsFor(storyboard.shots, events, base);
+      const boardOfSeq = new Map(storyboard.shots.map((shot, index) => [shot.seq, boards[index]]));
+      const assets = await this.loadAssets([
+        ...storyboard.shots.flatMap((shot) => [shot.portraitId, shot.backgroundId]),
+        ...boards.flatMap((board) => collectBoardAssetIds(board)),
+      ]);
       const msPerFrame = 1000 / options.fps;
 
       try {
@@ -105,13 +122,15 @@ export class ReplayVideoService {
             this._total.set(total);
           },
           paint: (ctx, index) => {
-            const atMs = index * msPerFrame;
+            const shot = shotAt(storyboard, index * msPerFrame);
             paintReplayFrame(
               ctx,
               layout,
-              shotAt(storyboard, atMs),
+              shot,
               { imageOf: (identifier) => assets.get(identifier) ?? null },
-              frameCount > 1 ? index / (frameCount - 1) : 1
+              frameCount > 1 ? index / (frameCount - 1) : 1,
+              DEFAULT_REPLAY_FRAME_STYLE,
+              shot ? (boardOfSeq.get(shot.seq) ?? null) : null
             );
           },
         });
@@ -133,15 +152,36 @@ export class ReplayVideoService {
     }
   }
 
-  private async castOf(id: number, events: readonly ReplayEvent[]) {
+  private async baseBoardOf(id: number, events: readonly ReplayEvent[]): Promise<ReplayObjectSnapshot[]> {
     try {
       const keyframe = await this.library.keyframeBefore(id, events[0]?.seq ?? 0);
       if (!keyframe) return [];
-      return collectReplayCast(decodeReplayKeyframe(new Uint8Array(await keyframe.blob.arrayBuffer())));
+      return decodeReplayKeyframe(new Uint8Array(await keyframe.blob.arrayBuffer()));
     } catch (reason) {
-      Logger.warn('[ReplayVideo] 登場人物を読めませんでした', reason);
+      Logger.warn('[ReplayVideo] 卓の様子を読めませんでした', reason);
       return [];
     }
+  }
+
+  private boardsFor(
+    shots: readonly ReplayShot[],
+    events: readonly ReplayEvent[],
+    base: readonly ReplayObjectSnapshot[]
+  ): (ReplayBoardScene | null)[] {
+    if (base.length < 1) return shots.map(() => null);
+
+    const indexOfSeq = new Map(events.map((event, index) => [event.seq, index]));
+    let board: readonly ReplayObjectSnapshot[] = base;
+    let from = 0;
+
+    return shots.map((shot) => {
+      const upto = indexOfSeq.get(shot.seq);
+      if (upto !== undefined && upto >= from) {
+        board = applyReplayEvents(board, events.slice(from, upto + 1));
+        from = upto + 1;
+      }
+      return buildReplayBoardScene(board);
+    });
   }
 
   private async loadAssets(

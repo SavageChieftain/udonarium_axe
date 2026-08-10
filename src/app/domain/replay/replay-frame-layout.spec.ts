@@ -49,6 +49,15 @@ describe('replayFrameLayout()', () => {
     expect(layout.body.width).toBeLessThan(layout.box.width);
   });
 
+  it('盤面を台詞窓と見出しの間に置くこと', () => {
+    const layout = replayFrameLayout(REPLAY_FRAME_PRESETS['1080p']);
+
+    expect(layout.board.y).toBeGreaterThan(layout.chapter.y);
+    expect(layout.board.y + layout.board.height).toBeLessThanOrEqual(layout.box.y);
+    expect(layout.board.width).toBeGreaterThan(0);
+    expect(layout.board.height).toBeGreaterThan(0);
+  });
+
   it('小さい画面では同じ割合で縮むこと', () => {
     const large = replayFrameLayout(REPLAY_FRAME_PRESETS['1080p']);
     const small = replayFrameLayout(REPLAY_FRAME_PRESETS['720p']);

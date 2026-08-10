@@ -12,6 +12,7 @@ export interface ReplayFrameLayout {
   name: { x: number; y: number; fontSize: number };
   body: { x: number; y: number; width: number; fontSize: number; lineHeight: number; maxLines: number };
   chapter: { x: number; y: number; fontSize: number };
+  board: { x: number; y: number; width: number; height: number };
   progress: { x: number; y: number; width: number; height: number };
 }
 
@@ -54,6 +55,7 @@ export function replayFrameLayout(size: ReplayFrameSize): ReplayFrameLayout {
       maxLines: 3,
     },
     chapter: { x: boxMargin, y: at(80), fontSize: at(36) },
+    board: { x: boxMargin, y: at(104), width: size.width - boxMargin * 2, height: boxY - at(128) },
     progress: { x: 0, y: size.height - at(8), width: size.width, height: at(8) },
   };
 }

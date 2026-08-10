@@ -11,7 +11,7 @@ import { ImageStorage } from '@axe/core/storage/image-storage';
 import type { ReplayRecordingMeta } from '@axe/core/storage/replay-log-store';
 import { PUBLIC_VISIBILITY, type ReplayEvent, ReplayEventKind } from '@axe/domain/replay/replay-event';
 import { REPLAY_FRAME_PRESETS } from '@axe/domain/replay/replay-frame-layout';
-import { encodeReplayKeyframe } from '@axe/domain/replay/replay-keyframe';
+import { encodeReplayKeyframe, type ReplayObjectSnapshot } from '@axe/domain/replay/replay-keyframe';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
 
 function say(seq: number, text: string, name = 'アリス'): ReplayEvent {
@@ -35,15 +35,41 @@ const meta: ReplayRecordingMeta = {
   byteSize: 0,
 };
 
+const board: ReplayObjectSnapshot[] = [
+  { identifier: 't1', aliasName: 'game-table', syncData: { attributes: { width: 10, height: 10, gridSize: 50 } } },
+  {
+    identifier: 'c1',
+    aliasName: 'character',
+    syncData: { attributes: { location: { name: 'table', x: 0, y: 0 }, posZ: 0 } },
+  },
+];
+
+function moved(seq: number, x: number): ReplayEvent {
+  return {
+    ...say(seq, ''),
+    kind: ReplayEventKind.ObjectMove,
+    targetId: 'c1',
+    detail: {},
+    patch: {
+      identifier: 'c1',
+      aliasName: 'character',
+      before: {},
+      after: { 'attributes.location': { name: 'table', x, y: 0 } },
+    },
+  };
+}
+
 describe('ReplayVideoService', () => {
   let service: ReplayVideoService;
   let encode: ReturnType<typeof vi.fn<(request: VideoEncodeRequest) => Promise<EncodedVideo | null>>>;
   let saved: { blob: Blob; name: string }[];
   let isSupported = true;
+  let keyframe: { seq: number; blob: Blob } | null;
 
   beforeEach(() => {
     saved = [];
     isSupported = true;
+    keyframe = { seq: 0, blob: new Blob([encodeReplayKeyframe(board) as BlobPart]) };
     encode = vi.fn<(request: VideoEncodeRequest) => Promise<EncodedVideo | null>>(async (request) => {
       const ctx = {
         fillStyle: '',
@@ -83,14 +109,7 @@ describe('ReplayVideoService', () => {
         {
           provide: ReplayLibraryService,
           useValue: {
-            keyframeBefore: vi.fn().mockResolvedValue({
-              seq: 0,
-              blob: new Blob([
-                encodeReplayKeyframe([
-                  { identifier: 'c1', aliasName: 'character', syncData: { attributes: {} } },
-                ]) as BlobPart,
-              ]),
-            }),
+            keyframeBefore: vi.fn().mockImplementation(async () => keyframe),
           },
         },
       ],
@@ -126,6 +145,47 @@ describe('ReplayVideoService', () => {
 
     const request = encode.mock.calls[0][0];
     expect(request.frameCount).toBe(Math.round(((1200 + 20 * 55) / 1000) * 30));
+  });
+
+  it('カットごとにその時の盤面を描くこと', async () => {
+    const squares: { x: number; width: number }[][] = [];
+    encode.mockImplementation(async (request) => {
+      const ctx = {
+        fillStyle: '',
+        strokeStyle: '',
+        lineWidth: 0,
+        font: '',
+        textAlign: 'left',
+        textBaseline: 'alphabetic',
+        fillRect: (x: number, y: number, width: number, height: number) => {
+          if (width === height && width > 0) frame.push({ x, width });
+        },
+        strokeRect: vi.fn(),
+        fillText: vi.fn(),
+        drawImage: vi.fn(),
+        measureText: (text: string) => ({ width: [...text].length * 20 }),
+      } as unknown as VideoPaintTarget;
+
+      let frame: { x: number; width: number }[] = [];
+      for (const index of [0, request.frameCount - 1]) {
+        frame = [];
+        await request.paint(ctx, index);
+        squares.push(frame);
+      }
+      return { blob: new Blob(['mp4']), extension: 'mp4' };
+    });
+
+    await service.render(meta, [say(1, 'やあ'), moved(2, 250), say(3, 'ついた')]);
+
+    const pieceAt = (frame: { x: number; width: number }[]) => frame[frame.length - 1];
+    expect(pieceAt(squares[0]).width).toBeLessThan(squares[0][0].width);
+    expect(pieceAt(squares[1]).x).toBeGreaterThan(pieceAt(squares[0]).x);
+  });
+
+  it('盤面が読めなくても台詞だけで書き出すこと', async () => {
+    keyframe = null;
+    expect(await service.render(meta, [say(1, 'やあ')])).toBe(true);
+    expect(saved).toHaveLength(1);
   });
 
   it('進み具合を出すこと', async () => {

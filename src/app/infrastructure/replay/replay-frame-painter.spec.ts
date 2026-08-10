@@ -2,6 +2,7 @@ import { ReplayEventKind } from '@axe/domain/replay/replay-event';
 import { REPLAY_FRAME_PRESETS, replayFrameLayout } from '@axe/domain/replay/replay-frame-layout';
 import type { ReplayShot } from '@axe/domain/replay/replay-storyboard';
 import {
+  DEFAULT_REPLAY_FRAME_STYLE,
   paintReplayFrame,
   type ReplayFrameAssets,
   type ReplayFrameCanvas,
@@ -151,6 +152,82 @@ describe('paintReplayFrame()', () => {
 
     expect(texts.map((entry) => entry.text)).toEqual(['第二幕', 'アリス', 'こんばんは']);
     expect(texts[0].y).toBe(layout.chapter.y);
+  });
+
+  it('卓とコマを真上から描くこと', () => {
+    const { ctx, images, fills } = recorder();
+    const assets: ReplayFrameAssets = { imageOf: (id) => (id === 'top' || id === 'img-1' ? image(100, 100) : null) };
+    paintReplayFrame(ctx, layout, shot(), assets, 0, DEFAULT_REPLAY_FRAME_STYLE, {
+      width: 10,
+      height: 10,
+      gridSize: 50,
+      imageIdentifier: 'top',
+      backgroundImageIdentifier: '',
+      pieces: [
+        {
+          identifier: 'c1',
+          aliasName: 'character',
+          x: 0,
+          y: 0,
+          z: 0,
+          size: 1,
+          rotate: 0,
+          name: '盗賊',
+          imageIdentifier: 'img-1',
+        },
+      ],
+    });
+
+    const table = images[0];
+    expect(table.x).toBeGreaterThanOrEqual(layout.board.x);
+    expect(table.y).toBeGreaterThanOrEqual(layout.board.y);
+    expect(table.width).toBeLessThanOrEqual(layout.board.width);
+    expect(table.height).toBeLessThanOrEqual(layout.board.height);
+
+    const piece = images[1];
+    expect(piece.width).toBeCloseTo(table.width / 10, 5);
+    expect(fills.some((fill) => fill.width === table.width)).toBe(true);
+  });
+
+  it('コマの名前を足元に添えること', () => {
+    const { ctx, texts } = recorder();
+    paintReplayFrame(ctx, layout, shot(), noAssets, 0, DEFAULT_REPLAY_FRAME_STYLE, {
+      width: 10,
+      height: 10,
+      gridSize: 50,
+      imageIdentifier: '',
+      backgroundImageIdentifier: '',
+      pieces: [
+        {
+          identifier: 'c1',
+          aliasName: 'character',
+          x: 0,
+          y: 0,
+          z: 0,
+          size: 1,
+          rotate: 0,
+          name: '盗賊',
+          imageIdentifier: '',
+        },
+      ],
+    });
+
+    expect(texts.map((entry) => entry.text)).toEqual(['盗賊', 'アリス', 'こんばんは']);
+  });
+
+  it('盤面があるときは立ち絵を重ねないこと', () => {
+    const { ctx, images } = recorder();
+    const assets: ReplayFrameAssets = { imageOf: () => image(100, 100) };
+    paintReplayFrame(ctx, layout, shot({ portraitId: 'img-1' }), assets, 0, DEFAULT_REPLAY_FRAME_STYLE, {
+      width: 10,
+      height: 10,
+      gridSize: 50,
+      imageIdentifier: '',
+      backgroundImageIdentifier: '',
+      pieces: [],
+    });
+
+    expect(images).toHaveLength(0);
   });
 
   it('進み具合を帯で示すこと', () => {
