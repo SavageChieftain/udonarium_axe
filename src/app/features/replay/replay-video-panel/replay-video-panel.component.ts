@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { RolePermissionService } from '@axe/application/permission/role-permission.service';
 import { ReplayEditorService } from '@axe/application/replay/replay-editor.service';
 import { ReplayPlaybackService } from '@axe/application/replay/replay-playback.service';
@@ -6,9 +7,11 @@ import { ReplayRecorderService } from '@axe/application/replay/replay-recorder.s
 import { DEFAULT_REPLAY_VIDEO_OPTIONS, ReplayVideoService } from '@axe/application/replay/replay-video.service';
 import type { ReplayRecordingMeta } from '@axe/core/storage/replay-log-store';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
+import type { ReplayEvent } from '@axe/domain/replay/replay-event';
 import { REPLAY_FRAME_PRESETS } from '@axe/domain/replay/replay-frame-layout';
 import { buildReplayStoryboard, ReplayShotPacing, ReplayShotScope } from '@axe/domain/replay/replay-storyboard';
-import { formatReplayElapsed } from '@axe/features/replay/replay-log-line';
+import { formatReplayElapsed, toReplayLogLine } from '@axe/features/replay/replay-log-line';
+import { EMPTY_REPLAY_DICTIONARY, replayNamesAt } from '@axe/features/replay/replay-names';
 import { TranslocoModule } from '@jsverse/transloco';
 
 export const REPLAY_VIDEO_SIZES = ['720p', '1080p'] as const;
@@ -25,6 +28,7 @@ export class ReplayVideoPanelComponent {
   private readonly editor = inject(ReplayEditorService);
   private readonly recorder = inject(ReplayRecorderService);
   private readonly rolePermission = inject(RolePermissionService);
+  private readonly t = inject(TRANSLATE_FN);
 
   protected readonly sizes = REPLAY_VIDEO_SIZES;
   protected readonly pacings = [ReplayShotPacing.Reading, ReplayShotPacing.Recorded];
@@ -36,18 +40,31 @@ export class ReplayVideoPanelComponent {
 
   protected readonly sizeKey = signal<(typeof REPLAY_VIDEO_SIZES)[number]>('1080p');
   protected readonly pacing = signal<ReplayShotPacing>(ReplayShotPacing.Reading);
-  protected readonly scope = signal<ReplayShotScope>(ReplayShotScope.Lines);
+  protected readonly scope = signal<ReplayShotScope>(ReplayShotScope.Everything);
 
   protected readonly isSupported = this.video.isSupported;
 
   protected readonly estimate = computed(() => {
-    const storyboard = buildReplayStoryboard(this.events(), this.playback.cast(), {
+    const storyboard = buildReplayStoryboard(this.events(), this.playback.cast(), this.storyboardOptions());
+    return { shots: storyboard.shots.length, length: formatReplayElapsed(storyboard.totalMs) };
+  });
+
+  private storyboardOptions() {
+    return {
       pacing: this.pacing(),
       scope: this.scope(),
       viewer: { userId: PeerCursor.myCursor?.userId ?? '', role: PeerCursor.myRole },
-    });
-    return { shots: storyboard.shots.length, length: formatReplayElapsed(storyboard.totalMs) };
-  });
+      caption: (event: ReplayEvent) => this.captionOf(event),
+    };
+  }
+
+  private captionOf(event: ReplayEvent): string {
+    const dictionary = this.playback.manifest() ?? EMPTY_REPLAY_DICTIONARY;
+    const line = toReplayLogLine(event, replayNamesAt(dictionary, event.seq));
+    const params: Record<string, string | number> = { ...line.params };
+    for (const [name, key] of Object.entries(line.paramKeys ?? {})) params[name] = this.t(key);
+    return this.t(line.key, params);
+  }
 
   protected get canEdit(): boolean {
     return this.rolePermission.canEditTabletop;
@@ -81,12 +98,7 @@ export class ReplayVideoPanelComponent {
     await this.video.render(
       this.metaOf(id),
       this.events(),
-      {
-        ...DEFAULT_REPLAY_VIDEO_OPTIONS,
-        size: REPLAY_FRAME_PRESETS[this.sizeKey()],
-        pacing: this.pacing(),
-        scope: this.scope(),
-      },
+      { ...DEFAULT_REPLAY_VIDEO_OPTIONS, ...this.storyboardOptions(), size: REPLAY_FRAME_PRESETS[this.sizeKey()] },
       { userId: PeerCursor.myCursor?.userId ?? '', role: PeerCursor.myRole }
     );
   }

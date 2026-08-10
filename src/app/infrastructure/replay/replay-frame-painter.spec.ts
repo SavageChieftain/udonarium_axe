@@ -215,10 +215,13 @@ describe('paintReplayFrame()', () => {
     expect(texts.map((entry) => entry.text)).toEqual(['盗賊', 'アリス', 'こんばんは']);
   });
 
-  it('盤面があるときは立ち絵を重ねないこと', () => {
-    const { ctx, images } = recorder();
-    const assets: ReplayFrameAssets = { imageOf: () => image(100, 100) };
-    paintReplayFrame(ctx, layout, shot({ portraitId: 'img-1' }), assets, 0, DEFAULT_REPLAY_FRAME_STYLE, {
+  it('盤面があるときは立ち絵を小さくして並べること', () => {
+    const assets: ReplayFrameAssets = { imageOf: () => image(1000, 2000) };
+    const alone = recorder();
+    paintReplayFrame(alone.ctx, layout, shot({ portraitId: 'img-1' }), assets, 0);
+
+    const beside = recorder();
+    paintReplayFrame(beside.ctx, layout, shot({ portraitId: 'img-1' }), assets, 0, DEFAULT_REPLAY_FRAME_STYLE, {
       width: 10,
       height: 10,
       gridSize: 50,
@@ -227,7 +230,9 @@ describe('paintReplayFrame()', () => {
       pieces: [],
     });
 
-    expect(images).toHaveLength(0);
+    const portrait = beside.images[beside.images.length - 1];
+    expect(portrait.height).toBeLessThan(alone.images[0].height);
+    expect(portrait.y + portrait.height).toBe(layout.portrait.y);
   });
 
   it('進み具合を帯で示すこと', () => {

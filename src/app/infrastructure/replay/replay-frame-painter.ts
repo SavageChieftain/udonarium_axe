@@ -161,7 +161,7 @@ function paintDialogue(
   style: ReplayFrameStyle,
   hasBoard: boolean
 ): void {
-  if (!hasBoard) paintPortrait(ctx, layout, shot, assets);
+  paintPortrait(ctx, layout, shot, assets, hasBoard);
   paintChapterLabel(ctx, layout, shot, style);
   paintBox(ctx, layout, style);
 
@@ -191,13 +191,15 @@ function paintPortrait(
   ctx: ReplayFrameCanvas,
   layout: ReplayFrameLayout,
   shot: ReplayShot,
-  assets: ReplayFrameAssets
+  assets: ReplayFrameAssets,
+  besideBoard: boolean
 ): void {
   if (shot.portraitId.length < 1) return;
   const portrait = assets.imageOf(shot.portraitId);
   if (!portrait) return;
 
-  const size = containRect(portrait, layout.portrait.maxWidth, layout.portrait.maxHeight);
+  const shrink = besideBoard ? 0.55 : 1;
+  const size = containRect(portrait, layout.portrait.maxWidth * shrink, layout.portrait.maxHeight * shrink);
   if (size.width < 1 || size.height < 1) return;
   ctx.drawImage(portrait, layout.portrait.x, layout.portrait.y - size.height, size.width, size.height);
 }

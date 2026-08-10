@@ -73,7 +73,7 @@ describe('ReplayVideoPanelComponent', () => {
             recordingId: signal<number | null>(7).asReadonly(),
             events: signal(events).asReadonly(),
             cast: signal([]).asReadonly(),
-            manifest: signal({ roomName: '第一夜', startedAt: 0, endedAt: null }).asReadonly(),
+            manifest: signal({ roomName: '第一夜', startedAt: 0, endedAt: null, actors: [], targets: [] }).asReadonly(),
           },
         },
         {
@@ -110,6 +110,24 @@ describe('ReplayVideoPanelComponent', () => {
 
   it('書き出す前に長さとカット数を知らせること', async () => {
     await setup();
+    buttonByText('動画にする')?.click();
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).toContain('2 カット');
+  });
+
+  it('盤面の動きも読める言葉のカットにすること', async () => {
+    events = [
+      say(1, 'やあ'),
+      {
+        ...say(2, ''),
+        kind: ReplayEventKind.ObjectMove,
+        targetId: 'c1',
+        detail: { from: { name: 'table', x: 0, y: 0, z: 0 }, to: { name: 'table', x: 100, y: 50, z: 0 } },
+      },
+    ];
+    await setup();
+
     buttonByText('動画にする')?.click();
     fixture.detectChanges();
 
@@ -153,7 +171,7 @@ describe('ReplayVideoPanelComponent', () => {
   });
 
   it('画にできる場面が無ければ書き出させないこと', async () => {
-    events = [{ ...say(1, ''), kind: ReplayEventKind.ObjectMove, detail: {} }];
+    events = [{ ...say(1, ''), kind: ReplayEventKind.PeerJoin, detail: {} }];
     await setup();
 
     buttonByText('動画にする')?.click();

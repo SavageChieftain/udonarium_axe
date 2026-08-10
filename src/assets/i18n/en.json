@@ -2149,7 +2149,7 @@
         },
         "of": {
           "lines": "Lines and chapters",
-          "everything": "Events as well"
+          "everything": "The table as well"
         },
         "estimate": "{{shots}} shots, about {{length}}",
         "start": "Write it out",

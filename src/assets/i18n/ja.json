@@ -2149,7 +2149,7 @@
         },
         "of": {
           "lines": "台詞と章だけ",
-          "everything": "出来事も入れる"
+          "everything": "盤面の動きも入れる"
         },
         "estimate": "{{shots}} カット・およそ {{length}}",
         "start": "書き出す",

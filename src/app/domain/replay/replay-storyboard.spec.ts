@@ -103,15 +103,42 @@ describe('buildReplayStoryboard()', () => {
     expect(board.shots).toHaveLength(1);
   });
 
-  it('出来事も入れると読める種類だけ足すこと', () => {
-    const move: ReplayEvent = { ...say(2, ''), kind: ReplayEventKind.ObjectMove, detail: { text: '動いた' } };
-    const cutIn: ReplayEvent = { ...say(3, ''), kind: ReplayEventKind.MediaCutIn, detail: { text: '幕間' } };
+  it('出来事も入れると盤面の動きもカットにすること', () => {
+    const move: ReplayEvent = { ...say(2, ''), kind: ReplayEventKind.ObjectMove, detail: {} };
+    const cutIn: ReplayEvent = { ...say(3, ''), kind: ReplayEventKind.MediaCutIn, detail: {} };
     const board = buildReplayStoryboard([say(1, 'やあ'), move, cutIn], cast, {
+      pacing: ReplayShotPacing.Reading,
+      scope: ReplayShotScope.Everything,
+      caption: (event) => (event.kind === ReplayEventKind.ObjectMove ? '盗賊が動いた' : 'カットイン'),
+    });
+
+    expect(board.shots.map((shot) => shot.kind)).toEqual([
+      ReplayEventKind.ChatMessage,
+      ReplayEventKind.ObjectMove,
+      ReplayEventKind.MediaCutIn,
+    ]);
+    expect(board.shots[1].text).toBe('盗賊が動いた');
+    expect(board.shots[1].isNarration).toBe(true);
+  });
+
+  it('言葉を用意できない出来事は画にしないこと', () => {
+    const move: ReplayEvent = { ...say(2, ''), kind: ReplayEventKind.ObjectMove, detail: {} };
+    const board = buildReplayStoryboard([say(1, 'やあ'), move], cast, {
       pacing: ReplayShotPacing.Reading,
       scope: ReplayShotScope.Everything,
     });
 
-    expect(board.shots.map((shot) => shot.kind)).toEqual([ReplayEventKind.ChatMessage, ReplayEventKind.MediaCutIn]);
+    expect(board.shots).toHaveLength(1);
+  });
+
+  it('中身の無い発言は言葉を借りずに落とすこと', () => {
+    const board = buildReplayStoryboard([say(1, '')], cast, {
+      pacing: ReplayShotPacing.Reading,
+      scope: ReplayShotScope.Lines,
+      caption: () => '借り物の言葉',
+    });
+
+    expect(board.shots).toHaveLength(0);
   });
 
   it('実時間の尺では次の発言までの間を使うこと', () => {

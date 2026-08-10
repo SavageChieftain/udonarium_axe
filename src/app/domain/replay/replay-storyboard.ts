@@ -29,6 +29,7 @@ export interface ReplayStoryboardOptions {
   pacing: ReplayShotPacing;
   scope: ReplayShotScope;
   viewer?: ReplayViewer;
+  caption?: ReplayShotCaption;
 }
 
 export const DEFAULT_REPLAY_STORYBOARD_OPTIONS: ReplayStoryboardOptions = {
@@ -64,10 +65,22 @@ const NARRATED_KINDS: ReadonlySet<ReplayEventKind> = new Set([
   ReplayEventKind.Marker,
   ReplayEventKind.TableChange,
   ReplayEventKind.TurnChange,
+  ReplayEventKind.VoteStart,
   ReplayEventKind.VoteFinish,
   ReplayEventKind.MediaCutIn,
+  ReplayEventKind.MediaSoundEffect,
+  ReplayEventKind.MediaBgm,
   ReplayEventKind.EffectCast,
+  ReplayEventKind.ObjectMove,
+  ReplayEventKind.ObjectCreate,
+  ReplayEventKind.ObjectRemove,
+  ReplayEventKind.ObjectValue,
+  ReplayEventKind.ObjectDiceRoll,
+  ReplayEventKind.ObjectShuffle,
+  ReplayEventKind.ObjectFace,
 ]);
+
+export type ReplayShotCaption = (event: ReplayEvent) => string;
 
 export function buildReplayStoryboard(
   events: readonly ReplayEvent[],
@@ -95,7 +108,7 @@ export function buildReplayStoryboard(
 
     if (!isShown(event.kind, options.scope)) continue;
 
-    const text = textOfShot(event);
+    const text = textOfShot(event, options.caption);
     if (text.length < 1 && !isChapter) continue;
 
     const speaker = isChapter ? '' : String(event.detail['name'] ?? '').trim();
@@ -142,9 +155,11 @@ function isShown(kind: ReplayEventKind, scope: ReplayShotScope): boolean {
   return scope === ReplayShotScope.Everything && NARRATED_KINDS.has(kind);
 }
 
-function textOfShot(event: ReplayEvent): string {
+function textOfShot(event: ReplayEvent, caption?: ReplayShotCaption): string {
   if (event.kind === ReplayEventKind.Marker) return String(event.detail['label'] ?? '').trim();
-  return String(event.detail['text'] ?? '').trim();
+  const spoken = String(event.detail['text'] ?? '').trim();
+  if (spoken.length > 0 || SPOKEN_KINDS.has(event.kind)) return spoken;
+  return (caption?.(event) ?? '').trim();
 }
 
 function durationOf(

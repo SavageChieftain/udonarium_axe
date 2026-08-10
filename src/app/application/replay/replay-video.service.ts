@@ -18,6 +18,7 @@ import { applyReplayEvents } from '@axe/domain/replay/replay-patch';
 import {
   buildReplayStoryboard,
   type ReplayShot,
+  type ReplayShotCaption,
   ReplayShotPacing as Pacing,
   type ReplayShotPacing,
   type ReplayShotScope,
@@ -38,6 +39,7 @@ export interface ReplayVideoOptions {
   fps: number;
   pacing: ReplayShotPacing;
   scope: ReplayShotScope;
+  caption?: ReplayShotCaption;
 }
 
 export const DEFAULT_REPLAY_VIDEO_OPTIONS: ReplayVideoOptions = {
