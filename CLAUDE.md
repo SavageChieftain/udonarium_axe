@@ -17,13 +17,13 @@ WebRTC (SkyWay SDK) による P2P 通信でサーバレスにオブジェクト�
 composition → features → ui → application → infrastructure → domain → core
 ```
 
-※ infrastructure は現状空のため、application は domain を直接 import する
+※ infrastructure は薄いため、application は domain も直接 import する
 
 | レイヤー                              | 一行サマリ                                      |
 | ------------------------------------- | ----------------------------------------------- |
 | `@axe/core/*`                         | 純粋インフラ。Angular 非依存、Web API ラッパ    |
 | `@axe/domain/*`                       | 純粋ドメインモデル。Angular / DOM 非依存        |
-| `@axe/infrastructure/*` (予約)        | domain ↔ DOM/Web のアダプタ層。現状空           |
+| `@axe/infrastructure/*`               | domain ↔ DOM/Web のアダプタ層（Canvas 描画等）  |
 | `@axe/application/*`                  | Angular DI ラップ層（`@Injectable` サービス群） |
 | `@axe/ui/*`                           | feature 非依存の汎用 UI 部品                    |
 | `@axe/features/*`                     | ユーザ向け 1 機能 = 1 サブフォルダ              |

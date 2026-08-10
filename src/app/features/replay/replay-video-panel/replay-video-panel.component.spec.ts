@@ -39,6 +39,7 @@ describe('ReplayVideoPanelComponent', () => {
   let isRendering: WritableSignal<boolean>;
   let progress: WritableSignal<number>;
   let isSupported = true;
+  let recordings: readonly ReplayRecordingMeta[];
   let events: readonly ReplayEvent[];
   let isEditing: WritableSignal<boolean>;
   let edited: WritableSignal<readonly ReplayEvent[]>;
@@ -72,6 +73,7 @@ describe('ReplayVideoPanelComponent', () => {
             recordingId: signal<number | null>(7).asReadonly(),
             events: signal(events).asReadonly(),
             cast: signal([]).asReadonly(),
+            manifest: signal({ roomName: '第一夜', startedAt: 0, endedAt: null }).asReadonly(),
           },
         },
         {
@@ -80,7 +82,7 @@ describe('ReplayVideoPanelComponent', () => {
         },
         {
           provide: ReplayRecorderService,
-          useValue: { recordings: signal<readonly ReplayRecordingMeta[]>([meta]).asReadonly() },
+          useValue: { recordings: signal<readonly ReplayRecordingMeta[]>(recordings).asReadonly() },
         },
       ],
     }).compileComponents();
@@ -95,6 +97,7 @@ describe('ReplayVideoPanelComponent', () => {
     isRendering = signal(false);
     progress = signal(0);
     isSupported = true;
+    recordings = [meta];
     events = [say(1, 'やあ'), say(2, 'こんばんは')];
     isEditing = signal(false);
     edited = signal<readonly ReplayEvent[]>([]);
@@ -157,6 +160,18 @@ describe('ReplayVideoPanelComponent', () => {
     fixture.detectChanges();
 
     expect(buttonByText('書き出す')?.disabled).toBe(true);
+  });
+
+  it('一覧に載る前の記録でも書き出せること', async () => {
+    recordings = [];
+    await setup();
+
+    buttonByText('動画にする')?.click();
+    fixture.detectChanges();
+    buttonByText('書き出す')?.click();
+    await fixture.whenStable();
+
+    expect(render.mock.calls[0][0]).toMatchObject({ id: 7, roomName: '第一夜' });
   });
 
   it('書き出せない環境では押させないこと', async () => {

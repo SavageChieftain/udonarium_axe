@@ -4,6 +4,7 @@ import { ReplayEditorService } from '@axe/application/replay/replay-editor.servi
 import { ReplayPlaybackService } from '@axe/application/replay/replay-playback.service';
 import { ReplayRecorderService } from '@axe/application/replay/replay-recorder.service';
 import { DEFAULT_REPLAY_VIDEO_OPTIONS, ReplayVideoService } from '@axe/application/replay/replay-video.service';
+import type { ReplayRecordingMeta } from '@axe/core/storage/replay-log-store';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { REPLAY_FRAME_PRESETS } from '@axe/domain/replay/replay-frame-layout';
 import { buildReplayStoryboard, ReplayShotPacing, ReplayShotScope } from '@axe/domain/replay/replay-storyboard';
@@ -76,12 +77,9 @@ export class ReplayVideoPanelComponent {
     const id = this.playback.recordingId();
     if (id == null || this.estimate().shots < 1) return;
 
-    const meta = this.recorder.recordings().find((recording) => recording.id === id);
-    if (!meta) return;
-
     this.isOpen.set(false);
     await this.video.render(
-      meta,
+      this.metaOf(id),
       this.events(),
       {
         ...DEFAULT_REPLAY_VIDEO_OPTIONS,
@@ -91,6 +89,21 @@ export class ReplayVideoPanelComponent {
       },
       { userId: PeerCursor.myCursor?.userId ?? '', role: PeerCursor.myRole }
     );
+  }
+
+  private metaOf(id: number): ReplayRecordingMeta {
+    const known = this.recorder.recordings().find((recording) => recording.id === id);
+    if (known) return known;
+
+    const manifest = this.playback.manifest();
+    return {
+      id,
+      roomName: manifest?.roomName ?? '',
+      startedAt: manifest?.startedAt ?? 0,
+      endedAt: manifest?.endedAt ?? null,
+      eventCount: this.events().length,
+      byteSize: 0,
+    };
   }
 
   private events() {

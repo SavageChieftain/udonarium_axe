@@ -9,18 +9,18 @@
 composition → features → ui → application → infrastructure → domain → core
 ```
 
-※ infrastructure は現状空のため、application は domain を直接 import する
+※ infrastructure は薄いため、application は domain も直接 import する
 
-| レイヤー                       | 一行サマリ                                                      |
-| ------------------------------ | --------------------------------------------------------------- |
-| `@axe/core/*`                  | 純粋インフラ。Angular 非依存、Web API ラッパ                    |
-| `@axe/domain/*`                | 純粋ドメインモデル。Angular / DOM 非依存                        |
-| `@axe/infrastructure/*` (予約) | domain ↔ DOM/Web のアダプタ層。現状空                           |
-| `@axe/application/*`           | Angular DI ラップ層（@Injectable サービス群）                   |
-| `@axe/ui/*`                    | feature 非依存の汎用 UI 部品                                    |
-| `@axe/features/*`              | ユーザ向け 1 機能 = 1 サブフォルダ                              |
-| `@axe/composition/*`           | composition root の合成コード。すべての層に依存可能             |
-| `src/app/*.ts`                 | composition root（`app.component.ts` 等）。すべての層に依存可能 |
+| レイヤー                | 一行サマリ                                                      |
+| ----------------------- | --------------------------------------------------------------- |
+| `@axe/core/*`           | 純粋インフラ。Angular 非依存、Web API ラッパ                    |
+| `@axe/domain/*`         | 純粋ドメインモデル。Angular / DOM 非依存                        |
+| `@axe/infrastructure/*` | domain ↔ DOM/Web のアダプタ層                                   |
+| `@axe/application/*`    | Angular DI ラップ層（@Injectable サービス群）                   |
+| `@axe/ui/*`             | feature 非依存の汎用 UI 部品                                    |
+| `@axe/features/*`       | ユーザ向け 1 機能 = 1 サブフォルダ                              |
+| `@axe/composition/*`    | composition root の合成コード。すべての層に依存可能             |
+| `src/app/*.ts`          | composition root（`app.component.ts` 等）。すべての層に依存可能 |
 
 依存方向は ESLint の `no-restricted-imports` で自動検査される（[eslint.config.ts](../eslint.config.ts)）。
 `pre-commit` フック (`ng lint`) で必ず検出されるため、新規ファイル追加時は層を意識する。
@@ -49,14 +49,14 @@ composition → features → ui → application → infrastructure → domain �
 - **入れない**: DOM API 直接呼び出し（`document.*` / `window.confirm` / `addEventListener`）、Angular の `@Injectable` / `inject`、`infrastructure` 以上のレイヤー
 - **仕様**: シリアライズに耐え P2P 同期できること。コンストラクタの副作用ゼロ
 
-### `@axe/infrastructure/*`（予約）
+### `@axe/infrastructure/*`
 
-domain ↔ DOM/Web を橋渡しするアダプタ層。現状空。
+domain ↔ DOM/Web を橋渡しするアダプタ層。
 
 - **依存可能**: `core`, `domain`
-- **入れる**: domain ↔ 外部世界（Audio, IndexedDB, localStorage, MediaSession 等）のアダプタ
-- **入れない**: `application` / `ui` / `features` への参照
-- `AudioPlayer` を domain から切り離す等のリファクタで自然に埋まる想定
+- **入れる**: domain ↔ 外部世界（Canvas, Audio, IndexedDB, localStorage, MediaSession 等）のアダプタ
+- **入れない**: `application` / `ui` / `features` への参照、Angular の `@Injectable` / `inject`
+- **例**: `replay/replay-frame-painter` — domain の絵コンテを Canvas 2D に描く。描く内容（配置・折返し）は domain の純関数、描く手段だけがここ
 
 ### `@axe/application/*`
 

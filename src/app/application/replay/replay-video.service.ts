@@ -82,46 +82,49 @@ export class ReplayVideoService {
         return false;
       }
 
-      const frameCount = Math.min(
-        REPLAY_VIDEO_MAX_FRAMES,
-        Math.max(1, Math.round((storyboard.totalMs / 1000) * options.fps))
-      );
+      const wanted = Math.max(1, Math.round((storyboard.totalMs / 1000) * options.fps));
+      const frameCount = Math.min(REPLAY_VIDEO_MAX_FRAMES, wanted);
+      if (frameCount < wanted) {
+        Logger.warn('[ReplayVideo] 長すぎるため途中までにします', { wanted, frameCount });
+      }
       this._total.set(frameCount);
 
       const layout = replayFrameLayout(options.size);
       const assets = await this.loadAssets(storyboard.shots.flatMap((shot) => [shot.portraitId, shot.backgroundId]));
       const msPerFrame = 1000 / options.fps;
 
-      const encoded = await this.encoder.encode({
-        width: options.size.width,
-        height: options.size.height,
-        fps: options.fps,
-        frameCount,
-        isCancelled: () => this.cancelled,
-        onProgress: (done, total) => {
-          this._done.set(done);
-          this._total.set(total);
-        },
-        paint: (ctx, index) => {
-          const atMs = index * msPerFrame;
-          paintReplayFrame(
-            ctx,
-            layout,
-            shotAt(storyboard, atMs),
-            { imageOf: (identifier) => assets.get(identifier) ?? null },
-            frameCount > 1 ? index / (frameCount - 1) : 1
-          );
-        },
-      });
+      try {
+        const encoded = await this.encoder.encode({
+          width: options.size.width,
+          height: options.size.height,
+          fps: options.fps,
+          frameCount,
+          isCancelled: () => this.cancelled,
+          onProgress: (done, total) => {
+            this._done.set(done);
+            this._total.set(total);
+          },
+          paint: (ctx, index) => {
+            const atMs = index * msPerFrame;
+            paintReplayFrame(
+              ctx,
+              layout,
+              shotAt(storyboard, atMs),
+              { imageOf: (identifier) => assets.get(identifier) ?? null },
+              frameCount > 1 ? index / (frameCount - 1) : 1
+            );
+          },
+        });
+        if (!encoded) return false;
 
-      for (const bitmap of assets.values()) bitmap.close?.();
-      if (!encoded) return false;
-
-      this.encoder.save(
-        encoded.blob,
-        `${replayArchiveName({ roomName: meta.roomName, startedAt: meta.startedAt })}.${encoded.extension}`
-      );
-      return true;
+        this.encoder.save(
+          encoded.blob,
+          `${replayArchiveName({ roomName: meta.roomName, startedAt: meta.startedAt })}.${encoded.extension}`
+        );
+        return true;
+      } finally {
+        for (const bitmap of assets.values()) bitmap.close?.();
+      }
     } catch (reason) {
       Logger.warn('[ReplayVideo] 動画にできませんでした', reason);
       return false;
