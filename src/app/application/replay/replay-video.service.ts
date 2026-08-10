@@ -169,8 +169,15 @@ export class ReplayVideoService {
       const soundtrack = buildReplaySoundtrack(events, storyboard);
       if (!hasReplaySound(soundtrack)) return null;
       return await this.mixer.mix(soundtrack, async (identifier) => {
-        const blob = this.audioStorage.get(identifier)?.blob;
-        return blob ? await blob.arrayBuffer() : null;
+        const audio = this.audioStorage.get(identifier);
+        if (!audio) {
+          Logger.warn('[ReplayVideo] この音はこのブラウザに残っていません', identifier);
+          return null;
+        }
+        if (audio.blob) return await audio.blob.arrayBuffer();
+        if (audio.url.length > 0) return await (await fetch(audio.url)).arrayBuffer();
+        Logger.warn('[ReplayVideo] 音の中身がありません', identifier);
+        return null;
       });
     } catch (reason) {
       Logger.warn('[ReplayVideo] 音を作れませんでした', reason);
@@ -217,14 +224,36 @@ export class ReplayVideoService {
     const assets = new Map<string, ReplayFrameImage & { close?(): void }>();
 
     for (const identifier of wanted) {
-      const blob = this.imageStorage.get(identifier)?.blob;
-      if (!blob) continue;
+      const image = this.imageStorage.get(identifier);
+      if (!image) {
+        Logger.warn('[ReplayVideo] この絵はこのブラウザに残っていません', identifier);
+        continue;
+      }
       try {
-        assets.set(identifier, (await createImageBitmap(blob)) as ReplayFrameImage & { close(): void });
+        const drawable = await toDrawableImage(image.blob, image.url);
+        if (drawable) assets.set(identifier, drawable);
+        else Logger.warn('[ReplayVideo] 絵の中身がありません', identifier);
       } catch (reason) {
-        Logger.warn('[ReplayVideo] 素材を読めませんでした', identifier, reason);
+        Logger.warn('[ReplayVideo] 絵を読めませんでした', identifier, reason);
       }
     }
     return assets;
   }
+}
+
+async function toDrawableImage(
+  blob: Blob | null,
+  url: string
+): Promise<(ReplayFrameImage & { close?(): void }) | null> {
+  if (blob && typeof createImageBitmap === 'function') {
+    return (await createImageBitmap(blob)) as ReplayFrameImage & { close(): void };
+  }
+  if (url.length < 1) return null;
+  return await new Promise((resolve, reject) => {
+    const element = new Image();
+    element.crossOrigin = 'anonymous';
+    element.onload = () => resolve(element as unknown as ReplayFrameImage);
+    element.onerror = () => reject(new Error(`読めない絵です: ${url}`));
+    element.src = url;
+  });
 }

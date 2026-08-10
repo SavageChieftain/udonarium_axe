@@ -1,5 +1,8 @@
+import { ObjectStore } from '@axe/core/sync/object-store';
+import { GameCharacter } from '@axe/domain/character/game-character';
 import { buildReplayBoardScene, collectBoardAssetIds } from '@axe/domain/replay/replay-board-view';
 import type { ReplayObjectSnapshot } from '@axe/domain/replay/replay-keyframe';
+import { GameTable } from '@axe/domain/tabletop/game-table';
 
 function table(identifier: string, overrides: Record<string, unknown> = {}): ReplayObjectSnapshot {
   return {
@@ -124,5 +127,50 @@ describe('collectBoardAssetIds()', () => {
 
   it('盤面が無ければ何も返さないこと', () => {
     expect(collectBoardAssetIds(null)).toEqual([]);
+  });
+});
+
+describe('本物のコマから起こすとき', () => {
+  afterEach(() => {
+    for (const object of ObjectStore.instance.getObjects()) ObjectStore.instance.remove(object);
+    ObjectStore.instance.clearDeleteHistory();
+  });
+
+  function snapshotStore(): ReplayObjectSnapshot[] {
+    return ObjectStore.instance.getObjects().map((object) => {
+      const context = object.toContext();
+      return {
+        identifier: context.identifier,
+        aliasName: context.aliasName,
+        syncData: context.syncData as Record<string, unknown>,
+      };
+    });
+  }
+
+  it('実際のキャラクターから名前と絵と大きさを読めること', () => {
+    const table = new GameTable('t1');
+    table.width = 12;
+    table.height = 8;
+    table.gridSize = 50;
+    ObjectStore.instance.add(table, false);
+
+    const character = GameCharacter.create('盗賊', 2, 'img-1');
+    character.location.x = 150;
+    character.location.y = 100;
+
+    const scene = buildReplayBoardScene(snapshotStore())!;
+    const piece = scene.pieces.find((one) => one.identifier === character.identifier)!;
+
+    expect(scene).toMatchObject({ width: 12, height: 8, gridSize: 50 });
+    expect(piece).toMatchObject({ name: '盗賊', imageIdentifier: 'img-1', size: 2, x: 150, y: 100 });
+  });
+
+  it('しまったキャラクターは実物でも盤面から外れること', () => {
+    ObjectStore.instance.add(new GameTable('t1'), false);
+    const character = GameCharacter.create('盗賊', 1, 'img-1');
+    character.setLocation('stand');
+
+    const scene = buildReplayBoardScene(snapshotStore())!;
+    expect(scene.pieces.some((one) => one.identifier === character.identifier)).toBe(false);
   });
 });
