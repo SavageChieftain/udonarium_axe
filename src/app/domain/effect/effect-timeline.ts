@@ -262,6 +262,8 @@ const PROJECTILE_TRAVEL_MS: Record<ProjectileStyle, number> = {
 
 /** 着弾音が潰し合わないよう空ける最短間隔。 */
 const IMPACT_SOUND_MIN_GAP_MS = 70;
+/** 降り注ぐものの音の間隔。1 本ごとに鳴らすと連続音になって本数が聞き取れない。 */
+const RAIN_SOUND_MIN_GAP_MS = 110;
 
 /** 発射音が潰し合わないよう空ける最短間隔。連射の刻みが聞こえる程度には詰める。 */
 const LAUNCH_SOUND_MIN_GAP_MS = 55;
@@ -417,6 +419,11 @@ export function isEffectFinished(preset: EffectPreset, cast: EffectCast, elapsed
  */
 export function impactSoundTimes(preset: EffectPreset): number[] {
   if (preset.impactSoundIdentifier.length < 1) return [];
+  if (preset.effectKind === 'arrowrain')
+    return soundTimesOf(
+      arrowRainShots().map((shot) => shot.land),
+      preset
+    );
   if (preset.effectKind !== 'projectile') return [Math.round(preset.duration * preset.impactSoundAt)];
 
   const times: number[] = [];
@@ -434,6 +441,11 @@ export function impactSoundTimes(preset: EffectPreset): number[] {
  */
 export function launchSoundTimes(preset: EffectPreset): number[] {
   if (preset.soundIdentifier.length < 1) return [];
+  if (preset.effectKind === 'arrowrain')
+    return soundTimesOf(
+      arrowRainShots().map((shot) => shot.loose),
+      preset
+    );
   if (preset.effectKind !== 'projectile') return [0];
 
   const times: number[] = [];
@@ -443,6 +455,17 @@ export function launchSoundTimes(preset: EffectPreset): number[] {
     times.push(at);
   }
   return times.length > 0 ? times : [0];
+}
+
+/** 矢の雨のように本数の多いものを、聞き取れる間隔まで間引いた時刻(ms)。 */
+function soundTimesOf(positions: readonly number[], preset: EffectPreset): number[] {
+  const times: number[] = [];
+  for (const position of positions) {
+    const at = Math.round(position * preset.duration);
+    if (times.length > 0 && at - times[times.length - 1] < RAIN_SOUND_MIN_GAP_MS) continue;
+    times.push(at);
+  }
+  return times;
 }
 
 /** 対象ごとの再生位置。canvas 層と共有する。 */
@@ -505,7 +528,17 @@ export function effectSprites(
       return;
     }
     if (preset.effectKind === 'arrowrain') {
-      appendArrowRain(sprites, prefix, center, base, progress, preset, random, options.viewRotation);
+      appendArrowRain(
+        sprites,
+        prefix,
+        center,
+        base,
+        progress,
+        preset,
+        projectileOrigin(cast, center, base),
+        random,
+        options.viewRotation
+      );
       return;
     }
     if (preset.effectKind === 'skyblade') {
@@ -945,22 +978,55 @@ function appendSkyblade(
   }
 }
 
-/** 降り注ぐ矢の本数。少ないと雨に見えず、多いと板が重なって潰れる。 */
-const ARROW_RAIN_COUNT = 18;
+/** 降り注ぐ矢の本数。少ないと雨に見えない。 */
+const ARROW_RAIN_COUNT = 36;
+/** 射手が撃ち終えるまでの長さ(全体比)。 */
+const ARROW_RAIN_LOOSE_END = 0.26;
+/** 1 本が空へ昇っていく長さ(全体比)。 */
+const ARROW_RAIN_CLIMB = 0.22;
 /** 1 本が落ちきるまでの長さ(全体比)。 */
-export const ARROW_RAIN_FALL = 0.2;
+export const ARROW_RAIN_FALL = 0.18;
 /** 落下を撒く区間。最後の 1 本が刺さり終わるまで尺に納める。 */
-const ARROW_RAIN_SPREAD = 0.62;
+const ARROW_RAIN_SPREAD = 0.5;
 /** 落下前に足元へ出す予告の長さ。どこへ落ちるか見せてから当てる。 */
 const ARROW_RAIN_TELL = 0.14;
-/** 矢が湧く高さ(base 比)。画面の外から降ってきたように見せる。 */
+/** 矢が昇る高さ(base 比)。画面の外まで昇って、そこから降ってくる。 */
 const ARROW_RAIN_HEIGHT = 9;
 
+export interface ArrowRainShot {
+  /** 弓を離れる位置(0-1)。 */
+  loose: number;
+  /** 落ち始める位置(0-1)。 */
+  fall: number;
+  /** 突き刺さる位置(0-1)。 */
+  land: number;
+}
+
 /**
- * 降り注ぐ矢。落ちる位置を先に地面へ描いてから当てる。
+ * 矢 1 本ごとの撃つ・落ちる・刺さる。
  *
- * 予告 → 落下 → 突き刺さり、の 3 段。予告を挟まないと、
- * 見る側は当たった後で何が起きたかを知ることになり、避けようのない事故に見える。
+ * 絵と音の両方がこの表を見るので、種に依らず同じ並びを返す。
+ */
+export function arrowRainShots(): ArrowRainShot[] {
+  const shots: ArrowRainShot[] = [];
+  for (let index = 0; index < ARROW_RAIN_COUNT; index += 1) {
+    // 等間隔だと機械仕掛けに聞こえるので、本数から決まるぶれを混ぜる。
+    const wobble = (((index * 37) % 13) / 13 - 0.5) * 0.04;
+    const fall = ARROW_RAIN_LOOSE_END + (index / ARROW_RAIN_COUNT) * ARROW_RAIN_SPREAD + wobble;
+    shots.push({
+      loose: (index / ARROW_RAIN_COUNT) * ARROW_RAIN_LOOSE_END,
+      fall,
+      land: fall + ARROW_RAIN_FALL,
+    });
+  }
+  return shots;
+}
+
+/**
+ * 降り注ぐ矢。射手が空へ撃ち上げ、落ちる位置を地面へ描いてから当てる。
+ *
+ * 撃ち上げ → 予告 → 落下 → 突き刺さり、の 4 段。撃ち上げを省くと矢がどこから
+ * 湧いたのか分からず、予告を省くと当たった後で何が起きたかを知ることになる。
  */
 function appendArrowRain(
   sprites: EffectSprite[],
@@ -969,22 +1035,58 @@ function appendArrowRain(
   base: number,
   progress: number,
   preset: EffectPreset,
+  origin: Point3,
   random: () => number,
   view: ViewRotation | null | undefined
 ): void {
   const colors = colorsOf(preset);
+  const shots = arrowRainShots();
 
   for (let index = 0; index < ARROW_RAIN_COUNT; index += 1) {
     const angle = random() * Math.PI * 2;
-    const radius = base * (0.3 + random() * 1.7);
-    const jitter = random() * 0.05;
+    const radius = base * (0.3 + random() * 1.9);
+    const sway = (random() - 0.5) * base * 2.4;
     const lean = 0.6 + random() * 0.5;
 
     const spot = { x: center.x + Math.cos(angle) * radius, y: center.y + Math.sin(angle) * radius, z: center.z };
-    const launch = (index / ARROW_RAIN_COUNT) * ARROW_RAIN_SPREAD + jitter;
-    const land = launch + ARROW_RAIN_FALL;
+    const { loose, fall: launch, land } = shots[index];
     const sky = { x: spot.x - base * lean, y: spot.y - base * lean * 1.4, z: spot.z + base * ARROW_RAIN_HEIGHT };
     const drop = projectDirection(spot.x - sky.x, spot.y - sky.y, spot.z - sky.z, view);
+
+    // 撃ち上げ。射手の足元から、的の方へ傾けて空へ抜けていく。
+    const climb = normalize((progress - loose) / ARROW_RAIN_CLIMB);
+    if (climb > 0 && climb < 1) {
+      const apex = {
+        x: origin.x + (center.x - origin.x) * 0.32 + sway,
+        y: origin.y + (center.y - origin.y) * 0.32 + sway * 0.6,
+        z: origin.z + base * ARROW_RAIN_HEIGHT,
+      };
+      // 昇るほど鈍る。等速だと打ち上げ花火のように伸びきってしまう。
+      const eased = 1 - (1 - climb) ** 2;
+      const rising = {
+        x: origin.x + (apex.x - origin.x) * eased,
+        y: origin.y + (apex.y - origin.y) * eased,
+        z: origin.z + (apex.z - origin.z) * eased,
+      };
+      const ahead = {
+        x: origin.x + (apex.x - origin.x) * Math.min(eased + 0.05, 1),
+        y: origin.y + (apex.y - origin.y) * Math.min(eased + 0.05, 1),
+        z: origin.z + (apex.z - origin.z) * Math.min(eased + 0.05, 1),
+      };
+      const heading = projectDirection(ahead.x - rising.x, ahead.y - rising.y, ahead.z - rising.z, view);
+      sprites.push({
+        ...blank(),
+        key: `${prefix}-rain-loose-${index}`,
+        x: rising.x,
+        y: rising.y,
+        z: rising.z,
+        width: base * 1.4,
+        height: base * 0.28,
+        rotate: heading.angle,
+        opacity: 1 - climb ** 3,
+        svg: arrowSvg(colors),
+      });
+    }
 
     // 予告。落ちる位置の輪を絞り込んでいく。
     const tell = normalize((progress - (launch - ARROW_RAIN_TELL)) / (ARROW_RAIN_TELL + ARROW_RAIN_FALL));

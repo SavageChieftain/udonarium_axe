@@ -1098,8 +1098,8 @@ describe('アローレイン', () => {
     });
     const cast: EffectCast = {
       presetIdentifier: 'rain-test',
-      casterIdentifier: '',
-      origin: null,
+      casterIdentifier: 'caster',
+      origin: { x: -400, y: 0, z: 0 },
       seed: 7,
       targets: [{ identifier: 'char0', x: 0, y: 0, z: 0 }],
     };
@@ -1110,14 +1110,30 @@ describe('アローレイン', () => {
     return rainSprites(elapsedMs).filter((sprite) => sprite.key.includes(part));
   }
 
+  it('まず射手が空へ撃ち上げること', () => {
+    const loosed = keysAt(60, '-rain-loose-');
+
+    expect(loosed.length).toBeGreaterThan(0);
+    // 撃ち手の側から昇る。いきなり的の真上に湧くと、どこから来たのか読めない。
+    expect(loosed.every((sprite) => sprite.x < -200)).toBe(true);
+    expect(loosed.every((sprite) => sprite.z > 0)).toBe(true);
+    expect(keysAt(60, '-rain-arrow-')).toHaveLength(0);
+  });
+
+  it('撃ち上げた矢が昇っていくこと', () => {
+    const heightAt = (elapsedMs: number) => rainSprites(elapsedMs).find((sprite) => sprite.key === '0-rain-loose-0')!.z;
+
+    expect(heightAt(200)).toBeGreaterThan(heightAt(60));
+  });
+
   it('落ちてくる前に地面へ予告を出すこと', () => {
-    expect(keysAt(30, '-rain-mark-').length).toBeGreaterThan(0);
-    expect(keysAt(30, '-rain-arrow-')).toHaveLength(0);
+    expect(keysAt(300, '-rain-mark-').length).toBeGreaterThan(0);
+    expect(keysAt(300, '-rain-arrow-')).toHaveLength(0);
   });
 
   it('矢が上から落ちてくること', () => {
-    const early = keysAt(300, '-rain-arrow-');
-    const late = keysAt(400, '-rain-arrow-');
+    const early = keysAt(700, '-rain-arrow-');
+    const late = keysAt(800, '-rain-arrow-');
 
     expect(early.length).toBeGreaterThan(0);
     expect(late.length).toBeGreaterThan(0);
@@ -1125,18 +1141,36 @@ describe('アローレイン', () => {
   });
 
   it('中心のまわりに散らして刺さること', () => {
-    const stuck = keysAt(2000, '-rain-stuck-');
+    const stuck = keysAt(2300, '-rain-stuck-');
 
-    expect(stuck.length).toBeGreaterThan(4);
+    expect(stuck.length).toBeGreaterThan(8);
     expect(new Set(stuck.map((sprite) => `${sprite.x},${sprite.y}`)).size).toBe(stuck.length);
-    expect(stuck.every((sprite) => Math.hypot(sprite.x, sprite.y) <= 50 * 2.1)).toBe(true);
+    expect(stuck.every((sprite) => Math.hypot(sprite.x, sprite.y) <= 50 * 2.3)).toBe(true);
   });
 
   it('毎フレーム同じ場所へ落ちること', () => {
-    const once = keysAt(800, '-rain-mark-').map((sprite) => `${sprite.x},${sprite.y}`);
-    const twice = keysAt(800, '-rain-mark-').map((sprite) => `${sprite.x},${sprite.y}`);
+    const once = keysAt(900, '-rain-mark-').map((sprite) => `${sprite.x},${sprite.y}`);
+    const twice = keysAt(900, '-rain-mark-').map((sprite) => `${sprite.x},${sprite.y}`);
 
     expect(once).toEqual(twice);
+  });
+
+  it('撃つ音と刺さる音を何度も鳴らすこと', () => {
+    const preset = new EffectPreset('rain-sound-test');
+    Object.assign(preset, { kind: 'arrowrain', durationMs: 2400 });
+    preset.soundIdentifier = 'se-bow';
+    preset.impactSoundIdentifier = 'se-pierce';
+
+    const looses = launchSoundTimes(preset);
+    const hits = impactSoundTimes(preset);
+
+    // 1 回しか鳴らないと、何本降ったのか耳に伝わらない。
+    expect(looses.length).toBeGreaterThan(2);
+    expect(hits.length).toBeGreaterThan(2);
+    expect([...looses].sort((left, right) => left - right)).toEqual(looses);
+    expect(Math.min(...hits)).toBeGreaterThan(Math.min(...looses));
+    // 詰めすぎると連続音になって粒が消える。
+    expect(Math.min(...hits.slice(1).map((at, index) => at - hits[index]))).toBeGreaterThanOrEqual(110);
   });
 });
 
