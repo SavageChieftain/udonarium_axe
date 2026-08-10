@@ -2002,7 +2002,8 @@
         "import": "読み込み",
         "withAssets": "画像も含める",
         "noRecordings": "保存された記録はありません",
-        "soloRoom": "ひとりの卓"
+        "soloRoom": "ひとりの卓",
+        "showIncidental": "付随する音も出す"
       },
       "line": {
         "chat": "{{speaker}}「{{text}}」",

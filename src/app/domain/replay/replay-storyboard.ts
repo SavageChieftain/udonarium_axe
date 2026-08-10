@@ -1,6 +1,7 @@
 import type { ReplayCastMember } from '@axe/domain/replay/replay-cast';
 import {
   canViewReplayEvent,
+  isIncidentalReplayEvent,
   type ReplayEvent,
   ReplayEventKind,
   type ReplayViewer,
@@ -76,7 +77,6 @@ const NARRATED_KINDS: ReadonlySet<ReplayEventKind> = new Set([
   ReplayEventKind.VoteStart,
   ReplayEventKind.VoteFinish,
   ReplayEventKind.MediaCutIn,
-  ReplayEventKind.MediaSoundEffect,
   ReplayEventKind.MediaBgm,
   ReplayEventKind.EffectCast,
   ReplayEventKind.ObjectMove,
@@ -162,6 +162,7 @@ export function shotAt(storyboard: ReplayStoryboard, atMs: number): ReplayShot |
 }
 
 function isShown(kind: ReplayEventKind, scope: ReplayShotScope): boolean {
+  if (isIncidentalReplayEvent(kind)) return false;
   if (SPOKEN_KINDS.has(kind) || kind === ReplayEventKind.Marker) return true;
   return scope === ReplayShotScope.Everything && NARRATED_KINDS.has(kind);
 }

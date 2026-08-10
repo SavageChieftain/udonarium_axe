@@ -79,3 +79,25 @@ describe('collectReplayActorIds()', () => {
     expect(collectReplayActorIds([])).toEqual([]);
   });
 });
+
+describe('付随する音', () => {
+  const withSe = [
+    event(1, ReplayEventKind.ChatMessage),
+    event(2, ReplayEventKind.ObjectMove),
+    event(3, ReplayEventKind.MediaSoundEffect),
+  ];
+
+  it('既定では行として出さないこと', () => {
+    expect(filterReplayEvents(withSe, DEFAULT_REPLAY_LOG_FILTER, viewer).map((e) => e.seq)).toEqual([1, 2]);
+  });
+
+  it('盤面だけに絞っても出さないこと', () => {
+    const filter = { ...DEFAULT_REPLAY_LOG_FILTER, scope: ReplayLogScope.Board };
+    expect(filterReplayEvents(withSe, filter, viewer).map((e) => e.seq)).toEqual([2]);
+  });
+
+  it('求められたときは出すこと', () => {
+    const filter = { ...DEFAULT_REPLAY_LOG_FILTER, showIncidental: true };
+    expect(filterReplayEvents(withSe, filter, viewer).map((e) => e.seq)).toEqual([1, 2, 3]);
+  });
+});

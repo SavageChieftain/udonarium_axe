@@ -135,6 +135,10 @@ export class ReplayEntryListComponent {
     this.filter.update((filter) => ({ ...filter, hideSecret: !filter.hideSecret }));
   }
 
+  protected toggleIncidental(): void {
+    this.filter.update((filter) => ({ ...filter, showIncidental: !filter.showIncidental }));
+  }
+
   protected async activate(row: ReplayEntryRow): Promise<void> {
     if (this.editing()) return;
     await this.playback.seekTo(row.index);

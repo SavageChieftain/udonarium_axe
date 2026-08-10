@@ -127,6 +127,13 @@ export interface ReplayViewer {
   role: PeerRole;
 }
 
+/** 移動や判定に付いて鳴るだけで、それ自体は出来事ではない種類。音は残すが行としては見せない。 */
+const INCIDENTAL_KINDS: ReadonlySet<ReplayEventKind> = new Set([ReplayEventKind.MediaSoundEffect]);
+
+export function isIncidentalReplayEvent(kind: ReplayEventKind): boolean {
+  return INCIDENTAL_KINDS.has(kind);
+}
+
 export function canViewReplayEvent(event: ReplayEvent, viewer: ReplayViewer): boolean {
   const visibility = event.visibility;
   if (visibility.kind === 'public') return true;

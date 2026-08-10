@@ -2002,7 +2002,8 @@
         "import": "Import",
         "withAssets": "Include images",
         "noRecordings": "No saved recordings",
-        "soloRoom": "Solo table"
+        "soloRoom": "Solo table",
+        "showIncidental": "Show incidental sounds"
       },
       "line": {
         "chat": "{{speaker}}: {{text}}",

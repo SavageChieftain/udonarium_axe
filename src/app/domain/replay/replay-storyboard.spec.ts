@@ -121,6 +121,18 @@ describe('buildReplayStoryboard()', () => {
     expect(board.shots[1].isNarration).toBe(true);
   });
 
+  it('移動に付いて鳴る音は画にしないこと', () => {
+    const se: ReplayEvent = { ...say(2, ''), kind: ReplayEventKind.MediaSoundEffect, detail: { identifier: 'se-1' } };
+    const board = buildReplayStoryboard([say(1, 'やあ'), se], cast, {
+      pacing: ReplayShotPacing.Reading,
+      scope: ReplayShotScope.Everything,
+      caption: () => '効果音を鳴らした',
+    });
+
+    expect(board.shots).toHaveLength(1);
+    expect(board.timeOfSeq.has(2)).toBe(true);
+  });
+
   it('言葉を用意できない出来事は画にしないこと', () => {
     const move: ReplayEvent = { ...say(2, ''), kind: ReplayEventKind.ObjectMove, detail: {} };
     const board = buildReplayStoryboard([say(1, 'やあ'), move], cast, {
