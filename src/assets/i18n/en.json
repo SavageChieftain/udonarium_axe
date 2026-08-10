@@ -571,7 +571,9 @@
         "bullet": "Bullet",
         "crescent": "Slash wave",
         "blaster": "Blaster bolt",
-        "tracer": "Tracer"
+        "tracer": "Tracer",
+        "missile": "Missile",
+        "cruise": "Guided missile"
       },
       "slashStyle": {
         "single": "Single",
@@ -655,6 +657,8 @@
         "laser-hit": "Laser impact",
         "laserbeam": "Laser beam",
         "lasergun": "Laser gun",
+        "missile-launch": "Missile launch",
+        "rocket-launch": "Rocket launch",
         "poison": "Poison",
         "qigong": "Qigong",
         "reflect": "Reflect",

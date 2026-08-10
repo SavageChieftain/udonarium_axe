@@ -192,7 +192,9 @@ describe('飛ぶ物の新しい見た目', () => {
   });
 
   it('新しい見た目が選べる一覧に載っていること', () => {
-    expect([...PROJECTILE_STYLES]).toEqual(expect.arrayContaining(['crescent', 'blaster', 'tracer']));
+    expect([...PROJECTILE_STYLES]).toEqual(
+      expect.arrayContaining(['crescent', 'blaster', 'tracer', 'missile', 'cruise'])
+    );
   });
 
   it('矢の連射は 1 本ずつ間を置いて撃つこと', () => {
@@ -212,5 +214,23 @@ describe('飛ぶ物の新しい見た目', () => {
     expect(rain.maxTargets).toBeGreaterThan(seedOf('EffectPreset_arrow_volley').maxTargets);
     expect(rain.scale).toBeGreaterThan(seedOf('EffectPreset_arrow_volley').scale);
     expect(rain.durationMs).toBeGreaterThan(1200);
+  });
+
+  it('マイクロミサイルは束で撃って弾ごとに爆ぜること', () => {
+    const micro = seedOf('EffectPreset_micro_missile');
+
+    expect(micro).toMatchObject({ kind: 'projectile', projectileStyle: 'missile', impactKind: 'burst' });
+    expect(micro.shots).toBeGreaterThan(1);
+    expect(micro.soundKey).toBe('missileLaunch');
+    expect(micro.impactSoundKey).toBe('explosionSmall');
+  });
+
+  it('誘導弾は一発を長く飛ばすこと', () => {
+    const cruise = seedOf('EffectPreset_cruise_missile');
+
+    expect(cruise).toMatchObject({ kind: 'projectile', projectileStyle: 'cruise' });
+    expect(cruise.shots ?? 1).toBe(1);
+    expect(cruise.soundKey).toBe('rocketLaunch');
+    expect(cruise.durationMs).toBeGreaterThan(seedOf('EffectPreset_micro_missile').durationMs!);
   });
 });

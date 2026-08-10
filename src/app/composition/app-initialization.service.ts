@@ -218,6 +218,8 @@ export class AppInitializationService {
       sfHit: './assets/sounds/on-jin/laser-hit.mp3',
       sfBeam: './assets/sounds/on-jin/laserbeam.mp3',
       holyBlade: './assets/sounds/soundeffect-lab/holy-blade.mp3',
+      missileLaunch: './assets/sounds/soundeffect-lab/missile-launch.mp3',
+      rocketLaunch: './assets/sounds/soundeffect-lab/rocket-launch.mp3',
     };
 
     for (const key of Object.keys(soundMap) as SoundKey[]) {

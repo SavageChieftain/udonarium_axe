@@ -98,6 +98,8 @@ export class PresetSound {
   static sfHit: string = '';
   static sfBeam: string = '';
   static holyBlade: string = '';
+  static missileLaunch: string = '';
+  static rocketLaunch: string = '';
 }
 
 @SyncObject('sound-effect')

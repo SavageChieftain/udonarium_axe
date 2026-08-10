@@ -15,12 +15,14 @@ import {
   gravitySvg,
   impactStarSvg,
   magicCircleSvg,
+  missileSvg,
   ringSvg,
   ShapeColors,
   snowflakeSvg,
   speedLinesSvg,
   spikeSvg,
   spiralSvg,
+  thrustSvg,
   tracerSvg,
 } from '@axe/domain/effect/effect-shapes';
 import { projectDirection, ViewRotation } from '@axe/domain/effect/effect-view';
@@ -254,6 +256,8 @@ const PROJECTILE_TRAVEL_MS: Record<ProjectileStyle, number> = {
   crescent: 300,
   blaster: 110,
   tracer: 70,
+  missile: 420,
+  cruise: 900,
 };
 
 /** 着弾音が潰し合わないよう空ける最短間隔。 */
@@ -273,8 +277,21 @@ export interface ProjectileShot {
  * 飛翔体の刻み。最後の 1 発が終端で着弾するよう、発射を等間隔に並べる。
  * 弾ごとに独立して飛ぶので、機関銃は弾幕として見える。
  */
+/** 噴煙を継ぐ区間数。 */
+const SMOKE_SEGMENTS = 6;
+
+/** 弾ごとに横ぶれの向きを振り分ける。同じ側ばかりだと束になって 1 発に見える。 */
+const SWERVE_SIDE = [1, -1, 0.55, -0.55, 1.4, -1.4];
+
 /** まっすぐ飛ぶ見た目。尾を粒に割らず 1 本に繋ぐ。 */
-const STRAIGHT_LOOKS: ReadonlySet<ProjectileStyle> = new Set(['bullet', 'blaster', 'tracer', 'crescent']);
+const STRAIGHT_LOOKS: ReadonlySet<ProjectileStyle> = new Set([
+  'bullet',
+  'blaster',
+  'tracer',
+  'crescent',
+  'missile',
+  'cruise',
+]);
 
 /** 尾の長さ(飛翔の割合)。速いものほど長く引く。 */
 const TRAIL_SPAN: Record<ProjectileStyle, number> = {
@@ -284,6 +301,8 @@ const TRAIL_SPAN: Record<ProjectileStyle, number> = {
   crescent: 0.24,
   blaster: 0.3,
   tracer: 0.55,
+  missile: 0.34,
+  cruise: 0.4,
 };
 
 /** 進行方向に対する見た目の傾き。三日月は弧の腹を前へ向けたいので直交させる。 */
@@ -294,6 +313,8 @@ const PROJECTILE_TURN: Record<ProjectileStyle, number> = {
   crescent: 0,
   blaster: 0,
   tracer: 0,
+  missile: 0,
+  cruise: 0,
 };
 
 /** 弧を描いて飛ぶ高さ。矢は山なりに、光り物と刃はまっすぐ飛ばす。 */
@@ -304,6 +325,20 @@ const PROJECTILE_ARC: Record<ProjectileStyle, number> = {
   crescent: 0,
   blaster: 0,
   tracer: 0,
+  missile: 0.5,
+  cruise: 1.4,
+};
+
+/** 経路から横へ膨らむ量(base 比)。誘導弾は大きく回り込んでから食い付く。 */
+const PROJECTILE_SWERVE: Record<ProjectileStyle, number> = {
+  bolt: 0,
+  arrow: 0,
+  bullet: 0,
+  crescent: 0,
+  blaster: 0,
+  tracer: 0,
+  missile: 0.9,
+  cruise: 2.4,
 };
 
 /** 尾の太さ(base 比)。頭の大きさから作ると、大きい刃で尾が帯のようになってしまう。 */
@@ -314,6 +349,8 @@ const TRAIL_THICKNESS: Record<ProjectileStyle, number> = {
   crescent: 0.5,
   blaster: 0.26,
   tracer: 0.09,
+  missile: 0.3,
+  cruise: 0.38,
 };
 
 const PROJECTILE_SIZE: Record<ProjectileStyle, { width: number; height: number }> = {
@@ -323,6 +360,8 @@ const PROJECTILE_SIZE: Record<ProjectileStyle, { width: number; height: number }
   crescent: { width: 1.7, height: 1.7 },
   blaster: { width: 1.05, height: 0.34 },
   tracer: { width: 2.2, height: 0.09 },
+  missile: { width: 1.1, height: 0.34 },
+  cruise: { width: 1.9, height: 0.5 },
 };
 
 function projectileSvg(look: ProjectileStyle, colors: ReturnType<typeof colorsOf>): string {
@@ -335,6 +374,9 @@ function projectileSvg(look: ProjectileStyle, colors: ReturnType<typeof colorsOf
       return blasterSvg(colors);
     case 'tracer':
       return tracerSvg(colors);
+    case 'missile':
+    case 'cruise':
+      return missileSvg(colors);
     default:
       return bulletSvg(colors);
   }
@@ -1092,7 +1134,7 @@ function appendProjectile(
     const shotKey = `${prefix}-s${index}`;
 
     if (travel > 0 && travel < 1) {
-      appendFlyingShot(sprites, shotKey, center, base, travel, preset, origin, view, arc, look);
+      appendFlyingShot(sprites, shotKey, center, base, travel, preset, origin, view, arc, look, index);
     }
 
     appendLaunchFlash(sprites, shotKey, base, travel, preset, origin, solid);
@@ -1116,14 +1158,38 @@ function appendFlyingShot(
   origin: Point3,
   view: ViewRotation | null | undefined,
   arc: number,
-  look: ProjectileStyle
+  look: ProjectileStyle,
+  shotIndex: number
 ): void {
   const solid = look !== 'bolt';
-  const at = (value: number): Point3 => flightPoint(origin, center, base, value, arc);
+  const swerve = base * PROJECTILE_SWERVE[look] * SWERVE_SIDE[shotIndex % SWERVE_SIDE.length];
+  const at = (value: number): Point3 => flightPoint(origin, center, base, value, arc, swerve);
   const head = at(travel);
 
-  // 尾。まっすぐ飛ぶものは 1 本に繋げる。粒を並べると散弾のように見えてしまう。
-  if (STRAIGHT_LOOKS.has(look)) {
+  // 尾。回り込むものは経路に沿って短い区間で継ぐ。1 本の弦で結ぶと弾だけ横を向いて見える。
+  if (look === 'missile' || look === 'cruise') {
+    const span = TRAIL_SPAN[look] / SMOKE_SEGMENTS;
+    for (let segment = 0; segment < SMOKE_SEGMENTS; segment += 1) {
+      const front = at(travel - segment * span);
+      const back = at(travel - (segment + 1) * span);
+      const link = projectDirection(front.x - back.x, front.y - back.y, front.z - back.z, view);
+      if (link.length < 0.5) continue;
+      const age = segment / SMOKE_SEGMENTS;
+      sprites.push({
+        ...blank(),
+        key: `${prefix}-smoke-${segment}`,
+        x: (front.x + back.x) / 2,
+        y: (front.y + back.y) / 2,
+        z: (front.z + back.z) / 2,
+        width: link.length * 1.1,
+        height: base * TRAIL_THICKNESS[look] * (0.5 + age * 1.4),
+        rotate: link.angle,
+        opacity: (1 - age) * 0.45,
+        background: `linear-gradient(90deg, transparent, ${preset.colorSecondary})`,
+        borderRadius: '50%',
+      });
+    }
+  } else if (STRAIGHT_LOOKS.has(look)) {
     const tailAt = Math.max(0, travel - TRAIL_SPAN[look]);
     const tail = at(tailAt);
     const link = projectDirection(head.x - tail.x, head.y - tail.y, head.z - tail.z, view);
@@ -1187,6 +1253,28 @@ function appendFlyingShot(
       svg: projectileSvg(look, colorsOf(preset)),
       shadow: look === 'blaster' || look === 'tracer' ? glow(base * 0.35, preset.colorPrimary) : '',
     });
+
+    // 推進炎。弾の後ろへ付けると、飛んでいるのではなく飛ばしているように見える。
+    if (look === 'missile' || look === 'cruise') {
+      const flame = base * PROJECTILE_SIZE[look].width * 0.62;
+      // 弾の長さぶんだけ後ろへ置く。1 フレームの進みで測ると、速さや間合いで離れ方が変わる。
+      const step = base * PROJECTILE_SIZE[look].width * 0.62;
+      const reach = Math.hypot(head.x - nose.x, head.y - nose.y, head.z - nose.z);
+      const behind = reach > 0.001 ? step / reach : 0;
+      sprites.push({
+        ...blank(),
+        key: `${prefix}-thrust`,
+        x: head.x - (head.x - nose.x) * behind,
+        y: head.y - (head.y - nose.y) * behind,
+        z: head.z - (head.z - nose.z) * behind,
+        width: flame,
+        height: base * PROJECTILE_SIZE[look].height * 0.85,
+        rotate: heading.angle,
+        opacity: 0.85,
+        svg: thrustSvg(colorsOf(preset)),
+        shadow: glow(base * 0.3, preset.colorSecondary),
+      });
+    }
     return;
   }
 
@@ -1267,15 +1355,26 @@ function appendLaunchFlash(
 }
 
 /** 経路上の 1 点。`arc` を与えると山なりに飛ぶ。 */
-function flightPoint(origin: Point3, center: Point3, base: number, value: number, arc: number): Point3 {
+function flightPoint(origin: Point3, center: Point3, base: number, value: number, arc: number, swerve = 0): Point3 {
   const clamped = Math.min(Math.max(value, 0), 1);
   // わずかに加速させる。等速だと矢というより漂う光になる。
   const eased = clamped ** 1.25;
-  return {
+  const point = {
     x: origin.x + (center.x - origin.x) * eased,
     y: origin.y + (center.y - origin.y) * eased,
     z: origin.z + (center.z + base * 0.6 - origin.z) * eased + Math.sin(Math.PI * clamped) * arc,
   };
+  if (swerve === 0) return point;
+
+  // 経路と直交する向きへ膨らませる。盤面の上で回り込ませたいので水平面で取る。
+  const dx = center.x - origin.x;
+  const dy = center.y - origin.y;
+  const length = Math.hypot(dx, dy);
+  if (length < 1) return point;
+
+  // 早めに振ってから的へ収束させる。折り返しが中央だと、着弾間際まで的から外れて飛ぶ。
+  const bulge = Math.sin(Math.PI * clamped ** 0.7) * swerve;
+  return { ...point, x: point.x + (-dy / length) * bulge, y: point.y + (dx / length) * bulge };
 }
 
 /**

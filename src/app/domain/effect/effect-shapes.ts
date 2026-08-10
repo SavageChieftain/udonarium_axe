@@ -261,6 +261,30 @@ export function tracerSvg(colors: ShapeColors): string {
   );
 }
 
+/** ミサイル。尖った弾頭・胴・尾翼を持ち、後ろへ噴射炎を引く。 */
+export function missileSvg(colors: ShapeColors): string {
+  return svg(
+    `<path d="M0 44 L14 50 L0 56 Z" fill="${colors.edge}" fill-opacity="0.9"/>` +
+      `<rect x="12" y="43" width="62" height="14" rx="7" fill="${colors.edge}"/>` +
+      `<rect x="12" y="43" width="62" height="5" rx="2.5" fill="#ffffff" fill-opacity="0.45"/>` +
+      `<polygon points="70,36 86,44 86,56 70,64" fill="${colors.edge}"/>` +
+      `<path d="M74 41 Q99 50 74 59 Z" fill="${colors.core}"/>` +
+      `<path d="M80 46 Q95 50 80 54 Z" fill="#ffffff" fill-opacity="0.7"/>`
+  );
+}
+
+/** 噴射炎。ミサイルの尻に付ける、後ろへ細く伸びる炎。 */
+export function thrustSvg(colors: ShapeColors): string {
+  const id = idOf('h', colors);
+  return svg(
+    `<defs><linearGradient id="${id}" x1="1" x2="0">` +
+      `<stop offset="0" stop-color="#ffffff"/>` +
+      `<stop offset="0.35" stop-color="${colors.core}"/>` +
+      `<stop offset="1" stop-color="${colors.edge}" stop-opacity="0"/></linearGradient></defs>` +
+      `<path d="M100 50 L30 34 Q0 50 30 66 Z" fill="url(#${id})"/>`
+  );
+}
+
 /** 六角のセルを敷いた障壁。透けるので、内側のコマが見える。 */
 export function barrierSvg(colors: ShapeColors): string {
   const cells: string[] = [];

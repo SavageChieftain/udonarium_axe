@@ -571,7 +571,9 @@
         "bullet": "銃弾",
         "crescent": "飛ぶ斬撃",
         "blaster": "光線",
-        "tracer": "曳光"
+        "tracer": "曳光",
+        "missile": "ミサイル",
+        "cruise": "誘導弾"
       },
       "slashStyle": {
         "single": "一太刀",
@@ -655,6 +657,8 @@
         "laser-hit": "光線の着弾",
         "laserbeam": "レーザー照射",
         "lasergun": "光線銃",
+        "missile-launch": "ミサイル発射",
+        "rocket-launch": "ロケット発射",
         "poison": "毒",
         "qigong": "気功",
         "reflect": "反射",

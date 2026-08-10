@@ -1005,6 +1005,88 @@ describe('swingTiltOf()', () => {
   });
 });
 
+describe('ミサイル', () => {
+  function missileSprites(style: string, elapsedMs: number) {
+    const preset = new EffectPreset('missile-test');
+    Object.assign(preset, {
+      kind: 'projectile',
+      projectileStyle: style,
+      durationMs: 2000,
+      shots: 4,
+      shotInterval: 130,
+      colorPrimary: '#ffffff',
+      colorSecondary: '#ff6a2b',
+    });
+    const cast: EffectCast = {
+      presetIdentifier: 'missile-test',
+      casterIdentifier: '',
+      origin: { x: -300, y: 0, z: 0 },
+      seed: 11,
+      targets: [{ identifier: 'char0', x: 300, y: 0, z: 0 }],
+    };
+    return effectSprites(preset, cast, elapsedMs, { baseSize: 50 });
+  }
+
+  /** 撃ち出しと的を結ぶ直線から、横へどれだけ外れているか。 */
+  function sideOffset(style: string, elapsedMs: number, shot: number): number {
+    const head = missileSprites(style, elapsedMs).find((sprite) => sprite.key === `0-s${shot}-shot`);
+    return head ? head.y : Number.NaN;
+  }
+
+  it('弾ごとに違う側へ膨らんでから食い付くこと', () => {
+    const first = sideOffset('missile', 300, 0);
+    const second = sideOffset('missile', 300, 1);
+
+    expect(Math.abs(first)).toBeGreaterThan(1);
+    expect(Math.sign(first)).not.toBe(Math.sign(second));
+  });
+
+  it('誘導弾はミサイルより大きく回り込むこと', () => {
+    const missile = Math.abs(sideOffset('missile', 300, 0));
+    const cruise = Math.abs(sideOffset('cruise', 300, 0));
+
+    expect(cruise).toBeGreaterThan(missile);
+  });
+
+  it('着弾する頃には的へ戻ってくること', () => {
+    const middle = Math.abs(sideOffset('cruise', 450, 0));
+    const arriving = Math.abs(sideOffset('cruise', 880, 0));
+
+    expect(arriving).toBeLessThan(middle * 0.2);
+  });
+
+  it('後ろに推進炎を引くこと', () => {
+    const thrust = missileSprites('missile', 300).find((sprite) => sprite.key === '0-s0-thrust');
+    const head = missileSprites('missile', 300).find((sprite) => sprite.key === '0-s0-shot');
+
+    expect(thrust).toBeDefined();
+    expect(thrust!.x).toBeLessThan(head!.x);
+  });
+
+  it('推進炎が弾から離れないこと', () => {
+    const gapAt = (elapsedMs: number) => {
+      const sprites = missileSprites('missile', elapsedMs);
+      const head = sprites.find((sprite) => sprite.key === '0-s0-shot')!;
+      const thrust = sprites.find((sprite) => sprite.key === '0-s0-thrust')!;
+      return Math.hypot(head.x - thrust.x, head.y - thrust.y, head.z - thrust.z);
+    };
+
+    // 弾の長さぶんだけ後ろ。飛ぶ速さで離れ方が変わると、置いていかれたように見える。
+    expect(gapAt(300)).toBeCloseTo(gapAt(200), 5);
+  });
+
+  it('噴煙が経路に沿うこと', () => {
+    const sprites = missileSprites('cruise', 300);
+    const head = sprites.find((sprite) => sprite.key === '0-s0-shot')!;
+    const smoke = sprites.filter((sprite) => sprite.key.startsWith('0-s0-smoke-'));
+
+    // 弦 1 本で結ぶと、回り込んでいる間だけ弾と尾の向きがずれる。
+    expect(smoke.length).toBeGreaterThan(3);
+    expect(sprites.filter((sprite) => sprite.key.includes('-trail'))).toHaveLength(0);
+    expect(Math.abs(smoke[0].rotate - head.rotate)).toBeLessThan(6);
+  });
+});
+
 describe('アローレイン', () => {
   function rainSprites(elapsedMs: number) {
     const preset = new EffectPreset('rain-test');
