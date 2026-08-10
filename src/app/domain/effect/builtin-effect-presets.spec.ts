@@ -233,4 +233,16 @@ describe('飛ぶ物の新しい見た目', () => {
     expect(cruise.soundKey).toBe('rocketLaunch');
     expect(cruise.durationMs).toBeGreaterThan(seedOf('EffectPreset_micro_missile').durationMs!);
   });
+
+  it('大剣は属性ごとに締めと音を変えること', () => {
+    const blades = DEFAULT_EFFECT_PRESET_SEEDS.filter((seed) => seed.kind === 'skyblade');
+
+    expect(blades.length).toBeGreaterThan(4);
+    // 属性を持つ剣は締めをその属性へ委ねる。光の剣だけは光のまま終わる。
+    const elemental = blades.filter((seed) => seed.identifier !== 'EffectPreset_skyblade');
+    expect(elemental.every((seed) => (seed.impactKind ?? '').length > 0)).toBe(true);
+    expect(new Set(elemental.map((seed) => seed.impactKind)).size).toBe(elemental.length);
+    expect(new Set(elemental.map((seed) => seed.impactSoundKey)).size).toBe(elemental.length);
+    expect(new Set(elemental.map((seed) => seed.tagName)).size).toBe(elemental.length);
+  });
 });

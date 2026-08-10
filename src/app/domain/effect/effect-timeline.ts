@@ -1,5 +1,5 @@
 import { EffectCast, EffectCastTarget } from '@axe/domain/effect/effect-cast';
-import { EffectKind, ProjectileStyle, SlashStyle } from '@axe/domain/effect/effect-kind';
+import { EffectKind, isEffectKind, ProjectileStyle, SlashStyle } from '@axe/domain/effect/effect-kind';
 import { effectMoteOf } from '@axe/domain/effect/effect-motes';
 import { EffectPreset } from '@axe/domain/effect/effect-preset';
 import {
@@ -884,8 +884,21 @@ function appendSkyblade(
     });
   }
 
-  // 4. 光の爆発。振り切った先で弾け、輪が広がる。
+  // 4. 爆発。振り切った先で弾け、輪が広がる。
   if (burst > 0) {
+    // 属性を持たせた大剣は、締めの弾け方をその属性へ委ねる（炎なら燃え、氷なら凍る）。
+    if (isEffectKind(preset.impactKind) && preset.impactKind !== 'projectile') {
+      appendKind(
+        preset.impactEffectKind,
+        sprites,
+        `${prefix}-excalibur-impact`,
+        center,
+        base * 1.2,
+        burst,
+        preset,
+        () => 0.5
+      );
+    }
     sprites.push({
       ...blank(),
       key: `${prefix}-excalibur-burst`,

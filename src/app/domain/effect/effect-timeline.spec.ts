@@ -1139,3 +1139,38 @@ describe('アローレイン', () => {
     expect(once).toEqual(twice);
   });
 });
+
+describe('属性の大剣', () => {
+  function bladeImpact(impactKind: string, elapsedMs: number) {
+    const preset = new EffectPreset('blade-element-test');
+    Object.assign(preset, {
+      kind: 'skyblade',
+      impactKind,
+      durationMs: 3000,
+      colorPrimary: '#ffffff',
+      colorSecondary: '#ff4a12',
+    });
+    const cast: EffectCast = {
+      presetIdentifier: 'blade-element-test',
+      casterIdentifier: 'caster',
+      origin: { x: -400, y: 0, z: 0 },
+      seed: 5,
+      targets: [{ identifier: 'char0', x: 400, y: 0, z: 0 }],
+    };
+    return effectSprites(preset, cast, elapsedMs, { baseSize: 50 }).filter((sprite) =>
+      sprite.key.includes('-excalibur-impact')
+    );
+  }
+
+  it('属性を持たせたら締めがその属性になること', () => {
+    expect(bladeImpact('frost', 2500).length).toBeGreaterThan(0);
+  });
+
+  it('属性を持たない光の大剣は光のまま終わること', () => {
+    expect(bladeImpact('', 2500)).toHaveLength(0);
+  });
+
+  it('振り下ろす前は属性の演出を出さないこと', () => {
+    expect(bladeImpact('flame', 300)).toHaveLength(0);
+  });
+});
