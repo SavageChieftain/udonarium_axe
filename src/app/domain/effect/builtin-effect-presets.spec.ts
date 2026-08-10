@@ -185,7 +185,7 @@ describe('飛ぶ物の新しい見た目', () => {
 
     expect(sniper).toMatchObject({ kind: 'projectile', projectileStyle: 'tracer' });
     expect(sniper.shots ?? 1).toBe(1);
-    expect(sniper.soundKey).toBe('sfShotHeavy');
+    expect(sniper.soundKey).toBe('gunRifle');
     expect(sniper.durationMs).toBeLessThan(seedOf('EffectPreset_bullet_2').durationMs!);
     expect(sniper.scale).toBeLessThan(seedOf('EffectPreset_bullet_2').scale);
   });

@@ -11,6 +11,7 @@ import {
   bulletSvg,
   crackSvg,
   crescentSvg,
+  flyingCrescentSvg,
   gravitySvg,
   impactStarSvg,
   magicCircleSvg,
@@ -273,7 +274,7 @@ export interface ProjectileShot {
  * 弾ごとに独立して飛ぶので、機関銃は弾幕として見える。
  */
 /** まっすぐ飛ぶ見た目。尾を粒に割らず 1 本に繋ぐ。 */
-const STRAIGHT_LOOKS: ReadonlySet<ProjectileStyle> = new Set(['bullet', 'blaster', 'tracer']);
+const STRAIGHT_LOOKS: ReadonlySet<ProjectileStyle> = new Set(['bullet', 'blaster', 'tracer', 'crescent']);
 
 /** 尾の長さ(飛翔の割合)。速いものほど長く引く。 */
 const TRAIL_SPAN: Record<ProjectileStyle, number> = {
@@ -290,9 +291,29 @@ const PROJECTILE_TURN: Record<ProjectileStyle, number> = {
   bolt: 0,
   arrow: 0,
   bullet: 0,
-  crescent: 90,
+  crescent: 0,
   blaster: 0,
   tracer: 0,
+};
+
+/** 弧を描いて飛ぶ高さ。矢は山なりに、光り物と刃はまっすぐ飛ばす。 */
+const PROJECTILE_ARC: Record<ProjectileStyle, number> = {
+  bolt: 0.15,
+  arrow: 1.1,
+  bullet: 0.15,
+  crescent: 0,
+  blaster: 0,
+  tracer: 0,
+};
+
+/** 尾の太さ(base 比)。頭の大きさから作ると、大きい刃で尾が帯のようになってしまう。 */
+const TRAIL_THICKNESS: Record<ProjectileStyle, number> = {
+  bolt: 0.34,
+  arrow: 0.1,
+  bullet: 0.16,
+  crescent: 0.5,
+  blaster: 0.26,
+  tracer: 0.09,
 };
 
 const PROJECTILE_SIZE: Record<ProjectileStyle, { width: number; height: number }> = {
@@ -309,7 +330,7 @@ function projectileSvg(look: ProjectileStyle, colors: ReturnType<typeof colorsOf
     case 'arrow':
       return arrowSvg(colors);
     case 'crescent':
-      return crescentSvg(colors, 34);
+      return flyingCrescentSvg(colors);
     case 'blaster':
       return blasterSvg(colors);
     case 'tracer':
@@ -850,7 +871,7 @@ function appendProjectile(
 ): void {
   const look = preset.projectileLook;
   const solid = look !== 'bolt';
-  const arc = look === 'arrow' ? base * 1.1 : base * 0.15;
+  const arc = base * PROJECTILE_ARC[look];
   const timing = projectileTiming(preset);
 
   // 弾ごとに撃つ・飛ぶ・当たるが独立する。連射はこれを前へ詰めて並べたもの。
@@ -902,7 +923,7 @@ function appendFlyingShot(
         y: (head.y + tail.y) / 2,
         z: (head.z + tail.z) / 2,
         width: link.length,
-        height: base * PROJECTILE_SIZE[look].height * 0.8,
+        height: base * TRAIL_THICKNESS[look],
         rotate: link.angle,
         opacity: 0.65,
         background: `linear-gradient(90deg, transparent, ${preset.colorSecondary} 45%, ${preset.colorPrimary})`,

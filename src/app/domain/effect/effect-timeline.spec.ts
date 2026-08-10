@@ -890,6 +890,29 @@ describe('まっすぐ飛ぶ弾の尾', () => {
     }
   });
 
+  it('飛ぶ斬撃も尾を 1 本にすること', () => {
+    const keys = shotSprites('crescent', 60).map((sprite) => sprite.key);
+    expect(keys.filter((key) => key.includes('-ribbon-'))).toHaveLength(0);
+  });
+
+  /** 撃ち出しと的を結ぶ直線から、どれだけ持ち上がっているか。 */
+  function riseAboveLine(style: string, elapsedMs: number): number {
+    const shot = shotSprites(style, elapsedMs).find((sprite) => sprite.key.includes('-shot'));
+    if (!shot) return Number.NaN;
+    const along = (shot.x - -300) / 600;
+    return shot.z - 30 * along;
+  }
+
+  it('刃と光り物はまっすぐ飛ぶこと', () => {
+    for (const style of ['crescent', 'blaster', 'tracer']) {
+      expect(riseAboveLine(style, 40)).toBeCloseTo(0, 6);
+    }
+  });
+
+  it('矢は山なりに飛ぶこと', () => {
+    expect(riseAboveLine('arrow', 130)).toBeGreaterThan(1);
+  });
+
   it('魔法弾は今までどおり粒を連ねること', () => {
     const keys = shotSprites('bolt', 160).map((sprite) => sprite.key);
     expect(keys.filter((key) => key.includes('-ribbon-')).length).toBeGreaterThan(1);

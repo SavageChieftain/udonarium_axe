@@ -216,8 +216,6 @@ export class AppInitializationService {
       collapse: './assets/sounds/soundeffect-lab/collapse.mp3',
       sfShot: './assets/sounds/on-jin/lasergun.mp3',
       sfHit: './assets/sounds/on-jin/laser-hit.mp3',
-      sfHitHard: './assets/sounds/on-jin/laser-hit-hard.mp3',
-      sfShotHeavy: './assets/sounds/on-jin/lasergun-heavy.mp3',
       sfBeam: './assets/sounds/on-jin/laserbeam.mp3',
       holyBlade: './assets/sounds/soundeffect-lab/holy-blade.mp3',
     };

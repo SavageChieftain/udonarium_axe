@@ -220,6 +220,22 @@ export function bulletSvg(colors: ShapeColors): string {
   );
 }
 
+/**
+ * 飛ぶ斬撃の刃。両端が尖り、膨らんだ側（進行方向＝右）が前を向く三日月。
+ * 斬撃用の `crescentSvg` は横一文字のレンズ形なので、正方形の枠に入れると潰れて見える。
+ */
+export function flyingCrescentSvg(colors: ShapeColors): string {
+  const id = idOf('f', colors);
+  return svg(
+    `<defs><linearGradient id="${id}" x1="0" x2="1">` +
+      `<stop offset="0" stop-color="${colors.edge}" stop-opacity="0.35"/>` +
+      `<stop offset="0.55" stop-color="${colors.core}"/>` +
+      `<stop offset="1" stop-color="#ffffff"/></linearGradient></defs>` +
+      `<path d="M22 6 Q94 50 22 94 Q58 50 22 6 Z" fill="url(#${id})"/>` +
+      `<path d="M30 20 Q78 50 30 80 Q52 50 30 20 Z" fill="#ffffff" fill-opacity="0.5"/>`
+  );
+}
+
 /** 光線銃の弾。白い芯を色の鞘でくるんだ短い光条。 */
 export function blasterSvg(colors: ShapeColors): string {
   return svg(

@@ -96,8 +96,6 @@ export class PresetSound {
   static collapse: string = '';
   static sfShot: string = '';
   static sfHit: string = '';
-  static sfHitHard: string = '';
-  static sfShotHeavy: string = '';
   static sfBeam: string = '';
   static holyBlade: string = '';
 }
