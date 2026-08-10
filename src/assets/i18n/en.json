@@ -558,7 +558,8 @@
         "bisect": "Bisect",
         "skyblade": "Sky blade",
         "raybeam": "Sustained ray",
-        "arrowrain": "Arrow rain"
+        "arrowrain": "Arrow rain",
+        "ballistic": "Ballistic missile"
       },
       "targeting": {
         "self": "Self",

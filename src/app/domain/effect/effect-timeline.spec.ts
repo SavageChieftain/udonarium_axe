@@ -2,6 +2,7 @@ import { EffectCast } from '@axe/domain/effect/effect-cast';
 import { EFFECT_KINDS, EffectKind } from '@axe/domain/effect/effect-kind';
 import { EffectPreset } from '@axe/domain/effect/effect-preset';
 import {
+  BALLISTIC_DIVE_END,
   effectSprites,
   impactSoundTimes,
   isEffectFinished,
@@ -1246,5 +1247,71 @@ describe('巡航ミサイルの高度', () => {
     // 緩く下ろすと着陸に見える。高度の大半は最後のひと息で捨てる。
     expect(top - late).toBeLessThan(top * 0.25);
     expect(late - cruiseHeight(1395)).toBeGreaterThan((top - late) * 2);
+  });
+});
+
+describe('弾道ミサイル', () => {
+  function ballisticSprites(elapsedMs: number) {
+    const preset = new EffectPreset('ballistic-test');
+    Object.assign(preset, {
+      kind: 'ballistic',
+      impactKind: 'mushroom',
+      durationMs: 4200,
+      colorPrimary: '#ffe0a0',
+      colorSecondary: '#ff4a12',
+    });
+    const cast: EffectCast = {
+      presetIdentifier: 'ballistic-test',
+      casterIdentifier: 'caster',
+      origin: { x: -500, y: 0, z: 0 },
+      seed: 4,
+      targets: [{ identifier: 'char0', x: 500, y: 0, z: 0 }],
+    };
+    return effectSprites(preset, cast, elapsedMs, { baseSize: 50 });
+  }
+
+  function partAt(elapsedMs: number, part: string) {
+    return ballisticSprites(elapsedMs).filter((sprite) => sprite.key.includes(part));
+  }
+
+  it('撃ち手の足元から真上へ打ち上げること', () => {
+    const low = partAt(200, '-ballistic-lift')[0];
+    const high = partAt(1000, '-ballistic-lift')[0];
+
+    expect(low.x).toBe(-500);
+    expect(high.x).toBe(-500);
+    expect(high.z).toBeGreaterThan(low.z);
+  });
+
+  it('打ち上げてから落ちてくるまで的に何も当てないこと', () => {
+    expect(partAt(1400, '-ballistic-shot')).toHaveLength(0);
+    expect(partAt(1400, '-ballistic-impact')).toHaveLength(0);
+    // 落ちてくる場所は先に見せる。撃った先が見えないぶん、無いと爆発だけが湧く。
+    expect(partAt(1400, '-ballistic-mark-').length).toBeGreaterThan(0);
+  });
+
+  it('的の真上から落ちてくること', () => {
+    const early = partAt(2700, '-ballistic-shot')[0];
+    const late = partAt(3400, '-ballistic-shot')[0];
+
+    expect(early.z).toBeGreaterThan(late.z);
+    expect(Math.abs(late.x - 500)).toBeLessThan(Math.abs(early.x - 500));
+  });
+
+  it('落ちきってから的の側で爆発すること', () => {
+    const burst = partAt(4000, '-ballistic-impact');
+
+    expect(burst.length).toBeGreaterThan(0);
+    expect(burst.every((sprite) => sprite.x === 500)).toBe(true);
+    expect(partAt(4000, '-ballistic-shot')).toHaveLength(0);
+  });
+
+  it('着弾音を落ちきる位置に合わせること', () => {
+    const preset = new EffectPreset('ballistic-sound-test');
+    Object.assign(preset, { kind: 'ballistic', durationMs: 4200 });
+    preset.impactSoundIdentifier = 'se-boom';
+
+    expect(preset.impactSoundAt).toBe(BALLISTIC_DIVE_END);
+    expect(impactSoundTimes(preset)).toEqual([Math.round(4200 * BALLISTIC_DIVE_END)]);
   });
 });

@@ -558,7 +558,8 @@
         "bisect": "両断",
         "skyblade": "光の剣",
         "raybeam": "レーザー照射",
-        "arrowrain": "アローレイン"
+        "arrowrain": "アローレイン",
+        "ballistic": "弾道ミサイル"
       },
       "targeting": {
         "self": "自分",

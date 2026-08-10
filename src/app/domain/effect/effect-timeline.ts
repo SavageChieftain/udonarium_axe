@@ -537,6 +537,19 @@ export function effectSprites(
       appendBisect(sprites, prefix, center, base, progress, preset, random, imageOf(options, target.identifier));
       return;
     }
+    if (preset.effectKind === 'ballistic') {
+      appendBallistic(
+        sprites,
+        prefix,
+        center,
+        base,
+        progress,
+        preset,
+        projectileOrigin(cast, center, base),
+        options.viewRotation
+      );
+      return;
+    }
     if (preset.effectKind === 'arrowrain') {
       appendArrowRain(
         sprites,
@@ -985,6 +998,219 @@ function appendSkyblade(
         shadow: glow(base * 0.4 * (1 - phase), preset.colorPrimary),
       });
     }
+  }
+}
+
+/** 打ち上げが終わる位置。ここまでで画面の外へ抜ける。 */
+const BALLISTIC_LIFT_END = 0.32;
+/** 落ち始める位置。間を空けて、見えない所を飛んでいる時間を作る。 */
+const BALLISTIC_DIVE_START = 0.6;
+/** 突き刺さる位置。ここから先が爆発。`EffectPreset.impactSoundAt` と揃える。 */
+export const BALLISTIC_DIVE_END = 0.86;
+/** 打ち上げと落下の高さ(base 比)。画面の外まで抜ける高さを取る。 */
+const BALLISTIC_HEIGHT = 16;
+/** 落ちてくる筋の区間数。 */
+const BALLISTIC_TRAIL_SEGMENTS = 7;
+
+/**
+ * 弾道ミサイル。真上へ打ち上げ、見えない所を飛び、的の真上から落ちてくる。
+ *
+ * 打ち上げ → 予告 → 落下 → 爆発、の 4 段。撃った先が見えないぶん、
+ * 落ちてくる場所を地面に描いておかないと、ただ画面外から爆発が湧く。
+ */
+function appendBallistic(
+  sprites: EffectSprite[],
+  prefix: string,
+  center: Point3,
+  base: number,
+  progress: number,
+  preset: EffectPreset,
+  origin: Point3,
+  view: ViewRotation | null | undefined
+): void {
+  const colors = colorsOf(preset);
+  const lift = clamp01(progress / BALLISTIC_LIFT_END);
+  const dive = clamp01(normalize((progress - BALLISTIC_DIVE_START) / (BALLISTIC_DIVE_END - BALLISTIC_DIVE_START)));
+  const burst = clamp01(normalize((progress - BALLISTIC_DIVE_END) / (1 - BALLISTIC_DIVE_END)));
+  const body = { width: base * 2.4, height: base * 1.35 };
+
+  // 1. 打ち上げ。足元から真上へ、加速しながら抜けていく。
+  if (lift > 0 && lift < 1) {
+    const up = projectDirection(0, 0, 1, view);
+    const climbed = lift ** 1.9;
+    const shrink = 1 - climbed * 0.45;
+    const height = origin.z + base * BALLISTIC_HEIGHT * climbed;
+
+    sprites.push({
+      ...blank(),
+      key: `${prefix}-ballistic-lift`,
+      x: origin.x,
+      y: origin.y,
+      z: height,
+      width: body.width * shrink,
+      height: body.height * shrink,
+      rotate: up.angle,
+      opacity: 1 - climbed ** 4,
+      svg: cruiseSvg(colors),
+    });
+    sprites.push({
+      ...blank(),
+      key: `${prefix}-ballistic-thrust`,
+      x: origin.x,
+      y: origin.y,
+      z: height - body.width * shrink * 0.7,
+      width: body.width * shrink * 0.8,
+      height: body.height * shrink * 0.7,
+      rotate: up.angle,
+      opacity: (1 - climbed ** 4) * 0.9,
+      svg: thrustSvg(colors),
+    });
+  }
+
+  // 発射台の煙。打ち上げたあとも足元に残って広がる。
+  const pad = clamp01(progress / BALLISTIC_DIVE_START);
+  if (pad > 0 && pad < 1) {
+    for (let puff = 0; puff < 4; puff += 1) {
+      const spread = easeOutCubic(clamp01(pad * (1 + puff * 0.25)));
+      sprites.push({
+        ...blank(),
+        key: `${prefix}-ballistic-pad-${puff}`,
+        x: origin.x,
+        y: origin.y,
+        z: origin.z,
+        offsetX: Math.cos(puff * 1.9) * base * 2.4 * spread,
+        offsetY: -Math.abs(Math.sin(puff * 1.9)) * base * 1.2 * spread,
+        width: base * (1.4 + spread * 3.4),
+        height: base * (1.4 + spread * 3.4),
+        opacity: (1 - pad) * 0.4,
+        background: `radial-gradient(circle, ${preset.colorSecondary} 0%, transparent 70%)`,
+        borderRadius: '50%',
+      });
+    }
+  }
+
+  // 2. 予告。落ちてくる位置を的の足元へ描いて絞り込む。
+  const tell = clamp01(normalize((progress - BALLISTIC_LIFT_END) / (BALLISTIC_DIVE_END - BALLISTIC_LIFT_END)));
+  if (tell > 0 && tell < 1) {
+    for (let ring = 0; ring < 2; ring += 1) {
+      const closing = clamp01(tell * (1 + ring * 0.3));
+      sprites.push({
+        ...blank(),
+        key: `${prefix}-ballistic-mark-${ring}`,
+        x: center.x,
+        y: center.y,
+        z: center.z,
+        width: base * (4.5 - closing * 3),
+        height: base * (4.5 - closing * 3),
+        opacity: Math.min(tell * 4, 1) * (0.25 + (ring === 0 ? 0.3 : 0)),
+        svg: ringSvg(colors, 5, ring === 0),
+      });
+    }
+  }
+
+  // 3. 落下。的の真上から、加速しながら突っ込む。
+  if (dive > 0 && dive < 1) {
+    const sky = { x: center.x + base * 1.6, y: center.y - base * 1.6, z: center.z + base * BALLISTIC_HEIGHT };
+    const at = (value: number): Point3 => {
+      const eased = clamp01(value) ** 1.9;
+      return {
+        x: sky.x + (center.x - sky.x) * eased,
+        y: sky.y + (center.y - sky.y) * eased,
+        z: sky.z + (center.z - sky.z) * eased,
+      };
+    };
+    const head = at(dive);
+    const drop = projectDirection(
+      head.x - at(dive - 0.02).x,
+      head.y - at(dive - 0.02).y,
+      head.z - at(dive - 0.02).z,
+      view
+    );
+
+    // 再突入の筋。経路に沿って継ぐ。
+    for (let segment = 0; segment < BALLISTIC_TRAIL_SEGMENTS; segment += 1) {
+      const front = at(dive - segment * 0.07);
+      const back = at(dive - (segment + 1) * 0.07);
+      const link = projectDirection(front.x - back.x, front.y - back.y, front.z - back.z, view);
+      if (link.length < 0.5) continue;
+      const age = segment / BALLISTIC_TRAIL_SEGMENTS;
+      sprites.push({
+        ...blank(),
+        key: `${prefix}-ballistic-trail-${segment}`,
+        x: (front.x + back.x) / 2,
+        y: (front.y + back.y) / 2,
+        z: (front.z + back.z) / 2,
+        width: link.length * 1.1,
+        height: base * 0.5 * (0.6 + age * 1.6),
+        rotate: link.angle,
+        opacity: (1 - age) * 0.5,
+        background: `linear-gradient(90deg, transparent, ${preset.colorSecondary})`,
+        borderRadius: '50%',
+      });
+    }
+
+    sprites.push({
+      ...blank(),
+      key: `${prefix}-ballistic-shot`,
+      x: head.x,
+      y: head.y,
+      z: head.z,
+      width: body.width,
+      height: body.height,
+      rotate: drop.angle,
+      opacity: 1,
+      svg: cruiseSvg(colors),
+    });
+    // 再突入で灼ける弾頭。
+    sprites.push({
+      ...blank(),
+      key: `${prefix}-ballistic-heat`,
+      x: head.x,
+      y: head.y,
+      z: head.z,
+      width: body.height * 1.4,
+      height: body.height * 1.4,
+      opacity: 0.75,
+      background: `radial-gradient(circle, #ffffff 0%, ${preset.colorPrimary} 45%, transparent 72%)`,
+      borderRadius: '50%',
+    });
+  }
+
+  // 4. 爆発。属性の演出へ委ね、閃光と輪だけこちらで足す。
+  if (burst > 0) {
+    appendKind(
+      preset.impactEffectKind,
+      sprites,
+      `${prefix}-ballistic-impact`,
+      center,
+      base * 1.4,
+      burst,
+      preset,
+      () => 0.5
+    );
+    sprites.push({
+      ...blank(),
+      key: `${prefix}-ballistic-flash`,
+      x: center.x,
+      y: center.y,
+      z: center.z,
+      width: base * (3 + easeOutCubic(burst) * 8),
+      height: base * (3 + easeOutCubic(burst) * 8),
+      opacity: (1 - burst) * 0.9,
+      background: `radial-gradient(circle, #ffffff 0%, ${preset.colorPrimary} 38%, ${preset.colorSecondary} 62%, transparent 78%)`,
+      borderRadius: '50%',
+    });
+    sprites.push({
+      ...blank(),
+      key: `${prefix}-ballistic-ring`,
+      x: center.x,
+      y: center.y,
+      z: center.z,
+      width: base * (2 + easeOutCubic(burst) * 14),
+      height: base * (0.9 + easeOutCubic(burst) * 6),
+      opacity: (1 - burst) * 0.7,
+      svg: ringSvg(colors),
+    });
   }
 }
 

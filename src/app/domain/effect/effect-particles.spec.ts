@@ -16,7 +16,7 @@ describe('effectParticles()', () => {
 
   it('どの種類でも山場のあいだは粒子を返すこと', () => {
     // 届くまで対象側に何も出さない種類は別で確かめる。
-    const flying: EffectKind[] = ['projectile', 'beam', 'skyblade', 'arrowrain'];
+    const flying: EffectKind[] = ['projectile', 'beam', 'skyblade', 'arrowrain', 'ballistic'];
     for (const kind of EFFECT_KINDS.filter((candidate) => !flying.includes(candidate))) {
       for (const progress of [0.3, 0.6]) {
         const layer = effectParticles(makePreset(kind), 7, progress, base);
@@ -169,6 +169,15 @@ describe('effectParticles()', () => {
 
     expect(frost.length).toBeGreaterThan(0);
     expect(frost).not.toEqual(light);
+  });
+
+  it('弾道弾は落ちてきてから弾けること', () => {
+    const countAt = (progress: number) => effectParticles(makePreset('ballistic'), 3, progress, base).particles.length;
+
+    // 打ち上げているあいだに出すと、撃つ前に的が爆ぜたように見える。
+    expect(countAt(0.3)).toBe(0);
+    expect(countAt(0.8)).toBe(0);
+    expect(countAt(0.95)).toBeGreaterThan(0);
   });
 
   it('降り注ぐ矢は刺さってから土埃を上げること', () => {

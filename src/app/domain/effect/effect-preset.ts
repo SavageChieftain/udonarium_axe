@@ -95,6 +95,8 @@ export class EffectPreset extends GameObject {
     if (this.effectKind === 'skyblade') return 0.62;
     // 降り注ぐ矢は最初の一群が刺さる頃。撃ち終わりに寄せると刺さる絵と音が離れる。
     if (this.effectKind === 'arrowrain') return 0.35;
+    // 弾道弾は打ち上げてから落ちてくるまで当たらない。
+    if (this.effectKind === 'ballistic') return 0.86;
     return 0.5;
   }
 

@@ -18,6 +18,7 @@ const SHAKING_KINDS: ReadonlySet<EffectKind> = new Set<EffectKind>([
   'beam',
   'gravity',
   'bolt',
+  'ballistic',
 ]);
 
 /**
@@ -32,6 +33,14 @@ const SHAKE_BY_GRADE: Record<1 | 2 | 3, EffectShake> = { 1: '', 2: 'soft', 3: 'h
 export function effectShakeOf(preset: EffectPreset): EffectShake {
   if (!SHAKING_KINDS.has(preset.effectKind)) return '';
   return SHAKE_BY_GRADE[preset.gradeLevel];
+}
+
+/**
+ * 揺らすまでの待ち(ms)。当たった瞬間に揺らさないと、撃った側が殴られたように見える。
+ */
+export function effectShakeDelay(preset: EffectPreset): number {
+  if (preset.effectKind !== 'ballistic') return 0;
+  return Math.round(preset.duration * preset.impactSoundAt);
 }
 
 /** 閃光の色。上級の閃光・きのこ雲・極太ビームだけ画面全体を焼く。 */

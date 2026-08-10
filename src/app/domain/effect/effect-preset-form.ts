@@ -43,7 +43,17 @@ export function usesImpactKindField(kind: EffectKind): boolean {
 
 /** 発射元を要求する種類。撃ち手を選んでいないと向きが決まらない。 */
 export function needsCaster(kind: EffectKind): boolean {
-  return kind === 'projectile' || kind === 'beam' || kind === 'breath' || kind === 'drain' || kind === 'arc';
+  return (
+    kind === 'projectile' ||
+    kind === 'beam' ||
+    kind === 'breath' ||
+    kind === 'drain' ||
+    kind === 'arc' ||
+    kind === 'skyblade' ||
+    kind === 'raybeam' ||
+    kind === 'arrowrain' ||
+    kind === 'ballistic'
+  );
 }
 
 /** 複数を狙える設定か。上限を編集させるかどうかの判定に使う。 */

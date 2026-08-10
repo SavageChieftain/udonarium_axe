@@ -4,7 +4,7 @@ import { ObjectStore } from '@axe/core/sync/object-store';
 import { EffectCast, normalizeEffectCast } from '@axe/domain/effect/effect-cast';
 import { DefeatReaction, defeatReactionOf } from '@axe/domain/effect/effect-defeat';
 import { EffectPreset } from '@axe/domain/effect/effect-preset';
-import { effectFlashColor, EffectShake, effectShakeOf } from '@axe/domain/effect/effect-shake';
+import { effectFlashColor, EffectShake, effectShakeDelay, effectShakeOf } from '@axe/domain/effect/effect-shake';
 import { impactSoundTimes, isEffectFinished, launchSoundTimes } from '@axe/domain/effect/effect-timeline';
 import { SoundEffect } from '@axe/domain/media/sound-effect';
 
@@ -101,6 +101,20 @@ export class EffectPlaybackService {
     const flash = effectFlashColor(preset);
     if (shake.length < 1 && flash.length < 1) return;
 
+    // 当たるのが後の演出は、当たる瞬間まで待って揺らす。
+    const delay = effectShakeDelay(preset);
+    if (delay > 0) {
+      const timer = setTimeout(() => {
+        this.impactTimers.delete(timer);
+        this.shakeNow(shake, flash);
+      }, delay);
+      this.impactTimers.add(timer);
+      return;
+    }
+    this.shakeNow(shake, flash);
+  }
+
+  private shakeNow(shake: EffectShake, flash: string): void {
     this._shake.update((current) => (current === 'hard' || shake === 'hard' ? 'hard' : shake || current));
     if (flash.length > 0) this._flash.set(flash);
 
