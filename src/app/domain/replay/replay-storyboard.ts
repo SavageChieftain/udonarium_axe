@@ -5,6 +5,7 @@ import {
   ReplayEventKind,
   type ReplayViewer,
 } from '@axe/domain/replay/replay-event';
+import { buildReplayRoute, type ReplayRoutePoint, toRoutePoint } from '@axe/domain/replay/replay-route';
 
 export const ReplayShotPacing = {
   Reading: 'reading',
@@ -37,6 +38,11 @@ export const DEFAULT_REPLAY_STORYBOARD_OPTIONS: ReplayStoryboardOptions = {
   scope: ReplayShotScope.Lines,
 };
 
+export interface ReplayShotMove {
+  targetId: string;
+  route: readonly ReplayRoutePoint[];
+}
+
 export interface ReplayShot {
   seq: number;
   startMs: number;
@@ -50,6 +56,7 @@ export interface ReplayShot {
   backgroundId: string;
   text: string;
   isNarration: boolean;
+  move: ReplayShotMove | null;
 }
 
 export interface ReplayStoryboard {
@@ -130,6 +137,7 @@ export function buildReplayStoryboard(
       backgroundId: background,
       text,
       isNarration: isChapter || speaker.length < 1,
+      move: moveOf(event),
     });
     startMs += durationMs;
   }
@@ -178,6 +186,16 @@ function durationOf(
   }
   if (isChapter) return REPLAY_CHAPTER_HOLD_MS;
   return Math.min(REPLAY_SHOT_MAX_MS, REPLAY_SHOT_MIN_MS + text.length * REPLAY_SHOT_PER_CHAR_MS);
+}
+
+function moveOf(event: ReplayEvent): ReplayShotMove | null {
+  if (event.kind !== ReplayEventKind.ObjectMove || !event.targetId) return null;
+
+  const from = toRoutePoint(event.detail['from']);
+  const to = toRoutePoint(event.detail['to']);
+  const path = Array.isArray(event.detail['path']) ? event.detail['path'].map(toRoutePoint) : [];
+  const route = buildReplayRoute(from, path, to);
+  return route.length > 1 ? { targetId: event.targetId, route } : null;
 }
 
 function portraitsByName(cast: readonly ReplayCastMember[]): Map<string, ReplayCastMember> {

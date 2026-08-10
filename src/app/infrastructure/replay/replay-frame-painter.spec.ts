@@ -72,6 +72,7 @@ function shot(overrides: Partial<ReplayShot> = {}): ReplayShot {
     backgroundId: '',
     text: 'こんばんは',
     isNarration: false,
+    move: null,
     ...overrides,
   };
 }
@@ -233,6 +234,115 @@ describe('paintReplayFrame()', () => {
     const portrait = beside.images[beside.images.length - 1];
     expect(portrait.height).toBeLessThan(alone.images[0].height);
     expect(portrait.y + portrait.height).toBe(layout.portrait.y);
+  });
+
+  it('動いたコマを経路に沿って滑らせること', () => {
+    const scene = {
+      width: 10,
+      height: 10,
+      gridSize: 50,
+      imageIdentifier: '',
+      backgroundImageIdentifier: '',
+      pieces: [
+        {
+          identifier: 'c1',
+          aliasName: 'character',
+          x: 300,
+          y: 0,
+          z: 0,
+          size: 1,
+          rotate: 0,
+          name: '',
+          imageIdentifier: '',
+        },
+      ],
+    };
+    const moving = shot({
+      move: {
+        targetId: 'c1',
+        route: [
+          { x: 0, y: 0, z: 0 },
+          { x: 300, y: 0, z: 0 },
+        ],
+      },
+    });
+
+    const at = (progress: number) => {
+      const { ctx, fills } = recorder();
+      paintReplayFrame(ctx, layout, moving, noAssets, 0, DEFAULT_REPLAY_FRAME_STYLE, scene, progress);
+      return fills.filter((fill) => fill.width === fill.height).pop()!.x;
+    };
+
+    expect(at(0)).toBeLessThan(at(0.5));
+    expect(at(0.5)).toBeLessThan(at(1));
+  });
+
+  it('滑り終わりは記録された置き場所に重なること', () => {
+    const scene = {
+      width: 10,
+      height: 10,
+      gridSize: 50,
+      imageIdentifier: '',
+      backgroundImageIdentifier: '',
+      pieces: [
+        {
+          identifier: 'c1',
+          aliasName: 'character',
+          x: 300,
+          y: 0,
+          z: 0,
+          size: 1,
+          rotate: 0,
+          name: '',
+          imageIdentifier: '',
+        },
+      ],
+    };
+    const still = recorder();
+    paintReplayFrame(still.ctx, layout, shot(), noAssets, 0, DEFAULT_REPLAY_FRAME_STYLE, scene);
+
+    const slid = recorder();
+    const moving = shot({
+      move: {
+        targetId: 'c1',
+        route: [
+          { x: 0, y: 0, z: 0 },
+          { x: 300, y: 0, z: 0 },
+        ],
+      },
+    });
+    paintReplayFrame(slid.ctx, layout, moving, noAssets, 0, DEFAULT_REPLAY_FRAME_STYLE, scene, 1);
+
+    const square = (fills: { x: number; width: number; height: number }[]) =>
+      fills.filter((fill) => fill.width === fill.height).pop()!.x;
+    expect(square(slid.fills)).toBeCloseTo(square(still.fills), 5);
+  });
+
+  it('小さすぎるコマは見える大きさまで底上げすること', () => {
+    const { ctx, fills } = recorder();
+    paintReplayFrame(ctx, layout, shot(), noAssets, 0, DEFAULT_REPLAY_FRAME_STYLE, {
+      width: 400,
+      height: 400,
+      gridSize: 50,
+      imageIdentifier: '',
+      backgroundImageIdentifier: '',
+      pieces: [
+        {
+          identifier: 'c1',
+          aliasName: 'character',
+          x: 0,
+          y: 0,
+          z: 0,
+          size: 1,
+          rotate: 0,
+          name: '',
+          imageIdentifier: '',
+        },
+      ],
+    });
+
+    const piece = fills.filter((fill) => fill.width === fill.height).pop()!;
+    expect(piece.width).toBe(layout.board.minPiece);
   });
 
   it('進み具合を帯で示すこと', () => {

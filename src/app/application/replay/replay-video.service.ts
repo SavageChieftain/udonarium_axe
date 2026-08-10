@@ -134,7 +134,8 @@ export class ReplayVideoService {
             this._total.set(total);
           },
           paint: (ctx, index) => {
-            const shot = shotAt(storyboard, index * msPerFrame);
+            const atMs = index * msPerFrame;
+            const shot = shotAt(storyboard, atMs);
             paintReplayFrame(
               ctx,
               layout,
@@ -142,7 +143,8 @@ export class ReplayVideoService {
               { imageOf: (identifier) => assets.get(identifier) ?? null },
               frameCount > 1 ? index / (frameCount - 1) : 1,
               DEFAULT_REPLAY_FRAME_STYLE,
-              shot ? (boardOfSeq.get(shot.seq) ?? null) : null
+              shot ? (boardOfSeq.get(shot.seq) ?? null) : null,
+              shot && shot.durationMs > 0 ? (atMs - shot.startMs) / shot.durationMs : 1
             );
           },
         });

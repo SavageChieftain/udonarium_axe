@@ -187,6 +187,8 @@ Udonarium Axe が **追加** または **大きく拡張・再設計** した機
 - **捏造の収録** — 手で打つ代わりに、盤面を預かった状態で実際に操作し、その結果をイベントとして任意の位置へ差し込む（`application/replay/replay-staging.service`、`features/replay/replay-staging-banner`）
 - **MP4 書き出し** — 記録を絵コンテ（1 発言 = 1 カット、目印は章の扉、VN の場面転換が背景）に起こし、canvas に描いて WebCodecs で符号化する。720p / 1080p、読める速さ / 当日と同じ間、台詞と章だけ / 盤面の動きも（既定）、を選べる。盤面の動きは記録一覧と同じ言い回しで字幕にする。編集中なら編集後の並びが、秘匿は見る人のロールで絞られた結果が画になる（`domain/replay/replay-storyboard`、`domain/replay/replay-frame-layout`、`infrastructure/replay/replay-frame-painter`、`core/media/video-encoder`、`application/replay/replay-video.service`、`features/replay/replay-video-panel`）
 - **動画に映る盤面** — カットごとに、その時点の卓をキーフレームから patch を積んで組み直し、真上から描く。卓の絵・コマの絵と名前・大きさ（マス数）・重なり順を持ち、しまわれているコマは出さない。台詞窓はその下に敷く（`domain/replay/replay-board-view`）
+- **コマの滑走** — 移動のカットでは記録した from / to（畳んだ移動は途中の道のりも）を経路として、カットの尺いっぱいを使って ease で滑らせる。滑り終わりは記録された置き場所にぴったり重なる（`domain/replay/replay-route` を再生と共有）
+- **小さすぎるコマ** — 広い卓ではマス目が数ピクセルになるので、コマは見える下限まで底上げして中心を保ったまま描く
 - **動画に入る音** — 効果音は鳴った場面の時刻に、BGM は鳴り始めから止まる（または曲が変わる）までを区間として置き、`OfflineAudioContext` で 1 本に混ぜて AAC で多重化する。BGM は区間ぶんループしフェードで出入りする（`domain/replay/replay-soundtrack`、`application/replay/replay-sound-mixer`）
 - **書き出しの制約** — 1 時間で打ち切る。盤面は真上からの 2D で、暗闇・視界・光源・3D の見え方は再現しない。カットインの動画・YouTube 音声は入らない。`AudioEncoder` が無い環境では映像だけになる。WebCodecs と `VideoEncoder` が無いブラウザでは出せない（ボタンが押せない状態になる）
 

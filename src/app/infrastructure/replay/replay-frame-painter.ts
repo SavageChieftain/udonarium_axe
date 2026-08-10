@@ -1,6 +1,7 @@
 import type { ReplayBoardScene } from '@axe/domain/replay/replay-board-view';
 import { containRect, coverRect, type ReplayFrameLayout, wrapReplayText } from '@axe/domain/replay/replay-frame-layout';
-import type { ReplayShot } from '@axe/domain/replay/replay-storyboard';
+import { easeInOut, pointAlongRoute } from '@axe/domain/replay/replay-route';
+import type { ReplayShot, ReplayShotMove } from '@axe/domain/replay/replay-storyboard';
 
 export type ReplayFrameCanvas = CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D;
 export type ReplayFrameImage = CanvasImageSource & { width: number; height: number };
@@ -53,10 +54,11 @@ export function paintReplayFrame(
   assets: ReplayFrameAssets,
   progress: number,
   style: ReplayFrameStyle = DEFAULT_REPLAY_FRAME_STYLE,
-  board: ReplayBoardScene | null = null
+  board: ReplayBoardScene | null = null,
+  shotProgress = 1
 ): void {
   paintBackdrop(ctx, layout, shot, assets, style);
-  if (board) paintBoard(ctx, layout, board, assets, style);
+  if (board) paintBoard(ctx, layout, board, assets, style, shot?.move ?? null, shotProgress);
   if (shot) {
     if (shot.isChapterStart) paintChapterCard(ctx, layout, shot, style);
     else paintDialogue(ctx, layout, shot, assets, style, board !== null);
@@ -69,7 +71,9 @@ function paintBoard(
   layout: ReplayFrameLayout,
   board: ReplayBoardScene,
   assets: ReplayFrameAssets,
-  style: ReplayFrameStyle
+  style: ReplayFrameStyle,
+  move: ReplayShotMove | null,
+  shotProgress: number
 ): void {
   const tableWidth = board.width * board.gridSize;
   const tableHeight = board.height * board.gridSize;
@@ -87,12 +91,16 @@ function paintBoard(
   ctx.lineWidth = Math.max(1, Math.round(layout.scale * 2));
   ctx.strokeRect(left, top, onBoard(tableWidth), onBoard(tableHeight));
 
-  const labelSize = Math.max(10, Math.round(board.gridSize * scale * 0.34));
+  const sliding = move ? pointAlongRoute(move.route, easeInOut(shotProgress)) : null;
+  const span0 = Math.max(layout.board.minPiece, onBoard(board.gridSize));
+  const labelSize = Math.max(10, Math.round(span0 * 0.34));
   for (const piece of board.pieces) {
-    const span = onBoard(piece.size * board.gridSize);
+    const span = Math.max(layout.board.minPiece, onBoard(piece.size * board.gridSize));
     if (span < 1) continue;
-    const x = left + onBoard(piece.x);
-    const y = top + onBoard(piece.y);
+    const at = sliding && move?.targetId === piece.identifier ? sliding : piece;
+    const centre = onBoard(piece.size * board.gridSize) / 2;
+    const x = left + onBoard(at.x) + centre - span / 2;
+    const y = top + onBoard(at.y) + centre - span / 2;
 
     const image = piece.imageIdentifier.length > 0 ? assets.imageOf(piece.imageIdentifier) : null;
     if (image) {

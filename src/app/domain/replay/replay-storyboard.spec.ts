@@ -188,6 +188,64 @@ describe('buildReplayStoryboard()', () => {
     expect(asGm.shots).toHaveLength(2);
   });
 
+  it('移動のカットに滑る経路を持たせること', () => {
+    const move: ReplayEvent = {
+      ...say(2, ''),
+      kind: ReplayEventKind.ObjectMove,
+      targetId: 'c1',
+      detail: { from: { x: 0, y: 0, z: 0 }, to: { x: 300, y: 100, z: 0 } },
+    };
+    const board = buildReplayStoryboard([move], cast, {
+      pacing: ReplayShotPacing.Reading,
+      scope: ReplayShotScope.Everything,
+      caption: () => '盗賊が動いた',
+    });
+
+    expect(board.shots[0].move).toEqual({
+      targetId: 'c1',
+      route: [
+        { x: 0, y: 0, z: 0 },
+        { x: 300, y: 100, z: 0 },
+      ],
+    });
+  });
+
+  it('途中の道のりも経路に入れること', () => {
+    const move: ReplayEvent = {
+      ...say(2, ''),
+      kind: ReplayEventKind.ObjectMove,
+      targetId: 'c1',
+      detail: { from: { x: 0, y: 0 }, path: [{ x: 100, y: 0 }], to: { x: 100, y: 200 } },
+    };
+    const board = buildReplayStoryboard([move], cast, {
+      pacing: ReplayShotPacing.Reading,
+      scope: ReplayShotScope.Everything,
+      caption: () => '盗賊が動いた',
+    });
+
+    expect(board.shots[0].move?.route).toHaveLength(3);
+  });
+
+  it('動いていない移動には経路を持たせないこと', () => {
+    const move: ReplayEvent = {
+      ...say(2, ''),
+      kind: ReplayEventKind.ObjectMove,
+      targetId: 'c1',
+      detail: { from: { x: 5, y: 5 }, to: { x: 5, y: 5 } },
+    };
+    const board = buildReplayStoryboard([move], cast, {
+      pacing: ReplayShotPacing.Reading,
+      scope: ReplayShotScope.Everything,
+      caption: () => '盗賊が動いた',
+    });
+
+    expect(board.shots[0].move).toBeNull();
+  });
+
+  it('発言のカットには経路を持たせないこと', () => {
+    expect(buildReplayStoryboard([say(1, 'やあ')], cast).shots[0].move).toBeNull();
+  });
+
   it('中身の無い記録は空の絵コンテにすること', () => {
     expect(buildReplayStoryboard([], cast).shots).toEqual([]);
     expect(buildReplayStoryboard([], cast).totalMs).toBe(0);
