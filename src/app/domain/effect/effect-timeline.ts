@@ -5,6 +5,7 @@ import { EffectPreset } from '@axe/domain/effect/effect-preset';
 import {
   arrowSvg,
   barrierSvg,
+  blasterSvg,
   boltSvg,
   breathConeSvg,
   bulletSvg,
@@ -19,6 +20,7 @@ import {
   speedLinesSvg,
   spikeSvg,
   spiralSvg,
+  tracerSvg,
 } from '@axe/domain/effect/effect-shapes';
 import { projectDirection, ViewRotation } from '@axe/domain/effect/effect-view';
 
@@ -244,7 +246,14 @@ export function slashHits(style: SlashStyle): SlashHit[] {
  * 弾が飛んでいる時間(ms)。再生時間に対する割合ではなく実時間で決める。
  * 割合にすると、連射のように尺の長いものほど弾が遅くなってしまう。
  */
-const PROJECTILE_TRAVEL_MS: Record<ProjectileStyle, number> = { bullet: 130, arrow: 260, bolt: 340 };
+const PROJECTILE_TRAVEL_MS: Record<ProjectileStyle, number> = {
+  bullet: 130,
+  arrow: 260,
+  bolt: 340,
+  crescent: 300,
+  blaster: 110,
+  tracer: 70,
+};
 
 /** 着弾音が潰し合わないよう空ける最短間隔。 */
 const IMPACT_SOUND_MIN_GAP_MS = 70;
@@ -260,6 +269,30 @@ export interface ProjectileShot {
  * 飛翔体の刻み。最後の 1 発が終端で着弾するよう、発射を等間隔に並べる。
  * 弾ごとに独立して飛ぶので、機関銃は弾幕として見える。
  */
+const PROJECTILE_SIZE: Record<ProjectileStyle, { width: number; height: number }> = {
+  bolt: { width: 1.9, height: 0.5 },
+  arrow: { width: 1.8, height: 0.36 },
+  bullet: { width: 1.25, height: 0.22 },
+  crescent: { width: 1.5, height: 1.5 },
+  blaster: { width: 1.6, height: 0.28 },
+  tracer: { width: 2.6, height: 0.16 },
+};
+
+function projectileSvg(look: ProjectileStyle, colors: ReturnType<typeof colorsOf>): string {
+  switch (look) {
+    case 'arrow':
+      return arrowSvg(colors);
+    case 'crescent':
+      return crescentSvg(colors, 34);
+    case 'blaster':
+      return blasterSvg(colors);
+    case 'tracer':
+      return tracerSvg(colors);
+    default:
+      return bulletSvg(colors);
+  }
+}
+
 export function projectileTiming(preset: EffectPreset): { travel: number; shots: ProjectileShot[] } {
   const travel = Math.min(Math.max(PROJECTILE_TRAVEL_MS[preset.projectileLook] / preset.duration, 0.05), 0.6);
   const count = preset.shotCount;
@@ -596,7 +629,7 @@ function appendFlyingShot(
   origin: Point3,
   view: ViewRotation | null | undefined,
   arc: number,
-  look: 'bolt' | 'arrow' | 'bullet'
+  look: ProjectileStyle
 ): void {
   const solid = look !== 'bolt';
   const at = (value: number): Point3 => flightPoint(origin, center, base, value, arc);
@@ -638,10 +671,12 @@ function appendFlyingShot(
       x: head.x,
       y: head.y,
       z: head.z,
-      width: base * (look === 'arrow' ? 1.8 : 1.25),
-      height: base * (look === 'arrow' ? 0.36 : 0.22),
+      width: base * PROJECTILE_SIZE[look].width,
+      height: base * PROJECTILE_SIZE[look].height,
       rotate: heading.angle,
-      svg: look === 'arrow' ? arrowSvg(colorsOf(preset)) : bulletSvg(colorsOf(preset)),
+      opacity: look === 'crescent' ? 0.95 : 1,
+      svg: projectileSvg(look, colorsOf(preset)),
+      shadow: look === 'blaster' || look === 'tracer' ? glow(base * 0.35, preset.colorPrimary) : '',
     });
     return;
   }

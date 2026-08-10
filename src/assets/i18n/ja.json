@@ -565,7 +565,10 @@
       "projectileStyle": {
         "bolt": "魔法弾",
         "arrow": "矢",
-        "bullet": "銃弾"
+        "bullet": "銃弾",
+        "crescent": "飛ぶ斬撃",
+        "blaster": "光線",
+        "tracer": "曳光"
       },
       "slashStyle": {
         "single": "一太刀",

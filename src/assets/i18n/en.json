@@ -565,7 +565,10 @@
       "projectileStyle": {
         "bolt": "Magic bolt",
         "arrow": "Arrow",
-        "bullet": "Bullet"
+        "bullet": "Bullet",
+        "crescent": "Slash wave",
+        "blaster": "Blaster bolt",
+        "tracer": "Tracer"
       },
       "slashStyle": {
         "single": "Single",

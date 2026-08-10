@@ -220,6 +220,30 @@ export function bulletSvg(colors: ShapeColors): string {
   );
 }
 
+/** 光線銃の弾。白い芯を色の鞘でくるんだ短い光条。 */
+export function blasterSvg(colors: ShapeColors): string {
+  return svg(
+    `<defs><linearGradient id="${idOf('l', colors)}" x1="0" x2="1">` +
+      `<stop offset="0" stop-color="${colors.edge}" stop-opacity="0"/>` +
+      `<stop offset="0.35" stop-color="${colors.edge}" stop-opacity="0.85"/>` +
+      `<stop offset="1" stop-color="${colors.core}"/></linearGradient></defs>` +
+      `<rect x="4" y="42" width="92" height="16" rx="8" fill="url(#${idOf('l', colors)})"/>` +
+      `<rect x="34" y="46" width="60" height="8" rx="4" fill="#ffffff" fill-opacity="0.95"/>`
+  );
+}
+
+/** 狙撃の曳光。細く長い一本の筋で、先端だけが白く灼ける。 */
+export function tracerSvg(colors: ShapeColors): string {
+  return svg(
+    `<defs><linearGradient id="${idOf('t', colors)}" x1="0" x2="1">` +
+      `<stop offset="0" stop-color="${colors.edge}" stop-opacity="0"/>` +
+      `<stop offset="0.8" stop-color="${colors.core}" stop-opacity="0.9"/>` +
+      `<stop offset="1" stop-color="#ffffff"/></linearGradient></defs>` +
+      `<rect x="0" y="47" width="100" height="6" rx="3" fill="url(#${idOf('t', colors)})"/>` +
+      `<circle cx="95" cy="50" r="6" fill="#ffffff" fill-opacity="0.9"/>`
+  );
+}
+
 /** 六角のセルを敷いた障壁。透けるので、内側のコマが見える。 */
 export function barrierSvg(colors: ShapeColors): string {
   const cells: string[] = [];

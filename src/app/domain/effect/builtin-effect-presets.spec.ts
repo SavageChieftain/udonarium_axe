@@ -5,6 +5,7 @@ import {
   createEffectPreset,
   DEFAULT_EFFECT_PRESET_SEEDS,
 } from '@axe/domain/effect/builtin-effect-presets';
+import { PROJECTILE_STYLES } from '@axe/domain/effect/effect-kind';
 import { EFFECT_KINDS } from '@axe/domain/effect/effect-kind';
 import { EffectPreset } from '@axe/domain/effect/effect-preset';
 import { PresetSound } from '@axe/domain/media/sound-effect';
@@ -125,5 +126,39 @@ describe('既定エフェクトプリセット', () => {
     expect(preset.gmOnly).toBe(false);
     expect(preset.followTarget).toBe(true);
     expect(preset.moteStyle).toBe('');
+  });
+});
+
+describe('飛ぶ物の新しい見た目', () => {
+  const seedOf = (identifier: string) => DEFAULT_EFFECT_PRESET_SEEDS.find((seed) => seed.identifier === identifier)!;
+
+  it('飛ぶ斬撃は三日月で飛んで斬って終わること', () => {
+    const seed = seedOf('EffectPreset_crescent_wave');
+
+    expect(seed).toMatchObject({ kind: 'projectile', projectileStyle: 'crescent', impactKind: 'slash' });
+    expect(seed.soundKey).toBe('slashIai');
+    expect(seed.impactSoundKey).toBe('slashLarge');
+  });
+
+  it('光線銃は連射で、弾ごとに着弾させること', () => {
+    const seed = seedOf('EffectPreset_blaster_bolt');
+
+    expect(seed).toMatchObject({ kind: 'projectile', projectileStyle: 'blaster' });
+    expect(seed.shots).toBeGreaterThan(1);
+    expect(seed.shotInterval).toBeGreaterThan(0);
+    expect(seed.soundKey).toBe('beamSmall');
+  });
+
+  it('狙撃は一発で、どの飛び物より速く着くこと', () => {
+    const sniper = seedOf('EffectPreset_sniper_shot');
+
+    expect(sniper).toMatchObject({ kind: 'projectile', projectileStyle: 'tracer' });
+    expect(sniper.shots ?? 1).toBe(1);
+    expect(sniper.soundKey).toBe('gunRifle');
+    expect(sniper.durationMs).toBeLessThan(seedOf('EffectPreset_bullet_2').durationMs!);
+  });
+
+  it('新しい見た目が選べる一覧に載っていること', () => {
+    expect([...PROJECTILE_STYLES]).toEqual(expect.arrayContaining(['crescent', 'blaster', 'tracer']));
   });
 });

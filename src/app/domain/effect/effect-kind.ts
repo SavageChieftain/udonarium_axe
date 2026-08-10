@@ -42,8 +42,26 @@ export function isSlashStyle(value: unknown): value is SlashStyle {
   return typeof value === 'string' && SLASH_STYLE_SET.has(value);
 }
 
-/** 飛翔体の見た目。魔法弾は光り、矢と銃弾は実体として飛ぶ。 */
-export type ProjectileStyle = 'bolt' | 'arrow' | 'bullet';
+/**
+ * 飛翔体の見た目。魔法弾は光り、矢と銃弾は実体として飛ぶ。
+ * crescent=飛ぶ斬撃 / blaster=光線銃の弾 / tracer=狙撃の曳光
+ */
+export type ProjectileStyle = 'bolt' | 'arrow' | 'bullet' | 'crescent' | 'blaster' | 'tracer';
+
+export const PROJECTILE_STYLES: readonly ProjectileStyle[] = [
+  'bolt',
+  'arrow',
+  'bullet',
+  'crescent',
+  'blaster',
+  'tracer',
+];
+
+const PROJECTILE_STYLE_SET = new Set<string>(PROJECTILE_STYLES);
+
+export function isProjectileStyle(value: unknown): value is ProjectileStyle {
+  return typeof value === 'string' && PROJECTILE_STYLE_SET.has(value);
+}
 
 export const EFFECT_KINDS: readonly EffectKind[] = [
   'slash',

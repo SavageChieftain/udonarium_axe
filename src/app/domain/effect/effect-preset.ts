@@ -6,6 +6,7 @@ import {
   EffectTargeting,
   isEffectKind,
   isEffectTargeting,
+  isProjectileStyle,
   isSlashStyle,
   ProjectileStyle,
   SlashStyle,
@@ -106,7 +107,7 @@ export class EffectPreset extends GameObject {
   }
 
   get projectileLook(): ProjectileStyle {
-    return this.projectileStyle === 'arrow' || this.projectileStyle === 'bullet' ? this.projectileStyle : 'bolt';
+    return isProjectileStyle(this.projectileStyle) ? this.projectileStyle : 'bolt';
   }
 
   get gradeLevel(): 1 | 2 | 3 {

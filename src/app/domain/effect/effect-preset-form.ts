@@ -1,4 +1,10 @@
-import { EffectKind, EffectTargeting, ProjectileStyle, SlashStyle } from '@axe/domain/effect/effect-kind';
+import {
+  EffectKind,
+  EffectTargeting,
+  PROJECTILE_STYLES,
+  ProjectileStyle,
+  SlashStyle,
+} from '@axe/domain/effect/effect-kind';
 
 /**
  * プリセット編集で見せる選択肢と、種類ごとに意味を持つ項目の判定。
@@ -9,7 +15,7 @@ import { EffectKind, EffectTargeting, ProjectileStyle, SlashStyle } from '@axe/d
 
 export const EFFECT_TARGETING_OPTIONS: readonly EffectTargeting[] = ['self', 'single', 'multi'];
 
-export const PROJECTILE_STYLE_OPTIONS: readonly ProjectileStyle[] = ['bolt', 'arrow', 'bullet'];
+export const PROJECTILE_STYLE_OPTIONS: readonly ProjectileStyle[] = PROJECTILE_STYLES;
 
 export const SLASH_STYLE_OPTIONS: readonly SlashStyle[] = ['single', 'combo', 'iai', 'wide', 'heavy'];
 
