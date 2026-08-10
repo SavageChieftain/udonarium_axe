@@ -4,6 +4,7 @@ import { ReplayEditorService } from '@axe/application/replay/replay-editor.servi
 import { ReplayLibraryService } from '@axe/application/replay/replay-library.service';
 import { ReplayPlaybackService } from '@axe/application/replay/replay-playback.service';
 import { ReplayRecorderService } from '@axe/application/replay/replay-recorder.service';
+import { ReplayVideoPanelComponent } from '@axe/features/replay/replay-video-panel/replay-video-panel.component';
 import { ReplayEntryListComponent } from '@axe/features/replay/replay-workspace/replay-entry-list.component';
 import { ReplayRecordingListComponent } from '@axe/features/replay/replay-workspace/replay-recording-list.component';
 import { ReplayStageComponent } from '@axe/features/replay/replay-workspace/replay-stage.component';
@@ -14,7 +15,13 @@ import { TranslocoModule } from '@jsverse/transloco';
   selector: 'app-replay-workspace',
   host: { '(keydown)': 'onKeydown($event)', tabindex: '0' },
   templateUrl: './replay-workspace.component.html',
-  imports: [TranslocoModule, ReplayRecordingListComponent, ReplayStageComponent, ReplayEntryListComponent],
+  imports: [
+    TranslocoModule,
+    ReplayRecordingListComponent,
+    ReplayStageComponent,
+    ReplayEntryListComponent,
+    ReplayVideoPanelComponent,
+  ],
 })
 export class ReplayWorkspaceComponent {
   private readonly playback = inject(ReplayPlaybackService);

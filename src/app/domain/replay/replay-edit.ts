@@ -74,6 +74,7 @@ export function createReplayEntry(draft: ReplayEntryDraft, seq: number, at: numb
       timestamp: at,
       tabIdentifier: draft.tabIdentifier,
       imageIdentifier,
+      messColor: chatColor,
     },
     patch: {
       identifier,

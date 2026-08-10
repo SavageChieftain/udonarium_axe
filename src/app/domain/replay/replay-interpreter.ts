@@ -365,6 +365,8 @@ function describeChatMessage(after: SyncData): { kind: ReplayEventKind; detail: 
     to: asString(syncValueOf(after, 'to')),
     tag: asString(syncValueOf(after, 'tag')),
     dicebot: asString(syncValueOf(after, 'dicebot')),
+    imageIdentifier: asString(syncValueOf(after, 'imageIdentifier')),
+    messColor: asString(syncValueOf(after, 'messColor')),
     timestamp: Number(syncValueOf(after, 'timestamp') ?? 0),
     tabIdentifier: asString(after['parentIdentifier']),
   };

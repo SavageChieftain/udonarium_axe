@@ -2135,6 +2135,26 @@
       "board": {
         "title": "Showing a recorded board",
         "hint": "Nothing you do now reaches the other players. Leaving restores your table."
+      },
+      "video": {
+        "title": "Make a video",
+        "hint": "Writes the recording out as MP4",
+        "unsupported": "This browser cannot write video",
+        "size": "Size",
+        "pacing": "Pacing",
+        "scope": "Include",
+        "pace": {
+          "reading": "Reading speed",
+          "recorded": "As it happened"
+        },
+        "of": {
+          "lines": "Lines and chapters",
+          "everything": "Events as well"
+        },
+        "estimate": "{{shots}} shots, about {{length}}",
+        "start": "Write it out",
+        "rendering": "Writing it out ({{percent}}%)",
+        "cancel": "Stop"
       }
     }
   },

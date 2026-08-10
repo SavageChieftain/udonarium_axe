@@ -2135,6 +2135,26 @@
       "board": {
         "title": "記録の盤面を映しています",
         "hint": "この間の操作は同卓者に届きません。抜けると元の卓に戻ります。"
+      },
+      "video": {
+        "title": "動画にする",
+        "hint": "記録を MP4 に書き出します",
+        "unsupported": "このブラウザでは動画を書き出せません",
+        "size": "大きさ",
+        "pacing": "間の取り方",
+        "scope": "入れるもの",
+        "pace": {
+          "reading": "読める速さ",
+          "recorded": "当日と同じ間"
+        },
+        "of": {
+          "lines": "台詞と章だけ",
+          "everything": "出来事も入れる"
+        },
+        "estimate": "{{shots}} カット・およそ {{length}}",
+        "start": "書き出す",
+        "rendering": "書き出しています（{{percent}}%）",
+        "cancel": "やめる"
       }
     }
   },

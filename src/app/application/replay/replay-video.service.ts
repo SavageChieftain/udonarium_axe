@@ -1,0 +1,161 @@
+import { computed, inject, Injectable, signal } from '@angular/core';
+import { ReplayLibraryService } from '@axe/application/replay/replay-library.service';
+import { Logger } from '@axe/core/logging/logger';
+import { VideoEncoderGateway } from '@axe/core/media/video-encoder';
+import { ImageStorage } from '@axe/core/storage/image-storage';
+import type { ReplayRecordingMeta } from '@axe/core/storage/replay-log-store';
+import { replayArchiveName } from '@axe/domain/replay/replay-archive';
+import { collectReplayCast } from '@axe/domain/replay/replay-cast';
+import type { ReplayEvent, ReplayViewer } from '@axe/domain/replay/replay-event';
+import { REPLAY_FRAME_PRESETS, replayFrameLayout, type ReplayFrameSize } from '@axe/domain/replay/replay-frame-layout';
+import { decodeReplayKeyframe } from '@axe/domain/replay/replay-keyframe';
+import {
+  buildReplayStoryboard,
+  ReplayShotPacing as Pacing,
+  type ReplayShotPacing,
+  type ReplayShotScope,
+  ReplayShotScope as Scope,
+  shotAt,
+} from '@axe/domain/replay/replay-storyboard';
+import { paintReplayFrame, type ReplayFrameImage } from '@axe/infrastructure/replay/replay-frame-painter';
+
+export const REPLAY_VIDEO_FPS = 30;
+export const REPLAY_VIDEO_MAX_FRAMES = 30 * 60 * 60;
+
+export interface ReplayVideoOptions {
+  size: ReplayFrameSize;
+  fps: number;
+  pacing: ReplayShotPacing;
+  scope: ReplayShotScope;
+}
+
+export const DEFAULT_REPLAY_VIDEO_OPTIONS: ReplayVideoOptions = {
+  size: REPLAY_FRAME_PRESETS['1080p'],
+  fps: REPLAY_VIDEO_FPS,
+  pacing: Pacing.Reading,
+  scope: Scope.Lines,
+};
+
+@Injectable({ providedIn: 'root' })
+export class ReplayVideoService {
+  private readonly library = inject(ReplayLibraryService);
+  private readonly imageStorage = inject(ImageStorage);
+  private readonly encoder = inject(VideoEncoderGateway);
+
+  private readonly _isRendering = signal(false);
+  private readonly _done = signal(0);
+  private readonly _total = signal(0);
+  private cancelled = false;
+
+  readonly isRendering = this._isRendering.asReadonly();
+  readonly progress = computed(() => {
+    const total = this._total();
+    return total > 0 ? this._done() / total : 0;
+  });
+
+  get isSupported(): boolean {
+    return this.encoder.isSupported;
+  }
+
+  cancel(): void {
+    this.cancelled = true;
+  }
+
+  async render(
+    meta: ReplayRecordingMeta,
+    events: readonly ReplayEvent[],
+    options: ReplayVideoOptions = DEFAULT_REPLAY_VIDEO_OPTIONS,
+    viewer?: ReplayViewer
+  ): Promise<boolean> {
+    if (this._isRendering() || !this.isSupported || events.length < 1) return false;
+
+    this._isRendering.set(true);
+    this.cancelled = false;
+    this._done.set(0);
+    this._total.set(0);
+
+    try {
+      const cast = await this.castOf(meta.id, events);
+      const storyboard = buildReplayStoryboard(events, cast, { ...options, viewer });
+      if (storyboard.shots.length < 1) {
+        Logger.warn('[ReplayVideo] 画にできる場面がありませんでした', meta.id);
+        return false;
+      }
+
+      const frameCount = Math.min(
+        REPLAY_VIDEO_MAX_FRAMES,
+        Math.max(1, Math.round((storyboard.totalMs / 1000) * options.fps))
+      );
+      this._total.set(frameCount);
+
+      const layout = replayFrameLayout(options.size);
+      const assets = await this.loadAssets(storyboard.shots.flatMap((shot) => [shot.portraitId, shot.backgroundId]));
+      const msPerFrame = 1000 / options.fps;
+
+      const encoded = await this.encoder.encode({
+        width: options.size.width,
+        height: options.size.height,
+        fps: options.fps,
+        frameCount,
+        isCancelled: () => this.cancelled,
+        onProgress: (done, total) => {
+          this._done.set(done);
+          this._total.set(total);
+        },
+        paint: (ctx, index) => {
+          const atMs = index * msPerFrame;
+          paintReplayFrame(
+            ctx,
+            layout,
+            shotAt(storyboard, atMs),
+            { imageOf: (identifier) => assets.get(identifier) ?? null },
+            frameCount > 1 ? index / (frameCount - 1) : 1
+          );
+        },
+      });
+
+      for (const bitmap of assets.values()) bitmap.close?.();
+      if (!encoded) return false;
+
+      this.encoder.save(
+        encoded.blob,
+        `${replayArchiveName({ roomName: meta.roomName, startedAt: meta.startedAt })}.${encoded.extension}`
+      );
+      return true;
+    } catch (reason) {
+      Logger.warn('[ReplayVideo] 動画にできませんでした', reason);
+      return false;
+    } finally {
+      this._isRendering.set(false);
+    }
+  }
+
+  private async castOf(id: number, events: readonly ReplayEvent[]) {
+    try {
+      const keyframe = await this.library.keyframeBefore(id, events[0]?.seq ?? 0);
+      if (!keyframe) return [];
+      return collectReplayCast(decodeReplayKeyframe(new Uint8Array(await keyframe.blob.arrayBuffer())));
+    } catch (reason) {
+      Logger.warn('[ReplayVideo] 登場人物を読めませんでした', reason);
+      return [];
+    }
+  }
+
+  private async loadAssets(
+    identifiers: readonly string[]
+  ): Promise<Map<string, ReplayFrameImage & { close?(): void }>> {
+    const wanted = new Set(identifiers.filter((identifier) => identifier.length > 0));
+    const assets = new Map<string, ReplayFrameImage & { close?(): void }>();
+
+    for (const identifier of wanted) {
+      const blob = this.imageStorage.get(identifier)?.blob;
+      if (!blob) continue;
+      try {
+        assets.set(identifier, (await createImageBitmap(blob)) as ReplayFrameImage & { close(): void });
+      } catch (reason) {
+        Logger.warn('[ReplayVideo] 素材を読めませんでした', identifier, reason);
+      }
+    }
+    return assets;
+  }
+}

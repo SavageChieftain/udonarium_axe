@@ -64,6 +64,7 @@ describe('createReplayEntry()', () => {
       timestamp: 5000,
       tabIdentifier: 'tab1',
       imageIdentifier: '',
+      messColor: '',
     });
   });
 

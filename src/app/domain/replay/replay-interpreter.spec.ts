@@ -175,7 +175,16 @@ describe('interpretObjectChange()', () => {
       after: {
         value: 'こんばんは',
         parentIdentifier: 'tab1',
-        attributes: { name: 'アリス', from: 'alice', to: '', tag: '', dicebot: '', timestamp: 1700000000000 },
+        attributes: {
+          name: 'アリス',
+          from: 'alice',
+          to: '',
+          tag: '',
+          dicebot: '',
+          timestamp: 1700000000000,
+          imageIdentifier: 'img-1',
+          messColor: '#112233',
+        },
       },
     });
     expect(draft?.kind).toBe(ReplayEventKind.ChatMessage);
@@ -188,6 +197,8 @@ describe('interpretObjectChange()', () => {
       dicebot: '',
       timestamp: 1700000000000,
       tabIdentifier: 'tab1',
+      imageIdentifier: 'img-1',
+      messColor: '#112233',
     });
   });
 
