@@ -1,4 +1,4 @@
-import { collectReplayCast } from '@axe/domain/replay/replay-cast';
+import { collectReplayCast, replayCastOnTable } from '@axe/domain/replay/replay-cast';
 import type { ReplayObjectSnapshot } from '@axe/domain/replay/replay-keyframe';
 
 function character(identifier: string, colors: string[] = ['#112233']): ReplayObjectSnapshot {
@@ -36,8 +36,8 @@ describe('collectReplayCast()', () => {
     ]);
 
     expect(cast).toEqual([
-      { identifier: 'c1', name: '盗賊', imageIdentifier: 'img-1', chatColor: '#112233' },
-      { identifier: 'c2', name: '魔術師', imageIdentifier: 'img-2', chatColor: '#112233' },
+      { identifier: 'c1', name: '盗賊', imageIdentifier: 'img-1', chatColor: '#112233', onTable: true },
+      { identifier: 'c2', name: '魔術師', imageIdentifier: 'img-2', chatColor: '#112233', onTable: true },
     ]);
   });
 
@@ -57,7 +57,18 @@ describe('collectReplayCast()', () => {
 
   it('名前や立ち絵が無くても落ちないこと', () => {
     const cast = collectReplayCast([character('bare')]);
-    expect(cast).toEqual([{ identifier: 'bare', name: '', imageIdentifier: '', chatColor: '#112233' }]);
+    expect(cast).toEqual([{ identifier: 'bare', name: '', imageIdentifier: '', chatColor: '#112233', onTable: true }]);
+  });
+
+  it('しまってあるコマを盤の上と区別すること', () => {
+    const stored: ReplayObjectSnapshot = {
+      identifier: 'kept',
+      aliasName: 'character',
+      syncData: { value: '', attributes: { chatColorCode: ['#112233'], location: { name: 'inventory', x: 0, y: 0 } } },
+    };
+
+    expect(collectReplayCast([stored])[0].onTable).toBe(false);
+    expect(collectReplayCast([character('c1')])[0].onTable).toBe(true);
   });
 
   it('色が無ければ空にすること', () => {
@@ -75,5 +86,18 @@ describe('collectReplayCast()', () => {
 
   it('空の盤面では空を返すこと', () => {
     expect(collectReplayCast([])).toEqual([]);
+  });
+});
+
+describe('replayCastOnTable()', () => {
+  const on = { identifier: 'a', name: 'アリス', imageIdentifier: '', chatColor: '', onTable: true };
+  const off = { identifier: 'b', name: 'ボブ', imageIdentifier: '', chatColor: '', onTable: false };
+
+  it('盤に出ていたコマだけを残すこと', () => {
+    expect(replayCastOnTable([on, off])).toEqual([on]);
+  });
+
+  it('盤に 1 つも出ていなければ、全員を返すこと', () => {
+    expect(replayCastOnTable([off])).toEqual([off]);
   });
 });

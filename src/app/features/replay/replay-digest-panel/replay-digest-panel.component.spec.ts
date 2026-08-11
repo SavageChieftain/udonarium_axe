@@ -1,6 +1,7 @@
 import { signal } from '@angular/core';
 import { type ComponentFixture, TestBed } from '@angular/core/testing';
 import { ReplayEditorService } from '@axe/application/replay/replay-editor.service';
+import { ReplayPhotoService } from '@axe/application/replay/replay-photo.service';
 import { ReplayPlaybackService } from '@axe/application/replay/replay-playback.service';
 import { encodeDiceRollDetail } from '@axe/domain/dice/dice-roll-detail';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
@@ -56,6 +57,14 @@ describe('ReplayDigestPanelComponent', () => {
   let fixture: ComponentFixture<ReplayDigestPanelComponent>;
   let events: readonly ReplayEvent[];
   let role: PeerRole;
+  let cast: { identifier: string; name: string; imageIdentifier: string; chatColor: string; onTable: boolean }[];
+  let savePhoto: ReturnType<typeof vi.fn>;
+
+  function photoButton(): HTMLButtonElement | undefined {
+    return [...(fixture.nativeElement as HTMLElement).querySelectorAll('button')].find((button) =>
+      button.textContent?.includes('記念写真')
+    );
+  }
 
   function numberOf(label: string): string {
     const cells = [...(fixture.nativeElement as HTMLElement).querySelectorAll('div.grid > div')];
@@ -72,8 +81,13 @@ describe('ReplayDigestPanelComponent', () => {
         ...TEST_PROVIDERS,
         {
           provide: ReplayPlaybackService,
-          useValue: { events: signal(events).asReadonly(), manifest: signal(MANIFEST).asReadonly() },
+          useValue: {
+            events: signal(events).asReadonly(),
+            manifest: signal(MANIFEST).asReadonly(),
+            cast: signal(cast).asReadonly(),
+          },
         },
+        { provide: ReplayPhotoService, useValue: { save: savePhoto } },
         {
           provide: ReplayEditorService,
           useValue: { isEditing: signal(false).asReadonly(), edited: signal([]).asReadonly() },
@@ -88,6 +102,11 @@ describe('ReplayDigestPanelComponent', () => {
   beforeEach(() => {
     role = PeerRole.Player;
     events = [say(1), say(2), roll(3, 6, 'critical')];
+    cast = [
+      { identifier: 'char-1', name: 'ゴブリン', imageIdentifier: 'img-1', chatColor: '', onTable: true },
+      { identifier: 'char-9', name: 'しまってあるコマ', imageIdentifier: 'img-9', chatColor: '', onTable: false },
+    ];
+    savePhoto = vi.fn().mockResolvedValue({ saved: true, omitted: 0 });
   });
 
   afterEach(() => {
@@ -141,6 +160,42 @@ describe('ReplayDigestPanelComponent', () => {
     await setup();
 
     expect(numberOf('発言')).toBe('1');
+  });
+
+  it('記念写真を、この記録のコマと名前で書き出すこと', async () => {
+    await setup();
+    photoButton()?.click();
+    await fixture.whenStable();
+
+    // 盤に出ていたコマだけを写す。しまってあるコマは顔ぶれに入れない。
+    expect(savePhoto).toHaveBeenCalledWith(expect.objectContaining({ cast: [cast[0]], roomName: '第一夜' }));
+  });
+
+  it('写らなかった人数を知らせること', async () => {
+    savePhoto = vi.fn().mockResolvedValue({ saved: true, omitted: 3 });
+    await setup();
+    photoButton()?.click();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).toContain('3 人');
+  });
+
+  it('作れなかったときに、その旨を出すこと', async () => {
+    savePhoto = vi.fn().mockRejectedValue(new Error('描けません'));
+    await setup();
+    photoButton()?.click();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).toContain('写真を作れませんでした');
+  });
+
+  it('コマの居ない記録では記念写真を出さないこと', async () => {
+    cast = [];
+    await setup();
+
+    expect(photoButton()).toBeUndefined();
   });
 
   it('まとめるものが無ければ、その旨だけを出すこと', async () => {

@@ -2225,7 +2225,8 @@
           "worst": "Worst",
           "criticals": "Crit",
           "fumbles": "Fumble",
-          "missing": "This recording keeps no individual die values. They have only been recorded since v1.33.0, and cannot be recovered from older recordings."
+          "missing": "This recording keeps no individual die values. They have only been recorded since v1.33.0, and cannot be recovered from older recordings.",
+          "note": "Average, best and worst are the sum of one roll ({{system}})."
         },
         "ledger": {
           "title": "Changes taken",
@@ -2237,7 +2238,16 @@
           "note": "Only what each piece took is counted. A recording does not say who dealt it, so no one is credited."
         },
         "title": "Summary",
-        "hint": "Sum this recording up into numbers and awards"
+        "hint": "Sum this recording up into numbers and awards",
+        "unnamed": "Unnamed",
+        "photo": {
+          "save": "Group photo",
+          "hint": "Save every piece at this table as one image",
+          "omitted": "{{count}} did not fit on the page",
+          "taken": "At the table on {{date}}",
+          "failed": "Could not make the photo. The images may no longer be in this browser",
+          "saving": "Making…"
+        }
       }
     }
   },

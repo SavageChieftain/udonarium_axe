@@ -369,15 +369,32 @@ function paintBox(ctx: ReplayFrameCanvas, layout: ReplayFrameLayout, style: Repl
   ctx.strokeStyle = style.boxEdge;
   ctx.lineWidth = Math.max(1, Math.round(layout.scale * 2));
 
-  if (typeof ctx.roundRect === 'function') {
-    ctx.beginPath();
-    ctx.roundRect(x, y, width, height, radius);
+  if (roundedRectPath(ctx, x, y, width, height, radius)) {
     ctx.fill();
     ctx.stroke();
     return;
   }
   ctx.fillRect(x, y, width, height);
   ctx.strokeRect(x, y, width, height);
+}
+
+/**
+ * 角の丸い矩形の輪郭を引く。引けたら true。
+ *
+ * `roundRect` の無い相手では引けない。呼ぶ側は角の無い矩形で代用する。
+ */
+export function roundedRectPath(
+  ctx: ReplayFrameCanvas,
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+  radius: number
+): boolean {
+  if (typeof ctx.roundRect !== 'function') return false;
+  ctx.beginPath();
+  ctx.roundRect(x, y, width, height, Math.min(radius, width / 2, height / 2));
+  return true;
 }
 
 function paintProgress(

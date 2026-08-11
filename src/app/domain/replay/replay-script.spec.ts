@@ -30,7 +30,7 @@ function marker(seq: number, label: string): ReplayEvent {
 }
 
 const cast: ReplayCastMember[] = [
-  { identifier: 'c1', name: 'アリス', imageIdentifier: 'img-alice', chatColor: '#112233' },
+  { identifier: 'c1', name: 'アリス', imageIdentifier: 'img-alice', chatColor: '#112233', onTable: true },
 ];
 
 function storyboardOf(events: readonly ReplayEvent[]) {

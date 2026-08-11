@@ -57,8 +57,8 @@ const manifest: ReplayManifest = {
 };
 
 const cast: ReplayCastMember[] = [
-  { identifier: 'c1', name: '盗賊', imageIdentifier: 'img-1', chatColor: '#112233' },
-  { identifier: 'c2', name: '魔術師', imageIdentifier: 'img-2', chatColor: '#445566' },
+  { identifier: 'c1', name: '盗賊', imageIdentifier: 'img-1', chatColor: '#112233', onTable: true },
+  { identifier: 'c2', name: '魔術師', imageIdentifier: 'img-2', chatColor: '#445566', onTable: true },
 ];
 
 describe('ReplayWorkspaceComponent', () => {

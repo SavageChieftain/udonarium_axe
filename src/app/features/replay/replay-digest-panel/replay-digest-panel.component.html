@@ -2,6 +2,34 @@
   <p class="text-ui-muted text-[0.8rem] leading-[1.7]">{{ 'feature.replay.digest.empty' | transloco }}</p>
 } @else {
   <div class="flex flex-col gap-3 pr-1">
+    @if (photoCast().length > 0) {
+      <div class="flex flex-wrap items-center gap-2">
+        <button
+          class="rounded-ui-sm flex items-center gap-1 px-[0.8em] py-[0.3em] text-[0.74rem]"
+          [class.cursor-pointer]="!isSavingPhoto()"
+          [class.opacity-60]="isSavingPhoto()"
+          [disabled]="isSavingPhoto()"
+          [attr.aria-busy]="isSavingPhoto()"
+          [title]="'feature.replay.digest.photo.hint' | transloco"
+          (click)="savePhoto()"
+        >
+          <i class="material-icons text-[15px]" [class.animate-spin]="isSavingPhoto()">{{
+            isSavingPhoto() ? 'sync' : 'photo_camera'
+          }}</i>
+          {{
+            (isSavingPhoto() ? 'feature.replay.digest.photo.saving' : 'feature.replay.digest.photo.save') | transloco
+          }}
+        </button>
+        @if (photoFailed()) {
+          <span class="text-ui-danger text-[0.7rem]">{{ 'feature.replay.digest.photo.failed' | transloco }}</span>
+        } @else if (photoOmitted() > 0) {
+          <span class="text-ui-dim text-[0.7rem]">{{
+            'feature.replay.digest.photo.omitted' | transloco: { count: photoOmitted() }
+          }}</span>
+        }
+      </div>
+    }
+
     <div class="grid grid-cols-[repeat(auto-fit,minmax(88px,1fr))] gap-1.5">
       @for (
         cell of [
@@ -51,9 +79,11 @@
           {{ 'feature.replay.digest.fortune.missing' | transloco }}
         </p>
       } @else {
-        <p class="text-ui-dim m-0 text-[0.7rem] leading-[1.6]">
-          {{ 'feature.replay.digest.fortune.note' | transloco: { system: digest().fortunes[0].system } }}
-        </p>
+        @if (digest().fortunes[0].system) {
+          <p class="text-ui-dim m-0 text-[0.7rem] leading-[1.6]">
+            {{ 'feature.replay.digest.fortune.note' | transloco: { system: digest().fortunes[0].system } }}
+          </p>
+        }
         <div class="overflow-x-auto">
           <table class="w-full border-collapse text-[0.74rem] whitespace-nowrap">
             <thead class="text-ui-muted text-[0.68rem]">
