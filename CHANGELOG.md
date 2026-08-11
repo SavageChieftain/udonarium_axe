@@ -1,3 +1,13 @@
+## [1.31.0](https://github.com/SavageChieftain/udonarium_axe/compare/v1.30.1...v1.31.0) (2026-08-11)
+
+### ✨ Features
+
+* **replay:** show the board in the video the way the table showed it ([5b00489](https://github.com/SavageChieftain/udonarium_axe/commit/5b00489ae1f98eb34969937ed1078d74d2b841de))
+
+### 📝 Documentation
+
+* describe the board the video now draws ([a126d2f](https://github.com/SavageChieftain/udonarium_axe/commit/a126d2f3cd5ef1fbfecbdc1597aeaf8b4760e537))
+
 ## [1.30.1](https://github.com/SavageChieftain/udonarium_axe/compare/v1.30.0...v1.30.1) (2026-08-11)
 
 ### 🐛 Bug Fixes
