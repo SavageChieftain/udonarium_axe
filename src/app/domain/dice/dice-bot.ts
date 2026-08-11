@@ -16,6 +16,7 @@ import { toHalfWidth } from '@axe/core/util/string-util';
 import { ChatMessage, ChatMessageContext, ChatMessageTargetContext } from '@axe/domain/chat/chat-message';
 import { ChatTab } from '@axe/domain/chat/chat-tab';
 import { DiceRollResult, ResourceEditProcessor } from '@axe/domain/data/resource-edit-processor';
+import { diceRollDetailOf, encodeDiceRollDetail } from '@axe/domain/dice/dice-roll-detail';
 import { DiceTable } from '@axe/domain/dice/dice-table';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { GameSystemInfo } from 'bcdice/lib/bcdice/game_system_list.json';
@@ -63,12 +64,14 @@ export class DiceBot extends GameObject {
               .replace(/\n*(#\d+)\n/gi, '\n$1 ') // 繰り返しダイスロールを行ごとに表示
               .replace(/: \n/, ': '), // ヘッダー直後の余分な改行を除去
             isSecret: result.secret,
+            // 出目と成否はここでしか手に入らない。文章に整形したあとでは読み直せない。
+            detail: diceRollDetailOf(gameSystem.ID, result),
           };
         }
       } catch (e) {
         Logger.error('[DiceBot] ダイスロール失敗', e);
       }
-      return { id: gameSystem.ID, result: '', isSecret: false };
+      return { id: gameSystem.ID, result: '', isSecret: false, detail: null };
     });
   }
 
@@ -349,6 +352,7 @@ export class DiceBot extends GameObject {
       timestamp: originalMessage.timestamp + 1,
       imageIdentifier: PeerCursor.myCursor.diceImageIdentifier,
       tag: isSecret ? 'system secret' : 'system',
+      dicebot: encodeDiceRollDetail(rollResult.detail ?? null),
       name: isSecret ? `<Secret-BCDice：${originalMessage.name}>` : `<BCDice：${originalMessage.name}>`,
       text: multiTargetOption ? `${result}${multiTargetOption}` : result,
       messColor: originalMessage.messColor,

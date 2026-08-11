@@ -411,4 +411,26 @@ describe('ChatMessage', () => {
       expect(restoredReply.replyToMessage).toBe(restoredTarget);
     });
   });
+
+  describe('振った中身', () => {
+    it('添えられた出目と成否を読めること', () => {
+      const message = new ChatMessage();
+      message.from = 'System-BCDice';
+      message.tag = 'system';
+      message.dicebot = '{"system":"DiceBot","faces":[{"sides":6,"value":5,"kind":"normal"}],"outcome":"success"}';
+
+      expect(message.isDicebot).toBe(true);
+      expect(message.rollDetail).toMatchObject({ system: 'DiceBot', outcome: 'success' });
+      expect(message.rollDetail?.faces).toHaveLength(1);
+    });
+
+    it('この版より前の発言では中身なしになること', () => {
+      // 古い部屋データの同じ欄には別のものが入っていることがある。落とさない。
+      const message = new ChatMessage();
+      message.from = 'System-BCDice';
+      message.dicebot = 'Cthulhu7th';
+
+      expect(message.rollDetail).toBeNull();
+    });
+  });
 });

@@ -14,6 +14,7 @@ import {
   type ResourceEdit,
   type ResourceEditOption,
 } from '@axe/domain/data/resource-edit-helpers';
+import type { DiceRollDetail } from '@axe/domain/dice/dice-roll-detail';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import GameSystemClass from 'bcdice/lib/game_system';
 
@@ -21,6 +22,8 @@ interface DiceRollResult {
   id: string | null;
   result: string;
   isSecret: boolean;
+  /** 出目と成否。文章からは読み直せないので、振った所で拾って持ち回る。 */
+  detail?: DiceRollDetail | null;
 }
 
 interface ResourceByCharacter {

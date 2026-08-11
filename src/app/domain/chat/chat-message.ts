@@ -8,6 +8,7 @@ import { ObjectSerializer } from '@axe/core/sync/object-serializer';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { ChatTabList } from '@axe/domain/chat/chat-tab-list';
+import { type DiceRollDetail, parseDiceRollDetail } from '@axe/domain/dice/dice-roll-detail';
 
 export interface ChatMessageTargetContext {
   text: string;
@@ -173,6 +174,11 @@ export class ChatMessage extends ObjectNode implements ChatMessageContext {
   }
   get isDicebot(): boolean {
     return this.isSystem && this.from === 'System-BCDice';
+  }
+
+  /** 振った中身（出目と成否）。この版より前に振られたものには無い。 */
+  get rollDetail(): DiceRollDetail | null {
+    return parseDiceRollDetail(this.dicebot);
   }
   get isSecret(): boolean {
     return this.tags.includes('secret');
