@@ -97,6 +97,7 @@ Udonarium Axe が **追加** または **大きく拡張・再設計** した機
 
 ## ダイス
 
+- **振った中身を残す** — bcdice は個々の出目と成否（`rands` / `detailedRands` / `success` / `critical` / `fumble`）を返しているが、以前は整形済みの文章だけを受け取って捨てていた。いまは `domain/dice/dice-roll-detail` の形に写し、**未使用だった `ChatMessage.dicebot`**（宣言だけで代入箇所が無かった SyncVar）に載せて持ち回る。新しい SyncVar を足さないので部屋データの後方互換に触らない。読み出しは `message.rollDetail`（この版より前の発言と、その欄に別のものが入っている古い部屋では null）。**文章からは読み直さない** — 言い回しはシステムごとに違い、`＞` の置換や改行の挿入まで通ったあとの文字列が相手になる
 - **ダイスシンボルシート** — 面ごとの画像設定、保存 / 複製
 - bcdice `StaticLoader` の遅延ロードで初期バンドルを削減
 - 名前・所有者ラベルのカメラ追従
@@ -298,6 +299,7 @@ SE は効果音ラボ・On-Jin の素材を取り込み、`PresetSound` 経由�
 - **当日と同じ間** — 実際の間をそのまま尺にする（下限だけは読める速さに丸める）。上を丸めると、名乗ったとおりの間にならない
 - **付随する音** — 効果音は移動や判定に付いて鳴るだけで、それ自体は出来事ではない。だから音としては残すが、動画の字幕にも記録一覧にも既定では出さない（一覧の「付随する音も出す」で編集用に出せる。`isIncidentalReplayEvent`）
 - **動画に入る音** — 効果音は鳴った場面の時刻に、BGM は鳴り始めから止まる（または曲が変わる）までを区間として置き、`OfflineAudioContext` で 1 本に混ぜて AAC で多重化する。BGM は区間ぶんループしフェードで出入りする（`domain/replay/replay-soundtrack`、`application/replay/replay-sound-mixer`）
+- **読み物書き出し** — 記録を Markdown（小説 / 台本）で書き出す（`domain/replay/replay-script`）。**動画と同じ絵コンテ**（`buildReplayStoryboard`）を使うので、章の切れ目も地の文の扱いも動画と揃う。動画のために読める長さへ割ったカットは、同じ `seq` を持つものだけ 1 つの発言へ戻す（話者で繋ぐと、続けて喋った別の発言まで繋がる）。見えるものは書き出す人のロールで決まる（動画と同じ `canViewReplayEvent`）。盤面の動きは既定で入れない — 入れると読み物が操作ログになる
 - **書き出し先** — `showSaveFilePicker` があれば保存先を先に尋ね、`FileSystemWritableFileStreamTarget` でディスクへ直接流す。長さを決めるのは空き容量だけになる。無い環境でも、見込みが大きければ `StreamTarget` で分割して Blob に積む（索引を先頭に置く `fastStart: 'in-memory'` は全体をメモリに載せるので、長い動画では使わず `'fragmented'` に切り替える）
 - **符号化できない環境** — WebCodecs が無ければ `MediaRecorder` へ落とす（`core/media/media-recorder-encoder`）。canvas の絵と混ぜた音をそのまま流し込むので **尺と同じだけ実時間がかかる**（その旨をパネルに出す）。入れ物は MP4 → WebM の順に、そのブラウザが受け取れるものを選ぶ。音は AAC → Opus の順に `AudioEncoder.isConfigSupported()` で試すので、AAC が無い環境でも無音にならない
 - **動画の暗闇・視界・光源** — キーフレームから `VisionScene` を組み直し、判定は生きている卓と同じ `domain/tabletop/vision-scene` に任せる（`domain/replay/replay-vision-scene`）。見る人のロールで見え方が変わるのも同じで、GM は全部、PL は自分の持ちコマと同行者、見学者は卓に居る PL の視界を借りる。描くのは canvas に切り抜きが無いので、暗幕を別の面へ描いてから灯りの形で削り、削り終えた面を盤面へ重ねる（`infrastructure/replay/replay-darkness-painter`）。面は長辺 2048px で頭打ちにする（卓の座標のまま作ると 6000px 四方になる）
