@@ -1,3 +1,13 @@
+## [1.30.1](https://github.com/SavageChieftain/udonarium_axe/compare/v1.30.0...v1.30.1) (2026-08-11)
+
+### 🐛 Bug Fixes
+
+* **ui:** stop reorder drops from reaching the file importer ([d358e2a](https://github.com/SavageChieftain/udonarium_axe/commit/d358e2a08de9c9505808df7f09aa330851cce80e))
+
+### 📝 Documentation
+
+* **website:** add v1.30.0 release notes ([ce8128b](https://github.com/SavageChieftain/udonarium_axe/commit/ce8128ba8e6cf092fc9b7623eafb8002bbc30a69))
+
 ## [1.30.0](https://github.com/SavageChieftain/udonarium_axe/compare/v1.29.0...v1.30.0) (2026-08-11)
 
 ### ✨ Features
