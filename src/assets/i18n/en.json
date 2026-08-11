@@ -1384,7 +1384,9 @@
         "inviteLabel": "Invite link",
         "inviteIncludePassword": "Include password",
         "inviteCopy": "Copy",
-        "inviteCopied": "Copied"
+        "inviteCopied": "Copied",
+        "inviteOverlay": "For streaming (transparent)",
+        "inviteOverlayHint": "Makes a URL for an OBS browser source: no table, no panels — just speech and turns on a transparent background"
       },
       "lobby": {
         "title": "Lobby",

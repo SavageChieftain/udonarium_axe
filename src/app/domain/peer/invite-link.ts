@@ -7,6 +7,8 @@ export interface InviteLinkParams {
   roomName: string;
   password: string;
   role: PeerRole | null;
+  /** 配信に重ねるための画面で開くか。卓には影響しない、この端末だけの見え方。 */
+  overlay: boolean;
 }
 
 export function buildInviteLink(baseUrl: string, params: InviteLinkParams): string {
@@ -17,6 +19,7 @@ export function buildInviteLink(baseUrl: string, params: InviteLinkParams): stri
     query.set('p', encodeInvitePassword(params.password, params.roomId + params.roomName));
   }
   if (params.role) query.set('role', params.role);
+  if (params.overlay) query.set('overlay', '1');
 
   return `${baseUrl}${INVITE_HASH_PREFIX}${query.toString()}`;
 }
@@ -36,6 +39,7 @@ export function parseInviteLink(hash: string): InviteLinkParams | null {
     roomName,
     password: encodedPassword.length > 0 ? decodeInvitePassword(encodedPassword, roomId + roomName) : '',
     role: isPeerRole(role) ? role : null,
+    overlay: query.get('overlay') === '1',
   };
 }
 

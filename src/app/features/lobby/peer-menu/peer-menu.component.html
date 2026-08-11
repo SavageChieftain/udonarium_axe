@@ -108,6 +108,18 @@
             <span>{{ 'feature.lobby.peerMenu.inviteIncludePassword' | transloco }}</span>
           </label>
         }
+        <label
+          class="flex cursor-pointer items-center gap-1.5 text-xs"
+          [title]="'feature.lobby.peerMenu.inviteOverlayHint' | transloco"
+        >
+          <input
+            name="invite-overlay"
+            type="checkbox"
+            [ngModel]="inviteOverlay()"
+            (ngModelChange)="inviteOverlay.set($event)"
+          />
+          <span>{{ 'feature.lobby.peerMenu.inviteOverlay' | transloco }}</span>
+        </label>
       </div>
       <div class="flex items-center gap-1.5">
         <input

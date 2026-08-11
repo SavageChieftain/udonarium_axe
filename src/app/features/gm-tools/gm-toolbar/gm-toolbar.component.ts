@@ -17,7 +17,6 @@ import { PanelService } from '@axe/application/ui/panel.service';
 import { ViewportService } from '@axe/application/ui/viewport.service';
 import { WidgetVisibilityService } from '@axe/application/ui/widget-visibility.service';
 import { ObjectStore } from '@axe/core/sync/object-store';
-import { GameCharacter } from '@axe/domain/character/game-character';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { findOrphanedOwnership } from '@axe/domain/tabletop/ownership';
 import { HandRailService } from '@axe/features/card/hand-rail/hand-rail.service';
@@ -29,7 +28,7 @@ import { NpcDragService } from '@axe/features/gm-tools/npc-bar/npc-drag.service'
 import { PartyListPanelComponent } from '@axe/features/gm-tools/party-list/party-list-panel.component';
 import { MapEditorPanelComponent } from '@axe/features/map-editor/editor/map-editor-panel.component';
 import { DraggableDirective } from '@axe/ui/directives/draggable.directive';
-import { buildTurnIndicator } from '@axe/ui/turn/turn-indicator';
+import { turnIndicatorSignal } from '@axe/ui/turn/turn-indicator.signal';
 import { TranslocoModule } from '@jsverse/transloco';
 
 @Component({
@@ -74,14 +73,7 @@ export class GmToolbarComponent {
     return this.personas().find((cursor) => cursor.userId === userId) ?? null;
   });
 
-  readonly turnIndicator = computed(() => {
-    this.objectChange.versionOf('TurnState')();
-    const currentIdentifier = this.turnOrder.currentIdentifier;
-    if (currentIdentifier) this.objectChange.versionOf(currentIdentifier)();
-    const current = currentIdentifier ? this.objectStore.get(currentIdentifier) : null;
-    const name = current instanceof GameCharacter ? current.name : '';
-    return buildTurnIndicator(this.turnOrder.phase, this.turnOrder.round, name);
-  });
+  readonly turnIndicator = turnIndicatorSignal();
 
   protected turnPrev(): void {
     this.turnOrder.prev();

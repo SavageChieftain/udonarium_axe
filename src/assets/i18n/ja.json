@@ -1384,7 +1384,9 @@
         "inviteLabel": "招待リンク",
         "inviteIncludePassword": "合言葉を含める",
         "inviteCopy": "コピー",
-        "inviteCopied": "コピーしました"
+        "inviteCopied": "コピーしました",
+        "inviteOverlay": "配信用（透過画面）",
+        "inviteOverlayHint": "OBS のブラウザソースに貼る用の URL にします。盤面もパネルも出さず、発言と手番だけを透過の背景に出します"
       },
       "lobby": {
         "title": "ロビー",

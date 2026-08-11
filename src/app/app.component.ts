@@ -20,6 +20,7 @@ import { TurnOrderService } from '@axe/application/turn/turn-order.service';
 import { ContextMenuService } from '@axe/application/ui/context-menu.service';
 import { MobileLayoutService } from '@axe/application/ui/mobile-layout.service';
 import { ModalService } from '@axe/application/ui/modal.service';
+import { OverlayModeService } from '@axe/application/ui/overlay-mode.service';
 import { PanelOption, PanelService } from '@axe/application/ui/panel.service';
 import { ThemeService } from '@axe/application/ui/theme.service';
 import { ViewportService } from '@axe/application/ui/viewport.service';
@@ -64,6 +65,7 @@ import { ReplayWorkspaceComponent } from '@axe/features/replay/replay-workspace/
 import { RoomArchiveEventHandlerService } from '@axe/features/room-archive/room-archive-event-handler.service';
 import { RoomRestoreBannerComponent } from '@axe/features/room-archive/room-restore-banner/room-restore-banner.component';
 import { RoomSnapshotPanelComponent } from '@axe/features/room-archive/room-snapshot-panel/room-snapshot-panel.component';
+import { StreamingOverlayComponent } from '@axe/features/streaming-overlay/streaming-overlay.component';
 import { CcfoliaRoomImportEventHandlerService } from '@axe/features/tabletop/ccfolia-room-import/ccfolia-room-import-event-handler.service';
 import { GameTableComponent } from '@axe/features/tabletop/game-table/game-table.component';
 import { GameTableSettingComponent } from '@axe/features/tabletop/game-table-setting/game-table-setting.component';
@@ -101,6 +103,7 @@ import { version as APP_VERSION } from '@pkg';
     ReplayIndicatorComponent,
     ReplayBoardBannerComponent,
     InviteJoinComponent,
+    StreamingOverlayComponent,
     LanguageSelectorComponent,
     VisualNovelOverlayComponent,
     TranslocoModule,
@@ -113,6 +116,7 @@ export class AppComponent {
   readonly widgets = inject(WidgetVisibilityService);
   readonly viewport = inject(ViewportService);
   readonly mobile = inject(MobileLayoutService);
+  readonly overlayMode = inject(OverlayModeService);
 
   readonly isTableSplit = computed(() => this.mobile.isActive() && !this.visualNovel.active());
   private readonly t = inject(TRANSLATE_FN);

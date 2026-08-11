@@ -58,6 +58,7 @@ export class PeerMenuComponent {
   protected readonly inviteRoles: readonly PeerRole[] = [PeerRole.Player, PeerRole.Guest];
   protected readonly inviteRole = signal<PeerRole>(PeerRole.Player);
   protected readonly includePasswordInInvite = signal(true);
+  protected readonly inviteOverlay = signal(false);
   protected readonly isInviteCopied = signal(false);
 
   protected readonly inviteLink = computed(() => {
@@ -70,6 +71,7 @@ export class PeerMenuComponent {
       roomName: peer.roomName,
       password: this.includePasswordInInvite() ? peer.password : '',
       role: this.inviteRole(),
+      overlay: this.inviteOverlay(),
     });
   });
 

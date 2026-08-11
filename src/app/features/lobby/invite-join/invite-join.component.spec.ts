@@ -120,7 +120,7 @@ describe('InviteJoinComponent', () => {
 
   it('リンクに合言葉があれば入力を求めない', async () => {
     findRoom.mockResolvedValue(createRoom(true));
-    await setup(buildInviteLink('', { roomId: 'a1b', roomName: 'room', password: 'pw', role: null }));
+    await setup(buildInviteLink('', { roomId: 'a1b', roomName: 'room', password: 'pw', role: null, overlay: false }));
 
     await eventually(() => expect(join).toHaveBeenCalledWith(expect.anything(), 'pw'));
     expect(modalOpen).not.toHaveBeenCalled();

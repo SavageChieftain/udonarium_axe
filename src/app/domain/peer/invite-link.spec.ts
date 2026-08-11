@@ -10,37 +10,67 @@ const BASE_URL = 'https://example.test/axe/';
 
 describe('buildInviteLink', () => {
   it('部屋 ID と部屋名を載せる', () => {
-    const link = buildInviteLink(BASE_URL, { roomId: 'a1b', roomName: '深海の街', password: '', role: null });
+    const link = buildInviteLink(BASE_URL, {
+      roomId: 'a1b',
+      roomName: '深海の街',
+      password: '',
+      role: null,
+      overlay: false,
+    });
     expect(link).toBe(`${BASE_URL}#join?r=a1b&n=${encodeURIComponent('深海の街')}`);
   });
 
   it('合言葉は平文で載せない', () => {
-    const link = buildInviteLink(BASE_URL, { roomId: 'a1b', roomName: 'room', password: 'himitsu', role: null });
+    const link = buildInviteLink(BASE_URL, {
+      roomId: 'a1b',
+      roomName: 'room',
+      password: 'himitsu',
+      role: null,
+      overlay: false,
+    });
 
     expect(link).not.toContain('himitsu');
     expect(link).toContain('p=');
   });
 
   it('ロールを指定すれば載せる', () => {
-    const link = buildInviteLink(BASE_URL, { roomId: 'a1b', roomName: 'room', password: '', role: PeerRole.Guest });
+    const link = buildInviteLink(BASE_URL, {
+      roomId: 'a1b',
+      roomName: 'room',
+      password: '',
+      role: PeerRole.Guest,
+      overlay: false,
+    });
     expect(link).toBe(`${BASE_URL}#join?r=a1b&n=room&role=guest`);
   });
 
   it('空のパスワードは載せない', () => {
-    const link = buildInviteLink(BASE_URL, { roomId: 'a1b', roomName: 'room', password: '', role: PeerRole.Player });
+    const link = buildInviteLink(BASE_URL, {
+      roomId: 'a1b',
+      roomName: 'room',
+      password: '',
+      role: PeerRole.Player,
+      overlay: false,
+    });
     expect(link).toBe(`${BASE_URL}#join?r=a1b&n=room&role=pl`);
   });
 });
 
 describe('parseInviteLink', () => {
   it('生成したリンクを往復できる', () => {
-    const params = { roomId: 'a1b', roomName: '深海の街 #2', password: 'p a s s', role: PeerRole.Player };
+    const params = {
+      roomId: 'a1b',
+      roomName: '深海の街 #2',
+      password: 'p a s s',
+      role: PeerRole.Player,
+      overlay: false,
+    };
     const link = buildInviteLink(BASE_URL, params);
     expect(parseInviteLink(link.slice(link.indexOf('#')))).toEqual(params);
   });
 
   it('日本語や記号の合言葉も往復できる', () => {
-    const params = { roomId: 'xyz', roomName: 'room', password: '合言葉＆記号<>"', role: null };
+    const params = { roomId: 'xyz', roomName: 'room', password: '合言葉＆記号<>"', role: null, overlay: false };
     const link = buildInviteLink(BASE_URL, params);
     expect(parseInviteLink(link.slice(link.indexOf('#')))?.password).toBe(params.password);
   });
@@ -51,6 +81,7 @@ describe('parseInviteLink', () => {
       roomName: 'room',
       password: '',
       role: null,
+      overlay: false,
     });
   });
 

@@ -895,6 +895,19 @@ body {
   color-scheme: dark light;
 }
 
+/* 配信に重ねる画面。背景を抜き、読み込み中の表示も配信に映らないようにする。
+   根の要素の背景が残っていると、body だけ透かしても画布はその色で塗られる。 */
+html[data-overlay],
+html[data-overlay] body,
+html:has(body.overlay-mode),
+body.overlay-mode {
+  background-color: transparent;
+}
+
+html[data-overlay] .sk-cube-grid {
+  display: none;
+}
+
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Verdana, Meiryo, 'M+ 1p', sans-serif;
   position: relative;

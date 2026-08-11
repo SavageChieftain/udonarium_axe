@@ -3,6 +3,7 @@ import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { RoomJoinService } from '@axe/application/lobby/room-join.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { ModalService } from '@axe/application/ui/modal.service';
+import { OverlayModeService } from '@axe/application/ui/overlay-mode.service';
 import { Network } from '@axe/core/index';
 import { PeerContext } from '@axe/core/network/peer-context';
 import { InviteLinkParams, parseInviteLink } from '@axe/domain/peer/invite-link';
@@ -27,6 +28,7 @@ export class InviteJoinComponent {
   private readonly t = inject(TRANSLATE_FN);
   private readonly roomJoin = inject(RoomJoinService);
   private readonly modalService = inject(ModalService);
+  private readonly overlayMode = inject(OverlayModeService);
   private readonly objectChange = inject(ObjectChangeService);
   private readonly destroyRef = inject(DestroyRef);
 
@@ -34,7 +36,10 @@ export class InviteJoinComponent {
   private readonly roomName = signal('');
 
   protected readonly isJoining = computed(() => this.state() === 'joining');
-  protected readonly visible = computed(() => this.state() !== 'idle' && this.state() !== 'done');
+  // 配信に重ねる画面では出さない。押せない板が配信に貼り付いたままになる。
+  protected readonly visible = computed(
+    () => !this.overlayMode.active() && this.state() !== 'idle' && this.state() !== 'done'
+  );
 
   protected readonly message = computed(() => {
     switch (this.state()) {

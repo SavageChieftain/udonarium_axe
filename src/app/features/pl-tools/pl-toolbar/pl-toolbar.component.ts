@@ -29,7 +29,7 @@ import { OwnedCharacterListPanelComponent } from '@axe/features/pl-tools/owned-c
 import { isOwnedByUser } from '@axe/features/pl-tools/owned-character-list/owned-characters';
 import { DraggableDirective } from '@axe/ui/directives/draggable.directive';
 import { SafePipe } from '@axe/ui/pipes/safe.pipe';
-import { buildTurnIndicator } from '@axe/ui/turn/turn-indicator';
+import { turnIndicatorSignal } from '@axe/ui/turn/turn-indicator.signal';
 import { TranslocoModule } from '@jsverse/transloco';
 
 @Component({
@@ -74,14 +74,7 @@ export class PlToolbarComponent {
     return isOwnedByUser(character, PeerCursor.myCursor?.userId ?? '') ? character : null;
   });
 
-  readonly turnIndicator = computed(() => {
-    this.objectChange.versionOf('TurnState')();
-    const currentIdentifier = this.turnOrder.currentIdentifier;
-    if (currentIdentifier) this.objectChange.versionOf(currentIdentifier)();
-    const current = currentIdentifier ? this.objectStore.get(currentIdentifier) : null;
-    const name = current instanceof GameCharacter ? current.name : '';
-    return buildTurnIndicator(this.turnOrder.phase, this.turnOrder.round, name);
-  });
+  readonly turnIndicator = turnIndicatorSignal();
 
   protected activeImageUrl(): string {
     return this.activeCharacter()?.imageFile?.url ?? '';

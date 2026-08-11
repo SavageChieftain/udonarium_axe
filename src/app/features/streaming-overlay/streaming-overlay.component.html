@@ -1,0 +1,29 @@
+@if (turn(); as turn) {
+  <div
+    class="absolute top-6 right-6 flex items-baseline gap-2 rounded-lg bg-black/55 px-3.5 py-2 text-white [text-shadow:0_1px_3px_rgba(0,0,0,0.9)]"
+    data-testid="overlay-turn"
+  >
+    <span class="text-[0.8rem] font-semibold text-amber-300">{{
+      'feature.turnOrder.roundShort' | transloco: { n: turn.round }
+    }}</span>
+    @if (turn.statusKey) {
+      <span class="text-[0.95rem]">{{ turn.statusKey | transloco }}</span>
+    } @else {
+      <span class="text-[1.05rem] font-semibold">{{ turn.name }}</span>
+    }
+  </div>
+}
+
+<ul class="absolute bottom-6 left-6 m-0 flex w-[min(46rem,60vw)] list-none flex-col gap-1.5 p-0">
+  @for (line of feed(); track line.identifier) {
+    <li
+      class="rounded-lg bg-black/55 px-3.5 py-2 text-white [text-shadow:0_1px_3px_rgba(0,0,0,0.9)]"
+      [class.border-l-4]="line.isDice"
+      [class.border-amber-300]="line.isDice"
+      data-testid="overlay-line"
+    >
+      <span class="mr-2 text-[0.85rem] font-semibold" [style.color]="line.color || '#ffd479'">{{ line.name }}</span>
+      <span class="text-[1.05rem] leading-normal whitespace-pre-wrap">{{ line.text }}</span>
+    </li>
+  }
+</ul>
