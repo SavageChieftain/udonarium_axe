@@ -1,3 +1,25 @@
+## [1.33.0](https://github.com/SavageChieftain/udonarium_axe/compare/v1.32.0...v1.33.0) (2026-08-11)
+
+### ✨ Features
+
+* **dice:** keep what the dice actually rolled ([2d85ce8](https://github.com/SavageChieftain/udonarium_axe/commit/2d85ce80b67b026eb2a6001a7db1d9dc87c47f8c))
+* **replay:** write a recording out as something to read ([1ada5f6](https://github.com/SavageChieftain/udonarium_axe/commit/1ada5f6575c842549986efb8ce0f922a239c0133))
+
+### 🐛 Bug Fixes
+
+* **chat:** keep the system tab out of room data so loading cannot orphan it ([c8292d3](https://github.com/SavageChieftain/udonarium_axe/commit/c8292d30e87c9539ef2fb54a34c1020d4d2478f9))
+* **chat:** leave the system tab only the settings that mean something ([487151d](https://github.com/SavageChieftain/udonarium_axe/commit/487151d7d69570e9009ade6f90b34613d649be57))
+* **chat:** stop the tab settings from offering what the system tab cannot do ([1aa8d40](https://github.com/SavageChieftain/udonarium_axe/commit/1aa8d40db7db6adbf6d54d646327930f6740e780))
+
+### 📝 Documentation
+
+* record the dice detail and the reading export ([8a2b4f0](https://github.com/SavageChieftain/udonarium_axe/commit/8a2b4f002d0a4d84050e8a271c0cef09d09170d7))
+* **website:** add v1.32.0 release notes ([9f6ac21](https://github.com/SavageChieftain/udonarium_axe/commit/9f6ac2158374bce90af12eb6b4cd5b6ad36a9055))
+
+### ♻️ Refactor
+
+* **fab:** order the menu icons by what they are for ([f668f9c](https://github.com/SavageChieftain/udonarium_axe/commit/f668f9ce328d0c23ca2d47442c041059e38853de))
+
 ## [1.32.0](https://github.com/SavageChieftain/udonarium_axe/compare/v1.31.0...v1.32.0) (2026-08-11)
 
 ### ✨ Features
