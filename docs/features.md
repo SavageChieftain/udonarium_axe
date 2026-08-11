@@ -300,7 +300,9 @@ SE は効果音ラボ・On-Jin の素材を取り込み、`PresetSound` 経由�
 - **動画に入る音** — 効果音は鳴った場面の時刻に、BGM は鳴り始めから止まる（または曲が変わる）までを区間として置き、`OfflineAudioContext` で 1 本に混ぜて AAC で多重化する。BGM は区間ぶんループしフェードで出入りする（`domain/replay/replay-soundtrack`、`application/replay/replay-sound-mixer`）
 - **書き出し先** — `showSaveFilePicker` があれば保存先を先に尋ね、`FileSystemWritableFileStreamTarget` でディスクへ直接流す。長さを決めるのは空き容量だけになる。無い環境でも、見込みが大きければ `StreamTarget` で分割して Blob に積む（索引を先頭に置く `fastStart: 'in-memory'` は全体をメモリに載せるので、長い動画では使わず `'fragmented'` に切り替える）
 - **符号化できない環境** — WebCodecs が無ければ `MediaRecorder` へ落とす（`core/media/media-recorder-encoder`）。canvas の絵と混ぜた音をそのまま流し込むので **尺と同じだけ実時間がかかる**（その旨をパネルに出す）。入れ物は MP4 → WebM の順に、そのブラウザが受け取れるものを選ぶ。音は AAC → Opus の順に `AudioEncoder.isConfigSupported()` で試すので、AAC が無い環境でも無音にならない
-- **書き出しの制約** — 盤面は真上からの 2D で、暗闇・視界・光源・3D の見え方は再現しない。動画のカットイン（YouTube 等）は絵として入らない（音だけのカットインと同じく字幕で出る）。画像のカットインは盤面の上に重ねて映す
+- **動画の暗闇・視界・光源** — キーフレームから `VisionScene` を組み直し、判定は生きている卓と同じ `domain/tabletop/vision-scene` に任せる（`domain/replay/replay-vision-scene`）。見る人のロールで見え方が変わるのも同じで、GM は全部、PL は自分の持ちコマと同行者、見学者は卓に居る PL の視界を借りる。描くのは canvas に切り抜きが無いので、暗幕を別の面へ描いてから灯りの形で削り、削り終えた面を盤面へ重ねる（`infrastructure/replay/replay-darkness-painter`）。面は長辺 2048px で頭打ちにする（卓の座標のまま作ると 6000px 四方になる）
+- **動画の盤面の向き** — 真上から（既定）と、卓と同じ傾き（`REPLAY_BOARD_TABLE_VIEW`）を選べる。カメラの角度は同期していない＝記録に残らないので、当日の角度ではなく卓の既定の角度で映す。射影は回す → 倒す → 枠に合わせる、の順（`domain/replay/replay-board-camera`）。**遠近は付けない** — 手前と奥で縮尺が変わらないぶん、コマの大小が距離ではなく実際の大きさとして読める。地面に貼り付くもの（卓の絵・マス目・移動の跡・暗闇）は卓の座標のまま描いて行列に傾けさせ、コマだけは倒さずに足元で立てる（倒すと板が潰れて何のコマか分からない）
+- **書き出しの制約** — 動画のカットイン（YouTube 等）は絵として入らない（音だけのカットインと同じく字幕で出る）。画像のカットインは盤面の上に重ねて映す
 
 ## 同期 / 内部基盤
 
