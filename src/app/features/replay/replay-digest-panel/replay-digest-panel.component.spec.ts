@@ -162,6 +162,28 @@ describe('ReplayDigestPanelComponent', () => {
     expect(numberOf('発言')).toBe('1');
   });
 
+  it('まとめを Markdown として書き出すこと', async () => {
+    const saved: { blob: Blob; name: string }[] = [];
+    vi.spyOn(URL, 'createObjectURL').mockImplementation((blob) => {
+      saved.push({ blob: blob as Blob, name: '' });
+      return 'blob:summary';
+    });
+    vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => undefined);
+    vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(function (this: HTMLAnchorElement) {
+      if (saved.length > 0) saved[saved.length - 1].name = this.download;
+    });
+
+    await setup();
+    [...(fixture.nativeElement as HTMLElement).querySelectorAll('button')]
+      .find((button) => button.textContent?.includes('まとめを書き出す'))
+      ?.click();
+
+    expect(saved).toHaveLength(1);
+    expect(saved[0].name.endsWith('_summary.md')).toBe(true);
+    expect(await saved[0].blob.text()).toContain('# 第一夜');
+    vi.restoreAllMocks();
+  });
+
   it('記念写真を、この記録のコマと名前で書き出すこと', async () => {
     await setup();
     photoButton()?.click();

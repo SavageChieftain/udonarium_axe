@@ -428,3 +428,62 @@ function changesOf(raw: unknown): ChangeEntry[] {
 function asString(value: unknown): string {
   return typeof value === 'string' ? value : '';
 }
+
+export interface ReplayDigestLabels {
+  readonly numbers: Readonly<Record<keyof ReplayDigestNumbers, string>>;
+  readonly awards: string;
+  readonly awardOf: (key: string) => string;
+  readonly fortune: { readonly title: string; readonly columns: readonly string[] };
+  readonly ledger: { readonly title: string; readonly columns: readonly string[]; readonly note: string };
+  readonly elapsed: (ms: number) => string;
+}
+
+/** まとめを 1 枚の読み物として書き出す。文言は呼ぶ側から受け取る。 */
+export function buildReplayDigestMarkdown(digest: ReplayDigest, labels: ReplayDigestLabels): string {
+  const parts: string[] = [`# ${digest.roomName}`, ''];
+
+  const numbers = digest.numbers;
+  parts.push(
+    [
+      `${labels.numbers.elapsedMs}: ${labels.elapsed(numbers.elapsedMs)}`,
+      `${labels.numbers.messages}: ${numbers.messages}`,
+      `${labels.numbers.diceRolls}: ${numbers.diceRolls}`,
+      `${labels.numbers.effects}: ${numbers.effects}`,
+      `${labels.numbers.rounds}: ${numbers.rounds}`,
+      `${labels.numbers.speakers}: ${numbers.speakers}`,
+    ].join(' / '),
+    ''
+  );
+
+  if (digest.awards.length > 0) {
+    parts.push(`## ${labels.awards}`, '');
+    for (const award of digest.awards) {
+      parts.push(`- ${labels.awardOf(award.key)}: ${award.name} (${award.value})`);
+    }
+    parts.push('');
+  }
+
+  if (digest.fortunes.length > 0) {
+    parts.push(`## ${labels.fortune.title}`, '', table(labels.fortune.columns));
+    for (const row of digest.fortunes) {
+      parts.push(
+        `| ${row.name} | ${row.rolls} | ${row.average} | ${row.best} | ${row.worst} | ${row.criticals} | ${row.fumbles} |`
+      );
+    }
+    parts.push('');
+  }
+
+  if (digest.ledger.length > 0) {
+    parts.push(`## ${labels.ledger.title}`, '', table(labels.ledger.columns));
+    for (const entry of digest.ledger) {
+      parts.push(`| ${entry.name} | ${entry.damage} | ${entry.heal} | ${entry.biggestHit} |`);
+    }
+    parts.push('', labels.ledger.note);
+  }
+
+  return parts.join('\n').trimEnd() + '\n';
+}
+
+function table(columns: readonly string[]): string {
+  return `| ${columns.join(' | ')} |\n|${columns.map(() => ' --- ').join('|')}|`;
+}

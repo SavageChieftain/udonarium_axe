@@ -1,6 +1,10 @@
 import { encodeDiceRollDetail } from '@axe/domain/dice/dice-roll-detail';
 import { PeerRole } from '@axe/domain/peer/peer-role';
-import { buildReplayDigest } from '@axe/domain/replay/replay-digest';
+import {
+  buildReplayDigest,
+  buildReplayDigestMarkdown,
+  type ReplayDigestLabels,
+} from '@axe/domain/replay/replay-digest';
 import {
   GM_ONLY_VISIBILITY,
   PUBLIC_VISIBILITY,
@@ -281,5 +285,56 @@ describe('buildReplayDigest()', () => {
     );
 
     expect(digest.awards.map((award) => award.key)).toEqual([]);
+  });
+
+  describe('buildReplayDigestMarkdown()', () => {
+    const LABELS: ReplayDigestLabels = {
+      numbers: {
+        elapsedMs: '経過',
+        messages: '発言',
+        diceRolls: 'ダイス',
+        effects: '演出',
+        rounds: 'ラウンド',
+        speakers: '話した人',
+      },
+      awards: '称号',
+      awardOf: (key) => `称号:${key}`,
+      fortune: { title: 'ダイスの出方', columns: ['人', '振り', '平均', '最高', '最低', '会心', '大失敗'] },
+      ledger: { title: '受けた増減', columns: ['コマ', 'ダメージ', '回復', '最大'], note: '受けた側だけ' },
+      elapsed: (ms) => `${Math.round(ms / 1000)}秒`,
+    };
+
+    it('部屋の名前と数を並べること', () => {
+      const digest = buildReplayDigest([event(ReplayEventKind.ChatMessage, 'alice')], MANIFEST, PLAYER);
+
+      const markdown = buildReplayDigestMarkdown(digest, LABELS);
+
+      expect(markdown).toContain('# 洞窟の夜');
+      expect(markdown).toContain('発言: 1');
+    });
+
+    it('中身の無い節を書かないこと', () => {
+      const digest = buildReplayDigest([event(ReplayEventKind.ChatMessage, 'alice')], MANIFEST, PLAYER);
+
+      const markdown = buildReplayDigestMarkdown(digest, LABELS);
+
+      expect(markdown).not.toContain('ダイスの出方');
+      expect(markdown).not.toContain('受けた増減');
+    });
+
+    it('表として読める形にすること', () => {
+      const digest = buildReplayDigest(
+        [dice('alice', [[6, 3]]), change('gm', 'char-1', [{ kind: 'damage', delta: -4, name: 'HP' }])],
+        MANIFEST,
+        PLAYER
+      );
+
+      const markdown = buildReplayDigestMarkdown(digest, LABELS);
+
+      expect(markdown).toContain('| 人 | 振り | 平均 | 最高 | 最低 | 会心 | 大失敗 |');
+      expect(markdown).toContain('| アリス | 1 | 3 | 3 | 3 | 0 | 0 |');
+      expect(markdown).toContain('| ゴブリン | 4 | 0 | 4 |');
+      expect(markdown).toContain('受けた側だけ');
+    });
   });
 });

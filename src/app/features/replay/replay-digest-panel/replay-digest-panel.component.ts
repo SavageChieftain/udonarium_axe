@@ -4,10 +4,16 @@ import { ReplayEditorService } from '@axe/application/replay/replay-editor.servi
 import { ReplayPhotoService } from '@axe/application/replay/replay-photo.service';
 import { ReplayPlaybackService } from '@axe/application/replay/replay-playback.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
+import { downloadBlob } from '@axe/core/util/download-blob';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { replayArchiveName } from '@axe/domain/replay/replay-archive';
 import { replayCastOnTable } from '@axe/domain/replay/replay-cast';
-import { buildReplayDigest, EMPTY_REPLAY_DIGEST } from '@axe/domain/replay/replay-digest';
+import {
+  buildReplayDigest,
+  buildReplayDigestMarkdown,
+  EMPTY_REPLAY_DIGEST,
+  type ReplayDigestLabels,
+} from '@axe/domain/replay/replay-digest';
 import { replayScriptElapsed } from '@axe/domain/replay/replay-script';
 import { TranslocoModule } from '@jsverse/transloco';
 
@@ -63,6 +69,40 @@ export class ReplayDigestPanelComponent {
 
   protected elapsed(ms: number): string {
     return replayScriptElapsed(ms);
+  }
+
+  protected saveMarkdown(): void {
+    const manifest = this.playback.manifest();
+    if (!manifest) return;
+
+    const text = buildReplayDigestMarkdown(this.digest(), this.labels());
+    downloadBlob(
+      new Blob([text], { type: 'text/markdown;charset=utf-8' }),
+      `${replayArchiveName(manifest)}_summary.md`
+    );
+  }
+
+  private labels(): ReplayDigestLabels {
+    const at = (key: string): string => this.t(`feature.replay.digest.${key}`);
+    return {
+      numbers: {
+        elapsedMs: at('numbers.elapsed'),
+        messages: at('numbers.messages'),
+        diceRolls: at('numbers.diceRolls'),
+        effects: at('numbers.effects'),
+        rounds: at('numbers.rounds'),
+        speakers: at('numbers.speakers'),
+      },
+      awards: at('awards'),
+      awardOf: (key) => at(`award.${key}`),
+      fortune: { title: at('fortune.title'), columns: this.fortuneColumns.map((column) => at(`fortune.${column}`)) },
+      ledger: {
+        title: at('ledger.title'),
+        columns: this.ledgerColumns.map((column) => at(`ledger.${column}`)),
+        note: at('ledger.note'),
+      },
+      elapsed: (ms) => replayScriptElapsed(ms),
+    };
   }
 
   protected async savePhoto(): Promise<void> {
