@@ -1,3 +1,14 @@
+## [1.32.0](https://github.com/SavageChieftain/udonarium_axe/compare/v1.31.0...v1.32.0) (2026-08-11)
+
+### ✨ Features
+
+* **chat:** give system notices their own tab ([e5120c1](https://github.com/SavageChieftain/udonarium_axe/commit/e5120c1dc75ce86b244dc7e76a94f9fe9210e17f))
+
+### 📝 Documentation
+
+* describe the system tab ([ae92183](https://github.com/SavageChieftain/udonarium_axe/commit/ae9218350cdc5990bde165118994141cc8a76313))
+* **website:** add v1.31.0 and v1.30.1 release notes ([32f89b6](https://github.com/SavageChieftain/udonarium_axe/commit/32f89b6e56c22990810509c05327867f77d84032))
+
 ## [1.31.0](https://github.com/SavageChieftain/udonarium_axe/compare/v1.30.1...v1.31.0) (2026-08-11)
 
 ### ✨ Features
