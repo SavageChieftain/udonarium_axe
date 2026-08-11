@@ -30,7 +30,12 @@ export class ObjectStore {
   private constructor() {}
 
   add(object: GameObject, shouldBroadcast: boolean = true, beforeLifecycle?: () => void): GameObject | null {
-    if (this.get(object.identifier) != null || this.isDeleted(object.identifier)) return null;
+    if (this.get(object.identifier) != null) return null;
+    if (this.isDeleted(object.identifier)) {
+      // 消えたものが他所から蘇るのは拒む。手元で作り直したものは、作り直した側の意思を通す。
+      if (!shouldBroadcast) return null;
+      this.garbageMap.delete(object.identifier);
+    }
     this.identifierMap.set(object.identifier, object);
     let objectsMap = this.aliasNameMap.get(object.aliasName);
     if (!objectsMap) {

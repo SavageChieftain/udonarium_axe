@@ -1,7 +1,10 @@
 import { TestBed } from '@angular/core/testing';
+import { ObjectSerializer } from '@axe/core/sync/object-serializer';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { ChatTab } from '@axe/domain/chat/chat-tab';
 import { ChatTabList } from '@axe/domain/chat/chat-tab-list';
+import { SYSTEM_CHAT_TAB_IDENTIFIER, SYSTEM_CHAT_TAB_NAME } from '@axe/domain/chat/constants';
+import { ReloadCheck } from '@axe/domain/peer/reload-check';
 
 describe('ChatTabList', () => {
   let store: ObjectStore;
@@ -163,6 +166,78 @@ describe('ChatTabList', () => {
       list.ensureSystemTab();
 
       expect(list.spokenChatTabs).toEqual([main]);
+    });
+
+    it('部屋データにシステムタブを書き出さないこと', () => {
+      const list = ChatTabList.instance;
+      list.addChatTab('メイン');
+      list.ensureSystemTab();
+
+      const xml = list.toXml();
+
+      expect(xml).toContain('name="メイン"');
+      expect(xml).not.toContain(`name="${SYSTEM_CHAT_TAB_NAME}"`);
+    });
+
+    it('部屋データを読み込んでもシステムタブが 1 枚だけ生き残ること', () => {
+      const reloadCheck = new ReloadCheck('ReloadCheck');
+      reloadCheck.initialize();
+      reloadCheck.reloadCheckStart(false);
+
+      const list = ChatTabList.instance;
+      list.addChatTab('メインタブ', 'MainTab');
+      const system = list.ensureSystemTab();
+
+      // 古い部屋データはタブに identifier を持たない。読み込むたびに作り直しになる。
+      ObjectSerializer.instance.parseXml(
+        '<chat-tab-list _systemMessageTabIndex="0">' +
+          '<chat-tab name="Main" plCanView="true" plCanSpeak="true"></chat-tab>' +
+          '<chat-tab name="Sub" plCanView="true" plCanSpeak="true"></chat-tab>' +
+          '</chat-tab-list>'
+      );
+
+      const systemTabs = ChatTabList.instance.chatTabs.filter((tab) => tab.isSystemTab);
+      expect(systemTabs).toHaveLength(1);
+      expect(systemTabs[0]).toBe(system);
+      expect(store.get(SYSTEM_CHAT_TAB_IDENTIFIER)).toBe(system);
+      expect(ChatTabList.instance.chatTabs.map((tab) => tab.name)).toEqual(['Main', 'Sub', SYSTEM_CHAT_TAB_NAME]);
+    });
+
+    it('システムタブを持ち出していた頃の部屋データは知らせを 1 枚にまとめ直すこと', () => {
+      const reloadCheck = new ReloadCheck('ReloadCheck');
+      reloadCheck.initialize();
+      reloadCheck.reloadCheckStart(false);
+
+      const list = ChatTabList.instance;
+      list.addChatTab('メインタブ', 'MainTab');
+      list.ensureSystemTab();
+
+      ObjectSerializer.instance.parseXml(
+        '<chat-tab-list _systemMessageTabIndex="0">' +
+          '<chat-tab name="Main"></chat-tab>' +
+          `<chat-tab name="${SYSTEM_CHAT_TAB_NAME}"></chat-tab>` +
+          '</chat-tab-list>'
+      );
+
+      expect(ChatTabList.instance.chatTabs.filter((tab) => tab.name === SYSTEM_CHAT_TAB_NAME)).toHaveLength(1);
+      expect(ChatTabList.instance.systemMessageTab!.isSystemTab).toBe(true);
+    });
+
+    it('同じ部屋データを続けて読み込んでも壊れないこと', () => {
+      const reloadCheck = new ReloadCheck('ReloadCheck');
+      reloadCheck.initialize();
+      reloadCheck.reloadCheckStart(false);
+
+      ChatTabList.instance.addChatTab('メインタブ', 'MainTab');
+      ChatTabList.instance.ensureSystemTab();
+
+      const roomXml = '<chat-tab-list _systemMessageTabIndex="0"><chat-tab name="Main"></chat-tab></chat-tab-list>';
+      ObjectSerializer.instance.parseXml(roomXml);
+      ObjectSerializer.instance.parseXml(roomXml);
+
+      const tabs = ChatTabList.instance.chatTabs;
+      expect(tabs.map((tab) => tab.name)).toEqual(['Main', SYSTEM_CHAT_TAB_NAME]);
+      for (const tab of tabs) expect(store.get(tab.identifier)).toBe(tab);
     });
 
     it('全タブの書き出しにシステムタブを入れないこと', () => {

@@ -83,6 +83,27 @@ describe('ObjectStore', () => {
       expect(result).toBeNull();
     });
 
+    it('手元で作り直した固定 identifier は受け入れる', () => {
+      const obj = new GameObject('fixed-id');
+      store.add(obj, false);
+      store.delete(obj, false);
+
+      const remade = new GameObject('fixed-id');
+      const result = store.add(remade);
+
+      expect(result).toBe(remade);
+      expect(store.get('fixed-id')).toBe(remade);
+      expect(store.isDeleted('fixed-id')).toBe(false);
+    });
+
+    it('作り直した後も、他所から届いた同じ identifier は蘇らせない', () => {
+      const obj = new GameObject('fixed-id-2');
+      store.add(obj, false);
+      store.delete(obj, false);
+
+      expect(store.add(new GameObject('fixed-id-2'), false)).toBeNull();
+    });
+
     it('should broadcast update when shouldBroadcast is true', () => {
       vi.spyOn(store, 'update');
       const obj = new GameObject('test-id-5');

@@ -1,6 +1,6 @@
 import { SyncObject, SyncVar } from '@axe/core/sync/decorator';
 import { ObjectNode } from '@axe/core/sync/object-node';
-import { InnerXml } from '@axe/core/sync/object-serializer';
+import { InnerXml, ObjectSerializer } from '@axe/core/sync/object-serializer';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { ChatLogExporter } from '@axe/domain/chat/chat-log-exporter';
 import { ChatTab } from '@axe/domain/chat/chat-tab';
@@ -29,6 +29,8 @@ export class ChatTabList extends ObjectNode implements InnerXml {
   ensureSystemTab(): ChatTab {
     const system = this.chatTabs.find((tab) => tab.isSystemTab);
     if (system) return system;
+    const detached = ObjectStore.instance.get<ChatTab>(SYSTEM_CHAT_TAB_IDENTIFIER);
+    if (detached) return this.appendChild(detached)!;
     return this.addChatTab(SYSTEM_CHAT_TAB_NAME, SYSTEM_CHAT_TAB_IDENTIFIER);
   }
 
@@ -115,12 +117,23 @@ export class ChatTabList extends ObjectNode implements InnerXml {
     return this.appendChild(chatTab)!;
   }
 
+  /** 部屋データに書き出す分。システムタブはこの卓の備品なので持ち出さない。 */
+  override innerXml(): string {
+    let xml = '';
+    for (const child of this.children) {
+      if (child instanceof ChatTab && child.isSystemTab) continue;
+      xml += ObjectSerializer.instance.toXml(child);
+    }
+    return xml;
+  }
+
   override parseInnerXml(element: Element) {
     const reLoadOk = this.reloadCheck.answerCheck();
 
     if (reLoadOk) {
       // XMLからの新規作成を許可せず、既存のオブジェクトを更新する
       for (const child of [...ChatTabList.instance.children]) {
+        if (child instanceof ChatTab && child.isSystemTab) continue;
         child.destroy();
       }
 
@@ -130,10 +143,20 @@ export class ChatTabList extends ObjectNode implements InnerXml {
       ChatTabList.instance.update();
 
       super.parseInnerXml.apply(ChatTabList.instance, [element]);
-      // 読み込んだ部屋にシステムタブが無いことがある。無いままだと知らせが会話へ混ざる。
-      ChatTabList.instance.ensureSystemTab();
+      ChatTabList.instance.restoreSystemTab();
       this.destroy();
     }
+  }
+
+  /** 読み込みの後始末。システムタブを持ち出していた頃の部屋データなら、知らせを 1 枚にまとめ直す。 */
+  private restoreSystemTab(): void {
+    const system = this.ensureSystemTab();
+    for (const tab of [...this.chatTabs]) {
+      if (tab === system || tab.name !== SYSTEM_CHAT_TAB_NAME) continue;
+      for (const message of [...tab.children]) system.appendChild(message);
+      tab.destroy();
+    }
+    this.appendChild(system);
   }
 
   logHtml(): string {
