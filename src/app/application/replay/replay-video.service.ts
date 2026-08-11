@@ -7,6 +7,7 @@ import { AudioStorage } from '@axe/core/storage/audio-storage';
 import { ImageStorage } from '@axe/core/storage/image-storage';
 import type { ReplayRecordingMeta } from '@axe/core/storage/replay-log-store';
 import { replayArchiveName } from '@axe/domain/replay/replay-archive';
+import { REPLAY_BOARD_TOP_DOWN, type ReplayBoardCamera } from '@axe/domain/replay/replay-board-camera';
 import {
   buildReplayBoardScene,
   collectBoardAssetIds,
@@ -49,6 +50,8 @@ const CUT_IN_ALIAS = 'cut-in';
 export interface ReplayVideoOptions {
   size: ReplayFrameSize;
   fps: number;
+  /** 盤面の見え方。既定は真上から。 */
+  camera?: ReplayBoardCamera;
   pacing: ReplayShotPacing;
   scope: ReplayShotScope;
   sound: ReplaySoundChoice;
@@ -132,7 +135,7 @@ export class ReplayVideoService {
       this._total.set(frameCount);
 
       const layout = replayFrameLayout(options.size);
-      const boards = this.boardsFor(storyboard.shots, events, base);
+      const boards = this.boardsFor(storyboard.shots, events, base, viewer ?? null);
       const boardOfSeq = new Map(storyboard.shots.map((shot, index) => [shot.seq, boards[index]]));
       if (this.cancelled) return false;
       const assets = await this.loadAssets([
@@ -169,7 +172,8 @@ export class ReplayVideoService {
               frameCount > 1 ? index / (frameCount - 1) : 1,
               DEFAULT_REPLAY_FRAME_STYLE,
               shot ? (boardOfSeq.get(shot.seq) ?? null) : null,
-              shot && shot.durationMs > 0 ? (atMs - shot.startMs) / shot.durationMs : 1
+              shot && shot.durationMs > 0 ? (atMs - shot.startMs) / shot.durationMs : 1,
+              options.camera ?? REPLAY_BOARD_TOP_DOWN
             );
           },
         });
@@ -235,7 +239,8 @@ export class ReplayVideoService {
   private boardsFor(
     shots: readonly ReplayShot[],
     events: readonly ReplayEvent[],
-    base: readonly ReplayObjectSnapshot[]
+    base: readonly ReplayObjectSnapshot[],
+    viewer: ReplayViewer | null
   ): (ReplayBoardScene | null)[] {
     if (base.length < 1) return shots.map(() => null);
 
@@ -249,7 +254,7 @@ export class ReplayVideoService {
         board = applyReplayEvents(board, events.slice(from, upto + 1));
         from = upto + 1;
       }
-      return buildReplayBoardScene(board);
+      return buildReplayBoardScene(board, viewer ?? undefined);
     });
   }
 

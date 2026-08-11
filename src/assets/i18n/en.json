@@ -2164,6 +2164,7 @@
         "unsupported": "This browser cannot write video",
         "size": "Size",
         "fps": "Frame rate",
+        "view": "Board view",
         "pacing": "Pacing",
         "scope": "Include",
         "pace": {
@@ -2171,6 +2172,8 @@
           "recorded": "As it happened"
         },
         "of": {
+          "top": "From above",
+          "table": "Tilted like the table",
           "lines": "Lines and chapters",
           "everything": "The table as well"
         },

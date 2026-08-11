@@ -13,6 +13,7 @@ import { askVideoFile, isVideoFileSinkSupported } from '@axe/core/media/video-fi
 import type { ReplayRecordingMeta } from '@axe/core/storage/replay-log-store';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { replayArchiveName } from '@axe/domain/replay/replay-archive';
+import { REPLAY_BOARD_TABLE_VIEW, REPLAY_BOARD_TOP_DOWN } from '@axe/domain/replay/replay-board-camera';
 import type { ReplayEvent } from '@axe/domain/replay/replay-event';
 import { REPLAY_FRAME_PRESETS } from '@axe/domain/replay/replay-frame-layout';
 import { buildReplayStoryboard, ReplayShotPacing, ReplayShotScope } from '@axe/domain/replay/replay-storyboard';
@@ -22,6 +23,7 @@ import { TranslocoModule } from '@jsverse/transloco';
 
 export const REPLAY_VIDEO_SIZES = ['720p', '1080p', '1440p', '2160p'] as const;
 export const REPLAY_VIDEO_FPS_CHOICES = [30, 60] as const;
+export const REPLAY_VIDEO_VIEWS = ['top', 'table'] as const;
 
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -39,6 +41,7 @@ export class ReplayVideoPanelComponent {
 
   protected readonly sizes = REPLAY_VIDEO_SIZES;
   protected readonly fpsChoices = REPLAY_VIDEO_FPS_CHOICES;
+  protected readonly views = REPLAY_VIDEO_VIEWS;
   protected readonly pacings = [ReplayShotPacing.Reading, ReplayShotPacing.Recorded];
   protected readonly scopes = [ReplayShotScope.Lines, ReplayShotScope.Everything];
 
@@ -49,6 +52,7 @@ export class ReplayVideoPanelComponent {
 
   protected readonly sizeKey = signal<(typeof REPLAY_VIDEO_SIZES)[number]>('1080p');
   protected readonly fps = signal<number>(REPLAY_VIDEO_FPS);
+  protected readonly view = signal<(typeof REPLAY_VIDEO_VIEWS)[number]>('top');
   protected readonly pacing = signal<ReplayShotPacing>(ReplayShotPacing.Reading);
   protected readonly scope = signal<ReplayShotScope>(ReplayShotScope.Everything);
   protected readonly withEffects = signal(true);
@@ -95,6 +99,10 @@ export class ReplayVideoPanelComponent {
     this.fps.set(Number(value));
   }
 
+  protected setView(value: string): void {
+    this.view.set(value as (typeof REPLAY_VIDEO_VIEWS)[number]);
+  }
+
   protected setPacing(value: string): void {
     this.pacing.set(value as ReplayShotPacing);
   }
@@ -135,6 +143,7 @@ export class ReplayVideoPanelComponent {
         ...this.storyboardOptions(),
         size: REPLAY_FRAME_PRESETS[this.sizeKey()],
         fps: this.fps(),
+        camera: this.view() === 'table' ? REPLAY_BOARD_TABLE_VIEW : REPLAY_BOARD_TOP_DOWN,
         sound: { withEffects: this.withEffects(), withMusic: this.withMusic() },
       },
       { userId: PeerCursor.myCursor?.userId ?? '', role: PeerCursor.myRole },

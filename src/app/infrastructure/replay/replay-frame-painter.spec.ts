@@ -27,6 +27,13 @@ function recorder(): {
   const images: DrawnImage[] = [];
   const fills: { x: number; y: number; width: number; height: number; color: string }[] = [];
 
+  // 地面に貼り付くものは行列を掛けて描かれるので、こちら側でも同じ変換を通して
+  // 画面のどこに出たかで確かめる。
+  let matrix: [number, number, number, number, number, number] = [1, 0, 0, 1, 0, 0];
+  const stack: [number, number, number, number, number, number][] = [];
+  const atX = (x: number, y: number) => matrix[0] * x + matrix[2] * y + matrix[4];
+  const atY = (x: number, y: number) => matrix[1] * x + matrix[3] * y + matrix[5];
+
   const ctx = {
     fillStyle: '',
     strokeStyle: '',
@@ -34,8 +41,23 @@ function recorder(): {
     font: '',
     textAlign: 'left',
     textBaseline: 'alphabetic',
+    save() {
+      stack.push([...matrix] as typeof matrix);
+    },
+    restore() {
+      matrix = stack.pop() ?? [1, 0, 0, 1, 0, 0];
+    },
+    setTransform(a: number, b: number, c: number, d: number, e: number, f: number) {
+      matrix = [a, b, c, d, e, f];
+    },
     fillRect(x: number, y: number, width: number, height: number) {
-      fills.push({ x, y, width, height, color: String(ctx.fillStyle) });
+      fills.push({
+        x: atX(x, y),
+        y: atY(x, y),
+        width: width * matrix[0],
+        height: height * matrix[3],
+        color: String(ctx.fillStyle),
+      });
     },
     strokeRect() {},
     beginPath() {},
@@ -44,14 +66,21 @@ function recorder(): {
     closePath() {},
     stroke() {},
     fill() {},
+    clip() {},
+    arc() {},
+    translate() {},
+    rotate() {},
+    createRadialGradient() {
+      return { addColorStop() {} };
+    },
     fillText(text: string, x: number, y: number) {
-      texts.push({ text, x, y, font: ctx.font, color: String(ctx.fillStyle) });
+      texts.push({ text, x: atX(x, y), y: atY(x, y), font: ctx.font, color: String(ctx.fillStyle) });
     },
     measureText(text: string) {
       return { width: [...text].length * 20 };
     },
     drawImage(image: ReplayFrameImage, x: number, y: number, width: number, height: number) {
-      images.push({ image, x, y, width, height });
+      images.push({ image, x: atX(x, y), y: atY(x, y), width: width * matrix[0], height: height * matrix[3] });
     },
   } as unknown as ReplayFrameCanvas;
 
@@ -187,6 +216,7 @@ describe('paintReplayFrame()', () => {
           imageIdentifier: 'img-1',
         },
       ],
+      overlay: null,
     });
 
     const table = images[0];
@@ -218,6 +248,7 @@ describe('paintReplayFrame()', () => {
           imageIdentifier: '',
         },
       ],
+      overlay: null,
     });
 
     expect(texts.map((entry) => entry.text)).toEqual(['盗賊', 'アリス', 'こんばんは']);
@@ -236,6 +267,7 @@ describe('paintReplayFrame()', () => {
       imageIdentifier: '',
       backgroundImageIdentifier: '',
       pieces: [],
+      overlay: null,
     });
 
     const portrait = beside.images[beside.images.length - 1];
@@ -263,6 +295,7 @@ describe('paintReplayFrame()', () => {
           imageIdentifier: '',
         },
       ],
+      overlay: null,
     };
     const moving = shot({
       move: {
@@ -304,6 +337,7 @@ describe('paintReplayFrame()', () => {
           imageIdentifier: '',
         },
       ],
+      overlay: null,
     };
     const still = recorder();
     paintReplayFrame(still.ctx, layout, shot(), noAssets, 0, DEFAULT_REPLAY_FRAME_STYLE, scene);
@@ -345,6 +379,7 @@ describe('paintReplayFrame()', () => {
       imageIdentifier: '',
       backgroundImageIdentifier: '',
       pieces: [far('a', 0), far('b', 19_950)],
+      overlay: null,
     });
 
     const squares = fills.filter((fill) => fill.width === fill.height);
@@ -373,6 +408,7 @@ describe('paintReplayFrame()', () => {
           imageIdentifier: '',
         },
       ],
+      overlay: null,
     });
 
     expect(images[0].width).toBeGreaterThan(layout.board.width);
@@ -421,6 +457,7 @@ describe('paintReplayFrame()', () => {
             imageIdentifier: '',
           },
         ],
+        overlay: null,
       },
       0.5
     );
@@ -450,6 +487,7 @@ describe('paintReplayFrame()', () => {
           imageIdentifier: '',
         },
       ],
+      overlay: null,
     });
 
     const near = recorder();
@@ -510,5 +548,95 @@ describe('paintReplayFrame()', () => {
     paintReplayFrame(ctx, layout, shot(), { imageOf: () => image(100, 100) }, 0.5);
 
     expect(images.every((one) => one.width <= layout.width)).toBe(true);
+  });
+
+  it('暗闇の卓では見えていた範囲だけを残すこと', () => {
+    const { ctx, fills } = recorder();
+    const board = {
+      width: 10,
+      height: 10,
+      gridSize: 50,
+      imageIdentifier: '',
+      backgroundImageIdentifier: '',
+      pieces: [],
+      overlay: {
+        darknessAlpha: 0.9,
+        darknessColor: '#000010',
+        baseRevealAlpha: 0,
+        reveals: [{ x: 100, y: 100, brightPx: 50, dimPx: 100, angle: 360, direction: 0, color: '#fff', full: true }],
+        glows: [],
+        shadows: [],
+      },
+    };
+
+    paintReplayFrame(ctx, layout, shot(), { imageOf: () => null }, 0.5, DEFAULT_REPLAY_FRAME_STYLE, board);
+
+    // 暗幕そのものは別の面へ描いて重ねるので、盤面の塗りには出てこない。
+    expect(fills.some((one) => one.color === '#000010')).toBe(false);
+  });
+
+  it('傾けるとコマを寝かさずに立てること', () => {
+    const { ctx, images } = recorder();
+    const piece = image(64, 64);
+    const board = {
+      width: 10,
+      height: 10,
+      gridSize: 50,
+      imageIdentifier: '',
+      backgroundImageIdentifier: '',
+      overlay: null,
+      pieces: [
+        {
+          identifier: 'c1',
+          aliasName: 'character',
+          x: 200,
+          y: 200,
+          z: 0,
+          size: 1,
+          rotate: 0,
+          name: '',
+          imageIdentifier: 'p1',
+        },
+      ],
+    };
+    const assets = { imageOf: (identifier: string) => (identifier === 'p1' ? piece : null) };
+
+    const flat = () => {
+      const target = recorder();
+      paintReplayFrame(target.ctx, layout, shot(), assets, 0.5, DEFAULT_REPLAY_FRAME_STYLE, board, 1, {
+        spin: 0,
+        tilt: 0,
+      });
+      return target.images.find((one) => one.image === piece)!;
+    };
+
+    paintReplayFrame(ctx, layout, shot(), assets, 0.5, DEFAULT_REPLAY_FRAME_STYLE, board, 1, { spin: 0, tilt: 50 });
+    const standing = images.find((one) => one.image === piece)!;
+
+    // 立てたぶん、足元が同じ所に来て絵は上へ伸びる。四角いままなら潰れて見える。
+    expect(standing.height).toBeCloseTo(standing.width, 6);
+    expect(standing.y).toBeLessThan(flat().y);
+  });
+
+  it('傾けても卓を枠からはみ出させないこと', () => {
+    const { ctx, fills } = recorder();
+    const board = {
+      width: 10,
+      height: 10,
+      gridSize: 50,
+      imageIdentifier: '',
+      backgroundImageIdentifier: '',
+      overlay: null,
+      pieces: [],
+    };
+
+    paintReplayFrame(ctx, layout, shot(), { imageOf: () => null }, 0.5, DEFAULT_REPLAY_FRAME_STYLE, board, 1, {
+      spin: 10,
+      tilt: 50,
+    });
+
+    const surface = fills.find((one) => one.color === DEFAULT_REPLAY_FRAME_STYLE.boardSurface)!;
+    expect(surface.x).toBeGreaterThanOrEqual(layout.board.x - 1);
+    expect(surface.width).toBeLessThanOrEqual(layout.board.width + 1);
   });
 });

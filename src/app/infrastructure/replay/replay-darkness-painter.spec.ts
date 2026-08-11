@@ -1,0 +1,152 @@
+import type { OverlayPlan } from '@axe/domain/tabletop/vision-scene';
+import { type DarknessCanvas, paintReplayDarkness } from '@axe/infrastructure/replay/replay-darkness-painter';
+
+interface Call {
+  op: string;
+  args: number[];
+  composite: string;
+  alpha: number;
+  fill: string;
+}
+
+function recorder(): { ctx: DarknessCanvas; calls: Call[] } {
+  const calls: Call[] = [];
+  const ctx = {
+    canvas: { width: 100, height: 100 },
+    globalAlpha: 1,
+    globalCompositeOperation: 'source-over',
+    fillStyle: '' as string | object,
+    save: () => undefined,
+    restore: () => undefined,
+    beginPath: () => undefined,
+    moveTo: () => undefined,
+    lineTo: () => undefined,
+    closePath: () => undefined,
+    clip: () => calls.push({ op: 'clip', args: [], composite: ctx.globalCompositeOperation, alpha: 1, fill: '' }),
+    translate: () => undefined,
+    rotate: () => undefined,
+    createRadialGradient: () => ({ addColorStop: () => undefined }),
+    arc: (x: number, y: number, radius: number) =>
+      calls.push({
+        op: 'arc',
+        args: [x, y, radius],
+        composite: ctx.globalCompositeOperation,
+        alpha: ctx.globalAlpha,
+        fill: typeof ctx.fillStyle === 'string' ? ctx.fillStyle : 'gradient',
+      }),
+    fill: () => calls.push({ op: 'fill', args: [], composite: ctx.globalCompositeOperation, alpha: 1, fill: '' }),
+    fillRect: (x: number, y: number, width: number, height: number) =>
+      calls.push({
+        op: 'fillRect',
+        args: [x, y, width, height],
+        composite: ctx.globalCompositeOperation,
+        alpha: ctx.globalAlpha,
+        fill: typeof ctx.fillStyle === 'string' ? ctx.fillStyle : 'gradient',
+      }),
+    drawImage: (_image: unknown, x: number, y: number, width: number, height: number) =>
+      calls.push({
+        op: 'drawImage',
+        args: [x, y, width, height],
+        composite: ctx.globalCompositeOperation,
+        alpha: ctx.globalAlpha,
+        fill: '',
+      }),
+  } as unknown as DarknessCanvas & { fillStyle: string | object };
+
+  return { ctx, calls: calls };
+}
+
+const place = { left: 40, top: 20, width: 200, height: 200, onBoard: (value: number) => value / 5 };
+
+function plan(overrides: Partial<OverlayPlan> = {}): OverlayPlan {
+  return {
+    darknessAlpha: 0.8,
+    darknessColor: '#000010',
+    baseRevealAlpha: 0,
+    reveals: [],
+    glows: [],
+    shadows: [],
+    ...overrides,
+  };
+}
+
+function shape(overrides: Record<string, unknown> = {}) {
+  return {
+    x: 500,
+    y: 500,
+    brightPx: 100,
+    dimPx: 250,
+    angle: 360,
+    direction: 0,
+    color: '#ffddaa',
+    full: true,
+    ...overrides,
+  };
+}
+
+describe('paintReplayDarkness()', () => {
+  it('暗幕を敷いてから盤面へ重ねること', () => {
+    const { ctx, calls } = recorder();
+    const layer = recorder();
+
+    paintReplayDarkness(ctx, plan(), place, () => layer.ctx);
+
+    const veil = layer.calls.find((call) => call.op === 'fillRect');
+    expect(veil).toMatchObject({ fill: '#000010', alpha: 0.8 });
+    expect(calls.some((call) => call.op === 'drawImage' && call.args[0] === 40 && call.args[1] === 20)).toBe(true);
+  });
+
+  it('見えている所を削ること', () => {
+    const layer = recorder();
+
+    paintReplayDarkness(recorder().ctx, plan({ reveals: [shape()] }), place, () => layer.ctx);
+
+    // 削りは destination-out で、灯りの届く長さは盤面の縮尺に合わせる。
+    const erased = layer.calls.find((call) => call.op === 'arc');
+    expect(erased?.composite).toBe('destination-out');
+    expect(erased?.args).toEqual([100, 100, 50]);
+  });
+
+  it('マスに吸わせる設定ではマスの形で削ること', () => {
+    const layer = recorder();
+    const cells = [
+      [
+        { x: 0, y: 0 },
+        { x: 50, y: 0 },
+        { x: 50, y: 50 },
+        { x: 0, y: 50 },
+      ],
+    ];
+
+    paintReplayDarkness(recorder().ctx, plan({ reveals: [shape()], revealCells: cells }), place, () => layer.ctx);
+
+    expect(layer.calls.some((call) => call.op === 'arc')).toBe(false);
+    expect(layer.calls.some((call) => call.op === 'fill' && call.composite === 'destination-out')).toBe(true);
+  });
+
+  it('灯りの色を盤面の上へ足すこと', () => {
+    const { ctx, calls } = recorder();
+
+    paintReplayDarkness(ctx, plan({ glows: [shape()] }), place, () => recorder().ctx);
+
+    const glow = calls.find((call) => call.op === 'arc');
+    expect(glow?.composite).toBe('lighter');
+    expect(glow?.args).toEqual([140, 120, 50]);
+  });
+
+  it('別の面を作れない環境では何も描かないこと', () => {
+    const { ctx, calls } = recorder();
+
+    paintReplayDarkness(ctx, plan(), place, () => null);
+
+    expect(calls).toHaveLength(0);
+  });
+
+  it('大きさの無い盤面では何も描かないこと', () => {
+    const { ctx, calls } = recorder();
+
+    paintReplayDarkness(ctx, plan(), { ...place, width: 0 }, () => recorder().ctx);
+
+    expect(calls).toHaveLength(0);
+  });
+});

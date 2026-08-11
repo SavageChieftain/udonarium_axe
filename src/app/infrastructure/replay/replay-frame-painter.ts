@@ -1,8 +1,14 @@
+import {
+  REPLAY_BOARD_TOP_DOWN,
+  type ReplayBoardCamera,
+  replayBoardProjection,
+} from '@axe/domain/replay/replay-board-camera';
 import { framingOf, type ReplayBoardScene } from '@axe/domain/replay/replay-board-view';
 import { containRect, coverRect, type ReplayFrameLayout, wrapReplayText } from '@axe/domain/replay/replay-frame-layout';
 import { easeInOut, pointAlongRoute } from '@axe/domain/replay/replay-route';
 import type { ReplayShot, ReplayShotMove } from '@axe/domain/replay/replay-storyboard';
 import { readableOn } from '@axe/domain/replay/replay-text-color';
+import { type DarknessCanvas, paintReplayDarkness } from '@axe/infrastructure/replay/replay-darkness-painter';
 
 export type ReplayFrameCanvas = CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D;
 export type ReplayFrameImage = CanvasImageSource & { width: number; height: number };
@@ -62,10 +68,11 @@ export function paintReplayFrame(
   progress: number,
   style: ReplayFrameStyle = DEFAULT_REPLAY_FRAME_STYLE,
   board: ReplayBoardScene | null = null,
-  shotProgress = 1
+  shotProgress = 1,
+  camera: ReplayBoardCamera = REPLAY_BOARD_TOP_DOWN
 ): void {
   paintBackdrop(ctx, layout, shot, assets, style);
-  if (board) paintBoard(ctx, layout, board, assets, style, shot?.move ?? null, shotProgress);
+  if (board) paintBoard(ctx, layout, board, assets, style, shot?.move ?? null, shotProgress, camera);
   paintCutIn(ctx, layout, shot, assets);
   if (shot) {
     if (shot.isChapterStart) paintChapterCard(ctx, layout, shot, style);
@@ -81,38 +88,60 @@ function paintBoard(
   assets: ReplayFrameAssets,
   style: ReplayFrameStyle,
   move: ReplayShotMove | null,
-  shotProgress: number
+  shotProgress: number,
+  camera: ReplayBoardCamera = REPLAY_BOARD_TOP_DOWN
 ): void {
   const tableWidth = board.width * board.gridSize;
   const tableHeight = board.height * board.gridSize;
   const framing = framingOf(board);
-  const scale = Math.min(layout.board.width / framing.width, layout.board.height / framing.height);
+  const view = replayBoardProjection(camera, framing, layout.board);
+  const tilted = camera.tilt > 0 || camera.spin !== 0;
+  const scale = view.scale;
   const onBoard = (value: number): number => value * scale;
-  const left = layout.board.x + (layout.board.width - onBoard(framing.width)) / 2 - onBoard(framing.x);
-  const top = layout.board.y + (layout.board.height - onBoard(framing.height)) / 2 - onBoard(framing.y);
+
+  // 地面に貼り付くもの（卓の絵・マス目・移動の跡・暗闇）は卓の座標のまま描き、
+  // 傾きは行列に任せる。コマだけは倒さずに立てる。
+  ctx.save();
+  ctx.setTransform(...view.matrix);
 
   const surface = board.imageIdentifier.length > 0 ? assets.imageOf(board.imageIdentifier) : null;
   ctx.fillStyle = style.boardSurface;
-  ctx.fillRect(left, top, onBoard(tableWidth), onBoard(tableHeight));
-  if (surface) ctx.drawImage(surface, left, top, onBoard(tableWidth), onBoard(tableHeight));
+  ctx.fillRect(0, 0, tableWidth, tableHeight);
+  if (surface) ctx.drawImage(surface, 0, 0, tableWidth, tableHeight);
 
-  paintGrid(ctx, board, style, left, top, onBoard);
+  paintGrid(ctx, board, style, 0, 0, (value) => value, 1 / scale);
 
   ctx.strokeStyle = style.boardEdge;
-  ctx.lineWidth = Math.max(1, Math.round(layout.scale * 2));
-  ctx.strokeRect(left, top, onBoard(tableWidth), onBoard(tableHeight));
+  ctx.lineWidth = Math.max(1, Math.round(layout.scale * 2)) / scale;
+  ctx.strokeRect(0, 0, tableWidth, tableHeight);
 
-  if (move) paintTrail(ctx, style, move, board, left, top, onBoard, layout.scale);
+  if (move) paintTrail(ctx, style, move, board, 0, 0, (value) => value, layout.scale / scale);
+
+  // 暗闇はコマの下。見えない所のコマは、その上から暗幕で隠れる。
+  if (board.overlay) {
+    paintReplayDarkness(ctx as unknown as DarknessCanvas, board.overlay, {
+      left: 0,
+      top: 0,
+      width: tableWidth,
+      height: tableHeight,
+      onBoard: (value) => value,
+    });
+  }
+  ctx.restore();
+
   const sliding = move ? pointAlongRoute(move.route, easeInOut(shotProgress)) : null;
   const span0 = Math.max(layout.board.minPiece, onBoard(board.gridSize));
   const labelSize = Math.max(10, Math.round(span0 * 0.34));
-  for (const piece of board.pieces) {
+  const standing = [...board.pieces].sort((a, b) => view.depthOf(a.x, a.y) - view.depthOf(b.x, b.y));
+  for (const piece of tilted ? standing : board.pieces) {
     const span = Math.max(layout.board.minPiece, onBoard(piece.size * board.gridSize));
     if (span < 1) continue;
     const at = sliding && move?.targetId === piece.identifier ? sliding : piece;
-    const centre = onBoard(piece.size * board.gridSize) / 2;
-    const x = left + onBoard(at.x) + centre - span / 2;
-    const y = top + onBoard(at.y) + centre - span / 2;
+    const centre = piece.size * board.gridSize * 0.5;
+    const foot = view.at(at.x + centre, at.y + centre);
+    // 真上からのときは今までどおり。傾けたときは足元を接地させて立てる。
+    const x = foot.x - span / 2;
+    const y = tilted ? foot.y - span : foot.y - span / 2;
 
     const image = piece.imageIdentifier.length > 0 ? assets.imageOf(piece.imageIdentifier) : null;
     if (image) {
@@ -214,21 +243,23 @@ function paintGrid(
   style: ReplayFrameStyle,
   left: number,
   top: number,
-  onBoard: (value: number) => number
+  onBoard: (value: number) => number,
+  lineWidth = 1
 ): void {
   const step = onBoard(board.gridSize);
-  if (step < 6) return;
+  // 行列で描いているときは、画面に出る幅で細かすぎないかを見る。
+  if (step / lineWidth < 6) return;
 
   ctx.strokeStyle = style.boardGrid;
-  ctx.lineWidth = 1;
+  ctx.lineWidth = lineWidth;
   ctx.beginPath();
   for (let column = 0; column <= board.width; column += 1) {
-    const x = Math.round(left + step * column) + 0.5;
+    const x = left + step * column;
     ctx.moveTo(x, top);
     ctx.lineTo(x, top + step * board.height);
   }
   for (let row = 0; row <= board.height; row += 1) {
-    const y = Math.round(top + step * row) + 0.5;
+    const y = top + step * row;
     ctx.moveTo(left, y);
     ctx.lineTo(left + step * board.width, y);
   }

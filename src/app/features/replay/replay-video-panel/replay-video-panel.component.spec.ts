@@ -7,6 +7,7 @@ import { ReplayVideoService } from '@axe/application/replay/replay-video.service
 import type { ReplayRecordingMeta } from '@axe/core/storage/replay-log-store';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { PeerRole } from '@axe/domain/peer/peer-role';
+import { REPLAY_BOARD_TABLE_VIEW } from '@axe/domain/replay/replay-board-camera';
 import { PUBLIC_VISIBILITY, type ReplayEvent, ReplayEventKind } from '@axe/domain/replay/replay-event';
 import { ReplayVideoPanelComponent } from '@axe/features/replay/replay-video-panel/replay-video-panel.component';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
@@ -140,11 +141,13 @@ describe('ReplayVideoPanelComponent', () => {
     buttonByText('動画にする')?.click();
     fixture.detectChanges();
 
-    const [size, fps, pacing] = fixture.nativeElement.querySelectorAll('select') as NodeListOf<HTMLSelectElement>;
+    const [size, view, fps, pacing] = fixture.nativeElement.querySelectorAll('select') as NodeListOf<HTMLSelectElement>;
     size.value = '720p';
     size.dispatchEvent(new Event('change'));
     fps.value = '60';
     fps.dispatchEvent(new Event('change'));
+    view.value = 'table';
+    view.dispatchEvent(new Event('change'));
     pacing.value = 'recorded';
     pacing.dispatchEvent(new Event('change'));
     fixture.detectChanges();
@@ -155,7 +158,12 @@ describe('ReplayVideoPanelComponent', () => {
     expect(render).toHaveBeenCalledWith(
       meta,
       events,
-      expect.objectContaining({ size: { width: 1280, height: 720 }, fps: 60, pacing: 'recorded' }),
+      expect.objectContaining({
+        size: { width: 1280, height: 720 },
+        fps: 60,
+        pacing: 'recorded',
+        camera: REPLAY_BOARD_TABLE_VIEW,
+      }),
       { userId: 'gm', role: PeerRole.GameMaster },
       null
     );

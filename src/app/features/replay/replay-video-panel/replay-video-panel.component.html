@@ -41,6 +41,19 @@
       </label>
 
       <label class="text-ui-muted flex items-center justify-between gap-1.5 text-[0.72rem]">
+        {{ 'feature.replay.video.view' | transloco }}
+        <select
+          class="border-ui-border bg-ui-elevated rounded-ui-sm border border-solid px-1.5 py-0.5 text-[0.72rem]"
+          [value]="view()"
+          (change)="setView($any($event.target).value)"
+        >
+          @for (choice of views; track choice) {
+            <option [value]="choice">{{ 'feature.replay.video.of.' + choice | transloco }}</option>
+          }
+        </select>
+      </label>
+
+      <label class="text-ui-muted flex items-center justify-between gap-1.5 text-[0.72rem]">
         {{ 'feature.replay.video.fps' | transloco }}
         <select
           class="border-ui-border bg-ui-elevated rounded-ui-sm border border-solid px-1.5 py-0.5 text-[0.72rem]"

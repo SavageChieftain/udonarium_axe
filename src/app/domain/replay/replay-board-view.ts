@@ -1,6 +1,9 @@
 import { groupReplayChildren, replayValueOfNamed } from '@axe/domain/replay/replay-data-tree';
 import { syncValueOf } from '@axe/domain/replay/replay-diff';
+import type { ReplayViewer } from '@axe/domain/replay/replay-event';
 import type { ReplayObjectSnapshot } from '@axe/domain/replay/replay-keyframe';
+import { replayOverlayPlan } from '@axe/domain/replay/replay-vision-scene';
+import type { OverlayPlan } from '@axe/domain/tabletop/vision-scene';
 
 export interface ReplayBoardPiece {
   identifier: string;
@@ -21,6 +24,8 @@ export interface ReplayBoardScene {
   imageIdentifier: string;
   backgroundImageIdentifier: string;
   pieces: readonly ReplayBoardPiece[];
+  /** そのときの暗闇・視界・光源。暗闇を使っていない卓では null。 */
+  overlay: OverlayPlan | null;
 }
 
 const TABLE_ALIAS = 'game-table';
@@ -38,7 +43,10 @@ const PIECE_ALIASES: ReadonlySet<string> = new Set([
   'coin',
 ]);
 
-export function buildReplayBoardScene(snapshots: readonly ReplayObjectSnapshot[]): ReplayBoardScene | null {
+export function buildReplayBoardScene(
+  snapshots: readonly ReplayObjectSnapshot[],
+  viewer?: ReplayViewer
+): ReplayBoardScene | null {
   const table = viewTableOf(snapshots);
   if (!table) return null;
 
@@ -72,6 +80,7 @@ export function buildReplayBoardScene(snapshots: readonly ReplayObjectSnapshot[]
     imageIdentifier: String(syncValueOf(table.syncData, 'imageIdentifier') ?? ''),
     backgroundImageIdentifier: String(syncValueOf(table.syncData, 'backgroundImageIdentifier') ?? ''),
     pieces,
+    overlay: viewer ? replayOverlayPlan(snapshots, viewer) : null,
   };
 }
 
