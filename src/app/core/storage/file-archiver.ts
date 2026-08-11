@@ -44,8 +44,8 @@ export class FileArchiver {
   }
 
   networkService = Network;
-  get reloadCheck(): LoadGuard {
-    return ObjectStore.instance.get<LoadGuard>('ReloadCheck')!;
+  get reloadCheck(): LoadGuard | null {
+    return ObjectStore.instance.get<LoadGuard>('ReloadCheck');
   }
 
   private maxImageSize = 2 * MEGA_BYTE;
@@ -98,7 +98,8 @@ export class FileArchiver {
   private onDrop(event: DragEvent) {
     event.preventDefault();
 
-    this.reloadCheck.reloadCheckStart(this.networkService.peerContext.roomName !== '');
+    // 立ち上がりきる前や、そもそも見張りが居ない場面でも落とせる。
+    this.reloadCheck?.reloadCheckStart(this.networkService.peerContext?.roomName !== '');
 
     const files = event.dataTransfer?.files;
     if (!files) return;
@@ -140,7 +141,8 @@ export class FileArchiver {
 
   private async handleImage(file: File, dropPoint?: { x: number; y: number }): Promise<boolean> {
     if (!file.type.startsWith('image/')) return false;
-    if (!this.reloadCheck.isLoadOk()) return false;
+    // 見張りが居ないなら止める理由も無い。
+    if (!(this.reloadCheck?.isLoadOk() ?? true)) return false;
     if (file.size > this.maxImageSize) {
       Logger.warn(`[FileArchiver] ファイルサイズ制限超過: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)}MB)`);
       return false;
@@ -170,7 +172,7 @@ export class FileArchiver {
       file.name === 'audiotag.xml' ||
       file.name === 'summary.xml'
     ) {
-      isLoadOk = this.reloadCheck.isLoadOk();
+      isLoadOk = this.reloadCheck?.isLoadOk() ?? true;
     }
 
     if (isLoadOk) {

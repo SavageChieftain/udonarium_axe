@@ -137,6 +137,7 @@ export class GameCharacterSheetComponent {
     if (!draggedId || draggedId === id || !canReorderDetailElement(this.character, this.objectStore, draggedId, id))
       return;
     event.preventDefault();
+    event.stopPropagation();
     if (event.dataTransfer) event.dataTransfer.dropEffect = 'move';
     this.dragOverId.set(id);
   }
@@ -147,6 +148,8 @@ export class GameCharacterSheetComponent {
 
   onDrop(event: DragEvent, targetId: string) {
     event.preventDefault();
+    // 並べ替えの落下は取り込みの落下ではない。上へ通すと `FileArchiver` まで走る。
+    event.stopPropagation();
     this.dragOverId.set(null);
     const draggedId = this.dataElementDrag.getDraggedId(event) ?? this._draggedId;
     this._draggedId = null;

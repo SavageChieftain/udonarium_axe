@@ -74,6 +74,17 @@ describe('FileArchiver', () => {
       FileArchiver.instance.initialize();
       expect(true).toBe(true);
     });
+
+    it('見張りがまだ居なくても落とされて落ちないこと', () => {
+      // 立ち上がりきる前や、そもそも ReloadCheck が居ない場面でもドロップは飛んでくる。
+      vi.spyOn(ObjectStore.instance, 'get').mockReturnValue(
+        null as unknown as ReturnType<typeof ObjectStore.instance.get>
+      );
+      FileArchiver.instance.initialize();
+
+      const drop = new Event('drop', { bubbles: true, cancelable: true });
+      expect(() => document.body.dispatchEvent(drop)).not.toThrow();
+    });
   });
 
   describe('load', () => {

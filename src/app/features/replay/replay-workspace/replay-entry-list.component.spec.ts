@@ -125,6 +125,23 @@ describe('ReplayEntryListComponent の並べ替え', () => {
     expect(move).not.toHaveBeenCalled();
   });
 
+  it('並べ替えの落下を卓の取り込みへ渡さないこと', () => {
+    // ここで通してしまうと、行を並べ替えただけで「ファイルを落とした」経路が走る。
+    const onDocument = vi.fn();
+    document.body.addEventListener('drop', onDocument);
+    document.body.addEventListener('dragover', onDocument);
+
+    try {
+      dragTo(0, 2, 115);
+    } finally {
+      document.body.removeEventListener('drop', onDocument);
+      document.body.removeEventListener('dragover', onDocument);
+    }
+
+    expect(move).toHaveBeenCalledWith(1, 2);
+    expect(onDocument).not.toHaveBeenCalled();
+  });
+
   it('落とす先を線で示すこと', () => {
     const source = rows()[0];
     const destination = rows()[2];

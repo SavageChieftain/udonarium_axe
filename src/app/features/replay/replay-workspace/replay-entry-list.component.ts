@@ -169,6 +169,7 @@ export class ReplayEntryListComponent {
   protected dragOver(row: ReplayEntryRow, event: DragEvent): void {
     if (this.draggingSeq() === null) return;
     event.preventDefault();
+    event.stopPropagation();
     const bounds = (event.currentTarget as HTMLElement).getBoundingClientRect();
     const isBelow = event.clientY > bounds.top + bounds.height / 2;
     this.dropAt.set(isBelow ? row.index + 1 : row.index);
@@ -176,6 +177,9 @@ export class ReplayEntryListComponent {
 
   protected dropHere(event: DragEvent): void {
     event.preventDefault();
+    // 並べ替えの落下は取り込みの落下ではない。上へ通すと、卓へファイルを落としたときの
+    // 経路（`FileArchiver`）まで走ってしまう。
+    event.stopPropagation();
     const seq = this.draggingSeq();
     const at = this.dropAt();
     this.dragEnd();

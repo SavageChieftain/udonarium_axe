@@ -1722,12 +1722,15 @@ export class MapEditorPanelComponent implements AfterViewInit {
   protected onLayerDragOver(layer: MapLayer, event: DragEvent): void {
     if (!this.draggingLayerId()) return;
     event.preventDefault();
+    event.stopPropagation();
     if (event.dataTransfer) event.dataTransfer.dropEffect = 'move';
     if (this.dragOverLayerId() !== layer.id) this.dragOverLayerId.set(layer.id);
   }
 
   protected onLayerDrop(target: MapLayer, event: DragEvent): void {
     event.preventDefault();
+    // 並べ替えの落下は取り込みの落下ではない。上へ通すと `FileArchiver` まで走る。
+    event.stopPropagation();
     const draggedId = this.draggingLayerId();
     this.draggingLayerId.set(null);
     this.dragOverLayerId.set(null);
