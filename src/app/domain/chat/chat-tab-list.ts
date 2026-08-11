@@ -25,13 +25,21 @@ export class ChatTabList extends ObjectNode implements InnerXml {
     return this.chatTabs.length > this.systemMessageTabIndex ? this.chatTabs[this.systemMessageTabIndex] : null;
   }
 
-  /** 専用タブを用意する。すでにあれば何もしない。 */
+  /** 専用タブを用意する。すでにあれば形だけ整えて返す。 */
   ensureSystemTab(): ChatTab {
     const system = this.chatTabs.find((tab) => tab.isSystemTab);
-    if (system) return system;
+    if (system) return this.shapeSystemTab(system);
     const detached = ObjectStore.instance.get<ChatTab>(SYSTEM_CHAT_TAB_IDENTIFIER);
-    if (detached) return this.appendChild(detached)!;
-    return this.addChatTab(SYSTEM_CHAT_TAB_NAME, SYSTEM_CHAT_TAB_IDENTIFIER);
+    if (detached) return this.shapeSystemTab(this.appendChild(detached)!);
+    return this.shapeSystemTab(this.addChatTab(SYSTEM_CHAT_TAB_NAME, SYSTEM_CHAT_TAB_IDENTIFIER));
+  }
+
+  private shapeSystemTab(system: ChatTab): ChatTab {
+    if (system.name !== SYSTEM_CHAT_TAB_NAME) system.name = SYSTEM_CHAT_TAB_NAME;
+    if (system.plCanSpeak) system.plCanSpeak = false;
+    if (system.guestCanSpeak) system.guestCanSpeak = false;
+    if (!system.plCanView) system.plCanView = true;
+    return system;
   }
 
   /** 人の会話のタブ。書き出しはこちらだけを対象にする。 */

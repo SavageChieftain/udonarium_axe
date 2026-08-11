@@ -3,7 +3,9 @@ import { ObjectSerializer } from '@axe/core/sync/object-serializer';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { ChatTab } from '@axe/domain/chat/chat-tab';
 import { ChatTabList } from '@axe/domain/chat/chat-tab-list';
+import { canRoleSpeakTab } from '@axe/domain/chat/chat-tab-permission';
 import { SYSTEM_CHAT_TAB_IDENTIFIER, SYSTEM_CHAT_TAB_NAME } from '@axe/domain/chat/constants';
+import { PeerRole } from '@axe/domain/peer/peer-role';
 import { ReloadCheck } from '@axe/domain/peer/reload-check';
 
 describe('ChatTabList', () => {
@@ -166,6 +168,27 @@ describe('ChatTabList', () => {
       list.ensureSystemTab();
 
       expect(list.spokenChatTabs).toEqual([main]);
+    });
+
+    it('システムタブでは発言できない形にすること', () => {
+      const system = ChatTabList.instance.ensureSystemTab();
+
+      expect(system.plCanSpeak).toBe(false);
+      expect(system.guestCanSpeak).toBe(false);
+      expect(system.plCanView).toBe(true);
+      expect(canRoleSpeakTab(system, PeerRole.GameMaster)).toBe(false);
+    });
+
+    it('発言できる形に書き換えられていても整え直すこと', () => {
+      const list = ChatTabList.instance;
+      const system = list.ensureSystemTab();
+      system.plCanSpeak = true;
+      system.name = 'お知らせ';
+
+      list.ensureSystemTab();
+
+      expect(system.plCanSpeak).toBe(false);
+      expect(system.name).toBe(SYSTEM_CHAT_TAB_NAME);
     });
 
     it('部屋データにシステムタブを書き出さないこと', () => {

@@ -1602,7 +1602,8 @@
         "deleteLogAllTabs": "全タブ",
         "defaultTabName": "タブ",
         "noneMark": "—",
-        "allTabsLogName": "全タブ"
+        "allTabsLogName": "全タブ",
+        "systemTabNote": "システムタブは知らせの貼り紙です。名前と並びは固定で、発言や部屋データへの保存はできません。"
       },
       "colorSetting": {
         "color1": "第1色",

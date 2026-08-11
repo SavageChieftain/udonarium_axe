@@ -55,16 +55,21 @@ export class ChatTabSettingComponent {
     return this.selectedTab()?.name ?? '';
   }
   set tabName(tabName: string) {
-    if (this.isEditable && this.selectedTab()) this.selectedTab()!.name = tabName;
+    if (this.isEditable && this.isRenamable && this.selectedTab()) this.selectedTab()!.name = tabName;
   }
 
   perm(key: 'plCanView' | 'plCanSpeak' | 'guestCanView' | 'guestCanSpeak'): boolean {
     if (this.selectedTab()) this.objectChange.versionOf(this.selectedTab()!.identifier)();
     return this.selectedTab()?.[key] ?? false;
   }
+  canEditPerm(key: 'plCanView' | 'plCanSpeak' | 'guestCanView' | 'guestCanSpeak'): boolean {
+    if (!this.canEditPermission) return false;
+    return !(this.isSystemTabSelected && (key === 'plCanSpeak' || key === 'guestCanSpeak'));
+  }
+
   setPerm(key: 'plCanView' | 'plCanSpeak' | 'guestCanView' | 'guestCanSpeak', value: boolean): void {
     const tab = this.selectedTab();
-    if (!this.canEditPermission || !tab) return;
+    if (!this.canEditPerm(key) || !tab) return;
     tab[key] = value;
     // 発言できるなら必ず閲覧もできる（発言のみ可・閲覧不可の状態は存在しない）
     if (key === 'plCanSpeak' && value) tab.plCanView = true;
@@ -83,9 +88,27 @@ export class ChatTabSettingComponent {
   get isDeleted(): boolean {
     return this.selectedTab() ? this.objectStore.get(this.selectedTab()!.identifier) == null : false;
   }
+  /** システムタブはこの卓の備品。名前も並びも持ち出しも、部屋のタブとは別扱いにする。 */
+  get isSystemTabSelected(): boolean {
+    return !!this.selectedTab()?.isSystemTab;
+  }
+
   /** システムタブは消せない。入退室の知らせの行き先が無くなると、会話のタブへ戻ってくる。 */
   get isDeletable(): boolean {
-    return !this.isEmpty && !!this.selectedTab() && !this.selectedTab()!.isSystemTab;
+    return !this.isEmpty && !!this.selectedTab() && !this.isSystemTabSelected;
+  }
+
+  get isRenamable(): boolean {
+    return !this.isSystemTabSelected;
+  }
+
+  get isMovable(): boolean {
+    return !this.isDeleted && !this.isSystemTabSelected;
+  }
+
+  /** 部屋データとして持ち出せるか。システムタブは部屋の一部ではない。 */
+  get isExportable(): boolean {
+    return !this.isSystemTabSelected;
   }
 
   get isEditable(): boolean {
@@ -142,7 +165,7 @@ export class ChatTabSettingComponent {
   }
 
   async save() {
-    if (!this.selectedTab() || this.isSaving()) return;
+    if (!this.selectedTab() || this.isSaving() || !this.isExportable) return;
     this.isSaving.set(true);
     this.progressPercent.set(0);
 
@@ -268,7 +291,7 @@ export class ChatTabSettingComponent {
   }
 
   upTabIndex() {
-    if (!this.selectedTab()) return;
+    if (!this.selectedTab() || !this.isMovable) return;
     const parentElement = this.selectedTab()!.parent!;
     const index: number = parentElement.children.indexOf(this.selectedTab()!);
     if (0 < index) {
@@ -284,7 +307,7 @@ export class ChatTabSettingComponent {
   }
 
   downTabIndex() {
-    if (!this.selectedTab()) return;
+    if (!this.selectedTab() || !this.isMovable) return;
     const parentElement = this.selectedTab()!.parent!;
     const index: number = parentElement.children.indexOf(this.selectedTab()!);
     if (index < parentElement.children.length - 1) {

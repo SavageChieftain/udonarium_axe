@@ -1602,7 +1602,8 @@
         "deleteLogAllTabs": "All tabs",
         "defaultTabName": "Tab",
         "noneMark": "—",
-        "allTabsLogName": "All tabs"
+        "allTabsLogName": "All tabs",
+        "systemTabNote": "The system tab is a notice board. Its name and position are fixed, and it cannot be spoken in or saved as room data."
       },
       "colorSetting": {
         "color1": "Color 1",

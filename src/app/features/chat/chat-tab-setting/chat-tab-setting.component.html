@@ -69,14 +69,14 @@
             name="tab-name"
             [(ngModel)]="tabName"
             [placeholder]="'feature.chat.tabSetting.tabNamePlaceholder' | transloco"
-            [attr.disabled]="!isEditable ? '' : null"
+            [attr.disabled]="!isEditable || !isRenamable ? '' : null"
           />
           <button
             type="button"
             class="rounded-ui-sm border-ui-border-panel text-ui-muted hover:border-ui-accent hover:bg-ui-hover hover:text-ui-text m-0 inline-flex size-7 shrink-0 cursor-pointer items-center justify-center border border-solid bg-transparent transition-colors hover:shadow-none disabled:cursor-not-allowed disabled:opacity-[0.35] [&_.material-icons]:text-[16px]!"
             [title]="'feature.chat.tabSetting.moveUpTooltip' | transloco"
             (click)="upTabIndex()"
-            [disabled]="isDeleted"
+            [disabled]="!isMovable"
           >
             <i class="material-icons">arrow_upward</i>
           </button>
@@ -85,7 +85,7 @@
             class="rounded-ui-sm border-ui-border-panel text-ui-muted hover:border-ui-accent hover:bg-ui-hover hover:text-ui-text m-0 inline-flex size-7 shrink-0 cursor-pointer items-center justify-center border border-solid bg-transparent transition-colors hover:shadow-none disabled:cursor-not-allowed disabled:opacity-[0.35] [&_.material-icons]:text-[16px]!"
             [title]="'feature.chat.tabSetting.moveDownTooltip' | transloco"
             (click)="downTabIndex()"
-            [disabled]="isDeleted"
+            [disabled]="!isMovable"
           >
             <i class="material-icons">arrow_downward</i>
           </button>
@@ -120,7 +120,7 @@
             name="pl-speak"
             [ngModel]="perm('plCanSpeak')"
             (ngModelChange)="setPerm('plCanSpeak', $event)"
-            [disabled]="!canEditPermission"
+            [disabled]="!canEditPerm('plCanSpeak')"
           />
 
           <span class="text-ui-text">{{ 'feature.role.guest' | transloco }}</span>
@@ -138,10 +138,13 @@
             name="guest-speak"
             [ngModel]="perm('guestCanSpeak')"
             (ngModelChange)="setPerm('guestCanSpeak', $event)"
-            [disabled]="!canEditPermission"
+            [disabled]="!canEditPerm('guestCanSpeak')"
           />
         </div>
-        <span class="text-ui-dim text-[11px]">{{ 'feature.chat.tabSetting.permGmNote' | transloco }}</span>
+        <span class="text-ui-dim text-[11px]">{{
+          (isSystemTabSelected ? 'feature.chat.tabSetting.systemTabNote' : 'feature.chat.tabSetting.permGmNote')
+            | transloco
+        }}</span>
       </div>
 
       @if (isDeleted) {
@@ -161,43 +164,49 @@
       }
 
       @if (!isDeleted) {
-        <div class="mb-0.5 flex flex-col gap-1.5">
-          <div class="flex flex-wrap items-center gap-1.5">
-            <button
-              type="button"
-              class="save-btn rounded-ui-sm bg-ui-accent hover:bg-ui-accent m-0 inline-flex shrink-0 cursor-pointer items-center gap-1.25 border-none px-3 py-1.25 text-[13px] font-medium text-white transition-[opacity,background] hover:border-transparent hover:text-white hover:opacity-85 hover:shadow-none disabled:cursor-not-allowed disabled:opacity-40 [&_.material-icons]:text-[15px]!"
-              [disabled]="isSaving()"
-              (click)="save()"
-            >
-              @if (isSaving()) {
-                <i class="material-icons animate-spin">sync</i>{{ progressPercent() }}%
-              } @else {
-                <i class="material-icons">save</i>{{ 'feature.chat.tabSetting.save' | transloco }}
+        @if (isExportable || isDeletable) {
+          <div class="mb-0.5 flex flex-col gap-1.5">
+            <div class="flex flex-wrap items-center gap-1.5">
+              @if (isExportable) {
+                <button
+                  type="button"
+                  class="save-btn rounded-ui-sm bg-ui-accent hover:bg-ui-accent m-0 inline-flex shrink-0 cursor-pointer items-center gap-1.25 border-none px-3 py-1.25 text-[13px] font-medium text-white transition-[opacity,background] hover:border-transparent hover:text-white hover:opacity-85 hover:shadow-none disabled:cursor-not-allowed disabled:opacity-40 [&_.material-icons]:text-[15px]!"
+                  [disabled]="isSaving()"
+                  (click)="save()"
+                >
+                  @if (isSaving()) {
+                    <i class="material-icons animate-spin">sync</i>{{ progressPercent() }}%
+                  } @else {
+                    <i class="material-icons">save</i>{{ 'feature.chat.tabSetting.save' | transloco }}
+                  }
+                </button>
               }
-            </button>
-            <label
-              class="text-ui-muted inline-flex shrink-0 cursor-pointer items-center gap-1.25 text-[12px] select-none"
-            >
-              <input
-                type="checkbox"
-                class="m-0 size-3.25 cursor-pointer [accent-color:var(--ui-accent)]"
-                name="allow-delete-tab"
-                [(ngModel)]="allowDeleteTab"
-              />
-              {{ 'feature.chat.tabSetting.allowDelete' | transloco }}
-            </label>
-            <button
-              type="button"
-              class="rounded-ui-sm border-ui-danger-ring text-ui-danger hover:border-ui-danger hover:bg-ui-danger-bg hover:text-ui-danger m-0 inline-flex shrink-0 cursor-pointer items-center gap-1.25 border border-solid bg-transparent px-2.5 py-1.25 text-[12px] transition-[background,border-color] hover:shadow-none disabled:cursor-not-allowed disabled:opacity-[0.35] [&_.material-icons]:text-[14px]!"
-              [disabled]="!allowDeleteTab"
-              (click)="delete()"
-            >
-              <i class="material-icons">delete</i>{{ 'feature.chat.tabSetting.deleteTab' | transloco }}
-            </button>
+              @if (isDeletable) {
+                <label
+                  class="text-ui-muted inline-flex shrink-0 cursor-pointer items-center gap-1.25 text-[12px] select-none"
+                >
+                  <input
+                    type="checkbox"
+                    class="m-0 size-3.25 cursor-pointer [accent-color:var(--ui-accent)]"
+                    name="allow-delete-tab"
+                    [(ngModel)]="allowDeleteTab"
+                  />
+                  {{ 'feature.chat.tabSetting.allowDelete' | transloco }}
+                </label>
+                <button
+                  type="button"
+                  class="rounded-ui-sm border-ui-danger-ring text-ui-danger hover:border-ui-danger hover:bg-ui-danger-bg hover:text-ui-danger m-0 inline-flex shrink-0 cursor-pointer items-center gap-1.25 border border-solid bg-transparent px-2.5 py-1.25 text-[12px] transition-[background,border-color] hover:shadow-none disabled:cursor-not-allowed disabled:opacity-[0.35] [&_.material-icons]:text-[14px]!"
+                  [disabled]="!allowDeleteTab"
+                  (click)="delete()"
+                >
+                  <i class="material-icons">delete</i>{{ 'feature.chat.tabSetting.deleteTab' | transloco }}
+                </button>
+              }
+            </div>
           </div>
-        </div>
 
-        <hr class="border-ui-border-panel mx-0 my-2 border-0 border-t border-solid" />
+          <hr class="border-ui-border-panel mx-0 my-2 border-0 border-t border-solid" />
+        }
 
         <div class="mb-0.5 flex flex-col gap-1.5">
           <div class="text-ui-muted mb-0.5 text-[11px] font-semibold tracking-[0.04em] uppercase">
