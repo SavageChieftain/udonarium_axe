@@ -4,9 +4,15 @@ import { RolePermissionService } from '@axe/application/permission/role-permissi
 import { ReplayEditorService } from '@axe/application/replay/replay-editor.service';
 import { ReplayPlaybackService } from '@axe/application/replay/replay-playback.service';
 import { ReplayRecorderService } from '@axe/application/replay/replay-recorder.service';
-import { DEFAULT_REPLAY_VIDEO_OPTIONS, ReplayVideoService } from '@axe/application/replay/replay-video.service';
+import {
+  DEFAULT_REPLAY_VIDEO_OPTIONS,
+  REPLAY_VIDEO_FPS,
+  ReplayVideoService,
+} from '@axe/application/replay/replay-video.service';
+import { askVideoFile, isVideoFileSinkSupported } from '@axe/core/media/video-file-sink';
 import type { ReplayRecordingMeta } from '@axe/core/storage/replay-log-store';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
+import { replayArchiveName } from '@axe/domain/replay/replay-archive';
 import type { ReplayEvent } from '@axe/domain/replay/replay-event';
 import { REPLAY_FRAME_PRESETS } from '@axe/domain/replay/replay-frame-layout';
 import { buildReplayStoryboard, ReplayShotPacing, ReplayShotScope } from '@axe/domain/replay/replay-storyboard';
@@ -14,7 +20,8 @@ import { formatReplayElapsed, toReplayLogLine } from '@axe/features/replay/repla
 import { EMPTY_REPLAY_DICTIONARY, replayNamesAt } from '@axe/features/replay/replay-names';
 import { TranslocoModule } from '@jsverse/transloco';
 
-export const REPLAY_VIDEO_SIZES = ['720p', '1080p'] as const;
+export const REPLAY_VIDEO_SIZES = ['720p', '1080p', '1440p', '2160p'] as const;
+export const REPLAY_VIDEO_FPS_CHOICES = [30, 60] as const;
 
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -31,6 +38,7 @@ export class ReplayVideoPanelComponent {
   private readonly t = inject(TRANSLATE_FN);
 
   protected readonly sizes = REPLAY_VIDEO_SIZES;
+  protected readonly fpsChoices = REPLAY_VIDEO_FPS_CHOICES;
   protected readonly pacings = [ReplayShotPacing.Reading, ReplayShotPacing.Recorded];
   protected readonly scopes = [ReplayShotScope.Lines, ReplayShotScope.Everything];
 
@@ -40,12 +48,14 @@ export class ReplayVideoPanelComponent {
   protected readonly isOpen = signal(false);
 
   protected readonly sizeKey = signal<(typeof REPLAY_VIDEO_SIZES)[number]>('1080p');
+  protected readonly fps = signal<number>(REPLAY_VIDEO_FPS);
   protected readonly pacing = signal<ReplayShotPacing>(ReplayShotPacing.Reading);
   protected readonly scope = signal<ReplayShotScope>(ReplayShotScope.Everything);
   protected readonly withEffects = signal(true);
   protected readonly withMusic = signal(true);
 
   protected readonly isSupported = this.video.isSupported;
+  protected readonly isRealtimeOnly = this.video.isRealtimeOnly;
 
   protected readonly estimate = computed(() => {
     const storyboard = buildReplayStoryboard(this.events(), this.playback.cast(), this.storyboardOptions());
@@ -81,6 +91,10 @@ export class ReplayVideoPanelComponent {
     this.sizeKey.set(value as (typeof REPLAY_VIDEO_SIZES)[number]);
   }
 
+  protected setFps(value: string): void {
+    this.fps.set(Number(value));
+  }
+
   protected setPacing(value: string): void {
     this.pacing.set(value as ReplayShotPacing);
   }
@@ -105,17 +119,26 @@ export class ReplayVideoPanelComponent {
     const id = this.playback.recordingId();
     if (id == null || this.estimate().shots < 1) return;
 
+    const meta = this.metaOf(id);
+    // 保存先はボタンを押した流れの中で尋ねる。書き終えてから尋ねると、
+    // ブラウザが操作の直後でないと見なしてダイアログを出さない。
+    const file = isVideoFileSinkSupported()
+      ? await askVideoFile(`${replayArchiveName({ roomName: meta.roomName, startedAt: meta.startedAt })}.mp4`)
+      : null;
+
     this.isOpen.set(false);
     await this.video.render(
-      this.metaOf(id),
+      meta,
       this.events(),
       {
         ...DEFAULT_REPLAY_VIDEO_OPTIONS,
         ...this.storyboardOptions(),
         size: REPLAY_FRAME_PRESETS[this.sizeKey()],
+        fps: this.fps(),
         sound: { withEffects: this.withEffects(), withMusic: this.withMusic() },
       },
-      { userId: PeerCursor.myCursor?.userId ?? '', role: PeerCursor.myRole }
+      { userId: PeerCursor.myCursor?.userId ?? '', role: PeerCursor.myRole },
+      file
     );
   }
 

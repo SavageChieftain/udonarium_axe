@@ -1,4 +1,5 @@
 import { Logger } from '@axe/core/logging/logger';
+import { isMediaRecordingSupported, recordVideo } from '@axe/core/media/media-recorder-encoder';
 import { downloadBlob } from '@axe/core/util/download-blob';
 
 export type VideoPaintTarget = OffscreenCanvasRenderingContext2D;
@@ -15,17 +16,25 @@ export interface VideoEncodeRequest {
   frameCount: number;
   bitrate?: number;
   audio?: EncodedAudio | null;
+  /** 書き出し先。渡すとメモリを経由せず直接そこへ流す。 */
+  file?: FileSystemFileHandle | null;
   paint(ctx: VideoPaintTarget, frameIndex: number): void | Promise<void>;
   onProgress?(done: number, total: number): void;
   isCancelled?(): boolean;
 }
 
 export interface EncodedVideo {
-  blob: Blob;
+  /** 書き出し先を渡したときは null。すでにそのファイルへ書き終えている。 */
+  blob: Blob | null;
   extension: string;
 }
 
 export const VIDEO_KEYFRAME_INTERVAL = 60;
+/**
+ * ここを超える見込みなら、先頭に索引を置く形（`in-memory`）をやめて逐次書きに切り替える。
+ * 索引を先頭に置くには全体をいったんメモリに持つ必要があり、そこが長さの上限になる。
+ */
+export const VIDEO_INLINE_INDEX_BUDGET_BYTES = 512 * 1024 * 1024;
 export const VIDEO_ENCODE_QUEUE_LIMIT = 8;
 export const AUDIO_FRAME_SAMPLES = 1024;
 export const AUDIO_BITRATE = 128_000;
@@ -38,6 +47,32 @@ export function isVideoEncodingSupported(): boolean {
 
 export function isAudioEncodingSupported(): boolean {
   return typeof AudioEncoder !== 'undefined' && typeof AudioData !== 'undefined';
+}
+
+/** AAC / Opus のうち、この環境が符号化できるほう。どちらも駄目なら null。 */
+export async function audioCodecFor(sound: EncodedAudio): Promise<{ codec: 'aac' | 'opus'; webCodec: string } | null> {
+  if (!isAudioEncodingSupported()) return null;
+  // 問い合わせ口が無いなら試しようがないので、従来どおり AAC で当たる。
+  if (typeof AudioEncoder.isConfigSupported !== 'function') return { codec: 'aac', webCodec: 'mp4a.40.2' };
+
+  const candidates = [
+    { codec: 'aac', webCodec: 'mp4a.40.2' },
+    { codec: 'opus', webCodec: 'opus' },
+  ] as const;
+  for (const candidate of candidates) {
+    try {
+      const support = await AudioEncoder.isConfigSupported({
+        codec: candidate.webCodec,
+        numberOfChannels: sound.channels.length,
+        sampleRate: sound.sampleRate,
+        bitrate: AUDIO_BITRATE,
+      });
+      if (support.supported) return { ...candidate };
+    } catch {
+      continue;
+    }
+  }
+  return null;
 }
 
 export function defaultVideoBitrate(width: number, height: number, fps: number): number {
@@ -59,15 +94,21 @@ export class VideoEncoderGateway {
   }
 
   get isSupported(): boolean {
-    return isVideoEncodingSupported();
+    return isVideoEncodingSupported() || isMediaRecordingSupported();
+  }
+
+  /** WebCodecs が無いブラウザでは、実時間で録る道へ落とす。 */
+  get isRealtimeOnly(): boolean {
+    return !isVideoEncodingSupported() && isMediaRecordingSupported();
   }
 
   encode(request: VideoEncodeRequest): Promise<EncodedVideo | null> {
-    return encodeVideo(request);
+    return isVideoEncodingSupported() ? encodeVideo(request) : recordVideo(request);
   }
 
-  save(blob: Blob, fileName: string): void {
-    downloadBlob(blob, fileName);
+  save(blob: Blob | null, fileName: string): void {
+    // 書き出し先を指定していたときは、すでにそこへ書き終えている。
+    if (blob) downloadBlob(blob, fileName);
   }
 }
 
@@ -80,14 +121,32 @@ export async function encodeVideo(request: VideoEncodeRequest): Promise<EncodedV
   const ctx = new OffscreenCanvas(request.width, request.height).getContext('2d');
   if (!ctx) return null;
 
-  const { ArrayBufferTarget, Muxer } = await import('mp4-muxer');
-  const sound = request.audio && request.audio.channels.length > 0 && isAudioEncodingSupported() ? request.audio : null;
-  const target = new ArrayBufferTarget();
+  const { ArrayBufferTarget, FileSystemWritableFileStreamTarget, Muxer, StreamTarget } = await import('mp4-muxer');
+  const sound = request.audio && request.audio.channels.length > 0 ? request.audio : null;
+  const soundCodec = sound ? await audioCodecFor(sound) : null;
+  const bitrate = request.bitrate ?? defaultVideoBitrate(request.width, request.height, request.fps);
+
+  // 長い動画は索引を先頭に置けない（全体をメモリに持つことになる）ので、
+  // 逐次書き出せる形に切り替える。書き出し先が指定されていればディスクへ直接流す。
+  const estimatedBytes = ((bitrate + AUDIO_BITRATE) / 8) * (request.frameCount / request.fps);
+  const streaming = request.file != null || estimatedBytes > VIDEO_INLINE_INDEX_BUDGET_BYTES;
+
+  const writable = request.file ? await request.file.createWritable() : null;
+  const parts: BlobPart[] = [];
+  const target = writable
+    ? new FileSystemWritableFileStreamTarget(writable)
+    : streaming
+      ? new StreamTarget({ onData: (data) => parts.push(data.slice()), chunked: true })
+      : new ArrayBufferTarget();
+
   const muxer = new Muxer({
     target,
     video: { codec: 'avc', width: request.width, height: request.height, frameRate: request.fps },
-    audio: sound ? { codec: 'aac', numberOfChannels: sound.channels.length, sampleRate: sound.sampleRate } : undefined,
-    fastStart: 'in-memory',
+    audio:
+      sound && soundCodec
+        ? { codec: soundCodec.codec, numberOfChannels: sound.channels.length, sampleRate: sound.sampleRate }
+        : undefined,
+    fastStart: streaming ? 'fragmented' : 'in-memory',
   });
 
   let failure: unknown = null;
@@ -105,7 +164,7 @@ export async function encodeVideo(request: VideoEncodeRequest): Promise<EncodedV
       width: request.width,
       height: request.height,
       framerate: request.fps,
-      bitrate: request.bitrate ?? defaultVideoBitrate(request.width, request.height, request.fps),
+      bitrate,
     });
 
     for (let index = 0; index < request.frameCount; index += 1) {
@@ -126,11 +185,17 @@ export async function encodeVideo(request: VideoEncodeRequest): Promise<EncodedV
 
     await encoder.flush();
     if (failure) throw failure;
-    if (sound) await encodeSound(muxer, sound);
+    if (sound && soundCodec) await encodeSound(muxer, sound, soundCodec.webCodec);
     muxer.finalize();
-    return { blob: new Blob([target.buffer as BlobPart], { type: 'video/mp4' }), extension: 'mp4' };
+    if (writable) {
+      await writable.close();
+      return { blob: null, extension: 'mp4' };
+    }
+    const body: BlobPart[] = target instanceof ArrayBufferTarget ? [target.buffer as BlobPart] : parts;
+    return { blob: new Blob(body, { type: 'video/mp4' }), extension: 'mp4' };
   } catch (reason) {
     Logger.warn('[VideoEncoder] 書き出しに失敗しました', reason);
+    if (writable) await writable.abort().catch(() => undefined);
     return null;
   } finally {
     if (encoder.state !== 'closed') encoder.close();
@@ -145,7 +210,8 @@ async function drain(encoder: VideoEncoder): Promise<void> {
 
 async function encodeSound(
   muxer: { addAudioChunk(chunk: EncodedAudioChunk, meta?: unknown): void },
-  sound: EncodedAudio
+  sound: EncodedAudio,
+  webCodec: string
 ) {
   let failure: unknown = null;
   const encoder = new AudioEncoder({
@@ -156,7 +222,7 @@ async function encodeSound(
   });
 
   encoder.configure({
-    codec: 'mp4a.40.2',
+    codec: webCodec,
     numberOfChannels: sound.channels.length,
     sampleRate: sound.sampleRate,
     bitrate: AUDIO_BITRATE,

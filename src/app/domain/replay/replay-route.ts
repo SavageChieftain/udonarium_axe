@@ -4,7 +4,7 @@ export interface ReplayRoutePoint {
   z: number;
 }
 
-export const REPLAY_ROUTE_MAX_POINTS = 32;
+export const REPLAY_ROUTE_MAX_POINTS = 128;
 export const REPLAY_ROUTE_MIN_STEP = 12;
 
 export function toRoutePoint(value: unknown): ReplayRoutePoint {

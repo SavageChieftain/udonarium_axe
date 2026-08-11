@@ -11,7 +11,6 @@ import {
   EMPTY_REPLAY_STORYBOARD,
   REPLAY_CHAPTER_HOLD_MS,
   REPLAY_SHOT_MAX_CHARS,
-  REPLAY_SHOT_MAX_MS,
   REPLAY_SHOT_MIN_MS,
   REPLAY_SHOT_PER_CHAR_MS,
   ReplayShotPacing,
@@ -174,7 +173,7 @@ describe('buildReplayStoryboard()', () => {
     expect(board.shots[0].durationMs).toBe(5000);
   });
 
-  it('実時間でも短すぎ長すぎは丸めること', () => {
+  it('実時間では短すぎるものだけ丸め、長い間はそのまま置くこと', () => {
     const events = [
       { ...say(1, 'やあ'), t: 0 },
       { ...say(2, 'ん'), t: 10 },
@@ -185,8 +184,9 @@ describe('buildReplayStoryboard()', () => {
       scope: ReplayShotScope.Lines,
     });
 
+    // 読めない速さになるので下限だけは置く。上を丸めると「当日と同じ間」ではなくなる。
     expect(board.shots[0].durationMs).toBe(REPLAY_SHOT_MIN_MS);
-    expect(board.shots[1].durationMs).toBe(REPLAY_SHOT_MAX_MS);
+    expect(board.shots[1].durationMs).toBe(999_999 - 10);
   });
 
   it('見せられない発言は見る人に応じて外すこと', () => {

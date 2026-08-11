@@ -22,6 +22,8 @@ const REFERENCE_HEIGHT = 1080;
 export const REPLAY_FRAME_PRESETS: Readonly<Record<string, ReplayFrameSize>> = {
   '720p': { width: 1280, height: 720 },
   '1080p': { width: 1920, height: 1080 },
+  '1440p': { width: 2560, height: 1440 },
+  '2160p': { width: 3840, height: 2160 },
 };
 
 export function replayFrameLayout(size: ReplayFrameSize): ReplayFrameLayout {

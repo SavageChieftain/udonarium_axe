@@ -76,6 +76,7 @@ function shot(overrides: Partial<ReplayShot> = {}): ReplayShot {
     speakerColor: '',
     portraitId: '',
     backgroundId: '',
+    cutInId: '',
     text: 'こんばんは',
     isNarration: false,
     move: null,
@@ -482,5 +483,32 @@ describe('paintReplayFrame()', () => {
 
     expect(texts).toHaveLength(0);
     expect(fills[0]).toMatchObject({ x: 0, y: 0, width: layout.width, height: layout.height });
+  });
+
+  it('出ていたカットインを盤面の上に重ねること', () => {
+    const { ctx, images } = recorder();
+    const picture = image(1600, 900);
+
+    paintReplayFrame(
+      ctx,
+      layout,
+      shot({ cutInId: 'cut-1' }),
+      { imageOf: (identifier) => (identifier === 'cut-1' ? picture : null) },
+      0.5
+    );
+
+    // 台詞窓は隠さない。盤面の枠に収める。
+    const drawn = images.find((one) => one.image === picture);
+    expect(drawn).toBeDefined();
+    expect(drawn!.width).toBeLessThanOrEqual(layout.board.width + 1);
+    expect(drawn!.height).toBeLessThanOrEqual(layout.board.height + 1);
+  });
+
+  it('カットインが無ければ何も重ねないこと', () => {
+    const { ctx, images } = recorder();
+
+    paintReplayFrame(ctx, layout, shot(), { imageOf: () => image(100, 100) }, 0.5);
+
+    expect(images.every((one) => one.width <= layout.width)).toBe(true);
   });
 });

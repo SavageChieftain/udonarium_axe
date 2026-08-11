@@ -140,9 +140,11 @@ describe('ReplayVideoPanelComponent', () => {
     buttonByText('動画にする')?.click();
     fixture.detectChanges();
 
-    const [size, pacing] = fixture.nativeElement.querySelectorAll('select') as NodeListOf<HTMLSelectElement>;
+    const [size, fps, pacing] = fixture.nativeElement.querySelectorAll('select') as NodeListOf<HTMLSelectElement>;
     size.value = '720p';
     size.dispatchEvent(new Event('change'));
+    fps.value = '60';
+    fps.dispatchEvent(new Event('change'));
     pacing.value = 'recorded';
     pacing.dispatchEvent(new Event('change'));
     fixture.detectChanges();
@@ -153,8 +155,9 @@ describe('ReplayVideoPanelComponent', () => {
     expect(render).toHaveBeenCalledWith(
       meta,
       events,
-      expect.objectContaining({ size: { width: 1280, height: 720 }, pacing: 'recorded' }),
-      { userId: 'gm', role: PeerRole.GameMaster }
+      expect.objectContaining({ size: { width: 1280, height: 720 }, fps: 60, pacing: 'recorded' }),
+      { userId: 'gm', role: PeerRole.GameMaster },
+      null
     );
   });
 

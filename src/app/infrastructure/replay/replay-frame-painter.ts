@@ -66,6 +66,7 @@ export function paintReplayFrame(
 ): void {
   paintBackdrop(ctx, layout, shot, assets, style);
   if (board) paintBoard(ctx, layout, board, assets, style, shot?.move ?? null, shotProgress);
+  paintCutIn(ctx, layout, shot, assets);
   if (shot) {
     if (shot.isChapterStart) paintChapterCard(ctx, layout, shot, style);
     else paintDialogue(ctx, layout, shot, assets, style, board !== null, sideOf(board, shot));
@@ -128,6 +129,22 @@ function paintBoard(
     ctx.fillText(piece.name, x + span / 2, y + span + labelSize);
     ctx.textAlign = 'left';
   }
+}
+
+/** 出ていたカットインの絵。盤面の上に、台詞窓は隠さない大きさで重ねる。 */
+function paintCutIn(
+  ctx: ReplayFrameCanvas,
+  layout: ReplayFrameLayout,
+  shot: ReplayShot | null,
+  assets: ReplayFrameAssets
+): void {
+  const picture = shot?.cutInId ? assets.imageOf(shot.cutInId) : null;
+  if (!picture) return;
+
+  const size = containRect(picture, layout.board.width, layout.board.height);
+  const x = layout.board.x + (layout.board.width - size.width) / 2;
+  const y = layout.board.y + (layout.board.height - size.height) / 2;
+  ctx.drawImage(picture, x, y, size.width, size.height);
 }
 
 function paintBackdrop(

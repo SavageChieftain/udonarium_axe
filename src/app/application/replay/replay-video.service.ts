@@ -13,6 +13,7 @@ import {
   type ReplayBoardScene,
 } from '@axe/domain/replay/replay-board-view';
 import { collectReplayCast } from '@axe/domain/replay/replay-cast';
+import { syncValueOf } from '@axe/domain/replay/replay-diff';
 import { earliestReplaySeq } from '@axe/domain/replay/replay-edit';
 import type { ReplayEvent, ReplayViewer } from '@axe/domain/replay/replay-event';
 import { REPLAY_FRAME_PRESETS, replayFrameLayout, type ReplayFrameSize } from '@axe/domain/replay/replay-frame-layout';
@@ -43,7 +44,7 @@ import {
 } from '@axe/infrastructure/replay/replay-frame-painter';
 
 export const REPLAY_VIDEO_FPS = 30;
-export const REPLAY_VIDEO_MAX_FRAMES = 30 * 60 * 60;
+const CUT_IN_ALIAS = 'cut-in';
 
 export interface ReplayVideoOptions {
   size: ReplayFrameSize;
@@ -87,6 +88,11 @@ export class ReplayVideoService {
     return this.encoder.isSupported;
   }
 
+  /** 実時間でしか録れない環境か。尺と同じだけ待つことになるので、押す前に伝える。 */
+  get isRealtimeOnly(): boolean {
+    return this.encoder.isRealtimeOnly;
+  }
+
   cancel(): void {
     this.cancelled = true;
   }
@@ -95,7 +101,8 @@ export class ReplayVideoService {
     meta: ReplayRecordingMeta,
     events: readonly ReplayEvent[],
     options: ReplayVideoOptions = DEFAULT_REPLAY_VIDEO_OPTIONS,
-    viewer?: ReplayViewer
+    viewer?: ReplayViewer,
+    file: FileSystemFileHandle | null = null
   ): Promise<boolean> {
     if (this._isRendering() || !this.isSupported || events.length < 1) return false;
 
@@ -108,18 +115,20 @@ export class ReplayVideoService {
     try {
       const base = await this.baseBoardOf(meta.id, events);
       const cast = collectReplayCast(base);
-      const storyboard = buildReplayStoryboard(events, cast, { ...options, viewer });
+      const cutIns = cutInImagesOf(base);
+      const storyboard = buildReplayStoryboard(events, cast, {
+        ...options,
+        viewer,
+        cutInImage: (identifier) => cutIns.get(identifier) ?? '',
+      });
       if (storyboard.shots.length < 1) {
         Logger.warn('[ReplayVideo] 画にできる場面がありませんでした', meta.id);
         this._failed.set(true);
         return false;
       }
 
-      const wanted = Math.max(1, Math.round((storyboard.totalMs / 1000) * options.fps));
-      const frameCount = Math.min(REPLAY_VIDEO_MAX_FRAMES, wanted);
-      if (frameCount < wanted) {
-        Logger.warn('[ReplayVideo] 長すぎるため途中までにします', { wanted, frameCount });
-      }
+      // 長さで切らない。記録した分は最後まで書き出す。
+      const frameCount = Math.max(1, Math.round((storyboard.totalMs / 1000) * options.fps));
       this._total.set(frameCount);
 
       const layout = replayFrameLayout(options.size);
@@ -127,7 +136,7 @@ export class ReplayVideoService {
       const boardOfSeq = new Map(storyboard.shots.map((shot, index) => [shot.seq, boards[index]]));
       if (this.cancelled) return false;
       const assets = await this.loadAssets([
-        ...storyboard.shots.flatMap((shot) => [shot.portraitId, shot.backgroundId]),
+        ...storyboard.shots.flatMap((shot) => [shot.portraitId, shot.backgroundId, shot.cutInId]),
         ...boards.flatMap((board) => collectBoardAssetIds(board)),
       ]);
       const msPerFrame = 1000 / options.fps;
@@ -143,6 +152,7 @@ export class ReplayVideoService {
           fps: options.fps,
           frameCount,
           audio,
+          file,
           isCancelled: () => this.cancelled,
           onProgress: (done, total) => {
             this._done.set(done);
@@ -265,6 +275,18 @@ export class ReplayVideoService {
     }
     return assets;
   }
+}
+
+/** カットインの identifier から、そのとき出ていた絵の identifier へ。 */
+function cutInImagesOf(snapshots: readonly ReplayObjectSnapshot[]): Map<string, string> {
+  const images = new Map<string, string>();
+  for (const snapshot of snapshots) {
+    if (snapshot.aliasName !== CUT_IN_ALIAS) continue;
+    // 動画のカットインには絵が無い。音だけのものと同じく、字幕で出す。
+    if (syncValueOf(snapshot.syncData, 'isVideoCutIn') === true) continue;
+    images.set(snapshot.identifier, String(syncValueOf(snapshot.syncData, 'imageIdentifier') ?? ''));
+  }
+  return images;
 }
 
 async function toDrawableImage(

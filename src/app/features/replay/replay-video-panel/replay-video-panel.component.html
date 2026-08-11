@@ -41,6 +41,19 @@
       </label>
 
       <label class="text-ui-muted flex items-center justify-between gap-1.5 text-[0.72rem]">
+        {{ 'feature.replay.video.fps' | transloco }}
+        <select
+          class="border-ui-border bg-ui-elevated rounded-ui-sm border border-solid px-1.5 py-0.5 text-[0.72rem]"
+          [value]="fps()"
+          (change)="setFps($any($event.target).value)"
+        >
+          @for (choice of fpsChoices; track choice) {
+            <option [value]="choice">{{ choice }} fps</option>
+          }
+        </select>
+      </label>
+
+      <label class="text-ui-muted flex items-center justify-between gap-1.5 text-[0.72rem]">
         {{ 'feature.replay.video.pacing' | transloco }}
         <select
           class="border-ui-border bg-ui-elevated rounded-ui-sm border border-solid px-1.5 py-0.5 text-[0.72rem]"
@@ -84,6 +97,12 @@
       <span class="text-ui-muted border-ui-border border-t border-solid pt-1.5 text-[0.7rem] leading-normal">
         {{ 'feature.replay.video.estimate' | transloco: { shots: estimate().shots, length: estimate().length } }}
       </span>
+
+      @if (isRealtimeOnly) {
+        <span class="text-ui-muted text-[0.7rem] leading-normal">
+          {{ 'feature.replay.video.realtime' | transloco }}
+        </span>
+      }
 
       <button
         class="rounded-ui-sm border-ui-accent bg-ui-accent hover:bg-ui-accent-hover cursor-pointer border border-solid px-[0.7em] py-[0.25em] text-[0.74rem] text-white"

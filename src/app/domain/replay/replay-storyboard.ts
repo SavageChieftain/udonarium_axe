@@ -33,6 +33,8 @@ export interface ReplayStoryboardOptions {
   scope: ReplayShotScope;
   viewer?: ReplayViewer;
   caption?: ReplayShotCaption;
+  /** カットインの絵を引く。identifier から画像の identifier へ。 */
+  cutInImage?: (identifier: string) => string;
 }
 
 export const DEFAULT_REPLAY_STORYBOARD_OPTIONS: ReplayStoryboardOptions = {
@@ -56,6 +58,8 @@ export interface ReplayShot {
   speakerColor: string;
   portraitId: string;
   backgroundId: string;
+  /** 出ていたカットインの絵。空なら出ていない。 */
+  cutInId: string;
   text: string;
   isNarration: boolean;
   move: ReplayShotMove | null;
@@ -139,6 +143,7 @@ export function buildReplayStoryboard(
         speakerColor: String(event.detail['messColor'] ?? '').trim(),
         portraitId: portraitOf(event, speaker, portraits),
         backgroundId: background,
+        cutInId: cutInOf(event, options.cutInImage),
         text: piece,
         isNarration: isChapter || speaker.length < 1,
         move: part === 0 ? moveOf(event) : null,
@@ -187,11 +192,19 @@ function durationOf(
   pacing: ReplayShotPacing
 ): number {
   if (pacing === ReplayShotPacing.Recorded && next) {
+    // 「当日と同じ間」は当日の間をそのまま使う。丸めると、名乗った通りの間にならない。
     const gap = Math.round(next.t - event.t);
-    if (gap > 0) return Math.min(REPLAY_SHOT_MAX_MS, Math.max(REPLAY_SHOT_MIN_MS, gap));
+    if (gap > 0) return Math.max(REPLAY_SHOT_MIN_MS, gap);
   }
   if (isChapter) return REPLAY_CHAPTER_HOLD_MS;
   return Math.min(REPLAY_SHOT_MAX_MS, REPLAY_SHOT_MIN_MS + text.length * REPLAY_SHOT_PER_CHAR_MS);
+}
+
+/** カットインが出た場面の絵。音だけのカットインと動画のカットインには絵が無い。 */
+function cutInOf(event: ReplayEvent, resolve: ((identifier: string) => string) | undefined): string {
+  if (event.kind !== ReplayEventKind.MediaCutIn || !resolve) return '';
+  if (event.detail['isStart'] !== true || event.detail['soundOnly'] === true) return '';
+  return resolve(event.targetId ?? '');
 }
 
 function splitLongText(text: string): string[] {

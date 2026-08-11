@@ -2163,6 +2163,7 @@
         "hint": "Writes the recording out as MP4",
         "unsupported": "This browser cannot write video",
         "size": "Size",
+        "fps": "Frame rate",
         "pacing": "Pacing",
         "scope": "Include",
         "pace": {
@@ -2177,6 +2178,7 @@
         "start": "Write it out",
         "rendering": "Writing it out ({{percent}}%)",
         "cancel": "Stop",
+        "realtime": "On this browser the export runs in real time — keep this tab open until it finishes",
         "withEffects": "Include sound effects",
         "withMusic": "Include music",
         "failed": "The export did not go through. A smaller size or fewer details often helps."

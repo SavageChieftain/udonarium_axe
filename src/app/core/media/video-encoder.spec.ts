@@ -198,7 +198,7 @@ describe('video encoding', () => {
     expect(calls.map((call) => call.timestamp)).toEqual([0, 33333, 66667]);
     expect(flushed).toBe(true);
     expect(result?.extension).toBe('mp4');
-    expect(result?.blob.type).toBe('video/mp4');
+    expect(result?.blob?.type).toBe('video/mp4');
   });
 
   it('先頭とときどきをキーフレームにすること', async () => {
