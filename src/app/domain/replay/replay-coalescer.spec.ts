@@ -96,6 +96,30 @@ describe('mergeReplayEvents()', () => {
     expect((merged.detail['path'] as unknown[]).length).toBeLessThan(3);
   });
 
+  it('畳んだ増減の一覧を両方とも残すこと', () => {
+    // 上書きすると、先に減った分が後から数えられなくなる。
+    const valueEvent = (seq: number, at: number, changes: Record<string, unknown>[]): ReplayEvent => ({
+      seq,
+      at,
+      t: at,
+      kind: ReplayEventKind.ObjectValue,
+      actorId: 'gm',
+      targetId: 'c1',
+      detail: { changes },
+      visibility: PUBLIC_VISIBILITY,
+    });
+
+    const merged = mergeReplayEvents(
+      valueEvent(1, 0, [{ kind: 'damage', delta: -10, name: 'HP' }]),
+      valueEvent(2, 300, [{ kind: 'damage', delta: -5, name: 'MP' }])
+    );
+
+    expect(merged.detail['changes']).toEqual([
+      { kind: 'damage', delta: -10, name: 'HP' },
+      { kind: 'damage', delta: -5, name: 'MP' },
+    ]);
+  });
+
   it('移動以外では経路を作らないこと', () => {
     const previous: ReplayEvent = {
       seq: 1,

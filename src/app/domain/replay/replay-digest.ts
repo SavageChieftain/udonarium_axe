@@ -36,13 +36,22 @@ export interface ReplayDigestSpeaker {
   readonly diceRolls: number;
 }
 
-/** 人別のダイスの出方。企画どおり、出目が記録に残っている分だけを数える。 */
+/**
+ * 人別のダイスの出方。出目が記録に残っている分だけを数える。
+ *
+ * 平均・最高・最低は **1 回の振りの目の合計** で見る。1D100 は十の位と一の位の 2 面に
+ * 分かれて残るので、面ごとに数えると 70 と 8 の平均 39 のような数になってしまう。
+ * また、卓の途中でシステムが変わると尺度も変わるので、いちばん多く振った系統の分だけを見る。
+ */
 export interface ReplayDigestFortune {
   readonly userId: string;
   readonly name: string;
   /** 出目が読めた振りの回数。 */
   readonly rolls: number;
-  readonly dice: number;
+  /** 平均などを取った系統。振った系統が複数あるときは、いちばん多いもの。 */
+  readonly system: string;
+  /** その系統で振った回数。平均・最高・最低はこの回数の分。 */
+  readonly counted: number;
   readonly average: number;
   readonly best: number;
   readonly worst: number;
@@ -96,7 +105,6 @@ export const EMPTY_REPLAY_DIGEST: ReplayDigest = {
 
 /** 称号を出すのに要る最低限。1 回振っただけの人を不運王にしない。 */
 const MIN_ROLLS_FOR_AWARD = 3;
-const MAX_AWARDS = 4;
 
 interface ChangeEntry {
   kind: string;
@@ -106,7 +114,7 @@ interface ChangeEntry {
 
 export function buildReplayDigest(
   events: readonly ReplayEvent[],
-  manifest: Pick<ReplayManifest, 'roomName' | 'startedAt' | 'actors' | 'targets'>,
+  manifest: Pick<ReplayManifest, 'roomName' | 'startedAt' | 'endedAt' | 'actors' | 'targets'>,
   viewer: ReplayViewer
 ): ReplayDigest {
   const visible = events.filter((event) => canViewReplayEvent(event, viewer));
@@ -115,6 +123,8 @@ export function buildReplayDigest(
   const speakers = new Map<string, { name: string; messages: number; diceRolls: number }>();
   const fortunes = new Map<string, MutableFortune>();
   const ledger = new Map<string, MutableLedgerRow>();
+  let messages = 0;
+  let diceRolls = 0;
   let effects = 0;
   let rounds = 0;
   let hasDiceDetail = false;
@@ -123,29 +133,29 @@ export function buildReplayDigest(
   for (const event of visible) {
     switch (event.kind) {
       case ReplayEventKind.ChatMessage:
+        messages++;
         countSpeech(speakers, event, manifest, 'messages');
         break;
       case ReplayEventKind.ChatDice: {
+        diceRolls++;
         countSpeech(speakers, event, manifest, 'diceRolls');
         const detail = parseDiceRollDetail(asString(event.detail['dicebot']));
-        if (detail) {
-          hasDiceDetail = true;
-          collectFortune(fortunes, event, manifest, detail);
-        }
+        if (detail && collectFortune(fortunes, event, manifest, detail)) hasDiceDetail = true;
         break;
       }
       case ReplayEventKind.EffectCast:
         effects++;
         break;
-      case ReplayEventKind.TurnChange:
-        rounds = Math.max(rounds, Number(event.detail['round'] ?? 0));
+      case ReplayEventKind.TurnChange: {
+        const round = Number(event.detail['round'] ?? 0);
+        if (Number.isFinite(round)) rounds = Math.max(rounds, round);
         break;
+      }
       case ReplayEventKind.ObjectValue: {
         // 増減は 2 通りの経路で残りうる。まとめて数えられる `changes` の側だけを見る。
         const changes = changesOf(event.detail['changes']);
         if (changes.length < 1) break;
-        hasLedger = true;
-        collectLedger(ledger, event, manifest, changes);
+        if (collectLedger(ledger, event, manifest, changes)) hasLedger = true;
         break;
       }
       default:
@@ -157,17 +167,16 @@ export function buildReplayDigest(
     .map(([userId, row]) => ({ userId, ...row }))
     .sort((a, b) => b.messages - a.messages || b.diceRolls - a.diceRolls || a.name.localeCompare(b.name));
   const fortuneRows = [...fortunes.values()].map(sealFortune).sort((a, b) => b.rolls - a.rolls);
-  const ledgerRows = [...ledger.values()]
-    .map((row) => ({ ...row }))
-    .sort((a, b) => b.damage - a.damage || b.heal - a.heal);
+  const ledgerRows = [...ledger.values()].map(sealLedgerRow).sort((a, b) => b.damage - a.damage || b.heal - a.heal);
 
   return {
     roomName: manifest.roomName,
     startedAt: manifest.startedAt,
     numbers: {
-      elapsedMs: Math.max(0, visible[visible.length - 1].t - visible[0].t),
-      messages: speakerRows.reduce((total, row) => total + row.messages, 0),
-      diceRolls: speakerRows.reduce((total, row) => total + row.diceRolls, 0),
+      // 卓の長さは読む人で変わらない。見えない出来事しか無い時間も卓の時間のうち。
+      elapsedMs: elapsedOf(manifest, visible),
+      messages,
+      diceRolls,
       effects,
       rounds,
       speakers: speakerRows.filter((row) => row.messages > 0).length,
@@ -181,14 +190,18 @@ export function buildReplayDigest(
   };
 }
 
+interface SystemRolls {
+  count: number;
+  total: number;
+  best: number;
+  worst: number;
+}
+
 interface MutableFortune {
   userId: string;
   name: string;
   rolls: number;
-  dice: number;
-  total: number;
-  best: number;
-  worst: number;
+  bySystem: Map<string, SystemRolls>;
   criticals: number;
   fumbles: number;
   successes: number;
@@ -223,9 +236,9 @@ function collectFortune(
   event: ReplayEvent,
   manifest: Pick<ReplayManifest, 'actors'>,
   detail: DiceRollDetail
-): void {
+): boolean {
   const userId = event.actorId;
-  if (userId.length < 1) return;
+  if (userId.length < 1) return false;
 
   const row =
     fortunes.get(userId) ??
@@ -233,10 +246,7 @@ function collectFortune(
       userId,
       name: actorNameOf(manifest, event),
       rolls: 0,
-      dice: 0,
-      total: 0,
-      best: 0,
-      worst: 0,
+      bySystem: new Map<string, SystemRolls>(),
       criticals: 0,
       fumbles: 0,
       successes: 0,
@@ -244,12 +254,14 @@ function collectFortune(
     } satisfies MutableFortune);
 
   row.rolls++;
-  for (const face of detail.faces) {
-    if (!Number.isFinite(face.value)) continue;
-    row.dice++;
-    row.total += face.value;
-    row.best = row.best < 1 ? face.value : Math.max(row.best, face.value);
-    row.worst = row.worst < 1 ? face.value : Math.min(row.worst, face.value);
+  const value = rollValueOf(detail);
+  if (value !== null) {
+    const rolls = row.bySystem.get(detail.system) ?? { count: 0, total: 0, best: value, worst: value };
+    rolls.count++;
+    rolls.total += value;
+    rolls.best = Math.max(rolls.best, value);
+    rolls.worst = Math.min(rolls.worst, value);
+    row.bySystem.set(detail.system, rolls);
   }
   if (detail.outcome === 'critical') row.criticals++;
   if (detail.outcome === 'fumble') row.fumbles++;
@@ -257,17 +269,39 @@ function collectFortune(
   if (detail.outcome === 'failure') row.failures++;
 
   fortunes.set(userId, row);
+  return true;
+}
+
+/** 1 回の振りの目の合計。面が 1 つも読めなければ null。0 も出目なので既定値では潰さない。 */
+function rollValueOf(detail: DiceRollDetail): number | null {
+  let total = 0;
+  let counted = 0;
+  for (const face of detail.faces) {
+    if (!Number.isFinite(face.value)) continue;
+    total += face.value;
+    counted++;
+  }
+  return counted > 0 ? total : null;
 }
 
 function sealFortune(row: MutableFortune): ReplayDigestFortune {
+  let system = '';
+  let rolls: SystemRolls | null = null;
+  for (const [name, entry] of row.bySystem) {
+    if (rolls && entry.count <= rolls.count) continue;
+    system = name;
+    rolls = entry;
+  }
+
   return {
     userId: row.userId,
     name: row.name,
     rolls: row.rolls,
-    dice: row.dice,
-    average: row.dice > 0 ? Number((row.total / row.dice).toFixed(2)) : 0,
-    best: row.best,
-    worst: row.worst,
+    system,
+    counted: rolls?.count ?? 0,
+    average: rolls && rolls.count > 0 ? Number((rolls.total / rolls.count).toFixed(2)) : 0,
+    best: rolls?.best ?? 0,
+    worst: rolls?.worst ?? 0,
     criticals: row.criticals,
     fumbles: row.fumbles,
     successes: row.successes,
@@ -280,9 +314,9 @@ function collectLedger(
   event: ReplayEvent,
   manifest: Pick<ReplayManifest, 'targets'>,
   changes: readonly ChangeEntry[]
-): void {
+): boolean {
   const targetId = event.targetId ?? '';
-  if (targetId.length < 1) return;
+  if (targetId.length < 1) return false;
 
   const row = ledger.get(targetId) ?? {
     targetId,
@@ -293,9 +327,13 @@ function collectLedger(
     biggestHitLabel: '',
   };
 
+  let counted = false;
   for (const change of changes) {
     const amount = Math.abs(change.delta);
     if (!Number.isFinite(amount) || amount === 0) continue;
+    // 増減は damage か heal のどちらか。読めない区分を回復に寄せると、削られた卓が癒やされた卓になる。
+    if (change.kind !== 'damage' && change.kind !== 'heal') continue;
+    counted = true;
     if (change.kind === 'damage') {
       row.damage += amount;
       if (amount > row.biggestHit) {
@@ -307,7 +345,29 @@ function collectLedger(
     }
   }
 
+  if (!counted) return false;
   ledger.set(targetId, row);
+  return true;
+}
+
+function sealLedgerRow(row: MutableLedgerRow): ReplayDigestLedgerRow {
+  return {
+    ...row,
+    damage: trim(row.damage),
+    heal: trim(row.heal),
+    biggestHit: trim(row.biggestHit),
+  };
+}
+
+/** 端数のある増減を足すと二進小数の粕が出る。表に出す前に落とす。 */
+function trim(value: number): number {
+  return Number(value.toFixed(2));
+}
+
+function elapsedOf(manifest: Pick<ReplayManifest, 'startedAt' | 'endedAt'>, visible: readonly ReplayEvent[]): number {
+  const recorded = (manifest.endedAt ?? 0) - manifest.startedAt;
+  if (recorded > 0) return recorded;
+  return Math.max(0, visible[visible.length - 1].t);
 }
 
 function buildAwards(
@@ -329,9 +389,9 @@ function buildAwards(
     awards.push({ key: 'talkative', name: talkative.name, value: talkative.messages });
 
   const battered = pick(ledger, (row) => row.damage);
-  if (battered) awards.push({ key: 'battered', name: battered.name, value: Math.round(battered.damage) });
+  if (battered) awards.push({ key: 'battered', name: battered.name, value: battered.damage });
 
-  return awards.slice(0, MAX_AWARDS);
+  return awards;
 }
 
 /** いちばん多い 1 人。並びが同じ数なら出さない — 誰か 1 人を指せてこその称号。 */

@@ -60,6 +60,10 @@ function mergeDetail(
   next: Readonly<Record<string, unknown>>
 ): Record<string, unknown> {
   const merged: Record<string, unknown> = { ...previous, ...next };
+  // 増減の一覧は前後で別の項目を指す。上書きすると、先に減った分が数えられなくなる。
+  if (Array.isArray(previous['changes']) && Array.isArray(next['changes'])) {
+    merged['changes'] = [...previous['changes'], ...next['changes']];
+  }
   for (const key of Object.keys(merged)) {
     const before = previous[key];
     const after = next[key];

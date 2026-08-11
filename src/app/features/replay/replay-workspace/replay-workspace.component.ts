@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, DestroyRef, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, effect, inject, signal } from '@angular/core';
 import { RolePermissionService } from '@axe/application/permission/role-permission.service';
 import { ReplayEditorService } from '@axe/application/replay/replay-editor.service';
 import { ReplayLibraryService } from '@axe/application/replay/replay-library.service';
@@ -46,9 +46,15 @@ export class ReplayWorkspaceComponent {
 
   constructor() {
     this.destroyRef.onDestroy(() => void this.playback.close());
+    // 記録を閉じたら再生の画面に戻す。次に開いた記録がいきなりまとめから始まらないように。
+    effect(() => {
+      if (!this.isOpen()) this.isDigestOpen.set(false);
+    });
   }
 
   protected toggleDigest(): void {
+    // まとめの間は再生の操作盤が無い。送り続けたまま隠れると、止める手が無くなる。
+    if (!this.isDigestOpen()) this.playback.stopAutoPlay();
     this.isDigestOpen.update((open) => !open);
   }
 

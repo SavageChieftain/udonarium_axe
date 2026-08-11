@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { ReplayEditorService } from '@axe/application/replay/replay-editor.service';
 import { ReplayPlaybackService } from '@axe/application/replay/replay-playback.service';
+import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { buildReplayDigest, EMPTY_REPLAY_DIGEST } from '@axe/domain/replay/replay-digest';
 import { replayScriptElapsed } from '@axe/domain/replay/replay-script';
@@ -22,8 +23,11 @@ import { TranslocoModule } from '@jsverse/transloco';
 export class ReplayDigestPanelComponent {
   private readonly playback = inject(ReplayPlaybackService);
   private readonly editor = inject(ReplayEditorService);
+  private readonly objectChange = inject(ObjectChangeService);
 
   protected readonly digest = computed(() => {
+    // ロールが変われば見える範囲も変わる。開いたままの画面が古いままにならないよう追う。
+    if (PeerCursor.myCursor) this.objectChange.versionOf(PeerCursor.myCursor.identifier)();
     const manifest = this.playback.manifest();
     if (!manifest) return EMPTY_REPLAY_DIGEST;
     const events = this.editor.isEditing() ? this.editor.edited() : this.playback.events();
@@ -34,8 +38,13 @@ export class ReplayDigestPanelComponent {
   });
 
   protected readonly isEmpty = computed(() => {
-    const numbers = this.digest().numbers;
-    return numbers.messages + numbers.diceRolls + numbers.effects < 1 && this.digest().ledger.length < 1;
+    const digest = this.digest();
+    const numbers = digest.numbers;
+    return (
+      numbers.messages + numbers.diceRolls + numbers.effects + numbers.rounds < 1 &&
+      digest.ledger.length < 1 &&
+      digest.fortunes.length < 1
+    );
   });
 
   protected readonly fortuneColumns = ['who', 'rolls', 'average', 'best', 'worst', 'criticals', 'fumbles'] as const;

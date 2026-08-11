@@ -103,6 +103,26 @@ describe('ReplayDigestPanelComponent', () => {
     expect(text).not.toContain('出目が残っていません');
   });
 
+  it('見出しの鍵をそのまま画面に出さないこと', async () => {
+    // 列や称号の鍵は文字列を継ぎ足して引くので、翻訳の抜けを鍵の一覧では見つけられない。
+    events = [
+      say(1),
+      say(2),
+      roll(3, 6, 'critical'),
+      roll(4, 1, 'fumble'),
+      roll(5, 2, 'failure'),
+      {
+        ...say(6, 'gm'),
+        kind: ReplayEventKind.ObjectValue,
+        targetId: 'char-1',
+        detail: { changes: [{ kind: 'damage', delta: -8, name: 'HP' }] },
+      },
+    ];
+    await setup();
+
+    expect(fixture.nativeElement.textContent).not.toContain('feature.replay.digest');
+  });
+
   it('出目が残っていない記録では、その旨を言うこと', async () => {
     events = [say(1), { ...say(2), kind: ReplayEventKind.ChatDice, detail: { dicebot: '' } }];
     await setup();

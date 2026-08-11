@@ -72,6 +72,7 @@ describe('ReplayWorkspaceComponent', () => {
   let canUndo: ReturnType<typeof signal<boolean>>;
   let undo: ReturnType<typeof vi.fn>;
   let edited: ReturnType<typeof signal<readonly ReplayEvent[]>>;
+  let stopAutoPlay: ReturnType<typeof vi.fn>;
 
   async function setup(): Promise<void> {
     await TestBed.configureTestingModule({
@@ -101,6 +102,7 @@ describe('ReplayWorkspaceComponent', () => {
             next: vi.fn(),
             toEnd: vi.fn(),
             toggleAutoPlay: vi.fn(),
+            stopAutoPlay,
             enterBoardMode: vi.fn().mockResolvedValue(true),
             exitBoardMode: vi.fn().mockResolvedValue(undefined),
           },
@@ -159,6 +161,36 @@ describe('ReplayWorkspaceComponent', () => {
     ) as HTMLElement[];
   }
 
+  describe('まとめ', () => {
+    function summaryButton(): HTMLButtonElement | undefined {
+      return [...(fixture.nativeElement as HTMLElement).querySelectorAll('button')].find((button) =>
+        button.textContent?.includes('まとめ')
+      );
+    }
+
+    it('開くときに送りを止めること', async () => {
+      await setup();
+      summaryButton()?.click();
+      fixture.detectChanges();
+
+      expect(stopAutoPlay).toHaveBeenCalled();
+      expect(fixture.nativeElement.querySelector('replay-digest-panel')).not.toBeNull();
+    });
+
+    it('記録を閉じたら再生の画面に戻すこと', async () => {
+      await setup();
+      summaryButton()?.click();
+      fixture.detectChanges();
+
+      isOpen.set(false);
+      fixture.detectChanges();
+      isOpen.set(true);
+      fixture.detectChanges();
+
+      expect(fixture.nativeElement.querySelector('replay-digest-panel')).toBeNull();
+    });
+  });
+
   beforeEach(() => {
     isOpen = signal(true);
     isEditing = signal(false);
@@ -169,6 +201,7 @@ describe('ReplayWorkspaceComponent', () => {
     open = vi.fn().mockResolvedValue(true);
     begin = vi.fn();
     insert = vi.fn();
+    stopAutoPlay = vi.fn();
     PeerCursor.myCursor = { userId: 'alice', role: PeerRole.GameMaster } as PeerCursor;
   });
 

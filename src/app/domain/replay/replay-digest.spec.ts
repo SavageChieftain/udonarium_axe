@@ -9,9 +9,10 @@ import {
   type ReplayManifest,
 } from '@axe/domain/replay/replay-event';
 
-const MANIFEST: Pick<ReplayManifest, 'roomName' | 'startedAt' | 'actors' | 'targets'> = {
+const MANIFEST: Pick<ReplayManifest, 'roomName' | 'startedAt' | 'endedAt' | 'actors' | 'targets'> = {
   roomName: '洞窟の夜',
   startedAt: 1000,
+  endedAt: null,
   actors: [
     { userId: 'alice', peerId: 'p1', name: 'アリス', role: PeerRole.Player, imageIdentifier: '', sinceSeq: 0 },
     { userId: 'bob', peerId: 'p2', name: 'ボブ', role: PeerRole.Player, imageIdentifier: '', sinceSeq: 0 },
@@ -42,10 +43,10 @@ function event(kind: ReplayEventKind, actorId: string, detail: Record<string, un
   } satisfies ReplayEvent;
 }
 
-function dice(actorId: string, faces: [number, number][], outcome = '') {
+function dice(actorId: string, faces: [number, number][], outcome = '', system = 'Cthulhu') {
   return event(ReplayEventKind.ChatDice, actorId, {
     dicebot: encodeDiceRollDetail({
-      system: 'Cthulhu',
+      system,
       faces: faces.map(([sides, value]) => ({ sides, value, kind: 'normal' })),
       outcome: outcome as '',
     }),
@@ -100,24 +101,100 @@ describe('buildReplayDigest()', () => {
     expect(buildReplayDigest(events, MANIFEST, GAME_MASTER).numbers.messages).toBe(2);
   });
 
-  it('ダイスの出方を人ごとにまとめること', () => {
+  it('1 回の振りの合計で出方をまとめること', () => {
     const digest = buildReplayDigest(
       [
+        // 2D6 の 1 と 5 は 1 回の振りで 6。面ごとに数えると平均 3 になってしまう。
         dice('alice', [
           [6, 1],
           [6, 5],
         ]),
         dice('alice', [[6, 6]], 'critical'),
-        dice('bob', [[100, 97]], 'fumble'),
+        // 1D100 は十の位と一の位に分かれて残る。合計 78 が 1 回の出目。
+        dice(
+          'bob',
+          [
+            [10, 70],
+            [10, 8],
+          ],
+          'fumble'
+        ),
       ],
       MANIFEST,
       PLAYER
     );
 
-    const alice = digest.fortunes.find((row) => row.userId === 'alice')!;
-    expect(alice).toMatchObject({ rolls: 2, dice: 3, average: 4, best: 6, worst: 1, criticals: 1, fumbles: 0 });
-    expect(digest.fortunes.find((row) => row.userId === 'bob')).toMatchObject({ fumbles: 1, best: 97, worst: 97 });
+    expect(digest.fortunes.find((row) => row.userId === 'alice')).toMatchObject({
+      rolls: 2,
+      counted: 2,
+      average: 6,
+      best: 6,
+      worst: 6,
+      criticals: 1,
+      fumbles: 0,
+    });
+    expect(digest.fortunes.find((row) => row.userId === 'bob')).toMatchObject({ fumbles: 1, best: 78, worst: 78 });
     expect(digest.hasDiceDetail).toBe(true);
+  });
+
+  it('0 の目を「出ていない」と取り違えないこと', () => {
+    const digest = buildReplayDigest([dice('alice', [[10, 0]]), dice('alice', [[10, 7]])], MANIFEST, PLAYER);
+
+    expect(digest.fortunes[0]).toMatchObject({ worst: 0, best: 7, average: 3.5 });
+  });
+
+  it('系統が混ざったら、いちばん多く振った系統だけで平均を出すこと', () => {
+    const digest = buildReplayDigest(
+      [
+        dice('alice', [[6, 3]], '', 'SwordWorld2.5'),
+        dice('alice', [[6, 5]], '', 'SwordWorld2.5'),
+        dice('alice', [[100, 90]], '', 'Cthulhu7th'),
+      ],
+      MANIFEST,
+      PLAYER
+    );
+
+    expect(digest.fortunes[0]).toMatchObject({ rolls: 3, system: 'SwordWorld2.5', counted: 2, average: 4, best: 5 });
+  });
+
+  it('卓の長さを読む人で変えないこと', () => {
+    const events = [event(ReplayEventKind.ChatMessage, 'alice')];
+    const digest = buildReplayDigest(events, { ...MANIFEST, endedAt: 1000 + 45 * 60 * 1000 }, PLAYER);
+
+    expect(digest.numbers.elapsedMs).toBe(45 * 60 * 1000);
+  });
+
+  it('ラウンドの値が読めないときに数を壊さないこと', () => {
+    const digest = buildReplayDigest(
+      [
+        event(ReplayEventKind.TurnChange, 'gm', { round: 2 }),
+        event(ReplayEventKind.TurnChange, 'gm', { round: 'なにか' }),
+      ],
+      MANIFEST,
+      PLAYER
+    );
+
+    expect(digest.numbers.rounds).toBe(2);
+  });
+
+  it('区分の読めない増減を回復として数えないこと', () => {
+    const digest = buildReplayDigest([change('gm', 'char-1', [{ delta: -10, name: 'HP' }])], MANIFEST, PLAYER);
+
+    expect(digest.hasLedger).toBe(false);
+    expect(digest.ledger).toEqual([]);
+  });
+
+  it('端数のある増減を足しても粕を残さないこと', () => {
+    const digest = buildReplayDigest(
+      [
+        change('gm', 'char-1', [{ kind: 'damage', delta: -0.1, name: 'HP' }]),
+        change('gm', 'char-1', [{ kind: 'damage', delta: -0.2, name: 'HP' }]),
+      ],
+      MANIFEST,
+      PLAYER
+    );
+
+    expect(digest.ledger[0].damage).toBe(0.3);
   });
 
   it('出目が残っていない記録では運勢を出さないこと', () => {
