@@ -2184,6 +2184,19 @@
         "withEffects": "効果音を入れる",
         "withMusic": "BGM を入れる",
         "failed": "書き出せませんでした。細かさや大きさを下げると通ることがあります。"
+      },
+      "script": {
+        "title": "読み物にする",
+        "hint": "記録を小説や台本のテキストに書き出します",
+        "format": "組み方",
+        "of": {
+          "novel": "小説",
+          "script": "台本"
+        },
+        "withBoard": "盤面の動きも入れる",
+        "withTime": "章に経過時間を添える",
+        "estimate": "{{lines}} 行",
+        "start": "書き出す"
       }
     }
   },

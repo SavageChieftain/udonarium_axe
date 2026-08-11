@@ -8,6 +8,7 @@
     }
     <span class="flex-1"></span>
     @if (isOpen()) {
+      <replay-script-panel />
       <replay-video-panel />
       @if (!isEditing()) {
         <button

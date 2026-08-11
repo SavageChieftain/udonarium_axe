@@ -2184,6 +2184,19 @@
         "withEffects": "Include sound effects",
         "withMusic": "Include music",
         "failed": "The export did not go through. A smaller size or fewer details often helps."
+      },
+      "script": {
+        "title": "Write it out",
+        "hint": "Export the recording as prose or a script",
+        "format": "Style",
+        "of": {
+          "novel": "Prose",
+          "script": "Script"
+        },
+        "withBoard": "Include board activity",
+        "withTime": "Add elapsed time to chapters",
+        "estimate": "{{lines}} lines",
+        "start": "Export"
       }
     }
   },

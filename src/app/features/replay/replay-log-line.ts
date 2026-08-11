@@ -56,11 +56,7 @@ export function formatReplayTime(at: number): string {
   return `${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
 }
 
-export function formatReplayElapsed(ms: number): string {
-  const total = Math.max(0, Math.floor(ms / 1000));
-  const pad = (value: number): string => String(value).padStart(2, '0');
-  return `${pad(Math.floor(total / 3600))}:${pad(Math.floor(total / 60) % 60)}:${pad(total % 60)}`;
-}
+export { replayScriptElapsed as formatReplayElapsed } from '@axe/domain/replay/replay-script';
 
 export function toReplayLogLine(event: ReplayEvent, names: ReplayNameLookup): ReplayLogLine {
   const actor = names.actorName(event.actorId);

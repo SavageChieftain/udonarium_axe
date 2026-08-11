@@ -46,7 +46,9 @@ describe('DiceBot', () => {
       return { ID: 'FakeSystem', eval: () => result } as unknown as Parameters<typeof DiceBot.diceRollAsync>[1];
     }
 
-    it('出目と成否を結果に添えること', async () => {
+    // 振る順番は 1 本の列で捌かれる。前のテストが積んだゲームシステムの読み込みが
+    // 先に居るので、その完了を待つぶん既定の制限に届きうる。
+    it('出目と成否を結果に添えること', { timeout: 20000 }, async () => {
       const rolled = await DiceBot.diceRollAsync(
         '2D6',
         fakeSystem({
@@ -69,7 +71,7 @@ describe('DiceBot', () => {
       expect(rolled.detail?.system).toBe('FakeSystem');
     });
 
-    it('振れなかったときは中身なしにすること', async () => {
+    it('振れなかったときは中身なしにすること', { timeout: 20000 }, async () => {
       const rolled = await DiceBot.diceRollAsync('2D6', fakeSystem(null));
 
       expect(rolled.result).toBe('');

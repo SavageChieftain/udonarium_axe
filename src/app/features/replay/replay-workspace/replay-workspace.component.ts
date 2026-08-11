@@ -5,6 +5,7 @@ import { ReplayLibraryService } from '@axe/application/replay/replay-library.ser
 import { ReplayPlaybackService } from '@axe/application/replay/replay-playback.service';
 import { ReplayRecorderService } from '@axe/application/replay/replay-recorder.service';
 import { earliestReplaySeq } from '@axe/domain/replay/replay-edit';
+import { ReplayScriptPanelComponent } from '@axe/features/replay/replay-script-panel/replay-script-panel.component';
 import { ReplayVideoPanelComponent } from '@axe/features/replay/replay-video-panel/replay-video-panel.component';
 import { ReplayEntryListComponent } from '@axe/features/replay/replay-workspace/replay-entry-list.component';
 import { ReplayRecordingListComponent } from '@axe/features/replay/replay-workspace/replay-recording-list.component';
@@ -21,6 +22,7 @@ import { TranslocoModule } from '@jsverse/transloco';
     ReplayRecordingListComponent,
     ReplayStageComponent,
     ReplayEntryListComponent,
+    ReplayScriptPanelComponent,
     ReplayVideoPanelComponent,
   ],
 })

@@ -1,0 +1,51 @@
+<div class="relative">
+  <button
+    class="rounded-ui-sm flex cursor-pointer items-center gap-1 px-[0.8em] py-[0.3em] text-[0.74rem]"
+    [title]="'feature.replay.script.hint' | transloco"
+    (click)="toggle()"
+  >
+    <i class="material-icons text-[15px]">menu_book</i>
+    {{ 'feature.replay.script.title' | transloco }}
+  </button>
+
+  @if (isOpen()) {
+    <div
+      class="border-ui-border-panel bg-ui-panel rounded-ui shadow-ui-md absolute top-[calc(100%+6px)] right-0 z-20 flex w-64 flex-col gap-2 border border-solid p-2.5 [backdrop-filter:blur(24px)_saturate(1.5)]"
+    >
+      <label class="text-ui-muted flex items-center justify-between gap-1.5 text-[0.72rem]">
+        {{ 'feature.replay.script.format' | transloco }}
+        <select
+          class="border-ui-border bg-ui-elevated rounded-ui-sm border border-solid px-1.5 py-0.5 text-[0.72rem]"
+          [value]="format()"
+          (change)="setFormat($any($event.target).value)"
+        >
+          @for (choice of formats; track choice) {
+            <option [value]="choice">{{ 'feature.replay.script.of.' + choice | transloco }}</option>
+          }
+        </select>
+      </label>
+
+      <label class="text-ui-muted flex cursor-pointer items-center gap-1.5 text-[0.72rem]">
+        <input type="checkbox" [checked]="withBoard()" (change)="toggleBoard()" />
+        {{ 'feature.replay.script.withBoard' | transloco }}
+      </label>
+
+      <label class="text-ui-muted flex cursor-pointer items-center gap-1.5 text-[0.72rem]">
+        <input type="checkbox" [checked]="withTime()" (change)="toggleTime()" />
+        {{ 'feature.replay.script.withTime' | transloco }}
+      </label>
+
+      <span class="text-ui-muted border-ui-border border-t border-solid pt-1.5 text-[0.7rem] leading-normal">
+        {{ 'feature.replay.script.estimate' | transloco: { lines: estimate().lines } }}
+      </span>
+
+      <button
+        class="rounded-ui-sm border-ui-accent bg-ui-accent hover:bg-ui-accent-hover cursor-pointer border border-solid px-[0.7em] py-[0.25em] text-[0.74rem] text-white"
+        [disabled]="estimate().lines < 1"
+        (click)="save()"
+      >
+        {{ 'feature.replay.script.start' | transloco }}
+      </button>
+    </div>
+  }
+</div>
