@@ -81,3 +81,14 @@ chore(release): bump version to 1.2.2
 - `package.json` の `version` がリリース番号
 - 更新は `chore(release): bump version to X.Y.Z` で 1 コミットに切り出す
 - 機能変更・バージョンバンプ・ドキュメント整備を同じコミットに混ぜない
+
+## 依存の脆弱性（`npm audit`）
+
+- **`npm audit` は 0 件を保つ**（`website/` も同じ）
+- 直せるものは `overrides` に固定版を書いて上げる（`npm audit fix` に任せると別の依存まで動く）
+- **`npm` は `tools/npm-stub` に差し替えてある** — `@semantic-release/npm` が同梱する npm CLI の
+  `bundleDependencies`（`tar` / `undici` / `ip-address` / `brace-expansion`）は `overrides` が届かず、
+  修正済みの同梱物を持つ npm もまだ出ていないため。差し替えても動く理由と戻し方は
+  [tools/npm-stub/README.md](../tools/npm-stub/README.md) を参照
+- **`semantic-release` を devDependencies から外さないこと** — `npx semantic-release` はローカルの解決を
+  使うので、外すと `overrides` の `undici` が効かなくなり、リリース時の zip アップロードが落ちる

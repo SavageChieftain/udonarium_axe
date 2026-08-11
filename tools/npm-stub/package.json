@@ -1,0 +1,9 @@
+{
+  "name": "npm",
+  "version": "11.19.0",
+  "description": "Placeholder that keeps the npm CLI bundle out of node_modules. See README.md.",
+  "license": "MIT",
+  "files": [
+    "README.md"
+  ]
+}
