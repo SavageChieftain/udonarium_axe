@@ -142,4 +142,33 @@ describe('ChatTabSettingComponent', () => {
       expect(tab.guestCanSpeak).toBe(true);
     });
   });
+
+  describe('システムタブは消せない', () => {
+    it('選んでいても削除しないこと', () => {
+      const list = ChatTabList.instance;
+      list.addChatTab('メイン');
+      const system = list.ensureSystemTab();
+      component.selectedTab.set(system);
+      component.allowDeleteTab = true;
+
+      component.delete();
+
+      // 消せると、入退室の知らせが会話のタブへ戻ってくる。
+      expect(component.isDeletable).toBe(false);
+      expect(list.chatTabs.some((tab) => tab.isSystemTab)).toBe(true);
+    });
+
+    it('ふつうのタブは今までどおり消せること', () => {
+      const list = ChatTabList.instance;
+      const main = list.addChatTab('メイン');
+      list.ensureSystemTab();
+      component.selectedTab.set(main);
+      component.allowDeleteTab = true;
+
+      expect(component.isDeletable).toBe(true);
+      component.delete();
+
+      expect(ObjectStore.instance.get(main.identifier)).toBeNull();
+    });
+  });
 });

@@ -114,4 +114,74 @@ describe('ChatTabList', () => {
       expect(ChatTabList.instance.simpleDispFlagUserId).toBe(0);
     });
   });
+
+  describe('システムタブ', () => {
+    it('用意すると専用の identifier で 1 枚だけ増えること', () => {
+      const list = ChatTabList.instance;
+      list.addChatTab('メイン');
+
+      const system = list.ensureSystemTab();
+
+      expect(system.isSystemTab).toBe(true);
+      expect(list.ensureSystemTab()).toBe(system);
+      expect(list.chatTabs.filter((tab) => tab.isSystemTab)).toHaveLength(1);
+    });
+
+    it('名前を変えてもシステムタブのままであること', () => {
+      const list = ChatTabList.instance;
+      const system = list.ensureSystemTab();
+      system.name = 'お知らせ';
+
+      // 見分けは identifier で付ける。名前で見ると、改名した途端に別物になる。
+      expect(system.isSystemTab).toBe(true);
+      expect(list.systemMessageTab).toBe(system);
+    });
+
+    it('システムメッセージの行き先を専用タブにすること', () => {
+      const list = ChatTabList.instance;
+      const main = list.addChatTab('メイン');
+      const system = list.ensureSystemTab();
+      list.systemMessageTabIndex = 0;
+
+      // 番号の指定より専用タブが優先される。
+      expect(list.systemMessageTab).toBe(system);
+      expect(list.systemMessageTab).not.toBe(main);
+    });
+
+    it('専用タブが無い部屋では今までどおり番号で決めること', () => {
+      const list = ChatTabList.instance;
+      list.addChatTab('メイン');
+      const sub = list.addChatTab('サブ');
+      list.systemMessageTabIndex = 1;
+
+      expect(list.systemMessageTab).toBe(sub);
+    });
+
+    it('会話のタブにシステムタブを混ぜないこと', () => {
+      const list = ChatTabList.instance;
+      const main = list.addChatTab('メイン');
+      list.ensureSystemTab();
+
+      expect(list.spokenChatTabs).toEqual([main]);
+    });
+
+    it('全タブの書き出しにシステムタブを入れないこと', () => {
+      const list = ChatTabList.instance;
+      const main = list.addChatTab('メイン');
+      const system = list.ensureSystemTab();
+      main.addMessage({ from: 'alice', text: '会話の行', timestamp: 1, tag: '', name: 'アリス', imageIdentifier: '' });
+      system.addMessage({
+        from: 'System',
+        text: '退室の知らせ',
+        timestamp: 2,
+        tag: 'system-message',
+        name: 'システム',
+        imageIdentifier: '',
+      });
+
+      const html = list.logHtml();
+      expect(html).toContain('会話の行');
+      expect(html).not.toContain('退室の知らせ');
+    });
+  });
 });

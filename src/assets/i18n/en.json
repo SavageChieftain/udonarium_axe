@@ -1576,7 +1576,6 @@
         "panelTitle": "Chat tab settings",
         "sidebarTitle": "Chat tabs",
         "addTabTooltip": "Add tab",
-        "systemTabSetLabel": "Set system tab",
         "systemTabCurrent": "Current: {{name}}",
         "emptyMessage": "No chat tabs",
         "createTab": "Create tab",

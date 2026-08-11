@@ -5,6 +5,7 @@ import { InnerXml, ObjectSerializer } from '@axe/core/sync/object-serializer';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { ChatLogExporter } from '@axe/domain/chat/chat-log-exporter';
 import { ChatMessage, ChatMessageContext } from '@axe/domain/chat/chat-message';
+import { SYSTEM_CHAT_TAB_IDENTIFIER } from '@axe/domain/chat/constants';
 import { CutInLauncher } from '@axe/domain/media/cut-in-launcher';
 
 const PORTRAIT_SLOT_COUNT = 12;
@@ -13,6 +14,12 @@ const DEFAULT_IMAGE_IDENTIFIERS: readonly string[] = ['a', 'b', 'c', 'd', 'e', '
 @SyncObject('chat-tab')
 export class ChatTab extends ObjectNode implements InnerXml {
   @SyncVar() name = 'タブ';
+
+  /** システムメッセージ専用タブか。消せず、全タブの書き出しにも入れない。 */
+  get isSystemTab(): boolean {
+    return this.identifier === SYSTEM_CHAT_TAB_IDENTIFIER;
+  }
+
   @SyncVar() plCanView = true;
   @SyncVar() plCanSpeak = true;
   @SyncVar() guestCanView = true;

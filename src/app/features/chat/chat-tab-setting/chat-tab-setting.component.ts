@@ -83,6 +83,11 @@ export class ChatTabSettingComponent {
   get isDeleted(): boolean {
     return this.selectedTab() ? this.objectStore.get(this.selectedTab()!.identifier) == null : false;
   }
+  /** システムタブは消せない。入退室の知らせの行き先が無くなると、会話のタブへ戻ってくる。 */
+  get isDeletable(): boolean {
+    return !this.isEmpty && !!this.selectedTab() && !this.selectedTab()!.isSystemTab;
+  }
+
   get isEditable(): boolean {
     return !this.isEmpty && !this.isDeleted;
   }
@@ -130,16 +135,6 @@ export class ChatTabSettingComponent {
   onChangeSelectTab(identifier: string) {
     this.selectedTab.set(this.objectStore.get<ChatTab>(identifier));
     this.selectedTabXml = '';
-  }
-
-  onChangeSystemTab() {
-    if (!this.selectedTab()) {
-      this.chatTabList.systemMessageTabIndex = 0;
-    } else {
-      const parentElement = this.selectedTab()!.parent!;
-      const index: number = parentElement.children.indexOf(this.selectedTab()!);
-      this.chatTabList.systemMessageTabIndex = index;
-    }
   }
 
   create() {
@@ -207,6 +202,7 @@ export class ChatTabSettingComponent {
   }
 
   delete() {
+    if (!this.isDeletable) return;
     if (!this.isEmpty && this.selectedTab()) {
       const parentElement = this.selectedTab()!.parent!;
       const index: number = parentElement.children.indexOf(this.selectedTab()!);

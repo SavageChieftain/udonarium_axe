@@ -211,7 +211,7 @@ export class ChatLogExporter {
   <body>
 `;
     const main = ChatLogExporter.mergeTabMessages(
-      tabs,
+      ChatLogExporter.spokenTabs(tabs),
       (tabName, message) =>
         ChatLogExporter.formatMessageStandard(!!showTime, tabName, message, userId, imageSrcResolver, textDecoder),
       userId
@@ -237,11 +237,21 @@ export class ChatLogExporter {
 
 `;
     const main = ChatLogExporter.mergeTabMessages(
-      tabs,
+      ChatLogExporter.spokenTabs(tabs),
       (tabName, message) => ChatLogExporter.formatMessageCoc(tabName, message, userId, imageSrcResolver, textDecoder),
       userId
     );
     return head + main + '  </body>\n</html>';
+  }
+
+  /**
+   * 全タブの書き出しに入れるタブ。
+   *
+   * システムタブは入退室の知らせで埋まる。混ぜると、読み返したいやり取りがそれに沈む。
+   * 1 タブだけの書き出しでは選べるので、要るときはそちらで出す。
+   */
+  static spokenTabs(tabs: readonly ChatTab[]): readonly ChatTab[] {
+    return tabs.filter((tab) => !tab.isSystemTab);
   }
 
   static isVisibleMessage(message: ChatMessage, userId?: string): boolean {

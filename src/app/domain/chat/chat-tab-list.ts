@@ -4,6 +4,7 @@ import { InnerXml } from '@axe/core/sync/object-serializer';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { ChatLogExporter } from '@axe/domain/chat/chat-log-exporter';
 import { ChatTab } from '@axe/domain/chat/chat-tab';
+import { SYSTEM_CHAT_TAB_IDENTIFIER, SYSTEM_CHAT_TAB_NAME } from '@axe/domain/chat/constants';
 import { ReloadCheck } from '@axe/domain/peer/reload-check';
 
 @SyncObject('chat-tab-list')
@@ -17,8 +18,23 @@ export class ChatTabList extends ObjectNode implements InnerXml {
     return this._systemMessageTabIndex;
   }
 
+  /** システムメッセージの行き先。専用タブがあればそこ、無い部屋は従来どおり指定した番号のタブ。 */
   get systemMessageTab(): ChatTab | null {
+    const system = this.chatTabs.find((tab) => tab.isSystemTab);
+    if (system) return system;
     return this.chatTabs.length > this.systemMessageTabIndex ? this.chatTabs[this.systemMessageTabIndex] : null;
+  }
+
+  /** 専用タブを用意する。すでにあれば何もしない。 */
+  ensureSystemTab(): ChatTab {
+    const system = this.chatTabs.find((tab) => tab.isSystemTab);
+    if (system) return system;
+    return this.addChatTab(SYSTEM_CHAT_TAB_NAME, SYSTEM_CHAT_TAB_IDENTIFIER);
+  }
+
+  /** 人の会話のタブ。書き出しはこちらだけを対象にする。 */
+  get spokenChatTabs(): readonly ChatTab[] {
+    return this.chatTabs.filter((tab) => !tab.isSystemTab);
   }
 
   get reloadCheck(): ReloadCheck {
@@ -114,15 +130,17 @@ export class ChatTabList extends ObjectNode implements InnerXml {
       ChatTabList.instance.update();
 
       super.parseInnerXml.apply(ChatTabList.instance, [element]);
+      // 読み込んだ部屋にシステムタブが無いことがある。無いままだと知らせが会話へ混ざる。
+      ChatTabList.instance.ensureSystemTab();
       this.destroy();
     }
   }
 
   logHtml(): string {
-    return ChatLogExporter.exportAllTabsHtml(this.chatTabs, this.simpleDispFlagTime);
+    return ChatLogExporter.exportAllTabsHtml(this.spokenChatTabs, this.simpleDispFlagTime);
   }
 
   logHtmlCoc(): string {
-    return ChatLogExporter.exportAllTabsHtmlCoc(this.chatTabs);
+    return ChatLogExporter.exportAllTabsHtmlCoc(this.spokenChatTabs);
   }
 }

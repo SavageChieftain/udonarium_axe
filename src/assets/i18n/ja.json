@@ -1576,7 +1576,6 @@
         "panelTitle": "チャットタブ設定",
         "sidebarTitle": "チャットタブ",
         "addTabTooltip": "タブを追加",
-        "systemTabSetLabel": "システム表示先を設定",
         "systemTabCurrent": "現在: {{name}}",
         "emptyMessage": "チャットタブが存在しません",
         "createTab": "タブを作成",

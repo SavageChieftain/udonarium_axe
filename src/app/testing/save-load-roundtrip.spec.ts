@@ -214,8 +214,10 @@ describe('セーブ/ロード ラウンドトリップ', () => {
       const xml = '<chat-tab-list><chat-tab name="NewOnly"></chat-tab></chat-tab-list>';
       serializer.parseXml(xml);
 
-      expect(instance.chatTabs).toHaveLength(1);
-      expect(instance.chatTabs[0].name).toBe('NewOnly');
+      // 読み込んだ部屋には必ずシステムタブが付く。数えるのは会話のタブだけ。
+      expect(instance.spokenChatTabs).toHaveLength(1);
+      expect(instance.spokenChatTabs[0].name).toBe('NewOnly');
+      expect(instance.chatTabs.some((tab) => tab.isSystemTab)).toBe(true);
     });
 
     it('3つの初期タブがすべて破棄される', () => {
@@ -232,7 +234,8 @@ describe('セーブ/ロード ラウンドトリップ', () => {
       const xml = '<chat-tab-list></chat-tab-list>';
       serializer.parseXml(xml);
 
-      expect(instance.chatTabs).toHaveLength(0);
+      expect(instance.spokenChatTabs).toHaveLength(0);
+      expect(instance.chatTabs.some((tab) => tab.isSystemTab)).toBe(true);
     });
 
     it('既存タブが破棄され新タブが追加される', () => {
@@ -254,10 +257,10 @@ describe('セーブ/ロード ラウンドトリップ', () => {
       ].join('');
       serializer.parseXml(xml);
 
-      const names = instance.chatTabs.map((t) => t.name);
+      const names = instance.spokenChatTabs.map((t) => t.name);
       expect(names).not.toContain('Old1');
       expect(names).not.toContain('Old2');
-      expect(instance.chatTabs).toHaveLength(3);
+      expect(instance.spokenChatTabs).toHaveLength(3);
       expect(names).toContain('New1');
       expect(names).toContain('New2');
       expect(names).toContain('New3');
