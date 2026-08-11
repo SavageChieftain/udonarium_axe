@@ -62,14 +62,9 @@ export class ChatTabSettingComponent {
     if (this.selectedTab()) this.objectChange.versionOf(this.selectedTab()!.identifier)();
     return this.selectedTab()?.[key] ?? false;
   }
-  canEditPerm(key: 'plCanView' | 'plCanSpeak' | 'guestCanView' | 'guestCanSpeak'): boolean {
-    if (!this.canEditPermission) return false;
-    return !(this.isSystemTabSelected && (key === 'plCanSpeak' || key === 'guestCanSpeak'));
-  }
-
   setPerm(key: 'plCanView' | 'plCanSpeak' | 'guestCanView' | 'guestCanSpeak', value: boolean): void {
     const tab = this.selectedTab();
-    if (!this.canEditPerm(key) || !tab) return;
+    if (!this.canEditPermission || !tab || tab.isSystemTab) return;
     tab[key] = value;
     // 発言できるなら必ず閲覧もできる（発言のみ可・閲覧不可の状態は存在しない）
     if (key === 'plCanSpeak' && value) tab.plCanView = true;
@@ -109,6 +104,10 @@ export class ChatTabSettingComponent {
   /** 部屋データとして持ち出せるか。システムタブは部屋の一部ではない。 */
   get isExportable(): boolean {
     return !this.isSystemTabSelected;
+  }
+
+  private get useCocLog(): boolean {
+    return this.modeCocLog && !this.isSystemTabSelected;
   }
 
   get isEditable(): boolean {
@@ -205,7 +204,7 @@ export class ChatTabSettingComponent {
     const fileName: string = this.roomName + '_log_' + this.selectedTab()!.name;
     const fileName_: string = this.appendTimestamp(fileName);
 
-    if (this.modeCocLog) {
+    if (this.useCocLog) {
       this.saveDataService.saveHtmlChatLogCoc(this.selectedTab()!, fileName_);
     } else {
       this.saveDataService.saveHtmlChatLog(this.selectedTab()!, fileName_);
@@ -217,7 +216,7 @@ export class ChatTabSettingComponent {
     const fileName_: string = this.appendTimestamp(fileName);
     const tabs = this.chatMessageService.chatTabs;
 
-    if (this.modeCocLog) {
+    if (this.useCocLog) {
       this.saveDataService.saveHtmlChatLogAllCoc(fileName_, tabs);
     } else {
       this.saveDataService.saveHtmlChatLogAll(fileName_, tabs);

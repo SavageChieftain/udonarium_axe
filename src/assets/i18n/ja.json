@@ -1603,7 +1603,7 @@
         "defaultTabName": "タブ",
         "noneMark": "—",
         "allTabsLogName": "全タブ",
-        "systemTabNote": "システムタブは知らせの貼り紙です。名前と並びは固定で、発言や部屋データへの保存はできません。"
+        "systemTabNote": "知らせの貼り紙です。全員に見え、誰も書き込めません。名前と並びは固定で、部屋データにも保存されません。"
       },
       "colorSetting": {
         "color1": "第1色",

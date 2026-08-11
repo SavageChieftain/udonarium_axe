@@ -1603,7 +1603,7 @@
         "defaultTabName": "Tab",
         "noneMark": "—",
         "allTabsLogName": "All tabs",
-        "systemTabNote": "The system tab is a notice board. Its name and position are fixed, and it cannot be spoken in or saved as room data."
+        "systemTabNote": "A notice board: everyone sees it, no one writes in it. Its name and position are fixed, and it is never saved with the room."
       },
       "colorSetting": {
         "color1": "Color 1",

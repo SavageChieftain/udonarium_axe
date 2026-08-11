@@ -39,6 +39,7 @@ export class ChatTabList extends ObjectNode implements InnerXml {
     if (system.plCanSpeak) system.plCanSpeak = false;
     if (system.guestCanSpeak) system.guestCanSpeak = false;
     if (!system.plCanView) system.plCanView = true;
+    if (!system.guestCanView) system.guestCanView = true;
     return system;
   }
 

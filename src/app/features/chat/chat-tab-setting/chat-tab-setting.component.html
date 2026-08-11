@@ -59,93 +59,102 @@
     }
 
     @if (!isEmpty && selectedTab()) {
-      <div class="mb-0.5 flex flex-col gap-1.5">
-        <label class="text-ui-muted mb-0.5 text-[11px] font-semibold tracking-[0.04em] uppercase">{{
-          'feature.chat.tabSetting.tabNameLabel' | transloco
-        }}</label>
-        <div class="flex items-center gap-1.5">
-          <input
-            class="rounded-ui-sm border-ui-border-panel bg-ui-input text-ui-text focus:border-ui-accent min-w-0 flex-1 border border-solid px-2 py-1.25 text-[13px] transition-colors outline-none disabled:cursor-not-allowed disabled:opacity-50"
-            name="tab-name"
-            [(ngModel)]="tabName"
-            [placeholder]="'feature.chat.tabSetting.tabNamePlaceholder' | transloco"
-            [attr.disabled]="!isEditable || !isRenamable ? '' : null"
-          />
-          <button
-            type="button"
-            class="rounded-ui-sm border-ui-border-panel text-ui-muted hover:border-ui-accent hover:bg-ui-hover hover:text-ui-text m-0 inline-flex size-7 shrink-0 cursor-pointer items-center justify-center border border-solid bg-transparent transition-colors hover:shadow-none disabled:cursor-not-allowed disabled:opacity-[0.35] [&_.material-icons]:text-[16px]!"
-            [title]="'feature.chat.tabSetting.moveUpTooltip' | transloco"
-            (click)="upTabIndex()"
-            [disabled]="!isMovable"
-          >
-            <i class="material-icons">arrow_upward</i>
-          </button>
-          <button
-            type="button"
-            class="rounded-ui-sm border-ui-border-panel text-ui-muted hover:border-ui-accent hover:bg-ui-hover hover:text-ui-text m-0 inline-flex size-7 shrink-0 cursor-pointer items-center justify-center border border-solid bg-transparent transition-colors hover:shadow-none disabled:cursor-not-allowed disabled:opacity-[0.35] [&_.material-icons]:text-[16px]!"
-            [title]="'feature.chat.tabSetting.moveDownTooltip' | transloco"
-            (click)="downTabIndex()"
-            [disabled]="!isMovable"
-          >
-            <i class="material-icons">arrow_downward</i>
-          </button>
+      @if (isSystemTabSelected) {
+        <div class="mb-0.5 flex flex-col gap-1.5">
+          <label class="text-ui-muted mb-0.5 text-[11px] font-semibold tracking-[0.04em] uppercase">{{
+            'feature.chat.tabSetting.tabNameLabel' | transloco
+          }}</label>
+          <div class="text-ui-text flex items-center gap-1.5 text-[13px]">
+            <i class="material-icons text-ui-dim text-[15px]!">campaign</i>{{ tabName }}
+          </div>
+          <span class="text-ui-dim text-[11px]">{{ 'feature.chat.tabSetting.systemTabNote' | transloco }}</span>
         </div>
-      </div>
-
-      <div class="mb-0.5 flex flex-col gap-1.5">
-        <label class="text-ui-muted text-[11px] font-semibold tracking-[0.04em] uppercase">{{
-          'feature.chat.tabSetting.permissionLabel' | transloco
-        }}</label>
-        <div class="grid grid-cols-[1fr_auto_auto] items-center gap-x-3 gap-y-1.5 text-[12px]">
-          <span></span>
-          <span class="text-ui-muted w-10 text-center text-[11px]">{{
-            'feature.chat.tabSetting.permView' | transloco
-          }}</span>
-          <span class="text-ui-muted w-10 text-center text-[11px]">{{
-            'feature.chat.tabSetting.permSpeak' | transloco
-          }}</span>
-
-          <span class="text-ui-text">{{ 'feature.role.player' | transloco }}</span>
-          <input
-            type="checkbox"
-            class="size-3.25 cursor-pointer justify-self-center [accent-color:var(--ui-accent)]"
-            name="pl-view"
-            [ngModel]="perm('plCanView') || perm('plCanSpeak')"
-            (ngModelChange)="setPerm('plCanView', $event)"
-            [disabled]="!canEditPermission || perm('plCanSpeak')"
-          />
-          <input
-            type="checkbox"
-            class="size-3.25 cursor-pointer justify-self-center [accent-color:var(--ui-accent)]"
-            name="pl-speak"
-            [ngModel]="perm('plCanSpeak')"
-            (ngModelChange)="setPerm('plCanSpeak', $event)"
-            [disabled]="!canEditPerm('plCanSpeak')"
-          />
-
-          <span class="text-ui-text">{{ 'feature.role.guest' | transloco }}</span>
-          <input
-            type="checkbox"
-            class="size-3.25 cursor-pointer justify-self-center [accent-color:var(--ui-accent)]"
-            name="guest-view"
-            [ngModel]="perm('guestCanView') || perm('guestCanSpeak')"
-            (ngModelChange)="setPerm('guestCanView', $event)"
-            [disabled]="!canEditPermission || perm('guestCanSpeak')"
-          />
-          <input
-            type="checkbox"
-            class="size-3.25 cursor-pointer justify-self-center [accent-color:var(--ui-accent)]"
-            name="guest-speak"
-            [ngModel]="perm('guestCanSpeak')"
-            (ngModelChange)="setPerm('guestCanSpeak', $event)"
-            [disabled]="!canEditPerm('guestCanSpeak')"
-          />
+      } @else {
+        <div class="mb-0.5 flex flex-col gap-1.5">
+          <label class="text-ui-muted mb-0.5 text-[11px] font-semibold tracking-[0.04em] uppercase">{{
+            'feature.chat.tabSetting.tabNameLabel' | transloco
+          }}</label>
+          <div class="flex items-center gap-1.5">
+            <input
+              class="rounded-ui-sm border-ui-border-panel bg-ui-input text-ui-text focus:border-ui-accent min-w-0 flex-1 border border-solid px-2 py-1.25 text-[13px] transition-colors outline-none disabled:cursor-not-allowed disabled:opacity-50"
+              name="tab-name"
+              [(ngModel)]="tabName"
+              [placeholder]="'feature.chat.tabSetting.tabNamePlaceholder' | transloco"
+              [attr.disabled]="!isEditable || !isRenamable ? '' : null"
+            />
+            <button
+              type="button"
+              class="rounded-ui-sm border-ui-border-panel text-ui-muted hover:border-ui-accent hover:bg-ui-hover hover:text-ui-text m-0 inline-flex size-7 shrink-0 cursor-pointer items-center justify-center border border-solid bg-transparent transition-colors hover:shadow-none disabled:cursor-not-allowed disabled:opacity-[0.35] [&_.material-icons]:text-[16px]!"
+              [title]="'feature.chat.tabSetting.moveUpTooltip' | transloco"
+              (click)="upTabIndex()"
+              [disabled]="!isMovable"
+            >
+              <i class="material-icons">arrow_upward</i>
+            </button>
+            <button
+              type="button"
+              class="rounded-ui-sm border-ui-border-panel text-ui-muted hover:border-ui-accent hover:bg-ui-hover hover:text-ui-text m-0 inline-flex size-7 shrink-0 cursor-pointer items-center justify-center border border-solid bg-transparent transition-colors hover:shadow-none disabled:cursor-not-allowed disabled:opacity-[0.35] [&_.material-icons]:text-[16px]!"
+              [title]="'feature.chat.tabSetting.moveDownTooltip' | transloco"
+              (click)="downTabIndex()"
+              [disabled]="!isMovable"
+            >
+              <i class="material-icons">arrow_downward</i>
+            </button>
+          </div>
         </div>
-        <span class="text-ui-dim text-[11px]">{{
-          (isSystemTabSelected ? 'feature.chat.tabSetting.systemTabNote' : 'feature.chat.tabSetting.permGmNote')
-            | transloco
-        }}</span>
-      </div>
+
+        <div class="mb-0.5 flex flex-col gap-1.5">
+          <label class="text-ui-muted text-[11px] font-semibold tracking-[0.04em] uppercase">{{
+            'feature.chat.tabSetting.permissionLabel' | transloco
+          }}</label>
+          <div class="grid grid-cols-[1fr_auto_auto] items-center gap-x-3 gap-y-1.5 text-[12px]">
+            <span></span>
+            <span class="text-ui-muted w-10 text-center text-[11px]">{{
+              'feature.chat.tabSetting.permView' | transloco
+            }}</span>
+            <span class="text-ui-muted w-10 text-center text-[11px]">{{
+              'feature.chat.tabSetting.permSpeak' | transloco
+            }}</span>
+
+            <span class="text-ui-text">{{ 'feature.role.player' | transloco }}</span>
+            <input
+              type="checkbox"
+              class="size-3.25 cursor-pointer justify-self-center [accent-color:var(--ui-accent)]"
+              name="pl-view"
+              [ngModel]="perm('plCanView') || perm('plCanSpeak')"
+              (ngModelChange)="setPerm('plCanView', $event)"
+              [disabled]="!canEditPermission || perm('plCanSpeak')"
+            />
+            <input
+              type="checkbox"
+              class="size-3.25 cursor-pointer justify-self-center [accent-color:var(--ui-accent)]"
+              name="pl-speak"
+              [ngModel]="perm('plCanSpeak')"
+              (ngModelChange)="setPerm('plCanSpeak', $event)"
+              [disabled]="!canEditPermission"
+            />
+
+            <span class="text-ui-text">{{ 'feature.role.guest' | transloco }}</span>
+            <input
+              type="checkbox"
+              class="size-3.25 cursor-pointer justify-self-center [accent-color:var(--ui-accent)]"
+              name="guest-view"
+              [ngModel]="perm('guestCanView') || perm('guestCanSpeak')"
+              (ngModelChange)="setPerm('guestCanView', $event)"
+              [disabled]="!canEditPermission || perm('guestCanSpeak')"
+            />
+            <input
+              type="checkbox"
+              class="size-3.25 cursor-pointer justify-self-center [accent-color:var(--ui-accent)]"
+              name="guest-speak"
+              [ngModel]="perm('guestCanSpeak')"
+              (ngModelChange)="setPerm('guestCanSpeak', $event)"
+              [disabled]="!canEditPermission"
+            />
+          </div>
+          <span class="text-ui-dim text-[11px]">{{ 'feature.chat.tabSetting.permGmNote' | transloco }}</span>
+        </div>
+      }
 
       @if (isDeleted) {
         <div
@@ -221,25 +230,30 @@
             >
               <i class="material-icons">download</i>{{ 'feature.chat.tabSetting.saveThisTab' | transloco }}
             </button>
-            <button
-              type="button"
-              class="rounded-ui-sm border-ui-border-panel bg-ui-panel text-ui-text hover:border-ui-accent hover:bg-ui-hover hover:text-ui-accent m-0 inline-flex shrink-0 cursor-pointer items-center gap-1.25 border border-solid px-2.5 py-1.25 text-[12px] transition-[background,border-color] hover:shadow-none [&_.material-icons]:text-[14px]!"
-              (click)="saveAllLog()"
-            >
-              <i class="material-icons">download_for_offline</i>{{ 'feature.chat.tabSetting.saveAllTabs' | transloco }}
-            </button>
+            @if (!isSystemTabSelected) {
+              <button
+                type="button"
+                class="rounded-ui-sm border-ui-border-panel bg-ui-panel text-ui-text hover:border-ui-accent hover:bg-ui-hover hover:text-ui-accent m-0 inline-flex shrink-0 cursor-pointer items-center gap-1.25 border border-solid px-2.5 py-1.25 text-[12px] transition-[background,border-color] hover:shadow-none [&_.material-icons]:text-[14px]!"
+                (click)="saveAllLog()"
+              >
+                <i class="material-icons">download_for_offline</i
+                >{{ 'feature.chat.tabSetting.saveAllTabs' | transloco }}
+              </button>
+            }
           </div>
-          <label
-            class="text-ui-muted inline-flex shrink-0 cursor-pointer items-center gap-1.25 text-[12px] select-none"
-          >
-            <input
-              type="checkbox"
-              class="m-0 size-3.25 cursor-pointer [accent-color:var(--ui-accent)]"
-              name="mode-coc-log"
-              [(ngModel)]="modeCocLog"
-            />
-            {{ 'feature.chat.tabSetting.cocLogMode' | transloco }}
-          </label>
+          @if (!isSystemTabSelected) {
+            <label
+              class="text-ui-muted inline-flex shrink-0 cursor-pointer items-center gap-1.25 text-[12px] select-none"
+            >
+              <input
+                type="checkbox"
+                class="m-0 size-3.25 cursor-pointer [accent-color:var(--ui-accent)]"
+                name="mode-coc-log"
+                [(ngModel)]="modeCocLog"
+              />
+              {{ 'feature.chat.tabSetting.cocLogMode' | transloco }}
+            </label>
+          }
         </div>
 
         <hr class="border-ui-border-panel mx-0 my-2 border-0 border-t border-solid" />
