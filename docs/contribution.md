@@ -82,6 +82,17 @@ chore(release): bump version to 1.2.2
 - 更新は `chore(release): bump version to X.Y.Z` で 1 コミットに切り出す
 - 機能変更・バージョンバンプ・ドキュメント整備を同じコミットに混ぜない
 
+## 依存の更新
+
+- 範囲内の更新は `npm update`。範囲を跨ぐものは [dependabot.yml](../.github/dependabot.yml) の方針に従う
+  （`typescript` / `@types/node` / `conventional-changelog-conventionalcommits` のメジャーは意図的に無視）
+- **`typescript` は Angular の peer に縛られる**（22.1 系は `>=6.0 <6.1`）
+- **`conventional-changelog-conventionalcommits` は 9 系に留める** — 10 系にすると
+  `@semantic-release/release-notes-generator` が節を 1 つも出さず、リリースノートが見出しだけになる
+  （壊れるのはリリース時だけなので、上げる前に commit-analyzer / release-notes-generator を直接叩いて確かめる）
+- **`bcdice` を上げたら `node scripts/generate-bcdice-i18n.mjs` を実行する** — 新しいシステムの翻訳が
+  抜けたままだと、全システムを静的読み込みした時点で `table.$[] is not a function` で落ちる
+
 ## 依存の脆弱性（`npm audit`）
 
 - **`npm audit` は 0 件を保つ**（`website/` も同じ）

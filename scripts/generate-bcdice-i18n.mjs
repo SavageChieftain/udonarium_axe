@@ -21,7 +21,9 @@ for (const { baseClassName, locales } of i18nList) {
   }
 }
 
-entries.sort((a, b) => (a.fileName < b.fileName ? -1 : a.fileName > b.fileName ? 1 : 0));
+// ESLint (simple-import-sort) と同じ並びにする。素の比較だと大文字が先に来て毎回警告が出る。
+const collator = new Intl.Collator('en', { numeric: true, sensitivity: 'base' });
+entries.sort((a, b) => collator.compare(a.fileName, b.fileName));
 
 const imports = entries
   .map(({ identifier, fileName }) => `import ${identifier} from 'bcdice/lib/bcdice/i18n/${fileName}';`)
