@@ -1,3 +1,19 @@
+## [1.30.0](https://github.com/SavageChieftain/udonarium_axe/compare/v1.29.0...v1.30.0) (2026-08-11)
+
+### ✨ Features
+
+* **replay:** keep every recording until you say otherwise ([d0d3730](https://github.com/SavageChieftain/udonarium_axe/commit/d0d3730aa22404ef1f7ca7a998480c52c899b03c))
+* **replay:** take the ceilings off the video export ([55c1c36](https://github.com/SavageChieftain/udonarium_axe/commit/55c1c36e8e8b3c5ab9d1b7e244f05b34dd883bce))
+
+### 🐛 Bug Fixes
+
+* **deps:** clear every npm audit finding ([23082eb](https://github.com/SavageChieftain/udonarium_axe/commit/23082eb140a3fb64effa51bd50ee06c983a19e6b))
+
+### 📝 Documentation
+
+* record what the export can now do ([759df24](https://github.com/SavageChieftain/udonarium_axe/commit/759df248b565da9b1b96ae40c06663692feac223))
+* **website:** add v1.29.0 release notes and a replay manual page ([04550c3](https://github.com/SavageChieftain/udonarium_axe/commit/04550c3e891e25276104173bd6178c3bf4034ea1))
+
 ## [1.29.0](https://github.com/SavageChieftain/udonarium_axe/compare/v1.28.0...v1.29.0) (2026-08-10)
 
 ### ✨ Features
