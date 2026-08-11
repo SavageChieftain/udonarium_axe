@@ -8,6 +8,15 @@
     }
     <span class="flex-1"></span>
     @if (isOpen()) {
+      <button
+        class="rounded-ui-sm flex cursor-pointer items-center gap-1 px-[0.8em] py-[0.3em] text-[0.74rem]"
+        [class.text-ui-accent]="isDigestOpen()"
+        [title]="'feature.replay.digest.hint' | transloco"
+        (click)="toggleDigest()"
+      >
+        <i class="material-icons text-[15px]">insights</i>
+        {{ 'feature.replay.digest.title' | transloco }}
+      </button>
       <replay-script-panel />
       <replay-video-panel />
       @if (!isEditing()) {
@@ -55,6 +64,8 @@
     <div class="flex min-w-0 flex-1 flex-col gap-2">
       @if (!isOpen()) {
         <p class="text-ui-muted text-[0.8rem] leading-[1.7]">{{ 'feature.replay.player.empty' | transloco }}</p>
+      } @else if (isDigestOpen()) {
+        <replay-digest-panel />
       } @else {
         <replay-stage />
       }

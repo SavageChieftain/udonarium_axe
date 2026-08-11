@@ -1,10 +1,11 @@
-import { ChangeDetectionStrategy, Component, DestroyRef, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, inject, signal } from '@angular/core';
 import { RolePermissionService } from '@axe/application/permission/role-permission.service';
 import { ReplayEditorService } from '@axe/application/replay/replay-editor.service';
 import { ReplayLibraryService } from '@axe/application/replay/replay-library.service';
 import { ReplayPlaybackService } from '@axe/application/replay/replay-playback.service';
 import { ReplayRecorderService } from '@axe/application/replay/replay-recorder.service';
 import { earliestReplaySeq } from '@axe/domain/replay/replay-edit';
+import { ReplayDigestPanelComponent } from '@axe/features/replay/replay-digest-panel/replay-digest-panel.component';
 import { ReplayScriptPanelComponent } from '@axe/features/replay/replay-script-panel/replay-script-panel.component';
 import { ReplayVideoPanelComponent } from '@axe/features/replay/replay-video-panel/replay-video-panel.component';
 import { ReplayEntryListComponent } from '@axe/features/replay/replay-workspace/replay-entry-list.component';
@@ -22,6 +23,7 @@ import { TranslocoModule } from '@jsverse/transloco';
     ReplayRecordingListComponent,
     ReplayStageComponent,
     ReplayEntryListComponent,
+    ReplayDigestPanelComponent,
     ReplayScriptPanelComponent,
     ReplayVideoPanelComponent,
   ],
@@ -40,9 +42,14 @@ export class ReplayWorkspaceComponent {
   protected readonly isDirty = this.editor.isDirty;
   protected readonly isSaving = this.editor.isSaving;
   protected readonly canUndo = this.editor.canUndo;
+  protected readonly isDigestOpen = signal(false);
 
   constructor() {
     this.destroyRef.onDestroy(() => void this.playback.close());
+  }
+
+  protected toggleDigest(): void {
+    this.isDigestOpen.update((open) => !open);
   }
 
   protected get canEdit(): boolean {

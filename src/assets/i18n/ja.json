@@ -2198,6 +2198,46 @@
         "withTime": "章に経過時間を添える",
         "estimate": "{{lines}} 行",
         "start": "書き出す"
+      },
+      "digest": {
+        "empty": "この記録には、まだまとめるものがありません。",
+        "numbers": {
+          "elapsed": "経過",
+          "messages": "発言",
+          "diceRolls": "ダイス",
+          "effects": "演出",
+          "rounds": "ラウンド",
+          "speakers": "話した人"
+        },
+        "awards": "今日の称号",
+        "award": {
+          "unlucky": "不運王",
+          "blessed": "賽の寵児",
+          "talkative": "よく喋った人",
+          "battered": "いちばん削られた"
+        },
+        "fortune": {
+          "title": "ダイスの出方",
+          "who": "人",
+          "rolls": "振り",
+          "average": "平均",
+          "best": "最高",
+          "worst": "最低",
+          "criticals": "会心",
+          "fumbles": "大失敗",
+          "missing": "この記録には出目が残っていません。出目そのものを残すようになったのは v1.33.0 からで、それより前の記録からは復元できません。"
+        },
+        "ledger": {
+          "title": "受けた増減",
+          "who": "コマ",
+          "damage": "ダメージ",
+          "heal": "回復",
+          "biggestHit": "最大の一撃",
+          "missing": "この記録には増減が残っていません。",
+          "note": "受けた側だけを数えています。記録には「誰が与えたか」が残らないため、与えた側は出しません。"
+        },
+        "title": "まとめ",
+        "hint": "この記録から、数と称号のまとめを出します"
       }
     }
   },

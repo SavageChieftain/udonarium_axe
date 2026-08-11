@@ -1,0 +1,123 @@
+@if (isEmpty()) {
+  <p class="text-ui-muted text-[0.8rem] leading-[1.7]">{{ 'feature.replay.digest.empty' | transloco }}</p>
+} @else {
+  <div class="flex flex-col gap-3 pr-1">
+    <div class="grid grid-cols-[repeat(auto-fit,minmax(88px,1fr))] gap-1.5">
+      @for (
+        cell of [
+          { key: 'elapsed', value: elapsed(digest().numbers.elapsedMs) },
+          { key: 'messages', value: digest().numbers.messages },
+          { key: 'diceRolls', value: digest().numbers.diceRolls },
+          { key: 'effects', value: digest().numbers.effects },
+          { key: 'rounds', value: digest().numbers.rounds },
+          { key: 'speakers', value: digest().numbers.speakers },
+        ];
+        track cell.key
+      ) {
+        <div class="border-ui-border bg-ui-elevated rounded-ui flex flex-col gap-0.5 border border-solid px-2 py-1.5">
+          <span class="text-ui-muted text-[0.66rem]">{{
+            'feature.replay.digest.numbers.' + cell.key | transloco
+          }}</span>
+          <span class="text-[0.95rem] font-semibold tabular-nums">{{ cell.value }}</span>
+        </div>
+      }
+    </div>
+
+    @if (digest().awards.length > 0) {
+      <section class="flex flex-col gap-1.5">
+        <h3 class="text-ui-muted m-0 text-[0.7rem] font-semibold tracking-[0.04em] uppercase">
+          {{ 'feature.replay.digest.awards' | transloco }}
+        </h3>
+        <ul class="m-0 flex list-none flex-wrap gap-1.5 p-0">
+          @for (award of digest().awards; track award.key) {
+            <li
+              class="border-ui-border bg-ui-elevated rounded-ui flex items-baseline gap-1.5 border border-solid px-2 py-1 text-[0.74rem]"
+            >
+              <span class="text-ui-accent">{{ 'feature.replay.digest.award.' + award.key | transloco }}</span>
+              <span class="font-medium">{{ award.name }}</span>
+              <span class="text-ui-muted tabular-nums">{{ award.value }}</span>
+            </li>
+          }
+        </ul>
+      </section>
+    }
+
+    <section class="flex flex-col gap-1.5">
+      <h3 class="text-ui-muted m-0 text-[0.7rem] font-semibold tracking-[0.04em] uppercase">
+        {{ 'feature.replay.digest.fortune.title' | transloco }}
+      </h3>
+      @if (!digest().hasDiceDetail) {
+        <p class="text-ui-dim m-0 text-[0.72rem] leading-[1.6]">
+          {{ 'feature.replay.digest.fortune.missing' | transloco }}
+        </p>
+      } @else {
+        <div class="overflow-x-auto">
+          <table class="w-full border-collapse text-[0.74rem] whitespace-nowrap">
+            <thead class="text-ui-muted text-[0.68rem]">
+              <tr>
+                @for (column of fortuneColumns; track column) {
+                  <th class="border-ui-border border-b border-solid px-1.5 py-1 text-left font-normal last:text-right">
+                    {{ 'feature.replay.digest.fortune.' + column | transloco }}
+                  </th>
+                }
+              </tr>
+            </thead>
+            <tbody>
+              @for (row of digest().fortunes; track row.userId) {
+                <tr>
+                  <td class="border-ui-border border-b border-solid px-1.5 py-1">{{ row.name }}</td>
+                  <td class="border-ui-border border-b border-solid px-1.5 py-1 tabular-nums">{{ row.rolls }}</td>
+                  <td class="border-ui-border border-b border-solid px-1.5 py-1 tabular-nums">{{ row.average }}</td>
+                  <td class="border-ui-border border-b border-solid px-1.5 py-1 tabular-nums">{{ row.best }}</td>
+                  <td class="border-ui-border border-b border-solid px-1.5 py-1 tabular-nums">{{ row.worst }}</td>
+                  <td class="border-ui-border border-b border-solid px-1.5 py-1 tabular-nums">{{ row.criticals }}</td>
+                  <td class="border-ui-border border-b border-solid px-1.5 py-1 text-right tabular-nums">
+                    {{ row.fumbles }}
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </section>
+
+    <section class="flex flex-col gap-1.5">
+      <h3 class="text-ui-muted m-0 text-[0.7rem] font-semibold tracking-[0.04em] uppercase">
+        {{ 'feature.replay.digest.ledger.title' | transloco }}
+      </h3>
+      @if (!digest().hasLedger) {
+        <p class="text-ui-dim m-0 text-[0.72rem] leading-[1.6]">
+          {{ 'feature.replay.digest.ledger.missing' | transloco }}
+        </p>
+      } @else {
+        <div class="overflow-x-auto">
+          <table class="w-full border-collapse text-[0.74rem] whitespace-nowrap">
+            <thead class="text-ui-muted text-[0.68rem]">
+              <tr>
+                @for (column of ledgerColumns; track column) {
+                  <th class="border-ui-border border-b border-solid px-1.5 py-1 text-left font-normal last:text-right">
+                    {{ 'feature.replay.digest.ledger.' + column | transloco }}
+                  </th>
+                }
+              </tr>
+            </thead>
+            <tbody>
+              @for (row of digest().ledger; track row.targetId) {
+                <tr>
+                  <td class="border-ui-border border-b border-solid px-1.5 py-1">{{ row.name }}</td>
+                  <td class="border-ui-border border-b border-solid px-1.5 py-1 tabular-nums">{{ row.damage }}</td>
+                  <td class="border-ui-border border-b border-solid px-1.5 py-1 tabular-nums">{{ row.heal }}</td>
+                  <td class="border-ui-border border-b border-solid px-1.5 py-1 text-right tabular-nums">
+                    {{ row.biggestHit }}{{ row.biggestHitLabel ? ' / ' + row.biggestHitLabel : '' }}
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+        <p class="text-ui-dim m-0 text-[0.7rem] leading-[1.6]">{{ 'feature.replay.digest.ledger.note' | transloco }}</p>
+      }
+    </section>
+  </div>
+}

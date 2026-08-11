@@ -2198,6 +2198,46 @@
         "withTime": "Add elapsed time to chapters",
         "estimate": "{{lines}} lines",
         "start": "Export"
+      },
+      "digest": {
+        "empty": "There is nothing to sum up in this recording yet.",
+        "numbers": {
+          "elapsed": "Elapsed",
+          "messages": "Messages",
+          "diceRolls": "Rolls",
+          "effects": "Effects",
+          "rounds": "Rounds",
+          "speakers": "Speakers"
+        },
+        "awards": "Awards",
+        "award": {
+          "unlucky": "Most fumbles",
+          "blessed": "Most criticals",
+          "talkative": "Most talkative",
+          "battered": "Most battered"
+        },
+        "fortune": {
+          "title": "How the dice fell",
+          "who": "Who",
+          "rolls": "Rolls",
+          "average": "Avg",
+          "best": "Best",
+          "worst": "Worst",
+          "criticals": "Crit",
+          "fumbles": "Fumble",
+          "missing": "This recording keeps no individual die values. They have only been recorded since v1.33.0, and cannot be recovered from older recordings."
+        },
+        "ledger": {
+          "title": "Changes taken",
+          "who": "Piece",
+          "damage": "Damage",
+          "heal": "Healing",
+          "biggestHit": "Biggest hit",
+          "missing": "This recording keeps no resource changes.",
+          "note": "Only what each piece took is counted. A recording does not say who dealt it, so no one is credited."
+        },
+        "title": "Summary",
+        "hint": "Sum this recording up into numbers and awards"
       }
     }
   },
