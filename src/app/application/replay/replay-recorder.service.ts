@@ -5,6 +5,7 @@ import { Logger } from '@axe/core/logging/logger';
 import { Network } from '@axe/core/network/network';
 import { isNetworkIsolated } from '@axe/core/network/network-isolation';
 import { networkMessage$ } from '@axe/core/network/network-messaging';
+import { keepStoragePersistent } from '@axe/core/storage/persistent-storage';
 import { ReplayLogStore, type ReplayRecordingMeta, selectExpiredRecordings } from '@axe/core/storage/replay-log-store';
 import type { ObjectContext } from '@axe/core/sync/game-object';
 import { ObjectNode } from '@axe/core/sync/object-node';
@@ -157,6 +158,9 @@ export class ReplayRecorderService {
 
   private async startNow(): Promise<boolean> {
     if (!this.isSupported || this._isRecording() || isNetworkIsolated()) return false;
+
+    // 消えない置き場を頼んでから始める。頼まないと、空きが減った端末で録画ごと消える。
+    await keepStoragePersistent();
 
     const startedAt = Date.now();
     const roomName = currentRoomName();
@@ -516,7 +520,11 @@ export class ReplayRecorderService {
   }
 
   private async prune(): Promise<void> {
-    const expired = selectExpiredRecordings(await this.store.listRecordings(), undefined, this.recordingId);
+    const expired = selectExpiredRecordings(
+      await this.store.listRecordings(),
+      this.preference.retention,
+      this.recordingId
+    );
     for (const id of expired) await this.store.removeRecording(id);
   }
 

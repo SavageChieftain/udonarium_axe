@@ -1999,6 +1999,11 @@
         "allActors": "全員",
         "hideSecret": "秘匿を隠す",
         "detailLevel": "記録の細かさ",
+        "keepCount": "残す本数",
+        "keep": {
+          "all": "すべて残す",
+          "recent": "直近 {{count}} 本"
+        },
         "pastRecordings": "過去の記録（{{count}}）",
         "entries": "{{count}} 件",
         "remove": "削除",

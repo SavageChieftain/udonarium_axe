@@ -11,11 +11,20 @@ const STORAGE_KEY = 'axe-replay-preference';
 describe('parseReplayPreference()', () => {
   it('保存が無ければ標準にすること', () => {
     expect(parseReplayPreference(null)).toEqual(DEFAULT_REPLAY_PREFERENCE);
-    expect(DEFAULT_REPLAY_PREFERENCE).toEqual({ detailLevel: ReplayDetailLevel.Notable });
+    // 既定では本数を決めない＝古い記録を勝手に消さない。
+    expect(DEFAULT_REPLAY_PREFERENCE).toEqual({ detailLevel: ReplayDetailLevel.Notable, keepCount: null });
   });
 
   it('保存された選択を読むこと', () => {
-    expect(parseReplayPreference('{"detailLevel":"full"}')).toEqual({ detailLevel: ReplayDetailLevel.Full });
+    expect(parseReplayPreference('{"detailLevel":"full"}')).toEqual({
+      detailLevel: ReplayDetailLevel.Full,
+      keepCount: null,
+    });
+    expect(parseReplayPreference('{"detailLevel":"full","keepCount":10}')).toEqual({
+      detailLevel: ReplayDetailLevel.Full,
+      keepCount: 10,
+    });
+    expect(parseReplayPreference('{"keepCount":0}').keepCount).toBeNull();
   });
 
   it('壊れた保存値は既定に倒すこと', () => {

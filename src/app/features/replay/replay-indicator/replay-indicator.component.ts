@@ -1,7 +1,11 @@
 import { ChangeDetectionStrategy, Component, computed, DestroyRef, inject, signal } from '@angular/core';
 import { RolePermissionService } from '@axe/application/permission/role-permission.service';
 import { ReplayPlaybackService } from '@axe/application/replay/replay-playback.service';
-import { ReplayPreferenceService } from '@axe/application/replay/replay-preference.service';
+import {
+  REPLAY_KEEP_CHOICES,
+  type ReplayKeepCount,
+  ReplayPreferenceService,
+} from '@axe/application/replay/replay-preference.service';
 import { ReplayRecorderService } from '@axe/application/replay/replay-recorder.service';
 import { WidgetVisibilityService } from '@axe/application/ui/widget-visibility.service';
 import { ReplayDetailLevel } from '@axe/domain/replay/replay-event';
@@ -22,6 +26,7 @@ export class ReplayIndicatorComponent {
   protected readonly widgets = inject(WidgetVisibilityService);
 
   protected readonly detailLevels = [ReplayDetailLevel.ChatOnly, ReplayDetailLevel.Notable, ReplayDetailLevel.Full];
+  protected readonly keepChoices = REPLAY_KEEP_CHOICES;
 
   protected readonly isRecording = this.recorder.isRecording;
   protected readonly eventCount = this.recorder.eventCount;
@@ -63,6 +68,16 @@ export class ReplayIndicatorComponent {
   protected hide(): void {
     this.isOpen.set(false);
     this.widgets.recording.set(false);
+  }
+
+  protected keepCountValue(): string {
+    const count = this.preference.keepCount();
+    return count == null ? 'all' : String(count);
+  }
+
+  protected setKeepCount(value: string): void {
+    const count: ReplayKeepCount = value === 'all' ? null : Number(value);
+    this.preference.setKeepCount(Number.isFinite(count as number) ? count : null);
   }
 
   protected setDetailLevel(level: string): void {

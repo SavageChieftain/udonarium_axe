@@ -1999,6 +1999,11 @@
         "allActors": "Everyone",
         "hideSecret": "Hide secrets",
         "detailLevel": "Detail",
+        "keepCount": "Recordings to keep",
+        "keep": {
+          "all": "Keep all",
+          "recent": "Latest {{count}}"
+        },
         "pastRecordings": "Past recordings ({{count}})",
         "entries": "{{count}} entries",
         "remove": "Delete",

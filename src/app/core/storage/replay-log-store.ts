@@ -42,15 +42,16 @@ export interface ReplayKeyframeRecord extends ReplayKeyframeInput {
 }
 
 export interface ReplayRetention {
-  maxCount: number;
-  maxTotalBytes: number;
+  /** null なら本数で消さない。 */
+  maxCount: number | null;
+  /** null なら容量で消さない。 */
+  maxTotalBytes: number | null;
 }
 
-const MEGA_BYTE = 1024 * 1024;
-
+/** 既定は消さない。残すかどうかは記録した人が決める。 */
 export const DEFAULT_REPLAY_RETENTION: ReplayRetention = {
-  maxCount: 5,
-  maxTotalBytes: 512 * MEGA_BYTE,
+  maxCount: null,
+  maxTotalBytes: null,
 };
 
 export abstract class ReplayLogStore {
@@ -91,7 +92,9 @@ export function selectExpiredRecordings(
       keptBytes += meta.byteSize;
       return;
     }
-    if (isFull || index >= retention.maxCount || keptBytes + meta.byteSize > retention.maxTotalBytes) {
+    const overCount = retention.maxCount != null && index >= retention.maxCount;
+    const overBytes = retention.maxTotalBytes != null && keptBytes + meta.byteSize > retention.maxTotalBytes;
+    if (isFull || overCount || overBytes) {
       isFull = true;
       expired.push(meta.id);
       return;
