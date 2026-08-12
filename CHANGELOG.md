@@ -1,3 +1,13 @@
+## [1.35.0](https://github.com/SavageChieftain/udonarium_axe/compare/v1.34.1...v1.35.0) (2026-08-12)
+
+### ✨ Features
+
+* **vote:** run roll calls in a widget logged in the starting tab ([4306cc4](https://github.com/SavageChieftain/udonarium_axe/commit/4306cc4851fe2db5f8235d7ef55f3e06ec0b84b9))
+
+### 📝 Documentation
+
+* **website:** add v1.34.0 and v1.34.1 release notes ([ba531a2](https://github.com/SavageChieftain/udonarium_axe/commit/ba531a2391d065090767342c75a518d39146180b))
+
 ## [1.34.1](https://github.com/SavageChieftain/udonarium_axe/compare/v1.34.0...v1.34.1) (2026-08-12)
 
 ### 🐛 Bug Fixes
