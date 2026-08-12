@@ -41,7 +41,12 @@ import {
   TextureCropDialogComponent,
   TextureCropDialogOption,
 } from '@axe/features/map-editor/editor/texture-crop-dialog.component';
-import { catmullRomSegments } from '@axe/features/map-editor/model/curve-geometry';
+import {
+  curveAnchorAt,
+  fitImageSize,
+  imageCorners,
+  imageHandleAt,
+} from '@axe/features/map-editor/model/editor-hit-test';
 import { cellCenter, pointToCell } from '@axe/features/map-editor/model/grid-cells';
 import {
   cellKey,
@@ -63,7 +68,7 @@ import {
 } from '@axe/features/map-editor/model/scene-archive';
 import { moveLayer, removeLayer, removeText, updateText } from '@axe/features/map-editor/model/scene-ops';
 import { deserializeScene, serializeScene } from '@axe/features/map-editor/model/serialize';
-import { regularPolygonPoints, starPoints } from '@axe/features/map-editor/model/shape-points';
+import { generateShapePoints, regularPolygonPoints, starPoints } from '@axe/features/map-editor/model/shape-points';
 import {
   imageTextureIdentifier,
   isImageTextureId,
@@ -76,6 +81,12 @@ import {
 } from '@axe/features/map-editor/model/textures';
 import { exportSceneToBlob } from '@axe/features/map-editor/render/export-image';
 import { getRasterImage, loadRasterImage } from '@axe/features/map-editor/render/raster-image';
+import {
+  type EditorOverlay,
+  type OverlayImage,
+  type OverlayStamp,
+  renderOverlay,
+} from '@axe/features/map-editor/render/render-overlay';
 import { RenderHelpers, renderScene } from '@axe/features/map-editor/render/render-scene';
 import { getStampImage, loadStampImage } from '@axe/features/map-editor/render/stamp-image';
 import { createImageTexturePattern } from '@axe/features/map-editor/render/texture-pattern';
@@ -491,236 +502,73 @@ export class MapEditorPanelComponent implements AfterViewInit {
   }
 
   private drawOverlay(ctx: CanvasRenderingContext2D): void {
-    const tool = this.state.tool();
-    const scene = this.state.current;
-    ctx.save();
-    ctx.strokeStyle = '#5b9dff';
-    ctx.fillStyle = 'rgba(91, 157, 255, 0.2)';
-    ctx.lineWidth = 2;
-    ctx.setLineDash([6, 4]);
-
-    if (
-      (tool === 'cellPaint' || tool === 'fill' || (tool === 'cellErase' && !this.isVectorEraseTarget())) &&
-      this.lastMove &&
-      !this.panning()
-    ) {
-      const cellPx = scene.cellPx;
-      const cell = pointToCell(scene.gridType, this.lastMove.x, this.lastMove.y, cellPx);
-      if (cell.col >= 0 && cell.row >= 0 && cell.col < scene.cols && cell.row < scene.rows) {
-        ctx.save();
-        ctx.setLineDash([]);
-        ctx.fillStyle = 'rgba(91, 157, 255, 0.25)';
-        ctx.strokeStyle = '#5b9dff';
-        ctx.lineWidth = 1;
-        if (scene.gridType === GridType.SQUARE) {
-          ctx.fillRect(cell.col * cellPx, cell.row * cellPx, cellPx, cellPx);
-          ctx.strokeRect(cell.col * cellPx + 0.5, cell.row * cellPx + 0.5, cellPx - 1, cellPx - 1);
-        } else {
-          const center = cellCenter(scene.gridType, cell.col, cell.row, cellPx);
-          ctx.beginPath();
-          ctx.arc(center.x, center.y, cellPx * 0.3, 0, Math.PI * 2);
-          ctx.fill();
-          ctx.stroke();
-        }
-        ctx.restore();
-      }
-    }
-
-    if (tool === 'cellErase' && this.isVectorEraseTarget() && this.lastMove && !this.panning()) {
-      ctx.save();
-      ctx.setLineDash([]);
-      ctx.fillStyle = 'rgba(91, 157, 255, 0.15)';
-      ctx.strokeStyle = '#5b9dff';
-      ctx.lineWidth = 1;
-      ctx.beginPath();
-      ctx.arc(this.lastMove.x, this.lastMove.y, this.state.eraserSize(), 0, Math.PI * 2);
-      ctx.fill();
-      ctx.stroke();
-      ctx.restore();
-    }
-
-    if (
-      this.draftStart &&
-      this.draftCurrent &&
-      (tool === 'shape' || (tool === 'line' && this.state.lineKind() === 'straight'))
-    ) {
-      const x = Math.min(this.draftStart.x, this.draftCurrent.x);
-      const y = Math.min(this.draftStart.y, this.draftCurrent.y);
-      const w = Math.abs(this.draftCurrent.x - this.draftStart.x);
-      const h = Math.abs(this.draftCurrent.y - this.draftStart.y);
-      if (tool === 'line') {
-        ctx.beginPath();
-        ctx.moveTo(this.draftStart.x, this.draftStart.y);
-        ctx.lineTo(this.draftCurrent.x, this.draftCurrent.y);
-        ctx.stroke();
-      } else {
-        const kind = this.state.shapeKind();
-        ctx.save();
-        ctx.fillStyle = 'rgba(91, 157, 255, 0.2)';
-        ctx.beginPath();
-        if (kind === 'ellipse') {
-          ctx.ellipse(x + w / 2, y + h / 2, w / 2, h / 2, 0, 0, Math.PI * 2);
-        } else if (kind === 'rect') {
-          ctx.rect(x, y, w, h);
-        } else {
-          const pts = this.generateShapePoints(kind, x, y, w, h);
-          if (pts.length >= 2) {
-            ctx.moveTo(pts[0], pts[1]);
-            for (let i = 2; i + 1 < pts.length; i += 2) ctx.lineTo(pts[i], pts[i + 1]);
-            ctx.closePath();
-          }
-        }
-        ctx.fill();
-        ctx.stroke();
-        ctx.restore();
-      }
-      this.drawMeasureBox(ctx, `${(w / scene.cellPx).toFixed(1)} × ${(h / scene.cellPx).toFixed(1)}`);
-    }
-
-    if ((tool === 'polygon' || (tool === 'line' && this.multiClickLine())) && this.draftPoints.length >= 2) {
-      const lineKind = this.state.lineKind();
-      const smooth = tool === 'line' && (lineKind === 'curve' || lineKind === 'closedCurve');
-      if (smooth) {
-        const verts = this.draftPoints.slice();
-        if (this.draftCurrent) verts.push(this.draftCurrent.x, this.draftCurrent.y);
-        const closed = lineKind === 'closedCurve';
-        if (closed && verts.length >= 6) {
-          ctx.save();
-          ctx.fillStyle = 'rgba(91, 157, 255, 0.2)';
-          this.traceCurvePath(ctx, verts, true);
-          ctx.fill();
-          ctx.restore();
-        }
-        this.traceCurvePath(ctx, verts, closed);
-        ctx.stroke();
-        this.drawSegmentMeasure(ctx);
-      } else {
-        if (tool === 'polygon' && this.draftPoints.length >= 4) {
-          ctx.save();
-          ctx.fillStyle = 'rgba(91, 157, 255, 0.2)';
-          ctx.beginPath();
-          ctx.moveTo(this.draftPoints[0], this.draftPoints[1]);
-          for (let i = 2; i + 1 < this.draftPoints.length; i += 2)
-            ctx.lineTo(this.draftPoints[i], this.draftPoints[i + 1]);
-          if (this.draftCurrent) ctx.lineTo(this.draftCurrent.x, this.draftCurrent.y);
-          ctx.closePath();
-          ctx.fill();
-          ctx.restore();
-        }
-        ctx.beginPath();
-        ctx.moveTo(this.draftPoints[0], this.draftPoints[1]);
-        for (let i = 2; i + 1 < this.draftPoints.length; i += 2)
-          ctx.lineTo(this.draftPoints[i], this.draftPoints[i + 1]);
-        if (this.draftCurrent) ctx.lineTo(this.draftCurrent.x, this.draftCurrent.y);
-        ctx.stroke();
-        this.drawSegmentMeasure(ctx);
-      }
-    }
-
-    if (tool === 'line' && this.state.lineKind() === 'straight' && this.draftStart && this.draftCurrent) {
-      this.drawSegmentMeasure(ctx);
-    }
-
-    if (tool === 'freehand' && this.freehandPoints.length >= 4) {
-      ctx.beginPath();
-      ctx.moveTo(this.freehandPoints[0], this.freehandPoints[1]);
-      for (let i = 2; i + 1 < this.freehandPoints.length; i += 2)
-        ctx.lineTo(this.freehandPoints[i], this.freehandPoints[i + 1]);
-      ctx.stroke();
-    }
-
-    if (tool === 'stamp' && this.lastMove && this.state.stampId()) {
-      const stampId = this.state.stampId()!;
-      const size = this.state.stampSize();
-      const image = this.previewStampImage(stampId, size);
-      if (image) {
-        const center = this.stampCenter(this.lastMove.x, this.lastMove.y);
-        const iw = image.naturalWidth || image.width || size;
-        const ih = image.naturalHeight || image.height || size;
-        const fitScale = iw && ih ? Math.min(size / iw, size / ih) : 1;
-        const w = iw * fitScale;
-        const h = ih * fitScale;
-        ctx.save();
-        ctx.globalAlpha = 0.5;
-        ctx.translate(center.x, center.y);
-        if (this.state.stampRotation()) ctx.rotate((this.state.stampRotation() * Math.PI) / 180);
-        ctx.scale(this.state.stampFlipX() ? -1 : 1, this.state.stampFlipY() ? -1 : 1);
-        ctx.drawImage(image, -w / 2, -h / 2, w, h);
-        ctx.restore();
-      }
-    }
-
-    if (tool === 'image' && this.lastMove && this.state.pendingImageId()) {
-      const url = this.imageStorage.get(this.state.pendingImageId()!)?.url;
-      const image = url ? getRasterImage(url) : null;
-      if (image) {
-        const fit = this.fitImageSize(image.naturalWidth || image.width, image.naturalHeight || image.height);
-        ctx.save();
-        ctx.globalAlpha = 0.5;
-        ctx.drawImage(image, this.lastMove.x - fit.w / 2, this.lastMove.y - fit.h / 2, fit.w, fit.h);
-        ctx.restore();
-      } else if (url) {
-        this.schedulePendingImage(url);
-      }
-    }
-
-    const sel = this.state.selection();
-    if (sel) this.drawSelectionOutline(ctx, sel.layerId, sel.itemId);
-
-    const selImage = this.selectedImageItem();
-    if (selImage) this.drawImageHandles(ctx, selImage);
-
-    const selCurve = this.selectedCurveItem();
-    if (selCurve) this.drawCurveHandles(ctx, selCurve);
-
-    ctx.restore();
+    renderOverlay(ctx, this.state.current, this.overlayState());
   }
 
-  private fitImageSize(naturalW: number, naturalH: number): { w: number; h: number } {
-    const cellPx = this.state.current.cellPx;
-    const w = naturalW > 0 ? naturalW : 4 * cellPx;
-    const h = naturalH > 0 ? naturalH : 4 * cellPx;
-    const max = 8 * cellPx;
-    const longest = Math.max(w, h);
-    const ratio = longest > max ? max / longest : 1;
-    return { w: w * ratio, h: h * ratio };
+  /**
+   * 下書きを描くのに要るものを、描く前に揃える。
+   *
+   * 絵の読み込みはここで始める。描く関数の中から始めると、描くたびに走る。
+   */
+  private overlayState(): EditorOverlay {
+    const state = this.state;
+    return {
+      tool: state.tool(),
+      lineKind: state.lineKind(),
+      shapeKind: state.shapeKind(),
+      multiClickLine: this.multiClickLine(),
+      hover: this.lastMove,
+      panning: this.panning(),
+      vectorErase: this.isVectorEraseTarget(),
+      eraserSize: state.eraserSize(),
+      draftStart: this.draftStart,
+      draftCurrent: this.draftCurrent,
+      draftPoints: this.draftPoints,
+      freehandPoints: this.freehandPoints,
+      selection: state.selection(),
+      selectedImage: this.selectedImageItem(),
+      selectedCurve: this.selectedCurveItem(),
+      stamp: this.overlayStamp(),
+      image: this.overlayImage(),
+      measureLabel: {
+        cells: (n: string) => this.t('feature.mapEditor.measure.cells', { n }),
+        angle: (deg: number) => this.t('feature.mapEditor.measure.angle', { deg }),
+      },
+    };
   }
 
-  private drawSelectionOutline(ctx: CanvasRenderingContext2D, layerId: string, itemId: string): void {
-    const scene = this.state.current;
-    const layer = scene.layers.find((l) => l.id === layerId);
-    if (!layer) return;
-    ctx.save();
-    ctx.strokeStyle = '#5b9dff';
-    ctx.lineWidth = 2;
-    ctx.setLineDash([4, 3]);
-    if (layer.kind === 'stamp') {
-      const item = layer.items.find((i) => i.id === itemId);
-      if (item) ctx.strokeRect(item.x - item.size / 2, item.y - item.size / 2, item.size, item.size);
-    } else if (layer.kind === 'image') {
-      const item = layer.items.find((i) => i.id === itemId);
-      if (item) ctx.strokeRect(item.x - item.w / 2, item.y - item.h / 2, item.w, item.h);
-    } else if (layer.kind === 'text') {
-      const item = layer.items.find((i) => i.id === itemId);
-      if (item) {
-        const w = Math.max(item.fontSize, item.fontSize * item.text.length * 0.6);
-        ctx.strokeRect(item.x, item.y, w, item.fontSize * 1.2);
-      }
-    } else if (layer.kind === 'shape') {
-      const item = layer.items.find((i) => i.id === itemId);
-      if (item) {
-        const p = item.points;
-        if (item.shape === 'rect' || item.shape === 'ellipse') {
-          ctx.strokeRect(p[0] ?? 0, p[1] ?? 0, p[2] ?? 0, p[3] ?? 0);
-        } else {
-          this.strokePolylineBbox(ctx, p);
-        }
-      }
-    } else if (layer.kind === 'freehand') {
-      const stroke = layer.strokes.find((s) => s.id === itemId);
-      if (stroke) this.strokePolylineBbox(ctx, stroke.points);
+  private overlayStamp(): OverlayStamp | null {
+    const stampId = this.state.stampId();
+    if (this.state.tool() !== 'stamp' || !this.lastMove || !stampId) return null;
+    const size = this.state.stampSize();
+    const image = this.previewStampImage(stampId, size);
+    if (!image) return null;
+    return {
+      image,
+      size,
+      center: this.stampCenter(this.lastMove.x, this.lastMove.y),
+      rotation: this.state.stampRotation(),
+      flipX: this.state.stampFlipX(),
+      flipY: this.state.stampFlipY(),
+    };
+  }
+
+  private overlayImage(): OverlayImage | null {
+    const pendingId = this.state.pendingImageId();
+    if (this.state.tool() !== 'image' || !this.lastMove || !pendingId) return null;
+    const url = this.imageStorage.get(pendingId)?.url;
+    if (!url) return null;
+    const image = getRasterImage(url);
+    if (!image) {
+      this.schedulePendingImage(url);
+      return null;
     }
-    ctx.restore();
+    const size = fitImageSize(
+      image.naturalWidth || image.width,
+      image.naturalHeight || image.height,
+      this.state.current.cellPx
+    );
+    return { image, at: this.lastMove, size };
   }
 
   private selectedImageItem(): ImageItem | null {
@@ -741,170 +589,6 @@ export class MapEditorPanelComponent implements AfterViewInit {
     const item = layer.items.find((i) => i.id === sel.itemId);
     if (!item || (item.shape !== 'curve' && item.shape !== 'closedCurve')) return null;
     return item;
-  }
-
-  private curveAnchorAt(item: ShapeItem, x: number, y: number): number {
-    const p = item.points;
-    for (let i = 0; i * 2 + 1 < p.length; i += 1) {
-      if (Math.abs(x - p[i * 2]) <= 7 && Math.abs(y - p[i * 2 + 1]) <= 7) return i;
-    }
-    return -1;
-  }
-
-  private drawCurveHandles(ctx: CanvasRenderingContext2D, item: ShapeItem): void {
-    ctx.save();
-    ctx.setLineDash([]);
-    ctx.fillStyle = '#ffffff';
-    ctx.strokeStyle = '#5b9dff';
-    ctx.lineWidth = 1.5;
-    const p = item.points;
-    for (let i = 0; i * 2 + 1 < p.length; i += 1) {
-      ctx.beginPath();
-      ctx.arc(p[i * 2], p[i * 2 + 1], 4, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.stroke();
-    }
-    ctx.restore();
-  }
-
-  private imageCorners(item: ImageItem): { x: number; y: number }[] {
-    const hw = item.w / 2;
-    const hh = item.h / 2;
-    return [
-      { x: item.x - hw, y: item.y - hh },
-      { x: item.x + hw, y: item.y - hh },
-      { x: item.x + hw, y: item.y + hh },
-      { x: item.x - hw, y: item.y + hh },
-    ];
-  }
-
-  private drawImageHandles(ctx: CanvasRenderingContext2D, item: ImageItem): void {
-    ctx.save();
-    ctx.setLineDash([]);
-    ctx.fillStyle = '#5b9dff';
-    const s = 8;
-    for (const c of this.imageCorners(item)) {
-      ctx.fillRect(c.x - s / 2, c.y - s / 2, s, s);
-    }
-    ctx.restore();
-  }
-
-  private imageHandleAt(item: ImageItem, x: number, y: number): number {
-    const corners = this.imageCorners(item);
-    for (let i = 0; i < corners.length; i += 1) {
-      if (Math.abs(x - corners[i].x) <= 6 && Math.abs(y - corners[i].y) <= 6) return i;
-    }
-    return -1;
-  }
-
-  private traceCurvePath(ctx: CanvasRenderingContext2D, verts: number[], closed: boolean): void {
-    ctx.beginPath();
-    if (verts.length < 2) return;
-    ctx.moveTo(verts[0], verts[1]);
-    for (const seg of catmullRomSegments(verts, closed)) {
-      ctx.bezierCurveTo(seg.c1x, seg.c1y, seg.c2x, seg.c2y, seg.x, seg.y);
-    }
-    if (closed) ctx.closePath();
-  }
-
-  private strokePolylineBbox(ctx: CanvasRenderingContext2D, p: number[]): void {
-    let minX = Infinity;
-    let minY = Infinity;
-    let maxX = -Infinity;
-    let maxY = -Infinity;
-    for (let i = 0; i + 1 < p.length; i += 2) {
-      minX = Math.min(minX, p[i]);
-      maxX = Math.max(maxX, p[i]);
-      minY = Math.min(minY, p[i + 1]);
-      maxY = Math.max(maxY, p[i + 1]);
-    }
-    if (Number.isFinite(minX)) ctx.strokeRect(minX, minY, maxX - minX, maxY - minY);
-  }
-
-  private generateShapePoints(kind: ShapeGeneratorKind, x: number, y: number, w: number, h: number): number[] {
-    const cx = x + w / 2;
-    const cy = y + h / 2;
-    const rx = w / 2;
-    const ry = h / 2;
-    let unit: number[];
-    if (kind === 'triangle') unit = regularPolygonPoints(0, 0, 1, 3, -Math.PI / 2);
-    else if (kind === 'pentagon') unit = regularPolygonPoints(0, 0, 1, 5, -Math.PI / 2);
-    else if (kind === 'hexagon') unit = regularPolygonPoints(0, 0, 1, 6, 0);
-    else if (kind === 'star5') unit = starPoints(0, 0, 1, 0.382, 5, -Math.PI / 2);
-    else if (kind === 'star6') unit = starPoints(0, 0, 1, 0.577, 6, -Math.PI / 2);
-    else return [];
-    const scaled: number[] = [];
-    for (let i = 0; i + 1 < unit.length; i += 2) {
-      scaled.push(cx + unit[i] * rx, cy + unit[i + 1] * ry);
-    }
-    return scaled;
-  }
-
-  private drawMeasureBox(ctx: CanvasRenderingContext2D, text: string): void {
-    if (!this.lastMove) return;
-    this.drawMeasureAt(ctx, text, this.lastMove.x + 12, this.lastMove.y - 12);
-  }
-
-  private drawMeasureAt(ctx: CanvasRenderingContext2D, text: string, x: number, y: number): void {
-    ctx.save();
-    ctx.setLineDash([]);
-    ctx.font = '12px sans-serif';
-    ctx.textBaseline = 'middle';
-    const metrics = ctx.measureText(text);
-    const padX = 6;
-    const w = metrics.width + padX * 2;
-    const h = 18;
-    const r = 4;
-    const bx = x;
-    const by = y - h / 2;
-    ctx.fillStyle = 'rgba(20, 22, 28, 0.85)';
-    ctx.beginPath();
-    ctx.moveTo(bx + r, by);
-    ctx.arcTo(bx + w, by, bx + w, by + h, r);
-    ctx.arcTo(bx + w, by + h, bx, by + h, r);
-    ctx.arcTo(bx, by + h, bx, by, r);
-    ctx.arcTo(bx, by, bx + w, by, r);
-    ctx.closePath();
-    ctx.fill();
-    ctx.fillStyle = '#e8e8ea';
-    ctx.fillText(text, bx + padX, y);
-    ctx.restore();
-  }
-
-  private drawSegmentMeasure(ctx: CanvasRenderingContext2D): void {
-    const cellPx = this.state.current.cellPx;
-    const tool = this.state.tool();
-    let ax: number;
-    let ay: number;
-    let bx: number;
-    let by: number;
-    let prevAngle: number | null = null;
-    if (tool === 'line' && this.state.lineKind() === 'straight') {
-      if (!this.draftStart || !this.draftCurrent) return;
-      ax = this.draftStart.x;
-      ay = this.draftStart.y;
-      bx = this.draftCurrent.x;
-      by = this.draftCurrent.y;
-    } else {
-      const n = this.draftPoints.length;
-      if (n < 2 || !this.draftCurrent) return;
-      ax = this.draftPoints[n - 2];
-      ay = this.draftPoints[n - 1];
-      bx = this.draftCurrent.x;
-      by = this.draftCurrent.y;
-      if (n >= 4) {
-        prevAngle = Math.atan2(ay - this.draftPoints[n - 3], ax - this.draftPoints[n - 4]);
-      }
-    }
-    const len = Math.hypot(bx - ax, by - ay);
-    const cells = this.t('feature.mapEditor.measure.cells', { n: (len / cellPx).toFixed(1) });
-    let angleRad = Math.atan2(by - ay, bx - ax);
-    if (prevAngle !== null) angleRad = angleRad - prevAngle;
-    let deg = Math.round((angleRad * 180) / Math.PI);
-    deg = ((deg % 360) + 360) % 360;
-    if (deg > 180) deg -= 360;
-    const angle = this.t('feature.mapEditor.measure.angle', { deg });
-    this.drawMeasureAt(ctx, `${cells} ${angle}`, bx + 12, by - 12);
   }
 
   protected setTool(tool: EditorTool): void {
@@ -962,9 +646,9 @@ export class MapEditorPanelComponent implements AfterViewInit {
     if (tool === 'select') {
       const selImage = this.selectedImageItem();
       if (selImage) {
-        const handle = this.imageHandleAt(selImage, pos.x, pos.y);
+        const handle = imageHandleAt(selImage, pos.x, pos.y);
         if (handle !== -1) {
-          const opposite = this.imageCorners(selImage)[(handle + 2) % 4];
+          const opposite = imageCorners(selImage)[(handle + 2) % 4];
           this.imageResize = { item: selImage, anchorX: opposite.x, anchorY: opposite.y };
           this.state.beginGesture();
           this.bumpDraft();
@@ -973,7 +657,7 @@ export class MapEditorPanelComponent implements AfterViewInit {
       }
       const selCurve = this.selectedCurveItem();
       if (selCurve) {
-        const anchor = this.curveAnchorAt(selCurve, pos.x, pos.y);
+        const anchor = curveAnchorAt(selCurve, pos.x, pos.y);
         if (anchor !== -1) {
           this.curveDrag = { index: anchor };
           this.state.beginGesture();
@@ -1367,7 +1051,7 @@ export class MapEditorPanelComponent implements AfterViewInit {
       this.state.addShapeItem(kind, [x, y, w, h], fill, name);
       return;
     }
-    const points = this.generateShapePoints(kind, x, y, w, h);
+    const points = generateShapePoints(kind, x, y, w, h);
     if (points.length >= 6) this.state.addShapeItem('polygon', points, fill, name);
   }
 
@@ -1426,7 +1110,7 @@ export class MapEditorPanelComponent implements AfterViewInit {
         naturalH = 4 * cellPx;
       }
     }
-    const fit = this.fitImageSize(naturalW, naturalH);
+    const fit = fitImageSize(naturalW, naturalH, this.state.current.cellPx);
     const item: ImageItem = {
       id: newId(),
       imageIdentifier: id,
