@@ -1,3 +1,21 @@
+## [1.34.0](https://github.com/SavageChieftain/udonarium_axe/compare/v1.33.0...v1.34.0) (2026-08-12)
+
+### ✨ Features
+
+* **replay:** sum a recording up into numbers, dice and awards ([1e068f8](https://github.com/SavageChieftain/udonarium_axe/commit/1e068f8a2c3c07f0285c335862e93b1b0480c2de))
+* **replay:** take a group photo of the table ([3d31b89](https://github.com/SavageChieftain/udonarium_axe/commit/3d31b893f2613ba989b016ffebfad73b9df62892))
+* **replay:** write the summary out as one page ([18dabb7](https://github.com/SavageChieftain/udonarium_axe/commit/18dabb7ad21360b157d10a4090fa61db79983a36))
+* **streaming:** show a table on stream without showing the table ([7de6a08](https://github.com/SavageChieftain/udonarium_axe/commit/7de6a080b313fd1dc9f64cca1cc28bb3b1b67701))
+
+### 🐛 Bug Fixes
+
+* **replay:** count what a recording actually holds in the summary ([b754aa5](https://github.com/SavageChieftain/udonarium_axe/commit/b754aa58353f5629fba7e4c25ece90775b9733aa))
+
+### 📝 Documentation
+
+* give the name something to stand for ([cda6a1b](https://github.com/SavageChieftain/udonarium_axe/commit/cda6a1be8bb8c7ff2e598e708f870973815059cb))
+* **website:** add v1.33.0 release notes ([5cdb70f](https://github.com/SavageChieftain/udonarium_axe/commit/5cdb70fc3c216f16d872d66885553d06891a6a1b))
+
 ## [1.33.0](https://github.com/SavageChieftain/udonarium_axe/compare/v1.32.0...v1.33.0) (2026-08-11)
 
 ### ✨ Features
