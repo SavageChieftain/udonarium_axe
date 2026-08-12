@@ -1,3 +1,19 @@
+## [1.34.1](https://github.com/SavageChieftain/udonarium_axe/compare/v1.34.0...v1.34.1) (2026-08-12)
+
+### 🐛 Bug Fixes
+
+* **refactor:** repair what the refactors broke and finish what they left ([7d7776d](https://github.com/SavageChieftain/udonarium_axe/commit/7d7776df82868b6ea7d1a9483e935fc583c8d37d))
+* **refactor:** stop the shortcuts stealing chords, and finish the leaf work ([7b2232b](https://github.com/SavageChieftain/udonarium_axe/commit/7b2232bd905abb950f331411ddd97a6496a4c077))
+
+### ♻️ Refactor
+
+* **data-element:** take the tree edits out of the element component ([c7b6940](https://github.com/SavageChieftain/udonarium_axe/commit/c7b694016db83551b63e143476f1468f69bdbd54))
+* **effect:** split the particle emitters into families ([70085ce](https://github.com/SavageChieftain/udonarium_axe/commit/70085ce1e413637ff55dcf6c17e1dc70488a2d65))
+* **effect:** split the sprite timeline into families ([94e9959](https://github.com/SavageChieftain/udonarium_axe/commit/94e99596580bc40fdb3d846dbc1ba64487b01f14))
+* **map-editor:** move the draft overlay out of the panel ([63f7fad](https://github.com/SavageChieftain/udonarium_axe/commit/63f7fad75dd3648bed17b01e0e3f74ff9ee28ea8))
+* **replay:** keep one way to make an image drawable ([7cb3787](https://github.com/SavageChieftain/udonarium_axe/commit/7cb3787a52dd92fe73e6209b4c0f62c4cdcf3951))
+* **visual-novel:** give the overlay one open popover and one key map ([60f816d](https://github.com/SavageChieftain/udonarium_axe/commit/60f816ddc71091370c883938eabd726468269eee))
+
 ## [1.34.0](https://github.com/SavageChieftain/udonarium_axe/compare/v1.33.0...v1.34.0) (2026-08-12)
 
 ### ✨ Features
