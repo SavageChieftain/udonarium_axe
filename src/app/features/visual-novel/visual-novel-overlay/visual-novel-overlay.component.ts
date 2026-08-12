@@ -62,6 +62,12 @@ import {
   VN_TYPEWRITER_SPEEDS,
 } from '@axe/features/visual-novel/visual-novel-settings.service';
 import {
+  isTypingTarget,
+  type VisualNovelCommand,
+  visualNovelKeyDown,
+  visualNovelKeyUp,
+} from '@axe/features/visual-novel/visual-novel-shortcut';
+import {
   buildVnStage,
   VN_STAGE_LOOKBACK,
   VN_STAGE_SLOT_COUNT,
@@ -96,6 +102,9 @@ const EMOTION_MARK_COLORS: Record<Exclude<VnEmotionMark, 'none'>, string> = {
   note: 'text-amber-500',
   silence: 'text-gray-500',
 };
+
+/** 同時に 1 つだけ開く吹き出し。 */
+type VisualNovelPopover = 'backlog' | 'emote' | 'soundBoard' | 'slotGuide' | 'palette' | 'shortcutHelp';
 
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -170,12 +179,12 @@ export class VisualNovelOverlayComponent {
 
   readonly text = signal('');
   readonly autoPlay = this.playback.autoPlay;
-  readonly showBacklog = signal(false);
-  readonly showEmote = signal(false);
-  readonly showSoundBoard = signal(false);
-  readonly showSlotGuide = signal(false);
-  readonly showPalette = signal(false);
-  readonly showShortcutHelp = signal(false);
+  /**
+   * 開いている吹き出しは常に 1 つ。
+   *
+   * 種類ごとに旗を持つと「開けたら他を閉じる」を毎回書くことになり、書き漏らすと重なる。
+   */
+  private readonly openPopover = signal<VisualNovelPopover | null>(null);
   readonly isSkipping = this.playback.isSkipping;
 
   readonly selectedKind = signal<VnMessageKind>('normal');
@@ -610,7 +619,7 @@ export class VisualNovelOverlayComponent {
 
   attachSe(identifier: string, name: string): void {
     this.attachedSe.set({ identifier, name });
-    this.showSoundBoard.set(false);
+    this.closePopovers();
   }
 
   clearAttachedSe(): void {
@@ -647,7 +656,7 @@ export class VisualNovelOverlayComponent {
     this.destroyRef.onDestroy(() => this.playback.detach());
 
     const seTimer = setInterval(() => {
-      if (this.showSoundBoard()) this._seTick.update((v) => v + 1);
+      if (this.isPopover('soundBoard')) this._seTick.update((v) => v + 1);
     }, 500);
     this.destroyRef.onDestroy(() => clearInterval(seTimer));
 
@@ -708,47 +717,40 @@ export class VisualNovelOverlayComponent {
   jumpTo(index: number): void {
     this.director.leaveFollowing();
     this.playback.jumpTo(index);
-    this.showBacklog.set(false);
+    this.closePopovers();
+  }
+
+  isPopover(kind: VisualNovelPopover): boolean {
+    return this.openPopover() === kind;
   }
 
   private closePopovers(): void {
-    this.showBacklog.set(false);
-    this.showEmote.set(false);
-    this.showSoundBoard.set(false);
-    this.showSlotGuide.set(false);
-    this.showPalette.set(false);
-    this.showShortcutHelp.set(false);
+    this.openPopover.set(null);
+  }
+
+  private togglePopover(kind: VisualNovelPopover): void {
+    this.openPopover.update((current) => (current === kind ? null : kind));
   }
 
   toggleShortcutHelp(): void {
-    const next = !this.showShortcutHelp();
-    this.closePopovers();
-    this.showShortcutHelp.set(next);
+    this.togglePopover('shortcutHelp');
   }
 
   toggleBacklog(): void {
-    const next = !this.showBacklog();
-    this.closePopovers();
-    this.showBacklog.set(next);
+    this.togglePopover('backlog');
   }
 
   toggleEmote(): void {
-    const next = !this.showEmote();
-    this.closePopovers();
-    this.showEmote.set(next);
+    this.togglePopover('emote');
   }
 
   toggleSoundBoard(): void {
-    const next = !this.showSoundBoard();
-    this.closePopovers();
-    this.showSoundBoard.set(next);
+    this.togglePopover('soundBoard');
   }
 
   toggleSlotGuide(): void {
     if (this.speakerSlot() < 0) return;
-    const next = !this.showSlotGuide();
-    this.closePopovers();
-    this.showSlotGuide.set(next);
+    this.togglePopover('slotGuide');
   }
 
   private readonly paletteHandle: ChatPaletteHandle = {
@@ -789,14 +791,12 @@ export class VisualNovelOverlayComponent {
   }
 
   togglePalette(): void {
-    const next = !this.showPalette();
-    this.closePopovers();
-    this.showPalette.set(next);
+    this.togglePopover('palette');
   }
 
   pickPaletteLine(line: string): void {
     this.text.set(line);
-    this.showPalette.set(false);
+    this.closePopovers();
   }
 
   pickSlot(slot: number): void {
@@ -805,7 +805,7 @@ export class VisualNovelOverlayComponent {
       const element = object.detailDataElement?.getFirstElementByName('POS');
       if (element) element.currentValue = Math.min(VN_STAGE_SLOT_COUNT - 1, Math.max(0, slot));
     }
-    this.showSlotGuide.set(false);
+    this.closePopovers();
   }
 
   onMessageWheel(event: WheelEvent): void {
@@ -822,72 +822,37 @@ export class VisualNovelOverlayComponent {
   }
 
   onKeydown(event: KeyboardEvent): void {
-    if (event.isComposing) return;
-    const target = event.target instanceof HTMLElement ? event.target : null;
-    const tagName = target?.tagName.toLowerCase() ?? '';
-    if (tagName === 'input' || tagName === 'textarea' || tagName === 'select' || target?.isContentEditable) return;
-    switch (event.key) {
-      case 'Enter':
-      case ' ':
-      case 'ArrowRight':
-      case 'ArrowDown':
-        event.preventDefault();
-        this.userAdvance();
-        break;
-      case 'ArrowLeft':
-      case 'ArrowUp':
-        event.preventDefault();
-        this.userBack();
-        break;
-      case 'Home':
-        event.preventDefault();
-        this.jumpTo(0);
-        break;
-      case 'End':
-        event.preventDefault();
-        this.toLatest();
-        break;
-      case 'Control':
-        this.playback.startSkip();
-        break;
-      case 'l':
-      case 'L':
-        event.preventDefault();
-        this.toggleBacklog();
-        break;
-      case 'a':
-      case 'A':
-        event.preventDefault();
-        this.toggleAutoPlay();
-        break;
-      case 's':
-      case 'S':
-        event.preventDefault();
-        this.toggleSlotGuide();
-        break;
-      case '?':
-        event.preventDefault();
-        this.toggleShortcutHelp();
-        break;
-      case 'Escape':
-        if (
-          this.showBacklog() ||
-          this.showEmote() ||
-          this.showSoundBoard() ||
-          this.showSlotGuide() ||
-          this.showPalette() ||
-          this.showShortcutHelp()
-        ) {
-          this.closePopovers();
-        } else {
-          this.exit();
-        }
-        break;
-    }
+    const action = visualNovelKeyDown(event.key, {
+      composing: event.isComposing,
+      typing: isTypingTarget(event.target),
+      popoverOpen: this.openPopover() !== null,
+    });
+    if (!action) return;
+    if (action.preventDefault) event.preventDefault();
+    this.runCommand(action.command);
   }
 
   onKeyup(event: KeyboardEvent): void {
-    if (event.key === 'Control') this.stopSkip();
+    const action = visualNovelKeyUp(event.key);
+    if (action) this.runCommand(action.command);
+  }
+
+  private runCommand(command: VisualNovelCommand): void {
+    const commands: Record<VisualNovelCommand, () => void> = {
+      advance: () => this.userAdvance(),
+      back: () => this.userBack(),
+      toStart: () => this.jumpTo(0),
+      toLatest: () => this.toLatest(),
+      startSkip: () => this.playback.startSkip(),
+      stopSkip: () => this.stopSkip(),
+      toggleBacklog: () => this.toggleBacklog(),
+      toggleAutoPlay: () => this.toggleAutoPlay(),
+      toggleSlotGuide: () => this.toggleSlotGuide(),
+      toggleShortcutHelp: () => this.toggleShortcutHelp(),
+      closePopovers: () => this.closePopovers(),
+      exit: () => this.exit(),
+    };
+    commands[command]();
   }
 
   stopSkip(): void {

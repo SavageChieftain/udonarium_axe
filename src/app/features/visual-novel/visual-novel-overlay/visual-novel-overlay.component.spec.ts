@@ -387,12 +387,12 @@ describe('VisualNovelOverlayComponent', () => {
     addMessage('m2');
     addMessage('m3');
     createComponent();
-    component.showBacklog.set(true);
+    component.toggleBacklog();
     component.jumpTo(0);
     fixture.detectChanges();
     expect(component.currentIndex()).toBe(0);
     expect(component.displayedText()).toBe('m1');
-    expect(component.showBacklog()).toBe(false);
+    expect(component.isPopover('backlog')).toBe(false);
   });
 
   it('ホイール操作で履歴を戻れること', () => {
@@ -464,9 +464,9 @@ describe('VisualNovelOverlayComponent', () => {
 
   it('pickSlot() で発言キャラクターのスロットは範囲内に丸められること', () => {
     createComponent();
-    component.showSlotGuide.set(true);
+    component.toggleSlotGuide();
     component.pickSlot(5);
-    expect(component.showSlotGuide()).toBe(false);
+    expect(component.isPopover('slotGuide')).toBe(false);
   });
 
   it('立ち絵は画面端で見切れないようにクランプされること', () => {
@@ -952,9 +952,9 @@ describe('VisualNovelOverlayComponent', () => {
     createComponent();
     const vnMode = TestBed.inject(VisualNovelModeService);
     vnMode.activate();
-    component.showBacklog.set(true);
+    component.toggleBacklog();
     component.onKeydown(new KeyboardEvent('keydown', { key: 'Escape' }));
-    expect(component.showBacklog()).toBe(false);
+    expect(component.isPopover('backlog')).toBe(false);
     expect(vnMode.active()).toBe(true);
   });
 });

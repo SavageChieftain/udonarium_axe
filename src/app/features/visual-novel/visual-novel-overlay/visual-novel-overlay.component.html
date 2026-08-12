@@ -88,7 +88,7 @@
   }
 </div>
 
-@if (showSlotGuide()) {
+@if (isPopover('slotGuide')) {
   <div class="pointer-events-auto absolute inset-x-0 top-[10dvh] bottom-[15dvh] z-40 flex">
     @for (slotIndex of slotIndexes; track slotIndex) {
       <button
@@ -331,7 +331,7 @@
   </div>
 }
 
-@if (showBacklog()) {
+@if (isPopover('backlog')) {
   <visual-novel-backlog
     [messageKindOptions]="messageKindOptions()"
     (jump)="jumpTo($event)"
@@ -423,8 +423,8 @@
           <button
             type="button"
             class="border-ui-border-panel bg-ui-input text-ui-text hover:border-ui-accent rounded-ui flex h-8 cursor-pointer items-center gap-0.5 border border-solid px-1.5 text-[11px] transition-colors [&_i]:text-[15px]"
-            [class.border-ui-accent]="showSlotGuide()"
-            [class.text-ui-accent]="showSlotGuide()"
+            [class.border-ui-accent]="isPopover('slotGuide')"
+            [class.text-ui-accent]="isPopover('slotGuide')"
             [title]="'feature.visualNovel.slot' | transloco"
             [attr.aria-label]="'feature.visualNovel.slot' | transloco"
             (click)="toggleSlotGuide()"
@@ -553,14 +553,14 @@
           <button
             type="button"
             class="text-ui-dim hover:text-ui-accent hover:bg-ui-accent-bg rounded-ui flex size-8 cursor-pointer items-center justify-center border-0 bg-transparent transition-[color,background] [&_i]:text-[18px]"
-            [class.text-ui-accent]="showShortcutHelp()"
+            [class.text-ui-accent]="isPopover('shortcutHelp')"
             [title]="'feature.visualNovel.shortcuts.title' | transloco"
             [attr.aria-label]="'feature.visualNovel.shortcuts.title' | transloco"
             (click)="toggleShortcutHelp()"
           >
             <i class="material-icons">keyboard</i>
           </button>
-          @if (showShortcutHelp()) {
+          @if (isPopover('shortcutHelp')) {
             <div
               class="border-ui-border-panel bg-ui-panel rounded-ui-lg shadow-ui-md absolute bottom-[calc(100%+8px)] left-0 z-20 w-64 border border-solid p-2 [backdrop-filter:blur(24px)_saturate(1.5)]"
             >
@@ -579,7 +579,7 @@
         <button
           type="button"
           class="text-ui-dim hover:text-ui-accent hover:bg-ui-accent-bg rounded-ui flex size-8 cursor-pointer items-center justify-center border-0 bg-transparent transition-[color,background] [&_i]:text-[18px]"
-          [class.text-ui-accent]="showBacklog()"
+          [class.text-ui-accent]="isPopover('backlog')"
           [title]="'feature.visualNovel.log' | transloco"
           [attr.aria-label]="'feature.visualNovel.log' | transloco"
           (click)="toggleBacklog()"
@@ -590,7 +590,7 @@
           <button
             type="button"
             class="text-ui-dim hover:text-ui-accent hover:bg-ui-accent-bg rounded-ui flex h-8 cursor-pointer items-center gap-1 border-0 bg-transparent px-1.5 transition-[color,background] [&_i]:text-[18px]"
-            [class.text-ui-accent]="showEmote() || hasEmoteSelection()"
+            [class.text-ui-accent]="isPopover('emote') || hasEmoteSelection()"
             [title]="'feature.visualNovel.emote.title' | transloco"
             [attr.aria-label]="'feature.visualNovel.emote.title' | transloco"
             (click)="toggleEmote()"
@@ -602,7 +602,7 @@
               </span>
             }
           </button>
-          @if (showEmote()) {
+          @if (isPopover('emote')) {
             <div
               class="border-ui-border-panel bg-ui-panel rounded-ui-lg shadow-ui-md absolute bottom-[calc(100%+8px)] left-0 z-20 max-h-[70dvh] w-80 overflow-y-auto border border-solid p-2.5 [backdrop-filter:blur(24px)_saturate(1.5)]"
             >
@@ -904,14 +904,14 @@
           <button
             type="button"
             class="text-ui-dim hover:text-ui-accent hover:bg-ui-accent-bg rounded-ui flex size-8 cursor-pointer items-center justify-center border-0 bg-transparent transition-[color,background] [&_i]:text-[18px]"
-            [class.text-ui-accent]="showSoundBoard()"
+            [class.text-ui-accent]="isPopover('soundBoard')"
             [title]="'feature.visualNovel.soundBoard' | transloco"
             [attr.aria-label]="'feature.visualNovel.soundBoard' | transloco"
             (click)="toggleSoundBoard()"
           >
             <i class="material-icons">volume_up</i>
           </button>
-          @if (showSoundBoard()) {
+          @if (isPopover('soundBoard')) {
             <div
               class="border-ui-border-panel bg-ui-panel rounded-ui-lg shadow-ui-md absolute bottom-[calc(100%+8px)] left-0 z-20 max-h-72 w-64 overflow-y-auto border border-solid p-1.5 [backdrop-filter:blur(24px)_saturate(1.5)]"
             >
@@ -1006,14 +1006,14 @@
           <button
             type="button"
             class="text-ui-dim hover:text-ui-accent hover:bg-ui-accent-bg rounded-ui flex size-8 cursor-pointer items-center justify-center border-0 bg-transparent transition-[color,background] [&_i]:text-[18px]"
-            [class.text-ui-accent]="showPalette()"
+            [class.text-ui-accent]="isPopover('palette')"
             [title]="'feature.visualNovel.palette' | transloco"
             [attr.aria-label]="'feature.visualNovel.palette' | transloco"
             (click)="togglePalette()"
           >
             <i class="material-icons">menu_book</i>
           </button>
-          @if (showPalette()) {
+          @if (isPopover('palette')) {
             <div
               class="border-ui-border-panel bg-ui-panel rounded-ui-lg shadow-ui-md absolute bottom-[calc(100%+8px)] left-0 z-20 max-h-80 w-80 overflow-y-auto border border-solid p-1.5 [backdrop-filter:blur(24px)_saturate(1.5)]"
             >
