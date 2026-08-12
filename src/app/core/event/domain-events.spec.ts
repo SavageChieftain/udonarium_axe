@@ -66,9 +66,18 @@ describe('domain-events emit→subscribe wiring', () => {
   it('emitFinishVote で finishVote$ にイベントが届く', () => {
     const received: unknown[] = [];
     const unsub = finishVote$.subscribe((e) => received.push(e));
-    emitFinishVote({ text: 'done' });
+    const result = {
+      isRollCall: true,
+      voteTitle: '点呼',
+      voted: 2,
+      total: 2,
+      abstained: 0,
+      unanswered: 0,
+      tally: [],
+    };
+    emitFinishVote(result);
     unsub();
-    expect(received).toEqual([{ text: 'done' }]);
+    expect(received).toEqual([result]);
   });
 
   it('emitAlarmTimeUp / emitAlarmPop で各 channel にイベントが届く', () => {

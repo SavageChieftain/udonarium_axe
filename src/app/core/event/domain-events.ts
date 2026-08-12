@@ -48,8 +48,20 @@ export interface CutInEvent {
   cutIn: unknown;
 }
 
+export interface VoteTally {
+  choice: string;
+  count: number;
+}
+
 export interface FinishVoteEvent {
-  text: string;
+  isRollCall: boolean;
+  voteTitle: string;
+  voted: number;
+  total: number;
+  abstained: number;
+  unanswered: number;
+  tally: VoteTally[];
+  chatTabIdentifier?: string;
 }
 
 export interface AlarmTimeUpEvent {

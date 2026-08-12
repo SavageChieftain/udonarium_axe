@@ -105,6 +105,20 @@ describe('Vote', () => {
 
       expect(vote.isFinish).toBe(false);
     });
+
+    it('開始したタブを覚える', () => {
+      vote.makeVote('c', '点呼', ['p1'], ['準備完了'], true, 'tab-main');
+
+      expect(vote.chatTabIdentifier).toBe('tab-main');
+    });
+
+    it('タブ指定なしなら空のまま', () => {
+      vote.chatTabIdentifier = 'tab-old';
+
+      vote.makeVote('c', '点呼', ['p1'], ['準備完了'], true);
+
+      expect(vote.chatTabIdentifier).toBe('');
+    });
   });
 
   describe('voteAnswerByPeerId()', () => {
@@ -429,7 +443,18 @@ describe('Vote', () => {
       vi.advanceTimersByTime(10);
 
       expect(finishEvents).toHaveLength(1);
-      expect(finishEvents[0]).toEqual(expect.objectContaining({ text: expect.any(String) }));
+      expect(finishEvents[0]).toEqual(
+        expect.objectContaining({
+          isRollCall: false,
+          voteTitle: 'テスト投票',
+          voted: 1,
+          total: 1,
+          tally: [
+            { choice: '賛成', count: 1 },
+            { choice: '反対', count: 0 },
+          ],
+        })
+      );
       sub();
       vi.useRealTimers();
     });
@@ -496,6 +521,46 @@ describe('Vote', () => {
       expect(finishEvents).toHaveLength(1);
       sub();
       vi.useRealTimers();
+    });
+  });
+
+  describe('finishByChair()', () => {
+    it('議長は未回答を残して締め切れる', () => {
+      vi.useFakeTimers();
+      vote.chairId = 'my-peer-id';
+      vote.targetPeerId = ['peer-1', 'peer-2'];
+      vote.voteId = 1;
+      vote.choices = ['準備完了'];
+      vote.isRollCall = true;
+      vote.chatTabIdentifier = 'tab-main';
+
+      vi.spyOn(PeerCursor, 'findByPeerId').mockImplementation((peerId: string) =>
+        peerId === 'peer-1'
+          ? ({ voteId: 1, voteAnswer: 0, isDisConnect: false } as unknown as PeerCursor)
+          : ({ voteId: 0, voteAnswer: -1, isDisConnect: false } as unknown as PeerCursor)
+      );
+      const finishEvents: domainEvents.FinishVoteEvent[] = [];
+      const sub = domainEvents.finishVote$.subscribe((e) => finishEvents.push(e));
+
+      vote.finishByChair();
+      vi.advanceTimersByTime(10);
+
+      expect(vote.isFinish).toBe(true);
+      expect(finishEvents).toHaveLength(1);
+      expect(finishEvents[0]).toEqual(
+        expect.objectContaining({ voted: 1, total: 2, unanswered: 1, chatTabIdentifier: 'tab-main' })
+      );
+      sub();
+      vi.useRealTimers();
+    });
+
+    it('議長でなければ締め切らない', () => {
+      vote.chairId = 'other-peer-id';
+      vote.targetPeerId = ['peer-1'];
+
+      vote.finishByChair();
+
+      expect(vote.isFinish).toBe(false);
     });
   });
 

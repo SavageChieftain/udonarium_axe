@@ -1,0 +1,146 @@
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  DestroyRef,
+  effect,
+  ElementRef,
+  inject,
+  signal,
+  viewChild,
+} from '@angular/core';
+import { ChatMessageService } from '@axe/application/chat/chat-message.service';
+import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
+import { ObjectChangeService } from '@axe/application/sync/object-change.service';
+import { WidgetLayoutService } from '@axe/application/ui/widget-layout.service';
+import { placeWidget, rememberWidget, WIDGET_VOTE } from '@axe/application/ui/widget-place';
+import { ImageFile } from '@axe/core/storage/image-file';
+import { ObjectStore } from '@axe/core/sync/object-store';
+import { PeerCursor } from '@axe/domain/peer/peer-cursor';
+import { Vote } from '@axe/domain/vote/vote';
+import { DraggableDirective } from '@axe/ui/directives/draggable.directive';
+import { SafePipe } from '@axe/ui/pipes/safe.pipe';
+import { TranslocoModule } from '@jsverse/transloco';
+
+@Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  selector: 'app-vote-widget',
+  templateUrl: './vote-widget.component.html',
+  imports: [DraggableDirective, SafePipe, TranslocoModule],
+})
+export class VoteWidgetComponent {
+  private readonly chatMessageService = inject(ChatMessageService);
+  private readonly objectStore = inject(ObjectStore);
+  private readonly objectChange = inject(ObjectChangeService);
+  private readonly layout = inject(WidgetLayoutService);
+  private readonly destroyRef = inject(DestroyRef);
+  private readonly t = inject(TRANSLATE_FN);
+
+  private readonly panelRef = viewChild<ElementRef<HTMLElement>>('panel');
+
+  protected readonly isCollapsed = signal(false);
+
+  protected readonly vote = computed(
+    () => {
+      this.objectChange.versionOf('Vote')();
+      const vote = this.objectStore.get<Vote>('Vote');
+      if (!vote) return null;
+      for (const peerId of vote.targetPeerId) {
+        const cursor = PeerCursor.findByPeerId(peerId);
+        if (cursor) this.objectChange.versionOf(cursor.identifier)();
+      }
+      return vote;
+    },
+    { equal: () => false }
+  );
+
+  protected readonly isShown = computed(() => {
+    const vote = this.vote();
+    if (!vote || !PeerCursor.myCursor) return false;
+    if (vote.initTimeStamp <= 0 || vote.isFinish) return false;
+    return vote.chkToMe() || vote.isChair();
+  });
+
+  protected readonly isTarget = computed(() => {
+    const vote = this.vote();
+    return vote != null && PeerCursor.myCursor != null && vote.chkToMe();
+  });
+
+  protected readonly isAnswered = computed(() => {
+    const vote = this.vote();
+    return vote != null && PeerCursor.myCursor != null && vote.isVoteEnd(PeerCursor.myCursor.peerId);
+  });
+
+  constructor() {
+    this.objectChange.startVote$.subscribe(() => this.isCollapsed.set(false), this.destroyRef);
+
+    effect((onCleanup) => {
+      if (!this.isShown()) return;
+      const el = this.panelRef()?.nativeElement;
+      if (!el) return;
+      placeWidget(this.layout, WIDGET_VOTE, el, () => ({
+        left: Math.max(8, (window.innerWidth - el.offsetWidth) / 2),
+        top: Math.max(8, window.innerHeight - el.offsetHeight - 96),
+      }));
+      onCleanup(() => rememberWidget(this.layout, WIDGET_VOTE, el));
+    });
+  }
+
+  protected rememberSpot(): void {
+    const el = this.panelRef()?.nativeElement;
+    if (el) rememberWidget(this.layout, WIDGET_VOTE, el);
+  }
+
+  protected toggleCollapsed(): void {
+    this.isCollapsed.update((collapsed) => !collapsed);
+  }
+
+  protected voteSend(choice: string): void {
+    const vote = this.vote();
+    if (!vote || this.isAnswered()) return;
+    vote.voting(choice, PeerCursor.myCursor.peerId);
+    const prefix = vote.isRollCall ? this.t('feature.vote.rollCallPrefix') : this.t('feature.vote.votePrefix');
+    const text =
+      prefix +
+      this.t('feature.vote.voteResult', {
+        choice,
+        voted: vote.votedTotalNum(),
+        total: vote.voteAnswer.length,
+      });
+    this.chatMessageService.sendSystemMessageLastSendCharactor(text, vote.chatTabIdentifier);
+  }
+
+  protected abstain(): void {
+    const vote = this.vote();
+    if (!vote || this.isAnswered()) return;
+    vote.voting(null, PeerCursor.myCursor.peerId);
+    const prefix = vote.isRollCall ? this.t('feature.vote.rollCallPrefix') : this.t('feature.vote.votePrefix');
+    const text =
+      prefix +
+      this.t('feature.vote.abstainResult', {
+        voted: vote.votedTotalNum(),
+        total: vote.voteAnswer.length,
+      });
+    this.chatMessageService.sendSystemMessageLastSendCharactor(text, vote.chatTabIdentifier);
+  }
+
+  protected finishByChair(): void {
+    this.vote()?.finishByChair();
+  }
+
+  protected findPeerName(peerId: string): string {
+    return PeerCursor.findByPeerId(peerId)?.name ?? '';
+  }
+
+  protected findPeerLastControlName(peerId: string): string {
+    return PeerCursor.findByPeerId(peerId)?.lastControlCharacterName ?? '';
+  }
+
+  protected findPeerImage(peerId: string): ImageFile | null {
+    return PeerCursor.findByPeerId(peerId)?.image ?? null;
+  }
+
+  protected findPeerLastControlImage(peerId: string): ImageFile | null {
+    return PeerCursor.findByPeerId(peerId)?.lastControlImage ?? null;
+  }
+}

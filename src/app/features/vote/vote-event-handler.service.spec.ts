@@ -1,24 +1,19 @@
 import { TestBed } from '@angular/core/testing';
 import { ChatMessageService } from '@axe/application/chat/chat-message.service';
-import { PanelService } from '@axe/application/ui/panel.service';
-import { emitFinishVote, emitStartVote } from '@axe/core/event/domain-events';
+import { emitFinishVote } from '@axe/core/event/domain-events';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
-import { Vote } from '@axe/domain/vote/vote';
 import { VoteEventHandlerService } from '@axe/features/vote/vote-event-handler.service';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
 
 describe('VoteEventHandlerService', () => {
   let chatStub: { sendSystemMessageLastSendCharactor: ReturnType<typeof vi.fn> };
-  let panelStub: { open: ReturnType<typeof vi.fn> };
 
   beforeEach(() => {
     PeerCursor.createMyCursor();
     chatStub = { sendSystemMessageLastSendCharactor: vi.fn() };
-    panelStub = { open: vi.fn().mockReturnValue({}) };
     TestBed.configureTestingModule({ providers: [...TEST_PROVIDERS] });
     TestBed.overrideProvider(ChatMessageService, { useValue: chatStub });
-    TestBed.overrideProvider(PanelService, { useValue: panelStub });
     TestBed.inject(VoteEventHandlerService);
   });
 
@@ -28,26 +23,56 @@ describe('VoteEventHandlerService', () => {
     ObjectStore.instance.clearDeleteHistory();
   });
 
-  it('finishVote で system message を送る', () => {
-    emitFinishVote({ text: '結果: 賛成 5 / 反対 2' });
+  it('投票の集計を選択肢ごとに訳した文にする', () => {
+    emitFinishVote({
+      isRollCall: false,
+      voteTitle: '休憩する？',
+      voted: 3,
+      total: 3,
+      abstained: 0,
+      unanswered: 0,
+      tally: [
+        { choice: '賛成', count: 2 },
+        { choice: '反対', count: 1 },
+      ],
+    });
 
-    expect(chatStub.sendSystemMessageLastSendCharactor).toHaveBeenCalledWith('結果: 賛成 5 / 反対 2');
+    expect(chatStub.sendSystemMessageLastSendCharactor).toHaveBeenCalledWith(
+      '投票終了(休憩する？) 賛成：2 反対：1',
+      undefined
+    );
   });
 
-  it('startVote: Vote が無い / chkToMe=false ならパネルを開かない', () => {
-    emitStartVote();
+  it('点呼の集計に棄権と未回答を添える', () => {
+    emitFinishVote({
+      isRollCall: true,
+      voteTitle: '点呼',
+      voted: 3,
+      total: 5,
+      abstained: 1,
+      unanswered: 2,
+      tally: [],
+      chatTabIdentifier: 'tab-main',
+    });
 
-    expect(panelStub.open).not.toHaveBeenCalled();
+    expect(chatStub.sendSystemMessageLastSendCharactor).toHaveBeenCalledWith(
+      '点呼終了(3/5) 棄権:1 未回答:2',
+      'tab-main'
+    );
   });
 
-  it('startVote: Vote.chkToMe() が true ならパネルを開く', () => {
-    const vote = new Vote('Vote');
-    vote.initialize();
-    vote.chkToMe = () => true;
+  it('棄権も未回答も無ければ集計だけを送る', () => {
+    emitFinishVote({
+      isRollCall: true,
+      voteTitle: '点呼',
+      voted: 2,
+      total: 2,
+      abstained: 0,
+      unanswered: 0,
+      tally: [],
+      chatTabIdentifier: 'tab-main',
+    });
 
-    emitStartVote();
-
-    expect(panelStub.open).toHaveBeenCalledTimes(1);
-    expect(panelStub.open.mock.calls[0][1].title).toBe('点呼/投票');
+    expect(chatStub.sendSystemMessageLastSendCharactor).toHaveBeenCalledWith('点呼終了(2/2)', 'tab-main');
   });
 });

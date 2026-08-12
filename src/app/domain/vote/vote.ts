@@ -1,4 +1,4 @@
-import { emitEndOldVote, emitFinishVote, emitStartVote } from '@axe/core/event/domain-events';
+import { emitEndOldVote, emitFinishVote, emitStartVote, FinishVoteEvent } from '@axe/core/event/domain-events';
 import { SyncObject, SyncVar } from '@axe/core/sync/decorator';
 import { GameObject, ObjectContext } from '@axe/core/sync/game-object';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
@@ -21,6 +21,7 @@ export class Vote extends GameObject {
   @SyncVar() isRollCall = false;
   @SyncVar() isFinish = false;
   @SyncVar() voteId = 0;
+  @SyncVar() chatTabIdentifier = '';
 
   voteAnswerByPeerId(peerId: string): number {
     const peer = PeerCursor.findByPeerId(peerId);
@@ -46,12 +47,20 @@ export class Vote extends GameObject {
     return answer;
   }
 
-  makeVote(chairId: string, voteTitle: string, targetPeerId: string[], choices: string[], isRollCall: boolean) {
+  makeVote(
+    chairId: string,
+    voteTitle: string,
+    targetPeerId: string[],
+    choices: string[],
+    isRollCall: boolean,
+    chatTabIdentifier = ''
+  ) {
     this.isRollCall = isRollCall;
     this.chairId = chairId;
     this.choices = choices;
     this.voteTitle = voteTitle;
     this.isFinish = false;
+    this.chatTabIdentifier = chatTabIdentifier;
     this.voteId++;
 
     this.targetPeerId = targetPeerId;
@@ -83,26 +92,43 @@ export class Vote extends GameObject {
   chkFinishVote() {
     if (this.isFinish) return;
     if (this.chairId == PeerCursor.myCursor?.peerId && this.votedTotalNum() == this.targetPeerId.length) {
-      this.isFinish = true;
-      let text_: string;
-      if (this.isRollCall) {
-        text_ = `点呼終了(${this.votedTotalNum()}/${this.targetPeerId.length})`;
-        if (this.votedNumByIndex(-2) != 0) {
-          text_ += ` 棄権：${this.votedNumByIndex(-2)}`;
-        }
-      } else {
-        text_ = `投票終了(${this.voteTitle}) `;
-        for (const cho of this.choices) {
-          text_ += ` ${cho}：${this.votedNumByChoice(cho)}`;
-        }
-        if (this.votedNumByIndex(-2) != 0) {
-          text_ += ` 棄権：${this.votedNumByIndex(-2)}`;
-        }
-      }
-      setTimeout(() => {
-        emitFinishVote({ text: text_ });
-      }, 1);
+      this.finish();
     }
+  }
+
+  finishByChair() {
+    if (this.isFinish) return;
+    if (this.chairId != PeerCursor.myCursor?.peerId) return;
+    this.finish();
+  }
+
+  isChair(): boolean {
+    return this.chairId === PeerCursor.myCursor?.peerId;
+  }
+
+  unansweredNum(): number {
+    return this.targetPeerId.length - this.votedTotalNum();
+  }
+
+  private finish() {
+    this.isFinish = true;
+    const result = this.result();
+    setTimeout(() => {
+      emitFinishVote(result);
+    }, 1);
+  }
+
+  private result(): FinishVoteEvent {
+    return {
+      isRollCall: this.isRollCall,
+      voteTitle: this.voteTitle,
+      voted: this.votedTotalNum(),
+      total: this.targetPeerId.length,
+      abstained: this.votedNumByIndex(-2),
+      unanswered: this.unansweredNum(),
+      tally: this.isRollCall ? [] : this.choices.map((choice) => ({ choice, count: this.votedNumByChoice(choice) })),
+      chatTabIdentifier: this.chatTabIdentifier,
+    };
   }
 
   votedTotalNum(): number {

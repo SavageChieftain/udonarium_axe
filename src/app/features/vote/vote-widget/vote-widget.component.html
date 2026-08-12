@@ -1,0 +1,170 @@
+@if (isShown() && vote(); as activeVote) {
+  <div
+    #panel
+    class="rounded-ui-lg border-ui-border-panel bg-ui-panel text-ui-text shadow-ui-md fixed top-0 left-0 z-100 box-border flex w-90 max-w-[calc(100vw-1rem)] cursor-grab flex-col border border-solid [backdrop-filter:blur(24px)_saturate(1.5)] select-none [-webkit-backdrop-filter:blur(24px)_saturate(1.5)] active:cursor-grabbing"
+    data-testid="vote-widget"
+    appDraggable
+    (draggable.end)="rememberSpot()"
+    [draggable.unhandle]="'button'"
+  >
+    <div class="border-ui-border-panel flex items-center gap-2 border-b border-solid px-2.5 py-1.5">
+      <i class="material-icons text-ui-accent text-[18px]!">how_to_vote</i>
+      <span class="min-w-0 flex-1 truncate text-[12px] font-semibold" [title]="activeVote.voteTitle">{{
+        activeVote.voteTitle
+      }}</span>
+      <span class="text-ui-muted shrink-0 text-[11px]">
+        @if (activeVote.isRollCall) {
+          {{
+            'feature.vote.voteConfirmCount'
+              | transloco: { voted: activeVote.votedTotalNum(), total: activeVote.voteAnswer.length }
+          }}
+        } @else {
+          {{
+            'feature.vote.voteCount'
+              | transloco: { voted: activeVote.votedTotalNum(), total: activeVote.voteAnswer.length }
+          }}
+        }
+      </span>
+      <button
+        type="button"
+        class="rounded-ui-sm text-ui-dim hover:bg-ui-hover hover:text-ui-text inline-flex h-5.5 cursor-pointer items-center justify-center border-none bg-transparent px-1 leading-none shadow-none transition-colors outline-none hover:border-transparent hover:shadow-none"
+        [title]="(isCollapsed() ? 'feature.vote.expand' : 'feature.vote.minimize') | transloco"
+        data-testid="vote-widget-collapse"
+        (click)="toggleCollapsed()"
+      >
+        <i class="material-icons text-[14px]!">{{ isCollapsed() ? 'expand_less' : 'expand_more' }}</i>
+      </button>
+    </div>
+
+    @if (!isCollapsed()) {
+      <div class="border-ui-border-panel flex flex-col gap-1.5 border-b border-solid px-2.5 py-2">
+        <div class="flex flex-wrap gap-1.5">
+          @for (choice of activeVote.choices; track choice) {
+            <button
+              type="button"
+              class="rounded-ui-sm border-ui-accent bg-ui-accent-bg text-ui-accent hover:border-ui-accent hover:bg-ui-accent m-0 inline-flex cursor-pointer flex-col items-center border border-solid px-4 py-1.5 text-[13px] transition-[background,color,box-shadow,transform] hover:text-white hover:shadow-none disabled:cursor-not-allowed disabled:opacity-50"
+              (click)="voteSend(choice)"
+              [disabled]="!isTarget() || isAnswered()"
+            >
+              <span class="font-semibold">{{ choice }}</span>
+              <span class="text-[11px] opacity-80"
+                >{{ activeVote.votedNumByChoice(choice) }}{{ 'feature.vote.peopleSuffix' | transloco }}</span
+              >
+            </button>
+          }
+          @if (isTarget() && !isAnswered()) {
+            <button
+              type="button"
+              class="rounded-ui-sm border-ui-border-panel text-ui-muted hover:border-ui-danger hover:text-ui-danger m-0 inline-flex cursor-pointer items-center border border-solid px-3 py-1.5 text-[12px] transition-[background,color,border-color] hover:shadow-none"
+              data-testid="vote-widget-abstain"
+              (click)="abstain()"
+            >
+              {{ (activeVote.isRollCall ? 'feature.vote.absentAction' : 'feature.vote.abstainAction') | transloco }}
+            </button>
+          }
+        </div>
+
+        @if (!activeVote.isRollCall) {
+          <div class="text-ui-muted text-[11px]">
+            {{ 'feature.vote.abstainCount' | transloco: { count: activeVote.votedNumByIndex(-2) } }}
+          </div>
+        }
+
+        <div class="text-ui-muted flex items-center gap-0.75 text-[11px] [&_.material-icons]:text-[13px]!">
+          <i class="material-icons">info</i>
+          @if (!isTarget()) {
+            {{ 'feature.vote.chairWatchHint' | transloco }}
+          } @else if (isAnswered()) {
+            {{ 'feature.vote.answeredHint' | transloco }}
+          } @else {
+            {{ 'feature.vote.stayHint' | transloco }}
+          }
+        </div>
+      </div>
+
+      <div class="flex max-h-72 flex-col gap-1 overflow-y-auto px-2 py-1.5">
+        @for (target of activeVote.targetPeerId; track target) {
+          @let peerImage = findPeerImage(target);
+          @let controlName = findPeerLastControlName(target);
+          @let controlImage = findPeerLastControlImage(target);
+          @let answerIdx = activeVote.voteAnswerByPeerId(target);
+          <div
+            class="rounded-ui-sm border-ui-border-panel bg-ui-input flex items-center gap-2 border border-l-[3px] border-solid border-l-transparent px-2 py-1.5"
+            [class.border-l-ui-accent!]="answerIdx >= 0"
+            [class.border-l-ui-danger!]="answerIdx === -2"
+            [class.opacity-60]="answerIdx === -2"
+          >
+            <div class="rounded-ui-sm bg-ui-border-panel size-10 shrink-0 overflow-hidden">
+              @if (peerImage) {
+                <div
+                  class="size-full bg-cover bg-top bg-no-repeat"
+                  [style.background-image]="'url(' + peerImage.url + ')' | safe: 'style'"
+                ></div>
+              } @else {
+                <div class="text-ui-muted flex size-full items-center justify-center [&_.material-icons]:text-[24px]!">
+                  <i class="material-icons">person</i>
+                </div>
+              }
+            </div>
+            <div class="min-w-0 flex-1">
+              <div class="text-ui-text truncate text-[13px] font-semibold">
+                {{ findPeerName(target) }}
+              </div>
+              <div class="text-ui-muted mt-0.5 truncate text-[11px]">
+                {{ controlName || ('feature.vote.noControlCharacter' | transloco) }}
+              </div>
+            </div>
+            @if (controlImage) {
+              <div class="rounded-ui-sm bg-ui-border-panel size-9 shrink-0 overflow-hidden opacity-85">
+                <div
+                  class="size-full bg-cover bg-top bg-no-repeat"
+                  [style.background-image]="'url(' + controlImage.url + ')' | safe: 'style'"
+                ></div>
+              </div>
+            }
+            <div
+              class="rounded-ui-sm px-2 py-0.5 text-[12px] font-semibold whitespace-nowrap"
+              [class.bg-[rgba(200,120,0,0.12)]]="answerIdx === -1"
+              [class.text-[#c87000]]="answerIdx === -1"
+              [class.bg-ui-accent-bg]="answerIdx >= 0"
+              [class.text-ui-accent]="answerIdx >= 0"
+              [class.bg-ui-danger-bg]="answerIdx === -2"
+              [class.text-ui-danger]="answerIdx === -2"
+            >
+              @if (answerIdx === -1) {
+                @if (activeVote.isRollCall) {
+                  {{ 'feature.vote.notConfirmed' | transloco }}
+                } @else {
+                  {{ 'feature.vote.notVoted' | transloco }}
+                }
+              } @else if (answerIdx === -2) {
+                @if (activeVote.isRollCall) {
+                  {{ 'feature.vote.absent' | transloco }}
+                } @else {
+                  {{ 'feature.vote.abstain' | transloco }}
+                }
+              } @else {
+                {{ activeVote.indexToChoice(answerIdx) }}
+              }
+            </div>
+          </div>
+        }
+      </div>
+
+      @if (activeVote.isChair()) {
+        <div class="border-ui-border-panel flex items-center justify-end border-t border-solid px-2.5 py-1.5">
+          <button
+            type="button"
+            class="rounded-ui-sm border-ui-border-panel text-ui-muted hover:border-ui-accent hover:text-ui-accent m-0 inline-flex cursor-pointer items-center gap-1 border border-solid px-3 py-1 text-[12px] transition-[background,color,border-color] hover:shadow-none [&_.material-icons]:text-[14px]!"
+            [title]="'feature.vote.finishHint' | transloco"
+            data-testid="vote-widget-finish"
+            (click)="finishByChair()"
+          >
+            <i class="material-icons">gavel</i>
+            {{ 'feature.vote.finishAction' | transloco }}
+          </button>
+        </div>
+      }
+    }
+  </div>
+}

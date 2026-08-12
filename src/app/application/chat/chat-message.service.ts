@@ -141,9 +141,9 @@ export class ChatMessageService {
   }
 
   // 最終発言キャラでシステム発言
-  sendSystemMessageLastSendCharactor(text: string) {
+  sendSystemMessageLastSendCharactor(text: string, chatTabIdentifier?: string) {
     const chatTabList = this.objectStore.get<ChatTabList>('ChatTabList');
-    const sysTab = chatTabList!.systemMessageTab!;
+    const sysTab = this.resolveChatTab(chatTabIdentifier) ?? chatTabList!.systemMessageTab!;
     const sendFrom = PeerCursor.myCursor.lastControlSendFrom
       ? PeerCursor.myCursor.lastControlSendFrom
       : PeerCursor.myCursor.identifier;
@@ -286,6 +286,12 @@ export class ChatMessageService {
       return object.userId;
     }
     return '';
+  }
+
+  private resolveChatTab(identifier?: string): ChatTab | null {
+    if (!identifier) return null;
+    const tab = this.objectStore.get<ChatTab>(identifier);
+    return tab instanceof ChatTab ? tab : null;
   }
 
   private findObjectName(identifier: string): string {

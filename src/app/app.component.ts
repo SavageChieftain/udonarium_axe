@@ -73,6 +73,7 @@ import { ImageDropEventHandlerService } from '@axe/features/tabletop/image-drop/
 import { VisualNovelModeService } from '@axe/features/visual-novel/visual-novel-mode.service';
 import { VisualNovelOverlayComponent } from '@axe/features/visual-novel/visual-novel-overlay/visual-novel-overlay.component';
 import { VoteEventHandlerService } from '@axe/features/vote/vote-event-handler.service';
+import { VoteWidgetComponent } from '@axe/features/vote/vote-widget/vote-widget.component';
 import { ConnectionQualityComponent } from '@axe/features/widgets/connection-quality/connection-quality.component';
 import { DigitalClockComponent } from '@axe/features/widgets/digital-clock/digital-clock.component';
 import { ContextMenuComponent } from '@axe/ui/components/context-menu/context-menu.component';
@@ -97,6 +98,7 @@ import { version as APP_VERSION } from '@pkg';
     NpcDragGhostComponent,
     ConnectionQualityComponent,
     DigitalClockComponent,
+    VoteWidgetComponent,
     MobileShellComponent,
     RoomRestoreBannerComponent,
     ReplayStagingBannerComponent,

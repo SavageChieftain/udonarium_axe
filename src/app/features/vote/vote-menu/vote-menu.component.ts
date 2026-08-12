@@ -27,6 +27,7 @@ export class VoteMenuComponent {
   private readonly t = inject(TRANSLATE_FN);
 
   protected checkedPeers = new Set<string>();
+  chatTabidentifier = '';
   networkService = Network;
   voteContentsText = '';
   voteTitle = this.t('feature.vote.voteTitlePlaceholder');
@@ -92,9 +93,9 @@ export class VoteMenuComponent {
     const choices = choicesInput.split(/\s+/i);
     const peerList = this.selectedList();
 
-    vote.makeVote(PeerCursor.myCursor.peerId, voteTitle, peerList, choices, this.isRollCall);
+    vote.makeVote(PeerCursor.myCursor.peerId, voteTitle, peerList, choices, this.isRollCall, this.chatTabidentifier);
     vote.startVote();
-    this.chatMessageService.sendSystemMessageLastSendCharactor(startMessage);
+    this.chatMessageService.sendSystemMessageLastSendCharactor(startMessage, this.chatTabidentifier);
     this.panelService.close();
   }
 

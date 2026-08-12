@@ -393,7 +393,8 @@ export class ChatWindowComponent {
     };
     this.panelService.openLazy(
       () => import('@axe/features/vote/vote-menu/vote-menu.component').then((m) => m.VoteMenuComponent),
-      option
+      option,
+      (component) => (component.chatTabidentifier = this.chatTabidentifier)
     );
   }
 
