@@ -46,6 +46,13 @@ import {
   type DataElementDropPosition,
   resolveDropPosition as resolveDropPositionShared,
 } from '@axe/features/data-element/game-data-element/game-data-element-structure-drop';
+import {
+  createContainerElement,
+  createFieldElement,
+  insertElementAfter,
+  moveStructureElement,
+  type NewElementNames,
+} from '@axe/features/data-element/game-data-element/game-data-element-structure-ops';
 import { GameDataElementTableViewComponent } from '@axe/features/data-element/game-data-element/game-data-element-table-view.component';
 import { escapeHtml, isUrlText } from '@axe/features/data-element/game-data-element/game-data-element-utils';
 import { buildRangeShapeThumbnail } from '@axe/features/tabletop/range-shape-editor/range-shape-editor-utils';
@@ -253,59 +260,49 @@ export class GameDataElementComponent {
   }
 
   get choicesText(): string {
-    if (this.gameDataElement()) this.objectChange.versionOf(this.gameDataElement().identifier)();
-    return this.gameDataElement().getAttribute(DataElementAttribute.CHOICES);
+    return this.attrText(DataElementAttribute.CHOICES);
   }
   set choicesText(value: string) {
     this.setFieldAttribute(DataElementAttribute.CHOICES, value);
   }
 
   get unitText(): string {
-    if (this.gameDataElement()) this.objectChange.versionOf(this.gameDataElement().identifier)();
-    return this.gameDataElement().getAttribute(DataElementAttribute.UNIT);
+    return this.attrText(DataElementAttribute.UNIT);
   }
   set unitText(value: string) {
     this.setFieldAttribute(DataElementAttribute.UNIT, value);
   }
 
   get minText(): string {
-    if (this.gameDataElement()) this.objectChange.versionOf(this.gameDataElement().identifier)();
-    return this.gameDataElement().getAttribute(DataElementAttribute.MIN);
+    return this.attrText(DataElementAttribute.MIN);
   }
   set minText(value: string | number | null | undefined) {
     this.setFieldAttribute(DataElementAttribute.MIN, value);
   }
 
   get maxText(): string {
-    if (this.gameDataElement()) this.objectChange.versionOf(this.gameDataElement().identifier)();
-    return this.gameDataElement().getAttribute(DataElementAttribute.MAX);
+    return this.attrText(DataElementAttribute.MAX);
   }
   set maxText(value: string | number | null | undefined) {
     this.setFieldAttribute(DataElementAttribute.MAX, value);
   }
 
   get minBaseText(): string {
-    const el = this.gameDataElement();
-    if (el) this.objectChange.versionOf(el.identifier)();
-    return el?.getAttribute(DataElementAttribute.MIN_BASE) || el?.getAttribute(DataElementAttribute.MIN) || '';
+    return this.attrText(DataElementAttribute.MIN_BASE, DataElementAttribute.MIN);
   }
   set minBaseText(value: string | number | null | undefined) {
     this.setFieldAttribute(DataElementAttribute.MIN_BASE, value);
   }
 
   get minCorrectionText(): string {
-    const el = this.gameDataElement();
-    if (el) this.objectChange.versionOf(el.identifier)();
-    return el?.getAttribute(DataElementAttribute.MIN_CORRECTION) || '';
+    return this.attrText(DataElementAttribute.MIN_CORRECTION);
   }
   set minCorrectionText(value: string | number | null | undefined) {
     this.setFieldAttribute(DataElementAttribute.MIN_CORRECTION, value);
   }
 
   get maxBaseText(): string {
-    const el = this.gameDataElement();
-    if (el) this.objectChange.versionOf(el.identifier)();
-    return el?.getAttribute(DataElementAttribute.MAX_BASE) || el?.getAttribute(DataElementAttribute.MAX) || '';
+    return this.attrText(DataElementAttribute.MAX_BASE, DataElementAttribute.MAX);
   }
   set maxBaseText(value: string | number | null | undefined) {
     this.setFieldAttribute(DataElementAttribute.MAX_BASE, value);
@@ -313,9 +310,7 @@ export class GameDataElementComponent {
   }
 
   get maxCorrectionText(): string {
-    const el = this.gameDataElement();
-    if (el) this.objectChange.versionOf(el.identifier)();
-    return el?.getAttribute(DataElementAttribute.MAX_CORRECTION) || '';
+    return this.attrText(DataElementAttribute.MAX_CORRECTION);
   }
   set maxCorrectionText(value: string | number | null | undefined) {
     this.setFieldAttribute(DataElementAttribute.MAX_CORRECTION, value);
@@ -347,40 +342,35 @@ export class GameDataElementComponent {
   }
 
   get formulaText(): string {
-    if (this.gameDataElement()) this.objectChange.versionOf(this.gameDataElement().identifier)();
-    return this.gameDataElement().getAttribute(DataElementAttribute.FORMULA);
+    return this.attrText(DataElementAttribute.FORMULA);
   }
   set formulaText(value: string) {
     this.setFieldAttribute(DataElementAttribute.FORMULA, value);
   }
 
   get tableCellText(): string {
-    if (this.gameDataElement()) this.objectChange.versionOf(this.gameDataElement().identifier)();
-    return this.gameDataElement().getAttribute(DataElementAttribute.CELL_TEXT);
+    return this.attrText(DataElementAttribute.CELL_TEXT);
   }
   set tableCellText(value: string) {
     this.setFieldAttribute(DataElementAttribute.CELL_TEXT, value);
   }
 
   get columnLabelText(): string {
-    if (this.gameDataElement()) this.objectChange.versionOf(this.gameDataElement().identifier)();
-    return this.gameDataElement().getAttribute(DataElementAttribute.COLUMN_LABEL);
+    return this.attrText(DataElementAttribute.COLUMN_LABEL);
   }
   set columnLabelText(value: string) {
     this.setFieldAttribute(DataElementAttribute.COLUMN_LABEL, value);
   }
 
   get columnGroupText(): string {
-    if (this.gameDataElement()) this.objectChange.versionOf(this.gameDataElement().identifier)();
-    return this.gameDataElement().getAttribute(DataElementAttribute.COLUMN_GROUP);
+    return this.attrText(DataElementAttribute.COLUMN_GROUP);
   }
   set columnGroupText(value: string) {
     this.setFieldAttribute(DataElementAttribute.COLUMN_GROUP, value);
   }
 
   get rowHeaderLabelText(): string {
-    if (this.gameDataElement()) this.objectChange.versionOf(this.gameDataElement().identifier)();
-    return this.gameDataElement().getAttribute(DataElementAttribute.ROW_HEADER_LABEL);
+    return this.attrText(DataElementAttribute.ROW_HEADER_LABEL);
   }
   set rowHeaderLabelText(value: string) {
     this.setFieldAttribute(DataElementAttribute.ROW_HEADER_LABEL, value);
@@ -530,7 +520,7 @@ export class GameDataElementComponent {
     const parentElement = this.gameDataElement();
     if (!this.canAddChildFieldElement()) return;
 
-    const fieldElement = this.createFieldElement(this.t('feature.dataElement.defaults.newTag'), parentElement);
+    const fieldElement = createFieldElement(parentElement, this.newElementNames());
     parentElement.appendChild(fieldElement);
     this.notifyStructureChanged(parentElement, fieldElement);
   }
@@ -539,8 +529,8 @@ export class GameDataElementComponent {
     const parentElement = this.getDataElementParent();
     if (!parentElement || !canAcceptChildRole(parentElement, DataElementRole.FIELD)) return;
 
-    const fieldElement = this.createFieldElement(this.t('feature.dataElement.defaults.newTag'), parentElement);
-    this.insertElementAfter(fieldElement, this.gameDataElement(), parentElement);
+    const fieldElement = createFieldElement(parentElement, this.newElementNames());
+    insertElementAfter(fieldElement, this.gameDataElement(), parentElement);
     this.notifyStructureChanged(parentElement, fieldElement);
   }
 
@@ -548,11 +538,7 @@ export class GameDataElementComponent {
     const parentElement = this.gameDataElement();
     if (!this.canAddChildGroupElement()) return;
 
-    const groupElement = this.createContainerElement(
-      DataElementRole.GROUP,
-      this.t('feature.dataElement.defaults.newGroup'),
-      parentElement
-    );
+    const groupElement = createContainerElement(DataElementRole.GROUP, parentElement, this.newElementNames());
     parentElement.appendChild(groupElement);
     this.notifyStructureChanged(parentElement, groupElement);
   }
@@ -570,45 +556,11 @@ export class GameDataElementComponent {
     return !!parentElement && canAcceptChildRole(parentElement, DataElementRole.FIELD);
   }
 
-  private createContainerElement(
-    role: typeof DataElementRole.SECTION | typeof DataElementRole.GROUP,
-    name: string,
-    parentElement: DataElement = this.gameDataElement(),
-    reservedNames: Set<string> = new Set()
-  ) {
-    const uniqueName = DataElement.createUniqueSiblingName(parentElement, name, '', reservedNames);
-    reservedNames.add(uniqueName);
-
-    const containerElement = DataElement.create(uniqueName, '', {
-      [DataElementAttribute.ROLE]: role,
-    });
-    if (role === DataElementRole.SECTION)
-      containerElement.appendChild(
-        this.createContainerElement(
-          DataElementRole.GROUP,
-          this.t('feature.dataElement.defaults.newGroup'),
-          containerElement
-        )
-      );
-    else
-      containerElement.appendChild(
-        this.createFieldElement(this.t('feature.dataElement.defaults.newTag'), containerElement)
-      );
-    return containerElement;
-  }
-
-  private createFieldElement(
-    name: string = this.t('feature.dataElement.defaults.newTag'),
-    parentElement: DataElement = this.gameDataElement(),
-    reservedNames: Set<string> = new Set()
-  ): DataElement {
-    const uniqueName = DataElement.createUniqueSiblingName(parentElement, name, '', reservedNames);
-    reservedNames.add(uniqueName);
-
-    return DataElement.create(uniqueName, '', {
-      [DataElementAttribute.FIELD_TYPE]: DataElementFieldType.TEXT,
-      [DataElementAttribute.ROLE]: DataElementRole.FIELD,
-    });
+  private newElementNames(): NewElementNames {
+    return {
+      field: this.t('feature.dataElement.defaults.newTag'),
+      group: this.t('feature.dataElement.defaults.newGroup'),
+    };
   }
 
   onStructureDragStart(event: DragEvent): void {
@@ -692,34 +644,9 @@ export class GameDataElementComponent {
     targetElement: DataElement,
     position: DataElementDropPosition
   ): void {
-    const oldParent = draggedElement.parent as DataElement | null;
-    let newParent: DataElement;
-
-    if (position === 'inside') {
-      newParent = targetElement;
-      newParent.appendChild(draggedElement);
-    } else {
-      const parent = targetElement.parent;
-      if (!(parent instanceof DataElement)) return;
-      newParent = parent;
-
-      if (position === 'before') {
-        newParent.insertBefore(draggedElement, targetElement);
-      } else {
-        this.insertElementAfter(draggedElement, targetElement, newParent);
-      }
-    }
-
-    draggedElement.syncFieldRoleToHierarchy();
-    draggedElement.update();
-    this.notifyStructureChanged(newParent, draggedElement, oldParent ?? undefined);
-  }
-
-  private insertElementAfter(element: DataElement, targetElement: DataElement, parentElement: DataElement): void {
-    const targetIndex = parentElement.children.indexOf(targetElement);
-    const nextElement = parentElement.children[targetIndex + 1];
-    if (nextElement) parentElement.insertBefore(element, nextElement);
-    else parentElement.appendChild(element);
+    const moved = moveStructureElement(draggedElement, targetElement, position);
+    if (!moved) return;
+    this.notifyStructureChanged(moved.newParent, draggedElement, moved.oldParent ?? undefined);
   }
 
   private notifyStructureChanged(...elements: (DataElement | undefined)[]): void {
@@ -899,16 +826,14 @@ export class GameDataElementComponent {
   }
 
   get gapDistanceText(): string {
-    if (this.gameDataElement()) this.objectChange.versionOf(this.gameDataElement().identifier)();
-    return this.gameDataElement().getAttribute(DataElementAttribute.GAP_DISTANCE);
+    return this.attrText(DataElementAttribute.GAP_DISTANCE);
   }
   set gapDistanceText(value: string) {
     this.setFieldAttribute(DataElementAttribute.GAP_DISTANCE, value);
   }
 
   get baseDifficultyText(): string {
-    if (this.gameDataElement()) this.objectChange.versionOf(this.gameDataElement().identifier)();
-    return this.gameDataElement().getAttribute(DataElementAttribute.BASE_DIFFICULTY);
+    return this.attrText(DataElementAttribute.BASE_DIFFICULTY);
   }
   set baseDifficultyText(value: string) {
     this.setFieldAttribute(DataElementAttribute.BASE_DIFFICULTY, value);
@@ -944,6 +869,20 @@ export class GameDataElementComponent {
       this.tableBodyRows().length > 0 &&
       this.tableColumns().length > 0
     );
+  }
+
+  /**
+   * 属性を文字で読む。
+   *
+   * 読むたびに版を見ておく決まりを、ここ 1 か所にまとめる。書き写していると、
+   * 足した項目だけ画面が更新されない、という抜けができる。
+   */
+  private attrText(attribute: string, fallback?: string): string {
+    const element = this.gameDataElement();
+    if (element) this.objectChange.versionOf(element.identifier)();
+    const value = element?.getAttribute(attribute) ?? '';
+    if (value.length > 0 || fallback === undefined) return value;
+    return element?.getAttribute(fallback) ?? '';
   }
 
   private setFieldAttribute(attribute: string, value: string | number | null | undefined): void {
