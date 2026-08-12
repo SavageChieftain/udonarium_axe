@@ -2,7 +2,9 @@ import { EffectCast } from '@axe/domain/effect/effect-cast';
 import { EFFECT_KINDS, EffectKind } from '@axe/domain/effect/effect-kind';
 import { EffectPreset } from '@axe/domain/effect/effect-preset';
 import {
+  AIMED_EFFECT_KINDS,
   BALLISTIC_DIVE_END,
+  CENTERED_EFFECT_KINDS,
   effectSprites,
   impactSoundTimes,
   isEffectFinished,
@@ -1313,5 +1315,22 @@ describe('弾道ミサイル', () => {
 
     expect(preset.impactSoundAt).toBe(BALLISTIC_DIVE_END);
     expect(impactSoundTimes(preset)).toEqual([Math.round(4200 * BALLISTIC_DIVE_END)]);
+  });
+});
+
+describe('演出の振り分け', () => {
+  it('同じ種類を 2 つの表に載せないこと', () => {
+    const both = AIMED_EFFECT_KINDS.filter((kind) => CENTERED_EFFECT_KINDS.includes(kind));
+
+    expect(both).toEqual([]);
+  });
+
+  it('弾ける以外の種類を、必ずどちらかの表に載せること', () => {
+    // どちらにも無い種類は既定の「弾ける」に落ちる。落として良いのは burst だけ。
+    const unrouted = EFFECT_KINDS.filter(
+      (kind) => !AIMED_EFFECT_KINDS.includes(kind) && !CENTERED_EFFECT_KINDS.includes(kind)
+    );
+
+    expect(unrouted).toEqual(['burst']);
   });
 });
