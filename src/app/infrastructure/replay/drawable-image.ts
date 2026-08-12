@@ -21,3 +21,42 @@ export async function toDrawableImage(blob: Blob | null, url: string): Promise<D
     element.src = url;
   });
 }
+
+export interface DrawableImageSource {
+  get(identifier: string): { blob: Blob | null; url: string } | null;
+}
+
+/**
+ * 使う絵をまとめて読む。
+ *
+ * 1 枚ずつ待つと枚数分だけ待たされる。読むのは互いに無関係なので同時に走らせる。
+ * このブラウザに残っていない絵は飛ばす（描く側が空きとして扱う）。
+ */
+export async function loadDrawableImages(
+  storage: DrawableImageSource,
+  identifiers: readonly string[],
+  onMissing?: (identifier: string, reason?: unknown) => void
+): Promise<Map<string, DrawableImage>> {
+  const wanted = [...new Set(identifiers.filter((identifier) => identifier.length > 0))];
+  const decoded = await Promise.all(
+    wanted.map(async (identifier) => {
+      const image = storage.get(identifier);
+      if (!image) {
+        onMissing?.(identifier);
+        return null;
+      }
+      try {
+        return await toDrawableImage(image.blob, image.url);
+      } catch (reason) {
+        onMissing?.(identifier, reason);
+        return null;
+      }
+    })
+  );
+
+  const loaded = new Map<string, DrawableImage>();
+  for (const [index, drawable] of decoded.entries()) {
+    if (drawable) loaded.set(wanted[index], drawable);
+  }
+  return loaded;
+}

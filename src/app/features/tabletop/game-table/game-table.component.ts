@@ -28,6 +28,7 @@ import { UiSignalService } from '@axe/application/ui/ui-signal.service';
 import { CoordinateService } from '@axe/core/input/coordinate.service';
 import { PointerCoordinate } from '@axe/core/input/pointer-device.service';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
+import { isTypingTarget } from '@axe/core/input/typing-target';
 import { ImageFile, imageFileEqual } from '@axe/core/storage/image-file';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
@@ -76,12 +77,6 @@ import { SafePipe } from '@axe/ui/pipes/safe.pipe';
 import { TranslocoModule } from '@jsverse/transloco';
 
 /** 入力欄で打っている最中かどうか。盤面のキー操作が横取りしないための判定。 */
-function isEditableTarget(target: EventTarget | null): boolean {
-  if (!(target instanceof HTMLElement)) return false;
-  if (target.isContentEditable) return true;
-  return ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName);
-}
-
 interface ActiveWall {
   surface: TableSurface;
   image: ImageFile;
@@ -721,7 +716,7 @@ export class GameTableComponent {
 
   /** 対象選択中の決定。入力欄で打っている最中は横取りしない。 */
   onEnterKey(event: Event) {
-    if (!this.effectTargetingService.isPicking() || isEditableTarget(event.target)) return;
+    if (!this.effectTargetingService.isPicking() || isTypingTarget(event.target)) return;
     event.preventDefault();
     this.effectTargetingService.confirm();
   }

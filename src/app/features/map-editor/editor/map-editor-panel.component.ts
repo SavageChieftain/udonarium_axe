@@ -18,6 +18,7 @@ import { TabletopService } from '@axe/application/tabletop/tabletop.service';
 import { ModalService } from '@axe/application/ui/modal.service';
 import { PanelService } from '@axe/application/ui/panel.service';
 import { ViewportService } from '@axe/application/ui/viewport.service';
+import { isTypingTarget } from '@axe/core/input/typing-target';
 import { ImageFile } from '@axe/core/storage/image-file';
 import { ImageStorage } from '@axe/core/storage/image-storage';
 import { ImageTag } from '@axe/domain/media/image-tag';
@@ -513,13 +514,15 @@ export class MapEditorPanelComponent implements AfterViewInit {
   private overlayState(): EditorOverlay {
     const state = this.state;
     const tool = state.tool();
-    // 道具に関わる設定は、その道具のときだけ読む。読んだ分だけ描き直しの引き金が増える。
-    const isLine = tool === 'line' || tool === 'polygon';
+    // 道具に関わる設定は、描いている最中だけ読む。読んだ分だけ描き直しの引き金が増え、
+    // 道具箱で選び替えただけで地図全体を塗り直すことになる。
+    const drafting = !!this.draftStart || !!this.draftCurrent || this.draftPoints.length > 0;
+    const isLine = drafting && (tool === 'line' || tool === 'polygon');
     const isErase = tool === 'cellErase';
     return {
       tool,
       lineKind: isLine ? state.lineKind() : 'straight',
-      shapeKind: tool === 'shape' ? state.shapeKind() : 'rect',
+      shapeKind: drafting && tool === 'shape' ? state.shapeKind() : 'rect',
       multiClickLine: isLine && this.multiClickLine(),
       hover: this.lastMove,
       panning: this.panning(),
@@ -1139,23 +1142,12 @@ export class MapEditorPanelComponent implements AfterViewInit {
     this.bumpDraft();
   }
 
-  private isTypingTarget(event: KeyboardEvent): boolean {
-    const target = event.target as HTMLElement | null;
-    return (
-      !!target &&
-      (target.tagName === 'INPUT' ||
-        target.tagName === 'TEXTAREA' ||
-        target.tagName === 'SELECT' ||
-        target.isContentEditable)
-    );
-  }
-
   protected onKeyUp(event: KeyboardEvent): void {
     if (event.code === 'Space') this.spacePan.set(false);
   }
 
   protected onKeyDown(event: KeyboardEvent): void {
-    if (this.isTypingTarget(event)) return;
+    if (isTypingTarget(event.target)) return;
     if (event.code === 'Space') {
       event.preventDefault();
       this.spacePan.set(true);

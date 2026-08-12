@@ -178,22 +178,23 @@ const CENTERED: Partial<Record<EffectKind, (ctx: CenteredContext) => void>> = {
 
 /** 撃ち手から的へ向かう演出。中心だけでは描けず、出どころと向きが要る。 */
 const AIMED: Partial<Record<EffectKind, (ctx: AimedContext) => void>> = {
-  arc: (c) => appendArc(c.sprites, c.prefix, c.center, c.base, c.progress, c.preset, c.origin(), c.random, c.view),
-  dissolve: (c) => appendDissolve(c.sprites, c.prefix, c.center, c.base, c.progress, c.preset, c.random, c.image()),
+  arc: (c) => appendArc(c.sprites, c.prefix, c.center, c.base, c.progress, c.preset, originOf(c), c.random, c.view),
+  dissolve: (c) =>
+    appendDissolve(c.sprites, c.prefix, c.center, c.base, c.progress, c.preset, c.random, imageOfTarget(c)),
   gore: (c) => appendGore(c.sprites, c.prefix, c.center, c.base, c.progress, c.preset, c.random),
-  bisect: (c) => appendBisect(c.sprites, c.prefix, c.center, c.base, c.progress, c.preset, c.random, c.image()),
+  bisect: (c) => appendBisect(c.sprites, c.prefix, c.center, c.base, c.progress, c.preset, c.random, imageOfTarget(c)),
   ballistic: (c) =>
-    appendBallistic(c.sprites, c.prefix, c.center, c.base, c.progress, c.preset, c.origin(), c.view, paintCentered),
+    appendBallistic(c.sprites, c.prefix, c.center, c.base, c.progress, c.preset, originOf(c), c.view, paintCentered),
   arrowrain: (c) =>
-    appendArrowRain(c.sprites, c.prefix, c.center, c.base, c.progress, c.preset, c.origin(), c.random, c.view),
+    appendArrowRain(c.sprites, c.prefix, c.center, c.base, c.progress, c.preset, originOf(c), c.random, c.view),
   skyblade: (c) =>
-    appendSkyblade(c.sprites, c.prefix, c.center, c.base, c.progress, c.preset, c.origin(), c.view, paintCentered),
-  raybeam: (c) => appendRaybeam(c.sprites, c.prefix, c.center, c.base, c.progress, c.preset, c.origin(), c.view),
-  beam: (c) => appendBeam(c.sprites, c.prefix, c.center, c.base, c.progress, c.preset, c.origin(), c.view),
-  breath: (c) => appendBreath(c.sprites, c.prefix, c.center, c.base, c.progress, c.preset, c.origin(), c.view),
-  drain: (c) => appendDrain(c.sprites, c.prefix, c.center, c.base, c.progress, c.preset, c.origin(), c.view),
+    appendSkyblade(c.sprites, c.prefix, c.center, c.base, c.progress, c.preset, originOf(c), c.view, paintCentered),
+  raybeam: (c) => appendRaybeam(c.sprites, c.prefix, c.center, c.base, c.progress, c.preset, originOf(c), c.view),
+  beam: (c) => appendBeam(c.sprites, c.prefix, c.center, c.base, c.progress, c.preset, originOf(c), c.view),
+  breath: (c) => appendBreath(c.sprites, c.prefix, c.center, c.base, c.progress, c.preset, originOf(c), c.view),
+  drain: (c) => appendDrain(c.sprites, c.prefix, c.center, c.base, c.progress, c.preset, originOf(c), c.view),
   projectile: (c) =>
-    appendProjectile(c.sprites, c.prefix, c.center, c.base, c.progress, c.preset, c.origin(), c.view, paintCentered),
+    appendProjectile(c.sprites, c.prefix, c.center, c.base, c.progress, c.preset, originOf(c), c.view, paintCentered),
 };
 
 interface CenteredContext {
@@ -206,16 +207,25 @@ interface CenteredContext {
   random: () => number;
 }
 
+/**
+ * 狙って撃つ演出に渡すもの。
+ *
+ * 出どころと立ち絵は**要るときだけ** `originOf` / `imageOfTarget` で求める。立ち絵の取り出しは
+ * 持ち物の中を辿るので、毎フレーム・的の数だけ先に払うと高くつく。使うのは 4 種類だけ。
+ */
 interface AimedContext extends CenteredContext {
-  /**
-   * 出どころと立ち絵は**要るときだけ**求める。
-   *
-   * 立ち絵の取り出しは持ち物の中を辿るので、毎フレーム・的の数だけ払うと高くつく。
-   * 使うのは崩れる演出と両断だけ。
-   */
-  origin(): Point3;
+  cast: EffectCast;
+  target: EffectCastTarget;
+  options: EffectSpriteOptions;
   view: ViewRotation | null | undefined;
-  image(): string;
+}
+
+function originOf(context: AimedContext): Point3 {
+  return projectileOrigin(context.cast, context.center, context.base);
+}
+
+function imageOfTarget(context: AimedContext): string {
+  return imageOf(context.options, context.target.identifier);
 }
 
 /** 出どころと向きが要る種類。表に無いものは的の周りで完結する扱いになる。 */
@@ -248,9 +258,10 @@ export function effectSprites(
       progress,
       preset,
       random: seededRandom(cast.seed + index * 7919),
-      origin: () => projectileOrigin(cast, center, base),
+      cast,
+      target,
+      options,
       view: options.viewRotation,
-      image: () => imageOf(options, target.identifier),
     };
 
     const aimed = AIMED[preset.effectKind];

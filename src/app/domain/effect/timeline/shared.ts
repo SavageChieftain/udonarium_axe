@@ -197,7 +197,8 @@ export function easeOutCubic(value: number): number {
 
 /** 立ち上がり `rise` の割合で 0→1、残りで 1→0 に落ちる。 */
 export function fadeInOut(value: number, rise: number): number {
-  const clamped = Math.min(Math.max(value, 0), 1);
+  // 数でない進みは 0 に倒す。素通しすると、出さないための番人（<= 0）を抜けて粒が壊れる。
+  const clamped = clamp01(value);
   if (clamped < rise) return clamped / rise;
   return 1 - (clamped - rise) / (1 - rise);
 }

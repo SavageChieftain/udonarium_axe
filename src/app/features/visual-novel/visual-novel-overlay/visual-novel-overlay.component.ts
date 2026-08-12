@@ -826,6 +826,7 @@ export class VisualNovelOverlayComponent {
       composing: event.isComposing,
       typing: isTypingTarget(event.target),
       popoverOpen: this.openPopover() !== null,
+      chord: event.ctrlKey || event.metaKey || event.altKey,
     });
     if (!action) return;
     if (action.preventDefault) event.preventDefault();

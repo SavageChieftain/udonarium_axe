@@ -4,8 +4,7 @@ import { ImageStorage } from '@axe/core/storage/image-storage';
 import { downloadBlob } from '@axe/core/util/download-blob';
 import type { ReplayCastMember } from '@axe/domain/replay/replay-cast';
 import { buildTablePhotoLayout } from '@axe/domain/replay/table-photo';
-import { toDrawableImage } from '@axe/infrastructure/replay/drawable-image';
-import type { ReplayFrameImage } from '@axe/infrastructure/replay/replay-frame-painter';
+import { type DrawableImage, loadDrawableImages } from '@axe/infrastructure/replay/drawable-image';
 import { paintTablePhoto } from '@axe/infrastructure/replay/table-photo-painter';
 
 export interface TablePhotoRequest {
@@ -69,32 +68,9 @@ export class ReplayPhotoService {
     }
   }
 
-  private async loadImages(
-    identifiers: readonly string[]
-  ): Promise<Map<string, ReplayFrameImage & { close?(): void }>> {
-    const loaded = new Map<string, ReplayFrameImage & { close?(): void }>();
-    const wanted = [...new Set(identifiers.filter((identifier) => identifier.length > 0))];
-
-    // 1 枚ずつ待つと人数分だけ待たされる。読むのは互いに無関係なので、まとめて読む。
-    const decoded = await Promise.all(
-      wanted.map(async (identifier) => {
-        const image = this.imageStorage.get(identifier);
-        if (!image) {
-          Logger.warn('[TablePhoto] この絵はこのブラウザに残っていません', identifier);
-          return null;
-        }
-        try {
-          return await toDrawableImage(image.blob, image.url);
-        } catch (reason) {
-          Logger.warn('[TablePhoto] 絵を読めませんでした', identifier, reason);
-          return null;
-        }
-      })
+  private loadImages(identifiers: readonly string[]): Promise<Map<string, DrawableImage>> {
+    return loadDrawableImages(this.imageStorage, identifiers, (identifier, reason) =>
+      Logger.warn('[TablePhoto] 絵を読めませんでした', identifier, reason)
     );
-
-    for (const [index, drawable] of decoded.entries()) {
-      if (drawable) loaded.set(wanted[index], drawable);
-    }
-    return loaded;
   }
 }

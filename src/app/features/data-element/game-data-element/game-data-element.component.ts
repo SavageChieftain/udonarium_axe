@@ -251,8 +251,7 @@ export class GameDataElementComponent {
   }
 
   get icon(): string {
-    if (this.gameDataElement()) this.objectChange.versionOf(this.gameDataElement().identifier)();
-    return (this.gameDataElement()?.getAttribute('cs-icon') as string) || '';
+    return this.attrText('cs-icon');
   }
   set icon(value: string) {
     const el = this.gameDataElement();
@@ -377,8 +376,7 @@ export class GameDataElementComponent {
   }
 
   get isGapCell(): boolean {
-    if (this.gameDataElement()) this.objectChange.versionOf(this.gameDataElement().identifier)();
-    return this.gameDataElement().getAttribute(DataElementAttribute.CELL_KIND) === 'gap';
+    return this.attrText(DataElementAttribute.CELL_KIND) === 'gap';
   }
   set isGapCell(value: boolean) {
     const element = this.gameDataElement();
@@ -840,8 +838,7 @@ export class GameDataElementComponent {
   }
 
   get loopHorizontal(): boolean {
-    if (this.gameDataElement()) this.objectChange.versionOf(this.gameDataElement().identifier)();
-    return this.gameDataElement().getAttribute(DataElementAttribute.LOOP_HORIZONTAL) === 'true';
+    return this.attrText(DataElementAttribute.LOOP_HORIZONTAL) === 'true';
   }
   toggleLoopHorizontal(): void {
     const element = this.gameDataElement();
@@ -851,8 +848,7 @@ export class GameDataElementComponent {
   }
 
   get loopVertical(): boolean {
-    if (this.gameDataElement()) this.objectChange.versionOf(this.gameDataElement().identifier)();
-    return this.gameDataElement().getAttribute(DataElementAttribute.LOOP_VERTICAL) === 'true';
+    return this.attrText(DataElementAttribute.LOOP_VERTICAL) === 'true';
   }
   toggleLoopVertical(): void {
     const element = this.gameDataElement();
@@ -880,9 +876,9 @@ export class GameDataElementComponent {
   private attrText(attribute: string, fallback?: string): string {
     const element = this.gameDataElement();
     if (element) this.objectChange.versionOf(element.identifier)();
-    // 属性は数値のまま入っていることがある。`.length` で空と決めると、0 でない数まで空になる。
-    const value = element?.getAttribute(attribute);
-    if (value || fallback === undefined) return String(value ?? '');
+    // 属性は数値のまま入っていることがある。真偽で空を決めると 0 まで空になる。
+    const value = String(element?.getAttribute(attribute) ?? '');
+    if (value.length > 0 || fallback === undefined) return value;
     return String(element?.getAttribute(fallback) ?? '');
   }
 

@@ -5,7 +5,7 @@ import {
   visualNovelKeyUp,
 } from '@axe/features/visual-novel/visual-novel-shortcut';
 
-const IDLE: VisualNovelKeyContext = { composing: false, typing: false, popoverOpen: false };
+const IDLE: VisualNovelKeyContext = { composing: false, typing: false, popoverOpen: false, chord: false };
 
 describe('visualNovelKeyDown()', () => {
   it('送りのキーで先へ進めること', () => {
@@ -50,6 +50,17 @@ describe('visualNovelKeyDown()', () => {
     expect(visualNovelKeyDown('Control', IDLE)).toEqual({ command: 'startSkip', preventDefault: false });
     expect(visualNovelKeyUp('Control')?.command).toBe('stopSkip');
     expect(visualNovelKeyUp('Shift')).toBeNull();
+  });
+
+  it('修飾キーとの組み合わせを横取りしないこと', () => {
+    // Ctrl+A は全選択、Ctrl+S は保存。奪うと画面の外の当たり前が壊れる。
+    for (const key of ['a', 's', 'l', 'Enter', 'Escape']) {
+      expect(visualNovelKeyDown(key, { ...IDLE, chord: true })).toBeNull();
+    }
+  });
+
+  it('Ctrl 単独は早送りとして通すこと', () => {
+    expect(visualNovelKeyDown('Control', { ...IDLE, chord: true })?.command).toBe('startSkip');
   });
 
   it('割り当ての無いキーには何も返さないこと', () => {

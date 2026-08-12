@@ -1,3 +1,5 @@
+export { isTypingTarget } from '@axe/core/input/typing-target';
+
 /**
  * ノベルモードのキー割り当て。
  *
@@ -26,6 +28,8 @@ export interface VisualNovelKeyContext {
   typing: boolean;
   /** 何かが開いている。Escape の行き先が変わる。 */
   popoverOpen: boolean;
+  /** Ctrl / Cmd / Alt が押されている。ブラウザや OS の組み合わせを横取りしない。 */
+  chord: boolean;
 }
 
 export interface VisualNovelKeyAction {
@@ -39,6 +43,9 @@ const BACK_KEYS = new Set(['ArrowLeft', 'ArrowUp']);
 
 export function visualNovelKeyDown(key: string, context: VisualNovelKeyContext): VisualNovelKeyAction | null {
   if (context.composing || context.typing) return null;
+  // Ctrl+A は「全部選ぶ」であって自動再生ではない。修飾キーとの組み合わせには手を出さない。
+  // ただし Ctrl 単独は早送りなので通す。
+  if (context.chord && key !== 'Control') return null;
 
   if (ADVANCE_KEYS.has(key)) return { command: 'advance', preventDefault: true };
   if (BACK_KEYS.has(key)) return { command: 'back', preventDefault: true };
@@ -57,11 +64,4 @@ export function visualNovelKeyDown(key: string, context: VisualNovelKeyContext):
 
 export function visualNovelKeyUp(key: string): VisualNovelKeyAction | null {
   return key === 'Control' ? { command: 'stopSkip', preventDefault: false } : null;
-}
-
-/** 入力欄の上か。ここでの打鍵は画面の操作ではなく文字入力。 */
-export function isTypingTarget(target: EventTarget | null): boolean {
-  if (!(target instanceof HTMLElement)) return false;
-  const tagName = target.tagName.toLowerCase();
-  return tagName === 'input' || tagName === 'textarea' || tagName === 'select' || target.isContentEditable;
 }

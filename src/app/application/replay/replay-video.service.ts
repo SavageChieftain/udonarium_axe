@@ -38,12 +38,8 @@ import {
   type ReplayStoryboard,
   shotAt,
 } from '@axe/domain/replay/replay-storyboard';
-import { toDrawableImage } from '@axe/infrastructure/replay/drawable-image';
-import {
-  DEFAULT_REPLAY_FRAME_STYLE,
-  paintReplayFrame,
-  type ReplayFrameImage,
-} from '@axe/infrastructure/replay/replay-frame-painter';
+import { type DrawableImage, loadDrawableImages } from '@axe/infrastructure/replay/drawable-image';
+import { DEFAULT_REPLAY_FRAME_STYLE, paintReplayFrame } from '@axe/infrastructure/replay/replay-frame-painter';
 
 export const REPLAY_VIDEO_FPS = 30;
 const CUT_IN_ALIAS = 'cut-in';
@@ -259,27 +255,10 @@ export class ReplayVideoService {
     });
   }
 
-  private async loadAssets(
-    identifiers: readonly string[]
-  ): Promise<Map<string, ReplayFrameImage & { close?(): void }>> {
-    const wanted = new Set(identifiers.filter((identifier) => identifier.length > 0));
-    const assets = new Map<string, ReplayFrameImage & { close?(): void }>();
-
-    for (const identifier of wanted) {
-      const image = this.imageStorage.get(identifier);
-      if (!image) {
-        Logger.warn('[ReplayVideo] この絵はこのブラウザに残っていません', identifier);
-        continue;
-      }
-      try {
-        const drawable = await toDrawableImage(image.blob, image.url);
-        if (drawable) assets.set(identifier, drawable);
-        else Logger.warn('[ReplayVideo] 絵の中身がありません', identifier);
-      } catch (reason) {
-        Logger.warn('[ReplayVideo] 絵を読めませんでした', identifier, reason);
-      }
-    }
-    return assets;
+  private loadAssets(identifiers: readonly string[]): Promise<Map<string, DrawableImage>> {
+    return loadDrawableImages(this.imageStorage, identifiers, (identifier, reason) =>
+      Logger.warn('[ReplayVideo] 絵を読めませんでした', identifier, reason)
+    );
   }
 }
 
