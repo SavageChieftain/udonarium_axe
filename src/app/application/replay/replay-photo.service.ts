@@ -4,6 +4,7 @@ import { ImageStorage } from '@axe/core/storage/image-storage';
 import { downloadBlob } from '@axe/core/util/download-blob';
 import type { ReplayCastMember } from '@axe/domain/replay/replay-cast';
 import { buildTablePhotoLayout } from '@axe/domain/replay/table-photo';
+import { toDrawableImage } from '@axe/infrastructure/replay/drawable-image';
 import type { ReplayFrameImage } from '@axe/infrastructure/replay/replay-frame-painter';
 import { paintTablePhoto } from '@axe/infrastructure/replay/table-photo-painter';
 
@@ -96,21 +97,4 @@ export class ReplayPhotoService {
     }
     return loaded;
   }
-}
-
-async function toDrawableImage(
-  blob: Blob | null,
-  url: string
-): Promise<(ReplayFrameImage & { close?(): void }) | null> {
-  if (blob && typeof createImageBitmap === 'function') {
-    return (await createImageBitmap(blob)) as ReplayFrameImage & { close(): void };
-  }
-  if (url.length < 1) return null;
-  return await new Promise((resolve, reject) => {
-    const element = new Image();
-    element.crossOrigin = 'anonymous';
-    element.onload = () => resolve(element as unknown as ReplayFrameImage);
-    element.onerror = () => reject(new Error(`読めない絵です: ${url}`));
-    element.src = url;
-  });
 }

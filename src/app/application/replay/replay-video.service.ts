@@ -38,6 +38,7 @@ import {
   type ReplayStoryboard,
   shotAt,
 } from '@axe/domain/replay/replay-storyboard';
+import { toDrawableImage } from '@axe/infrastructure/replay/drawable-image';
 import {
   DEFAULT_REPLAY_FRAME_STYLE,
   paintReplayFrame,
@@ -292,21 +293,4 @@ function cutInImagesOf(snapshots: readonly ReplayObjectSnapshot[]): Map<string, 
     images.set(snapshot.identifier, String(syncValueOf(snapshot.syncData, 'imageIdentifier') ?? ''));
   }
   return images;
-}
-
-async function toDrawableImage(
-  blob: Blob | null,
-  url: string
-): Promise<(ReplayFrameImage & { close?(): void }) | null> {
-  if (blob && typeof createImageBitmap === 'function') {
-    return (await createImageBitmap(blob)) as ReplayFrameImage & { close(): void };
-  }
-  if (url.length < 1) return null;
-  return await new Promise((resolve, reject) => {
-    const element = new Image();
-    element.crossOrigin = 'anonymous';
-    element.onload = () => resolve(element as unknown as ReplayFrameImage);
-    element.onerror = () => reject(new Error(`読めない絵です: ${url}`));
-    element.src = url;
-  });
 }
