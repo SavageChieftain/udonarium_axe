@@ -2,8 +2,8 @@ import { TestBed } from '@angular/core/testing';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { DataElement, DataElementAttribute, DataElementRole } from '@axe/domain/data/data-element';
 import {
-  createContainerElement,
   createFieldElement,
+  createGroupElement,
   insertElementAfter,
   moveStructureElement,
   type NewElementNames,
@@ -116,24 +116,22 @@ describe('項目の組み替え', () => {
     });
   });
 
-  describe('createContainerElement()', () => {
+  describe('createGroupElement()', () => {
     it('中身を 1 つ入れた状態で作ること', () => {
       const parent = group('親');
 
-      const created = createContainerElement(DataElementRole.GROUP, parent, NAMES);
+      const created = createGroupElement(parent, NAMES);
 
       expect(created.getAttribute(DataElementAttribute.ROLE)).toBe(DataElementRole.GROUP);
       expect(created.children).toHaveLength(1);
+      expect((created.children[0] as DataElement).getAttribute(DataElementAttribute.ROLE)).toBe(DataElementRole.FIELD);
     });
 
-    it('節を作ると、中に組が 1 つ入ること', () => {
+    it('組の名前も兄弟と重ならないようにすること', () => {
       const parent = group('親');
+      parent.appendChild(group('新規グループ'));
 
-      const created = createContainerElement(DataElementRole.SECTION, parent, NAMES);
-      const inner = created.children[0] as DataElement;
-
-      expect(inner.getAttribute(DataElementAttribute.ROLE)).toBe(DataElementRole.GROUP);
-      expect(inner.children).toHaveLength(1);
+      expect(createGroupElement(parent, NAMES).name).not.toBe('新規グループ');
     });
   });
 });

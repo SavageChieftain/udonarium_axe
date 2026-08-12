@@ -47,8 +47,8 @@ import {
   resolveDropPosition as resolveDropPositionShared,
 } from '@axe/features/data-element/game-data-element/game-data-element-structure-drop';
 import {
-  createContainerElement,
   createFieldElement,
+  createGroupElement,
   insertElementAfter,
   moveStructureElement,
   type NewElementNames,
@@ -538,7 +538,7 @@ export class GameDataElementComponent {
     const parentElement = this.gameDataElement();
     if (!this.canAddChildGroupElement()) return;
 
-    const groupElement = createContainerElement(DataElementRole.GROUP, parentElement, this.newElementNames());
+    const groupElement = createGroupElement(parentElement, this.newElementNames());
     parentElement.appendChild(groupElement);
     this.notifyStructureChanged(parentElement, groupElement);
   }
@@ -581,7 +581,7 @@ export class GameDataElementComponent {
 
     const targetElement = this.gameDataElement();
     const position = this.resolveDropPosition(event, targetElement);
-    if (!this.canDropStructureElement(draggedElement, targetElement, position)) return;
+    if (!this.canDropHere(draggedElement, targetElement, position)) return;
 
     event.preventDefault();
     event.stopPropagation();
@@ -606,11 +606,11 @@ export class GameDataElementComponent {
 
     this.structureDropPosition.set(null);
     this.dataElementDrag.end();
-    if (!draggedElement || !this.canDropStructureElement(draggedElement, targetElement, position)) return;
+    if (!draggedElement || !this.canDropHere(draggedElement, targetElement, position)) return;
 
     event.preventDefault();
     event.stopPropagation();
-    this.moveStructureElement(draggedElement, targetElement, position);
+    this.applyStructureMove(draggedElement, targetElement, position);
   }
 
   private getDraggedElement(event: DragEvent): DataElement | null {
@@ -625,7 +625,7 @@ export class GameDataElementComponent {
     return resolveDropPositionShared(rect ?? null, event.clientY, targetElement);
   }
 
-  private canDropStructureElement(
+  private canDropHere(
     draggedElement: DataElement,
     targetElement: DataElement,
     position: DataElementDropPosition
@@ -639,7 +639,7 @@ export class GameDataElementComponent {
     return parent instanceof DataElement ? parent : null;
   }
 
-  private moveStructureElement(
+  private applyStructureMove(
     draggedElement: DataElement,
     targetElement: DataElement,
     position: DataElementDropPosition
@@ -880,9 +880,10 @@ export class GameDataElementComponent {
   private attrText(attribute: string, fallback?: string): string {
     const element = this.gameDataElement();
     if (element) this.objectChange.versionOf(element.identifier)();
-    const value = element?.getAttribute(attribute) ?? '';
-    if (value.length > 0 || fallback === undefined) return value;
-    return element?.getAttribute(fallback) ?? '';
+    // 属性は数値のまま入っていることがある。`.length` で空と決めると、0 でない数まで空になる。
+    const value = element?.getAttribute(attribute);
+    if (value || fallback === undefined) return String(value ?? '');
+    return String(element?.getAttribute(fallback) ?? '');
   }
 
   private setFieldAttribute(attribute: string, value: string | number | null | undefined): void {

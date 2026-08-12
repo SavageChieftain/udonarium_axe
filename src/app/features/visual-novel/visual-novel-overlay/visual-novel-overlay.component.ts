@@ -838,22 +838,23 @@ export class VisualNovelOverlayComponent {
   }
 
   private runCommand(command: VisualNovelCommand): void {
-    const commands: Record<VisualNovelCommand, () => void> = {
-      advance: () => this.userAdvance(),
-      back: () => this.userBack(),
-      toStart: () => this.jumpTo(0),
-      toLatest: () => this.toLatest(),
-      startSkip: () => this.playback.startSkip(),
-      stopSkip: () => this.stopSkip(),
-      toggleBacklog: () => this.toggleBacklog(),
-      toggleAutoPlay: () => this.toggleAutoPlay(),
-      toggleSlotGuide: () => this.toggleSlotGuide(),
-      toggleShortcutHelp: () => this.toggleShortcutHelp(),
-      closePopovers: () => this.closePopovers(),
-      exit: () => this.exit(),
-    };
-    commands[command]();
+    this.commands[command]();
   }
+
+  private readonly commands: Record<VisualNovelCommand, () => void> = {
+    advance: () => this.userAdvance(),
+    back: () => this.userBack(),
+    toStart: () => this.jumpTo(0),
+    toLatest: () => this.toLatest(),
+    startSkip: () => this.playback.startSkip(),
+    stopSkip: () => this.stopSkip(),
+    toggleBacklog: () => this.toggleBacklog(),
+    toggleAutoPlay: () => this.toggleAutoPlay(),
+    toggleSlotGuide: () => this.toggleSlotGuide(),
+    toggleShortcutHelp: () => this.toggleShortcutHelp(),
+    closePopovers: () => this.closePopovers(),
+    exit: () => this.exit(),
+  };
 
   stopSkip(): void {
     this.playback.stopSkip();

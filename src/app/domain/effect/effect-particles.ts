@@ -1,13 +1,6 @@
 import { type EffectKind } from '@axe/domain/effect/effect-kind';
 import { type EffectPreset } from '@axe/domain/effect/effect-preset';
 import {
-  ARROW_RAIN_FALL,
-  BALLISTIC_DIVE_END,
-  EXCALIBUR_SWING_END,
-  projectileTiming,
-  slashHits,
-} from '@axe/domain/effect/effect-timeline';
-import {
   emitAura,
   emitBarrier,
   emitBolt,
@@ -28,8 +21,11 @@ import {
   type ColorRamp,
   type EffectParticle,
   type EffectParticleLayer,
+  HOT,
   seededRandom,
 } from '@axe/domain/effect/particles/shared';
+import { EXCALIBUR_SWING_END, slashHits } from '@axe/domain/effect/timeline/blade';
+import { ARROW_RAIN_FALL, BALLISTIC_DIVE_END, projectileTiming } from '@axe/domain/effect/timeline/flight';
 
 /**
  * 板ポリ面内で完結するパーティクル。canvas に加算合成で重ねて発光を作る。
@@ -47,8 +43,6 @@ export {
   type ParticleShape,
   seededRandom,
 } from '@axe/domain/effect/particles/shared';
-
-const HOT = '#ffffff';
 
 export function effectParticles(
   preset: EffectPreset,

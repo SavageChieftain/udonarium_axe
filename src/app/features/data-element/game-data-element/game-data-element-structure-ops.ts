@@ -10,7 +10,10 @@ import type { DataElementDropPosition } from '@axe/features/data-element/game-da
  * 項目の並びを組み替える。
  *
  * 置けるかどうかの判断は `-structure-drop` が持つ。ここは**動かす・作る**だけ。
- * 名前は兄弟と重ならないように付け直す（同じ名前が並ぶと、参照がどちらを指すか決まらない）。
+ *
+ * 新しく作るときは、兄弟と重ならない名前を付ける（同じ名前が並ぶと、パレットや式からの
+ * 参照がどちらを指すか決まらない）。動かすときは名前に触らない — 名乗りを変えられると、
+ * 動かした側は自分のコマを見失う。
  */
 
 /** 新しく作る項目の既定の名前。画面の言葉に合わせるので、呼ぶ側が渡す。 */
@@ -76,12 +79,11 @@ export function createFieldElement(
 }
 
 /**
- * 項目を束ねる入れ物を 1 つ作る。
+ * 項目を束ねる組を 1 つ作る。
  *
- * 空の入れ物は画面上で掴みどころが無いので、中身を 1 つ入れた状態で返す。
+ * 空の組は画面上で掴みどころが無いので、中身を 1 つ入れた状態で返す。
  */
-export function createContainerElement(
-  role: typeof DataElementRole.SECTION | typeof DataElementRole.GROUP,
+export function createGroupElement(
   parent: DataElement,
   names: NewElementNames,
   reservedNames: Set<string> = new Set()
@@ -89,12 +91,8 @@ export function createContainerElement(
   const uniqueName = DataElement.createUniqueSiblingName(parent, names.group, '', reservedNames);
   reservedNames.add(uniqueName);
 
-  const container = DataElement.create(uniqueName, '', { [DataElementAttribute.ROLE]: role });
-  container.appendChild(
-    role === DataElementRole.SECTION
-      ? createContainerElement(DataElementRole.GROUP, container, names)
-      : createFieldElement(container, names)
-  );
+  const container = DataElement.create(uniqueName, '', { [DataElementAttribute.ROLE]: DataElementRole.GROUP });
+  container.appendChild(createFieldElement(container, names));
   return container;
 }
 

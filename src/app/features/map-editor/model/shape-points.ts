@@ -1,4 +1,4 @@
-import type { ShapeGeneratorKind } from '@axe/features/map-editor/editor/map-editor-state';
+import type { ShapeGeneratorKind } from '@axe/features/map-editor/model/editor-tool';
 export function regularPolygonPoints(
   cx: number,
   cy: number,

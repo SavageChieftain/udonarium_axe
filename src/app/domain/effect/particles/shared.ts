@@ -1,3 +1,5 @@
+export { clamp01, fadeInOut, seededRandom } from '@axe/domain/effect/timeline/shared';
+import { clamp01 } from '@axe/domain/effect/timeline/shared';
 /**
  * 共有の下ごしらえ。
  *
@@ -45,28 +47,7 @@ export function flameColor(local: number, ramp: ColorRamp): string {
   return ramp.cool;
 }
 
-export function clamp01(value: number): number {
-  if (!Number.isFinite(value)) return 0;
-  return Math.min(Math.max(value, 0), 1);
-}
-
 export function easeOutQuad(value: number): number {
   const clamped = clamp01(value);
   return 1 - (1 - clamped) * (1 - clamped);
-}
-
-export function fadeInOut(value: number, rise: number): number {
-  const clamped = clamp01(value);
-  if (clamped < rise) return clamped / rise;
-  return 1 - (clamped - rise) / (1 - rise);
-}
-
-export function seededRandom(seed: number): () => number {
-  let state = Math.floor(Math.abs(seed)) % 4294967296 || 1;
-  return () => {
-    state = (state + 0x6d2b79f5) >>> 0;
-    let value = Math.imul(state ^ (state >>> 15), 1 | state);
-    value = (value + Math.imul(value ^ (value >>> 7), 61 | value)) ^ value;
-    return ((value ^ (value >>> 14)) >>> 0) / 4294967296;
-  };
 }

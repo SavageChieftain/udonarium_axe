@@ -9,6 +9,7 @@ import { GameCharacter } from '@axe/domain/character/game-character';
 import { ChatMessage } from '@axe/domain/chat/chat-message';
 import { ChatTab } from '@axe/domain/chat/chat-tab';
 import { ChatTabList } from '@axe/domain/chat/chat-tab-list';
+import { DataElement } from '@axe/domain/data/data-element';
 import { DiceBot } from '@axe/domain/dice/dice-bot';
 import { AudioTag } from '@axe/domain/media/audio-tag';
 import { Jukebox } from '@axe/domain/media/jukebox';
@@ -19,6 +20,7 @@ import { VisualNovelModeService } from '@axe/features/visual-novel/visual-novel-
 import { VisualNovelOverlayComponent } from '@axe/features/visual-novel/visual-novel-overlay/visual-novel-overlay.component';
 import { VisualNovelPlaybackService } from '@axe/features/visual-novel/visual-novel-playback.service';
 import { VisualNovelSettingsService } from '@axe/features/visual-novel/visual-novel-settings.service';
+import { VN_STAGE_SLOT_COUNT } from '@axe/features/visual-novel/visual-novel-stage';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
 import GameSystemClass from 'bcdice/lib/game_system';
 
@@ -463,10 +465,21 @@ describe('VisualNovelOverlayComponent', () => {
   });
 
   it('pickSlot() で発言キャラクターのスロットは範囲内に丸められること', () => {
+    // 案内は「立ち位置を持つ発言者」が居るときだけ開く。持たせてから開く。
+    addMessage('こんにちは', 'アリス', addImage());
+    const speaker = charactersByName.get('アリス')!;
+    speaker.createDataElements();
+    speaker.detailDataElement!.appendChild(DataElement.create('POS', 0, {}));
     createComponent();
+
     component.toggleSlotGuide();
-    component.pickSlot(5);
+    expect(component.isPopover('slotGuide')).toBe(true);
+
+    component.pickSlot(99);
+
     expect(component.isPopover('slotGuide')).toBe(false);
+    // はみ出した指定は端の枠へ丸める。
+    expect(Number(speaker.detailDataElement!.getFirstElementByName('POS')?.currentValue)).toBe(VN_STAGE_SLOT_COUNT - 1);
   });
 
   it('立ち絵は画面端で見切れないようにクランプされること', () => {

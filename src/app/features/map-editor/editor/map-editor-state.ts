@@ -1,7 +1,9 @@
+export type { EditorTool, LineKind, ShapeGeneratorKind } from '@axe/features/map-editor/model/editor-tool';
 import { Injectable, signal } from '@angular/core';
 import { GridType } from '@axe/domain/tabletop/game-table';
 import { StampCategory } from '@axe/features/map-editor/assets/stamp-types';
 import { sampleCurvePoints } from '@axe/features/map-editor/model/curve-geometry';
+import type { EditorTool, LineKind, ShapeGeneratorKind } from '@axe/features/map-editor/model/editor-tool';
 import { cellCenter, pointToCell } from '@axe/features/map-editor/model/grid-cells';
 import { SceneHistory } from '@axe/features/map-editor/model/history';
 import {
@@ -51,24 +53,6 @@ import {
   updateStroke,
   updateText,
 } from '@axe/features/map-editor/model/scene-ops';
-
-export type EditorTool =
-  | 'settings'
-  | 'select'
-  | 'cellPaint'
-  | 'cellErase'
-  | 'fill'
-  | 'shape'
-  | 'line'
-  | 'polygon'
-  | 'freehand'
-  | 'text'
-  | 'stamp'
-  | 'image';
-
-export type LineKind = 'straight' | 'polyline' | 'curve' | 'closedCurve';
-
-export type ShapeGeneratorKind = 'rect' | 'ellipse' | 'triangle' | 'pentagon' | 'hexagon' | 'star5' | 'star6';
 
 export interface Selection {
   layerId: string;

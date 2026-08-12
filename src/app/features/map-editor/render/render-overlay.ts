@@ -1,7 +1,7 @@
 import { GridType } from '@axe/domain/tabletop/game-table';
-import type { EditorTool, LineKind, ShapeGeneratorKind } from '@axe/features/map-editor/editor/map-editor-state';
 import { catmullRomSegments } from '@axe/features/map-editor/model/curve-geometry';
 import { imageCorners } from '@axe/features/map-editor/model/editor-hit-test';
+import type { EditorTool, LineKind, ShapeGeneratorKind } from '@axe/features/map-editor/model/editor-tool';
 import { cellCenter, pointToCell } from '@axe/features/map-editor/model/grid-cells';
 import type { ImageItem, MapScene, ShapeItem } from '@axe/features/map-editor/model/scene';
 import { generateShapePoints } from '@axe/features/map-editor/model/shape-points';

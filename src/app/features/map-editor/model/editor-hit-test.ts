@@ -3,8 +3,8 @@ import type { ImageItem, ShapeItem } from '@axe/features/map-editor/model/scene'
 /**
  * 掴む場所の当たり判定。
  *
- * 掴める幅は画面上の見た目に合わせた固定 px。盤の目の大きさで変えると、
- * 拡大したときだけ掴めない、という当たり外れが出る。
+ * 座標も掴める幅も**場面の px**（拡大率を掛ける前）。呼ぶ側が拡大率で割った位置を渡す。
+ * そのため拡大しているほど掴みやすく、縮めているほど掴みにくい。
  */
 
 const ANCHOR_GRAB_PX = 7;

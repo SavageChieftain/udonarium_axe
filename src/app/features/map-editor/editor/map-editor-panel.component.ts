@@ -512,15 +512,19 @@ export class MapEditorPanelComponent implements AfterViewInit {
    */
   private overlayState(): EditorOverlay {
     const state = this.state;
+    const tool = state.tool();
+    // 道具に関わる設定は、その道具のときだけ読む。読んだ分だけ描き直しの引き金が増える。
+    const isLine = tool === 'line' || tool === 'polygon';
+    const isErase = tool === 'cellErase';
     return {
-      tool: state.tool(),
-      lineKind: state.lineKind(),
-      shapeKind: state.shapeKind(),
-      multiClickLine: this.multiClickLine(),
+      tool,
+      lineKind: isLine ? state.lineKind() : 'straight',
+      shapeKind: tool === 'shape' ? state.shapeKind() : 'rect',
+      multiClickLine: isLine && this.multiClickLine(),
       hover: this.lastMove,
       panning: this.panning(),
-      vectorErase: this.isVectorEraseTarget(),
-      eraserSize: state.eraserSize(),
+      vectorErase: isErase && this.isVectorEraseTarget(),
+      eraserSize: isErase ? state.eraserSize() : 0,
       draftStart: this.draftStart,
       draftCurrent: this.draftCurrent,
       draftPoints: this.draftPoints,
@@ -538,8 +542,10 @@ export class MapEditorPanelComponent implements AfterViewInit {
   }
 
   private overlayStamp(): OverlayStamp | null {
+    // 道具を先に見る。先に設定を読むと、その道具を選んでいない間の変更でも盤が描き直される。
+    if (this.state.tool() !== 'stamp' || !this.lastMove) return null;
     const stampId = this.state.stampId();
-    if (this.state.tool() !== 'stamp' || !this.lastMove || !stampId) return null;
+    if (!stampId) return null;
     const size = this.state.stampSize();
     const image = this.previewStampImage(stampId, size);
     if (!image) return null;
@@ -554,8 +560,9 @@ export class MapEditorPanelComponent implements AfterViewInit {
   }
 
   private overlayImage(): OverlayImage | null {
+    if (this.state.tool() !== 'image' || !this.lastMove) return null;
     const pendingId = this.state.pendingImageId();
-    if (this.state.tool() !== 'image' || !this.lastMove || !pendingId) return null;
+    if (!pendingId) return null;
     const url = this.imageStorage.get(pendingId)?.url;
     if (!url) return null;
     const image = getRasterImage(url);
