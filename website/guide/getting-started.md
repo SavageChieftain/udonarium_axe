@@ -1,5 +1,8 @@
 # Udonarium Axe とは
 
+> **AXE** — Adventure. eXperience. Encore.
+> 冒険を。経験に。もう一度。
+
 Udonarium Axe は、ブラウザ上で動作する TRPG オンラインセッション支援ツールです。
 テーブル上のオブジェクト（コマ・カード・ダイスなど）は WebRTC（SkyWay SDK v2）の P2P 通信で
 ブラウザ間に直接同期され、ゲームデータが中央サーバーに保存されることはありません。
@@ -17,6 +20,12 @@ Angular 21 / Zoneless + Signals による実装基盤の作り直しと独自機
 - [クイックスタート](/guide/quickstart) — 最短の導入手順
 - [バックエンドの選択肢](/guide/backend) — トークン発行サーバーの選び方
 - [主な機能](/guide/features) — Axe で使える機能の一覧
+
+## 名前について
+
+**A**dventure. e**X**perience. **E**ncore. — 冒険を、経験に、もう一度。
+
+卓の一晩は終わりますが、記録から読み物や動画やまとめとして呼び戻せます。
 
 ## 系譜とクレジット
 

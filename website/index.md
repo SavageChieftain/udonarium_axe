@@ -2,8 +2,8 @@
 layout: home
 hero:
   name: Udonarium Axe
-  text: ブラウザで動く TRPG セッション支援ツール
-  tagline: コマ・カード・ダイス・チャットを、サーバーレスの P2P 同期でブラウザだけに。
+  text: Adventure. eXperience. Encore.
+  tagline: 冒険を。経験に。もう一度。コマ・カード・ダイス・チャットを、サーバーレスの P2P 同期でブラウザだけに。
   actions:
     - theme: brand
       text: デモを触ってみる

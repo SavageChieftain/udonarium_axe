@@ -7,6 +7,9 @@
 [![Angular](https://img.shields.io/badge/Angular-22-DD0031?logo=angular&logoColor=white)](https://angular.dev/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-6.0-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 
+> **AXE** — Adventure. eXperience. Encore.
+> 冒険を。経験に。もう一度。
+
 Udonarium Axe は、ブラウザ上で動作する TRPG オンラインセッション支援ツールです。
 テーブル上のオブジェクト（コマ・カード・ダイスなど）は WebRTC（SkyWay SDK v2）の P2P 通信で
 ブラウザ間に直接同期され、ゲームデータが中央サーバーに保存されることはありません。
@@ -107,6 +110,12 @@ Secret をブラウザに置くわけにはいかないため、**トークン�
 - 視界外のコマや、OS の「視差効果を減らす」設定では絵を出さず効果音だけ鳴らします
 
 **→ 追加・拡張機能の一覧は [docs/features.md](docs/features.md) を参照してください。**
+
+## 名前について
+
+**A**dventure. e**X**perience. **E**ncore. — 冒険を、経験に、もう一度。
+
+卓の一晩は終わりますが、記録から読み物や動画やまとめとして呼び戻せます。
 
 ## 系譜とクレジット
 
