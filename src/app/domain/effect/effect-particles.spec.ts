@@ -1,5 +1,5 @@
 import { EFFECT_KINDS, EffectKind } from '@axe/domain/effect/effect-kind';
-import { effectParticles, seededRandom } from '@axe/domain/effect/effect-particles';
+import { effectParticles, PARTICLE_EFFECT_KINDS, seededRandom } from '@axe/domain/effect/effect-particles';
 import { EffectPreset } from '@axe/domain/effect/effect-preset';
 
 describe('effectParticles()', () => {
@@ -194,5 +194,14 @@ describe('seededRandom()', () => {
     const second = seededRandom(99);
 
     expect([first(), first(), first()]).toEqual([second(), second(), second()]);
+  });
+});
+
+describe('粒の振り分け', () => {
+  it('粒を出さない種類だけを表から外していること', () => {
+    // 表に無い種類は既定の「弾ける」に落ちる。飛んでいる間は canvas を使わないものだけが対象。
+    const unrouted = EFFECT_KINDS.filter((kind) => !PARTICLE_EFFECT_KINDS.includes(kind));
+
+    expect(unrouted.sort()).toEqual(['arrowrain', 'ballistic', 'burst', 'projectile', 'raybeam', 'skyblade']);
   });
 });
