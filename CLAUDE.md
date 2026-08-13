@@ -7,7 +7,7 @@ WebRTC (SkyWay SDK) による P2P 通信でサーバレスにオブジェクト�
 
 - 設計思想・各層の役割・実装パターン → [docs/architecture.md](docs/architecture.md)
 - コーディング規範・コードスタイル → [docs/coding-guidelines.md](docs/coding-guidelines.md)
-- コミット規約・lefthook 詳細 → [docs/contribution.md](docs/contribution.md)
+- コミット規約・lefthook・ドキュメントの日本語 → [docs/contribution.md](docs/contribution.md)
 
 ## アーキテクチャ規範
 
@@ -89,6 +89,17 @@ composition → features → ui → application → infrastructure → domain �
 - **lefthook 迂回は絶対禁止**（`--no-verify` / `LEFTHOOK=0` / `core.hooksPath` 変更等）。
   フックが落ちたら原因を直してから再コミットする
   - `commit-msg`: `commitlint` / `pre-commit`: `ng lint` + `ng test` / `pre-push`: `npm run build`
+
+## ドキュメントの日本語
+
+README・`docs/`・`website/` のまとまった日本語は `natural-japanese` スキルを通して書く
+（[.claude/settings.json](.claude/settings.json) の `enabledPlugins` で有効化済み）。詳細は
+[docs/contribution.md](docs/contribution.md)。要点のみ:
+
+- 対象は新規執筆と書き直し。1〜2 行の追記や表のセル修正はそのまま書いてよい
+- 禁止語・翻訳調・リズムの均質さはスキル同梱の lint が機械的に拾う。
+  出るのは疑いなので、直すか残すかは文脈で決める
+- **コミットメッセージと CHANGELOG は対象外** — 前者は英語、後者は semantic-release の生成物
 
 ## 留意事項
 

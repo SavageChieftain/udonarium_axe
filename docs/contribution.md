@@ -1,6 +1,6 @@
 # Udonarium Axe — コントリビューション規約
 
-コミットメッセージと Git フックに関するルール。
+コミットメッセージ・Git フック・ドキュメントの書き方に関するルール。
 コーディング規約は [coding-guidelines.md](coding-guidelines.md)、
 アーキテクチャは [architecture.md](architecture.md) を参照。
 
@@ -81,6 +81,28 @@ chore(release): bump version to 1.2.2
 - `package.json` の `version` がリリース番号
 - 更新は `chore(release): bump version to X.Y.Z` で 1 コミットに切り出す
 - 機能変更・バージョンバンプ・ドキュメント整備を同じコミットに混ぜない
+
+## ドキュメントの日本語
+
+まとまった日本語（[README.md](../README.md)・`docs/`・`website/` の本文）は
+`natural-japanese` スキルを通して書く。プラグインは
+[.claude/settings.json](../.claude/settings.json) の `enabledPlugins` で有効化してあり、
+配布元は [coji/natural-japanese](https://github.com/coji/natural-japanese)。
+
+| 呼び方                               | 用途                                       |
+| ------------------------------------ | ------------------------------------------ |
+| `/natural-japanese <対象>`           | 新規執筆・書き直し（既定はクイックモード） |
+| `/natural-japanese full <対象>`      | 公開ページなど、直しの効きが読者に届く文書 |
+| `/natural-japanese score <ファイル>` | 書き換えずに診断だけ                       |
+
+- 技術文書として検査する（スキル側で lint の `--genre tech` を指定）。
+  指摘は疑いの提示であって修正指示ではないので、直すか残すかは文脈で決める。
+  箇条書き主体の一覧で出る「文のリズムが単調」などは残してよい
+- 既存文書の書き直しでは、同じ直し方を全項目へ一律に当てない。
+  元の濃淡が潰れると、かえって機械が書いたような文章になる
+- 一覧表・コマンド表・API 表など、圧縮された情報が本体の箇所は無理に地の文へ戻さない
+- **対象外**: コミットメッセージ（英語で書く）、[CHANGELOG.md](../CHANGELOG.md)（semantic-release
+  が Conventional Commits から生成する）、コード内のコメントと識別子
 
 ## 依存の更新
 
