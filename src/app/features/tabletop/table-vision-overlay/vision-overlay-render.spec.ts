@@ -1,6 +1,7 @@
 import { OverlayPlan, OverlayShape } from '@axe/domain/tabletop/vision-scene';
 import {
   animationIntensity,
+  bakeOverlayPlan,
   drawOverlayPlan,
   hexToRgba,
 } from '@axe/features/tabletop/table-vision-overlay/vision-overlay-render';
@@ -335,5 +336,66 @@ describe('影のぼかし', () => {
 
     expect(bakes).toHaveLength(1);
     expect(bakes[0]).toContain('blur(');
+  });
+});
+
+describe('焼いた面', () => {
+  afterEach(() => vi.restoreAllMocks());
+
+  function planWithDarkness(): OverlayPlan {
+    return {
+      darknessAlpha: 0.9,
+      darknessColor: '#05060a',
+      baseRevealAlpha: 0.2,
+      reveals: [shape()],
+      glows: [shape()],
+      shadows: [],
+    };
+  }
+
+  function stubCanvas(): Op[] {
+    const { ctx, ops } = fakeContext();
+    vi.spyOn(document, 'createElement').mockImplementation(((tag: string) => {
+      if (tag !== 'canvas') return document.createElementNS('http://www.w3.org/1999/xhtml', tag);
+      return { width: 0, height: 0, getContext: () => ctx } as unknown as HTMLElement;
+    }) as typeof document.createElement);
+    return ops;
+  }
+
+  it('暗幕と彫り抜きを焼いた面に描くこと', () => {
+    const baked = stubCanvas();
+    const bake = bakeOverlayPlan(planWithDarkness(), 800, 600, undefined, 10);
+
+    expect(bake).not.toBeNull();
+    expect(baked.some((o) => o.name === 'fillRect' && o.composite === 'source-over')).toBe(true);
+    expect(baked.some((o) => o.name === 'fill' && o.composite === 'destination-out')).toBe(true);
+    // 灯りは時間で変わる。焼いてしまうと、ゆらぎが止まる。
+    expect(baked.some((o) => o.name === 'fill' && o.composite === 'lighter')).toBe(false);
+  });
+
+  it('焼いた面があるときは、貼ってから灯りだけ描くこと', () => {
+    stubCanvas();
+    const plan = planWithDarkness();
+    const bake = bakeOverlayPlan(plan, 800, 600, undefined, 10);
+
+    const { ctx, ops } = fakeContext();
+    drawOverlayPlan(ctx, plan, 800, 600, 1000, undefined, 10, undefined, bake);
+
+    expect(ops.filter((o) => o.name === 'drawImage')).toHaveLength(1);
+    expect(ops.some((o) => o.name === 'fillRect')).toBe(false);
+    expect(ops.some((o) => o.name === 'fill' && o.composite === 'destination-out')).toBe(false);
+    expect(ops.some((o) => o.name === 'fill' && o.composite === 'lighter')).toBe(true);
+  });
+
+  it('大きさが変わった焼き面は使わないこと', () => {
+    stubCanvas();
+    const plan = planWithDarkness();
+    const bake = bakeOverlayPlan(plan, 800, 600, undefined, 10);
+
+    const { ctx, ops } = fakeContext();
+    drawOverlayPlan(ctx, plan, 400, 300, 1000, undefined, 10, undefined, bake);
+
+    expect(ops.some((o) => o.name === 'drawImage')).toBe(false);
+    expect(ops.some((o) => o.name === 'fillRect')).toBe(true);
   });
 });

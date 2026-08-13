@@ -4,7 +4,11 @@ import { GridType } from '@axe/domain/tabletop/game-table';
 import { HEX_SURFACE_INFLATE_PX, hexSurfaceCells, SurfacePoint } from '@axe/domain/tabletop/surface-cells';
 import { computeOverlayPlan, OverlayPlan } from '@axe/domain/tabletop/vision-scene';
 import { computeHexMaskGeometry } from '@axe/features/tabletop/game-table-mask/game-table-mask-helpers';
-import { drawOverlayPlan } from '@axe/features/tabletop/table-vision-overlay/vision-overlay-render';
+import {
+  bakeOverlayPlan,
+  drawOverlayPlan,
+  type OverlayBake,
+} from '@axe/features/tabletop/table-vision-overlay/vision-overlay-render';
 import { translateZCss, Z_OFFSET_DARKNESS_PX } from '@axe/ui/tabletop/z-offset';
 
 const SPILL_MARGIN_CAP_PX = 800;
@@ -31,6 +35,7 @@ export class TableVisionOverlayComponent {
   private surfaceCells: SurfacePoint[][] | undefined = undefined;
   private margin = 0;
   private animated = false;
+  private bake: OverlayBake | null = null;
   private rafId: number | null = null;
   private readonly images = new Map<string, HTMLImageElement>();
 
@@ -44,6 +49,7 @@ export class TableVisionOverlayComponent {
       if (!scene) {
         this.plan = null;
         this.animated = false;
+        this.bake = null;
         this.margin = 0;
         this.surfaceCells = undefined;
         this.stopLoop();
@@ -77,6 +83,7 @@ export class TableVisionOverlayComponent {
       this.plan = computeOverlayPlan(scene, viewer);
       this.animated = scene.lights.some((light) => light.animation && light.animation !== 'none');
       this.ensureImages();
+      this.refreshBake();
       this.draw(this.now());
       this.syncLoop();
     });
@@ -95,7 +102,10 @@ export class TableVisionOverlayComponent {
       live.add(shadow.imageUrl);
       if (this.images.has(shadow.imageUrl)) continue;
       const image = new Image();
-      image.onload = () => this.draw(this.now());
+      image.onload = () => {
+        this.refreshBake();
+        this.draw(this.now());
+      };
       image.src = shadow.imageUrl;
       this.images.set(shadow.imageUrl, image);
     }
@@ -105,14 +115,46 @@ export class TableVisionOverlayComponent {
     }
   }
 
+  /**
+   * 灯りがゆらぐ卓でだけ、変わらない部分を焼いておく。
+   *
+   * 焼いた面は盤面ぶんの画素を持つ。ゆらがない卓では描き直し自体が起きないので、
+   * 抱えるだけ無駄になる。
+   */
+  private refreshBake(): void {
+    if (!this.plan || !this.animated) {
+      this.bake = null;
+      return;
+    }
+    this.bake = bakeOverlayPlan(
+      this.plan,
+      this.surfaceWidth,
+      this.surfaceHeight,
+      this.images,
+      this.margin,
+      this.surfaceOf(),
+      this.bake
+    );
+  }
+
+  private surfaceOf() {
+    return { originX: this.surfaceOriginX, originY: this.surfaceOriginY, cells: this.surfaceCells };
+  }
+
   private draw(timeMs: number): void {
     const ctx = this.canvasRef().nativeElement.getContext('2d');
     if (!ctx || !this.plan) return;
-    drawOverlayPlan(ctx, this.plan, this.surfaceWidth, this.surfaceHeight, timeMs, this.images, this.margin, {
-      originX: this.surfaceOriginX,
-      originY: this.surfaceOriginY,
-      cells: this.surfaceCells,
-    });
+    drawOverlayPlan(
+      ctx,
+      this.plan,
+      this.surfaceWidth,
+      this.surfaceHeight,
+      timeMs,
+      this.images,
+      this.margin,
+      this.surfaceOf(),
+      this.bake
+    );
   }
 
   /**

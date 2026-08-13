@@ -243,56 +243,123 @@ function drawShadowImage(
   ctx.restore();
 }
 
-export function drawOverlayPlan(
-  ctx: CanvasRenderingContext2D,
+/** 焼いた面。時間で変わらない部分を持つ。 */
+export interface OverlayBake {
+  /** 暗幕と、そこから彫り抜いた見えている所。 */
+  base: BakeCanvas;
+  /** 影。灯りの上に重ねるので、暗幕とは分けて持つ。 */
+  shadows: BakeCanvas | null;
+  width: number;
+  height: number;
+}
+
+interface BakeCanvas {
+  image: CanvasImageSource;
+  context: CanvasRenderingContext2D;
+}
+
+function bakeCanvas(width: number, height: number, previous?: BakeCanvas | null): BakeCanvas | null {
+  if (previous) {
+    previous.context.setTransform(1, 0, 0, 1, 0, 0);
+    previous.context.globalCompositeOperation = 'source-over';
+    previous.context.globalAlpha = 1;
+    previous.context.clearRect(0, 0, width, height);
+    return previous;
+  }
+  if (typeof document === 'undefined') return null;
+  const canvas = document.createElement('canvas');
+  canvas.width = width;
+  canvas.height = height;
+  const context = canvas.getContext('2d');
+  if (!context || typeof context.drawImage !== 'function') return null;
+  return { image: canvas, context };
+}
+
+/**
+ * 時間で変わらない部分を焼いておく。
+ *
+ * 灯りがゆらぐ卓では同じ絵を毎回描き直している。変わるのは灯りの明るさだけで、
+ * 暗幕・彫り抜き・影は盤面が変わるまで同じ。盤面ぶんの塗り 3 回ぶんが、貼り付け 2 回になる。
+ */
+export function bakeOverlayPlan(
   plan: OverlayPlan,
   widthPx: number,
   heightPx: number,
-  timeMs = 0,
   images?: Map<string, HTMLImageElement>,
   margin = 0,
-  surface?: OverlaySurface
-): void {
-  const resolved: ResolvedSurface = {
+  surface?: OverlaySurface,
+  previous?: OverlayBake | null
+): OverlayBake | null {
+  const width = widthPx + 2 * margin;
+  const height = heightPx + 2 * margin;
+  if (width < 1 || height < 1) return null;
+
+  const reuse = previous && previous.width === width && previous.height === height ? previous : null;
+  const base = bakeCanvas(width, height, reuse?.base);
+  if (!base) return null;
+
+  const resolved = resolvedSurfaceOf(widthPx, heightPx, surface);
+  const offsetX = margin - resolved.originX;
+  const offsetY = margin - resolved.originY;
+
+  base.context.translate(offsetX, offsetY);
+  paintDarkness(base.context, plan, resolved);
+
+  let shadows: BakeCanvas | null = null;
+  if (plan.shadows.length > 0) {
+    shadows = bakeCanvas(width, height, reuse?.shadows);
+    if (shadows) {
+      shadows.context.translate(offsetX, offsetY);
+      paintShadows(shadows.context, plan, images, offsetX, offsetY);
+      shadows.context.setTransform(1, 0, 0, 1, 0, 0);
+    }
+  }
+
+  base.context.setTransform(1, 0, 0, 1, 0, 0);
+  return { base, shadows, width, height };
+}
+
+function resolvedSurfaceOf(widthPx: number, heightPx: number, surface?: OverlaySurface): ResolvedSurface {
+  return {
     originX: surface?.originX ?? 0,
     originY: surface?.originY ?? 0,
     widthPx,
     heightPx,
     cells: surface?.cells,
   };
-  const offsetX = margin - resolved.originX;
-  const offsetY = margin - resolved.originY;
+}
 
-  ctx.setTransform(1, 0, 0, 1, 0, 0);
-  ctx.globalCompositeOperation = 'source-over';
+function paintDarkness(ctx: CanvasRenderingContext2D, plan: OverlayPlan, resolved: ResolvedSurface): void {
+  if (!(plan.darknessAlpha > 0)) return;
+
+  ctx.globalAlpha = plan.darknessAlpha;
+  ctx.fillStyle = plan.darknessColor;
+  fillSurface(ctx, resolved);
   ctx.globalAlpha = 1;
-  ctx.clearRect(0, 0, widthPx + 2 * margin, heightPx + 2 * margin);
-  ctx.translate(offsetX, offsetY);
 
-  if (plan.darknessAlpha > 0) {
-    ctx.globalAlpha = plan.darknessAlpha;
-    ctx.fillStyle = plan.darknessColor;
+  ctx.globalCompositeOperation = 'destination-out';
+  if (plan.baseRevealAlpha > 0) {
+    ctx.globalAlpha = plan.baseRevealAlpha;
+    ctx.fillStyle = 'rgba(0, 0, 0, 1)';
     fillSurface(ctx, resolved);
     ctx.globalAlpha = 1;
-
-    ctx.globalCompositeOperation = 'destination-out';
-    if (plan.baseRevealAlpha > 0) {
-      ctx.globalAlpha = plan.baseRevealAlpha;
-      ctx.fillStyle = 'rgba(0, 0, 0, 1)';
-      fillSurface(ctx, resolved);
-      ctx.globalAlpha = 1;
-    }
-    const cells = plan.revealCells;
-    if (cells && cells.length > 0) {
-      carveCells(ctx, cells);
-    } else {
-      for (const shape of plan.reveals) carveReveal(ctx, shape);
-    }
   }
+  const cells = plan.revealCells;
+  if (cells && cells.length > 0) {
+    carveCells(ctx, cells);
+  } else {
+    for (const shape of plan.reveals) carveReveal(ctx, shape);
+  }
+  ctx.globalCompositeOperation = 'source-over';
+}
 
-  ctx.globalCompositeOperation = 'lighter';
-  for (const shape of plan.glows) drawGlow(ctx, shape, timeMs);
-
+function paintShadows(
+  ctx: CanvasRenderingContext2D,
+  plan: OverlayPlan,
+  images: Map<string, HTMLImageElement> | undefined,
+  offsetX: number,
+  offsetY: number
+): void {
   ctx.globalCompositeOperation = 'source-over';
   for (const shadow of plan.shadows) {
     const img = shadow.imageUrl && images ? images.get(shadow.imageUrl) : undefined;
@@ -301,6 +368,48 @@ export function drawOverlayPlan(
     } else {
       drawShadow(ctx, shadow);
     }
+  }
+}
+
+export function drawOverlayPlan(
+  ctx: CanvasRenderingContext2D,
+  plan: OverlayPlan,
+  widthPx: number,
+  heightPx: number,
+  timeMs = 0,
+  images?: Map<string, HTMLImageElement>,
+  margin = 0,
+  surface?: OverlaySurface,
+  bake?: OverlayBake | null
+): void {
+  const resolved = resolvedSurfaceOf(widthPx, heightPx, surface);
+  const offsetX = margin - resolved.originX;
+  const offsetY = margin - resolved.originY;
+  const width = widthPx + 2 * margin;
+  const height = heightPx + 2 * margin;
+
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.globalCompositeOperation = 'source-over';
+  ctx.globalAlpha = 1;
+  ctx.clearRect(0, 0, width, height);
+
+  const usable = bake && bake.width === width && bake.height === height ? bake : null;
+  if (usable) ctx.drawImage(usable.base.image, 0, 0);
+
+  ctx.translate(offsetX, offsetY);
+  if (!usable) paintDarkness(ctx, plan, resolved);
+
+  ctx.globalCompositeOperation = 'lighter';
+  for (const shape of plan.glows) drawGlow(ctx, shape, timeMs);
+
+  ctx.globalCompositeOperation = 'source-over';
+  if (usable) {
+    if (usable.shadows) {
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.drawImage(usable.shadows.image, 0, 0);
+    }
+  } else {
+    paintShadows(ctx, plan, images, offsetX, offsetY);
   }
 
   ctx.globalAlpha = 1;
