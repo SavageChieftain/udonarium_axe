@@ -15,7 +15,7 @@ import { ChatMessage } from '@axe/domain/chat/chat-message';
 import { EffectPreset } from '@axe/domain/effect/effect-preset';
 import { CutIn } from '@axe/domain/media/cut-in';
 import { collectReplayCast, type ReplayCastMember } from '@axe/domain/replay/replay-cast';
-import { mergeSyncData, type SyncData } from '@axe/domain/replay/replay-diff';
+import { cloneSyncValue, isSameSyncValue, mergeSyncData, type SyncData } from '@axe/domain/replay/replay-diff';
 import { type ReplayEvent, ReplayEventKind, type ReplayManifest } from '@axe/domain/replay/replay-event';
 import {
   decodeReplayKeyframe,
@@ -86,6 +86,13 @@ export class ReplayPlaybackService {
   private savedBoard: ReplayObjectSnapshot[] | null = null;
   private savedDeleteHistory: Map<string, number> | null = null;
   private baseKeyframe: { seq: number; snapshots: readonly ReplayObjectSnapshot[] } | null = null;
+  /**
+   * いま盤面に出している内容。
+   *
+   * 先へ進むときは、ここから足りないぶんだけ当てれば足りる。毎回キーフレームから
+   * 積み直すと、つまみを動かすたびに部屋 1 つぶんを最初からやり直すことになる。
+   */
+  private appliedBoard: { index: number; snapshots: readonly ReplayObjectSnapshot[] } | null = null;
   private autoPlayTimer: ReturnType<typeof setTimeout> | null = null;
   private seekToken = 0;
   private slideFrame: number | null = null;
@@ -111,6 +118,7 @@ export class ReplayPlaybackService {
     if (this._isBoardMode()) await this.exitBoardMode();
     this.staging.discard();
     this.baseKeyframe = null;
+    this.appliedBoard = null;
     this._recordingId.set(null);
     this._manifest.set(null);
     this._events.set([]);
@@ -139,6 +147,13 @@ export class ReplayPlaybackService {
 
     if (isStepForward) {
       this.stepBoardForward(events[clamped]);
+      // 出している内容も 1 つ進める。ずれたまま持つと、次に戻したとき差分が合わなくなる。
+      if (this.appliedBoard) {
+        this.appliedBoard = {
+          index: clamped,
+          snapshots: applyReplayEvents(this.appliedBoard.snapshots, [events[clamped]], { shareInput: true }),
+        };
+      }
       return;
     }
     await this.applyBoard(clamped);
@@ -200,6 +215,7 @@ export class ReplayPlaybackService {
     } finally {
       this.savedBoard = null;
       this.baseKeyframe = null;
+      this.appliedBoard = null;
       this.objectStore.replaceDeleteHistory(this.savedDeleteHistory ?? new Map());
       this.savedDeleteHistory = null;
       setNetworkIsolated(false);
@@ -279,6 +295,16 @@ export class ReplayPlaybackService {
     const token = ++this.seekToken;
     this._isSeeking.set(true);
     try {
+      const applied = this.appliedBoard;
+      if (applied && applied.index <= index) {
+        this.stopSlide();
+        this.showBoard(
+          index,
+          applyReplayEvents(applied.snapshots, events.slice(applied.index + 1, index + 1), { shareInput: true })
+        );
+        return;
+      }
+
       const targetSeq = events[index].seq;
       const keyframe = await this.library.keyframeBefore(id, targetSeq);
       if (token !== this.seekToken) return;
@@ -288,7 +314,7 @@ export class ReplayPlaybackService {
 
       const from = keyframe ? indexOfSeq(events, keyframe.seq) : -1;
       this.stopSlide();
-      this.restoreBoard(applyReplayEvents(base, events.slice(from + 1, index + 1)));
+      this.showBoard(index, applyReplayEvents(base, events.slice(from + 1, index + 1), { shareInput: true }));
     } catch (reason) {
       Logger.warn('[ReplayPlayback] 盤面の再生に失敗しました', reason);
     } finally {
@@ -404,9 +430,11 @@ export class ReplayPlaybackService {
       aliasName: snapshot.aliasName,
       majorVersion: 1,
       minorVersion: 0,
-      syncData: mergeSyncData(object.toContext().syncData as SyncData, snapshot.syncData),
+      // 控えは次の場面の元にもなる。生きた物へ参照ごと渡すと、あとで書き換えられて崩れる。
+      syncData: cloneSyncValue(mergeSyncData(object.toContext().syncData as SyncData, snapshot.syncData)) as SyncData,
     };
     this.objectStore.add(object, false, () => object.apply(context));
+    markForChanged(object);
   }
 
   private snapshotBoard(): ReplayObjectSnapshot[] {
@@ -424,6 +452,23 @@ export class ReplayPlaybackService {
     );
   }
 
+  private showBoard(index: number, snapshots: readonly ReplayObjectSnapshot[]): void {
+    try {
+      this.restoreBoard(snapshots);
+      this.appliedBoard = { index, snapshots };
+    } catch (reason) {
+      // 出しきれていない盤面を覚えると、次の差分がその上に乗って食い違う。
+      this.appliedBoard = null;
+      throw reason;
+    }
+  }
+
+  /**
+   * 盤面を出し直す。
+   *
+   * いま出している内容と突き合わせ、変わった物にだけ触る。1 つ戻すだけで部屋じゅうの
+   * 物を作り直すと、画面もその数だけ描き直しにかかる。
+   */
   private restoreBoard(snapshots: readonly ReplayObjectSnapshot[]): void {
     const wanted = new Map(snapshots.map((snapshot) => [snapshot.identifier, snapshot]));
     for (const object of this.objectStore.getObjects()) {
@@ -431,13 +476,19 @@ export class ReplayPlaybackService {
     }
     this.objectStore.clearDeleteHistory();
 
+    const shown = this.appliedBoard?.snapshots;
+    const before = shown ? new Map(shown.map((snapshot) => [snapshot.identifier, snapshot])) : null;
+
     for (const snapshot of snapshots) {
       const existing = this.objectStore.get(snapshot.identifier);
-      if (existing) this.reviveObject(existing, snapshot.syncData);
-      else this.createObject(snapshot);
+      if (!existing) {
+        this.createObject(snapshot);
+        continue;
+      }
+      const previous = before?.get(snapshot.identifier);
+      if (previous && isSameSyncValue(previous.syncData, snapshot.syncData)) continue;
+      this.reviveObject(existing, cloneSyncValue(snapshot.syncData) as Record<string, unknown>);
     }
-
-    for (const object of this.objectStore.getObjects()) markForChanged(object);
   }
 }
 

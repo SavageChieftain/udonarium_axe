@@ -47,6 +47,11 @@ describe('ReplayPlaybackService', () => {
       aliasName: 'character',
       syncData: { value: '', attributes: { location: { name: 'table', x: 0, y: 0 }, posZ: 0 } },
     },
+    {
+      identifier: 'c2',
+      aliasName: 'character',
+      syncData: { value: '', attributes: { location: { name: 'table', x: 500, y: 0 }, posZ: 0 } },
+    },
   ];
   const soundEvent: ReplayEvent = {
     seq: 2,
@@ -167,6 +172,20 @@ describe('ReplayPlaybackService', () => {
     await service.toStart();
     expect(characterX()).toBe(10);
     expect(soundsHeard()).toEqual([]);
+  });
+
+  it('動いていないコマには触らずに送り戻しすること', async () => {
+    // 1 つ戻すたびに部屋じゅうの物を作り直すと、その数だけ画面も描き直しにかかる。
+    await service.open(1);
+    await service.enterBoardMode();
+    const still = objectStore.get<GameCharacter>('c2');
+    const version = still?.version;
+
+    await service.toEnd();
+    await service.toStart();
+
+    expect(characterX()).toBe(10);
+    expect(objectStore.get<GameCharacter>('c2')?.version).toBe(version);
   });
 
   it('1 つ送るときに効果音を鳴らし直すこと', async () => {

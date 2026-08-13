@@ -32,7 +32,8 @@ export class ObjectNode extends GameObject implements XmlAttributes, InnerXml {
     return this.parentIdentifier;
   }
   get parentIsAssigned(): boolean {
-    return this.parentIdentifier.length > 0;
+    // 同期データを丸ごと差し替えると、そこに無い項目は未定義になる。既定値には戻らない。
+    return (this.parentIdentifier?.length ?? 0) > 0;
   }
   get parentIsUnknown(): boolean {
     return this.parentIsAssigned && ObjectStore.instance.get(this.parentIdentifier) == null;
