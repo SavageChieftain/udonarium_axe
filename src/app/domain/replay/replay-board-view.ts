@@ -43,9 +43,19 @@ const PIECE_ALIASES: ReadonlySet<string> = new Set([
   'coin',
 ]);
 
+export interface ReplayBoardSceneOptions {
+  /**
+   * 暗闇と灯りまで解くか。
+   *
+   * 解くのは重い。使う絵を数えるだけのときなど、要らない場面では省く。
+   */
+  withOverlay?: boolean;
+}
+
 export function buildReplayBoardScene(
   snapshots: readonly ReplayObjectSnapshot[],
-  viewer?: ReplayViewer
+  viewer?: ReplayViewer,
+  options?: ReplayBoardSceneOptions
 ): ReplayBoardScene | null {
   const table = viewTableOf(snapshots);
   if (!table) return null;
@@ -80,7 +90,7 @@ export function buildReplayBoardScene(
     imageIdentifier: String(syncValueOf(table.syncData, 'imageIdentifier') ?? ''),
     backgroundImageIdentifier: String(syncValueOf(table.syncData, 'backgroundImageIdentifier') ?? ''),
     pieces,
-    overlay: viewer ? replayOverlayPlan(snapshots, viewer) : null,
+    overlay: viewer && options?.withOverlay !== false ? replayOverlayPlan(snapshots, viewer) : null,
   };
 }
 

@@ -1,6 +1,7 @@
 import type { GameObject } from '@axe/core/sync/game-object';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { GameCharacter } from '@axe/domain/character/game-character';
+import { PeerRole } from '@axe/domain/peer/peer-role';
 import { buildReplayBoardScene, collectBoardAssetIds, framingOf } from '@axe/domain/replay/replay-board-view';
 import type { ReplayObjectSnapshot } from '@axe/domain/replay/replay-keyframe';
 import { GameTable } from '@axe/domain/tabletop/game-table';
@@ -220,5 +221,16 @@ describe('本物のコマから起こすとき', () => {
 
     const scene = buildReplayBoardScene(snapshotStore(character))!;
     expect(scene.pieces.some((one) => one.identifier === character.identifier)).toBe(false);
+  });
+});
+
+describe('暗闇を解かない組み立て', () => {
+  it('withOverlay を切ると視界を解かないこと', () => {
+    // 使う絵を数えるだけの場面まで解くと、書き出しの前に場面の数だけ視界を計算することになる。
+    const snapshots = [table('t1', { darknessEnabled: true, darknessLevel: 0.9 }), selecter('t1')];
+    const viewer = { userId: 'alice', role: PeerRole.Player };
+
+    expect(buildReplayBoardScene(snapshots, viewer)?.overlay).not.toBeNull();
+    expect(buildReplayBoardScene(snapshots, viewer, { withOverlay: false })?.overlay).toBeNull();
   });
 });

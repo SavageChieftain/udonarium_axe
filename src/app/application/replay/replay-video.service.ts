@@ -133,14 +133,26 @@ export class ReplayVideoService {
       this._total.set(frameCount);
 
       const layout = replayFrameLayout(options.size);
-      const boards = this.boardsFor(storyboard.shots, events, base, viewer ?? null);
+      const boards = this.boardsFor(storyboard.shots, events, base);
       const boardOfSeq = new Map(storyboard.shots.map((shot, index) => [shot.seq, boards[index]]));
       if (this.cancelled) return false;
       const assets = await this.loadAssets([
         ...storyboard.shots.flatMap((shot) => [shot.portraitId, shot.backgroundId, shot.cutInId]),
-        ...boards.flatMap((board) => collectBoardAssetIds(board)),
+        // 絵を数えるだけなので、ここでは暗闇を解かない。
+        ...boards.flatMap((board) =>
+          collectBoardAssetIds(board ? buildReplayBoardScene(board, undefined, { withOverlay: false }) : null)
+        ),
       ]);
       const msPerFrame = 1000 / options.fps;
+      // 場面は 1 つずつ組む。同じ場面が続くあいだは組み直さない。
+      let shown: { seq: number; scene: ReplayBoardScene | null } | null = null;
+      const sceneOf = (seq: number): ReplayBoardScene | null => {
+        if (shown?.seq !== seq) {
+          const snapshots = boardOfSeq.get(seq);
+          shown = { seq, scene: snapshots ? buildReplayBoardScene(snapshots, viewer ?? undefined) : null };
+        }
+        return shown.scene;
+      };
       const audio = this.cancelled
         ? null
         : await this.soundOf(events, storyboard, options.sound, (frameCount / options.fps) * 1000);
@@ -162,6 +174,7 @@ export class ReplayVideoService {
           paint: (ctx, index) => {
             const atMs = index * msPerFrame;
             const shot = shotAt(storyboard, atMs);
+            const board = shot ? sceneOf(shot.seq) : null;
             paintReplayFrame(
               ctx,
               layout,
@@ -169,7 +182,7 @@ export class ReplayVideoService {
               { imageOf: (identifier) => assets.get(identifier) ?? null },
               frameCount > 1 ? index / (frameCount - 1) : 1,
               DEFAULT_REPLAY_FRAME_STYLE,
-              shot ? (boardOfSeq.get(shot.seq) ?? null) : null,
+              board,
               shot && shot.durationMs > 0 ? (atMs - shot.startMs) / shot.durationMs : 1,
               options.camera ?? REPLAY_BOARD_TOP_DOWN
             );
@@ -234,12 +247,18 @@ export class ReplayVideoService {
     }
   }
 
+  /**
+   * 場面ごとの盤面。
+   *
+   * 場面そのものは作らない。視界まで解いた場面を場面数ぶん抱えると、長い記録では
+   * 書き出しが始まる前に部屋 1 つ × 場面数を載せることになる。触られない物は
+   * 前の盤面と共有されるので、並べて持っても嵩まない。
+   */
   private boardsFor(
     shots: readonly ReplayShot[],
     events: readonly ReplayEvent[],
-    base: readonly ReplayObjectSnapshot[],
-    viewer: ReplayViewer | null
-  ): (ReplayBoardScene | null)[] {
+    base: readonly ReplayObjectSnapshot[]
+  ): (readonly ReplayObjectSnapshot[] | null)[] {
     if (base.length < 1) return shots.map(() => null);
 
     const indexOfSeq = new Map(events.map((event, index) => [event.seq, index]));
@@ -249,11 +268,10 @@ export class ReplayVideoService {
     return shots.map((shot) => {
       const upto = indexOfSeq.get(shot.seq);
       if (upto !== undefined && upto >= from) {
-        // 場面ごとの盤面は作って読むだけ。複製すると物の数 × 場面の数だけ積み上がる。
         board = applyReplayEvents(board, events.slice(from, upto + 1), { shareInput: true });
         from = upto + 1;
       }
-      return buildReplayBoardScene(board, viewer ?? undefined);
+      return board;
     });
   }
 
