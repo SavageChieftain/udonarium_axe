@@ -293,3 +293,46 @@ describe('vision-overlay-render', () => {
     });
   });
 });
+
+describe('影のぼかし', () => {
+  function planWith(imageUrl: string): OverlayPlan {
+    return {
+      darknessAlpha: 0,
+      darknessColor: '#05060a',
+      baseRevealAlpha: 0,
+      reveals: [],
+      glows: [],
+      shadows: [{ x: 100, y: 100, fx: 100, fy: 400, width: 50, color: '#05060a', imageUrl, points: [] }],
+    };
+  }
+
+  it('絵ごとに 1 度だけ焼き、描くたびに掛け直さないこと', () => {
+    // 影の数は「光源 × 遮る物」で増える。毎フレーム掛け直すと 1 枚に数百 ms かかる。
+    const bakes: string[] = [];
+    vi.spyOn(document, 'createElement').mockImplementation(((tag: string) => {
+      if (tag !== 'canvas') return document.createElementNS('http://www.w3.org/1999/xhtml', tag);
+      return {
+        width: 0,
+        height: 0,
+        getContext: () => ({
+          set filter(value: string) {
+            bakes.push(value);
+          },
+          drawImage: () => undefined,
+        }),
+      } as unknown as HTMLElement;
+    }) as typeof document.createElement);
+
+    const img = { complete: true, naturalWidth: 10, width: 10, height: 20 } as unknown as HTMLImageElement;
+    const images = new Map<string, HTMLImageElement>([['baked.png', img]]);
+
+    for (let draw = 0; draw < 3; draw++) {
+      const { ctx } = fakeContext();
+      drawOverlayPlan(ctx, planWith('baked.png'), 400, 400, 0, images);
+    }
+
+    expect(bakes).toHaveLength(1);
+    expect(bakes[0]).toContain('blur(');
+    vi.restoreAllMocks();
+  });
+});

@@ -8,6 +8,8 @@ import { drawOverlayPlan } from '@axe/features/tabletop/table-vision-overlay/vis
 import { translateZCss, Z_OFFSET_DARKNESS_PX } from '@axe/ui/tabletop/z-offset';
 
 const SPILL_MARGIN_CAP_PX = 800;
+/** ゆらめきを描き直す間隔(ms)。約 20 回/秒。 */
+export const VISION_ANIMATION_INTERVAL_MS = 50;
 
 @Component({
   selector: 'table-vision-overlay',
@@ -106,8 +108,20 @@ export class TableVisionOverlayComponent {
     });
   }
 
+  /**
+   * ゆらめきの描き直しは毎フレームまで要らない。
+   *
+   * 1 枚描くのに掛かるのは盤面ぜんぶの塗り直しで、変わるのは光のゆらぎだけ。
+   * 画面の更新に合わせて描くと、重い処理を 60 回/秒くり返すことになる。
+   */
+  private lastFrameAt = 0;
+
   private readonly loop = (): void => {
-    this.draw(this.now());
+    const now = this.now();
+    if (now - this.lastFrameAt >= VISION_ANIMATION_INTERVAL_MS) {
+      this.lastFrameAt = now;
+      this.draw(now);
+    }
     this.rafId = requestAnimationFrame(this.loop);
   };
 

@@ -108,7 +108,7 @@ function context(identifier: string, aliasName: string, syncData: Record<string,
  * 何回で終わるかは走らせる機械の混み具合で変わるため、終わるまで待つ。
  */
 async function settleUntil(done: () => boolean): Promise<void> {
-  for (let turn = 0; turn < 200 && !done(); turn++) await vi.advanceTimersByTimeAsync(1);
+  for (let turn = 0; turn < 1000 && !done(); turn++) await vi.advanceTimersByTimeAsync(1);
 }
 
 function sendUpdate(identifier: string, aliasName: string, attributes: Record<string, unknown>, sendFrom = 'peer-a') {

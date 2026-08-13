@@ -154,6 +154,36 @@ function drawShadow(ctx: CanvasRenderingContext2D, shadow: ShadowShape): void {
   if (clipped) ctx.restore();
 }
 
+const SHADOW_BLUR_PX = 3;
+const SHADOW_FILTER = `brightness(0) blur(${SHADOW_BLUR_PX}px)`;
+/** ぼかしが外へにじむぶんの余白。焼いた絵をここで切ると、影の縁が硬くなる。 */
+const SHADOW_BAKE_PAD_PX = SHADOW_BLUR_PX * 3;
+
+/**
+ * 影のもとになる黒い切り抜き。
+ *
+ * 影の数は「光源 × 遮る物」で増える。ぼかしを毎フレーム掛け直すと、その数だけ
+ * 再ラスタライズが走って 1 フレームが数百 ms に伸びる。絵ごとに 1 度だけ焼く。
+ */
+const silhouettes = new WeakMap<CanvasImageSource, HTMLCanvasElement>();
+
+function silhouetteOf(img: CanvasImageSource, iw: number, ih: number): HTMLCanvasElement | null {
+  const cached = silhouettes.get(img);
+  if (cached) return cached;
+  if (typeof document === 'undefined') return null;
+
+  const canvas = document.createElement('canvas');
+  canvas.width = iw + SHADOW_BAKE_PAD_PX * 2;
+  canvas.height = ih + SHADOW_BAKE_PAD_PX * 2;
+  const baker = canvas.getContext('2d');
+  if (!baker || typeof baker.drawImage !== 'function') return null;
+
+  baker.filter = SHADOW_FILTER;
+  baker.drawImage(img, SHADOW_BAKE_PAD_PX, SHADOW_BAKE_PAD_PX);
+  silhouettes.set(img, canvas);
+  return canvas;
+}
+
 function drawShadowImage(
   ctx: CanvasRenderingContext2D,
   shadow: ShadowShape,
@@ -170,10 +200,13 @@ function drawShadowImage(
   const px = -uy / len;
   const py = ux / len;
   const w = shadow.width;
+  const baked = silhouetteOf(img, iw, ih);
+
   ctx.save();
   clipToPolygon(ctx, shadow.clipPolygon);
   ctx.globalAlpha = 0.7;
-  ctx.filter = 'brightness(0) blur(3px)';
+  if (!baked) ctx.filter = SHADOW_FILTER;
+  // 置き方は焼く前と同じ。焼いた絵は余白ぶん外から描いて、元の位置に重ねる。
   ctx.setTransform(
     (px * w) / iw,
     (py * w) / iw,
@@ -182,7 +215,8 @@ function drawShadowImage(
     shadow.fx - (px * w) / 2 + offsetX,
     shadow.fy - (py * w) / 2 + offsetY
   );
-  ctx.drawImage(img, 0, 0);
+  if (baked) ctx.drawImage(baked, -SHADOW_BAKE_PAD_PX, -SHADOW_BAKE_PAD_PX);
+  else ctx.drawImage(img, 0, 0);
   ctx.restore();
 }
 
