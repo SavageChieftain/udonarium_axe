@@ -38,6 +38,8 @@ export class ReplayEditorService {
   readonly isEditing = this._isEditing.asReadonly();
   readonly isSaving = this._isSaving.asReadonly();
   readonly isDirty = computed(() => hasReplayEdits(this._original(), this._edited()));
+  /** 一覧は 1 行ずつ「足した行か」を尋ねる。毎回さらうと行数の二乗になる。 */
+  private readonly originalSeqs = computed(() => new Set(this._original().map((event) => event.seq)));
   readonly canUndo = computed(() => this._history().length > 0);
 
   begin(events: readonly ReplayEvent[]): void {
@@ -86,7 +88,7 @@ export class ReplayEditorService {
   }
 
   isInserted(seq: number): boolean {
-    return !this._original().some((event) => event.seq === seq);
+    return !this.originalSeqs().has(seq);
   }
 
   remove(seq: number): void {

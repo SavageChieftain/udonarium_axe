@@ -132,8 +132,11 @@ function paintBoard(
   const sliding = move ? pointAlongRoute(move.route, easeInOut(shotProgress)) : null;
   const span0 = Math.max(layout.board.minPiece, onBoard(board.gridSize));
   const labelSize = Math.max(10, Math.round(span0 * 0.34));
-  const standing = [...board.pieces].sort((a, b) => view.depthOf(a.x, a.y) - view.depthOf(b.x, b.y));
-  for (const piece of tilted ? standing : board.pieces) {
+  // 並べ替えるのは傾けたときだけ。真上からのときは並びを使わないので作らない。
+  const order = tilted
+    ? [...board.pieces].sort((a, b) => view.depthOf(a.x, a.y) - view.depthOf(b.x, b.y))
+    : board.pieces;
+  for (const piece of order) {
     const span = Math.max(layout.board.minPiece, onBoard(piece.size * board.gridSize));
     if (span < 1) continue;
     const at = sliding && move?.targetId === piece.identifier ? sliding : piece;

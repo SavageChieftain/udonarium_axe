@@ -55,12 +55,32 @@ type LayerFactory = (width: number, height: number) => DarknessCanvas | null;
  */
 export const DARKNESS_LAYER_MAX = 2048;
 
+/**
+ * 暗幕を描く面は使い回す。
+ *
+ * 動画は 1 秒に 30 枚描く。1 枚ごとに 2048 四方の面を作っては捨てると、書き出しの
+ * あいだじゅう 16MB の確保と解放をくり返すことになる。大きさが同じなら同じ面を洗って使う。
+ */
+let scratch: { canvas: OffscreenCanvas; context: DarknessCanvas } | null = null;
+
 export function defaultDarknessLayer(width: number, height: number): DarknessCanvas | null {
   if (width < 1 || height < 1) return null;
 
   if (typeof OffscreenCanvas !== 'undefined') {
-    const context = new OffscreenCanvas(width, height).getContext('2d');
-    return (context as unknown as DarknessCanvas) ?? null;
+    if (!scratch || scratch.canvas.width !== width || scratch.canvas.height !== height) {
+      const canvas = new OffscreenCanvas(width, height);
+      const created = canvas.getContext('2d');
+      if (!created) return null;
+      scratch = { canvas, context: created as unknown as DarknessCanvas };
+    } else {
+      // 大きさを入れ直すと中身も消える。同じ大きさのときは明示して洗う。
+      const reused = scratch.canvas.getContext('2d');
+      reused?.clearRect(0, 0, width, height);
+    }
+    const context = scratch.context;
+    context.globalCompositeOperation = 'source-over';
+    context.globalAlpha = 1;
+    return context;
   }
   if (typeof document !== 'undefined') {
     const canvas = document.createElement('canvas');

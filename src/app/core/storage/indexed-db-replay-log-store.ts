@@ -108,17 +108,30 @@ export class IndexedDbReplayLogStore extends ReplayLogStore {
   }
 
   async removeRecording(id: number): Promise<void> {
-    const chunks = await this.listChunks(id);
-    const keyframes = await this.listKeyframes(id);
+    // 消すのに要るのは鍵だけ。中身まで読むと、消す前に録画 1 本ぶんを丸ごと抱える。
+    const chunks = await this.keysOf(CHUNK_STORE, id);
+    const keyframes = await this.keysOf(KEYFRAME_STORE, id);
     await this.run<number>([CHUNK_STORE], 'readwrite', (stores) => {
-      for (const chunk of chunks) stores[0].delete(chunk.id);
+      for (const key of chunks) stores[0].delete(key);
       return stores[0].count();
     });
     await this.run<number>([KEYFRAME_STORE], 'readwrite', (stores) => {
-      for (const keyframe of keyframes) stores[0].delete(keyframe.id);
+      for (const key of keyframes) stores[0].delete(key);
       return stores[0].count();
     });
     await this.run<undefined>([RECORDING_STORE], 'readwrite', (stores) => stores[0].delete(id));
+  }
+
+  private async keysOf(store: string, recordingId: number): Promise<IDBValidKey[]> {
+    const index = (s: IDBObjectStore) => s.index(RECORDING_INDEX);
+    const keys = await this.run<IDBValidKey[]>([store], 'readonly', (stores) => {
+      const target = index(stores[0]);
+      // 鍵だけ取る手が無い実装もある。無ければ従来どおり行ごと読む。
+      return typeof target.getAllKeys === 'function' ? target.getAllKeys(recordingId) : target.getAll(recordingId);
+    });
+    return (keys ?? []).map((key) =>
+      typeof key === 'object' && key !== null && 'id' in key ? key.id : key
+    ) as IDBValidKey[];
   }
 
   async clear(): Promise<void> {
