@@ -1,7 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { EffectPlaybackService } from '@axe/application/effect/effect-playback.service';
 import { TabletopService } from '@axe/application/tabletop/tabletop.service';
-import { CoordinateService } from '@axe/core/input/coordinate.service';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { GameTable } from '@axe/domain/tabletop/game-table';
 import { TableSelecter } from '@axe/domain/tabletop/table-selecter';
@@ -82,34 +81,16 @@ describe('TableWeatherOverlayComponent', () => {
   });
 
   describe('降る範囲', () => {
-    it('天候が無ければ切り抜かないこと', () => {
+    it('天候が無ければマスクを掛けないこと', () => {
       fixture.detectChanges();
-      expect(fixture.componentInstance.clipPath()).toBe('none');
+      expect(fixture.componentInstance.maskImage()).toBe('none');
     });
 
-    it('盤面の位置が分からないうちは切り抜かないこと', () => {
-      // 盤面がまだ組み上がっていない間に四隅を投影すると、原点だけの潰れた形になる。
+    it('盤面の位置が分からないうちはマスクを掛けないこと', () => {
+      // 盤面がまだ組み上がっていない間に投影すると、原点だけの潰れた形になる。
       table.weatherKind = 'rain';
       fixture.detectChanges();
-      expect(fixture.componentInstance.clipPath()).toBe('none');
-    });
-
-    it('盤面の四隅を四角形に切り抜くこと', () => {
-      const origin = document.createElement('div');
-      document.body.appendChild(origin);
-      TestBed.inject(CoordinateService).tabletopOriginElement = origin;
-
-      table.weatherKind = 'rain';
-      table.width = 10;
-      table.height = 8;
-      fixture.detectChanges();
-
-      // 盤の外の余白にまで降らせないよう、テーブル 1 枚ぶんの四角形で切る。
-      const clip = fixture.componentInstance.clipPath();
-      expect(clip).toMatch(/^polygon\(/);
-      expect(clip.split(',')).toHaveLength(4);
-
-      origin.remove();
+      expect(fixture.componentInstance.maskImage()).toBe('none');
     });
   });
 

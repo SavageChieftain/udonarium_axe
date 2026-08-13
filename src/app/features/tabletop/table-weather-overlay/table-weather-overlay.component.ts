@@ -2,9 +2,18 @@ import { ChangeDetectionStrategy, Component, computed, DestroyRef, ElementRef, i
 import { AmbienceService } from '@axe/application/tabletop/ambience.service';
 import { TabletopService } from '@axe/application/tabletop/tabletop.service';
 import { CoordinateService } from '@axe/core/input/coordinate.service';
-import { skyAmbienceLayer, skyAmbienceWash } from '@axe/domain/effect/ambience/ambience-sky';
+import { skyAmbienceFlash, skyAmbienceLayer, skyAmbienceWash } from '@axe/domain/effect/ambience/ambience-sky';
 import { EffectParticleLayer } from '@axe/domain/effect/effect-particles';
+import { withAlpha } from '@axe/domain/effect/particles/shared';
 import { EffectCanvasComponent } from '@axe/features/effect/effect-canvas/effect-canvas.component';
+import {
+  type ScreenPoint,
+  weatherDepthDirection,
+  weatherMaskImage,
+} from '@axe/features/tabletop/table-weather-overlay/weather-projection';
+
+/** 天候が届く高さ(マス)。壁を立てていないテーブルでも、盤の上に空を持たせる。 */
+const MIN_SKY_CELLS = 10;
 
 /**
  * マップ全体に掛ける天候。
@@ -18,7 +27,8 @@ import { EffectCanvasComponent } from '@axe/features/effect/effect-canvas/effect
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
     class: 'pointer-events-none absolute inset-0 z-10',
-    '[style.clip-path]': 'clipPath()',
+    '[style.mask-image]': 'maskImage()',
+    '[style.-webkit-mask-image]': 'maskImage()',
   },
   imports: [EffectCanvasComponent],
 })
@@ -32,47 +42,55 @@ export class TableWeatherOverlayComponent {
   private readonly size = signal<{ width: number; height: number }>({ width: 0, height: 0 });
 
   /**
-   * 天候はテーブルの上だけに降らせる。
+   * 盤面と、その上空を画面へ投影した 8 点。
    *
-   * 画面に貼る 1 枚なので、そのままだと盤の外の余白にも降ってしまう。
-   * 盤面の四隅を画面へ投影して、その四角形で切り抜く。カメラを回すたびに形が変わるので毎回作り直す。
+   * 「テーブルの上」は床の四角形ではなく、その上の空間まで含む。カメラは盤面が
+   * 変わらなくても動くので、描画のたびに投影し直す。
    */
-  readonly clipPath = computed<string>(() => {
-    if (!this.ambienceService.weather()) return 'none';
+  private readonly projected = computed<ScreenPoint[]>(() => {
+    if (!this.ambienceService.weather()) return [];
 
     const origin = this.coordinateService.tabletopOriginElement;
-    if (!origin || origin === document.body) return 'none';
+    if (!origin || origin === document.body) return [];
 
     const table = this.tabletopService.currentTableVersion();
     const width = table.width * table.gridSize;
-    const height = table.height * table.gridSize;
-    if (width <= 0 || height <= 0) return 'none';
+    const depth = table.height * table.gridSize;
+    if (width <= 0 || depth <= 0) return [];
 
-    // 盤面が動いていなくてもカメラは動く。描画のたびに投影し直す。
     this.ambienceService.now();
 
-    const corners = this.coordinateService.convertManyToGlobal(
-      [
-        { x: 0, y: 0, z: 0 },
-        { x: width, y: 0, z: 0 },
-        { x: width, y: height, z: 0 },
-        { x: 0, y: height, z: 0 },
-      ],
-      origin
-    );
-    if (corners.some((corner) => !Number.isFinite(corner.x) || !Number.isFinite(corner.y))) return 'none';
+    const ceiling = Math.max(table.wallHeight, MIN_SKY_CELLS) * table.gridSize;
+    const box = [0, ceiling].flatMap((z) => [
+      { x: 0, y: 0, z },
+      { x: width, y: 0, z },
+      { x: width, y: depth, z },
+      { x: 0, y: depth, z },
+    ]);
 
     const host = this.elementRef.nativeElement.getBoundingClientRect();
-    const points = corners.map(
-      (corner) => `${(corner.x - host.left).toFixed(1)}px ${(corner.y - host.top).toFixed(1)}px`
-    );
-    return `polygon(${points.join(', ')})`;
+    return this.coordinateService
+      .convertManyToGlobal(box, origin)
+      .map((corner) => ({ x: corner.x - host.left, y: corner.y - host.top }));
   });
+
+  /** 盤面の外へは掛けない。多角形で切ると空中に切り口が出るので、ぼかして消す。 */
+  readonly maskImage = computed<string>(() => weatherMaskImage(this.projected()));
 
   readonly wash = computed<string>(() => {
     const weather = this.ambienceService.weather();
     if (!weather) return '';
-    return skyAmbienceWash(weather.kind, weather.color, weather.density);
+    const direction = weatherDepthDirection(this.projected().slice(0, 4));
+    return skyAmbienceWash(weather.kind, weather.color, weather.density, direction);
+  });
+
+  /** 稲光。盤面の上だけを照らすので、マスクの内側で焚く。 */
+  readonly flash = computed<string>(() => {
+    const weather = this.ambienceService.weather();
+    if (!weather || !this.ambienceService.motionEnabled()) return '';
+
+    const power = skyAmbienceFlash(weather.kind, this.ambienceService.now(), weather.density);
+    return power > 0.01 ? withAlpha(weather.color, Math.round(power * 850) / 1000) : '';
   });
 
   readonly layer = computed<EffectParticleLayer | null>(() => {
