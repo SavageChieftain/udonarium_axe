@@ -37,6 +37,7 @@ import { RotableDirective } from '@axe/ui/directives/rotable.directive';
 import { SelectableDirective } from '@axe/ui/directives/selectable.directive';
 import { SafePipe } from '@axe/ui/pipes/safe.pipe';
 import { makeBillboardTransform, makeLabelOrbitTransform } from '@axe/ui/tabletop/billboard-transform';
+import { DoubleTap } from '@axe/ui/tabletop/double-tap';
 import { setupInputHandler, setupMovableRotableForPiece } from '@axe/ui/tabletop/setup-tabletop-piece';
 import { supersampleFactor, supersampleInsetPercent, supersampleTransform } from '@axe/ui/tabletop/supersample';
 import { translateZCss, Z_OFFSET_TALL_OBJECT_PX } from '@axe/ui/tabletop/z-offset';
@@ -266,8 +267,7 @@ export class DiceSymbolComponent {
   readonly movableOption = signal<MovableOption>({});
   readonly rotableOption = signal<RotableOption>({});
 
-  private doubleClickTimer: ReturnType<typeof setTimeout> | null = null;
-  private doubleClickPoint = { x: 0, y: 0 };
+  private readonly doubleTap = new DoubleTap(() => this.input);
 
   private readonly inputRef = setupInputHandler({
     elementRef: this.elementRef,
@@ -294,7 +294,7 @@ export class DiceSymbolComponent {
       transformCssOffset: translateZCss(Z_OFFSET_TALL_OBJECT_PX),
     });
     this.destroyRef.onDestroy(() => {
-      clearTimeout(this.doubleClickTimer ?? undefined);
+      this.doubleTap.cancel();
       clearTimeout(this.iconHiddenTimer ?? undefined);
     });
   }
@@ -314,34 +314,14 @@ export class DiceSymbolComponent {
   }
 
   startDoubleClickTimer(e: MouseEvent | TouchEvent) {
-    if (!this.doubleClickTimer) {
-      this.stopDoubleClickTimer();
-      this.doubleClickTimer = setTimeout(() => this.stopDoubleClickTimer(), (e as TouchEvent).touches ? 500 : 300);
-      this.doubleClickPoint = this.input!.pointer;
-      return;
-    }
-
-    if ((e as TouchEvent).touches) {
-      this.input!.onEnd = () => this.onDoubleClick();
-    } else {
-      this.onDoubleClick();
-    }
-  }
-
-  stopDoubleClickTimer() {
-    clearTimeout(this.doubleClickTimer ?? undefined);
-    this.doubleClickTimer = null;
-    if (this.input) this.input.onEnd = null;
+    this.doubleTap.handle(e, () => this.onDoubleClick());
   }
 
   onDoubleClick() {
-    this.stopDoubleClickTimer();
+    this.doubleTap.cancel();
     if (!this.rolePermission.canEditTabletop) return;
-    const distance =
-      (this.doubleClickPoint.x - this.input!.pointer.x) ** 2 + (this.doubleClickPoint.y - this.input!.pointer.y) ** 2;
-    if (distance < 10 ** 2) {
-      if (this.isVisible) this.diceRoll();
-    }
+    if (!this.doubleTap.isInPlace()) return;
+    if (this.isVisible) this.diceRoll();
   }
 
   onContextMenu(e: Event) {
