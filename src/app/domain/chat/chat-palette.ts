@@ -14,11 +14,6 @@ export interface PaletteIndex {
   line: number;
 }
 
-export interface PaletteMatch {
-  text: string;
-  line: number;
-}
-
 export interface PaletteVariable {
   name: string;
   value: string;

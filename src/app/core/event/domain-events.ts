@@ -172,9 +172,6 @@ export function emitAlarmTimeUp(event: AlarmTimeUpEvent) {
 export function emitAlarmPop(event: AlarmPopEvent) {
   alarmPop$.emit(event);
 }
-export function emitUpdateAudioResource() {
-  updateAudioResource$.emit();
-}
 export function emitFileLoaded() {
   fileLoaded$.emit();
 }
@@ -190,10 +187,6 @@ export function emitCcfoliaRoomDropped(event: CcfoliaRoomDroppedEvent) {
 export function emitLoadConfig(event: LoadConfigEvent) {
   loadConfig$.emit(event);
 }
-export function emitFileResourceUpdated() {
-  fileResourceUpdated$.emit();
-}
-
 export interface FileSelectedEvent {
   fileIdentifier: string;
 }

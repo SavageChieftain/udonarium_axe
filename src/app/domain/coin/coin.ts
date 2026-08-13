@@ -6,8 +6,6 @@ import { moveToTopmost } from '@axe/domain/tabletop/tabletop-object-util';
 
 export type CoinFace = 'front' | 'back';
 
-export const COIN_FACES: readonly CoinFace[] = ['front', 'back'];
-
 export function pickCoinFace(random: () => number = Math.random): CoinFace {
   return random() < 0.5 ? 'front' : 'back';
 }

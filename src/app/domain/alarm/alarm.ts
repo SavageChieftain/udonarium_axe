@@ -6,10 +6,6 @@ import { GameObject, ObjectContext } from '@axe/core/sync/game-object';
 import { PresetSound } from '@axe/domain/media/sound-effect';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 
-export interface AlarmContext {
-  peerId: string;
-}
-
 @SyncObject('Alarm')
 export class Alarm extends GameObject {
   @SyncVar() initTimeStamp = 0;

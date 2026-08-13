@@ -67,7 +67,3 @@ export async function warmRasterImages(urls: string[]): Promise<void> {
   }
   await Promise.all(pending);
 }
-
-export function clearRasterImageCache(): void {
-  cache.clear();
-}

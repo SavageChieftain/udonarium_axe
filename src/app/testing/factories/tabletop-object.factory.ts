@@ -36,7 +36,3 @@ export function makeFakeTabletopObject(opts: FakeTabletopObjectOptions = {}): Ta
   if (opts.setLocation) obj.setLocation = opts.setLocation;
   return obj as unknown as TabletopObject;
 }
-
-export function resetFakeTabletopObjectCounter(): void {
-  fakeCounter = 0;
-}

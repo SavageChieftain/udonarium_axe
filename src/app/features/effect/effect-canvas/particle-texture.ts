@@ -50,10 +50,6 @@ export function particleTexture(shape: ParticleShape, color: string): HTMLCanvas
   return canvas;
 }
 
-export function clearParticleTextureCache(): void {
-  cache.clear();
-}
-
 /** 砕けた岩。輪郭を持たせたいので、ぼかさず多角形で塗る。 */
 function drawChunk(context: CanvasRenderingContext2D, size: number, color: string): void {
   const points = [

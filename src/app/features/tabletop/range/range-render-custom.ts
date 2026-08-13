@@ -203,14 +203,3 @@ export function renderCustom(
 export { cellKey };
 
 /** Local helper used by panels: turn pixel coordinate (relative to grid origin) into a cell key. */
-export function pixelToCellCoord(gridType: GridType, px: number, py: number, gridSize: number): CellCoord {
-  if (isHexGrid(gridType)) {
-    const isFlatTop = gridType === GridType.HEX_VERTICAL;
-    const cell = pixelToHexCell(px, py, gridSize, isFlatTop);
-    return { gx: cell.col, gy: cell.row };
-  }
-  return {
-    gx: Math.floor(px / gridSize),
-    gy: Math.floor(py / gridSize),
-  };
-}

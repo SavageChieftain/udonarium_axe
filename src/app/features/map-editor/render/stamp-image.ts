@@ -98,7 +98,3 @@ export async function warmStampImages(
   }
   await Promise.all(pending);
 }
-
-export function clearStampImageCache(): void {
-  cache.clear();
-}

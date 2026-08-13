@@ -22,10 +22,6 @@ export interface EditorBoardGeometry {
 
 const DEFAULT_RADIUS = 6;
 
-export function defaultBoardRadius(): number {
-  return DEFAULT_RADIUS;
-}
-
 function squareGeometry(radius: number, gridSize: number): EditorBoardGeometry {
   const cells: EditorCellGeometry[] = [];
   const span = radius * 2 + 1;

@@ -27,15 +27,6 @@ interface UIPanelInstance {
   content: () => ViewContainerRef;
 }
 
-export interface ChatPortraitDecoration {
-  chatTabidentifier: string;
-  isTilteTop: boolean;
-  dispByMouse: boolean;
-}
-export interface CardStackListDecoration {
-  cardStackidentifier: string;
-}
-
 type PanelServiceAssignableKey =
   | 'title'
   | 'top'

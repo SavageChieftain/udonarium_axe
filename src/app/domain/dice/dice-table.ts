@@ -2,15 +2,6 @@ import { SyncObject, SyncVar } from '@axe/core/sync/decorator';
 import { ObjectNode } from '@axe/core/sync/object-node';
 import { DiceTablePalette } from '@axe/domain/chat/chat-palette';
 
-export interface TableLine {
-  table: string;
-}
-
-export interface TableVariable {
-  name: string;
-  table: string;
-}
-
 @SyncObject('dice-table')
 export class DiceTable extends ObjectNode {
   @SyncVar() name: string = 'ダイス表';

@@ -4,9 +4,6 @@ import type { ChatTab } from '@axe/domain/chat/chat-tab';
 
 export type ChatLogImageSrcResolver = (image: ImageFile) => string;
 /** @deprecated Use {@link ChatLogImageSrcResolver}. Kept as alias for backward compatibility. */
-export type ChatLogAttachmentImageSrcResolver = ChatLogImageSrcResolver;
-export type ChatLogAttachmentImage = ChatMessage['attachmentImages'][number];
-
 /**
  * message.name / message.text に対して escape 前の素のテキストを変換するフック。
  * 主用途は i18n プレースホルダー (`@i18n:common.chat.systemName:{}` のような string) を
