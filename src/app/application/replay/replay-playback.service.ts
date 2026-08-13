@@ -385,8 +385,14 @@ export class ReplayPlaybackService {
   }
 
   private reviveObject(object: GameObject, syncData: Record<string, unknown>): void {
-    const context = object.toContext();
-    object.apply({ ...context, majorVersion: context.majorVersion + 1, minorVersion: 0, syncData });
+    // 世代番号しか要らないので toContext() は呼ばない。呼ぶと中身を丸ごと複製して捨てる。
+    object.apply({
+      aliasName: object.aliasName,
+      identifier: object.identifier,
+      majorVersion: object.majorVersion + 1,
+      minorVersion: 0,
+      syncData,
+    });
     markForChanged(object);
   }
 

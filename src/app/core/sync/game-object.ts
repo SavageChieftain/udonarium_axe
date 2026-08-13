@@ -78,6 +78,10 @@ export class GameObject {
     return ObjectSerializer.instance.parseXml(xmlString)! as this;
   }
 
+  get majorVersion(): number {
+    return this.context.majorVersion;
+  }
+
   toContext(): ObjectContext {
     return {
       aliasName: this.context.aliasName,

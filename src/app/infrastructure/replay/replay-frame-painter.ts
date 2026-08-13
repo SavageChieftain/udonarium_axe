@@ -281,7 +281,7 @@ function paintChapterCard(
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
 
-  const lines = wrapReplayText((text) => ctx.measureText(text).width, shot.text, layout.width * 0.8, 2);
+  const lines = wrapCached(ctx, shot.text, layout.width * 0.8, 2);
   const top = layout.height / 2 - ((lines.length - 1) * fontSize * 1.35) / 2;
   lines.forEach((line, index) => {
     ctx.fillText(line, layout.width / 2, top + index * fontSize * 1.35);
@@ -316,12 +316,7 @@ function paintDialogue(
 
   ctx.fillStyle = style.body;
   ctx.font = `400 ${layout.body.fontSize}px ${style.fontFamily}`;
-  const lines = wrapReplayText(
-    (text) => ctx.measureText(text).width,
-    shot.text,
-    layout.body.width,
-    layout.body.maxLines
-  );
+  const lines = wrapCached(ctx, shot.text, layout.body.width, layout.body.maxLines);
   lines.forEach((line, index) => {
     ctx.fillText(line, layout.body.x, bodyY + index * layout.body.lineHeight);
   });
@@ -364,6 +359,26 @@ function paintChapterLabel(
   ctx.fillStyle = style.chapter;
   ctx.font = `500 ${layout.chapter.fontSize}px ${style.fontFamily}`;
   ctx.fillText(shot.chapter, layout.chapter.x, layout.chapter.y);
+}
+
+/**
+ * 折り返した行を覚えておく。
+ *
+ * 台詞も章題も 1 つの場面のあいだ変わらないのに、動画は同じ文字を 1 秒に 30 回
+ * 折り返し直していた。折り返しは候補ごとに幅を測るので、その都度書体を組み直させる。
+ */
+const wrapped = new Map<string, string[]>();
+const WRAP_CACHE_MAX = 64;
+
+function wrapCached(ctx: ReplayFrameCanvas, text: string, maxWidth: number, maxLines: number): string[] {
+  const key = `${ctx.font}|${Math.round(maxWidth)}|${maxLines}|${text}`;
+  const hit = wrapped.get(key);
+  if (hit) return hit;
+
+  const lines = wrapReplayText((candidate) => ctx.measureText(candidate).width, text, maxWidth, maxLines);
+  if (wrapped.size >= WRAP_CACHE_MAX) wrapped.clear();
+  wrapped.set(key, lines);
+  return lines;
 }
 
 function paintBox(ctx: ReplayFrameCanvas, layout: ReplayFrameLayout, style: ReplayFrameStyle): void {
