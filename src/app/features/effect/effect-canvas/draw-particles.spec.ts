@@ -1,5 +1,6 @@
 import { EffectParticle, EffectParticleLayer } from '@axe/domain/effect/effect-particles';
 import { drawParticleLayer } from '@axe/features/effect/effect-canvas/draw-particles';
+import { pixelRatioFor } from '@axe/features/effect/effect-canvas/effect-canvas.component';
 import { withAlpha } from '@axe/features/effect/effect-canvas/particle-texture';
 
 describe('withAlpha()', () => {
@@ -100,5 +101,27 @@ describe('drawParticleLayer()', () => {
 
     expect(context.globalCompositeOperation).toBe('source-over');
     expect(context.globalAlpha).toBe(1);
+  });
+});
+
+describe('pixelRatioFor()', () => {
+  function layerOf(width: number, height: number): EffectParticleLayer {
+    return { width, height, originX: 0, originY: 0, particles: [] };
+  }
+
+  it('ふつうの大きさでは等倍以上を保つこと', () => {
+    expect(pixelRatioFor(layerOf(300, 300))).toBeGreaterThanOrEqual(1);
+  });
+
+  it('マップ全体を覆う大きさでは画素数を抑えること', () => {
+    // 一辺 5000px を 2 倍で確保すると 1 億画素。確保に失敗して真っ白になるより粗く描く。
+    const layer = layerOf(5000, 5000);
+    const ratio = pixelRatioFor(layer);
+    expect(ratio).toBeLessThan(1);
+    expect(layer.width * ratio * (layer.height * ratio)).toBeLessThanOrEqual(4_000_000);
+  });
+
+  it('大きさが 0 でも比率を返すこと', () => {
+    expect(pixelRatioFor(layerOf(0, 0))).toBeGreaterThan(0);
   });
 });
