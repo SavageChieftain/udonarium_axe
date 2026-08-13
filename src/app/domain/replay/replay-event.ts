@@ -1,6 +1,6 @@
 import { PeerRole } from '@axe/domain/peer/peer-role';
 
-export const REPLAY_FORMAT_VERSION = 1;
+export const REPLAY_FORMAT_VERSION = 2;
 
 export const ReplayEventKind = {
   ChatMessage: 'chat.message',

@@ -84,6 +84,17 @@ export function isIgnoredReplayEvent(eventName: string): boolean {
   return eventName.startsWith('FILE_') || eventName.startsWith('AUDIO_') || eventName.startsWith('CANCEL_TASK_');
 }
 
+/**
+ * このオブジェクトの変化を、差分を取ってまで見る価値があるか。
+ *
+ * 取ってから捨てると、コマを 1 回動かすたびに部屋ぶんの複製と差分照合が走って、
+ * 一番軽い設定が一番重くなる。チャットだけの設定で残るのは新しい発言だけ。
+ */
+export function shouldDiffObjectChange(level: ReplayDetailLevel, aliasName: string, isNew: boolean): boolean {
+  if (level !== ReplayDetailLevel.ChatOnly) return true;
+  return isNew && aliasName === CHAT_ALIAS;
+}
+
 export function isRecordableKind(kind: ReplayEventKind, level: ReplayDetailLevel): boolean {
   if (level === ReplayDetailLevel.Full) return true;
   if (level === ReplayDetailLevel.ChatOnly) return CHAT_ONLY_KINDS.has(kind);

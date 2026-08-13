@@ -5,6 +5,7 @@ import {
   interpretSignal,
   isIgnoredReplayEvent,
   isRecordableKind,
+  shouldDiffObjectChange,
 } from '@axe/domain/replay/replay-interpreter';
 
 describe('isIgnoredReplayEvent()', () => {
@@ -607,5 +608,34 @@ describe('interpretSignal()', () => {
 
   it('知らないイベントでは null を返すこと', () => {
     expect(interpretSignal('SOMETHING_ELSE', {})).toBeNull();
+  });
+});
+
+describe('shouldDiffObjectChange()', () => {
+  it('細かく残す設定では何であれ差分を取ること', () => {
+    expect(shouldDiffObjectChange(ReplayDetailLevel.Full, 'character', false)).toBe(true);
+    expect(shouldDiffObjectChange(ReplayDetailLevel.Notable, 'character', false)).toBe(true);
+  });
+
+  it('チャットだけの設定では新しい発言しか見ないこと', () => {
+    expect(shouldDiffObjectChange(ReplayDetailLevel.ChatOnly, 'chat', true)).toBe(true);
+    expect(shouldDiffObjectChange(ReplayDetailLevel.ChatOnly, 'chat', false)).toBe(false);
+    expect(shouldDiffObjectChange(ReplayDetailLevel.ChatOnly, 'character', true)).toBe(false);
+  });
+
+  it('降りる判断が種類ごとの取捨と食い違わないこと', () => {
+    const fromObjects = [
+      ReplayEventKind.ObjectCreate,
+      ReplayEventKind.ObjectUpdate,
+      ReplayEventKind.ObjectImage,
+      ReplayEventKind.ObjectLock,
+      ReplayEventKind.ObjectOwner,
+      ReplayEventKind.ObjectRemove,
+      ReplayEventKind.PeerRoleChange,
+      ReplayEventKind.TableScene,
+    ];
+    for (const kind of fromObjects) {
+      expect(isRecordableKind(kind, ReplayDetailLevel.ChatOnly)).toBe(false);
+    }
   });
 });

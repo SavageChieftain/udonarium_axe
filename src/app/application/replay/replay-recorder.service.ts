@@ -36,6 +36,7 @@ import {
   isIgnoredReplayEvent,
   isRecordableKind,
   type ReplayDraft,
+  shouldDiffObjectChange,
 } from '@axe/domain/replay/replay-interpreter';
 import { encodeReplayKeyframe, type ReplayObjectSnapshot } from '@axe/domain/replay/replay-keyframe';
 import { TabletopObject } from '@axe/domain/tabletop/tabletop-object';
@@ -96,6 +97,8 @@ export class ReplayRecorderService {
   private baselineUntil = 0;
   private lastKeyframeSeq = -1;
   private lastManifestAt = 0;
+  /** 盤面が触られたか。記録に残さない種類の変化でも盤面は動く。 */
+  private boardDirty = false;
   private recent: ReplayEvent[] = [];
   private recentDirty = false;
   private lastPublishAt = 0;
@@ -123,6 +126,8 @@ export class ReplayRecorderService {
     if (!this._isRecording() || id == null) return;
     this.flushPending();
     void this.flushBuffer(true);
+    // 誰が何をしたかの対応表は目録にしかない。溜まりが空でも書き残す。
+    void this.persistManifest(id, true);
   }
 
   get isSupported(): boolean {
@@ -201,6 +206,7 @@ export class ReplayRecorderService {
     this.seedShadows();
     this.lastKeyframeSeq = -1;
     this.lastManifestAt = 0;
+    this.boardDirty = false;
     this.baselineUntil = startedAt + REPLAY_BASELINE_GRACE_MS;
     this._isRecording.set(true);
 
@@ -242,6 +248,7 @@ export class ReplayRecorderService {
   private handleMessage(eventName: string, data: unknown, sendFrom: string): void {
     if (isIgnoredReplayEvent(eventName)) return;
     const at = Date.now();
+    this.boardDirty = true;
 
     if (eventName === 'UPDATE_GAME_OBJECT') {
       this.handleObjectUpdate(data as ObjectContext, sendFrom, at);
@@ -265,6 +272,7 @@ export class ReplayRecorderService {
     this.shadows.set(context.identifier, cloneSyncData(after));
 
     if (!before && at < this.baselineUntil) return;
+    if (!shouldDiffObjectChange(this.preference.detailLevel(), context.aliasName, !before)) return;
 
     const draft = interpretObjectChange({
       aliasName: context.aliasName,
@@ -354,9 +362,10 @@ export class ReplayRecorderService {
   private async persistManifest(id: number, force = false): Promise<void> {
     const at = Date.now();
     if (!force && at - this.lastManifestAt < REPLAY_MANIFEST_CHECKPOINT_MS) return;
-    this.lastManifestAt = at;
     try {
       await this.store.updateRecording(id, { manifest: encodeReplayManifest(this.manifest()) });
+      // 書けたときだけ時計を進める。失敗を数えると次の機会まで丸ごと落ちる。
+      this.lastManifestAt = at;
     } catch (reason) {
       Logger.warn('[ReplayRecorder] 目録を書けませんでした', reason);
     }
@@ -368,7 +377,8 @@ export class ReplayRecorderService {
     if (isNetworkIsolated()) return;
 
     // 前に撮ってから何も起きていないなら、盤面は同じ。撮り直すと部屋 1 つぶんを空で積む。
-    if (!force && this.seq === this.lastKeyframeSeq) return;
+    // 記録に残らない種類の変化でも盤面は動くので、seq ではなく「触られたか」で見る。
+    if (!force && !this.boardDirty) return;
 
     if (!force) {
       await this.whenIdle();
@@ -380,21 +390,36 @@ export class ReplayRecorderService {
     }
 
     try {
+      // 撮った中身と番号を揃える。圧縮の待ちのあいだに進んだぶんを番号に含めると、
+      // その間の出来事が「盤面に入っている」ことになって再生時に飛ばされる。
+      const seq = this.seq;
+      const raw = encodeReplayKeyframe(this.snapshotStore());
       // 盤面は部屋まるごとで、10 分ごとに積み上がる。圧縮しないと置き場をすぐ食い潰す。
-      const bytes = await compressAsync(encodeReplayKeyframe(this.snapshotStore()));
+      const bytes = await this.compressed(raw);
       const blob = new Blob([bytes as BlobPart], { type: 'application/octet-stream' });
       const at = Date.now();
-      const seq = this.seq;
       const written = await this.store.putKeyframe({ recordingId: id, seq, at, blob });
       if (!written) {
         this._isFailing.set(true);
         return;
       }
       this.lastKeyframeSeq = seq;
+      this.boardDirty = false;
       this.keyframes.push({ seq, at, byteSize: blob.size });
       await this.persistManifest(id, force);
     } catch (reason) {
+      this._isFailing.set(true);
       Logger.warn('[ReplayRecorder] 盤面の記録に失敗しました', reason);
+    }
+  }
+
+  /** 圧縮できない環境もある。掛からなければそのまま置く（読む側は目印で見分ける）。 */
+  private async compressed(bytes: Uint8Array): Promise<Uint8Array> {
+    try {
+      return await compressAsync(bytes);
+    } catch (reason) {
+      Logger.warn('[ReplayRecorder] 盤面を圧縮できませんでした', reason);
+      return bytes;
     }
   }
 
