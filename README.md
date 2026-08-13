@@ -15,16 +15,16 @@ Udonarium Axe は、ブラウザ上で動作する TRPG オンラインセッシ
 ブラウザ間に直接同期され、ゲームデータが中央サーバーに保存されることはありません。
 
 [Udonarium](https://github.com/TK11235/udonarium)（TK11235）を源流とし、その派生である
-[Udonarium Lily](https://github.com/entyu/udonarium_lily)（entyu）の機能・コードを受け継いだうえで、
-Angular 21 / Zoneless + Signals による実装基盤の作り直しと独自機能を加えた派生プロジェクトです。
+[Udonarium Lily](https://github.com/entyu/udonarium_lily)（entyu）の機能・コードを受け継いでいます。
+そのうえで実装基盤を Angular 22 / Zoneless + Signals で作り直し、独自の機能を加えました。
 
 > 動作推奨環境は **デスクトップ版 Chrome** です。スマートフォンからの操作は十分にサポートされていません。
 
 ## 必要なもの（バックエンドが要ります）
 
 ゲームデータ自体はブラウザ同士の P2P でやり取りしますが、その P2P 接続を確立するには
-SkyWay の **認証トークン** が必要です。トークンの発行には SkyWay の App ID / Secret を使った署名が必要で、
-Secret をブラウザに置くわけにはいかないため、**トークンを発行する小さなバックエンドを 1 つ用意する** 必要があります。
+SkyWay の **認証トークン** が要ります。トークンは SkyWay の App ID / Secret で署名して発行するもので、
+Secret をブラウザに置くわけにはいきません。そのため、**トークンを発行する小さなバックエンドを 1 つ用意する** 必要があります。
 
 ```
 ブラウザ (Udonarium Axe) ──┬─→ バックエンド（トークン発行のみ）──→ SkyWay
