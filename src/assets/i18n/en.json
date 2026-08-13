@@ -2282,6 +2282,7 @@
       "kind": {
         "fog": "Dense fog",
         "rain": "Rain",
+        "storm": "Thunderstorm",
         "snow": "Snow",
         "ash": "Falling ash",
         "ember": "Embers",
