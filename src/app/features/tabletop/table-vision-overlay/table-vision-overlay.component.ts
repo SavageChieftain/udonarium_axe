@@ -89,12 +89,19 @@ export class TableVisionOverlayComponent {
 
   private ensureImages(): void {
     if (!this.plan) return;
+    const live = new Set<string>();
     for (const shadow of this.plan.shadows) {
-      if (!shadow.imageUrl || this.images.has(shadow.imageUrl)) continue;
+      if (!shadow.imageUrl) continue;
+      live.add(shadow.imageUrl);
+      if (this.images.has(shadow.imageUrl)) continue;
       const image = new Image();
       image.onload = () => this.draw(this.now());
       image.src = shadow.imageUrl;
       this.images.set(shadow.imageUrl, image);
+    }
+    // 使わなくなった絵は手放す。抱えたままだと焼いた影ごと居座り続ける。
+    for (const url of this.images.keys()) {
+      if (!live.has(url)) this.images.delete(url);
     }
   }
 

@@ -295,6 +295,8 @@ describe('vision-overlay-render', () => {
 });
 
 describe('影のぼかし', () => {
+  afterEach(() => vi.restoreAllMocks());
+
   function planWith(imageUrl: string): OverlayPlan {
     return {
       darknessAlpha: 0,
@@ -333,6 +335,5 @@ describe('影のぼかし', () => {
 
     expect(bakes).toHaveLength(1);
     expect(bakes[0]).toContain('blur(');
-    vi.restoreAllMocks();
   });
 });

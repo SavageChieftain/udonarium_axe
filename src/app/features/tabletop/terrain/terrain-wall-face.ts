@@ -39,12 +39,19 @@ export function terrainWallFace(side: WallSide, footprint: TerrainFootprint): Wa
   });
   const normal = (nx: number, ny: number): Corner => ({ x: nx * cos - ny * sin, y: nx * sin + ny * cos });
 
-  const edge = {
-    north: { a: corner(-halfWidth, -halfDepth), b: corner(halfWidth, -halfDepth), n: normal(0, -1) },
-    south: { a: corner(-halfWidth, halfDepth), b: corner(halfWidth, halfDepth), n: normal(0, 1) },
-    west: { a: corner(-halfWidth, -halfDepth), b: corner(-halfWidth, halfDepth), n: normal(-1, 0) },
-    east: { a: corner(halfWidth, -halfDepth), b: corner(halfWidth, halfDepth), n: normal(1, 0) },
-  }[side];
+  // 4 面ぶん作ってから 1 面選ぶと、地形 1 つにつき毎回 3 面ぶんを捨てる。
+  const edge = ((): { a: Corner; b: Corner; n: Corner } => {
+    switch (side) {
+      case 'north':
+        return { a: corner(-halfWidth, -halfDepth), b: corner(halfWidth, -halfDepth), n: normal(0, -1) };
+      case 'south':
+        return { a: corner(-halfWidth, halfDepth), b: corner(halfWidth, halfDepth), n: normal(0, 1) };
+      case 'west':
+        return { a: corner(-halfWidth, -halfDepth), b: corner(-halfWidth, halfDepth), n: normal(-1, 0) };
+      default:
+        return { a: corner(halfWidth, -halfDepth), b: corner(halfWidth, halfDepth), n: normal(1, 0) };
+    }
+  })();
 
   return {
     ax: edge.a.x,

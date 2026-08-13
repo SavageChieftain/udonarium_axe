@@ -12,7 +12,7 @@ export async function decompressAsync(data: Uint8Array): Promise<Uint8Array> {
 const GZIP_MAGIC = [0x1f, 0x8b];
 
 export function isCompressed(data: Uint8Array): boolean {
-  return data.length > 2 && data[0] === GZIP_MAGIC[0] && data[1] === GZIP_MAGIC[1];
+  return data.length >= 2 && data[0] === GZIP_MAGIC[0] && data[1] === GZIP_MAGIC[1];
 }
 
 /**
