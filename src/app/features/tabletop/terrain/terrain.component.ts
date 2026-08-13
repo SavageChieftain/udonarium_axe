@@ -45,6 +45,7 @@ import {
   HexSlopeStepFloor,
 } from '@axe/features/tabletop/terrain/hex-slope-step-geometry';
 import { buildTerrainContextMenu } from '@axe/features/tabletop/terrain/terrain-context-menu';
+import { terrainWallFace, type WallSide } from '@axe/features/tabletop/terrain/terrain-wall-face';
 import {
   wallLightLayerStyle,
   wallSilhouetteBackground,
@@ -605,36 +606,26 @@ export class TerrainComponent {
     return 'brightness(' + (base * this.centerBrightness()).toFixed(3) + ')';
   }
 
-  private faceOf(side: 'north' | 'south' | 'west' | 'east'): WallFace | null {
+  private faceOf(side: WallSide): WallFace {
     const terrain = this.terrain();
-    if (terrain.rotate % 360 !== 0) return null;
-    const x0 = terrain.location.x;
-    const y0 = terrain.location.y;
-    const w = this.width() * this.gridSize;
-    const d = this.depth() * this.gridSize;
-    const hpx = this.height() * this.gridSize;
-    switch (side) {
-      case 'north':
-        return { ax: x0, ay: y0, bx: x0 + w, by: y0, nx: 0, ny: -1, heightPx: hpx };
-      case 'south':
-        return { ax: x0, ay: y0 + d, bx: x0 + w, by: y0 + d, nx: 0, ny: 1, heightPx: hpx };
-      case 'west':
-        return { ax: x0, ay: y0, bx: x0, by: y0 + d, nx: -1, ny: 0, heightPx: hpx };
-      case 'east':
-        return { ax: x0 + w, ay: y0, bx: x0 + w, by: y0 + d, nx: 1, ny: 0, heightPx: hpx };
-    }
+    return terrainWallFace(side, {
+      x: terrain.location.x,
+      y: terrain.location.y,
+      widthPx: this.width() * this.gridSize,
+      depthPx: this.depth() * this.gridSize,
+      heightPx: this.height() * this.gridSize,
+      rotateDeg: terrain.rotate,
+    });
   }
 
-  protected faceSilhouettes(side: 'north' | 'south' | 'west' | 'east'): WallSilhouette[] {
+  protected faceSilhouettes(side: WallSide): WallSilhouette[] {
     this.objectChange.versionOf(this.terrain().identifier)();
-    const face = this.faceOf(side);
-    return face ? this.visionService.wallSilhouettes(face) : [];
+    return this.visionService.wallSilhouettes(this.faceOf(side));
   }
 
-  protected faceLights(side: 'north' | 'south' | 'west' | 'east'): WallLight[] {
+  protected faceLights(side: WallSide): WallLight[] {
     this.objectChange.versionOf(this.terrain().identifier)();
-    const face = this.faceOf(side);
-    return face ? this.visionService.wallLights(face) : [];
+    return this.visionService.wallLights(this.faceOf(side));
   }
 
   protected wallLightStyle(pool: WallLight): Record<string, string> {
