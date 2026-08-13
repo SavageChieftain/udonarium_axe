@@ -11,13 +11,25 @@ export function applyReplayPatch(syncData: SyncData | null, patch: ReplayPatch):
   return expandSyncPaths(flat);
 }
 
+export interface ApplyReplayOptions {
+  /**
+   * 結果を書き換えないと約束できるとき、元の物をそのまま渡す。
+   *
+   * 既定では盤面まるごとを複製してから当てる。動画の書き出しのように、場面ごとの盤面を
+   * 順に作って読むだけの使い方では、触られない物まで場面の数だけ複製することになる。
+   */
+  shareInput?: boolean;
+}
+
 export function applyReplayEvents(
   objects: readonly ReplayObjectSnapshot[],
-  events: readonly ReplayEvent[]
+  events: readonly ReplayEvent[],
+  options?: ApplyReplayOptions
 ): ReplayObjectSnapshot[] {
+  const share = options?.shareInput === true;
   const byIdentifier = new Map<string, ReplayObjectSnapshot>();
   for (const object of objects) {
-    byIdentifier.set(object.identifier, { ...object, syncData: cloneSyncValue(object.syncData) });
+    byIdentifier.set(object.identifier, share ? object : { ...object, syncData: cloneSyncValue(object.syncData) });
   }
 
   for (const event of events) {

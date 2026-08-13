@@ -249,7 +249,8 @@ export class ReplayVideoService {
     return shots.map((shot) => {
       const upto = indexOfSeq.get(shot.seq);
       if (upto !== undefined && upto >= from) {
-        board = applyReplayEvents(board, events.slice(from, upto + 1));
+        // 場面ごとの盤面は作って読むだけ。複製すると物の数 × 場面の数だけ積み上がる。
+        board = applyReplayEvents(board, events.slice(from, upto + 1), { shareInput: true });
         from = upto + 1;
       }
       return buildReplayBoardScene(board, viewer ?? undefined);

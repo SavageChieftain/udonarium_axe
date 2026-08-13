@@ -162,3 +162,40 @@ describe('indexOfSeq()', () => {
     expect(indexOfSeq([], 5)).toBe(-1);
   });
 });
+
+describe('applyReplayEvents() の複製', () => {
+  const board: ReplayObjectSnapshot[] = [
+    { identifier: 'c1', aliasName: 'character', syncData: { attributes: { name: 'アリス' } } },
+  ];
+
+  it('既定では結果を書き換えても元が変わらないこと', () => {
+    const applied = applyReplayEvents(board, []);
+    (applied[0].syncData['attributes'] as Record<string, unknown>)['name'] = 'ボブ';
+
+    expect((board[0].syncData['attributes'] as Record<string, unknown>)['name']).toBe('アリス');
+  });
+
+  it('読むだけと分かっているときは複製しないこと', () => {
+    const applied = applyReplayEvents(board, [], { shareInput: true });
+
+    expect(applied[0]).toBe(board[0]);
+  });
+
+  it('複製しない指定でも、当てた物は別の物になること', () => {
+    const applied = applyReplayEvents(
+      board,
+      [
+        patchEvent(1, {
+          identifier: 'c1',
+          aliasName: 'character',
+          before: { 'attributes.name': 'アリス' },
+          after: { 'attributes.name': 'ボブ' },
+        }),
+      ],
+      { shareInput: true }
+    );
+
+    expect(applied[0]).not.toBe(board[0]);
+    expect((board[0].syncData['attributes'] as Record<string, unknown>)['name']).toBe('アリス');
+  });
+});

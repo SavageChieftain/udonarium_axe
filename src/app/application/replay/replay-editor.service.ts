@@ -195,11 +195,31 @@ function restamped<T extends { sinceSeq: number }>(
   snapshots: readonly T[],
   renumbered: ReadonlyMap<number, number>
 ): T[] {
+  // 付け替え表を写像ごとに端から見ると、名前の履歴 × 出来事の数になる。
+  // 番号は増える一方なので、並べて累積の最大を持てば二分探索で足りる。
+  const befores: number[] = [];
+  const highest: number[] = [];
+  let running = 0;
+  for (const [before, after] of [...renumbered].sort((a, b) => a[0] - b[0])) {
+    running = Math.max(running, after);
+    befores.push(before);
+    highest.push(running);
+  }
+
   return snapshots.map((snapshot) => {
-    let sinceSeq = 0;
-    for (const [before, after] of renumbered) {
-      if (before <= snapshot.sinceSeq) sinceSeq = Math.max(sinceSeq, after);
+    let low = 0;
+    let high = befores.length - 1;
+    let found = -1;
+    while (low <= high) {
+      const mid = (low + high) >> 1;
+      if (befores[mid] <= snapshot.sinceSeq) {
+        found = mid;
+        low = mid + 1;
+      } else {
+        high = mid - 1;
+      }
     }
+    const sinceSeq = found >= 0 ? highest[found] : 0;
     return { ...snapshot, sinceSeq: snapshot.sinceSeq < 1 ? 0 : sinceSeq };
   });
 }
