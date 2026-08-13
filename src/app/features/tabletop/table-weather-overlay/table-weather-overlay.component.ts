@@ -26,7 +26,9 @@ const MIN_SKY_CELLS = 10;
   templateUrl: './table-weather-overlay.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
-    class: 'pointer-events-none absolute inset-0 z-10',
+    // z-index は付けない。付けるとパネルより前に出てしまう。
+    // パネルは重ね順を指定しないので、後ろに置いてある側が前に来る。
+    class: 'pointer-events-none absolute inset-0',
     '[style.mask-image]': 'maskImage()',
     '[style.-webkit-mask-image]': 'maskImage()',
   },

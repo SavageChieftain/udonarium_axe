@@ -94,6 +94,13 @@ describe('TableWeatherOverlayComponent', () => {
     });
   });
 
+  it('パネルより前に出ないこと', () => {
+    // パネルは重ね順を指定しない。天候が重ね順を持つと、上に被さってしまう。
+    const host = fixture.nativeElement as HTMLElement;
+    expect(host.className).not.toMatch(/(^|\s)z-/);
+    expect(host.style.zIndex).toBe('');
+  });
+
   it('置きっぱなしの描画ループを止めないこと', () => {
     const playback = TestBed.inject(EffectPlaybackService);
     const spy = vi.spyOn(playback, 'setPersistent');
