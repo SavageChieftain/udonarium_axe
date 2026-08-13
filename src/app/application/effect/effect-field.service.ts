@@ -37,7 +37,7 @@ export class EffectFieldService {
 
   constructor() {
     // 場がある間は描画のループを止めない。発動と違って終わりが来ない。
-    effect(() => this.playbackService.setPersistent(this.fields().length > 0));
+    effect(() => this.playbackService.setPersistent('effect-field', this.fields().length > 0));
   }
 
   place(preset: EffectPreset, x: number, y: number, z: number): EffectField {

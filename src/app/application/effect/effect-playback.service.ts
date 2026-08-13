@@ -49,12 +49,21 @@ export class EffectPlaybackService {
   /** 画面を焼く閃光の色。空なら焼かない。 */
   private readonly _flash = signal('');
   readonly flash = this._flash.asReadonly();
-  /** 置きっぱなしの演出があるか。ある間は描画のループを止めない。 */
-  private readonly _persistent = signal(false);
+  /**
+   * 置きっぱなしの演出を持っている呼び出し元。1 つでもあれば描画のループを止めない。
+   * 場と環境演出が別々に出入りするので、真偽値ひとつだと後から来たほうが前を消してしまう。
+   */
+  private readonly _persistentSources = signal<ReadonlySet<string>>(new Set());
   private shakeTimer: ReturnType<typeof setTimeout> | null = null;
 
-  setPersistent(persistent: boolean): void {
-    this._persistent.set(persistent);
+  setPersistent(source: string, persistent: boolean): void {
+    this._persistentSources.update((current) => {
+      if (current.has(source) === persistent) return current;
+      const next = new Set(current);
+      if (persistent) next.add(source);
+      else next.delete(source);
+      return next;
+    });
     if (persistent) this.startLoop();
   }
 
@@ -167,7 +176,7 @@ export class EffectPlaybackService {
       (active) => !isEffectFinished(active.preset, active.cast, now - active.startedAt)
     );
     if (remaining.length !== this._activeCasts().length) this._activeCasts.set(remaining);
-    if (remaining.length > 0 || this._persistent()) this.startLoop();
+    if (remaining.length > 0 || this._persistentSources().size > 0) this.startLoop();
   }
 
   private stopLoop(): void {
