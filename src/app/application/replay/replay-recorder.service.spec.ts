@@ -106,9 +106,18 @@ function context(identifier: string, aliasName: string, syncData: Record<string,
 /**
  * 盤面の書き留めは圧縮を挟むので、タイマーを進めただけでは終わっていない。
  * 何回で終わるかは走らせる機械の混み具合で変わるため、終わるまで待つ。
+ *
+ * 待ちきれなかったときは黙って戻らない。戻ると、続く検証が「起きなかった」ことを
+ * 落ちた理由として報告してしまい、遅い機械での取りこぼしと本物の不具合が見分けられない。
  */
+const SETTLE_TURNS = 5000;
+
 async function settleUntil(done: () => boolean): Promise<void> {
-  for (let turn = 0; turn < 1000 && !done(); turn++) await vi.advanceTimersByTimeAsync(1);
+  for (let turn = 0; turn < SETTLE_TURNS; turn++) {
+    if (done()) return;
+    await vi.advanceTimersByTimeAsync(1);
+  }
+  throw new Error(`待っていた状態になりませんでした (${SETTLE_TURNS} 回)`);
 }
 
 function sendUpdate(identifier: string, aliasName: string, attributes: Record<string, unknown>, sendFrom = 'peer-a') {
