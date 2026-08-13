@@ -3,7 +3,7 @@
  *
  * 盤面は `rotateY(ty) rotateX(tx) rotateZ(tz)` の順で子を回す（板ポリはその逆を掛けて
  * カメラに正対させている）。同じ行列をベクトルに掛ければ、画面上での角度と見かけの長さが出る。
- * これが分かると、飛翔体を進行方向へ引き伸ばす（stretched billboard）ことができる。
+ * これが分かると、飛翔体を進行方向へ引き伸ばせる（stretched billboard）。
  */
 
 export interface ViewRotation {

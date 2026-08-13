@@ -120,7 +120,7 @@ function parsePiece(raw: unknown): ImportedRoomPiece | null {
 
 /**
  * ココフォリアのルームデータ ZIP に含まれる `__data.json` かどうかを判定する。
- * `meta.version` と `entities` を持つことを最小条件とする。
+ * 最小条件は `meta.version` と `entities` の 2 つ。
  */
 export function isCcfoliaRoomData(parsed: unknown): boolean {
   const record = asRecord(parsed);
