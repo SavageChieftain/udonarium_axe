@@ -18,17 +18,23 @@ export function drawParticleLayer(
   context.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
   context.clearRect(0, 0, layer.width, layer.height);
 
-  const solid = layer.particles.filter((particle) => particle.shape === 'smoke' || particle.shape === 'chunk');
-  const lights = layer.particles.filter((particle) => particle.shape !== 'smoke' && particle.shape !== 'chunk');
-
+  // 2 度なめる。仕分けた配列を作ると、天候 1 枚で毎フレーム 700 個ぶんの入れ物を捨てることになる。
   context.globalCompositeOperation = 'source-over';
-  for (const particle of solid) drawParticle(context, layer, particle, textureOf);
+  for (const particle of layer.particles) {
+    if (isSolid(particle)) drawParticle(context, layer, particle, textureOf);
+  }
 
   context.globalCompositeOperation = 'lighter';
-  for (const particle of lights) drawParticle(context, layer, particle, textureOf);
+  for (const particle of layer.particles) {
+    if (!isSolid(particle)) drawParticle(context, layer, particle, textureOf);
+  }
 
   context.globalCompositeOperation = 'source-over';
   context.globalAlpha = 1;
+}
+
+function isSolid(particle: EffectParticle): boolean {
+  return particle.shape === 'smoke' || particle.shape === 'chunk';
 }
 
 function drawParticle(
