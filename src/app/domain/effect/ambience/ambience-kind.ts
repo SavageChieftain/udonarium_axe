@@ -11,6 +11,7 @@ export type AmbienceKind =
   | 'ash'
   | 'ember'
   | 'sand'
+  | 'storm'
   | 'miasma'
   | 'bloom'
   | 'swamp'
@@ -23,6 +24,7 @@ export type AmbienceKind =
 export const SKY_AMBIENCE_KINDS: readonly AmbienceKind[] = [
   'fog',
   'rain',
+  'storm',
   'snow',
   'ash',
   'ember',
@@ -53,6 +55,7 @@ export interface AmbiencePalette {
 const PALETTES: Record<AmbienceKind, AmbiencePalette> = {
   fog: { primary: '#dce6f0', secondary: '#8c9bad' },
   rain: { primary: '#bcd8f0', secondary: '#3d5a78' },
+  storm: { primary: '#cfe2f5', secondary: '#1d2a3a' },
   snow: { primary: '#ffffff', secondary: '#b9cfe4' },
   ash: { primary: '#b9b3ab', secondary: '#4a453f' },
   ember: { primary: '#ffb457', secondary: '#ff5a24' },
@@ -86,17 +89,6 @@ export function ambiencePalette(kind: AmbienceKind): AmbiencePalette {
 export function ambienceColorOf(kind: AmbienceKind, color: string): string {
   const trimmed = typeof color === 'string' ? color.trim() : '';
   return trimmed.length > 0 ? trimmed : PALETTES[kind].primary;
-}
-
-/**
- * 塗りの強さ。
- *
- * 濃霧だけは上げきったときに前が見えなくなるところまで伸ばす。線形にすると途中が
- * 一気に重くなるので、下から中ほどは今までの薄さを保ち、上端だけ急に濃くする。
- */
-export function ambienceWashLevel(kind: AmbienceKind, density: number): number {
-  const level = ambienceDensityOf(density);
-  return kind === 'fog' ? Math.pow(level, 1.6) : level;
 }
 
 export function ambienceDensityOf(value: number): number {

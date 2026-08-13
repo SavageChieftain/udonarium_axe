@@ -1,5 +1,5 @@
 import { SKY_AMBIENCE_KINDS } from '@axe/domain/effect/ambience/ambience-kind';
-import { skyAmbienceLayer, skyAmbienceWash } from '@axe/domain/effect/ambience/ambience-sky';
+import { skyAmbienceFlash, skyAmbienceLayer, skyAmbienceWash } from '@axe/domain/effect/ambience/ambience-sky';
 
 const WIDTH = 1280;
 const HEIGHT = 720;
@@ -95,14 +95,84 @@ describe('skyAmbienceWash()', () => {
     expect(skyAmbienceWash('bloom', '', 1)).toBe('');
   });
 
-  it('濃霧は上げきると前が見えなくなること', () => {
+  it('濃霧は上げきっても塗りで潰さないこと', () => {
     const alphasAt = (density: number) =>
       [...skyAmbienceWash('fog', '', density).matchAll(/rgba\([^)]*,\s*([\d.]+)\)/g)].map((match) => Number(match[1]));
 
-    // 上げきったら一面が潰れる。濃淡が残っていると、薄いところから向こうが見えてしまう。
-    expect(Math.min(...alphasAt(1))).toBeGreaterThanOrEqual(0.9);
-    // 途中まではこれまでどおり、向こうが透けて見える。
-    expect(Math.max(...alphasAt(0.6))).toBeLessThan(0.6);
-    expect(Math.max(...alphasAt(0.3))).toBeLessThan(0.3);
+    // 濃さは雲の重なりが持つ。塗りで濃くすると、雲が沈んでただの団子になる。
+    expect(Math.max(...alphasAt(1))).toBeLessThan(0.6);
+    // それでも奥から先に霞む。
+    const [far, , near] = alphasAt(1);
+    expect(far).toBeGreaterThan(near * 2);
+  });
+
+  it('濃霧は濃くするほど雲の数で見せること', () => {
+    const cloudsAt = (density: number) => layerOf('fog', 2000, density).particles.length;
+
+    expect(cloudsAt(1)).toBeGreaterThan(cloudsAt(0.6));
+    expect(cloudsAt(0.6)).toBeGreaterThan(cloudsAt(0.3));
+    // 大小が混ざっていないと、同じ雲が並んだ壁紙に見える。
+    const sizes = layerOf('fog', 2000).particles.map((particle) => particle.size);
+    expect(Math.max(...sizes) / Math.min(...sizes)).toBeGreaterThan(3);
+  });
+
+  it('雷雨は横殴りに降ること', () => {
+    const particles = layerOf('storm', 2000).particles;
+    const rain = layerOf('rain', 2000).particles;
+
+    // まっすぐ落ちる雨より寝かせる。角度は水平からの傾きで、小さいほど横殴り。
+    expect(Math.min(...particles.map((particle) => particle.angle))).toBeLessThan(
+      Math.min(...rain.map((particle) => particle.angle))
+    );
+    expect(particles.length).toBeGreaterThan(rain.length);
+    // ちぎれた飛沫が混ざっていないと、ただの強い雨になる。
+    const stretches = particles.map((particle) => particle.stretch);
+    expect(Math.max(...stretches)).toBeGreaterThan(20);
+  });
+
+  it('塗りの向きを盤面の奥行きに合わせられること', () => {
+    // 画面の上から下へ一律に塗ると、傾けた盤面では奥行きと噛み合わない。
+    expect(skyAmbienceWash('fog', '', 0.6, '160.5deg')).toContain('linear-gradient(160.5deg,');
+    expect(skyAmbienceWash('fog', '', 0.6)).toContain('linear-gradient(to bottom,');
+  });
+});
+
+describe('skyAmbienceFlash()', () => {
+  const SPAN_MS = 12_000;
+
+  function peakWithin(density = 0.6): { peak: number; lit: number } {
+    let peak = 0;
+    let lit = 0;
+    for (let time = 0; time < SPAN_MS; time += 10) {
+      const power = skyAmbienceFlash('storm', time, density);
+      peak = Math.max(peak, power);
+      if (power > 0.02) lit += 10;
+    }
+    return { peak, lit };
+  }
+
+  it('雷を伴わない天候は光らないこと', () => {
+    for (const time of [0, 1200, 4800, 9000]) {
+      expect(skyAmbienceFlash('rain', time, 1)).toBe(0);
+      expect(skyAmbienceFlash('fog', time, 1)).toBe(0);
+    }
+  });
+
+  it('ときどき強く光ること', () => {
+    const { peak, lit } = peakWithin(1);
+    expect(peak).toBeGreaterThan(0.5);
+    // 光りっぱなしだと雷ではなく照明になる。
+    expect(lit).toBeLessThan(SPAN_MS * 0.2);
+    expect(lit).toBeGreaterThan(0);
+  });
+
+  it('濃さを 0 にすれば光らないこと', () => {
+    for (let time = 0; time < SPAN_MS; time += 10) expect(skyAmbienceFlash('storm', time, 0)).toBe(0);
+  });
+
+  it('同じ時刻なら誰の画面でも同じ強さになること', () => {
+    for (const time of [900, 3300, 7700]) {
+      expect(skyAmbienceFlash('storm', time, 0.6)).toBe(skyAmbienceFlash('storm', time, 0.6));
+    }
   });
 });

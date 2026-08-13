@@ -3,7 +3,6 @@ import {
   ambienceDensityOf,
   type AmbienceKind,
   ambiencePalette,
-  ambienceWashLevel,
 } from '@axe/domain/effect/ambience/ambience-kind';
 import {
   clamp01,
@@ -38,12 +37,13 @@ const MAX_PARTICLES = 700;
 /** 100 万 px² あたりの粒の数。密度 1 のときの値。 */
 const DENSITY_PER_AREA: Record<AmbienceKind, number> = {
   rain: 420,
+  storm: 620,
   snow: 260,
   ash: 200,
   ember: 170,
   sand: 420,
-  fog: 44,
-  miasma: 32,
+  fog: 170,
+  miasma: 80,
   bloom: 140,
   swamp: 120,
   vent: 90,
@@ -77,42 +77,76 @@ export function skyAmbienceLayer(spec: SkyAmbienceSpec): EffectParticleLayer {
 }
 
 /**
- * 画面ぜんぶに掛ける色。粒だけだと「霧が濃い」まで行かないので、
- * 薄い塗りを 1 枚重ねて空気の色を作る。
+ * 空気の色。粒だけだと「霧が濃い」まで行かないので、塗りを 1 枚重ねる。
+ *
+ * `direction` は盤面の奥から手前へ向かう向き。塗りは奥ほど濃く、手前ほど薄い。
+ * 一律に塗ると、濃くしたときにただの色板を被せただけになって奥行きが消える。
  */
-export function skyAmbienceWash(kind: AmbienceKind, color: string, density: number): string {
+export function skyAmbienceWash(kind: AmbienceKind, color: string, density: number, direction = 'to bottom'): string {
   const raw = ambienceDensityOf(density);
   if (raw <= 0) return '';
 
-  const level = ambienceWashLevel(kind, density);
+  const level = raw;
   const tint = ambienceColorOf(kind, color);
   const shade = ambiencePalette(kind).secondary;
+  const depth = (far: number, near: number, paint: string) =>
+    `linear-gradient(${direction}, ${withAlpha(paint, round(far * level))} 0%,` +
+    ` ${withAlpha(paint, round(((far + near) / 2) * level))} 45%, ${withAlpha(paint, round(near * level))} 100%)`;
 
   switch (kind) {
     case 'fog':
-      // 上げきると上下の濃淡も消えて一面が白く潰れる。手前が見えない霧はそういう見え方になる。
-      return (
-        `linear-gradient(to bottom, ${withAlpha(tint, round(0.97 * level))} 0%,` +
-        ` ${withAlpha(tint, round((0.42 + 0.55 * raw) * level))} 45%, ${withAlpha(tint, round(0.94 * level))} 100%)`
-      );
+      // 塗りは空気の色まで。濃さは雲の重なりが持つ。塗りで濃くすると団子になる。
+      return depth(0.55, 0.12, tint);
     case 'rain':
-      return `linear-gradient(to bottom, ${withAlpha(shade, round(0.36 * level))}, ${withAlpha(shade, round(0.18 * level))})`;
+      return depth(0.42, 0.12, shade);
+    case 'storm':
+      return depth(0.72, 0.28, shade);
     case 'snow':
-      return `linear-gradient(to bottom, ${withAlpha(tint, round(0.26 * level))}, ${withAlpha(shade, round(0.2 * level))})`;
+      return depth(0.34, 0.12, tint);
     case 'ash':
-      return `linear-gradient(to bottom, ${withAlpha(shade, round(0.44 * level))}, ${withAlpha(shade, round(0.24 * level))})`;
+      return depth(0.52, 0.16, shade);
     case 'ember':
       return `radial-gradient(ellipse at 50% 120%, ${withAlpha(tint, round(0.45 * level))}, transparent 70%)`;
     case 'sand':
-      return `linear-gradient(to bottom, ${withAlpha(tint, round(0.4 * level))}, ${withAlpha(shade, round(0.32 * level))})`;
+      return depth(0.5, 0.18, tint);
     case 'miasma':
       return (
         `radial-gradient(ellipse at 50% 110%, ${withAlpha(tint, round(0.42 * level))}, transparent 76%),` +
-        ` linear-gradient(to bottom, transparent, ${withAlpha(shade, round(0.34 * level))})`
+        ` ${depth(0.46, 0.1, shade)}`
       );
     default:
       return '';
   }
+}
+
+/** 落雷の間隔(ms)。この中の 1 回だけ光る。 */
+const STRIKE_CYCLE_MS = 5200;
+/** ひらめきが消えるまで(ms)。 */
+const STRIKE_SPAN_MS = 460;
+
+/**
+ * 稲光の強さ(0〜1)。雷を伴う天候だけが光る。
+ *
+ * 経過時間だけから決まる純関数にしてあるので、誰の画面でも同じ拍で光る。
+ * 一度で消さず二度光らせる。1 回きりだと写真のフラッシュに見えて雷にならない。
+ */
+export function skyAmbienceFlash(kind: AmbienceKind, elapsed: number, density: number): number {
+  if (kind !== 'storm') return 0;
+  const level = ambienceDensityOf(density);
+  if (level <= 0) return 0;
+
+  const time = Number.isFinite(elapsed) ? Math.max(elapsed, 0) : 0;
+  const cycle = Math.floor(time / STRIKE_CYCLE_MS);
+  const random = seededRandom(cycle * 2654435761 + 17);
+  const at = 400 + random() * (STRIKE_CYCLE_MS - STRIKE_SPAN_MS - 800);
+  const power = 0.45 + random() * 0.55;
+
+  const local = time - cycle * STRIKE_CYCLE_MS - at;
+  if (local < 0 || local > STRIKE_SPAN_MS) return 0;
+
+  const first = Math.exp(-local / 70);
+  const second = local > 150 ? Math.exp(-(local - 150) / 60) * 0.75 : 0;
+  return clamp01((first + second) * power * (0.35 + level * 0.65));
 }
 
 function particleCount(kind: AmbienceKind, width: number, height: number, density: number): number {
@@ -148,10 +182,12 @@ function emit(
       return ember(r, elapsed, width, height, color);
     case 'sand':
       return sand(r, elapsed, width, height, color);
+    case 'storm':
+      return storm(r, elapsed, width, height, color);
     case 'fog':
-      return haze(r, elapsed, width, height, color, 0.008, 0.2);
+      return haze(r, elapsed, width, height, color, 0.01, 0.3);
     case 'miasma':
-      return haze(r, elapsed, width, height, color, 0.004, 0.15);
+      return haze(r, elapsed, width, height, color, 0.005, 0.22);
     case 'bloom':
       return bloom(r, elapsed, width, height, color);
     default:
@@ -220,6 +256,27 @@ function ember(r: Randoms, elapsed: number, width: number, height: number, color
   };
 }
 
+/** 横殴りの雨。まっすぐ落ちる雨より寝かせ、風にちぎれた飛沫を混ぜる。 */
+function storm(r: Randoms, elapsed: number, width: number, height: number, color: string): EffectParticle {
+  const gust = 1 + 0.35 * Math.sin(elapsed * 0.00035);
+  const spray = r.d > 0.78;
+  const speed = (spray ? 1.9 + r.c * 1.1 : 1.5 + r.c * 1.1) * gust;
+  const span = height + 260;
+  const slant = spray ? 0.62 : 0.92;
+
+  return {
+    // 風で流されるぶん、落ちる間に大きく横へ運ばれる。
+    x: wrap(r.a * (width + 900) + elapsed * speed * 0.62, width + 900) - 450,
+    y: wrap(r.b * span + elapsed * speed, span) - 130,
+    size: spray ? 1.4 + r.d * 1.4 : 2.4 + r.d * 2.2,
+    angle: slant,
+    stretch: spray ? 16 + r.c * 16 : 11 + r.c * 13,
+    color,
+    alpha: spray ? 0.14 + r.d * 0.2 : 0.32 + r.d * 0.42,
+    shape: 'streak',
+  };
+}
+
 function sand(r: Randoms, elapsed: number, width: number, height: number, color: string): EffectParticle {
   const speed = 0.55 + r.c * 0.75;
   const span = width + 320;
@@ -235,7 +292,12 @@ function sand(r: Randoms, elapsed: number, width: number, height: number, color:
   };
 }
 
-/** 大きく薄い塊がゆっくり流れる。霧と瘴気はここを共有する。 */
+/**
+ * 流れる雲の塊。霧と瘴気はここを共有する。
+ *
+ * 薄い塗りを 1 枚被せただけでは、色の板を前に置いたようにしか見えない。
+ * 濃さは塊の重なりで作る。大小と速さを大きく散らさないと、同じ雲が並んだ壁紙になる。
+ */
 function haze(
   r: Randoms,
   elapsed: number,
@@ -246,16 +308,26 @@ function haze(
   alpha: number
 ): EffectParticle {
   const base = Math.max(width, height);
-  const size = base * (0.18 + r.d * 0.34);
+  const phase = r.a * TAU;
+  // 塊ごとに違う拍で膨らみ、ねじれ、にじむ。周期をずらさないと全部が同じ呼吸をする。
+  const churn = elapsed * 0.00016;
+  const swell = 0.82 + 0.18 * Math.sin(churn * 1.7 + phase);
+  const size = base * (0.07 + Math.pow(r.d, 1.7) * 0.46) * swell;
   const span = width + size;
+  const drift = speed * (0.35 + r.a * 1.9);
+
   return {
-    x: wrap(r.a * span + elapsed * (speed + r.c * speed), span) - size / 2,
-    y: r.b * height + Math.sin(elapsed * 0.00018 + r.a * TAU) * height * 0.06,
+    x: wrap(r.a * span + elapsed * drift + Math.sin(churn * 1.3 + phase) * base * 0.05, span) - size / 2,
+    y:
+      r.b * height +
+      Math.sin(churn * 1.9 + phase) * height * 0.09 +
+      Math.cos(churn * 1.1 + phase * 0.7) * height * 0.05,
     size,
-    angle: 0,
-    stretch: 0.62,
+    // 平行移動だけだと板が流れていくように見える。ゆっくり回して形も変える。
+    angle: phase + churn * (0.6 + r.c * 0.9),
+    stretch: 0.5 + r.c * 0.4 + 0.22 * Math.sin(churn * 2.3 + phase * 1.7),
     color,
-    alpha: alpha * (0.6 + r.d * 0.7),
+    alpha: alpha * (0.5 + r.c * 0.9) * (0.72 + 0.28 * Math.sin(churn * 2.7 + phase * 2.1)),
     shape: 'smoke',
   };
 }

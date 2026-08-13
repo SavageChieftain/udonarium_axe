@@ -3,7 +3,6 @@ import {
   ambienceDensityOf,
   type AmbienceKind,
   ambiencePalette,
-  ambienceWashLevel,
 } from '@axe/domain/effect/ambience/ambience-kind';
 import {
   clamp01,
@@ -91,6 +90,7 @@ const SURFACE_PER_CELL: Record<AmbienceKind, number> = {
   bloom: 10,
   fog: 0,
   rain: 0,
+  storm: 0,
   snow: 0,
   ash: 0,
   ember: 0,
@@ -108,6 +108,7 @@ const VAPOR_PER_CELL: Record<AmbienceKind, number> = {
   frost: 6,
   bloom: 8,
   rain: 0,
+  storm: 0,
   snow: 0,
   ash: 0,
   ember: 0,
@@ -219,7 +220,7 @@ export function groundVaporLayer(spec: GroundAmbienceSpec): EffectParticleLayer 
 export function groundSurfaceWash(kind: AmbienceKind, color: string, density: number): string {
   const tint = ambienceColorOf(kind, color);
   const shade = ambiencePalette(kind).secondary;
-  const strength = 0.45 + ambienceWashLevel(kind, density) * 0.55;
+  const strength = 0.45 + ambienceDensityOf(density) * 0.55;
 
   switch (kind) {
     case 'swamp':
@@ -245,7 +246,7 @@ export function groundSurfaceWash(kind: AmbienceKind, color: string, density: nu
     case 'frost':
       return blobs(blob('50% 50%', tint, 0.62 * strength), blob('36% 62%', shade, 0.5 * strength));
     case 'fog':
-      return blobs(blob('42% 46%', tint, 0.99 * strength), blob('58% 56%', tint, 0.95 * strength));
+      return blobs(blob('42% 46%', tint, 0.82 * strength), blob('58% 56%', tint, 0.74 * strength));
     case 'miasma':
       return blobs(blob('46% 48%', tint, 0.62 * strength), blob('50% 50%', shade, 0.72 * strength));
     case 'vent':
@@ -585,12 +586,16 @@ function vaporParticle(
     ? ((Math.floor(r.b * columns) + 0.5) / columns - 0.5) * width + (r.c - 0.5) * unit * 0.4
     : (r.b - 0.5) * width;
 
+  // 煙や靄は上るだけだと板が流れて見える。塊ごとに違う拍でゆっくり回してねじる。
+  const churn = options.shape === 'smoke' ? elapsed * 0.00022 + r.b * TAU : 0;
+
   return {
     x: base + Math.sin(elapsed * 0.0008 + r.a * TAU) * unit * options.sway * local,
     y: -(from + climb * (options.reach - from)) * height,
     size: unit * (options.size + options.grow * local) * scaleOf(options, r.d),
-    angle: 0,
-    stretch: (options.stretch ?? 1) + (options.stretchGrow ?? 0) * local,
+    angle: churn === 0 ? 0 : churn * (0.5 + r.c),
+    stretch:
+      (options.stretch ?? 1) + (options.stretchGrow ?? 0) * local + (churn === 0 ? 0 : 0.18 * Math.sin(churn * 2.1)),
     // 先端まで色を落とすと、加算合成では何も足さない粒ばかりになって炎が痩せる。
     // 白熱させるのは根元だけにして、あとは炎の色のまま濃さで消す。
     color: options.hot ? (local < 0.14 ? HOT : color) : options.shaded ? shade : color,
@@ -612,11 +617,13 @@ function largestVapor(kind: AmbienceKind): { width: number; height: number } {
   for (const options of VAPOR_OPTIONS[kind] ?? []) {
     const scale = scaleOf(options, 1);
     // 大きさも伸びも寿命とともに変わる。両端だけ見ると、掛け合わせた最大を取り逃す。
+    // ねじれで伸びるぶんも見込む。見込まないと、太った瞬間だけ枠で切られる。
+    const churn = options.shape === 'smoke' ? 0.2 : 0;
     for (const local of [0, 0.5, 1]) {
       const size = (options.size + options.grow * local) * scale;
       if (size <= 0) continue;
       width = Math.max(width, size);
-      height = Math.max(height, size * ((options.stretch ?? 1) + (options.stretchGrow ?? 0) * local));
+      height = Math.max(height, size * ((options.stretch ?? 1) + (options.stretchGrow ?? 0) * local + churn));
     }
   }
   return { width, height };
