@@ -42,12 +42,21 @@ export class TabletopService {
     return table ? table : this._emptyTable;
   }
 
-  readonly currentTableVersion = computed(() => {
-    this.objectChange.versionOf(this.tableSelecter.identifier)();
-    const table = this.currentTable;
-    this.objectChange.versionOf(table.identifier)();
-    return table;
-  });
+  /**
+   * 版を読んでからテーブルを返す。
+   *
+   * 返すのは毎回同じ GameTable なので、既定の同値判定では版が上がっても下流へ伝わらない。
+   * グリッドの大きさも天候も、変えた瞬間に画面へ出す必要があるため常に変化とみなす。
+   */
+  readonly currentTableVersion = computed(
+    () => {
+      this.objectChange.versionOf(this.tableSelecter.identifier)();
+      const table = this.currentTable;
+      this.objectChange.versionOf(table.identifier)();
+      return table;
+    },
+    { equal: () => false }
+  );
 
   readonly mode2d: Signal<boolean> = computed(() => this.currentTableVersion().mode2d);
   readonly imageBillboard: Signal<boolean> = computed(() => this.currentTableVersion().imageBillboard);
