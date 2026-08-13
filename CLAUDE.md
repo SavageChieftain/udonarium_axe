@@ -55,7 +55,7 @@ composition → features → ui → application → infrastructure → domain �
 
 ## 技術スタック
 
-- **Angular 21.2** — Zoneless (`provideZonelessChangeDetection()`)、OnPush
+- **Angular 22** — Zoneless (`provideZonelessChangeDetection()`)、OnPush
 - **スタイル** — Tailwind v4。`src/styles.css` で `@import 'tailwindcss';` グローバル適用
 - **テスト** — Vitest + happy-dom。`ng test`（`@angular/build:unit-test`）と
   `npx vitest run`（`vitest.config.ts`）の 2 経路があり共に通す必要あり。
