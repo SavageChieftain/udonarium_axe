@@ -1,3 +1,43 @@
+## [1.36.0](https://github.com/SavageChieftain/udonarium_axe/compare/v1.35.0...v1.36.0) (2026-08-13)
+
+### ✨ Features
+
+* **effect:** add ambient effect kinds with sky and ground layers ([4d18fc2](https://github.com/SavageChieftain/udonarium_axe/commit/4d18fc23efb45ff8370841383eefb58957348e7b))
+* **effect:** build fog from drifting cloud masses and add a thunderstorm ([ba56d8e](https://github.com/SavageChieftain/udonarium_axe/commit/ba56d8e9b1c105062004e195b1f4f5e7a94050f3))
+* **tabletop:** add ambient areas and per-table weather to the domain ([15c6797](https://github.com/SavageChieftain/udonarium_axe/commit/15c67971052e91a2721f851abe92472d9e84751e))
+* **tabletop:** keep the weather inside the table ([43b0ff0](https://github.com/SavageChieftain/udonarium_axe/commit/43b0ff03b3f6f5eba64e0419390f6cd000eb3e7c))
+* **tabletop:** keep the weather over the table and its airspace ([da9fb87](https://github.com/SavageChieftain/udonarium_axe/commit/da9fb8717b25257b0837f0ab4d85acdca0241642))
+* **tabletop:** place ambient effects on the table and pick weather per table ([80880d2](https://github.com/SavageChieftain/udonarium_axe/commit/80880d29e9d348665d9aae869d3cf55ec456321a))
+
+### 🐛 Bug Fixes
+
+* **effect:** track persistent playback sources by name ([1e80b18](https://github.com/SavageChieftain/udonarium_axe/commit/1e80b18c3b67226b0195b08026205dc8039bb58b))
+* **i18n:** reword three stiff Japanese UI strings ([8c4c927](https://github.com/SavageChieftain/udonarium_axe/commit/8c4c927a9e9e5159ac91c45f3babd1b3a1dc7624))
+* **tabletop:** match the height of the filled and outlined table buttons ([59783d2](https://github.com/SavageChieftain/udonarium_axe/commit/59783d26ba45b2ca8b0c4774e9cb0dff4b02b125))
+* **tabletop:** propagate table changes to the derived signals ([f4d398d](https://github.com/SavageChieftain/udonarium_axe/commit/f4d398da9ec46d7df92f1a20963b4486867109cf))
+* **tabletop:** space the weather section like the rest of the table settings ([7823721](https://github.com/SavageChieftain/udonarium_axe/commit/7823721c41b19c57eb20a33dd41effa28101bae6))
+
+### ⚡ Performance
+
+* **effect:** cap the pixel count of a single particle canvas ([f825c2f](https://github.com/SavageChieftain/udonarium_axe/commit/f825c2fecad49fd1cbc7ba762c2b683e38da3d03))
+
+### 📝 Documentation
+
+* correct stale numbers and rules in the docs and manual ([5f7a058](https://github.com/SavageChieftain/udonarium_axe/commit/5f7a05895e101c142c81b1f44506e0fc6ba40bdd))
+* describe the ambient effects and weather ([826f6ae](https://github.com/SavageChieftain/udonarium_axe/commit/826f6ae0e516db842bac4d03b76815329fcdb029))
+* describe the thunderstorm and the reworked fog ([342b3e3](https://github.com/SavageChieftain/udonarium_axe/commit/342b3e3713fb35ebf2409fc3f9799885cdba9958))
+* document the replay digest, keepsake photo and streaming overlay ([16dafad](https://github.com/SavageChieftain/udonarium_axe/commit/16dafad6fe04c16badb932d39bbdbf5f442c1385))
+* **domain:** fix translationese in two source comments ([94f6a22](https://github.com/SavageChieftain/udonarium_axe/commit/94f6a22a9adc5df2a9f8e2e6a8f5c75dea3c1e27))
+* require the natural-japanese skill for Japanese prose ([a3d788f](https://github.com/SavageChieftain/udonarium_axe/commit/a3d788fbe5fa12e6a6ce1ccc91574b65b8dbba57))
+* smooth stiff Japanese in the docs, manual and release notes ([df01065](https://github.com/SavageChieftain/udonarium_axe/commit/df01065e019eadc16d024451d2572bdd6014370b))
+* **website:** add v1.35.0 release notes and rewrite the vote manual ([daced8a](https://github.com/SavageChieftain/udonarium_axe/commit/daced8abc4084ee452f104bd3887617c6ac7e82c))
+* **website:** correct the ambient effect manual after the rework ([e9eb42a](https://github.com/SavageChieftain/udonarium_axe/commit/e9eb42a8a3a620cd093a0cfc6ee03bbc0194dd3d))
+* **website:** make the ambient effect manual easier to read ([242dfe5](https://github.com/SavageChieftain/udonarium_axe/commit/242dfe552cd4df6654abb475a3ebd4accfa9a66a))
+
+### ♻️ Refactor
+
+* **effect:** move withAlpha into the domain particle helpers ([9173872](https://github.com/SavageChieftain/udonarium_axe/commit/917387296e28c5e27f3474c101cd6edd7f36fe8e))
+
 ## [1.35.0](https://github.com/SavageChieftain/udonarium_axe/compare/v1.34.1...v1.35.0) (2026-08-12)
 
 ### ✨ Features
