@@ -15,6 +15,15 @@ import { ImageFile } from '@axe/core/storage/image-file';
 import { ObjectSerializer } from '@axe/core/sync/object-serializer';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { DiceBot } from '@axe/domain/dice/dice-bot';
+import {
+  ambienceColorOf,
+  ambienceDensityOf,
+  type AmbienceKind,
+  ambienceKindOf,
+  ambiencePalette,
+  DEFAULT_AMBIENCE_DENSITY,
+  SKY_AMBIENCE_KINDS,
+} from '@axe/domain/effect/ambience/ambience-kind';
 import { Config } from '@axe/domain/peer/config';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { FilterType, GameTable, GridSnapStyle, GridType } from '@axe/domain/tabletop/game-table';
@@ -192,6 +201,43 @@ export class GameTableSettingComponent {
   }
   set tableAmbientColor(value: string) {
     if (this.isEditable && this.selectedTable) this.selectedTable.ambientColor = value;
+  }
+
+  protected readonly weatherKinds = SKY_AMBIENCE_KINDS;
+
+  weatherKindLabel(kind: AmbienceKind): string {
+    return this.t(`feature.ambience.kind.${kind}`);
+  }
+
+  get tableWeatherKind(): string {
+    return this.selectedTable?.weatherKind ?? '';
+  }
+  set tableWeatherKind(value: string) {
+    if (this.isEditable && this.selectedTable) this.selectedTable.weatherKind = value;
+  }
+
+  get tableWeatherDensityPercent(): number {
+    return Math.round(ambienceDensityOf(this.selectedTable?.weatherDensity ?? DEFAULT_AMBIENCE_DENSITY) * 100);
+  }
+  set tableWeatherDensityPercent(value: number) {
+    if (this.isEditable && this.selectedTable) this.selectedTable.weatherDensity = Number(value) / 100;
+  }
+
+  get tableWeatherColor(): string {
+    const table = this.selectedTable;
+    if (!table) return ambiencePalette('fog').primary;
+    return ambienceColorOf(ambienceKindOf(table.weatherKind), table.weatherColor);
+  }
+  set tableWeatherColor(value: string) {
+    if (this.isEditable && this.selectedTable) this.selectedTable.weatherColor = value;
+  }
+
+  get isWeatherDefaultColor(): boolean {
+    return (this.selectedTable?.weatherColor ?? '').trim().length < 1;
+  }
+
+  resetWeatherColor(): void {
+    if (this.isEditable && this.selectedTable) this.selectedTable.weatherColor = '';
   }
 
   get isGameMaster(): boolean {

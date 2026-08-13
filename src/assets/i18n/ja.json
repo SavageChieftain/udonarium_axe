@@ -1175,7 +1175,8 @@
         "rangeShapeCustom": "任意マス",
         "createDeck": "画像タグから山札を作成",
         "defaultDeckName": "山札",
-        "defaultCoinName": "コイン"
+        "defaultCoinName": "コイン",
+        "createAmbience": "環境エフェクトを置く"
       },
       "panel": {
         "terrain": "地形設定",
@@ -1359,7 +1360,10 @@
         "delete": "削除",
         "restore": "元に戻す",
         "defaultDiceBot": "標準ダイスボット",
-        "diceBotHint": "部屋接続時に選択されるダイスボットです（テーブル毎ではなく部屋全体の設定）"
+        "diceBotHint": "部屋接続時に選択されるダイスボットです（テーブル毎ではなく部屋全体の設定）",
+        "sectionWeather": "天候（マップ全体）",
+        "weatherKind": "天候",
+        "weatherNone": "なし"
       }
     },
     "lobby": {
@@ -2254,6 +2258,41 @@
           "save": "まとめを書き出す",
           "hint": "この画面のまとめを Markdown で保存します"
         }
+      }
+    },
+    "ambience": {
+      "settingsTitle": "環境エフェクト",
+      "nameLabel": "名前",
+      "kindLabel": "種類",
+      "densityLabel": "濃さ",
+      "colorLabel": "色",
+      "resetColor": "既定",
+      "widthLabel": "幅（マス）",
+      "heightLabel": "高さ（マス）",
+      "lockLabel": "位置を固定する",
+      "densityThin": "薄い",
+      "densityNormal": "ふつう",
+      "densityThick": "濃い",
+      "contextMenu": {
+        "settings": "環境エフェクトの設定",
+        "kind": "種類を変える",
+        "density": "濃さを変える",
+        "size": "広さを変える"
+      },
+      "kind": {
+        "fog": "濃霧",
+        "rain": "雨",
+        "snow": "雪",
+        "ash": "降灰",
+        "ember": "火の粉",
+        "sand": "砂塵",
+        "miasma": "瘴気",
+        "bloom": "光の粒",
+        "swamp": "毒沼",
+        "vent": "地面の噴出",
+        "lava": "溶岩",
+        "blaze": "地面の炎上",
+        "frost": "氷結"
       }
     }
   },

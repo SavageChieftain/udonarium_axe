@@ -1,0 +1,31 @@
+<div
+  class="group pointer-events-none absolute select-none backface-hidden transform-3d"
+  [class.cursor-grab]="!isLock()"
+  [style.width.px]="pixelWidth()"
+  [style.height.px]="pixelHeight()"
+  appMovable
+  [movable.option]="movableOption()"
+  [movable.disable]="isLock()"
+  [appSelectable]="ambience()"
+  (movable.ondragstart)="onMove()"
+  (movable.ondragend)="onMoved()"
+>
+  <div
+    class="pointer-events-auto absolute inset-0 backface-hidden"
+    [attr.data-table-passthrough]="isLock() ? '' : null"
+    [style.background]="surfaceWash()"
+    [appTooltip]="ambience()"
+  ></div>
+
+  @if (surfaceLayer(); as layer) {
+    <effect-canvas class="backface-hidden" [ngStyle]="canvasStyle(layer)" [layer]="layer"></effect-canvas>
+  }
+
+  @for (slice of vaporSlices(); track slice.key) {
+    <effect-canvas class="backface-visible" [ngStyle]="vaporStyle(slice)" [layer]="slice.layer"></effect-canvas>
+  }
+
+  <div
+    class="outline-ui-border-panel pointer-events-none absolute inset-0 -outline-offset-2 group-hover:outline-2"
+  ></div>
+</div>

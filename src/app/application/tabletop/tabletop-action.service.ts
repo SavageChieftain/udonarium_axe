@@ -23,6 +23,7 @@ import { GameCharacter } from '@axe/domain/character/game-character';
 import { Coin } from '@axe/domain/coin/coin';
 import { DiceSymbol, DiceType } from '@axe/domain/dice/dice-symbol';
 import { DisclosureMode } from '@axe/domain/disclosure/disclosure';
+import { type AmbienceKind, GROUND_AMBIENCE_KINDS } from '@axe/domain/effect/ambience/ambience-kind';
 import { ImageTag } from '@axe/domain/media/image-tag';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
@@ -31,9 +32,13 @@ import { GameTableMask } from '@axe/domain/tabletop/game-table-mask';
 import { GameTableScratchMask } from '@axe/domain/tabletop/game-table-scratch-mask';
 import { LightSource } from '@axe/domain/tabletop/light-source';
 import { RangeArea } from '@axe/domain/tabletop/range';
+import { TableAmbience } from '@axe/domain/tabletop/table-ambience';
 import { TableSelecter } from '@axe/domain/tabletop/table-selecter';
 import { Terrain } from '@axe/domain/tabletop/terrain';
 import { TextNote } from '@axe/domain/tabletop/text-note';
+
+/** 環境エフェクトの初期の一辺(マス)。1 マスだと沼に見えないので、置いた時点で広さを持たせる。 */
+const AMBIENCE_DEFAULT_SIZE = 4;
 
 @Injectable({
   providedIn: 'root',
@@ -76,6 +81,21 @@ export class TabletopActionService {
 
     viewTable.appendChild(tableMask);
     return tableMask;
+  }
+
+  createTableAmbience(position: PointerCoordinate, kind: AmbienceKind): TableAmbience | undefined {
+    const viewTable = this.getViewTable();
+    if (!viewTable) return undefined;
+
+    const size = AMBIENCE_DEFAULT_SIZE;
+    const ambience = TableAmbience.create(this.t(`feature.ambience.kind.${kind}`), kind, size, size);
+    const half = (size * viewTable.gridSize) / 2;
+    ambience.location.x = position.x - half;
+    ambience.location.y = position.y - half;
+    ambience.posZ = position.z;
+
+    viewTable.appendChild(ambience);
+    return ambience;
   }
 
   createGameTableScratchMask(position: PointerCoordinate): GameTableScratchMask | undefined {
@@ -252,7 +272,22 @@ export class TabletopActionService {
       this.getCreateCoinMenu(position),
       this.getCreateRangeMenu(position),
       this.getCreateLightSourceMenu(position),
+      this.getCreateAmbienceMenu(position),
     ];
+  }
+
+  private getCreateAmbienceMenu(position: PointerCoordinate): ContextMenuAction {
+    return {
+      name: this.t('feature.tabletop.action.createAmbience'),
+      action: undefined,
+      subActions: GROUND_AMBIENCE_KINDS.map((kind) => ({
+        name: this.t(`feature.ambience.kind.${kind}`),
+        action: () => {
+          this.createTableAmbience(position, kind);
+          SoundEffect.play(PresetSound.cardPut);
+        },
+      })),
+    };
   }
 
   private getCreateCharacterMenu(position: PointerCoordinate): ContextMenuAction {

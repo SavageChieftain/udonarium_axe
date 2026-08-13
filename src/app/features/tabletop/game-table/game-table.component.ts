@@ -62,9 +62,11 @@ import { GameTableScratchMaskComponent } from '@axe/features/tabletop/game-table
 import { GameTableSettingComponent } from '@axe/features/tabletop/game-table-setting/game-table-setting.component';
 import { LightSourceComponent } from '@axe/features/tabletop/light-source/light-source.component';
 import { RangeComponent } from '@axe/features/tabletop/range/range.component';
+import { TableAmbienceComponent } from '@axe/features/tabletop/table-ambience/table-ambience.component';
 import { TableBeamOverlayComponent } from '@axe/features/tabletop/table-beam-overlay/table-beam-overlay.component';
 import { TableTargetOverlayComponent } from '@axe/features/tabletop/table-target-overlay/table-target-overlay.component';
 import { TableVisionOverlayComponent } from '@axe/features/tabletop/table-vision-overlay/table-vision-overlay.component';
+import { TableWeatherOverlayComponent } from '@axe/features/tabletop/table-weather-overlay/table-weather-overlay.component';
 import { TerrainComponent } from '@axe/features/tabletop/terrain/terrain.component';
 import { TextNoteComponent } from '@axe/features/tabletop/text-note/text-note.component';
 import {
@@ -138,6 +140,8 @@ interface BeamWallGrid {
     CoinComponent,
     TranslocoModule,
     LightSourceComponent,
+    TableAmbienceComponent,
+    TableWeatherOverlayComponent,
   ],
   host: {
     class: 'block',
@@ -504,6 +508,10 @@ export class GameTableComponent {
   readonly terrains = computed(() => {
     this.objectChangeService.collectionOf('terrain')();
     return this.tabletopService.terrains;
+  });
+  readonly ambiences = computed(() => {
+    this.objectChangeService.collectionOf('table-ambience')();
+    return this.tabletopService.ambiences;
   });
   readonly textNotes = computed(() => {
     this.objectChangeService.collectionOf('text-note')();

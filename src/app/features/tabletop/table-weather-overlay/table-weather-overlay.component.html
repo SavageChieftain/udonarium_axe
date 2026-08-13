@@ -1,0 +1,6 @@
+@if (wash().length > 0) {
+  <div class="pointer-events-none absolute inset-0" [style.background]="wash()"></div>
+}
+@if (layer(); as layer) {
+  <effect-canvas class="pointer-events-none absolute inset-0" [layer]="layer"></effect-canvas>
+}

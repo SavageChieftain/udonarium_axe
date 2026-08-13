@@ -1175,7 +1175,8 @@
         "rangeShapeCustom": "Custom cells",
         "createDeck": "Create a deck from an image tag",
         "defaultDeckName": "Deck",
-        "defaultCoinName": "Coin"
+        "defaultCoinName": "Coin",
+        "createAmbience": "Place ambient effect"
       },
       "panel": {
         "terrain": "Terrain settings",
@@ -1359,7 +1360,10 @@
         "delete": "Delete",
         "restore": "Restore",
         "defaultDiceBot": "Default dice bot",
-        "diceBotHint": "This dice bot is selected when joining a room (not per-table; room-wide setting)"
+        "diceBotHint": "This dice bot is selected when joining a room (not per-table; room-wide setting)",
+        "sectionWeather": "Weather (whole map)",
+        "weatherKind": "Weather",
+        "weatherNone": "None"
       }
     },
     "lobby": {
@@ -2254,6 +2258,41 @@
           "save": "Save summary",
           "hint": "Save this summary as Markdown"
         }
+      }
+    },
+    "ambience": {
+      "settingsTitle": "Ambient effect",
+      "nameLabel": "Name",
+      "kindLabel": "Type",
+      "densityLabel": "Density",
+      "colorLabel": "Color",
+      "resetColor": "Default",
+      "widthLabel": "Width (cells)",
+      "heightLabel": "Height (cells)",
+      "lockLabel": "Lock position",
+      "densityThin": "Light",
+      "densityNormal": "Normal",
+      "densityThick": "Heavy",
+      "contextMenu": {
+        "settings": "Ambient effect settings",
+        "kind": "Change type",
+        "density": "Change density",
+        "size": "Change size"
+      },
+      "kind": {
+        "fog": "Dense fog",
+        "rain": "Rain",
+        "snow": "Snow",
+        "ash": "Falling ash",
+        "ember": "Embers",
+        "sand": "Sandstorm",
+        "miasma": "Miasma",
+        "bloom": "Glowing motes",
+        "swamp": "Poison swamp",
+        "vent": "Ground vent",
+        "lava": "Lava",
+        "blaze": "Burning ground",
+        "frost": "Frost"
       }
     }
   },

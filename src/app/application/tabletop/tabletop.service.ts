@@ -18,6 +18,7 @@ import { GameTableScratchMask } from '@axe/domain/tabletop/game-table-scratch-ma
 import { LightSource } from '@axe/domain/tabletop/light-source';
 import { clearOwnershipTree } from '@axe/domain/tabletop/ownership';
 import { RangeArea } from '@axe/domain/tabletop/range';
+import { TableAmbience } from '@axe/domain/tabletop/table-ambience';
 import { TableSelecter } from '@axe/domain/tabletop/table-selecter';
 import { TabletopObject } from '@axe/domain/tabletop/tabletop-object';
 import { Terrain } from '@axe/domain/tabletop/terrain';
@@ -82,6 +83,10 @@ export class TabletopService {
     const viewTable = this.tableSelecter.viewTable;
     return viewTable ? viewTable.terrains : [];
   });
+  private ambienceCache = new TabletopCache<TableAmbience>(() => {
+    const viewTable = this.tableSelecter.viewTable;
+    return viewTable ? viewTable.ambiences : [];
+  });
   private textNoteCache = new TabletopCache<TextNote>(() => this.objectStore.getObjects(TextNote));
   private coinCache = new TabletopCache<Coin>(() =>
     this.objectStore.getObjects(Coin).filter((obj) => obj.isVisibleOnTable)
@@ -112,6 +117,9 @@ export class TabletopService {
   get terrains(): Terrain[] {
     return this.terrainCache.objects;
   }
+  get ambiences(): TableAmbience[] {
+    return this.ambienceCache.objects;
+  }
   get textNotes(): TextNote[] {
     return this.textNoteCache.objects;
   }
@@ -139,9 +147,11 @@ export class TabletopService {
         this.refreshCache(GameTableMask.aliasName);
         this.refreshCache(GameTableScratchMask.aliasName);
         this.refreshCache(Terrain.aliasName);
+        this.refreshCache(TableAmbience.aliasName);
         this.objectChange.notifyCollectionChanged(GameTableMask.aliasName);
         this.objectChange.notifyCollectionChanged(GameTableScratchMask.aliasName);
         this.objectChange.notifyCollectionChanged(Terrain.aliasName);
+        this.objectChange.notifyCollectionChanged(TableAmbience.aliasName);
         return;
       }
 
@@ -225,6 +235,8 @@ export class TabletopService {
         return this.lightSourceCache;
       case Terrain.aliasName:
         return this.terrainCache;
+      case TableAmbience.aliasName:
+        return this.ambienceCache;
       case TextNote.aliasName:
         return this.textNoteCache;
       case DiceSymbol.aliasName:
@@ -250,6 +262,7 @@ export class TabletopService {
     this.rangeCache.refresh();
     this.lightSourceCache.refresh();
     this.terrainCache.refresh();
+    this.ambienceCache.refresh();
     this.textNoteCache.refresh();
     this.diceSymbolCache.refresh();
     this.coinCache.refresh();
@@ -283,6 +296,9 @@ export class TabletopService {
       // falls through
       case Terrain.aliasName:
         if (gameObject instanceof Terrain) gameObject.isLocked = false;
+      // falls through
+      case TableAmbience.aliasName:
+        if (gameObject instanceof TableAmbience) gameObject.isLock = false;
         if (!this.tableSelecter || !this.tableSelecter.viewTable) return;
         this.tableSelecter.viewTable.appendChild(gameObject);
         break;

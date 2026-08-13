@@ -480,6 +480,65 @@
         </div>
       </div>
 
+      <div class="flex flex-col gap-2">
+        <div class="border-ui-accent border-l-2 border-solid pl-2">
+          <span class="text-ui-text text-[12px] font-semibold tracking-wide">{{
+            'feature.tabletop.tableSetting.sectionWeather' | transloco
+          }}</span>
+        </div>
+        <div class="grid grid-cols-[7rem_1fr_2.5rem] items-center gap-x-3 gap-y-2.5">
+          <label class="text-ui-muted text-[11px] whitespace-nowrap">{{
+            'feature.tabletop.tableSetting.weatherKind' | transloco
+          }}</label>
+          <select
+            class="rounded-ui-sm border-ui-border-panel bg-ui-input text-ui-text focus:border-ui-accent col-span-2 box-border w-full border border-solid px-2 py-1.25 text-[13px] transition-colors outline-none"
+            [(ngModel)]="tableWeatherKind"
+            name="tableWeatherKind"
+            [attr.disabled]="!isEditable ? '' : null"
+          >
+            <option value="">{{ 'feature.tabletop.tableSetting.weatherNone' | transloco }}</option>
+            @for (kind of weatherKinds; track kind) {
+              <option [value]="kind">{{ weatherKindLabel(kind) }}</option>
+            }
+          </select>
+
+          @if (tableWeatherKind) {
+            <label class="text-ui-muted text-[11px] whitespace-nowrap">{{
+              'feature.ambience.densityLabel' | transloco
+            }}</label>
+            <input
+              type="range"
+              min="0"
+              max="100"
+              class="w-full cursor-pointer [accent-color:var(--ui-accent)]"
+              [(ngModel)]="tableWeatherDensityPercent"
+              name="tableWeatherDensityPercent"
+              [attr.disabled]="!isEditable ? '' : null"
+            />
+            <span class="text-ui-muted text-right text-[11px]">{{ tableWeatherDensityPercent }}%</span>
+
+            <label class="text-ui-muted text-[11px] whitespace-nowrap">{{
+              'feature.ambience.colorLabel' | transloco
+            }}</label>
+            <input
+              type="color"
+              class="rounded-ui-sm border-ui-border-panel h-6.5 w-12 cursor-pointer border border-solid bg-transparent px-0.5 py-px disabled:cursor-not-allowed disabled:opacity-50"
+              [(ngModel)]="tableWeatherColor"
+              name="tableWeatherColor"
+              [attr.disabled]="!isEditable ? '' : null"
+            />
+            <button
+              type="button"
+              class="rounded-ui-sm border-ui-border-panel text-ui-muted hover:text-ui-text cursor-pointer border border-solid px-1 py-0.5 text-[10px] disabled:cursor-not-allowed disabled:opacity-40"
+              [disabled]="isWeatherDefaultColor || !isEditable"
+              (click)="resetWeatherColor()"
+            >
+              {{ 'feature.ambience.resetColor' | transloco }}
+            </button>
+          }
+        </div>
+      </div>
+
       <div class="mb-1 flex flex-col gap-1.25">
         @if (!isDeleted) {
           <div class="flex flex-wrap items-center gap-1.5">

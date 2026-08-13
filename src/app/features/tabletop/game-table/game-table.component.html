@@ -159,6 +159,12 @@
         >
         </game-table-scratch-mask>
       }
+      @for (ambience of ambiences(); track ambience.identifier) {
+        <table-ambience
+          class="absolute will-change-transform backface-visible transform-3d"
+          [ambience]="ambience"
+        ></table-ambience>
+      }
       @if (textNotesBySurface().floor.length) {
         <div class="pointer-events-none absolute inset-0 m-auto transform-3d">
           <div
@@ -276,6 +282,7 @@
     </div>
   </div>
 </div>
+<table-weather-overlay></table-weather-overlay>
 @if (screenFlash()) {
   <div class="animate-effect-flash pointer-events-none absolute inset-0 z-10" [style.background]="screenFlash()"></div>
 }
