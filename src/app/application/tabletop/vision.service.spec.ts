@@ -251,4 +251,30 @@ describe('VisionService', () => {
     expect(viewer.isGameMaster).toBe(false);
     expect(viewer.visionOwnerIds).toContain('player-3');
   });
+
+  describe('同じ盤面のあいだの覚え書き', () => {
+    it('同じ面を尋ね直しても同じ配列を返すこと', () => {
+      // 画面は 1 回の描き直しで地形 1 台につき 8 回尋ねる。中身が同じでも配列を作り直すと、
+      // 画面側はそのたびに並べ直しにかかる。
+      const table = makeDarkTable();
+      ObjectStore.instance.add(table);
+      makeMyCursor('gm-1', PeerRole.GameMaster);
+      const face = { ax: 100, ay: 100, bx: 200, by: 100, nx: 0, ny: -1, heightPx: 100 };
+
+      expect(service.wallSilhouettes(face)).toBe(service.wallSilhouettes(face));
+      expect(service.wallLights(face)).toBe(service.wallLights(face));
+      expect(service.lightBeams()).toBe(service.lightBeams());
+      expect(service.lightGlows()).toBe(service.lightGlows());
+    });
+
+    it('暗闇を使わない卓でも配列を作り直さないこと', () => {
+      const table = makeDarkTable();
+      table.darknessEnabled = false;
+      ObjectStore.instance.add(table);
+      const face = { ax: 0, ay: 0, bx: 50, by: 0, nx: 0, ny: -1, heightPx: 50 };
+
+      expect(service.wallSilhouettes(face)).toBe(service.wallSilhouettes(face));
+      expect(service.wallLights(face)).toBe(service.wallLights(face));
+    });
+  });
 });

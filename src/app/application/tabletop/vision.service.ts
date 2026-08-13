@@ -34,6 +34,14 @@ import { LightSpec, VisionType } from '@axe/domain/tabletop/vision-types';
 
 const GEOMETRY_THROTTLE_MS = 40;
 const RELEVANT_ALIASES = new Set(['character', 'light-source', 'terrain', 'game-table']);
+/** 覚えておく答えの上限。1 回の描き直しで尋ねられる数より十分に大きく取る。 */
+const MEMO_LIMIT = 8192;
+const EMPTY_SILHOUETTES: WallSilhouette[] = [];
+const EMPTY_WALL_LIGHTS: WallLight[] = [];
+
+function faceKey(face: WallFace): string {
+  return `${face.ax}:${face.ay}:${face.bx}:${face.by}:${face.nx}:${face.ny}:${face.heightPx}`;
+}
 const LIGHT_EMITTER_HEIGHT_CELLS = 0.5;
 const WALL_LIGHT_INSET_CELLS = 0.4;
 
@@ -46,6 +54,34 @@ export class VisionService {
 
   readonly previewAsUserId = signal<string | null>(null);
   private readonly geometryEpoch = signal(0);
+
+  /**
+   * 同じ盤面・同じ見え方のあいだ、答えを覚えておく。
+   *
+   * 壁の面や明るさは画面の描き直しのたびに尋ねられる。地形 1 台につき 8 回、
+   * コマ 1 体につき 1 回で、どれも光源と遮る物の数だけ計算し直していた。答えが同じなら
+   * 配列も同じものを返す。作り直すと、中身が同じでも画面側が並べ直しにかかる。
+   */
+  private memoScene: VisionScene | null = null;
+  private memoViewer: SceneViewer | null = null;
+  private readonly memo = new Map<string, unknown>();
+
+  private recall<T>(key: string, compute: () => T): T {
+    const scene = this.scene();
+    const viewer = this.viewer();
+    if (scene !== this.memoScene || viewer !== this.memoViewer) {
+      this.memoScene = scene;
+      this.memoViewer = viewer;
+      this.memo.clear();
+    }
+    const cached = this.memo.get(key);
+    if (cached !== undefined) return cached as T;
+    const value = compute();
+    // 尋ねられる場所の数だけ増えるので、際限なく抱えないよう頭打ちにする。
+    if (this.memo.size >= MEMO_LIMIT) this.memo.clear();
+    this.memo.set(key, value);
+    return value;
+  }
 
   constructor() {
     let timer: ReturnType<typeof setTimeout> | null = null;
@@ -137,7 +173,9 @@ export class VisionService {
   objectBrightness(x: number, y: number, radiusPx = 0, ignoreShadowCasters = false): number {
     const scene = this.scene();
     if (!scene) return 1;
-    return objectBrightnessFor(scene, this.viewer(), x, y, radiusPx, ignoreShadowCasters);
+    return this.recall(`bright:${x}:${y}:${radiusPx}:${ignoreShadowCasters}`, () =>
+      objectBrightnessFor(scene, this.viewer(), x, y, radiusPx, ignoreShadowCasters)
+    );
   }
 
   objectFilter(x: number, y: number, radiusPx = 0, ignoreShadowCasters = false): string | null {
@@ -147,14 +185,14 @@ export class VisionService {
 
   wallSilhouettes(face: WallFace): WallSilhouette[] {
     const scene = this.scene();
-    if (!scene || !scene.darknessEnabled) return [];
-    return computeWallSilhouettes(scene, face, scene.gridSize * 1.5);
+    if (!scene || !scene.darknessEnabled) return EMPTY_SILHOUETTES;
+    return this.recall(`sil:${faceKey(face)}`, () => computeWallSilhouettes(scene, face, scene.gridSize * 1.5));
   }
 
   wallLights(face: WallFace): WallLight[] {
     const scene = this.scene();
-    if (!scene || !scene.darknessEnabled) return [];
-    return computeWallLights(scene, face);
+    if (!scene || !scene.darknessEnabled) return EMPTY_WALL_LIGHTS;
+    return this.recall(`wl:${faceKey(face)}`, () => computeWallLights(scene, face));
   }
 
   ambientBrightness(): number {
@@ -171,22 +209,26 @@ export class VisionService {
   }
 
   lightBeams(): LightBeam[] {
-    const beams: LightBeam[] = [];
-    for (const light of this.emissiveLights().lights) {
-      const beam = computeLightBeam(light);
-      if (beam) beams.push(beam);
-    }
-    return beams;
+    return this.recall('beams', () => {
+      const beams: LightBeam[] = [];
+      for (const light of this.emissiveLights().lights) {
+        const beam = computeLightBeam(light);
+        if (beam) beams.push(beam);
+      }
+      return beams;
+    });
   }
 
   lightGlows(): LightGlow[] {
-    const { lights, gridSize } = this.emissiveLights();
-    const glows: LightGlow[] = [];
-    for (const light of lights) {
-      const glow = computeLightGlow(light, gridSize);
-      if (glow) glows.push(glow);
-    }
-    return glows;
+    return this.recall('glows', () => {
+      const { lights, gridSize } = this.emissiveLights();
+      const glows: LightGlow[] = [];
+      for (const light of lights) {
+        const glow = computeLightGlow(light, gridSize);
+        if (glow) glows.push(glow);
+      }
+      return glows;
+    });
   }
 
   isTokenVisible(character: GameCharacter): boolean {
@@ -197,7 +239,9 @@ export class VisionService {
     if (viewer.isGameMaster) return true;
     if (viewerShares(viewer, character.owner, character.partyIdentifier)) return true;
     const half = (scene.gridSize * (character.size || 1)) / 2;
-    return isPointVisible(scene, character.location.x + half, character.location.y + half, viewer);
+    const x = character.location.x + half;
+    const y = character.location.y + half;
+    return this.recall(`tok:${x}:${y}`, () => isPointVisible(scene, x, y, viewer));
   }
 
   private objectZ(altitude: number, posZ: number, gridSize: number): number {
