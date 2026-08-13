@@ -98,7 +98,7 @@ export class GameDataElementBuffComponent {
     this.objectChange.notifyChanged(element.identifier);
   }
 
-  private updateTimer: NodeJS.Timeout | null = null;
+  private updateTimer: ReturnType<typeof setTimeout> | null = null;
 
   constructor() {
     effect(() => {

@@ -80,9 +80,9 @@ export class PeerCursorComponent {
   private cursorElement: HTMLElement | null = null;
   private opacityElement: HTMLElement | null = null;
   private fadeOutTimer: ResettableTimeout | null = null;
-  private updateInterval: NodeJS.Timeout | null = null;
-  private timestampInterval: NodeJS.Timeout | null = null;
-  private timestampIntervalEnable = false;
+  private updateTimer: ReturnType<typeof setTimeout> | null = null;
+  private timestampTimer: ReturnType<typeof setTimeout> | null = null;
+  private timestampTimerEnabled = false;
 
   private callcack: (e: Event) => void = (e) => this.onMouseMove(e);
 
@@ -150,7 +150,7 @@ export class PeerCursorComponent {
         this.resetFadeOut();
       }
 
-      this.timestampIntervalEnable = true;
+      this.timestampTimerEnabled = true;
       this.timestampLoop();
     });
 
@@ -162,15 +162,15 @@ export class PeerCursorComponent {
       this.batchService.remove(this);
       if (this.fadeOutTimer) this.fadeOutTimer.clear();
 
-      if (this.updateInterval) {
-        clearTimeout(this.updateInterval);
-        this.updateInterval = null;
+      if (this.updateTimer) {
+        clearTimeout(this.updateTimer);
+        this.updateTimer = null;
       }
-      if (this.timestampInterval) {
-        clearTimeout(this.timestampInterval);
-        this.timestampInterval = null;
+      if (this.timestampTimer) {
+        clearTimeout(this.timestampTimer);
+        this.timestampTimer = null;
       }
-      this.timestampIntervalEnable = false;
+      this.timestampTimerEnabled = false;
     });
   }
 
@@ -195,7 +195,7 @@ export class PeerCursorComponent {
     } else {
       if (this.cursor().isDisConnect) {
         setTimeout(() => {
-          this.timestampInterval = null;
+          this.timestampTimer = null;
           const text = encodeI18nMessage('feature.lobby.peerCursor.reconnected', {
             name: this.cursor().name || this.cursor().userId.slice(0, 6),
           });
@@ -229,10 +229,10 @@ export class PeerCursorComponent {
   private indexCounter = 0;
 
   private timestampLoop() {
-    if (!this.timestampIntervalEnable) return;
-    if (!this.timestampInterval) {
-      this.timestampInterval = setTimeout(() => {
-        this.timestampInterval = null;
+    if (!this.timestampTimerEnabled) return;
+    if (!this.timestampTimer) {
+      this.timestampTimer = setTimeout(() => {
+        this.timestampTimer = null;
 
         if (PeerCursor.myCursor.peerId == this.cursor().peerId) {
           const peerlength = getPeerContexts().length;
@@ -270,9 +270,9 @@ export class PeerCursorComponent {
     this._x = x;
     this._y = y;
     this._target = e.target as HTMLElement;
-    if (!this.updateInterval) {
-      this.updateInterval = setTimeout(() => {
-        this.updateInterval = null;
+    if (!this.updateTimer) {
+      this.updateTimer = setTimeout(() => {
+        this.updateTimer = null;
         this.calcLocalCoordinate(this._x, this._y, this._target);
       }, this.delayMs);
     }

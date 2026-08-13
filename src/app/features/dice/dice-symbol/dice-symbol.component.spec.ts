@@ -175,7 +175,7 @@ describe('DiceSymbolComponent', () => {
   describe('timer cleanup on destroy', () => {
     it('doubleClickTimer が clearTimeout でクリアされる', () => {
       const clearTimeoutSpy = vi.spyOn(globalThis, 'clearTimeout');
-      const priv = component as unknown as { doubleClickTimer: NodeJS.Timeout | null };
+      const priv = component as unknown as { doubleClickTimer: ReturnType<typeof setTimeout> | null };
       priv.doubleClickTimer = setTimeout(() => {}, 999_999);
 
       fixture.destroy();
@@ -185,7 +185,7 @@ describe('DiceSymbolComponent', () => {
 
     it('iconHiddenTimer が clearTimeout でクリアされる', () => {
       const clearTimeoutSpy = vi.spyOn(globalThis, 'clearTimeout');
-      const priv = component as unknown as { iconHiddenTimer: NodeJS.Timeout | null };
+      const priv = component as unknown as { iconHiddenTimer: ReturnType<typeof setTimeout> | null };
       priv.iconHiddenTimer = setTimeout(() => {}, 999_999);
 
       fixture.destroy();

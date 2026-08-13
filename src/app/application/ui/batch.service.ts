@@ -8,7 +8,7 @@ type BatchTask = () => void;
 })
 export class BatchService {
   private batchTask: Map<unknown, BatchTask> = new Map();
-  private batchTaskTimer: NodeJS.Timeout | null = null;
+  private batchTaskTimer: ReturnType<typeof setInterval> | null = null;
 
   add(task: BatchTask, key: unknown = {}) {
     this.batchTask.set(key, task);

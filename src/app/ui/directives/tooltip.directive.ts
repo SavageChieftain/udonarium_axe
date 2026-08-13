@@ -39,8 +39,8 @@ export class TooltipDirective {
   private callbackOnMouseLeave = (e: Event) => this.onMouseLeave(e as MouseEvent);
   private callbackOnMouseDown = (e: Event) => this.onMouseDown(e as MouseEvent);
 
-  private openTooltipTimer: NodeJS.Timeout | null = null;
-  private closeTooltipTimer: NodeJS.Timeout | null = null;
+  private openTooltipTimer: ReturnType<typeof setTimeout> | null = null;
+  private closeTooltipTimer: ReturnType<typeof setTimeout> | null = null;
 
   private tooltipComponentRef: ComponentRef<TooltipPanelInstance> | null = null;
   private deleteOff?: () => void;

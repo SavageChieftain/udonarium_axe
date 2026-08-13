@@ -472,7 +472,7 @@ export class GameDataElementComponent {
     this.iconPickerOpen.set(false);
   }
 
-  private updateTimer: NodeJS.Timeout | null = null;
+  private updateTimer: ReturnType<typeof setTimeout> | null = null;
 
   constructor() {
     effect(() => {

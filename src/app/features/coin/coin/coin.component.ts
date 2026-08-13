@@ -159,7 +159,7 @@ export class CoinComponent {
   readonly movableOption = signal<MovableOption>({});
   readonly rotableOption = signal<RotableOption>({});
 
-  private doubleClickTimer: NodeJS.Timeout | null = null;
+  private doubleClickTimer: ReturnType<typeof setTimeout> | null = null;
   private doubleClickPoint = { x: 0, y: 0 };
 
   private readonly inputRef = setupInputHandler({

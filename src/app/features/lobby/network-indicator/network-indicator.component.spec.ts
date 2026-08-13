@@ -23,7 +23,7 @@ describe('NetworkIndicatorComponent', () => {
   describe('破棄クリーンアップ', () => {
     it('timer が clearTimeout でクリアされ null になる', () => {
       const clearTimeoutSpy = vi.spyOn(globalThis, 'clearTimeout');
-      const priv = component as unknown as { timer: NodeJS.Timeout | null };
+      const priv = component as unknown as { timer: ReturnType<typeof setTimeout> | null };
       priv.timer = setTimeout(() => {}, 999_999);
 
       fixture.destroy();

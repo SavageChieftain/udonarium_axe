@@ -34,7 +34,7 @@ export class ChatMessageService {
   private readonly imageStorage = inject(ImageStorage);
   private readonly chatTabList = inject(ChatTabList);
 
-  private intervalTimer: NodeJS.Timeout | null = null;
+  private calibrationTimer: ReturnType<typeof setTimeout> | null = null;
   private timeOffset: number = Date.now();
   private performanceOffset: number = performance.now();
 
@@ -47,7 +47,7 @@ export class ChatMessageService {
   }
 
   calibrateTimeOffset() {
-    if (this.intervalTimer != null) {
+    if (this.calibrationTimer != null) {
       return;
     }
     const index = Math.floor(Math.random() * this.ntpApiUrls.length);
@@ -67,19 +67,19 @@ export class ChatMessageService {
         this.timeOffset = fixedTime;
         this.performanceOffset = endTime;
         Logger.info(`[TimeSync] 時刻同期完了 (過延: ${latency.toFixed(0)}ms, offset: ${fixedTime.toFixed(0)})`);
-        this.setIntervalTimer();
+        this.scheduleCalibration();
       })
       .catch((error) => {
         Logger.warn('[TimeSync] 時刻同期失敗', error.message);
-        this.setIntervalTimer();
+        this.scheduleCalibration();
       });
-    this.setIntervalTimer();
+    this.scheduleCalibration();
   }
 
-  private setIntervalTimer() {
-    if (this.intervalTimer != null) clearTimeout(this.intervalTimer);
-    this.intervalTimer = setTimeout(() => {
-      this.intervalTimer = null;
+  private scheduleCalibration() {
+    if (this.calibrationTimer != null) clearTimeout(this.calibrationTimer);
+    this.calibrationTimer = setTimeout(() => {
+      this.calibrationTimer = null;
       this.calibrateTimeOffset();
     }, 6 * HOURS);
   }

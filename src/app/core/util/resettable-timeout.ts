@@ -4,7 +4,7 @@ export class ResettableTimeout {
   private callback: TimerCallback | null = null;
   private timerMilliSecond: number = 0;
   private timeoutDate: number = 0;
-  private timeoutTimer: NodeJS.Timeout | null = null;
+  private timeoutTimer: ReturnType<typeof setTimeout> | null = null;
   private isStopped: boolean = false;
 
   get isActive(): boolean {

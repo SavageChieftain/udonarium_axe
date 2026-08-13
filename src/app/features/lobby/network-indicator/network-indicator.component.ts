@@ -13,7 +13,7 @@ export class NetworkIndicatorComponent {
   private readonly elementRef = inject(ElementRef);
   private readonly objectChange = inject(ObjectChangeService);
 
-  private timer: NodeJS.Timeout | null = null;
+  private timer: ReturnType<typeof setTimeout> | null = null;
   private needRepeat = false;
 
   constructor() {

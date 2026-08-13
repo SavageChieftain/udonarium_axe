@@ -23,8 +23,8 @@ export class ObjectStore {
 
   private readonly localChanges: Map<string, number> = new Map();
   private queueMap: Map<ObjectIdentifier, ObjectContext> = new Map();
-  private updateInterval: number | null = null;
-  private garbageCollectionInterval: NodeJS.Timeout | null = null;
+  private updateQueueTimer: number | null = null;
+  private garbageCollectionTimer: ReturnType<typeof setTimeout> | null = null;
   private readonly updateCallback = () => this.updateQueue();
 
   private constructor() {}
@@ -115,8 +115,8 @@ export class ObjectStore {
     }
     networkSend('UPDATE_GAME_OBJECT', context);
     this.queueMap.set(context.identifier, context);
-    if (this.updateInterval === null) {
-      this.updateInterval = setZeroTimeout(this.updateCallback);
+    if (this.updateQueueTimer === null) {
+      this.updateQueueTimer = setZeroTimeout(this.updateCallback);
     }
   }
 
@@ -127,7 +127,7 @@ export class ObjectStore {
 
   private updateQueue() {
     this.queueMap.clear();
-    this.updateInterval = null;
+    this.updateQueueTimer = null;
   }
 
   isDeleted(identifier: string) {
@@ -151,9 +151,9 @@ export class ObjectStore {
   }
 
   private scheduleGarbageCollection(ms: number): void {
-    if (this.garbageCollectionInterval !== null) return;
-    this.garbageCollectionInterval = setTimeout(() => {
-      this.garbageCollectionInterval = null;
+    if (this.garbageCollectionTimer !== null) return;
+    this.garbageCollectionTimer = setTimeout(() => {
+      this.garbageCollectionTimer = null;
     }, 1000);
     this.runGarbageCollection(ms);
   }

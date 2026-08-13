@@ -141,7 +141,7 @@ export class ChatPaletteComponent {
     return [...tabs];
   });
 
-  private doubleClickTimer: NodeJS.Timeout | null = null;
+  private doubleClickTimer: ReturnType<typeof setTimeout> | null = null;
   get diceBotInfos() {
     return DiceBot.diceBotInfos;
   }

@@ -177,8 +177,8 @@ export class ChatTabComponent {
 
   private topElm: HTMLElement | null = null;
   private bottomElm: HTMLElement | null = null;
-  private topElmBox: ClientRect | null = null;
-  private bottomElmBox: ClientRect | null = null;
+  private topElmBox: DOMRect | null = null;
+  private bottomElmBox: DOMRect | null = null;
   private topIndex = 0;
   private bottomIndex = 0;
 
@@ -230,7 +230,7 @@ export class ChatTabComponent {
 
   private scrollEventShortTimer: ResettableTimeout | null = null;
   private scrollEventLongTimer: ResettableTimeout | null = null;
-  private addMessageEventTimer: NodeJS.Timeout | null = null;
+  private addMessageEventTimer: ReturnType<typeof setTimeout> | null = null;
   private callbackOnScroll: () => void = () => this.onScroll();
   private readonly writingSpeakerTimeouts = new Map<string, ResettableTimeout>();
   private readonly writingSpeakerIdentifiers = new Map<string, string | undefined>();
@@ -391,7 +391,7 @@ export class ChatTabComponent {
     if (!hasTopElm && !hasBotomElm) return { hasTopBlank, hasBotomBlank };
 
     let elm: HTMLElement | null = null;
-    let prevBox: ClientRect | null = null;
+    let prevBox: DOMRect | null = null;
     if (hasBotomElm) {
       elm = this.bottomElm;
       prevBox = this.bottomElmBox;
@@ -405,8 +405,8 @@ export class ChatTabComponent {
       this.panelService.scrollablePanel!.scrollTop -= diff;
     }
 
-    const logBox: ClientRect = this.logContainerRef().nativeElement.getBoundingClientRect();
-    const messageBox: ClientRect = this.messageContainerRef().nativeElement.getBoundingClientRect();
+    const logBox: DOMRect = this.logContainerRef().nativeElement.getBoundingClientRect();
+    const messageBox: DOMRect = this.messageContainerRef().nativeElement.getBoundingClientRect();
 
     const messageBoxTop = messageBox.top - logBox.top;
     const messageBoxBottom = messageBoxTop + messageBox.height;

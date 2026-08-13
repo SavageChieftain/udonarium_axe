@@ -510,7 +510,7 @@ export class GameCharacterComponent {
 
   private previousResources: Map<string, ResourceSnapshot> | null = null;
   private floatingKey = 0;
-  private readonly floatingTimers = new Set<NodeJS.Timeout>();
+  private readonly floatingTimers = new Set<ReturnType<typeof setTimeout>>();
 
   readonly gaugeStackTransform = computed(
     () => `${this.billboardTransformGauge()} ${this.decorScale} translateX(-50%)`

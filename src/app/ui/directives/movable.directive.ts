@@ -129,7 +129,7 @@ export class MovableDirective {
   width: number = 0;
   ratio: number = 1.0;
 
-  private updateTimer: NodeJS.Timeout | null = null;
+  private updateTimer: ReturnType<typeof setTimeout> | null = null;
   private collidableElements: HTMLElement[] = [];
   input: InputHandler | null = null;
 

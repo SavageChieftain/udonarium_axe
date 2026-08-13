@@ -172,7 +172,7 @@ export class ChatWindowComponent {
   readonly hasNewMessage = signal(false);
   readonly isNearBottom = signal(true);
   readonly newMessageCount = signal(0);
-  private scrollToBottomTimer: NodeJS.Timeout | null = null;
+  private scrollToBottomTimer: ReturnType<typeof setTimeout> | null = null;
   private scrollListener: (() => void) | null = null;
 
   constructor() {

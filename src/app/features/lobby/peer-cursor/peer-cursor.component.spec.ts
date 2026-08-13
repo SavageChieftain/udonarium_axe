@@ -259,29 +259,29 @@ describe('PeerCursorComponent', () => {
   });
 
   describe('破棄クリーンアップ', () => {
-    it('updateInterval が clearTimeout でクリアされ null になる', () => {
+    it('updateTimer が clearTimeout でクリアされ null になる', () => {
       const clearTimeoutSpy = vi.spyOn(globalThis, 'clearTimeout');
-      const priv = component as unknown as { updateInterval: NodeJS.Timeout | null };
-      priv.updateInterval = setTimeout(() => {}, 999_999);
+      const priv = component as unknown as { updateTimer: ReturnType<typeof setTimeout> | null };
+      priv.updateTimer = setTimeout(() => {}, 999_999);
 
       fixture.destroy();
 
       expect(clearTimeoutSpy).toHaveBeenCalled();
-      expect(priv.updateInterval).toBeNull();
+      expect(priv.updateTimer).toBeNull();
     });
 
-    it('timestampInterval が clearTimeout でクリアされ null になる', () => {
+    it('timestampTimer が clearTimeout でクリアされ null になる', () => {
       const clearTimeoutSpy = vi.spyOn(globalThis, 'clearTimeout');
       const priv = component as unknown as {
-        timestampInterval: NodeJS.Timeout | null;
-        timestampIntervalEnable: boolean;
+        timestampTimer: ReturnType<typeof setTimeout> | null;
+        timestampTimerEnabled: boolean;
       };
-      priv.timestampInterval = setTimeout(() => {}, 999_999);
+      priv.timestampTimer = setTimeout(() => {}, 999_999);
 
       fixture.destroy();
 
       expect(clearTimeoutSpy).toHaveBeenCalled();
-      expect(priv.timestampInterval).toBeNull();
+      expect(priv.timestampTimer).toBeNull();
     });
   });
 });

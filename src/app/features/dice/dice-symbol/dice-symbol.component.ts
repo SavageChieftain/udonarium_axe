@@ -151,7 +151,7 @@ export class DiceSymbolComponent {
 
   readonly animeState = signal<'inactive' | 'active'>('inactive');
 
-  private iconHiddenTimer: NodeJS.Timeout | null = null;
+  private iconHiddenTimer: ReturnType<typeof setTimeout> | null = null;
   readonly isIconHidden = signal(false);
 
   get gridSize(): number {
@@ -266,7 +266,7 @@ export class DiceSymbolComponent {
   readonly movableOption = signal<MovableOption>({});
   readonly rotableOption = signal<RotableOption>({});
 
-  private doubleClickTimer: NodeJS.Timeout | null = null;
+  private doubleClickTimer: ReturnType<typeof setTimeout> | null = null;
   private doubleClickPoint = { x: 0, y: 0 };
 
   private readonly inputRef = setupInputHandler({

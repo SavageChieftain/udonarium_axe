@@ -222,7 +222,7 @@ export class CardComponent {
   private readonly handDrag = inject(HandDragService);
   private positionBeforeDrag: { x: number; y: number } | null = null;
 
-  private iconHiddenTimer: NodeJS.Timeout | null = null;
+  private iconHiddenTimer: ReturnType<typeof setTimeout> | null = null;
   readonly isIconHidden = signal(false);
 
   get gridSize(): number {
@@ -232,7 +232,7 @@ export class CardComponent {
   readonly movableOption = signal<MovableOption>({});
   readonly rotableOption = signal<RotableOption>({});
 
-  private doubleClickTimer: NodeJS.Timeout | null = null;
+  private doubleClickTimer: ReturnType<typeof setTimeout> | null = null;
   private doubleClickPoint = { x: 0, y: 0 };
 
   constructor() {

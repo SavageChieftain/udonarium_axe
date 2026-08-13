@@ -207,7 +207,7 @@ export class CardStackComponent {
   readonly animeState = signal<'active' | 'inactive'>('inactive');
   private readonly cardsVersion = signal(0);
 
-  private iconHiddenTimer: NodeJS.Timeout | null = null;
+  private iconHiddenTimer: ReturnType<typeof setTimeout> | null = null;
   readonly isIconHidden = signal(false);
 
   get gridSize(): number {
@@ -217,7 +217,7 @@ export class CardStackComponent {
   readonly movableOption = signal<MovableOption>({});
   readonly rotableOption = signal<RotableOption>({});
 
-  private doubleClickTimer: NodeJS.Timeout | null = null;
+  private doubleClickTimer: ReturnType<typeof setTimeout> | null = null;
   private doubleClickPoint = { x: 0, y: 0 };
 
   constructor() {
