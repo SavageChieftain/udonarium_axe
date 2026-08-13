@@ -14,6 +14,13 @@ import {
 
 /** 天候が届く高さ(マス)。壁を立てていないテーブルでも、盤の上に空を持たせる。 */
 const MIN_SKY_CELLS = 10;
+/**
+ * 投影をやり直す間隔(ms)。
+ *
+ * 投影は先祖の変換をたどるので、1 回ごとに配置の計算をやり直させる。カメラに
+ * 追随させたいだけなら毎フレームは要らない。縁はぼかしてあるので少し遅れても出ない。
+ */
+const REPROJECT_INTERVAL_MS = 100;
 
 /**
  * マップ全体に掛ける天候。
@@ -60,7 +67,7 @@ export class TableWeatherOverlayComponent {
     const depth = table.height * table.gridSize;
     if (width <= 0 || depth <= 0) return [];
 
-    this.ambienceService.now();
+    Math.floor(this.ambienceService.now() / REPROJECT_INTERVAL_MS);
 
     const ceiling = Math.max(table.wallHeight, MIN_SKY_CELLS) * table.gridSize;
     const box = [0, ceiling].flatMap((z) => [

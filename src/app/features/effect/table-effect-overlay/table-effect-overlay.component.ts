@@ -51,10 +51,15 @@ export class TableEffectOverlayComponent {
   private readonly visionService = inject(VisionService);
   private readonly objectStore = inject(ObjectStore);
 
-  /** 発動中の演出と、置きっぱなしの場をまとめて 1 本の描画対象にする。 */
-  private readonly renderables = computed<EffectFieldRenderable[]>(() => {
+  /**
+   * 発動中の演出と、置きっぱなしの場をまとめて 1 本の描画対象にする。
+   *
+   * 見えているかの判定はここで 1 度だけ済ませる。板ポリと粒で別々に数えると、
+   * 対象ごとの視線判定が毎フレーム 2 倍走る。
+   */
+  private readonly renderables = computed<(EffectFieldRenderable & { hidden: ReadonlySet<string> })[]>(() => {
     const now = this.playback.now();
-    return [
+    const all: EffectFieldRenderable[] = [
       ...this.playback.activeCasts().map((active) => ({
         key: String(active.key),
         preset: active.preset,
@@ -63,6 +68,10 @@ export class TableEffectOverlayComponent {
       })),
       ...this.fieldService.renderables(now),
     ];
+    return all.map((active) => ({
+      ...active,
+      hidden: this.hiddenIdentifiersOf(active.cast.targets.map((target) => target.identifier)),
+    }));
   });
 
   readonly sprites = computed<EffectSprite[]>(() => {
@@ -70,7 +79,7 @@ export class TableEffectOverlayComponent {
     const sprites: EffectSprite[] = [];
 
     for (const active of this.renderables()) {
-      const hiddenIdentifiers = this.hiddenIdentifiersOf(active.cast.targets.map((target) => target.identifier));
+      const hiddenIdentifiers = active.hidden;
       const parts = effectSprites(active.preset, active.cast, active.elapsed, {
         baseSize: gridSize,
         hiddenIdentifiers,
@@ -89,7 +98,7 @@ export class TableEffectOverlayComponent {
     const placements: EffectCanvasPlacement[] = [];
 
     for (const active of this.renderables()) {
-      const hiddenIdentifiers = this.hiddenIdentifiersOf(active.cast.targets.map((target) => target.identifier));
+      const hiddenIdentifiers = active.hidden;
       const base = gridSize * active.preset.sizeScale;
 
       active.cast.targets.forEach((target, index) => {
