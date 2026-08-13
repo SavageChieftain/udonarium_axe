@@ -16,5 +16,16 @@
   "attribution": {
     "commit": "",
     "pr": ""
+  },
+  "enabledPlugins": {
+    "natural-japanese@natural-japanese": true
+  },
+  "extraKnownMarketplaces": {
+    "natural-japanese": {
+      "source": {
+        "source": "github",
+        "repo": "coji/natural-japanese"
+      }
+    }
   }
 }
