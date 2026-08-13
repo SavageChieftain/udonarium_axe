@@ -20,6 +20,7 @@ import { GameTableScratchMask } from '@axe/domain/tabletop/game-table-scratch-ma
 import { LightSource } from '@axe/domain/tabletop/light-source';
 import { clearOwnership } from '@axe/domain/tabletop/ownership';
 import { RangeArea } from '@axe/domain/tabletop/range';
+import { TableAmbience } from '@axe/domain/tabletop/table-ambience';
 import { Terrain } from '@axe/domain/tabletop/terrain';
 import { TextNote } from '@axe/domain/tabletop/text-note';
 
@@ -68,6 +69,7 @@ export class Room extends GameObject implements InnerXml {
       ...ObjectStore.instance.getObjects(GameTableMask),
       ...ObjectStore.instance.getObjects(GameTableScratchMask),
       ...ObjectStore.instance.getObjects(Terrain),
+      ...ObjectStore.instance.getObjects(TableAmbience),
       ...ObjectStore.instance.getObjects(Party),
       ...ObjectStore.instance.getObjects(GameCharacter),
       ...ObjectStore.instance.getObjects(RangeArea),

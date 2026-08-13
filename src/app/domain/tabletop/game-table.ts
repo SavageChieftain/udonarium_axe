@@ -1,8 +1,10 @@
 import { emitSelectGameTable } from '@axe/core/event/domain-events';
 import { SyncObject, SyncVar } from '@axe/core/sync/decorator';
 import { ObjectNode } from '@axe/core/sync/object-node';
+import { DEFAULT_AMBIENCE_DENSITY } from '@axe/domain/effect/ambience/ambience-kind';
 import { GameTableMask } from '@axe/domain/tabletop/game-table-mask';
 import { GameTableScratchMask } from '@axe/domain/tabletop/game-table-scratch-mask';
+import { TableAmbience } from '@axe/domain/tabletop/table-ambience';
 import { Terrain } from '@axe/domain/tabletop/terrain';
 import { DEFAULT_AMBIENT_COLOR } from '@axe/domain/tabletop/vision-types';
 
@@ -60,9 +62,18 @@ export class GameTable extends ObjectNode {
   @SyncVar() ambientColor: string = DEFAULT_AMBIENT_COLOR;
   @SyncVar() globalIllumination: number = 0;
 
+  /** マップ全体に掛ける天候。空なら掛けない。 */
+  @SyncVar() weatherKind: string = '';
+  @SyncVar() weatherColor: string = '';
+  @SyncVar() weatherDensity: number = DEFAULT_AMBIENCE_DENSITY;
+
   gridClipRect: { top: number; right: number; bottom: number; left: number } | null = null;
   get terrains(): Terrain[] {
     return this.children.filter((o): o is Terrain => o instanceof Terrain);
+  }
+
+  get ambiences(): TableAmbience[] {
+    return this.children.filter((o): o is TableAmbience => o instanceof TableAmbience);
   }
 
   get masks(): GameTableMask[] {
