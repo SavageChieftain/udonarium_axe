@@ -480,7 +480,7 @@
         </div>
       </div>
 
-      <div class="flex flex-col gap-2">
+      <div class="mb-3.5 flex flex-col gap-2">
         <div class="border-ui-accent border-l-2 border-solid pl-2">
           <span class="text-ui-text text-[12px] font-semibold tracking-wide">{{
             'feature.tabletop.tableSetting.sectionWeather' | transloco
@@ -491,7 +491,7 @@
             'feature.tabletop.tableSetting.weatherKind' | transloco
           }}</label>
           <select
-            class="rounded-ui-sm border-ui-border-panel bg-ui-input text-ui-text focus:border-ui-accent col-span-2 box-border w-full border border-solid px-2 py-1.25 text-[13px] transition-colors outline-none"
+            class="rounded-ui-sm border-ui-border-panel bg-ui-input text-ui-text focus:border-ui-accent col-span-2 box-border w-full border border-solid px-2 py-1.25 text-[13px] transition-colors outline-none disabled:cursor-not-allowed disabled:opacity-50"
             [(ngModel)]="tableWeatherKind"
             name="tableWeatherKind"
             [attr.disabled]="!isEditable ? '' : null"
