@@ -3,7 +3,7 @@
 } @else {
   <div
     id="app-table-layer"
-    class="absolute w-full overflow-hidden"
+    class="absolute isolate w-full overflow-hidden"
     [class.h-full]="!isTableSplit()"
     [style.height]="isTableSplit() ? mobile.tableRatio() * 100 + '%' : null"
   >
