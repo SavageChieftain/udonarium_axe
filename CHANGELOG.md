@@ -1,3 +1,24 @@
+## [1.36.1](https://github.com/SavageChieftain/udonarium_axe/compare/v1.36.0...v1.36.1) (2026-08-13)
+
+### 🐛 Bug Fixes
+
+* **replay:** keep keyframes consistent and never stop taking them ([45a0bcf](https://github.com/SavageChieftain/udonarium_axe/commit/45a0bcf24e812608635a17fb6ce9f36a203d0647))
+* **tabletop:** keep the weather behind the panels ([3b4c4ba](https://github.com/SavageChieftain/udonarium_axe/commit/3b4c4baba059746b30c7b4be9b529fdf909faf2a))
+* **tabletop:** light the walls of a rotated terrain ([7ff89cd](https://github.com/SavageChieftain/udonarium_axe/commit/7ff89cdb685dba9af5319bc02b152bb0f9131cbe))
+* **tabletop:** stop the shadow pass from leaking clips and canvases ([beb6329](https://github.com/SavageChieftain/udonarium_axe/commit/beb63295aea8ad8272d51e6eab25047ba9912723))
+
+### ⚡ Performance
+
+* **effect:** stop reprojecting and re-raycasting on every frame ([c78381a](https://github.com/SavageChieftain/udonarium_axe/commit/c78381ab2161d49325667ca568896270aa8491ad))
+* **replay:** cut the quadratic work out of the log and the export ([b6505ff](https://github.com/SavageChieftain/udonarium_axe/commit/b6505ff942fa8db9852848fdf07633243a8cfcdb))
+* **replay:** stop redoing constant work while playing and exporting ([392c969](https://github.com/SavageChieftain/udonarium_axe/commit/392c969f4dd8d75463c60af9fed6adc7675ef61d))
+* **replay:** stop the recorder from growing heavier as a session runs long ([00dd638](https://github.com/SavageChieftain/udonarium_axe/commit/00dd63816587810bd7a3f30d9b78eb940d03269e))
+* **tabletop:** stop the darkness overlay from stalling the frame ([3dc3eca](https://github.com/SavageChieftain/udonarium_axe/commit/3dc3eca60498c39b37148caca6282a7237e3b60b))
+
+### 📝 Documentation
+
+* **website:** add v1.36.0 release notes ([baf0fa7](https://github.com/SavageChieftain/udonarium_axe/commit/baf0fa79e57e5a993eb5e67a6635f55254b33aeb))
+
 ## [1.36.0](https://github.com/SavageChieftain/udonarium_axe/compare/v1.35.0...v1.36.0) (2026-08-13)
 
 ### ✨ Features
