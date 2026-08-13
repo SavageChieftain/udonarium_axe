@@ -192,6 +192,27 @@ Udonarium Axe が **追加** または **大きく拡張・再設計** した機
 
 毒沼・炎の壁のような**置きっぱなしの場**は `EffectField`（`TabletopObject`）として盤面に置き、`EffectFieldService` が同じプリセットを尺で折り返して繰り返す（identifier 由来の位相ずらしで並べても同じ動きにならない）。発動中の演出と場は overlay 側で 1 本の描画対象へまとめる。
 
+### 環境エフェクト（天候・地表）
+
+戦闘プリセットの繰り返しとは別に、**場の状態そのもの**を描く経路を持つ。種類は `domain/effect/ambience/ambience-kind` の 13 種で、マップ全体向け（濃霧・雨・雪・降灰・火の粉・砂塵・瘴気・光の粒）と範囲向け（毒沼・地面の炎上・地面の噴出・濃霧・瘴気・溶岩・氷結・光苔）の 2 つの一覧に振り分ける。粒は経過時間から毎回まるごと計算し直す純関数で、位置を端で折り返して繰り返す。
+
+**マップ全体（天候）** は `GameTable` の `weatherKind` / `weatherColor` / `weatherDensity`。`ambience-sky` が viewport 大の 1 枚を作り、`features/tabletop/table-weather-overlay` が盤面の 3D 変換の外へ貼る（寝かせて描くとカメラを倒したとき雨が地面を這う）。大きさは host の `ResizeObserver` で測り、盤面の四隅を `CoordinateService.convertManyToGlobal()` で投影した四角形に `clip-path` で切る（切らないと盤の外の余白にも降る）。カメラは盤面が変わらなくても動くので、形は毎フレーム作り直す。
+
+**範囲** は `TableAmbience`（`TabletopObject`）。マップマスクと同じくテーブルの子なので、マップを切り替えると一緒に切り替わる。`ambience-ground` が面と立ち上りを別々の層で返し、`features/tabletop/table-ambience` が面を盤面に寝かせたまま、立ち上りだけ overlay と同じ反転回転でカメラへ正対させる。粒の大きさは `unit`（1 マス）を基準に決めるので、範囲を広げても粒が巨大化しない。
+
+- **立ち上りは奥行き方向へ複数枚に分ける**（`vaporSliceCount` / `sliceIndex`） — 板を 1 枚だけ立てると、奥のものも手前のものも同じ深さに並ぶので、16×16 では盤面に帯を貼っただけに見える。板ごとに種と位相をずらし、粒の総数は分割前と変えない
+- **大きさは 1 粒ずつ大きく散らす**（`scaleMin` / `scaleMax` / `scaleBias`） — 揃った大きさで並べると、大炎上ではなく焚き火にしかならない。bias を上げて「小さいものが多く、大きいものが稀」にする
+- **炎の先端を暗い色まで落とさない** — 加算合成では暗い色はほとんど何も足さないので、色ランプを最後まで通すと粒の過半が見えなくなって炎が痩せる。白熱させるのは根元だけにして、あとは濃さで消す
+
+- **粒の数はマスで数える** — 面積(px²)を基準にすると、既定の 4×4 マス（0.04 メガピクセル）では数個しか出ず、置いても何も無いように見える
+- **オブジェクトを返す computed に版を吸わせない** — `versionOf()` を読んでから同じオブジェクトを返す computed を挟むと、参照が変わらないので signals が下流へ変化を伝えない。版そのもの（数値）を配って各値がそれを読む。これを間違えるとロックも大きさの変更も画面に出ない
+- **canvas 1 枚の画素数に上限を置く**（`pixelRatioFor`） — マップ全体を覆う範囲は一辺数千 px になり、高精細画面では数億画素を確保しようとする
+- **濃霧の塗りだけ濃さを非線形に伸ばす**（`ambienceWashLevel`、`level^1.6`） — 100% で盤面が白く潰れるところまで届かせつつ、途中の薄さを保つ。線形にすると中ほどが一気に重くなる
+- **canvas は範囲より一回り大きく取る**（`SURFACE_PAD_UNITS` / `VAPOR_PAD_UNITS`） — 粒は canvas の形に切り取られるので、粒の直径が範囲と同じくらい大きいと、中心が真ん中にあっても裾が枠で切られて灰色の四角が浮く。中心からの距離で透明度を落としても防げない
+- **塗りのグラデーションは `closest-side`** — 既定の farthest-corner だと、中心を寄せた塊が箱からはみ出し、はみ出した側が不透明なまま直線で切られる
+- **`prefers-reduced-motion` でも面の塗り（`groundSurfaceWash` / `skyAmbienceWash`）は残す** — 発動する演出と違い、消すと「そこが毒沼である」という盤面の情報ごと消える
+- **描画ループの持ち主は複数いる** — `EffectPlaybackService.setPersistent(source, boolean)` はソース名で持ち主を数える。真偽値ひとつだと、場と環境演出のうち後から来たほうが前の要求を消してしまう
+
 ### 描画（canvas と SVG のハイブリッド）
 
 光る粒・炎・煙・岩片は対象ごとの canvas に `globalCompositeOperation: 'lighter'` の加算合成で描き（canvas 内で合成が閉じるので `preserve-3d` を壊さない）、魔法陣・衝撃波の輪・地割れ・稲妻・刃・氷柱は SVG のまま線のクリスプさを保つ。パーティクルは `domain/effect/effect-particles`（純関数・板ポリ面内座標）、形は `domain/effect/effect-shapes`（`0 0 100 100` 固定 viewBox）。回転・脈動は `@keyframes` に載せる。視界外のコマと `prefers-reduced-motion` 時は描画せず SE のみ。
