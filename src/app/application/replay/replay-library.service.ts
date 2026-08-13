@@ -1,5 +1,6 @@
 import { inject, Injectable, signal } from '@angular/core';
 import { SaveDataService } from '@axe/application/file/save-data.service';
+import { readKeyframeBytes } from '@axe/application/replay/replay-keyframe-bytes';
 import { Logger } from '@axe/core/logging/logger';
 import { AudioStorage } from '@axe/core/storage/audio-storage';
 import { FileArchiver } from '@axe/core/storage/file-archiver';
@@ -58,7 +59,7 @@ export class ReplayLibraryService {
 
   async boardBefore(id: number, seq: number, events: readonly ReplayEvent[]): Promise<ReplayObjectSnapshot[]> {
     const keyframe = await this.keyframeBefore(id, seq);
-    const base = keyframe ? decodeReplayKeyframe(new Uint8Array(await keyframe.blob.arrayBuffer())) : [];
+    const base = keyframe ? decodeReplayKeyframe(await readKeyframeBytes(keyframe.blob)) : [];
     const from = keyframe ? indexOfSeq(events, keyframe.seq) : -1;
     const upto = indexOfSeq(events, seq - 1);
     return applyReplayEvents(base, events.slice(from + 1, upto + 1));
@@ -105,7 +106,7 @@ export class ReplayLibraryService {
     const snapshots: ReplayObjectSnapshot[] = [];
     for (const keyframe of keyframes) {
       try {
-        snapshots.push(...decodeReplayKeyframe(new Uint8Array(await keyframe.blob.arrayBuffer())));
+        snapshots.push(...decodeReplayKeyframe(await readKeyframeBytes(keyframe.blob)));
       } catch (reason) {
         Logger.warn('[ReplayLibrary] 読めない盤面は素材の数え上げから外します', reason);
       }

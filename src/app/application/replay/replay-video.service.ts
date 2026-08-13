@@ -1,4 +1,5 @@
 import { computed, inject, Injectable, signal } from '@angular/core';
+import { readKeyframeBytes } from '@axe/application/replay/replay-keyframe-bytes';
 import { ReplayLibraryService } from '@axe/application/replay/replay-library.service';
 import { ReplaySoundMixer } from '@axe/application/replay/replay-sound-mixer';
 import { Logger } from '@axe/core/logging/logger';
@@ -226,7 +227,7 @@ export class ReplayVideoService {
     try {
       const keyframe = await this.library.keyframeBefore(id, earliestReplaySeq(events));
       if (!keyframe) return [];
-      return decodeReplayKeyframe(new Uint8Array(await keyframe.blob.arrayBuffer()));
+      return decodeReplayKeyframe(await readKeyframeBytes(keyframe.blob));
     } catch (reason) {
       Logger.warn('[ReplayVideo] 卓の様子を読めませんでした', reason);
       return [];

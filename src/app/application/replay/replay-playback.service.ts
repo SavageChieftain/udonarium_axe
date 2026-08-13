@@ -1,5 +1,6 @@
 import { computed, inject, Injectable, signal } from '@angular/core';
 import { prefersReducedMotion } from '@axe/application/effect/effect-playback.service';
+import { readKeyframeBytes } from '@axe/application/replay/replay-keyframe-bytes';
 import { ReplayLibraryService } from '@axe/application/replay/replay-library.service';
 import { ReplayStagingService } from '@axe/application/replay/replay-staging.service';
 import { Logger } from '@axe/core/logging/logger';
@@ -121,7 +122,7 @@ export class ReplayPlaybackService {
     try {
       const keyframe = await this.library.keyframeBefore(id, events[0]?.seq ?? 0);
       if (!keyframe) return;
-      const snapshots = decodeReplayKeyframe(new Uint8Array(await keyframe.blob.arrayBuffer()));
+      const snapshots = decodeReplayKeyframe(await readKeyframeBytes(keyframe.blob));
       this._cast.set(collectReplayCast(snapshots));
     } catch (reason) {
       Logger.warn('[ReplayPlayback] 登場人物を読めませんでした', reason);
@@ -300,7 +301,7 @@ export class ReplayPlaybackService {
   ): Promise<readonly ReplayObjectSnapshot[]> {
     if (!keyframe) return [];
     if (this.baseKeyframe?.seq === keyframe.seq) return this.baseKeyframe.snapshots;
-    const snapshots = decodeReplayKeyframe(new Uint8Array(await keyframe.blob.arrayBuffer()));
+    const snapshots = decodeReplayKeyframe(await readKeyframeBytes(keyframe.blob));
     this.baseKeyframe = { seq: keyframe.seq, snapshots };
     return snapshots;
   }

@@ -1,5 +1,6 @@
 import { effect, Injector } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
+import { readKeyframeBytes } from '@axe/application/replay/replay-keyframe-bytes';
 import {
   REPLAY_BASELINE_GRACE_MS,
   REPLAY_CHUNK_INTERVAL_MS,
@@ -24,6 +25,7 @@ import {
 } from '@axe/core/storage/replay-log-store';
 import type { ObjectContext } from '@axe/core/sync/game-object';
 import { ObjectStore } from '@axe/core/sync/object-store';
+import { isCompressed } from '@axe/core/util/compress';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { PeerRole } from '@axe/domain/peer/peer-role';
 import { decodeReplayEvents, decodeReplayManifest } from '@axe/domain/replay/replay-codec';
@@ -99,6 +101,14 @@ class FakeReplayLogStore extends ReplayLogStore {
 
 function context(identifier: string, aliasName: string, syncData: Record<string, unknown>): ObjectContext {
   return { identifier, aliasName, majorVersion: 1, minorVersion: 0.5, syncData };
+}
+
+/**
+ * 盤面の書き留めは圧縮を挟むので、タイマーを進めただけでは終わっていない。
+ * 何回で終わるかは走らせる機械の混み具合で変わるため、終わるまで待つ。
+ */
+async function settleUntil(done: () => boolean): Promise<void> {
+  for (let turn = 0; turn < 200 && !done(); turn++) await vi.advanceTimersByTimeAsync(1);
 }
 
 function sendUpdate(identifier: string, aliasName: string, attributes: Record<string, unknown>, sendFrom = 'peer-a') {
@@ -242,6 +252,8 @@ describe('ReplayRecorderService', () => {
   it('ドラッグ中は盤面の書き留めを見送り、落ち着いてから行うこと', async () => {
     await service.start();
     expect(store.keyframes).toHaveLength(1);
+    vi.advanceTimersByTime(REPLAY_BASELINE_GRACE_MS);
+    sendUpdate('c1', 'character', { location: { name: 'table', x: 10, y: 0 }, posZ: 0 });
 
     pointerDevice.isDragging = true;
     await vi.advanceTimersByTimeAsync(REPLAY_KEYFRAME_INTERVAL_MS);
@@ -249,6 +261,7 @@ describe('ReplayRecorderService', () => {
 
     pointerDevice.isDragging = false;
     await vi.advanceTimersByTimeAsync(REPLAY_KEYFRAME_BUSY_RETRY_MS);
+    await settleUntil(() => store.keyframes.length >= 2);
     expect(store.keyframes).toHaveLength(2);
   });
 
@@ -427,9 +440,65 @@ describe('ReplayRecorderService', () => {
 
   it('盤面を識別子つきで書き留めること', async () => {
     await service.start();
-    const bytes = new Uint8Array(await store.keyframes[0].blob.arrayBuffer());
-    const snapshot = decodeReplayKeyframe(bytes);
+    const snapshot = decodeReplayKeyframe(await readKeyframeBytes(store.keyframes[0].blob));
     expect(snapshot.some((object) => object.identifier === 'cursor-a')).toBe(true);
+  });
+
+  it('盤面を圧縮して置くこと', async () => {
+    // 盤面は部屋まるごとで 10 分ごとに積み上がる。無圧縮のままだと置き場を食い潰す。
+    await service.start();
+    const raw = new Uint8Array(await store.keyframes[0].blob.arrayBuffer());
+    expect(isCompressed(raw)).toBe(true);
+  });
+
+  it('変化が無ければ盤面を撮り直さないこと', async () => {
+    await service.start();
+    expect(store.keyframes).toHaveLength(1);
+
+    await vi.advanceTimersByTimeAsync(REPLAY_KEYFRAME_INTERVAL_MS * 3);
+
+    expect(store.keyframes).toHaveLength(1);
+  });
+
+  it('何か起きていれば次の盤面を撮ること', async () => {
+    await service.start();
+    vi.advanceTimersByTime(REPLAY_BASELINE_GRACE_MS);
+    sendUpdate('c1', 'character', { location: { name: 'table', x: 10, y: 0 }, posZ: 0 });
+
+    await vi.advanceTimersByTimeAsync(REPLAY_KEYFRAME_INTERVAL_MS);
+    await settleUntil(() => store.keyframes.length >= 2);
+
+    expect(store.keyframes).toHaveLength(2);
+  });
+
+  it('書き足すたびに目録を丸ごと書き直さないこと', async () => {
+    // 目録は録画が伸びるほど大きくなる。毎回書き直すと通算の費用が長さの二乗になる。
+    await service.start();
+    vi.advanceTimersByTime(REPLAY_BASELINE_GRACE_MS);
+    const writes = vi.spyOn(store, 'updateRecording');
+
+    const flushes = 8;
+    for (let index = 0; index < flushes; index++) {
+      sendUpdate('c1', 'character', { location: { name: 'table', x: index * 10, y: 0 }, posZ: 0 });
+      await vi.advanceTimersByTimeAsync(REPLAY_CHUNK_INTERVAL_MS);
+    }
+
+    expect(store.chunks.length).toBeGreaterThanOrEqual(flushes);
+    const manifestWrites = writes.mock.calls.filter(([, update]) => update.manifest !== undefined).length;
+    expect(manifestWrites).toBeLessThan(flushes);
+  });
+
+  it('止めるときは目録を書き切ること', async () => {
+    await service.start();
+    vi.advanceTimersByTime(REPLAY_BASELINE_GRACE_MS);
+    sendUpdate('c1', 'character', { location: { name: 'table', x: 10, y: 0 }, posZ: 0 });
+    await vi.advanceTimersByTimeAsync(REPLAY_CHUNK_INTERVAL_MS);
+
+    await service.stop();
+
+    const row = [...store.recordings.values()][0];
+    expect(row.manifest).toBeDefined();
+    expect(decodeReplayManifest(row.manifest!)?.chunks.length).toBeGreaterThan(0);
   });
 
   it('目印を打てること', async () => {

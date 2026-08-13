@@ -10,6 +10,7 @@ import { ReplayLogStore, type ReplayRecordingMeta, selectExpiredRecordings } fro
 import type { ObjectContext } from '@axe/core/sync/game-object';
 import { ObjectNode } from '@axe/core/sync/object-node';
 import { ObjectStore } from '@axe/core/sync/object-store';
+import { compressAsync } from '@axe/core/util/compress';
 import { DataElement } from '@axe/domain/data/data-element';
 import { DisclosureMode } from '@axe/domain/disclosure/disclosure';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
@@ -47,6 +48,14 @@ export const REPLAY_RECENT_EVENT_LIMIT = 300;
 export const REPLAY_RECENT_PUBLISH_MS = 250;
 export const REPLAY_KEYFRAME_BUSY_RETRY_MS = 5_000;
 export const REPLAY_IDLE_TIMEOUT_MS = 10_000;
+/**
+ * 目録を書き直す間隔。
+ *
+ * 目録は録画が伸びるほど大きくなる。書き足すたびに丸ごと書き直すと、1 回の費用が
+ * 長さに比例し、通算では長さの二乗になる。再生に要る本体は chunk と keyframe の
+ * 置き場から直接読めるので、目録は間を空けて書き、止めるときに確定させる。
+ */
+export const REPLAY_MANIFEST_CHECKPOINT_MS = 300_000;
 
 @Injectable({ providedIn: 'root' })
 export class ReplayRecorderService {
@@ -85,6 +94,8 @@ export class ReplayRecorderService {
   private readonly keyframes: ReplayManifest['keyframes'][number][] = [];
   private readonly chunks: ReplayManifest['chunks'][number][] = [];
   private baselineUntil = 0;
+  private lastKeyframeSeq = -1;
+  private lastManifestAt = 0;
   private recent: ReplayEvent[] = [];
   private recentDirty = false;
   private lastPublishAt = 0;
@@ -111,7 +122,7 @@ export class ReplayRecorderService {
     const id = this.recordingId;
     if (!this._isRecording() || id == null) return;
     this.flushPending();
-    void this.flushBuffer();
+    void this.flushBuffer(true);
   }
 
   get isSupported(): boolean {
@@ -188,6 +199,8 @@ export class ReplayRecorderService {
     this._startedAt.set(startedAt);
     this._roomName.set(roomName);
     this.seedShadows();
+    this.lastKeyframeSeq = -1;
+    this.lastManifestAt = 0;
     this.baselineUntil = startedAt + REPLAY_BASELINE_GRACE_MS;
     this._isRecording.set(true);
 
@@ -314,7 +327,7 @@ export class ReplayRecorderService {
     }, REPLAY_CHUNK_INTERVAL_MS);
   }
 
-  private async flushBuffer(): Promise<void> {
+  private async flushBuffer(force = false): Promise<void> {
     const id = this.recordingId;
     if (id == null || this.buffer.length < 1) return;
 
@@ -335,10 +348,13 @@ export class ReplayRecorderService {
       Logger.warn('[ReplayRecorder] 記録を書き足せませんでした', { chunk: chunk.index });
       return;
     }
-    await this.persistManifest(id);
+    await this.persistManifest(id, force);
   }
 
-  private async persistManifest(id: number): Promise<void> {
+  private async persistManifest(id: number, force = false): Promise<void> {
+    const at = Date.now();
+    if (!force && at - this.lastManifestAt < REPLAY_MANIFEST_CHECKPOINT_MS) return;
+    this.lastManifestAt = at;
     try {
       await this.store.updateRecording(id, { manifest: encodeReplayManifest(this.manifest()) });
     } catch (reason) {
@@ -351,6 +367,9 @@ export class ReplayRecorderService {
     if (id == null) return;
     if (isNetworkIsolated()) return;
 
+    // 前に撮ってから何も起きていないなら、盤面は同じ。撮り直すと部屋 1 つぶんを空で積む。
+    if (!force && this.seq === this.lastKeyframeSeq) return;
+
     if (!force) {
       await this.whenIdle();
       if (this.recordingId !== id) return;
@@ -361,16 +380,19 @@ export class ReplayRecorderService {
     }
 
     try {
-      const bytes = encodeReplayKeyframe(this.snapshotStore());
+      // 盤面は部屋まるごとで、10 分ごとに積み上がる。圧縮しないと置き場をすぐ食い潰す。
+      const bytes = await compressAsync(encodeReplayKeyframe(this.snapshotStore()));
       const blob = new Blob([bytes as BlobPart], { type: 'application/octet-stream' });
       const at = Date.now();
-      const written = await this.store.putKeyframe({ recordingId: id, seq: this.seq, at, blob });
+      const seq = this.seq;
+      const written = await this.store.putKeyframe({ recordingId: id, seq, at, blob });
       if (!written) {
         this._isFailing.set(true);
         return;
       }
-      this.keyframes.push({ seq: this.seq, at, byteSize: blob.size });
-      await this.persistManifest(id);
+      this.lastKeyframeSeq = seq;
+      this.keyframes.push({ seq, at, byteSize: blob.size });
+      await this.persistManifest(id, force);
     } catch (reason) {
       Logger.warn('[ReplayRecorder] 盤面の記録に失敗しました', reason);
     }
