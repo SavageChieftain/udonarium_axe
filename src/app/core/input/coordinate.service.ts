@@ -29,6 +29,20 @@ export class CoordinateService {
     return { x: ray.x, y: ray.y, z: ray.z };
   }
 
+  /** 同じ element の複数点をまとめて投影する。1 点ずつ呼ぶと祖先の行列を何度も組み直すことになる。 */
+  convertManyToGlobal(
+    pointers: readonly PointerCoordinate[],
+    element: HTMLElement = document.body
+  ): PointerCoordinate[] {
+    const transformer = this._transformA.reinit(element);
+    const result = pointers.map((pointer) => {
+      const ray = transformer.localToGlobal(pointer.x, pointer.y, pointer.z ?? 0);
+      return { x: ray.x, y: ray.y, z: ray.z };
+    });
+    transformer.clear();
+    return result;
+  }
+
   convertLocalToLocal(pointer: PointerCoordinate, from: HTMLElement, to: HTMLElement): PointerCoordinate {
     const fromTransform = this._transformA.reinit(from);
     const local = fromTransform.globalToLocal(pointer.x, pointer.y, pointer.z ?? 0);
