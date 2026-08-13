@@ -1,6 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { UiSignalService } from '@axe/application/ui/ui-signal.service';
+import { ObjectStore } from '@axe/core/sync/object-store';
 import { RangeArea } from '@axe/domain/tabletop/range';
 import { RangeComponent } from '@axe/features/tabletop/range/range.component';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
@@ -17,8 +18,18 @@ describe('RangeComponent', () => {
   });
 
   beforeEach(() => {
+    // happy-dom の 2D コンテキストは描画関数を持たない。範囲の描き直しは片付けの後にも
+    // 走るので、掴めないコンテキストを返して描かせない（コンポーネント側に既に逃げ道がある）。
+    vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue(null as never);
     fixture = TestBed.createComponent(RangeComponent);
     component = fixture.componentInstance;
+  });
+
+  afterEach(() => {
+    fixture.destroy();
+    // 置きっぱなしにすると、次の spec の卓に他所の範囲が並ぶ。
+    for (const object of ObjectStore.instance.getObjects()) ObjectStore.instance.remove(object);
+    vi.restoreAllMocks();
   });
 
   it('should create', () => {
