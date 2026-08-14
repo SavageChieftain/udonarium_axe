@@ -57,7 +57,7 @@ export class ModalService {
     }
     let panelComponentRef: ComponentRef<unknown>;
     return new Promise<T>((resolve, reject) => {
-      // Injector 作成
+      // build an injector
       const _resolve = (val: T) => {
         if (panelComponentRef) {
           panelComponentRef.destroy();

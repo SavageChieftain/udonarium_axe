@@ -30,7 +30,7 @@ describe('PieceContextMenuService', () => {
     ObjectStore.instance.clearDeleteHistory();
   });
 
-  it('1 つしか選んでいなければ何も出さないこと', () => {
+  it('offers nothing when only one thing is selected', () => {
     const open = vi.spyOn(contextMenu, 'open').mockReturnValue(undefined as never);
     const alone = character('斥候');
     selection.addSelection(alone.identifier, alone.aliasName);
@@ -39,7 +39,7 @@ describe('PieceContextMenuService', () => {
     expect(open).not.toHaveBeenCalled();
   });
 
-  it('まとめて選んでいるなら一括の操作を出すこと', () => {
+  it('offers the bulk actions for a group selection', () => {
     const open = vi.spyOn(contextMenu, 'open').mockReturnValue(undefined as never);
     const first = character('斥候');
     const second = character('斥候の相棒');
@@ -50,8 +50,8 @@ describe('PieceContextMenuService', () => {
     expect(open).toHaveBeenCalledOnce();
   });
 
-  it('選ばれていない物を指したときは一括にしないこと', () => {
-    // 選択の外を右クリックしたなら、指したその物の操作を見たいはず。
+  it('does not go bulk for an object outside the selection', () => {
+    // A right-click outside the selection asks about that object, not the group.
     const open = vi.spyOn(contextMenu, 'open').mockReturnValue(undefined as never);
     const first = character('斥候');
     const second = character('斥候の相棒');

@@ -10,22 +10,22 @@ import { paintTablePhoto } from '@axe/infrastructure/replay/table-photo-painter'
 export interface TablePhotoRequest {
   cast: readonly ReplayCastMember[];
   roomName: string;
-  /** 見出しの下に焼き込む一行。日付の書き方は画面の言葉に合わせるので、呼ぶ側が決める。 */
+  /** The line burnt in under the heading. How the date reads follows the interface language, so the caller decides. */
   subtitle: string;
   fileName: string;
 }
 
 export interface TablePhotoResult {
   saved: boolean;
-  /** 紙に入りきらず写らなかった人数。 */
+  /** How many did not fit on the sheet. */
   omitted: number;
 }
 
 /**
- * その卓の記念写真。
+ * A keepsake photograph of the table.
  *
- * 立ち絵をこのブラウザから読み、1 枚の PNG にして渡す。
- * 絵が残っていないコマは枠と名前だけになる — 写真から外すと、居たことまで消える。
+ * It loads the portraits from this browser and hands back a single png.
+ * A piece whose picture is gone keeps its frame and name: leaving it out would erase that it was there.
  */
 @Injectable({ providedIn: 'root' })
 export class ReplayPhotoService {
@@ -63,7 +63,7 @@ export class ReplayPhotoService {
       downloadBlob(blob, `${request.fileName}.png`);
       return { saved: true, omitted: layout.omitted };
     } finally {
-      // 読んだ絵は必ず手放す。描き損ねた回ほど、抱えたまま溜まっていく。
+      // Loaded images are always released; a failed drawing is exactly when they would otherwise pile up.
       for (const image of images.values()) image.close?.();
     }
   }

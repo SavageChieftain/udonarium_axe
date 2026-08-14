@@ -20,15 +20,15 @@ export interface CharacterImportResult {
 let jsonpCounter = 0;
 
 /**
- * 貼り付けテキストから AXE のキャラコマを生成してテーブルへ配置する。
+ * Builds a piece from pasted text and puts it on the table.
  *
- * 入力は次のいずれでも良い:
- *   - ココフォリア コマJSON / キャラクター保管所 JSON / キャラクターシート倉庫 JSON の貼り付け
- *   - キャラクター保管所の URL（CORS 許可があるため直 fetch で取得）
- *   - キャラクターシート倉庫の URL（CORS 不可のため JSONP で取得）
+ * The input may be any of:
+ *   - pasted json from any of the supported sheet services
+ *   - a url from the service that allows cross-origin requests, fetched directly
+ *   - a url from the service that does not, fetched through a script tag
  *
- * パース・組み立てはドメイン層へ委譲し、本サービスは取得（fetch/JSONP）・画像解決・
- * テーブル配置という Web API / 共有状態に依存する責務を担う。
+ * Parsing and assembly belong to the domain; this service fetches, resolves images and
+ * places the result — the parts that need web APIs and shared state.
  */
 @Injectable({ providedIn: 'root' })
 export class CharacterImportService {
@@ -77,7 +77,7 @@ export class CharacterImportService {
   }
 
   /**
-   * CORS を返さない倉庫向けに、script タグ注入で JSONP 取得する（プロキシ非依存）。
+   * For a service that sends no cross-origin headers, fetch through an injected script tag rather than a proxy.
    */
   private loadJsonp(url: string, callbackParam: string, timeoutMs = 15000): Promise<unknown> {
     return new Promise<unknown>((resolve, reject) => {
@@ -112,8 +112,8 @@ export class CharacterImportService {
   }
 
   /**
-   * アイコン画像URL/Data URIを取得して ImageStorage へ登録し、identifier を返す。
-   * 取得に失敗（CORS等）した場合は空文字を返し、キャラ生成自体は継続する。
+   * Fetches the portrait, registers it and returns its identifier.
+   * A failed fetch returns nothing and the character is still built.
    */
   private async resolveImageIdentifier(imported: ImportedCharacter): Promise<string> {
     if (imported.iconImageIdentifier !== '') return imported.iconImageIdentifier;

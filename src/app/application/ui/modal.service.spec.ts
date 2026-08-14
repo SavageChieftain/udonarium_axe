@@ -14,18 +14,18 @@ describe('ModalService', () => {
   }));
 
   describe('title signal', () => {
-    it('初期値が空文字列であること', inject([ModalService], (service: ModalService) => {
+    it('starts empty', inject([ModalService], (service: ModalService) => {
       expect(service.title).toBe('');
     }));
 
-    it('setterで値を更新できること', inject([ModalService], (service: ModalService) => {
+    it('takes a new value from the setter', inject([ModalService], (service: ModalService) => {
       service.title = 'テストモーダル';
       expect(service.title).toBe('テストモーダル');
     }));
   });
 
   describe('open lifecycle', () => {
-    it('resolve後でも次のopenでisShow=trueになること（countが二重減算されない）', async () => {
+    it('shows again after resolving, since the count is only decremented once', async () => {
       const service = TestBed.inject(ModalService);
       const rootInjector = TestBed.inject(Injector);
 
@@ -72,7 +72,7 @@ describe('ModalService', () => {
       expect(service.isShow).toBe(false);
     });
 
-    it('reject後でも次のopenでisShow=trueになること（countが二重減算されない）', async () => {
+    it('shows again after rejecting, since the count is only decremented once', async () => {
       const service = TestBed.inject(ModalService);
       const rootInjector = TestBed.inject(Injector);
 

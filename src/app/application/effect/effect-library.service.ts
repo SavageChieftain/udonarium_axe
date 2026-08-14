@@ -28,8 +28,8 @@ export class EffectLibraryService {
   }
 
   /**
-   * 名前で引く。チャット記法とキャラクターシートは名前で演出を指すため。
-   * GM 専用は一覧に出さないだけでなく、名前を知っていても PL からは引けないようにする。
+   * Looks one up by name, which is how chat and the character sheets refer to effects.
+   * A game-master-only effect is not merely hidden; a player cannot reach it by name either.
    */
   findByName(name: string): EffectPreset | null {
     const needle = name.trim();
@@ -39,7 +39,7 @@ export class EffectLibraryService {
     return found.gmOnly && !PeerCursor.isMyselfGameMaster ? null : found;
   }
 
-  /** 白紙から 1 つ作る。 */
+  /** Builds one from nothing. */
   create(name: string): EffectPreset {
     const preset = new EffectPreset();
     preset.name = name;
@@ -47,7 +47,7 @@ export class EffectLibraryService {
     return preset;
   }
 
-  /** 丸ごと複製する。既定を壊さずに手を入れたいときの入口。 */
+  /** Copies one whole, which is how to alter a default without breaking it. */
   duplicate(source: EffectPreset): EffectPreset {
     const preset = source.clone();
     preset.name = duplicatedEffectName(
@@ -63,10 +63,10 @@ export class EffectLibraryService {
   }
 
   /**
-   * 既定を今の内容へ揃える。
-   * 足りないものを作るだけでなく、既にあるものへも値を入れ直す。
-   * 固定 identifier のプリセットは入室時に作り直せないため、既存の部屋は
-   * 更新しないと古い尺や色のまま取り残される。
+   * Brings the defaults up to date.
+   * It builds what is missing and refreshes what is already there.
+   * A preset with a fixed identifier cannot be rebuilt on joining, so without this an
+   * existing room keeps the old timings and colours.
    */
   restoreDefaults(): { added: number; updated: number } {
     let added = 0;
@@ -81,7 +81,7 @@ export class EffectLibraryService {
         continue;
       }
 
-      // 消された identifier は再利用できないので、その場合だけ新しい id で作る。
+      // A deleted identifier cannot be reused, so that case alone gets a new one.
       createEffectPreset(seed, seed.identifier);
       if (!this.get(seed.identifier)) createEffectPreset(seed);
       added++;

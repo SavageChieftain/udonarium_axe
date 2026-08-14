@@ -38,7 +38,7 @@ function makeTargets(): ObjectChangeNetworkTargets {
 }
 
 describe('object-change-network-helpers', () => {
-  it('subscribeNetworkBindings は eventName に応じて payload を変換してチャンネルに emit する', async () => {
+  it('turns each network event into the payload its channel expects', async () => {
     const targets = makeTargets();
     const offBindings = subscribeNetworkBindings(networkMessage$, targets);
 
@@ -78,7 +78,7 @@ describe('object-change-network-helpers', () => {
     }
   });
 
-  it('WRITING_A_MESSAGE_DETAIL は話者識別子を含めて writingMessage$ に変換される', () => {
+  it('carries the speaker identifier through on a writing notice', () => {
     const targets = makeTargets();
     const offBindings = subscribeNetworkBindings(networkMessage$, targets);
 
@@ -104,7 +104,7 @@ describe('object-change-network-helpers', () => {
     }
   });
 
-  it('HEART_BEAT メッセージが正しく heartBeat$ に変換される', () => {
+  it('turns a heartbeat into its own event', () => {
     const targets = makeTargets();
     const offBindings = subscribeNetworkBindings(networkMessage$, targets);
 
@@ -128,7 +128,7 @@ describe('object-change-network-helpers', () => {
     }
   });
 
-  it('HEART_BEAT の diffDown が null でも正しく伝搬される', () => {
+  it('carries a heartbeat with no downstream figure through unchanged', () => {
     const targets = makeTargets();
     const offBindings = subscribeNetworkBindings(networkMessage$, targets);
 
@@ -147,7 +147,7 @@ describe('object-change-network-helpers', () => {
     }
   });
 
-  it('cleanup 関数を呼ぶと購読が解除される', () => {
+  it('unsubscribes when the cleanup is called', () => {
     const targets = makeTargets();
     const offBindings = subscribeNetworkBindings(networkMessage$, targets);
 

@@ -30,13 +30,13 @@ export class CardGameService {
   private readonly chatMessageService = inject(ChatMessageService);
   private readonly t = inject(TRANSLATE_FN);
 
-  /** 自分の userId。ルーム未接続では PeerCursor に載らないため peerContext を使う。 */
+  /** Your own user id. Outside a room it is not on the cursor yet, so the peer context answers instead. */
   myUserId(): string {
     const fromCursor = PeerCursor.myCursor?.userId ?? '';
     return fromCursor.length > 0 ? fromCursor : getPeerContext().userId;
   }
 
-  /** 手札を持てる参加者。手札レールの canHoldCards と同じ判定を使う。 */
+  /** Who can hold cards, judged the same way the hand rail judges it. */
   participants(): CardSeat[] {
     const seats = this.objectStore
       .getObjects<PeerCursor>(PeerCursor)

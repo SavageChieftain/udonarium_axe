@@ -38,7 +38,7 @@ export class ReplayEditorService {
   readonly isEditing = this._isEditing.asReadonly();
   readonly isSaving = this._isSaving.asReadonly();
   readonly isDirty = computed(() => hasReplayEdits(this._original(), this._edited()));
-  /** 一覧は 1 行ずつ「足した行か」を尋ねる。毎回さらうと行数の二乗になる。 */
+  /** The list asks about every row, and sweeping each time would cost the square of the row count. */
   private readonly originalSeqs = computed(() => new Set(this._original().map((event) => event.seq)));
   readonly canUndo = computed(() => this._history().length > 0);
 
@@ -195,8 +195,8 @@ function restamped<T extends { sinceSeq: number }>(
   snapshots: readonly T[],
   renumbered: ReadonlyMap<number, number>
 ): T[] {
-  // 付け替え表を写像ごとに端から見ると、名前の履歴 × 出来事の数になる。
-  // 番号は増える一方なので、並べて累積の最大を持てば二分探索で足りる。
+  // Walking the whole remap per snapshot costs the name history times the event count.
+  // The numbers only rise, so a sorted running maximum and a binary search will do.
   const befores: number[] = [];
   const highest: number[] = [];
   let running = 0;

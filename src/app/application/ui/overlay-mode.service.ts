@@ -5,15 +5,15 @@ import { PeerRole } from '@axe/domain/peer/peer-role';
 export const OVERLAY_BODY_CLASS = 'overlay-mode';
 
 /**
- * 配信に重ねるための画面。
+ * A screen to lay over a stream.
  *
- * 盤面もパネルも出さず、背景を抜いて発言と手番だけを出す。OBS のブラウザソースに URL を貼る用。
+ * No board, no panels, no background — only speech and turns, for pasting into a browser source.
  *
- * ノベルモードと違い **同期しない**。同期すると、配信用に開いた 1 枚のために
- * 卓の全員の画面が切り替わってしまう。この端末の見え方に閉じている。
+ * Unlike novel mode it does **not** sync: syncing would switch the whole table's screens
+ * for the sake of one window opened to stream from. It stays local to this device.
  *
- * 入り口は招待リンクだけなので、**画面を組み立てる前に**リンクから決める。
- * 入室の完了を待つと、配信に卓の画面が一瞬映ってから切り替わる。
+ * The invitation link is the only way in, so the role comes from the link **before** the screen is built.
+ * Waiting for the room would flash the table on the stream before it switched.
  */
 @Injectable({ providedIn: 'root' })
 export class OverlayModeService {
@@ -23,7 +23,7 @@ export class OverlayModeService {
 
   readonly active = this._active.asReadonly();
 
-  /** リンクで指定された役割。入室が終わるまで、見える範囲はこちらの側で狭く見積もる。 */
+  /** The role the link names. Until the room is joined, assume the narrower view. */
   get requestedRole(): PeerRole {
     return this._requestedRole;
   }

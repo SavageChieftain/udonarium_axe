@@ -50,11 +50,11 @@ export const REPLAY_RECENT_PUBLISH_MS = 250;
 export const REPLAY_KEYFRAME_BUSY_RETRY_MS = 5_000;
 export const REPLAY_IDLE_TIMEOUT_MS = 10_000;
 /**
- * 目録を書き直す間隔。
+ * How often the manifest is rewritten.
  *
- * 目録は録画が伸びるほど大きくなる。書き足すたびに丸ごと書き直すと、1 回の費用が
- * 長さに比例し、通算では長さの二乗になる。再生に要る本体は chunk と keyframe の
- * 置き場から直接読めるので、目録は間を空けて書き、止めるときに確定させる。
+ * The manifest grows with the recording. Rewriting it whole on every append costs time in
+ * proportion to the length, and the square of it overall. Playback reads the chunks and
+ * keyframes straight from storage, so the manifest is written at intervals and settled on stopping.
  */
 export const REPLAY_MANIFEST_CHECKPOINT_MS = 300_000;
 
@@ -97,7 +97,7 @@ export class ReplayRecorderService {
   private baselineUntil = 0;
   private lastKeyframeSeq = -1;
   private lastManifestAt = 0;
-  /** 盤面が触られたか。記録に残さない種類の変化でも盤面は動く。 */
+  /** Whether the board was touched. It moves even for changes no recording keeps. */
   private boardDirty = false;
   private recent: ReplayEvent[] = [];
   private recentDirty = false;
@@ -126,7 +126,7 @@ export class ReplayRecorderService {
     if (!this._isRecording() || id == null) return;
     this.flushPending();
     void this.flushBuffer(true);
-    // 誰が何をしたかの対応表は目録にしかない。溜まりが空でも書き残す。
+    // Only the manifest holds who did what, so it is written even with nothing buffered.
     void this.persistManifest(id, true);
   }
 
@@ -175,7 +175,7 @@ export class ReplayRecorderService {
   private async startNow(): Promise<boolean> {
     if (!this.isSupported || this._isRecording() || isNetworkIsolated()) return false;
 
-    // 消えない置き場を頼んでから始める。頼まないと、空きが減った端末で録画ごと消える。
+    // Ask for durable storage before starting; without it a device running low deletes the recording along with everything else.
     await keepStoragePersistent();
 
     const startedAt = Date.now();
@@ -364,7 +364,7 @@ export class ReplayRecorderService {
     if (!force && at - this.lastManifestAt < REPLAY_MANIFEST_CHECKPOINT_MS) return;
     try {
       await this.store.updateRecording(id, { manifest: encodeReplayManifest(this.manifest()) });
-      // 書けたときだけ時計を進める。失敗を数えると次の機会まで丸ごと落ちる。
+      // Only a successful write advances the clock; counting a failure would skip the next chance entirely.
       this.lastManifestAt = at;
     } catch (reason) {
       Logger.warn('[ReplayRecorder] 目録を書けませんでした', reason);
@@ -376,8 +376,8 @@ export class ReplayRecorderService {
     if (id == null) return;
     if (isNetworkIsolated()) return;
 
-    // 前に撮ってから何も起きていないなら、盤面は同じ。撮り直すと部屋 1 つぶんを空で積む。
-    // 記録に残らない種類の変化でも盤面は動くので、seq ではなく「触られたか」で見る。
+    // Nothing since the last one means the same board, and taking it again stacks up an empty room.
+    // The board moves even for changes no recording keeps, so this watches for a touch rather than a sequence number.
     if (!force && !this.boardDirty) return;
 
     if (!force) {
@@ -390,11 +390,11 @@ export class ReplayRecorderService {
     }
 
     try {
-      // 撮った中身と番号を揃える。圧縮の待ちのあいだに進んだぶんを番号に含めると、
-      // その間の出来事が「盤面に入っている」ことになって再生時に飛ばされる。
+      // Keep the number with what was taken. Counting what happened during the compression
+      // would mark those events as already in the board, and playback would skip them.
       const seq = this.seq;
       const raw = encodeReplayKeyframe(this.snapshotStore());
-      // 盤面は部屋まるごとで、10 分ごとに積み上がる。圧縮しないと置き場をすぐ食い潰す。
+      // A board is a whole room and another arrives every ten minutes; uncompressed they would soon eat the storage.
       const bytes = await this.compressed(raw);
       const blob = new Blob([bytes as BlobPart], { type: 'application/octet-stream' });
       const at = Date.now();
@@ -413,7 +413,7 @@ export class ReplayRecorderService {
     }
   }
 
-  /** 圧縮できない環境もある。掛からなければそのまま置く（読む側は目印で見分ける）。 */
+  /** Some browsers cannot compress. Where it fails the bytes are stored plain, and readers tell by the magic number. */
   private async compressed(bytes: Uint8Array): Promise<Uint8Array> {
     try {
       return await compressAsync(bytes);

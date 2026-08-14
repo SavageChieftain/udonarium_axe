@@ -24,7 +24,7 @@ describe('EffectFieldService', () => {
     ObjectStore.instance.clearDeleteHistory();
   });
 
-  it('置いた場を盤面に残すこと', () => {
+  it('leaves the field standing on the board', () => {
     const field = service.place(preset, 100, 200, 0);
 
     expect(service.fields()).toEqual([field]);
@@ -32,18 +32,18 @@ describe('EffectFieldService', () => {
     expect(field.isVisibleOnTable).toBe(true);
   });
 
-  it('尺で折り返して繰り返すこと', () => {
+  it('loops the effect over its own length', () => {
     service.place(preset, 0, 0, 0);
 
     const early = service.renderables(100)[0];
     const wrapped = service.renderables(1100)[0];
 
-    // 終わりが来ない演出なので、経過は尺の中へ畳んで返す。
+    // The effect never ends, so the elapsed time is folded back into its length.
     expect(early.elapsed).toBeLessThan(preset.duration);
     expect(wrapped.elapsed).toBeCloseTo(early.elapsed);
   });
 
-  it('並べても同じ動きにならないこと', () => {
+  it('gives two fields side by side different motion', () => {
     service.place(preset, 0, 0, 0);
     service.place(preset, 100, 0, 0);
 
@@ -52,7 +52,7 @@ describe('EffectFieldService', () => {
     expect(first.elapsed).not.toBe(second.elapsed);
   });
 
-  it('片づけたら消えること', () => {
+  it('disappears when cleared away', () => {
     const field = service.place(preset, 0, 0, 0);
 
     service.remove(field);
@@ -61,20 +61,20 @@ describe('EffectFieldService', () => {
     expect(service.renderables(0)).toHaveLength(0);
   });
 
-  it('プリセットを消したら描かないこと', () => {
+  it('draws nothing once its preset is gone', () => {
     service.place(preset, 0, 0, 0);
     ObjectStore.instance.remove(preset);
 
     expect(service.renderables(0)).toHaveLength(0);
   });
 
-  it('視差効果を減らす設定では描かないこと', () => {
+  it('draws nothing under reduced motion', () => {
     service.place(preset, 0, 0, 0);
     const original = window.matchMedia;
     window.matchMedia = ((query: string) => ({ matches: query.includes('reduce') })) as never;
 
     try {
-      // 場は消えないので、描き続けると設定を無視したままになる。
+      // A field never ends, so drawing on would ignore the setting for good.
       expect(service.renderables(0)).toHaveLength(0);
     } finally {
       window.matchMedia = original;

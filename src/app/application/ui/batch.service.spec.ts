@@ -1,8 +1,8 @@
 import { TestBed } from '@angular/core/testing';
 import { BatchService } from '@axe/application/ui/batch.service';
 
-// setZeroTimeout は MessageChannel ベースで fake timer では発火しない。
-// setInterval(66) は fake timer で制御できるので、それを使ってテストする。
+// setZeroTimeout runs on a MessageChannel and never fires under fake timers,
+// so these tests drive the 66ms interval, which fake timers can control.
 
 describe('BatchService', () => {
   let service: BatchService;
@@ -21,7 +21,7 @@ describe('BatchService', () => {
     expect(service).toBeTruthy();
   });
 
-  it('addしたタスクが66msバッチで実行される', () => {
+  it('runs an added task in the next batch', () => {
     const spy = vi.fn();
     service.add(spy);
 
@@ -29,7 +29,7 @@ describe('BatchService', () => {
     expect(spy).toHaveBeenCalledTimes(1);
   });
 
-  it('同一キーで追加すると後のタスクで上書きされる', () => {
+  it('replaces a task added again under the same key', () => {
     const spy1 = vi.fn();
     const spy2 = vi.fn();
     const key = 'unique-key';
@@ -43,7 +43,7 @@ describe('BatchService', () => {
     expect(spy2).toHaveBeenCalledTimes(1);
   });
 
-  it('removeでキーのタスクを除去できる', () => {
+  it('removes a task by key', () => {
     const spy = vi.fn();
     const key = 'remove-key';
 
@@ -55,7 +55,7 @@ describe('BatchService', () => {
     expect(spy).not.toHaveBeenCalled();
   });
 
-  it('複数のタスクをバッチで同時実行する', () => {
+  it('runs several tasks together in one batch', () => {
     const spy1 = vi.fn();
     const spy2 = vi.fn();
 
@@ -68,14 +68,14 @@ describe('BatchService', () => {
     expect(spy2).toHaveBeenCalledTimes(1);
   });
 
-  it('バッチ実行後にタスクマップがクリアされる', () => {
+  it('empties the task map after a batch', () => {
     const spy = vi.fn();
     service.add(spy);
 
     vi.advanceTimersByTime(66);
     expect(spy).toHaveBeenCalledTimes(1);
 
-    // インターバルが残っていてもタスクがなければ再実行されない
+    // does nothing more once the tasks are gone, interval or not
     vi.advanceTimersByTime(200);
     expect(spy).toHaveBeenCalledTimes(1);
   });

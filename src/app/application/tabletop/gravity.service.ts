@@ -76,12 +76,12 @@ export class GravityService {
       const entries = this.overlapService.entries();
       if (entries.length === 0) return;
 
-      // Footprint と Z を一度だけ読み出し、以降の inner loop で reflow を起こさないキャッシュにする
+      // Read each footprint and height once into a cache, so the inner loop never triggers a reflow
       const cached = GravityService.buildCache(entries, this.surfaceDims());
       const targets = cached.filter((c) => c.isGravity);
       if (targets.length === 0) return;
 
-      // 各オブジェクトを所属セルに登録。findSupportZ は対象中心のセルだけを走査すれば足りる
+      // Register every object in its cell, so a support search only walks the cell under the centre
       const grid = GravityService.buildSpatialIndex(cached);
 
       for (let pass = 0; pass < MAX_PASSES; pass++) {
@@ -99,9 +99,9 @@ export class GravityService {
         if (!changed) break;
       }
     } finally {
-      // posZ 変更で起きる markForChanged の microtask が schedule() を呼び戻す前に
-      // applying フラグを落とすと、自分が起こした settling で次の apply が即連鎖する。
-      // microtask に乗せることで gravity 由来の再 schedule を吸収する。
+      // Dropping the flag before the microtask from the position change calls back into schedule
+      // would chain another pass off the settling this one caused.
+      // Riding a microtask absorbs the reschedule that gravity itself provokes.
       queueMicrotask(() => {
         this.applying = false;
       });

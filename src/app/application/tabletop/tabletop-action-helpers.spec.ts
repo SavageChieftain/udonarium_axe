@@ -8,7 +8,7 @@ import {
 import { DiceType } from '@axe/domain/dice/dice-symbol';
 
 describe('tabletop-action-helpers', () => {
-  it('getTrumpCardCodes: トランプ54枚分のコードを返す', () => {
+  it('lists the codes for all fifty-four playing cards', () => {
     const codes = getTrumpCardCodes();
 
     expect(codes).toHaveLength(54);
@@ -20,7 +20,7 @@ describe('tabletop-action-helpers', () => {
     expect(codes[53]).toBe('x02');
   });
 
-  it('getDiceMenuItems: ダイス作成メニュー定義を返す', () => {
+  it('describes the dice creation menu', () => {
     expect(getDiceMenuItems()).toEqual([
       { menuName: 'D4', diceName: 'D4', type: DiceType.D4, imagePathPrefix: '4_dice' },
       { menuName: 'D6', diceName: 'D6', type: DiceType.D6, imagePathPrefix: '6_dice' },
@@ -32,7 +32,7 @@ describe('tabletop-action-helpers', () => {
     ]);
   });
 
-  it('getRangeMenuItems: 射程範囲メニュー定義を返す', () => {
+  it('describes the range area menu', () => {
     expect(getRangeMenuItems()).toEqual([
       { menuName: 'feature.tabletop.action.rangeShapeLine', typeName: 'LINE' },
       { menuName: 'feature.tabletop.action.rangeShapeCorn', typeName: 'CORN' },
@@ -45,7 +45,7 @@ describe('tabletop-action-helpers', () => {
     ]);
   });
 
-  it('定数パス: 地形とトランプ裏面の画像パスを提供する', () => {
+  it('provides the image paths for terrain and card backs', () => {
     expect(TERRAIN_TEXTURE_PATH).toBe('./assets/images/tex.jpg');
     expect(TRUMP_BACK_IMAGE_PATH).toBe('./assets/images/trump/z02.gif');
   });

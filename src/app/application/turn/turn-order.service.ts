@@ -130,8 +130,8 @@ export class TurnOrderService {
   }
 
   /**
-   * ラウンドを前へ進めて閉じる。巻き戻しでも endRound は通るため、バフの失効はこちらに置く。
-   * 進行操作をしたピアだけが実行するので、P2P でも減少は 1 回で済む。
+   * Closes the round and moves on. Rewinding also ends a round, so buffs expire here.
+   * Only the peer that advanced the round runs it, so the countdown drops once even between peers.
    */
   private finishRound(): void {
     this.endRound();

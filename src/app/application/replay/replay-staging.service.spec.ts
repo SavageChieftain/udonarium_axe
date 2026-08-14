@@ -38,12 +38,12 @@ describe('ReplayStagingService', () => {
     objectStore.clearDeleteHistory();
   });
 
-  it('収録していないうちは何も拾わないこと', () => {
+  it('collects nothing before staging begins', () => {
     sendUpdate('c1', { location: { name: 'table', x: 50, y: 0 } });
     expect(service.captured()).toHaveLength(0);
   });
 
-  it('卓の操作を差し込む行として拾うこと', () => {
+  it('collects a table action as a line to insert', () => {
     service.begin(2, 'alice');
     sendUpdate('c1', { location: { name: 'table', x: 50, y: 0 } });
 
@@ -53,7 +53,7 @@ describe('ReplayStagingService', () => {
     expect(event.patch?.identifier).toBe('c1');
   });
 
-  it('続けざまの操作を 1 件に畳むこと', () => {
+  it('folds a run of actions into one', () => {
     service.begin(0, 'alice');
     for (let x = 10; x <= 50; x += 10) sendUpdate('c1', { location: { name: 'table', x, y: 0 } });
 
@@ -61,7 +61,7 @@ describe('ReplayStagingService', () => {
     expect(service.captured()[0].detail['to']).toMatchObject({ x: 50 });
   });
 
-  it('合図も鳴らし直せる形で拾うこと', () => {
+  it('collects the cues in a form that can sound again', () => {
     service.begin(0, 'alice');
     localDispatch('SOUND_EFFECT', 'se-dice');
 
@@ -70,7 +70,7 @@ describe('ReplayStagingService', () => {
     expect(event.signal).toEqual({ name: 'SOUND_EFFECT', data: 'se-dice' });
   });
 
-  it('同卓者の操作は拾わないこと', () => {
+  it('collects nothing from the others at the table', () => {
     service.begin(0, 'alice');
     localDispatch(
       'UPDATE_GAME_OBJECT',
@@ -82,20 +82,20 @@ describe('ReplayStagingService', () => {
     expect(service.captured()).toHaveLength(0);
   });
 
-  it('雑音は拾わないこと', () => {
+  it('collects none of the noise', () => {
     service.begin(0, 'alice');
     localDispatch('CURSOR_MOVE', [1, 2, 3]);
     expect(service.captured()).toHaveLength(0);
   });
 
-  it('隔離していないうちは拾わないこと', () => {
+  it('collects nothing until the table is cut off', () => {
     setNetworkIsolated(false);
     service.begin(0, 'alice');
     sendUpdate('c1', { location: { name: 'table', x: 50, y: 0 } });
     expect(service.captured()).toHaveLength(0);
   });
 
-  it('誰の操作として残すか付け替えられること', () => {
+  it('can change whose action it is recorded as', () => {
     service.begin(0, 'alice');
     sendUpdate('c1', { location: { name: 'table', x: 50, y: 0 } });
     service.setActorId('bob');
@@ -103,7 +103,7 @@ describe('ReplayStagingService', () => {
     expect(service.captured()[0].actorId).toBe('bob');
   });
 
-  it('受け取ると収録を畳んで中身を返すこと', () => {
+  it('folds the staging away and hands back what it holds', () => {
     service.begin(3, 'alice');
     sendUpdate('c1', { location: { name: 'table', x: 50, y: 0 } });
 
@@ -114,7 +114,7 @@ describe('ReplayStagingService', () => {
     expect(service.captured()).toHaveLength(0);
   });
 
-  it('破棄すると中身を捨てること', () => {
+  it('throws its contents away when discarded', () => {
     service.begin(0, 'alice');
     sendUpdate('c1', { location: { name: 'table', x: 50, y: 0 } });
     service.discard();
@@ -123,7 +123,7 @@ describe('ReplayStagingService', () => {
     expect(service.captured()).toHaveLength(0);
   });
 
-  it('収録を始めた時点の盤面を起点にすること', () => {
+  it('starts from the board as it was when staging began', () => {
     const character = objectStore.get<GameCharacter>('c1')!;
     character.location.x = 200;
     service.begin(0, 'alice');
@@ -132,7 +132,7 @@ describe('ReplayStagingService', () => {
     expect(service.captured()).toHaveLength(0);
   });
 
-  it('始めたあとの変化だけを拾うこと', () => {
+  it('collects only what changed after that', () => {
     const character = objectStore.get<GameCharacter>('c1')!;
     service.begin(0, 'alice');
     localDispatch('UPDATE_GAME_OBJECT', character.toContext());

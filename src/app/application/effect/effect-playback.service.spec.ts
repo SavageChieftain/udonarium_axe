@@ -30,30 +30,30 @@ describe('EffectPlaybackService', () => {
     };
   }
 
-  it('受け取った発火を再生中リストに積むこと', () => {
+  it('adds a cast that arrives to the list being played', () => {
     expect(service.play(cast())).not.toBeNull();
     expect(service.activeCasts()).toHaveLength(1);
     expect(service.activeCasts()[0].preset).toBe(preset);
   });
 
-  it('壊れた発火を無視すること', () => {
+  it('ignores a broken cast', () => {
     expect(service.play(null)).toBeNull();
     expect(service.play({ targets: [] })).toBeNull();
     expect(service.activeCasts()).toHaveLength(0);
   });
 
-  it('知らないプリセットの発火を無視すること', () => {
+  it('ignores a cast naming a preset it does not know', () => {
     expect(service.play(cast({ presetIdentifier: 'unknown' }))).toBeNull();
     expect(service.activeCasts()).toHaveLength(0);
   });
 
-  it('同時再生数を 12 までに抑えること', () => {
+  it('plays no more than twelve at once', () => {
     for (let count = 0; count < 20; count++) service.play(cast());
 
     expect(service.activeCasts()).toHaveLength(12);
   });
 
-  it('衝撃のある演出だけ画面を揺らすこと', () => {
+  it('shakes the screen only for an effect that lands', () => {
     preset.kind = 'burst';
     preset.grade = 3;
     service.play(cast());
@@ -61,17 +61,17 @@ describe('EffectPlaybackService', () => {
     expect(service.shake()).toBe('hard');
   });
 
-  it('回復では揺らさないこと', () => {
+  it('never shakes for healing', () => {
     preset.kind = 'heal';
     preset.grade = 3;
     service.play(cast());
 
-    // 何が起きても揺れると、衝撃の意味が無くなる。
+    // Shaking for everything would leave the impact meaning nothing.
     expect(service.shake()).toBe('');
     expect(service.flash()).toBe('');
   });
 
-  it('続けて撃たれたら強いほうを採ること', () => {
+  it('takes the stronger of two casts in quick succession', () => {
     preset.kind = 'burst';
     preset.grade = 2;
     service.play(cast());
@@ -83,14 +83,14 @@ describe('EffectPlaybackService', () => {
     expect(service.shake()).toBe('hard');
   });
 
-  it('倒れる演出は対象のコマへ崩れ方を渡すこと', () => {
+  it('tells the piece how to fall when the effect fells it', () => {
     preset.kind = 'bisect';
     service.play(cast());
 
     expect(service.tokenReactions().get('char')).toBe('bisect');
   });
 
-  it('倒れる演出でなければコマに触らないこと', () => {
+  it('leaves the piece alone otherwise', () => {
     preset.kind = 'burst';
     service.play(cast());
 

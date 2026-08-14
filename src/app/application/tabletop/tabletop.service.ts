@@ -43,10 +43,10 @@ export class TabletopService {
   }
 
   /**
-   * 版を読んでからテーブルを返す。
+   * Read the version, then hand back the table.
    *
-   * 返すのは毎回同じ GameTable なので、既定の同値判定では版が上がっても下流へ伝わらない。
-   * グリッドの大きさも天候も、変えた瞬間に画面へ出す必要があるため常に変化とみなす。
+   * It hands back the same table every time, so under the default equality a new version never reaches anything downstream.
+   * Grid size and weather both have to show the moment they change, so this always counts as changed.
    */
   readonly currentTableVersion = computed(
     () => {
@@ -215,7 +215,7 @@ export class TabletopService {
         this.chatTabList.addChatTab(gameObject);
       }
 
-      //通常版データが投下されたときに、追加が必要な要素を追加
+      //adds what a dropped room archive is missing
       const objects: TabletopObject[] = this.objectStore.getObjects(GameCharacter);
       for (const gameObject of objects) {
         if (gameObject instanceof GameCharacter) {

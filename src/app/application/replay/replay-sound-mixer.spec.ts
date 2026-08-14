@@ -97,17 +97,17 @@ describe('mixReplaySoundtrack()', () => {
     delete globals['OfflineAudioContext'];
   });
 
-  it('混ぜられない環境では何も返さないこと', async () => {
+  it('returns nothing where mixing is unavailable', async () => {
     delete globals['OfflineAudioContext'];
     expect(isSoundMixingSupported()).toBe(false);
     expect(await mixReplaySoundtrack(track({ effects: [ase()] }), read)).toBeNull();
   });
 
-  it('鳴らす音が無ければ何も返さないこと', async () => {
+  it('returns nothing when there is no sound to play', async () => {
     expect(await mixReplaySoundtrack(track(), read)).toBeNull();
   });
 
-  it('効果音をその時刻に置くこと', async () => {
+  it('places each sound at its own moment', async () => {
     await mixReplaySoundtrack(track({ effects: [ase(2500)] }), read);
 
     expect(started).toEqual([
@@ -115,23 +115,23 @@ describe('mixReplaySoundtrack()', () => {
     ]);
   });
 
-  it('BGM を区間ぶんだけ繰り返し鳴らすこと', async () => {
+  it('loops the music for as long as its stretch lasts', async () => {
     await mixReplaySoundtrack(track({ music: [abgm(1000, 6000, 12_000)] }), read);
 
     expect(started[0]).toMatchObject({ buffer: 'bgm-1', startedAt: 1, duration: 5, loop: true });
   });
 
-  it('曲の長さを超える頭出しは巻き戻すこと', async () => {
+  it('wraps a start point past the end of the track', async () => {
     await mixReplaySoundtrack(track({ music: [abgm(0, 5000, 12_000)] }), read);
     expect(started[0].offset).toBe(2);
   });
 
-  it('同じ音を一度だけ読むこと', async () => {
+  it('loads the same sound once', async () => {
     await mixReplaySoundtrack(track({ effects: [ase(0), ase(1000), ase(2000)] }), read);
     expect(decoded).toEqual(['se-1']);
   });
 
-  it('読めない音は飛ばして残りを混ぜること', async () => {
+  it('mixes the rest past a sound it cannot read', async () => {
     decodeFails = ['bgm-1'];
     const mixed = await mixReplaySoundtrack(
       track({ effects: [ase(0)], music: [{ ...abgm(0, 5000, 0), audioIdentifier: 'bgm-1' }] }),
@@ -142,11 +142,11 @@ describe('mixReplaySoundtrack()', () => {
     expect(mixed).not.toBeNull();
   });
 
-  it('どれも読めなければ何も返さないこと', async () => {
+  it('returns nothing when it can read none of them', async () => {
     expect(await mixReplaySoundtrack(track({ effects: [{ ...ase(0), audioIdentifier: 'missing' }] }), read)).toBeNull();
   });
 
-  it('動画の長さぶんの波形を返すこと', async () => {
+  it('returns a waveform as long as the video', async () => {
     const mixed = await mixReplaySoundtrack(track({ effects: [ase(0)], totalMs: 2000 }), read);
 
     expect(mixed?.sampleRate).toBe(48_000);

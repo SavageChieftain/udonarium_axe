@@ -87,10 +87,10 @@ export class ReplayPlaybackService {
   private savedDeleteHistory: Map<string, number> | null = null;
   private baseKeyframe: { seq: number; snapshots: readonly ReplayObjectSnapshot[] } | null = null;
   /**
-   * いま盤面に出している内容。
+   * What the board is showing now.
    *
-   * 先へ進むときは、ここから足りないぶんだけ当てれば足りる。毎回キーフレームから
-   * 積み直すと、つまみを動かすたびに部屋 1 つぶんを最初からやり直すことになる。
+   * Moving forward only needs the events since this. Rebuilding from a keyframe every time
+   * would redo a whole room for every drag of the scrubber.
    */
   private appliedBoard: { index: number; snapshots: readonly ReplayObjectSnapshot[] } | null = null;
   private autoPlayTimer: ReturnType<typeof setTimeout> | null = null;
@@ -147,7 +147,7 @@ export class ReplayPlaybackService {
 
     if (isStepForward) {
       this.stepBoardForward(events[clamped]);
-      // 出している内容も 1 つ進める。ずれたまま持つと、次に戻したとき差分が合わなくなる。
+      // Advance what is shown as well; left behind, the next step back would compare against the wrong thing.
       if (this.appliedBoard) {
         this.appliedBoard = {
           index: clamped,
@@ -411,7 +411,7 @@ export class ReplayPlaybackService {
   }
 
   private reviveObject(object: GameObject, syncData: Record<string, unknown>): void {
-    // 世代番号しか要らないので toContext() は呼ばない。呼ぶと中身を丸ごと複製して捨てる。
+    // Only the generation is needed, so toContext() is avoided; it would copy the whole thing and throw the copy away.
     object.apply({
       aliasName: object.aliasName,
       identifier: object.identifier,
@@ -430,7 +430,7 @@ export class ReplayPlaybackService {
       aliasName: snapshot.aliasName,
       majorVersion: 1,
       minorVersion: 0,
-      // 控えは次の場面の元にもなる。生きた物へ参照ごと渡すと、あとで書き換えられて崩れる。
+      // A snapshot also feeds the next scene, so handing a live object the reference would let a later edit corrupt it.
       syncData: cloneSyncValue(mergeSyncData(object.toContext().syncData as SyncData, snapshot.syncData)) as SyncData,
     };
     this.objectStore.add(object, false, () => object.apply(context));
@@ -457,17 +457,17 @@ export class ReplayPlaybackService {
       this.restoreBoard(snapshots);
       this.appliedBoard = { index, snapshots };
     } catch (reason) {
-      // 出しきれていない盤面を覚えると、次の差分がその上に乗って食い違う。
+      // Remembering a board that never fully arrived would leave the next comparison built on it.
       this.appliedBoard = null;
       throw reason;
     }
   }
 
   /**
-   * 盤面を出し直す。
+   * Shows the board again.
    *
-   * いま出している内容と突き合わせ、変わった物にだけ触る。1 つ戻すだけで部屋じゅうの
-   * 物を作り直すと、画面もその数だけ描き直しにかかる。
+   * It compares against what is showing and touches only what changed. Rebuilding the whole
+   * room for one step back sends the screen off to redraw all of it.
    */
   private restoreBoard(snapshots: readonly ReplayObjectSnapshot[]): void {
     const wanted = new Map(snapshots.map((snapshot) => [snapshot.identifier, snapshot]));

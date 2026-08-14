@@ -10,7 +10,7 @@ import {
 } from '@axe/domain/effect/ambience/ambience-kind';
 import { TableAmbience } from '@axe/domain/tabletop/table-ambience';
 
-/** マップ全体に掛かっている天候。 */
+/** The weather over the whole map. */
 export interface WeatherAmbience {
   kind: AmbienceKind;
   color: string;
@@ -20,9 +20,9 @@ export interface WeatherAmbience {
 const PERSISTENT_SOURCE = 'ambience';
 
 /**
- * 盤面の環境演出。マップ全体の天候と、範囲を区切って置いた地表の演出。
+ * Ambient effects on the board: weather over the whole map, and ground effects within a marked area.
  *
- * どちらもテーブルに紐づくので、マップを切り替えると一緒に切り替わる。
+ * Both belong to the table, so switching maps switches them too.
  */
 @Injectable({ providedIn: 'root' })
 export class AmbienceService {
@@ -48,15 +48,15 @@ export class AmbienceService {
   });
 
   /**
-   * 粒を動かしてよいか。
-   * 「視差効果を減らす」設定では止めるが、沼や溶岩の塗りまでは消さない。
+   * Whether the particles may move.
+   * Reduced motion stops them, but the swamp and lava washes stay.
    */
   readonly motionEnabled = computed<boolean>(() => !prefersReducedMotion());
 
   readonly now = computed<number>(() => this.playbackService.now());
 
   constructor() {
-    // 環境演出がある間は描画のループを止めない。発動と違って終わりが来ない。
+    // The draw loop runs for as long as an ambience exists; unlike a cast, it never ends.
     effect(() => {
       const active = this.areas().length > 0 || this.weather() != null;
       this.playbackService.setPersistent(PERSISTENT_SOURCE, active && this.motionEnabled());

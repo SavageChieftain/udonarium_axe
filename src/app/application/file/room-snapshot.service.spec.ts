@@ -77,7 +77,7 @@ describe('RoomSnapshotService', () => {
     service = TestBed.inject(RoomSnapshotService);
   });
 
-  it('保存したスナップショットが一覧に反映される', async () => {
+  it('lists a snapshot once it is saved', async () => {
     const meta = await service.capture();
 
     expect(meta).not.toBeNull();
@@ -85,7 +85,7 @@ describe('RoomSnapshotService', () => {
     expect(service.latest?.byteSize).toBe(3);
   });
 
-  it('世代上限を超えた古いスナップショットを削除する', async () => {
+  it('drops the oldest snapshots past the limit', async () => {
     for (let i = 0; i < 7; i++) {
       await service.capture();
     }
@@ -94,7 +94,7 @@ describe('RoomSnapshotService', () => {
     expect(store.records).toHaveLength(5);
   });
 
-  it('復元は保存済み zip を FileArchiver に流す', async () => {
+  it('restores by handing the saved archive to the file archiver', async () => {
     const meta = await service.capture();
 
     await expect(service.restore(meta!.id)).resolves.toBe(true);
@@ -103,12 +103,12 @@ describe('RoomSnapshotService', () => {
     expect(files[0].name).toBe('room-snapshot.zip');
   });
 
-  it('存在しない id の復元は false を返す', async () => {
+  it('reports failure restoring an id that is not there', async () => {
     await expect(service.restore(999)).resolves.toBe(false);
     expect(load).not.toHaveBeenCalled();
   });
 
-  it('削除と全消去が一覧に反映される', async () => {
+  it('reflects a delete and a clear in the list', async () => {
     const first = await service.capture();
     await service.capture();
 
@@ -119,7 +119,7 @@ describe('RoomSnapshotService', () => {
     expect(service.snapshots()).toHaveLength(0);
   });
 
-  it('ストレージが使えない環境では保存も復元も行わない', async () => {
+  it('neither saves nor restores where there is no storage', async () => {
     store.available = false;
 
     await expect(service.capture()).resolves.toBeNull();

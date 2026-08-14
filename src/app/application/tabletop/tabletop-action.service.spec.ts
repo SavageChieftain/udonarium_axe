@@ -37,7 +37,7 @@ describe('TabletopActionService', () => {
       for (const image of ImageStorage.instance.images) ImageStorage.instance.delete(image.identifier);
     });
 
-    it('タグの画像 1 枚につきカード 1 枚の山札を作ること', () => {
+    it('builds a deck with one card per tagged image', () => {
       taggedImage('test://deck/dragon.png', 'ドラゴン.png', 'デッキA');
       taggedImage('test://deck/mage.png', '魔道士.png', 'デッキA');
       taggedImage('test://deck/other.png', 'よそのカード.png', 'デッキB');
@@ -50,7 +50,7 @@ describe('TabletopActionService', () => {
       expect(stack!.name).toBe('デッキA');
     });
 
-    it('画像名を使わない指定では既定のカード名になること', () => {
+    it('names the cards by default when the image names are not wanted', () => {
       taggedImage('test://deck/knight.png', '騎士.png', 'デッキC');
 
       const stack = service.createDeckFromTag(position, 'デッキC', false);
@@ -58,7 +58,7 @@ describe('TabletopActionService', () => {
       expect(stack!.cards[0].name).not.toBe('騎士');
     });
 
-    it('該当する画像が無ければ山札を作らないこと', () => {
+    it('builds no deck when no image matches', () => {
       expect(service.createDeckFromTag(position, '空のタグ', true)).toBeNull();
     });
   });

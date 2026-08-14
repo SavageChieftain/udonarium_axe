@@ -14,7 +14,7 @@ export class CardFlipCutInService {
     return this.objectStore.getObjects<CutIn>(CutIn);
   }
 
-  /** 1 枚を表にしたときだけ呼ぶ。一括操作では鳴らさない。 */
+  /** Only for turning a single card face up; a bulk action stays silent. */
   playFor(card: Card): boolean {
     const cutIn = resolveFlipCutIn(card, this.cutIns());
     if (!cutIn) return false;

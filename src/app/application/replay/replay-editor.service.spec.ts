@@ -137,31 +137,31 @@ describe('ReplayEditorService', () => {
     service.begin(events);
   });
 
-  it('編集を始めた直後は手つかずであること', () => {
+  it('starts out untouched', () => {
     expect(service.isEditing()).toBe(true);
     expect(service.isDirty()).toBe(false);
     expect(service.edited().map((e) => e.seq)).toEqual([1, 2, 3, 4]);
   });
 
-  it('消したことを覚えていること', () => {
+  it('remembers what was deleted', () => {
     service.remove(2);
     expect(service.edited().map((e) => e.seq)).toEqual([1, 3, 4]);
     expect(service.isDirty()).toBe(true);
   });
 
-  it('並べ替えたことを覚えていること', () => {
+  it('remembers what was reordered', () => {
     service.move(3, -1);
     expect(service.edited().map((e) => e.seq)).toEqual([1, 3, 2, 4]);
     expect(service.isDirty()).toBe(true);
   });
 
-  it('台詞を書き直せること', () => {
+  it('can rewrite a line', () => {
     service.retext(1, 'あらためて');
     expect(service.edited()[0].detail['text']).toBe('あらためて');
     expect(service.isDirty()).toBe(true);
   });
 
-  it('好きな位置に行を差し込めること', () => {
+  it('can insert a line anywhere', () => {
     service.insert(2, {
       kind: ReplayEventKind.ChatMessage,
       actorId: 'gm',
@@ -177,7 +177,7 @@ describe('ReplayEditorService', () => {
     expect(service.isDirty()).toBe(true);
   });
 
-  it('差し込んだ行の時刻を前後の間に置くこと', () => {
+  it('stamps an inserted line between its neighbours', () => {
     service.insert(2, {
       kind: ReplayEventKind.ChatMessage,
       actorId: 'gm',
@@ -188,7 +188,7 @@ describe('ReplayEditorService', () => {
     expect(service.edited()[2].at).toBe(1_002_500);
   });
 
-  it('差し込んだ行を見分けられること', () => {
+  it('can tell an inserted line apart', () => {
     service.insert(0, {
       kind: ReplayEventKind.Marker,
       actorId: 'gm',
@@ -200,7 +200,7 @@ describe('ReplayEditorService', () => {
     expect(service.isInserted(service.edited()[1].seq)).toBe(false);
   });
 
-  it('差し込んだ行を保存に含めること', async () => {
+  it('keeps an inserted line when saving', async () => {
     service.insert(0, {
       kind: ReplayEventKind.Marker,
       actorId: 'gm',
@@ -216,7 +216,7 @@ describe('ReplayEditorService', () => {
     expect(saved.map((e) => e.seq)).toEqual([1, 2, 3, 4, 5]);
   });
 
-  it('差し込んだ行を消して元に戻せること', () => {
+  it('can delete an inserted line again', () => {
     service.insert(0, {
       kind: ReplayEventKind.Marker,
       actorId: 'gm',
@@ -229,14 +229,14 @@ describe('ReplayEditorService', () => {
     expect(service.isDirty()).toBe(false);
   });
 
-  it('やり直しで元に戻せること', () => {
+  it('can put everything back', () => {
     service.remove(2);
     service.revert();
     expect(service.edited().map((e) => e.seq)).toEqual([1, 2, 3, 4]);
     expect(service.isDirty()).toBe(false);
   });
 
-  it('一手ずつ取り消せること', () => {
+  it('undoes one step at a time', () => {
     service.remove(2);
     service.remove(3);
     expect(service.edited().map((e) => e.seq)).toEqual([1, 4]);
@@ -249,13 +249,13 @@ describe('ReplayEditorService', () => {
     expect(service.isDirty()).toBe(false);
   });
 
-  it('取り消せる手が無ければ何もしないこと', () => {
+  it('does nothing with nothing to undo', () => {
     expect(service.canUndo()).toBe(false);
     service.undo();
     expect(service.edited().map((e) => e.seq)).toEqual([1, 2, 3, 4]);
   });
 
-  it('全部戻したことも取り消せること', () => {
+  it('can undo putting everything back', () => {
     service.remove(2);
     service.revert();
     expect(service.edited().map((e) => e.seq)).toEqual([1, 2, 3, 4]);
@@ -264,7 +264,7 @@ describe('ReplayEditorService', () => {
     expect(service.edited().map((e) => e.seq)).toEqual([1, 3, 4]);
   });
 
-  it('差し込み・並べ替え・書き直しも取り消せること', () => {
+  it('undoes an insert, a reorder and a rewrite alike', () => {
     service.insert(0, { kind: ReplayEventKind.Marker, actorId: 'gm', speaker: '', text: '幕', tabIdentifier: '' });
     service.move(1, 1);
     service.retext(1, '書き直し');
@@ -277,20 +277,20 @@ describe('ReplayEditorService', () => {
     expect(service.canUndo()).toBe(false);
   });
 
-  it('編集を始め直すと履歴を捨てること', () => {
+  it('throws the history away when editing starts again', () => {
     service.remove(2);
     service.begin(events);
     expect(service.canUndo()).toBe(false);
   });
 
-  it('取りやめで編集を畳むこと', () => {
+  it('folds the editing away on cancel', () => {
     service.remove(2);
     service.cancel();
     expect(service.isEditing()).toBe(false);
     expect(service.isDirty()).toBe(false);
   });
 
-  it('別の記録として保存し、元の記録に触れないこと', async () => {
+  it('saves as a separate recording and leaves the original alone', async () => {
     service.remove(2);
     const id = await service.saveAsDerived(manifest, base);
     expect(id).toBe(1);
@@ -300,7 +300,7 @@ describe('ReplayEditorService', () => {
     expect(events.map((e) => e.seq)).toEqual([1, 2, 3, 4]);
   });
 
-  it('保存した記録の番号を振り直すこと', async () => {
+  it('renumbers the recording it saves', async () => {
     service.remove(2);
     const id = await service.saveAsDerived(manifest, base);
     const saved = decodeReplayEvents((await store.listChunks(id!))[0].bytes);
@@ -308,14 +308,14 @@ describe('ReplayEditorService', () => {
     expect(saved[0].t).toBe(0);
   });
 
-  it('どこから派生したかを目録に残すこと', async () => {
+  it('notes in the manifest where it came from', async () => {
     service.remove(2);
     const id = await service.saveAsDerived(manifest, base);
     const saved = decodeReplayManifest((await store.getManifest(id!))!);
     expect(saved?.derivedFrom).toEqual({ roomName: '第一夜', startedAt: 1_000_000 });
   });
 
-  it('編集後の並びに合う盤面をキーフレームとして書くこと', async () => {
+  it('writes a keyframe matching the edited order', async () => {
     service.remove(2);
     const id = await service.saveAsDerived(manifest, base);
     const keyframes = await store.listKeyframes(id!);
@@ -325,12 +325,12 @@ describe('ReplayEditorService', () => {
     expect(start[0].syncData).toEqual({ attributes: { location: { x: 0, y: 0 } } });
   });
 
-  it('空になった編集は保存しないこと', async () => {
+  it('saves nothing when the edit empties the recording', async () => {
     for (const event of events) service.remove(event.seq);
     expect(await service.saveAsDerived(manifest, base)).toBeNull();
   });
 
-  it('保存すると手つかずの状態に戻ること', async () => {
+  it('returns to untouched once saved', async () => {
     service.remove(2);
     await service.saveAsDerived(manifest, base);
     expect(service.isDirty()).toBe(false);

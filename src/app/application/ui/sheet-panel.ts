@@ -1,17 +1,17 @@
 /**
- * シートの窓の見出し。
+ * The title of a sheet window.
  *
- * 名前の付いていない駒もあるので、あるときだけ添える。
+ * Some pieces have no name, so it is only added when there is one.
  */
 export function sheetPanelTitle(label: string, name: string): string {
   return name.length > 0 ? `${label} - ${name}` : label;
 }
 
 /**
- * シートの窓の置き場所。つまんだところを中心に開く。
+ * Where a sheet window sits: centred on the point that was grabbed.
  *
- * 端に寄せると、窓が指した物そのものを覆う。中心なら物は窓の下にあり、
- * 動かせば見える位置関係になる。
+ * Set to one side, the window covers the very thing it belongs to. Centred, the object sits
+ * beneath it and comes back into view as soon as the window is moved.
  */
 export function sheetPanelBox(
   at: { x: number; y: number },

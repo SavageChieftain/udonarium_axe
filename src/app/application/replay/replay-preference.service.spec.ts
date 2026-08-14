@@ -9,13 +9,13 @@ import { ReplayDetailLevel } from '@axe/domain/replay/replay-event';
 const STORAGE_KEY = 'axe-replay-preference';
 
 describe('parseReplayPreference()', () => {
-  it('保存が無ければ標準にすること', () => {
+  it('starts at the standard setting with nothing saved', () => {
     expect(parseReplayPreference(null)).toEqual(DEFAULT_REPLAY_PREFERENCE);
-    // 既定では本数を決めない＝古い記録を勝手に消さない。
+    // By default there is no limit, so nothing old is deleted unasked.
     expect(DEFAULT_REPLAY_PREFERENCE).toEqual({ detailLevel: ReplayDetailLevel.Notable, keepCount: null });
   });
 
-  it('保存された選択を読むこと', () => {
+  it('reads the saved choice', () => {
     expect(parseReplayPreference('{"detailLevel":"full"}')).toEqual({
       detailLevel: ReplayDetailLevel.Full,
       keepCount: null,
@@ -27,16 +27,16 @@ describe('parseReplayPreference()', () => {
     expect(parseReplayPreference('{"keepCount":0}').keepCount).toBeNull();
   });
 
-  it('壊れた保存値は既定に倒すこと', () => {
+  it('falls back to the default for a broken value', () => {
     expect(parseReplayPreference('{')).toEqual(DEFAULT_REPLAY_PREFERENCE);
     expect(parseReplayPreference('null')).toEqual(DEFAULT_REPLAY_PREFERENCE);
   });
 
-  it('知らない値は既定に倒すこと', () => {
+  it('falls back to the default for a value it does not know', () => {
     expect(parseReplayPreference('{"detailLevel":"everything"}')).toEqual(DEFAULT_REPLAY_PREFERENCE);
   });
 
-  it('欠けている項目だけ既定で埋めること', () => {
+  it('fills in only the missing entries', () => {
     expect(parseReplayPreference('{}')).toEqual(DEFAULT_REPLAY_PREFERENCE);
   });
 });
@@ -51,11 +51,11 @@ describe('ReplayPreferenceService', () => {
     localStorage.removeItem(STORAGE_KEY);
   });
 
-  it('既定は標準であること', () => {
+  it('starts at the standard setting', () => {
     expect(TestBed.inject(ReplayPreferenceService).detailLevel()).toBe(ReplayDetailLevel.Notable);
   });
 
-  it('選んだ細かさを次の卓へ持ち越すこと', () => {
+  it('carries the chosen detail level to the next session', () => {
     TestBed.inject(ReplayPreferenceService).setDetailLevel(ReplayDetailLevel.Full);
 
     TestBed.resetTestingModule();

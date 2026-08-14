@@ -37,7 +37,7 @@ import { TableSelecter } from '@axe/domain/tabletop/table-selecter';
 import { Terrain } from '@axe/domain/tabletop/terrain';
 import { TextNote } from '@axe/domain/tabletop/text-note';
 
-/** 環境エフェクトの初期の一辺(マス)。1 マスだと沼に見えないので、置いた時点で広さを持たせる。 */
+/** How wide an ambient effect starts, in cells. One cell reads as nothing, so it arrives with some ground under it. */
 const AMBIENCE_DEFAULT_SIZE = 4;
 
 @Injectable({

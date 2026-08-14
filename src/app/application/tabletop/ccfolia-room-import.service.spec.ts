@@ -55,7 +55,7 @@ describe('CcfoliaRoomImportService', () => {
     return ObjectStore.instance.getObjects<GameTable>(GameTable);
   }
 
-  it('場面が無いルームはテーブルを 1 枚だけ作る', async () => {
+  it('makes a single table for a room with no scenes', async () => {
     const before = tables().length;
 
     const result = await service.importAsync(entriesOf(roomData(), ['bg.jpeg']));
@@ -70,7 +70,7 @@ describe('CcfoliaRoomImportService', () => {
     expect(result.summary!.tableName).toBe(table.name);
   });
 
-  it('前景を盤面の絵、背景を周囲の壁紙として割り当てる', async () => {
+  it('takes the foreground as the board image and the background as the wallpaper around it', async () => {
     const data = roomData();
     (data['entities'] as Record<string, unknown>)['room'] = {
       backgroundUrl: 'bg.jpeg',
@@ -86,7 +86,7 @@ describe('CcfoliaRoomImportService', () => {
     expect(table.backgroundImageIdentifier).toBe('image-1');
   });
 
-  it('盤面サイズが無いルームは既定の広さで作る', async () => {
+  it('falls back to the default size for a room that gives none', async () => {
     const data = roomData();
     (data['entities'] as Record<string, unknown>)['room'] = { backgroundUrl: null };
 
@@ -97,7 +97,7 @@ describe('CcfoliaRoomImportService', () => {
     expect(table.height).toBe(20);
   });
 
-  it('items を地形パネルとしてテーブルに載せる', async () => {
+  it('puts the items on the table as terrain panels', async () => {
     const result = await service.importAsync(
       entriesOf(
         roomData({
@@ -135,7 +135,7 @@ describe('CcfoliaRoomImportService', () => {
     expect(result.summary!.panelCount).toBe(1);
   });
 
-  it('非表示のパネルは取り込まず件数だけ返す', async () => {
+  it('counts a hidden panel without importing it', async () => {
     const result = await service.importAsync(
       entriesOf(
         roomData({
@@ -153,7 +153,7 @@ describe('CcfoliaRoomImportService', () => {
     expect(result.summary!.hiddenPanelCount).toBe(1);
   });
 
-  it('characters をコマとして配置し、立ち絵差分を画像に加える', async () => {
+  it('places the characters as pieces and keeps their alternate portraits', async () => {
     const before = ObjectStore.instance.getObjects<GameCharacter>(GameCharacter).length;
 
     const result = await service.importAsync(
@@ -190,7 +190,7 @@ describe('CcfoliaRoomImportService', () => {
     expect(result.summary!.pieceCount).toBe(1);
   });
 
-  it('場面ごとにテーブルを作り、パネルを全テーブルへ複製する', async () => {
+  it('makes a table per scene and copies the panels onto all of them', async () => {
     const before = tables().length;
     const data = roomData({
       items: {
@@ -221,7 +221,7 @@ describe('CcfoliaRoomImportService', () => {
     expect(result.summary!.panelCount).toBe(1);
   });
 
-  it('ルームの現在の前景と一致する場面のテーブルを表示する', async () => {
+  it('shows the table for the scene matching the current foreground', async () => {
     const data = roomData({
       scenes: {
         s1: { name: '前景なし', order: 0, backgroundUrl: 'bg.jpeg', foregroundUrl: null },
@@ -240,7 +240,7 @@ describe('CcfoliaRoomImportService', () => {
     expect(result.summary!.tableName).toBe('戦闘シート');
   });
 
-  it('盤外に置かれたパネルとコマをテーブルの外側のまま再現する', async () => {
+  it('keeps panels and pieces that sat off the board off it', async () => {
     await service.importAsync(
       entriesOf(
         roomData({
@@ -266,7 +266,7 @@ describe('CcfoliaRoomImportService', () => {
     expect(character.location.y).toBe(-200);
   });
 
-  it('未対応の要素の件数を結果に載せる', async () => {
+  it('reports how many elements it could not take', async () => {
     const result = await service.importAsync(
       entriesOf(roomData({ decks: { d1: {} }, effects: { e1: {}, e2: {} } }), ['bg.jpeg'])
     );
@@ -274,7 +274,7 @@ describe('CcfoliaRoomImportService', () => {
     expect(result.summary!.skipped).toEqual({ panels: 0, decks: 1, effects: 2 });
   });
 
-  it('ルームデータでない ZIP は unrecognized を返す', async () => {
+  it('reports a zip that is not room data as unrecognised', async () => {
     const before = tables().length;
 
     await expect(service.importAsync({})).resolves.toEqual({ summary: null, error: 'unrecognized' });
@@ -285,7 +285,7 @@ describe('CcfoliaRoomImportService', () => {
     expect(tables()).toHaveLength(before);
   });
 
-  it('壊れた __data.json でも例外を投げずに unrecognized を返す', async () => {
+  it('reports broken room data as unrecognised rather than throwing', async () => {
     const result = await service.importAsync({ '__data.json': new TextEncoder().encode('{ broken') });
 
     expect(result).toEqual({ summary: null, error: 'unrecognized' });

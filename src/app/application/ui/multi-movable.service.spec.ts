@@ -23,13 +23,13 @@ describe('MultiMovableService', () => {
     selection = TestBed.inject(SelectionSignalService);
   });
 
-  it('leader が選択集合に含まれない場合は beginDrag が false を返す', () => {
+  it('refuses to begin a drag when the leader is outside the selection', () => {
     const leader = makeMovable({ id: 'leader' });
     service.register(leader);
     expect(service.beginDrag(leader)).toBe(false);
   });
 
-  it('選択中の follower にも leader と同じ delta を適用する', () => {
+  it('moves every selected follower by the same delta as the leader', () => {
     const leader = makeMovable({ id: 'a', x: 100, y: 100 });
     const follower = makeMovable({ id: 'b', x: 200, y: 300 });
     service.register(leader);
@@ -46,7 +46,7 @@ describe('MultiMovableService', () => {
     expect(follower.posY).toBe(320);
   });
 
-  it('ロック中の follower はスキップする', () => {
+  it('skips a locked follower', () => {
     const leader = makeMovable({ id: 'a', x: 0, y: 0 });
     const locked = makeMovable({ id: 'b', x: 100, y: 100, isLock: true });
     const free = makeMovable({ id: 'c', x: 200, y: 200 });
@@ -66,7 +66,7 @@ describe('MultiMovableService', () => {
     expect(free.posY).toBe(240);
   });
 
-  it('endDrag 後は applyLeaderDelta が follower を動かさない', () => {
+  it('stops moving followers once the drag has ended', () => {
     const leader = makeMovable({ id: 'a' });
     const follower = makeMovable({ id: 'b' });
     service.register(leader);
@@ -81,7 +81,7 @@ describe('MultiMovableService', () => {
     expect(follower.posX).toBe(0);
   });
 
-  it('followerTabletopObjectsFor は drag 中の leader に対して follower の tabletopObject を返す', () => {
+  it('lists the follower objects for the leader being dragged', () => {
     const leader = makeMovable({ id: 'leader' });
     const f1 = makeMovable({ id: 'f1' });
     const f2 = makeMovable({ id: 'f2' });
@@ -95,7 +95,7 @@ describe('MultiMovableService', () => {
     expect(followers.map((o) => o.identifier)).toEqual(['f1', 'f2']);
   });
 
-  it('followerTabletopObjectsFor は別 leader / drag 終了後は空配列を返す', () => {
+  it('lists nothing for another leader or after the drag', () => {
     const leader = makeMovable({ id: 'leader' });
     const f1 = makeMovable({ id: 'f1' });
     service.register(leader);
@@ -108,7 +108,7 @@ describe('MultiMovableService', () => {
     expect(service.followerTabletopObjectsFor('leader')).toEqual([]);
   });
 
-  it('unregister された follower は追従しない', () => {
+  it('leaves an unregistered follower behind', () => {
     const leader = makeMovable({ id: 'a' });
     const follower = makeMovable({ id: 'b', x: 10, y: 10 });
     service.register(leader);

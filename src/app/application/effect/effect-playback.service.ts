@@ -16,7 +16,7 @@ export interface ActiveEffectCast {
 }
 
 const MAX_ACTIVE_CASTS = 12;
-/** 揺れと閃光の長さ。演出の尺とは別で、短く切り上げないと画面が酔う。 */
+/** How long the shake and the flash last. Separate from the effect's own length, and kept short or the screen turns queasy. */
 const SHAKE_MS = 340;
 
 @Injectable({ providedIn: 'root' })
@@ -30,8 +30,8 @@ export class EffectPlaybackService {
   readonly now = signal(0);
 
   /**
-   * 倒れたコマ自身に掛ける反応。identifier → 崩れ方。
-   * 周りに演出を出すだけでは倒れたことにならないので、コマ側へも合図を渡す。
+   * What happens to the piece that fell, keyed by identifier.
+   * An effect around it does not read as falling, so the piece is told as well.
    */
   readonly tokenReactions = computed<ReadonlyMap<string, DefeatReaction>>(() => {
     const reactions = new Map<string, DefeatReaction>();
@@ -43,15 +43,15 @@ export class EffectPlaybackService {
     return reactions;
   });
 
-  /** 画面の揺れの強さ。空なら揺らさない。 */
+  /** How hard the screen shakes. Empty means not at all. */
   private readonly _shake = signal<EffectShake>('');
   readonly shake = this._shake.asReadonly();
-  /** 画面を焼く閃光の色。空なら焼かない。 */
+  /** The colour of the flash. Empty means none. */
   private readonly _flash = signal('');
   readonly flash = this._flash.asReadonly();
   /**
-   * 置きっぱなしの演出を持っている呼び出し元。1 つでもあれば描画のループを止めない。
-   * 場と環境演出が別々に出入りするので、真偽値ひとつだと後から来たほうが前を消してしまう。
+   * Who is holding a standing effect. One is enough to keep the draw loop running.
+   * Fields and ambience come and go separately, so a single flag would let the later one cancel the earlier.
    */
   private readonly _persistentSources = signal<ReadonlySet<string>>(new Set());
   private shakeTimer: ReturnType<typeof setTimeout> | null = null;
@@ -102,15 +102,15 @@ export class EffectPlaybackService {
   }
 
   /**
-   * 画面を揺らす・焼く。
-   * 続けて撃たれたら強いほうを採り、時間だけ延ばす（掛け直すと止まって見える）。
+   * Shakes the screen, or burns it white.
+   * Two in a row take the stronger and only extend the time; restarting would read as a stall.
    */
   private startScreenShake(preset: EffectPreset): void {
     const shake = effectShakeOf(preset);
     const flash = effectFlashColor(preset);
     if (shake.length < 1 && flash.length < 1) return;
 
-    // 当たるのが後の演出は、当たる瞬間まで待って揺らす。
+    // An effect that lands later waits until it lands before shaking.
     const delay = effectShakeDelay(preset);
     if (delay > 0) {
       const timer = setTimeout(() => {
@@ -135,7 +135,7 @@ export class EffectPlaybackService {
     }, SHAKE_MS);
   }
 
-  /** 発射音は撃つたびに鳴らす。連射で 1 回しか鳴らないと、弾数が耳に伝わらない。 */
+  /** Every shot sounds. One sound for a burst would hide how many there were. */
   private scheduleLaunchSound(preset: EffectPreset): void {
     for (const delay of launchSoundTimes(preset)) {
       if (delay <= 0) {
@@ -150,7 +150,7 @@ export class EffectPlaybackService {
     }
   }
 
-  /** 着弾音は当たった瞬間に鳴らす。発射と同時に鳴らすと当たった感じが出ない。 */
+  /** The impact sounds when it lands; sounding at the shot would not read as a hit. */
   private scheduleImpactSound(preset: EffectPreset): void {
     for (const delay of impactSoundTimes(preset)) {
       const timer = setTimeout(() => {
@@ -190,7 +190,7 @@ function clock(): number {
   return typeof performance === 'object' ? performance.now() : Date.now();
 }
 
-/** OS の「視差効果を減らす」。演出を描かず SE だけにする判断に使う。 */
+/** The system's reduced-motion setting, used to decide on sound without the animation. */
 export function prefersReducedMotion(): boolean {
   if (typeof matchMedia !== 'function') return false;
   return matchMedia('(prefers-reduced-motion: reduce)').matches;

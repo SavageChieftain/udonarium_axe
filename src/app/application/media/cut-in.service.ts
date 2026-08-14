@@ -44,7 +44,7 @@ export class CutInService {
     }
   }
 
-  /** カットインを全員に流す。チャット起動と同じ BGM の扱いを共有する。 */
+  /** Plays a cut-in for everyone, handling the music the same way a chat-started one does. */
   launch(cutIn: CutIn, sendTo = ''): boolean {
     const launcher = this.objectStore.get<CutInLauncher>('CutInLauncher');
     if (!launcher) return false;

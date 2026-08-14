@@ -24,19 +24,19 @@ describe('ActiveChatTabService', () => {
     ObjectStore.instance.clearDeleteHistory();
   });
 
-  it('窓を開くまでは行き先を持たないこと', () => {
+  it('has nowhere to report until a window is open', () => {
     expect(service.current()).toBeNull();
   });
 
-  it('伝えられたタブを返すこと', () => {
+  it('returns the tab it was told about', () => {
     const tab = makeTab('雑談');
     service.set(tab.identifier);
 
     expect(service.current()).toBe(tab);
   });
 
-  it('見ていたタブが消えたら行き先なしに戻ること', () => {
-    // 別のタブで埋めると、消えた側に出していたつもりの発言が紛れる。
+  it('goes back to having nowhere to report when that tab is gone', () => {
+    // Substituting another tab would scatter lines meant for the one that vanished.
     const tab = makeTab('雑談');
     makeTab('メイン');
     service.set(tab.identifier);

@@ -43,7 +43,7 @@ describe('CutInService.activateFromChatText()', () => {
     return cutIn;
   }
 
-  it('テキスト末尾のワードが cutIn.name と一致すると startCutIn が呼ばれる', () => {
+  it('starts a cut-in when the last word of the line matches its name', () => {
     const cutIn = makeCutIn('炎の剣');
     const spy = vi.spyOn(launcher, 'startCutIn');
 
@@ -52,7 +52,7 @@ describe('CutInService.activateFromChatText()', () => {
     expect(spy).toHaveBeenCalledWith(cutIn, '');
   });
 
-  it('chatActivate=false のカットインにはマッチしない', () => {
+  it('ignores a cut-in that chat is not allowed to start', () => {
     const cutIn = makeCutIn('攻撃');
     cutIn.chatActivate = false;
     const spy = vi.spyOn(launcher, 'startCutIn');
@@ -62,7 +62,7 @@ describe('CutInService.activateFromChatText()', () => {
     expect(spy).not.toHaveBeenCalled();
   });
 
-  it('無タグで音声付きのカットインの場合 jukebox.stop() が呼ばれる', () => {
+  it('stops the jukebox for an untagged cut-in that carries sound', () => {
     const stopSpy = vi.spyOn(jukebox, 'stop').mockImplementation(() => {});
     AudioStorage.instance.add(AudioFile.createEmpty('cutin-audio-01'));
     makeCutIn('BGM停止', { audioIdentifier: 'cutin-audio-01', tagName: '' });
@@ -73,7 +73,7 @@ describe('CutInService.activateFromChatText()', () => {
     expect(stopSpy).toHaveBeenCalledOnce();
   });
 
-  it('@付きテキスト末尾のワードが name と一致すると startSoundOnlyCutIn が呼ばれる', () => {
+  it('starts a sound-only cut-in when the last word carries an at sign', () => {
     const cutIn = makeCutIn('爆発');
     const soundSpy = vi.spyOn(launcher, 'startSoundOnlyCutIn');
     const startSpy = vi.spyOn(launcher, 'startCutIn');
@@ -84,7 +84,7 @@ describe('CutInService.activateFromChatText()', () => {
     expect(startSpy).not.toHaveBeenCalled();
   });
 
-  it('@付きのとき jukebox.stop() は呼ばれない', () => {
+  it('leaves the jukebox alone for the at-sign form', () => {
     const stopSpy = vi.spyOn(jukebox, 'stop').mockImplementation(() => {});
     AudioStorage.instance.add(AudioFile.createEmpty('cutin-audio-02'));
     makeCutIn('爆音', { audioIdentifier: 'cutin-audio-02', tagName: '' });
@@ -95,7 +95,7 @@ describe('CutInService.activateFromChatText()', () => {
     expect(stopSpy).not.toHaveBeenCalled();
   });
 
-  it('@のみでは chatActivate カットインにマッチしない', () => {
+  it('matches nothing on an at sign alone', () => {
     const cutIn = makeCutIn('');
     const soundSpy = vi.spyOn(launcher, 'startSoundOnlyCutIn');
     const startSpy = vi.spyOn(launcher, 'startCutIn');

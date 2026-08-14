@@ -49,12 +49,12 @@ function setupOpenMocks(initialChildState?: Partial<PanelService>) {
 }
 
 describe('PanelService', () => {
-  it('初期状態では isShow=false であること', () => {
+  it('starts hidden', () => {
     const { service } = setupOpenMocks();
     expect(service.isShow).toBe(false);
   });
 
-  it('open: option の 0 / false / 空文字を正しく適用する', () => {
+  it('applies zero, false and empty string from the options', () => {
     const { service, childPanelService, parentViewContainerRef, setInput, bodyInstance } = setupOpenMocks({
       title: 'old-title',
       top: 999,
@@ -102,7 +102,7 @@ describe('PanelService', () => {
     expect(setInput).toHaveBeenCalledWith('minHeight', 0);
   });
 
-  it('open: parentViewContainerRef 未指定時は defaultParentViewContainerRef を使う', () => {
+  it('falls back to the default container when none is given', () => {
     const { service, childPanelService, setInput, bodyInstance, parentViewContainerRef } = setupOpenMocks();
 
     PanelService.defaultParentViewContainerRef = parentViewContainerRef;
@@ -116,7 +116,7 @@ describe('PanelService', () => {
     expect(setInput).toHaveBeenCalledWith('height', 240);
   });
 
-  it('close: 生成された childPanelService から panel を destroy できる', () => {
+  it('destroys the panel through the child service that made it', () => {
     const { service, childPanelService, parentViewContainerRef, destroy } = setupOpenMocks();
 
     service.open(DummyBodyComponent, undefined, parentViewContainerRef);
@@ -125,7 +125,7 @@ describe('PanelService', () => {
     expect(destroy).toHaveBeenCalledTimes(1);
   });
 
-  it('open: 登録した onDestroy で childPanelService の panelComponentRef をクリアする', () => {
+  it('clears the child service reference from the destroy hook', () => {
     const { service, childPanelService, parentViewContainerRef, runDestroyCallback } = setupOpenMocks();
 
     service.open(DummyBodyComponent, undefined, parentViewContainerRef);
@@ -135,7 +135,7 @@ describe('PanelService', () => {
     expect(childPanelService.isShow).toBe(false);
   });
 
-  it('close: panel 未生成でも例外を投げず、複数回呼べること', () => {
+  it('closes safely and repeatedly even with no panel', () => {
     const { service, childPanelService, parentViewContainerRef, destroy } = setupOpenMocks();
 
     expect(() => service.close()).not.toThrow();
@@ -161,7 +161,7 @@ describe('PanelService', () => {
       Object.defineProperty(window, 'innerHeight', { value: originalInnerHeight, configurable: true });
     });
 
-    it('ビューポート内の位置はそのまま', () => {
+    it('leaves a position inside the viewport alone', () => {
       const fallback = new PanelService();
       const adjusted = PanelService.clampPanelOptionToViewport(
         { left: 100, top: 50, width: 400, height: 300 },
@@ -171,7 +171,7 @@ describe('PanelService', () => {
       expect(adjusted.top).toBe(50);
     });
 
-    it('上方向にはみ出る (top<0) なら 0 にクランプ', () => {
+    it('clamps a panel above the viewport to the top edge', () => {
       const fallback = new PanelService();
       const adjusted = PanelService.clampPanelOptionToViewport(
         { left: 200, top: -100, width: 400, height: 300 },
@@ -180,7 +180,7 @@ describe('PanelService', () => {
       expect(adjusted.top).toBe(0);
     });
 
-    it('下方向にはみ出る (top + height > viewport) なら viewport - height にクランプ', () => {
+    it('clamps a panel below the viewport to the bottom edge', () => {
       const fallback = new PanelService();
       const adjusted = PanelService.clampPanelOptionToViewport(
         { left: 200, top: 600, width: 400, height: 300 },
@@ -190,7 +190,7 @@ describe('PanelService', () => {
       expect(adjusted.top).toBe(420);
     });
 
-    it('右方向にはみ出る (left + width > viewport) なら viewport - width にクランプ', () => {
+    it('clamps a panel past the right edge back inside', () => {
       const fallback = new PanelService();
       const adjusted = PanelService.clampPanelOptionToViewport(
         { left: 1100, top: 100, width: 400, height: 300 },
@@ -200,7 +200,7 @@ describe('PanelService', () => {
       expect(adjusted.left).toBe(880);
     });
 
-    it('パネルがビューポートより大きい場合は左/上端 (0) に寄せる', () => {
+    it('pins a panel larger than the viewport to the top left', () => {
       const fallback = new PanelService();
       const adjusted = PanelService.clampPanelOptionToViewport(
         { left: 100, top: 100, width: 2000, height: 1500 },
@@ -210,7 +210,7 @@ describe('PanelService', () => {
       expect(adjusted.top).toBe(0);
     });
 
-    it('left/top 未指定なら何もしない', () => {
+    it('does nothing without a position', () => {
       const fallback = new PanelService();
       const adjusted = PanelService.clampPanelOptionToViewport({ width: 400, height: 300 }, fallback);
       expect(adjusted.left).toBeUndefined();

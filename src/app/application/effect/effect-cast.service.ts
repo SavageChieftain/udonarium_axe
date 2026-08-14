@@ -15,7 +15,7 @@ export class EffectCastService {
   private readonly selectionSignalService = inject(SelectionSignalService);
   private readonly playbackService = inject(EffectPlaybackService);
 
-  /** 発動対象の候補。ターゲット指定が優先で、無ければ選択中のコマ。 */
+  /** Who the effect is for: the named targets, or the selected pieces when there are none. */
   candidateTargets(): GameCharacter[] {
     const targeted = this.tabletopService.characters.filter(
       (character) => character.isVisibleOnTable && character.targeted
@@ -27,21 +27,21 @@ export class EffectCastService {
     return this.candidateTargets().slice(0, preset.targetLimit);
   }
 
-  /** 飛翔体の発射元。ターゲット指定に含まれていない「選択中のコマ」を撃ち手とみなす。 */
+  /** Where a projectile starts: a selected piece that is not among the targets counts as the shooter. */
   resolveCaster(targets: readonly GameCharacter[]): GameCharacter | null {
     const [selected] = this.selectedCharacters();
     return this.casterOutsideTargets(selected ?? null, targets);
   }
 
-  /** 自分自身へ撃たせない。撃ち手が対象に含まれていたら発射元なしとして扱う。 */
+  /** Nobody shoots themselves: a shooter among the targets means no shooter at all. */
   private casterOutsideTargets(caster: GameCharacter | null, targets: readonly GameCharacter[]): GameCharacter | null {
     if (!caster) return null;
     return targets.some((target) => target.identifier === caster.identifier) ? null : caster;
   }
 
   /**
-   * 発動する。撃ち手を明示できるのは、対象選択中に選択が対象側へ移ってしまうため。
-   * 省略したときだけ選択中のコマから割り出す。
+   * Casts. The shooter can be named because choosing targets moves the selection onto them.
+   * Left out, it is worked out from the selection.
    */
   fire(
     preset: EffectPreset,
@@ -58,8 +58,8 @@ export class EffectCastService {
   }
 
   /**
-   * コマから発動する。ターゲット指定があればそちらへ撃ち、無ければ自分にかける。
-   * キャラクターシートに登録した演出やコマの右クリックから使う。
+   * Casts from a piece: at its targets if it has any, on itself if not.
+   * Used from the effects on a character sheet and from a piece's own menu.
    */
   fireFromCharacter(preset: EffectPreset, caster: GameCharacter): EffectCast | null {
     const targets = this.candidateTargets()
@@ -70,8 +70,8 @@ export class EffectCastService {
   }
 
   /**
-   * 自分の画面だけで試し撃ちする。編集中の見た目を確かめるためのもので、
-   * 他のピアへは送らないし SE も自分にしか鳴らない。
+   * Fires on this screen alone, to see what an effect being edited looks like.
+   * Nothing is broadcast and the sound plays only here.
    */
   preview(preset: EffectPreset): EffectCast | null {
     const targets = this.resolveTargets(preset);

@@ -5,9 +5,9 @@ import { GameCharacter } from '@axe/domain/character/game-character';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
 
 /**
- * インベントリからテーブルへのコマ移動時の反応性テスト。
- * setLocation('table') を呼んだとき、collectionOf('character') シグナルが
- * インクリメントされ、characters リストに反映されることを確認する。
+ * Reactivity when a piece moves from an inventory onto the table.
+ * Setting the location to the table must bump the character collection signal
+ * so the list of characters follows.
  */
 describe('TabletopService - location change reactivity', () => {
   beforeEach(() => {
@@ -16,62 +16,62 @@ describe('TabletopService - location change reactivity', () => {
     });
   });
 
-  it('setLocation("table") で collectionOf("character") シグナルがインクリメントされる', async () => {
+  it('bumps the character collection when a piece moves onto the table', async () => {
     const service = TestBed.inject(TabletopService);
     const objectChange = TestBed.inject(ObjectChangeService);
 
-    // 'common' のキャラクターを作成
+    // make a character in the shared area
     const character = new GameCharacter();
     character.location.name = 'common';
     character.initialize();
 
-    // objectAdded$ による初期インクリメントを待つ
+    // wait for the bump the addition itself causes
     await new Promise((r) => setTimeout(r, 10));
     const vAfterAdd = objectChange.collectionOf('character')();
 
-    // テーブルに表示されていないことを確認
+    // confirm it is not on the table yet
     expect(service.characters).not.toContain(character);
 
-    // テーブルに移動（setLocation 内部で markForChanged が呼ばれる）
+    // move it onto the table, which marks it changed
     character.setLocation('table');
     await new Promise((r) => setTimeout(r, 10));
 
     const vAfterMove = objectChange.collectionOf('character')();
 
-    // collectionOf('character') がインクリメントされている必要がある
+    // the character collection must have bumped
     expect(vAfterMove).toBeGreaterThan(vAfterAdd);
 
-    // characters リストにキャラクターが含まれている必要がある
+    // and the list must now hold the character
     expect(service.characters).toContain(character);
   });
 
-  it('setLocation("common") でテーブルから消える', async () => {
+  it('drops a piece from the table when it moves to the shared area', async () => {
     const service = TestBed.inject(TabletopService);
     const objectChange = TestBed.inject(ObjectChangeService);
 
-    // テーブル上のキャラクターを作成
+    // make a character on the table
     const character = new GameCharacter();
     character.location.name = 'table';
     character.initialize();
 
-    // objectAdded$ による初期インクリメントを待つ
+    // wait for the bump the addition itself causes
     await new Promise((r) => setTimeout(r, 10));
 
-    // テーブルに表示されていることを確認
+    // confirm it is on the table
     expect(service.characters).toContain(character);
 
     const vBeforeRemove = objectChange.collectionOf('character')();
 
-    // 共有に移動（setLocation 内部で markForChanged が呼ばれる）
+    // move it to the shared area, which marks it changed
     character.setLocation('common');
     await new Promise((r) => setTimeout(r, 10));
 
     const vAfterRemove = objectChange.collectionOf('character')();
 
-    // collectionOf がインクリメントされている
+    // the collection has bumped
     expect(vAfterRemove).toBeGreaterThan(vBeforeRemove);
 
-    // characters リストから除外されている
+    // and the list no longer holds it
     expect(service.characters).not.toContain(character);
   });
 });

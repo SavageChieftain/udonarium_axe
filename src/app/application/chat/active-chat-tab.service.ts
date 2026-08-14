@@ -3,26 +3,26 @@ import { ObjectStore } from '@axe/core/sync/object-store';
 import { ChatTab } from '@axe/domain/chat/chat-tab';
 
 /**
- * いま見ているチャットのタブ。
+ * The chat tab being read.
  *
- * 卓の上で振った結果は、卓から見ればどのタブの出来事でもない。それでも
- * 読み手は自分が開いているタブを見ているので、結果はそこへ出す。
+ * Something thrown on the table belongs to no tab as far as the table is concerned. The
+ * reader is looking at their own tab, though, so that is where the result goes.
  */
 @Injectable({ providedIn: 'root' })
 export class ActiveChatTabService {
   private readonly objectStore = inject(ObjectStore);
   private readonly identifier = signal('');
 
-  /** チャット窓がタブを切り替えるたびに伝えてくる。 */
+  /** The chat window reports every time it changes tab. */
   set(identifier: string): void {
     this.identifier.set(identifier);
   }
 
   /**
-   * 見ているタブ。まだ窓を開いていない、あるいはそのタブが消えたなら null。
+   * The tab being read. Null with no window open yet, or once that tab is gone.
    *
-   * 行き先が無いことを黙って別のタブで埋めない。呼び出し側が、そのとき何が
-   * ふさわしいかを決める。
+   * Nowhere is not quietly filled in with another tab. The caller decides what suits
+   * the moment.
    */
   current(): ChatTab | null {
     const tab = this.objectStore.get<ChatTab>(this.identifier());

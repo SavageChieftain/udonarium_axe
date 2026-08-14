@@ -65,43 +65,43 @@ function makeCharacter(opts: {
 }
 
 describe('GravityService.topZ', () => {
-  it('地形の top は (altitude + height) * gridSize + posZ', () => {
+  it('the top of terrain is (altitude + height) * gridSize + posZ', () => {
     const entry = makeTerrain({ x: 0, y: 0, w: 1, d: 1, h: 2, altitude: 1, posZ: 25 });
     expect(GravityService.topZ(entry.object)).toBe((1 + 2) * 50 + 25);
   });
 
-  it('キャラクタの top は altitude * gridSize + posZ (height 寄与なし)', () => {
+  it('the top of a character is altitude * gridSize + posZ, with no height of its own', () => {
     const entry = makeCharacter({ x: 0, y: 0, altitude: 1, posZ: 10 });
     expect(GravityService.topZ(entry.object)).toBe(1 * 50 + 10);
   });
 });
 
 describe('GravityService.contactTopZ', () => {
-  it('床では topZ と同じ (altitude を含む)', () => {
+  it('on the floor it matches the top, altitude included', () => {
     const entry = makeTerrain({ x: 0, y: 0, w: 1, d: 1, h: 2, altitude: 1, posZ: 25 });
     expect(GravityService.contactTopZ(entry.object, 'floor')).toBe(GravityService.topZ(entry.object));
   });
 
-  it('壁では posZ + 地形の height のみ (altitude は不使用)', () => {
+  it('on a wall it is the offset plus the terrain height, with no altitude', () => {
     const entry = makeTerrain({ x: 0, y: 0, w: 1, d: 1, h: 2, altitude: 1, posZ: 25 });
     expect(GravityService.contactTopZ(entry.object, 'north-wall')).toBe(25 + 2 * 50);
   });
 
-  it('壁では地形以外は posZ のみ (奥行きなし)', () => {
+  it('on a wall anything but terrain is the offset alone, with no depth', () => {
     const entry = makeCharacter({ x: 0, y: 0, altitude: 1, posZ: 10 });
     expect(GravityService.contactTopZ(entry.object, 'east-wall')).toBe(10);
   });
 });
 
 describe('GravityService.findSupportZ', () => {
-  it('対象の中心が他オブジェクトの footprint 内にあれば topZ を支台として返す', () => {
+  it('supports an object whose centre falls within the footprint of another', () => {
     const base = makeTerrain({ x: 0, y: 0, w: 4, d: 4, h: 2, identifier: 'base' });
     const target = makeTerrain({ x: 50, y: 50, w: 1, d: 1, h: 1, identifier: 'target', posZ: 100 });
     const z = GravityService.findSupportZ(target, [base, target]);
     expect(z).toBe(2 * 50);
   });
 
-  it('複数の支台候補があれば最も高い topZ を採用する', () => {
+  it('takes the highest of several supports', () => {
     const low = makeTerrain({ x: 0, y: 0, w: 4, d: 4, h: 1, identifier: 'low' });
     const high = makeTerrain({ x: 0, y: 0, w: 4, d: 4, h: 3, identifier: 'high' });
     const target = makeTerrain({ x: 50, y: 50, w: 1, d: 1, h: 1, identifier: 'target', posZ: 200 });
@@ -109,30 +109,30 @@ describe('GravityService.findSupportZ', () => {
     expect(z).toBe(3 * 50);
   });
 
-  it('footprint がずれて中心が外なら支台候補に含めない', () => {
+  it('ignores a footprint the centre falls outside of', () => {
     const base = makeTerrain({ x: 0, y: 0, w: 1, d: 1, h: 2, identifier: 'base' });
     const target = makeTerrain({ x: 500, y: 500, w: 1, d: 1, h: 1, identifier: 'target', posZ: 100 });
     const z = GravityService.findSupportZ(target, [base, target]);
     expect(z).toBe(0);
   });
 
-  it('対象自身は支台候補にしない', () => {
+  it('never supports an object on itself', () => {
     const target = makeTerrain({ x: 0, y: 0, w: 1, d: 1, h: 2, identifier: 'target', posZ: 100 });
     const z = GravityService.findSupportZ(target, [target]);
     expect(z).toBe(0);
   });
 
-  it('自分より上にある候補は無視する (相互参照で打ち上がらない)', () => {
-    // A が B の上に乗っている: A は posZ=50 で B (height=1) の天面に着地済み
+  it('ignores anything above it, so two objects cannot lift each other', () => {
+    // A rests on B: A sits at 50, on top of B, which is one cell tall
     const lower = makeTerrain({ x: 0, y: 0, w: 1, d: 1, h: 1, identifier: 'lower', posZ: 0 });
     const upper = makeTerrain({ x: 0, y: 0, w: 1, d: 1, h: 1, identifier: 'upper', posZ: 50 });
-    // upper の支台は lower の天面 50
+    // the upper is supported at 50, the top of the lower
     expect(GravityService.findSupportZ(upper, [lower, upper])).toBe(50);
-    // lower の支台は地面 0 (upper は lower より上なので候補外)
+    // the lower is supported by the ground, since the upper is above it
     expect(GravityService.findSupportZ(lower, [lower, upper])).toBe(0);
   });
 
-  it('地面に同居する 2 つは互いに支台候補にしない', () => {
+  it('two objects side by side on the ground support neither', () => {
     const a = makeTerrain({ x: 0, y: 0, w: 1, d: 1, h: 1, identifier: 'a', posZ: 0 });
     const b = makeTerrain({ x: 0, y: 0, w: 1, d: 1, h: 1, identifier: 'b', posZ: 0 });
     expect(GravityService.findSupportZ(a, [a, b])).toBe(0);
@@ -141,23 +141,23 @@ describe('GravityService.findSupportZ', () => {
 });
 
 describe('GravityService.isAffectedByGravity', () => {
-  it('Terrain は対象', () => {
+  it('terrain counts', () => {
     const entry = makeTerrain({ x: 0, y: 0, w: 1, d: 1, h: 1 });
     expect(GravityService.isAffectedByGravity(entry.object)).toBe(true);
   });
 
-  it('GameCharacter は対象', () => {
+  it('a character counts', () => {
     const entry = makeCharacter({ x: 0, y: 0 });
     expect(GravityService.isAffectedByGravity(entry.object)).toBe(true);
   });
 
-  it('それ以外の TabletopObject は対象外', () => {
+  it('anything else on the table does not', () => {
     const obj = { identifier: 'x', altitude: 0, posZ: 0 } as unknown as TabletopObject;
     expect(GravityService.isAffectedByGravity(obj)).toBe(false);
   });
 });
 
-describe('GravityService.apply (空間インデックス経由)', () => {
+describe('applying gravity through the spatial index', () => {
   function setup(entries: TabletopOverlapRegistryEntry[]): GravityService {
     const overlap = TestBed.inject(TabletopOverlapService);
     for (const e of entries) overlap.register(e.object, e.element);
@@ -168,7 +168,7 @@ describe('GravityService.apply (空間インデックス経由)', () => {
     (svc as unknown as { apply(): void }).apply();
   }
 
-  it('空中のキャラクタは下にある地形の天面まで落下する', () => {
+  it('drops a character in the air onto the terrain below', () => {
     const base = makeTerrain({ x: 0, y: 0, w: 4, d: 4, h: 2, identifier: 'base' });
     const char = makeCharacter({ x: 50, y: 50, posZ: 300 });
     const svc = setup([base, char]);
@@ -178,7 +178,7 @@ describe('GravityService.apply (空間インデックス経由)', () => {
     expect(char.object.posZ).toBe(2 * 50);
   });
 
-  it('遠く離れた地形は支えにならない (空間インデックスが範囲外を弾く)', () => {
+  it('leaves distant terrain out, since the index never offers it', () => {
     const base = makeTerrain({ x: 0, y: 0, w: 1, d: 1, h: 2, identifier: 'base' });
     const char = makeCharacter({ x: 2000, y: 2000, posZ: 300 });
     const svc = setup([base, char]);
@@ -188,8 +188,8 @@ describe('GravityService.apply (空間インデックス経由)', () => {
     expect(char.object.posZ).toBe(0);
   });
 
-  it('多段スタックでも settling は収束する (再帰的な落下)', () => {
-    // base (h=1, top=50) の上に空中の terrain1 (h=1) を置き、その上に空中の char。
+  it('settles a stack several deep', () => {
+    // a floating terrain over a base one cell tall, and a floating character over that
     const base = makeTerrain({ x: 0, y: 0, w: 2, d: 2, h: 1, identifier: 'base' });
     const stack = makeTerrain({ x: 0, y: 0, w: 2, d: 2, h: 1, identifier: 'stack', posZ: 300 });
     const char = makeCharacter({ x: 25, y: 25, posZ: 500 });
@@ -197,12 +197,12 @@ describe('GravityService.apply (空間インデックス経由)', () => {
 
     applyNow(svc);
 
-    // stack は base の上 (50)、char は stack の上 (100)
+    // the stack lands at 50 and the character at 100
     expect(stack.object.posZ).toBe(50);
     expect(char.object.posZ).toBe(50 + 50);
   });
 
-  it('大量オブジェクト下でも reflow を強制しない (offsetWidth は apply 中に追加で読まれない)', () => {
+  it('forces no reflow under a crowd of objects', () => {
     const entries: TabletopOverlapRegistryEntry[] = [];
     const ROWS = 10;
     const COLS = 10;
@@ -211,13 +211,13 @@ describe('GravityService.apply (空間インデックス経由)', () => {
         entries.push(makeTerrain({ x: i * 60, y: j * 60, w: 1, d: 1, h: 1, identifier: `t_${i}_${j}` }));
       }
     }
-    // 1 つだけ空中に置く: 中心 (30,30) が terrain(0,0)-(50,50) の真上
+    // one floating object whose centre sits over the terrain
     const flying = makeCharacter({ x: 5, y: 5, posZ: 400 });
     entries.push(flying);
 
     const svc = setup(entries);
 
-    // apply 中に offsetWidth が何度読まれるかを計測 (キャッシュ後は追加読み出しが起きないことを期待)
+    // count the layout reads during one pass; the cache should mean no extra ones
     let postCacheReads = 0;
     const counted = new WeakSet<HTMLElement>();
     for (const e of entries) {
@@ -235,12 +235,12 @@ describe('GravityService.apply (空間インデックス経由)', () => {
 
     applyNow(svc);
 
-    // 各要素の offsetWidth 読み出しは apply 1 回につき 1 度だけ (キャッシュ構築時のみ)
+    // each element is measured once per pass, while the cache is built
     expect(postCacheReads).toBe(0);
     expect(flying.object.posZ).toBe(50);
   });
 
-  it('apply 後の microtask 排出が完了すれば再 schedule できる (applying 解除)', async () => {
+  it('can be scheduled again once the microtasks from the last pass have drained', async () => {
     const base = makeTerrain({ x: 0, y: 0, w: 1, d: 1, h: 1, identifier: 'base' });
     const char = makeCharacter({ x: 25, y: 25, posZ: 200 });
     const svc = setup([base, char]);
@@ -248,7 +248,7 @@ describe('GravityService.apply (空間インデックス経由)', () => {
     applyNow(svc);
     expect((svc as unknown as { applying: boolean }).applying).toBe(true);
 
-    // microtask drain を待つ — 実機の peer onmessage / pointerdown が走るタイミング
+    // wait for the drain, which is when a real message or pointer event would arrive
     await Promise.resolve();
     await Promise.resolve();
 
@@ -265,12 +265,12 @@ describe('GravityService.apply (空間インデックス経由)', () => {
     TestBed.inject(TabletopService).tableSelecter.viewTableIdentifier = table.identifier;
   }
 
-  it('壁から伸びた地形 (梁) の天面に床のキャラクターが着地する', () => {
+  it('lands a character on top of a beam reaching out from a wall', () => {
     selectTable({ width: 10, height: 10, wallHeight: 10 });
-    // 北壁の梁: 壁面 (x:100, 高さ位置 y:0) から法線方向 (室内) へ h=4 マス突き出す。
-    // ワールドでは x[100,200] y[0,200] z[450,500] のボックス、天面 z=500。
+    // a beam on the north wall reaching four cells into the room
+    // which occupies x[100,200] y[0,200] z[450,500], with its top at 500
     const beam = makeTerrain({ x: 100, y: 0, w: 2, d: 1, h: 4, identifier: 'beam', surface: 'north-wall' });
-    // 梁の真上 (中心 150,100) に浮いた床キャラ。
+    // a floating character directly over the beam
     const char = makeCharacter({ x: 125, y: 75, posZ: 700 });
     const svc = setup([beam, char]);
 
@@ -279,10 +279,10 @@ describe('GravityService.apply (空間インデックス経由)', () => {
     expect(char.object.posZ).toBe(500);
   });
 
-  it('梁のワールド範囲から外れた床キャラは梁に乗らない', () => {
+  it('leaves a character beyond the reach of the beam off it', () => {
     selectTable({ width: 10, height: 10, wallHeight: 10 });
     const beam = makeTerrain({ x: 100, y: 0, w: 2, d: 1, h: 4, identifier: 'beam', surface: 'north-wall' });
-    // 中心 (150, 425) は梁の footprint y[0,200] の外。
+    // the centre falls outside the beam's footprint
     const char = makeCharacter({ x: 125, y: 400, posZ: 700 });
     const svc = setup([beam, char]);
 
@@ -291,7 +291,7 @@ describe('GravityService.apply (空間インデックス経由)', () => {
     expect(char.object.posZ).toBe(0);
   });
 
-  it('壁の地形は重力対象でなく落下しない (床のみが落ちる)', () => {
+  it('leaves terrain on a wall where it is; only the floor pulls', () => {
     selectTable({ width: 10, height: 10, wallHeight: 10 });
     const beam = makeTerrain({ x: 100, y: 0, w: 2, d: 1, h: 4, identifier: 'beam', surface: 'north-wall', posZ: 120 });
     const svc = setup([beam]);

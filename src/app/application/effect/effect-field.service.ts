@@ -7,7 +7,7 @@ import { EffectCast } from '@axe/domain/effect/effect-cast';
 import { EffectField } from '@axe/domain/effect/effect-field';
 import { EffectPreset } from '@axe/domain/effect/effect-preset';
 
-/** 場として置かれた演出の 1 コマぶん。 */
+/** One frame of an effect left standing on the board. */
 export interface EffectFieldRenderable {
   key: string;
   preset: EffectPreset;
@@ -16,10 +16,10 @@ export interface EffectFieldRenderable {
 }
 
 /**
- * 置きっぱなしの演出（毒沼・炎の壁）。
+ * An effect left standing, such as a poison swamp or a wall of fire.
  *
- * 発動と同じプリセットを、尺で折り返しながら繰り返し再生する。
- * 盤面のオブジェクトなので、同室の全員に見えて部屋データにも残る。
+ * It replays the same preset a cast would use, looping over its length.
+ * It is an object on the board, so everyone in the room sees it and the room data keeps it.
  */
 @Injectable({ providedIn: 'root' })
 export class EffectFieldService {
@@ -36,7 +36,7 @@ export class EffectFieldService {
   });
 
   constructor() {
-    // 場がある間は描画のループを止めない。発動と違って終わりが来ない。
+    // The draw loop runs for as long as a field exists; unlike a cast, it never ends.
     effect(() => this.playbackService.setPersistent('effect-field', this.fields().length > 0));
   }
 
@@ -64,9 +64,9 @@ export class EffectFieldService {
     return preset instanceof EffectPreset ? preset : null;
   }
 
-  /** 描画用の 1 コマ。尺で折り返して繰り返す。 */
+  /** One frame to draw, looping over the effect's length. */
   renderables(now: number): EffectFieldRenderable[] {
-    // 発動と同じく、視差効果を減らす設定では描かない。場は消えないので特に効く。
+    // Reduced motion stops it as it stops a cast, which matters more here because a field never ends.
     if (prefersReducedMotion()) return [];
 
     const gridSize = this.tabletopService.gridSize();

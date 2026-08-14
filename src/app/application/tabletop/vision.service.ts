@@ -34,7 +34,7 @@ import { LightSpec, VisionType } from '@axe/domain/tabletop/vision-types';
 
 const GEOMETRY_THROTTLE_MS = 40;
 const RELEVANT_ALIASES = new Set(['character', 'light-source', 'terrain', 'game-table']);
-/** 覚えておく答えの上限。1 回の描き直しで尋ねられる数より十分に大きく取る。 */
+/** How many answers to keep, set well above what a single repaint asks for. */
 const MEMO_LIMIT = 8192;
 const EMPTY_SILHOUETTES: WallSilhouette[] = [];
 const EMPTY_WALL_LIGHTS: WallLight[] = [];
@@ -56,11 +56,11 @@ export class VisionService {
   private readonly geometryEpoch = signal(0);
 
   /**
-   * 同じ盤面・同じ見え方のあいだ、答えを覚えておく。
+   * Remembers the answers for as long as the scene and the viewer hold still.
    *
-   * 壁の面や明るさは画面の描き直しのたびに尋ねられる。地形 1 台につき 8 回、
-   * コマ 1 体につき 1 回で、どれも光源と遮る物の数だけ計算し直していた。答えが同じなら
-   * 配列も同じものを返す。作り直すと、中身が同じでも画面側が並べ直しにかかる。
+   * Wall faces and brightness are asked for on every repaint: eight times per terrain and once
+   * per piece, each walking every light and every caster. When the answer is the same, so is
+   * the array: a new one would send the view off to rebuild its list for nothing.
    */
   private memoScene: VisionScene | null = null;
   private memoViewer: SceneViewer | null = null;
@@ -77,7 +77,7 @@ export class VisionService {
     const cached = this.memo.get(key);
     if (cached !== undefined) return cached as T;
     const value = compute();
-    // 尋ねられる場所の数だけ増えるので、際限なく抱えないよう頭打ちにする。
+    // It grows with the number of places asked about, so it is capped rather than left to swell.
     if (this.memo.size >= MEMO_LIMIT) this.memo.clear();
     this.memo.set(key, value);
     return value;

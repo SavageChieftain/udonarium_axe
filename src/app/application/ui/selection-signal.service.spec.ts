@@ -9,26 +9,26 @@ describe('SelectionSignalService', () => {
     service = TestBed.inject(SelectionSignalService);
   });
 
-  it('初期状態ではselectedObjectがnull', () => {
+  it('selects nothing to begin with', () => {
     expect(service.selectedObject()).toBeNull();
   });
 
-  it('初期状態ではhighlightedObjectがnull', () => {
+  it('highlights nothing to begin with', () => {
     expect(service.highlightedObject()).toBeNull();
   });
 
-  it('初期状態ではfocusCoordinateがnull', () => {
+  it('focuses nowhere to begin with', () => {
     expect(service.focusCoordinate()).toBeNull();
   });
 
-  it('selectObjectでselectedObjectが更新される', () => {
+  it('records the object that was selected', () => {
     service.selectObject('test-id', 'GameCharacter');
 
     const result = service.selectedObject();
     expect(result).toEqual({ identifier: 'test-id', className: 'GameCharacter' });
   });
 
-  it('highlightObjectでhighlightedObjectが更新される', () => {
+  it('records the object that was highlighted', () => {
     service.highlightObject('highlight-id');
 
     const result = service.highlightedObject();
@@ -37,7 +37,7 @@ describe('SelectionSignalService', () => {
     expect(result!.timestamp).toBeGreaterThan(0);
   });
 
-  it('focusToCoordinateでfocusCoordinateが更新される', () => {
+  it('records the coordinate that was focused', () => {
     service.focusToCoordinate(100, 200);
 
     const result = service.focusCoordinate();
@@ -47,7 +47,7 @@ describe('SelectionSignalService', () => {
     expect(result!.timestamp).toBeGreaterThan(0);
   });
 
-  it('highlightObjectを連続で呼ぶとtimestampが異なる', async () => {
+  it('stamps each highlight with its own time', async () => {
     service.highlightObject('id-1');
     const first = service.highlightedObject();
 
@@ -59,7 +59,7 @@ describe('SelectionSignalService', () => {
     expect(second!.timestamp).toBeGreaterThanOrEqual(first!.timestamp);
   });
 
-  it('selectObjectで前の値が上書きされる', () => {
+  it('replaces the previous selection', () => {
     service.selectObject('first-id', 'ClassA');
     service.selectObject('second-id', 'ClassB');
 
@@ -67,13 +67,13 @@ describe('SelectionSignalService', () => {
     expect(result).toEqual({ identifier: 'second-id', className: 'ClassB' });
   });
 
-  it('cancelTableGestureでcancelTableGestureVersionが増加する', () => {
+  it('bumps the version when a table gesture is cancelled', () => {
     const initial = service.cancelTableGestureVersion();
     service.cancelTableGesture();
     expect(service.cancelTableGestureVersion()).toBe(initial + 1);
   });
 
-  it('cancelTableGestureを連続呼出しでカウントが正しく増加する', () => {
+  it('keeps bumping the version on repeated cancels', () => {
     const initial = service.cancelTableGestureVersion();
     service.cancelTableGesture();
     service.cancelTableGesture();
@@ -81,27 +81,27 @@ describe('SelectionSignalService', () => {
     expect(service.cancelTableGestureVersion()).toBe(initial + 3);
   });
 
-  describe('複数選択 API', () => {
-    it('初期状態では selectedObjects は空の Set', () => {
+  describe('the multiple selection api', () => {
+    it('starts with nothing selected', () => {
       expect(service.selectedObjects()).toBeInstanceOf(Set);
       expect(service.selectedObjects().size).toBe(0);
       expect(service.selectionSize()).toBe(0);
     });
 
-    it('addSelection で identifier が追加される', () => {
+    it('adds an identifier to the selection', () => {
       service.addSelection('id-1', 'GameCharacter');
       expect(service.isSelected('id-1')).toBe(true);
       expect(service.selectionSize()).toBe(1);
       expect(service.selectedObject()).toEqual({ identifier: 'id-1', className: 'GameCharacter' });
     });
 
-    it('addSelection は同じ id を二重登録しない', () => {
+    it('adds the same identifier only once', () => {
       service.addSelection('id-1');
       service.addSelection('id-1');
       expect(service.selectionSize()).toBe(1);
     });
 
-    it('removeSelection で identifier が削除される', () => {
+    it('removes an identifier from the selection', () => {
       service.addSelection('id-1');
       service.addSelection('id-2');
       service.removeSelection('id-1');
@@ -109,14 +109,14 @@ describe('SelectionSignalService', () => {
       expect(service.isSelected('id-2')).toBe(true);
     });
 
-    it('toggleSelection は未選択なら追加・選択中なら削除', () => {
+    it('toggles an identifier in and out of the selection', () => {
       service.toggleSelection('id-1', 'GameCharacter');
       expect(service.isSelected('id-1')).toBe(true);
       service.toggleSelection('id-1');
       expect(service.isSelected('id-1')).toBe(false);
     });
 
-    it('replaceSelection は集合を置換する', () => {
+    it('replaces the whole selection', () => {
       service.addSelection('id-1');
       service.addSelection('id-2');
       service.replaceSelection(['id-3', 'id-4'], { identifier: 'id-3', className: 'DiceSymbol' });
@@ -126,14 +126,14 @@ describe('SelectionSignalService', () => {
       expect(service.selectedObject()?.identifier).toBe('id-3');
     });
 
-    it('clearSelection で集合が空になる', () => {
+    it('empties the selection', () => {
       service.addSelection('id-1');
       service.addSelection('id-2');
       service.clearSelection();
       expect(service.selectionSize()).toBe(0);
     });
 
-    it('集合更新時に新しい Set 参照を返す（イミュータブル）', () => {
+    it('hands back a new set each time it changes', () => {
       const before = service.selectedObjects();
       service.addSelection('id-1');
       const after = service.selectedObjects();
@@ -142,11 +142,11 @@ describe('SelectionSignalService', () => {
   });
 
   describe('marqueeState', () => {
-    it('初期状態は null', () => {
+    it('starts as null', () => {
       expect(service.marqueeState()).toBeNull();
     });
 
-    it('signal として更新できる', () => {
+    it('updates as a signal', () => {
       service.marqueeState.set({ x1: 0, y1: 0, x2: 100, y2: 100 });
       expect(service.marqueeState()).toEqual({ x1: 0, y1: 0, x2: 100, y2: 100 });
     });

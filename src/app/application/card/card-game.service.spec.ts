@@ -53,7 +53,7 @@ describe('CardGameService', () => {
   });
 
   describe('dealAll()', () => {
-    it('参加者へ配り切り、ジョーカーは 1 枚だけ配ること', () => {
+    it('deals out to everyone and hands out exactly one joker', () => {
       const other = peer('other', 'あいて');
       const stack = CardStack.create('山札');
       created.push(stack);
@@ -67,7 +67,7 @@ describe('CardGameService', () => {
       expect(sendSystemMessage).toHaveBeenCalledOnce();
     });
 
-    it('手札の並び順が重ならないこと', () => {
+    it('gives no two cards in a hand the same place', () => {
       const stack = CardStack.create('山札');
       created.push(stack);
       for (const code of ['s01', 's02', 's03']) stack.putOnBottom(trumpCard(code));
@@ -78,7 +78,7 @@ describe('CardGameService', () => {
       expect(new Set(orders).size).toBe(orders.length);
     });
 
-    it('見学者には配らないこと', () => {
+    it('deals nothing to an onlooker', () => {
       peer('guest', 'けんがく', PeerRole.Guest);
       const stack = CardStack.create('山札');
       created.push(stack);
@@ -92,7 +92,7 @@ describe('CardGameService', () => {
   });
 
   describe('drawFromHand()', () => {
-    it('相手の手札のカードを自分の手札へ移すこと', () => {
+    it('moves a card from another hand into your own', () => {
       const card = trumpCard('s07');
       card.toHand('other');
 
@@ -105,7 +105,7 @@ describe('CardGameService', () => {
   });
 
   describe('discardPairs()', () => {
-    it('同じ数字の組を捨て札の山へ表向きで積むこと', () => {
+    it('lays a matching pair face up on the discard pile', () => {
       const spade = trumpCard('s07');
       const heart = trumpCard('h07');
       const odd = trumpCard('c03');
@@ -121,7 +121,7 @@ describe('CardGameService', () => {
       if (discard) created.push(discard);
     });
 
-    it('組が無ければ何もしないこと', () => {
+    it('does nothing without a pair', () => {
       const card = trumpCard('s07');
       card.toHand('me');
 

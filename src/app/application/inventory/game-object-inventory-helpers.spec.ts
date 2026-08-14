@@ -30,38 +30,38 @@ function createElement(value: string | number) {
 
 describe('game-object-inventory-helpers', () => {
   describe('toSortableValue', () => {
-    it('数値文字列は number に変換されること', () => {
+    it('turns a numeric string into a number', () => {
       expect(toSortableValue(createElement('１２３') as never)).toBe(123);
     });
 
-    it('数値でない文字列はそのまま返ること', () => {
+    it('leaves a non-numeric string alone', () => {
       expect(toSortableValue(createElement('abc') as never)).toBe('abc');
     });
   });
 
   describe('sortObjectsByTags', () => {
-    it('sortTag 未指定時は並び順を変更しないこと', () => {
+    it('leaves the order alone with no sort tag', () => {
       const a = createObject('a', 20, 5);
       const b = createObject('b', 10, 8);
       const result = sortObjectsByTags([a, b] as never[], '', SortOrder.ASC, 'DEX', SortOrder.ASC);
       expect(result).toEqual([a, b]);
     });
 
-    it('1次キーで昇順ソートできること', () => {
+    it('sorts ascending by the first key', () => {
       const a = createObject('a', 20, 5);
       const b = createObject('b', 10, 8);
       const result = sortObjectsByTags([a, b] as never[], 'HP', SortOrder.ASC, 'DEX', SortOrder.ASC);
       expect(result.map((x) => x.identifier)).toEqual(['b', 'a']);
     });
 
-    it('1次キーが同値のとき2次キーで降順ソートできること', () => {
+    it('sorts descending by the second key when the first ties', () => {
       const a = createObject('a', 10, 5);
       const b = createObject('b', 10, 8);
       const result = sortObjectsByTags([a, b] as never[], 'HP', SortOrder.ASC, 'DEX', SortOrder.DESC);
       expect(result.map((x) => x.identifier)).toEqual(['b', 'a']);
     });
 
-    it('パス指定のタグでソートできること', () => {
+    it('sorts by a tag named with a path', () => {
       const a = createObject('a', 20, 5);
       const b = createObject('b', 10, 8);
       const result = sortObjectsByTags([a, b] as never[], 'リソース/HP', SortOrder.ASC, '', SortOrder.ASC);

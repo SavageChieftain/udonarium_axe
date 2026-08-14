@@ -186,14 +186,14 @@ describe('ReplayLibraryService', () => {
     vi.restoreAllMocks();
   });
 
-  it('記録をつなげて seq 順に読み出すこと', async () => {
+  it('reads the chunks back in order', async () => {
     const meta = await seedRecording();
     const loaded = await service.load(meta.id);
     expect(loaded.events.map((e) => e.seq)).toEqual([1, 2, 4]);
     expect(loaded.manifest?.roomName).toBe('第一夜');
   });
 
-  it('指定より手前で一番近いキーフレームを返すこと', async () => {
+  it('returns the nearest keyframe at or before a point', async () => {
     const meta = await seedRecording();
     expect(await firstIdentifierOf((await service.keyframeBefore(meta.id, 1))?.blob)).toBe('a');
     expect((await service.keyframeBefore(meta.id, 1))?.seq).toBe(0);
@@ -201,12 +201,12 @@ describe('ReplayLibraryService', () => {
     expect((await service.keyframeBefore(meta.id, 5))?.seq).toBe(2);
   });
 
-  it('先頭より手前を求めても最初のキーフレームを返すこと', async () => {
+  it('returns the first keyframe when asked for something before it', async () => {
     const meta = await seedRecording();
     expect(await firstIdentifierOf((await service.keyframeBefore(meta.id, -1))?.blob)).toBe('a');
   });
 
-  it('書き出した束を読み戻して同じ記録になること', async () => {
+  it('reads an exported bundle back into the same recording', async () => {
     const meta = await seedRecording();
     const zipSpy = vi.spyOn(archiver, 'createZipBlobAsync').mockResolvedValue(new Blob(['zip']));
     vi.spyOn(archiver, 'load').mockResolvedValue(undefined);
@@ -225,7 +225,7 @@ describe('ReplayLibraryService', () => {
     expect((await store.listKeyframes(importedId!)).map((k) => k.seq)).toEqual([0, 2]);
   });
 
-  it('記録が使っている素材だけを束ねること', async () => {
+  it('bundles only the assets the recording uses', async () => {
     const meta = await seedRecording();
     const zipSpy = vi.spyOn(archiver, 'createZipBlobAsync').mockResolvedValue(new Blob(['zip']));
 
@@ -237,7 +237,7 @@ describe('ReplayLibraryService', () => {
     expect(files.some((file) => file.name === 'assets/img-used.png')).toBe(true);
   });
 
-  it('読めないキーフレームがあっても書き出しを止めないこと', async () => {
+  it('keeps exporting past a keyframe it cannot read', async () => {
     const id = (await store.createRecording({ roomName: '', startedAt: 0 }))!;
     await store.putKeyframe({ recordingId: id, seq: 0, at: 0, blob: new Blob(['壊れている']) });
     await store.updateRecording(id, { manifest: encodeReplayManifest(manifest) });
@@ -246,7 +246,7 @@ describe('ReplayLibraryService', () => {
     expect(await service.export((await store.getRecording(id))!, true)).toBe(true);
   });
 
-  it('画像でも音でもない添付は取り込まないこと', async () => {
+  it('takes in nothing that is neither image nor sound', async () => {
     const entries = [
       { name: 'manifest.json', type: 'application/json', blob: new Blob([JSON.stringify(manifest)]) },
       { name: 'events/000.msgpack', type: '', blob: new Blob([encodeReplayEvents([event(1)]) as BlobPart]) },
@@ -261,13 +261,13 @@ describe('ReplayLibraryService', () => {
     expect(addImage).not.toHaveBeenCalled();
   });
 
-  it('目録の無い記録は書き出さないこと', async () => {
+  it('exports nothing without a manifest', async () => {
     const id = (await store.createRecording({ roomName: '', startedAt: 0 }))!;
     const meta = (await store.getRecording(id))!;
     expect(await service.export(meta, false)).toBe(false);
   });
 
-  it('リプレイでない zip を読み込まないこと', async () => {
+  it('refuses an archive that is not a recording', async () => {
     vi.spyOn(archiver, 'readZipEntriesAsync').mockResolvedValue([
       { name: 'data.xml', type: 'text/plain', blob: new Blob(['<room/>']) },
     ]);

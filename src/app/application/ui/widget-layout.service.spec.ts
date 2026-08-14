@@ -4,13 +4,13 @@ import { parseWidgetLayout, WidgetLayoutService } from '@axe/application/ui/widg
 const STORAGE_KEY = 'ui-widget-layout';
 
 describe('parseWidgetLayout()', () => {
-  it('保存が無ければ空にすること', () => {
+  it('starts empty with nothing saved', () => {
     expect(parseWidgetLayout(null)).toEqual({});
     expect(parseWidgetLayout('{')).toEqual({});
     expect(parseWidgetLayout('null')).toEqual({});
   });
 
-  it('置き場所として読めるものだけ拾うこと', () => {
+  it('keeps only what reads as a position', () => {
     const layout = parseWidgetLayout(
       JSON.stringify({
         clock: { left: 10, top: 20 },
@@ -34,18 +34,18 @@ describe('WidgetLayoutService', () => {
     localStorage.removeItem(STORAGE_KEY);
   });
 
-  it('覚えていないうちは何も返さないこと', () => {
+  it('returns nothing until something is remembered', () => {
     expect(TestBed.inject(WidgetLayoutService).spotOf('clock')).toBeNull();
   });
 
-  it('置き場所を次に開いたときへ持ち越すこと', () => {
+  it('carries a position over to the next time it opens', () => {
     TestBed.inject(WidgetLayoutService).remember('clock', { left: 240.4, top: 120.6 });
 
     TestBed.resetTestingModule();
     expect(TestBed.inject(WidgetLayoutService).spotOf('clock')).toEqual({ left: 240, top: 121 });
   });
 
-  it('ウィジェットごとに別々に覚えること', () => {
+  it('remembers each widget separately', () => {
     const service = TestBed.inject(WidgetLayoutService);
     service.remember('clock', { left: 10, top: 20 });
     service.remember('connectionQuality', { left: 30, top: 40 });
@@ -54,13 +54,13 @@ describe('WidgetLayoutService', () => {
     expect(service.spotOf('connectionQuality')).toEqual({ left: 30, top: 40 });
   });
 
-  it('数として読めない置き場所は覚えないこと', () => {
+  it('refuses a position that does not read as numbers', () => {
     const service = TestBed.inject(WidgetLayoutService);
     service.remember('clock', { left: Number.NaN, top: 0 });
     expect(service.spotOf('clock')).toBeNull();
   });
 
-  it('忘れさせられること', () => {
+  it('can be made to forget', () => {
     const service = TestBed.inject(WidgetLayoutService);
     service.remember('clock', { left: 10, top: 20 });
     service.forget('clock');
@@ -69,7 +69,7 @@ describe('WidgetLayoutService', () => {
     expect(TestBed.inject(WidgetLayoutService).spotOf('clock')).toBeNull();
   });
 
-  it('画面の外に出た置き場所を引き戻すこと', () => {
+  it('pulls a position that fell off screen back into view', () => {
     const service = TestBed.inject(WidgetLayoutService);
     const spot = service.keepInView({ left: 99_999, top: -50 }, 100, 40);
 
@@ -77,7 +77,7 @@ describe('WidgetLayoutService', () => {
     expect(spot.top).toBe(8);
   });
 
-  it('入る置き場所はそのままにすること', () => {
+  it('leaves a position that still fits alone', () => {
     expect(TestBed.inject(WidgetLayoutService).keepInView({ left: 40, top: 60 }, 100, 40)).toEqual({
       left: 40,
       top: 60,

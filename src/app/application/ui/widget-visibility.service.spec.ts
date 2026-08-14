@@ -3,7 +3,7 @@ import { parseWidgetVisibility, WidgetVisibilityService } from '@axe/application
 import { beforeEach, describe, expect, it } from 'vitest';
 
 describe('parseWidgetVisibility', () => {
-  it('保存が無ければミニプレイヤーだけ出す', () => {
+  it('shows only the mini player with nothing saved', () => {
     expect(parseWidgetVisibility(null)).toEqual({
       clock: false,
       miniPlayer: true,
@@ -12,7 +12,7 @@ describe('parseWidgetVisibility', () => {
     });
   });
 
-  it('保存された状態を読む', () => {
+  it('reads the saved state', () => {
     expect(
       parseWidgetVisibility('{"clock":true,"miniPlayer":false,"connectionQuality":true,"recording":false}')
     ).toEqual({
@@ -23,7 +23,7 @@ describe('parseWidgetVisibility', () => {
     });
   });
 
-  it('壊れた保存値は既定に倒す', () => {
+  it('falls back to the defaults for a broken value', () => {
     expect(parseWidgetVisibility('{')).toEqual({
       clock: false,
       miniPlayer: true,
@@ -38,7 +38,7 @@ describe('parseWidgetVisibility', () => {
     });
   });
 
-  it('欠けている項目だけ既定で埋める', () => {
+  it('fills in only the missing entries', () => {
     expect(parseWidgetVisibility('{"clock":true}')).toEqual({
       clock: true,
       miniPlayer: true,
@@ -57,14 +57,14 @@ describe('WidgetVisibilityService', () => {
     service = TestBed.inject(WidgetVisibilityService);
   });
 
-  it('既定ではミニプレイヤーだけ出ている', () => {
+  it('shows only the mini player by default', () => {
     expect(service.clock()).toBe(false);
     expect(service.miniPlayer()).toBe(true);
     expect(service.connectionQuality()).toBe(false);
     expect(service.recording()).toBe(true);
   });
 
-  it('それぞれ独立に切り替わる', () => {
+  it('toggles each one independently', () => {
     service.toggleClock();
     expect(service.clock()).toBe(true);
     expect(service.miniPlayer()).toBe(true);

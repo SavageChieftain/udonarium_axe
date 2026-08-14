@@ -34,14 +34,14 @@ describe('EffectAutoPlayService', () => {
     localStorage.clear();
   });
 
-  it('既定では出さないこと', () => {
-    // 卓ごとに好みが割れるので、黙って増えないようにする。
+  it('stays off by default', () => {
+    // Tables differ on this, so nothing appears unasked.
     expect(service.enabled()).toBe(false);
     expect(service.play(character, [change('damage', 0.5)])).toBe(false);
     expect(playback.play).not.toHaveBeenCalled();
   });
 
-  it('入りにすると規模に合う演出を出すこと', () => {
+  it('picks an effect to match the size of the change once turned on', () => {
     service.setEnabled(true);
 
     expect(service.play(character, [change('damage', 0.5)])).toBe(true);
@@ -51,7 +51,7 @@ describe('EffectAutoPlayService', () => {
     expect(playback.play.mock.calls[1][0].presetIdentifier).toBe(autoEffectIdentifier('heal', 'small'));
   });
 
-  it('ダメージと回復が混ざったらダメージを優先すること', () => {
+  it('shows the damage when damage and healing arrive together', () => {
     service.setEnabled(true);
 
     service.play(character, [change('heal', 0.5), change('damage', 0.5)]);
@@ -59,13 +59,13 @@ describe('EffectAutoPlayService', () => {
     expect(playback.play.mock.calls[0][0].presetIdentifier).toBe(autoEffectIdentifier('damage', 'large'));
   });
 
-  it('増減が無ければ何もしないこと', () => {
+  it('does nothing when nothing changed', () => {
     service.setEnabled(true);
 
     expect(service.play(character, [])).toBe(false);
   });
 
-  it('設定を覚えること', () => {
+  it('remembers the setting', () => {
     service.setEnabled(true);
 
     expect(localStorage.getItem('axe.effect.autoPlay')).toBe('on');

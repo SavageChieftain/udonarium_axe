@@ -31,7 +31,7 @@ describe('TabletopOverlapService', () => {
     service = TestBed.inject(TabletopOverlapService);
   });
 
-  it('座標が数値でなければ探索せず空を返すこと', () => {
+  it('returns nothing without looking when the coordinates are not numbers', () => {
     const elementsFromPoint = vi.spyOn(document, 'elementsFromPoint').mockReturnValue([]);
 
     expect(service.findAt(Number.NaN, 0)).toEqual([]);
@@ -42,7 +42,7 @@ describe('TabletopOverlapService', () => {
     elementsFromPoint.mockRestore();
   });
 
-  it('register と unregister でレジストリが管理される', () => {
+  it('registers and unregisters entries', () => {
     const obj = makeObject('a');
     const el = makeElement({ x: 0, y: 0, w: 10, h: 10 });
     service.register(obj, el);
@@ -52,7 +52,7 @@ describe('TabletopOverlapService', () => {
     expect(service.findAt(5, 5)).toEqual([]);
   });
 
-  it('findAt で elementsFromPoint がヒットしたオブジェクトを返す', () => {
+  it('returns whatever the browser reports under the point', () => {
     const obj1 = makeObject('a');
     const obj2 = makeObject('b');
     const el1 = makeElement({ x: 0, y: 0, w: 10, h: 10 });
@@ -67,7 +67,7 @@ describe('TabletopOverlapService', () => {
     expect(result).toContain(obj2);
   });
 
-  it('elementsFromPoint が空なら何も返さない', () => {
+  it('returns nothing when the browser reports nothing', () => {
     const obj = makeObject('a');
     const el = makeElement({ x: 0, y: 0, w: 10, h: 10 });
     service.register(obj, el);
@@ -75,7 +75,7 @@ describe('TabletopOverlapService', () => {
     expect(service.findAt(5, 5)).toEqual([]);
   });
 
-  it('reopenContextMenuFor は登録済みの要素に contextmenu を dispatch する', async () => {
+  it('dispatches a context menu event to a registered element', async () => {
     const obj = makeObject('a');
     const el = makeElement({ x: 0, y: 0, w: 10, h: 10 });
     document.body.appendChild(el);
@@ -94,11 +94,11 @@ describe('TabletopOverlapService', () => {
     document.body.removeChild(el);
   });
 
-  it('未登録の identifier では reopenContextMenuFor は何もしない', () => {
+  it('does nothing for an identifier it does not know', () => {
     expect(() => service.reopenContextMenuFor('missing', 0, 0)).not.toThrow();
   });
 
-  it('同じ identifier の register はエントリを上書きする', () => {
+  it('replaces the entry when the same identifier registers again', () => {
     const obj1 = makeObject('a');
     const el1 = makeElement({ x: 0, y: 0, w: 10, h: 10 });
     const el2 = makeElement({ x: 0, y: 0, w: 10, h: 10 });

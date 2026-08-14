@@ -39,7 +39,7 @@ describe('CoinFlipService', () => {
     for (const cursor of ObjectStore.instance.getObjects<PeerCursor>(PeerCursor)) cursor.destroy();
   });
 
-  it('回している間は結果を伝える面の通知が先に出ること', () => {
+  it('announces the face before the coin has finished spinning', () => {
     const coin = makeCoin();
     const flips: { identifier: string; face: string }[] = [];
     TestBed.inject(ObjectChangeService).flipCoin$.subscribe((event) => flips.push(event));
@@ -49,7 +49,7 @@ describe('CoinFlipService', () => {
     expect(flips).toEqual([{ identifier: coin.identifier, face }]);
   });
 
-  it('投げた結果がコインに残ること', () => {
+  it('leaves the result on the coin', () => {
     const coin = makeCoin();
 
     const face = service.flip(coin);
@@ -58,7 +58,7 @@ describe('CoinFlipService', () => {
     expect(coin.face).toBe(face);
   });
 
-  it('コインが着地してから結果をチャットに流すこと', () => {
+  it('waits for the coin to land before saying so in chat', () => {
     vi.useFakeTimers();
     const coin = makeCoin();
 
@@ -75,7 +75,7 @@ describe('CoinFlipService', () => {
     expect(text).toContain(service.faceLabel(face));
   });
 
-  it('着地前にコインが消えていれば結果を流さないこと', () => {
+  it('says nothing when the coin is gone before it lands', () => {
     vi.useFakeTimers();
     const coin = makeCoin();
 
@@ -87,14 +87,14 @@ describe('CoinFlipService', () => {
     expect(sendSystemMessage).not.toHaveBeenCalled();
   });
 
-  it('面のラベルが表と裏になること', () => {
+  it('labels the faces heads and tails', () => {
     expect(service.faceLabel('front')).toBe('表');
     expect(service.faceLabel('back')).toBe('裏');
   });
 
-  describe('結果の行き先', () => {
-    it('見ているタブへ出すこと', () => {
-      // 表裏は 1d2 と変わらない。振った本人が読んでいる場所に無いと届かない。
+  describe('where the result goes', () => {
+    it('reports into the tab being read', () => {
+      // Heads or tails is a two-sided die, and it has to land where the person who threw it is reading.
       vi.useFakeTimers();
       try {
         const tab = new ChatTab();
@@ -117,7 +117,7 @@ describe('CoinFlipService', () => {
       }
     });
 
-    it('窓を開いていなければ従来どおりに出すこと', () => {
+    it('falls back to the old destination with no window open', () => {
       vi.useFakeTimers();
       try {
         service.flip(makeCoin());

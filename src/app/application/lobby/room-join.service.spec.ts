@@ -52,14 +52,14 @@ describe('RoomJoinService', () => {
   });
 
   describe('findRoom', () => {
-    it('部屋 ID が一致する部屋を返す', async () => {
+    it('returns the room whose id matches', async () => {
       const rooms: IRoomInfo[] = [new RoomInfo('abc', 'first'), new RoomInfo('xyz', 'second')];
       vi.spyOn(Network, 'listAllRooms').mockResolvedValue(rooms);
 
       await expect(service.findRoom('xyz')).resolves.toBe(rooms[1]);
     });
 
-    it('一致する部屋が無ければ null を返す', async () => {
+    it('returns nothing when no room matches', async () => {
       vi.spyOn(Network, 'listAllRooms').mockResolvedValue([new RoomInfo('abc', 'first')]);
 
       await expect(service.findRoom('xyz')).resolves.toBeNull();
@@ -67,12 +67,12 @@ describe('RoomJoinService', () => {
   });
 
   describe('join', () => {
-    it('接続先が空なら何もせず false を返す', async () => {
+    it('does nothing and reports failure with nowhere to connect', async () => {
       await expect(service.join([], '')).resolves.toBe(false);
       expect(Network.open).not.toHaveBeenCalled();
     });
 
-    it('部屋を開いてから既存ピアすべてに接続する', async () => {
+    it('opens the room, then connects to every peer already there', async () => {
       const peers = [peerContext('peer-1', 'abc', 'room'), peerContext('peer-2', 'abc', 'room')];
       void service.join(peers, 'pw');
 
@@ -83,7 +83,7 @@ describe('RoomJoinService', () => {
       expect(Network.connect).toHaveBeenCalledTimes(2);
     });
 
-    it('全ピアの試行が終わり接続が残っていれば true を返す', async () => {
+    it('reports success when a connection survives every attempt', async () => {
       const peers = [peerContext('peer-1', 'abc', 'room'), peerContext('peer-2', 'abc', 'room')];
       const joined = service.join(peers, '');
       stubChange.networkOpen$.emit({ peerId: 'my-peer' });
@@ -96,7 +96,7 @@ describe('RoomJoinService', () => {
       expect(Network.openStandby).not.toHaveBeenCalled();
     });
 
-    it('誰にも接続できなければ待機状態に戻して false を返す', async () => {
+    it('goes back to waiting and reports failure when nobody answers', async () => {
       const peers = [peerContext('peer-1', 'abc', 'room')];
       const joined = service.join(peers, '');
       stubChange.networkOpen$.emit({ peerId: 'my-peer' });
@@ -107,7 +107,7 @@ describe('RoomJoinService', () => {
       expect(Network.openStandby).toHaveBeenCalledOnce();
     });
 
-    it('応答が無いままでもタイムアウトで決着する', async () => {
+    it('settles on the timeout when no one ever answers', async () => {
       vi.useFakeTimers();
       const joined = service.join([peerContext('peer-1', 'abc', 'room')], '');
       stubChange.networkOpen$.emit({ peerId: 'my-peer' });
@@ -118,7 +118,7 @@ describe('RoomJoinService', () => {
       vi.useRealTimers();
     });
 
-    it('一度決着したあとのピアイベントで二重に解決しない', async () => {
+    it('settles once, whatever arrives afterwards', async () => {
       const peers = [peerContext('peer-1', 'abc', 'room')];
       connectedPeers = [peers[0]];
       const joined = service.join(peers, '');

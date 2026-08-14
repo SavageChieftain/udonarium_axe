@@ -43,7 +43,7 @@ function makeObj(id: string, opts: { isLock?: boolean } = {}): TabletopObject {
 }
 
 describe('buildMultiSelectionContextMenu', () => {
-  it('一覧 / 一括コピー / 墓場 / クリア のアクションを返す', () => {
+  it('offers list, copy all, graveyard and clear', () => {
     const selection = new SelectionSignalService();
     const objs = [makeObj('a'), makeObj('b'), makeObj('c')];
     selection.replaceSelection(['a', 'b', 'c']);
@@ -56,7 +56,7 @@ describe('buildMultiSelectionContextMenu', () => {
     expect((menu[5] as ContextMenuAction).name).toContain('clear');
   });
 
-  it('clear アクションで選択がクリアされる', () => {
+  it('clears the selection from the clear action', () => {
     const selection = new SelectionSignalService();
     selection.replaceSelection(['a', 'b']);
     const menu = buildMultiSelectionContextMenu([makeObj('a'), makeObj('b')], {
@@ -69,7 +69,7 @@ describe('buildMultiSelectionContextMenu', () => {
     expect(selection.selectionSize()).toBe(0);
   });
 
-  it('ロック中オブジェクトは copyAll/moveAll の対象外', () => {
+  it('leaves locked objects out of copy all and move all', () => {
     const selection = new SelectionSignalService();
     const a = makeObj('a');
     const b = makeObj('b', { isLock: true });
@@ -83,7 +83,7 @@ describe('buildMultiSelectionContextMenu', () => {
 });
 
 describe('tryBuildMultiSelectionContextMenu', () => {
-  it('選択数 <= 1 では null を返す', () => {
+  it('offers nothing for a selection of one', () => {
     const selection = new SelectionSignalService();
     selection.addSelection('a');
     const objectStore = ObjectStore.instance;
@@ -93,7 +93,7 @@ describe('tryBuildMultiSelectionContextMenu', () => {
     ).toBeNull();
   });
 
-  it('self が選択集合に含まれていない場合は null を返す', () => {
+  it('offers nothing when the object is outside the selection', () => {
     const selection = new SelectionSignalService();
     selection.replaceSelection(['a', 'b']);
     const objectStore = ObjectStore.instance;

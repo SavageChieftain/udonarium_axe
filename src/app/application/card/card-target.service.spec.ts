@@ -29,7 +29,7 @@ describe('CardTargetService', () => {
     for (const object of created.splice(0)) object.destroy();
   });
 
-  it('指定待ちのあいだに選ばれたオブジェクトがターゲットになること', () => {
+  it('takes whatever is chosen while it waits as the target', () => {
     const source = makeCard(0, 0);
     const target = makeCard(300, 0);
 
@@ -43,7 +43,7 @@ describe('CardTargetService', () => {
     expect(service.isPicking()).toBe(false);
   });
 
-  it('自分自身を選んでも指定待ちのままであること', () => {
+  it('keeps waiting when the chooser picks itself', () => {
     const source = makeCard(0, 0);
 
     service.beginPicking(source);
@@ -54,7 +54,7 @@ describe('CardTargetService', () => {
     expect(service.isPicking()).toBe(true);
   });
 
-  it('指定待ちを中止できること', () => {
+  it('can stop waiting', () => {
     const source = makeCard(0, 0);
 
     service.beginPicking(source);
@@ -66,7 +66,7 @@ describe('CardTargetService', () => {
     expect(source.targetIdentifier).toBe('');
   });
 
-  it('ターゲットを指したカードだけ矢印を返すこと', () => {
+  it('draws an arrow only from a card that has a target', () => {
     const source = makeCard(0, 0);
     const target = makeCard(300, 400);
     makeCard(600, 0);
@@ -79,7 +79,7 @@ describe('CardTargetService', () => {
     expect(arrows[0].length).toBeCloseTo(500, 5);
   });
 
-  it('ターゲットが消えていれば矢印を描かないこと', () => {
+  it('draws no arrow to a target that is gone', () => {
     const source = makeCard(0, 0);
     const target = makeCard(300, 400);
     source.targetIdentifier = target.identifier;
@@ -88,7 +88,7 @@ describe('CardTargetService', () => {
     expect(service.arrows()).toHaveLength(0);
   });
 
-  it('ターゲットを解除できること', () => {
+  it('can drop a target', () => {
     const source = makeCard(0, 0);
     const target = makeCard(300, 400);
     source.targetIdentifier = target.identifier;

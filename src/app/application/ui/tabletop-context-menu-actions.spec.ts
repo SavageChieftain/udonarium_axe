@@ -8,7 +8,7 @@ import { TabletopObject } from '@axe/domain/tabletop/tabletop-object';
 const t = ((key: string) => key) as Parameters<typeof buildLockToggleAction>[2];
 
 describe('buildLockToggleAction', () => {
-  it('ロック中なら解除アクションを返し、実行で setLocked(false) を呼ぶ', () => {
+  it('offers to unlock a locked object and does so', () => {
     let v = true;
     const action = buildLockToggleAction(true, (next) => (v = next), t);
     expect(action.name).toBe('feature.tabletop.contextMenu.unlock');
@@ -16,7 +16,7 @@ describe('buildLockToggleAction', () => {
     expect(v).toBe(false);
   });
 
-  it('未ロックならロックアクションを返し、実行で setLocked(true) を呼ぶ', () => {
+  it('offers to lock an unlocked object and does so', () => {
     let v = false;
     const action = buildLockToggleAction(false, (next) => (v = next), t);
     expect(action.name).toBe('feature.tabletop.contextMenu.lock');
@@ -50,7 +50,7 @@ describe('buildCopyAction', () => {
     return { obj, cloneObj, calls };
   }
 
-  it('clone を呼び、gridSize 分オフセットして update を呼ぶ', () => {
+  it('clones, offsets by a grid square and updates', () => {
     const { obj, cloneObj, calls } = makeObj();
     const action = buildCopyAction(obj, 50, t);
     action.action?.();
@@ -60,7 +60,7 @@ describe('buildCopyAction', () => {
     expect(cloneObj.location.y).toBe(250);
   });
 
-  it('afterClone で clone を変更してから update が呼ばれる', () => {
+  it('lets afterClone change the copy before it is updated', () => {
     const { obj, cloneObj } = makeObj();
     const action = buildCopyAction(obj, 50, t, {
       afterClone: (c) => {
@@ -77,7 +77,7 @@ describe('buildAltitudeAction()', () => {
     return { altitude: 3, posZ: 40, isAltitudeIndicate: false, ...overrides } as unknown as TabletopObject;
   }
 
-  it('高さと浮きをまとめて戻すこと', () => {
+  it('returns both the altitude and the board offset to zero', () => {
     const piece = target();
 
     buildAltitudeAction(piece, t).subActions?.[0].action?.();
@@ -86,8 +86,8 @@ describe('buildAltitudeAction()', () => {
     expect(piece.posZ).toBe(0);
   });
 
-  it('keepPosZ では浮きを残すこと', () => {
-    // 範囲は盤面に貼るもので、浮きは高さと別に使う。
+  it('leaves the board offset alone when asked to keep it', () => {
+    // A range area lies on the board and uses its offset for something other than height.
     const area = target();
 
     buildAltitudeAction(area, t, { keepPosZ: true }).subActions?.[0].action?.();
@@ -96,7 +96,7 @@ describe('buildAltitudeAction()', () => {
     expect(area.posZ).toBe(40);
   });
 
-  it('数値の表示を入れ替えること', () => {
+  it('toggles the readout', () => {
     const piece = target({ isAltitudeIndicate: true } as Partial<TabletopObject>);
     const changed = vi.fn();
 
@@ -108,7 +108,7 @@ describe('buildAltitudeAction()', () => {
     expect(changed).toHaveBeenCalledOnce();
   });
 
-  it('その物だけに要る項目を後ろに足せること', () => {
+  it('appends the entries only this object needs', () => {
     const action = buildAltitudeAction(target(), t, {
       extraActions: [{ name: '影', action: () => undefined }],
     });

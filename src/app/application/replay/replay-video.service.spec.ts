@@ -144,7 +144,7 @@ describe('ReplayVideoService', () => {
     vi.restoreAllMocks();
   });
 
-  it('記録を MP4 として保存すること', async () => {
+  it('saves a recording as an mp4', async () => {
     expect(await service.render(meta, [say(1, 'やあ'), say(2, 'こんばんは')])).toBe(true);
 
     expect(saved).toHaveLength(1);
@@ -152,7 +152,7 @@ describe('ReplayVideoService', () => {
     expect(saved[0].name.startsWith('第一夜_')).toBe(true);
   });
 
-  it('選んだ大きさと滑らかさで頼むこと', async () => {
+  it('asks for the chosen size and frame rate', async () => {
     await service.render(meta, [say(1, 'やあ')], {
       ...DEFAULT_REPLAY_VIDEO_OPTIONS,
       size: REPLAY_FRAME_PRESETS['720p'],
@@ -163,14 +163,14 @@ describe('ReplayVideoService', () => {
     expect(encode.mock.calls[0][0].frameCount).toBeGreaterThan(0);
   });
 
-  it('尺のぶんだけコマ数を積むこと', async () => {
+  it('counts out one frame per moment of the running time', async () => {
     await service.render(meta, [say(1, 'あ'.repeat(20))]);
 
     const request = encode.mock.calls[0][0];
     expect(request.frameCount).toBe(Math.round(((1200 + 20 * 55) / 1000) * 30));
   });
 
-  it('カットごとにその時の盤面を描くこと', async () => {
+  it('draws the board as it stood for each shot', async () => {
     const squares: { x: number; width: number }[][] = [];
     encode.mockImplementation(async (request) => {
       const ctx = {
@@ -219,13 +219,13 @@ describe('ReplayVideoService', () => {
     expect(pieceAt(squares[1]).x).toBeGreaterThan(pieceAt(squares[0]).x);
   });
 
-  it('盤面が読めなくても台詞だけで書き出すこと', async () => {
+  it('exports the lines alone when the board cannot be read', async () => {
     keyframe = null;
     expect(await service.render(meta, [say(1, 'やあ')])).toBe(true);
     expect(saved).toHaveLength(1);
   });
 
-  it('効果音を混ぜて符号化器に渡すこと', async () => {
+  it('mixes the sound and hands it to the encoder', async () => {
     vi.spyOn(TestBed.inject(AudioStorage), 'get').mockReturnValue({ blob: new Blob(['se']) } as never);
     const mixed = { sampleRate: 48_000, channels: [new Float32Array(8)] };
     mix.mockResolvedValue(mixed);
@@ -241,7 +241,7 @@ describe('ReplayVideoService', () => {
     expect(encode.mock.calls[0][0].audio).toBe(mixed);
   });
 
-  it('音を入れない指定なら混ぜないこと', async () => {
+  it('mixes nothing when asked for silence', async () => {
     const events = [
       say(1, 'やあ'),
       { ...say(2, ''), kind: ReplayEventKind.MediaSoundEffect, detail: { identifier: 'se-1' } },
@@ -256,7 +256,7 @@ describe('ReplayVideoService', () => {
     expect(encode.mock.calls[0][0].audio).toBeNull();
   });
 
-  it('効果音だけ入れる指定を守ること', async () => {
+  it('keeps to sound effects only when asked', async () => {
     mix.mockResolvedValue({ sampleRate: 48_000, channels: [new Float32Array(8)] });
     const events = [
       say(1, 'やあ'),
@@ -273,13 +273,13 @@ describe('ReplayVideoService', () => {
     expect(mix.mock.calls[0][0].music).toHaveLength(0);
   });
 
-  it('鳴らす音が無ければ混ぜないこと', async () => {
+  it('mixes nothing when there is no sound', async () => {
     await service.render(meta, [say(1, 'やあ')]);
 
     expect(mix).not.toHaveBeenCalled();
   });
 
-  it('音を作れなくても映像は書き出すこと', async () => {
+  it('exports the picture even when the sound cannot be made', async () => {
     mix.mockRejectedValue(new Error('鳴らせない'));
 
     const events = [
@@ -291,7 +291,7 @@ describe('ReplayVideoService', () => {
     expect(encode.mock.calls[0][0].audio).toBeNull();
   });
 
-  it('進み具合を出すこと', async () => {
+  it('reports its progress', async () => {
     let seen = 0;
     encode.mockImplementation(async (request) => {
       request.onProgress?.(5, 10);
@@ -304,7 +304,7 @@ describe('ReplayVideoService', () => {
     expect(service.isRendering()).toBe(false);
   });
 
-  it('取りやめたら保存しないこと', async () => {
+  it('saves nothing when cancelled', async () => {
     encode.mockImplementation(async (request) => {
       service.cancel();
       return request.isCancelled?.() ? null : { blob: new Blob(['mp4']), extension: 'mp4' };
@@ -314,23 +314,23 @@ describe('ReplayVideoService', () => {
     expect(saved).toHaveLength(0);
   });
 
-  it('画にできる場面が無ければ書き出さないこと', async () => {
+  it('exports nothing when no shot can be drawn', async () => {
     const move: ReplayEvent = { ...say(1, ''), kind: ReplayEventKind.ObjectMove, detail: {} };
     expect(await service.render(meta, [move])).toBe(false);
     expect(encode).not.toHaveBeenCalled();
   });
 
-  it('空の記録では何もしないこと', async () => {
+  it('does nothing with an empty recording', async () => {
     expect(await service.render(meta, [])).toBe(false);
   });
 
-  it('書き出せない環境では断ること', async () => {
+  it('declines where exporting is unavailable', async () => {
     isSupported = false;
     expect(service.isSupported).toBe(false);
     expect(await service.render(meta, [say(1, 'やあ')])).toBe(false);
   });
 
-  it('二重に走らせないこと', async () => {
+  it('refuses to run twice at once', async () => {
     let release: (() => void) | null = null;
     encode.mockImplementation(
       () =>
@@ -349,7 +349,7 @@ describe('ReplayVideoService', () => {
     expect(encode).toHaveBeenCalledTimes(1);
   });
 
-  it('素材が読めなくても書き出しを止めないこと', async () => {
+  it('keeps exporting past an asset it cannot read', async () => {
     const image = { identifier: 'img-1', blob: new Blob(['x']) };
     vi.spyOn(TestBed.inject(ImageStorage), 'get').mockReturnValue(image as never);
 

@@ -140,7 +140,7 @@ export class ChatMessageService {
     return chatTab.addMessage(chatMessage);
   }
 
-  // 最終発言キャラでシステム発言
+  // speaks as whoever spoke last
   sendSystemMessageAsLastSpeaker(text: string, chatTabIdentifier?: string) {
     const chatTabList = this.objectStore.get<ChatTabList>('ChatTabList');
     const sysTab = this.resolveChatTab(chatTabIdentifier) ?? chatTabList!.systemMessageTab!;
@@ -328,7 +328,7 @@ export class ChatMessageService {
       peerCursor.lastControlSendFrom = sendFrom;
       peerCursor.lastControlImageIndex = imgindex;
     } else {
-      // 秘話時は操作なし
+      // does nothing for a whisper
     }
   }
 

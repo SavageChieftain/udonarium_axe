@@ -12,7 +12,7 @@ import { EffectCast } from '@axe/domain/effect/effect-cast';
 import { EffectPreset } from '@axe/domain/effect/effect-preset';
 import { effectPickOrder, reachedEffectPickLimit, toggleEffectPick } from '@axe/domain/effect/effect-target-picks';
 
-/** 選択中のコマに出す順番の印。 */
+/** The order mark shown on a chosen piece. */
 export interface EffectTargetMark {
   identifier: string;
   order: number;
@@ -21,16 +21,16 @@ export interface EffectTargetMark {
   z: number;
 }
 
-/** 詠唱者から対象へ引く線。 */
+/** The line drawn from the caster to a target. */
 export interface EffectTargetLink extends TargetArrowGeometry {
   identifier: string;
 }
 
 /**
- * 順序付きの対象選択。
+ * Choosing targets in order.
  *
- * 選んだ順の配列が真実の源で、コマの `targeted` はその写し。
- * こうしておくと、選び終えたあとにチャットの `t:HP-10` がそのまま同じ対象へ効く。
+ * The ordered array is the truth; a piece's `targeted` flag is a copy of it.
+ * That way the chat shorthand reaches the same targets once the choosing is done.
  */
 @Injectable({ providedIn: 'root' })
 export class EffectTargetingService {
@@ -49,16 +49,16 @@ export class EffectTargetingService {
   readonly preset = this._preset.asReadonly();
   readonly picks = this._picks.asReadonly();
   readonly casterIdentifier = this._casterIdentifier.asReadonly();
-  /** 範囲攻撃の中心に選んだコマ。 */
+  /** The piece chosen as the centre of an area attack. */
   readonly epicenter = this._epicenter.asReadonly();
 
-  /** 巻き込む範囲の半径(px)。0 なら範囲攻撃ではない。 */
+  /** The radius it catches, in px. Zero means it is not an area attack. */
   readonly areaRadius = computed<number>(() => {
     const cells = this._preset()?.areaRadiusCells ?? 0;
     return cells > 0 ? cells * this.tabletopService.gridSize() : 0;
   });
 
-  /** 範囲の中心。円を描く位置。 */
+  /** The centre of the area, where the circle is drawn. */
   readonly areaCenter = computed<{ x: number; y: number; z: number } | null>(() => {
     if (this.areaRadius() <= 0) return null;
     const character = this.characterOf(this._epicenter());
@@ -69,9 +69,9 @@ export class EffectTargetingService {
   readonly isPicking = computed(() => this._preset() != null);
   readonly limit = computed(() => this._preset()?.targetLimit ?? 0);
 
-  /** 中止したときに戻す、選択を始める前のターゲット指定。 */
+  /** The targets from before the choosing began, restored on cancel. */
   private previousTargets: readonly string[] = [];
-  /** 始めた時点で選ばれていたコマ。これを「選び直した」とは扱わない。 */
+  /** The pieces already chosen at the start, which do not count as chosen again. */
   private beganWithSelection: TabletopObjectSelection | null = null;
 
   readonly marks = computed<EffectTargetMark[]>(() => {
@@ -114,7 +114,7 @@ export class EffectTargetingService {
     effect(() => {
       const selected = this.selectionSignalService.selectedObject();
       if (!selected || !untracked(this.isPicking)) return;
-      // 始める前から選ばれていたコマは、押し直したわけではないので対象にしない。
+      // A piece already chosen before the start was not pressed again, so it is not a target.
       if (selected === this.beganWithSelection) {
         this.beganWithSelection = null;
         return;
@@ -124,8 +124,8 @@ export class EffectTargetingService {
   }
 
   /**
-   * 対象選択を始める。すでに指定されているコマを引き継ぐので、
-   * リモコンやチャットで指定済みならそのまま発動できる。
+   * Begins choosing. It inherits whatever is already named, so a target set from the
+   * remote or from chat can be cast at straight away.
    */
   begin(preset: EffectPreset): void {
     const targeted = this.tabletopService.characters
@@ -136,12 +136,12 @@ export class EffectTargetingService {
     this.beganWithSelection = untracked(this.selectionSignalService.selectedObject);
     this._preset.set(preset);
     this._picks.set(targeted.slice(0, Math.max(preset.targetLimit, 1)));
-    // 撃ち手は選択中のコマ。選び進めると選択が対象側へ移るので、始める時点で捕まえておく。
+    // The shooter is the selected piece, caught at the start because choosing moves the selection onto the targets.
     this._casterIdentifier.set(this.selectedCasterIdentifier());
     this.mirror();
   }
 
-  /** 対象を選ぶ / 選び直す。上限に届いたらそのまま発動する。 */
+  /** Chooses a target, or unchooses it. Reaching the limit casts. */
   pick(identifier: string): EffectCast | null {
     const preset = this._preset();
     if (!preset) return null;
@@ -149,8 +149,8 @@ export class EffectTargetingService {
     const character = this.characterOf(identifier);
     if (!character) return null;
 
-    // 範囲攻撃は 1 回のクリックで巻き込むぶんを丸ごと選び直す。
-    // まとめて選んだだけで撃ってしまうと、どこまで巻き込んだか確かめられない。
+    // An area attack rechooses everything it catches in one click.
+    // Casting on the gather would leave no chance to see how far it reaches.
     if (preset.areaRadiusCells > 0) {
       this._epicenter.set(identifier);
       this._picks.set(this.areaPicks(preset, character));
@@ -182,7 +182,7 @@ export class EffectTargetingService {
     return cast;
   }
 
-  /** 中止。始める前のターゲット指定へ戻す。 */
+  /** Cancels, putting back the targets from before it began. */
   cancel(): boolean {
     if (!this.isPicking()) return false;
 
@@ -201,7 +201,7 @@ export class EffectTargetingService {
     this.beganWithSelection = null;
   }
 
-  /** 中心のコマから半径内を近い順に拾う。 */
+  /** Takes everything within the radius of the centre piece, nearest first. */
   private areaPicks(preset: EffectPreset, center: GameCharacter): string[] {
     const gridSize = this.tabletopService.gridSize();
     const origin = this.centerOf(center, gridSize);
@@ -212,7 +212,7 @@ export class EffectTargetingService {
     return effectAreaTargets(origin, candidates, preset.areaRadiusCells * gridSize, preset.targetLimit);
   }
 
-  /** 選んだ順の配列をコマの `targeted` へ写す。 */
+  /** Copies the ordered array onto each piece's `targeted` flag. */
   private mirror(): void {
     const picked = new Set(this._picks());
     for (const character of this.tabletopService.characters) {

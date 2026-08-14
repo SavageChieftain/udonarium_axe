@@ -120,7 +120,7 @@ describe('ObjectChangeService', () => {
     expect(event.peerId).toBe('my-peer');
   });
 
-  it('DELETE_GAME_OBJECT を受信すると objectDeleted$ に変換される', async () => {
+  it('turns a delete into its own event', async () => {
     const promise = nextEvent(service.objectDeleted$);
 
     localDispatch('DELETE_GAME_OBJECT', { identifier: 'network-del-id', aliasName: 'character' }, 'remote-peer-id');
@@ -132,7 +132,7 @@ describe('ObjectChangeService', () => {
     });
   });
 
-  it('CURSOR_MOVE を受信すると cursorMove$ に変換される', async () => {
+  it('turns a cursor move into its own event', async () => {
     const promise = nextEvent(service.cursorMove$);
 
     localDispatch('CURSOR_MOVE', [10, 20, 30], 'remote-peer-id');
@@ -145,7 +145,7 @@ describe('ObjectChangeService', () => {
     });
   });
 
-  it('NETWORK_ERROR を受信すると networkError$ に変換される', async () => {
+  it('turns a network error into its own event', async () => {
     const promise = nextEvent(service.networkError$);
 
     localDispatch('NETWORK_ERROR', { errorType: 'disconnect', errorMessage: 'connection lost' });
@@ -157,28 +157,28 @@ describe('ObjectChangeService', () => {
   });
 
   describe('versionOf()', () => {
-    it('メソッドが公開されている', () => {
+    it('exposes the method', () => {
       expect(typeof service.versionOf).toBe('function');
     });
 
-    it('初回呼び出しで Signal を返す（初期値 0）', () => {
+    it('returns a signal starting at zero', () => {
       const sig = service.versionOf('test-id-1');
       expect(sig()).toBe(0);
     });
 
-    it('同じ identifier に対しては同じ Signal を返す', () => {
+    it('returns the same signal for the same identifier', () => {
       const sig1 = service.versionOf('test-id-2');
       const sig2 = service.versionOf('test-id-2');
       expect(sig1).toBe(sig2);
     });
 
-    it('異なる identifier に対しては異なる Signal を返す', () => {
+    it('returns a different signal for a different identifier', () => {
       const sig1 = service.versionOf('test-id-3a');
       const sig2 = service.versionOf('test-id-3b');
       expect(sig1).not.toBe(sig2);
     });
 
-    it('objectChanged$ が emit されると該当 identifier の version が increment される', () => {
+    it('bumps the version of the object that changed', () => {
       const sig = service.versionOf('obj-changed-1');
       expect(sig()).toBe(0);
 
@@ -187,7 +187,7 @@ describe('ObjectChangeService', () => {
       expect(sig()).toBe(1);
     });
 
-    it('objectChanged$ が emit されても無関係な identifier の version は変わらない', () => {
+    it('leaves other versions alone when an object changes', () => {
       const sigTarget = service.versionOf('obj-changed-2a');
       const sigOther = service.versionOf('obj-changed-2b');
 
@@ -197,7 +197,7 @@ describe('ObjectChangeService', () => {
       expect(sigOther()).toBe(0);
     });
 
-    it('childrenChanged$ が emit されると該当 identifier の version が increment される', () => {
+    it('bumps the version when its children change', () => {
       const sig = service.versionOf('parent-1');
       expect(sig()).toBe(0);
 
@@ -206,7 +206,7 @@ describe('ObjectChangeService', () => {
       expect(sig()).toBe(1);
     });
 
-    it('objectChanged$ と childrenChanged$ が連続で emit されると version が累積する', () => {
+    it('adds up a change and a children change', () => {
       const sig = service.versionOf('combo-1');
 
       objectChanged$.emit({ identifier: 'combo-1', aliasName: 'TestAlias', isSendFromSelf: true });
@@ -215,50 +215,50 @@ describe('ObjectChangeService', () => {
       expect(sig()).toBe(2);
     });
 
-    it('versionOf 未登録の identifier への objectChanged$ は無視される（エラーにならない）', () => {
-      // versionOf を呼ばずに objectChanged$ を emit しても例外が発生しないこと
+    it('ignores a change to an identifier nobody has asked about', () => {
+      // survives a change with no version ever requested
       expect(() => {
         objectChanged$.emit({ identifier: 'unregistered-1', aliasName: 'TestAlias', isSendFromSelf: true });
       }).not.toThrow();
     });
 
-    it('objectRemoved$ が emit されると該当 identifier の Signal がクリーンアップされる', () => {
+    it('drops the signal when the object is removed', () => {
       const sig1 = service.versionOf('cleanup-1');
       expect(sig1()).toBe(0);
 
       objectRemoved$.emit({ identifier: 'cleanup-1', aliasName: 'TestAlias' });
 
-      // 再呼び出しすると新しいSignalが返される（version 0 にリセット）
+      // hands back a fresh signal, starting at zero, when asked again
       const sig2 = service.versionOf('cleanup-1');
       expect(sig2()).toBe(0);
       expect(sig2).not.toBe(sig1);
     });
 
-    it('読み取り専用のSignalを返す（asReadonly）', () => {
+    it('returns a read-only signal', () => {
       const sig = service.versionOf('readonly-1');
-      // WritableSignal ではなく Signal（set/update メソッドがない）
+      // returns a signal with no set or update
       expect(typeof (sig as unknown as Record<string, unknown>)['set']).not.toBe('function');
       expect(typeof (sig as unknown as Record<string, unknown>)['update']).not.toBe('function');
     });
   });
 
   describe('collectionOf()', () => {
-    it('メソッドが公開されている', () => {
+    it('exposes the method', () => {
       expect(typeof service.collectionOf).toBe('function');
     });
 
-    it('初回呼び出しで Signal を返す（初期値 0）', () => {
+    it('returns a signal starting at zero', () => {
       const sig = service.collectionOf('test-alias-1');
       expect(sig()).toBe(0);
     });
 
-    it('同じ aliasName に対しては同じ Signal を返す', () => {
+    it('returns the same signal for the same alias', () => {
       const sig1 = service.collectionOf('test-alias-2');
       const sig2 = service.collectionOf('test-alias-2');
       expect(sig1).toBe(sig2);
     });
 
-    it('objectAdded$ が emit されると該当 aliasName の collection が increment される', () => {
+    it('bumps the collection when one of its objects is added', () => {
       const sig = service.collectionOf('character');
       expect(sig()).toBe(0);
 
@@ -267,7 +267,7 @@ describe('ObjectChangeService', () => {
       expect(sig()).toBe(1);
     });
 
-    it('objectAdded$ が emit されても無関係な aliasName の collection は変わらない', () => {
+    it('leaves other collections alone', () => {
       const sigTarget = service.collectionOf('character');
       const sigOther = service.collectionOf('card');
 
@@ -277,7 +277,7 @@ describe('ObjectChangeService', () => {
       expect(sigOther()).toBe(0);
     });
 
-    it('objectRemoved$ が emit されると該当 aliasName の collection が increment される', () => {
+    it('bumps the collection when one of its objects is removed', () => {
       const sig = service.collectionOf('character');
 
       objectRemoved$.emit({ identifier: 'char-3', aliasName: 'character' });
@@ -285,7 +285,7 @@ describe('ObjectChangeService', () => {
       expect(sig()).toBe(1);
     });
 
-    it('add と remove で version が累積する', () => {
+    it('adds up an addition and a removal', () => {
       const sig = service.collectionOf('card-stack');
 
       objectAdded$.emit({ identifier: 'cs-1', aliasName: 'card-stack' });
@@ -295,13 +295,13 @@ describe('ObjectChangeService', () => {
       expect(sig()).toBe(3);
     });
 
-    it('collectionOf 未登録の aliasName への objectAdded$ は無視される（エラーにならない）', () => {
+    it('ignores an addition to an alias nobody has asked about', () => {
       expect(() => {
         objectAdded$.emit({ identifier: 'x', aliasName: 'unregistered-alias' });
       }).not.toThrow();
     });
 
-    it('読み取り専用のSignalを返す（asReadonly）', () => {
+    it('returns a read-only signal', () => {
       const sig = service.collectionOf('readonly-alias');
       expect(typeof (sig as unknown as Record<string, unknown>)['set']).not.toBe('function');
       expect(typeof (sig as unknown as Record<string, unknown>)['update']).not.toBe('function');
@@ -309,7 +309,7 @@ describe('ObjectChangeService', () => {
   });
 
   describe('notifyChanged()', () => {
-    it('versionOf を呼び出した後に notifyChanged を呼ぶと signal が increment される', () => {
+    it('bumps the signal when told about a change by hand', () => {
       const sig = service.versionOf('notify-1');
       expect(sig()).toBe(0);
 
@@ -318,7 +318,7 @@ describe('ObjectChangeService', () => {
       expect(sig()).toBe(1);
     });
 
-    it('複数回呼び出すと版数が累積する', () => {
+    it('adds up repeated notices', () => {
       const sig = service.versionOf('notify-2');
 
       service.notifyChanged('notify-2');
@@ -328,13 +328,13 @@ describe('ObjectChangeService', () => {
       expect(sig()).toBe(3);
     });
 
-    it('versionOf 未登録の identifier に対して呼び出してもエラーにならない', () => {
+    it('survives a notice about an identifier nobody has asked about', () => {
       expect(() => {
         service.notifyChanged('notify-unregistered');
       }).not.toThrow();
     });
 
-    it('無関係な identifier の signal には影響しない', () => {
+    it('leaves other signals alone', () => {
       const sigTarget = service.versionOf('notify-3a');
       const sigOther = service.versionOf('notify-3b');
 
@@ -354,7 +354,7 @@ describe('ObjectChangeService', () => {
       vi.useRealTimers();
     });
 
-    it('最初のファイルイベントで即座に fileVersion が increment される（leading edge）', () => {
+    it('bumps the file version at once on the first event', () => {
       expect(service.fileVersion()).toBe(0);
 
       fileLoaded$.emit();
@@ -362,7 +362,7 @@ describe('ObjectChangeService', () => {
       expect(service.fileVersion()).toBe(1);
     });
 
-    it('100ms 以内の連続イベントでは leading edge のみ即座に反映される', () => {
+    it('bumps only once for a burst inside the window', () => {
       fileLoaded$.emit(); // leading
       expect(service.fileVersion()).toBe(1);
 
@@ -373,7 +373,7 @@ describe('ObjectChangeService', () => {
       expect(service.fileVersion()).toBe(1);
     });
 
-    it('100ms 経過後に trailing edge が発火する', () => {
+    it('bumps again at the end of the window', () => {
       fileLoaded$.emit(); // leading
       fileLoaded$.emit(); // pending
 
@@ -382,7 +382,7 @@ describe('ObjectChangeService', () => {
       expect(service.fileVersion()).toBe(2); // trailing
     });
 
-    it('trailing edge 後にクールダウンが終われば新しい leading edge が発火できる', () => {
+    it('can bump at once again after the cooldown', () => {
       fileLoaded$.emit(); // leading → 1
       fileLoaded$.emit(); // pending
 
@@ -393,7 +393,7 @@ describe('ObjectChangeService', () => {
       expect(service.fileVersion()).toBe(3);
     });
 
-    it('単発イベントでは trailing edge は発火しない', () => {
+    it('does not bump twice for a single event', () => {
       fileLoaded$.emit(); // leading → 1
       expect(service.fileVersion()).toBe(1);
 
@@ -404,7 +404,7 @@ describe('ObjectChangeService', () => {
   });
 
   describe('onObjectChangedFor()', () => {
-    it('getIdentifiers が返した id にマッチするイベントだけ listener を呼ぶ', () => {
+    it('calls the listener only for the identifiers it names', () => {
       const listener = vi.fn();
       service.onObjectChangedFor(() => ['id-A', 'id-B'], listener);
 
@@ -417,7 +417,7 @@ describe('ObjectChangeService', () => {
       expect(listener.mock.calls[1][0].identifier).toBe('id-B');
     });
 
-    it('getIdentifiers は毎イベント時に評価される（動的 id 対応）', () => {
+    it('asks for the identifiers on every event, so they can change', () => {
       const listener = vi.fn();
       let currentIds = ['id-A'];
       service.onObjectChangedFor(() => currentIds, listener);
@@ -430,7 +430,7 @@ describe('ObjectChangeService', () => {
       expect(listener).toHaveBeenCalledTimes(2);
     });
 
-    it('返り値の unsubscribe で listener が解除される', () => {
+    it('unsubscribes through the returned function', () => {
       const listener = vi.fn();
       const off = service.onObjectChangedFor(() => ['x'], listener);
       objectChanged$.emit({ identifier: 'x', aliasName: 'a', isSendFromSelf: false });
@@ -441,7 +441,7 @@ describe('ObjectChangeService', () => {
   });
 
   describe('onObjectChangedForAlias()', () => {
-    it('aliasName にマッチするイベントだけ listener を呼ぶ', () => {
+    it('calls the listener only for the aliases it names', () => {
       const listener = vi.fn();
       service.onObjectChangedForAlias(['ChatMessage'], listener);
 
@@ -452,7 +452,7 @@ describe('ObjectChangeService', () => {
       expect(listener).toHaveBeenCalledTimes(2);
     });
 
-    it('複数 aliasName 指定で OR フィルタになる', () => {
+    it('matches any of several aliases', () => {
       const listener = vi.fn();
       service.onObjectChangedForAlias(['ChatTab', 'ChatTabList'], listener);
       objectChanged$.emit({ identifier: 'a', aliasName: 'ChatTab', isSendFromSelf: false });
@@ -463,7 +463,7 @@ describe('ObjectChangeService', () => {
   });
 
   describe('onObjectChangedForIdentifier()', () => {
-    it('指定 identifier のイベントだけ listener を呼ぶ (indexed dispatch)', () => {
+    it('calls the listener only for its own identifier, straight from the index', () => {
       const listener = vi.fn();
       service.onObjectChangedForIdentifier('id-A', listener);
 
@@ -474,7 +474,7 @@ describe('ObjectChangeService', () => {
       expect(listener).toHaveBeenCalledTimes(2);
     });
 
-    it('同一 identifier に複数 listener を登録できる', () => {
+    it('takes several listeners for one identifier', () => {
       const a = vi.fn();
       const b = vi.fn();
       service.onObjectChangedForIdentifier('id-X', a);
@@ -484,7 +484,7 @@ describe('ObjectChangeService', () => {
       expect(b).toHaveBeenCalledTimes(1);
     });
 
-    it('返り値の unsubscribe で indexed entry が解除される', () => {
+    it('removes the indexed entry when unsubscribed', () => {
       const listener = vi.fn();
       const off = service.onObjectChangedForIdentifier('id-Y', listener);
       objectChanged$.emit({ identifier: 'id-Y', aliasName: 'a', isSendFromSelf: false });
@@ -493,7 +493,7 @@ describe('ObjectChangeService', () => {
       expect(listener).toHaveBeenCalledTimes(1);
     });
 
-    it('iteration 中に解除された listener は当該 dispatch で呼ばれない (EventChannel と同じ)', () => {
+    it('skips a listener unsubscribed mid-dispatch, as the event channel does', () => {
       const order: string[] = [];
       let offB: (() => void) | null = null;
       const a = vi.fn(() => {
@@ -506,13 +506,13 @@ describe('ObjectChangeService', () => {
       service.onObjectChangedForIdentifier('id-Z', a);
       offB = service.onObjectChangedForIdentifier('id-Z', b);
       objectChanged$.emit({ identifier: 'id-Z', aliasName: 'a', isSendFromSelf: false });
-      // a の中で b が解除されたので、b は当該 dispatch で呼ばれない
+      // b was unsubscribed from inside a, so b is skipped this time round
       expect(order).toEqual(['a']);
     });
   });
 
   describe('onObjectChangedForSingleAlias()', () => {
-    it('指定 alias のイベントだけ listener を呼ぶ (indexed dispatch)', () => {
+    it('calls the listener only for its own alias, straight from the index', () => {
       const listener = vi.fn();
       service.onObjectChangedForSingleAlias('ChatMessage', listener);
 
@@ -523,7 +523,7 @@ describe('ObjectChangeService', () => {
       expect(listener).toHaveBeenCalledTimes(2);
     });
 
-    it('返り値の unsubscribe で indexed entry が解除される', () => {
+    it('removes the indexed entry when unsubscribed', () => {
       const listener = vi.fn();
       const off = service.onObjectChangedForSingleAlias('Card', listener);
       objectChanged$.emit({ identifier: 'a', aliasName: 'Card', isSendFromSelf: false });

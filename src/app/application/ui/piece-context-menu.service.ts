@@ -8,10 +8,10 @@ import { ObjectStore } from '@axe/core/sync/object-store';
 import { TabletopObject } from '@axe/domain/tabletop/tabletop-object';
 
 /**
- * 盤上の物を右クリックしたときの入り口。
+ * Where a right-click on something on the board arrives.
  *
- * まとめて選んでいるなら、その場で出すのは一括の操作。1 つだけを指しているときに
- * 初めて、その物ならではの操作を組む。
+ * A group selection gets the bulk actions; only a single object earns the menu
+ * built for that object alone.
  */
 @Injectable({ providedIn: 'root' })
 export class PieceContextMenuService {
@@ -20,7 +20,7 @@ export class PieceContextMenuService {
   private readonly objectStore = inject(ObjectStore);
   private readonly t = inject(TRANSLATE_FN);
 
-  /** 一括の操作を出したなら true。呼び出し側はそこで止める。 */
+  /** True when the bulk menu was opened. The caller stops there. */
   openForSelection(self: TabletopObject, gridSize: number, position: PointerCoordinate): boolean {
     const multi = tryBuildMultiSelectionContextMenu({
       self,

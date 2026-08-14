@@ -88,7 +88,7 @@ export class ObjectChangeService {
 
   private readonly _versions = new Map<string, WritableSignal<number>>();
 
-  /** 自身のプロパティ変更 + 子孫ノードの変更 の両方で increment される。 */
+  /** Bumps both for its own properties and for anything below it. */
   versionOf(identifier: string): Signal<number> {
     let sig = this._versions.get(identifier);
     if (!sig) {
@@ -98,8 +98,8 @@ export class ObjectChangeService {
     return sig.asReadonly();
   }
 
-  /** 非 @SyncVar プロパティの変更時に versionOf signal を手動で increment する。 */
-  /** 自分が投げたコインは、ネットワーク往復を待たずその場で回し始める。 */
+  /** Bumps the version by hand for a property no sync var covers. */
+  /** A coin you flipped starts spinning here, without waiting for the round trip. */
   notifyCoinFlipped(identifier: string, face: string): void {
     this._flipCoin$.emit({ identifier, face });
   }
@@ -111,9 +111,9 @@ export class ObjectChangeService {
   private readonly _collections = new Map<string, WritableSignal<number>>();
 
   /**
-   * objectAdded$/objectRemoved$ で自動 increment される。
-   * フィルタ済みコレクションの見かけ上の変化 (location/parent 変更等) には
-   * notifyCollectionChanged() で手動 increment が必要。
+   * Additions and removals bump it automatically.
+   * An apparent change to a filtered collection, such as a move or a reparent, needs
+   * notifyCollectionChanged() to bump it by hand.
    */
   collectionOf(aliasName: string): Signal<number> {
     let sig = this._collections.get(aliasName);
@@ -129,9 +129,9 @@ export class ObjectChangeService {
   }
 
   /**
-   * `getIdentifiers` は subscribe 中の毎イベント時に評価され、最新の id セットに対する変更だけ
-   * listener に届ける (component 自身の追従先 id 等、動的なケースに対応するためコールバック形式)。
-   * @returns 購読解除関数。`destroyRef` 指定で自動的にクリーンアップされる。
+   * `getIdentifiers` runs on every event, so only changes to the current set reach the
+   * listener. It is a callback so that the set can move, as it does when a component follows something.
+   * @returns the unsubscribe function. Passing a `destroyRef` cleans it up automatically.
    */
   onObjectChangedFor(
     getIdentifiers: () => readonly string[],
@@ -158,8 +158,8 @@ export class ObjectChangeService {
   private readonly _listenersByAlias = new Map<string, Set<(event: ObjectChangeEvent) => void>>();
 
   /**
-   * 単一 identifier 用の indexed 購読。`onObjectChangedFor` と異なり、event 毎の
-   * filter ループとリスト生成が無く dispatch が O(1)。識別子が固定のときに使う。
+   * An indexed subscription for one identifier. Unlike `onObjectChangedFor` there is no
+   * per-event filtering, so dispatch is constant time. Use it when the identifier is fixed.
    */
   onObjectChangedForIdentifier(
     identifier: string,
@@ -183,7 +183,7 @@ export class ObjectChangeService {
   }
 
   /**
-   * 単一 aliasName 用の indexed 購読。`onObjectChangedForAlias` の固定 alias 版。
+   * An indexed subscription for one alias, the fixed-alias form of `onObjectChangedForAlias`.
    */
   onObjectChangedForSingleAlias(
     aliasName: string,
@@ -209,7 +209,7 @@ export class ObjectChangeService {
   private dispatchIndexed(event: ObjectChangeEvent): void {
     const idListeners = this._listenersByIdentifier.get(event.identifier);
     if (idListeners && idListeners.size > 0) {
-      // EventChannel と同様、iteration 中に解除された listener は skip する
+      // Like the event channel, a listener unsubscribed mid-iteration is skipped
       const snapshot = Array.from(idListeners);
       for (const listener of snapshot) {
         if (idListeners.has(listener)) listener(event);
@@ -303,7 +303,7 @@ export class ObjectChangeService {
       this._collections.get(e.aliasName)?.update((v) => v + 1);
     }, this.destroyRef);
 
-    // objectRemoved は collection bump に加えて versions Map のエントリ自体を破棄する。
+    // A removal bumps the collection and drops the version entry itself.
     objectRemoved$.subscribe((e) => {
       this._collections.get(e.aliasName)?.update((v) => v + 1);
       this._versions.delete(e.identifier);
@@ -330,7 +330,7 @@ export class ObjectChangeService {
     });
     this.destroyRef.onDestroy(offNetworkBindings);
 
-    // throttle (leading + trailing, 100ms): file-related events をまとめて fileVersion を bump する。
+    // Throttled at both ends over 100ms: file events are gathered into one bump.
     let fileTimer: ReturnType<typeof setTimeout> | null = null;
     let filePending = false;
     const flushFileVersion = () => {
@@ -358,7 +358,7 @@ export class ObjectChangeService {
       if (fileTimer !== null) clearTimeout(fileTimer);
     });
 
-    // debounce (100ms): network peer events をまとめて networkVersion を bump する。
+    // Debounced over 100ms: peer events are gathered into one bump.
     let netTimer: ReturnType<typeof setTimeout> | null = null;
     const bumpNetworkVersion = () => {
       if (netTimer !== null) clearTimeout(netTimer);

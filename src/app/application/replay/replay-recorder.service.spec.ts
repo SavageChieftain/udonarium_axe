@@ -104,11 +104,11 @@ function context(identifier: string, aliasName: string, syncData: Record<string,
 }
 
 /**
- * 盤面の書き留めは圧縮を挟むので、タイマーを進めただけでは終わっていない。
- * 何回で終わるかは走らせる機械の混み具合で変わるため、終わるまで待つ。
+ * Writing a board down goes through compression, so advancing the timers is not enough.
+ * How many turns it takes depends on how busy the machine is, so this waits for it.
  *
- * 待ちきれなかったときは黙って戻らない。戻ると、続く検証が「起きなかった」ことを
- * 落ちた理由として報告してしまい、遅い機械での取りこぼしと本物の不具合が見分けられない。
+ * It does not give up quietly. Doing so would let the following assertion report that
+ * nothing happened, and a slow machine would be indistinguishable from a real defect.
  */
 const SETTLE_TURNS = 5000;
 
@@ -159,13 +159,13 @@ describe('ReplayRecorderService', () => {
     vi.useRealTimers();
   });
 
-  it('録画していないうちは何も記録しないこと', () => {
+  it('records nothing before recording starts', () => {
     sendUpdate('c1', 'character', { location: { name: 'table', x: 0, y: 0 }, posZ: 0 });
     expect(service.eventCount()).toBe(0);
     expect(service.recentEvents()).toHaveLength(0);
   });
 
-  it('移動を誰が何をどうしたかとして記録すること', async () => {
+  it('records a move as who did what to which piece', async () => {
     await service.start();
     sendUpdate('c1', 'character', { location: { name: 'table', x: 0, y: 0 }, posZ: 0 });
     vi.advanceTimersByTime(REPLAY_BASELINE_GRACE_MS);
@@ -178,7 +178,7 @@ describe('ReplayRecorderService', () => {
     expect(event.detail['to']).toEqual({ name: 'table', x: 100, y: 50, z: 0 });
   });
 
-  it('録画開始時の盤面と同じ値の同期を記録しないこと', async () => {
+  it('ignores a sync carrying the same values the board started with', async () => {
     const character = { identifier: 'c1', aliasName: 'character', syncData: { posZ: 0 } };
     vi.spyOn(objectStore, 'getObjects').mockReturnValue([
       { identifier: 'c1', toContext: () => context('c1', 'character', { value: '', attributes: { posZ: 0 } }) },
@@ -190,7 +190,7 @@ describe('ReplayRecorderService', () => {
     expect(service.recentEvents()).toHaveLength(0);
   });
 
-  it('猶予のあいだに流れ込む初期同期を作成として記録しないこと', async () => {
+  it('does not record the opening flood of syncs as creations', async () => {
     await service.start();
     sendUpdate('c9', 'character', { posZ: 0 });
     expect(service.recentEvents()).toHaveLength(0);
@@ -201,7 +201,7 @@ describe('ReplayRecorderService', () => {
     expect(service.recentEvents()[0].kind).toBe(ReplayEventKind.ObjectCreate);
   });
 
-  it('続けざまの移動を 1 件に畳むこと', async () => {
+  it('folds a run of moves into one', async () => {
     await service.start();
     sendUpdate('c1', 'character', { location: { name: 'table', x: 0, y: 0 }, posZ: 0 });
     vi.advanceTimersByTime(REPLAY_BASELINE_GRACE_MS);
@@ -219,7 +219,7 @@ describe('ReplayRecorderService', () => {
     expect(events[0].detail['to']).toEqual({ name: 'table', x: 50, y: 0, z: 0 });
   });
 
-  it('ドラッグ中は表示用のシグナルを毎フレーム書き換えないこと', async () => {
+  it('does not rewrite the display signal every frame of a drag', async () => {
     await service.start();
     sendUpdate('c1', 'character', { location: { name: 'table', x: 0, y: 0 }, posZ: 0 });
     vi.advanceTimersByTime(REPLAY_BASELINE_GRACE_MS);
@@ -245,7 +245,7 @@ describe('ReplayRecorderService', () => {
     stop.destroy();
   });
 
-  it('ドラッグを畳んでも最後の位置まで表示に届くこと', async () => {
+  it('still shows the final position of a folded drag', async () => {
     await service.start();
     sendUpdate('c1', 'character', { location: { name: 'table', x: 0, y: 0 }, posZ: 0 });
     vi.advanceTimersByTime(REPLAY_BASELINE_GRACE_MS);
@@ -258,7 +258,7 @@ describe('ReplayRecorderService', () => {
     expect(service.recentEvents()[0].detail['to']).toEqual({ name: 'table', x: 20, y: 0, z: 0 });
   });
 
-  it('ドラッグ中は盤面の書き留めを見送り、落ち着いてから行うこと', async () => {
+  it('puts off writing the board down until the drag settles', async () => {
     await service.start();
     expect(store.keyframes).toHaveLength(1);
     vi.advanceTimersByTime(REPLAY_BASELINE_GRACE_MS);
@@ -274,7 +274,7 @@ describe('ReplayRecorderService', () => {
     expect(store.keyframes).toHaveLength(2);
   });
 
-  it('雑音のイベントを記録しないこと', async () => {
+  it('records none of the noise', async () => {
     await service.start();
     vi.advanceTimersByTime(REPLAY_BASELINE_GRACE_MS);
     localDispatch('CURSOR_MOVE', [1, 2, 3], 'peer-a');
@@ -282,7 +282,7 @@ describe('ReplayRecorderService', () => {
     expect(service.recentEvents()).toHaveLength(0);
   });
 
-  it('ダイスやシャッフルの合図を記録すること', async () => {
+  it('records the dice and shuffle cues', async () => {
     await service.start();
     vi.advanceTimersByTime(REPLAY_BASELINE_GRACE_MS);
     localDispatch('ROLL_DICE_SYMBOL', { identifier: 'd1' }, 'peer-a');
@@ -294,7 +294,7 @@ describe('ReplayRecorderService', () => {
     ]);
   });
 
-  it('再生で卓を預かっているあいだは記録しないこと', async () => {
+  it('records nothing while playback holds the table', async () => {
     await service.start();
     vi.advanceTimersByTime(REPLAY_BASELINE_GRACE_MS);
 
@@ -308,7 +308,7 @@ describe('ReplayRecorderService', () => {
     expect(service.recentEvents()).toHaveLength(1);
   });
 
-  it('削除を記録すること', async () => {
+  it('records a deletion', async () => {
     await service.start();
     vi.advanceTimersByTime(REPLAY_BASELINE_GRACE_MS);
     localDispatch('DELETE_GAME_OBJECT', { identifier: 'c1', aliasName: 'character' }, 'peer-a');
@@ -316,7 +316,7 @@ describe('ReplayRecorderService', () => {
     expect(service.recentEvents()[0].kind).toBe(ReplayEventKind.ObjectRemove);
   });
 
-  it('内緒話を宛先つきの秘匿として記録すること', async () => {
+  it('records a whisper as private, with its recipients', async () => {
     await service.start();
     vi.advanceTimersByTime(REPLAY_BASELINE_GRACE_MS);
     localDispatch(
@@ -328,12 +328,12 @@ describe('ReplayRecorderService', () => {
     expect(service.recentEvents()[0].visibility).toEqual({ kind: 'direct', to: ['bob'] });
   });
 
-  it('選んだ細かさを次の卓へ持ち越すこと', () => {
+  it('carries the chosen detail level to the next session', () => {
     service.setDetailLevel(ReplayDetailLevel.Full);
     expect(localStorage.getItem('axe-replay-preference')).toContain('full');
   });
 
-  it('チャットだけの詳細度では盤面の変化を記録しないこと', async () => {
+  it('records no board changes at the chat-only detail level', async () => {
     service.setDetailLevel(ReplayDetailLevel.ChatOnly);
     await service.start();
     vi.advanceTimersByTime(REPLAY_BASELINE_GRACE_MS);
@@ -347,7 +347,7 @@ describe('ReplayRecorderService', () => {
     expect(service.recentEvents().map((e) => e.kind)).toEqual([ReplayEventKind.ChatMessage]);
   });
 
-  it('一定時間ごとにチャンクを書き出すこと', async () => {
+  it('writes a chunk out at intervals', async () => {
     await service.start();
     vi.advanceTimersByTime(REPLAY_BASELINE_GRACE_MS);
     sendUpdate('c1', 'character', { posZ: 10 });
@@ -358,7 +358,7 @@ describe('ReplayRecorderService', () => {
     expect(store.allEvents()).toHaveLength(1);
   });
 
-  it('停止で残りを書き出し目録を残すこと', async () => {
+  it('writes out the remainder and the manifest on stopping', async () => {
     await service.start();
     vi.advanceTimersByTime(REPLAY_BASELINE_GRACE_MS);
     sendUpdate('c1', 'character', { posZ: 10 });
@@ -374,7 +374,7 @@ describe('ReplayRecorderService', () => {
     expect(manifest?.keyframes.length).toBeGreaterThan(0);
   });
 
-  it('止め終わる前に始め直しても新しい録画を潰さないこと', async () => {
+  it('does not crush a new recording started before the old one finished stopping', async () => {
     await service.start();
     vi.advanceTimersByTime(REPLAY_BASELINE_GRACE_MS);
     sendUpdate('c1', 'character', { posZ: 10 });
@@ -396,14 +396,14 @@ describe('ReplayRecorderService', () => {
     expect(store.chunks.some((chunk) => chunk.recordingId === 2)).toBe(true);
   });
 
-  it('再生で卓を預かっているあいだは始めないこと', async () => {
+  it('does not start while playback holds the table', async () => {
     setNetworkIsolated(true);
     expect(await service.start()).toBe(false);
     expect(service.isRecording()).toBe(false);
     expect(store.keyframes).toHaveLength(0);
   });
 
-  it('再生で卓を預かっているあいだは盤面を書き留めないこと', async () => {
+  it('writes no board down while playback holds the table', async () => {
     await service.start();
     expect(store.keyframes).toHaveLength(1);
 
@@ -417,7 +417,7 @@ describe('ReplayRecorderService', () => {
     expect(store.keyframes).toHaveLength(2);
   });
 
-  it('部屋がなくても録画できること', async () => {
+  it('records outside a room', async () => {
     expect(await service.start()).toBe(true);
     expect(service.roomName()).toBe('');
 
@@ -429,7 +429,7 @@ describe('ReplayRecorderService', () => {
     expect(decodeReplayManifest((await store.getManifest(1))!)?.roomName).toBe('');
   });
 
-  it('始めた卓の名前を最後まで持つこと', async () => {
+  it('keeps the room name it started with', async () => {
     vi.spyOn(Network, 'peerContext', 'get').mockReturnValue({ roomName: '第一夜' } as never);
     await service.start();
     expect(service.roomName()).toBe('第一夜');
@@ -440,27 +440,27 @@ describe('ReplayRecorderService', () => {
     expect(decodeReplayManifest((await store.getManifest(1))!)?.roomName).toBe('第一夜');
   });
 
-  it('開始と停止で盤面を書き留めること', async () => {
+  it('writes the board down at the start and at the stop', async () => {
     await service.start();
     expect(store.keyframes).toHaveLength(1);
     await service.stop();
     expect(store.keyframes).toHaveLength(2);
   });
 
-  it('盤面を識別子つきで書き留めること', async () => {
+  it('writes the board down against its recording', async () => {
     await service.start();
     const snapshot = decodeReplayKeyframe(await readKeyframeBytes(store.keyframes[0].blob));
     expect(snapshot.some((object) => object.identifier === 'cursor-a')).toBe(true);
   });
 
-  it('盤面を圧縮して置くこと', async () => {
-    // 盤面は部屋まるごとで 10 分ごとに積み上がる。無圧縮のままだと置き場を食い潰す。
+  it('stores the board compressed', async () => {
+    // A board is a whole room and another arrives every ten minutes; uncompressed they would eat the storage.
     await service.start();
     const raw = new Uint8Array(await store.keyframes[0].blob.arrayBuffer());
     expect(isCompressed(raw)).toBe(true);
   });
 
-  it('変化が無ければ盤面を撮り直さないこと', async () => {
+  it('does not take the board again when nothing moved', async () => {
     await service.start();
     expect(store.keyframes).toHaveLength(1);
 
@@ -469,7 +469,7 @@ describe('ReplayRecorderService', () => {
     expect(store.keyframes).toHaveLength(1);
   });
 
-  it('何か起きていれば次の盤面を撮ること', async () => {
+  it('takes the next board once something has happened', async () => {
     await service.start();
     vi.advanceTimersByTime(REPLAY_BASELINE_GRACE_MS);
     sendUpdate('c1', 'character', { location: { name: 'table', x: 10, y: 0 }, posZ: 0 });
@@ -480,8 +480,8 @@ describe('ReplayRecorderService', () => {
     expect(store.keyframes).toHaveLength(2);
   });
 
-  it('書き足すたびに目録を丸ごと書き直さないこと', async () => {
-    // 目録は録画が伸びるほど大きくなる。毎回書き直すと通算の費用が長さの二乗になる。
+  it('does not rewrite the whole manifest on every append', async () => {
+    // The manifest grows with the recording, so rewriting it each time costs the square of the length.
     await service.start();
     vi.advanceTimersByTime(REPLAY_BASELINE_GRACE_MS);
     const writes = vi.spyOn(store, 'updateRecording');
@@ -497,7 +497,7 @@ describe('ReplayRecorderService', () => {
     expect(manifestWrites).toBeLessThan(flushes);
   });
 
-  it('止めるときは目録を書き切ること', async () => {
+  it('writes the manifest out in full on stopping', async () => {
     await service.start();
     vi.advanceTimersByTime(REPLAY_BASELINE_GRACE_MS);
     sendUpdate('c1', 'character', { location: { name: 'table', x: 10, y: 0 }, posZ: 0 });
@@ -510,7 +510,7 @@ describe('ReplayRecorderService', () => {
     expect(decodeReplayManifest(row.manifest!)?.chunks.length).toBeGreaterThan(0);
   });
 
-  it('目印を打てること', async () => {
+  it('can drop a marker', async () => {
     await service.start();
     vi.advanceTimersByTime(REPLAY_BASELINE_GRACE_MS);
     await service.mark('第二幕');

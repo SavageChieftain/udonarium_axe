@@ -35,22 +35,22 @@ describe('ViewportService', () => {
     TestBed.resetTestingModule();
   });
 
-  it('狭い画面ではコンパクト扱いになる', () => {
+  it('treats a narrow screen as compact', () => {
     const service = setup(true);
     expect(service.isCompact()).toBe(true);
   });
 
-  it('広い画面ではコンパクト扱いにならない', () => {
+  it('does not treat a wide screen as compact', () => {
     const service = setup(false);
     expect(service.isCompact()).toBe(false);
   });
 
-  it('画面幅のしきい値を問い合わせる', () => {
+  it('asks the browser about the width threshold', () => {
     setup(false);
     expect(window.matchMedia).toHaveBeenCalledWith(COMPACT_VIEWPORT_QUERY);
   });
 
-  it('画面幅の変化に追従する', () => {
+  it('follows the width as it changes', () => {
     const service = setup(false);
 
     listener?.({ matches: true } as MediaQueryListEvent);
@@ -60,17 +60,17 @@ describe('ViewportService', () => {
     expect(service.isCompact()).toBe(false);
   });
 
-  it('粗いポインタを問い合わせる', () => {
+  it('asks the browser about a coarse pointer', () => {
     setup(false);
     expect(window.matchMedia).toHaveBeenCalledWith(TOUCH_POINTER_QUERY);
   });
 
-  it('横向きのスマートフォンもコンパクト扱いに含める', () => {
+  it('counts a phone held sideways as compact too', () => {
     setup(false);
     expect(COMPACT_VIEWPORT_QUERY).toContain('(max-height: 500px) and (pointer: coarse)');
   });
 
-  it('破棄時に購読を解除する', () => {
+  it('unsubscribes on teardown', () => {
     setup(false);
     TestBed.resetTestingModule();
 

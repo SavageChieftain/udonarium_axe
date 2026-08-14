@@ -4,7 +4,7 @@ import { ReplayDetailLevel } from '@axe/domain/replay/replay-event';
 
 const STORAGE_KEY = 'axe-replay-preference';
 
-/** 端末に残す本数。`null` は「残す本数を決めない」＝勝手に消さない。 */
+/** How many recordings to keep on the device. `null` means no limit, so nothing is deleted unasked. */
 export type ReplayKeepCount = number | null;
 
 export const REPLAY_KEEP_CHOICES: readonly ReplayKeepCount[] = [null, 20, 10, 5];
@@ -16,7 +16,7 @@ export interface ReplayPreference {
 
 export const DEFAULT_REPLAY_PREFERENCE: ReplayPreference = {
   detailLevel: ReplayDetailLevel.Notable,
-  // 既定は消さない。消すかどうかは記録した人が決める。
+  // Nothing is deleted by default; whoever recorded it decides.
   keepCount: null,
 };
 
@@ -50,7 +50,7 @@ export class ReplayPreferenceService {
   readonly detailLevel = signal<ReplayDetailLevel>(this.restored.detailLevel);
   readonly keepCount = signal<ReplayKeepCount>(this.restored.keepCount);
 
-  /** 消す条件。本数だけで決め、容量では消さない（空きはブラウザが見る）。 */
+  /** What gets deleted, decided by count alone rather than by size, which the browser watches. */
   get retention(): ReplayRetention {
     return { maxCount: this.keepCount(), maxTotalBytes: null };
   }

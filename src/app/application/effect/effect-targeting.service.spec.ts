@@ -37,7 +37,7 @@ describe('EffectTargetingService', () => {
     for (const character of characters) ObjectStore.instance.remove(character);
   });
 
-  it('選んだ順に対象を積むこと', () => {
+  it('collects the targets in the order they were chosen', () => {
     service.begin(preset);
     service.pick(characters[1].identifier);
     service.pick(characters[0].identifier);
@@ -46,16 +46,16 @@ describe('EffectTargetingService', () => {
     expect(service.marks().map((mark) => mark.order)).toEqual([1, 2]);
   });
 
-  it('選んだ対象をコマのターゲット指定へ写すこと', () => {
+  it('copies the chosen targets onto the piece', () => {
     service.begin(preset);
     service.pick(characters[1].identifier);
 
-    // 選び終えたあと、チャットの t: がそのまま同じ対象へ効くようにする。
+    // so that once the choosing is done, the chat shorthand reaches the same targets
     expect(characters[1].targeted).toBe(true);
     expect(characters[0].targeted).toBe(false);
   });
 
-  it('もう一度選んだら外すこと', () => {
+  it('drops a target chosen a second time', () => {
     service.begin(preset);
     service.pick(characters[0].identifier);
     service.pick(characters[1].identifier);
@@ -65,7 +65,7 @@ describe('EffectTargetingService', () => {
     expect(characters[0].targeted).toBe(false);
   });
 
-  it('上限に届いたら発動すること', () => {
+  it('casts as soon as the limit is reached', () => {
     service.begin(preset);
     expect(service.pick(characters[0].identifier)).toBeNull();
     expect(service.pick(characters[1].identifier)).toBeNull();
@@ -80,7 +80,7 @@ describe('EffectTargetingService', () => {
     expect(service.isPicking()).toBe(false);
   });
 
-  it('始める前の指定を引き継ぎ、中止で戻すこと', () => {
+  it('inherits the targets already named and puts them back when cancelled', () => {
     characters[3].targeted = true;
 
     service.begin(preset);
@@ -96,10 +96,10 @@ describe('EffectTargetingService', () => {
     expect(characters[0].targeted).toBe(false);
   });
 
-  it('選択中のコマを撃ち手として覚えること', () => {
+  it('remembers the selected piece as the shooter', () => {
     selection.selectObject(characters[3].identifier, characters[3].aliasName);
     service.begin(preset);
-    // 選び進めると選択は対象側へ移るが、撃ち手は始めた時点のものを保つ。
+    // Choosing moves the selection onto the targets, but the shooter stays as it was at the start.
     service.pick(characters[0].identifier);
     selection.selectObject(characters[0].identifier, characters[0].aliasName);
     const cast = service.confirm();
@@ -108,24 +108,24 @@ describe('EffectTargetingService', () => {
     expect(cast?.origin).not.toBeNull();
   });
 
-  it('対象が無いまま決定しても発動しないこと', () => {
+  it('casts nothing when confirmed with no target', () => {
     service.begin(preset);
 
     expect(service.confirm()).toBeNull();
   });
 
-  it('選択中でなければ中止が何もしないこと', () => {
+  it('cancels nothing when not choosing', () => {
     expect(service.cancel()).toBe(false);
   });
 
-  describe('範囲攻撃', () => {
+  describe('an area attack', () => {
     beforeEach(() => {
       preset.areaRadius = 5;
       preset.maxTargets = 5;
     });
 
-    it('中心の周りを近い順にまとめて選ぶこと', () => {
-      // コマは 200px 間隔。既定のマス目は 50px なので、半径 5 マス = 250px で両隣まで届く。
+    it('takes everything around the centre, nearest first', () => {
+      // The pieces stand 200px apart and a cell is 50px, so a five-cell radius reaches both neighbours.
       service.begin(preset);
       service.pick(characters[1].identifier);
 
@@ -133,15 +133,15 @@ describe('EffectTargetingService', () => {
       expect(service.areaCenter()).not.toBeNull();
     });
 
-    it('まとめて選んだだけでは撃たないこと', () => {
+    it('does not cast on gathering a group', () => {
       service.begin(preset);
 
-      // どこまで巻き込んだか確かめてから撃てるようにする。
+      // so the caster can see how far it reaches before committing
       expect(service.pick(characters[1].identifier)).toBeNull();
       expect(service.isPicking()).toBe(true);
     });
 
-    it('選び直すと中心が移ること', () => {
+    it('moves the centre when chosen again', () => {
       service.begin(preset);
       service.pick(characters[1].identifier);
       service.pick(characters[3].identifier);

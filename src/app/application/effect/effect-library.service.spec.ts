@@ -21,7 +21,7 @@ describe('EffectLibraryService', () => {
     }
   });
 
-  it('空なら既定を全部作ること', () => {
+  it('builds the whole default set when there is nothing', () => {
     const result = service.restoreDefaults();
 
     expect(result.added).toBe(DEFAULT_EFFECT_PRESET_SEEDS.length);
@@ -29,7 +29,7 @@ describe('EffectLibraryService', () => {
     expect(service.presets()).toHaveLength(DEFAULT_EFFECT_PRESET_SEEDS.length);
   });
 
-  it('既にあるものは作り直さず値を入れ直すこと', () => {
+  it('refreshes what is already there instead of rebuilding it', () => {
     service.restoreDefaults();
     const seed = DEFAULT_EFFECT_PRESET_SEEDS[0];
     const preset = service.get(seed.identifier)!;
@@ -38,8 +38,8 @@ describe('EffectLibraryService', () => {
 
     const result = service.restoreDefaults();
 
-    // 固定 identifier のプリセットは入室時に作り直せないので、
-    // ここで入れ直さないと古い値のまま取り残される。
+    // A preset with a fixed identifier cannot be rebuilt on joining,
+    // so without a refresh here it would keep its old values.
     expect(result.added).toBe(0);
     expect(result.updated).toBe(DEFAULT_EFFECT_PRESET_SEEDS.length);
     expect(service.presets()).toHaveLength(DEFAULT_EFFECT_PRESET_SEEDS.length);
@@ -47,7 +47,7 @@ describe('EffectLibraryService', () => {
     expect(service.get(seed.identifier)?.scale).toBe(seed.scale);
   });
 
-  it('消されたものを作り直せること', () => {
+  it('can rebuild what was deleted', () => {
     service.restoreDefaults();
     const seed = DEFAULT_EFFECT_PRESET_SEEDS[0];
     service.get(seed.identifier)!.destroy();
@@ -58,14 +58,14 @@ describe('EffectLibraryService', () => {
     expect(service.presets().some((preset) => preset.name === seed.name)).toBe(true);
   });
 
-  it('白紙から作れること', () => {
+  it('can build one from nothing', () => {
     const preset = service.create('新しいエフェクト');
 
     expect(service.get(preset.identifier)).toBe(preset);
     expect(preset.name).toBe('新しいエフェクト');
   });
 
-  it('複製で名前が重ならないこと', () => {
+  it('gives a copy a name of its own', () => {
     const source = service.create('爆炎');
     source.scale = 2.5;
     source.kind = 'flame';
@@ -79,7 +79,7 @@ describe('EffectLibraryService', () => {
     expect(service.duplicate(source).name).toBe('爆炎 (3)');
   });
 
-  it('削除すると一覧から消えること', () => {
+  it('drops a deleted preset from the list', () => {
     const preset = service.create('消すもの');
 
     service.remove(preset);
@@ -87,13 +87,13 @@ describe('EffectLibraryService', () => {
     expect(service.get(preset.identifier)).toBeNull();
   });
 
-  it('GM 専用は名前でも PL に渡さないこと', () => {
+  it('keeps a game-master-only preset from a player even by name', () => {
     PeerCursor.createMyCursor();
     PeerCursor.myCursor.role = PeerRole.Player;
     const secret = service.create('伏せ札の演出');
     secret.gmOnly = true;
 
-    // 一覧に出さないだけでは、名前を知っていればチャット記法から撃ててしまう。
+    // Hiding it from the list would still leave it castable from chat by anyone who knows the name.
     expect(service.findByName('伏せ札の演出')).toBeNull();
 
     PeerCursor.myCursor.role = PeerRole.GameMaster;

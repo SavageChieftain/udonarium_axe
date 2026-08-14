@@ -36,8 +36,8 @@ export class SaveDataService {
   private readonly dataSummarySetting = inject(DataSummarySetting);
   private readonly translate = inject(TRANSLATE_FN);
 
-  // ChatLogExporter は `@i18n:key:{params}` 形式の生メッセージ (システム通知など) を
-  // そのまま出力してしまうため、翻訳結果に置換して渡す。
+  // The exporter would write a raw `@i18n:key:{params}` message, as system notices are,
+  // so the translated text is substituted before it gets there.
   private readonly chatLogTextDecoder: ChatLogTextDecoder = (text) => decodeI18nMessage(text, this.translate);
 
   private static queue: PromiseQueue = new PromiseQueue('SaveDataServiceQueue');
@@ -251,9 +251,9 @@ export class SaveDataService {
   private static readonly ATTACHMENT_MAX_DIMENSION = 360;
 
   /**
-   * 同じ画像が複数回出てくる場合に備えて key (i0, i1, ...) → data URL のレジストリを作り、
-   * 各 <img> に data-img-key="K" だけを残す。ロード時にハイドレーションスクリプトが
-   * src を流し込む。base64 巨大文字列の重複が消えるので HTML サイズが激減する。
+   * In case an image appears more than once, a registry maps a short key to each data url and
+   * each image carries only that key. A script fills in the sources on load, which removes the
+   * duplicated base64 and shrinks the html enormously.
    */
   private async buildChatLogImageRegistry(
     chatTabs: readonly ChatTab[]
@@ -329,7 +329,7 @@ export class SaveDataService {
 
   private static buildImageRegistryScript(srcByKey: Record<string, string>): string {
     if (Object.keys(srcByKey).length === 0) return '';
-    // base64 / fetched URL に "</script>" は混入しないが念のためエスケープ
+    // neither base64 nor a fetched url can carry a closing script tag, but escape it anyway
     const json = JSON.stringify(srcByKey).replace(/<\/(script)/gi, '<\\/$1');
     return (
       `<script>(function(){var m=${json};` +

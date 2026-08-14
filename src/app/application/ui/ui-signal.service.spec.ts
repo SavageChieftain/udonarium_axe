@@ -65,7 +65,7 @@ describe('UiSignalService', () => {
     expect(data?.timestamp).toBeGreaterThan(0);
   });
 
-  it('clearChatJump で chatJumpRequest が null に戻る (新規発言で再スクロールしないため)', () => {
+  it('clears the jump request so a new message does not scroll the log again', () => {
     service.requestChatJump('msg-1');
     expect(service.chatJumpRequest()).not.toBeNull();
     service.clearChatJump();

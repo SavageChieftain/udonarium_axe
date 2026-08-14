@@ -25,7 +25,7 @@ export function buildLockToggleAction(
       };
 }
 
-/** 入 / 切 を入れ替えるだけの項目。名札のほかは同じ振る舞いになる。 */
+/** An entry that only flips something on or off. Beyond the label, they all behave alike. */
 export function buildToggleAction(
   isOn: boolean,
   setOn: (next: boolean) => void,
@@ -43,14 +43,14 @@ export function buildToggleAction(
 }
 
 export interface AltitudeActionOptions {
-  /** 高さだけ戻して、盤面からの浮きは触らない。 */
+  /** Reset the altitude only, leaving the offset from the board alone. */
   keepPosZ?: boolean;
   onChanged?: () => void;
-  /** 影の出し入れなど、この物だけに要る項目。 */
+  /** Entries only this object needs, such as turning its shadow on and off. */
   extraActions?: ContextMenuAction[];
 }
 
-/** 高さの扱いは駒でも地形でも同じ。0 に戻すか、数値を出すかの 2 つ。 */
+/** Height works the same for a piece as for terrain: reset it, or show the number. */
 export function buildAltitudeAction(
   target: TabletopObject,
   t: TranslateFn,

@@ -28,7 +28,7 @@ import { Terrain, TerrainViewState } from '@axe/domain/tabletop/terrain';
 const IMAGE_TAG = 'ココフォリア';
 const DEFAULT_GRID_SIZE = 50;
 
-/** 重なったパネルが z ファイティングを起こさないよう、ココフォリアの z 1 段ぶんに与える厚み（マス）。 */
+/** Thickness in cells given to one step of the source's z, so stacked panels do not fight for the same depth. */
 const PANEL_THICKNESS = 0.02;
 
 export type CcfoliaRoomImportError = 'unrecognized' | 'failed';
@@ -49,10 +49,10 @@ export interface CcfoliaRoomImportResult {
 }
 
 /**
- * ココフォリアのルームデータ ZIP を AXE のテーブルとして取り込む。
- * 場面はテーブル 1 枚ずつに写し、パネルは全テーブルへ複製する（ココフォリアでは場面を切り替えても
- * パネルとコマが残るのに対し、AXE の地形はテーブルの子であるため）。
- * パースはドメイン層へ委譲し、本サービスは画像登録・オブジェクト生成・テーブル切替を担う。
+ * Takes a room archive from another tool and builds tables from it.
+ * Each scene becomes one table, and the panels are copied onto every one: there, panels and
+ * pieces survive a scene change, whereas terrain here belongs to its table.
+ * Parsing belongs to the domain; this service registers images, builds objects and switches tables.
  */
 @Injectable({ providedIn: 'root' })
 export class CcfoliaRoomImportService {
@@ -118,8 +118,8 @@ export class CcfoliaRoomImportService {
   }
 
   /**
-   * 場面 1 つぶんのテーブル。ココフォリアの前景が盤面の絵なのでテーブル画像に、
-   * 背景は盤面の外に敷かれる壁紙なので背景画像に対応させる。
+   * One table per scene. The foreground there is the board itself, so it becomes the table image,
+   * and the background, which lies outside the board, becomes the wallpaper.
    */
   private createTable(
     scene: ImportedRoomScene,

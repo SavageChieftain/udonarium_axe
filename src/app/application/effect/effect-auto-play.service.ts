@@ -10,11 +10,11 @@ import { autoEffectIdentifier } from '@axe/domain/effect/resource-effect-map';
 const STORAGE_KEY = 'axe.effect.autoPlay';
 
 /**
- * HP などの増減に演出を自動で当てる。
+ * Plays an effect for a change in hit points or the like.
  *
- * 増減はすでに全員へ同期されているので、各自が自分の画面で再生する
- * （`EFFECT_CAST` を送ると人数ぶん重なる）。
- * 卓ごとに好みが割れるので既定は切っておき、各自が入り切りする。
+ * The change has already reached everyone, so each screen plays its own
+ * (broadcasting would stack one per person).
+ * Tables differ on this, so it starts off and each person turns it on.
  */
 @Injectable({ providedIn: 'root' })
 export class EffectAutoPlayService {
@@ -35,7 +35,7 @@ export class EffectAutoPlayService {
     this.setEnabled(!this._enabled());
   }
 
-  /** 増減の内訳から 1 つだけ選んで再生する。行ごとに出すと数値のぶんだけ重なる。 */
+  /** Picks one change out of the list; one per line would stack up with the numbers. */
   play(character: GameCharacter, changes: readonly ResourceChange[]): boolean {
     if (!this._enabled() || changes.length < 1) return false;
 

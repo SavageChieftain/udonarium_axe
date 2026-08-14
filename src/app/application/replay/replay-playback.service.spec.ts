@@ -112,20 +112,20 @@ describe('ReplayPlaybackService', () => {
     vi.restoreAllMocks();
   });
 
-  it('記録を開いて先頭に立つこと', async () => {
+  it('opens a recording at its first event', async () => {
     expect(await service.open(1)).toBe(true);
     expect(service.isOpen()).toBe(true);
     expect(service.cursor()).toBe(0);
     expect(service.currentEvent()?.seq).toBe(1);
   });
 
-  it('空の記録は開かないこと', async () => {
+  it('refuses to open an empty recording', async () => {
     library.load.mockResolvedValue({ manifest: null, events: [] });
     expect(await service.open(1)).toBe(false);
     expect(service.isOpen()).toBe(false);
   });
 
-  it('前後に送れること', async () => {
+  it('steps forward and back', async () => {
     await service.open(1);
     await service.next();
     expect(service.cursor()).toBe(1);
@@ -133,7 +133,7 @@ describe('ReplayPlaybackService', () => {
     expect(service.cursor()).toBe(0);
   });
 
-  it('端から先には進まないこと', async () => {
+  it('goes no further than either end', async () => {
     await service.open(1);
     await service.previous();
     expect(service.cursor()).toBe(0);
@@ -143,7 +143,7 @@ describe('ReplayPlaybackService', () => {
     expect(service.isAtEnd()).toBe(true);
   });
 
-  it('盤面再生に入ると同卓者から隔離すること', async () => {
+  it('cuts itself off from the table when board playback begins', async () => {
     await service.open(1);
     expect(isNetworkIsolated()).toBe(false);
 
@@ -154,7 +154,7 @@ describe('ReplayPlaybackService', () => {
     expect(isNetworkIsolated()).toBe(false);
   });
 
-  it('キーフレームから積み上げて盤面を作ること', async () => {
+  it('builds the board up from a keyframe', async () => {
     await service.open(1);
     await service.enterBoardMode();
     expect(characterX()).toBe(10);
@@ -163,7 +163,7 @@ describe('ReplayPlaybackService', () => {
     expect(characterX()).toBe(30);
   });
 
-  it('巻き戻してもキーフレームから作り直すこと', async () => {
+  it('rebuilds from a keyframe when rewinding', async () => {
     await service.open(1);
     await service.enterBoardMode();
     await service.toEnd();
@@ -174,8 +174,8 @@ describe('ReplayPlaybackService', () => {
     expect(soundsHeard()).toEqual([]);
   });
 
-  it('動いていないコマには触らずに送り戻しすること', async () => {
-    // 1 つ戻すたびに部屋じゅうの物を作り直すと、その数だけ画面も描き直しにかかる。
+  it('leaves untouched pieces alone when stepping back and forth', async () => {
+    // Rebuilding the whole room per step back sends the screen off to redraw all of it.
     await service.open(1);
     await service.enterBoardMode();
     const still = objectStore.get<GameCharacter>('c2');
@@ -188,7 +188,7 @@ describe('ReplayPlaybackService', () => {
     expect(objectStore.get<GameCharacter>('c2')?.version).toBe(version);
   });
 
-  it('1 つ送るときに効果音を鳴らし直すこと', async () => {
+  it('sounds the effect again on a single step forward', async () => {
     await service.open(1);
     await service.enterBoardMode();
     expect(soundsHeard()).toEqual([]);
@@ -197,20 +197,20 @@ describe('ReplayPlaybackService', () => {
     expect(soundsHeard()).toEqual(['se-dice']);
   });
 
-  it('飛ばしたときは効果音を鳴らさないこと', async () => {
+  it('stays silent when skipping ahead', async () => {
     await service.open(1);
     await service.enterBoardMode();
     await service.toEnd();
     expect(soundsHeard()).toEqual([]);
   });
 
-  it('読み物として送るだけなら効果音を鳴らさないこと', async () => {
+  it('stays silent when reading rather than replaying', async () => {
     await service.open(1);
     await service.next();
     expect(soundsHeard()).toEqual([]);
   });
 
-  it('1 つ送るときは盤面を積み増しで進めること', async () => {
+  it('advances the board a step rather than rebuilding it', async () => {
     vi.useFakeTimers();
     try {
       await service.open(1);
@@ -228,7 +228,7 @@ describe('ReplayPlaybackService', () => {
     }
   });
 
-  it('1 つ送るときはコマを経路に沿って滑らせること', async () => {
+  it('slides the piece along its route on a step forward', async () => {
     vi.useFakeTimers();
     try {
       await service.open(1);
@@ -246,7 +246,7 @@ describe('ReplayPlaybackService', () => {
     }
   });
 
-  it('滑り終わったら経路の表示を消すこと', async () => {
+  it('clears the route once the slide is over', async () => {
     vi.useFakeTimers();
     try {
       await service.open(1);
@@ -261,7 +261,7 @@ describe('ReplayPlaybackService', () => {
     }
   });
 
-  it('飛ばしたときは滑らせず経路も出さないこと', async () => {
+  it('neither slides nor draws a route when skipping', async () => {
     await service.open(1);
     await service.enterBoardMode();
     await service.toEnd();
@@ -270,7 +270,7 @@ describe('ReplayPlaybackService', () => {
     expect(characterX()).toBe(30);
   });
 
-  it('盤面再生を抜けたら元の卓に戻すこと', async () => {
+  it('puts the table back on leaving board playback', async () => {
     const character = new GameCharacter('live-1');
     character.location.x = 555;
     objectStore.add(character, false);
@@ -284,7 +284,7 @@ describe('ReplayPlaybackService', () => {
     expect(objectStore.get('c1')).toBeNull();
   });
 
-  it('盤面再生でも同じコマは同じ実体のまま入れ替えること', async () => {
+  it('keeps the same piece as the same object across playback', async () => {
     const character = new GameCharacter('c1');
     character.location.x = 999;
     objectStore.add(character, false);
@@ -300,7 +300,7 @@ describe('ReplayPlaybackService', () => {
     expect(character.location.x).toBe(999);
   });
 
-  it('卓の名簿を持つ一枚物を盤面再生で置き去りにしないこと', async () => {
+  it('does not strand the room-wide objects during playback', async () => {
     {
       const tabs = ChatTabList.instance;
       expect(objectStore.get('ChatTabList')).toBe(tabs);
@@ -321,7 +321,7 @@ describe('ReplayPlaybackService', () => {
     }
   });
 
-  it('生の卓で消したものを盤面再生のあとに蘇らせないこと', async () => {
+  it('does not resurrect what the live table deleted', async () => {
     const character = new GameCharacter('gone-1');
     objectStore.add(character, false);
     objectStore.delete(character, false);
@@ -334,7 +334,7 @@ describe('ReplayPlaybackService', () => {
     expect(objectStore.isDeleted('gone-1')).toBe(true);
   });
 
-  it('盤面再生を抜けたら収録も畳むこと', async () => {
+  it('folds the staging away on leaving playback', async () => {
     const staging = TestBed.inject(ReplayStagingService);
     await service.open(1);
     await service.enterBoardMode();
@@ -345,7 +345,7 @@ describe('ReplayPlaybackService', () => {
     expect(staging.isStaging()).toBe(false);
   });
 
-  it('盤面再生を抜けたら同卓者へ再同期を求めること', async () => {
+  it('asks the table to resync on leaving playback', async () => {
     const requestFullSync = vi.spyOn(TestBed.inject(ObjectSynchronizer), 'requestFullSync').mockReturnValue(0);
     await service.open(1);
     await service.enterBoardMode();
@@ -353,7 +353,7 @@ describe('ReplayPlaybackService', () => {
     expect(requestFullSync).toHaveBeenCalledTimes(1);
   });
 
-  it('閉じるときに盤面再生も畳むこと', async () => {
+  it('folds playback away when closing', async () => {
     await service.open(1);
     await service.enterBoardMode();
     await service.close();
@@ -363,7 +363,7 @@ describe('ReplayPlaybackService', () => {
     expect(service.isOpen()).toBe(false);
   });
 
-  it('差し込んだ発言を卓のチャットにも出すこと', async () => {
+  it('shows an inserted line in the chat of the table as well', async () => {
     const entry = createReplayEntry(
       {
         kind: ReplayEventKind.ChatMessage,
@@ -388,7 +388,7 @@ describe('ReplayPlaybackService', () => {
     expect(message?.from).toBe('alice');
   });
 
-  it('書き直した発言を書き直した本文で出すこと', async () => {
+  it('shows a rewritten line with its new text', async () => {
     const entry = createReplayEntry(
       { kind: ReplayEventKind.ChatMessage, actorId: 'alice', speaker: '盗賊', text: '元の台詞', tabIdentifier: '' },
       2,
@@ -404,7 +404,7 @@ describe('ReplayPlaybackService', () => {
     expect(objectStore.get<ChatMessage>(entry.targetId!)?.text).toBe('あらためた台詞');
   });
 
-  it('カットインが終わるまで自動再生を進めないこと', async () => {
+  it('waits for a cut-in to finish before playing on', async () => {
     const cutIn = new CutIn('cut-1');
     cutIn.outTime = 12;
     objectStore.add(cutIn, false);
@@ -439,7 +439,7 @@ describe('ReplayPlaybackService', () => {
     }
   });
 
-  it('読み物として読むだけならカットインを待たないこと', async () => {
+  it('does not wait for a cut-in when only reading', async () => {
     const cutIn = new CutIn('cut-1');
     cutIn.outTime = 12;
     objectStore.add(cutIn, false);
@@ -470,7 +470,7 @@ describe('ReplayPlaybackService', () => {
     }
   });
 
-  it('語りの送りをその台詞の長さで待つこと', async () => {
+  it('paces the narration by the length of each line', async () => {
     const playhead: ReplayEvent = {
       seq: 2,
       at: 2000,
@@ -506,7 +506,7 @@ describe('ReplayPlaybackService', () => {
     }
   });
 
-  it('読み物として送るだけなら盤面に触れないこと', async () => {
+  it('leaves the board alone when only reading', async () => {
     const character = new GameCharacter('live-1');
     character.location.x = 555;
     objectStore.add(character, false);

@@ -34,7 +34,7 @@ export class CoinFlipService {
       name: coin.name,
       face: this.faceLabel(face),
     });
-    // 表裏は 1d2 と変わらない。振った本人が見ているタブへ出す。
+    // Heads or tails is a two-sided die, so it lands in the tab the thrower is reading.
     const tab = this.activeChatTab.current();
     setTimeout(() => {
       if (!this.objectStore.get(coin.identifier)) return;

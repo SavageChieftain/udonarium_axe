@@ -48,7 +48,7 @@ const CUT_IN_ALIAS = 'cut-in';
 export interface ReplayVideoOptions {
   size: ReplayFrameSize;
   fps: number;
-  /** 盤面の見え方。既定は真上から。 */
+  /** How the board is seen. Directly above, by default. */
   camera?: ReplayBoardCamera;
   pacing: ReplayShotPacing;
   scope: ReplayShotScope;
@@ -89,7 +89,7 @@ export class ReplayVideoService {
     return this.encoder.isSupported;
   }
 
-  /** 実時間でしか録れない環境か。尺と同じだけ待つことになるので、押す前に伝える。 */
+  /** Whether recording can only run in real time. It costs as long as the video lasts, so say so before the button is pressed. */
   get isRealtimeOnly(): boolean {
     return this.encoder.isRealtimeOnly;
   }
@@ -128,7 +128,7 @@ export class ReplayVideoService {
         return false;
       }
 
-      // 長さで切らない。記録した分は最後まで書き出す。
+      // No cut-off by length: whatever was recorded is exported in full.
       const frameCount = Math.max(1, Math.round((storyboard.totalMs / 1000) * options.fps));
       this._total.set(frameCount);
 
@@ -138,13 +138,13 @@ export class ReplayVideoService {
       if (this.cancelled) return false;
       const assets = await this.loadAssets([
         ...storyboard.shots.flatMap((shot) => [shot.portraitId, shot.backgroundId, shot.cutInId]),
-        // 絵を数えるだけなので、ここでは暗闇を解かない。
+        // Counting images does not need the darkness solved.
         ...boards.flatMap((board) =>
           collectBoardAssetIds(board ? buildReplayBoardScene(board, undefined, { withOverlay: false }) : null)
         ),
       ]);
       const msPerFrame = 1000 / options.fps;
-      // 場面は 1 つずつ組む。同じ場面が続くあいだは組み直さない。
+      // One scene is built at a time, and held for as long as that shot lasts.
       let shown: { seq: number; scene: ReplayBoardScene | null } | null = null;
       const sceneOf = (seq: number): ReplayBoardScene | null => {
         if (shown?.seq !== seq) {
@@ -248,11 +248,11 @@ export class ReplayVideoService {
   }
 
   /**
-   * 場面ごとの盤面。
+   * The board for each shot.
    *
-   * 場面そのものは作らない。視界まで解いた場面を場面数ぶん抱えると、長い記録では
-   * 書き出しが始まる前に部屋 1 つ × 場面数を載せることになる。触られない物は
-   * 前の盤面と共有されるので、並べて持っても嵩まない。
+   * The scenes themselves are not built: holding one solved scene per shot would put a whole
+   * room times the shot count in memory before the export began. Anything no event touches is
+   * shared with the previous board, so holding them all costs almost nothing.
    */
   private boardsFor(
     shots: readonly ReplayShot[],
@@ -282,12 +282,12 @@ export class ReplayVideoService {
   }
 }
 
-/** カットインの identifier から、そのとき出ていた絵の identifier へ。 */
+/** From a cut-in to the image that was showing for it. */
 function cutInImagesOf(snapshots: readonly ReplayObjectSnapshot[]): Map<string, string> {
   const images = new Map<string, string>();
   for (const snapshot of snapshots) {
     if (snapshot.aliasName !== CUT_IN_ALIAS) continue;
-    // 動画のカットインには絵が無い。音だけのものと同じく、字幕で出す。
+    // A video cut-in has no picture; like a sound-only one, it appears as a subtitle.
     if (syncValueOf(snapshot.syncData, 'isVideoCutIn') === true) continue;
     images.set(snapshot.identifier, String(syncValueOf(snapshot.syncData, 'imageIdentifier') ?? ''));
   }

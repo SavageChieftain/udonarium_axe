@@ -39,7 +39,7 @@ describe('RangeShapeInvokeService', () => {
     };
   }
 
-  it('spawnAt で RangeArea が生成され CUSTOM 型になる', () => {
+  it('spawns a custom range area', () => {
     const tabletopService = TestBed.inject(TabletopService);
     const table = new GameTable();
     Object.defineProperty(tabletopService, 'currentTable', { get: () => table });
@@ -57,7 +57,7 @@ describe('RangeShapeInvokeService', () => {
     expect(range.isRotatable).toBe(false);
   });
 
-  it('spawnAt は field.isRotatable を伝搬する', () => {
+  it('carries the rotatable flag through to the area', () => {
     const tabletopService = TestBed.inject(TabletopService);
     const table = new GameTable();
     Object.defineProperty(tabletopService, 'currentTable', { get: () => table });
@@ -66,7 +66,7 @@ describe('RangeShapeInvokeService', () => {
     expect(range.isRotatable).toBe(true);
   });
 
-  it('spawnForCharacter でキャラ中心位置に出現', () => {
+  it('spawns on the centre of the character', () => {
     const tabletopService = TestBed.inject(TabletopService);
     const table = new GameTable();
     Object.defineProperty(tabletopService, 'currentTable', { get: () => table });

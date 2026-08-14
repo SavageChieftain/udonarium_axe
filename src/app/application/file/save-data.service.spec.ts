@@ -24,7 +24,7 @@ describe('SaveDataService', () => {
     expect(service).toBeTruthy();
   }));
 
-  it('saveRoomAsync: blob が null の COMPLETE 画像があっても保存処理が落ちない', async () => {
+  it('saves a room even when a finished image carries no blob', async () => {
     const service = TestBed.inject(SaveDataService);
     const privateApi = service as unknown as SaveDataServicePrivateApi;
 
@@ -44,7 +44,7 @@ describe('SaveDataService', () => {
     expect(files.some((file: File) => file.name.startsWith('image-null-blob.'))).toBe(false);
   });
 
-  it('saveGameObjectAsync: blob が null の COMPLETE 画像があっても保存処理が落ちない', async () => {
+  it('saves an object even when a finished image carries no blob', async () => {
     const service = TestBed.inject(SaveDataService);
     const privateApi = service as unknown as SaveDataServicePrivateApi;
 
@@ -64,7 +64,7 @@ describe('SaveDataService', () => {
     expect(files.some((file: File) => file.name.startsWith('image-null-blob.'))).toBe(false);
   });
 
-  it('HTMLログ添付画像src: blob画像をdata URLに変換する', async () => {
+  it('turns a blob image into a data url for the html log', async () => {
     const service = TestBed.inject(SaveDataService);
     const privateApi = service as unknown as SaveDataServicePrivateApi;
     const image = {
@@ -75,7 +75,7 @@ describe('SaveDataService', () => {
     await expect(privateApi.createChatLogImageSrc(image, 0)).resolves.toBe('data:text/plain;base64,VGVzdA==');
   });
 
-  it('HTMLログ添付画像src: 取得可能なURL画像をdata URLに変換する', async () => {
+  it('turns a fetchable url into a data url for the html log', async () => {
     const service = TestBed.inject(SaveDataService);
     const privateApi = service as unknown as SaveDataServicePrivateApi;
     const fetchMock = vi.fn().mockResolvedValue({
@@ -96,7 +96,7 @@ describe('SaveDataService', () => {
     }
   });
 
-  it('HTMLログ添付画像src: URL画像を取得できない場合は元URLを返す', async () => {
+  it('leaves the url alone when it cannot be fetched', async () => {
     const service = TestBed.inject(SaveDataService);
     const privateApi = service as unknown as SaveDataServicePrivateApi;
     vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('network error')));
@@ -112,7 +112,7 @@ describe('SaveDataService', () => {
     }
   });
 
-  describe('チャットログ HTML の画像レジストリ', () => {
+  describe('the image registry in an exported log', () => {
     type RegistryApi = {
       buildChatLogImageRegistry: (chatTabs: readonly unknown[]) => Promise<{
         resolver: (image: ImageFile) => string;
@@ -129,7 +129,7 @@ describe('SaveDataService', () => {
       };
     }
 
-    it('同一画像が複数メッセージで使われても data URL はレジストリに 1 回しか入らない', async () => {
+    it('keeps one copy of an image used by several messages', async () => {
       const service = TestBed.inject(SaveDataService);
       const api = service as unknown as RegistryApi;
       const portrait = {
@@ -142,14 +142,14 @@ describe('SaveDataService', () => {
 
       const key = resolver(portrait);
       expect(key).toMatch(/^i\d+$/);
-      // 同じ identifier なら毎回同じ key を返す (dedup)
+      // gives the same identifier the same key every time
       expect(resolver(portrait)).toBe(key);
-      // レジストリスクリプトに data URL が 1 回だけ入っている
+      // writes each data url into the registry once
       const occurrences = (registryScript.match(/data:text\/plain;base64,QklO/g) ?? []).length;
       expect(occurrences).toBe(1);
     });
 
-    it('レジストリスクリプトは <img data-img-key="..."> の src を埋めるハイドレーションを含む', async () => {
+    it('carries the script that fills in each image source on load', async () => {
       const service = TestBed.inject(SaveDataService);
       const api = service as unknown as RegistryApi;
       const portrait = {
@@ -164,7 +164,7 @@ describe('SaveDataService', () => {
       expect(registryScript).toContain("setAttribute('src'");
     });
 
-    it('画像が無いタブだとスクリプトは空文字 (余計な <script> を吐かない)', async () => {
+    it('writes no script at all for a tab with no images', async () => {
       const service = TestBed.inject(SaveDataService);
       const api = service as unknown as RegistryApi;
       const tab = makeTab([{}, {}]);
@@ -173,7 +173,7 @@ describe('SaveDataService', () => {
       expect(registryScript).toBe('');
     });
 
-    it('ポートレート画像は maxDimension=48, square=true で処理される', async () => {
+    it('shrinks a portrait to 48 square', async () => {
       const service = TestBed.inject(SaveDataService);
       const privateApi = service as unknown as SaveDataServicePrivateApi;
       const api = service as unknown as RegistryApi;
@@ -190,7 +190,7 @@ describe('SaveDataService', () => {
       expect(spy).toHaveBeenCalledWith(portrait, 48, true);
     });
 
-    it('添付画像は maxDimension=360, square=false で処理される', async () => {
+    it('shrinks an attachment to 360 on its longest side', async () => {
       const service = TestBed.inject(SaveDataService);
       const privateApi = service as unknown as SaveDataServicePrivateApi;
       const api = service as unknown as RegistryApi;
@@ -208,8 +208,8 @@ describe('SaveDataService', () => {
     });
   });
 
-  describe('saveAsync → FileArchiver.saveAsync の委譲', () => {
-    it('updateCallback が percent=100 で呼ばれる', async () => {
+  describe('hands saving off to the file archiver', () => {
+    it('reports a hundred percent when it finishes', async () => {
       const service = TestBed.inject(SaveDataService);
       const privateApi = service as unknown as SaveDataServicePrivateApi;
 
@@ -226,7 +226,7 @@ describe('SaveDataService', () => {
       expect(callback).toHaveBeenCalledWith(100);
     });
 
-    it('同じpercentが連続しても callback は1回だけ呼ばれる', async () => {
+    it('reports the same percentage only once', async () => {
       const service = TestBed.inject(SaveDataService);
       const privateApi = service as unknown as SaveDataServicePrivateApi;
 

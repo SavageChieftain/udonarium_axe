@@ -30,10 +30,10 @@ describe('TabletopService', () => {
     });
 
     /**
-     * 返すのは毎回同じ GameTable なので、既定の同値判定では版が上がっても下流へ伝わらない。
-     * 一度読んだあとに変えた値が画面へ出ないという形で表に出る。
+     * It hands back the same table every time, so under the default equality a new version never reaches anything downstream.
+     * It shows up as an edit that never appears on screen.
      */
-    it('テーブルの値を変えたら派生した値も追いつくこと', async () => {
+    it('carries a change to the table through to everything derived from it', async () => {
       const service = TestBed.inject(TabletopService);
       expect(service.gridSize()).toBe(table.gridSize);
       expect(service.mode2d()).toBe(false);

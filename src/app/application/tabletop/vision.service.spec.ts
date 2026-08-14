@@ -55,7 +55,7 @@ describe('VisionService', () => {
     vi.clearAllMocks();
   });
 
-  it('暗闇OFFでも scene は構築されるが darknessEnabled=false / active=false', () => {
+  it('builds a scene with the darkness off, marked as such', () => {
     makeMyCursor('p1', PeerRole.Player);
     const table = makeDarkTable();
     table.darknessEnabled = false;
@@ -65,7 +65,7 @@ describe('VisionService', () => {
     expect(scene!.darknessEnabled).toBe(false);
   });
 
-  it('暗闇有効時に scene を組み立て、ライト・視界源を px へ変換する', () => {
+  it('builds the scene with the darkness on, converting lights and sight sources to pixels', () => {
     makeMyCursor('p1', PeerRole.Player);
     makeDarkTable();
 
@@ -94,7 +94,7 @@ describe('VisionService', () => {
     expect(scene!.visionSources[0].owner).toBe('p1');
   });
 
-  it('光源の z は高度に追従する (altitude * gridSize + emitter)', () => {
+  it('raises a light with the altitude of what carries it', () => {
     makeMyCursor('p1', PeerRole.Player);
     makeDarkTable();
     const torch = GameCharacter.create('Torch', 1, '');
@@ -108,7 +108,7 @@ describe('VisionService', () => {
     expect(scene!.lights[0].z).toBeCloseTo((2 + 0.5) * 50);
   });
 
-  it('壁に配置された発光キャラは壁の3D位置から部屋へ向けて発光する', () => {
+  it('shines a wall-mounted character into the room from where it hangs', () => {
     makeMyCursor('p1', PeerRole.Player);
     const table = makeDarkTable();
     table.wallHeight = 6;
@@ -137,7 +137,7 @@ describe('VisionService', () => {
     expect(service.isTokenVisible(onWall)).toBe(true);
   });
 
-  it('明るい(暗闇OFF)テーブルでも光源のオーブ・ビームは描画される', () => {
+  it('still draws the orbs and beams on a table with no darkness', () => {
     makeMyCursor('p1', PeerRole.Player);
     const table = makeDarkTable();
     table.darknessEnabled = false;
@@ -166,7 +166,7 @@ describe('VisionService', () => {
     expect(service.lightBeams()).toHaveLength(1);
   });
 
-  it('GM は全トークンを可視と判定する', () => {
+  it('shows every token to the game master', () => {
     makeMyCursor('gm', PeerRole.GameMaster);
     makeDarkTable();
     const enemy = GameCharacter.create('Enemy', 1, '');
@@ -176,7 +176,7 @@ describe('VisionService', () => {
     expect(service.isTokenVisible(enemy)).toBe(true);
   });
 
-  it('PL は自分のトークンを見、暗所の敵トークンは隠れる', () => {
+  it('shows a player their own tokens and hides an enemy standing in the dark', () => {
     makeMyCursor('p1', PeerRole.Player);
     makeDarkTable();
 
@@ -195,7 +195,7 @@ describe('VisionService', () => {
     expect(service.isTokenVisible(enemy)).toBe(false);
   });
 
-  it('発光する地形は scene のライトに含まれ、自分の光を遮らない', () => {
+  it('counts glowing terrain as a light and never lets it shadow itself', () => {
     makeMyCursor('p1', PeerRole.Player);
     const table = makeDarkTable();
 
@@ -213,7 +213,7 @@ describe('VisionService', () => {
     expect(scene!.sightSegments.length).toBeGreaterThan(4);
   });
 
-  it('previewAsUserId で GM が PL 視点に切り替えられる', () => {
+  it('lets the game master look through the eyes of a player', () => {
     makeMyCursor('gm', PeerRole.GameMaster);
     makeDarkTable();
     expect(service.viewer().isGameMaster).toBe(true);
@@ -222,7 +222,7 @@ describe('VisionService', () => {
     expect(service.viewer().userId).toBe('p1');
   });
 
-  it('見学(Guest)の viewer は接続中プレイヤーの userId を視界合算対象に持つ', () => {
+  it('gives a guest the combined sight of the connected players', () => {
     addPeer('player-1', PeerRole.Player);
     addPeer('player-2', PeerRole.Player);
     addPeer('gm-1', PeerRole.GameMaster);
@@ -235,12 +235,12 @@ describe('VisionService', () => {
     expect(viewer.visionOwnerIds).not.toContain('guest-1');
   });
 
-  it('プレイヤーの viewer は visionOwnerIds を持たない（自分の視界のみ）', () => {
+  it('gives a player their own sight and no one elses', () => {
     makeMyCursor('player-x', PeerRole.Player);
     expect(service.viewer().visionOwnerIds).toBeUndefined();
   });
 
-  it('GM が見学をペルソナ表示すると見学の視界合算になる', () => {
+  it('gives the game master the combined sight of a guest when looking through their eyes', () => {
     addPeer('guest-2', PeerRole.Guest);
     addPeer('player-3', PeerRole.Player);
     makeMyCursor('gm-x', PeerRole.GameMaster);
@@ -252,10 +252,10 @@ describe('VisionService', () => {
     expect(viewer.visionOwnerIds).toContain('player-3');
   });
 
-  describe('同じ盤面のあいだの覚え書き', () => {
-    it('同じ面を尋ね直しても同じ配列を返すこと', () => {
-      // 画面は 1 回の描き直しで地形 1 台につき 8 回尋ねる。中身が同じでも配列を作り直すと、
-      // 画面側はそのたびに並べ直しにかかる。
+  describe('what is remembered while the scene holds still', () => {
+    it('hands back the same array when asked about a face again', () => {
+      // One repaint asks eight times per terrain, and rebuilding the array, identical or not,
+      // sends the view off to rebuild its list.
       const table = makeDarkTable();
       ObjectStore.instance.add(table);
       makeMyCursor('gm-1', PeerRole.GameMaster);
@@ -267,7 +267,7 @@ describe('VisionService', () => {
       expect(service.lightGlows()).toBe(service.lightGlows());
     });
 
-    it('暗闇を使わない卓でも配列を作り直さないこと', () => {
+    it('builds no new array for a table without darkness either', () => {
       const table = makeDarkTable();
       table.darknessEnabled = false;
       ObjectStore.instance.add(table);

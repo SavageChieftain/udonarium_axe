@@ -76,7 +76,7 @@ describe('ReplayPhotoService', () => {
     vi.restoreAllMocks();
   });
 
-  it('PNG として保存すること', async () => {
+  it('saves as a png', async () => {
     const result = await service.save({
       cast: [member('アリス')],
       roomName: '洞窟の夜',
@@ -88,14 +88,14 @@ describe('ReplayPhotoService', () => {
     expect(saved).toEqual([{ name: '洞窟の夜_20260812.png' }]);
   });
 
-  it('誰も居なければ何も保存しないこと', async () => {
+  it('saves nothing when nobody is there', async () => {
     const result = await service.save({ cast: [], roomName: '卓', subtitle: '', fileName: 'x' });
 
     expect(result).toEqual({ saved: false, omitted: 0 });
     expect(saved).toEqual([]);
   });
 
-  it('紙を作れなければ、作れなかったと返すこと', async () => {
+  it('reports failure when the sheet cannot be made', async () => {
     context = null;
 
     const result = await service.save({ cast: [member('アリス')], roomName: '卓', subtitle: '', fileName: 'x' });
@@ -104,7 +104,7 @@ describe('ReplayPhotoService', () => {
     expect(saved).toEqual([]);
   });
 
-  it('絵にできなければ、作れなかったと返すこと', async () => {
+  it('reports failure when it cannot be turned into a picture', async () => {
     toBlobResult = null;
 
     const result = await service.save({ cast: [member('アリス')], roomName: '卓', subtitle: '', fileName: 'x' });
@@ -112,7 +112,7 @@ describe('ReplayPhotoService', () => {
     expect(result.saved).toBe(false);
   });
 
-  it('描き損ねても読んだ絵を手放すこと', async () => {
+  it('releases the images it loaded even when the drawing fails', async () => {
     context = fakeContext({
       fillRect: () => {
         throw new Error('描けません');
@@ -125,7 +125,7 @@ describe('ReplayPhotoService', () => {
     expect(closed).toBe(1);
   });
 
-  it('このブラウザに残っていない絵は飛ばして描くこと', async () => {
+  it('draws past an image this browser no longer holds', async () => {
     stored = new Map();
 
     const result = await service.save({ cast: [member('アリス')], roomName: '卓', subtitle: '', fileName: 'x' });
@@ -133,7 +133,7 @@ describe('ReplayPhotoService', () => {
     expect(result.saved).toBe(true);
   });
 
-  it('入りきらない人数を返すこと', async () => {
+  it('reports how many did not fit', async () => {
     const cast = Array.from({ length: 30 }, (_, index) => member(`コマ${index}`));
 
     const result = await service.save({ cast, roomName: '卓', subtitle: '', fileName: 'x' });
