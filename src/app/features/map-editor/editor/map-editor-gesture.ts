@@ -1,6 +1,15 @@
 import { ImageItem } from '@axe/features/map-editor/model/scene';
 
 /**
+ * いま行っている手つき。
+ *
+ * 道具の名前とは 1 対 1 にならない。線は種類によって「引いて離す」にも
+ * 「点を置いていく」にもなり、消しゴムは相手がマスか図形かで振る舞いが変わる。
+ */
+export type GestureKind =
+  'none' | 'select' | 'paint' | 'vectorErase' | 'fill' | 'box' | 'path' | 'stamp' | 'image' | 'freehand' | 'text';
+
+/**
  * 押してから離すまでの 1 手。
  *
  * 引きかけの線、掴んでいる画像の角、塗った最後のマス——どれも手を離せば消える
@@ -8,6 +17,8 @@ import { ImageItem } from '@axe/features/map-editor/model/scene';
  * 空のままになる。
  */
 export class MapEditorGesture {
+  /** 押した時点で決めた手つき。離すまでは道具を切り替えても変わらない。 */
+  kind: GestureKind = 'none';
   /** 押している最中か。置いた瞬間に完結する道具（はんこ等）では立てない。 */
   dragging = false;
   /** 直前に指が居た場所（地図の座標）。次の一手との差分を取るのに使う。 */

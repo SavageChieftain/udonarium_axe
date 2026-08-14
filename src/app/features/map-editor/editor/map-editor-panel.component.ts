@@ -32,7 +32,7 @@ import {
 } from '@axe/features/map-editor/assets/image-stamp';
 import { STAMP_CATEGORIES, StampCategory, StampDef } from '@axe/features/map-editor/assets/stamp-types';
 import { getStampById, getStampsByCategory, STAMPS } from '@axe/features/map-editor/assets/stamps';
-import { MapEditorGesture } from '@axe/features/map-editor/editor/map-editor-gesture';
+import { GestureKind, MapEditorGesture } from '@axe/features/map-editor/editor/map-editor-gesture';
 import {
   EditorTool,
   LineKind,
@@ -618,6 +618,46 @@ export class MapEditorPanelComponent implements AfterViewInit {
     return { x, y };
   }
 
+  /**
+   * その道具でいま行う手つき。
+   *
+   * 道具の名前だけでは決まらない。線は種類で「引いて離す」と「点を置いていく」に
+   * 分かれ、消しゴムは相手がマスか図形かで変わる。分岐はここだけに置く。
+   */
+  private gestureKindOf(tool: EditorTool): GestureKind {
+    switch (tool) {
+      case 'select':
+        return 'select';
+      case 'cellPaint':
+        return 'paint';
+      case 'cellErase':
+        return this.isVectorEraseTarget() ? 'vectorErase' : 'paint';
+      case 'fill':
+        return 'fill';
+      case 'shape':
+        return 'box';
+      case 'line':
+        return this.state.lineKind() === 'straight' ? 'box' : 'path';
+      case 'polygon':
+        return 'path';
+      case 'stamp':
+        return 'stamp';
+      case 'image':
+        return 'image';
+      case 'freehand':
+        return 'freehand';
+      case 'text':
+        return 'text';
+      default:
+        return 'none';
+    }
+  }
+
+  /** 押している最中は押した時点の手つき、そうでなければいまの道具のもの。 */
+  private currentKind(): GestureKind {
+    return this.gesture.dragging ? this.gesture.kind : this.gestureKindOf(this.state.tool());
+  }
+
   protected onPointerDown(event: PointerEvent): void {
     const canvas = this.board()!.nativeElement;
     if (event.button === 1 || (event.button === 0 && this.spacePan())) {
@@ -633,97 +673,33 @@ export class MapEditorPanelComponent implements AfterViewInit {
       return;
     }
     canvas.setPointerCapture(event.pointerId);
+
     const pos = this.toScene(event);
     this.gesture.lastPointerScene = pos;
-    const tool = this.state.tool();
     this.gesture.dragging = true;
+    this.gesture.kind = this.gestureKindOf(this.state.tool());
 
-    if (tool === 'select') {
-      const selImage = this.selectedImageItem();
-      if (selImage) {
-        const handle = imageHandleAt(selImage, pos.x, pos.y);
-        if (handle !== -1) {
-          const opposite = imageCorners(selImage)[(handle + 2) % 4];
-          this.gesture.imageResize = { item: selImage, anchorX: opposite.x, anchorY: opposite.y };
-          this.state.beginGesture();
-          this.bumpDraft();
-          return;
-        }
-      }
-      const selCurve = this.selectedCurveItem();
-      if (selCurve) {
-        const anchor = curveAnchorAt(selCurve, pos.x, pos.y);
-        if (anchor !== -1) {
-          this.gesture.curveDrag = { index: anchor };
-          this.state.beginGesture();
-          this.bumpDraft();
-          return;
-        }
-      }
-      this.state.selection.set(this.state.hitTest(pos.x, pos.y));
-      this.gesture.lastMoveStored = pos;
-      this.gesture.selectionMoved = false;
-      this.bumpDraft();
-      return;
-    }
-    if (tool === 'cellErase' && this.isVectorEraseTarget()) {
-      this.gesture.vectorErasing = true;
-      this.gesture.lastErasePx = null;
-      this.state.beginGesture();
-      this.eraseVectorAlong(pos);
-      return;
-    }
-    if (tool === 'cellPaint' || tool === 'cellErase') {
-      this.gesture.vectorErasing = false;
-      this.state.beginGesture();
-      this.gesture.lastPaintedCell = null;
-      this.gesture.lastPaintPx = null;
-      this.paintAt(pos, tool);
-      return;
-    }
-    if (tool === 'fill') {
-      const scene = this.state.current;
-      const cell = pointToCell(scene.gridType, pos.x, pos.y, scene.cellPx);
-      this.state.floodFillAt(cell.col, cell.row);
-      this.gesture.dragging = false;
-      return;
-    }
-    if (tool === 'shape' || (tool === 'line' && this.state.lineKind() === 'straight')) {
-      const snapped = this.state.snapPoint(pos.x, pos.y);
-      this.gesture.draftStart = { x: snapped.x, y: snapped.y };
-      this.gesture.draftCurrent = { x: snapped.x, y: snapped.y };
-      this.bumpDraft();
-      return;
-    }
-    if (tool === 'polygon' || (tool === 'line' && this.multiClickLine())) {
-      const snapped = this.state.snapPoint(pos.x, pos.y);
-      this.gesture.draftPoints.push(snapped.x, snapped.y);
-      this.gesture.draftCurrent = { x: pos.x, y: pos.y };
-      this.bumpDraft();
-      return;
-    }
-    if (tool === 'stamp') {
-      const center = this.stampCenter(pos.x, pos.y);
-      this.state.placeStamp(center.x, center.y, this.stampLayerName());
-      this.gesture.dragging = false;
-      return;
-    }
-    if (tool === 'image') {
-      this.gesture.dragging = false;
-      void this.placeImageAt(pos.x, pos.y);
-      return;
-    }
-    if (tool === 'freehand') {
-      this.state.beginGesture();
-      this.gesture.freehandPoints = [pos.x, pos.y];
-      this.bumpDraft();
-      return;
-    }
-    if (tool === 'text') {
-      const snapped = this.state.snapPoint(pos.x, pos.y);
-      this.gesture.dragging = false;
-      this.startTextEdit(snapped.x, snapped.y, null, null, '');
-      return;
+    switch (this.gesture.kind) {
+      case 'select':
+        return this.selectDown(pos);
+      case 'vectorErase':
+        return this.vectorEraseDown(pos);
+      case 'paint':
+        return this.paintDown(pos);
+      case 'fill':
+        return this.fillDown(pos);
+      case 'box':
+        return this.boxDown(pos);
+      case 'path':
+        return this.pathDown(pos);
+      case 'stamp':
+        return this.stampDown(pos);
+      case 'image':
+        return this.imageDown(pos);
+      case 'freehand':
+        return this.freehandDown(pos);
+      case 'text':
+        return this.textDown(pos);
     }
   }
 
@@ -738,70 +714,236 @@ export class MapEditorPanelComponent implements AfterViewInit {
       this.gesture.panLast = { x: event.clientX, y: event.clientY };
       return;
     }
+
     const pos = this.toScene(event);
     const scene = this.state.current;
     this.cursorCell.set(pointToCell(scene.gridType, pos.x, pos.y, scene.cellPx));
-    const tool = this.state.tool();
     this.gesture.lastMove = pos;
 
-    if (tool === 'stamp' || tool === 'image') {
+    const kind = this.currentKind();
+    if (kind === 'stamp' || kind === 'image') {
       this.bumpDraft();
       return;
     }
     if (!this.gesture.dragging) {
-      if (tool === 'polygon' || (tool === 'line' && this.multiClickLine())) {
-        this.gesture.draftCurrent = { x: pos.x, y: pos.y };
-      }
-      if (
-        tool === 'cellPaint' ||
-        tool === 'cellErase' ||
-        tool === 'fill' ||
-        tool === 'polygon' ||
-        (tool === 'line' && this.multiClickLine())
-      ) {
-        this.bumpDraft();
-      }
+      this.previewHover(pos, kind);
       return;
     }
 
-    if (tool === 'select') {
-      if (this.gesture.imageResize) {
-        this.resizeImageTo(pos.x, pos.y);
+    switch (kind) {
+      case 'select':
+        return this.selectMove(pos);
+      case 'vectorErase':
+        return this.eraseVectorAlong(pos);
+      case 'paint':
+        return this.paintAt(pos, this.state.tool() === 'cellErase' ? 'cellErase' : 'cellPaint');
+      case 'box':
+        return this.boxMove(pos);
+      case 'freehand':
+        return this.freehandMove(pos);
+    }
+  }
+
+  protected onPointerUp(event: PointerEvent): void {
+    this.board()!.nativeElement.releasePointerCapture?.(event.pointerId);
+    if (this.panning()) {
+      this.panning.set(false);
+      this.gesture.panLast = null;
+      return;
+    }
+
+    switch (this.gesture.kind) {
+      case 'select':
+        this.selectUp();
+        break;
+      case 'paint':
+      case 'vectorErase':
+        this.paintUp();
+        break;
+      case 'box':
+        this.boxUp();
+        break;
+      case 'freehand':
+        this.freehandUp();
+        break;
+    }
+    this.gesture.dragging = false;
+  }
+
+  /** 押していないあいだの下書き。次に置く点や塗る先を見せておく。 */
+  private previewHover(pos: { x: number; y: number }, kind: GestureKind): void {
+    if (kind === 'path') this.gesture.draftCurrent = { x: pos.x, y: pos.y };
+    if (kind === 'paint' || kind === 'vectorErase' || kind === 'fill' || kind === 'path') this.bumpDraft();
+  }
+
+  private selectDown(pos: { x: number; y: number }): void {
+    const selImage = this.selectedImageItem();
+    if (selImage) {
+      const handle = imageHandleAt(selImage, pos.x, pos.y);
+      if (handle !== -1) {
+        const opposite = imageCorners(selImage)[(handle + 2) % 4];
+        this.gesture.imageResize = { item: selImage, anchorX: opposite.x, anchorY: opposite.y };
+        this.state.beginGesture();
         this.bumpDraft();
         return;
       }
-      if (this.gesture.curveDrag) {
-        const snapped = this.state.snapPoint(pos.x, pos.y);
-        this.state.updateSelectedShapePointLive(this.gesture.curveDrag.index, snapped.x, snapped.y);
+    }
+    const selCurve = this.selectedCurveItem();
+    if (selCurve) {
+      const anchor = curveAnchorAt(selCurve, pos.x, pos.y);
+      if (anchor !== -1) {
+        this.gesture.curveDrag = { index: anchor };
+        this.state.beginGesture();
         this.bumpDraft();
         return;
       }
-      if (this.state.selection() && this.gesture.lastMoveStored) {
-        this.state.moveSelection(pos.x - this.gesture.lastMoveStored.x, pos.y - this.gesture.lastMoveStored.y);
-        this.gesture.selectionMoved = true;
+    }
+    this.state.selection.set(this.state.hitTest(pos.x, pos.y));
+    this.gesture.lastMoveStored = pos;
+    this.gesture.selectionMoved = false;
+    this.bumpDraft();
+  }
+
+  private selectMove(pos: { x: number; y: number }): void {
+    if (this.gesture.imageResize) {
+      this.resizeImageTo(pos.x, pos.y);
+      this.bumpDraft();
+      return;
+    }
+    if (this.gesture.curveDrag) {
+      const snapped = this.state.snapPoint(pos.x, pos.y);
+      this.state.updateSelectedShapePointLive(this.gesture.curveDrag.index, snapped.x, snapped.y);
+      this.bumpDraft();
+      return;
+    }
+    if (this.state.selection() && this.gesture.lastMoveStored) {
+      this.state.moveSelection(pos.x - this.gesture.lastMoveStored.x, pos.y - this.gesture.lastMoveStored.y);
+      this.gesture.selectionMoved = true;
+    }
+    this.gesture.lastMoveStored = pos;
+    this.bumpDraft();
+  }
+
+  private selectUp(): void {
+    if (this.gesture.imageResize) {
+      this.state.endGesture();
+      this.gesture.imageResize = null;
+      this.bumpDraft();
+      return;
+    }
+    if (this.gesture.curveDrag) {
+      this.state.endGesture();
+      this.gesture.curveDrag = null;
+      this.bumpDraft();
+      return;
+    }
+    if (!this.gesture.dragging) return;
+    if (this.gesture.selectionMoved) this.state.endGesture();
+    this.gesture.lastMoveStored = null;
+    this.gesture.selectionMoved = false;
+  }
+
+  private vectorEraseDown(pos: { x: number; y: number }): void {
+    this.gesture.vectorErasing = true;
+    this.gesture.lastErasePx = null;
+    this.state.beginGesture();
+    this.eraseVectorAlong(pos);
+  }
+
+  private paintDown(pos: { x: number; y: number }): void {
+    this.gesture.vectorErasing = false;
+    this.state.beginGesture();
+    this.gesture.lastPaintedCell = null;
+    this.gesture.lastPaintPx = null;
+    this.paintAt(pos, this.state.tool() === 'cellErase' ? 'cellErase' : 'cellPaint');
+  }
+
+  private paintUp(): void {
+    if (!this.gesture.dragging) return;
+    this.state.endGesture();
+    this.gesture.lastPaintedCell = null;
+    this.gesture.lastPaintPx = null;
+  }
+
+  private fillDown(pos: { x: number; y: number }): void {
+    const scene = this.state.current;
+    const cell = pointToCell(scene.gridType, pos.x, pos.y, scene.cellPx);
+    this.state.floodFillAt(cell.col, cell.row);
+    this.gesture.dragging = false;
+  }
+
+  private boxDown(pos: { x: number; y: number }): void {
+    const snapped = this.state.snapPoint(pos.x, pos.y);
+    this.gesture.draftStart = { x: snapped.x, y: snapped.y };
+    this.gesture.draftCurrent = { x: snapped.x, y: snapped.y };
+    this.bumpDraft();
+  }
+
+  private boxMove(pos: { x: number; y: number }): void {
+    this.gesture.draftCurrent = this.state.snapPoint(pos.x, pos.y);
+    this.bumpDraft();
+  }
+
+  private boxUp(): void {
+    const from = this.gesture.draftStart;
+    const to = this.gesture.draftCurrent;
+    if (!from || !to) return;
+
+    const w = Math.abs(to.x - from.x);
+    const h = Math.abs(to.y - from.y);
+    // 点のような大きさは置き損ない。押しただけで小さな図形が散るのを避ける。
+    if (w > 2 || h > 2) {
+      if (this.state.tool() === 'line') {
+        this.state.addShapeItem('line', [from.x, from.y, to.x, to.y], null);
+      } else {
+        this.commitShape(Math.min(from.x, to.x), Math.min(from.y, to.y), w, h);
       }
-      this.gesture.lastMoveStored = pos;
-      this.bumpDraft();
-      return;
     }
-    if (tool === 'cellErase' && this.gesture.vectorErasing) {
-      this.eraseVectorAlong(pos);
-      return;
-    }
-    if (tool === 'cellPaint' || tool === 'cellErase') {
-      this.paintAt(pos, tool);
-      return;
-    }
-    if (tool === 'shape' || (tool === 'line' && this.state.lineKind() === 'straight')) {
-      this.gesture.draftCurrent = this.state.snapPoint(pos.x, pos.y);
-      this.bumpDraft();
-      return;
-    }
-    if (tool === 'freehand') {
-      this.gesture.freehandPoints.push(pos.x, pos.y);
-      this.bumpDraft();
-      return;
-    }
+    this.gesture.draftStart = null;
+    this.gesture.draftCurrent = null;
+    this.bumpDraft();
+  }
+
+  private pathDown(pos: { x: number; y: number }): void {
+    const snapped = this.state.snapPoint(pos.x, pos.y);
+    this.gesture.draftPoints.push(snapped.x, snapped.y);
+    this.gesture.draftCurrent = { x: pos.x, y: pos.y };
+    this.bumpDraft();
+  }
+
+  private stampDown(pos: { x: number; y: number }): void {
+    const center = this.stampCenter(pos.x, pos.y);
+    this.state.placeStamp(center.x, center.y, this.stampLayerName());
+    this.gesture.dragging = false;
+  }
+
+  private imageDown(pos: { x: number; y: number }): void {
+    this.gesture.dragging = false;
+    void this.placeImageAt(pos.x, pos.y);
+  }
+
+  private freehandDown(pos: { x: number; y: number }): void {
+    this.state.beginGesture();
+    this.gesture.freehandPoints = [pos.x, pos.y];
+    this.bumpDraft();
+  }
+
+  private freehandMove(pos: { x: number; y: number }): void {
+    this.gesture.freehandPoints.push(pos.x, pos.y);
+    this.bumpDraft();
+  }
+
+  private freehandUp(): void {
+    if (!this.gesture.dragging) return;
+    this.state.addFreehand(this.gesture.freehandPoints);
+    this.gesture.freehandPoints = [];
+    this.bumpDraft();
+  }
+
+  private textDown(pos: { x: number; y: number }): void {
+    const snapped = this.state.snapPoint(pos.x, pos.y);
+    this.gesture.dragging = false;
+    this.startTextEdit(snapped.x, snapped.y, null, null, '');
   }
 
   private resizeImageTo(px: number, py: number): void {
@@ -812,72 +954,6 @@ export class MapEditorPanelComponent implements AfterViewInit {
     const cx = px >= anchor.anchorX ? anchor.anchorX + w / 2 : anchor.anchorX - w / 2;
     const cy = py >= anchor.anchorY ? anchor.anchorY + h / 2 : anchor.anchorY - h / 2;
     this.state.updateSelectedImageLive({ x: cx, y: cy, w, h });
-  }
-
-  protected onPointerUp(event: PointerEvent): void {
-    const canvas = this.board()!.nativeElement;
-    canvas.releasePointerCapture?.(event.pointerId);
-    if (this.panning()) {
-      this.panning.set(false);
-      this.gesture.panLast = null;
-      return;
-    }
-    const tool = this.state.tool();
-
-    if (tool === 'select' && this.gesture.imageResize) {
-      this.state.endGesture();
-      this.gesture.imageResize = null;
-      this.gesture.dragging = false;
-      this.bumpDraft();
-      return;
-    } else if (tool === 'select' && this.gesture.curveDrag) {
-      this.state.endGesture();
-      this.gesture.curveDrag = null;
-      this.gesture.dragging = false;
-      this.bumpDraft();
-      return;
-    } else if (tool === 'select' && this.gesture.dragging) {
-      if (this.gesture.selectionMoved) this.state.endGesture();
-      this.gesture.lastMoveStored = null;
-      this.gesture.selectionMoved = false;
-    } else if ((tool === 'cellPaint' || tool === 'cellErase') && this.gesture.dragging) {
-      this.state.endGesture();
-      this.gesture.lastPaintedCell = null;
-      this.gesture.lastPaintPx = null;
-    } else if (
-      (tool === 'shape' || (tool === 'line' && this.state.lineKind() === 'straight')) &&
-      this.gesture.draftStart &&
-      this.gesture.draftCurrent
-    ) {
-      const w = Math.abs(this.gesture.draftCurrent.x - this.gesture.draftStart.x);
-      const h = Math.abs(this.gesture.draftCurrent.y - this.gesture.draftStart.y);
-      if (w > 2 || h > 2) {
-        const x = Math.min(this.gesture.draftStart.x, this.gesture.draftCurrent.x);
-        const y = Math.min(this.gesture.draftStart.y, this.gesture.draftCurrent.y);
-        if (tool === 'line') {
-          this.state.addShapeItem(
-            'line',
-            [
-              this.gesture.draftStart.x,
-              this.gesture.draftStart.y,
-              this.gesture.draftCurrent.x,
-              this.gesture.draftCurrent.y,
-            ],
-            null
-          );
-        } else {
-          this.commitShape(x, y, w, h);
-        }
-      }
-      this.gesture.draftStart = null;
-      this.gesture.draftCurrent = null;
-      this.bumpDraft();
-    } else if (tool === 'freehand' && this.gesture.dragging) {
-      this.state.addFreehand(this.gesture.freehandPoints);
-      this.gesture.freehandPoints = [];
-      this.bumpDraft();
-    }
-    this.gesture.dragging = false;
   }
 
   protected onDoubleClick(): void {
