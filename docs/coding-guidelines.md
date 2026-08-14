@@ -61,6 +61,14 @@
 - やむを得ない場合は `ServiceLocator.get<T>(token)` を使う
   ([../src/app/core/di/service-locator.ts](../src/app/core/di/service-locator.ts)) が、現状 1 箇所のみ
 
+## コメント・テスト名の言語
+
+- **コードコメントは英語**で書く（`src/` 配下の `//` `/* */` `/** */`）
+- **テスト名も英語**で書く（`describe()` / `it()` に渡す文字列）
+- 対象外: i18n の翻訳文字列（`src/assets/i18n/*.json`）、`docs/` `website/` `README.md` の本文。
+  ドキュメントの日本語は [contribution.md](contribution.md) の規範に従う
+- コミットメッセージは従来どおり英語（[contribution.md](contribution.md)）
+
 ## コードスタイル
 
 ### TypeScript

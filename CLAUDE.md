@@ -90,6 +90,12 @@ composition → features → ui → application → infrastructure → domain �
   フックが落ちたら原因を直してから再コミットする
   - `commit-msg`: `commitlint` / `pre-commit`: `ng lint` + `ng test` / `pre-push`: `npm run build`
 
+## コメント・テスト名は英語
+
+`src/` 配下のコードコメントと、`describe()` / `it()` のテスト名は英語で書く。
+i18n の翻訳文字列とドキュメント本文は対象外（詳細は
+[docs/coding-guidelines.md](docs/coding-guidelines.md)）。
+
 ## ドキュメントの日本語
 
 README・`docs/`・`website/` のまとまった日本語は `natural-japanese` スキルを通して書く
