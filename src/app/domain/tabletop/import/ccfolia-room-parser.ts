@@ -1,5 +1,5 @@
 import { parseCcfoliaCharacter } from '@axe/domain/character/import/ccfolia-character-parser';
-import { toFiniteNumber } from '@axe/domain/character/import/imported-character';
+import { asString, toFiniteNumber } from '@axe/domain/character/import/imported-character';
 import {
   createEmptyImportedRoom,
   ImportedRoom,
@@ -11,12 +11,6 @@ import {
 } from '@axe/domain/tabletop/import/ccfolia-room';
 
 const IMAGE_MIME_TYPES = new Set(['image/png', 'image/jpeg', 'image/gif', 'image/webp']);
-
-function asString(value: unknown): string {
-  if (typeof value === 'string') return value;
-  if (typeof value === 'number' && Number.isFinite(value)) return String(value);
-  return '';
-}
 
 function asBoolean(value: unknown, fallback: boolean): boolean {
   return typeof value === 'boolean' ? value : fallback;

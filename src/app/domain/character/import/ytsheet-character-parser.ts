@@ -1,4 +1,5 @@
 import {
+  asString,
   classifyScalar,
   createEmptyImportedCharacter,
   ImportedCharacter,
@@ -8,12 +9,6 @@ import {
   isNonEmptyScalar,
   normalizeHexColor,
 } from '@axe/domain/character/import/imported-character';
-
-function asString(value: unknown): string {
-  if (typeof value === 'string') return value;
-  if (typeof value === 'number' && Number.isFinite(value)) return String(value);
-  return '';
-}
 
 /** ゆとシートのキーは `{family}{連番}{Field}`（weapon1Name 等）。family 接頭辞 → 節見出し。 */
 const FAMILY_LABELS: Record<string, string> = {

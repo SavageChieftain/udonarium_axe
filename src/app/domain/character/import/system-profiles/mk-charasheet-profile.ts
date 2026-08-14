@@ -1,18 +1,16 @@
-import { normalizeImage } from '@axe/domain/character/import/charasheet-character-parser';
 import {
+  asString,
   classifyScalar,
-  createEmptyImportedCharacter,
   ImportedCharacter,
   ImportedField,
   ImportedGroup,
   ImportedSection,
   isNonEmptyScalar,
-  normalizeHexColor,
   profileSectionOf,
 } from '@axe/domain/character/import/imported-character';
 import {
   asArray,
-  asString,
+  charasheetCharacterOf,
   isCharasheetGame,
   paramsOf,
 } from '@axe/domain/character/import/system-profiles/charasheet-shared';
@@ -103,14 +101,7 @@ export function buildMkCharasheetCharacter(parsed: unknown): ImportedCharacter |
   if (!isMkCharasheetCharacter(parsed)) return null;
   const record = parsed as Record<string, unknown>;
 
-  const character = createEmptyImportedCharacter('charasheet');
-  character.name = asString(record['pc_name']).trim();
-  character.color = normalizeHexColor(record['color']);
-  character.iconUrl = normalizeImage(record);
-  character.memo = asString(record['pc_making_environ']);
-  character.dicebot = 'MeikyuKingdom';
-  const url = asString(record['url']).trim();
-  if (url !== '') character.externalUrl = url;
+  const character = charasheetCharacterOf(record, 'MeikyuKingdom');
 
   character.params = paramsOf(record, [...PRIMARY, ...SECONDARY]);
   character.sections = [

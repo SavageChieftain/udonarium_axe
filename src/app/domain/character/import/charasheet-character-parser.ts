@@ -1,4 +1,5 @@
 import {
+  asString,
   classifyScalar,
   createEmptyImportedCharacter,
   ImportedCharacter,
@@ -11,12 +12,7 @@ import {
   normalizeHexColor,
   toFiniteNumber,
 } from '@axe/domain/character/import/imported-character';
-
-function asString(value: unknown): string {
-  if (typeof value === 'string') return value;
-  if (typeof value === 'number' && Number.isFinite(value)) return String(value);
-  return '';
-}
+import { normalizeImage } from '@axe/domain/character/import/system-profiles/charasheet-shared';
 
 function isScalar(value: unknown): value is string | number {
   return typeof value === 'string' || (typeof value === 'number' && Number.isFinite(value));
@@ -355,10 +351,4 @@ export function parseCharasheetCharacter(
   if (url !== '') character.externalUrl = url;
 
   return character;
-}
-
-export function normalizeImage(record: Record<string, unknown>): string {
-  const raw = asString(record['base64Image']).trim();
-  if (raw === '') return '';
-  return raw.startsWith('data:') ? raw : `data:image/png;base64,${raw}`;
 }

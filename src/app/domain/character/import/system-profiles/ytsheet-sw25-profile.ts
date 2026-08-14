@@ -1,4 +1,5 @@
 import {
+  asString,
   createEmptyImportedCharacter,
   ImportedCharacter,
   ImportedField,
@@ -63,12 +64,6 @@ const PROFILE_FIELDS: { key: string; label: string }[] = [
   { key: 'expTotal', label: '経験点' },
   { key: 'playerName', label: 'PL' },
 ];
-
-function asString(value: unknown): string {
-  if (typeof value === 'string') return value;
-  if (typeof value === 'number' && Number.isFinite(value)) return String(value);
-  return '';
-}
 
 export function isYtsheetSw25Character(parsed: unknown): boolean {
   if (parsed == null || typeof parsed !== 'object' || Array.isArray(parsed)) return false;

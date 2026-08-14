@@ -1,6 +1,5 @@
-import { normalizeImage } from '@axe/domain/character/import/charasheet-character-parser';
 import {
-  createEmptyImportedCharacter,
+  asString,
   ImportedCharacter,
   ImportedField,
   ImportedGroup,
@@ -8,14 +7,13 @@ import {
   ImportedSection,
   ImportedStatus,
   isNonEmptyScalar,
-  normalizeHexColor,
   toFiniteNumber,
 } from '@axe/domain/character/import/imported-character';
 import {
   asArray,
-  asString,
   buildOtherSection,
   buildParallelSection,
+  charasheetCharacterOf,
   isCharasheetGame,
 } from '@axe/domain/character/import/system-profiles/charasheet-shared';
 import { ITEM_COLUMNS, WEAPON_COLUMNS } from '@axe/domain/character/import/system-profiles/coc-charasheet-shared';
@@ -196,14 +194,7 @@ export function buildCoc7CharasheetCharacter(parsed: unknown): ImportedCharacter
   if (!isCoc7CharasheetCharacter(parsed)) return null;
   const record = parsed as Record<string, unknown>;
 
-  const character = createEmptyImportedCharacter('charasheet');
-  character.name = asString(record['pc_name']).trim();
-  character.color = normalizeHexColor(record['color']);
-  character.iconUrl = normalizeImage(record);
-  character.memo = asString(record['pc_making_environ']);
-  character.dicebot = 'Cthulhu7th';
-  const url = asString(record['url']).trim();
-  if (url !== '') character.externalUrl = url;
+  const character = charasheetCharacterOf(record, 'Cthulhu7th');
 
   const statuses = buildStatuses(record);
   const params = buildParams(record);

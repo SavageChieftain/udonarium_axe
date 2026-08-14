@@ -1,16 +1,14 @@
-import { normalizeImage } from '@axe/domain/character/import/charasheet-character-parser';
 import {
-  createEmptyImportedCharacter,
+  asString,
   ImportedCharacter,
   ImportedParam,
   ImportedSection,
-  normalizeHexColor,
   profileSectionOf,
 } from '@axe/domain/character/import/imported-character';
 import {
   asArray,
-  asString,
   buildPrefixedSection,
+  charasheetCharacterOf,
   isCharasheetGame,
   paramsOf,
 } from '@axe/domain/character/import/system-profiles/charasheet-shared';
@@ -84,14 +82,7 @@ export function buildGracreCharasheetCharacter(parsed: unknown): ImportedCharact
   if (!isGracreCharasheetCharacter(parsed)) return null;
   const record = parsed as Record<string, unknown>;
 
-  const character = createEmptyImportedCharacter('charasheet');
-  character.name = asString(record['pc_name']).trim();
-  character.color = normalizeHexColor(record['color']);
-  character.iconUrl = normalizeImage(record);
-  character.memo = asString(record['pc_making_environ']);
-  character.dicebot = 'GranCrest';
-  const url = asString(record['url']).trim();
-  if (url !== '') character.externalUrl = url;
+  const character = charasheetCharacterOf(record, 'GranCrest');
 
   const params = paramsOf(record, ABILITY_BONUSES);
   character.params = params;

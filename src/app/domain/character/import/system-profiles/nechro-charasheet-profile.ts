@@ -1,16 +1,18 @@
-import { normalizeImage } from '@axe/domain/character/import/charasheet-character-parser';
 import {
-  createEmptyImportedCharacter,
+  asString,
   ImportedCharacter,
   ImportedField,
   ImportedGroup,
   ImportedSection,
   isNonEmptyScalar,
-  normalizeHexColor,
   profileSectionOf,
   scalarField,
 } from '@axe/domain/character/import/imported-character';
-import { asArray, asString, isCharasheetGame } from '@axe/domain/character/import/system-profiles/charasheet-shared';
+import {
+  asArray,
+  charasheetCharacterOf,
+  isCharasheetGame,
+} from '@axe/domain/character/import/system-profiles/charasheet-shared';
 
 /**
  * 永い後日談のネクロニカ（保管所 game="nechro"）プロファイル。
@@ -95,14 +97,7 @@ export function buildNechroCharasheetCharacter(parsed: unknown): ImportedCharact
   if (!isNechroCharasheetCharacter(parsed)) return null;
   const record = parsed as Record<string, unknown>;
 
-  const character = createEmptyImportedCharacter('charasheet');
-  character.name = asString(record['pc_name']).trim();
-  character.color = normalizeHexColor(record['color']);
-  character.iconUrl = normalizeImage(record);
-  character.memo = asString(record['pc_making_environ']);
-  character.dicebot = 'Nechronica';
-  const url = asString(record['url']).trim();
-  if (url !== '') character.externalUrl = url;
+  const character = charasheetCharacterOf(record, 'Nechronica');
 
   character.sections = [
     buildManeuverSection(record),

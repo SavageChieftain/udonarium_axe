@@ -1,18 +1,16 @@
-import { normalizeImage } from '@axe/domain/character/import/charasheet-character-parser';
 import {
-  createEmptyImportedCharacter,
+  asString,
   ImportedCharacter,
   ImportedField,
   ImportedGroup,
   ImportedSection,
   isNonEmptyScalar,
-  normalizeHexColor,
   profileSectionOf,
   scalarField,
 } from '@axe/domain/character/import/imported-character';
 import {
   asArray,
-  asString,
+  charasheetCharacterOf,
   isCharasheetGame,
   paramsOf,
 } from '@axe/domain/character/import/system-profiles/charasheet-shared';
@@ -81,14 +79,7 @@ export function buildElysionCharasheetCharacter(parsed: unknown): ImportedCharac
   if (!isElysionCharasheetCharacter(parsed)) return null;
   const record = parsed as Record<string, unknown>;
 
-  const character = createEmptyImportedCharacter('charasheet');
-  character.name = asString(record['pc_name']).trim();
-  character.color = normalizeHexColor(record['color']);
-  character.iconUrl = normalizeImage(record);
-  character.memo = asString(record['pc_making_environ']);
-  character.dicebot = 'Elysion';
-  const url = asString(record['url']).trim();
-  if (url !== '') character.externalUrl = url;
+  const character = charasheetCharacterOf(record, 'Elysion');
 
   character.params = paramsOf(record, ABILITIES);
   character.sections = [buildSkillSection(record), profileSectionOf(record, PROFILE_FIELDS)].filter(

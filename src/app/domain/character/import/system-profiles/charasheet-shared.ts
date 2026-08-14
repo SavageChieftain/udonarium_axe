@@ -1,22 +1,20 @@
 import {
+  asString,
   classifyScalar,
+  createEmptyImportedCharacter,
   FieldLabel,
+  ImportedCharacter,
   ImportedField,
   ImportedGroup,
   ImportedParam,
   ImportedSection,
   isNonEmptyScalar,
+  normalizeHexColor,
 } from '@axe/domain/character/import/imported-character';
 
 export interface Column {
   key: string;
   label: string;
-}
-
-export function asString(value: unknown): string {
-  if (typeof value === 'string') return value;
-  if (typeof value === 'number' && Number.isFinite(value)) return String(value);
-  return '';
 }
 
 /**
@@ -45,6 +43,30 @@ export function asArray(value: unknown): unknown[] {
  *
  * 何をどの名前で並べるかはシステムごとに違うが、並べ方は変わらない。
  */
+/** 保管庫のシートが持つ base64 の似顔絵。頭が付いていないものだけ足す。 */
+export function normalizeImage(record: Record<string, unknown>): string {
+  const raw = asString(record['base64Image']).trim();
+  if (raw === '') return '';
+  return raw.startsWith('data:') ? raw : `data:image/png;base64,${raw}`;
+}
+
+/**
+ * 保管庫のシートに共通する見出し。名前・色・似顔絵・メモと、元のシートへの入り口。
+ *
+ * ここから先の中身はシステムごとに違うが、ここまでは同じ場所に同じ名前で入っている。
+ */
+export function charasheetCharacterOf(record: Record<string, unknown>, dicebot: string): ImportedCharacter {
+  const character = createEmptyImportedCharacter('charasheet');
+  character.name = asString(record['pc_name']).trim();
+  character.color = normalizeHexColor(record['color']);
+  character.iconUrl = normalizeImage(record);
+  character.memo = asString(record['pc_making_environ']);
+  character.dicebot = dicebot;
+  const url = asString(record['url']).trim();
+  if (url !== '') character.externalUrl = url;
+  return character;
+}
+
 export function paramsOf(record: Record<string, unknown>, fields: readonly FieldLabel[]): ImportedParam[] {
   const params: ImportedParam[] = [];
   for (const field of fields) {

@@ -1,4 +1,5 @@
 import {
+  asString,
   classifyScalar,
   createEmptyImportedCharacter,
   ImportedCharacter,
@@ -44,12 +45,6 @@ function asRecord(value: unknown): Record<string, unknown> | null {
   return value != null && typeof value === 'object' && !Array.isArray(value)
     ? (value as Record<string, unknown>)
     : null;
-}
-
-function asString(value: unknown): string {
-  if (typeof value === 'string') return value;
-  if (typeof value === 'number' && Number.isFinite(value)) return String(value);
-  return '';
 }
 
 function asArray(value: unknown): unknown[] {

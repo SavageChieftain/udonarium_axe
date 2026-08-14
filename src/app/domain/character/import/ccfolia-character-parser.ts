@@ -1,4 +1,5 @@
 import {
+  asString,
   createEmptyImportedCharacter,
   ImportedCharacter,
   ImportedParam,
@@ -30,12 +31,6 @@ interface CcfoliaData {
   height?: unknown;
   color?: unknown;
   commands?: unknown;
-}
-
-function asString(value: unknown): string {
-  if (typeof value === 'string') return value;
-  if (typeof value === 'number' && Number.isFinite(value)) return String(value);
-  return '';
 }
 
 function parseStatuses(raw: unknown): ImportedStatus[] {

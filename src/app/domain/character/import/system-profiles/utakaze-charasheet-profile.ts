@@ -1,15 +1,13 @@
-import { normalizeImage } from '@axe/domain/character/import/charasheet-character-parser';
 import {
-  createEmptyImportedCharacter,
+  asString,
   ImportedCharacter,
   ImportedSection,
   isNonEmptyScalar,
-  normalizeHexColor,
   profileSectionOf,
 } from '@axe/domain/character/import/imported-character';
 import {
-  asString,
   buildPrefixedSection,
+  charasheetCharacterOf,
   isCharasheetGame,
   paramsOf,
 } from '@axe/domain/character/import/system-profiles/charasheet-shared';
@@ -56,14 +54,7 @@ export function buildUtakazeCharasheetCharacter(parsed: unknown): ImportedCharac
   if (!isUtakazeCharasheetCharacter(parsed)) return null;
   const record = parsed as Record<string, unknown>;
 
-  const character = createEmptyImportedCharacter('charasheet');
-  character.name = asString(record['pc_name']).trim();
-  character.color = normalizeHexColor(record['color']);
-  character.iconUrl = normalizeImage(record);
-  character.memo = asString(record['pc_making_environ']);
-  character.dicebot = 'Utakaze';
-  const url = asString(record['url']).trim();
-  if (url !== '') character.externalUrl = url;
+  const character = charasheetCharacterOf(record, 'Utakaze');
 
   character.params = paramsOf(record, ABILITIES);
   character.sections = [

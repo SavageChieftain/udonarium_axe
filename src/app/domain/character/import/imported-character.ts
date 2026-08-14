@@ -94,6 +94,13 @@ export function toFiniteNumber(value: unknown, fallback = 0): number {
   return fallback;
 }
 
+/** 文字にして扱う。数でも文字でも同じ入れ物に入るので、読む側は文字で受ける。 */
+export function asString(value: unknown): string {
+  if (typeof value === 'string') return value;
+  if (typeof value === 'number' && Number.isFinite(value)) return String(value);
+  return '';
+}
+
 export function isNonEmptyScalar(value: unknown): value is string | number {
   if (typeof value === 'number') return Number.isFinite(value);
   return typeof value === 'string' && value.trim() !== '';

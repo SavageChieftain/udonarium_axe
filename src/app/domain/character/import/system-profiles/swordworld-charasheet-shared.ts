@@ -1,5 +1,5 @@
-import { normalizeImage } from '@axe/domain/character/import/charasheet-character-parser';
 import {
+  asString,
   createEmptyImportedCharacter,
   ImportedCharacter,
   ImportedParam,
@@ -12,8 +12,8 @@ import {
 } from '@axe/domain/character/import/imported-character';
 import {
   asArray,
-  asString,
   buildPrefixedSection,
+  normalizeImage,
   paramsOf,
 } from '@axe/domain/character/import/system-profiles/charasheet-shared';
 
