@@ -1,7 +1,9 @@
 import {
   classifyScalar,
+  FieldLabel,
   ImportedField,
   ImportedGroup,
+  ImportedParam,
   ImportedSection,
   isNonEmptyScalar,
 } from '@axe/domain/character/import/imported-character';
@@ -36,6 +38,19 @@ export function charasheetGameOf(parsed: unknown): string {
 
 export function asArray(value: unknown): unknown[] {
   return Array.isArray(value) ? value : [];
+}
+
+/**
+ * そのまま並べる能力値。値の入っていない欄は出さない。
+ *
+ * 何をどの名前で並べるかはシステムごとに違うが、並べ方は変わらない。
+ */
+export function paramsOf(record: Record<string, unknown>, fields: readonly FieldLabel[]): ImportedParam[] {
+  const params: ImportedParam[] = [];
+  for (const field of fields) {
+    if (isNonEmptyScalar(record[field.key])) params.push({ label: field.label, value: asString(record[field.key]) });
+  }
+  return params;
 }
 
 export function buildParallelSection(

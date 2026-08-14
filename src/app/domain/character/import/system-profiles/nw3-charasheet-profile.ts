@@ -2,7 +2,6 @@ import { normalizeImage } from '@axe/domain/character/import/charasheet-characte
 import {
   createEmptyImportedCharacter,
   ImportedCharacter,
-  ImportedParam,
   ImportedSection,
   isNonEmptyScalar,
   normalizeHexColor,
@@ -12,6 +11,7 @@ import {
   asString,
   buildPrefixedSection,
   isCharasheetGame,
+  paramsOf,
 } from '@axe/domain/character/import/system-profiles/charasheet-shared';
 
 // ナイトウィザード3rd（保管所 game="nw3"）の能力値。S1-8 の順序は作成ページ <th> ヘッダで確認。
@@ -54,15 +54,6 @@ export function isNw3CharasheetCharacter(parsed: unknown): boolean {
   return isCharasheetGame(parsed, 'nw3');
 }
 
-function buildParams(record: Record<string, unknown>): ImportedParam[] {
-  const params: ImportedParam[] = [];
-  for (const ability of ABILITIES) {
-    if (isNonEmptyScalar(record[ability.key]))
-      params.push({ label: ability.label, value: asString(record[ability.key]) });
-  }
-  return params;
-}
-
 function buildPalette(record: Record<string, unknown>): string {
   const lines = ABILITIES.filter((ability) => isNonEmptyScalar(record[ability.key])).map(
     (ability) => `${asString(record[ability.key]).trim()}NW 【${ability.label}】`
@@ -83,7 +74,7 @@ export function buildNw3CharasheetCharacter(parsed: unknown): ImportedCharacter 
   const url = asString(record['url']).trim();
   if (url !== '') character.externalUrl = url;
 
-  character.params = buildParams(record);
+  character.params = paramsOf(record, ABILITIES);
   character.sections = [
     buildPrefixedSection('特技', 'effect', EFFECT_COLUMNS, record),
     buildPrefixedSection('武器', 'arms', WEAPON_COLUMNS, record),

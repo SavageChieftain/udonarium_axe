@@ -4,7 +4,6 @@ import {
   ImportedCharacter,
   ImportedField,
   ImportedGroup,
-  ImportedParam,
   ImportedSection,
   isNonEmptyScalar,
   normalizeHexColor,
@@ -15,6 +14,7 @@ import {
   asString,
   buildPrefixedSection,
   isCharasheetGame,
+  paramsOf,
 } from '@axe/domain/character/import/system-profiles/charasheet-shared';
 
 // ガーデンオーダー（保管所 game="gorder"）は d100 ロールアンダー。能力値・固定技能の名称は
@@ -62,15 +62,6 @@ const PROFILE_FIELDS: { key: string; label: string }[] = [
 
 export function isGorderCharasheetCharacter(parsed: unknown): boolean {
   return isCharasheetGame(parsed, 'gorder');
-}
-
-function buildParams(record: Record<string, unknown>): ImportedParam[] {
-  const params: ImportedParam[] = [];
-  for (const ability of ABILITIES) {
-    if (isNonEmptyScalar(record[ability.value]))
-      params.push({ label: ability.label, value: asString(record[ability.value]) });
-  }
-  return params;
 }
 
 function buildSkillSection(record: Record<string, unknown>): ImportedSection | null {
@@ -121,7 +112,10 @@ export function buildGorderCharasheetCharacter(parsed: unknown): ImportedCharact
   const url = asString(record['url']).trim();
   if (url !== '') character.externalUrl = url;
 
-  character.params = buildParams(record);
+  character.params = paramsOf(
+    record,
+    ABILITIES.map((ability) => ({ key: ability.value, label: ability.label }))
+  );
   character.sections = [
     buildSkillSection(record),
     buildPrefixedSection(

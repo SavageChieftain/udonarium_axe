@@ -1,4 +1,8 @@
-import { buildCopyAction, buildLockToggleAction } from '@axe/application/ui/tabletop-context-menu-actions';
+import {
+  buildAltitudeAction,
+  buildCopyAction,
+  buildLockToggleAction,
+} from '@axe/application/ui/tabletop-context-menu-actions';
 import { TabletopObject } from '@axe/domain/tabletop/tabletop-object';
 
 const t = ((key: string) => key) as Parameters<typeof buildLockToggleAction>[2];
@@ -65,5 +69,50 @@ describe('buildCopyAction', () => {
     });
     action.action?.();
     expect(cloneObj.isLock).toBe(false);
+  });
+});
+
+describe('buildAltitudeAction()', () => {
+  function target(overrides: Partial<TabletopObject> = {}) {
+    return { altitude: 3, posZ: 40, isAltitudeIndicate: false, ...overrides } as unknown as TabletopObject;
+  }
+
+  it('高さと浮きをまとめて戻すこと', () => {
+    const piece = target();
+
+    buildAltitudeAction(piece, t).subActions?.[0].action?.();
+
+    expect(piece.altitude).toBe(0);
+    expect(piece.posZ).toBe(0);
+  });
+
+  it('keepPosZ では浮きを残すこと', () => {
+    // 範囲は盤面に貼るもので、浮きは高さと別に使う。
+    const area = target();
+
+    buildAltitudeAction(area, t, { keepPosZ: true }).subActions?.[0].action?.();
+
+    expect(area.altitude).toBe(0);
+    expect(area.posZ).toBe(40);
+  });
+
+  it('数値の表示を入れ替えること', () => {
+    const piece = target({ isAltitudeIndicate: true } as Partial<TabletopObject>);
+    const changed = vi.fn();
+
+    const action = buildAltitudeAction(piece, t, { onChanged: changed });
+    expect(action.subActions?.[1].name).toBe('feature.tabletop.contextMenu.altitudeShowOn');
+    action.subActions?.[1].action?.();
+
+    expect(piece.isAltitudeIndicate).toBe(false);
+    expect(changed).toHaveBeenCalledOnce();
+  });
+
+  it('その物だけに要る項目を後ろに足せること', () => {
+    const action = buildAltitudeAction(target(), t, {
+      extraActions: [{ name: '影', action: () => undefined }],
+    });
+
+    expect(action.subActions?.map((sub) => sub.name)).toContain('影');
   });
 });

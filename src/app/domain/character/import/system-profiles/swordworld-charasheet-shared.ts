@@ -14,6 +14,7 @@ import {
   asArray,
   asString,
   buildPrefixedSection,
+  paramsOf,
 } from '@axe/domain/character/import/system-profiles/charasheet-shared';
 
 export interface SwordWorldCharasheetConfig {
@@ -48,15 +49,6 @@ const PROFILE_FIELDS: { key: string; label: string }[] = [
   { key: 'age', label: '年齢' },
   { key: 'sex', label: '性別' },
 ];
-
-function buildParams(record: Record<string, unknown>): ImportedParam[] {
-  const params: ImportedParam[] = [];
-  for (const ability of ABILITY_BONUSES) {
-    if (isNonEmptyScalar(record[ability.key]))
-      params.push({ label: ability.label, value: asString(record[ability.key]) });
-  }
-  return params;
-}
 
 function buildStatuses(record: Record<string, unknown>): ImportedStatus[] {
   const statuses: ImportedStatus[] = [];
@@ -115,7 +107,7 @@ export function buildSwordWorldCharasheet(
   const url = asString(record['url']).trim();
   if (url !== '') character.externalUrl = url;
 
-  const params = buildParams(record);
+  const params = paramsOf(record, ABILITY_BONUSES);
   character.params = params;
   character.statuses = buildStatuses(record);
   character.sections = [

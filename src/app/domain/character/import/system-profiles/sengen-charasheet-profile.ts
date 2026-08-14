@@ -5,13 +5,17 @@ import {
   ImportedCharacter,
   ImportedField,
   ImportedGroup,
-  ImportedParam,
   ImportedSection,
   isNonEmptyScalar,
   normalizeHexColor,
   profileSectionOf,
 } from '@axe/domain/character/import/imported-character';
-import { asArray, asString, isCharasheetGame } from '@axe/domain/character/import/system-profiles/charasheet-shared';
+import {
+  asArray,
+  asString,
+  isCharasheetGame,
+  paramsOf,
+} from '@axe/domain/character/import/system-profiles/charasheet-shared';
 
 // 千幻抄（保管所 game="sengen"）の5能力値。NP{i}=能力値（特性値+修正の合計）。順序は作成ページ <th> ヘッダで確認。
 const ABILITIES: { key: string; label: string }[] = [
@@ -41,15 +45,6 @@ const PROFILE_FIELDS: { key: string; label: string }[] = [
 
 export function isSengenCharasheetCharacter(parsed: unknown): boolean {
   return isCharasheetGame(parsed, 'sengen');
-}
-
-function buildParams(record: Record<string, unknown>): ImportedParam[] {
-  const params: ImportedParam[] = [];
-  for (const ability of ABILITIES) {
-    if (isNonEmptyScalar(record[ability.key]))
-      params.push({ label: ability.label, value: asString(record[ability.key]) });
-  }
-  return params;
 }
 
 function buildSpellSection(record: Record<string, unknown>): ImportedSection | null {
@@ -95,7 +90,7 @@ export function buildSengenCharasheetCharacter(parsed: unknown): ImportedCharact
   const url = asString(record['url']).trim();
   if (url !== '') character.externalUrl = url;
 
-  character.params = buildParams(record);
+  character.params = paramsOf(record, ABILITIES);
   character.sections = [buildSpellSection(record), profileSectionOf(record, PROFILE_FIELDS)].filter(
     (section): section is ImportedSection => section != null
   );

@@ -4,7 +4,6 @@ import {
   ImportedCharacter,
   ImportedParam,
   ImportedSection,
-  isNonEmptyScalar,
   normalizeHexColor,
   profileSectionOf,
 } from '@axe/domain/character/import/imported-character';
@@ -13,6 +12,7 @@ import {
   asString,
   buildPrefixedSection,
   isCharasheetGame,
+  paramsOf,
 } from '@axe/domain/character/import/system-profiles/charasheet-shared';
 
 // グランクレストRPG（保管所 game="gracre"）の能力ボーナス。NB{i} = 各能力値ボーナス。順序は標準（SNE 6 能力値）。
@@ -48,15 +48,6 @@ const PROFILE_FIELDS: { key: string; label: string }[] = [
 
 export function isGracreCharasheetCharacter(parsed: unknown): boolean {
   return isCharasheetGame(parsed, 'gracre');
-}
-
-function buildParams(record: Record<string, unknown>): ImportedParam[] {
-  const params: ImportedParam[] = [];
-  for (const ability of ABILITY_BONUSES) {
-    if (isNonEmptyScalar(record[ability.key]))
-      params.push({ label: ability.label, value: asString(record[ability.key]) });
-  }
-  return params;
 }
 
 function rollLines(prefix: string, fallbackName: string, record: Record<string, unknown>): string[] {
@@ -102,7 +93,7 @@ export function buildGracreCharasheetCharacter(parsed: unknown): ImportedCharact
   const url = asString(record['url']).trim();
   if (url !== '') character.externalUrl = url;
 
-  const params = buildParams(record);
+  const params = paramsOf(record, ABILITY_BONUSES);
   character.params = params;
   character.sections = [
     buildPrefixedSection('行動', 'acts', ACT_COLUMNS, record),

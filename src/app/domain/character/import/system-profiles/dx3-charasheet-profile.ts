@@ -5,13 +5,17 @@ import {
   ImportedCharacter,
   ImportedField,
   ImportedGroup,
-  ImportedParam,
   ImportedSection,
   isNonEmptyScalar,
   normalizeHexColor,
   profileSectionOf,
 } from '@axe/domain/character/import/imported-character';
-import { asArray, asString, isCharasheetGame } from '@axe/domain/character/import/system-profiles/charasheet-shared';
+import {
+  asArray,
+  asString,
+  isCharasheetGame,
+  paramsOf,
+} from '@axe/domain/character/import/system-profiles/charasheet-shared';
 
 const ABILITIES: { key: string; label: string }[] = [
   { key: 'S1', label: '肉体' },
@@ -56,15 +60,6 @@ function skillRoll(index: number, record: Record<string, unknown>): string {
   const total = asString(asArray(record['skill_total'])[index]).trim();
   if (total === '' || !/\dr/i.test(total)) return '';
   return total.replace(/r/gi, 'DX');
-}
-
-function buildParams(record: Record<string, unknown>): ImportedParam[] {
-  const params: ImportedParam[] = [];
-  for (const ability of ABILITIES) {
-    if (isNonEmptyScalar(record[ability.key]))
-      params.push({ label: ability.label, value: asString(record[ability.key]) });
-  }
-  return params;
 }
 
 function buildSkillSection(record: Record<string, unknown>): ImportedSection | null {
@@ -126,7 +121,7 @@ export function buildDx3CharasheetCharacter(parsed: unknown): ImportedCharacter 
   const url = asString(record['url']).trim();
   if (url !== '') character.externalUrl = url;
 
-  character.params = buildParams(record);
+  character.params = paramsOf(record, ABILITIES);
   character.sections = [
     buildSkillSection(record),
     buildEffectSection('エフェクト', 'effect', record),

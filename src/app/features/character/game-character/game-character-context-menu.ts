@@ -1,7 +1,12 @@
 import { TranslateFn } from '@axe/application/i18n/translate.token';
 import { GameObjectInventoryService } from '@axe/application/inventory/game-object-inventory.service';
 import { ContextMenuAction, ContextMenuSeparator } from '@axe/application/ui/context-menu.service';
-import { buildCopyAction, buildLockToggleAction } from '@axe/application/ui/tabletop-context-menu-actions';
+import {
+  buildAltitudeAction,
+  buildCopyAction,
+  buildLockToggleAction,
+  buildToggleAction,
+} from '@axe/application/ui/tabletop-context-menu-actions';
 import { Network } from '@axe/core/index';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { DataElement, DataElementFieldType } from '@axe/domain/data/data-element';
@@ -142,57 +147,20 @@ export function buildGameCharacterContextMenu(
 
   // 2. 表示設定
   const displayActions: ContextMenuAction[] = [
-    {
-      name: t('feature.tabletop.contextMenu.altitudeSetting'),
-      action: undefined,
-      subActions: [
-        {
-          name: t('feature.tabletop.contextMenu.altitudeZero'),
-          action: () => {
-            if (char.altitude !== 0 || char.posZ !== 0) {
-              char.altitude = 0;
-              char.posZ = 0;
-              SoundEffect.play(PresetSound.sweep);
-            }
+    buildAltitudeAction(char, t, {
+      onChanged: () => inventoryService.notifyInventoryUpdate(),
+      extraActions: [
+        buildToggleAction(
+          char.isDropShadow,
+          (next) => (char.isDropShadow = next),
+          {
+            on: t('feature.tabletop.contextMenu.shadowShowOn'),
+            off: t('feature.tabletop.contextMenu.shadowShowOff'),
           },
-          altitudeHande: char,
-        },
-        char.isAltitudeIndicate
-          ? {
-              name: t('feature.tabletop.contextMenu.altitudeShowOn'),
-              action: () => {
-                char.isAltitudeIndicate = false;
-                SoundEffect.play(PresetSound.sweep);
-                inventoryService.notifyInventoryUpdate();
-              },
-            }
-          : {
-              name: t('feature.tabletop.contextMenu.altitudeShowOff'),
-              action: () => {
-                char.isAltitudeIndicate = true;
-                SoundEffect.play(PresetSound.sweep);
-                inventoryService.notifyInventoryUpdate();
-              },
-            },
-        char.isDropShadow
-          ? {
-              name: t('feature.tabletop.contextMenu.shadowShowOn'),
-              action: () => {
-                char.isDropShadow = false;
-                SoundEffect.play(PresetSound.sweep);
-                inventoryService.notifyInventoryUpdate();
-              },
-            }
-          : {
-              name: t('feature.tabletop.contextMenu.shadowShowOff'),
-              action: () => {
-                char.isDropShadow = true;
-                SoundEffect.play(PresetSound.sweep);
-                inventoryService.notifyInventoryUpdate();
-              },
-            },
+          () => inventoryService.notifyInventoryUpdate()
+        ),
       ],
-    },
+    }),
     {
       name: t('feature.character.contextMenu.displaySettings'),
       action: undefined,

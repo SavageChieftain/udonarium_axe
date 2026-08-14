@@ -1,6 +1,6 @@
 import { TranslateFn } from '@axe/application/i18n/translate.token';
 import { ContextMenuAction, ContextMenuSeparator } from '@axe/application/ui/context-menu.service';
-import { buildLockToggleAction } from '@axe/application/ui/tabletop-context-menu-actions';
+import { buildAltitudeAction, buildLockToggleAction } from '@axe/application/ui/tabletop-context-menu-actions';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
 import { LightSource } from '@axe/domain/tabletop/light-source';
 import { applyLightPreset, LightPreset } from '@axe/domain/tabletop/vision-types';
@@ -73,38 +73,7 @@ export function buildLightSourceContextMenu(
     })),
   });
 
-  menu.push({
-    name: t('feature.tabletop.contextMenu.altitudeSetting'),
-    action: undefined,
-    subActions: [
-      {
-        name: t('feature.tabletop.contextMenu.altitudeZero'),
-        action: () => {
-          if (light.altitude !== 0 || light.posZ !== 0) {
-            light.altitude = 0;
-            light.posZ = 0;
-            SoundEffect.play(PresetSound.sweep);
-          }
-        },
-        altitudeHande: light,
-      },
-      light.isAltitudeIndicate
-        ? {
-            name: t('feature.tabletop.contextMenu.altitudeShowOn'),
-            action: () => {
-              light.isAltitudeIndicate = false;
-              SoundEffect.play(PresetSound.sweep);
-            },
-          }
-        : {
-            name: t('feature.tabletop.contextMenu.altitudeShowOff'),
-            action: () => {
-              light.isAltitudeIndicate = true;
-              SoundEffect.play(PresetSound.sweep);
-            },
-          },
-    ],
-  });
+  menu.push(buildAltitudeAction(light, t));
 
   menu.push(buildLockToggleAction(light.isLock, (next) => (light.isLock = next), t));
 

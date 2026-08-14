@@ -2,7 +2,6 @@ import { normalizeImage } from '@axe/domain/character/import/charasheet-characte
 import {
   createEmptyImportedCharacter,
   ImportedCharacter,
-  ImportedParam,
   ImportedSection,
   isNonEmptyScalar,
   normalizeHexColor,
@@ -12,6 +11,7 @@ import {
   asString,
   buildPrefixedSection,
   isCharasheetGame,
+  paramsOf,
 } from '@axe/domain/character/import/system-profiles/charasheet-shared';
 
 // パラサイトブラッド（保管所 game="parabla"）の6能力値。順序は作成ページ <th> ヘッダで確認。
@@ -50,15 +50,6 @@ export function isParablaCharasheetCharacter(parsed: unknown): boolean {
   return isCharasheetGame(parsed, 'parabla');
 }
 
-function buildParams(record: Record<string, unknown>): ImportedParam[] {
-  const params: ImportedParam[] = [];
-  for (const ability of ABILITIES) {
-    if (isNonEmptyScalar(record[ability.value]))
-      params.push({ label: ability.label, value: asString(record[ability.value]) });
-  }
-  return params;
-}
-
 function buildPalette(record: Record<string, unknown>): string {
   const lines = ABILITIES.filter((ability) => isNonEmptyScalar(record[ability.rate])).map(
     (ability) => `2d6+${asString(record[ability.rate]).trim()} 【${ability.label}判定】`
@@ -79,7 +70,10 @@ export function buildParablaCharasheetCharacter(parsed: unknown): ImportedCharac
   const url = asString(record['url']).trim();
   if (url !== '') character.externalUrl = url;
 
-  character.params = buildParams(record);
+  character.params = paramsOf(
+    record,
+    ABILITIES.map((ability) => ({ key: ability.value, label: ability.label }))
+  );
   character.sections = [
     buildPrefixedSection('異能', 'Power', POWER_COLUMNS, record),
     buildPrefixedSection('武器', 'arms', WEAPON_COLUMNS, record),

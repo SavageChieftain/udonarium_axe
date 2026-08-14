@@ -2,7 +2,6 @@ import { normalizeImage } from '@axe/domain/character/import/charasheet-characte
 import {
   createEmptyImportedCharacter,
   ImportedCharacter,
-  ImportedParam,
   ImportedSection,
   isNonEmptyScalar,
   normalizeHexColor,
@@ -12,6 +11,7 @@ import {
   asString,
   buildPrefixedSection,
   isCharasheetGame,
+  paramsOf,
 } from '@axe/domain/character/import/system-profiles/charasheet-shared';
 
 // ウタカゼ（保管所 game="utakaze"）の4能力値。キーが名前付き（N_Yuuki=勇気 等）なので位置推測は不要。
@@ -45,15 +45,6 @@ export function isUtakazeCharasheetCharacter(parsed: unknown): boolean {
   return isCharasheetGame(parsed, 'utakaze');
 }
 
-function buildParams(record: Record<string, unknown>): ImportedParam[] {
-  const params: ImportedParam[] = [];
-  for (const ability of ABILITIES) {
-    if (isNonEmptyScalar(record[ability.key]))
-      params.push({ label: ability.label, value: asString(record[ability.key]) });
-  }
-  return params;
-}
-
 function buildPalette(record: Record<string, unknown>): string {
   const lines = ABILITIES.filter((ability) => isNonEmptyScalar(record[ability.key])).map(
     (ability) => `${asString(record[ability.key]).trim()}UK 【${ability.label}】`
@@ -74,7 +65,7 @@ export function buildUtakazeCharasheetCharacter(parsed: unknown): ImportedCharac
   const url = asString(record['url']).trim();
   if (url !== '') character.externalUrl = url;
 
-  character.params = buildParams(record);
+  character.params = paramsOf(record, ABILITIES);
   character.sections = [
     buildPrefixedSection('特技', 'skill', SKILL_COLUMNS, record),
     buildPrefixedSection('仲間', 'friend', FRIEND_COLUMNS, record),

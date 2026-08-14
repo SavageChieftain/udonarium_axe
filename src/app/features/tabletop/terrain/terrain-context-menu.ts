@@ -2,7 +2,11 @@ import { TranslateFn } from '@axe/application/i18n/translate.token';
 import { GameObjectInventoryService } from '@axe/application/inventory/game-object-inventory.service';
 import { TabletopActionService } from '@axe/application/tabletop/tabletop-action.service';
 import { ContextMenuAction, ContextMenuSeparator } from '@axe/application/ui/context-menu.service';
-import { buildLockToggleAction } from '@axe/application/ui/tabletop-context-menu-actions';
+import {
+  buildAltitudeAction,
+  buildLockToggleAction,
+  buildToggleAction,
+} from '@axe/application/ui/tabletop-context-menu-actions';
 import { PointerCoordinate } from '@axe/core/input/pointer-device.service';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
 import { SlopeDirection, Terrain, TerrainViewState } from '@axe/domain/tabletop/terrain';
@@ -28,57 +32,20 @@ export function buildTerrainContextMenu(
 
   return [
     ...(overlapEntries.length > 0 ? [...overlapEntries, ContextMenuSeparator] : []),
-    {
-      name: t('feature.tabletop.contextMenu.altitudeSetting'),
-      action: undefined,
-      subActions: [
-        {
-          name: t('feature.tabletop.contextMenu.altitudeZero'),
-          action: () => {
-            if (terrain.altitude !== 0 || terrain.posZ !== 0) {
-              terrain.altitude = 0;
-              terrain.posZ = 0;
-              SoundEffect.play(PresetSound.sweep);
-            }
+    buildAltitudeAction(terrain, t, {
+      onChanged: () => inventoryService.notifyInventoryUpdate(),
+      extraActions: [
+        buildToggleAction(
+          terrain.isDropShadow,
+          (next) => (terrain.isDropShadow = next),
+          {
+            on: t('feature.tabletop.contextMenu.shadowShowOn'),
+            off: t('feature.tabletop.contextMenu.shadowShowOff'),
           },
-          altitudeHande: terrain,
-        },
-        terrain.isAltitudeIndicate
-          ? {
-              name: t('feature.tabletop.contextMenu.altitudeShowOn'),
-              action: () => {
-                terrain.isAltitudeIndicate = false;
-                SoundEffect.play(PresetSound.sweep);
-                inventoryService.notifyInventoryUpdate();
-              },
-            }
-          : {
-              name: t('feature.tabletop.contextMenu.altitudeShowOff'),
-              action: () => {
-                terrain.isAltitudeIndicate = true;
-                SoundEffect.play(PresetSound.sweep);
-                inventoryService.notifyInventoryUpdate();
-              },
-            },
-        terrain.isDropShadow
-          ? {
-              name: t('feature.tabletop.contextMenu.shadowShowOn'),
-              action: () => {
-                terrain.isDropShadow = false;
-                SoundEffect.play(PresetSound.sweep);
-                inventoryService.notifyInventoryUpdate();
-              },
-            }
-          : {
-              name: t('feature.tabletop.contextMenu.shadowShowOff'),
-              action: () => {
-                terrain.isDropShadow = true;
-                SoundEffect.play(PresetSound.sweep);
-                inventoryService.notifyInventoryUpdate();
-              },
-            },
+          () => inventoryService.notifyInventoryUpdate()
+        ),
       ],
-    },
+    }),
     ContextMenuSeparator,
     buildLockToggleAction(terrain.isLocked, (next) => (terrain.isLocked = next), t),
     ContextMenuSeparator,

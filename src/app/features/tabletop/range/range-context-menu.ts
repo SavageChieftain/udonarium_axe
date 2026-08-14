@@ -2,7 +2,7 @@ import { TranslateFn } from '@axe/application/i18n/translate.token';
 import { GameObjectInventoryService } from '@axe/application/inventory/game-object-inventory.service';
 import { TabletopActionService } from '@axe/application/tabletop/tabletop-action.service';
 import { ContextMenuAction, ContextMenuSeparator } from '@axe/application/ui/context-menu.service';
-import { buildLockToggleAction } from '@axe/application/ui/tabletop-context-menu-actions';
+import { buildAltitudeAction, buildLockToggleAction } from '@axe/application/ui/tabletop-context-menu-actions';
 import { PointerCoordinate } from '@axe/core/input/pointer-device.service';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
@@ -22,39 +22,12 @@ export function buildRangeContextMenu(
 ): ContextMenuAction[] {
   const menuArray: ContextMenuAction[] = [];
 
-  menuArray.push({
-    name: t('feature.tabletop.contextMenu.altitudeSetting'),
-    action: undefined,
-    subActions: [
-      {
-        name: t('feature.tabletop.contextMenu.altitudeZero'),
-        action: () => {
-          if (range.altitude != 0) {
-            range.altitude = 0;
-            SoundEffect.play(PresetSound.sweep);
-          }
-        },
-        altitudeHande: range,
-      },
-      range.isAltitudeIndicate
-        ? {
-            name: t('feature.tabletop.contextMenu.altitudeShowOn'),
-            action: () => {
-              range.isAltitudeIndicate = false;
-              SoundEffect.play(PresetSound.sweep);
-              inventoryService.notifyInventoryUpdate();
-            },
-          }
-        : {
-            name: t('feature.tabletop.contextMenu.altitudeShowOff'),
-            action: () => {
-              range.isAltitudeIndicate = true;
-              SoundEffect.play(PresetSound.sweep);
-              inventoryService.notifyInventoryUpdate();
-            },
-          },
-    ],
-  });
+  menuArray.push(
+    buildAltitudeAction(range, t, {
+      keepPosZ: true,
+      onChanged: () => inventoryService.notifyInventoryUpdate(),
+    })
+  );
 
   menuArray.push(buildLockToggleAction(range.isLock, (next) => (range.isLock = next), t));
   if (

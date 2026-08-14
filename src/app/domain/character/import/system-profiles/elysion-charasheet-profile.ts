@@ -4,14 +4,18 @@ import {
   ImportedCharacter,
   ImportedField,
   ImportedGroup,
-  ImportedParam,
   ImportedSection,
   isNonEmptyScalar,
   normalizeHexColor,
   profileSectionOf,
   scalarField,
 } from '@axe/domain/character/import/imported-character';
-import { asArray, asString, isCharasheetGame } from '@axe/domain/character/import/system-profiles/charasheet-shared';
+import {
+  asArray,
+  asString,
+  isCharasheetGame,
+  paramsOf,
+} from '@axe/domain/character/import/system-profiles/charasheet-shared';
 
 // エリュシオン（保管所 game="elysion"）の3主能力。NB1-3。順序・スキルの能力コードは作成ページの <th>/<select> で確認。
 const ABILITIES: { key: string; label: string }[] = [
@@ -38,15 +42,6 @@ const PROFILE_FIELDS: { key: string; label: string }[] = [
 
 export function isElysionCharasheetCharacter(parsed: unknown): boolean {
   return isCharasheetGame(parsed, 'elysion');
-}
-
-function buildParams(record: Record<string, unknown>): ImportedParam[] {
-  const params: ImportedParam[] = [];
-  for (const ability of ABILITIES) {
-    if (isNonEmptyScalar(record[ability.key]))
-      params.push({ label: ability.label, value: asString(record[ability.key]) });
-  }
-  return params;
 }
 
 function mappedField(label: string, raw: unknown, map: Record<string, string>): ImportedField | null {
@@ -95,7 +90,7 @@ export function buildElysionCharasheetCharacter(parsed: unknown): ImportedCharac
   const url = asString(record['url']).trim();
   if (url !== '') character.externalUrl = url;
 
-  character.params = buildParams(record);
+  character.params = paramsOf(record, ABILITIES);
   character.sections = [buildSkillSection(record), profileSectionOf(record, PROFILE_FIELDS)].filter(
     (section): section is ImportedSection => section != null
   );

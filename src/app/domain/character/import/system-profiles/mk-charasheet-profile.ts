@@ -5,13 +5,17 @@ import {
   ImportedCharacter,
   ImportedField,
   ImportedGroup,
-  ImportedParam,
   ImportedSection,
   isNonEmptyScalar,
   normalizeHexColor,
   profileSectionOf,
 } from '@axe/domain/character/import/imported-character';
-import { asArray, asString, isCharasheetGame } from '@axe/domain/character/import/system-profiles/charasheet-shared';
+import {
+  asArray,
+  asString,
+  isCharasheetGame,
+  paramsOf,
+} from '@axe/domain/character/import/system-profiles/charasheet-shared';
 
 // 迷宮キングダム（保管所 game="mk"）。NC1-8 の順序は作成ページ <th> ヘッダで確認。
 // 主能力（判定に使う）= 才覚/魅力/探索/武勇、副次値 = 器/回避/配下/気力。
@@ -47,15 +51,6 @@ const PROFILE_FIELDS: { key: string; label: string }[] = [
 
 export function isMkCharasheetCharacter(parsed: unknown): boolean {
   return isCharasheetGame(parsed, 'mk');
-}
-
-function buildParams(record: Record<string, unknown>): ImportedParam[] {
-  const params: ImportedParam[] = [];
-  for (const ability of [...PRIMARY, ...SECONDARY]) {
-    if (isNonEmptyScalar(record[ability.key]))
-      params.push({ label: ability.label, value: asString(record[ability.key]) });
-  }
-  return params;
 }
 
 function buildSkillSection(record: Record<string, unknown>): ImportedSection | null {
@@ -117,7 +112,7 @@ export function buildMkCharasheetCharacter(parsed: unknown): ImportedCharacter |
   const url = asString(record['url']).trim();
   if (url !== '') character.externalUrl = url;
 
-  character.params = buildParams(record);
+  character.params = paramsOf(record, [...PRIMARY, ...SECONDARY]);
   character.sections = [
     buildSkillSection(record),
     buildConneSection(record),
