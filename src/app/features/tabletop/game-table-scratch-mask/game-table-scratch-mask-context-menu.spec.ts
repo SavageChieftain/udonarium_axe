@@ -10,7 +10,7 @@ function makeMask(): { destroy: ReturnType<typeof vi.fn> } {
 }
 
 describe('buildScratchMaskContextMenu()', () => {
-  it('isLocked=true で 1 つめが「固定解除」、isLocked=false で「固定する」', () => {
+  it('leads with unlocking what is locked and with locking what is not', () => {
     const mask = makeMask();
     const locked = buildScratchMaskContextMenu(
       mask as unknown as GameTableScratchMask,
@@ -29,7 +29,7 @@ describe('buildScratchMaskContextMenu()', () => {
     expect(unlocked[0].name).toBe('固定する');
   });
 
-  it('isLocked=true なら 1 つめ action で unlock() が呼ばれる', () => {
+  it('unlocks from the first item when it is locked', () => {
     const mask = makeMask();
     const lock = vi.fn();
     const unlock = vi.fn();
@@ -39,7 +39,7 @@ describe('buildScratchMaskContextMenu()', () => {
     expect(lock).not.toHaveBeenCalled();
   });
 
-  it('isLocked=false なら 1 つめ action で lock() が呼ばれる', () => {
+  it('locks from the first item when it is not', () => {
     const mask = makeMask();
     const lock = vi.fn();
     const unlock = vi.fn();
@@ -49,7 +49,7 @@ describe('buildScratchMaskContextMenu()', () => {
     expect(unlock).not.toHaveBeenCalled();
   });
 
-  it('2 つめは separator、3 つめは「削除する」で mask.destroy() を呼ぶ', () => {
+  it('destroys the mask from the third item, after a separator', () => {
     const mask = makeMask();
     const menu = buildScratchMaskContextMenu(
       mask as unknown as GameTableScratchMask,

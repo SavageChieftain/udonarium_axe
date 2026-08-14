@@ -19,24 +19,24 @@ describe('WritingPeerManager', () => {
   });
 
   describe('add()', () => {
-    it('初回追加で即座に names に反映される', () => {
+    it('names somebody as soon as they are added', () => {
       manager.add('peer-1');
       expect(manager.names()).toEqual(['User(peer-1)']);
     });
 
-    it('同じ peerId を再度 add しても names は重複しない', () => {
+    it('names them once however often they are added', () => {
       manager.add('peer-1');
       manager.add('peer-1');
       expect(manager.names()).toEqual(['User(peer-1)']);
     });
 
-    it('複数の peerId を add すると全員が names に入る', () => {
+    it('names everybody added', () => {
       manager.add('peer-1');
       manager.add('peer-2');
       expect(manager.names()).toEqual(['User(peer-1)', 'User(peer-2)']);
     });
 
-    it('2秒後にタイムアウトで自動削除される', () => {
+    it('drops somebody after a couple of seconds', () => {
       manager.add('peer-1');
       expect(manager.names()).toEqual(['User(peer-1)']);
 
@@ -44,12 +44,12 @@ describe('WritingPeerManager', () => {
       expect(manager.names()).toEqual([]);
     });
 
-    it('再度 add するとタイムアウトがリセットされる', () => {
+    it('puts that clock back on another add', () => {
       manager.add('peer-1');
       vi.advanceTimersByTime(1500);
       manager.add('peer-1'); // リセット
       vi.advanceTimersByTime(1500);
-      // 最初の add から 3000ms 経過しているが、2回目の add でリセットされたのでまだ残る
+      // long past the first add, but the second put the clock back
       expect(manager.names()).toEqual(['User(peer-1)']);
 
       vi.advanceTimersByTime(500); // 2回目の add から合計 2000ms
@@ -58,18 +58,18 @@ describe('WritingPeerManager', () => {
   });
 
   describe('remove()', () => {
-    it('remove すると即座に names から消える', () => {
+    it('drops somebody at once on request', () => {
       manager.add('peer-1');
       manager.add('peer-2');
       manager.remove('peer-1');
       expect(manager.names()).toEqual(['User(peer-2)']);
     });
 
-    it('存在しない peerId を remove しても例外を投げない', () => {
+    it('throws nothing for somebody who was never there', () => {
       expect(() => manager.remove('nonexistent')).not.toThrow();
     });
 
-    it('remove 後はタイムアウトが発火しない', () => {
+    it('never fires the clock after that', () => {
       manager.add('peer-1');
       manager.remove('peer-1');
       vi.advanceTimersByTime(2000);
@@ -78,11 +78,11 @@ describe('WritingPeerManager', () => {
   });
 
   describe('destroy()', () => {
-    it('destroy 後はタイムアウトが発火せず names は変化しない', () => {
+    it('fires nothing and names nobody after teardown', () => {
       manager.add('peer-1');
       manager.destroy();
       vi.advanceTimersByTime(2000);
-      // destroy 後は空 (peers.clear() 済み) だが、タイムアウトコールバックが走っても問題ない
+      // everything is cleared on teardown, and a stray callback does no harm
       expect(manager.names()).toEqual(['User(peer-1)']);
     });
   });

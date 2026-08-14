@@ -44,13 +44,13 @@ describe('MapImageGridAdjusterComponent', () => {
     return (component as unknown as { frame: () => { fx: number; fy: number; fw: number; fh: number } }).frame();
   }
 
-  it('画像が見つからないときはエラー状態にすること', async () => {
+  it('reports an error when the picture cannot be found', async () => {
     await setup({ imageIdentifier: 'missing', gridSize: 50 });
 
     expect(component.loadState()).toBe('error');
   });
 
-  it('画像要素はpreflightのmax-widthを打ち消すこと', async () => {
+  it('undoes the width the stylesheet reset put on the picture', async () => {
     await setup({ imageIdentifier: 'x', gridSize: 50 });
     makeReady(800, 600);
 
@@ -59,7 +59,7 @@ describe('MapImageGridAdjusterComponent', () => {
     expect(img.classList.contains('max-w-none')).toBe(true);
   });
 
-  it('読み込み時にgridSizeから初期マス数を決めること', async () => {
+  it('works the first count out from the grid size as it loads', async () => {
     await setup({ imageIdentifier: 'x', gridSize: 48 });
     makeReady(480, 240);
 
@@ -67,7 +67,7 @@ describe('MapImageGridAdjusterComponent', () => {
     expect(component.rows()).toBe(5);
   });
 
-  it('初期マス数は1〜100にクランプされること', async () => {
+  it('keeps that count between one and a hundred', async () => {
     await setup({ imageIdentifier: 'x', gridSize: 1 });
     makeReady(8000, 20);
 
@@ -75,7 +75,7 @@ describe('MapImageGridAdjusterComponent', () => {
     expect(component.rows()).toBe(20);
   });
 
-  it('フレームは中央配置後にスナップされること（スクエア）', async () => {
+  it('centres the frame and then snaps it', async () => {
     await setup({ imageIdentifier: 'x', gridSize: 48 });
     makeReady(480, 240);
 
@@ -86,22 +86,22 @@ describe('MapImageGridAdjusterComponent', () => {
     expect(f.fh).toBe(component.rows() * VIEW_CELL_BASE);
   });
 
-  it('既定のグリッドタイプはオプションから取ること', async () => {
+  it('takes the grid type from the options', async () => {
     await setup({ imageIdentifier: 'x', gridSize: 50, gridType: GridType.HEX_VERTICAL });
     expect(component.gridType()).toBe(GridType.HEX_VERTICAL);
   });
 
-  it('オプションのNONEはSQUAREに矯正すること', async () => {
+  it('reads no grid as squares', async () => {
     await setup({ imageIdentifier: 'x', gridSize: 50, gridType: GridType.NONE });
     expect(component.gridType()).toBe(GridType.SQUARE);
   });
 
-  it('グリッドタイプ未指定の既定はSQUAREであること', async () => {
+  it('falls back to squares when none is given', async () => {
     await setup({ imageIdentifier: 'x', gridSize: 50 });
     expect(component.gridType()).toBe(GridType.SQUARE);
   });
 
-  it('マス数変更でフレームが動いても画像とフレームの相対位置が保たれること', async () => {
+  it('keeps the picture where it sits in the frame as the count changes', async () => {
     await setup({ imageIdentifier: 'x', gridSize: 48 });
     makeReady(480, 240);
 
@@ -113,7 +113,7 @@ describe('MapImageGridAdjusterComponent', () => {
     expect(after).toBeCloseTo(before, 5);
   });
 
-  it('リンク時のフィットはカバーフィットで両軸スケールが等しくなること', async () => {
+  it('fits to cover with the axes locked, scaling both alike', async () => {
     await setup({ imageIdentifier: 'x', gridSize: 48 });
     makeReady(480, 240);
     component.linked.set(true);
@@ -127,7 +127,7 @@ describe('MapImageGridAdjusterComponent', () => {
     expect(component.scaleX()).toBeCloseTo(component.scaleY(), 5);
   });
 
-  it('非リンク時のフィットは厳密ストレッチで枠ぴったりになること', async () => {
+  it('stretches to the frame exactly with them unlocked', async () => {
     await setup({ imageIdentifier: 'x', gridSize: 48 });
     makeReady(480, 240);
     component.linked.set(false);
@@ -141,7 +141,7 @@ describe('MapImageGridAdjusterComponent', () => {
     expect(component.ty()).toBeCloseTo(f.fy, 5);
   });
 
-  it('リンク時の角ハンドルリサイズはscaleXとscaleYが等しいまま保たれること', async () => {
+  it('keeps the axes equal through a corner drag while they are locked', async () => {
     await setup({ imageIdentifier: 'x', gridSize: 48 });
     makeReady(480, 240);
     component.linked.set(true);
@@ -166,7 +166,7 @@ describe('MapImageGridAdjusterComponent', () => {
     expect(component.scaleX()).toBeGreaterThan(1);
   });
 
-  it('辺ハンドルは非リンク時のみ有効であること', async () => {
+  it('takes an edge handle only while they are not', async () => {
     await setup({ imageIdentifier: 'x', gridSize: 48 });
     makeReady(480, 240);
     component.tx.set(0);
@@ -181,7 +181,7 @@ describe('MapImageGridAdjusterComponent', () => {
     expect(c.hitTest(240, 0)).toEqual({ kind: 'image', handle: 'n' });
   });
 
-  it('画像をフレーム外へ完全に出すと確定不可にすること', async () => {
+  it('will not commit with the picture dragged clear of the frame', async () => {
     await setup({ imageIdentifier: 'x', gridSize: 48 });
     makeReady(480, 240);
 
@@ -192,7 +192,7 @@ describe('MapImageGridAdjusterComponent', () => {
     expect(component.canApply()).toBe(false);
   });
 
-  it('確定時は逆写像した矩形でクロップし行列数とグリッドタイプで解決すること', async () => {
+  it('crops to the frame mapped back into the picture and resolves with the rows, columns and grid type', async () => {
     await setup({ imageIdentifier: 'x', gridSize: 48 });
     makeReady(480, 240);
     component.linked.set(false);
@@ -230,7 +230,7 @@ describe('MapImageGridAdjusterComponent', () => {
     });
   });
 
-  it('20×12でフレームがステージに収まるよう表示倍率が縮小され確定できること', async () => {
+  it('shrinks the view so a wide frame fits the stage, and still commits', async () => {
     await setup({ imageIdentifier: 'x', gridSize: 48 });
     makeReady(480, 240);
     component.setCols(20);
@@ -257,7 +257,7 @@ describe('MapImageGridAdjusterComponent', () => {
     );
   });
 
-  it('表示倍率を変えてもクロップ結果（出力サイズと相対位置）が不変であること', async () => {
+  it('crops to the same result at any view scale', async () => {
     await setup({ imageIdentifier: 'x', gridSize: 48 });
     makeReady(480, 240);
     component.fit();
@@ -276,7 +276,7 @@ describe('MapImageGridAdjusterComponent', () => {
     expect(component.canApply()).toBe(true);
   });
 
-  it('Ctrl+ホイールは画像ズームではなく表示ズームに振り分けられること', async () => {
+  it('sends a modified wheel to the view rather than the picture', async () => {
     await setup({ imageIdentifier: 'x', gridSize: 48 });
     makeReady(480, 240);
 
@@ -298,7 +298,7 @@ describe('MapImageGridAdjusterComponent', () => {
     expect(zoomAt).not.toHaveBeenCalled();
   });
 
-  it('キャンセル時はnullで解決すること', async () => {
+  it('resolves with nothing on cancel', async () => {
     await setup({ imageIdentifier: 'x', gridSize: 50 });
 
     component.cancel();

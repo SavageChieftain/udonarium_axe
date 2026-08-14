@@ -29,16 +29,16 @@ import { setupMovableForPiece } from '@axe/ui/tabletop/setup-tabletop-piece';
 import { translateZCss, Z_OFFSET_AMBIENCE_PX } from '@axe/ui/tabletop/z-offset';
 
 /**
- * 演出をカメラ側へ寄せる量(px)。
- * 盤面と同じ深さのままだと、コマの足元に潜って途切れて見える。
+ * How far towards the camera the effect sits, in pixels.
+ * Left at the depth of the board it slips under the feet of the pieces and breaks up.
  */
 const CAMERA_LIFT_PX = 8;
 
-/** 立ち上りの 1 枚ぶん。奥行き方向に何枚か並べて厚みを出す。 */
+/** One upright sheet. Several are spaced through the depth to give it body. */
 export interface VaporSlice {
   key: string;
   layer: EffectParticleLayer;
-  /** 範囲の中でこの板が立っている位置(px)。手前ほど大きい。 */
+  /** Where this sheet stands within the area, in pixels, growing towards the front. */
   groundY: number;
 }
 
@@ -67,7 +67,7 @@ export class TableAmbienceComponent {
   readonly ambience = input.required<TableAmbience>();
   readonly movableOption = signal<MovableOption>({});
 
-  /** 盤面の絵と同じ深さに置くと、塗りが床に食われて消える。マスクの一枚上へ出す。 */
+  /** At the depth of the board picture the fill is eaten by the floor, so it sits one layer above the mask. */
   protected readonly surfaceTransform = translateZCss(Z_OFFSET_AMBIENCE_PX);
 
   constructor() {
@@ -75,10 +75,10 @@ export class TableAmbienceComponent {
   }
 
   /**
-   * オブジェクトの版。
+   * The version of the object.
    *
-   * 「版を読んでからオブジェクトを返す」computed を挟むと、返り値の参照が変わらないので
-   * signals は下流へ変化を伝えない。版そのものを配って、各値がそれを読む。
+   * A computed that reads the version and returns the object hands back the same reference,
+   * so nothing downstream hears it. The version itself is handed round and each value reads it.
    */
   private readonly version = computed<number>(() => this.objectChange.versionOf(this.ambience().identifier)());
 
@@ -103,8 +103,8 @@ export class TableAmbienceComponent {
   });
 
   /**
-   * 立ち上りは奥行き方向へ何枚かに分けて立てる。
-   * 広い範囲に 1 枚だけ立てると、奥のものも手前のものも同じ深さに並んで帯に見える。
+   * The upright part is split into several sheets through the depth.
+   * One sheet over a wide area puts the far and the near at the same depth and reads as a band.
    */
   readonly vaporSlices = computed<VaporSlice[]>(() => {
     if (!this.ambienceService.motionEnabled()) return [];
@@ -141,7 +141,7 @@ export class TableAmbienceComponent {
     };
   }
 
-  /** canvas は範囲より一回り大きい。粒が枠で切られないよう、余白ぶん外へずらして置く。 */
+  /** The canvas is larger than the area, and is offset by that margin so the particles are not cut by its edge. */
   protected canvasStyle(layer: EffectParticleLayer): Record<string, string> {
     return {
       position: 'absolute',
@@ -153,7 +153,7 @@ export class TableAmbienceComponent {
     };
   }
 
-  /** 立ち上るものはカメラに正対させる。寝かせたままだと横へ広がってしまう。 */
+  /** What rises faces the camera; left flat it would spread sideways. */
   protected vaporStyle(slice: VaporSlice): Record<string, string> {
     const rotation = this.uiSignalService.tableViewRotation();
     const layer = slice.layer;

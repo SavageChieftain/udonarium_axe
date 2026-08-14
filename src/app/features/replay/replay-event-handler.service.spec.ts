@@ -32,32 +32,32 @@ describe('ReplayEventHandlerService', () => {
     vi.restoreAllMocks();
   });
 
-  it('勝手に録画を始めないこと', () => {
+  it('does not start recording by itself', () => {
     recording = false;
     localDispatch('OPEN_NETWORK', { peerId: 'peer-a' });
     expect(recorder.stop).not.toHaveBeenCalled();
   });
 
-  it('卓が変わったら録画を締めること', () => {
+  it('closes the recording when the table changes', () => {
     vi.spyOn(Network, 'peerContext', 'get').mockReturnValue({ roomName: '第二夜' } as never);
     localDispatch('OPEN_NETWORK', { peerId: 'peer-a' });
 
     expect(recorder.stop).toHaveBeenCalledTimes(1);
   });
 
-  it('部屋を出たら録画を締めること', () => {
+  it('closes it on leaving the room', () => {
     vi.spyOn(Network, 'peerContext', 'get').mockReturnValue({ roomName: '' } as never);
     localDispatch('OPEN_NETWORK', { peerId: 'peer-a' });
 
     expect(recorder.stop).toHaveBeenCalledTimes(1);
   });
 
-  it('同じ卓のままなら締めないこと', () => {
+  it('leaves it open while the table stays the same', () => {
     localDispatch('OPEN_NETWORK', { peerId: 'peer-a' });
     expect(recorder.stop).not.toHaveBeenCalled();
   });
 
-  it('録画していないときは何もしないこと', () => {
+  it('does nothing while nothing is being recorded', () => {
     recording = false;
     vi.spyOn(Network, 'peerContext', 'get').mockReturnValue({ roomName: '' } as never);
     localDispatch('OPEN_NETWORK', { peerId: 'peer-a' });

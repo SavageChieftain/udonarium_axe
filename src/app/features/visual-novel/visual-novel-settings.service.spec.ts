@@ -9,28 +9,28 @@ describe('VisualNovelSettingsService', () => {
     localStorage.removeItem('vn-settings');
   });
 
-  it('既定値が normal / slide であること', () => {
+  it('starts plain, and slides', () => {
     const service = new VisualNovelSettingsService();
     expect(service.typewriterSpeed()).toBe('normal');
     expect(service.portraitAnimation()).toBe('slide');
   });
 
-  it('背景に何もかけない状態で始まること', () => {
+  it('starts with nothing over the backdrop', () => {
     const service = new VisualNovelSettingsService();
     expect(service.readability()).toBe(0);
   });
 
-  it('選んだ読みやすさは引き継ぐこと', () => {
+  it('keeps the legibility that was chosen', () => {
     new VisualNovelSettingsService().setReadability(2);
     expect(new VisualNovelSettingsService().readability()).toBe(2);
   });
 
-  it('知らない読みやすさは何もかけない状態に倒すこと', () => {
+  it('falls back to nothing over it for a setting it does not know', () => {
     localStorage.setItem('vn-settings', JSON.stringify({ readability: 'つよい' }));
     expect(new VisualNovelSettingsService().readability()).toBe(0);
   });
 
-  it('設定変更が永続化され、新しいインスタンスに引き継がれること', () => {
+  it('saves a change and hands it to the next instance', () => {
     const service = new VisualNovelSettingsService();
     service.setTypewriterSpeed('fast');
     service.setPortraitAnimation('bounce');
@@ -40,14 +40,14 @@ describe('VisualNovelSettingsService', () => {
     expect(reloaded.portraitAnimation()).toBe('bounce');
   });
 
-  it('不正な保存値は既定値にフォールバックすること', () => {
+  it('falls back to the default for a saved value it cannot read', () => {
     localStorage.setItem('vn-settings', JSON.stringify({ typewriterSpeed: 'warp', portraitAnimation: 42 }));
     const service = new VisualNovelSettingsService();
     expect(service.typewriterSpeed()).toBe('normal');
     expect(service.portraitAnimation()).toBe('slide');
   });
 
-  it('オートプレイ速度が永続化され範囲内に丸められること', () => {
+  it('saves the playback speed and keeps it in range', () => {
     const service = new VisualNovelSettingsService();
     expect(service.autoPlaySpeed()).toBe(1);
     service.setAutoPlaySpeed(1.75);
@@ -59,7 +59,7 @@ describe('VisualNovelSettingsService', () => {
     expect(service.autoPlaySpeed()).toBe(0.5);
   });
 
-  it('壊れた JSON が保存されていても既定値で起動すること', () => {
+  it('starts on the defaults when what was saved is broken', () => {
     localStorage.setItem('vn-settings', '{broken');
     const service = new VisualNovelSettingsService();
     expect(service.typewriterSpeed()).toBe('normal');

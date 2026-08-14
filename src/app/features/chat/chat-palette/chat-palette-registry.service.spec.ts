@@ -8,7 +8,7 @@ function handle(): ChatPaletteHandle {
 }
 
 describe('ChatPaletteRegistryService', () => {
-  it('register で最後に登録したものが active になる', () => {
+  it('makes the last one registered the active one', () => {
     const service = new ChatPaletteRegistryService();
     const a = handle();
     const b = handle();
@@ -20,7 +20,7 @@ describe('ChatPaletteRegistryService', () => {
     expect(service.active()).toBe(b);
   });
 
-  it('active を unregister すると残りの最後のものに戻る', () => {
+  it('falls back to the last of the rest when that one goes', () => {
     const service = new ChatPaletteRegistryService();
     const a = handle();
     const b = handle();
@@ -33,7 +33,7 @@ describe('ChatPaletteRegistryService', () => {
     expect(service.active()).toBeNull();
   });
 
-  it('active でないものを unregister しても active は変わらない', () => {
+  it('leaves the active one alone when another goes', () => {
     const service = new ChatPaletteRegistryService();
     const a = handle();
     const b = handle();

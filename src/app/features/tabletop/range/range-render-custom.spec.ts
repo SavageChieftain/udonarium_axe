@@ -43,38 +43,38 @@ describe('makeCustomHitTest', () => {
     ];
     const hit = makeCustomHitTest(setting, cells);
 
-    it('原点セルでヒット', () => {
+    it('hits the origin cell', () => {
       expect(hit(0, 0)).toBe(true);
     });
 
-    it('右1セル中心 (gcx=50, gcy=0) でヒット', () => {
+    it('hits the centre of the cell to the right', () => {
       expect(hit(50, 0)).toBe(true);
     });
 
-    it('右3セル中心 (gcx=150, gcy=0) でヒット', () => {
+    it('hits the centre three cells to the right', () => {
       expect(hit(150, 0)).toBe(true);
     });
 
-    it('右3セル上 (gcx=150, gcy=-50) でヒット', () => {
+    it('hits three cells right and one up', () => {
       expect(hit(150, -50)).toBe(true);
     });
 
-    it('右3セル下 (gcx=150, gcy=50) でヒット', () => {
+    it('hits three cells right and one down', () => {
       expect(hit(150, 50)).toBe(true);
     });
 
-    it('パターン外セル (gcx=200, gcy=0) ではヒットしない', () => {
+    it('misses a cell outside the pattern', () => {
       expect(hit(200, 0)).toBe(false);
     });
 
-    it('左1セル (gcx=-50, gcy=0) ではヒットしない', () => {
+    it('misses the cell to the left', () => {
       expect(hit(-50, 0)).toBe(false);
     });
   });
 
   describe('square grid (centerX=540, centerY=185 i.e. baseCell=10,3 but offset)', () => {
-    // 射程中心がセル境界に乗っていないケース。基準セル (10,3) は同じだが、
-    // gcx=0 ではセル (10,3) の中心 (515, 175) からズレた位置を指す。
+    // The centre of the range does not sit on a cell boundary: the base cell is the same, but
+    // an offset of zero points away from that cell's centre.
     const setting = makeSetting({ centerX: 540, centerY: 185 });
     const cells: CellCoord[] = [
       { gx: 0, gy: 0 },
@@ -82,27 +82,27 @@ describe('makeCustomHitTest', () => {
     ];
     const hit = makeCustomHitTest(setting, cells);
 
-    it('基準セル中心相当 (gcx=-15, gcy=-10) でヒット', () => {
-      // 基準セル中心 = (525, 175), 射程中心 = (540, 185), 差 = (-15, -10)
+    it('hits the centre of the base cell', () => {
+      // the base cell centre, the range centre, and the difference between them
       expect(hit(-15, -10)).toBe(true);
     });
 
-    it('右1セル中心相当 (gcx=35, gcy=-10) でヒット', () => {
-      // 右1セル中心 = (575, 175), 射程中心 = (540, 185), 差 = (35, -10)
+    it('hits the centre of the cell to the right', () => {
+      // that cell's centre, the range centre, and the difference between them
       expect(hit(35, -10)).toBe(true);
     });
 
-    it('境界 gcx=-15 はセル (10,3) に属する', () => {
+    it('puts the boundary on the near side into the base cell', () => {
       // worldX = 540 + (-15) = 525 → col = 10
       expect(hit(-15, 0)).toBe(true);
     });
 
-    it('境界 gcx=10 はセル (11,3) に属するのでパターン (1,0) でヒット', () => {
+    it('puts the boundary on the far side into the next cell, which the pattern covers', () => {
       // worldX = 540 + 10 = 550 → col = 11
       expect(hit(10, 0)).toBe(true);
     });
 
-    it('境界 gcx=-16 はセル (9,3) に属するのでパターン外', () => {
+    it('puts a hair further out into the cell before, which it does not', () => {
       // worldX = 540 - 16 = 524 → col = 10... wait floor(524/50) = 10. Actually let's pick worldX = 499 → col = 9
       expect(hit(-41, 0)).toBe(false);
     });
@@ -121,34 +121,34 @@ describe('makeCustomHitTest', () => {
     ];
     const hit = makeCustomHitTest(setting, cells);
 
-    it('原点セルでヒット (gcx=0, gcy=0)', () => {
+    it('hits the origin cell', () => {
       expect(hit(0, 0)).toBe(true);
     });
 
-    it('右1ヘクス中心でヒット (gcx=50, gcy=0)', () => {
+    it('hits the centre of the hex to the right', () => {
       // hex-horizontal: colSpacing = gridSize = 50
       expect(hit(50, 0)).toBe(true);
     });
   });
 
   describe('patternCellToWorld / worldCellToPattern (pointy-top)', () => {
-    it('偶数行ベース: パターン (0, 1) は同じ列', () => {
+    it('keeps the column on an even row', () => {
       expect(patternCellToWorld(10, 2, 0, 1, false)).toEqual({ col: 10, row: 3 });
     });
 
-    it('奇数行ベース: パターン (0, 1) は列が +1 シフト (鏡映防止)', () => {
+    it('shifts the column by one on an odd row, so the pattern is not mirrored', () => {
       expect(patternCellToWorld(10, 3, 0, 1, false)).toEqual({ col: 11, row: 4 });
     });
 
-    it('奇数行ベース + 偶数gy: 通常通り', () => {
+    it('leaves an even offset from an odd row as it is', () => {
       expect(patternCellToWorld(10, 3, 0, 2, false)).toEqual({ col: 10, row: 5 });
     });
 
-    it('奇数行ベース: パターン (0, -1) も +1 シフト', () => {
+    it('shifts upwards from an odd row by one as well', () => {
       expect(patternCellToWorld(10, 3, 0, -1, false)).toEqual({ col: 11, row: 2 });
     });
 
-    it('往復: pattern -> world -> pattern', () => {
+    it('makes the round trip from pattern to board and back', () => {
       const cases: { gx: number; gy: number }[] = [
         { gx: 0, gy: 0 },
         { gx: 1, gy: 0 },
@@ -167,19 +167,19 @@ describe('makeCustomHitTest', () => {
   });
 
   describe('patternCellToWorld / worldCellToPattern (flat-top)', () => {
-    it('偶数列ベース: パターン (1, 0) は同じ行', () => {
+    it('keeps the row on an even column', () => {
       expect(patternCellToWorld(2, 10, 1, 0, true)).toEqual({ col: 3, row: 10 });
     });
 
-    it('奇数列ベース: パターン (1, 0) は行が +1 シフト', () => {
+    it('shifts the row by one on an odd column', () => {
       expect(patternCellToWorld(3, 10, 1, 0, true)).toEqual({ col: 4, row: 11 });
     });
 
-    it('奇数列ベース: パターン (2, 0) は通常 (gxが偶数)', () => {
+    it('leaves an even offset from an odd column as it is', () => {
       expect(patternCellToWorld(3, 10, 2, 0, true)).toEqual({ col: 5, row: 10 });
     });
 
-    it('往復: flat-top でも保持される', () => {
+    it('makes the round trip on a flat-topped grid too', () => {
       const cases: { gx: number; gy: number }[] = [
         { gx: 0, gy: 0 },
         { gx: 1, gy: 0 },
@@ -197,16 +197,16 @@ describe('makeCustomHitTest', () => {
     });
   });
 
-  describe('hex hitTest: 奇数行ベースでパターン形状が保持される', () => {
-    // 縦に並ぶ3セル (0,-1), (0,0), (0,1)
+  describe('keeps the shape of the pattern from an odd row', () => {
+    // three cells in a column
     const cells: CellCoord[] = [
       { gx: 0, gy: -1 },
       { gx: 0, gy: 0 },
       { gx: 0, gy: 1 },
     ];
 
-    it('偶数行ベース: gcx=0 で3セル全てがヒット可能', () => {
-      // centerX, centerY が偶数行のヘクス中心と一致する位置
+    it('hits all three from an even row', () => {
+      // with the centre on a hex of an even row
       // hex-horizontal, gridSize=50, row=2: rowSpacing = 1.5*s = 1.5*(50/sqrt(3)) ≈ 43.3
       // row 2 center y ≈ 86.6
       const setting = makeSetting({
@@ -215,12 +215,12 @@ describe('makeCustomHitTest', () => {
         gridType: GridType.HEX_HORIZONTAL,
       });
       const hit = makeCustomHitTest(setting, cells);
-      // gcy ≈ 0 -> 原点セル
+      // no offset lands on the origin cell
       expect(hit(0, 0)).toBe(true);
-      // gcy ≈ rowSpacing でひとつ下のセル (奇数行: 右に半分シフト) を相対座標で指す
+      // a row's offset lands on the cell below, half a hex to the right
       const rowSpacing = (1.5 * 50) / Math.sqrt(3);
       expect(hit(50 / 2, rowSpacing)).toBe(true);
-      // gcy ≈ -rowSpacing でひとつ上
+      // and the same offset upwards lands on the cell above
       expect(hit(50 / 2, -rowSpacing)).toBe(true);
     });
   });

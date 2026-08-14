@@ -1,10 +1,10 @@
 export { isTypingTarget } from '@axe/core/input/typing-target';
 
 /**
- * ノベルモードのキー割り当て。
+ * The keys of the novel mode.
  *
- * 押されたキーから「何をするか」だけを決める。実際に動かすのは画面側。
- * 文字を打っている最中は何も起きない — 名前を入力しながら送りが進むと、書けない。
+ * It decides only what to do from the key pressed; the screen does it.
+ * Nothing happens while something is being typed — text advancing under a name being entered leaves it unwritable.
  */
 
 export type VisualNovelCommand =
@@ -22,19 +22,19 @@ export type VisualNovelCommand =
   | 'exit';
 
 export interface VisualNovelKeyContext {
-  /** 変換中。確定のための Enter を送りに使わない。 */
+  /** Mid-composition, where the key that confirms is not a forward. */
   composing: boolean;
-  /** 入力欄に居る。 */
+  /** The focus is in a field. */
   typing: boolean;
-  /** 何かが開いている。Escape の行き先が変わる。 */
+  /** Something is open, which changes where the escape goes. */
   popoverOpen: boolean;
-  /** Ctrl / Cmd / Alt が押されている。ブラウザや OS の組み合わせを横取りしない。 */
+  /** A modifier is held, and the combinations of the browser and the system are left alone. */
   chord: boolean;
 }
 
 export interface VisualNovelKeyAction {
   command: VisualNovelCommand;
-  /** 画面の既定の動き（送り・選択）を止めるか。 */
+  /** Whether to stop what the screen would otherwise do, such as scrolling or selecting. */
   preventDefault: boolean;
 }
 
@@ -43,21 +43,21 @@ const BACK_KEYS = new Set(['ArrowLeft', 'ArrowUp']);
 
 export function visualNovelKeyDown(key: string, context: VisualNovelKeyContext): VisualNovelKeyAction | null {
   if (context.composing || context.typing) return null;
-  // Ctrl+A は「全部選ぶ」であって自動再生ではない。修飾キーとの組み合わせには手を出さない。
-  // ただし Ctrl 単独は早送りなので通す。
+  // A key held with a modifier selects everything rather than playing, and such combinations are left alone.
+  // The modifier alone is a fast-forward, so it passes.
   if (context.chord && key !== 'Control') return null;
 
   if (ADVANCE_KEYS.has(key)) return { command: 'advance', preventDefault: true };
   if (BACK_KEYS.has(key)) return { command: 'back', preventDefault: true };
   if (key === 'Home') return { command: 'toStart', preventDefault: true };
   if (key === 'End') return { command: 'toLatest', preventDefault: true };
-  // 押しっぱなしで早送り。離すまで続くので、ここでは既定の動きを止めない。
+  // Held down it fast-forwards, and since it runs until the release nothing else is stopped here.
   if (key === 'Control') return { command: 'startSkip', preventDefault: false };
   if (key === '?') return { command: 'toggleShortcutHelp', preventDefault: true };
   if (key === 'l' || key === 'L') return { command: 'toggleBacklog', preventDefault: true };
   if (key === 'a' || key === 'A') return { command: 'toggleAutoPlay', preventDefault: true };
   if (key === 's' || key === 'S') return { command: 'toggleSlotGuide', preventDefault: true };
-  // 開いているものがあれば、まずそれを閉じる。1 回で卓へ戻さない。
+  // Whatever is open closes first; one press does not return to the table.
   if (key === 'Escape') return { command: context.popoverOpen ? 'closePopovers' : 'exit', preventDefault: false };
   return null;
 }

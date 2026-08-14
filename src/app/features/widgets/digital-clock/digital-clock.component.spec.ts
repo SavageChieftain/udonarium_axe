@@ -33,14 +33,14 @@ describe('DigitalClockComponent', () => {
     widgets = TestBed.inject(WidgetVisibilityService);
   });
 
-  it('表示が off のあいだは何も描かない', async () => {
+  it('draws nothing while it is switched off', async () => {
     widgets.clock.set(false);
     await render();
 
     expect(clock()).toBeNull();
   });
 
-  it('表示を on にすると時計が現れ、時刻と日付を並べる', async () => {
+  it('shows the time and the date once it is switched on', async () => {
     widgets.clock.set(true);
     await render();
 
@@ -50,7 +50,7 @@ describe('DigitalClockComponent', () => {
     expect(el!.textContent).toContain(component['parts']().date);
   });
 
-  it('閉じるボタンは表示状態を off にする', async () => {
+  it('switches it off from the close button', async () => {
     widgets.clock.set(true);
     await render();
 
@@ -61,7 +61,7 @@ describe('DigitalClockComponent', () => {
     expect(clock()).toBeNull();
   });
 
-  it('ドラッグした位置を再表示のときに保つ', async () => {
+  it('comes back where it was dragged to', async () => {
     widgets.clock.set(true);
     await render();
 

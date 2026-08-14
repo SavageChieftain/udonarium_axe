@@ -32,17 +32,17 @@ describe('ChatWindowComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('OnPushコンポーネントでChangeDetectorRefが注入されていること', () => {
+  it('injects a change detector', () => {
     const cdr = fixture.debugElement.injector.get(ChangeDetectorRef);
     expect(cdr).toBeTruthy();
   });
 
-  it('global dragging が解除されたら panel の pointer-events-none も解除されること', async () => {
+  it('lets the panel take the pointer again once the drag ends', async () => {
     await expectPanelDragRecovery(ChatWindowComponent);
   });
 
-  describe('チャットタブの変更検知', () => {
-    it('UPDATE_GAME_OBJECTでChatTabList変更時に無効なタブが再選択されること', () => {
+  describe('noticing a change of chat tab', () => {
+    it('moves off a tab that is no longer there when the list changes', () => {
       fixture.detectChanges();
       const invalidId = 'non-existent-tab-id';
       const priv = component as unknown as { _chatTabidentifier: { (): string; set(v: string): void } };
@@ -58,7 +58,7 @@ describe('ChatWindowComponent', () => {
       expect(priv._chatTabidentifier()).not.toBe(invalidId);
     });
 
-    it('DELETE_GAME_OBJECTで選択中タブ削除時にタブが再選択されること', () => {
+    it('moves off the open tab once it is deleted', () => {
       fixture.detectChanges();
       const oldIdentifier = 'non-existent-tab-id';
       const priv = component as unknown as { _chatTabidentifier: { (): string; set(v: string): void } };
@@ -73,7 +73,7 @@ describe('ChatWindowComponent', () => {
       expect(priv._chatTabidentifier()).not.toBe(oldIdentifier);
     });
 
-    it('UPDATE_GAME_OBJECTでタブ再選択時にscrollToBottomが呼ばれること', () => {
+    it('scrolls to the bottom after moving on an update', () => {
       fixture.detectChanges();
       const spy = vi.spyOn(component, 'scrollToBottom');
       const invalidId = 'non-existent-tab-id';
@@ -90,7 +90,7 @@ describe('ChatWindowComponent', () => {
       expect(spy).toHaveBeenCalledWith(true);
     });
 
-    it('DELETE_GAME_OBJECTでタブ再選択時にscrollToBottomが呼ばれること', () => {
+    it('scrolls to the bottom after moving on a delete', () => {
       fixture.detectChanges();
       const spy = vi.spyOn(component, 'scrollToBottom');
       const oldIdentifier = 'non-existent-tab-id';
@@ -108,17 +108,17 @@ describe('ChatWindowComponent', () => {
   });
 
   describe('chatTabsVersion signal', () => {
-    it('chatTabsVersion が computed signal として公開されていること', () => {
+    it('exposes the tab version as a computed signal', () => {
       expect(typeof component.chatTabsVersion).toBe('function');
     });
 
-    it('chatTabsVersion() が chatTabs 配列を返すこと', () => {
+    it('returns the tabs from it', () => {
       fixture.detectChanges();
       const tabs = component.chatTabsVersion();
       expect(Array.isArray(tabs)).toBe(true);
     });
 
-    it('childrenChanged$ emit 後に chatTabsVersion の依存 signal (versionOf) が increment されること', () => {
+    it('bumps the version it depends on when the children change', () => {
       fixture.detectChanges();
       const objectChange = TestBed.inject(ObjectChangeService);
       const tabs = component.chatTabsVersion();
@@ -133,12 +133,12 @@ describe('ChatWindowComponent', () => {
       expect(after).toBe(before + 1);
     });
 
-    it('scrollToBottom 後に notifyChanged が呼ばれること', async () => {
+    it('says it changed after scrolling to the bottom', async () => {
       fixture.detectChanges();
       const objectChange = TestBed.inject(ObjectChangeService);
       const spy = vi.spyOn(objectChange, 'notifyChanged');
 
-      // panelService.scrollablePanel を設定して scrollToBottom が早期 return しないようにする
+      // a scrollable panel is set, so the scroll does not return early
       const panelEl = document.createElement('div');
       const priv = component as unknown as { panelService: { scrollablePanel: HTMLDivElement | null } };
       priv.panelService.scrollablePanel = panelEl;
@@ -155,14 +155,14 @@ describe('ChatWindowComponent', () => {
     });
   });
 
-  describe('非追従モードのスクロール挙動', () => {
+  describe('scrolling while it is not following', () => {
     /**
-     * 非追従モード + 非 force 呼び出し時に scrollToBottom$ を発火しないこと。
-     * 発火すると chat-tab.resetMessages() が走り、bottomIndex を末尾にリセットする一方で
-     * 実際の scroll は移動しないため、メッセージコンテナが flex justify-end で
-     * 下方向にスライドして画面外に押し出されて空白表示になる (報告された不具合)。
+     * It does not fire the scroll while it is not following and is not forced.
+     * Firing it resets the messages and puts the bottom index at the end while the scroll
+     * itself does not move, so the container slides down against its end alignment and is
+     * pushed off the screen, leaving a blank.
      */
-    it('非追従モード + isForce=false なら scrollToBottom$ を発火しないこと', async () => {
+    it('does not scroll while it is not following and is not forced', async () => {
       const { ChatPreferencesService } = await import('@axe/application/chat/chat-preferences.service');
       const prefs = TestBed.inject(ChatPreferencesService);
       prefs.setAutoFollowScroll(false);
@@ -186,7 +186,7 @@ describe('ChatWindowComponent', () => {
       }
     });
 
-    it('追従モードでは scrollToBottom$ を発火すること', async () => {
+    it('scrolls while it is following', async () => {
       const { ChatPreferencesService } = await import('@axe/application/chat/chat-preferences.service');
       const prefs = TestBed.inject(ChatPreferencesService);
       prefs.setAutoFollowScroll(true);
@@ -207,7 +207,7 @@ describe('ChatWindowComponent', () => {
       expect(emitSpy).toHaveBeenCalled();
     });
 
-    it('isForce=true なら追従設定にかかわらず scrollToBottom$ を発火すること', async () => {
+    it('scrolls when it is forced, however it is following', async () => {
       const { ChatPreferencesService } = await import('@axe/application/chat/chat-preferences.service');
       const prefs = TestBed.inject(ChatPreferencesService);
       prefs.setAutoFollowScroll(false);
@@ -229,7 +229,7 @@ describe('ChatWindowComponent', () => {
       }
     });
 
-    it('非追従モードでメッセージ蓄積により下端から離れたら isNearBottom が false になること', async () => {
+    it('counts itself away from the bottom once the messages pile up beneath it', async () => {
       const { ChatPreferencesService } = await import('@axe/application/chat/chat-preferences.service');
       const prefs = TestBed.inject(ChatPreferencesService);
       prefs.setAutoFollowScroll(false);
@@ -251,7 +251,7 @@ describe('ChatWindowComponent', () => {
       }
     });
 
-    it('非追従モードで下端付近なら isNearBottom が true のままであること', async () => {
+    it('counts itself near the bottom while it is', async () => {
       const { ChatPreferencesService } = await import('@axe/application/chat/chat-preferences.service');
       const prefs = TestBed.inject(ChatPreferencesService);
       prefs.setAutoFollowScroll(false);
@@ -274,7 +274,7 @@ describe('ChatWindowComponent', () => {
     });
   });
 
-  describe('最下段にいる時だけ追従する判定', () => {
+  describe('following only from the very bottom', () => {
     function setPanel(scrollTop: number) {
       const panelEl = document.createElement('div');
       Object.defineProperty(panelEl, 'scrollHeight', { value: 1000, configurable: true });
@@ -285,7 +285,7 @@ describe('ChatWindowComponent', () => {
       return priv;
     }
 
-    it('最下段なら checkAutoScroll で追従が有効になること', () => {
+    it('starts following from the bottom', () => {
       fixture.detectChanges();
       const priv = setPanel(500) as unknown as { isAutoScroll: boolean };
       priv.isAutoScroll = false;
@@ -295,7 +295,7 @@ describe('ChatWindowComponent', () => {
       expect(priv.isAutoScroll).toBe(true);
     });
 
-    it('一行分でも上に遡っていたら checkAutoScroll で追従しないこと', () => {
+    it('does not follow from even a line above it', () => {
       fixture.detectChanges();
       const priv = setPanel(470) as unknown as { isAutoScroll: boolean };
       priv.isAutoScroll = true;
@@ -305,7 +305,7 @@ describe('ChatWindowComponent', () => {
       expect(priv.isAutoScroll).toBe(false);
     });
 
-    it('最下段に戻ると新着バッジがリセットされること', () => {
+    it('clears the unread badge on returning to the bottom', () => {
       fixture.detectChanges();
       const priv = setPanel(500) as unknown as { onScrollPositionChange: () => void };
       component.newMessageCount.set(3);
@@ -317,7 +317,7 @@ describe('ChatWindowComponent', () => {
       expect(component.hasNewMessage()).toBe(false);
     });
 
-    it('遡って閲覧中（最下段付近だが下端ではない）は新着バッジを保持すること', () => {
+    it('keeps the badge while it is reading above it', () => {
       fixture.detectChanges();
       const priv = setPanel(470) as unknown as { onScrollPositionChange: () => void };
       component.newMessageCount.set(3);

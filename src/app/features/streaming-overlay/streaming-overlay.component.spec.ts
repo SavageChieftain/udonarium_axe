@@ -66,7 +66,7 @@ describe('StreamingOverlayComponent', () => {
   async function setup(): Promise<void> {
     PeerCursor.myCursor = { identifier: 'viewer-cursor', userId: 'viewer', role } as PeerCursor;
 
-    // ChatMessageService は共通の providers で最後に入るので、上書きは overrideProvider で行う。
+    // The chat service comes last among the shared providers, so it is replaced through the override.
     TestBed.configureTestingModule({
       imports: [StreamingOverlayComponent],
       providers: [...TEST_PROVIDERS, { provide: TurnOrderService, useValue: turn }],
@@ -89,7 +89,7 @@ describe('StreamingOverlayComponent', () => {
     PeerCursor.myCursor = null as unknown as PeerCursor;
   });
 
-  it('直近のやり取りを出すこと', async () => {
+  it('shows the recent exchanges', async () => {
     await setup();
 
     expect(lines()).toHaveLength(1);
@@ -97,7 +97,7 @@ describe('StreamingOverlayComponent', () => {
     expect(lines()[0]).toContain('アリス');
   });
 
-  it('見学者に見えないタブを出さないこと', async () => {
+  it('leaves out a tab a spectator cannot see', async () => {
     chatTabs = [
       tab('メイン', [message({ identifier: 'a', text: '見える' })]),
       tab('GM 用', [message({ identifier: 'b', text: '見えない' })], { guestCanView: false }),
@@ -108,34 +108,34 @@ describe('StreamingOverlayComponent', () => {
     expect(lines().join()).not.toContain('見えない');
   });
 
-  it('システムタブの知らせを配信に流さないこと', async () => {
+  it('keeps the notices of the system tab off the stream', async () => {
     chatTabs = [tab('システム', [message({ identifier: 'a', text: '退室しました' })], { isSystemTab: true })];
     await setup();
 
     expect(lines()).toEqual([]);
   });
 
-  it('密談を配信に流さないこと', async () => {
+  it('keeps a private line off it', async () => {
     chatTabs = [tab('メイン', [message({ identifier: 'a', text: 'ないしょ', isDirect: true })])];
     await setup();
 
     expect(lines()).toEqual([]);
   });
 
-  it('手番が回っていなければ手番を出さないこと', async () => {
+  it('shows no turn while nobody has one', async () => {
     await setup();
 
     expect(fixture.nativeElement.querySelector('[data-testid="overlay-turn"]')).toBeNull();
   });
 
-  it('手番が回っていれば round を出すこと', async () => {
+  it('shows the round once somebody does', async () => {
     turn = { phase: 'roundStart', round: 3, currentIdentifier: '' };
     await setup();
 
     expect(fixture.nativeElement.querySelector('[data-testid="overlay-turn"]')?.textContent).toContain('3');
   });
 
-  it('後から届いた発言を出すこと', async () => {
+  it('shows a line that arrives later', async () => {
     const messages = [message({ identifier: 'a', text: 'やあ' })];
     chatTabs = [tab('メイン', messages)];
     await setup();
@@ -148,14 +148,14 @@ describe('StreamingOverlayComponent', () => {
     expect(lines().join()).toContain('こんばんは');
   });
 
-  it('伏せたダイスを配信に流さないこと', async () => {
+  it('keeps a hidden roll off the stream', async () => {
     chatTabs = [tab('メイン', [message({ identifier: 'a', text: '＜秘密＞ 1D100 → 3', isSecret: true })])];
     await setup();
 
     expect(lines()).toEqual([]);
   });
 
-  it('翻訳前の書き方をそのまま出さないこと', async () => {
+  it('does not show an untranslated key as it stands', async () => {
     chatTabs = [tab('メイン', [message({ identifier: 'a', name: '@i18n:common.chat.systemName:{}', text: '開始' })])];
     await setup();
 

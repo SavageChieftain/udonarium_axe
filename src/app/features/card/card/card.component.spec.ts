@@ -25,7 +25,7 @@ describe('CardComponent', () => {
   });
 
   describe('signal-driven CD', () => {
-    it('nameゲッターがnetworkVersionを参照していること', () => {
+    it('reads the name through the network version', () => {
       const card = Card.create('テストカード', 'front', 'back');
       fixture.componentRef.setInput('card', card);
       const objectChangeService = TestBed.inject(ObjectChangeService);
@@ -36,14 +36,14 @@ describe('CardComponent', () => {
       expect(spy).toHaveBeenCalled();
     });
 
-    it('isIconHiddenがsignalであること', () => {
+    it('holds the hidden icon in a signal', () => {
       expect(typeof component.isIconHidden).toBe('function');
       expect(component.isIconHidden()).toBe(false);
     });
   });
 
   describe('timer cleanup on destroy', () => {
-    it('doubleClickTimer が clearTimeout でクリアされる', () => {
+    it('clears the double-tap timer', () => {
       const clearTimeoutSpy = vi.spyOn(globalThis, 'clearTimeout');
       const priv = component as unknown as { doubleClickTimer: ReturnType<typeof setTimeout> };
       priv.doubleClickTimer = setTimeout(() => {}, 999_999);
@@ -53,7 +53,7 @@ describe('CardComponent', () => {
       expect(clearTimeoutSpy).toHaveBeenCalled();
     });
 
-    it('iconHiddenTimer が clearTimeout でクリアされる', () => {
+    it('clears the icon timer', () => {
       const clearTimeoutSpy = vi.spyOn(globalThis, 'clearTimeout');
       const priv = component as unknown as { iconHiddenTimer: ReturnType<typeof setTimeout> };
       priv.iconHiddenTimer = setTimeout(() => {}, 999_999);

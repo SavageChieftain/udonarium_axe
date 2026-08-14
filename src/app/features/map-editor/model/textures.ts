@@ -1,4 +1,4 @@
-/** 模様として使う絵に付ける目印。置き場では絵の一覧に紛れるので、これで選り分ける。 */
+/** The tag on an image used as a pattern, which is how it is picked out of the pictures in storage. */
 export const TEXTURE_IMAGE_TAG = 'テクスチャ';
 
 export const TEXTURE_IDS = [

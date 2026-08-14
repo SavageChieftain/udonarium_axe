@@ -33,7 +33,7 @@ function place(row: HTMLElement, top: number): void {
   Object.defineProperty(row, 'getBoundingClientRect', { value: () => ({ top, height: 20 }) });
 }
 
-describe('ReplayEntryListComponent の並べ替え', () => {
+describe('rearranging the entries', () => {
   let fixture: ComponentFixture<ReplayEntryListComponent>;
   let move: ReturnType<typeof vi.fn>;
 
@@ -94,7 +94,7 @@ describe('ReplayEntryListComponent の並べ替え', () => {
     PeerCursor.myCursor = null as unknown as PeerCursor;
   });
 
-  it('行間の差し込みボタンに読める名前を付けること', () => {
+  it('names the insert buttons between the rows readably', () => {
     const labels: string[] = Array.from(
       fixture.nativeElement.querySelectorAll('button[aria-label]'),
       (button) => (button as HTMLElement).getAttribute('aria-label') ?? ''
@@ -102,7 +102,7 @@ describe('ReplayEntryListComponent の並べ替え', () => {
     expect(labels.every((label) => !label.startsWith('feature.'))).toBe(true);
   });
 
-  it('編集中だけつまめること', () => {
+  it('can be picked up only while it is being edited', () => {
     expect(rows()).toHaveLength(3);
 
     fixture.componentRef.setInput('editing', false);
@@ -110,23 +110,23 @@ describe('ReplayEntryListComponent の並べ替え', () => {
     expect(rows()).toHaveLength(0);
   });
 
-  it('下半分に落とせばその次へ移すこと', () => {
+  it('puts a row dropped on the bottom half after the target', () => {
     dragTo(0, 2, 115);
     expect(move).toHaveBeenCalledWith(1, 2);
   });
 
-  it('上半分に落とせばその手前へ移すこと', () => {
+  it('puts one dropped on the top half before it', () => {
     dragTo(2, 0, 105);
     expect(move).toHaveBeenCalledWith(3, -2);
   });
 
-  it('同じところへ落としても動かさないこと', () => {
+  it('moves nothing when it lands where it was', () => {
     dragTo(1, 1, 105);
     expect(move).not.toHaveBeenCalled();
   });
 
-  it('並べ替えの落下を卓の取り込みへ渡さないこと', () => {
-    // ここで通してしまうと、行を並べ替えただけで「ファイルを落とした」経路が走る。
+  it('does not pass a reordering drop on to the table', () => {
+    // Let through, reordering a row would run the path for a file dropped on the table.
     const onDocument = vi.fn();
     document.body.addEventListener('drop', onDocument);
     document.body.addEventListener('dragover', onDocument);
@@ -142,7 +142,7 @@ describe('ReplayEntryListComponent の並べ替え', () => {
     expect(onDocument).not.toHaveBeenCalled();
   });
 
-  it('落とす先を線で示すこと', () => {
+  it('shows where the row would land', () => {
     const source = rows()[0];
     const destination = rows()[2];
     place(destination, 100);
@@ -154,7 +154,7 @@ describe('ReplayEntryListComponent の並べ替え', () => {
     expect(rows()[0].classList).toContain('opacity-40');
   });
 
-  it('つまむのをやめたら印を消すこと', () => {
+  it('takes that mark away once it is let go', () => {
     const source = rows()[0];
     const destination = rows()[2];
     place(destination, 100);

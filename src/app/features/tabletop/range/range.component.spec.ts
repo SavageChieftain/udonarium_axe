@@ -18,8 +18,8 @@ describe('RangeComponent', () => {
   });
 
   beforeEach(() => {
-    // happy-dom の 2D コンテキストは描画関数を持たない。範囲の描き直しは片付けの後にも
-    // 走るので、掴めないコンテキストを返して描かせない（コンポーネント側に既に逃げ道がある）。
+    // The 2D context of happy-dom has no drawing functions, and the range redraws even after
+    // teardown, so nothing is handed back to draw with. The component already copes with that.
     vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue(null as never);
     fixture = TestBed.createComponent(RangeComponent);
     component = fixture.componentInstance;
@@ -27,7 +27,7 @@ describe('RangeComponent', () => {
 
   afterEach(() => {
     fixture.destroy();
-    // 置きっぱなしにすると、次の spec の卓に他所の範囲が並ぶ。
+    // Left behind, it would turn up on the table of the next spec.
     for (const object of ObjectStore.instance.getObjects()) ObjectStore.instance.remove(object);
     vi.restoreAllMocks();
   });
@@ -37,11 +37,11 @@ describe('RangeComponent', () => {
   });
 
   describe('viewRotateZ computed signal', () => {
-    it('初期値はデフォルト10であること', () => {
+    it('starts at ten', () => {
       expect(component.viewRotateZ()).toBe(10);
     });
 
-    it('UiSignalServiceのtableViewRotationに連動してZ回転値が変わること', () => {
+    it('turns with the table view', () => {
       const uiSignalService = TestBed.inject(UiSignalService);
       uiSignalService.notifyTableViewRotation(50, 20, 90);
       expect(component.viewRotateZ()).toBe(90);
@@ -49,7 +49,7 @@ describe('RangeComponent', () => {
   });
 
   describe('signal-driven CD', () => {
-    it('nameゲッターがversionOfシグナルを使用すること', () => {
+    it('reads the name through a version signal', () => {
       const range = RangeArea.create('テスト範囲', 3, 5, 1);
       fixture.componentRef.setInput('range', range);
       const objectChangeService = TestBed.inject(ObjectChangeService);
@@ -59,21 +59,21 @@ describe('RangeComponent', () => {
     });
   });
 
-  describe('_clipVersionシグナル (Zoneless CD)', () => {
+  describe('the clip version signal', () => {
     type PrivClipVersion = { _clipVersion: { (): number; update(fn: (v: number) => number): void } };
 
-    it('初期値が0であること', () => {
+    it('starts at zero', () => {
       const priv = component as unknown as PrivClipVersion;
       expect(priv._clipVersion()).toBe(0);
     });
 
-    it('updateで値がインクリメントされること', () => {
+    it('counts up on an update', () => {
       const priv = component as unknown as PrivClipVersion;
       priv._clipVersion.update((v) => v + 1);
       expect(priv._clipVersion()).toBe(1);
     });
 
-    it('clipPath computed が CORN 形状で polygon 文字列を返すこと', () => {
+    it('gives a cone a polygon clip path', () => {
       const range = RangeArea.create('テスト', 3, 5, 1);
       range.type = 'CORN';
       fixture.componentRef.setInput('range', range);
@@ -81,15 +81,15 @@ describe('RangeComponent', () => {
     });
   });
 
-  describe('movableOption / rotableOption (effect経由)', () => {
-    it('rangeインプット設定後にmovableOptionのtabletopObjectがrangeになること', () => {
+  describe('the move and turn options', () => {
+    it('points the move option at the range once it is set', () => {
       const range = RangeArea.create('テスト', 3, 5, 1);
       fixture.componentRef.setInput('range', range);
       fixture.detectChanges();
       expect(component.movableOption().tabletopObject).toBe(range);
     });
 
-    it('rangeインプット設定後にrotableOptionのtabletopObjectがrangeになること', () => {
+    it('points the turn option at it as well', () => {
       const range = RangeArea.create('テスト', 3, 5, 1);
       fixture.componentRef.setInput('range', range);
       fixture.detectChanges();
@@ -97,8 +97,8 @@ describe('RangeComponent', () => {
     });
   });
 
-  describe('回転ハンドル', () => {
-    it('四角形でも回転ハンドルを表示すること', () => {
+  describe('the turn handle', () => {
+    it('shows a turn handle on a square', () => {
       const range = RangeArea.create('テスト', 3, 3, 1);
       range.type = 'SQUARE';
       fixture.componentRef.setInput('range', range);
@@ -108,7 +108,7 @@ describe('RangeComponent', () => {
       expect(fixture.nativeElement.querySelector('.rotate-grab')).toBeTruthy();
     });
 
-    it('円形では回転ハンドルを表示しないこと', () => {
+    it('shows none on a circle', () => {
       const range = RangeArea.create('テスト', 3, 3, 1);
       range.type = 'CIRCLE';
       fixture.componentRef.setInput('range', range);
@@ -120,7 +120,7 @@ describe('RangeComponent', () => {
     });
 
     it.each(['TRIANGLE', 'PENTAGON', 'HEXAGON'])(
-      '%s の回転ハンドルをクリップ外の大きな単一ハンドルにすること',
+      'keeps the turn handle of a %s a single large handle outside the clip',
       (type) => {
         const range = RangeArea.create('テスト', 3, 3, 1);
         range.type = type;

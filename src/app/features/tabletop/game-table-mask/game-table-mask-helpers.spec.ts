@@ -11,7 +11,7 @@ import { describe, expect, it } from 'vitest';
 
 describe('game-table-mask-helpers', () => {
   describe('buildMaskCss', () => {
-    it('preview では scratched と scratching の差分だけを非表示にすること', () => {
+    it('hides only what the scratching changes while previewing', () => {
       const css = buildMaskCss({
         currentScratchingSet: new Set(['1:0']),
         gridSize: 50,
@@ -27,7 +27,7 @@ describe('game-table-mask-helpers', () => {
       expect(css).toBe('radial-gradient(#000, #000) 0px 0px / 0px 0px no-repeat');
     });
 
-    it('通常モードでは scratched 済みグリッドを除外すること', () => {
+    it('leaves out what has already been scratched otherwise', () => {
       const css = buildMaskCss({
         currentScratchingSet: null,
         gridSize: 50,
@@ -43,7 +43,7 @@ describe('game-table-mask-helpers', () => {
       expect(css).toBe('radial-gradient(#000, #000) 49px -1px / 52px 52px no-repeat');
     });
 
-    it('preview で scratched と scratching が一致する場合はそのグリッドを表示すること', () => {
+    it('shows a cell the scratching leaves as it was', () => {
       const css = buildMaskCss({
         currentScratchingSet: null,
         gridSize: 50,
@@ -59,7 +59,7 @@ describe('game-table-mask-helpers', () => {
       expect(css).toBe('radial-gradient(#000, #000) -1px -1px / 52px 52px no-repeat');
     });
 
-    it('通常モードかつ未スクラッチ時は空文字を返すこと', () => {
+    it('returns nothing for an unscratched cell', () => {
       const css = buildMaskCss({
         currentScratchingSet: null,
         gridSize: 50,
@@ -77,7 +77,7 @@ describe('game-table-mask-helpers', () => {
   });
 
   describe('buildScratchingGridInfos', () => {
-    it('scratched のみなら scrached 状態を返すこと', () => {
+    it('reports a cell that has been scratched', () => {
       const infos = buildScratchingGridInfos({
         currentScratchingSet: null,
         gridSize: 50,
@@ -94,7 +94,7 @@ describe('game-table-mask-helpers', () => {
       expect(infos).toEqual([{ cx: 25, cy: 25, state: 'scrached', x: 0, y: 0 } satisfies ScratchGridInfo]);
     });
 
-    it('scratching のみなら scraching 状態を返すこと', () => {
+    it('reports one being scratched now', () => {
       const infos = buildScratchingGridInfos({
         currentScratchingSet: new Set(['0:0']),
         gridSize: 50,
@@ -111,7 +111,7 @@ describe('game-table-mask-helpers', () => {
       expect(infos).toEqual([{ cx: 25, cy: 25, state: 'scraching', x: 0, y: 0 } satisfies ScratchGridInfo]);
     });
 
-    it('scratched と scratching の重複は restore 状態を返すこと', () => {
+    it('reports one being restored', () => {
       const infos = buildScratchingGridInfos({
         currentScratchingSet: new Set(['0:0']),
         gridSize: 50,
@@ -128,7 +128,7 @@ describe('game-table-mask-helpers', () => {
       expect(infos).toEqual([{ cx: 25, cy: 25, state: 'restore', x: 0, y: 0 } satisfies ScratchGridInfo]);
     });
 
-    it('mask が無いか変化が無い場合は空配列を返すこと', () => {
+    it('returns nothing without a mask or a change', () => {
       expect(
         buildScratchingGridInfos({
           currentScratchingSet: null,
@@ -147,7 +147,7 @@ describe('game-table-mask-helpers', () => {
   });
 
   describe('buildMaskCss (hex)', () => {
-    it('HEX_VERTICAL で scratched 済みセルを除外した SVG マスクを生成すること', () => {
+    it('leaves the scratched hexes out of the mask on a pointy-topped grid', () => {
       const css = buildMaskCss({
         currentScratchingSet: null,
         gridSize: 50,
@@ -162,11 +162,11 @@ describe('game-table-mask-helpers', () => {
 
       expect(css).toContain('data:image/svg+xml');
       expect(css).toContain('polygon');
-      // 0:0 はスクラッチ済みなので SVG に含まれないが、1:0 が残るので空にはならない
+      // one hex is scratched and the other is not, so the mask is neither full nor empty
     });
 
-    it('HEX_HORIZONTAL で全セルスクラッチ済みなら空マスクを返すこと', () => {
-      // 1×1 の小さいマスクで全ヘクスセルをスクラッチ済みにする
+    it('returns an empty mask once every hex is scratched', () => {
+      // with a single hex, scratched
       const css = buildMaskCss({
         currentScratchingSet: null,
         gridSize: 50,
@@ -179,11 +179,11 @@ describe('game-table-mask-helpers', () => {
         width: 1,
       });
 
-      // すべてスクラッチ済みなら空マスクになるか、SVGにpolygonが含まれない
+      // the mask comes back empty, or at least without a polygon
       expect(css).toSatisfy((v: string) => v.includes('0px 0px / 0px 0px') || !v.includes('<polygon'));
     });
 
-    it('hex 未スクラッチ時もヘクス型マスクを返すこと', () => {
+    it('still returns a hex-shaped mask with nothing scratched', () => {
       const css = buildMaskCss({
         currentScratchingSet: null,
         gridSize: 50,
@@ -202,7 +202,7 @@ describe('game-table-mask-helpers', () => {
   });
 
   describe('buildScratchingGridInfos (hex)', () => {
-    it('HEX_VERTICAL で scratched セルに hexPoints が含まれること', () => {
+    it('gives a scratched hex its points on a pointy-topped grid', () => {
       const infos = buildScratchingGridInfos({
         currentScratchingSet: null,
         gridSize: 50,
@@ -220,13 +220,13 @@ describe('game-table-mask-helpers', () => {
       expect(infos[0].state).toBe('scrached');
       expect(infos[0].hexPoints).toBeDefined();
       expect(infos[0].hexPoints!.split(' ')).toHaveLength(6);
-      // オフセット (s, gridSize/2) が加算される
+      // with the odd-column offset added
       const s = 50 / Math.sqrt(3);
       expect(infos[0].cx).toBeCloseTo(s, 5);
       expect(infos[0].cy).toBeCloseTo(25, 5);
     });
 
-    it('HEX_HORIZONTAL で col=1 のセル中心がオフセットされること', () => {
+    it('offsets the centre of an odd column on a flat-topped grid', () => {
       const infos = buildScratchingGridInfos({
         currentScratchingSet: null,
         gridSize: 50,
@@ -246,7 +246,7 @@ describe('game-table-mask-helpers', () => {
       expect(infos[0].hexPoints).toBeDefined();
     });
 
-    it('hex の scraching 状態にも hexPoints が設定されること', () => {
+    it('gives a hex being scratched its points as well', () => {
       const infos = buildScratchingGridInfos({
         currentScratchingSet: new Set(['1:0']),
         gridSize: 50,
@@ -268,33 +268,33 @@ describe('game-table-mask-helpers', () => {
   });
 
   describe('buildHexOutlineMask', () => {
-    it('HEX_VERTICAL で SVG マスクを返すこと', () => {
+    it('returns a mask for a pointy-topped grid', () => {
       const mask = buildHexOutlineMask(50, GridType.HEX_VERTICAL, 2, 2);
       expect(mask).toContain('data:image/svg+xml');
       expect(mask).toContain('polygon');
     });
 
-    it('HEX_HORIZONTAL で SVG マスクを返すこと', () => {
+    it('returns one for a flat-topped grid', () => {
       const mask = buildHexOutlineMask(50, GridType.HEX_HORIZONTAL, 2, 2);
       expect(mask).toContain('data:image/svg+xml');
       expect(mask).toContain('polygon');
     });
 
-    it('SQUARE では空文字を返すこと', () => {
+    it('returns nothing for squares', () => {
       expect(buildHexOutlineMask(50, GridType.SQUARE, 2, 2)).toBe('');
     });
 
-    it('NONE では空文字を返すこと', () => {
+    it('returns nothing for no grid at all', () => {
       expect(buildHexOutlineMask(50, GridType.NONE, 2, 2)).toBe('');
     });
   });
 
   describe('computeHexMaskGeometry', () => {
-    it('SQUARE では null を返すこと', () => {
+    it('returns nothing for squares', () => {
       expect(computeHexMaskGeometry(4, 4, 50, GridType.SQUARE)).toBeNull();
     });
 
-    it('HEX_VERTICAL (flat-top) で正しいピクセルサイズを計算すること', () => {
+    it('measures a pointy-topped grid in pixels', () => {
       const geo = computeHexMaskGeometry(4, 4, 50, GridType.HEX_VERTICAL)!;
       const s = 50 / Math.sqrt(3);
       expect(geo.offsetX).toBeCloseTo(s, 5);
@@ -304,7 +304,7 @@ describe('game-table-mask-helpers', () => {
       expect(geo.pixelH).toBeCloseTo(4 * 50 + 25, 5);
     });
 
-    it('HEX_HORIZONTAL (pointy-top) で正しいピクセルサイズを計算すること', () => {
+    it('measures a flat-topped one', () => {
       const geo = computeHexMaskGeometry(4, 4, 50, GridType.HEX_HORIZONTAL)!;
       const s = 50 / Math.sqrt(3);
       expect(geo.offsetX).toBeCloseTo(25, 5);
@@ -314,7 +314,7 @@ describe('game-table-mask-helpers', () => {
       expect(geo.pixelH).toBeCloseTo(2 * s + 3 * 1.5 * s, 5);
     });
 
-    it('cols=1 のとき奇数列オフセットが不要なこと (flat-top)', () => {
+    it('leaves out the odd-column offset for a single column', () => {
       const geo = computeHexMaskGeometry(1, 4, 50, GridType.HEX_VERTICAL)!;
       // cols=1 → no odd column → pixelH = rows * gridSize
       expect(geo.pixelH).toBeCloseTo(4 * 50, 5);
@@ -322,41 +322,41 @@ describe('game-table-mask-helpers', () => {
   });
 
   describe('buildHexOuterBorderSvg', () => {
-    it('HEX_VERTICAL で外周の line 要素を含む data URI を返すこと', () => {
+    it('draws the outer edges of a pointy-topped grid', () => {
       const svg = buildHexOuterBorderSvg(50, GridType.HEX_VERTICAL, 3, 3);
       expect(svg).toContain('data:image/svg+xml');
       expect(svg).toContain('line');
       expect(svg).toContain('stroke');
     });
 
-    it('HEX_HORIZONTAL で外周の line 要素を含む data URI を返すこと', () => {
+    it('draws the outer edges of a flat-topped one', () => {
       const svg = buildHexOuterBorderSvg(50, GridType.HEX_HORIZONTAL, 3, 3);
       expect(svg).toContain('data:image/svg+xml');
       expect(svg).toContain('line');
     });
 
-    it('SQUARE では空文字を返すこと', () => {
+    it('returns nothing for squares', () => {
       expect(buildHexOuterBorderSvg(50, GridType.SQUARE, 3, 3)).toBe('');
     });
 
-    it('NONE では空文字を返すこと', () => {
+    it('returns nothing for no grid at all', () => {
       expect(buildHexOuterBorderSvg(50, GridType.NONE, 3, 3)).toBe('');
     });
 
-    it('1x1 グリッドでは全6辺が外周になること', () => {
+    it('counts all six edges of a lone hex as outer ones', () => {
       const svg = decodeURIComponent(buildHexOuterBorderSvg(50, GridType.HEX_VERTICAL, 1, 1));
       // 1 cell × 6 edges = 6 <line> elements
       const lineCount = (svg.match(/<line /g) || []).length;
       expect(lineCount).toBe(6);
     });
 
-    it('HEX_HORIZONTAL 1x1 グリッドでは全6辺が外周になること', () => {
+    it('counts all six on a flat-topped grid too', () => {
       const svg = decodeURIComponent(buildHexOuterBorderSvg(50, GridType.HEX_HORIZONTAL, 1, 1));
       const lineCount = (svg.match(/<line /g) || []).length;
       expect(lineCount).toBe(6);
     });
 
-    it('2x2 グリッドでは内部辺が除外されること', () => {
+    it('leaves out the edges between neighbours', () => {
       const svg1 = decodeURIComponent(buildHexOuterBorderSvg(50, GridType.HEX_VERTICAL, 1, 1));
       const svg2 = decodeURIComponent(buildHexOuterBorderSvg(50, GridType.HEX_VERTICAL, 2, 2));
       const count1 = (svg1.match(/<line /g) || []).length;
@@ -367,7 +367,7 @@ describe('game-table-mask-helpers', () => {
       expect(count2).toBeGreaterThan(count1);
     });
 
-    it('HEX_HORIZONTAL 2x2 グリッドでは内部辺が除外されること', () => {
+    it('leaves them out on a flat-topped grid too', () => {
       const svg1 = decodeURIComponent(buildHexOuterBorderSvg(50, GridType.HEX_HORIZONTAL, 1, 1));
       const svg2 = decodeURIComponent(buildHexOuterBorderSvg(50, GridType.HEX_HORIZONTAL, 2, 2));
       const count1 = (svg1.match(/<line /g) || []).length;

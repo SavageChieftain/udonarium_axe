@@ -72,7 +72,7 @@ describe('RoomArchiveEventHandlerService', () => {
     TestBed.resetTestingModule();
   });
 
-  it('変更が止んでから自動保存する', async () => {
+  it('saves once the changes stop', async () => {
     setup();
     emitChange();
 
@@ -83,7 +83,7 @@ describe('RoomArchiveEventHandlerService', () => {
     expect(capture).toHaveBeenCalledOnce();
   });
 
-  it('変更が続く間はデバウンスされ、保存は 1 回にまとまる', async () => {
+  it('gathers a run of changes into one save', async () => {
     setup();
     for (let i = 0; i < 5; i++) {
       emitChange();
@@ -95,7 +95,7 @@ describe('RoomArchiveEventHandlerService', () => {
     expect(capture).toHaveBeenCalledOnce();
   });
 
-  it('変更が続いても上限時間で必ず保存する', async () => {
+  it('saves anyway once it has waited long enough', async () => {
     setup();
     for (let i = 0; i < 30; i++) {
       emitChange();
@@ -104,7 +104,7 @@ describe('RoomArchiveEventHandlerService', () => {
     expect(capture).toHaveBeenCalled();
   });
 
-  it('編集権限がなければ保存しない', async () => {
+  it('saves nothing without permission to edit', async () => {
     canEditTabletop = false;
     setup();
     emitChange();
@@ -113,7 +113,7 @@ describe('RoomArchiveEventHandlerService', () => {
     expect(capture).not.toHaveBeenCalled();
   });
 
-  it('復元中は保存を先送りする', async () => {
+  it('holds the save off while it is restoring', async () => {
     setup();
     isRestoring = true;
     emitChange();
@@ -126,7 +126,7 @@ describe('RoomArchiveEventHandlerService', () => {
     expect(capture).toHaveBeenCalledOnce();
   });
 
-  it('ドラッグ中は保存せず、手を離してから保存する', async () => {
+  it('waits for the drag to end before it saves', async () => {
     setup();
     isDragging = true;
     emitChange();
@@ -139,7 +139,7 @@ describe('RoomArchiveEventHandlerService', () => {
     expect(capture).toHaveBeenCalledOnce();
   });
 
-  it('保存に時間がかかる部屋では保存間隔を広げる', async () => {
+  it('waits longer between saves in a room that is slow to save', async () => {
     lastCaptureMs = 3_500;
     setup();
     emitChange();
@@ -151,14 +151,14 @@ describe('RoomArchiveEventHandlerService', () => {
     expect(capture).toHaveBeenCalledOnce();
   });
 
-  it('変更がなければ保存しない', async () => {
+  it('saves nothing when nothing changed', async () => {
     const service = setup();
 
     await service.flush();
     expect(capture).not.toHaveBeenCalled();
   });
 
-  it('オブジェクトの追加・削除でも保存する', async () => {
+  it('saves for an object added or deleted as well', async () => {
     setup();
     objectAdded$.emit({ identifier: 'obj', aliasName: 'character' });
     await vi.advanceTimersByTimeAsync(21_000);

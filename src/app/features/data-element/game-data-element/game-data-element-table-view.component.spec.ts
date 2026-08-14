@@ -50,7 +50,7 @@ describe('GameDataElementTableViewComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('onTableWheel は deltaY を scrollLeft に加算する', () => {
+  it('scrolls the table sideways from the wheel', () => {
     const scrollElement = document.createElement('div');
     Object.defineProperty(scrollElement, 'clientWidth', { configurable: true, value: 200 });
     Object.defineProperty(scrollElement, 'scrollWidth', { configurable: true, value: 600 });
@@ -68,7 +68,7 @@ describe('GameDataElementTableViewComponent', () => {
     expect(event.preventDefault).toHaveBeenCalled();
   });
 
-  it('onTableWheel: コンテンツが収まる時は preventDefault を呼ばない', () => {
+  it('leaves the wheel alone when the table fits', () => {
     const scrollElement = document.createElement('div');
     Object.defineProperty(scrollElement, 'clientWidth', { configurable: true, value: 600 });
     Object.defineProperty(scrollElement, 'scrollWidth', { configurable: true, value: 600 });
@@ -84,7 +84,7 @@ describe('GameDataElementTableViewComponent', () => {
     expect(event.preventDefault).not.toHaveBeenCalled();
   });
 
-  it('isJudgeMode は enabled かつ active のときのみ true', () => {
+  it('counts as judging only while it is both enabled and active', () => {
     componentRef.setInput('isJudgeModeEnabled', false);
     expect(component.isJudgeMode()).toBe(false);
 
@@ -96,7 +96,7 @@ describe('GameDataElementTableViewComponent', () => {
     expect(component.isJudgeMode()).toBe(false);
   });
 
-  it('toggleTableCheckCell は cell.value を 0/1 でトグルする', () => {
+  it('ticks and unticks a cell', () => {
     const cell = DataElement.create('c', '0', { fieldType: DataElementFieldType.CHECK });
     component.toggleTableCheckCell(cell);
     expect(cell.value).toBe(1);
@@ -104,20 +104,20 @@ describe('GameDataElementTableViewComponent', () => {
     expect(cell.value).toBe(0);
   });
 
-  it('toggleTableCheckCell: isValueLocked=true なら無視', () => {
+  it('leaves a locked cell alone', () => {
     componentRef.setInput('isValueLocked', true);
     const cell = DataElement.create('c', '0', { fieldType: DataElementFieldType.CHECK });
     component.toggleTableCheckCell(cell);
     expect(cell.value).toBe('0');
   });
 
-  it('closeJudgeCandidates は state を null に戻す', () => {
+  it('clears the candidates on close', () => {
     component.judgeCandidatesState.set({ clickedCellLabel: 'x', candidates: [] });
     component.closeJudgeCandidates();
     expect(component.judgeCandidatesState()).toBeNull();
   });
 
-  it('sendCandidateToChat は requestChatInputText を呼び state を null に戻す', () => {
+  it('puts a candidate into the chat box and clears them', () => {
     const uiSignal = TestBed.inject(UiSignalService);
     const requestSpy = vi.spyOn(uiSignal, 'requestChatInputText').mockImplementation(() => {});
     component.judgeCandidatesState.set({ clickedCellLabel: 'skill', candidates: [] });
@@ -130,7 +130,7 @@ describe('GameDataElementTableViewComponent', () => {
     expect(component.judgeCandidatesState()).toBeNull();
   });
 
-  it('sendCandidateToChat は BASE_DIFFICULTY 属性を読む', () => {
+  it('reads the base difficulty off the attribute', () => {
     const uiSignal = TestBed.inject(UiSignalService);
     const requestSpy = vi.spyOn(uiSignal, 'requestChatInputText').mockImplementation(() => {});
     const el = component.element();

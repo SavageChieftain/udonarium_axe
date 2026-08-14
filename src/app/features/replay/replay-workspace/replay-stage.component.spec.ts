@@ -82,27 +82,27 @@ describe('ReplayStageComponent', () => {
     PeerCursor.myCursor = null as unknown as PeerCursor;
   });
 
-  it('賑わいを山として描くこと', () => {
+  it('draws the busy stretches as peaks', () => {
     const bars: HTMLElement[] = Array.from(fixture.nativeElement.querySelectorAll('[role="slider"] > div > span'));
     expect(bars.length).toBeGreaterThan(1);
     expect(bars.some((bar) => bar.style.height === '100%')).toBe(true);
     expect(bars.some((bar) => bar.style.height === '0%')).toBe(true);
   });
 
-  it('目印を章として並べること', () => {
+  it('lays the markers out as chapters', () => {
     const chapters: HTMLElement[] = Array.from(fixture.nativeElement.querySelectorAll('[role="slider"] button'));
     expect(chapters).toHaveLength(1);
     expect(chapters[0].title).toBe('第二幕');
     expect(chapters[0].style.left).toBe('50%');
   });
 
-  it('章を押せばそこへ飛ぶこと', () => {
+  it('jumps to a chapter on a press', () => {
     const chapter: HTMLElement = fixture.nativeElement.querySelector('[role="slider"] button');
     chapter.click();
     expect(seekTo).toHaveBeenCalledWith(3);
   });
 
-  it('今どのあたりかを示すこと', () => {
+  it('shows where it has got to', () => {
     const track: HTMLElement = fixture.nativeElement.querySelector('[role="slider"]');
     expect(track.getAttribute('aria-valuenow')).toBe('1');
     expect(track.getAttribute('aria-valuemax')).toBe('5');
@@ -112,7 +112,7 @@ describe('ReplayStageComponent', () => {
     expect(track.getAttribute('aria-valuenow')).toBe('5');
   });
 
-  it('通り過ぎた章を見出しとして出すこと', () => {
+  it('heads the view with the chapter it has passed', () => {
     expect(fixture.nativeElement.textContent).not.toContain('第二幕');
 
     cursor.set(3);
@@ -120,7 +120,7 @@ describe('ReplayStageComponent', () => {
     expect(fixture.nativeElement.textContent).toContain('第二幕');
   });
 
-  it('掴んで動かしても盤面の作り直しを重ねないこと', async () => {
+  it('does not rebuild the board over and over while the handle is dragged', async () => {
     const track: HTMLElement = fixture.nativeElement.querySelector('[role="slider"]');
     Object.defineProperty(track, 'getBoundingClientRect', { value: () => ({ left: 0, width: 100 }) });
     track.setPointerCapture = vi.fn();
@@ -149,7 +149,7 @@ describe('ReplayStageComponent', () => {
     expect(seekTo).toHaveBeenLastCalledWith(4);
   });
 
-  it('矢印キーで一つずつ進めること', () => {
+  it('steps one event at a time on the arrow keys', () => {
     const track: HTMLElement = fixture.nativeElement.querySelector('[role="slider"]');
     track.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true }));
     expect(seekTo).toHaveBeenCalledWith(1);

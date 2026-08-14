@@ -2,10 +2,10 @@ import { EffectParticle, EffectParticleLayer } from '@axe/domain/effect/effect-p
 import { particleTexture } from '@axe/features/effect/effect-canvas/particle-texture';
 
 /**
- * パーティクルを canvas に描く。
+ * Draws the particles onto a canvas.
  *
- * 煙は通常合成で先に敷き、光る粒は `lighter`（加算）で重ねる。
- * canvas の中の合成なので、盤面の preserve-3d には影響しない。
+ * The smoke goes down plainly first and the glowing particles are laid over it additively.
+ * The blending stays inside the canvas, so the depth of the board is untouched.
  */
 export type TextureProvider = (shape: EffectParticle['shape'], color: string) => CanvasImageSource | null;
 
@@ -18,7 +18,7 @@ export function drawParticleLayer(
   context.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
   context.clearRect(0, 0, layer.width, layer.height);
 
-  // 2 度なめる。仕分けた配列を作ると、天候 1 枚で毎フレーム 700 個ぶんの入れ物を捨てることになる。
+  // It walks the list twice; sorting into arrays first would throw seven hundred holders away every frame for a single sheet of weather.
   context.globalCompositeOperation = 'source-over';
   for (const particle of layer.particles) {
     if (isSolid(particle)) drawParticle(context, layer, particle, textureOf);

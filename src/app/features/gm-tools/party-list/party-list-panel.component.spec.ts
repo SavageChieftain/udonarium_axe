@@ -55,7 +55,7 @@ describe('PartyListPanelComponent', () => {
     );
   }
 
-  it('パーティを追加すると一覧に載り、色が重複しない', () => {
+  it('lists a new party and gives it a colour of its own', () => {
     panel().addParty();
     panel().addParty();
 
@@ -64,7 +64,7 @@ describe('PartyListPanelComponent', () => {
     expect(parties[0].color).not.toBe(parties[1].color);
   });
 
-  it('未所属キャラをパーティへ入れると所属が切り替わる', () => {
+  it('puts an unattached character into a party', () => {
     panel().addParty();
     const party = partyService.parties()[0];
     const character = makeCharacter('斥候', 'me');
@@ -78,7 +78,7 @@ describe('PartyListPanelComponent', () => {
     expect(partyService.unassigned()).toEqual([]);
   });
 
-  it('パーティを削除すると所属キャラは未所属に戻る', () => {
+  it('unattaches its characters when a party goes', () => {
     stubConfirm(true);
     panel().addParty();
     const party = partyService.parties()[0];
@@ -92,7 +92,7 @@ describe('PartyListPanelComponent', () => {
     expect(partyService.unassigned()).toEqual([character]);
   });
 
-  it('確認を断ったらパーティを削除しない', () => {
+  it('keeps the party when the confirmation is dismissed', () => {
     stubConfirm(false);
     panel().addParty();
     const party = partyService.parties()[0];
@@ -102,7 +102,7 @@ describe('PartyListPanelComponent', () => {
     expect(partyService.parties()).toEqual([party]);
   });
 
-  it('色を変えると同期用に通知される', () => {
+  it('announces a change of colour', () => {
     panel().addParty();
     const party = partyService.parties()[0];
 

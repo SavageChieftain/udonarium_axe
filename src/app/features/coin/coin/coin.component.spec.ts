@@ -31,7 +31,7 @@ describe('CoinComponent', () => {
     coin.destroy();
   });
 
-  it('両面に紋章を彫り、向きで回転させること', () => {
+  it('strikes both faces and turns each the way it lies', () => {
     fixture.detectChanges();
     const titles = [...fixture.nativeElement.querySelectorAll('svg title')].map(
       (title: SVGTitleElement) => title.textContent
@@ -46,7 +46,7 @@ describe('CoinComponent', () => {
     expect(component.faceTransform()).toContain('rotateY(180deg)');
   });
 
-  it('厚みの分だけ両面を離し、縁を円周に並べること', () => {
+  it('parts the faces by the thickness and rings the edge between them', () => {
     fixture.detectChanges();
     const half = component.thickness() / 2;
 
@@ -62,7 +62,7 @@ describe('CoinComponent', () => {
     expect(fixture.nativeElement.querySelectorAll('div[style*="rotateX(90deg)"]')).toHaveLength(24);
   });
 
-  it('投げると面が決まること', () => {
+  it('settles on a face when it is flipped', () => {
     vi.useFakeTimers();
     try {
       component.flip();
@@ -74,7 +74,7 @@ describe('CoinComponent', () => {
     }
   });
 
-  it('コインを投げた通知で回転が始まること', () => {
+  it('starts spinning on word of a flip', () => {
     vi.useFakeTimers();
     try {
       expect(component.isSpinning()).toBe(false);
@@ -88,7 +88,7 @@ describe('CoinComponent', () => {
     }
   });
 
-  it('別のコインの通知では回転しないこと', () => {
+  it('ignores word of another coin', () => {
     vi.useFakeTimers();
     try {
       localDispatch('FLIP_COIN', { identifier: 'other-coin', face: 'back' });
@@ -100,7 +100,7 @@ describe('CoinComponent', () => {
     }
   });
 
-  it('回っている間は結果を見せず、着地してから見せること', () => {
+  it('keeps the result hidden until it lands', () => {
     vi.useFakeTimers();
     try {
       localDispatch('FLIP_COIN', { identifier: coin.identifier, face: 'back' });
@@ -120,7 +120,7 @@ describe('CoinComponent', () => {
     }
   });
 
-  it('面が変わる投げだけ半回転ぶん多く回すこと', () => {
+  it('adds half a turn only when the face changes', () => {
     vi.useFakeTimers();
     try {
       localDispatch('FLIP_COIN', { identifier: coin.identifier, face: 'back' });
@@ -136,7 +136,7 @@ describe('CoinComponent', () => {
     }
   });
 
-  it('自分の投げがネットワークから戻ってきても回し直さないこと', () => {
+  it('does not spin again when its own flip comes back over the network', () => {
     vi.useFakeTimers();
     try {
       localDispatch('FLIP_COIN', { identifier: coin.identifier, face: 'back' });
@@ -153,7 +153,7 @@ describe('CoinComponent', () => {
     }
   });
 
-  it('回転が終わったら状態を戻すこと', () => {
+  it('puts itself back once it stops', () => {
     component.isSpinning.set(true);
 
     component.onSpinEnd();

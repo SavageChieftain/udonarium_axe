@@ -106,7 +106,7 @@ export class EffectLibraryPanelComponent {
     return this.castService.candidateTargets().map((character) => character.name);
   });
 
-  /** 飛翔体の発射元。ターゲット指定に含まれない選択中のコマ。 */
+  /** Where a projectile is fired from: the selected piece, which is not among the targets. */
   readonly casterName = computed<string>(() => {
     this.uiSignalService.targetChange();
     this.selectionSignalService.selectedObject();
@@ -115,13 +115,13 @@ export class EffectLibraryPanelComponent {
     return this.castService.resolveCaster(targets)?.name ?? '';
   });
 
-  /** 置きっぱなしの演出。置いたあと消せないと盤面に残り続ける。 */
+  /** An effect left standing, which stays on the board unless it can be taken away. */
   readonly fields = computed<EffectField[]>(() => this.fieldService.fields());
 
   readonly lastFired = signal('');
   readonly notice = signal('');
 
-  /** 対象選択中の状態。選んだ順に並ぶ。 */
+  /** What is being aimed at, in the order it was chosen. */
   readonly isPicking = computed<boolean>(() => this.targeting.isPicking());
   readonly pickingName = computed<string>(() => this.targeting.preset()?.name ?? '');
   readonly pickLimit = computed<number>(() => this.targeting.limit());
@@ -140,7 +140,7 @@ export class EffectLibraryPanelComponent {
   private readonly storage = typeof localStorage === 'undefined' ? null : localStorage;
   private readonly recentIdentifiers = signal<string[]>(readRecentEffects(this.storage));
 
-  /** 直近に使ったもの。絞り込みに関係なく先頭へ出す。 */
+  /** What was used last, kept at the front whatever the list is narrowed to. */
   readonly recent = computed<EffectPreset[]>(() => {
     const presets = this.library.presets();
     return this.recentIdentifiers()
@@ -153,7 +153,7 @@ export class EffectLibraryPanelComponent {
     queueMicrotask(() => (this.modalService.title = this.panelService.title = this.t('feature.effect.panelTitle')));
   }
 
-  /** 一覧の印。演出の形から起こした SVG を使う。 */
+  /** The mark on the list, drawn from the shape of the effect. */
   protected glyphOf(preset: EffectPreset): string {
     return kindGlyphSvg(preset.effectKind, { core: preset.colorPrimary, edge: preset.colorSecondary });
   }
@@ -166,7 +166,7 @@ export class EffectLibraryPanelComponent {
     return this.t(`feature.effect.grade${grade}`);
   }
 
-  /** 単体しか狙えないものと、複数を巻き込めるものを一目で分ける。 */
+  /** It tells at a glance what takes one target from what takes several. */
   protected isMulti(preset: EffectPreset): boolean {
     return isMultiTarget(preset);
   }
@@ -186,7 +186,7 @@ export class EffectLibraryPanelComponent {
     return this.t('feature.effect.targetMulti', { count: preset.targetLimit });
   }
 
-  /** 折りたたんだ系統。多いので、使わない系統は閉じておけるようにする。 */
+  /** The families folded away; there are many, so the ones not in use can be closed. */
   private readonly collapsed = signal<ReadonlySet<string>>(new Set());
 
   protected isCollapsed(tag: string): boolean {
@@ -217,8 +217,8 @@ export class EffectLibraryPanelComponent {
   }
 
   /**
-   * 一覧から選ぶ。自分にかけるものは即発動、それ以外は対象選択へ入る。
-   * 選択中に同じものを選んだら中止として扱う。
+   * Choosing from the list. Something cast on yourself fires at once; anything else goes to choosing targets.
+   * Choosing the same one again while aiming calls it off.
    */
   protected fire(preset: EffectPreset): void {
     this.notice.set('');
@@ -230,7 +230,7 @@ export class EffectLibraryPanelComponent {
     if (preset.effectTargeting === 'self') {
       const targets = this.castService.resolveTargets(preset);
       if (targets.length < 1) {
-        // 黙って何も起きないと、壊れているのか対象がいないのか分からない。
+        // Nothing happening in silence looks the same as something being broken.
         this.lastFired.set('');
         this.notice.set(this.t('feature.effect.previewNoTarget'));
         return;
@@ -263,7 +263,7 @@ export class EffectLibraryPanelComponent {
     this.recentIdentifiers.set(pushRecentEffect(this.storage, preset.identifier));
   }
 
-  /** 白紙から作って、そのまま編集を開く。 */
+  /** Makes a blank one and opens it for editing. */
   protected createPreset(): void {
     const preset = this.library.create(this.t('feature.effect.newPresetName'));
     this.openEditor(preset);
@@ -297,7 +297,7 @@ export class EffectLibraryPanelComponent {
     editor.presetIdentifier.set(preset.identifier);
   }
 
-  /** タイルの右クリック。編集まわりは一覧を汚さないようここへまとめる。 */
+  /** The right click on a tile, where the editing lives so it does not clutter the list. */
   protected openPresetMenu(preset: EffectPreset, event: MouseEvent): void {
     event.preventDefault();
     event.stopPropagation();
@@ -319,13 +319,13 @@ export class EffectLibraryPanelComponent {
     );
   }
 
-  /** パレット行へ貼れるトークンをチャット入力欄へ入れる。 */
+  /** Puts a token into the chat box that can be pasted onto a palette row. */
   protected insertToken(preset: EffectPreset): void {
     this.uiSignalService.requestChatInputText(buildEffectChatToken(preset.name));
     this.notice.set(this.t('feature.effect.tokenInserted'));
   }
 
-  /** 選んでいるコマの位置へ、置きっぱなしの演出を置く。 */
+  /** Leaves a standing effect where the selected piece is. */
   protected placeField(preset: EffectPreset): void {
     const [anchor] = this.castService.candidateTargets();
     if (!anchor) {
@@ -349,14 +349,14 @@ export class EffectLibraryPanelComponent {
     this.notice.set(this.t('feature.effect.previewNoTarget'));
   }
 
-  /** HP 増減の自動演出。各自の画面だけの設定なので、その場で切り替わる。 */
+  /** Whether a change of health plays an effect by itself. It is a setting of this screen alone, so it takes effect at once. */
   readonly autoPlayEnabled = computed<boolean>(() => this.autoPlay.enabled());
 
   protected toggleAutoPlay(): void {
     this.autoPlay.toggle();
   }
 
-  /** エフェクト集だけを書き出す。部屋ごと渡さずに演出を配れる。 */
+  /** Exports the effect library alone, so the effects can be handed on without the room. */
   protected exportLibrary(): void {
     void this.saveDataService.saveGameObjectAsync(new EffectPresetSet(), 'effect_library');
     this.notice.set(this.t('feature.effect.exported'));

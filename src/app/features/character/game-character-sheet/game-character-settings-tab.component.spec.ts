@@ -39,11 +39,11 @@ describe('GameCharacterSettingsTabComponent', () => {
     character.destroy();
   });
 
-  it('インスタンス化できる', () => {
+  it('can be created', () => {
     expect(component).toBeTruthy();
   });
 
-  it('chkKomaSize は範囲内に丸め、ドラッグ状態を解除し、変更通知を出す', () => {
+  it('clamps the piece size, ends the drag and says it changed', () => {
     const objectChange = TestBed.inject(ObjectChangeService);
     const notifySpy = vi.spyOn(objectChange, 'notifyChanged');
     character.komaImageHeight = 120;
@@ -56,13 +56,13 @@ describe('GameCharacterSettingsTabComponent', () => {
     expect(notifySpy).toHaveBeenCalledWith(character.identifier);
   });
 
-  it('chkKomaSize に NaN を与えると既存値を維持する', () => {
+  it('keeps the size it had for a value it cannot read', () => {
     character.komaImageHeight = 180;
     component.chkKomaSize(Number.NaN);
     expect(character.komaImageHeight).toBe(180);
   });
 
-  it('setSpecifyKomaImageFlag はフラグを設定し変更通知を出す', () => {
+  it('sets the flag and says it changed', () => {
     const objectChange = TestBed.inject(ObjectChangeService);
     const notifySpy = vi.spyOn(objectChange, 'notifyChanged');
 
@@ -72,7 +72,7 @@ describe('GameCharacterSettingsTabComponent', () => {
     expect(notifySpy).toHaveBeenCalledWith(character.identifier);
   });
 
-  it('convertLegacyCheckTables() は旧チェック表フィールドを構造化テーブルへ変換する', () => {
+  it('turns the old check fields into proper tables', () => {
     const section = DataElement.create('旧情報', '', { [DataElementAttribute.ROLE]: DataElementRole.SECTION });
     const group = DataElement.create('基本', '', { [DataElementAttribute.ROLE]: DataElementRole.GROUP });
     const legacy = DataElement.create('旧表', '|項目|済み|\n|灯火|[]|', {
@@ -95,11 +95,11 @@ describe('GameCharacterSettingsTabComponent', () => {
     expect(group.getFirstElementByName('旧表')).toBeNull();
   });
 
-  it('legacyCheckTableCount は変換候補数を返す', () => {
+  it('counts what there is to convert', () => {
     expect(component.legacyCheckTableCount()).toBe(0);
   });
 
-  it('onSetLocation は locationChange を emit する (実 set は親側)', () => {
+  it('emits the change of place and leaves the setting to its parent', () => {
     const emitted: string[] = [];
     component.locationChange.subscribe((v) => emitted.push(v));
 
@@ -113,7 +113,7 @@ describe('GameCharacterSettingsTabComponent', () => {
     expect(emitted).toEqual(['common']);
   });
 
-  it('resetRotate / resetRoll は角度を 0 に戻す', () => {
+  it('puts both angles back to nothing', () => {
     character.rotate = 90;
     character.roll = 180;
 

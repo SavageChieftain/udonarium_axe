@@ -23,23 +23,23 @@ describe('FileStorageComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('global dragging が解除されたら panel の pointer-events-none も解除されること', async () => {
+  it('lets the panel take the pointer again once the drag ends', async () => {
     await expectPanelDragRecovery(FileStorageComponent);
   });
 
-  describe('checkedFiles による選択状態管理', () => {
-    it('imgBlockClick で未登録のIDが追加されること', () => {
+  describe('keeping track of which files are picked', () => {
+    it('picks one that was not picked', () => {
       component.imgBlockClick('img-123');
       expect(component['checkedFiles'].has('img-123')).toBe(true);
     });
 
-    it('imgBlockClick で登録済みのIDが削除されること', () => {
+    it('unpicks one that was', () => {
       component.imgBlockClick('img-123');
       component.imgBlockClick('img-123');
       expect(component['checkedFiles'].has('img-123')).toBe(false);
     });
 
-    it('複数のファイルを独立して管理できること', () => {
+    it('keeps several apart', () => {
       component.imgBlockClick('img-a');
       component.imgBlockClick('img-b');
       expect(component['checkedFiles'].has('img-a')).toBe(true);
@@ -52,18 +52,18 @@ describe('FileStorageComponent', () => {
   });
 
   describe('changeTag', () => {
-    it('タグ名が「全て」のとき早期リターンすること', () => {
+    it('returns early for the tag that means everything', () => {
       component['checkedFiles'].add('img-1');
       component.newTagName.set('全て');
       component.changeTag();
-      // エラーなく完了すること（タグ変更処理が行われない）
+      // finishes without error, changing no tag
     });
 
-    it('タグ名が「システム予約」のとき早期リターンすること', () => {
+    it('returns early for the reserved tag', () => {
       component['checkedFiles'].add('img-1');
       component.newTagName.set('システム予約');
       component.changeTag();
-      // エラーなく完了すること
+      // finishes without error
     });
   });
 });

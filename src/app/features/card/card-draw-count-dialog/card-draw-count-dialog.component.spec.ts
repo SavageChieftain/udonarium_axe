@@ -19,19 +19,19 @@ describe('CardDrawCountDialogComponent', () => {
     fixture.detectChanges();
   }
 
-  it('初期値を2枚と上限枚数の小さい方にすること', async () => {
+  it('starts at two cards, or at the limit if it is lower', async () => {
     await setup({ maxCount: 5 });
 
     expect(component.count).toBe(2);
   });
 
-  it('上限が1枚のときは初期値を1枚にすること', async () => {
+  it('starts at one when that is the limit', async () => {
     await setup({ maxCount: 1 });
 
     expect(component.count).toBe(1);
   });
 
-  it('確定時は1から上限までに丸めた枚数を返すこと', async () => {
+  it('returns a count between one and the limit', async () => {
     await setup({ maxCount: 3 });
     component.count = 9;
 
@@ -40,7 +40,7 @@ describe('CardDrawCountDialogComponent', () => {
     expect(modalService.resolve).toHaveBeenCalledWith(3);
   });
 
-  it('キャンセル時はnullを返すこと', async () => {
+  it('returns nothing on cancel', async () => {
     await setup({ maxCount: 3 });
 
     component.cancel();

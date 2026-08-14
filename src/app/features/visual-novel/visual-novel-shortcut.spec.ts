@@ -8,74 +8,74 @@ import {
 const IDLE: VisualNovelKeyContext = { composing: false, typing: false, popoverOpen: false, chord: false };
 
 describe('visualNovelKeyDown()', () => {
-  it('送りのキーで先へ進めること', () => {
+  it('goes forward on the forward key', () => {
     for (const key of ['Enter', ' ', 'ArrowRight', 'ArrowDown']) {
       expect(visualNovelKeyDown(key, IDLE)).toEqual({ command: 'advance', preventDefault: true });
     }
   });
 
-  it('戻りのキーで前へ戻れること', () => {
+  it('goes back on the back key', () => {
     for (const key of ['ArrowLeft', 'ArrowUp']) {
       expect(visualNovelKeyDown(key, IDLE)?.command).toBe('back');
     }
   });
 
-  it('端まで飛べること', () => {
+  it('jumps to either end', () => {
     expect(visualNovelKeyDown('Home', IDLE)?.command).toBe('toStart');
     expect(visualNovelKeyDown('End', IDLE)?.command).toBe('toLatest');
   });
 
-  it('大文字でも同じ割り当てにすること', () => {
+  it('reads an upper-case key the same way', () => {
     expect(visualNovelKeyDown('l', IDLE)?.command).toBe('toggleBacklog');
     expect(visualNovelKeyDown('L', IDLE)?.command).toBe('toggleBacklog');
     expect(visualNovelKeyDown('A', IDLE)?.command).toBe('toggleAutoPlay');
     expect(visualNovelKeyDown('S', IDLE)?.command).toBe('toggleSlotGuide');
   });
 
-  it('文字を打っている間は何も起こさないこと', () => {
+  it('does nothing while something is being typed', () => {
     expect(visualNovelKeyDown('Enter', { ...IDLE, typing: true })).toBeNull();
     expect(visualNovelKeyDown('a', { ...IDLE, typing: true })).toBeNull();
   });
 
-  it('変換中の確定を送りに使わないこと', () => {
+  it('does not read a confirming key mid-composition as a forward', () => {
     expect(visualNovelKeyDown('Enter', { ...IDLE, composing: true })).toBeNull();
   });
 
-  it('Escape は開いているものを先に閉じること', () => {
+  it('closes whatever is open before anything else', () => {
     expect(visualNovelKeyDown('Escape', { ...IDLE, popoverOpen: true })?.command).toBe('closePopovers');
     expect(visualNovelKeyDown('Escape', IDLE)?.command).toBe('exit');
   });
 
-  it('早送りは押している間だけで、既定の動きを止めないこと', () => {
+  it('fast-forwards while the key is held and stops nothing else', () => {
     expect(visualNovelKeyDown('Control', IDLE)).toEqual({ command: 'startSkip', preventDefault: false });
     expect(visualNovelKeyUp('Control')?.command).toBe('stopSkip');
     expect(visualNovelKeyUp('Shift')).toBeNull();
   });
 
-  it('修飾キーとの組み合わせを横取りしないこと', () => {
-    // Ctrl+A は全選択、Ctrl+S は保存。奪うと画面の外の当たり前が壊れる。
+  it('does not steal a key held with a modifier', () => {
+    // One selects everything and another saves; taking them breaks what works everywhere else.
     for (const key of ['a', 's', 'l', 'Enter', 'Escape']) {
       expect(visualNovelKeyDown(key, { ...IDLE, chord: true })).toBeNull();
     }
   });
 
-  it('Ctrl 単独は早送りとして通すこと', () => {
+  it('reads the modifier alone as a fast-forward', () => {
     expect(visualNovelKeyDown('Control', { ...IDLE, chord: true })?.command).toBe('startSkip');
   });
 
-  it('割り当ての無いキーには何も返さないこと', () => {
+  it('returns nothing for a key it has no use for', () => {
     expect(visualNovelKeyDown('z', IDLE)).toBeNull();
   });
 });
 
 describe('isTypingTarget()', () => {
-  it('入力欄を打鍵の場と見なすこと', () => {
+  it('counts a field as somewhere text is typed', () => {
     for (const tag of ['input', 'textarea', 'select']) {
       expect(isTypingTarget(document.createElement(tag))).toBe(true);
     }
   });
 
-  it('書き換えられる場所も打鍵の場と見なすこと', () => {
+  it('counts an editable area as one too', () => {
     const element = document.createElement('div');
     element.contentEditable = 'true';
     Object.defineProperty(element, 'isContentEditable', { value: true });
@@ -83,7 +83,7 @@ describe('isTypingTarget()', () => {
     expect(isTypingTarget(element)).toBe(true);
   });
 
-  it('ふつうの場所は打鍵の場でないこと', () => {
+  it('counts anywhere else as not', () => {
     expect(isTypingTarget(document.createElement('div'))).toBe(false);
     expect(isTypingTarget(null)).toBe(false);
   });

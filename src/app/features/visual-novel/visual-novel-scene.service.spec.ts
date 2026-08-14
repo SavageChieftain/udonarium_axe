@@ -35,12 +35,12 @@ describe('VisualNovelSceneService', () => {
     PeerCursor.myCursor.role = PeerRole.Player;
   });
 
-  it('背景が未設定なら背景レイヤーを描かないこと', () => {
+  it('draws no backdrop while there is none', () => {
     expect(service.hasBackground()).toBe(false);
     expect(service.backgroundUrl()).toBe('');
   });
 
-  it('GM は背景を差し替えてトランジションを進められること', () => {
+  it('lets the game master change the backdrop and run the transition', () => {
     becomeGameMaster();
     expect(service.canDirect()).toBe(true);
     const before = service.transitionTrigger();
@@ -54,7 +54,7 @@ describe('VisualNovelSceneService', () => {
     expect(service.transitionTrigger()).toBe(before + 1);
   });
 
-  it('GM でなければ背景操作を受け付けないこと', () => {
+  it('takes no backdrop change from anybody else', () => {
     PeerCursor.myCursor.role = PeerRole.Player;
     stage.backgroundImageIdentifier = imageIdentifier;
 
@@ -65,7 +65,7 @@ describe('VisualNovelSceneService', () => {
     expect(stage.transition).toBe('fade');
   });
 
-  it('GM は背景を解除できること', () => {
+  it('lets the game master take it away', () => {
     becomeGameMaster();
     stage.backgroundImageIdentifier = imageIdentifier;
     objectChange.notifyChanged(stage.identifier);

@@ -34,32 +34,32 @@ describe('ReplayBoardBannerComponent', () => {
     exitBoardMode = vi.fn().mockResolvedValue(undefined);
   });
 
-  it('卓を預かっていないうちは何も出さないこと', async () => {
+  it('shows nothing while nobody is running the table', async () => {
     await setup();
     expect(fixture.nativeElement.textContent.trim()).toBe('');
   });
 
-  it('卓を預かっているあいだは告げ続けること', async () => {
+  it('keeps saying so while somebody is', async () => {
     isBoardMode = signal(true);
     await setup();
     expect(fixture.nativeElement.textContent).toContain('記録の盤面を映しています');
     expect(fixture.nativeElement.textContent).toContain('同卓者に届きません');
   });
 
-  it('盤面に枠を出すこと', async () => {
+  it('frames the board', async () => {
     isBoardMode = signal(true);
     await setup();
     expect(fixture.nativeElement.querySelector('.border-amber-500\\/60')).not.toBeNull();
   });
 
-  it('一押しで卓に戻せること', async () => {
+  it('hands the table back in one press', async () => {
     isBoardMode = signal(true);
     await setup();
     banner()?.querySelector('button')?.click();
     expect(exitBoardMode).toHaveBeenCalledTimes(1);
   });
 
-  it('収録中は収録バナーに譲ること', async () => {
+  it('gives way to the recording banner', async () => {
     isBoardMode = signal(true);
     isStaging = signal(true);
     await setup();

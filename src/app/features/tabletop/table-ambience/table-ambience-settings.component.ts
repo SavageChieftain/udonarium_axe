@@ -5,7 +5,7 @@ import { type AmbienceKind, ambiencePalette, GROUND_AMBIENCE_KINDS } from '@axe/
 import { TableAmbience } from '@axe/domain/tabletop/table-ambience';
 import { TranslocoModule } from '@jsverse/transloco';
 
-/** テーブルの一辺の上限と合わせる。マップ全体を覆う沼を作れるようにしておく。 */
+/** As wide as a table can be, so a marsh can cover the whole map. */
 const MAX_CELLS = 100;
 
 @Component({
@@ -50,7 +50,7 @@ export class TableAmbienceSettingsComponent {
     this.target.update();
   }
 
-  /** 色を空のままにしておけるよう、既定色は入力欄の初期値として見せる。 */
+  /** The default colour is shown as the field's initial value, so it can be left unset. */
   get color(): string {
     return this.target?.color ?? ambiencePalette('swamp').primary;
   }

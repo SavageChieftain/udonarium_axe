@@ -30,7 +30,7 @@ describe('GameCharacterSheetComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('カードでも編集トグルと項目の追加ができること', () => {
+  it('edits a card and adds to it as well', () => {
     const card = Card.create('効果カード', 'front.png', 'back.png');
     component.tabletopObject = card;
 
@@ -50,7 +50,7 @@ describe('GameCharacterSheetComponent', () => {
     }
   });
 
-  it('addDataElement() は見出し > グループ > フィールドの構造で追加すること', () => {
+  it('adds a field under a group under a heading', () => {
     const character = GameCharacter.create('structure-test', 1, '');
     character.addExtendData();
     component.tabletopObject = character;
@@ -72,7 +72,7 @@ describe('GameCharacterSheetComponent', () => {
     }
   });
 
-  it('addDataElement() は既存タグ名と重複しない名前で追加すること', () => {
+  it('gives it a name no existing tag has', () => {
     const character = GameCharacter.create('unique-name-test', 1, '');
     character.addExtendData();
     component.tabletopObject = character;
@@ -90,7 +90,7 @@ describe('GameCharacterSheetComponent', () => {
     }
   });
 
-  it('ポップアップ表示設定はDataElement属性として切り替えること', () => {
+  it('keeps the pop-up setting on the element itself', () => {
     const character = GameCharacter.create('popup-toggle-test', 1, '');
     const section = character.detailDataElement!.getFirstElementByName('能力')!;
     component.tabletopObject = character;
@@ -110,7 +110,7 @@ describe('GameCharacterSheetComponent', () => {
     }
   });
 
-  it('ダイスのコマ画像高さ変更でもドラッグ状態を解除すること', () => {
+  it('ends the drag when the height of a die changes too', () => {
     const diceSymbol = { komaImageHeight: 200 } as DiceSymbol;
     component.tabletopObject = diceSymbol;
     pointerDeviceService.isDragging = true;
@@ -121,7 +121,7 @@ describe('GameCharacterSheetComponent', () => {
     expect(pointerDeviceService.isDragging).toBe(false);
   });
 
-  describe('地形設定パネル', () => {
+  describe('the terrain settings', () => {
     let terrain: Terrain;
 
     beforeEach(() => {
@@ -134,7 +134,7 @@ describe('GameCharacterSheetComponent', () => {
       terrain.destroy();
     });
 
-    it('古い編集切り替えを表示しないこと', () => {
+    it('leaves the old edit toggle out', () => {
       const text = fixture.nativeElement.textContent as string;
 
       expect(text).toContain('基本設定');
@@ -144,7 +144,7 @@ describe('GameCharacterSheetComponent', () => {
       expect(text).not.toContain('壁の画像を変更');
     });
 
-    it('床グリッド表示を専用トグルで切り替えられること', () => {
+    it('switches the floor grid from a toggle of its own', () => {
       const checkbox = fixture.nativeElement.querySelector('input[name="isGrid"]') as HTMLInputElement;
 
       expect(checkbox).toBeTruthy();
@@ -156,30 +156,30 @@ describe('GameCharacterSheetComponent', () => {
     });
   });
 
-  describe('tabletopObject が null の場合', () => {
-    it('addDataElement() がスローしないこと', () => {
+  describe('with nothing on the table to edit', () => {
+    it('adds without throwing', () => {
       component.tabletopObject = null;
       expect(() => component.addDataElement()).not.toThrow();
     });
 
-    it('clone() がスローしないこと', () => {
+    it('copies without throwing', () => {
       component.tabletopObject = null;
       expect(() => component.clone()).not.toThrow();
     });
 
-    it('setLocation() がスローしないこと', () => {
+    it('moves without throwing', () => {
       component.tabletopObject = null;
       expect(() => component.setLocation('table')).not.toThrow();
     });
 
-    it('openModal() がスローしないこと', () => {
+    it('opens without throwing', () => {
       component.tabletopObject = null;
       // openModal calls modalService internally which may be unresolved in test env
       // Just verify the tabletopObject null check prevents further execution
       expect(component.tabletopObject).toBeNull();
     });
 
-    it('saveToXML() がスローしないこと', async () => {
+    it('saves without throwing', async () => {
       component.tabletopObject = null;
       await expect(component.saveToXML()).resolves.not.toThrow();
     });

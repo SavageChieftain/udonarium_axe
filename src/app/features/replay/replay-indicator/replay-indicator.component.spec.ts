@@ -77,14 +77,14 @@ describe('ReplayIndicatorComponent', () => {
     vi.restoreAllMocks();
   });
 
-  it('隠していれば出ないこと', async () => {
+  it('stays out of sight while it is hidden', async () => {
     await setup();
     TestBed.inject(WidgetVisibilityService).recording.set(false);
     fixture.detectChanges();
     expect(pill()).toBeNull();
   });
 
-  it('押すまで操作を出さないこと', async () => {
+  it('offers nothing until it is pressed', async () => {
     await setup();
     expect(fixture.nativeElement.querySelector('input')).toBeNull();
 
@@ -93,7 +93,7 @@ describe('ReplayIndicatorComponent', () => {
     expect(fixture.nativeElement.querySelector('input')).not.toBeNull();
   });
 
-  it('見出しを入れて目印を打てること', async () => {
+  it('marks the recording with a heading', async () => {
     await setup();
     pill()?.click();
     fixture.detectChanges();
@@ -107,7 +107,7 @@ describe('ReplayIndicatorComponent', () => {
     expect(mark).toHaveBeenCalledWith('第二幕');
   });
 
-  it('見出しが空なら目印を打てないこと', async () => {
+  it('marks nothing without one', async () => {
     await setup();
     pill()?.click();
     fixture.detectChanges();
@@ -115,7 +115,7 @@ describe('ReplayIndicatorComponent', () => {
     expect(buttonByText('目印')?.disabled).toBe(true);
   });
 
-  it('記録を止められること', async () => {
+  it('stops the recording', async () => {
     await setup();
     pill()?.click();
     fixture.detectChanges();
@@ -124,7 +124,7 @@ describe('ReplayIndicatorComponent', () => {
     expect(stop).toHaveBeenCalledTimes(1);
   });
 
-  it('表示を消せること', async () => {
+  it('hides itself', async () => {
     await setup();
     pill()?.click();
     fixture.detectChanges();

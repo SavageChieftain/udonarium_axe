@@ -69,7 +69,7 @@ describe('InviteJoinComponent', () => {
     TestBed.resetTestingModule();
   });
 
-  it('招待リンクでなければ何も表示せず参加も試みない', async () => {
+  it('shows nothing and joins nothing without an invitation', async () => {
     await setup('');
     await flush();
 
@@ -77,26 +77,26 @@ describe('InviteJoinComponent', () => {
     expect(findRoom).not.toHaveBeenCalled();
   });
 
-  it('招待リンクなら部屋を探して参加する', async () => {
+  it('finds the room and joins it from an invitation', async () => {
     await setup('#join?r=a1b&n=room');
 
     await eventually(() => expect(join).toHaveBeenCalledOnce());
     expect(findRoom).toHaveBeenCalledWith('a1b');
   });
 
-  it('参加に成功したらバナーを消す', async () => {
+  it('takes the banner away once it is in', async () => {
     await setup('#join?r=a1b&n=room');
 
     await eventually(() => expect(bannerText().trim()).toBe(''));
   });
 
-  it('ロールが指定されていれば適用する', async () => {
+  it('takes the role the link names', async () => {
     await setup('#join?r=a1b&n=room&role=guest');
 
     await eventually(() => expect(PeerCursor.myCursor.role).toBe(PeerRole.Guest));
   });
 
-  it('部屋が見つからなければ通知を出す', async () => {
+  it('says so when the room is not there', async () => {
     findRoom.mockResolvedValue(null);
     await setup('#join?r=a1b&n=room');
 
@@ -104,21 +104,21 @@ describe('InviteJoinComponent', () => {
     expect(join).not.toHaveBeenCalled();
   });
 
-  it('参加に失敗したら通知を出す', async () => {
+  it('says so when it cannot get in', async () => {
     join.mockResolvedValue(false);
     await setup('#join?r=a1b&n=room');
 
     await eventually(() => expect(bannerText()).toContain('参加できません'));
   });
 
-  it('合言葉付きの部屋でリンクに合言葉が無ければ入力を求める', async () => {
+  it('asks for the password when the link carries none', async () => {
     findRoom.mockResolvedValue(createRoom(true));
     await setup('#join?r=a1b&n=room');
 
     await eventually(() => expect(modalOpen).toHaveBeenCalledOnce());
   });
 
-  it('リンクに合言葉があれば入力を求めない', async () => {
+  it('asks for nothing when it does', async () => {
     findRoom.mockResolvedValue(createRoom(true));
     await setup(buildInviteLink('', { roomId: 'a1b', roomName: 'room', password: 'pw', role: null, overlay: false }));
 

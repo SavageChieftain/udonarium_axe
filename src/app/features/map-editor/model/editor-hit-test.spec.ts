@@ -17,22 +17,22 @@ function image(x: number, y: number, w: number, h: number): ImageItem {
 describe('curveAnchorAt()', () => {
   const item = shape([100, 100, 200, 200]);
 
-  it('節の上を掴んだら、その番号を返すこと', () => {
+  it('returns which anchor was grabbed', () => {
     expect(curveAnchorAt(item, 100, 100)).toBe(0);
     expect(curveAnchorAt(item, 200, 200)).toBe(1);
   });
 
-  it('少しずれても掴めること', () => {
+  it('forgives a small miss', () => {
     expect(curveAnchorAt(item, 106, 94)).toBe(0);
   });
 
-  it('離れていれば掴んでいないこと', () => {
+  it('grabs nothing from far away', () => {
     expect(curveAnchorAt(item, 150, 150)).toBe(-1);
   });
 });
 
 describe('imageCorners()', () => {
-  it('左上から時計回りに四隅を返すこと', () => {
+  it('returns the four corners clockwise from the top left', () => {
     expect(imageCorners(image(100, 100, 40, 20))).toEqual([
       { x: 80, y: 90 },
       { x: 120, y: 90 },
@@ -45,29 +45,29 @@ describe('imageCorners()', () => {
 describe('imageHandleAt()', () => {
   const item = image(100, 100, 40, 20);
 
-  it('角を掴んだら、その番号を返すこと', () => {
+  it('returns which corner was grabbed', () => {
     expect(imageHandleAt(item, 80, 90)).toBe(0);
     expect(imageHandleAt(item, 120, 110)).toBe(2);
   });
 
-  it('辺の途中は掴めないこと', () => {
+  it('grabs nothing along an edge', () => {
     expect(imageHandleAt(item, 100, 90)).toBe(-1);
   });
 });
 
 describe('fitImageSize()', () => {
-  it('小さい絵はそのままの大きさにすること', () => {
+  it('places a small image at its own size', () => {
     expect(fitImageSize(100, 50, 64)).toEqual({ w: 100, h: 50 });
   });
 
-  it('大きい絵を盤の目 8 つ分に収めること', () => {
+  it('fits a large image into eight cells', () => {
     const fit = fitImageSize(2048, 1024, 64);
 
     expect(fit.w).toBe(512);
     expect(fit.h).toBe(256);
   });
 
-  it('縦横が読めない絵には盤の目 4 つ分を当てること', () => {
+  it('gives an image of unknown size four cells', () => {
     expect(fitImageSize(0, 0, 64)).toEqual({ w: 256, h: 256 });
   });
 });

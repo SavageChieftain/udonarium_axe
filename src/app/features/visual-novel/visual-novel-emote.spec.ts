@@ -6,11 +6,11 @@ import {
 } from '@axe/features/visual-novel/visual-novel-emote';
 
 describe('buildVnEmoteSuffix()', () => {
-  it('すべて既定値なら空文字を返すこと', () => {
+  it('returns nothing when everything is at its default', () => {
     expect(buildVnEmoteSuffix(VN_EMOTE_DEFAULT)).toBe('');
   });
 
-  it('形・吹き出し演出・立ち絵演出・漫符を 〔〕 で連結すること', () => {
+  it('joins the shape, the balloon, the portrait and the mark into one suffix', () => {
     expect(
       buildVnEmoteSuffix({
         kind: 'normal',
@@ -24,7 +24,7 @@ describe('buildVnEmoteSuffix()', () => {
     ).toBe(' 〔叫び・ゆれ・ジャンプ・💢〕');
   });
 
-  it('一部のみ指定でもサフィックスが付くこと', () => {
+  it('writes a suffix for even one of them', () => {
     expect(
       buildVnEmoteSuffix({
         kind: 'normal',
@@ -60,7 +60,7 @@ describe('buildVnEmoteSuffix()', () => {
     ).toBe(' 〔！〕');
   });
 
-  it('新しいトークン（ささやき・ふわふわ・うなずき）も往復できること', () => {
+  it('makes the round trip with the newer tokens as well', () => {
     const suffix = buildVnEmoteSuffix({
       kind: 'normal',
       shape: 'whisper',
@@ -81,7 +81,7 @@ describe('buildVnEmoteSuffix()', () => {
 });
 
 describe('parseVnEmote()', () => {
-  it('発言タイプ（地の文・ロケーション）が往復できること', () => {
+  it('makes it with the kind of line too', () => {
     const narration = buildVnEmoteSuffix({
       kind: 'narration',
       shape: 'normal',
@@ -101,7 +101,7 @@ describe('parseVnEmote()', () => {
     expect(parsedLocation.text).toBe('忘れられた森');
   });
 
-  it('build したサフィックスを正しく復元しテキストから取り除くこと', () => {
+  it('reads a suffix it wrote back and takes it off the text', () => {
     const suffix = buildVnEmoteSuffix({
       kind: 'normal',
       shape: 'thought',
@@ -118,7 +118,7 @@ describe('parseVnEmote()', () => {
     expect(parsed.portraitEmote).toBe('tremble');
   });
 
-  it('サフィックスのないテキストはそのまま返すこと', () => {
+  it('leaves text without one alone', () => {
     const parsed = parseVnEmote('こんにちは');
     expect(parsed.text).toBe('こんにちは');
     expect(parsed.shape).toBe('normal');
@@ -126,27 +126,27 @@ describe('parseVnEmote()', () => {
     expect(parsed.portraitEmote).toBe('none');
   });
 
-  it('未知のトークンを含む 〔〕 は演出として扱わないこと', () => {
+  it('does not read a bracket holding an unknown token as one', () => {
     const parsed = parseVnEmote('メモ 〔重要〕');
     expect(parsed.text).toBe('メモ 〔重要〕');
     expect(parsed.shape).toBe('normal');
   });
 
-  it('同一カテゴリのトークンが重複したら演出として扱わないこと', () => {
+  it('does not read one holding two tokens of a kind as one', () => {
     const parsed = parseVnEmote('やあ 〔ゆれ・ぽよん〕');
     expect(parsed.text).toBe('やあ 〔ゆれ・ぽよん〕');
     expect(parsed.bubbleAnimation).toBe('none');
   });
 
-  it('文中の 〔〕 は末尾でなければ無視されること', () => {
+  it('ignores a bracket that is not at the end', () => {
     const parsed = parseVnEmote('〔叫び〕という表記について');
     expect(parsed.text).toBe('〔叫び〕という表記について');
     expect(parsed.shape).toBe('normal');
   });
 });
 
-describe('parseVnEmote() 反転トークン', () => {
-  it('反転トークンが往復できること', () => {
+describe('the flip token', () => {
+  it('makes the round trip', () => {
     const suffix = buildVnEmoteSuffix({ ...VN_EMOTE_DEFAULT, shape: 'shout', flipped: true });
     expect(suffix).toBe(' 〔叫び・反転〕');
     const parsed = parseVnEmote(`どけっ！${suffix}`);
@@ -155,15 +155,15 @@ describe('parseVnEmote() 反転トークン', () => {
     expect(parsed.flipped).toBe(true);
   });
 
-  it('反転のみのサフィックスも解釈できること', () => {
+  it('reads a suffix that carries nothing else', () => {
     const parsed = parseVnEmote('ふりむく 〔反転〕');
     expect(parsed.flipped).toBe(true);
     expect(parsed.text).toBe('ふりむく');
   });
 });
 
-describe('parseVnEmote() 退場トークン', () => {
-  it('退場トークンが往復できること', () => {
+describe('the exit token', () => {
+  it('makes the round trip', () => {
     const suffix = buildVnEmoteSuffix({ ...VN_EMOTE_DEFAULT, flipped: true, exited: true });
     expect(suffix).toBe(' 〔反転・退場〕');
     const parsed = parseVnEmote(`またね${suffix}`);
@@ -172,19 +172,19 @@ describe('parseVnEmote() 退場トークン', () => {
     expect(parsed.exited).toBe(true);
   });
 
-  it('退場を指定しない発言は exited が false であること', () => {
+  it('leaves a line without one unexited', () => {
     expect(parseVnEmote('やあ 〔叫び〕').exited).toBe(false);
   });
 });
 
 describe('splitVnEmoteSuffix()', () => {
-  it('本文とサフィックスを分離すること', () => {
+  it('parts the body from the suffix', () => {
     const split = splitVnEmoteSuffix('やあ 〔叫び・ゆれ〕');
     expect(split.text).toBe('やあ');
     expect(split.suffix).toBe('〔叫び・ゆれ〕');
   });
 
-  it('サフィックスがなければ suffix は空文字であること', () => {
+  it('returns an empty suffix when there is none', () => {
     const split = splitVnEmoteSuffix('やあ');
     expect(split.text).toBe('やあ');
     expect(split.suffix).toBe('');

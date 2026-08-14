@@ -148,7 +148,7 @@ export class GameCharacterSheetComponent {
 
   onDrop(event: DragEvent, targetId: string) {
     event.preventDefault();
-    // 並べ替えの落下は取り込みの落下ではない。上へ通すと `FileArchiver` まで走る。
+    // Dropping to reorder is not dropping to import; letting it through would reach the archiver.
     event.stopPropagation();
     this.dragOverId.set(null);
     const draggedId = this.dataElementDrag.getDraggedId(event) ?? this._draggedId;

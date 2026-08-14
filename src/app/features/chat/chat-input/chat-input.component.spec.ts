@@ -24,8 +24,8 @@ describe('ChatInputComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  describe('入力中表示', () => {
-    it('入力欄の下には入力中表示用の固定枠を持たないこと', () => {
+  describe('showing who is typing', () => {
+    it('keeps no fixed strip for it under the box', () => {
       fixture.detectChanges();
 
       expect(fixture.nativeElement.querySelector('.writing-info')).toBeNull();

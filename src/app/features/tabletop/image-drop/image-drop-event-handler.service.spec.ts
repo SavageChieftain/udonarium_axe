@@ -17,22 +17,22 @@ describe('isTabletopDropTarget', () => {
     document.body.innerHTML = '';
   });
 
-  it('テーブル層の中の要素なら真', () => {
+  it('is true for an element inside the table layer', () => {
     document.body.innerHTML = '<div id="app-table-layer"><div id="piece"></div></div>';
     expect(isTabletopDropTarget(document.querySelector('#piece'))).toBe(true);
   });
 
-  it('テーブル層そのものでも真', () => {
+  it('is true for the table layer itself', () => {
     document.body.innerHTML = '<div id="app-table-layer"></div>';
     expect(isTabletopDropTarget(document.querySelector('#app-table-layer'))).toBe(true);
   });
 
-  it('テーブル層の外なら偽', () => {
+  it('is false outside it', () => {
     document.body.innerHTML = '<div id="panel"></div><div id="app-table-layer"></div>';
     expect(isTabletopDropTarget(document.querySelector('#panel'))).toBe(false);
   });
 
-  it('要素が無ければ偽', () => {
+  it('is false for nothing at all', () => {
     expect(isTabletopDropTarget(null)).toBe(false);
   });
 });
@@ -86,14 +86,14 @@ describe('ImageDropEventHandlerService', () => {
     TestBed.resetTestingModule();
   });
 
-  it('盤面に落とすとファイル名を名前にしたキャラクターを作る', () => {
+  it('makes a character named after the file dropped on the board', () => {
     setup();
     drop();
 
     expect(createGameCharacterWith).toHaveBeenCalledWith({ x: 100, y: 200, z: 0 }, 'ゴブリン', 'image-1');
   });
 
-  it('盤面の外に落としたら何も作らない', () => {
+  it('makes nothing from a drop outside the board', () => {
     document.body.innerHTML = '<div id="panel"></div>';
     dropTarget = document.querySelector('#panel');
     setup();
@@ -102,7 +102,7 @@ describe('ImageDropEventHandlerService', () => {
     expect(createGameCharacterWith).not.toHaveBeenCalled();
   });
 
-  it('編集権限がなければ何も作らない', () => {
+  it('makes nothing without permission to edit', () => {
     canEditTabletop = false;
     setup();
     drop();
@@ -110,7 +110,7 @@ describe('ImageDropEventHandlerService', () => {
     expect(createGameCharacterWith).not.toHaveBeenCalled();
   });
 
-  it('テーブルの外に落ちた座標はテーブルの中に収める', () => {
+  it('pulls a drop past the edge back onto the table', () => {
     localCoordinate = { x: 4000, y: -300, z: 0 };
     setup();
     drop();
@@ -118,7 +118,7 @@ describe('ImageDropEventHandlerService', () => {
     expect(createGameCharacterWith).toHaveBeenCalledWith({ x: 975, y: 25, z: 0 }, expect.anything(), 'image-1');
   });
 
-  it('落とした先が取れないときは何も作らない', () => {
+  it('makes nothing when it cannot tell where the drop landed', () => {
     dropTarget = null;
     setup();
     drop();

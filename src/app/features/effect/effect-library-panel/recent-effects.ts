@@ -1,4 +1,4 @@
-/** 直近に使ったエフェクト。卓中は同じものを繰り返し撃つので、一覧の先頭へ出す。 */
+/** The effects used lately. The same ones are fired over and over during a session, so they go to the front of the list. */
 
 const STORAGE_KEY = 'axe.effect.recent';
 const MAX_RECENT = 8;
@@ -21,7 +21,7 @@ export function pushRecentEffect(storage: Storage | null, identifier: string): s
   try {
     storage?.setItem(STORAGE_KEY, JSON.stringify(next));
   } catch {
-    /* 保存できなくても一覧は動く */
+    /* The list works even when it cannot save. */
   }
   return next;
 }

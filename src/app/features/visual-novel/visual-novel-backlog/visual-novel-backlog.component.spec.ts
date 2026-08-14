@@ -63,7 +63,7 @@ describe('VisualNovelBacklogComponent', () => {
     resetPeerContextProvider();
   });
 
-  it('ログ行を本文とサフィックスに分離して保持すること', () => {
+  it('keeps a logged line parted into its body and its suffix', () => {
     addMessage('やあ 〔叫び・ゆれ〕');
     createComponent();
 
@@ -72,7 +72,7 @@ describe('VisualNovelBacklogComponent', () => {
     expect(entry.suffix).toBe('〔叫び・ゆれ〕');
   });
 
-  it('キーワードで本文と発言者名を絞り込めること', () => {
+  it('narrows by a word in the body or the name', () => {
     addMessage('森の奥へ進む', 'アリス');
     addMessage('宿屋で休む', 'ボブ');
     createComponent();
@@ -85,7 +85,7 @@ describe('VisualNovelBacklogComponent', () => {
     expect(component.filteredEntries()).toHaveLength(1);
   });
 
-  it('本文・演出・スロットを書き換えて保存できること', () => {
+  it('saves an edit to the body, the effect or the place', () => {
     addMessage('やあ 〔叫び〕', 'アリス', { imageIdentifier: addImage(), imagePos: 2 });
     createComponent();
 
@@ -109,7 +109,7 @@ describe('VisualNovelBacklogComponent', () => {
     expect(component.editingIndex()).toBe(-1);
   });
 
-  it('反転を付け外しできること', () => {
+  it('adds and removes a flip', () => {
     addMessage('ふりむく 〔反転〕', 'アリス', { imageIdentifier: addImage() });
     createComponent();
 
@@ -121,7 +121,7 @@ describe('VisualNovelBacklogComponent', () => {
     expect(TestBed.inject(VisualNovelPlaybackService).messages()[0].text).toBe('ふりむく');
   });
 
-  it('編集をキャンセルすると本文が変わらないこと', () => {
+  it('leaves the body alone on a cancelled edit', () => {
     addMessage('そのまま');
     createComponent();
 
@@ -133,7 +133,7 @@ describe('VisualNovelBacklogComponent', () => {
     expect(TestBed.inject(VisualNovelPlaybackService).messages()[0].text).toBe('そのまま');
   });
 
-  it('大量のログは直近だけを描画し、追加読み込みできること', () => {
+  it('draws only the recent lines of a long log and loads more on request', () => {
     for (let i = 0; i < 260; i++) addMessage(`ログ${i}`);
     createComponent();
 
@@ -148,7 +148,7 @@ describe('VisualNovelBacklogComponent', () => {
     expect(component.hiddenCount()).toBe(0);
   });
 
-  it('行クリックでジャンプ先の位置を通知すること', () => {
+  it('reports where to jump on a click', () => {
     addMessage('m1');
     addMessage('m2');
     createComponent();

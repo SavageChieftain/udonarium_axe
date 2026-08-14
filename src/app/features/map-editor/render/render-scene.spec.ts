@@ -323,7 +323,7 @@ describe('renderScene', () => {
     expect(textCalls.map((c) => c.args[2])).toEqual([1, 1 + 12 * 1.2, 1 + 12 * 1.2 * 2]);
   });
 
-  it('hideTextId で指定した text アイテムは描画されない', () => {
+  it('leaves out the text item it is told to hide', () => {
     const layer: TextLayer = {
       id: 't',
       kind: 'text',
@@ -341,7 +341,7 @@ describe('renderScene', () => {
     expect(ctx.counts('fillText')).toBe(1);
   });
 
-  it('hideTextId 無指定なら全 text を描画する', () => {
+  it('draws every text item when told to hide none', () => {
     const layer: TextLayer = {
       id: 't',
       kind: 'text',

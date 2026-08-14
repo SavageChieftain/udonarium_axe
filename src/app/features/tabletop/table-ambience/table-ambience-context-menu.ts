@@ -5,7 +5,7 @@ import { GROUND_AMBIENCE_KINDS } from '@axe/domain/effect/ambience/ambience-kind
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
 import { TableAmbience } from '@axe/domain/tabletop/table-ambience';
 
-/** 濃さの段。細かく刻んでも見た目が変わらないので 3 段だけ出す。 */
+/** How dense it is. Finer steps look no different, so there are three. */
 const DENSITY_STEPS: readonly { labelKey: string; value: number }[] = [
   { labelKey: 'feature.ambience.densityThin', value: 0.3 },
   { labelKey: 'feature.ambience.densityNormal', value: 0.6 },
@@ -80,7 +80,7 @@ export function buildTableAmbienceContextMenu(
   return menu;
 }
 
-/** 大きさを変えても中心が動かないよう、増えたぶんだけ左上へ寄せる。 */
+/** Moves up and left by half of what it gains, so the centre stays put. */
 function resize(ambience: TableAmbience, size: number, gridSize: number): void {
   const shiftX = ((ambience.width - size) * gridSize) / 2;
   const shiftY = ((ambience.height - size) * gridSize) / 2;

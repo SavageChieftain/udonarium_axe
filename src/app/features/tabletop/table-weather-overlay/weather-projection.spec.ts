@@ -4,7 +4,7 @@ import {
   weatherMaskImage,
 } from '@axe/features/tabletop/table-weather-overlay/weather-projection';
 
-/** 盤面を天井の高さまでの箱として投影した 8 点。奥（上）が短く写る。 */
+/** The board projected as a box up to the ceiling, eight points, the far side foreshortened. */
 const BOX: ScreenPoint[] = [
   { x: 110, y: 300 },
   { x: 290, y: 300 },
@@ -17,16 +17,16 @@ const BOX: ScreenPoint[] = [
 ];
 
 describe('weatherMaskImage()', () => {
-  it('ぼかしながら消すこと', () => {
+  it('fades out rather than stopping', () => {
     const mask = weatherMaskImage(BOX);
 
-    // 多角形で切ると空中に直線の切り口が出て、ガラスの箱を被せたように見える。
+    // Cut by a polygon it shows a straight edge in mid-air, like a glass case over the board.
     expect(mask).not.toContain('polygon');
     expect(mask).toMatch(/^radial-gradient\(/);
     expect(mask).toContain('transparent 100%');
   });
 
-  it('盤面と上空をまとめて覆うこと', () => {
+  it('covers the board and the space above it together', () => {
     const mask = weatherMaskImage(BOX);
     const [radiusX, radiusY] = [...mask.matchAll(/(-?[\d.]+)px/g)].map((match) => Number(match[1]));
 
@@ -34,18 +34,18 @@ describe('weatherMaskImage()', () => {
     expect(radiusY).toBeGreaterThanOrEqual((380 - 120) / 2);
   });
 
-  it('薄れはじめを盤面の外へ出すこと', () => {
-    // 内側で落としはじめると、その輪が板の上に丸く浮いて見える。
+  it('starts fading past the edge of the board', () => {
+    // Starting inside it, the ring floats visibly over the boards.
     const mask = weatherMaskImage(BOX);
     const [radiusX] = [...mask.matchAll(/(-?[\d.]+)px/g)].map((match) => Number(match[1]));
     const solid = Number(/#000 ([\d.]+)%/.exec(mask)![1]);
 
     expect((radiusX * solid) / 100).toBeGreaterThanOrEqual((320 - 80) / 2);
-    // 一段で落とすと縁が輪として出る。途中を挟んで傾きを緩める。
+    // Falling off in one step shows the edge as a ring; a stop in between eases the slope.
     expect([...mask.matchAll(/rgba\(/g)].length).toBeGreaterThanOrEqual(2);
   });
 
-  it('形が取れなければマスクを掛けないこと', () => {
+  it('masks nothing when it cannot work the shape out', () => {
     expect(weatherMaskImage([])).toBe('none');
     expect(weatherMaskImage([{ x: Number.NaN, y: 0 }])).toBe('none');
     expect(weatherMaskImage([{ x: 5, y: 5 }])).toBe('none');
@@ -53,15 +53,15 @@ describe('weatherMaskImage()', () => {
 });
 
 describe('weatherDepthDirection()', () => {
-  it('奥から手前へ向かう角度を返すこと', () => {
+  it('gives the angle from the back of the board to the front', () => {
     const direction = weatherDepthDirection(BOX.slice(0, 4));
 
-    // 奥（画面の上）から手前（下）へ向かうので、真下 180deg のあたりを指す。
+    // Running from the top of the screen to the bottom, it points near straight down.
     expect(direction).toMatch(/deg$/);
     expect(Math.abs(Number(direction.replace('deg', '')))).toBeCloseTo(180, 0);
   });
 
-  it('向きが決まらなければ真下へ塗ること', () => {
+  it('paints straight down when it cannot work the direction out', () => {
     expect(weatherDepthDirection([])).toBe('to bottom');
     expect(
       weatherDepthDirection([

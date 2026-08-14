@@ -4,10 +4,10 @@ export interface ScreenPoint {
 }
 
 /**
- * 盤面の外へどれだけ広げるか。
+ * How far past the board it reaches.
  *
- * 薄れはじめが盤面の内側に入ると、その輪が板の上に丸く浮いて見える。
- * 盤面の縁までは濃さを保ち、消えるまでの道のりはすべて外側へ出す。
+ * A fade that starts inside the board floats over it as a visible ring.
+ * It holds its density to the edge and does all of its fading beyond it.
  */
 const BLEED = 1.55;
 
@@ -16,10 +16,10 @@ function isDrawable(points: readonly ScreenPoint[]): boolean {
 }
 
 /**
- * 天候を盤面のあたりへ寄せるマスク。
+ * The mask that keeps the weather about the board.
  *
- * 多角形で切り抜くと、空中に直線の切り口が出てガラスの箱を被せたように見える。
- * 天候に輪郭は無いので、盤面とその上空を覆う楕円でぼかしながら消す。
+ * Cut out by a polygon it would show a straight edge in mid-air, like a glass case.
+ * Weather has no outline, so an ellipse over the board and the sky above fades it out.
  */
 export function weatherMaskImage(corners: readonly ScreenPoint[]): string {
   if (!isDrawable(corners)) return 'none';
@@ -32,11 +32,11 @@ export function weatherMaskImage(corners: readonly ScreenPoint[]): string {
   const radiusY = ((Math.max(...ys) - Math.min(...ys)) / 2) * BLEED;
   if (radiusX < 1 || radiusY < 1) return 'none';
 
-  // 盤面の縁が来る位置。ここまでは濃さを保ち、残りを使ってゆっくり消す。
+  // Where the edge of the board falls. It holds to there and fades over what is left.
   const edge = 100 / BLEED;
   const stops = [
     `#000 ${edge.toFixed(0)}%`,
-    // 一段で落とすと縁が輪として見える。途中を挟んで傾きを緩める。
+    // Falling off in one step shows the edge as a ring; a stop in between eases the slope.
     `rgba(0, 0, 0, 0.62) ${(edge + (100 - edge) * 0.4).toFixed(0)}%`,
     `rgba(0, 0, 0, 0.22) ${(edge + (100 - edge) * 0.72).toFixed(0)}%`,
     'transparent 100%',
@@ -49,10 +49,10 @@ export function weatherMaskImage(corners: readonly ScreenPoint[]): string {
 }
 
 /**
- * 空気の色を塗る向き。盤面の奥から手前へ向かう角度(deg)を CSS の記法で返す。
+ * Which way the haze is painted: the angle from the back of the board to the front, in css degrees.
  *
- * 画面の上から下へ一律に塗ると、濃くしたときにただの白い板になる。
- * 奥ほど濃く、手前ほど薄くすることで、遠くが霞んで見えなくなる絵になる。
+ * Painted evenly from the top of the screen down, a dense haze is just a white sheet.
+ * Denser at the back and thinner at the front, the distance hazes over instead.
  */
 export function weatherDepthDirection(floorCorners: readonly ScreenPoint[]): string {
   if (!isDrawable(floorCorners) || floorCorners.length < 4) return 'to bottom';
@@ -65,7 +65,7 @@ export function weatherDepthDirection(floorCorners: readonly ScreenPoint[]): str
   const dy = near.y - far.y;
   if (Math.abs(dx) < 0.5 && Math.abs(dy) < 0.5) return 'to bottom';
 
-  // CSS の角度は上向きが 0deg で時計回り。画面座標は y が下向き。
+  // Css angles start pointing up and run clockwise, while screen coordinates run down.
   const degree = (Math.atan2(dx, -dy) * 180) / Math.PI;
   return `${degree.toFixed(1)}deg`;
 }

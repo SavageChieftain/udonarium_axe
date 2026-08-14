@@ -61,21 +61,21 @@ describe('ConnectionQualityComponent', () => {
     vi.restoreAllMocks();
   });
 
-  it('ウィジェットが非表示のときは何も描画しない', () => {
+  it('draws nothing while the widget is hidden', () => {
     vi.spyOn(Network, 'peerContexts', 'get').mockReturnValue([peerContext('peer-a')] as never);
     create(false);
 
     expect(panel()).toBeNull();
   });
 
-  it('ウィジェットが表示のときはパネルを描画する', () => {
+  it('draws the panel while the widget is shown', () => {
     vi.spyOn(Network, 'peerContexts', 'get').mockReturnValue([peerContext('peer-a')] as never);
     create();
 
     expect(panel()).not.toBeNull();
   });
 
-  it('閉じるとウィジェットの表示状態が false になる', () => {
+  it('hides the widget on close', () => {
     vi.spyOn(Network, 'peerContexts', 'get').mockReturnValue([peerContext('peer-a')] as never);
     create();
 
@@ -86,14 +86,14 @@ describe('ConnectionQualityComponent', () => {
     expect(panel()).toBeNull();
   });
 
-  it('接続中のピアごとに1行を作る', () => {
+  it('gives every connected peer a row', () => {
     vi.spyOn(Network, 'peerContexts', 'get').mockReturnValue([peerContext('peer-a'), peerContext('peer-b')] as never);
     create();
 
     expect(internals.links().map((link) => link.peerId)).toEqual(['peer-a', 'peer-b']);
   });
 
-  it('ピアが居なくてもパネル自体は開いたままにする', () => {
+  it('stays open with nobody connected', () => {
     vi.spyOn(Network, 'peerContexts', 'get').mockReturnValue([] as never);
     create();
 
@@ -101,7 +101,7 @@ describe('ConnectionQualityComponent', () => {
     expect(panel()).not.toBeNull();
   });
 
-  it('見出しは最も悪いリンクを示す', () => {
+  it('heads the panel with the worst link', () => {
     vi.spyOn(Network, 'peerContexts', 'get').mockReturnValue([
       peerContext('peer-a'),
       peerContext('peer-b', { session: { ping: 800 } }),
@@ -111,7 +111,7 @@ describe('ConnectionQualityComponent', () => {
     expect(internals.worst()).toBe(PeerLinkQuality.Poor);
   });
 
-  it('中継経由のリンクがあると印を出す', () => {
+  it('marks a link that goes through a relay', () => {
     vi.spyOn(Network, 'peerContexts', 'get').mockReturnValue([
       peerContext('peer-a', { session: { grade: PeerSessionGrade.LOW } }),
     ] as never);
@@ -121,14 +121,14 @@ describe('ConnectionQualityComponent', () => {
     expect(internals.links()[0].isRelayed).toBe(true);
   });
 
-  it('名前が未解決ならピア ID の先頭を出す', () => {
+  it('falls back to the head of the peer id when the name is unknown', () => {
     vi.spyOn(Network, 'peerContexts', 'get').mockReturnValue([peerContext('abcdef123456')] as never);
     create();
 
     expect(internals.links()[0].name).toBe('abcdef');
   });
 
-  it('統計の更新シグナルで再計算する', () => {
+  it('recalculates when the statistics change', () => {
     const contexts = [peerContext('peer-a')];
     vi.spyOn(Network, 'peerContexts', 'get').mockReturnValue(contexts as never);
     create();

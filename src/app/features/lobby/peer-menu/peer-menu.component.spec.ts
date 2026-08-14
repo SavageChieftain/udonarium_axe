@@ -37,16 +37,16 @@ describe('PeerMenuComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('ChangeDetectorRefを使用していないこと', () => {
+  it('asks for no change detector', () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     expect((component as any).changeDetector).toBeUndefined();
   });
 
-  it('myTimeがsignalであること', () => {
+  it('holds the time in a signal', () => {
     expect(typeof component.myTime).toBe('function');
   });
 
-  it('global dragging が解除されたら panel の pointer-events-none も解除されること', async () => {
+  it('lets the panel take the pointer again once the drag ends', async () => {
     await expectPanelDragRecovery(PeerMenuComponent, {
       beforeOpen: () => {
         PeerCursor.createMyCursor();
@@ -54,7 +54,7 @@ describe('PeerMenuComponent', () => {
     });
   });
 
-  it('プライベート接続UIを表示しないこと', () => {
+  it('leaves the private connection controls out', () => {
     PeerCursor.createMyCursor();
     fixture.detectChanges();
 
@@ -62,7 +62,7 @@ describe('PeerMenuComponent', () => {
     expect(root.textContent).not.toContain('プライベート接続');
   });
 
-  describe('自己ロール昇格の制限', () => {
+  describe('promoting yourself', () => {
     beforeEach(() => {
       PeerCursor.createMyCursor();
     });
@@ -73,29 +73,29 @@ describe('PeerMenuComponent', () => {
       gm.initialize();
     }
 
-    it('GM が在室なら非GM は GM を自己割り当てできない', () => {
+    it('will not make you the game master while there is one', () => {
       addGameMasterPeer();
       PeerCursor.myCursor.role = PeerRole.Player;
       expect(component.isRoleSelfAssignable(PeerRole.GameMaster)).toBe(false);
     });
 
-    it('GM が不在なら非GM でも GM を自己割り当てできる（復旧）', () => {
+    it('will while there is none, so the room can recover', () => {
       PeerCursor.myCursor.role = PeerRole.Player;
       expect(component.isRoleSelfAssignable(PeerRole.GameMaster)).toBe(true);
     });
 
-    it('非GM でも Player / Guest は自己割り当てできる', () => {
+    it('lets anybody take the player or guest role', () => {
       PeerCursor.myCursor.role = PeerRole.Guest;
       expect(component.isRoleSelfAssignable(PeerRole.Player)).toBe(true);
       expect(component.isRoleSelfAssignable(PeerRole.Guest)).toBe(true);
     });
 
-    it('GM は GM を保持できる', () => {
+    it('lets the game master keep it', () => {
       PeerCursor.myCursor.role = PeerRole.GameMaster;
       expect(component.isRoleSelfAssignable(PeerRole.GameMaster)).toBe(true);
     });
 
-    it('GM 在室時に setMyRole(GameMaster) を非GM が呼んでも昇格しない', () => {
+    it('refuses the promotion outright while somebody holds it', () => {
       addGameMasterPeer();
       PeerCursor.myCursor.role = PeerRole.Player;
       component.setMyRole(PeerRole.GameMaster);
@@ -104,7 +104,7 @@ describe('PeerMenuComponent', () => {
   });
 
   describe('findPeerTimeReceive', () => {
-    it('存在するピアの timestampReceive を返す', () => {
+    it('returns when a peer was last heard from', () => {
       const cursor = new PeerCursor();
       cursor.initialize();
       cursor.peerId = 'peer-test';
@@ -113,7 +113,7 @@ describe('PeerMenuComponent', () => {
       expect(component.findPeerTimeReceive('peer-test')).toBe(1234567890);
     });
 
-    it('timestampReceive 未更新のピアは -1 を返す', () => {
+    it('returns nothing for a peer not yet heard from', () => {
       const cursor = new PeerCursor();
       cursor.initialize();
       cursor.peerId = 'peer-new';
@@ -121,13 +121,13 @@ describe('PeerMenuComponent', () => {
       expect(component.findPeerTimeReceive('peer-new')).toBe(-1);
     });
 
-    it('存在しないピアは 0 を返す', () => {
+    it('returns zero for a peer that is not there', () => {
       expect(component.findPeerTimeReceive('nonexistent')).toBe(0);
     });
   });
 
   describe('findPeerTimeLatency', () => {
-    it('存在するピアのレイテンシを秒単位で返す', () => {
+    it('returns the latency of a peer in seconds', () => {
       const cursor = new PeerCursor();
       cursor.initialize();
       cursor.peerId = 'peer-lat';
@@ -136,13 +136,13 @@ describe('PeerMenuComponent', () => {
       expect(component.findPeerTimeLatency('peer-lat')).toBe(0.5);
     });
 
-    it('存在しないピアは "--" を返す', () => {
+    it('returns a dash for one that is not there', () => {
       expect(component.findPeerTimeLatency('nonexistent')).toBe('--');
     });
   });
 
   describe('findPeerDegreeOfSuccess', () => {
-    it('firstTimeSignNo が未設定（-1）なら "0/0" を返す', () => {
+    it('returns none of none before the first beat', () => {
       const cursor = new PeerCursor();
       cursor.initialize();
       cursor.peerId = 'peer-deg';
@@ -150,11 +150,11 @@ describe('PeerMenuComponent', () => {
       expect(component.findPeerDegreeOfSuccess('peer-deg')).toBe('0/0');
     });
 
-    it('存在しないピアは "0/0" を返す', () => {
+    it('returns none of none for a peer that is not there', () => {
       expect(component.findPeerDegreeOfSuccess('nonexistent')).toBe('0/0');
     });
 
-    it('ハートビート統計から成功率を計算する', () => {
+    it('works the success rate out of the heartbeats', () => {
       const cursor = new PeerCursor();
       cursor.initialize();
       cursor.peerId = 'peer-stat';
@@ -165,7 +165,7 @@ describe('PeerMenuComponent', () => {
       expect(component.findPeerDegreeOfSuccess('peer-stat')).toBe('10/10');
     });
 
-    it('一部のハートビートが欠落した場合の成功率', () => {
+    it('with some of them missed', () => {
       const cursor = new PeerCursor();
       cursor.initialize();
       cursor.peerId = 'peer-loss';

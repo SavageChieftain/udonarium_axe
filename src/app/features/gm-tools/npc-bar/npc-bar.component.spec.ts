@@ -44,7 +44,7 @@ describe('NpcBarComponent', () => {
     store.clearDeleteHistory();
   });
 
-  it('NPC を一覧する（墓場は除外）', () => {
+  it('lists the non-player characters, leaving out the graveyard', () => {
     makeCharacter('モンスターA', { isNpc: true });
     makeCharacter('モンスターB', { isNpc: true });
     makeCharacter('プレイヤー', { isNpc: false });
@@ -57,7 +57,7 @@ describe('NpcBarComponent', () => {
     expect(names).toEqual(['モンスターA', 'モンスターB']);
   });
 
-  it('select: アクティブなチャットパレットがあればそのキャラへ切り替える', () => {
+  it('switches an open palette to that character', () => {
     const registry = TestBed.inject(ChatPaletteRegistryService);
     const handle = { setCharacterById: vi.fn() };
     registry.register(handle);
@@ -69,7 +69,7 @@ describe('NpcBarComponent', () => {
     expect(panelStub.openLazy).not.toHaveBeenCalled();
   });
 
-  it('select: アクティブが無ければチャットパレットを開く', () => {
+  it('opens one when none is', () => {
     const npc = makeCharacter('B', { isNpc: true });
 
     (component as unknown as NpcBarInternals).select(npc);
@@ -77,7 +77,7 @@ describe('NpcBarComponent', () => {
     expect(panelStub.openLazy).toHaveBeenCalledTimes(1);
   });
 
-  it('unregister: isNpc=false にして登録を解除する', () => {
+  it('takes a character off the list', () => {
     const character = makeCharacter('D', { isNpc: true });
     expect(component.npcs()).toContain(character);
 

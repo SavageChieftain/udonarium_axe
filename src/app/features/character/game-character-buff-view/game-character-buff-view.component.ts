@@ -24,7 +24,7 @@ export class GameCharacterBuffViewComponent {
   readonly character = signal<GameCharacter | null>(null);
   readonly isEdit = signal(false);
 
-  /** buffDataElement の children 配列をリアクティブに追跡する Signal */
+  /** Follows the children of the buff element. */
   protected readonly buffChildren = computed<DataElement[]>(() => {
     const char = this.character();
     const buffEl = char?.buffDataElement;

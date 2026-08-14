@@ -7,16 +7,16 @@ import {
 import type { DataElementDropPosition } from '@axe/features/data-element/game-data-element/game-data-element-structure-drop';
 
 /**
- * 項目の並びを組み替える。
+ * Rearranges the items.
  *
- * 置けるかどうかの判断は `-structure-drop` が持つ。ここは**動かす・作る**だけ。
+ * Whether a drop is allowed is settled elsewhere; this only **moves and makes**.
  *
- * 新しく作るときは、兄弟と重ならない名前を付ける（同じ名前が並ぶと、パレットや式からの
- * 参照がどちらを指すか決まらない）。動かすときは名前に触らない — 名乗りを変えられると、
- * 動かした側は自分のコマを見失う。
+ * Something new is given a name no sibling has, since two of a name leave a palette or a
+ * formula unable to say which it means. Moving touches no name — renamed under them, whoever
+ * moved it would lose track of their own piece.
  */
 
-/** 新しく作る項目の既定の名前。画面の言葉に合わせるので、呼ぶ側が渡す。 */
+/** The default name for something new. It follows the interface language, so the caller supplies it. */
 export interface NewElementNames {
   field: string;
   group: string;
@@ -28,9 +28,9 @@ export interface StructureMove {
 }
 
 /**
- * 掴んだ項目を、置き先へ移す。
+ * Moves what was picked up to where it was dropped.
  *
- * 動かせなかったときは null。動かせたときは、知らせるべき親を返す。
+ * Null when it could not move; otherwise the parent that should hear about it.
  */
 export function moveStructureElement(
   dragged: DataElement,
@@ -55,7 +55,7 @@ export function moveStructureElement(
   return { newParent: parent, oldParent };
 }
 
-/** 置き先の次の兄弟の前へ入れる。次が無ければ末尾へ。 */
+/** It goes in front of the next sibling, or at the end when there is none. */
 export function insertElementAfter(element: DataElement, target: DataElement, parent: DataElement): void {
   const index = parent.children.indexOf(target);
   const next = parent.children[index + 1];
@@ -63,7 +63,7 @@ export function insertElementAfter(element: DataElement, target: DataElement, pa
   else parent.appendChild(element);
 }
 
-/** 値を持つ項目を 1 つ作る。 */
+/** Makes one item that holds a value. */
 export function createFieldElement(
   parent: DataElement,
   names: NewElementNames,
@@ -79,9 +79,9 @@ export function createFieldElement(
 }
 
 /**
- * 項目を束ねる組を 1 つ作る。
+ * Makes one group to gather items into.
  *
- * 空の組は画面上で掴みどころが無いので、中身を 1 つ入れた状態で返す。
+ * An empty group gives the eye nothing to hold, so it comes back with one thing inside.
  */
 export function createGroupElement(
   parent: DataElement,

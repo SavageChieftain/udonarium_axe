@@ -60,31 +60,31 @@ describe('RoomRestoreBannerComponent', () => {
     TestBed.resetTestingModule();
   });
 
-  it('未接続で復元候補があればバナーを表示する', async () => {
+  it('shows the banner offline when there is something to restore', async () => {
     await setup();
     expect(banner()).not.toBeNull();
     expect(fixture.nativeElement.textContent).toContain('2026/07/03 09:05');
   });
 
-  it('復元候補がなければ表示しない', async () => {
+  it('shows none when there is nothing', async () => {
     snapshots.set([]);
     await setup();
     expect(banner()).toBeNull();
   });
 
-  it('ルーム接続中は表示しない', async () => {
+  it('shows none while it is in a room', async () => {
     vi.spyOn(Network, 'peerContext', 'get').mockReturnValue({ roomName: 'room' } as IPeerContext);
     await setup();
     expect(banner()).toBeNull();
   });
 
-  it('編集権限がなければ表示しない', async () => {
+  it('shows none without permission to edit', async () => {
     PeerCursor.myCursor.role = PeerRole.Guest;
     await setup();
     expect(banner()).toBeNull();
   });
 
-  it('復元を押すと最新スナップショットを復元してバナーを閉じる', async () => {
+  it('restores the latest snapshot and closes the banner', async () => {
     await setup();
     banner()!.click();
     await fixture.whenStable();
@@ -94,7 +94,7 @@ describe('RoomRestoreBannerComponent', () => {
     expect(banner()).toBeNull();
   });
 
-  it('あとで を押すとバナーを閉じる', async () => {
+  it('closes it on a later', async () => {
     await setup();
     const buttons = fixture.nativeElement.querySelectorAll('button') as NodeListOf<HTMLElement>;
     buttons[1].click();

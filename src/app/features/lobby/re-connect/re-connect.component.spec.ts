@@ -29,15 +29,15 @@ describe('ReConnectComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('再接続時は保持済みuserIdを優先すること', () => {
+  it('keeps the user identifier it held through a reconnection', () => {
     expect(resolveReconnectUserId('persisted-user', 'current-user')).toBe('persisted-user');
   });
 
-  it('保持済みがない場合は現在のuserIdを使うこと', () => {
+  it('falls back to the current one when it held none', () => {
     expect(resolveReconnectUserId('', 'current-user')).toBe('current-user');
   });
 
-  it('期待ピア一覧から自分自身を除外すること', () => {
+  it('leaves itself out of the peers it waits for', () => {
     const peerContexts = [PeerContext.parse('self-peer'), PeerContext.parse('peer-a'), PeerContext.parse('peer-b')];
 
     const expected = createExpectedPeerIdSet(peerContexts, 'self-peer');
@@ -47,7 +47,7 @@ describe('ReConnectComponent', () => {
     expect(expected.has('peer-b')).toBe(true);
   });
 
-  it('期待ピアが全て観測されたときのみ再接続完了と判定すること', () => {
+  it('counts the reconnection done only once every one of them is back', () => {
     const expected = new Set(['peer-a', 'peer-b']);
 
     expect(isReconnectCompleted(expected, new Set())).toBe(false);
@@ -55,7 +55,7 @@ describe('ReConnectComponent', () => {
     expect(isReconnectCompleted(expected, new Set(['peer-a', 'peer-b']))).toBe(true);
   });
 
-  it('forceCleanup 無効時は deleteObject を実行しないこと', () => {
+  it('deletes nothing without being told to clean up', () => {
     component.networkService = {
       peerContext: { userId: 'current-user' },
     } as unknown as typeof Network;
@@ -75,7 +75,7 @@ describe('ReConnectComponent', () => {
     expect(connectSpy).toHaveBeenCalledOnce();
   });
 
-  it('forceCleanup 有効時は deleteObject を実行すること', () => {
+  it('deletes when it is', () => {
     component.networkService = {
       peerContext: { userId: 'current-user' },
     } as unknown as typeof Network;

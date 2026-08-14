@@ -9,12 +9,12 @@ import { parseEffectChatToken } from '@axe/domain/effect/effect-chat-token';
 import { EffectPreset } from '@axe/domain/effect/effect-preset';
 
 /**
- * チャット本文の演出トークン（`《爆炎》`）で演出を出す。
+ * Fires an effect from a token in the body of a chat line.
  *
- * 送った本人だけが発火する。`EffectCastService.fire()` が全員へ配るので、
- * 受け取った側でも走らせると人数ぶん重なってしまう。
+ * Only the sender fires it. The cast service hands it to everybody, so firing it at the
+ * receiving end as well would play it once per player.
  *
- * 対象はリソース操作（`t:HP-10`）と同じものを使う。1 行で「ダイス → ダメージ → 演出」が揃う。
+ * It aims at whatever the resource change aims at, so one line covers the roll, the damage and the effect.
  */
 @Injectable({ providedIn: 'root' })
 export class EffectChatEventHandlerService {
@@ -50,7 +50,7 @@ export class EffectChatEventHandlerService {
     return targets.slice(0, preset.targetLimit);
   }
 
-  /** 喋ったコマを撃ち手にする。選択中のコマではなく、その行の発言者が撃つ。 */
+  /** It is cast by the piece that spoke, not by whatever is selected. */
   private casterOf(message: ChatMessage): GameCharacter | null {
     const character = this.objectStore.get<GameCharacter>(message.sendFrom);
     return character instanceof GameCharacter ? character : null;

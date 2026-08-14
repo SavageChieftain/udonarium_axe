@@ -24,7 +24,7 @@ describe('RoomSettingComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('global dragging が解除されたら panel の pointer-events-none も解除されること', async () => {
+  it('lets the panel take the pointer again once the drag ends', async () => {
     await expectPanelDragRecovery(RoomSettingComponent, {
       beforeOpen: () => {
         PeerCursor.createMyCursor();

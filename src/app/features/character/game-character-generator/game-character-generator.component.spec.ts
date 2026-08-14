@@ -24,13 +24,13 @@ describe('GameCharacterGeneratorComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('tableBackgroundImageの初期値が空のImageFileであること', () => {
+  it('starts with no background image', () => {
     const image = component.tableBackgroundImage();
     expect(image).toBeInstanceOf(ImageFile);
     expect(image.identifier).toBe('null');
   });
 
-  it('global dragging が解除されたら panel の pointer-events-none も解除されること', async () => {
+  it('lets the panel take the pointer again once the drag ends', async () => {
     await expectPanelDragRecovery(GameCharacterGeneratorComponent);
   });
 });

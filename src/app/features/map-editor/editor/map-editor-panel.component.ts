@@ -229,7 +229,7 @@ export class MapEditorPanelComponent implements AfterViewInit {
   private readonly pendingStamps = new Set<string>();
   private readonly pendingImages = new Set<string>();
 
-  /** 押してから離すまでのあいだだけ値が入る、引きかけの 1 手。 */
+  /** The gesture under way, holding values only between press and release. */
   private readonly gesture = new MapEditorGesture();
 
   protected readonly cursorCell = signal<{ col: number; row: number } | null>(null);
@@ -492,15 +492,15 @@ export class MapEditorPanelComponent implements AfterViewInit {
   }
 
   /**
-   * 下書きを描くのに要るものを、描く前に揃える。
+   * Gathers what the draft needs before the drawing starts.
    *
-   * 絵の読み込みはここで始める。描く関数の中から始めると、描くたびに走る。
+   * Images are loaded here; starting a load from inside the drawing would run it every frame.
    */
   private overlayState(): EditorOverlay {
     const state = this.state;
     const tool = state.tool();
-    // 道具に関わる設定は、描いている最中だけ読む。読んだ分だけ描き直しの引き金が増え、
-    // 道具箱で選び替えただけで地図全体を塗り直すことになる。
+    // The tool settings are read only while drawing. Every one read is another thing that
+    // triggers a repaint, and switching tools would redraw the whole map.
     const drafting = !!this.gesture.draftStart || !!this.gesture.draftCurrent || this.gesture.draftPoints.length > 0;
     const isLine = drafting && (tool === 'line' || tool === 'polygon');
     const isErase = tool === 'cellErase';
@@ -530,7 +530,7 @@ export class MapEditorPanelComponent implements AfterViewInit {
   }
 
   private overlayStamp(): OverlayStamp | null {
-    // 道具を先に見る。先に設定を読むと、その道具を選んでいない間の変更でも盤が描き直される。
+    // The tool is read first; reading a setting first would repaint the board for changes made while another tool was selected.
     if (this.state.tool() !== 'stamp' || !this.gesture.lastMove) return null;
     const stampId = this.state.stampId();
     if (!stampId) return null;
@@ -619,10 +619,10 @@ export class MapEditorPanelComponent implements AfterViewInit {
   }
 
   /**
-   * その道具でいま行う手つき。
+   * The gesture this tool makes.
    *
-   * 道具の名前だけでは決まらない。線は種類で「引いて離す」と「点を置いていく」に
-   * 分かれ、消しゴムは相手がマスか図形かで変わる。分岐はここだけに置く。
+   * The tool name alone does not decide it: a line either drags out or places points by
+   * its kind, and the eraser depends on what it is erasing. The branching lives only here.
    */
   private gestureKindOf(tool: EditorTool): GestureKind {
     switch (tool) {
@@ -653,7 +653,7 @@ export class MapEditorPanelComponent implements AfterViewInit {
     }
   }
 
-  /** 押している最中は押した時点の手つき、そうでなければいまの道具のもの。 */
+  /** The gesture from the press while one is under way, and the current tool's otherwise. */
   private currentKind(): GestureKind {
     return this.gesture.dragging ? this.gesture.kind : this.gestureKindOf(this.state.tool());
   }
@@ -770,7 +770,7 @@ export class MapEditorPanelComponent implements AfterViewInit {
     this.gesture.dragging = false;
   }
 
-  /** 押していないあいだの下書き。次に置く点や塗る先を見せておく。 */
+  /** The preview between presses, showing where the next point or the next fill would go. */
   private previewHover(pos: { x: number; y: number }, kind: GestureKind): void {
     if (kind === 'path') this.gesture.draftCurrent = { x: pos.x, y: pos.y };
     if (kind === 'paint' || kind === 'vectorErase' || kind === 'fill' || kind === 'path') this.bumpDraft();
@@ -891,7 +891,7 @@ export class MapEditorPanelComponent implements AfterViewInit {
 
     const w = Math.abs(to.x - from.x);
     const h = Math.abs(to.y - from.y);
-    // 点のような大きさは置き損ない。押しただけで小さな図形が散るのを避ける。
+    // Anything the size of a point was a misfire, and a press alone should not scatter small shapes.
     if (w > 2 || h > 2) {
       if (this.state.tool() === 'line') {
         this.state.addShapeItem('line', [from.x, from.y, to.x, to.y], null);
@@ -1485,7 +1485,7 @@ export class MapEditorPanelComponent implements AfterViewInit {
 
   protected onLayerDrop(target: MapLayer, event: DragEvent): void {
     event.preventDefault();
-    // 並べ替えの落下は取り込みの落下ではない。上へ通すと `FileArchiver` まで走る。
+    // Dropping to reorder is not dropping to import; letting it through would reach the archiver.
     event.stopPropagation();
     const draggedId = this.draggingLayerId();
     this.draggingLayerId.set(null);

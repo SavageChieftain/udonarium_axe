@@ -11,7 +11,7 @@ export interface EffectLibraryMenuCallbacks {
   onRemove: () => void;
 }
 
-/** エフェクト集のタイルを右クリックしたときの操作。 */
+/** What a right click on a tile in the effect library offers. */
 export function buildEffectLibraryContextMenu(
   preset: EffectPreset,
   callbacks: EffectLibraryMenuCallbacks,

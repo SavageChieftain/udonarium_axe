@@ -14,9 +14,9 @@ export class NetworkEventHandlerService {
   private readonly chatMessageService = inject(ChatMessageService);
 
   /**
-   * server-error（トークンバックエンドに到達できない）時の自動再接続の上限とバックオフ。
-   * トークン取得側のリトライで吸収しきれない長いコールドスタートに備えつつ、
-   * 恒久障害での無限再接続ループ（システムメッセージ連発）を上限で防ぐ。
+   * How often and how slowly it reconnects after a server error, meaning the token backend is out of reach.
+   * It covers a cold start too long for the retries on the token itself to absorb, while
+   * the limit keeps a permanent failure from looping forever and filling the chat.
    */
   private static readonly MAX_SERVER_ERROR_RECONNECTS = 3;
   private static readonly SERVER_ERROR_RECONNECT_BACKOFF_MS = [3000, 8000, 15000];
@@ -51,8 +51,8 @@ export class NetworkEventHandlerService {
       const quietErrorTypes = ['peer-unavailable'];
       if (quietErrorTypes.includes(errorType)) return;
 
-      // server-error はコールドスタートの遅延を見込み、回数上限つきでバックオフ再接続する。
-      // 上限を超えたら恒久障害とみなして通知し、無限ループを避けて打ち切る。
+      // A server error may be a slow cold start, so it backs off and tries again a few times.
+      // Past the limit it treats the failure as permanent, says so and stops rather than looping.
       if (errorType === 'server-error') {
         this.handleServerErrorReconnect();
         return;

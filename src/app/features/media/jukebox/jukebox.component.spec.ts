@@ -58,7 +58,7 @@ describe('JukeboxComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('global dragging が解除されたら panel の pointer-events-none も解除されること', async () => {
+  it('lets the panel take the pointer again once the drag ends', async () => {
     await expectPanelDragRecovery(JukeboxComponent, {
       beforeOpen: () => {
         ensureJukeboxAndLauncher();
@@ -67,14 +67,14 @@ describe('JukeboxComponent', () => {
   });
 
   describe('getTagOf / setTagOf', () => {
-    it('AudioTag が未設定の場合デフォルトは BGM', () => {
+    it('calls an untagged track music', () => {
       const audio = makeReadyAudio('tag-test-01');
       AudioStorage.instance.add(audio);
 
       expect(component.getTagOf(audio)).toBe('BGM');
     });
 
-    it('AudioTag が設定済みならそのタグを返す', () => {
+    it('returns the tag a track carries', () => {
       const audio = makeReadyAudio('tag-test-02');
       AudioStorage.instance.add(audio);
       const tag = AudioTag.create('tag-test-02');
@@ -83,7 +83,7 @@ describe('JukeboxComponent', () => {
       expect(component.getTagOf(audio)).toBe('SE');
     });
 
-    it('setTagOf で新しいタグを設定できる', () => {
+    it('sets a tag on a track that has none', () => {
       const audio = makeReadyAudio('tag-test-03');
       AudioStorage.instance.add(audio);
 
@@ -94,7 +94,7 @@ describe('JukeboxComponent', () => {
       expect(tag!.tag).toBe('環境音');
     });
 
-    it('setTagOf で既存タグを変更できる', () => {
+    it('changes the tag a track carries', () => {
       const audio = makeReadyAudio('tag-test-04');
       AudioStorage.instance.add(audio);
       AudioTag.create('tag-test-04');
@@ -105,7 +105,7 @@ describe('JukeboxComponent', () => {
   });
 
   describe('playBGM / stopBGM', () => {
-    it('playBGM で cutInLauncher.stopBlankTagCutIn と jukebox.play が呼ばれる', () => {
+    it('stops the untagged cut-ins and plays the music', () => {
       const audio = makeReadyAudio('play-bgm-01');
       AudioStorage.instance.add(audio);
 
@@ -118,7 +118,7 @@ describe('JukeboxComponent', () => {
       expect(playSpy).toHaveBeenCalledWith('play-bgm-01', true); // BGM → loop=true
     });
 
-    it('playBGM で SE タグなら loop=false で再生する', () => {
+    it('plays a sound effect once rather than looping it', () => {
       const audio = makeReadyAudio('play-se-01');
       AudioStorage.instance.add(audio);
       const tag = AudioTag.create('play-se-01');
@@ -132,14 +132,14 @@ describe('JukeboxComponent', () => {
       expect(playSpy).toHaveBeenCalledWith('play-se-01', false); // SE → loop=false
     });
 
-    it('stopBGM で再生中の audio が一致する場合のみ停止する', () => {
+    it('stops the music only when it is the track that is playing', () => {
       const audio = makeReadyAudio('stop-bgm-01');
       AudioStorage.instance.add(audio);
 
       vi.spyOn(AudioPlayer.prototype, 'play').mockImplementation(() => {});
       vi.spyOn(AudioPlayer.prototype, 'stop').mockImplementation(() => {});
 
-      // jukebox.audio が一致する場合
+      // when the jukebox is playing that track
       component.jukebox.audioIdentifier = 'stop-bgm-01';
       const stopSpy = vi.spyOn(component.jukebox, 'stop').mockImplementation(() => {});
 
@@ -147,7 +147,7 @@ describe('JukeboxComponent', () => {
       expect(stopSpy).toHaveBeenCalledOnce();
     });
 
-    it('stopBGM で再生中の audio が異なる場合は停止しない', () => {
+    it('leaves another track playing alone', () => {
       const audio = makeReadyAudio('stop-bgm-02');
       AudioStorage.instance.add(audio);
 
@@ -163,7 +163,7 @@ describe('JukeboxComponent', () => {
   });
 
   describe('stopSE / isSePlaying', () => {
-    it('stopSE で jukebox.stopSE を identifier で呼ぶ', () => {
+    it('stops a sound effect by identifier', () => {
       const audio = makeReadyAudio('se-stop-01');
       const stopSpy = vi.spyOn(component.jukebox, 'stopSE').mockImplementation(() => {});
 
@@ -172,7 +172,7 @@ describe('JukeboxComponent', () => {
       expect(stopSpy).toHaveBeenCalledWith('se-stop-01');
     });
 
-    it('isSePlaying は jukebox.isSePlaying の結果を返す', () => {
+    it('reports whether an effect is playing', () => {
       const audio = makeReadyAudio('se-playing-01');
       vi.spyOn(component.jukebox, 'isSePlaying').mockReturnValue(true);
 

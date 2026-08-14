@@ -22,7 +22,7 @@ describe('NpcDragService', () => {
     store.clearDeleteHistory();
   });
 
-  it('begin / move でドラッグ中のキャラと座標を保持する', () => {
+  it('holds the character and the point through a drag', () => {
     const service = new NpcDragService();
     const npc = makeCharacter('A');
     service.begin(npc, 10, 20);
@@ -34,7 +34,7 @@ describe('NpcDragService', () => {
     expect(service.y()).toBe(40);
   });
 
-  it('end(true) で isNpc=true に登録し、状態を解除する', () => {
+  it('registers the character on a drop and lets go', () => {
     const service = new NpcDragService();
     const npc = makeCharacter('B', false);
     service.begin(npc);
@@ -43,7 +43,7 @@ describe('NpcDragService', () => {
     expect(service.character()).toBeNull();
   });
 
-  it('end(false) では登録せず、状態だけ解除する', () => {
+  it('registers nothing on a cancel and lets go all the same', () => {
     const service = new NpcDragService();
     const npc = makeCharacter('C', false);
     service.begin(npc);

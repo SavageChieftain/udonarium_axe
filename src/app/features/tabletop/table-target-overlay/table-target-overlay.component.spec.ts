@@ -28,14 +28,14 @@ describe('TableTargetOverlayComponent', () => {
     for (const card of created.splice(0)) card.destroy();
   });
 
-  it('ターゲットが無ければ何も描かないこと', () => {
+  it('draws nothing without a target', () => {
     makeCard(0, 0);
     fixture.detectChanges();
 
     expect(fixture.nativeElement.querySelectorAll('div')).toHaveLength(0);
   });
 
-  it('矢印 1 本につき軸と矢じりを描くこと', () => {
+  it('draws a shaft and a head for each arrow', () => {
     const source = makeCard(0, 0);
     const target = makeCard(300, 0);
     source.targetIdentifier = target.identifier;

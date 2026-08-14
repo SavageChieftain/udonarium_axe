@@ -21,8 +21,8 @@ describe('TableWeatherOverlayComponent', () => {
     table.initialize();
     TableSelecter.instance.viewTableIdentifier = table.identifier;
 
-    // 粒の中身は domain 側の spec で確かめる。ここは置き方だけを見るので、
-    // 実行環境ごとに出来が違う 2D コンテキストは掴ませない。
+    // What the particles look like is settled by the domain specs. This watches only the
+    // placement, so it never takes hold of a 2D context, which differs between runtimes.
     vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue(null as never);
 
     fixture = TestBed.createComponent(TableWeatherOverlayComponent);
@@ -37,14 +37,14 @@ describe('TableWeatherOverlayComponent', () => {
     return fixture.nativeElement as HTMLElement;
   }
 
-  it('天候が無ければ何も描かないこと', () => {
+  it('draws nothing without weather', () => {
     fixture.detectChanges();
 
     expect(element().querySelectorAll('div')).toHaveLength(0);
     expect(element().querySelectorAll('effect-canvas')).toHaveLength(0);
   });
 
-  it('天候を選ぶと画面いっぱいの塗りを敷くこと', () => {
+  it('lays a full-screen wash under the chosen weather', () => {
     table.weatherKind = 'fog';
     fixture.detectChanges();
 
@@ -53,15 +53,15 @@ describe('TableWeatherOverlayComponent', () => {
     expect(wash!.style.background.length).toBeGreaterThan(0);
   });
 
-  it('大きさが測れるまでは粒を描かないこと', () => {
-    // ResizeObserver が動かないうちに描くと、幅 0 の canvas を作ってしまう。
+  it('draws no particles before it knows its size', () => {
+    // Drawing before the observer has run would make a canvas no pixels wide.
     table.weatherKind = 'rain';
     fixture.detectChanges();
 
     expect(element().querySelectorAll('effect-canvas')).toHaveLength(0);
   });
 
-  it('大きさが決まれば粒を canvas へ描くこと', () => {
+  it('draws them once the size is known', () => {
     table.weatherKind = 'rain';
     fixture.componentInstance['size'].set({ width: 1280, height: 720 });
     fixture.detectChanges();
@@ -69,7 +69,7 @@ describe('TableWeatherOverlayComponent', () => {
     expect(element().querySelectorAll('effect-canvas')).toHaveLength(1);
   });
 
-  it('描いたあとに天候を選んでも反映されること', async () => {
+  it('takes a change of weather after it has drawn', async () => {
     fixture.detectChanges();
     expect(element().querySelectorAll('div')).toHaveLength(0);
 
@@ -80,28 +80,28 @@ describe('TableWeatherOverlayComponent', () => {
     expect(element().querySelector<HTMLElement>('div')?.style.background.length).toBeGreaterThan(0);
   });
 
-  describe('降る範囲', () => {
-    it('天候が無ければマスクを掛けないこと', () => {
+  describe('how far it falls', () => {
+    it('masks nothing without weather', () => {
       fixture.detectChanges();
       expect(fixture.componentInstance.maskImage()).toBe('none');
     });
 
-    it('盤面の位置が分からないうちはマスクを掛けないこと', () => {
-      // 盤面がまだ組み上がっていない間に投影すると、原点だけの潰れた形になる。
+    it('masks nothing before it knows where the board is', () => {
+      // Projected before the board is laid out, it collapses onto the origin.
       table.weatherKind = 'rain';
       fixture.detectChanges();
       expect(fixture.componentInstance.maskImage()).toBe('none');
     });
   });
 
-  it('パネルより前に出ないこと', () => {
-    // パネルは重ね順を指定しない。天候が重ね順を持つと、上に被さってしまう。
+  it('stays behind the panels', () => {
+    // The panels set no stacking order, so weather that has one would cover them.
     const host = fixture.nativeElement as HTMLElement;
     expect(host.className).not.toMatch(/(^|\s)z-/);
     expect(host.style.zIndex).toBe('');
   });
 
-  it('置きっぱなしの描画ループを止めないこと', () => {
+  it('leaves no drawing loop running behind it', () => {
     const playback = TestBed.inject(EffectPlaybackService);
     const spy = vi.spyOn(playback, 'setPersistent');
 

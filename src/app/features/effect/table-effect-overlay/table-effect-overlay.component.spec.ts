@@ -29,18 +29,18 @@ describe('TableEffectOverlayComponent', () => {
     ObjectStore.instance.remove(preset);
   });
 
-  /** 配置を担う外側の層だけを取る。内側は見た目と CSS アニメーション用。 */
+  /** Only the outer layer, which places it; the inner one carries the look and the animation. */
   function outerLayers(): HTMLElement[] {
     return Array.from((fixture.nativeElement as HTMLElement).querySelectorAll(':scope > div'));
   }
 
-  it('再生中のエフェクトが無ければ何も描かないこと', () => {
+  it('draws nothing with no effect playing', () => {
     fixture.detectChanges();
 
     expect(fixture.nativeElement.querySelectorAll('div')).toHaveLength(0);
   });
 
-  it('発火を受けたらスプライトを描くこと', () => {
+  it('draws the sprites on a firing', () => {
     playback.play({
       presetIdentifier: preset.identifier,
       targets: [{ identifier: 'char', x: 100, y: 200, z: 0 }],
@@ -56,8 +56,8 @@ describe('TableEffectOverlayComponent', () => {
     }
   });
 
-  it('寝かせるスプライトにはカメラ向きの回転を掛けないこと', () => {
-    // 氷結は正対する結晶と、寝かせる霜の輪の両方を出す。
+  it('leaves a sprite lying flat rather than turning it to the camera', () => {
+    // Ice puts up crystals facing the camera and lays a ring of frost flat.
     preset.kind = 'frost';
     playback.play({
       presetIdentifier: preset.identifier,
@@ -73,7 +73,7 @@ describe('TableEffectOverlayComponent', () => {
     expect(transforms.some((transform) => transform.includes('rotateX('))).toBe(true);
   });
 
-  it('盤面の 3D を潰す合成モードを DOM 側で使わないこと', () => {
+  it('keeps the blending modes that flatten the board out of the document', () => {
     playback.play({
       presetIdentifier: preset.identifier,
       targets: [{ identifier: 'char', x: 0, y: 0, z: 0 }],
@@ -83,13 +83,13 @@ describe('TableEffectOverlayComponent', () => {
 
     const elements = Array.from((fixture.nativeElement as HTMLElement).querySelectorAll('div'));
 
-    // 加算合成は canvas の中でやる。DOM に mix-blend-mode / filter を置くと
-    // preserve-3d が平坦化され、盤面のコマが寝てしまう。
+    // Additive blending happens inside the canvas. A blend mode or a filter on an element
+    // flattens the preserved depth and lays the pieces on the board flat.
     expect(elements.every((element) => element.style.mixBlendMode === '')).toBe(true);
     expect(elements.every((element) => element.style.filter === '')).toBe(true);
   });
 
-  it('スプライトを合成レイヤーへ昇格させないこと', () => {
+  it('does not promote the sprites to layers of their own', () => {
     playback.play({
       presetIdentifier: preset.identifier,
       targets: [{ identifier: 'char', x: 0, y: 0, z: 0 }],
@@ -97,15 +97,15 @@ describe('TableEffectOverlayComponent', () => {
     });
     fixture.detectChanges();
 
-    // 派手な演出は数百枚を同じフレームで出す。全部に will-change を付けると
-    // その場で数百のレイヤーを確保することになり、確保が終わるまで画面が暗く落ちる。
+    // A loud effect puts hundreds of sprites up in one frame, and promoting every one of
+    // them allocates hundreds of layers at once, blacking the screen out until it is done.
     const promoted = Array.from((fixture.nativeElement as HTMLElement).querySelectorAll<HTMLElement>('*')).filter(
       (element) => element.className.includes('will-change')
     );
     expect(promoted).toHaveLength(0);
   });
 
-  it('光る粒は対象ごとの canvas に描くこと', () => {
+  it('draws the glowing particles on a canvas of their own for each target', () => {
     playback.play({
       presetIdentifier: preset.identifier,
       targets: [
@@ -123,7 +123,7 @@ describe('TableEffectOverlayComponent', () => {
       expect(host.querySelector('canvas')).not.toBeNull();
     }
   });
-  it('SVG の光を四角い箱ではなく絵の輪郭に沿わせること', () => {
+  it('glows along the outline of a drawing rather than round its box', () => {
     const sprite = {
       key: 'shot',
       x: 0,
@@ -147,7 +147,7 @@ describe('TableEffectOverlayComponent', () => {
 
     const painted = fixture.componentInstance['paintStyle'](sprite);
 
-    // box-shadow は要素の箱に付くので、絵が箱を埋めていない SVG では四角い縁が出る。
+    // A box shadow follows the element, so a drawing that does not fill its box shows a square edge.
     expect(painted['box-shadow']).toBeUndefined();
     expect(painted['filter']).toBe('drop-shadow(0 0 12px #ffffff) drop-shadow(0 0 30px #ff6a2b)');
     expect(fixture.componentInstance['paintStyle']({ ...sprite, svg: '' })['box-shadow']).toBe(sprite.shadow);

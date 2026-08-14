@@ -43,7 +43,7 @@ describe('OwnedCharacterListPanelComponent', () => {
     PeerCursor.myCursor = null!;
   });
 
-  it('自分が所有するキャラだけを並べる', () => {
+  it('lists only the characters you own', () => {
     const mine = makeCharacter('自分のPC', 'me', 'table');
     makeCharacter('他人のPC', 'other', 'table');
     makeCharacter('墓場のPC', 'me', 'graveyard');
@@ -51,7 +51,7 @@ describe('OwnedCharacterListPanelComponent', () => {
     expect(component.characters()).toEqual([mine]);
   });
 
-  it('テーブル上のキャラだけカメラを寄せられる', () => {
+  it('moves the camera only to one on the table', () => {
     const onTable = makeCharacter('卓上', 'me', 'table');
     const offTable = makeCharacter('手元', 'me', 'common');
     const protectedComponent = component as unknown as { canFocus: (c: GameCharacter) => boolean };
@@ -60,7 +60,7 @@ describe('OwnedCharacterListPanelComponent', () => {
     expect(protectedComponent.canFocus(offTable)).toBe(false);
   });
 
-  describe('同行の表示', () => {
+  describe('showing who travels together', () => {
     interface PartyView {
       party: (c: GameCharacter) => Party | null;
       partyTooltip: (c: GameCharacter) => string;
@@ -78,14 +78,14 @@ describe('OwnedCharacterListPanelComponent', () => {
       return party;
     }
 
-    it('未所属のキャラにはパーティを出さない', () => {
+    it('shows no party for an unattached character', () => {
       const character = makeCharacter('自分のPC', 'me', 'table');
 
       expect(view().party(character)).toBeNull();
       expect(view().partyTooltip(character)).toBe('');
     });
 
-    it('所属しているパーティを返す', () => {
+    it('returns the party they belong to', () => {
       const party = makeParty('本隊', '#fcd34d');
       const character = makeCharacter('自分のPC', 'me', 'table');
       character.partyIdentifier = party.identifier;
@@ -93,14 +93,14 @@ describe('OwnedCharacterListPanelComponent', () => {
       expect(view().party(character)).toBe(party);
     });
 
-    it('消えたパーティを指していても表示しない', () => {
+    it('shows none for a party that is gone', () => {
       const character = makeCharacter('自分のPC', 'me', 'table');
       character.partyIdentifier = 'gone';
 
       expect(view().party(character)).toBeNull();
     });
 
-    it('同行者の名前を説明に並べ、自分自身は含めない', () => {
+    it('names the others and leaves out the character themselves', () => {
       const party = makeParty('本隊', '#fcd34d');
       const mine = makeCharacter('自分のPC', 'me', 'table');
       const ally = makeCharacter('仲間のPC', 'other', 'table');
@@ -114,7 +114,7 @@ describe('OwnedCharacterListPanelComponent', () => {
       expect(tooltip).not.toContain('自分のPC');
     });
 
-    it('同行者がいないときも所属だけは説明に出す', () => {
+    it('still names the party when they travel alone', () => {
       const party = makeParty('本隊', '#fcd34d');
       const mine = makeCharacter('自分のPC', 'me', 'table');
       mine.partyIdentifier = party.identifier;
@@ -126,7 +126,7 @@ describe('OwnedCharacterListPanelComponent', () => {
     });
   });
 
-  it('focusToKoma でコマの座標へ視点を移す', () => {
+  it('moves the view to the piece', () => {
     const character = makeCharacter('卓上', 'me', 'table');
     character.location.x = 320;
     character.location.y = 240;
@@ -137,7 +137,7 @@ describe('OwnedCharacterListPanelComponent', () => {
     expect(selection.focusCoordinate()).toEqual(expect.objectContaining({ x: 320, y: 240 }));
   });
 
-  it('テーブル外のキャラでは視点を動かさない', () => {
+  it('leaves the view alone for a character off the table', () => {
     const character = makeCharacter('手元', 'me', 'common');
     const selection = TestBed.inject(SelectionSignalService);
     const before = selection.focusCoordinate();
@@ -147,7 +147,7 @@ describe('OwnedCharacterListPanelComponent', () => {
     expect(selection.focusCoordinate()).toBe(before);
   });
 
-  it('openChatPalette / openSheet でパネルを開く', () => {
+  it('opens the palette and the sheet', () => {
     const character = makeCharacter('自分のPC', 'me', 'table');
     const actions = component as unknown as {
       openChatPalette: (c: GameCharacter) => void;
@@ -162,7 +162,7 @@ describe('OwnedCharacterListPanelComponent', () => {
     expect(panelStub.openLazy.mock.calls[1][1]).toEqual(expect.objectContaining({ width: 800, height: 600 }));
   });
 
-  it('setActive で操作対象を設定し、もう一度押すと解除する', () => {
+  it('takes something to work on and lets it go on a second press', () => {
     const character = makeCharacter('自分のPC', 'me', 'table');
     const active = TestBed.inject(ActiveCharacterService);
     const setActive = (component as unknown as { setActive: (c: GameCharacter) => void }).setActive;

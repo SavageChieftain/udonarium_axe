@@ -9,13 +9,13 @@ import {
 
 describe('chat-tab-scroll-helpers', () => {
   describe('findDisplayableTopIndex', () => {
-    it('表示対象が不足する場合は -1 を返す', () => {
+    it('returns nothing when there is not enough to show', () => {
       const messages = [{ isDisplayable: false }, { isDisplayable: true }] as ChatMessage[];
 
       expect(findDisplayableTopIndex(messages, 2)).toBe(-1);
     });
 
-    it('末尾から displayable を数えて先頭インデックスを返す', () => {
+    it('counts back from the end to find the first line to show', () => {
       const messages = [
         { isDisplayable: false },
         { isDisplayable: true },
@@ -29,7 +29,7 @@ describe('chat-tab-scroll-helpers', () => {
   });
 
   describe('getBoundedScrollPosition', () => {
-    it('scrollTop を 0 以上 scrollHeight-clientHeight 以下に収める', () => {
+    it('keeps the scroll between the top and the bottom', () => {
       const panel = {
         scrollTop: -10,
         clientHeight: 100,
@@ -53,18 +53,18 @@ describe('chat-tab-scroll-helpers', () => {
   });
 
   describe('calcMaxElementHeight', () => {
-    it('最小高さより大きい要素高さがあれば最大値を返す', () => {
+    it('takes the larger of the element and the smallest height', () => {
       const elements = [{ clientHeight: 40 }, { clientHeight: 80 }, { clientHeight: 60 }] as HTMLElement[];
       expect(calcMaxElementHeight(elements, 26)).toBe(80);
     });
 
-    it('要素が空なら最小高さを返す', () => {
+    it('returns the smallest height for an empty element', () => {
       expect(calcMaxElementHeight([], 26)).toBe(26);
     });
   });
 
   describe('calcIndexRange', () => {
-    it('表示領域が完全に外れている場合はスクロール量から再計算する', () => {
+    it('works it out again from the scroll when the view has moved right off', () => {
       const range = calcIndexRange({
         topIndex: 50,
         bottomIndex: 80,
@@ -83,7 +83,7 @@ describe('chat-tab-scroll-helpers', () => {
       expect(range.bottomIndex).toBe(13);
     });
 
-    it('通常ケースで上方向の空白を埋めるようにインデックスを拡張する', () => {
+    it('widens the range to fill the blank above', () => {
       const range = calcIndexRange({
         topIndex: 20,
         bottomIndex: 30,

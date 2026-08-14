@@ -36,7 +36,7 @@ export class InviteJoinComponent {
   private readonly roomName = signal('');
 
   protected readonly isJoining = computed(() => this.state() === 'joining');
-  // 配信に重ねる画面では出さない。押せない板が配信に貼り付いたままになる。
+  // It is left off a screen meant for streaming, where an unpressable panel would sit in the broadcast.
   protected readonly visible = computed(
     () => !this.overlayMode.active() && this.state() !== 'idle' && this.state() !== 'done'
   );

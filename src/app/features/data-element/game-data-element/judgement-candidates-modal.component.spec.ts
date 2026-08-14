@@ -32,14 +32,14 @@ describe('JudgementCandidatesModalComponent', () => {
     componentRef = fixture.componentRef;
   });
 
-  it('state が null の間はモーダル DOM を出さない', () => {
+  it('shows no dialogue while there is nothing to show', () => {
     componentRef.setInput('state', null);
     fixture.detectChanges();
 
     expect(fixture.nativeElement.querySelector('.bg-ui-bg')).toBeNull();
   });
 
-  it('候補ありの状態で候補件数分の <li> を描画する', () => {
+  it('gives each candidate a line', () => {
     const state: JudgeCandidatesState = {
       clickedCellLabel: '攻撃',
       candidates: [candidate({ cellLabel: '剣' }), candidate({ cellLabel: '盾' })],
@@ -54,14 +54,14 @@ describe('JudgementCandidatesModalComponent', () => {
     expect(fixture.nativeElement.textContent).toContain('盾');
   });
 
-  it('候補 0 件のときは「習得済みの技能が見つかりませんでした」を表示', () => {
+  it('says so when no learnt skill was found', () => {
     componentRef.setInput('state', { clickedCellLabel: '攻撃', candidates: [] });
     fixture.detectChanges();
 
     expect(fixture.nativeElement.textContent).toContain('習得済みの技能が見つかりませんでした');
   });
 
-  it('onClose は closed output を emit する', () => {
+  it('emits a close', () => {
     const closeSpy = vi.fn();
     component.closed.subscribe(closeSpy);
 
@@ -70,7 +70,7 @@ describe('JudgementCandidatesModalComponent', () => {
     expect(closeSpy).toHaveBeenCalledTimes(1);
   });
 
-  it('onSendToChat は sendToChat output を emit し event.stopPropagation を呼ぶ', () => {
+  it('emits the candidate and stops the event going further', () => {
     const sendSpy = vi.fn();
     component.sendToChat.subscribe(sendSpy);
     const c = candidate({ cellLabel: '剣' });

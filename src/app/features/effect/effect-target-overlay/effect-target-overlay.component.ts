@@ -13,9 +13,9 @@ const MARK_SIZE = 56;
 const BADGE_SIZE = 26;
 
 /**
- * 対象選択中の表示。順番の印と、詠唱者から対象へ引く線。
+ * What shows while targets are being chosen: the marks in order, and a line from the caster to each.
  *
- * 印は地面へ寝かせ、番号だけ板ポリで立てる。番号が寝ていると盤面の傾きで読めない。
+ * The marks lie flat and only the numbers stand up; flat numbers cannot be read once the board is tilted.
  */
 @Component({
   selector: 'effect-target-overlay',
@@ -30,7 +30,7 @@ export class EffectTargetOverlayComponent {
 
   readonly marks = computed<EffectTargetMark[]>(() => this.targeting.marks());
 
-  /** 巻き込む範囲。中心のコマを決めるまでは描かない。 */
+  /** How far it reaches, drawn once the piece at the centre is settled. */
   readonly area = computed<{ x: number; y: number; z: number; size: number } | null>(() => {
     const center = this.targeting.areaCenter();
     if (!center) return null;

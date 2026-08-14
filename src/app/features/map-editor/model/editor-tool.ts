@@ -1,7 +1,7 @@
 /**
- * 編集で選べる道具と、その道具ごとの描き方の種類。
+ * The tools the editor offers, and the kinds of drawing each makes.
  *
- * 画面の状態ではなく**語彙**なので、model 側に置く。render も model もここだけを見れば済む。
+ * It is **vocabulary** rather than screen state, so it belongs to the model, where both the renderer and the model can find it.
  */
 
 export type EditorTool =

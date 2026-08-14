@@ -24,47 +24,47 @@ describe('DiceTableSettingComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('global dragging が解除されたら panel の pointer-events-none も解除されること', async () => {
+  it('lets the panel take the pointer again once the drag ends', async () => {
     await expectPanelDragRecovery(DiceTableSettingComponent);
   });
 
-  describe('初期化と破棄', () => {
-    it('selectedTable が null の状態で gameType が "" を返すこと', () => {
+  describe('setting up and tearing down', () => {
+    it('returns an empty game type with no table selected', () => {
       component.selectedTable = null;
       expect(component.gameType()).toBe('');
     });
 
-    it('selectedTable が null の状態で tableName が "" を返すこと', () => {
+    it('returns an empty name', () => {
       component.selectedTable = null;
       expect(component.tableName()).toBe('');
     });
 
-    it('selectedTable が null の状態で tableDice が "" を返すこと', () => {
+    it('returns an empty dice bot', () => {
       component.selectedTable = null;
       expect(component.tableDice()).toBe('');
     });
 
-    it('selectedTable が null の状態で tableCommand が "" を返すこと', () => {
+    it('returns an empty command', () => {
       component.selectedTable = null;
       expect(component.tableCommand()).toBe('');
     });
 
-    it('selectedTable が null の状態で tableText getter が "" を返すこと', () => {
+    it('returns an empty text', () => {
       component.selectedTable = null;
       expect(component.tableText).toBe('');
     });
 
-    it('selectedTable が null の状態で palettes() が空配列を返すこと', () => {
+    it('returns no palettes', () => {
       component.selectedTable = null;
       expect(component.palettes()).toEqual([]);
     });
 
-    it('selectedTable が null の状態で toggleEditMode() を呼んでも例外を出さないこと', () => {
+    it('toggles the edit mode without throwing', () => {
       component.selectedTable = null;
       expect(() => component.toggleEditMode()).not.toThrow();
     });
 
-    it('selectedTable が null の状態で toggleEditMode() を 2 回呼んでも例外を出さないこと', () => {
+    it('toggles it twice without throwing', () => {
       component.selectedTable = null;
       expect(() => {
         component.toggleEditMode();
@@ -73,9 +73,9 @@ describe('DiceTableSettingComponent', () => {
     });
   });
 
-  describe('SyncVar への reactivity', () => {
-    // objectChanged$ は queueMicrotask 経由で batch 発火するため、書き込み後に flush してから読む。
-    it('他 peer の編集で tableCommand が更新される', async () => {
+  describe('reacting to the synchronised fields', () => {
+    // The change channel fires in a batch on a microtask, so a write is flushed before it is read.
+    it('takes a command edited by another peer', async () => {
       const table = DiceTable.create();
       try {
         table.command = 'first';
@@ -93,7 +93,7 @@ describe('DiceTableSettingComponent', () => {
       }
     });
 
-    it('palettes() がペイレット変更で再評価される', async () => {
+    it('recomputes the palettes when one changes', async () => {
       const table = DiceTable.create();
       try {
         component.selectedTable = table;

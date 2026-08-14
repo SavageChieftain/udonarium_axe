@@ -56,13 +56,13 @@ describe('buildGameCharacterContextMenu()', () => {
     PeerCursor.myCursor = null!;
   });
 
-  it('先頭は「詳細を表示」（開く/確認グループが最上段）', () => {
+  it('leads with the sheet, which opens the group at the top', () => {
     const char = makeChar();
     const menu = buildGameCharacterContextMenu(char as unknown as GameCharacter, 50, makeService(), callbacks(), t);
     expect(menu[0].name).toBe('詳細を表示');
   });
 
-  it('「高度設定」サブメニュー（高度=0, 高度表示, 影の表示）が表示設定グループに含まれる', () => {
+  it('puts the altitude submenu into the display group', () => {
     const char = makeChar();
     const menu = buildGameCharacterContextMenu(char as unknown as GameCharacter, 50, makeService(), callbacks(), t);
     const altitude = menu.find((m) => m.name === '高度設定');
@@ -70,7 +70,7 @@ describe('buildGameCharacterContextMenu()', () => {
     expect(altitude!.subActions?.length).toBe(3);
   });
 
-  it('「詳細を表示」「チャットパレット」「リモコン」「バフ編集」がコールバックを呼ぶ', () => {
+  it('opens the sheet, the palette, the remote and the buffs', () => {
     const cb = callbacks();
     const menu = buildGameCharacterContextMenu(makeChar() as unknown as GameCharacter, 50, makeService(), cb, t);
     menu.find((m) => m.name === '詳細を表示')!.action!();
@@ -83,7 +83,7 @@ describe('buildGameCharacterContextMenu()', () => {
     expect(cb.onShowBuffEdit).toHaveBeenCalled();
   });
 
-  it('hideInventory フラグでチェックマーク表示が切り替わる', () => {
+  it('ticks the item by whether it is hidden from the list', () => {
     const visibleMenu = buildGameCharacterContextMenu(
       makeChar({ hideInventory: false }) as unknown as GameCharacter,
       50,
@@ -103,7 +103,7 @@ describe('buildGameCharacterContextMenu()', () => {
     expect(names(hiddenMenu)).toContain('☑ インベントリ非表示');
   });
 
-  it('nonTalkFlag でチェックマーク表示が切り替わる', () => {
+  it('ticks the item by whether it may speak', () => {
     const talking = buildGameCharacterContextMenu(
       makeChar({ nonTalkFlag: false }) as unknown as GameCharacter,
       50,
@@ -123,7 +123,7 @@ describe('buildGameCharacterContextMenu()', () => {
     expect(names(silent)).toContain('☑ 発言しない');
   });
 
-  it('「表示」サブメニューで名前/バフ非表示のチェックが切り替わる', () => {
+  it('ticks hiding the name and the buffs in the display submenu', () => {
     const def = buildGameCharacterContextMenu(
       makeChar() as unknown as GameCharacter,
       50,
@@ -145,7 +145,7 @@ describe('buildGameCharacterContextMenu()', () => {
     expect(names(display2!.subActions!)).toEqual(['☑ 名前を隠す', '☑ バフを隠す']);
   });
 
-  it('GM のときだけ「表示」サブメニューに NPC トグルが出て、isNpc を反転する', () => {
+  it('offers the game master alone a toggle for whether it is a non-player character', () => {
     const nonGmMenu = buildGameCharacterContextMenu(
       makeChar() as unknown as GameCharacter,
       50,
@@ -165,7 +165,7 @@ describe('buildGameCharacterContextMenu()', () => {
     expect(char.isNpc).toBe(true);
   });
 
-  it('「名前を隠す」「バフを隠す」アクションでフラグが反転する', () => {
+  it('hides and shows the name and the buffs', () => {
     const char = makeChar();
     const menu = buildGameCharacterContextMenu(char as unknown as GameCharacter, 50, makeService(), callbacks(), t);
     const display = menu.find((m) => m.name === '表示')!;
@@ -175,7 +175,7 @@ describe('buildGameCharacterContextMenu()', () => {
     expect(char.hideBuff).toBe(true);
   });
 
-  it('移動先 3 つ（共有 / 個人 / 墓場）が常に出る、それぞれ setLocation を呼ぶ', () => {
+  it('always offers the shared table, your own hands and the graveyard, and moves it to each', () => {
     const char = makeChar();
     const menu = buildGameCharacterContextMenu(char as unknown as GameCharacter, 50, makeService(), callbacks(), t);
     menu.find((m) => m.name === '共有イベントリに移動')!.action!();
@@ -184,7 +184,7 @@ describe('buildGameCharacterContextMenu()', () => {
     expect(char.setLocation).toHaveBeenLastCalledWith('graveyard');
   });
 
-  it('isLock=true で「固定解除」、isLock=false で「固定する」', () => {
+  it('offers to unlock what is locked and to lock what is not', () => {
     const locked = buildGameCharacterContextMenu(
       makeChar({ isLock: true }) as unknown as GameCharacter,
       50,
@@ -204,7 +204,7 @@ describe('buildGameCharacterContextMenu()', () => {
     expect(names(unlocked)).toContain('固定する');
   });
 
-  it('権限なし時の separator は 3 つ（開く後 / 移動前 / 操作前）', () => {
+  it('draws exactly three separators without permission', () => {
     const menu = buildGameCharacterContextMenu(
       makeChar() as unknown as GameCharacter,
       50,

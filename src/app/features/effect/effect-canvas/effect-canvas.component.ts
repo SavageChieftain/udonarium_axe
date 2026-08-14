@@ -5,9 +5,9 @@ import { drawParticleLayer } from '@axe/features/effect/effect-canvas/draw-parti
 const MAX_PIXEL_RATIO = 2;
 
 /**
- * canvas 1 枚で持つ画素数の上限。
- * マップ全体を覆う環境エフェクトは一辺が数千 px になり、等倍でも数千万画素、
- * 高精細画面では数億画素になる。確保に失敗して真っ白になるより、粗く描くほうがよい。
+ * How many pixels one canvas may hold.
+ * An effect over a whole map runs to thousands of pixels a side, tens of millions of
+ * pixels at a pixel each and hundreds of millions on a dense screen. Drawing coarsely beats failing to allocate and going white.
  */
 const MAX_CANVAS_PIXELS = 4_000_000;
 

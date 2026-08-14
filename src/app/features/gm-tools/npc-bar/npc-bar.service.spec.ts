@@ -1,7 +1,7 @@
 import { NpcBarService } from '@axe/features/gm-tools/npc-bar/npc-bar.service';
 
 describe('NpcBarService', () => {
-  it('open / close / toggle で isOpen を切り替える', () => {
+  it('opens, closes and toggles', () => {
     const service = new NpcBarService();
     expect(service.isOpen()).toBe(false);
 

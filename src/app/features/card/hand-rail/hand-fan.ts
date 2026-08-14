@@ -28,7 +28,7 @@ export function handFanWidthPx(options: HandFanOptions = {}): number {
 }
 
 export const HAND_FAN_MIN_STEP_PX = 16;
-// レールの余白と枠、および傾けた札が左右にはみ出す分
+// The margin and border of the rail, and how far the tipped cards reach past it.
 export const HAND_RAIL_CHROME_PX =
   26 + 2 * Math.ceil(HAND_CARD_HEIGHT_PX * Math.sin((HAND_FAN_SPREAD_DEG / 2) * (Math.PI / 180)));
 

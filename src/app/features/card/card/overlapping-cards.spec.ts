@@ -19,12 +19,12 @@ describe('selectOverlappingCards', () => {
     store.clearDeleteHistory();
   });
 
-  it('基準のカード自身を含める', () => {
+  it('counts the card it starts from', () => {
     const origin = makeCard(0, 0);
     expect(selectOverlappingCards([origin], origin)).toEqual([origin]);
   });
 
-  it('半径の内側だけを集める', () => {
+  it('gathers only what falls inside the radius', () => {
     const origin = makeCard(0, 0);
     const near = makeCard(50, 50);
     const far = makeCard(300, 0);
@@ -32,14 +32,14 @@ describe('selectOverlappingCards', () => {
     expect(selectOverlappingCards([origin, near, far], origin)).toEqual([origin, near]);
   });
 
-  it('高さの違いも距離に数える', () => {
+  it('counts a difference in height as distance', () => {
     const origin = makeCard(0, 0);
     const above = makeCard(0, 0, 0, 300);
 
     expect(selectOverlappingCards([origin, above], origin)).toEqual([origin]);
   });
 
-  it('重なり順の上から並べる', () => {
+  it('orders them from the top of the pile down', () => {
     const bottom = makeCard(0, 0, 1);
     const top = makeCard(10, 10, 5);
     const middle = makeCard(20, 20, 3);
@@ -47,7 +47,7 @@ describe('selectOverlappingCards', () => {
     expect(selectOverlappingCards([bottom, top, middle], bottom)).toEqual([top, middle, bottom]);
   });
 
-  it('半径を指定できる', () => {
+  it('takes any radius it is given', () => {
     const origin = makeCard(0, 0);
     const near = makeCard(50, 0);
 

@@ -32,10 +32,10 @@ interface SoundOption {
 }
 
 /**
- * プリセット編集。
+ * Editing a preset.
  *
- * 値はモデルへ直接書き込む（`EffectPreset` 側が範囲を丸める）。
- * 種類によって意味を持たない項目は `effect-preset-form` の判定で隠す。
+ * The values go straight onto the model, which clamps them itself.
+ * Fields the kind has no use for are hidden by the form.
  */
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -52,7 +52,7 @@ export class EffectPresetEditorComponent {
   private readonly panelService = inject(PanelService);
   private readonly t = inject(TRANSLATE_FN);
 
-  /** 編集するプリセット。開いた側が入れる。 */
+  /** The preset being edited, put there by whoever opened it. */
   readonly presetIdentifier = signal('');
 
   readonly preset = computed<EffectPreset | null>(() => {
@@ -62,10 +62,10 @@ export class EffectPresetEditorComponent {
   });
 
   /**
-   * 中身が書き換わった回数。
+   * How often the contents have changed.
    *
-   * `preset` は同じインスタンスを返し続けるので、それだけを見ている算出は
-   * 値が変わらないものとして再計算されない。中身から導く値はこの版を経由させる。
+   * The preset hands back the same instance every time, so anything computed from it alone
+   * never recomputes. Whatever is drawn from the contents goes through this version.
    */
   private readonly version = computed<number>(() => {
     const identifier = this.presetIdentifier();
@@ -81,7 +81,7 @@ export class EffectPresetEditorComponent {
 
   readonly notice = signal('');
 
-  /** 音の identifier はファイルのパス。そのまま出しても何の音か分からない。 */
+  /** A sound is identified by its path, which says nothing about the sound. */
   protected readonly sounds = computed<SoundOption[]>(() => {
     this.objectChange.fileVersion();
     return [...this.audioStorage.audios]
@@ -92,7 +92,7 @@ export class EffectPresetEditorComponent {
       .sort((left, right) => left.name.localeCompare(right.name, 'ja'));
   });
 
-  /** 系統の候補。既にある系統から拾って入力を助ける。 */
+  /** The families on offer, gathered from those already there to help with the typing. */
   protected readonly tagOptions = computed<string[]>(() =>
     [...new Set(this.library.presets().map((preset) => preset.tagName))].filter((tag) => tag.length > 0).sort()
   );
@@ -145,7 +145,7 @@ export class EffectPresetEditorComponent {
     return this.t(`feature.effect.slashStyle.${style}`);
   }
 
-  /** 書き込んだら版を上げる。同室の全員へ伝わる。 */
+  /** The version goes up on a write, and the room hears about it. */
   protected edit<K extends keyof EffectPreset>(key: K, value: EffectPreset[K]): void {
     const preset = this.preset();
     if (!preset) return;
@@ -161,7 +161,7 @@ export class EffectPresetEditorComponent {
     this.edit(key as never, numeric as never);
   }
 
-  /** 試し撃ち。自分の画面だけで鳴らす。 */
+  /** A test fire, played on this screen alone. */
   protected preview(): void {
     const preset = this.preset();
     if (!preset) return;

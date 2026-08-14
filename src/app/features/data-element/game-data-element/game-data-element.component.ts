@@ -454,7 +454,7 @@ export class GameDataElementComponent {
     { type: DataElementFieldType.EFFECT, label: this.t('feature.dataElement.fieldType.effect') },
   ];
 
-  /** 演出の選択肢。名前で持つので、部屋をまたいでも同じ行が使える。 */
+  /** The effects on offer, held by name so the same row works in any room. */
   readonly effectNames = computed<string[]>(() => this.effectLibrary.presets().map((preset) => preset.name));
 
   protected invokeEffect(): void {
@@ -869,15 +869,15 @@ export class GameDataElementComponent {
   }
 
   /**
-   * 属性を文字で読む。
+   * Reads an attribute as text.
    *
-   * 読むたびに版を見ておく決まりを、ここ 1 か所にまとめる。書き写していると、
-   * 足した項目だけ画面が更新されない、という抜けができる。
+   * The rule that every read checks the version lives here alone; copied about, it leaves
+   * gaps where one newly added field never updates on screen.
    */
   private attrText(attribute: string, fallback?: string): string {
     const element = this.gameDataElement();
     if (element) this.objectChange.versionOf(element.identifier)();
-    // 属性は数値のまま入っていることがある。真偽で空を決めると 0 まで空になる。
+    // An attribute may hold a number, and testing it for truth would count a zero as empty.
     const value = String(element?.getAttribute(attribute) ?? '');
     if (value.length > 0 || fallback === undefined) return value;
     return String(element?.getAttribute(fallback) ?? '');

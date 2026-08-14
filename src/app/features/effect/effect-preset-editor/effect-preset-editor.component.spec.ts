@@ -34,14 +34,14 @@ describe('EffectPresetEditorComponent', () => {
     return ((fixture.nativeElement as HTMLElement).textContent ?? '').replace(/\s+/g, ' ');
   }
 
-  it('プリセットが無ければ見つからないと出すこと', () => {
+  it('says so when the preset is not there', () => {
     fixture.componentInstance.presetIdentifier.set('');
     fixture.detectChanges();
 
     expect(text()).toContain('エフェクトが見つかりません');
   });
 
-  it('名前と色を編集できること', () => {
+  it('edits the name and the colour', () => {
     fixture.detectChanges();
 
     const name = (fixture.nativeElement as HTMLElement).querySelector<HTMLInputElement>('input[name="effect-name"]')!;
@@ -52,9 +52,9 @@ describe('EffectPresetEditorComponent', () => {
     expect(preset.name).toBe('大爆発');
   });
 
-  it('種類に関係ない項目を隠すこと', () => {
+  it('hides the fields the kind has no use for', () => {
     fixture.detectChanges();
-    // 爆発に弾数や太刀筋は無い。
+    // An explosion has neither a number of shots nor a line of attack.
     expect(text()).not.toContain('弾数');
     expect(text()).not.toContain('太刀筋');
 
@@ -66,7 +66,7 @@ describe('EffectPresetEditorComponent', () => {
     expect(text()).toContain('着弾演出');
   });
 
-  it('複数対象のときだけ上限を出すこと', () => {
+  it('shows the limit only for something that takes several targets', () => {
     fixture.detectChanges();
     expect(text()).not.toContain('上限');
 
@@ -77,7 +77,7 @@ describe('EffectPresetEditorComponent', () => {
     expect(text()).toContain('上限');
   });
 
-  it('対象がいなければ試し撃ちで案内を出すこと', () => {
+  it('says so when a test fire has nothing to aim at', () => {
     fixture.detectChanges();
 
     const preview = Array.from(

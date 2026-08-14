@@ -20,7 +20,7 @@ describe('RangeShapeEditorComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('initialize で cellSet が復元される', () => {
+  it('restores the cells it is given', () => {
     component.initialize({
       name: 'test',
       gridType: 'square',
@@ -39,14 +39,14 @@ describe('RangeShapeEditorComponent', () => {
     expect(component.isRotatable()).toBe(true);
   });
 
-  it('clear() で全マスが消える', () => {
+  it('clears every cell', () => {
     component.initialize({ cellPattern: '0,0;1,1' });
     expect(component.cellSet().size).toBe(2);
     (component as unknown as { clear: () => void }).clear();
     expect(component.cellSet().size).toBe(0);
   });
 
-  it('save() で正規化されたパターンが emit される', () => {
+  it('emits the pattern normalised', () => {
     component.initialize({
       name: '  L字  ',
       cellPattern: '1,0;0,1;0,0',
@@ -68,7 +68,7 @@ describe('RangeShapeEditorComponent', () => {
     expect(r.isRotatable).toBe(false);
   });
 
-  it('cancel() で cancelled が emit される', () => {
+  it('emits a cancellation', () => {
     let cancelled = false;
     component.cancelled.subscribe(() => {
       cancelled = true;
@@ -77,7 +77,7 @@ describe('RangeShapeEditorComponent', () => {
     expect(cancelled).toBe(true);
   });
 
-  it('setGridType で不正値は無視される', () => {
+  it('ignores a grid type it does not know', () => {
     component.initialize({ gridType: 'square' });
     (component as unknown as { setGridType: (v: string) => void }).setGridType('invalid');
     expect(component.gridType()).toBe('square');

@@ -63,7 +63,7 @@ function urlOf(image: ImageLike | null | undefined): string {
   return image?.url ?? '';
 }
 
-/** 行アイコン用の画像 URL。キャラ=コマ画像 / カード=表(中身) / 地形=テーブル表示。未対応・未設定は空文字。 */
+/** The picture for the row: a character's piece, the face of a card, the table view of terrain. Empty for anything else. */
 export function resolveObjectImageUrl(object: TabletopObject, typeKey: string): string {
   const view = object as unknown as {
     imageFile?: ImageLike;
@@ -82,7 +82,7 @@ export function resolveObjectImageUrl(object: TabletopObject, typeKey: string): 
   return '';
 }
 
-/** カスタム射程範囲（type=CUSTOM）のセル形状サムネイル。カスタム範囲フィールドと同じ描画。それ以外は null。 */
+/** The thumbnail of a custom range, drawn as the custom range field draws it. Null for anything else. */
 export function resolveRangeThumbnail(object: TabletopObject): RangeThumbnail | null {
   const range = object as unknown as {
     type?: string;

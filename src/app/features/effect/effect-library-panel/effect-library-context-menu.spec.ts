@@ -15,7 +15,7 @@ describe('buildEffectLibraryContextMenu()', () => {
     return menu.map((entry) => entry.name);
   }
 
-  it('試し撃ち・編集・複製・削除を並べること', () => {
+  it('offers a test fire, editing, copying and deleting', () => {
     const menu = buildEffectLibraryContextMenu(
       makePreset(),
       {
@@ -39,7 +39,7 @@ describe('buildEffectLibraryContextMenu()', () => {
     ]);
   });
 
-  it('選んだ項目だけを呼ぶこと', () => {
+  it('calls only what was chosen', () => {
     const called: string[] = [];
     const menu = buildEffectLibraryContextMenu(
       makePreset(),

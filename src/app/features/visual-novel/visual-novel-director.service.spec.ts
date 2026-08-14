@@ -52,13 +52,13 @@ describe('VisualNovelDirectorService', () => {
     tab?.destroy();
   });
 
-  it('既定では上映モードが無効であること', () => {
+  it('starts with the screening off', () => {
     expect(director.isDirected()).toBe(false);
     expect(director.isDirector()).toBe(false);
     expect(director.isFollowing()).toBe(false);
   });
 
-  it('GM でなければ上映モードを開始できないこと', () => {
+  it('lets nobody but the game master start it', () => {
     PeerCursor.myCursor.role = PeerRole.Player;
     objectChange.notifyChanged(PeerCursor.myCursor.identifier);
 
@@ -67,7 +67,7 @@ describe('VisualNovelDirectorService', () => {
     expect(stage.isDirected).toBe(false);
   });
 
-  it('GM は上映モードを開始・終了できること', () => {
+  it('lets the game master start and end it', () => {
     PeerCursor.myCursor.role = PeerRole.GameMaster;
     objectChange.notifyChanged(PeerCursor.myCursor.identifier);
 
@@ -81,7 +81,7 @@ describe('VisualNovelDirectorService', () => {
     expect(director.isDirected()).toBe(false);
   });
 
-  it('GM の表示位置が同期オブジェクトへ書き出されること', () => {
+  it('writes where the game master is looking onto the shared object', () => {
     addMessage('一幕');
     addMessage('二幕');
     PeerCursor.myCursor.role = PeerRole.GameMaster;
@@ -96,7 +96,7 @@ describe('VisualNovelDirectorService', () => {
     expect(stage.playheadTabIdentifier).toBe(tab.identifier);
   });
 
-  it('追従中の参加者は上映位置へ移動し、離脱すると追従しないこと', () => {
+  it('moves a following player to that view and leaves them where they are once they stop', () => {
     addMessage('一幕');
     addMessage('二幕');
     addMessage('三幕');
@@ -119,7 +119,7 @@ describe('VisualNovelDirectorService', () => {
     expect(playback.currentIndex()).toBe(1);
   });
 
-  it('上映モードが終了すると追従状態へ戻ること', () => {
+  it('puts everybody back to following once it ends', () => {
     stage.startDirecting('other-peer');
     notifyStage();
     director.leaveFollowing();

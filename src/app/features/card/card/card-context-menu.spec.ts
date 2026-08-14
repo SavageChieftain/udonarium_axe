@@ -46,7 +46,7 @@ const defaultCallbacks = () => ({
 const noCutIns: { identifier: string; name: string }[] = [];
 
 describe('buildCardContextMenu()', () => {
-  it('isLock=false なら「固定する」「固定マーク」関連は出ない', () => {
+  it('offers nothing about the lock mark while it is unlocked', () => {
     const card = makeCard({ isLock: false });
     const menu = buildCardContextMenu(card as unknown as Card, 50, defaultCallbacks(), noCutIns, t);
     expect(names(menu)).toContain('固定する');
@@ -54,20 +54,20 @@ describe('buildCardContextMenu()', () => {
     expect(names(menu)).not.toContain('固定マーク表示');
   });
 
-  it('isLock=true で dispLockMark=true なら「固定マーク消去」が出る', () => {
+  it('offers to hide the mark while it is shown', () => {
     const card = makeCard({ isLock: true, dispLockMark: true });
     const menu = buildCardContextMenu(card as unknown as Card, 50, defaultCallbacks(), noCutIns, t);
     expect(names(menu)).toContain('固定解除');
     expect(names(menu)).toContain('固定マーク消去');
   });
 
-  it('isLock=true で dispLockMark=false なら「固定マーク表示」が出る', () => {
+  it('offers to show it while it is hidden', () => {
     const card = makeCard({ isLock: true, dispLockMark: false });
     const menu = buildCardContextMenu(card as unknown as Card, 50, defaultCallbacks(), noCutIns, t);
     expect(names(menu)).toContain('固定マーク表示');
   });
 
-  it('isVisible=true && !isPeeking で「裏にする」、isVisible=false で「表にする」が出る', () => {
+  it('offers to turn a card onto whichever side is down', () => {
     const visible = buildCardContextMenu(
       makeCard({ isVisible: true, isPeeking: false }) as unknown as Card,
       50,
@@ -87,14 +87,14 @@ describe('buildCardContextMenu()', () => {
     expect(names(hidden)).toContain('表にする');
   });
 
-  it('isPeeking=true なら「自分だけ見る」ではなく「裏にする」が出る', () => {
+  it('offers to turn it back rather than to peek while it is being peeked at', () => {
     const card = makeCard({ isPeeking: true });
     const menu = buildCardContextMenu(card as unknown as Card, 50, defaultCallbacks(), noCutIns, t);
     expect(names(menu).filter((n) => n === '裏にする').length).toBeGreaterThan(0);
     expect(names(menu)).not.toContain('自分だけ見る');
   });
 
-  it('めくったときのカットインを選ぶと紐づけが更新されること', () => {
+  it('ties a cut-in to the card being turned over', () => {
     const onAssignCutIn = vi.fn();
     const menu = buildCardContextMenu(
       makeCard({ cutInIdentifier: 'cut-1' }) as unknown as Card,
@@ -117,7 +117,7 @@ describe('buildCardContextMenu()', () => {
     expect(onAssignCutIn).toHaveBeenCalledWith('');
   });
 
-  it('「表にする」がカットインの再生を呼ぶこと', () => {
+  it('plays that cut-in as it turns face up', () => {
     const onFlipToFront = vi.fn();
     const menu = buildCardContextMenu(
       makeCard({ isVisible: false, isPeeking: false }) as unknown as Card,
@@ -131,13 +131,13 @@ describe('buildCardContextMenu()', () => {
     expect(onFlipToFront).toHaveBeenCalled();
   });
 
-  it('ターゲット未指定のカードには解除を出さないこと', () => {
+  it('offers no clearing on a card nothing is aimed at', () => {
     const menu = buildCardContextMenu(makeCard() as unknown as Card, 50, defaultCallbacks(), noCutIns, t);
     expect(names(menu)).toContain('ターゲットを指定');
     expect(names(menu)).not.toContain('ターゲットを解除');
   });
 
-  it('ターゲット指定済みなら解除が onClearTarget を呼ぶこと', () => {
+  it('clears what is aimed at one', () => {
     const onClearTarget = vi.fn();
     const menu = buildCardContextMenu(
       makeCard({ targetIdentifier: 'other' }) as unknown as Card,
@@ -151,7 +151,7 @@ describe('buildCardContextMenu()', () => {
     expect(onClearTarget).toHaveBeenCalled();
   });
 
-  it('「重なったカードで山札を作る」が onCreateStack を呼ぶ', () => {
+  it('makes a deck out of the cards piled on it', () => {
     const onCreateStack = vi.fn();
     const menu = buildCardContextMenu(
       makeCard() as unknown as Card,
@@ -164,14 +164,14 @@ describe('buildCardContextMenu()', () => {
     expect(onCreateStack).toHaveBeenCalled();
   });
 
-  it('「削除する」が card.destroy() を呼ぶ', () => {
+  it('destroys the card', () => {
     const card = makeCard();
     const menu = buildCardContextMenu(card as unknown as Card, 50, defaultCallbacks(), noCutIns, t);
     menu.find((m) => m.name === '削除する')!.action!();
     expect(card.destroy).toHaveBeenCalled();
   });
 
-  it('重なったカードを手札に加える項目が山札作成の直後に出る', () => {
+  it('offers taking that pile into the hand right after making a deck of it', () => {
     const card = makeCard({});
     const callbacks = defaultCallbacks();
     const menu = buildCardContextMenu(card as unknown as Card, 50, callbacks, noCutIns, t);

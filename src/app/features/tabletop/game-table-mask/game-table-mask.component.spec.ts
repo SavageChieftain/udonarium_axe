@@ -28,17 +28,17 @@ describe('GameTableMaskComponent', () => {
   });
 
   describe('viewRotateZ computed signal', () => {
-    it('初期値はデフォルト10であること', () => {
+    it('starts at ten', () => {
       expect(component.viewRotateZ()).toBe(10);
     });
 
-    it('UiSignalServiceのtableViewRotationに連動してZ回転値が変わること', () => {
+    it('turns with the table view', () => {
       const uiSignalService = TestBed.inject(UiSignalService);
       uiSignalService.notifyTableViewRotation(50, 20, 180);
       expect(component.viewRotateZ()).toBe(180);
     });
 
-    it('isInverseがviewRotateZに基づいて正しく判定されること', () => {
+    it('reads the flip from the angle the view is turned to', () => {
       const uiSignalService = TestBed.inject(UiSignalService);
       uiSignalService.notifyTableViewRotation(0, 0, 10);
       expect(component.isInverse).toBe(false);
@@ -51,14 +51,14 @@ describe('GameTableMaskComponent', () => {
     });
   });
 
-  describe('初期化と破棄', () => {
-    it('ngAfterViewInitがなくてもonInputStartが呼ばれても例外にならないこと', () => {
+  describe('setting up and tearing down', () => {
+    it('takes an input before the view is ready without throwing', () => {
       expect(() => {
         component.onInputStart(new MouseEvent('mousedown'));
       }).not.toThrow();
     });
 
-    it('ngAfterViewInitがなくてもonInputMovePointerが呼ばれても例外にならないこと', () => {
+    it('takes a pointer move before the view is ready without throwing', () => {
       expect(() => {
         const e = new PointerEvent('pointermove');
         Object.defineProperty(e, 'offsetX', { value: 10 });
@@ -68,16 +68,16 @@ describe('GameTableMaskComponent', () => {
       }).not.toThrow();
     });
 
-    it('destroyで_scratchingTimerIdをクリアしても例外にならないこと', () => {
+    it('clears the scratching timer on teardown without throwing', () => {
       expect(() => {
         fixture.destroy();
       }).not.toThrow();
     });
 
-    it('scratchingメソッドで_currentScratchingSetがnullでも初期化されること', () => {
+    it('starts a scratching set when there is none', () => {
       const gameTableMask = component.gameTableMask();
       if (!gameTableMask) {
-        // gameTableMask未設定の場合はスキップ
+        // skipped without a mask
         expect(true).toBe(true);
         return;
       }
@@ -86,14 +86,14 @@ describe('GameTableMaskComponent', () => {
       }).not.toThrow();
     });
 
-    it('scratchedメソッドで_currentScratchingSetがnullでも例外にならないこと', () => {
+    it('finishes without one without throwing', () => {
       expect(() => {
         component.scratched();
       }).not.toThrow();
     });
   });
 
-  describe('scratched() — symmetric difference (xor native 実装)', () => {
+  describe('the symmetric difference', () => {
     let mask: GameTableMask;
 
     beforeEach(() => {
@@ -106,13 +106,13 @@ describe('GameTableMaskComponent', () => {
       mask.destroy();
     });
 
-    it('gameTableMask が null のとき scratched() は何もしない', () => {
+    it('does nothing without a mask', () => {
       fixture.componentRef.setInput('gameTableMask', null);
       fixture.detectChanges();
       expect(() => component.scratched()).not.toThrow();
     });
 
-    it('スクラッチ済みなし + スクラッチ追加 → 追加されたグリッドのみ残る', () => {
+    it('keeps what was scratched onto a clean mask', () => {
       mask.scratchedGrids = '';
       mask.scratchingGrids = '0:0,1:1';
       (component as unknown as { _currentScratchingSet: Set<string> | null })._currentScratchingSet = new Set([
@@ -125,7 +125,7 @@ describe('GameTableMaskComponent', () => {
       expect(mask.scratchedGrids).toBe('0:0,1:1');
     });
 
-    it('全て既存と同じ → 対称差が空になる', () => {
+    it('leaves nothing when everything was already scratched', () => {
       mask.scratchedGrids = '0:0,1:1';
       mask.scratchingGrids = '0:0,1:1';
       (component as unknown as { _currentScratchingSet: Set<string> | null })._currentScratchingSet = new Set([
@@ -138,7 +138,7 @@ describe('GameTableMaskComponent', () => {
       expect(mask.scratchedGrids).toBe('');
     });
 
-    it('一部重複 → 非重複部分のみ残る', () => {
+    it('keeps only what does not overlap', () => {
       mask.scratchedGrids = '0:0,1:1';
       mask.scratchingGrids = '1:1,2:2';
       (component as unknown as { _currentScratchingSet: Set<string> | null })._currentScratchingSet = new Set([
@@ -151,19 +151,19 @@ describe('GameTableMaskComponent', () => {
       expect(mask.scratchedGrids).toBe('0:0,2:2');
     });
 
-    it('_currentScratchingSet が null のときは scratchingGrids をそのまま使用', () => {
+    it('takes the cells as given when there is no set', () => {
       mask.scratchedGrids = '0:0';
       mask.scratchingGrids = '0:0';
       (component as unknown as { _currentScratchingSet: Set<string> | null })._currentScratchingSet = null;
 
       component.scratched();
 
-      // 対称差: {0:0} xor {0:0} = {}
+      // the same cell twice cancels out
       expect(mask.scratchedGrids).toBe('');
     });
   });
 
-  describe('スクラッチ操作ボタン', () => {
+  describe('the scratching buttons', () => {
     let mask: GameTableMask;
 
     beforeEach(() => {
@@ -180,7 +180,7 @@ describe('GameTableMaskComponent', () => {
       mask.destroy();
     });
 
-    it('主ボタンの pointerdown でスクラッチ完了を実行すること', () => {
+    it('finishes the scratching from the primary button', () => {
       mask.scratchingGrids = '0:0';
 
       const event = new PointerEvent('pointerdown', { button: 0 });
@@ -196,7 +196,7 @@ describe('GameTableMaskComponent', () => {
       expect(mask.scratchedGrids).toBe('0:0');
     });
 
-    it('副ボタンの pointerdown ではスクラッチ完了を実行しないこと', () => {
+    it('does nothing from any other', () => {
       mask.scratchingGrids = '0:0';
 
       const event = new PointerEvent('pointerdown', { button: 2 });
@@ -212,7 +212,7 @@ describe('GameTableMaskComponent', () => {
       expect(mask.scratchedGrids).toBe('');
     });
 
-    it('主ボタンの pointerdown でスクラッチキャンセルを実行すること', () => {
+    it('cancels it from the primary button', () => {
       mask.scratchingGrids = '0:0';
 
       const event = new PointerEvent('pointerdown', { button: 0 });
@@ -228,7 +228,7 @@ describe('GameTableMaskComponent', () => {
       expect(mask.scratchedGrids).toBe('');
     });
 
-    it('マスク本体の主ボタン pointerdown でクリックスクラッチできること', () => {
+    it('scratches a cell from a press on the mask itself', () => {
       const event = new PointerEvent('pointerdown', { button: 0, buttons: 1 });
       Object.defineProperty(event, 'offsetX', { value: 10 });
       Object.defineProperty(event, 'offsetY', { value: 10 });

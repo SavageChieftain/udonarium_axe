@@ -41,12 +41,12 @@ describe('GameCharacterComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('ngOnInitでNG0203が発生しないこと（effectがコンストラクタで呼ばれている）', () => {
+  it('registers its effect in the constructor, so nothing is set up outside an injection context', () => {
     expect(() => fixture.detectChanges()).not.toThrow();
   });
 
-  describe('頭上の表示', () => {
-    it('既定のキャラクターは HP と MP をバーで出すこと', () => {
+  describe('what shows above a piece', () => {
+    it('gives a character bars for the usual two resources', () => {
       const character = GameCharacter.create('ゲージ', 1, '');
       fixture.componentRef.setInput('gameCharacter', character);
 
@@ -58,7 +58,7 @@ describe('GameCharacterComponent', () => {
       }
     });
 
-    it('バー表示を外したリソースはコマから消えること', () => {
+    it('takes a resource off the piece once its bar is turned off', () => {
       const character = GameCharacter.create('ゲージ', 1, '');
       fixture.componentRef.setInput('gameCharacter', character);
       const objectChange = TestBed.inject(ObjectChangeService);
@@ -76,7 +76,7 @@ describe('GameCharacterComponent', () => {
       }
     });
 
-    it('バフをアイコンと強度のバッジに畳むこと', () => {
+    it('folds the buffs into icons with their strength', () => {
       const character = GameCharacter.create('バフ', 1, '');
       character.addExtendData();
       fixture.componentRef.setInput('gameCharacter', character);
@@ -102,8 +102,8 @@ describe('GameCharacterComponent', () => {
     });
   });
 
-  describe('リソースの増減演出', () => {
-    it('現在値が減ったら赤い数字とダメージの閃光を出すこと', async () => {
+  describe('showing a resource change', () => {
+    it('shows a red number and a flash of damage as a value falls', async () => {
       const character = GameCharacter.create('被弾', 1, '');
       fixture.componentRef.setInput('gameCharacter', character);
       const objectChange = TestBed.inject(ObjectChangeService);
@@ -126,7 +126,7 @@ describe('GameCharacterComponent', () => {
       }
     });
 
-    it('読み込みや同期で入れ替わった値では鳴らさないこと', async () => {
+    it('stays quiet for a value replaced by a load or a sync', async () => {
       const character = GameCharacter.create('復元', 1, '');
       fixture.componentRef.setInput('gameCharacter', character);
       const objectChange = TestBed.inject(ObjectChangeService);
@@ -135,8 +135,8 @@ describe('GameCharacterComponent', () => {
       try {
         fixture.detectChanges();
 
-        // 部屋データの読み込みと自動保存の復元、ピアからの同期は、
-        // setter ではなく apply() で値が入る。増減として扱ってはいけない。
+        // Loading a room, restoring an autosave and syncing from a peer all come in through the
+        // apply rather than the setter, and none of them is a change to show.
         const context = hp.toContext();
         (context.syncData as Record<string, unknown>)['currentValue'] = 999;
         context.majorVersion += 1;
@@ -151,7 +151,7 @@ describe('GameCharacterComponent', () => {
       }
     });
 
-    it('現在値が増えたら緑の数字と回復の閃光を出すこと', async () => {
+    it('shows a green number and a flash of healing as it rises', async () => {
       const character = GameCharacter.create('回復', 1, '');
       fixture.componentRef.setInput('gameCharacter', character);
       const objectChange = TestBed.inject(ObjectChangeService);
@@ -177,7 +177,7 @@ describe('GameCharacterComponent', () => {
       }
     });
 
-    it('変化の大きさで鳴らす音を選ぶこと', async () => {
+    it('picks the sound by how large the change is', async () => {
       const character = GameCharacter.create('鳴り分け', 1, '');
       fixture.componentRef.setInput('gameCharacter', character);
       const objectChange = TestBed.inject(ObjectChangeService);
@@ -208,7 +208,7 @@ describe('GameCharacterComponent', () => {
       }
     });
 
-    it('マイナスリソースでは増加をダメージとして扱うこと', async () => {
+    it('counts a rise as damage on a resource that runs the other way', async () => {
       const character = GameCharacter.create('狂気', 1, '');
       fixture.componentRef.setInput('gameCharacter', character);
       const objectChange = TestBed.inject(ObjectChangeService);
@@ -236,7 +236,7 @@ describe('GameCharacterComponent', () => {
       }
     });
 
-    it('変化が無ければ何も出さないこと', async () => {
+    it('shows nothing when nothing changed', async () => {
       const character = GameCharacter.create('無変化', 1, '');
       fixture.componentRef.setInput('gameCharacter', character);
       const objectChange = TestBed.inject(ObjectChangeService);
@@ -255,27 +255,27 @@ describe('GameCharacterComponent', () => {
   });
 
   describe('viewRotateZ computed signal', () => {
-    it('初期値はデフォルト10であること', () => {
+    it('starts at ten', () => {
       expect(component.viewRotateZ()).toBe(10);
     });
 
-    it('UiSignalServiceのtableViewRotationに連動してZ回転値が変わること', () => {
+    it('turns with the table view', () => {
       const uiSignalService = TestBed.inject(UiSignalService);
       uiSignalService.notifyTableViewRotation(50, 20, 120);
       expect(component.viewRotateZ()).toBe(120);
     });
   });
 
-  it('ChangeDetectorRefを使用していないこと', () => {
+  it('asks for no change detector', () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     expect((component as any).changeDetector).toBeUndefined();
   });
 
-  it('isTargetedがcomputed signalであること', () => {
+  it('computes whether it is targeted', () => {
     expect(typeof component.isTargeted).toBe('function');
   });
 
-  describe('ターゲットマーカー', () => {
+  describe('the target marker', () => {
     const setTargeted = (character: GameCharacter, targeted: boolean) => {
       character.targeted = targeted;
       TestBed.inject(UiSignalService).notifyTargetChange(character.identifier, character.aliasName);
@@ -286,7 +286,7 @@ describe('GameCharacterComponent', () => {
 
     const ringOf = () => fixture.nativeElement.querySelector('[data-testid="target-ring"]');
 
-    it('ターゲット指定で出し、解除で消すこと', () => {
+    it('appears on a target and goes with it', () => {
       const character = GameCharacter.create('marker', 1, '');
       fixture.componentRef.setInput('gameCharacter', character);
 
@@ -304,7 +304,7 @@ describe('GameCharacterComponent', () => {
       }
     });
 
-    it('台座リングも同時に出し入れすること', () => {
+    it('brings the ring at its foot with it', () => {
       const character = GameCharacter.create('marker-ring', 1, '');
       fixture.componentRef.setInput('gameCharacter', character);
 
@@ -322,7 +322,7 @@ describe('GameCharacterComponent', () => {
       }
     });
 
-    it('バフを隠しているキャラクターでも出すこと', () => {
+    it('appears even on a character whose buffs are hidden', () => {
       const character = GameCharacter.create('marker-hidden-buff', 1, '');
       character.addExtendData();
       character.hideBuff = true;
@@ -349,7 +349,7 @@ describe('GameCharacterComponent', () => {
       return Math.hypot(x[x.length - 1], y[0], z[0]);
     };
 
-    it('コマ中心軸の真上に置くこと', () => {
+    it('sits directly above the centre of the piece', () => {
       const character = GameCharacter.create('marker-center', 1, '');
       fixture.componentRef.setInput('gameCharacter', character);
       TestBed.inject(UiSignalService).notifyTableViewRotation(50, 0, 10);
@@ -364,7 +364,7 @@ describe('GameCharacterComponent', () => {
       }
     });
 
-    it('カメラを回してもコマからの距離を保つこと', () => {
+    it('keeps its distance as the camera turns', () => {
       const character = GameCharacter.create('marker-rotated-view', 1, '');
       fixture.componentRef.setInput('gameCharacter', character);
       const uiSignalService = TestBed.inject(UiSignalService);
@@ -383,7 +383,7 @@ describe('GameCharacterComponent', () => {
       }
     });
 
-    it('バフより上に出ること', () => {
+    it('sits above the buffs', () => {
       const character = GameCharacter.create('marker-above-buff', 1, '');
       character.addExtendData();
       fixture.componentRef.setInput('gameCharacter', character);
@@ -408,7 +408,7 @@ describe('GameCharacterComponent', () => {
     });
   });
 
-  it('コマ高さ指定フラグがcomputed signalで更新されること', async () => {
+  it('computes whether the height is set by hand', async () => {
     const char = GameCharacter.create('height-flag-test', 1, '');
     fixture.componentRef.setInput('gameCharacter', char);
 
@@ -424,7 +424,7 @@ describe('GameCharacterComponent', () => {
     }
   });
 
-  it('高さ指定モードの画像も名前とバフの配置基準になるようレイアウトに参加すること', () => {
+  it('keeps a hand-set image in the layout, so the name and the buffs still measure from it', () => {
     ImageStorage.instance.add('piece-height-url');
     const char = GameCharacter.create('height-layout-test', 1, 'piece-height-url');
     char.specifyKomaImageFlag = true;
@@ -445,8 +445,8 @@ describe('GameCharacterComponent', () => {
     }
   });
 
-  describe('imageBillboardEnabled テーブル設定追従', () => {
-    it('currentTable.imageBillboard の値を反映すること', async () => {
+  describe('following the table setting for facing the camera', () => {
+    it('takes the setting from the table', async () => {
       const tabletopService = TestBed.inject(TabletopService);
       tabletopService.currentTable.imageBillboard = false;
       expect(component.imageBillboardEnabled()).toBe(false);
@@ -456,12 +456,12 @@ describe('GameCharacterComponent', () => {
       expect(component.imageBillboardEnabled()).toBe(true);
     });
 
-    it('billboardTransformImage は verticalOffset=0 の transform を返すこと', () => {
+    it('faces the picture at the camera without raising it', () => {
       TestBed.inject(UiSignalService).notifyTableViewRotation(50, 0, 10);
       expect(component.billboardTransformImage()).toContain('translateZ(0.00px)');
     });
 
-    it('mode2d=true なら imageBillboard=false でも true を返すこと', async () => {
+    it('faces it anyway in the flat mode', async () => {
       const tabletopService = TestBed.inject(TabletopService);
       tabletopService.currentTable.imageBillboard = false;
       tabletopService.currentTable.mode2d = true;
@@ -470,15 +470,15 @@ describe('GameCharacterComponent', () => {
     });
   });
 
-  describe('nameLabelOrbit 2Dモード時のスクリーン上方追従', () => {
-    it('3Dモードでは translateY(-distance3d) を返すこと', async () => {
+  describe('keeping the name above the piece on the screen in the flat mode', () => {
+    it('raises the name straight up in three dimensions', async () => {
       const tabletopService = TestBed.inject(TabletopService);
       tabletopService.currentTable.mode2d = false;
       await new Promise<void>((resolve) => queueMicrotask(resolve));
       expect(component.nameLabelOrbit()).toBe('translateY(-30px)');
     });
 
-    it('2Dモードでヨー=0なら translateZ(-d) で画面上方向に配置されること', async () => {
+    it('puts it up the screen in the flat mode', async () => {
       const tabletopService = TestBed.inject(TabletopService);
       tabletopService.currentTable.mode2d = true;
       TestBed.inject(UiSignalService).notifyTableViewRotation(0, 0, 0);
@@ -489,7 +489,7 @@ describe('GameCharacterComponent', () => {
       expect(transform).toContain('translateZ(-60.00px)');
     });
 
-    it('2Dモードでヨーが90度なら translateX(-d), translateZ(0) になること', async () => {
+    it('puts it across as the view turns a quarter', async () => {
       const tabletopService = TestBed.inject(TabletopService);
       tabletopService.currentTable.mode2d = true;
       TestBed.inject(UiSignalService).notifyTableViewRotation(0, 0, 90);
@@ -500,7 +500,7 @@ describe('GameCharacterComponent', () => {
       expect(z).toBeCloseTo(0, 5);
     });
 
-    it('2Dモードでは billboardTransform の compensateZ が 0 になること', async () => {
+    it('compensates nothing along the depth in the flat mode', async () => {
       const tabletopService = TestBed.inject(TabletopService);
       tabletopService.currentTable.mode2d = true;
       TestBed.inject(UiSignalService).notifyTableViewRotation(50, 0, 10);
@@ -510,8 +510,8 @@ describe('GameCharacterComponent', () => {
     });
   });
 
-  describe('ALTクリックのターゲット切り替え', () => {
-    it('ALT付きpointerdownで対象キャラのtargetedを切り替えて表示更新通知を出すこと', () => {
+  describe('targeting with a modified click', () => {
+    it('targets and untargets a character on a modified press, and says so', () => {
       const uiSignalService = TestBed.inject(UiSignalService);
       const notifySpy = vi.spyOn(uiSignalService, 'notifyTargetChange');
       const char = GameCharacter.create('target-test', 1, '');
@@ -533,7 +533,7 @@ describe('GameCharacterComponent', () => {
       }
     });
 
-    it('Shift+ALT付きpointerdownでは全ターゲットを解除して現在キャラを再選択しないこと', () => {
+    it('clears every target with the second modifier and does not target this one again', () => {
       const uiSignalService = TestBed.inject(UiSignalService);
       const notifySpy = vi.spyOn(uiSignalService, 'notifyTargetChange');
       const char1 = GameCharacter.create('target-clear-1', 1, '');
@@ -558,54 +558,54 @@ describe('GameCharacterComponent', () => {
     });
   });
 
-  describe('初期化と破棄', () => {
-    it('gameCharacterが設定されていなくてもgetterが例外を投げないこと', () => {
+  describe('setting up and tearing down', () => {
+    it('reads without throwing before a character is set', () => {
       expect(() => {
         const name = component.name;
         expect(name).toBeDefined();
       }).not.toThrow();
     });
 
-    it('gameCharacterが設定されていなくてもisLockの取得が例外を投げないこと', () => {
+    it('reads the lock without throwing', () => {
       expect(() => {
         const isLock = component.isLock;
         expect(isLock).toBeDefined();
       }).not.toThrow();
     });
 
-    it('gameCharacterが設定されていなくてもisLockの設定が例外を投げないこと', () => {
+    it('sets the lock without throwing', () => {
       expect(() => {
         component.isLock = true;
       }).not.toThrow();
     });
 
-    it('gameCharacterが設定されていなくてもsizeが例外を投げないこと', () => {
+    it('reads the size without throwing', () => {
       expect(() => {
         const size = component.size;
         expect(size).toBeDefined();
       }).not.toThrow();
     });
 
-    it('gameCharacterが設定されていなくてもaltitudeの取得が例外を投げないこと', () => {
+    it('reads the altitude without throwing', () => {
       expect(() => {
         const altitude = component.altitude;
         expect(altitude).toBeDefined();
       }).not.toThrow();
     });
 
-    it('gameCharacterが設定されていなくてもaltitudeの設定が例外を投げないこと', () => {
+    it('sets the altitude without throwing', () => {
       expect(() => {
         component.setAltitude(5);
       }).not.toThrow();
     });
 
-    it('コンポーネントの初期化と破棄で例外が発生しないこと', () => {
+    it('sets up and tears down without throwing', () => {
       expect(() => fixture.detectChanges()).not.toThrow();
       expect(() => fixture.destroy()).not.toThrow();
     });
   });
 
-  it('倒れる演出が当たっているあいだコマ本体を崩すこと', () => {
+  it('collapses the piece itself while an effect knocks it down', () => {
     const character = GameCharacter.create('斬られ役', 1, '');
     fixture.componentRef.setInput('gameCharacter', character);
     const preset = new EffectPreset();
@@ -622,7 +622,7 @@ describe('GameCharacterComponent', () => {
       });
       fixture.detectChanges();
 
-      // 周りに演出を出すだけでは倒れたことにならない。コマ自身が崩れる必要がある。
+      // An effect around it does not read as falling; the piece has to go down with it.
       const body = (fixture.nativeElement as HTMLElement).querySelector('[data-testid="piece-body"]')!;
       expect(body.classList.contains('animate-defeat-dissolve')).toBe(true);
     } finally {

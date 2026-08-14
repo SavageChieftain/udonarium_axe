@@ -33,33 +33,33 @@ describe('CardStackCardListComponent', () => {
     expect(component.cards().length).toBe(2);
   });
 
-  it('cardName が現在の Card.name を返すこと', () => {
+  it('returns the name of the card', () => {
     expect(component.cardName(stack.cards[0])).toBe('A');
   });
 
-  it('setCardName が input の値を Card.name に反映すること', () => {
+  it('puts what was typed onto it', () => {
     const event = { target: { value: 'ハートのエース' } } as unknown as Event;
     component.setCardName(stack.cards[0], event);
     expect(stack.cards[0].name).toBe('ハートのエース');
   });
 
-  it('cardImageHint がトランプ画像コードを読みやすいラベルに整形すること', () => {
+  it('turns a playing-card code into something readable', () => {
     expect(component.cardImageHint(stack.cards[0])).toBe('♠1');
     expect(component.cardImageHint(stack.cards[1])).toBe('♥King');
   });
 
-  it('cardImageHint がトランプ以外のコードはファイル名の basename にフォールバックすること', () => {
+  it('falls back to the file name for anything else', () => {
     stack.putOnBottom(Card.create('custom', './assets/images/custom/dragon.png', ''));
     const customCard = stack.cards[stack.cards.length - 1];
     expect(component.cardImageHint(customCard)).toBe('dragon');
   });
 
-  it('cardImageHint が frontImage が無くてもクラッシュしないこと', () => {
+  it('does not fall over without a front image', () => {
     const naked = Card.create('c', '', '');
     expect(() => component.cardImageHint(naked)).not.toThrow();
   });
 
-  it('drawCard はカードを cardRoot から取り除くこと', () => {
+  it('takes the card out of the deck', () => {
     const target = stack.cards[0];
     component.drawCard(target);
     expect(stack.cards.includes(target)).toBe(false);
@@ -103,7 +103,7 @@ describe('CardStackCardListComponent', () => {
       component.onPointerUp({ pointerType: 'mouse', pointerId, currentTarget: target } as unknown as PointerEvent);
     };
 
-    it('右マウスボタンではドラッグを開始しないこと', () => {
+    it('starts no drag from the right button', () => {
       const target = captureTarget();
       component.onPointerDown(
         {
@@ -118,13 +118,13 @@ describe('CardStackCardListComponent', () => {
       expect(component.draggedCardId()).toBeNull();
     });
 
-    it('onPointerDown は draggedCardId を設定し pointer capture すること', () => {
+    it('takes hold of the card and captures the pointer', () => {
       const target = startDrag(stack.cards[0]);
       expect(component.draggedCardId()).toBe(stack.cards[0].identifier);
       expect(target.setPointerCapture).toHaveBeenCalledWith(1);
     });
 
-    it('isDropBefore / isDropAfter は dropPosition と一致するときだけ true', () => {
+    it('marks the side the card would land on and no other', () => {
       const [a, b] = stack.cards;
       component.draggedCardId.set(a.identifier);
       component.dragOverCardId.set(b.identifier);
@@ -136,7 +136,7 @@ describe('CardStackCardListComponent', () => {
       expect(component.isDropAfter(b)).toBe(true);
     });
 
-    it('上半分ドロップで target の前に挿入されること', () => {
+    it('puts a card dropped on the top half in front of the target', () => {
       const [first, second] = stack.cards;
       const target = startDrag(second);
       hoverOver(first, 'top');
@@ -145,7 +145,7 @@ describe('CardStackCardListComponent', () => {
       expect(stack.cards[1]).toBe(first);
     });
 
-    it('下半分ドロップで target の後ろに挿入されること', () => {
+    it('puts one dropped on the bottom half behind it', () => {
       stack.putOnBottom(Card.create('C', '', ''));
       const [first, , third] = stack.cards;
       const target = startDrag(first);
@@ -154,7 +154,7 @@ describe('CardStackCardListComponent', () => {
       expect(stack.cards[stack.cards.length - 1]).toBe(first);
     });
 
-    it('自分自身へのドロップは並びを変えないこと', () => {
+    it('changes nothing when a card is dropped onto itself', () => {
       const original = stack.cards.map((c) => c.identifier);
       const card = stack.cards[0];
       const target = startDrag(card);
@@ -163,7 +163,7 @@ describe('CardStackCardListComponent', () => {
       expect(stack.cards.map((c) => c.identifier)).toEqual(original);
     });
 
-    it('onPointerCancel は state をリセットすること', () => {
+    it('lets go on a cancelled pointer', () => {
       const target = startDrag(stack.cards[0]);
       component.dragOverCardId.set('x');
       component.dropPosition.set('after');
@@ -179,7 +179,7 @@ describe('CardStackCardListComponent', () => {
   });
 
   describe('setImage', () => {
-    it('FileSelecterComponent から返った id を front の DataElement にセットすること', async () => {
+    it('puts the chosen picture on the front', async () => {
       const modal = TestBed.inject(ModalService);
       vi.spyOn(modal, 'open').mockResolvedValue('img-front-123');
       const card = stack.cards[0];
@@ -189,7 +189,7 @@ describe('CardStackCardListComponent', () => {
       expect(el?.value).toBe('img-front-123');
     });
 
-    it('FileSelecterComponent から返った id を back の DataElement にセットすること', async () => {
+    it('puts it on the back', async () => {
       const modal = TestBed.inject(ModalService);
       vi.spyOn(modal, 'open').mockResolvedValue('img-back-456');
       const card = stack.cards[0];
@@ -199,7 +199,7 @@ describe('CardStackCardListComponent', () => {
       expect(el?.value).toBe('img-back-456');
     });
 
-    it('null が返ったら DataElement を変更しないこと', async () => {
+    it('changes nothing when the chooser is dismissed', async () => {
       const modal = TestBed.inject(ModalService);
       vi.spyOn(modal, 'open').mockResolvedValue(null as unknown as string);
       const card = stack.cards[0];

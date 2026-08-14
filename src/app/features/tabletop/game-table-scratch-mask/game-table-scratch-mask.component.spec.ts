@@ -22,7 +22,7 @@ describe('GameTableScratchMaskComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('gameTableScratchMask が null の場合でもゲッターがエラーをスローしないこと', () => {
+  it('reads without throwing when there is no mask', () => {
     fixture.componentRef.setInput('gameTableScratchMask', null);
     expect(() => {
       const _name = component.name;

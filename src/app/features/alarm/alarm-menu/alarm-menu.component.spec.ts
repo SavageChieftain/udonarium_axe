@@ -24,7 +24,7 @@ describe('AlarmMenuComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('global dragging が解除されたら panel の pointer-events-none も解除されること', async () => {
+  it('lets the panel take the pointer again once the drag ends', async () => {
     await expectPanelDragRecovery(AlarmMenuComponent, {
       beforeOpen: () => {
         PeerCursor.createMyCursor();
@@ -32,19 +32,19 @@ describe('AlarmMenuComponent', () => {
     });
   });
 
-  describe('checkedPeers による選択状態管理', () => {
-    it('voteBlockClick で未登録のIDが追加されること', () => {
+  describe('keeping track of who is picked', () => {
+    it('picks somebody who was not picked', () => {
       component.voteBlockClick('peer-1');
       expect(component['checkedPeers'].has('peer-1')).toBe(true);
     });
 
-    it('voteBlockClick で登録済みのIDが削除されること', () => {
+    it('unpicks somebody who was', () => {
       component.voteBlockClick('peer-1');
       component.voteBlockClick('peer-1');
       expect(component['checkedPeers'].has('peer-1')).toBe(false);
     });
 
-    it('複数のピアを独立して管理できること', () => {
+    it('keeps several peers apart', () => {
       component.voteBlockClick('peer-a');
       component.voteBlockClick('peer-b');
       expect(component['checkedPeers'].has('peer-a')).toBe(true);
@@ -57,7 +57,7 @@ describe('AlarmMenuComponent', () => {
   });
 
   describe('selectedList', () => {
-    it('checkedPeersの内容が返されること', () => {
+    it('returns who is picked', () => {
       component['checkedPeers'].add('peer-1');
       component.includSelf = false;
       const list = component.selectedList();
@@ -67,13 +67,13 @@ describe('AlarmMenuComponent', () => {
   });
 
   describe('changeAlarmTime', () => {
-    it('負値を0にクランプすること', () => {
+    it('clamps a negative value to nothing', () => {
       component.alarmTime = -10;
       component.changeAlarmTime();
       expect(component.alarmTime).toBe(0);
     });
 
-    it('3600超を3600にクランプすること', () => {
+    it('clamps anything past an hour to an hour', () => {
       component.alarmTime = 9999;
       component.changeAlarmTime();
       expect(component.alarmTime).toBe(3600);

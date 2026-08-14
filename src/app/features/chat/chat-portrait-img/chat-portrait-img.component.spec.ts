@@ -30,15 +30,15 @@ describe('ChatPortraitImageComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  describe('イベントリスナー', () => {
-    it('portraitSlotsがfileVersion()シグナルを読み取ること', () => {
+  describe('listening', () => {
+    it('reads the file version for the portraits', () => {
       const spy = vi.spyOn(objectChange, 'fileVersion');
       fixture.detectChanges();
       void component.portraitSlots();
       expect(spy).toHaveBeenCalled();
     });
 
-    it('chatTabゲッターがversionOf()シグナルを読み取ること', () => {
+    it('reads the version signal for the tab', () => {
       const spy = vi.spyOn(objectChange, 'versionOf');
       fixture.detectChanges();
       void component.chatTab;

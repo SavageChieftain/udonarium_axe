@@ -3,7 +3,7 @@ import { evalCalcFormula } from '@axe/features/data-element/game-data-element/ga
 import { buildCalcEnv } from '@axe/features/data-element/game-data-element/game-data-element-calc-env';
 
 describe('buildCalcEnv', () => {
-  it('数値の葉ノードを名前で引ける env を返す', () => {
+  it('returns an environment that looks numeric leaves up by name', () => {
     const detail = DataElement.create('detail', '');
     const hp = DataElement.create('HP', '15');
     detail.appendChild(hp);
@@ -12,7 +12,7 @@ describe('buildCalcEnv', () => {
     expect(env['HP']).toBe(15);
   });
 
-  it('数値でない葉ノードは env に入らない', () => {
+  it('leaves out anything that is not a number', () => {
     const detail = DataElement.create('detail', '');
     const memo = DataElement.create('memo', 'こんにちは');
     detail.appendChild(memo);
@@ -21,7 +21,7 @@ describe('buildCalcEnv', () => {
     expect(env['memo']).toBeUndefined();
   });
 
-  it('深い階層の葉ノードもフルパスで引ける', () => {
+  it('looks a deep leaf up by its full path', () => {
     const detail = DataElement.create('detail', '');
     const section = DataElement.create('基本', '');
     const group = DataElement.create('能力', '');
@@ -35,7 +35,7 @@ describe('buildCalcEnv', () => {
     expect(env['筋力']).toBe(8);
   });
 
-  it('同名の葉ノードが複数あるときは短縮キーは設定されない', () => {
+  it('sets no short name where two leaves share one', () => {
     const detail = DataElement.create('detail', '');
     const sectionA = DataElement.create('A', '');
     const sectionB = DataElement.create('B', '');
@@ -52,7 +52,7 @@ describe('buildCalcEnv', () => {
     expect(env['値']).toBeUndefined();
   });
 
-  it('evalCalcFormula と組み合わせて数式を解決できる', () => {
+  it('resolves a formula together with the evaluator', () => {
     const detail = DataElement.create('detail', '');
     const hp = DataElement.create('HP', '10');
     const buff = DataElement.create('buff', '5');

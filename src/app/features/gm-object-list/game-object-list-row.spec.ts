@@ -17,31 +17,31 @@ const makeObject = (props: Record<string, unknown>): TabletopObject =>
 const noPeer = () => null;
 
 describe('buildObjectRow', () => {
-  it('卓上のオブジェクトを table と判定する', () => {
+  it('counts an object on the board as on the table', () => {
     const row = buildObjectRow(makeObject({}), 'character', noPeer);
     expect(row.locationKind).toBe('table');
     expect(row.surface).toBe('floor');
     expect(row.name).toBe('Goblin');
   });
 
-  it('墓場・共通を判定する', () => {
+  it('counts the graveyard and the shared places', () => {
     expect(buildObjectRow(makeObject({ location: { name: 'graveyard' } }), 'card', noPeer).locationKind).toBe(
       'graveyard'
     );
     expect(buildObjectRow(makeObject({ location: { name: 'common' } }), 'card', noPeer).locationKind).toBe('common');
   });
 
-  it('peer 名が解決できれば personal とし、名前を locationDetail に入れる', () => {
+  it('counts it as somebodys own once the peer resolves, and notes the name', () => {
     const row = buildObjectRow(makeObject({ location: { name: 'peer-xyz' } }), 'character', () => 'Alice');
     expect(row.locationKind).toBe('personal');
     expect(row.locationDetail).toBe('Alice');
   });
 
-  it('未知の location.name は other とする', () => {
+  it('counts a place it does not know as somewhere else', () => {
     expect(buildObjectRow(makeObject({ location: { name: 'stack-1' } }), 'card', noPeer).locationKind).toBe('other');
   });
 
-  it('disclosureMode を持つ型のみ disclosable=true で正規化する', () => {
+  it('marks only the types that carry a disclosure setting as disclosable', () => {
     const owned = buildObjectRow(makeObject({ disclosureMode: 'gm', disclosureUserIds: [] }), 'character', noPeer);
     expect(owned.disclosable).toBe(true);
     expect(owned.disclosureMode).toBe('gm');
@@ -51,33 +51,33 @@ describe('buildObjectRow', () => {
     expect(terrain.disclosureMode).toBe('');
   });
 
-  it('terrain は isLocked を、他は isLock をロック状態として読む', () => {
+  it('reads the lock of terrain off its own field and everything else off theirs', () => {
     expect(buildObjectRow(makeObject({ isLocked: true }), 'terrain', noPeer).isLock).toBe(true);
     expect(buildObjectRow(makeObject({ isLock: true }), 'card', noPeer).isLock).toBe(true);
   });
 
-  it('hideInventory を隠し状態として読む', () => {
+  it('reads hiding from the list as hidden', () => {
     expect(buildObjectRow(makeObject({ hideInventory: true }), 'character', noPeer).isHidden).toBe(true);
     expect(buildObjectRow(makeObject({}), 'character', noPeer).isHidden).toBe(false);
   });
 
-  it('imageUrl を種別ごとの画像から設定する', () => {
+  it('takes the picture from whatever suits the kind', () => {
     const row = buildObjectRow(makeObject({ imageFile: { url: 'token.png' } }), 'character', noPeer);
     expect(row.imageUrl).toBe('token.png');
   });
 });
 
 describe('resolveObjectImageUrl', () => {
-  it('character はコマ画像 (imageFile) を使う', () => {
+  it('takes a characters piece picture', () => {
     expect(resolveObjectImageUrl(makeObject({ imageFile: { url: 'token.png' } }), 'character')).toBe('token.png');
   });
 
-  it('card は中身 (frontImage) を使い、裏面 (imageFile) は使わない', () => {
+  it('takes the face of a card rather than its back', () => {
     const card = makeObject({ frontImage: { url: 'front.png' }, imageFile: { url: 'back.png' } });
     expect(resolveObjectImageUrl(card, 'card')).toBe('front.png');
   });
 
-  it('terrain は壁ありなら wallImage、なければ floorImage を使う', () => {
+  it('takes the wall of terrain that has one and the floor otherwise', () => {
     expect(
       resolveObjectImageUrl(
         makeObject({ hasWall: true, wallImage: { url: 'w.png' }, floorImage: { url: 'f.png' } }),
@@ -89,14 +89,14 @@ describe('resolveObjectImageUrl', () => {
     ).toBe('f.png');
   });
 
-  it('対象外の種別や画像未設定は空文字を返す', () => {
+  it('returns nothing for another kind or no picture at all', () => {
     expect(resolveObjectImageUrl(makeObject({ imageFile: { url: 'x.png' } }), 'text-note')).toBe('');
     expect(resolveObjectImageUrl(makeObject({}), 'character')).toBe('');
   });
 });
 
 describe('resolveRangeThumbnail', () => {
-  it('type=CUSTOM かつ cellPattern があれば形状サムネイルを返す', () => {
+  it('returns a thumbnail for a custom shape that has a pattern', () => {
     const range = makeObject({
       type: 'CUSTOM',
       cellPattern: '0,0;1,0;0,1',
@@ -110,7 +110,7 @@ describe('resolveRangeThumbnail', () => {
     expect(thumb!.gridColor).toBe('#FF0000');
   });
 
-  it('組み込み型(CORN 等)や cellPattern 無しは null', () => {
+  it('returns nothing for a built-in shape or one without', () => {
     expect(resolveRangeThumbnail(makeObject({ type: 'CORN' }))).toBeNull();
     expect(resolveRangeThumbnail(makeObject({ type: 'CUSTOM', cellPattern: '' }))).toBeNull();
   });
@@ -119,11 +119,11 @@ describe('resolveRangeThumbnail', () => {
 describe('matchesObjectRowQuery', () => {
   const row = buildObjectRow(makeObject({ name: 'Goblin', ownerName: 'Alice', hasOwner: true }), 'character', noPeer);
 
-  it('空クエリは常に一致する', () => {
+  it('matches everything for an empty search', () => {
     expect(matchesObjectRowQuery(row, '')).toBe(true);
   });
 
-  it('名前・オーナー名の部分一致（大文字小文字無視）で一致する', () => {
+  it('matches part of a name or an owner, whatever the case', () => {
     expect(matchesObjectRowQuery(row, 'gob')).toBe(true);
     expect(matchesObjectRowQuery(row, 'ALICE')).toBe(true);
     expect(matchesObjectRowQuery(row, 'dragon')).toBe(false);

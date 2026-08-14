@@ -7,7 +7,7 @@ import {
   matchesQuery,
 } from '@axe/features/effect/effect-library-panel/effect-library-list';
 
-describe('エフェクト集の一覧', () => {
+describe('the effect library', () => {
   let created: EffectPreset[] = [];
 
   function makePreset(name: string, tag: string, grade = 2): EffectPreset {
@@ -26,20 +26,20 @@ describe('エフェクト集の一覧', () => {
   describe('matchesQuery()', () => {
     const preset = () => makePreset('ファイアボルト', '射撃');
 
-    it('空の検索語はすべて通すこと', () => {
+    it('lets everything through for an empty search', () => {
       expect(matchesQuery(preset(), '   ')).toBe(true);
     });
 
-    it('名前の一部で拾えること', () => {
+    it('finds an effect by part of its name', () => {
       expect(matchesQuery(preset(), 'ボルト')).toBe(true);
       expect(matchesQuery(preset(), '氷結')).toBe(false);
     });
 
-    it('系統名でも拾えること', () => {
+    it('finds one by its family', () => {
       expect(matchesQuery(preset(), '射撃')).toBe(true);
     });
 
-    it('英字は大小を区別しないこと', () => {
+    it('pays no attention to case', () => {
       expect(matchesQuery(makePreset('Fire Bolt', 'shot'), 'fire')).toBe(true);
     });
   });
@@ -54,20 +54,20 @@ describe('エフェクト集の一覧', () => {
       ];
     }
 
-    it('系統で絞り込めること', () => {
+    it('narrows by family', () => {
       expect(filterPresets(catalog(), '', '氷', null).map((preset) => preset.name)).toEqual(['氷結', '絶対零度']);
     });
 
-    it('等級で絞り込めること', () => {
+    it('narrows by grade', () => {
       expect(filterPresets(catalog(), '', null, 3).map((preset) => preset.name)).toEqual(['絶対零度']);
     });
 
-    it('検索語と組み合わせられること', () => {
+    it('narrows by both at once', () => {
       expect(filterPresets(catalog(), '矢', '射撃', 1).map((preset) => preset.name)).toEqual(['火の矢']);
     });
   });
 
-  describe('狙える数での絞り込み', () => {
+  describe('narrowing by how many it can aim at', () => {
     function targetsCatalog(): EffectPreset[] {
       const single = makePreset('斬撃', '物理');
       single.targeting = 'single';
@@ -79,23 +79,23 @@ describe('エフェクト集の一覧', () => {
       return [single, self, multi];
     }
 
-    it('複数を巻き込めるものだけを残せること', () => {
+    it('keeps only what takes several targets', () => {
       expect(filterPresets(targetsCatalog(), '', null, null, 'multi').map((preset) => preset.name)).toEqual(['爆炎']);
     });
 
-    it('単体しか狙えないものだけを残せること', () => {
-      // 自分だけに掛かるものも「単体」に含める。
+    it('keeps only what takes one', () => {
+      // Something that only touches the caster counts as one.
       expect(filterPresets(targetsCatalog(), '', null, null, 'single').map((preset) => preset.name)).toEqual([
         '斬撃',
         '闘気',
       ]);
     });
 
-    it('指定が無ければ全部通すこと', () => {
+    it('lets everything through when neither is asked for', () => {
       expect(filterPresets(targetsCatalog(), '', null, null, null)).toHaveLength(3);
     });
 
-    it('複数対象かどうかを上限で判定すること', () => {
+    it('reads how many it takes from the limit', () => {
       const [single, , multi] = targetsCatalog();
 
       expect(isMultiTarget(single)).toBe(false);
@@ -104,13 +104,13 @@ describe('エフェクト集の一覧', () => {
   });
 
   describe('groupPresets()', () => {
-    it('系統ごとにまとめ、既定の系統順に並べること', () => {
+    it('gathers them by family and puts the families in their usual order', () => {
       const groups = groupPresets([makePreset('氷結', '氷'), makePreset('斬撃', '物理'), makePreset('爆炎', '炎')]);
 
       expect(groups.map((group) => group.tag)).toEqual(['物理', '炎', '氷']);
     });
 
-    it('系統の中では等級順に並べること', () => {
+    it('orders a family by grade', () => {
       const groups = groupPresets([
         makePreset('絶対零度', '氷', 3),
         makePreset('氷礫', '氷', 1),
@@ -120,7 +120,7 @@ describe('エフェクト集の一覧', () => {
       expect(groups[0].presets.map((preset) => preset.name)).toEqual(['氷礫', '氷結', '絶対零度']);
     });
 
-    it('知らない系統と無記名を後ろへ回すこと', () => {
+    it('puts an unknown family and an unnamed one at the back', () => {
       const groups = groupPresets([makePreset('謎', ''), makePreset('自作', '独自'), makePreset('斬撃', '物理')]);
 
       expect(groups.map((group) => group.tag)).toEqual(['物理', '独自', '']);
@@ -128,7 +128,7 @@ describe('エフェクト集の一覧', () => {
   });
 
   describe('collectTags()', () => {
-    it('重複を畳んで既定の系統順に返すこと', () => {
+    it('folds the repeats and returns the families in that order', () => {
       const tags = collectTags([
         makePreset('氷結', '氷'),
         makePreset('絶対零度', '氷'),

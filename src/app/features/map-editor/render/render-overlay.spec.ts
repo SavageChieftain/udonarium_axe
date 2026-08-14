@@ -74,7 +74,7 @@ function overlay(overrides: Partial<EditorOverlay> = {}): EditorOverlay {
 const scene: MapScene = createScene(10, 10, 50);
 
 describe('renderOverlay()', () => {
-  it('描いている途中のものが無ければ、何も足さないこと', () => {
+  it('adds nothing with nothing being drawn', () => {
     const ctx = mockCtx();
 
     renderOverlay(ctx, scene, overlay());
@@ -83,7 +83,7 @@ describe('renderOverlay()', () => {
     expect(ctx.counts('drawImage')).toBe(0);
   });
 
-  it('直線の下書きを線で見せ、長さを添えること', () => {
+  it('shows a line being drawn, with its length', () => {
     const ctx = mockCtx();
 
     renderOverlay(
@@ -101,7 +101,7 @@ describe('renderOverlay()', () => {
     ).toContain('マス');
   });
 
-  it('消しゴムの届く範囲を丸で見せること', () => {
+  it('shows how far the eraser reaches', () => {
     const ctx = mockCtx();
 
     renderOverlay(ctx, scene, overlay({ tool: 'cellErase', vectorErase: true, hover: { x: 40, y: 40 } }));
@@ -110,7 +110,7 @@ describe('renderOverlay()', () => {
     expect(arc?.args.slice(0, 3)).toEqual([40, 40, 12]);
   });
 
-  it('画面を掴んで動かしている間は下敷きを出さないこと', () => {
+  it('shows nothing while the view is being dragged', () => {
     const ctx = mockCtx();
 
     renderOverlay(ctx, scene, overlay({ tool: 'cellPaint', hover: { x: 40, y: 40 }, panning: true }));
@@ -118,7 +118,7 @@ describe('renderOverlay()', () => {
     expect(ctx.counts('fillRect')).toBe(0);
   });
 
-  it('スタンプを置く前に、半透明で重ねて見せること', () => {
+  it('shows a stamp before it is placed', () => {
     const ctx = mockCtx();
     const image = { width: 100, height: 100 } as unknown as OverlayStamp['image'];
 
@@ -137,7 +137,7 @@ describe('renderOverlay()', () => {
     expect(ctx.calls.find((call) => call.method === 'scale')?.args).toEqual([-1, 1]);
   });
 
-  it('選んだ絵に、掴む角を出すこと', () => {
+  it('puts handles on the corners of a selected image', () => {
     const ctx = mockCtx();
     const item: ImageItem = { id: 'i1', imageIdentifier: 'img', x: 100, y: 100, w: 40, h: 20, rotation: 0, opacity: 1 };
 

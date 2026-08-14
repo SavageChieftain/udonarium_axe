@@ -21,9 +21,9 @@ import {
 
 type ClipArea = ClipAreaLine | ClipAreaSquare | ClipAreaTriangle | ClipAreaPentagon | ClipAreaHexagon | ClipAreaCorn;
 
-/** `clip01x/y` 形式の連番を `polygon(...)` CSS にする。欠番が出た時点で終了 (3 点〜9 点)。 */
+/** Turns the numbered clip fields into a css polygon, stopping at the first gap. Three points to nine. */
 export function clipAreaToPolygonCss(clip: ClipArea): string {
-  // 個別の Clip インターフェース群はインデックスシグネチャを持たないため Record 経由で読む。
+  // The clip interfaces carry no index signature, so they are read through a record.
   const c = clip as unknown as Record<string, number>;
   const points: string[] = [];
   for (let i = 1; ; i++) {
@@ -36,7 +36,7 @@ export function clipAreaToPolygonCss(clip: ClipArea): string {
   return `polygon(${points.join(', ')})`;
 }
 
-/** `length` セル + 0.5 セル余白の `circle(<radius>px)`。 */
+/** A circle of the given length plus half a cell of margin. */
 export function clipCircleCss(lengthCells: number, gridSize: number): string {
   return `circle(${(lengthCells + 1.5) * gridSize}px)`;
 }
@@ -78,7 +78,7 @@ export function calcGridOffsets(setting: RangeRenderSetting): GridOffsets {
   return { gridSize, gridOffX, gridOffY, offSetX_px, offSetY_px };
 }
 
-// ホットループ内でのオブジェクト生成を避けるための共有バッファ (シングルスレッドなので安全)
+// A shared buffer, so the hot loop allocates nothing. Safe on a single thread.
 const _gridPos: GridPosition = { gx: 0, gy: 0 };
 
 export function generateCalcGridPositionFunc(
@@ -135,8 +135,8 @@ export function makeBrush(
 }
 
 /**
- * 多角形の構成ベクトルを盤面見下ろしで右回転にとり、
- * ベクトル P1P2 × P1Pchk の外積が +ならば pchk は内側。
+ * The edges run clockwise seen from above the board, so a positive cross product of
+ * the edge with the line to the point puts that point inside.
  */
 export function chkOuterProduct(
   p1x: number,
@@ -166,7 +166,7 @@ export function isHexGrid(gridType: GridType): boolean {
   return isHexGridType(gridType);
 }
 
-/** @param hitTest (gcx, gcy) はレンジ原点からの相対座標 (px)。 */
+/** @param hitTest the point relative to the origin of the range, in pixels. */
 function fillHexGridCells(
   context: CanvasRenderingContext2D,
   setting: RangeRenderSetting,
@@ -208,7 +208,7 @@ function fillHexGridCells(
   }
 }
 
-/** @param hitTest (gcx, gcy) はレンジ原点からの相対座標 (px)。 */
+/** @param hitTest the point relative to the origin of the range, in pixels. */
 function fillSquareGridCells(
   context: CanvasRenderingContext2D,
   setting: RangeRenderSetting,
@@ -237,7 +237,7 @@ function fillSquareGridCells(
   }
 }
 
-/** @param hitTest (gcx, gcy) はレンジ原点からの相対座標 (px)。 */
+/** @param hitTest the point relative to the origin of the range, in pixels. */
 export function fillGridCells(
   context: CanvasRenderingContext2D,
   setting: RangeRenderSetting,

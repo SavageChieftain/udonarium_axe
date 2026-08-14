@@ -39,21 +39,21 @@ const names = (a: { name: string }[]) => a.map((x) => x.name);
 const cb = () => ({ onDiceRoll: vi.fn(), onShowDetail: vi.fn() });
 
 describe('buildDiceSymbolContextMenu()', () => {
-  it('isVisible=true なら「ダイスを振る」と「ダイス目を設定」が出る', () => {
+  it('offers rolling and setting the face on a die that can be seen', () => {
     const dice = makeDice({ isVisible: true });
     const menu = buildDiceSymbolContextMenu(dice as unknown as DiceSymbol, 50, cb(), t);
     expect(names(menu)).toContain('ダイスを振る');
     expect(names(menu)).toContain('ダイス目を設定');
   });
 
-  it('isVisible=false なら「ダイスを振る」「ダイス目を設定」が出ない', () => {
+  it('offers neither on one that cannot', () => {
     const dice = makeDice({ isVisible: false });
     const menu = buildDiceSymbolContextMenu(dice as unknown as DiceSymbol, 50, cb(), t);
     expect(names(menu)).not.toContain('ダイスを振る');
     expect(names(menu)).not.toContain('ダイス目を設定');
   });
 
-  it('isMine か hasOwner なら「ダイスを公開」が出て owner を空にする', () => {
+  it('offers to open a die that is owned, and clears its owner', () => {
     const dice = makeDice({ isMine: true, owner: 'me' });
     const menu = buildDiceSymbolContextMenu(dice as unknown as DiceSymbol, 50, cb(), t);
     const reveal = menu.find((m) => m.name === 'ダイスを公開');
@@ -62,20 +62,20 @@ describe('buildDiceSymbolContextMenu()', () => {
     expect(dice.owner).toBe('');
   });
 
-  it('isMine=false なら「自分だけ見る」が出る', () => {
+  it('offers a peek at somebody elses', () => {
     const dice = makeDice({ isMine: false });
     const menu = buildDiceSymbolContextMenu(dice as unknown as DiceSymbol, 50, cb(), t);
     expect(names(menu)).toContain('自分だけ見る');
   });
 
-  it('「ダイス目を設定」のサブメニューは faces の数だけ並ぶ', () => {
+  it('offers as many faces as the die has', () => {
     const dice = makeDice({ isVisible: true, faces: ['1', '2', '3', '4', '5', '6'] });
     const menu = buildDiceSymbolContextMenu(dice as unknown as DiceSymbol, 50, cb(), t);
     const face = menu.find((m) => m.name === 'ダイス目を設定');
     expect(face?.subActions).toHaveLength(6);
   });
 
-  it('サブメニューの 1 つを実行すると face が更新される', () => {
+  it('sets the face from one of them', () => {
     const dice = makeDice({ face: '1' });
     const menu = buildDiceSymbolContextMenu(dice as unknown as DiceSymbol, 50, cb(), t);
     const subs = menu.find((m) => m.name === 'ダイス目を設定')?.subActions;
@@ -83,7 +83,7 @@ describe('buildDiceSymbolContextMenu()', () => {
     expect(dice.face).toBe('3');
   });
 
-  it('hideName でチェックマーク表示が切り替わり、アクションでフラグが反転する', () => {
+  it('ticks hiding the name and switches it', () => {
     const shown = makeDice({ hideName: false });
     const shownMenu = buildDiceSymbolContextMenu(shown as unknown as DiceSymbol, 50, cb(), t);
     expect(names(shownMenu)).toContain('☐ 名前を隠す');
@@ -95,7 +95,7 @@ describe('buildDiceSymbolContextMenu()', () => {
     expect(names(hiddenMenu)).toContain('☑ 名前を隠す');
   });
 
-  it('「削除する」が dice.destroy() を呼ぶ', () => {
+  it('destroys the die', () => {
     const dice = makeDice();
     const menu = buildDiceSymbolContextMenu(dice as unknown as DiceSymbol, 50, cb(), t);
     menu.find((m) => m.name === '削除する')!.action!();

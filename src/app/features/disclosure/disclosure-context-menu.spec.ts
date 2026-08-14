@@ -25,38 +25,38 @@ describe('buildDisclosureContextMenu', () => {
     PeerCursor.myCursor = original;
   });
 
-  it('PL は所有者のいないキャラに所有者メニューを出す（公開範囲メニューは出さない）', () => {
+  it('offers a player ownership of an unowned character, but not who may see it', () => {
     setMe('p1', PeerRole.Player);
     const menu = buildDisclosureContextMenu(obj(''), t);
     expect(find(menu, 'feature.disclosure.owner')).toBeTruthy();
     expect(find(menu, 'feature.disclosure.label')).toBeFalsy();
   });
 
-  it('PL は他人が所有するキャラには何も出さない', () => {
+  it('offers a player nothing on somebody elses character', () => {
     setMe('p1', PeerRole.Player);
     expect(buildDisclosureContextMenu(obj('p2'), t)).toEqual([]);
   });
 
-  it('オーナー本人は公開範囲を編集できるが所有者メニューは出ない', () => {
+  it('lets the owner set who may see it, without offering ownership', () => {
     setMe('p1', PeerRole.Player);
     const menu = buildDisclosureContextMenu(obj('p1'), t);
     expect(find(menu, 'feature.disclosure.label')).toBeTruthy();
     expect(find(menu, 'feature.disclosure.owner')).toBeFalsy();
   });
 
-  it('Guest は未所有でも所有者を設定できない', () => {
+  it('offers a guest no ownership even of an unowned character', () => {
     setMe('g1', PeerRole.Guest);
     expect(buildDisclosureContextMenu(obj(''), t)).toEqual([]);
   });
 
-  it('GM は公開範囲と所有者の両方を出す', () => {
+  it('offers the game master both', () => {
     setMe('gm', PeerRole.GameMaster);
     const menu = buildDisclosureContextMenu(obj('p2'), t);
     expect(find(menu, 'feature.disclosure.label')).toBeTruthy();
     expect(find(menu, 'feature.disclosure.owner')).toBeTruthy();
   });
 
-  it('PL が未所有キャラの所有者を自分に設定できる', () => {
+  it('lets a player take an unowned character', () => {
     setMe('p1', PeerRole.Player);
     const o = obj('');
     const ownerMenu = find(buildDisclosureContextMenu(o, t), 'feature.disclosure.owner');

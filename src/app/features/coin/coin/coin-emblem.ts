@@ -9,7 +9,7 @@ export interface CoinLeaf {
 const toRadians = (degrees: number) => (degrees * Math.PI) / 180;
 const round = (value: number) => Math.round(value * 100) / 100;
 
-/** 打刻星章の輪郭。外周と内周の頂点を交互に結ぶ。 */
+/** The outline of a struck star, alternating between the outer and the inner radius. */
 export function starPoints(center: number, outerRadius: number, innerRadius: number, pointCount = 5): string {
   const step = 180 / pointCount;
   return Array.from({ length: pointCount * 2 }, (_, index) => {
@@ -20,8 +20,8 @@ export function starPoints(center: number, outerRadius: number, innerRadius: num
 }
 
 /**
- * 月桂冠の葉。左右の枝に同数の葉を並べ、上へ向かうほど小さくする。
- * 葉は枝の接線を向く。
+ * The leaves of a laurel wreath, as many on one branch as the other and smaller towards the top.
+ * Each leaf follows the tangent of its branch.
  */
 export function laurelLeaves(center: number, radius: number, leafCount = 6): CoinLeaf[] {
   const fromDegrees = 20;

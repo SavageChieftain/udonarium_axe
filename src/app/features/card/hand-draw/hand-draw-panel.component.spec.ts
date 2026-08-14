@@ -53,7 +53,7 @@ describe('HandDrawPanelComponent', () => {
     }
   });
 
-  it('手札を持つ他の参加者だけを候補にすること', () => {
+  it('offers only the other players who hold a hand', () => {
     peer('other', 'あいて');
     peer('empty', 'てふだなし');
     card('s01', 'other');
@@ -64,7 +64,7 @@ describe('HandDrawPanelComponent', () => {
     expect(component.targets()[0].count).toBe(1);
   });
 
-  it('相手を選ぶと手札の枚数だけ裏向きのカードを並べること', () => {
+  it('lays their hand out face down once one is chosen', () => {
     peer('other', 'あいて');
     card('s01', 'other');
     card('s02', 'other');
@@ -77,7 +77,7 @@ describe('HandDrawPanelComponent', () => {
     expect(fixture.nativeElement.querySelectorAll('img')).toHaveLength(2);
   });
 
-  it('カードを選ぶと自分の手札へ移り、相手の手札が減ること', () => {
+  it('takes a chosen card into your own hand and out of theirs', () => {
     peer('other', 'あいて');
     const drawn = card('s01', 'other');
     card('s02', 'other');
@@ -93,7 +93,7 @@ describe('HandDrawPanelComponent', () => {
     expect(component.cards()).toHaveLength(1);
   });
 
-  it('相手の手札が尽きたら選択を解除すること', () => {
+  it('lets them go once their hand is empty', () => {
     peer('other', 'あいて');
     card('s01', 'other');
     fixture.detectChanges();

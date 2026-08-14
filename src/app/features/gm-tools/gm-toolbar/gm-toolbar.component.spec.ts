@@ -29,7 +29,7 @@ describe('GmToolbarComponent', () => {
     component = fixture.componentInstance;
   });
 
-  it('隠した録画ウィジェットを出し直せること', () => {
+  it('brings a hidden recording widget back', () => {
     PeerCursor.myCursor = Object.assign(new PeerCursor('me'), { role: PeerRole.GameMaster });
     const widgets = TestBed.inject(WidgetVisibilityService);
     widgets.recording.set(false);
@@ -44,7 +44,7 @@ describe('GmToolbarComponent', () => {
     expect(widgets.recording()).toBe(true);
   });
 
-  it('openObjectList でオブジェクト一覧パネルを開く', () => {
+  it('opens the object list', () => {
     (component as unknown as { openObjectList: () => void }).openObjectList();
     expect(panelStub.open).toHaveBeenCalledWith(
       GameObjectListPanelComponent,
@@ -52,7 +52,7 @@ describe('GmToolbarComponent', () => {
     );
   });
 
-  it('openMapEditor でマップエディターパネルを開く', () => {
+  it('opens the map editor', () => {
     (component as unknown as { openMapEditor: () => void }).openMapEditor();
     expect(panelStub.open).toHaveBeenCalledWith(
       MapEditorPanelComponent,
@@ -60,7 +60,7 @@ describe('GmToolbarComponent', () => {
     );
   });
 
-  it('toggleNpcBar で NPC バーの開閉を切り替える', () => {
+  it('opens and closes the non-player bar', () => {
     const bar = TestBed.inject(NpcBarService);
     expect(bar.isOpen()).toBe(false);
     (component as unknown as { toggleNpcBar: () => void }).toggleNpcBar();
@@ -69,7 +69,7 @@ describe('GmToolbarComponent', () => {
     expect(bar.isOpen()).toBe(false);
   });
 
-  it('selectPersona でプレイヤー視点プレビューを設定/解除する', () => {
+  it('takes up and puts down a players point of view', () => {
     const vision = TestBed.inject(VisionService);
     const persona = component as unknown as { selectPersona: (id: string | null) => void };
 
@@ -82,7 +82,7 @@ describe('GmToolbarComponent', () => {
     expect(vision.previewAsUserId()).toBeNull();
   });
 
-  it('togglePersona でドロップダウンの開閉を切り替える', () => {
+  it('opens and closes that menu', () => {
     const persona = component as unknown as { togglePersona: () => void; personaOpen: () => boolean };
     expect(persona.personaOpen()).toBe(false);
     persona.togglePersona();
@@ -102,7 +102,7 @@ describe('GmToolbarComponent', () => {
       vi.unstubAllGlobals();
     });
 
-    it('確認後、オフラインオーナーが持つ所有を解放する', () => {
+    it('releases what an absent owner holds, once confirmed', () => {
       const card = Card.create('カード', 'front.png', 'back.png');
       card.owner = 'ghost-user';
       vi.stubGlobal(
@@ -115,7 +115,7 @@ describe('GmToolbarComponent', () => {
       expect(card.owner).toBe('');
     });
 
-    it('確認をキャンセルした場合は解放しない', () => {
+    it('releases nothing when the confirmation is dismissed', () => {
       const card = Card.create('カード', 'front.png', 'back.png');
       card.owner = 'ghost-user';
       vi.stubGlobal(
@@ -129,7 +129,7 @@ describe('GmToolbarComponent', () => {
     });
   });
 
-  describe('ロール切り替え時のツールバー位置', () => {
+  describe('where the toolbar sits across a change of role', () => {
     let objectChange: ObjectChangeService;
     let store: ObjectStore;
 
@@ -155,7 +155,7 @@ describe('GmToolbarComponent', () => {
       objectChange.notifyChanged(PeerCursor.myCursor.identifier);
     }
 
-    it('GM→PL→GM の切り替え後もドラッグした位置を保持する', async () => {
+    it('stays where it was dragged through a round trip of roles', async () => {
       fixture.detectChanges();
       await fixture.whenStable();
       const el = bar();

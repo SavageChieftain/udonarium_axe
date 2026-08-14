@@ -31,12 +31,12 @@ describe('TextureCropDialogComponent', () => {
     ).image = { naturalWidth: w, naturalHeight: h, width: w, height: h };
   }
 
-  it('生成できる', async () => {
+  it('can be created', async () => {
     await setup({ objectUrl: 'blob:x' });
     expect(component).toBeTruthy();
   });
 
-  it('prepare は cover-fit で初期化し min-scale を frame/min(w,h) にする', async () => {
+  it('starts fitted to cover, with the smallest scale the frame allows', async () => {
     await setup({ objectUrl: 'blob:x' });
     const image = { naturalWidth: 800, naturalHeight: 400, width: 800, height: 400 } as HTMLImageElement;
     (component as unknown as { loadImageFn: (url: string) => Promise<HTMLImageElement> }).loadImageFn = vi
@@ -50,7 +50,7 @@ describe('TextureCropDialogComponent', () => {
     expect(component['ty']()).toBeCloseTo((TEXTURE_CROP_STAGE - 400 * minScale) / 2, 5);
   });
 
-  it('clamp はフレームが常に画像で覆われるよう平行移動を制限する', async () => {
+  it('limits the panning so the frame stays covered', async () => {
     await setup({ objectUrl: 'blob:x' });
     setImage(400, 400);
     (component as unknown as { minScale: number }).minScale = TEXTURE_CROP_FRAME / 400;
@@ -63,7 +63,7 @@ describe('TextureCropDialogComponent', () => {
     expect(component['ty']()).toBeLessThanOrEqual(frameLeft);
   });
 
-  it('apply はフレームを画像座標へ逆写像し cropFn の Blob を resolve する', async () => {
+  it('maps the frame back into image coordinates and resolves the cropped bytes', async () => {
     await setup({ objectUrl: 'blob:x' });
     setImage(600, 600);
     const scale = 2;
@@ -84,13 +84,13 @@ describe('TextureCropDialogComponent', () => {
     expect(modalService.resolve).toHaveBeenCalledWith(blob);
   });
 
-  it('cancel は null を resolve する', async () => {
+  it('resolves nothing on cancel', async () => {
     await setup({ objectUrl: 'blob:x' });
     component['cancel']();
     expect(modalService.resolve).toHaveBeenCalledWith(null);
   });
 
-  it('画像未読み込み時の apply は null を resolve する', async () => {
+  it('resolves nothing before the image has loaded', async () => {
     await setup({ objectUrl: 'blob:x' });
     (component as unknown as { image: HTMLImageElement | null }).image = null;
     await (component as unknown as { apply: () => Promise<void> }).apply();
@@ -99,15 +99,15 @@ describe('TextureCropDialogComponent', () => {
 });
 
 describe('fitCropStage', () => {
-  it('広い画面では既定の大きさ', () => {
+  it('keeps its usual size on a wide screen', () => {
     expect(fitCropStage(1280)).toBe(TEXTURE_CROP_STAGE);
   });
 
-  it('狭い画面では余白を残して縮む', () => {
+  it('shrinks with a margin on a narrow one', () => {
     expect(fitCropStage(360)).toBe(312);
   });
 
-  it('極端に狭くても下限を保つ', () => {
+  it('keeps a floor on a very narrow screen', () => {
     expect(fitCropStage(200)).toBe(TEXTURE_CROP_MIN_STAGE);
   });
 });

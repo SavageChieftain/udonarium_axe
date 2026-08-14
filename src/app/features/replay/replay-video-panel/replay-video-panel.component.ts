@@ -128,8 +128,8 @@ export class ReplayVideoPanelComponent {
     if (id == null || this.estimate().shots < 1) return;
 
     const meta = this.metaOf(id);
-    // 保存先はボタンを押した流れの中で尋ねる。書き終えてから尋ねると、
-    // ブラウザが操作の直後でないと見なしてダイアログを出さない。
+    // Where to save is asked within the press itself; asking after the writing leaves the
+    // browser unconvinced it followed an action, and it shows no dialogue.
     const file = isVideoFileSinkSupported()
       ? await askVideoFile(`${replayArchiveName({ roomName: meta.roomName, startedAt: meta.startedAt })}.mp4`)
       : null;

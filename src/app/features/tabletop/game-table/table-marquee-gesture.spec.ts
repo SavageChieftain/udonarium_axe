@@ -45,7 +45,7 @@ describe('TableMarqueeGesture', () => {
     vi.useRealTimers();
   });
 
-  it('arm でマウスの長押しタイマーが起動し、時間経過で onMarqueeStart が発火する', () => {
+  it('starts a marquee once the mouse has been held down long enough', () => {
     const gesture = new TableMarqueeGesture(identityScreenToTable);
     const start = vi.fn<(p: MarqueePoint, m: MarqueeModifiers) => void>();
     gesture.onMarqueeStart = start;
@@ -61,7 +61,7 @@ describe('TableMarqueeGesture', () => {
     expect(start).toHaveBeenCalledWith({ x: 10, y: 20 }, { shift: false, ctrl: false, touch: false });
   });
 
-  it('タッチで始めた範囲選択はタッチ印を付けて通知する', () => {
+  it('marks a marquee started by touch as such', () => {
     const gesture = new TableMarqueeGesture(identityScreenToTable);
     const start = vi.fn();
     const end = vi.fn();
@@ -77,7 +77,7 @@ describe('TableMarqueeGesture', () => {
     expect(end).toHaveBeenCalledWith({ x1: 10, y1: 20, x2: 50, y2: 80 }, { shift: false, ctrl: false, touch: true });
   });
 
-  it('タッチ系はマウスより短い長押しで始まる', () => {
+  it('starts sooner from a touch than from the mouse', () => {
     const gesture = new TableMarqueeGesture(identityScreenToTable);
     const start = vi.fn();
     gesture.onMarqueeStart = start;
@@ -91,7 +91,7 @@ describe('TableMarqueeGesture', () => {
     expect(start).toHaveBeenCalled();
   });
 
-  it('指を動かして初めて範囲選択の操作中になる', () => {
+  it('counts as under way only once the pointer moves', () => {
     const gesture = new TableMarqueeGesture(identityScreenToTable);
     gesture.arm(makeEvent({ clientX: 10, clientY: 20, pointerType: 'touch' }));
     vi.advanceTimersByTime(MARQUEE_TOUCH_LONG_PRESS_MS);
@@ -102,20 +102,20 @@ describe('TableMarqueeGesture', () => {
     expect(gesture.isDragging).toBe(true);
   });
 
-  it('button !== 0 では arm されない', () => {
+  it('arms nothing from any button but the first', () => {
     const gesture = new TableMarqueeGesture(identityScreenToTable);
     expect(gesture.arm(makeEvent({ button: 2 }))).toBe(false);
     expect(gesture.isArmed).toBe(false);
   });
 
-  it('Ctrl/Meta/Alt 押下時は arm されない', () => {
+  it('arms nothing while a modifier is held', () => {
     const gesture = new TableMarqueeGesture(identityScreenToTable);
     expect(gesture.arm(makeEvent({ ctrl: true }))).toBe(false);
     expect(gesture.arm(makeEvent({ meta: true }))).toBe(false);
     expect(gesture.arm(makeEvent({ alt: true }))).toBe(false);
   });
 
-  it('閾値を超える移動で arm がキャンセルされる', () => {
+  it('disarms on a move past the threshold', () => {
     const gesture = new TableMarqueeGesture(identityScreenToTable);
     const start = vi.fn();
     gesture.onMarqueeStart = start;
@@ -128,7 +128,7 @@ describe('TableMarqueeGesture', () => {
     expect(start).not.toHaveBeenCalled();
   });
 
-  it('発火後の updatePointer は onMarqueeUpdate を呼ぶ', () => {
+  it('reports each move once it has started', () => {
     const gesture = new TableMarqueeGesture(identityScreenToTable);
     const update = vi.fn();
     gesture.onMarqueeUpdate = update;
@@ -139,7 +139,7 @@ describe('TableMarqueeGesture', () => {
     expect(update).toHaveBeenCalledWith({ x: 50, y: 80 });
   });
 
-  it('release で onMarqueeEnd が rect とリリース時 modifiers を渡して発火する', () => {
+  it('reports the rectangle and the modifiers held at the release', () => {
     const gesture = new TableMarqueeGesture(identityScreenToTable);
     const end = vi.fn<(r: MarqueeRect, m: MarqueeModifiers) => void>();
     gesture.onMarqueeEnd = end;
@@ -153,7 +153,7 @@ describe('TableMarqueeGesture', () => {
     expect(gesture.isActive).toBe(false);
   });
 
-  it('未発火の release は何もしない', () => {
+  it('reports nothing from a release before it started', () => {
     const gesture = new TableMarqueeGesture(identityScreenToTable);
     const end = vi.fn();
     gesture.onMarqueeEnd = end;
@@ -164,7 +164,7 @@ describe('TableMarqueeGesture', () => {
     expect(gesture.isArmed).toBe(false);
   });
 
-  it('cancel でタイマーが止まり、後の発火もない', () => {
+  it('stops the timer on cancel and never starts', () => {
     const gesture = new TableMarqueeGesture(identityScreenToTable);
     const start = vi.fn();
     gesture.onMarqueeStart = start;

@@ -35,7 +35,7 @@ const defaultCallbacks = () => ({
 });
 
 describe('buildInventoryObjectContextMenu()', () => {
-  it('graveyard 以外では「詳細を表示」「チャットパレット」「リモコン」「インベントリ非表示」が並ぶ', () => {
+  it('offers the sheet, the palette, the remote and hiding from the list anywhere but the graveyard', () => {
     const character = makeCharacterAt('table');
     const actions = buildInventoryObjectContextMenu(character, makeService(), defaultCallbacks(), t);
     const list = names(actions);
@@ -45,7 +45,7 @@ describe('buildInventoryObjectContextMenu()', () => {
     expect(list.some((n) => n.includes('インベントリ非表示'))).toBe(true);
   });
 
-  it('graveyard 配下では「詳細を表示」のみで「チャットパレット」「リモコン」が出ない', () => {
+  it('offers the sheet alone there, without the palette or the remote', () => {
     const character = makeCharacterAt('graveyard');
     const actions = buildInventoryObjectContextMenu(character, makeService(), defaultCallbacks(), t);
     const list = names(actions);
@@ -54,7 +54,7 @@ describe('buildInventoryObjectContextMenu()', () => {
     expect(list).not.toContain('リモコンを表示');
   });
 
-  it('現在いる location は移動先候補から外れる', () => {
+  it('leaves out the place it is already in', () => {
     const character = makeCharacterAt('table');
     const actions = buildInventoryObjectContextMenu(character, makeService(), defaultCallbacks(), t);
     const list = names(actions);
@@ -63,7 +63,7 @@ describe('buildInventoryObjectContextMenu()', () => {
     expect(list).toContain('墓場に移動');
   });
 
-  it('graveyard でだけ「削除する」が出る', () => {
+  it('offers deleting in the graveyard alone', () => {
     const graveyardActions = buildInventoryObjectContextMenu(
       makeCharacterAt('graveyard'),
       makeService(),
@@ -81,7 +81,7 @@ describe('buildInventoryObjectContextMenu()', () => {
     expect(names(tableActions)).not.toContain('削除する');
   });
 
-  it('hideInventory フラグでチェックマーク表示が切り替わる', () => {
+  it('ticks the item by whether it is hidden from the list', () => {
     const visible = buildInventoryObjectContextMenu(
       makeCharacterAt('table', false),
       makeService(),
@@ -99,12 +99,12 @@ describe('buildInventoryObjectContextMenu()', () => {
     expect(names(hidden)).toContain('☑ インベントリ非表示');
   });
 
-  it('「コピーを作る」は常に末尾近くに含まれる', () => {
+  it('always offers a copy, near the end', () => {
     const actions = buildInventoryObjectContextMenu(makeCharacterAt('table'), makeService(), defaultCallbacks(), t);
     expect(names(actions)).toContain('コピーを作る');
   });
 
-  it('「詳細を表示」のアクションが showDetail コールバックを呼ぶ', () => {
+  it('opens the sheet from that item', () => {
     const showDetail = vi.fn();
     const character = makeCharacterAt('table');
     const actions = buildInventoryObjectContextMenu(character, makeService(), { ...defaultCallbacks(), showDetail }, t);
@@ -120,24 +120,24 @@ describe('buildInventoryMultiMoveContextMenu()', () => {
     multiDelete: vi.fn(),
   });
 
-  it('選択中のタブと同名 location は除外される', () => {
+  it('leaves out the place the open tab already names', () => {
     const actions = buildInventoryMultiMoveContextMenu('common', moveCallbacks(), t);
     expect(names(actions)).not.toContain('共有イベントリに移動');
     expect(names(actions)).toContain('テーブルに移動');
     expect(names(actions)).toContain('墓場に移動');
   });
 
-  it('selectedTab が graveyard のとき「墓場から削除」が出る', () => {
+  it('offers deleting from the graveyard while that tab is open', () => {
     const actions = buildInventoryMultiMoveContextMenu('graveyard', moveCallbacks(), t);
     expect(names(actions)).toContain('墓場から削除');
   });
 
-  it('selectedTab が graveyard 以外なら「墓場から削除」は出ない', () => {
+  it('offers it nowhere else', () => {
     const actions = buildInventoryMultiMoveContextMenu('table', moveCallbacks(), t);
     expect(names(actions)).not.toContain('墓場から削除');
   });
 
-  it('移動アクションは multiMove(location) と toggleMultiMove() を順に呼ぶ', () => {
+  it('moves them all and then leaves the moving mode', () => {
     const multiMove = vi.fn();
     const toggleMultiMove = vi.fn();
     const actions = buildInventoryMultiMoveContextMenu(

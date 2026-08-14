@@ -38,7 +38,7 @@ export function collectRegisteredRangeShapes(char: GameCharacter): RegisteredRan
   return result;
 }
 
-/** キャラクターシートに登録された演出。技能行・バフ行から直接撃てるようにする。 */
+/** The effects on a character sheet, so a skill or a buff can fire one straight off its row. */
 export function collectRegisteredEffects(char: GameCharacter): string[] {
   const names: string[] = [];
   const walk = (element: DataElement): void => {
@@ -81,7 +81,7 @@ export function buildGameCharacterContextMenu(
   const registeredShapes = callbacks.onInvokeRangeShape ? collectRegisteredRangeShapes(char) : [];
   const registeredEffects = callbacks.onInvokeEffect ? collectRegisteredEffects(char) : [];
 
-  // 1. 開く / 確認
+  // opening and checking
   const openActions: ContextMenuAction[] = [
     {
       name: t('feature.character.contextMenu.showDetail'),
@@ -145,7 +145,7 @@ export function buildGameCharacterContextMenu(
       : []),
   ];
 
-  // 2. 表示設定
+  // display settings
   const displayActions: ContextMenuAction[] = [
     buildAltitudeAction(char, t, {
       onChanged: () => inventoryService.notifyInventoryUpdate(),
@@ -252,7 +252,7 @@ export function buildGameCharacterContextMenu(
         },
   ];
 
-  // 4. 移動
+  // moving it
   const moveActions: ContextMenuAction[] = [
     {
       name: t('feature.character.contextMenu.moveCommon'),
@@ -282,7 +282,7 @@ export function buildGameCharacterContextMenu(
     ...openActions,
     ContextMenuSeparator,
     ...displayActions,
-    // 3. 公開範囲 / オーナー（権限があるときのみ。先頭にセパレータを含む）
+    // who may see it and who owns it, with permission, after a separator
     ...buildDisclosureContextMenu(char, t),
     ContextMenuSeparator,
     ...moveActions,

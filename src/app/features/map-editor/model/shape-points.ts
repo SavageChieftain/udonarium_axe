@@ -34,7 +34,7 @@ export function starPoints(
   return result;
 }
 
-/** 図形の種類から輪郭の点を作る。矩形と楕円は canvas 側で描くので空を返す。 */
+/** Builds the outline for a shape. Rectangles and ellipses are drawn by the canvas, so they come back empty. */
 export function generateShapePoints(kind: ShapeGeneratorKind, x: number, y: number, w: number, h: number): number[] {
   const cx = x + w / 2;
   const cy = y + h / 2;

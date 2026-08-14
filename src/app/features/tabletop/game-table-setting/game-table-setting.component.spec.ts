@@ -19,9 +19,8 @@ describe('GameTableSettingComponent', () => {
   });
 
   beforeEach(() => {
-    // GameTableSettingComponent.gameType は ObjectStore から 'Config' を直接引いて
-    // defaultDiceBot を読む。テスト単体実行で Config が存在しないと null 参照になるため
-    // 必ずシングルトン Config を登録しておく。
+    // The component reads the config out of the store to find the default dice bot, so a
+    // singleton has to be registered or a test run on its own dereferences nothing.
     if (!ObjectStore.instance.get('Config')) {
       const config = new Config('Config');
       config.initialize();
@@ -34,21 +33,21 @@ describe('GameTableSettingComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('ChangeDetectorRefを使用していないこと', () => {
+  it('asks for no change detector', () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     expect((component as any).changeDetector).toBeUndefined();
   });
 
-  describe('selectedTableがnullの場合', () => {
+  describe('with no table selected', () => {
     beforeEach(() => {
       component.selectedTable = null;
     });
 
-    it('detectChangesがエラーにならないこと', () => {
+    it('detects changes without throwing', () => {
       expect(() => fixture.detectChanges()).not.toThrow();
     });
 
-    it('getterがデフォルト値を返すこと', () => {
+    it('returns the default', () => {
       expect(component.tableName).toBe('');
       expect(component.tableWidth).toBe(10);
       expect(component.tableHeight).toBe(10);
@@ -60,7 +59,7 @@ describe('GameTableSettingComponent', () => {
       expect(component.tableDistanceviewFilter).toBe(FilterType.NONE);
     });
 
-    it('setterがエラーにならないこと', () => {
+    it('sets without throwing', () => {
       expect(() => {
         component.tableName = 'test';
         component.tableWidth = 20;
@@ -75,14 +74,14 @@ describe('GameTableSettingComponent', () => {
   });
 
   describe('signal-driven CD', () => {
-    it('isDeletedゲッターがcollectionOfシグナルを使用すること', () => {
+    it('reads the deleted flag through a collection signal', () => {
       const objectChangeService = TestBed.inject(ObjectChangeService);
       const spy = vi.spyOn(objectChangeService, 'collectionOf');
       void component.isDeleted;
       expect(spy).toHaveBeenCalledWith('game-table');
     });
 
-    it('tableBackgroundImageゲッターがversionOfシグナルを使用すること', () => {
+    it('reads the background image through a version signal', () => {
       const objectChangeService = TestBed.inject(ObjectChangeService);
       const spy = vi.spyOn(objectChangeService, 'versionOf');
       const table = new GameTable();
@@ -92,7 +91,7 @@ describe('GameTableSettingComponent', () => {
       expect(spy).toHaveBeenCalledWith(table.identifier);
     });
 
-    it('tableDistanceviewImageゲッターがversionOfシグナルを使用すること', () => {
+    it('reads the distance view image through a version signal', () => {
       const objectChangeService = TestBed.inject(ObjectChangeService);
       const spy = vi.spyOn(objectChangeService, 'versionOf');
       const table = new GameTable();
@@ -103,7 +102,7 @@ describe('GameTableSettingComponent', () => {
     });
   });
 
-  it('global dragging が解除されたら panel の pointer-events-none も解除されること', async () => {
+  it('lets the panel take the pointer again once the drag ends', async () => {
     await expectPanelDragRecovery(GameTableSettingComponent);
   });
 });

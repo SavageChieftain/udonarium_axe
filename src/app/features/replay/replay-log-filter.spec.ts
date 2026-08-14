@@ -32,71 +32,71 @@ const events: ReplayEvent[] = [
 ];
 
 describe('filterReplayEvents()', () => {
-  it('既定では見える物をすべて返すこと', () => {
+  it('returns everything that can be seen', () => {
     const filtered = filterReplayEvents(events, DEFAULT_REPLAY_LOG_FILTER, viewer);
     expect(filtered.map((e) => e.seq)).toEqual([1, 2, 3, 4]);
   });
 
-  it('GM には秘匿のイベントも返すこと', () => {
+  it('returns the hidden events to the game master', () => {
     const filtered = filterReplayEvents(events, DEFAULT_REPLAY_LOG_FILTER, gm);
     expect(filtered.map((e) => e.seq)).toEqual([1, 2, 3, 4, 5]);
   });
 
-  it('チャットに絞れること', () => {
+  it('narrows to the chat', () => {
     const filtered = filterReplayEvents(events, { ...DEFAULT_REPLAY_LOG_FILTER, scope: ReplayLogScope.Chat }, viewer);
     expect(filtered.map((e) => e.seq)).toEqual([1, 3, 4]);
   });
 
-  it('盤面に絞れること', () => {
+  it('narrows to the board', () => {
     const filtered = filterReplayEvents(events, { ...DEFAULT_REPLAY_LOG_FILTER, scope: ReplayLogScope.Board }, viewer);
     expect(filtered.map((e) => e.seq)).toEqual([2, 4]);
   });
 
-  it('目印はどの絞り込みでも残すこと', () => {
+  it('keeps the markers through any of them', () => {
     for (const scope of [ReplayLogScope.All, ReplayLogScope.Chat, ReplayLogScope.Board]) {
       const filtered = filterReplayEvents(events, { ...DEFAULT_REPLAY_LOG_FILTER, scope }, viewer);
       expect(filtered.some((e) => e.kind === ReplayEventKind.Marker)).toBe(true);
     }
   });
 
-  it('人で絞れること', () => {
+  it('narrows by person', () => {
     const filtered = filterReplayEvents(events, { ...DEFAULT_REPLAY_LOG_FILTER, actorId: 'bob' }, viewer);
     expect(filtered.map((e) => e.seq)).toEqual([3]);
   });
 
-  it('秘匿を隠せること', () => {
+  it('hides what is hidden', () => {
     const filtered = filterReplayEvents(events, { ...DEFAULT_REPLAY_LOG_FILTER, hideSecret: true }, gm);
     expect(filtered.map((e) => e.seq)).toEqual([1, 2, 3, 4]);
   });
 });
 
 describe('collectReplayActorIds()', () => {
-  it('登場した人を重複なく集めること', () => {
+  it('gathers everybody who appears, once each', () => {
     expect(collectReplayActorIds(events)).toEqual(['alice', 'bob']);
   });
 
-  it('空なら空を返すこと', () => {
+  it('returns nothing for nothing', () => {
     expect(collectReplayActorIds([])).toEqual([]);
   });
 });
 
-describe('付随する音', () => {
+describe('the sounds that go with it', () => {
   const withSe = [
     event(1, ReplayEventKind.ChatMessage),
     event(2, ReplayEventKind.ObjectMove),
     event(3, ReplayEventKind.MediaSoundEffect),
   ];
 
-  it('既定では行として出さないこと', () => {
+  it('gives them no line of their own', () => {
     expect(filterReplayEvents(withSe, DEFAULT_REPLAY_LOG_FILTER, viewer).map((e) => e.seq)).toEqual([1, 2]);
   });
 
-  it('盤面だけに絞っても出さないこと', () => {
+  it('gives them none even narrowed to the board', () => {
     const filter = { ...DEFAULT_REPLAY_LOG_FILTER, scope: ReplayLogScope.Board };
     expect(filterReplayEvents(withSe, filter, viewer).map((e) => e.seq)).toEqual([2]);
   });
 
-  it('求められたときは出すこと', () => {
+  it('gives them one when they are asked for', () => {
     const filter = { ...DEFAULT_REPLAY_LOG_FILTER, showIncidental: true };
     expect(filterReplayEvents(withSe, filter, viewer).map((e) => e.seq)).toEqual([1, 2, 3]);
   });

@@ -23,7 +23,7 @@ describe('VoteEventHandlerService', () => {
     ObjectStore.instance.clearDeleteHistory();
   });
 
-  it('投票の集計を選択肢ごとに訳した文にする', () => {
+  it('puts the tally of a vote into words, choice by choice', () => {
     emitFinishVote({
       isRollCall: false,
       voteTitle: '休憩する？',
@@ -43,7 +43,7 @@ describe('VoteEventHandlerService', () => {
     );
   });
 
-  it('点呼の集計に棄権と未回答を添える', () => {
+  it('adds the abstentions and the silences to a roll call', () => {
     emitFinishVote({
       isRollCall: true,
       voteTitle: '点呼',
@@ -58,7 +58,7 @@ describe('VoteEventHandlerService', () => {
     expect(chatStub.sendSystemMessageAsLastSpeaker).toHaveBeenCalledWith('点呼終了(3/5) 棄権:1 未回答:2', 'tab-main');
   });
 
-  it('棄権も未回答も無ければ集計だけを送る', () => {
+  it('sends the tally alone when there are neither', () => {
     emitFinishVote({
       isRollCall: true,
       voteTitle: '点呼',

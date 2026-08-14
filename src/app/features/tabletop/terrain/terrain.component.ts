@@ -349,7 +349,7 @@ export class TerrainComponent {
     );
   });
 
-  // CD サイクル毎の Record 生成と clipPath 構築を避けるため computed 化。
+  // Computed, so neither the record nor the clip path is rebuilt on every change-detection pass.
   readonly pedestalStyle = computed<Record<string, string>>(() => {
     const params = this.pedestalHexParams();
     if (!params) return {} as Record<string, string>;

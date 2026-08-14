@@ -46,7 +46,7 @@ describe('PlToolbarComponent', () => {
     objectChange.notifyChanged(PeerCursor.myCursor.identifier);
   }
 
-  it('openOwnedCharacterList で所有キャラ一覧パネルを開く', () => {
+  it('opens the list of the characters you own', () => {
     (component as unknown as { openOwnedCharacterList: () => void }).openOwnedCharacterList();
     expect(panelStub.open).toHaveBeenCalledWith(
       OwnedCharacterListPanelComponent,
@@ -54,7 +54,7 @@ describe('PlToolbarComponent', () => {
     );
   });
 
-  it('操作対象が未設定なら範囲ボタンは一覧パネルを開き、形状メニューは出さない', () => {
+  it('opens that list from the range button, and no shape menu, while there is nothing to work on', () => {
     const toolbar = component as unknown as { toggleRangeMenu: () => void; rangeOpen: () => boolean };
 
     toolbar.toggleRangeMenu();
@@ -66,7 +66,7 @@ describe('PlToolbarComponent', () => {
     );
   });
 
-  it('toggleHandRail で手札レールの開閉を切り替える', () => {
+  it('opens and closes the hand rail', () => {
     const rail = TestBed.inject(HandRailService);
     const toolbar = component as unknown as { toggleHandRail: () => void };
 
@@ -77,7 +77,7 @@ describe('PlToolbarComponent', () => {
     expect(rail.isOpen()).toBe(false);
   });
 
-  it('PL のときだけツールバーを表示する', async () => {
+  it('shows the toolbar to a player alone', async () => {
     setRole(PeerRole.Player);
     fixture.detectChanges();
     await fixture.whenStable();
@@ -94,7 +94,7 @@ describe('PlToolbarComponent', () => {
     expect(bar()).toBeNull();
   });
 
-  it('ロール切り替えを跨いでドラッグした位置を保持する', async () => {
+  it('stays where it was dragged across a change of role', async () => {
     setRole(PeerRole.Player);
     fixture.detectChanges();
     await fixture.whenStable();

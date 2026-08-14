@@ -29,7 +29,7 @@ describe('ChatTabComponent', () => {
   });
 
   describe('ngOnChanges', () => {
-    it('scrollablePanelが存在する場合はresetMessagesが同期的に呼ばれること', () => {
+    it('resets the messages at once when there is a panel to scroll', () => {
       const panelService = TestBed.inject(PanelService);
       const mockPanel = document.createElement('div');
       Object.defineProperty(mockPanel, 'clientHeight', { value: 400 });
@@ -45,7 +45,7 @@ describe('ChatTabComponent', () => {
       expect(spy).toHaveBeenCalled();
     });
 
-    it('scrollablePanelがnullの場合はresetMessagesがマイクロタスクで呼ばれること', async () => {
+    it('resets them on a microtask when there is none', async () => {
       const panelService = TestBed.inject(PanelService);
       const mockPanel = document.createElement('div');
       panelService.scrollablePanel = mockPanel as unknown as HTMLDivElement;
@@ -66,22 +66,22 @@ describe('ChatTabComponent', () => {
     });
   });
 
-  it('ChangeDetectorRefを使用していないこと', () => {
+  it('asks for no change detector', () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     expect((component as any).changeDetector).toBeUndefined();
   });
 
-  it('chatTab が null の場合でも chatMessages getter がエラーをスローしないこと', () => {
+  it('reads the messages without throwing when there is no tab', () => {
     fixture.componentRef.setInput('chatTab', null);
     expect(() => {
       const _msgs = component.chatMessages;
     }).not.toThrow();
   });
 
-  describe('messageAdded$ による bottomIndex 更新', () => {
+  describe('moving the bottom on a new message', () => {
     let chatTab: ChatTab;
     let panelService: PanelService;
-    // private フィールドへのアクセスを型安全に行うためのヘルパー
+    // A helper that reaches the private fields without losing the types.
     type InternalComponent = { bottomIndex: number };
     const internal = () => component as unknown as InternalComponent;
 
@@ -97,47 +97,47 @@ describe('ChatTabComponent', () => {
       fixture.detectChanges();
     });
 
-    it('ボトムにいる時に新着メッセージが届いたら bottomIndex が拡張されること', () => {
-      // Arrange: まずメッセージを1件追加して bottomIndex = 0 にする
+    it('widens to a new message while it is at the bottom', () => {
+      // one message puts the bottom at the first
       const msg0 = new ChatMessage();
       msg0.initialize();
       chatTab.appendChild(msg0);
       emitMessageAdded({ tabIdentifier: chatTab.identifier, messageIdentifier: msg0.identifier });
-      // bottomIndex は 0 (length-1=0 への拡張) になっているはず
+      // which leaves it at the first
 
-      // Act: 2件目を追加
+      // a second message arrives
       const msg1 = new ChatMessage();
       msg1.initialize();
       chatTab.appendChild(msg1);
       emitMessageAdded({ tabIdentifier: chatTab.identifier, messageIdentifier: msg1.identifier });
 
-      // Assert: bottomIndex が 1(新着のインデックス) に拡張されていること
+      // and the bottom moves to it
       expect(internal().bottomIndex).toBe(1);
     });
 
-    it('スクロールアップ中は新着メッセージで bottomIndex を変えないこと', () => {
-      // Arrange: 10 件追加して bottomIndex を 9 にする
+    it('leaves the bottom alone while it is scrolled up', () => {
+      // ten messages put the bottom at the last
       for (let i = 0; i < 10; i++) {
         const m = new ChatMessage();
         m.initialize();
         chatTab.appendChild(m);
         emitMessageAdded({ tabIdentifier: chatTab.identifier, messageIdentifier: m.identifier });
       }
-      // ユーザーがスクロールアップしたと仮定して bottomIndex を中間に下げる
+      // then it is dragged back to the middle, as scrolling up would
       internal().bottomIndex = 4;
 
-      // Act: 新着メッセージ
+      // a new message arrives
       const newMsg = new ChatMessage();
       newMsg.initialize();
       chatTab.appendChild(newMsg);
       emitMessageAdded({ tabIdentifier: chatTab.identifier, messageIdentifier: newMsg.identifier });
 
-      // Assert: bottomIndex は変わらない
+      // and the bottom stays where it was
       expect(internal().bottomIndex).toBe(4);
     });
 
-    it('topTimestamp より古いタイムスタンプのメッセージでも needUpdate が true になること', () => {
-      // Arrange: timestamp=1000 のメッセージを追加し chatMessages getter を実行して topTimestamp を確定させる
+    it('still updates for a message older than the top of the view', () => {
+      // one message is added and read, which settles the top timestamp
       type InternalFull = { bottomIndex: number; needUpdate: boolean; topTimestamp: number };
       const internalFull = () => component as unknown as InternalFull;
 
@@ -147,24 +147,24 @@ describe('ChatTabComponent', () => {
       chatTab.appendChild(msg0);
       emitMessageAdded({ tabIdentifier: chatTab.identifier, messageIdentifier: msg0.identifier });
 
-      // topTimestamp を 1000 に確定させる
+      // settling it
       const _ignored = component.chatMessages;
       expect(internalFull().topTimestamp).toBe(1000);
       internalFull().needUpdate = false; // getter で false になっているはずだが明示的に確認
 
-      // Act: timestamp=500 (< topTimestamp=1000) のメッセージを追加
+      // an older message arrives
       const msg1 = new ChatMessage();
       msg1.initialize();
       msg1.setAttribute('timestamp', 500);
       chatTab.appendChild(msg1);
       emitMessageAdded({ tabIdentifier: chatTab.identifier, messageIdentifier: msg1.identifier });
 
-      // Assert: タイムスタンプが古くても needUpdate = true になること (修正前は false のまま)
+      // and the view still updates
       expect(internalFull().needUpdate).toBe(true);
     });
 
-    it('topTimestamp より古いタイムスタンプでもボトムにいる場合は bottomIndex が拡張されること', () => {
-      // Arrange: timestamp=1000 のメッセージを追加し bottomIndex=0 / topTimestamp=1000 を確定させる
+    it('widens to an older message while it is at the bottom', () => {
+      // one message settles both the bottom and the top timestamp
       type InternalFull = { bottomIndex: number; topTimestamp: number };
       const internalFull = () => component as unknown as InternalFull;
 
@@ -178,19 +178,19 @@ describe('ChatTabComponent', () => {
       expect(internalFull().topTimestamp).toBe(1000);
       expect(internalFull().bottomIndex).toBe(0);
 
-      // Act: timestamp=500 (< topTimestamp=1000) のメッセージを追加
+      // an older message arrives
       const msg1 = new ChatMessage();
       msg1.initialize();
       msg1.setAttribute('timestamp', 500);
       chatTab.appendChild(msg1);
       emitMessageAdded({ tabIdentifier: chatTab.identifier, messageIdentifier: msg1.identifier });
 
-      // Assert: ボトムにいるため bottomIndex が 1 に拡張されること (修正前は 0 のまま)
+      // and the bottom moves on because it was at the bottom
       expect(internalFull().bottomIndex).toBe(1);
     });
   });
 
-  describe('入力中バブル', () => {
+  describe('the typing bubble', () => {
     let chatTab: ChatTab;
 
     beforeEach(() => {
@@ -205,7 +205,7 @@ describe('ChatTabComponent', () => {
       fixture.detectChanges();
     });
 
-    it('WRITING_A_MESSAGE_DETAIL の話者を writingSpeakers シグナルに積むこと', () => {
+    it('adds a speaker to those typing', () => {
       const speaker = GameCharacter.create('入力中の冒険者', 1, '');
       const objectChange = TestBed.inject(ObjectChangeService) as unknown as {
         _writingMessage$: { emit(event: WritingMessageEvent): void };
@@ -224,7 +224,7 @@ describe('ChatTabComponent', () => {
       expect(speakers[0].name).toBe('入力中の冒険者');
     });
 
-    it('メッセージ到着時に同じ話者を writingSpeakers から外すこと', () => {
+    it('takes them off once their message arrives', () => {
       const speaker = GameCharacter.create('発言者', 1, '');
       const objectChange = TestBed.inject(ObjectChangeService) as unknown as {
         _writingMessage$: { emit(event: WritingMessageEvent): void };

@@ -13,10 +13,10 @@ interface DictionaryIndex {
 }
 
 /**
- * 名前の履歴を相手ごとにまとめたもの。
+ * The name history, gathered by whom it belongs to.
  *
- * ログは 1 行ごとに演者と対象の名前を引く。引くたびに履歴ぜんぶを絞り込むと、
- * 長い記録では行数 × 履歴数になって一覧を開くだけで固まる。目録ごとに 1 度作る。
+ * Every line looks up the name of the actor and the target, and filtering the whole
+ * history each time costs a line times a history on a long recording, enough to freeze the list as it opens. It is built once per catalogue.
  */
 const indexes = new WeakMap<ReplayDictionary, DictionaryIndex>();
 

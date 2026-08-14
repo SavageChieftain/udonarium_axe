@@ -10,19 +10,19 @@ describe('ActiveCharacterService', () => {
     service = TestBed.inject(ActiveCharacterService);
   });
 
-  it('初期状態では操作対象がない', () => {
+  it('starts with nothing to work on', () => {
     expect(service.identifier()).toBeNull();
     expect(service.isActive('a')).toBe(false);
   });
 
-  it('select で操作対象を設定する', () => {
+  it('takes something to work on', () => {
     service.select('a');
     expect(service.identifier()).toBe('a');
     expect(service.isActive('a')).toBe(true);
     expect(service.isActive('b')).toBe(false);
   });
 
-  it('toggle は同じ対象なら解除、別の対象なら乗り換える', () => {
+  it('lets the same one go and moves to another', () => {
     service.toggle('a');
     expect(service.identifier()).toBe('a');
 
@@ -34,7 +34,7 @@ describe('ActiveCharacterService', () => {
     expect(service.identifier()).toBe('b');
   });
 
-  it('clear で解除する', () => {
+  it('lets go on request', () => {
     service.select('a');
     service.clear();
     expect(service.identifier()).toBeNull();

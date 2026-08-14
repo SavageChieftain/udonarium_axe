@@ -23,19 +23,19 @@ describe('ControllerInputComponent', () => {
   });
 
   describe('signal-driven CD', () => {
-    it('sendFrom がモデルシグナルであること', () => {
+    it('holds the sender in a model signal', () => {
       expect(typeof component.sendFrom).toBe('function');
     });
 
-    it('portraitIndex がリンクシグナルであること', () => {
+    it('holds the portrait index in a linked one', () => {
       expect(typeof component.portraitIndex).toBe('function');
     });
 
-    it('imageFile がcomputed signalであること', () => {
+    it('computes the image', () => {
       expect(typeof component.imageFile).toBe('function');
     });
 
-    it('gameCharacters がcomputed signalであること', () => {
+    it('computes the characters', () => {
       expect(typeof component.gameCharacters).toBe('function');
       expect(Array.isArray(component.gameCharacters())).toBe(true);
     });

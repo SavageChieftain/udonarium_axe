@@ -44,7 +44,7 @@ describe('CutInEventHandlerService', () => {
     vi.restoreAllMocks();
   });
 
-  it('startCutIn でパネルを開き、コンポーネントへ cutIn を渡す', () => {
+  it('opens a panel and hands the cut-in to it', () => {
     const cutIn = makeCutIn({ name: 'attack' });
     const componentMock = { cutIn: null, forceNoLoop: true, startCutIn: vi.fn() };
     panelStub.open.mockReturnValue(componentMock);
@@ -58,7 +58,7 @@ describe('CutInEventHandlerService', () => {
     expect(componentMock.startCutIn).toHaveBeenCalled();
   });
 
-  it('soundOnlyCutIn: videoId があれば不可視パネルを開く', () => {
+  it('opens an invisible panel for a sound-only cut-in carrying a video', () => {
     const cutIn = makeCutIn({ videoId: 'youtube123' });
     panelStub.open.mockReturnValue({ cutIn: null, forceNoLoop: false, startCutIn: vi.fn() });
 
@@ -68,7 +68,7 @@ describe('CutInEventHandlerService', () => {
     expect(panelStub.open.mock.calls[0][1].invisible).toBe(true);
   });
 
-  it('soundOnlyCutIn: videoId なし & audio が見つからないときは panel/audio とも未実行', () => {
+  it('opens nothing and plays nothing for a sound-only cut-in with neither', () => {
     audioStub.get.mockReturnValue(undefined);
     const cutIn = makeCutIn({ audioIdentifier: 'missing' });
 
@@ -78,14 +78,14 @@ describe('CutInEventHandlerService', () => {
     expect(panelStub.open).not.toHaveBeenCalled();
   });
 
-  it('soundOnlyCutIn: null cutIn は何もしない', () => {
+  it('does nothing for a missing cut-in', () => {
     emitSoundOnlyCutIn({ cutIn: null });
 
     expect(panelStub.open).not.toHaveBeenCalled();
     expect(audioStub.get).not.toHaveBeenCalled();
   });
 
-  it('soundOnlyCutIn: SE タグの音声は volumeType=SE で再生する', () => {
+  it('plays a sound-effect-tagged cut-in through the effects volume', () => {
     vi.spyOn(AudioPlayer.prototype, 'play').mockImplementation(() => {});
     vi.spyOn(AudioPlayer.prototype, 'stop').mockImplementation(() => {});
     audioStub.get.mockReturnValue({ identifier: 'se-id' });
@@ -98,7 +98,7 @@ describe('CutInEventHandlerService', () => {
     expect(player.volumeType).toBe(VolumeType.SE);
   });
 
-  it('soundOnlyCutIn: SE タグでない音声は volumeType=MASTER で再生する', () => {
+  it('plays any other sound-only cut-in through the master volume', () => {
     vi.spyOn(AudioPlayer.prototype, 'play').mockImplementation(() => {});
     vi.spyOn(AudioPlayer.prototype, 'stop').mockImplementation(() => {});
     audioStub.get.mockReturnValue({ identifier: 'bgm-id' });

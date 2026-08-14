@@ -43,7 +43,7 @@ describe('RemoteControllerComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('global dragging が解除されたら panel の pointer-events-none も解除されること', async () => {
+  it('lets the panel take the pointer again once the drag ends', async () => {
     await expectPanelDragRecovery(RemoteControllerComponent, {
       beforeOpen: () => {
         if (ChatTabList.instance.chatTabs.length < 1) {
@@ -57,21 +57,21 @@ describe('RemoteControllerComponent', () => {
   });
 
   describe('targetBlockClick', () => {
-    it('targeted を true から false に切り替えること', () => {
+    it('turns a target off', () => {
       const char = createChar('test');
       char.targeted = true;
       component.targetBlockClick(char);
       expect(char.targeted).toBe(false);
     });
 
-    it('targeted を false から true に切り替えること', () => {
+    it('turns one on', () => {
       const char = createChar('test');
       char.targeted = false;
       component.targetBlockClick(char);
       expect(char.targeted).toBe(true);
     });
 
-    it('uiSignalService.notifyTargetChange が呼ばれること', () => {
+    it('says the targets have changed', () => {
       const uiSignalService = TestBed.inject(UiSignalService);
       const spy = vi.spyOn(uiSignalService, 'notifyTargetChange');
       const char = createChar('test');
@@ -81,7 +81,7 @@ describe('RemoteControllerComponent', () => {
   });
 
   describe('getTargetCharacters', () => {
-    it('checkedOnly=true のとき targeted なキャラのみ返すこと', () => {
+    it('returns the targeted characters alone when asked for them', () => {
       const char1 = createChar('a');
       const char2 = createChar('b');
       char1.targeted = true;
@@ -92,7 +92,7 @@ describe('RemoteControllerComponent', () => {
       expect(result).toEqual([char1]);
     });
 
-    it('checkedOnly=false のとき非表示以外のすべてのキャラを返すこと', () => {
+    it('returns every character that is not hidden otherwise', () => {
       const char1 = createChar('a');
       const char2 = createChar('b');
       char1.targeted = true;
@@ -103,7 +103,7 @@ describe('RemoteControllerComponent', () => {
       expect(result).toEqual([char1, char2]);
     });
 
-    it('hideInventory=true のキャラを除外すること', () => {
+    it('leaves out a character hidden from the list', () => {
       const char1 = createChar('a');
       const char2 = createChar('b');
       char1.targeted = true;
@@ -118,7 +118,7 @@ describe('RemoteControllerComponent', () => {
   });
 
   describe('allBoxCheck', () => {
-    it('check=true で全キャラの targeted を true にすること', () => {
+    it('targets every character', () => {
       const char1 = createChar('a');
       const char2 = createChar('b');
       char1.targeted = false;
@@ -130,7 +130,7 @@ describe('RemoteControllerComponent', () => {
       expect(char2.targeted).toBe(true);
     });
 
-    it('check=false で全キャラの targeted を false にすること', () => {
+    it('clears every target', () => {
       const char1 = createChar('a');
       const char2 = createChar('b');
       char1.targeted = true;

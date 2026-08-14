@@ -13,9 +13,9 @@ import { NetworkEventHandlerService } from '@axe/features/lobby/network-event-ha
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
 
 /**
- * networkOpen$ / networkError$ / peerConnect$ は private channel として
- * ObjectChangeService が保持し、networkMessage$ 経由でのみ発火する。
- * テストでは EventChannel をスタブ ObjectChangeService に持たせて直接 emit する。
+ * The open, error and connect channels are private to the change service and fire
+ * only through the message channel.
+ * The tests give a stub service its own channels and emit on them directly.
  */
 class StubObjectChange {
   readonly loadConfig$ = new EventChannel<{ config: unknown }>();
@@ -51,7 +51,7 @@ describe('NetworkEventHandlerService', () => {
     vi.restoreAllMocks();
   });
 
-  it('networkOpen で PeerCursor.myCursor に peerId / userId を反映', () => {
+  it('puts the peer and user identifiers onto the cursor as the connection opens', () => {
     PeerCursor.myCursor = new PeerCursor();
     vi.spyOn(Network, 'peerContext', 'get').mockReturnValue({
       peerId: 'p123',
@@ -64,13 +64,13 @@ describe('NetworkEventHandlerService', () => {
     expect(PeerCursor.myCursor.userId).toBe('u456');
   });
 
-  it('peerConnect で chatMessageService.calibrateTimeOffset を呼ぶ', () => {
+  it('calibrates the clock as a peer connects', () => {
     stubChange.peerConnect$.emit({ peerId: 'p1' });
 
     expect(chatStub.calibrateTimeOffset).toHaveBeenCalledTimes(1);
   });
 
-  it('networkError: peer-unavailable は静かに無視（chat も再接続もしない）', () => {
+  it('passes over an unavailable peer without a word or a reconnection', () => {
     const openStandbySpy = vi.spyOn(Network, 'openStandby').mockImplementation(() => {});
 
     stubChange.networkError$.emit({ errorType: 'peer-unavailable', errorMessage: '' });
@@ -79,14 +79,14 @@ describe('NetworkEventHandlerService', () => {
     expect(openStandbySpy).not.toHaveBeenCalled();
   });
 
-  it('networkError: server-error は上限内ならバックオフ後に自動再接続する', async () => {
+  it('backs off and reconnects after a server error, up to a limit', async () => {
     vi.useFakeTimers();
     try {
       const openStandbySpy = vi.spyOn(Network, 'openStandby').mockImplementation(() => {});
 
       stubChange.networkError$.emit({ errorType: 'server-error', errorMessage: 'oops' });
 
-      // 即時は再接続案内のみで、再接続はバックオフ後
+      // says only that it will try again, and tries after the backoff
       expect(chatStub.sendSystemMessage).toHaveBeenCalledTimes(1);
       expect(chatStub.sendSystemMessage.mock.calls[0][0]).toContain('feature.lobby.errors.reconnecting');
       expect(openStandbySpy).not.toHaveBeenCalled();
@@ -98,19 +98,19 @@ describe('NetworkEventHandlerService', () => {
     }
   });
 
-  it('networkError: server-error が上限を超えると打ち切り、サーバエラーを通知する', async () => {
+  it('gives up past that limit and reports the error', async () => {
     vi.useFakeTimers();
     try {
       const openStandbySpy = vi.spyOn(Network, 'openStandby').mockImplementation(() => {});
 
-      // 上限（3回）まで再接続。各回バックオフを流して openStandby を発火
+      // reconnects up to three times, each after its backoff
       for (let i = 0; i < 3; i++) {
         stubChange.networkError$.emit({ errorType: 'server-error', errorMessage: 'x' });
         await vi.advanceTimersByTimeAsync(20000);
       }
       expect(openStandbySpy).toHaveBeenCalledTimes(3);
 
-      // 4 回目は打ち切り：サーバエラー通知のみ、再接続はしない
+      // reports the error on the fourth and stops
       stubChange.networkError$.emit({ errorType: 'server-error', errorMessage: 'x' });
       await vi.advanceTimersByTimeAsync(20000);
 
@@ -122,7 +122,7 @@ describe('NetworkEventHandlerService', () => {
     }
   });
 
-  it('networkError: 接続成功(networkOpen)で server-error の再接続回数がリセットされる', async () => {
+  it('clears the count of attempts once a connection opens', async () => {
     vi.useFakeTimers();
     try {
       PeerCursor.myCursor = new PeerCursor();
@@ -143,7 +143,7 @@ describe('NetworkEventHandlerService', () => {
 
       stubChange.networkOpen$.emit({ peerId: 'p' });
 
-      // リセット後は再び再接続できる（打ち切られない）
+      // can reconnect again after that
       stubChange.networkError$.emit({ errorType: 'server-error', errorMessage: 'x' });
       await vi.advanceTimersByTimeAsync(20000);
       expect(openStandbySpy).toHaveBeenCalledTimes(4);
@@ -152,7 +152,7 @@ describe('NetworkEventHandlerService', () => {
     }
   });
 
-  it('networkError: token-expired はメッセージ + 再接続', () => {
+  it('reports an expired token and reconnects', () => {
     const openStandbySpy = vi.spyOn(Network, 'openStandby').mockImplementation(() => {});
 
     stubChange.networkError$.emit({ errorType: 'token-expired', errorMessage: '' });
@@ -161,32 +161,32 @@ describe('NetworkEventHandlerService', () => {
     expect(openStandbySpy).toHaveBeenCalledTimes(1);
   });
 
-  it('peerReconnect: retrying は再接続中を通知する', () => {
+  it('says a peer is reconnecting', () => {
     stubChange.peerReconnect$.emit({ peerId: 'abcdef123', state: 'retrying' });
 
     expect(chatStub.sendSystemMessage).toHaveBeenCalledTimes(1);
     expect(chatStub.sendSystemMessage.mock.calls[0][0]).toContain('feature.lobby.peerReconnect.retrying');
   });
 
-  it('peerReconnect: recovered は復旧を通知する', () => {
+  it('says it has come back', () => {
     stubChange.peerReconnect$.emit({ peerId: 'abcdef123', state: 'recovered' });
 
     expect(chatStub.sendSystemMessage.mock.calls[0][0]).toContain('feature.lobby.peerReconnect.recovered');
   });
 
-  it('peerReconnect: failed は失敗を通知する', () => {
+  it('says it has failed', () => {
     stubChange.peerReconnect$.emit({ peerId: 'abcdef123', state: 'failed' });
 
     expect(chatStub.sendSystemMessage.mock.calls[0][0]).toContain('feature.lobby.peerReconnect.failed');
   });
 
-  it('peerReconnect: 名前が分からないピアは peerId の先頭で表示する', () => {
+  it('falls back to the head of the identifier for a peer whose name it does not know', () => {
     stubChange.peerReconnect$.emit({ peerId: 'abcdef123', state: 'retrying' });
 
     expect(chatStub.sendSystemMessage.mock.calls[0][0]).toContain('abcdef');
   });
 
-  it('loadConfig で Network.configure と openStandby が呼ばれる', () => {
+  it('configures the network and stands by as the settings load', () => {
     const configureSpy = vi.spyOn(Network, 'configure').mockImplementation(() => {});
     const openStandbySpy = vi.spyOn(Network, 'openStandby').mockImplementation(() => {});
 

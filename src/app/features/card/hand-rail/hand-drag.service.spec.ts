@@ -20,12 +20,12 @@ describe('HandDragService', () => {
     store.clearDeleteHistory();
   });
 
-  it('初期状態では何もドラッグしていない', () => {
+  it('starts with nothing being dragged', () => {
     expect(service.card()).toBeNull();
     expect(service.tableCard()).toBeNull();
   });
 
-  it('手札からのドラッグを開始し、座標を追い、終了で解除する', () => {
+  it('starts a drag from the hand, follows it and lets go at the end', () => {
     service.begin(card, 10, 20);
     expect(service.card()).toBe(card);
     expect(service.x()).toBe(10);
@@ -39,7 +39,7 @@ describe('HandDragService', () => {
     expect(service.card()).toBeNull();
   });
 
-  it('卓上からのドラッグ中だけ手札レールを受け入れ状態にする', () => {
+  it('opens the rail to a card only while one is dragged off the table', () => {
     service.armTableDrag(card);
     expect(service.tableCard()).toBe(card);
 

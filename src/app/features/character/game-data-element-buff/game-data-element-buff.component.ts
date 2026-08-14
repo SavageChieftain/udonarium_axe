@@ -30,7 +30,7 @@ export class GameDataElementBuffComponent {
   readonly isValueLocked = input(false);
   readonly isPieceMode = input(false);
 
-  /** 子要素数を返す Signal。children 追加/削除をリアクティブに追跡する。 */
+  /** How many children there are, following what is added and removed. */
   protected readonly childrenCount = computed<number>(() => {
     const element = this.gameDataElement();
     this.objectChange.versionOf(element.identifier)();

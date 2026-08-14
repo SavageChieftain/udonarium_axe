@@ -46,14 +46,14 @@ export class ReplayWorkspaceComponent {
 
   constructor() {
     this.destroyRef.onDestroy(() => void this.playback.close());
-    // 記録を閉じたら再生の画面に戻す。次に開いた記録がいきなりまとめから始まらないように。
+    // Closing a recording returns to the playback view, so the next one does not open on the summary.
     effect(() => {
       if (!this.isOpen()) this.isDigestOpen.set(false);
     });
   }
 
   protected toggleDigest(): void {
-    // まとめの間は再生の操作盤が無い。送り続けたまま隠れると、止める手が無くなる。
+    // The summary has no transport, and playback left running behind it could not be stopped.
     if (!this.isDigestOpen()) this.playback.stopAutoPlay();
     this.isDigestOpen.update((open) => !open);
   }

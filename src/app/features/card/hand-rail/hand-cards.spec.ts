@@ -17,30 +17,30 @@ describe('hand-cards', () => {
     store.clearDeleteHistory();
   });
 
-  it('自分の手札に置かれたカードだけを手札とみなす', () => {
+  it('counts only the cards in your own hands as a hand', () => {
     expect(isHandCardOf(makeCard(handLocationOf('me')), 'me')).toBe(true);
   });
 
-  it('他人の手札は自分の手札ではない', () => {
+  it('leaves somebody elses out of it', () => {
     expect(isHandCardOf(makeCard(handLocationOf('other')), 'me')).toBe(false);
   });
 
-  it('卓上・墓場のカードは手札ではない', () => {
+  it('leaves out what is on the table or in the graveyard', () => {
     expect(isHandCardOf(makeCard('table'), 'me')).toBe(false);
     expect(isHandCardOf(makeCard('graveyard'), 'me')).toBe(false);
   });
 
-  it('所有権だけでは手札にならない', () => {
+  it('does not count a card by ownership alone', () => {
     const card = makeCard('table');
     card.owner = 'me';
     expect(isHandCardOf(card, 'me')).toBe(false);
   });
 
-  it('userId が空なら何も手札にしない', () => {
+  it('counts nothing without a user', () => {
     expect(isHandCardOf(makeCard(handLocationOf('me')), '')).toBe(false);
   });
 
-  it('手札順が同値なら元の順序を保つ', () => {
+  it('keeps the order it was given between equals', () => {
     const mine = makeCard(handLocationOf('me'));
     const others = makeCard(handLocationOf('other'));
     const onTable = makeCard('table');
@@ -49,7 +49,7 @@ describe('hand-cards', () => {
     expect(selectHandCards([mine, others, onTable, alsoMine], 'me')).toEqual([mine, alsoMine]);
   });
 
-  it('手札順の昇順で並べる', () => {
+  it('sorts the hand by its order', () => {
     const a = makeCard(handLocationOf('me'));
     const b = makeCard(handLocationOf('me'));
     const c = makeCard(handLocationOf('me'));
@@ -64,24 +64,24 @@ describe('hand-cards', () => {
 describe('reorderHandCards', () => {
   const items = ['a', 'b', 'c', 'd'] as unknown as Card[];
 
-  it('後ろへ動かす', () => {
+  it('moves a card back', () => {
     expect(reorderHandCards(items, 0, 3)).toEqual(['b', 'c', 'a', 'd']);
   });
 
-  it('前へ動かす', () => {
+  it('moves one forward', () => {
     expect(reorderHandCards(items, 3, 1)).toEqual(['a', 'd', 'b', 'c']);
   });
 
-  it('末尾へ動かす', () => {
+  it('moves one to the end', () => {
     expect(reorderHandCards(items, 1, 4)).toEqual(['a', 'c', 'd', 'b']);
   });
 
-  it('同じ位置に落とせば並びは変わらない', () => {
+  it('changes nothing when a card lands where it was', () => {
     expect(reorderHandCards(items, 2, 2)).toEqual(['a', 'b', 'c', 'd']);
     expect(reorderHandCards(items, 2, 3)).toEqual(['a', 'b', 'c', 'd']);
   });
 
-  it('範囲外の移動元は無視する', () => {
+  it('ignores a move from outside the hand', () => {
     expect(reorderHandCards(items, -1, 2)).toEqual(['a', 'b', 'c', 'd']);
     expect(reorderHandCards(items, 9, 2)).toEqual(['a', 'b', 'c', 'd']);
   });

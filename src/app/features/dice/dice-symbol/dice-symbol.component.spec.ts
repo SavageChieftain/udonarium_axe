@@ -36,12 +36,12 @@ describe('DiceSymbolComponent', () => {
   });
 
   describe('signal-driven CD', () => {
-    it('animeStateがsignalであること', () => {
+    it('holds the animation state in a signal', () => {
       expect(typeof component.animeState).toBe('function');
       expect(component.animeState()).toBe('inactive');
     });
 
-    it('nameゲッターがnetworkVersionを参照していること', () => {
+    it('reads the name through the network version', () => {
       const diceSymbol = DiceSymbol.create('テストダイス', 1, 1);
       fixture.componentRef.setInput('diceSymbol', diceSymbol);
       const objectChangeService = TestBed.inject(ObjectChangeService);
@@ -52,14 +52,14 @@ describe('DiceSymbolComponent', () => {
       expect(spy).toHaveBeenCalled();
     });
 
-    it('isIconHiddenがsignalであること', () => {
+    it('holds the hidden icon in a signal', () => {
       expect(typeof component.isIconHidden).toBe('function');
       expect(component.isIconHidden()).toBe(false);
     });
   });
 
-  describe('billboardTransform カメラ追従', () => {
-    it('tableViewRotation の変化に応じて transform 文字列が更新されること', () => {
+  describe('following the camera', () => {
+    it('rebuilds the transform as the view turns', () => {
       const diceSymbol = DiceSymbol.create('ビルボードテスト', 1, 1);
       fixture.componentRef.setInput('diceSymbol', diceSymbol);
       const ui = TestBed.inject(UiSignalService);
@@ -76,7 +76,7 @@ describe('DiceSymbolComponent', () => {
       expect(after).toContain('rotateY(-20deg)');
     });
 
-    it('ダイス自身の rotate を打ち消す回転が含まれること', () => {
+    it('undoes the turn of the die itself', () => {
       const diceSymbol = DiceSymbol.create('rotateテスト', 1, 1);
       diceSymbol.rotate = 45;
       fixture.componentRef.setInput('diceSymbol', diceSymbol);
@@ -85,7 +85,7 @@ describe('DiceSymbolComponent', () => {
       expect(component.billboardTransform()).toContain('rotateZ(-45deg)');
     });
 
-    it('オーナー名用のビルボード変換が名前用より大きいオフセットを持つこと', () => {
+    it('sets the owners name further out than the dies own', () => {
       const diceSymbol = DiceSymbol.create('オフセットテスト', 1, 1);
       fixture.componentRef.setInput('diceSymbol', diceSymbol);
       TestBed.inject(UiSignalService).notifyTableViewRotation(50, 0, 10);
@@ -94,7 +94,7 @@ describe('DiceSymbolComponent', () => {
       expect(match(component.billboardTransformOwner())).toBeLessThan(match(component.billboardTransform()));
     });
 
-    it('imageBillboardEnabled が currentTable.imageBillboard を反映すること', async () => {
+    it('takes the setting from the table', async () => {
       const diceSymbol = DiceSymbol.create('画像追従テスト', 1, 1);
       fixture.componentRef.setInput('diceSymbol', diceSymbol);
       const tabletopService = TestBed.inject(TabletopService);
@@ -107,7 +107,7 @@ describe('DiceSymbolComponent', () => {
       expect(component.imageBillboardEnabled()).toBe(true);
     });
 
-    it('billboardTransformImage は verticalOffset=0 の transform を返すこと', () => {
+    it('faces the picture at the camera without raising it', () => {
       const diceSymbol = DiceSymbol.create('画像オフセットテスト', 1, 1);
       fixture.componentRef.setInput('diceSymbol', diceSymbol);
       TestBed.inject(UiSignalService).notifyTableViewRotation(50, 0, 10);
@@ -115,7 +115,7 @@ describe('DiceSymbolComponent', () => {
       expect(component.billboardTransformImage()).toContain('translateZ(0.00px)');
     });
 
-    it('mode2d=true なら imageBillboard=false でも true を返すこと', async () => {
+    it('faces it anyway in the flat mode', async () => {
       const diceSymbol = DiceSymbol.create('mode2dテスト', 1, 1);
       fixture.componentRef.setInput('diceSymbol', diceSymbol);
       const tabletopService = TestBed.inject(TabletopService);
@@ -127,8 +127,8 @@ describe('DiceSymbolComponent', () => {
     });
   });
 
-  describe('nameLabelOrbit 2Dモード時のスクリーン上方追従', () => {
-    it('3Dモードでは translateY(-distance3d) を返すこと', async () => {
+  describe('keeping the name above the piece on the screen in the flat mode', () => {
+    it('raises the name straight up in three dimensions', async () => {
       const diceSymbol = DiceSymbol.create('orbit3dテスト', 1, 1);
       fixture.componentRef.setInput('diceSymbol', diceSymbol);
       const tabletopService = TestBed.inject(TabletopService);
@@ -137,7 +137,7 @@ describe('DiceSymbolComponent', () => {
       expect(component.nameLabelOrbit()).toBe('translateY(-30px)');
     });
 
-    it('2Dモードでヨー=0なら translateZ(-d) で画面上方向に配置されること', async () => {
+    it('puts it up the screen in the flat mode', async () => {
       const diceSymbol = DiceSymbol.create('orbit2dテスト', 1, 1);
       fixture.componentRef.setInput('diceSymbol', diceSymbol);
       const tabletopService = TestBed.inject(TabletopService);
@@ -148,7 +148,7 @@ describe('DiceSymbolComponent', () => {
       expect(transform).toContain('translateZ(-60.00px)');
     });
 
-    it('オーナー名のオフセットの絶対値の方が名前より大きいこと', async () => {
+    it('keeps that offset the larger of the two', async () => {
       const diceSymbol = DiceSymbol.create('orbit比較テスト', 1, 1);
       fixture.componentRef.setInput('diceSymbol', diceSymbol);
       const tabletopService = TestBed.inject(TabletopService);
@@ -160,7 +160,7 @@ describe('DiceSymbolComponent', () => {
       expect(ownerZ).toBeGreaterThan(nameZ);
     });
 
-    it('2Dモードでは billboardTransform の compensateZ が 0 になること', async () => {
+    it('compensates nothing along the depth in the flat mode', async () => {
       const diceSymbol = DiceSymbol.create('compZテスト', 1, 1);
       fixture.componentRef.setInput('diceSymbol', diceSymbol);
       const tabletopService = TestBed.inject(TabletopService);
@@ -173,7 +173,7 @@ describe('DiceSymbolComponent', () => {
   });
 
   describe('timer cleanup on destroy', () => {
-    it('doubleClickTimer が clearTimeout でクリアされる', () => {
+    it('clears the double-tap timer', () => {
       const clearTimeoutSpy = vi.spyOn(globalThis, 'clearTimeout');
       const priv = component as unknown as { doubleClickTimer: ReturnType<typeof setTimeout> | null };
       priv.doubleClickTimer = setTimeout(() => {}, 999_999);
@@ -183,7 +183,7 @@ describe('DiceSymbolComponent', () => {
       expect(clearTimeoutSpy).toHaveBeenCalled();
     });
 
-    it('iconHiddenTimer が clearTimeout でクリアされる', () => {
+    it('clears the icon timer', () => {
       const clearTimeoutSpy = vi.spyOn(globalThis, 'clearTimeout');
       const priv = component as unknown as { iconHiddenTimer: ReturnType<typeof setTimeout> | null };
       priv.iconHiddenTimer = setTimeout(() => {}, 999_999);

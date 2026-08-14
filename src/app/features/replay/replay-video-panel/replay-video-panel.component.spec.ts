@@ -110,7 +110,7 @@ describe('ReplayVideoPanelComponent', () => {
     PeerCursor.myCursor = null as unknown as PeerCursor;
   });
 
-  it('書き出す前に長さとカット数を知らせること', async () => {
+  it('says how long it will run and how many shots before it writes', async () => {
     await setup();
     buttonByText('動画にする')?.click();
     fixture.detectChanges();
@@ -118,7 +118,7 @@ describe('ReplayVideoPanelComponent', () => {
     expect(fixture.nativeElement.textContent).toContain('2 カット');
   });
 
-  it('盤面の動きも読める言葉のカットにすること', async () => {
+  it('turns a movement on the board into a shot in words', async () => {
     events = [
       say(1, 'やあ'),
       {
@@ -136,7 +136,7 @@ describe('ReplayVideoPanelComponent', () => {
     expect(fixture.nativeElement.textContent).toContain('2 カット');
   });
 
-  it('選んだ大きさと間の取り方で頼むこと', async () => {
+  it('asks for the size and the pacing that were chosen', async () => {
     await setup();
     buttonByText('動画にする')?.click();
     fixture.detectChanges();
@@ -169,7 +169,7 @@ describe('ReplayVideoPanelComponent', () => {
     );
   });
 
-  it('編集中は編集後の並びを渡すこと', async () => {
+  it('hands over the edited order while it is being edited', async () => {
     isEditing = signal(true);
     edited = signal<readonly ReplayEvent[]>([say(1, '書き直した')]);
     await setup();
@@ -182,7 +182,7 @@ describe('ReplayVideoPanelComponent', () => {
     expect(render.mock.calls[0][1]).toEqual(edited());
   });
 
-  it('画にできる場面が無ければ書き出させないこと', async () => {
+  it('will not export without a scene it can picture', async () => {
     events = [{ ...say(1, ''), kind: ReplayEventKind.PeerJoin, detail: {} }];
     await setup();
 
@@ -192,7 +192,7 @@ describe('ReplayVideoPanelComponent', () => {
     expect(buttonByText('書き出す')?.disabled).toBe(true);
   });
 
-  it('一覧に載る前の記録でも書き出せること', async () => {
+  it('exports a recording that is not on the list yet', async () => {
     recordings = [];
     await setup();
 
@@ -204,14 +204,14 @@ describe('ReplayVideoPanelComponent', () => {
     expect(render.mock.calls[0][0]).toMatchObject({ id: 7, roomName: '第一夜' });
   });
 
-  it('書き出せない環境では押させないこと', async () => {
+  it('leaves the button unpressable where it cannot export at all', async () => {
     isSupported = false;
     await setup();
 
     expect(buttonByText('動画にする')?.disabled).toBe(true);
   });
 
-  it('書き出し中は進み具合とやめる手を出すこと', async () => {
+  it('shows how far it has got and how to stop while it writes', async () => {
     isRendering = signal(true);
     progress = signal(0.42);
     await setup();

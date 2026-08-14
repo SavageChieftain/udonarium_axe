@@ -27,7 +27,7 @@ describe('LobbyComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('ChangeDetectorRefを使用していないこと', () => {
+  it('asks for no change detector', () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     expect((component as any).cdr).toBeUndefined();
   });
@@ -48,7 +48,7 @@ describe('LobbyComponent', () => {
       vi.restoreAllMocks();
     });
 
-    it('パスワード検証失敗時にNetwork.openを呼び出さないこと', async () => {
+    it('does not open the connection on a wrong password', async () => {
       const ctx = PeerContext.parse('test-peer');
       vi.spyOn(ctx, 'verifyPassword').mockResolvedValue(false);
 
@@ -57,7 +57,7 @@ describe('LobbyComponent', () => {
       expect(openSpy).not.toHaveBeenCalled();
     });
 
-    it('パスワード検証成功時にNetwork.openを呼び出すこと', async () => {
+    it('opens it on the right one', async () => {
       const ctx = PeerContext.parse('test-peer');
       vi.spyOn(ctx, 'verifyPassword').mockResolvedValue(true);
 
@@ -66,7 +66,7 @@ describe('LobbyComponent', () => {
       expect(openSpy).toHaveBeenCalledOnce();
     });
 
-    it('パスワード付きルームでモーダルキャンセル時にNetwork.openを呼び出さないこと', async () => {
+    it('does not open it when the password dialogue is dismissed', async () => {
       const ctx = PeerContext.parse('test-peer');
       Object.defineProperty(ctx, 'hasPassword', { get: () => true });
       vi.spyOn(ctx, 'verifyPassword').mockResolvedValue(false);
@@ -79,19 +79,19 @@ describe('LobbyComponent', () => {
   });
 
   describe('signal-driven CD', () => {
-    it('roomsがsignalであること', () => {
+    it('holds the rooms in a signal', () => {
       expect(typeof component.rooms).toBe('function');
     });
 
-    it('isReloadingがsignalであること', () => {
+    it('holds the reloading flag in one', () => {
       expect(typeof component.isReloading).toBe('function');
     });
 
-    it('helpがsignalであること', () => {
+    it('holds the help text in one', () => {
       expect(typeof component.help).toBe('function');
     });
 
-    it('isConnectedシグナルがnetworkVersionシグナルを使用すること', () => {
+    it('reads the connection through the network version', () => {
       const objectChangeService = TestBed.inject(ObjectChangeService);
       const spy = vi.spyOn(objectChangeService, 'networkVersion');
       void component.isConnected();

@@ -30,28 +30,28 @@ describe('ChatTabSettingComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  describe('selectedTabがnullの場合', () => {
-    it('selectedTabがnullでもdetectChangesでクラッシュしないこと', () => {
+  describe('with no tab open', () => {
+    it('detects changes without falling over', () => {
       component.selectedTab.set(null);
       expect(() => fixture.detectChanges()).not.toThrow();
     });
 
-    it('tabNameが空文字を返すこと', () => {
+    it('returns an empty name', () => {
       component.selectedTab.set(null);
       expect(component.tabName).toBe('');
     });
   });
 
-  it('OnPushコンポーネントでChangeDetectorRefが注入されていること', () => {
+  it('injects a change detector', () => {
     const cdr = fixture.debugElement.injector.get(ChangeDetectorRef);
     expect(cdr).toBeTruthy();
   });
 
-  it('global dragging が解除されたら panel の pointer-events-none も解除されること', async () => {
+  it('lets the panel take the pointer again once the drag ends', async () => {
     await expectPanelDragRecovery(ChatTabSettingComponent);
   });
 
-  describe('ログ保存は権限によらず行える（性善説）', () => {
+  describe('saves the log whatever the role, in good faith', () => {
     let store: ObjectStore;
     let saveData: SaveDataService;
 
@@ -67,7 +67,7 @@ describe('ChatTabSettingComponent', () => {
       vi.restoreAllMocks();
     });
 
-    it('見学が閲覧不可タブでも単独ログを保存できる', () => {
+    it('lets a spectator save a tab they cannot read', () => {
       PeerCursor.createMyCursor();
       PeerCursor.myCursor.role = PeerRole.Guest;
       const tab = new ChatTab();
@@ -81,7 +81,7 @@ describe('ChatTabSettingComponent', () => {
       expect(spy).toHaveBeenCalledOnce();
     });
 
-    it('見学でも全タブ保存を実行でき、閲覧フィルタせず全タブを渡す', () => {
+    it('lets them save every tab, unfiltered', () => {
       PeerCursor.createMyCursor();
       PeerCursor.myCursor.role = PeerRole.Guest;
       const spy = vi.spyOn(saveData, 'saveHtmlChatLogAll').mockResolvedValue(undefined);
@@ -93,7 +93,7 @@ describe('ChatTabSettingComponent', () => {
     });
   });
 
-  describe('閲覧・発言の権限は見学が編集できない', () => {
+  describe('lets no spectator edit who may read or speak', () => {
     let store: ObjectStore;
 
     beforeEach(() => {
@@ -107,7 +107,7 @@ describe('ChatTabSettingComponent', () => {
       PeerCursor.myCursor = null!;
     });
 
-    it('編集可能なタブでも見学では canEditPermission が false になる', () => {
+    it('refuses a spectator even on a tab that can be edited', () => {
       PeerCursor.createMyCursor();
       PeerCursor.myCursor.role = PeerRole.Guest;
       const tab = ChatTabList.instance.addChatTab('test');
@@ -116,7 +116,7 @@ describe('ChatTabSettingComponent', () => {
       expect(component.canEditPermission).toBe(false);
     });
 
-    it('見学が setPerm を呼んでも権限フラグが変更されない', () => {
+    it('changes nothing when a spectator sets a permission', () => {
       PeerCursor.createMyCursor();
       PeerCursor.myCursor.role = PeerRole.Guest;
       const tab = ChatTabList.instance.addChatTab('test');
@@ -128,7 +128,7 @@ describe('ChatTabSettingComponent', () => {
       expect(tab.guestCanSpeak).toBe(false);
     });
 
-    it('プレイヤーは setPerm で権限フラグを変更できる', () => {
+    it('lets a player set one', () => {
       PeerCursor.createMyCursor();
       PeerCursor.myCursor.role = PeerRole.Player;
       const tab = ChatTabList.instance.addChatTab('test');
@@ -143,8 +143,8 @@ describe('ChatTabSettingComponent', () => {
     });
   });
 
-  describe('システムタブは消せない', () => {
-    it('選んでいても削除しないこと', () => {
+  describe('will not delete the system tab', () => {
+    it('leaves it alone even while it is open', () => {
       const list = ChatTabList.instance;
       list.addChatTab('メイン');
       const system = list.ensureSystemTab();
@@ -153,12 +153,12 @@ describe('ChatTabSettingComponent', () => {
 
       component.delete();
 
-      // 消せると、入退室の知らせが会話のタブへ戻ってくる。
+      // Deleted, the arrivals and departures would come back into the conversation.
       expect(component.isDeletable).toBe(false);
       expect(list.chatTabs.some((tab) => tab.isSystemTab)).toBe(true);
     });
 
-    it('ふつうのタブは今までどおり消せること', () => {
+    it('deletes an ordinary tab as before', () => {
       const list = ChatTabList.instance;
       const main = list.addChatTab('メイン');
       list.ensureSystemTab();

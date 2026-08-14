@@ -18,10 +18,10 @@ import { replayScriptElapsed } from '@axe/domain/replay/replay-script';
 import { TranslocoModule } from '@jsverse/transloco';
 
 /**
- * 卓が終わったあとに残る 1 枚。
+ * The one picture left after a session ends.
  *
- * 数えるのは記録に残っているものだけで、足りない欄は「出せません」と言う。
- * 見える範囲は読む人のロールに従う（動画・読み物と同じ）。
+ * It counts only what the recording kept, and says outright where it can show nothing.
+ * What is visible follows the role of whoever reads it, as with the video and the reading.
  */
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -38,7 +38,7 @@ export class ReplayDigestPanelComponent {
   private readonly t = inject(TRANSLATE_FN);
 
   protected readonly digest = computed(() => {
-    // ロールが変われば見える範囲も変わる。開いたままの画面が古いままにならないよう追う。
+    // A change of role changes that, and a screen left open follows rather than going stale.
     if (PeerCursor.myCursor) this.objectChange.versionOf(PeerCursor.myCursor.identifier)();
     const manifest = this.playback.manifest();
     if (!manifest) return EMPTY_REPLAY_DIGEST;
@@ -122,7 +122,7 @@ export class ReplayDigestPanelComponent {
       this.photoOmitted.set(result.omitted);
       this.photoFailed.set(!result.saved);
     } catch {
-      // 絵が読めない・紙が作れないことはある。黙って何も起きないより、出なかったと言う。
+      // A picture may not load and a sheet may not be made; better to say so than to have nothing happen in silence.
       this.photoFailed.set(true);
     } finally {
       this.isSavingPhoto.set(false);

@@ -1,6 +1,6 @@
 import { pushRecentEffect, readRecentEffects } from '@axe/features/effect/effect-library-panel/recent-effects';
 
-describe('直近に使ったエフェクト', () => {
+describe('the effects used lately', () => {
   function makeStorage(initial: Record<string, string> = {}): Storage {
     const data = new Map(Object.entries(initial));
     return {
@@ -15,7 +15,7 @@ describe('直近に使ったエフェクト', () => {
     } as Storage;
   }
 
-  it('新しく使ったものを先頭へ積むこと', () => {
+  it('puts what was just used at the front', () => {
     const storage = makeStorage();
 
     pushRecentEffect(storage, 'a');
@@ -24,7 +24,7 @@ describe('直近に使ったエフェクト', () => {
     expect(readRecentEffects(storage)).toEqual(['b', 'a']);
   });
 
-  it('同じものを重ねず先頭へ移すこと', () => {
+  it('moves a repeat to the front rather than adding it again', () => {
     const storage = makeStorage();
 
     pushRecentEffect(storage, 'a');
@@ -34,7 +34,7 @@ describe('直近に使ったエフェクト', () => {
     expect(readRecentEffects(storage)).toEqual(['a', 'b']);
   });
 
-  it('8 件までに切り詰めること', () => {
+  it('keeps no more than eight', () => {
     const storage = makeStorage();
 
     for (let index = 0; index < 12; index++) pushRecentEffect(storage, `e${index}`);
@@ -43,13 +43,13 @@ describe('直近に使ったエフェクト', () => {
     expect(readRecentEffects(storage)[0]).toBe('e11');
   });
 
-  it('保存が無い・壊れていても空で返すこと', () => {
+  it('comes back empty when nothing was saved or what was saved is broken', () => {
     expect(readRecentEffects(null)).toEqual([]);
     expect(readRecentEffects(makeStorage({ 'axe.effect.recent': '{' }))).toEqual([]);
     expect(readRecentEffects(makeStorage({ 'axe.effect.recent': '{"a":1}' }))).toEqual([]);
   });
 
-  it('保存できなくても一覧を返すこと', () => {
+  it('returns the list even when it cannot save', () => {
     const storage = {
       getItem: () => null,
       setItem: () => {

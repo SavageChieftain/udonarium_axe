@@ -44,12 +44,12 @@ describe('PeerCursorComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('コンポーネント破棄時にエラーにならないこと（タイマー未設定時）', () => {
+  it('tears down without throwing when no timer was set', () => {
     expect(() => fixture.destroy()).not.toThrow();
   });
 
-  describe('ハートビート購読', () => {
-    it('非自分カーソルのハートビートで batchService にタスクが追加される', () => {
+  describe('listening for a heartbeat', () => {
+    it('queues work on the heartbeat of another cursor', () => {
       const myCursor = PeerCursor.createMyCursor();
       myCursor.peerId = 'my-peer';
 
@@ -67,7 +67,7 @@ describe('PeerCursorComponent', () => {
       expect(addSpy).toHaveBeenCalled();
     });
 
-    it('自分のカーソルではハートビートが処理されない', () => {
+    it('ignores its own', () => {
       const myCursor = PeerCursor.createMyCursor();
       myCursor.peerId = 'my-peer';
 
@@ -81,7 +81,7 @@ describe('PeerCursorComponent', () => {
       expect(addSpy).not.toHaveBeenCalled();
     });
 
-    it('異なるピアからのハートビートはフィルタされる', () => {
+    it('ignores a heartbeat from another peer', () => {
       const myCursor = PeerCursor.createMyCursor();
       myCursor.peerId = 'my-peer';
 
@@ -100,8 +100,8 @@ describe('PeerCursorComponent', () => {
     });
   });
 
-  describe('カーソル移動購読', () => {
-    it('異なるピアからのカーソル移動はフィルタされる', () => {
+  describe('listening for a cursor to move', () => {
+    it('ignores a move from another peer', () => {
       const myCursor = PeerCursor.createMyCursor();
       myCursor.peerId = 'my-peer';
 
@@ -119,7 +119,7 @@ describe('PeerCursorComponent', () => {
       expect(addSpy).not.toHaveBeenCalled();
     });
 
-    it('cursorElement が null のときは batchService に追加されない', () => {
+    it('queues nothing without an element to move', () => {
       const myCursor = PeerCursor.createMyCursor();
       myCursor.peerId = 'my-peer';
 
@@ -142,7 +142,7 @@ describe('PeerCursorComponent', () => {
   });
 
   describe('chkDisConnect', () => {
-    it('タイムアウト超過時にピアを切断状態にする', () => {
+    it('counts a peer as dropped once it goes quiet for too long', () => {
       const myCursor = PeerCursor.createMyCursor();
       myCursor.peerId = 'my-peer';
       // ChatTabList singleton must exist in ObjectStore for chkDisConnect()
@@ -163,7 +163,7 @@ describe('PeerCursorComponent', () => {
       expect(remoteCursor.isDisConnect).toBe(true);
     });
 
-    it('タイムアウト以内ならピアを接続状態にする', () => {
+    it('counts one still connected inside that time', () => {
       const myCursor = PeerCursor.createMyCursor();
       myCursor.peerId = 'my-peer';
       void ChatTabList.instance;
@@ -183,7 +183,7 @@ describe('PeerCursorComponent', () => {
       expect(remoteCursor.isDisConnect).toBe(false);
     });
 
-    it('既に切断状態のピアは再度切断にならない（重複メッセージ防止）', () => {
+    it('does not drop a peer twice, so the message is not repeated', () => {
       const myCursor = PeerCursor.createMyCursor();
       myCursor.peerId = 'my-peer';
       void ChatTabList.instance;
@@ -208,13 +208,13 @@ describe('PeerCursorComponent', () => {
     });
   });
 
-  describe('logoutMessage 重複送信防止', () => {
+  describe('not saying goodbye twice', () => {
     beforeEach(() => {
-      // 各テスト前に静的 Set をリセットする
+      // clears the static set before each test
       (PeerCursorComponent as unknown as Record<string, unknown>)['_sentLogoutIdentifiers'] = new Set();
     });
 
-    it('同一カーソルに対して2回呼び出しても1回しかメッセージを送信しないこと', () => {
+    it('says it once however often it is asked', () => {
       const myCursor = PeerCursor.createMyCursor();
       myCursor.peerId = 'my-peer';
       const tabList = ChatTabList.instance;
@@ -240,7 +240,7 @@ describe('PeerCursorComponent', () => {
       expect(chatSpy).toHaveBeenCalledTimes(1);
     });
 
-    it('自分のカーソルでは logoutMessage がメッセージを送信しないこと', () => {
+    it('says nothing for its own cursor', () => {
       const myCursor = PeerCursor.createMyCursor();
       myCursor.peerId = 'my-peer';
       void ChatTabList.instance;
@@ -258,8 +258,8 @@ describe('PeerCursorComponent', () => {
     });
   });
 
-  describe('破棄クリーンアップ', () => {
-    it('updateTimer が clearTimeout でクリアされ null になる', () => {
+  describe('tearing down', () => {
+    it('clears the update timer', () => {
       const clearTimeoutSpy = vi.spyOn(globalThis, 'clearTimeout');
       const priv = component as unknown as { updateTimer: ReturnType<typeof setTimeout> | null };
       priv.updateTimer = setTimeout(() => {}, 999_999);
@@ -270,7 +270,7 @@ describe('PeerCursorComponent', () => {
       expect(priv.updateTimer).toBeNull();
     });
 
-    it('timestampTimer が clearTimeout でクリアされ null になる', () => {
+    it('clears the timestamp timer', () => {
       const clearTimeoutSpy = vi.spyOn(globalThis, 'clearTimeout');
       const priv = component as unknown as {
         timestampTimer: ReturnType<typeof setTimeout> | null;

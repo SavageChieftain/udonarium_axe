@@ -26,7 +26,7 @@ describe('buildLightSourceContextMenu', () => {
     vi.clearAllMocks();
   });
 
-  it('点灯トグルが lightEnabled を反転する', () => {
+  it('switches the light on and off', () => {
     const light = LightSource.create('L');
     light.lightEnabled = true;
     const off = findByName(
@@ -38,7 +38,7 @@ describe('buildLightSourceContextMenu', () => {
     expect(light.lightEnabled).toBe(false);
   });
 
-  it('プリセットを適用すると値が反映され点灯する', () => {
+  it('takes the values of a preset and lights it', () => {
     const light = LightSource.create('L');
     light.lightEnabled = false;
     const presetMenu = findByName(
@@ -54,7 +54,7 @@ describe('buildLightSourceContextMenu', () => {
     expect(light.lightEnabled).toBe(true);
   });
 
-  it('削除アクションが ObjectStore から取り除く', () => {
+  it('takes it out of the store on delete', () => {
     const light = LightSource.create('L');
     const del = findByName(
       buildLightSourceContextMenu(light, 50, [], () => undefined, t),

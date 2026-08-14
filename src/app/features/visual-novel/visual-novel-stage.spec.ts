@@ -22,11 +22,11 @@ function source(overrides: Partial<VnStageSource> = {}): VnStageSource {
 const resolveUrl = (imageIdentifier: string) => `url://${imageIdentifier}`;
 
 describe('buildVnStage()', () => {
-  it('空の履歴では立ち絵を並べないこと', () => {
+  it('puts nobody on stage for an empty history', () => {
     expect(buildVnStage([], resolveUrl)).toEqual([]);
   });
 
-  it('直近の発言者を立ち絵として並べ、現在の発言者だけを isActive にすること', () => {
+  it('puts the recent speakers on stage and marks only the one speaking now', () => {
     const stage = buildVnStage(
       [
         source({ name: 'ボブ', imageIdentifier: 'image-bob', imagePos: 6 }),
@@ -40,7 +40,7 @@ describe('buildVnStage()', () => {
     expect(stage[0].url).toBe('url://image-alice');
   });
 
-  it('スロット順に並べ、同じ名前は最新の発言だけを採用すること', () => {
+  it('orders them by their place and keeps only the latest line of a name', () => {
     const stage = buildVnStage(
       [
         source({ name: 'アリス', imagePos: 11 }),
@@ -56,7 +56,7 @@ describe('buildVnStage()', () => {
     ]);
   });
 
-  it('スロットが重なった立ち絵は横にずらすこと', () => {
+  it('shifts two sharing a place apart', () => {
     const stage = buildVnStage(
       [source({ name: 'ボブ', imageIdentifier: 'image-bob', imagePos: 3 }), source({ name: 'アリス', imagePos: 3 })],
       resolveUrl
@@ -65,7 +65,7 @@ describe('buildVnStage()', () => {
     expect(stage[1].left - stage[0].left).toBeCloseTo(4);
   });
 
-  it('立ち絵は最大 6 人までにすること', () => {
+  it('puts no more than six on stage', () => {
     const window = Array.from({ length: 10 }, (_, index) =>
       source({ name: `キャラ${index}`, imageIdentifier: `image-${index}`, imagePos: index })
     );
@@ -79,7 +79,7 @@ describe('buildVnStage()', () => {
     expect(stage).toEqual([]);
   });
 
-  it('場面転換より前の立ち絵は引き継がないこと', () => {
+  it('carries nobody across a change of scene', () => {
     const stage = buildVnStage(
       [
         source({ name: 'ボブ', imageIdentifier: 'image-bob', imagePos: 6 }),
@@ -92,7 +92,7 @@ describe('buildVnStage()', () => {
     expect(stage.map((chara) => chara.name)).toEqual(['アリス']);
   });
 
-  it('システム発言・ダイスボット・ダイスコマンドは立ち絵にしないこと', () => {
+  it('puts neither the system, the dice bot nor a dice command on stage', () => {
     const stage = buildVnStage(
       [
         source({ name: 'システム', isSystemMessage: true }),
@@ -106,7 +106,7 @@ describe('buildVnStage()', () => {
     expect(stage.map((chara) => chara.name)).toEqual(['アリス']);
   });
 
-  it('キャラクター以外の発言・画像なし・URL 解決できない画像は除くこと', () => {
+  it('leaves out anything but a character, anything without a picture and any picture it cannot resolve', () => {
     const stage = buildVnStage(
       [
         source({ name: 'プレイヤー', isGameCharacter: false }),
@@ -120,13 +120,13 @@ describe('buildVnStage()', () => {
     expect(stage.map((chara) => chara.name)).toEqual(['アリス']);
   });
 
-  it('現在の発言がダイスコマンドなら誰も isActive にしないこと', () => {
+  it('marks nobody while the current line is a dice command', () => {
     const stage = buildVnStage([source({ name: 'アリス' }), source({ name: 'ボブ', isDiceCommand: true })], resolveUrl);
 
     expect(stage.every((chara) => !chara.isActive)).toBe(true);
   });
 
-  it('退場を指定した発言以降その立ち絵を出さないこと', () => {
+  it('keeps a portrait off stage once its line says it leaves', () => {
     const stage = buildVnStage(
       [
         source({ name: 'アリス', imagePos: 0 }),
@@ -140,7 +140,7 @@ describe('buildVnStage()', () => {
     expect(stage.map((chara) => chara.name)).toEqual(['ボブ']);
   });
 
-  it('退場したあとに再び発言すれば立ち絵が戻ること', () => {
+  it('brings it back once it speaks again', () => {
     const stage = buildVnStage(
       [
         source({ name: 'アリス', emote: emote({ exited: true }) }),
@@ -153,13 +153,13 @@ describe('buildVnStage()', () => {
     expect(stage.map((chara) => chara.name)).toEqual(['アリス', 'ボブ']);
   });
 
-  it('反転指定を立ち絵に引き継ぐこと', () => {
+  it('carries a flip onto the portrait', () => {
     const stage = buildVnStage([source({ emote: emote({ flipped: true }) })], resolveUrl);
 
     expect(stage[0].isFlipped).toBe(true);
   });
 
-  it('範囲外のスロット指定は先頭スロットに寄せること', () => {
+  it('pulls a place outside the stage back to the first', () => {
     expect(buildVnStage([source({ imagePos: 99 })], resolveUrl)[0].slot).toBe(0);
     expect(buildVnStage([source({ imagePos: null })], resolveUrl)[0].slot).toBe(0);
   });

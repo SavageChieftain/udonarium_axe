@@ -24,17 +24,17 @@ describe('TextNoteComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('effectがコンストラクタで登録されるためNG0203が発生しないこと', () => {
-    // lifecycle hook廃止: effect()はコンストラクタ内で登録済み
+  it('registers its effect in the constructor, so nothing is set up outside an injection context', () => {
+    // the effect is registered in the constructor rather than from a lifecycle hook
     expect(component).toBeTruthy();
   });
 
   describe('viewRotateZ computed signal', () => {
-    it('初期値はデフォルト10であること', () => {
+    it('starts at ten', () => {
       expect(component.viewRotateZ()).toBe(10);
     });
 
-    it('UiSignalServiceのtableViewRotationに連動してZ回転値が変わること', () => {
+    it('turns with the table view', () => {
       const uiSignalService = TestBed.inject(UiSignalService);
       uiSignalService.notifyTableViewRotation(50, 20, 60);
       expect(component.viewRotateZ()).toBe(60);
@@ -54,29 +54,29 @@ describe('TextNoteComponent', () => {
       note.destroy();
     });
 
-    it('初期状態は非編集 (isEditing=false)', () => {
+    it('starts out of edit mode', () => {
       expect(component.isEditing()).toBe(false);
     });
 
-    it('decoratedHtml が引用行を chat-quote にして返すこと', () => {
+    it('marks up a quoted line as a quotation', () => {
       const html = component.decoratedHtml();
       expect(html).toContain('<span class="chat-quote">');
       expect(html).toContain('@勇者');
       expect(html).toContain('本文');
     });
 
-    it('enterEdit() を呼ぶと isEditing=true になること', () => {
+    it('goes into edit mode on request', () => {
       component.enterEdit();
       expect(component.isEditing()).toBe(true);
     });
 
-    it('isLock=true のときは enterEdit() しても編集モードに入らない', () => {
+    it('stays out of it while the note is locked', () => {
       note.isLock = true;
       component.enterEdit();
       expect(component.isEditing()).toBe(false);
     });
 
-    it('onTextAreaBlur() で非編集モードに戻ること', () => {
+    it('leaves edit mode when the field loses focus', () => {
       component.enterEdit();
       expect(component.isEditing()).toBe(true);
       component.onTextAreaBlur();

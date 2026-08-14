@@ -53,7 +53,7 @@ describe('range-render-polygon', () => {
     vi.restoreAllMocks();
   });
 
-  it('四角形の頂点とクリップ範囲に回転角を反映すること', () => {
+  it('turns both the corners and the clip of a square', () => {
     const grid = createCanvasMock();
     const outline = createCanvasMock();
 
@@ -64,7 +64,7 @@ describe('range-render-polygon', () => {
     expect(grid.context.moveTo).toHaveBeenCalledWith(50 - 10 * Math.SQRT2, 50);
   });
 
-  it('三角形の頂点とクリップ範囲に回転角を反映すること', () => {
+  it('turns both for a triangle', () => {
     const grid = createCanvasMock();
     const outline = createCanvasMock();
 

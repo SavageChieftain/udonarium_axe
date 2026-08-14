@@ -32,7 +32,7 @@ describe('GridLineRender', () => {
   });
 
   describe('renderViewport', () => {
-    it('ピクセル範囲のキャンバスサイズでスクウェアグリッドを描画すること', () => {
+    it('draws a square grid on a canvas the size of the area', () => {
       const { canvas, context } = createCanvasMock();
 
       new GridLineRender(canvas).renderViewport(100, 100, 50, GridType.SQUARE, '#000', '#000', 25, 75);
@@ -43,7 +43,7 @@ describe('GridLineRender', () => {
       expect(context.fillText).toHaveBeenCalledWith('2-1', 0, 0);
     });
 
-    it('ピクセル範囲のキャンバスサイズでヘクスグリッドを描画すること', () => {
+    it('draws a hex grid on one', () => {
       const { canvas, context } = createCanvasMock();
 
       new GridLineRender(canvas).renderViewport(173.2, 129.4, 50, GridType.HEX_VERTICAL, '#000', '#000', 0, 0);
@@ -54,7 +54,7 @@ describe('GridLineRender', () => {
       expect(context.fillText).toHaveBeenCalled();
     });
 
-    it('ラベルに接頭辞 (壁の向き) を付与すること', () => {
+    it('prefixes each label with the side of the wall', () => {
       const { canvas, context } = createCanvasMock();
 
       new GridLineRender(canvas).renderViewport(100, 100, 50, GridType.SQUARE, '#000', '#000', 25, 75, true, 'N');
@@ -62,7 +62,7 @@ describe('GridLineRender', () => {
       expect(context.fillText).toHaveBeenCalledWith('N-2-1', 0, 0);
     });
 
-    it('ラベル変換行列を各ラベルへ適用すること (壁の鏡像補正)', () => {
+    it('applies the label transform to each, so a wall does not mirror them', () => {
       const { canvas, context } = createCanvasMock();
 
       new GridLineRender(canvas).renderViewport(
@@ -84,7 +84,7 @@ describe('GridLineRender', () => {
       expect(context.fillText).toHaveBeenCalledWith('S-1-1', 0, 0);
     });
 
-    it('drawLabels=false ならラベルを描画しないこと', () => {
+    it('draws no labels when they are turned off', () => {
       const { canvas, context } = createCanvasMock();
 
       new GridLineRender(canvas).renderViewport(100, 100, 50, GridType.SQUARE, '#000', '#000', 0, 0, false);

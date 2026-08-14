@@ -8,8 +8,8 @@ export interface RoomImportMessage {
 }
 
 /**
- * 取り込み結果を、チャットへ流すシステムメッセージの並びへ変換する。
- * 取りこぼした要素は種別ごとに 1 行ずつ出し、何が来なかったかを利用者が数で把握できるようにする。
+ * Turns the result of an import into the system messages that go to the chat.
+ * Each kind of missing element gets a line, so the numbers show what did not arrive.
  */
 export function buildRoomImportMessages(summary: CcfoliaRoomImportSummary): RoomImportMessage[] {
   const messages: RoomImportMessage[] = [

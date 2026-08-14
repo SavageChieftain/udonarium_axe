@@ -23,11 +23,11 @@ describe('GameObjectInventoryComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('ngOnInitでNG0203が発生しないこと（effectがコンストラクタで呼ばれている）', () => {
+  it('registers its effect in the constructor, so nothing is set up outside an injection context', () => {
     expect(() => fixture.detectChanges()).not.toThrow();
   });
 
-  it('global dragging が解除されたら panel の pointer-events-none も解除されること', async () => {
+  it('lets the panel take the pointer again once the drag ends', async () => {
     await expectPanelDragRecovery(GameObjectInventoryComponent);
   });
 });

@@ -7,28 +7,28 @@ const route = [
 ];
 
 describe('buildSegments()', () => {
-  it('点をつなぐ線分に割ること', () => {
+  it('cuts the path into the segments between its points', () => {
     const segments = buildSegments(route, 0);
     expect(segments).toHaveLength(2);
     expect(segments[0]).toMatchObject({ x: 0, y: 0, length: 100, angle: 0 });
     expect(segments[1]).toMatchObject({ x: 100, y: 0, length: 100, angle: 90 });
   });
 
-  it('通り過ぎた線分に印を付けること', () => {
+  it('marks the segments it has passed', () => {
     const segments = buildSegments(route, 0.5);
     expect(segments[0].isTravelled).toBe(true);
     expect(segments[1].isTravelled).toBe(false);
   });
 
-  it('進みきったら全部を通り過ぎた扱いにすること', () => {
+  it('counts them all passed at the end', () => {
     expect(buildSegments(route, 1).every((segment) => segment.isTravelled)).toBe(true);
   });
 
-  it('始まる前は何も通り過ぎていないこと', () => {
+  it('counts none passed before it starts', () => {
     expect(buildSegments(route, 0).some((segment) => segment.isTravelled)).toBe(false);
   });
 
-  it('長さのない線分を落とすこと', () => {
+  it('drops a segment of no length', () => {
     const segments = buildSegments(
       [
         { x: 0, y: 0, z: 0 },
@@ -40,7 +40,7 @@ describe('buildSegments()', () => {
     expect(segments).toHaveLength(1);
   });
 
-  it('点が足りなければ空を返すこと', () => {
+  it('returns nothing without enough points', () => {
     expect(buildSegments([{ x: 0, y: 0, z: 0 }], 0)).toEqual([]);
   });
 });

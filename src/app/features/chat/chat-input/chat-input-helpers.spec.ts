@@ -20,49 +20,49 @@ describe('allowsChat()', () => {
     vi.restoreAllMocks();
   });
 
-  it('table 配置 + nonTalkFlag=false なら true', () => {
+  it('is true for a piece on the table that may speak', () => {
     const c = makeCharacter('table');
     expect(allowsChat(c as unknown as GameCharacter, 'me')).toBe(true);
   });
 
-  it('table 配置 + nonTalkFlag=true なら false（ignoreNonTalk=false 時）', () => {
+  it('is false for one that may not', () => {
     const c = makeCharacter('table', true);
     expect(allowsChat(c as unknown as GameCharacter, 'me')).toBe(false);
   });
 
-  it('table 配置 + nonTalkFlag=true + ignoreNonTalk=true なら true', () => {
+  it('is true for one that may not when that is ignored', () => {
     const c = makeCharacter('table', true);
     expect(allowsChat(c as unknown as GameCharacter, 'me', true)).toBe(true);
   });
 
-  it('自分のインベントリ (peerId=myPeerId) なら true', () => {
+  it('is true for a piece in your own hands', () => {
     const c = makeCharacter('me');
     expect(allowsChat(c as unknown as GameCharacter, 'me')).toBe(true);
   });
 
-  it('自分のインベントリでも nonTalkFlag=true なら false', () => {
+  it('is false for one there that may not speak', () => {
     const c = makeCharacter('me', true);
     expect(allowsChat(c as unknown as GameCharacter, 'me')).toBe(false);
   });
 
-  it('graveyard なら常に false', () => {
+  it('is always false in the graveyard', () => {
     expect(allowsChat(makeCharacter('graveyard') as unknown as GameCharacter, 'me')).toBe(false);
     expect(allowsChat(makeCharacter('graveyard', true) as unknown as GameCharacter, 'me', true)).toBe(false);
   });
 
-  it('他のピア (open) のインベントリ配下なら false', () => {
+  it('is false in the open hands of another peer', () => {
     setPeerContexts([{ peerId: 'other', isOpen: true }]);
     const c = makeCharacter('other');
     expect(allowsChat(c as unknown as GameCharacter, 'me')).toBe(false);
   });
 
-  it('他のピア (closed) のインベントリ配下なら true', () => {
+  it('is true in their closed ones', () => {
     setPeerContexts([{ peerId: 'other', isOpen: false }]);
     const c = makeCharacter('other');
     expect(allowsChat(c as unknown as GameCharacter, 'me')).toBe(true);
   });
 
-  it('spy 経由で差し替えた peerContexts が production の Network 参照経由でも観測できる', () => {
+  it('sees the swapped peer contexts through the real network reference', () => {
     setPeerContexts([{ peerId: 'p1', isOpen: true }]);
     expect(Network.peerContexts).toEqual([{ peerId: 'p1', isOpen: true }]);
   });

@@ -49,40 +49,40 @@ describe('remote-controller-helpers', () => {
   }
 
   describe('parseBuffInput', () => {
-    it('名前・情報・ラウンドを空白区切りで読むこと', () => {
+    it('reads the name, the note and the round apart by their spaces', () => {
       expect(parseBuffInput('猛攻撃 攻撃+2 5')).toMatchObject({ buffname: '猛攻撃', sub: '攻撃+2', round: 5 });
     });
 
-    it('4 つ目以降で色とアイコンを指定できること', () => {
+    it('takes a colour and an icon after them', () => {
       const parsed = parseBuffInput('毒 継続2 3 red ☠️');
 
       expect(parsed!.appearance).toEqual({ color: resolveBuffColor('red'), icon: '☠️' });
       expect(parsed!.bufftext).toContain('red');
     });
 
-    it('見た目の指定が無ければ空になること', () => {
+    it('leaves both empty when neither is given', () => {
       expect(parseBuffInput('猛攻撃')!.appearance).toEqual({});
     });
 
-    it('空文字では読まないこと', () => {
+    it('reads nothing from an empty line', () => {
       expect(parseBuffInput('')).toBeNull();
     });
   });
 
   describe('getTabTitle', () => {
-    it('should return "テーブル" for "table" type', () => {
+    it('names the table', () => {
       expect(getTabTitle('table')).toBe('テーブル');
     });
 
-    it('should return "個人" for Network.peerId type', () => {
+    it('names your own hands', () => {
       expect(getTabTitle(Network.peerId)).toBe('個人');
     });
 
-    it('should return "墓場" for "graveyard" type', () => {
+    it('names the graveyard', () => {
       expect(getTabTitle('graveyard')).toBe('墓場');
     });
 
-    it('should return "共有" for other types', () => {
+    it('names anywhere else shared', () => {
       expect(getTabTitle('common')).toBe('共有');
     });
   });
@@ -121,7 +121,7 @@ describe('remote-controller-helpers', () => {
   });
 
   describe('getCounterElements', () => {
-    it('階層の深いリソースでもタグ順に拾えること', () => {
+    it('picks resources up in tag order however deep they sit', () => {
       const char = createChar('カウンター対象');
 
       const elements = getCounterElements(char, ['HP', 'MP']);
@@ -130,19 +130,19 @@ describe('remote-controller-helpers', () => {
       expect(elements.every((element) => element.isNumberResource)).toBe(true);
     });
 
-    it('存在しないタグは飛ばすこと', () => {
+    it('passes over a tag that is not there', () => {
       const char = createChar('カウンター対象');
 
       expect(getCounterElements(char, ['HP', '架空の項目', 'MP']).map((element) => element.name)).toEqual(['HP', 'MP']);
     });
 
-    it('同じ項目を重ねて返さないこと', () => {
+    it('returns nothing twice', () => {
       const char = createChar('カウンター対象');
 
       expect(getCounterElements(char, ['HP', 'HP'])).toHaveLength(1);
     });
 
-    it('タグが空なら空を返すこと', () => {
+    it('returns nothing for no tags at all', () => {
       expect(getCounterElements(createChar('カウンター対象'), [])).toEqual([]);
     });
   });

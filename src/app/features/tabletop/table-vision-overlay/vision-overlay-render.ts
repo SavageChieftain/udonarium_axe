@@ -156,17 +156,17 @@ function drawShadow(ctx: CanvasRenderingContext2D, shadow: ShadowShape): void {
 
 const SHADOW_BLUR_PX = 3;
 const SHADOW_FILTER = `brightness(0) blur(${SHADOW_BLUR_PX}px)`;
-/** 焼く倍率のきざみ。細かく分けるほど焼き直しが増え、粗いほど縁の柔らかさがずれる。 */
+/** The steps between baking scales. Finer steps bake more often, coarser ones drift from the softness the edge should have. */
 const BAKE_SCALE_STEP = 1.5;
 
 /**
- * 影のもとになる黒い切り抜き。
+ * The black silhouette a shadow is cast from.
  *
- * 影の数は「光源 × 遮る物」で増える。ぼかしを毎フレーム掛け直すと、その数だけ
- * 再ラスタライズが走って 1 フレームが数百 ms に伸びる。絵と倍率ごとに 1 度だけ焼く。
+ * There is one for every light against every obstacle, and softening them all each
+ * frame rasterises that many times, stretching a pass into hundreds of milliseconds. Each picture is baked once per scale.
  *
- * 焼いた絵は縮めて置くので、焼くときのぼかしは縮むぶんだけ広げておく。倍率を
- * 見ずに一定量で焼くと、大きな絵ほど縁が硬くなる。
+ * A baked picture is laid down smaller than it was baked, so the softening is widened
+ * to match; a fixed amount would leave the edges of a large picture hard.
  */
 interface Silhouette {
   canvas: HTMLCanvasElement;
@@ -182,7 +182,7 @@ function silhouetteOf(img: CanvasImageSource, iw: number, ih: number, scale: num
     byScale = new Map();
     silhouettes.set(img, byScale);
   }
-  // 焼けなかった絵も覚えておく。覚えないと影 1 枚ごとに canvas を作っては捨てる。
+  // Even a picture that would not bake is remembered, or every shadow would make a canvas and throw it away.
   const cached = byScale.get(step);
   if (cached !== undefined) return cached;
 
@@ -227,7 +227,7 @@ function drawShadowImage(
   const clipped = clipToPolygon(ctx, shadow.clipPolygon);
   ctx.globalAlpha = 0.7;
   if (!baked) ctx.filter = SHADOW_FILTER;
-  // 置き方は焼く前と同じ。焼いた絵は余白ぶん外から描いて、元の位置に重ねる。
+  // It is laid down as it was before baking, drawn from outside by the margin so it lands where it did.
   ctx.setTransform(
     (px * w) / iw,
     (py * w) / iw,
@@ -238,16 +238,16 @@ function drawShadowImage(
   );
   if (baked) ctx.drawImage(baked.canvas, -baked.pad, -baked.pad);
   else ctx.drawImage(img, 0, 0);
-  // clipToPolygon も自前で退避する。1 回しか戻さないと切り抜きが次の絵に残る。
+  // The clip is saved separately; restoring only once would leave it on the next picture.
   if (clipped) ctx.restore();
   ctx.restore();
 }
 
-/** 焼いた面。時間で変わらない部分を持つ。 */
+/** The baked surfaces, holding what does not change over time. */
 export interface OverlayBake {
-  /** 暗幕と、そこから彫り抜いた見えている所。 */
+  /** The darkness, with what can be seen cut out of it. */
   base: BakeCanvas;
-  /** 影。灯りの上に重ねるので、暗幕とは分けて持つ。 */
+  /** The shadows, kept apart from the darkness because they go over the lights. */
   shadows: BakeCanvas | null;
   width: number;
   height: number;
@@ -276,10 +276,10 @@ function bakeCanvas(width: number, height: number, previous?: BakeCanvas | null)
 }
 
 /**
- * 時間で変わらない部分を焼いておく。
+ * Bakes the part that does not change over time.
  *
- * 灯りがゆらぐ卓では同じ絵を毎回描き直している。変わるのは灯りの明るさだけで、
- * 暗幕・彫り抜き・影は盤面が変わるまで同じ。盤面ぶんの塗り 3 回ぶんが、貼り付け 2 回になる。
+ * A table with a flickering light redraws the same picture over and over, when only the
+ * brightness changes. Three board-sized fills become two blits.
  */
 export function bakeOverlayPlan(
   plan: OverlayPlan,

@@ -4,15 +4,15 @@ import { pixelRatioFor } from '@axe/features/effect/effect-canvas/effect-canvas.
 import { withAlpha } from '@axe/features/effect/effect-canvas/particle-texture';
 
 describe('withAlpha()', () => {
-  it('6 桁の hex を rgba に変換すること', () => {
+  it('turns a six-digit colour into one with an alpha', () => {
     expect(withAlpha('#ff5a33', 0.5)).toBe('rgba(255, 90, 51, 0.5)');
   });
 
-  it('3 桁の hex を展開すること', () => {
+  it('expands a three-digit colour', () => {
     expect(withAlpha('#fff', 1)).toBe('rgba(255, 255, 255, 1)');
   });
 
-  it('hex でなければそのまま返すこと', () => {
+  it('leaves anything that is not one alone', () => {
     expect(withAlpha('rgb(1, 2, 3)', 0.4)).toBe('rgb(1, 2, 3)');
   });
 });
@@ -66,7 +66,7 @@ describe('drawParticleLayer()', () => {
 
   const stubTexture = () => ({}) as CanvasImageSource;
 
-  it('煙は通常合成、光る粒は加算合成で描くこと', () => {
+  it('draws the smoke plainly and the glowing particles additively', () => {
     const calls: Call[] = [];
     drawParticleLayer(
       makeContext(calls),
@@ -76,12 +76,12 @@ describe('drawParticleLayer()', () => {
     );
 
     expect(calls).toHaveLength(2);
-    // 煙を先に敷いてから光を重ねる。順序が逆だと光が煙に覆われる。
+    // The smoke goes down first and the light over it; the other way round the smoke would cover the light.
     expect(calls[0].op).toBe('source-over');
     expect(calls[1].op).toBe('lighter');
   });
 
-  it('見えない粒を描かないこと', () => {
+  it('draws no particle that cannot be seen', () => {
     const calls: Call[] = [];
     drawParticleLayer(
       makeContext(calls),
@@ -94,7 +94,7 @@ describe('drawParticleLayer()', () => {
     expect(calls[0].alpha).toBe(0.5);
   });
 
-  it('描き終わりに合成モードを戻すこと', () => {
+  it('puts the blending mode back when it is done', () => {
     const calls: Call[] = [];
     const context = makeContext(calls);
     drawParticleLayer(context, makeLayer([makeParticle({})]), 2, stubTexture);
@@ -109,19 +109,19 @@ describe('pixelRatioFor()', () => {
     return { width, height, originX: 0, originY: 0, particles: [] };
   }
 
-  it('ふつうの大きさでは等倍以上を保つこと', () => {
+  it('keeps at least a pixel per pixel at an ordinary size', () => {
     expect(pixelRatioFor(layerOf(300, 300))).toBeGreaterThanOrEqual(1);
   });
 
-  it('マップ全体を覆う大きさでは画素数を抑えること', () => {
-    // 一辺 5000px を 2 倍で確保すると 1 億画素。確保に失敗して真っ白になるより粗く描く。
+  it('holds the pixel count down over a whole map', () => {
+    // Five thousand pixels a side at double density is a hundred million pixels; drawing coarsely beats failing to allocate and going white.
     const layer = layerOf(5000, 5000);
     const ratio = pixelRatioFor(layer);
     expect(ratio).toBeLessThan(1);
     expect(layer.width * ratio * (layer.height * ratio)).toBeLessThanOrEqual(4_000_000);
   });
 
-  it('大きさが 0 でも比率を返すこと', () => {
+  it('returns a ratio even at no size at all', () => {
     expect(pixelRatioFor(layerOf(0, 0))).toBeGreaterThan(0);
   });
 });

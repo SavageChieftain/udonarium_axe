@@ -10,10 +10,10 @@ import { deserializeScene, serializeScene } from '@axe/features/map-editor/model
 import { imageTextureIdentifier, isImageTextureId, TEXTURE_IMAGE_TAG } from '@axe/features/map-editor/model/textures';
 
 /**
- * 地図が使っている絵。塗りに使う模様と、貼り付けた絵とで置き場が違う。
+ * The images a map uses. Patterns and placed pictures live in different places.
  *
- * 持ち出すときはこの一覧ぶんだけを書庫へ入れる。地図に出てこない絵まで
- * 抱き合わせると、受け取った側の置き場が無関係な絵で埋まる。
+ * Only these go into the archive. Bundling images the map never shows would fill the
+ * recipient's storage with pictures they have no use for.
  */
 export function collectSceneImageIds(scene: MapScene): { textureIds: Set<string>; imageIds: Set<string> } {
   const textureIds = new Set<string>();
@@ -50,7 +50,7 @@ async function bytesOf(imageStorage: ImageStorage, ids: Set<string>): Promise<Re
   return out;
 }
 
-/** 地図と、それが使っている絵を 1 つの書庫にまとめる。 */
+/** Packs a map and the images it uses into one archive. */
 export async function packSceneWithImages(scene: MapScene, imageStorage: ImageStorage): Promise<Uint8Array> {
   const { textureIds, imageIds } = collectSceneImageIds(scene);
   return packSceneArchive(
@@ -79,10 +79,10 @@ async function registerImages(
 }
 
 /**
- * 書庫から地図を取り出し、中の絵を手元の置き場へ入れ直す。
+ * Takes a map out of an archive and puts its images back into local storage.
  *
- * 絵の名札は入れた先で新しく振られるので、地図側の参照も付け替える。
- * 読めない書庫だったときは null。
+ * Each image is given a new identifier as it arrives, so the map's references are remapped.
+ * Null for an archive it cannot read.
  */
 export async function unpackSceneWithImages(
   buffer: Uint8Array,

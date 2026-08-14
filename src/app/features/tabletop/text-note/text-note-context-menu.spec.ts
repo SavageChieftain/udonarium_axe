@@ -43,7 +43,7 @@ describe('buildTextNoteContextMenu()', () => {
     PeerCursor.myCursor = null!;
   });
 
-  it('先頭は「メモを編集」、高度設定・直立切替・固定切替・コピー・削除を含む', () => {
+  it('leads with editing the note, and offers altitude, standing, locking, copying and deleting', () => {
     const note = makeTextNote();
     const menu = buildTextNoteContextMenu(
       note as unknown as TextNote,
@@ -62,7 +62,7 @@ describe('buildTextNoteContextMenu()', () => {
     expect(names(menu)).toContain('削除する');
   });
 
-  it('isLock=true なら「固定解除」表示、action で false にする', () => {
+  it('offers to unlock what is locked, and does', () => {
     const note = makeTextNote({ isLock: true });
     const menu = buildTextNoteContextMenu(
       note as unknown as TextNote,
@@ -77,7 +77,7 @@ describe('buildTextNoteContextMenu()', () => {
     expect(note.isLock).toBe(false);
   });
 
-  it('isUpright=true なら「寝かせる」表示、isUpright=false なら「直立させる」', () => {
+  it('offers to lay down what stands and to stand up what lies flat', () => {
     const standing = makeTextNote({ isUpright: true });
     const standingMenu = buildTextNoteContextMenu(
       standing as unknown as TextNote,
@@ -99,7 +99,7 @@ describe('buildTextNoteContextMenu()', () => {
     expect(names(layingMenu)).toContain('直立させる');
   });
 
-  it('「メモを編集」が onShowDetail コールバックを呼ぶ', () => {
+  it('opens the note for editing', () => {
     const note = makeTextNote();
     const onShowDetail = vi.fn();
     const menu = buildTextNoteContextMenu(
@@ -113,7 +113,7 @@ describe('buildTextNoteContextMenu()', () => {
     expect(onShowDetail).toHaveBeenCalled();
   });
 
-  it('「削除する」が note.destroy() を呼ぶ', () => {
+  it('destroys the note', () => {
     const note = makeTextNote();
     const menu = buildTextNoteContextMenu(
       note as unknown as TextNote,
@@ -126,7 +126,7 @@ describe('buildTextNoteContextMenu()', () => {
     expect(note.destroy).toHaveBeenCalled();
   });
 
-  it('権限なし時の separator はちょうど 2 つ（開く後 / 操作前）', () => {
+  it('draws exactly two separators without permission', () => {
     const note = makeTextNote();
     const menu = buildTextNoteContextMenu(
       note as unknown as TextNote,

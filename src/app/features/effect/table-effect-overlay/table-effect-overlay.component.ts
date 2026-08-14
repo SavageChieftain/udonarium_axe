@@ -27,9 +27,9 @@ export interface EffectCanvasPlacement {
 }
 
 /**
- * 演出をカメラ側へ寄せる量(px)。
- * 板ポリはコマや名前ラベルと同じ深さに来るので、少し手前へ出さないと
- * ラベルの背景に隠れて演出が途切れて見える。
+ * How far towards the camera the effect sits, in pixels.
+ * A billboard sits at the same depth as the pieces and their names, so without a nudge
+ * forwards it disappears behind a label and the effect looks broken.
  */
 const CAMERA_LIFT_PX = 40;
 
@@ -52,10 +52,10 @@ export class TableEffectOverlayComponent {
   private readonly objectStore = inject(ObjectStore);
 
   /**
-   * 発動中の演出と、置きっぱなしの場をまとめて 1 本の描画対象にする。
+   * Gathers the effects playing and the fields left standing into one thing to draw.
    *
-   * 見えているかの判定はここで 1 度だけ済ませる。板ポリと粒で別々に数えると、
-   * 対象ごとの視線判定が毎フレーム 2 倍走る。
+   * Whether a target can be seen is settled once here; asking separately for the billboards
+   * and the particles would run that check twice a frame for every target.
    */
   private readonly renderables = computed<(EffectFieldRenderable & { hidden: ReadonlySet<string> })[]>(() => {
     const now = this.playback.now();
@@ -92,7 +92,7 @@ export class TableEffectOverlayComponent {
     return sprites.length > MAX_SPRITES ? sprites.slice(0, MAX_SPRITES) : sprites;
   });
 
-  /** 光る粒は対象ごとに 1 枚の canvas へ。加算合成は canvas の中で閉じるので 3D を潰さない。 */
+  /** The glowing particles go onto one canvas per target, where the additive blending stays and does not flatten the depth. */
   readonly canvases = computed<EffectCanvasPlacement[]>(() => {
     const gridSize = this.tabletopService.gridSize();
     const placements: EffectCanvasPlacement[] = [];
@@ -142,7 +142,7 @@ export class TableEffectOverlayComponent {
     return sprite.animation.length > 0 || sprite.svg.length > 0;
   }
 
-  /** 外側の層。3D 配置と寿命フェードだけを担う。 */
+  /** The outer layer, which only places it in space and fades it out. */
   protected spriteStyle(sprite: EffectSprite): Record<string, string> {
     const style: Record<string, string> = {
       position: 'absolute',
@@ -159,7 +159,7 @@ export class TableEffectOverlayComponent {
     return style;
   }
 
-  /** 内側の層。見た目と CSS アニメーションを担う。 */
+  /** The inner layer, which carries the look and the animation. */
   protected paintStyle(sprite: EffectSprite): Record<string, string> {
     const style = this.paint(sprite);
     if (sprite.animation.length > 0) style['animation'] = sprite.animation;
@@ -173,8 +173,8 @@ export class TableEffectOverlayComponent {
     if (sprite.borderRadius.length > 0) style['border-radius'] = sprite.borderRadius;
     if (sprite.clipPath.length > 0) style['clip-path'] = sprite.clipPath;
     if (sprite.shadow.length > 0) {
-      // SVG は要素いっぱいに塗られるとは限らないので、box-shadow だと絵ではなく箱が光り、
-      // 四角い縁が見える。絵の輪郭に沿わせるため drop-shadow へ移す。
+      // A drawing does not always fill its element, so a box shadow lights the box rather than
+      // the picture and shows a square edge. A drop shadow follows the outline instead.
       if (sprite.svg.length > 0) style['filter'] = dropShadowOf(sprite.shadow);
       else style['box-shadow'] = sprite.shadow;
     }
@@ -202,7 +202,7 @@ export class TableEffectOverlayComponent {
         `translateZ(${CAMERA_LIFT_PX}px)`
       );
     }
-    // 板ポリ面に入ってからずらすので、カメラを回しても組んだ形が保たれる。
+    // The offset is applied inside the billboard, so the arrangement holds as the camera turns.
     if (sprite.offsetX !== 0 || sprite.offsetY !== 0) {
       parts.push(`translate(${sprite.offsetX.toFixed(2)}px, ${sprite.offsetY.toFixed(2)}px)`);
     }
@@ -212,7 +212,7 @@ export class TableEffectOverlayComponent {
     return parts.join(' ');
   }
 
-  /** 崩壊や両断は、コマの絵そのものを切り分けて動かす。 */
+  /** Collapsing and cleaving cut the picture of the piece itself and move the parts. */
   private imageUrlOf(identifier: string): string {
     const object = this.objectStore.get<TabletopObject>(identifier);
     if (!(object instanceof TabletopObject)) return '';
@@ -239,7 +239,7 @@ export class TableEffectOverlayComponent {
   }
 }
 
-/** box-shadow の指定を、同じ広がりの drop-shadow へ読み替える。 */
+/** Reads a box shadow as a drop shadow of the same spread. */
 function dropShadowOf(shadow: string): string {
   return shadow
     .split(', ')

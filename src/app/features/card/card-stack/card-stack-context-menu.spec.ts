@@ -5,7 +5,7 @@ import { createSyncTranslate } from '@axe/testing/transloco-testing';
 const t = createSyncTranslate('ja');
 
 describe('buildCardStackContextMenu', () => {
-  it('１枚引くの直下に手札へ引く・X枚を引くを並べ、選択時にそれぞれの処理を呼ぶこと', () => {
+  it('offers drawing to the hand and drawing several right below drawing one, and does each', () => {
     const cardStack = CardStack.create('test stack');
     const onDrawCard = vi.fn();
     const onDrawToHand = vi.fn();
@@ -41,7 +41,7 @@ describe('buildCardStackContextMenu', () => {
     }
   });
 
-  it('全員に配り切る entry が山札を分割する項目の前に並ぶこと', () => {
+  it('offers dealing the deck out before splitting it', () => {
     const cardStack = CardStack.create('test stack');
     try {
       const actions = buildCardStackContextMenu(
@@ -66,7 +66,7 @@ describe('buildCardStackContextMenu', () => {
     }
   });
 
-  it('カード一覧 entry is no longer present (folded into 詳細を表示)', () => {
+  it('no longer offers the card list, which the sheet now holds', () => {
     const cardStack = CardStack.create('test stack');
     try {
       const actions = buildCardStackContextMenu(

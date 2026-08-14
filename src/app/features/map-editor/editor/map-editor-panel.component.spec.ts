@@ -29,7 +29,7 @@ import { serializeScene } from '@axe/features/map-editor/model/serialize';
 import { exportSceneToBlob } from '@axe/features/map-editor/render/export-image';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
 
-/** 引きかけの 1 手は private に持たせてある。テストからは名前を借りて触る。 */
+/** The gesture is private; the tests borrow its name to reach it. */
 function gestureOf(component: MapEditorPanelComponent): MapEditorGesture {
   return (component as unknown as { gesture: MapEditorGesture }).gesture;
 }
@@ -70,11 +70,11 @@ describe('MapEditorPanelComponent', () => {
     PeerCursor.myCursor = null!;
   });
 
-  it('生成できる', () => {
+  it('can be created', () => {
     expect(component).toBeTruthy();
   });
 
-  it('GM でないときは gmOnly のみ表示する', () => {
+  it('shows only the game-master notice to anyone else', () => {
     TestBed.inject(ObjectChangeService);
     PeerCursor.createMyCursor();
     PeerCursor.myCursor.role = PeerRole.Player;
@@ -83,7 +83,7 @@ describe('MapEditorPanelComponent', () => {
     expect(fixture.nativeElement.querySelector('canvas')).toBeNull();
   });
 
-  it('GM のときキャンバスを表示する', () => {
+  it('shows the canvas to the game master', () => {
     TestBed.inject(ObjectChangeService);
     PeerCursor.createMyCursor();
     PeerCursor.myCursor.role = PeerRole.GameMaster;
@@ -92,7 +92,7 @@ describe('MapEditorPanelComponent', () => {
     expect(fixture.nativeElement.querySelector('canvas')).not.toBeNull();
   });
 
-  it('setAsTable で書き出し画像をテーブル背景へ設定する', async () => {
+  it('sets the exported image as the table background', async () => {
     const blob = new Blob([new Uint8Array([1])], { type: 'image/webp' });
     const exportStub = vi.fn().mockResolvedValue(blob);
     (component as unknown as { exportFn: typeof exportSceneToBlob }).exportFn = exportStub;
@@ -108,7 +108,7 @@ describe('MapEditorPanelComponent', () => {
     expect(table.gridSize).toBe(component['state'].current.cellPx);
   });
 
-  it('saveImage で書き出した画像を保存する', async () => {
+  it('saves the exported image', async () => {
     const blob = new Blob([new Uint8Array([1])], { type: 'image/webp' });
     const exportStub = vi.fn().mockResolvedValue(blob);
     (component as unknown as { exportFn: typeof exportSceneToBlob }).exportFn = exportStub;
@@ -119,15 +119,15 @@ describe('MapEditorPanelComponent', () => {
     expect(imageStorage.addAsync).toHaveBeenCalledWith(blob);
   });
 
-  it('既定ツールは select のまま', () => {
+  it('starts with the select tool', () => {
     expect(component['state'].tool()).toBe('select');
   });
 
-  it('新規シーンの既定背景は transparent', () => {
+  it('starts a new scene on a transparent background', () => {
     expect(component['state'].current.background).toBe('transparent');
   });
 
-  it('透明トグルは背景と直前の色を往復させる', () => {
+  it('toggles the background between transparent and the last colour', () => {
     const c = component as unknown as {
       toggleBackgroundTransparent: (transparent: boolean) => void;
       backgroundTransparent: () => boolean;
@@ -146,7 +146,7 @@ describe('MapEditorPanelComponent', () => {
     expect(c.backgroundTransparent()).toBe(false);
   });
 
-  it('setAsTable は scene.gridType をテーブルへ書き込む', async () => {
+  it('writes the grid type onto the table', async () => {
     const blob = new Blob([new Uint8Array([1])], { type: 'image/webp' });
     (component as unknown as { exportFn: typeof exportSceneToBlob }).exportFn = vi.fn().mockResolvedValue(blob);
     imageStorage.addAsync.mockResolvedValue({ identifier: 'img-3' });
@@ -157,7 +157,7 @@ describe('MapEditorPanelComponent', () => {
     expect(table.gridType).toBe(GridType.HEX_VERTICAL);
   });
 
-  it('五角形ドラッグは 5 頂点へスケールされた polygon を作る', () => {
+  it('drags out a pentagon scaled to five vertices', () => {
     component['state'].shapeKind.set('pentagon');
     gestureOf(component).draftStart = { x: 0, y: 0 };
     (component as unknown as { draftCurrent: { x: number; y: number } }).draftCurrent = { x: 100, y: 80 };
@@ -172,7 +172,7 @@ describe('MapEditorPanelComponent', () => {
     expect(layer.items[0].points.length).toBe(10);
   });
 
-  it('折れ線は3頂点で専用レイヤーへ stroke のみの polyline を作る', () => {
+  it('makes a stroke-only polyline of three vertices on its own layer', () => {
     component['state'].tool.set('line');
     component['state'].lineKind.set('polyline');
     component['state'].strokeDash.set('dashed');
@@ -187,7 +187,7 @@ describe('MapEditorPanelComponent', () => {
     expect(item.points).toEqual([0, 0, 50, 0, 50, 50]);
   });
 
-  it('線ツールの種類ピッカーは 4 つのボタンを表示する', () => {
+  it('offers four kinds of line', () => {
     TestBed.inject(ObjectChangeService);
     PeerCursor.createMyCursor();
     PeerCursor.myCursor.role = PeerRole.GameMaster;
@@ -204,7 +204,7 @@ describe('MapEditorPanelComponent', () => {
     expect(kindTitles.length).toBe(4);
   });
 
-  it('curve は頂点クリックと Enter で curve シェイプを作る', () => {
+  it('makes a curve from clicked vertices and a press of enter', () => {
     component['state'].tool.set('line');
     component['state'].lineKind.set('curve');
     gestureOf(component).draftPoints = [0, 0, 50, 0, 50, 50];
@@ -216,7 +216,7 @@ describe('MapEditorPanelComponent', () => {
     expect(item.points).toEqual([0, 0, 50, 0, 50, 50]);
   });
 
-  it('closedCurve は現在の塗りを受け取り 3 頂点で作られる', () => {
+  it('makes a closed curve of three vertices with the current fill', () => {
     component['state'].tool.set('line');
     component['state'].lineKind.set('closedCurve');
     component['state'].fillMode.set('solid');
@@ -229,7 +229,7 @@ describe('MapEditorPanelComponent', () => {
     expect(item.fill).toEqual({ type: 'solid', color: '#123456' });
   });
 
-  it('lineKind を切り替えるとドラフトがキャンセルされる', () => {
+  it('cancels the draft when the kind of line changes', () => {
     component['state'].tool.set('line');
     component['state'].lineKind.set('polyline');
     gestureOf(component).draftPoints = [0, 0, 50, 0];
@@ -238,7 +238,7 @@ describe('MapEditorPanelComponent', () => {
     expect(component['state'].lineKind()).toBe('straight');
   });
 
-  it('画像のコーナードラッグは反対コーナー基準でリサイズし1履歴にまとまる', () => {
+  it('resizes an image about its opposite corner and records one step of history', () => {
     component['state'].placeImage(
       { id: '', imageIdentifier: 'img', x: 100, y: 100, w: 80, h: 60, rotation: 0, opacity: 1 },
       '画像 1'
@@ -267,7 +267,7 @@ describe('MapEditorPanelComponent', () => {
     expect(after.h).toBe(60);
   });
 
-  it('リサイズは min 8px へクランプする', () => {
+  it('clamps a resize to eight pixels', () => {
     component['state'].placeImage(
       { id: '', imageIdentifier: 'img', x: 100, y: 100, w: 80, h: 60, rotation: 0, opacity: 1 },
       '画像 1'
@@ -282,7 +282,7 @@ describe('MapEditorPanelComponent', () => {
     expect(layer.items[0].h).toBe(8);
   });
 
-  it('saveImage は常に drawGrid:false で書き出す', async () => {
+  it('always exports without the grid', async () => {
     const blob = new Blob([new Uint8Array([1])], { type: 'image/webp' });
     const exportStub = vi.fn().mockResolvedValue(blob);
     (component as unknown as { exportFn: typeof exportSceneToBlob }).exportFn = exportStub;
@@ -294,7 +294,7 @@ describe('MapEditorPanelComponent', () => {
     expect(exportStub.mock.calls[0][2]).toMatchObject({ drawGrid: false });
   });
 
-  it('画像配置フローは専用レイヤーへ画像を置きペンディングを保持する', async () => {
+  it('places an image on its own layer and keeps it pending', async () => {
     imageStorage.get.mockReturnValue({ url: 'blob:test' });
     const image = { naturalWidth: 256, naturalHeight: 128, width: 256, height: 128 } as HTMLImageElement;
     (component as unknown as { loadImageFn: (url: string) => Promise<HTMLImageElement> }).loadImageFn = vi
@@ -312,7 +312,7 @@ describe('MapEditorPanelComponent', () => {
     expect(component['state'].pendingImageId()).toBe('img-id');
   });
 
-  it('ヘクスのセル塗りは pointToCell が示すセルを塗る', () => {
+  it('paints the hex the point falls in', () => {
     component['state'].setGridType(GridType.HEX_VERTICAL);
     const scene = component['state'].current;
     const cell = pointToCell(scene.gridType, 130, 110, scene.cellPx);
@@ -327,7 +327,7 @@ describe('MapEditorPanelComponent', () => {
     expect(Object.keys(layer.cells)).toEqual([cellKey(cell.col, cell.row)]);
   });
 
-  it('deleteLayer: モーダルが true を返すとレイヤーが削除される', async () => {
+  it('deletes the layer when the dialogue agrees', async () => {
     modalService.open.mockResolvedValue(true);
     component['state'].applyCommitted(() =>
       addLayer(component['state'].current, {
@@ -349,7 +349,7 @@ describe('MapEditorPanelComponent', () => {
     expect(component['state'].current.layers.find((l) => l.id === 'layer-1')).toBeUndefined();
   });
 
-  it('deleteLayer: モーダルが false を返すとレイヤーが保持される', async () => {
+  it('keeps the layer when the dialogue refuses', async () => {
     modalService.open.mockResolvedValue(false);
     component['state'].applyCommitted(() =>
       addLayer(component['state'].current, {
@@ -370,7 +370,7 @@ describe('MapEditorPanelComponent', () => {
     expect(component['state'].current.layers.length).toBe(before);
   });
 
-  it('deleteLayer: モーダルが null を返すとレイヤーが保持される', async () => {
+  it('keeps the layer when the dialogue is dismissed', async () => {
     modalService.open.mockResolvedValue(null);
     component['state'].applyCommitted(() =>
       addLayer(component['state'].current, {
@@ -391,7 +391,7 @@ describe('MapEditorPanelComponent', () => {
     expect(component['state'].current.layers.length).toBe(before);
   });
 
-  it('deleteLayer: ロック中のレイヤーは確認モーダルも開かず削除されない', async () => {
+  it('neither asks nor deletes for a locked layer', async () => {
     component['state'].applyCommitted(() =>
       addLayer(component['state'].current, {
         id: 'layer-4',
@@ -415,7 +415,7 @@ describe('MapEditorPanelComponent', () => {
     expect(component['state'].current.layers.length).toBe(before);
   });
 
-  it('updateSelectedStamp で色を変更できる', () => {
+  it('recolours the selected stamp', () => {
     component['state'].stampId.set('door-single');
     component['state'].stampColor.set(null);
     component['state'].placeStamp(100, 100, 'スタンプ 1');
@@ -428,7 +428,7 @@ describe('MapEditorPanelComponent', () => {
     expect(layer.items[0].color).toBe('#ff0000');
   });
 
-  it('updateSelectedStamp で色を null（自動）に戻せる', () => {
+  it('puts the stamp colour back to automatic', () => {
     component['state'].stampId.set('door-single');
     component['state'].stampColor.set('#ff0000');
     component['state'].placeStamp(100, 100, 'スタンプ 1');
@@ -441,7 +441,7 @@ describe('MapEditorPanelComponent', () => {
     expect(layer.items[0].color).toBeNull();
   });
 
-  it('imageTextures は テクスチャ タグの ImageTag を列挙する', () => {
+  it('lists the images tagged as patterns', () => {
     TestBed.inject(ObjectChangeService);
     ImageStorage.instance.add('tex-1');
     ImageStorage.instance.add('other');
@@ -454,14 +454,14 @@ describe('MapEditorPanelComponent', () => {
     expect(list.map((f) => f.identifier)).toEqual(['tex-1']);
   });
 
-  it('selectImageTexture は textureId を image: 接頭辞でセットしテクスチャモードへ', () => {
+  it('selects a pattern by its prefixed id and switches to pattern fill', () => {
     const file = ImageFile.create('tex-9');
     (component as unknown as { selectImageTexture: (f: ImageFile) => void }).selectImageTexture(file);
     expect(component['state'].textureId()).toBe('image:tex-9');
     expect(component['state'].fillMode()).toBe('texture');
   });
 
-  it('テクスチャ追加フローは切り抜き Blob を保存し テクスチャ タグの ImageTag を作る', async () => {
+  it('saves the cropped image and tags it as a pattern', async () => {
     TestBed.inject(ObjectChangeService);
     const blob = new Blob([new Uint8Array([1])], { type: 'image/webp' });
     modalService.open.mockResolvedValue(blob);
@@ -479,7 +479,7 @@ describe('MapEditorPanelComponent', () => {
     expect(component['state'].fillMode()).toBe('texture');
   });
 
-  it('テクスチャ追加でモーダルが null を返すと保存しない', async () => {
+  it('saves nothing when the crop dialogue is dismissed', async () => {
     modalService.open.mockResolvedValue(null);
     const input = { files: [new File([new Uint8Array([1])], 'x.png', { type: 'image/png' })], value: 'x' };
     const event = { target: input } as unknown as Event;
@@ -489,7 +489,7 @@ describe('MapEditorPanelComponent', () => {
     expect(imageStorage.addAsync).not.toHaveBeenCalled();
   });
 
-  it('stampImages は マップスタンプ タグの ImageTag を列挙する', () => {
+  it('lists the images tagged as stamps', () => {
     TestBed.inject(ObjectChangeService);
     ImageStorage.instance.add('stamp-1');
     ImageStorage.instance.add('other-stamp');
@@ -501,7 +501,7 @@ describe('MapEditorPanelComponent', () => {
     expect(list.map((f) => f.identifier)).toEqual(['stamp-1']);
   });
 
-  it('selectImageStamp は stampId を media: 接頭辞でセットし色を自動・サイズを 1 セルにする', () => {
+  it('selects a stamp by its prefixed id, with automatic colour and a size of one cell', () => {
     const file = ImageFile.create('stamp-9');
     component['state'].stampColor.set('#123456');
     (component as unknown as { selectImageStamp: (f: ImageFile) => void }).selectImageStamp(file);
@@ -510,7 +510,7 @@ describe('MapEditorPanelComponent', () => {
     expect(component['state'].stampSize()).toBe(component['state'].current.cellPx);
   });
 
-  it('スタンプ画像アップロードは画像を保存し マップスタンプ タグを付与して選択する', async () => {
+  it('saves an uploaded stamp, tags it and selects it', async () => {
     TestBed.inject(ObjectChangeService);
     imageStorage.addAsync.mockResolvedValue({ identifier: 'uploaded-stamp' });
     const input = { files: [new File([new Uint8Array([1])], 'x.png', { type: 'image/png' })], value: 'x' };
@@ -524,7 +524,7 @@ describe('MapEditorPanelComponent', () => {
     expect(component['state'].stampId()).toBe('media:uploaded-stamp');
   });
 
-  it('strokeFillMode texture で線をコミットすると stroke.fill に現在の textureId が入る', () => {
+  it('commits a line with the current pattern when the stroke is set to use one', () => {
     component['state'].strokeFillMode.set('texture');
     component['state'].textureId.set('image:stroke-tex');
     component['state'].addShapeItem('line', [0, 0, 40, 40], null);
@@ -537,14 +537,14 @@ describe('MapEditorPanelComponent', () => {
     });
   });
 
-  it('strokeFillMode color で線をコミットすると stroke.fill は null', () => {
+  it('commits a line with no pattern when the stroke is set to a colour', () => {
     component['state'].strokeFillMode.set('color');
     component['state'].addShapeItem('line', [0, 0, 40, 40], null);
     const layer = component['state'].current.layers.find((l) => l.kind === 'shape') as ShapeLayer;
     expect(layer.items[0].stroke?.fill).toBeNull();
   });
 
-  it('文字ツールの pointerdown で editingText が itemId なしで開始する', () => {
+  it('starts editing new text on a press with the text tool', () => {
     component['state'].tool.set('text');
     const c = component as unknown as {
       onPointerDown: (e: PointerEvent) => void;
@@ -559,7 +559,7 @@ describe('MapEditorPanelComponent', () => {
     expect(c.editingText()!.itemId).toBeNull();
   });
 
-  it('commitTextEdit はテキストがあれば TextItem を追加する', () => {
+  it('adds a text item when there is text to add', () => {
     const c = component as unknown as {
       startTextEdit: (x: number, y: number, l: string | null, i: string | null, t: string) => void;
       commitTextEdit: () => void;
@@ -574,7 +574,7 @@ describe('MapEditorPanelComponent', () => {
     expect(layer.items[0].y).toBe(50);
   });
 
-  it('commitTextEdit は複数行の改行を保持して TextItem を追加する', () => {
+  it('keeps the line breaks in multi-line text', () => {
     const c = component as unknown as {
       startTextEdit: (x: number, y: number, l: string | null, i: string | null, t: string) => void;
       commitTextEdit: () => void;
@@ -586,7 +586,7 @@ describe('MapEditorPanelComponent', () => {
     expect(layer.items[0].text).toBe('line1\nline2\nline3');
   });
 
-  it('editingText 設定中はインラインエディターを描画する', () => {
+  it('shows the inline editor while text is being edited', () => {
     TestBed.inject(ObjectChangeService);
     PeerCursor.createMyCursor();
     PeerCursor.myCursor.role = PeerRole.GameMaster;
@@ -602,7 +602,7 @@ describe('MapEditorPanelComponent', () => {
     expect(fixture.nativeElement.querySelector('[contenteditable]')).not.toBeNull();
   });
 
-  it('commitTextEdit は空ドラフトなら何も追加しない', () => {
+  it('adds nothing for an empty draft', () => {
     const c = component as unknown as {
       startTextEdit: (x: number, y: number, l: string | null, i: string | null, t: string) => void;
       commitTextEdit: () => void;
@@ -614,7 +614,7 @@ describe('MapEditorPanelComponent', () => {
     expect(layer).toBeUndefined();
   });
 
-  it('既存テキストの編集で text を更新できる', () => {
+  it('updates the text of an existing item', () => {
     component['state'].addTextItem(10, 20, 'old');
     const layer = component['state'].current.layers.find((l) => l.kind === 'text') as TextLayer;
     const item = layer.items[0];
@@ -629,7 +629,7 @@ describe('MapEditorPanelComponent', () => {
     expect(after.items[0].text).toBe('new');
   });
 
-  it('既存テキストの編集で空にすると削除される', () => {
+  it('deletes an existing item emptied by an edit', () => {
     component['state'].addTextItem(10, 20, 'old');
     const layer = component['state'].current.layers.find((l) => l.kind === 'text') as TextLayer;
     const item = layer.items[0];
@@ -644,7 +644,7 @@ describe('MapEditorPanelComponent', () => {
     expect(after.items.length).toBe(0);
   });
 
-  it('cancelTextEdit は編集を破棄する', () => {
+  it('throws the edit away on cancel', () => {
     component['state'].addTextItem(10, 20, 'keep');
     const layer = component['state'].current.layers.find((l) => l.kind === 'text') as TextLayer;
     const item = layer.items[0];
@@ -661,7 +661,7 @@ describe('MapEditorPanelComponent', () => {
     expect(after.items[0].text).toBe('keep');
   });
 
-  it('レガシー JSON ファイルを読み込める', async () => {
+  it('reads an older json file', async () => {
     const json = serializeScene(createScene(7, 6, 48));
     const file = { arrayBuffer: () => Promise.resolve(new TextEncoder().encode(json).buffer) };
     const input = { files: [file], value: 'x' };
@@ -679,7 +679,7 @@ describe('buildShapeKindPoints', () => {
     return pts.trim() === '' ? 0 : pts.trim().split(' ').length;
   }
 
-  it('7 種すべてに対して点列文字列を返す', () => {
+  it('returns points for all seven kinds', () => {
     const kinds = ['rect', 'ellipse', 'triangle', 'pentagon', 'hexagon', 'star5', 'star6'] as const;
     for (const kind of kinds) {
       if (kind === 'rect' || kind === 'ellipse') {
@@ -690,27 +690,27 @@ describe('buildShapeKindPoints', () => {
     }
   });
 
-  it('triangle は 3 頂点を返す', () => {
+  it('gives a triangle three vertices', () => {
     expect(vertexCount(buildShapeKindPoints('triangle'))).toBe(3);
   });
 
-  it('pentagon は 5 頂点を返す', () => {
+  it('gives a pentagon five', () => {
     expect(vertexCount(buildShapeKindPoints('pentagon'))).toBe(5);
   });
 
-  it('hexagon は 6 頂点を返す', () => {
+  it('gives a hexagon six', () => {
     expect(vertexCount(buildShapeKindPoints('hexagon'))).toBe(6);
   });
 
-  it('star5 は 10 頂点（5点星）を返す', () => {
+  it('gives a five-pointed star ten', () => {
     expect(vertexCount(buildShapeKindPoints('star5'))).toBe(10);
   });
 
-  it('star6 は 12 頂点（6点星）を返す', () => {
+  it('gives a six-pointed star twelve', () => {
     expect(vertexCount(buildShapeKindPoints('star6'))).toBe(12);
   });
 
-  it('star5 の点列は中心 12,12・半径 9 の外周と内周を交互に含む', () => {
+  it('alternates the outer and inner radius of a five-pointed star about its centre', () => {
     const pts = buildShapeKindPoints('star5')
       .trim()
       .split(' ')

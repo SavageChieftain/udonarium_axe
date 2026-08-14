@@ -33,23 +33,23 @@ describe('OverviewPanelComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  describe('null要素のフィルタリング', () => {
-    it('inventoryDataElmsがtabletopObject未設定時に空配列を返すこと', () => {
+  describe('filtering the empty elements out', () => {
+    it('returns nothing for the list with nothing to read', () => {
       component.tabletopObject = null!;
       expect(component.inventoryDataElms).toEqual([]);
     });
 
-    it('dataElmsがtabletopObject未設定時に空配列を返すこと', () => {
+    it('returns nothing for the fields', () => {
       component.tabletopObject = null!;
       expect(component.dataElms).toEqual([]);
     });
 
-    it('rangeElmsがtabletopObject未設定時に空配列を返すこと', () => {
+    it('returns nothing for the ranges', () => {
       component.tabletopObject = null!;
       expect(component.rangeElms).toEqual([]);
     });
 
-    it('dataElmsがchildren内のnull要素を除外すること', () => {
+    it('leaves the empty children out of the fields', () => {
       const mockChildren = [null, { myIdentifer: 'a' }, null, { myIdentifer: 'b' }];
       component.tabletopObject = {
         detailDataElement: { children: mockChildren },
@@ -59,7 +59,7 @@ describe('OverviewPanelComponent', () => {
       expect(result.every((e) => e != null)).toBe(true);
     });
 
-    it('rangeElmsがchildren内のnull要素を除外すること', () => {
+    it('leaves them out of the ranges', () => {
       const mockChildren = [null, { myIdentifer: 'x' }];
       component.tabletopObject = {
         commonDataElement: { children: mockChildren },
@@ -69,7 +69,7 @@ describe('OverviewPanelComponent', () => {
       expect(result[0]).toBeTruthy();
     });
 
-    it('inventoryDataElmsがDataElement側のポップアップ表示属性を追加表示すること', () => {
+    it('adds the fields the elements themselves ask to pop up', () => {
       const character = GameCharacter.create('popup-attribute-test', 1, '');
       const section = DataElement.create('追加情報', '', { [DataElementAttribute.ROLE]: DataElementRole.SECTION });
       const group = DataElement.create('基本', '', { [DataElementAttribute.ROLE]: DataElementRole.GROUP });
@@ -92,7 +92,7 @@ describe('OverviewPanelComponent', () => {
       }
     });
 
-    it('親要素がポップアップ表示対象なら子要素を重複表示しないこと', () => {
+    it('does not show a child twice when its parent already pops up', () => {
       const character = GameCharacter.create('popup-parent-test', 1, '');
       const section = DataElement.create('公開情報', '', {
         [DataElementAttribute.ROLE]: DataElementRole.SECTION,
@@ -118,7 +118,7 @@ describe('OverviewPanelComponent', () => {
       }
     });
 
-    it('DataElement側のポップアップ選択をインベントリタグ順ベースでマージすること', () => {
+    it('merges those choices into the order of the list tags', () => {
       const character = GameCharacter.create('popup-merge-test', 1, '');
       const inventoryField = DataElement.create('HP', '12', { [DataElementAttribute.ROLE]: DataElementRole.FIELD });
       const field = DataElement.create('公開メモ', '選択された値', {
@@ -142,7 +142,7 @@ describe('OverviewPanelComponent', () => {
       }
     });
 
-    it('ポップアップ選択した親要素は最初に現れる子インベントリタグの位置へ配置すること', () => {
+    it('puts such a parent where its first listed child falls', () => {
       const character = GameCharacter.create('popup-parent-order-test', 1, '');
       const section = DataElement.create('リソース', '', {
         [DataElementAttribute.ROLE]: DataElementRole.SECTION,
@@ -172,7 +172,7 @@ describe('OverviewPanelComponent', () => {
       }
     });
 
-    it('ポップアップ対象のテーブルビューを表として描画すること', () => {
+    it('draws a table view in the pop-up as a table', () => {
       const character = GameCharacter.create('popup-table-test', 1, '');
       const table = DataElement.create('技能表', '', {
         [DataElementAttribute.ROLE]: DataElementRole.SECTION,
@@ -219,7 +219,7 @@ describe('OverviewPanelComponent', () => {
       }
     });
 
-    it('ポップアップテーブルは列グループ、行見出し、選択セルを描画すること', () => {
+    it('draws its column groups, row headings and chosen cells', () => {
       const character = GameCharacter.create('popup-table-type2-test', 1, '');
       const table = DataElement.create('技能表タイプ2', '', {
         [DataElementAttribute.ROLE]: DataElementRole.SECTION,
@@ -274,7 +274,7 @@ describe('OverviewPanelComponent', () => {
       }
     });
 
-    it('ポップアップテーブルはギャップ制御行を表示せず列クリックで状態を切り替えること', () => {
+    it('leaves the gap row out and switches a column on a click', () => {
       const character = GameCharacter.create('popup-gap-table-test', 1, '');
       const table = DataElement.create('技能表', '', {
         [DataElementAttribute.ROLE]: DataElementRole.SECTION,
@@ -348,7 +348,7 @@ describe('OverviewPanelComponent', () => {
       }
     });
 
-    it('ポップアップのリソース表示にrangeを描画しないこと', () => {
+    it('draws no slider for a resource in the pop-up', () => {
       const character = GameCharacter.create('popup-resource-test', 1, '');
       const resource = DataElement.create('HP', 20, {
         [DataElementAttribute.ROLE]: DataElementRole.FIELD,
@@ -371,7 +371,7 @@ describe('OverviewPanelComponent', () => {
       }
     });
 
-    it('ポップアップの通常リソース現在値は暗い固定色を使わないこと', () => {
+    it('leaves an ordinary resource its own colour rather than a dark fixed one', () => {
       const hp = DataElement.create('HP', 200, { type: DataElementType.NUMBER_RESOURCE });
       hp.currentValue = 200;
 
@@ -382,7 +382,7 @@ describe('OverviewPanelComponent', () => {
       }
     });
 
-    it('ポップアップのSAN警告色は保持すること', () => {
+    it('keeps the warning colour where there is one', () => {
       const san = DataElement.create('SAN', 100, { type: DataElementType.NUMBER_RESOURCE });
       san.currentValue = 80;
 
@@ -393,7 +393,7 @@ describe('OverviewPanelComponent', () => {
       }
     });
 
-    it('ポップアップの画像要素を img として描画すること', () => {
+    it('draws an image element as a picture', () => {
       const image = ImageStorage.instance.add('popup-image.png');
       const character = GameCharacter.create('popup-image-test', 1, '');
       const imageField = DataElement.create('参考画像', image.identifier, {
@@ -421,7 +421,7 @@ describe('OverviewPanelComponent', () => {
       }
     });
 
-    it('原寸表示属性が有効な画像要素はサムネイル制限を外して描画すること', () => {
+    it('drops the thumbnail limit for one asked to show full size', () => {
       const image = ImageStorage.instance.add('popup-image-large.png');
       const character = GameCharacter.create('popup-image-original-test', 1, '');
       const imageField = DataElement.create('参考画像', image.identifier, {
@@ -451,7 +451,7 @@ describe('OverviewPanelComponent', () => {
       }
     });
 
-    it('isImagePopupOriginalは属性に応じて真偽を返すこと', () => {
+    it('reads that setting off the attribute', () => {
       const element = DataElement.create('参考画像', '', { fieldType: DataElementFieldType.IMAGE });
       try {
         expect(component.isImagePopupOriginal(element)).toBe(false);
@@ -463,19 +463,19 @@ describe('OverviewPanelComponent', () => {
     });
   });
 
-  describe('editCheckedIds による編集チェック状態管理', () => {
-    it('changeChk で未登録のIDが追加されること', () => {
+  describe('keeping track of what is being edited', () => {
+    it('marks one that was not marked', () => {
       component.changeChk('elem-1');
       expect(component.isEditUrl('elem-1')).toBe(true);
     });
 
-    it('changeChk で登録済みのIDが削除されること', () => {
+    it('unmarks one that was', () => {
       component.changeChk('elem-1');
       component.changeChk('elem-1');
       expect(component.isEditUrl('elem-1')).toBe(false);
     });
 
-    it('textFocus でIDが追加されること', () => {
+    it('marks one on focus', () => {
       component.textFocus('elem-2');
       expect(component.isEditUrl('elem-2')).toBe(true);
     });

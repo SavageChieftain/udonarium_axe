@@ -84,7 +84,7 @@ describe('ReplayScriptPanelComponent', () => {
     vi.restoreAllMocks();
   });
 
-  it('書き出す前に行数を知らせること', async () => {
+  it('says how many lines there will be before it writes', async () => {
     await setup();
     buttonByText('読み物にする')?.click();
     fixture.detectChanges();
@@ -92,7 +92,7 @@ describe('ReplayScriptPanelComponent', () => {
     expect(fixture.nativeElement.textContent).toContain('2 行');
   });
 
-  it('Markdown として保存すること', async () => {
+  it('saves it as markdown', async () => {
     await setup();
     buttonByText('読み物にする')?.click();
     fixture.detectChanges();
@@ -104,7 +104,7 @@ describe('ReplayScriptPanelComponent', () => {
     expect(await saved[0].blob.text()).toContain('アリス「やあ」');
   });
 
-  it('台本を選べば話者を行頭に置くこと', async () => {
+  it('puts the speaker at the head of the line in the script layout', async () => {
     await setup();
     buttonByText('読み物にする')?.click();
     fixture.detectChanges();
@@ -118,7 +118,7 @@ describe('ReplayScriptPanelComponent', () => {
     expect(await saved[0].blob.text()).toContain('**アリス**');
   });
 
-  it('見せられない発言を書き出す人のロールで外すこと', async () => {
+  it('leaves out what the role of whoever exports it may not see', async () => {
     events = [say(1, 'やあ'), say(2, '内緒話', { visibility: GM_ONLY_VISIBILITY })];
     role = PeerRole.Player;
     await setup();
@@ -127,13 +127,13 @@ describe('ReplayScriptPanelComponent', () => {
     fixture.detectChanges();
     buttonByText('書き出す')?.click();
 
-    // 動画と同じ扱い。PL が書き出したものに GM 限定の発言を混ぜない。
+    // As with the video: nothing meant for the game master alone goes into what a player exports.
     const text = await saved[0].blob.text();
     expect(text).toContain('やあ');
     expect(text).not.toContain('内緒話');
   });
 
-  it('書けるものが無ければ押させないこと', async () => {
+  it('leaves the button unpressable with nothing to write', async () => {
     events = [{ ...say(1, ''), kind: ReplayEventKind.PeerJoin, detail: {} }];
     await setup();
 

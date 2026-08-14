@@ -17,13 +17,13 @@ export function buildTextNoteContextMenu(
   t: TranslateFn
 ): ContextMenuAction[] {
   return [
-    // 1. 開く / 確認
+    // opening and checking
     {
       name: t('feature.tabletop.contextMenu.textNoteEdit'),
       action: () => callbacks.onShowDetail(),
     },
     ContextMenuSeparator,
-    // 2. 表示設定
+    // display settings
     buildAltitudeAction(textNote, t, {
       onChanged: () => inventoryService.notifyInventoryUpdate(),
     }),
@@ -42,10 +42,10 @@ export function buildTextNoteContextMenu(
             SoundEffect.play(PresetSound.sweep);
           },
         },
-    // 3. 公開範囲 / オーナー（権限があるときのみ。先頭にセパレータを含む）
+    // who may see it and who owns it, with permission, after a separator
     ...buildDisclosureContextMenu(textNote, t),
     ContextMenuSeparator,
-    // 4. 操作
+    // the actions
     buildLockToggleAction(textNote.isLock, (next) => (textNote.isLock = next), t),
     {
       name: t('feature.tabletop.contextMenu.copy'),

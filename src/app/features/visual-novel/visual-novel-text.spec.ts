@@ -1,25 +1,25 @@
 import { toGraphemes } from '@axe/features/visual-novel/visual-novel-text';
 
 describe('toGraphemes()', () => {
-  it('空文字は空配列になること', () => {
+  it('returns nothing for an empty string', () => {
     expect(toGraphemes('')).toEqual([]);
   });
 
-  it('通常の文字を 1 文字ずつに分けること', () => {
+  it('splits ordinary text a character at a time', () => {
     expect(toGraphemes('こんにちは')).toEqual(['こ', 'ん', 'に', 'ち', 'は']);
   });
 
-  it('サロゲートペアの絵文字を分割しないこと', () => {
+  it('keeps a surrogate pair together', () => {
     expect(toGraphemes('やった🎉')).toEqual(['や', 'っ', 'た', '🎉']);
   });
 
-  it('結合絵文字をひとまとまりとして扱うこと', () => {
+  it('keeps a combined emoji together', () => {
     const graphemes = toGraphemes('👨‍👩‍👧');
     expect(graphemes.join('')).toBe('👨‍👩‍👧');
     expect(graphemes.length).toBeLessThanOrEqual(3);
   });
 
-  it('途中まで連結しても壊れた文字が出ないこと', () => {
+  it('never leaves a broken character partway through', () => {
     const graphemes = toGraphemes('あ🎉い');
     for (let i = 0; i <= graphemes.length; i++) {
       expect(graphemes.slice(0, i).join('')).not.toContain('�');

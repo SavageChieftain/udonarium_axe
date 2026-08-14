@@ -6,7 +6,7 @@ function sceneWith(layers: MapScene['layers']): MapScene {
 }
 
 describe('collectSceneImageIds()', () => {
-  it('マスの塗りに使った模様を拾うこと', () => {
+  it('picks up a pattern used to fill a cell', () => {
     const scene = sceneWith([
       {
         id: 'l1',
@@ -22,7 +22,7 @@ describe('collectSceneImageIds()', () => {
     expect([...collectSceneImageIds(scene).textureIds]).toEqual(['abc']);
   });
 
-  it('図形の塗りと線の両方から拾うこと', () => {
+  it('picks up patterns from both the fill and the stroke of a shape', () => {
     const scene = sceneWith([
       {
         id: 'l1',
@@ -44,8 +44,8 @@ describe('collectSceneImageIds()', () => {
     expect([...collectSceneImageIds(scene).textureIds].sort()).toEqual(['fill', 'line']);
   });
 
-  it('貼った絵は模様と分けて数えること', () => {
-    // 模様は置き場で目印を付けて選り分けるので、入れ直すときの扱いが違う。
+  it('counts a placed image apart from the patterns', () => {
+    // Patterns are tagged in storage so they can be told apart, which changes how they are put back.
     const scene = sceneWith([
       {
         id: 'l1',
@@ -63,7 +63,7 @@ describe('collectSceneImageIds()', () => {
     expect(ids.textureIds.size).toBe(0);
   });
 
-  it('絵を使っていない塗りは拾わないこと', () => {
+  it('picks up nothing from a fill that uses no image', () => {
     const scene = sceneWith([
       {
         id: 'l1',

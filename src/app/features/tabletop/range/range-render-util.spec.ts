@@ -37,25 +37,25 @@ function makeDefaultSetting(overrides: Partial<RangeRenderSetting> = {}): RangeR
 
 describe('range-render-util', () => {
   describe('isHexGrid', () => {
-    it('HEX_VERTICAL は true', () => {
+    it('is true for a pointy-topped grid', () => {
       expect(isHexGrid(GridType.HEX_VERTICAL)).toBe(true);
     });
 
-    it('HEX_HORIZONTAL は true', () => {
+    it('is true for a flat-topped one', () => {
       expect(isHexGrid(GridType.HEX_HORIZONTAL)).toBe(true);
     });
 
-    it('SQUARE は false', () => {
+    it('is false for squares', () => {
       expect(isHexGrid(GridType.SQUARE)).toBe(false);
     });
 
-    it('NONE は false', () => {
+    it('is false for no grid at all', () => {
       expect(isHexGrid(GridType.NONE)).toBe(false);
     });
   });
 
   describe('calcGridOffsets', () => {
-    it('centerX=0, centerY=0 で gridOff が 0 以下', () => {
+    it('keeps the offset at or below zero at the origin', () => {
       const setting = makeDefaultSetting({ centerX: 0, centerY: 0, gridSize: 50, areaWidth: 10, areaHeight: 10 });
       const offsets = calcGridOffsets(setting);
       expect(offsets.gridSize).toBe(50);
@@ -65,21 +65,21 @@ describe('range-render-util', () => {
       expect(offsets.gridOffY).toBeLessThanOrEqual(0);
     });
 
-    it('centerX=75 で gridOffX が正しく計算される', () => {
+    it('works the offset out from the centre', () => {
       const setting = makeDefaultSetting({ centerX: 75, centerY: 0, gridSize: 50 });
       const offsets = calcGridOffsets(setting);
       // centerX % gridSize = 75 % 50 = 25 → gridOffX = -25
       expect(offsets.gridOffX).toBe(-25);
     });
 
-    it('offSetX=true で gridOffX がハーフグリッド調整される', () => {
+    it('shifts the offset by half a cell across', () => {
       const setting = makeDefaultSetting({ centerX: 0, centerY: 0, gridSize: 50, offSetX: true });
       const offsets = calcGridOffsets(setting);
-      // gridOffX 初期値=0 → 0 < -0.5 は false → gridOffX -= 25
+      // an offset of zero is not below the threshold, so half a cell comes off
       expect(offsets.gridOffX).toBe(-25);
     });
 
-    it('offSetY=true で gridOffY がハーフグリッド調整される', () => {
+    it('shifts it by half a cell down', () => {
       const setting = makeDefaultSetting({ centerX: 0, centerY: 0, gridSize: 50, offSetY: true });
       const offsets = calcGridOffsets(setting);
       expect(offsets.gridOffY).toBe(-25);
@@ -87,49 +87,49 @@ describe('range-render-util', () => {
   });
 
   describe('generateCalcGridPositionFunc', () => {
-    it('SQUARE: w * gridSize, h * gridSize を返す', () => {
+    it('sizes a square area by its cells', () => {
       const fn = generateCalcGridPositionFunc(GridType.SQUARE, 0, 0, 10, 10, 50);
       const pos = fn(3, 5);
       expect(pos.gx).toBe(150);
       expect(pos.gy).toBe(250);
     });
 
-    it('HEX_VERTICAL: 奇数列で半行オフセットがかかる', () => {
+    it('offsets an odd column by half a row on a pointy-topped grid', () => {
       const fn = generateCalcGridPositionFunc(GridType.HEX_VERTICAL, 0, 0, 10, 10, 50);
-      // _gridPos は共有可変オブジェクトなのでプリミティブ値で即時キャプチャ
+      // The grid position is a shared mutable object, so the numbers are taken out at once.
       const evenGy = fn(0, 2).gy;
       const oddGy = fn(1, 2).gy;
-      // 偶数列と奇数列で gy が gridSize/2 ずれる
+      // puts half a cell between an even column and an odd one
       expect(Math.abs(evenGy - oddGy)).toBe(25);
     });
 
-    it('HEX_HORIZONTAL: 奇数行で半列オフセットがかかる', () => {
+    it('offsets an odd row by half a column on a flat-topped grid', () => {
       const fn = generateCalcGridPositionFunc(GridType.HEX_HORIZONTAL, 0, 0, 10, 10, 50);
       const evenGx = fn(2, 0).gx;
       const oddGx = fn(2, 1).gx;
-      // 偶数行と奇数行で gx が gridSize/2 ずれる
+      // puts half a cell between an even row and an odd one
       expect(Math.abs(evenGx - oddGx)).toBe(25);
     });
   });
 
   describe('chkOuterProduct', () => {
-    it('CW 多角形の内側の点で true', () => {
-      // CW 四角形の辺 (0,0)→(10,0) に対して内側の点 (5,5)
+    it('is true inside a clockwise polygon', () => {
+      // a point inside a clockwise square
       expect(chkOuterProduct(0, 0, 10, 0, 5, 5)).toBe(true);
     });
 
-    it('CW 多角形の外側の点で false', () => {
-      // CW 四角形の辺 (0,0)→(10,0) に対して外側の点 (5,-5)
+    it('is false outside one', () => {
+      // a point outside it
       expect(chkOuterProduct(0, 0, 10, 0, 5, -5)).toBe(false);
     });
 
-    it('辺上の点で true（丸め誤差許容）', () => {
+    it('is true on an edge, within rounding', () => {
       expect(chkOuterProduct(0, 0, 10, 0, 5, 0)).toBe(true);
     });
   });
 
   describe('clipAreaToPolygonCss', () => {
-    it('4 点の Square 形状を polygon CSS にする', () => {
+    it('turns a four-point square into a polygon', () => {
       const square: ClipAreaSquare = {
         clip01x: 0,
         clip01y: 0,
@@ -143,7 +143,7 @@ describe('range-render-util', () => {
       expect(clipAreaToPolygonCss(square)).toBe('polygon(0px 0px, 100px 0px, 100px 100px, 0px 100px)');
     });
 
-    it('9 点の Corn 形状を polygon CSS にする', () => {
+    it('turns a nine-point cone into one', () => {
       const corn: ClipAreaCorn = {
         clip01x: 1,
         clip01y: 2,
@@ -169,44 +169,44 @@ describe('range-render-util', () => {
       );
     });
 
-    it('連番欠落で打ち切る（clip03 欠の例）', () => {
-      // 3 点目を欠落させる
+    it('stops at the first gap in the numbering', () => {
+      // with the third point missing
       const partial = { clip01x: 1, clip01y: 2, clip02x: 3, clip02y: 4 } as unknown as ClipAreaSquare;
       expect(clipAreaToPolygonCss(partial)).toBe('polygon(1px 2px, 3px 4px)');
     });
   });
 
   describe('clipCircleCss', () => {
-    it('length + 1.5 セル分の半径を持つ circle 文字列', () => {
+    it('gives the circle its length plus a cell and a half', () => {
       // length=3, gridSize=50 → (3+1.5)*50 = 225
       expect(clipCircleCss(3, 50)).toBe('circle(225px)');
     });
 
-    it('length=0 でも 1.5 セル分の半径', () => {
+    it('keeps that much radius at no length at all', () => {
       expect(clipCircleCss(0, 50)).toBe('circle(75px)');
     });
   });
 
   describe('chkInCircle', () => {
-    it('円内の点で true', () => {
+    it('is true inside a circle', () => {
       expect(chkInCircle(10, 3, 4)).toBe(true);
     });
 
-    it('円外の点で false', () => {
+    it('is false outside one', () => {
       expect(chkInCircle(5, 4, 4)).toBe(false);
     });
 
-    it('円周上の点で true', () => {
+    it('is true on the rim', () => {
       expect(chkInCircle(5, 3, 4)).toBe(true);
     });
 
-    it('原点で true', () => {
+    it('is true at the centre', () => {
       expect(chkInCircle(1, 0, 0)).toBe(true);
     });
   });
 
   describe('fillSquare', () => {
-    it('fillRect を呼び出す', () => {
+    it('fills the rectangle', () => {
       const ctx = {
         fillRect: vi.fn(),
       } as unknown as CanvasRenderingContext2D;
@@ -216,7 +216,7 @@ describe('range-render-util', () => {
   });
 
   describe('makeBrush', () => {
-    it('context のスタイルを設定する', () => {
+    it('sets the drawing style', () => {
       const ctx = {
         strokeStyle: '',
         fillStyle: '',

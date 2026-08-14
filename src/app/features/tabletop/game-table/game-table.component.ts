@@ -78,7 +78,7 @@ import { TooltipDirective } from '@axe/ui/directives/tooltip.directive';
 import { SafePipe } from '@axe/ui/pipes/safe.pipe';
 import { TranslocoModule } from '@jsverse/transloco';
 
-/** 入力欄で打っている最中かどうか。盤面のキー操作が横取りしないための判定。 */
+/** Whether something is being typed into a field, so the board does not steal the key. */
 interface ActiveWall {
   surface: TableSurface;
   image: ImageFile;
@@ -213,7 +213,7 @@ export class GameTableComponent {
     });
 
     this.objectChangeService.onObjectChangedFor(
-      // initialize 前は currentTable / tableSelecter の参照が未確定の可能性があるためガード。
+      // Before initialisation neither the current table nor the selector is certain to be there.
       () => (this._initialized ? [this.currentTable.identifier, this.tableSelecter.identifier] : []),
       () => {
         if (!this._initialized) return;
@@ -709,7 +709,7 @@ export class GameTableComponent {
       e.preventDefault();
   }
 
-  /** 演出の衝撃。カメラごと揺らす。 */
+  /** The jolt of an effect, which shakes the camera with it. */
   readonly screenShake = computed(() => this.effectPlaybackService.shake());
   readonly screenFlash = computed(() => this.effectPlaybackService.flash());
 
@@ -722,7 +722,7 @@ export class GameTableComponent {
     this.selectionSignalService.clearSelection();
   }
 
-  /** 対象選択中の決定。入力欄で打っている最中は横取りしない。 */
+  /** Confirming a target. It does not steal the key from a field being typed into. */
   onEnterKey(event: Event) {
     if (!this.effectTargetingService.isPicking() || isTypingTarget(event.target)) return;
     event.preventDefault();
@@ -832,7 +832,7 @@ export class GameTableComponent {
     }
 
     setTimeout(() => {
-      // 他PL操作で表示条件変更時、情報更新されてからUpdate処理をするため
+      // So the update runs after the information has caught up with another player's change.
       const opacity: number = this.currentTable.gridShow ? 1.0 : 0.0;
       this.gridCanvas().nativeElement.style.opacity = opacity + '';
     });

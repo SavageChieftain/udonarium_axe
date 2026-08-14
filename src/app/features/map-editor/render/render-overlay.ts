@@ -7,12 +7,12 @@ import type { ImageItem, MapScene, ShapeItem } from '@axe/features/map-editor/mo
 import { generateShapePoints } from '@axe/features/map-editor/model/shape-points';
 
 /**
- * 描いている最中の下書きと、掴んでいる場所の印。
+ * What is being drawn, and the handles on whatever is held.
  *
- * 出来上がった絵は `render-scene` が描く。ここが描くのは**まだ確定していないもの**だけ。
+ * The finished picture is drawn elsewhere; this draws only what is **not settled yet**.
  *
- * 絵の読み込みのような待ちのある仕事はここでは持たない。描く時点で使える形にして渡してもらう
- * （描く関数の中から読み込みを始めると、描くたびに走る）。
+ * Nothing that waits, such as loading an image, happens here; it arrives ready to draw
+ * (starting a load from inside the drawing would run it on every frame).
  */
 
 export interface OverlayPoint {
@@ -20,7 +20,7 @@ export interface OverlayPoint {
   y: number;
 }
 
-/** 半透明で先に見せる絵。読み込みは呼ぶ側で済ませておく。 */
+/** The image shown before it is placed. The caller loads it. */
 export interface OverlayStamp {
   image: CanvasImageSource & { width?: number; height?: number; naturalWidth?: number; naturalHeight?: number };
   size: number;
@@ -41,7 +41,7 @@ export interface EditorOverlay {
   lineKind: LineKind;
   shapeKind: ShapeGeneratorKind;
   multiClickLine: boolean;
-  /** 最後にポインタが居た場所。離れていれば null。 */
+  /** Where the pointer was last. Null once it has left. */
   hover: OverlayPoint | null;
   panning: boolean;
   vectorErase: boolean;
@@ -55,7 +55,7 @@ export interface EditorOverlay {
   selectedCurve: ShapeItem | null;
   stamp: OverlayStamp | null;
   image: OverlayImage | null;
-  /** 寸法の言い回し。画面の言葉に合わせるので、文言は呼ぶ側が決める。 */
+  /** How a measurement reads. It follows the interface language, so the caller supplies the words. */
   measureLabel: { cells: (n: string) => string; angle: (deg: number) => string };
 }
 

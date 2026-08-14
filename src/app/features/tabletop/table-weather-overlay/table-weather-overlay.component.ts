@@ -12,29 +12,29 @@ import {
   weatherMaskImage,
 } from '@axe/features/tabletop/table-weather-overlay/weather-projection';
 
-/** 天候が届く高さ(マス)。壁を立てていないテーブルでも、盤の上に空を持たせる。 */
+/** How high the weather reaches, in cells, so a table without walls still has a sky. */
 const MIN_SKY_CELLS = 10;
 /**
- * 投影をやり直す間隔(ms)。
+ * How often the projection is worked out again, in milliseconds.
  *
- * 投影は先祖の変換をたどるので、1 回ごとに配置の計算をやり直させる。カメラに
- * 追随させたいだけなら毎フレームは要らない。縁はぼかしてあるので少し遅れても出ない。
+ * It walks the transforms of every ancestor, forcing a layout each time. Following the
+ * camera does not need every frame, and the soft edge hides a slight lag.
  */
 const REPROJECT_INTERVAL_MS = 100;
 
 /**
- * マップ全体に掛ける天候。
+ * The weather over the whole map.
  *
- * 雨や雪を盤面に寝かせて描くと、カメラを倒したときに地面を這って見える。
- * 画面に貼る 1 枚として描き、盤面の 3D 変換の外へ置く。
+ * Rain and snow laid flat on the board crawl along the ground as the camera tips.
+ * They are drawn as one sheet across the screen, outside the 3D transform of the board.
  */
 @Component({
   selector: 'table-weather-overlay',
   templateUrl: './table-weather-overlay.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
-    // z-index は付けない。付けるとパネルより前に出てしまう。
-    // パネルは重ね順を指定しないので、後ろに置いてある側が前に来る。
+    // It takes no stacking order; with one it would come out in front of the panels,
+    // which set none themselves, so whichever is placed later comes to the front.
     class: 'pointer-events-none absolute inset-0',
     '[style.mask-image]': 'maskImage()',
     '[style.-webkit-mask-image]': 'maskImage()',
@@ -51,10 +51,10 @@ export class TableWeatherOverlayComponent {
   private readonly size = signal<{ width: number; height: number }>({ width: 0, height: 0 });
 
   /**
-   * 盤面と、その上空を画面へ投影した 8 点。
+   * The board and the space above it, projected onto the screen as eight points.
    *
-   * 「テーブルの上」は床の四角形ではなく、その上の空間まで含む。カメラは盤面が
-   * 変わらなくても動くので、描画のたびに投影し直す。
+   * Above the table means the volume, not the floor. The camera moves even when the board
+   * does not, so the projection is worked out afresh on every pass.
    */
   private readonly projected = computed<ScreenPoint[]>(() => {
     if (!this.ambienceService.weather()) return [];
@@ -83,7 +83,7 @@ export class TableWeatherOverlayComponent {
       .map((corner) => ({ x: corner.x - host.left, y: corner.y - host.top }));
   });
 
-  /** 盤面の外へは掛けない。多角形で切ると空中に切り口が出るので、ぼかして消す。 */
+  /** It does not reach past the board. Cut by a polygon it would show an edge in mid-air, so it fades out instead. */
   readonly maskImage = computed<string>(() => weatherMaskImage(this.projected()));
 
   readonly wash = computed<string>(() => {
@@ -93,7 +93,7 @@ export class TableWeatherOverlayComponent {
     return skyAmbienceWash(weather.kind, weather.color, weather.density, direction);
   });
 
-  /** 稲光。盤面の上だけを照らすので、マスクの内側で焚く。 */
+  /** Lightning. It lights only what is over the board, so it is struck inside the mask. */
   readonly flash = computed<string>(() => {
     const weather = this.ambienceService.weather();
     if (!weather || !this.ambienceService.motionEnabled()) return '';

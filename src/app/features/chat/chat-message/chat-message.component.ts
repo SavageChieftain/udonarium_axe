@@ -195,7 +195,7 @@ export class ChatMessageComponent {
     };
   });
 
-  /** 返信・引用・共有メモ化が可能なメッセージか。System (from='System' or tag='system-message') と to-PL システムメッセージは除外。
+  /** Whether a message can be replied to, quoted or made into a note. System messages and those addressed to a player are not.
       ダイスボット (`isDicebot`) は対話可能なメッセージとして扱う (System tag は持つが PC に向けた応答なので)。 */
   get canInteract(): boolean {
     const msg = this.chatMessage;

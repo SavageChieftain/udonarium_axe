@@ -5,26 +5,26 @@ import { calcHexFlowerParams } from '@axe/ui/tabletop/hex-pedestal-geometry';
 describe('computeHexSlopeSteps', () => {
   const gridSize = 50;
 
-  describe('無効な入力で空データを返す', () => {
+  describe('comes back empty for input it cannot use', () => {
     const bbox = { minX: -50, minY: -50, maxX: 50, maxY: 50 };
 
-    it('slopeDir が NONE なら空', () => {
+    it('comes back empty for no slope', () => {
       const result = computeHexSlopeSteps(2, gridSize, true, SlopeDirection.NONE, 2, true, 100, 100, bbox);
       expect(result).toEqual({ floors: [], walls: [] });
     });
 
-    it('size が 1 なら空（最小 2 必要）', () => {
+    it('comes back empty below a size of two', () => {
       const result = computeHexSlopeSteps(1, gridSize, true, SlopeDirection.BOTTOM, 2, true, 100, 100, bbox);
       expect(result).toEqual({ floors: [], walls: [] });
     });
 
-    it('size が小数なら空', () => {
+    it('comes back empty for a fractional size', () => {
       const result = computeHexSlopeSteps(2.5, gridSize, true, SlopeDirection.BOTTOM, 2, true, 100, 100, bbox);
       expect(result).toEqual({ floors: [], walls: [] });
     });
   });
 
-  describe('size=2 flat-top ヘクス（7セル花形）', () => {
+  describe('a seven-cell flat-topped rosette', () => {
     const size = 2;
     const isFlatTop = true;
     const containerW = size * gridSize;
@@ -32,21 +32,21 @@ describe('computeHexSlopeSteps', () => {
     const params = calcHexFlowerParams(size, gridSize, isFlatTop);
     const { bbox } = params;
 
-    it('各方向でフロアが複数ステップ生成される', () => {
+    it('steps the floor down in every direction', () => {
       for (const dir of [SlopeDirection.TOP, SlopeDirection.BOTTOM, SlopeDirection.LEFT, SlopeDirection.RIGHT]) {
         const result = computeHexSlopeSteps(size, gridSize, isFlatTop, dir, 2, true, containerW, containerH, bbox);
         expect(result.floors.length).toBeGreaterThan(1);
       }
     });
 
-    it('各方向で壁が生成される', () => {
+    it('raises walls in every direction', () => {
       for (const dir of [SlopeDirection.TOP, SlopeDirection.BOTTOM, SlopeDirection.LEFT, SlopeDirection.RIGHT]) {
         const result = computeHexSlopeSteps(size, gridSize, isFlatTop, dir, 2, true, containerW, containerH, bbox);
         expect(result.walls.length).toBeGreaterThan(0);
       }
     });
 
-    it('フロアの heightPx が降順（level 0 が最も高い）', () => {
+    it('steps the floor down from the top', () => {
       const result = computeHexSlopeSteps(
         size,
         gridSize,
@@ -63,7 +63,7 @@ describe('computeHexSlopeSteps', () => {
       }
     });
 
-    it('フロアのマスクは有効な data URI を含む', () => {
+    it('gives each step a usable mask', () => {
       const result = computeHexSlopeSteps(
         size,
         gridSize,
@@ -85,7 +85,7 @@ describe('computeHexSlopeSteps', () => {
       }
     });
 
-    it('壁の wallHeightPx がすべて正', () => {
+    it('gives every wall a height', () => {
       const result = computeHexSlopeSteps(
         size,
         gridSize,
@@ -102,7 +102,7 @@ describe('computeHexSlopeSteps', () => {
       }
     });
 
-    it('壁の basePx が非負', () => {
+    it('keeps every wall base at or above zero', () => {
       const result = computeHexSlopeSteps(
         size,
         gridSize,
@@ -119,7 +119,7 @@ describe('computeHexSlopeSteps', () => {
       }
     });
 
-    it('useSurfaceShading=false の場合すべての壁の brightness が 1.0', () => {
+    it('leaves every wall at full brightness with shading off', () => {
       const result = computeHexSlopeSteps(
         size,
         gridSize,
@@ -136,7 +136,7 @@ describe('computeHexSlopeSteps', () => {
       }
     });
 
-    it('useSurfaceShading=true の場合壁の brightness が 0.3〜1.0 の範囲内', () => {
+    it('shades the walls between a third and full brightness with it on', () => {
       const result = computeHexSlopeSteps(
         size,
         gridSize,
@@ -155,7 +155,7 @@ describe('computeHexSlopeSteps', () => {
     });
   });
 
-  describe('size=2 pointy-top ヘクス', () => {
+  describe('a pointy-topped rosette', () => {
     const size = 2;
     const isFlatTop = false;
     const containerW = size * gridSize;
@@ -163,7 +163,7 @@ describe('computeHexSlopeSteps', () => {
     const params = calcHexFlowerParams(size, gridSize, isFlatTop);
     const { bbox } = params;
 
-    it('フロアが複数ステップ生成される', () => {
+    it('steps the floor down', () => {
       const result = computeHexSlopeSteps(
         size,
         gridSize,
@@ -178,7 +178,7 @@ describe('computeHexSlopeSteps', () => {
       expect(result.floors.length).toBeGreaterThan(1);
     });
 
-    it('壁が生成される', () => {
+    it('raises walls', () => {
       const result = computeHexSlopeSteps(
         size,
         gridSize,
@@ -194,7 +194,7 @@ describe('computeHexSlopeSteps', () => {
     });
   });
 
-  describe('size=3 flat-top ヘクス（19セル花形）', () => {
+  describe('a nineteen-cell flat-topped rosette', () => {
     const size = 3;
     const isFlatTop = true;
     const containerW = size * gridSize;
@@ -202,7 +202,7 @@ describe('computeHexSlopeSteps', () => {
     const params = calcHexFlowerParams(size, gridSize, isFlatTop);
     const { bbox } = params;
 
-    it('size=2 よりフロアステップ数が多い', () => {
+    it('takes more steps than the smaller rosette', () => {
       const r2 = computeHexSlopeSteps(
         2,
         gridSize,
@@ -228,7 +228,7 @@ describe('computeHexSlopeSteps', () => {
       expect(r3.floors.length).toBeGreaterThan(r2.floors.length);
     });
 
-    it('全フロアのマスク SVG に polygon が含まれる', () => {
+    it('gives every mask a polygon', () => {
       const result = computeHexSlopeSteps(
         size,
         gridSize,
@@ -248,7 +248,7 @@ describe('computeHexSlopeSteps', () => {
     });
   });
 
-  describe('対称性', () => {
+  describe('symmetry', () => {
     const size = 2;
     const isFlatTop = true;
     const containerW = size * gridSize;
@@ -256,7 +256,7 @@ describe('computeHexSlopeSteps', () => {
     const params = calcHexFlowerParams(size, gridSize, isFlatTop);
     const { bbox } = params;
 
-    it('TOP と BOTTOM で同じ数のフロアステップ・壁パネルを生成する', () => {
+    it('makes as many steps and walls uphill as down', () => {
       const top = computeHexSlopeSteps(
         size,
         gridSize,
@@ -283,7 +283,7 @@ describe('computeHexSlopeSteps', () => {
       expect(top.walls.length).toBe(bottom.walls.length);
     });
 
-    it('LEFT と RIGHT で同じ数のフロアステップ・壁パネルを生成する', () => {
+    it('makes as many to the left as to the right', () => {
       const left = computeHexSlopeSteps(
         size,
         gridSize,

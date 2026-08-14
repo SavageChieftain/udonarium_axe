@@ -72,20 +72,20 @@ describe('VoteWidgetComponent', () => {
     vi.restoreAllMocks();
   });
 
-  it('対象者には投票ウィジェットを出す', () => {
+  it('shows the widget to somebody being asked', () => {
     create();
 
     expect(widget()).not.toBeNull();
   });
 
-  it('対象でも議長でもなければ何も描画しない', () => {
+  it('shows nothing to anybody else', () => {
     vote.targetPeerId = ['other-peer-id'];
     create();
 
     expect(widget()).toBeNull();
   });
 
-  it('終了した投票では消える', () => {
+  it('goes away once the vote is over', () => {
     create();
     expect(widget()).not.toBeNull();
 
@@ -96,7 +96,7 @@ describe('VoteWidgetComponent', () => {
     expect(widget()).toBeNull();
   });
 
-  it('折りたたんでもウィジェットは残り棄権にもならない', () => {
+  it('stays, and counts as no abstention, when it is folded away', () => {
     create();
 
     internals.toggleCollapsed();
@@ -107,7 +107,7 @@ describe('VoteWidgetComponent', () => {
     expect(chatStub.sendSystemMessageAsLastSpeaker).not.toHaveBeenCalled();
   });
 
-  it('新しい投票が始まると折りたたみを解除する', () => {
+  it('unfolds when a new vote starts', () => {
     create();
     internals.toggleCollapsed();
     fixture.detectChanges();
@@ -118,7 +118,7 @@ describe('VoteWidgetComponent', () => {
     expect(fixture.nativeElement.querySelector('[data-testid="vote-widget-abstain"]')).not.toBeNull();
   });
 
-  it('回答は投票を始めたタブへ送る', () => {
+  it('answers into the tab the vote started in', () => {
     create();
 
     internals.voteSend('準備完了');
@@ -127,7 +127,7 @@ describe('VoteWidgetComponent', () => {
     expect(chatStub.sendSystemMessageAsLastSpeaker).toHaveBeenCalledWith(expect.any(String), 'tab-main');
   });
 
-  it('棄権は明示操作のときだけ記録する', () => {
+  it('records an abstention only when it is chosen', () => {
     create();
 
     internals.abstain();
@@ -136,7 +136,7 @@ describe('VoteWidgetComponent', () => {
     expect(chatStub.sendSystemMessageAsLastSpeaker).toHaveBeenCalledWith(expect.any(String), 'tab-main');
   });
 
-  it('議長は未回答を残したまま締め切れる', () => {
+  it('lets the chair close the vote with answers outstanding', () => {
     vote.chairId = 'my-peer-id';
     create();
 
@@ -145,7 +145,7 @@ describe('VoteWidgetComponent', () => {
     expect(vote.isFinish).toBe(true);
   });
 
-  it('議長でなければ締め切れない', () => {
+  it('lets nobody else close it', () => {
     create();
 
     internals.finishByChair();

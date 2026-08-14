@@ -36,23 +36,23 @@ describe('VoteMenuComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('global dragging が解除されたら panel の pointer-events-none も解除されること', async () => {
+  it('lets the panel take the pointer again once the drag ends', async () => {
     await expectPanelDragRecovery(VoteMenuComponent);
   });
 
-  describe('checkedPeers による選択状態管理', () => {
-    it('voteBlockClick で未登録のIDが追加されること', () => {
+  describe('keeping track of who is picked', () => {
+    it('picks somebody who was not picked', () => {
       component.voteBlockClick('peer-1');
       expect(component['checkedPeers'].has('peer-1')).toBe(true);
     });
 
-    it('voteBlockClick で登録済みのIDが削除されること', () => {
+    it('unpicks somebody who was', () => {
       component.voteBlockClick('peer-1');
       component.voteBlockClick('peer-1');
       expect(component['checkedPeers'].has('peer-1')).toBe(false);
     });
 
-    it('複数のピアを独立して管理できること', () => {
+    it('keeps several peers apart', () => {
       component.voteBlockClick('peer-a');
       component.voteBlockClick('peer-b');
       expect(component['checkedPeers'].has('peer-a')).toBe(true);
@@ -65,13 +65,13 @@ describe('VoteMenuComponent', () => {
   });
 
   describe('onChangeType', () => {
-    it('rollcallを渡すとisRollCallがtrueになること', () => {
+    it('knows a roll call', () => {
       component.isRollCall = false;
       component.onChangeType('rollcall');
       expect(component.isRollCall).toBe(true);
     });
 
-    it('voteを渡すとisRollCallがfalseになること', () => {
+    it('knows a vote', () => {
       component.isRollCall = true;
       component.onChangeType('vote');
       expect(component.isRollCall).toBe(false);
@@ -79,7 +79,7 @@ describe('VoteMenuComponent', () => {
   });
 
   describe('selectedList', () => {
-    it('checkedPeersの内容が返されること', () => {
+    it('returns who is picked', () => {
       component['checkedPeers'].add('peer-1');
       component['checkedPeers'].add('peer-2');
       component.includSelf = false;
@@ -89,7 +89,7 @@ describe('VoteMenuComponent', () => {
       expect(list.length).toBe(2);
     });
 
-    it('includSelfがfalseのときcheckedPeersのみ返すこと', () => {
+    it('leaves the caller out when they ask to be left out', () => {
       component['checkedPeers'].add('peer-1');
       component.includSelf = false;
       const list = component.selectedList();
@@ -98,7 +98,7 @@ describe('VoteMenuComponent', () => {
   });
 
   describe('selectedNum', () => {
-    it('selectedListの長さを返すこと', () => {
+    it('counts them', () => {
       component['checkedPeers'].add('peer-1');
       component.includSelf = false;
       expect(component.selectedNum()).toBe(1);
@@ -106,7 +106,7 @@ describe('VoteMenuComponent', () => {
   });
 
   describe('isPeerIsDisConnect', () => {
-    it('接続中のピアは false を返す', () => {
+    it('is false for a peer still connected', () => {
       const cursor = new PeerCursor();
       cursor.initialize();
       cursor.peerId = 'connected-peer';
@@ -115,7 +115,7 @@ describe('VoteMenuComponent', () => {
       expect(component.isPeerIsDisConnect('connected-peer')).toBe(false);
     });
 
-    it('切断中のピアは true を返す', () => {
+    it('is true for one that has dropped', () => {
       const cursor = new PeerCursor();
       cursor.initialize();
       cursor.peerId = 'disconnected-peer';
@@ -124,13 +124,13 @@ describe('VoteMenuComponent', () => {
       expect(component.isPeerIsDisConnect('disconnected-peer')).toBe(true);
     });
 
-    it('存在しないピアは true を返す', () => {
+    it('is true for one that was never there', () => {
       expect(component.isPeerIsDisConnect('nonexistent')).toBe(true);
     });
   });
 
   describe('setDefaultCheck', () => {
-    it('切断中のピアは checkedPeers に含まれない', () => {
+    it('leaves a dropped peer out of the picked', () => {
       const cursor = new PeerCursor();
       cursor.initialize();
       cursor.peerId = 'disc-peer';

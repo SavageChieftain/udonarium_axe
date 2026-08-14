@@ -49,7 +49,7 @@ describe('CcfoliaRoomImportEventHandlerService', () => {
     ObjectStore.instance.clearDeleteHistory();
   });
 
-  it('取り込み結果と取りこぼしをシステムメッセージで流す', async () => {
+  it('reports what came in and what did not', async () => {
     setup();
 
     emitCcfoliaRoomDropped({ entries: {} });
@@ -63,7 +63,7 @@ describe('CcfoliaRoomImportEventHandlerService', () => {
     expect(messages[2]).toContain('feature.tabletop.ccfoliaImport.bgmNotice');
   });
 
-  it('編集権限が無いロールでは取り込まない', async () => {
+  it('imports nothing without permission to edit', async () => {
     canEditTabletop = false;
     setup();
 
@@ -74,7 +74,7 @@ describe('CcfoliaRoomImportEventHandlerService', () => {
     expect(chatStub.sendSystemMessage.mock.calls[0][0]).toContain('feature.tabletop.ccfoliaImport.errors.denied');
   });
 
-  it('読めなかったときはエラーだけを伝える', async () => {
+  it('reports the error alone when it cannot read the file', async () => {
     setup();
     importAsync.mockResolvedValue({ summary: null, error: 'unrecognized' });
 

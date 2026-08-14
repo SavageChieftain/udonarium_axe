@@ -81,30 +81,30 @@ function shape(partial: Partial<OverlayShape> = {}): OverlayShape {
 
 describe('vision-overlay-render', () => {
   describe('hexToRgba', () => {
-    it('#rrggbb を rgba に変換', () => {
+    it('turns a six-digit colour into one with an alpha', () => {
       expect(hexToRgba('#ff8800', 0.5)).toBe('rgba(255, 136, 0, 0.5)');
     });
-    it('#rgb を展開する', () => {
+    it('expands a three-digit colour', () => {
       expect(hexToRgba('#fff', 1)).toBe('rgba(255, 255, 255, 1)');
     });
-    it('不正な値は白にフォールバック', () => {
+    it('falls back to white for anything it cannot read', () => {
       expect(hexToRgba('nonsense', 0.2)).toBe('rgba(255, 255, 255, 0.2)');
     });
   });
 
   describe('animationIntensity', () => {
-    it('none/未指定は常に 1', () => {
+    it('stays at full for no animation at all', () => {
       expect(animationIntensity('none', 1234)).toBe(1);
       expect(animationIntensity(undefined, 1234)).toBe(1);
     });
-    it('pulse は 0..1 の範囲で時間変動する', () => {
+    it('moves a pulse through its range over time', () => {
       const a = animationIntensity('pulse', 0);
       const b = animationIntensity('pulse', 550);
       expect(a).toBeGreaterThanOrEqual(0);
       expect(a).toBeLessThanOrEqual(1);
       expect(a).not.toBe(b);
     });
-    it('flicker も範囲内で変動する', () => {
+    it('moves a flicker through it too', () => {
       const a = animationIntensity('flicker', 100);
       const b = animationIntensity('flicker', 900);
       expect(a).toBeGreaterThanOrEqual(0);
@@ -114,7 +114,7 @@ describe('vision-overlay-render', () => {
   });
 
   describe('drawOverlayPlan', () => {
-    it('GM プラン（darknessAlpha=0）は暗闇 fillRect を描かずグローのみ', () => {
+    it('draws the glow alone for the game master, with no darkness behind it', () => {
       const plan: OverlayPlan = {
         darknessAlpha: 0,
         darknessColor: '#05060a',
@@ -131,7 +131,7 @@ describe('vision-overlay-render', () => {
       expect(ctx.globalCompositeOperation).toBe('source-over');
     });
 
-    it('PL プランは暗闇を塗り destination-out で reveal を彫る', () => {
+    it('paints the darkness for a player and cuts what they can see out of it', () => {
       const plan: OverlayPlan = {
         darknessAlpha: 0.9,
         darknessColor: '#05060a',
@@ -151,7 +151,7 @@ describe('vision-overlay-render', () => {
       expect(ctx.globalAlpha).toBe(1);
     });
 
-    it('baseRevealAlpha>0 は全面 destination-out fillRect を追加', () => {
+    it('lifts the whole surface a little when the base reveal asks for it', () => {
       const plan: OverlayPlan = {
         darknessAlpha: 0.5,
         darknessColor: '#05060a',
@@ -167,7 +167,7 @@ describe('vision-overlay-render', () => {
       expect(reveals[0].alpha).toBeCloseTo(0.4);
     });
 
-    it('surface の原点を translate と暗闇の矩形に反映する', () => {
+    it('carries the origin of the surface into both the translation and the darkness', () => {
       const plan: OverlayPlan = {
         darknessAlpha: 0.9,
         darknessColor: '#05060a',
@@ -183,7 +183,7 @@ describe('vision-overlay-render', () => {
       expect(ops.find((o) => o.name === 'fillRect')?.args).toEqual([-25, -30, 800, 600]);
     });
 
-    it('surface にセルがあれば矩形でなくセル形状で暗闇を塗る', () => {
+    it('paints the darkness over the cells rather than a rectangle when there are any', () => {
       const plan: OverlayPlan = {
         darknessAlpha: 0.9,
         darknessColor: '#05060a',
@@ -207,7 +207,7 @@ describe('vision-overlay-render', () => {
       expect(ops.some((o) => o.name === 'fill' && o.composite === 'source-over')).toBe(true);
     });
 
-    it('コーン形状は save/clip/restore で囲う', () => {
+    it('wraps a cone in a clip it puts back', () => {
       const plan: OverlayPlan = {
         darknessAlpha: 0.9,
         darknessColor: '#05060a',
@@ -222,7 +222,7 @@ describe('vision-overlay-render', () => {
       expect(ops.some((o) => o.name === 'restore')).toBe(true);
     });
 
-    it('画像付きの影は drawImage で画像シルエットを変形描画する', () => {
+    it('draws the silhouette of a picture for a shadow that has one', () => {
       const plan: OverlayPlan = {
         darknessAlpha: 0.9,
         darknessColor: '#05060a',
@@ -239,7 +239,7 @@ describe('vision-overlay-render', () => {
       expect(ops.some((o) => o.name === 'setTransform')).toBe(true);
     });
 
-    it('画像が無い影は塗りで台形を描く', () => {
+    it('fills a trapezium for a shadow that has none', () => {
       const plan: OverlayPlan = {
         darknessAlpha: 0.9,
         darknessColor: '#05060a',
@@ -270,7 +270,7 @@ describe('vision-overlay-render', () => {
       expect(ops.some((o) => o.name === 'fill')).toBe(true);
     });
 
-    it('clipPolygon は moveTo/lineTo でパスを作り clip する', () => {
+    it('builds a path from the points and clips to it', () => {
       const plan: OverlayPlan = {
         darknessAlpha: 0.9,
         darknessColor: '#05060a',
@@ -295,7 +295,7 @@ describe('vision-overlay-render', () => {
   });
 });
 
-describe('影のぼかし', () => {
+describe('softening the shadows', () => {
   afterEach(() => vi.restoreAllMocks());
 
   function planWith(imageUrl: string): OverlayPlan {
@@ -309,8 +309,8 @@ describe('影のぼかし', () => {
     };
   }
 
-  it('絵ごとに 1 度だけ焼き、描くたびに掛け直さないこと', () => {
-    // 影の数は「光源 × 遮る物」で増える。毎フレーム掛け直すと 1 枚に数百 ms かかる。
+  it('bakes each picture once rather than softening it on every pass', () => {
+    // There is a shadow for every light against every obstacle, and softening them all each frame runs into hundreds of milliseconds a pass.
     const bakes: string[] = [];
     vi.spyOn(document, 'createElement').mockImplementation(((tag: string) => {
       if (tag !== 'canvas') return document.createElementNS('http://www.w3.org/1999/xhtml', tag);
@@ -339,7 +339,7 @@ describe('影のぼかし', () => {
   });
 });
 
-describe('焼いた面', () => {
+describe('the baked surfaces', () => {
   afterEach(() => vi.restoreAllMocks());
 
   function planWithDarkness(): OverlayPlan {
@@ -362,18 +362,18 @@ describe('焼いた面', () => {
     return ops;
   }
 
-  it('暗幕と彫り抜きを焼いた面に描くこと', () => {
+  it('paints the darkness and what is cut out of it onto a surface', () => {
     const baked = stubCanvas();
     const bake = bakeOverlayPlan(planWithDarkness(), 800, 600, undefined, 10);
 
     expect(bake).not.toBeNull();
     expect(baked.some((o) => o.name === 'fillRect' && o.composite === 'source-over')).toBe(true);
     expect(baked.some((o) => o.name === 'fill' && o.composite === 'destination-out')).toBe(true);
-    // 灯りは時間で変わる。焼いてしまうと、ゆらぎが止まる。
+    // The lights change over time, and baked in they would stop moving.
     expect(baked.some((o) => o.name === 'fill' && o.composite === 'lighter')).toBe(false);
   });
 
-  it('焼いた面があるときは、貼ってから灯りだけ描くこと', () => {
+  it('puts the baked surfaces down and draws only the lights over them', () => {
     stubCanvas();
     const plan = planWithDarkness();
     const bake = bakeOverlayPlan(plan, 800, 600, undefined, 10);
@@ -387,7 +387,7 @@ describe('焼いた面', () => {
     expect(ops.some((o) => o.name === 'fill' && o.composite === 'lighter')).toBe(true);
   });
 
-  it('大きさが変わった焼き面は使わないこと', () => {
+  it('throws a baked surface away once the size changes', () => {
     stubCanvas();
     const plan = planWithDarkness();
     const bake = bakeOverlayPlan(plan, 800, 600, undefined, 10);

@@ -43,7 +43,7 @@ describe('VisualNovelOverlayComponent', () => {
     return character;
   }
 
-  // 立ち絵付きメッセージは GameCharacter 発言として扱う (imageIdentifier 指定時に sendFrom を紐付ける)。
+  // A line with a portrait counts as spoken by a character, tying the sender to the picture.
   function addMessage(text: string, name = 'アリス', imageIdentifier = '', imagePos?: number): void {
     const context: Record<string, unknown> = {
       from: 'test-user',
@@ -123,13 +123,13 @@ describe('VisualNovelOverlayComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('最初のチャットタブが自動選択されること', () => {
+  it('opens on the first chat tab', () => {
     createComponent();
     expect(component.chatTabIdentifier).toBe(tab.identifier);
     expect(component.chatTab()).toBe(tab);
   });
 
-  it('最新メッセージに追従して表示すること', () => {
+  it('follows the newest message', () => {
     addMessage('一つ目');
     addMessage('二つ目');
     createComponent();
@@ -137,7 +137,7 @@ describe('VisualNovelOverlayComponent', () => {
     expect(component.isLatest()).toBe(true);
   });
 
-  it('タイピング中の advance() で全文が即時表示されること', () => {
+  it('shows the whole line at once when it is advanced mid-type', () => {
     addMessage('こんにちは、世界！');
     createComponent();
     expect(component.isTyping()).toBe(true);
@@ -146,7 +146,7 @@ describe('VisualNovelOverlayComponent', () => {
     expect(component.displayedText()).toBe('こんにちは、世界！');
   });
 
-  it('タイプライター演出で文字が徐々に表示されること', () => {
+  it('types the characters out one after another', () => {
     vi.useFakeTimers();
     addMessage('あいうえお');
     createComponent();
@@ -158,7 +158,7 @@ describe('VisualNovelOverlayComponent', () => {
     expect(component.isTyping()).toBe(false);
   });
 
-  it('back() / advance() / toLatest() でメッセージ履歴を行き来できること', () => {
+  it('goes back, forward and to the latest through the history', () => {
     addMessage('m1');
     addMessage('m2');
     addMessage('m3');
@@ -189,7 +189,7 @@ describe('VisualNovelOverlayComponent', () => {
     expect(component.currentMessage()?.text).toBe('m3');
   });
 
-  it('最新表示中に新着メッセージが来たらそれを表示すること', () => {
+  it('shows a new message while it is on the latest', () => {
     addMessage('m1');
     createComponent();
     component.advance();
@@ -198,7 +198,7 @@ describe('VisualNovelOverlayComponent', () => {
     expect(component.currentMessage()?.text).toBe('m2');
   });
 
-  it('過去メッセージ閲覧中は新着が来ても表示位置が変わらないこと', () => {
+  it('stays put while it is reading an older one', () => {
     addMessage('m1');
     addMessage('m2');
     createComponent();
@@ -212,7 +212,7 @@ describe('VisualNovelOverlayComponent', () => {
     expect(component.isLatest()).toBe(false);
   });
 
-  it('send() で選択タブに対して ChatMessageService.sendMessage が呼ばれること', async () => {
+  it('sends to the tab that is open', async () => {
     createComponent();
     const chatMessageService = TestBed.inject(ChatMessageService);
     const sendSpy = vi.spyOn(chatMessageService, 'sendMessage').mockReturnValue(null as unknown as ChatMessage);
@@ -235,7 +235,7 @@ describe('VisualNovelOverlayComponent', () => {
     expect(component.text()).toBe('');
   });
 
-  it('空文字のままの send() は何も送信しないこと', async () => {
+  it('sends nothing for an empty line', async () => {
     createComponent();
     const chatMessageService = TestBed.inject(ChatMessageService);
     const sendSpy = vi.spyOn(chatMessageService, 'sendMessage');
@@ -245,7 +245,7 @@ describe('VisualNovelOverlayComponent', () => {
     expect(sendSpy).not.toHaveBeenCalled();
   });
 
-  it('Escape キーでノベルモードが終了すること', () => {
+  it('leaves the novel mode on escape', () => {
     createComponent();
     const vnMode = TestBed.inject(VisualNovelModeService);
     vnMode.activate();
@@ -253,7 +253,7 @@ describe('VisualNovelOverlayComponent', () => {
     expect(vnMode.active()).toBe(false);
   });
 
-  it('入力欄での keydown はメッセージ送りに使われないこと', () => {
+  it('does not advance the text from a key pressed in a field', () => {
     addMessage('こんにちは');
     createComponent();
     const input = document.createElement('input');
@@ -264,7 +264,7 @@ describe('VisualNovelOverlayComponent', () => {
     expect(component.displayedText()).toBe(before);
   });
 
-  it('複数の発言者が立ち絵ステージに同時に登場すること', () => {
+  it('puts several speakers on stage at once', () => {
     addMessage('こんにちは', 'アリス', addImage());
     addMessage('やあ', 'ボブ', addImage());
     createComponent();
@@ -275,8 +275,8 @@ describe('VisualNovelOverlayComponent', () => {
     expect(stage.every((chara) => chara.url.length > 0)).toBe(true);
   });
 
-  it('プレイヤー（GameCharacter でない発言者）は立ち絵ステージに出ないこと', () => {
-    // プレイヤーの発言 (sendFrom が PeerCursor) は画像があってもステージに並べない
+  it('keeps a player off it', () => {
+    // keeps a player's line off it even with a picture
     tab.addMessage({
       from: 'test-user',
       name: 'プレイヤー',
@@ -289,7 +289,7 @@ describe('VisualNovelOverlayComponent', () => {
     expect(component.stageCharacters()).toHaveLength(0);
   });
 
-  it('履歴を遡ると当時の発言者がアクティブになること', () => {
+  it('marks whoever was speaking as it goes back through the history', () => {
     addMessage('こんにちは', 'アリス', addImage());
     addMessage('やあ', 'ボブ', addImage());
     createComponent();
@@ -299,7 +299,7 @@ describe('VisualNovelOverlayComponent', () => {
     expect(component.stageCharacters().find((chara) => chara.isActive)?.name).toBe('アリス');
   });
 
-  it('システムメッセージは立ち絵ステージに登場しないこと', () => {
+  it('keeps a system message off it', () => {
     tab.addMessage({
       from: 'System',
       name: 'System',
@@ -311,7 +311,7 @@ describe('VisualNovelOverlayComponent', () => {
     expect(component.stageCharacters()).toHaveLength(0);
   });
 
-  it('立ち絵がいる発言は立ち絵の位置に吹き出しが出ること', () => {
+  it('puts the balloon over the portrait of whoever is speaking', () => {
     addMessage('こんにちは', 'アリス', addImage(), 4);
     createComponent();
     const anchor = component.bubbleAnchor();
@@ -319,14 +319,14 @@ describe('VisualNovelOverlayComponent', () => {
     expect(anchor?.bottom).toBe('58vh');
   });
 
-  it('立ち絵がいない発言は画面下中央に吹き出しが出ること', () => {
+  it('puts it at the bottom of the screen when nobody is on stage', () => {
     addMessage('こんにちは');
     createComponent();
     const anchor = component.bubbleAnchor();
     expect(anchor?.left).toBe(50);
   });
 
-  it('ダイスボットのメッセージはシステムちゃんが表示し吹き出しアンカーは出ないこと', () => {
+  it('gives a dice bot message to the mascot and no balloon of its own', () => {
     tab.addMessage({
       from: 'System-BCDice',
       name: 'BCDice',
@@ -339,7 +339,7 @@ describe('VisualNovelOverlayComponent', () => {
     expect(component.bubbleAnchor()).toBeNull();
   });
 
-  it('文字送りの途中で絵文字が壊れないこと', () => {
+  it('never breaks an emoji as it types', () => {
     vi.useFakeTimers();
     TestBed.inject(VisualNovelSettingsService).setTypewriterSpeed('normal');
     addMessage('あ🎉い👨‍👩‍👧う');
@@ -360,7 +360,7 @@ describe('VisualNovelOverlayComponent', () => {
     expect(component.isTyping()).toBe(false);
   });
 
-  it('演出を控えめにすると立ち絵・吹き出しのアニメーションが外れること', () => {
+  it('drops the portrait and balloon animations in the quieter mode', () => {
     addMessage('うわあ 〔叫び・ゆれ・ジャンプ〕', 'アリス', addImage());
     createComponent();
     expect(component.bubbleAnimationClass()).toBe('animate-vn-shake');
@@ -376,7 +376,7 @@ describe('VisualNovelOverlayComponent', () => {
     expect(component.speakClass()).toBe('');
   });
 
-  it('文字送り設定 off では全文が即時表示されること', () => {
+  it('shows the whole line at once with the typing turned off', () => {
     TestBed.inject(VisualNovelSettingsService).setTypewriterSpeed('off');
     addMessage('こんにちは');
     createComponent();
@@ -384,7 +384,7 @@ describe('VisualNovelOverlayComponent', () => {
     expect(component.displayedText()).toBe('こんにちは');
   });
 
-  it('jumpTo() でバックログから任意のメッセージへ移動できること', () => {
+  it('jumps to any message from the backlog', () => {
     addMessage('m1');
     addMessage('m2');
     addMessage('m3');
@@ -397,7 +397,7 @@ describe('VisualNovelOverlayComponent', () => {
     expect(component.isPopover('backlog')).toBe(false);
   });
 
-  it('ホイール操作で履歴を戻れること', () => {
+  it('goes back through the history on the wheel', () => {
     addMessage('m1');
     addMessage('m2');
     createComponent();
@@ -407,7 +407,7 @@ describe('VisualNovelOverlayComponent', () => {
     expect(component.currentIndex()).toBe(0);
   });
 
-  it('感情表現を選んで send() すると本文末尾にサフィックスが付き、選択は維持されること', async () => {
+  it('adds the chosen expression to the end of the line and keeps it chosen', async () => {
     createComponent();
     const chatMessageService = TestBed.inject(ChatMessageService);
     const sendSpy = vi.spyOn(chatMessageService, 'sendMessage').mockReturnValue(null as unknown as ChatMessage);
@@ -429,7 +429,7 @@ describe('VisualNovelOverlayComponent', () => {
     expect(component.hasEmoteSelection()).toBe(false);
   });
 
-  it('地の文の発言は吹き出しではなくナレーションとして表示されること', async () => {
+  it('shows narration as narration rather than in a balloon', async () => {
     createComponent();
     const chatMessageService = TestBed.inject(ChatMessageService);
     const sendSpy = vi.spyOn(chatMessageService, 'sendMessage').mockReturnValue(null as unknown as ChatMessage);
@@ -446,7 +446,7 @@ describe('VisualNovelOverlayComponent', () => {
     expect(component.bubbleAnchor()).toBeNull();
   });
 
-  it('ロケーションはタイプライターなしで全文即時表示されること', () => {
+  it('shows a location at once, without typing it', () => {
     addMessage('忘れられた森 〔ロケーション〕');
     createComponent();
     expect(component.narrationKind()).toBe('location');
@@ -454,7 +454,7 @@ describe('VisualNovelOverlayComponent', () => {
     expect(component.currentFullText()).toBe('忘れられた森');
   });
 
-  it('文字サイズ設定で吹き出しの文字クラスが変わること', () => {
+  it('sizes the text in the balloon from the setting', () => {
     createComponent();
     const settings = TestBed.inject(VisualNovelSettingsService);
     expect(component.bubbleTextSizeClass()).toBe('text-[15px]/relaxed');
@@ -464,8 +464,8 @@ describe('VisualNovelOverlayComponent', () => {
     expect(component.bubbleTextSizeClass()).toBe('text-[13px]/relaxed');
   });
 
-  it('pickSlot() で発言キャラクターのスロットは範囲内に丸められること', () => {
-    // 案内は「立ち位置を持つ発言者」が居るときだけ開く。持たせてから開く。
+  it('keeps the place of the speaking character in range', () => {
+    // The chooser opens only for a speaker who has a place, so one is given first.
     addMessage('こんにちは', 'アリス', addImage());
     const speaker = charactersByName.get('アリス')!;
     speaker.createDataElements();
@@ -478,11 +478,11 @@ describe('VisualNovelOverlayComponent', () => {
     component.pickSlot(99);
 
     expect(component.isPopover('slotGuide')).toBe(false);
-    // はみ出した指定は端の枠へ丸める。
+    // Anything outside is pulled to the end frame.
     expect(Number(speaker.detailDataElement!.getFirstElementByName('POS')?.currentValue)).toBe(VN_STAGE_SLOT_COUNT - 1);
   });
 
-  it('立ち絵は画面端で見切れないようにクランプされること', () => {
+  it('keeps a portrait from being cut off at the edge of the screen', () => {
     addMessage('端のキャラ', 'みぎは', addImage(), 11);
     createComponent();
     const stage = component.stageCharacters();
@@ -490,7 +490,7 @@ describe('VisualNovelOverlayComponent', () => {
     expect(stage[0].left).toBeGreaterThanOrEqual(8);
   });
 
-  it('演出サフィックス付きメッセージは本文のみ表示され演出クラスが算出されること', () => {
+  it('shows the body alone of a line with a suffix and works its classes out', () => {
     addMessage('考えごと… 〔もやもや・ドキドキ・ぶるぶる〕');
     createComponent();
     component.advance();
@@ -502,7 +502,7 @@ describe('VisualNovelOverlayComponent', () => {
     expect(component.portraitEmoteClass()).toBe('animate-vn-tremble');
   });
 
-  it('サフィックスなしのメッセージは通常形・既定の登場演出であること', () => {
+  it('gives a line without one the plain shape and the usual entrance', () => {
     addMessage('こんにちは');
     createComponent();
     expect(component.bubbleBoxClass()).toContain('vn-bubble-normal');
@@ -511,14 +511,14 @@ describe('VisualNovelOverlayComponent', () => {
     expect(component.portraitEmoteClass()).toBe('');
   });
 
-  it('叫び形状はインパクト登場になり背景トゲ。レイヤで描画されること', () => {
+  it('gives a shout the hard entrance and the spikes behind it', () => {
     addMessage('なんだって！？ 〔叫び〕');
     createComponent();
     expect(component.isShoutShape()).toBe(true);
     expect(component.bubbleEnterClass()).toBe('vn-enter-shout');
   });
 
-  it('gameType が ChatMessageService と共有されること', () => {
+  it('shares the game type with the chat service', () => {
     createComponent();
     const chatMessageService = TestBed.inject(ChatMessageService);
     component.gameType = 'Cthulhu7th';
@@ -527,7 +527,7 @@ describe('VisualNovelOverlayComponent', () => {
     chatMessageService.gameType = 'DiceBot';
   });
 
-  it('立ち絵ステージは最大 6 人まで登場すること', () => {
+  it('holds no more than six on stage', () => {
     for (let i = 0; i < 8; i++) {
       addMessage(`発言${i}`, `キャラ${i}`, addImage());
     }
@@ -535,7 +535,7 @@ describe('VisualNovelOverlayComponent', () => {
     expect(component.stageCharacters()).toHaveLength(6);
   });
 
-  it('立ち位置はメッセージの imagePos スロットで決まること', () => {
+  it('takes the place from the message', () => {
     addMessage('こんにちは', 'アリス', addImage(), 8);
     addMessage('やあ', 'ボブ', addImage(), 2);
     createComponent();
@@ -547,7 +547,7 @@ describe('VisualNovelOverlayComponent', () => {
     expect(stage[1].left).toBeCloseTo(((8 + 0.5) / 12) * 100, 3);
   });
 
-  it('同じスロットの立ち絵は少しずつずらして重なりを避けること', () => {
+  it('shifts two in the same place apart so they do not overlap', () => {
     addMessage('こんにちは', 'アリス', addImage(), 3);
     addMessage('やあ', 'ボブ', addImage(), 3);
     createComponent();
@@ -555,7 +555,7 @@ describe('VisualNovelOverlayComponent', () => {
     expect(stage[0].left).not.toBeCloseTo(stage[1].left, 3);
   });
 
-  it('立ち絵は人数やスロットによらず同一の高さ基準で扱われること', () => {
+  it('measures every portrait from the same height, however many there are', () => {
     for (let i = 0; i < 6; i++) {
       addMessage(`発言${i}`, `キャラ${i}`, addImage(), i);
     }
@@ -565,7 +565,7 @@ describe('VisualNovelOverlayComponent', () => {
     expect(stage.every((chara) => !('width' in chara))).toBe(true);
   });
 
-  it('漫符サフィックスから emotionMark が算出されること', () => {
+  it('works the mark out from the suffix', () => {
     addMessage('なっ…！ 〔💢・ぶるぶる〕');
     createComponent();
     expect(component.emotionMark()?.char).toBe('💢');
@@ -573,7 +573,7 @@ describe('VisualNovelOverlayComponent', () => {
     expect(component.displayedText().length).toBeLessThanOrEqual('なっ…！'.length);
   });
 
-  it('ロケーション表示中は立ち絵ステージが空になること', () => {
+  it('empties the stage while a location is shown', () => {
     addMessage('こんにちは', 'アリス', addImage());
     addMessage('忘れられた森 〔ロケーション〕');
     createComponent();
@@ -581,7 +581,7 @@ describe('VisualNovelOverlayComponent', () => {
     expect(component.stageCharacters()).toHaveLength(0);
   });
 
-  it('場面転換以前の発言者はステージから一掃されること', () => {
+  it('clears the stage of everybody from before a change of scene', () => {
     addMessage('こんにちは', 'アリス', addImage());
     addMessage('場面は変わって 〔場面転換〕');
     addMessage('やあ', 'ボブ', addImage());
@@ -589,7 +589,7 @@ describe('VisualNovelOverlayComponent', () => {
     expect(component.stageCharacters().map((chara) => chara.name)).toEqual(['ボブ']);
   });
 
-  it('場面転換メッセージの表示中はステージ・吹き出しが消えること', () => {
+  it('takes both the stage and the balloon away while that message is shown', () => {
     addMessage('こんにちは', 'アリス', addImage());
     addMessage('〜その夜〜 〔場面転換〕');
     createComponent();
@@ -599,7 +599,7 @@ describe('VisualNovelOverlayComponent', () => {
     expect(component.isTyping()).toBe(false);
   });
 
-  it('場面転換の発言タイプは GM のみに表示されること', () => {
+  it('offers the scene change to the game master alone', () => {
     createComponent();
     const objectChange = TestBed.inject(ObjectChangeService);
     expect(component.messageKindOptions()).not.toContain('scene');
@@ -610,7 +610,7 @@ describe('VisualNovelOverlayComponent', () => {
     objectChange.notifyChanged(PeerCursor.myCursor.identifier);
   });
 
-  it('SE を添付して send() するとジュークボックス経由で再生され添付が解除されること', async () => {
+  it('plays an attached sound as the line is sent and lets it go', async () => {
     const jukebox = ensureJukebox();
     const playSpy = vi.spyOn(jukebox, 'play').mockImplementation(() => undefined);
     createComponent();
@@ -627,8 +627,8 @@ describe('VisualNovelOverlayComponent', () => {
     expect(component.attachedSe()).toBeNull();
   });
 
-  describe('SE サウンドボード', () => {
-    it('soundEffects は SE タグの音声のみを返す', () => {
+  describe('the sound board', () => {
+    it('returns the sound-effect tracks alone', () => {
       addAudio('se-1', 'SE', 'ジャーン');
       addAudio('bgm-1', 'BGM', '戦闘曲');
       AudioStorage.instance.add(makeReadyAudio('no-tag', 'タグなし'));
@@ -637,7 +637,7 @@ describe('VisualNovelOverlayComponent', () => {
       expect(component.soundEffects().map((a) => a.identifier)).toEqual(['se-1']);
     });
 
-    it('playSoundEffect / stopSoundEffect はジュークボックス経由で再生・停止する', () => {
+    it('plays and stops them through the jukebox', () => {
       const jukebox = ensureJukebox();
       const playSpy = vi.spyOn(jukebox, 'play').mockImplementation(() => undefined);
       const stopSpy = vi.spyOn(jukebox, 'stopSE').mockImplementation(() => undefined);
@@ -650,7 +650,7 @@ describe('VisualNovelOverlayComponent', () => {
       expect(stopSpy).toHaveBeenCalledWith('se-1');
     });
 
-    it('isSoundEffectPlaying はジュークボックスの再生状態を返す', () => {
+    it('reports what the jukebox is playing', () => {
       const jukebox = ensureJukebox();
       vi.spyOn(jukebox, 'isSePlaying').mockReturnValue(true);
       createComponent();
@@ -659,7 +659,7 @@ describe('VisualNovelOverlayComponent', () => {
     });
   });
 
-  it('ダイス結果のシステムちゃんにロール主の名前とアバターが付くこと', () => {
+  it('puts the rollers name and face on the mascot for a dice result', () => {
     const rollerImage = addImage();
     addMessage('5d6', 'アリス', rollerImage);
     const command = tab.chatMessages[tab.chatMessages.length - 1];
@@ -677,7 +677,7 @@ describe('VisualNovelOverlayComponent', () => {
     expect(speaker?.rollerImageUrl.length).toBeGreaterThan(0);
   });
 
-  it('ダイスコマンド発言は吹き出し・立ち絵を出さずコマンド表示になること', () => {
+  it('shows a dice command as a command, with no balloon and nobody on stage', () => {
     addMessage('5d6', 'アリス', addImage());
     const command = tab.chatMessages[tab.chatMessages.length - 1];
     tab.addMessage({
@@ -700,7 +700,7 @@ describe('VisualNovelOverlayComponent', () => {
     expect(component.displayedText()).toBe('5d6');
   });
 
-  it('ダイスコマンドの発言者は立ち絵ステージに登場しないこと', () => {
+  it('keeps whoever rolled off the stage', () => {
     addMessage('こんにちは', 'アリス', addImage());
     addMessage('5d6', 'ボブ', addImage());
     const command = tab.chatMessages[tab.chatMessages.length - 1];
@@ -716,7 +716,7 @@ describe('VisualNovelOverlayComponent', () => {
     expect(component.stageCharacters().map((chara) => chara.name)).toEqual(['アリス']);
   });
 
-  it('オートプレイは現在地から再生されること', () => {
+  it('plays on from where it is', () => {
     addMessage('m1');
     addMessage('m2');
     addMessage('m3');
@@ -731,7 +731,7 @@ describe('VisualNovelOverlayComponent', () => {
     expect(component.currentIndex()).toBe(1);
   });
 
-  it('Ctrl を押している間はスキップで最新まで進むこと', () => {
+  it('skips to the latest while the modifier is held', () => {
     vi.useFakeTimers();
     addMessage('m1');
     addMessage('m2');
@@ -751,7 +751,7 @@ describe('VisualNovelOverlayComponent', () => {
     expect(component.isSkipping()).toBe(false);
   });
 
-  it('対象チャットタブを切り替えるとそのタブのメッセージを表示すること', () => {
+  it('shows the messages of whichever tab is chosen', () => {
     addMessage('メインの発言');
     const otherTab = ChatTabList.instance.addChatTab('サブタブ');
     try {
@@ -769,7 +769,7 @@ describe('VisualNovelOverlayComponent', () => {
     }
   });
 
-  it('最新を表示しているときはオートプレイを開始しないこと', () => {
+  it('does not start playing while it is on the latest', () => {
     addMessage('m1');
     addMessage('m2');
     createComponent();
@@ -781,7 +781,7 @@ describe('VisualNovelOverlayComponent', () => {
     expect(component.autoPlay()).toBe(false);
   });
 
-  it('最初から再生では最古のメッセージへ巻き戻ること', () => {
+  it('rewinds to the oldest to play from the start', () => {
     addMessage('m1');
     addMessage('m2');
     addMessage('m3');
@@ -795,7 +795,7 @@ describe('VisualNovelOverlayComponent', () => {
     expect(component.currentIndex()).toBe(0);
   });
 
-  it('タイプ完了後に間を置いて自動で次のメッセージへ進むこと', () => {
+  it('waits a beat after typing and goes on by itself', () => {
     vi.useFakeTimers();
     addMessage('あい');
     addMessage('うえ');
@@ -814,7 +814,7 @@ describe('VisualNovelOverlayComponent', () => {
     expect(component.autoPlay()).toBe(true);
   });
 
-  it('最新まで再生し終えるとオートプレイが解除されること', () => {
+  it('stops playing once it reaches the latest', () => {
     vi.useFakeTimers();
     addMessage('あい');
     addMessage('うえ');
@@ -835,7 +835,7 @@ describe('VisualNovelOverlayComponent', () => {
     expect(component.autoPlay()).toBe(false);
   });
 
-  it('ユーザー操作でオートプレイが停止すること', () => {
+  it('stops on any action of yours', () => {
     addMessage('m1');
     addMessage('m2');
     createComponent();
@@ -852,7 +852,7 @@ describe('VisualNovelOverlayComponent', () => {
     expect(component.autoPlay()).toBe(false);
   });
 
-  it('発言者にプレイヤーは選ばれず、既定で先頭のキャラクターになること', () => {
+  it('chooses the first character rather than a player to speak', () => {
     addMessage('こんにちは', 'アリス', addImage());
     createComponent();
     fixture.detectChanges();
@@ -862,7 +862,7 @@ describe('VisualNovelOverlayComponent', () => {
     expect(component.sendFrom).not.toBe(PeerCursor.myCursor.identifier);
   });
 
-  it('選択中のキャラクターが消えたら別のキャラクターへ自動で切り替わること', () => {
+  it('moves to another once the chosen character is gone', () => {
     addMessage('こんにちは', 'アリス', addImage());
     addMessage('やあ', 'ボブ', addImage());
     createComponent();
@@ -874,7 +874,7 @@ describe('VisualNovelOverlayComponent', () => {
     expect(component.sendFrom).toBe(characters[0].identifier);
   });
 
-  it('反転トークン付きメッセージの立ち絵が反転表示されること', () => {
+  it('flips the portrait of a line that carries the token', () => {
     addMessage('ふりむく 〔反転〕', 'アリス', addImage());
     createComponent();
     const stage = component.stageCharacters();
@@ -883,7 +883,7 @@ describe('VisualNovelOverlayComponent', () => {
     expect(component.displayedText()).toBe('ふりむく');
   });
 
-  it('反転状態で send() すると 〔反転〕 が記録されること', async () => {
+  it('records the flip on a line sent while it is flipped', async () => {
     const character = GameCharacter.create('反転テスト', 1, addImage());
     createComponent();
     component.sendFrom = character.identifier;
@@ -903,7 +903,7 @@ describe('VisualNovelOverlayComponent', () => {
     character.destroy();
   });
 
-  it('選択キャラクターのチャットパレットが参照でき、行クリックで入力欄に入ること', () => {
+  it('reads the palette of the chosen character and puts a clicked row into the box', () => {
     const character = GameCharacter.create('パレットテスト', 1, addImage());
     createComponent();
     component.sendFrom = character.identifier;
@@ -915,7 +915,7 @@ describe('VisualNovelOverlayComponent', () => {
     character.destroy();
   });
 
-  it('send() でパレットのステータス参照が評価されること', async () => {
+  it('evaluates the references on a palette row as it sends', async () => {
     const character = GameCharacter.create('評価テスト', 1, addImage());
     createComponent();
     component.sendFrom = character.identifier;
@@ -934,7 +934,7 @@ describe('VisualNovelOverlayComponent', () => {
     character.destroy();
   });
 
-  it('NPC ツールの切り替えで VN の発言キャラクターが切り替わること', () => {
+  it('follows the character chosen in the non-player tool', () => {
     const npc = GameCharacter.create('NPCテスト', 1, addImage());
     createComponent();
     const registry = TestBed.inject(ChatPaletteRegistryService);
@@ -944,7 +944,7 @@ describe('VisualNovelOverlayComponent', () => {
     npc.destroy();
   });
 
-  it('オートプレイ速度を上げると待ち時間が短くなること', () => {
+  it('waits less at a higher speed', () => {
     vi.useFakeTimers();
     TestBed.inject(VisualNovelSettingsService).setAutoPlaySpeed(2);
     addMessage('あい');
@@ -961,7 +961,7 @@ describe('VisualNovelOverlayComponent', () => {
     expect(component.currentIndex()).toBe(1);
   });
 
-  it('Escape はバックログ表示中ならバックログのみ閉じること', () => {
+  it('closes the backlog alone while it is open', () => {
     createComponent();
     const vnMode = TestBed.inject(VisualNovelModeService);
     vnMode.activate();

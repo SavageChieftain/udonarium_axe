@@ -17,16 +17,16 @@ import {
 import { turnIndicatorSignal } from '@axe/ui/turn/turn-indicator.signal';
 import { TranslocoModule } from '@jsverse/transloco';
 
-/** 古い行を落とすためだけの拍。卓が静かな間も、貼り付いたままにしない。 */
+/** A beat that only drops the older lines, so nothing sticks while the table is quiet. */
 const TICK_MS = 10_000;
 
 /**
- * 配信に重ねる画面。
+ * The overlay for a stream.
  *
- * 盤面もパネルも出さず、直近のやり取りと手番だけを透過の背景に出す。
+ * Neither the board nor the panels: the recent exchanges and the turn alone, over nothing.
  *
- * 出す範囲は**狭いほうに倒す**。配信の画面は誰のものでもない場所に出るので、
- * 密談も、伏せたダイスも、入った役割に見えないタブも出さない。
+ * It shows **the narrower of what is allowed**. The overlay goes somewhere that belongs
+ * to nobody, so no private line, no hidden roll and no tab the role cannot see.
  */
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -53,7 +53,7 @@ export class StreamingOverlayComponent {
     const role = this.viewerRole();
     const sources: OverlaySource[] = [];
     for (const tab of this.chat.chatTabs) {
-      // 発言はタブの子として増える。タブの版を見ておかないと、増えても気づけない。
+      // Lines arrive as children of a tab, and without watching the version of the tab nothing notices.
       this.objectChange.versionOf(tab.identifier)();
       if (tab.isSystemTab || !canRoleViewTab(tab, role)) continue;
       for (const message of recentOf(tab)) sources.push(this.sourceOf(message));
@@ -68,10 +68,10 @@ export class StreamingOverlayComponent {
   }
 
   /**
-   * 見せてよい範囲。
+   * What may be shown.
    *
-   * 入室が終わるまで自分の役割は既定（PL）のままなので、リンクで頼んだ役割と
-   * 狭いほうを採る。広いほうを採ると、入室の途中だけ見えてはいけないタブが映る。
+   * Until the room is joined the role here stays the default, so the narrower of that and
+   * the one the link asked for is taken; the wider would show a forbidden tab mid-join.
    */
   private viewerRole(): PeerRole {
     const current = PeerCursor.myRole;
@@ -97,7 +97,7 @@ export class StreamingOverlayComponent {
   }
 }
 
-/** 出すのは最後の数件だけ。全部を写して並べ替えると、長い卓ほど無駄が増える。 */
+/** Only the last few are shown; copying and sorting them all wastes more the longer the session runs. */
 function recentOf(tab: ChatTab): readonly ChatMessage[] {
   return tab.chatMessages.slice(-DEFAULT_OVERLAY_FEED_OPTIONS.limit);
 }

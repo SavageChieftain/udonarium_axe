@@ -57,13 +57,13 @@ function defaultParams(mask: MutableMask) {
 const names = (a: { name: string }[]) => a.map((x) => x.name);
 
 describe('buildGameTableMaskContextMenu()', () => {
-  it('先頭に「高度設定」サブメニュー', () => {
+  it('leads with the altitude submenu', () => {
     const menu = buildGameTableMaskContextMenu(defaultParams(makeMask()));
     expect(menu[0].name).toBe('高度設定');
     expect(menu[0].subActions?.length).toBe(2);
   });
 
-  it('isLock=false で「固定する」、true で「固定解除」', () => {
+  it('offers to lock what is unlocked and to unlock what is not', () => {
     const unlocked = buildGameTableMaskContextMenu(defaultParams(makeMask({ isLock: false })));
     expect(names(unlocked)).toContain('固定する');
 
@@ -71,17 +71,17 @@ describe('buildGameTableMaskContextMenu()', () => {
     expect(names(locked)).toContain('固定解除');
   });
 
-  it('isLock=true && dispLockMark=true で「固定マーク消去」が出る', () => {
+  it('offers to hide the lock mark while it is shown', () => {
     const menu = buildGameTableMaskContextMenu(defaultParams(makeMask({ isLock: true, dispLockMark: true })));
     expect(names(menu)).toContain('固定マーク消去');
   });
 
-  it('isLock=true && dispLockMark=false で「固定マーク表示」が出る', () => {
+  it('offers to show it while it is hidden', () => {
     const menu = buildGameTableMaskContextMenu(defaultParams(makeMask({ isLock: true, dispLockMark: false })));
     expect(names(menu)).toContain('固定マーク表示');
   });
 
-  it('isMine=false で「スクラッチ開始」、isMine=true で「スクラッチ確定」「スクラッチキャンセル」', () => {
+  it('offers to start scratching, and once started to finish or cancel it', () => {
     const notMine = buildGameTableMaskContextMenu(defaultParams(makeMask({ isMine: false })));
     expect(names(notMine)).toContain('スクラッチ開始');
     expect(names(notMine)).not.toContain('スクラッチ確定');
@@ -91,14 +91,14 @@ describe('buildGameTableMaskContextMenu()', () => {
     expect(names(mine)).toContain('スクラッチキャンセル');
   });
 
-  it('「スクラッチ開始」が onStartScratch を呼ぶ', () => {
+  it('starts scratching from the menu', () => {
     const params = defaultParams(makeMask({ isMine: false }));
     const menu = buildGameTableMaskContextMenu(params);
     menu.find((m) => m.name === 'スクラッチ開始')!.action!();
     expect(params.onStartScratch).toHaveBeenCalled();
   });
 
-  it('「マスクを編集」が onEdit(mask) を呼ぶ', () => {
+  it('opens the mask for editing', () => {
     const mask = makeMask();
     const params = defaultParams(mask);
     const menu = buildGameTableMaskContextMenu(params);
@@ -106,14 +106,14 @@ describe('buildGameTableMaskContextMenu()', () => {
     expect(params.onEdit).toHaveBeenCalledWith(mask);
   });
 
-  it('「削除する」が mask.destroy() を呼ぶ', () => {
+  it('destroys the mask', () => {
     const mask = makeMask();
     const menu = buildGameTableMaskContextMenu(defaultParams(mask));
     menu.find((m) => m.name === '削除する')!.action!();
     expect(mask.destroy).toHaveBeenCalled();
   });
 
-  it('末尾の「オブジェクト作成」は tabletopActionService.makeDefaultContextMenuActions() の結果をサブメニューに展開する', () => {
+  it('ends with the usual object-making items in a submenu', () => {
     const params = defaultParams(makeMask());
     (params.tabletopActionService.makeDefaultContextMenuActions as ReturnType<typeof vi.fn>).mockReturnValue([
       { name: 'カード作成', action: vi.fn() },

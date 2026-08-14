@@ -21,7 +21,7 @@ describe('EffectChatEventHandlerService', () => {
 
   const SELF_USER_ID = 'user-self';
 
-  /** 自分の発言かどうかは peer context の userId で決まる。周囲の状態に左右されないよう固定する。 */
+  /** Whose line it is comes from the user on the peer context, pinned so nothing around it can sway the answer. */
   function fixPeerContext(): void {
     const self = {
       peerId: 'peer-self',
@@ -73,10 +73,10 @@ describe('EffectChatEventHandlerService', () => {
     ObjectStore.instance.clearDeleteHistory();
   });
 
-  it('演出トークンで発動すること', () => {
+  it('fires from a token in the line', () => {
     const message = addMessage('2d6+3 t:HP-10 《爆炎》', caster.identifier);
 
-    // 発火しなかったときにどの条件で弾かれたか分かるよう、前提を先に確かめる。
+    // The premises are checked first, so a failure to fire says which condition turned it away.
     expect(message.isSendFromSelf).toBe(true);
     expect(message.isSystem).toBe(false);
     expect(TestBed.inject(EffectLibraryService).findByName('爆炎')).toBe(preset);
@@ -87,11 +87,11 @@ describe('EffectChatEventHandlerService', () => {
     const [firedPreset, targets, firedCaster] = castStub.fire.mock.calls[0];
     expect(firedPreset).toBe(preset);
     expect(targets).toEqual([target]);
-    // 撃ち手は選択中のコマではなく、その行を喋ったコマ。
+    // It is cast by whoever spoke the line, not by whatever is selected.
     expect(firedCaster).toBe(caster);
   });
 
-  it('リソース操作の対象を優先すること', () => {
+  it('takes the target of the resource change first', () => {
     const message = addMessage('《爆炎》', caster.identifier);
 
     emitResourceEditMessage({
@@ -102,7 +102,7 @@ describe('EffectChatEventHandlerService', () => {
     expect(castStub.fire.mock.calls[0][1]).toEqual([target]);
   });
 
-  it('トークンが無ければ何もしないこと', () => {
+  it('does nothing without a token', () => {
     const message = addMessage('2d6+3 t:HP-10', caster.identifier);
 
     emitResourceEditMessage({ messageIdentifier: message.identifier, messageTargetContext: null });
@@ -110,7 +110,7 @@ describe('EffectChatEventHandlerService', () => {
     expect(castStub.fire).not.toHaveBeenCalled();
   });
 
-  it('知らない名前なら何もしないこと', () => {
+  it('does nothing for a name it does not know', () => {
     const message = addMessage('《存在しない演出》', caster.identifier);
 
     emitResourceEditMessage({ messageIdentifier: message.identifier, messageTargetContext: null });
@@ -118,8 +118,8 @@ describe('EffectChatEventHandlerService', () => {
     expect(castStub.fire).not.toHaveBeenCalled();
   });
 
-  it('他人の発言では発動しないこと', () => {
-    // 全員が走らせると、人数ぶん演出が重なってしまう。
+  it('does not fire on somebody elses line', () => {
+    // Run at every end, the effect would play once per player.
     const message = addMessage('《爆炎》', caster.identifier, false);
 
     emitResourceEditMessage({ messageIdentifier: message.identifier, messageTargetContext: null });

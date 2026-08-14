@@ -30,26 +30,26 @@ function event(
 }
 
 describe('formatReplayTime()', () => {
-  it('時刻を時分秒で表すこと', () => {
+  it('writes a time as hours, minutes and seconds', () => {
     const at = new Date(2026, 0, 1, 9, 5, 3).getTime();
     expect(formatReplayTime(at)).toBe('09:05:03');
   });
 });
 
 describe('formatReplayElapsed()', () => {
-  it('経過を時分秒で表すこと', () => {
+  it('writes an elapsed time the same way', () => {
     expect(formatReplayElapsed(0)).toBe('00:00:00');
     expect(formatReplayElapsed(65_000)).toBe('00:01:05');
     expect(formatReplayElapsed(3_725_000)).toBe('01:02:05');
   });
 
-  it('負の値でも 0 として扱うこと', () => {
+  it('reads a negative value as none', () => {
     expect(formatReplayElapsed(-5)).toBe('00:00:00');
   });
 });
 
 describe('toReplayLogLine()', () => {
-  it('移動をどこからどこへとして表すこと', () => {
+  it('writes a move as from one place to another', () => {
     const line = toReplayLogLine(
       event(ReplayEventKind.ObjectMove, {
         from: { name: 'table', x: 0, y: 25.4, z: 0 },
@@ -62,7 +62,7 @@ describe('toReplayLogLine()', () => {
     expect(line.icon).toBe('open_with');
   });
 
-  it('高さが変わった移動を高さつきで表すこと', () => {
+  it('writes the height into a move that changes it', () => {
     const line = toReplayLogLine(
       event(ReplayEventKind.ObjectMove, {
         from: { name: 'table', x: 0, y: 0, z: 0 },
@@ -75,7 +75,7 @@ describe('toReplayLogLine()', () => {
     expect(line.params['toZ']).toBe(30);
   });
 
-  it('壁を跨ぐ移動を面つきで表すこと', () => {
+  it('writes the face into a move across a wall', () => {
     const line = toReplayLogLine(
       event(ReplayEventKind.ObjectMove, {
         from: { name: 'table', x: 0, y: 0, z: 0 },
@@ -90,7 +90,7 @@ describe('toReplayLogLine()', () => {
     });
   });
 
-  it('置き場所が変わった移動を場所つきで表すこと', () => {
+  it('writes the place into a move that changes it', () => {
     const line = toReplayLogLine(
       event(ReplayEventKind.ObjectMove, {
         from: { name: 'table', x: 0, y: 0, z: 0 },
@@ -103,7 +103,7 @@ describe('toReplayLogLine()', () => {
     expect(line.params['toPlace']).toBe('ダイス');
   });
 
-  it('置き場所が分からない移動をただの移動として表すこと', () => {
+  it('writes a move to an unknown place as a plain move', () => {
     const line = toReplayLogLine(
       event(ReplayEventKind.ObjectMove, { to: { name: 'table', x: 10, y: 20, z: 0 } }),
       names
@@ -111,7 +111,7 @@ describe('toReplayLogLine()', () => {
     expect(line.key).toBe('feature.replay.line.move');
   });
 
-  it('名前の分からない置き場所は識別子のまま出すこと', () => {
+  it('leaves an unnamed place as its identifier', () => {
     const line = toReplayLogLine(
       event(ReplayEventKind.ObjectMove, {
         from: { name: 'table', x: 0, y: 0, z: 0 },
@@ -122,19 +122,19 @@ describe('toReplayLogLine()', () => {
     expect(line.params['toPlace']).toBe('unknown-stack');
   });
 
-  it('発言を話者と本文で表すこと', () => {
+  it('writes a line as its speaker and its words', () => {
     const line = toReplayLogLine(event(ReplayEventKind.ChatMessage, { name: '盗賊', text: 'こんばんは' }), names);
     expect(line.key).toBe('feature.replay.line.chat');
     expect(line.params['speaker']).toBe('盗賊');
     expect(line.params['text']).toBe('こんばんは');
   });
 
-  it('話者の無い発言では人の名前を使うこと', () => {
+  it('falls back to the persons name for a line with no speaker', () => {
     const line = toReplayLogLine(event(ReplayEventKind.ChatMessage, { name: '', text: 'やあ' }), names);
     expect(line.params['speaker']).toBe('アリス');
   });
 
-  it('リソースの増減を前後の値で表すこと', () => {
+  it('writes a resource change as the values before and after', () => {
     const line = toReplayLogLine(
       event(ReplayEventKind.ObjectValue, { name: 'HP', current: { from: 12, to: 7 } }),
       names
@@ -143,12 +143,12 @@ describe('toReplayLogLine()', () => {
     expect(line.params).toEqual({ actor: 'アリス', target: '盗賊', name: 'HP', from: '12', to: '7' });
   });
 
-  it('回転を角度で表すこと', () => {
+  it('writes a turn as an angle', () => {
     const line = toReplayLogLine(event(ReplayEventKind.ObjectRotate, { rotate: { from: 0, to: 90.2 } }), names);
     expect(line.params['angle']).toBe(90);
   });
 
-  it('固定と解除を別の行として表すこと', () => {
+  it('writes locking and unlocking as separate lines', () => {
     expect(toReplayLogLine(event(ReplayEventKind.ObjectLock, { locked: true }), names).key).toBe(
       'feature.replay.line.lock'
     );
@@ -157,18 +157,18 @@ describe('toReplayLogLine()', () => {
     );
   });
 
-  it('持ち主の変更を相手の名前で表すこと', () => {
+  it('writes a change of owner as their name', () => {
     const line = toReplayLogLine(event(ReplayEventKind.ObjectOwner, { from: '', to: 'bob' }), names);
     expect(line.params['owner']).toBe('ボブ');
   });
 
-  it('目印を見出しとして表すこと', () => {
+  it('writes a marker as a heading', () => {
     const line = toReplayLogLine(event(ReplayEventKind.Marker, { label: '第二幕' }, { targetId: undefined }), names);
     expect(line.key).toBe('feature.replay.line.marker');
     expect(line.params['label']).toBe('第二幕');
   });
 
-  it('演出を効果名と対象で表すこと', () => {
+  it('writes an effect as its name and its targets', () => {
     const line = toReplayLogLine(
       event(ReplayEventKind.EffectCast, { caster: '', targets: ['c1'] }, { targetId: 'preset-fire' }),
       { ...names, targetName: (id) => ({ c1: '盗賊', 'preset-fire': '火炎' })[id] ?? '' }
@@ -178,7 +178,7 @@ describe('toReplayLogLine()', () => {
     expect(line.params['targets']).toBe('盗賊');
   });
 
-  it('撃ち手のある演出を放った形で表すこと', () => {
+  it('writes an effect with a caster as cast by them', () => {
     const line = toReplayLogLine(
       event(ReplayEventKind.EffectCast, { caster: 'c1', targets: ['c2', 'c3'] }, { targetId: 'preset-fire' }),
       { ...names, targetName: (id) => ({ c1: '術者', c2: '敵A', c3: '敵B', 'preset-fire': '火炎' })[id] ?? '' }
@@ -188,7 +188,7 @@ describe('toReplayLogLine()', () => {
     expect(line.params['targets']).toBe('敵A、敵B');
   });
 
-  it('対象の分からない演出も表せること', () => {
+  it('writes one whose target is unknown all the same', () => {
     const line = toReplayLogLine(
       event(ReplayEventKind.EffectCast, { caster: '', targets: [] }, { targetId: 'preset-fire' }),
       { ...names, targetName: (id) => (id === 'preset-fire' ? '火炎' : '') }
@@ -197,7 +197,7 @@ describe('toReplayLogLine()', () => {
     expect(line.params['effect']).toBe('火炎');
   });
 
-  it('秘匿のイベントに印を付けること', () => {
+  it('marks a hidden event as hidden', () => {
     const line = toReplayLogLine(
       event(ReplayEventKind.ChatMessage, { text: 'ないしょ' }, { visibility: { kind: 'direct', to: ['bob'] } }),
       names
@@ -205,7 +205,7 @@ describe('toReplayLogLine()', () => {
     expect(line.isSecret).toBe(true);
   });
 
-  it('未知の種類でも落ちないこと', () => {
+  it('does not fall over on a kind it does not know', () => {
     const line = toReplayLogLine(event('object.unknown' as ReplayEventKind, {}), names);
     expect(line.key).toBe('feature.replay.line.update');
     expect(line.icon).toBe('radio_button_unchecked');

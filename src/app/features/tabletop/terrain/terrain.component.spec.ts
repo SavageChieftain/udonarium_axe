@@ -26,11 +26,11 @@ describe('TerrainComponent', () => {
   });
 
   describe('viewRotateZ computed signal', () => {
-    it('初期値はデフォルト10であること', () => {
+    it('starts at ten', () => {
       expect(component.viewRotateZ()).toBe(10);
     });
 
-    it('UiSignalServiceのtableViewRotationに連動してZ回転値が変わること', () => {
+    it('turns with the table view', () => {
       const uiSignalService = TestBed.inject(UiSignalService);
       uiSignalService.notifyTableViewRotation(50, 20, 45);
       expect(component.viewRotateZ()).toBe(45);
@@ -38,7 +38,7 @@ describe('TerrainComponent', () => {
   });
 
   describe('terrainGridCanvasStyle', () => {
-    it('ヘクス床グリッドのcanvasをclip内相対で中央配置すること', () => {
+    it('centres the hex grid canvas within its clip', () => {
       const terrain = Terrain.create('hex terrain', 3, 3, 1, '', '');
       const table = component.currentTable;
       const originalGridType = table.gridType;
@@ -59,7 +59,7 @@ describe('TerrainComponent', () => {
       terrain.destroy();
     });
 
-    it('ヘクス傾斜では床ステップと同じ高さとマスクでグリッドを分割すること', () => {
+    it('splits the grid along the floor steps of a hex slope, mask and all', () => {
       const terrain = Terrain.create('hex slope terrain', 3, 3, 1, '', '');
       const table = component.currentTable;
       const originalGridType = table.gridType;

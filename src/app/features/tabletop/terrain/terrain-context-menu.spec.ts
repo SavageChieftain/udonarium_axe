@@ -54,7 +54,7 @@ function makeActionService(): TabletopActionService {
 const names = (a: { name: string }[]) => a.map((x) => x.name);
 
 describe('buildTerrainContextMenu()', () => {
-  it('「高度設定」サブメニューに 3 項目 (0 にする / 高度表示 / 影の表示)', () => {
+  it('offers three items for the altitude', () => {
     const menu = buildTerrainContextMenu(
       makeTerrain() as unknown as Terrain,
       50,
@@ -68,7 +68,7 @@ describe('buildTerrainContextMenu()', () => {
     expect(menu[0].subActions?.length).toBe(3);
   });
 
-  it('isLocked=true で「固定解除」、false で「固定する」', () => {
+  it('offers to unlock what is locked and to lock what is not', () => {
     const lockedMenu = buildTerrainContextMenu(
       makeTerrain({ isLocked: true }) as unknown as Terrain,
       50,
@@ -92,7 +92,7 @@ describe('buildTerrainContextMenu()', () => {
     expect(names(unlockedMenu)).toContain('固定する');
   });
 
-  it('傾斜サブメニューの 5 項目 (なし + 4 方向) ＋ separator', () => {
+  it('offers no slope and four directions, after a separator', () => {
     const menu = buildTerrainContextMenu(
       makeTerrain() as unknown as Terrain,
       50,
@@ -107,7 +107,7 @@ describe('buildTerrainContextMenu()', () => {
     expect(slope?.subActions?.length).toBe(6);
   });
 
-  it('傾斜「上（北）」action 実行で isSlope=true, slopeDirection=TOP', () => {
+  it('slopes the terrain north', () => {
     const terrain = makeTerrain();
     const menu = buildTerrainContextMenu(
       terrain as unknown as Terrain,
@@ -125,7 +125,7 @@ describe('buildTerrainContextMenu()', () => {
     expect(terrain.slopeDirection).toBe(SlopeDirection.TOP);
   });
 
-  it('hasWall=true で「壁を非表示」、hasWall=false で「壁を表示」', () => {
+  it('offers to hide the walls that are shown and to show the ones that are hidden', () => {
     const withWall = buildTerrainContextMenu(
       makeTerrain({ hasWall: true }) as unknown as Terrain,
       50,
@@ -149,7 +149,7 @@ describe('buildTerrainContextMenu()', () => {
     expect(names(noWall)).toContain('壁を表示');
   });
 
-  it('isDropShadow フラグで「影を表示」「影を非表示」が切り替わる', () => {
+  it('offers to show or hide the shadow by which it casts', () => {
     const noShadow = buildTerrainContextMenu(
       makeTerrain({ isDropShadow: false }) as unknown as Terrain,
       50,
@@ -173,7 +173,7 @@ describe('buildTerrainContextMenu()', () => {
     expect(names(withShadow)).toContain('影を非表示');
   });
 
-  it('「地形設定を編集」が onEdit(terrain) を呼ぶ', () => {
+  it('hands the terrain to the editor', () => {
     const terrain = makeTerrain();
     const onEdit = vi.fn();
     const menu = buildTerrainContextMenu(
@@ -189,7 +189,7 @@ describe('buildTerrainContextMenu()', () => {
     expect(onEdit).toHaveBeenCalledWith(terrain);
   });
 
-  it('「削除する」が terrain.destroy() を呼ぶ', () => {
+  it('destroys the terrain', () => {
     const terrain = makeTerrain();
     const menu = buildTerrainContextMenu(
       terrain as unknown as Terrain,

@@ -17,8 +17,8 @@ describe('TableAmbienceComponent', () => {
       providers: [...TEST_PROVIDERS],
     });
 
-    // 粒の中身は domain 側の spec で確かめる。ここは置き方だけを見るので、
-    // 実行環境ごとに出来が違う 2D コンテキストは掴ませない。
+    // What the particles look like is settled by the domain specs. This watches only the
+    // placement, so it never takes hold of a 2D context, which differs between runtimes.
     vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue(null as never);
 
     ambience = TableAmbience.create('毒沼', 'swamp', 4, 4);
@@ -35,7 +35,7 @@ describe('TableAmbienceComponent', () => {
     return fixture.nativeElement as HTMLElement;
   }
 
-  it('マス数ぶんの大きさで置くこと', () => {
+  it('sizes itself by the cells it covers', () => {
     const gridSize = TestBed.inject(TabletopService).gridSize();
     fixture.detectChanges();
 
@@ -44,28 +44,28 @@ describe('TableAmbienceComponent', () => {
     expect(root.style.height).toBe(`${4 * gridSize}px`);
   });
 
-  it('面の塗りを敷くこと', () => {
+  it('lays the surface down', () => {
     fixture.detectChanges();
 
     const surface = element().querySelectorAll<HTMLElement>('div')[1];
     expect(surface.style.background.length).toBeGreaterThan(0);
   });
 
-  it('寝かせた面と正対する立ち上りを別々の canvas へ描くこと', () => {
+  it('draws the flat surface and the upright part on separate canvases', () => {
     fixture.detectChanges();
 
     const canvases = Array.from(element().querySelectorAll<HTMLElement>('effect-canvas'));
     expect(canvases.length).toBeGreaterThanOrEqual(2);
 
     const [surface, ...vapors] = canvases;
-    // 面は盤面に寝かせたまま、立ち上りだけカメラへ向き直す。
+    // The surface stays flat on the board while only the upright part faces the camera.
     expect(surface.style.transform).toBe('');
     expect(vapors.length).toBeGreaterThan(0);
     for (const vapor of vapors) expect(vapor.style.transform).toContain('rotateX(');
   });
 
-  it('広い範囲ほど立ち上りを奥行き方向へ重ねること', async () => {
-    // 1 枚だけだと、奥のものも手前のものも同じ深さに並んで帯にしか見えない。
+  it('layers the upright part deeper over a wider area', async () => {
+    // A single sheet puts the far and the near at the same depth, which reads as a band.
     fixture.detectChanges();
     const narrow = fixture.componentInstance.vaporSlices().length;
 
@@ -77,7 +77,7 @@ describe('TableAmbienceComponent', () => {
     expect(fixture.componentInstance.vaporSlices().length).toBeGreaterThan(narrow);
   });
 
-  it('奥の板ほど手前より上に立てること', async () => {
+  it('raises the far sheets above the near ones', async () => {
     ambience.height = 16;
     await new Promise((resolve) => setTimeout(resolve, 20));
     fixture.detectChanges();
@@ -89,7 +89,7 @@ describe('TableAmbienceComponent', () => {
     }
   });
 
-  it('ロック中は盤面の操作を通すこと', () => {
+  it('lets the board take the pointer while it is locked', () => {
     ambience.isLock = true;
     fixture.detectChanges();
 
@@ -97,10 +97,10 @@ describe('TableAmbienceComponent', () => {
     expect(surface.hasAttribute('data-table-passthrough')).toBe(true);
   });
 
-  describe('置いたあとの書き換え', () => {
+  describe('changing it after it is placed', () => {
     /**
-     * 「版を読んでからオブジェクトを返す」computed を挟むと、返り値の参照が変わらないので
-     * signals は下流へ変化を伝えない。ロックも大きさも効かなくなる。
+     * A computed that reads the version and returns the object hands back the same reference,
+     * so nothing downstream hears the change and neither the lock nor the size takes effect.
      */
     async function applyChange(change: () => void): Promise<void> {
       fixture.detectChanges();
@@ -109,7 +109,7 @@ describe('TableAmbienceComponent', () => {
       fixture.detectChanges();
     }
 
-    it('ロックすると動かせなくなること', async () => {
+    it('cannot be moved once locked', async () => {
       const movable = fixture.debugElement.query(By.directive(MovableDirective)).injector.get(MovableDirective);
       expect(movable.isDisable()).toBe(false);
 
@@ -118,7 +118,7 @@ describe('TableAmbienceComponent', () => {
       expect(movable.isDisable()).toBe(true);
     });
 
-    it('広さの変更がその場で反映されること', async () => {
+    it('takes a change of size at once', async () => {
       const gridSize = TestBed.inject(TabletopService).gridSize();
 
       await applyChange(() => {
@@ -130,7 +130,7 @@ describe('TableAmbienceComponent', () => {
       expect(fixture.componentInstance.pixelHeight()).toBe(20 * gridSize);
     });
 
-    it('種類の変更がその場で反映されること', async () => {
+    it('takes a change of kind at once', async () => {
       const before = fixture.componentInstance.surfaceWash();
 
       await applyChange(() => (ambience.ambienceKind = 'lava'));

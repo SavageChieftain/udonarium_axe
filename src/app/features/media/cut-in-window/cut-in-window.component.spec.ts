@@ -50,7 +50,7 @@ describe('CutInWindowComponent', () => {
   });
 
   describe('videoVolume', () => {
-    it('カットイン個別音量をそのままYouTube API音量として返す', () => {
+    it('passes a cut-ins own volume straight to the video player', () => {
       const cutIn = new CutIn('volume-test');
       cutIn.initialize();
       cutIn.videoVolume = 75;
@@ -59,7 +59,7 @@ describe('CutInWindowComponent', () => {
       expect(component.videoVolume).toBe(75);
     });
 
-    it('テスト再生時も個別音量をそのまま返す', () => {
+    it('passes it through on a test play as well', () => {
       const cutIn = new CutIn('audition-volume-test');
       cutIn.initialize();
       cutIn.videoVolume = 50;
@@ -70,8 +70,8 @@ describe('CutInWindowComponent', () => {
     });
   });
 
-  describe('startCutIn — 音量タイプ', () => {
-    it('SE タグの音声は volumeType=SE で再生する', () => {
+  describe('which volume a cut-in plays through', () => {
+    it('plays a sound-effect-tagged cut-in through the effects volume', () => {
       vi.spyOn(AudioPlayer.prototype, 'play').mockImplementation(() => {});
       vi.spyOn(AudioPlayer.prototype, 'stop').mockImplementation(() => {});
       AudioStorage.instance.add(makeReadyAudio('cutin-se'));
@@ -88,7 +88,7 @@ describe('CutInWindowComponent', () => {
       expect(component.audioPlayer.volumeType).toBe(VolumeType.SE);
     });
 
-    it('SE タグでない音声は volumeType=MASTER で再生する', () => {
+    it('plays any other through the master volume', () => {
       vi.spyOn(AudioPlayer.prototype, 'play').mockImplementation(() => {});
       vi.spyOn(AudioPlayer.prototype, 'stop').mockImplementation(() => {});
       AudioStorage.instance.add(makeReadyAudio('cutin-bgm'));
@@ -105,7 +105,7 @@ describe('CutInWindowComponent', () => {
   });
 
   describe('ngOnDestroy', () => {
-    it('cutInTimeOut が clearTimeout でクリアされる', () => {
+    it('clears the cut-in timer on teardown', () => {
       const clearTimeoutSpy = vi.spyOn(globalThis, 'clearTimeout');
       const priv = component as unknown as { cutInTimeOut: ReturnType<typeof setTimeout> | null };
       priv.cutInTimeOut = setTimeout(() => {}, 999_999);
@@ -116,7 +116,7 @@ describe('CutInWindowComponent', () => {
       expect(priv.cutInTimeOut).toBeNull();
     });
 
-    it('timerCheckWindowSize が clearTimeout でクリアされる', () => {
+    it('clears the window size timer on teardown', () => {
       const clearTimeoutSpy = vi.spyOn(globalThis, 'clearTimeout');
       component.timerCheckWindowSize = setTimeout(() => {}, 999_999);
 
@@ -126,7 +126,7 @@ describe('CutInWindowComponent', () => {
       expect(component.timerCheckWindowSize).toBeNull();
     });
 
-    it('_timeoutIdVideo が clearTimeout でクリアされる', () => {
+    it('clears the video timer on teardown', () => {
       const clearTimeoutSpy = vi.spyOn(globalThis, 'clearTimeout');
       const priv = component as unknown as { _timeoutIdVideo: ReturnType<typeof setTimeout> | null };
       priv._timeoutIdVideo = setTimeout(() => {}, 999_999);

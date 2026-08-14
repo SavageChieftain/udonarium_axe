@@ -19,7 +19,7 @@ describe('buildCoinContextMenu()', () => {
     for (const coin of created.splice(0)) coin.destroy();
   });
 
-  it('投げる操作が onFlip を呼ぶこと', () => {
+  it('flips the coin from the menu', () => {
     const onFlip = vi.fn();
     const menu = buildCoinContextMenu(makeCoin(), 50, { onFlip, onShowDetail: vi.fn() }, t);
 
@@ -28,7 +28,7 @@ describe('buildCoinContextMenu()', () => {
     expect(onFlip).toHaveBeenCalled();
   });
 
-  it('表向きなら「裏にする」、裏向きなら「表にする」が出ること', () => {
+  it('offers to turn a coin onto whichever side is down', () => {
     const coin = makeCoin();
     const callbacks = { onFlip: vi.fn(), onShowDetail: vi.fn() };
 
@@ -43,7 +43,7 @@ describe('buildCoinContextMenu()', () => {
     expect(coin.face).toBe('front');
   });
 
-  it('固定していなければ「固定する」、していれば「固定解除」が出ること', () => {
+  it('offers to lock what is unlocked and to unlock what is not', () => {
     const coin = makeCoin();
     const callbacks = { onFlip: vi.fn(), onShowDetail: vi.fn() };
 
@@ -54,7 +54,7 @@ describe('buildCoinContextMenu()', () => {
     expect(coin.isLock).toBe(false);
   });
 
-  it('コピーがグリッド分ずらした複製を置くこと', () => {
+  it('copies it a cell away', () => {
     const clone = { location: { x: 100, y: 200 }, toTopmost: vi.fn() };
     const coin = { isFront: true, isLock: false, clone: vi.fn(() => clone) } as unknown as Coin;
 
@@ -66,7 +66,7 @@ describe('buildCoinContextMenu()', () => {
     expect(clone.toTopmost).toHaveBeenCalled();
   });
 
-  it('削除がコインを消すこと', () => {
+  it('destroys it', () => {
     const coin = { isFront: true, isLock: false, destroy: vi.fn() } as unknown as Coin;
 
     buildCoinContextMenu(coin, 50, { onFlip: vi.fn(), onShowDetail: vi.fn() }, t).find(
@@ -76,7 +76,7 @@ describe('buildCoinContextMenu()', () => {
     expect(coin.destroy).toHaveBeenCalled();
   });
 
-  it('編集が onShowDetail を呼ぶこと', () => {
+  it('opens it for editing', () => {
     const onShowDetail = vi.fn();
     const menu = buildCoinContextMenu(makeCoin(), 50, { onFlip: vi.fn(), onShowDetail }, t);
 

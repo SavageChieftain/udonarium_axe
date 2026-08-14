@@ -25,7 +25,7 @@ describe('EffectLibraryPanelComponent', () => {
     ObjectStore.instance.remove(preset);
   });
 
-  it('登録済みのエフェクトを一覧に出すこと', () => {
+  it('lists the effects that have been added', () => {
     fixture.detectChanges();
 
     const text = (fixture.nativeElement as HTMLElement).textContent ?? '';
@@ -33,7 +33,7 @@ describe('EffectLibraryPanelComponent', () => {
     expect(text).toContain('炎');
   });
 
-  it('検索語で一覧を絞り込むこと', () => {
+  it('narrows the list by a search', () => {
     const other = new EffectPreset();
     other.name = '氷結';
     other.tagName = '氷';
@@ -54,7 +54,7 @@ describe('EffectLibraryPanelComponent', () => {
     }
   });
 
-  it('絞り込みが空振りしたら理由を出すこと', () => {
+  it('says why when the search finds nothing', () => {
     fixture.componentInstance.query.set('該当なし');
     fixture.detectChanges();
 
@@ -62,14 +62,14 @@ describe('EffectLibraryPanelComponent', () => {
     expect((fixture.nativeElement as HTMLElement).textContent).toContain('一致するエフェクトがありません');
   });
 
-  it('系統ごとの見出しを出すこと', () => {
+  it('heads each family', () => {
     fixture.detectChanges();
 
     const headings = Array.from((fixture.nativeElement as HTMLElement).querySelectorAll('[role="button"]'));
     expect(headings.map((heading) => heading.textContent?.replace(/\s+/g, ' ').trim())).toEqual(['expand_more 炎 1']);
   });
 
-  it('系統を折りたためること', () => {
+  it('folds a family away', () => {
     fixture.detectChanges();
     expect((fixture.nativeElement as HTMLElement).textContent).toContain('爆炎');
 
@@ -77,12 +77,12 @@ describe('EffectLibraryPanelComponent', () => {
     heading?.dispatchEvent(new MouseEvent('click'));
     fixture.detectChanges();
 
-    // 見出しは残り、中身だけ隠れる。
+    // The heading stays and only the contents go.
     expect((fixture.nativeElement as HTMLElement).textContent).toContain('炎');
     expect((fixture.nativeElement as HTMLElement).textContent).not.toContain('爆炎');
   });
 
-  it('対象がいなければ発動しても何も起きないこと', () => {
+  it('does nothing when it is fired with nothing to aim at', () => {
     fixture.detectChanges();
 
     const row = (fixture.nativeElement as HTMLElement).querySelector('li');
@@ -92,7 +92,7 @@ describe('EffectLibraryPanelComponent', () => {
     expect(fixture.componentInstance.lastFired()).toBe('');
   });
 
-  it('自分にかけるものは対象がいないと案内を出すこと', () => {
+  it('says so when something cast on yourself has nobody to cast it on', () => {
     fixture.detectChanges();
     const preset = fixture.componentInstance.groups()[0].presets[0];
     preset.targeting = 'self';

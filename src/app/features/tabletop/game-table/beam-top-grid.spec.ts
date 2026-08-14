@@ -22,7 +22,7 @@ describe('beamTopGridGeometry', () => {
     store.clearDeleteHistory();
   });
 
-  it('北壁の梁の歩ける天面をワールド床座標の矩形として返す', () => {
+  it('returns the walkable top of a north-wall beam in floor coordinates', () => {
     const beam = Terrain.create('beam', 2, 1, 4, '', '');
     beam.location.x = 100;
     beam.location.y = 0;
@@ -32,24 +32,24 @@ describe('beamTopGridGeometry', () => {
     expect(beamTopGridGeometry(beam, dims, GRID)).toEqual({ left: 100, top: 0, width: 100, height: 200, z: 500 });
   });
 
-  it('東壁の梁は室内(-x)側へ突き出した天面範囲を返す', () => {
+  it('returns the top of an east-wall beam jutting inwards', () => {
     const beam = Terrain.create('beam', 2, 1, 3, '', '');
     beam.location.x = 0;
     beam.location.y = 0;
     beam.location.surface = 'east-wall';
     beam.isGrid = true;
 
-    // east: origin(width,0) u(0,1,0) → footprint x[width-150, width] y[0, 100], 天面 z=500
+    // an east wall, with its footprint against the wall and its top at the beam height
     expect(beamTopGridGeometry(beam, dims, GRID)).toEqual({ left: 350, top: 0, width: 150, height: 100, z: 500 });
   });
 
-  it('床地形は対象外 (null)', () => {
+  it('leaves floor terrain out of it', () => {
     const floor = Terrain.create('floor', 2, 2, 1, '', '');
     floor.isGrid = true;
     expect(beamTopGridGeometry(floor, dims, GRID)).toBeNull();
   });
 
-  it('isGrid=false の壁地形は対象外 (null)', () => {
+  it('leaves a wall without a grid out of it', () => {
     const beam = Terrain.create('beam', 2, 1, 4, '', '');
     beam.location.surface = 'north-wall';
     beam.isGrid = false;
@@ -76,7 +76,7 @@ describe('beamWallFaceGrid', () => {
     return face.matrix3d.replace('matrix3d(', '').replace(')', '').split(',').map(Number);
   }
 
-  it('北壁の梁の外側面を壁平面と正対する matrix3d で配置し N 接頭辞を付ける', () => {
+  it('faces the outer side of a north-wall beam onto the wall plane and marks it north', () => {
     const beam = Terrain.create('beam', 2, 1, 4, '', '');
     beam.location.x = 100;
     beam.location.y = 0;
@@ -103,7 +103,7 @@ describe('beamWallFaceGrid', () => {
     expect(m[14]).toBeCloseTo(500);
   });
 
-  it('protrusion に altitude と posZ を含める (天面側と同じ法線オフセット)', () => {
+  it('carries the altitude and height into the protrusion, offset along the normal as the top is', () => {
     const beam = Terrain.create('beam', 2, 1, 4, '', '');
     beam.location.x = 100;
     beam.location.y = 0;
@@ -118,7 +118,7 @@ describe('beamWallFaceGrid', () => {
     expect(m[13]).toBeLessThan(345);
   });
 
-  it('東壁の梁は室内(-x)へ突き出し E 接頭辞・原点 x=width-protrusion になる', () => {
+  it('juts an east-wall beam inwards from the wall and marks it east', () => {
     const beam = Terrain.create('beam', 2, 1, 3, '', '');
     beam.location.x = 0;
     beam.location.y = 0;
@@ -138,7 +138,7 @@ describe('beamWallFaceGrid', () => {
     expect(m[14]).toBeCloseTo(500);
   });
 
-  it('床地形・isGrid=false は対象外 (null)', () => {
+  it('leaves floor terrain and gridless walls out of it', () => {
     const floor = Terrain.create('floor', 2, 2, 1, '', '');
     floor.isGrid = true;
     expect(beamWallFaceGrid(floor, dims, GRID)).toBeNull();

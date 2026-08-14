@@ -29,7 +29,7 @@ describe('ChatMessageComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('本文添付画像をチャット本文内に表示すること', () => {
+  it('shows a picture attached to a line inside it', () => {
     const image = ImageStorage.instance.add('stamp-image.png');
     try {
       const message = new ChatMessage();
@@ -53,7 +53,7 @@ describe('ChatMessageComponent', () => {
     }
   });
 
-  it('あとから届いた立ち絵をサムネイルに反映すること', () => {
+  it('takes a portrait that arrives later into the thumbnail', () => {
     const identifier = 'late-arriving-image';
     const message = new ChatMessage();
     message.initialize();
@@ -90,7 +90,7 @@ describe('ChatMessageComponent', () => {
   });
 
   describe('escapeHtmlAndRuby', () => {
-    it('versionOfシグナルを読み取ること', () => {
+    it('reads the version signal', () => {
       const objectChange = TestBed.inject(ObjectChangeService);
       const spy = vi.spyOn(objectChange, 'versionOf');
       const mockMessage = { identifier: 'test-msg-id' } as ChatMessage;
@@ -101,12 +101,12 @@ describe('ChatMessageComponent', () => {
       expect(spy).toHaveBeenCalledWith('test-msg-id');
     });
 
-    it('chatMessageがundefinedでもエラーにならないこと', () => {
+    it('does not throw without a message', () => {
       fixture.componentRef.setInput('chatMessage', undefined as unknown as ChatMessage);
       expect(() => component.escapeHtmlAndRuby('テスト')).not.toThrow();
     });
 
-    it('ルビ記法をFirefoxでもレイアウトしやすい明示的なruby構造へ変換すること', () => {
+    it('writes the ruby out in full, which lays out in every browser', () => {
       const mockMessage = { identifier: 'ruby-msg-id' } as ChatMessage;
       fixture.componentRef.setInput('chatMessage', mockMessage);
 
@@ -115,7 +115,7 @@ describe('ChatMessageComponent', () => {
       expect(result).toBe('前<ruby class="chat-ruby"><rb>漢字</rb><rt>かんじ</rt></ruby>後');
     });
 
-    it('ルビ本文とルビ文字もHTMLエスケープされること', () => {
+    it('escapes both the text and the ruby over it', () => {
       const mockMessage = { identifier: 'ruby-escape-msg-id' } as ChatMessage;
       fixture.componentRef.setInput('chatMessage', mockMessage);
 
@@ -124,7 +124,7 @@ describe('ChatMessageComponent', () => {
       expect(result).toBe('<ruby class="chat-ruby"><rb>&lt;本文&gt;</rb><rt>&quot;ルビ&quot;</rt></ruby>');
     });
 
-    it('「> 」始まりの行は chat-quote 要素に包んで装飾すること', () => {
+    it('wraps a quoted line in a quotation', () => {
       const mockMessage = { identifier: 'quote-msg-id' } as ChatMessage;
       fixture.componentRef.setInput('chatMessage', mockMessage);
 
@@ -133,7 +133,7 @@ describe('ChatMessageComponent', () => {
       expect(result).toBe('hello\n<span class="chat-quote">quoted line</span>\nworld');
     });
 
-    it('連続する「> 」行は1つの chat-quote にまとめる', () => {
+    it('gathers consecutive quoted lines into one', () => {
       const mockMessage = { identifier: 'quote-msg-id-2' } as ChatMessage;
       fixture.componentRef.setInput('chatMessage', mockMessage);
 
@@ -142,19 +142,19 @@ describe('ChatMessageComponent', () => {
       expect(result).toBe('<span class="chat-quote">@プレイヤー<br>aaaaaaaaaa</span>');
     });
 
-    it('「> 」が無い行は変換しない', () => {
+    it('leaves an unquoted line alone', () => {
       const mockMessage = { identifier: 'no-quote-msg-id' } as ChatMessage;
       fixture.componentRef.setInput('chatMessage', mockMessage);
 
       const result = component.escapeHtmlAndRuby('普通のメッセージ\n>not a quote (no space)');
 
       expect(result).toContain('chat-quote');
-      // 半角スペース無しでも > 始まりなら引用扱い (省略可能なため)
+      // reads a quote mark without a space after it as a quotation
     });
   });
 
   describe('clickShareAsMemo', () => {
-    it('チャット本文を TextNote に変換して ObjectStore に登録すること', () => {
+    it('turns a line into a note and puts it in the store', () => {
       const message = new ChatMessage();
       message.initialize();
       message.from = 'tester';
@@ -176,7 +176,7 @@ describe('ChatMessageComponent', () => {
       }
     });
 
-    it('本文が空白のみのメッセージは何もしないこと', () => {
+    it('does nothing for a line of nothing but spaces', () => {
       const message = new ChatMessage();
       message.initialize();
       message.from = 'tester';
@@ -190,7 +190,7 @@ describe('ChatMessageComponent', () => {
       expect(after).toBe(before);
     });
 
-    it('name が空のとき既定のタイトル (共有メモ) を使うこと', () => {
+    it('falls back to the default title for a nameless note', () => {
       const message = new ChatMessage();
       message.initialize();
       message.from = 'tester';
@@ -203,7 +203,7 @@ describe('ChatMessageComponent', () => {
         component.clickShareAsMemo();
         const created = ObjectStore.instance.getObjects(TextNote).find((n) => !beforeNotes.includes(n));
         expect(created).toBeTruthy();
-        // デフォルトキー feature.tabletop.action.defaultNoteName は "共有メモ"
+        // the default title of a shared note
         expect(created!.title).toBe('共有メモ');
       } finally {
         const created = ObjectStore.instance.getObjects(TextNote).find((n) => !beforeNotes.includes(n));
@@ -211,7 +211,7 @@ describe('ChatMessageComponent', () => {
       }
     });
 
-    it('from === "System" のメッセージは canInteract=false で共有メモ化しないこと', () => {
+    it('makes no note out of a system message, which cannot be acted on', () => {
       const message = new ChatMessage();
       message.initialize();
       message.from = 'System';
@@ -225,7 +225,7 @@ describe('ChatMessageComponent', () => {
       expect(ObjectStore.instance.getObjects(TextNote).length).toBe(before);
     });
 
-    it('tag に "system-message" を含むメッセージは canInteract=false', () => {
+    it('cannot act on anything tagged as a system message', () => {
       const message = new ChatMessage();
       message.initialize();
       message.from = 'tester';
@@ -236,7 +236,7 @@ describe('ChatMessageComponent', () => {
       expect(component.canInteract).toBe(false);
     });
 
-    it('ダイスボット (System-BCDice + system タグ) は canInteract=true で返信・引用・共有メモ可能', () => {
+    it('can reply to, quote and note a dice bot message', () => {
       const message = new ChatMessage();
       message.initialize();
       message.from = 'System-BCDice';
@@ -258,8 +258,8 @@ describe('ChatMessageComponent', () => {
     });
   });
 
-  describe('canInteract と返信/引用ガード', () => {
-    it('System メッセージで clickReply は何もしないこと', () => {
+  describe('what can be acted on, and the guards on replying and quoting', () => {
+    it('replies to nothing on a system message', () => {
       const message = new ChatMessage();
       message.initialize();
       message.from = 'System';
@@ -270,7 +270,7 @@ describe('ChatMessageComponent', () => {
       expect(spy).not.toHaveBeenCalled();
     });
 
-    it('System メッセージで clickQuote は何もしないこと', () => {
+    it('quotes nothing on one', () => {
       const message = new ChatMessage();
       message.initialize();
       message.from = 'System';
@@ -283,11 +283,11 @@ describe('ChatMessageComponent', () => {
     });
   });
 
-  describe('「元のメッセージへ移動」consume 動作', () => {
+  describe('consuming a jump to the original message', () => {
     /**
-     * 引用/返信ジャンプは consume 後に必ずクリアされること。
-     * クリアされないと、その後の発言で chat-message コンポーネントが新規マウントされる度に
-     * effect 初回実行で同じ jump request を読み再スクロールしてしまう (報告された不具合)。
+     * A jump is always cleared once it is consumed.
+     * Left there, every message component mounted afterwards would read the same request on
+     * its first pass and scroll again.
      */
     function setupMessage(identifier: string) {
       const message = new ChatMessage(identifier);
@@ -296,25 +296,25 @@ describe('ChatMessageComponent', () => {
       message.text = 'hello';
       fixture.componentRef.setInput('chatMessage', message);
       fixture.detectChanges();
-      // happy-dom: scrollIntoView は no-op で十分。stub しておかないと未実装エラーになる。
+      // Scrolling into view need do nothing here, but without a stub happy-dom throws.
       const host = fixture.nativeElement as HTMLElement;
       host.scrollIntoView = vi.fn();
       return host;
     }
 
-    it('自身宛の jump request を消費した直後に chatJumpRequest が null に戻る', async () => {
+    it('clears the request as soon as it consumes one meant for it', async () => {
       setupMessage('jump-target-msg');
       const ui = TestBed.inject(UiSignalService);
 
       ui.requestChatJump('jump-target-msg');
       fixture.detectChanges();
-      // queueMicrotask 内でクリア + scrollIntoView を呼ぶ
+      // the clearing and the scrolling both happen on a microtask
       await Promise.resolve();
 
       expect(ui.chatJumpRequest()).toBeNull();
     });
 
-    it('自身宛でない jump request は触らない (他コンポーネントが消費するため)', () => {
+    it('leaves a request meant for another alone, for that one to consume', () => {
       setupMessage('msg-A');
       const ui = TestBed.inject(UiSignalService);
 

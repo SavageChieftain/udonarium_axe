@@ -22,14 +22,14 @@ describe('collectRegisteredEffects()', () => {
     ObjectStore.instance.clearDeleteHistory();
   });
 
-  it('演出の欄だけを拾うこと', () => {
+  it('picks out the effect fields alone', () => {
     appendElement(DataElementFieldType.EFFECT, '必殺技', '爆炎');
     appendElement(DataElementFieldType.TEXT, 'メモ', '斬撃');
 
     expect(collectRegisteredEffects(character)).toEqual(['爆炎']);
   });
 
-  it('入れ子の欄も拾うこと', () => {
+  it('picks up nested ones too', () => {
     const group = DataElement.create('技能', '', {});
     character.appendChild(group);
     const child = DataElement.create('一撃', '', { fieldType: DataElementFieldType.EFFECT });
@@ -39,7 +39,7 @@ describe('collectRegisteredEffects()', () => {
     expect(collectRegisteredEffects(character)).toEqual(['一閃']);
   });
 
-  it('空欄と重複を落とすこと', () => {
+  it('drops the empty and the repeated', () => {
     appendElement(DataElementFieldType.EFFECT, '技1', '爆炎');
     appendElement(DataElementFieldType.EFFECT, '技2', '爆炎');
     appendElement(DataElementFieldType.EFFECT, '技3', '  ');

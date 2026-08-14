@@ -18,13 +18,13 @@ describe('AlarmEventHandlerService', () => {
     TestBed.inject(AlarmEventHandlerService);
   });
 
-  it('alarmTimeUp で system message を送る', () => {
+  it('sends a system message when the time is up', () => {
     emitAlarmTimeUp({ text: 'time up' });
 
     expect(chatStub.sendSystemMessageAsLastSpeaker).toHaveBeenCalledWith('time up');
   });
 
-  it('alarmPop でアラームパネルを開き title/time をセットする', () => {
+  it('opens the alarm panel with its title and time', () => {
     const componentMock = { title: '', time: '' };
     panelStub.open.mockReturnValue(componentMock);
 

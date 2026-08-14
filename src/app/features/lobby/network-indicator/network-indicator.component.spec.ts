@@ -20,8 +20,8 @@ describe('NetworkIndicatorComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  describe('破棄クリーンアップ', () => {
-    it('timer が clearTimeout でクリアされ null になる', () => {
+  describe('tearing down', () => {
+    it('clears the timer', () => {
       const clearTimeoutSpy = vi.spyOn(globalThis, 'clearTimeout');
       const priv = component as unknown as { timer: ReturnType<typeof setTimeout> | null };
       priv.timer = setTimeout(() => {}, 999_999);

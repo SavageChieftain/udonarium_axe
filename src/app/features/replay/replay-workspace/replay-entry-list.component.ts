@@ -177,8 +177,8 @@ export class ReplayEntryListComponent {
 
   protected dropHere(event: DragEvent): void {
     event.preventDefault();
-    // 並べ替えの落下は取り込みの落下ではない。上へ通すと、卓へファイルを落としたときの
-    // 経路（`FileArchiver`）まで走ってしまう。
+    // Dropping to reorder is not dropping to import; letting it through would run the path
+    // for a file dropped on the table.
     event.stopPropagation();
     const seq = this.draggingSeq();
     const at = this.dropAt();

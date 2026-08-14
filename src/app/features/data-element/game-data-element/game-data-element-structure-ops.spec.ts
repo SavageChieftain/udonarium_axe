@@ -23,7 +23,7 @@ function childNames(element: DataElement): string[] {
   return element.children.map((child) => (child as DataElement).name);
 }
 
-describe('項目の組み替え', () => {
+describe('rearranging the items', () => {
   let store: ObjectStore;
 
   beforeEach(() => {
@@ -34,7 +34,7 @@ describe('項目の組み替え', () => {
   });
 
   describe('moveStructureElement()', () => {
-    it('入れ物の中へ入れること', () => {
+    it('moves an item into a container', () => {
       const from = group('元');
       const into = group('先');
       const item = field('HP');
@@ -47,7 +47,7 @@ describe('項目の組み替え', () => {
       expect(childNames(from)).toEqual([]);
     });
 
-    it('兄弟の前へ入れること', () => {
+    it('moves it in front of a sibling', () => {
       const parent = group('親');
       const first = field('HP');
       const second = field('MP');
@@ -59,7 +59,7 @@ describe('項目の組み替え', () => {
       expect(childNames(parent)).toEqual(['MP', 'HP']);
     });
 
-    it('兄弟の後ろへ入れること', () => {
+    it('moves it behind one', () => {
       const parent = group('親');
       const first = field('HP');
       const second = field('MP');
@@ -73,7 +73,7 @@ describe('項目の組み替え', () => {
       expect(childNames(parent)).toEqual(['MP', 'HP', 'SAN']);
     });
 
-    it('親を持たない相手の隣へは動かさないこと', () => {
+    it('does not move it beside something with no parent', () => {
       const orphan = group('親なし');
       const item = field('HP');
       group('元').appendChild(item);
@@ -83,7 +83,7 @@ describe('項目の組み替え', () => {
   });
 
   describe('insertElementAfter()', () => {
-    it('末尾の後ろなら、末尾に足すこと', () => {
+    it('adds it at the end when it goes behind the last', () => {
       const parent = group('親');
       const last = field('HP');
       parent.appendChild(last);
@@ -95,7 +95,7 @@ describe('項目の組み替え', () => {
   });
 
   describe('createFieldElement()', () => {
-    it('兄弟と名前が重ならないようにすること', () => {
+    it('gives it a name no sibling has', () => {
       const parent = group('親');
       parent.appendChild(field('新規タグ'));
 
@@ -105,7 +105,7 @@ describe('項目の組み替え', () => {
       expect(created.getAttribute(DataElementAttribute.ROLE)).toBe(DataElementRole.FIELD);
     });
 
-    it('続けて作っても名前が重ならないこと', () => {
+    it('keeps giving distinct names one after another', () => {
       const parent = group('親');
       const reserved = new Set<string>();
 
@@ -117,7 +117,7 @@ describe('項目の組み替え', () => {
   });
 
   describe('createGroupElement()', () => {
-    it('中身を 1 つ入れた状態で作ること', () => {
+    it('makes it with one thing already inside', () => {
       const parent = group('親');
 
       const created = createGroupElement(parent, NAMES);
@@ -127,7 +127,7 @@ describe('項目の組み替え', () => {
       expect((created.children[0] as DataElement).getAttribute(DataElementAttribute.ROLE)).toBe(DataElementRole.FIELD);
     });
 
-    it('組の名前も兄弟と重ならないようにすること', () => {
+    it('gives a group a name no sibling has either', () => {
       const parent = group('親');
       parent.appendChild(group('新規グループ'));
 

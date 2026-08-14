@@ -66,7 +66,7 @@ export class ChatTabSettingComponent {
     const tab = this.selectedTab();
     if (!this.canEditPermission || !tab || tab.isSystemTab) return;
     tab[key] = value;
-    // 発言できるなら必ず閲覧もできる（発言のみ可・閲覧不可の状態は存在しない）
+    // whoever may speak may read, so speaking without reading cannot happen
     if (key === 'plCanSpeak' && value) tab.plCanView = true;
     else if (key === 'plCanView' && !value) tab.plCanSpeak = false;
     else if (key === 'guestCanSpeak' && value) tab.guestCanView = true;
@@ -83,12 +83,12 @@ export class ChatTabSettingComponent {
   get isDeleted(): boolean {
     return this.selectedTab() ? this.objectStore.get(this.selectedTab()!.identifier) == null : false;
   }
-  /** システムタブはこの卓の備品。名前も並びも持ち出しも、部屋のタブとは別扱いにする。 */
+  /** The system tab belongs to the tool rather than the room, so its name, its place and whether it travels are all handled apart. */
   get isSystemTabSelected(): boolean {
     return !!this.selectedTab()?.isSystemTab;
   }
 
-  /** システムタブは消せない。入退室の知らせの行き先が無くなると、会話のタブへ戻ってくる。 */
+  /** It cannot be deleted; with nowhere for the arrivals and departures to go, they come back into the conversation. */
   get isDeletable(): boolean {
     return !this.isEmpty && !!this.selectedTab() && !this.isSystemTabSelected;
   }
@@ -101,7 +101,7 @@ export class ChatTabSettingComponent {
     return !this.isDeleted && !this.isSystemTabSelected;
   }
 
-  /** 部屋データとして持ち出せるか。システムタブは部屋の一部ではない。 */
+  /** Whether it travels with the room data. The system tab is no part of the room. */
   get isExportable(): boolean {
     return !this.isSystemTabSelected;
   }

@@ -44,7 +44,7 @@ describe('ChatPaletteComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('global dragging が解除されたら panel の pointer-events-none も解除されること', async () => {
+  it('lets the panel take the pointer again once the drag ends', async () => {
     await expectPanelDragRecovery(ChatPaletteComponent, {
       beforeOpen: () => {
         if (ChatTabList.instance.chatTabs.length < 1) {
@@ -58,17 +58,17 @@ describe('ChatPaletteComponent', () => {
   });
 
   describe('chatTabsVersion signal', () => {
-    it('chatTabsVersion が computed signal として公開されていること', () => {
+    it('exposes the tab version as a computed signal', () => {
       expect(typeof component.chatTabsVersion).toBe('function');
     });
 
-    it('chatTabsVersion() が chatTabs 配列を返すこと', () => {
+    it('returns the tabs from it', () => {
       fixture.detectChanges();
       const tabs = component.chatTabsVersion();
       expect(Array.isArray(tabs)).toBe(true);
     });
 
-    it('childrenChanged$ emit 後に versionOf signal が increment されること', () => {
+    it('bumps the version when the children change', () => {
       fixture.detectChanges();
       const objectChange = TestBed.inject(ObjectChangeService);
       const tabs = component.chatTabsVersion();

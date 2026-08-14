@@ -113,7 +113,7 @@ describe('ReplayDigestPanelComponent', () => {
     PeerCursor.myCursor = null as unknown as PeerCursor;
   });
 
-  it('数と人別のダイスの出方を出すこと', async () => {
+  it('shows how the dice fell, in total and by person', async () => {
     await setup();
     const text = fixture.nativeElement.textContent as string;
 
@@ -122,8 +122,8 @@ describe('ReplayDigestPanelComponent', () => {
     expect(text).not.toContain('出目が残っていません');
   });
 
-  it('見出しの鍵をそのまま画面に出さないこと', async () => {
-    // 列や称号の鍵は文字列を継ぎ足して引くので、翻訳の抜けを鍵の一覧では見つけられない。
+  it('never shows a translation key on the screen', async () => {
+    // The keys for the columns and the titles are built by joining strings, so a missing translation cannot be found in a list of keys.
     events = [
       say(1),
       say(2),
@@ -142,27 +142,27 @@ describe('ReplayDigestPanelComponent', () => {
     expect(fixture.nativeElement.textContent).not.toContain('feature.replay.digest');
   });
 
-  it('出目が残っていない記録では、その旨を言うこと', async () => {
+  it('says so for a recording that kept no rolls', async () => {
     events = [say(1), { ...say(2), kind: ReplayEventKind.ChatDice, detail: { dicebot: '' } }];
     await setup();
 
     expect(fixture.nativeElement.textContent).toContain('出目が残っていません');
   });
 
-  it('増減が残っていない記録では、ダメージ帳を出さないこと', async () => {
+  it('shows no ledger for one that kept no changes', async () => {
     await setup();
 
     expect(fixture.nativeElement.textContent).toContain('増減が残っていません');
   });
 
-  it('見えない発言を数に入れないこと', async () => {
+  it('counts no line it cannot see', async () => {
     events = [say(1), { ...say(2, 'gm'), visibility: GM_ONLY_VISIBILITY }];
     await setup();
 
     expect(numberOf('発言')).toBe('1');
   });
 
-  it('まとめを Markdown として書き出すこと', async () => {
+  it('exports the summary as markdown', async () => {
     const saved: { blob: Blob; name: string }[] = [];
     vi.spyOn(URL, 'createObjectURL').mockImplementation((blob) => {
       saved.push({ blob: blob as Blob, name: '' });
@@ -184,16 +184,16 @@ describe('ReplayDigestPanelComponent', () => {
     vi.restoreAllMocks();
   });
 
-  it('記念写真を、この記録のコマと名前で書き出すこと', async () => {
+  it('exports a keepsake photo with the pieces and names of this recording', async () => {
     await setup();
     photoButton()?.click();
     await fixture.whenStable();
 
-    // 盤に出ていたコマだけを写す。しまってあるコマは顔ぶれに入れない。
+    // Only the pieces that were out are photographed; those put away are not in the group.
     expect(savePhoto).toHaveBeenCalledWith(expect.objectContaining({ cast: [cast[0]], roomName: '第一夜' }));
   });
 
-  it('写らなかった人数を知らせること', async () => {
+  it('says how many did not fit', async () => {
     savePhoto = vi.fn().mockResolvedValue({ saved: true, omitted: 3 });
     await setup();
     photoButton()?.click();
@@ -203,7 +203,7 @@ describe('ReplayDigestPanelComponent', () => {
     expect(fixture.nativeElement.textContent).toContain('3 人');
   });
 
-  it('作れなかったときに、その旨を出すこと', async () => {
+  it('says so when it cannot make one', async () => {
     savePhoto = vi.fn().mockRejectedValue(new Error('描けません'));
     await setup();
     photoButton()?.click();
@@ -213,14 +213,14 @@ describe('ReplayDigestPanelComponent', () => {
     expect(fixture.nativeElement.textContent).toContain('写真を作れませんでした');
   });
 
-  it('コマの居ない記録では記念写真を出さないこと', async () => {
+  it('offers no photo for a recording with nobody in it', async () => {
     cast = [];
     await setup();
 
     expect(photoButton()).toBeUndefined();
   });
 
-  it('まとめるものが無ければ、その旨だけを出すこと', async () => {
+  it('says so alone when there is nothing to summarise', async () => {
     events = [];
     await setup();
 

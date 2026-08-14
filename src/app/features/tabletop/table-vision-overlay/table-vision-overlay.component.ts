@@ -12,7 +12,7 @@ import {
 import { translateZCss, Z_OFFSET_DARKNESS_PX } from '@axe/ui/tabletop/z-offset';
 
 const SPILL_MARGIN_CAP_PX = 800;
-/** ゆらめきを描き直す間隔(ms)。約 20 回/秒。 */
+/** How often the flicker is redrawn, about twenty times a second. */
 export const VISION_ANIMATION_INTERVAL_MS = 50;
 
 @Component({
@@ -109,17 +109,17 @@ export class TableVisionOverlayComponent {
       image.src = shadow.imageUrl;
       this.images.set(shadow.imageUrl, image);
     }
-    // 使わなくなった絵は手放す。抱えたままだと焼いた影ごと居座り続ける。
+    // What is no longer used is let go; held onto, the baked shadows stay with it.
     for (const url of this.images.keys()) {
       if (!live.has(url)) this.images.delete(url);
     }
   }
 
   /**
-   * 灯りがゆらぐ卓でだけ、変わらない部分を焼いておく。
+   * Only a table with a flickering light bakes the part that does not change.
    *
-   * 焼いた面は盤面ぶんの画素を持つ。ゆらがない卓では描き直し自体が起きないので、
-   * 抱えるだけ無駄になる。
+   * A baked surface holds as many pixels as the board. A table without a flicker never
+   * redraws at all, so holding one would be waste.
    */
   private refreshBake(): void {
     if (!this.plan || !this.animated) {
@@ -158,10 +158,10 @@ export class TableVisionOverlayComponent {
   }
 
   /**
-   * ゆらめきの描き直しは毎フレームまで要らない。
+   * The flicker does not need redrawing every frame.
    *
-   * 1 枚描くのに掛かるのは盤面ぜんぶの塗り直しで、変わるのは光のゆらぎだけ。
-   * 画面の更新に合わせて描くと、重い処理を 60 回/秒くり返すことになる。
+   * Each pass repaints the whole board while only the light changes,
+   * so following the display would run all that work sixty times a second.
    */
   private lastFrameAt = 0;
 

@@ -19,13 +19,13 @@ describe('MapEditorState', () => {
     state = new MapEditorState();
   });
 
-  it('ツールの初期値は select でスナップが有効', () => {
+  it('starts on the select tool with snapping on', () => {
     expect(state.tool()).toBe('select');
     expect(state.snapEnabled()).toBe(true);
     expect(state.zoom()).toBe(1);
   });
 
-  it('ensureLayerFor は無ければ作成し、同種があれば再利用する', () => {
+  it('makes a layer when there is none and reuses one of the same kind', () => {
     const first = state.ensureLayerFor('cell');
     expect(first.kind).toBe('cell');
     expect(state.current.layers.length).toBe(1);
@@ -35,7 +35,7 @@ describe('MapEditorState', () => {
     expect(state.current.layers.length).toBe(1);
   });
 
-  it('ensureLayerFor はロックされたアクティブレイヤーを使わず新規作成する', () => {
+  it('makes a new layer rather than using a locked one', () => {
     const locked = state.ensureLayerFor('cell');
     locked.locked = true;
     locked.visible = false;
@@ -44,7 +44,7 @@ describe('MapEditorState', () => {
     expect(state.current.layers.length).toBe(2);
   });
 
-  it('セル塗りジェスチャは1回の履歴として undo される', () => {
+  it('undoes a whole painting gesture in one step', () => {
     state.beginGesture();
     state.paintCell(0, 0);
     state.paintCell(1, 0);
@@ -59,14 +59,14 @@ describe('MapEditorState', () => {
     expect(state.current.layers.length).toBe(0);
   });
 
-  it('floodFill は確定され undo できる', () => {
+  it('commits a flood fill and can undo it', () => {
     state.floodFillAt(0, 0);
     const layer = state.current.layers[0] as CellLayer;
     expect(Object.keys(layer.cells).length).toBe(state.current.cols * state.current.rows);
     expect(state.canUndo()).toBe(true);
   });
 
-  it('undo/redo は canUndo/canRedo シグナルを更新し往復する', () => {
+  it('keeps the undo and redo flags in step as it goes back and forth', () => {
     state.beginGesture();
     state.paintCell(0, 0);
     state.endGesture();
@@ -83,7 +83,7 @@ describe('MapEditorState', () => {
     expect(Object.keys(layer.cells).length).toBe(1);
   });
 
-  it('newScene は履歴をリセットする', () => {
+  it('clears the history for a new scene', () => {
     state.beginGesture();
     state.paintCell(0, 0);
     state.endGesture();
@@ -97,14 +97,14 @@ describe('MapEditorState', () => {
     expect(state.current.layers.length).toBe(0);
   });
 
-  it('resize は確定される', () => {
+  it('commits a resize', () => {
     state.resize(5, 5);
     expect(state.current.cols).toBe(5);
     expect(state.current.rows).toBe(5);
     expect(state.canUndo()).toBe(true);
   });
 
-  it('スタンプの hitTest と deleteSelection が動く', () => {
+  it('hit tests and deletes a stamp', () => {
     state.stampId.set('door-single');
     state.stampSize.set(64);
     state.placeStamp(100, 100, 'スタンプ 1');
@@ -123,12 +123,12 @@ describe('MapEditorState', () => {
     expect(state.selection()).toBeNull();
   });
 
-  it('新規シーンは視認できる紙色の既定値を持つ', () => {
+  it('gives a new scene a paper colour you can see', () => {
     expect(state.current.background).toBe(DEFAULT_SCENE_BACKGROUND);
     expect(state.current.gridColor).toBe(DEFAULT_SCENE_GRID_COLOR);
   });
 
-  it('フリーハンドの hitTest / move / delete が動く', () => {
+  it('hit tests, moves and deletes a freehand stroke', () => {
     state.freehandWidth.set(4);
     state.addFreehand([0, 0, 100, 0]);
     const layer = state.current.layers.find((l) => l.kind === 'freehand') as FreehandLayer;
@@ -148,7 +148,7 @@ describe('MapEditorState', () => {
     expect(state.selection()).toBeNull();
   });
 
-  it('updateSelectedFreehand は選択中ストロークの色と幅を更新する', () => {
+  it('recolours and rewidths the selected stroke', () => {
     state.addFreehand([0, 0, 100, 0]);
     const layer = state.current.layers.find((l) => l.kind === 'freehand') as FreehandLayer;
     state.selection.set({ layerId: layer.id, itemId: layer.strokes[0].id });
@@ -157,7 +157,7 @@ describe('MapEditorState', () => {
     expect(layer.strokes[0].width).toBe(12);
   });
 
-  it('eraseAt はフリーハンドの線を部分的に消し、残りを分割して保持する', () => {
+  it('erases part of a stroke and keeps the rest as separate pieces', () => {
     state.addFreehand([0, 0, 20, 0, 40, 0, 60, 0, 80, 0]);
     const layer = state.current.layers.find((l) => l.kind === 'freehand') as FreehandLayer;
     state.setActiveLayer(layer.id);
@@ -168,7 +168,7 @@ describe('MapEditorState', () => {
     expect(strokes[1].points).toEqual([60, 0, 80, 0]);
   });
 
-  it('eraseAt は離れた位置では何も消さない', () => {
+  it('erases nothing from far away', () => {
     state.addFreehand([0, 0, 100, 0]);
     const layer = state.current.layers.find((l) => l.kind === 'freehand') as FreehandLayer;
     state.setActiveLayer(layer.id);
@@ -177,7 +177,7 @@ describe('MapEditorState', () => {
     expect(layer.strokes[0].points).toEqual([0, 0, 100, 0]);
   });
 
-  it('eraseAt はスタンプなど線以外の要素はヒットした要素ごと消す', () => {
+  it('erases a stamp or anything else that is not a stroke whole', () => {
     state.stampId.set('door-single');
     state.stampSize.set(64);
     state.placeStamp(100, 100, 'スタンプ 1');
@@ -187,13 +187,13 @@ describe('MapEditorState', () => {
     expect(layer.items.length).toBe(0);
   });
 
-  it('eraseAt はセルレイヤーには作用しない', () => {
+  it('leaves the cell layers alone', () => {
     const cell = state.ensureLayerFor('cell');
     state.setActiveLayer(cell.id);
     expect(() => state.eraseAt(0, 0, 16)).not.toThrow();
   });
 
-  it('snap はスナップ有効時にセル半分単位へ丸める', () => {
+  it('rounds to half a cell while snapping is on', () => {
     state.snapEnabled.set(true);
     expect(state.snap(40)).toBe(32);
     expect(state.snap(50)).toBe(64);
@@ -201,7 +201,7 @@ describe('MapEditorState', () => {
     expect(state.snap(40.4)).toBe(40);
   });
 
-  it('矩形の moveSelection は位置のみ平行移動し w/h を変えない', () => {
+  it('moves a rectangle without resizing it', () => {
     state.addShapeItem('rect', [10, 20, 30, 40], { type: 'solid', color: '#fff' });
     const layer = state.current.layers.find((l) => l.kind === 'shape') as ShapeLayer;
     const item = layer.items[0];
@@ -210,14 +210,14 @@ describe('MapEditorState', () => {
     expect(layer.items[0].points).toEqual([15, 27, 30, 40]);
   });
 
-  it('図形は1つごとに専用レイヤーを作る', () => {
+  it('gives each shape its own layer', () => {
     state.addShapeItem('rect', [0, 0, 10, 10], { type: 'solid', color: '#fff' }, 'rect 1');
     state.addShapeItem('rect', [20, 20, 10, 10], { type: 'solid', color: '#fff' }, 'rect 2');
     const shapeLayers = state.current.layers.filter((l) => l.kind === 'shape');
     expect(shapeLayers.length).toBe(2);
   });
 
-  it('addEmptyLayer は同種でも常に新規レイヤーを作り複数のセルレイヤーを持てる', () => {
+  it('always adds a new layer, so a scene can hold several of the same kind', () => {
     state.addEmptyLayer('cell', 'セル 1');
     state.addEmptyLayer('cell', 'セル 2');
     const cellLayers = state.current.layers.filter((l) => l.kind === 'cell');
@@ -225,7 +225,7 @@ describe('MapEditorState', () => {
     expect(state.canUndo()).toBe(true);
   });
 
-  it('スタンプは1つごとに専用レイヤーを作る', () => {
+  it('gives each stamp its own layer', () => {
     state.stampId.set('door-single');
     state.placeStamp(10, 10, 'スタンプ 1');
     state.placeStamp(20, 20, 'スタンプ 2');
@@ -233,7 +233,7 @@ describe('MapEditorState', () => {
     expect(stampLayers.length).toBe(2);
   });
 
-  it('reorderLayersTopFirst は表示順の id 配列でレイヤーを並び替え undo できる', () => {
+  it('reorders the layers from a list given top first, and can undo it', () => {
     state.addShapeItem('rect', [0, 0, 10, 10], { type: 'solid', color: '#fff' }, 'a');
     state.addShapeItem('rect', [0, 0, 10, 10], { type: 'solid', color: '#fff' }, 'b');
     state.addShapeItem('rect', [0, 0, 10, 10], { type: 'solid', color: '#fff' }, 'c');
@@ -249,7 +249,7 @@ describe('MapEditorState', () => {
     expect(state.current.layers.map((l) => l.name)).toEqual(['a', 'b', 'c']);
   });
 
-  it('reorderLayersTopFirst は id 数が合わなければ何もしない', () => {
+  it('does nothing when the list does not name every layer', () => {
     state.addShapeItem('rect', [0, 0, 10, 10], { type: 'solid', color: '#fff' }, 'a');
     state.addShapeItem('rect', [0, 0, 10, 10], { type: 'solid', color: '#fff' }, 'b');
     const before = state.current.layers.map((l) => l.id);
@@ -257,7 +257,7 @@ describe('MapEditorState', () => {
     expect(state.current.layers.map((l) => l.id)).toEqual(before);
   });
 
-  it('updateSelectedShapePointLive は選択中の曲線のアンカー点を移動する', () => {
+  it('moves an anchor of the selected curve', () => {
     state.addShapeItem('curve', [0, 0, 10, 10, 20, 0], null);
     const layer = state.current.layers.find((l) => l.kind === 'shape') as ShapeLayer;
     state.selection.set({ layerId: layer.id, itemId: layer.items[0].id });
@@ -265,7 +265,7 @@ describe('MapEditorState', () => {
     expect(layer.items[0].points).toEqual([0, 0, 15, 25, 20, 0]);
   });
 
-  it('updateSelectedShapePointLive は範囲外インデックスを無視する', () => {
+  it('ignores an anchor index out of range', () => {
     state.addShapeItem('curve', [0, 0, 10, 10], null);
     const layer = state.current.layers.find((l) => l.kind === 'shape') as ShapeLayer;
     state.selection.set({ layerId: layer.id, itemId: layer.items[0].id });
@@ -273,13 +273,13 @@ describe('MapEditorState', () => {
     expect(layer.items[0].points).toEqual([0, 0, 10, 10]);
   });
 
-  it('setGridType は確定され setGridType の値を反映する', () => {
+  it('commits a change of grid type', () => {
     state.setGridType(GridType.HEX_VERTICAL);
     expect(state.current.gridType).toBe(GridType.HEX_VERTICAL);
     expect(state.canUndo()).toBe(true);
   });
 
-  it('snapPoint はヘクスでセル中心へスナップする', () => {
+  it('snaps to the centre of a hex', () => {
     state.setGridType(GridType.HEX_VERTICAL);
     state.snapEnabled.set(true);
     const p = state.snapPoint(100, 100);
@@ -289,7 +289,7 @@ describe('MapEditorState', () => {
     expect(state.snapPoint(40.4, 50.6)).toEqual({ x: 40, y: 51 });
   });
 
-  it('currentStroke は strokeDash を含める', () => {
+  it('carries the dash pattern into the stroke', () => {
     state.strokeDash.set('dashed');
     expect(state.currentStroke().dash).toBe('dashed');
     state.addShapeItem('line', [0, 0, 10, 0], null);
@@ -297,7 +297,7 @@ describe('MapEditorState', () => {
     expect(layer.items[0].stroke!.dash).toBe('dashed');
   });
 
-  it('currentShadow は有効時のみ影を返し committed item へ付与する', () => {
+  it('gives a committed item a shadow only while shadows are on', () => {
     expect(state.currentShadow()).toBeNull();
     state.shadowEnabled.set(true);
     state.shadowBlur.set(10);
@@ -309,14 +309,14 @@ describe('MapEditorState', () => {
     expect(layer.items[0].shadow!.blur).toBe(10);
   });
 
-  it('影が無効なら committed item の shadow は null', () => {
+  it('leaves a committed item without one when they are off', () => {
     state.shadowEnabled.set(false);
     state.addShapeItem('rect', [0, 0, 10, 10], { type: 'solid', color: '#fff' });
     const layer = state.current.layers.find((l) => l.kind === 'shape') as ShapeLayer;
     expect(layer.items[0].shadow).toBeNull();
   });
 
-  it('polyline の hitTest / move / delete が動く', () => {
+  it('hit tests, moves and deletes a polyline', () => {
     state.strokeWidth.set(4);
     state.addShapeItem('polyline', [0, 0, 100, 0, 100, 100], null);
     const layer = state.current.layers.find((l) => l.kind === 'shape') as ShapeLayer;
@@ -337,7 +337,7 @@ describe('MapEditorState', () => {
     expect(layer.items.length).toBe(0);
   });
 
-  it('curve の hitTest が直線の弦から外れたスプライン上の点に当たる', () => {
+  it('hit tests a curve along the spline rather than the chord', () => {
     state.snapEnabled.set(false);
     state.strokeWidth.set(4);
     state.addShapeItem('curve', [0, 0, 50, 100, 100, 0, 150, 100], null);
@@ -363,7 +363,7 @@ describe('MapEditorState', () => {
     expect(state.hitTest(75, 300)).toBeNull();
   });
 
-  it('updateSelectedImage で clipToCells が保持される', () => {
+  it('keeps the cell clipping when updating an image', () => {
     const item: ImageItem = { id: '', imageIdentifier: 'img', x: 50, y: 50, w: 40, h: 30, rotation: 0, opacity: 1 };
     state.placeImage(item, '画像 1');
     const layer = state.current.layers.find((l) => l.kind === 'image') as ImageLayer;
@@ -372,7 +372,7 @@ describe('MapEditorState', () => {
     expect(layer.items[0].clipToCells).toBe(true);
   });
 
-  it('画像アイテムの hitTest / move / delete が動く', () => {
+  it('hit tests, moves and deletes an image', () => {
     const item: ImageItem = { id: '', imageIdentifier: 'img', x: 100, y: 100, w: 80, h: 60, rotation: 0, opacity: 1 };
     state.placeImage(item, '画像 1');
     const layer = state.current.layers.find((l) => l.kind === 'image') as ImageLayer;
@@ -394,7 +394,7 @@ describe('MapEditorState', () => {
     expect(state.selection()).toBeNull();
   });
 
-  it('textureId は image: 接頭辞の ID を受け入れ currentFill が透過する', () => {
+  it('takes a prefixed image id and passes it through to the current fill', () => {
     state.fillMode.set('texture');
     state.textureId.set('image:abc123');
     state.textureScale.set(2);

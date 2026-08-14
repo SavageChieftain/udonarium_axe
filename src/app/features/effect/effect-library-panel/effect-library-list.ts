@@ -1,13 +1,13 @@
 import { EffectPreset } from '@axe/domain/effect/effect-preset';
 
-/** 一覧の並べ替えと絞り込み。パネルから切り離して spec で固定する。 */
+/** Sorting and narrowing the list, kept apart from the panel so the specs can pin it. */
 
 export interface EffectLibraryGroup {
   tag: string;
   presets: EffectPreset[];
 }
 
-/** 既定プリセットの系統。ここに載っている順で並べ、知らない系統は後ろへ回す。 */
+/** The families of the presets that come with the tool. They are ordered as listed here, and anything else goes to the back. */
 const TAG_ORDER: readonly string[] = [
   '物理',
   '打撃',
@@ -33,7 +33,7 @@ export function matchesQuery(preset: EffectPreset, query: string): boolean {
   return `${preset.name} ${preset.tagName}`.toLowerCase().includes(needle);
 }
 
-/** 単体しか狙えないか、複数を巻き込めるか。 */
+/** Whether it takes one target or several. */
 export type TargetingFilter = 'single' | 'multi';
 
 export function isMultiTarget(preset: EffectPreset): boolean {
@@ -50,7 +50,7 @@ export function filterPresets(
 ): EffectPreset[] {
   return presets.filter(
     (preset) =>
-      // GM 専用は卓の仕込みなので、PL の一覧には名前ごと出さない。
+      // What belongs to the game master is part of the preparation, so its name stays off the players' list.
       (isGameMaster || !preset.gmOnly) &&
       matchesQuery(preset, query) &&
       (tag == null || preset.tagName === tag) &&
@@ -59,7 +59,7 @@ export function filterPresets(
   );
 }
 
-/** 系統ごとにまとめ、系統内は等級順（同じ等級なら名前順）に並べる。 */
+/** Gathers them by family, ordering each family by grade and then by name. */
 export function groupPresets(presets: readonly EffectPreset[]): EffectLibraryGroup[] {
   const groups = new Map<string, EffectPreset[]>();
   for (const preset of presets) {

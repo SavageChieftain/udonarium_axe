@@ -161,14 +161,14 @@ describe('ReplayWorkspaceComponent', () => {
     ) as HTMLElement[];
   }
 
-  describe('まとめ', () => {
+  describe('the summary', () => {
     function summaryButton(): HTMLButtonElement | undefined {
       return [...(fixture.nativeElement as HTMLElement).querySelectorAll('button')].find((button) =>
         button.textContent?.includes('まとめ')
       );
     }
 
-    it('開くときに送りを止めること', async () => {
+    it('stops the playback as it opens', async () => {
       await setup();
       summaryButton()?.click();
       fixture.detectChanges();
@@ -177,7 +177,7 @@ describe('ReplayWorkspaceComponent', () => {
       expect(fixture.nativeElement.querySelector('replay-digest-panel')).not.toBeNull();
     });
 
-    it('記録を閉じたら再生の画面に戻すこと', async () => {
+    it('returns to the playback view once the recording is closed', async () => {
       await setup();
       summaryButton()?.click();
       fixture.detectChanges();
@@ -209,26 +209,26 @@ describe('ReplayWorkspaceComponent', () => {
     PeerCursor.myCursor = null!;
   });
 
-  it('記録・舞台・一覧を一枚に並べること', async () => {
+  it('lays the recording, the stage and the list out on one screen', async () => {
     await setup();
     expect(fixture.nativeElement.querySelector('replay-recording-list')).not.toBeNull();
     expect(fixture.nativeElement.querySelector('replay-stage')).not.toBeNull();
     expect(fixture.nativeElement.querySelector('replay-entry-list')).not.toBeNull();
   });
 
-  it('記録を選ぶと開くこと', async () => {
+  it('opens a recording when one is chosen', async () => {
     await setup();
     const item = fixture.nativeElement.querySelector('replay-recording-list li') as HTMLElement;
     item.click();
     expect(open).toHaveBeenCalledWith(7);
   });
 
-  it('記録中であることを常に示すこと', async () => {
+  it('always says that it is recording', async () => {
     await setup();
     expect(fixture.nativeElement.textContent).toContain('記録中');
   });
 
-  it('記録を開いていなければ舞台と一覧を出さないこと', async () => {
+  it('shows neither the stage nor the list without one open', async () => {
     isOpen = signal(false);
     await setup();
     expect(fixture.nativeElement.querySelector('replay-stage')).toBeNull();
@@ -236,7 +236,7 @@ describe('ReplayWorkspaceComponent', () => {
     expect(fixture.nativeElement.querySelector('replay-recording-list')).not.toBeNull();
   });
 
-  it('当時の名前で行を組み立てること', async () => {
+  it('builds each line with the name as it was then', async () => {
     await setup();
     const rows = entryRows();
     expect(rows).toHaveLength(2);
@@ -244,7 +244,7 @@ describe('ReplayWorkspaceComponent', () => {
     expect(rows[1].textContent).toContain('盗賊');
   });
 
-  it('編集を始めるまで差し込みの操作を出さないこと', async () => {
+  it('offers no inserting until the editing starts', async () => {
     await setup();
     expect(fixture.nativeElement.querySelector('input[placeholder="差し込む内容"]')).toBeNull();
 
@@ -252,7 +252,7 @@ describe('ReplayWorkspaceComponent', () => {
     expect(begin).toHaveBeenCalledTimes(1);
   });
 
-  it('Ctrl+Z で一手戻せること', async () => {
+  it('takes one step back on the undo key', async () => {
     isEditing = signal(true);
     await setup();
 
@@ -260,14 +260,14 @@ describe('ReplayWorkspaceComponent', () => {
     expect(undo).toHaveBeenCalledTimes(1);
   });
 
-  it('編集していないうちは Ctrl+Z を拾わないこと', async () => {
+  it('leaves that key alone while nothing is being edited', async () => {
     await setup();
 
     fixture.nativeElement.dispatchEvent(new KeyboardEvent('keydown', { key: 'z', ctrlKey: true, bubbles: true }));
     expect(undo).not.toHaveBeenCalled();
   });
 
-  it('取り消せる手が無ければボタンを押せないこと', async () => {
+  it('leaves the button unpressable with nothing to undo', async () => {
     isEditing = signal(true);
     canUndo = signal(false);
     await setup();
@@ -275,7 +275,7 @@ describe('ReplayWorkspaceComponent', () => {
     expect(buttonByText('取り消す')?.disabled).toBe(true);
   });
 
-  it('編集中は行と行のあいだに書く場所を出すこと', async () => {
+  it('opens a place to write between the rows while editing', async () => {
     isEditing = signal(true);
     await setup();
 
@@ -284,7 +284,7 @@ describe('ReplayWorkspaceComponent', () => {
     expect(gapButtons('収録').length).toBe(entryRows().length + 1);
   });
 
-  it('あいだの ＋ を押すとその場に入力欄が開くこと', async () => {
+  it('opens a field there on a press', async () => {
     isEditing = signal(true);
     await setup();
 
@@ -294,7 +294,7 @@ describe('ReplayWorkspaceComponent', () => {
     expect(fixture.nativeElement.querySelector('input[placeholder="差し込む内容"]')).not.toBeNull();
   });
 
-  it('選んだコマの立ち絵ごと、押した場所に差し込むこと', async () => {
+  it('inserts the chosen piece, portrait and all, where the press was', async () => {
     isEditing = signal(true);
     await setup();
 

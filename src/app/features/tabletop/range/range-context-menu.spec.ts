@@ -8,7 +8,7 @@ import { createSyncTranslate } from '@axe/testing/transloco-testing';
 const t = createSyncTranslate('ja');
 
 describe('buildRangeContextMenu', () => {
-  it('形状変更メニューにひし形を表示しないこと', () => {
+  it('leaves the diamond out of the shape menu', () => {
     const range = RangeArea.create('test', 1, 1, 50);
 
     try {

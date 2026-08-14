@@ -42,7 +42,7 @@ describe('PasswordCheckComponent', () => {
       resolveSpy = vi.spyOn(modalService, 'resolve').mockImplementation(() => {});
     });
 
-    it('正しいパスワードでmodalService.resolve(password)が呼ばれること', async () => {
+    it('resolves with the right password', async () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       vi.spyOn((component as any).targetPeerContext, 'verifyPassword').mockResolvedValue(true);
       component.password.set('correct');
@@ -52,7 +52,7 @@ describe('PasswordCheckComponent', () => {
       expect(resolveSpy).toHaveBeenCalledWith('correct');
     });
 
-    it('正しいパスワードでhelpが「パスワードが違います」にならないこと', async () => {
+    it('says nothing about a wrong one', async () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       vi.spyOn((component as any).targetPeerContext, 'verifyPassword').mockResolvedValue(true);
       component.password.set('correct');
@@ -62,7 +62,7 @@ describe('PasswordCheckComponent', () => {
       expect(component.help()).toBe('');
     });
 
-    it('間違ったパスワードでmodalService.resolveが呼ばれないこと', async () => {
+    it('resolves nothing for a wrong password', async () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       vi.spyOn((component as any).targetPeerContext, 'verifyPassword').mockResolvedValue(false);
       component.password.set('wrong');
@@ -72,7 +72,7 @@ describe('PasswordCheckComponent', () => {
       expect(resolveSpy).not.toHaveBeenCalled();
     });
 
-    it('間違ったパスワードでhelpが「パスワードが違います」になること', async () => {
+    it('says the password is wrong', async () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       vi.spyOn((component as any).targetPeerContext, 'verifyPassword').mockResolvedValue(false);
       component.password.set('wrong');
@@ -83,8 +83,8 @@ describe('PasswordCheckComponent', () => {
     });
   });
 
-  describe('受け取った PeerContext での verifyPassword', () => {
-    it('createRoom で組み立てた完全な PeerContext を渡せば正しいパスワードが通り、誤りは弾かれる', async () => {
+  describe('checking the password against the peer it was given', () => {
+    it('takes the right password and turns the wrong one away for a room made the usual way', async () => {
       const room = await PeerContext.createRoom('user', 'a1', 'マイルーム', 'secret');
       setModalOption(modalService, {
         peerContext: room,

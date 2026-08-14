@@ -1,11 +1,11 @@
 /**
- * 配信に重ねる画面に出す、直近のやり取り。
+ * The recent exchanges shown on the streaming overlay.
  *
- * 配信は流れていくものなので、画面には**新しいものを数件だけ**残す。
- * 古いものは、卓では読めても配信では読まれないまま流れるので落とす。
+ * A stream runs on, so the screen keeps **only the newest few**.
+ * The older ones can be read at the table but scroll past unread on the stream, so they go.
  *
- * 密談（宛先つき）と伏せたダイスは出さない。配信の画面は誰のものでもない場所に出るので、
- * 卓の中では隠れているものが、そのまま観客に見えてしまう。
+ * Private lines and hidden rolls stay off. The overlay goes somewhere that belongs to
+ * nobody, where what is hidden at the table would be plain to the audience.
  */
 
 export interface OverlaySource {
@@ -13,7 +13,7 @@ export interface OverlaySource {
   readonly name: string;
   readonly text: string;
   readonly timestamp: number;
-  /** 並べる順。同じ時刻の発言でも卓と同じ順で読めるように、チャットと同じ物差しを使う。 */
+  /** The order, taken from the same measure as the chat so two lines of one moment read as they do at the table. */
   readonly order: number;
   readonly color: string;
   readonly isDice: boolean;
@@ -31,9 +31,9 @@ export interface OverlayLine {
 }
 
 export interface OverlayFeedOptions {
-  /** 画面に残す件数。 */
+  /** How many stay on the screen. */
   readonly limit: number;
-  /** これより古いものは落とす。0 なら時間では落とさない。 */
+  /** Anything older goes. At zero nothing is dropped for its age. */
   readonly maxAgeMs: number;
 }
 

@@ -19,10 +19,10 @@ import { TranslocoModule } from '@jsverse/transloco';
 export const REPLAY_SCRIPT_FORMATS = [ReplayScriptFormat.Novel, ReplayScriptFormat.Script] as const;
 
 /**
- * 記録を読み物として書き出す。
+ * Exports a recording as something to read.
  *
- * 動画と同じ絵コンテを使うので、章の切れ目も地の文の扱いも動画と揃う。
- * 見えるものは書き出す人のロールで決まる（動画と同じ）。
+ * It works from the same storyboard as the video, so the chapter breaks and the narration match it.
+ * What is visible follows the role of whoever exports it, as it does for the video.
  */
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -77,7 +77,7 @@ export class ReplayScriptPanelComponent {
   private storyboard() {
     return buildReplayStoryboard(this.events(), this.playback.cast(), {
       pacing: ReplayShotPacing.Reading,
-      // 盤面の動きは、入れると読み物が操作ログになる。頼まれたときだけ入れる。
+      // The movements on the board would turn the reading into an operation log, so they go in only when asked for.
       scope: this.withBoard() ? ReplayShotScope.Everything : ReplayShotScope.Lines,
       viewer: { userId: PeerCursor.myCursor?.userId ?? '', role: PeerCursor.myRole },
       caption: (event: ReplayEvent) => this.captionOf(event),

@@ -43,13 +43,13 @@ describe('EffectTargetOverlayComponent', () => {
     return Array.from((fixture.nativeElement as HTMLElement).querySelectorAll('div'));
   }
 
-  it('選択中でなければ何も描かないこと', () => {
+  it('draws nothing while nothing is being aimed', () => {
     fixture.detectChanges();
 
     expect(elements()).toHaveLength(0);
   });
 
-  it('選んだ順の番号を出すこと', () => {
+  it('numbers the targets in the order they were chosen', () => {
     targeting.begin(preset);
     targeting.pick(characters[1].identifier);
     targeting.pick(characters[0].identifier);
@@ -59,12 +59,12 @@ describe('EffectTargetOverlayComponent', () => {
     expect(badges.map((badge) => badge.textContent?.trim())).toEqual(['1', '2']);
   });
 
-  it('撃ち手を選んでいるときだけ線を引くこと', () => {
+  it('draws the line only once there is a caster', () => {
     targeting.begin(preset);
     targeting.pick(characters[1].identifier);
     fixture.detectChanges();
 
-    // 撃ち手なし: 印と番号だけ。
+    // Without one there are marks and numbers alone.
     expect(elements()).toHaveLength(2);
     expect(component().links()).toHaveLength(0);
 

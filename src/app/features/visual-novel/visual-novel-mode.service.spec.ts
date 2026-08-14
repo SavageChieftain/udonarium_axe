@@ -20,38 +20,38 @@ describe('VisualNovelModeService', () => {
     off();
   });
 
-  it('初期状態では非アクティブであること', () => {
+  it('starts inactive', () => {
     expect(service.active()).toBe(false);
   });
 
-  it('activate() / deactivate() でアクティブ状態が切り替わること', () => {
+  it('goes active and inactive on request', () => {
     service.activate();
     expect(service.active()).toBe(true);
     service.deactivate();
     expect(service.active()).toBe(false);
   });
 
-  it('toggle() でアクティブ状態が反転すること', () => {
+  it('flips between them on a toggle', () => {
     service.toggle();
     expect(service.active()).toBe(true);
     service.toggle();
     expect(service.active()).toBe(false);
   });
 
-  it('切り替えを記録できるよう手元に知らせること', () => {
+  it('tells this end about the switch so it can be recorded', () => {
     service.activate();
     service.deactivate();
     expect(announced).toEqual([true, false]);
   });
 
-  it('変わらないときは知らせないこと', () => {
+  it('says nothing when nothing changed', () => {
     service.deactivate();
     service.activate();
     service.activate();
     expect(announced).toEqual([true]);
   });
 
-  it('知らせを受けて表示を合わせること', () => {
+  it('follows word from elsewhere', () => {
     localDispatch(VN_MODE_EVENT, { active: true });
     expect(service.active()).toBe(true);
 
@@ -59,7 +59,7 @@ describe('VisualNovelModeService', () => {
     expect(service.active()).toBe(false);
   });
 
-  it('知らせを受けても知らせを重ねないこと', () => {
+  it('does not pass that word on again', () => {
     localDispatch(VN_MODE_EVENT, { active: true });
     expect(announced).toEqual([true]);
     expect(service.active()).toBe(true);

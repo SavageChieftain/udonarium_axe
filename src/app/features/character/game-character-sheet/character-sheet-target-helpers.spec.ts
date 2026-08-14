@@ -11,10 +11,10 @@ import { TextNote } from '@axe/domain/tabletop/text-note';
 import { cloneTabletopObject } from '@axe/features/character/game-character-sheet/character-sheet-target-helpers';
 
 /**
- * happy-dom の DOMParser は属性名のドットを許容しないため `source.clone()` (内部で
- * toXml → DOMParser を経由) を実環境では動かせない。代わりに各クラスのプロトタイプの
- * `clone` をモックし、cloneTabletopObject の分岐ロジック（owner/isLock 解除・SoundEffect 発火）
- * のみを検証する。
+ * The parser of happy-dom refuses a dot in an attribute name, so a real clone, which goes
+ * through xml and that parser, cannot run here. The clone on each prototype is mocked
+ * instead, leaving only the branching to check: clearing the owner and the lock, and the
+ * sound it makes.
  */
 function stubClone<T extends CharacterSheetTarget>(source: T, factory: () => T): () => void {
   const proto = Object.getPrototypeOf(source) as { clone?: () => T };
@@ -43,7 +43,7 @@ describe('cloneTabletopObject', () => {
     restoreClone = null;
   });
 
-  it('クローン位置は元の座標 + 既定 50px ずらす', () => {
+  it('puts a copy fifty pixels from the original', () => {
     const source = new GameCharacter();
     source.location.x = 100;
     source.location.y = 200;
@@ -56,7 +56,7 @@ describe('cloneTabletopObject', () => {
     expect(cloned!.location.y).toBe(250);
   });
 
-  it('offsetPx を渡せばずらし量を変えられる', () => {
+  it('takes any offset it is given', () => {
     const source = new GameCharacter();
     let cloned: GameCharacter | null = null;
     restoreClone = stubClone(source, () => (cloned = new GameCharacter()));
@@ -67,7 +67,7 @@ describe('cloneTabletopObject', () => {
     expect(cloned!.location.y).toBe(25);
   });
 
-  it('Terrain は isLocked を解除し SoundEffect を 1 回鳴らす', () => {
+  it('unlocks a copied terrain and makes one sound', () => {
     const source = new Terrain();
     source.isLocked = true;
     let cloned: Terrain | null = null;
@@ -84,7 +84,7 @@ describe('cloneTabletopObject', () => {
     expect(playSpy).toHaveBeenCalledTimes(1);
   });
 
-  it('Card は owner / isLock を解除し SoundEffect を 1 回鳴らす', () => {
+  it('clears the owner and the lock of a card and makes one sound', () => {
     const source = new Card();
     let cloned: Card | null = null;
     restoreClone = stubClone(source, () => {
@@ -102,7 +102,7 @@ describe('cloneTabletopObject', () => {
     expect(playSpy).toHaveBeenCalledTimes(1);
   });
 
-  it('CardStack は owner / isLock を解除し SoundEffect を 1 回鳴らす', () => {
+  it('does the same for a deck', () => {
     const source = new CardStack();
     let cloned: CardStack | null = null;
     restoreClone = stubClone(source, () => {
@@ -120,7 +120,7 @@ describe('cloneTabletopObject', () => {
     expect(playSpy).toHaveBeenCalledTimes(1);
   });
 
-  it('GameTableMask は isLock を解除し SoundEffect を 1 回鳴らす', () => {
+  it('unlocks a mask and makes one sound', () => {
     const source = new GameTableMask();
     let cloned: GameTableMask | null = null;
     restoreClone = stubClone(source, () => {
@@ -136,7 +136,7 @@ describe('cloneTabletopObject', () => {
     expect(playSpy).toHaveBeenCalledTimes(1);
   });
 
-  it('TextNote は SoundEffect を 1 回鳴らす', () => {
+  it('makes one sound for a note', () => {
     const source = new TextNote();
     restoreClone = stubClone(source, () => new TextNote());
 
@@ -145,7 +145,7 @@ describe('cloneTabletopObject', () => {
     expect(playSpy).toHaveBeenCalledTimes(1);
   });
 
-  it('DiceSymbol は SoundEffect を 2 回鳴らす (dicePut + piecePut)', () => {
+  it('makes two for a die, one for the die and one for the piece', () => {
     const source = new DiceSymbol();
     restoreClone = stubClone(source, () => new DiceSymbol());
 
@@ -154,7 +154,7 @@ describe('cloneTabletopObject', () => {
     expect(playSpy).toHaveBeenCalledTimes(2);
   });
 
-  it('GameCharacter は SoundEffect を 1 回鳴らす (デフォルト分岐)', () => {
+  it('makes one for a character, as anything else does', () => {
     const source = new GameCharacter();
     restoreClone = stubClone(source, () => new GameCharacter());
 

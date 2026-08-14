@@ -160,7 +160,7 @@ export class TextNoteComponent {
     return note.title;
   });
 
-  /** TextNote とその子 DataElement の全変更を追跡する computed。テンプレートから参照して OnPush を突破する */
+  /** Follows every change to the note and its elements; the template reads it to get past OnPush. */
   readonly textNoteVersion = computed(() => {
     const note = this.textNote();
     let v = this.objectChange.versionOf(note.identifier)();
@@ -406,7 +406,7 @@ export class TextNoteComponent {
     if (!textArea) return;
 
     if (!this.textNote().limitHeight) {
-      // flex:1 で親の高さを埋め尽くすため、インライン height をリセットして CSS に委ねる
+      // The inline height is cleared so the stylesheet can fill the parent.
       textArea.style.height = '';
     } else {
       textArea.style.height = '0';

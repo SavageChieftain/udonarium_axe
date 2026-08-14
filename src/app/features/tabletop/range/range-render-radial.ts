@@ -67,7 +67,7 @@ export function renderCorn(
   const p2x_ = setting.range * gridSize;
   const p2y_ = 0.5 * setting.width * gridSize;
 
-  // クリッピング座標（コーンの根本から時計回りにクリップ範囲を定義）
+  // the clip, running clockwise from the foot of the cone
   const clip01x_ = cx_ - gridSize * 1.5;
   const clip01y_ = cy_;
   const clip02x_ = cx_ - gridSize * 1.0;

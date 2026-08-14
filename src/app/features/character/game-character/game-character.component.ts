@@ -174,15 +174,15 @@ export class GameCharacterComponent {
       const changes = diffResourceSnapshots(previous, snapshot, (identifier) => names.get(identifier) ?? '');
       if (changes.length < 1) return;
 
-      // その場で描き、他の端末へは知らせる。差分を各自が見張ると、
-      // 読み込みや同期で入れ替わった値まで増減として扱ってしまう。
+      // It is drawn here and announced elsewhere. Watching for the difference at each end
+      // would count a value replaced by a load or a sync as a change.
       const character = untracked(this.gameCharacter);
       if (!character) return;
       untracked(() => this.showResourceChanges(changes));
       callResourceChange({ characterIdentifier: character.identifier, changes });
     });
 
-    // 他の端末が変えたぶんを受けて描く。自分が知らせたぶんは既に描いている。
+    // What another end changed is drawn on word from it; what this end changed is already drawn.
     resourceChange$.subscribe((event) => {
       if (event.emittedBy === getPeerContext().peerId) return;
       if (event.characterIdentifier !== this.gameCharacter()?.identifier) return;
@@ -643,9 +643,9 @@ export class GameCharacterComponent {
     return { border: `solid 6px ${borderColor}` };
   }
 
-  // pedestal*Style 系は CD サイクル毎に getter として走り、各回で新規 Record を生成していた。
-  // 値が変わらない限り同じ object 参照を返したいので computed 化。N=300 キャラ環境で 1 CD あたり
-  // 1000+ 件の不要な object alloc と clipPath 文字列構築をカットする。
+  // The pedestal styles ran as getters on every change-detection pass and built a fresh
+  // record each time. Computed, they hand back the same object until something changes,
+  // which saves a thousand allocations and as many clip paths a pass with three hundred characters on the table.
   protected readonly pedestalOuterStyle = computed<Record<string, string>>(() => {
     const params = this.pedestalHexParams();
     if (!params) return {} as Record<string, string>;
@@ -759,7 +759,7 @@ export class GameCharacterComponent {
     );
   }
 
-  /** 倒れたときの崩れ方。演出が自分を狙っている間だけ入る。 */
+  /** How it goes down, set only while an effect is aimed at it. */
   readonly defeatReaction = computed<string>(() => {
     const identifier = this.gameCharacter()?.identifier;
     if (!identifier) return '';
@@ -831,7 +831,7 @@ export class GameCharacterComponent {
     }
   }
 
-  /** キャラクターシートに登録した演出を撃つ。名前で引くので部屋をまたいでも同じ行が使える。 */
+  /** Fires an effect from a character sheet. It is looked up by name, so the same row works in any room. */
   private invokeEffect(char: GameCharacter, name: string): void {
     const preset = this.effectLibrary.findByName(name);
     if (preset) this.effectCast.fireFromCharacter(preset, char);

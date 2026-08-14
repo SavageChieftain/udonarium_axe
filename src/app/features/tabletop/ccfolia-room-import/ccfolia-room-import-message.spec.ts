@@ -15,7 +15,7 @@ function summaryOf(overrides: Partial<CcfoliaRoomImportSummary> = {}): CcfoliaRo
 }
 
 describe('buildRoomImportMessages', () => {
-  it('取り込み結果と BGM の注意書きを出す', () => {
+  it('reports what came in, with a note about the music', () => {
     expect(buildRoomImportMessages(summaryOf())).toEqual([
       {
         key: 'feature.tabletop.ccfoliaImport.imported',
@@ -25,7 +25,7 @@ describe('buildRoomImportMessages', () => {
     ]);
   });
 
-  it('取りこぼした要素を種別ごとに 1 行ずつ並べる', () => {
+  it('gives each kind of missing element a line of its own', () => {
     const messages = buildRoomImportMessages(
       summaryOf({
         hiddenPanelCount: 1,
@@ -47,7 +47,7 @@ describe('buildRoomImportMessages', () => {
     expect(messages[5].params).toEqual({ count: 5 });
   });
 
-  it('件数 0 の種別は行を出さない', () => {
+  it('leaves out the kinds that lost nothing', () => {
     const keys = buildRoomImportMessages(summaryOf({ skipped: { panels: 0, decks: 2, effects: 0 } })).map(
       (message) => message.key
     );

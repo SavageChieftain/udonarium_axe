@@ -32,7 +32,7 @@ describe('buildTableAmbienceContextMenu', () => {
     return TableAmbience.create('毒沼', 'swamp', 4, 4);
   }
 
-  it('種類を選ぶと切り替わること', () => {
+  it('switches kind on a choice', () => {
     const ambience = makeAmbience();
     const kinds = findByName(
       buildTableAmbienceContextMenu(ambience, 50, () => undefined, t),
@@ -42,7 +42,7 @@ describe('buildTableAmbienceContextMenu', () => {
     expect(ambience.kind).toBe('vent');
   });
 
-  it('いま選ばれている種類に印を付けること', () => {
+  it('marks the kind in use', () => {
     const ambience = makeAmbience();
     const kinds = findByName(
       buildTableAmbienceContextMenu(ambience, 50, () => undefined, t),
@@ -51,7 +51,7 @@ describe('buildTableAmbienceContextMenu', () => {
     expect(kinds.subActions.find((item) => item.name.includes('swamp'))!.name.startsWith('✔')).toBe(true);
   });
 
-  it('濃さを選ぶと反映されること', () => {
+  it('takes a change of density', () => {
     const ambience = makeAmbience();
     const density = findByName(
       buildTableAmbienceContextMenu(ambience, 50, () => undefined, t),
@@ -61,7 +61,7 @@ describe('buildTableAmbienceContextMenu', () => {
     expect(ambience.density).toBe(1);
   });
 
-  it('広さを変えても中心が動かないこと', () => {
+  it('keeps the centre still as the area grows', () => {
     const ambience = makeAmbience();
     ambience.location.x = 200;
     ambience.location.y = 400;
@@ -77,14 +77,14 @@ describe('buildTableAmbienceContextMenu', () => {
     expect(ambience.location.y).toBe(350);
   });
 
-  it('設定を開くアクションが呼び出しへ渡ること', () => {
+  it('passes the settings action through', () => {
     let opened = 0;
     const menu = buildTableAmbienceContextMenu(makeAmbience(), 50, () => (opened += 1), t);
     (findByName(menu, 'settings') as { action: () => void }).action();
     expect(opened).toBe(1);
   });
 
-  it('削除で ObjectStore から取り除くこと', () => {
+  it('takes it out of the store on delete', () => {
     const ambience = makeAmbience();
     const menu = buildTableAmbienceContextMenu(ambience, 50, () => undefined, t);
     (findByName(menu, 'delete') as { action: () => void }).action();

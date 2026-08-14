@@ -22,7 +22,7 @@ describe('CutInBgmComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('audiosが配列を返すこと', () => {
+  it('returns its audio as a list', () => {
     expect(Array.isArray(component.audios())).toBe(true);
   });
 });

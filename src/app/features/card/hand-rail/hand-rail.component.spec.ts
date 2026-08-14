@@ -41,7 +41,7 @@ describe('HandRailComponent', () => {
     PeerCursor.myCursor = null!;
   });
 
-  it('自分の手札に置かれたカードだけを並べる', () => {
+  it('lays out only the cards in your own hands', () => {
     const mine = makeCard(handLocationOf('me'));
     makeCard(handLocationOf('other'));
     makeCard('table');
@@ -49,14 +49,14 @@ describe('HandRailComponent', () => {
     expect(component.cards()).toEqual([mine]);
   });
 
-  it('所有権だけ持つ卓上のカードは手札に出さない', () => {
+  it('leaves a card owned but left on the table out of the hand', () => {
     const peeked = makeCard('table');
     peeked.owner = 'me';
 
     expect(component.cards()).toEqual([]);
   });
 
-  it('開いていて卓を編集できる役割のときだけレールを描画する', async () => {
+  it('draws the rail only while it is open to somebody who may edit the table', async () => {
     const rail = TestBed.inject(HandRailService);
 
     fixture.detectChanges();
@@ -81,7 +81,7 @@ describe('HandRailComponent', () => {
     expect(fixture.nativeElement.querySelector('.hand-rail')).toBeNull();
   });
 
-  it('表向きで場に出すと卓上へ戻り手札から外れる', () => {
+  it('puts a card face up back onto the table and out of the hand', () => {
     const card = makeCard(handLocationOf('me'));
 
     (component as unknown as { playFaceUp: (c: Card) => void }).playFaceUp(card);
@@ -91,7 +91,7 @@ describe('HandRailComponent', () => {
     expect(component.cards()).toEqual([]);
   });
 
-  it('裏向きで場に出すと伏せた状態で卓上へ戻る', () => {
+  it('puts one face down back onto the table still hidden', () => {
     const card = makeCard(handLocationOf('me'));
 
     (component as unknown as { playFaceDown: (c: Card) => void }).playFaceDown(card);
@@ -101,7 +101,7 @@ describe('HandRailComponent', () => {
     expect(card.owner).toBe('');
   });
 
-  it('場に出したカードへ視点を移す', () => {
+  it('moves the view to the card just played', () => {
     const card = makeCard(handLocationOf('me'));
     card.location.x = 120;
     card.location.y = 80;

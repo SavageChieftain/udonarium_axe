@@ -27,12 +27,12 @@ describe('CardStackComponent', () => {
   });
 
   describe('signal-driven CD', () => {
-    it('animeStateがsignalであること', () => {
+    it('holds the animation state in a signal', () => {
       expect(typeof component.animeState).toBe('function');
       expect(component.animeState()).toBe('inactive');
     });
 
-    it('nameゲッターがnetworkVersionを参照していること', () => {
+    it('reads the name through the network version', () => {
       const cardStack = CardStack.create('テストスタック');
       fixture.componentRef.setInput('cardStack', cardStack);
       const objectChangeService = TestBed.inject(ObjectChangeService);
@@ -43,20 +43,20 @@ describe('CardStackComponent', () => {
       expect(spy).toHaveBeenCalled();
     });
 
-    it('isIconHiddenがsignalであること', () => {
+    it('holds the hidden icon in a signal', () => {
       expect(typeof component.isIconHidden).toBe('function');
       expect(component.isIconHidden()).toBe(false);
     });
 
-    it('ChangeDetectorRefを使用していないこと', () => {
-      // Batch A+Bで全markForCheckを除去後、CDRefは不要
+    it('asks for no change detector', () => {
+      // No change detector is needed now that nothing is marked by hand.
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       expect((component as any).changeDetector).toBeUndefined();
     });
   });
 
   describe('timer cleanup on destroy', () => {
-    it('doubleClickTimer が clearTimeout でクリアされる', () => {
+    it('clears the double-tap timer', () => {
       const clearTimeoutSpy = vi.spyOn(globalThis, 'clearTimeout');
       const priv = component as unknown as { doubleClickTimer: ReturnType<typeof setTimeout> | null };
       priv.doubleClickTimer = setTimeout(() => {}, 999_999);
@@ -66,7 +66,7 @@ describe('CardStackComponent', () => {
       expect(clearTimeoutSpy).toHaveBeenCalled();
     });
 
-    it('iconHiddenTimer が clearTimeout でクリアされる', () => {
+    it('clears the icon timer', () => {
       const clearTimeoutSpy = vi.spyOn(globalThis, 'clearTimeout');
       const priv = component as unknown as { iconHiddenTimer: ReturnType<typeof setTimeout> | null };
       priv.iconHiddenTimer = setTimeout(() => {}, 999_999);
@@ -77,7 +77,7 @@ describe('CardStackComponent', () => {
     });
   });
 
-  describe('stack 3D 表現', () => {
+  describe('how a deck looks in three dimensions', () => {
     function makeStackWithCards(count: number): CardStack {
       const stack = CardStack.create(`stack-${count}`);
       for (let i = 0; i < count; i++) stack.putOnBottom(Card.create(`c${i}`, '', '', 2));
@@ -92,7 +92,7 @@ describe('CardStackComponent', () => {
       return (component as unknown as { stackLayers(): readonly { z: number; bg: string }[] }).stackLayers();
     }
 
-    it('1枚以下なら厚みは0でレイヤーも空', () => {
+    it('gives a single card no thickness and no layers', () => {
       const stack0 = makeStackWithCards(0);
       fixture.componentRef.setInput('cardStack', stack0);
       try {
@@ -112,7 +112,7 @@ describe('CardStackComponent', () => {
       }
     });
 
-    it('枚数に応じて厚みが増え、最大60pxで頭打ちになる', () => {
+    it('thickens with the cards up to a limit', () => {
       const stack10 = makeStackWithCards(10);
       fixture.componentRef.setInput('cardStack', stack10);
       try {
@@ -130,7 +130,7 @@ describe('CardStackComponent', () => {
       }
     });
 
-    it('レイヤー数は (枚数 - 1) で、最大 30 で頭打ち', () => {
+    it('puts a layer between each pair of cards, up to a limit', () => {
       const stack5 = makeStackWithCards(5);
       fixture.componentRef.setInput('cardStack', stack5);
       try {
@@ -148,7 +148,7 @@ describe('CardStackComponent', () => {
       }
     });
 
-    it('レイヤーは2色高コントラストの交互配色で z は厚みを等分する', () => {
+    it('alternates two contrasting colours and spaces the layers evenly through the thickness', () => {
       const stack = makeStackWithCards(10);
       fixture.componentRef.setInput('cardStack', stack);
       try {
@@ -163,7 +163,7 @@ describe('CardStackComponent', () => {
       }
     });
 
-    it('mode2d では厚みもレイヤーも省略される', () => {
+    it('leaves out both in the flat mode', () => {
       const stack = makeStackWithCards(20);
       fixture.componentRef.setInput('cardStack', stack);
       const tabletop = TestBed.inject(TabletopService);
@@ -179,8 +179,8 @@ describe('CardStackComponent', () => {
     });
   });
 
-  describe('複数枚ドロー', () => {
-    it('指定枚数だけ山札からカードを出して配置をずらすこと', () => {
+  describe('drawing several', () => {
+    it('draws as many as it is asked for and staggers them', () => {
       vi.spyOn(Math, 'random').mockReturnValue(0);
       const cardStack = CardStack.create('draw-stack');
       cardStack.location.name = 'table';
@@ -205,7 +205,7 @@ describe('CardStackComponent', () => {
       }
     });
 
-    it('指定枚数が山札残数を超えても残り枚数だけ引くこと', () => {
+    it('draws what is left when it is asked for more', () => {
       vi.spyOn(Math, 'random').mockReturnValue(0);
       const cardStack = CardStack.create('draw-stack-limit');
       cardStack.putOnBottom(Card.create('c1', '', '', 2));

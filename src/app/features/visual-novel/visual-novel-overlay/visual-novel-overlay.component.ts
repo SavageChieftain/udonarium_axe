@@ -104,7 +104,7 @@ const EMOTION_MARK_COLORS: Record<Exclude<VnEmotionMark, 'none'>, string> = {
   silence: 'text-gray-500',
 };
 
-/** 同時に 1 つだけ開く吹き出し。 */
+/** The balloon, of which one opens at a time. */
 type VisualNovelPopover = 'backlog' | 'emote' | 'soundBoard' | 'slotGuide' | 'palette' | 'shortcutHelp';
 
 @Component({
@@ -181,9 +181,9 @@ export class VisualNovelOverlayComponent {
   readonly text = signal('');
   readonly autoPlay = this.playback.autoPlay;
   /**
-   * 開いている吹き出しは常に 1 つ。
+   * Only ever one is open.
    *
-   * 種類ごとに旗を持つと「開けたら他を閉じる」を毎回書くことになり、書き漏らすと重なる。
+   * A flag per kind would mean writing close-the-others every time, and one missed leaves two open.
    */
   private readonly openPopover = signal<VisualNovelPopover | null>(null);
   readonly isSkipping = this.playback.isSkipping;

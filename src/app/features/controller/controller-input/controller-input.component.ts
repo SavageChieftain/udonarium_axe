@@ -221,10 +221,10 @@ export class ControllerInputComponent {
   }
 
   /**
-   * この駒が自分から見えているか。
+   * Whether this piece can be seen from here.
    *
-   * 名前は発言可否に似ているが、見ているのは置き場と隠し設定。卓の上でも
-   * 一覧から隠していれば出さないし、他の人の手元にある駒も出さない。
+   * The name suggests who may speak, but what it reads is where the piece is and whether
+   * it is hidden: one hidden from the list stays off even on the table, as does one in somebody else's hands.
    */
   private isVisibleToMe(gameCharacter: GameCharacter): boolean {
     const locationName = gameCharacter.location.name;

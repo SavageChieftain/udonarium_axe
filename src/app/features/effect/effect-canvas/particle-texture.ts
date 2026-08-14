@@ -4,10 +4,10 @@ import { withAlpha } from '@axe/domain/effect/particles/shared';
 export { withAlpha };
 
 /**
- * 柔らかい粒のテクスチャを色ごとに焼いてキャッシュする。
+ * Bakes a soft particle for each colour and keeps it.
  *
- * 粒 1 つずつに createRadialGradient を呼ぶと重いうえ、縁が硬いと枚数を重ねても
- * 濃淡が出ない。あらかじめ中心が白く外周へ落ちる円を作り、それを拡大して使う。
+ * A gradient per particle is expensive, and a hard edge gives no depth however many are
+ * laid over each other. A circle white at the centre and falling off to the rim is made once and scaled up.
  */
 
 const TEXTURE_SIZE = 128;
@@ -33,7 +33,7 @@ export function particleTexture(shape: ParticleShape, color: string): HTMLCanvas
   const gradient = context.createRadialGradient(half, half, 0, half, half, half);
 
   if (shape === 'smoke') {
-    // 煙は芯を持たせず、輪郭をぼかしたまま広く薄く。
+    // Smoke has no core: wide, thin and soft at the edge.
     gradient.addColorStop(0, withAlpha(color, 0.85));
     gradient.addColorStop(0.45, withAlpha(color, 0.4));
     gradient.addColorStop(1, withAlpha(color, 0));
@@ -50,7 +50,7 @@ export function particleTexture(shape: ParticleShape, color: string): HTMLCanvas
   return canvas;
 }
 
-/** 砕けた岩。輪郭を持たせたいので、ぼかさず多角形で塗る。 */
+/** Broken rock, filled as a polygon rather than softened, so it keeps an outline. */
 function drawChunk(context: CanvasRenderingContext2D, size: number, color: string): void {
   const points = [
     [0.5, 0.06],
@@ -73,7 +73,7 @@ function drawChunk(context: CanvasRenderingContext2D, size: number, color: strin
   context.fillStyle = color;
   context.fill();
 
-  // 上面だけ明るくして立体に見せる。
+  // Only the top face is lit, which gives it body.
   context.beginPath();
   context.moveTo(0.5 * size, 0.06 * size);
   context.lineTo(0.86 * size, 0.3 * size);

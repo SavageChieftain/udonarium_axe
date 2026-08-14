@@ -48,8 +48,8 @@ describe('GameDataElementComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  describe('構造ドラッグ&ドロップ', () => {
-    it('同じ親の中で要素を後ろへ移動できること', () => {
+  describe('dragging the structure about', () => {
+    it('moves an item back within its parent', () => {
       const parent = DataElement.create('parent', '');
       const dragged = DataElement.create('dragged', '');
       const target = DataElement.create('target', '');
@@ -74,7 +74,7 @@ describe('GameDataElementComponent', () => {
       expect(dropEvent.stopPropagation).toHaveBeenCalled();
     });
 
-    it('フィールドをセクション直下へ移動できないこと', () => {
+    it('refuses to move a field directly under a section', () => {
       const detail = DataElement.create('detail', '');
       const sourceSection = DataElement.create('source', '', { role: DataElementRole.SECTION });
       const targetSection = DataElement.create('target', '', { role: DataElementRole.SECTION });
@@ -101,7 +101,7 @@ describe('GameDataElementComponent', () => {
       expect(field.fieldRole).toBe(DataElementRole.FIELD);
     });
 
-    it('グループをセクション直下へ移動できること', () => {
+    it('moves a group there', () => {
       const detail = DataElement.create('detail', '');
       const sourceSection = DataElement.create('source', '', { role: DataElementRole.SECTION });
       const targetSection = DataElement.create('target', '', { role: DataElementRole.SECTION });
@@ -130,7 +130,7 @@ describe('GameDataElementComponent', () => {
       expect(group.fieldRole).toBe(DataElementRole.GROUP);
     });
 
-    it('DnDで前のグループ内へ移動できること', () => {
+    it('moves an item into the group before it', () => {
       const section = DataElement.create('section', '', { role: DataElementRole.SECTION });
       const group = DataElement.create('group', '', { role: DataElementRole.GROUP });
       const field = DataElement.create('field', 'value');
@@ -156,7 +156,7 @@ describe('GameDataElementComponent', () => {
       expect(field.fieldRole).toBe(DataElementRole.FIELD);
     });
 
-    it('DnDでグループをグループ内へ移動できること', () => {
+    it('moves a group into another', () => {
       const section = DataElement.create('section', '', { role: DataElementRole.SECTION });
       const targetGroup = DataElement.create('target', '', { role: DataElementRole.GROUP });
       const draggedGroup = DataElement.create('dragged', '', { role: DataElementRole.GROUP });
@@ -182,7 +182,7 @@ describe('GameDataElementComponent', () => {
       expect(draggedGroup.fieldRole).toBe(DataElementRole.GROUP);
     });
 
-    it('DnDでフィールドを親グループの後ろへ直置きできないこと', () => {
+    it('refuses to drop a field straight behind its group', () => {
       const section = DataElement.create('section', '', { role: DataElementRole.SECTION });
       const group = DataElement.create('group', '', { role: DataElementRole.GROUP });
       const field = DataElement.create('field', 'value');
@@ -209,7 +209,7 @@ describe('GameDataElementComponent', () => {
       expect(field.fieldRole).toBe(DataElementRole.FIELD);
     });
 
-    it('行の追加ボタンで同じ親の次の位置にフィールドを追加できること', () => {
+    it('adds a row right after the one it was asked from', () => {
       const group = DataElement.create('group', '', { role: DataElementRole.GROUP });
       const hp = DataElement.create('HP', '');
       const mp = DataElement.create('MP', '');
@@ -226,7 +226,7 @@ describe('GameDataElementComponent', () => {
       expect((group.children[1] as DataElement).fieldRole).toBe(DataElementRole.FIELD);
     });
 
-    it('行の追加時はタグ名が重複しないよう自動採番すること', () => {
+    it('numbers a new row so its tag is its own', () => {
       const detail = DataElement.create('detail', '');
       const section = DataElement.create('section', '', { role: DataElementRole.SECTION });
       const group = DataElement.create('group', '', { role: DataElementRole.GROUP });
@@ -244,7 +244,7 @@ describe('GameDataElementComponent', () => {
       expect(group.children.map((child) => child.name)).toEqual(['タグ', 'タグ 2']);
     });
 
-    it('重複するタグ名へのリネームは保存しないこと', () => {
+    it('refuses to rename a tag onto one already taken', () => {
       vi.useFakeTimers();
       try {
         const detail = DataElement.create('detail', '');
@@ -273,7 +273,7 @@ describe('GameDataElementComponent', () => {
       }
     });
 
-    it('別グループ内の同じタグ名へのリネームは許可すること', () => {
+    it('allows the same tag in another group', () => {
       vi.useFakeTimers();
       try {
         const detail = DataElement.create('detail', '');
@@ -303,7 +303,7 @@ describe('GameDataElementComponent', () => {
       }
     });
 
-    it('参照名コピーでパス形式のタグ名を書き込むこと', () => {
+    it('copies the tag as a path', () => {
       const writeText = vi.fn().mockResolvedValue(undefined);
       const originalClipboard = navigator.clipboard;
       Object.defineProperty(navigator, 'clipboard', {
@@ -334,7 +334,7 @@ describe('GameDataElementComponent', () => {
       }
     });
 
-    it('セクション直下ではフィールドを追加できないこと', () => {
+    it('adds no field directly under a section', () => {
       const section = DataElement.create('section', '', { role: DataElementRole.SECTION });
 
       fixture.componentRef.setInput('isEdit', true);
@@ -349,7 +349,7 @@ describe('GameDataElementComponent', () => {
       expect(component.canAddChildGroupElement()).toBe(true);
     });
 
-    it('見出しの追加ボタンでグループを追加できること', () => {
+    it('adds a group from a heading', () => {
       const section = DataElement.create('section', '', { role: DataElementRole.SECTION });
 
       fixture.componentRef.setInput('isEdit', true);
@@ -365,7 +365,7 @@ describe('GameDataElementComponent', () => {
       expect((group.children[0] as DataElement).fieldRole).toBe(DataElementRole.FIELD);
     });
 
-    it('最上位見出しから内部にグループを追加できること', () => {
+    it('adds one inside the topmost heading', () => {
       const detail = DataElement.create('detail', '');
       const section = DataElement.create('section', '', { role: DataElementRole.SECTION });
       const next = DataElement.create('next', '', { role: DataElementRole.SECTION });
@@ -387,7 +387,7 @@ describe('GameDataElementComponent', () => {
       expect((section.children[1] as DataElement).children[0].fieldRole).toBe(DataElementRole.FIELD);
     });
 
-    it('グループから下位グループを追加できること', () => {
+    it('adds a group inside a group', () => {
       const section = DataElement.create('section', '', { role: DataElementRole.SECTION });
       const group = DataElement.create('group', '', { role: DataElementRole.GROUP });
       const next = DataElement.create('next', '', { role: DataElementRole.GROUP });
@@ -406,7 +406,7 @@ describe('GameDataElementComponent', () => {
       expect((group.children[0] as DataElement).children[0].fieldRole).toBe(DataElementRole.FIELD);
     });
 
-    it('3段階目のグループから下位グループを追加できないこと', () => {
+    it('adds none inside the third', () => {
       const section = DataElement.create('section', '', { role: DataElementRole.SECTION });
       const group = DataElement.create('group', '', { role: DataElementRole.GROUP });
       const nestedGroup = DataElement.create('nested', '', { role: DataElementRole.GROUP });
@@ -425,7 +425,7 @@ describe('GameDataElementComponent', () => {
       expect(component.canAddChildFieldElement()).toBe(true);
     });
 
-    it('コンテナの表示モードをテーブルへ切り替えられること', () => {
+    it('shows a container as a table', () => {
       const group = DataElement.create('group', '', { role: DataElementRole.GROUP });
 
       fixture.componentRef.setInput('isEdit', true);
@@ -442,7 +442,7 @@ describe('GameDataElementComponent', () => {
       expect(group.viewMode).toBe(DataElementViewMode.NORMAL);
     });
 
-    it('テーブル表示モードでは閲覧時だけ子グループを行として表示すること', () => {
+    it('lays the child groups out as rows while reading, and not while editing', () => {
       const section = DataElement.create('戦闘特技', '', {
         role: DataElementRole.SECTION,
         viewMode: DataElementViewMode.TABLE,
@@ -473,7 +473,7 @@ describe('GameDataElementComponent', () => {
       expect(fixture.nativeElement.querySelector('.elm-view-table')).toBeNull();
     });
 
-    it('テーブル表示モードは列表示名とギャップ列を反映すること', () => {
+    it('takes the column names and the gaps from the settings', () => {
       const section = DataElement.create('技能表', '', {
         role: DataElementRole.SECTION,
         viewMode: DataElementViewMode.TABLE,
@@ -543,7 +543,7 @@ describe('GameDataElementComponent', () => {
       expect(fixture.nativeElement.querySelector('.elm-view-table-column--gap-active')).toBeTruthy();
     });
 
-    it('テーブル表示モードは列グループ、行見出し、選択セルを反映すること', () => {
+    it('takes the column groups, the row headings and the chosen cells', () => {
       const section = DataElement.create('技能表タイプ2', '', {
         role: DataElementRole.SECTION,
         viewMode: DataElementViewMode.TABLE,
@@ -588,7 +588,7 @@ describe('GameDataElementComponent', () => {
       expect(rankCell.value).toBe('上級');
     });
 
-    it('テーブル表示モードの画像セルは画像として表示すること', () => {
+    it('shows an image cell as a picture', () => {
       const image = ImageStorage.instance.add('table-image.png');
       try {
         const section = DataElement.create('画像一覧', '', {
@@ -619,7 +619,7 @@ describe('GameDataElementComponent', () => {
       }
     });
 
-    it('子グループだけを持つ行がある場合はテーブル化せず通常表示で中身を保持すること', () => {
+    it('keeps the contents in the ordinary layout when a row holds nothing but groups', () => {
       const section = DataElement.create('戦闘特技', '', {
         role: DataElementRole.SECTION,
         viewMode: DataElementViewMode.TABLE,
@@ -643,8 +643,8 @@ describe('GameDataElementComponent', () => {
     });
   });
 
-  describe('カスタムフィールド型', () => {
-    it('fieldType変更時に互換typeも更新すること', () => {
+  describe('the field types', () => {
+    it('keeps the compatibility type in step with the field type', () => {
       const element = DataElement.create('HP', 10);
       fixture.componentRef.setInput('gameDataElement', element);
       fixture.detectChanges();
@@ -655,7 +655,7 @@ describe('GameDataElementComponent', () => {
       expect(element.type).toBe(DataElementType.NUMBER_RESOURCE);
     });
 
-    it('リソース表示モードではrangeではなく数値入力だけを表示すること', () => {
+    it('shows a resource as a number rather than a slider', () => {
       const element = DataElement.create('HP', 200, {
         currentValue: 120,
         fieldType: DataElementFieldType.RESOURCE,
@@ -670,7 +670,7 @@ describe('GameDataElementComponent', () => {
       expect(fixture.nativeElement.querySelectorAll('.resource-number')).toHaveLength(2);
     });
 
-    it('リソース: 現在値の上限が表示中の最大値と一致すること', () => {
+    it('caps the current value at the maximum on show', () => {
       const element = DataElement.create('HP', 100, {
         currentValue: 0,
         fieldType: DataElementFieldType.RESOURCE,
@@ -686,7 +686,7 @@ describe('GameDataElementComponent', () => {
       expect(component.currentValueMaxAttr()).toBe('100');
     });
 
-    it('リソース: value が空なら現在値の上限は設定されない (data-max は無視)', () => {
+    it('sets no cap while the value is empty', () => {
       const element = DataElement.create('HP', '', {
         currentValue: 0,
         fieldType: DataElementFieldType.RESOURCE,
@@ -701,7 +701,7 @@ describe('GameDataElementComponent', () => {
       expect(component.currentValueMaxAttr()).toBe('');
     });
 
-    it('リソース: 現在値が表示中の最大値を超えていたら blur 時にクランプされる', () => {
+    it('clamps a value past that maximum when the field loses focus', () => {
       const element = DataElement.create('HP', 100, {
         currentValue: 50,
         fieldType: DataElementFieldType.RESOURCE,
@@ -717,7 +717,7 @@ describe('GameDataElementComponent', () => {
       expect(component.currentValue).toBe(100);
     });
 
-    it('リソース: maxText は元の最大値 (data-max 属性) であり value SyncVar (現在最大値) とは別物', () => {
+    it('keeps the original maximum apart from the current one', () => {
       const element = DataElement.create('HP', 200, {
         currentValue: 50,
         fieldType: DataElementFieldType.RESOURCE,
@@ -728,13 +728,13 @@ describe('GameDataElementComponent', () => {
       fixture.componentRef.setInput('gameDataElement', element);
       fixture.detectChanges();
 
-      // value SyncVar = 現在最大値 (/200 の "200")
+      // the value holds the current maximum
       expect(component.value).toBe(200);
-      // maxText = 元の最大値 (data-max), value とは独立
+      // the text holds the original, independently of it
       expect(component.maxText).toBe('300');
     });
 
-    it('リソース: 現在最大値 (value) は [減少限界, 元の最大値] でクランプされる', () => {
+    it('clamps the current maximum between the floor and the original', () => {
       const element = DataElement.create('HP', 100, {
         currentValue: 50,
         fieldType: DataElementFieldType.RESOURCE,
@@ -746,18 +746,18 @@ describe('GameDataElementComponent', () => {
       fixture.componentRef.setInput('gameDataElement', element);
       fixture.detectChanges();
 
-      // 現在最大値が元の最大値 (300) を超えたらクランプ
+      // clamped at the original when it goes above
       component.value = 500;
       component.commitValueBounds();
       expect(component.value).toBe(300);
 
-      // 減少限界 (0) より下になったらクランプ
+      // clamped at the floor when it goes below
       component.value = -10;
       component.commitValueBounds();
       expect(component.value).toBe(0);
     });
 
-    it('数値型: maxText setter は data-max 属性に書き込む', () => {
+    it('writes the maximum onto the attribute', () => {
       const element = DataElement.create('Str', 10, {
         fieldType: DataElementFieldType.NUMBER,
       });
@@ -769,7 +769,7 @@ describe('GameDataElementComponent', () => {
       expect(element.getAttribute(DataElementAttribute.MAX)).toBe('100');
     });
 
-    it('数値型: min/max を数値 (NumberValueAccessor 経由) で受けても属性として保存されること', () => {
+    it('stores the bounds as attributes even when they arrive as numbers', () => {
       const element = DataElement.create('Str', 10, {
         fieldType: DataElementFieldType.NUMBER,
       });
@@ -777,7 +777,7 @@ describe('GameDataElementComponent', () => {
       fixture.componentRef.setInput('gameDataElement', element);
       fixture.detectChanges();
 
-      // NumberValueAccessor は parseFloat した数値を setter に渡す
+      // the accessor hands the setter a parsed number
       (component as unknown as { maxText: number }).maxText = 300;
       (component as unknown as { minText: number }).minText = 0;
 
@@ -785,7 +785,7 @@ describe('GameDataElementComponent', () => {
       expect(element.getAttribute(DataElementAttribute.MIN)).toBe('0');
     });
 
-    it('数値型: min/max に null (input クリア) が渡されたら属性が削除されること', () => {
+    it('removes the attribute when a bound is cleared', () => {
       const element = DataElement.create('Str', 10, {
         fieldType: DataElementFieldType.NUMBER,
         max: '300',
@@ -799,7 +799,7 @@ describe('GameDataElementComponent', () => {
       expect(element.getAttribute(DataElementAttribute.MAX)).toBe('');
     });
 
-    it('値の編集中に他属性が更新されてもローカルの未保存値が巻き戻されないこと', async () => {
+    it('keeps an unsaved edit through a change to another attribute', async () => {
       const element = DataElement.create('HP', 0, {
         currentValue: 0,
         fieldType: DataElementFieldType.RESOURCE,
@@ -820,7 +820,7 @@ describe('GameDataElementComponent', () => {
       expect(component.value).toBe(50);
     });
 
-    it('数値: data-min / data-max を超えた値は blur 時にクランプされる', () => {
+    it('clamps a value outside the bounds when the field loses focus', () => {
       const element = DataElement.create('Strength', 5, {
         fieldType: DataElementFieldType.NUMBER,
         min: '0',
@@ -839,7 +839,7 @@ describe('GameDataElementComponent', () => {
       expect(component.value).toBe(0);
     });
 
-    it('selectの選択肢を改行とカンマから取得できること', () => {
+    it('reads the options apart by their lines and commas', () => {
       const element = DataElement.create('種族', '', { choices: '人間, エルフ\nドワーフ' });
       fixture.componentRef.setInput('gameDataElement', element);
       fixture.detectChanges();
@@ -847,7 +847,7 @@ describe('GameDataElementComponent', () => {
       expect(component.getSelectOptions()).toEqual(['人間', 'エルフ', 'ドワーフ']);
     });
 
-    it('field metadata を属性として更新できること', () => {
+    it('stores the field metadata as attributes', () => {
       const element = DataElement.create('種族', '人間', { fieldType: DataElementFieldType.SELECT });
       fixture.componentRef.setInput('isEdit', true);
       fixture.componentRef.setInput('gameDataElement', element);
@@ -868,7 +868,7 @@ describe('GameDataElementComponent', () => {
       expect(element.getAttribute(DataElementAttribute.UNIT)).toBe('');
     });
 
-    it('テーブルセル用の表示メタデータを詳細設定から更新できること', () => {
+    it('sets the cell metadata from the advanced settings', () => {
       const table = DataElement.create('技能表', '', {
         role: DataElementRole.SECTION,
         viewMode: DataElementViewMode.TABLE,
@@ -901,7 +901,7 @@ describe('GameDataElementComponent', () => {
       expect(cell.getAttribute(DataElementAttribute.CELL_KIND)).toBe('');
     });
 
-    it('テーブルコンテナ用の行見出しを詳細設定から更新できること', () => {
+    it('sets the row heading from there too', () => {
       const table = DataElement.create('技能表タイプ2', '', {
         role: DataElementRole.SECTION,
         viewMode: DataElementViewMode.TABLE,
@@ -918,7 +918,7 @@ describe('GameDataElementComponent', () => {
       expect(table.getAttribute(DataElementAttribute.ROW_HEADER_LABEL)).toBe('技能');
     });
 
-    it('calcフィールドの計算式を設定・取得できること', () => {
+    it('keeps the formula of a calculated field', () => {
       const element = DataElement.create('合計', '', { fieldType: DataElementFieldType.CALC });
       fixture.componentRef.setInput('isEdit', true);
       fixture.componentRef.setInput('gameDataElement', element);
@@ -930,7 +930,7 @@ describe('GameDataElementComponent', () => {
       expect(component.formulaText).toBe('HP + MP');
     });
 
-    it('calcフィールドが兄弟フィールドの値から結果を計算できること', () => {
+    it('works its result out from its siblings', () => {
       const root = DataElement.create('detail', '');
       const hp = DataElement.create('HP', '30');
       const mp = DataElement.create('MP', '20');
@@ -945,7 +945,7 @@ describe('GameDataElementComponent', () => {
       expect(component.calcResult()).toBe('50');
     });
 
-    it('calcフィールドは重複する単純名を曖昧扱いしパス参照で計算できること', () => {
+    it('treats a repeated short name as ambiguous and works from the full path', () => {
       const root = DataElement.create('detail', '');
       const section = DataElement.create('戦闘特技', '');
       const skillA = DataElement.create('最終能力', '');
@@ -973,7 +973,7 @@ describe('GameDataElementComponent', () => {
       expect(component.calcResult()).toBe('?');
     });
 
-    it('calcフィールドの式が無効な場合は?を返すこと', () => {
+    it('returns a question mark for a formula it cannot read', () => {
       const element = DataElement.create('合計', '', {
         fieldType: DataElementFieldType.CALC,
         formula: 'UNDEFINED_VAR',
@@ -984,7 +984,7 @@ describe('GameDataElementComponent', () => {
       expect(component.calcResult()).toBe('?');
     });
 
-    it('imageフィールドでも詳細設定パネルを表示すること', () => {
+    it('shows the advanced settings for an image field as well', () => {
       const element = DataElement.create('参考画像', '', { fieldType: DataElementFieldType.IMAGE });
       fixture.componentRef.setInput('isEdit', true);
       fixture.componentRef.setInput('gameDataElement', element);
@@ -993,7 +993,7 @@ describe('GameDataElementComponent', () => {
       expect(component.shouldShowFieldOptions()).toBe(true);
     });
 
-    it('toggleImagePopupOriginalで属性を切り替えられること', () => {
+    it('switches the full-size pop-up on and off', () => {
       const element = DataElement.create('参考画像', '', { fieldType: DataElementFieldType.IMAGE });
       fixture.componentRef.setInput('isEdit', true);
       fixture.componentRef.setInput('gameDataElement', element);
@@ -1012,7 +1012,7 @@ describe('GameDataElementComponent', () => {
       expect(element.getAttribute(DataElementAttribute.IMAGE_POPUP_ORIGINAL)).toBe('');
     });
 
-    it('imageフィールドの詳細設定パネルに原寸表示チェックボックスを描画すること', () => {
+    it('puts that switch in the advanced settings', () => {
       const element = DataElement.create('参考画像', '', { fieldType: DataElementFieldType.IMAGE });
       fixture.componentRef.setInput('isEdit', true);
       fixture.componentRef.setInput('gameDataElement', element);
@@ -1033,34 +1033,34 @@ describe('GameDataElementComponent', () => {
     });
   });
 
-  describe('editCheckedIds による URL 編集チェック状態管理', () => {
-    it('changeChk で未登録のIDが追加されること', () => {
+  describe('keeping track of which addresses are being edited', () => {
+    it('marks one that was not marked', () => {
       component.changeChk('elem-1');
       expect(component.isEditUrl('elem-1')).toBe(true);
     });
 
-    it('changeChk で登録済みのIDが削除されること', () => {
+    it('unmarks one that was', () => {
       component.changeChk('elem-1');
       component.changeChk('elem-1');
       expect(component.isEditUrl('elem-1')).toBe(false);
     });
 
-    it('isEditUrl が未登録IDでfalseを返すこと', () => {
+    it('is false for one that was never marked', () => {
       expect(component.isEditUrl('unknown')).toBe(false);
     });
 
-    it('textFocus でIDが追加されること', () => {
+    it('marks one on focus', () => {
       component.textFocus('elem-2');
       expect(component.isEditUrl('elem-2')).toBe(true);
     });
 
-    it('textFocus で既に登録済みのIDが維持されること', () => {
+    it('leaves one already marked alone', () => {
       component.changeChk('elem-3');
       component.textFocus('elem-3');
       expect(component.isEditUrl('elem-3')).toBe(true);
     });
 
-    it('複数のIDを独立して管理できること', () => {
+    it('keeps several apart', () => {
       component.changeChk('elem-a');
       component.changeChk('elem-b');
       expect(component.isEditUrl('elem-a')).toBe(true);

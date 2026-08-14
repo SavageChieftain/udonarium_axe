@@ -3,7 +3,7 @@ import { WallFace } from '@axe/domain/tabletop/vision-scene';
 export type WallSide = 'north' | 'south' | 'west' | 'east';
 
 export interface TerrainFootprint {
-  /** 盤面での左上(px)。回していない状態の位置。 */
+  /** The top left on the board, in pixels, before any turn. */
   x: number;
   y: number;
   widthPx: number;
@@ -18,10 +18,10 @@ interface Corner {
 }
 
 /**
- * 地形の壁 1 面を盤面の座標で表す。
+ * One wall of a piece of terrain, in board coordinates.
  *
- * 軸に沿った四角として組むと、回した地形では面が求まらない。面が無ければ壁に光も影も
- * 落とせず、光源の中にいても壁だけが黒いまま残る。角と法線を一緒に回して出す。
+ * Built as an axis-aligned box, turned terrain would have no face, and without one no
+ * light or shadow reaches it. The corners and the normal are turned together.
  */
 export function terrainWallFace(side: WallSide, footprint: TerrainFootprint): WallFace {
   const { x, y, widthPx, depthPx, heightPx, rotateDeg } = footprint;
@@ -39,7 +39,7 @@ export function terrainWallFace(side: WallSide, footprint: TerrainFootprint): Wa
   });
   const normal = (nx: number, ny: number): Corner => ({ x: nx * cos - ny * sin, y: nx * sin + ny * cos });
 
-  // 4 面ぶん作ってから 1 面選ぶと、地形 1 つにつき毎回 3 面ぶんを捨てる。
+  // Building all four and picking one would throw three away for every piece of terrain.
   const edge = ((): { a: Corner; b: Corner; n: Corner } => {
     switch (side) {
       case 'north':

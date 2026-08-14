@@ -22,29 +22,29 @@ describe('owned-characters', () => {
   });
 
   describe('isOwnedByUser', () => {
-    it('自分が所有するキャラを対象にする', () => {
+    it('works on a character you own', () => {
       expect(isOwnedByUser(makeCharacter('me', 'table'), 'me')).toBe(true);
     });
 
-    it('他人が所有するキャラは対象外', () => {
+    it('leaves somebody elses alone', () => {
       expect(isOwnedByUser(makeCharacter('other', 'table'), 'me')).toBe(false);
     });
 
-    it('未所有のキャラは対象外', () => {
+    it('leaves an unowned one alone', () => {
       expect(isOwnedByUser(makeCharacter('', 'table'), 'me')).toBe(false);
     });
 
-    it('墓場のキャラは所有していても対象外', () => {
+    it('leaves one in the graveyard alone, owned or not', () => {
       expect(isOwnedByUser(makeCharacter('me', 'graveyard'), 'me')).toBe(false);
     });
 
-    it('userId が空なら何も対象にしない', () => {
+    it('works on nothing without a user', () => {
       expect(isOwnedByUser(makeCharacter('', 'table'), '')).toBe(false);
     });
   });
 
   describe('selectOwnedCharacters', () => {
-    it('自分の所有キャラだけを元の順序で返す', () => {
+    it('returns the characters you own, in the order they were in', () => {
       const mine = makeCharacter('me', 'table');
       const others = makeCharacter('other', 'table');
       const buried = makeCharacter('me', 'graveyard');
@@ -55,7 +55,7 @@ describe('owned-characters', () => {
   });
 
   describe('isOnTable', () => {
-    it('テーブル上のキャラだけ真', () => {
+    it('is true only for one on the table', () => {
       expect(isOnTable(makeCharacter('me', 'table'))).toBe(true);
       expect(isOnTable(makeCharacter('me', 'common'))).toBe(false);
     });
