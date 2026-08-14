@@ -11,6 +11,7 @@ import {
   viewChild,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { ActiveChatTabService } from '@axe/application/chat/active-chat-tab.service';
 import { ChatMessageService } from '@axe/application/chat/chat-message.service';
 import { ChatPreferencesService } from '@axe/application/chat/chat-preferences.service';
 import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
@@ -61,6 +62,7 @@ export class ChatWindowComponent {
   private readonly pointerDeviceService = inject(PointerDeviceService);
   private readonly objectStore = inject(ObjectStore);
   private readonly chatPrefs = inject(ChatPreferencesService);
+  private readonly activeChatTab = inject(ActiveChatTabService);
   private readonly t = inject(TRANSLATE_FN);
 
   sendFrom: string = 'Guest';
@@ -79,6 +81,7 @@ export class ChatWindowComponent {
   set chatTabidentifier(chatTabidentifier: string) {
     const hasChanged: boolean = this._chatTabidentifier() !== chatTabidentifier;
     this._chatTabidentifier.set(chatTabidentifier);
+    this.activeChatTab.set(chatTabidentifier);
     this.updatePanelTitle();
     if (hasChanged) {
       this.scrollToBottom(true);
@@ -178,9 +181,8 @@ export class ChatWindowComponent {
 
   constructor() {
     this.sendFrom = PeerCursor.myCursor.identifier;
-    this._chatTabidentifier.set(
-      0 < this.chatMessageService.chatTabs.length ? this.chatMessageService.chatTabs[0].identifier : ''
-    );
+    this.chatTabidentifier =
+      0 < this.chatMessageService.chatTabs.length ? this.chatMessageService.chatTabs[0].identifier : '';
     this.objectChange.messageAdded$.subscribe((event) => {
       if (event.tabIdentifier !== this.chatTabidentifier) return;
       const message = this.objectStore.get<ChatMessage>(event.messageIdentifier);

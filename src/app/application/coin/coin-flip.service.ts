@@ -1,4 +1,5 @@
 import { inject, Injectable } from '@angular/core';
+import { ActiveChatTabService } from '@axe/application/chat/active-chat-tab.service';
 import { ChatMessageService } from '@axe/application/chat/chat-message.service';
 import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
@@ -12,6 +13,7 @@ const RESULT_ANNOUNCE_DELAY_MS = 900;
 
 @Injectable({ providedIn: 'root' })
 export class CoinFlipService {
+  private readonly activeChatTab = inject(ActiveChatTabService);
   private readonly chatMessageService = inject(ChatMessageService);
   private readonly objectChange = inject(ObjectChangeService);
   private readonly objectStore = inject(ObjectStore);
@@ -32,9 +34,12 @@ export class CoinFlipService {
       name: coin.name,
       face: this.faceLabel(face),
     });
+    // 表裏は 1d2 と変わらない。振った本人が見ているタブへ出す。
+    const tab = this.activeChatTab.current();
     setTimeout(() => {
       if (!this.objectStore.get(coin.identifier)) return;
-      this.chatMessageService.sendSystemMessage(text);
+      if (tab) this.chatMessageService.sendSystemMessageToTab(tab, text);
+      else this.chatMessageService.sendSystemMessage(text);
     }, RESULT_ANNOUNCE_DELAY_MS);
     return face;
   }

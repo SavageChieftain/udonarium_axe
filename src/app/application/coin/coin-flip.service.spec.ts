@@ -1,9 +1,11 @@
 import { TestBed } from '@angular/core/testing';
+import { ActiveChatTabService } from '@axe/application/chat/active-chat-tab.service';
 import { ChatMessageService } from '@axe/application/chat/chat-message.service';
 import { CoinFlipService } from '@axe/application/coin/coin-flip.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { ChatMessage } from '@axe/domain/chat/chat-message';
+import { ChatTab } from '@axe/domain/chat/chat-tab';
 import { Coin } from '@axe/domain/coin/coin';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
@@ -88,5 +90,43 @@ describe('CoinFlipService', () => {
   it('面のラベルが表と裏になること', () => {
     expect(service.faceLabel('front')).toBe('表');
     expect(service.faceLabel('back')).toBe('裏');
+  });
+
+  describe('結果の行き先', () => {
+    it('見ているタブへ出すこと', () => {
+      // 表裏は 1d2 と変わらない。振った本人が読んでいる場所に無いと届かない。
+      vi.useFakeTimers();
+      try {
+        const tab = new ChatTab();
+        tab.name = '雑談';
+        tab.initialize();
+        created.push(tab);
+        TestBed.inject(ActiveChatTabService).set(tab.identifier);
+        const toTab = vi
+          .spyOn(TestBed.inject(ChatMessageService), 'sendSystemMessageToTab')
+          .mockReturnValue(null as unknown as ChatMessage);
+
+        service.flip(makeCoin());
+        vi.runAllTimers();
+
+        expect(toTab).toHaveBeenCalledOnce();
+        expect(toTab.mock.calls[0][0]).toBe(tab);
+        expect(sendSystemMessage).not.toHaveBeenCalled();
+      } finally {
+        vi.useRealTimers();
+      }
+    });
+
+    it('窓を開いていなければ従来どおりに出すこと', () => {
+      vi.useFakeTimers();
+      try {
+        service.flip(makeCoin());
+        vi.runAllTimers();
+
+        expect(sendSystemMessage).toHaveBeenCalledOnce();
+      } finally {
+        vi.useRealTimers();
+      }
+    });
   });
 });
