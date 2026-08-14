@@ -1,3 +1,34 @@
+## [1.36.2](https://github.com/SavageChieftain/udonarium_axe/compare/v1.36.1...v1.36.2) (2026-08-14)
+
+### 🐛 Bug Fixes
+
+* **effect:** keep the effect library when a room brings none ([90490a7](https://github.com/SavageChieftain/udonarium_axe/commit/90490a710b7c58843d8444b4bd8900be7fb20187))
+* **tabletop:** keep the table's stacking order inside the table ([0bc8016](https://github.com/SavageChieftain/udonarium_axe/commit/0bc8016976fc432d264917c1c90967c09a7e801a))
+
+### ⚡ Performance
+
+* **effect:** draw particles without sorting them into new arrays ([11d8892](https://github.com/SavageChieftain/udonarium_axe/commit/11d8892040fa585c61120753988e0d207e1f4f37))
+* **replay:** seek without rebuilding the whole room ([1a3da65](https://github.com/SavageChieftain/udonarium_axe/commit/1a3da655d83dbdfd0313fb3e27b33abd73611c90))
+* **replay:** solve each shot's board only when the video reaches it ([9275a79](https://github.com/SavageChieftain/udonarium_axe/commit/9275a79141e16555a897d963d8ed6f673652fb08))
+* **replay:** stop copying boards and rescanning maps during export ([3c783af](https://github.com/SavageChieftain/udonarium_axe/commit/3c783af24867942cfe1f91b749f5ec300ab1ce96))
+* **tabletop:** bake the still part of the darkness overlay ([d53732d](https://github.com/SavageChieftain/udonarium_axe/commit/d53732d8814f79727d0af8b7e6b8349fa5d19542))
+* **tabletop:** reuse vision answers within one geometry epoch ([c67fd04](https://github.com/SavageChieftain/udonarium_axe/commit/c67fd04d949aab3641fbf37345b9b1e8857ade37))
+
+### 📝 Documentation
+
+* **website:** add v1.36.1 release notes ([93e7508](https://github.com/SavageChieftain/udonarium_axe/commit/93e750878879efdd29e9e24caccce05bb9b0fe8c))
+
+### ♻️ Refactor
+
+* **character:** give the import profiles one profile builder ([d414c9c](https://github.com/SavageChieftain/udonarium_axe/commit/d414c9c264fb446f8167e8e2e91f2276fb8957dd))
+* **character:** one row-zipping builder, and an honest module name ([2ea19e1](https://github.com/SavageChieftain/udonarium_axe/commit/2ea19e1b19ddb32d46b8f08836ad2dc2da46cc34))
+* **character:** recognise a sheet by its slug, once ([97368aa](https://github.com/SavageChieftain/udonarium_axe/commit/97368aa6a28ce0dc5845346bc8b4e28498c0b6f5))
+* delete exports nothing references ([9759381](https://github.com/SavageChieftain/udonarium_axe/commit/9759381df5938824cc0862cb3dd9406c705c1e5a))
+* **tabletop:** share one double-tap detector between the pieces ([3d26682](https://github.com/SavageChieftain/udonarium_axe/commit/3d266829ab1256dfcbcb69146efd2891022d5725))
+* **tabletop:** stop copying two more helpers between the pieces ([cda9b68](https://github.com/SavageChieftain/udonarium_axe/commit/cda9b68b52dd9a75ad7f8b703f71e4461260a929))
+* type browser timers as browser timers ([5d06d37](https://github.com/SavageChieftain/udonarium_axe/commit/5d06d379ccaff670fd762864711464e52029fe05))
+* **ui:** name the rule for a sheet window's title ([531d13a](https://github.com/SavageChieftain/udonarium_axe/commit/531d13ae04bfc3ab5cf5b4446a3446a41de78e8c))
+
 ## [1.36.1](https://github.com/SavageChieftain/udonarium_axe/compare/v1.36.0...v1.36.1) (2026-08-13)
 
 ### 🐛 Bug Fixes
