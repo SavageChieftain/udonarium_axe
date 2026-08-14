@@ -3,10 +3,10 @@ import type { ReplayFrameImage } from '@axe/infrastructure/replay/replay-frame-p
 export type DrawableImage = ReplayFrameImage & { close?(): void };
 
 /**
- * 絵を canvas へ描ける形にする。
+ * Turns a stored image into something a canvas can draw.
  *
- * 中身があれば `createImageBitmap` で decode を先に済ませる（描くたびに待たないため）。
- * 使い終わったら `close()` を呼ぶ側の責任で手放す。
+ * When the bytes are there, `createImageBitmap` decodes up front so drawing never waits.
+ * The caller releases it with `close()` when done.
  */
 export async function toDrawableImage(blob: Blob | null, url: string): Promise<DrawableImage | null> {
   if (blob && typeof createImageBitmap === 'function') {
@@ -27,10 +27,10 @@ export interface DrawableImageSource {
 }
 
 /**
- * 使う絵をまとめて読む。
+ * Loads every image a render needs.
  *
- * 1 枚ずつ待つと枚数分だけ待たされる。読むのは互いに無関係なので同時に走らせる。
- * このブラウザに残っていない絵は飛ばす（描く側が空きとして扱う）。
+ * Loading them one at a time costs the sum of every wait, and no load depends on another,
+ * so they run together. Images this browser no longer holds are skipped; the painter treats them as absent.
  */
 export async function loadDrawableImages(
   storage: DrawableImageSource,

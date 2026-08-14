@@ -6,7 +6,7 @@ describe('AppComponent', () => {
     expect(AppComponent).toBeTruthy();
   });
 
-  it('@pkg alias で package.json の version 文字列を解決できる', () => {
+  it('resolves the version string from package.json through the @pkg alias', () => {
     expect(version).toMatch(/^\d+\.\d+\.\d+(-.+)?$/);
   });
 });

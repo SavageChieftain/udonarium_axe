@@ -78,7 +78,7 @@ const assets: ReplayFrameAssets = {
 };
 
 describe('paintTablePhoto()', () => {
-  it('部屋の名前と日付を焼き込むこと', () => {
+  it('burns in the room name and the date', () => {
     const { ctx, texts } = recorder();
     const layout = buildTablePhotoLayout([member('アリス', 'a')]);
 
@@ -88,7 +88,7 @@ describe('paintTablePhoto()', () => {
     expect(texts.map((entry) => entry.text)).toContain('2026-08-12');
   });
 
-  it('コマの名前を枠ごとに描くこと', () => {
+  it('draws the name of each piece in its own frame', () => {
     const { ctx, texts } = recorder();
     const layout = buildTablePhotoLayout([member('アリス', 'a'), member('ボブ', 'b')]);
 
@@ -97,7 +97,7 @@ describe('paintTablePhoto()', () => {
     expect(texts.map((entry) => entry.text)).toEqual(expect.arrayContaining(['アリス', 'ボブ']));
   });
 
-  it('立ち絵を切らずに枠へ収めること', () => {
+  it('fits a portrait into its frame without cropping', () => {
     const { ctx, images } = recorder();
     const layout = buildTablePhotoLayout([member('アリス', 'a')]);
 
@@ -111,7 +111,7 @@ describe('paintTablePhoto()', () => {
     expect(drawn.y + drawn.height).toBeLessThanOrEqual(cell.y + cell.height);
   });
 
-  it('絵の無いコマでも枠と名前を残すこと', () => {
+  it('keeps the frame and the name for a piece with no picture', () => {
     const { ctx, texts, images } = recorder();
     const layout = buildTablePhotoLayout([member('名無し')]);
 
@@ -121,18 +121,18 @@ describe('paintTablePhoto()', () => {
     expect(texts.map((entry) => entry.text)).toContain('名無し');
   });
 
-  it('枠の外へ食み出させないこと', () => {
+  it('lets nothing spill outside its frame', () => {
     const { ctx, counts } = recorder();
     const layout = buildTablePhotoLayout([member('アリス', 'a'), member('ボブ', 'b')]);
 
     paintTablePhoto(ctx, layout, assets, '卓', '', undefined);
 
-    // 名札は角の丸い枠の中だけに出す。切り抜きを掛けたぶんは必ず戻す。
+    // The name plate stays inside the rounded frame, and every clip is restored.
     expect(counts().clips).toBe(layout.cells.length);
     expect(counts().saves).toBe(counts().restores);
   });
 
-  it('長い名前を潰さずに切ること', () => {
+  it('cuts a long name short rather than squashing it', () => {
     const { ctx, texts } = recorder();
     const layout = buildTablePhotoLayout(Array.from({ length: 12 }, (_, i) => member(`とても長い名前のコマ${i}`, 'a')));
 
@@ -144,7 +144,7 @@ describe('paintTablePhoto()', () => {
     expect(title.length).toBeLessThan(longName.length);
   });
 
-  it('立ち絵を枠の上下に均等に置くこと', () => {
+  it('centres a portrait between the top and bottom of its frame', () => {
     const { ctx, images } = recorder();
     const layout = buildTablePhotoLayout([member('アリス', 'a')]);
 
@@ -157,7 +157,7 @@ describe('paintTablePhoto()', () => {
     expect(Math.abs(top - bottom)).toBeLessThanOrEqual(2);
   });
 
-  it('紙の全面を塗ってから並べること', () => {
+  it('paints the whole sheet before laying anything out', () => {
     const { ctx, fills } = recorder();
     const layout = buildTablePhotoLayout([member('アリス', 'a')]);
 

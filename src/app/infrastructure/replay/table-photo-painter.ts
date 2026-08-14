@@ -64,7 +64,7 @@ export function paintTablePhoto(
       ctx.strokeRect(cell.x, cell.y, cell.width, cell.height);
     }
 
-    // 枠の内側だけに描く。名札も立ち絵も、角の丸みから食み出させない。
+    // Draw inside the frame only, so neither the name plate nor the portrait escapes the rounded corners.
     ctx.save();
     if (rounded) ctx.clip();
 
@@ -98,10 +98,10 @@ export function paintTablePhoto(
 }
 
 /**
- * 入る分だけに詰める。
+ * Trims to what fits.
  *
- * `fillText` の maxWidth は字を潰して詰めるので、長い部屋名が読めない一本の線になる。
- * 切って三点リーダを付けるほうが、まだ読める。
+ * `fillText`'s maxWidth squashes the glyphs instead, turning a long room name into an unreadable line.
+ * Cutting it short with an ellipsis at least stays readable.
  */
 function fitText(ctx: ReplayFrameCanvas, text: string, maxWidth: number): string {
   if (text.length < 1 || maxWidth <= 0) return '';

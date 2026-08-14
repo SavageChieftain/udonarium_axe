@@ -99,8 +99,8 @@ function paintBoard(
   const scale = view.scale;
   const onBoard = (value: number): number => value * scale;
 
-  // 地面に貼り付くもの（卓の絵・マス目・移動の跡・暗闇）は卓の座標のまま描き、
-  // 傾きは行列に任せる。コマだけは倒さずに立てる。
+  // Whatever lies flat on the ground — the table image, the grid, movement trails, the darkness —
+  // is drawn in table coordinates and tilted by the matrix. Only the pieces stay upright.
   ctx.save();
   ctx.setTransform(...view.matrix);
 
@@ -117,7 +117,7 @@ function paintBoard(
 
   if (move) paintTrail(ctx, style, move, board, 0, 0, (value) => value, layout.scale / scale);
 
-  // 暗闇はコマの下。見えない所のコマは、その上から暗幕で隠れる。
+  // Darkness goes under the pieces, so a piece in an unseen spot is covered by it.
   if (board.overlay) {
     paintReplayDarkness(ctx as unknown as DarknessCanvas, board.overlay, {
       left: 0,
@@ -132,7 +132,7 @@ function paintBoard(
   const sliding = move ? pointAlongRoute(move.route, easeInOut(shotProgress)) : null;
   const span0 = Math.max(layout.board.minPiece, onBoard(board.gridSize));
   const labelSize = Math.max(10, Math.round(span0 * 0.34));
-  // 並べ替えるのは傾けたときだけ。真上からのときは並びを使わないので作らない。
+  // Only a tilted camera needs the depth order, so a top-down one never builds it.
   const order = tilted
     ? [...board.pieces].sort((a, b) => view.depthOf(a.x, a.y) - view.depthOf(b.x, b.y))
     : board.pieces;
@@ -142,7 +142,7 @@ function paintBoard(
     const at = sliding && move?.targetId === piece.identifier ? sliding : piece;
     const centre = piece.size * board.gridSize * 0.5;
     const foot = view.at(at.x + centre, at.y + centre);
-    // 真上からのときは今までどおり。傾けたときは足元を接地させて立てる。
+    // Top-down keeps the old placement; tilted stands the piece on its feet.
     const x = foot.x - span / 2;
     const y = tilted ? foot.y - span : foot.y - span / 2;
 
@@ -163,7 +163,7 @@ function paintBoard(
   }
 }
 
-/** 出ていたカットインの絵。盤面の上に、台詞窓は隠さない大きさで重ねる。 */
+/** The cut-in that was showing, laid over the board but kept clear of the dialogue box. */
 function paintCutIn(
   ctx: ReplayFrameCanvas,
   layout: ReplayFrameLayout,
@@ -250,7 +250,7 @@ function paintGrid(
   lineWidth = 1
 ): void {
   const step = onBoard(board.gridSize);
-  // 行列で描いているときは、画面に出る幅で細かすぎないかを見る。
+  // Under a matrix, judge the detail by the width the viewer actually sees.
   if (step / lineWidth < 6) return;
 
   ctx.strokeStyle = style.boardGrid;
@@ -362,10 +362,10 @@ function paintChapterLabel(
 }
 
 /**
- * 折り返した行を覚えておく。
+ * Remembers the wrapped lines.
  *
- * 台詞も章題も 1 つの場面のあいだ変わらないのに、動画は同じ文字を 1 秒に 30 回
- * 折り返し直していた。折り返しは候補ごとに幅を測るので、その都度書体を組み直させる。
+ * Dialogue and chapter titles hold still for a whole shot, yet the video was re-wrapping the
+ * same text thirty times a second, measuring every candidate substring and reshaping the font each time.
  */
 const wrapped = new Map<string, string[]>();
 const WRAP_CACHE_MAX = 64;
@@ -397,9 +397,9 @@ function paintBox(ctx: ReplayFrameCanvas, layout: ReplayFrameLayout, style: Repl
 }
 
 /**
- * 角の丸い矩形の輪郭を引く。引けたら true。
+ * Traces a rounded rectangle. True when it could.
  *
- * `roundRect` の無い相手では引けない。呼ぶ側は角の無い矩形で代用する。
+ * A context without `roundRect` cannot; the caller falls back to square corners.
  */
 export function roundedRectPath(
   ctx: ReplayFrameCanvas,

@@ -20,17 +20,17 @@ function templatesIn(directory: string): string[] {
 
 const KEY_IN_TEMPLATE = /'([a-zA-Z][a-zA-Z0-9_.]*)'\s*\|\s*transloco/g;
 
-describe('翻訳キー', () => {
+describe('translation keys', () => {
   const dictionaries = {
     ja: flatten(JSON.parse(readFileSync('src/assets/i18n/ja.json', 'utf-8'))),
     en: flatten(JSON.parse(readFileSync('src/assets/i18n/en.json', 'utf-8'))),
   };
 
-  it('日本語と英語で同じ見出しを持つこと', () => {
+  it('hold the same keys in Japanese and English', () => {
     expect(Object.keys(dictionaries.ja).sort()).toEqual(Object.keys(dictionaries.en).sort());
   });
 
-  it('画面が呼ぶ見出しがすべて揃っていること', () => {
+  it('cover every key the screens ask for', () => {
     const missing: string[] = [];
     for (const template of templatesIn('src/app')) {
       const source = readFileSync(template, 'utf-8');

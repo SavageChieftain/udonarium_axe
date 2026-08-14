@@ -14,7 +14,7 @@ import { ReloadCheck } from '@axe/domain/peer/reload-check';
 import { GameTable } from '@axe/domain/tabletop/game-table';
 import { Terrain, TerrainViewState } from '@axe/domain/tabletop/terrain';
 
-describe('セーブ/ロード ラウンドトリップ', () => {
+describe('save and load round trip', () => {
   let store: ObjectStore;
   let serializer: ObjectSerializer;
 
@@ -35,15 +35,15 @@ describe('セーブ/ロード ラウンドトリップ', () => {
     (ChatTabList as unknown as { _instance: ChatTabList | undefined })._instance = undefined;
   });
 
-  describe('Terrain シリアライズ', () => {
-    it('ObjectFactory に terrain が登録されている', () => {
+  describe('terrain serialisation', () => {
+    it('registers terrain with the object factory', () => {
       const obj = ObjectFactory.instance.create('terrain');
       expect(obj).toBeTruthy();
       expect(obj).toBeInstanceOf(Terrain);
       obj?.destroy();
     });
 
-    it('toXml が全SyncVarを属性として含む', () => {
+    it('writes every sync var as an attribute', () => {
       const terrain = Terrain.create('山岳', 3, 4, 2, 'w', 'f');
       terrain.isLocked = true;
       terrain.mode = TerrainViewState.WALL;
@@ -58,7 +58,7 @@ describe('セーブ/ロード ラウンドトリップ', () => {
       expect(xml).toContain('isGrid="true"');
     });
 
-    it('toXml が location をドット記法で含む', () => {
+    it('writes the location in dotted notation', () => {
       const terrain = Terrain.create('t', 1, 1, 1, '', '');
       terrain.location = { name: 'table', x: 150, y: 250 };
       terrain.posZ = 42;
@@ -71,7 +71,7 @@ describe('セーブ/ロード ラウンドトリップ', () => {
       expect(xml).toContain('posZ="42"');
     });
 
-    it('toXml がDataElement子要素を含む', () => {
+    it('writes the data elements as children', () => {
       const terrain = Terrain.create('砂漠', 5, 6, 3, 'wall-id', 'floor-id');
 
       const xml = serializer.toXml(terrain);
@@ -85,7 +85,7 @@ describe('セーブ/ロード ラウンドトリップ', () => {
       expect(xml).toContain('>砂漠</data>');
     });
 
-    it('GameTable 内の Terrain が toXml に含まれる', () => {
+    it('includes the terrain of a table in its own xml', () => {
       const table = new GameTable();
       table.initialize();
       const terrain = Terrain.create('丘', 2, 2, 1, '', '');
@@ -99,8 +99,8 @@ describe('セーブ/ロード ラウンドトリップ', () => {
     });
   });
 
-  describe('DataElement ラウンドトリップ（happy-dom互換）', () => {
-    it('DataElement のシリアライズ/デシリアライズ', () => {
+  describe('data element round trip, within the limits of happy-dom', () => {
+    it('writes and reads a data element back', () => {
       const original = DataElement.create('testName', 'testValue', { type: 'image' });
       const xml = serializer.toXml(original);
 
@@ -114,7 +114,7 @@ describe('セーブ/ロード ラウンドトリップ', () => {
       expect(restored.getAttribute('type')).toBe('image');
     });
 
-    it('ネストした DataElement 親子が保存/復元される', () => {
+    it('keeps nested data elements together', () => {
       const root = DataElement.create('root', '');
       const child1 = DataElement.create('name', '地形A');
       const child2 = DataElement.create('width', 5);
@@ -131,7 +131,7 @@ describe('セーブ/ロード ラウンドトリップ', () => {
       expect(restored.getFirstElementByName('width')?.value).toBe('5');
     });
 
-    it('カスタムフィールドの role / fieldType / metadata が保存/復元される', () => {
+    it('keeps the role, type and metadata of a custom field', () => {
       const section = DataElement.create('能力', '', {
         [DataElementAttribute.ROLE]: DataElementRole.SECTION,
       });
@@ -169,8 +169,8 @@ describe('セーブ/ロード ラウンドトリップ', () => {
     });
   });
 
-  describe('GameCharacter ラウンドトリップ', () => {
-    it('キャラクター保存時に詳細カードのカラム設定がXMLへ出力される', () => {
+  describe('game character round trip', () => {
+    it('writes the column settings of the detail card when saving a character', () => {
       const character = GameCharacter.create('カラム確認', 1, '');
       const section = character.detailDataElement!.getFirstElementByName('能力')!;
       section.setAttribute('cs-colspan', 'full');
@@ -192,15 +192,15 @@ describe('セーブ/ロード ラウンドトリップ', () => {
     });
   });
 
-  describe('ChatTabList parseInnerXml — 既存タブ破棄', () => {
-    // happy-dom の DOMParser はドット付き属性名（imageIdentifier.0 等）を処理できないため、
-    // ChatTab の toXml 出力を経由するテストは不可。
-    // 代わりにドット属性を含まない最小限のXML文字列を直接構築し、
-    // serializer.parseXml に渡して ChatTabList.parseInnerXml の動作を検証する。
-    // parseXml は Element を受け取ると DOMParser をバイパスするため、
-    // 子要素の <chat-tab> は Element として直接 parseXml に渡される。
+  describe('chat tab list discards the tabs it replaces', () => {
+    // the DOMParser in happy-dom cannot handle dotted attribute names such as imageIdentifier.0, so a test
+    // cannot go through the toXml output of ChatTab.
+    // Instead it builds the smallest xml that carries no dotted attribute and hands it to
+    // serializer.parseXml to exercise ChatTabList.parseInnerXml.
+    // Given an Element, parseXml bypasses the DOMParser, so the child <chat-tab> elements
+    // reach parseXml directly as Elements.
 
-    it('2つの初期タブが両方とも破棄される（mutation-during-iteration 回帰テスト）', () => {
+    it('discards both starting tabs, the case that broke when the list was mutated mid-iteration', () => {
       const instance = ChatTabList.instance;
       instance.addChatTab('Tab1');
       instance.addChatTab('Tab2');
@@ -210,17 +210,17 @@ describe('セーブ/ロード ラウンドトリップ', () => {
       reloadCheck.initialize();
       reloadCheck.reloadCheckStart(false);
 
-      // ドット属性を含まない最小限XML
+      // the smallest xml with no dotted attribute
       const xml = '<chat-tab-list><chat-tab name="NewOnly"></chat-tab></chat-tab-list>';
       serializer.parseXml(xml);
 
-      // 読み込んだ部屋には必ずシステムタブが付く。数えるのは会話のタブだけ。
+      // A loaded room always gains a system tab; only the conversation tabs are counted.
       expect(instance.spokenChatTabs).toHaveLength(1);
       expect(instance.spokenChatTabs[0].name).toBe('NewOnly');
       expect(instance.chatTabs.some((tab) => tab.isSystemTab)).toBe(true);
     });
 
-    it('3つの初期タブがすべて破棄される', () => {
+    it('discards all three starting tabs', () => {
       const instance = ChatTabList.instance;
       instance.addChatTab('A');
       instance.addChatTab('B');
@@ -238,7 +238,7 @@ describe('セーブ/ロード ラウンドトリップ', () => {
       expect(instance.chatTabs.some((tab) => tab.isSystemTab)).toBe(true);
     });
 
-    it('既存タブが破棄され新タブが追加される', () => {
+    it('discards the existing tabs and adds the new ones', () => {
       const instance = ChatTabList.instance;
       instance.addChatTab('Old1');
       instance.addChatTab('Old2');

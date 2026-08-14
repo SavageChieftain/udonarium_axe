@@ -1,10 +1,10 @@
 import type { OverlayPlan, OverlayShape } from '@axe/domain/tabletop/vision-scene';
 
 /**
- * 動画の盤面へ暗闇と灯りを乗せる。
+ * Lays darkness and light over the board in a video.
  *
- * 生きている卓は CSS のグラデーションと `clip-path` で同じ絵を作る。canvas には
- * 「切り抜き」が無いので、暗幕を別の面に描いてから灯りの形で削り、削り終えた面を重ねる。
+ * A live table builds the same picture from CSS gradients and `clip-path`. A canvas has no
+ * cut-out, so the shroud is painted on its own surface, carved away in the shape of each light, and composited.
  */
 
 export interface DarknessCanvas {
@@ -36,30 +36,30 @@ export interface DarknessCanvas {
 }
 
 export interface DarknessPlacement {
-  /** 盤面の左上（画面座標）。 */
+  /** Top left of the board, in screen coordinates. */
   left: number;
   top: number;
-  /** 卓の大きさ（画面座標）。 */
+  /** Size of the table, in screen coordinates. */
   width: number;
   height: number;
-  /** 卓の座標を画面の長さへ。 */
+  /** Converts a table length into a screen length. */
   onBoard(value: number): number;
 }
 
-/** 別の面を作れるか。作れない環境では暗闇を描かない（盤面をそのまま出す）。 */
+/** Whether a second surface can be made. Where it cannot, the board is drawn without darkness. */
 type LayerFactory = (width: number, height: number) => DarknessCanvas | null;
 
 /**
- * 暗幕を作る面の最大の辺。卓の座標のまま作ると 6000px 四方にもなるので、
- * ここで頭打ちにして、描くときに引き伸ばす。暗闇は輪郭の緩い絵なので粗さは出ない。
+ * Longest side of the shroud surface. Table coordinates would ask for 6000px square, so it is
+ * capped here and stretched when drawn — darkness has soft edges, so the coarseness does not show.
  */
 export const DARKNESS_LAYER_MAX = 2048;
 
 /**
- * 暗幕を描く面は使い回す。
+ * The shroud surface is reused.
  *
- * 動画は 1 秒に 30 枚描く。1 枚ごとに 2048 四方の面を作っては捨てると、書き出しの
- * あいだじゅう 16MB の確保と解放をくり返すことになる。大きさが同じなら同じ面を洗って使う。
+ * A video draws thirty frames a second. Allocating and discarding a 2048-square surface per frame
+ * churns 16MB for the length of the export, so a surface of the same size is washed and reused.
  */
 let scratch: { canvas: OffscreenCanvas; context: DarknessCanvas } | null = null;
 
@@ -73,7 +73,7 @@ export function defaultDarknessLayer(width: number, height: number): DarknessCan
       if (!created) return null;
       scratch = { canvas, context: created as unknown as DarknessCanvas };
     } else {
-      // 大きさを入れ直すと中身も消える。同じ大きさのときは明示して洗う。
+      // Re-assigning the size would clear it; at the same size, clear it explicitly.
       const reused = scratch.canvas.getContext('2d');
       reused?.clearRect(0, 0, width, height);
     }
@@ -101,7 +101,7 @@ export function paintReplayDarkness(
   const height = Math.round(place.height);
   if (width < 1 || height < 1) return;
 
-  // 面の細かさ。描く大きさより粗くてよいので、長辺で頭打ちにする。
+  // Surface detail. It may be coarser than the drawn size, so the longest side caps it.
   const shrink = Math.min(1, DARKNESS_LAYER_MAX / Math.max(width, height));
   const layerWidth = Math.max(1, Math.round(width * shrink));
   const layerHeight = Math.max(1, Math.round(height * shrink));
@@ -110,13 +110,13 @@ export function paintReplayDarkness(
   const layer = layerOf(layerWidth, layerHeight);
   if (!layer) return;
 
-  // 1. 暗幕。卓の一面を塗り潰す。
+  // 1. The shroud: fill the whole table.
   layer.fillStyle = plan.darknessColor;
   layer.globalAlpha = clamp01(plan.darknessAlpha);
   layer.fillRect(0, 0, layerWidth, layerHeight);
   layer.globalAlpha = 1;
 
-  // 2. 見えている所を削る。全体の明るさぶんは最初から薄くしておく。
+  // 2. Carve out what is seen. The ambient light thins the whole thing from the start.
   layer.globalCompositeOperation = 'destination-out';
   const base = clamp01(plan.baseRevealAlpha);
   if (base > 0) {
@@ -127,7 +127,7 @@ export function paintReplayDarkness(
   }
 
   if (plan.revealCells && plan.revealCells.length > 0) {
-    // マスに吸わせる設定のときは、灯りの形ではなくマスの形で削る。
+    // When light snaps to cells, carve cell shapes rather than the light shapes.
     layer.fillStyle = '#000000';
     for (const cell of plan.revealCells) {
       if (cell.length < 3) continue;
@@ -146,7 +146,7 @@ export function paintReplayDarkness(
   ctx.save();
   ctx.drawImage(layer.canvas as unknown as CanvasImageSource, place.left, place.top, width, height);
 
-  // 3. 灯りの色。削った所へ薄く重ねて、光っていることを見せる。
+  // 3. The colour of the light, laid thinly over what was carved so it reads as lit.
   ctx.globalCompositeOperation = 'lighter';
   for (const glow of plan.glows) {
     ctx.save();
@@ -164,7 +164,7 @@ function eraseShape(layer: DarknessCanvas, shape: OverlayShape, place: DarknessP
   layer.restore();
 }
 
-/** 灯りの届く形。中心は濃く、`dimPx` の縁で消えるまでの落差を持たせる。 */
+/** How far a light reaches: strong at the centre, falling away to nothing at `dimPx`. */
 function fillShape(
   target: DarknessCanvas,
   shape: OverlayShape,
@@ -192,7 +192,7 @@ function fillShape(
   if (shape.angle >= 360) {
     target.arc(x, y, dim, 0, Math.PI * 2);
   } else {
-    // 円錐。向きは卓と同じで、真上から見た扇として描く。
+    // A cone. It faces the same way as on the table and is drawn as a fan seen from above.
     const half = (shape.angle * Math.PI) / 360;
     const facing = (shape.direction * Math.PI) / 180;
     target.moveTo(x, y);

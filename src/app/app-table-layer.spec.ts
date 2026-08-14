@@ -1,13 +1,13 @@
 import { readFileSync } from 'node:fs';
 
 /**
- * 卓の中の重ね順を外へ漏らさないこと。
+ * The stacking order inside the table must not leak out of it.
  *
- * 卓レイヤーが重ね合わせの文脈を作らないと、盤の上の演出に付けた z がパネルと同じ土俵で
- * 競り、後ろに置いてあるはずのものが前に出る。
+ * Without a stacking context on the table layer, a z-index given to something over the board
+ * competes with the panels, and what belongs behind comes out in front.
  */
-describe('卓レイヤー', () => {
-  it('重ね合わせの文脈を自前で作ること', () => {
+describe('table layer', () => {
+  it('establishes a stacking context of its own', () => {
     const html = readFileSync('src/app/app.component.html', 'utf8');
     const layer = html.slice(html.indexOf('id="app-table-layer"'));
     const classes = layer.slice(layer.indexOf('class="') + 7, layer.indexOf('"', layer.indexOf('class="') + 7));

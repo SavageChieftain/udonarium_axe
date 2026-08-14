@@ -151,9 +151,9 @@ export class AppComponent {
   constructor() {
     inject(Title).setTitle(`Udonarium Axe ${APP_VERSION}`);
 
-    // 各 feature のイベントハンドラ / application 層 orchestration サービス群を eager 起動する。
-    // 各サービスは @Injectable({ providedIn: 'root' }) で自身の constructor 内で購読を開始するため、
-    // ここでは inject() の戻り値を保持する必要はない（副作用のみ目的）。
+    // Start every feature's event handler and the application layer's orchestration services.
+    // Each one subscribes from its own constructor under @Injectable({ providedIn: 'root' }),
+    // so there is nothing to hold onto here — the injection is the point.
     inject(AlarmEventHandlerService);
     inject(EffectChatEventHandlerService);
     inject(VoteEventHandlerService);

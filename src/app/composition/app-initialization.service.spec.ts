@@ -40,7 +40,7 @@ describe('AppInitializationService', () => {
       service.initialize();
     });
 
-    it('ドメインオブジェクトが ObjectStore に登録されること', () => {
+    it('registers the domain objects with the object store', () => {
       expect(objectStore.get<DiceBot>('DiceBot')).toBeTruthy();
       expect(objectStore.get<Jukebox>('Jukebox')).toBeTruthy();
       expect(objectStore.get<Vote>('Vote')).toBeTruthy();
@@ -49,7 +49,7 @@ describe('AppInitializationService', () => {
       expect(objectStore.get<SoundEffect>('SoundEffect')).toBeTruthy();
     });
 
-    it('オーディオプリセットが設定されること', () => {
+    it('sets up the audio presets', () => {
       expect(PresetSound.dicePick).toBeTruthy();
       expect(PresetSound.dicePut).toBeTruthy();
       expect(PresetSound.diceRoll1).toBeTruthy();
@@ -58,7 +58,7 @@ describe('AppInitializationService', () => {
       expect(PresetSound.alarm).toBeTruthy();
     });
 
-    it('PeerCursor.myCursor が作成されること', () => {
+    it('creates the cursor for this peer', () => {
       expect(PeerCursor.myCursor).toBeTruthy();
       expect(PeerCursor.myCursor.name).toBe('プレイヤー');
     });

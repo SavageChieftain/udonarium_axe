@@ -75,7 +75,7 @@ export class AppInitializationService {
 
   private initializeEffectPresets(): void {
     createDefaultEffectPresets();
-    // 落とされたエフェクト集を読めるよう、入れ物の型を先に登録しておく。
+    // Register the container type up front so a dropped effect set can be read.
     void EffectPresetSet;
   }
 

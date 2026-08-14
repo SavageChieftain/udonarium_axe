@@ -85,7 +85,7 @@ function shape(overrides: Record<string, unknown> = {}) {
 }
 
 describe('paintReplayDarkness()', () => {
-  it('暗幕を敷いてから盤面へ重ねること', () => {
+  it('lays the shroud down and composites it over the board', () => {
     const { ctx, calls } = recorder();
     const layer = recorder();
 
@@ -96,18 +96,18 @@ describe('paintReplayDarkness()', () => {
     expect(calls.some((call) => call.op === 'drawImage' && call.args[0] === 40 && call.args[1] === 20)).toBe(true);
   });
 
-  it('見えている所を削ること', () => {
+  it('carves out what can be seen', () => {
     const layer = recorder();
 
     paintReplayDarkness(recorder().ctx, plan({ reveals: [shape()] }), place, () => layer.ctx);
 
-    // 削りは destination-out で、灯りの届く長さは盤面の縮尺に合わせる。
+    // The carving is destination-out, and a light's reach follows the board's scale.
     const erased = layer.calls.find((call) => call.op === 'arc');
     expect(erased?.composite).toBe('destination-out');
     expect(erased?.args).toEqual([100, 100, 50]);
   });
 
-  it('マスに吸わせる設定ではマスの形で削ること', () => {
+  it('carves cell shapes when light snaps to the grid', () => {
     const layer = recorder();
     const cells = [
       [
@@ -124,7 +124,7 @@ describe('paintReplayDarkness()', () => {
     expect(layer.calls.some((call) => call.op === 'fill' && call.composite === 'destination-out')).toBe(true);
   });
 
-  it('灯りの色を盤面の上へ足すこと', () => {
+  it('adds the colour of each light over the board', () => {
     const { ctx, calls } = recorder();
 
     paintReplayDarkness(ctx, plan({ glows: [shape()] }), place, () => recorder().ctx);
@@ -134,7 +134,7 @@ describe('paintReplayDarkness()', () => {
     expect(glow?.args).toEqual([140, 120, 50]);
   });
 
-  it('別の面を作れない環境では何も描かないこと', () => {
+  it('draws nothing where a second surface cannot be made', () => {
     const { ctx, calls } = recorder();
 
     paintReplayDarkness(ctx, plan(), place, () => null);
@@ -142,7 +142,7 @@ describe('paintReplayDarkness()', () => {
     expect(calls).toHaveLength(0);
   });
 
-  it('大きさの無い盤面では何も描かないこと', () => {
+  it('draws nothing for a board with no size', () => {
     const { ctx, calls } = recorder();
 
     paintReplayDarkness(ctx, plan(), { ...place, width: 0 }, () => recorder().ctx);

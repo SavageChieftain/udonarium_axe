@@ -89,10 +89,10 @@ if (!navigator.mediaDevices) {
   });
 }
 
-// happy-dom には WebAudio API が無い。AudioPlayer.resumeAudioContext() で登録された
-// document.mousedown / touchstart リスナーは別の spec から残留することがあるため、
-// user-interaction-unlock.spec などが dispatchEvent した瞬間に AudioContext を new
-// しようとして "is not a constructor" で落ちる。最小スタブを globalThis / window に張る。
+// happy-dom has no WebAudio API. The document mousedown / touchstart listeners registered by
+// AudioPlayer.resumeAudioContext() can survive into another spec, so the moment something like
+// user-interaction-unlock.spec dispatches an event, the listener tries to construct an AudioContext
+// and dies with "is not a constructor". A minimal stub goes on globalThis and window.
 if (typeof globalThis.AudioContext === 'undefined') {
   class FakeAudioParam {
     value = 1;
