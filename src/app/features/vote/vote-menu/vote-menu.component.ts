@@ -95,7 +95,7 @@ export class VoteMenuComponent {
 
     vote.makeVote(PeerCursor.myCursor.peerId, voteTitle, peerList, choices, this.isRollCall, this.chatTabidentifier);
     vote.startVote();
-    this.chatMessageService.sendSystemMessageLastSendCharactor(startMessage, this.chatTabidentifier);
+    this.chatMessageService.sendSystemMessageAsLastSpeaker(startMessage, this.chatTabidentifier);
     this.panelService.close();
   }
 

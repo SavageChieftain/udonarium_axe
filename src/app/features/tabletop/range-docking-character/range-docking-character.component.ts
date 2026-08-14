@@ -67,7 +67,7 @@ export class RangeDockingCharacterComponent {
     if (object instanceof GameCharacter) {
       if (GameCharacter) {
         SoundEffect.play(PresetSound.lock);
-        this.tabletopObject.followingCharctorIdentifier = object.identifier;
+        this.tabletopObject.followingCharacterIdentifier = object.identifier;
         this.tabletopObject.following();
       }
     }

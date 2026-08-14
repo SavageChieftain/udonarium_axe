@@ -298,7 +298,7 @@ export class ChatInputComponent {
     return false;
   }
 
-  charactorChatColor(num: number) {
+  characterChatColor(num: number) {
     const object = this.objectStore.get(this.sendFrom);
     if (object instanceof GameCharacter) {
       this.objectChange.versionOf(object.identifier)();
@@ -314,7 +314,7 @@ export class ChatInputComponent {
 
   chatColor(num: number): string {
     const object = this.objectStore.get(this.sendFrom);
-    if (object instanceof GameCharacter) return this.charactorChatColor(num);
+    if (object instanceof GameCharacter) return this.characterChatColor(num);
     return this.playerChatColor(num);
   }
 

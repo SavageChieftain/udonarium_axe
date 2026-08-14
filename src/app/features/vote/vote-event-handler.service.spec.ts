@@ -7,11 +7,11 @@ import { VoteEventHandlerService } from '@axe/features/vote/vote-event-handler.s
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
 
 describe('VoteEventHandlerService', () => {
-  let chatStub: { sendSystemMessageLastSendCharactor: ReturnType<typeof vi.fn> };
+  let chatStub: { sendSystemMessageAsLastSpeaker: ReturnType<typeof vi.fn> };
 
   beforeEach(() => {
     PeerCursor.createMyCursor();
-    chatStub = { sendSystemMessageLastSendCharactor: vi.fn() };
+    chatStub = { sendSystemMessageAsLastSpeaker: vi.fn() };
     TestBed.configureTestingModule({ providers: [...TEST_PROVIDERS] });
     TestBed.overrideProvider(ChatMessageService, { useValue: chatStub });
     TestBed.inject(VoteEventHandlerService);
@@ -37,7 +37,7 @@ describe('VoteEventHandlerService', () => {
       ],
     });
 
-    expect(chatStub.sendSystemMessageLastSendCharactor).toHaveBeenCalledWith(
+    expect(chatStub.sendSystemMessageAsLastSpeaker).toHaveBeenCalledWith(
       '投票終了(休憩する？) 賛成：2 反対：1',
       undefined
     );
@@ -55,10 +55,7 @@ describe('VoteEventHandlerService', () => {
       chatTabIdentifier: 'tab-main',
     });
 
-    expect(chatStub.sendSystemMessageLastSendCharactor).toHaveBeenCalledWith(
-      '点呼終了(3/5) 棄権:1 未回答:2',
-      'tab-main'
-    );
+    expect(chatStub.sendSystemMessageAsLastSpeaker).toHaveBeenCalledWith('点呼終了(3/5) 棄権:1 未回答:2', 'tab-main');
   });
 
   it('棄権も未回答も無ければ集計だけを送る', () => {
@@ -73,6 +70,6 @@ describe('VoteEventHandlerService', () => {
       chatTabIdentifier: 'tab-main',
     });
 
-    expect(chatStub.sendSystemMessageLastSendCharactor).toHaveBeenCalledWith('点呼終了(2/2)', 'tab-main');
+    expect(chatStub.sendSystemMessageAsLastSpeaker).toHaveBeenCalledWith('点呼終了(2/2)', 'tab-main');
   });
 });

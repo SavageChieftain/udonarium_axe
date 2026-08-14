@@ -19,7 +19,7 @@ interface ComponentInternals {
 describe('VoteWidgetComponent', () => {
   let fixture: ComponentFixture<VoteWidgetComponent>;
   let internals: ComponentInternals;
-  let chatStub: { sendSystemMessageLastSendCharactor: ReturnType<typeof vi.fn> };
+  let chatStub: { sendSystemMessageAsLastSpeaker: ReturnType<typeof vi.fn> };
   let vote: Vote;
   let myCursor: PeerCursor;
 
@@ -40,7 +40,7 @@ describe('VoteWidgetComponent', () => {
   beforeEach(async () => {
     localStorage.clear();
     ObjectStore.instance.clearDeleteHistory();
-    chatStub = { sendSystemMessageLastSendCharactor: vi.fn() };
+    chatStub = { sendSystemMessageAsLastSpeaker: vi.fn() };
     await TestBed.configureTestingModule({
       imports: [VoteWidgetComponent],
       providers: [...TEST_PROVIDERS],
@@ -104,7 +104,7 @@ describe('VoteWidgetComponent', () => {
 
     expect(widget()).not.toBeNull();
     expect(vote.isVoteEnd('my-peer-id')).toBe(false);
-    expect(chatStub.sendSystemMessageLastSendCharactor).not.toHaveBeenCalled();
+    expect(chatStub.sendSystemMessageAsLastSpeaker).not.toHaveBeenCalled();
   });
 
   it('新しい投票が始まると折りたたみを解除する', () => {
@@ -124,7 +124,7 @@ describe('VoteWidgetComponent', () => {
     internals.voteSend('準備完了');
 
     expect(vote.isVoteEnd('my-peer-id')).toBe(true);
-    expect(chatStub.sendSystemMessageLastSendCharactor).toHaveBeenCalledWith(expect.any(String), 'tab-main');
+    expect(chatStub.sendSystemMessageAsLastSpeaker).toHaveBeenCalledWith(expect.any(String), 'tab-main');
   });
 
   it('棄権は明示操作のときだけ記録する', () => {
@@ -133,7 +133,7 @@ describe('VoteWidgetComponent', () => {
     internals.abstain();
 
     expect(myCursor.voteAnswer).toBe(-2);
-    expect(chatStub.sendSystemMessageLastSendCharactor).toHaveBeenCalledWith(expect.any(String), 'tab-main');
+    expect(chatStub.sendSystemMessageAsLastSpeaker).toHaveBeenCalledWith(expect.any(String), 'tab-main');
   });
 
   it('議長は未回答を残したまま締め切れる', () => {

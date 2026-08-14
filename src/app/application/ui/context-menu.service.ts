@@ -22,7 +22,7 @@ export interface ContextMenuAction {
   name: string;
   action?: () => void;
   enabled?: boolean;
-  altitudeHande?: TabletopObject;
+  altitudeHandle?: TabletopObject;
   type?: ContextMenuType;
   subActions?: ContextMenuAction[];
 }

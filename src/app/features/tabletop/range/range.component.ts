@@ -273,11 +273,11 @@ export class RangeComponent {
 
   readonly isFollowed = computed(() => {
     this.rangeVersion();
-    return this.objectStore.get(this.range().followingCharctorIdentifier) != null;
+    return this.objectStore.get(this.range().followingCharacterIdentifier) != null;
   });
-  readonly followingCharactor = computed(() => {
+  readonly followingCharacter = computed(() => {
     this.rangeVersion();
-    const obj = this.objectStore.get(this.range().followingCharctorIdentifier);
+    const obj = this.objectStore.get(this.range().followingCharacterIdentifier);
     return obj instanceof GameCharacter ? obj : null;
   });
   readonly elevation = this.altitude;
@@ -309,12 +309,12 @@ export class RangeComponent {
       () => {
         if (!this._initialized) return [];
         const range = this.range();
-        return [range.identifier, range.followingCharctorIdentifier, this.currentTable.identifier];
+        return [range.identifier, range.followingCharacterIdentifier, this.currentTable.identifier];
       },
       (e) => {
         if (!this._initialized) return;
         const range = this.range();
-        if (e.identifier === range.followingCharctorIdentifier) range.following();
+        if (e.identifier === range.followingCharacterIdentifier) range.following();
         this.setRange();
       },
       this.destroyRef
@@ -487,7 +487,7 @@ export class RangeComponent {
       offSetY: this.range().offSetY,
       fillOutLine: this.range().fillOutLine,
       gridType: this.currentTable.gridType,
-      isDocking: this.objectStore.get(this.range().followingCharctorIdentifier) !== null,
+      isDocking: this.objectStore.get(this.range().followingCharacterIdentifier) !== null,
     };
 
     switch (this.range().type) {

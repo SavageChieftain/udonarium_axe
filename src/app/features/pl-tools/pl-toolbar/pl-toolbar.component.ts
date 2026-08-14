@@ -106,7 +106,7 @@ export class PlToolbarComponent {
       { x: character.location.x, y: character.location.y, z: character.posZ },
       typeName
     );
-    range.followingCharctorIdentifier = character.identifier;
+    range.followingCharacterIdentifier = character.identifier;
     range.following();
     SoundEffect.play(PresetSound.dicePut);
   }

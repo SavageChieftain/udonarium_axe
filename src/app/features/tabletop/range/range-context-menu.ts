@@ -38,12 +38,12 @@ export function buildRangeContextMenu(
     range.type == 'HEXAGON'
   ) {
     menuArray.push(
-      objectStore.get(range.followingCharctorIdentifier) != null
+      objectStore.get(range.followingCharacterIdentifier) != null
         ? {
             name: t('feature.tabletop.contextMenu.unfollow'),
             action: () => {
               SoundEffect.play(PresetSound.unlock);
-              range.followingCharctorIdentifier = '';
+              range.followingCharacterIdentifier = '';
             },
           }
         : {

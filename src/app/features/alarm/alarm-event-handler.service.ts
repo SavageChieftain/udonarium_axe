@@ -15,7 +15,7 @@ export class AlarmEventHandlerService {
 
   constructor() {
     this.objectChange.alarmTimeUp$.subscribe((event) => {
-      this.chatMessageService.sendSystemMessageLastSendCharactor(event.text);
+      this.chatMessageService.sendSystemMessageAsLastSpeaker(event.text);
     }, this.destroyRef);
     this.objectChange.alarmPop$.subscribe((event) => {
       this.openAlarmPanel(event.title, String(event.time));

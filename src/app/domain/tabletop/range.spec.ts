@@ -158,3 +158,22 @@ describe('RangeArea', () => {
     });
   });
 });
+
+describe('付き従う相手の保存名', () => {
+  it('書き出す名前は綴りを誤ったまま据え置くこと', () => {
+    // 出回っている部屋データと同卓者が使っている名前。手元の綴りを直すために変えると、
+    // 古いデータからは相手を見失い、同卓者とも噛み合わなくなる。
+    const range = RangeArea.create('範囲', 3, 5, 1);
+    range.followingCharacterIdentifier = 'char-1';
+
+    expect(range.toXml()).toContain('followingCharctorIdentifier="char-1"');
+  });
+
+  it('その名前で書かれた部屋データから読めること', () => {
+    const restored = ObjectSerializer.instance.parseXml(
+      '<range name="範囲" followingCharctorIdentifier="char-1"></range>'
+    ) as RangeArea;
+
+    expect(restored.followingCharacterIdentifier).toBe('char-1');
+  });
+});

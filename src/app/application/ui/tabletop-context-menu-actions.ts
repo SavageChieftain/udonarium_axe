@@ -68,7 +68,7 @@ export function buildAltitudeAction(
           if (!options.keepPosZ) target.posZ = 0;
           SoundEffect.play(PresetSound.sweep);
         },
-        altitudeHande: target,
+        altitudeHandle: target,
       },
       buildToggleAction(
         target.isAltitudeIndicate,

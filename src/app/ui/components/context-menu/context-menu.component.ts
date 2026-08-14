@@ -83,15 +83,15 @@ export class ContextMenuComponent {
     return this.pointerDeviceService.isDragging;
   }
 
-  get altitudeHande(): TabletopObject | null {
+  get altitudeHandle(): TabletopObject | null {
     for (const action of this.actions) {
-      if (action && action.altitudeHande) return action.altitudeHande;
+      if (action && action.altitudeHandle) return action.altitudeHandle;
     }
     return null;
   }
 
   onAltitudeChange(value: number | string): void {
-    const target = this.altitudeHande;
+    const target = this.altitudeHandle;
     if (!target) return;
     target.altitude = Number(value);
     target.update();

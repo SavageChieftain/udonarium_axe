@@ -107,7 +107,7 @@ export class VoteWidgetComponent {
         voted: vote.votedTotalNum(),
         total: vote.voteAnswer.length,
       });
-    this.chatMessageService.sendSystemMessageLastSendCharactor(text, vote.chatTabIdentifier);
+    this.chatMessageService.sendSystemMessageAsLastSpeaker(text, vote.chatTabIdentifier);
   }
 
   protected abstain(): void {
@@ -121,7 +121,7 @@ export class VoteWidgetComponent {
         voted: vote.votedTotalNum(),
         total: vote.voteAnswer.length,
       });
-    this.chatMessageService.sendSystemMessageLastSendCharactor(text, vote.chatTabIdentifier);
+    this.chatMessageService.sendSystemMessageAsLastSpeaker(text, vote.chatTabIdentifier);
   }
 
   protected finishByChair(): void {

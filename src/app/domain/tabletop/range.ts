@@ -15,7 +15,8 @@ export class RangeArea extends TabletopObject {
   }
   @SyncVar() isLock: boolean = false;
   @SyncVar() rotate: number = 0;
-  @SyncVar() followingCharctorIdentifier: string = '';
+  /** 保存名は綴りを誤ったまま出回っている。手元の名前だけ直し、書き出す名前は据え置く。 */
+  @SyncVar('followingCharctorIdentifier') followingCharacterIdentifier: string = '';
   @SyncVar() followingCounterDummy: number = 0; // 追従時再描画用ダミー
 
   @SyncVar() offSetX: boolean = false;
@@ -66,9 +67,9 @@ export class RangeArea extends TabletopObject {
   }
 
   following() {
-    const object = ObjectStore.instance.get<GameCharacter>(this.followingCharctorIdentifier);
+    const object = ObjectStore.instance.get<GameCharacter>(this.followingCharacterIdentifier);
     if (!object) {
-      this.followingCharctorIdentifier = '';
+      this.followingCharacterIdentifier = '';
       return;
     }
 

@@ -63,7 +63,7 @@ export class ChatTab extends ObjectNode implements InnerXml {
     return ret;
   }
 
-  getImageCharactorPos(name: string) {
+  portraitSlotOf(name: string) {
     for (let i = 0; i < this.imageCharacterName.length; i++) {
       if (name == this.imageCharacterName[i]) {
         return i;
@@ -171,7 +171,7 @@ export class ChatTab extends ObjectNode implements InnerXml {
         if (message.to != null && message.to !== '') continue;
         this.pos_num = (message as Record<string, unknown>)[key] as number;
         if (this.pos_num >= 0 && this.pos_num < this.imageIdentifier.length) {
-          const oldpos = this.getImageCharactorPos(message.name ?? '');
+          const oldpos = this.portraitSlotOf(message.name ?? '');
           if (oldpos >= 0) {
             this.imageIdentifier[oldpos] = '';
             this.imageCharacterName[oldpos] = '';

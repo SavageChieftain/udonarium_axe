@@ -23,21 +23,21 @@
     [ngClass]="isSubmenu() ? '' : 'max-h-[calc(100dvh-2.5rem)] overflow-y-auto overscroll-contain'"
     (scroll)="onListScroll()"
   >
-    @if (altitudeHande) {
+    @if (altitudeHandle) {
       <div class="text-ui-muted flex flex-col content-center self-stretch pr-0.5 pl-1 text-[small]">
         <div class="mt-[2em]">{{ 'ui.contextMenu.altitudeHigh' | transloco }}</div>
         <div class="my-auto self-center">0</div>
         <div class="mb-[2em]">{{ 'ui.contextMenu.altitudeLow' | transloco }}</div>
       </div>
     }
-    @if (altitudeHande) {
+    @if (altitudeHandle) {
       <div>
         <input
           #altitudeSlider
           class="h-50 w-2 p-0.75 [direction:rtl] [writing-mode:vertical-lr]"
-          title="{{ altitudeHande.altitude }}"
+          title="{{ altitudeHandle.altitude }}"
           name="altitude"
-          [ngModel]="altitudeHande.altitude"
+          [ngModel]="altitudeHandle.altitude"
           (ngModelChange)="onAltitudeChange($event)"
           type="range"
           max="12"
@@ -48,14 +48,14 @@
       </div>
     }
     <div class="grow">
-      @if (altitudeHande) {
+      @if (altitudeHandle) {
         <div>
           <div
             class="border-ui-border-separator text-ui-muted m-0 max-w-[18em] truncate border-b border-solid px-4 pt-1 pb-1.5 text-center text-[11px] font-semibold tracking-[0.04em]"
             [style.color]="titleColor()"
             [style.font-weight]="titleBold() ? 'bolder' : 'normal'"
           >
-            @if (altitudeHande) {
+            @if (altitudeHandle) {
               <span class="text-[small]">
                 ({{ 'ui.contextMenu.altitudeLabel' | transloco }}
                 <input
@@ -63,7 +63,7 @@
                   type="number"
                   step="0.1"
                   class="w-[3.6em] text-right text-[small]"
-                  [(ngModel)]="altitudeHande.altitude"
+                  [(ngModel)]="altitudeHandle.altitude"
                 />)</span
               >
             }

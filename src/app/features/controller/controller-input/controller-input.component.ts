@@ -85,14 +85,14 @@ export class ControllerInputComponent {
   colorSelectorStyle(index: number): Record<string, string> {
     const selected = index === this.colorSelectNo;
     return {
-      'background-color': this.charactorChatColor(index),
+      'background-color': this.characterChatColor(index),
       border: `solid ${selected ? '3px' : '1px'} #666666`,
       'border-radius': selected ? '9px' : '0px',
     };
   }
 
   get selectChatColor(): string {
-    return this.charactorChatColor(this.colorSelectNo);
+    return this.characterChatColor(this.colorSelectNo);
   }
 
   readonly selectedPortrait = computed((): DataElement | null => {
@@ -153,7 +153,7 @@ export class ControllerInputComponent {
     this.colorSelectNo = num;
   }
 
-  charactorChatColor(num: number) {
+  characterChatColor(num: number) {
     const object = this.objectStore.get(this.sendFrom());
     if (object instanceof GameCharacter) {
       return object.chatColorCode[num];

@@ -102,7 +102,7 @@ export class AlarmMenuComponent {
     startMessage += target;
 
     alarm.makeAlarm(this.alarmTime, alarmTitle, peerIdList, this.myPeer.peerId, target, this.isSound, this.isPopUp);
-    this.chatMessageService.sendSystemMessageLastSendCharactor(startMessage);
+    this.chatMessageService.sendSystemMessageAsLastSpeaker(startMessage);
     alarm.startAlarm();
     this.panelService.close();
   }

@@ -70,18 +70,18 @@ describe('ChatTab', () => {
     });
   });
 
-  describe('getImageCharactorPos()', () => {
+  describe('portraitSlotOf()', () => {
     it('キャラクタ名の位置を返す', () => {
       const tab = new ChatTab();
       tab.initialize();
-      expect(tab.getImageCharactorPos('#0')).toBe(0);
-      expect(tab.getImageCharactorPos('#5')).toBe(5);
+      expect(tab.portraitSlotOf('#0')).toBe(0);
+      expect(tab.portraitSlotOf('#5')).toBe(5);
     });
 
     it('存在しない名前は-1を返す', () => {
       const tab = new ChatTab();
       tab.initialize();
-      expect(tab.getImageCharactorPos('unknown')).toBe(-1);
+      expect(tab.portraitSlotOf('unknown')).toBe(-1);
     });
   });
 

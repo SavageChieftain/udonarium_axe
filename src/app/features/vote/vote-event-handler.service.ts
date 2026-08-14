@@ -13,7 +13,7 @@ export class VoteEventHandlerService {
 
   constructor() {
     this.objectChange.finishVote$.subscribe((event) => {
-      this.chatMessageService.sendSystemMessageLastSendCharactor(this.resultText(event), event.chatTabIdentifier);
+      this.chatMessageService.sendSystemMessageAsLastSpeaker(this.resultText(event), event.chatTabIdentifier);
     }, this.destroyRef);
   }
 

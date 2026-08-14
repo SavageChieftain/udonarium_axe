@@ -6,11 +6,11 @@ import { AlarmEventHandlerService } from '@axe/features/alarm/alarm-event-handle
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
 
 describe('AlarmEventHandlerService', () => {
-  let chatStub: { sendSystemMessageLastSendCharactor: ReturnType<typeof vi.fn> };
+  let chatStub: { sendSystemMessageAsLastSpeaker: ReturnType<typeof vi.fn> };
   let panelStub: { open: ReturnType<typeof vi.fn> };
 
   beforeEach(() => {
-    chatStub = { sendSystemMessageLastSendCharactor: vi.fn() };
+    chatStub = { sendSystemMessageAsLastSpeaker: vi.fn() };
     panelStub = { open: vi.fn().mockReturnValue({ title: '', time: '' }) };
     TestBed.configureTestingModule({ providers: [...TEST_PROVIDERS] });
     TestBed.overrideProvider(ChatMessageService, { useValue: chatStub });
@@ -21,7 +21,7 @@ describe('AlarmEventHandlerService', () => {
   it('alarmTimeUp で system message を送る', () => {
     emitAlarmTimeUp({ text: 'time up' });
 
-    expect(chatStub.sendSystemMessageLastSendCharactor).toHaveBeenCalledWith('time up');
+    expect(chatStub.sendSystemMessageAsLastSpeaker).toHaveBeenCalledWith('time up');
   });
 
   it('alarmPop でアラームパネルを開き title/time をセットする', () => {

@@ -141,7 +141,7 @@ export class ChatMessageService {
   }
 
   // 最終発言キャラでシステム発言
-  sendSystemMessageLastSendCharactor(text: string, chatTabIdentifier?: string) {
+  sendSystemMessageAsLastSpeaker(text: string, chatTabIdentifier?: string) {
     const chatTabList = this.objectStore.get<ChatTabList>('ChatTabList');
     const sysTab = this.resolveChatTab(chatTabIdentifier) ?? chatTabList!.systemMessageTab!;
     const sendFrom = PeerCursor.myCursor.lastControlSendFrom
