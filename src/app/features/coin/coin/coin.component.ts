@@ -20,7 +20,8 @@ import { ContextMenuSeparator, ContextMenuService } from '@axe/application/ui/co
 import { PanelOption, PanelService } from '@axe/application/ui/panel.service';
 import { PieceContextMenuService } from '@axe/application/ui/piece-context-menu.service';
 import { SelectionSignalService } from '@axe/application/ui/selection-signal.service';
-import { sheetPanelTitle } from '@axe/application/ui/sheet-panel-title';
+import { sheetPanelBox } from '@axe/application/ui/sheet-panel';
+import { sheetPanelTitle } from '@axe/application/ui/sheet-panel';
 import { buildSurfaceSwitchContextMenu } from '@axe/application/ui/surface-switch-context-menu';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { imageFileEqual } from '@axe/core/storage/image-file';
@@ -266,10 +267,7 @@ export class CoinComponent {
     const title = sheetPanelTitle(this.translateFn('feature.coin.sheet.title'), coin.name);
     const option: PanelOption = {
       title,
-      left: coordinate.x - 200,
-      top: coordinate.y - 150,
-      width: 400,
-      height: 380,
+      ...sheetPanelBox(coordinate, 400, 380),
     };
     this.panelService.openLazy(
       () => import('@axe/features/coin/coin-sheet/coin-sheet.component').then((m) => m.CoinSheetComponent),

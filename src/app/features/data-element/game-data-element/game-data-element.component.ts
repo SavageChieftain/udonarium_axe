@@ -9,6 +9,7 @@ import { RangeShapeInvokeService } from '@axe/application/tabletop/range-shape-i
 import { DataElementDragService } from '@axe/application/ui/data-element-drag.service';
 import { ModalService } from '@axe/application/ui/modal.service';
 import { PanelOption, PanelService } from '@axe/application/ui/panel.service';
+import { sheetPanelBox } from '@axe/application/ui/sheet-panel';
 import { UiSignalService } from '@axe/application/ui/ui-signal.service';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { ImageStorage } from '@axe/core/storage/image-storage';
@@ -972,10 +973,7 @@ export class GameDataElementComponent {
     const initial = this.rangeShapeValue();
     const option: PanelOption = {
       title: this.t('feature.range.custom.editorTitle'),
-      left: coordinate.x - 320,
-      top: coordinate.y - 240,
-      width: 640,
-      height: 540,
+      ...sheetPanelBox(coordinate, 640, 540),
     };
     const { RangeShapeEditorComponent } =
       await import('@axe/features/tabletop/range-shape-editor/range-shape-editor.component');

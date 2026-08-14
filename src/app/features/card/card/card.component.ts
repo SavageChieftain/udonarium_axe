@@ -22,7 +22,8 @@ import { ContextMenuSeparator, ContextMenuService } from '@axe/application/ui/co
 import { PanelOption, PanelService } from '@axe/application/ui/panel.service';
 import { PieceContextMenuService } from '@axe/application/ui/piece-context-menu.service';
 import { SelectionSignalService } from '@axe/application/ui/selection-signal.service';
-import { sheetPanelTitle } from '@axe/application/ui/sheet-panel-title';
+import { sheetPanelBox } from '@axe/application/ui/sheet-panel';
+import { sheetPanelTitle } from '@axe/application/ui/sheet-panel';
 import { buildSurfaceSwitchContextMenu } from '@axe/application/ui/surface-switch-context-menu';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { ImageFile, imageFileEqual } from '@axe/core/storage/image-file';
@@ -415,10 +416,7 @@ export class CardComponent {
     const title = sheetPanelTitle(this.translateFn('feature.card.settingTitle'), gameObject.name);
     const option: PanelOption = {
       title: title,
-      left: coordinate.x - 300,
-      top: coordinate.y - 300,
-      width: 600,
-      height: 600,
+      ...sheetPanelBox(coordinate, 600, 600),
     };
     this.panelService.openLazy(
       () =>

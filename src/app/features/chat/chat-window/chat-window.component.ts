@@ -16,6 +16,7 @@ import { ChatPreferencesService } from '@axe/application/chat/chat-preferences.s
 import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { PanelOption, PanelService } from '@axe/application/ui/panel.service';
+import { sheetPanelBox } from '@axe/application/ui/sheet-panel';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { GameCharacter } from '@axe/domain/character/game-character';
@@ -342,10 +343,7 @@ export class ChatWindowComponent {
     const coordinate = this.pointerDeviceService.pointers[0];
     const option: PanelOption = {
       title: this.t('feature.chat.window.tabSettingTitle'),
-      left: coordinate.x - 250,
-      top: coordinate.y - 175,
-      width: 500,
-      height: 380,
+      ...sheetPanelBox(coordinate, 500, 380),
     };
     const component = this.panelService.open<ChatTabSettingComponent>(ChatTabSettingComponent, option);
     component.selectedTab.set(this.chatTab());

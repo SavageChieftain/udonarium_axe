@@ -22,7 +22,8 @@ import { ContextMenuSeparator, ContextMenuService } from '@axe/application/ui/co
 import { PanelOption, PanelService } from '@axe/application/ui/panel.service';
 import { PieceContextMenuService } from '@axe/application/ui/piece-context-menu.service';
 import { SelectionSignalService } from '@axe/application/ui/selection-signal.service';
-import { sheetPanelTitle } from '@axe/application/ui/sheet-panel-title';
+import { sheetPanelBox } from '@axe/application/ui/sheet-panel';
+import { sheetPanelTitle } from '@axe/application/ui/sheet-panel';
 import { buildSurfaceSwitchContextMenu } from '@axe/application/ui/surface-switch-context-menu';
 import { UiSignalService } from '@axe/application/ui/ui-signal.service';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
@@ -438,10 +439,7 @@ export class TextNoteComponent {
     const title = sheetPanelTitle(this.translateFn('feature.tabletop.panel.textNote'), gameObject.title);
     const option: PanelOption = {
       title: title,
-      left: coordinate.x - 350,
-      top: coordinate.y - 200,
-      width: 700,
-      height: 400,
+      ...sheetPanelBox(coordinate, 700, 400),
     };
     this.panelService.openLazy(
       () =>

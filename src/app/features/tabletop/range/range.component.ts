@@ -19,7 +19,8 @@ import { TabletopActionService } from '@axe/application/tabletop/tabletop-action
 import { ContextMenuService } from '@axe/application/ui/context-menu.service';
 import { PanelOption, PanelService } from '@axe/application/ui/panel.service';
 import { PieceContextMenuService } from '@axe/application/ui/piece-context-menu.service';
-import { sheetPanelTitle } from '@axe/application/ui/sheet-panel-title';
+import { sheetPanelBox } from '@axe/application/ui/sheet-panel';
+import { sheetPanelTitle } from '@axe/application/ui/sheet-panel';
 import { UiSignalService } from '@axe/application/ui/ui-signal.service';
 import { CoordinateService } from '@axe/core/input/coordinate.service';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
@@ -405,10 +406,7 @@ export class RangeComponent {
     const coordinate = this.pointerDeviceService.pointers[0];
     const option: PanelOption = {
       title: this.translateFn('feature.range.custom.editorTitle'),
-      left: coordinate.x - 320,
-      top: coordinate.y - 240,
-      width: 640,
-      height: 540,
+      ...sheetPanelBox(coordinate, 640, 540),
     };
     const { RangeShapeEditorComponent } =
       await import('@axe/features/tabletop/range-shape-editor/range-shape-editor.component');
@@ -451,10 +449,7 @@ export class RangeComponent {
     const title = sheetPanelTitle(this.translateFn('feature.tabletop.panel.range'), gameObject.name);
     const option: PanelOption = {
       title: title,
-      left: coordinate.x - 200,
-      top: coordinate.y - 150,
-      width: 400,
-      height: 300,
+      ...sheetPanelBox(coordinate, 400, 300),
     };
     this.panelService.openLazy(
       () =>

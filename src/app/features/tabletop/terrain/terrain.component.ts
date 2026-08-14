@@ -24,7 +24,8 @@ import { buildOverlapContextMenu } from '@axe/application/ui/overlap-context-men
 import { PanelOption, PanelService } from '@axe/application/ui/panel.service';
 import { PieceContextMenuService } from '@axe/application/ui/piece-context-menu.service';
 import { SelectionSignalService } from '@axe/application/ui/selection-signal.service';
-import { sheetPanelTitle } from '@axe/application/ui/sheet-panel-title';
+import { sheetPanelBox } from '@axe/application/ui/sheet-panel';
+import { sheetPanelTitle } from '@axe/application/ui/sheet-panel';
 import { buildSurfaceSwitchContextMenu } from '@axe/application/ui/surface-switch-context-menu';
 import { TabletopOverlapService } from '@axe/application/ui/tabletop-overlap.service';
 import { UiSignalService } from '@axe/application/ui/ui-signal.service';
@@ -682,10 +683,7 @@ export class TerrainComponent {
     const title = sheetPanelTitle(this.translateFn('feature.tabletop.panel.terrain'), gameObject.name);
     const option: PanelOption = {
       title: title,
-      left: coordinate.x - 250,
-      top: coordinate.y - 150,
-      width: 600,
-      height: 300,
+      ...sheetPanelBox(coordinate, 600, 300),
     };
     this.panelService.openLazy(
       () =>

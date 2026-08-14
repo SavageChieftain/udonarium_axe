@@ -13,7 +13,7 @@ import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { ModalService } from '@axe/application/ui/modal.service';
 import { PanelOption, PanelService } from '@axe/application/ui/panel.service';
-import { sheetPanelTitle } from '@axe/application/ui/sheet-panel-title';
+import { sheetPanelTitle } from '@axe/application/ui/sheet-panel';
 import { callShuffleCardStack } from '@axe/core/event/domain-events';
 import { Network } from '@axe/core/index';
 import { Card } from '@axe/domain/card/card';

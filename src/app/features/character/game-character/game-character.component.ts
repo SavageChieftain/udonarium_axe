@@ -30,7 +30,8 @@ import { buildOverlapContextMenu } from '@axe/application/ui/overlap-context-men
 import { PanelOption, PanelService } from '@axe/application/ui/panel.service';
 import { PieceContextMenuService } from '@axe/application/ui/piece-context-menu.service';
 import { SelectionSignalService } from '@axe/application/ui/selection-signal.service';
-import { sheetPanelTitle } from '@axe/application/ui/sheet-panel-title';
+import { sheetPanelBox } from '@axe/application/ui/sheet-panel';
+import { sheetPanelTitle } from '@axe/application/ui/sheet-panel';
 import { buildSurfaceSwitchContextMenu } from '@axe/application/ui/surface-switch-context-menu';
 import { TabletopOverlapService } from '@axe/application/ui/tabletop-overlap.service';
 import { UiSignalService } from '@axe/application/ui/ui-signal.service';
@@ -842,10 +843,7 @@ export class GameCharacterComponent {
     const title = sheetPanelTitle(this.translateFn('feature.character.panel.sheet'), gameObject.name);
     const option: PanelOption = {
       title: title,
-      left: coordinate.x - 400,
-      top: coordinate.y - 300,
-      width: 800,
-      height: 600,
+      ...sheetPanelBox(coordinate, 800, 600),
     };
     const component = this.panelService.open<GameCharacterSheetComponent>(GameCharacterSheetComponent, option);
     component.tabletopObject = gameObject;
@@ -856,10 +854,7 @@ export class GameCharacterComponent {
     const coordinate = this.pointerDeviceService.pointers[0];
     const option: PanelOption = {
       title: this.translateFn('feature.character.panel.chatPaletteWithName', { name: gameObject.name }),
-      left: coordinate.x - 320,
-      top: coordinate.y - 250,
-      width: 760,
-      height: 500,
+      ...sheetPanelBox(coordinate, 760, 500),
     };
     this.panelService.openLazy(
       () => import('@axe/features/chat/chat-palette/chat-palette.component').then((m) => m.ChatPaletteComponent),
@@ -906,10 +901,7 @@ export class GameCharacterComponent {
     const coordinate = this.pointerDeviceService.pointers[0];
     const option: PanelOption = {
       title: this.translateFn('feature.character.contextMenu.lightSettings'),
-      left: coordinate.x - 180,
-      top: coordinate.y - 150,
-      width: 360,
-      height: 460,
+      ...sheetPanelBox(coordinate, 360, 460),
     };
     const component = this.panelService.open<LightSettingsComponent>(LightSettingsComponent, option);
     component.target = gameObject;

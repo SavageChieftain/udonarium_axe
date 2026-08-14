@@ -10,6 +10,7 @@ import { TurnOrderService } from '@axe/application/turn/turn-order.service';
 import { ContextMenuService } from '@axe/application/ui/context-menu.service';
 import { PanelOption, PanelService } from '@axe/application/ui/panel.service';
 import { SelectionSignalService } from '@axe/application/ui/selection-signal.service';
+import { sheetPanelBox } from '@axe/application/ui/sheet-panel';
 import { Network } from '@axe/core/index';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { GameObject } from '@axe/core/sync/game-object';
@@ -437,10 +438,7 @@ export class GameObjectInventoryComponent {
     const coordinate = this.pointerDeviceService.pointers[0];
     const option: PanelOption = {
       title: this.t('feature.character.panel.chatPaletteWithName', { name: gameObject.name }),
-      left: coordinate.x - 320,
-      top: coordinate.y - 250,
-      width: 760,
-      height: 500,
+      ...sheetPanelBox(coordinate, 760, 500),
     };
     this.panelService.openLazy(
       () => import('@axe/features/chat/chat-palette/chat-palette.component').then((m) => m.ChatPaletteComponent),
