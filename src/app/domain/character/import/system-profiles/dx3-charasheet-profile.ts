@@ -11,7 +11,7 @@ import {
   normalizeHexColor,
   profileSectionOf,
 } from '@axe/domain/character/import/imported-character';
-import { asArray, asString } from '@axe/domain/character/import/system-profiles/coc-charasheet-shared';
+import { asArray, asString } from '@axe/domain/character/import/system-profiles/charasheet-shared';
 
 const ABILITIES: { key: string; label: string }[] = [
   { key: 'S1', label: '肉体' },

@@ -1,6 +1,5 @@
 import { normalizeImage } from '@axe/domain/character/import/charasheet-character-parser';
 import {
-  classifyScalar,
   createEmptyImportedCharacter,
   ImportedCharacter,
   ImportedField,
@@ -11,7 +10,11 @@ import {
   normalizeHexColor,
   profileSectionOf,
 } from '@axe/domain/character/import/imported-character';
-import { asArray, asString } from '@axe/domain/character/import/system-profiles/coc-charasheet-shared';
+import {
+  asArray,
+  asString,
+  buildPrefixedSection,
+} from '@axe/domain/character/import/system-profiles/charasheet-shared';
 
 // ガーデンオーダー（保管所 game="gorder"）は d100 ロールアンダー。能力値・固定技能の名称は
 // 作成ページ gorder_pc_making.html の <th> ヘッダを権威として転記。判定値はパーセント（成功率）。
@@ -86,29 +89,6 @@ function buildSkillSection(record: Record<string, unknown>): ImportedSection | n
   return groups.length > 0 ? { label: '技能', groups } : null;
 }
 
-function buildNamedSection(
-  label: string,
-  prefix: string,
-  columns: { suffix: string; label: string }[],
-  record: Record<string, unknown>
-): ImportedSection | null {
-  const names = asArray(record[`${prefix}_name`]);
-  const groups: ImportedGroup[] = [];
-  names.forEach((rawName, index) => {
-    const name = asString(rawName).trim();
-    if (name === '') return;
-    const fields: ImportedField[] = [];
-    for (const column of columns) {
-      const cell = asArray(record[`${prefix}_${column.suffix}`])[index];
-      if (!isNonEmptyScalar(cell)) continue;
-      const classified = classifyScalar(cell);
-      fields.push({ label: column.label, value: classified.value, kind: classified.kind });
-    }
-    groups.push({ label: name, fields });
-  });
-  return groups.length > 0 ? { label, groups } : null;
-}
-
 function buildPalette(record: Record<string, unknown>): string {
   const lines: string[] = [];
 
@@ -145,7 +125,7 @@ export function buildGorderCharasheetCharacter(parsed: unknown): ImportedCharact
   character.params = buildParams(record);
   character.sections = [
     buildSkillSection(record),
-    buildNamedSection(
+    buildPrefixedSection(
       '特技',
       'ability',
       [
@@ -154,7 +134,7 @@ export function buildGorderCharasheetCharacter(parsed: unknown): ImportedCharact
       ],
       record
     ),
-    buildNamedSection(
+    buildPrefixedSection(
       'インプラント',
       'implant',
       [

@@ -11,7 +11,7 @@ import {
   normalizeHexColor,
   profileSectionOf,
 } from '@axe/domain/character/import/imported-character';
-import { asArray, asString } from '@axe/domain/character/import/system-profiles/coc-charasheet-shared';
+import { asArray, asString } from '@axe/domain/character/import/system-profiles/charasheet-shared';
 
 // 迷宮キングダム（保管所 game="mk"）。NC1-8 の順序は作成ページ <th> ヘッダで確認。
 // 主能力（判定に使う）= 才覚/魅力/探索/武勇、副次値 = 器/回避/配下/気力。

@@ -1,5 +1,5 @@
 import { ImportedCharacter } from '@axe/domain/character/import/imported-character';
-import { asString } from '@axe/domain/character/import/system-profiles/coc-charasheet-shared';
+import { asString } from '@axe/domain/character/import/system-profiles/charasheet-shared';
 import { buildSwordWorldCharasheet } from '@axe/domain/character/import/system-profiles/swordworld-charasheet-shared';
 
 const SW2_SKILL_COLUMNS = [

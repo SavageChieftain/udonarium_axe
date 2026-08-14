@@ -11,7 +11,7 @@ import {
   normalizeHexColor,
   profileSectionOf,
 } from '@axe/domain/character/import/imported-character';
-import { asArray, asString } from '@axe/domain/character/import/system-profiles/coc-charasheet-shared';
+import { asArray, asString } from '@axe/domain/character/import/system-profiles/charasheet-shared';
 
 // アリアンロッド2E の能力値（標準順）。NK{i}=能力値（現在値）、NB{i}=能力ボーナス（判定に使用）。
 const ABILITIES: { value: string; bonus: string; label: string }[] = [

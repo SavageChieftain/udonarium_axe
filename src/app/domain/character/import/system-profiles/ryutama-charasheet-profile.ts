@@ -1,17 +1,14 @@
 import { normalizeImage } from '@axe/domain/character/import/charasheet-character-parser';
 import {
-  classifyScalar,
   createEmptyImportedCharacter,
   ImportedCharacter,
-  ImportedField,
-  ImportedGroup,
   ImportedParam,
   ImportedSection,
   isNonEmptyScalar,
   normalizeHexColor,
   profileSectionOf,
 } from '@axe/domain/character/import/imported-character';
-import { asArray, asString } from '@axe/domain/character/import/system-profiles/coc-charasheet-shared';
+import { asString, buildPrefixedSection } from '@axe/domain/character/import/system-profiles/charasheet-shared';
 
 // りゅうたま（保管所 game="ryutama"）の4能力値。S{i}=サイコロの面数（d4/d6/…）。順序は作成ページの <th> ヘッダで確認。
 const ABILITIES: { key: string; label: string }[] = [
@@ -65,29 +62,6 @@ function buildParams(record: Record<string, unknown>): ImportedParam[] {
   return params;
 }
 
-function zipSection(
-  label: string,
-  prefix: string,
-  columns: { suffix: string; label: string }[],
-  record: Record<string, unknown>
-): ImportedSection | null {
-  const names = asArray(record[`${prefix}_name`]);
-  const groups: ImportedGroup[] = [];
-  names.forEach((rawName, index) => {
-    const name = asString(rawName).trim();
-    if (name === '') return;
-    const fields: ImportedField[] = [];
-    for (const column of columns) {
-      const cell = asArray(record[`${prefix}_${column.suffix}`])[index];
-      if (!isNonEmptyScalar(cell)) continue;
-      const classified = classifyScalar(cell);
-      fields.push({ label: column.label, value: classified.value, kind: classified.kind });
-    }
-    groups.push({ label: name, fields });
-  });
-  return groups.length > 0 ? { label, groups } : null;
-}
-
 function buildPalette(record: Record<string, unknown>): string {
   const lines = ABILITIES.filter((ability) => isNonEmptyScalar(record[ability.key])).map(
     (ability) => `1d${asString(record[ability.key]).trim()} 【${ability.label}】`
@@ -110,9 +84,9 @@ export function buildRyutamaCharasheetCharacter(parsed: unknown): ImportedCharac
 
   character.params = buildParams(record);
   character.sections = [
-    zipSection('クラス能力', 'cls', CLASS_COLUMNS, record),
-    zipSection('呪文', 'spell', SPELL_COLUMNS, record),
-    zipSection('所持品', 'item', ITEM_COLUMNS, record),
+    buildPrefixedSection('クラス能力', 'cls', CLASS_COLUMNS, record),
+    buildPrefixedSection('呪文', 'spell', SPELL_COLUMNS, record),
+    buildPrefixedSection('所持品', 'item', ITEM_COLUMNS, record),
     profileSectionOf(record, PROFILE_FIELDS),
   ].filter((section): section is ImportedSection => section != null);
 

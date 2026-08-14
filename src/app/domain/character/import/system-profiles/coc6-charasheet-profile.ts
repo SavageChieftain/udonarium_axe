@@ -16,9 +16,8 @@ import {
   asString,
   buildOtherSection,
   buildParallelSection,
-  ITEM_COLUMNS,
-  WEAPON_COLUMNS,
-} from '@axe/domain/character/import/system-profiles/coc-charasheet-shared';
+} from '@axe/domain/character/import/system-profiles/charasheet-shared';
+import { ITEM_COLUMNS, WEAPON_COLUMNS } from '@axe/domain/character/import/system-profiles/coc-charasheet-shared';
 
 interface SkillCategory {
   prefix: string;

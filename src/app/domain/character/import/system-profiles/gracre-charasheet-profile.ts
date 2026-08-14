@@ -1,17 +1,18 @@
 import { normalizeImage } from '@axe/domain/character/import/charasheet-character-parser';
 import {
-  classifyScalar,
   createEmptyImportedCharacter,
   ImportedCharacter,
-  ImportedField,
-  ImportedGroup,
   ImportedParam,
   ImportedSection,
   isNonEmptyScalar,
   normalizeHexColor,
   profileSectionOf,
 } from '@axe/domain/character/import/imported-character';
-import { asArray, asString } from '@axe/domain/character/import/system-profiles/coc-charasheet-shared';
+import {
+  asArray,
+  asString,
+  buildPrefixedSection,
+} from '@axe/domain/character/import/system-profiles/charasheet-shared';
 
 // グランクレストRPG（保管所 game="gracre"）の能力ボーナス。NB{i} = 各能力値ボーナス。順序は標準（SNE 6 能力値）。
 const ABILITY_BONUSES: { key: string; label: string }[] = [
@@ -57,29 +58,6 @@ function buildParams(record: Record<string, unknown>): ImportedParam[] {
       params.push({ label: ability.label, value: asString(record[ability.key]) });
   }
   return params;
-}
-
-function zipSection(
-  label: string,
-  prefix: string,
-  columns: { suffix: string; label: string }[],
-  record: Record<string, unknown>
-): ImportedSection | null {
-  const names = asArray(record[`${prefix}_name`]);
-  const groups: ImportedGroup[] = [];
-  names.forEach((rawName, index) => {
-    const name = asString(rawName).trim();
-    if (name === '') return;
-    const fields: ImportedField[] = [];
-    for (const column of columns) {
-      const cell = asArray(record[`${prefix}_${column.suffix}`])[index];
-      if (!isNonEmptyScalar(cell)) continue;
-      const classified = classifyScalar(cell);
-      fields.push({ label: column.label, value: classified.value, kind: classified.kind });
-    }
-    groups.push({ label: name, fields });
-  });
-  return groups.length > 0 ? { label, groups } : null;
 }
 
 function rollLines(prefix: string, fallbackName: string, record: Record<string, unknown>): string[] {
@@ -128,9 +106,9 @@ export function buildGracreCharasheetCharacter(parsed: unknown): ImportedCharact
   const params = buildParams(record);
   character.params = params;
   character.sections = [
-    zipSection('行動', 'acts', ACT_COLUMNS, record),
-    zipSection('特技', 'effect', FEAT_COLUMNS, record),
-    zipSection('魔法', 'magic', FEAT_COLUMNS, record),
+    buildPrefixedSection('行動', 'acts', ACT_COLUMNS, record),
+    buildPrefixedSection('特技', 'effect', FEAT_COLUMNS, record),
+    buildPrefixedSection('魔法', 'magic', FEAT_COLUMNS, record),
     profileSectionOf(record, PROFILE_FIELDS),
   ].filter((section): section is ImportedSection => section != null);
 

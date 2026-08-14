@@ -1,17 +1,14 @@
 import { normalizeImage } from '@axe/domain/character/import/charasheet-character-parser';
 import {
-  classifyScalar,
   createEmptyImportedCharacter,
   ImportedCharacter,
-  ImportedField,
-  ImportedGroup,
   ImportedParam,
   ImportedSection,
   isNonEmptyScalar,
   normalizeHexColor,
   profileSectionOf,
 } from '@axe/domain/character/import/imported-character';
-import { asArray, asString } from '@axe/domain/character/import/system-profiles/coc-charasheet-shared';
+import { asString, buildPrefixedSection } from '@axe/domain/character/import/system-profiles/charasheet-shared';
 
 // パラサイトブラッド（保管所 game="parabla"）の6能力値。順序は作成ページ <th> ヘッダで確認。
 // S{i}=能力値, NB{i}=判定値（=能力値+2 を実データで確認、2d6 に加える修正値）。
@@ -60,29 +57,6 @@ function buildParams(record: Record<string, unknown>): ImportedParam[] {
   return params;
 }
 
-function zipSection(
-  label: string,
-  prefix: string,
-  columns: { suffix: string; label: string }[],
-  record: Record<string, unknown>
-): ImportedSection | null {
-  const names = asArray(record[`${prefix}_name`]);
-  const groups: ImportedGroup[] = [];
-  names.forEach((rawName, index) => {
-    const name = asString(rawName).trim();
-    if (name === '') return;
-    const fields: ImportedField[] = [];
-    for (const column of columns) {
-      const cell = asArray(record[`${prefix}_${column.suffix}`])[index];
-      if (!isNonEmptyScalar(cell)) continue;
-      const classified = classifyScalar(cell);
-      fields.push({ label: column.label, value: classified.value, kind: classified.kind });
-    }
-    groups.push({ label: name, fields });
-  });
-  return groups.length > 0 ? { label, groups } : null;
-}
-
 function buildPalette(record: Record<string, unknown>): string {
   const lines = ABILITIES.filter((ability) => isNonEmptyScalar(record[ability.rate])).map(
     (ability) => `2d6+${asString(record[ability.rate]).trim()} 【${ability.label}判定】`
@@ -105,8 +79,8 @@ export function buildParablaCharasheetCharacter(parsed: unknown): ImportedCharac
 
   character.params = buildParams(record);
   character.sections = [
-    zipSection('異能', 'Power', POWER_COLUMNS, record),
-    zipSection('武器', 'arms', WEAPON_COLUMNS, record),
+    buildPrefixedSection('異能', 'Power', POWER_COLUMNS, record),
+    buildPrefixedSection('武器', 'arms', WEAPON_COLUMNS, record),
     profileSectionOf(record, PROFILE_FIELDS),
   ].filter((section): section is ImportedSection => section != null);
 

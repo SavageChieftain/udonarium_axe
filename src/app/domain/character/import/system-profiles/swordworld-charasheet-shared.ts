@@ -1,10 +1,7 @@
 import { normalizeImage } from '@axe/domain/character/import/charasheet-character-parser';
 import {
-  classifyScalar,
   createEmptyImportedCharacter,
   ImportedCharacter,
-  ImportedField,
-  ImportedGroup,
   ImportedParam,
   ImportedSection,
   ImportedStatus,
@@ -13,7 +10,11 @@ import {
   profileSectionOf,
   toFiniteNumber,
 } from '@axe/domain/character/import/imported-character';
-import { asArray, asString } from '@axe/domain/character/import/system-profiles/coc-charasheet-shared';
+import {
+  asArray,
+  asString,
+  buildPrefixedSection,
+} from '@axe/domain/character/import/system-profiles/charasheet-shared';
 
 export interface SwordWorldCharasheetConfig {
   game: string;
@@ -71,29 +72,6 @@ function buildStatuses(record: Record<string, unknown>): ImportedStatus[] {
   return statuses;
 }
 
-function zipSection(
-  label: string,
-  prefix: string,
-  columns: { suffix: string; label: string }[],
-  record: Record<string, unknown>
-): ImportedSection | null {
-  const names = asArray(record[`${prefix}_name`]);
-  const groups: ImportedGroup[] = [];
-  names.forEach((rawName, index) => {
-    const name = asString(rawName).trim();
-    if (name === '') return;
-    const fields: ImportedField[] = [];
-    for (const column of columns) {
-      const cell = asArray(record[`${prefix}_${column.suffix}`])[index];
-      if (!isNonEmptyScalar(cell)) continue;
-      const classified = classifyScalar(cell);
-      fields.push({ label: column.label, value: classified.value, kind: classified.kind });
-    }
-    groups.push({ label: name, fields });
-  });
-  return groups.length > 0 ? { label, groups } : null;
-}
-
 function buildPalette(record: Record<string, unknown>, params: ImportedParam[]): string {
   const lines: string[] = ['2d6 【判定】'];
 
@@ -141,8 +119,8 @@ export function buildSwordWorldCharasheet(
   character.params = params;
   character.statuses = buildStatuses(record);
   character.sections = [
-    zipSection(config.skillLabel, config.skillPrefix, config.skillColumns, record),
-    zipSection('武器', 'arms', WEAPON_COLUMNS, record),
+    buildPrefixedSection(config.skillLabel, config.skillPrefix, config.skillColumns, record),
+    buildPrefixedSection('武器', 'arms', WEAPON_COLUMNS, record),
     profileSectionOf(record, PROFILE_FIELDS),
   ].filter((section): section is ImportedSection => section != null);
 

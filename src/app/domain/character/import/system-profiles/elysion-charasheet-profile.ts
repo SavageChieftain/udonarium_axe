@@ -11,7 +11,7 @@ import {
   profileSectionOf,
   scalarField,
 } from '@axe/domain/character/import/imported-character';
-import { asArray, asString } from '@axe/domain/character/import/system-profiles/coc-charasheet-shared';
+import { asArray, asString } from '@axe/domain/character/import/system-profiles/charasheet-shared';
 
 // エリュシオン（保管所 game="elysion"）の3主能力。NB1-3。順序・スキルの能力コードは作成ページの <th>/<select> で確認。
 const ABILITIES: { key: string; label: string }[] = [

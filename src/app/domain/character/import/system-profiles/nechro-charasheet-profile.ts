@@ -10,7 +10,7 @@ import {
   profileSectionOf,
   scalarField,
 } from '@axe/domain/character/import/imported-character';
-import { asArray, asString } from '@axe/domain/character/import/system-profiles/coc-charasheet-shared';
+import { asArray, asString } from '@axe/domain/character/import/system-profiles/charasheet-shared';
 
 /**
  * 永い後日談のネクロニカ（保管所 game="nechro"）プロファイル。
