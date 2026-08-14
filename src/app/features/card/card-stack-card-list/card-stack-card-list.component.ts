@@ -13,6 +13,7 @@ import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { ModalService } from '@axe/application/ui/modal.service';
 import { PanelOption, PanelService } from '@axe/application/ui/panel.service';
+import { sheetPanelTitle } from '@axe/application/ui/sheet-panel-title';
 import { callShuffleCardStack } from '@axe/core/event/domain-events';
 import { Network } from '@axe/core/index';
 import { Card } from '@axe/domain/card/card';
@@ -113,8 +114,7 @@ export class CardStackCardListComponent {
 
   showDetail(card: Card): void {
     const coordinate = { x: this.panelService.left, y: this.panelService.top };
-    let title = this.t('feature.card.settingTitle');
-    if (card.name.length) title += ' - ' + card.name;
+    const title = sheetPanelTitle(this.t('feature.card.settingTitle'), card.name);
     const option: PanelOption = {
       title,
       left: coordinate.x + 20,

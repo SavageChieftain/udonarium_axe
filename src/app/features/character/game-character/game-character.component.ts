@@ -30,6 +30,7 @@ import { tryBuildMultiSelectionContextMenu } from '@axe/application/ui/multi-sel
 import { buildOverlapContextMenu } from '@axe/application/ui/overlap-context-menu';
 import { PanelOption, PanelService } from '@axe/application/ui/panel.service';
 import { SelectionSignalService } from '@axe/application/ui/selection-signal.service';
+import { sheetPanelTitle } from '@axe/application/ui/sheet-panel-title';
 import { buildSurfaceSwitchContextMenu } from '@axe/application/ui/surface-switch-context-menu';
 import { TabletopOverlapService } from '@axe/application/ui/tabletop-overlap.service';
 import { UiSignalService } from '@axe/application/ui/ui-signal.service';
@@ -847,8 +848,7 @@ export class GameCharacterComponent {
   private showDetail(gameObject: GameCharacter) {
     if (!this.disclosureService.canView(gameObject)) return;
     const coordinate = this.pointerDeviceService.pointers[0];
-    let title = this.translateFn('feature.character.panel.sheet');
-    if (gameObject.name.length) title += ' - ' + gameObject.name;
+    const title = sheetPanelTitle(this.translateFn('feature.character.panel.sheet'), gameObject.name);
     const option: PanelOption = {
       title: title,
       left: coordinate.x - 400,

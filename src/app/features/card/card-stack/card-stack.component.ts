@@ -22,6 +22,7 @@ import { MultiMovableService } from '@axe/application/ui/multi-movable.service';
 import { tryBuildMultiSelectionContextMenu } from '@axe/application/ui/multi-selection-context-menu';
 import { PanelOption, PanelService } from '@axe/application/ui/panel.service';
 import { SelectionSignalService } from '@axe/application/ui/selection-signal.service';
+import { sheetPanelTitle } from '@axe/application/ui/sheet-panel-title';
 import { buildSurfaceSwitchContextMenu } from '@axe/application/ui/surface-switch-context-menu';
 import { Network } from '@axe/core/index';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
@@ -503,8 +504,7 @@ export class CardStackComponent {
   private showDetail(gameObject: CardStack) {
     this.selectionSignalService.selectObject(gameObject.identifier, gameObject.aliasName);
     const coordinate = this.pointerDeviceService.pointers[0];
-    let title = this.translateFn('feature.cardStack.settingTitle');
-    if (gameObject.name.length) title += ' - ' + gameObject.name;
+    const title = sheetPanelTitle(this.translateFn('feature.cardStack.settingTitle'), gameObject.name);
     const option: PanelOption = {
       title: title,
       left: coordinate.x - 300,

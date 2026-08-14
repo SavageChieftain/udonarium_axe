@@ -22,6 +22,7 @@ import { ContextMenuSeparator, ContextMenuService } from '@axe/application/ui/co
 import { tryBuildMultiSelectionContextMenu } from '@axe/application/ui/multi-selection-context-menu';
 import { PanelOption, PanelService } from '@axe/application/ui/panel.service';
 import { SelectionSignalService } from '@axe/application/ui/selection-signal.service';
+import { sheetPanelTitle } from '@axe/application/ui/sheet-panel-title';
 import { buildSurfaceSwitchContextMenu } from '@axe/application/ui/surface-switch-context-menu';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { ImageFile, imageFileEqual } from '@axe/core/storage/image-file';
@@ -422,8 +423,7 @@ export class CardComponent {
     if (!this.disclosureService.canView(gameObject)) return;
     this.selectionSignalService.selectObject(gameObject.identifier, gameObject.aliasName);
     const coordinate = this.pointerDeviceService.pointers[0];
-    let title = this.translateFn('feature.card.settingTitle');
-    if (gameObject.name.length) title += ' - ' + gameObject.name;
+    const title = sheetPanelTitle(this.translateFn('feature.card.settingTitle'), gameObject.name);
     const option: PanelOption = {
       title: title,
       left: coordinate.x - 300,

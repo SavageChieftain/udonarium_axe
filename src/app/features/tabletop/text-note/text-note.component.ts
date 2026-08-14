@@ -22,6 +22,7 @@ import { ContextMenuSeparator, ContextMenuService } from '@axe/application/ui/co
 import { tryBuildMultiSelectionContextMenu } from '@axe/application/ui/multi-selection-context-menu';
 import { PanelOption, PanelService } from '@axe/application/ui/panel.service';
 import { SelectionSignalService } from '@axe/application/ui/selection-signal.service';
+import { sheetPanelTitle } from '@axe/application/ui/sheet-panel-title';
 import { buildSurfaceSwitchContextMenu } from '@axe/application/ui/surface-switch-context-menu';
 import { UiSignalService } from '@axe/application/ui/ui-signal.service';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
@@ -445,8 +446,7 @@ export class TextNoteComponent {
     if (!this.disclosureService.canView(gameObject)) return;
     this.selectionSignalService.selectObject(gameObject.identifier, gameObject.aliasName);
     const coordinate = this.pointerDeviceService.pointers[0];
-    let title = this.translateFn('feature.tabletop.panel.textNote');
-    if (gameObject.title.length) title += ' - ' + gameObject.title;
+    const title = sheetPanelTitle(this.translateFn('feature.tabletop.panel.textNote'), gameObject.title);
     const option: PanelOption = {
       title: title,
       left: coordinate.x - 350,

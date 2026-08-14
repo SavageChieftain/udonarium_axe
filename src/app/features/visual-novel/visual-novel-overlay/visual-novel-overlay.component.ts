@@ -15,6 +15,7 @@ import { ImageService } from '@axe/application/storage/image.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { KeyboardInsetService } from '@axe/application/ui/keyboard-inset.service';
 import { PanelOption, PanelService } from '@axe/application/ui/panel.service';
+import { sheetPanelTitle } from '@axe/application/ui/sheet-panel-title';
 import { ViewportService } from '@axe/application/ui/viewport.service';
 import { AudioStorage } from '@axe/core/storage/audio-storage';
 import { ObjectStore } from '@axe/core/sync/object-store';
@@ -775,8 +776,7 @@ export class VisualNovelOverlayComponent {
     const object = this.objectStore.get(this._sendFrom());
     if (!(object instanceof GameCharacter)) return;
     this.closePopovers();
-    let title = this.t('feature.character.panel.sheet');
-    if (object.name.length > 0) title += ' - ' + object.name;
+    const title = sheetPanelTitle(this.t('feature.character.panel.sheet'), object.name);
     const option: PanelOption = {
       title,
       left: 60,

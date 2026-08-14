@@ -20,6 +20,7 @@ import { ContextMenuSeparator, ContextMenuService } from '@axe/application/ui/co
 import { tryBuildMultiSelectionContextMenu } from '@axe/application/ui/multi-selection-context-menu';
 import { PanelOption, PanelService } from '@axe/application/ui/panel.service';
 import { SelectionSignalService } from '@axe/application/ui/selection-signal.service';
+import { sheetPanelTitle } from '@axe/application/ui/sheet-panel-title';
 import { buildSurfaceSwitchContextMenu } from '@axe/application/ui/surface-switch-context-menu';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { imageFileEqual } from '@axe/core/storage/image-file';
@@ -273,8 +274,7 @@ export class CoinComponent {
     const coin = this.coin();
     this.selectionSignalService.selectObject(coin.identifier, coin.aliasName);
     const coordinate = this.pointerDeviceService.pointers[0];
-    let title = this.translateFn('feature.coin.sheet.title');
-    if (coin.name.length) title += ' - ' + coin.name;
+    const title = sheetPanelTitle(this.translateFn('feature.coin.sheet.title'), coin.name);
     const option: PanelOption = {
       title,
       left: coordinate.x - 200,

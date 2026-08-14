@@ -20,6 +20,7 @@ import { ContextMenuService } from '@axe/application/ui/context-menu.service';
 import { tryBuildMultiSelectionContextMenu } from '@axe/application/ui/multi-selection-context-menu';
 import { PanelOption, PanelService } from '@axe/application/ui/panel.service';
 import { SelectionSignalService } from '@axe/application/ui/selection-signal.service';
+import { sheetPanelTitle } from '@axe/application/ui/sheet-panel-title';
 import { UiSignalService } from '@axe/application/ui/ui-signal.service';
 import { CoordinateService } from '@axe/core/input/coordinate.service';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
@@ -458,8 +459,7 @@ export class RangeComponent {
 
   private showDetail(gameObject: RangeArea) {
     const coordinate = this.pointerDeviceService.pointers[0];
-    let title = this.translateFn('feature.tabletop.panel.range');
-    if (gameObject.name.length) title += ' - ' + gameObject.name;
+    const title = sheetPanelTitle(this.translateFn('feature.tabletop.panel.range'), gameObject.name);
     const option: PanelOption = {
       title: title,
       left: coordinate.x - 200,
