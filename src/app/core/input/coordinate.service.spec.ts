@@ -14,8 +14,8 @@ describe('CoordinateService', () => {
     expect(service).toBeTruthy();
   });
 
-  describe('Transform プール', () => {
-    it('convertToLocal を連続して呼んでも内部 Transform インスタンスは使い回される', () => {
+  describe('the transform pool', () => {
+    it('reuses its transforms across repeated conversions', () => {
       const internal = service as unknown as { _transformA: Transform; _transformB: Transform };
       const a1 = internal._transformA;
       const b1 = internal._transformB;
@@ -28,12 +28,12 @@ describe('CoordinateService', () => {
       service.convertLocalToLocal({ x: 40, y: 40, z: 0 }, el, document.body);
       document.body.removeChild(el);
 
-      // プールされたインスタンス参照が apply 後も同じ object であれば、内部で new されていない
+      // the pooled reference surviving the call proves nothing was allocated
       expect(internal._transformA).toBe(a1);
       expect(internal._transformB).toBe(b1);
     });
 
-    it('convertToLocal の結果は new Transform を毎回作った場合と一致する', () => {
+    it('gives the same answer as a fresh transform would', () => {
       const el = document.createElement('div');
       document.body.appendChild(el);
 
@@ -50,7 +50,7 @@ describe('CoordinateService', () => {
       document.body.removeChild(el);
     });
 
-    it('convertLocalToLocal は from / to で別インスタンスを使い 2 個のプールで完結する', () => {
+    it('uses one pooled transform for each end and no more', () => {
       const a = document.createElement('div');
       const b = document.createElement('div');
       document.body.appendChild(a);

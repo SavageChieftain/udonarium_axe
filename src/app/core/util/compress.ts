@@ -8,7 +8,7 @@ export async function decompressAsync(data: Uint8Array): Promise<Uint8Array> {
   return new Uint8Array(await new Response(stream).arrayBuffer());
 }
 
-/** gzip の目印。 */
+/** The gzip magic number. */
 const GZIP_MAGIC = [0x1f, 0x8b];
 
 export function isCompressed(data: Uint8Array): boolean {
@@ -16,8 +16,8 @@ export function isCompressed(data: Uint8Array): boolean {
 }
 
 /**
- * 圧縮されていれば展開し、そうでなければそのまま返す。
- * 圧縮する前に書かれたデータが残っていても読めるようにするための入口。
+ * Decompresses when compressed and hands the bytes back otherwise.
+ * It is what lets data written before compression still be read.
  */
 export async function decompressIfNeeded(data: Uint8Array): Promise<Uint8Array> {
   return isCompressed(data) ? decompressAsync(data) : data;

@@ -2,97 +2,97 @@ import * as MimeType from '@axe/core/storage/mime-type';
 
 describe('MimeType', () => {
   describe('type()', () => {
-    it('png拡張子のMIMEタイプを返す', () => {
+    it('types a png', () => {
       expect(MimeType.type('image.png')).toBe('image/png');
     });
 
-    it('jpg拡張子のMIMEタイプを返す', () => {
+    it('types a jpg', () => {
       expect(MimeType.type('photo.jpg')).toBe('image/jpeg');
     });
 
-    it('jpeg拡張子のMIMEタイプを返す', () => {
+    it('types a jpeg', () => {
       expect(MimeType.type('photo.jpeg')).toBe('image/jpeg');
     });
 
-    it('gif拡張子のMIMEタイプを返す', () => {
+    it('types a gif', () => {
       expect(MimeType.type('anim.gif')).toBe('image/gif');
     });
 
-    it('webp拡張子のMIMEタイプを返す', () => {
+    it('types a webp', () => {
       expect(MimeType.type('image.webp')).toBe('image/webp');
     });
 
-    it('svg拡張子のMIMEタイプを返す', () => {
+    it('types an svg', () => {
       expect(MimeType.type('icon.svg')).toBe('image/svg+xml');
     });
 
-    it('mp3拡張子のMIMEタイプを返す', () => {
+    it('types an mp3', () => {
       expect(MimeType.type('sound.mp3')).toBe('audio/mp3');
     });
 
-    it('wav拡張子のMIMEタイプを返す', () => {
+    it('types a wav', () => {
       expect(MimeType.type('sound.wav')).toBe('audio/wav');
     });
 
-    it('ogg拡張子のMIMEタイプを返す', () => {
+    it('types an ogg', () => {
       expect(MimeType.type('sound.ogg')).toBe('audio/ogg');
     });
 
-    it('mp4拡張子のMIMEタイプを返す', () => {
+    it('types an mp4', () => {
       expect(MimeType.type('video.mp4')).toBe('video/mp4');
     });
 
-    it('html拡張子のMIMEタイプを返す', () => {
+    it('types an html file', () => {
       expect(MimeType.type('page.html')).toBe('text/html');
     });
 
-    it('json拡張子のMIMEタイプを返す', () => {
+    it('types a json file', () => {
       expect(MimeType.type('data.json')).toBe('application/json');
     });
 
-    it('zip拡張子のMIMEタイプを返す', () => {
+    it('types a zip', () => {
       expect(MimeType.type('archive.zip')).toBe('application/zip');
     });
 
-    it('大文字の拡張子も認識する', () => {
+    it('recognises an extension in capitals', () => {
       expect(MimeType.type('IMAGE.PNG')).toBe('image/png');
     });
 
-    it('パスにドットが含まれていても最後の拡張子を使う', () => {
+    it('takes the last extension from a path with several dots', () => {
       expect(MimeType.type('some.file.name.jpg')).toBe('image/jpeg');
     });
 
-    it('不明な拡張子は空文字列を返す', () => {
+    it('returns nothing for an extension it does not know', () => {
       expect(MimeType.type('file.unknown')).toBe('');
     });
 
-    it('yaml拡張子のMIMEタイプを返す', () => {
+    it('types a yaml file', () => {
       expect(MimeType.type('config.yaml')).toBe('text/yaml');
     });
 
-    it('avif拡張子のMIMEタイプを返す', () => {
+    it('types an avif', () => {
       expect(MimeType.type('image.avif')).toBe('image/avif');
     });
   });
 
   describe('extension()', () => {
-    it('image/pngからpng拡張子を返す', () => {
+    it('names a png', () => {
       expect(MimeType.extension('image/png')).toBe('png');
     });
 
-    it('image/jpegからjpg拡張子を返す', () => {
+    it('names a jpeg', () => {
       expect(MimeType.extension('image/jpeg')).toBe('jpg');
     });
 
-    it('audio/mp3からmp3拡張子を返す', () => {
+    it('names an mp3', () => {
       expect(MimeType.extension('audio/mp3')).toBe('mp3');
     });
 
-    it('不明なMIMEタイプはサブタイプ部分を返す', () => {
+    it('falls back to the subtype for a type it does not know', () => {
       expect(MimeType.extension('application/octet-stream')).toBe('octet-stream');
     });
 
-    it('image/gifからgif拡張子を返す', () => {
+    it('names a gif', () => {
       expect(MimeType.extension('image/gif')).toBe('gif');
     });
   });

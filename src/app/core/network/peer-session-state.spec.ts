@@ -2,19 +2,19 @@ import { PeerSessionGrade } from '@axe/core/network/peer-session-state';
 
 describe('PeerSessionState', () => {
   describe('PeerSessionGrade enum', () => {
-    it('UNSPECIFIEDが0', () => {
+    it('unspecified is zero', () => {
       expect(PeerSessionGrade.UNSPECIFIED).toBe(0);
     });
 
-    it('LOWが1', () => {
+    it('low is one', () => {
       expect(PeerSessionGrade.LOW).toBe(1);
     });
 
-    it('MIDDLEが2', () => {
+    it('middle is two', () => {
       expect(PeerSessionGrade.MIDDLE).toBe(2);
     });
 
-    it('HIGHが3', () => {
+    it('high is three', () => {
       expect(PeerSessionGrade.HIGH).toBe(3);
     });
   });

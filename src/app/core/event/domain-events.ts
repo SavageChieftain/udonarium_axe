@@ -13,11 +13,11 @@ export interface DiceTableMessageEvent {
 }
 
 export interface ResourceChangeEvent {
-  /** 増減が起きたコマ。 */
+  /** The piece whose numbers moved. */
   characterIdentifier: string;
-  /** 何がどれだけ動いたか。描くのに要る情報だけを載せる。 */
+  /** What moved and by how much, carrying only what the drawing needs. */
   changes: unknown[];
-  /** 知らせた端末。自分が知らせたぶんは、その場で描いているので受け流す。 */
+  /** Which device reported it. Your own is ignored, having drawn it already. */
   emittedBy?: string;
 }
 
@@ -122,8 +122,8 @@ export const fileLoaded$ = new EventChannel<void>();
 export const xmlLoaded$ = new EventChannel<XmlLoadedEvent>();
 export const imageDropped$ = new EventChannel<ImageDroppedEvent>();
 export const ccfoliaRoomDropped$ = new EventChannel<CcfoliaRoomDroppedEvent>();
-// APP_INITIALIZER の設定ロード(emit)が AppComponent 生成時の購読より先に走り得るため、
-// 取りこぼし（= openStandby 未実行で peerId が '???' のまま固定）を防ぐ sticky チャネルにする。
+// The configuration load can emit before the app component subscribes, so this channel is
+// sticky: without it the event is missed and the peer id stays unset.
 export const loadConfig$ = new StickyEventChannel<LoadConfigEvent>();
 export const fileResourceUpdated$ = new EventChannel<void>();
 
@@ -221,10 +221,10 @@ export function callEffectCast(cast: unknown) {
 }
 
 /**
- * リソースの増減を全員へ知らせる。
+ * Tells everyone that a resource moved.
  *
- * 値の差分を各自が見張ると、部屋データの読み込みや同期で入れ替わった値まで
- * 増減として扱ってしまう。変えた端末だけが知らせ、全員はこれを見て描く。
+ * Watching for differences locally would count values replaced by a room load or a sync
+ * as movement. Only the device that changed it reports, and everyone draws from that.
  */
 export function callResourceChange(event: ResourceChangeEvent) {
   networkSend('RESOURCE_CHANGE', { ...event, emittedBy: getPeerContext().peerId });

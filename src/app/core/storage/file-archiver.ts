@@ -17,8 +17,8 @@ import type { Unzipped } from 'fflate';
 type MetaData = { percent: number; currentFile: string };
 type UpdateCallback = (metadata: MetaData) => void;
 
-/** ReloadCheck（domain）の構造的契約。core は domain を直接知らないため、
- *  ObjectStore 経由でこの shape を満たすシングルトン（alias `'ReloadCheck'`）に依存する。 */
+/** The shape of the guard from the domain. Core does not know the domain, so it depends on
+ *  a singleton in the store answering to this shape. */
 interface LoadGuard extends GameObject {
   reloadCheckStart(isOnline: boolean): void;
   isLoadOk(): boolean;
@@ -98,7 +98,7 @@ export class FileArchiver {
   private onDrop(event: DragEvent) {
     event.preventDefault();
 
-    // 立ち上がりきる前や、そもそも見張りが居ない場面でも落とせる。
+    // A drop can arrive before startup finishes, or where no guard exists at all.
     this.reloadCheck?.reloadCheckStart(this.networkService.peerContext?.roomName !== '');
 
     const files = event.dataTransfer?.files;
@@ -141,7 +141,7 @@ export class FileArchiver {
 
   private async handleImage(file: File, dropPoint?: { x: number; y: number }): Promise<boolean> {
     if (!file.type.startsWith('image/')) return false;
-    // 見張りが居ないなら止める理由も無い。
+    // With no guard there is nothing to stop it.
     if (!(this.reloadCheck?.isLoadOk() ?? true)) return false;
     if (file.size > this.maxImageSize) {
       Logger.warn(`[FileArchiver] ファイルサイズ制限超過: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)}MB)`);
@@ -165,7 +165,7 @@ export class FileArchiver {
     if (!isXmlCandidateFile(file)) return;
 
     let isLoadOk = true;
-    // data.xmlはここでは通過させ後段で中身が部屋データ更新だった場合更新確認をする
+    // room data passes here and is confirmed later, once its contents are known
     if (
       file.name === 'config.xml' ||
       file.name === 'imagetag.xml' ||

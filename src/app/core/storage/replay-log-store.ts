@@ -42,13 +42,13 @@ export interface ReplayKeyframeRecord extends ReplayKeyframeInput {
 }
 
 export interface ReplayRetention {
-  /** null なら本数で消さない。 */
+  /** Null means no limit on the count. */
   maxCount: number | null;
-  /** null なら容量で消さない。 */
+  /** Null means no limit on the size. */
   maxTotalBytes: number | null;
 }
 
-/** 既定は消さない。残すかどうかは記録した人が決める。 */
+/** Nothing is deleted by default; whoever recorded it decides. */
 export const DEFAULT_REPLAY_RETENTION: ReplayRetention = {
   maxCount: null,
   maxTotalBytes: null,

@@ -22,7 +22,7 @@ describe('decorator-core', () => {
   });
 
   describe('defineSyncObject', () => {
-    it('ObjectFactoryにクラスを登録する', () => {
+    it('registers the class with the object factory', () => {
       class TestSyncObj extends GameObject {
         override get aliasName() {
           return 'TestSyncObj';
@@ -36,15 +36,15 @@ describe('decorator-core', () => {
   });
 
   describe('defineSyncVariable', () => {
-    it('syncDataを通じたgetter/setterが定義される', () => {
+    it('defines an accessor over the sync data', () => {
       const obj = new GameObject();
       obj.initialize();
 
-      // defineSyncVariableはプロトタイプにgetter/setterを定義する
+      // defines the accessor on the prototype
       const descriptor = defineSyncVariable();
       descriptor(obj, 'testProp');
 
-      // getter/setterがcontext.syncDataを使う
+      // the accessor reads and writes the sync data
       (obj as unknown as Record<string, unknown>).testProp = 'hello';
       expect((obj as unknown as { context: { syncData: Record<string, unknown> } }).context.syncData['testProp']).toBe(
         'hello'
@@ -54,7 +54,7 @@ describe('decorator-core', () => {
   });
 
   describe('defineSyncAttribute', () => {
-    it('getAttribute/setAttributeを通じたgetter/setterが定義される', () => {
+    it('defines an accessor over the attributes', () => {
       const obj = new ObjectNode();
       obj.initialize();
 

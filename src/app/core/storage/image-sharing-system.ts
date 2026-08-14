@@ -295,7 +295,7 @@ function convertUrlImage(xmlElement: Element) {
     }
   }
   for (const url of urls) {
-    // ファイル名ベースのidentifierの場合、名前で既存画像を検索してエイリアスを作る
+    // aliases a name-based identifier onto an image already held under that name
     const byName = ImageStorage.instance.images.find((i) => i.name === url && i.blob);
     if (byName) {
       const aliasContext: ImageContext = {

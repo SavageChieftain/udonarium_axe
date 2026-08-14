@@ -110,7 +110,7 @@ const asAudioPlayerPrivate = (player: AudioPlayer): AudioPlayerPrivateInstance =
   player as unknown as AudioPlayerPrivateInstance;
 
 function resetStaticState() {
-  // プライベート静的フィールドをリセットしてテスト間の干渉を防ぐ
+  // reset the static fields so nothing leaks between tests
   audioPlayerPrivate._audioContext = undefined;
   audioPlayerPrivate._masterGainNode = undefined;
   audioPlayerPrivate._auditionGainNode = undefined;
@@ -139,8 +139,8 @@ describe('AudioPlayer', () => {
     audioCtxMock = makeAudioContextMock();
     audioElmMock = makeAudioElm();
 
-    // `new AudioContext()` → audioCtxMock を返すコンストラクタ
-    // アロー関数は new で使えないので通常の function を使う
+    // a constructor handing back the stand-in audio context
+    // an arrow cannot be constructed, so this is a plain function
     const capturedCtx = audioCtxMock;
     function AudioContextCtor(this: unknown) {
       return capturedCtx;
@@ -148,7 +148,7 @@ describe('AudioPlayer', () => {
     vi.stubGlobal('AudioContext', AudioContextCtor);
     vi.stubGlobal('webkitAudioContext', AudioContextCtor);
 
-    // `new Audio()` → audioElmMock を返すコンストラクタ
+    // a constructor handing back the stand-in audio element
     const capturedElm = audioElmMock;
     function AudioCtor(this: unknown) {
       return capturedElm;
@@ -170,13 +170,13 @@ describe('AudioPlayer', () => {
   // ─── VolumeType enum ─────────────────────────────────────────────────────
 
   describe('VolumeType', () => {
-    it('MASTER は 0', () => {
+    it('master is zero', () => {
       expect(VolumeType.MASTER).toBe(0);
     });
-    it('AUDITION は 1', () => {
+    it('audition is one', () => {
       expect(VolumeType.AUDITION).toBe(1);
     });
-    it('SE は 2', () => {
+    it('the sound effects are two', () => {
       expect(VolumeType.SE).toBe(2);
     });
   });
@@ -184,18 +184,18 @@ describe('AudioPlayer', () => {
   // ─── static audioContext ─────────────────────────────────────────────────
 
   describe('static audioContext', () => {
-    it('初回アクセスで AudioContext を生成する', () => {
+    it('builds the audio context on first use', () => {
       const ctx = AudioPlayer.audioContext;
       expect(ctx).toBe(audioCtxMock);
     });
 
-    it('2回目以降は同じインスタンスを返す', () => {
+    it('returns the same one afterwards', () => {
       const a = AudioPlayer.audioContext;
       const b = AudioPlayer.audioContext;
       expect(a).toBe(b);
     });
 
-    it('window.AudioContext がなければ webkitAudioContext を使う', () => {
+    it('falls back to the prefixed constructor', () => {
       vi.stubGlobal('AudioContext', undefined);
       const capturedCtx = audioCtxMock;
       let callCount = 0;
@@ -213,11 +213,11 @@ describe('AudioPlayer', () => {
   // ─── static volume ───────────────────────────────────────────────────────
 
   describe('static volume', () => {
-    it('デフォルトは 0.5', () => {
+    it('is half by default', () => {
       expect(AudioPlayer.volume).toBe(0.5);
     });
 
-    it('セットすると masterGainNode に反映される', () => {
+    it('carries a change through to the master gain', () => {
       AudioPlayer.volume = 0.8;
       expect(AudioPlayer.volume).toBe(0.8);
       const gainNode = audioCtxMock.createGain.mock.results[0].value as GainNodeMock;
@@ -228,14 +228,14 @@ describe('AudioPlayer', () => {
   // ─── static auditionVolume ───────────────────────────────────────────────
 
   describe('static auditionVolume', () => {
-    it('デフォルトは 0.5', () => {
+    it('is half by default', () => {
       expect(AudioPlayer.auditionVolume).toBe(0.5);
     });
 
-    it('セットすると auditionGainNode に反映される', () => {
+    it('carries a change through to the audition gain', () => {
       AudioPlayer.auditionVolume = 0.3;
       expect(AudioPlayer.auditionVolume).toBe(0.3);
-      // setter が auditionGainNode ゲッターを直接呼ぶので 0番目が audition の createGain
+      // the setter reaches the audition gain directly, so the first gain built is that one
       const gainNode = audioCtxMock.createGain.mock.results[0].value as GainNodeMock;
       expect(gainNode.gain.setTargetAtTime).toHaveBeenCalledWith(0.3, 0, 0.01);
     });
@@ -244,7 +244,7 @@ describe('AudioPlayer', () => {
   // ─── static rootNode / auditionNode ──────────────────────────────────────
 
   describe('static rootNode', () => {
-    it('masterGainNode を返す', () => {
+    it('returns the master gain', () => {
       const node = AudioPlayer.rootNode;
       expect(audioCtxMock.createGain).toHaveBeenCalledOnce();
       expect(node).toBeDefined();
@@ -252,7 +252,7 @@ describe('AudioPlayer', () => {
   });
 
   describe('static auditionNode', () => {
-    it('auditionGainNode を返す', () => {
+    it('returns the audition gain', () => {
       const node = AudioPlayer.auditionNode;
       expect(node).toBeDefined();
     });
@@ -261,11 +261,11 @@ describe('AudioPlayer', () => {
   // ─── static seVolume ─────────────────────────────────────────────────────
 
   describe('static seVolume', () => {
-    it('デフォルトは 0.5', () => {
+    it('is half by default', () => {
       expect(AudioPlayer.seVolume).toBe(0.5);
     });
 
-    it('セットすると seGainNode に反映される', () => {
+    it('carries a change through to the effects gain', () => {
       AudioPlayer.seVolume = 0.7;
       expect(AudioPlayer.seVolume).toBe(0.7);
       const gainNode = audioCtxMock.createGain.mock.results[0].value as GainNodeMock;
@@ -276,7 +276,7 @@ describe('AudioPlayer', () => {
   // ─── static seNode ───────────────────────────────────────────────────────
 
   describe('static seNode', () => {
-    it('seGainNode を返す', () => {
+    it('returns the effects gain', () => {
       const node = AudioPlayer.seNode;
       expect(node).toBeDefined();
     });
@@ -285,12 +285,12 @@ describe('AudioPlayer', () => {
   // ─── constructor ─────────────────────────────────────────────────────────
 
   describe('constructor', () => {
-    it('audio なしで構築できる', () => {
+    it('can be built with no audio', () => {
       const player = new AudioPlayer();
       expect(player.audio).toBeUndefined();
     });
 
-    it('audio ありで構築できる', () => {
+    it('can be built with audio', () => {
       const af = makeAudioFile();
       const player = new AudioPlayer(af);
       expect(player.audio).toBe(af);
@@ -300,20 +300,20 @@ describe('AudioPlayer', () => {
   // ─── instance volume / loop / paused ─────────────────────────────────────
 
   describe('instance volume', () => {
-    it('要素未生成時はバッキング値を返す', () => {
+    it('returns the stored value before the element exists', () => {
       const player = new AudioPlayer();
       expect(player.volume).toBe(1);
     });
 
-    it('セットするとバッキング値が変わる', () => {
+    it('changes the stored value', () => {
       const player = new AudioPlayer();
       player.volume = 0.5;
       expect(player.volume).toBe(0.5);
-      // まだ要素は生成されていない（_audioElm は undefined のまま）
+      // the element does not exist yet
       expect(asAudioPlayerPrivate(player)._audioElm).toBeUndefined();
     });
 
-    it('要素生成後はセットが audioElm にも反映される', () => {
+    it('carries a change through to the element once it exists', () => {
       const player = new AudioPlayer();
       const af = makeAudioFile({ blob: new Blob(['x']), identifier: 'v1' });
       player.play(af);
@@ -324,20 +324,20 @@ describe('AudioPlayer', () => {
   });
 
   describe('instance loop', () => {
-    it('要素未生成時はバッキング値(false)を返す', () => {
+    it('returns the stored value, false, before the element exists', () => {
       const player = new AudioPlayer();
       expect(player.loop).toBe(false);
     });
 
-    it('セットするとバッキング値が変わる', () => {
+    it('changes the stored value', () => {
       const player = new AudioPlayer();
       player.loop = true;
       expect(player.loop).toBe(true);
-      // まだ要素は生成されていない（_audioElm は undefined のまま）
+      // the element does not exist yet
       expect(asAudioPlayerPrivate(player)._audioElm).toBeUndefined();
     });
 
-    it('要素生成後はセットが audioElm にも反映される', () => {
+    it('carries a change through to the element once it exists', () => {
       const player = new AudioPlayer();
       const af = makeAudioFile({ blob: new Blob(['x']), identifier: 'lp1' });
       player.play(af);
@@ -347,12 +347,12 @@ describe('AudioPlayer', () => {
   });
 
   describe('instance paused', () => {
-    it('要素未生成時は true を返す', () => {
+    it('returns true before the element exists', () => {
       const player = new AudioPlayer();
       expect(player.paused).toBe(true);
     });
 
-    it('要素生成後は audioElm.paused を返す', () => {
+    it('reads the element once it exists', () => {
       const player = new AudioPlayer();
       const af = makeAudioFile({ blob: new Blob(['x']), identifier: 'ps1' });
       audioElmMock.paused = false;
@@ -364,20 +364,20 @@ describe('AudioPlayer', () => {
   // ─── play / pause / stop ─────────────────────────────────────────────────
 
   describe('play()', () => {
-    it('audio が未設定でも audio 引数があれば再生する', () => {
+    it('plays what it is handed even with nothing set', () => {
       const player = new AudioPlayer();
       const af = makeAudioFile({ blob: new Blob(['data']), identifier: 'p1' });
       player.play(af);
       expect(audioElmMock.play).toHaveBeenCalledOnce();
     });
 
-    it('audio も引数もなければ何もしない', () => {
+    it('does nothing with neither', () => {
       const player = new AudioPlayer();
       player.play();
       expect(audioElmMock.play).not.toHaveBeenCalled();
     });
 
-    it('play() 前に stop() を呼ぶ', () => {
+    it('stop before playing', () => {
       const player = new AudioPlayer();
       const af = makeAudioFile({ blob: new Blob(['data']), identifier: 'p2' });
       player.play(af); // 1回目で要素生成
@@ -385,7 +385,7 @@ describe('AudioPlayer', () => {
       expect(audioElmMock.pause).toHaveBeenCalled();
     });
 
-    it('AudioState.URL でキャッシュがあれば cachedUrl を使う', () => {
+    it('uses the cached url when there is one', () => {
       const player = new AudioPlayer();
       const af = makeAudioFile({ url: 'http://example.com/a.mp3', identifier: 'cached' });
       audioPlayerPrivate.cacheMap.set('cached', { url: 'blob:cached-url', blob: new Blob() });
@@ -393,7 +393,7 @@ describe('AudioPlayer', () => {
       expect(audioElmMock.src).toBe('blob:cached-url');
     });
 
-    it('AudioState.URL でキャッシュがなければ createCacheAsync を呼ぶ', () => {
+    it('builds a cache when there is none', () => {
       const player = new AudioPlayer();
       const af = makeAudioFile({ url: 'http://example.com/b.mp3', identifier: 'nc' });
       type WithCreateCacheAsync = { createCacheAsync: (audio: AudioFile) => Promise<null> };
@@ -402,7 +402,7 @@ describe('AudioPlayer', () => {
       expect(spy).toHaveBeenCalledWith(af);
     });
 
-    it('AudioState.URL で壊れたキャッシュ値(undefined)があっても例外を投げず元URLで再生できる', () => {
+    it('falls back to the original url past a broken cache entry', () => {
       const player = new AudioPlayer();
       const af = makeAudioFile({ url: 'http://example.com/broken.mp3', identifier: 'broken-cache' });
       const brokenCacheMap = audioPlayerPrivate.cacheMap as unknown as Map<
@@ -417,18 +417,18 @@ describe('AudioPlayer', () => {
       expect(audioElmMock.src).toBe('http://example.com/broken.mp3');
     });
 
-    it('play() は volumeType AUDITION で auditionNode に接続する', () => {
+    it('connects an audition to the audition node', () => {
       const player = new AudioPlayer();
       player.volumeType = VolumeType.AUDITION;
       const af = makeAudioFile({ blob: new Blob(['x']), identifier: 'aud' });
-      // play() 前に auditionNode を参照して gainNode インスタンスを先に取得
+      // touch the audition node first so its gain exists
       const auditionNodeRef = AudioPlayer.auditionNode;
       player.play(af);
       const src = audioCtxMock.createMediaElementSource.mock.results[0].value;
       expect(src.connect).toHaveBeenCalledWith(auditionNodeRef);
     });
 
-    it('play() は volumeType MASTER で rootNode に接続する', () => {
+    it('connects the master volume to the root node', () => {
       const player = new AudioPlayer();
       player.volumeType = VolumeType.MASTER;
       const af = makeAudioFile({ blob: new Blob(['x']), identifier: 'mst' });
@@ -438,18 +438,18 @@ describe('AudioPlayer', () => {
       expect(src.connect).toHaveBeenCalledWith(masterGain);
     });
 
-    it('play() は volumeType SE で seNode に接続する', () => {
+    it('connects a sound effect to the effects node', () => {
       const player = new AudioPlayer();
       player.volumeType = VolumeType.SE;
       const af = makeAudioFile({ blob: new Blob(['x']), identifier: 'se1' });
-      // play() 前に seNode を参照して gainNode インスタンスを先に取得
+      // touch the effects node first so its gain exists
       const seNodeRef = AudioPlayer.seNode;
       player.play(af);
       const src = audioCtxMock.createMediaElementSource.mock.results[0].value;
       expect(src.connect).toHaveBeenCalledWith(seNodeRef);
     });
 
-    it('audioElm 生成時に _volume と _loop がセットされる', () => {
+    it('carries the volume and loop onto a new element', () => {
       const player = new AudioPlayer();
       player.volume = 0.6;
       player.loop = true;
@@ -459,7 +459,7 @@ describe('AudioPlayer', () => {
       expect(audioElmMock.loop).toBe(true);
     });
 
-    it('audioElm.play() が reject した場合は Logger.warn を呼ぶ', async () => {
+    it('warns when the element refuses to play', async () => {
       const player = new AudioPlayer();
       const af = makeAudioFile({ blob: new Blob(['x']), identifier: 'playerr' });
       audioElmMock.play = vi.fn().mockRejectedValue(new Error('NotAllowedError'));
@@ -471,14 +471,14 @@ describe('AudioPlayer', () => {
   });
 
   describe('pause()', () => {
-    it('要素未生成時は何もしない', () => {
+    it('does nothing before the element exists', () => {
       const player = new AudioPlayer();
       expect(() => player.pause()).not.toThrow();
-      // まだ要素は生成されていない
+      // the element does not exist yet
       expect(asAudioPlayerPrivate(player)._audioElm).toBeUndefined();
     });
 
-    it('要素生成後は audioElm.pause() を呼ぶ', () => {
+    it('pauses the element once it exists', () => {
       const player = new AudioPlayer();
       const af = makeAudioFile({ blob: new Blob(['x']), identifier: 'pa1' });
       player.play(af);
@@ -488,12 +488,12 @@ describe('AudioPlayer', () => {
   });
 
   describe('stop()', () => {
-    it('要素未生成時は何もしない', () => {
+    it('does nothing before the element exists', () => {
       const player = new AudioPlayer();
       expect(() => player.stop()).not.toThrow();
     });
 
-    it('要素生成後は pause, currentTime=0, src="", load, disconnect を呼ぶ', () => {
+    it('pauses, rewinds, empties the source, reloads and disconnects', () => {
       const player = new AudioPlayer();
       const af = makeAudioFile({ blob: new Blob(['x']), identifier: 'st1' });
       player.play(af); // 要素生成
@@ -504,17 +504,17 @@ describe('AudioPlayer', () => {
       expect(audioElmMock.load).toHaveBeenCalled();
     });
 
-    it('onpause イベントで mediaElementSource が disconnect される', () => {
+    it('disconnects the source on pause', () => {
       const player = new AudioPlayer();
       const af = makeAudioFile({ blob: new Blob(['x']), identifier: 'st2' });
       player.play(af);
       const src = audioCtxMock.createMediaElementSource.mock.results[0].value;
-      // onpause を手動発火
+      // fire the pause by hand
       audioElmMock.onpause?.();
       expect(src.disconnect).toHaveBeenCalled();
     });
 
-    it('onended イベントで mediaElementSource が disconnect される', () => {
+    it('disconnects the source when it ends', () => {
       const player = new AudioPlayer();
       const af = makeAudioFile({ blob: new Blob(['x']), identifier: 'st3' });
       player.play(af);
@@ -527,26 +527,26 @@ describe('AudioPlayer', () => {
   // ─── static play (playBufferAsync) ───────────────────────────────────────
 
   describe('static play()', () => {
-    it('blob があれば AudioBufferSourceNode を開始する', async () => {
+    it('starts a buffer source when there are bytes', async () => {
       const blob = new Blob(['audio-data']);
       const af = makeAudioFile({ blob, identifier: 'sp1' });
 
       AudioPlayer.play(af, 0.8);
-      // playBufferAsync は fire-and-forget なので Promise 解決まで待つ
+      // playing a buffer is fire and forget, so wait for the promise
       await vi.waitFor(() => {
         const src = audioCtxMock.createBufferSource.mock.results[0]?.value as AudioBufferSourceNodeMock | undefined;
         expect(src?.start).toHaveBeenCalled();
       });
     });
 
-    it('blob がなく url もなければ source を開始しない', async () => {
+    it('starts nothing with neither bytes nor a url', async () => {
       const af = makeAudioFile({ identifier: 'sp2' });
       AudioPlayer.play(af);
       await new Promise((r) => setTimeout(r, 0));
       expect(audioCtxMock.createBufferSource).not.toHaveBeenCalled();
     });
 
-    it('source.onended コールバックで stop/disconnect/buffer=null が呼ばれる', async () => {
+    it('stops, disconnects and drops the buffer when the source ends', async () => {
       const blob = new Blob(['audio-data']);
       const af = makeAudioFile({ blob, identifier: 'sp3' });
 
@@ -563,7 +563,7 @@ describe('AudioPlayer', () => {
       expect(src.buffer).toBeNull();
     });
 
-    it('AudioState.URL でキャッシュがあれば fetch しない', async () => {
+    it('fetches nothing when the cache has it', async () => {
       const blob = new Blob(['cached']);
       const af = makeAudioFile({ url: 'http://example.com/c.mp3', identifier: 'sp4' });
       audioPlayerPrivate.cacheMap.set('sp4', { url: 'blob:cached', blob });
@@ -575,7 +575,7 @@ describe('AudioPlayer', () => {
       expect(global.fetch).not.toHaveBeenCalled();
     });
 
-    it('AudioState.URL でキャッシュが未存在なら createCacheAsync を呼ぶ', async () => {
+    it('builds a cache when it does not', async () => {
       const af = makeAudioFile({ url: 'http://example.com/d.mp3', identifier: 'sp5' });
       const mockFetch = vi.fn().mockResolvedValue({ ok: true, blob: () => Promise.resolve(new Blob(['x'])) });
       vi.stubGlobal('fetch', mockFetch);
@@ -587,7 +587,7 @@ describe('AudioPlayer', () => {
       expect(mockFetch).toHaveBeenCalledWith('http://example.com/d.mp3');
     });
 
-    it('createCacheAsync が null を返した場合は source を開始しない', async () => {
+    it('starts nothing when the cache cannot be built', async () => {
       const af = makeAudioFile({ url: 'http://example.com/e.mp3', identifier: 'sp7' });
       type WithCreateCacheAsync = { createCacheAsync: (audio: AudioFile) => Promise<null> };
       vi.spyOn(AudioPlayer as unknown as WithCreateCacheAsync, 'createCacheAsync').mockResolvedValue(null);
@@ -597,7 +597,7 @@ describe('AudioPlayer', () => {
       expect(audioCtxMock.createBufferSource).not.toHaveBeenCalled();
     });
 
-    it('decodeAudioData が失敗した場合は null を返して source を開始しない', async () => {
+    it('returns nothing and starts nothing when decoding fails', async () => {
       const blob = new Blob(['bad-data']);
       const af = makeAudioFile({ blob, identifier: 'sp6' });
       audioCtxMock.decodeAudioData.mockImplementation(
@@ -609,7 +609,7 @@ describe('AudioPlayer', () => {
       const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
       AudioPlayer.play(af);
       await vi.waitFor(() => expect(warnSpy).toHaveBeenCalled());
-      // decodeAudioData が失敗した場合、createBufferSource はまだ呼ばれていない
+      // no buffer source is built when decoding fails
       expect(audioCtxMock.createBufferSource).not.toHaveBeenCalled();
     });
   });
@@ -621,7 +621,7 @@ describe('AudioPlayer', () => {
       AudioPlayer.stopAllSE();
     });
 
-    it('playSE 直後に isSePlaying が true になり、source を SE ノードへ繋いで開始する', async () => {
+    it('marks an effect as playing and connects it to the effects node', async () => {
       const af = makeAudioFile({ blob: new Blob(['se']), identifier: 'se1' });
 
       AudioPlayer.playSE(af);
@@ -634,7 +634,7 @@ describe('AudioPlayer', () => {
       expect(AudioPlayer.isSePlaying('se1')).toBe(true);
     });
 
-    it('stopSE で対象の source を停止し、isSePlaying が false になる', async () => {
+    it('stops that effect and marks it finished', async () => {
       const af = makeAudioFile({ blob: new Blob(['se']), identifier: 'se2' });
 
       AudioPlayer.playSE(af);
@@ -650,7 +650,7 @@ describe('AudioPlayer', () => {
       expect(AudioPlayer.isSePlaying('se2')).toBe(false);
     });
 
-    it('source.onended で再生中フラグが解除される', async () => {
+    it('clears the playing flag when the source ends', async () => {
       const af = makeAudioFile({ blob: new Blob(['se']), identifier: 'se3' });
 
       AudioPlayer.playSE(af);
@@ -664,7 +664,7 @@ describe('AudioPlayer', () => {
       expect(AudioPlayer.isSePlaying('se3')).toBe(false);
     });
 
-    it('別 identifier の SE は stopSE の影響を受けない', async () => {
+    it('leaves an effect under another identifier alone', async () => {
       const a = makeAudioFile({ blob: new Blob(['a']), identifier: 'seA' });
       const b = makeAudioFile({ blob: new Blob(['b']), identifier: 'seB' });
 
@@ -680,7 +680,7 @@ describe('AudioPlayer', () => {
   // ─── static resumeAudioContext ───────────────────────────────────────────
 
   describe('static resumeAudioContext()', () => {
-    it('touchstart で audioContext.resume() を呼び、リスナーを削除する', () => {
+    it('resumes the context on the first touch and unhooks itself', () => {
       const listeners: Record<string, EventListenerOrEventListenerObject> = {};
       vi.spyOn(document, 'addEventListener').mockImplementation((type, listener) => {
         listeners[type] = listener as EventListenerOrEventListenerObject;
@@ -697,7 +697,7 @@ describe('AudioPlayer', () => {
       expect(removeSpy).toHaveBeenCalledWith('mousedown', callback, true);
     });
 
-    it('mousedown でも同様に動作する', () => {
+    it('does the same on a press', () => {
       const listeners: Record<string, EventListenerOrEventListenerObject> = {};
       vi.spyOn(document, 'addEventListener').mockImplementation((type, listener) => {
         listeners[type] = listener as EventListenerOrEventListenerObject;
@@ -714,10 +714,10 @@ describe('AudioPlayer', () => {
     });
   });
 
-  // ─── getBlobAsync (createCacheAsync 経由) ─────────────────────────────────
+  // --- fetching the bytes, through the cache builder ---
 
   describe('getBlobAsync (via createCacheAsync)', () => {
-    it('fetch が ok でない場合は console.error が呼ばれ null を返す', async () => {
+    it('logs and returns nothing on a bad response', async () => {
       const af = makeAudioFile({ url: 'http://example.com/fail.mp3', identifier: 'gb1' });
       vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: false, status: 404, statusText: 'Not Found' }));
       const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
@@ -727,7 +727,7 @@ describe('AudioPlayer', () => {
       expect(errorSpy).toHaveBeenCalled();
     });
 
-    it('url が空で blob もなければ throw する', async () => {
+    it('throws with neither a url nor bytes', async () => {
       const af = makeAudioFile({ identifier: 'gb2' }); // url='', blob=null
       const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
@@ -736,7 +736,7 @@ describe('AudioPlayer', () => {
       expect(errorSpy).toHaveBeenCalled();
     });
 
-    it('blob が既にある場合は fetch を呼ばずに blob を返す', async () => {
+    it('returns the bytes it already has without fetching', async () => {
       const blob = new Blob(['data']);
       const af = makeAudioFile({ blob, identifier: 'gb3' });
 
@@ -746,7 +746,7 @@ describe('AudioPlayer', () => {
       expect(global.fetch).not.toHaveBeenCalled();
     });
 
-    it('同一 identifier のキャッシュが既にあれば既存を返す', async () => {
+    it('returns the existing cache for the same identifier', async () => {
       const blob = new Blob(['data']);
       const af = makeAudioFile({ blob, identifier: 'gb4' });
       const existingCache = { url: 'blob:existing', blob: new Blob(['existing']) };
@@ -756,7 +756,7 @@ describe('AudioPlayer', () => {
       expect(result).toBe(existingCache);
     });
 
-    it('成功時は cacheMap に登録される', async () => {
+    it('registers the cache on success', async () => {
       const blob = new Blob(['data']);
       const af = makeAudioFile({ blob, identifier: 'gb5' });
 
@@ -766,7 +766,7 @@ describe('AudioPlayer', () => {
   });
 
   describe('removeCache()', () => {
-    it('指定identifierのキャッシュを削除しURLを解放する', () => {
+    it('drops a cache and releases its url', () => {
       const cache = { url: 'blob:test-url', blob: new Blob(['data']) };
       audioPlayerPrivate.cacheMap.set('remove-test', cache);
 
@@ -776,13 +776,13 @@ describe('AudioPlayer', () => {
       expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:test-url');
     });
 
-    it('存在しないidentifierを指定しても安全に動作する', () => {
+    it('survives dropping a cache that is not there', () => {
       expect(() => AudioPlayer.removeCache('nonexistent')).not.toThrow();
     });
   });
 
   describe('clearAllCache()', () => {
-    it('全てのキャッシュを削除しURLを解放する', () => {
+    it('drops every cache and releases their urls', () => {
       const cache1 = { url: 'blob:url-1', blob: new Blob(['data1']) };
       const cache2 = { url: 'blob:url-2', blob: new Blob(['data2']) };
       audioPlayerPrivate.cacheMap.set('clear-1', cache1);
@@ -797,7 +797,7 @@ describe('AudioPlayer', () => {
   });
 
   describe('cache eviction', () => {
-    it('キャッシュがMAX_CACHE_SIZEを超えた時に古いエントリを削除する', async () => {
+    it('drops the oldest entries once the cache is full', async () => {
       const maxSize = audioPlayerPrivate.MAX_CACHE_SIZE;
 
       // Fill cache to max

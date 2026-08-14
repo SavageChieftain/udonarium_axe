@@ -2,24 +2,24 @@ import { PromiseQueue } from '@axe/core/util/promise-queue';
 
 describe('PromiseQueue', () => {
   describe('constructor', () => {
-    it('初期lengthが0', () => {
+    it('starts empty', () => {
       const queue = new PromiseQueue();
       expect(queue.length).toBe(0);
     });
 
-    it('名前を指定できる', () => {
+    it('takes the name it is given', () => {
       const queue = new PromiseQueue('TestQueue');
       expect(queue.name).toBe('TestQueue');
     });
 
-    it('デフォルト名が"Queue"', () => {
+    it('calls itself a queue by default', () => {
       const queue = new PromiseQueue();
       expect(queue.name).toBe('Queue');
     });
   });
 
-  describe('add() - task関数', () => {
-    it('関数タスクを追加して実行する', async () => {
+  describe('adding a task', () => {
+    it('adds a task and runs it', async () => {
       const queue = new PromiseQueue('test');
       let executed = false;
 
@@ -31,31 +31,31 @@ describe('PromiseQueue', () => {
       expect(executed).toBe(true);
     });
 
-    it('関数タスクの戻り値を返す', async () => {
+    it('returns what the task returned', async () => {
       const queue = new PromiseQueue('test');
       const result = await queue.add(() => 42);
       expect(result).toBe(42);
     });
 
-    it('タスク完了後にlengthが0に戻る', async () => {
+    it('empties once the task is done', async () => {
       const queue = new PromiseQueue('test');
       await queue.add(() => 'done');
-      // queueの内部処理が完了するのを待つ
+      // wait for the queue to finish its work
       await new Promise((resolve) => setTimeout(resolve, 0));
       expect(queue.length).toBe(0);
     });
   });
 
   describe('add() - async task', () => {
-    it('Promiseを返すタスクを追加して実行する', async () => {
+    it('adds and runs a task that returns a promise', async () => {
       const queue = new PromiseQueue('test');
       const result = await queue.add(() => Promise.resolve('resolved'));
       expect(result).toBe('resolved');
     });
   });
 
-  describe('順序保証', () => {
-    it('タスクが順番に実行される', async () => {
+  describe('the order it keeps', () => {
+    it('runs the tasks in order', async () => {
       const queue = new PromiseQueue('test');
       const order: number[] = [];
 
@@ -73,7 +73,7 @@ describe('PromiseQueue', () => {
       expect(order).toEqual([1, 2, 3]);
     });
 
-    it('非同期タスクも順番に実行される', async () => {
+    it('runs asynchronous tasks in order too', async () => {
       const queue = new PromiseQueue('test');
       const order: number[] = [];
 
@@ -95,8 +95,8 @@ describe('PromiseQueue', () => {
     });
   });
 
-  describe('エラーハンドリング', () => {
-    it('タスクがエラーを投げても次のタスクは実行される', async () => {
+  describe('when a task throws', () => {
+    it('runs the next task after one throws', async () => {
       const queue = new PromiseQueue('test');
       let secondExecuted = false;
 
@@ -105,7 +105,7 @@ describe('PromiseQueue', () => {
           throw new Error('test error');
         });
       } catch {
-        // エラーを無視
+        // ignore the error
       }
 
       await queue.add(() => {

@@ -6,7 +6,7 @@ describe('Transform', () => {
   };
 
   describe('constructor', () => {
-    it('HTMLElementを渡してインスタンスを作成できる', () => {
+    it('can be built from an element', () => {
       const el = document.createElement('div');
       document.body.appendChild(el);
       const transform = new Transform(el);
@@ -16,7 +16,7 @@ describe('Transform', () => {
   });
 
   describe('clear', () => {
-    it('clearで内部状態をリセットする', () => {
+    it('resets its state when cleared', () => {
       const el = document.createElement('div');
       document.body.appendChild(el);
       const transform = new Transform(el);
@@ -27,7 +27,7 @@ describe('Transform', () => {
   });
 
   describe('globalToLocal', () => {
-    it('グローバル座標をローカル座標に変換する', () => {
+    it('converts a global point into a local one', () => {
       const el = document.createElement('div');
       document.body.appendChild(el);
       const transform = new Transform(el);
@@ -41,7 +41,7 @@ describe('Transform', () => {
   });
 
   describe('localToGlobal', () => {
-    it('ローカル座標をグローバル座標に変換する', () => {
+    it('converts a local point into a global one', () => {
       const el = document.createElement('div');
       document.body.appendChild(el);
       const transform = new Transform(el);
@@ -55,7 +55,7 @@ describe('Transform', () => {
   });
 
   describe('localToLocal', () => {
-    it('要素間のローカル座標変換を行う', () => {
+    it('converts a point from one element to another', () => {
       const el1 = document.createElement('div');
       const el2 = document.createElement('div');
       document.body.appendChild(el1);
@@ -70,7 +70,7 @@ describe('Transform', () => {
   });
 
   describe('getPosition', () => {
-    it('parentElement が null のノードでも例外なく座標計算できる', () => {
+    it('measures a node with no parent without throwing', () => {
       const host = document.createElement('div');
       document.body.appendChild(host);
       const transform = new Transform(host) as unknown as TransformPrivateApi;

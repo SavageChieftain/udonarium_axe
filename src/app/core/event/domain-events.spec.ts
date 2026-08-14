@@ -22,7 +22,7 @@ import {
 } from '@axe/core/event/domain-events';
 
 describe('domain-events emit→subscribe wiring', () => {
-  it('emitSendMessage で sendMessage$ にイベントが届く', () => {
+  it('sends a message onto its channel', () => {
     const received: unknown[] = [];
     const unsub = sendMessage$.subscribe((e) => received.push(e));
     emitSendMessage({ messageIdentifier: 'm1', messageTarget: null });
@@ -30,7 +30,7 @@ describe('domain-events emit→subscribe wiring', () => {
     expect(received).toEqual([{ messageIdentifier: 'm1', messageTarget: null }]);
   });
 
-  it('emitSelectGameTable で selectGameTable$ にイベントが届く', () => {
+  it('sends a table selection onto its channel', () => {
     const received: unknown[] = [];
     const unsub = selectGameTable$.subscribe((e) => received.push(e));
     emitSelectGameTable({ identifier: 'table-1' });
@@ -38,7 +38,7 @@ describe('domain-events emit→subscribe wiring', () => {
     expect(received).toEqual([{ identifier: 'table-1' }]);
   });
 
-  it('emitMessageAdded で messageAdded$ にイベントが届く', () => {
+  it('sends an added message onto its channel', () => {
     const received: unknown[] = [];
     const unsub = messageAdded$.subscribe((e) => received.push(e));
     emitMessageAdded({ tabIdentifier: 't1', messageIdentifier: 'm1' });
@@ -46,7 +46,7 @@ describe('domain-events emit→subscribe wiring', () => {
     expect(received).toHaveLength(1);
   });
 
-  it('emitStartCutIn で startCutIn$ にイベントが届く', () => {
+  it('sends a cut-in start onto its channel', () => {
     const received: unknown[] = [];
     const unsub = startCutIn$.subscribe((e) => received.push(e));
     emitStartCutIn({ cutIn: { identifier: 'c1' } });
@@ -54,7 +54,7 @@ describe('domain-events emit→subscribe wiring', () => {
     expect(received).toHaveLength(1);
   });
 
-  it('emitStopCutInByBgm で stopCutInByBgm$ が voidトリガされる', () => {
+  it('triggers the music-stopped channel with nothing to carry', () => {
     let count = 0;
     const unsub = stopCutInByBgm$.subscribe(() => count++);
     emitStopCutInByBgm();
@@ -63,7 +63,7 @@ describe('domain-events emit→subscribe wiring', () => {
     expect(count).toBe(2);
   });
 
-  it('emitFinishVote で finishVote$ にイベントが届く', () => {
+  it('sends a finished vote onto its channel', () => {
     const received: unknown[] = [];
     const unsub = finishVote$.subscribe((e) => received.push(e));
     const result = {
@@ -80,7 +80,7 @@ describe('domain-events emit→subscribe wiring', () => {
     expect(received).toEqual([result]);
   });
 
-  it('emitAlarmTimeUp / emitAlarmPop で各 channel にイベントが届く', () => {
+  it('sends each alarm event onto its own channel', () => {
     const timeUp: unknown[] = [];
     const pop: unknown[] = [];
     const u1 = alarmTimeUp$.subscribe((e) => timeUp.push(e));
@@ -93,7 +93,7 @@ describe('domain-events emit→subscribe wiring', () => {
     expect(pop).toEqual([{ title: 'pop', time: 1000 }]);
   });
 
-  it('emitCardStackDecreased で cardStackDecreased$ にイベントが届く', () => {
+  it('sends a shrinking card stack onto its channel', () => {
     const received: unknown[] = [];
     const unsub = cardStackDecreased$.subscribe((e) => received.push(e));
     emitCardStackDecreased({ cardStackIdentifier: 's1', cardIdentifier: 'c1' });
@@ -101,7 +101,7 @@ describe('domain-events emit→subscribe wiring', () => {
     expect(received).toHaveLength(1);
   });
 
-  it('emitSelectFile で selectFile$ にイベントが届く', () => {
+  it('sends a file selection onto its channel', () => {
     const received: unknown[] = [];
     const unsub = selectFile$.subscribe((e) => received.push(e));
     emitSelectFile({ fileIdentifier: 'file-1' });
@@ -109,7 +109,7 @@ describe('domain-events emit→subscribe wiring', () => {
     expect(received).toEqual([{ fileIdentifier: 'file-1' }]);
   });
 
-  it('unsubscribe 後はイベントが届かない', () => {
+  it('delivers nothing once unsubscribed', () => {
     let count = 0;
     const unsub = sendMessage$.subscribe(() => count++);
     emitSendMessage({ messageIdentifier: 'a', messageTarget: null });

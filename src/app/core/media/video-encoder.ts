@@ -16,7 +16,7 @@ export interface VideoEncodeRequest {
   frameCount: number;
   bitrate?: number;
   audio?: EncodedAudio | null;
-  /** 書き出し先。渡すとメモリを経由せず直接そこへ流す。 */
+  /** Where to write. Given one, the bytes go straight there rather than through memory. */
   file?: FileSystemFileHandle | null;
   paint(ctx: VideoPaintTarget, frameIndex: number): void | Promise<void>;
   onProgress?(done: number, total: number): void;
@@ -24,15 +24,15 @@ export interface VideoEncodeRequest {
 }
 
 export interface EncodedVideo {
-  /** 書き出し先を渡したときは null。すでにそのファイルへ書き終えている。 */
+  /** Null when a destination was given: the file has already been written. */
   blob: Blob | null;
   extension: string;
 }
 
 export const VIDEO_KEYFRAME_INTERVAL = 60;
 /**
- * ここを超える見込みなら、先頭に索引を置く形（`in-memory`）をやめて逐次書きに切り替える。
- * 索引を先頭に置くには全体をいったんメモリに持つ必要があり、そこが長さの上限になる。
+ * Past this, the index-first form is abandoned for streaming.
+ * Putting the index first means holding the whole file in memory, which caps the length.
  */
 export const VIDEO_INLINE_INDEX_BUDGET_BYTES = 512 * 1024 * 1024;
 export const VIDEO_ENCODE_QUEUE_LIMIT = 8;
@@ -49,10 +49,10 @@ export function isAudioEncodingSupported(): boolean {
   return typeof AudioEncoder !== 'undefined' && typeof AudioData !== 'undefined';
 }
 
-/** AAC / Opus のうち、この環境が符号化できるほう。どちらも駄目なら null。 */
+/** Whichever of aac and opus this browser can encode, or null for neither. */
 export async function audioCodecFor(sound: EncodedAudio): Promise<{ codec: 'aac' | 'opus'; webCodec: string } | null> {
   if (!isAudioEncodingSupported()) return null;
-  // 問い合わせ口が無いなら試しようがないので、従来どおり AAC で当たる。
+  // With nothing to ask, there is no way to find out, so aac is tried as before.
   if (typeof AudioEncoder.isConfigSupported !== 'function') return { codec: 'aac', webCodec: 'mp4a.40.2' };
 
   const candidates = [
@@ -97,7 +97,7 @@ export class VideoEncoderGateway {
     return isVideoEncodingSupported() || isMediaRecordingSupported();
   }
 
-  /** WebCodecs が無いブラウザでは、実時間で録る道へ落とす。 */
+  /** A browser without WebCodecs falls back to recording in real time. */
   get isRealtimeOnly(): boolean {
     return !isVideoEncodingSupported() && isMediaRecordingSupported();
   }
@@ -107,7 +107,7 @@ export class VideoEncoderGateway {
   }
 
   save(blob: Blob | null, fileName: string): void {
-    // 書き出し先を指定していたときは、すでにそこへ書き終えている。
+    // Where a destination was given, the file is already written.
     if (blob) downloadBlob(blob, fileName);
   }
 }
@@ -126,8 +126,8 @@ export async function encodeVideo(request: VideoEncodeRequest): Promise<EncodedV
   const soundCodec = sound ? await audioCodecFor(sound) : null;
   const bitrate = request.bitrate ?? defaultVideoBitrate(request.width, request.height, request.fps);
 
-  // 長い動画は索引を先頭に置けない（全体をメモリに持つことになる）ので、
-  // 逐次書き出せる形に切り替える。書き出し先が指定されていればディスクへ直接流す。
+  // A long video cannot carry its index first, since that means holding all of it in memory,
+  // so the streaming form takes over. Given a destination, the bytes go straight to disk.
   const estimatedBytes = ((bitrate + AUDIO_BITRATE) / 8) * (request.frameCount / request.fps);
   const streaming = request.file != null || estimatedBytes > VIDEO_INLINE_INDEX_BUDGET_BYTES;
 

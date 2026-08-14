@@ -6,8 +6,8 @@ import base from 'base-x';
 const Base62 = base('0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ');
 
 // peerId format: digestUserId(6) + roomId(3) + digestRoomName(8) + '-' + digestPassword(0 or 7)
-// 固定長: パスワードあり=25文字、なし=18文字
-// ルーム名はSkyWayメンバーのmetadataで伝達する
+// the length is fixed: twenty-five characters with a password, eighteen without
+// the room name travels in the member metadata
 const roomIdPattern = /^(\w{6})(\w{3})(\w{8})-(\w*)/i;
 
 export interface IPeerContext {

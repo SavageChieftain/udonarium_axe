@@ -139,8 +139,8 @@ export class ObjectSerializer {
     obj: Record<string, unknown> | unknown[],
     key: string | number
   ): { obj: Record<string, unknown> | unknown[]; key: string | number | null } {
-    // 階層構造の解析 foo.bar.0="abc" 等
-    // 処理として実装こそしているが、xmlの仕様としては良くないので使用するべきではない.
+    // reading a nested structure out of dotted attributes
+    // It is implemented, but it is poor xml and should not be relied on.
     let parentObj: Record<string, unknown> | Array<unknown> | null = null;
 
     const length = split.length;

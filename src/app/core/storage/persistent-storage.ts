@@ -1,10 +1,10 @@
 import { Logger } from '@axe/core/logging/logger';
 
 /**
- * 端末に置いたデータを、空きが減ったときに勝手に消されないようにする。
+ * Keeps what is stored on the device from being deleted as space runs low.
  *
- * IndexedDB は既定では「捨ててよい」扱いで、空き容量が減るとブラウザの判断で丸ごと消える。
- * 録画のように後から見返すものは、それでは困る。
+ * The database is best-effort by default, and the browser may drop all of it when space runs short.
+ * That will not do for a recording someone means to watch later.
  */
 export async function keepStoragePersistent(): Promise<boolean> {
   const storage = navigator.storage;
@@ -24,7 +24,7 @@ export interface StorageRoom {
   quotaBytes: number;
 }
 
-/** 端末に置ける残り。分からない環境では null。 */
+/** How much room is left, or null where the browser will not say. */
 export async function storageRoom(): Promise<StorageRoom | null> {
   const storage = navigator.storage;
   if (!storage?.estimate) return null;

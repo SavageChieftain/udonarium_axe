@@ -2,10 +2,10 @@ import { Logger } from '@axe/core/logging/logger';
 import type { EncodedAudio, EncodedVideo, VideoEncodeRequest } from '@axe/core/media/video-encoder';
 
 /**
- * WebCodecs が無いブラウザ向けの書き出し。
+ * Exporting for a browser without WebCodecs.
  *
- * canvas の絵と混ぜた音をそのまま `MediaRecorder` に流し込む。符号化はブラウザ任せなので
- * コマを好きな速さで送れず、**尺と同じだけ実時間がかかる**。それでも「書き出せない」よりは良い。
+ * The canvas and the mixed audio go straight into `MediaRecorder`. The browser encodes, so
+ * frames cannot be pushed faster than real time and the export **takes as long as the video**. Still better than no export.
  */
 
 const CANDIDATE_TYPES = [
@@ -20,7 +20,7 @@ export function isMediaRecordingSupported(): boolean {
   return typeof MediaRecorder !== 'undefined' && typeof HTMLCanvasElement !== 'undefined';
 }
 
-/** この環境が受け取れる入れ物。分からなければ null。 */
+/** The container this browser accepts, or null when none is known. */
 export function mediaRecordingType(): string | null {
   if (typeof MediaRecorder === 'undefined') return null;
   if (typeof MediaRecorder.isTypeSupported !== 'function') return CANDIDATE_TYPES[CANDIDATE_TYPES.length - 1];
@@ -68,7 +68,7 @@ function soundTrackOf(audio: EncodedAudio | null | undefined): SoundTrack | null
   }
 }
 
-/** 実時間で描いて録る。コマ番号は経過時間から決めるので、遅れても絵と音がずれない。 */
+/** Draws and records in real time. Frame numbers come from the clock, so falling behind never desynchronises picture and sound. */
 export async function recordVideo(request: VideoEncodeRequest): Promise<EncodedVideo | null> {
   const type = mediaRecordingType();
   if (!isMediaRecordingSupported() || !type) {

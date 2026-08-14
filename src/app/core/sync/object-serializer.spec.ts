@@ -25,7 +25,7 @@ describe('ObjectSerializer', () => {
   });
 
   describe('instance', () => {
-    it('シングルトンインスタンスを返す', () => {
+    it('returns the one instance', () => {
       const instance1 = ObjectSerializer.instance;
       const instance2 = ObjectSerializer.instance;
       expect(instance1).toBe(instance2);
@@ -33,7 +33,7 @@ describe('ObjectSerializer', () => {
   });
 
   describe('toXml()', () => {
-    it('GameObjectをXML文字列に変換する', () => {
+    it('turns an object into an xml string', () => {
       const element = DataElement.create('test', 'value', {});
       const xml = serializer.toXml(element);
 
@@ -42,14 +42,14 @@ describe('ObjectSerializer', () => {
       expect(xml.startsWith('<')).toBe(true);
     });
 
-    it('属性がXMLに含まれる', () => {
+    it('writes the attributes into the xml', () => {
       const element = DataElement.create('name', 'hello', { type: 'text' });
       const xml = serializer.toXml(element);
 
       expect(xml).toContain('name');
     });
 
-    it('特殊文字がエンコードされる', () => {
+    it('encodes the special characters', () => {
       const element = DataElement.create('test', 'a&b<c>"d', {});
       const xml = serializer.toXml(element);
 
@@ -59,7 +59,7 @@ describe('ObjectSerializer', () => {
   });
 
   describe('parseXml()', () => {
-    it('XML文字列からGameObjectを復元する', () => {
+    it('builds an object back from an xml string', () => {
       const element = DataElement.create('test', 'value', {});
       const xml = serializer.toXml(element);
 
@@ -68,7 +68,7 @@ describe('ObjectSerializer', () => {
       expect(parsed).toBeInstanceOf(GameObject);
     });
 
-    it('復元したオブジェクトのaliasNameが一致する', () => {
+    it('gives the restored object the same alias', () => {
       const element = DataElement.create('test', 'value', {});
       const xml = serializer.toXml(element);
 
@@ -76,24 +76,24 @@ describe('ObjectSerializer', () => {
       expect(parsed?.aliasName).toBe(element.aliasName);
     });
 
-    it('不正なXMLでnullを返す', () => {
+    it('returns nothing for broken xml', () => {
       const parsed = serializer.parseXml('<unclosed');
       expect(parsed).toBeFalsy();
     });
 
-    it('空文字列でnullを返す', () => {
+    it('returns nothing for an empty string', () => {
       const parsed = serializer.parseXml('');
       expect(parsed).toBeFalsy();
     });
 
-    it('未登録のタグ名でnullを返す', () => {
+    it('returns nothing for a tag it does not know', () => {
       const parsed = serializer.parseXml('<unknownTag />');
       expect(parsed).toBeFalsy();
     });
   });
 
   describe('toAttributes()', () => {
-    it('フラットなsyncDataをAttributesに変換する', () => {
+    it('turns flat sync data into attributes', () => {
       const syncData = { name: 'test', value: 42 };
       const attrs = ObjectSerializer.toAttributes(syncData);
 
@@ -101,7 +101,7 @@ describe('ObjectSerializer', () => {
       expect(attrs['value']).toBe(42);
     });
 
-    it('ネストしたオブジェクトをドット記法に変換する', () => {
+    it('writes a nested object in dotted notation', () => {
       const syncData = { location: { x: 10, y: 20 } };
       const attrs = ObjectSerializer.toAttributes(syncData);
 
@@ -109,7 +109,7 @@ describe('ObjectSerializer', () => {
       expect(attrs['location.y']).toBe(20);
     });
 
-    it('配列をインデックス付きドット記法に変換する', () => {
+    it('writes an array in dotted notation with indices', () => {
       const syncData = { items: ['a', 'b', 'c'] };
       const attrs = ObjectSerializer.toAttributes(syncData);
 
@@ -118,12 +118,12 @@ describe('ObjectSerializer', () => {
       expect(attrs['items.2']).toBe('c');
     });
 
-    it('空のsyncDataで空オブジェクトを返す', () => {
+    it('returns nothing for empty sync data', () => {
       const attrs = ObjectSerializer.toAttributes({});
       expect(Object.keys(attrs)).toHaveLength(0);
     });
 
-    it('undefined のネスト値は属性に含めない（"undefined" 文字列化を防ぐ）', () => {
+    it('leaves an undefined nested value out rather than writing it as the word', () => {
       const syncData = { location: { name: 'table', x: 10, y: 20, surface: undefined } };
       const attrs = ObjectSerializer.toAttributes(syncData);
 
@@ -132,8 +132,8 @@ describe('ObjectSerializer', () => {
     });
   });
 
-  describe('toXml() の undefined 属性', () => {
-    it('undefined のネスト値が location.surface="undefined" として書き出されない', () => {
+  describe('undefined attributes in the xml', () => {
+    it('never writes an undefined surface as the word undefined', () => {
       const element = DataElement.create('name', 'hello', { type: 'text' });
       (element as unknown as { location: Record<string, unknown> }).location = {
         name: 'table',
@@ -147,8 +147,8 @@ describe('ObjectSerializer', () => {
     });
   });
 
-  describe('toXml/parseXml ラウンドトリップ', () => {
-    it('DataElementのシリアライズ/デシリアライズ', () => {
+  describe('the xml round trip', () => {
+    it('writing a data element out and reading it back', () => {
       const original = DataElement.create('testName', 'testValue', {}, 'round-trip-id');
       const xml = serializer.toXml(original);
       const restored = serializer.parseXml(xml) as DataElement;

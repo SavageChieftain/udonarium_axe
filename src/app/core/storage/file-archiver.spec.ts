@@ -18,27 +18,27 @@ describe('isXmlCandidateFile', () => {
     return new File(['<x />'], name, { type });
   }
 
-  it('XML ファイルを受け入れる', () => {
+  it('takes an xml file', () => {
     expect(isXmlCandidateFile(file('data.xml', 'text/xml'))).toBe(true);
     expect(isXmlCandidateFile(file('data.xml', 'text/plain'))).toBe(true);
   });
 
-  it('拡張子が分からない text も受け入れる', () => {
+  it('takes text with no recognised extension', () => {
     expect(isXmlCandidateFile(file('data', 'text/plain'))).toBe(true);
   });
 
-  it('HTML は受け付けない', () => {
+  it('refuses html', () => {
     expect(isXmlCandidateFile(file('page.html', 'text/html'))).toBe(false);
     expect(isXmlCandidateFile(file('page.html', 'text/plain'))).toBe(false);
     expect(isXmlCandidateFile(file('page.htm', 'text/plain'))).toBe(false);
   });
 
-  it('XML ではない text は受け付けない', () => {
+  it('refuses text that is not xml', () => {
     expect(isXmlCandidateFile(file('config.yaml', 'text/plain'))).toBe(false);
     expect(isXmlCandidateFile(file('style.css', 'text/css'))).toBe(false);
   });
 
-  it('text 以外は受け付けない', () => {
+  it('refuses anything that is not text', () => {
     expect(isXmlCandidateFile(file('piece.png', 'image/png'))).toBe(false);
     expect(isXmlCandidateFile(file('room.zip', 'application/zip'))).toBe(false);
   });
@@ -62,7 +62,7 @@ describe('FileArchiver', () => {
   });
 
   describe('instance', () => {
-    it('シングルトンインスタンスを返す', () => {
+    it('returns the one instance', () => {
       const a = FileArchiver.instance;
       const b = FileArchiver.instance;
       expect(a).toBe(b);
@@ -70,13 +70,13 @@ describe('FileArchiver', () => {
   });
 
   describe('initialize', () => {
-    it('initializeを呼んでもエラーにならない', () => {
+    it('survives being initialised', () => {
       FileArchiver.instance.initialize();
       expect(true).toBe(true);
     });
 
-    it('見張りがまだ居なくても落とされて落ちないこと', () => {
-      // 立ち上がりきる前や、そもそも ReloadCheck が居ない場面でもドロップは飛んでくる。
+    it('survives a drop before the guard exists', () => {
+      // A drop can arrive before startup finishes, or where no guard exists at all.
       vi.spyOn(ObjectStore.instance, 'get').mockReturnValue(
         null as unknown as ReturnType<typeof ObjectStore.instance.get>
       );
@@ -88,11 +88,11 @@ describe('FileArchiver', () => {
   });
 
   describe('load', () => {
-    it('空ファイルリストでもエラーにならない', async () => {
+    it('survives an empty file list', async () => {
       await FileArchiver.instance.load([]);
     });
 
-    it('FileList を渡してもエラーにならない', async () => {
+    it('survives a file list object', async () => {
       const fileList = {
         length: 0,
         [Symbol.iterator]: function* () {},
@@ -101,7 +101,7 @@ describe('FileArchiver', () => {
     });
   });
 
-  describe('画像ドロップ', () => {
+  describe('dropping an image', () => {
     function imageFile(name: string): File {
       return new File([new Uint8Array([1, 2, 3])], name, { type: 'image/png' });
     }
@@ -112,7 +112,7 @@ describe('FileArchiver', () => {
       );
     });
 
-    it('ドロップ位置があれば画像ごとに imageDropped を発火する', async () => {
+    it('announces each image when the drop has a position', async () => {
       const dropped: ImageDroppedEvent[] = [];
       const off = imageDropped$.subscribe((event) => dropped.push(event));
 
@@ -123,7 +123,7 @@ describe('FileArchiver', () => {
       expect(dropped[0]).toMatchObject({ fileName: 'a.png', dropPoint: { x: 10, y: 20 } });
     });
 
-    it('複数枚をまとめて落とすと重ならないようずらす', async () => {
+    it('offsets several images dropped together so they do not stack', async () => {
       const dropped: ImageDroppedEvent[] = [];
       const off = imageDropped$.subscribe((event) => dropped.push(event));
 
@@ -136,7 +136,7 @@ describe('FileArchiver', () => {
       ]);
     });
 
-    it('zip に入っている画像ではコマを作らない', async () => {
+    it('makes no piece from an image inside an archive', async () => {
       const dropped: ImageDroppedEvent[] = [];
       const off = imageDropped$.subscribe((event) => dropped.push(event));
 
@@ -151,7 +151,7 @@ describe('FileArchiver', () => {
       expect(dropped).toHaveLength(0);
     });
 
-    it('ドロップ位置がなければ発火しない（パネルからの読み込み等）', async () => {
+    it('announces nothing without a position, as when loading from a panel', async () => {
       const dropped: ImageDroppedEvent[] = [];
       const off = imageDropped$.subscribe((event) => dropped.push(event));
 
@@ -162,9 +162,9 @@ describe('FileArchiver', () => {
     });
   });
 
-  describe('handleZip (ZIPファイル読み込み)', () => {
-    it('ZIPファイルの中身が展開されて処理される', async () => {
-      // fflate でテスト用 ZIP を生成
+  describe('reading an archive', () => {
+    it('unpacks an archive and handles what is inside', async () => {
+      // build an archive for the test
       const zipBuffer = await new Promise<Uint8Array>((resolve, reject) => {
         zip({ 'data.xml': strToU8('<test />') }, (err, data) => {
           if (err) reject(err);
@@ -182,12 +182,12 @@ describe('FileArchiver', () => {
       expect(loaded.map((element) => element.tagName)).toEqual(['test']);
     });
 
-    it('破損ZIPはエラーを投げずスキップする', async () => {
+    it('skips a broken archive without throwing', async () => {
       const badFile = new File([new Uint8Array([0, 1, 2, 3])], 'broken.zip', { type: 'application/zip' });
       await expect(FileArchiver.instance.load([badFile])).resolves.toBeUndefined();
     });
 
-    it('ココフォリアのルームZIPは展開せず ccfoliaRoomDropped を発火する', async () => {
+    it('announces a foreign room archive rather than unpacking it', async () => {
       const addAsync = vi
         .spyOn(ImageStorage.instance, 'addAsync')
         .mockImplementation(() => Promise.resolve(ImageFile.createEmpty('image')));
@@ -209,8 +209,8 @@ describe('FileArchiver', () => {
     });
   });
 
-  describe('saveAsync (ZIP出力)', () => {
-    it('ファイルをZIPにまとめてダウンロードリンクをクリックする', async () => {
+  describe('writing an archive', () => {
+    it('packs the files and hands the archive to the browser', async () => {
       const clickSpy = vi.fn();
       const revokeObjectURLSpy = vi.spyOn(URL, 'revokeObjectURL').mockReturnValue(undefined);
       vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:mock');
@@ -231,7 +231,7 @@ describe('FileArchiver', () => {
       expect(revokeObjectURLSpy).toHaveBeenCalledWith('blob:mock');
     });
 
-    it('updateCallback が percent=0 と percent=100 で呼ばれる', async () => {
+    it('reports nought and a hundred percent', async () => {
       vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:mock');
       vi.spyOn(URL, 'revokeObjectURL').mockReturnValue(undefined);
       const origCreate = document.createElement.bind(document);
@@ -252,13 +252,13 @@ describe('FileArchiver', () => {
       expect(callback).toHaveBeenCalledWith({ percent: 100, currentFile: '' });
     });
 
-    it('空ファイルリストでも saveAsync がエラーにならない', async () => {
+    it('survives writing an empty file list', async () => {
       await expect(FileArchiver.instance.saveAsync([], 'empty')).resolves.toBeUndefined();
     });
   });
 
   describe('onDrop', () => {
-    it('dataTransfer がない drop イベントでも例外を投げない', () => {
+    it('survives a drop carrying no data', () => {
       const event = {
         preventDefault: vi.fn(),
         dataTransfer: null,

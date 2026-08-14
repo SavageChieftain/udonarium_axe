@@ -1,6 +1,6 @@
 /**
- * Blob を「ファイルとして保存」ダイアログ経由でダウンロードさせる。
- * <a download> を瞬間的に生成・click して即解放する定型処理を 1 箇所に集約する。
+ * Hands a blob to the browser as a file to save.
+ * The build-click-release dance around a download link lives in one place.
  */
 export function downloadBlob(blob: Blob, filename: string): void {
   const url = URL.createObjectURL(blob);

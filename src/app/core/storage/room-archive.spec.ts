@@ -1,15 +1,15 @@
 import { isCcfoliaRoomArchive } from '@axe/core/storage/room-archive';
 
 describe('isCcfoliaRoomArchive', () => {
-  it('__data.json を含む ZIP をココフォリアのルームデータと判定する', () => {
+  it('recognises an archive carrying room data from the other tool', () => {
     expect(isCcfoliaRoomArchive(['__data.json', '.token', 'aaaa.png'])).toBe(true);
   });
 
-  it('AXE 自身の保存 ZIP は判定しない', () => {
+  it('does not mistake its own archive for one', () => {
     expect(isCcfoliaRoomArchive(['data.xml', 'chat.xml', 'config.xml', 'summary.xml'])).toBe(false);
   });
 
-  it('素材だけの ZIP は判定しない', () => {
+  it('does not mistake an archive of assets for one', () => {
     expect(isCcfoliaRoomArchive(['a.png', 'b.png'])).toBe(false);
     expect(isCcfoliaRoomArchive([])).toBe(false);
   });

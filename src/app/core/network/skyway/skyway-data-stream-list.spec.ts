@@ -12,12 +12,12 @@ describe('SkyWayDataStreamList', () => {
     } as unknown as SkyWayDataStream;
   }
 
-  it('初期状態でlength=0', () => {
+  it('starts empty', () => {
     const list = new SkyWayDataStreamList();
     expect(list.length).toBe(0);
   });
 
-  it('addでストリームを追加できる', () => {
+  it('adds a stream', () => {
     const list = new SkyWayDataStreamList();
     const stream = createMockStream('peer-1');
     const result = list.add(stream);
@@ -25,7 +25,7 @@ describe('SkyWayDataStreamList', () => {
     expect(list.length).toBe(1);
   });
 
-  it('removeでストリームを削除できる', () => {
+  it('removes a stream', () => {
     const list = new SkyWayDataStreamList();
     const stream = createMockStream('peer-1');
     list.add(stream);
@@ -34,7 +34,7 @@ describe('SkyWayDataStreamList', () => {
     expect(list.length).toBe(0);
   });
 
-  it('findで検索できる', () => {
+  it('finds a stream', () => {
     const list = new SkyWayDataStreamList();
     const stream = createMockStream('peer-1');
     list.add(stream);
@@ -42,7 +42,7 @@ describe('SkyWayDataStreamList', () => {
     expect(list.find('peer-2')).toBeUndefined();
   });
 
-  it('peerIdsがソートされて返る', () => {
+  it('returns the peer ids in order', () => {
     const list = new SkyWayDataStreamList();
     list.add(createMockStream('peer-c'));
     list.add(createMockStream('peer-a'));
@@ -50,7 +50,7 @@ describe('SkyWayDataStreamList', () => {
     expect(list.peerIds).toEqual(['peer-a', 'peer-b', 'peer-c']);
   });
 
-  it('peersがソートされて返る', () => {
+  it('returns the peers in order', () => {
     const list = new SkyWayDataStreamList();
     list.add(createMockStream('peer-2'));
     list.add(createMockStream('peer-1'));
@@ -59,7 +59,7 @@ describe('SkyWayDataStreamList', () => {
     expect(peers[1].peerId).toBe('peer-2');
   });
 
-  it('重複追加はnullを返す', () => {
+  it('returns nothing when adding the same one twice', () => {
     const list = new SkyWayDataStreamList();
     const stream = createMockStream('peer-1', true, 'aaa');
     list.add(stream);
@@ -67,7 +67,7 @@ describe('SkyWayDataStreamList', () => {
     expect(result).toBeNull();
   });
 
-  it('イテレータでfor-ofが使える', () => {
+  it('can be iterated', () => {
     const list = new SkyWayDataStreamList();
     list.add(createMockStream('peer-1'));
     list.add(createMockStream('peer-2'));

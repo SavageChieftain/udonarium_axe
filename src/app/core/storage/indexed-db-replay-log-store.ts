@@ -108,7 +108,7 @@ export class IndexedDbReplayLogStore extends ReplayLogStore {
   }
 
   async removeRecording(id: number): Promise<void> {
-    // 消すのに要るのは鍵だけ。中身まで読むと、消す前に録画 1 本ぶんを丸ごと抱える。
+    // Deleting needs the keys alone; reading the rows would hold a whole recording before deleting it.
     const chunks = await this.keysOf(CHUNK_STORE, id);
     const keyframes = await this.keysOf(KEYFRAME_STORE, id);
     await this.run<number>([CHUNK_STORE], 'readwrite', (stores) => {
@@ -126,7 +126,7 @@ export class IndexedDbReplayLogStore extends ReplayLogStore {
     const index = (s: IDBObjectStore) => s.index(RECORDING_INDEX);
     const keys = await this.run<IDBValidKey[]>([store], 'readonly', (stores) => {
       const target = index(stores[0]);
-      // 鍵だけ取る手が無い実装もある。無ければ従来どおり行ごと読む。
+      // Some implementations cannot fetch keys alone, and fall back to reading the rows.
       return typeof target.getAllKeys === 'function' ? target.getAllKeys(recordingId) : target.getAll(recordingId);
     });
     return (keys ?? []).map((key) =>

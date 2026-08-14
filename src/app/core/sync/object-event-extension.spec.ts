@@ -27,7 +27,7 @@ describe('object-event-extension', () => {
   });
 
   describe('markForChanged', () => {
-    it('objectChanged$ にバッチ発火する', async () => {
+    it('fires a change in a batch', async () => {
       const obj = new ObjectNode();
       obj.initialize();
 
@@ -44,7 +44,7 @@ describe('object-event-extension', () => {
   });
 
   describe('markForChildrenChanged', () => {
-    it('childrenChanged$ にバッチ発火する', async () => {
+    it('fires a children change in a batch', async () => {
       const parent = new ObjectNode();
       parent.initialize();
       const child = new ObjectNode();
@@ -64,14 +64,14 @@ describe('object-event-extension', () => {
   });
 
   describe('objectAdded$', () => {
-    it('Subject として公開されている', () => {
+    it('is exposed as a subject', () => {
       expect(objectAdded$).toBeTruthy();
       expect(typeof objectAdded$.subscribe).toBe('function');
     });
   });
 
   describe('objectRemoved$', () => {
-    it('Subject として公開されている', () => {
+    it('is exposed as a subject', () => {
       expect(objectRemoved$).toBeTruthy();
       expect(typeof objectRemoved$.subscribe).toBe('function');
     });

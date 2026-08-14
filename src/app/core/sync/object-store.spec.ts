@@ -83,7 +83,7 @@ describe('ObjectStore', () => {
       expect(result).toBeNull();
     });
 
-    it('手元で作り直した固定 identifier は受け入れる', () => {
+    it('accepts a fixed identifier rebuilt here', () => {
       const obj = new GameObject('fixed-id');
       store.add(obj, false);
       store.delete(obj, false);
@@ -96,7 +96,7 @@ describe('ObjectStore', () => {
       expect(store.isDeleted('fixed-id')).toBe(false);
     });
 
-    it('作り直した後も、他所から届いた同じ identifier は蘇らせない', () => {
+    it('still refuses the same identifier arriving from elsewhere', () => {
       const obj = new GameObject('fixed-id-2');
       store.add(obj, false);
       store.delete(obj, false);
@@ -471,7 +471,7 @@ describe('ObjectStore', () => {
   });
 
   describe('objectAdded$ / objectRemoved$ emit', () => {
-    it('add() で objectAdded$ が emit される', () => {
+    it('announces an addition', () => {
       const callback = vi.fn();
       const sub = objectAdded$.subscribe(callback);
 
@@ -486,7 +486,7 @@ describe('ObjectStore', () => {
       sub();
     });
 
-    it('add() が重複で失敗した場合は emit されない', () => {
+    it('announces nothing when the addition is a duplicate', () => {
       const obj = new GameObject('emit-add-2');
       store.add(obj, false);
 
@@ -499,7 +499,7 @@ describe('ObjectStore', () => {
       sub();
     });
 
-    it('add() が削除済み identifier で失敗した場合は emit されない', () => {
+    it('announces nothing when the identifier was deleted', () => {
       const obj = new GameObject('emit-add-3');
       store.add(obj, false);
       store.delete(obj, false);
@@ -514,7 +514,7 @@ describe('ObjectStore', () => {
       sub();
     });
 
-    it('remove() で objectRemoved$ が emit される', () => {
+    it('announces a removal', () => {
       const obj = new GameObject('emit-rm-1');
       store.add(obj, false);
 
@@ -531,7 +531,7 @@ describe('ObjectStore', () => {
       sub();
     });
 
-    it('remove() が存在しないオブジェクトで失敗した場合は emit されない', () => {
+    it('announces nothing for removing something that is not there', () => {
       const callback = vi.fn();
       const sub = objectRemoved$.subscribe(callback);
 
@@ -542,7 +542,7 @@ describe('ObjectStore', () => {
       sub();
     });
 
-    it('delete() は内部で remove() を呼ぶため objectRemoved$ が emit される', () => {
+    it('announces a removal from a delete, which goes through remove', () => {
       const obj = new GameObject('emit-del-1');
       store.add(obj, false);
 
@@ -559,7 +559,7 @@ describe('ObjectStore', () => {
       sub();
     });
 
-    it('emit される identifier と aliasName が正しい', () => {
+    it('announces the right identifier and alias', () => {
       const addedEvents: { identifier: string; aliasName: string }[] = [];
       const removedEvents: { identifier: string; aliasName: string }[] = [];
       const sub1 = objectAdded$.subscribe((e) => addedEvents.push(e));
@@ -582,14 +582,14 @@ describe('ObjectStore', () => {
     });
   });
 
-  it('自分が変えた回数を数え、受信した更新では増えないこと', () => {
+  it('counts your own changes and not the ones that arrive', () => {
     const object = new GameObject('counted');
     object.initialize();
     const before = ObjectStore.instance.localChangeCountOf(object.identifier);
 
     object.update();
 
-    // 自分が変えたかどうかは、読み込みや同期で入れ替わった値と区別するのに要る。
+    // Telling your own change apart matters against values replaced by a load or a sync.
     expect(ObjectStore.instance.localChangeCountOf(object.identifier)).toBe(before + 1);
 
     object.apply(object.toContext());

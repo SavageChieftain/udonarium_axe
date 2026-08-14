@@ -1,7 +1,7 @@
 import { onFirstUserInteraction } from '@axe/core/input/user-interaction-unlock';
 
 describe('onFirstUserInteraction', () => {
-  it('mousedown で callback が呼ばれ、以後は解除される', () => {
+  it('fires on the first press and unhooks itself', () => {
     const cb = vi.fn();
     onFirstUserInteraction(cb);
 
@@ -12,7 +12,7 @@ describe('onFirstUserInteraction', () => {
     expect(cb).toHaveBeenCalledTimes(1);
   });
 
-  it('touchstart でも callback が呼ばれる', () => {
+  it('fires on a touch as well', () => {
     const cb = vi.fn();
     onFirstUserInteraction(cb);
 
@@ -20,7 +20,7 @@ describe('onFirstUserInteraction', () => {
     expect(cb).toHaveBeenCalledTimes(1);
   });
 
-  it('返却された解除関数を呼ぶと callback は走らない', () => {
+  it('never fires once the returned function unhooks it', () => {
     const cb = vi.fn();
     const unsubscribe = onFirstUserInteraction(cb);
 

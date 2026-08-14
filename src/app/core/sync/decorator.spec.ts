@@ -22,7 +22,7 @@ describe('decorator', () => {
   });
 
   describe('SyncObject', () => {
-    it('クラスをObjectFactoryに登録する', () => {
+    it('registers the class with the object factory', () => {
       @SyncObject('DecoratorTestObj')
       class DecoratorTestObj extends GameObject {}
       const obj = ObjectFactory.instance.create('DecoratorTestObj');
@@ -31,11 +31,11 @@ describe('decorator', () => {
   });
 
   describe('SyncVar on GameObject', () => {
-    it('GameObjectの場合syncDataを使うgetter/setterになる', () => {
+    it('a game object gets an accessor over its sync data', () => {
       const obj = new GameObject();
       obj.initialize();
 
-      // SyncVarをGameObjectインスタンスに適用
+      // apply the decorator to a game object
       SyncVar()(obj, 'testField');
       (obj as unknown as Record<string, unknown>).testField = 42;
       expect((obj as unknown as { context: { syncData: Record<string, unknown> } }).context.syncData['testField']).toBe(
@@ -45,7 +45,7 @@ describe('decorator', () => {
   });
 
   describe('SyncVar on ObjectNode', () => {
-    it('ObjectNodeの場合attributeを使うgetter/setterになる', () => {
+    it('an object node gets an accessor over its attributes', () => {
       const node = new ObjectNode();
       node.initialize();
 

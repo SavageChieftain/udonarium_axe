@@ -177,19 +177,19 @@ describe('video encoding', () => {
     };
   }
 
-  it('環境が揃っているかを見ること', () => {
+  it('checks whether the browser can do it', () => {
     expect(isVideoEncodingSupported()).toBe(true);
 
     delete globals['VideoEncoder'];
     expect(isVideoEncodingSupported()).toBe(false);
   });
 
-  it('書き出せない環境では何も返さないこと', async () => {
+  it('returns nothing where exporting is unavailable', async () => {
     delete globals['VideoFrame'];
     expect(await encodeVideo(request())).toBeNull();
   });
 
-  it('1 コマずつ描いて MP4 にすること', async () => {
+  it('draws frame by frame into an mp4', async () => {
     const paint = vi.fn();
     const result = await encodeVideo(request({ paint }));
 
@@ -201,7 +201,7 @@ describe('video encoding', () => {
     expect(result?.blob?.type).toBe('video/mp4');
   });
 
-  it('先頭とときどきをキーフレームにすること', async () => {
+  it('makes the first frame and the occasional one a keyframe', async () => {
     await encodeVideo(request({ frameCount: VIDEO_KEYFRAME_INTERVAL + 2 }));
 
     expect(calls[0].keyFrame).toBe(true);
@@ -209,7 +209,7 @@ describe('video encoding', () => {
     expect(calls[VIDEO_KEYFRAME_INTERVAL].keyFrame).toBe(true);
   });
 
-  it('進み具合を知らせること', async () => {
+  it('reports its progress', async () => {
     const onProgress = vi.fn();
     await encodeVideo(request({ onProgress }));
 
@@ -220,7 +220,7 @@ describe('video encoding', () => {
     ]);
   });
 
-  it('取りやめたらそこで止めること', async () => {
+  it('stops where it is when cancelled', async () => {
     const paint = vi.fn();
     const result = await encodeVideo(request({ paint, frameCount: 10, isCancelled: () => calls.length >= 2 }));
 
@@ -229,18 +229,18 @@ describe('video encoding', () => {
     expect(closed).toBe(true);
   });
 
-  it('途中で符号化が転んでも投げずに終えること', async () => {
+  it('finishes without throwing when the encoder falls over', async () => {
     failOn = 1;
     expect(await encodeVideo(request({ frameCount: 5 }))).toBeNull();
     expect(closed).toBe(true);
   });
 
-  it('描き場所を作れなければ諦めること', async () => {
+  it('gives up when it cannot get a surface to draw on', async () => {
     hasContext = false;
     expect(await encodeVideo(request())).toBeNull();
   });
 
-  it('大きさに見合う符号と帯域を選ぶこと', async () => {
+  it('picks a codec and a bitrate to match the size', async () => {
     await encodeVideo(request({ width: 1920, height: 1080 }));
     expect(configured?.['codec']).toBe(avcCodecFor(1920, 1080));
     expect(configured?.['bitrate']).toBe(defaultVideoBitrate(1920, 1080, 30));
@@ -250,7 +250,7 @@ describe('video encoding', () => {
     expect(avcCodecFor(3840, 2160)).toBe('avc1.640033');
   });
 
-  it('音も渡されたら AAC の道を通すこと', async () => {
+  it('takes the aac path when given sound as well', async () => {
     const channels = [new Float32Array(2048), new Float32Array(2048)];
     const result = await encodeVideo(request({ audio: { sampleRate: 48_000, channels } }));
 
@@ -259,12 +259,12 @@ describe('video encoding', () => {
     expect(result?.extension).toBe('mp4');
   });
 
-  it('端数のコマも取りこぼさないこと', async () => {
+  it('loses no frame at the end', async () => {
     await encodeVideo(request({ audio: { sampleRate: 48_000, channels: [new Float32Array(1500)] } }));
     expect(audioFrames).toEqual([AUDIO_FRAME_SAMPLES, 1500 - AUDIO_FRAME_SAMPLES]);
   });
 
-  it('音の道具が無ければ映像だけで出すこと', async () => {
+  it('exports the picture alone without the audio encoder', async () => {
     delete globals['AudioEncoder'];
     const result = await encodeVideo(request({ audio: { sampleRate: 48_000, channels: [new Float32Array(2048)] } }));
 
@@ -272,12 +272,12 @@ describe('video encoding', () => {
     expect(result?.extension).toBe('mp4');
   });
 
-  it('音を渡さなければ音の道具を触らないこと', async () => {
+  it('leaves the audio encoder alone when given no sound', async () => {
     await encodeVideo(request());
     expect(audioConfigured).toBeNull();
   });
 
-  it('帯域を指定したらそれを使うこと', async () => {
+  it('uses the bitrate it is given', async () => {
     await encodeVideo(request({ bitrate: 123_456 }));
     expect(configured?.['bitrate']).toBe(123_456);
   });

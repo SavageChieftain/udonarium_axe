@@ -1,10 +1,10 @@
 import { Logger } from '@axe/core/logging/logger';
 
 /**
- * 書き出し先のファイル。
+ * The file to write into.
  *
- * メモリに全部を貯めると、長い動画がそのまま上限になる。書き込み先を先に開いて
- * そこへ流し込めば、長さを決めるのは空き容量だけになる。
+ * Buffering all of it in memory makes the video length the limit. Opening the destination
+ * first and streaming into it leaves only free space to decide the length.
  */
 
 interface SaveFilePickerOptions {
@@ -24,8 +24,8 @@ export function isVideoFileSinkSupported(): boolean {
 }
 
 /**
- * 保存先を尋ねる。**押した流れの中で呼ぶこと** — ブラウザは操作の直後しか
- * ダイアログを開かせない。断られたら null を返し、呼び出し側はメモリ経由で書き出す。
+ * Asks where to save. **Call it from the click** — a browser only opens the dialogue
+ * straight after a gesture. Refused, it returns null and the caller exports through memory.
  */
 export async function askVideoFile(fileName: string): Promise<FileSystemFileHandle | null> {
   const open = picker();
@@ -37,7 +37,7 @@ export async function askVideoFile(fileName: string): Promise<FileSystemFileHand
       types: [{ description: 'MP4', accept: { 'video/mp4': ['.mp4'] } }],
     });
   } catch (reason) {
-    // 取り消しは失敗ではない。
+    // Cancelling is not a failure.
     if (reason instanceof DOMException && reason.name === 'AbortError') return null;
     Logger.warn('[VideoFileSink] 保存先を開けませんでした', reason);
     return null;

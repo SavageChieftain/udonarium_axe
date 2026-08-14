@@ -33,7 +33,7 @@ export class Transform {
     return this;
   }
 
-  /** 既存インスタンスを別 element に向けて再初期化する。プールから取り出して使い回すための入口。 */
+  /** Points an existing instance at another element, which is how one is taken from the pool and reused. */
   reinit(element: HTMLElement): this {
     this.initialize(element);
     return this;
@@ -91,7 +91,7 @@ export class Transform {
     return ret;
   }
 
-  /** localToLocal の no-alloc 版。caller が再利用 Transform を渡す。 */
+  /** The allocation-free form of localToLocal: the caller passes in transforms to reuse. */
   localToLocalUsing(x: number, y: number, z: number, toTransform: Transform): IPoint3D {
     const matrix = Matrix3D.multiply(this.sceneTransform, toTransform.inverseSceneTransform);
     const ret: IPoint3D = { x: 0, y: 0, z: 0, w: 1 };

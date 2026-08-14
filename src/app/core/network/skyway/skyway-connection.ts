@@ -154,7 +154,7 @@ export class SkyWayConnection implements Connection {
             container.isCompressed = true;
           }
         } catch {
-          // 圧縮失敗時はそのまま送信
+          // sends it uncompressed when compression fails
         }
       }
       if (sendTo) {

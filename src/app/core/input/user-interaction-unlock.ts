@@ -1,7 +1,7 @@
 /**
- * モバイルブラウザ等で WebAudio をユーザー操作の前に再生開始できない制約への対策。
- * 最初のタッチ/クリックを 1 回だけ拾って callback を呼び、自動で解除する。
- * domain 層が document を触らずに済むよう、ここに DOM 操作を閉じ込める。
+ * For browsers that refuse to start audio before the user has touched anything.
+ * It catches the first touch or click, calls back once and unhooks itself.
+ * The dom work is kept here so the domain never touches the document.
  */
 export function onFirstUserInteraction(callback: () => void): () => void {
   const handler = () => {

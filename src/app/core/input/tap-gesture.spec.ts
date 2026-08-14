@@ -23,7 +23,7 @@ describe('observeTap', () => {
     element.remove();
   });
 
-  it('動かない短いタッチをタップとして通知する', () => {
+  it('reports a short, still touch as a tap', () => {
     const handle = observeTap(element, (point) => taps.push(point));
 
     element.dispatchEvent(touchEvent('touchstart', 10, 20));
@@ -33,7 +33,7 @@ describe('observeTap', () => {
     handle.destroy();
   });
 
-  it('大きく動いたらタップにしない', () => {
+  it('is no tap once the finger has travelled', () => {
     const handle = observeTap(element, (point) => taps.push(point));
 
     element.dispatchEvent(touchEvent('touchstart', 10, 20));
@@ -44,7 +44,7 @@ describe('observeTap', () => {
     handle.destroy();
   });
 
-  it('複数本の指はタップにしない', () => {
+  it('is no tap under several fingers', () => {
     const handle = observeTap(element, (point) => taps.push(point));
 
     element.dispatchEvent(touchEvent('touchstart', 10, 20, 2));
@@ -54,7 +54,7 @@ describe('observeTap', () => {
     handle.destroy();
   });
 
-  it('長押しはタップにしない', () => {
+  it('is no tap once it becomes a press', () => {
     vi.useFakeTimers();
     const handle = observeTap(element, (point) => taps.push(point));
 
@@ -67,7 +67,7 @@ describe('observeTap', () => {
     vi.useRealTimers();
   });
 
-  it('タップの上限は長押しの成立より短い', () => {
+  it('the tap window closes before the press begins', () => {
     vi.useFakeTimers();
     const handle = observeTap(element, (point) => taps.push(point));
 
@@ -80,7 +80,7 @@ describe('observeTap', () => {
     vi.useRealTimers();
   });
 
-  it('touchcancel の後はタップにしない', () => {
+  it('is no tap after the touch is cancelled', () => {
     const handle = observeTap(element, (point) => taps.push(point));
 
     element.dispatchEvent(touchEvent('touchstart', 10, 20));
@@ -91,7 +91,7 @@ describe('observeTap', () => {
     handle.destroy();
   });
 
-  it('破棄した後は通知しない', () => {
+  it('reports nothing after teardown', () => {
     const handle = observeTap(element, (point) => taps.push(point));
     handle.destroy();
 

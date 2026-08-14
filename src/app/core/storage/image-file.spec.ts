@@ -20,22 +20,22 @@ describe('ImageFile', () => {
   });
 
   describe('Empty', () => {
-    it('ImageFile.Emptyはシングルトン', () => {
+    it('the empty image is a singleton', () => {
       expect(ImageFile.Empty).toBeTruthy();
       expect(ImageFile.Empty).toBe(ImageFile.Empty);
     });
 
-    it('EmptyのstateはNULL', () => {
+    it('the empty image holds nothing', () => {
       expect(ImageFile.Empty.state).toBe(ImageState.NULL);
     });
 
-    it('Empty.isEmptyはtrue', () => {
+    it('the empty image knows it is empty', () => {
       expect(ImageFile.Empty.isEmpty).toBe(true);
     });
   });
 
   describe('createEmpty', () => {
-    it('空のImageFileを作成できる', () => {
+    it('builds an empty image', () => {
       const img = ImageFile.createEmpty('test-id');
       expect(img.identifier).toBe('test-id');
       expect(img.isEmpty).toBe(true);
@@ -44,7 +44,7 @@ describe('ImageFile', () => {
   });
 
   describe('create (URL)', () => {
-    it('URLからImageFileを作成できる', () => {
+    it('builds an image from a url', () => {
       const img = ImageFile.create('https://example.com/image.png');
       expect(img.identifier).toBe('https://example.com/image.png');
       expect(img.name).toBe('https://example.com/image.png');
@@ -54,7 +54,7 @@ describe('ImageFile', () => {
   });
 
   describe('create (context)', () => {
-    it('コンテキストからImageFileを作成できる', () => {
+    it('builds an image from a context', () => {
       const img = ImageFile.create({
         identifier: 'ctx-id',
         name: 'test.png',
@@ -69,7 +69,7 @@ describe('ImageFile', () => {
   });
 
   describe('toContext', () => {
-    it('ImageContextを返す', () => {
+    it('returns a context', () => {
       const img = ImageFile.create('https://example.com/test.png');
       const ctx = img.toContext();
       expect(ctx.identifier).toBe('https://example.com/test.png');
@@ -79,19 +79,19 @@ describe('ImageFile', () => {
   });
 
   describe('state', () => {
-    it('blob/url両方なしでNULL', () => {
+    it('holds nothing with neither bytes nor a url', () => {
       const img = ImageFile.createEmpty('empty');
       expect(img.state).toBe(ImageState.NULL);
     });
 
-    it('urlのみでURL', () => {
+    it('carries a url on its own', () => {
       const img = ImageFile.create('https://example.com/img.jpg');
       expect(img.state).toBe(ImageState.URL);
     });
   });
 
   describe('apply', () => {
-    it('空コンテキストに値を適用できる', () => {
+    it('applies values onto an empty context', () => {
       const img = ImageFile.createEmpty('');
       img.apply({
         identifier: 'new-id',

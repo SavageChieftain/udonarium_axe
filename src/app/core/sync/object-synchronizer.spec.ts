@@ -11,18 +11,18 @@ import { TableSelecter } from '@axe/domain/tabletop/table-selecter';
 
 describe('ObjectSynchronizer', () => {
   describe('instance (singleton)', () => {
-    it('シングルトンインスタンスを返す', () => {
+    it('returns the one instance', () => {
       expect(ObjectSynchronizer.instance).toBe(ObjectSynchronizer.instance);
     });
   });
 
   describe('initialize / destroy', () => {
-    it('initializeでイベントリスナーを登録する', () => {
+    it('registers its listeners on initialising', () => {
       ObjectSynchronizer.instance.initialize();
       expect(true).toBe(true);
     });
 
-    it('destroyでイベントリスナーを解除する', () => {
+    it('removes its listeners on teardown', () => {
       ObjectSynchronizer.instance.initialize();
       ObjectSynchronizer.instance.destroy();
       expect(true).toBe(true);
@@ -34,7 +34,7 @@ describe('ObjectSynchronizer', () => {
       vi.restoreAllMocks();
     });
 
-    it('接続中のピアそれぞれにカタログ送信とカタログ要求を出す', () => {
+    it('sends and asks for a catalogue from every connected peer', () => {
       vi.spyOn(Network, 'peerContexts', 'get').mockReturnValue([
         { peerId: 'peer-a', isOpen: true },
         { peerId: 'peer-b', isOpen: true },
@@ -50,7 +50,7 @@ describe('ObjectSynchronizer', () => {
       expect(requested).toEqual(['peer-a', 'peer-b']);
     });
 
-    it('未接続のピアは対象にしない', () => {
+    it('leaves an unconnected peer out', () => {
       vi.spyOn(Network, 'peerContexts', 'get').mockReturnValue([{ peerId: 'peer-a', isOpen: false }] as never);
       const sendSpy = vi.spyOn(Network.instance, 'send').mockImplementation(() => {});
 
@@ -58,9 +58,9 @@ describe('ObjectSynchronizer', () => {
       expect(sendSpy).not.toHaveBeenCalled();
     });
 
-    it('他ピアからの REQUEST_CATALOG にカタログを返す', () => {
+    it('answers another peer asking for a catalogue', () => {
       ObjectSynchronizer.instance.initialize();
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- private メソッドへのアクセスに必要
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- needed to reach a private method
       const sendCatalogSpy = vi.spyOn(ObjectSynchronizer.instance as any, 'sendCatalog').mockImplementation(() => {});
 
       localDispatch('REQUEST_CATALOG', {}, 'peer-a');
@@ -68,9 +68,9 @@ describe('ObjectSynchronizer', () => {
       expect(sendCatalogSpy).toHaveBeenCalledWith('peer-a');
     });
 
-    it('自分が送った REQUEST_CATALOG には応答しない', () => {
+    it('does not answer its own request', () => {
       ObjectSynchronizer.instance.initialize();
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- private メソッドへのアクセスに必要
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- needed to reach a private method
       const sendCatalogSpy = vi.spyOn(ObjectSynchronizer.instance as any, 'sendCatalog').mockImplementation(() => {});
 
       localDispatch('REQUEST_CATALOG', {});
@@ -79,9 +79,9 @@ describe('ObjectSynchronizer', () => {
     });
   });
 
-  describe('UPDATE_GAME_OBJECT で未知の object を受信したとき', () => {
-    // TableSelecter の selectGameTable$ subscription は onStoreAdded で張られるため
-    // ObjectStore から外すとテスト中に通知が届かなくなる。他オブジェクトのみクリーンアップする。
+  describe('receiving an update for an object it does not know', () => {
+    // The table selecter subscribes as it enters the store, so removing it from the store
+    // would cut off the notices mid-test. Everything else is cleaned up instead.
     beforeEach(() => {
       TestBed.configureTestingModule({});
       for (const o of ObjectStore.instance.getObjects()) {
@@ -104,7 +104,7 @@ describe('ObjectSynchronizer', () => {
       ObjectSynchronizer.instance.destroy();
     });
 
-    it('selected=true の GameTable を同期すると selectGameTable$ が発火し TableSelecter.viewTableIdentifier が更新される', () => {
+    it('syncing a selected table fires the selection and updates which table is shown', () => {
       const tableSelecter = TableSelecter.instance;
       tableSelecter.viewTableIdentifier = '';
 
@@ -127,7 +127,7 @@ describe('ObjectSynchronizer', () => {
       expect(tableSelecter.viewTableIdentifier).toBe('synced-table-id');
     });
 
-    it('ChatMessage を同期した時点で messageAdded$ 購読側が ObjectStore.get で解決できる', () => {
+    it('a synced message can be looked up in the store by the time the added event arrives', () => {
       const tab = new ChatTab('synced-chat-tab');
       tab.name = 'メイン';
       ObjectStore.instance.add(tab, false);
@@ -142,7 +142,7 @@ describe('ObjectSynchronizer', () => {
       sample.name = 'Remote';
       sample.value = 'hello';
       sample.setAttribute('timestamp', 1_000);
-      // ChatTab.onChildAdded が emitMessageAdded を発火する条件 (parentIdentifier セット) を満たす。
+      // meet the condition under which a tab announces an added message
       const ctx = sample.toContext();
       (ctx.syncData as Record<string, unknown>).parentIdentifier = tab.identifier;
 

@@ -2,88 +2,88 @@ import { Network } from '@axe/core/network/network';
 
 describe('Network', () => {
   beforeEach(() => {
-    // シングルトンをリセットして他テストからの状態リークを防ぐ
+    // reset the singleton so no state leaks in from another test
     (Network as unknown as Record<string, unknown>)['_instance'] = undefined;
   });
   describe('instance (singleton)', () => {
-    it('シングルトンインスタンスを返す', () => {
+    it('returns the one instance', () => {
       expect(Network.instance).toBe(Network.instance);
     });
   });
 
-  describe('デフォルト状態', () => {
-    it('isOpenのデフォルトはfalse', () => {
+  describe('the state it starts in', () => {
+    it('starts closed', () => {
       expect(Network.instance.isOpen).toBe(false);
     });
 
-    it('peerIdが設定済み', () => {
+    it('carries a peer id', () => {
       expect(typeof Network.instance.peerId).toBe('string');
     });
 
-    it('peerIdsが空配列', () => {
+    it('carries no peer ids', () => {
       expect(Network.instance.peerIds).toEqual([]);
     });
 
-    it('peerがIPeerContext', () => {
+    it('carries a peer context', () => {
       const peer = Network.instance.peer;
       expect(peer).toBeTruthy();
       expect(typeof peer.peerId).toBe('string');
     });
 
-    it('peersが空配列', () => {
+    it('carries no peers', () => {
       expect(Network.instance.peers).toEqual([]);
     });
 
-    it('bandwidthUsageが0', () => {
+    it('reports no bandwidth in use', () => {
       expect(Network.instance.bandwidthUsage).toBe(0);
     });
   });
 
-  describe('peerContext (後方互換)', () => {
-    it('peerContextはpeerと同じ', () => {
+  describe('the older names', () => {
+    it('the old peer name matches the new one', () => {
       expect(Network.instance.peerContext).toBe(Network.instance.peer);
     });
 
-    it('peerContextsはpeersと同値', () => {
+    it('the old peers name matches the new one', () => {
       expect(Network.instance.peerContexts).toEqual(Network.instance.peers);
     });
   });
 
   describe('callback', () => {
-    it('ConnectionCallbackインスタンスを持つ', () => {
+    it('carries its callbacks', () => {
       expect(Network.instance.callback).toBeTruthy();
     });
   });
 
-  describe('beforeunload/pagehideハンドラ', () => {
-    it('callbackBeforeUnloadがプライベートフィールドとして存在する', () => {
+  describe('the unload handlers', () => {
+    it('carries an unload handler', () => {
       const instance = Network.instance as unknown as Record<string, unknown>;
       expect(typeof instance['callbackBeforeUnload']).toBe('function');
     });
 
-    it('callbackPageHideがプライベートフィールドとして存在する', () => {
+    it('carries a page-hide handler', () => {
       const instance = Network.instance as unknown as Record<string, unknown>;
       expect(typeof instance['callbackPageHide']).toBe('function');
     });
 
-    it('callbackBeforeUnloadはconnection未設定でもエラーにならない', () => {
+    it('survives unloading with no connection', () => {
       const instance = Network.instance as unknown as Record<string, (...args: unknown[]) => void>;
       const event = { preventDefault: vi.fn() } as unknown as BeforeUnloadEvent;
       expect(() => instance['callbackBeforeUnload'](event)).not.toThrow();
       expect(event.preventDefault).toHaveBeenCalled();
     });
 
-    it('callbackPageHideはconnection未設定でもエラーにならない（persisted=false）', () => {
+    it('survives hiding with no connection', () => {
       const instance = Network.instance as unknown as Record<string, (...args: unknown[]) => void>;
       expect(() => instance['callbackPageHide']({ persisted: false } as PageTransitionEvent)).not.toThrow();
     });
 
-    it('callbackPageHideはconnection未設定でもエラーにならない（persisted=true）', () => {
+    it('survives being cached with no connection', () => {
       const instance = Network.instance as unknown as Record<string, (...args: unknown[]) => void>;
       expect(() => instance['callbackPageHide']({ persisted: true } as PageTransitionEvent)).not.toThrow();
     });
 
-    it('callbackBeforeUnloadはleaveImmediatelyを呼ばない', () => {
+    it('does not leave the room on unload', () => {
       const instance = Network.instance as unknown as Record<string, unknown>;
       const leaveImmediately = vi.fn();
       instance['connection'] = { leaveImmediately } as unknown;
@@ -94,7 +94,7 @@ describe('Network', () => {
       instance['connection'] = null;
     });
 
-    it('callbackPageHideはleaveImmediatelyを呼ぶ（persisted=true: bfcache）', () => {
+    it('leaves the room when the page goes into the cache', () => {
       const instance = Network.instance as unknown as Record<string, unknown>;
       const leaveImmediately = vi.fn();
       const close = vi.fn();
@@ -105,7 +105,7 @@ describe('Network', () => {
       instance['connection'] = null;
     });
 
-    it('callbackPageHideはpersisted=falseのとき接続をcloseする', () => {
+    it('closes the connection when the page is simply hidden', () => {
       const instance = Network.instance as unknown as Record<string, unknown>;
       const leaveImmediately = vi.fn();
       const close = vi.fn();

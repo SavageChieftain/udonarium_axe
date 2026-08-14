@@ -32,7 +32,7 @@ export class ObjectStore {
   add(object: GameObject, shouldBroadcast: boolean = true, beforeLifecycle?: () => void): GameObject | null {
     if (this.get(object.identifier) != null) return null;
     if (this.isDeleted(object.identifier)) {
-      // 消えたものが他所から蘇るのは拒む。手元で作り直したものは、作り直した側の意思を通す。
+      // Something deleted is not resurrected from elsewhere; rebuilding it here is the rebuilder's call.
       if (!shouldBroadcast) return null;
       this.garbageMap.delete(object.identifier);
     }
@@ -103,9 +103,9 @@ export class ObjectStore {
     }
     if (!context) return;
 
-    // ここを通るのは自分が変えたときだけ。受信したデータは apply() で入る。
-    // 送信をまとめる前に数える。まとめられた 2 度目を数え落とすと、
-    // 立て続けの操作が「変えていない」ことになってしまう。
+    // Only your own changes come through here; what arrives is applied instead.
+    // Count before the sends are coalesced. Losing the second of a folded pair would make
+    // a run of edits look like no edit at all.
     this.localChanges.set(context.identifier, (this.localChanges.get(context.identifier) ?? 0) + 1);
 
     if (this.queueMap.has(context.identifier)) {
@@ -120,7 +120,7 @@ export class ObjectStore {
     }
   }
 
-  /** 自分がそのオブジェクトを変えた回数。読み込みや同期では増えない。 */
+  /** How many times you changed it. A load or a sync does not count. */
   localChangeCountOf(identifier: string): number {
     return this.localChanges.get(identifier) ?? 0;
   }

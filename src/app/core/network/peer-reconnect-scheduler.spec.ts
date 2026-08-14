@@ -9,13 +9,13 @@ describe('PeerReconnectScheduler', () => {
     vi.useRealTimers();
   });
 
-  it('既定のバックオフは単調増加する', () => {
+  it('the default backoff only grows', () => {
     for (let i = 1; i < PEER_RECONNECT_BACKOFF_MS.length; i++) {
       expect(PEER_RECONNECT_BACKOFF_MS[i]).toBeGreaterThan(PEER_RECONNECT_BACKOFF_MS[i - 1]);
     }
   });
 
-  it('予約した遅延の経過後にコールバックを実行する', () => {
+  it('calls back once the delay has passed', () => {
     const scheduler = new PeerReconnectScheduler([100, 200]);
     const run = vi.fn();
 
@@ -26,7 +26,7 @@ describe('PeerReconnectScheduler', () => {
     expect(run).toHaveBeenCalledTimes(1);
   });
 
-  it('試行ごとに遅延が伸びる', () => {
+  it('lengthens the delay with each attempt', () => {
     const scheduler = new PeerReconnectScheduler([100, 200, 400]);
 
     expect(scheduler.schedule('peer-a', () => {})).toBe(100);
@@ -36,7 +36,7 @@ describe('PeerReconnectScheduler', () => {
     expect(scheduler.schedule('peer-a', () => {})).toBe(400);
   });
 
-  it('バックオフを使い切ったら null を返して予約しない', () => {
+  it('returns nothing and schedules nothing once the backoff runs out', () => {
     const scheduler = new PeerReconnectScheduler([100]);
     const run = vi.fn();
 
@@ -49,7 +49,7 @@ describe('PeerReconnectScheduler', () => {
     expect(run).toHaveBeenCalledTimes(1);
   });
 
-  it('予約が残っている間は二重予約しない', () => {
+  it('schedules nothing while one is still pending', () => {
     const scheduler = new PeerReconnectScheduler([100, 200]);
     const run = vi.fn();
 
@@ -60,7 +60,7 @@ describe('PeerReconnectScheduler', () => {
     expect(run).toHaveBeenCalledTimes(1);
   });
 
-  it('ピアごとに試行回数が独立している', () => {
+  it('counts the attempts per peer', () => {
     const scheduler = new PeerReconnectScheduler([100, 200]);
 
     expect(scheduler.schedule('peer-a', () => {})).toBe(100);
@@ -71,7 +71,7 @@ describe('PeerReconnectScheduler', () => {
     expect(scheduler.attemptOf('peer-b')).toBe(1);
   });
 
-  it('cancel は予約を取り消すが試行回数は残す', () => {
+  it('cancelling drops the schedule but keeps the count', () => {
     const scheduler = new PeerReconnectScheduler([100, 200]);
     const run = vi.fn();
 
@@ -84,7 +84,7 @@ describe('PeerReconnectScheduler', () => {
     expect(scheduler.schedule('peer-a', run)).toBe(200);
   });
 
-  it('reset は予約と試行回数の両方を捨てる', () => {
+  it('resetting drops both', () => {
     const scheduler = new PeerReconnectScheduler([100, 200]);
     const run = vi.fn();
 
@@ -97,7 +97,7 @@ describe('PeerReconnectScheduler', () => {
     expect(scheduler.schedule('peer-a', run)).toBe(100);
   });
 
-  it('cancelAll は全ピアの予約と試行回数を捨てる', () => {
+  it('cancelling everything drops both for every peer', () => {
     const scheduler = new PeerReconnectScheduler([100, 200]);
     const run = vi.fn();
 
@@ -113,7 +113,7 @@ describe('PeerReconnectScheduler', () => {
     expect(scheduler.attemptOf('peer-a')).toBe(0);
   });
 
-  it('発火後は予約済みでなくなる', () => {
+  it('is no longer pending once it has fired', () => {
     const scheduler = new PeerReconnectScheduler([100]);
 
     scheduler.schedule('peer-a', () => {});

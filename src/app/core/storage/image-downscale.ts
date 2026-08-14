@@ -1,23 +1,23 @@
 export interface DownscaleOptions {
   /**
-   * true のとき中心を基準に正方形クロップしてから maxDimension にリサンプルする。
-   * 立ち絵のサムネイル化など、サイズが揃ってほしい用途に。
+   * Crops to a square about the centre before resampling.
+   * For thumbnails and anything else that wants a uniform size.
    */
   square?: boolean;
   /**
-   * 画像の読み込みを待つ上限(ms)。
-   * Image のイベントが来ない環境では必ずここまで待つので、テストからは短く与える。
+   * How long to wait for an image to load, in ms.
+   * Where the events never arrive the wait always runs to the limit, so the tests pass a short one.
    */
   loadTimeoutMs?: number;
 }
 
 /**
- * Blob 画像を最大辺 maxDimension まで canvas でリサンプルしたうえで Blob に書き戻す。
+ * Resamples an image down to a maximum side through a canvas and writes it back out.
  *
- * - 元画像が maxDimension 以下でも WebP 再エンコードを試み、小さくなれば採用する。
- * - ブラウザ以外 (Node / happy-dom 等) や canvas 未対応環境では何もせず元 Blob を返す。
- * - 縮小結果が元より大きくなった場合 (低解像度元画像など) も元 Blob を返す。
- * - square: true なら中心基準の正方形クロップを行ったうえでリサンプル。出力は常に maxDimension × maxDimension。
+ * - Even within the maximum, a webp re-encode is tried and kept when it comes out smaller.
+ * - Outside a browser, or with no canvas, the bytes come back unchanged.
+ * - A result larger than the original, as a low-resolution source can give, is discarded.
+ * - Asked for a square, it crops about the centre first and always outputs one.
  */
 export async function downscaleImageBlob(
   blob: Blob | null | undefined,
@@ -26,9 +26,9 @@ export async function downscaleImageBlob(
 ): Promise<Blob | null> {
   if (!blob) return blob ?? null;
   if (maxDimension <= 0) return blob;
-  // 画像でない blob (テスト用の text/plain など) を canvas に通そうとすると
-  // happy-dom 等では Image.onload/onerror が発火せず Promise が宙ぶらりになる。
-  // MIME で先にガードする。type 未指定の blob は通す (実環境では image storage 起点で必ず付く)。
+  // Pushing something that is not an image through a canvas leaves the load and error events
+  // unfired under happy-dom and the promise hanging.
+  // The type is checked first. Bytes with no type are let through; outside a test they always have one.
   if (blob.type && !blob.type.startsWith('image/')) return blob;
   if (typeof document === 'undefined' || typeof Image === 'undefined' || typeof URL === 'undefined') return blob;
   if (typeof URL.createObjectURL !== 'function') return blob;
@@ -50,7 +50,7 @@ export async function downscaleImageBlob(
     let targetH: number;
 
     if (square) {
-      // 短辺基準で中央クロップ
+      // crop about the centre against the shorter side
       const side = Math.min(naturalW, naturalH);
       sx = Math.floor((naturalW - side) / 2);
       sy = Math.floor((naturalH - side) / 2);
@@ -86,8 +86,8 @@ export async function downscaleImageBlob(
   }
 }
 
-// 画像 blob が壊れている / テスト環境で Image イベントが発火しない場合に備えて
-// タイムアウト。3 秒以内に load/error が来なければ呼び出し側のフォールバックに任せる。
+// In case the bytes are broken, or the events never fire under test, this times out.
+// Nothing within three seconds leaves it to the caller to fall back.
 const LOAD_TIMEOUT_MS = 3000;
 
 function loadImage(src: string, timeoutMs: number = LOAD_TIMEOUT_MS): Promise<HTMLImageElement> {

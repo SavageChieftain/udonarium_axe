@@ -17,7 +17,7 @@ describe('AudioFile', () => {
   // isHidden
   // ----------------------------------------------------------------
   describe('isHidden', () => {
-    it('デフォルト値は false', () => {
+    it('is false by default', () => {
       const audio = AudioFile.createEmpty('id1');
       expect(audio.isHidden).toBe(false);
     });
@@ -27,17 +27,17 @@ describe('AudioFile', () => {
   // AudioState
   // ----------------------------------------------------------------
   describe('state', () => {
-    it('url も blob もなければ NULL', () => {
+    it('is empty with neither a url nor bytes', () => {
       const audio = AudioFile.createEmpty('id1');
       expect(audio.state).toBe(AudioState.NULL);
     });
 
-    it('url があり blob がなければ URL', () => {
+    it('carries a url with no bytes', () => {
       const audio = AudioFile.create('https://example.com/sound.mp3');
       expect(audio.state).toBe(AudioState.URL);
     });
 
-    it('blob があれば COMPLETE', () => {
+    it('is complete once it has bytes', () => {
       const context: AudioFileContext = {
         identifier: 'id1',
         name: 'sound.mp3',
@@ -49,7 +49,7 @@ describe('AudioFile', () => {
       expect(audio.state).toBe(AudioState.COMPLETE);
     });
 
-    it('url と blob が両方ある場合も COMPLETE', () => {
+    it('is complete with both', () => {
       const context: AudioFileContext = {
         identifier: 'id1',
         name: 'sound.mp3',
@@ -66,12 +66,12 @@ describe('AudioFile', () => {
   // isReady
   // ----------------------------------------------------------------
   describe('isReady', () => {
-    it('state が NULL のとき false', () => {
+    it('is false while empty', () => {
       const audio = AudioFile.createEmpty('id1');
       expect(audio.isReady).toBe(false);
     });
 
-    it('state が URL のとき true', () => {
+    it('is true once it has a url', () => {
       const audio = AudioFile.create('https://example.com/sound.mp3');
       expect(audio.isReady).toBe(true);
     });
@@ -81,12 +81,12 @@ describe('AudioFile', () => {
   // createEmpty
   // ----------------------------------------------------------------
   describe('createEmpty', () => {
-    it('identifier が設定される', () => {
+    it('sets an identifier', () => {
       const audio = AudioFile.createEmpty('test-id');
       expect(audio.identifier).toBe('test-id');
     });
 
-    it('name / url / blob は空', () => {
+    it('leaves the name, url and bytes empty', () => {
       const audio = AudioFile.createEmpty('test-id');
       expect(audio.name).toBe('');
       expect(audio.url).toBe('');
@@ -98,7 +98,7 @@ describe('AudioFile', () => {
   // create(string)
   // ----------------------------------------------------------------
   describe('create(url: string)', () => {
-    it('identifier / name / url がすべて引数の文字列になる', () => {
+    it('takes the identifier, name and url it is given', () => {
       const url = 'https://example.com/sound.mp3';
       const audio = AudioFile.create(url);
       expect(audio.identifier).toBe(url);
@@ -106,7 +106,7 @@ describe('AudioFile', () => {
       expect(audio.url).toBe(url);
     });
 
-    it('state が URL になる', () => {
+    it('carries a url', () => {
       const audio = AudioFile.create('https://example.com/sound.mp3');
       expect(audio.state).toBe(AudioState.URL);
     });
@@ -116,7 +116,7 @@ describe('AudioFile', () => {
   // create(AudioFileContext)
   // ----------------------------------------------------------------
   describe('create(context: AudioFileContext)', () => {
-    it('context の内容が反映される', () => {
+    it('takes the values from a context', () => {
       const blob = new Blob(['data'], { type: 'audio/mpeg' });
       const context: AudioFileContext = {
         identifier: 'ctx-id',
@@ -131,7 +131,7 @@ describe('AudioFile', () => {
       expect(audio.blob).toBe(blob);
     });
 
-    it('blob があれば createObjectURL が呼ばれ url が設定される', () => {
+    it('makes an object url when there are bytes', () => {
       const blob = new Blob(['data'], { type: 'audio/mpeg' });
       const context: AudioFileContext = {
         identifier: 'ctx-id',
@@ -149,19 +149,19 @@ describe('AudioFile', () => {
   // apply
   // ----------------------------------------------------------------
   describe('apply', () => {
-    it('identifier は空のときのみ上書きされる', () => {
+    it('overwrites the identifier only while it is empty', () => {
       const audio = AudioFile.createEmpty('original-id');
       audio.apply({ identifier: 'new-id', name: '', type: '', blob: null, url: '' });
       expect(audio.identifier).toBe('original-id');
     });
 
-    it('identifier が空なら apply で設定される', () => {
+    it('sets an empty identifier from the context', () => {
       const audio = AudioFile.createEmpty('');
       audio.apply({ identifier: 'set-id', name: '', type: '', blob: null, url: '' });
       expect(audio.identifier).toBe('set-id');
     });
 
-    it('name は常に上書きされる', () => {
+    it('always overwrites the name', () => {
       const context: AudioFileContext = {
         identifier: 'id1',
         name: 'original.mp3',
@@ -174,7 +174,7 @@ describe('AudioFile', () => {
       expect(audio.name).toBe('updated.mp3');
     });
 
-    it('blob は null のときのみ上書きされる', () => {
+    it('overwrites the bytes only while there are none', () => {
       const originalBlob = new Blob(['original'], { type: 'audio/mpeg' });
       const newBlob = new Blob(['new'], { type: 'audio/mpeg' });
       const context: AudioFileContext = {
@@ -189,7 +189,7 @@ describe('AudioFile', () => {
       expect(audio.blob).toBe(originalBlob);
     });
 
-    it('url は空のときのみ上書きされる', () => {
+    it('overwrites the url only while it is empty', () => {
       const context: AudioFileContext = {
         identifier: 'id1',
         name: 'sound.mp3',
@@ -202,7 +202,7 @@ describe('AudioFile', () => {
       expect(audio.url).toBe('https://example.com/original.mp3');
     });
 
-    it('type は空のときのみ上書きされる', () => {
+    it('overwrites the type only while it is empty', () => {
       const context: AudioFileContext = {
         identifier: 'id1',
         name: 'sound.mp3',
@@ -215,7 +215,7 @@ describe('AudioFile', () => {
       expect(audio.toContext().type).toBe('audio/mpeg');
     });
 
-    it('blob がない状態で blob を apply すると url が自動生成される', () => {
+    it('makes a url when bytes arrive where there were none', () => {
       const audio = AudioFile.createEmpty('id1');
       const blob = new Blob(['data'], { type: 'audio/mpeg' });
       audio.apply({ identifier: '', name: 'sound.mp3', type: 'audio/mpeg', blob, url: '' });
@@ -228,7 +228,7 @@ describe('AudioFile', () => {
   // toContext
   // ----------------------------------------------------------------
   describe('toContext', () => {
-    it('現在の context を返す', () => {
+    it('returns its context', () => {
       const url = 'https://example.com/sound.mp3';
       const audio = AudioFile.create(url);
       const ctx = audio.toContext();
@@ -236,7 +236,7 @@ describe('AudioFile', () => {
       expect(ctx.url).toBe(url);
     });
 
-    it('blob / type を含む完全な context を返す', () => {
+    it('returns a context carrying the bytes and the type', () => {
       const blob = new Blob(['data'], { type: 'audio/mpeg' });
       const context: AudioFileContext = {
         identifier: 'id1',
@@ -257,7 +257,7 @@ describe('AudioFile', () => {
   // createAsync
   // ----------------------------------------------------------------
   describe('createAsync', () => {
-    it('Blob から AudioFile を生成する', async () => {
+    it('builds a file from bytes', async () => {
       const blob = new Blob(['audio data'], { type: 'audio/mpeg' });
       const audio = await AudioFile.createAsync(blob);
       expect(audio).toBeTruthy();
@@ -266,13 +266,13 @@ describe('AudioFile', () => {
       expect(audio.state).toBe(AudioState.COMPLETE);
     });
 
-    it('File から生成すると name が設定される', async () => {
+    it('takes the name from a file', async () => {
       const file = new File(['audio data'], 'test.mp3', { type: 'audio/mpeg' });
       const audio = await AudioFile.createAsync(file);
       expect(audio.name).toBe('test.mp3');
     });
 
-    it('name のない Blob から生成すると name が identifier になる', async () => {
+    it('names bytes with no name after their identifier', async () => {
       const blob = new Blob(['audio data'], { type: 'audio/mpeg' });
       const audio = await AudioFile.createAsync(blob);
       expect(audio.name).toBe(audio.identifier);
@@ -283,14 +283,14 @@ describe('AudioFile', () => {
   // destroy
   // ----------------------------------------------------------------
   describe('destroy', () => {
-    it('blob がある場合 revokeObjectURL が呼ばれる', async () => {
+    it('releases the object url when there are bytes', async () => {
       const file = new File(['audio data'], 'test.mp3', { type: 'audio/mpeg' });
       const audio = await AudioFile.createAsync(file);
       audio.destroy();
       expect(revokeObjectURLSpy).toHaveBeenCalled();
     });
 
-    it('blob がない場合 revokeObjectURL は呼ばれない', () => {
+    it('releases nothing when there are none', () => {
       const audio = AudioFile.create('https://example.com/sound.mp3');
       audio.destroy();
       expect(revokeObjectURLSpy).not.toHaveBeenCalled();

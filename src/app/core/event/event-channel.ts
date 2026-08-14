@@ -31,11 +31,11 @@ export class EventChannel<T = void> implements ReadableChannel<T> {
 }
 
 /**
- * 最後に emit した値を記憶し、後から subscribe したリスナーにも即座に再配信するチャネル。
+ * A channel that remembers its last value and replays it to whoever subscribes later.
  *
- * 「一度きりの状態通知」（例: 設定ロード完了）で、emit が subscribe より先に走っても
- * イベントを取りこぼさないために使う。購読より前に emit 済みなら、subscribe した時点で
- * 直近の値がそのリスナーへ同期的に届く（既存の購読者には通常どおり emit 時に届く）。
+ * For a one-off state notice, such as the configuration finishing loading, so that emitting
+ * before anyone subscribes loses nothing. Where the value is already there, subscribing
+ * delivers it at once; existing listeners still hear it at emit time as usual.
  */
 export class StickyEventChannel<T = void> extends EventChannel<T> {
   private hasLastEvent = false;

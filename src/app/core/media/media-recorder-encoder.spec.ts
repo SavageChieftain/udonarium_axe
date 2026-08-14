@@ -41,7 +41,7 @@ function fakeStream(): MediaStream {
   } as unknown as MediaStream;
 }
 
-describe('MediaRecorder による書き出し', () => {
+describe('exporting through the media recorder', () => {
   const globals = globalThis as Record<string, unknown>;
   let captured: MediaStream;
 
@@ -68,32 +68,32 @@ describe('MediaRecorder による書き出し', () => {
     delete globals['MediaRecorder'];
   });
 
-  it('この環境が受け取れる入れ物を選ぶこと', () => {
+  it('picks a container this browser can take', () => {
     expect(isMediaRecordingSupported()).toBe(true);
     expect(mediaRecordingType()).toBe('video/webm;codecs=vp9,opus');
 
-    // MP4 を受け取れるなら、そちらを先に採る。追加の変換なしで配れる。
+    // MP4 comes first where it is accepted, since it can be handed round without converting.
     FakeMediaRecorder.supported = ['video/mp4', 'video/webm;codecs=vp9,opus'];
     expect(mediaRecordingType()).toBe('video/mp4');
   });
 
-  it('どれも受け取れないなら書き出さないこと', async () => {
+  it('exports nothing when it can take none of them', async () => {
     FakeMediaRecorder.supported = [];
 
     expect(mediaRecordingType()).toBeNull();
     expect(await recordVideo(request())).toBeNull();
   });
 
-  it('入れ物に合った拡張子を返すこと', () => {
+  it('returns the extension that matches the container', () => {
     expect(extensionOfMediaType('video/mp4;codecs=avc1.640028')).toBe('mp4');
     expect(extensionOfMediaType('video/webm;codecs=vp9,opus')).toBe('webm');
   });
 
-  it('実時間で描いて 1 本の動画にすること', async () => {
+  it('draws in real time into a single video', async () => {
     const painted: number[] = [];
     const result = await recordVideo(request({ paint: (_ctx, index) => void painted.push(index) }));
 
-    // コマ番号は経過時間から決まるので、詰まって飛ぶことはあっても戻らない。
+    // The frame number comes from the elapsed time, so it may skip under load but never goes back.
     expect(painted.length).toBeGreaterThan(0);
     expect([...painted].sort((left, right) => left - right)).toEqual(painted);
     expect(painted[0]).toBe(0);
@@ -101,11 +101,11 @@ describe('MediaRecorder による書き出し', () => {
     expect(result?.blob?.size).toBeGreaterThan(0);
   });
 
-  it('やめたら何も返さないこと', async () => {
+  it('returns nothing when stopped', async () => {
     expect(await recordVideo(request({ isCancelled: () => true }))).toBeNull();
   });
 
-  it('進み具合を知らせること', async () => {
+  it('reports its progress', async () => {
     const progress: number[] = [];
     await recordVideo(request({ onProgress: (done) => void progress.push(done) }));
 

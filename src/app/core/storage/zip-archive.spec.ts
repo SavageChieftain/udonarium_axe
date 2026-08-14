@@ -6,7 +6,7 @@ async function unzipBlob(blob: Blob): Promise<Record<string, Uint8Array>> {
 }
 
 describe('createZipBlob()', () => {
-  it('ワーカーが使えない環境ではメインスレッドで zip を作ること', async () => {
+  it('packs on the main thread where no worker is available', async () => {
     const files = [
       new File([strToU8('<room />')], 'data.xml', { type: 'text/plain' }),
       new File([new Uint8Array([137, 80, 78, 71])], 'image.png', { type: 'image/png' }),
@@ -21,7 +21,7 @@ describe('createZipBlob()', () => {
     expect([...entries['image.png']]).toEqual([137, 80, 78, 71]);
   });
 
-  it('圧縮済みの画像も欠けずに往復できること', async () => {
+  it('carries an already-compressed image through unharmed', async () => {
     const payload = new Uint8Array(1024).map((_, index) => index % 251);
     const files = [new File([payload], 'photo.jpg', { type: 'image/jpeg' })];
 
@@ -30,7 +30,7 @@ describe('createZipBlob()', () => {
     expect([...entries['photo.jpg']]).toEqual([...payload]);
   });
 
-  it('ファイルが無くても空の zip を返すこと', async () => {
+  it('returns an empty archive for no files', async () => {
     const blob = await createZipBlob([]);
 
     expect(await unzipBlob(blob)).toEqual({});
@@ -38,7 +38,7 @@ describe('createZipBlob()', () => {
 });
 
 describe('readZipEntries()', () => {
-  it('zip を展開して Blob と MIME タイプを返すこと', async () => {
+  it('unpacks an archive into bytes and their types', async () => {
     const blob = await createZipBlob([
       new File([strToU8('<room />')], 'data.xml', { type: 'text/plain' }),
       new File([new Uint8Array([1, 2, 3])], 'picture.webp', { type: 'image/webp' }),
@@ -53,7 +53,7 @@ describe('readZipEntries()', () => {
     expect([...new Uint8Array(await byName.get('picture.webp')!.blob.arrayBuffer())]).toEqual([1, 2, 3]);
   });
 
-  it('壊れた zip では失敗すること', async () => {
+  it('fails on a broken archive', async () => {
     await expect(readZipEntries(new Blob([new Uint8Array([0, 1, 2, 3])]))).rejects.toBeDefined();
   });
 });

@@ -22,7 +22,7 @@ describe('PointerDeviceService', () => {
     expect(service).toBeTruthy();
   }));
 
-  it('座標を持たないポインタイベントでは直前の位置を保つこと', () => {
+  it('keeps the last position for a pointer event that carries none', () => {
     document.body.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, clientX: 120, clientY: 80 }));
     const before = { ...service.pointers[0] };
 
@@ -33,7 +33,7 @@ describe('PointerDeviceService', () => {
     expect(Number.isFinite(service.pointers[0].y)).toBe(true);
   });
 
-  it('mouseup で dragging 状態を解除すること', () => {
+  it('stops dragging when the button comes up', () => {
     service.isDragging = true;
 
     document.body.dispatchEvent(new MouseEvent('mouseup', { bubbles: true }));
@@ -41,7 +41,7 @@ describe('PointerDeviceService', () => {
     expect(service.isDragging).toBe(false);
   });
 
-  it('buttons=0 の mousemove で dragging 状態を解除すること', () => {
+  it('stops dragging on a move with no button held', () => {
     service.isDragging = true;
 
     document.body.dispatchEvent(new MouseEvent('mousemove', { bubbles: true, buttons: 0 }));
@@ -49,7 +49,7 @@ describe('PointerDeviceService', () => {
     expect(service.isDragging).toBe(false);
   });
 
-  it('visibilitychange で hidden になったとき dragging 状態を解除すること', () => {
+  it('stops dragging when the page is hidden', () => {
     service.isDragging = true;
     Object.defineProperty(document, 'visibilityState', {
       configurable: true,
@@ -61,7 +61,7 @@ describe('PointerDeviceService', () => {
     expect(service.isDragging).toBe(false);
   });
 
-  it('effect 内 setter 実行で isDragging 依存を追加しないこと', () => {
+  it('does not pick up a dragging dependency from a setter inside an effect', () => {
     const appRef = TestBed.inject(ApplicationRef);
     const injector = TestBed.inject(Injector);
     const trigger = signal(0);
@@ -90,7 +90,7 @@ describe('PointerDeviceService', () => {
     effectRef.destroy();
   });
 
-  describe('タッチの長押し', () => {
+  describe('a long press', () => {
     interface FakeTouchEvent {
       touches: Touch[];
       targetTouches: Touch[];
@@ -123,7 +123,7 @@ describe('PointerDeviceService', () => {
       target.remove();
     });
 
-    it('押したままにするとコンテキストメニューを開く', () => {
+    it('opens the context menu when held', () => {
       target.dispatchEvent(touchEvent('touchstart', 50, 60, target));
 
       expect(opened).toHaveLength(0);
@@ -134,7 +134,7 @@ describe('PointerDeviceService', () => {
       expect(opened[0].clientY).toBe(60);
     });
 
-    it('指を動かしたら開かない', () => {
+    it('does not open when the finger moves', () => {
       target.dispatchEvent(touchEvent('touchstart', 50, 60, target));
       document.body.dispatchEvent(touchEvent('touchmove', 90, 120, target));
 
@@ -143,7 +143,7 @@ describe('PointerDeviceService', () => {
       expect(opened).toHaveLength(0);
     });
 
-    it('すぐ離したら開かない', () => {
+    it('does not open when the finger lifts at once', () => {
       target.dispatchEvent(touchEvent('touchstart', 50, 60, target));
       document.body.dispatchEvent(touchEvent('touchend', 50, 60, target));
 
@@ -152,7 +152,7 @@ describe('PointerDeviceService', () => {
       expect(opened).toHaveLength(0);
     });
 
-    it('2 本指では開かない', () => {
+    it('does not open under two fingers', () => {
       const two = touchEvent('touchstart', 50, 60, target);
       const fake = two as unknown as FakeTouchEvent;
       fake.touches = [fake.touches[0], fake.touches[0]];

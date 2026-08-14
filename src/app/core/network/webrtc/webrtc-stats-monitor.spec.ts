@@ -17,26 +17,26 @@ describe('WebRTCStatsMonitor', () => {
   });
 
   describe('add', () => {
-    it('接続を追加してupdateStatsAsyncを呼ぶ', () => {
+    it('adds a connection and measures it', () => {
       WebRTCStatsMonitor.add(mockConnection);
       expect(mockConnection.updateStatsAsync).toHaveBeenCalledTimes(1);
     });
   });
 
   describe('remove', () => {
-    it('接続を削除できる', () => {
+    it('removes a connection', () => {
       WebRTCStatsMonitor.add(mockConnection);
       WebRTCStatsMonitor.remove(mockConnection);
-      // removedなのでエラーなし
+      // already removed, so nothing goes wrong
       expect(true).toBe(true);
     });
   });
 
   describe('peerStatsUpdated$', () => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- private メソッドへのアクセスに必要
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- needed to reach a private method
     const monitor = WebRTCStatsMonitor as unknown as { doMonitoringAsync: () => Promise<void> } & any;
 
-    it('計測を回したあとに通知する', async () => {
+    it('reports once it has measured', async () => {
       const emitted = vi.fn();
       const off = peerStatsUpdated$.subscribe(emitted);
 
@@ -47,7 +47,7 @@ describe('WebRTCStatsMonitor', () => {
       expect(emitted).toHaveBeenCalled();
     });
 
-    it('計測対象が無いときは通知しない', async () => {
+    it('reports nothing with nothing to measure', async () => {
       const emitted = vi.fn();
       const off = peerStatsUpdated$.subscribe(emitted);
 
@@ -57,7 +57,7 @@ describe('WebRTCStatsMonitor', () => {
       expect(emitted).not.toHaveBeenCalled();
     });
 
-    it('閉じた接続を掃除したときも通知する', async () => {
+    it('reports after clearing away a closed connection', async () => {
       const closed: WebRTCConnection = { open: false, updateStatsAsync: vi.fn().mockResolvedValue(undefined) };
       WebRTCStatsMonitor.add(closed);
 

@@ -17,16 +17,16 @@ describe('LoggerService', () => {
     vi.restoreAllMocks();
   });
 
-  it('インスタンスが生成されること', () => {
+  it('can be created', () => {
     expect(service).toBeTruthy();
   });
 
-  it('setLevel() / getLevel() でログレベルを制御できること', () => {
+  it('sets and reads the level', () => {
     service.setLevel(LogLevel.ERROR);
     expect(service.getLevel()).toBe(LogLevel.ERROR);
   });
 
-  describe('各ログメソッドが Logger 静的メソッドに委譲すること', () => {
+  describe('hands each call off to the static logger', () => {
     let debugSpy: ReturnType<typeof vi.spyOn>;
     let infoSpy: ReturnType<typeof vi.spyOn>;
     let warnSpy: ReturnType<typeof vi.spyOn>;

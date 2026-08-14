@@ -1,9 +1,9 @@
 import { Injector } from '@angular/core';
 
 /**
- * GameObjectクラス群（Angular管理外）からDI済みサービスにアクセスするための過渡的ブリッジ。
- * Phase 3以降でドメインモデルがサービスを呼ぶ必要がある場面で使用する。
- * Angular管理下のコンポーネント/サービスでは inject() を使うこと。
+ * A temporary bridge letting the game object classes, which Angular does not manage, reach an injected service.
+ * For the cases where a domain model has to call a service.
+ * Anything Angular manages should inject instead.
  */
 export class ServiceLocator {
   private static injector: Injector;

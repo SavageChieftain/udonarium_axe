@@ -2,7 +2,7 @@ import { Matrix3D } from '@axe/core/transform/matrix-3d';
 
 describe('Matrix3D', () => {
   describe('constructor', () => {
-    it('単位行列で初期化される', () => {
+    it('starts as the identity', () => {
       const m = new Matrix3D();
       expect(m.m11).toBe(1);
       expect(m.m22).toBe(1);
@@ -16,7 +16,7 @@ describe('Matrix3D', () => {
   });
 
   describe('identity()', () => {
-    it('単位行列にリセットする', () => {
+    it('resets to the identity', () => {
       const m = new Matrix3D();
       m.m11 = 5;
       m.m41 = 10;
@@ -28,7 +28,7 @@ describe('Matrix3D', () => {
   });
 
   describe('setData()', () => {
-    it('16要素配列から設定する', () => {
+    it('takes a sixteen element array', () => {
       const m = new Matrix3D();
       const data = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16];
       m.setData(data);
@@ -38,7 +38,7 @@ describe('Matrix3D', () => {
       expect(m.m41).toBe(13);
     });
 
-    it('6要素配列(2D matrix)から設定する', () => {
+    it('takes a six element array, the two-dimensional form', () => {
       const m = new Matrix3D();
       m.setData([1, 0, 0, 1, 100, 200]);
       expect(m.m11).toBe(1);
@@ -49,7 +49,7 @@ describe('Matrix3D', () => {
       expect(m.m44).toBe(1);
     });
 
-    it('nullの場合何もしない', () => {
+    it('does nothing with null', () => {
       const m = new Matrix3D();
       m.setData(null!);
       expect(m.m11).toBe(1);
@@ -57,7 +57,7 @@ describe('Matrix3D', () => {
   });
 
   describe('scalar()', () => {
-    it('全要素にスカラー値を掛ける', () => {
+    it('multiplies every element by a scalar', () => {
       const m = new Matrix3D();
       m.scalar(2);
       expect(m.m11).toBe(2);
@@ -69,7 +69,7 @@ describe('Matrix3D', () => {
   });
 
   describe('setPosition / getPosition', () => {
-    it('位置を設定・取得する', () => {
+    it('sets and reads a position', () => {
       const m = new Matrix3D();
       m.setPosition({ x: 10, y: 20, z: 30, w: 1 });
       expect(m.m41).toBe(10);
@@ -84,7 +84,7 @@ describe('Matrix3D', () => {
   });
 
   describe('makePosition()', () => {
-    it('位置行列を作成する', () => {
+    it('builds a translation matrix', () => {
       const m = Matrix3D.makePosition({ x: 5, y: 10, z: 15, w: 1 });
       expect(m.m41).toBe(5);
       expect(m.m42).toBe(10);
@@ -94,7 +94,7 @@ describe('Matrix3D', () => {
   });
 
   describe('multiply()', () => {
-    it('単位行列同士の乗算は単位行列', () => {
+    it('multiplying two identities gives the identity', () => {
       const a = new Matrix3D();
       const b = new Matrix3D();
       const result = Matrix3D.multiply(a, b);
@@ -105,7 +105,7 @@ describe('Matrix3D', () => {
       expect(result.m12).toBe(0);
     });
 
-    it('平行移動行列の乗算で加算される', () => {
+    it('multiplying two translations adds them', () => {
       const a = new Matrix3D();
       a.setPosition({ x: 10, y: 0, z: 0, w: 1 });
       const b = new Matrix3D();
@@ -116,7 +116,7 @@ describe('Matrix3D', () => {
   });
 
   describe('setCSS()', () => {
-    it('matrix(...)文字列をパースする', () => {
+    it('reads a two-dimensional matrix string', () => {
       const m = new Matrix3D();
       m.setCSS('matrix(1, 0, 0, 1, 100, 200)');
       expect(m.m11).toBe(1);
@@ -125,7 +125,7 @@ describe('Matrix3D', () => {
       expect(m.m42).toBe(200);
     });
 
-    it('matrix3d(...)文字列をパースする', () => {
+    it('reads a three-dimensional matrix string', () => {
       const m = new Matrix3D();
       m.setCSS('matrix3d(1,0,0,0, 0,1,0,0, 0,0,1,0, 50,60,70,1)');
       expect(m.m11).toBe(1);
@@ -134,7 +134,7 @@ describe('Matrix3D', () => {
       expect(m.m43).toBe(70);
     });
 
-    it('"none"の場合単位行列にリセットする', () => {
+    it('resets to the identity for none', () => {
       const m = new Matrix3D();
       m.m41 = 999;
       m.setCSS('none');
@@ -142,7 +142,7 @@ describe('Matrix3D', () => {
       expect(m.m11).toBe(1);
     });
 
-    it('空文字列の場合単位行列にリセットする', () => {
+    it('resets to the identity for an empty string', () => {
       const m = new Matrix3D();
       m.m41 = 999;
       m.setCSS('');
@@ -151,7 +151,7 @@ describe('Matrix3D', () => {
   });
 
   describe('flatten()', () => {
-    it('Z関連の値をリセットする', () => {
+    it('resets the values along z', () => {
       const m = new Matrix3D();
       m.m31 = 5;
       m.m32 = 5;
@@ -172,7 +172,7 @@ describe('Matrix3D', () => {
   });
 
   describe('invert()', () => {
-    it('単位行列の逆行列は単位行列', () => {
+    it('the inverse of the identity is the identity', () => {
       const m = new Matrix3D();
       const inv = m.invert(new Matrix3D());
       expect(inv.m11).toBeCloseTo(1);
@@ -181,7 +181,7 @@ describe('Matrix3D', () => {
       expect(inv.m44).toBeCloseTo(1);
     });
 
-    it('平行移動行列の逆行列は符号反転', () => {
+    it('the inverse of a translation flips its sign', () => {
       const m = new Matrix3D();
       m.setPosition({ x: 10, y: 20, z: 30, w: 1 });
       const inv = m.invert(new Matrix3D());
@@ -192,14 +192,14 @@ describe('Matrix3D', () => {
   });
 
   describe('project / unproject', () => {
-    it('単位行列でのprojectは座標をそのまま返す', () => {
+    it('projecting through the identity leaves a point where it is', () => {
       const m = new Matrix3D();
       const result = m.project({ x: 10, y: 20, z: 0, w: 1 });
       expect(result.x).toBeCloseTo(10);
       expect(result.y).toBeCloseTo(20);
     });
 
-    it('単位行列でのunprojectは座標をそのまま返す', () => {
+    it('unprojecting through the identity leaves a point where it is', () => {
       const m = new Matrix3D();
       const result = m.unproject({ x: 10, y: 20 });
       expect(result.x).toBeCloseTo(10);
@@ -208,7 +208,7 @@ describe('Matrix3D', () => {
   });
 
   describe('append()', () => {
-    it('行列を連結する', () => {
+    it('concatenates two matrices', () => {
       const a = new Matrix3D();
       a.setPosition({ x: 10, y: 0, z: 0, w: 1 });
       const b = new Matrix3D();
@@ -219,14 +219,14 @@ describe('Matrix3D', () => {
   });
 
   describe('toString()', () => {
-    it('行列を文字列に変換する', () => {
+    it('turns a matrix into a string', () => {
       const m = new Matrix3D();
       const str = m.toString();
       expect(str).toContain('m11=1.000');
       expect(str).toContain('m22=1.000');
     });
 
-    it('小数桁数を指定できる', () => {
+    it('takes the number of decimal places', () => {
       const m = new Matrix3D();
       const str = m.toString(1);
       expect(str).toContain('m11=1.0');
@@ -234,13 +234,13 @@ describe('Matrix3D', () => {
   });
 
   describe('makePerspective()', () => {
-    it('透視変換行列を作成する', () => {
+    it('builds a perspective matrix', () => {
       const m = Matrix3D.makePerspective(1000);
       expect(m.m34).toBeCloseTo(-0.001);
       expect(m.m11).toBe(1);
     });
 
-    it('perspective=0の場合m34=0', () => {
+    it('a perspective of zero leaves the depth term at zero', () => {
       const m = Matrix3D.makePerspective(0);
       expect(m.m34).toBe(0);
     });

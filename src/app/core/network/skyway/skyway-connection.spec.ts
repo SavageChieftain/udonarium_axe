@@ -7,54 +7,54 @@ function flushMicrotasks(): Promise<void> {
 }
 
 describe('SkyWayConnection', () => {
-  it('クラスがエクスポートされている', () => {
+  it('is exported', () => {
     expect(SkyWayConnection).toBeDefined();
   });
 
-  it('初期プロパティが設定される', () => {
+  it('sets up its properties', () => {
     const conn = new SkyWayConnection();
     expect(conn.callback).toBeDefined();
     expect(conn.bandwidthUsage).toBe(0);
   });
 
   describe('leaveImmediately', () => {
-    it('メソッドが存在する', () => {
+    it('carries its methods', () => {
       const conn = new SkyWayConnection();
       expect(typeof conn.leaveImmediately).toBe('function');
     });
 
-    it('未接続状態でもエラーにならない', () => {
+    it('survives being used unconnected', () => {
       const conn = new SkyWayConnection();
       expect(() => conn.leaveImmediately()).not.toThrow();
     });
   });
 
   describe('rejoinAfterLeave', () => {
-    it('メソッドが存在する', () => {
+    it('carries its methods', () => {
       const conn = new SkyWayConnection();
       expect(typeof conn.rejoinAfterLeave).toBe('function');
     });
 
-    it('未接続状態でもエラーにならない', async () => {
+    it('survives being used unconnected', async () => {
       const conn = new SkyWayConnection();
       await expect(conn.rejoinAfterLeave()).resolves.toBeUndefined();
     });
   });
 
   describe('onData relay timing', () => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- private メソッドへのアクセスに必要
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- needed to reach a private method
     let connAny: Record<string, any>;
     let mockStream: { peer: { peerId: string } };
     let callOrder: string[];
 
     beforeEach(() => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- private メソッドへのアクセスに必要
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- needed to reach a private method
       connAny = new SkyWayConnection() as any;
       mockStream = { peer: { peerId: 'peer-a' } };
       callOrder = [];
     });
 
-    it('users付きコンテナはリレーマップ更新完了後にリレーする', async () => {
+    it('relays a container carrying users only once the map has been updated', async () => {
       let resolveUpdate!: () => void;
       const updatePromise = new Promise<void>((r) => {
         resolveUpdate = r;
@@ -72,17 +72,17 @@ describe('SkyWayConnection', () => {
       const container = { data: new Uint8Array(), users: ['user-c'], ttl: 1 };
       connAny.onData(mockStream, container);
 
-      // onUpdateUserIds完了前はリレーが発生しない
+      // relays nothing before the update finishes
       await flushMicrotasks();
       expect(callOrder).not.toContain('relay');
 
-      // onUpdateUserIds完了後にリレーが発生する
+      // relays once the update finishes
       resolveUpdate();
       await flushMicrotasks();
       expect(callOrder).toEqual(['updateComplete', 'relay']);
     });
 
-    it('更新保留中に到着したデータのみのコンテナもリレーマップ更新を待つ', async () => {
+    it('makes a data-only container arriving mid-update wait for it too', async () => {
       let resolveUpdate!: () => void;
       const updatePromise = new Promise<void>((r) => {
         resolveUpdate = r;
@@ -97,10 +97,10 @@ describe('SkyWayConnection', () => {
         callOrder.push('relay');
       });
 
-      // 1つ目: users付きコンテナでpending登録
+      // first, a container carrying users, which starts the update
       connAny.onData(mockStream, { data: new Uint8Array(), users: ['user-c'], ttl: 1 });
 
-      // 2つ目: usersなし・ttl>0のデータコンテナ
+      // second, a data container with no users and time to live
       connAny.onData(mockStream, { data: new Uint8Array(), ttl: 1 });
 
       await flushMicrotasks();
@@ -108,11 +108,11 @@ describe('SkyWayConnection', () => {
 
       resolveUpdate();
       await flushMicrotasks();
-      // updateComplete後に両方のリレーが発生
+      // both relay once the update completes
       expect(callOrder.filter((c) => c === 'relay')).toHaveLength(2);
     });
 
-    it('保留中の更新がなければ即座にリレーする', () => {
+    it('relays at once with no update pending', () => {
       vi.spyOn(connAny, 'onRelay').mockImplementation(() => {
         callOrder.push('relay');
       });
@@ -123,7 +123,7 @@ describe('SkyWayConnection', () => {
       expect(callOrder).toEqual(['relay']);
     });
 
-    it('onUpdateUserIdsが失敗してもリレーは実行される', async () => {
+    it('relays even when the update fails', async () => {
       vi.spyOn(connAny, 'onUpdateUserIds').mockImplementation(() => {
         return Promise.reject(new Error('makeFriendPeer failed'));
       });
@@ -138,7 +138,7 @@ describe('SkyWayConnection', () => {
       expect(callOrder).toEqual(['relay']);
     });
 
-    it('onUpdateUserIds完了後にpendingRelayMapUpdatesがクリーンアップされる', async () => {
+    it('clears the pending update once it finishes', async () => {
       let resolveUpdate!: () => void;
       const updatePromise = new Promise<void>((r) => {
         resolveUpdate = r;
@@ -158,7 +158,7 @@ describe('SkyWayConnection', () => {
       expect(connAny.pendingRelayMapUpdates.has('peer-a')).toBe(false);
     });
 
-    it('ttl: 0のコンテナはリレーしない', () => {
+    it('relays nothing with no time to live left', () => {
       vi.spyOn(connAny, 'onRelay').mockImplementation(() => {
         callOrder.push('relay');
       });
@@ -169,7 +169,7 @@ describe('SkyWayConnection', () => {
       expect(callOrder).not.toContain('relay');
     });
 
-    it('異なるピアのpending状態は独立しており互いに影響しない', async () => {
+    it('keeps each peers pending state to itself', async () => {
       let resolveA!: () => void;
       const pendingA = new Promise<void>((r) => {
         resolveA = r;
@@ -182,10 +182,10 @@ describe('SkyWayConnection', () => {
         callOrder.push(`relay:${(_s as typeof mockStream).peer.peerId}`);
       });
 
-      // peer-a: users付きコンテナでpending状態にする
+      // one peer starts an update
       connAny.onData(mockStream, { data: new Uint8Array(), users: ['user-x'], ttl: 1 });
 
-      // peer-b: pendingなし → 即座にリレーされる
+      // the other has none pending and relays at once
       connAny.onData(mockStreamB, { data: new Uint8Array(), ttl: 1 });
 
       expect(callOrder).toEqual(['relay:peer-b']);
@@ -197,7 +197,7 @@ describe('SkyWayConnection', () => {
       relaySpy.mockRestore();
     });
 
-    it('同一ピアからのusers更新が連続到着した場合、新しい方が優先される', async () => {
+    it('the later of two updates from one peer wins', async () => {
       let resolveFirst!: () => void;
       let resolveSecond!: () => void;
       const firstUpdate = new Promise<void>((r) => {
@@ -216,26 +216,26 @@ describe('SkyWayConnection', () => {
         callOrder.push('relay');
       });
 
-      // 1つ目のusers更新
+      // the first update
       connAny.onData(mockStream, { data: new Uint8Array(), users: ['user-c'], ttl: 1 });
-      // 2つ目のusers更新（上書き）
+      // the second, which replaces it
       connAny.onData(mockStream, { data: new Uint8Array(), users: ['user-c', 'user-d'], ttl: 1 });
 
-      // 1つ目が完了しても、pendingは2つ目を指しているのでクリーンアップされない
+      // the first finishing clears nothing, since the pending entry points at the second
       resolveFirst();
       await flushMicrotasks();
-      // 1つ目のリレーは発生する（1つ目のpending.thenで予約済み）
+      // the first relay still happens, having been queued behind the first update
       expect(callOrder.filter((c) => c === 'relay').length).toBeGreaterThanOrEqual(1);
       expect(connAny.pendingRelayMapUpdates.has('peer-a')).toBe(true);
 
       resolveSecond();
       await flushMicrotasks();
-      // 2つ目完了後にクリーンアップされる
+      // and the entry clears once the second finishes
       expect(connAny.pendingRelayMapUpdates.has('peer-a')).toBe(false);
       expect(callOrder.filter((c) => c === 'relay')).toHaveLength(2);
     });
 
-    it('onUpdateUserIdsが失敗してもpendingRelayMapUpdatesがクリーンアップされる', async () => {
+    it('clears the pending update even when it fails', async () => {
       vi.spyOn(connAny, 'onUpdateUserIds').mockImplementation(() => {
         return Promise.reject(new Error('network error'));
       });
@@ -250,7 +250,7 @@ describe('SkyWayConnection', () => {
       expect(connAny.pendingRelayMapUpdates.has('peer-a')).toBe(false);
     });
 
-    it('disconnectStreamがpendingRelayMapUpdatesをクリアする', async () => {
+    it('clears the pending updates when the stream disconnects', async () => {
       let resolveUpdate!: () => void;
       const updatePromise = new Promise<void>((r) => {
         resolveUpdate = r;
@@ -262,7 +262,7 @@ describe('SkyWayConnection', () => {
       connAny.onData(mockStream, { data: new Uint8Array(), users: ['user-c'], ttl: 1 });
       expect(connAny.pendingRelayMapUpdates.has('peer-a')).toBe(true);
 
-      // ストリーム切断をシミュレート
+      // stand in for the stream disconnecting
       const fakeStream = {
         peer: { peerId: 'peer-a' },
         disconnect: vi.fn(),
@@ -273,12 +273,12 @@ describe('SkyWayConnection', () => {
 
       expect(connAny.pendingRelayMapUpdates.has('peer-a')).toBe(false);
 
-      // 遅延resolveしてもcleanupの副作用なし
+      // a late resolution has nothing left to clean up
       resolveUpdate();
       await flushMicrotasks();
     });
 
-    it('users: []（空配列）はonUpdateUserIdsを呼ばない', () => {
+    it('an empty user list asks for no update', () => {
       const updateSpy = vi.spyOn(connAny, 'onUpdateUserIds').mockImplementation(() => Promise.resolve());
       vi.spyOn(connAny, 'onRelay').mockImplementation(() => {
         callOrder.push('relay');
@@ -288,11 +288,11 @@ describe('SkyWayConnection', () => {
 
       expect(updateSpy).not.toHaveBeenCalled();
       expect(connAny.pendingRelayMapUpdates.has('peer-a')).toBe(false);
-      // pendingなしなので即座にリレーされる
+      // nothing pending, so it relays at once
       expect(callOrder).toEqual(['relay']);
     });
 
-    it('pending中に3つのコンテナが到着した場合、リレー順序が到着順で保持される', async () => {
+    it('keeps three containers arriving mid-update in the order they came', async () => {
       let resolveUpdate!: () => void;
       const updatePromise = new Promise<void>((r) => {
         resolveUpdate = r;
@@ -305,11 +305,11 @@ describe('SkyWayConnection', () => {
         relayArgs.push((args[1] as { seq: number }).seq);
       });
 
-      // 1つ目: users付き
+      // first, carrying users
       connAny.onData(mockStream, { data: new Uint8Array(), users: ['user-c'], ttl: 1, seq: 1 });
-      // 2つ目: データのみ
+      // second, data alone
       connAny.onData(mockStream, { data: new Uint8Array(), ttl: 1, seq: 2 });
-      // 3つ目: データのみ
+      // third, data alone
       connAny.onData(mockStream, { data: new Uint8Array(), ttl: 1, seq: 3 });
 
       await flushMicrotasks();
@@ -322,15 +322,15 @@ describe('SkyWayConnection', () => {
     });
   });
 
-  describe('自動再接続', () => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- private メソッドへのアクセスに必要
+  describe('reconnecting on its own', () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- needed to reach a private method
     let connAny: Record<string, any>;
     let stream: { peer: PeerContext; disconnect: ReturnType<typeof vi.fn> };
     let onReconnect: ReturnType<typeof vi.fn>;
 
     beforeEach(() => {
       vi.useFakeTimers();
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- private メソッドへのアクセスに必要
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- needed to reach a private method
       connAny = new SkyWayConnection() as any;
       connAny.skyWay = { isOpen: true, close: vi.fn() };
       connAny.notifyUserList = vi.fn();
@@ -347,14 +347,14 @@ describe('SkyWayConnection', () => {
       vi.useRealTimers();
     });
 
-    it('予期しない切断は再接続を予約する', () => {
+    it('schedules a reconnect after an unexpected disconnect', () => {
       connAny.disconnectStream(stream, true);
 
       expect(connAny.reconnectScheduler.isScheduled('peer-a')).toBe(true);
       expect(onReconnect).toHaveBeenCalledWith(stream.peer, 'retrying');
     });
 
-    it('予約時間の経過後に接続を試みる', async () => {
+    it('tries to connect once the delay has passed', async () => {
       const connectSpy = vi.spyOn(connAny, 'connect').mockResolvedValue(true);
 
       connAny.disconnectStream(stream, true);
@@ -366,14 +366,14 @@ describe('SkyWayConnection', () => {
       expect(connectSpy.mock.calls[0][0]).toMatchObject({ peerId: 'peer-a' });
     });
 
-    it('明示的な切断は再接続を予約しない', () => {
+    it('schedules nothing after a deliberate disconnect', () => {
       connAny.disconnectStream(stream);
 
       expect(connAny.reconnectScheduler.isScheduled('peer-a')).toBe(false);
       expect(onReconnect).not.toHaveBeenCalled();
     });
 
-    it('disconnect() は予約済みの再接続を取り消す', () => {
+    it('cancels a scheduled reconnect on disconnect', () => {
       connAny.disconnectStream(stream, true);
       expect(connAny.reconnectScheduler.isScheduled('peer-a')).toBe(true);
 
@@ -383,7 +383,7 @@ describe('SkyWayConnection', () => {
       expect(connAny.reconnectScheduler.attemptOf('peer-a')).toBe(0);
     });
 
-    it('切断のたびに待ち時間が伸びる', async () => {
+    it('waits longer after each disconnect', async () => {
       vi.spyOn(connAny, 'connect').mockResolvedValue(true);
 
       connAny.disconnectStream(stream, true);
@@ -394,7 +394,7 @@ describe('SkyWayConnection', () => {
       expect(connAny.reconnectScheduler.isScheduled('peer-a')).toBe(true);
     });
 
-    it('試行回数を使い切ったら失敗を通知して打ち切る', async () => {
+    it('reports failure and gives up once the attempts run out', async () => {
       vi.spyOn(connAny, 'connect').mockResolvedValue(true);
 
       for (let i = 0; i < 2; i++) {
@@ -410,7 +410,7 @@ describe('SkyWayConnection', () => {
       expect(connAny.reconnectScheduler.attemptOf('peer-a')).toBe(0);
     });
 
-    it('接続対象でなくなったピアは失敗として打ち切る', async () => {
+    it('gives up on a peer it is no longer meant to reach', async () => {
       vi.spyOn(connAny, 'connect').mockResolvedValue(false);
 
       connAny.disconnectStream(stream, true);
@@ -422,7 +422,7 @@ describe('SkyWayConnection', () => {
       expect(connAny.reconnectScheduler.attemptOf('peer-a')).toBe(0);
     });
 
-    it('ネットワークが閉じているときは予約しない', () => {
+    it('schedules nothing while the network is closed', () => {
       connAny.skyWay.isOpen = false;
 
       connAny.disconnectStream(stream, true);
@@ -431,7 +431,7 @@ describe('SkyWayConnection', () => {
       expect(onReconnect).not.toHaveBeenCalled();
     });
 
-    it('close() はすべての再接続予約を取り消す', () => {
+    it('cancels every scheduled reconnect on close', () => {
       connAny.disconnectStream(stream, true);
       expect(connAny.reconnectScheduler.isScheduled('peer-a')).toBe(true);
 

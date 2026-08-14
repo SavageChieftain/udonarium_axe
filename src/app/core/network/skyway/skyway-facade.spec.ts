@@ -1,11 +1,11 @@
 import { SkyWayFacade } from '@axe/core/network/skyway/skyway-facade';
 
 describe('SkyWayFacade', () => {
-  it('クラスがエクスポートされている', () => {
+  it('is exported', () => {
     expect(SkyWayFacade).toBeDefined();
   });
 
-  it('初期状態のプロパティ', () => {
+  it('the properties it starts with', () => {
     const facade = new SkyWayFacade();
     expect(facade.url).toBe('');
     expect(facade.peer).toBeDefined();
@@ -13,58 +13,58 @@ describe('SkyWayFacade', () => {
   });
 
   describe('leaveImmediately', () => {
-    it('メソッドが存在する', () => {
+    it('carries its methods', () => {
       const facade = new SkyWayFacade();
       expect(typeof facade.leaveImmediately).toBe('function');
     });
 
-    it('roomPerson/lobbyPersonが未設定でもエラーにならない', () => {
+    it('survives with neither member set', () => {
       const facade = new SkyWayFacade();
       expect(() => facade.leaveImmediately()).not.toThrow();
     });
   });
 
   describe('rejoinAfterLeave', () => {
-    it('メソッドが存在する', () => {
+    it('carries its methods', () => {
       const facade = new SkyWayFacade();
       expect(typeof facade.rejoinAfterLeave).toBe('function');
     });
 
-    it('context未設定時は早期リターンする', async () => {
+    it('returns early with no context', async () => {
       const facade = new SkyWayFacade();
       await expect(facade.rejoinAfterLeave()).resolves.toBeUndefined();
     });
 
-    it('left状態のpersonをクリアしてから再参加する', async () => {
+    it('clears a member that has left before rejoining', async () => {
       const facade = new SkyWayFacade();
-      // left状態のモックpersonを設定
+      // set up a member that has left
       (facade as unknown as Record<string, unknown>).roomPerson = { state: 'left' };
       (facade as unknown as Record<string, unknown>).lobbyPerson = { state: 'left' };
-      // contextがないので早期リターンするがエラーにならない
+      // returns early with no context and nothing goes wrong
       await expect(facade.rejoinAfterLeave()).resolves.toBeUndefined();
     });
   });
 });
 
-describe('フィールドが null で初期化されること', () => {
-  it('context が null で初期化される', () => {
+describe('starts with its fields empty', () => {
+  it('starts with no context', () => {
     const facade = new SkyWayFacade();
     expect(facade.context).toBeNull();
   });
 
-  it('onOpen が null で初期化される', () => {
+  it('starts with no open handler', () => {
     const facade = new SkyWayFacade();
     expect(facade.onOpen).toBeNull();
   });
 
-  it('onClose が null で初期化される', () => {
+  it('starts with no close handler', () => {
     const facade = new SkyWayFacade();
     expect(facade.onClose).toBeNull();
   });
 });
 
-describe('SkyWayFacade リスナークリーンアップ', () => {
-  it('leaveLobbyChannel が onClosed.removeAllListeners を呼ぶ', async () => {
+describe('clearing away the listeners', () => {
+  it('drops the close listeners on leaving the lobby', async () => {
     const removeAllListenersSpy = vi.fn();
     const disposeSpy = vi.fn();
 
@@ -81,7 +81,7 @@ describe('SkyWayFacade リスナークリーンアップ', () => {
     expect((facade as unknown as Record<string, unknown>).lobby).toBeNull();
   });
 
-  it('closeRoomDataStream が publication.onSubscribed.removeAllListeners を呼ぶ', async () => {
+  it('drops the subscription listeners on closing the room stream', async () => {
     const removeAllListenersSpy = vi.fn();
     const unpublishSpy = vi.fn();
 

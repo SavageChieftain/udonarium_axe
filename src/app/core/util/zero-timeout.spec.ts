@@ -2,25 +2,25 @@ import { clearZeroTimeout, setZeroTimeout, waitZeroTimeout } from '@axe/core/uti
 
 describe('zero-timeout', () => {
   describe('setZeroTimeout()', () => {
-    it('IDを返す', () => {
+    it('returns an id', () => {
       const id = setZeroTimeout(() => {});
       expect(typeof id).toBe('number');
       expect(id).toBeGreaterThan(0);
     });
 
-    it('コールバックが非同期で実行される', async () => {
+    it('calls back later rather than at once', async () => {
       let executed = false;
       setZeroTimeout(() => {
         executed = true;
       });
 
       expect(executed).toBe(false);
-      // MessageChannelの非同期処理を待つ
+      // wait for the message channel to come round
       await new Promise((resolve) => setTimeout(resolve, 10));
       expect(executed).toBe(true);
     });
 
-    it('複数のコールバックが順番に実行される', async () => {
+    it('calls back in order', async () => {
       const order: number[] = [];
       setZeroTimeout(() => order.push(1));
       setZeroTimeout(() => order.push(2));
@@ -30,7 +30,7 @@ describe('zero-timeout', () => {
       expect(order).toEqual([1, 2, 3]);
     });
 
-    it('異なるIDを返す', () => {
+    it('returns a different id each time', () => {
       const id1 = setZeroTimeout(() => {});
       const id2 = setZeroTimeout(() => {});
       expect(id1).not.toBe(id2);
@@ -38,7 +38,7 @@ describe('zero-timeout', () => {
   });
 
   describe('clearZeroTimeout()', () => {
-    it('登録済みのコールバックをキャンセルする', async () => {
+    it('cancels a registered callback', async () => {
       let executed = false;
       const id = setZeroTimeout(() => {
         executed = true;
@@ -49,17 +49,17 @@ describe('zero-timeout', () => {
       expect(executed).toBe(false);
     });
 
-    it('存在しないIDをクリアしてもエラーにならない', () => {
+    it('survives clearing an id it does not know', () => {
       expect(() => clearZeroTimeout(999999)).not.toThrow();
     });
   });
 
   describe('waitZeroTimeout()', () => {
-    it('Promiseを返す', () => {
+    it('returns a promise', () => {
       expect(waitZeroTimeout()).toBeInstanceOf(Promise);
     });
 
-    it('非同期でresolveされる', async () => {
+    it('resolves later rather than at once', async () => {
       let resolved = false;
       waitZeroTimeout().then(() => {
         resolved = true;

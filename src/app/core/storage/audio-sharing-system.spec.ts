@@ -64,36 +64,36 @@ function makeTask(
   };
 }
 
-// emit() — localDispatch を経由して networkMessage$ にメッセージを流す
+// puts a message onto the channel, through the local dispatch
 function emit(eventName: string, data: unknown, opts: { sendFrom?: string } = {}) {
   NetworkMessaging.localDispatch(eventName, data, opts.sendFrom ?? 'peer-a');
 }
 
-// ─── テストスイート ────────────────────────────────────────────────────────────
+// --- the tests ---
 
 describe('AudioSharingSystem', () => {
   let sendSpy: ReturnType<typeof vi.spyOn>;
 
-  // 静的 getter `Network.peerId` / `peerIds` は Object.defineProperty で上書きする。
-  // vi.restoreAllMocks() は defineProperty による書き換えを戻さないので、
-  // 別ファイルのテストがこの値で汚染されないよう、元 descriptor を保存しておき
-  // afterEach で確実に復元する。
+  // The static peer accessors are overwritten with defineProperty.
+  // Restoring the mocks does not undo that, so the original descriptors are kept and put
+  // back afterwards, or these values would leak into the tests in other files.
+  //
   const ORIGINAL_PEER_ID = Object.getOwnPropertyDescriptor(Network, 'peerId')!;
   const ORIGINAL_PEER_IDS = Object.getOwnPropertyDescriptor(Network, 'peerIds')!;
 
   beforeEach(() => {
-    // 前のインスタンスのサブスクリプションをクリーンアップ（real networkMessage$ を使うため）
+    // clear the previous instance's subscription, since the real channel is in use
     audioSharingStatic._instance?.cleanups.forEach((c) => c());
-    // シングルトンをリセット
+    // reset the singleton
     audioSharingStatic._instance = undefined;
 
     vi.clearAllMocks();
 
-    // Network.peerIds は毎回コピーが必要なためゲッターで設定
+    // the peer ids need a fresh copy each time, so they come from a getter
     Object.defineProperty(Network, 'peerIds', { get: () => ['self-peer', 'peer-a', 'peer-b'], configurable: true });
     Object.defineProperty(Network, 'peerId', { get: () => 'self-peer', configurable: true });
 
-    // Network.instance.send をスパイして実際のネットワーク送信を防ぐ
+    // spy on send so nothing actually goes out
     sendSpy = vi.spyOn(Network.instance, 'send').mockImplementation(() => {});
 
     vi.spyOn(AudioStorage.instance, 'getCatalog').mockReturnValue([]);
@@ -111,15 +111,15 @@ describe('AudioSharingSystem', () => {
     Object.defineProperty(Network, 'peerIds', ORIGINAL_PEER_IDS);
   });
 
-  // ─── instance (シングルトン) ────────────────────────────────────────────────
+  // --- the singleton ---
 
   describe('instance', () => {
-    it('初回アクセスでインスタンスを生成する', () => {
+    it('builds the instance on first use', () => {
       const a = AudioSharingSystem.instance;
       expect(a).toBeInstanceOf(AudioSharingSystem);
     });
 
-    it('2回目以降は同じインスタンスを返す', () => {
+    it('returns the same one afterwards', () => {
       const a = AudioSharingSystem.instance;
       const b = AudioSharingSystem.instance;
       expect(a).toBe(b);
@@ -129,7 +129,7 @@ describe('AudioSharingSystem', () => {
   // ─── initialize ────────────────────────────────────────────────────────────
 
   describe('initialize()', () => {
-    it('初期化が正常に完了する', () => {
+    it('initialises cleanly', () => {
       expect(() => AudioSharingSystem.instance.initialize()).not.toThrow();
     });
   });
@@ -139,12 +139,12 @@ describe('AudioSharingSystem', () => {
   describe('on CONNECT_PEER', () => {
     beforeEach(() => AudioSharingSystem.instance.initialize());
 
-    it('isSendFromSelf=true のとき synchronize を呼ぶ', () => {
+    it('synchronises for a message it sent itself', () => {
       emit('CONNECT_PEER', { peerId: 'peer-a' }, { sendFrom: 'self-peer' });
       expect(AudioStorageMock.synchronize).toHaveBeenCalled();
     });
 
-    it('isSendFromSelf=false のとき何もしない', () => {
+    it('does nothing for a message from someone else', () => {
       emit('CONNECT_PEER', { peerId: 'peer-a' });
       expect(AudioStorageMock.synchronize).not.toHaveBeenCalled();
     });
@@ -155,18 +155,18 @@ describe('AudioSharingSystem', () => {
   describe('on SYNCHRONIZE_AUDIO_LIST', () => {
     beforeEach(() => AudioSharingSystem.instance.initialize());
 
-    it('isSendFromSelf=true のとき何もしない', () => {
+    it('does nothing for a message it sent itself', () => {
       emit('SYNCHRONIZE_AUDIO_LIST', [], { sendFrom: 'self-peer' });
       expect(sendSpy).not.toHaveBeenCalled();
     });
 
-    it('未知の audio は createEmpty して add する', () => {
+    it('adds an empty entry for audio it does not know', () => {
       AudioStorageMock.get.mockReturnValue(null);
       emit('SYNCHRONIZE_AUDIO_LIST', [{ identifier: 'new-audio', state: AudioState.COMPLETE }]);
       expect(AudioStorageMock.add).toHaveBeenCalled();
     });
 
-    it('COMPLETE 未満 (NULL) の audio は request に追加する', () => {
+    it('asks for audio it does not yet hold', () => {
       const audio = makeAudioFile({ identifier: 'partial-audio' });
       AudioStorageMock.get.mockReturnValue(audio);
       emit('SYNCHRONIZE_AUDIO_LIST', [{ identifier: 'partial-audio', state: audio.state }]);
@@ -179,7 +179,7 @@ describe('AudioSharingSystem', () => {
       );
     });
 
-    it('既に receiveTask があれば request しない', () => {
+    it('asks for nothing already being received', () => {
       const audio = makeAudioFile({ identifier: 'in-progress', url: 'http://a.mp3' });
       AudioStorageMock.get.mockReturnValue(audio);
       const task = makeTask({ identifier: 'in-progress' });
@@ -189,14 +189,14 @@ describe('AudioSharingSystem', () => {
       expect(sendSpy).not.toHaveBeenCalled();
     });
 
-    it('request が空かつ receiveLimitに達していれば return する', () => {
+    it('returns with nothing to ask for and no room to receive', () => {
       const audio = makeAudioFile({ identifier: 'done', blob: new Blob(['x']) });
       AudioStorageMock.get.mockReturnValue(audio);
       emit('SYNCHRONIZE_AUDIO_LIST', [{ identifier: 'done', state: AudioState.COMPLETE }]);
       expect(sendSpy).not.toHaveBeenCalled();
     });
 
-    it('request が空 & アクティブタスクなし & catalog が少なければ自分から synchronize', () => {
+    it('synchronises on its own with nothing to ask for, nothing running and a short catalogue', () => {
       AudioStorageMock.get.mockReturnValue(null);
       AudioStorageMock.getCatalog.mockReturnValue([
         { identifier: 'local-only', state: AudioState.COMPLETE },
@@ -206,7 +206,7 @@ describe('AudioSharingSystem', () => {
       expect(AudioStorageMock.synchronize).toHaveBeenCalledWith('peer-a');
     });
 
-    it('maxReceiveTask に達していれば request しない', () => {
+    it('asks for nothing once the receive limit is reached', () => {
       const audio = makeAudioFile({ identifier: 'limit', url: 'http://a.mp3' });
       AudioStorageMock.get.mockImplementation((id: string) => {
         if (id === 'limit') return audio;
@@ -226,12 +226,12 @@ describe('AudioSharingSystem', () => {
   describe('on REQUEST_AUDIO_RESOURE', () => {
     beforeEach(() => AudioSharingSystem.instance.initialize());
 
-    it('isSendFromSelf=true のとき何もしない', () => {
+    it('does nothing for a message it sent itself', () => {
       emit('REQUEST_AUDIO_RESOURE', { identifiers: [], receiver: 'p', candidatePeers: [] }, { sendFrom: 'self-peer' });
       expect(sendSpy).not.toHaveBeenCalled();
     });
 
-    it('送信可能な audio があれば startSendTask を呼ぶ', async () => {
+    it('starts sending audio it can send', async () => {
       const audio = makeAudioFile({ identifier: 'send-audio', blob: new Blob(['x']) });
       AudioStorageMock.get.mockReturnValue(audio);
       const task = makeTask({ identifier: 'send-audio', sendTo: 'peer-a' });
@@ -253,7 +253,7 @@ describe('AudioSharingSystem', () => {
       );
     });
 
-    it('既に sendTask があれば中継する', () => {
+    it('relays rather than sending again', () => {
       const audio = makeAudioFile({ identifier: 'exist-send', blob: new Blob(['x']) });
       AudioStorageMock.get.mockReturnValue(audio);
       const existingTask = makeTask({ identifier: 'exist-send', sendTo: 'peer-r' });
@@ -267,7 +267,7 @@ describe('AudioSharingSystem', () => {
       expect(sendSpy).toHaveBeenCalled();
     });
 
-    it('randomRequest が空なら中継する', () => {
+    it('relays with nothing to ask for', () => {
       AudioStorageMock.get.mockReturnValue(null);
       emit('REQUEST_AUDIO_RESOURE', {
         identifiers: [{ identifier: 'none', state: AudioState.NULL }],
@@ -283,7 +283,7 @@ describe('AudioSharingSystem', () => {
       );
     });
 
-    it('candidatePeers に自己 peer が含まれていれば splice して中継する', () => {
+    it('takes itself out of the candidates and relays', () => {
       AudioStorageMock.get.mockReturnValue(null);
       emit('REQUEST_AUDIO_RESOURE', {
         identifiers: [{ identifier: 'none', state: AudioState.NULL }],
@@ -299,7 +299,7 @@ describe('AudioSharingSystem', () => {
       );
     });
 
-    it('candidatePeers が空のとき中継も行わない', () => {
+    it('relays nothing with no candidates', () => {
       AudioStorageMock.get.mockReturnValue(null);
       emit('REQUEST_AUDIO_RESOURE', {
         identifiers: [{ identifier: 'none', state: AudioState.NULL }],
@@ -309,7 +309,7 @@ describe('AudioSharingSystem', () => {
       expect(sendSpy).not.toHaveBeenCalled();
     });
 
-    it('sendTask 上限に達していれば中継する', () => {
+    it('relays once the send limit is reached', () => {
       const audio = makeAudioFile({ identifier: 'limited', blob: new Blob(['x']) });
       AudioStorageMock.get.mockReturnValue(audio);
       const instance = AudioSharingSystem.instance;
@@ -333,7 +333,7 @@ describe('AudioSharingSystem', () => {
   describe('on UPDATE_AUDIO_RESOURE', () => {
     beforeEach(() => AudioSharingSystem.instance.initialize());
 
-    it('blob があれば Blob に変換して add する', () => {
+    it('adds it as bytes when there are bytes', () => {
       const fakeArrayBuffer = new Uint8Array([1, 2, 3]).buffer;
       emit('UPDATE_AUDIO_RESOURE', [
         { identifier: 'u1', blob: fakeArrayBuffer, type: 'audio/mpeg', name: 'test', url: '' },
@@ -343,7 +343,7 @@ describe('AudioSharingSystem', () => {
       expect(addedArg.blob).toBeInstanceOf(Blob);
     });
 
-    it('blob がなければそのまま add する', () => {
+    it('adds it as it is when there are none', () => {
       emit('UPDATE_AUDIO_RESOURE', [{ identifier: 'u2', blob: null, type: '', name: 'test', url: 'http://a.mp3' }]);
       expect(AudioStorageMock.add).toHaveBeenCalledWith(expect.objectContaining({ identifier: 'u2', blob: null }));
     });
@@ -354,7 +354,7 @@ describe('AudioSharingSystem', () => {
   describe('on START_AUDIO_TRANSMISSION', () => {
     beforeEach(() => AudioSharingSystem.instance.initialize());
 
-    it('既に receiveTask がある場合は CANCEL_TASK_ を送る', () => {
+    it('cancels when it is already receiving that one', () => {
       const instance = AudioSharingSystem.instance;
       asAudioSharingPrivate(instance).receiveTaskMap.set('cancel-id', makeTask({ identifier: 'cancel-id' }));
       emit('START_AUDIO_TRANSMISSION', { fileIdentifier: 'cancel-id' });
@@ -364,7 +364,7 @@ describe('AudioSharingSystem', () => {
       );
     });
 
-    it('audio が COMPLETE 状態なら CANCEL_TASK_ を送る', () => {
+    it('cancels when it already holds the audio', () => {
       const audio = makeAudioFile({ identifier: 'complete-id', blob: new Blob(['x']) });
       AudioStorageMock.get.mockReturnValue(audio);
       emit('START_AUDIO_TRANSMISSION', { fileIdentifier: 'complete-id' });
@@ -374,7 +374,7 @@ describe('AudioSharingSystem', () => {
       );
     });
 
-    it('正常ケースでは startReceiveTask を呼ぶ', () => {
+    it('starts receiving otherwise', () => {
       AudioStorageMock.get.mockReturnValue(null);
       const task = makeTask({ identifier: 'recv-id' });
       BufferSharingTaskMock.createReceiveTask.mockReturnValue(task);
@@ -383,12 +383,12 @@ describe('AudioSharingSystem', () => {
     });
   });
 
-  // ─── startSendTask (COMPLETE 状態) ────────────────────────────────────────
+  // --- sending what it holds in full ---
 
   describe('startSendTask (via REQUEST_AUDIO_RESOURE)', () => {
     beforeEach(() => AudioSharingSystem.instance.initialize());
 
-    it('URL 状態の audio は context.url をセットして送信する', async () => {
+    it('sends the url for audio it holds only by url', async () => {
       const audio = makeAudioFile({ identifier: 'url-audio', url: 'http://example.com/a.mp3' });
       AudioStorageMock.get.mockReturnValue(audio);
       const task = makeTask({ identifier: 'url-audio', sendTo: 'peer-r' });
@@ -405,7 +405,7 @@ describe('AudioSharingSystem', () => {
       expect(sentContext.url).toBe('http://example.com/a.mp3');
     });
 
-    it('task.onfinish が呼ばれると sendTask が削除され synchronize する', async () => {
+    it('drops the task and synchronises when sending finishes', async () => {
       const audio = makeAudioFile({ identifier: 'finish-audio', blob: new Blob(['x']) });
       AudioStorageMock.get.mockReturnValue(audio);
       const task = makeTask({ identifier: 'finish-audio', sendTo: 'peer-r' });
@@ -423,7 +423,7 @@ describe('AudioSharingSystem', () => {
       expect(AudioStorageMock.synchronize).toHaveBeenCalled();
     });
 
-    it('URL でも blob でもない異常 audio を送っても startSendTask は例外を投げない', async () => {
+    it('survives being asked to send audio that is neither', async () => {
       const audio = makeAudioFile({ identifier: 'broken-send' });
       const task = makeTask({ identifier: 'broken-send', sendTo: 'peer-r' });
       BufferSharingTaskMock.createSendTask.mockReturnValue(task);
@@ -442,7 +442,7 @@ describe('AudioSharingSystem', () => {
   describe('startReceiveTask (via START_AUDIO_TRANSMISSION)', () => {
     beforeEach(() => AudioSharingSystem.instance.initialize());
 
-    it('task.onprogress が audio.apply を呼ぶ', () => {
+    it('applies each chunk as it arrives', () => {
       const audio = makeAudioFile({ identifier: 'prog-id' });
       AudioStorageMock.get.mockReturnValue(audio);
       const task = makeTask({ identifier: 'prog-id' });
@@ -460,7 +460,7 @@ describe('AudioSharingSystem', () => {
       expect(applySpy).toHaveBeenCalled();
     });
 
-    it('task.onfinish が呼ばれると receiveTask が削除され synchronize する', () => {
+    it('drops the task and synchronises when receiving finishes', () => {
       const audio = makeAudioFile({ identifier: 'fin-id' });
       AudioStorageMock.get.mockReturnValue(audio);
       const task = makeTask({ identifier: 'fin-id' });
@@ -477,12 +477,12 @@ describe('AudioSharingSystem', () => {
       onfinish(task, fakeContext);
 
       expect(asAudioSharingPrivate(AudioSharingSystem.instance).receiveTaskMap.has('fin-id')).toBe(false);
-      // localDispatch が UPDATE_AUDIO_RESOURE を発行 → SUT が add する
+      // the dispatch announces the audio and it is added
       expect(AudioStorageMock.add).toHaveBeenCalledWith(expect.objectContaining({ identifier: 'fin-id' }));
       expect(AudioStorageMock.synchronize).toHaveBeenCalled();
     });
 
-    it('task.onfinish で data が null なら localDispatch しない', () => {
+    it('announces nothing when the task finishes empty-handed', () => {
       const audio = makeAudioFile({ identifier: 'nil-id' });
       AudioStorageMock.get.mockReturnValue(audio);
       const task = makeTask({ identifier: 'nil-id' });
@@ -497,7 +497,7 @@ describe('AudioSharingSystem', () => {
       ).onfinish;
       AudioStorageMock.add.mockClear();
       onfinish(task, null);
-      // data が null なら localDispatch されないため add も呼ばれない
+      // nothing is announced, so nothing is added
       expect(AudioStorageMock.add).not.toHaveBeenCalled();
     });
   });

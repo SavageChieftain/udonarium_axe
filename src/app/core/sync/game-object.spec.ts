@@ -21,18 +21,18 @@ describe('GameObject', () => {
   });
 
   describe('constructor', () => {
-    it('自動生成されたidentifierを持つ', () => {
+    it('carries an identifier of its own', () => {
       const obj = DataElement.create('test', '', {});
       expect(obj.identifier).toBeTruthy();
       expect(obj.identifier.length).toBeGreaterThan(0);
     });
 
-    it('指定したidentifierを使用する', () => {
+    it('takes the identifier it is given', () => {
       const obj = DataElement.create('test', '', {}, 'custom-id');
       expect(obj.identifier).toBe('custom-id');
     });
 
-    it('異なるインスタンスは異なるidentifierを持つ', () => {
+    it('gives two instances different identifiers', () => {
       const obj1 = DataElement.create('a', '', {});
       const obj2 = DataElement.create('b', '', {});
       expect(obj1.identifier).not.toBe(obj2.identifier);
@@ -40,29 +40,29 @@ describe('GameObject', () => {
   });
 
   describe('aliasName', () => {
-    it('DataElementのaliasNameは"data"', () => {
+    it('calls a data element data', () => {
       const obj = DataElement.create('test', '', {});
       expect(obj.aliasName).toBe('data');
     });
   });
 
   describe('version', () => {
-    it('初期versionが0以上', () => {
+    it('starts at a version of zero or more', () => {
       const obj = DataElement.create('test', '', {});
       expect(obj.version).toBeGreaterThanOrEqual(0);
     });
   });
 
   describe('initialize()', () => {
-    it('ObjectStoreに追加される', () => {
+    it('is added to the object store', () => {
       const obj = DataElement.create('test', '', {});
-      // DataElement.create内でinitialize()が呼ばれる
+      // initialises as part of being created
       expect(store.get(obj.identifier)).toBe(obj);
     });
   });
 
   describe('destroy()', () => {
-    it('ObjectStoreから削除される', () => {
+    it('is removed from the object store', () => {
       const obj = DataElement.create('test', '', {});
       const id = obj.identifier;
       obj.destroy();
@@ -71,14 +71,14 @@ describe('GameObject', () => {
   });
 
   describe('update()', () => {
-    it('versionが増加する', () => {
+    it('bumps its version', () => {
       const obj = DataElement.create('test', '', {});
       const v1 = obj.version;
       obj.update();
       expect(obj.version).toBeGreaterThan(v1);
     });
 
-    it('複数回updateでversionが増え続ける', () => {
+    it('keeps bumping its version', () => {
       const obj = DataElement.create('test', '', {});
       const versions: number[] = [];
       for (let i = 0; i < 5; i++) {
@@ -92,7 +92,7 @@ describe('GameObject', () => {
   });
 
   describe('toContext()', () => {
-    it('ObjectContextを返す', () => {
+    it('returns a context', () => {
       const obj = DataElement.create('test', '', {});
       const context = obj.toContext();
 
@@ -103,7 +103,7 @@ describe('GameObject', () => {
       expect(typeof context.syncData).toBe('object');
     });
 
-    it('deepCopyされたsyncDataを返す', () => {
+    it('returns a deep copy of the sync data', () => {
       const obj = DataElement.create('test', 'value', {});
       const context1 = obj.toContext();
       const context2 = obj.toContext();
@@ -114,7 +114,7 @@ describe('GameObject', () => {
   });
 
   describe('apply()', () => {
-    it('contextの値が適用される', () => {
+    it('applies the values from a context', () => {
       const obj = DataElement.create('test', '', {});
       const context = obj.toContext();
       context.majorVersion = 100;
@@ -124,7 +124,7 @@ describe('GameObject', () => {
       expect(obj.version).toBeGreaterThanOrEqual(100);
     });
 
-    it('identifierが不一致なら適用されない', () => {
+    it('applies nothing when the identifier does not match', () => {
       const obj = DataElement.create('test', '', {});
       const vBefore = obj.version;
       const context = obj.toContext();
@@ -136,14 +136,14 @@ describe('GameObject', () => {
       expect(obj.version).toBe(vBefore);
     });
 
-    it('nullコンテキストは無視される', () => {
+    it('ignores a null context', () => {
       const obj = DataElement.create('test', '', {});
       expect(() => obj.apply(null!)).not.toThrow();
     });
   });
 
   describe('toXml()', () => {
-    it('XML文字列を返す', () => {
+    it('returns an xml string', () => {
       const obj = DataElement.create('test', 'value', {});
       const xml = obj.toXml();
 
@@ -154,19 +154,19 @@ describe('GameObject', () => {
   });
 
   describe('clone()', () => {
-    it('同じaliasNameを持つクローンを作成する', () => {
+    it('clones with the same alias', () => {
       const obj = DataElement.create('test', 'value', {});
       const cloned = obj.clone();
 
       expect(cloned.aliasName).toBe(obj.aliasName);
     });
 
-    it('異なるidentifierを持つ（parseXmlにより新しいIDが生成される場合）', () => {
+    it('takes a new identifier where parsing generates one', () => {
       const obj = DataElement.create('test', 'value', {});
       const cloned = obj.clone();
 
-      // cloneはtoXml → parseXmlで新しいオブジェクトを作るが、
-      // identifierはXMLに含まれるので同じになることもある
+      // cloning goes out to xml and back to build a new object, and since the identifier
+      // travels in the xml the copy can end up with the same one
       expect(cloned).toBeTruthy();
       expect(cloned).not.toBe(obj);
     });

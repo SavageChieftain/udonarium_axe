@@ -31,7 +31,7 @@ describe('peer-context-source', () => {
     resetPeerContextProvider();
   });
 
-  it('setPeerContextProvider でスタブ実装に差し替えられる', () => {
+  it('can be swapped for a stub', () => {
     const self = makeContext('peer-self', 'user-self');
     const peer = makeContext('peer-other', 'user-other');
     setPeerContextProvider({
@@ -47,7 +47,7 @@ describe('peer-context-source', () => {
     expect(getMyPeerId()).toBe('peer-self');
   });
 
-  it('resetPeerContextProvider で既定（Network 委譲）に戻る', () => {
+  it('goes back to the default when reset', () => {
     const self = makeContext('peer-stub');
     setPeerContextProvider({
       peerContext: self,
@@ -58,8 +58,8 @@ describe('peer-context-source', () => {
     expect(getMyPeerId()).toBe('peer-stub');
 
     resetPeerContextProvider();
-    // 既定実装は Network シングルトンへ委譲する — テスト環境では peerId は空文字
-    // （Network が未接続のため）。差し替えが解除されていることだけ確認する。
+    // The default delegates to the network singleton; under test the peer id is empty
+    // because nothing is connected. Only the swap being undone is checked.
     expect(getMyPeerId()).not.toBe('peer-stub');
   });
 });

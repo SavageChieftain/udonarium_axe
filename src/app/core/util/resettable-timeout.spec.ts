@@ -10,7 +10,7 @@ describe('ResettableTimeout', () => {
   });
 
   describe('constructor', () => {
-    it('作成後にisActiveがtrueになる', () => {
+    it('is active once created', () => {
       const callback = vi.fn();
       const timer = new ResettableTimeout(callback, 1000);
       expect(timer.isActive).toBe(true);
@@ -18,8 +18,8 @@ describe('ResettableTimeout', () => {
     });
   });
 
-  describe('コールバック実行', () => {
-    it('指定時間後にコールバックが呼ばれる', () => {
+  describe('calling back', () => {
+    it('calls back after the time it was given', () => {
       const callback = vi.fn();
       const timer = new ResettableTimeout(callback, 1000);
 
@@ -31,7 +31,7 @@ describe('ResettableTimeout', () => {
       timer.clear();
     });
 
-    it('コールバックは1回だけ呼ばれる', () => {
+    it('calls back once', () => {
       const callback = vi.fn();
       const timer = new ResettableTimeout(callback, 500);
 
@@ -42,7 +42,7 @@ describe('ResettableTimeout', () => {
   });
 
   describe('stop()', () => {
-    it('stopするとコールバックが呼ばれなくなる', () => {
+    it('never calls back once stopped', () => {
       const callback = vi.fn();
       const timer = new ResettableTimeout(callback, 1000);
       timer.stop();
@@ -54,7 +54,7 @@ describe('ResettableTimeout', () => {
   });
 
   describe('clear()', () => {
-    it('clearするとisActiveがfalseになる', () => {
+    it('is inactive once cleared', () => {
       const callback = vi.fn();
       const timer = new ResettableTimeout(callback, 1000);
       timer.clear();
@@ -62,7 +62,7 @@ describe('ResettableTimeout', () => {
       expect(timer.isActive).toBe(false);
     });
 
-    it('clearするとコールバックが呼ばれなくなる', () => {
+    it('never calls back once cleared', () => {
       const callback = vi.fn();
       const timer = new ResettableTimeout(callback, 1000);
       timer.clear();
@@ -73,7 +73,7 @@ describe('ResettableTimeout', () => {
   });
 
   describe('reset()', () => {
-    it('リセットするとタイムアウトが延長される', () => {
+    it('extends the wait when reset', () => {
       const callback = vi.fn();
       const timer = new ResettableTimeout(callback, 1000);
 
@@ -88,7 +88,7 @@ describe('ResettableTimeout', () => {
       timer.clear();
     });
 
-    it('reset(ms) で時間を変更できる', () => {
+    it('takes a new time on reset', () => {
       const callback = vi.fn();
       const timer = new ResettableTimeout(callback, 1000);
 
@@ -99,7 +99,7 @@ describe('ResettableTimeout', () => {
       timer.clear();
     });
 
-    it('reset(callback, ms) でコールバックと時間を変更できる', () => {
+    it('takes a new callback and time on reset', () => {
       const callback1 = vi.fn();
       const callback2 = vi.fn();
       const timer = new ResettableTimeout(callback1, 1000);
@@ -112,7 +112,7 @@ describe('ResettableTimeout', () => {
       timer.clear();
     });
 
-    it('stop後にresetすると再びアクティブになる', () => {
+    it('becomes active again when reset after a stop', () => {
       const callback = vi.fn();
       const timer = new ResettableTimeout(callback, 1000);
       timer.stop();

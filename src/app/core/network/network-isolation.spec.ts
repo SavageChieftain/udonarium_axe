@@ -8,11 +8,11 @@ describe('network isolation', () => {
     vi.restoreAllMocks();
   });
 
-  it('既定では隔離していないこと', () => {
+  it('is connected by default', () => {
     expect(isNetworkIsolated()).toBe(false);
   });
 
-  it('隔離中は送信しないこと', () => {
+  it('sends nothing while cut off', () => {
     const send = vi.spyOn(Network.instance, 'send').mockImplementation(() => undefined);
 
     networkSend('UPDATE_GAME_OBJECT', { identifier: 'c1' });
@@ -27,7 +27,7 @@ describe('network isolation', () => {
     expect(send).toHaveBeenCalledTimes(2);
   });
 
-  it('隔離中でも自分の手元には届くこと', () => {
+  it('still delivers to itself while cut off', () => {
     vi.spyOn(Network.instance, 'send').mockImplementation(() => undefined);
     const seen: string[] = [];
     const stop = networkMessage$.subscribe((message) => seen.push(message.eventName));
@@ -40,7 +40,7 @@ describe('network isolation', () => {
     stop();
   });
 
-  it('隔離中に他人宛てのものは手元にも残さないこと', () => {
+  it('keeps nothing addressed to someone else while cut off', () => {
     vi.spyOn(Network.instance, 'send').mockImplementation(() => undefined);
     const seen: string[] = [];
     const stop = networkMessage$.subscribe((message) => seen.push(message.eventName));

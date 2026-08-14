@@ -1,7 +1,7 @@
 import { EventChannel, StickyEventChannel } from '@axe/core/event/event-channel';
 
 describe('EventChannel', () => {
-  it('emit でリスナーが呼ばれる', () => {
+  it('calls its listeners', () => {
     const ch = new EventChannel<number>();
     const received: number[] = [];
     ch.subscribe((v) => received.push(v));
@@ -11,7 +11,7 @@ describe('EventChannel', () => {
     expect(received).toEqual([42]);
   });
 
-  it('subscribe の戻り値で購読解除できる', () => {
+  it('unsubscribes through the returned function', () => {
     const ch = new EventChannel<number>();
     const received: number[] = [];
     const unsub = ch.subscribe((v) => received.push(v));
@@ -23,7 +23,7 @@ describe('EventChannel', () => {
     expect(received).toEqual([1]);
   });
 
-  it('listenerCount がリスナー数を返す', () => {
+  it('counts its listeners', () => {
     const ch = new EventChannel<void>();
     expect(ch.listenerCount).toBe(0);
 
@@ -34,13 +34,13 @@ describe('EventChannel', () => {
     expect(ch.listenerCount).toBe(0);
   });
 
-  it('emit 中に追加されたリスナーは同じ emit では呼ばれない', () => {
+  it('does not call a listener added mid-emit', () => {
     const ch = new EventChannel<string>();
     const calls: string[] = [];
 
     ch.subscribe((v) => {
       calls.push('first:' + v);
-      // emit 中に新しいリスナーを追加
+      // add a listener from inside the emit
       ch.subscribe((v2) => {
         calls.push('added:' + v2);
       });
@@ -48,15 +48,15 @@ describe('EventChannel', () => {
 
     ch.emit('A');
 
-    // 初回 emit では追加されたリスナーは発火しない
+    // the new listener stays quiet this time round
     expect(calls).toEqual(['first:A']);
 
-    // 次の emit では発火する
+    // and fires on the next one
     ch.emit('B');
     expect(calls).toEqual(['first:A', 'first:B', 'added:B']);
   });
 
-  it('emit 中に解除されたリスナーは呼ばれない', () => {
+  it('does not call a listener unsubscribed mid-emit', () => {
     const ch = new EventChannel<number>();
     const calls: string[] = [];
     const unsub2Ref = { fn: (() => {}) as () => void };
@@ -71,11 +71,11 @@ describe('EventChannel', () => {
 
     ch.emit(1);
 
-    // second は first の中で解除されたので呼ばれない
+    // the second was unsubscribed from inside the first, so it is skipped
     expect(calls).toEqual(['first:1']);
   });
 
-  it('void 型のチャネルで引数なしに emit できる', () => {
+  it('emits with nothing to carry', () => {
     const ch = new EventChannel<void>();
     let called = false;
     ch.subscribe(() => {
@@ -87,7 +87,7 @@ describe('EventChannel', () => {
     expect(called).toBe(true);
   });
 
-  it('複数リスナーが登録順で呼ばれる', () => {
+  it('calls the listeners in the order they subscribed', () => {
     const ch = new EventChannel<void>();
     const order: number[] = [];
 
@@ -102,7 +102,7 @@ describe('EventChannel', () => {
 });
 
 describe('StickyEventChannel', () => {
-  it('emit より後に subscribe しても最後の値を受け取る（取りこぼさない）', () => {
+  it('hands the last value to a listener that subscribes afterwards', () => {
     const ch = new StickyEventChannel<number>();
     const received: number[] = [];
 
@@ -112,7 +112,7 @@ describe('StickyEventChannel', () => {
     expect(received).toEqual([42]);
   });
 
-  it('emit より前に subscribe したリスナーは emit 時に一度だけ受け取る', () => {
+  it('hands it once to a listener that subscribed first', () => {
     const ch = new StickyEventChannel<number>();
     const received: number[] = [];
 
@@ -122,7 +122,7 @@ describe('StickyEventChannel', () => {
     expect(received).toEqual([7]);
   });
 
-  it('複数回 emit したあとに subscribe すると最後の値が届く', () => {
+  it('hands over only the last of several values', () => {
     const ch = new StickyEventChannel<string>();
     const received: string[] = [];
 
@@ -133,7 +133,7 @@ describe('StickyEventChannel', () => {
     expect(received).toEqual(['b']);
   });
 
-  it('emit がまだなければ subscribe しても何も届かない', () => {
+  it('hands over nothing before the first emit', () => {
     const ch = new StickyEventChannel<number>();
     const received: number[] = [];
 
@@ -142,7 +142,7 @@ describe('StickyEventChannel', () => {
     expect(received).toEqual([]);
   });
 
-  it('再配信を受けた購読者は以後の emit も受け取る', () => {
+  it('keeps delivering to a listener that received the replay', () => {
     const ch = new StickyEventChannel<number>();
     const received: number[] = [];
 

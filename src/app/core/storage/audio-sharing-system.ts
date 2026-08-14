@@ -149,9 +149,9 @@ export class AudioSharingSystem {
     this.receiveTaskMap.set(identifier, task);
 
     task.onprogress = (_task, _loded, _total) => {
-      // 進捗を audio.context.name に上書きするとカタログ同期で受け取った曲名が
-      // "0.0%" 等で潰れて全表示箇所に漏れるため、name は書き換えない。
-      // 進捗表示が必要になった場合は audio.apply とは別経路 (専用の signal/Map 等) で扱う。
+      // Writing progress into the name would overwrite the title that arrived with the catalogue
+      // and leak a percentage into every place it is shown, so the name is left alone.
+      // Showing progress would need its own channel rather than riding on the object.
       audio.apply(audio.toContext());
     };
     task.onfinish = (task, data) => {

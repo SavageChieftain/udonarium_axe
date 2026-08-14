@@ -1,16 +1,16 @@
 import { SkyWayDataStream } from '@axe/core/network/skyway/skyway-data-stream';
 
 describe('SkyWayDataStream', () => {
-  it('クラスがエクスポートされている', () => {
+  it('is exported', () => {
     expect(SkyWayDataStream).toBeDefined();
   });
 
-  it('EventEmitterを継承している', () => {
+  it('is an event emitter', () => {
     expect(SkyWayDataStream.prototype).toHaveProperty('emit');
     expect(SkyWayDataStream.prototype).toHaveProperty('on');
   });
 
-  it('member が未解決でも initializeSubscription は例外を投げない', async () => {
+  it('subscribes without throwing before the member resolves', async () => {
     const stream = SkyWayDataStream.createSubscription(
       {
         room: undefined,
@@ -27,7 +27,7 @@ describe('SkyWayDataStream', () => {
     ).resolves.toBeUndefined();
   });
 
-  it('publication 側で member 未解決なら getPeerConnection は undefined を返す', () => {
+  it('returns no connection while the publishing member is unresolved', () => {
     const getConnection = vi.fn(() => ({}) as RTCPeerConnection);
 
     const stream = SkyWayDataStream.createPublication(
@@ -55,7 +55,7 @@ describe('SkyWayDataStream', () => {
   });
 });
 
-it('プライベートフィールドが null で初期化されること', () => {
+it('starts with its fields empty', () => {
   const stream = SkyWayDataStream.createSubscription(
     { room: undefined } as never,
     { peerId: 'peer-a', userId: 'user-a', password: '' } as never
@@ -69,7 +69,7 @@ it('プライベートフィールドが null で初期化されること', () =
   expect(s['onConnectionStateChanged']).toBeNull();
 });
 
-describe('SkyWayDataStream 無通信検知', () => {
+describe('noticing a silent stream', () => {
   function createStream() {
     const stream = SkyWayDataStream.createSubscription(
       { room: undefined, peer: { peerId: 'local-peer' } } as never,
@@ -80,7 +80,7 @@ describe('SkyWayDataStream 無通信検知', () => {
     return { stream, streamAny };
   }
 
-  it('無通信が閾値を超えたら close を発火する', async () => {
+  it('closes a stream silent past the threshold', async () => {
     const { stream, streamAny } = createStream();
     const onClose = vi.fn();
     stream.on('close', onClose);
@@ -92,7 +92,7 @@ describe('SkyWayDataStream 無通信検知', () => {
     expect(stream.peer.isOpen).toBe(false);
   });
 
-  it('閾値内なら close を発火せず health を更新する', async () => {
+  it('keeps a stream within the threshold and updates its health', async () => {
     const { stream, streamAny } = createStream();
     const onClose = vi.fn();
     stream.on('close', onClose);
@@ -104,7 +104,7 @@ describe('SkyWayDataStream 無通信検知', () => {
     expect(stream.peer.session.health).toBe(1);
   });
 
-  it('閾値の手前では health だけが劣化する', async () => {
+  it('lets only the health degrade before the threshold', async () => {
     const { stream, streamAny } = createStream();
     const onClose = vi.fn();
     stream.on('close', onClose);
@@ -116,7 +116,7 @@ describe('SkyWayDataStream 無通信検知', () => {
     expect(stream.peer.session.health).toBeLessThan(1);
   });
 
-  it('統計が取れないリンクでも無通信判定が走る', async () => {
+  it('watches for silence even where no statistics are available', async () => {
     const { stream, streamAny } = createStream();
     streamAny['stats'] = null;
     const onClose = vi.fn();
@@ -128,7 +128,7 @@ describe('SkyWayDataStream 無通信検知', () => {
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 
-  it('統計が取れないリンクでも ping と health を更新する', async () => {
+  it('updates the ping and health even without statistics', async () => {
     const { stream, streamAny } = createStream();
     streamAny['stats'] = null;
 
@@ -139,7 +139,7 @@ describe('SkyWayDataStream 無通信検知', () => {
     expect(stream.peer.session.speed).toBeGreaterThan(0);
   });
 
-  it('統計が取れないリンクは毎回取得を試みる', async () => {
+  it('keeps trying for statistics on a link that gives none', async () => {
     const { stream, streamAny } = createStream();
     streamAny['stats'] = null;
     const getPeerConnection = vi.spyOn(stream, 'getPeerConnection').mockReturnValue(undefined);
@@ -152,7 +152,7 @@ describe('SkyWayDataStream 無通信検知', () => {
     expect(streamAny['stats']).toBeNull();
   });
 
-  it('あとから統計が取れるようになったら計測を始める', async () => {
+  it('starts measuring once statistics appear', async () => {
     const { stream, streamAny } = createStream();
     streamAny['stats'] = null;
     vi.spyOn(stream, 'getPeerConnection').mockReturnValue({ getStats: vi.fn().mockResolvedValue(new Map()) } as never);
@@ -163,7 +163,7 @@ describe('SkyWayDataStream 無通信検知', () => {
     expect(streamAny['stats']).not.toBeNull();
   });
 
-  it('開通時にタイムスタンプがリセットされる', () => {
+  it('resets the clock when the link opens', () => {
     const { stream, streamAny } = createStream();
 
     streamAny['_timestamp'] = performance.now() - 60000;
@@ -173,8 +173,8 @@ describe('SkyWayDataStream 無通信検知', () => {
   });
 });
 
-describe('SkyWayDataStream receivedMap クリーンアップ', () => {
-  it('dispose 時に receivedMap がクリアされる', () => {
+describe('clearing away received chunks', () => {
+  it('clears them on teardown', () => {
     const receivedMap = new Map<
       string,
       { id: string; chunks: Uint8Array[]; length: number; byteLength: number; createdAt: number }
@@ -187,7 +187,7 @@ describe('SkyWayDataStream receivedMap クリーンアップ', () => {
     expect(receivedMap.size).toBe(0);
   });
 
-  it('TTL 超過チャンクが evictStaleChunks で削除される', () => {
+  it('drops a chunk past its time to live', () => {
     const CHUNK_TTL_MS = 30_000;
     const receivedMap = new Map<
       string,
@@ -212,7 +212,7 @@ describe('SkyWayDataStream receivedMap クリーンアップ', () => {
     expect(receivedMap.has('new-chunk')).toBe(true);
   });
 
-  it('TTL 内のチャンクは削除されない', () => {
+  it('keeps a chunk still within it', () => {
     const CHUNK_TTL_MS = 30_000;
     const receivedMap = new Map<
       string,

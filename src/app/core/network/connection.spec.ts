@@ -2,12 +2,12 @@ import { ConnectionCallback } from '@axe/core/network/connection';
 
 describe('ConnectionCallback', () => {
   describe('constructor', () => {
-    it('インスタンスを作成できる', () => {
+    it('can be created', () => {
       const callback = new ConnectionCallback();
       expect(callback).toBeTruthy();
     });
 
-    it('各コールバックは初期状態でundefined', () => {
+    it('starts with none of its callbacks set', () => {
       const callback = new ConnectionCallback();
       expect(callback.onOpen).toBeUndefined();
       expect(callback.onClose).toBeUndefined();
@@ -17,7 +17,7 @@ describe('ConnectionCallback', () => {
       expect(callback.onError).toBeUndefined();
     });
 
-    it('コールバックを設定できる', () => {
+    it('takes the callbacks it is given', () => {
       const callback = new ConnectionCallback();
       const fn = vi.fn();
       callback.onOpen = fn;

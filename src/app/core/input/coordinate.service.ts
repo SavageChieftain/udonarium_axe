@@ -10,8 +10,8 @@ export class CoordinateService {
 
   tabletopOriginElement: HTMLElement = document.body;
 
-  // pointermove 毎に Transform を new し続けると Matrix3D ×3 + getComputedStyle 連鎖で GC 圧が掛かる。
-  // service スコープで使い回す 2 つのインスタンスを reinit して使う。
+  // A new transform per pointer move costs three matrices and a walk of the computed styles, and the garbage adds up.
+  // Two instances live on the service and are pointed at whatever is needed.
   private readonly _transformA: Transform = new Transform(document.body);
   private readonly _transformB: Transform = new Transform(document.body);
 
@@ -29,7 +29,7 @@ export class CoordinateService {
     return { x: ray.x, y: ray.y, z: ray.z };
   }
 
-  /** 同じ element の複数点をまとめて投影する。1 点ずつ呼ぶと祖先の行列を何度も組み直すことになる。 */
+  /** Projects several points on one element at once; one call per point would rebuild the ancestor matrices each time. */
   convertManyToGlobal(
     pointers: readonly PointerCoordinate[],
     element: HTMLElement = document.body

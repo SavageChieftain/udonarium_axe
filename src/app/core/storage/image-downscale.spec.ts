@@ -1,62 +1,62 @@
 import { convertBlobToWebP, downscaleImageBlob, isAnimatedPng } from '@axe/core/storage/image-downscale';
 
 describe('downscaleImageBlob', () => {
-  it('blob が null なら null を返す', async () => {
+  it('returns nothing for no bytes', async () => {
     expect(await downscaleImageBlob(null, 80)).toBeNull();
   });
 
-  it('blob が undefined なら null を返す', async () => {
+  it('returns nothing for nothing at all', async () => {
     expect(await downscaleImageBlob(undefined, 80)).toBeNull();
   });
 
-  it('maxDimension <= 0 のときは元 blob をそのまま返す (no-op)', async () => {
+  it('returns the bytes unchanged for a size of zero or less', async () => {
     const blob = new Blob(['x'], { type: 'image/png' });
     expect(await downscaleImageBlob(blob, 0)).toBe(blob);
     expect(await downscaleImageBlob(blob, -1)).toBe(blob);
   });
 
-  it('画像でない MIME type の blob はスキップして元 blob を返す (Image.onload に届かないハング回避)', async () => {
+  it('returns anything that is not an image unchanged, since it would never reach the load event', async () => {
     const blob = new Blob(['plain text'], { type: 'text/plain' });
     expect(await downscaleImageBlob(blob, 80)).toBe(blob);
   });
 
-  it('type 未指定の画像 blob は拒否せず処理を試みる (実環境では必ず type が付く)', async () => {
+  it('still tries an image with no type, which never happens outside a test', async () => {
     const blob = new Blob(['raw']);
     expect(blob.type).toBe('');
-    // happy-dom では Image のイベントが来ないので、読み込み待ちは必ず上限まで待つ。
-    // 既定の 3 秒を待つとテスト自体の制限に近づき、負荷が乗ったときだけ落ちる。
+    // Image events never arrive under happy-dom, so the wait always runs to the limit.
+    // The usual three seconds would crowd the test timeout and fail only under load.
     const result = await downscaleImageBlob(blob, 80, { loadTimeoutMs: 20 });
     expect(result).toBeDefined();
   });
 });
 
 describe('convertBlobToWebP', () => {
-  it('GIF はスキップして元 blob を返す', async () => {
+  it('returns an animated gif unchanged', async () => {
     const blob = new Blob(['GIF89a'], { type: 'image/gif' });
     expect(await convertBlobToWebP(blob)).toBe(blob);
   });
 
-  it('APNG (image/apng) はスキップして元 blob を返す', async () => {
+  it('returns an animated png unchanged', async () => {
     const blob = new Blob(['x'], { type: 'image/apng' });
     expect(await convertBlobToWebP(blob)).toBe(blob);
   });
 
-  it('WebP はスキップして元 blob を返す', async () => {
+  it('returns a webp unchanged', async () => {
     const blob = new Blob(['x'], { type: 'image/webp' });
     expect(await convertBlobToWebP(blob)).toBe(blob);
   });
 
-  it('SVG はスキップして元 blob を返す', async () => {
+  it('returns an svg unchanged', async () => {
     const blob = new Blob(['<svg/>'], { type: 'image/svg+xml' });
     expect(await convertBlobToWebP(blob)).toBe(blob);
   });
 
-  it('画像でない MIME type はスキップして元 blob を返す', async () => {
+  it('returns anything that is not an image unchanged', async () => {
     const blob = new Blob(['text'], { type: 'text/plain' });
     expect(await convertBlobToWebP(blob)).toBe(blob);
   });
 
-  it('空 blob はそのまま返す', async () => {
+  it('returns empty bytes unchanged', async () => {
     const blob = new Blob([], { type: 'image/png' });
     expect(await convertBlobToWebP(blob)).toBe(blob);
   });
@@ -77,21 +77,21 @@ describe('isAnimatedPng', () => {
     return new Uint8Array(parts).buffer;
   }
 
-  it('acTL チャンクが IDAT より前にあれば true (APNG)', () => {
+  it('reports animation when the control chunk comes before the data', () => {
     const buffer = buildPngChunks('IHDR', 'acTL', 'IDAT');
     expect(isAnimatedPng(buffer)).toBe(true);
   });
 
-  it('acTL が無く IDAT があれば false (通常 PNG)', () => {
+  it('reports none for an ordinary png', () => {
     const buffer = buildPngChunks('IHDR', 'IDAT');
     expect(isAnimatedPng(buffer)).toBe(false);
   });
 
-  it('バッファが短すぎれば false', () => {
+  it('reports none for a buffer too short to tell', () => {
     expect(isAnimatedPng(new ArrayBuffer(4))).toBe(false);
   });
 
-  it('空バッファは false', () => {
+  it('reports none for an empty buffer', () => {
     expect(isAnimatedPng(new ArrayBuffer(0))).toBe(false);
   });
 });

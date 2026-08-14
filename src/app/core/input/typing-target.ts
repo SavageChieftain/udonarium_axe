@@ -1,8 +1,8 @@
 /**
- * 打鍵の行き先が「文字入力」かどうか。
+ * Whether a keystroke is going into text.
  *
- * 画面の操作キー（送り・切り替え・空白での掴み）は、文字を打っている最中には効かせない。
- * 判定を写し取ると、新しい入力欄を足したときに一部の画面だけキーを奪い続ける。
+ * The screen keys — stepping, switching, grabbing with space — stay out of the way while text is being typed.
+ * Copying the test around means a new input field leaves some screens still stealing keys.
  */
 export function isTypingTarget(target: EventTarget | null): boolean {
   if (!(target instanceof HTMLElement)) return false;

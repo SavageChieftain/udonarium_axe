@@ -2,89 +2,89 @@ import { CSSNumber } from '@axe/core/transform/css-number';
 
 describe('CSSNumber', () => {
   describe('parse()', () => {
-    it('数値文字列をパースする', () => {
+    it('reads a numeric string', () => {
       expect(CSSNumber.parse('42')).toBe(42);
     });
 
-    it('小数をパースする', () => {
+    it('reads a decimal', () => {
       expect(CSSNumber.parse('3.14')).toBeCloseTo(3.14);
     });
 
-    it('NaNの場合デフォルト値を返す', () => {
+    it('falls back to the default for a number that is not one', () => {
       expect(CSSNumber.parse('abc')).toBe(0);
     });
 
-    it('カスタムデフォルト値を返す', () => {
+    it('takes the default it is given', () => {
       expect(CSSNumber.parse('abc', 99)).toBe(99);
     });
 
-    it('nullの場合デフォルト値を返す', () => {
+    it('falls back to the default for null', () => {
       expect(CSSNumber.parse(null)).toBe(0);
     });
   });
 
   describe('relation()', () => {
-    it('数値をそのまま返す', () => {
+    it('returns a number unchanged', () => {
       expect(CSSNumber.relation(100, 500)).toBe(100);
     });
 
-    it('px単位をパースする', () => {
+    it('reads a length in pixels', () => {
       expect(CSSNumber.relation('50px', 500)).toBe(50);
     });
 
-    it('pt単位をパースする', () => {
+    it('reads a length in points', () => {
       expect(CSSNumber.relation('30pt', 500)).toBe(30);
     });
 
-    it('pt単位は小数もパースする', () => {
+    it('reads a fractional length in points', () => {
       expect(CSSNumber.relation('1.5pt', 500)).toBeCloseTo(1.5);
     });
 
-    it('%単位をrelativeSizeに基づいて計算する', () => {
+    it('reads a percentage against the size it is relative to', () => {
       expect(CSSNumber.relation('50%', 200)).toBe(100);
     });
 
-    it('em単位をパースする', () => {
+    it('reads a length in ems', () => {
       expect(CSSNumber.relation('2em', 500)).toBe(2);
     });
 
-    it('"top"は0を返す', () => {
+    it('reads top as zero', () => {
       expect(CSSNumber.relation('top', 500)).toBe(0);
     });
 
-    it('"left"は0を返す', () => {
+    it('reads left as zero', () => {
       expect(CSSNumber.relation('left', 500)).toBe(0);
     });
 
-    it('"center"はrelativeSizeの半分を返す', () => {
+    it('reads centre as half the relative size', () => {
       expect(CSSNumber.relation('center', 400)).toBe(200);
     });
 
-    it('"middle"はrelativeSizeの半分を返す', () => {
+    it('reads middle as half the relative size', () => {
       expect(CSSNumber.relation('middle', 400)).toBe(200);
     });
 
-    it('"bottom"はrelativeSizeを返す', () => {
+    it('reads bottom as the whole relative size', () => {
       expect(CSSNumber.relation('bottom', 500)).toBe(500);
     });
 
-    it('"right"はrelativeSizeを返す', () => {
+    it('reads right as the whole relative size', () => {
       expect(CSSNumber.relation('right', 500)).toBe(500);
     });
 
-    it('nullの場合デフォルト値を返す', () => {
+    it('falls back to the default for null', () => {
       expect(CSSNumber.relation(null, 500)).toBe(0);
     });
 
-    it('undefinedの場合デフォルト値を返す', () => {
+    it('falls back to the default for nothing at all', () => {
       expect(CSSNumber.relation(undefined, 500)).toBe(0);
     });
 
-    it('カスタムデフォルト値を返す', () => {
+    it('takes the default it is given', () => {
       expect(CSSNumber.relation(null, 500, 42)).toBe(42);
     });
 
-    it('認識できない文字列はデフォルト値を返す', () => {
+    it('falls back to the default for a string it cannot read', () => {
       expect(CSSNumber.relation('unknown', 500)).toBe(0);
     });
   });

@@ -18,7 +18,7 @@ describe('BufferSharingTask', () => {
   });
 
   describe('createSendTask', () => {
-    it('送信タスクを作成できる', () => {
+    it('can start a send', () => {
       const task = BufferSharingTask.createSendTask('test-id', 'peer-1', { foo: 'bar' });
       expect(task).toBeDefined();
       expect(task.identifier).toBe('test-id');
@@ -27,13 +27,13 @@ describe('BufferSharingTask', () => {
   });
 
   describe('createReceiveTask', () => {
-    it('受信タスクを作成できる', () => {
+    it('can start a receive', () => {
       const task = BufferSharingTask.createReceiveTask('recv-id');
       expect(task).toBeDefined();
       expect(task.identifier).toBe('recv-id');
     });
 
-    it('nullableフィールドが null で初期化される', () => {
+    it('starts with its optional fields empty', () => {
       const task = BufferSharingTask.createReceiveTask('recv-id');
       const internal = task as unknown as Record<string, unknown>;
 
@@ -45,7 +45,7 @@ describe('BufferSharingTask', () => {
   });
 
   describe('cancel', () => {
-    it('キャンセル後にonfinishが呼ばれる', () => {
+    it('finishes after being cancelled', () => {
       const task = BufferSharingTask.createSendTask('cancel-id', 'peer-2', { a: 1 });
       const finishFn = vi.fn();
       const cancelFn = vi.fn();
@@ -59,7 +59,7 @@ describe('BufferSharingTask', () => {
       expect(finishFn).toHaveBeenCalled();
     });
 
-    it('二重キャンセルしても安全', () => {
+    it('survives being cancelled twice', () => {
       const task = BufferSharingTask.createSendTask('double-cancel', 'peer-3');
       task.onfinish = vi.fn();
       task.oncancel = vi.fn();

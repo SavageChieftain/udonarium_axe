@@ -3,14 +3,14 @@ import { RoomInfo } from '@axe/core/network/room-info';
 
 describe('RoomInfo', () => {
   describe('constructor', () => {
-    it('デフォルト値で作成できる', () => {
+    it('can be created from the defaults', () => {
       const room = new RoomInfo();
       expect(room.id).toBe('');
       expect(room.name).toBe('');
       expect(room.peers).toEqual([]);
     });
 
-    it('引数を指定して作成できる', () => {
+    it('can be created from arguments', () => {
       const room = new RoomInfo('rm1', 'テストルーム', []);
       expect(room.id).toBe('rm1');
       expect(room.name).toBe('テストルーム');
@@ -18,13 +18,13 @@ describe('RoomInfo', () => {
   });
 
   describe('hasPassword', () => {
-    it('パスワード付きpeerがない場合false', async () => {
+    it('reports no password when no peer carries one', async () => {
       const peer = await PeerContext.createRoom('user1', 'rm', 'Room', '');
       const room = new RoomInfo('rm', 'Room', [peer]);
       expect(room.hasPassword).toBe(false);
     });
 
-    it('パスワード付きpeerがある場合true', async () => {
+    it('reports a password when a peer carries one', async () => {
       const peer = await PeerContext.createRoom('user1', 'rm', 'Room', 'pass');
       const room = new RoomInfo('rm', 'Room', [peer]);
       expect(room.hasPassword).toBe(true);
@@ -32,12 +32,12 @@ describe('RoomInfo', () => {
   });
 
   describe('listFrom', () => {
-    it('空の配列に対して空を返す', () => {
+    it('returns nothing for an empty list', () => {
       const rooms = RoomInfo.listFrom([]);
       expect(rooms).toEqual([]);
     });
 
-    it('ルームpeerからRoomInfoリストを作成する', async () => {
+    it('builds the room list from the peers in them', async () => {
       const peer1 = await PeerContext.createRoom('user1', 'abc', 'Room1', '');
       const peer2 = await PeerContext.createRoom('user2', 'abc', 'Room1', '');
       const rooms = RoomInfo.listFrom([peer1.peerId, peer2.peerId]);
@@ -45,14 +45,14 @@ describe('RoomInfo', () => {
       expect(rooms[0].peers.length).toBe(2);
     });
 
-    it('異なるルームは別々のRoomInfoになる', async () => {
+    it('keeps different rooms apart', async () => {
       const peer1 = await PeerContext.createRoom('user1', 'ab1', 'RoomA', '');
       const peer2 = await PeerContext.createRoom('user2', 'ab2', 'RoomB', '');
       const rooms = RoomInfo.listFrom([peer1.peerId, peer2.peerId]);
       expect(rooms.length).toBe(2);
     });
 
-    it('非room peerは無視される', async () => {
+    it('ignores a peer outside any room', async () => {
       const peer = await PeerContext.create('user1');
       const rooms = RoomInfo.listFrom([peer.peerId]);
       expect(rooms).toEqual([]);

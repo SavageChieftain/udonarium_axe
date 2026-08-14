@@ -14,7 +14,7 @@ describe('downloadBlob', () => {
     URL.revokeObjectURL = originalRevoke;
   });
 
-  it('<a download> をクリックしてオブジェクト URL を解放する', () => {
+  it('clicks the link and releases the object url', () => {
     const blob = new Blob(['hello'], { type: 'text/plain' });
     const createSpy = vi.spyOn(document, 'createElement');
 

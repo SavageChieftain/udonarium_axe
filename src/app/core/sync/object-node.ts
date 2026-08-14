@@ -8,7 +8,7 @@ import { decodeEntityReference, encodeEntityReference } from '@axe/core/util/xml
 
 @SyncObject('node')
 export class ObjectNode extends GameObject implements XmlAttributes, InnerXml {
-  /** ローカルでの子ノード追加/削除時に呼ばれるフック。object-event-extension から登録される。 */
+  /** Called when a child is added or removed locally. Registered from the event extension. */
   static onChildrenChanged: ((node: ObjectNode) => void) | null = null;
   @SyncVar() value: number | string = '';
   @SyncVar() protected attributes: Attributes = {};
@@ -32,7 +32,7 @@ export class ObjectNode extends GameObject implements XmlAttributes, InnerXml {
     return this.parentIdentifier;
   }
   get parentIsAssigned(): boolean {
-    // 同期データを丸ごと差し替えると、そこに無い項目は未定義になる。既定値には戻らない。
+    // Replacing the sync data wholesale leaves anything missing undefined rather than back at its default.
     return (this.parentIdentifier?.length ?? 0) > 0;
   }
   get parentIsUnknown(): boolean {

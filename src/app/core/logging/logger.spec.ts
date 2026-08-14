@@ -19,74 +19,74 @@ describe('Logger', () => {
   });
 
   describe('setLevel / getLevel', () => {
-    it('デフォルトのログレベルを取得できること', () => {
+    it('reads the default level', () => {
       expect(Logger.getLevel()).toBe(LogLevel.DEBUG);
     });
 
-    it('ログレベルを変更できること', () => {
+    it('changes the level', () => {
       Logger.setLevel(LogLevel.WARN);
       expect(Logger.getLevel()).toBe(LogLevel.WARN);
     });
   });
 
-  describe('DEBUG レベル', () => {
+  describe('at the debug level', () => {
     beforeEach(() => {
       Logger.setLevel(LogLevel.DEBUG);
     });
 
-    it('debug() が console.debug を呼ぶこと', () => {
+    it('writes a debug line', () => {
       Logger.debug('テストメッセージ');
       expect(debugSpy).toHaveBeenCalledWith('[DEBUG] テストメッセージ');
     });
 
-    it('info() が console.info を呼ぶこと', () => {
+    it('writes an info line', () => {
       Logger.info('情報メッセージ');
       expect(infoSpy).toHaveBeenCalledWith('[INFO] 情報メッセージ');
     });
 
-    it('warn() が console.warn を呼ぶこと', () => {
+    it('writes a warning', () => {
       Logger.warn('警告メッセージ');
       expect(warnSpy).toHaveBeenCalledWith('[WARN] 警告メッセージ');
     });
 
-    it('error() が console.error を呼ぶこと', () => {
+    it('writes an error', () => {
       Logger.error('エラーメッセージ');
       expect(errorSpy).toHaveBeenCalledWith('[ERROR] エラーメッセージ');
     });
   });
 
-  describe('WARN レベル', () => {
+  describe('at the warning level', () => {
     beforeEach(() => {
       Logger.setLevel(LogLevel.WARN);
     });
 
-    it('debug() が抑制されること', () => {
+    it('swallows a debug line', () => {
       Logger.debug('抑制される');
       expect(debugSpy).not.toHaveBeenCalled();
     });
 
-    it('info() が抑制されること', () => {
+    it('swallows an info line', () => {
       Logger.info('抑制される');
       expect(infoSpy).not.toHaveBeenCalled();
     });
 
-    it('warn() が出力されること', () => {
+    it('writes a warning', () => {
       Logger.warn('警告');
       expect(warnSpy).toHaveBeenCalledWith('[WARN] 警告');
     });
 
-    it('error() が出力されること', () => {
+    it('writes an error', () => {
       Logger.error('エラー');
       expect(errorSpy).toHaveBeenCalledWith('[ERROR] エラー');
     });
   });
 
-  describe('NONE レベル', () => {
+  describe('with logging off', () => {
     beforeEach(() => {
       Logger.setLevel(LogLevel.NONE);
     });
 
-    it('全てのログが抑制されること', () => {
+    it('swallows everything', () => {
       Logger.debug('抑制');
       Logger.info('抑制');
       Logger.warn('抑制');
@@ -98,8 +98,8 @@ describe('Logger', () => {
     });
   });
 
-  describe('追加引数', () => {
-    it('追加引数が console に渡されること', () => {
+  describe('extra arguments', () => {
+    it('passes the extra arguments through', () => {
       const extra = { key: 'value' };
       Logger.warn('メッセージ', extra, 42);
       expect(warnSpy).toHaveBeenCalledWith('[WARN] メッセージ', extra, 42);

@@ -130,10 +130,10 @@ export class ObjectSynchronizer {
       Logger.warn(`[ObjectSync] 未知のオブジェクト: ${context.aliasName}`, context);
       return null;
     }
-    // 順序: マップ登録 → apply → onStoreAdded。
-    // apply 中の parent.updateChildren → onChildAdded → emitMessageAdded 等で
-    // 購読側が ObjectStore.get(identifier) を解決できるよう、登録を先行させる。
-    // onStoreAdded は apply 完了後に走り、populated な SyncVar を読める
+    // The order is: register in the maps, apply, then the store hook.
+    // Registering first means that the chain from applying through the parent and its child
+    // hooks can still look the object up in the store.
+    // the store hook runs after applying, so the sync vars are populated
     // (e.g. GameTable.selected)。
     ObjectStore.instance.add(newObject, false, () => newObject.apply(context));
     return newObject;

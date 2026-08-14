@@ -12,20 +12,20 @@ describe('ImageSharingSystem', () => {
   });
 
   describe('instance (singleton)', () => {
-    it('シングルトンインスタンスを返す', () => {
+    it('returns the one instance', () => {
       expect(ImageSharingSystem.instance).toBe(ImageSharingSystem.instance);
     });
   });
 
   describe('initialize', () => {
-    it('initializeを呼んでもエラーにならない', () => {
+    it('survives being initialised', () => {
       ImageSharingSystem.instance.initialize();
       expect(true).toBe(true);
     });
   });
 
   describe('makeSendUpdateImages', () => {
-    it('blob が欠損した image は送信対象に含めない', () => {
+    it('leaves an image with no bytes out of what it sends', () => {
       const imageLike = {
         identifier: 'broken-image',
         name: 'broken-image',

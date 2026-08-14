@@ -9,7 +9,7 @@ describe('ImageStorage', () => {
   });
 
   afterEach(() => {
-    // 追加した画像をクリーンアップ
+    // clean up the images that were added
     for (const img of storage.images) {
       storage.delete(img.identifier);
     }
@@ -17,13 +17,13 @@ describe('ImageStorage', () => {
   });
 
   describe('instance (singleton)', () => {
-    it('シングルトンインスタンスを返す', () => {
+    it('returns the one instance', () => {
       expect(ImageStorage.instance).toBe(ImageStorage.instance);
     });
   });
 
   describe('add / get / delete', () => {
-    it('URLで画像を追加・取得できる', () => {
+    it('adds and returns an image by url', () => {
       const img = storage.add('https://example.com/test.png');
       expect(img).toBeTruthy();
       expect(img.identifier).toBe('https://example.com/test.png');
@@ -31,30 +31,30 @@ describe('ImageStorage', () => {
       expect(retrieved).toBe(img);
     });
 
-    it('ImageFileで画像を追加できる', () => {
+    it('adds an image file', () => {
       const file = ImageFile.createEmpty('img-123');
       const added = storage.add(file);
       expect(added).toBe(file);
       expect(storage.get('img-123')).toBe(file);
     });
 
-    it('存在しないIDでgetするとnullishを返す', () => {
+    it('returns nothing for an id it does not know', () => {
       expect(storage.get('nonexistent')).toBeFalsy();
     });
 
-    it('画像を削除できる', () => {
+    it('removes an image', () => {
       storage.add('https://example.com/del.png');
       expect(storage.delete('https://example.com/del.png')).toBe(true);
       expect(storage.get('https://example.com/del.png')).toBeFalsy();
     });
 
-    it('存在しない画像の削除はfalse', () => {
+    it('reports failure removing an image that is not there', () => {
       expect(storage.delete('nonexistent')).toBe(false);
     });
   });
 
   describe('images', () => {
-    it('追加した画像のリストを返す', () => {
+    it('lists what has been added', () => {
       storage.add('https://example.com/a.png');
       storage.add('https://example.com/b.png');
       expect(storage.images.length).toBeGreaterThanOrEqual(2);
@@ -62,8 +62,8 @@ describe('ImageStorage', () => {
   });
 
   describe('getCatalog', () => {
-    it('COMPLETE以上の画像カタログを返す', () => {
-      // URL状態の画像はstate=1000なのでカタログに含まれる
+    it('catalogues the images it holds in full', () => {
+      // an image held by url counts as complete enough to catalogue
       storage.add('https://example.com/catalog.png');
       const catalog = storage.getCatalog();
       expect(catalog.length).toBeGreaterThanOrEqual(1);
