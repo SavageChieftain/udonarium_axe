@@ -94,6 +94,44 @@ export function toFiniteNumber(value: unknown, fallback = 0): number {
   return fallback;
 }
 
+export function isNonEmptyScalar(value: unknown): value is string | number {
+  if (typeof value === 'number') return Number.isFinite(value);
+  return typeof value === 'string' && value.trim() !== '';
+}
+
+/** 値のある項目だけを 1 つの欄にする。空欄はコマに並べても読み手の役に立たない。 */
+export function scalarField(label: string, raw: unknown): ImportedField | null {
+  if (!isNonEmptyScalar(raw)) return null;
+  const classified = classifyScalar(raw);
+  return { label, value: classified.value, kind: classified.kind };
+}
+
+/** シートの見出しと取り出し先の対応。システムごとに違うのはこの並びだけ。 */
+export interface FieldLabel {
+  key: string;
+  label: string;
+}
+
+/**
+ * どのシステムでも同じ形になる「プロフィール」の節。
+ *
+ * 種族や年齢のような、値をそのまま並べるだけの欄をまとめる。
+ * 先に出したい欄があるときは `leading` に渡す。
+ */
+export function profileSectionOf(
+  record: Record<string, unknown> | null,
+  fields: readonly FieldLabel[],
+  leading: readonly ImportedField[] = []
+): ImportedSection | null {
+  if (!record) return null;
+  const built = [...leading];
+  for (const field of fields) {
+    const one = scalarField(field.label, record[field.key]);
+    if (one) built.push(one);
+  }
+  return built.length > 0 ? { label: 'プロフィール', groups: [{ label: '基本', fields: built }] } : null;
+}
+
 export function classifyScalar(raw: string | number): { value: string | number; kind: ImportedFieldKind } {
   if (typeof raw === 'number') return { value: raw, kind: Number.isFinite(raw) ? 'number' : 'text' };
   if (raw.includes('\n') || raw.length > 40) return { value: raw, kind: 'note' };

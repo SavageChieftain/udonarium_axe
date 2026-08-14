@@ -1,19 +1,17 @@
 import { normalizeImage } from '@axe/domain/character/import/charasheet-character-parser';
 import {
-  classifyScalar,
   createEmptyImportedCharacter,
   ImportedCharacter,
   ImportedField,
   ImportedGroup,
   ImportedParam,
   ImportedSection,
-  normalizeHexColor,
-} from '@axe/domain/character/import/imported-character';
-import {
-  asArray,
-  asString,
   isNonEmptyScalar,
-} from '@axe/domain/character/import/system-profiles/coc-charasheet-shared';
+  normalizeHexColor,
+  profileSectionOf,
+  scalarField,
+} from '@axe/domain/character/import/imported-character';
+import { asArray, asString } from '@axe/domain/character/import/system-profiles/coc-charasheet-shared';
 
 // エリュシオン（保管所 game="elysion"）の3主能力。NB1-3。順序・スキルの能力コードは作成ページの <th>/<select> で確認。
 const ABILITIES: { key: string; label: string }[] = [
@@ -60,12 +58,6 @@ function mappedField(label: string, raw: unknown, map: Record<string, string>): 
   return value == null ? null : { label, value, kind: 'text' };
 }
 
-function plainField(label: string, raw: unknown): ImportedField | null {
-  if (!isNonEmptyScalar(raw)) return null;
-  const classified = classifyScalar(raw);
-  return { label, value: classified.value, kind: classified.kind };
-}
-
 function buildSkillSection(record: Record<string, unknown>): ImportedSection | null {
   const names = asArray(record['Power_name']);
   const groups: ImportedGroup[] = [];
@@ -73,25 +65,16 @@ function buildSkillSection(record: Record<string, unknown>): ImportedSection | n
     const name = asString(rawName).trim();
     if (name === '') return;
     const fields = [
-      plainField('レベル', asArray(record['Power_Level'])[index]),
+      scalarField('レベル', asArray(record['Power_Level'])[index]),
       mappedField('能力', asArray(record['Power_hantei'])[index], SKILL_ABILITY),
-      plainField('タイミング', asArray(record['Power_timing'])[index]),
-      plainField('射程', asArray(record['Power_range'])[index]),
-      plainField('コスト', asArray(record['Power_cost'])[index]),
-      plainField('制限', asArray(record['Power_limit'])[index]),
+      scalarField('タイミング', asArray(record['Power_timing'])[index]),
+      scalarField('射程', asArray(record['Power_range'])[index]),
+      scalarField('コスト', asArray(record['Power_cost'])[index]),
+      scalarField('制限', asArray(record['Power_limit'])[index]),
     ].filter((field): field is ImportedField => field != null);
     groups.push({ label: name, fields });
   });
   return groups.length > 0 ? { label: 'スキル', groups } : null;
-}
-
-function buildProfileSection(record: Record<string, unknown>): ImportedSection | null {
-  const fields: ImportedField[] = [];
-  for (const field of PROFILE_FIELDS) {
-    const built = plainField(field.label, record[field.key]);
-    if (built != null) fields.push(built);
-  }
-  return fields.length > 0 ? { label: 'プロフィール', groups: [{ label: '基本', fields }] } : null;
 }
 
 function buildPalette(record: Record<string, unknown>): string {
@@ -115,7 +98,7 @@ export function buildElysionCharasheetCharacter(parsed: unknown): ImportedCharac
   if (url !== '') character.externalUrl = url;
 
   character.params = buildParams(record);
-  character.sections = [buildSkillSection(record), buildProfileSection(record)].filter(
+  character.sections = [buildSkillSection(record), profileSectionOf(record, PROFILE_FIELDS)].filter(
     (section): section is ImportedSection => section != null
   );
 

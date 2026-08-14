@@ -7,13 +7,11 @@ import {
   ImportedGroup,
   ImportedParam,
   ImportedSection,
-  normalizeHexColor,
-} from '@axe/domain/character/import/imported-character';
-import {
-  asArray,
-  asString,
   isNonEmptyScalar,
-} from '@axe/domain/character/import/system-profiles/coc-charasheet-shared';
+  normalizeHexColor,
+  profileSectionOf,
+} from '@axe/domain/character/import/imported-character';
+import { asArray, asString } from '@axe/domain/character/import/system-profiles/coc-charasheet-shared';
 
 const ABILITIES: { key: string; label: string }[] = [
   { key: 'S1', label: '肉体' },
@@ -105,16 +103,6 @@ function buildEffectSection(label: string, prefix: string, record: Record<string
   return groups.length > 0 ? { label, groups } : null;
 }
 
-function buildProfileSection(record: Record<string, unknown>): ImportedSection | null {
-  const fields: ImportedField[] = [];
-  for (const field of PROFILE_FIELDS) {
-    if (!isNonEmptyScalar(record[field.key])) continue;
-    const classified = classifyScalar(record[field.key] as string | number);
-    fields.push({ label: field.label, value: classified.value, kind: classified.kind });
-  }
-  return fields.length > 0 ? { label: 'プロフィール', groups: [{ label: '基本', fields }] } : null;
-}
-
 function buildPalette(record: Record<string, unknown>): string {
   const lines: string[] = ['1DX 【判定】'];
   const skillLines: string[] = [];
@@ -145,7 +133,7 @@ export function buildDx3CharasheetCharacter(parsed: unknown): ImportedCharacter 
     buildSkillSection(record),
     buildEffectSection('エフェクト', 'effect', record),
     buildEffectSection('コンボ', 'easyeffect', record),
-    buildProfileSection(record),
+    profileSectionOf(record, PROFILE_FIELDS),
   ].filter((section): section is ImportedSection => section != null);
 
   character.commands = buildPalette(record);

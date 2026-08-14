@@ -7,13 +7,11 @@ import {
   ImportedGroup,
   ImportedParam,
   ImportedSection,
-  normalizeHexColor,
-} from '@axe/domain/character/import/imported-character';
-import {
-  asArray,
-  asString,
   isNonEmptyScalar,
-} from '@axe/domain/character/import/system-profiles/coc-charasheet-shared';
+  normalizeHexColor,
+  profileSectionOf,
+} from '@axe/domain/character/import/imported-character';
+import { asArray, asString } from '@axe/domain/character/import/system-profiles/coc-charasheet-shared';
 
 // アリアンロッド2E の能力値（標準順）。NK{i}=能力値（現在値）、NB{i}=能力ボーナス（判定に使用）。
 const ABILITIES: { value: string; bonus: string; label: string }[] = [
@@ -107,16 +105,6 @@ function buildItemSection(record: Record<string, unknown>): ImportedSection | nu
   return groups.length > 0 ? { label: '所持品', groups } : null;
 }
 
-function buildProfileSection(record: Record<string, unknown>): ImportedSection | null {
-  const fields: ImportedField[] = [];
-  for (const field of PROFILE_FIELDS) {
-    if (!isNonEmptyScalar(record[field.key])) continue;
-    const classified = classifyScalar(record[field.key] as string | number);
-    fields.push({ label: field.label, value: classified.value, kind: classified.kind });
-  }
-  return fields.length > 0 ? { label: 'プロフィール', groups: [{ label: '基本', fields }] } : null;
-}
-
 function buildPalette(params: ImportedParam[]): string {
   const abilityLines = ABILITIES.filter((ability) => params.some((param) => param.label === `${ability.label}B`)).map(
     (ability) => `2d6+{${ability.label}B} 【${ability.label}判定】`
@@ -143,7 +131,7 @@ export function buildAra2CharasheetCharacter(parsed: unknown): ImportedCharacter
     buildSkillSection('スキル', 'skill', record),
     buildSkillSection('一般スキル', 'ippanskill', record),
     buildItemSection(record),
-    buildProfileSection(record),
+    profileSectionOf(record, PROFILE_FIELDS),
   ].filter((section): section is ImportedSection => section != null);
 
   character.commands = buildPalette(params);

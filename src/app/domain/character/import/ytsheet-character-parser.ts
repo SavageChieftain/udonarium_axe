@@ -5,6 +5,7 @@ import {
   ImportedField,
   ImportedGroup,
   ImportedSection,
+  isNonEmptyScalar,
   normalizeHexColor,
 } from '@axe/domain/character/import/imported-character';
 
@@ -12,11 +13,6 @@ function asString(value: unknown): string {
   if (typeof value === 'string') return value;
   if (typeof value === 'number' && Number.isFinite(value)) return String(value);
   return '';
-}
-
-function isNonEmptyScalar(value: unknown): value is string | number {
-  if (typeof value === 'number') return Number.isFinite(value);
-  return typeof value === 'string' && value.trim() !== '';
 }
 
 /** ゆとシートのキーは `{family}{連番}{Field}`（weapon1Name 等）。family 接頭辞 → 節見出し。 */

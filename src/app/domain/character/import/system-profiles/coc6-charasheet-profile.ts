@@ -7,6 +7,7 @@ import {
   ImportedParam,
   ImportedSection,
   ImportedStatus,
+  isNonEmptyScalar,
   normalizeHexColor,
   toFiniteNumber,
 } from '@axe/domain/character/import/imported-character';
@@ -15,7 +16,6 @@ import {
   asString,
   buildOtherSection,
   buildParallelSection,
-  isNonEmptyScalar,
   ITEM_COLUMNS,
   WEAPON_COLUMNS,
 } from '@axe/domain/character/import/system-profiles/coc-charasheet-shared';

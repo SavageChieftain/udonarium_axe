@@ -7,13 +7,11 @@ import {
   ImportedGroup,
   ImportedParam,
   ImportedSection,
-  normalizeHexColor,
-} from '@axe/domain/character/import/imported-character';
-import {
-  asArray,
-  asString,
   isNonEmptyScalar,
-} from '@axe/domain/character/import/system-profiles/coc-charasheet-shared';
+  normalizeHexColor,
+  profileSectionOf,
+} from '@axe/domain/character/import/imported-character';
+import { asArray, asString } from '@axe/domain/character/import/system-profiles/coc-charasheet-shared';
 
 // パラサイトブラッド（保管所 game="parabla"）の6能力値。順序は作成ページ <th> ヘッダで確認。
 // S{i}=能力値, NB{i}=判定値（=能力値+2 を実データで確認、2d6 に加える修正値）。
@@ -85,16 +83,6 @@ function zipSection(
   return groups.length > 0 ? { label, groups } : null;
 }
 
-function buildProfileSection(record: Record<string, unknown>): ImportedSection | null {
-  const fields: ImportedField[] = [];
-  for (const field of PROFILE_FIELDS) {
-    if (!isNonEmptyScalar(record[field.key])) continue;
-    const classified = classifyScalar(record[field.key] as string | number);
-    fields.push({ label: field.label, value: classified.value, kind: classified.kind });
-  }
-  return fields.length > 0 ? { label: 'プロフィール', groups: [{ label: '基本', fields }] } : null;
-}
-
 function buildPalette(record: Record<string, unknown>): string {
   const lines = ABILITIES.filter((ability) => isNonEmptyScalar(record[ability.rate])).map(
     (ability) => `2d6+${asString(record[ability.rate]).trim()} 【${ability.label}判定】`
@@ -119,7 +107,7 @@ export function buildParablaCharasheetCharacter(parsed: unknown): ImportedCharac
   character.sections = [
     zipSection('異能', 'Power', POWER_COLUMNS, record),
     zipSection('武器', 'arms', WEAPON_COLUMNS, record),
-    buildProfileSection(record),
+    profileSectionOf(record, PROFILE_FIELDS),
   ].filter((section): section is ImportedSection => section != null);
 
   character.commands = buildPalette(record);

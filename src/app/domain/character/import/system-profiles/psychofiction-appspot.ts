@@ -6,6 +6,8 @@ import {
   ImportedGroup,
   ImportedSection,
   ImportedSkillTable,
+  isNonEmptyScalar,
+  profileSectionOf,
 } from '@axe/domain/character/import/imported-character';
 
 export interface FieldLabel {
@@ -54,11 +56,6 @@ function asArray(value: unknown): unknown[] {
   return Array.isArray(value) ? value : [];
 }
 
-function isNonEmptyScalar(value: unknown): value is string | number {
-  if (typeof value === 'number') return Number.isFinite(value);
-  return typeof value === 'string' && value.trim() !== '';
-}
-
 function isChecked(value: unknown): boolean {
   const text = asString(value).trim();
   return text !== '' && text !== '0';
@@ -94,21 +91,6 @@ function labeledSection(label: string, array: unknown, fieldLabels: FieldLabel[]
     groups.push({ label: name === '' ? `${label} ${index + 1}` : name, fields });
   });
   return groups.length > 0 ? { label, groups } : null;
-}
-
-function buildProfileSection(
-  base: Record<string, unknown> | null,
-  profileFields: FieldLabel[]
-): ImportedSection | null {
-  if (!base) return null;
-  const fields: ImportedField[] = [];
-  for (const field of profileFields) {
-    const raw = base[field.key];
-    if (!isNonEmptyScalar(raw)) continue;
-    const classified = classifyScalar(raw);
-    fields.push({ label: field.label, value: classified.value, kind: classified.kind });
-  }
-  return fields.length > 0 ? { label: 'プロフィール', groups: [{ label: '基本', fields }] } : null;
 }
 
 function buildSkillTable(root: Record<string, unknown>, config: PsychoFictionConfig): ImportedSkillTable {
@@ -163,7 +145,7 @@ export function buildPsychoFictionCharacter(parsed: unknown, config: PsychoFicti
     labeledSection(config.abilitySectionLabel, root[config.abilityKey], config.abilityFields),
     labeledSection('背景', root['background'], BACKGROUND_FIELDS),
     ...(config.extraSections ?? []).map((extra) => labeledSection(extra.label, root[extra.key], extra.fields)),
-    buildProfileSection(base, config.profileFields),
+    profileSectionOf(base, config.profileFields),
   ].filter((section): section is ImportedSection => section != null);
 
   const outline = asString(root['outline']).trim();

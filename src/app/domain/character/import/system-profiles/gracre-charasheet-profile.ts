@@ -7,13 +7,11 @@ import {
   ImportedGroup,
   ImportedParam,
   ImportedSection,
-  normalizeHexColor,
-} from '@axe/domain/character/import/imported-character';
-import {
-  asArray,
-  asString,
   isNonEmptyScalar,
-} from '@axe/domain/character/import/system-profiles/coc-charasheet-shared';
+  normalizeHexColor,
+  profileSectionOf,
+} from '@axe/domain/character/import/imported-character';
+import { asArray, asString } from '@axe/domain/character/import/system-profiles/coc-charasheet-shared';
 
 // グランクレストRPG（保管所 game="gracre"）の能力ボーナス。NB{i} = 各能力値ボーナス。順序は標準（SNE 6 能力値）。
 const ABILITY_BONUSES: { key: string; label: string }[] = [
@@ -84,16 +82,6 @@ function zipSection(
   return groups.length > 0 ? { label, groups } : null;
 }
 
-function buildProfileSection(record: Record<string, unknown>): ImportedSection | null {
-  const fields: ImportedField[] = [];
-  for (const field of PROFILE_FIELDS) {
-    if (!isNonEmptyScalar(record[field.key])) continue;
-    const classified = classifyScalar(record[field.key] as string | number);
-    fields.push({ label: field.label, value: classified.value, kind: classified.kind });
-  }
-  return fields.length > 0 ? { label: 'プロフィール', groups: [{ label: '基本', fields }] } : null;
-}
-
 function rollLines(prefix: string, fallbackName: string, record: Record<string, unknown>): string[] {
   const names = asArray(record[`${prefix}_name`]);
   const hits = asArray(record[`${prefix}_hit`]);
@@ -143,7 +131,7 @@ export function buildGracreCharasheetCharacter(parsed: unknown): ImportedCharact
     zipSection('行動', 'acts', ACT_COLUMNS, record),
     zipSection('特技', 'effect', FEAT_COLUMNS, record),
     zipSection('魔法', 'magic', FEAT_COLUMNS, record),
-    buildProfileSection(record),
+    profileSectionOf(record, PROFILE_FIELDS),
   ].filter((section): section is ImportedSection => section != null);
 
   character.commands = buildPalette(record, params);

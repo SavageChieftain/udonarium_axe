@@ -7,13 +7,11 @@ import {
   ImportedGroup,
   ImportedParam,
   ImportedSection,
-  normalizeHexColor,
-} from '@axe/domain/character/import/imported-character';
-import {
-  asArray,
-  asString,
   isNonEmptyScalar,
-} from '@axe/domain/character/import/system-profiles/coc-charasheet-shared';
+  normalizeHexColor,
+  profileSectionOf,
+} from '@axe/domain/character/import/imported-character';
+import { asArray, asString } from '@axe/domain/character/import/system-profiles/coc-charasheet-shared';
 
 // 千幻抄（保管所 game="sengen"）の5能力値。NP{i}=能力値（特性値+修正の合計）。順序は作成ページ <th> ヘッダで確認。
 const ABILITIES: { key: string; label: string }[] = [
@@ -79,16 +77,6 @@ function buildSpellSection(record: Record<string, unknown>): ImportedSection | n
   return groups.length > 0 ? { label: '妖術・魔法', groups } : null;
 }
 
-function buildProfileSection(record: Record<string, unknown>): ImportedSection | null {
-  const fields: ImportedField[] = [];
-  for (const field of PROFILE_FIELDS) {
-    if (!isNonEmptyScalar(record[field.key])) continue;
-    const classified = classifyScalar(record[field.key] as string | number);
-    fields.push({ label: field.label, value: classified.value, kind: classified.kind });
-  }
-  return fields.length > 0 ? { label: 'プロフィール', groups: [{ label: '基本', fields }] } : null;
-}
-
 function buildPalette(record: Record<string, unknown>): string {
   const lines = ABILITIES.filter((ability) => isNonEmptyScalar(record[ability.key])).map(
     (ability) => `SGS+${asString(record[ability.key]).trim()} 【${ability.label}判定】`
@@ -110,7 +98,7 @@ export function buildSengenCharasheetCharacter(parsed: unknown): ImportedCharact
   if (url !== '') character.externalUrl = url;
 
   character.params = buildParams(record);
-  character.sections = [buildSpellSection(record), buildProfileSection(record)].filter(
+  character.sections = [buildSpellSection(record), profileSectionOf(record, PROFILE_FIELDS)].filter(
     (section): section is ImportedSection => section != null
   );
 

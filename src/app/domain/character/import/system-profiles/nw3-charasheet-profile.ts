@@ -7,13 +7,11 @@ import {
   ImportedGroup,
   ImportedParam,
   ImportedSection,
-  normalizeHexColor,
-} from '@axe/domain/character/import/imported-character';
-import {
-  asArray,
-  asString,
   isNonEmptyScalar,
-} from '@axe/domain/character/import/system-profiles/coc-charasheet-shared';
+  normalizeHexColor,
+  profileSectionOf,
+} from '@axe/domain/character/import/imported-character';
+import { asArray, asString } from '@axe/domain/character/import/system-profiles/coc-charasheet-shared';
 
 // ナイトウィザード3rd（保管所 game="nw3"）の能力値。S1-8 の順序は作成ページ <th> ヘッダで確認。
 const ABILITIES: { key: string; label: string }[] = [
@@ -89,16 +87,6 @@ function zipSection(
   return groups.length > 0 ? { label, groups } : null;
 }
 
-function buildProfileSection(record: Record<string, unknown>): ImportedSection | null {
-  const fields: ImportedField[] = [];
-  for (const field of PROFILE_FIELDS) {
-    if (!isNonEmptyScalar(record[field.key])) continue;
-    const classified = classifyScalar(record[field.key] as string | number);
-    fields.push({ label: field.label, value: classified.value, kind: classified.kind });
-  }
-  return fields.length > 0 ? { label: 'プロフィール', groups: [{ label: '基本', fields }] } : null;
-}
-
 function buildPalette(record: Record<string, unknown>): string {
   const lines = ABILITIES.filter((ability) => isNonEmptyScalar(record[ability.key])).map(
     (ability) => `${asString(record[ability.key]).trim()}NW 【${ability.label}】`
@@ -123,7 +111,7 @@ export function buildNw3CharasheetCharacter(parsed: unknown): ImportedCharacter 
   character.sections = [
     zipSection('特技', 'effect', EFFECT_COLUMNS, record),
     zipSection('武器', 'arms', WEAPON_COLUMNS, record),
-    buildProfileSection(record),
+    profileSectionOf(record, PROFILE_FIELDS),
   ].filter((section): section is ImportedSection => section != null);
 
   character.commands = buildPalette(record);

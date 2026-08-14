@@ -7,13 +7,11 @@ import {
   ImportedGroup,
   ImportedParam,
   ImportedSection,
-  normalizeHexColor,
-} from '@axe/domain/character/import/imported-character';
-import {
-  asArray,
-  asString,
   isNonEmptyScalar,
-} from '@axe/domain/character/import/system-profiles/coc-charasheet-shared';
+  normalizeHexColor,
+  profileSectionOf,
+} from '@axe/domain/character/import/imported-character';
+import { asArray, asString } from '@axe/domain/character/import/system-profiles/coc-charasheet-shared';
 
 // ウタカゼ（保管所 game="utakaze"）の4能力値。キーが名前付き（N_Yuuki=勇気 等）なので位置推測は不要。
 const ABILITIES: { key: string; label: string }[] = [
@@ -80,16 +78,6 @@ function zipSection(
   return groups.length > 0 ? { label, groups } : null;
 }
 
-function buildProfileSection(record: Record<string, unknown>): ImportedSection | null {
-  const fields: ImportedField[] = [];
-  for (const field of PROFILE_FIELDS) {
-    if (!isNonEmptyScalar(record[field.key])) continue;
-    const classified = classifyScalar(record[field.key] as string | number);
-    fields.push({ label: field.label, value: classified.value, kind: classified.kind });
-  }
-  return fields.length > 0 ? { label: 'プロフィール', groups: [{ label: '基本', fields }] } : null;
-}
-
 function buildPalette(record: Record<string, unknown>): string {
   const lines = ABILITIES.filter((ability) => isNonEmptyScalar(record[ability.key])).map(
     (ability) => `${asString(record[ability.key]).trim()}UK 【${ability.label}】`
@@ -115,7 +103,7 @@ export function buildUtakazeCharasheetCharacter(parsed: unknown): ImportedCharac
     zipSection('特技', 'skill', SKILL_COLUMNS, record),
     zipSection('仲間', 'friend', FRIEND_COLUMNS, record),
     zipSection('所持品', 'item', [{ suffix: 'memo', label: 'メモ' }], record),
-    buildProfileSection(record),
+    profileSectionOf(record, PROFILE_FIELDS),
   ].filter((section): section is ImportedSection => section != null);
 
   character.commands = buildPalette(record);

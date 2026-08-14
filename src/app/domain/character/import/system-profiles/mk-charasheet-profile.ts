@@ -7,13 +7,11 @@ import {
   ImportedGroup,
   ImportedParam,
   ImportedSection,
-  normalizeHexColor,
-} from '@axe/domain/character/import/imported-character';
-import {
-  asArray,
-  asString,
   isNonEmptyScalar,
-} from '@axe/domain/character/import/system-profiles/coc-charasheet-shared';
+  normalizeHexColor,
+  profileSectionOf,
+} from '@axe/domain/character/import/imported-character';
+import { asArray, asString } from '@axe/domain/character/import/system-profiles/coc-charasheet-shared';
 
 // 迷宮キングダム（保管所 game="mk"）。NC1-8 の順序は作成ページ <th> ヘッダで確認。
 // 主能力（判定に使う）= 才覚/魅力/探索/武勇、副次値 = 器/回避/配下/気力。
@@ -101,16 +99,6 @@ function buildConneSection(record: Record<string, unknown>): ImportedSection | n
   return groups.length > 0 ? { label: 'コネ', groups } : null;
 }
 
-function buildProfileSection(record: Record<string, unknown>): ImportedSection | null {
-  const fields: ImportedField[] = [];
-  for (const field of PROFILE_FIELDS) {
-    if (!isNonEmptyScalar(record[field.key])) continue;
-    const classified = classifyScalar(record[field.key] as string | number);
-    fields.push({ label: field.label, value: classified.value, kind: classified.kind });
-  }
-  return fields.length > 0 ? { label: 'プロフィール', groups: [{ label: '基本', fields }] } : null;
-}
-
 function buildPalette(record: Record<string, unknown>): string {
   const lines = PRIMARY.filter((ability) => isNonEmptyScalar(record[ability.key])).map(
     (ability) => `2MK+${asString(record[ability.key]).trim()} 【${ability.label}判定】`
@@ -132,9 +120,11 @@ export function buildMkCharasheetCharacter(parsed: unknown): ImportedCharacter |
   if (url !== '') character.externalUrl = url;
 
   character.params = buildParams(record);
-  character.sections = [buildSkillSection(record), buildConneSection(record), buildProfileSection(record)].filter(
-    (section): section is ImportedSection => section != null
-  );
+  character.sections = [
+    buildSkillSection(record),
+    buildConneSection(record),
+    profileSectionOf(record, PROFILE_FIELDS),
+  ].filter((section): section is ImportedSection => section != null);
 
   character.commands = buildPalette(record);
 

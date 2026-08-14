@@ -8,14 +8,12 @@ import {
   ImportedParam,
   ImportedSection,
   ImportedStatus,
+  isNonEmptyScalar,
   normalizeHexColor,
+  profileSectionOf,
   toFiniteNumber,
 } from '@axe/domain/character/import/imported-character';
-import {
-  asArray,
-  asString,
-  isNonEmptyScalar,
-} from '@axe/domain/character/import/system-profiles/coc-charasheet-shared';
+import { asArray, asString } from '@axe/domain/character/import/system-profiles/coc-charasheet-shared';
 
 export interface SwordWorldCharasheetConfig {
   game: string;
@@ -96,16 +94,6 @@ function zipSection(
   return groups.length > 0 ? { label, groups } : null;
 }
 
-function buildProfileSection(record: Record<string, unknown>): ImportedSection | null {
-  const fields: ImportedField[] = [];
-  for (const field of PROFILE_FIELDS) {
-    if (!isNonEmptyScalar(record[field.key])) continue;
-    const classified = classifyScalar(record[field.key] as string | number);
-    fields.push({ label: field.label, value: classified.value, kind: classified.kind });
-  }
-  return fields.length > 0 ? { label: 'プロフィール', groups: [{ label: '基本', fields }] } : null;
-}
-
 function buildPalette(record: Record<string, unknown>, params: ImportedParam[]): string {
   const lines: string[] = ['2d6 【判定】'];
 
@@ -155,7 +143,7 @@ export function buildSwordWorldCharasheet(
   character.sections = [
     zipSection(config.skillLabel, config.skillPrefix, config.skillColumns, record),
     zipSection('武器', 'arms', WEAPON_COLUMNS, record),
-    buildProfileSection(record),
+    profileSectionOf(record, PROFILE_FIELDS),
   ].filter((section): section is ImportedSection => section != null);
 
   character.commands = buildPalette(record, params);

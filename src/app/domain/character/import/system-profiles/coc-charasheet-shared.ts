@@ -3,6 +3,7 @@ import {
   ImportedField,
   ImportedGroup,
   ImportedSection,
+  isNonEmptyScalar,
 } from '@axe/domain/character/import/imported-character';
 
 export interface Column {
@@ -31,11 +32,6 @@ export function asString(value: unknown): string {
   if (typeof value === 'string') return value;
   if (typeof value === 'number' && Number.isFinite(value)) return String(value);
   return '';
-}
-
-export function isNonEmptyScalar(value: unknown): value is string | number {
-  if (typeof value === 'number') return Number.isFinite(value);
-  return typeof value === 'string' && value.trim() !== '';
 }
 
 export function asArray(value: unknown): unknown[] {

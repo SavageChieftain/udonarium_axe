@@ -7,6 +7,7 @@ import {
   ImportedParam,
   ImportedSection,
   ImportedStatus,
+  isNonEmptyScalar,
   normalizeHexColor,
   toFiniteNumber,
 } from '@axe/domain/character/import/imported-character';
@@ -19,11 +20,6 @@ function asString(value: unknown): string {
 
 function isScalar(value: unknown): value is string | number {
   return typeof value === 'string' || (typeof value === 'number' && Number.isFinite(value));
-}
-
-function isNonEmptyScalar(value: unknown): value is string | number {
-  if (typeof value === 'number') return Number.isFinite(value);
-  return typeof value === 'string' && value.trim() !== '';
 }
 
 /** 名前・色・画像など、別経路で扱うメタキー。データセクションには出さない。 */

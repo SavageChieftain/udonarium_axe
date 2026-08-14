@@ -6,6 +6,7 @@ import {
   ImportedParam,
   ImportedSection,
   ImportedStatus,
+  isNonEmptyScalar,
   toFiniteNumber,
 } from '@axe/domain/character/import/imported-character';
 
@@ -67,11 +68,6 @@ function asString(value: unknown): string {
   if (typeof value === 'string') return value;
   if (typeof value === 'number' && Number.isFinite(value)) return String(value);
   return '';
-}
-
-function isNonEmptyScalar(value: unknown): value is string | number {
-  if (typeof value === 'number') return Number.isFinite(value);
-  return typeof value === 'string' && value.trim() !== '';
 }
 
 export function isYtsheetSw25Character(parsed: unknown): boolean {

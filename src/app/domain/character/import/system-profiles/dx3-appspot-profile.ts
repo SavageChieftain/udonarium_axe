@@ -7,6 +7,7 @@ import {
   ImportedParam,
   ImportedSection,
   ImportedStatus,
+  isNonEmptyScalar,
   toFiniteNumber,
 } from '@axe/domain/character/import/imported-character';
 
@@ -119,11 +120,6 @@ function asString(value: unknown): string {
 
 function asArray(value: unknown): unknown[] {
   return Array.isArray(value) ? value : [];
-}
-
-function isNonEmptyScalar(value: unknown): value is string | number {
-  if (typeof value === 'number') return Number.isFinite(value);
-  return typeof value === 'string' && value.trim() !== '';
 }
 
 function resolveRoot(record: Record<string, unknown>): Record<string, unknown> {

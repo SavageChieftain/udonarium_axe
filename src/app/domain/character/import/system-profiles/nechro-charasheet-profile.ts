@@ -1,18 +1,16 @@
 import { normalizeImage } from '@axe/domain/character/import/charasheet-character-parser';
 import {
-  classifyScalar,
   createEmptyImportedCharacter,
   ImportedCharacter,
   ImportedField,
   ImportedGroup,
   ImportedSection,
-  normalizeHexColor,
-} from '@axe/domain/character/import/imported-character';
-import {
-  asArray,
-  asString,
   isNonEmptyScalar,
-} from '@axe/domain/character/import/system-profiles/coc-charasheet-shared';
+  normalizeHexColor,
+  profileSectionOf,
+  scalarField,
+} from '@axe/domain/character/import/imported-character';
+import { asArray, asString } from '@axe/domain/character/import/system-profiles/coc-charasheet-shared';
 
 /**
  * 永い後日談のネクロニカ（保管所 game="nechro"）プロファイル。
@@ -62,12 +60,6 @@ function mappedField(label: string, raw: unknown, map: Record<string, string>): 
   return { label, value: map[key] ?? key, kind: 'text' };
 }
 
-function plainField(label: string, raw: unknown): ImportedField | null {
-  if (!isNonEmptyScalar(raw)) return null;
-  const classified = classifyScalar(raw);
-  return { label, value: classified.value, kind: classified.kind };
-}
-
 function buildManeuverSection(record: Record<string, unknown>): ImportedSection | null {
   const names = asArray(record['Power_name']);
   const groups: ImportedGroup[] = [];
@@ -75,12 +67,12 @@ function buildManeuverSection(record: Record<string, unknown>): ImportedSection 
     const name = asString(rawName).trim();
     if (name === '') return;
     const fields = [
-      plainField('分類', asArray(record['Power_shozoku'])[index]),
+      scalarField('分類', asArray(record['Power_shozoku'])[index]),
       mappedField('部位', asArray(record['Power_Type'])[index], POWER_TYPE),
       mappedField('タイミング', asArray(record['Power_timing'])[index], POWER_TIMING),
-      plainField('コスト', asArray(record['Power_cost'])[index]),
-      plainField('射程', asArray(record['Power_range'])[index]),
-      plainField('効果', asArray(record['Power_memo'])[index]),
+      scalarField('コスト', asArray(record['Power_cost'])[index]),
+      scalarField('射程', asArray(record['Power_range'])[index]),
+      scalarField('効果', asArray(record['Power_memo'])[index]),
     ].filter((field): field is ImportedField => field != null);
     groups.push({ label: name, fields });
   });
@@ -94,20 +86,11 @@ function buildRoiceSection(record: Record<string, unknown>): ImportedSection | n
     const name = asString(rawName).trim();
     if (name === '') return;
     const fields = ROICE_COLUMNS.map((column) =>
-      plainField(column.label, asArray(record[`roice_${column.suffix}`])[index])
+      scalarField(column.label, asArray(record[`roice_${column.suffix}`])[index])
     ).filter((field): field is ImportedField => field != null);
     groups.push({ label: name, fields });
   });
   return groups.length > 0 ? { label: '未練', groups } : null;
-}
-
-function buildProfileSection(record: Record<string, unknown>): ImportedSection | null {
-  const fields: ImportedField[] = [];
-  for (const field of PROFILE_FIELDS) {
-    const built = plainField(field.label, record[field.key]);
-    if (built != null) fields.push(built);
-  }
-  return fields.length > 0 ? { label: 'プロフィール', groups: [{ label: '基本', fields }] } : null;
 }
 
 export function buildNechroCharasheetCharacter(parsed: unknown): ImportedCharacter | null {
@@ -123,9 +106,11 @@ export function buildNechroCharasheetCharacter(parsed: unknown): ImportedCharact
   const url = asString(record['url']).trim();
   if (url !== '') character.externalUrl = url;
 
-  character.sections = [buildManeuverSection(record), buildRoiceSection(record), buildProfileSection(record)].filter(
-    (section): section is ImportedSection => section != null
-  );
+  character.sections = [
+    buildManeuverSection(record),
+    buildRoiceSection(record),
+    profileSectionOf(record, PROFILE_FIELDS),
+  ].filter((section): section is ImportedSection => section != null);
 
   character.commands = ['2NC 【判定】', '2NA 【攻撃判定】'].join('\n');
 

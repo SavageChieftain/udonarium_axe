@@ -7,6 +7,8 @@ import {
   ImportedParam,
   ImportedSection,
   ImportedStatus,
+  isNonEmptyScalar,
+  profileSectionOf,
   toFiniteNumber,
 } from '@axe/domain/character/import/imported-character';
 
@@ -87,11 +89,6 @@ function asArray(value: unknown): unknown[] {
   return Array.isArray(value) ? value : [];
 }
 
-function isNonEmptyScalar(value: unknown): value is string | number {
-  if (typeof value === 'number') return Number.isFinite(value);
-  return typeof value === 'string' && value.trim() !== '';
-}
-
 function resolveRoot(record: Record<string, unknown>): Record<string, unknown> {
   if (asRecord(record['base']) != null || asRecord(record['baseAbility']) != null) return record;
   return asRecord(record['data']) ?? record;
@@ -129,18 +126,6 @@ function labeledSection(label: string, array: unknown, fieldLabels: FieldLabel[]
   return groups.length > 0 ? { label, groups } : null;
 }
 
-function buildProfileSection(base: Record<string, unknown> | null): ImportedSection | null {
-  if (!base) return null;
-  const fields: ImportedField[] = [];
-  for (const field of PROFILE_FIELDS) {
-    const raw = base[field.key];
-    if (!isNonEmptyScalar(raw)) continue;
-    const classified = classifyScalar(raw);
-    fields.push({ label: field.label, value: classified.value, kind: classified.kind });
-  }
-  return fields.length > 0 ? { label: 'プロフィール', groups: [{ label: '基本', fields }] } : null;
-}
-
 export function buildBbtAppspotCharacter(parsed: unknown): ImportedCharacter | null {
   if (!isBbtAppspotCharacter(parsed)) return null;
   const root = resolveRoot(asRecord(parsed)!);
@@ -175,7 +160,7 @@ export function buildBbtAppspotCharacter(parsed: unknown): ImportedCharacter | n
     labeledSection('防具', root['armours'], ARMOUR_FIELDS),
     labeledSection('絆', root['binds'], BIND_FIELDS),
     labeledSection('アイテム', root['items'], ITEM_FIELDS),
-    buildProfileSection(base),
+    profileSectionOf(base, PROFILE_FIELDS),
   ].filter((section): section is ImportedSection => section != null);
 
   const outline = asString(root['outline']).trim();
