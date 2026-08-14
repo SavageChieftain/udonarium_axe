@@ -137,7 +137,7 @@ export class ControllerInputComponent {
     this.objectChange.collectionOf(GameCharacter.aliasName)();
     const all = this.objectStore.getObjects<GameCharacter>(GameCharacter);
     for (const c of all) this.objectChange.versionOf(c.identifier)();
-    return all.filter((character) => this.allowsChat(character));
+    return all.filter((character) => this.isVisibleToMe(character));
   });
 
   get myPeer(): PeerCursor {
@@ -193,7 +193,7 @@ export class ControllerInputComponent {
       (event) => {
         if (event.identifier !== this.sendFrom()) return;
         const gameCharacter = this.objectStore.get<GameCharacter>(event.identifier);
-        if (gameCharacter && !this.allowsChat(gameCharacter)) {
+        if (gameCharacter && !this.isVisibleToMe(gameCharacter)) {
           if (0 < this.gameCharacters().length && this.onlyCharacters()) {
             this.sendFrom.set(this.gameCharacters()[0].identifier);
           } else {
@@ -220,7 +220,13 @@ export class ControllerInputComponent {
     }
   }
 
-  private allowsChat(gameCharacter: GameCharacter): boolean {
+  /**
+   * この駒が自分から見えているか。
+   *
+   * 名前は発言可否に似ているが、見ているのは置き場と隠し設定。卓の上でも
+   * 一覧から隠していれば出さないし、他の人の手元にある駒も出さない。
+   */
+  private isVisibleToMe(gameCharacter: GameCharacter): boolean {
     const locationName = gameCharacter.location.name;
     if (locationName === 'table') return !gameCharacter.hideInventory;
     if (locationName === this.myPeer?.peerId) return true;

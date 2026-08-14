@@ -34,23 +34,11 @@ export class RangeDockingCharacterComponent {
     this.objectChange.collectionOf(GameCharacter.aliasName)();
     const all = this.objectStore.getObjects<GameCharacter>(GameCharacter);
     for (const c of all) this.objectChange.versionOf(c.identifier)();
-    return all.filter((character) => this.allowsChat(character));
+    return all.filter((character) => character.isVisibleOnTable);
   });
 
   constructor() {
     this.sendFrom.set(this.gameCharacters().length >= 1 ? this.gameCharacters()[0].identifier : '');
-  }
-
-  private allowsChat(gameCharacter: GameCharacter): boolean {
-    // レンジドッキング先候補は「テーブル上に居るキャラ」だけ。発言しない (nonTalkFlag) は無関係。
-    switch (gameCharacter.location.name) {
-      case 'table':
-        return true;
-      case 'graveyard':
-        return false;
-      default:
-        return false;
-    }
   }
 
   readonly imageFile = computed((): ImageFile => {

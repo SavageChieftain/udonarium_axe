@@ -63,9 +63,7 @@ export class GameObjectInventoryService {
     return this.summarySetting.dataTags;
   }
 
-  tableInventory: ObjectInventory = new ObjectInventory((object) => {
-    return object.location.name === 'table';
-  });
+  tableInventory: ObjectInventory = new ObjectInventory((object) => object.isVisibleOnTable);
   commonInventory: ObjectInventory = new ObjectInventory((object) => {
     return !this.isAnyLocation(object.location.name);
   });

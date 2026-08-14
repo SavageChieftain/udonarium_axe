@@ -13,5 +13,5 @@ export function selectOwnedCharacters(characters: readonly GameCharacter[], user
 }
 
 export function isOnTable(character: GameCharacter): boolean {
-  return character.location.name === 'table';
+  return character.isVisibleOnTable;
 }
