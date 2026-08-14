@@ -5,7 +5,7 @@ import {
 } from '@axe/ui/tabletop/billboard-transform';
 
 describe('makeBillboardTransform', () => {
-  it('3Dモードでカメラチルト分の compensateZ を含む', () => {
+  it('compensates for the camera tilt in 3d', () => {
     const out = makeBillboardTransform({
       rotation: { x: 50, y: 0, z: 10 },
       pieceRotate: 0,
@@ -17,7 +17,7 @@ describe('makeBillboardTransform', () => {
     expect(out).not.toContain('translateZ(0.00px)');
   });
 
-  it('2Dモードでは compensateZ が 0 になる', () => {
+  it('compensates for nothing in 2d', () => {
     const out = makeBillboardTransform({
       rotation: { x: 50, y: 0, z: 10 },
       pieceRotate: 0,
@@ -28,7 +28,7 @@ describe('makeBillboardTransform', () => {
     expect(out).toContain('translateZ(0.00px)');
   });
 
-  it('pieceRoll が未指定なら rotateZ(roll) を含まない', () => {
+  it('leaves out the roll rotation when no roll is given', () => {
     const out = makeBillboardTransform({
       rotation: { x: 50, y: 0, z: 10 },
       pieceRotate: 45,
@@ -40,7 +40,7 @@ describe('makeBillboardTransform', () => {
     expect(out.match(/rotateZ\(-\d+deg\)/g)?.length).toBe(2);
   });
 
-  it('pieceRoll を指定すると roll 用 rotateZ が先頭近くに入る', () => {
+  it('puts the roll rotation near the front when a roll is given', () => {
     const out = makeBillboardTransform({
       rotation: { x: 50, y: 0, z: 10 },
       pieceRotate: 0,
@@ -53,7 +53,7 @@ describe('makeBillboardTransform', () => {
     expect(out).toContain('rotateY(90deg) rotateZ(90deg) rotateY(-90deg)');
   });
 
-  it('rotation が null ならデフォルト (x=50, y=0, z=10) で計算する', () => {
+  it('falls back to x=50, y=0, z=10 with no rotation', () => {
     const out = makeBillboardTransform({
       rotation: null,
       pieceRotate: 0,
@@ -68,7 +68,7 @@ describe('makeBillboardTransform', () => {
 });
 
 describe('makeLabelOrbitTransform', () => {
-  it('3D モードでは translateY(-distance3d) を返す', () => {
+  it('moves along y in 3d', () => {
     const out = makeLabelOrbitTransform({
       rotation: { x: 50, y: 0, z: 10 },
       distance3d: 30,
@@ -78,7 +78,7 @@ describe('makeLabelOrbitTransform', () => {
     expect(out).toBe('translateY(-30px)');
   });
 
-  it('2D モードでヨー=0 なら translateZ(-distance2d) になる', () => {
+  it('moves along z in 2d with no yaw', () => {
     const out = makeLabelOrbitTransform({
       rotation: { x: 0, y: 0, z: 0 },
       distance3d: 30,
@@ -90,7 +90,7 @@ describe('makeLabelOrbitTransform', () => {
     expect(x).toBeCloseTo(0, 5);
   });
 
-  it('2D モードでヨー=90 度なら translateX(-distance2d) になる', () => {
+  it('moves along x in 2d at ninety degrees of yaw', () => {
     const out = makeLabelOrbitTransform({
       rotation: { x: 0, y: 0, z: 90 },
       distance3d: 30,
@@ -156,7 +156,7 @@ describe('makeScreenLiftTransform', () => {
     expect(world.y).toBeCloseTo(-(80 * Math.sin((tilt * Math.PI) / 180) + 52), 1);
   });
 
-  it('2D モードではテーブル面上の距離で置くこと', () => {
+  it('measures the distance across the table surface in 2d', () => {
     const out = makeScreenLiftTransform({
       rotation: { x: 0, y: 0, z: 0 },
       pieceRotate: 0,
@@ -171,7 +171,7 @@ describe('makeScreenLiftTransform', () => {
     expect(out).not.toContain('translateY');
   });
 
-  it('rotation が null ならデフォルト (x=50, z=10) で計算する', () => {
+  it('falls back to x=50, z=10 with no rotation', () => {
     const out = makeScreenLiftTransform({
       rotation: null,
       pieceRotate: 0,

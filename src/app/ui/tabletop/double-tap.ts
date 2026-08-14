@@ -1,7 +1,7 @@
-/** 2 度目を待つ間(ms)。指は狙いが甘くなるぶん長めに取る。 */
+/** How long to wait for a second tap, in ms. A finger aims less precisely, so it gets longer. */
 const MOUSE_WINDOW_MS = 300;
 const TOUCH_WINDOW_MS = 500;
-/** 2 度目が「同じ場所」と言える範囲(px)。 */
+/** How far apart two taps can be and still count as the same place, in px. */
 const SLOP_PX = 10;
 
 interface PointerInput {
@@ -10,10 +10,10 @@ interface PointerInput {
 }
 
 /**
- * 盤上の駒を 2 度叩いたことの判定。
+ * Recognises a piece on the board being tapped twice.
  *
- * 指で叩いたときは、2 度目を離した瞬間に効かせる。押した瞬間だと、めくるつもりで
- * 置いた指がそのまま移動になってしまう。
+ * With a finger, the second tap acts on release. Acting on the press would turn a finger
+ * meant to flip a card into a drag.
  */
 export class DoubleTap {
   private timer: ReturnType<typeof setTimeout> | null = null;
@@ -21,7 +21,7 @@ export class DoubleTap {
 
   constructor(private readonly inputOf: () => PointerInput | null) {}
 
-  /** 1 度目なら覚えるだけ。2 度目なら `run` を呼ぶ。 */
+  /** Remembers the first tap; calls `run` on the second. */
   handle(event: MouseEvent | TouchEvent, run: () => void): void {
     const input = this.inputOf();
     if (!input) return;
@@ -37,7 +37,7 @@ export class DoubleTap {
     else run();
   }
 
-  /** 2 度目が 1 度目と同じ場所か。離れていれば、狙ったのは別の場所。 */
+  /** Whether the second tap landed where the first did. Far apart means a different target. */
   isInPlace(): boolean {
     const input = this.inputOf();
     if (!input) return false;

@@ -1,19 +1,19 @@
 import { DestroyRef, Signal, signal } from '@angular/core';
 
-/** 触り終えてからアイコンを戻すまで(ms)。すぐ戻すと、動かすたびにちらつく。 */
+/** How long after a touch before the icon returns, in ms. Returning at once flickers on every move. */
 const RESHOW_DELAY_MS = 300;
 
 export interface IconHiding {
-  /** いま隠しているか。 */
+  /** Whether it is hidden right now. */
   readonly isHidden: Signal<boolean>;
-  /** 触ったことを伝える。触り続けているあいだは隠れたまま。 */
+  /** Reports a touch. It stays hidden for as long as the touching continues. */
   touch(): void;
 }
 
 /**
- * 駒を触っているあいだ、脇に出る操作アイコンを引っ込める。
+ * Pulls the handle icons out of the way while a piece is being touched.
  *
- * つまんで動かしている最中にアイコンが出ていると、狙った駒が隠れる。
+ * Icons showing mid-drag cover the very piece being aimed at.
  */
 export function hideIconWhileTouched(destroyRef: DestroyRef): IconHiding {
   const isHidden = signal(false);

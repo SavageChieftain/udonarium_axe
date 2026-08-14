@@ -20,11 +20,11 @@ describe('BadgeComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('countのデフォルト値は0', () => {
+  it('counts nothing by default', () => {
     expect(component.count()).toBe(0);
   });
 
-  it('input signalでcountを受け取る', () => {
+  it('takes its count from an input signal', () => {
     fixture.componentRef.setInput('count', 5);
     expect(component.count()).toBe(5);
   });

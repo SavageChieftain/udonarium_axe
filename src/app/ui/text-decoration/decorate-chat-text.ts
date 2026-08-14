@@ -1,4 +1,4 @@
-/* チャットと共有メモで共用するテキスト装飾ユーティリティ。
+/* Text decoration shared by the chat and the shared notes.
    生のテキスト文字列を受け取り、HTML エスケープ → ルビ → 引用ブロック装飾を順に適用した HTML を返す。
    ChatMessageComponent (live chat) と TextNoteComponent (非編集モード) が同じ見た目で描画するために使う。 */
 
@@ -46,7 +46,7 @@ export function decorateQuoteLines(html: string): string {
   return parts.join('\n');
 }
 
-/** HTML エスケープ → ルビ記法 (`|word《reading》`) → 引用行 (`> ...`) を順に装飾する */
+/** Escapes html, then applies the ruby notation (`|word《reading》`), then quoted lines (`> ...`) */
 export function decorateChatStyleText(text: string): string {
   return decorateQuoteLines(applyRubyMarkup(escapeHtml(text)));
 }

@@ -19,7 +19,7 @@ describe('DraggableDirective', () => {
     expect(DraggableDirective).toBeDefined();
   });
 
-  describe('初期化と破棄', () => {
+  describe('setup and teardown', () => {
     let fixture: ComponentFixture<TestHostComponent>;
     let directive: DraggableDirective;
 
@@ -32,38 +32,38 @@ describe('DraggableDirective', () => {
       fixture = TestBed.createComponent(TestHostComponent);
     });
 
-    it('ngAfterViewInitで初期化されること', () => {
+    it('initialises on ngAfterViewInit', () => {
       fixture.detectChanges();
       directive = fixture.debugElement.children[0].injector.get(DraggableDirective);
       expect(directive).toBeDefined();
     });
 
-    it('ngOnDestroyデリゲート時のクリーンアップでエラーが発生しないこと', () => {
+    it('cleans up on destroy without throwing', () => {
       fixture.detectChanges();
       directive = fixture.debugElement.children[0].injector.get(DraggableDirective);
       expect(() => fixture.destroy()).not.toThrow();
     });
 
-    it('onInputEnd(ドラッグ中)でスタイル属性がリセットされること', () => {
+    it('resets the style attribute when a drag ends', () => {
       fixture.detectChanges();
       directive = fixture.debugElement.children[0].injector.get(DraggableDirective);
       const element = fixture.nativeElement.querySelector('div') as HTMLElement;
 
-      // スタイルをセット
+      // set a style
       element.style.opacity = '0.5';
       element.style.willChange = 'top, left';
 
-      // onInputEndをシミュレートするため、private methodを呼び出す（テスト用）
-      // 実際のイベントハンドラは内部なので、destructメソッドが安全に呼ばれることを確認
+      // call the private method to stand in for onInputEnd
+      // the real handler is internal, so check that destruct is safe to call
       expect(() => directive['destroy']()).not.toThrow();
     });
 
-    it('calcCorrectionPositionでquerySelector結果がnullでも例外を投げないこと', () => {
+    it('survives a null querySelector result while correcting the position', () => {
       fixture.detectChanges();
       directive = fixture.debugElement.children[0].injector.get(DraggableDirective);
       const element = fixture.nativeElement.querySelector('div') as HTMLElement;
 
-      // bounds要素が存在しない場合をシミュレート
+      // stand in for a missing bounds element
       const originalQuerySelector = element.ownerDocument.querySelector;
       element.ownerDocument.querySelector = vi.fn((selector: string) => {
         if (selector === 'body') {
@@ -72,11 +72,11 @@ describe('DraggableDirective', () => {
         return null;
       });
 
-      // calcCorrectionPositionが呼ばれても安全なことを確認するため、
-      // adjustPositionの呼び出しを期待
+      // to confirm the correction is safe to run,
+      // expect adjustPosition to be called
       expect(() => fixture.detectChanges()).not.toThrow();
 
-      // クリーンアップ
+      // clean up
       element.ownerDocument.querySelector = originalQuerySelector;
     });
   });

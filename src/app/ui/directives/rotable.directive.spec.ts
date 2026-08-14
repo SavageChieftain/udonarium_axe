@@ -19,7 +19,7 @@ describe('RotableDirective', () => {
     expect(RotableDirective).toBeDefined();
   });
 
-  describe('tabletopObjectが未設定の場合', () => {
+  describe('with no tabletop object set', () => {
     let fixture: ComponentFixture<TestHostComponent>;
 
     beforeEach(async () => {
@@ -33,19 +33,19 @@ describe('RotableDirective', () => {
       fixture = TestBed.createComponent(TestHostComponent);
     });
 
-    it('tabletopObject未設定でもコンポーネント生成時にエラーが発生しないこと', () => {
+    it('builds without a tabletop object', () => {
       expect(() => fixture.detectChanges()).not.toThrow();
     });
 
-    it('initializeでUPDATE_GAME_OBJECTハンドラがnull tabletopObjectでエラーにならないこと', () => {
+    it('registers the update handler safely with no tabletop object', () => {
       fixture.detectChanges();
       const directive = fixture.debugElement.children[0].injector.get(RotableDirective);
       expect(directive['tabletopObject']).toBeFalsy();
-      // tabletopObject未設定時、initializeではイベント登録が行われない（elseブランチ）
-      // → null guardは不要だがテストでカバレッジ確認
+      // with no tabletop object, initialize registers nothing
+      // the guard is unnecessary, but the branch is covered here
     });
 
-    it('input未初期化でonInputStartが呼ばれても例外にならないこと', () => {
+    it('survives an input start before the handler is ready', () => {
       fixture.detectChanges();
       const directive = fixture.debugElement.children[0].injector.get(RotableDirective);
       const writableDirective = directive as unknown as {

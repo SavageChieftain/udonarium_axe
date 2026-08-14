@@ -21,21 +21,21 @@ describe('ModalComponent', () => {
   });
 
   describe('title getter', () => {
-    it('ModalServiceのtitleを取得すること', () => {
+    it('reads its title from the modal service', () => {
       component.modalService.title = 'テストタイトル';
       expect(component.title).toBe('テストタイトル');
     });
   });
 
-  describe('fitWidth オプション', () => {
-    it('既定では固定幅クラスを持つこと', () => {
+  describe('the fitWidth option', () => {
+    it('uses a fixed width by default', () => {
       fixture.detectChanges();
       const panel = fixture.nativeElement.querySelector('.animate-fly-in') as HTMLElement;
       expect(panel.classList.contains('w-200')).toBe(true);
       expect(panel.classList.contains('w-fit')).toBe(false);
     });
 
-    it('option.fitWidth が true なら子コンポーネント駆動の幅になること', () => {
+    it('lets the child decide the width when fitWidth is set', () => {
       vi.spyOn(component.modalService, 'option', 'get').mockReturnValue({ fitWidth: true });
       fixture.detectChanges();
       const panel = fixture.nativeElement.querySelector('.animate-fly-in') as HTMLElement;

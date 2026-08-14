@@ -24,7 +24,7 @@ describe('UIPanelComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  describe('狭い画面', () => {
+  describe('on a narrow screen', () => {
     function panel(): HTMLElement {
       return fixture.nativeElement.querySelector('.draggable-panel');
     }
@@ -35,7 +35,7 @@ describe('UIPanelComponent', () => {
       fixture.detectChanges();
     }
 
-    it('画面いっぱいに広げる', () => {
+    it('fills the screen', () => {
       setCompact(true);
 
       expect(panel().classList.contains('inset-0!')).toBe(true);
@@ -43,14 +43,14 @@ describe('UIPanelComponent', () => {
       expect(panel().style.height).toContain('100dvh');
     });
 
-    it('広い画面では広げない', () => {
+    it('does not fill a wide screen', () => {
       setCompact(false);
 
       expect(panel().classList.contains('inset-0!')).toBe(false);
       expect(panel().classList.contains('w-screen!')).toBe(false);
     });
 
-    it('最小化と全画面のボタンを出さない', () => {
+    it('hides the minimise and fullscreen buttons', () => {
       setCompact(true);
       const icons = [...fixture.nativeElement.querySelectorAll('.material-icons')].map((el) =>
         (el as HTMLElement).textContent?.trim()
@@ -62,7 +62,7 @@ describe('UIPanelComponent', () => {
     });
   });
 
-  it('global dragging 中は panel を pointer-events-none にすること', () => {
+  it('makes the panel ignore the pointer while anything is being dragged', () => {
     const pointerDeviceService = TestBed.inject(PointerDeviceService);
     pointerDeviceService.isDragging = true;
 
@@ -72,7 +72,7 @@ describe('UIPanelComponent', () => {
     expect(panel.classList.contains('pointer-events-none')).toBe(true);
   });
 
-  it('global dragging が解除されたら panel の pointer-events-none も解除されること', async () => {
+  it('gives the panel the pointer back when the drag ends', async () => {
     const pointerDeviceService = TestBed.inject(PointerDeviceService);
 
     fixture.detectChanges();
@@ -90,14 +90,14 @@ describe('UIPanelComponent', () => {
   });
 
   describe('fullscreen z-index', () => {
-    it('通常状態では draggable-panel の zIndex が 201 でないこと', () => {
+    it('leaves the panel below 201 normally', () => {
       fixture.detectChanges();
 
       const panel = fixture.nativeElement.querySelector('.draggable-panel') as HTMLElement;
       expect(panel.style.zIndex).not.toBe('201');
     });
 
-    it('fullscreen 状態では draggable-panel の zIndex が 201 になること', () => {
+    it('raises the panel to 201 in fullscreen', () => {
       fixture.detectChanges();
       component.isFullScreen.set(true);
       fixture.detectChanges();
@@ -106,7 +106,7 @@ describe('UIPanelComponent', () => {
       expect(panel.style.zIndex).toBe('201');
     });
 
-    it('fullscreen 解除後は draggable-panel の zIndex が 201 でなくなること', () => {
+    it('drops the panel back below 201 when fullscreen ends', () => {
       fixture.detectChanges();
       component.isFullScreen.set(true);
       fixture.detectChanges();
@@ -119,7 +119,7 @@ describe('UIPanelComponent', () => {
   });
 
   describe('timerCheckWindowSize cleanup', () => {
-    it('timerCheckWindowSize が clearInterval でクリアされる', () => {
+    it('clears the window size timer on teardown', () => {
       const clearIntervalSpy = vi.spyOn(globalThis, 'clearInterval');
       const priv = component as unknown as { timerCheckWindowSize: ReturnType<typeof setInterval> | null };
       priv.timerCheckWindowSize = setInterval(() => {}, 999_999);

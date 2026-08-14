@@ -8,23 +8,23 @@ import {
 
 describe('hex-pedestal-geometry', () => {
   describe('buildHexFlowerOutline', () => {
-    it('size=1 のとき単一ヘクスの6頂点を返す', () => {
+    it('returns the six vertices of a single hex at size one', () => {
       const outline = buildHexFlowerOutline(1, 50, true);
       expect(outline).toHaveLength(6);
     });
 
-    it('size=1 flat-top で正六角形になる（対称性チェック）', () => {
+    it('makes a regular hexagon at size one, flat-top', () => {
       const gridSize = 50;
       const s = gridSize / Math.sqrt(3);
       const outline = buildHexFlowerOutline(1, gridSize, true);
-      // すべての頂点が中心からの距離 s に等しい
+      // every vertex sits the same distance from the centre
       for (const v of outline) {
         const dist = Math.sqrt(v.x * v.x + v.y * v.y);
         expect(dist).toBeCloseTo(s, 5);
       }
     });
 
-    it('size=1 pointy-top で正六角形になる', () => {
+    it('makes a regular hexagon at size one, pointy-top', () => {
       const gridSize = 50;
       const s = gridSize / Math.sqrt(3);
       const outline = buildHexFlowerOutline(1, gridSize, false);
@@ -35,23 +35,23 @@ describe('hex-pedestal-geometry', () => {
       }
     });
 
-    it('size=2 flat-top で閉パスを返す（セル数7 → 辺数18）', () => {
+    it('returns a closed path at size two, flat-top: seven cells, eighteen edges', () => {
       const outline = buildHexFlowerOutline(2, 50, true);
-      // 7セルの花形: 外周辺数 = 6 * (size-1) * 2 = 6*1*2 = 12? → 実際には18辺
+      // the seven-cell flower has eighteen outer edges, not the twelve the naive formula suggests
       expect(outline.length).toBe(18);
     });
 
-    it('size=2 pointy-top で閉パスを返す', () => {
+    it('returns a closed path at size two, pointy-top', () => {
       const outline = buildHexFlowerOutline(2, 50, false);
       expect(outline.length).toBe(18);
     });
 
-    it('size=3 のとき外周は30頂点', () => {
+    it('traces thirty vertices around the outside at size three', () => {
       const outline = buildHexFlowerOutline(3, 50, true);
       expect(outline.length).toBe(30);
     });
 
-    it('flat-top と pointy-top で頂点数は同じ', () => {
+    it('counts the same vertices flat-top and pointy-top', () => {
       for (const size of [1, 2, 3, 4]) {
         const flat = buildHexFlowerOutline(size, 50, true);
         const pointy = buildHexFlowerOutline(size, 50, false);
@@ -59,7 +59,7 @@ describe('hex-pedestal-geometry', () => {
       }
     });
 
-    it('アウトラインは原点を中心に対称', () => {
+    it('keeps the outline symmetric about the origin', () => {
       const outline = buildHexFlowerOutline(2, 50, true);
       const cx = outline.reduce((s, v) => s + v.x, 0) / outline.length;
       const cy = outline.reduce((s, v) => s + v.y, 0) / outline.length;
@@ -69,7 +69,7 @@ describe('hex-pedestal-geometry', () => {
   });
 
   describe('insetPolygon', () => {
-    it('正方形を内側にインセットする', () => {
+    it('insets a square inward', () => {
       const square = [
         { x: 0, y: 0 },
         { x: 10, y: 0 },
@@ -78,7 +78,7 @@ describe('hex-pedestal-geometry', () => {
       ];
       const inset = insetPolygon(square, 1);
       expect(inset).toHaveLength(4);
-      // CW の正方形を bw=1 でインセットすると各辺が内側に1px移動
+      // insetting a clockwise square by one moves every edge a pixel inward
       expect(inset[0].x).toBeCloseTo(1, 5);
       expect(inset[0].y).toBeCloseTo(1, 5);
       expect(inset[1].x).toBeCloseTo(9, 5);
@@ -89,7 +89,7 @@ describe('hex-pedestal-geometry', () => {
       expect(inset[3].y).toBeCloseTo(9, 5);
     });
 
-    it('bw=0 なら元のポリゴンと同一座標を返す', () => {
+    it('returns the polygon unchanged at zero width', () => {
       const triangle = [
         { x: 0, y: 0 },
         { x: 10, y: 0 },
@@ -102,11 +102,11 @@ describe('hex-pedestal-geometry', () => {
       }
     });
 
-    it('ヘクスのアウトラインに適用してもクラッシュしない', () => {
+    it('survives being applied to a hex outline', () => {
       const outline = buildHexFlowerOutline(2, 50, true);
       const inset = insetPolygon(outline, 3);
       expect(inset).toHaveLength(outline.length);
-      // インセット後のポリゴンは元のポリゴンより小さい（bbox が縮小）
+      // the inset polygon is smaller than the original
       const origMinX = Math.min(...outline.map((v) => v.x));
       const origMaxX = Math.max(...outline.map((v) => v.x));
       const insetMinX = Math.min(...inset.map((v) => v.x));
@@ -117,7 +117,7 @@ describe('hex-pedestal-geometry', () => {
   });
 
   describe('buildHexRingClipPath', () => {
-    it('evenodd パス文字列を返す', () => {
+    it('returns an even-odd path string', () => {
       const outline = buildHexFlowerOutline(1, 50, true);
       const bbox = {
         minX: Math.min(...outline.map((v) => v.x)),
@@ -131,7 +131,7 @@ describe('hex-pedestal-geometry', () => {
       expect(clipPath).toContain(' Z');
     });
 
-    it('外側と内側の2つのサブパスを含む', () => {
+    it('carries an outer and an inner subpath', () => {
       const outline = buildHexFlowerOutline(1, 50, true);
       const bbox = {
         minX: Math.min(...outline.map((v) => v.x)),
@@ -140,17 +140,17 @@ describe('hex-pedestal-geometry', () => {
         maxY: Math.max(...outline.map((v) => v.y)),
       };
       const clipPath = buildHexRingClipPath(outline, bbox, 2);
-      // 'M' の出現回数 = 2 (outer + inner)
+      // two move commands, outer and inner
       const mCount = (clipPath.match(/M /g) ?? []).length;
       expect(mCount).toBe(2);
-      // 'Z' の出現回数 = 2
+      // two close commands
       const zCount = (clipPath.match(/ Z/g) ?? []).length;
       expect(zCount).toBe(2);
     });
   });
 
   describe('calcHexFlowerParams', () => {
-    it('size を 1〜6 にクランプする', () => {
+    it('clamps the size between one and six', () => {
       const p0 = calcHexFlowerParams(0, 50, true);
       // size=0 → clamp to 1
       expect(p0.outline).toHaveLength(6);
@@ -160,13 +160,13 @@ describe('hex-pedestal-geometry', () => {
       expect(p7.outline.length).toBe(calcHexFlowerParams(6, 50, true).outline.length);
     });
 
-    it('小数の size は頂点クラスターアウトラインを使用する', () => {
+    it('uses the vertex cluster outline for a fractional size', () => {
       const p = calcHexFlowerParams(1.5, 50, true);
       const cluster = buildVertexClusterOutline(1.5, 50, true);
       expect(p.outline.length).toBe(cluster.length);
     });
 
-    it('size 2.5 は6セルクラスターアウトラインを使用する', () => {
+    it('uses the six-cell cluster outline at size 2.5', () => {
       const p = calcHexFlowerParams(2.5, 50, true);
       const cluster = buildVertexClusterOutline(2.5, 50, true);
       expect(p.outline.length).toBe(cluster.length);
@@ -182,7 +182,7 @@ describe('hex-pedestal-geometry', () => {
       expect(p.g).toBe(60);
     });
 
-    it('bbox がアウトラインを包含する', () => {
+    it('keeps the outline inside its bounding box', () => {
       const p = calcHexFlowerParams(3, 50, true);
       for (const v of p.outline) {
         expect(v.x).toBeGreaterThanOrEqual(p.bbox.minX - 1e-9);
@@ -192,27 +192,27 @@ describe('hex-pedestal-geometry', () => {
       }
     });
 
-    it('flat-top と pointy-top で同サイズの bbox になる（対称性）', () => {
+    it('gives flat-top and pointy-top bounding boxes of the same size', () => {
       const flat = calcHexFlowerParams(2, 50, true);
       const pointy = calcHexFlowerParams(2, 50, false);
       const flatW = flat.bbox.maxX - flat.bbox.minX;
       const flatH = flat.bbox.maxY - flat.bbox.minY;
       const pointyW = pointy.bbox.maxX - pointy.bbox.minX;
       const pointyH = pointy.bbox.maxY - pointy.bbox.minY;
-      // flat-top の幅 ≈ pointy-top の高さ、flat-top の高さ ≈ pointy-top の幅
+      // the flat-top width matches the pointy-top height, and the other way round
       expect(flatW).toBeCloseTo(pointyH, 5);
       expect(flatH).toBeCloseTo(pointyW, 5);
     });
   });
 
   describe('buildVertexClusterOutline', () => {
-    it('size 1.5: 3ヘクスの外周パスを返す（12頂点）', () => {
+    it('size 1.5 traces three hexes in twelve vertices', () => {
       const outline = buildVertexClusterOutline(1.5, 50, true);
       // 3 hexes sharing a vertex: 3*6=18 edges - 3*2=6 shared edges = 12 boundary edges
       expect(outline).toHaveLength(12);
     });
 
-    it('size 2.5: 6ヘクスクラスターの外周パスを返す（18頂点）', () => {
+    it('size 2.5 traces six hexes in eighteen vertices', () => {
       const flat = buildVertexClusterOutline(2.5, 50, true);
       // 6 cells: 6*6=36 edges - 2*9=18 shared = 18 boundary edges
       expect(flat).toHaveLength(18);
@@ -220,7 +220,7 @@ describe('hex-pedestal-geometry', () => {
       expect(pointy).toHaveLength(18);
     });
 
-    it('size 3.5: 12ヘクスクラスターの外周パスを返す（24頂点）', () => {
+    it('size 3.5 traces twelve hexes in twenty-four vertices', () => {
       const flat = buildVertexClusterOutline(3.5, 50, true);
       // 12 cells: 12*6=72 edges - 2*24=48 shared = 24 boundary edges
       expect(flat).toHaveLength(24);
@@ -228,7 +228,7 @@ describe('hex-pedestal-geometry', () => {
       expect(pointy).toHaveLength(24);
     });
 
-    it('flat-top と pointy-top で同じ頂点数', () => {
+    it('counts the same vertices flat-top and pointy-top', () => {
       for (const size of [1.5, 2.5, 3.5, 4.5]) {
         const flat = buildVertexClusterOutline(size, 50, true);
         const pointy = buildVertexClusterOutline(size, 50, false);
@@ -236,7 +236,7 @@ describe('hex-pedestal-geometry', () => {
       }
     });
 
-    it('アウトラインの重心が原点付近にある', () => {
+    it('centres the outline on the origin', () => {
       for (const size of [1.5, 2.5, 3.5]) {
         const outline = buildVertexClusterOutline(size, 50, true);
         const cx = outline.reduce((s, v) => s + v.x, 0) / outline.length;
@@ -246,7 +246,7 @@ describe('hex-pedestal-geometry', () => {
       }
     });
 
-    it('サイズが大きくなるほど頂点数が増える', () => {
+    it('adds vertices as the size grows', () => {
       const v15 = buildVertexClusterOutline(1.5, 50, true).length;
       const v25 = buildVertexClusterOutline(2.5, 50, true).length;
       const v35 = buildVertexClusterOutline(3.5, 50, true).length;

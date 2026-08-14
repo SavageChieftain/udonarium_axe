@@ -19,14 +19,14 @@ describe('ConfirmDialogComponent', () => {
     fixture.detectChanges();
   }
 
-  it('メッセージを表示する', async () => {
+  it('shows the message', async () => {
     await setup({ message: 'テストメッセージ' });
 
     const p = fixture.nativeElement.querySelector('p') as HTMLElement;
     expect(p.textContent).toContain('テストメッセージ');
   });
 
-  it('OK ボタンで true を解決する', async () => {
+  it('resolves true from the confirm button', async () => {
     await setup({ message: '確認' });
 
     component.ok();
@@ -34,7 +34,7 @@ describe('ConfirmDialogComponent', () => {
     expect(modalService.resolve).toHaveBeenCalledWith(true);
   });
 
-  it('キャンセルボタンで false を解決する', async () => {
+  it('resolves false from the cancel button', async () => {
     await setup({ message: '確認' });
 
     component.cancel();
@@ -42,7 +42,7 @@ describe('ConfirmDialogComponent', () => {
     expect(modalService.resolve).toHaveBeenCalledWith(false);
   });
 
-  it('danger=true のとき danger クラスの OK ボタンを表示する', async () => {
+  it('styles the confirm button as dangerous when asked', async () => {
     await setup({ message: '削除確認', danger: true });
 
     const buttons = fixture.nativeElement.querySelectorAll('button') as NodeListOf<HTMLButtonElement>;
@@ -50,7 +50,7 @@ describe('ConfirmDialogComponent', () => {
     expect(okBtn).toBeTruthy();
   });
 
-  it('danger=false のとき accent クラスの OK ボタンを表示する', async () => {
+  it('styles the confirm button as an accent otherwise', async () => {
     await setup({ message: '確認', danger: false });
 
     const buttons = fixture.nativeElement.querySelectorAll('button') as NodeListOf<HTMLButtonElement>;

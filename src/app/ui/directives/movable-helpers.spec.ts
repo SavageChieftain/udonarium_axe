@@ -22,35 +22,35 @@ import {
 
 describe('movable-helpers', () => {
   describe('calcSnapNum', () => {
-    it('interval が 0 以下なら元の値を返す', () => {
+    it('returns the value unchanged when the interval is zero or less', () => {
       expect(calcSnapNum(13, 0)).toBe(13);
       expect(calcSnapNum(13, -1)).toBe(13);
     });
 
-    it('正数をグリッドに丸める', () => {
+    it('rounds a positive number to the grid', () => {
       expect(calcSnapNum(13, 25)).toBe(25);
       expect(calcSnapNum(36, 25)).toBe(25);
     });
 
-    it('負数をグリッドに丸める', () => {
+    it('rounds a negative number to the grid', () => {
       expect(calcSnapNum(-13, 25)).toBe(-25);
       expect(calcSnapNum(-36, 25)).toBe(-25);
     });
   });
 
   describe('toTransformCss', () => {
-    it('translate3d 文字列を返す', () => {
+    it('returns a translate3d string', () => {
       expect(toTransformCss(1, 2, 3, 'scale(2)')).toBe('translate3d(1px,2px,3px) scale(2)');
     });
   });
 
   describe('shouldTransitionTo', () => {
-    it('object または location がなければ false', () => {
+    it('is false without an object or a location', () => {
       expect(shouldTransitionTo(null, 0, 0, 0)).toBe(false);
       expect(shouldTransitionTo({} as TabletopObject, 0, 0, 0)).toBe(false);
     });
 
-    it('位置が異なれば true', () => {
+    it('is true when the positions differ', () => {
       const object = {
         location: { x: 1, y: 2 },
         posZ: 3,
@@ -58,7 +58,7 @@ describe('movable-helpers', () => {
       expect(shouldTransitionTo(object, 0, 0, 0)).toBe(true);
     });
 
-    it('位置が同じなら false', () => {
+    it('is false when the positions match', () => {
       const object = {
         location: { x: 1, y: 2 },
         posZ: 3,
@@ -68,14 +68,14 @@ describe('movable-helpers', () => {
   });
 
   describe('collectCollidableElements / applyPointerEvents', () => {
-    it('root が collidable なら root のみ返す', () => {
+    it('returns only the root when the root itself collides', () => {
       const root = document.createElement('div');
       root.style.pointerEvents = 'auto';
       const result = collectCollidableElements(root);
       expect(result).toEqual([root]);
     });
 
-    it('root が non-collidable なら子要素から収集する', () => {
+    it('gathers from the children when the root does not collide', () => {
       const root = document.createElement('div');
       root.style.pointerEvents = 'none';
       const child = document.createElement('span');
@@ -85,7 +85,7 @@ describe('movable-helpers', () => {
       expect(result).toEqual([child]);
     });
 
-    it('applyPointerEvents で一括反映できる', () => {
+    it('applies pointer events to everything at once', () => {
       const a = document.createElement('div');
       const b = document.createElement('span');
       applyPointerEvents([a, b], false);
@@ -104,13 +104,13 @@ describe('movable-helpers', () => {
     describe('flat-top (HEX_VERTICAL)', () => {
       const colSpacing = 1.5 * s;
 
-      it('原点付近のポイントを (0,0) ヘクス中心にスナップ', () => {
+      it('snaps a point near the origin to the centre of hex (0,0)', () => {
         const result = calcHexSnapPosition(5, 5, gridSize, GridType.HEX_VERTICAL);
         expect(result.x).toBeCloseTo(-gridSize / 2);
         expect(result.y).toBeCloseTo(-gridSize / 2);
       });
 
-      it('col=1 のヘクス中心にスナップ（奇数列は半行オフセット）', () => {
+      it('snaps to the centre of column 1, which sits half a row down', () => {
         const cx = colSpacing;
         const cy = gridSize / 2;
         const result = calcHexSnapPosition(cx, cy, gridSize, GridType.HEX_VERTICAL);
@@ -118,7 +118,7 @@ describe('movable-helpers', () => {
         expect(result.y).toBeCloseTo(cy - gridSize / 2);
       });
 
-      it('2つのヘクスの中間点は近い方にスナップ', () => {
+      it('snaps a point between two hexes to the nearer one', () => {
         const cx0 = 0;
         const cx1 = colSpacing;
         const midX = (cx0 + cx1) / 2 - 1;
@@ -131,13 +131,13 @@ describe('movable-helpers', () => {
     describe('pointy-top (HEX_HORIZONTAL)', () => {
       const rowSpacing = 1.5 * s;
 
-      it('原点付近のポイントを (0,0) ヘクス中心にスナップ', () => {
+      it('snaps a point near the origin to the centre of hex (0,0)', () => {
         const result = calcHexSnapPosition(5, 5, gridSize, GridType.HEX_HORIZONTAL);
         expect(result.x).toBeCloseTo(-gridSize / 2);
         expect(result.y).toBeCloseTo(-gridSize / 2);
       });
 
-      it('row=1 のヘクス中心にスナップ（奇数行は半列オフセット）', () => {
+      it('snaps to the centre of row 1, which sits half a column across', () => {
         const cx = gridSize / 2;
         const cy = rowSpacing;
         const result = calcHexSnapPosition(cx, cy, gridSize, GridType.HEX_HORIZONTAL);
@@ -145,7 +145,7 @@ describe('movable-helpers', () => {
         expect(result.y).toBeCloseTo(cy - gridSize / 2);
       });
 
-      it('2つのヘクスの中間点は近い方にスナップ', () => {
+      it('snaps a point between two hexes to the nearer one', () => {
         const cy0 = 0;
         const cy1 = rowSpacing;
         const midY = (cy0 + cy1) / 2 - 1;
@@ -161,14 +161,14 @@ describe('movable-helpers', () => {
     const s = gridSize / Math.sqrt(3);
 
     describe('flat-top (HEX_VERTICAL)', () => {
-      it('原点付近のポイントをセル中心ではなく頂点にスナップ', () => {
+      it('snaps a point near the origin to a vertex rather than the cell centre', () => {
         // flat-top (0,0) hex center is at (0,0), vertex at angle 0 is at (s,0)
         const result = calcHexVertexSnapPosition(s, 0, gridSize, GridType.HEX_VERTICAL);
         expect(result.x).toBeCloseTo(s - gridSize / 2);
         expect(result.y).toBeCloseTo(0 - gridSize / 2);
       });
 
-      it('セル中心位置でも最近接頂点にスナップ', () => {
+      it('snaps to the nearest vertex even from the cell centre', () => {
         // (0,0) hex center → nearest vertex is at distance s
         const result = calcHexVertexSnapPosition(0, 0, gridSize, GridType.HEX_VERTICAL);
         // Should snap to one of the 6 vertices of (0,0) hex, distance s from center
@@ -180,14 +180,14 @@ describe('movable-helpers', () => {
     });
 
     describe('pointy-top (HEX_HORIZONTAL)', () => {
-      it('原点付近のポイントをセル中心ではなく頂点にスナップ', () => {
+      it('snaps a point near the origin to a vertex rather than the cell centre', () => {
         // pointy-top (0,0) hex center is at (0,0), vertex at angle -90° is at (0,-s)
         const result = calcHexVertexSnapPosition(0, -s, gridSize, GridType.HEX_HORIZONTAL);
         expect(result.x).toBeCloseTo(0 - gridSize / 2);
         expect(result.y).toBeCloseTo(-s - gridSize / 2);
       });
 
-      it('セル中心位置でも最近接頂点にスナップ', () => {
+      it('snaps to the nearest vertex even from the cell centre', () => {
         const result = calcHexVertexSnapPosition(0, 0, gridSize, GridType.HEX_HORIZONTAL);
         const snappedCenterX = result.x + gridSize / 2;
         const snappedCenterY = result.y + gridSize / 2;
@@ -200,7 +200,7 @@ describe('movable-helpers', () => {
   describe('calcHexBothSnapPosition', () => {
     const gridSize = 50;
 
-    it('セル中心に近い場合はセル中心にスナップ', () => {
+    it('snaps to the cell centre when nearest to it', () => {
       // (0,0) hex center → should snap to center
       const result = calcHexBothSnapPosition(1, 1, gridSize, GridType.HEX_VERTICAL);
       const centerResult = calcHexSnapPosition(1, 1, gridSize, GridType.HEX_VERTICAL);
@@ -208,7 +208,7 @@ describe('movable-helpers', () => {
       expect(result.y).toBeCloseTo(centerResult.y);
     });
 
-    it('頂点に近い場合は頂点にスナップ', () => {
+    it('snaps to a vertex when nearest to one', () => {
       const s = gridSize / Math.sqrt(3);
       // flat-top vertex at (s, 0) — very close to vertex
       const result = calcHexBothSnapPosition(s - 0.1, 0, gridSize, GridType.HEX_VERTICAL);
@@ -222,8 +222,8 @@ describe('movable-helpers', () => {
     const gridSize = 50;
     // inradius = gridSize / 2 = 25
 
-    it('flat-top: 30°方向の辺中点にスナップ', () => {
-      // flat-top の 30° 方向の辺中点: (inradius*cos30°, inradius*sin30°)
+    it('flat-top: snaps to the edge midpoint 30 degrees round', () => {
+      // flat-top edge midpoint at 30 degrees: (inradius*cos30, inradius*sin30)
       const inradius = gridSize / 2;
       const mx = inradius * Math.cos(Math.PI / 6);
       const my = inradius * Math.sin(Math.PI / 6);
@@ -232,15 +232,15 @@ describe('movable-helpers', () => {
       expect(result.y + gridSize / 2).toBeCloseTo(my);
     });
 
-    it('pointy-top: 0°方向の辺中点にスナップ', () => {
-      // pointy-top の 0° 方向の辺中点: (inradius, 0) = (25, 0)
+    it('pointy-top: snaps to the edge midpoint straight ahead', () => {
+      // pointy-top edge midpoint at 0 degrees: (inradius, 0) = (25, 0)
       const inradius = gridSize / 2;
       const result = calcHexEdgeMidpointSnapPosition(inradius - 0.5, 0, gridSize, GridType.HEX_HORIZONTAL);
       expect(result.x + gridSize / 2).toBeCloseTo(inradius);
       expect(result.y + gridSize / 2).toBeCloseTo(0);
     });
 
-    it('スナップ後の辺中点はセル中心から inradius の距離にある', () => {
+    it('an edge midpoint lands one inradius from the cell centre', () => {
       const inradius = gridSize / 2;
       const mx = inradius * Math.cos(Math.PI / 6);
       const my = inradius * Math.sin(Math.PI / 6);
@@ -268,7 +268,7 @@ describe('movable-helpers', () => {
       return item;
     }
 
-    it('掴み中の自レイヤ仲間には pointer-events:none を伝播 (自レイヤ衝突によるドラッグ解除の防止)', () => {
+    it('passes pointer-events:none to its own layer while grabbed, so a sibling cannot cancel the drag', () => {
       const self = makeItem('terrain', true);
       const peerA = makeItem('terrain');
       const peerB = makeItem('terrain');
@@ -280,7 +280,7 @@ describe('movable-helpers', () => {
       expect(peerB.pointerEvents).toBe('none');
     });
 
-    it('掴み中、自レイヤを含まない他レイヤは pointer-events:none', () => {
+    it('other layers outside the collision set get pointer-events:none while grabbed', () => {
       const self = makeItem('terrain', true);
       const character = makeItem('character');
       const layerHash = { terrain: [self], character: [character] };
@@ -290,18 +290,18 @@ describe('movable-helpers', () => {
       expect(character.pointerEvents).toBe('none');
     });
 
-    it('掴み中、自レイヤ以外で colideLayers に含まれる層は pointer-events:auto に保たれる (衝突判定の維持)', () => {
+    it('layers listed as collidable keep pointer-events:auto while grabbed, so collisions still register', () => {
       const self = makeItem('character', true);
       const terrain = makeItem('terrain');
       const layerHash = { character: [self], terrain: [terrain] };
 
       setLayerCollidable(layerHash, ['terrain'], self, true, true);
 
-      // character は自レイヤなので none、terrain は衝突対象なので auto
+      // character is its own layer, so none; terrain is a collision target, so auto
       expect(terrain.pointerEvents).toBe('auto');
     });
 
-    it('掴みを離す (selfIsGrabbing=false, isCollidable=false) と全ての他要素を pointer-events:auto に戻す', () => {
+    it('letting go restores pointer-events:auto everywhere', () => {
       const self = makeItem('terrain', false);
       const peer = makeItem('terrain');
       const character = makeItem('character');
@@ -313,7 +313,7 @@ describe('movable-helpers', () => {
       expect(character.pointerEvents).toBe('auto');
     });
 
-    it('自身および既に他で掴まれている要素はスキップする', () => {
+    it('skips itself and anything already held elsewhere', () => {
       const self = makeItem('terrain', true);
       const otherGrabbing = makeItem('terrain', true);
       const layerHash = { terrain: [self, otherGrabbing] };
@@ -327,14 +327,14 @@ describe('movable-helpers', () => {
   describe('calcHexAllSnapPosition', () => {
     const gridSize = 50;
 
-    it('セル中心に近い場合はセル中心にスナップ', () => {
+    it('snaps to the cell centre when nearest to it', () => {
       const result = calcHexAllSnapPosition(1, 1, gridSize, GridType.HEX_VERTICAL);
       const centerResult = calcHexSnapPosition(1, 1, gridSize, GridType.HEX_VERTICAL);
       expect(result.x).toBeCloseTo(centerResult.x);
       expect(result.y).toBeCloseTo(centerResult.y);
     });
 
-    it('頂点に近い場合は頂点にスナップ', () => {
+    it('snaps to a vertex when nearest to one', () => {
       const s = gridSize / Math.sqrt(3);
       const result = calcHexAllSnapPosition(s - 0.1, 0, gridSize, GridType.HEX_VERTICAL);
       const vertexResult = calcHexVertexSnapPosition(s - 0.1, 0, gridSize, GridType.HEX_VERTICAL);
@@ -342,8 +342,8 @@ describe('movable-helpers', () => {
       expect(result.y).toBeCloseTo(vertexResult.y);
     });
 
-    it('辺中点に近い場合は辺中点にスナップ', () => {
-      // flat-top 30° 方向の辺中点付近
+    it('snaps to an edge midpoint when nearest to one', () => {
+      // near the flat-top edge midpoint at 30 degrees
       const inradius = gridSize / 2;
       const mx = inradius * Math.cos(Math.PI / 6);
       const my = inradius * Math.sin(Math.PI / 6);
@@ -361,15 +361,15 @@ describe('movable-helpers', () => {
       { left: 500, top: 500, right: 600, bottom: 600, topZ: 999 },
     ];
 
-    it('中心を含む footprint のうち最も高い topZ を返す', () => {
+    it('returns the highest top of the footprints under the centre', () => {
       expect(findContactSupportZ(footprints, 50, 50)).toBe(150);
     });
 
-    it('どの footprint にも含まれなければ 0 (床)', () => {
+    it('returns zero, the floor, when no footprint covers it', () => {
       expect(findContactSupportZ(footprints, 300, 300)).toBe(0);
     });
 
-    it('footprint が空なら 0', () => {
+    it('returns zero with no footprints at all', () => {
       expect(findContactSupportZ([], 50, 50)).toBe(0);
     });
   });
@@ -377,12 +377,12 @@ describe('movable-helpers', () => {
   describe('beamRestPosition', () => {
     const box = { minX: 100, maxX: 200, minY: 0, maxY: 200, minZ: 450, maxZ: 500 };
 
-    it('カーソルのワールド座標が梁の範囲内なら中心をそこに置き z は天面', () => {
+    it('puts the centre under the cursor and z on top when the cursor is over the beam', () => {
       expect(beamRestPosition(box, 150, 100, 50, 50)).toEqual({ x: 125, y: 75, z: 500 });
     });
 
-    it('範囲外のカーソルは最も近い梁の縁へクランプする', () => {
-      // 床平面投影は梁より室内側 (y 大) に落ちるため maxY 縁へ吸着する
+    it('clamps a cursor beyond the beam to its nearest edge', () => {
+      // the floor projection lands inside the beam, at greater y, so it sticks to the maxY edge
       expect(beamRestPosition(box, 150, 600, 50, 50)).toEqual({ x: 125, y: 175, z: 500 });
     });
   });
@@ -398,7 +398,7 @@ describe('movable-helpers', () => {
       convertToLocal: (c) => ({ x: c.x, y: c.y, z: 0 }),
     };
 
-    it('床ではポインタ中心の接触支持 Z を採り、地形の天面に乗る (接触判定の復元)', () => {
+    it('on the floor it takes the supporting z under the pointer and rests on the terrain', () => {
       const floor = makeSurface('floor');
       const contactSupportZ = (cx: number, cy: number) => (cx === 10 && cy === 20 ? 100 : 0);
 
@@ -407,7 +407,7 @@ describe('movable-helpers', () => {
       expect(result).toEqual({ x: 10, y: 20, z: 100 });
     });
 
-    it('壁サーフェスでも接触支持 Z を採る (壁の垂直方向にスタック)', () => {
+    it('a wall surface takes the same supporting z, stacking up the wall', () => {
       const wall = makeSurface('north');
       const contactSupportZ = (cx: number, cy: number) => (cx === 5 && cy === 6 ? 50 : 0);
 
@@ -416,7 +416,7 @@ describe('movable-helpers', () => {
       expect(result).toEqual({ x: 5, y: 6, z: 50 });
     });
 
-    it('支持が無ければ Z=0 (床も壁も浮かない)', () => {
+    it('with nothing supporting it, z is zero on floor and wall alike', () => {
       const floor = makeSurface('floor');
       const wall = makeSurface('north');
       const contactSupportZ = () => 0;

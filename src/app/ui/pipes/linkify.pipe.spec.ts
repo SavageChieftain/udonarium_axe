@@ -7,28 +7,28 @@ describe('LinkifyPipe', () => {
     pipe = new LinkifyPipe();
   });
 
-  it('インスタンスを作成できる', () => {
+  it('can be created', () => {
     expect(pipe).toBeTruthy();
   });
 
-  it('通常テキストはそのまま返す', () => {
+  it('returns ordinary text unchanged', () => {
     expect(pipe.transform('ただのテキスト')).toBe('ただのテキスト');
   });
 
-  it('URLをリンクタグに変換する', () => {
+  it('turns a url into a link', () => {
     const result = pipe.transform('https://example.com にアクセス');
     expect(result).toContain('<a');
     expect(result).toContain('https://example.com');
     expect(result).toContain('</a>');
   });
 
-  it('リンクが別タブで開くようtarget="_blank"が付与される', () => {
+  it('opens links in another tab with target="_blank"', () => {
     const result = pipe.transform('https://example.com');
     expect(result).toContain('target="_blank"');
     expect(result).toContain('rel="noopener noreferrer"');
   });
 
-  it('複数URLを変換する', () => {
+  it('turns several urls into links', () => {
     const result = pipe.transform('https://a.com と https://b.com');
     expect(result).toContain('https://a.com');
     expect(result).toContain('https://b.com');
@@ -36,20 +36,20 @@ describe('LinkifyPipe', () => {
     expect(linkCount).toBe(2);
   });
 
-  it('nullを空文字に変換する', () => {
+  it('turns null into an empty string', () => {
     expect(pipe.transform(null)).toBe('');
   });
 
-  it('undefinedを空文字に変換する', () => {
+  it('turns undefined into an empty string', () => {
     expect(pipe.transform(undefined)).toBe('');
   });
 
-  it('数値を文字列に変換して処理する', () => {
+  it('accepts a number as text', () => {
     const result = pipe.transform(12345);
     expect(result).toBe('12345');
   });
 
-  it('メールアドレスをリンクに変換する', () => {
+  it('turns an email address into a link', () => {
     const result = pipe.transform('test@example.com');
     expect(result).toContain('<a');
     expect(result).toContain('test@example.com');

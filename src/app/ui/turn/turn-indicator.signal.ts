@@ -6,9 +6,9 @@ import { GameCharacter } from '@axe/domain/character/game-character';
 import { buildTurnIndicator, type TurnIndicator } from '@axe/ui/turn/turn-indicator';
 
 /**
- * 手番の見出しを追う signal。
+ * A signal following the turn heading.
  *
- * 同じ配線を画面ごとに書き写すと、直すときに書き漏らす。注入できる場所から呼ぶ。
+ * Copying the same wiring into every screen means missing one when it changes. Call this wherever injection is available.
  */
 export function turnIndicatorSignal(): Signal<TurnIndicator | null> {
   const objectChange = inject(ObjectChangeService);

@@ -5,8 +5,8 @@ describe('ResizableDirective', () => {
     expect(ResizableDirective).toBeDefined();
   });
 
-  describe('DOM操作時の安全性', () => {
-    it('parentElement が存在しない場合（orphan DOM）でも calcElementPosition では例外を投げない', () => {
+  describe('safety around the dom', () => {
+    it('measures a position even for an element with no parent', () => {
       const orphanElement = document.createElement('div');
       orphanElement.style.left = '10px';
       orphanElement.style.top = '20px';

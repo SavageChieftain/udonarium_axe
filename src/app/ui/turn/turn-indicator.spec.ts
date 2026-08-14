@@ -2,11 +2,11 @@ import { buildTurnIndicator } from '@axe/ui/turn/turn-indicator';
 import { describe, expect, it } from 'vitest';
 
 describe('buildTurnIndicator', () => {
-  it('戦闘が始まっていなければ何も表示しない', () => {
+  it('shows nothing before a fight has begun', () => {
     expect(buildTurnIndicator('idle', 0, '')).toBeNull();
   });
 
-  it('ラウンド開始・終了はキャラ名ではなく状態を出す', () => {
+  it('names the state rather than a character at the start and end of a round', () => {
     expect(buildTurnIndicator('roundStart', 3, '')).toEqual({
       round: 3,
       statusKey: 'feature.turnOrder.beforeRound',
@@ -19,7 +19,7 @@ describe('buildTurnIndicator', () => {
     });
   });
 
-  it('行動中は手番のキャラ名を出す', () => {
+  it('names the character whose turn it is', () => {
     expect(buildTurnIndicator('acting', 2, 'エクィテス')).toEqual({
       round: 2,
       statusKey: null,
@@ -27,7 +27,7 @@ describe('buildTurnIndicator', () => {
     });
   });
 
-  it('行動中でも手番のキャラが特定できなければ状態を出す', () => {
+  it('falls back to the state when the acting character cannot be found', () => {
     expect(buildTurnIndicator('acting', 2, '')).toEqual({
       round: 2,
       statusKey: 'feature.turnOrder.noTurn',

@@ -13,11 +13,11 @@ describe('hideIconWhileTouched()', () => {
   beforeEach(() => vi.useFakeTimers());
   afterEach(() => vi.useRealTimers());
 
-  it('触るまでは出したままにすること', () => {
+  it('leaves the icon showing until the piece is touched', () => {
     expect(hideIconWhileTouched(destroyRef().ref).isHidden()).toBe(false);
   });
 
-  it('触っているあいだは隠すこと', () => {
+  it('hides it while the piece is touched', () => {
     const hiding = hideIconWhileTouched(destroyRef().ref);
 
     hiding.touch();
@@ -25,7 +25,7 @@ describe('hideIconWhileTouched()', () => {
     expect(hiding.isHidden()).toBe(true);
   });
 
-  it('触り終えてしばらくしてから戻すこと', () => {
+  it('brings it back a moment after the touch ends', () => {
     const hiding = hideIconWhileTouched(destroyRef().ref);
 
     hiding.touch();
@@ -36,8 +36,8 @@ describe('hideIconWhileTouched()', () => {
     expect(hiding.isHidden()).toBe(false);
   });
 
-  it('触り続けているあいだは戻さないこと', () => {
-    // 動かしている最中に戻ると、狙っている駒がアイコンで隠れてちらつく。
+  it('keeps it hidden while the touch continues', () => {
+    // Bringing it back mid-drag would flicker over the piece being aimed at.
     const hiding = hideIconWhileTouched(destroyRef().ref);
 
     hiding.touch();
@@ -48,7 +48,7 @@ describe('hideIconWhileTouched()', () => {
     expect(hiding.isHidden()).toBe(true);
   });
 
-  it('片付けたあとに戻さないこと', () => {
+  it('does not bring it back after teardown', () => {
     const { ref, destroy } = destroyRef();
     const hiding = hideIconWhileTouched(ref);
 

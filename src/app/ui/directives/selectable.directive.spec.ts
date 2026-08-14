@@ -33,7 +33,7 @@ describe('SelectableDirective', () => {
     service = TestBed.inject(SelectionSignalService);
   });
 
-  it('Ctrl+クリックで選択をトグルする', () => {
+  it('toggles the selection on ctrl-click', () => {
     const { fixture, host, el } = makeFixture();
     host.target.set(makeObj('id-1'));
     fixture.detectChanges();
@@ -45,7 +45,7 @@ describe('SelectableDirective', () => {
     expect(service.isSelected('id-1')).toBe(false);
   });
 
-  it('Ctrl+クリックは stopPropagation して MovableDirective の drag-start を抑止する', () => {
+  it('stops a ctrl-click from starting a drag', () => {
     const { fixture, host, el } = makeFixture();
     host.target.set(makeObj('id-1'));
     fixture.detectChanges();
@@ -57,7 +57,7 @@ describe('SelectableDirective', () => {
     expect(preventSpy).toHaveBeenCalled();
   });
 
-  it('既存選択がある状態で未選択オブジェクトを Ctrl 無しでクリックすると replace される', () => {
+  it('replaces the selection when clicking an unselected object without ctrl', () => {
     const { fixture, host, el } = makeFixture();
     host.target.set(makeObj('id-2'));
     fixture.detectChanges();
@@ -68,7 +68,7 @@ describe('SelectableDirective', () => {
     expect(service.isSelected('id-2')).toBe(true);
   });
 
-  it('未選択状態で Ctrl 無しクリックでは何もしない（既存ドラッグ動作を維持）', () => {
+  it('does nothing on a plain click with no selection, leaving dragging as it was', () => {
     const { fixture, host, el } = makeFixture();
     host.target.set(makeObj('id-1'));
     fixture.detectChanges();
@@ -77,7 +77,7 @@ describe('SelectableDirective', () => {
     expect(service.isSelected('id-1')).toBe(false);
   });
 
-  it('選択時に app-selected クラスが付く', async () => {
+  it('marks a selected object with the selected class', async () => {
     const { fixture, host, el } = makeFixture();
     host.target.set(makeObj('id-1'));
     fixture.detectChanges();

@@ -11,7 +11,7 @@ describe('DoubleTap', () => {
   beforeEach(() => vi.useFakeTimers());
   afterEach(() => vi.useRealTimers());
 
-  it('1 度目では何も起こさないこと', () => {
+  it('does nothing on the first tap', () => {
     const tap = new DoubleTap(() => input());
     const run = vi.fn();
 
@@ -20,7 +20,7 @@ describe('DoubleTap', () => {
     expect(run).not.toHaveBeenCalled();
   });
 
-  it('マウスの 2 度目はその場で効かせること', () => {
+  it('acts on the second click straight away', () => {
     const tap = new DoubleTap(() => input());
     const run = vi.fn();
 
@@ -30,8 +30,8 @@ describe('DoubleTap', () => {
     expect(run).toHaveBeenCalledTimes(1);
   });
 
-  it('指の 2 度目は離すまで待つこと', () => {
-    // 押した瞬間に効かせると、めくるつもりで置いた指がそのまま移動になる。
+  it('waits for the finger to lift on the second tap', () => {
+    // Acting on the press would turn a finger meant to flip a card into a drag.
     const held = input();
     const tap = new DoubleTap(() => held);
     const run = vi.fn();
@@ -44,7 +44,7 @@ describe('DoubleTap', () => {
     expect(run).toHaveBeenCalledTimes(1);
   });
 
-  it('間が空いたら 1 度目に戻ること', () => {
+  it('starts over once the window has passed', () => {
     const tap = new DoubleTap(() => input());
     const run = vi.fn();
 
@@ -55,8 +55,8 @@ describe('DoubleTap', () => {
     expect(run).not.toHaveBeenCalled();
   });
 
-  it('指のほうが待つ間を長く取ること', () => {
-    // マウスなら間に合わない間隔でも、指はまだ 2 度目として拾う。
+  it('waits longer for a finger than for a mouse', () => {
+    // An interval too long for a mouse still counts as a second tap from a finger.
     const held = input();
     const tap = new DoubleTap(() => held);
     const run = vi.fn();
@@ -69,7 +69,7 @@ describe('DoubleTap', () => {
     expect(run).toHaveBeenCalledTimes(1);
   });
 
-  it('離れた場所での 2 度目は同じ場所と見なさないこと', () => {
+  it('does not call a distant second tap the same place', () => {
     const held = input(0, 0);
     const tap = new DoubleTap(() => held);
 
@@ -79,7 +79,7 @@ describe('DoubleTap', () => {
     expect(tap.isInPlace()).toBe(false);
   });
 
-  it('わずかな指のぶれは同じ場所と見なすこと', () => {
+  it('forgives a small wobble as the same place', () => {
     const held = input(0, 0);
     const tap = new DoubleTap(() => held);
 
@@ -89,7 +89,7 @@ describe('DoubleTap', () => {
     expect(tap.isInPlace()).toBe(true);
   });
 
-  it('取り消すと待ち受けも解くこと', () => {
+  it('drops the pending release when cancelled', () => {
     const held = input();
     const tap = new DoubleTap(() => held);
     const run = vi.fn();

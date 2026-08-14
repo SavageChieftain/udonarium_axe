@@ -19,7 +19,7 @@ describe('MovableDirective', () => {
     expect(MovableDirective).toBeDefined();
   });
 
-  describe('tabletopObjectが未設定の場合', () => {
+  describe('with no tabletop object set', () => {
     let fixture: ComponentFixture<TestHostComponent>;
 
     beforeEach(async () => {
@@ -33,29 +33,29 @@ describe('MovableDirective', () => {
       fixture = TestBed.createComponent(TestHostComponent);
     });
 
-    it('tabletopObject未設定でもコンポーネント生成時にエラーが発生しないこと', () => {
+    it('builds without a tabletop object', () => {
       expect(() => fixture.detectChanges()).not.toThrow();
     });
 
-    it('setPositionがnull tabletopObjectでエラーにならないこと', () => {
+    it('sets a position with no tabletop object', () => {
       fixture.detectChanges();
       const directive = fixture.debugElement.children[0].injector.get(MovableDirective);
       expect(() => directive['setPosition'](null as unknown as TabletopObject)).not.toThrow();
     });
 
-    it('setPositionがlocationなしオブジェクトでエラーにならないこと', () => {
+    it('sets a position for an object with no location', () => {
       fixture.detectChanges();
       const directive = fixture.debugElement.children[0].injector.get(MovableDirective);
       expect(() => directive['setPosition']({} as unknown as TabletopObject)).not.toThrow();
     });
 
-    it('shouldTransitionがnull tabletopObjectでfalseを返すこと', () => {
+    it('does not transition without a tabletop object', () => {
       fixture.detectChanges();
       const directive = fixture.debugElement.children[0].injector.get(MovableDirective);
       expect(directive['shouldTransition'](null as unknown as TabletopObject)).toBe(false);
     });
 
-    it('shouldTransitionがlocationなしオブジェクトでfalseを返すこと', () => {
+    it('does not transition for an object with no location', () => {
       fixture.detectChanges();
       const directive = fixture.debugElement.children[0].injector.get(MovableDirective);
       expect(directive['shouldTransition']({} as unknown as TabletopObject)).toBe(false);
