@@ -5,12 +5,10 @@ import { ObjectChangeService } from '@axe/application/sync/object-change.service
 import { AmbienceService } from '@axe/application/tabletop/ambience.service';
 import { TabletopService } from '@axe/application/tabletop/tabletop.service';
 import { ContextMenuService } from '@axe/application/ui/context-menu.service';
-import { tryBuildMultiSelectionContextMenu } from '@axe/application/ui/multi-selection-context-menu';
 import { PanelOption, PanelService } from '@axe/application/ui/panel.service';
-import { SelectionSignalService } from '@axe/application/ui/selection-signal.service';
+import { PieceContextMenuService } from '@axe/application/ui/piece-context-menu.service';
 import { UiSignalService } from '@axe/application/ui/ui-signal.service';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
-import { ObjectStore } from '@axe/core/sync/object-store';
 import {
   groundSurfaceLayer,
   groundSurfaceWash,
@@ -60,10 +58,9 @@ export class TableAmbienceComponent {
   private readonly tabletopService = inject(TabletopService);
   private readonly objectChange = inject(ObjectChangeService);
   private readonly contextMenuService = inject(ContextMenuService);
+  private readonly pieceContextMenu = inject(PieceContextMenuService);
   private readonly pointerDeviceService = inject(PointerDeviceService);
-  private readonly selectionSignalService = inject(SelectionSignalService);
   private readonly uiSignalService = inject(UiSignalService);
-  private readonly objectStore = inject(ObjectStore);
   private readonly panelService = inject(PanelService);
   private readonly t = inject(TRANSLATE_FN);
 
@@ -197,17 +194,7 @@ export class TableAmbienceComponent {
 
     const area = this.area();
     const menuPosition = this.pointerDeviceService.pointers[0];
-    const multi = tryBuildMultiSelectionContextMenu({
-      self: area,
-      selectionSignalService: this.selectionSignalService,
-      objectStore: this.objectStore,
-      t: this.t,
-      gridSize: this.gridSize(),
-    });
-    if (multi) {
-      this.contextMenuService.open(menuPosition, multi, this.t('feature.tabletop.selection.title'));
-      return;
-    }
+    if (this.pieceContextMenu.openForSelection(area, this.gridSize(), menuPosition)) return;
 
     const menu = buildTableAmbienceContextMenu(area, this.gridSize(), () => this.openSettings(area), this.t);
     this.contextMenuService.open(menuPosition, menu, area.name);

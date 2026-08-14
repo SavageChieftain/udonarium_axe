@@ -17,9 +17,8 @@ import { ObjectChangeService } from '@axe/application/sync/object-change.service
 import { TabletopService } from '@axe/application/tabletop/tabletop.service';
 import { TabletopActionService } from '@axe/application/tabletop/tabletop-action.service';
 import { ContextMenuService } from '@axe/application/ui/context-menu.service';
-import { tryBuildMultiSelectionContextMenu } from '@axe/application/ui/multi-selection-context-menu';
 import { PanelOption, PanelService } from '@axe/application/ui/panel.service';
-import { SelectionSignalService } from '@axe/application/ui/selection-signal.service';
+import { PieceContextMenuService } from '@axe/application/ui/piece-context-menu.service';
 import { sheetPanelTitle } from '@axe/application/ui/sheet-panel-title';
 import { UiSignalService } from '@axe/application/ui/ui-signal.service';
 import { CoordinateService } from '@axe/core/input/coordinate.service';
@@ -67,6 +66,7 @@ import { translateZCss, Z_OFFSET_RANGE_PX } from '@axe/ui/tabletop/z-offset';
 export class RangeComponent {
   private readonly tabletopActionService = inject(TabletopActionService);
   private readonly contextMenuService = inject(ContextMenuService);
+  private readonly pieceContextMenu = inject(PieceContextMenuService);
   private readonly elementRef = inject<ElementRef<HTMLElement>>(ElementRef);
   private readonly panelService = inject(PanelService);
   private readonly pointerDeviceService = inject(PointerDeviceService);
@@ -75,7 +75,6 @@ export class RangeComponent {
   private readonly objectStore = inject(ObjectStore);
   private readonly inventoryService = inject(GameObjectInventoryService);
   private readonly uiSignalService = inject(UiSignalService);
-  private readonly selectionSignalService = inject(SelectionSignalService);
   private readonly objectChange = inject(ObjectChangeService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly translateFn = inject(TRANSLATE_FN);
@@ -360,17 +359,7 @@ export class RangeComponent {
 
     if (!this.pointerDeviceService.isAllowedToOpenContextMenu) return;
     const menuPosition = this.pointerDeviceService.pointers[0];
-    const multi = tryBuildMultiSelectionContextMenu({
-      self: this.range(),
-      selectionSignalService: this.selectionSignalService,
-      objectStore: this.objectStore,
-      t: this.translateFn,
-      gridSize: this.gridSize,
-    });
-    if (multi) {
-      this.contextMenuService.open(menuPosition, multi, this.translateFn('feature.tabletop.selection.title'));
-      return;
-    }
+    if (this.pieceContextMenu.openForSelection(this.range(), this.gridSize, menuPosition)) return;
     const objectPosition = this.coordinateService.calcTabletopLocalCoordinate();
     const menuArray = buildRangeContextMenu(
       this.range()!,

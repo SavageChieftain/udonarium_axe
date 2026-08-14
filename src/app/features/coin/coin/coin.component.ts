@@ -17,14 +17,13 @@ import { ImageService } from '@axe/application/storage/image.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { TabletopService } from '@axe/application/tabletop/tabletop.service';
 import { ContextMenuSeparator, ContextMenuService } from '@axe/application/ui/context-menu.service';
-import { tryBuildMultiSelectionContextMenu } from '@axe/application/ui/multi-selection-context-menu';
 import { PanelOption, PanelService } from '@axe/application/ui/panel.service';
+import { PieceContextMenuService } from '@axe/application/ui/piece-context-menu.service';
 import { SelectionSignalService } from '@axe/application/ui/selection-signal.service';
 import { sheetPanelTitle } from '@axe/application/ui/sheet-panel-title';
 import { buildSurfaceSwitchContextMenu } from '@axe/application/ui/surface-switch-context-menu';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { imageFileEqual } from '@axe/core/storage/image-file';
-import { ObjectStore } from '@axe/core/sync/object-store';
 import { Coin, CoinFace } from '@axe/domain/coin/coin';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
 import { buildCoinContextMenu } from '@axe/features/coin/coin/coin-context-menu';
@@ -56,13 +55,13 @@ const MIN_THICKNESS_PX = 5;
 })
 export class CoinComponent {
   private readonly contextMenuService = inject(ContextMenuService);
+  private readonly pieceContextMenu = inject(PieceContextMenuService);
   private readonly rolePermission = inject(RolePermissionService);
   private readonly panelService = inject(PanelService);
   private readonly elementRef = inject<ElementRef<HTMLElement>>(ElementRef);
   protected readonly tabletopService = inject(TabletopService);
   private readonly imageService = inject(ImageService);
   private readonly pointerDeviceService = inject(PointerDeviceService);
-  private readonly objectStore = inject(ObjectStore);
   private readonly selectionSignalService = inject(SelectionSignalService);
   private readonly objectChange = inject(ObjectChangeService);
   private readonly destroyRef = inject(DestroyRef);
@@ -220,17 +219,7 @@ export class CoinComponent {
     if (!this.pointerDeviceService.isAllowedToOpenContextMenu) return;
 
     const position = this.pointerDeviceService.pointers[0];
-    const multi = tryBuildMultiSelectionContextMenu({
-      self: this.coin(),
-      selectionSignalService: this.selectionSignalService,
-      objectStore: this.objectStore,
-      t: this.translateFn,
-      gridSize: this.gridSize,
-    });
-    if (multi) {
-      this.contextMenuService.open(position, multi, this.translateFn('feature.tabletop.selection.title'));
-      return;
-    }
+    if (this.pieceContextMenu.openForSelection(this.coin(), this.gridSize, position)) return;
 
     const baseMenu = buildCoinContextMenu(
       this.coin(),

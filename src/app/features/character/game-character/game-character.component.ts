@@ -26,9 +26,9 @@ import { RangeShapeInvokeService } from '@axe/application/tabletop/range-shape-i
 import { TabletopService } from '@axe/application/tabletop/tabletop.service';
 import { VisionService } from '@axe/application/tabletop/vision.service';
 import { ContextMenuSeparator, ContextMenuService } from '@axe/application/ui/context-menu.service';
-import { tryBuildMultiSelectionContextMenu } from '@axe/application/ui/multi-selection-context-menu';
 import { buildOverlapContextMenu } from '@axe/application/ui/overlap-context-menu';
 import { PanelOption, PanelService } from '@axe/application/ui/panel.service';
+import { PieceContextMenuService } from '@axe/application/ui/piece-context-menu.service';
 import { SelectionSignalService } from '@axe/application/ui/selection-signal.service';
 import { sheetPanelTitle } from '@axe/application/ui/sheet-panel-title';
 import { buildSurfaceSwitchContextMenu } from '@axe/application/ui/surface-switch-context-menu';
@@ -127,6 +127,7 @@ const BUFF_BADGES_PER_ROW = 6;
 })
 export class GameCharacterComponent {
   private readonly contextMenuService = inject(ContextMenuService);
+  private readonly pieceContextMenu = inject(PieceContextMenuService);
   private readonly elementRef = inject<ElementRef<HTMLElement>>(ElementRef);
   private readonly panelService = inject(PanelService);
   private readonly pointerDeviceService = inject(PointerDeviceService);
@@ -723,17 +724,7 @@ export class GameCharacterComponent {
     if (!this.pointerDeviceService.isAllowedToOpenContextMenu) return;
 
     const position = this.pointerDeviceService.pointers[0];
-    const multi = tryBuildMultiSelectionContextMenu({
-      self: char,
-      selectionSignalService: this.selectionSignalService,
-      objectStore: this.objectStore,
-      t: this.translateFn,
-      gridSize: this.gridSize,
-    });
-    if (multi) {
-      this.contextMenuService.open(position, multi, this.translateFn('feature.tabletop.selection.title'));
-      return;
-    }
+    if (this.pieceContextMenu.openForSelection(char, this.gridSize, position)) return;
     const overlapEntries = buildOverlapContextMenu(
       this.tabletopOverlap,
       char,

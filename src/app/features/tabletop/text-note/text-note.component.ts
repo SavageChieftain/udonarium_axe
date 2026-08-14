@@ -19,14 +19,13 @@ import { RolePermissionService } from '@axe/application/permission/role-permissi
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { TabletopService } from '@axe/application/tabletop/tabletop.service';
 import { ContextMenuSeparator, ContextMenuService } from '@axe/application/ui/context-menu.service';
-import { tryBuildMultiSelectionContextMenu } from '@axe/application/ui/multi-selection-context-menu';
 import { PanelOption, PanelService } from '@axe/application/ui/panel.service';
+import { PieceContextMenuService } from '@axe/application/ui/piece-context-menu.service';
 import { SelectionSignalService } from '@axe/application/ui/selection-signal.service';
 import { sheetPanelTitle } from '@axe/application/ui/sheet-panel-title';
 import { buildSurfaceSwitchContextMenu } from '@axe/application/ui/surface-switch-context-menu';
 import { UiSignalService } from '@axe/application/ui/ui-signal.service';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
-import { ObjectStore } from '@axe/core/sync/object-store';
 import { DataElement } from '@axe/domain/data/data-element';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
@@ -57,6 +56,7 @@ import { decorateChatStyleText } from '@axe/ui/text-decoration/decorate-chat-tex
 })
 export class TextNoteComponent {
   private readonly contextMenuService = inject(ContextMenuService);
+  private readonly pieceContextMenu = inject(PieceContextMenuService);
   private readonly rolePermission = inject(RolePermissionService);
   private readonly disclosureService = inject(DisclosureService);
 
@@ -70,7 +70,6 @@ export class TextNoteComponent {
   private readonly elementRef = inject<ElementRef<HTMLElement>>(ElementRef);
   private readonly panelService = inject(PanelService);
   private readonly pointerDeviceService = inject(PointerDeviceService);
-  private readonly objectStore = inject(ObjectStore);
   private readonly selectionSignalService = inject(SelectionSignalService);
   private readonly inventoryService = inject(GameObjectInventoryService);
   private readonly uiSignalService = inject(UiSignalService);
@@ -356,17 +355,7 @@ export class TextNoteComponent {
 
     if (!this.pointerDeviceService.isAllowedToOpenContextMenu) return;
     const position = this.pointerDeviceService.pointers[0];
-    const multi = tryBuildMultiSelectionContextMenu({
-      self: this.textNote(),
-      selectionSignalService: this.selectionSignalService,
-      objectStore: this.objectStore,
-      t: this.translateFn,
-      gridSize: this.gridSize,
-    });
-    if (multi) {
-      this.contextMenuService.open(position, multi, this.translateFn('feature.tabletop.selection.title'));
-      return;
-    }
+    if (this.pieceContextMenu.openForSelection(this.textNote(), this.gridSize, position)) return;
     const baseMenu = buildTextNoteContextMenu(
       this.textNote(),
       this.gridSize,

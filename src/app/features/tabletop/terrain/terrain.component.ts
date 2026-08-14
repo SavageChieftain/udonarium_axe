@@ -20,9 +20,9 @@ import { TabletopService } from '@axe/application/tabletop/tabletop.service';
 import { TabletopActionService } from '@axe/application/tabletop/tabletop-action.service';
 import { VisionService } from '@axe/application/tabletop/vision.service';
 import { ContextMenuSeparator, ContextMenuService } from '@axe/application/ui/context-menu.service';
-import { tryBuildMultiSelectionContextMenu } from '@axe/application/ui/multi-selection-context-menu';
 import { buildOverlapContextMenu } from '@axe/application/ui/overlap-context-menu';
 import { PanelOption, PanelService } from '@axe/application/ui/panel.service';
+import { PieceContextMenuService } from '@axe/application/ui/piece-context-menu.service';
 import { SelectionSignalService } from '@axe/application/ui/selection-signal.service';
 import { sheetPanelTitle } from '@axe/application/ui/sheet-panel-title';
 import { buildSurfaceSwitchContextMenu } from '@axe/application/ui/surface-switch-context-menu';
@@ -31,7 +31,6 @@ import { UiSignalService } from '@axe/application/ui/ui-signal.service';
 import { CoordinateService } from '@axe/core/input/coordinate.service';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { imageFileEqual } from '@axe/core/storage/image-file';
-import { ObjectStore } from '@axe/core/sync/object-store';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
 import { GameTable, GridType } from '@axe/domain/tabletop/game-table';
 import { isFlatTopGrid, isHexGrid } from '@axe/domain/tabletop/hex-geometry';
@@ -93,13 +92,13 @@ export class TerrainComponent {
   private readonly imageService = inject(ImageService);
   private readonly tabletopActionService = inject(TabletopActionService);
   private readonly contextMenuService = inject(ContextMenuService);
+  private readonly pieceContextMenu = inject(PieceContextMenuService);
   private readonly elementRef = inject<ElementRef<HTMLElement>>(ElementRef);
   private readonly panelService = inject(PanelService);
   private readonly pointerDeviceService = inject(PointerDeviceService);
   private readonly coordinateService = inject(CoordinateService);
   protected readonly tabletopService = inject(TabletopService);
   protected readonly visionService = inject(VisionService);
-  private readonly objectStore = inject(ObjectStore);
   private readonly selectionSignalService = inject(SelectionSignalService);
   private readonly inventoryService = inject(GameObjectInventoryService);
   private readonly uiSignalService = inject(UiSignalService);
@@ -508,17 +507,7 @@ export class TerrainComponent {
     if (!this.pointerDeviceService.isAllowedToOpenContextMenu) return;
 
     const menuPosition = this.pointerDeviceService.pointers[0];
-    const multi = tryBuildMultiSelectionContextMenu({
-      self: this.terrain(),
-      selectionSignalService: this.selectionSignalService,
-      objectStore: this.objectStore,
-      t: this.translateFn,
-      gridSize: this.gridSize,
-    });
-    if (multi) {
-      this.contextMenuService.open(menuPosition, multi, this.translateFn('feature.tabletop.selection.title'));
-      return;
-    }
+    if (this.pieceContextMenu.openForSelection(this.terrain(), this.gridSize, menuPosition)) return;
     const objectPosition = this.coordinateService.calcTabletopLocalCoordinate();
     const overlapEntries = buildOverlapContextMenu(
       this.tabletopOverlap,

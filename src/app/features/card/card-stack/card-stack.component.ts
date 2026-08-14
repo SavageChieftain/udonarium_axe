@@ -19,15 +19,14 @@ import { TabletopService } from '@axe/application/tabletop/tabletop.service';
 import { ContextMenuSeparator, ContextMenuService } from '@axe/application/ui/context-menu.service';
 import { ModalService } from '@axe/application/ui/modal.service';
 import { MultiMovableService } from '@axe/application/ui/multi-movable.service';
-import { tryBuildMultiSelectionContextMenu } from '@axe/application/ui/multi-selection-context-menu';
 import { PanelOption, PanelService } from '@axe/application/ui/panel.service';
+import { PieceContextMenuService } from '@axe/application/ui/piece-context-menu.service';
 import { SelectionSignalService } from '@axe/application/ui/selection-signal.service';
 import { sheetPanelTitle } from '@axe/application/ui/sheet-panel-title';
 import { buildSurfaceSwitchContextMenu } from '@axe/application/ui/surface-switch-context-menu';
 import { Network } from '@axe/core/index';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { imageFileEqual } from '@axe/core/storage/image-file';
-import { ObjectStore } from '@axe/core/sync/object-store';
 import { Card } from '@axe/domain/card/card';
 import { CardStack } from '@axe/domain/card/card-stack';
 import { copyDetailSchema } from '@axe/domain/card/deck-builder';
@@ -64,12 +63,12 @@ import { TranslocoModule } from '@jsverse/transloco';
 export class CardStackComponent {
   private readonly cardGameService = inject(CardGameService);
   private readonly contextMenuService = inject(ContextMenuService);
+  private readonly pieceContextMenu = inject(PieceContextMenuService);
   private readonly rolePermission = inject(RolePermissionService);
   private readonly panelService = inject(PanelService);
   private readonly elementRef = inject<ElementRef<HTMLElement>>(ElementRef);
   private readonly imageService = inject(ImageService);
   private readonly pointerDeviceService = inject(PointerDeviceService);
-  private readonly objectStore = inject(ObjectStore);
   private readonly selectionSignalService = inject(SelectionSignalService);
   private readonly objectChange = inject(ObjectChangeService);
   protected readonly tabletopService = inject(TabletopService);
@@ -318,17 +317,7 @@ export class CardStackComponent {
 
     if (!this.pointerDeviceService.isAllowedToOpenContextMenu) return;
     const position = this.pointerDeviceService.pointers[0];
-    const multi = tryBuildMultiSelectionContextMenu({
-      self: this.cardStack(),
-      selectionSignalService: this.selectionSignalService,
-      objectStore: this.objectStore,
-      t: this.translateFn,
-      gridSize: this.gridSize,
-    });
-    if (multi) {
-      this.contextMenuService.open(position, multi, this.translateFn('feature.tabletop.selection.title'));
-      return;
-    }
+    if (this.pieceContextMenu.openForSelection(this.cardStack(), this.gridSize, position)) return;
     const menuArray = buildCardStackContextMenu(
       this.cardStack(),
       this.gridSize,

@@ -3,9 +3,8 @@ import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { TabletopService } from '@axe/application/tabletop/tabletop.service';
 import { ContextMenuService } from '@axe/application/ui/context-menu.service';
-import { tryBuildMultiSelectionContextMenu } from '@axe/application/ui/multi-selection-context-menu';
 import { PanelOption, PanelService } from '@axe/application/ui/panel.service';
-import { SelectionSignalService } from '@axe/application/ui/selection-signal.service';
+import { PieceContextMenuService } from '@axe/application/ui/piece-context-menu.service';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { GameCharacter } from '@axe/domain/character/game-character';
@@ -33,8 +32,8 @@ import { translateZCss, Z_OFFSET_RANGE_PX } from '@axe/ui/tabletop/z-offset';
 })
 export class LightSourceComponent {
   private readonly contextMenuService = inject(ContextMenuService);
+  private readonly pieceContextMenu = inject(PieceContextMenuService);
   private readonly pointerDeviceService = inject(PointerDeviceService);
-  private readonly selectionSignalService = inject(SelectionSignalService);
   private readonly objectStore = inject(ObjectStore);
   private readonly panelService = inject(PanelService);
   private readonly tabletopService = inject(TabletopService);
@@ -120,17 +119,7 @@ export class LightSourceComponent {
 
     const light = this.lightSource();
     const menuPosition = this.pointerDeviceService.pointers[0];
-    const multi = tryBuildMultiSelectionContextMenu({
-      self: light,
-      selectionSignalService: this.selectionSignalService,
-      objectStore: this.objectStore,
-      t: this.translateFn,
-      gridSize: this.gridSize,
-    });
-    if (multi) {
-      this.contextMenuService.open(menuPosition, multi, this.translateFn('feature.tabletop.selection.title'));
-      return;
-    }
+    if (this.pieceContextMenu.openForSelection(light, this.gridSize, menuPosition)) return;
 
     const characters = this.objectStore
       .getObjects(GameCharacter)
