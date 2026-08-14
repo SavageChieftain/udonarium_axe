@@ -246,15 +246,15 @@ export class TerrainComponent {
 
   readonly height = computed(() => {
     this.terrainVersion();
-    return this.adjustMinBounds(this.terrain().height);
+    return Math.max(0, this.terrain().height);
   });
   readonly width = computed(() => {
     this.terrainVersion();
-    return this.adjustMinBounds(this.terrain().width);
+    return Math.max(0, this.terrain().width);
   });
   readonly depth = computed(() => {
     this.terrainVersion();
-    return this.adjustMinBounds(this.terrain().depth);
+    return Math.max(0, this.terrain().depth);
   });
   readonly altitude = computed(() => {
     this.terrainVersion();
@@ -684,10 +684,6 @@ export class TerrainComponent {
       offsetLeft: this.terrain().location.x + bounds.left + canvasLeft,
       offsetTop: this.terrain().location.y + bounds.top + canvasTop,
     };
-  }
-
-  private adjustMinBounds(value: number, min: number = 0): number {
-    return value < min ? min : value;
   }
 
   private showDetail(gameObject: Terrain) {

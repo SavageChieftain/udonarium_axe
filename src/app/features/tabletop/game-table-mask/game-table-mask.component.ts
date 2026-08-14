@@ -131,11 +131,11 @@ export class GameTableMaskComponent {
 
   get width(): number {
     const mask = this.gameTableMask();
-    return this.adjustMinBounds(mask?.width ?? 0);
+    return Math.max(0, mask?.width ?? 0);
   }
   get height(): number {
     const mask = this.gameTableMask();
-    return this.adjustMinBounds(mask?.height ?? 0);
+    return Math.max(0, mask?.height ?? 0);
   }
   get opacity(): number {
     const mask = this.gameTableMask();
@@ -592,10 +592,6 @@ export class GameTableMaskComponent {
     this._scratchingGridY = -1;
     SoundEffect.play(PresetSound.unlock);
     return false;
-  }
-
-  private adjustMinBounds(value: number, min: number = 0): number {
-    return value < min ? min : value;
   }
 
   private showDetail(gameObject: GameTableMask) {

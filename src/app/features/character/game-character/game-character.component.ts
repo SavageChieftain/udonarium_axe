@@ -278,7 +278,7 @@ export class GameCharacterComponent {
   readonly size = computed(() => {
     const char = this.gameCharacter();
     this.objectChange.versionOf(char?.identifier ?? '')();
-    return this.adjustMinBounds(char?.size ?? 0);
+    return Math.max(0, char?.size ?? 0);
   });
   readonly altitude = computed(() => {
     const char = this.gameCharacter();
@@ -836,10 +836,6 @@ export class GameCharacterComponent {
         this.uiSignalService.notifyTargetChange(char.identifier, char.aliasName);
       }
     }
-  }
-
-  private adjustMinBounds(value: number, min: number = 0): number {
-    return value < min ? min : value;
   }
 
   /** キャラクターシートに登録した演出を撃つ。名前で引くので部屋をまたいでも同じ行が使える。 */

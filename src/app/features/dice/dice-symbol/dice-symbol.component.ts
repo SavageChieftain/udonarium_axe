@@ -38,6 +38,7 @@ import { SelectableDirective } from '@axe/ui/directives/selectable.directive';
 import { SafePipe } from '@axe/ui/pipes/safe.pipe';
 import { makeBillboardTransform, makeLabelOrbitTransform } from '@axe/ui/tabletop/billboard-transform';
 import { DoubleTap } from '@axe/ui/tabletop/double-tap';
+import { hideIconWhileTouched } from '@axe/ui/tabletop/icon-hiding';
 import { setupInputHandler, setupMovableRotableForPiece } from '@axe/ui/tabletop/setup-tabletop-piece';
 import { supersampleFactor, supersampleInsetPercent, supersampleTransform } from '@axe/ui/tabletop/supersample';
 import { translateZCss, Z_OFFSET_TALL_OBJECT_PX } from '@axe/ui/tabletop/z-offset';
@@ -105,7 +106,7 @@ export class DiceSymbolComponent {
   });
   readonly size = computed(() => {
     this.objectChange.versionOf(this.diceSymbol().identifier)();
-    return this.adjustMinBounds(this.diceSymbol().size);
+    return Math.max(0, this.diceSymbol().size);
   });
 
   readonly imageHeignt = computed(() => {
@@ -152,8 +153,8 @@ export class DiceSymbolComponent {
 
   readonly animeState = signal<'inactive' | 'active'>('inactive');
 
-  private iconHiddenTimer: ReturnType<typeof setTimeout> | null = null;
-  readonly isIconHidden = signal(false);
+  private readonly iconHiding = hideIconWhileTouched(this.destroyRef);
+  readonly isIconHidden = this.iconHiding.isHidden;
 
   get gridSize(): number {
     return this.tabletopService.gridSize();
@@ -295,7 +296,6 @@ export class DiceSymbolComponent {
     });
     this.destroyRef.onDestroy(() => {
       this.doubleTap.cancel();
-      clearTimeout(this.iconHiddenTimer ?? undefined);
     });
   }
 
@@ -310,7 +310,7 @@ export class DiceSymbolComponent {
 
   onInputStart(e: MouseEvent | TouchEvent) {
     this.startDoubleClickTimer(e);
-    this.startIconHiddenTimer();
+    this.iconHiding.touch();
   }
 
   startDoubleClickTimer(e: MouseEvent | TouchEvent) {
@@ -397,18 +397,5 @@ export class DiceSymbolComponent {
       option,
       (component) => (component.diceSymbol = gameObject)
     );
-  }
-
-  private startIconHiddenTimer() {
-    clearTimeout(this.iconHiddenTimer ?? undefined);
-    this.iconHiddenTimer = setTimeout(() => {
-      this.iconHiddenTimer = null;
-      this.isIconHidden.set(false);
-    }, 300);
-    this.isIconHidden.set(true);
-  }
-
-  private adjustMinBounds(value: number, min: number = 0): number {
-    return value < min ? min : value;
   }
 }

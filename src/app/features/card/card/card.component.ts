@@ -41,6 +41,7 @@ import { RotableDirective } from '@axe/ui/directives/rotable.directive';
 import { SelectableDirective } from '@axe/ui/directives/selectable.directive';
 import { SafePipe } from '@axe/ui/pipes/safe.pipe';
 import { DoubleTap } from '@axe/ui/tabletop/double-tap';
+import { hideIconWhileTouched } from '@axe/ui/tabletop/icon-hiding';
 import { setupInputHandler, setupMovableRotableForPiece } from '@axe/ui/tabletop/setup-tabletop-piece';
 import { supersampleFactor, supersampleInsetPercent, supersampleTransform } from '@axe/ui/tabletop/supersample';
 import { translateZCss, Z_OFFSET_TABLETOP_OBJECT_PX } from '@axe/ui/tabletop/z-offset';
@@ -121,7 +122,7 @@ export class CardComponent {
     return this.card().zindex;
   }
   get size(): number {
-    return this.adjustMinBounds(this.card().size);
+    return Math.max(0, this.card().size);
   }
 
   get isPeeking(): boolean {
@@ -223,8 +224,8 @@ export class CardComponent {
   private readonly handDrag = inject(HandDragService);
   private positionBeforeDrag: { x: number; y: number } | null = null;
 
-  private iconHiddenTimer: ReturnType<typeof setTimeout> | null = null;
-  readonly isIconHidden = signal(false);
+  private readonly iconHiding = hideIconWhileTouched(this.destroyRef);
+  readonly isIconHidden = this.iconHiding.isHidden;
 
   get gridSize(): number {
     return this.tabletopService.gridSize();
@@ -243,7 +244,6 @@ export class CardComponent {
     });
     this.destroyRef.onDestroy(() => {
       this.doubleTap.cancel();
-      clearTimeout(this.iconHiddenTimer ?? undefined);
     });
   }
 
@@ -304,7 +304,7 @@ export class CardComponent {
   onInputStart(e: MouseEvent | TouchEvent) {
     this.startDoubleClickTimer(e);
     this.card().toTopmost();
-    this.startIconHiddenTimer();
+    this.iconHiding.touch();
   }
 
   onContextMenu(e: Event) {
@@ -416,19 +416,6 @@ export class CardComponent {
     for (let i = 0; i < children.length; i++) {
       children[i].dispatchEvent(event);
     }
-  }
-
-  private startIconHiddenTimer() {
-    clearTimeout(this.iconHiddenTimer ?? undefined);
-    this.iconHiddenTimer = setTimeout(() => {
-      this.iconHiddenTimer = null;
-      this.isIconHidden.set(false);
-    }, 300);
-    this.isIconHidden.set(true);
-  }
-
-  private adjustMinBounds(value: number, min: number = 0): number {
-    return value < min ? min : value;
   }
 
   private showDetail(gameObject: Card) {

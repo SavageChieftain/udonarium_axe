@@ -216,10 +216,10 @@ export class TextNoteComponent {
     this.textNote().rotate = rotate;
   }
   get height(): number {
-    return this.adjustMinBounds(this.textNote().height);
+    return Math.max(0, this.textNote().height);
   }
   get width(): number {
-    return this.adjustMinBounds(this.textNote().width);
+    return Math.max(0, this.textNote().width);
   }
 
   get altitude(): number {
@@ -431,10 +431,6 @@ export class TextNoteComponent {
       if (textAreaHeight > textAreaMax) textAreaHeight = textAreaMax;
       textArea.style.height = textAreaHeight + 'px';
     }
-  }
-
-  private adjustMinBounds(value: number, min: number = 0): number {
-    return value < min ? min : value;
   }
 
   private addMouseEventListeners() {

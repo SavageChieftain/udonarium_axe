@@ -42,6 +42,7 @@ import { RotableDirective } from '@axe/ui/directives/rotable.directive';
 import { SelectableDirective } from '@axe/ui/directives/selectable.directive';
 import { SafePipe } from '@axe/ui/pipes/safe.pipe';
 import { DoubleTap } from '@axe/ui/tabletop/double-tap';
+import { hideIconWhileTouched } from '@axe/ui/tabletop/icon-hiding';
 import { setupInputHandler, setupMovableRotableForPiece } from '@axe/ui/tabletop/setup-tabletop-piece';
 import { supersampleFactor, supersampleInsetPercent, supersampleTransform } from '@axe/ui/tabletop/supersample';
 import { translateZCss, Z_OFFSET_TABLETOP_OBJECT_PX } from '@axe/ui/tabletop/z-offset';
@@ -208,8 +209,8 @@ export class CardStackComponent {
   readonly animeState = signal<'active' | 'inactive'>('inactive');
   private readonly cardsVersion = signal(0);
 
-  private iconHiddenTimer: ReturnType<typeof setTimeout> | null = null;
-  readonly isIconHidden = signal(false);
+  private readonly iconHiding = hideIconWhileTouched(this.destroyRef);
+  readonly isIconHidden = this.iconHiding.isHidden;
 
   get gridSize(): number {
     return this.tabletopService.gridSize();
@@ -237,7 +238,6 @@ export class CardStackComponent {
     });
     this.destroyRef.onDestroy(() => {
       this.doubleTap.cancel();
-      clearTimeout(this.iconHiddenTimer ?? undefined);
     });
   }
 
@@ -306,7 +306,7 @@ export class CardStackComponent {
   onInputStart(e: MouseEvent | TouchEvent) {
     this.startDoubleClickTimer(e);
     this.cardStack().toTopmost();
-    this.startIconHiddenTimer();
+    this.iconHiding.touch();
 
     this.selectionSignalService.selectObject(this.cardStack().identifier, 'GameCharacter');
   }
@@ -520,14 +520,5 @@ export class CardStackComponent {
       option,
       (component) => (component.tabletopObject = gameObject)
     );
-  }
-
-  private startIconHiddenTimer() {
-    clearTimeout(this.iconHiddenTimer ?? undefined);
-    this.iconHiddenTimer = setTimeout(() => {
-      this.iconHiddenTimer = null;
-      this.isIconHidden.set(false);
-    }, 300);
-    this.isIconHidden.set(true);
   }
 }

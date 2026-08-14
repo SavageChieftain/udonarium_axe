@@ -206,11 +206,11 @@ export class RangeComponent {
   });
   readonly width = computed(() => {
     this.rangeVersion();
-    return this.adjustMinBounds(this.range().width);
+    return Math.max(0, this.range().width);
   });
   readonly length = computed(() => {
     this.rangeVersion();
-    return this.adjustMinBounds(this.range().length);
+    return Math.max(0, this.range().length);
   });
   readonly opacity = computed(() => {
     this.rangeVersion();
@@ -409,10 +409,6 @@ export class RangeComponent {
 
   onRotateChanged(degree: number) {
     this.setRange(degree);
-  }
-
-  private adjustMinBounds(value: number, min: number = 0): number {
-    return value < min ? min : value;
   }
 
   private async openCellEditor(range: RangeArea): Promise<void> {
