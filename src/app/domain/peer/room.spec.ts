@@ -1,8 +1,12 @@
 import { TestBed } from '@angular/core/testing';
+import { setNetworkIsolated } from '@axe/core/network/network-isolation';
+import { networkMessage$ } from '@axe/core/network/network-messaging';
 import { ObjectSerializer } from '@axe/core/sync/object-serializer';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { Card } from '@axe/domain/card/card';
 import { GameCharacter } from '@axe/domain/character/game-character';
+import { createDefaultEffectPresets } from '@axe/domain/effect/builtin-effect-presets';
+import { EffectPreset } from '@axe/domain/effect/effect-preset';
 import { Party } from '@axe/domain/party/party';
 import { ReloadCheck } from '@axe/domain/peer/reload-check';
 import { Room } from '@axe/domain/peer/room';
@@ -84,6 +88,55 @@ describe('Room', () => {
       expect(parties[0].name).toBe('本隊');
       expect(parties[0].color).toBe('#fcd34d');
       expect(store.getObjects(GameCharacter)[0].partyIdentifier).toBe(parties[0].identifier);
+    });
+  });
+
+  describe('parseInnerXml() — 演出集の扱い', () => {
+    function loadRoom(inner: string): void {
+      const reloadCheck = new ReloadCheck('ReloadCheck');
+      reloadCheck.initialize();
+      reloadCheck.reloadCheckStart(false);
+      ObjectSerializer.instance.parseXml(`<room>${inner}</room>`);
+    }
+
+    it('演出の入っていない部屋データでは同卓者へ削除を配らないこと', () => {
+      // 消してから同じ identifier で入れ直すと、手元では戻るが、同卓者側では
+      // 「消えた物の復活」として拒まれ、読み込んだ本人にだけ演出が残る。
+      const before = createDefaultEffectPresets();
+      const identifiers = new Set(before.map((preset) => preset.identifier));
+      const deleted: string[] = [];
+      const off = networkMessage$.subscribe((message) => {
+        if (message.eventName !== 'DELETE_GAME_OBJECT') return;
+        const identifier = String((message.data as { identifier?: string }).identifier ?? '');
+        if (identifiers.has(identifier)) deleted.push(identifier);
+      });
+
+      try {
+        setNetworkIsolated(true);
+        loadRoom('<card></card>');
+      } finally {
+        setNetworkIsolated(false);
+        off();
+      }
+
+      expect(deleted).toEqual([]);
+      expect(store.getObjects<EffectPreset>(EffectPreset)).toHaveLength(before.length);
+    });
+
+    it('演出を持ち込んだ部屋データでは持ち込みに入れ替えること', () => {
+      createDefaultEffectPresets();
+
+      loadRoom('<effect-preset name="持ち込みの一撃" kind="bash"></effect-preset>');
+
+      const after = store.getObjects<EffectPreset>(EffectPreset);
+      expect(after).toHaveLength(1);
+      expect(after[0].name).toBe('持ち込みの一撃');
+    });
+
+    it('どこにも演出が無ければ既定を用意すること', () => {
+      loadRoom('<card></card>');
+
+      expect(store.getObjects<EffectPreset>(EffectPreset).length).toBeGreaterThan(0);
     });
   });
 
