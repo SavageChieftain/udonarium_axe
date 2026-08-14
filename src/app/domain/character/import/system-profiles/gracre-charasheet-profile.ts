@@ -12,6 +12,7 @@ import {
   asArray,
   asString,
   buildPrefixedSection,
+  isCharasheetGame,
 } from '@axe/domain/character/import/system-profiles/charasheet-shared';
 
 // グランクレストRPG（保管所 game="gracre"）の能力ボーナス。NB{i} = 各能力値ボーナス。順序は標準（SNE 6 能力値）。
@@ -46,9 +47,7 @@ const PROFILE_FIELDS: { key: string; label: string }[] = [
 ];
 
 export function isGracreCharasheetCharacter(parsed: unknown): boolean {
-  if (parsed == null || typeof parsed !== 'object') return false;
-  const record = parsed as Record<string, unknown>;
-  return typeof record['pc_name'] === 'string' && asString(record['game']).trim().toLowerCase() === 'gracre';
+  return isCharasheetGame(parsed, 'gracre');
 }
 
 function buildParams(record: Record<string, unknown>): ImportedParam[] {

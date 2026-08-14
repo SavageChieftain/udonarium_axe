@@ -10,7 +10,7 @@ import {
   profileSectionOf,
   scalarField,
 } from '@axe/domain/character/import/imported-character';
-import { asArray, asString } from '@axe/domain/character/import/system-profiles/charasheet-shared';
+import { asArray, asString, isCharasheetGame } from '@axe/domain/character/import/system-profiles/charasheet-shared';
 
 /**
  * 永い後日談のネクロニカ（保管所 game="nechro"）プロファイル。
@@ -49,9 +49,7 @@ const PROFILE_FIELDS: { key: string; label: string }[] = [
 ];
 
 export function isNechroCharasheetCharacter(parsed: unknown): boolean {
-  if (parsed == null || typeof parsed !== 'object') return false;
-  const record = parsed as Record<string, unknown>;
-  return typeof record['pc_name'] === 'string' && asString(record['game']).trim().toLowerCase() === 'nechro';
+  return isCharasheetGame(parsed, 'nechro');
 }
 
 function mappedField(label: string, raw: unknown, map: Record<string, string>): ImportedField | null {

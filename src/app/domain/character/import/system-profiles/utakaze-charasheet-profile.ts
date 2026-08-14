@@ -8,7 +8,11 @@ import {
   normalizeHexColor,
   profileSectionOf,
 } from '@axe/domain/character/import/imported-character';
-import { asString, buildPrefixedSection } from '@axe/domain/character/import/system-profiles/charasheet-shared';
+import {
+  asString,
+  buildPrefixedSection,
+  isCharasheetGame,
+} from '@axe/domain/character/import/system-profiles/charasheet-shared';
 
 // ウタカゼ（保管所 game="utakaze"）の4能力値。キーが名前付き（N_Yuuki=勇気 等）なので位置推測は不要。
 const ABILITIES: { key: string; label: string }[] = [
@@ -38,9 +42,7 @@ const PROFILE_FIELDS: { key: string; label: string }[] = [
 ];
 
 export function isUtakazeCharasheetCharacter(parsed: unknown): boolean {
-  if (parsed == null || typeof parsed !== 'object') return false;
-  const record = parsed as Record<string, unknown>;
-  return typeof record['pc_name'] === 'string' && asString(record['game']).trim().toLowerCase() === 'utakaze';
+  return isCharasheetGame(parsed, 'utakaze');
 }
 
 function buildParams(record: Record<string, unknown>): ImportedParam[] {

@@ -8,7 +8,11 @@ import {
   normalizeHexColor,
   profileSectionOf,
 } from '@axe/domain/character/import/imported-character';
-import { asString, buildPrefixedSection } from '@axe/domain/character/import/system-profiles/charasheet-shared';
+import {
+  asString,
+  buildPrefixedSection,
+  isCharasheetGame,
+} from '@axe/domain/character/import/system-profiles/charasheet-shared';
 
 // ナイトウィザード3rd（保管所 game="nw3"）の能力値。S1-8 の順序は作成ページ <th> ヘッダで確認。
 const ABILITIES: { key: string; label: string }[] = [
@@ -47,9 +51,7 @@ const PROFILE_FIELDS: { key: string; label: string }[] = [
 ];
 
 export function isNw3CharasheetCharacter(parsed: unknown): boolean {
-  if (parsed == null || typeof parsed !== 'object') return false;
-  const record = parsed as Record<string, unknown>;
-  return typeof record['pc_name'] === 'string' && asString(record['game']).trim().toLowerCase() === 'nw3';
+  return isCharasheetGame(parsed, 'nw3');
 }
 
 function buildParams(record: Record<string, unknown>): ImportedParam[] {

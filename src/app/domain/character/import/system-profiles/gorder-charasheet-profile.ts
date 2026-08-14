@@ -14,6 +14,7 @@ import {
   asArray,
   asString,
   buildPrefixedSection,
+  isCharasheetGame,
 } from '@axe/domain/character/import/system-profiles/charasheet-shared';
 
 // ガーデンオーダー（保管所 game="gorder"）は d100 ロールアンダー。能力値・固定技能の名称は
@@ -60,9 +61,7 @@ const PROFILE_FIELDS: { key: string; label: string }[] = [
 ];
 
 export function isGorderCharasheetCharacter(parsed: unknown): boolean {
-  if (parsed == null || typeof parsed !== 'object') return false;
-  const record = parsed as Record<string, unknown>;
-  return typeof record['pc_name'] === 'string' && asString(record['game']).trim().toLowerCase() === 'gorder';
+  return isCharasheetGame(parsed, 'gorder');
 }
 
 function buildParams(record: Record<string, unknown>): ImportedParam[] {

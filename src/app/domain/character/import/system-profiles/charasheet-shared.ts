@@ -17,6 +17,23 @@ export function asString(value: unknown): string {
   return '';
 }
 
+/**
+ * 保管庫のシートが、そのシステムのものか。
+ *
+ * どのシートも `pc_name` を持ち、`game` にシステムの符丁が入る。見るのはそこだけ。
+ */
+export function isCharasheetGame(parsed: unknown, game: string): boolean {
+  return charasheetGameOf(parsed) === game;
+}
+
+/** シートが名乗っているシステムの符丁。保管庫のシートでなければ空。 */
+export function charasheetGameOf(parsed: unknown): string {
+  if (parsed == null || typeof parsed !== 'object') return '';
+  const record = parsed as Record<string, unknown>;
+  if (typeof record['pc_name'] !== 'string') return '';
+  return asString(record['game']).trim().toLowerCase();
+}
+
 export function asArray(value: unknown): unknown[] {
   return Array.isArray(value) ? value : [];
 }

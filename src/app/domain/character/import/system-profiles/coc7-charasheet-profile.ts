@@ -16,6 +16,7 @@ import {
   asString,
   buildOtherSection,
   buildParallelSection,
+  isCharasheetGame,
 } from '@axe/domain/character/import/system-profiles/charasheet-shared';
 import { ITEM_COLUMNS, WEAPON_COLUMNS } from '@axe/domain/character/import/system-profiles/coc-charasheet-shared';
 
@@ -95,9 +96,7 @@ function isStructuredKey(key: string): boolean {
 }
 
 export function isCoc7CharasheetCharacter(parsed: unknown): boolean {
-  if (parsed == null || typeof parsed !== 'object') return false;
-  const record = parsed as Record<string, unknown>;
-  return typeof record['pc_name'] === 'string' && asString(record['game']).trim().toLowerCase() === 'coc7';
+  return isCharasheetGame(parsed, 'coc7');
 }
 
 function buildStatuses(record: Record<string, unknown>): ImportedStatus[] {

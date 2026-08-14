@@ -11,7 +11,7 @@ import {
   normalizeHexColor,
   profileSectionOf,
 } from '@axe/domain/character/import/imported-character';
-import { asArray, asString } from '@axe/domain/character/import/system-profiles/charasheet-shared';
+import { asArray, asString, isCharasheetGame } from '@axe/domain/character/import/system-profiles/charasheet-shared';
 
 // アリアンロッド2E の能力値（標準順）。NK{i}=能力値（現在値）、NB{i}=能力ボーナス（判定に使用）。
 const ABILITIES: { value: string; bonus: string; label: string }[] = [
@@ -42,9 +42,7 @@ const PROFILE_FIELDS: { key: string; label: string }[] = [
 ];
 
 export function isAra2CharasheetCharacter(parsed: unknown): boolean {
-  if (parsed == null || typeof parsed !== 'object') return false;
-  const record = parsed as Record<string, unknown>;
-  return typeof record['pc_name'] === 'string' && asString(record['game']).trim().toLowerCase() === 'ara2';
+  return isCharasheetGame(parsed, 'ara2');
 }
 
 function buildParams(record: Record<string, unknown>): ImportedParam[] {

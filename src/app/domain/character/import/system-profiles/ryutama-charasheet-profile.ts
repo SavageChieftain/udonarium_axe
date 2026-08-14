@@ -8,7 +8,11 @@ import {
   normalizeHexColor,
   profileSectionOf,
 } from '@axe/domain/character/import/imported-character';
-import { asString, buildPrefixedSection } from '@axe/domain/character/import/system-profiles/charasheet-shared';
+import {
+  asString,
+  buildPrefixedSection,
+  isCharasheetGame,
+} from '@axe/domain/character/import/system-profiles/charasheet-shared';
 
 // りゅうたま（保管所 game="ryutama"）の4能力値。S{i}=サイコロの面数（d4/d6/…）。順序は作成ページの <th> ヘッダで確認。
 const ABILITIES: { key: string; label: string }[] = [
@@ -48,9 +52,7 @@ const PROFILE_FIELDS: { key: string; label: string }[] = [
 ];
 
 export function isRyutamaCharasheetCharacter(parsed: unknown): boolean {
-  if (parsed == null || typeof parsed !== 'object') return false;
-  const record = parsed as Record<string, unknown>;
-  return typeof record['pc_name'] === 'string' && asString(record['game']).trim().toLowerCase() === 'ryutama';
+  return isCharasheetGame(parsed, 'ryutama');
 }
 
 function buildParams(record: Record<string, unknown>): ImportedParam[] {

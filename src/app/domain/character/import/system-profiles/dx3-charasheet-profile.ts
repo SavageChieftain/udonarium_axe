@@ -11,7 +11,7 @@ import {
   normalizeHexColor,
   profileSectionOf,
 } from '@axe/domain/character/import/imported-character';
-import { asArray, asString } from '@axe/domain/character/import/system-profiles/charasheet-shared';
+import { asArray, asString, isCharasheetGame } from '@axe/domain/character/import/system-profiles/charasheet-shared';
 
 const ABILITIES: { key: string; label: string }[] = [
   { key: 'S1', label: '肉体' },
@@ -42,9 +42,7 @@ const PROFILE_FIELDS: { key: string; label: string }[] = [
 ];
 
 export function isDx3CharasheetCharacter(parsed: unknown): boolean {
-  if (parsed == null || typeof parsed !== 'object') return false;
-  const record = parsed as Record<string, unknown>;
-  return typeof record['pc_name'] === 'string' && asString(record['game']).trim().toLowerCase() === 'dx3';
+  return isCharasheetGame(parsed, 'dx3');
 }
 
 function skillDisplayName(index: number, record: Record<string, unknown>): string {

@@ -8,7 +8,11 @@ import {
   normalizeHexColor,
   profileSectionOf,
 } from '@axe/domain/character/import/imported-character';
-import { asString, buildPrefixedSection } from '@axe/domain/character/import/system-profiles/charasheet-shared';
+import {
+  asString,
+  buildPrefixedSection,
+  isCharasheetGame,
+} from '@axe/domain/character/import/system-profiles/charasheet-shared';
 
 // パラサイトブラッド（保管所 game="parabla"）の6能力値。順序は作成ページ <th> ヘッダで確認。
 // S{i}=能力値, NB{i}=判定値（=能力値+2 を実データで確認、2d6 に加える修正値）。
@@ -43,9 +47,7 @@ const PROFILE_FIELDS: { key: string; label: string }[] = [
 ];
 
 export function isParablaCharasheetCharacter(parsed: unknown): boolean {
-  if (parsed == null || typeof parsed !== 'object') return false;
-  const record = parsed as Record<string, unknown>;
-  return typeof record['pc_name'] === 'string' && asString(record['game']).trim().toLowerCase() === 'parabla';
+  return isCharasheetGame(parsed, 'parabla');
 }
 
 function buildParams(record: Record<string, unknown>): ImportedParam[] {
