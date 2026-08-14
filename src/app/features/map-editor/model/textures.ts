@@ -1,3 +1,6 @@
+/** 模様として使う絵に付ける目印。置き場では絵の一覧に紛れるので、これで選り分ける。 */
+export const TEXTURE_IMAGE_TAG = 'テクスチャ';
+
 export const TEXTURE_IDS = [
   'black_soil',
   'brick',
