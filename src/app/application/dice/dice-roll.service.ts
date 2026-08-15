@@ -2,6 +2,7 @@ import { inject, Injectable } from '@angular/core';
 import { ActiveChatTabService } from '@axe/application/chat/active-chat-tab.service';
 import { ChatMessageService } from '@axe/application/chat/chat-message.service';
 import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
+import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { callRollDiceSymbol } from '@axe/core/event/domain-events';
 import { diceRollLog, RolledDie } from '@axe/domain/dice/dice-roll-log';
 import { DiceSymbol } from '@axe/domain/dice/dice-symbol';
@@ -19,6 +20,7 @@ import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 export class DiceRollService {
   private readonly activeChatTab = inject(ActiveChatTabService);
   private readonly chatMessageService = inject(ChatMessageService);
+  private readonly objectChange = inject(ObjectChangeService);
   private readonly t = inject(TRANSLATE_FN);
 
   /** Throws one die, or a handful together. Whatever cannot be seen stays as it was. */
@@ -28,6 +30,8 @@ export class DiceRollService {
 
     const rolled = thrown.map<RolledDie>((die) => {
       callRollDiceSymbol(die.identifier);
+      // The thrower watches their own die roll rather than waiting for the round trip.
+      this.objectChange.notifyDiceRolled(die.identifier);
       return { name: die.name, face: die.diceRoll(), sides: die.faces.length };
     });
     SoundEffect.play(PresetSound.diceRoll1);

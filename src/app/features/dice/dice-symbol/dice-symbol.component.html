@@ -41,7 +41,9 @@
       }
       <div
         class="size-full transform-3d"
-        [class.animate-dice-rolling]="animeState() === 'active'"
+        [class.animate-dice-tumble-a]="animeState() === 'active' && tumble() === 0"
+        [class.animate-dice-tumble-b]="animeState() === 'active' && tumble() === 1"
+        [class.animate-dice-tumble-c]="animeState() === 'active' && tumble() === 2"
         (animationend)="onDiceRollEnd()"
       >
         <div
@@ -76,6 +78,22 @@
                       @if (isLock) {
                         <i class="material-icons! inline! align-middle text-[15px]!">lock</i>
                       }
+                    </div>
+                  </div>
+                </div>
+              }
+              @if (rollResult(); as rolled) {
+                <div
+                  class="pointer-events-none absolute whitespace-nowrap transform-3d"
+                  [ngStyle]="{
+                    transform: 'translateX(-50%) translateX(' + (size() * gridSize) / 2 + 'px) ' + nameLabelOrbit(),
+                  }"
+                >
+                  <div class="transform-3d" [ngStyle]="{ transform: billboardTransform() }">
+                    <div
+                      class="animate-dice-pop text-[28px] font-bold text-white [text-shadow:0_0_6px_rgba(0,0,0,0.9),0_2px_4px_rgba(0,0,0,0.8)]"
+                    >
+                      {{ rolled }}
                     </div>
                   </div>
                 </div>

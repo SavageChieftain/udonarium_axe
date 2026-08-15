@@ -193,4 +193,76 @@ describe('DiceSymbolComponent', () => {
       expect(clearTimeoutSpy).toHaveBeenCalled();
     });
   });
+
+  describe('the throw', () => {
+    function rollFrom(): DiceSymbol {
+      const dice = DiceSymbol.create('テストダイス', 1, 1);
+      fixture.componentRef.setInput('diceSymbol', dice);
+      fixture.detectChanges();
+      TestBed.inject(ObjectChangeService).notifyDiceRolled(dice.identifier);
+      return dice;
+    }
+
+    beforeEach(() => vi.useFakeTimers());
+    afterEach(() => vi.useRealTimers());
+
+    it('rolls the die on word of a throw', () => {
+      const dice = rollFrom();
+
+      vi.advanceTimersByTime(1);
+
+      expect(component.animeState()).toBe('active');
+      dice.destroy();
+    });
+
+    it('calls nothing out while the die is still rolling', () => {
+      // Shown mid-roll it would give the face away before the die does.
+      const dice = rollFrom();
+
+      vi.advanceTimersByTime(700);
+
+      expect(component.rollResult()).toBeNull();
+      dice.destroy();
+    });
+
+    it('calls the face out once it settles', () => {
+      const dice = rollFrom();
+      dice.face = '5';
+
+      vi.advanceTimersByTime(800);
+
+      expect(component.rollResult()).toBe('5');
+      dice.destroy();
+    });
+
+    it('takes the callout away again', () => {
+      const dice = rollFrom();
+
+      vi.advanceTimersByTime(800 + 1300);
+
+      expect(component.rollResult()).toBeNull();
+      dice.destroy();
+    });
+
+    it('calls nothing out for a die nobody may see', () => {
+      const dice = rollFrom();
+      dice.owner = 'somebody-else';
+
+      vi.advanceTimersByTime(800);
+
+      expect(component.rollResult()).toBeNull();
+      dice.destroy();
+    });
+
+    it('takes another path than the throw before it', () => {
+      // A handful thrown together should not roll as one.
+      const dice = rollFrom();
+      const first = component.tumble();
+
+      TestBed.inject(ObjectChangeService).notifyDiceRolled(dice.identifier);
+
+      expect(component.tumble()).not.toBe(first);
+      dice.destroy();
+    });
+  });
 });

@@ -98,6 +98,10 @@
   --animate-bounce-in: bounceIn 600ms ease;
   --animate-shuffling: shuffle 800ms ease;
   --animate-dice-rolling: diceRoll 800ms ease;
+  --animate-dice-tumble-a: diceTumbleA 800ms cubic-bezier(0.22, 0.9, 0.3, 1);
+  --animate-dice-tumble-b: diceTumbleB 800ms cubic-bezier(0.22, 0.9, 0.3, 1);
+  --animate-dice-tumble-c: diceTumbleC 800ms cubic-bezier(0.22, 0.9, 0.3, 1);
+  --animate-dice-pop: dicePop 1300ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
   --animate-coin-flip: coinFlip 900ms cubic-bezier(0.33, 0, 0.35, 1);
   --animate-float-change: floatChange 1300ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
   --animate-hit-flash: hitFlash 420ms ease-out;
@@ -1357,6 +1361,87 @@ input[type='range']::-moz-range-thumb {
   }
   100% {
     transform: scale3d(1, 1, 1) rotateZ(720deg);
+  }
+}
+
+/*
+ * A die thrown on the table rolls before it settles: it travels, turns over and comes to
+ * rest where it started. Three paths, so a handful thrown together does not move as one.
+ */
+@keyframes diceTumbleA {
+  0% {
+    transform: translate3d(0, 0, 0) scale3d(0.85, 0.85, 0.85) rotateZ(0deg);
+  }
+  35% {
+    transform: translate3d(20px, -16px, 0) scale3d(1.18, 1.18, 1.18) rotateZ(240deg);
+  }
+  70% {
+    transform: translate3d(-12px, 9px, 0) scale3d(1.02, 1.02, 1.02) rotateZ(470deg);
+  }
+  88% {
+    transform: translate3d(4px, -3px, 0) scale3d(1.08, 1.08, 1.08) rotateZ(640deg);
+  }
+  100% {
+    transform: translate3d(0, 0, 0) scale3d(1, 1, 1) rotateZ(720deg);
+  }
+}
+
+@keyframes diceTumbleB {
+  0% {
+    transform: translate3d(0, 0, 0) scale3d(0.85, 0.85, 0.85) rotateZ(0deg);
+  }
+  35% {
+    transform: translate3d(-22px, -10px, 0) scale3d(1.2, 1.2, 1.2) rotateZ(-260deg);
+  }
+  70% {
+    transform: translate3d(11px, 12px, 0) scale3d(1.03, 1.03, 1.03) rotateZ(-500deg);
+  }
+  88% {
+    transform: translate3d(-5px, -4px, 0) scale3d(1.09, 1.09, 1.09) rotateZ(-660deg);
+  }
+  100% {
+    transform: translate3d(0, 0, 0) scale3d(1, 1, 1) rotateZ(-720deg);
+  }
+}
+
+@keyframes diceTumbleC {
+  0% {
+    transform: translate3d(0, 0, 0) scale3d(0.85, 0.85, 0.85) rotateZ(0deg);
+  }
+  35% {
+    transform: translate3d(6px, -24px, 0) scale3d(1.16, 1.16, 1.16) rotateZ(200deg);
+  }
+  70% {
+    transform: translate3d(-8px, 14px, 0) scale3d(1.04, 1.04, 1.04) rotateZ(440deg);
+  }
+  88% {
+    transform: translate3d(3px, -5px, 0) scale3d(1.1, 1.1, 1.1) rotateZ(600deg);
+  }
+  100% {
+    transform: translate3d(0, 0, 0) scale3d(1, 1, 1) rotateZ(720deg);
+  }
+}
+
+/* The face it came to rest on, called out over the die and gone again. */
+@keyframes dicePop {
+  0% {
+    opacity: 0;
+    transform: translateY(0.5em) scale(0.6);
+  }
+  18% {
+    opacity: 1;
+    transform: translateY(-0.1em) scale(1.3);
+  }
+  32% {
+    transform: translateY(-0.2em) scale(1);
+  }
+  70% {
+    opacity: 1;
+    transform: translateY(-0.9em) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-1.7em) scale(0.95);
   }
 }
 

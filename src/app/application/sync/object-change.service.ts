@@ -104,6 +104,11 @@ export class ObjectChangeService {
     this._flipCoin$.emit({ identifier, face });
   }
 
+  /** A die you threw starts rolling here, without waiting for the round trip. */
+  notifyDiceRolled(identifier: string): void {
+    this._rollDiceSymbol$.emit({ identifier });
+  }
+
   notifyChanged(identifier: string): void {
     this._versions.get(identifier)?.update((v) => v + 1);
   }

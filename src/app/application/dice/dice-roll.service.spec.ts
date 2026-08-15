@@ -2,6 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { ActiveChatTabService } from '@axe/application/chat/active-chat-tab.service';
 import { ChatMessageService } from '@axe/application/chat/chat-message.service';
 import { DiceRollService } from '@axe/application/dice/dice-roll.service';
+import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { ChatMessage } from '@axe/domain/chat/chat-message';
 import { ChatTab } from '@axe/domain/chat/chat-tab';
@@ -124,5 +125,16 @@ describe('DiceRollService', () => {
 
       expect(sendSystemMessage).toHaveBeenCalledOnce();
     });
+  });
+
+  it('starts the die rolling on the screen of whoever threw it', () => {
+    // A network send does not come back, so the one who threw it would otherwise see nothing.
+    const rolled: string[] = [];
+    TestBed.inject(ObjectChangeService).rollDiceSymbol$.subscribe((event) => rolled.push(event.identifier));
+    const dice = makeDice('ダイスA');
+
+    service.roll([dice]);
+
+    expect(rolled).toEqual([dice.identifier]);
   });
 });

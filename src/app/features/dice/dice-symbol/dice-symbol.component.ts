@@ -47,6 +47,12 @@ import { setupInputHandler, setupMovableRotableForPiece } from '@axe/ui/tabletop
 import { supersampleFactor, supersampleInsetPercent, supersampleTransform } from '@axe/ui/tabletop/supersample';
 import { translateZCss, Z_OFFSET_TALL_OBJECT_PX } from '@axe/ui/tabletop/z-offset';
 
+/** How long the die rolls before it settles, which is the length of the tumble animation. */
+const TUMBLE_MS = 800;
+/** How long the callout stays up afterwards, which is the length of its own animation. */
+const RESULT_POPUP_MS = 1300;
+const TUMBLE_PATHS = 3;
+
 @Component({
   selector: 'dice-symbol',
   templateUrl: './dice-symbol.component.html',
@@ -159,6 +165,13 @@ export class DiceSymbolComponent {
   }
 
   readonly animeState = signal<'inactive' | 'active'>('inactive');
+  /** Which of the three paths this throw takes, so a handful does not roll as one. */
+  readonly tumble = signal(0);
+  /** The face it came to rest on, called out over the die until the callout fades. */
+  readonly rollResult = signal<string | null>(null);
+
+  private rollTimers: ReturnType<typeof setTimeout>[] = [];
+
   private readonly iconHiding = hideIconWhileTouched(this.destroyRef);
   readonly isIconHidden = this.iconHiding.isHidden;
 
@@ -288,13 +301,9 @@ export class DiceSymbolComponent {
 
   constructor() {
     this.objectChange.rollDiceSymbol$.subscribe((event) => {
-      if (event.identifier === this.diceSymbol().identifier) {
-        this.animeState.set('inactive');
-        setTimeout(() => {
-          this.animeState.set('active');
-        });
-      }
+      if (event.identifier === this.diceSymbol().identifier) this.startRoll();
     }, this.destroyRef);
+    this.destroyRef.onDestroy(() => this.clearRollTimers());
     setupMovableRotableForPiece(this, {
       target: this.diceSymbol,
       collideLayers: ['terrain'],
@@ -312,6 +321,33 @@ export class DiceSymbolComponent {
 
   onDiceRollEnd() {
     this.animeState.set('inactive');
+  }
+
+  /**
+   * The throw: the die rolls, and what it came to rest on is called out over it.
+   *
+   * The callout waits for the die to settle. Shown while it is still turning it would
+   * give the face away before the die does, and the roll would be over before it landed.
+   */
+  private startRoll(): void {
+    this.clearRollTimers();
+    this.rollResult.set(null);
+    this.tumble.update((path) => (path + 1) % TUMBLE_PATHS);
+    this.animeState.set('inactive');
+
+    this.rollTimers.push(setTimeout(() => this.animeState.set('active')));
+    this.rollTimers.push(
+      setTimeout(() => {
+        // A die nobody may see calls nothing out; the face is the owner's to read.
+        if (!this.isVisible) return;
+        this.rollResult.set(this.diceSymbol().face);
+        this.rollTimers.push(setTimeout(() => this.rollResult.set(null), RESULT_POPUP_MS));
+      }, TUMBLE_MS)
+    );
+  }
+
+  private clearRollTimers(): void {
+    for (const timer of this.rollTimers.splice(0)) clearTimeout(timer);
   }
 
   onInputStart(e: MouseEvent | TouchEvent) {
