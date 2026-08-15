@@ -1,6 +1,7 @@
 import {
   diceTableMessage$,
   DiceTableMessageEvent,
+  emitDiceRolled,
   emitSendMessage,
   resourceEditMessage$,
   ResourceEditMessageEvent,
@@ -368,6 +369,9 @@ export class DiceBot extends GameObject {
     if (chatTab) {
       const chat = chatTab.addMessage(diceBotMessage);
       emitSendMessage({ messageIdentifier: chat.identifier, messageTarget: null });
+      // What the dice showed lives on the answer and the notation on the line it answered,
+      // so anything that ties the two together needs both.
+      emitDiceRolled({ sourceMessageIdentifier: originalMessage.identifier, resultMessageIdentifier: chat.identifier });
     }
   }
 

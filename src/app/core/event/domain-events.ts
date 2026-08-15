@@ -92,6 +92,13 @@ export interface LoadConfigEvent {
   config: unknown;
 }
 
+export interface DiceRolledEvent {
+  /** The line the dice bot answered. */
+  sourceMessageIdentifier: string;
+  /** Its answer, which carries what the dice showed. */
+  resultMessageIdentifier: string;
+}
+
 export interface EffectCastEvent {
   cast: unknown;
 }
@@ -103,6 +110,7 @@ export const domainPeerDisconnect$ = new EventChannel<DomainPeerDisconnectEvent>
 export const soundEffect$ = new EventChannel<string>();
 
 export const effectCast$ = new EventChannel<EffectCastEvent>();
+export const diceRolled$ = new EventChannel<DiceRolledEvent>();
 export const resourceChange$ = new EventChannel<ResourceChangeEvent>();
 
 export const selectGameTable$ = new EventChannel<SelectGameTableEvent>();
@@ -129,6 +137,9 @@ export const fileResourceUpdated$ = new EventChannel<void>();
 
 export function emitSendMessage(event: SendMessageEvent) {
   sendMessage$.emit(event);
+}
+export function emitDiceRolled(event: DiceRolledEvent) {
+  diceRolled$.emit(event);
 }
 export function emitDiceTableMessage(event: DiceTableMessageEvent) {
   diceTableMessage$.emit(event);

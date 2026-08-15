@@ -339,6 +339,10 @@ export class DiceSymbolComponent {
       {
         onDiceRoll: () => this.diceRoll(),
         onShowDetail: () => this.showDetail(this.diceSymbol()),
+        ownerCandidates: this.tabletopService.characters.map((character) => ({
+          identifier: character.identifier,
+          name: character.name,
+        })),
       },
       this.translateFn
     );

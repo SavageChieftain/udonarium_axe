@@ -11,6 +11,7 @@ interface MutableDice {
   isLock: boolean;
   hideName: boolean;
   owner: string;
+  ownerCharacterIdentifier: string;
   face: string;
   faces: string[];
   clone: ReturnType<typeof vi.fn>;
@@ -26,6 +27,7 @@ function makeDice(overrides: Partial<MutableDice> = {}): MutableDice {
     isLock: false,
     hideName: false,
     owner: '',
+    ownerCharacterIdentifier: '',
     face: '1',
     faces: ['1', '2', '3'],
     clone: vi.fn(() => ({ location: { x: 0, y: 0 }, update: vi.fn() })),
@@ -36,7 +38,11 @@ function makeDice(overrides: Partial<MutableDice> = {}): MutableDice {
 }
 
 const names = (a: { name: string }[]) => a.map((x) => x.name);
-const cb = () => ({ onDiceRoll: vi.fn(), onShowDetail: vi.fn() });
+const cb = (ownerCandidates: { identifier: string; name: string }[] = []) => ({
+  onDiceRoll: vi.fn(),
+  onShowDetail: vi.fn(),
+  ownerCandidates,
+});
 
 describe('buildDiceSymbolContextMenu()', () => {
   it('offers rolling and setting the face on a die that can be seen', () => {
@@ -100,5 +106,51 @@ describe('buildDiceSymbolContextMenu()', () => {
     const menu = buildDiceSymbolContextMenu(dice as unknown as DiceSymbol, 50, cb(), t);
     menu.find((m) => m.name === '削除する')!.action!();
     expect(dice.destroy).toHaveBeenCalled();
+  });
+
+  describe('whose die it is', () => {
+    const goblin = { identifier: 'goblin', name: 'ゴブリンA' };
+
+    it('offers the pieces it can be given to', () => {
+      const dice = makeDice();
+      const menu = buildDiceSymbolContextMenu(dice as unknown as DiceSymbol, 50, cb([goblin]), t);
+      const owner = menu.find((m) => m.name === 'コマに持たせる');
+
+      expect(names(owner?.subActions ?? [])).toEqual(['☐ ゴブリンA']);
+    });
+
+    it('gives the die to the one that was chosen', () => {
+      const dice = makeDice();
+      const menu = buildDiceSymbolContextMenu(dice as unknown as DiceSymbol, 50, cb([goblin]), t);
+
+      menu.find((m) => m.name === 'コマに持たせる')?.subActions?.[0].action!();
+
+      expect(dice.ownerCharacterIdentifier).toBe('goblin');
+    });
+
+    it('ticks the piece it already belongs to', () => {
+      const dice = makeDice({ ownerCharacterIdentifier: 'goblin' });
+      const menu = buildDiceSymbolContextMenu(dice as unknown as DiceSymbol, 50, cb([goblin]), t);
+      const owner = menu.find((m) => m.name === 'コマに持たせる');
+
+      expect(names(owner?.subActions ?? [])).toContain('☑ ゴブリンA');
+    });
+
+    it('offers to take it back once it belongs to somebody', () => {
+      const dice = makeDice({ ownerCharacterIdentifier: 'goblin' });
+      const menu = buildDiceSymbolContextMenu(dice as unknown as DiceSymbol, 50, cb([goblin]), t);
+      const owner = menu.find((m) => m.name === 'コマに持たせる');
+
+      owner?.subActions?.find((m) => m.name === '持ち主を外す')?.action!();
+
+      expect(dice.ownerCharacterIdentifier).toBe('');
+    });
+
+    it('offers nothing of the sort with no pieces on the table', () => {
+      const dice = makeDice();
+      const menu = buildDiceSymbolContextMenu(dice as unknown as DiceSymbol, 50, cb(), t);
+
+      expect(names(menu)).not.toContain('コマに持たせる');
+    });
   });
 });

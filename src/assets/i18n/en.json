@@ -416,6 +416,8 @@
         "showDice": "Reveal dice",
         "showSelfOnly": "Show to self only",
         "setFace": "Set face",
+        "owner": "Give to a piece",
+        "ownerNone": "Belong to nobody",
         "hideNameOn": "☑ Hide name",
         "hideNameOff": "☐ Hide name",
         "editDice": "Edit dice settings",

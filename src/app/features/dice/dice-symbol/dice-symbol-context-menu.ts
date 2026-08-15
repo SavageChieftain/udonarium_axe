@@ -5,12 +5,19 @@ import { Network } from '@axe/core/index';
 import { DiceSymbol } from '@axe/domain/dice/dice-symbol';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
 
+export interface DiceOwnerCandidate {
+  identifier: string;
+  name: string;
+}
+
 export function buildDiceSymbolContextMenu(
   diceSymbol: DiceSymbol,
   gridSize: number,
   callbacks: {
     onDiceRoll: () => void;
     onShowDetail: () => void;
+    /** The pieces the die can be given to. Left out where there are none to offer. */
+    ownerCandidates?: DiceOwnerCandidate[];
   },
   t: TranslateFn
 ): ContextMenuAction[] {
@@ -43,6 +50,28 @@ export function buildDiceSymbolContextMenu(
         SoundEffect.play(PresetSound.lock);
       },
     });
+  }
+
+  const candidates = callbacks.ownerCandidates ?? [];
+  if (candidates.length > 0 || diceSymbol.ownerCharacterIdentifier.length > 0) {
+    // Whose die it is, which is apart from who may see the face.
+    const subActions: ContextMenuAction[] = candidates.map((candidate) => ({
+      name: `${diceSymbol.ownerCharacterIdentifier === candidate.identifier ? '☑' : '☐'} ${candidate.name}`,
+      action: () => {
+        diceSymbol.ownerCharacterIdentifier = candidate.identifier;
+        SoundEffect.play(PresetSound.dicePut);
+      },
+    }));
+    if (diceSymbol.ownerCharacterIdentifier.length > 0) {
+      subActions.push({
+        name: t('feature.dice.contextMenu.ownerNone'),
+        action: () => {
+          diceSymbol.ownerCharacterIdentifier = '';
+          SoundEffect.play(PresetSound.sweep);
+        },
+      });
+    }
+    actions.push({ name: t('feature.dice.contextMenu.owner'), action: undefined, subActions });
   }
 
   if (diceSymbol.isVisible) {

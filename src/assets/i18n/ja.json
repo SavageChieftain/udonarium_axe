@@ -416,6 +416,8 @@
         "showDice": "ダイスを公開",
         "showSelfOnly": "自分だけ見る",
         "setFace": "ダイス目を設定",
+        "owner": "コマに持たせる",
+        "ownerNone": "持ち主を外す",
         "hideNameOn": "☑ 名前を隠す",
         "hideNameOff": "☐ 名前を隠す",
         "editDice": "ダイス設定を編集",

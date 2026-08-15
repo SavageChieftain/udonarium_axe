@@ -21,6 +21,13 @@ export class DiceSymbol extends OwnedTabletopObject {
 
   @SyncVar() face: string = '0';
   @SyncVar() owner: string = '';
+  /**
+   * The piece this die belongs to. Empty when it belongs to nobody.
+   *
+   * It is apart from `owner`, which says who may see the face. A die can stand in front of
+   * a character for everybody to read and still be that character's die.
+   */
+  @SyncVar() ownerCharacterIdentifier: string = '';
   @SyncVar() rotate: number = 0;
   @SyncVar() disclosureMode: string = '';
   @SyncVar() disclosureUserIds: string[] = [];

@@ -98,6 +98,8 @@ Udonarium Axe が **追加** または **大きく拡張・再設計** した機
 ## ダイス
 
 - **振った中身を残す** — bcdice は個々の出目と成否（`rands` / `detailedRands` / `success` / `critical` / `fumble`）を返しているが、以前は整形済みの文章だけを受け取って捨てていた。いまは `domain/dice/dice-roll-detail` の形に写し、**未使用だった `ChatMessage.dicebot`**（宣言だけで代入箇所が無かった SyncVar）に載せて持ち回る。新しい SyncVar を足さないので部屋データの後方互換に触らない。読み出しは `message.rollDetail`（この版より前の発言と、その欄に別のものが入っている古い部屋では null）。**文章からは読み直さない** — 言い回しはシステムごとに違い、`＞` の置換や改行の挿入まで通ったあとの文字列が相手になる
+- **卓上で振った目もチャットへ** — ダイスシンボルを振ると、いま開いているタブへ結果が流れる（`application/dice/dice-roll.service`）。コインと同じ扱いで、行き先は `ActiveChatTabService`。複数選択して右クリックすればまとめて振れ、同時に回って 1 行にまとまる（面がすべて数字なら合計つき）。伏せられているダイスは回さない
+- **コマに持たせて連動** — ダイスシンボルの `ownerCharacterIdentifier` でコマの持ち物にできる（「自分だけ見る」の `owner` とは別）。チャットに `dice:コマ名` を書き添えると、そのロールの出目が卓上のダイスに乗る（`domain/dice/dice-chat-token` + `dice-link`、`features/dice/dice-chat-event-handler`）。面の数が合うダイスから順に埋め、その目を出せないダイスは動かさない。適用するのは送信者の端末だけ（面は SyncVar なので二重に当てない）
 - **ダイスシンボルシート** — 面ごとの画像設定、保存 / 複製
 - bcdice `StaticLoader` の遅延ロードで初期バンドルを削減
 - 名前・所有者ラベルのカメラ追従
