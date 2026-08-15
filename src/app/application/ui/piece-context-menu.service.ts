@@ -1,4 +1,5 @@
 import { inject, Injectable } from '@angular/core';
+import { DiceRollService } from '@axe/application/dice/dice-roll.service';
 import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { ContextMenuService } from '@axe/application/ui/context-menu.service';
 import { tryBuildMultiSelectionContextMenu } from '@axe/application/ui/multi-selection-context-menu';
@@ -18,6 +19,7 @@ export class PieceContextMenuService {
   private readonly contextMenuService = inject(ContextMenuService);
   private readonly selectionSignalService = inject(SelectionSignalService);
   private readonly objectStore = inject(ObjectStore);
+  private readonly diceRollService = inject(DiceRollService);
   private readonly t = inject(TRANSLATE_FN);
 
   /** True when the bulk menu was opened. The caller stops there. */
@@ -28,6 +30,7 @@ export class PieceContextMenuService {
       objectStore: this.objectStore,
       t: this.t,
       gridSize,
+      rollDice: (dice) => this.diceRollService.roll(dice),
     });
     if (!multi) return false;
 

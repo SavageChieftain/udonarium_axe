@@ -10,6 +10,7 @@ import {
   linkedSignal,
   signal,
 } from '@angular/core';
+import { DiceRollService } from '@axe/application/dice/dice-roll.service';
 import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { DisclosureService } from '@axe/application/permission/disclosure.service';
 import { RolePermissionService } from '@axe/application/permission/role-permission.service';
@@ -24,7 +25,6 @@ import { sheetPanelBox } from '@axe/application/ui/sheet-panel';
 import { sheetPanelTitle } from '@axe/application/ui/sheet-panel';
 import { buildSurfaceSwitchContextMenu } from '@axe/application/ui/surface-switch-context-menu';
 import { UiSignalService } from '@axe/application/ui/ui-signal.service';
-import { callRollDiceSymbol } from '@axe/core/event/domain-events';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { imageFileEqual } from '@axe/core/storage/image-file';
 import { DiceSymbol } from '@axe/domain/dice/dice-symbol';
@@ -58,6 +58,7 @@ export class DiceSymbolComponent {
   private readonly panelService = inject(PanelService);
   private readonly contextMenuService = inject(ContextMenuService);
   private readonly pieceContextMenu = inject(PieceContextMenuService);
+  private readonly diceRollService = inject(DiceRollService);
   private readonly elementRef = inject<ElementRef<HTMLElement>>(ElementRef);
   private readonly imageService = inject(ImageService);
   private readonly pointerDeviceService = inject(PointerDeviceService);
@@ -362,9 +363,8 @@ export class DiceSymbolComponent {
   }
 
   diceRoll(): string {
-    callRollDiceSymbol(this.diceSymbol().identifier);
-    SoundEffect.play(PresetSound.diceRoll1);
-    return this.diceSymbol().diceRoll();
+    const [rolled] = this.diceRollService.roll([this.diceSymbol()]);
+    return rolled?.face ?? this.diceSymbol().face;
   }
 
   showDetail(gameObject: DiceSymbol) {

@@ -2,6 +2,7 @@ import { TranslateFn } from '@axe/application/i18n/translate.token';
 import { ContextMenuAction, ContextMenuSeparator } from '@axe/application/ui/context-menu.service';
 import { SelectionSignalService } from '@axe/application/ui/selection-signal.service';
 import { ObjectStore } from '@axe/core/sync/object-store';
+import { DiceSymbol } from '@axe/domain/dice/dice-symbol';
 import { isLockable } from '@axe/domain/tabletop/lockable';
 import { TabletopObject } from '@axe/domain/tabletop/tabletop-object';
 
@@ -9,15 +10,18 @@ export interface MultiSelectionContextDeps {
   readonly t: TranslateFn;
   readonly selectionSignalService: SelectionSignalService;
   readonly gridSize: number;
+  /** Throws whatever dice are among the selection. Left out where nothing can throw them. */
+  readonly rollDice?: (dice: DiceSymbol[]) => void;
 }
 
 export function buildMultiSelectionContextMenu(
   objects: readonly TabletopObject[],
   deps: MultiSelectionContextDeps
 ): ContextMenuAction[] {
-  const { t, selectionSignalService, gridSize } = deps;
+  const { t, selectionSignalService, gridSize, rollDice } = deps;
   const count = objects.length;
   const movable = objects.filter((o) => !(isLockable(o) && o.isLock));
+  const dice = objects.filter((o): o is DiceSymbol => o instanceof DiceSymbol && o.isVisible);
 
   return [
     {
@@ -25,6 +29,16 @@ export function buildMultiSelectionContextMenu(
       action: undefined,
     },
     ContextMenuSeparator,
+    // One throw of a handful, which reads as one line in the chat.
+    ...(rollDice && dice.length > 0
+      ? [
+          {
+            name: t('feature.tabletop.selection.rollAllDice', { count: dice.length }),
+            action: () => rollDice(dice),
+          },
+          ContextMenuSeparator,
+        ]
+      : []),
     {
       name: t('feature.tabletop.selection.copyAll'),
       action: () => {
@@ -64,12 +78,13 @@ export interface TryBuildMultiSelectionContextMenuOptions {
   readonly objectStore: ObjectStore;
   readonly t: TranslateFn;
   readonly gridSize: number;
+  readonly rollDice?: (dice: DiceSymbol[]) => void;
 }
 
 export function tryBuildMultiSelectionContextMenu(
   options: TryBuildMultiSelectionContextMenuOptions
 ): ContextMenuAction[] | null {
-  const { self, selectionSignalService, objectStore, t, gridSize } = options;
+  const { self, selectionSignalService, objectStore, t, gridSize, rollDice } = options;
   if (selectionSignalService.selectionSize() <= 1) return null;
   const selected = selectionSignalService.selectedObjects();
   if (!selected.has(self.identifier)) return null;
@@ -79,5 +94,5 @@ export function tryBuildMultiSelectionContextMenu(
     if (obj) objects.push(obj);
   }
   if (objects.length <= 1) return null;
-  return buildMultiSelectionContextMenu(objects, { t, selectionSignalService, gridSize });
+  return buildMultiSelectionContextMenu(objects, { t, selectionSignalService, gridSize, rollDice });
 }

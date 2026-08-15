@@ -462,6 +462,11 @@
         "palettePlaceholder": "Enter the dice table, one entry per line...",
         "save": "Save",
         "delete": "Delete"
+      },
+      "message": {
+        "rolled": "{{who}} rolled {{name}} → {{face}}",
+        "rolledMany": "{{who}} rolled {{count}} dice → {{results}}",
+        "rolledManyTotal": "{{who}} rolled {{count}} dice → {{results}} (total {{total}})"
       }
     },
     "effect": {
@@ -1141,6 +1146,7 @@
       "selection": {
         "title": "Selected objects",
         "countLabel": "{{count}} selected",
+        "rollAllDice": "Roll all {{count}} dice",
         "copyAll": "Copy all selected",
         "moveAllGraveyard": "Move all to graveyard",
         "clear": "Clear selection"

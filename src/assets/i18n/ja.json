@@ -462,6 +462,11 @@
         "palettePlaceholder": "ダイス表を1行ずつ入力...",
         "save": "保存",
         "delete": "削除"
+      },
+      "message": {
+        "rolled": "{{who}} が {{name}} を振りました → {{face}}",
+        "rolledMany": "{{who}} が ダイス{{count}}個を振りました → {{results}}",
+        "rolledManyTotal": "{{who}} が ダイス{{count}}個を振りました → {{results}}（合計 {{total}}）"
       }
     },
     "effect": {
@@ -1141,6 +1146,7 @@
       "selection": {
         "title": "選択中のオブジェクト",
         "countLabel": "{{count}} 件選択中",
+        "rollAllDice": "ダイス{{count}}個をまとめて振る",
         "copyAll": "選択をすべてコピー",
         "moveAllGraveyard": "選択をすべて墓場へ",
         "clear": "選択をクリア"
