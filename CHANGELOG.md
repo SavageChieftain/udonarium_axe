@@ -1,3 +1,44 @@
+## [1.37.0](https://github.com/SavageChieftain/udonarium_axe/compare/v1.36.2...v1.37.0) (2026-08-15)
+
+### ✨ Features
+
+* **coin:** announce the flip in the tab you are reading ([644eea2](https://github.com/SavageChieftain/udonarium_axe/commit/644eea21ab02a9d91e8a6e3f93e85d7fab463b5c))
+* **dice:** give a die to a piece and put a chat roll on it ([7226285](https://github.com/SavageChieftain/udonarium_axe/commit/7226285b118478a95cb1c9699b113267a33b31d6))
+* **dice:** let a character keep its dice on its sheet ([45f3614](https://github.com/SavageChieftain/udonarium_axe/commit/45f36143068a2a7f58dcded639f9354b9d745bc6))
+* **dice:** put a handful away at once, and remember what each showed ([98780aa](https://github.com/SavageChieftain/udonarium_axe/commit/98780aa0a299258c50266c757013e84b945d2c0b))
+* **dice:** read a throw of the table dice into the tab ([1c3e5da](https://github.com/SavageChieftain/udonarium_axe/commit/1c3e5da6a281141b008618f1f86ac1af19b69bdc))
+* **dice:** roll the die across the table and call the face out ([fddc524](https://github.com/SavageChieftain/udonarium_axe/commit/fddc524358d834b2030a2b0e0f74df390eab795f))
+
+### 🐛 Bug Fixes
+
+* **dice:** lay a character's dice out once, not once per press ([bd27825](https://github.com/SavageChieftain/udonarium_axe/commit/bd27825f083115b8cb55528ba025a2e87ce6fa29))
+* **ui:** open a sheet window centred on the piece it belongs to ([3905113](https://github.com/SavageChieftain/udonarium_axe/commit/3905113d1530c439654de304b8cae4732d4be34d))
+
+### 📝 Documentation
+
+* **manual:** list the effect token with the other chat notations ([c794cc3](https://github.com/SavageChieftain/udonarium_axe/commit/c794cc3788407dd705d827a5d54c5d7ca40c7987))
+* **website:** add v1.36.2 release notes ([4ca9b53](https://github.com/SavageChieftain/udonarium_axe/commit/4ca9b5342f47baf6c45ab3164d73ada477620647))
+* write comments and test names in English ([63ed017](https://github.com/SavageChieftain/udonarium_axe/commit/63ed017f00d8814838f4384d9266c152e4906752))
+
+### ♻️ Refactor
+
+* **application:** translate the application layer comments and test names ([86cea21](https://github.com/SavageChieftain/udonarium_axe/commit/86cea2142a50b698c7808035c05cfcfb04d32d80))
+* **character:** stop rewriting the same header for every sheet ([11264d9](https://github.com/SavageChieftain/udonarium_axe/commit/11264d9b918e921988d3e51f3c540fccfb0410dd))
+* **core:** translate the core layer comments and test names ([8007ee2](https://github.com/SavageChieftain/udonarium_axe/commit/8007ee2dbd8efe6f468ee5465893ba70d74321d6))
+* **domain:** translate the domain layer comments and test names ([31e73d2](https://github.com/SavageChieftain/udonarium_axe/commit/31e73d2b3cf422156392808f549a2620173e3d6c))
+* **features:** translate the feature layer comments and test names ([080a2cb](https://github.com/SavageChieftain/udonarium_axe/commit/080a2cbc1879032b9dd311fffdde458ea1b1fb7d))
+* **map-editor:** decide the editor keys in a pure function ([97fe888](https://github.com/SavageChieftain/udonarium_axe/commit/97fe888a0167c86544cfe1feaf1fe29b81c100cb))
+* **map-editor:** give the in-progress gesture a name ([fc11eb3](https://github.com/SavageChieftain/udonarium_axe/commit/fc11eb3ca9504f7da27c06f07f2e3acbdb1c4f20))
+* **map-editor:** move the archive handling out of the drawing panel ([f85470f](https://github.com/SavageChieftain/udonarium_axe/commit/f85470f38115f7e29e531a18f8599c1599fa0aef))
+* **map-editor:** put each tool's press, drag and release together ([c224684](https://github.com/SavageChieftain/udonarium_axe/commit/c224684f341c52fd627f28c3d805a14fdf02ada0))
+* one answer to "is this piece on the table" ([b4236dd](https://github.com/SavageChieftain/udonarium_axe/commit/b4236dd32dd5085eb8ba6d2b4ff2c9e65965ceb9))
+* share the altitude menu and the ability list walk ([656f6b5](https://github.com/SavageChieftain/udonarium_axe/commit/656f6b575d7760f13b52454062efc2e661b8fa30))
+* spell the identifiers the way the words are spelled ([d343775](https://github.com/SavageChieftain/udonarium_axe/commit/d3437758eef4d54f4f238852e7c86c7d4670fe06))
+* translate the infrastructure and testing comments ([32a701d](https://github.com/SavageChieftain/udonarium_axe/commit/32a701da457d5e5f83f247fa94955a386f389d1e))
+* **ui:** ask one place whether the click was on a selection ([18e5b77](https://github.com/SavageChieftain/udonarium_axe/commit/18e5b77b7522125ca2c52a813045540eaccd1e4d))
+* **ui:** gather the three list reorders behind one helper ([727e06f](https://github.com/SavageChieftain/udonarium_axe/commit/727e06f14ef796e09aba2171caca9296969dff8d))
+* **ui:** translate the ui layer comments and test names ([65a9b7c](https://github.com/SavageChieftain/udonarium_axe/commit/65a9b7cbfcb8288614af53c192574cf6003ebb53))
+
 ## [1.36.2](https://github.com/SavageChieftain/udonarium_axe/compare/v1.36.1...v1.36.2) (2026-08-14)
 
 ### 🐛 Bug Fixes
