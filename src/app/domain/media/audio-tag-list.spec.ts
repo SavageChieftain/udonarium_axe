@@ -20,14 +20,14 @@ describe('AudioTagList', () => {
   });
 
   describe('create()', () => {
-    it('AudioFile配列からAudioTagListを作成する', () => {
+    it('builds the tag list from the audio files', () => {
       const list = AudioTagList.create([]);
       expect(list).toBeTruthy();
     });
   });
 
   describe('onStoreAdded', () => {
-    it('ObjectStoreから自身を削除する', () => {
+    it('takes itself out of the store', () => {
       const list = new AudioTagList();
       list.initialize();
       expect(store.get(list.identifier)).toBeFalsy();
@@ -35,7 +35,7 @@ describe('AudioTagList', () => {
   });
 
   describe('innerXml()', () => {
-    it('空のリストでは空文字列を返す', () => {
+    it('returns nothing for an empty list', () => {
       const list = AudioTagList.create([]);
       expect(list.innerXml()).toBe('');
     });

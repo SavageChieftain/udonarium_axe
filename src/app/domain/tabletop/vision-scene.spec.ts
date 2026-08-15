@@ -79,42 +79,42 @@ const PLAYER: SceneViewer = { userId: 'p1', isGameMaster: false };
 
 describe('vision-scene', () => {
   describe('withinCone', () => {
-    it('全方位(360)は常に true', () => {
+    it('is always true through the full turn', () => {
       expect(withinCone(light({ angle: 360 }), 50, 50)).toBe(true);
     });
 
-    it('コーンの向きの内側は true、外側は false', () => {
+    it('is true inside the cone and false outside it', () => {
       const cone = light({ x: 0, y: 0, angle: 90, direction: 0 });
       expect(withinCone(cone, 100, 0)).toBe(true);
       expect(withinCone(cone, -100, 0)).toBe(false);
     });
   });
 
-  describe('3D ジオメトリ（高度・ピッチ）', () => {
-    it('floorRadii は高さで床半径を縮小する', () => {
+  describe('the geometry of height and pitch', () => {
+    it('narrows the reach along the floor with height', () => {
       expect(floorRadii(light({ z: 0, dimPx: 200 })).dimFloor).toBeCloseTo(200);
       expect(floorRadii(light({ z: 120, dimPx: 200 })).dimFloor).toBeCloseTo(Math.sqrt(200 * 200 - 120 * 120));
       expect(floorRadii(light({ z: 250, dimPx: 200 })).dimFloor).toBe(0);
     });
 
-    it('高い球は 3D 距離で床への到達が縮む', () => {
+    it('a high sphere reaches less of the floor once the distance is measured in three dimensions', () => {
       const s = scene({ lights: [light({ x: 0, y: 0, z: 180, dimPx: 200, brightPx: 100 })] });
       expect(lightLevelAt(s, 80, 0)).toBeGreaterThan(0);
       expect(lightLevelAt(s, 120, 0)).toBe(0);
     });
 
-    it('十分高い球は床に全く届かない', () => {
+    it('a high enough one reaches none of it', () => {
       const s = scene({ lights: [light({ x: 0, y: 0, z: 250, dimPx: 200 })] });
       expect(lightLevelAt(s, 0, 0)).toBe(0);
     });
 
-    it('lightAxis はピッチで上下を向く', () => {
+    it('tips the axis of the light with the pitch', () => {
       expect(lightAxis(light({ pitch: 0 })).z).toBeCloseTo(0);
       expect(lightAxis(light({ pitch: -90 })).z).toBeCloseTo(-1);
       expect(lightAxis(light({ pitch: 90 })).z).toBeCloseTo(1);
     });
 
-    it('真下向き円錐は真下を照らし、側方は照らさない', () => {
+    it('a cone pointing straight down lights the ground below and nothing to the side', () => {
       const s = scene({
         lights: [light({ x: 0, y: 0, z: 100, dimPx: 1000, angle: 60, direction: 0, pitch: -90 })],
       });
@@ -122,7 +122,7 @@ describe('vision-scene', () => {
       expect(lightReaches(s, s.lights[0], 300, 0)).toBe(false);
     });
 
-    it('前方下向き円錐は前方の床を照らし、後方は照らさない', () => {
+    it('one pointing forward and down lights the floor ahead and nothing behind', () => {
       const s = scene({
         lights: [light({ x: 0, y: 0, z: 50, dimPx: 1000, angle: 60, direction: 0, pitch: -30 })],
       });
@@ -130,7 +130,7 @@ describe('vision-scene', () => {
       expect(lightReaches(s, s.lights[0], -100, 0)).toBe(false);
     });
 
-    it('computeLightBeam は高所の下向き円錐で複数フィンの 3D 円錐を生成する', () => {
+    it('builds a cone of several fins for a high light pointing down', () => {
       const beam = computeLightBeam(light({ x: 100, y: 100, z: 200, angle: 45, direction: 0, pitch: -52, dimPx: 600 }));
       expect(beam).not.toBeNull();
       expect(beam!.height).toBeGreaterThan(0);
@@ -140,13 +140,13 @@ describe('vision-scene', () => {
       expect(beam!.clip.startsWith('polygon(')).toBe(true);
     });
 
-    it('computeLightBeam は球・高さ0・上向きでは帯を作らない', () => {
+    it('builds none for a sphere, for a light on the ground or for one pointing up', () => {
       expect(computeLightBeam(light({ angle: 360, z: 200 }))).toBeNull();
       expect(computeLightBeam(light({ angle: 45, z: 0, pitch: -52 }))).toBeNull();
       expect(computeLightBeam(light({ angle: 45, z: 200, pitch: 30 }))).toBeNull();
     });
 
-    it('床の球ライトはカメラ正対(transform=null)のオーブを生成する', () => {
+    it('gives a sphere on the floor an orb that faces the camera', () => {
       const glow = computeLightGlow(light({ x: 100, y: 120, z: 80, angle: 360, brightPx: 150, dimPx: 300 }), 50);
       expect(glow).not.toBeNull();
       expect(glow!.x).toBe(100);
@@ -156,47 +156,47 @@ describe('vision-scene', () => {
       expect(glow!.transform).toBeNull();
     });
 
-    it('壁の球ライトは壁面と同一平面(matrix3d)のオーブを生成する', () => {
+    it('gives one on a wall an orb in the plane of that wall', () => {
       const glow = computeLightGlow(light({ angle: 360, brightPx: 150, dimPx: 300, surface: 'north-wall' }), 50);
       expect(glow).not.toBeNull();
       expect(glow!.transform).not.toBeNull();
       expect(glow!.transform!.startsWith('matrix3d(')).toBe(true);
     });
 
-    it('computeLightGlow は円錐・特大(太陽光相当)ではオーブを作らない', () => {
+    it('gives none to a cone or to something as large as the sun', () => {
       expect(computeLightGlow(light({ angle: 45, brightPx: 150 }), 50)).toBeNull();
       expect(computeLightGlow(light({ angle: 360, brightPx: 600, dimPx: 1200 }), 50)).toBeNull();
     });
   });
 
   describe('lightLevelAt', () => {
-    it('明radius内は1、dim域は0.5、域外は0', () => {
+    it('is full inside the bright radius, half through the dim one and nothing beyond', () => {
       const s = scene({ lights: [light({ x: 0, y: 0, brightPx: 100, dimPx: 200 })] });
       expect(lightLevelAt(s, 50, 0)).toBe(1);
       expect(lightLevelAt(s, 150, 0)).toBe(0.5);
       expect(lightLevelAt(s, 300, 0)).toBe(0);
     });
 
-    it('globalIllumination が床として効く', () => {
+    it('the global light acts as a floor under everything', () => {
       const s = scene({ globalIllumination: 0.3 });
       expect(lightLevelAt(s, 999, 999)).toBeCloseTo(0.3);
     });
   });
 
   describe('viewerOwns', () => {
-    it('通常の viewer は自分の userId のみ所有とみなす', () => {
+    it('counts only their own as owned for an ordinary viewer', () => {
       expect(viewerOwns(PLAYER, 'p1')).toBe(true);
       expect(viewerOwns(PLAYER, 'p2')).toBe(false);
     });
 
-    it('visionOwnerIds 指定時はその集合を所有とみなす（見学の視界合算）', () => {
+    it('counts a named set as owned, which is how a spectator gathers several fields of view', () => {
       const spectator: SceneViewer = { userId: 'guest', isGameMaster: false, visionOwnerIds: ['p1', 'p2'] };
       expect(viewerOwns(spectator, 'p1')).toBe(true);
       expect(viewerOwns(spectator, 'p2')).toBe(true);
       expect(viewerOwns(spectator, 'p3')).toBe(false);
     });
 
-    it('空の owner は所有とみなさない', () => {
+    it('counts an empty owner as owned by nobody', () => {
       expect(viewerOwns(PLAYER, '')).toBe(false);
     });
   });
@@ -204,27 +204,27 @@ describe('vision-scene', () => {
   describe('viewerShares', () => {
     const COMPANION: SceneViewer = { userId: 'p1', isGameMaster: false, partyIds: ['party-a'] };
 
-    it('同じパーティの他人のキャラを共有する', () => {
+    it('shares another players character from the same party', () => {
       expect(viewerShares(COMPANION, 'p2', 'party-a')).toBe(true);
     });
 
-    it('別パーティや未所属のキャラは共有しない', () => {
+    it('shares nothing from another party or from none', () => {
       expect(viewerShares(COMPANION, 'p2', 'party-b')).toBe(false);
       expect(viewerShares(COMPANION, 'p2', '')).toBe(false);
       expect(viewerShares(COMPANION, 'p2', undefined)).toBe(false);
     });
 
-    it('パーティに関係なく自分のキャラは共有する', () => {
+    it('shares your own whatever the party', () => {
       expect(viewerShares(COMPANION, 'p1', '')).toBe(true);
       expect(viewerShares(PLAYER, 'p1', 'party-a')).toBe(true);
     });
   });
 
-  describe('同行の視界共有', () => {
+  describe('sharing sight between travelling companions', () => {
     const alone: SceneViewer = { userId: 'p1', isGameMaster: false };
     const companion: SceneViewer = { userId: 'p1', isGameMaster: false, partyIds: ['party-a'] };
 
-    it('同行者の暗視で照らされた点が見える', () => {
+    it('sees what a companions dark vision reaches', () => {
       const shared = scene({
         visionSources: [
           source({ x: 800, y: 800, type: VisionType.DARKVISION, rangePx: 200, owner: 'p2', partyId: 'party-a' }),
@@ -235,7 +235,7 @@ describe('vision-scene', () => {
       expect(isPointVisible(shared, 820, 820, alone)).toBe(false);
     });
 
-    it('同行していないキャラの視界は共有されない', () => {
+    it('shares nothing with a character who travels apart', () => {
       const unshared = scene({
         visionSources: [source({ x: 800, y: 800, type: VisionType.DARKVISION, rangePx: 200, owner: 'p2' })],
       });
@@ -245,15 +245,15 @@ describe('vision-scene', () => {
   });
 
   describe('isPointVisible', () => {
-    it('GM は常に可視', () => {
+    it('the game master always sees', () => {
       expect(isPointVisible(scene(), 500, 500, GM)).toBe(true);
     });
 
-    it('視界を持たない PL は不可視', () => {
+    it('a player with no sight sees nothing', () => {
       expect(isPointVisible(scene(), 500, 500, PLAYER)).toBe(false);
     });
 
-    it('通常視界の PL は照らされた領域が見える', () => {
+    it('one with ordinary sight sees what is lit', () => {
       const s = scene({
         lights: [light({ x: 500, y: 500, brightPx: 100, dimPx: 200 })],
         visionSources: [source({ type: VisionType.NORMAL, owner: 'p1' })],
@@ -262,7 +262,7 @@ describe('vision-scene', () => {
       expect(isPointVisible(s, 900, 900, PLAYER)).toBe(false);
     });
 
-    it('暗視の PL は範囲内の暗所が見える', () => {
+    it('one with dark vision sees the dark within their range', () => {
       const s = scene({
         visionSources: [source({ x: 100, y: 100, type: VisionType.DARKVISION, rangePx: 150, owner: 'p1' })],
       });
@@ -270,12 +270,12 @@ describe('vision-scene', () => {
       expect(isPointVisible(s, 400, 100, PLAYER)).toBe(false);
     });
 
-    it('照らされた場所は視界源を持たない PL でも見える', () => {
+    it('what is lit can be seen even by a player with no source of sight', () => {
       const s = scene({ lights: [light({ x: 500, y: 500, dimPx: 200 })] });
       expect(isPointVisible(s, 520, 500, PLAYER)).toBe(true);
     });
 
-    it('真視は遮蔽を無視して範囲内を見通す（暗視は壁で遮られる）', () => {
+    it('true sight sees through obstacles within its range, where dark vision is stopped by a wall', () => {
       const truesight = scene({
         sightSegments: [WALL_AT_X100],
         visionSources: [source({ x: 0, y: 0, type: VisionType.TRUESIGHT, rangePx: 300, owner: 'p1' })],
@@ -290,7 +290,7 @@ describe('vision-scene', () => {
       expect(isPointVisible(darkvision, 200, 0, PLAYER)).toBe(false);
     });
 
-    it('影を落とすトークンは自分のフットプリントで隠れない', () => {
+    it('a piece that casts a shadow is not hidden by its own footprint', () => {
       const footprint: Segment[] = [
         { x1: -25, y1: -25, x2: 25, y2: -25 },
         { x1: 25, y1: -25, x2: 25, y2: 25 },
@@ -305,26 +305,26 @@ describe('vision-scene', () => {
       expect(isPointVisible(s, 0, 0, PLAYER)).toBe(true);
     });
 
-    it('盲目の視界源は暗所で可視性を与えない', () => {
+    it('a blinded source gives no sight in the dark', () => {
       const s = scene({
         visionSources: [source({ x: 0, y: 0, type: VisionType.BLIND, rangePx: 1000, owner: 'p1' })],
       });
       expect(isPointVisible(s, 100, 0, PLAYER)).toBe(false);
     });
 
-    it('revealToAll の演出ライトは視界がなくても全員に見える', () => {
+    it('a light meant for everybody is seen without any sight at all', () => {
       const s = scene({ lights: [light({ x: 500, y: 500, dimPx: 200, revealToAll: true })] });
       expect(isPointVisible(s, 550, 500, PLAYER)).toBe(true);
     });
 
-    it('他PL所有の暗視源は自分の暗所可視性に寄与しない', () => {
+    it('another players dark vision adds nothing to your own', () => {
       const s = scene({
         visionSources: [source({ x: 800, y: 800, type: VisionType.DARKVISION, rangePx: 200, owner: 'other' })],
       });
       expect(isPointVisible(s, 820, 800, PLAYER)).toBe(false);
     });
 
-    it('見学(visionOwnerIds)は対象プレイヤーの暗視源を引き継いで暗所が見える', () => {
+    it('a spectator takes up the dark vision of the players they watch', () => {
       const s = scene({
         visionSources: [source({ x: 800, y: 800, type: VisionType.DARKVISION, rangePx: 200, owner: 'other' })],
       });
@@ -332,7 +332,7 @@ describe('vision-scene', () => {
       expect(isPointVisible(s, 820, 800, spectator)).toBe(true);
     });
 
-    it('合算対象のいない見学は暗所が見えない', () => {
+    it('one watching nobody sees nothing in the dark', () => {
       const s = scene({
         visionSources: [source({ x: 800, y: 800, type: VisionType.DARKVISION, rangePx: 200, owner: 'p1' })],
       });
@@ -340,7 +340,7 @@ describe('vision-scene', () => {
       expect(isPointVisible(s, 820, 800, spectator)).toBe(false);
     });
 
-    it('見学は複数プレイヤーの視界を合算する', () => {
+    it('a spectator gathers the sight of several players', () => {
       const s = scene({
         visionSources: [
           source({ x: 100, y: 100, type: VisionType.DARKVISION, rangePx: 100, owner: 'p1' }),
@@ -353,7 +353,7 @@ describe('vision-scene', () => {
       expect(isPointVisible(s, 450, 450, spectator)).toBe(false);
     });
 
-    it('壁が視界源と対象の間にあると遮蔽される', () => {
+    it('a wall between the source and the target blocks it', () => {
       const s = scene({
         lights: [light({ x: 0, y: 0, dimPx: 1000 })],
         visionSources: [source({ x: 0, y: 0, type: VisionType.NORMAL, owner: 'p1' })],
@@ -364,7 +364,7 @@ describe('vision-scene', () => {
       expect(isPointVisible(s, 200, 0, PLAYER)).toBe(false);
     });
 
-    it('窓硝子(blocksLight=false)は光を通し、その照らされた先は見える', () => {
+    it('a window lets the light through, and what it lights can be seen', () => {
       const s = scene({
         lights: [light({ x: 0, y: 0, dimPx: 1000 })],
         sightSegments: [WALL_AT_X100],
@@ -374,7 +374,7 @@ describe('vision-scene', () => {
       expect(isPointVisible(s, 200, 0, PLAYER)).toBe(true);
     });
 
-    it('視界源を持つ PL は、視線を遮る地形の先の明所が見えない', () => {
+    it('a player with sight cannot see a lit place behind terrain that blocks it', () => {
       const s = scene({
         lights: [light({ x: 500, y: 0, dimPx: 1000 })],
         visionSources: [source({ x: 0, y: 0, type: VisionType.NORMAL, owner: 'p1' })],
@@ -385,7 +385,7 @@ describe('vision-scene', () => {
       expect(isPointVisible(s, 200, 0, PLAYER)).toBe(false);
     });
 
-    it('窓硝子は暗所の暗視を遮る', () => {
+    it('a window still stops dark vision', () => {
       const s = scene({
         visionSources: [source({ x: -50, y: 0, type: VisionType.DARKVISION, rangePx: 1000, owner: 'p1' })],
         sightSegments: [WALL_AT_X100],
@@ -394,7 +394,7 @@ describe('vision-scene', () => {
       expect(isPointVisible(s, 200, 0, PLAYER)).toBe(false);
     });
 
-    it('ignoreOcclusion のライトは壁を無視して照らす', () => {
+    it('a light that ignores obstacles shines through a wall', () => {
       const s = scene({
         lights: [light({ x: 0, y: 0, dimPx: 1000, ignoreOcclusion: true })],
         lightSegments: [WALL_AT_X100],
@@ -402,7 +402,7 @@ describe('vision-scene', () => {
       expect(lightLevelAt(s, 200, 0)).toBeGreaterThan(0);
     });
 
-    it('castShadows のライトはトークン(shadowCaster)で影を落とす', () => {
+    it('a light that casts shadows throws them from the pieces', () => {
       const s = scene({
         lights: [light({ x: 0, y: 0, dimPx: 1000, castShadows: true, sourceId: 'light' })],
         shadowCasters: [caster({ ownerId: 'tokenA' })],
@@ -411,7 +411,7 @@ describe('vision-scene', () => {
       expect(lightLevelAt(s, 200, 0)).toBe(0);
     });
 
-    it('castShadows でない光はトークンの影を無視する', () => {
+    it('one that does not passes them by', () => {
       const s = scene({
         lights: [light({ x: 0, y: 0, dimPx: 1000, castShadows: false })],
         shadowCasters: [caster({ ownerId: 'tokenA' })],
@@ -419,7 +419,7 @@ describe('vision-scene', () => {
       expect(lightLevelAt(s, 200, 0)).toBeGreaterThan(0);
     });
 
-    it('発光トークン自身の影は自分の光を遮らない', () => {
+    it('a glowing piece does not shadow its own light', () => {
       const s = scene({
         lights: [light({ x: 0, y: 0, dimPx: 1000, castShadows: true, sourceId: 'tokenA' })],
         shadowCasters: [caster({ ownerId: 'tokenA' })],
@@ -427,7 +427,7 @@ describe('vision-scene', () => {
       expect(lightLevelAt(s, 200, 0)).toBeGreaterThan(0);
     });
 
-    it('ignoreOcclusion + castShadows は壁を無視しトークンの影だけ落とす', () => {
+    it('one that ignores obstacles and casts shadows throws them from the pieces alone', () => {
       const s = scene({
         lights: [light({ x: 0, y: 0, dimPx: 1000, ignoreOcclusion: true, castShadows: true, sourceId: 'light' })],
         lightSegments: [{ x1: 50, y1: -200, x2: 50, y2: 200 }],
@@ -438,14 +438,14 @@ describe('vision-scene', () => {
     });
   });
 
-  describe('objectLightLevel / objectBrightnessFor (面ごとの明るさ)', () => {
-    it('objectLightLevel は光源側で点灯、遠方で消灯', () => {
+  describe('how bright each face is', () => {
+    it('is lit near the source and dark far from it', () => {
       const s = scene({ lights: [light({ x: 0, y: 0, brightPx: 50, dimPx: 200 })] });
       expect(objectLightLevel(s, 100, 0, 0)).toBeGreaterThan(0);
       expect(objectLightLevel(s, 500, 0, 0)).toBe(0);
     });
 
-    it('ignoreShadowCasters でトークンの影を無視して面を明るく保つ', () => {
+    it('keeps a face bright by passing the pieces by', () => {
       const s = scene({
         lights: [light({ x: 0, y: 0, brightPx: 50, dimPx: 1000, castShadows: true, sourceId: 'L' })],
         shadowCasters: [caster({ ownerId: 'c', x: 100, y: 0, radiusPx: 10, segments: [WALL_AT_X100] })],
@@ -454,7 +454,7 @@ describe('vision-scene', () => {
       expect(objectLightLevel(s, 200, 0, 0, true)).toBeGreaterThan(0);
     });
 
-    it('照らされた面は明るく、反対の暗い面は暗い', () => {
+    it('lights the face turned to the light and leaves the opposite one dark', () => {
       const s = scene({
         lights: [light({ x: 0, y: 0, brightPx: 50, dimPx: 300 })],
         visionSources: [source({ x: 0, y: 0, type: VisionType.NORMAL, owner: 'p1' })],
@@ -465,10 +465,10 @@ describe('vision-scene', () => {
     });
   });
 
-  describe('computeWallSilhouettes (壁への投影シルエット)', () => {
+  describe('the silhouettes thrown onto a wall', () => {
     const northFace: WallFace = { ax: 0, ay: 0, bx: 200, by: 0, nx: 0, ny: -1, heightPx: 100 };
 
-    it('光と壁の間のキャスタが壁に投影される', () => {
+    it('throws whatever stands between the light and the wall onto it', () => {
       const s = scene({
         lights: [light({ x: 100, y: -100, dimPx: 1000, castShadows: true, sourceId: 'L' })],
         shadowCasters: [caster({ ownerId: 'c', x: 100, y: -50, radiusPx: 25, segments: [] })],
@@ -480,7 +480,7 @@ describe('vision-scene', () => {
       expect(sils[0].height).toBeGreaterThan(0);
     });
 
-    it('シルエットにキャスタの画像URLを保持する', () => {
+    it('keeps the picture of what threw it', () => {
       const s = scene({
         lights: [light({ x: 100, y: -100, dimPx: 1000, castShadows: true, sourceId: 'L' })],
         shadowCasters: [caster({ ownerId: 'c', x: 100, y: -50, radiusPx: 25, segments: [], imageUrl: 'token.png' })],
@@ -488,7 +488,7 @@ describe('vision-scene', () => {
       expect(computeWallSilhouettes(s, northFace, 75)[0].imageUrl).toBe('token.png');
     });
 
-    it('自分が発する光ではシルエットを作らない', () => {
+    it('throws none from its own light', () => {
       const s = scene({
         lights: [light({ x: 100, y: -100, dimPx: 1000, castShadows: true, sourceId: 'c' })],
         shadowCasters: [caster({ ownerId: 'c', x: 100, y: -50, radiusPx: 25, segments: [] })],
@@ -496,7 +496,7 @@ describe('vision-scene', () => {
       expect(computeWallSilhouettes(s, northFace, 75)).toHaveLength(0);
     });
 
-    it('光が壁の内側(キャスタの後ろ)にある場合は投影しない', () => {
+    it('throws none when the light is behind what would throw it', () => {
       const s = scene({
         lights: [light({ x: 100, y: 50, dimPx: 1000, castShadows: true, sourceId: 'L' })],
         shadowCasters: [caster({ ownerId: 'c', x: 100, y: -50, radiusPx: 25, segments: [] })],
@@ -504,7 +504,7 @@ describe('vision-scene', () => {
       expect(computeWallSilhouettes(s, northFace, 75)).toHaveLength(0);
     });
 
-    it('投影中心が面の外でも影の幅が面にかかれば投影される', () => {
+    it('throws one whose centre falls off the face as long as its width reaches it', () => {
       const s = scene({
         lights: [light({ x: 300, y: -100, dimPx: 1000, castShadows: true, sourceId: 'L' })],
         shadowCasters: [caster({ ownerId: 'c', x: 260, y: -50, radiusPx: 25, segments: [] })],
@@ -514,7 +514,7 @@ describe('vision-scene', () => {
       expect(sils[0].localX).toBeCloseTo(220);
     });
 
-    it('影の幅が面に全くかからなければ投影しない', () => {
+    it('throws none that misses the face entirely', () => {
       const s = scene({
         lights: [light({ x: 600, y: -100, dimPx: 2000, castShadows: true, sourceId: 'L' })],
         shadowCasters: [caster({ ownerId: 'c', x: 560, y: -50, radiusPx: 10, segments: [] })],
@@ -523,10 +523,10 @@ describe('vision-scene', () => {
     });
   });
 
-  describe('computeWallLights (壁面のライトプール)', () => {
+  describe('the pools of light on a wall', () => {
     const northFace: WallFace = { ax: 0, ay: 0, bx: 200, by: 0, nx: 0, ny: -1, heightPx: 100 };
 
-    it('面の外側のライトはプールを生成する', () => {
+    it('pools a light in front of the face', () => {
       const s = scene({ lights: [light({ x: 100, y: -60, brightPx: 50, dimPx: 200 })] });
       const pools = computeWallLights(s, northFace);
       expect(pools).toHaveLength(1);
@@ -534,24 +534,24 @@ describe('vision-scene', () => {
       expect(pools[0].radiusX).toBeCloseTo(Math.sqrt(200 * 200 - 60 * 60));
     });
 
-    it('プールの垂直中心は光源の高さ(z)に追従する', () => {
+    it('centres the pool at the height of the light', () => {
       const onFloor = scene({ lights: [light({ x: 100, y: -60, z: 0, dimPx: 200 })] });
       expect(computeWallLights(onFloor, northFace)[0].localY).toBeCloseTo(100);
       const elevated = scene({ lights: [light({ x: 100, y: -60, z: 40, dimPx: 200 })] });
       expect(computeWallLights(elevated, northFace)[0].localY).toBeCloseTo(100 - 40);
     });
 
-    it('面の裏側のライトはプールを生成しない', () => {
+    it('pools nothing from behind it', () => {
       const s = scene({ lights: [light({ x: 100, y: 60, dimPx: 200 })] });
       expect(computeWallLights(s, northFace)).toHaveLength(0);
     });
 
-    it('dim 半径より遠いライトはプールを生成しない', () => {
+    it('pools nothing from beyond the dim radius', () => {
       const s = scene({ lights: [light({ x: 100, y: -300, dimPx: 200 })] });
       expect(computeWallLights(s, northFace)).toHaveLength(0);
     });
 
-    it('壁で遮蔽されたライトはプールを生成しない', () => {
+    it('pools nothing from a light a wall blocks', () => {
       const s = scene({
         lights: [light({ x: 100, y: -60, dimPx: 200 })],
         lightSegments: [{ x1: -10, y1: -30, x2: 210, y2: -30 }],
@@ -559,7 +559,7 @@ describe('vision-scene', () => {
       expect(computeWallLights(s, northFace)).toHaveLength(0);
     });
 
-    it('bright 域は intensity=1、dim 域は減衰する', () => {
+    it('is full through the bright range and falls off through the dim one', () => {
       const near = scene({ lights: [light({ x: 100, y: -30, brightPx: 50, dimPx: 200 })] });
       expect(computeWallLights(near, northFace)[0].intensity).toBe(1);
       const far = scene({ lights: [light({ x: 100, y: -120, brightPx: 50, dimPx: 200 })] });
@@ -568,7 +568,7 @@ describe('vision-scene', () => {
   });
 
   describe('computeOverlayPlan', () => {
-    it('GM は薄暗いプレビュー（プレイヤーより明るい）でライトを reveal する', () => {
+    it('shows the game master a dim preview, brighter than a player sees', () => {
       const s = scene({ lights: [light(), light()] });
       const gmPlan = computeOverlayPlan(s, GM);
       const playerView = scene({
@@ -582,7 +582,7 @@ describe('vision-scene', () => {
       expect(gmPlan.glows).toHaveLength(2);
     });
 
-    it('視界のある PL はライト域を reveal する', () => {
+    it('reveals the lit area to a player with sight', () => {
       const s = scene({
         lights: [light({ x: 500, y: 500 })],
         visionSources: [source({ type: VisionType.NORMAL, owner: 'p1' })],
@@ -593,25 +593,25 @@ describe('vision-scene', () => {
       expect(plan.reveals[0].full).toBe(false);
     });
 
-    it('視界源を持たない PL でも全ライト域が reveal される', () => {
+    it('reveals it even to one without a source of sight', () => {
       const s = scene({ lights: [light(), light()] });
       const plan = computeOverlayPlan(s, PLAYER);
       expect(plan.reveals).toHaveLength(2);
     });
 
-    it('高所の球ライトは reveal 半径が床半径に縮小する', () => {
+    it('narrows what a high sphere reveals to what it reaches on the floor', () => {
       const s = scene({ lights: [light({ x: 100, y: 100, z: 150, dimPx: 200, brightPx: 100 })] });
       const plan = computeOverlayPlan(s, PLAYER);
       expect(plan.reveals).toHaveLength(1);
       expect(plan.reveals[0].dimPx).toBeCloseTo(Math.sqrt(200 * 200 - 150 * 150));
     });
 
-    it('高すぎる球ライトは床を reveal しない', () => {
+    it('reveals none of it from too high up', () => {
       const s = scene({ lights: [light({ x: 100, y: 100, z: 250, dimPx: 200 })] });
       expect(computeOverlayPlan(s, PLAYER).reveals).toHaveLength(0);
     });
 
-    it('下向き円錐ライトは前方の床にビーム footprint を持つ', () => {
+    it('gives a downward cone a footprint on the floor ahead', () => {
       const s = scene({
         lights: [light({ x: 100, y: 100, z: 50, dimPx: 600, angle: 45, direction: 0, pitch: -30 })],
       });
@@ -622,7 +622,7 @@ describe('vision-scene', () => {
       expect(reveal.x).toBeGreaterThan(100);
     });
 
-    it('暗視源は full な reveal 円を追加する', () => {
+    it('adds a full circle for a source of dark vision', () => {
       const s = scene({
         visionSources: [source({ type: VisionType.DARKVISION, rangePx: 150, owner: 'p1' })],
       });
@@ -632,7 +632,7 @@ describe('vision-scene', () => {
       expect(fullReveal?.dimPx).toBe(150);
     });
 
-    it('真視源は遮蔽でクリップしない全円 reveal を追加する', () => {
+    it('adds one for true sight that obstacles do not clip', () => {
       const s = scene({
         sightSegments: [WALL_AT_X100],
         visionSources: [source({ type: VisionType.TRUESIGHT, rangePx: 150, owner: 'p1' })],
@@ -643,7 +643,7 @@ describe('vision-scene', () => {
       expect(reveal?.clipPolygon).toBeUndefined();
     });
 
-    it('熱視界の源は熱色のグローを追加する', () => {
+    it('adds a warm glow for heat vision', () => {
       const s = scene({
         visionSources: [source({ type: VisionType.THERMAL, rangePx: 150, owner: 'p1' })],
       });
@@ -653,24 +653,24 @@ describe('vision-scene', () => {
       expect(thermalGlow?.dimPx).toBe(150);
     });
 
-    it('ライトの animation が OverlayShape に伝わる', () => {
+    it('carries the animation of a light onto the shape', () => {
       const s = scene({ lights: [light({ animation: 'neon' })] });
       const plan = computeOverlayPlan(s, PLAYER);
       expect(plan.glows[0].animation).toBe('neon');
     });
 
-    it('castShadows ライト下のシャドウキャスタは投影シルエット影を生成する', () => {
+    it('throws a silhouette from a piece under a light that casts shadows', () => {
       const s = scene({
         lights: [light({ x: 100, y: 300, dimPx: 600, castShadows: true })],
         shadowCasters: [caster({ ownerId: 'c1', x: 300, y: 300, radiusPx: 25, segments: [] })],
       });
       const plan = computeOverlayPlan(s, PLAYER);
       expect(plan.shadows).toHaveLength(1);
-      // 影は光源と反対方向(+x)へ伸びる
+      // the shadow runs away from the light
       expect(plan.shadows[0].fx).toBeGreaterThan(300);
     });
 
-    it('castShadows でないライトは影シルエットを作らない', () => {
+    it('throws none from a light that does not', () => {
       const s = scene({
         lights: [light({ x: 100, y: 300, dimPx: 600, castShadows: false })],
         shadowCasters: [caster({ ownerId: 'c1', x: 300, y: 300, radiusPx: 25, segments: [] })],
@@ -678,7 +678,7 @@ describe('vision-scene', () => {
       expect(computeOverlayPlan(s, PLAYER).shadows).toHaveLength(0);
     });
 
-    it('自分の光は自分のシルエット影を生成しない', () => {
+    it('throws none of itself from its own light', () => {
       const s = scene({
         lights: [light({ x: 100, y: 300, dimPx: 600, castShadows: true, sourceId: 'c1' })],
         shadowCasters: [caster({ ownerId: 'c1', x: 300, y: 300, radiusPx: 25, segments: [] })],
@@ -686,7 +686,7 @@ describe('vision-scene', () => {
       expect(computeOverlayPlan(s, PLAYER).shadows).toHaveLength(0);
     });
 
-    it('globalIllumination は darknessAlpha を下げ baseReveal を上げる', () => {
+    it('thins the darkness and lifts the base reveal with the global light', () => {
       const s = scene({
         globalIllumination: 0.5,
         visionSources: [source({ type: VisionType.NORMAL, owner: 'p1' })],

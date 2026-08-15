@@ -1,8 +1,8 @@
 /**
- * 既定 SE の表示名。
+ * The names of the sounds that come with the tool.
  *
- * 音の identifier はファイルのパスなので、そのまま出すと何の音か分からない。
- * ここではファイル名だけを持ち、表示名は i18n 側（`feature.effect.sounds.*`）に置く。
+ * A sound is identified by its path, which says nothing about the sound.
+ * Only the file name is held here; the name shown lives with the translations.
  */
 const PRESET_SOUND_FILES: ReadonlySet<string> = new Set([
   'alarm',
@@ -91,13 +91,13 @@ const PRESET_SOUND_FILES: ReadonlySet<string> = new Set([
   'wind-small',
 ]);
 
-/** 拡張子とディレクトリを落としたファイル名。 */
+/** The file name, without its directory or its extension. */
 export function soundFileName(identifier: string): string {
   const file = identifier.split('/').pop() ?? identifier;
   return file.replace(/\.(mp3|wav|ogg|m4a)$/i, '');
 }
 
-/** 表示名の i18n キー。持ち込んだ音なら空を返す。 */
+/** The translation key of the name. Empty for a sound that was brought in. */
 export function presetSoundLabelKey(identifier: string): string {
   const name = soundFileName(identifier);
   return PRESET_SOUND_FILES.has(name) ? `feature.effect.sounds.${name}` : '';

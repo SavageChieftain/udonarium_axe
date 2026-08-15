@@ -5,7 +5,7 @@ import {
 } from '@axe/domain/character/import/system-profiles/elysion-charasheet-profile';
 
 describe('buildElysionCharasheetCharacter', () => {
-  // charasheet.vampire-blood.net の エリュシオン（game="elysion"）実データに即した構造
+  // built from real data of one system at the archive
   const elysion = {
     pc_name: 'マリ',
     game: 'elysion',
@@ -22,12 +22,12 @@ describe('buildElysionCharasheetCharacter', () => {
     return sections.find((section) => section.label === label);
   }
 
-  it('game="elysion" を判別する', () => {
+  it('recognises the system', () => {
     expect(isElysionCharasheetCharacter(elysion)).toBe(true);
     expect(isElysionCharasheetCharacter({ pc_name: 'X', game: 'coc' })).toBe(false);
   });
 
-  it('3 主能力（学力/青春力/政治力）と dicebot Elysion を取り込む', () => {
+  it('takes its three abilities and the dice bot', () => {
     const result = buildElysionCharasheetCharacter(elysion)!;
     expect(result.dicebot).toBe('Elysion');
     expect(result.params).toEqual([
@@ -37,16 +37,16 @@ describe('buildElysionCharasheetCharacter', () => {
     ]);
   });
 
-  it('スキルを名前付きで展開し、能力コードを作成ページの権威マップで変換する', () => {
+  it('spreads the skills with their names and reads each ability code through the map taken from the page', () => {
     const result = buildElysionCharasheetCharacter(elysion)!;
     const skills = findSection(result.sections, 'スキル')!;
     expect(skills.groups.map((group) => group.label)).toEqual(['生存訓練', '変化の術']);
-    // Power_hantei=2 → 青春力。指定なし(0)は能力フィールドを出さない
+    // one code names an ability, and no code leaves the field off
     expect(skills.groups[1].fields).toContainEqual({ label: '能力', value: '青春力', kind: 'text' });
     expect(skills.groups[0].fields.some((field) => field.label === '能力')).toBe(false);
   });
 
-  it('チャットパレットに EL{能力値} の判定を生成する', () => {
+  it('builds the roll of that system into the palette', () => {
     const result = buildElysionCharasheetCharacter(elysion)!;
     expect(result.commands).toContain('EL2 【学力判定】');
     expect(result.commands).toContain('EL5 【政治力判定】');

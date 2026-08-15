@@ -5,7 +5,7 @@ import {
 } from '@axe/domain/character/import/system-profiles/swordworld-charasheet-profile';
 
 describe('buildSwordWorldCharasheetCharacter', () => {
-  // charasheet.vampire-blood.net の 旧ソード・ワールド（game="swordworld"）実データに即した構造
+  // built from real data of the older edition of one system at the archive
   const sw1 = {
     pc_name: 'カイル',
     game: 'swordworld',
@@ -32,19 +32,19 @@ describe('buildSwordWorldCharasheetCharacter', () => {
     return sections.find((section) => section.label === label);
   }
 
-  it('game="swordworld" を判別する（2.0 とは区別）', () => {
+  it('recognises it apart from the newer edition', () => {
     expect(isSwordWorldCharasheetCharacter(sw1)).toBe(true);
     expect(isSwordWorldCharasheetCharacter({ pc_name: 'X', game: 'swordworld2' })).toBe(false);
   });
 
-  it('能力ボーナス・HP/MP・dicebot SwordWorld を取り込む', () => {
+  it('takes the ability bonuses, the two resources and the dice bot', () => {
     const result = buildSwordWorldCharasheetCharacter(sw1)!;
     expect(result.dicebot).toBe('SwordWorld');
     expect(result.params).toContainEqual({ label: '器用B', value: '3' });
     expect(result.statuses).toContainEqual({ label: 'HP', value: 17, max: 17 });
   });
 
-  it('技能・武器を名前付きで展開する', () => {
+  it('spreads the skills and the weapons with their names', () => {
     const result = buildSwordWorldCharasheetCharacter(sw1)!;
     expect(findSection(result.sections, '技能')!.groups.map((group) => group.label)).toEqual(['ソード']);
     expect(findSection(result.sections, '武器')!.groups.map((group) => group.label)).toEqual([
@@ -54,7 +54,7 @@ describe('buildSwordWorldCharasheetCharacter', () => {
     ]);
   });
 
-  it('打撃は妥当な C 値のみ @ を付け、不正値（0/NaN）は素の K にする', () => {
+  it('marks a damage roll with its critical value only where that value makes sense', () => {
     const result = buildSwordWorldCharasheetCharacter(sw1)!;
     expect(result.commands).toContain('K18@12+1 【ヘビーメイス 打撃】');
     expect(result.commands).toContain('K5 【ダガー 打撃】');

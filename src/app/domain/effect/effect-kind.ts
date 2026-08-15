@@ -34,8 +34,8 @@ export type EffectKind =
 export type EffectTargeting = 'self' | 'single' | 'multi';
 
 /**
- * 斬撃の型。等級ではなく型で太刀筋が決まる。
- * single=一太刀 / combo=連撃 / iai=居合 / wide=薙ぎ払い / heavy=唐竹割り
+ * The form of a cut, which decides the line of the blade rather than the grade does.
+ * One stroke, a combination, a drawing cut, a sweep or a downward cleave.
  */
 export type SlashStyle = 'single' | 'combo' | 'iai' | 'wide' | 'heavy';
 
@@ -47,8 +47,8 @@ export function isSlashStyle(value: unknown): value is SlashStyle {
 }
 
 /**
- * 飛翔体の見た目。魔法弾は光り、矢と銃弾は実体として飛ぶ。
- * crescent=飛ぶ斬撃 / blaster=光線銃の弾 / tracer=狙撃の曳光 / missile=小型ミサイル / cruise=誘導弾
+ * What a projectile looks like: a magical bolt glows, while an arrow or a bullet flies as a thing.
+ * A flying cut, a blaster bolt, a sniper's tracer, a small missile or a guided one.
  */
 export type ProjectileStyle = 'bolt' | 'arrow' | 'bullet' | 'crescent' | 'blaster' | 'tracer' | 'missile' | 'cruise';
 

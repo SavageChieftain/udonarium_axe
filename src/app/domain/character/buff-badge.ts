@@ -14,7 +14,7 @@ export interface BuffBadge {
 const DEFAULT_ICON = '✦';
 const STRENGTH_PATTERN = /[+\-−]?\d+(?:\.\d+)?/;
 
-/** 「防+1」「ダメージ2」のような効果欄から強度だけを取り出す。数値が無ければ空。 */
+/** Takes the strength alone out of an effect field. Empty when there is no number. */
 export function parseBuffStrength(effect: string): string {
   const matched = STRENGTH_PATTERN.exec(effect ?? '');
   if (!matched) return '';
@@ -33,7 +33,7 @@ export function buffIconOf(element: DataElement): string {
   return icon.length > 0 ? icon : DEFAULT_ICON;
 }
 
-/** バフ 1 件をアイコン + 強度 + 残ラウンドのバッジに畳む。 */
+/** Folds one buff into a badge of its icon, its strength and the rounds left. */
 export function toBuffBadges(buffRoot: DataElement | null): BuffBadge[] {
   if (!buffRoot) return [];
 

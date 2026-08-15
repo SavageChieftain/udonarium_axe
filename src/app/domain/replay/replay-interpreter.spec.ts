@@ -9,50 +9,50 @@ import {
 } from '@axe/domain/replay/replay-interpreter';
 
 describe('isIgnoredReplayEvent()', () => {
-  it('カーソルや心拍などの雑音を捨てること', () => {
+  it('throws away the noise of the cursors and the heartbeats', () => {
     expect(isIgnoredReplayEvent('CURSOR_MOVE')).toBe(true);
     expect(isIgnoredReplayEvent('HEART_BEAT')).toBe(true);
     expect(isIgnoredReplayEvent('WRITING_A_MESSAGE')).toBe(true);
   });
 
-  it('同期・ファイル転送のイベントを捨てること', () => {
+  it('throws away the syncing and the file transfers', () => {
     expect(isIgnoredReplayEvent('SYNCHRONIZE_GAME_OBJECT')).toBe(true);
     expect(isIgnoredReplayEvent('FILE_SEND_CHUNK_abc')).toBe(true);
     expect(isIgnoredReplayEvent('CANCEL_TASK_abc')).toBe(true);
   });
 
-  it('記録対象のイベントは捨てないこと', () => {
+  it('throws away nothing worth recording', () => {
     expect(isIgnoredReplayEvent('UPDATE_GAME_OBJECT')).toBe(false);
     expect(isIgnoredReplayEvent('ROLL_DICE_SYMBOL')).toBe(false);
   });
 });
 
 describe('isRecordableKind()', () => {
-  it('chat-only ではチャットと目印だけ残すこと', () => {
+  it('keeps the chat and the markers alone at the narrowest setting', () => {
     expect(isRecordableKind(ReplayEventKind.ChatMessage, ReplayDetailLevel.ChatOnly)).toBe(true);
     expect(isRecordableKind(ReplayEventKind.Marker, ReplayDetailLevel.ChatOnly)).toBe(true);
     expect(isRecordableKind(ReplayEventKind.ObjectMove, ReplayDetailLevel.ChatOnly)).toBe(false);
   });
 
-  it('notable では細かい属性変更だけを落とすこと', () => {
+  it('drops only the smallest changes at the middle one', () => {
     expect(isRecordableKind(ReplayEventKind.ObjectMove, ReplayDetailLevel.Notable)).toBe(true);
     expect(isRecordableKind(ReplayEventKind.ObjectUpdate, ReplayDetailLevel.Notable)).toBe(false);
   });
 
-  it('full では全部残すこと', () => {
+  it('keeps everything at the widest', () => {
     expect(isRecordableKind(ReplayEventKind.ObjectUpdate, ReplayDetailLevel.Full)).toBe(true);
   });
 });
 
 describe('interpretObjectChange()', () => {
-  it('変化が無ければ null を返すこと', () => {
+  it('returns nothing when nothing changed', () => {
     const data = { location: { name: 'table', x: 0, y: 0 }, posZ: 0 };
     expect(
       interpretObjectChange({ aliasName: 'character', identifier: 'c1', before: data, after: structuredClone(data) })
     ).toBeNull();
   });
 
-  it('座標の変化を移動として読むこと', () => {
+  it('reads a change of position as a move', () => {
     const draft = interpretObjectChange({
       aliasName: 'character',
       identifier: 'c1',
@@ -65,7 +65,7 @@ describe('interpretObjectChange()', () => {
     expect(draft?.detail['to']).toEqual({ name: 'table', x: 100, y: 50, z: 30 });
   });
 
-  it('移動に前後の値を持つパッチを添えること', () => {
+  it('gives that move a patch holding the values either side', () => {
     const draft = interpretObjectChange({
       aliasName: 'character',
       identifier: 'c1',
@@ -80,7 +80,7 @@ describe('interpretObjectChange()', () => {
     });
   });
 
-  it('壁面を跨ぐ移動で surface を残すこと', () => {
+  it('keeps the surface through a move across a wall', () => {
     const draft = interpretObjectChange({
       aliasName: 'character',
       identifier: 'c1',
@@ -90,7 +90,7 @@ describe('interpretObjectChange()', () => {
     expect(draft?.detail['to']).toEqual({ name: 'table', x: 0, y: 0, z: 0, surface: 'north-wall' });
   });
 
-  it('回転の変化を読むこと', () => {
+  it('reads a change of angle', () => {
     const draft = interpretObjectChange({
       aliasName: 'character',
       identifier: 'c1',
@@ -102,7 +102,7 @@ describe('interpretObjectChange()', () => {
     expect(draft?.detail['roll']).toBeUndefined();
   });
 
-  it('カードの表裏を読むこと', () => {
+  it('reads a card turning over', () => {
     const draft = interpretObjectChange({
       aliasName: 'card',
       identifier: 'k1',
@@ -113,7 +113,7 @@ describe('interpretObjectChange()', () => {
     expect(draft?.detail).toEqual({ from: 'back', to: 'front' });
   });
 
-  it('コインやダイスの出目を読むこと', () => {
+  it('reads how a coin or a die fell', () => {
     const draft = interpretObjectChange({
       aliasName: 'dice-symbol',
       identifier: 'd1',
@@ -124,7 +124,7 @@ describe('interpretObjectChange()', () => {
     expect(draft?.detail).toEqual({ from: '1', to: '6' });
   });
 
-  it('リソースの増減を要素名つきで読むこと', () => {
+  it('reads a change of resource, naming the field', () => {
     const draft = interpretObjectChange({
       aliasName: 'data',
       identifier: 'hp1',
@@ -135,7 +135,7 @@ describe('interpretObjectChange()', () => {
     expect(draft?.detail).toEqual({ name: 'HP', current: { from: 12, to: 7 } });
   });
 
-  it('持ち主の変更を読むこと', () => {
+  it('reads a change of owner', () => {
     const draft = interpretObjectChange({
       aliasName: 'character',
       identifier: 'c1',
@@ -146,7 +146,7 @@ describe('interpretObjectChange()', () => {
     expect(draft?.detail).toEqual({ from: '', to: 'alice' });
   });
 
-  it('固定の切り替えを読むこと', () => {
+  it('reads a lock and an unlock', () => {
     const draft = interpretObjectChange({
       aliasName: 'character',
       identifier: 'c1',
@@ -157,7 +157,7 @@ describe('interpretObjectChange()', () => {
     expect(draft?.detail).toEqual({ locked: true });
   });
 
-  it('新規オブジェクトを作成として読むこと', () => {
+  it('reads a new object as a creation', () => {
     const draft = interpretObjectChange({
       aliasName: 'character',
       identifier: 'c1',
@@ -168,7 +168,7 @@ describe('interpretObjectChange()', () => {
     expect(draft?.detail).toEqual({ aliasName: 'character' });
   });
 
-  it('新規チャットを発言として読むこと', () => {
+  it('reads a new chat message as a line', () => {
     const draft = interpretObjectChange({
       aliasName: 'chat',
       identifier: 'm1',
@@ -203,7 +203,7 @@ describe('interpretObjectChange()', () => {
     });
   });
 
-  it('ダイスボットの発言をダイスとして読むこと', () => {
+  it('reads one from the dice bot as a roll', () => {
     const draft = interpretObjectChange({
       aliasName: 'chat',
       identifier: 'm2',
@@ -213,7 +213,7 @@ describe('interpretObjectChange()', () => {
     expect(draft?.kind).toBe(ReplayEventKind.ChatDice);
   });
 
-  it('見出しの付かない変更をその他の更新として読むこと', () => {
+  it('reads a change with no heading as an ordinary update', () => {
     const draft = interpretObjectChange({
       aliasName: 'character',
       identifier: 'c1',
@@ -225,8 +225,8 @@ describe('interpretObjectChange()', () => {
   });
 });
 
-describe('カットインの読み取り', () => {
-  it('カットインの開始を読むこと', () => {
+describe('reading the cut-ins', () => {
+  it('reads one starting', () => {
     const draft = interpretObjectChange({
       aliasName: 'cut-in-launcher',
       identifier: 'launcher',
@@ -238,7 +238,7 @@ describe('カットインの読み取り', () => {
     expect(draft?.detail).toEqual({ soundOnly: false, isStart: true });
   });
 
-  it('カットインの停止を読むこと', () => {
+  it('reads one stopping', () => {
     const draft = interpretObjectChange({
       aliasName: 'cut-in-launcher',
       identifier: 'launcher',
@@ -248,7 +248,7 @@ describe('カットインの読み取り', () => {
     expect(draft?.detail['isStart']).toBe(false);
   });
 
-  it('音だけのカットインを読むこと', () => {
+  it('reads a sound-only one', () => {
     const draft = interpretObjectChange({
       aliasName: 'cut-in-launcher',
       identifier: 'launcher',
@@ -260,11 +260,11 @@ describe('カットインの読み取り', () => {
     expect(draft?.detail['soundOnly']).toBe(true);
   });
 
-  it('標準の細かさでもカットインを残すこと', () => {
+  it('keeps them at the middle setting', () => {
     expect(isRecordableKind(ReplayEventKind.MediaCutIn, ReplayDetailLevel.Notable)).toBe(true);
   });
 
-  it('関係ない変更はカットインとして読まないこと', () => {
+  it('reads no unrelated change as one', () => {
     const draft = interpretObjectChange({
       aliasName: 'cut-in-launcher',
       identifier: 'launcher',
@@ -275,8 +275,8 @@ describe('カットインの読み取り', () => {
   });
 });
 
-describe('BGM の読み取り', () => {
-  it('曲が変わったことを読むこと', () => {
+describe('reading the music', () => {
+  it('reads a change of track', () => {
     const draft = interpretObjectChange({
       aliasName: 'jukebox',
       identifier: 'jukebox',
@@ -288,7 +288,7 @@ describe('BGM の読み取り', () => {
     expect(draft?.detail['isPlaying']).toBe(true);
   });
 
-  it('止めたことを読むこと', () => {
+  it('reads it stopping', () => {
     const draft = interpretObjectChange({
       aliasName: 'jukebox',
       identifier: 'jukebox',
@@ -299,11 +299,11 @@ describe('BGM の読み取り', () => {
     expect(draft?.detail['isPlaying']).toBe(false);
   });
 
-  it('標準の細かさでも BGM を残すこと', () => {
+  it('keeps it at the middle setting', () => {
     expect(isRecordableKind(ReplayEventKind.MediaBgm, ReplayDetailLevel.Notable)).toBe(true);
   });
 
-  it('ジュークボックスの効果音を効果音として読むこと', () => {
+  it('reads a sound effect from the jukebox as one', () => {
     const draft = interpretObjectChange({
       aliasName: 'jukebox',
       identifier: 'jukebox',
@@ -314,7 +314,7 @@ describe('BGM の読み取り', () => {
     expect(draft?.detail['identifier']).toBe('se-b');
   });
 
-  it('関係ない変更は BGM として読まないこと', () => {
+  it('reads no unrelated change as music', () => {
     const draft = interpretObjectChange({
       aliasName: 'jukebox',
       identifier: 'jukebox',
@@ -325,8 +325,8 @@ describe('BGM の読み取り', () => {
   });
 });
 
-describe('ビジュアルノベルの読み取り', () => {
-  it('場面の切り替えを読むこと', () => {
+describe('reading the novel mode', () => {
+  it('reads a change of scene', () => {
     const draft = interpretObjectChange({
       aliasName: 'vn-stage',
       identifier: 'VnStage',
@@ -338,7 +338,7 @@ describe('ビジュアルノベルの読み取り', () => {
     expect(draft?.detail['transition']).toBe('wipe');
   });
 
-  it('背景を変えずに転換だけしたことも読むこと', () => {
+  it('reads a transition that changes no backdrop', () => {
     const draft = interpretObjectChange({
       aliasName: 'vn-stage',
       identifier: 'VnStage',
@@ -348,7 +348,7 @@ describe('ビジュアルノベルの読み取り', () => {
     expect(draft?.kind).toBe(ReplayEventKind.VnScene);
   });
 
-  it('進行役の送りを読むこと', () => {
+  it('reads the reader advancing the text', () => {
     const draft = interpretObjectChange({
       aliasName: 'vn-stage',
       identifier: 'VnStage',
@@ -360,7 +360,7 @@ describe('ビジュアルノベルの読み取り', () => {
     expect(draft?.detail['tabIdentifier']).toBe('tab1');
   });
 
-  it('進行役の交代を読むこと', () => {
+  it('reads the reader changing', () => {
     const draft = interpretObjectChange({
       aliasName: 'vn-stage',
       identifier: 'VnStage',
@@ -371,13 +371,13 @@ describe('ビジュアルノベルの読み取り', () => {
     expect(draft?.detail['isDirected']).toBe(true);
   });
 
-  it('標準の細かさでも VN の運びを残すこと', () => {
+  it('keeps the run of it at the middle setting', () => {
     for (const kind of [ReplayEventKind.VnScene, ReplayEventKind.VnPlayhead, ReplayEventKind.VnDirect]) {
       expect(isRecordableKind(kind, ReplayDetailLevel.Notable)).toBe(true);
     }
   });
 
-  it('関係ない変更は VN の運びとして読まないこと', () => {
+  it('reads no unrelated change as part of it', () => {
     const draft = interpretObjectChange({
       aliasName: 'vn-stage',
       identifier: 'VnStage',
@@ -388,8 +388,8 @@ describe('ビジュアルノベルの読み取り', () => {
   });
 });
 
-describe('手番・投票・卓の見た目・役割の読み取り', () => {
-  it('ラウンドと手番の移りを読むこと', () => {
+describe('reading the turns, the votes, the look of the table and the roles', () => {
+  it('reads a round and a turn passing', () => {
     const draft = interpretObjectChange({
       aliasName: 'TurnState',
       identifier: 'TurnState',
@@ -401,7 +401,7 @@ describe('手番・投票・卓の見た目・役割の読み取り', () => {
     expect(draft?.detail).toEqual({ round: 2, phase: 'roundStart' });
   });
 
-  it('手番に関係ない変更は読み流すこと', () => {
+  it('passes over a change that touches neither', () => {
     const draft = interpretObjectChange({
       aliasName: 'TurnState',
       identifier: 'TurnState',
@@ -411,7 +411,7 @@ describe('手番・投票・卓の見た目・役割の読み取り', () => {
     expect(draft?.kind).toBe(ReplayEventKind.ObjectUpdate);
   });
 
-  it('投票の開始を読むこと', () => {
+  it('reads a vote starting', () => {
     const draft = interpretObjectChange({
       aliasName: 'Vote',
       identifier: 'Vote',
@@ -422,7 +422,7 @@ describe('手番・投票・卓の見た目・役割の読み取り', () => {
     expect(draft?.detail).toEqual({ title: '進むか戻るか', isRollCall: false, choices: ['進む', '戻る'] });
   });
 
-  it('点呼を投票と区別して読むこと', () => {
+  it('reads a roll call apart from a vote', () => {
     const draft = interpretObjectChange({
       aliasName: 'Vote',
       identifier: 'Vote',
@@ -432,7 +432,7 @@ describe('手番・投票・卓の見た目・役割の読み取り', () => {
     expect(draft?.detail['isRollCall']).toBe(true);
   });
 
-  it('投票の締め切りを読むこと', () => {
+  it('reads a vote closing', () => {
     const draft = interpretObjectChange({
       aliasName: 'Vote',
       identifier: 'Vote',
@@ -443,7 +443,7 @@ describe('手番・投票・卓の見た目・役割の読み取り', () => {
     expect(draft?.detail['title']).toBe('進むか戻るか');
   });
 
-  it('テーブルの見た目の変更を読むこと', () => {
+  it('reads a change to the look of the table', () => {
     const draft = interpretObjectChange({
       aliasName: 'game-table',
       identifier: 't1',
@@ -453,7 +453,7 @@ describe('手番・投票・卓の見た目・役割の読み取り', () => {
     expect(draft?.kind).toBe(ReplayEventKind.TableScene);
   });
 
-  it('テーブルの選択状態は見た目として読まないこと', () => {
+  it('reads which table is chosen as no part of that look', () => {
     const draft = interpretObjectChange({
       aliasName: 'game-table',
       identifier: 't1',
@@ -463,7 +463,7 @@ describe('手番・投票・卓の見た目・役割の読み取り', () => {
     expect(draft?.kind).toBe(ReplayEventKind.ObjectUpdate);
   });
 
-  it('役割の変更を読むこと', () => {
+  it('reads a change of role', () => {
     const draft = interpretObjectChange({
       aliasName: 'PeerCursor',
       identifier: 'cursor-a',
@@ -474,7 +474,7 @@ describe('手番・投票・卓の見た目・役割の読み取り', () => {
     expect(draft?.detail['role']).toBe('gm');
   });
 
-  it('直前操作コマの記録では役割の行を作らないこと', () => {
+  it('makes no row about a role from the record of the last piece touched', () => {
     const draft = interpretObjectChange({
       aliasName: 'PeerCursor',
       identifier: 'cursor-a',
@@ -484,7 +484,7 @@ describe('手番・投票・卓の見た目・役割の読み取り', () => {
     expect(draft?.kind).toBe(ReplayEventKind.ObjectUpdate);
   });
 
-  it('標準の細かさでこれらを残すこと', () => {
+  it('keeps all of these at the middle setting', () => {
     for (const kind of [
       ReplayEventKind.TurnChange,
       ReplayEventKind.VoteStart,
@@ -498,7 +498,7 @@ describe('手番・投票・卓の見た目・役割の読み取り', () => {
 });
 
 describe('interpretObjectRemove()', () => {
-  it('削除として読むこと', () => {
+  it('reads it as a deletion', () => {
     const draft = interpretObjectRemove('c1', 'character');
     expect(draft.kind).toBe(ReplayEventKind.ObjectRemove);
     expect(draft.targetIdentifier).toBe('c1');
@@ -507,13 +507,13 @@ describe('interpretObjectRemove()', () => {
 });
 
 describe('interpretSignal()', () => {
-  it('ダイスシンボルを振った操作を読むこと', () => {
+  it('reads a die being rolled', () => {
     const draft = interpretSignal('ROLL_DICE_SYMBOL', { identifier: 'd1' });
     expect(draft?.kind).toBe(ReplayEventKind.ObjectDiceRoll);
     expect(draft?.targetIdentifier).toBe('d1');
   });
 
-  it('鳴らし直せる合図に元のイベントを添えること', () => {
+  it('gives a signal that can be sounded again the event behind it', () => {
     expect(interpretSignal('SOUND_EFFECT', 'se-dice')?.signal).toEqual({ name: 'SOUND_EFFECT', data: 'se-dice' });
     expect(interpretSignal('ROLL_DICE_SYMBOL', { identifier: 'd1' })?.signal?.name).toBe('ROLL_DICE_SYMBOL');
     expect(interpretSignal('SHUFFLE_CARD_STACK', { identifier: 's1' })?.signal?.name).toBe('SHUFFLE_CARD_STACK');
@@ -522,35 +522,35 @@ describe('interpretSignal()', () => {
     expect(interpretSignal('SELECT_GAME_TABLE', { identifier: 't1' })?.signal?.name).toBe('SELECT_GAME_TABLE');
   });
 
-  it('鳴らし直してはいけない合図には添えないこと', () => {
+  it('gives none to a signal that must not be', () => {
     expect(interpretSignal('CONNECT_PEER', { peerId: 'p1' })?.signal).toBeUndefined();
     expect(interpretSignal('DISCONNECT_PEER', { peerId: 'p1' })?.signal).toBeUndefined();
     expect(interpretSignal('RESOURCE_CHANGE', { characterIdentifier: 'c1' })?.signal).toBeUndefined();
   });
 
-  it('コイン投げを読むこと', () => {
+  it('reads a coin being flipped', () => {
     const draft = interpretSignal('FLIP_COIN', { identifier: 'co1', face: 'back' });
     expect(draft?.kind).toBe(ReplayEventKind.ObjectFace);
     expect(draft?.detail).toEqual({ to: 'back' });
   });
 
-  it('山札のシャッフルを読むこと', () => {
+  it('reads a deck being shuffled', () => {
     expect(interpretSignal('SHUFFLE_CARD_STACK', { identifier: 's1' })?.kind).toBe(ReplayEventKind.ObjectShuffle);
   });
 
-  it('効果音を読むこと', () => {
+  it('reads a sound effect', () => {
     const draft = interpretSignal('SOUND_EFFECT', 'se-dice');
     expect(draft?.kind).toBe(ReplayEventKind.MediaSoundEffect);
     expect(draft?.detail).toEqual({ identifier: 'se-dice' });
   });
 
-  it('テーブル切替を読むこと', () => {
+  it('reads the table changing', () => {
     const draft = interpretSignal('SELECT_GAME_TABLE', { identifier: 't1' });
     expect(draft?.kind).toBe(ReplayEventKind.TableChange);
     expect(draft?.targetIdentifier).toBe('t1');
   });
 
-  it('リソース増減の通知をコマ単位で読むこと', () => {
+  it('reads word of a resource change piece by piece', () => {
     const draft = interpretSignal('RESOURCE_CHANGE', {
       characterIdentifier: 'c1',
       changes: [{ name: 'HP', diff: -5 }],
@@ -560,7 +560,7 @@ describe('interpretSignal()', () => {
     expect(draft?.detail['changes']).toEqual([{ name: 'HP', diff: -5 }]);
   });
 
-  it('演出の発動を効果・撃ち手・対象で読むこと', () => {
+  it('reads an effect firing, with its name, its caster and its targets', () => {
     const draft = interpretSignal('EFFECT_CAST', {
       presetIdentifier: 'preset-fire',
       casterIdentifier: 'c1',
@@ -577,7 +577,7 @@ describe('interpretSignal()', () => {
     expect(draft?.signal?.name).toBe('EFFECT_CAST');
   });
 
-  it('撃ち手のない演出も読むこと', () => {
+  it('reads one with no caster too', () => {
     const draft = interpretSignal('EFFECT_CAST', {
       presetIdentifier: 'preset-heal',
       casterIdentifier: '',
@@ -587,12 +587,12 @@ describe('interpretSignal()', () => {
     expect(draft?.relatedIdentifiers).toEqual(['c1']);
   });
 
-  it('壊れた演出でも落ちないこと', () => {
+  it('does not fall over on a broken one', () => {
     const draft = interpretSignal('EFFECT_CAST', { presetIdentifier: 'p', targets: 'not-an-array' });
     expect(draft?.detail).toEqual({ caster: '', targets: [] });
   });
 
-  it('ノベル表示の切り替えを読むこと', () => {
+  it('reads the novel mode being turned on and off', () => {
     const on = interpretSignal('VN_MODE', { active: true });
     expect(on?.kind).toBe(ReplayEventKind.VnMode);
     expect(on?.detail['active']).toBe(true);
@@ -601,29 +601,29 @@ describe('interpretSignal()', () => {
     expect(interpretSignal('VN_MODE', { active: false })?.detail['active']).toBe(false);
   });
 
-  it('入退室を読むこと', () => {
+  it('reads an arrival and a departure', () => {
     expect(interpretSignal('CONNECT_PEER', { peerId: 'p1' })?.kind).toBe(ReplayEventKind.PeerJoin);
     expect(interpretSignal('DISCONNECT_PEER', { peerId: 'p1' })?.kind).toBe(ReplayEventKind.PeerLeave);
   });
 
-  it('知らないイベントでは null を返すこと', () => {
+  it('returns nothing for an event it does not know', () => {
     expect(interpretSignal('SOMETHING_ELSE', {})).toBeNull();
   });
 });
 
 describe('shouldDiffObjectChange()', () => {
-  it('細かく残す設定では何であれ差分を取ること', () => {
+  it('takes the difference of anything at the widest setting', () => {
     expect(shouldDiffObjectChange(ReplayDetailLevel.Full, 'character', false)).toBe(true);
     expect(shouldDiffObjectChange(ReplayDetailLevel.Notable, 'character', false)).toBe(true);
   });
 
-  it('チャットだけの設定では新しい発言しか見ないこと', () => {
+  it('looks at nothing but a new line at the narrowest', () => {
     expect(shouldDiffObjectChange(ReplayDetailLevel.ChatOnly, 'chat', true)).toBe(true);
     expect(shouldDiffObjectChange(ReplayDetailLevel.ChatOnly, 'chat', false)).toBe(false);
     expect(shouldDiffObjectChange(ReplayDetailLevel.ChatOnly, 'character', true)).toBe(false);
   });
 
-  it('降りる判断が種類ごとの取捨と食い違わないこと', () => {
+  it('never disagrees with what each kind keeps and drops', () => {
     const fromObjects = [
       ReplayEventKind.ObjectCreate,
       ReplayEventKind.ObjectUpdate,

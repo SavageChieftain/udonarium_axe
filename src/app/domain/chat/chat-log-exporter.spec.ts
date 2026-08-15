@@ -28,7 +28,7 @@ function createMockTab(name: string, messages: ChatMessage[]): ChatTab {
 
 describe('ChatLogExporter', () => {
   describe('STYLE_BLOCK', () => {
-    it('全 CSS クラス定義を含む', () => {
+    it('carries every class it uses', () => {
       const block = ChatLogExporter.STYLE_BLOCK;
       expect(block).toMatch(/^<style>.+<\/style>\n$/);
       for (const cls of ['.m{', '.tb{', '.tm{', '.tc{', '.av{', '.ap{', '.ct{', '.bq{', '.bn{', '.ai{', '.aw{']) {
@@ -38,48 +38,48 @@ describe('ChatLogExporter', () => {
   });
 
   describe('escapeHtml', () => {
-    it('HTMLの特殊文字をエスケープする', () => {
+    it('escapes the markup characters', () => {
       expect(ChatLogExporter.escapeHtml('<script>alert("xss")</script>')).toBe(
         '&lt;script&gt;alert(&quot;xss&quot;)&lt;/script&gt;'
       );
     });
 
-    it('&をエスケープする', () => {
+    it('escapes an ampersand', () => {
       expect(ChatLogExporter.escapeHtml('A&B')).toBe('A&amp;B');
     });
 
-    it('シングルクォートをエスケープする', () => {
+    it('escapes a single quote', () => {
       expect(ChatLogExporter.escapeHtml("it's")).toBe('it&#x27;s');
     });
 
-    it('バッククォートをエスケープする', () => {
+    it('escapes a backtick', () => {
       expect(ChatLogExporter.escapeHtml('`code`')).toBe('&#x60;code&#x60;');
     });
 
-    it('ルビ記法を<ruby>タグに変換する', () => {
+    it('turns the ruby notation into ruby markup', () => {
       const result = ChatLogExporter.escapeHtml('|漢字《かんじ》');
       expect(result).toContain('<ruby>漢字<rt>かんじ</rt></ruby>');
     });
 
-    it('全角パイプのルビ記法も変換する', () => {
+    it('reads a full-width bar in that notation too', () => {
       const result = ChatLogExporter.escapeHtml('｜熟語《じゅくご》');
       expect(result).toContain('<ruby>熟語<rt>じゅくご</rt></ruby>');
     });
 
-    it('非文字列はStringに変換する', () => {
+    it('renders anything that is not text as text', () => {
       expect(ChatLogExporter.escapeHtml(42)).toBe('42');
       expect(ChatLogExporter.escapeHtml(null)).toBe('null');
       expect(ChatLogExporter.escapeHtml(undefined)).toBe('undefined');
     });
 
-    it('改行やタブを半角スペースに正規化する', () => {
+    it('turns a line break or a tab into a space', () => {
       const result = ChatLogExporter.escapeHtml('A\tB\nC');
       expect(result).toBe('A B C');
     });
   });
 
   describe('formatMessageStandard', () => {
-    it('基本的なメッセージをHTML形式に変換する', () => {
+    it('renders an ordinary message', () => {
       const msg = createMockMessage({ name: '勇者', text: 'こんにちは', messColor: '#ff0000' });
       const result = ChatLogExporter.formatMessageStandard(false, '', msg);
 
@@ -88,14 +88,14 @@ describe('ChatLogExporter', () => {
       expect(result).toContain('こんにちは');
     });
 
-    it('タブ名がある場合は先頭に付加する', () => {
+    it('puts the name of the tab in front where there is one', () => {
       const msg = createMockMessage();
       const result = ChatLogExporter.formatMessageStandard(false, 'メインタブ', msg);
 
       expect(result).toContain('[メインタブ]');
     });
 
-    it('時間表示がtrueの場合はHH:MMを出力する', () => {
+    it('writes the hour and the minute when it is asked to', () => {
       const ts = new Date(2024, 0, 1, 14, 30).getTime();
       const msg = createMockMessage({ timestamp: ts });
       const result = ChatLogExporter.formatMessageStandard(true, '', msg);
@@ -103,7 +103,7 @@ describe('ChatLogExporter', () => {
       expect(result).toContain('14:30');
     });
 
-    it('シークレットメッセージで送信者本人でない場合は隠す', () => {
+    it('hides a secret message from anybody but its sender', () => {
       const msg = createMockMessage({
         isSecret: true,
         isSendFromSelf: false,
@@ -116,7 +116,7 @@ describe('ChatLogExporter', () => {
       expect(result).toContain('シークレットダイス');
     });
 
-    it('シークレットメッセージでもuserIdが送信者なら見える', () => {
+    it('shows it to the sender', () => {
       const msg = createMockMessage({
         isSecret: true,
         from: 'user-A',
@@ -128,14 +128,14 @@ describe('ChatLogExporter', () => {
       expect(result).toContain('秘密のメッセージ');
     });
 
-    it('fixdがtrueの場合は「(編集済)」を表示する', () => {
+    it('marks a message that was edited', () => {
       const msg = createMockMessage({ fixd: true });
       const result = ChatLogExporter.formatMessageStandard(false, '', msg);
 
       expect(result).toContain('(編集済)');
     });
 
-    it('本文添付画像をHTML画像として出力する', () => {
+    it('renders an attached picture as a picture', () => {
       const msg = createMockMessage({
         attachmentImages: [
           {
@@ -158,7 +158,7 @@ describe('ChatLogExporter', () => {
       expect(result).toContain('alt="stamp.png"');
     });
 
-    it('本文添付画像のHTML属性ではルビ変換を行わず属性エスケープする', () => {
+    it('escapes it into the attributes without reading the ruby notation', () => {
       const msg = createMockMessage({
         attachmentImages: [
           {
@@ -175,7 +175,7 @@ describe('ChatLogExporter', () => {
       expect(result).not.toContain('<ruby>画像');
     });
 
-    it('見えないシークレットメッセージでは本文添付画像を出力しない', () => {
+    it('renders no picture for a secret message that cannot be seen', () => {
       const msg = createMockMessage({
         isSecret: true,
         isSendFromSelf: false,
@@ -195,11 +195,11 @@ describe('ChatLogExporter', () => {
       expect(result).toContain('シークレットダイス');
     });
 
-    it('nullメッセージでは空文字を返す', () => {
+    it('renders nothing for no message at all', () => {
       expect(ChatLogExporter.formatMessageStandard(false, '', null!)).toBe('');
     });
 
-    it('立ち絵 <img> は avatar + portrait の CSS クラスで出力される', () => {
+    it('gives a portrait the classes of both an avatar and a portrait', () => {
       const portrait = {
         identifier: 'portrait-square',
         name: 'hero.png',
@@ -210,7 +210,7 @@ describe('ChatLogExporter', () => {
       expect(result).toContain('class="av ap"');
     });
 
-    it('replyTo があれば被参照メッセージを返信先ブロックとして本文の前に表示する', () => {
+    it('puts the message replied to in front of the body', () => {
       const targetMessage = {
         identifier: 'msg-target',
         name: '相手',
@@ -230,7 +230,7 @@ describe('ChatLogExporter', () => {
       expect(result.indexOf('blockquote')).toBeLessThan(result.indexOf('返事'));
     });
 
-    it('quoteOf があれば被参照メッセージを引用ブロックとして本文の前に表示する', () => {
+    it('puts the message quoted in front of it as a quotation', () => {
       const targetMessage = {
         identifier: 'msg-quote',
         name: '相手',
@@ -247,7 +247,7 @@ describe('ChatLogExporter', () => {
       expect(result).toContain('引用される本文');
     });
 
-    it('textDecoder が指定されたら message.name / message.text を変換した上で escape する', () => {
+    it('runs the name and the body through the decoder before escaping them', () => {
       const msg = createMockMessage({
         name: '@i18n:common.chat.systemName:{}',
         text: '@i18n:common.chat.logClearedBy:{"user":"GM"}',
@@ -263,7 +263,7 @@ describe('ChatLogExporter', () => {
       expect(result).not.toContain('@i18n:');
     });
 
-    it('立ち絵 (message.image) を <img> として <b>name</b> の前に挿入する', () => {
+    it('puts the portrait in front of the name', () => {
       const portrait = {
         identifier: 'portrait-1',
         name: 'hero.png',
@@ -282,33 +282,33 @@ describe('ChatLogExporter', () => {
       expect(imgPos).toBeLessThan(namePos);
     });
 
-    it('立ち絵が無いメッセージでも avatar placeholder で列を揃える', () => {
+    it('keeps the column aligned with a placeholder when there is none', () => {
       const msg = createMockMessage({ image: null } as Partial<ChatMessage>);
       const result = ChatLogExporter.formatMessageStandard(false, '', msg);
       expect(result).not.toContain('<img');
       expect(result).toContain('class="av"');
     });
 
-    it('メッセージ行は class="m"、コンテンツ div は class="ct" で出力される', () => {
+    it('gives the row and its contents their own classes', () => {
       const msg = createMockMessage();
       const result = ChatLogExporter.formatMessageStandard(false, '', msg);
       expect(result).toContain('<div class="m">');
       expect(result).toContain('<div class="ct">');
     });
 
-    it('タブ名は class="tb" で出力される', () => {
+    it('gives the tab name its own', () => {
       const msg = createMockMessage();
       const result = ChatLogExporter.formatMessageStandard(false, 'タブ名', msg);
       expect(result).toContain('<span class="tb">');
     });
 
-    it('時刻は class="tm" で出力される', () => {
+    it('gives the time its own', () => {
       const msg = createMockMessage({ timestamp: new Date(2024, 0, 1, 9, 5).getTime() });
       const result = ChatLogExporter.formatMessageStandard(true, '', msg);
       expect(result).toContain('<span class="tm">');
     });
 
-    it('引用ブロックは class="bq"、ラベルは class="bn" で出力される', () => {
+    it('gives the quotation and its label their own', () => {
       const target = { identifier: 'q', name: '相手', text: '引用文' } as ChatMessage;
       const msg = createMockMessage({
         quoteOf: 'q',
@@ -319,7 +319,7 @@ describe('ChatLogExporter', () => {
       expect(result).toContain('<span class="bn">');
     });
 
-    it('添付画像は class="ai"、ラッパは class="aw" で出力される', () => {
+    it('gives the attached picture and its wrapper their own', () => {
       const msg = createMockMessage({
         attachmentImages: [{ identifier: 'img-1', name: 'test.png', url: 'blob:test' }],
       } as Partial<ChatMessage>);
@@ -330,7 +330,7 @@ describe('ChatLogExporter', () => {
   });
 
   describe('formatMessageCoc', () => {
-    it('CoC形式でメッセージをHTML出力する', () => {
+    it('renders a message in the other layout', () => {
       const msg = createMockMessage({ name: '探索者', text: '目星チェック', messColor: '#0000ff' });
       const result = ChatLogExporter.formatMessageCoc('メインタブ', msg);
 
@@ -340,7 +340,7 @@ describe('ChatLogExporter', () => {
       expect(result).toContain('[メインタブ]');
     });
 
-    it('CoC形式でも本文添付画像をHTML画像として出力する', () => {
+    it('renders an attached picture there as well', () => {
       const msg = createMockMessage({
         name: '探索者',
         text: '参考画像',
@@ -359,11 +359,11 @@ describe('ChatLogExporter', () => {
       expect(result).toContain('alt="stamp.png"');
     });
 
-    it('nullメッセージでは空文字を返す', () => {
+    it('renders nothing for no message at all', () => {
       expect(ChatLogExporter.formatMessageCoc('', null!)).toBe('');
     });
 
-    it('CoC形式の引用/返信ブロックはキャラ名の前に出る (本文と分離)', () => {
+    it('puts a quotation or a reply in front of the name there, apart from the body', () => {
       const targetMessage = {
         identifier: 'msg-target-coc',
         name: '相手',
@@ -380,27 +380,27 @@ describe('ChatLogExporter', () => {
       expect(result.indexOf('blockquote')).toBeLessThan(result.indexOf('返事'));
     });
 
-    it('CoC形式の本文を内包するラッパは <p> ではなく <div> (blockquote の auto-close 回避)', () => {
+    it('wraps the body in a division rather than a paragraph, which a quotation would close', () => {
       const msg = createMockMessage({ name: '探索者', text: '本文' });
       const result = ChatLogExporter.formatMessageCoc('タブ', msg);
       expect(result).not.toContain('<p ');
       expect(result).toContain('<div ');
     });
 
-    it('CoC 形式のメッセージ行は class="m" + inline color で出力される', () => {
+    it('gives the row its class and its colour', () => {
       const msg = createMockMessage({ messColor: '#FF0000' });
       const result = ChatLogExporter.formatMessageCoc('タブ', msg);
       expect(result).toContain('class="m"');
       expect(result).toContain('style="color:#ff0000"');
     });
 
-    it('CoC 形式のタブ名は class="tc" で出力される', () => {
+    it('gives the tab name its own class there', () => {
       const msg = createMockMessage();
       const result = ChatLogExporter.formatMessageCoc('タブ', msg);
       expect(result).toContain('class="tc"');
     });
 
-    it('CoC形式でも立ち絵 (message.image) を <img> として name の前に挿入する', () => {
+    it('puts the portrait in front of the name there too', () => {
       const portrait = {
         identifier: 'portrait-2',
         name: 'kp.png',
@@ -420,29 +420,29 @@ describe('ChatLogExporter', () => {
   });
 
   describe('isVisibleMessage', () => {
-    it('toが空であれば常にtrue', () => {
+    it('is always true when it is addressed to nobody', () => {
       const msg = createMockMessage({ to: '' });
       expect(ChatLogExporter.isVisibleMessage(msg)).toBe(true);
     });
 
-    it('toがnullやundefinedであればtrue', () => {
+    it('is true when there is no address at all', () => {
       const msg = createMockMessage({ to: null! });
       expect(ChatLogExporter.isVisibleMessage(msg)).toBe(true);
     });
 
-    it('toがありuserIdが指定されて送り先に含まれる場合はtrue', () => {
+    it('is true for somebody it is addressed to', () => {
       const msg = createMockMessage({ to: 'user-A', from: 'user-B' });
       expect(ChatLogExporter.isVisibleMessage(msg, 'user-A')).toBe(true);
     });
 
-    it('toがありuserIdが送信者の場合はtrue', () => {
+    it('is true for the sender', () => {
       const msg = createMockMessage({ to: 'user-B', from: 'user-A' });
       expect(ChatLogExporter.isVisibleMessage(msg, 'user-A')).toBe(true);
     });
   });
 
   describe('exportTabHtml', () => {
-    it('XHTML形式のログを出力する', () => {
+    it('writes the log out', () => {
       const msg = createMockMessage({ name: 'GM', text: '開始' });
       const tab = createMockTab('メイン', [msg]);
       const result = ChatLogExporter.exportTabHtml(tab);
@@ -454,7 +454,7 @@ describe('ChatLogExporter', () => {
       expect(result).toContain('</html>');
     });
 
-    it('<head> に STYLE_BLOCK を含む', () => {
+    it('puts the styles in the head', () => {
       const tab = createMockTab('T', [createMockMessage()]);
       const result = ChatLogExporter.exportTabHtml(tab);
       expect(result).toContain(ChatLogExporter.STYLE_BLOCK);
@@ -462,7 +462,7 @@ describe('ChatLogExporter', () => {
   });
 
   describe('exportTabHtmlCoc', () => {
-    it('CoC形式のHTMLログを出力する', () => {
+    it('writes it out in the other layout', () => {
       const msg = createMockMessage({ name: '探索者', text: 'SAN値チェック' });
       const tab = createMockTab('セッション', [msg]);
       const result = ChatLogExporter.exportTabHtmlCoc(tab);
@@ -473,7 +473,7 @@ describe('ChatLogExporter', () => {
       expect(result).toContain('SAN値チェック');
     });
 
-    it('<head> に STYLE_BLOCK を含む', () => {
+    it('puts the styles in the head', () => {
       const tab = createMockTab('T', [createMockMessage()]);
       const result = ChatLogExporter.exportTabHtmlCoc(tab);
       expect(result).toContain(ChatLogExporter.STYLE_BLOCK);
@@ -481,7 +481,7 @@ describe('ChatLogExporter', () => {
   });
 
   describe('exportAllTabsHtml', () => {
-    it('複数タブのメッセージをタイムスタンプ順にマージする', () => {
+    it('merges the messages of several tabs in order of time', () => {
       const tab1 = createMockTab('タブ1', [
         createMockMessage({ name: 'A', text: '1番目', timestamp: 100 }),
         createMockMessage({ name: 'A', text: '3番目', timestamp: 300 }),
@@ -497,20 +497,20 @@ describe('ChatLogExporter', () => {
       expect(pos2).toBeLessThan(pos3);
     });
 
-    it('空のタブ配列では空のbodyを返す', () => {
+    it('writes an empty body for no tabs at all', () => {
       const result = ChatLogExporter.exportAllTabsHtml([], false);
       expect(result).toContain('<body>');
       expect(result).toContain('</body>');
     });
 
-    it('<head> に STYLE_BLOCK を含む', () => {
+    it('puts the styles in the head', () => {
       const result = ChatLogExporter.exportAllTabsHtml([], false);
       expect(result).toContain(ChatLogExporter.STYLE_BLOCK);
     });
   });
 
   describe('exportAllTabsHtmlCoc', () => {
-    it('CoC形式で全タブをマージ出力する', () => {
+    it('merges them in the other layout too', () => {
       const tab = createMockTab('セッション', [createMockMessage({ name: 'KP', text: 'テスト', timestamp: 100 })]);
       const result = ChatLogExporter.exportAllTabsHtmlCoc([tab]);
 
@@ -518,7 +518,7 @@ describe('ChatLogExporter', () => {
       expect(result).toContain('KP');
     });
 
-    it('<head> に STYLE_BLOCK を含む', () => {
+    it('puts the styles in the head', () => {
       const tab = createMockTab('T', [createMockMessage({ timestamp: 1 })]);
       const result = ChatLogExporter.exportAllTabsHtmlCoc([tab]);
       expect(result).toContain(ChatLogExporter.STYLE_BLOCK);

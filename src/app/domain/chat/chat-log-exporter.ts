@@ -5,9 +5,9 @@ import type { ChatTab } from '@axe/domain/chat/chat-tab';
 export type ChatLogImageSrcResolver = (image: ImageFile) => string;
 /** @deprecated Use {@link ChatLogImageSrcResolver}. Kept as alias for backward compatibility. */
 /**
- * message.name / message.text に対して escape 前の素のテキストを変換するフック。
- * 主用途は i18n プレースホルダー (`@i18n:common.chat.systemName:{}` のような string) を
- * 翻訳結果の通常文字列に展開すること。未指定なら素通し。
+ * A hook that converts the raw name and body before they are escaped.
+ * It is mainly for expanding a translation placeholder into the translated string.
+ * Without one the text passes through.
  */
 export type ChatLogTextDecoder = (text: string) => string;
 
@@ -242,10 +242,10 @@ export class ChatLogExporter {
   }
 
   /**
-   * 全タブの書き出しに入れるタブ。
+   * The tabs that go into an export of them all.
    *
-   * システムタブは入退室の知らせで埋まる。混ぜると、読み返したいやり取りがそれに沈む。
-   * 1 タブだけの書き出しでは選べるので、要るときはそちらで出す。
+   * The system tab fills with arrivals and departures, and mixed in they sink the exchanges worth rereading.
+   * A single-tab export can choose it, so it is there when it is wanted.
    */
   static spokenTabs(tabs: readonly ChatTab[]): readonly ChatTab[] {
     return tabs.filter((tab) => !tab.isSystemTab);
@@ -299,8 +299,8 @@ export class ChatLogExporter {
     return `<img data-img-key="${ChatLogExporter.escapeAttribute(key)}" alt="${ChatLogExporter.escapeAttribute(alt)}" class="av ap" />`;
   }
 
-  // 引用 (quoteOf) / 返信 (replyTo) の被参照メッセージを小さな blockquote として
-  // 本文の直前に挿入する。チャット UI 側のプレビューと同じ程度に長さを切り詰める。
+  // The message quoted or replied to is put in front of the body as a small quotation,
+  // trimmed to about the length the chat itself previews.
   private static formatReferenceBlock(message: ChatMessage, textDecoder?: ChatLogTextDecoder): string {
     const quote = message.quoteOf ? message.quoteOfMessage : null;
     const reply = message.replyTo ? message.replyToMessage : null;
@@ -345,8 +345,8 @@ export class ChatLogExporter {
     const truncated = rawText.length > maxTextLength ? rawText.slice(0, maxTextLength) + '…' : rawText;
     const name = ChatLogExporter.escapeHtml(rawName || label);
     const text = ChatLogExporter.escapeHtml(truncated);
-    // 本文と区別しやすいよう左罫線つきの淡いブロックで描画。
-    // name の直後にコンパクトに収まる inline 表示。本文は <br> を挟んで次の行に流す。
+    // It is drawn as a pale block with a rule down its left, so it reads apart from the body.
+    // It sits compactly after the name, with the body on the next line.
     return (
       `<blockquote class="bq">` +
       `<span class="bn">${icon} ${name}</span>` +

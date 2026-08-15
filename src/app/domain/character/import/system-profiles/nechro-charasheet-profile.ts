@@ -15,11 +15,11 @@ import {
 } from '@axe/domain/character/import/system-profiles/charasheet-shared';
 
 /**
- * 永い後日談のネクロニカ（保管所 game="nechro"）プロファイル。
+ * The profile of one system at the archive.
  *
- * マニューバ = 並列配列 `Power_name` / `Power_shozoku`(分類) / `Power_Type`(部位コード) /
- * `Power_timing`(タイミングコード) / `Power_cost` / `Power_range` / `Power_memo`(効果)。
- * 部位・タイミングのコード→ラベルは作成ページ nechro_pc_making.html の <select> を権威として転記。
+ * The manoeuvres come as parallel arrays: the name, the class, the part, the timing, the
+ * cost, the range and the effect.
+ * The part and timing codes are read through the options on its own page.
  */
 const POWER_TYPE: Record<string, string> = {
   '1': 'ポジション',

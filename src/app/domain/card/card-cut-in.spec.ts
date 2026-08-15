@@ -24,28 +24,28 @@ describe('resolveFlipCutIn()', () => {
     for (const object of created.splice(0)) object.destroy();
   });
 
-  it('明示的に紐づけたカットインを返すこと', () => {
+  it('returns the cut-in tied to the card', () => {
     const assigned = cutIn('別の演出');
     const other = cutIn('ドラゴン');
 
     expect(resolveFlipCutIn(card('ドラゴン', assigned.identifier), [other, assigned])).toBe(assigned);
   });
 
-  it('紐づけが無ければカード名と同名のカットインを返すこと', () => {
+  it('falls back to one of the same name', () => {
     const dragon = cutIn('ドラゴン');
 
     expect(resolveFlipCutIn(card('ドラゴン'), [cutIn('魔道士'), dragon])).toBe(dragon);
   });
 
-  it('紐づけ先が消えていたら名前で代用せず null を返すこと', () => {
+  it('returns nothing rather than falling back when the tie is broken', () => {
     expect(resolveFlipCutIn(card('ドラゴン', 'missing'), [cutIn('ドラゴン')])).toBeNull();
   });
 
-  it('同名のカットインが無ければ null を返すこと', () => {
+  it('returns nothing when no name matches', () => {
     expect(resolveFlipCutIn(card('ドラゴン'), [cutIn('魔道士')])).toBeNull();
   });
 
-  it('名前が空のカードでは何も返さないこと', () => {
+  it('returns nothing for a card with no name', () => {
     expect(resolveFlipCutIn(card('  '), [cutIn('  ')])).toBeNull();
   });
 });

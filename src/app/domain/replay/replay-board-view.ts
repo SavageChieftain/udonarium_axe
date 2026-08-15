@@ -24,7 +24,7 @@ export interface ReplayBoardScene {
   imageIdentifier: string;
   backgroundImageIdentifier: string;
   pieces: readonly ReplayBoardPiece[];
-  /** そのときの暗闇・視界・光源。暗闇を使っていない卓では null。 */
+  /** The darkness, the sight and the lights of that moment. Null for a table that uses no darkness. */
   overlay: OverlayPlan | null;
 }
 
@@ -45,9 +45,9 @@ const PIECE_ALIASES: ReadonlySet<string> = new Set([
 
 export interface ReplayBoardSceneOptions {
   /**
-   * 暗闇と灯りまで解くか。
+   * Whether to work the darkness and the lights out.
    *
-   * 解くのは重い。使う絵を数えるだけのときなど、要らない場面では省く。
+   * It is expensive, and is left out where it is not wanted, such as a pass that only counts the pictures.
    */
   withOverlay?: boolean;
 }

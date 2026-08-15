@@ -30,11 +30,11 @@ function character(identifier: string, overrides: Record<string, unknown> = {}):
 }
 
 describe('buildReplayVisionScene()', () => {
-  it('卓が無ければ組めないこと', () => {
+  it('builds nothing without a table', () => {
     expect(buildReplayVisionScene([])).toBeNull();
   });
 
-  it('卓の暗闇の設定をそのまま持ってくること', () => {
+  it('takes the darkness settings of the table as they are', () => {
     const scene = buildReplayVisionScene([table({ ambientColor: '#101020', globalIllumination: 0.25 })]);
 
     expect(scene).toMatchObject({
@@ -47,7 +47,7 @@ describe('buildReplayVisionScene()', () => {
     });
   });
 
-  it('見ているほうの卓を使うこと', () => {
+  it('uses the table being watched', () => {
     const snapshots = [
       table(),
       snapshot('table-2', 'game-table', { width: 5, height: 5, gridSize: 100 }),
@@ -57,13 +57,13 @@ describe('buildReplayVisionScene()', () => {
     expect(buildReplayVisionScene(snapshots)?.widthPx).toBe(500);
   });
 
-  it('持ち主のいるコマを視界の元にすること', () => {
+  it('takes sight from a piece that has an owner', () => {
     const snapshots = [
       table(),
       character('c1', { owner: 'alice', visionType: VisionType.DARKVISION, visionRange: 6 }),
-      // 持ち主のいないコマは誰の目でもない。
+      // A piece with no owner is nobody's eyes.
       character('c2', { visionType: VisionType.DARKVISION, visionRange: 6 }),
-      // しまわれているコマも数えない。
+      // One put away does not count either.
       character('c3', { owner: 'bob', location: { name: 'inventory', x: 0, y: 0 } }),
     ];
 
@@ -72,7 +72,7 @@ describe('buildReplayVisionScene()', () => {
     expect(sources[0]).toMatchObject({ owner: 'alice', rangePx: 300 });
   });
 
-  it('灯りを持つコマと光源を灯りとして数えること', () => {
+  it('counts a piece carrying a light, and a light source, as light', () => {
     const snapshots = [
       table(),
       character('c1', { lightEnabled: true, lightBrightRadius: 2, lightDimRadius: 4, lightColor: '#ffddaa' }),
@@ -83,7 +83,7 @@ describe('buildReplayVisionScene()', () => {
         lightBrightRadius: 1,
         lightDimRadius: 3,
       }),
-      // 消えている灯りは数えない。
+      // An unlit one does not count.
       snapshot('l2', 'light-source', {
         location: { name: 'table', x: 0, y: 0 },
         isVisibleOnTable: true,
@@ -96,7 +96,7 @@ describe('buildReplayVisionScene()', () => {
     expect(lights.map((light) => light.dimPx).sort((a, b) => a - b)).toEqual([150, 200]);
   });
 
-  it('コマに付いて回る灯りはそのコマの場所で光ること', () => {
+  it('lights a following light where its piece stands', () => {
     const snapshots = [
       table(),
       character('c1', { location: { name: 'table', x: 700, y: 300, surface: 'floor' } }),
@@ -114,7 +114,7 @@ describe('buildReplayVisionScene()', () => {
     expect(light.y).toBe(325);
   });
 
-  it('壁になる地形で視線を遮ること', () => {
+  it('blocks sight with terrain that stands as a wall', () => {
     const wall = snapshot('t1', 'terrain', {
       location: { name: 'table', x: 600, y: 0, surface: 'floor' },
       parentIdentifier: 'table-1',
@@ -125,7 +125,7 @@ describe('buildReplayVisionScene()', () => {
     });
     const scene = buildReplayVisionScene([table(), wall])!;
 
-    // 卓の外周ぶんと、地形の 4 辺が増える。
+    // The edge of the table and the four sides of the terrain are added.
     expect(scene.sightSegments.length).toBeGreaterThan(4);
     expect(isPointVisible(scene, 100, 500, { userId: 'gm', isGameMaster: true })).toBe(true);
   });
@@ -138,14 +138,14 @@ describe('replaySceneViewer()', () => {
     character('c2', { owner: 'bob', partyIdentifier: 'party-2' }),
   ];
 
-  it('GM は全部見えること', () => {
+  it('lets the game master see everything', () => {
     expect(replaySceneViewer(snapshots, { userId: 'gm', role: PeerRole.GameMaster })).toEqual({
       userId: 'gm',
       isGameMaster: true,
     });
   });
 
-  it('PL は自分の同行だけを持つこと', () => {
+  it('gives a player their own companions alone', () => {
     expect(replaySceneViewer(snapshots, { userId: 'alice', role: PeerRole.Player })).toEqual({
       userId: 'alice',
       isGameMaster: false,
@@ -153,7 +153,7 @@ describe('replaySceneViewer()', () => {
     });
   });
 
-  it('見学者は卓に居る PL の視界を借りること', () => {
+  it('lends a spectator the sight of the players at the table', () => {
     const viewer = replaySceneViewer(snapshots, { userId: 'watcher', role: PeerRole.Guest });
 
     expect(viewer.isGameMaster).toBe(false);
@@ -164,11 +164,11 @@ describe('replaySceneViewer()', () => {
 describe('replayOverlayPlan()', () => {
   const gm = { userId: 'gm', role: PeerRole.GameMaster };
 
-  it('暗闇を使っていない卓では何も描かないこと', () => {
+  it('draws nothing for a table that uses no darkness', () => {
     expect(replayOverlayPlan([table({ darknessEnabled: false })], gm)).toBeNull();
   });
 
-  it('暗闇の卓では暗幕と灯りを返すこと', () => {
+  it('returns the darkness and the lights for one that does', () => {
     const plan = replayOverlayPlan(
       [table(), character('c1', { lightEnabled: true, lightBrightRadius: 2, lightDimRadius: 4 })],
       gm
@@ -179,7 +179,7 @@ describe('replayOverlayPlan()', () => {
     expect(plan.glows.length).toBeGreaterThan(0);
   });
 
-  it('見る人によって見える範囲が変わること', () => {
+  it('shows a different reach to each viewer', () => {
     const snapshots = [
       table(),
       character('c1', {
@@ -190,7 +190,7 @@ describe('replayOverlayPlan()', () => {
       }),
     ];
 
-    // 自分のコマの目は自分にだけ効く。他人の視界を勝手に借りない。
+    // The eyes of your own pieces are yours alone, and nobody borrows another's sight uninvited.
     const alice = replayOverlayPlan(snapshots, { userId: 'alice', role: PeerRole.Player })!;
     const bob = replayOverlayPlan(snapshots, { userId: 'bob', role: PeerRole.Player })!;
 

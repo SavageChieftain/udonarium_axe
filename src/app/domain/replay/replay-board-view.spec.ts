@@ -33,21 +33,21 @@ function data(identifier: string, parent: string, name: string, value: unknown):
 }
 
 describe('buildReplayBoardScene()', () => {
-  it('選ばれている卓の大きさと絵を返すこと', () => {
+  it('returns the size and the picture of the table in use', () => {
     const scene = buildReplayBoardScene([table('t1'), table('t2'), selecter('t2')])!;
 
     expect(scene).toMatchObject({ width: 30, height: 20, gridSize: 40, imageIdentifier: 'top-t2' });
   });
 
-  it('選ばれていなければ最初の卓を使うこと', () => {
+  it('falls back to the first table when none is', () => {
     expect(buildReplayBoardScene([table('t1'), table('t2')])?.imageIdentifier).toBe('top-t1');
   });
 
-  it('卓が無ければ盤面を作らないこと', () => {
+  it('builds no board without a table', () => {
     expect(buildReplayBoardScene([piece('c1', 'character')])).toBeNull();
   });
 
-  it('卓に出ているコマを置き場所つきで返すこと', () => {
+  it('returns the pieces on the table, each with where it stands', () => {
     const scene = buildReplayBoardScene([
       table('t1'),
       piece('c1', 'character', { location: { name: 'table', x: 120, y: 80 }, posZ: 5, rotate: 90 }),
@@ -73,7 +73,7 @@ describe('buildReplayBoardScene()', () => {
     ]);
   });
 
-  it('しまわれているコマは盤面に出さないこと', () => {
+  it('leaves a piece that is put away off the board', () => {
     const scene = buildReplayBoardScene([
       table('t1'),
       piece('c1', 'character', { location: { name: 'stand', x: 0, y: 0 } }),
@@ -83,12 +83,12 @@ describe('buildReplayBoardScene()', () => {
     expect(scene.pieces.map((one) => one.identifier)).toEqual(['c2']);
   });
 
-  it('コマ以外の同期物は盤面に出さないこと', () => {
+  it('leaves off anything shared that is not a piece', () => {
     const scene = buildReplayBoardScene([table('t1'), piece('m1', 'chat'), piece('c1', 'card')])!;
     expect(scene.pieces.map((one) => one.identifier)).toEqual(['c1']);
   });
 
-  it('高さと奥行きの順に重ねること', () => {
+  it('stacks them by height and then by depth', () => {
     const scene = buildReplayBoardScene([
       table('t1'),
       piece('a', 'character', { location: { name: 'table', x: 0, y: 300 }, posZ: 0 }),
@@ -99,12 +99,12 @@ describe('buildReplayBoardScene()', () => {
     expect(scene.pieces.map((one) => one.identifier)).toEqual(['b', 'a', 'c']);
   });
 
-  it('大きさが無いコマは 1 マスとして扱うこと', () => {
+  it('reads a piece with no size as one cell', () => {
     const scene = buildReplayBoardScene([table('t1'), piece('c1', 'character')])!;
     expect(scene.pieces[0].size).toBe(1);
   });
 
-  it('壊れた値でも既定に倒すこと', () => {
+  it('falls back to the defaults for a value it cannot read', () => {
     const scene = buildReplayBoardScene([
       table('t1', { width: 'ひろい', height: null, gridSize: 0 }),
       piece('c1', 'character', { location: { name: 'table', x: 'よこ', y: 10 } }),
@@ -116,7 +116,7 @@ describe('buildReplayBoardScene()', () => {
 });
 
 describe('framingOf()', () => {
-  it('コマの居る辺りに余白を足して切り取ること', () => {
+  it('crops about the pieces with a margin', () => {
     const scene = buildReplayBoardScene([
       table('t1', { width: 40, height: 40, gridSize: 50 }),
       piece('c1', 'character', { location: { name: 'table', x: 1000, y: 1000 } }),
@@ -125,7 +125,7 @@ describe('framingOf()', () => {
     expect(framingOf(scene)).toEqual({ x: 900, y: 900, width: 250, height: 250 });
   });
 
-  it('卓の外まではみ出さないこと', () => {
+  it('never runs off the table', () => {
     const scene = buildReplayBoardScene([
       table('t1', { width: 4, height: 4, gridSize: 50 }),
       piece('c1', 'character', { location: { name: 'table', x: 0, y: 0 } }),
@@ -134,14 +134,14 @@ describe('framingOf()', () => {
     expect(framingOf(scene)).toEqual({ x: 0, y: 0, width: 150, height: 150 });
   });
 
-  it('コマが無ければ卓ぜんたいを映すこと', () => {
+  it('shows the whole table when there are no pieces', () => {
     const scene = buildReplayBoardScene([table('t1', { width: 10, height: 8, gridSize: 50 })])!;
     expect(framingOf(scene)).toEqual({ x: 0, y: 0, width: 500, height: 400 });
   });
 });
 
 describe('collectBoardAssetIds()', () => {
-  it('卓とコマの絵をまとめて返すこと', () => {
+  it('returns the pictures of the table and the pieces together', () => {
     const scene = buildReplayBoardScene([
       table('t1', { backgroundImageIdentifier: 'bg-1' }),
       piece('c1', 'character'),
@@ -152,12 +152,12 @@ describe('collectBoardAssetIds()', () => {
     expect(collectBoardAssetIds(scene)).toEqual(['top-t1', 'bg-1', 'img-1']);
   });
 
-  it('盤面が無ければ何も返さないこと', () => {
+  it('returns nothing without a board', () => {
     expect(collectBoardAssetIds(null)).toEqual([]);
   });
 });
 
-describe('本物のコマから起こすとき', () => {
+describe('built from real pieces', () => {
   const mine: GameObject[] = [];
 
   afterEach(() => {
@@ -169,7 +169,7 @@ describe('本物のコマから起こすとき', () => {
     return object;
   }
 
-  /** 同じ卓を見ている他のテストと混ざらないよう、自分が作った物だけを写す。 */
+  /** Only what this test made is copied, so it does not mix with another watching the same table. */
   function snapshotStore(root: GameObject): ReplayObjectSnapshot[] {
     const wanted = new Set(mine.map((object) => object.identifier));
     const descend = (identifier: string): void => {
@@ -196,7 +196,7 @@ describe('本物のコマから起こすとき', () => {
       });
   }
 
-  it('実際のキャラクターから名前と絵と大きさを読めること', () => {
+  it('reads the name, the picture and the size off a real character', () => {
     const table = keep(new GameTable('board-view-table'));
     table.width = 12;
     table.height = 8;
@@ -214,7 +214,7 @@ describe('本物のコマから起こすとき', () => {
     expect(piece).toMatchObject({ name: '盗賊', imageIdentifier: 'img-1', size: 2, x: 150, y: 100 });
   });
 
-  it('しまったキャラクターは実物でも盤面から外れること', () => {
+  it('leaves a real character that is put away off the board', () => {
     ObjectStore.instance.add(keep(new GameTable('board-view-empty')), false);
     const character = keep(GameCharacter.create('盗賊', 1, 'img-1'));
     character.setLocation('stand');
@@ -224,9 +224,9 @@ describe('本物のコマから起こすとき', () => {
   });
 });
 
-describe('暗闇を解かない組み立て', () => {
-  it('withOverlay を切ると視界を解かないこと', () => {
-    // 使う絵を数えるだけの場面まで解くと、書き出しの前に場面の数だけ視界を計算することになる。
+describe('building without working the darkness out', () => {
+  it('works no sight out when it is turned off', () => {
+    // Working it out even for a pass that only counts the pictures would work the sight out once per scene before the export starts.
     const snapshots = [table('t1', { darknessEnabled: true, darknessLevel: 0.9 }), selecter('t1')];
     const viewer = { userId: 'alice', role: PeerRole.Player };
 

@@ -41,7 +41,7 @@ export class DataSummarySetting extends GameObject implements InnerXml {
     return '';
   }
   parseInnerXml(_element: Element) {
-    // XMLからの新規作成を許可せず、既存のオブジェクトを更新する
+    // updates the existing object rather than making one from the saved data
     const context = DataSummarySetting.instance.toContext();
     context.syncData = this.toContext().syncData;
     DataSummarySetting.instance.apply(context);

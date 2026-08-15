@@ -17,16 +17,16 @@ describe('createSkillGapTableElement', () => {
   const categories = ['器術', '体術', '忍術', '謀術', '戦術', '妖術'];
   const skillsByCategory = categories.map((category) => Array.from({ length: 11 }, (_, r) => `${category}${r + 2}`));
 
-  it('section が viewMode=TABLE / cs-colspan=2 で作られる', () => {
+  it('builds the section as a table two columns wide', () => {
     const table = createSkillGapTableElement({ name: '特技表', categories, skillsByCategory });
     expect(table.fieldRole).toBe(DataElementRole.SECTION);
     expect(table.viewMode).toBe(DataElementViewMode.TABLE);
     expect(table.getAttribute('cs-colspan')).toBe('2');
-    // 「ギャップ」行 + 11 行 = 12 グループ
+    // the gap row and eleven others
     expect(table.children).toHaveLength(12);
   });
 
-  it('ギャップ行はラップアラウンド + 6カテゴリ見出し + 5カテゴリ間ギャップ = 12要素', () => {
+  it('the gap row holds the wrapping gap, the six headings and the five gaps between them', () => {
     const table = createSkillGapTableElement({ name: '特技表', categories, skillsByCategory });
     const gapRow = table.children.find((child) => child.name === 'ギャップ')!;
     expect(gapRow.fieldRole).toBe(DataElementRole.GROUP);
@@ -50,7 +50,7 @@ describe('createSkillGapTableElement', () => {
     expect(gapRow.getFirstElementByName('ギャップ1')!.getAttribute(DataElementAttribute.CELL_TEXT)).toBe('器術-体術');
   });
 
-  it('checked / gaps が反映される', () => {
+  it('takes what was learnt and where the gaps fall', () => {
     const checked = categories.map((_, c) => Array.from({ length: 11 }, (__, r) => c === 0 && r === 0));
     const gaps = [false, true, false, false, false, false]; // ギャップ2 (体術-忍術)
     const table = createSkillGapTableElement({ name: '特技表', categories, skillsByCategory, checked, gaps });

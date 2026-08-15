@@ -8,7 +8,7 @@ import {
 describe('diffResourceSnapshots()', () => {
   const nameOf = (identifier: string) => identifier.toUpperCase();
 
-  /** 既定は「この端末が変えた直後」。読み込みや同期で入った値は別のテストで確かめる。 */
+  /** The usual case is a change made at this end; values arriving by load or sync are checked elsewhere. */
   function snapshot(entries: Record<string, ResourceSnapshot>, changedBySelf = 0): Map<string, ResourceSnapshot> {
     return new Map(Object.entries(entries).map(([key, value]) => [key, { changedBySelf, ...value }]));
   }
@@ -21,7 +21,7 @@ describe('diffResourceSnapshots()', () => {
     return snapshot(entries, 1);
   }
 
-  it('現在値が減ればダメージとして返すこと', () => {
+  it('returns a fall in the current value as damage', () => {
     const from = before({ hp: { current: 200, max: 200 } });
     const to = after({ hp: { current: 170, max: 200 } });
 
@@ -30,14 +30,14 @@ describe('diffResourceSnapshots()', () => {
     ]);
   });
 
-  it('現在値が増えれば回復として返すこと', () => {
+  it('returns a rise as healing', () => {
     const from = before({ hp: { current: 100, max: 200 } });
     const to = after({ hp: { current: 150, max: 200 } });
 
     expect(diffResourceSnapshots(from, to, nameOf)[0]).toMatchObject({ kind: 'heal', delta: 50, label: '+50' });
   });
 
-  it('最大値の増減も同じ扱いにすること', () => {
+  it('treats a change of maximum the same way', () => {
     const from = before({ hp: { current: 100, max: 200 } });
 
     expect(diffResourceSnapshots(from, after({ hp: { current: 100, max: 180 } }), nameOf)[0]).toMatchObject({
@@ -50,14 +50,14 @@ describe('diffResourceSnapshots()', () => {
     });
   });
 
-  it('現在値と最大値が同時に動けば合算すること', () => {
+  it('adds them together when both move at once', () => {
     const from = before({ hp: { current: 100, max: 200 } });
     const to = after({ hp: { current: 90, max: 190 } });
 
     expect(diffResourceSnapshots(from, to, nameOf)[0].label).toBe('-20');
   });
 
-  it('マイナスリソースでは増減の意味を裏返すこと', () => {
+  it('reverses the meaning on a resource that runs the other way', () => {
     const from = before({ san: { current: 10, max: 100, inverted: true } });
 
     expect(
@@ -68,7 +68,7 @@ describe('diffResourceSnapshots()', () => {
     ).toMatchObject({ kind: 'heal', label: '-6' });
   });
 
-  it('変化が無ければ何も返さないこと', () => {
+  it('returns nothing when nothing changed', () => {
     const same = snapshot({ hp: { current: 100, max: 200 }, mp: { current: 10, max: 10 } });
 
     expect(
@@ -76,19 +76,19 @@ describe('diffResourceSnapshots()', () => {
     ).toEqual([]);
   });
 
-  it('新しく現れた項目は変化として扱わないこと', () => {
+  it('counts a newly appearing field as no change', () => {
     expect(diffResourceSnapshots(new Map(), snapshot({ hp: { current: 100, max: 200 } }), nameOf)).toEqual([]);
   });
-  it('自分が変えていない入れ替わりは増減としないこと', () => {
-    // 部屋を読み込むと値は丸ごと入れ替わる。差分だけを見ると本物の増減と区別が付かず、
-    // 読み込んだ瞬間に全員ぶんの回復音と数字が飛び出す。
+  it('counts a value replaced by something other than you as no change', () => {
+    // Loading a room replaces every value at once, and the difference alone cannot be told
+    // from a real change, so the load would fire a healing sound and a number for everybody.
     const from = snapshot({ hp: { current: 200, max: 200 } }, 3);
     const to = snapshot({ hp: { current: 999, max: 999 } }, 3);
 
     expect(diffResourceSnapshots(from, to, nameOf)).toEqual([]);
   });
 
-  it('自分が変えたぶんは拾うこと', () => {
+  it('picks up what you changed', () => {
     const from = snapshot({ hp: { current: 200, max: 200 } }, 3);
     const to = snapshot({ hp: { current: 170, max: 200 } }, 4);
 
@@ -97,7 +97,7 @@ describe('diffResourceSnapshots()', () => {
 });
 
 describe('resourceChangeSeverity()', () => {
-  it('最大値に対する割合で 3 段階に分けること', () => {
+  it('sorts the change into three sizes by its share of the maximum', () => {
     expect(resourceChangeSeverity(0.05)).toBe('small');
     expect(resourceChangeSeverity(0.14)).toBe('small');
     expect(resourceChangeSeverity(0.15)).toBe('medium');
@@ -106,14 +106,14 @@ describe('resourceChangeSeverity()', () => {
     expect(resourceChangeSeverity(3)).toBe('large');
   });
 
-  it('割合が分からないものは中位にすること', () => {
+  it('calls it middling when the share cannot be worked out', () => {
     expect(resourceChangeSeverity(0)).toBe('medium');
     expect(resourceChangeSeverity(Number.NaN)).toBe('medium');
   });
 });
 
 describe('loudestChangeRatio()', () => {
-  it('もっとも大きな割合を返すこと', () => {
+  it('returns the largest share', () => {
     const changes = [
       { identifier: 'a', name: 'HP', kind: 'damage' as const, delta: -10, label: '-10', ratio: 0.05 },
       { identifier: 'b', name: 'MP', kind: 'damage' as const, delta: -20, label: '-20', ratio: 0.5 },
@@ -122,7 +122,7 @@ describe('loudestChangeRatio()', () => {
     expect(loudestChangeRatio(changes)).toBe(0.5);
   });
 
-  it('変化が無ければ 0 を返すこと', () => {
+  it('returns nothing when nothing changed', () => {
     expect(loudestChangeRatio([])).toBe(0);
   });
 });

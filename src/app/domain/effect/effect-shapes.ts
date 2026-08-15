@@ -1,9 +1,9 @@
 /**
- * エフェクトの形を SVG 文字列で組む。
+ * Builds the shapes of the effects as drawings.
  *
- * どれも `0 0 100 100` の viewBox で描き、実寸はスプライトの width / height 側で決める。
- * こうすると経過時間で文字列が変わらないので、毎フレーム innerHTML を差し替えずに済み、
- * 内側の層に掛けた CSS アニメーションも巻き戻らない。
+ * Each is drawn in a square box and sized by the sprite that carries it.
+ * The text then does not change with the elapsed time, so nothing is rewritten every
+ * frame and the animation on the inner layer does not rewind.
  */
 
 export interface ShapeColors {
@@ -23,8 +23,8 @@ function round(value: number): number {
 }
 
 /**
- * defs の id は同一ページで衝突すると先に定義された方が使われてしまう。
- * 色から決まる短いハッシュを付けて、別プリセットを同時に撃っても取り違えないようにする。
+ * Two definitions of an identifier on one page leave the first in use for both.
+ * A short hash of the colour is appended, so two effects fired at once are not mistaken for each other.
  */
 function idOf(kind: string, colors: ShapeColors): string {
   const source = `${kind}${colors.core}${colors.edge}`;
@@ -36,7 +36,7 @@ function idOf(kind: string, colors: ShapeColors): string {
   return `${kind}${(hash >>> 0).toString(36)}`;
 }
 
-/** 斬撃の刃。両端が尖り中央が太い三日月で、直線の棒より斬った軌跡に見える。 */
+/** The blade of a cut: a crescent pointed at both ends and thick in the middle, which reads as a stroke where a straight bar does not. */
 export function crescentSvg(colors: ShapeColors, thickness = 26): string {
   const id = idOf('c', colors);
   const belly = 50 + thickness / 2;
@@ -52,7 +52,7 @@ export function crescentSvg(colors: ShapeColors, thickness = 26): string {
   );
 }
 
-/** 衝撃波の輪。塗りではなく線で描くので、拡大しても縁がぼやけない。 */
+/** The ring of a shock wave, drawn as a line so its edge stays sharp however large it grows. */
 export function ringSvg(colors: ShapeColors, thickness = 5, dashed = false): string {
   const radius = 50 - thickness;
   const dash = dashed ? ` stroke-dasharray="${round(radius * 0.32)} ${round(radius * 0.16)}"` : '';
@@ -65,7 +65,7 @@ export function ringSvg(colors: ShapeColors, thickness = 5, dashed = false): str
   );
 }
 
-/** 足元に敷く魔法陣。回復や強化の「効いている感」を出す。 */
+/** The circle laid at the feet, which is what makes healing and strengthening feel as though they are working. */
 export function magicCircleSvg(colors: ShapeColors): string {
   const ticks: string[] = [];
   for (let tick = 0; tick < 12; tick++) {
@@ -92,7 +92,7 @@ export function magicCircleSvg(colors: ShapeColors): string {
   );
 }
 
-/** 六方向に枝を持つ氷の結晶。四角い板より氷らしく見える。 */
+/** A crystal of ice branching six ways, which reads as ice where a square plate does not. */
 export function snowflakeSvg(colors: ShapeColors): string {
   const arms: string[] = [];
   for (let arm = 0; arm < 6; arm++) {
@@ -120,7 +120,7 @@ export function snowflakeSvg(colors: ShapeColors): string {
   );
 }
 
-/** 竜巻の渦。線幅を変えた 2 本の螺旋を重ねて奥行きを出す。 */
+/** The whirl of a tornado, two spirals of different weights laid over each other for depth. */
 export function spiralSvg(colors: ShapeColors, turns = 3): string {
   const build = (offset: number): string => {
     const points: string[] = [];
@@ -141,7 +141,7 @@ export function spiralSvg(colors: ShapeColors, turns = 3): string {
   );
 }
 
-/** 着弾点から放射状に走る地割れ。折れた線にすることで砕けた印象にする。 */
+/** The cracks running out from where it landed, broken rather than straight so the ground reads as split. */
 export function crackSvg(colors: ShapeColors, spokes = 8, jitter: readonly number[] = []): string {
   const paths: string[] = [];
   for (let spoke = 0; spoke < spokes; spoke++) {
@@ -161,7 +161,7 @@ export function crackSvg(colors: ShapeColors, spokes = 8, jitter: readonly numbe
   return svg(paths.join(''), true);
 }
 
-/** もくもくした霧の塊。円 1 枚より雲らしい輪郭になる。 */
+/** A billow of mist, whose outline reads as cloud where a single circle does not. */
 export function cloudSvg(colors: ShapeColors): string {
   const id = idOf('f', colors);
   const lobes = [
@@ -182,7 +182,7 @@ export function cloudSvg(colors: ShapeColors): string {
   );
 }
 
-/** 地面から生える氷柱・闘気の刃。 */
+/** The spikes of ice or of force that rise from the ground. */
 export function spikeSvg(colors: ShapeColors): string {
   const id = idOf('s', colors);
   return svg(
@@ -194,10 +194,10 @@ export function spikeSvg(colors: ShapeColors): string {
   );
 }
 
-/** 矢。右向きに描くので、盤面での進行方向へ回して使う。 */
+/** An arrow, drawn pointing right and turned to where it flies on the board. */
 export function arrowSvg(colors: ShapeColors): string {
   return svg(
-    // 矢羽根 → 矢柄 → 鏃。輪郭を暗く落として実体感を出す。
+    // The fletching, the shaft and the head, outlined darkly so it reads as a thing.
     `<polygon points="2,26 22,44 22,56 2,74" fill="${colors.edge}"/>` +
       `<polygon points="10,32 26,46 26,54 10,68" fill="${colors.core}" fill-opacity="0.75"/>` +
       `<rect x="20" y="45" width="56" height="10" fill="${colors.edge}"/>` +
@@ -207,7 +207,7 @@ export function arrowSvg(colors: ShapeColors): string {
   );
 }
 
-/** 銃弾と曳光。先端を尖らせ、後方へ細く尾を引く。 */
+/** A bullet and its tracer, pointed at the front and drawn out thinly behind. */
 export function bulletSvg(colors: ShapeColors): string {
   return svg(
     `<defs><linearGradient id="${idOf('b', colors)}" x1="0" x2="1">` +
@@ -221,8 +221,8 @@ export function bulletSvg(colors: ShapeColors): string {
 }
 
 /**
- * 飛ぶ斬撃の刃。両端が尖り、膨らんだ側（進行方向＝右）が前を向く三日月。
- * 斬撃用の `crescentSvg` は横一文字のレンズ形なので、正方形の枠に入れると潰れて見える。
+ * The blade of a flying cut: a crescent pointed at both ends, its belly forward.
+ * The crescent used for a cut is a flat lens, which looks crushed in a square box.
  */
 export function flyingCrescentSvg(colors: ShapeColors): string {
   const id = idOf('f', colors);
@@ -236,7 +236,7 @@ export function flyingCrescentSvg(colors: ShapeColors): string {
   );
 }
 
-/** 光線銃の弾。白い芯を色の鞘でくるんだ短い光条。 */
+/** A blaster bolt: a short streak, white at the core and sheathed in colour. */
 export function blasterSvg(colors: ShapeColors): string {
   return svg(
     `<defs><linearGradient id="${idOf('l', colors)}" x1="0" x2="1">` +
@@ -249,7 +249,7 @@ export function blasterSvg(colors: ShapeColors): string {
   );
 }
 
-/** 狙撃の曳光。細く長い一本の筋で、先端だけが白く灼ける。 */
+/** A sniper's tracer: one long thin streak, burning white at the tip alone. */
 export function tracerSvg(colors: ShapeColors): string {
   return svg(
     `<defs><linearGradient id="${idOf('t', colors)}" x1="0" x2="1">` +
@@ -262,10 +262,10 @@ export function tracerSvg(colors: ShapeColors): string {
 }
 
 /**
- * 小型ミサイル。右向きに描く。
+ * A small missile, drawn pointing right.
  *
- * 直線で尖らせた弾頭・角ばった胴・後退角の付いた尾翼。数を撃つので、
- * 1 発ずつは巡航ミサイルより翼を張って輪郭を太く取る。
+ * A straight pointed head, a squared body and swept fins. They are fired in numbers, so
+ * each is drawn with wider fins and a heavier outline than a guided one.
  */
 export function missileSvg(colors: ShapeColors): string {
   return svg(
@@ -280,30 +280,30 @@ export function missileSvg(colors: ShapeColors): string {
 }
 
 /**
- * 巡航ミサイル。右向きに描く。
+ * A guided missile, drawn pointing right.
  *
- * 実物は胴の長さに対して直径が 1/12 ほどしかなく、横から見た翼はごく小さい。
- * 絵として読める太さまでは寄せるが、翼は控えめに留めて航空機と見分ける。
+ * A real one is a twelfth as thick as it is long, with very small wings seen from the side.
+ * It is thickened enough to read, and its wings kept small so it is not an aircraft.
  */
 export function cruiseSvg(colors: ShapeColors): string {
   return svg(
-    // 主翼と尾翼。小さく後退させる。
+    // The wings and the fins, small and swept.
     `<polygon points="58,39 47,23 41,23 50,39" fill="${colors.edge}" fill-opacity="0.85"/>` +
       `<polygon points="58,61 47,77 41,77 50,61" fill="${colors.edge}" fill-opacity="0.85"/>` +
       `<polygon points="26,39 18,21 13,21 20,39" fill="${colors.edge}"/>` +
       `<polygon points="26,61 18,79 13,79 20,61" fill="${colors.edge}"/>` +
-      // 弾頭 → 胴 → 尾。
+      // The head, the body and the tail.
       `<polygon points="76,39 100,50 76,61" fill="${colors.core}"/>` +
       `<polygon points="14,39 76,39 76,61 14,61 10,50" fill="${colors.edge}"/>` +
       `<rect x="18" y="42" width="54" height="5" rx="2.5" fill="#ffffff" fill-opacity="0.4"/>` +
       `<rect x="34" y="53" width="30" height="2.5" rx="1.25" fill="#ffffff" fill-opacity="0.28"/>` +
       `<polygon points="76,43 92,50 76,57" fill="#ffffff" fill-opacity="0.55"/>` +
-      // ノズル。
+      // The nozzle.
       `<rect x="4" y="43" width="10" height="14" rx="2" fill="${colors.core}" fill-opacity="0.9"/>`
   );
 }
 
-/** 噴射炎。ミサイルの尻に付ける、後ろへ細く伸びる炎。 */
+/** The exhaust: the flame drawn out thinly behind a missile. */
 export function thrustSvg(colors: ShapeColors): string {
   const id = idOf('h', colors);
   return svg(
@@ -315,7 +315,7 @@ export function thrustSvg(colors: ShapeColors): string {
   );
 }
 
-/** 六角のセルを敷いた障壁。透けるので、内側のコマが見える。 */
+/** A shield of hexagonal cells, through which the pieces behind can be seen. */
 export function barrierSvg(colors: ShapeColors): string {
   const cells: string[] = [];
   for (let row = 0; row < 5; row++) {
@@ -338,7 +338,7 @@ export function barrierSvg(colors: ShapeColors): string {
   );
 }
 
-/** 重力に引かれて内へ落ちる矢。中心へ吸い込まれる向きを示す。 */
+/** The arrows falling inwards under gravity, which show the pull towards the centre. */
 export function gravitySvg(colors: ShapeColors): string {
   const arrows: string[] = [];
   for (let index = 0; index < 8; index++) {
@@ -359,8 +359,8 @@ export function gravitySvg(colors: ShapeColors): string {
 }
 
 /**
- * 一覧に出す小さな印。マテリアルアイコンには剣や爆発が無く、
- * 斬撃をハサミで代用するようなことになるので、演出の形から起こす。
+ * The small mark on the list. The icon set has neither a sword nor an explosion, which
+ * would leave a cut standing in as a pair of scissors, so these are drawn from the effects themselves.
  */
 export function kindGlyphSvg(kind: string, colors: ShapeColors): string {
   const stroke = `fill="none" stroke="${colors.core}" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"`;
@@ -454,13 +454,13 @@ function glyph(body: string): string {
   return svg(body, true);
 }
 
-/** 殴った瞬間の星形。ギザギザの輪郭が「潰した」印象を作る。 */
+/** The star of a landed blow, whose jagged outline is what reads as a crushing. */
 export function impactStarSvg(colors: ShapeColors, points = 12): string {
   const outer: string[] = [];
   const inner: string[] = [];
   for (let index = 0; index < points * 2; index++) {
     const angle = (index / (points * 2)) * Math.PI * 2 - Math.PI / 2;
-    // 外と内を交互に取ることでギザギザになる。長短を混ぜて機械的な星を避ける。
+    // Alternating the outer and inner radius makes it jagged, and mixing the lengths keeps it from looking machined.
     const long = index % 2 === 0;
     const radius = long ? (index % 4 === 0 ? 49 : 41) : 20;
     outer.push(`${round(50 + Math.cos(angle) * radius)},${round(50 + Math.sin(angle) * radius)}`);
@@ -477,15 +477,15 @@ export function impactStarSvg(colors: ShapeColors, points = 12): string {
 }
 
 /**
- * ブレスの円錐。口元(左)から先端(右)へ広がる 1 枚の形。
+ * The cone of a breath, one shape widening from the mouth to the tip.
  *
- * 区間に割って並べると、区間ごとの太さと濃さの差が縦縞の継ぎ目になって出る。
- * 1 枚で描けば継ぎ目は原理的に生まれない。縁は縦方向のマスクでぼかし、
- * 濃さは軸方向のグラデーションで口元から先へ薄くする。
+ * Split into sections, the differences in width and density between them show as seams.
+ * Drawn as one there can be no seam. The edges are softened by a mask across it and the
+ * density thinned from the mouth outwards by a gradient along it.
  */
 export function breathConeSvg(colors: ShapeColors, ripple = 0): string {
   const id = idOf('bc', colors) + (ripple > 0 ? String(ripple) : '');
-  // 上下で違う揺れ方をさせて、左右対称のきれいな三角形にしない。
+  // The top and the bottom waver differently, so it is not a neat symmetrical triangle.
   const top = [46, 37.5, 28, 20.5, 11, 4].map((y, index) => y + Math.sin(index * 1.7 + ripple) * 2.4);
   const bottom = [54, 63.5, 71, 80.5, 89, 96].map((y, index) => y - Math.sin(index * 2.3 + ripple) * 2.4);
   const step = 100 / (top.length - 1);
@@ -505,7 +505,7 @@ export function breathConeSvg(colors: ShapeColors, ripple = 0): string {
   const path =
     `M0,${round(top[0])}` +
     edge(top, true) +
-    // 先端は切り落とさず、外へ膨らませてほどけさせる。
+    // The tip is not cut off but swells outwards and unravels.
     `Q106,50 ${round(100)},${round(bottom[bottom.length - 1])}` +
     edge([...bottom].reverse(), false) +
     'Z';
@@ -530,7 +530,7 @@ export function breathConeSvg(colors: ShapeColors, ripple = 0): string {
   );
 }
 
-/** 集中線。殴った点から外へ引く線で勢いを出す。 */
+/** The speed lines drawn out from the point of the blow, which carry the force. */
 export function speedLinesSvg(colors: ShapeColors, count = 14): string {
   const lines: string[] = [];
   for (let index = 0; index < count; index++) {
@@ -547,7 +547,7 @@ export function speedLinesSvg(colors: ShapeColors, count = 14): string {
   return svg(lines.join(''), true);
 }
 
-/** 稲妻。空から着弾点まで 1 本に繋がる折れ線と枝分かれを 1 枚にまとめる。 */
+/** Lightning: one unbroken line from the sky to the ground, with its branches, gathered into a single shape. */
 export function boltSvg(
   boxWidth: number,
   boxHeight: number,

@@ -22,8 +22,8 @@ const ABILITIES: { key: string; label: string }[] = [
   { key: 'S4', label: '社会' },
 ];
 
-// 保管所 DX3（game="dx3"）の skill_* は固定12技能の並列配列。順序は能力値ごとに3技能（肉体→感覚→精神→社会）。
-// 知識/情報 等の分野は skill_memo[i] に入る（位置8=知識:オカルト, 位置11=情報:UGN を実データで確認）。
+// The archive holds its twelve fixed skills as parallel arrays, three under each ability in turn.
+// The field of study of a knowledge or information skill sits in the note beside it, as the real data shows.
 const SKILLS: string[] = ['白兵', '回避', '運転', '射撃', '知覚', '芸術', 'RC', '意志', '知識', '交渉', '調達', '情報'];
 
 const EFFECT_COLUMNS: { suffix: string; label: string }[] = [
@@ -54,7 +54,7 @@ function skillDisplayName(index: number, record: Record<string, unknown>): strin
 }
 
 function skillRoll(index: number, record: Record<string, unknown>): string {
-  // skill_total は "5r+6" 形式（DX 振り＋達成値修正）。bcdice DoubleCross の "5DX+6" に変換する。
+  // The total comes in one notation and is converted into the one the dice bot reads.
   const total = asString(asArray(record['skill_total'])[index]).trim();
   if (total === '' || !/\dr/i.test(total)) return '';
   return total.replace(/r/gi, 'DX');

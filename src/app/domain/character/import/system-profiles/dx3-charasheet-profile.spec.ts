@@ -5,7 +5,7 @@ import {
 } from '@axe/domain/character/import/system-profiles/dx3-charasheet-profile';
 
 describe('buildDx3CharasheetCharacter', () => {
-  // charasheet.vampire-blood.net の ダブルクロス3rd（game="dx3"）実データに即した構造
+  // built from real data of that system at the archive
   const dx3 = {
     pc_name: 'クロウ',
     game: 'dx3',
@@ -31,12 +31,12 @@ describe('buildDx3CharasheetCharacter', () => {
     return sections.find((section) => section.label === label);
   }
 
-  it('game="dx3" を判別する', () => {
+  it('recognises the system', () => {
     expect(isDx3CharasheetCharacter(dx3)).toBe(true);
     expect(isDx3CharasheetCharacter({ pc_name: 'X', game: 'coc' })).toBe(false);
   });
 
-  it('4 能力値（標準順）と dicebot DoubleCross を取り込む', () => {
+  it('takes its four abilities in their usual order, and the dice bot', () => {
     const result = buildDx3CharasheetCharacter(dx3)!;
     expect(result.dicebot).toBe('DoubleCross');
     expect(result.params).toEqual([
@@ -47,7 +47,7 @@ describe('buildDx3CharasheetCharacter', () => {
     ]);
   });
 
-  it('12 固定技能を skill_total の DX 式・分野付き名称で展開する', () => {
+  it('spreads its twelve fixed skills with their totals and their fields of study', () => {
     const result = buildDx3CharasheetCharacter(dx3)!;
     const skills = findSection(result.sections, '技能')!;
     const knowledge = skills.groups.find((group) => group.label === '知識:オカルト')!;
@@ -56,7 +56,7 @@ describe('buildDx3CharasheetCharacter', () => {
     expect(skills.groups.find((group) => group.label === '白兵')).toBeDefined();
   });
 
-  it('エフェクト・コンボを名前付きで展開する', () => {
+  it('spreads the effects and the combos with their names', () => {
     const result = buildDx3CharasheetCharacter(dx3)!;
     expect(findSection(result.sections, 'エフェクト')!.groups.map((group) => group.label)).toEqual([
       'コンセントレイト',
@@ -65,7 +65,7 @@ describe('buildDx3CharasheetCharacter', () => {
     expect(findSection(result.sections, 'コンボ')!.groups.map((group) => group.label)).toEqual(['基本コンボ']);
   });
 
-  it('チャットパレットに DX 式の技能ロールを生成する', () => {
+  it('builds the skill rolls of that system into the palette', () => {
     const result = buildDx3CharasheetCharacter(dx3)!;
     expect(result.commands).toContain('5DX+6 【RC】');
     expect(result.commands).toContain('1DX 【白兵】');

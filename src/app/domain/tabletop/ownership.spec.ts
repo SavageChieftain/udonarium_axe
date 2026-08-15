@@ -28,19 +28,19 @@ describe('ownership', () => {
   });
 
   describe('asOwnable', () => {
-    it('OwnedTabletopObject と GameTableMask を所有可能とみなす', () => {
+    it('counts an owned object and a mask as ownable', () => {
       expect(asOwnable(new Card())).toBeInstanceOf(Card);
       expect(asOwnable(new GameTableMask())).toBeInstanceOf(GameTableMask);
     });
 
-    it('所有概念のないオブジェクトは null', () => {
+    it('counts anything else as not', () => {
       expect(asOwnable(new GameTable())).toBeNull();
       expect(asOwnable(null)).toBeNull();
     });
   });
 
   describe('clearOwnership', () => {
-    it('所有者のあるオブジェクトのみ owner を空にし、件数を返す', () => {
+    it('clears the owner of what has one and counts them', () => {
       const card = new Card();
       card.owner = 'user-1';
       const mask = new GameTableMask();
@@ -57,7 +57,7 @@ describe('ownership', () => {
   });
 
   describe('clearOwnershipTree', () => {
-    it('親と子孫の owner をまとめて空にする', () => {
+    it('clears a parent and everything under it together', () => {
       const stack = CardStack.create('デッキ');
       stack.owner = 'user-1';
       const child = Card.create('カード', 'front.png', 'back.png');
@@ -78,7 +78,7 @@ describe('ownership', () => {
       { userId: 'closed-user', isOpen: false },
     ];
 
-    it('接続中のオーナーは除外し、不在/切断オーナーのみ抽出する', () => {
+    it('picks out the absent and dropped owners, leaving those still connected', () => {
       const online = new Card();
       online.owner = 'online-user';
       const absent = new Card();
@@ -95,7 +95,7 @@ describe('ownership', () => {
       expect(orphaned).toHaveLength(2);
     });
 
-    it('オフラインオーナーの所有だけを解放し、接続中は維持する', () => {
+    it('releases what an absent owner holds and leaves the rest', () => {
       const online = new Card();
       online.owner = 'online-user';
       const absent = new Card();

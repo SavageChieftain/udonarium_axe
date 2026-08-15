@@ -2,12 +2,12 @@ import { gaugeColor, gaugeRatio, isGaugeInverted, selectPieceGauges } from '@axe
 import { DataElement, DataElementAttribute, DataElementType } from '@axe/domain/data/data-element';
 
 describe('gaugeRatio()', () => {
-  it('現在値と最大値の比を 0〜1 で返すこと', () => {
+  it('returns the share of the maximum, between none and all', () => {
     expect(gaugeRatio(50, 200)).toBe(0.25);
     expect(gaugeRatio(200, 200)).toBe(1);
   });
 
-  it('範囲外や最大値 0 でも壊れないこと', () => {
+  it('does not fall over outside that range or at no maximum', () => {
     expect(gaugeRatio(-10, 200)).toBe(0);
     expect(gaugeRatio(300, 200)).toBe(1);
     expect(gaugeRatio(10, 0)).toBe(0);
@@ -16,14 +16,14 @@ describe('gaugeRatio()', () => {
 });
 
 describe('gaugeColor()', () => {
-  it('残量に応じて緑・黄・赤になること', () => {
+  it('runs from green through yellow to red as it empties', () => {
     expect(gaugeColor(1)).toBe(gaugeColor(0.51));
     expect(gaugeColor(0.5)).toBe(gaugeColor(0.26));
     expect(gaugeColor(0.25)).toBe(gaugeColor(0));
     expect(new Set([gaugeColor(1), gaugeColor(0.5), gaugeColor(0.1)]).size).toBe(3);
   });
 
-  it('マイナスリソースでは満タンほど危険になること', () => {
+  it('runs the other way on a resource that grows worse as it fills', () => {
     expect(gaugeColor(1, true)).toBe(gaugeColor(0));
     expect(gaugeColor(0, true)).toBe(gaugeColor(1));
     expect(gaugeColor(0.6, true)).toBe(gaugeColor(0.4));
@@ -45,7 +45,7 @@ describe('selectPieceGauges()', () => {
     for (const element of created.splice(0)) element.destroy();
   });
 
-  it('コマに出す設定のリソースだけを拾うこと', () => {
+  it('picks up only the resources set to show on the piece', () => {
     const root = DataElement.create('detail', '', {});
     created.push(root);
     const section = DataElement.create('リソース', '', {});
@@ -62,7 +62,7 @@ describe('selectPieceGauges()', () => {
     expect(gauges[1].color).toBe(gaugeColor(0.75));
   });
 
-  it('マイナスリソースは色を裏返して持つこと', () => {
+  it('carries the colours reversed on such a resource', () => {
     const root = DataElement.create('detail', '', {});
     created.push(root);
     const madness = resource('狂気度', 150, 200, true, true);
@@ -75,7 +75,7 @@ describe('selectPieceGauges()', () => {
     expect(gauge.color).toBe(gaugeColor(0.25));
   });
 
-  it('リソース以外は拾わないこと', () => {
+  it('picks up nothing that is not a resource', () => {
     const root = DataElement.create('detail', '', {});
     created.push(root);
     const note = DataElement.create('メモ', 'テキスト', {});
@@ -86,7 +86,7 @@ describe('selectPieceGauges()', () => {
     expect(selectPieceGauges(root)).toEqual([]);
   });
 
-  it('未設定なら空を返すこと', () => {
+  it('returns nothing when it is unset', () => {
     expect(selectPieceGauges(null)).toEqual([]);
   });
 });

@@ -12,8 +12,8 @@ import {
   paramsOf,
 } from '@axe/domain/character/import/system-profiles/charasheet-shared';
 
-// パラサイトブラッド（保管所 game="parabla"）の6能力値。順序は作成ページ <th> ヘッダで確認。
-// S{i}=能力値, NB{i}=判定値（=能力値+2 を実データで確認、2d6 に加える修正値）。
+// The six abilities of that system, in the order the headings of its own page give.
+// One key holds the ability and another the value added to the roll, which the real data shows to be two more.
 const ABILITIES: { value: string; rate: string; label: string }[] = [
   { value: 'S1', rate: 'NB1', label: '肉体' },
   { value: 'S2', rate: 'NB2', label: '機敏' },

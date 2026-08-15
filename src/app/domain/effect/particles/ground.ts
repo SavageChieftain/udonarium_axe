@@ -7,12 +7,12 @@ import {
 } from '@axe/domain/effect/particles/shared';
 
 /**
- * 地面。
+ * The ground.
  *
- * 叩きつけ・瓦礫・隆起・重力・体当たり。土煙と破片で重さを出す。
+ * A slam, rubble, an upheaval, gravity, a charge. Dust and fragments are what give them weight.
  */
 
-/** 着弾。舞い上がる土煙と、跳ねる小さな破片。 */
+/** The landing: the dust thrown up, and the small fragments that bounce. */
 export function emitImpact(
   particles: EffectParticle[],
   random: () => number,
@@ -71,7 +71,7 @@ export function emitImpact(
   }
 }
 
-/** 岩石破砕。砕けた岩が飛び散り、粉塵が残る。 */
+/** Shattering rock: the broken rock flies and the dust stays. */
 export function emitRubble(
   particles: EffectParticle[],
   random: () => number,
@@ -86,7 +86,7 @@ export function emitRubble(
     const local = clamp01((progress - born) / 0.8);
     if (local <= 0 || local >= 1) continue;
     const travel = speed * (1 - Math.pow(1 - local, 2));
-    // 放り上げてから落とす。放物線があるだけで石らしくなる。
+    // It is thrown up and falls; the arc alone is what makes it read as stone.
     const lift = base * 2.2 * Math.sin(Math.PI * Math.min(local * 1.1, 1));
     particles.push({
       x: Math.cos(angle) * travel,
@@ -133,7 +133,7 @@ export function emitRubble(
   }
 }
 
-/** 地面隆起。せり上がる土煙と、崩れ落ちる土塊。 */
+/** An upheaval: the dust rising with it, and the clods that fall back. */
 export function emitUpheaval(
   particles: EffectParticle[],
   random: () => number,
@@ -141,7 +141,7 @@ export function emitUpheaval(
   base: number,
   ramp: ColorRamp
 ): void {
-  // せり上がりに合わせて土煙が持ち上がる。
+  // The dust rises with the ground.
   const rise = clamp01(progress / 0.45);
   for (let index = 0; index < 26; index++) {
     const angle = random() * Math.PI * 2;
@@ -160,7 +160,7 @@ export function emitUpheaval(
     });
   }
 
-  // 割れて跳ね上がる土塊。落下は隆起より遅れて始まる。
+  // The clods thrown up as it breaks, which begin to fall after the ground has risen.
   for (let index = 0; index < 18; index++) {
     const angle = random() * Math.PI * 2;
     const born = random() * 0.25;
@@ -199,7 +199,7 @@ export function emitUpheaval(
   }
 }
 
-/** 重力に引かれる塵。外から中心へ落ちて潰れる。 */
+/** The dust under gravity, falling inwards and crushed. */
 export function emitGravity(
   particles: EffectParticle[],
   random: () => number,
@@ -244,7 +244,7 @@ export function emitGravity(
   }
 }
 
-/** 打撃。潰れた点から破片と土煙が真横へ跳ねる。 */
+/** A strike: the fragments and the dust leap sideways from where it crushed. */
 export function emitBash(
   particles: EffectParticle[],
   random: () => number,
@@ -266,7 +266,7 @@ export function emitBash(
     });
   }
 
-  // 横へ強く、上へは弱く。真上へ飛ぶと爆発に見えてしまう。
+  // Strongly across and weakly up; straight up it reads as an explosion.
   for (let index = 0; index < 22; index++) {
     const angle = random() * Math.PI * 2;
     const speed = base * (1.4 + random() * 2);

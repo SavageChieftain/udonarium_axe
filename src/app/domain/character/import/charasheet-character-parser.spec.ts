@@ -2,7 +2,7 @@ import { parseCharasheetCharacter } from '@axe/domain/character/import/charashee
 import { ImportedSection } from '@axe/domain/character/import/imported-character';
 
 describe('parseCharasheetCharacter', () => {
-  // charasheet.vampire-blood.net の CoC（game="coc"）実データに即した構造
+  // built from real data of one system at the sheet archive
   const coc = {
     pc_name: 'すー',
     game: 'coc',
@@ -33,12 +33,12 @@ describe('parseCharasheetCharacter', () => {
     return sections.find((section) => section.label === label);
   }
 
-  it('保管所キャラを判別する', () => {
+  it('recognises a character from the archive', () => {
     expect(parseCharasheetCharacter(coc)).not.toBeNull();
     expect(parseCharasheetCharacter({ kind: 'character' })).toBeNull();
   });
 
-  it('名前・色・メモを取り込む', () => {
+  it('takes the name, the colour and the notes', () => {
     const result = parseCharasheetCharacter(coc)!;
     expect(result.sourceFormat).toBe('charasheet');
     expect(result.name).toBe('すー');
@@ -46,7 +46,7 @@ describe('parseCharasheetCharacter', () => {
     expect(result.memo).toBe('作成メモ');
   });
 
-  it('CoC の能力値 NA1..NA8 を STR..EDU として取り込む', () => {
+  it('reads the numbered abilities of that system into their proper names', () => {
     const result = parseCharasheetCharacter(coc)!;
     expect(result.params).toContainEqual({ label: 'STR', value: '10' });
     expect(result.params).toContainEqual({ label: 'CON', value: '8' });
@@ -54,34 +54,34 @@ describe('parseCharasheetCharacter', () => {
     expect(result.params).toContainEqual({ label: 'HP', value: '10' });
   });
 
-  it('SAN を現在/最大リソースとして取り込む（空の現在値は最大値で補完）', () => {
+  it('takes sanity as a resource, filling an empty current value in from the maximum', () => {
     const result = parseCharasheetCharacter(coc)!;
     expect(result.statuses).toContainEqual({ label: '正気度', value: 99, max: 99 });
   });
 
-  it('並列技能配列を接頭辞ごとのセクション（行＝インデックス）に展開する', () => {
+  it('spreads the parallel skill arrays into a section per prefix, a row per index', () => {
     const result = parseCharasheetCharacter(coc)!;
     const battle = findSection(result.sections, '戦闘技能')!;
     expect(battle).toBeTruthy();
-    // 1 行目は TBAD/TBAP に値があり、列名は CoC マップで変換される
+    // the first row carries values whose column names come from the map of that system
     expect(battle.groups[0].fields).toContainEqual({ label: '初期値', value: 26, kind: 'number' });
     expect(battle.groups[0].fields).toContainEqual({ label: '合計', value: 26, kind: 'number' });
-    // 全列が空の行（3,4 行目）はスキップされる
+    // a row empty in every column is passed over
     expect(battle.groups.length).toBe(2);
 
     const know = findSection(result.sections, '知識技能')!;
     expect(know.groups.length).toBe(3);
   });
 
-  it('能力値以外のスカラー（SAN_Max 等）はデータセクションに残る', () => {
+  it('a scalar that is not an ability stays in the data section', () => {
     const result = parseCharasheetCharacter(coc)!;
     const data = findSection(result.sections, 'データ')!;
     expect(data.groups[0].fields).toContainEqual({ label: 'TS_Total', value: 260, kind: 'number' });
-    // NA1 など写像済みの能力値はデータセクションに重複して出ない
+    // an ability already mapped does not appear there twice
     expect(data.groups[0].fields.some((field) => field.label === 'NA1')).toBe(false);
   });
 
-  it('非CoCシステムでもデータと配列は保持される（能力値写像は行わない）', () => {
+  it('keeps the data and the arrays of another system, without mapping its abilities', () => {
     const other = { pc_name: 'X', game: 'arianrhod', skillName: ['剣', '盾'], NA1: 99 };
     const result = parseCharasheetCharacter(other)!;
     expect(result.params).toEqual([]);
@@ -90,7 +90,7 @@ describe('parseCharasheetCharacter', () => {
     expect(result.sections.some((section) => section.label === 'skillName')).toBe(true);
   });
 
-  it('labelMap が与えられたとき、位置依存スカラーのキーをページ由来ラベルへ置換する', () => {
+  it('replaces the positional keys with the labels of the page when it is given them', () => {
     const other = { pc_name: 'X', game: 'somesystem', S1: '4', S2: '3' };
     const result = parseCharasheetCharacter(other, { S1: '筋力', S2: '器用' })!;
     const data = findSection(result.sections, 'データ')!;
@@ -98,7 +98,7 @@ describe('parseCharasheetCharacter', () => {
     expect(data.groups[0].fields).toContainEqual({ label: '器用', value: 3, kind: 'number' });
   });
 
-  it('{family}_name を持つ配列ファミリを、行名＋日本語列名の節へ展開する（保管所共通フォーマット）', () => {
+  it('spreads an array family that carries its own names into a section of named rows and columns', () => {
     const other = {
       pc_name: 'リーフ',
       game: 'somesystem',
@@ -111,7 +111,7 @@ describe('parseCharasheetCharacter', () => {
     };
     const result = parseCharasheetCharacter(other)!;
     const skill = findSection(result.sections, '技能')!;
-    // 行ラベルは skill_name（番号ではない）、列は suffix を日本語化、空行と内部キー(id)は除外
+    // the rows are named rather than numbered, the columns come from the suffixes, and the empty rows and internal keys are left out
     expect(skill.groups.map((group) => group.label)).toEqual(['ファイアボルト', '応急手当']);
     expect(skill.groups[0].fields).toContainEqual({ label: 'タイミング', value: 'メジャー', kind: 'text' });
     expect(skill.groups[0].fields).toContainEqual({ label: '判定', value: '知力', kind: 'text' });

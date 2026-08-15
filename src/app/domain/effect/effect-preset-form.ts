@@ -7,10 +7,10 @@ import {
 } from '@axe/domain/effect/effect-kind';
 
 /**
- * プリセット編集で見せる選択肢と、種類ごとに意味を持つ項目の判定。
+ * The choices the editor offers, and which fields mean anything to which kind.
  *
- * 種類によっては使わない項目（斬撃に弾数など）があるので、
- * 出す・出さないをここで決めて画面から分岐を追い出す。
+ * Some kinds have no use for some fields, such as a count of shots on a cut, and what to
+ * show is decided here so the screen carries no branching.
  */
 
 export const EFFECT_TARGETING_OPTIONS: readonly EffectTargeting[] = ['self', 'single', 'multi'];
@@ -21,27 +21,27 @@ export const SLASH_STYLE_OPTIONS: readonly SlashStyle[] = ['single', 'combo', 'i
 
 export const EFFECT_GRADE_OPTIONS: readonly number[] = [1, 2, 3];
 
-/** 飛んでいく種類。発射元から対象へ向かうので、見た目と着弾の設定が要る。 */
+/** The kinds that fly, from an origin to a target, and so need a look and a landing. */
 export function usesProjectileFields(kind: EffectKind): boolean {
   return kind === 'projectile';
 }
 
-/** 斬撃の型を持つ種類。 */
+/** The kinds that have a form of cut. */
 export function usesSlashFields(kind: EffectKind): boolean {
   return kind === 'slash';
 }
 
-/** 連射できる種類。1 回の発動で複数回撃つ。 */
+/** The kinds that fire in bursts, several shots to one firing. */
 export function usesShotFields(kind: EffectKind): boolean {
   return kind === 'projectile';
 }
 
-/** 着弾で別の演出へ委譲する種類。 */
+/** The kinds that hand the landing to another effect. */
 export function usesImpactKindField(kind: EffectKind): boolean {
   return kind === 'projectile';
 }
 
-/** 発射元を要求する種類。撃ち手を選んでいないと向きが決まらない。 */
+/** The kinds that need an origin, whose direction is undecided until a caster is chosen. */
 export function needsCaster(kind: EffectKind): boolean {
   return (
     kind === 'projectile' ||
@@ -56,12 +56,12 @@ export function needsCaster(kind: EffectKind): boolean {
   );
 }
 
-/** 複数を狙える設定か。上限を編集させるかどうかの判定に使う。 */
+/** Whether it takes several targets, which decides whether the limit may be edited. */
 export function usesTargetLimit(targeting: EffectTargeting): boolean {
   return targeting === 'multi';
 }
 
-/** 複製したときの名前。同じ名前が並ぶと一覧で見分けられない。 */
+/** The name of a copy. Two of a name cannot be told apart in the list. */
 export function duplicatedEffectName(name: string, existing: readonly string[]): string {
   const base = name.trim().length > 0 ? name.trim() : '無題';
   const taken = new Set(existing);

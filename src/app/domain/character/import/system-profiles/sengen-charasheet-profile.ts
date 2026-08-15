@@ -15,7 +15,7 @@ import {
   paramsOf,
 } from '@axe/domain/character/import/system-profiles/charasheet-shared';
 
-// 千幻抄（保管所 game="sengen"）の5能力値。NP{i}=能力値（特性値+修正の合計）。順序は作成ページ <th> ヘッダで確認。
+// The five abilities of that system, each the total of its trait and its correction, in the order the headings of its own page give.
 const ABILITIES: { key: string; label: string }[] = [
   { key: 'NP1', label: '身体' },
   { key: 'NP2', label: '耐久' },
@@ -24,7 +24,7 @@ const ABILITIES: { key: string; label: string }[] = [
   { key: 'NP5', label: '意志' },
 ];
 
-// 妖術・魔法の系統コード（effect_shozoku）→ ラベル。作成ページ <select> を権威として転記。
+// The family codes of the arts and spells and their labels, taken from the options on that page.
 const SPELL_CATEGORY: Record<string, string> = {
   '1': '神術/陰陽',
   '2': '魔法',

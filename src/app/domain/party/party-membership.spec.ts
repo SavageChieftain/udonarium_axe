@@ -11,37 +11,37 @@ function member(owner: string, partyIdentifier: string): PartyMemberLike {
 }
 
 describe('partyIdsOwnedBy', () => {
-  it('所有キャラの所属パーティを重複なく返す', () => {
+  it('returns the parties your characters belong to, once each', () => {
     const members = [member('u1', 'p1'), member('u1', 'p1'), member('u1', 'p2'), member('u2', 'p3')];
 
     expect(partyIdsOwnedBy(members, 'u1')).toEqual(['p1', 'p2']);
   });
 
-  it('未所属や他人のキャラは含めない', () => {
+  it('leaves out the unattached and somebody elses', () => {
     const members = [member('u1', ''), member('u2', 'p1')];
 
     expect(partyIdsOwnedBy(members, 'u1')).toEqual([]);
   });
 
-  it('ユーザ ID が空なら空を返す', () => {
+  it('returns nothing without a user', () => {
     expect(partyIdsOwnedBy([member('', 'p1')], '')).toEqual([]);
   });
 });
 
 describe('membersOfParty', () => {
-  it('指定パーティの所属だけ返す', () => {
+  it('returns the members of one party alone', () => {
     const members = [member('u1', 'p1'), member('u2', 'p2'), member('u3', 'p1')];
 
     expect(membersOfParty(members, 'p1')).toEqual([member('u1', 'p1'), member('u3', 'p1')]);
   });
 
-  it('パーティ ID が空なら空を返す', () => {
+  it('returns nothing without a party', () => {
     expect(membersOfParty([member('u1', '')], '')).toEqual([]);
   });
 });
 
 describe('membersWithoutParty', () => {
-  it('未所属と、消えたパーティを指しているものを返す', () => {
+  it('returns the unattached and those pointing at a party that is gone', () => {
     const orphan = member('u3', 'gone');
     const members = [member('u1', 'p1'), member('u2', ''), orphan];
 

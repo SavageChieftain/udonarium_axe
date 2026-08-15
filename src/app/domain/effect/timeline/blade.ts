@@ -18,26 +18,26 @@ import {
 } from '@axe/domain/effect/timeline/shared';
 
 /**
- * 刃。
+ * A blade.
  *
- * 斬撃・居合・両断と、空から降る大剣。締めの爆ぜ方は渡された側に委ねる。
+ * The cuts, the drawing cut, the cleaving, and the great sword out of the sky. How each ends is left to what it is given.
  */
 
 const BISECT_PIECE_SCALE = 0.62;
 const BISECT_GUSH_COUNT = 7;
-/** 斬り口で分けた 2 枚。`clip` は絵のどちら側を残すか。 */
+/** The two halves the cut makes, each keeping one side of the picture. */
 const BISECT_HALVES = [
   { key: 'upper', side: 1, drop: 0.3, clip: 'polygon(-40% -40%, 140% -110%, 140% 40%, -40% 110%)' },
   { key: 'lower', side: -1, drop: 1.5, clip: 'polygon(-40% 110%, 140% 40%, 140% 140%, -40% 140%)' },
 ];
-/** 斬り抜けるまで。 */
+/** How long the stroke takes to pass through. */
 const BISECT_CUT_END = 0.22;
 const BISECT_ANGLE = -28;
-/** 斬撃の刀身。型ごとに手数・角度・間合いが変わる。 */
+/** The blade of a cut, whose strokes, angle and reach follow its form. */
 export interface SlashHit {
-  /** 再生位置のどこで斬るか(0-1)。 */
+  /** How far through the playback the cut falls. */
   at: number;
-  /** 1 太刀にかける長さ(0-1)。 */
+  /** How much of it one stroke takes. */
   span: number;
   angle: number;
   thickness: number;
@@ -48,16 +48,16 @@ export interface SlashHit {
 
 const SLASH_ANGLES = [-46, 34, -18, 52, -8, 26];
 const SLASH_SHIFTS = [-0.34, 0.3, 0.12, -0.26, 0.36, -0.12];
-/** 溜めが終わる位置。ここで斬る。 */
+/** Where the gathering ends and the cut falls. */
 const SLASH_CHARGE_END = 0.42;
 const SLASH_CHARGE_COUNT = 6;
 const SLASH_CRACK_JITTER = [0.2, 0.7, 0.35, 0.85, 0.5, 0.15];
-/** 居合が閃く位置。ここまでは何も起きない。 */
+/** Where a drawing cut flashes. Nothing happens before it. */
 const SLASH_IAI_AT = 0.55;
 
 /**
- * 型ごとの太刀筋。
- * 居合は「静止 → 一瞬 → 斬り口」、唐竹割りは真上から、薙ぎ払いは横へ大きく。
+ * The line of each form.
+ * A drawing cut is stillness, an instant and a wound; a cleave comes from straight above; a sweep goes wide across.
  */
 export function slashHits(style: SlashStyle): SlashHit[] {
   switch (style) {
@@ -75,13 +75,13 @@ export function slashHits(style: SlashStyle): SlashHit[] {
       }));
     }
     case 'iai':
-      // 抜き打ちの一瞬。長く薄く、水平に近い一線。
+      // The instant of the draw: one long thin line, nearly level.
       return [{ at: SLASH_IAI_AT, span: 0.1, angle: -6, thickness: 8, offsetX: 0, offsetY: 0, reach: 5.4 }];
     case 'wide':
-      // 薙ぎ払い。横へ大きく、厚く。
+      // The sweep: wide across, and thick.
       return [{ at: SLASH_CHARGE_END, span: 0.34, angle: -14, thickness: 46, offsetX: 0, offsetY: 0, reach: 5 }];
     case 'heavy':
-      // 唐竹割り。真上から振り下ろす。
+      // The cleave, brought down from straight above.
       return [{ at: SLASH_CHARGE_END, span: 0.26, angle: -88, thickness: 42, offsetX: 0, offsetY: -0.35, reach: 4.2 }];
     default:
       return [{ at: 0, span: 0.85, angle: -46, thickness: 28, offsetX: 0, offsetY: 0, reach: 3 }];
@@ -89,10 +89,10 @@ export function slashHits(style: SlashStyle): SlashHit[] {
 }
 
 /**
- * 振り下ろす先の角度。真上(0)からここまで回す。
+ * The angle the stroke ends at, turned to from straight above.
  *
- * 素直に heading+90 を使うと、対象の向きによっては 180 度を跨いで
- * 刃が盤面の下をくぐる。近いほうへ回し、水平を少し超えたところで止める。
+ * Taken straight from the heading it would cross the half turn for some directions and
+ * pass the blade under the board. It turns the shorter way and stops a little past level.
  */
 export function swingTiltOf(headingAngle: number): number {
   let tilt = (headingAngle + 90) % 360;
@@ -101,19 +101,19 @@ export function swingTiltOf(headingAngle: number): number {
   return Math.max(-EXCALIBUR_MAX_TILT, Math.min(EXCALIBUR_MAX_TILT, tilt));
 }
 
-/** 光の大剣。立ち上る・刃になる・振り下ろす・弾ける、の四段。 */
+/** The great sword of light, in four stages: rising, becoming a blade, falling and bursting. */
 const EXCALIBUR_RISE_END = 0.24;
 const EXCALIBUR_FORM_END = 0.5;
 export const EXCALIBUR_SWING_END = 0.68;
-/** 刃の最短の長さ。間合いが近くても剣に見える太さを保つ。 */
+/** The shortest the blade may be, so it still reads as a sword at close reach. */
 const EXCALIBUR_MIN_REACH = 6;
-/** 振り下ろす角度の限界。これを超えると刃が盤面の下をくぐってしまう。 */
+/** How far the stroke may fall before the blade would pass under the board. */
 const EXCALIBUR_MAX_TILT = 100;
 
 /**
- * 撃ち手の足元から光が立ち上って巨大な刃になり、地面を支点に対象へ振り下ろされる。
+ * The light rises from the caster's feet into a vast blade, which falls on the target about its foot on the ground.
  *
- * 刃は中心ではなく根元で回す。中心で回すと振り下ろしではなく回転に見える。
+ * It turns about its foot rather than its middle; about the middle it reads as spinning rather than falling.
  */
 export function appendSkyblade(
   sprites: EffectSprite[],
@@ -135,7 +135,7 @@ export function appendSkyblade(
   const span = Math.hypot(center.x - origin.x, center.y - origin.y, center.z - origin.z);
   const reach = Math.max(span, base * EXCALIBUR_MIN_REACH);
 
-  // 1. 立ち上る光。足元から吸い上がって刃の背丈まで届く。
+  // First the rising light, drawn up from the feet to the height of the blade.
   if (rise > 0 && form < 1) {
     for (let index = 0; index < 8; index += 1) {
       const phase = (rise * 1.6 + index / 8) % 1;
@@ -157,13 +157,13 @@ export function appendSkyblade(
     }
   }
 
-  // 2〜3. 刃。伸び切ってから、根元を軸に対象へ倒す。
+  // Then the blade, which reaches its length before falling on the target about its foot.
   if (rise >= 1 || form > 0 || swing < 1) {
     const length = reach * (0.15 + easeOutCubic(form) * 0.85);
     const eased = swing < 0.5 ? 2 * swing * swing : 1 - Math.pow(-2 * swing + 2, 2) / 2;
     const tilt = eased * swingTiltOf(heading.angle);
     const radians = (tilt * Math.PI) / 180;
-    // 根元を撃ち手の足元へ固定する。中心は刃の向きへ半分ぶんずれる。
+    // The foot is held at the caster's feet, and the middle sits half a length along the blade.
     const pivotX = (length / 2) * Math.sin(radians);
     const pivotY = -(length / 2) * Math.cos(radians);
     const alive = 1 - burst * 0.85;
@@ -191,7 +191,7 @@ export function appendSkyblade(
       });
     }
 
-    // 根元の光輪。支点がどこかを見せる。
+    // The ring of light at the foot, which shows where it turns.
     sprites.push({
       ...blank(),
       key: `${prefix}-excalibur-hilt`,
@@ -207,9 +207,9 @@ export function appendSkyblade(
     });
   }
 
-  // 4. 爆発。振り切った先で弾け、輪が広がる。
+  // Last the burst, where the stroke ends, with a ring spreading out.
   if (burst > 0) {
-    // 属性を持たせた大剣は、締めの弾け方をその属性へ委ねる（炎なら燃え、氷なら凍る）。
+    // A sword given an element ends in it: fire burns and ice freezes.
     if (isEffectKind(preset.impactKind) && preset.impactKind !== 'projectile') {
       paintImpact(
         preset.impactEffectKind,
@@ -269,7 +269,7 @@ export function appendSkyblade(
 }
 
 /**
- * 両断。一閃のあと、コマの絵が斬り口で 2 つにずれ、その間から血が噴き出す。
+ * The cleaving: after the flash the picture parts along the cut and blood comes from between.
  */
 export function appendBisect(
   sprites: EffectSprite[],
@@ -286,7 +286,7 @@ export function appendBisect(
   const body = { x: center.x, y: center.y, z: center.z + base * 0.9 };
   const piece = base * BISECT_PIECE_SCALE;
   const radians = (BISECT_ANGLE * Math.PI) / 180;
-  // 斬り口と直交する向き。2 つの断片はここへ開いていく。
+  // The direction across the cut, along which the two halves open.
   const acrossX = -Math.sin(radians);
   const acrossY = Math.cos(radians);
 
@@ -314,7 +314,7 @@ export function appendBisect(
   const fade = 1 - clamp01((after - 0.55) / 0.45);
 
   if (image.length > 0) {
-    // 上側と下側。斬り口で切り分け、互いに逆へ滑らせる。
+    // The upper and the lower half, parted at the cut and slid opposite ways.
     for (const half of BISECT_HALVES) {
       sprites.push({
         ...blank(),
@@ -334,7 +334,7 @@ export function appendBisect(
     }
   }
 
-  // 断面。ずれた隙間が光り、そこから血が噴く。
+  // The cut face: the gap glows, and the blood comes from it.
   sprites.push({
     ...blank(),
     key: `${prefix}-bisect-seam`,
@@ -392,7 +392,7 @@ export function appendSlash(
   if (charged) appendSlashCharge(sprites, prefix, center, base, progress, preset);
   if (style === 'iai') appendIaiStance(sprites, prefix, center, base, progress, preset);
 
-  // 太刀ごとに角度と間合いをずらす。同じ場所に重ねると 1 回斬ったようにしか見えない。
+  // Each stroke takes its own angle and reach; laid on one spot they read as a single cut.
   hits.forEach((hit, index) => {
     const sweepMs = Math.max(Math.round(preset.duration * hit.span), 70);
     sprites.push({
@@ -422,7 +422,7 @@ export function appendSlash(
   }
 }
 
-/** 居合の溜め。動かず、鞘元だけが光る。 */
+/** The gathering of a drawing cut: nothing moves but the light at the scabbard. */
 function appendIaiStance(
   sprites: EffectSprite[],
   prefix: string,
@@ -434,7 +434,7 @@ function appendIaiStance(
   const hold = normalize(progress / SLASH_IAI_AT);
   if (hold <= 0 || hold >= 1) return;
 
-  // 張り詰めた静止。細い光が一本だけ伸びる。
+  // The stillness drawn taut, with one thin light reaching out.
   const glint = base * (0.5 + hold * 1.1);
   sprites.push({
     ...blank(),
@@ -452,7 +452,7 @@ function appendIaiStance(
   });
 }
 
-/** 溜め。刃に光が集まり、間合いが張り詰める。 */
+/** The gathering: light draws into the blade and the reach pulls taut. */
 function appendSlashCharge(
   sprites: EffectSprite[],
   prefix: string,
@@ -479,7 +479,7 @@ function appendSlashCharge(
     shadow: glow(base * 0.5 * charge, preset.colorPrimary, base * 1.2 * charge, preset.colorSecondary),
   });
 
-  // 周囲から刃へ吸い寄せられる光。溜めていることが読める。
+  // The light drawn into the blade from around it, which is what says it is gathering.
   for (let index = 0; index < SLASH_CHARGE_COUNT; index++) {
     const angle = (Math.PI * 2 * index) / SLASH_CHARGE_COUNT;
     const distance = base * (2.4 - charge * 2);
@@ -499,7 +499,7 @@ function appendSlashCharge(
   }
 }
 
-/** 余韻。斬り口が残り、地面へ衝撃が抜ける。 */
+/** What lingers: the wound stays and the force passes into the ground. */
 function appendSlashAftermath(
   sprites: EffectSprite[],
   prefix: string,
@@ -513,7 +513,7 @@ function appendSlashAftermath(
   const after = normalize((progress - hit.at - hit.span * 0.35) / (1 - hit.at - hit.span * 0.35));
   if (after <= 0 || after >= 1) return;
 
-  // 斬り口。振り抜いた線がしばらく残る。
+  // The wound, where the stroke passed, which stays a while.
   sprites.push({
     ...blank(),
     key: `${prefix}-cut`,
@@ -529,7 +529,7 @@ function appendSlashAftermath(
     shadow: glow(base * 0.4 * (1 - after), '#ffffff'),
   });
 
-  // 居合は斬り口だけ残す。地面を割るのは力任せの型の役目。
+  // A drawing cut leaves the wound alone; splitting the ground belongs to the heavier forms.
   if (style === 'iai') return;
 
   const shock = base * (0.8 + easeOutCubic(after) * 3.4);
@@ -548,7 +548,7 @@ function appendSlashAftermath(
 
   const crack = base * (1.2 + easeOutCubic(after) * 2.4);
   if (style === 'heavy') {
-    // 唐竹割りは真下へ抜けるので、地面も一本の裂け目になる。
+    // A cleave passes straight down, so the ground splits in one line too.
     sprites.push({
       ...blank(),
       key: `${prefix}-slash-split`,

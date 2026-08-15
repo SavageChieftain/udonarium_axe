@@ -129,10 +129,10 @@ export class ChatMessage extends ObjectNode implements ChatMessageContext {
     return this.minorIndex + this.timestamp;
   }
 
-  // replyTo / quoteOf は被参照メッセージの identifier (context 側) を文字列として保持する。
-  // 既定の ObjectNode は context.identifier を XML に書き出さないので、save → load の
-  // たびに ID が振り直されて参照が切れてしまう。ChatMessage は relationship を保つために
-  // identifier を XML 属性として明示的に出し入れする。
+  // The reply and the quotation hold the identifier of the message they refer to as text.
+  // The base class does not write that identifier out, so every save and load would mint a
+  // new one and break the reference. This class writes it out and reads it back as an
+  // attribute, so the relationship survives.
   override toAttributes(): Attributes {
     const attrs: Attributes = { ...ObjectSerializer.toAttributes(this.attributes as Attributes) };
     attrs['identifier'] = this.identifier;
@@ -144,7 +144,7 @@ export class ChatMessage extends ObjectNode implements ChatMessageContext {
     const persistedId = this.attributes['identifier'];
     if (typeof persistedId === 'string' && persistedId.length > 0) {
       (this as unknown as { context: { identifier: string } }).context.identifier = persistedId;
-      // attributes 側からは消す (identifier は context だけが正)
+      // it is removed from the attributes, the context being the one place it belongs
       delete (this.attributes as Record<string, unknown>)['identifier'];
     }
   }
@@ -176,7 +176,7 @@ export class ChatMessage extends ObjectNode implements ChatMessageContext {
     return this.isSystem && this.from === 'System-BCDice';
   }
 
-  /** 振った中身（出目と成否）。この版より前に振られたものには無い。 */
+  /** What was rolled and whether it succeeded. Anything rolled before this was recorded has neither. */
   get rollDetail(): DiceRollDetail | null {
     return parseDiceRollDetail(this.dicebot);
   }

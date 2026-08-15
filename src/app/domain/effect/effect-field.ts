@@ -3,15 +3,15 @@ import { ObjectStore } from '@axe/core/sync/object-store';
 import { TabletopObject } from '@axe/domain/tabletop/tabletop-object';
 
 /**
- * 盤面に置きっぱなしにする演出。毒沼や炎の壁のように、その場に残り続ける場。
+ * An effect left standing on the board, such as a poisoned marsh or a wall of flame.
  *
- * 中身は普通のプリセットで、再生位置を尺で折り返して繰り返すだけ。
- * 発動と同じ絵をそのまま使えるので、場のためだけの演出を作らずに済む。
+ * It is an ordinary effect, its playback wrapped round its own length to repeat.
+ * The same picture serves, so no separate effect has to be made for a standing one.
  */
 @SyncObject('effect-field')
 export class EffectField extends TabletopObject {
   @SyncVar() presetIdentifier: string = '';
-  /** コマの大きさと同じ扱いの一辺(マス)。演出の大きさは倍率で決まる。 */
+  /** One side, in cells, measured as a piece is. The size of the effect follows from the scale. */
   @SyncVar() size: number = 1;
 
   static list(): EffectField[] {
@@ -19,8 +19,8 @@ export class EffectField extends TabletopObject {
   }
 
   /**
-   * 繰り返しの位相ずらし(ms)。
-   * 同じ演出を並べたときに全部が同じ動きをすると、貼り絵に見える。
+   * How far the repetition is offset, in milliseconds.
+   * Several of these side by side all moving together would look pasted on.
    */
   get phaseOffset(): number {
     let hash = 0;

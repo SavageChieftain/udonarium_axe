@@ -16,31 +16,31 @@ import {
 } from '@axe/domain/effect/timeline/shared';
 
 /**
- * 照射。
+ * A beam.
  *
- * 極太のビームと細いレーザー。撃ち始め・当たり続け・切れる、の 3 拍で組む。
+ * The heaviest beam and the thin one, in three beats: the firing, the holding and the cutting off.
  */
 
-/** レーザーが溜めを終えて発射する位置。 */
+/** Where the thin beam finishes gathering and fires. */
 const BEAM_CHARGE_END = 0.28;
-/** 溜めの終わり際、光を一度潰す位置。ここで撃つ前の「タメ」が生まれる。 */
+/** Where the gathered light is crushed once, which is what makes the pause before the shot. */
 const BEAM_SNAP_AT = 0.76;
-/** 撃ってから柱が対象へ届くまで。レーザーは伸びるのではなく通る。 */
+/** How long the column takes to reach the target. A beam passes rather than grows. */
 const BEAM_REACH_END = 0.09;
-/** 第 2 波が乗る位置。全力を頭から出さず、後から重ねて増幅して見せる。 */
+/** Where the second wave arrives. Full force from the first moment reads weaker than force laid on afterwards. */
 const BEAM_SWELL_AT = 0.32;
-/** 柱が根元から引き上がりはじめる位置。 */
+/** Where the column begins to draw up from its foot. */
 const BEAM_RELEASE_AT = 0.8;
 const BEAM_SEGMENT_COUNT = 10;
 const BEAM_CHARGE_RINGS = 3;
 const BEAM_SURGE_COUNT = 3;
 const BEAM_RING_COUNT = 3;
 const BEAM_HELIX_DASHES = 6;
-/** 着弾点から跳ね返る飛沫の向き(度)。 */
+/** Which way the splash comes back from where it lands. */
 const BEAM_SPLASH_ANGLES = [-56, -33, -12, 11, 34, 57];
 /**
- * 柱の層。外から内へ、広く淡く → 細く白熱。
- * `edge` がシルエットを立て、`wobble` が層ごとに違うことで一様な棒に見えなくなる。
+ * The layers of the column, from wide and faint on the outside to thin and white at the core.
+ * One gives it a silhouette, and different waver on each layer keeps it from being an even bar.
  */
 const BEAM_LAYERS = [
   { key: 'halo', width: 2.5, opacity: 0.22, wobble: 0.17 },
@@ -48,22 +48,22 @@ const BEAM_LAYERS = [
   { key: 'body', width: 0.95, opacity: 0.9, wobble: 0.07 },
   { key: 'core', width: 0.3, opacity: 1, wobble: 0.03 },
 ];
-/** 柱に巻き付く帯。半周ずらした 2 条で始まり、増幅後にさらに 2 条が乗る。 */
+/** The bands wrapping the column: two half a turn apart to begin with, and two more once it grows. */
 const BEAM_HELIX_STRANDS = [
   { phase: 0, late: false },
   { phase: Math.PI, late: false },
   { phase: Math.PI / 2, late: true },
   { phase: (Math.PI * 3) / 2, late: true },
 ];
-/** 照射が立ち上がる位置と、切れる位置。間はずっと当て続ける。 */
+/** Where the beam comes up and where it cuts off. Between them it holds. */
 const RAY_OPEN_END = 0.12;
-/** 照射を並べる区間数。少ないと折れて見え、多いと継ぎ目が目立つ。 */
+/** How many sections the beam is laid out in. Too few and it bends; too many and the seams show. */
 const RAY_SEGMENTS = 14;
 const RAY_CLOSE_START = 0.86;
 
 /**
- * 細いレーザーを当て続ける。極太ビームのような段組みは持たず、
- * 「一本の線を保つ・当たっている所が焼ける・湯気のように光が上がる」だけで押す。
+ * The thin beam, held on the target. It has none of the stages of the heaviest one,
+ * and works by holding one line, burning where it lands, and letting the light rise like steam.
  */
 export function appendRaybeam(
   sprites: EffectSprite[],
@@ -80,7 +80,7 @@ export function appendRaybeam(
   const alive = open * (1 - close);
   if (alive <= 0) return;
 
-  // 経路を区間に割って並べる。1 枚の板で結ぶと、視線に沿う角度で投影長が縮んで途中で切れる。
+  // The path is laid out in sections; as one sheet it would foreshorten along the line of sight and break partway.
   const pulse = 1 + Math.sin(progress * Math.PI * 22) * 0.12;
   const layers = [
     { thick: 0.34, color: preset.colorSecondary, alpha: 0.5 },
@@ -115,7 +115,7 @@ export function appendRaybeam(
     });
   }
 
-  // 焼けている一点。輪が小さく脈打つ。
+  // The point that burns, whose ring pulses small.
   sprites.push({
     ...blank(),
     key: `${prefix}-ray-burn`,
@@ -130,7 +130,7 @@ export function appendRaybeam(
     shadow: glow(base * 0.8 * alive, preset.colorPrimary),
   });
 
-  // 焼け跡から上がる光。当て続けていることを縦の動きで見せる。
+  // The light rising from the burn, whose upward movement is what says it is being held.
   for (let index = 0; index < 4; index += 1) {
     const phase = (progress * 2.4 + index * 0.25) % 1;
     sprites.push({
@@ -151,13 +151,13 @@ export function appendRaybeam(
 }
 
 /**
- * 極太ビーム。溜め → 潰し → 貫通 → 増幅 → 引き上げ。
+ * The heaviest beam: gathering, crushing, driving through, growing and drawing up.
  *
- * 砲口から対象まで、経路上に並べた区間で 1 本の柱にする。
- * 区間ごとに自分の奥行きを持つので、間に立つコマと正しく前後する。
+ * From the muzzle to the target it is one column, laid out in sections along the path.
+ * Each section carries its own depth, so the pieces between sit properly in front and behind.
  *
- * 柱を等幅の棒で描くと、どれだけ光らせても板に見える。層でシルエットを立て、
- * 区間ごとのうねり・巻き付く帯・走る輪・跳ね返る飛沫で「流れている」ことを見せる。
+ * Drawn as an even bar it is a sheet however brightly it glows. Layers give it a
+ * silhouette, and the waver, the bands, the running rings and the splash are what make it flow.
  */
 export function appendBeam(
   sprites: EffectSprite[],
@@ -173,7 +173,7 @@ export function appendBeam(
   const impact = { x: center.x, y: center.y, z: center.z + base * 0.6 };
   const link = projectDirection(impact.x - muzzle.x, impact.y - muzzle.y, impact.z - muzzle.z, view);
   const radians = (link.angle * Math.PI) / 180;
-  // 板ポリ面内での「柱を横切る向き」。帯と輪はここへずらして巻き付ける。
+  // The direction across the column within the billboard, along which the bands and rings are offset to wrap it.
   const acrossX = -Math.sin(radians);
   const acrossY = Math.cos(radians);
   const colors = colorsOf(preset);
@@ -187,13 +187,13 @@ export function appendBeam(
   if (fired <= 0 || fired >= 1) return;
 
   const reach = Math.min(1, fired / BEAM_REACH_END);
-  // 第 2 波。頭から全力を出さず、遅れて太らせるほうが威力が上がって見える。
+  // The second wave. Thickening late reads as more force than full force from the first moment.
   const swell = clamp01((fired - BEAM_SWELL_AT) / 0.2);
   const release = clamp01((fired - BEAM_RELEASE_AT) / (1 - BEAM_RELEASE_AT));
-  // 根元から引き上がって消える。全体を一様に薄くすると、力尽きた感じが出ない。
+  // It draws up from the foot and goes; thinned evenly it never looks spent.
   const foot = release ** 1.7;
   const swing = 1 + Math.sin(progress * 44) * 0.05;
-  // 近距離では細める。間合いが詰まっていると、太さが長さを追い越して塊に見える。
+  // It thins at close range, where the width would otherwise outrun the length and read as a lump.
   const span = 0.55 + Math.min(1, link.length / (base * 7)) * 0.45;
   const girth = (1 + swell * 0.34) * swing * span;
   const alive = 1 - release * 0.3;
@@ -205,14 +205,14 @@ export function appendBeam(
 
     const mid = (from + to) / 2;
     const anchor = pointBetween(muzzle, impact, mid);
-    // 継ぎ目が出ないよう、区間はわずかに重ねる。
+    // The sections overlap a little, so no seam shows.
     const length = link.length * (to - from) + base * 0.08;
-    // 着弾側をわずかに太らせる。まっすぐ等幅だと配管に見える。
+    // It thickens a little towards the landing; straight and even it reads as plumbing.
     const taper = 1 + mid ** 3 * 0.28;
 
     for (const layer of BEAM_LAYERS) {
-      // うねりは区間番号ではなく経路上の位置で決める。区間ごとに太さが飛ぶと
-      // 粒を並べたように見えてしまい、1 本の筒に見えなくなる。
+      // The waver follows the position along the path rather than the number of the section; a
+      // width that jumps between sections reads as a row of beads rather than one tube.
       const wobble = 1 + Math.sin(mid * 9.4 - progress * 34) * layer.wobble;
       sprites.push({
         ...blank(),
@@ -225,15 +225,15 @@ export function appendBeam(
         rotate: link.angle,
         opacity: layer.opacity * alive,
         background: beamPaint(layer.key, preset),
-        // 端を丸めない。区間ごとに丸めると数珠つなぎになる。
-        // 縁のやわらかさは層の縦グラデーションが受け持つ。
+        // The ends are not rounded; rounded per section it strings together like beads.
+        // The softness of the edge comes from the gradient across each layer.
         borderRadius: '0',
         shadow: layer.key === 'core' ? glow(base * 0.5, '#ffffff', base * 1.4, preset.colorPrimary) : '',
       });
     }
   }
 
-  // 柱に巻き付く帯。手前側を明るく大きくして、丸い柱に見せる。
+  // The bands wrapping the column, brighter and larger on the near side so it reads as round.
   for (let strand = 0; strand < BEAM_HELIX_STRANDS.length; strand++) {
     const strength = BEAM_HELIX_STRANDS[strand].late ? swell : 1;
     if (strength <= 0) continue;
@@ -256,7 +256,7 @@ export function appendBeam(
         offsetY: acrossY * shift,
         width: base * (0.75 + face * 0.15),
         height: base * 0.2 * girth,
-        // 帯が柱を横切るところが最も斜めになる。傾きは奥行きと同じ位相で動く。
+        // A band leans most where it crosses the column, and its lean moves in step with its depth.
         rotate: link.angle + face * 24,
         opacity: alive * strength * (0.3 + Math.max(face, 0) * 0.55),
         background: `linear-gradient(90deg, transparent, ${preset.colorPrimary} 30%, #ffffff 55%, transparent)`,
@@ -265,7 +265,7 @@ export function appendBeam(
     }
   }
 
-  // 柱を走る輪。エネルギーが砲口から着弾へ流れていることが読める。
+  // The rings running along the column, which is what says the energy flows from the muzzle to the landing.
   for (let ring = 0; ring < BEAM_RING_COUNT; ring++) {
     const at = ((progress * 1.7 + ring / BEAM_RING_COUNT) % 1) * reach;
     if (at < foot) continue;
@@ -284,7 +284,7 @@ export function appendBeam(
     });
   }
 
-  // 芯を流れる奔流。輪より速く走らせて、内側と外側で速度差を作る。
+  // The torrent along the core, run faster than the rings so the inside and the outside differ.
   for (let surge = 0; surge < BEAM_SURGE_COUNT; surge++) {
     const at = ((progress * 3.1 + surge / BEAM_SURGE_COUNT) % 1) * reach;
     if (at < foot) continue;
@@ -299,7 +299,7 @@ export function appendBeam(
       height: base * 0.46 * girth,
       rotate: link.angle,
       opacity: alive * 0.85,
-      // 進行方向に長く尾を引かせる。丸い塊にすると柱の中を玉が転がって見える。
+      // It is drawn out along its travel; as a round lump it reads as a ball rolling down the column.
       background: `linear-gradient(90deg, transparent, ${preset.colorPrimary} 45%, #ffffff 72%, transparent)`,
       borderRadius: '0',
     });
@@ -311,7 +311,7 @@ export function appendBeam(
   }
 }
 
-/** 溜め。砲口へ光が集まり、輪が締まり、最後にいったん潰れて撃つ。 */
+/** The gathering: the light draws into the muzzle, the ring tightens, and it crushes once before firing. */
 function appendBeamCharge(
   sprites: EffectSprite[],
   prefix: string,
@@ -321,7 +321,7 @@ function appendBeamCharge(
   preset: EffectPreset,
   colors: ShapeColors
 ): void {
-  // 潰し。膨らみきった光を一度小さくすると、次の瞬間の発射が強く見える。
+  // The crush: shrinking the swollen light once makes the shot that follows read stronger.
   const snap = clamp01((charge - BEAM_SNAP_AT) / (1 - BEAM_SNAP_AT));
   const grow = clamp01(charge / BEAM_SNAP_AT);
   const orb = base * (0.4 + grow * 1.5) * (1 - snap * 0.9);
@@ -356,7 +356,7 @@ function appendBeamCharge(
   }
 
   if (snap <= 0) return;
-  // 潰した瞬間に弾ける輪。撃つ合図になる。
+  // The ring that bursts at that moment, which is the signal to fire.
   const pop = base * (0.6 + snap * 3.4);
   sprites.push({
     ...blank(),
@@ -371,7 +371,7 @@ function appendBeamCharge(
   });
 }
 
-/** 砲口。丸い白熱と十字の閃光を重ね、撃っているあいだ出しつづける。 */
+/** The muzzle: a white heat and a cross of light laid over each other, held while it fires. */
 function appendBeamMuzzle(
   sprites: EffectSprite[],
   prefix: string,
@@ -400,7 +400,7 @@ function appendBeamMuzzle(
   appendFlareSpikes(sprites, `${prefix}-beam-muzzle`, muzzle, base, 0.2 + release * 0.75, preset, 3.4, 0);
 }
 
-/** 着弾。柱が刺さった点で弾け、跳ね返りが撃った側へ噴き上がる。 */
+/** The landing: it bursts where the column strikes and throws a splash back towards the caster. */
 function appendBeamImpact(
   sprites: EffectSprite[],
   prefix: string,
@@ -443,7 +443,7 @@ function appendBeamImpact(
     animation: 'effectSpinSlow 2.4s linear infinite',
   });
 
-  // 柱を締める輪。刺さった点が一番強いことが伝わる。
+  // The ring that closes on the column, which says the point of impact is the strongest place.
   const collar = base * (3 + Math.sin(progress * 21) * 0.6) * girth;
   sprites.push({
     ...blank(),
@@ -458,7 +458,7 @@ function appendBeamImpact(
     svg: ringSvg(colors, 9),
   });
 
-  // 跳ね返り。当たった面で砕けた光が撃った側へ噴き返す。
+  // The splash: light broken on the struck face and thrown back towards the caster.
   for (let splash = 0; splash < BEAM_SPLASH_ANGLES.length; splash++) {
     const wave = (progress * 3.2 + splash / BEAM_SPLASH_ANGLES.length) % 1;
     const spray = angle + 180 + BEAM_SPLASH_ANGLES[splash];
@@ -497,7 +497,7 @@ function appendBeamImpact(
   });
 }
 
-/** 層ごとの塗り。外は淡く広がり、芯は白熱して縁だけ色が残る。 */
+/** The fill of each layer: faint and wide outside, white-hot at the core with colour only at its edge. */
 function beamPaint(layer: string, preset: EffectPreset): string {
   if (layer === 'core')
     return `linear-gradient(180deg, ${preset.colorPrimary}, #ffffff 40%, #ffffff 60%, ${preset.colorPrimary})`;

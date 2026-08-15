@@ -1,9 +1,9 @@
 export { clamp01, fadeInOut, seededRandom } from '@axe/domain/effect/timeline/shared';
 import { clamp01 } from '@axe/domain/effect/timeline/shared';
 /**
- * 共有の下ごしらえ。
+ * The shared groundwork.
  *
- * 粒 1 つの形と、色・時間の均し方だけを置く。ここから家族ごとの module を参照しない。
+ * Only the shape of one particle and the smoothing of colour and time. It refers to no family of effects.
  */
 
 export type ParticleShape = 'glow' | 'streak' | 'smoke' | 'chunk';
@@ -12,9 +12,9 @@ export interface EffectParticle {
   x: number;
   y: number;
   size: number;
-  /** streak のときだけ使う。進行方向のラジアン。 */
+  /** Used for a streak alone: which way it travels. */
   angle: number;
-  /** streak の伸び。1 で正円。 */
+  /** How far a streak is drawn out. At one it is a circle. */
   stretch: number;
   color: string;
   alpha: number;
@@ -22,16 +22,16 @@ export interface EffectParticle {
 }
 
 export interface EffectParticleLayer {
-  /** canvas の大きさ(px)。 */
+  /** How large the canvas is. */
   width: number;
   height: number;
-  /** canvas 内で対象の足元が来る位置(px)。 */
+  /** Where the feet of the target fall on it. */
   originX: number;
   originY: number;
   particles: EffectParticle[];
 }
 
-/** 白熱 → 明色 → 暗色へ落ちる色ランプ。明度差が視線を引くので白を必ず通す。 */
+/** The ramp from white heat through the light colour to the dark. It always passes through white, since it is the difference in brightness that catches the eye. */
 export interface ColorRamp {
   hot: string;
   mid: string;
@@ -40,7 +40,7 @@ export interface ColorRamp {
 
 export const HOT = '#ffffff';
 
-/** 炎の色。白熱から明色、暗色へ落として最後は煙色に寄せる。 */
+/** The colour of flame, falling from white heat through the light and dark colours towards smoke. */
 export function flameColor(local: number, ramp: ColorRamp): string {
   if (local < 0.2) return ramp.hot;
   if (local < 0.55) return ramp.mid;
@@ -52,7 +52,7 @@ export function easeOutQuad(value: number): number {
   return 1 - (1 - clamped) * (1 - clamped);
 }
 
-/** `#rgb` / `#rrggbb` を rgba() に変換する。既に関数記法ならそのまま使う。 */
+/** Turns a hexadecimal colour into one with an alpha. Anything already written as a function is left alone. */
 export function withAlpha(color: string, alpha: number): string {
   const hex = color.trim();
   if (!hex.startsWith('#')) return hex;

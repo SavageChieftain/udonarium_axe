@@ -5,21 +5,21 @@ describe('EffectPreset', () => {
     return new EffectPreset('preset');
   }
 
-  it('未知の種類は burst として扱うこと', () => {
+  it('reads a kind it does not know as a burst', () => {
     const preset = makePreset();
     preset.kind = 'unknown-kind';
 
     expect(preset.effectKind).toBe('burst');
   });
 
-  it('未知の対象規則は single として扱うこと', () => {
+  it('reads a targeting rule it does not know as a single target', () => {
     const preset = makePreset();
     preset.targeting = '';
 
     expect(preset.effectTargeting).toBe('single');
   });
 
-  it('壊れた数値を既定値に丸めること', () => {
+  it('falls back to the default for a number it cannot read', () => {
     const preset = makePreset();
     preset.durationMs = Number.NaN;
     preset.scale = Number.NaN;
@@ -28,7 +28,7 @@ describe('EffectPreset', () => {
     expect(preset.sizeScale).toBe(1);
   });
 
-  it('長すぎる再生時間と大きすぎる倍率を上限で止めること', () => {
+  it('stops too long a playback and too large a scale at their limits', () => {
     const preset = makePreset();
     preset.durationMs = 999999;
     preset.scale = 100;
@@ -37,7 +37,7 @@ describe('EffectPreset', () => {
     expect(preset.sizeScale).toBe(6);
   });
 
-  it('単体対象なら対象数を 1 に制限すること', () => {
+  it('holds a single-target effect to one', () => {
     const preset = makePreset();
     preset.targeting = 'single';
     preset.maxTargets = 8;
@@ -45,7 +45,7 @@ describe('EffectPreset', () => {
     expect(preset.targetLimit).toBe(1);
   });
 
-  it('複数対象なら設定した上限を使うこと', () => {
+  it('takes the limit it is given for one that takes several', () => {
     const preset = makePreset();
     preset.targeting = 'multi';
     preset.maxTargets = 8;
@@ -53,7 +53,7 @@ describe('EffectPreset', () => {
     expect(preset.targetLimit).toBe(8);
   });
 
-  it('対象ごとのずらしぶんだけ全体の長さが伸びること', () => {
+  it('lengthens the whole by the stagger between the targets', () => {
     const preset = makePreset();
     preset.durationMs = 500;
     preset.staggerMs = 100;

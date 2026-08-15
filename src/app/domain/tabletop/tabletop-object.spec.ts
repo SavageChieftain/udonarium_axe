@@ -21,38 +21,38 @@ describe('TabletopObject', () => {
     vi.restoreAllMocks();
   });
 
-  describe('SyncVar デフォルト値', () => {
-    it('locationのデフォルト値', () => {
+  describe('the defaults of the synchronised fields', () => {
+    it('where it starts', () => {
       const obj = new TabletopObject();
       obj.initialize();
       expect(obj.location).toEqual({ name: 'table', x: 0, y: 0 });
     });
 
-    it('surfaceOf は location.surface が未設定なら floor を返す', () => {
+    it('reads an unset surface as the floor', () => {
       const obj = new TabletopObject();
       obj.initialize();
       expect(surfaceOf(obj)).toBe('floor');
     });
 
-    it('surfaceOf は location.surface が設定されていればその値を返す', () => {
+    it('reads the surface it is given', () => {
       const obj = new TabletopObject();
       obj.initialize();
       obj.location.surface = 'north-wall';
       expect(surfaceOf(obj)).toBe('north-wall');
     });
 
-    it('surfaceOf は不正な surface（空文字・未知値）でも floor にフォールバックする', () => {
+    it('falls back to the floor for one it cannot read', () => {
       expect(surfaceOf({ location: { surface: '' as never } })).toBe('floor');
       expect(surfaceOf({ location: { surface: 'wall' as never } })).toBe('floor');
     });
 
-    it('posZのデフォルトは0', () => {
+    it('starts at ground level', () => {
       const obj = new TabletopObject();
       obj.initialize();
       expect(obj.posZ).toBe(0);
     });
 
-    it('isAltitudeIndicateのデフォルトはfalse', () => {
+    it('starts without the altitude shown', () => {
       const obj = new TabletopObject();
       obj.initialize();
       expect(obj.isAltitudeIndicate).toBe(false);
@@ -60,13 +60,13 @@ describe('TabletopObject', () => {
   });
 
   describe('isVisibleOnTable', () => {
-    it('location.nameがtableの場合true', () => {
+    it('is true on the table', () => {
       const obj = new TabletopObject();
       obj.initialize();
       expect(obj.isVisibleOnTable).toBe(true);
     });
 
-    it('location.nameがtable以外の場合false', () => {
+    it('is false anywhere else', () => {
       const obj = new TabletopObject();
       obj.initialize();
       obj.location = { name: 'graveyard', x: 0, y: 0 };
@@ -75,7 +75,7 @@ describe('TabletopObject', () => {
   });
 
   describe('setLocation', () => {
-    it('locationのnameを更新する', () => {
+    it('takes a new place', () => {
       const obj = new TabletopObject();
       obj.initialize();
       obj.setLocation('graveyard');
@@ -84,7 +84,7 @@ describe('TabletopObject', () => {
   });
 
   describe('rootDataElement', () => {
-    it('初期状態ではnullish', () => {
+    it('starts empty', () => {
       const obj = new TabletopObject();
       obj.initialize();
       expect(obj.rootDataElement).toBeFalsy();
@@ -92,12 +92,12 @@ describe('TabletopObject', () => {
   });
 
   describe('createDataElements', () => {
-    it('protectedメソッドでデータ構造を初期化する', () => {
-      // TabletopObjectはprotectedメソッド createDataElements を持つ
-      // サブクラス(GameCharacterなど)経由でテスト可能
+    it('builds its data through a protected method', () => {
+      // the base class builds the elements itself
+      // reachable through a subclass
       const obj = new TabletopObject();
       obj.initialize();
-      // aliasNameが設定されていないとrootDataElementは作成されない
+      // builds no root element without an alias name
       expect(obj.rootDataElement).toBeFalsy();
     });
   });
@@ -113,21 +113,21 @@ describe('TabletopObject', () => {
       return obj;
     }
 
-    it('altitude 要素が無いとき getter は副作用なく 0 を返す', () => {
+    it('reads a missing altitude as nothing, and adds none', () => {
       const obj = createTabletopObjectWithCommon();
       const before = obj.commonDataElement!.children.length;
       expect(obj.altitude).toBe(0);
       expect(obj.commonDataElement!.children.length).toBe(before);
     });
 
-    it('getter を多数回呼んでも altitude 要素が増殖しない', () => {
+    it('never breeds altitude elements however often it is read', () => {
       const obj = createTabletopObjectWithCommon();
       for (let i = 0; i < 10; i++) void obj.altitude;
       const altitudes = obj.commonDataElement!.getElementsByName('altitude');
       expect(altitudes.length).toBe(0);
     });
 
-    it('setter は altitude 要素が無いとき遅延生成する', () => {
+    it('makes the element on the first write', () => {
       const obj = createTabletopObjectWithCommon();
       obj.altitude = 5;
       const altitudes = obj.commonDataElement!.getElementsByName('altitude');
@@ -135,10 +135,10 @@ describe('TabletopObject', () => {
       expect(obj.altitude).toBe(5);
     });
 
-    it('parseInnerXml 後に重複する altitude 要素は最初の 1 つに統合される', () => {
+    it('folds repeated altitude elements into the first as it reads', () => {
       const obj = createTabletopObjectWithCommon();
       const common = obj.commonDataElement!;
-      // 過去バグの再現: 同一 identifier の altitude が _children に複数積まれた状態
+      // several altitudes of one identifier piled among the children
       const altitudeId = `altitude_${obj.identifier}`;
       for (let i = 0; i < 3; i++) {
         const dup = new DataElement(altitudeId);
@@ -155,7 +155,7 @@ describe('TabletopObject', () => {
       expect(common.getElementsByName('altitude').length).toBe(1);
     });
 
-    it('dedup は値の入っている altitude を優先して残す', () => {
+    it('keeps the one that carries a value', () => {
       const obj = createTabletopObjectWithCommon();
       const common = obj.commonDataElement!;
       const zeroAltitude = new DataElement(`altitude_${obj.identifier}_a`);
@@ -179,7 +179,7 @@ describe('TabletopObject', () => {
     });
   });
 
-  describe('common 要素の表示順', () => {
+  describe('the order of the common elements', () => {
     function appendCommonChild(common: DataElement, name: string, value: number | string): DataElement {
       const el = DataElement.create(name, value, {}, `${name}_${common.identifier}`);
       common.appendChild(el);
@@ -196,9 +196,9 @@ describe('TabletopObject', () => {
       return { obj, common };
     }
 
-    it('parseInnerXml 後に name > size > width > height > depth > altitude の順に並ぶ', () => {
+    it('puts them in their usual order as it reads', () => {
       const { obj, common } = createWithCommon();
-      // わざと逆順で追加
+      // added in reverse on purpose
       appendCommonChild(common, 'altitude', 3);
       appendCommonChild(common, 'depth', 2);
       appendCommonChild(common, 'height', 4);
@@ -213,9 +213,9 @@ describe('TabletopObject', () => {
       expect(names).toEqual(['name', 'size', 'width', 'height', 'depth', 'altitude']);
     });
 
-    it('優先要素以外は元の相対位置を維持する', () => {
+    it('leaves everything else where it was', () => {
       const { obj, common } = createWithCommon();
-      // Range 想定: name, length, width — length は優先要素ではない
+      // a range, whose length is not one of the ordered elements
       appendCommonChild(common, 'width', 2);
       appendCommonChild(common, 'length', 5);
       appendCommonChild(common, 'name', 'r');
@@ -224,7 +224,7 @@ describe('TabletopObject', () => {
       obj.parseInnerXml(dummy);
 
       const names = common.children.map((c) => c.getAttribute('name'));
-      // 元の優先要素のスロット(0, 2)に name, width が入り、length(1) は据え置き
+      // the ordered ones take their slots and the length stays put
       expect(names).toEqual(['name', 'length', 'width']);
     });
   });

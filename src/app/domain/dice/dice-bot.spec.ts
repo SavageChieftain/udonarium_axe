@@ -20,35 +20,35 @@ describe('DiceBot', () => {
     vi.restoreAllMocks();
   });
 
-  describe('インスタンス', () => {
-    it('DiceBotを作成できる', () => {
+  describe('an instance', () => {
+    it('can be created', () => {
       const bot = new DiceBot();
       bot.initialize();
       expect(bot).toBeTruthy();
     });
 
-    it('aliasNameがdice-bot', () => {
+    it('names itself the dice bot', () => {
       const bot = new DiceBot();
       bot.initialize();
       expect(bot.aliasName).toBe('dice-bot');
     });
   });
 
-  describe('static メンバー', () => {
-    it('diceBotInfosが配列', () => {
+  describe('its static members', () => {
+    it('lists the systems it knows', () => {
       expect(Array.isArray(DiceBot.diceBotInfos)).toBe(true);
     });
   });
 
-  describe('振った中身を捨てないこと', () => {
-    /** bcdice の戻り値の形だけを真似た偽物。実物の読み込みは重いので使わない。 */
+  describe('does not throw away what was rolled', () => {
+    /** A stand-in that only mimics the shape of the library's result; loading the real one is expensive. */
     function fakeSystem(result: unknown) {
       return { ID: 'FakeSystem', eval: () => result } as unknown as Parameters<typeof DiceBot.diceRollAsync>[1];
     }
 
-    // 振る順番は 1 本の列で捌かれる。前のテストが積んだゲームシステムの読み込みが
-    // 先に居るので、その完了を待つぶん既定の制限に届きうる。
-    it('出目と成否を結果に添えること', { timeout: 20000 }, async () => {
+    // The rolls are served from one queue, and a system loaded by an earlier test sits ahead
+    // of it, so waiting for that can reach the usual limit.
+    it('puts the roll and whether it succeeded onto the result', { timeout: 20000 }, async () => {
       const rolled = await DiceBot.diceRollAsync(
         '2D6',
         fakeSystem({
@@ -65,13 +65,13 @@ describe('DiceBot', () => {
         })
       );
 
-      // 文章に整形したあとでは読み直せないので、ここで拾えていないと後から数えられない。
+      // Neither can be read back out of the formatted text, so what is not taken here can never be counted.
       expect(rolled.detail?.faces.map((face) => face.value)).toEqual([5, 1]);
       expect(rolled.detail?.outcome).toBe('success');
       expect(rolled.detail?.system).toBe('FakeSystem');
     });
 
-    it('振れなかったときは中身なしにすること', { timeout: 20000 }, async () => {
+    it('returns nothing when nothing could be rolled', { timeout: 20000 }, async () => {
       const rolled = await DiceBot.diceRollAsync('2D6', fakeSystem(null));
 
       expect(rolled.result).toBe('');

@@ -45,7 +45,7 @@ describe('effectSprites()', () => {
 
   const options = { baseSize: 50 };
 
-  it('再生前と再生後は何も描かないこと', () => {
+  it('draws nothing before it starts or after it ends', () => {
     const preset = makePreset('burst');
     const cast = makeCast();
 
@@ -53,10 +53,10 @@ describe('effectSprites()', () => {
     expect(effectSprites(preset, cast, 1001, options)).toHaveLength(0);
   });
 
-  it('再生中はどの種類でもスプライトを返すこと', () => {
+  it('returns sprites for every kind while it plays', () => {
     const cast = makeCast();
 
-    // 終盤だけ canvas の粒子に任せる種類（きのこ雲の笠など）があるので、山場までを見る。
+    // Some kinds, such as the cap of a mushroom cloud, leave the end to the particles, so this watches up to the height of it.
     for (const kind of EFFECT_KINDS) {
       for (const elapsed of [1, 300, 600]) {
         expect(effectSprites(makePreset(kind), cast, elapsed, options).length).toBeGreaterThan(0);
@@ -64,7 +64,7 @@ describe('effectSprites()', () => {
     }
   });
 
-  it('どの種類でも経過時間で粒子の位置が飛ばないこと', () => {
+  it('never jumps a particle as the time passes, whatever the kind', () => {
     const cast = makeCast();
 
     for (const kind of EFFECT_KINDS) {
@@ -82,7 +82,7 @@ describe('effectSprites()', () => {
     }
   });
 
-  it('CSS アニメーションを持つ部品は指定が毎フレーム変わらないこと', () => {
+  it('keeps the animation of a part the same from frame to frame', () => {
     const cast = makeCast();
 
     for (const kind of EFFECT_KINDS) {
@@ -92,13 +92,13 @@ describe('effectSprites()', () => {
 
       for (const sprite of before) {
         const later = after.find((candidate) => candidate.key === sprite.key);
-        // 途中で animation 文字列が変わるとアニメーションが巻き戻る。
+        // Changing it partway rewinds the animation.
         if (later) expect(later.animation).toBe(sprite.animation);
       }
     }
   });
 
-  it('SVG の中身は経過時間で変わらないこと', () => {
+  it('keeps the drawing the same as the time passes', () => {
     const cast = makeCast();
 
     for (const kind of EFFECT_KINDS) {
@@ -108,13 +108,13 @@ describe('effectSprites()', () => {
 
       for (const sprite of before) {
         const later = after.find((candidate) => candidate.key === sprite.key);
-        // 毎フレーム変わると innerHTML を組み直すことになり、CSS アニメーションも巻き戻る。
+        // Changing it every frame would rebuild the markup and rewind the animation with it.
         if (later) expect(later.svg).toBe(sprite.svg);
       }
     }
   });
 
-  it('稲妻を一本に繋がった折れ線として組むこと', () => {
+  it('builds the lightning as one unbroken line', () => {
     const sprites = effectSprites(makePreset('bolt'), makeCast(), 100, options);
     const channel = sprites.find((sprite) => sprite.key.endsWith('-channel'));
 
@@ -123,7 +123,7 @@ describe('effectSprites()', () => {
     expect(channel?.animation).toContain('effectBoltStrike');
   });
 
-  it('連射は弾が順に発射され、まとめて出ないこと', () => {
+  it('looses the shots of a burst one after another rather than all at once', () => {
     const preset = makePreset('projectile');
     preset.projectileStyle = 'bullet';
     preset.shots = 6;
@@ -131,14 +131,14 @@ describe('effectSprites()', () => {
     const flyingAt = (elapsed: number) =>
       effectSprites(preset, cast, elapsed, options).filter((sprite) => sprite.key.endsWith('-shot')).length;
 
-    // 弾は速いので、空中にあるのは常に 1〜2 発。撃ち終わるまで途切れない。
+    // They fly fast, so one or two are in the air at any moment, without a gap until the burst ends.
     expect(flyingAt(20)).toBe(1);
     expect(flyingAt(400)).toBeGreaterThan(0);
-    // 終端では最後の 1 発が着弾する直前まで来ている。
+    // At the end the last of them is about to land.
     expect(flyingAt(999)).toBe(1);
   });
 
-  it('連射は弾ごとに着弾すること', () => {
+  it('lands each shot of a burst in turn', () => {
     const preset = makePreset('projectile');
     preset.shots = 5;
     const cast: EffectCast = { ...makeCast(), origin: { x: -400, y: 0, z: 0 } };
@@ -153,7 +153,7 @@ describe('effectSprites()', () => {
     expect(impacts(900)).toBeGreaterThan(impacts(400));
   });
 
-  it('飛翔体が発射元から対象へ飛ぶこと', () => {
+  it('flies a projectile from its origin to its target', () => {
     const preset = makePreset('projectile');
     const cast: EffectCast = { ...makeCast(), origin: { x: -400, y: 0, z: 0 } };
     const headAt = (elapsed: number) =>
@@ -164,11 +164,11 @@ describe('effectSprites()', () => {
 
     expect(early.x).toBeLessThan(0);
     expect(late.x).toBeGreaterThan(early.x);
-    // 着弾点は対象。行き過ぎない。
+    // It lands on the target and goes no further.
     expect(late.x).toBeLessThanOrEqual(0);
   });
 
-  it('飛翔体は着弾してから輪を出すこと', () => {
+  it('throws the ring only once it lands', () => {
     const preset = makePreset('projectile');
     const cast: EffectCast = { ...makeCast(), origin: { x: -400, y: 0, z: 0 } };
     const impactAt = (elapsed: number) =>
@@ -178,7 +178,7 @@ describe('effectSprites()', () => {
     expect(impactAt(700)).toBe(true);
   });
 
-  it('矢と銃弾は光らない実体として飛ぶこと', () => {
+  it('flies an arrow and a bullet as solid things rather than lights', () => {
     const cast: EffectCast = { ...makeCast(), origin: { x: -400, y: -400, z: 0 } };
 
     for (const style of ['arrow', 'bullet']) {
@@ -187,14 +187,14 @@ describe('effectSprites()', () => {
       const shot = effectSprites(preset, cast, 120, options).find((sprite) => sprite.key.endsWith('-shot'))!;
 
       expect(shot.svg).toContain('<svg');
-      // カメラに正対させたうえで、画面上の進行方向へ回す。
+      // It faces the camera and is turned to where it flies on the screen.
       expect(shot.flat).toBe(false);
       expect(Number.isFinite(shot.rotate)).toBe(true);
       expect(shot.shadow).toBe('');
     }
   });
 
-  it('飛翔体は進行方向へ引き伸ばした頭と、繋がった帯を持つこと', () => {
+  it('gives a projectile a head drawn out along its flight and an unbroken trail', () => {
     const cast: EffectCast = { ...makeCast(), origin: { x: -400, y: 0, z: 0 } };
     const spritesFor = (style: string) => {
       const preset = makePreset('projectile');
@@ -204,50 +204,50 @@ describe('effectSprites()', () => {
 
     const bolt = spritesFor('bolt');
     const streak = bolt.find((sprite) => sprite.key.endsWith('-streak'))!;
-    // 頭は丸ではなく横長。止め絵でも速度が読める。
+    // The head is long rather than round, so the speed reads even in a still.
     expect(streak.width).toBeGreaterThan(streak.height * 2);
     expect(bolt.filter((sprite) => sprite.key.includes('-ribbon-')).length).toBeGreaterThan(3);
 
-    // 帯の節はほぼ同じ向きを向く。バラバラだと軌跡が折れて見える。
+    // The joints of the trail point much the same way; scattered, the path reads as broken.
     const angles = bolt.filter((sprite) => sprite.key.includes('-ribbon-')).map((sprite) => sprite.rotate);
     expect(Math.max(...angles) - Math.min(...angles)).toBeLessThan(6);
 
     expect(spritesFor('arrow').some((sprite) => sprite.key.endsWith('-shot'))).toBe(true);
   });
 
-  it('電流は発射元から対象まで途切れず繋がること', () => {
+  it('runs the current unbroken from its origin to its target', () => {
     const preset = makePreset('arc');
     const cast: EffectCast = { ...makeCast(), origin: { x: -400, y: 0, z: 0 } };
     const cores = effectSprites(preset, cast, 100, options).filter((sprite) => sprite.key.endsWith('-core'));
 
     expect(cores.length).toBeGreaterThan(5);
 
-    // 節は発射元から対象へ順に並ぶ。奥行きが付くので途中のコマと正しく前後する。
+    // Its joints run in order from one to the other, and carry depth, so the pieces between sit properly in front and behind.
     const xs = cores.map((sprite) => sprite.x);
     for (let index = 1; index < xs.length; index++) expect(xs[index]).toBeGreaterThan(xs[index - 1]);
     expect(xs[0]).toBeGreaterThan(-400);
     expect(xs[xs.length - 1]).toBeLessThan(0);
   });
 
-  it('電流はジグザグに折れること', () => {
+  it('makes the current zigzag', () => {
     const preset = makePreset('arc');
     const cast: EffectCast = { ...makeCast(), origin: { x: -400, y: 0, z: 0 } };
     const angles = effectSprites(preset, cast, 100, options)
       .filter((sprite) => sprite.key.endsWith('-core'))
       .map((sprite) => sprite.rotate);
 
-    // 全部同じ角度だと、ただの直線になってしまう。
+    // All at one angle it would be a straight line.
     expect(new Set(angles.map((angle) => Math.round(angle))).size).toBeGreaterThan(2);
   });
 
-  it('電流は走り終わったら消えること', () => {
+  it('takes it away once it has run', () => {
     const preset = makePreset('arc');
     const cast: EffectCast = { ...makeCast(), origin: { x: -400, y: 0, z: 0 } };
 
     expect(effectSprites(preset, cast, 800, options).some((sprite) => sprite.key.endsWith('-core'))).toBe(false);
   });
 
-  it('着弾演出は属性ごとに差し替えられること', () => {
+  it('changes the landing by the element', () => {
     const preset = makePreset('projectile');
     preset.impactKind = 'frost';
     const cast: EffectCast = { ...makeCast(), origin: { x: -400, y: 0, z: 0 } };
@@ -257,21 +257,21 @@ describe('effectSprites()', () => {
     expect(sprites.some((sprite) => sprite.key.includes('-impact-frost-ring'))).toBe(true);
   });
 
-  it('発射元が無ければ斜め上から飛んでくること', () => {
+  it('comes down at an angle when there is no origin', () => {
     const sprites = effectSprites(makePreset('projectile'), makeCast(), 60, options);
     const head = sprites.find((sprite) => sprite.key.endsWith('-core'))!;
 
     expect(head.z).toBeGreaterThan(0);
   });
 
-  it('スプライトのキーが重複しないこと', () => {
+  it('gives every sprite a key of its own', () => {
     const sprites = effectSprites(makePreset('burst'), makeCast(3), 300, options);
     const keys = new Set(sprites.map((sprite) => sprite.key));
 
     expect(keys.size).toBe(sprites.length);
   });
 
-  it('ずらし時間ぶん後ろの対象の再生を遅らせること', () => {
+  it('delays the later targets by the stagger', () => {
     const preset = makePreset('burst', { staggerMs: 400 });
     const cast = makeCast(2);
 
@@ -282,7 +282,7 @@ describe('effectSprites()', () => {
     expect(late.some((sprite) => sprite.key.startsWith('1-'))).toBe(true);
   });
 
-  it('隠されている対象を描かないこと', () => {
+  it('draws nothing on a target that is hidden', () => {
     const sprites = effectSprites(makePreset('burst'), makeCast(2), 300, {
       ...options,
       hiddenIdentifiers: new Set(['char0']),
@@ -291,7 +291,7 @@ describe('effectSprites()', () => {
     expect(sprites.every((sprite) => sprite.key.startsWith('1-'))).toBe(true);
   });
 
-  it('追従指定なら解決した現在位置に描くこと', () => {
+  it('draws at the current position when it is told to follow', () => {
     const sprites = effectSprites(makePreset('burst'), makeCast(), 100, {
       ...options,
       resolvePosition: () => ({ x: 640, y: 480, z: 0 }),
@@ -301,7 +301,7 @@ describe('effectSprites()', () => {
     expect(sprites[0].y).toBe(480);
   });
 
-  it('追従しない指定なら発火時の座標に描くこと', () => {
+  it('draws where it was fired when it is not', () => {
     const preset = makePreset('burst');
     preset.followTarget = false;
     const sprites = effectSprites(preset, makeCast(), 100, {
@@ -312,7 +312,7 @@ describe('effectSprites()', () => {
     expect(sprites[0].x).toBe(0);
   });
 
-  it('同じ種から同じ配置を作ること', () => {
+  it('arranges the same way from the same seed', () => {
     const preset = makePreset('burst');
     const first = effectSprites(preset, makeCast(), 400, options);
     const second = effectSprites(preset, makeCast(), 400, options);
@@ -320,7 +320,7 @@ describe('effectSprites()', () => {
     expect(first).toEqual(second);
   });
 
-  it('衝撃波の輪は盤面に寝かせて描くこと', () => {
+  it('lays the ring of a shock wave flat on the board', () => {
     const sprites = effectSprites(makePreset('impact'), makeCast(), 200, options);
     const shocks = sprites.filter((sprite) => sprite.key.includes('-shock-'));
 
@@ -328,7 +328,7 @@ describe('effectSprites()', () => {
     expect(shocks.every((sprite) => sprite.flat)).toBe(true);
   });
 
-  describe('極太ビーム', () => {
+  describe('the heaviest beam', () => {
     const beamCast: EffectCast = {
       presetIdentifier: 'preset',
       casterIdentifier: 'caster',
@@ -345,27 +345,27 @@ describe('effectSprites()', () => {
       return beamAt(elapsed).filter((sprite) => /-beam-\d+-core$/.test(sprite.key));
     }
 
-    it('溜めのあいだは柱を出さず、砲口で光を溜めること', () => {
+    it('gathers the light at the muzzle rather than raising the column while it charges', () => {
       const charging = beamAt(150);
 
       expect(segmentsAt(150)).toHaveLength(0);
       expect(charging.some((sprite) => sprite.key.endsWith('-beam-charge'))).toBe(true);
     });
 
-    it('撃つ直前に溜めた光を潰すこと', () => {
+    it('crushes that gathered light just before it fires', () => {
       const swollen = beamAt(200).find((sprite) => sprite.key.endsWith('-beam-charge'))!;
       const snapped = beamAt(275).find((sprite) => sprite.key.endsWith('-beam-charge'))!;
 
-      // 膨らみきったところで一度小さくする。この溜めが無いと発射が唐突に見える。
+      // It swells and then shrinks once; without that gathering the shot comes out of nowhere.
       expect(snapped.width).toBeLessThan(swollen.width * 0.5);
     });
 
-    it('柱を数珠つなぎにしないこと', () => {
+    it('does not string the column together like beads', () => {
       const segments = segmentsAt(600);
       expect(segments.length).toBeGreaterThan(1);
 
       for (const segment of segments) {
-        // 区間ごとに端を丸めると、粒を並べたように見えてしまう。
+        // Rounding the end of each section makes it read as a row of beads.
         expect(segment.borderRadius).toBe('0');
       }
       for (let index = 1; index < segments.length; index++) {
@@ -374,7 +374,7 @@ describe('effectSprites()', () => {
       }
     });
 
-    it('外へ向かって太く淡い層を重ねること', () => {
+    it('lays wider, fainter layers outwards', () => {
       const sprites = beamAt(600);
       const core = sprites.find((sprite) => sprite.key === '0-beam-5-core')!;
       const halo = sprites.find((sprite) => sprite.key === '0-beam-5-halo')!;
@@ -383,17 +383,17 @@ describe('effectSprites()', () => {
       expect(halo.opacity).toBeLessThan(core.opacity);
     });
 
-    it('撃ち終わりは根元から引き上がること', () => {
+    it('draws the end of the shot up from the foot', () => {
       const muzzleSide = (elapsed: number) =>
         segmentsAt(elapsed).filter((sprite) => sprite.x < beamCast.origin!.x / 2).length;
 
       expect(muzzleSide(600)).toBeGreaterThan(0);
-      // 一様に薄くするのではなく、根元から順に消して力尽きたように見せる。
+      // Rather than thinning evenly it goes out from the foot upwards, as though spent.
       expect(muzzleSide(960)).toBe(0);
       expect(segmentsAt(960).length).toBeGreaterThan(0);
     });
 
-    it('着弾側に跳ね返りを出すこと', () => {
+    it('throws a splash back at the far end', () => {
       const sprites = beamAt(600);
 
       expect(sprites.some((sprite) => sprite.key.endsWith('-beam-splash-0'))).toBe(true);
@@ -401,7 +401,7 @@ describe('effectSprites()', () => {
     });
   });
 
-  describe('ブレス', () => {
+  describe('a breath', () => {
     const breathCast: EffectCast = {
       presetIdentifier: 'preset',
       casterIdentifier: 'caster',
@@ -418,10 +418,10 @@ describe('effectSprites()', () => {
       return breathAt(elapsed).filter((sprite) => sprite.key.includes('-breath-cone-'));
     }
 
-    it('円錐を 1 枚で描くこと', () => {
+    it('draws the cone as one shape', () => {
       const cone = coneAt(500);
 
-      // 区間に割ると、区間ごとの太さと濃さの差が縦縞の継ぎ目になって出る。
+      // Split into sections, the differences between them show as seams.
       expect(cone).toHaveLength(3);
       for (const layer of cone) {
         expect(layer.svg.length).toBeGreaterThan(0);
@@ -429,7 +429,7 @@ describe('effectSprites()', () => {
       }
     });
 
-    it('層ごとに違う輪郭を重ねること', () => {
+    it('lays a different outline on each layer', () => {
       const [haze, body, core] = coneAt(500);
 
       expect(haze.height).toBeGreaterThan(body.height);
@@ -437,11 +437,11 @@ describe('effectSprites()', () => {
       expect(new Set(coneAt(500).map((layer) => layer.svg)).size).toBe(3);
     });
 
-    it('吹き始めは先端まで届いていないこと', () => {
+    it('has not reached the tip as it begins', () => {
       expect(coneAt(60)[0].width).toBeLessThan(coneAt(500)[0].width);
     });
 
-    it('吹き終わりは薄れながら散ること', () => {
+    it('thins and scatters as it ends', () => {
       const sustained = coneAt(500)[0];
       const fading = coneAt(980)[0];
 
@@ -449,8 +449,8 @@ describe('effectSprites()', () => {
       expect(fading.height).toBeGreaterThan(sustained.height);
     });
 
-    it('尺が変わっても流れの速さを揃えること', () => {
-      // 再生位置で回すと、尺の長いブレスほど中身がゆっくり動いて勢いが死ぬ。
+    it('keeps the flow at one speed however long it runs', () => {
+      // Driven by the playback position, a longer breath moves more slowly inside and loses its force.
       const shortPreset = makePreset('breath');
       shortPreset.durationMs = 1000;
       const longPreset = makePreset('breath');
@@ -461,20 +461,20 @@ describe('effectSprites()', () => {
           .filter((sprite) => sprite.key.includes('-breath-streak-'))
           .map((sprite) => [Math.round(sprite.x * 1000) || 0, Math.round(sprite.y * 1000) || 0]);
 
-      // 同じ実時間には同じ位置まで流れているのが正しい。
+      // The same elapsed time should carry it the same distance.
       expect(streaksOf(shortPreset, 520)).toEqual(streaksOf(longPreset, 520));
       expect(streaksOf(shortPreset, 640)).toEqual(streaksOf(longPreset, 640));
       expect(streaksOf(shortPreset, 520)).not.toEqual(streaksOf(shortPreset, 640));
     });
 
-    it('属性ごとに違う粒を道中へ散らすこと', () => {
+    it('scatters different particles along the way by element', () => {
       const moteAt = (tagName: string) => {
         const preset = makePreset('breath');
         preset.tagName = tagName;
         return effectSprites(preset, breathCast, 500, options).filter((sprite) => sprite.key.includes('-breath-mote-'));
       };
 
-      // 形と色だけだと、どの属性でも同じ物が色違いで飛んでいるように見える。
+      // Shape and colour alone would look like the same thing flying in different colours.
       expect(moteAt('氷').some((mote) => mote.svg.length > 0)).toBe(true);
       expect(moteAt('雷').some((mote) => mote.svg.length > 0)).toBe(true);
       expect(moteAt('炎').every((mote) => mote.svg.length < 1)).toBe(true);
@@ -482,7 +482,7 @@ describe('effectSprites()', () => {
       expect(moteAt('闇')[0].background).toContain('#120c18');
     });
 
-    it('粒を出さない指定に従うこと', () => {
+    it('shows none where it is told to show none', () => {
       const preset = makePreset('breath');
       preset.moteStyle = 'none';
 
@@ -491,7 +491,7 @@ describe('effectSprites()', () => {
       expect(sprites.some((sprite) => sprite.key.includes('-breath-mote-'))).toBe(false);
     });
 
-    it('縁に渦と、当たった面の巻き返しを出すこと', () => {
+    it('puts a swirl at the rim and a curl back on the struck face', () => {
       const sprites = breathAt(500);
 
       expect(sprites.some((sprite) => sprite.key.endsWith('-breath-lobe-0'))).toBe(true);
@@ -499,8 +499,8 @@ describe('effectSprites()', () => {
     });
   });
 
-  it('吸収の膨らみを経路と直交させること', () => {
-    // 発射元が対象の真上（画面の縦方向）にいる場合。
+  it('swells the absorption across the path rather than along it', () => {
+    // With the origin directly above the target on the screen.
     const cast: EffectCast = {
       presetIdentifier: 'preset',
       casterIdentifier: 'caster',
@@ -512,60 +512,60 @@ describe('effectSprites()', () => {
       /-drain-\d+$/.test(sprite.key)
     );
 
-    // ワールドの y でずらすと、この向きでは経路に沿って前後するだけになる。
+    // Offset along the world axis, it would only move back and forth along the path.
     expect(motes.some((mote) => Math.abs(mote.offsetX) > 1)).toBe(true);
   });
 
-  describe('倒れる演出', () => {
+  describe('being knocked down', () => {
     function defeatSprites(kind: EffectKind, elapsed: number, image = 'blob:token') {
       return effectSprites(makePreset(kind), makeCast(), elapsed, { ...options, resolveImage: () => image });
     }
 
-    it('崩壊はコマの絵を切り分けて散らすこと', () => {
+    it('cuts the picture of the piece apart and scatters it', () => {
       const pieces = defeatSprites('dissolve', 600).filter((sprite) => sprite.key.includes('-dissolve-piece-'));
 
-      // 光の粒だけでは「消えた」にしかならない。絵そのものが割れている必要がある。
+      // Particles of light alone only vanish; the picture itself has to break.
       expect(pieces.length).toBeGreaterThan(8);
       for (const piece of pieces) {
         expect(piece.background).toContain('blob:token');
         expect(piece.clipPath).toContain('inset(');
       }
-      // 破片は同じ場所に留まらない。
+      // The fragments do not stay put.
       expect(new Set(pieces.map((piece) => `${piece.offsetX}/${piece.offsetY}`)).size).toBe(pieces.length);
     });
 
-    it('絵の無いコマでも光の欠片で崩れること', () => {
+    it('breaks a piece with no picture into shards of light', () => {
       const sprites = defeatSprites('dissolve', 600, '');
 
       expect(sprites.some((sprite) => sprite.key.includes('-dissolve-piece-'))).toBe(false);
       expect(sprites.some((sprite) => sprite.key.includes('-dissolve-shard-'))).toBe(true);
     });
 
-    it('両断はコマを 2 枚に分けてずらすこと', () => {
+    it('cuts a piece in two and slides the halves apart', () => {
       const halves = defeatSprites('bisect', 700).filter((sprite) => /-bisect-(upper|lower)$/.test(sprite.key));
 
       expect(halves).toHaveLength(2);
       expect(halves[0].clipPath).toContain('polygon(');
-      // 互いに逆へ滑る。
+      // They slide opposite ways.
       expect(Math.sign(halves[0].offsetX)).not.toBe(Math.sign(halves[1].offsetX));
     });
 
-    it('両断は斬り口から血が噴くこと', () => {
+    it('spurts blood from the cut', () => {
       const sprites = defeatSprites('bisect', 700);
 
       expect(sprites.some((sprite) => sprite.key.includes('-bisect-gush-'))).toBe(true);
       expect(sprites.some((sprite) => sprite.key.endsWith('-bisect-seam'))).toBe(true);
     });
 
-    it('血しぶきは脈打って噴き出すこと', () => {
+    it('spurts it in pulses', () => {
       const early = defeatSprites('gore', 120).filter((sprite) => sprite.key.includes('-gore-jet-')).length;
       const later = defeatSprites('gore', 420).filter((sprite) => sprite.key.includes('-gore-jet-')).length;
 
-      // 一度で終わらず、心拍で突き上げる。
+      // It does not end in one; it comes up with the heartbeat.
       expect(later).toBeGreaterThan(early);
     });
 
-    it('血の跡を真円のにじみにしないこと', () => {
+    it('does not leave the blood as a perfect round stain', () => {
       const stains = defeatSprites('gore', 600).filter((sprite) => sprite.key.includes('-gore-stain-'));
 
       expect(stains.length).toBeGreaterThan(4);
@@ -573,26 +573,26 @@ describe('effectSprites()', () => {
     });
   });
 
-  it('縦に伸ばす演出を足元へ揃えること', () => {
+  it('stands anything that rises on the feet of the target', () => {
     const column = effectSprites(makePreset('warp'), makeCast(), 300, options).find((sprite) =>
       sprite.key.endsWith('-warp-column')
     )!;
 
-    // ワールドの z で持ち上げると、盤面を傾けたぶん足元の陣とずれる。
-    // 板ポリ面内で持ち上げ、柱の下端が対象の足元に来るようにする。
+    // Raised along the world axis it parts from the circle at the feet as the board tilts.
+    // It rises within the billboard, so the foot of the column sits on the feet of the target.
     expect(column.flat).toBe(false);
     expect(column.z).toBe(0);
     expect(column.offsetY).toBeCloseTo(-column.height / 2);
   });
 
-  it('型ごとに太刀の手数が変わること', () => {
+  it('changes the number of strokes with the form', () => {
     const bladesFor = (style: string) => {
       const preset = makePreset('slash');
       preset.slashStyle = style;
       return effectSprites(preset, makeCast(), 300, options).filter((sprite) => sprite.key.includes('-blade-'));
     };
 
-    // 連撃は 5 太刀、それ以外は一太刀。等級ではなく型で決まる。
+    // A combination is five strokes and everything else one, which the form decides rather than the grade.
     expect(bladesFor('single')).toHaveLength(1);
     expect(bladesFor('combo')).toHaveLength(5);
     expect(bladesFor('iai')).toHaveLength(1);
@@ -600,27 +600,27 @@ describe('effectSprites()', () => {
     expect(bladesFor('heavy')).toHaveLength(1);
   });
 
-  it('型ごとに太刀筋が違うこと', () => {
+  it('gives each form its own line', () => {
     const bladeFor = (style: string) => {
       const preset = makePreset('slash');
       preset.slashStyle = style;
       return effectSprites(preset, makeCast(), 600, options).find((sprite) => sprite.key.endsWith('-blade-0'))!;
     };
 
-    // 薙ぎ払いは横へ、唐竹割りは縦へ。使い回しだと同じ値になる。
+    // A sweep runs across and a cleave down; reused, they would come out the same.
     expect(Math.abs(bladeFor('wide').rotate)).toBeLessThan(30);
     expect(Math.abs(bladeFor('heavy').rotate)).toBeGreaterThan(60);
-    // 居合は最も細く長い。
+    // A drawing cut is the thinnest and the longest.
     expect(bladeFor('iai').width).toBeGreaterThan(bladeFor('heavy').width);
     expect(bladeFor('iai').height).toBeLessThan(bladeFor('heavy').height);
   });
 
-  it('居合は溜めのあいだ斬らず、一瞬で閃くこと', () => {
+  it('holds a drawing cut until it flashes in an instant', () => {
     const preset = makePreset('slash');
     preset.slashStyle = 'iai';
     const keysAt = (elapsed: number) => effectSprites(preset, makeCast(), elapsed, options).map((sprite) => sprite.key);
 
-    // 前半は鞘元の光だけ。斬るのは一瞬で、地面は割らない。
+    // The first half is the light at the scabbard alone; the cut is instant and splits no ground.
     expect(keysAt(300).some((key) => key.includes('-iai-glint'))).toBe(true);
     expect(keysAt(300).some((key) => key.includes('-flare-'))).toBe(false);
     expect(keysAt(580).some((key) => key.includes('-flare-'))).toBe(true);
@@ -628,7 +628,7 @@ describe('effectSprites()', () => {
     expect(keysAt(900).some((key) => key.includes('-slash-crack'))).toBe(false);
   });
 
-  it('唐竹割りは地面を一本に割ること', () => {
+  it('splits the ground in one line with a cleave', () => {
     const preset = makePreset('slash');
     preset.slashStyle = 'heavy';
     const keys = effectSprites(preset, makeCast(), 900, options).map((sprite) => sprite.key);
@@ -637,25 +637,25 @@ describe('effectSprites()', () => {
     expect(keys.some((key) => key.includes('-slash-crack'))).toBe(false);
   });
 
-  it('打撃は星形と集中線で当たった瞬間を作ること', () => {
+  it('makes the moment of a blow with a star and speed lines', () => {
     const preset = makePreset('bash');
     const keysAt = (elapsed: number) => effectSprites(preset, makeCast(), elapsed, options).map((s) => s.key);
 
-    // 当たった瞬間に白飛び・星・集中線が揃う。
+    // The flash, the star and the lines all arrive together.
     expect(keysAt(60).some((key) => key.includes('-bash-flash'))).toBe(true);
     expect(keysAt(200).some((key) => key.includes('-bash-star'))).toBe(true);
     expect(keysAt(200).some((key) => key.includes('-bash-lines'))).toBe(true);
-    // 星は残さず、輪だけが広がって終わる。
+    // The star does not linger; only the ring spreads and ends.
     expect(keysAt(700).some((key) => key.includes('-bash-star'))).toBe(false);
     expect(keysAt(700).some((key) => key.includes('-bash-shock'))).toBe(true);
   });
 
-  it('力任せの型は溜めてから斬り、斬り口が残ること', () => {
+  it('gathers before a heavy stroke and leaves the cut behind', () => {
     const preset = makePreset('slash');
     preset.slashStyle = 'wide';
     const at = (elapsed: number) => effectSprites(preset, makeCast(), elapsed, options).map((sprite) => sprite.key);
 
-    // 溜め → 斬撃 → 余韻。
+    // The gathering, the stroke and what lingers.
     expect(at(150).some((key) => key.includes('-charge'))).toBe(true);
     expect(at(150).some((key) => key.includes('-cut'))).toBe(false);
     expect(at(900).some((key) => key.includes('-cut'))).toBe(true);
@@ -663,18 +663,18 @@ describe('effectSprites()', () => {
     expect(at(900).some((key) => key.includes('-slash-crack'))).toBe(true);
   });
 
-  it('連撃は 1 太刀ずつ間を空けて出ること', () => {
+  it('spaces the strokes of a combination out', () => {
     const preset = makePreset('slash');
     preset.slashStyle = 'combo';
     const blades = effectSprites(preset, makeCast(), 300, options).filter((sprite) => sprite.key.includes('-blade-'));
     const delays = blades.map((blade) => Number(blade.animation.match(/([\d.]+)ms both/)?.[1] ?? -1));
 
-    // 同時に出ると 1 回斬ったようにしか見えない。
+    // Together they read as a single cut.
     expect(new Set(delays).size).toBe(delays.length);
     for (let index = 1; index < delays.length; index++) expect(delays[index]).toBeGreaterThan(delays[index - 1]);
   });
 
-  it('連撃は太刀ごとに角度と位置を変えること', () => {
+  it('changes the angle and the place of each', () => {
     const preset = makePreset('slash');
     preset.slashStyle = 'combo';
     const blades = effectSprites(preset, makeCast(), 300, options).filter((sprite) => sprite.key.includes('-blade-'));
@@ -683,13 +683,13 @@ describe('effectSprites()', () => {
     expect(new Set(blades.map((blade) => blade.offsetX)).size).toBeGreaterThan(1);
   });
 
-  it('斬撃はカメラに正対させて描くこと', () => {
+  it('faces a cut at the camera', () => {
     const sprites = effectSprites(makePreset('slash'), makeCast(), 200, options);
 
     expect(sprites.every((sprite) => !sprite.flat)).toBe(true);
   });
 
-  it('倍率を上げるとスプライトも大きくなること', () => {
+  it('grows the sprites with the scale', () => {
     const normal = effectSprites(makePreset('burst'), makeCast(), 300, options);
     const large = effectSprites(makePreset('burst', { scale: 2 }), makeCast(), 300, options);
 
@@ -706,50 +706,50 @@ describe('impactSoundTimes()', () => {
     return preset;
   }
 
-  it('着弾音が無ければ鳴らさないこと', () => {
+  it('sounds nothing when there is no landing sound', () => {
     const preset = makePreset('projectile', 1000);
     preset.impactSoundIdentifier = '';
 
     expect(impactSoundTimes(preset)).toEqual([]);
   });
 
-  it('単発は着弾の 1 回だけ鳴らすこと', () => {
+  it('sounds a single shot once, as it lands', () => {
     expect(impactSoundTimes(makePreset('projectile', 1000))).toEqual([340]);
   });
 
-  it('弾速は尺ではなく実時間で決まること', () => {
+  it('sets the speed of a shot by real time rather than by the length of the effect', () => {
     const quick = makePreset('projectile', 800);
     const long = makePreset('projectile', 4000);
 
-    // 尺が 5 倍でも、着弾までの実時間は変わらない。
+    // Five times the length leaves the time to the landing unchanged.
     expect(impactSoundTimes(quick)[0]).toBe(impactSoundTimes(long)[0]);
   });
 
-  it('連射は指定した間隔で撃ち切ること', () => {
+  it('fires a burst through at the interval it is given', () => {
     const preset = makePreset('projectile', 3000);
     preset.projectileStyle = 'bullet';
     preset.shots = 10;
     preset.shotInterval = 90;
     const times = impactSoundTimes(preset);
 
-    // 90ms 刻みで 10 発。尺が 3 秒でも、撃ち終わりは 1 秒足らず。
+    // Ten shots at that interval finish inside a second, however long the effect runs.
     expect(times).toHaveLength(10);
     expect(times[1] - times[0]).toBe(90);
     expect(times[times.length - 1]).toBeLessThan(1100);
   });
 
-  it('間隔が尺に収まらなければ詰めること', () => {
+  it('closes the interval up when it will not fit', () => {
     const preset = makePreset('projectile', 600);
     preset.projectileStyle = 'bullet';
     preset.shots = 10;
     preset.shotInterval = 400;
     const times = impactSoundTimes(preset);
 
-    // 指定どおりだと尺からはみ出るので、収まるところまで詰める。
+    // As given it would run past the end, so it is closed up until it fits.
     expect(times[times.length - 1]).toBeLessThanOrEqual(600);
   });
 
-  it('銃弾は魔法弾より速いこと', () => {
+  it('flies a bullet faster than a magical bolt', () => {
     const bolt = makePreset('projectile', 1000);
     const bullet = makePreset('projectile', 1000);
     bullet.projectileStyle = 'bullet';
@@ -757,33 +757,33 @@ describe('impactSoundTimes()', () => {
     expect(impactSoundTimes(bullet)[0]).toBeLessThan(impactSoundTimes(bolt)[0]);
   });
 
-  it('連射は弾ごとに鳴らすこと', () => {
+  it('sounds each shot of a burst', () => {
     const preset = makePreset('projectile', 2000);
     preset.shots = 5;
 
-    // 弾幕なのに着弾が 1 発では音が足りない。
+    // One landing for a hail of shots is not enough sound.
     expect(impactSoundTimes(preset)).toHaveLength(5);
   });
 
-  it('刻みが細かすぎるぶんは間引くこと', () => {
+  it('thins them where they come too close together', () => {
     const preset = makePreset('projectile', 600);
     preset.shots = 20;
     const times = impactSoundTimes(preset);
 
-    // 同じ音が重なって潰し合わないよう、最短間隔を空ける。
+    // A shortest interval is kept, so the same sound does not pile up and cancel itself.
     for (let index = 1; index < times.length; index++) {
       expect(times[index] - times[index - 1]).toBeGreaterThanOrEqual(70);
     }
     expect(times.length).toBeLessThan(20);
   });
 
-  it('飛ばないものは 1 回だけ鳴らすこと', () => {
+  it('sounds anything that does not fly once', () => {
     expect(impactSoundTimes(makePreset('bash', 1000))).toHaveLength(1);
   });
 });
 
 describe('isEffectFinished()', () => {
-  it('全対象の再生が終わってから完了とすること', () => {
+  it('counts it finished only once every target has played through', () => {
     const preset = new EffectPreset('preset');
     preset.durationMs = 500;
     preset.staggerMs = 200;
@@ -804,14 +804,14 @@ describe('isEffectFinished()', () => {
 });
 
 describe('seededRandom()', () => {
-  it('同じ種から同じ列を返すこと', () => {
+  it('returns the same sequence from the same seed', () => {
     const first = seededRandom(99);
     const second = seededRandom(99);
 
     expect([first(), first(), first()]).toEqual([second(), second(), second()]);
   });
 
-  it('0 以上 1 未満を返すこと', () => {
+  it('returns something at or above nothing and below one', () => {
     const random = seededRandom(0);
 
     for (let count = 0; count < 50; count++) {
@@ -838,7 +838,7 @@ describe('launchSoundTimes()', () => {
     return made;
   }
 
-  it('弾ごとに鳴らすこと', () => {
+  it('sounds each shot', () => {
     const times = launchSoundTimes(preset({ shots: 6, shotInterval: 110 }));
 
     expect(times).toHaveLength(6);
@@ -846,25 +846,25 @@ describe('launchSoundTimes()', () => {
     expect(times.every((at, index) => index === 0 || at > times[index - 1])).toBe(true);
   });
 
-  it('単発なら 1 回だけ鳴らすこと', () => {
+  it('sounds a single shot once', () => {
     expect(launchSoundTimes(preset())).toEqual([0]);
   });
 
-  it('詰まりすぎた発射は間引くこと', () => {
+  it('thins the shots where they come too close together', () => {
     const times = launchSoundTimes(preset({ shots: 40, shotInterval: 1, durationMs: 300 }));
     expect(times.length).toBeLessThan(40);
   });
 
-  it('飛ばないものは撃ち始めに 1 回だけ鳴らすこと', () => {
+  it('sounds anything that does not fly once, as it starts', () => {
     expect(launchSoundTimes(preset({ kind: 'raybeam' }))).toEqual([0]);
   });
 
-  it('鳴らす音が無ければ何も返さないこと', () => {
+  it('returns nothing when there is no sound to make', () => {
     expect(launchSoundTimes(preset({ soundIdentifier: '' }))).toEqual([]);
   });
 });
 
-describe('まっすぐ飛ぶ弾の尾', () => {
+describe('the tail of a shot that flies straight', () => {
   function shotSprites(style: string, elapsedMs: number) {
     const preset = new EffectPreset('trail-test');
     Object.assign(preset, {
@@ -886,7 +886,7 @@ describe('まっすぐ飛ぶ弾の尾', () => {
     return effectSprites(preset, cast, elapsedMs, { baseSize: 50 });
   }
 
-  it('銃弾・光線・曳光は尾を 1 本にすること', () => {
+  it('gives a bullet, a beam and a tracer one tail each', () => {
     for (const style of ['bullet', 'blaster', 'tracer']) {
       const keys = shotSprites(style, 60).map((sprite) => sprite.key);
       expect(keys.filter((key) => key.includes('-ribbon-'))).toHaveLength(0);
@@ -894,12 +894,12 @@ describe('まっすぐ飛ぶ弾の尾', () => {
     }
   });
 
-  it('飛ぶ斬撃も尾を 1 本にすること', () => {
+  it('gives a flying cut one too', () => {
     const keys = shotSprites('crescent', 60).map((sprite) => sprite.key);
     expect(keys.filter((key) => key.includes('-ribbon-'))).toHaveLength(0);
   });
 
-  /** 撃ち出しと的を結ぶ直線から、どれだけ持ち上がっているか。 */
+  /** How far above the straight line from the shot to the target it rises. */
   function riseAboveLine(style: string, elapsedMs: number): number {
     const shot = shotSprites(style, elapsedMs).find((sprite) => sprite.key.includes('-shot'));
     if (!shot) return Number.NaN;
@@ -907,23 +907,23 @@ describe('まっすぐ飛ぶ弾の尾', () => {
     return shot.z - 30 * along;
   }
 
-  it('刃と光り物はまっすぐ飛ぶこと', () => {
+  it('flies a blade and anything of light straight', () => {
     for (const style of ['crescent', 'blaster', 'tracer']) {
       expect(riseAboveLine(style, 40)).toBeCloseTo(0, 6);
     }
   });
 
-  it('矢は山なりに飛ぶこと', () => {
+  it('arcs an arrow', () => {
     expect(riseAboveLine('arrow', 130)).toBeGreaterThan(1);
   });
 
-  it('魔法弾は今までどおり粒を連ねること', () => {
+  it('strings a magical bolt out of particles as before', () => {
     const keys = shotSprites('bolt', 160).map((sprite) => sprite.key);
     expect(keys.filter((key) => key.includes('-ribbon-')).length).toBeGreaterThan(1);
   });
 });
 
-describe('光の大剣', () => {
+describe('a great sword of light', () => {
   function bladeSprites(elapsedMs: number) {
     const preset = new EffectPreset('excalibur-test');
     Object.assign(preset, { kind: 'skyblade', durationMs: 3000, colorPrimary: '#fff', colorSecondary: '#fa0' });
@@ -941,7 +941,7 @@ describe('光の大剣', () => {
     return bladeSprites(elapsedMs).find((sprite) => sprite.key.endsWith('-excalibur-blade-2'));
   }
 
-  it('まず足元から光が立ち上ること', () => {
+  it('raises the light from the feet first', () => {
     const rising = bladeSprites(300).filter((sprite) => sprite.key.includes('-excalibur-rise-'));
 
     expect(rising.length).toBeGreaterThan(1);
@@ -949,7 +949,7 @@ describe('光の大剣', () => {
     expect(rising.some((sprite) => sprite.offsetY < 0)).toBe(true);
   });
 
-  it('刃が伸び切ってから振り下ろされること', () => {
+  it('brings it down only once the blade has reached its full length', () => {
     const forming = blade(900)!;
     const formed = blade(1450)!;
 
@@ -957,7 +957,7 @@ describe('光の大剣', () => {
     expect(formed.rotate).toBeCloseTo(0, 5);
   });
 
-  it('振り下ろしても根元が撃ち手の足元から動かないこと', () => {
+  it('keeps the foot of the blade at the casters feet through the stroke', () => {
     const rootOf = (sprite: { offsetX: number; offsetY: number; height: number; rotate: number }) => {
       const radians = (sprite.rotate * Math.PI) / 180;
       return {
@@ -973,42 +973,42 @@ describe('光の大剣', () => {
     expect(swung.y).toBeCloseTo(standing.y, 5);
   });
 
-  it('振り切ったら対象の側が光ること', () => {
+  it('lights the target once the stroke is through', () => {
     const flash = bladeSprites(2400).find((sprite) => sprite.key.includes('-excalibur-burst'));
 
     expect(flash).toBeDefined();
     expect(flash!.x).toBe(400);
   });
 
-  it('立ち上っているうちは弾けないこと', () => {
+  it('bursts nothing while it is still rising', () => {
     expect(bladeSprites(300).filter((sprite) => sprite.key.includes('-excalibur-burst'))).toHaveLength(0);
   });
 });
 
 describe('swingTiltOf()', () => {
-  it('どの向きでも盤面の下をくぐらないこと', () => {
+  it('never passes under the board, whichever way it faces', () => {
     for (let heading = -360; heading <= 360; heading += 5) {
       expect(Math.abs(swingTiltOf(heading))).toBeLessThanOrEqual(100);
     }
   });
 
-  it('撃ち手が対象より上にいても真下を向かないこと', () => {
+  it('never points straight down, even with the caster above the target', () => {
     expect(Math.abs(swingTiltOf(90))).toBeLessThan(180);
     expect(Math.abs(swingTiltOf(95))).toBeLessThan(180);
     expect(Math.abs(swingTiltOf(-95))).toBeLessThan(180);
   });
 
-  it('横に並んでいるなら水平まで振ること', () => {
+  it('swings to the horizontal for a target alongside', () => {
     expect(swingTiltOf(0)).toBeCloseTo(90, 5);
     expect(swingTiltOf(180)).toBeCloseTo(-90, 5);
   });
 
-  it('近いほうへ回すこと', () => {
+  it('turns the shorter way', () => {
     expect(swingTiltOf(-90)).toBeCloseTo(0, 5);
   });
 });
 
-describe('ミサイル', () => {
+describe('a missile', () => {
   function missileSprites(style: string, elapsedMs: number) {
     const preset = new EffectPreset('missile-test');
     Object.assign(preset, {
@@ -1030,13 +1030,13 @@ describe('ミサイル', () => {
     return effectSprites(preset, cast, elapsedMs, { baseSize: 50 });
   }
 
-  /** 撃ち出しと的を結ぶ直線から、横へどれだけ外れているか。 */
+  /** How far to the side of the straight line from the shot to the target it strays. */
   function sideOffset(style: string, elapsedMs: number, shot: number): number {
     const head = missileSprites(style, elapsedMs).find((sprite) => sprite.key === `0-s${shot}-shot`);
     return head ? head.y : Number.NaN;
   }
 
-  it('弾ごとに違う側へ膨らんでから食い付くこと', () => {
+  it('swells each missile to a different side before it closes', () => {
     const first = sideOffset('missile', 300, 0);
     const second = sideOffset('missile', 300, 1);
 
@@ -1044,21 +1044,21 @@ describe('ミサイル', () => {
     expect(Math.sign(first)).not.toBe(Math.sign(second));
   });
 
-  it('誘導弾はミサイルより大きく回り込むこと', () => {
+  it('swings a guided one wider than a small missile', () => {
     const missile = Math.abs(sideOffset('missile', 300, 0));
     const cruise = Math.abs(sideOffset('cruise', 300, 0));
 
     expect(cruise).toBeGreaterThan(missile);
   });
 
-  it('着弾する頃には的へ戻ってくること', () => {
+  it('comes back to the target by the time it lands', () => {
     const middle = Math.abs(sideOffset('cruise', 600, 0));
     const arriving = Math.abs(sideOffset('cruise', 1170, 0));
 
     expect(arriving).toBeLessThan(middle * 0.2);
   });
 
-  it('後ろに推進炎を引くこと', () => {
+  it('trails an exhaust behind it', () => {
     const thrust = missileSprites('missile', 300).find((sprite) => sprite.key === '0-s0-thrust');
     const head = missileSprites('missile', 300).find((sprite) => sprite.key === '0-s0-shot');
 
@@ -1066,7 +1066,7 @@ describe('ミサイル', () => {
     expect(thrust!.x).toBeLessThan(head!.x);
   });
 
-  it('推進炎が弾から離れないこと', () => {
+  it('keeps that exhaust with the missile', () => {
     const gapAt = (elapsedMs: number) => {
       const sprites = missileSprites('missile', elapsedMs);
       const head = sprites.find((sprite) => sprite.key === '0-s0-shot')!;
@@ -1074,23 +1074,23 @@ describe('ミサイル', () => {
       return Math.hypot(head.x - thrust.x, head.y - thrust.y, head.z - thrust.z);
     };
 
-    // 弾の長さぶんだけ後ろ。飛ぶ速さで離れ方が変わると、置いていかれたように見える。
+    // It sits one length behind; parted differently at different speeds it would look left behind.
     expect(gapAt(300)).toBeCloseTo(gapAt(200), 5);
   });
 
-  it('噴煙が経路に沿うこと', () => {
+  it('runs the smoke along the path', () => {
     const sprites = missileSprites('cruise', 800);
     const head = sprites.find((sprite) => sprite.key === '0-s0-shot')!;
     const smoke = sprites.filter((sprite) => sprite.key.startsWith('0-s0-smoke-'));
 
-    // 弦 1 本で結ぶと、回り込んでいる間だけ弾と尾の向きがずれる。
+    // Drawn as one chord, the missile and its tail part company through the turn.
     expect(smoke.length).toBeGreaterThan(3);
     expect(sprites.filter((sprite) => sprite.key.includes('-trail'))).toHaveLength(0);
     expect(Math.abs(smoke[0].rotate - head.rotate)).toBeLessThan(6);
   });
 });
 
-describe('アローレイン', () => {
+describe('a rain of arrows', () => {
   function rainSprites(elapsedMs: number) {
     const preset = new EffectPreset('rain-test');
     Object.assign(preset, {
@@ -1113,28 +1113,28 @@ describe('アローレイン', () => {
     return rainSprites(elapsedMs).filter((sprite) => sprite.key.includes(part));
   }
 
-  it('まず射手が空へ撃ち上げること', () => {
+  it('has the archer loose upwards first', () => {
     const loosed = keysAt(60, '-rain-loose-');
 
     expect(loosed.length).toBeGreaterThan(0);
-    // 撃ち手の側から昇る。いきなり的の真上に湧くと、どこから来たのか読めない。
+    // They rise from the caster; appearing over the target they would come from nowhere.
     expect(loosed.every((sprite) => sprite.x < -200)).toBe(true);
     expect(loosed.every((sprite) => sprite.z > 0)).toBe(true);
     expect(keysAt(60, '-rain-arrow-')).toHaveLength(0);
   });
 
-  it('撃ち上げた矢が昇っていくこと', () => {
+  it('carries them up', () => {
     const heightAt = (elapsedMs: number) => rainSprites(elapsedMs).find((sprite) => sprite.key === '0-rain-loose-0')!.z;
 
     expect(heightAt(200)).toBeGreaterThan(heightAt(60));
   });
 
-  it('落ちてくる前に地面へ予告を出すこと', () => {
+  it('marks the ground before they come down', () => {
     expect(keysAt(300, '-rain-mark-').length).toBeGreaterThan(0);
     expect(keysAt(300, '-rain-arrow-')).toHaveLength(0);
   });
 
-  it('矢が上から落ちてくること', () => {
+  it('brings them down from above', () => {
     const early = keysAt(700, '-rain-arrow-');
     const late = keysAt(800, '-rain-arrow-');
 
@@ -1143,7 +1143,7 @@ describe('アローレイン', () => {
     expect(Math.min(...late.map((sprite) => sprite.z))).toBeLessThan(Math.max(...early.map((sprite) => sprite.z)));
   });
 
-  it('中心のまわりに散らして刺さること', () => {
+  it('scatters them about the centre as they strike', () => {
     const stuck = keysAt(2300, '-rain-stuck-');
 
     expect(stuck.length).toBeGreaterThan(8);
@@ -1151,14 +1151,14 @@ describe('アローレイン', () => {
     expect(stuck.every((sprite) => Math.hypot(sprite.x, sprite.y) <= 50 * 2.3)).toBe(true);
   });
 
-  it('毎フレーム同じ場所へ落ちること', () => {
+  it('drops them in the same places from frame to frame', () => {
     const once = keysAt(900, '-rain-mark-').map((sprite) => `${sprite.x},${sprite.y}`);
     const twice = keysAt(900, '-rain-mark-').map((sprite) => `${sprite.x},${sprite.y}`);
 
     expect(once).toEqual(twice);
   });
 
-  it('撃つ音と刺さる音を何度も鳴らすこと', () => {
+  it('sounds the loosing and the striking many times', () => {
     const preset = new EffectPreset('rain-sound-test');
     Object.assign(preset, { kind: 'arrowrain', durationMs: 2400 });
     preset.soundIdentifier = 'se-bow';
@@ -1167,17 +1167,17 @@ describe('アローレイン', () => {
     const looses = launchSoundTimes(preset);
     const hits = impactSoundTimes(preset);
 
-    // 1 回しか鳴らないと、何本降ったのか耳に伝わらない。
+    // Sounded once, the ear cannot tell how many fell.
     expect(looses.length).toBeGreaterThan(2);
     expect(hits.length).toBeGreaterThan(2);
     expect([...looses].sort((left, right) => left - right)).toEqual(looses);
     expect(Math.min(...hits)).toBeGreaterThan(Math.min(...looses));
-    // 詰めすぎると連続音になって粒が消える。
+    // Too close together they run into one sound and the arrows are lost.
     expect(Math.min(...hits.slice(1).map((at, index) => at - hits[index]))).toBeGreaterThanOrEqual(110);
   });
 });
 
-describe('属性の大剣', () => {
+describe('a great sword of an element', () => {
   function bladeImpact(impactKind: string, elapsedMs: number) {
     const preset = new EffectPreset('blade-element-test');
     Object.assign(preset, {
@@ -1199,20 +1199,20 @@ describe('属性の大剣', () => {
     );
   }
 
-  it('属性を持たせたら締めがその属性になること', () => {
+  it('ends it in whatever element it is given', () => {
     expect(bladeImpact('frost', 2500).length).toBeGreaterThan(0);
   });
 
-  it('属性を持たない光の大剣は光のまま終わること', () => {
+  it('ends one of light as light', () => {
     expect(bladeImpact('', 2500)).toHaveLength(0);
   });
 
-  it('振り下ろす前は属性の演出を出さないこと', () => {
+  it('shows none of that element before the stroke falls', () => {
     expect(bladeImpact('flame', 300)).toHaveLength(0);
   });
 });
 
-describe('巡航ミサイルの高度', () => {
+describe('the height of a guided missile', () => {
   function cruiseHeight(elapsedMs: number): number {
     const preset = new EffectPreset('cruise-height-test');
     Object.assign(preset, {
@@ -1232,27 +1232,27 @@ describe('巡航ミサイルの高度', () => {
     return effectSprites(preset, cast, elapsedMs, { baseSize: 50 }).find((sprite) => sprite.key === '0-s0-shot')!.z;
   }
 
-  it('巡航高度まで一気に上がって、そこを保つこと', () => {
-    // 放物線で放り投げると迫撃砲に見える。上がりきってから水平に飛ぶ。
+  it('climbs to its cruising height at once and holds it', () => {
+    // Thrown in an arc it reads as a mortar; it climbs and then flies level.
     expect(cruiseHeight(300)).toBeGreaterThan(cruiseHeight(60));
     expect(Math.abs(cruiseHeight(700) - cruiseHeight(400))).toBeLessThan(cruiseHeight(400) * 0.35);
   });
 
-  it('終末で的へ突っ込むこと', () => {
+  it('dives onto the target at the end', () => {
     expect(cruiseHeight(1350)).toBeLessThan(cruiseHeight(700));
   });
 
-  it('落ち始めたら一気に落とすこと', () => {
+  it('drops it all at once once it begins', () => {
     const top = cruiseHeight(700);
     const late = cruiseHeight(1330);
 
-    // 緩く下ろすと着陸に見える。高度の大半は最後のひと息で捨てる。
+    // Let down gently it reads as a landing; most of the height goes in the last breath.
     expect(top - late).toBeLessThan(top * 0.25);
     expect(late - cruiseHeight(1395)).toBeGreaterThan((top - late) * 2);
   });
 });
 
-describe('弾道ミサイル', () => {
+describe('a ballistic missile', () => {
   function ballisticSprites(elapsedMs: number) {
     const preset = new EffectPreset('ballistic-test');
     Object.assign(preset, {
@@ -1276,7 +1276,7 @@ describe('弾道ミサイル', () => {
     return ballisticSprites(elapsedMs).filter((sprite) => sprite.key.includes(part));
   }
 
-  it('撃ち手の足元から真上へ打ち上げること', () => {
+  it('launches it straight up from the casters feet', () => {
     const low = partAt(200, '-ballistic-lift')[0];
     const high = partAt(1000, '-ballistic-lift')[0];
 
@@ -1285,14 +1285,14 @@ describe('弾道ミサイル', () => {
     expect(high.z).toBeGreaterThan(low.z);
   });
 
-  it('打ち上げてから落ちてくるまで的に何も当てないこと', () => {
+  it('strikes nothing between the launch and the fall', () => {
     expect(partAt(1400, '-ballistic-shot')).toHaveLength(0);
     expect(partAt(1400, '-ballistic-impact')).toHaveLength(0);
-    // 落ちてくる場所は先に見せる。撃った先が見えないぶん、無いと爆発だけが湧く。
+    // Where it will fall is shown first; with the shot out of sight, without it the explosion comes from nowhere.
     expect(partAt(1400, '-ballistic-mark-').length).toBeGreaterThan(0);
   });
 
-  it('的の真上から落ちてくること', () => {
+  it('brings it down directly over the target', () => {
     const early = partAt(2700, '-ballistic-shot')[0];
     const late = partAt(3400, '-ballistic-shot')[0];
 
@@ -1300,7 +1300,7 @@ describe('弾道ミサイル', () => {
     expect(Math.abs(late.x - 500)).toBeLessThan(Math.abs(early.x - 500));
   });
 
-  it('落ちきってから的の側で爆発すること', () => {
+  it('bursts at the target only once it has come all the way down', () => {
     const burst = partAt(4000, '-ballistic-impact');
 
     expect(burst.length).toBeGreaterThan(0);
@@ -1308,7 +1308,7 @@ describe('弾道ミサイル', () => {
     expect(partAt(4000, '-ballistic-shot')).toHaveLength(0);
   });
 
-  it('着弾音を落ちきる位置に合わせること', () => {
+  it('sounds the landing at that moment', () => {
     const preset = new EffectPreset('ballistic-sound-test');
     Object.assign(preset, { kind: 'ballistic', durationMs: 4200 });
     preset.impactSoundIdentifier = 'se-boom';
@@ -1318,15 +1318,15 @@ describe('弾道ミサイル', () => {
   });
 });
 
-describe('演出の振り分け', () => {
-  it('同じ種類を 2 つの表に載せないこと', () => {
+describe('which effect goes where', () => {
+  it('puts no kind in both tables', () => {
     const both = AIMED_EFFECT_KINDS.filter((kind) => CENTERED_EFFECT_KINDS.includes(kind));
 
     expect(both).toEqual([]);
   });
 
-  it('弾ける以外の種類を、必ずどちらかの表に載せること', () => {
-    // どちらにも無い種類は既定の「弾ける」に落ちる。落として良いのは burst だけ。
+  it('puts every kind but the burst in one of them', () => {
+    // Anything in neither falls back to bursting, and the burst is the only one that should.
     const unrouted = EFFECT_KINDS.filter(
       (kind) => !AIMED_EFFECT_KINDS.includes(kind) && !CENTERED_EFFECT_KINDS.includes(kind)
     );

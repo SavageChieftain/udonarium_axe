@@ -15,7 +15,7 @@ const DEFAULT_IMAGE_IDENTIFIERS: readonly string[] = ['a', 'b', 'c', 'd', 'e', '
 export class ChatTab extends ObjectNode implements InnerXml {
   @SyncVar() name = 'タブ';
 
-  /** システムメッセージ専用タブか。消せず、全タブの書き出しにも入れない。 */
+  /** Whether it is the tab for the system messages. It cannot be deleted and stays out of an export of every tab. */
   get isSystemTab(): boolean {
     return this.identifier === SYSTEM_CHAT_TAB_IDENTIFIER;
   }

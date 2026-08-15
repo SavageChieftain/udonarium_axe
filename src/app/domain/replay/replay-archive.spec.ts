@@ -51,21 +51,21 @@ async function toEntries(files: File[]): Promise<ReplayArchiveEntry[]> {
 }
 
 describe('replayArchiveName()', () => {
-  it('部屋名と日時から名前を作ること', () => {
+  it('builds the name from the room and the moment', () => {
     expect(replayArchiveName(manifest)).toBe('第一夜_20260102_2005');
   });
 
-  it('部屋名が無ければ replay と呼ぶこと', () => {
+  it('falls back to a default name without a room', () => {
     expect(replayArchiveName({ ...manifest, roomName: '' })).toBe('replay_20260102_2005');
   });
 
-  it('ファイル名に使えない文字を落とすこと', () => {
+  it('drops what a file name cannot carry', () => {
     expect(replayArchiveName({ ...manifest, roomName: 'a/b:c' })).toBe('a_b_c_20260102_2005');
   });
 });
 
 describe('buildReplayArchiveFiles()', () => {
-  it('目録・イベント・キーフレーム・素材を並べること', () => {
+  it('lays out the catalogue, the events, the keyframes and the assets', () => {
     const files = buildReplayArchiveFiles({
       manifest,
       chunks: [{ index: 0, events: [event(1)] }],
@@ -80,14 +80,14 @@ describe('buildReplayArchiveFiles()', () => {
     ]);
   });
 
-  it('目録を読める JSON で書くこと', async () => {
+  it('writes the catalogue as readable json', async () => {
     const [manifestFile] = buildReplayArchiveFiles({ manifest, chunks: [], keyframes: [], assets: [] });
     expect(JSON.parse(await manifestFile.text())).toEqual(manifest);
   });
 });
 
 describe('parseReplayArchive()', () => {
-  it('書き出した束を読み戻せること', async () => {
+  it('reads back what it wrote', async () => {
     const files = buildReplayArchiveFiles({
       manifest,
       chunks: [
@@ -108,7 +108,7 @@ describe('parseReplayArchive()', () => {
     expect(content?.assets.map((a) => a.name)).toEqual(['image-1.png']);
   });
 
-  it('チャンクの並びが乱れても seq 順に戻すこと', async () => {
+  it('puts the chunks back in order however they arrive', async () => {
     const files = buildReplayArchiveFiles({
       manifest,
       chunks: [
@@ -122,20 +122,20 @@ describe('parseReplayArchive()', () => {
     expect(content?.events.map((e) => e.seq)).toEqual([1, 3]);
   });
 
-  it('目録が無ければ null を返すこと', async () => {
+  it('returns nothing without a catalogue', async () => {
     expect(await parseReplayArchive([{ name: 'events/000000.msgpack', blob: new Blob([]) }])).toBeNull();
   });
 
-  it('壊れた目録では null を返すこと', async () => {
+  it('returns nothing for a broken one', async () => {
     expect(await parseReplayArchive([{ name: 'manifest.json', blob: new Blob(['{ not json']) }])).toBeNull();
   });
 
-  it('未対応の書式では null を返すこと', async () => {
+  it('returns nothing for a format it does not support', async () => {
     const future = JSON.stringify({ ...manifest, formatVersion: REPLAY_FORMAT_VERSION + 1 });
     expect(await parseReplayArchive([{ name: 'manifest.json', blob: new Blob([future]) }])).toBeNull();
   });
 
-  it('入れ子のディレクトリ名でも読めること', async () => {
+  it('reads one held in nested directories', async () => {
     const files = buildReplayArchiveFiles({
       manifest,
       chunks: [{ index: 0, events: [event(1)] }],

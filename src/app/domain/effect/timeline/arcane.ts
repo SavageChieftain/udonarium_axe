@@ -23,20 +23,20 @@ import {
 } from '@axe/domain/effect/timeline/shared';
 
 /**
- * 術。
+ * A working.
  *
- * 魔法陣・雷・氷・オーラのように、的の周りで完結するもの。
+ * A circle, lightning, ice or an aura: what happens about the target.
  */
 
 const BOLT_SEGMENT_COUNT = 9;
 const BOLT_BRANCH_COUNT = 3;
-/** 稲妻本体が出ている区間。CSS アニメーションの長さもこれに合わせる。 */
+/** How long the bolt itself is out, which the animation is matched to. */
 const BOLT_STRIKE_END = 0.45;
 const FROST_SHARD_COUNT = 8;
 const FROST_SPIKE_COUNT = 6;
 const CURSE_RING_COUNT = 3;
 const ARC_NODE_COUNT = 10;
-/** 放電が走っている区間。 */
+/** How long the discharge runs. */
 const ARC_STRIKE_END = 0.4;
 const ARC_LAYERS = [
   { key: 'aura', width: 0.26, opacity: 0.5 },
@@ -47,10 +47,10 @@ const AURA_SPIKE_COUNT = 6;
 const HEAL_RING_COUNT = 3;
 
 /**
- * 電流。発射元から対象へ、折れ曲がった放電が一瞬で走る。
+ * A current: a jagged discharge that runs from the origin to the target in an instant.
  *
- * 節を画面平面の中で組む。3D の直線は画面でも直線になるので、
- * 進行方向と直交方向にずらすだけでジグザグが作れて、両端は必ず繋がる。
+ * Its joints are built in the plane of the screen. A straight line in space is straight on
+ * the screen, so offsetting across the direction of travel makes it zigzag with both ends still joined.
  */
 export function appendArc(
   sprites: EffectSprite[],
@@ -73,7 +73,7 @@ export function appendArc(
     const alongY = Math.sin(radians);
     const spread = base * 0.55;
 
-    // 両端は必ず 0 にして、撃ち手と対象へ吸い付かせる。
+    // Both ends are held at nothing, so it clings to the caster and the target.
     const nodes = Array.from({ length: ARC_NODE_COUNT + 1 }, (_unused, index) => {
       const along = index / ARC_NODE_COUNT;
       return { along: link.length * along, side: (jitters[index] - 0.5) * 2 * spread * Math.sin(along * Math.PI) };
@@ -90,8 +90,8 @@ export function appendArc(
 
       const midAlong = (from.along + to.along) / 2;
       const midSide = (from.side + to.side) / 2;
-      // 進行方向は 3D 上の点で置く。節ごとに奥行きが付くので、
-      // 途中のコマや名前ラベルと正しく前後する。直交方向のずれだけ面内で足す。
+      // The direction of travel is placed in space, so each joint carries its own depth and sits
+      // properly in front of and behind the pieces and names between. Only the offset across it is added in the plane.
       const fraction = link.length > 0 ? midAlong / link.length : 0;
       const anchor = {
         x: origin.x + (center.x - origin.x) * fraction,
@@ -145,7 +145,7 @@ export function appendArc(
   if (progress < 0.4) appendFlareSpikes(sprites, prefix, center, base, progress / 0.4, preset, 3.2, base * 0.5);
 }
 
-/** 呪印。印が刻まれ、対象を縛って沈む。 */
+/** A curse mark: it is cut, binds the target and sinks. */
 export function appendCurse(
   sprites: EffectSprite[],
   prefix: string,
@@ -157,7 +157,7 @@ export function appendCurse(
   const life = fadeInOut(progress, 0.25);
   const stamp = normalize(progress / 0.35);
 
-  // 上から降りてきて刻まれる印。
+  // The mark, which comes down and is cut.
   const markSize = base * (2.4 - Math.min(stamp, 1) * 0.9);
   sprites.push({
     ...blank(),
@@ -173,7 +173,7 @@ export function appendCurse(
     flat: true,
   });
 
-  // 縛る輪。上下から寄って対象を挟み込む。
+  // The binding rings, which close on the target from above and below.
   for (let ring = 0; ring < CURSE_RING_COUNT; ring++) {
     const local = normalize((progress - ring * 0.12) / 0.7);
     if (local <= 0 || local >= 1) continue;
@@ -233,7 +233,7 @@ export function appendBarrier(
   });
 }
 
-/** 転移。魔法陣が畳まれ、光の柱になって消える。 */
+/** A translocation: the circle folds, becomes a column of light and is gone. */
 export function appendWarp(
   sprites: EffectSprite[],
   prefix: string,
@@ -259,8 +259,8 @@ export function appendWarp(
     flat: true,
   });
 
-  // 柱は画面平面で伸びるので、持ち上げも面内で行う。
-  // ワールドの z で上げると、盤面を傾けたぶんだけ足元の陣とずれる。
+  // The column rises in the plane of the screen, so it is raised there too.
+  // Raised along the world axis it would part from the circle at the feet as the board tilts.
   const columnHeight = base * 3.4;
   sprites.push({
     ...blank(),
@@ -424,7 +424,7 @@ export function appendBolt(
   const lift = base * 0.35;
 
   if (progress < BOLT_STRIKE_END) {
-    // 稲妻は 1 枚の SVG。折れ線として繋がるので「光が降ってくる」ではなく「走る」見え方になる。
+    // The lightning is one drawing, joined as a single line, so it runs rather than falls.
     sprites.push({
       ...blank(),
       key: `${prefix}-channel`,

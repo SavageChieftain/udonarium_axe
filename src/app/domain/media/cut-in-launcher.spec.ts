@@ -22,26 +22,26 @@ describe('CutInLauncher', () => {
     store.clearDeleteHistory();
   });
 
-  describe('SyncVar デフォルト値', () => {
-    it('launchCutInIdentifier がデフォルト空文字', () => {
+  describe('the defaults of the synchronised fields', () => {
+    it('starts with no cut-in to launch', () => {
       const launcher = new CutInLauncher('CutInLauncher');
       launcher.initialize();
       expect(launcher.launchCutInIdentifier).toBe('');
     });
 
-    it('launchTimeStamp がデフォルト 0', () => {
+    it('starts with no launch time', () => {
       const launcher = new CutInLauncher('CutInLauncher');
       launcher.initialize();
       expect(launcher.launchTimeStamp).toBe(0);
     });
 
-    it('launchIsStart がデフォルト false', () => {
+    it('starts unlaunched', () => {
       const launcher = new CutInLauncher('CutInLauncher');
       launcher.initialize();
       expect(launcher.launchIsStart).toBe(false);
     });
 
-    it('sendTo がデフォルト空文字', () => {
+    it('starts addressed to nobody', () => {
       const launcher = new CutInLauncher('CutInLauncher');
       launcher.initialize();
       expect(launcher.sendTo).toBe('');
@@ -49,7 +49,7 @@ describe('CutInLauncher', () => {
   });
 
   describe('getCutIns()', () => {
-    it('ObjectStore内のCutInオブジェクト一覧を返す', () => {
+    it('lists the cut-ins in the store', () => {
       const launcher = new CutInLauncher('CutInLauncher');
       launcher.initialize();
 
@@ -62,7 +62,7 @@ describe('CutInLauncher', () => {
       expect(cutIns).toHaveLength(2);
     });
 
-    it('CutInがない場合空配列を返す', () => {
+    it('returns nothing when there are none', () => {
       const launcher = new CutInLauncher('CutInLauncher');
       launcher.initialize();
       expect(launcher.getCutIns()).toEqual([]);
@@ -70,7 +70,7 @@ describe('CutInLauncher', () => {
   });
 
   describe('startCutIn / stopCutIn', () => {
-    it('startCutInでlaunchCutInIdentifierを設定する', () => {
+    it('names the cut-in to launch', () => {
       const launcher = new CutInLauncher('CutInLauncher');
       launcher.initialize();
       const cutIn = new CutIn();
@@ -82,7 +82,7 @@ describe('CutInLauncher', () => {
       expect(launcher.launchMySelf).toBe(false);
     });
 
-    it('stopCutInでlaunchIsStartをfalseに設定する', () => {
+    it('unlaunches it on a stop', () => {
       const launcher = new CutInLauncher('CutInLauncher');
       launcher.initialize();
       const cutIn = new CutIn();
@@ -93,7 +93,7 @@ describe('CutInLauncher', () => {
       expect(launcher.launchIsStart).toBe(false);
     });
 
-    it('startCutInMySelfでlaunchMySelfをtrueに設定する', () => {
+    it('marks a cut-in launched for yourself alone', () => {
       const launcher = new CutInLauncher('CutInLauncher');
       launcher.initialize();
       const cutIn = new CutIn();
@@ -103,7 +103,7 @@ describe('CutInLauncher', () => {
       expect(launcher.launchMySelf).toBe(true);
     });
 
-    it('startCutInでsendToを設定する', () => {
+    it('addresses the launch', () => {
       const launcher = new CutInLauncher('CutInLauncher');
       launcher.initialize();
       const cutIn = new CutIn();
@@ -115,7 +115,7 @@ describe('CutInLauncher', () => {
   });
 
   describe('sameTagCutIn()', () => {
-    it('同じタグのCutInを返す', () => {
+    it('returns the cut-ins that share a tag', () => {
       const launcher = new CutInLauncher('CutInLauncher');
       launcher.initialize();
 
@@ -138,7 +138,7 @@ describe('CutInLauncher', () => {
   });
 
   describe('launchTimeStamp', () => {
-    it('startCutInでインクリメントされる', () => {
+    it('counts up on a launch', () => {
       const launcher = new CutInLauncher('CutInLauncher');
       launcher.initialize();
       const cutIn = new CutIn();
@@ -152,10 +152,10 @@ describe('CutInLauncher', () => {
     });
   });
 
-  // isCutInBgmUploaded() / chatActivateCutIn() のテストは application/media/cut-in.service.spec.ts へ移管。
+  // The tests for the uploaded music and the chat trigger now live with the cut-in service.
 
   describe('stopBlankTagCutIn()', () => {
-    it('stopBlankTagCutInTimeStamp をインクリメントし stopCutInByBgm$ を emit する', () => {
+    it('counts the stamp up and says the music stopped the cut-ins', () => {
       const launcher = new CutInLauncher('CutInLauncher');
       launcher.initialize();
 
@@ -173,7 +173,7 @@ describe('CutInLauncher', () => {
   });
 
   describe('startSoundOnlyCutIn()', () => {
-    it('soundOnlyCutInIdentifier と soundOnlyTimeStamp を設定する', () => {
+    it('names the sound-only cut-in and stamps it', () => {
       const launcher = new CutInLauncher('CutInLauncher');
       launcher.initialize();
 
@@ -188,7 +188,7 @@ describe('CutInLauncher', () => {
       expect(launcher.soundOnlyTimeStamp).toBe(1);
     });
 
-    it('sendTo を指定すると設定される', () => {
+    it('takes an address when one is given', () => {
       const launcher = new CutInLauncher('CutInLauncher');
       launcher.initialize();
       const cutIn = new CutIn();
@@ -200,7 +200,7 @@ describe('CutInLauncher', () => {
       expect(launcher.sendTo).toBe('user-abc');
     });
 
-    it('sendTo 省略時は空文字になる', () => {
+    it('leaves it empty when none is', () => {
       const launcher = new CutInLauncher('CutInLauncher');
       launcher.initialize();
       const cutIn = new CutIn();
@@ -214,11 +214,11 @@ describe('CutInLauncher', () => {
   });
 
   describe('apply() — soundOnlyTimeStamp', () => {
-    it('soundOnlyTimeStamp が変わると startSelfSoundOnly が呼ばれる', () => {
+    it('starts the sound here when the stamp changes', () => {
       const launcher = new CutInLauncher('CutInLauncher');
       launcher.initialize();
 
-      // 初回 sync をスキップ
+      // the first sync is passed over
       launcher.apply(launcher.toContext());
 
       const soundSpy = vi.spyOn(launcher, 'startSelfSoundOnly').mockImplementation(() => {});
@@ -230,7 +230,7 @@ describe('CutInLauncher', () => {
       expect(soundSpy).toHaveBeenCalledOnce();
     });
 
-    it('soundOnlyTimeStamp が変わらなければ startSelfSoundOnly は呼ばれない', () => {
+    it('starts nothing while the stamp stays the same', () => {
       const launcher = new CutInLauncher('CutInLauncher');
       launcher.initialize();
 
@@ -239,13 +239,13 @@ describe('CutInLauncher', () => {
       const soundSpy = vi.spyOn(launcher, 'startSelfSoundOnly').mockImplementation(() => {});
 
       const ctx = launcher.toContext();
-      // soundOnlyTimeStamp を変えない
+      // the stamp is left alone
       launcher.apply(ctx);
 
       expect(soundSpy).not.toHaveBeenCalled();
     });
 
-    it('launchMySelf=true のとき soundOnlyTimeStamp が変化しても発火しない', () => {
+    it('starts nothing at another end for a cut-in launched for yourself alone', () => {
       const launcher = new CutInLauncher('CutInLauncher');
       launcher.initialize();
 
@@ -262,7 +262,7 @@ describe('CutInLauncher', () => {
   });
 
   describe('startSelfSoundOnly()', () => {
-    it('soundOnlyCutInIdentifier に対応する CutIn で soundOnlyCutIn$ が emit される', () => {
+    it('emits the cut-in the identifier names', () => {
       const launcher = new CutInLauncher('CutInLauncher');
       launcher.initialize();
 
@@ -282,8 +282,8 @@ describe('CutInLauncher', () => {
     });
   });
 
-  describe('apply() — P2P 同期', () => {
-    it('初回 sync ではカットイン発火しない', () => {
+  describe('syncing between peers', () => {
+    it('launches nothing on the first sync', () => {
       const launcher = new CutInLauncher('CutInLauncher');
       launcher.initialize();
 
@@ -296,11 +296,11 @@ describe('CutInLauncher', () => {
       expect(startSpy).not.toHaveBeenCalled();
     });
 
-    it('launchMySelf=true の場合は他ピアでは発火しない', () => {
+    it('launches nothing at another peer for one meant for yourself', () => {
       const launcher = new CutInLauncher('CutInLauncher');
       launcher.initialize();
 
-      // 初回 sync をスキップ
+      // the first sync is passed over
       const initCtx = launcher.toContext();
       launcher.apply(initCtx);
 
@@ -318,11 +318,11 @@ describe('CutInLauncher', () => {
       expect(startSpy).not.toHaveBeenCalled();
     });
 
-    it('launchIsStart=true で launchTimeStamp が変わると startSelfCutIn が呼ばれる', () => {
+    it('starts the cut-in here when the stamp changes on a launch', () => {
       const launcher = new CutInLauncher('CutInLauncher');
       launcher.initialize();
 
-      // 初回 sync をスキップ
+      // the first sync is passed over
       const initCtx = launcher.toContext();
       launcher.apply(initCtx);
 
@@ -343,11 +343,11 @@ describe('CutInLauncher', () => {
       expect(startSpy).toHaveBeenCalledOnce();
     });
 
-    it('launchIsStart=false で launchTimeStamp が変わると stopSelfCutIn が呼ばれる', () => {
+    it('stops it here when the stamp changes on a stop', () => {
       const launcher = new CutInLauncher('CutInLauncher');
       launcher.initialize();
 
-      // 初回 sync をスキップ
+      // the first sync is passed over
       const initCtx = launcher.toContext();
       launcher.apply(initCtx);
 
@@ -368,17 +368,17 @@ describe('CutInLauncher', () => {
       expect(stopSpy).toHaveBeenCalledOnce();
     });
 
-    it('sendTo が設定されており自分以外なら発火しない', () => {
+    it('launches nothing when it is addressed to somebody else', () => {
       const launcher = new CutInLauncher('CutInLauncher');
       launcher.initialize();
 
-      // 初回 sync をスキップ
+      // the first sync is passed over
       const initCtx = launcher.toContext();
       launcher.apply(initCtx);
 
       const startSpy = vi.spyOn(launcher, 'startSelfCutIn').mockImplementation(() => {});
 
-      // 自分の userId と異なる sendTo
+      // addressed to another user
       const origUserId = Network.peerContext.userId;
       (Network.peerContext as { userId: string }).userId = 'my-user';
 
@@ -395,11 +395,11 @@ describe('CutInLauncher', () => {
       (Network.peerContext as { userId: string }).userId = origUserId;
     });
 
-    it('stopBlankTagCutInTimeStamp が変わると stopCutInByBgm$ が emit される', () => {
+    it('says the music stopped the cut-ins when that stamp changes', () => {
       const launcher = new CutInLauncher('CutInLauncher');
       launcher.initialize();
 
-      // 初回 sync をスキップ
+      // the first sync is passed over
       const initCtx = launcher.toContext();
       launcher.apply(initCtx);
 

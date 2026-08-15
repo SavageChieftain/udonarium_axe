@@ -12,7 +12,7 @@ import {
   paramsOf,
 } from '@axe/domain/character/import/system-profiles/charasheet-shared';
 
-// ウタカゼ（保管所 game="utakaze"）の4能力値。キーが名前付き（N_Yuuki=勇気 等）なので位置推測は不要。
+// The four abilities of that system. Their keys carry their names, so nothing has to be guessed from position.
 const ABILITIES: { key: string; label: string }[] = [
   { key: 'N_Yuuki', label: '勇気' },
   { key: 'N_Chie', label: '知恵' },

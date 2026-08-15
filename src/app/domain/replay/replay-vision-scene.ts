@@ -16,11 +16,11 @@ import {
 import type { VisionType } from '@axe/domain/tabletop/vision-types';
 
 /**
- * 記録した盤面から、そのときの暗闇・視界・光源を組み直す。
+ * Rebuilds the darkness, the sight and the lights of a recorded board.
  *
- * 生きている卓では `VisionService` が `ObjectStore` を見て同じものを作る。ここは
- * キーフレームのスナップショットしか無いので、同じ形（`VisionScene`）へ写し替えて
- * 判定そのものは `domain/tabletop/vision-scene` に任せる。二重に実装すると必ずずれる。
+ * At a live table the vision service builds the same thing from the store. Here there is
+ * only the snapshot of a keyframe, so it is mapped into the same shape and the judging
+ * itself is left to the same place. Written twice they would surely drift apart.
  */
 
 const TABLE_ALIAS = 'game-table';
@@ -40,12 +40,12 @@ export function replayViewTableOf(snapshots: readonly ReplayObjectSnapshot[]): R
   return tables.find((table) => table.identifier === wanted) ?? tables[0];
 }
 
-/** 見る人。GM は全部見える。PL は自分の持ちコマと同行者の視界だけ。 */
+/** The viewer. The game master sees everything; a player sees through their own pieces and their companions alone. */
 export function replaySceneViewer(snapshots: readonly ReplayObjectSnapshot[], viewer: ReplayViewer): SceneViewer {
   const userId = viewer.userId;
   if (viewer.role === PeerRole.GameMaster) return { userId, isGameMaster: true };
   if (viewer.role === PeerRole.Guest) {
-    // 見学者は誰の視界も持たないので、卓に居る PL の視界をまとめて借りる。
+    // A spectator has no sight of their own and borrows that of the players at the table together.
     const owners = new Set<string>();
     for (const snapshot of charactersOn(snapshots)) {
       const owner = text(snapshot, 'owner');
@@ -89,7 +89,7 @@ export function buildReplayVisionScene(snapshots: readonly ReplayObjectSnapshot[
   };
 }
 
-/** 描くための計画。暗闇を使っていない卓では null。 */
+/** The plan to draw from. Null for a table that uses no darkness. */
 export function replayOverlayPlan(
   snapshots: readonly ReplayObjectSnapshot[],
   viewer: ReplayViewer
@@ -122,7 +122,7 @@ function lightsOf(
     if (source.aliasName !== LIGHT_ALIAS) continue;
     if (!flag(source, 'isVisibleOnTable') || !flag(source, 'lightEnabled')) continue;
 
-    // コマに付いて回る灯りは、そのコマの居る場所で光る。
+    // A light that follows a piece shines where that piece stands.
     const following = text(source, 'followingCharacterIdentifier');
     const anchor = following
       ? (snapshots.find((one) => one.identifier === following && flag(one, 'isVisibleOnTable')) ?? source)

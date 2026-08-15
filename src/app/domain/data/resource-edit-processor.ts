@@ -22,7 +22,7 @@ interface DiceRollResult {
   id: string | null;
   result: string;
   isSecret: boolean;
-  /** 出目と成否。文章からは読み直せないので、振った所で拾って持ち回る。 */
+  /** The roll and whether it succeeded. Neither can be read back out of the text, so they are taken where the dice fall and carried along. */
   detail?: DiceRollDetail | null;
 }
 
@@ -69,7 +69,7 @@ export class ResourceEditProcessor {
 
       for (const chktxt of splitText) {
         if (chktxt.match(/^(t?[:&][^:：&＆])+/gi)) {
-          //正常。処理無し
+          //nothing to do
         } else {
           continue;
         }

@@ -9,9 +9,9 @@ import { Terrain } from '@axe/domain/tabletop/terrain';
 import { TextNote } from '@axe/domain/tabletop/text-note';
 
 /**
- * GameCharacterSheetComponent が「詳細を表示」対象として扱える全種類。
- * 同コンポーネントが複数の TabletopObject 種別を 1 画面で扱う設計を反映している。
- * 9 種別の union 注釈を 3 箇所で繰り返さないようにここに集約する。
+ * Everything the sheet component can open.
+ * It handles several kinds of object on one screen, which this reflects.
+ * The nine of them are gathered here rather than written out in three places.
  */
 export type CharacterSheetTarget =
   GameCharacter | DiceSymbol | Card | CardStack | Terrain | TextNote | RangeArea | GameTableMask | GameTableScratchMask;

@@ -5,7 +5,7 @@ import {
 } from '@axe/domain/character/import/system-profiles/nw3-charasheet-profile';
 
 describe('buildNw3CharasheetCharacter', () => {
-  // charasheet.vampire-blood.net の ナイトウィザード3rd（game="nw3"）実データに即した構造
+  // built from real data of one system at the archive
   const nw3 = {
     pc_name: 'シノ',
     game: 'nw3',
@@ -31,12 +31,12 @@ describe('buildNw3CharasheetCharacter', () => {
     return sections.find((section) => section.label === label);
   }
 
-  it('game="nw3" を判別する', () => {
+  it('recognises the system', () => {
     expect(isNw3CharasheetCharacter(nw3)).toBe(true);
     expect(isNw3CharasheetCharacter({ pc_name: 'X', game: 'coc' })).toBe(false);
   });
 
-  it('8 能力値（筋力/器用/感覚/理知/意思/幸運/耐久/魔法）と dicebot NightWizard3rd を取り込む', () => {
+  it('takes its eight abilities and the dice bot', () => {
     const result = buildNw3CharasheetCharacter(nw3)!;
     expect(result.dicebot).toBe('NightWizard3rd');
     expect(result.params).toEqual([
@@ -51,7 +51,7 @@ describe('buildNw3CharasheetCharacter', () => {
     ]);
   });
 
-  it('特技・武器を名前付きで展開する', () => {
+  it('spreads the talents and the weapons with their names', () => {
     const result = buildNw3CharasheetCharacter(nw3)!;
     expect(findSection(result.sections, '特技')!.groups.map((group) => group.label)).toEqual([
       'カバーリング',
@@ -60,7 +60,7 @@ describe('buildNw3CharasheetCharacter', () => {
     expect(findSection(result.sections, '武器')!.groups[0].label).toBe('サンダーショット');
   });
 
-  it('チャットパレットに {基本値}NW の判定を生成する', () => {
+  it('builds the roll of that system into the palette', () => {
     const result = buildNw3CharasheetCharacter(nw3)!;
     expect(result.commands).toContain('4NW 【筋力】');
     expect(result.commands).toContain('2NW 【魔法】');

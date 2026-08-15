@@ -5,7 +5,7 @@ import {
 } from '@axe/domain/character/import/system-profiles/utakaze-charasheet-profile';
 
 describe('buildUtakazeCharasheetCharacter', () => {
-  // charasheet.vampire-blood.net の ウタカゼ（game="utakaze"）実データに即した構造
+  // built from real data of one system at the archive
   const utakaze = {
     pc_name: 'リル',
     game: 'utakaze',
@@ -26,12 +26,12 @@ describe('buildUtakazeCharasheetCharacter', () => {
     return sections.find((section) => section.label === label);
   }
 
-  it('game="utakaze" を判別する', () => {
+  it('recognises the system', () => {
     expect(isUtakazeCharasheetCharacter(utakaze)).toBe(true);
     expect(isUtakazeCharasheetCharacter({ pc_name: 'X', game: 'coc' })).toBe(false);
   });
 
-  it('4 能力値（勇気/知恵/愛情/希望）と dicebot Utakaze を取り込む', () => {
+  it('takes its four abilities and the dice bot', () => {
     const result = buildUtakazeCharasheetCharacter(utakaze)!;
     expect(result.dicebot).toBe('Utakaze');
     expect(result.params).toEqual([
@@ -42,13 +42,13 @@ describe('buildUtakazeCharasheetCharacter', () => {
     ]);
   });
 
-  it('特技・仲間を名前付きで展開する', () => {
+  it('spreads the talents and the companions with their names', () => {
     const result = buildUtakazeCharasheetCharacter(utakaze)!;
     expect(findSection(result.sections, '特技')!.groups.map((group) => group.label)).toEqual(['風使い']);
     expect(findSection(result.sections, '仲間')!.groups.map((group) => group.label)).toEqual(['スカイア', 'プレ']);
   });
 
-  it('チャットパレットに能力値ぶんの nUK 行為判定を生成する', () => {
+  it('builds a roll of each ability into the palette', () => {
     const result = buildUtakazeCharasheetCharacter(utakaze)!;
     expect(result.commands).toContain('5UK 【勇気】');
     expect(result.commands).toContain('6UK 【希望】');

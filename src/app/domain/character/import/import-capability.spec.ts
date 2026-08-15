@@ -8,7 +8,7 @@ import {
 import { detectImportFetchPlan } from '@axe/domain/character/import/import-source';
 
 describe('import-capability registry', () => {
-  it('全 ソース×データ種別 がちょうど 1 件ずつ収録される（網羅・重複なし）', () => {
+  it('covers every source against every kind of data exactly once', () => {
     expect(IMPORT_CAPABILITIES).toHaveLength(IMPORT_SOURCES.length * IMPORT_DATA_TYPES.length);
     const seen = new Set<string>();
     for (const cap of IMPORT_CAPABILITIES) {
@@ -24,7 +24,7 @@ describe('import-capability registry', () => {
     }
   });
 
-  it('全ラベルキーが非空文字列', () => {
+  it('gives every label a key', () => {
     for (const source of IMPORT_SOURCES) {
       expect(source.labelKey.length).toBeGreaterThan(0);
       expect(source.systemsCoverageKey.length).toBeGreaterThan(0);
@@ -37,7 +37,7 @@ describe('import-capability registry', () => {
     }
   });
 
-  it('各ソースの対応システム一覧は非空で、id は重複しない', () => {
+  it('gives every source systems of its own, each named once', () => {
     for (const source of IMPORT_SOURCES) {
       expect(source.systems.length).toBeGreaterThan(0);
       for (const system of source.systems) {
@@ -48,7 +48,7 @@ describe('import-capability registry', () => {
     }
   });
 
-  it('代表システムが一覧に含まれる', () => {
+  it('lists the system it names as representative', () => {
     const appspot = IMPORT_SOURCES.find((source) => source.id === 'appspot')!;
     const appspotIds = appspot.systems.map((system) => system.id);
     expect(appspotIds).toContain('dx3');
@@ -60,7 +60,7 @@ describe('import-capability registry', () => {
     expect(charasheetIds).toContain('dx3');
   });
 
-  it('入力経路（fetch 種別）が import-source の検出と整合する', () => {
+  it('agrees with how the source is recognised on how it is fetched', () => {
     const url: Record<string, string> = {
       charasheet: 'https://charasheet.vampire-blood.net/123456',
       appspot: 'https://character-sheets.appspot.com/dx3/edit.html?key=ABC',
@@ -76,7 +76,7 @@ describe('import-capability registry', () => {
     }
   });
 
-  it('CharaXiv の URL は未対応（ccfolia 形式へ誘導）', () => {
+  it('takes no address from one service, and points at the other format instead', () => {
     expect(detectImportFetchPlan('https://charaxiv.app/c/abc')).toEqual({ kind: 'unsupported', service: 'charaxiv' });
     const charaxiv = IMPORT_SOURCES.find((source) => source.id === 'charaxiv')!;
     expect(charaxiv.levels.name).toBe('viaCcfolia');

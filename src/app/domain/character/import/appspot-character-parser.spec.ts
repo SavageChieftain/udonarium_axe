@@ -3,7 +3,7 @@ import { parseImportedCharacterText } from '@axe/domain/character/import/charact
 import { ImportedSection } from '@axe/domain/character/import/imported-character';
 
 describe('parseAppspotCharacter', () => {
-  // character-sheets.appspot.com の dx3（ダブルクロス）実データに即した構造
+  // built from real data of one system at the sheet warehouse
   const dx3 = {
     base: {
       name: '関橋 元基',
@@ -40,12 +40,12 @@ describe('parseAppspotCharacter', () => {
     return sections.find((section) => section.label === label);
   }
 
-  it('倉庫の構造を判別する', () => {
+  it('recognises the shape of the warehouse data', () => {
     expect(isAppspotCharacter(dx3)).toBe(true);
     expect(isAppspotCharacter({ kind: 'character', data: {} })).toBe(false);
   });
 
-  it('base.name からキャラ名、能力値/サブ能力を取り込む', () => {
+  it('takes the name, the abilities and the sub-abilities', () => {
     const result = parseImportedCharacterText(JSON.stringify(dx3))!;
     expect(result.sourceFormat).toBe('appspot');
     expect(result.name).toBe('関橋 元基');
@@ -53,24 +53,24 @@ describe('parseAppspotCharacter', () => {
     expect(result.params).toContainEqual({ label: 'body', value: '7' });
   });
 
-  it('labelMap が与えられたとき、能力値キーをフォーム由来ラベルへ写す', () => {
+  it('maps the ability keys onto the labels of the form when it is given them', () => {
     const result = parseAppspotCharacter(dx3, { 'baseAbility.body': '肉体' })!;
     expect(result.params).toContainEqual({ label: '肉体', value: '7' });
     expect(result.params.some((param) => param.label === 'body')).toBe(false);
   });
 
-  it('プロフィール（base）が入れ子を平坦化して反映される', () => {
+  it('flattens the nested profile', () => {
     const result = parseAppspotCharacter(dx3)!;
     const profile = findSection(result.sections, 'プロフィール')!;
     const basic = profile.groups.find((group) => group.label === '基本')!;
     expect(basic.fields).toContainEqual({ label: 'cover', value: '高校生', kind: 'text' });
     expect(basic.fields).toContainEqual({ label: 'age', value: 16, kind: 'number' });
-    // 入れ子 syndromes はドット記法で平坦化
+    // flattens a nested field into a dotted name
     const syndromes = profile.groups.find((group) => group.label === 'syndromes')!;
     expect(syndromes.fields).toContainEqual({ label: 'primary.syndrome', value: 'ハヌマーン', kind: 'text' });
   });
 
-  it('コンボ・武器・アイテムなどシステム固有データがセクション化される', () => {
+  it('gathers the systems own data, such as the combos, weapons and items, into sections', () => {
     const result = parseAppspotCharacter(dx3)!;
     const combo = findSection(result.sections, 'コンボ')!;
     expect(combo.groups[0].label).toBe('ルートキット');
@@ -88,18 +88,18 @@ describe('parseAppspotCharacter', () => {
     expect(skills.groups.some((group) => group.fields.some((field) => field.value === 'UGN'))).toBe(true);
   });
 
-  it('全 null の配列要素（空の防具行）はスキップされる', () => {
+  it('passes over an empty row', () => {
     const result = parseAppspotCharacter(dx3)!;
     expect(findSection(result.sections, '防具')).toBeUndefined();
   });
 
-  it('トップレベルの文字列（outline）も設定セクションになる', () => {
+  it('makes a section of a string at the top level as well', () => {
     const result = parseAppspotCharacter(dx3)!;
     const outline = findSection(result.sections, '設定')!;
     expect(outline.groups[0].fields[0].value).toBe('シナリオ用の設定テキスト。');
   });
 
-  it('data でラップされた系統も吸収する', () => {
+  it('takes a system that wraps its data as readily', () => {
     const wrapped = { base: {}, data: { base: { name: '忍' }, subAbility: { hp: { total: 12 } } } };
     const result = parseAppspotCharacter(wrapped)!;
     expect(result.name).toBe('忍');

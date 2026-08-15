@@ -7,7 +7,7 @@ import {
 } from '@axe/domain/dice/dice-roll-detail';
 
 describe('diceRollDetailOf()', () => {
-  it('名前付きの出目をそのまま写すこと', () => {
+  it('copies a named roll as it is', () => {
     const detail = diceRollDetailOf('DiceBot', {
       detailedRands: [
         { kind: 'normal', sides: 6, value: 5 },
@@ -25,14 +25,14 @@ describe('diceRollDetailOf()', () => {
     });
   });
 
-  it('古い形（rands）は [出目, 面数] の順で読むこと', () => {
-    // bcdice の rands は [value, sides]。逆に読むと d5 が 6 個出たことになる。
+  it('reads the older form in its own order', () => {
+    // That order is the roll and then the faces; read the other way round it becomes six of a five-sided die.
     const detail = diceRollDetailOf('DiceBot', { rands: [[5, 6]] });
 
     expect(detail?.faces).toEqual([{ sides: 6, value: 5, kind: 'normal' }]);
   });
 
-  it('成否を強い順に決めること', () => {
+  it('decides the outcome from the strongest down', () => {
     const critical = { critical: true, success: true };
     const fumble = { fumble: true, failure: true };
 
@@ -43,18 +43,18 @@ describe('diceRollDetailOf()', () => {
     expect(diceRollDetailOf('X', { rands: [[1, 100]] })?.outcome).toBe('');
   });
 
-  it('中身が無いものは持ち回らないこと', () => {
+  it('carries nothing that holds nothing', () => {
     expect(diceRollDetailOf('X', null)).toBeNull();
     expect(diceRollDetailOf('X', {})).toBeNull();
     expect(diceRollDetailOf('X', { rands: [] })).toBeNull();
   });
 
-  it('成否だけのものは残すこと', () => {
-    // 出目を伴わない判定（表を引くだけ等）でも、成否が付くシステムがある。
+  it('keeps one that holds the outcome alone', () => {
+    // Some systems attach an outcome even to a roll with no dice, such as drawing from a table.
     expect(diceRollDetailOf('X', { success: true })).toMatchObject({ faces: [], outcome: 'success' });
   });
 
-  it('面数の無い出目は落とすこと', () => {
+  it('drops a roll with no number of faces', () => {
     expect(diceRollDetailOf('X', { detailedRands: [{ kind: 'normal', sides: 0, value: 3 }] })).toBeNull();
   });
 });
@@ -69,16 +69,16 @@ describe('encodeDiceRollDetail() / parseDiceRollDetail()', () => {
     outcome: 'success',
   };
 
-  it('往復して同じものになること', () => {
+  it('comes back the same through the round trip', () => {
     expect(parseDiceRollDetail(encodeDiceRollDetail(detail))).toEqual(detail);
   });
 
-  it('中身が無ければ空文字にすること', () => {
+  it('writes nothing when it holds nothing', () => {
     expect(encodeDiceRollDetail(null)).toBe('');
   });
 
-  it('読めない値は中身なしとして通すこと', () => {
-    // 古い部屋データの同じ欄には別のものが入っていることがある。落とさない。
+  it('passes a value it cannot read through as nothing', () => {
+    // The same field in older room data may hold something else, which is not thrown away.
     expect(parseDiceRollDetail(undefined)).toBeNull();
     expect(parseDiceRollDetail('')).toBeNull();
     expect(parseDiceRollDetail('DiceBot')).toBeNull();
@@ -87,7 +87,7 @@ describe('encodeDiceRollDetail() / parseDiceRollDetail()', () => {
     expect(parseDiceRollDetail('{"faces":[{"sides":"x"}]}')).toBeNull();
   });
 
-  it('壊れた出目だけを落として残りを活かすこと', () => {
+  it('drops the broken rolls alone and keeps the rest', () => {
     const mixed = '{"system":"X","faces":[{"sides":6,"value":4,"kind":"normal"},{"sides":0}],"outcome":""}';
 
     expect(parseDiceRollDetail(mixed)?.faces).toEqual([{ sides: 6, value: 4, kind: 'normal' }]);
@@ -103,16 +103,16 @@ describe('diceRollValues()', () => {
     ],
   });
 
-  it('出目だけを並べること', () => {
+  it('lists the rolls alone', () => {
     expect(diceRollValues(detail)).toEqual([5, 1, 42]);
   });
 
-  it('面数で絞れること', () => {
-    // 分布を数えるときは、同じ面数のダイスだけを並べないと意味が出ない。
+  it('narrows by the number of faces', () => {
+    // A distribution means nothing unless the dice counted have the same number of faces.
     expect(diceRollValues(detail, 6)).toEqual([5, 1]);
   });
 
-  it('中身が無ければ空にすること', () => {
+  it('returns nothing when it holds nothing', () => {
     expect(diceRollValues(null)).toEqual([]);
   });
 });

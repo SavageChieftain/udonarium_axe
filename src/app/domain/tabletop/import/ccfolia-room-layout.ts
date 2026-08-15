@@ -7,7 +7,7 @@ export interface RoomGridGeometry {
 export const DEFAULT_ROOM_FIELD_WIDTH = 20;
 export const DEFAULT_ROOM_FIELD_HEIGHT = 20;
 
-/** コマの座標だけはマス単位ではなくピクセル単位で、1 マスがこの値にあたる。 */
+/** The pieces alone are placed in pixels rather than cells, and this is what one cell comes to. */
 export const PIECE_UNITS_PER_CELL = 25;
 
 export interface TablePosition {
@@ -16,8 +16,8 @@ export interface TablePosition {
 }
 
 /**
- * ココフォリアの盤面座標は原点が盤面の中央にあり、盤外へも置ける（負値・盤面サイズ超えを取る）。
- * AXE はテーブル左上を原点とするピクセル座標なので、盤面の半分だけ平行移動して拡大する。
+ * The other tool measures its board from the centre and lets things sit off it, so the numbers run negative and past the size.
+ * This one measures in pixels from the top left, so everything is moved half a board and scaled.
  */
 export function roomCellToTablePosition(cellX: number, cellY: number, geometry: RoomGridGeometry): TablePosition {
   return {

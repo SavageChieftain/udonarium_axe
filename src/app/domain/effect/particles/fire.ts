@@ -8,12 +8,12 @@ import {
 } from '@axe/domain/effect/particles/shared';
 
 /**
- * 燃えるもの。
+ * What burns.
  *
- * 炎・爆発・呑み込む炎・きのこ雲。白熱から煙へ落としていく。
+ * Flame, explosion, engulfing fire and mushroom cloud, each falling from white heat to smoke.
  */
 
-/** 立ち上る炎。根元が白熱し、上へ行くほど細く赤く、最後は煙になる。 */
+/** A rising flame: white-hot at the root, narrower and redder as it climbs, and smoke at the last. */
 export function emitFlame(
   particles: EffectParticle[],
   random: () => number,
@@ -78,7 +78,7 @@ export function emitFlame(
   }
 }
 
-/** 爆発。短い白熱の芯と、抵抗を受けて減速する火花・膨らむ火球・後から出る煙。 */
+/** An explosion: a brief white core, sparks slowed by drag, a swelling fireball and smoke behind it. */
 export function emitExplosion(
   particles: EffectParticle[],
   random: () => number,
@@ -131,7 +131,7 @@ export function emitExplosion(
     const born = random() * 0.1;
     const local = clamp01((progress - born) / 0.75);
     if (local <= 0 || local >= 1) continue;
-    // 抵抗で失速させ、重力で落とす。等速直線だと花火に見えない。
+    // Drag slows them and gravity brings them down; in straight even lines it is no firework.
     const travel = speed * (1 - Math.pow(1 - local, 2.2));
     const drop = base * 1.9 * local * local * power;
     particles.push({
@@ -146,8 +146,8 @@ export function emitExplosion(
     });
   }
 
-  // 煙は爆発を大きく見せるが、濃さと大きさを規模なりに増やすと画面そのものが暗く沈む。
-  // 数と広がりだけを規模で増やし、1 粒の濃さは規模に依らず薄いままにする。
+  // Smoke makes an explosion look larger, but thickened and enlarged with the grade it sinks the screen itself.
+  // Only the count and the spread grow with the grade; each particle stays as thin as ever.
   const smokes = Math.round(9 * power);
   for (let index = 0; index < smokes; index++) {
     const angle = random() * Math.PI * 2;
@@ -168,8 +168,8 @@ export function emitExplosion(
 }
 
 /**
- * 対象を飲み込む段。爆発の前に周囲の炎を吸い寄せ、そのあと火球でコマを覆う。
- * 外へ散るだけだと「その場で爆ぜた」で終わり、飲まれた感じが出ない。
+ * The engulfing: the flame around is drawn in before the explosion, and then the fireball covers the piece.
+ * Scattering outwards alone merely bursts on the spot and never swallows.
  */
 function emitEngulf(
   particles: EffectParticle[],
@@ -181,7 +181,7 @@ function emitEngulf(
 ): void {
   const bodyY = -base * 0.9;
 
-  // 吸い込み。溜めがあると次の膨張が強く見える。
+  // The indrawing, whose gathering makes the swell that follows read stronger.
   const suck = clamp01(progress / 0.14);
   if (suck < 1) {
     for (let index = 0; index < 18; index++) {
@@ -200,7 +200,7 @@ function emitEngulf(
     }
   }
 
-  // コマを覆う火球。しばらく濃いまま留めてから崩す。
+  // The fireball over the piece, held thick a while before it breaks.
   const swallow = clamp01((progress - 0.08) / 0.5);
   if (swallow > 0 && swallow < 1) {
     const hold = swallow < 0.45 ? 1 : 1 - (swallow - 0.45) / 0.55;
@@ -219,8 +219,8 @@ function emitEngulf(
       });
     }
 
-    // 火球を包む煙。輪郭が出ることで「覆われている」ことが読める。
-    // 規模なりに大きく黒くすると、包むのを通り越して画面が沈む。
+    // The smoke around it, whose outline is what reads as being covered.
+    // Enlarged and darkened with the grade it goes past covering and sinks the screen.
     for (let index = 0; index < 8; index++) {
       const angle = random() * Math.PI * 2;
       const radius = base * (0.9 + random() * 0.7) * power * (0.6 + swallow * 0.8);
@@ -238,7 +238,7 @@ function emitEngulf(
   }
 }
 
-/** 最上級の爆発。柱が立ち上がり、上端で笠が巻きながら広がる。 */
+/** The greatest explosion: a column rises and a cap rolls out at the top. */
 export function emitMushroom(
   particles: EffectParticle[],
   random: () => number,
@@ -260,7 +260,7 @@ export function emitMushroom(
     });
   }
 
-  // 火柱。下ほど太く白熱し、上へ行くほど細く暗くなる。
+  // The column: thick and white-hot below, thinner and darker above.
   for (let index = 0; index < 40; index++) {
     const phase = random();
     const local = clamp01((progress - phase * 0.3) / 0.55);
@@ -280,7 +280,7 @@ export function emitMushroom(
     });
   }
 
-  // 笠。ドーナツ状に巻き上がりながら外へ広がる。
+  // The cap, rolling up as a ring and spreading outwards.
   const cap = clamp01((progress - 0.28) / 0.72);
   if (cap > 0) {
     for (let index = 0; index < 44; index++) {
@@ -301,7 +301,7 @@ export function emitMushroom(
     }
   }
 
-  // 裾。地面を這って広がる衝撃の煙。
+  // The skirt: the smoke of the shock, crawling out along the ground.
   const skirt = clamp01((progress - 0.1) / 0.6);
   if (skirt > 0 && skirt < 1) {
     for (let index = 0; index < 20; index++) {

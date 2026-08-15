@@ -9,7 +9,7 @@ describe('PeerCursor', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({});
-    // 他の spec が setPeerContextProvider でスタブを残していた場合に備えて毎回既定に戻す。
+    // It is put back each time, in case another spec left a stub behind.
     resetPeerContextProvider();
     store = ObjectStore.instance;
     const allObjects = store.getObjects();
@@ -30,83 +30,83 @@ describe('PeerCursor', () => {
     vi.restoreAllMocks();
   });
 
-  describe('SyncVar デフォルト値', () => {
-    it('userIdが空文字', () => {
+  describe('the defaults of the synchronised fields', () => {
+    it('starts with no user', () => {
       const cursor = new PeerCursor();
       cursor.initialize();
       expect(cursor.userId).toBe('');
     });
 
-    it('peerIdが空文字', () => {
+    it('starts with no peer', () => {
       const cursor = new PeerCursor();
       cursor.initialize();
       expect(cursor.peerId).toBe('');
     });
 
-    it('nameが空文字', () => {
+    it('starts unnamed', () => {
       const cursor = new PeerCursor();
       cursor.initialize();
       expect(cursor.name).toBe('');
     });
 
-    it('imageIdentifierが空文字', () => {
+    it('starts with no picture', () => {
       const cursor = new PeerCursor();
       cursor.initialize();
       expect(cursor.imageIdentifier).toBe('');
     });
 
-    it('voteAnswerが-1', () => {
+    it('starts unanswered', () => {
       const cursor = new PeerCursor();
       cursor.initialize();
       expect(cursor.voteAnswer).toBe(-1);
     });
 
-    it('voteIdが-1', () => {
+    it('starts on no vote', () => {
       const cursor = new PeerCursor();
       cursor.initialize();
       expect(cursor.voteId).toBe(-1);
     });
   });
 
-  describe('プロパティ', () => {
-    it('isDisConnectのデフォルトはtrue', () => {
+  describe('its fields', () => {
+    it('starts as dropped', () => {
       const cursor = new PeerCursor();
       cursor.initialize();
       expect(cursor.isDisConnect).toBe(true);
     });
 
-    it('isDisConnectを設定できる', () => {
+    it('takes the dropped flag', () => {
       const cursor = new PeerCursor();
       cursor.initialize();
       cursor.isDisConnect = false;
       expect(cursor.isDisConnect).toBe(false);
     });
 
-    it('timestampSendのデフォルトは-1', () => {
+    it('starts with nothing sent', () => {
       const cursor = new PeerCursor();
       cursor.initialize();
       expect(cursor.timestampSend).toBe(-1);
     });
 
-    it('timestampReceiveのデフォルトは-1', () => {
+    it('starts with nothing received', () => {
       const cursor = new PeerCursor();
       cursor.initialize();
       expect(cursor.timestampReceive).toBe(-1);
     });
 
-    it('timeLatencyのデフォルトは99999', () => {
+    it('starts at the highest latency', () => {
       const cursor = new PeerCursor();
       cursor.initialize();
       expect(cursor.timeLatency).toBe(99999);
     });
 
-    it('timeoutのデフォルトは40', () => {
+    it('starts at the default timeout', () => {
       const cursor = new PeerCursor();
       cursor.initialize();
       expect(cursor.timeout).toBe(40);
     });
 
-    it('timeoutが0以下の場合は1を返す', () => {
+    it('returns one for a timeout of nothing', () => {
       const cursor = new PeerCursor();
       cursor.initialize();
       cursor.timeout = 0;
@@ -115,7 +115,7 @@ describe('PeerCursor', () => {
       expect(cursor.timeout).toBe(1);
     });
 
-    it('chatColorCodeのデフォルト', () => {
+    it('the colours it starts with', () => {
       const cursor = new PeerCursor();
       cursor.initialize();
       expect(cursor.chatColorCode).toEqual(['#000000', '#FF0000', '#0099FF']);
@@ -123,13 +123,13 @@ describe('PeerCursor', () => {
   });
 
   describe('diceImageIdentifier', () => {
-    it('diceImageTypeが空の場合は空文字を返す', () => {
+    it('returns nothing without a kind of die', () => {
       const cursor = new PeerCursor();
       cursor.initialize();
       expect(cursor.diceImageIdentifier).toBe('');
     });
 
-    it('diceImageTypeとdiceImageIndexから識別子を生成する', () => {
+    it('builds the identifier from that kind and its index', () => {
       const cursor = new PeerCursor();
       cursor.initialize();
       cursor.diceImageType = 'normal';
@@ -137,7 +137,7 @@ describe('PeerCursor', () => {
       expect(cursor.diceImageIdentifier).toBe('normal_dice[03]');
     });
 
-    it('diceImageIndexが1桁の場合ゼロパディングされる', () => {
+    it('pads a single-digit index', () => {
       const cursor = new PeerCursor();
       cursor.initialize();
       cursor.diceImageType = 'star';
@@ -147,20 +147,20 @@ describe('PeerCursor', () => {
   });
 
   describe('isMine', () => {
-    it('myCursorが設定されていない場合はfalsy', () => {
+    it('is false before your own cursor is set', () => {
       const cursor = new PeerCursor();
       cursor.initialize();
       expect(cursor.isMine).toBeFalsy();
     });
 
-    it('myCursorが自分自身の場合はtrue', () => {
+    it('is true for your own', () => {
       const cursor = new PeerCursor();
       cursor.initialize();
       PeerCursor.myCursor = cursor;
       expect(cursor.isMine).toBe(true);
     });
 
-    it('myCursorが他のカーソルの場合はfalse', () => {
+    it('is false for anybody elses', () => {
       const cursor1 = new PeerCursor();
       cursor1.initialize();
       const cursor2 = new PeerCursor();
@@ -171,50 +171,50 @@ describe('PeerCursor', () => {
   });
 
   describe('createMyCursor', () => {
-    it('myCursorを作成できる', () => {
+    it('creates your own', () => {
       const cursor = PeerCursor.createMyCursor();
       expect(cursor).toBeTruthy();
       expect(PeerCursor.myCursor).toBe(cursor);
     });
 
-    it('peerIdがNetwork.peerIdに設定される', () => {
+    it('against the peer you are connected as', () => {
       const cursor = PeerCursor.createMyCursor();
       expect(cursor.peerId).toBe(Network.peerId);
     });
 
-    it('すでに作成済みの場合は既存のカーソルを返す', () => {
+    it('returns the one that is there already', () => {
       const cursor1 = PeerCursor.createMyCursor();
       const cursor2 = PeerCursor.createMyCursor();
       expect(cursor1).toBe(cursor2);
     });
 
-    it('isDisConnect が false に設定される（自分自身は切断扱いにならない）', () => {
+    it('and marks it connected, since you have not dropped', () => {
       const cursor = PeerCursor.createMyCursor();
       expect(cursor.isDisConnect).toBe(false);
     });
   });
 
   describe('findByUserId / findByPeerId', () => {
-    it('userIdで検索できる', () => {
+    it('is found by its user', () => {
       const cursor = new PeerCursor();
       cursor.initialize();
       cursor.userId = 'user-abc';
       expect(PeerCursor.findByUserId('user-abc')).toBe(cursor);
     });
 
-    it('peerIdで検索できる', () => {
+    it('is found by its peer', () => {
       const cursor = new PeerCursor();
       cursor.initialize();
       cursor.peerId = 'peer-xyz';
       expect(PeerCursor.findByPeerId('peer-xyz')).toBe(cursor);
     });
 
-    it('存在しないIDはnullを返す', () => {
+    it('returns nothing for an identifier that is not there', () => {
       expect(PeerCursor.findByUserId('nonexistent')).toBeFalsy();
       expect(PeerCursor.findByPeerId('nonexistent')).toBeFalsy();
     });
 
-    it('空のIDは未設定のカーソルに一致しないこと', () => {
+    it('matches no unset cursor for an empty identifier', () => {
       const cursor = new PeerCursor();
       cursor.initialize();
 
@@ -225,14 +225,14 @@ describe('PeerCursor', () => {
   });
 
   describe('isPeerAUdon', () => {
-    it('peerIdに"udon"を含む場合true', () => {
+    it('is true for a peer of this tool', () => {
       const cursor = new PeerCursor();
       cursor.initialize();
       cursor.peerId = 'UDoNarium';
       expect(cursor.isPeerAUdon()).toBe(true);
     });
 
-    it('peerIdに"udon"を含まない場合false', () => {
+    it('is false for any other', () => {
       const cursor = new PeerCursor();
       cursor.initialize();
       cursor.peerId = 'test-peer';
@@ -241,7 +241,7 @@ describe('PeerCursor', () => {
   });
 
   describe('debugReceiveDelay', () => {
-    it('timestampReceiveにdelayを加算する', () => {
+    it('adds the delay onto when it was received', () => {
       const cursor = new PeerCursor();
       cursor.initialize();
       cursor.debugReceiveDelay = 100;

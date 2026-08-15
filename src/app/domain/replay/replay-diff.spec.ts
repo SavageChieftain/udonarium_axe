@@ -10,40 +10,40 @@ import {
 } from '@axe/domain/replay/replay-diff';
 
 describe('isSameSyncValue()', () => {
-  it('プリミティブを値で比べること', () => {
+  it('compares a plain value by its value', () => {
     expect(isSameSyncValue(1, 1)).toBe(true);
     expect(isSameSyncValue('a', 'a')).toBe(true);
     expect(isSameSyncValue(1, '1')).toBe(false);
     expect(isSameSyncValue(null, undefined)).toBe(false);
   });
 
-  it('入れ子のオブジェクトを再帰的に比べること', () => {
+  it('compares nested objects all the way down', () => {
     expect(isSameSyncValue({ x: 1, y: { z: 2 } }, { x: 1, y: { z: 2 } })).toBe(true);
     expect(isSameSyncValue({ x: 1, y: { z: 2 } }, { x: 1, y: { z: 3 } })).toBe(false);
   });
 
-  it('キー数が違うオブジェクトを別物とすること', () => {
+  it('counts two objects of different sizes as different', () => {
     expect(isSameSyncValue({ x: 1 }, { x: 1, y: 2 })).toBe(false);
   });
 
-  it('配列を順序込みで比べること', () => {
+  it('compares arrays in order', () => {
     expect(isSameSyncValue([1, 2, 3], [1, 2, 3])).toBe(true);
     expect(isSameSyncValue([1, 2, 3], [3, 2, 1])).toBe(false);
     expect(isSameSyncValue([1, 2], [1, 2, 3])).toBe(false);
   });
 
-  it('配列とオブジェクトを別物とすること', () => {
+  it('counts an array and an object as different', () => {
     expect(isSameSyncValue([], {})).toBe(false);
   });
 });
 
 describe('diffSyncData()', () => {
-  it('変化が無ければ null を返すこと', () => {
+  it('returns nothing when nothing changed', () => {
     const data = { name: '盗賊', location: { name: 'table', x: 10, y: 20 } };
     expect(diffSyncData(data, structuredClone(data))).toBeNull();
   });
 
-  it('変わったキーだけを前後で返すこと', () => {
+  it('returns only the keys that changed, before and after', () => {
     const before = { name: '盗賊', posZ: 0, rotate: 0 };
     const after = { name: '盗賊', posZ: 30, rotate: 0 };
     expect(diffSyncData(before, after)).toEqual({
@@ -53,7 +53,7 @@ describe('diffSyncData()', () => {
     });
   });
 
-  it('入れ子の座標の変化を拾うこと', () => {
+  it('picks up a change to a nested position', () => {
     const before = { location: { name: 'table', x: 0, y: 0 } };
     const after = { location: { name: 'table', x: 100, y: 50 } };
     const diff = diffSyncData(before, after);
@@ -62,21 +62,21 @@ describe('diffSyncData()', () => {
     expect(diff?.after['location']).toEqual({ name: 'table', x: 100, y: 50 });
   });
 
-  it('before が無ければ全キーを新規として返すこと', () => {
+  it('returns every key as new when there was nothing before', () => {
     const diff = diffSyncData(null, { name: '盗賊', posZ: 0 });
     expect(diff?.keys).toEqual(['name', 'posZ']);
     expect(diff?.before).toEqual({});
     expect(diff?.after).toEqual({ name: '盗賊', posZ: 0 });
   });
 
-  it('消えたキーも差分として返すこと', () => {
+  it('returns a key that went as a change too', () => {
     const diff = diffSyncData({ owner: 'alice', posZ: 0 }, { posZ: 0 });
     expect(diff?.keys).toEqual(['owner']);
     expect(diff?.before).toEqual({ owner: 'alice' });
     expect(diff?.after).toEqual({});
   });
 
-  it('返す値が元データと参照を共有しないこと', () => {
+  it('shares no reference with what it was given', () => {
     const before = { location: { name: 'table', x: 0, y: 0 } };
     const after = { location: { name: 'table', x: 5, y: 0 } };
     const diff = diffSyncData(before, after)!;
@@ -99,24 +99,24 @@ describe('flattenSyncData() / expandSyncPaths()', () => {
     'attributes.name': 'HP',
   };
 
-  it('属性を経路つきの平らな形にすること', () => {
+  it('flattens the attributes into paths', () => {
     expect(flattenSyncData(nested)).toEqual(flat);
   });
 
-  it('平らな形から元の入れ子に戻すこと', () => {
+  it('nests them again from that flat form', () => {
     expect(expandSyncPaths(flat)).toEqual(nested);
   });
 
-  it('属性が無い形でも往復できること', () => {
+  it('makes the round trip without any attributes', () => {
     const plain = { userId: 'alice', peerId: 'p1' };
     expect(expandSyncPaths(flattenSyncData(plain))).toEqual(plain);
   });
 
-  it('属性が入れ物でなければそのまま置くこと', () => {
+  it('leaves an attribute that is not a holder as it is', () => {
     expect(flattenSyncData({ attributes: 'not-a-record' })).toEqual({ attributes: 'not-a-record' });
   });
 
-  it('最上位と属性で同じ名前が衝突しないこと', () => {
+  it('keeps a name at the top from colliding with one among the attributes', () => {
     const collide = { value: '外', attributes: { value: '中' } };
     expect(flattenSyncData(collide)).toEqual({ value: '外', 'attributes.value': '中' });
     expect(expandSyncPaths(flattenSyncData(collide))).toEqual(collide);
@@ -126,17 +126,17 @@ describe('flattenSyncData() / expandSyncPaths()', () => {
 describe('syncValueOf() / hasChangedKey()', () => {
   const data = { value: '外', attributes: { posZ: 30, value: '中' } };
 
-  it('属性を先に見ること', () => {
+  it('looks among the attributes first', () => {
     expect(syncValueOf(data, 'posZ')).toBe(30);
     expect(syncValueOf(data, 'value')).toBe('中');
   });
 
-  it('属性に無ければ最上位を見ること', () => {
+  it('looks at the top when it is not there', () => {
     expect(syncValueOf({ value: '外' }, 'value')).toBe('外');
     expect(syncValueOf(data, 'unknown')).toBeUndefined();
   });
 
-  it('経路つきの名前でも変化を見つけること', () => {
+  it('finds a change by a name given as a path', () => {
     expect(hasChangedKey(new Set(['attributes.location']), 'location')).toBe(true);
     expect(hasChangedKey(new Set(['value']), 'value')).toBe(true);
     expect(hasChangedKey(new Set(['attributes.posZ']), 'location')).toBe(false);
@@ -144,7 +144,7 @@ describe('syncValueOf() / hasChangedKey()', () => {
 });
 
 describe('cloneSyncValue()', () => {
-  it('プリミティブはそのまま返すこと', () => {
+  it('returns a plain value as it is', () => {
     expect(cloneSyncValue(1)).toBe(1);
     expect(cloneSyncValue('a')).toBe('a');
     expect(cloneSyncValue(true)).toBe(true);
@@ -152,7 +152,7 @@ describe('cloneSyncValue()', () => {
     expect(cloneSyncValue(undefined)).toBeUndefined();
   });
 
-  it('入れ子の配列とオブジェクトを複製すること', () => {
+  it('copies nested arrays and objects', () => {
     const source = { rows: [{ x: 1 }, { x: 2 }] };
     const copy = cloneSyncValue(source);
     expect(copy).toEqual(source);
@@ -162,7 +162,7 @@ describe('cloneSyncValue()', () => {
 });
 
 describe('cloneSyncData()', () => {
-  it('深いコピーを返すこと', () => {
+  it('returns a copy all the way down', () => {
     const source = { location: { x: 1, y: 2 }, tags: ['a'] };
     const copy = cloneSyncData(source);
     expect(copy).toEqual(source);

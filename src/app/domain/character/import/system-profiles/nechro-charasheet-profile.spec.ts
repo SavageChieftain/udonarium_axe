@@ -3,7 +3,7 @@ import {
   isNechroCharasheetCharacter,
 } from '@axe/domain/character/import/system-profiles/nechro-charasheet-profile';
 
-describe('nechro-charasheet-profile（永い後日談のネクロニカ）', () => {
+describe('one system at the archive', () => {
   const sample = {
     pc_name: 'ケイティー',
     game: 'nechro',
@@ -22,19 +22,19 @@ describe('nechro-charasheet-profile（永い後日談のネクロニカ）', () 
     roice_damage: ['3', '1'],
   };
 
-  it('game=nechro を判別する', () => {
+  it('recognises the system', () => {
     expect(isNechroCharasheetCharacter(sample)).toBe(true);
     expect(isNechroCharasheetCharacter({ pc_name: 'x', game: 'coc' })).toBe(false);
   });
 
-  it('名前・dicebot を取り込む', () => {
+  it('takes the name and the dice bot', () => {
     const result = buildNechroCharasheetCharacter(sample)!;
     expect(result.name).toBe('ケイティー');
     expect(result.dicebot).toBe('Nechronica');
     expect(result.commands).toContain('2NC 【判定】');
   });
 
-  it('マニューバを名前付きセクションへ（部位・タイミングのコードは作成ページの権威マップで変換）', () => {
+  it('spreads the manoeuvres into named sections, reading the part and timing codes through the map taken from its own page', () => {
     const result = buildNechroCharasheetCharacter(sample)!;
     const maneuver = result.sections.find((section) => section.label === 'マニューバ')!;
     expect(maneuver.groups[0].label).toBe('号令');
@@ -46,7 +46,7 @@ describe('nechro-charasheet-profile（永い後日談のネクロニカ）', () 
     expect(maneuver.groups[1].fields).toContainEqual({ label: 'タイミング', value: 'ダメージ', kind: 'text' });
   });
 
-  it('未練を対象・損傷・負の感情で取り込む', () => {
+  it('takes each attachment with its subject, its damage and its feeling', () => {
     const result = buildNechroCharasheetCharacter(sample)!;
     const roice = result.sections.find((section) => section.label === '未練')!;
     expect(roice.groups[0].label).toBe('たからもの');
@@ -54,7 +54,7 @@ describe('nechro-charasheet-profile（永い後日談のネクロニカ）', () 
     expect(roice.groups[0].fields).toContainEqual({ label: '損傷', value: 3, kind: 'number' });
   });
 
-  it('ポジション・クラスをプロフィールへ', () => {
+  it('puts the position and the class into the profile', () => {
     const result = buildNechroCharasheetCharacter(sample)!;
     const profile = result.sections.find((section) => section.label === 'プロフィール')!;
     expect(profile.groups[0].fields).toContainEqual({ label: 'ポジション', value: 'ソロリティ', kind: 'text' });

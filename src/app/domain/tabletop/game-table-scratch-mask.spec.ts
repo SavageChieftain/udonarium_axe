@@ -21,7 +21,7 @@ describe('GameTableScratchMask', () => {
   });
 
   describe('create()', () => {
-    it('名前とサイズを指定して作成する', () => {
+    it('is created with a name and a size', () => {
       const mask = GameTableScratchMask.create('スクラッチ', 3, 4, 100);
       expect(mask).toBeTruthy();
       expect(mask.name).toBe('スクラッチ');
@@ -29,65 +29,65 @@ describe('GameTableScratchMask', () => {
       expect(mask.height).toBe(4);
     });
 
-    it('カスタムidentifierで作成する', () => {
+    it('is created against an identifier of its own', () => {
       const mask = GameTableScratchMask.create('mask', 1, 1, 100, 'scratch-id');
       expect(mask.identifier).toBe('scratch-id');
     });
 
-    it('ObjectStoreに追加される', () => {
+    it('is added to the store', () => {
       const mask = GameTableScratchMask.create('mask', 1, 1, 100);
       expect(store.get(mask.identifier)).toBe(mask);
     });
 
-    it('Mが2500要素で初期化される', () => {
+    it('starts with a cell for every square', () => {
       const mask = GameTableScratchMask.create('mask', 1, 1, 100);
       expect(mask.M).toHaveLength(2500);
     });
   });
 
   describe('aliasName', () => {
-    it('"table-scratch-mask"を返す', () => {
+    it('names itself a scratch mask', () => {
       const mask = GameTableScratchMask.create('test', 1, 1, 100);
       expect(mask.aliasName).toBe('table-scratch-mask');
     });
   });
 
-  describe('SyncVar デフォルト値', () => {
-    it('isLock がデフォルト false', () => {
+  describe('the defaults of the synchronised fields', () => {
+    it('starts unlocked', () => {
       const mask = GameTableScratchMask.create('test', 1, 1, 100);
       expect(mask.isLock).toBe(false);
     });
 
-    it('isScratch がデフォルト false', () => {
+    it('starts unscratched', () => {
       const mask = GameTableScratchMask.create('test', 1, 1, 100);
       expect(mask.isScratch).toBe(false);
     });
 
-    it('color がデフォルト "#404040"', () => {
+    it('starts at its default colour', () => {
       const mask = GameTableScratchMask.create('test', 1, 1, 100);
       expect(mask.color).toBe('#404040');
     });
 
-    it('changeColor がデフォルト "#FF5050"', () => {
+    it('starts at its default scratched colour', () => {
       const mask = GameTableScratchMask.create('test', 1, 1, 100);
       expect(mask.changeColor).toBe('#FF5050');
     });
 
-    it('owner がデフォルト空文字', () => {
+    it('starts unowned', () => {
       const mask = GameTableScratchMask.create('test', 1, 1, 100);
       expect(mask.owner).toBe('');
     });
   });
 
   describe('getMaxSize()', () => {
-    it('50を返す', () => {
+    it('returns fifty', () => {
       const mask = GameTableScratchMask.create('test', 1, 1, 100);
       expect(mask.getMaxSize()).toBe(50);
     });
   });
 
   describe('getMapXY / setMapXY', () => {
-    it('fillMapBack未確保の場合setMapXYは何もしない', () => {
+    it('writes nothing to a back map that has not been made', () => {
       const mask = GameTableScratchMask.create('test', 1, 1, 100);
       // fillMapBack is empty, guard condition prevents write
       mask.setMapXY(0, 0, false);
@@ -95,19 +95,19 @@ describe('GameTableScratchMask', () => {
       expect(mask.getMapXY(0, 0, false)).toBeTruthy();
     });
 
-    it('初期値がtruthy(Mはfill(1))', () => {
+    it('the map starts filled', () => {
       const mask = GameTableScratchMask.create('test', 1, 1, 100);
       expect(mask.getMapXY(0, 0, false)).toBeTruthy();
     });
 
-    it('copyMain2BackMap後にsetMapXYでfillMapBackを更新できる', () => {
+    it('writes to the back map once the front has been copied onto it', () => {
       const mask = GameTableScratchMask.create('test', 1, 1, 100);
       mask.copyMain2BackMap();
       mask.setMapXY(0, 0, false);
       expect(mask.getMapXY(0, 0, true)).toBe(false);
     });
 
-    it('myScratch=trueでfillMapBackから読み取る', () => {
+    it('reads from the back map while you are scratching', () => {
       const mask = GameTableScratchMask.create('test', 1, 1, 100);
       mask.copyMain2BackMap();
       expect(mask.getMapXY(0, 0, true)).toBeTruthy();
@@ -115,29 +115,29 @@ describe('GameTableScratchMask', () => {
   });
 
   describe('copyMain2BackMap / copyBack2MainMap', () => {
-    it('メイン→バックのコピーが正しく動作する', () => {
+    it('copies the front onto the back', () => {
       const mask = GameTableScratchMask.create('test', 1, 1, 100);
       mask.copyMain2BackMap();
-      // fillMapBackにMの内容がコピーされる
+      // the front lands on the back
       expect(mask.getMapXY(5, 5, true)).toBeTruthy();
     });
 
-    it('バック→メインのコピーが正しく動作する', () => {
+    it('copies the back onto the front', () => {
       const mask = GameTableScratchMask.create('test', 1, 1, 100);
       mask.copyMain2BackMap();
-      // fillMapBackを変更
+      // the back is changed
       mask.setMapXY(5, 5, false);
       expect(mask.getMapXY(5, 5, true)).toBe(false);
 
-      // メインにコピー
+      // and copied onto the front
       mask.copyBack2MainMap();
       expect(mask.getMapXY(5, 5, false)).toBeFalsy();
     });
 
-    it('reverseMapXYで値を反転してコピーできる', () => {
+    it('copies a cell across, inverted', () => {
       const mask = GameTableScratchMask.create('test', 1, 1, 100);
       mask.copyMain2BackMap();
-      // 初期値はtruthy(1)
+      // it starts filled
       mask.reverseMapXY(5, 5);
       expect(mask.getMapXY(5, 5, true)).toBeFalsy();
 
@@ -147,20 +147,20 @@ describe('GameTableScratchMask', () => {
   });
 
   describe('hasOwner', () => {
-    it('ownerが空文字ならfalse', () => {
+    it('is false while it is unowned', () => {
       const mask = GameTableScratchMask.create('test', 1, 1, 100);
       expect(mask.hasOwner).toBe(false);
     });
 
-    it('ownerがセットされていればtrue', () => {
+    it('is true once it has an owner', () => {
       const mask = GameTableScratchMask.create('test', 1, 1, 100);
       mask.owner = 'user-1';
       expect(mask.hasOwner).toBe(true);
     });
   });
 
-  describe('TabletopObject 継承', () => {
-    it('locationのデフォルトがtable', () => {
+  describe('what it inherits', () => {
+    it('starts on the table', () => {
       const mask = GameTableScratchMask.create('test', 1, 1, 100);
       expect(mask.location.name).toBe('table');
     });

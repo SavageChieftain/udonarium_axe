@@ -22,7 +22,7 @@ describe('GameTableMask', () => {
   });
 
   describe('create()', () => {
-    it('名前とサイズを指定して作成する', () => {
+    it('is created with a name and a size', () => {
       const mask = GameTableMask.create('テストマスク', 3, 4, 100);
       expect(mask).toBeTruthy();
       expect(mask.name).toBe('テストマスク');
@@ -30,53 +30,53 @@ describe('GameTableMask', () => {
       expect(mask.height).toBe(4);
     });
 
-    it('カスタムidentifierで作成する', () => {
+    it('is created against an identifier of its own', () => {
       const mask = GameTableMask.create('mask', 1, 1, 100, 'mask-id');
       expect(mask.identifier).toBe('mask-id');
     });
 
-    it('ObjectStoreに追加される', () => {
+    it('is added to the store', () => {
       const mask = GameTableMask.create('mask', 1, 1, 100);
       expect(store.get(mask.identifier)).toBe(mask);
     });
   });
 
   describe('aliasName', () => {
-    it('"table-mask"を返す', () => {
+    it('names itself a mask', () => {
       const mask = GameTableMask.create('test', 1, 1, 100);
       expect(mask.aliasName).toBe('table-mask');
     });
   });
 
-  describe('SyncVar デフォルト値', () => {
-    it('isLock がデフォルト false', () => {
+  describe('the defaults of the synchronised fields', () => {
+    it('starts unlocked', () => {
       const mask = GameTableMask.create('test', 1, 1, 100);
       expect(mask.isLock).toBe(false);
     });
 
-    it('owner がデフォルト空文字', () => {
+    it('starts unowned', () => {
       const mask = GameTableMask.create('test', 1, 1, 100);
       expect(mask.owner).toBe('');
     });
 
-    it('dispLockMark がデフォルト true', () => {
+    it('starts showing the lock mark', () => {
       const mask = GameTableMask.create('test', 1, 1, 100);
       expect(mask.dispLockMark).toBe(true);
     });
 
-    it('isPreview がデフォルト false', () => {
+    it('starts out of preview', () => {
       const mask = GameTableMask.create('test', 1, 1, 100);
       expect(mask.isPreview).toBe(false);
     });
   });
 
   describe('hasOwner', () => {
-    it('ownerが空文字ならfalse', () => {
+    it('is false while it is unowned', () => {
       const mask = GameTableMask.create('test', 1, 1, 100);
       expect(mask.hasOwner).toBe(false);
     });
 
-    it('ownerがセットされていればtrue', () => {
+    it('is true once it has an owner', () => {
       const mask = GameTableMask.create('test', 1, 1, 100);
       mask.owner = 'user-1';
       expect(mask.hasOwner).toBe(true);
@@ -84,19 +84,19 @@ describe('GameTableMask', () => {
   });
 
   describe('ownerColor', () => {
-    it('"#444444"を返す', () => {
+    it('returns its own colour', () => {
       const mask = GameTableMask.create('test', 1, 1, 100);
       expect(mask.ownerColor).toBe('#444444');
     });
   });
 
   describe('color', () => {
-    it('color DataElementが無い場合デフォルト"#555555"を返す', () => {
+    it('falls back to a default colour when it carries none', () => {
       const mask = GameTableMask.create('test', 1, 1, 100);
       expect(mask.color).toBe('#555555');
     });
 
-    it('color DataElementがあれば値を取得できる', () => {
+    it('returns the colour it carries', () => {
       const mask = GameTableMask.create('test', 1, 1, 100);
       mask.commonDataElement!.appendChild(
         DataElement.create('color', '#FF0000', { type: 'colors', currentValue: '#0a0a0a' }, 'color_' + mask.identifier)
@@ -104,7 +104,7 @@ describe('GameTableMask', () => {
       expect(mask.color).toBe('#FF0000');
     });
 
-    it('color DataElementがあればsetterで値を更新できる', () => {
+    it('takes a new colour', () => {
       const mask = GameTableMask.create('test', 1, 1, 100);
       mask.commonDataElement!.appendChild(
         DataElement.create('color', '#555555', { type: 'colors', currentValue: '#0a0a0a' }, 'color_' + mask.identifier)
@@ -113,14 +113,14 @@ describe('GameTableMask', () => {
       expect(mask.color).toBe('#00FF00');
     });
 
-    it('bgcolor DataElementが無い場合デフォルト"#0a0a0a"を返す', () => {
+    it('falls back to a default background when it carries none', () => {
       const mask = GameTableMask.create('test', 1, 1, 100);
       expect(mask.bgcolor).toBe('#0a0a0a');
     });
   });
 
-  describe('TabletopObject 継承', () => {
-    it('locationのデフォルトがtable', () => {
+  describe('what it inherits', () => {
+    it('starts on the table', () => {
       const mask = GameTableMask.create('test', 1, 1, 100);
       expect(mask.location.name).toBe('table');
     });

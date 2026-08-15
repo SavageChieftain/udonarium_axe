@@ -15,14 +15,14 @@ import {
   paramsOf,
 } from '@axe/domain/character/import/system-profiles/charasheet-shared';
 
-// エリュシオン（保管所 game="elysion"）の3主能力。NB1-3。順序・スキルの能力コードは作成ページの <th>/<select> で確認。
+// The three abilities of that system. Their order and the codes of the skills come from the headings and options of its own page.
 const ABILITIES: { key: string; label: string }[] = [
   { key: 'NB1', label: '学力' },
   { key: 'NB2', label: '青春力' },
   { key: 'NB3', label: '政治力' },
 ];
 
-// スキルの判定能力コード（Power_hantei）→ ラベル。0=指定なし。作成ページ <select> を権威として転記。
+// The ability codes of the skills and their labels, taken from the options on that page. Zero means none.
 const SKILL_ABILITY: Record<string, string> = {
   '1': '学力',
   '2': '青春力',

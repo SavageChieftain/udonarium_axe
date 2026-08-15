@@ -1,18 +1,18 @@
 /**
- * 各サービスがホストする対応ゲームシステム一覧（取り込みパネル / マニュアルの表示元）。
- * `verified: true` は AXE に専用プロファイル（能力値・技能・特技表などの最適化取り込み）がある系統。
- * 無印は汎用取り込み（名前・主要項目＋データを構造保持で取り込み）。
- * 一覧は各サービスの公開ページから取得した実データ。固有名詞のため i18n 化しない。
+ * The systems each service hosts, which is what the import panel and the manual show.
+ * A verified system has a profile of its own here, which reads its abilities, skills and tables properly.
+ * The rest come in through the general path, which keeps the name, the main fields and the structure of the data.
+ * The list is taken from the public pages of each service. They are proper names, and are not translated.
  */
 export interface ImportSystem {
-  /** サービス内部のシステム識別子（URL パス / game 値）。汎用サービスでは省略。 */
+  /** The identifier the service uses for the system. Omitted where a service has none. */
   id?: string;
   name: string;
-  /** 専用プロファイルで最適化取り込みできる系統。 */
+  /** A system with a profile of its own here. */
   verified?: boolean;
 }
 
-/** ココフォリア形式を出力する代表的な作成サービス（システム非依存のため出力元を示す）。 */
+/** The better-known services that put out the format of the other tool. They are named by what they produce rather than by system. */
 export const CCFOLIA_SOURCE_SERVICES: ImportSystem[] = [
   { name: 'いあきゃら（クトゥルフ）' },
   { name: 'Charaeno（クトゥルフ 6/7版）' },
@@ -22,7 +22,7 @@ export const CCFOLIA_SOURCE_SERVICES: ImportSystem[] = [
   { name: 'その他「ココフォリア用コピー」対応サービス' },
 ];
 
-/** キャラクター保管所（charasheet.vampire-blood.net）の対応システム。 */
+/** The systems supported at the sheet archive. */
 export const CHARASHEET_SYSTEMS: ImportSystem[] = [
   { id: 'cthulhu', name: 'クトゥルフ神話TRPG（6版）', verified: true },
   { id: 'coc7', name: '新クトゥルフ神話TRPG（7版）', verified: true },
@@ -58,7 +58,7 @@ export const CHARASHEET_SYSTEMS: ImportSystem[] = [
   { id: 'kmgkr', name: '神我狩' },
 ];
 
-/** キャラクターシート倉庫（character-sheets.appspot.com）の対応システム。 */
+/** The systems supported at the sheet warehouse. */
 export const APPSPOT_SYSTEMS: ImportSystem[] = [
   { id: 'dx3', name: 'ダブルクロス The 3rd Edition', verified: true },
   { id: 'shinobigami', name: 'シノビガミ', verified: true },
@@ -133,7 +133,7 @@ export const APPSPOT_SYSTEMS: ImportSystem[] = [
   { id: 'monobeast', name: 'モノビースト' },
 ];
 
-/** CharaXiv（ccfolia 形式コピー経由）。 */
+/** One service, through a copy in the other tool's format. */
 export const CHARAXIV_SYSTEMS: ImportSystem[] = [
   { name: 'クトゥルフ神話TRPG 第6版' },
   { name: '新クトゥルフ神話TRPG 第7版' },

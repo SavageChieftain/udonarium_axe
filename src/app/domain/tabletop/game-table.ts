@@ -62,7 +62,7 @@ export class GameTable extends ObjectNode {
   @SyncVar() ambientColor: string = DEFAULT_AMBIENT_COLOR;
   @SyncVar() globalIllumination: number = 0;
 
-  /** マップ全体に掛ける天候。空なら掛けない。 */
+  /** The weather over the whole map. Empty for none. */
   @SyncVar() weatherKind: string = '';
   @SyncVar() weatherColor: string = '';
   @SyncVar() weatherDensity: number = DEFAULT_AMBIENCE_DENSITY;

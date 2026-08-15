@@ -14,7 +14,7 @@ import {
 
 describe('hex-geometry', () => {
   describe('hexCircumradius', () => {
-    it('gridSize / √3 を返す', () => {
+    it('returns the circumradius from the cell size', () => {
       expect(hexCircumradius(50)).toBeCloseTo(50 / Math.sqrt(3));
     });
   });
@@ -76,26 +76,26 @@ describe('hex-geometry', () => {
     const g = 50;
     const sp = hexSpacing(g, true);
 
-    it('flat-top (0,0) → 原点', () => {
+    it('puts the first flat-topped cell at the origin', () => {
       const c = hexCellCenter(0, 0, sp.colSpacing, sp.rowSpacing, true);
       expect(c.x).toBe(0);
       expect(c.y).toBe(0);
     });
 
-    it('flat-top 奇数列で半行オフセット', () => {
+    it('offsets an odd column by half a row', () => {
       const even = hexCellCenter(0, 2, sp.colSpacing, sp.rowSpacing, true);
       const odd = hexCellCenter(1, 2, sp.colSpacing, sp.rowSpacing, true);
       expect(Math.abs(even.y - odd.y)).toBeCloseTo(sp.rowSpacing / 2);
     });
 
-    it('pointy-top 奇数行で半列オフセット', () => {
+    it('offsets an odd row by half a column', () => {
       const spP = hexSpacing(g, false);
       const even = hexCellCenter(2, 0, spP.colSpacing, spP.rowSpacing, false);
       const odd = hexCellCenter(2, 1, spP.colSpacing, spP.rowSpacing, false);
       expect(Math.abs(even.x - odd.x)).toBeCloseTo(spP.colSpacing / 2);
     });
 
-    it('負のインデックスでもオフセットが正しい', () => {
+    it('offsets a negative index the same way', () => {
       const c = hexCellCenter(-1, 0, sp.colSpacing, sp.rowSpacing, true);
       expect(c.x).toBeCloseTo(-sp.colSpacing);
       expect(c.y).toBeCloseTo(sp.rowSpacing / 2); // abs(-1) % 2 === 1
@@ -103,12 +103,12 @@ describe('hex-geometry', () => {
   });
 
   describe('hexVertices', () => {
-    it('6頂点を返す', () => {
+    it('returns six corners', () => {
       const verts = hexVertices(0, 0, 10, 0);
       expect(verts).toHaveLength(6);
     });
 
-    it('各頂点が中心から circumradius 距離にある', () => {
+    it('puts each of them a circumradius from the centre', () => {
       const s = 10;
       const verts = hexVertices(5, 5, s, 0);
       for (const v of verts) {
@@ -119,7 +119,7 @@ describe('hex-geometry', () => {
   });
 
   describe('strokeHexPath', () => {
-    it('beginPath, moveTo, lineTo×5, closePath, stroke を呼ぶ', () => {
+    it('strokes a closed six-sided path', () => {
       const ctx = {
         beginPath: vi.fn(),
         moveTo: vi.fn(),
@@ -137,7 +137,7 @@ describe('hex-geometry', () => {
   });
 
   describe('fillHexPath', () => {
-    it('beginPath, moveTo, lineTo×5, closePath, fill を呼ぶ', () => {
+    it('fills one', () => {
       const ctx = {
         beginPath: vi.fn(),
         moveTo: vi.fn(),
@@ -155,29 +155,29 @@ describe('hex-geometry', () => {
   });
 
   describe('pixelToHexCell', () => {
-    it('flat-top (0,0) のセル中心に最も近いセルは (0,0) であること', () => {
+    it('reads the centre of the first flat-topped cell as that cell', () => {
       const result = pixelToHexCell(0, 0, 50, true);
       expect(result).toEqual({ col: 0, row: 0 });
     });
 
-    it('flat-top で colSpacing の 1.5 倍地点は col=1 に近いこと', () => {
+    it('reads a point past the column spacing as the next column', () => {
       const { colSpacing } = hexSpacing(50, true);
       const result = pixelToHexCell(colSpacing * 1.1, 0, 50, true);
       expect(result.col).toBe(1);
     });
 
-    it('pointy-top (0,0) のセル中心に最も近いセルは (0,0) であること', () => {
+    it('reads the centre of the first pointy-topped cell as that cell', () => {
       const result = pixelToHexCell(0, 0, 50, false);
       expect(result).toEqual({ col: 0, row: 0 });
     });
 
-    it('pointy-top で rowSpacing の 1.5 倍地点は row=1 に近いこと', () => {
+    it('reads a point past the row spacing as the next row', () => {
       const { rowSpacing } = hexSpacing(50, false);
       const result = pixelToHexCell(0, rowSpacing * 1.1, 50, false);
       expect(result.row).toBe(1);
     });
 
-    it('flat-top でマスク領域内の任意地点が正の col/row を返すこと', () => {
+    it('keeps the column and the row positive anywhere inside a mask', () => {
       const result = pixelToHexCell(200, 150, 50, true);
       expect(result.col).toBeGreaterThanOrEqual(0);
       expect(result.row).toBeGreaterThanOrEqual(0);

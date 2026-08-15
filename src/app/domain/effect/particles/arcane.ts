@@ -7,12 +7,12 @@ import {
 } from '@axe/domain/effect/particles/shared';
 
 /**
- * 術。
+ * A working.
  *
- * 雷・氷・渦・瘴気・オーラ・転移・障壁・治癒。
+ * Lightning, ice, whirlwind, miasma, aura, translocation, shield and healing.
  */
 
-/** 回復。下から湧いて立ち上る光の粒と、包み込む柔らかい光。 */
+/** Healing: particles of light welling up from below, and a soft light that wraps around. */
 export function emitHeal(
   particles: EffectParticle[],
   random: () => number,
@@ -56,7 +56,7 @@ export function emitHeal(
   }
 }
 
-/** 落雷。稲妻は SVG 側。ここは着弾の白熱と跳ねる放電。 */
+/** A lightning strike. The bolt itself is drawn elsewhere; here are the white heat of the landing and the discharge that leaps. */
 export function emitBolt(
   particles: EffectParticle[],
   random: () => number,
@@ -85,7 +85,7 @@ export function emitBolt(
     const local = clamp01((progress - born) / 0.6);
     if (local <= 0 || local >= 1) continue;
     const travel = speed * (1 - Math.pow(1 - local, 2.6));
-    // 放電は明滅させる。連続的に薄くするより電気らしい。
+    // The discharge flickers, which reads as electricity where an even fade does not.
     const flicker = Math.floor(progress * 40 + index) % 3 === 0 ? 0.35 : 1;
     particles.push({
       x: Math.cos(angle) * travel,
@@ -100,7 +100,7 @@ export function emitBolt(
   }
 }
 
-/** 氷結。結晶は SVG 側。ここは白い冷気と細かいきらめき。 */
+/** Freezing. The crystals are drawn elsewhere; here are the white cold and the fine glints. */
 export function emitFrost(
   particles: EffectParticle[],
   random: () => number,
@@ -134,7 +134,7 @@ export function emitFrost(
     const angle = random() * Math.PI * 2;
     const radius = base * (0.2 + random() * 1.1);
     const local = (progress * 1.6 + phase) % 1;
-    // きらめきは点滅させる。氷の反射に見える。
+    // The glints blink, which reads as light off ice.
     const twinkle = Math.sin(local * Math.PI) * (0.5 + 0.5 * Math.sin(phase * 30 + progress * 40));
     particles.push({
       x: Math.cos(angle) * radius,
@@ -149,7 +149,7 @@ export function emitFrost(
   }
 }
 
-/** 竜巻。渦に巻き上げられる砂と、周回する風の筋。 */
+/** A tornado: the sand caught up in the whirl, and the streaks of wind going round. */
 export function emitVortex(
   particles: EffectParticle[],
   random: () => number,
@@ -174,7 +174,7 @@ export function emitVortex(
       size: base * (0.3 + random() * 0.25) * (1 - height * 0.35),
       angle: angle + Math.PI / 2,
       stretch: 2.6,
-      // 手前に来た粒だけ明るくすると、平面ではなく筒に見える。
+      // Brightening only what comes to the front makes it read as a tube rather than a plane.
       alpha: life * Math.max(0.04, 0.35 + front * 0.4) * (1 - height * 0.35),
       color: front > 0 ? ramp.mid : ramp.cool,
       shape: 'streak',
@@ -199,7 +199,7 @@ export function emitVortex(
   }
 }
 
-/** 毒霧。低く滞留する霧と、浮かび上がる泡。 */
+/** A poison mist: the low-lying fog, and the bubbles rising through it. */
 export function emitMiasma(
   particles: EffectParticle[],
   random: () => number,
@@ -243,7 +243,7 @@ export function emitMiasma(
   }
 }
 
-/** 闘気。足元から吹き上がる気と、周回する光。 */
+/** A fighting aura: the force blowing up from the feet, and the light going round. */
 export function emitAura(
   particles: EffectParticle[],
   random: () => number,
@@ -288,7 +288,7 @@ export function emitAura(
   }
 }
 
-/** 障壁の粒。面に沿って走り、当たった所で弾ける。 */
+/** The particles of a shield, running along its face and bursting where it is struck. */
 export function emitBarrier(
   particles: EffectParticle[],
   random: () => number,
@@ -316,7 +316,7 @@ export function emitBarrier(
   }
 }
 
-/** 転移の粒。足元から巻き上がって消える。 */
+/** The particles of a translocation, sweeping up from the feet and gone. */
 export function emitWarp(
   particles: EffectParticle[],
   random: () => number,

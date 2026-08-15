@@ -34,7 +34,7 @@ describe('table-layout cell helpers', () => {
   });
 
   describe('isGapColumn()', () => {
-    it("kind === 'gap' のときだけ true", () => {
+    it('is true for a gap and nothing else', () => {
       expect(isGapColumn(makeColumn('hp', 'gap'))).toBe(true);
       expect(isGapColumn(makeColumn('hp', ''))).toBe(false);
       expect(isGapColumn(makeColumn('hp', 'check'))).toBe(false);
@@ -42,18 +42,18 @@ describe('table-layout cell helpers', () => {
   });
 
   describe('isCheckCellChecked()', () => {
-    it.each(['1', 'true', 'x', 'checked', 'TRUE', 'X', 'Checked'])('"%s" は ON とみなす', (value) => {
+    it.each(['1', 'true', 'x', 'checked', 'TRUE', 'X', 'Checked'])('reads it as ticked', (value) => {
       const cell = makeCell('chk', value);
       expect(isCheckCellChecked(cell)).toBe(true);
     });
-    it.each(['', '0', 'false', 'no', '2'])('"%s" は OFF', (value) => {
+    it.each(['', '0', 'false', 'no', '2'])('reads it as unticked', (value) => {
       const cell = makeCell('chk', value);
       expect(isCheckCellChecked(cell)).toBe(false);
     });
   });
 
   describe('nextCheckCellValue()', () => {
-    it('event 由来の checkbox 値を優先する', () => {
+    it('takes the value from the event where there is one', () => {
       const cell = makeCell('chk', '1');
       const inp = document.createElement('input');
       inp.type = 'checkbox';
@@ -66,54 +66,54 @@ describe('table-layout cell helpers', () => {
       expect(nextCheckCellValue(cell, ev)).toBe(1);
     });
 
-    it('event 無しなら現状の反転', () => {
+    it('flips the current value where there is not', () => {
       expect(nextCheckCellValue(makeCell('chk', '1'))).toBe(0);
       expect(nextCheckCellValue(makeCell('chk', ''))).toBe(1);
     });
   });
 
   describe('getCellLabel()', () => {
-    it('CELL_TEXT 属性を trim して返す', () => {
+    it('returns the text of the cell, trimmed', () => {
       const cell = makeCell('chk');
       cell.setAttribute(DataElementAttribute.CELL_TEXT, '  習得済み  ');
       expect(getCellLabel(cell)).toBe('習得済み');
     });
-    it('属性無しなら空文字', () => {
+    it('returns nothing when it carries none', () => {
       expect(getCellLabel(makeCell('chk'))).toBe('');
     });
   });
 
   describe('getCellUnit()', () => {
-    it('UNIT 属性ありなら先頭スペース付きで返す', () => {
+    it('returns the unit with a space before it', () => {
       const cell = makeCell('hp');
       cell.setAttribute(DataElementAttribute.UNIT, '点');
       expect(getCellUnit(cell)).toBe(' 点');
     });
-    it('UNIT 属性無しなら空文字（スペース無し）', () => {
+    it('returns nothing, and no space, when there is none', () => {
       expect(getCellUnit(makeCell('hp'))).toBe('');
     });
   });
 
   describe('parseSelectChoices()', () => {
-    it('改行とカンマの両方をセパレータにする', () => {
+    it('reads the options apart by both lines and commas', () => {
       expect(parseSelectChoices('a,b\nc,d')).toEqual(['a', 'b', 'c', 'd']);
     });
-    it('空要素を除外', () => {
+    it('leaves the empty ones out', () => {
       expect(parseSelectChoices('a,,b\n\nc')).toEqual(['a', 'b', 'c']);
     });
-    it('前後の空白を trim', () => {
+    it('trims their ends', () => {
       expect(parseSelectChoices(' a , b\n c ')).toEqual(['a', 'b', 'c']);
     });
   });
 
   describe('getSelectOptions() / isSelectValueListed()', () => {
-    it('CHOICES 属性から選択肢を読み込み', () => {
+    it('reads the options off the attribute', () => {
       const cell = makeCell('sel', 'B');
       cell.setAttribute(DataElementAttribute.CHOICES, 'A,B,C');
       expect(getSelectOptions(cell)).toEqual(['A', 'B', 'C']);
       expect(isSelectValueListed(cell)).toBe(true);
     });
-    it('現在値が選択肢に無いと false', () => {
+    it('is false when the current value is not among them', () => {
       const cell = makeCell('sel', 'Z');
       cell.setAttribute(DataElementAttribute.CHOICES, 'A,B,C');
       expect(isSelectValueListed(cell)).toBe(false);
@@ -121,8 +121,8 @@ describe('table-layout cell helpers', () => {
   });
 
   describe('findGapCellInColumn()', () => {
-    it('該当カラム位置の gap セルを最初の行から見つけて返す', () => {
-      // 構造: parent → [row1[gapCell], row2[gapCell2]]
+    it('finds the gap cell of a column in the first row', () => {
+      // two rows, each with a gap cell
       const parent = DataElement.create('table', '');
       const row1 = DataElement.create('row1', '');
       const row2 = DataElement.create('row2', '');
@@ -141,14 +141,14 @@ describe('table-layout cell helpers', () => {
       expect(found).toBe(gap1);
     });
 
-    it('gap カラム以外は常に null', () => {
+    it('returns nothing for any column but a gap', () => {
       const parent = DataElement.create('table', '');
       expect(findGapCellInColumn(parent, makeColumn('mark', ''))).toBeNull();
     });
   });
 
   describe('buildTableColumnHeaderGroups()', () => {
-    it('連続する同一 group/label を span でまとめる', () => {
+    it('spans a run of columns that share a group or a label', () => {
       const cols: TableColumn[] = [
         { name: 'a', label: 'A', group: 'G1', kind: '' },
         { name: 'b', label: 'B', group: 'G1', kind: '' },
@@ -161,7 +161,7 @@ describe('table-layout cell helpers', () => {
       ]);
     });
 
-    it('group 空のカラムは label をキーに使う', () => {
+    it('keys a column with no group by its label', () => {
       const cols: TableColumn[] = [
         { name: 'a', label: 'Same', group: '', kind: '' },
         { name: 'b', label: 'Same', group: '', kind: '' },

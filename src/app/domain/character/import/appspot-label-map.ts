@@ -1,10 +1,10 @@
 /**
- * キャラクターシート倉庫（character-sheets.appspot.com）の編集フォーム（edit.html）から、
- * JSON のパス → 表示ラベルの対応表を作る。
+ * Builds a map from the paths in the json to the labels shown, out of the editing form
+ * of the sheet warehouse.
  *
- * 倉庫のフォームは値要素の `id` に JSON パスを埋め込み（例 `id="ability.brave.dice"`）、
- * 見出し `<th class="... title ...">武勇</th>` を文書順で直前に置く。パス接頭辞（ability.brave）を
- * 人間可読なラベル（武勇）へ写すための権威情報がフォーム自身にあるので、システム別の対応表は要らない。
+ * The form carries the path in the identifier of each value and puts a heading just before
+ * it in the document. The form itself is therefore the authority on which path means which
+ * label, and no table per system is needed.
  */
 
 function normalize(text: string | null): string {
@@ -14,7 +14,7 @@ function normalize(text: string | null): string {
     .trim();
 }
 
-/** 文書順で 1 つ前の要素（前兄弟の最深部、無ければ親）。 */
+/** The element before this one in the document: the deepest part of the previous sibling, or the parent. */
 function previousInDocumentOrder(node: Element): Element | null {
   const sibling = node.previousElementSibling;
   if (sibling) {
@@ -30,8 +30,8 @@ function isLabelText(text: string): boolean {
 }
 
 /**
- * 文書順で直前にある見出し `<th>` のラベルを返す。
- * `class="title"`（能力名等の見出し）があれば最優先、無ければ最寄りの `<th>`（行見出し）。
+ * Returns the label of the heading just before it in the document.
+ * A titled heading wins; otherwise the nearest heading, which is the row label.
  */
 function nearestTitleLabel(element: Element): string {
   const table = element.closest('table');
@@ -50,8 +50,8 @@ function nearestTitleLabel(element: Element): string {
 }
 
 /**
- * 編集フォーム HTML から `{JSONパス接頭辞: ラベル}` を作る。
- * `id="section.key.sub"` の最初の 2 階層（section.key）をパスとし、直前の見出しをラベルにする。
+ * Builds the map from the path prefixes to the labels out of the form.
+ * The first two levels of each identifier are the path, and the heading before it is the label.
  */
 export function buildAppspotLabelMap(html: string): Record<string, string> {
   const doc = new DOMParser().parseFromString(html, 'text/html');

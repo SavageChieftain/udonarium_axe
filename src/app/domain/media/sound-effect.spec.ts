@@ -7,31 +7,31 @@ import { ChatMessage } from '@axe/domain/chat/chat-message';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
 
 describe('PresetSound', () => {
-  it('dicePick が空文字列で初期化される', () => {
+  it('starts with no sound for picking a die up', () => {
     expect(PresetSound.dicePick).toBe('');
   });
 
-  it('dicePut が空文字列で初期化される', () => {
+  it('starts with none for putting one down', () => {
     expect(PresetSound.dicePut).toBe('');
   });
 
-  it('diceRoll1 が空文字列で初期化される', () => {
+  it('starts with none for the first roll', () => {
     expect(PresetSound.diceRoll1).toBe('');
   });
 
-  it('diceRoll2 が空文字列で初期化される', () => {
+  it('starts with none for the second', () => {
     expect(PresetSound.diceRoll2).toBe('');
   });
 
-  it('cardDraw が空文字列で初期化される', () => {
+  it('starts with none for drawing a card', () => {
     expect(PresetSound.cardDraw).toBe('');
   });
 
-  it('cardShuffle が空文字列で初期化される', () => {
+  it('starts with none for shuffling', () => {
     expect(PresetSound.cardShuffle).toBe('');
   });
 
-  it('alarm が空文字列で初期化される', () => {
+  it('starts with none for the alarm', () => {
     expect(PresetSound.alarm).toBe('');
   });
 });
@@ -53,8 +53,8 @@ describe('SoundEffect', () => {
     store.clearDeleteHistory();
   });
 
-  describe('インスタンス生成', () => {
-    it('SoundEffectを作成できる', () => {
+  describe('creating one', () => {
+    it('can be created', () => {
       const se = new SoundEffect();
       se.initialize();
       expect(se).toBeTruthy();
@@ -62,21 +62,21 @@ describe('SoundEffect', () => {
   });
 
   describe('static play()', () => {
-    it('文字列引数で呼び出せる', () => {
-      // callSoundEffect()を内部で呼ぶがエラーにはならない
+    it('takes a string', () => {
+      // calls through without throwing
       SoundEffect.play('test-identifier');
     });
   });
 
   describe('instance play()', () => {
-    it('文字列引数で呼び出せる', () => {
+    it('takes a string', () => {
       const se = new SoundEffect();
       se.initialize();
       se.play('test-identifier');
     });
   });
 
-  describe('sendMessage$購読によるダイス音再生', () => {
+  describe('playing a dice sound on a message', () => {
     const selfUserId = 'self-user';
 
     beforeEach(() => {
@@ -92,7 +92,7 @@ describe('SoundEffect', () => {
       resetPeerContextProvider();
     });
 
-    it('isDicebotがtrueのメッセージでSoundEffect.playが呼ばれる', async () => {
+    it('plays for a dice bot message', async () => {
       const se = new SoundEffect('test-se');
       se.initialize();
       store.add(se);
@@ -117,7 +117,7 @@ describe('SoundEffect', () => {
       playSpy.mockRestore();
     });
 
-    it('isDicebotがfalseのメッセージではplayが呼ばれない', async () => {
+    it('plays for nothing else', async () => {
       const se = new SoundEffect('test-se-2');
       se.initialize();
       store.add(se);

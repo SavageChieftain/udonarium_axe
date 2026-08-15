@@ -5,7 +5,7 @@ import {
 } from '@axe/domain/character/import/system-profiles/coc6-charasheet-profile';
 
 describe('buildCoc6CharasheetCharacter', () => {
-  // charasheet.vampire-blood.net の CoC（game="coc"）実データに即した構造
+  // built from real data of one system at the sheet archive
   const coc = {
     pc_name: '探索者すー',
     game: 'coc',
@@ -53,14 +53,14 @@ describe('buildCoc6CharasheetCharacter', () => {
     return section.groups.find((group) => group.label === groupLabel)?.fields ?? [];
   }
 
-  it('game="coc" のみを CoC6 として判別する', () => {
+  it('recognises that one token as the earlier edition', () => {
     expect(isCoc6CharasheetCharacter(coc)).toBe(true);
     expect(isCoc6CharasheetCharacter({ pc_name: 'X', game: 'coc7' })).toBe(false);
     expect(isCoc6CharasheetCharacter({ pc_name: 'X', game: 'arianrhod' })).toBe(false);
     expect(isCoc6CharasheetCharacter({ kind: 'character' })).toBe(false);
   });
 
-  it('名前・色・メモ・dicebot を取り込む', () => {
+  it('takes the name, the colour, the notes and the dice bot', () => {
     const result = buildCoc6CharasheetCharacter(coc)!;
     expect(result.sourceFormat).toBe('charasheet');
     expect(result.name).toBe('探索者すー');
@@ -69,7 +69,7 @@ describe('buildCoc6CharasheetCharacter', () => {
     expect(result.dicebot).toBe('Cthulhu');
   });
 
-  it('能力値と派生値を params に、HP/MP は params に出さない', () => {
+  it('takes the abilities and what follows from them as fields, leaving the resources out of them', () => {
     const result = buildCoc6CharasheetCharacter(coc)!;
     expect(result.params).toContainEqual({ label: 'STR', value: '11' });
     expect(result.params).toContainEqual({ label: 'EDU', value: '17' });
@@ -80,14 +80,14 @@ describe('buildCoc6CharasheetCharacter', () => {
     expect(result.params.some((param) => param.label === 'MP')).toBe(false);
   });
 
-  it('正気度・HP・MP を現在/最大リソースとして取り込む', () => {
+  it('takes the sanity and the two resources with their current values and maxima', () => {
     const result = buildCoc6CharasheetCharacter(coc)!;
     expect(result.statuses).toContainEqual({ label: '正気度', value: 80, max: 99 });
     expect(result.statuses).toContainEqual({ label: 'HP', value: 11, max: 11 });
     expect(result.statuses).toContainEqual({ label: 'MP', value: 16, max: 16 });
   });
 
-  it('技能を固定枠の名前＋カスタム名で合計値フィールドに展開する', () => {
+  it('spreads the skills into total fields under their fixed names and any given ones', () => {
     const result = buildCoc6CharasheetCharacter(coc)!;
     const skills = findSection(result.sections, '技能')!;
     expect(skills).toBeTruthy();
@@ -103,7 +103,7 @@ describe('buildCoc6CharasheetCharacter', () => {
     expect(negotiation).toContainEqual({ label: '威圧', value: 70, kind: 'number' });
   });
 
-  it('武器・所持品を名前付きグループに展開する', () => {
+  it('spreads the weapons and belongings into named groups', () => {
     const result = buildCoc6CharasheetCharacter(coc)!;
     const weapons = findSection(result.sections, '武器')!;
     expect(weapons.groups.map((group) => group.label)).toEqual(['ナイフ']);
@@ -113,7 +113,7 @@ describe('buildCoc6CharasheetCharacter', () => {
     expect(items.groups.map((group) => group.label)).toEqual(['財布']);
   });
 
-  it('能力値・技能配列・複製列は「その他」へ漏らさず、素のプロフィール項目だけ残す', () => {
+  it('keeps the abilities, the skill arrays and the duplicated columns out of the leftovers, leaving the plain profile fields', () => {
     const result = buildCoc6CharasheetCharacter(coc)!;
     const other = findSection(result.sections, 'その他');
     const labels = other ? other.groups[0].fields.map((field) => field.label) : [];
@@ -124,7 +124,7 @@ describe('buildCoc6CharasheetCharacter', () => {
     expect(labels).not.toContain('arms_name');
   });
 
-  it('チャットパレットに能力値・SAN・全技能（初期値どまりも含む）・ダメージボーナスのロールを生成する', () => {
+  it('builds rolls for the abilities, the sanity, every skill and the damage bonus into the palette', () => {
     const result = buildCoc6CharasheetCharacter(coc)!;
     expect(result.commands).toContain('CCB<={STR}*5 【STR】');
     expect(result.commands).toContain('CCB<={アイデア} 【アイデア】');

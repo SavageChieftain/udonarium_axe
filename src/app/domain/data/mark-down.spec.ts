@@ -25,40 +25,40 @@ describe('MarkDown', () => {
   });
 
   describe('markDownCheckBox()', () => {
-    it('未チェックのチェックボックスをHTMLに変換する', () => {
+    it('renders an empty check box', () => {
       const result = markDown.markDownCheckBox('[]項目1', 'base');
       expect(result).toContain('<input');
       expect(result).toContain('type="checkbox"');
       expect(result).not.toContain('checked');
     });
 
-    it('チェック済みのチェックボックスをHTMLに変換する', () => {
+    it('renders a ticked one', () => {
       const result = markDown.markDownCheckBox('[x]項目1', 'base');
       expect(result).toContain('checked="checked"');
     });
 
-    it('全角チェックボックスも変換する', () => {
+    it('renders a full-width one', () => {
       const result = markDown.markDownCheckBox('［x］項目1', 'base');
       expect(result).toContain('checked="checked"');
     });
 
-    it('大文字Xのチェックボックスも変換する', () => {
+    it('renders one ticked with a capital', () => {
       const result = markDown.markDownCheckBox('[X]項目1', 'base');
       expect(result).toContain('checked="checked"');
     });
 
-    it('baseIdを含むidが振られる', () => {
+    it('gives each an identifier built from the base', () => {
       const result = markDown.markDownCheckBox('[]項目', 'test-id');
       expect(result).toContain('id="test-id_mark_00000000"');
     });
 
-    it('複数のチェックボックスに連番IDが振られる', () => {
+    it('numbers those identifiers in order', () => {
       const result = markDown.markDownCheckBox('[]項目1[]項目2', 'base');
       expect(result).toContain('id="base_mark_00000000"');
       expect(result).toContain('id="base_mark_00000001"');
     });
 
-    it('HTMLエスケープが適用される', () => {
+    it('escapes the markup', () => {
       const result = markDown.markDownCheckBox('<script>alert(1)</script>', 'base');
       expect(result).not.toContain('<script>');
       expect(result).toContain('&lt;script&gt;');
@@ -66,7 +66,7 @@ describe('MarkDown', () => {
   });
 
   describe('markDownTable()', () => {
-    it('パイプ区切りのテーブルをHTML要素に変換する', () => {
+    it('renders a table written in cells', () => {
       const input = '|列1|列2|\n|データ1|データ2|';
       const result = markDown.markDownTable(input);
       expect(result).toContain('markdown_table');
@@ -76,20 +76,20 @@ describe('MarkDown', () => {
       expect(result).toContain('列2');
     });
 
-    it('テーブルでない行はそのまま出力する', () => {
+    it('leaves a line that is not a table alone', () => {
       const result = markDown.markDownTable('通常のテキスト');
       expect(result).toContain('通常のテキスト');
       expect(result).not.toContain('markdown_table');
     });
 
-    it('テーブルの後に通常テキストが続く場合閉じタグを出力する', () => {
+    it('closes the table when ordinary text follows it', () => {
       const input = '|列1|列2|\n通常テキスト';
       const result = markDown.markDownTable(input);
       expect(result).toContain('</div>');
       expect(result).toContain('通常テキスト');
     });
 
-    it('全角パイプも区切りとして認識する', () => {
+    it('reads a full-width bar as a separator too', () => {
       const input = '｜列1｜列2｜';
       const result = markDown.markDownTable(input);
       expect(result).toContain('markdown_table');
@@ -97,23 +97,23 @@ describe('MarkDown', () => {
   });
 
   describe('changeMarkDownCheckBox()', () => {
-    it('不正なIDの場合何もしない', () => {
+    it('does nothing for an identifier it cannot use', () => {
       markDown.changeMarkDownCheckBox('invalid', 1);
-      // エラーが発生しないことを確認
+      // and throws nothing
     });
 
-    it('存在しないオブジェクトの場合何もしない', () => {
+    it('does nothing for an object that is not there', () => {
       markDown.changeMarkDownCheckBox('nonexistent_mark_00000000', 1);
-      // エラーが発生しないことを確認
+      // and throws nothing
     });
 
-    it('同じタイムスタンプでの連続呼び出しは無視する', () => {
+    it('ignores a second call at the same moment', () => {
       markDown.changeMarkDownCheckBox('any_mark_00000000', 100);
       markDown.changeMarkDownCheckBox('any_mark_00000000', 100);
-      // 2回目は何もしない（タイムスタンプが同じなので）
+      // the second does nothing, the moment being the same
     });
 
-    it('チェックボックス記法がないテキストでも例外を投げない', () => {
+    it('throws nothing for text with no check boxes in it', () => {
       const data = DataElement.create('memo', 'plain text');
 
       expect(() => markDown.changeMarkDownCheckBox(`${data.identifier}_mark_00000000`, 1)).not.toThrow();

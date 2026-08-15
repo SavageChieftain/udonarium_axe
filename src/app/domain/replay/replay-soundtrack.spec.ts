@@ -32,7 +32,7 @@ function storyboard(times: [number, number][], totalMs: number): ReplayStoryboar
 }
 
 describe('buildReplaySoundtrack()', () => {
-  it('効果音をその場面の時刻に置くこと', () => {
+  it('places a sound effect at the moment of its scene', () => {
     const track = buildReplaySoundtrack(
       [event(1, ReplayEventKind.MediaSoundEffect, { identifier: 'se-1' })],
       storyboard([[1, 2500]], 10_000)
@@ -41,7 +41,7 @@ describe('buildReplaySoundtrack()', () => {
     expect(track.effects).toEqual([{ audioIdentifier: 'se-1', startMs: 2500, offsetMs: 0, gain: REPLAY_SE_GAIN }]);
   });
 
-  it('鳴らす音の分からない効果音は捨てること', () => {
+  it('throws away one whose sound it does not know', () => {
     const track = buildReplaySoundtrack(
       [event(1, ReplayEventKind.MediaSoundEffect, { identifier: '' })],
       storyboard([[1, 0]], 10_000)
@@ -50,7 +50,7 @@ describe('buildReplaySoundtrack()', () => {
     expect(track.effects).toEqual([]);
   });
 
-  it('BGM を鳴り始めから止まるまでの区間にすること', () => {
+  it('runs the music from where it starts to where it stops', () => {
     const track = buildReplaySoundtrack(
       [
         event(1, ReplayEventKind.MediaBgm, { isPlaying: true, startTime: 12 }, 'bgm-1'),
@@ -77,7 +77,7 @@ describe('buildReplaySoundtrack()', () => {
     ]);
   });
 
-  it('鳴りっぱなしの BGM は終わりまで伸ばすこと', () => {
+  it('carries music left playing through to the end', () => {
     const track = buildReplaySoundtrack(
       [event(1, ReplayEventKind.MediaBgm, { isPlaying: true }, 'bgm-1')],
       storyboard([[1, 1000]], 10_000)
@@ -86,7 +86,7 @@ describe('buildReplaySoundtrack()', () => {
     expect(track.music[0]).toMatchObject({ startMs: 1000, endMs: 10_000 });
   });
 
-  it('曲が変わったら前の曲を切ること', () => {
+  it('cuts the previous track when the music changes', () => {
     const track = buildReplaySoundtrack(
       [
         event(1, ReplayEventKind.MediaBgm, { isPlaying: true }, 'bgm-1'),
@@ -107,7 +107,7 @@ describe('buildReplaySoundtrack()', () => {
     ]);
   });
 
-  it('長さの無い区間は残さないこと', () => {
+  it('keeps no stretch of no length', () => {
     const track = buildReplaySoundtrack(
       [
         event(1, ReplayEventKind.MediaBgm, { isPlaying: true }, 'bgm-1'),
@@ -125,7 +125,7 @@ describe('buildReplaySoundtrack()', () => {
     expect(track.music).toEqual([]);
   });
 
-  it('絵コンテに載らない出来事は鳴らさないこと', () => {
+  it('sounds nothing for an event the storyboard leaves out', () => {
     const track = buildReplaySoundtrack(
       [event(9, ReplayEventKind.MediaSoundEffect, { identifier: 'se-1' })],
       storyboard([[1, 0]], 10_000)
@@ -134,7 +134,7 @@ describe('buildReplaySoundtrack()', () => {
     expect(track.effects).toEqual([]);
   });
 
-  it('終わりより後ろの音は鳴らさないこと', () => {
+  it('sounds nothing past the end', () => {
     const track = buildReplaySoundtrack(
       [event(1, ReplayEventKind.MediaSoundEffect, { identifier: 'se-1' })],
       storyboard([[1, 10_000]], 10_000)
@@ -143,7 +143,7 @@ describe('buildReplaySoundtrack()', () => {
     expect(track.effects).toEqual([]);
   });
 
-  it('絵の無い記録では音も作らないこと', () => {
+  it('makes no sound for a recording with no picture', () => {
     expect(
       buildReplaySoundtrack([event(1, ReplayEventKind.MediaSoundEffect, { identifier: 'se-1' })], storyboard([], 0))
     ).toBe(EMPTY_REPLAY_SOUNDTRACK);
@@ -165,11 +165,11 @@ describe('collectSoundtrackAssetIds() / hasReplaySound()', () => {
     )
   );
 
-  it('鳴らす音をまとめて返すこと', () => {
+  it('returns the sounds together', () => {
     expect(collectSoundtrackAssetIds(track)).toEqual(['se-1', 'bgm-1']);
   });
 
-  it('鳴らす音があるかを答えること', () => {
+  it('says whether there is anything to sound', () => {
     expect(hasReplaySound(track)).toBe(true);
     expect(hasReplaySound(EMPTY_REPLAY_SOUNDTRACK)).toBe(false);
   });

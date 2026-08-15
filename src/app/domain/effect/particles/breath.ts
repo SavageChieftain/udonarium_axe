@@ -7,10 +7,10 @@ import {
 } from '@axe/domain/effect/particles/shared';
 
 /**
- * 吐くもの・吸うもの。
+ * What is breathed out and what is drawn in.
  */
 
-/** ブレスの吹き付け。対象の周りで渦を巻いて散る。 */
+/** The blast of a breath, which swirls about the target and scatters. */
 export function emitBreath(
   particles: EffectParticle[],
   random: () => number,
@@ -18,12 +18,12 @@ export function emitBreath(
   base: number,
   ramp: ColorRamp
 ): void {
-  // この層は対象の上にある。届く前から出すと、吹き付ける前に燃えていることになる。
+  // This layer sits over the target; shown before it arrives, the target burns before it is breathed on.
   if (progress < 0.12) return;
 
   const life = progress > 0.74 ? 1 - (progress - 0.74) / 0.26 : 1;
 
-  // 当たった面で割れて外へ噴き散る。ゆっくり漂わせると、そよ風に見えてしまう。
+  // It breaks on the struck face and sprays outwards; drifting slowly it reads as a breeze.
   for (let index = 0; index < 38; index++) {
     const phase = random();
     const angle = random() * Math.PI * 2;
@@ -35,7 +35,7 @@ export function emitBreath(
       y: Math.sin(angle) * blast * 0.55 - base * (0.25 + local * local * 1.7),
       size: base * (0.4 + random() * 0.45) * (1 - local * 0.3),
       angle,
-      // 進む向きへ引き伸ばす。丸のままだと速さが読めない。
+      // It is drawn out along its travel; left round, the speed does not read.
       stretch: 1.6 + local * 2.4,
       color: flameColor(local, ramp),
       alpha: life * (1 - local) * 0.8,
@@ -58,7 +58,7 @@ export function emitBreath(
   }
 }
 
-/** 吸収される生命力。対象から吸い出される粒。 */
+/** The life drained: the particles drawn out of the target. */
 export function emitDrain(
   particles: EffectParticle[],
   random: () => number,
@@ -73,7 +73,7 @@ export function emitDrain(
     const phase = random();
     const angle = random() * Math.PI * 2;
     const local = (progress * 2 + phase) % 1;
-    // 外から中心へ集める。逆向きにすると回復に見えてしまう。
+    // They gather inwards; the other way round it reads as healing.
     const radius = base * (1.5 - local * 1.3);
     particles.push({
       x: Math.cos(angle) * radius,

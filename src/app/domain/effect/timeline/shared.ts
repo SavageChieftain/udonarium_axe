@@ -5,17 +5,17 @@ import { type ShapeColors } from '@axe/domain/effect/effect-shapes';
 import { type ViewRotation } from '@axe/domain/effect/effect-view';
 
 /**
- * 共有の下ごしらえ。
+ * The shared groundwork.
  *
- * 座標・色・乱数のように、どの演出からも使うものだけを置く。
- * ここから家族ごとの module を参照しない（参照すると輪になる）。
+ * Only what every effect uses: the coordinates, the colours and the randomness.
+ * It refers to no family of effects, which would make a loop.
  */
 
 /**
- * 着弾の描き方。
+ * How a landing is drawn.
  *
- * 飛び道具や刃は、当たった先の弾け方を属性ごとの演出へ委ねる。委ね先を import すると
- * 呼び合いになるので、**渡してもらう**。
+ * A projectile or a blade leaves how it bursts to the effect of its element. Referring to
+ * that effect would have them call each other, so it is **handed in** instead.
  */
 export type ImpactPainter = (
   kind: EffectKind,
@@ -33,9 +33,9 @@ export interface EffectSprite {
   x: number;
   y: number;
   z: number;
-  /** 板ポリ面内での横ずらし(px)。カメラを回しても形が崩れない。 */
+  /** The offset across the billboard, which holds its shape as the camera turns. */
   offsetX: number;
-  /** 板ポリ面内での縦ずらし(px)。画面下方向が正。 */
+  /** The offset down it, positive towards the bottom of the screen. */
   offsetY: number;
   width: number;
   height: number;
@@ -43,31 +43,31 @@ export interface EffectSprite {
   opacity: number;
   background: string;
   borderRadius: string;
-  /** 空文字なら切り抜き無し。 */
+  /** Empty for no clip. */
   clipPath: string;
-  /** 空文字なら影無し。box-shadow の値をそのまま渡す。 */
+  /** Empty for no shadow; otherwise the shadow is passed through as it is. */
   shadow: string;
-  /** 空文字ならアニメーション無し。CSS animation ショートハンドを内側の層に掛ける。 */
+  /** Empty for no animation; otherwise it is applied to the inner layer. */
   animation: string;
-  /** animation を掛ける層の transform-origin。空文字なら中心。 */
+  /** What the animated layer turns about. Empty for its centre. */
   origin: string;
-  /** 空文字以外なら中身を SVG として描く。経過時間で変えないこと。 */
+  /** Anything but empty is drawn as a drawing, and must not change with the elapsed time. */
   svg: string;
-  /** true なら盤面に寝かせて描く。false ならカメラに正対させる。 */
+  /** True to lay it flat on the board, false to face it at the camera. */
   flat: boolean;
 }
 
 export interface EffectSpriteOptions {
   baseSize: number;
-  /** 盤面の向き。飛翔体を画面上の進行方向へ引き伸ばすのに使う。 */
+  /** Which way the board faces, which is how a projectile is drawn out along its travel on the screen. */
   viewRotation?: ViewRotation | null;
-  /** 描画しない対象の identifier（視界外のコマなど）。 */
+  /** The targets not to draw, such as a piece out of sight. */
   hiddenIdentifiers?: ReadonlySet<string>;
-  /** 追従表示のため、対象の現在位置を解決する。省略時は発火時の座標を使う。 */
+  /** Resolves where a target is now, for an effect that follows it. Without it the position at the firing is used. */
   resolvePosition?: (identifier: string) => { x: number; y: number; z: number } | null;
   /**
-   * 対象コマの絵。崩壊や両断は、コマの絵そのものを切り分けて動かす。
-   * 絵が無いコマでは光の欠片で代用する。
+   * The picture of the target. Crumbling and cleaving cut that picture and move it.
+   * A piece with no picture makes do with shards of light.
    */
   resolveImage?: (identifier: string) => string;
 }
@@ -87,7 +87,7 @@ export function along(origin: Point3, center: Point3, at: number): Point3 {
   };
 }
 
-/** 加算合成を使わないぶん、光り方は box-shadow の広がりで作る。 */
+/** With no additive blending here, the glow comes from the spread of the shadow. */
 export function glow(innerRadius: number, innerColor: string, outerRadius?: number, outerColor?: string): string {
   const inner = `0 0 ${Math.round(innerRadius * 1.4)}px ${innerColor}`;
   if (outerRadius == null || outerColor == null) return inner;
@@ -98,7 +98,7 @@ export function colorsOf(preset: EffectPreset): ShapeColors {
   return { core: preset.colorPrimary, edge: preset.colorSecondary };
 }
 
-/** 中心から四方に伸びる光の筋。アニメ調の閃光に欠かせない。 */
+/** The streaks of light reaching out from the centre, without which a drawn flash is not one. */
 export function appendFlareSpikes(
   sprites: EffectSprite[],
   prefix: string,
@@ -127,12 +127,12 @@ export function appendFlareSpikes(
   }
 }
 
-/** 対象コマの絵。取れないときは空を返し、呼び出し側が光の欠片で代用する。 */
+/** The picture of the target. Empty when there is none, and the caller makes do with shards of light. */
 export function imageOf(options: EffectSpriteOptions, identifier: string): string {
   return options.resolveImage?.(identifier) ?? '';
 }
 
-/** 発射元。指定が無ければ対象の斜め上から飛んでくる扱いにする。 */
+/** The origin. Without one it comes down at an angle onto the target. */
 export function projectileOrigin(cast: EffectCast, center: Point3, base: number): Point3 {
   if (cast.origin) return cast.origin;
   return { x: center.x - base * 4, y: center.y - base * 4, z: center.z + base * 4 };
@@ -142,7 +142,7 @@ export function round2(value: number): number {
   return Math.round(value * 100) / 100;
 }
 
-/** 経路上の 1 点。飛翔体と違って山なりにはしない。 */
+/** One point along the path. Unlike a projectile it does not arc. */
 export function pointBetween(from: Point3, to: Point3, at: number): Point3 {
   return {
     x: from.x + (to.x - from.x) * at,
@@ -174,7 +174,7 @@ export function blank(): EffectSprite {
   };
 }
 
-/** 経過時間で乱数の消費数が変わらないよう、必要なぶんを先に取り出す。 */
+/** What is needed is drawn first, so the elapsed time does not change how much randomness is used. */
 export function takeRandoms(random: () => number, count: number): number[] {
   const values: number[] = [];
   for (let index = 0; index < count; index++) values.push(random());
@@ -195,9 +195,9 @@ export function easeOutCubic(value: number): number {
   return 1 - Math.pow(1 - clamped, 3);
 }
 
-/** 立ち上がり `rise` の割合で 0→1、残りで 1→0 に落ちる。 */
+/** It rises to full over the given share and falls away over the rest. */
 export function fadeInOut(value: number, rise: number): number {
-  // 数でない進みは 0 に倒す。素通しすると、出さないための番人（<= 0）を抜けて粒が壊れる。
+  // A progress that is not a number falls back to nothing; passed through it slips the guard that keeps particles from being made at all and breaks them.
   const clamped = clamp01(value);
   if (clamped < rise) return clamped / rise;
   return 1 - (clamped - rise) / (1 - rise);

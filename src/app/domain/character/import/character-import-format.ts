@@ -11,12 +11,12 @@ import {
 import { isYtsheetCharacter, parseYtsheetCharacter } from '@axe/domain/character/import/ytsheet-character-parser';
 
 /**
- * 貼り付けテキスト（JSON）から取り込みフォーマットを自動判別して正規化モデルへ変換する。
- * 対応形式: ココフォリア コマJSON / キャラクター保管所 JSON / キャラクターシート倉庫 JSON。
- * 判別不能なら null。
+ * Recognises the format of pasted json and turns it into the model used here.
+ * It reads a piece from the other tool, the sheet archive and the sheet warehouse.
+ * Null for anything else.
  *
- * いあきゃら・Charaeno・ゆとシート・TRPGスタジオ・CharaXiv 等の作成系サービスは
- * ココフォリア形式を出力するため、本ディスパッチャ 1 本で広範にカバーできる。
+ * The sheet-building services put out the format of the other tool, so this one dispatcher
+ * covers a great many of them.
  */
 export function parseImportedCharacterJson(json: unknown, systemHint?: string): ImportedCharacter | null {
   if (isCcfoliaCharacter(json)) return parseCcfoliaCharacter(json);

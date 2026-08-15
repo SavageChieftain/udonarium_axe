@@ -1,24 +1,24 @@
 import type { ReplayStoryboard } from '@axe/domain/replay/replay-storyboard';
 
 /**
- * 記録を読み物として書き出す。
+ * Writes a recording out as something to read.
  *
- * 動画と同じ絵コンテ（`buildReplayStoryboard`）を使う。あちらは canvas に描き、こちらは文字にする。
- * 別々に組み立てると、動画と読み物で章の切れ目や地の文の扱いが食い違う。
+ * It works from the same storyboard as the video; that one draws to a canvas and this one to text.
+ * Built apart, the chapter breaks and the handling of narration would drift between them.
  */
 
 export enum ReplayScriptFormat {
-  /** 台本。話者を行頭に置く。 */
+  /** A script, with the speaker at the head of the line. */
   Script = 'script',
-  /** 小説。地の文と鉤括弧で組む。 */
+  /** Prose, set with narration and quotation marks. */
   Novel = 'novel',
 }
 
 export interface ReplayScriptOptions {
   format: ReplayScriptFormat;
-  /** 表題。空なら見出しを置かない。 */
+  /** The title. Empty for no heading. */
   title: string;
-  /** 章の頭に経過時間を添える。 */
+  /** The elapsed time at the head of each chapter. */
   withTime: boolean;
 }
 
@@ -28,9 +28,9 @@ export const DEFAULT_REPLAY_SCRIPT_OPTIONS: ReplayScriptOptions = {
   withTime: false,
 };
 
-/** 続きのカットは 1 つの発言に戻す。動画では読める長さに割ってあるが、読み物では切れ目が邪魔になる。 */
+/** Continued shots are put back into one line: the video splits them to stay readable, and in something to read the breaks get in the way. */
 export interface ReplayScriptLine {
-  /** 元の発言。割られたカットは同じ番号を持つ。 */
+  /** The original line. Every shot split from it carries its number. */
   seq: number;
   chapter: string;
   speaker: string;
@@ -48,7 +48,7 @@ export function buildReplayScriptLines(storyboard: ReplayStoryboard): ReplayScri
     const text = shot.text.trim();
     if (text.length < 1) continue;
 
-    // 割られたカットは元の発言と同じ番号を持つ。話者で見ると、続けて喋った別の発言まで繋がる。
+    // The split shots share that number; going by the speaker would join two separate lines by one person.
     const previous = lines[lines.length - 1];
     if (previous && previous.seq === shot.seq) {
       previous.text += text;
@@ -91,14 +91,14 @@ export function buildReplayScriptMarkdown(
   return parts.join('\n\n') + (parts.length > 0 ? '\n' : '');
 }
 
-/** 1 行ぶんの言い回し。 */
+/** How one line is worded. */
 function sentenceOf(line: ReplayScriptLine, format: ReplayScriptFormat): string {
   if (line.isNarration || line.speaker.length < 1) return line.text;
   if (format === ReplayScriptFormat.Script) return `**${line.speaker}**　${line.text}`;
   return `${line.speaker}「${line.text}」`;
 }
 
-/** 経過時間の表記。読み物では章の頭にだけ添える。 */
+/** How the elapsed time is written. In something to read it appears at the head of a chapter alone. */
 export function replayScriptElapsed(ms: number): string {
   const total = Math.max(0, Math.floor(ms / 1000));
   const pad = (value: number): string => String(value).padStart(2, '0');

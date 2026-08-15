@@ -5,7 +5,7 @@ import {
 } from '@axe/domain/character/import/system-profiles/coc7-charasheet-profile';
 
 describe('buildCoc7CharasheetCharacter', () => {
-  // charasheet.vampire-blood.net の 新クトゥルフ（game="coc7"）実データに即した構造
+  // built from real data of the later edition at the archive
   const coc7 = {
     pc_name: '探索者ナナ',
     game: 'coc7',
@@ -55,13 +55,13 @@ describe('buildCoc7CharasheetCharacter', () => {
     return section.groups.find((group) => group.label === groupLabel)?.fields ?? [];
   }
 
-  it('game="coc7" のみを CoC7 として判別する', () => {
+  it('recognises that one token as the later edition', () => {
     expect(isCoc7CharasheetCharacter(coc7)).toBe(true);
     expect(isCoc7CharasheetCharacter({ pc_name: 'X', game: 'coc' })).toBe(false);
     expect(isCoc7CharasheetCharacter({ pc_name: 'X', game: 'arianrhod' })).toBe(false);
   });
 
-  it('名前・色・メモ・dicebot を取り込む', () => {
+  it('takes the name, the colour, the notes and the dice bot', () => {
     const result = buildCoc7CharasheetCharacter(coc7)!;
     expect(result.sourceFormat).toBe('charasheet');
     expect(result.name).toBe('探索者ナナ');
@@ -69,7 +69,7 @@ describe('buildCoc7CharasheetCharacter', () => {
     expect(result.dicebot).toBe('Cthulhu7th');
   });
 
-  it('能力値（パーセンタイル）・移動率・DB・ビルドを params に、HP/MP は出さない', () => {
+  it('takes the percentile abilities, the movement, the bonus and the build as fields, leaving the resources out', () => {
     const result = buildCoc7CharasheetCharacter(coc7)!;
     expect(result.params).toContainEqual({ label: 'STR', value: '65' });
     expect(result.params).toContainEqual({ label: 'EDU', value: '80' });
@@ -80,7 +80,7 @@ describe('buildCoc7CharasheetCharacter', () => {
     expect(result.params.some((param) => param.label === 'MP')).toBe(false);
   });
 
-  it('正気度・HP・MP・幸運をリソースとして取り込む', () => {
+  it('takes the sanity, the two resources and the luck as resources', () => {
     const result = buildCoc7CharasheetCharacter(coc7)!;
     expect(result.statuses).toContainEqual({ label: '正気度', value: 61, max: 99 });
     expect(result.statuses).toContainEqual({ label: 'HP', value: 16, max: 16 });
@@ -88,7 +88,7 @@ describe('buildCoc7CharasheetCharacter', () => {
     expect(result.statuses).toContainEqual({ label: '幸運', value: 39, max: 39 });
   });
 
-  it('技能を名前付き（SKAN）で SKTP カテゴリ別に展開する', () => {
+  it('spreads the skills by their names into their categories', () => {
     const result = buildCoc7CharasheetCharacter(coc7)!;
     const skills = findSection(result.sections, '技能')!;
     expect(findGroupFields(skills, '戦闘技能')).toContainEqual({ label: '回避', value: 70, kind: 'number' });
@@ -97,7 +97,7 @@ describe('buildCoc7CharasheetCharacter', () => {
     expect(findGroupFields(skills, '知識技能')).toContainEqual({ label: '医学', value: 1, kind: 'number' });
   });
 
-  it('武器・所持品を名前付きグループに展開する', () => {
+  it('spreads the weapons and belongings into named groups', () => {
     const result = buildCoc7CharasheetCharacter(coc7)!;
     expect(findGroupFields(findSection(result.sections, '武器')!, 'ナイフ')).toContainEqual({
       label: 'ダメージ',
@@ -107,7 +107,7 @@ describe('buildCoc7CharasheetCharacter', () => {
     expect(findSection(result.sections, '所持品')!.groups.map((group) => group.label)).toEqual(['カメラ']);
   });
 
-  it('能力値・技能配列・集計値・複製列は「その他」へ漏らさず、素のプロフィールだけ残す', () => {
+  it('keeps the abilities, the skill arrays, the totals and the duplicated columns out of the leftovers', () => {
     const result = buildCoc7CharasheetCharacter(coc7)!;
     const other = findSection(result.sections, 'その他');
     const labels = other ? other.groups[0].fields.map((field) => field.label) : [];
@@ -120,7 +120,7 @@ describe('buildCoc7CharasheetCharacter', () => {
     expect(labels).not.toContain('TS_Total');
   });
 
-  it('チャットパレットは CoC7 の CC<= 形式で能力値（×5なし）・SAN・幸運・全技能・DBを生成する', () => {
+  it('builds the rolls of that edition into the palette, its abilities unmultiplied, with the sanity, the luck, every skill and the bonus', () => {
     const result = buildCoc7CharasheetCharacter(coc7)!;
     expect(result.commands).toContain('CC<={STR} 【STR】');
     expect(result.commands).toContain('CC<={幸運} 【幸運】');

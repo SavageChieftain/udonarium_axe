@@ -23,19 +23,19 @@ describe('TableSelecter', () => {
   });
 
   describe('instance (singleton)', () => {
-    it('シングルトンインスタンスを返す', () => {
+    it('returns the one instance', () => {
       const instance1 = TableSelecter.instance;
       const instance2 = TableSelecter.instance;
       expect(instance1).toBe(instance2);
     });
 
-    it('identifierが"TableSelecter"', () => {
+    it('identifies itself as the table selector', () => {
       expect(TableSelecter.instance.identifier).toBe('TableSelecter');
     });
   });
 
-  describe('SyncVar デフォルト値', () => {
-    it('viewTableIdentifier がデフォルト空文字', () => {
+  describe('the defaults of the synchronised fields', () => {
+    it('starts naming no table', () => {
       expect(TableSelecter.instance.viewTableIdentifier).toBe('');
     });
   });

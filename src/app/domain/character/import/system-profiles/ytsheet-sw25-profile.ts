@@ -20,7 +20,7 @@ const ABILITIES: { value: string; bonus: string; label: string }[] = [
   { value: 'sttMnd', bonus: 'bonusMnd', label: '精神' },
 ];
 
-// ゆとシートⅡ for SW2.5 の技能レベルキー lv{略号} → 技能名。実サンプルで Gra/Rid/Sco/Mag/Enh/Sag を確認済。
+// The abbreviated level keys of that system and their skills, as the real samples show.
 const SKILLS: { key: string; name: string }[] = [
   { key: 'lvFig', name: 'ファイター' },
   { key: 'lvFen', name: 'フェンサー' },

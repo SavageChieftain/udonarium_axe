@@ -1,7 +1,7 @@
 import { Card } from '@axe/domain/card/card';
 import { CutIn } from '@axe/domain/media/cut-in';
 
-/** 明示的な紐づけを優先し、無ければカード名と同じ名前のカットインを使う。 */
+/** A tie wins; without one, a cut-in of the same name as the card is used. */
 export function resolveFlipCutIn(card: Card, cutIns: readonly CutIn[]): CutIn | null {
   if (card.cutInIdentifier.length > 0) {
     return cutIns.find((cutIn) => cutIn.identifier === card.cutInIdentifier) ?? null;

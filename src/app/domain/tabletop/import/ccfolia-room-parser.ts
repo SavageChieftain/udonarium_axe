@@ -113,8 +113,8 @@ function parsePiece(raw: unknown): ImportedRoomPiece | null {
 }
 
 /**
- * ココフォリアのルームデータ ZIP に含まれる `__data.json` かどうかを判定する。
- * 最小条件は `meta.version` と `entities` の 2 つ。
+ * Whether this is the data file inside an archive of room data from the other tool.
+ * It needs a version and its entities, and nothing else.
  */
 export function isCcfoliaRoomData(parsed: unknown): boolean {
   const record = asRecord(parsed);
@@ -124,8 +124,8 @@ export function isCcfoliaRoomData(parsed: unknown): boolean {
 }
 
 /**
- * `__data.json` を AXE 側の正規化モデルへ変換する。
- * `decks` / `effects` / `scenes` は内部スキーマが未確定のため写さず、件数だけ skipped へ残す。
+ * Turns that file into the model used here.
+ * The decks, the effects and the scenes have no settled shape, so they are counted as skipped rather than copied.
  */
 export function parseCcfoliaRoom(parsed: unknown): ImportedRoom | null {
   if (!isCcfoliaRoomData(parsed)) return null;

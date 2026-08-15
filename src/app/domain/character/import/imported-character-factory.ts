@@ -24,9 +24,9 @@ const SECTION_PROFILE = 'プロフィール';
 const GROUP_BASIC = '基本';
 
 /**
- * 正規化モデル ImportedCharacter から AXE のキャラコマ (GameCharacter) を組み立てる純粋ファクトリ。
- * CharacterTemplateFactory.createDefault と同じ DI 非依存の組み立て規約に従う。
- * 画像は事前に ImageStorage へ解決済みの identifier を渡す（解決は application 層の責務）。
+ * Builds a character piece out of the imported model, and nothing else.
+ * It follows the same rules as the default template factory, and asks for nothing to be injected.
+ * The picture arrives as an identifier already in storage; resolving it belongs to the layer above.
  */
 export class ImportedCharacterFactory {
   static create(imported: ImportedCharacter, imageIdentifier: string): GameCharacter {
@@ -134,8 +134,8 @@ export class ImportedCharacterFactory {
   }
 
   /**
-   * システム固有データ（技能・コンボ・武器など）を section > group > field として detail へ展開する。
-   * 要素 identifier は uuid 任せにして、同名フィールド（多数の name など）でも衝突しないようにする。
+   * Spreads the system's own data, such as the skills, combos and weapons, into sections, groups and fields on the sheet.
+   * Each element takes a generated identifier, so many fields of one name do not collide.
    */
   private static appendSections(character: GameCharacter, sections: ImportedSection[]): void {
     for (const section of sections) {
@@ -159,8 +159,8 @@ export class ImportedCharacterFactory {
   }
 
   /**
-   * サイコフィクション系の特技表（ギャップ付き）を CHECK_TABLE のテーブル表示セクションとして展開する。
-   * 既存の createSkillGapTableElement を流用し、サンプルキャラの技能表と同じ構造に揃える。
+   * Spreads the gapped skill table of those systems into a section shown as a table of checks.
+   * It reuses the existing builder, so the shape matches the skill table of the sample character.
    */
   private static appendSkillTables(character: GameCharacter, skillTables: ImportedSkillTable[]): void {
     for (const skillTable of skillTables) {

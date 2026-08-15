@@ -69,8 +69,8 @@ function sizeFromCells(width: unknown, height: unknown): number {
 }
 
 /**
- * ccfolia「コマ」クリップボード形式（`{"kind":"character","data":{…}}`）と、
- * その data 本体のみを与えた形の双方を受け付ける。判別不能な場合は null。
+ * Both the clipboard form of a piece from the other tool and its data alone are taken.
+ * Null for anything it cannot recognise.
  */
 export function isCcfoliaCharacter(parsed: unknown): boolean {
   if (parsed == null || typeof parsed !== 'object') return false;

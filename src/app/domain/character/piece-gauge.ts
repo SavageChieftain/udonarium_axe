@@ -34,12 +34,12 @@ export function isGaugeShownOnPiece(element: DataElement): boolean {
   return element.getAttribute(DataElementAttribute.PIECE_GAUGE) === 'true';
 }
 
-/** マイナスリソース。増えるほど悪くなる（狂気度・汚染度など）。 */
+/** A resource that grows worse as it rises, such as madness or contamination. */
 export function isGaugeInverted(element: DataElement): boolean {
   return element.getAttribute(DataElementAttribute.GAUGE_INVERTED) === 'true';
 }
 
-/** コマに出す設定のリソースだけを、上から順に拾う。 */
+/** Picks up the resources set to show on the piece, from the top down. */
 export function selectPieceGauges(root: DataElement | null): PieceGauge[] {
   if (!root) return [];
 

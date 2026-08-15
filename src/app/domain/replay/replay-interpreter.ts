@@ -85,10 +85,10 @@ export function isIgnoredReplayEvent(eventName: string): boolean {
 }
 
 /**
- * このオブジェクトの変化を、差分を取ってまで見る価値があるか。
+ * Whether a change to this object is worth taking the difference for.
  *
- * 取ってから捨てると、コマを 1 回動かすたびに部屋ぶんの複製と差分照合が走って、
- * 一番軽い設定が一番重くなる。チャットだけの設定で残るのは新しい発言だけ。
+ * Taken and then thrown away, one move of one piece would copy and compare a room's worth,
+ * and the lightest setting would be the heaviest. At the narrowest only a new line survives.
  */
 export function shouldDiffObjectChange(level: ReplayDetailLevel, aliasName: string, isNew: boolean): boolean {
   if (level !== ReplayDetailLevel.ChatOnly) return true;

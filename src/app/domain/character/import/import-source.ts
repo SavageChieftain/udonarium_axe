@@ -30,13 +30,13 @@ function firstPathSegment(pathname: string): string {
 }
 
 /**
- * 貼り付けテキストが URL の場合、サービスを判別して JSON 取得方法を決める純粋関数。
- * 実測した CORS 可否に基づく:
- *   - charasheet: `Access-Control-Allow-Origin: *` のため `{id}.js` を直 fetch できる
- *   - appspot: CORS 不可のため JSONP (callback) で取得する
- *   - ゆとシート: `?mode=json` が `Access-Control-Allow-Origin: *` を返すため直 fetch できる
- *   - CharaXiv: 公開 API が不安定 / CORS 閉のため未対応（ココフォリア形式の貼り付けへ誘導）
- * URL でなければ JSON テキストとして扱う。
+ * For a pasted address, recognises the service and decides how to fetch the json.
+ * It follows what each service actually allows across origins:
+ *   the archive allows any origin, so its script is fetched directly
+ *   the warehouse allows none, so it is fetched through a callback
+ *   the sheet service allows any origin on its json, so that is fetched directly
+ *   one service has an unsettled interface and allows no origin, so it is unsupported and the other format is offered instead
+ * Anything that is not an address is read as json.
  */
 export function detectImportFetchPlan(text: string): ImportFetchPlan {
   const trimmed = text.trim();

@@ -1,33 +1,33 @@
 /**
- * ダイスの中身。
+ * What the dice held.
  *
- * bcdice は振るたびに個々の出目と成否を返しているが、Axe はこれまで整形済みの文章だけを受け取り、
- * 残りをその場で捨てていた。そのため「1D100 で何が出たか」を後から数えられなかった。
- * ここはその中身を、発言に添えて持ち回れる形にする。
+ * The library returns each roll and its outcome, and this tool used to take the formatted
+ * text alone and throw the rest away, which left no way to count afterwards what a roll had shown.
+ * This puts that into a form that can travel with the line.
  *
- * 文章から読み直す道は取らない — 出力の言い回しはゲームシステムごとに違い、
- * `＞` の置換や改行の挿入まで通ったあとの文字列が相手になる。
+ * Reading it back out of the text is not an option: the wording differs between systems,
+ * and what you would be reading has already been through substitutions and inserted breaks.
  */
 
 export type DiceRollOutcome = 'critical' | 'fumble' | 'success' | 'failure' | '';
 
 export interface DiceRollFace {
-  /** 面数。d6 なら 6。 */
+  /** How many faces the die has. */
   sides: number;
-  /** 出た目。 */
+  /** What it showed. */
   value: number;
-  /** bcdice の区分。`normal` のほか `tens_d10` のような桁の別がある。 */
+  /** Which kind of roll the library called it, which includes the digits of a percentile. */
   kind: string;
 }
 
 export interface DiceRollDetail {
-  /** ゲームシステム ID。 */
+  /** Which system it was rolled under. */
   system: string;
   faces: readonly DiceRollFace[];
   outcome: DiceRollOutcome;
 }
 
-/** bcdice の戻り値のうち、こちらが使う形だけを写す。 */
+/** Copies only the parts of the library's result this tool uses. */
 export interface DiceRollSource {
   detailedRands?: readonly { kind?: unknown; sides?: unknown; value?: unknown }[];
   rands?: readonly (readonly number[])[];
@@ -47,7 +47,7 @@ export function diceRollDetailOf(system: string, source: DiceRollSource | null |
   return { system, faces, outcome };
 }
 
-/** 発言に添えるための文字列。読めなければ落とす側で null になる。 */
+/** The text carried with the line. Unreadable, it comes back as nothing. */
 export function encodeDiceRollDetail(detail: DiceRollDetail | null): string {
   if (!detail) return '';
   try {
@@ -70,12 +70,12 @@ export function parseDiceRollDetail(raw: string | null | undefined): DiceRollDet
 
     return { system: typeof parsed.system === 'string' ? parsed.system : '', faces, outcome };
   } catch {
-    // 古い部屋データには別のものが入っていることがある。読めなければ「中身なし」で通す。
+    // Older room data may hold something else in it, and what cannot be read passes through as nothing.
     return null;
   }
 }
 
-/** 出目だけを並べる。分布を数えるときに使う。 */
+/** Lists the rolls alone, for counting a distribution. */
 export function diceRollValues(detail: DiceRollDetail | null, sides?: number): number[] {
   if (!detail) return [];
   return detail.faces.filter((face) => sides == null || face.sides === sides).map((face) => face.value);
@@ -93,7 +93,7 @@ function facesOf(source: DiceRollSource): DiceRollFace[] {
       .filter((face) => face.sides > 0);
   }
 
-  // 古い形。`rands` は [出目, 面数] の順で並ぶ。
+  // The older form, which holds the roll and then the number of faces.
   const rands = source.rands;
   if (!Array.isArray(rands)) return [];
   return rands
@@ -102,7 +102,7 @@ function facesOf(source: DiceRollSource): DiceRollFace[] {
 }
 
 function outcomeOf(source: DiceRollSource): DiceRollOutcome {
-  // 大成功・大失敗は成功・失敗も同時に立つことがあるので、強いほうから見る。
+  // A critical or a fumble can carry a success or a failure with it, so the strongest is read first.
   if (source.critical === true) return 'critical';
   if (source.fumble === true) return 'fumble';
   if (source.success === true) return 'success';

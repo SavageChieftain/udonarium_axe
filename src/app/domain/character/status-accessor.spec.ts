@@ -38,23 +38,23 @@ describe('StatusAccessor', () => {
   });
 
   describe('canChangeName', () => {
-    it('numberResourceの場合はtrueを返す', () => {
+    it('is true for a resource', () => {
       expect(accessor.canChangeName('HP')).toBe(true);
     });
 
-    it('通常テキスト(type="")の場合はtrueを返す', () => {
+    it('is true for plain text', () => {
       expect(accessor.canChangeName('器用度')).toBe(true);
     });
 
-    it('noteタイプの場合はtrueを返す', () => {
+    it('is true for a note', () => {
       expect(accessor.canChangeName('メモ')).toBe(true);
     });
 
-    it('存在しない名前ではfalseを返す', () => {
+    it('is false for a name it does not have', () => {
       expect(accessor.canChangeName('存在しない')).toBe(false);
     });
 
-    it('単純名が重複する場合はパス指定で判別する', () => {
+    it('tells two of a short name apart by their paths', () => {
       const skillSection = DataElement.create('戦闘特技', '');
       const skillA = DataElement.create('最終能力', '');
       const skillB = DataElement.create('Lv1', '');
@@ -71,89 +71,89 @@ describe('StatusAccessor', () => {
   });
 
   describe('canChange', () => {
-    it('numberResourceのnowはtrue', () => {
+    it('is true for the current value of a resource', () => {
       expect(accessor.canChange('HP', 'now')).toBe(true);
     });
 
-    it('numberResourceのmaxはtrue', () => {
+    it('is true for its maximum', () => {
       expect(accessor.canChange('HP', 'max')).toBe(true);
     });
 
-    it('テキストのnowはtrue', () => {
+    it('is true for the value of text', () => {
       expect(accessor.canChange('器用度', 'now')).toBe(true);
     });
 
-    it('テキストのmaxはfalse', () => {
+    it('is false for a maximum it does not have', () => {
       expect(accessor.canChange('器用度', 'max')).toBe(false);
     });
 
-    it('存在しない名前ではfalseを返す', () => {
+    it('is false for a name it does not have', () => {
       expect(accessor.canChange('不明', 'now')).toBe(false);
     });
   });
 
   describe('getType', () => {
-    it('numberResourceのnowではcurrentValueを返す', () => {
+    it('returns the current value of a resource', () => {
       expect(accessor.getType('HP', 'now')).toBe('currentValue');
     });
 
-    it('numberResourceのmaxではvalueを返す', () => {
+    it('returns its maximum', () => {
       expect(accessor.getType('HP', 'max')).toBe('value');
     });
 
-    it('テキストのnowではvalueを返す', () => {
+    it('returns the value of text', () => {
       expect(accessor.getType('器用度', 'now')).toBe('value');
     });
   });
 
   describe('getValue / setValue', () => {
-    it('numberResourceの現在値を取得できる', () => {
+    it('reads the current value of a resource', () => {
       expect(accessor.getValue('HP', 'now')).toBe(150);
     });
 
-    it('numberResourceの最大値を取得できる', () => {
+    it('reads its maximum', () => {
       expect(accessor.getValue('HP', 'max')).toBe(200);
     });
 
-    it('numberResourceの現在値を設定できる', () => {
+    it('takes a new current value on a resource', () => {
       accessor.setValue('HP', 'now', 100);
       expect(accessor.getValue('HP', 'now')).toBe(100);
     });
 
-    it('numberResourceの最大値を設定できる', () => {
+    it('takes a new maximum on one', () => {
       accessor.setValue('HP', 'max', 300);
       expect(accessor.getValue('HP', 'max')).toBe(300);
     });
 
-    it('存在しない名前ではsetValueがfalseを返す', () => {
+    it('is false when it writes to a name it does not have', () => {
       expect(accessor.setValue('不明', 'now', 0)).toBe(false);
     });
   });
 
   describe('getTextType', () => {
-    it('numberResourceではcurrentValueを返す', () => {
+    it('returns the current value for a resource', () => {
       expect(accessor.getTextType('HP')).toBe('currentValue');
     });
 
-    it('通常テキストではvalueを返す', () => {
+    it('returns the value for plain text', () => {
       expect(accessor.getTextType('器用度')).toBe('value');
     });
   });
 
   describe('setText', () => {
-    it('テキスト型のデータを書き換えられる', () => {
+    it('writes to a text field', () => {
       accessor.setText('器用度', '30');
       const el = detailDataElement.getFirstElementByName('器用度');
       expect(el!.value).toBe('30');
     });
 
-    it('存在しない名前ではfalseを返す', () => {
+    it('is false for a name it does not have', () => {
       expect(accessor.setText('不明', 'X')).toBe(false);
     });
   });
 
   describe('changeValue', () => {
-    it('現在値を加算し変更ログ文字列を返す', () => {
+    it('adds to the current value and says what it did', () => {
       const result = accessor.changeValue('HP', 'now', 10);
       expect(result).toContain('テストキャラ');
       expect(result).toContain('150');
@@ -161,30 +161,30 @@ describe('StatusAccessor', () => {
       expect(accessor.getValue('HP', 'now')).toBe(160);
     });
 
-    it('現在値を減算できる', () => {
+    it('takes from it', () => {
       const result = accessor.changeValue('HP', 'now', -30);
       expect(result).toContain('150');
       expect(result).toContain('120');
       expect(accessor.getValue('HP', 'now')).toBe(120);
     });
 
-    it('limitMaxがtrueで最大値を超えないように制限される', () => {
+    it('stops at the maximum when it is asked to', () => {
       const result = accessor.changeValue('HP', 'now', 100, false, true);
       expect(result).toContain('(最大)');
       expect(accessor.getValue('HP', 'now')).toBe(200);
     });
 
-    it('limitMinがtrueで0未満にならないように制限される', () => {
+    it('stops at nothing when it is asked to', () => {
       const result = accessor.changeValue('HP', 'now', -300, true);
       expect(result).toContain('(最小)');
       expect(accessor.getValue('HP', 'now')).toBe(0);
     });
 
-    it('存在しない名前では空文字を返す', () => {
+    it('returns nothing for a name it does not have', () => {
       expect(accessor.changeValue('不明', 'now', 10)).toBe('');
     });
 
-    it('data-min 属性が設定されていれば limitMin フラグなしでも下限が効く', () => {
+    it('keeps to a floor set on the attribute without being asked', () => {
       const hp = detailDataElement.getFirstElementByName('HP')!;
       hp.setAttribute('min', '-50');
       const result = accessor.changeValue('HP', 'now', -300);
@@ -192,27 +192,27 @@ describe('StatusAccessor', () => {
       expect(result).toContain('(最小)');
     });
 
-    it('setValue (チャット経由) でも data-min を尊重する', () => {
+    it('keeps to it on a write from the chat as well', () => {
       const hp = detailDataElement.getFirstElementByName('HP')!;
       hp.setAttribute('min', '-50');
       accessor.setValue('HP', 'now', -300);
       expect(accessor.getValue('HP', 'now')).toBe(-50);
     });
 
-    it('現在最大値 (value) は data-max を超えない', () => {
+    it('never lets the current maximum past the original', () => {
       const hp = detailDataElement.getFirstElementByName('HP')!;
       hp.setAttribute('max', '400');
       accessor.setValue('HP', 'max', 9999);
       expect(accessor.getValue('HP', 'max')).toBe(400);
     });
 
-    it('現在値 (currentValue) は現在最大値 (value) を超えない', () => {
-      // value=200, currentValue=150 のデフォルト
+    it('never lets the current value past the current maximum', () => {
+      // a maximum and a current value below it
       accessor.setValue('HP', 'now', 9999);
       expect(accessor.getValue('HP', 'now')).toBe(200);
     });
 
-    it('maxBase + maxCorrection で有効最大値が決まり、value がそこまで頭打ちになる', () => {
+    it('works the effective maximum out from the base and the correction, and caps the value there', () => {
       const hp = detailDataElement.getFirstElementByName('HP')!;
       hp.setAttribute('max-base', '300');
       hp.setAttribute('max-correction', '-50');
@@ -221,19 +221,19 @@ describe('StatusAccessor', () => {
       expect(accessor.getValue('HP', 'max')).toBe(250);
     });
 
-    it('maxCorrection を設定すると有効最大値が変動し value が再クランプされる', () => {
+    it('moves that maximum with the correction and clamps the value again', () => {
       const hp = detailDataElement.getFirstElementByName('HP')!;
       hp.setAttribute('max-base', '300');
-      // 現在最大値を 300 まで上げてから補正値で下げる
+      // the current maximum is raised and then pulled back by the correction
       accessor.setValue('HP', 'max', 300);
       expect(accessor.getValue('HP', 'max')).toBe(300);
       accessor.setValue('HP', 'maxCorrection', -100);
-      // effectiveMax = 200 になり、value もそこまで下がる
+      // which lowers the effective maximum and the value with it
       expect(accessor.getValue('HP', 'max')).toBe(200);
       expect(accessor.getValue('HP', 'maxCorrection')).toBe(-100);
     });
 
-    it('minCorrection を設定すると有効最小値が動く', () => {
+    it('moves the effective minimum with its correction', () => {
       const hp = detailDataElement.getFirstElementByName('HP')!;
       hp.setAttribute('min-base', '0');
       hp.setAttribute('min-correction', '10');
@@ -241,14 +241,14 @@ describe('StatusAccessor', () => {
       expect(accessor.getValue('HP', 'now')).toBe(10);
     });
 
-    it('maxCorrection を 0 にすると属性が削除される', () => {
+    it('removes the attribute when the correction goes to nothing', () => {
       const hp = detailDataElement.getFirstElementByName('HP')!;
       hp.setAttribute('max-correction', '50');
       accessor.setValue('HP', 'maxCorrection', 0);
       expect(hp.getAttribute('max-correction')).toBe('');
     });
 
-    it('maxBase を上げると現在最大値 (value) が新しい有効最大値に追従する', () => {
+    it('carries the current maximum up with the base', () => {
       const hp = detailDataElement.getFirstElementByName('HP')!;
       hp.setAttribute('max-base', '200');
       accessor.setValue('HP', 'max', 200);
@@ -259,7 +259,7 @@ describe('StatusAccessor', () => {
       expect(accessor.getValue('HP', 'max')).toBe(400);
     });
 
-    it('maxCorrection を上げると現在最大値 (value) も上がる', () => {
+    it('carries it up with the correction too', () => {
       const hp = detailDataElement.getFirstElementByName('HP')!;
       hp.setAttribute('max-base', '200');
       accessor.setValue('HP', 'max', 200);

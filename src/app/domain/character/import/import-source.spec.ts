@@ -1,12 +1,12 @@
 import { detectImportFetchPlan } from '@axe/domain/character/import/import-source';
 
 describe('detectImportFetchPlan', () => {
-  it('URLでないテキストはJSONとして扱う', () => {
+  it('reads anything that is not an address as json', () => {
     expect(detectImportFetchPlan('{"kind":"character"}')).toEqual({ kind: 'json' });
     expect(detectImportFetchPlan('  not a url  ')).toEqual({ kind: 'json' });
   });
 
-  it('キャラクター保管所のURLは {id}.js の直fetchプランになる', () => {
+  it('fetches an archive address directly as a script', () => {
     const plan = detectImportFetchPlan('https://charasheet.vampire-blood.net/123456');
     expect(plan).toEqual({
       kind: 'fetch',
@@ -15,7 +15,7 @@ describe('detectImportFetchPlan', () => {
     });
   });
 
-  it('保管所URLの .html 拡張子は除去される', () => {
+  it('drops the page extension from it', () => {
     const plan = detectImportFetchPlan('https://charasheet.vampire-blood.net/coc/987.html');
     expect(plan).toEqual({
       kind: 'fetch',
@@ -24,7 +24,7 @@ describe('detectImportFetchPlan', () => {
     });
   });
 
-  it('キャラクターシート倉庫のURLはJSONPプランになる', () => {
+  it('fetches a warehouse address through a callback', () => {
     const plan = detectImportFetchPlan('https://character-sheets.appspot.com/dx3/edit.html?key=ABC123');
     expect(plan).toEqual({
       kind: 'jsonp',
@@ -35,18 +35,18 @@ describe('detectImportFetchPlan', () => {
     });
   });
 
-  it('倉庫URLにkeyが無ければ未対応', () => {
+  it('takes no warehouse address without a key', () => {
     const plan = detectImportFetchPlan('https://character-sheets.appspot.com/dx3/edit.html');
     expect(plan).toEqual({ kind: 'unsupported', service: 'unknown' });
   });
 
-  it('ゆとシートのURLは mode=json の直fetchプランになる', () => {
+  it('fetches a sheet-service address directly, asking for json', () => {
     expect(detectImportFetchPlan('https://yutorize.work/ytsheet/sw2.5/?id=YrTkD0')).toEqual({
       kind: 'fetch',
       service: 'ytsheet',
       url: 'https://yutorize.work/ytsheet/sw2.5/?id=YrTkD0&mode=json',
     });
-    // 短縮パス（/ytsheet/ 無し）や別ホストも同じ取得URLへ正規化
+    // normalises a shortened path or another host onto the same address
     expect(detectImportFetchPlan('https://yutorize.2-d.jp/sw2.5/?id=abc123')).toEqual({
       kind: 'fetch',
       service: 'ytsheet',
@@ -54,19 +54,19 @@ describe('detectImportFetchPlan', () => {
     });
   });
 
-  it('ゆとシートURLにidが無ければ未対応', () => {
+  it('takes none of them without an identifier', () => {
     expect(detectImportFetchPlan('https://yutorize.work/ytsheet/sw2.5/')).toEqual({
       kind: 'unsupported',
       service: 'unknown',
     });
   });
 
-  it('CharaXivのURLはCharaXivとして未対応', () => {
+  it('takes no address from the service it does not support', () => {
     const plan = detectImportFetchPlan('https://charaxiv.app/c/abcdef');
     expect(plan).toEqual({ kind: 'unsupported', service: 'charaxiv' });
   });
 
-  it('未知ドメインのURLは未対応', () => {
+  it('takes none from a host it does not know', () => {
     expect(detectImportFetchPlan('https://example.com/foo')).toEqual({ kind: 'unsupported', service: 'unknown' });
   });
 });

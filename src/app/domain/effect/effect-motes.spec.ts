@@ -9,7 +9,7 @@ describe('effectMoteOf()', () => {
     return preset;
   }
 
-  it('系統から粒を決めること', () => {
+  it('takes the particles from the family', () => {
     expect(effectMoteOf(makePreset('炎'))).toBe('spark');
     expect(effectMoteOf(makePreset('氷'))).toBe('frost');
     expect(effectMoteOf(makePreset('雷'))).toBe('arc');
@@ -17,12 +17,12 @@ describe('effectMoteOf()', () => {
     expect(effectMoteOf(makePreset('闇'))).toBe('haze');
   });
 
-  it('明示された指定を優先すること', () => {
+  it('takes what is given outright over that', () => {
     expect(effectMoteOf(makePreset('炎', 'frost'))).toBe('frost');
     expect(effectMoteOf(makePreset('炎', 'none'))).toBe('none');
   });
 
-  it('知らない指定と知らない系統は既定に落とすこと', () => {
+  it('falls back to the default for a choice or a family it does not know', () => {
     expect(effectMoteOf(makePreset('炎', 'とんでもない値'))).toBe('spark');
     expect(effectMoteOf(makePreset('ドラゴン'))).toBe('spark');
   });

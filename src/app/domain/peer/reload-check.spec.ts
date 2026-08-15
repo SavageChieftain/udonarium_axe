@@ -26,37 +26,37 @@ describe('ReloadCheck', () => {
   });
 
   describe('reloadCheckStart()', () => {
-    it('isOnline=trueの場合reloadOK=true, isAnswer=false', () => {
+    it('allows the reload without asking while it is online', () => {
       reloadCheck.reloadCheckStart(true);
       expect(reloadCheck.isLoadOk()).toBe(true);
     });
 
-    it('isOnline=falseの場合reloadOK=true, isAnswer=true', () => {
+    it('allows it, having asked, while it is offline', () => {
       reloadCheck.reloadCheckStart(false);
       expect(reloadCheck.isLoadOk()).toBe(true);
     });
   });
 
   describe('answerCheck()', () => {
-    it('isOnline=falseで初期化後、confirmなしでtrueを返す', () => {
+    it('allows it without asking offline', () => {
       reloadCheck.reloadCheckStart(false);
       expect(reloadCheck.answerCheck()).toBe(true);
     });
 
-    it('isOnline=trueで初期化後、confirmダイアログが表示される', () => {
+    it('asks first online', () => {
       reloadCheck.reloadCheckStart(true);
       window.confirm = vi.fn().mockReturnValue(true);
       expect(reloadCheck.answerCheck()).toBe(true);
       expect(window.confirm).toHaveBeenCalledOnce();
     });
 
-    it('confirmでキャンセルされるとfalseを返す', () => {
+    it('refuses it when the question is dismissed', () => {
       reloadCheck.reloadCheckStart(true);
       window.confirm = vi.fn().mockReturnValue(false);
       expect(reloadCheck.answerCheck()).toBe(false);
     });
 
-    it('2回目以降はconfirmを再表示しない', () => {
+    it('asks only once', () => {
       reloadCheck.reloadCheckStart(true);
       window.confirm = vi.fn().mockReturnValue(true);
       reloadCheck.answerCheck();
@@ -66,7 +66,7 @@ describe('ReloadCheck', () => {
   });
 
   describe('isLoadOk()', () => {
-    it('初期状態ではtrueを返す', () => {
+    it('is true to begin with', () => {
       expect(reloadCheck.isLoadOk()).toBe(true);
     });
   });

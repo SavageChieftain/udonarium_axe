@@ -1,27 +1,27 @@
 import BCDiceLoader, { loadBCDiceGameSystems } from '@axe/domain/dice/bcdice/bcdice-loader';
 
 describe('BCDiceLoader', () => {
-  it('Loader を継承している', () => {
+  it('extends the loader', () => {
     const loader = new BCDiceLoader();
     expect(loader).toBeTruthy();
   });
 
-  it('dynamicLoadがメソッドとして存在する', () => {
+  it('offers a method that loads on demand', () => {
     const loader = new BCDiceLoader();
     expect(typeof loader.dynamicLoad).toBe('function');
   });
 });
 
 describe('loadBCDiceGameSystems', () => {
-  // 実際にゲームシステムを読み込むので、他の処理と並んで走ると既定の制限に届きうる。
-  it('読み込み後は同期的にゲームシステムクラスを取得できる', { timeout: 20000 }, async () => {
+  // It loads a real system, and run alongside other work it can reach the usual limit.
+  it('hands the system class back at once after the load', { timeout: 20000 }, async () => {
     await loadBCDiceGameSystems();
     const loader = new BCDiceLoader();
 
     expect(loader.getGameSystemClass('Cthulhu7th')).toBeTruthy();
   });
 
-  it('二度呼んでも同じ読み込みを共有する', async () => {
+  it('shares one load between two calls', async () => {
     const first = loadBCDiceGameSystems();
     const second = loadBCDiceGameSystems();
 
@@ -29,7 +29,7 @@ describe('loadBCDiceGameSystems', () => {
     await first;
   });
 
-  it('i18n を使うシステムのヘルプが読み込まれている', async () => {
+  it('loads the help of a system that uses translations', async () => {
     await loadBCDiceGameSystems();
     const loader = new BCDiceLoader();
 

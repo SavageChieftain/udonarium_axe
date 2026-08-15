@@ -127,7 +127,7 @@ export interface ReplayViewer {
   role: PeerRole;
 }
 
-/** 移動や判定に付いて鳴るだけで、それ自体は出来事ではない種類。音は残すが行としては見せない。 */
+/** The kinds that only sound alongside a move or a roll and are no event themselves. The sound is kept and no row is shown. */
 const INCIDENTAL_KINDS: ReadonlySet<ReplayEventKind> = new Set([ReplayEventKind.MediaSoundEffect]);
 
 export function isIncidentalReplayEvent(kind: ReplayEventKind): boolean {

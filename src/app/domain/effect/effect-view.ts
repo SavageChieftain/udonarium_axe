@@ -1,9 +1,9 @@
 /**
- * ワールドの向きを画面上の向きへ射影する。
+ * Projects a direction in the world onto the screen.
  *
- * 盤面は `rotateY(ty) rotateX(tx) rotateZ(tz)` の順で子を回す（板ポリはその逆を掛けて
- * カメラに正対させている）。同じ行列をベクトルに掛ければ、画面上での角度と見かけの長さが出る。
- * これが分かると、飛翔体を進行方向へ引き伸ばせる（stretched billboard）。
+ * The board turns its children about the three axes in a fixed order, and a billboard
+ * undoes that to face the camera. The same matrix applied to a vector gives its angle and apparent length on the screen,
+ * which is what lets a projectile be drawn out along its flight.
  */
 
 export interface ViewRotation {
@@ -13,9 +13,9 @@ export interface ViewRotation {
 }
 
 export interface ScreenDirection {
-  /** 画面上の角度(度)。CSS の rotateZ にそのまま渡せる。 */
+  /** The angle on the screen, ready to be turned by. */
   angle: number;
-  /** 画面上での長さ(px)。奥行き方向を向くほど短くなる。 */
+  /** The length on the screen, shorter the more it points into it. */
   length: number;
 }
 
@@ -42,7 +42,7 @@ export function projectDirection(
   z = y * Math.sin(rx) + z * Math.cos(rx);
   y = y1;
 
-  // rotateY（画面へ出るのは x と y だけなので、奥行きはここで捨てる）
+  // the turn about the vertical, after which the depth is dropped since only two axes reach the screen
   x = x * Math.cos(ry) + z * Math.sin(ry);
 
   const length = Math.hypot(x, y);

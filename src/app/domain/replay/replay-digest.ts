@@ -1,12 +1,12 @@
 /**
- * 記録 1 本から「今日のまとめ」を作る。
+ * Builds the summary of the day from one recording.
  *
- * 数えるのは記録に残っているものだけ。足りない分は黙って埋めず、数えないままにする。
- * とくに **誰が誰に与えたダメージかは出さない** — `actorId` は値をいじった人であって、
- * 攻撃した人ではない。GM が敵の HP を減らせば actorId は GM になる。
- * 受けた側だけを数え、与えた側は名指ししない。
+ * It counts what the recording kept, and what is missing is left uncounted rather than quietly filled in.
+ * In particular it **never says who damaged whom**: the actor is whoever changed the value
+ * rather than whoever attacked, and the game master lowering an enemy's health is the actor.
+ * Only what was taken is counted, and nobody is named as having dealt it.
  *
- * 名前は入れず、見出しの鍵（i18n キー）と数だけを返す。文言は呼ぶ側が決める。
+ * It returns the keys of the headings and the numbers rather than any wording, which the caller decides.
  */
 
 import { type DiceRollDetail, parseDiceRollDetail } from '@axe/domain/dice/dice-roll-detail';
@@ -37,20 +37,20 @@ export interface ReplayDigestSpeaker {
 }
 
 /**
- * 人別のダイスの出方。出目が記録に残っている分だけを数える。
+ * How the dice fell for each person, counting only the rolls the recording kept.
  *
- * 平均・最高・最低は **1 回の振りの目の合計** で見る。1D100 は十の位と一の位の 2 面に
- * 分かれて残るので、面ごとに数えると 70 と 8 の平均 39 のような数になってしまう。
- * また、卓の途中でシステムが変わると尺度も変わるので、いちばん多く振った系統の分だけを見る。
+ * The average, the highest and the lowest are measured by **the total of one throw**. A
+ * percentile roll is kept as two faces, and counted face by face it averages the tens with the units.
+ * A change of system mid-session changes the scale too, so only the system rolled most is measured.
  */
 export interface ReplayDigestFortune {
   readonly userId: string;
   readonly name: string;
-  /** 出目が読めた振りの回数。 */
+  /** How many throws could be read. */
   readonly rolls: number;
-  /** 平均などを取った系統。振った系統が複数あるときは、いちばん多いもの。 */
+  /** The system the averages are taken over: where several were rolled, the one rolled most. */
   readonly system: string;
-  /** その系統で振った回数。平均・最高・最低はこの回数の分。 */
+  /** How many throws that system had, which is what the average, the highest and the lowest cover. */
   readonly counted: number;
   readonly average: number;
   readonly best: number;
@@ -61,7 +61,7 @@ export interface ReplayDigestFortune {
   readonly failures: number;
 }
 
-/** コマ別の受けた増減。与えた側は出さない。 */
+/** What each piece took. Nothing says who dealt it. */
 export interface ReplayDigestLedgerRow {
   readonly targetId: string;
   readonly name: string;
@@ -85,9 +85,9 @@ export interface ReplayDigest {
   readonly fortunes: readonly ReplayDigestFortune[];
   readonly ledger: readonly ReplayDigestLedgerRow[];
   readonly awards: readonly ReplayDigestAward[];
-  /** 出目が 1 つも残っていない記録。運勢の欄を「出せません」と言うために持つ。 */
+  /** A recording that kept no rolls at all, which is how the fortune says it can show nothing. */
   readonly hasDiceDetail: boolean;
-  /** 増減の記録が 1 つも無い。ダメージ帳を「出せません」と言うために持つ。 */
+  /** One that kept no changes, which is how the ledger says the same. */
   readonly hasLedger: boolean;
 }
 
@@ -103,7 +103,7 @@ export const EMPTY_REPLAY_DIGEST: ReplayDigest = {
   hasLedger: false,
 };
 
-/** 称号を出すのに要る最低限。1 回振っただけの人を不運王にしない。 */
+/** The least it takes to earn a title, so one throw does not crown anybody unluckiest. */
 const MIN_ROLLS_FOR_AWARD = 3;
 
 interface ChangeEntry {
@@ -152,7 +152,7 @@ export function buildReplayDigest(
         break;
       }
       case ReplayEventKind.ObjectValue: {
-        // 増減は 2 通りの経路で残りうる。まとめて数えられる `changes` の側だけを見る。
+        // A change can be kept two ways, and only the side that can be counted together is read.
         const changes = changesOf(event.detail['changes']);
         if (changes.length < 1) break;
         if (collectLedger(ledger, event, manifest, changes)) hasLedger = true;
@@ -173,7 +173,7 @@ export function buildReplayDigest(
     roomName: manifest.roomName,
     startedAt: manifest.startedAt,
     numbers: {
-      // 卓の長さは読む人で変わらない。見えない出来事しか無い時間も卓の時間のうち。
+      // The length of a session is the same for everybody; time holding only unseen events is still part of it.
       elapsedMs: elapsedOf(manifest, visible),
       messages,
       diceRolls,
@@ -272,7 +272,7 @@ function collectFortune(
   return true;
 }
 
-/** 1 回の振りの目の合計。面が 1 つも読めなければ null。0 も出目なので既定値では潰さない。 */
+/** The total of one throw. Null when no face could be read; a zero is a roll and is not flattened into a default. */
 function rollValueOf(detail: DiceRollDetail): number | null {
   let total = 0;
   let counted = 0;
@@ -331,7 +331,7 @@ function collectLedger(
   for (const change of changes) {
     const amount = Math.abs(change.delta);
     if (!Number.isFinite(amount) || amount === 0) continue;
-    // 増減は damage か heal のどちらか。読めない区分を回復に寄せると、削られた卓が癒やされた卓になる。
+    // A change is either damage or healing, and reading an unreadable one as healing turns a punishing session into a soothing one.
     if (change.kind !== 'damage' && change.kind !== 'heal') continue;
     counted = true;
     if (change.kind === 'damage') {
@@ -359,7 +359,7 @@ function sealLedgerRow(row: MutableLedgerRow): ReplayDigestLedgerRow {
   };
 }
 
-/** 端数のある増減を足すと二進小数の粕が出る。表に出す前に落とす。 */
+/** Adding fractional changes leaves a remainder, which is dropped before anything is shown. */
 function trim(value: number): number {
   return Number(value.toFixed(2));
 }
@@ -394,7 +394,7 @@ function buildAwards(
   return awards;
 }
 
-/** いちばん多い 1 人。並びが同じ数なら出さない — 誰か 1 人を指せてこその称号。 */
+/** The one with the most. Nothing where two are level — a title has to point at somebody. */
 function pick<T>(rows: readonly T[], valueOf: (row: T) => number): T | null {
   if (rows.length < 1) return null;
   const sorted = [...rows].sort((a, b) => valueOf(b) - valueOf(a));
@@ -438,7 +438,7 @@ export interface ReplayDigestLabels {
   readonly elapsed: (ms: number) => string;
 }
 
-/** まとめを 1 枚の読み物として書き出す。文言は呼ぶ側から受け取る。 */
+/** Writes the summary out as one page. The wording comes from the caller. */
 export function buildReplayDigestMarkdown(digest: ReplayDigest, labels: ReplayDigestLabels): string {
   const parts: string[] = [`# ${digest.roomName}`, ''];
 

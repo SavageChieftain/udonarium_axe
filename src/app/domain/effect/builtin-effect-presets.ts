@@ -3,47 +3,47 @@ import { EffectKind, EffectTargeting, ProjectileStyle, SlashStyle } from '@axe/d
 import { EffectPreset } from '@axe/domain/effect/effect-preset';
 import { PresetSound } from '@axe/domain/media/sound-effect';
 
-/** 効果音ラボの素材から、系統と規模で選んだ音。 */
+/** The sounds, chosen by family and size from a free library. */
 type PresetSoundKey = Exclude<keyof typeof PresetSound, 'prototype'>;
 
 export interface EffectPresetSeed {
-  /** 既定プリセットの固定 identifier。入室時に同じ物が二重生成されないようにする。 */
+  /** The fixed identifiers of these effects, so joining a room does not make a second copy of each. */
   identifier: string;
   name: string;
   tagName: string;
   kind: EffectKind;
   colorPrimary: string;
   colorSecondary: string;
-  /** 割り当てた音の実尺(ms)。再生時間はここから決める。 */
+  /** How long the sound actually runs, which sets how long the effect does. */
   soundMs: number;
   staggerMs: number;
   scale: number;
   targeting: EffectTargeting;
   maxTargets: number;
   soundKey: PresetSoundKey;
-  /** 1=初級 / 2=中級 / 3=上級。 */
+  /** The grade, from the lowest to the highest. */
   grade: number;
-  /** 飛翔体の着弾演出。 */
+  /** What a projectile does when it lands. */
   impactKind?: EffectKind;
-  /** 飛翔体の見た目。 */
+  /** What a projectile looks like. */
   projectileStyle?: ProjectileStyle;
-  /** 斬撃の型。 */
+  /** The form of a cut. */
   slashStyle?: SlashStyle;
-  /** 1 回の発動で撃つ弾数。 */
+  /** How many shots one firing makes. */
   shots?: number;
-  /** 連射の間隔(ms)。 */
+  /** How long between them. */
   shotInterval?: number;
-  /** 着弾で鳴らす音。飛ぶものは発射音と二段階で鳴らす。 */
+  /** The sound of the landing. A projectile sounds this and the shot in turn. */
   impactSoundKey?: PresetSoundKey;
-  /** 演出の尺(ms)。飛ぶものは音の尻に引きずられないよう明示する。 */
+  /** How long the effect runs. A projectile gives it outright rather than being dragged out by its sound. */
   durationMs?: number;
-  /** 巻き込む半径(マス)。1 クリックで範囲内をまとめて対象にする。 */
+  /** How far it reaches, in cells, so one press takes in everything within. */
   areaRadius?: number;
-  /** 道中に散らす粒。空なら系統から決める。 */
+  /** The particles scattered along the way. Empty for whatever the family gives. */
   moteStyle?: string;
 }
 
-/** 音が短すぎても長すぎても演出として成立しないので、この範囲に収める。 */
+/** A sound too short or too long makes no effect at all, so it is kept within this range. */
 const MIN_EFFECT_MS = 400;
 const MAX_EFFECT_MS = 6000;
 
@@ -1541,15 +1541,15 @@ export const DEFAULT_EFFECT_PRESET_SEEDS: readonly EffectPresetSeed[] = [
   },
 ];
 
-/** seed の内容をプリセットへ写す。既定値の再適用にも使う。 */
+/** Copies a seed onto an effect. It is also how the defaults are applied again. */
 export function applyEffectPresetSeed(preset: EffectPreset, seed: EffectPresetSeed): void {
   preset.name = seed.name;
   preset.tagName = seed.tagName;
   preset.kind = seed.kind;
   preset.colorPrimary = seed.colorPrimary;
   preset.colorSecondary = seed.colorSecondary;
-  // 演出の尺は音に合わせる。短く終わると音だけ鳴り続けて間延びする。
-  // 飛ぶものだけは例外で、発射音の尻に引きずられると弾が遅くなるため明示した値を使う。
+  // An effect runs as long as its sound; ending sooner leaves the sound playing on.
+  // A projectile is the exception: dragged out by the sound of the shot it would fly slowly, so its own length is used.
   preset.durationMs = Math.min(Math.max(seed.durationMs ?? seed.soundMs, MIN_EFFECT_MS), MAX_EFFECT_MS);
   preset.impactSoundIdentifier = seed.impactSoundKey ? PresetSound[seed.impactSoundKey] : '';
   preset.staggerMs = seed.staggerMs;
@@ -1579,7 +1579,7 @@ export function createEffectPreset(seed: EffectPresetSeed, identifier?: string):
 export function createDefaultEffectPresets(): EffectPreset[] {
   return DEFAULT_EFFECT_PRESET_SEEDS.map((seed) => {
     const preset = createEffectPreset(seed, seed.identifier);
-    // 一度消された identifier は再利用できない。その場合だけ新しい id で作り直す。
+    // An identifier once deleted cannot be used again, and only then is a new one made.
     if (ObjectStore.instance.get(seed.identifier) === preset) return preset;
     return createEffectPreset(seed);
   });

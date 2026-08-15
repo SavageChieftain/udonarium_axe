@@ -28,8 +28,8 @@ describe('Room', () => {
     store.clearDeleteHistory();
   });
 
-  describe('インスタンス生成', () => {
-    it('Roomを作成できる', () => {
+  describe('creating one', () => {
+    it('can be created', () => {
       const room = new Room();
       room.initialize();
       expect(room).toBeTruthy();
@@ -37,7 +37,7 @@ describe('Room', () => {
   });
 
   describe('onStoreAdded', () => {
-    it('ObjectStoreから自身を削除する', () => {
+    it('takes itself out of the store', () => {
       const room = new Room();
       room.initialize();
       expect(store.get(room.identifier)).toBeFalsy();
@@ -45,14 +45,14 @@ describe('Room', () => {
   });
 
   describe('innerXml()', () => {
-    it('空の状態では空文字列を返す', () => {
+    it('writes nothing while it is empty', () => {
       const room = new Room();
       room.initialize();
       expect(room.innerXml()).toBe('');
     });
   });
 
-  describe('同行の保存', () => {
+  describe('saving who travels together', () => {
     function makeParty(): Party {
       const party = new Party();
       party.name = '本隊';
@@ -61,7 +61,7 @@ describe('Room', () => {
       return party;
     }
 
-    it('パーティとキャラクターの所属を書き出す', () => {
+    it('writes the parties out with who belongs to each', () => {
       const party = makeParty();
       const character = GameCharacter.create('斥候', 1, '');
       character.partyIdentifier = party.identifier;
@@ -72,7 +72,7 @@ describe('Room', () => {
       expect(xml).toContain(`partyIdentifier="${party.identifier}"`);
     });
 
-    it('ロードでパーティと所属を復元する', () => {
+    it('reads them back', () => {
       const party = makeParty();
       const character = GameCharacter.create('斥候', 1, '');
       character.partyIdentifier = party.identifier;
@@ -91,7 +91,7 @@ describe('Room', () => {
     });
   });
 
-  describe('parseInnerXml() — 演出集の扱い', () => {
+  describe('what happens to the effect library as it reads', () => {
     function loadRoom(inner: string): void {
       const reloadCheck = new ReloadCheck('ReloadCheck');
       reloadCheck.initialize();
@@ -99,9 +99,9 @@ describe('Room', () => {
       ObjectSerializer.instance.parseXml(`<room>${inner}</room>`);
     }
 
-    it('演出の入っていない部屋データでは同卓者へ削除を配らないこと', () => {
-      // 消してから同じ identifier で入れ直すと、手元では戻るが、同卓者側では
-      // 「消えた物の復活」として拒まれ、読み込んだ本人にだけ演出が残る。
+    it('sends no deletions to the others for room data that carries no effects', () => {
+      // Deleted and put back under the same identifiers they return here, but the others refuse
+      // them as the return of what was deleted, and only whoever loaded the room still has them.
       const before = createDefaultEffectPresets();
       const identifiers = new Set(before.map((preset) => preset.identifier));
       const deleted: string[] = [];
@@ -123,7 +123,7 @@ describe('Room', () => {
       expect(store.getObjects<EffectPreset>(EffectPreset)).toHaveLength(before.length);
     });
 
-    it('演出を持ち込んだ部屋データでは持ち込みに入れ替えること', () => {
+    it('replaces them with what the room data brings, where it brings any', () => {
       createDefaultEffectPresets();
 
       loadRoom('<effect-preset name="持ち込みの一撃" kind="bash"></effect-preset>');
@@ -133,15 +133,15 @@ describe('Room', () => {
       expect(after[0].name).toBe('持ち込みの一撃');
     });
 
-    it('どこにも演出が無ければ既定を用意すること', () => {
+    it('makes the usual set when there are none anywhere', () => {
       loadRoom('<card></card>');
 
       expect(store.getObjects<EffectPreset>(EffectPreset).length).toBeGreaterThan(0);
     });
   });
 
-  describe('parseInnerXml() — ロード時の所有解除', () => {
-    it('部屋データのロード後、復元オブジェクトの owner はクリアされる', () => {
+  describe('letting go of ownership as it reads', () => {
+    it('clears the owner of everything it restores', () => {
       const reloadCheck = new ReloadCheck('ReloadCheck');
       reloadCheck.initialize();
       reloadCheck.reloadCheckStart(false);

@@ -32,52 +32,52 @@ describe('DataSummarySetting', () => {
   });
 
   describe('instance (singleton)', () => {
-    it('シングルトンインスタンスを返す', () => {
+    it('returns the one instance', () => {
       const instance1 = DataSummarySetting.instance;
       const instance2 = DataSummarySetting.instance;
       expect(instance1).toBe(instance2);
     });
 
-    it('identifierが"DataSummarySetting"', () => {
+    it('identifies itself as the summary setting', () => {
       expect(DataSummarySetting.instance.identifier).toBe('DataSummarySetting');
     });
   });
 
-  describe('SyncVar デフォルト値', () => {
-    it('sortTag がデフォルト "HP"', () => {
+  describe('the defaults of the synchronised fields', () => {
+    it('starts sorting by the first resource', () => {
       expect(DataSummarySetting.instance.sortTag).toBe('HP');
     });
 
-    it('sortOrder がデフォルト ASC', () => {
+    it('starts sorting upwards', () => {
       expect(DataSummarySetting.instance.sortOrder).toBe(SortOrder.ASC);
     });
 
-    it('sortTag2nd がデフォルト "name"', () => {
+    it('starts breaking ties by name', () => {
       expect(DataSummarySetting.instance.sortTag2nd).toBe('name');
     });
 
-    it('sortOrder2nd がデフォルト ASC', () => {
+    it('breaks them upwards', () => {
       expect(DataSummarySetting.instance.sortOrder2nd).toBe(SortOrder.ASC);
     });
 
-    it('dataTag がデフォルト値', () => {
+    it('starts with the default tags', () => {
       expect(DataSummarySetting.instance.dataTag).toBe('HP MP 敏捷度 精神力');
     });
   });
 
   describe('dataTags', () => {
-    it('スペース区切りの配列を返す', () => {
+    it('returns them apart by their spaces', () => {
       const tags = DataSummarySetting.instance.dataTags;
       expect(tags).toEqual(['HP', 'MP', '敏捷度', '精神力']);
     });
 
-    it('キャッシュが効いて同じ配列を返す', () => {
+    it('returns the same list again from the cache', () => {
       const tags1 = DataSummarySetting.instance.dataTags;
       const tags2 = DataSummarySetting.instance.dataTags;
       expect(tags1).toBe(tags2);
     });
 
-    it('dataTagを変更すると新しい配列を生成する', () => {
+    it('builds a new one when the tags change', () => {
       const instance = DataSummarySetting.instance;
       const tags1 = instance.dataTags;
       instance.dataTag = 'HP MP';
@@ -88,7 +88,7 @@ describe('DataSummarySetting', () => {
   });
 
   describe('innerXml / parseInnerXml', () => {
-    it('innerXmlは空文字列を返す', () => {
+    it('writes nothing inside itself', () => {
       expect(DataSummarySetting.instance.innerXml()).toBe('');
     });
   });

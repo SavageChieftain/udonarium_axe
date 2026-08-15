@@ -1,7 +1,7 @@
 import { normalizeEffectCast } from '@axe/domain/effect/effect-cast';
 
 describe('normalizeEffectCast()', () => {
-  it('プリセットと対象が揃っていれば取り込むこと', () => {
+  it('takes a firing that has both an effect and a target', () => {
     expect(
       normalizeEffectCast({
         presetIdentifier: 'preset',
@@ -19,21 +19,21 @@ describe('normalizeEffectCast()', () => {
     });
   });
 
-  it('オブジェクトでなければ捨てること', () => {
+  it('throws away anything that is not an object', () => {
     expect(normalizeEffectCast(null)).toBeNull();
     expect(normalizeEffectCast('cast')).toBeNull();
   });
 
-  it('プリセット指定が無ければ捨てること', () => {
+  it('throws away one that names no effect', () => {
     expect(normalizeEffectCast({ targets: [{ x: 0, y: 0, z: 0 }] })).toBeNull();
   });
 
-  it('対象が 1 つも無ければ捨てること', () => {
+  it('throws away one with nothing to aim at', () => {
     expect(normalizeEffectCast({ presetIdentifier: 'preset', targets: [] })).toBeNull();
     expect(normalizeEffectCast({ presetIdentifier: 'preset', targets: ['broken'] })).toBeNull();
   });
 
-  it('欠けた座標や種を 0 で埋めること', () => {
+  it('fills a missing position or seed in with nothing', () => {
     expect(normalizeEffectCast({ presetIdentifier: 'preset', targets: [{ identifier: 'char' }] })).toEqual({
       presetIdentifier: 'preset',
       casterIdentifier: '',
@@ -42,11 +42,11 @@ describe('normalizeEffectCast()', () => {
       seed: 0,
     });
 
-    // 発射元が壊れていても飛翔体が落ちないよう null に倒す。
+    // A broken origin falls back to nothing, so the projectile does not fall over.
     expect(normalizeEffectCast({ presetIdentifier: 'preset', origin: 'broken', targets: [{}] })?.origin).toBeNull();
   });
 
-  it('対象が多すぎる場合は 32 体までに切り詰めること', () => {
+  it('trims too many targets down to thirty-two', () => {
     const targets = Array.from({ length: 40 }, (_unused, index) => ({ identifier: `char${index}`, x: 0, y: 0, z: 0 }));
 
     expect(normalizeEffectCast({ presetIdentifier: 'preset', targets })?.targets).toHaveLength(32);

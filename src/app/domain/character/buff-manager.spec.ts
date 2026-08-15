@@ -25,7 +25,7 @@ describe('BuffManager', () => {
   });
 
   describe('addRound', () => {
-    it('新規バフを追加できる', () => {
+    it('adds a buff', () => {
       manager.addRound('マッスルベアー', '筋力+2', 3);
 
       const added = container.getFirstElementByName('マッスルベアー');
@@ -34,7 +34,7 @@ describe('BuffManager', () => {
       expect(added!.currentValue).toBe('筋力+2');
     });
 
-    it('デフォルトではラウンド3・情報空文字で追加される', () => {
+    it('adds one for three rounds with no note', () => {
       manager.addRound('バフ名');
 
       const added = container.getFirstElementByName('バフ名');
@@ -43,20 +43,20 @@ describe('BuffManager', () => {
       expect(added!.currentValue).toBe('');
     });
 
-    it('同名バフが既に存在する場合は上書きされる', () => {
+    it('replaces one of the same name', () => {
       manager.addRound('猫目', 'A', 5);
       manager.addRound('猫目', 'B', 2);
 
       const buffs = container.getElementsByName('猫目');
       expect(buffs.length).toBeLessThanOrEqual(1);
-      // 既存データの value/currentValue が上書き
+      // the values of the old one are replaced
       const data = buffDataElement.getFirstElementByName('猫目');
       expect(data).toBeTruthy();
       expect(data!.value).toBe(2);
       expect(data!.currentValue).toBe('B');
     });
 
-    it('見た目を渡せばアイコンと色を持たせられる', () => {
+    it('gives it an icon and a colour when they are given', () => {
       manager.addRound('毒', '継続2', 3, { color: '#c62828', icon: '☠️' });
 
       const added = container.getFirstElementByName('毒')!;
@@ -64,7 +64,7 @@ describe('BuffManager', () => {
       expect(added.getAttribute(DataElementAttribute.BUFF_ICON)).toBe('☠️');
     });
 
-    it('既にあるバフの見た目も塗り替える', () => {
+    it('repaints one that already has them', () => {
       manager.addRound('毒', '継続2', 3, { color: '#c62828', icon: '☠️' });
       manager.addRound('毒', '継続1', 1, { color: '#2e7d32' });
 
@@ -73,7 +73,7 @@ describe('BuffManager', () => {
       expect(added.getAttribute(DataElementAttribute.BUFF_ICON)).toBe('☠️');
     });
 
-    it('空の色を渡せば既定に戻す', () => {
+    it('puts the colour back to the default when an empty one is given', () => {
       manager.addRound('毒', '継続2', 3, { color: '#c62828' });
       manager.addRound('毒', '継続2', 3, { color: '' });
 
@@ -83,7 +83,7 @@ describe('BuffManager', () => {
   });
 
   describe('delete', () => {
-    it('名前を指定してバフを削除できる', () => {
+    it('removes a buff by name', () => {
       manager.addRound('削除対象', '', 3);
       expect(container.getFirstElementByName('削除対象')).toBeTruthy();
 
@@ -92,12 +92,12 @@ describe('BuffManager', () => {
       expect(container.getFirstElementByName('削除対象')).toBeFalsy();
     });
 
-    it('存在しないバフ名ではfalseを返す', () => {
+    it('is false for a name it does not have', () => {
       const result = manager.delete('存在しない');
       expect(result).toBe(false);
     });
 
-    it('containerが無い場合はfalseを返す', () => {
+    it('is false without a container', () => {
       const emptyBuff = DataElement.create('空バフ', '');
       const emptyManager = new BuffManager(emptyBuff);
 
@@ -107,7 +107,7 @@ describe('BuffManager', () => {
   });
 
   describe('decreaseRound', () => {
-    it('全バフのラウンドを1減少させる', () => {
+    it('counts every buff down a round', () => {
       manager.addRound('バフA', '', 5);
       manager.addRound('バフB', '', 3);
 
@@ -119,7 +119,7 @@ describe('BuffManager', () => {
       expect(parseInt(b!.value as string)).toBe(2);
     });
 
-    it('containerが無い場合でもエラーにならない', () => {
+    it('does not throw without one', () => {
       const emptyBuff = DataElement.create('空バフ', '');
       const emptyManager = new BuffManager(emptyBuff);
       expect(() => emptyManager.decreaseRound()).not.toThrow();
@@ -127,7 +127,7 @@ describe('BuffManager', () => {
   });
 
   describe('increaseRound', () => {
-    it('全バフのラウンドを1増加させる', () => {
+    it('counts every buff up a round', () => {
       manager.addRound('バフA', '', 2);
       manager.addRound('バフB', '', 4);
 
@@ -141,7 +141,7 @@ describe('BuffManager', () => {
   });
 
   describe('expireOneRound', () => {
-    it('残ラウンドを1減らし、尽きたバフだけを消して名前を返す', () => {
+    it('counts them down, removes those that ran out and names them', () => {
       manager.addRound('続く', '', 3);
       manager.addRound('切れる', '', 1);
 
@@ -150,7 +150,7 @@ describe('BuffManager', () => {
       expect(container.getFirstElementByName('切れる')).toBeFalsy();
     });
 
-    it('3ラウンドのバフはちょうど3回で切れる', () => {
+    it('a buff of three rounds lasts exactly three', () => {
       manager.addRound('3R', '', 3);
 
       expect(manager.expireOneRound()).toEqual([]);
@@ -158,18 +158,18 @@ describe('BuffManager', () => {
       expect(manager.expireOneRound()).toEqual(['3R']);
     });
 
-    it('既に0以下のバフはその場で切れる', () => {
+    it('one already spent goes at once', () => {
       manager.addRound('0R', '', 0);
 
       expect(manager.expireOneRound()).toEqual(['0R']);
       expect(container.getFirstElementByName('0R')).toBeFalsy();
     });
 
-    it('バフが無ければ空配列を返す', () => {
+    it('returns nothing when there are none', () => {
       expect(manager.expireOneRound()).toEqual([]);
     });
 
-    it('containerが無い場合でもエラーにならない', () => {
+    it('does not throw without one', () => {
       const emptyManager = new BuffManager(DataElement.create('空バフ', ''));
       expect(() => emptyManager.expireOneRound()).not.toThrow();
       expect(emptyManager.expireOneRound()).toEqual([]);
@@ -177,7 +177,7 @@ describe('BuffManager', () => {
   });
 
   describe('deleteZeroRound', () => {
-    it('ラウンド数が0以下のバフを削除する', () => {
+    it('removes a buff with no rounds left', () => {
       manager.addRound('残る', '', 2);
       manager.addRound('消える', '', 0);
 
@@ -187,7 +187,7 @@ describe('BuffManager', () => {
       expect(container.getFirstElementByName('消える')).toBeFalsy();
     });
 
-    it('ラウンド数がマイナスのバフも削除する', () => {
+    it('removes one that has run past zero', () => {
       manager.addRound('マイナス', '', 1);
       manager.decreaseRound(); // 0
       manager.decreaseRound(); // -1
@@ -197,7 +197,7 @@ describe('BuffManager', () => {
       expect(container.getFirstElementByName('マイナス')).toBeFalsy();
     });
 
-    it('containerが無い場合でもエラーにならない', () => {
+    it('does not throw without one', () => {
       const emptyBuff = DataElement.create('空バフ', '');
       const emptyManager = new BuffManager(emptyBuff);
       expect(() => emptyManager.deleteZeroRound()).not.toThrow();

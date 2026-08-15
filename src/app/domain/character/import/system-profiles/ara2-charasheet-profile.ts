@@ -15,7 +15,7 @@ import {
   isCharasheetGame,
 } from '@axe/domain/character/import/system-profiles/charasheet-shared';
 
-// アリアンロッド2E の能力値（標準順）。NK{i}=能力値（現在値）、NB{i}=能力ボーナス（判定に使用）。
+// The abilities of that system, in their usual order. One key holds the value and another the bonus rolled with.
 const ABILITIES: { value: string; bonus: string; label: string }[] = [
   { value: 'NK1', bonus: 'NB1', label: '器用' },
   { value: 'NK2', bonus: 'NB2', label: '敏捷' },

@@ -18,7 +18,7 @@ function isScalar(value: unknown): value is string | number {
   return typeof value === 'string' || (typeof value === 'number' && Number.isFinite(value));
 }
 
-/** 名前・色・画像など、別経路で扱うメタキー。データセクションには出さない。 */
+/** The keys handled elsewhere, such as the name, the colour and the picture. They stay out of the data section. */
 const META_KEYS = new Set([
   'pc_name',
   'color',
@@ -35,8 +35,8 @@ const META_KEYS = new Set([
 ]);
 
 /**
- * クトゥルフ（coc / coc7）の `NA{n}` 能力値キー → 表示名。
- * 保管所の CoC はフォーム位置で能力値を持つため、ここで人間可読なラベルへ写像する。
+ * The numbered ability keys of that system and their names.
+ * The archive holds them by their place in the form, so they are mapped to readable names here.
  */
 const COC_ABILITY_LABELS: Record<string, string> = {
   NA1: 'STR',
@@ -55,7 +55,7 @@ const COC_ABILITY_LABELS: Record<string, string> = {
   NA14: '知識',
 };
 
-/** CoC の技能配列キーの接頭辞 → カテゴリ表示名。未知の接頭辞は原文のまま使う。 */
+/** The prefixes of its skill arrays and their categories. An unknown prefix keeps its own. */
 const COC_SKILL_CATEGORY: Record<string, string> = {
   TBA: '戦闘技能',
   TFA: '探索技能',
@@ -64,7 +64,7 @@ const COC_SKILL_CATEGORY: Record<string, string> = {
   TKA: '知識技能',
 };
 
-/** CoC の技能配列キーの末尾文字 → 列名。未知の末尾は原文のまま使う。 */
+/** The suffixes of those keys and their column names. An unknown suffix keeps its own. */
 const COC_SKILL_COLUMN: Record<string, string> = {
   U: '使用',
   D: '初期値',
@@ -75,8 +75,8 @@ const COC_SKILL_COLUMN: Record<string, string> = {
 };
 
 /**
- * 保管所 JSON は全システム共通で `{family}_name` 配列（＝行名）と一貫した列サフィックスを持つ。
- * family 接頭辞 → 節見出し。未知の family は接頭辞をそのまま使う。
+ * Every system in the archive names its rows in one array and uses the same column suffixes.
+ * The family prefixes and their headings. An unknown family keeps its prefix.
  */
 const FAMILY_LABELS: Record<string, string> = {
   skill: '技能',
@@ -101,7 +101,7 @@ const FAMILY_LABELS: Record<string, string> = {
   ability: 'アビリティ',
 };
 
-/** 配列ファミリの列サフィックス → 列名。ホワイトリスト（未知の列は内部用とみなし出さない）。 */
+/** The column suffixes and their names, as a list; anything else counts as internal and is left out. */
 const COLUMN_LABELS: Record<string, string> = {
   lv: 'レベル',
   Lv: 'レベル',
@@ -154,7 +154,7 @@ export function isCharasheetCharacter(parsed: unknown): boolean {
   return typeof (parsed as Record<string, unknown>)['pc_name'] === 'string';
 }
 
-/** `N{X}` / `M{X}` 命名の現在値・最大値ペアをリソースとして取り出す（一部システムが採る規約）。 */
+/** Takes the current and maximum pairs some systems name in that way as resources. */
 function parsePairedStatuses(record: Record<string, unknown>, handled: Set<string>): ImportedStatus[] {
   const statuses: ImportedStatus[] = [];
   for (const key of Object.keys(record)) {
@@ -193,9 +193,9 @@ function arrayPrefix(key: string): string {
 }
 
 /**
- * `{family}_name` を持つ配列ファミリを、行名つきの節へ展開する（保管所フォーマットの共通規約）。
- * 行ラベル = `{family}_name[i]`、列ラベル = サフィックスを {@link COLUMN_LABELS} で日本語化。
- * 処理したキーは `handled` に追加し、CoC 等の名前なし配列は後段の {@link buildArraySections} へ回す。
+ * Spreads an array family that names its rows into a section of named rows.
+ * The row label comes from that array and the column label from the suffix.
+ * What it handles is recorded, and the unnamed arrays of some systems are left to the next pass.
  */
 function buildNamedFamilySections(
   arrays: [string, unknown[]][],
@@ -250,9 +250,9 @@ function buildNamedFamilySections(
 }
 
 /**
- * 並列配列（技能の使用/初期値/ポイント…）を、接頭辞＋長さでグループ化し、
- * インデックスごとの行（group）へ zip する。行名を持たない CoC 系などのフォールバック。
- * 全列が空の行はスキップする。
+ * Groups the parallel arrays by their prefix and length and zips them into a row per index.
+ * It is the fallback for the systems whose rows have no names.
+ * A row empty in every column is passed over.
  */
 function buildArraySections(
   arrays: [string, unknown[]][],
@@ -271,7 +271,7 @@ function buildArraySections(
   for (const bucket of buckets.values()) {
     const prefix = arrayPrefix(bucket[0][0]);
     const length = bucket[0][1].length;
-    // 並列配列が複数あるときだけ接頭辞でまとめる。単独配列はフルキー名を見出しにする。
+    // Only several arrays are gathered under a prefix; a lone one keeps its full key as the heading.
     const baseLabel = bucket.length >= 2 ? (isCoc && COC_SKILL_CATEGORY[prefix]) || prefix : bucket[0][0];
     const sectionLabel = uniqueSectionLabel(baseLabel);
     const groups: ImportedGroup[] = [];
@@ -335,7 +335,7 @@ export function parseCharasheetCharacter(
     return label;
   };
 
-  // 行名（{family}_name）を持つファミリを名前付き節へ。残りは従来どおりインデックス節へ。
+  // A family that names its rows becomes a named section; the rest stay numbered.
   const namedSections = buildNamedFamilySections(arrayEntries, handled, uniqueSectionLabel);
   const remainingArrays = arrayEntries.filter(([key]) => !handled.has(key));
 

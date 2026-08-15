@@ -7,7 +7,7 @@ export interface InviteLinkParams {
   roomName: string;
   password: string;
   role: PeerRole | null;
-  /** 配信に重ねるための画面で開くか。卓には影響しない、この端末だけの見え方。 */
+  /** Whether it opens as an overlay for a stream. It touches nothing at the table and is how this screen alone looks. */
   overlay: boolean;
 }
 

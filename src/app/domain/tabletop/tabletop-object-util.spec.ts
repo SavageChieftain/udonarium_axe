@@ -21,15 +21,15 @@ describe('tabletop-object-util', () => {
   });
 
   describe('moveToTopmost()', () => {
-    it('単一オブジェクトのzindexを設定する', () => {
+    it('sets the stacking of one object', () => {
       const mask = GameTableMask.create('test', 1, 1, 100) as unknown as Stackable;
       mask.zindex = 0;
       moveToTopmost(mask);
-      // 最大zindex + 1 = 0 + 1 = 1 ... ただし既に最大なら変更なし
+      // one above the highest, or unchanged when it is already there
       expect(mask.zindex).toBeDefined();
     });
 
-    it('複数オブジェクトで最上位に移動する', () => {
+    it('brings one to the top of several', () => {
       const mask1 = GameTableMask.create('m1', 1, 1, 100) as unknown as Stackable;
       const mask2 = GameTableMask.create('m2', 1, 1, 100) as unknown as Stackable;
       const mask3 = GameTableMask.create('m3', 1, 1, 100) as unknown as Stackable;
@@ -42,7 +42,7 @@ describe('tabletop-object-util', () => {
       expect(mask1.zindex).toBe(3);
     });
 
-    it('既に最上位で競合がない場合変更しない', () => {
+    it('leaves it alone when it is already on top with nothing above', () => {
       const mask1 = GameTableMask.create('m1', 1, 1, 100) as unknown as Stackable;
       const mask2 = GameTableMask.create('m2', 1, 1, 100) as unknown as Stackable;
 

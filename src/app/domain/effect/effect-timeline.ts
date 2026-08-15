@@ -47,13 +47,13 @@ import {
 } from '@axe/domain/effect/timeline/shared';
 
 /**
- * 盤面に置く「線で描く」要素を組み立てる。
+ * Builds the parts of an effect that are drawn as lines on the board.
  *
- * 光る粒・炎・煙は canvas 側（`effect-particles`）が加算合成で描く。ここが受け持つのは
- * 魔法陣・衝撃波の輪・地割れ・稲妻・刃・氷柱のように、輪郭がはっきりしている方が
- * 良いものだけ。地面に寝かせる要素は SVG のままの方が拡大しても崩れない。
+ * The glowing particles, the flame and the smoke are laid additively onto a canvas
+ * elsewhere. What belongs here is what is better with a clear outline: the circles, the
+ * rings, the cracks, the lightning, the blades and the spikes. What lies flat on the ground holds up better drawn than painted.
  *
- * 演出そのものは `timeline/` 配下に家族ごとに置く。ここは**どれを呼ぶか**だけを持つ。
+ * Each family of effects lives beside it; this holds only **which one is called**.
  */
 
 export { EXCALIBUR_SWING_END, type SlashHit, slashHits, swingTiltOf } from '@axe/domain/effect/timeline/blade';
@@ -72,12 +72,12 @@ export {
   seededRandom,
 } from '@axe/domain/effect/timeline/shared';
 
-/** 着弾音が潰し合わないよう空ける最短間隔。 */
+/** The shortest interval between landings, so their sounds do not cancel each other. */
 const IMPACT_SOUND_MIN_GAP_MS = 70;
-/** 降り注ぐものの音の間隔。1 本ごとに鳴らすと連続音になって本数が聞き取れない。 */
+/** The interval for something that falls in numbers. Sounded one for one they run together and the count is lost. */
 const RAIN_SOUND_MIN_GAP_MS = 110;
 
-/** 発射音が潰し合わないよう空ける最短間隔。連射の刻みが聞こえる程度には詰める。 */
+/** The shortest interval between shots, close enough that the rhythm of a burst can still be heard. */
 const LAUNCH_SOUND_MIN_GAP_MS = 55;
 
 export function isEffectFinished(preset: EffectPreset, cast: EffectCast, elapsedMs: number): boolean {
@@ -85,9 +85,9 @@ export function isEffectFinished(preset: EffectPreset, cast: EffectCast, elapsed
 }
 
 /**
- * 着弾音を鳴らす時刻(ms)。
- * 連射は弾ごとに鳴らす。1 回だけだと、弾幕なのに着弾が 1 発に聞こえる。
- * ただし細かすぎる連続は同じ音が潰し合うので、最短間隔を空ける。
+ * When each landing sounds.
+ * A burst sounds each shot; sounded once, a hail of them lands as one.
+ * Too close together the same sound cancels itself, so a shortest interval is kept.
  */
 export function impactSoundTimes(preset: EffectPreset): number[] {
   if (preset.impactSoundIdentifier.length < 1) return [];
@@ -108,8 +108,8 @@ export function impactSoundTimes(preset: EffectPreset): number[] {
 }
 
 /**
- * 発射音を鳴らす時刻(ms)。連射は撃つたびに鳴らさないと弾数が耳に伝わらない。
- * 1 発目は再生開始と同時なので 0 を含む。
+ * When each shot sounds. Without one per shot the ear cannot count them.
+ * The first is at the start, so it begins at nothing.
  */
 export function launchSoundTimes(preset: EffectPreset): number[] {
   if (preset.soundIdentifier.length < 1) return [];
@@ -129,7 +129,7 @@ export function launchSoundTimes(preset: EffectPreset): number[] {
   return times.length > 0 ? times : [0];
 }
 
-/** 矢の雨のように本数の多いものを、聞き取れる間隔まで間引いた時刻(ms)。 */
+/** When something that falls in numbers, such as a rain of arrows, sounds, thinned until it can be heard. */
 function soundTimesOf(positions: readonly number[], preset: EffectPreset): number[] {
   const times: number[] = [];
   for (const position of positions) {
@@ -140,7 +140,7 @@ function soundTimesOf(positions: readonly number[], preset: EffectPreset): numbe
   return times;
 }
 
-/** 対象ごとの再生位置。canvas 層と共有する。 */
+/** How far through the playback each target is, shared with the canvas. */
 export function effectTargetProgress(preset: EffectPreset, elapsedMs: number, index: number): number {
   return (elapsedMs - preset.stagger * index) / preset.duration;
 }
@@ -154,7 +154,7 @@ export function effectTargetCenter(
   return options.resolvePosition?.(target.identifier) ?? target;
 }
 
-/** 的の周りで完結する演出。飛び道具や刃は、当たった先をここへ委ねる。 */
+/** The effects that happen about the target. A projectile or a blade hands the landing to one of these. */
 const CENTERED: Partial<Record<EffectKind, (ctx: CenteredContext) => void>> = {
   slash: (c) => appendSlash(c.sprites, c.prefix, c.center, c.base, c.progress, c.preset),
   flame: (c) => appendFlame(c.sprites, c.prefix, c.center, c.base, c.progress, c.preset),
@@ -176,7 +176,7 @@ const CENTERED: Partial<Record<EffectKind, (ctx: CenteredContext) => void>> = {
   gravity: (c) => appendGravity(c.sprites, c.prefix, c.center, c.base, c.progress, c.preset),
 };
 
-/** 撃ち手から的へ向かう演出。中心だけでは描けず、出どころと向きが要る。 */
+/** The effects that run from the caster to the target, which need an origin and a direction rather than a centre alone. */
 const AIMED: Partial<Record<EffectKind, (ctx: AimedContext) => void>> = {
   arc: (c) => appendArc(c.sprites, c.prefix, c.center, c.base, c.progress, c.preset, originOf(c), c.random, c.view),
   dissolve: (c) =>
@@ -208,10 +208,10 @@ interface CenteredContext {
 }
 
 /**
- * 狙って撃つ演出に渡すもの。
+ * What an aimed effect is given.
  *
- * 出どころと立ち絵は**要るときだけ** `originOf` / `imageOfTarget` で求める。立ち絵の取り出しは
- * 持ち物の中を辿るので、毎フレーム・的の数だけ先に払うと高くつく。使うのは 4 種類だけ。
+ * The origin and the portrait are worked out **only when they are wanted**. Fetching a
+ * portrait walks the belongings, and paying for it every frame for every target is dear. Four kinds use it.
  */
 interface AimedContext extends CenteredContext {
   cast: EffectCast;
@@ -228,10 +228,10 @@ function imageOfTarget(context: AimedContext): string {
   return imageOf(context.options, context.target.identifier);
 }
 
-/** 出どころと向きが要る種類。表に無いものは的の周りで完結する扱いになる。 */
+/** The kinds that need an origin and a direction. Anything not in the table happens about the target. */
 export const AIMED_EFFECT_KINDS: readonly EffectKind[] = Object.keys(AIMED) as EffectKind[];
 
-/** 的の周りで完結する種類。ここにも無い種類は、弾けさせて済ませる。 */
+/** The kinds that happen about the target. Anything in neither table simply bursts. */
 export const CENTERED_EFFECT_KINDS: readonly EffectKind[] = Object.keys(CENTERED) as EffectKind[];
 
 export function effectSprites(
@@ -275,7 +275,7 @@ export function effectSprites(
   return sprites;
 }
 
-/** 覚えのない種類は弾けさせる。新しい種類を足しても、まず何かは出る。 */
+/** An unknown kind bursts, so a new one at least shows something. */
 const paintCentered: ImpactPainter = (kind, sprites, prefix, center, base, progress, preset, random) => {
   const centered = CENTERED[kind];
   const context: CenteredContext = { sprites, prefix, center, base, progress, preset, random };

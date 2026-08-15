@@ -5,7 +5,7 @@ import {
 } from '@axe/domain/character/import/system-profiles/parabla-charasheet-profile';
 
 describe('buildParablaCharasheetCharacter', () => {
-  // charasheet.vampire-blood.net の パラサイトブラッド（game="parabla"）実データに即した構造
+  // built from real data of one system at the archive
   const parabla = {
     pc_name: 'カイン',
     game: 'parabla',
@@ -35,12 +35,12 @@ describe('buildParablaCharasheetCharacter', () => {
     return sections.find((section) => section.label === label);
   }
 
-  it('game="parabla" を判別する', () => {
+  it('recognises the system', () => {
     expect(isParablaCharasheetCharacter(parabla)).toBe(true);
     expect(isParablaCharasheetCharacter({ pc_name: 'X', game: 'coc' })).toBe(false);
   });
 
-  it('6 能力値（肉体/機敏/感覚/幸運/知力/精神）と dicebot ParasiteBlood を取り込む', () => {
+  it('takes its six abilities and the dice bot', () => {
     const result = buildParablaCharasheetCharacter(parabla)!;
     expect(result.dicebot).toBe('ParasiteBlood');
     expect(result.params).toEqual([
@@ -53,7 +53,7 @@ describe('buildParablaCharasheetCharacter', () => {
     ]);
   });
 
-  it('異能・武器を名前付きで展開する', () => {
+  it('spreads the powers and the weapons with their names', () => {
     const result = buildParablaCharasheetCharacter(parabla)!;
     expect(findSection(result.sections, '異能')!.groups.map((group) => group.label)).toEqual([
       'ダークヒーロー',
@@ -62,7 +62,7 @@ describe('buildParablaCharasheetCharacter', () => {
     expect(findSection(result.sections, '武器')!.groups[0].label).toBe('ナイフ');
   });
 
-  it('チャットパレットに 2d6+判定値 の能力判定を生成する', () => {
+  it('builds a roll of two dice plus the value into the palette', () => {
     const result = buildParablaCharasheetCharacter(parabla)!;
     expect(result.commands).toContain('2d6+7 【肉体判定】');
     expect(result.commands).toContain('2d6+12 【知力判定】');

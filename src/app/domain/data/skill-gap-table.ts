@@ -10,22 +10,22 @@ import {
 export const DEFAULT_SKILL_TABLE_ROW_NAMES = ['2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'];
 
 export interface SkillGapTableInput {
-  /** セクション名（例: '技能表' / '特技表'）。要素 identifier の接頭辞も兼ねる。 */
+  /** The name of the section, which is also the prefix of every element identifier in it. */
   name: string;
-  /** カテゴリ名（サイフィクは 6 列）。 */
+  /** The names of the categories, of which that family of systems has six. */
   categories: string[];
-  /** [カテゴリ][行] の特技名。各カテゴリは rowNames と同じ長さ。 */
+  /** The skill in each row of each category, every category as long as the row names. */
   skillsByCategory: string[][];
-  /** identifier を決定的にするための接尾辞（通常はキャラ identifier）。空なら uuid 任せ。 */
+  /** The suffix that makes the identifiers predictable, usually the character's own. Empty to let them be generated. */
   idSuffix?: string;
-  /** 行ラベル（既定は 2〜12 の 11 行）。 */
+  /** The row labels, by default the eleven from two to twelve. */
   rowNames?: string[];
-  /** [カテゴリ][行] の習得フラグ。未指定は全て未習得。 */
+  /** Whether each skill was learnt. Unset, none of them was. */
   checked?: boolean[][];
   /**
-   * リング状ギャップの習得フラグ。長さ = カテゴリ数。
-   * gaps[i] (i=0..len-2) = categories[i] と categories[i+1] の間（ギャップ{i+1}）。
-   * gaps[len-1] = categories[len-1] と categories[0] のラップアラウンド（ギャップ{len}、行頭に配置）。
+   * Whether each gap in the ring was learnt, one for each category.
+   * Each gap but the last sits between one category and the next.
+   * The last wraps from the final category round to the first, and sits at the head of the row.
    */
   gaps?: boolean[];
 }
@@ -51,9 +51,9 @@ function gapField(name: string, cellText: string, checked: boolean, identifier: 
 }
 
 /**
- * サイフィク系の「ギャップ付き異能表（特技表）」を生成する純粋ビルダー。
- * サンプルキャラの技能表（CharacterTemplateFactory）と取り込みキャラで共用する。
- * 構造: section(viewMode=TABLE) > 「ギャップ」行 + 各行(2〜12)。
+ * Builds the gapped skill table of that family of systems, and nothing else.
+ * The sample character and an imported one share it.
+ * A section shown as a table, holding the gap row and one row for each rank.
  */
 export function createSkillGapTableElement(input: SkillGapTableInput): DataElement {
   const { name, categories, skillsByCategory } = input;
@@ -82,7 +82,7 @@ export function createSkillGapTableElement(input: SkillGapTableInput): DataEleme
   );
   tableElement.appendChild(gapRowElement);
 
-  // ラップアラウンドのギャップ（最後→最初）を行頭に置く
+  // the wrapping gap, from the last category back to the first, goes at the head of the row
   gapRowElement.appendChild(
     gapField(
       `ギャップ${categories.length}`,

@@ -63,113 +63,113 @@ describe('Terrain', () => {
   });
 
   describe('create()', () => {
-    it('名前を正しく設定する', () => {
+    it('takes its name', () => {
       const terrain = Terrain.create('山岳', 2, 3, 1, 'wall.png', 'floor.png');
       expect(terrain.name).toBe('山岳');
     });
 
-    it('幅、奥行き、高さを設定する', () => {
+    it('takes its width, depth and height', () => {
       const terrain = Terrain.create('平原', 3, 4, 2, '', '');
       expect(terrain.width).toBe(3);
       expect(terrain.depth).toBe(4);
       expect(terrain.height).toBe(2);
     });
 
-    it('ObjectStoreに追加される', () => {
+    it('is added to the store', () => {
       const terrain = Terrain.create('森', 1, 1, 1, '', '');
       const found = store.get(terrain.identifier);
       expect(found).toBe(terrain);
     });
 
-    it('カスタム identifier を指定できる', () => {
+    it('takes an identifier of its own', () => {
       const terrain = Terrain.create('川', 2, 2, 0, '', '', 'custom-terrain-id');
       expect(terrain.identifier).toBe('custom-terrain-id');
     });
 
-    it('identifier 未指定で自動生成される', () => {
+    it('makes one when none is given', () => {
       const terrain = Terrain.create('道', 1, 1, 0, '', '');
       expect(terrain.identifier).toBeTruthy();
       expect(terrain.identifier.length).toBeGreaterThan(0);
     });
 
-    it('rootDataElement が作成される', () => {
+    it('builds a root element', () => {
       const terrain = Terrain.create('砂漠', 2, 2, 1, '', '');
       expect(terrain.rootDataElement).toBeTruthy();
     });
 
-    it('commonDataElement が作成される', () => {
+    it('builds a common element', () => {
       const terrain = Terrain.create('沼', 1, 1, 0, '', '');
       expect(terrain.commonDataElement).toBeTruthy();
     });
 
-    it('imageDataElement が作成される', () => {
+    it('builds an image element', () => {
       const terrain = Terrain.create('丘', 1, 1, 1, '', '');
       expect(terrain.imageDataElement).toBeTruthy();
     });
   });
 
   describe('aliasName', () => {
-    it('"terrain" を返す', () => {
+    it('names itself terrain', () => {
       const terrain = Terrain.create('test', 1, 1, 1, '', '');
       expect(terrain.aliasName).toBe('terrain');
     });
   });
 
-  describe('SyncVar デフォルト値', () => {
-    it('isLocked がデフォルト false', () => {
+  describe('the defaults of the synchronised fields', () => {
+    it('starts unlocked', () => {
       const terrain = Terrain.create('t', 1, 1, 1, '', '');
       expect(terrain.isLocked).toBe(false);
     });
 
-    it('mode がデフォルト TerrainViewState.ALL', () => {
+    it('starts showing everything', () => {
       const terrain = Terrain.create('t', 1, 1, 1, '', '');
       expect(terrain.mode).toBe(TerrainViewState.ALL);
     });
 
-    it('rotate がデフォルト 0', () => {
+    it('starts unturned', () => {
       const terrain = Terrain.create('t', 1, 1, 1, '', '');
       expect(terrain.rotate).toBe(0);
     });
 
-    it('isDropShadow がデフォルト true', () => {
+    it('starts casting a shadow', () => {
       const terrain = Terrain.create('t', 1, 1, 1, '', '');
       expect(terrain.isDropShadow).toBe(true);
     });
 
-    it('isSlope がデフォルト false', () => {
+    it('starts unsloped', () => {
       const terrain = Terrain.create('t', 1, 1, 1, '', '');
       expect(terrain.isSlope).toBe(false);
     });
 
-    it('isSurfaceShading がデフォルト true', () => {
+    it('starts with the surfaces shaded', () => {
       const terrain = Terrain.create('t', 1, 1, 1, '', '');
       expect(terrain.isSurfaceShading).toBe(true);
     });
 
-    it('slopeDirection がデフォルト NONE', () => {
+    it('starts sloping nowhere', () => {
       const terrain = Terrain.create('t', 1, 1, 1, '', '');
       expect(terrain.slopeDirection).toBe(SlopeDirection.NONE);
     });
 
-    it('isGrid がデフォルト false', () => {
+    it('starts without a grid', () => {
       const terrain = Terrain.create('t', 1, 1, 1, '', '');
       expect(terrain.isGrid).toBe(false);
     });
 
-    it('blocksSight / blocksLight がデフォルト true（既存卓の見た目を維持）', () => {
+    it('starts blocking both sight and light, as existing tables look', () => {
       const terrain = Terrain.create('t', 1, 1, 1, '', '');
       expect(terrain.blocksSight).toBe(true);
       expect(terrain.blocksLight).toBe(true);
     });
 
-    it('窓硝子は blocksLight=false（光は通すが視界は遮る）に設定できる', () => {
+    it('a window blocks sight while letting the light through', () => {
       const terrain = Terrain.create('窓', 1, 1, 1, '', '');
       terrain.blocksLight = false;
       expect(terrain.blocksSight).toBe(true);
       expect(terrain.blocksLight).toBe(false);
     });
 
-    it('発光はデフォルト無効、lightSpec を組み立てられる', () => {
+    it('starts unlit, and builds a light specification when asked', () => {
       const terrain = Terrain.create('結晶', 1, 1, 1, '', '');
       expect(terrain.lightEnabled).toBe(false);
       terrain.lightEnabled = true;
@@ -182,7 +182,7 @@ describe('Terrain', () => {
       expect(spec.ignoreOcclusion).toBe(false);
     });
 
-    it('指向性光の向きは地形の回転(rotate)に追従し lightDirection を加算する', () => {
+    it('turns a directed light with the terrain and adds its own direction', () => {
       const terrain = Terrain.create('灯台', 1, 1, 1, '', '');
       terrain.rotate = 90;
       terrain.lightDirection = 15;
@@ -193,32 +193,32 @@ describe('Terrain', () => {
   });
 
   describe('dimensions getter/setter', () => {
-    it('width を変更できる', () => {
+    it('takes a new width', () => {
       const terrain = Terrain.create('t', 1, 1, 1, '', '');
       terrain.width = 5;
       expect(terrain.width).toBe(5);
     });
 
-    it('height を変更できる', () => {
+    it('takes a new height', () => {
       const terrain = Terrain.create('t', 1, 1, 1, '', '');
       terrain.height = 3;
       expect(terrain.height).toBe(3);
     });
 
-    it('depth を変更できる', () => {
+    it('takes a new depth', () => {
       const terrain = Terrain.create('t', 1, 1, 1, '', '');
       terrain.depth = 7;
       expect(terrain.depth).toBe(7);
     });
 
-    it('name を変更できる', () => {
+    it('takes a new name', () => {
       const terrain = Terrain.create('初期名', 1, 1, 1, '', '');
       terrain.name = '変更後';
       expect(terrain.name).toBe('変更後');
     });
   });
 
-  describe('hasWall / hasFloor (ビット演算)', () => {
+  describe('whether it has a wall and a floor', () => {
     it('mode=ALL → hasWall=true, hasFloor=true', () => {
       const terrain = Terrain.create('t', 1, 1, 1, '', '');
       terrain.mode = TerrainViewState.ALL;
@@ -248,23 +248,23 @@ describe('Terrain', () => {
     });
   });
 
-  describe('TabletopObject 継承', () => {
-    it('location のデフォルトが table', () => {
+  describe('what it inherits', () => {
+    it('starts on the table', () => {
       const terrain = Terrain.create('t', 1, 1, 1, '', '');
       expect(terrain.location.name).toBe('table');
     });
 
-    it('posZ のデフォルトが 0', () => {
+    it('starts at ground level', () => {
       const terrain = Terrain.create('t', 1, 1, 1, '', '');
       expect(terrain.posZ).toBe(0);
     });
 
-    it('isVisibleOnTable が true', () => {
+    it('can be seen on the table', () => {
       const terrain = Terrain.create('t', 1, 1, 1, '', '');
       expect(terrain.isVisibleOnTable).toBe(true);
     });
 
-    it('setLocation で場所を変更できる', () => {
+    it('takes a new place', () => {
       const terrain = Terrain.create('t', 1, 1, 1, '', '');
       terrain.setLocation('graveyard');
       expect(terrain.location.name).toBe('graveyard');
@@ -272,20 +272,20 @@ describe('Terrain', () => {
     });
   });
 
-  describe('6面個別画像 (faceImage / setFaceImage)', () => {
+  describe('the picture on each of the six faces', () => {
     beforeEach(() => {
       vi.spyOn(ImageStorage.instance, 'get').mockImplementation((id: string) =>
         id ? ({ identifier: id } as ImageFile) : null
       );
     });
 
-    it('top/bottom は未設定なら floor 画像にフォールバックする', () => {
+    it('falls back to the floor picture for the top and the bottom', () => {
       const terrain = Terrain.create('t', 1, 1, 1, 'W', 'F');
       expect(terrain.topImage?.identifier).toBe('F');
       expect(terrain.bottomImage?.identifier).toBe('F');
     });
 
-    it('north/south/east/west は未設定なら wall 画像にフォールバックする', () => {
+    it('falls back to the wall picture for the sides', () => {
       const terrain = Terrain.create('t', 1, 1, 1, 'W', 'F');
       expect(terrain.northImage?.identifier).toBe('W');
       expect(terrain.southImage?.identifier).toBe('W');
@@ -293,7 +293,7 @@ describe('Terrain', () => {
       expect(terrain.westImage?.identifier).toBe('W');
     });
 
-    it('setFaceImage は対象の面だけ上書きし、他面のフォールバックは保つ', () => {
+    it('sets one face and leaves the others to fall back', () => {
       const terrain = Terrain.create('t', 1, 1, 1, 'W', 'F');
       terrain.setFaceImage('top', 'T');
       expect(terrain.topImage?.identifier).toBe('T');
@@ -301,14 +301,14 @@ describe('Terrain', () => {
       expect(terrain.northImage?.identifier).toBe('W');
     });
 
-    it('setFaceImage は既存の面画像を更新する', () => {
+    it('replaces a face that already has one', () => {
       const terrain = Terrain.create('t', 1, 1, 1, 'W', 'F');
       terrain.setFaceImage('east', 'E1');
       terrain.setFaceImage('east', 'E2');
       expect(terrain.eastImage?.identifier).toBe('E2');
     });
 
-    it('faceImage(face) は各 getter と一致する', () => {
+    it('agrees with each of the getters', () => {
       const terrain = Terrain.create('t', 1, 1, 1, 'W', 'F');
       terrain.setFaceImage('east', 'E');
       expect(terrain.faceImage('east')?.identifier).toBe('E');

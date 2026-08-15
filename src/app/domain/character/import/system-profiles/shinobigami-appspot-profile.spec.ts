@@ -5,7 +5,7 @@ import {
 } from '@axe/domain/character/import/system-profiles/shinobigami-appspot-profile';
 
 describe('buildShinobigamiAppspotCharacter', () => {
-  // character-sheets.appspot.com の shinobigami（シノビガミ）実データに即した構造
+  // built from real data of one system at the warehouse
   const sg = {
     base: {
       name: 'かり',
@@ -43,12 +43,12 @@ describe('buildShinobigamiAppspotCharacter', () => {
     return section.groups.find((group) => group.label === groupLabel)?.fields ?? [];
   }
 
-  it('倉庫 シノビガミの構造を判別する', () => {
+  it('recognises the system', () => {
     expect(isShinobigamiAppspotCharacter(sg)).toBe(true);
     expect(isShinobigamiAppspotCharacter({ kind: 'character' })).toBe(false);
   });
 
-  it('名前・メモ・dicebot を取り込む', () => {
+  it('takes the name, the notes and the dice bot', () => {
     const result = buildShinobigamiAppspotCharacter(sg)!;
     expect(result.sourceFormat).toBe('appspot');
     expect(result.name).toBe('かり');
@@ -56,7 +56,7 @@ describe('buildShinobigamiAppspotCharacter', () => {
     expect(result.dicebot).toBe('ShinobiGami');
   });
 
-  it('忍法を指定特技つきの名前付きグループに展開する（空の忍法はスキップ）', () => {
+  it('spreads its arts into named groups with the skill each calls for, passing over the empty ones', () => {
     const result = buildShinobigamiAppspotCharacter(sg)!;
     const ninpou = findSection(result.sections, '忍法')!;
     expect(ninpou.groups.map((group) => group.label)).toEqual(['接近戦攻撃']);
@@ -66,7 +66,7 @@ describe('buildShinobigamiAppspotCharacter', () => {
     expect(fields).toContainEqual({ label: '間合', value: 1, kind: 'number' });
   });
 
-  it('背景・プロフィールを日本語ラベルでセクション化する', () => {
+  it('gathers the background and the profile into labelled sections', () => {
     const result = buildShinobigamiAppspotCharacter(sg)!;
     expect(findGroupFields(findSection(result.sections, '背景')!, '整備班')).toContainEqual({
       label: '功績',
@@ -78,24 +78,24 @@ describe('buildShinobigamiAppspotCharacter', () => {
     expect(findGroupFields(profile, '基本')).toContainEqual({ label: '階級', value: '中忍', kind: 'text' });
   });
 
-  it('チャットパレットは ShinobiGami の 2D6>=5 で忍法（指定特技つき）の判定を生成する', () => {
+  it('builds the rolls of that system into the palette, each with the skill it calls for', () => {
     const result = buildShinobigamiAppspotCharacter(sg)!;
     expect(result.commands).toContain('2D6>=5 【判定】');
     expect(result.commands).toContain('2D6>=5 【接近戦攻撃／掘削術】');
   });
 
-  it('特技表（GAP表）を正式特技表で構築し、learned から習得・a-f からギャップを反映する', () => {
+  it('builds the gapped skill table from the official one, marking what was learnt and where the gaps fall', () => {
     const result = buildShinobigamiAppspotCharacter(sg)!;
     const table = result.skillTables[0];
     expect(table.name).toBe('特技表');
     expect(table.categories).toEqual(['器術', '体術', '忍術', '謀術', '戦術', '妖術']);
-    // 器術の12行目（row10）＝掘削術
+    // one row of one column
     expect(table.skillsByCategory[0][10]).toBe('掘削術');
-    // learned: skills.row10.name0（器術=掘削術）/ skills.row3.name3（謀術=調査術）
+    // two learnt skills, one in each of two columns
     expect(table.checked![0][10]).toBe(true);
     expect(table.checked![3][3]).toBe(true);
     expect(table.checked![0][0]).toBe(false);
-    // gaps a-f → [器-体, 体-忍, 忍-謀, 謀-戦, 戦-妖, 妖-器(wrap)]
+    // the six gaps, each between two columns, the last wrapping round
     expect(table.gaps).toEqual([true, false, false, false, false, true]);
   });
 });

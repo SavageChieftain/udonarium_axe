@@ -20,23 +20,23 @@ describe('ImageTagList', () => {
   });
 
   describe('create()', () => {
-    it('ImageFile配列からImageTagListを作成する', () => {
+    it('builds the tag list from the image files', () => {
       const list = ImageTagList.create([]);
       expect(list).toBeTruthy();
     });
   });
 
   describe('onStoreAdded', () => {
-    it('ObjectStoreから自身を削除する', () => {
+    it('takes itself out of the store', () => {
       const list = new ImageTagList();
       list.initialize();
-      // onStoreAddedでObjectStoreから削除されるため見つからない
+      // it is taken out of the store as it is added, so it cannot be found
       expect(store.get(list.identifier)).toBeFalsy();
     });
   });
 
   describe('innerXml()', () => {
-    it('空のリストでは空文字列を返す', () => {
+    it('returns nothing for an empty list', () => {
       const list = ImageTagList.create([]);
       expect(list.innerXml()).toBe('');
     });

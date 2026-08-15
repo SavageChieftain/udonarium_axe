@@ -5,7 +5,7 @@ import {
 } from '@axe/domain/character/import/system-profiles/ytsheet-sw25-profile';
 
 describe('buildYtsheetSw25Character', () => {
-  // ゆとシートⅡ for SW2.5 の JSON 実データに即した構造
+  // built from real json of one system at the sheet service
   const sw = {
     characterName: 'リトルフラワー',
     freeNote: 'メモ文',
@@ -70,13 +70,13 @@ describe('buildYtsheetSw25Character', () => {
     return section.groups.find((group) => group.label === groupLabel)?.fields ?? [];
   }
 
-  it('ゆとシート SW2.5 の構造を判別する', () => {
+  it('recognises the system', () => {
     expect(isYtsheetSw25Character(sw)).toBe(true);
     expect(isYtsheetSw25Character({ pc_name: 'X' })).toBe(false);
     expect(isYtsheetSw25Character({ kind: 'character' })).toBe(false);
   });
 
-  it('名前・メモ・dicebot を取り込む', () => {
+  it('takes the name, the notes and the dice bot', () => {
     const result = buildYtsheetSw25Character(sw)!;
     expect(result.sourceFormat).toBe('ytsheet');
     expect(result.name).toBe('リトルフラワー');
@@ -84,7 +84,7 @@ describe('buildYtsheetSw25Character', () => {
     expect(result.dicebot).toBe('SwordWorld2.5');
   });
 
-  it('能力値・ボーナス・抵抗を params に、HP/MP は出さない', () => {
+  it('takes the abilities, the bonuses and the resistances as fields, leaving the resources out', () => {
     const result = buildYtsheetSw25Character(sw)!;
     expect(result.params).toContainEqual({ label: '器用', value: '18' });
     expect(result.params).toContainEqual({ label: '器用B', value: '5' });
@@ -95,13 +95,13 @@ describe('buildYtsheetSw25Character', () => {
     expect(result.params.some((param) => param.label === 'HP')).toBe(false);
   });
 
-  it('HP・MP をリソースとして取り込む', () => {
+  it('takes the two resources as resources', () => {
     const result = buildYtsheetSw25Character(sw)!;
     expect(result.statuses).toContainEqual({ label: 'HP', value: 60, max: 60 });
     expect(result.statuses).toContainEqual({ label: 'MP', value: 20, max: 20 });
   });
 
-  it('技能を lv 略号から技能名へ写像する（レベル0はスキップ）', () => {
+  it('maps each abbreviated level key onto its skill, passing over the unlearnt', () => {
     const result = buildYtsheetSw25Character(sw)!;
     const skills = findGroupFields(findSection(result.sections, '技能')!, '技能');
     expect(skills).toContainEqual({ label: 'グラップラー', value: 9, kind: 'number' });
@@ -110,7 +110,7 @@ describe('buildYtsheetSw25Character', () => {
     expect(skills.some((field) => field.label === 'ファイター')).toBe(false);
   });
 
-  it('戦闘特技・武器・防具・プロフィールを日本語ラベルで展開する', () => {
+  it('spreads the combat feats, the weapons, the armour and the profile under readable labels', () => {
     const result = buildYtsheetSw25Character(sw)!;
     expect(findGroupFields(findSection(result.sections, '戦闘特技')!, '習得')).toContainEqual({
       label: 'Lv1',
@@ -133,7 +133,7 @@ describe('buildYtsheetSw25Character', () => {
     });
   });
 
-  it('チャットパレットは能力値判定(2d6+{能力B})と武器の命中(2d6+命中)・打撃(K威力)を生成する', () => {
+  it('builds the ability rolls, the accuracy of each weapon and its damage into the palette', () => {
     const result = buildYtsheetSw25Character(sw)!;
     expect(result.commands).toContain('2d6+{筋力B} 【筋力判定】');
     expect(result.commands).toContain('2d6+14 【狼牙爪(拳) 命中】');

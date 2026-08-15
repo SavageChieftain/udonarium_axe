@@ -512,7 +512,7 @@ describe('DataElement', () => {
       expect(color).toBe('#D22');
     });
 
-    it('should return red color for 正気度 below 80%', () => {
+    it('turns sanity red below four fifths', () => {
       const element = DataElement.create('正気度', 100, { type: DataElementType.NUMBER_RESOURCE });
       element.currentValue = 70; // 70/100 = 70% < 80%
 

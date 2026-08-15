@@ -1,10 +1,10 @@
 import { EffectPreset } from '@axe/domain/effect/effect-preset';
 
 /**
- * 流れの道中に散らす粒。
+ * The particles scattered along the way.
  *
- * 円錐の形と色だけだと、どの属性でも同じ物が色違いで飛んでいるように見える。
- * 属性ごとに違う物が舞っていると、色を見る前に何が来たか分かる。
+ * A cone and a colour alone would look like the same thing flying in different colours,
+ * while different things in the air say what is coming before the colour does.
  */
 export type EffectMote = 'spark' | 'frost' | 'arc' | 'leaf' | 'haze' | 'none';
 
@@ -27,7 +27,7 @@ export function isEffectMote(value: unknown): value is EffectMote {
   return typeof value === 'string' && MOTE_STYLES.includes(value as EffectMote);
 }
 
-/** 明示されていれば従い、無ければ系統から決める。 */
+/** What is given outright wins; otherwise the family decides. */
 export function effectMoteOf(preset: EffectPreset): EffectMote {
   if (isEffectMote(preset.moteStyle)) return preset.moteStyle;
   return MOTE_BY_TAG[preset.tagName.trim()] ?? 'spark';

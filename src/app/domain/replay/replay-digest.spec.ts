@@ -66,7 +66,7 @@ beforeEach(() => {
 });
 
 describe('buildReplayDigest()', () => {
-  it('記録が空なら部屋の名前だけを返すこと', () => {
+  it('returns the name of the room alone for an empty recording', () => {
     const digest = buildReplayDigest([], MANIFEST, PLAYER);
 
     expect(digest.roomName).toBe('洞窟の夜');
@@ -74,7 +74,7 @@ describe('buildReplayDigest()', () => {
     expect(digest.awards).toEqual([]);
   });
 
-  it('発言・ダイス・演出・ラウンドを数えること', () => {
+  it('counts the lines, the rolls, the effects and the rounds', () => {
     const digest = buildReplayDigest(
       [
         event(ReplayEventKind.ChatMessage, 'alice'),
@@ -97,7 +97,7 @@ describe('buildReplayDigest()', () => {
     expect(digest.speakers[0]).toMatchObject({ userId: 'alice', name: 'アリス', messages: 2, diceRolls: 1 });
   });
 
-  it('見えない発言を PL のまとめに入れないこと', () => {
+  it('leaves a line a player cannot see out of their summary', () => {
     const secret = { ...event(ReplayEventKind.ChatMessage, 'gm'), visibility: GM_ONLY_VISIBILITY };
     const events = [event(ReplayEventKind.ChatMessage, 'alice'), secret];
 
@@ -105,16 +105,16 @@ describe('buildReplayDigest()', () => {
     expect(buildReplayDigest(events, MANIFEST, GAME_MASTER).numbers.messages).toBe(2);
   });
 
-  it('1 回の振りの合計で出方をまとめること', () => {
+  it('measures the rolls by the total of each throw', () => {
     const digest = buildReplayDigest(
       [
-        // 2D6 の 1 と 5 は 1 回の振りで 6。面ごとに数えると平均 3 になってしまう。
+        // Two dice showing one and five are six in one throw; counted face by face the average halves.
         dice('alice', [
           [6, 1],
           [6, 5],
         ]),
         dice('alice', [[6, 6]], 'critical'),
-        // 1D100 は十の位と一の位に分かれて残る。合計 78 が 1 回の出目。
+        // A percentile roll is kept as its tens and its units, and their total is the one roll.
         dice(
           'bob',
           [
@@ -141,13 +141,13 @@ describe('buildReplayDigest()', () => {
     expect(digest.hasDiceDetail).toBe(true);
   });
 
-  it('0 の目を「出ていない」と取り違えないこと', () => {
+  it('does not read a zero as no roll at all', () => {
     const digest = buildReplayDigest([dice('alice', [[10, 0]]), dice('alice', [[10, 7]])], MANIFEST, PLAYER);
 
     expect(digest.fortunes[0]).toMatchObject({ worst: 0, best: 7, average: 3.5 });
   });
 
-  it('系統が混ざったら、いちばん多く振った系統だけで平均を出すこと', () => {
+  it('averages over the system rolled most where several are mixed', () => {
     const digest = buildReplayDigest(
       [
         dice('alice', [[6, 3]], '', 'SwordWorld2.5'),
@@ -161,14 +161,14 @@ describe('buildReplayDigest()', () => {
     expect(digest.fortunes[0]).toMatchObject({ rolls: 3, system: 'SwordWorld2.5', counted: 2, average: 4, best: 5 });
   });
 
-  it('卓の長さを読む人で変えないこと', () => {
+  it('measures the session the same for everybody', () => {
     const events = [event(ReplayEventKind.ChatMessage, 'alice')];
     const digest = buildReplayDigest(events, { ...MANIFEST, endedAt: 1000 + 45 * 60 * 1000 }, PLAYER);
 
     expect(digest.numbers.elapsedMs).toBe(45 * 60 * 1000);
   });
 
-  it('ラウンドの値が読めないときに数を壊さないこと', () => {
+  it('does not spoil the count when a round cannot be read', () => {
     const digest = buildReplayDigest(
       [
         event(ReplayEventKind.TurnChange, 'gm', { round: 2 }),
@@ -181,14 +181,14 @@ describe('buildReplayDigest()', () => {
     expect(digest.numbers.rounds).toBe(2);
   });
 
-  it('区分の読めない増減を回復として数えないこと', () => {
+  it('does not count a change of unreadable kind as healing', () => {
     const digest = buildReplayDigest([change('gm', 'char-1', [{ delta: -10, name: 'HP' }])], MANIFEST, PLAYER);
 
     expect(digest.hasLedger).toBe(false);
     expect(digest.ledger).toEqual([]);
   });
 
-  it('端数のある増減を足しても粕を残さないこと', () => {
+  it('leaves no remainder when it adds fractional changes', () => {
     const digest = buildReplayDigest(
       [
         change('gm', 'char-1', [{ kind: 'damage', delta: -0.1, name: 'HP' }]),
@@ -201,7 +201,7 @@ describe('buildReplayDigest()', () => {
     expect(digest.ledger[0].damage).toBe(0.3);
   });
 
-  it('出目が残っていない記録では運勢を出さないこと', () => {
+  it('tells no fortune for a recording that kept no rolls', () => {
     const digest = buildReplayDigest([event(ReplayEventKind.ChatDice, 'alice', { dicebot: '' })], MANIFEST, PLAYER);
 
     expect(digest.hasDiceDetail).toBe(false);
@@ -209,7 +209,7 @@ describe('buildReplayDigest()', () => {
     expect(digest.numbers.diceRolls).toBe(1);
   });
 
-  it('受けた増減をコマごとにまとめ、最大の一撃を覚えること', () => {
+  it('gathers what each piece took and remembers the heaviest blow', () => {
     const digest = buildReplayDigest(
       [
         change('gm', 'char-1', [{ kind: 'damage', delta: -7, name: 'HP' }]),
@@ -235,8 +235,8 @@ describe('buildReplayDigest()', () => {
     expect(digest.ledger[1]).toMatchObject({ targetId: 'char-2', damage: 2 });
   });
 
-  it('増減の一覧を持たない値の変化は数えないこと', () => {
-    // 同じ変化が 2 つの経路で残ることがある。一覧を持つ側だけを見て二重に数えない。
+  it('counts no change of value that carries no list', () => {
+    // One change can be kept two ways, and only the side that carries the list is counted, so it is not counted twice.
     const digest = buildReplayDigest(
       [event(ReplayEventKind.ObjectValue, 'gm', { name: 'HP', current: { from: 10, to: 3 } }, 'char-1')],
       MANIFEST,
@@ -247,7 +247,7 @@ describe('buildReplayDigest()', () => {
     expect(digest.ledger).toEqual([]);
   });
 
-  it('称号を数の裏付けがあるときだけ出すこと', () => {
+  it('gives a title only where the numbers bear it out', () => {
     const digest = buildReplayDigest(
       [
         dice('alice', [[6, 1]], 'fumble'),
@@ -266,13 +266,13 @@ describe('buildReplayDigest()', () => {
     const keys = digest.awards.map((award) => award.key);
     expect(keys).toContain('unlucky');
     expect(digest.awards.find((award) => award.key === 'unlucky')).toMatchObject({ name: 'アリス', value: 2 });
-    // ボブは 1 回しか振っていない。1 回のクリティカルで称号は付けない。
+    // One throw is one throw, and a single critical earns no title.
     expect(keys).not.toContain('blessed');
     expect(digest.awards.find((award) => award.key === 'talkative')).toMatchObject({ name: 'アリス', value: 2 });
     expect(digest.awards.find((award) => award.key === 'battered')).toMatchObject({ name: 'ゴブリン', value: 9 });
   });
 
-  it('同じ数で並んだときは称号を出さないこと', () => {
+  it('gives none where two are level', () => {
     const digest = buildReplayDigest(
       [
         event(ReplayEventKind.ChatMessage, 'alice'),
@@ -304,7 +304,7 @@ describe('buildReplayDigest()', () => {
       elapsed: (ms) => `${Math.round(ms / 1000)}秒`,
     };
 
-    it('部屋の名前と数を並べること', () => {
+    it('lays out the name of the room and the numbers', () => {
       const digest = buildReplayDigest([event(ReplayEventKind.ChatMessage, 'alice')], MANIFEST, PLAYER);
 
       const markdown = buildReplayDigestMarkdown(digest, LABELS);
@@ -313,7 +313,7 @@ describe('buildReplayDigest()', () => {
       expect(markdown).toContain('発言: 1');
     });
 
-    it('中身の無い節を書かないこと', () => {
+    it('writes no section with nothing in it', () => {
       const digest = buildReplayDigest([event(ReplayEventKind.ChatMessage, 'alice')], MANIFEST, PLAYER);
 
       const markdown = buildReplayDigestMarkdown(digest, LABELS);
@@ -322,7 +322,7 @@ describe('buildReplayDigest()', () => {
       expect(markdown).not.toContain('受けた増減');
     });
 
-    it('表として読める形にすること', () => {
+    it('writes it so it reads as a table', () => {
       const digest = buildReplayDigest(
         [dice('alice', [[6, 3]]), change('gm', 'char-1', [{ kind: 'damage', delta: -4, name: 'HP' }])],
         MANIFEST,

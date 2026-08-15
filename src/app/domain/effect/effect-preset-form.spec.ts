@@ -9,8 +9,8 @@ import {
   usesTargetLimit,
 } from '@axe/domain/effect/effect-preset-form';
 
-describe('種類ごとに意味を持つ項目', () => {
-  it('飛翔体だけが見た目・弾数・着弾演出を持つこと', () => {
+describe('which fields mean anything to which kind', () => {
+  it('gives a look, a count of shots and a landing to a projectile alone', () => {
     for (const kind of EFFECT_KINDS) {
       const expected = kind === 'projectile';
       expect(usesProjectileFields(kind)).toBe(expected);
@@ -19,13 +19,13 @@ describe('種類ごとに意味を持つ項目', () => {
     }
   });
 
-  it('斬撃だけが型を持つこと', () => {
+  it('gives a form to a cut alone', () => {
     expect(usesSlashFields('slash')).toBe(true);
     expect(usesSlashFields('burst')).toBe(false);
   });
 
-  it('発射元が要る種類を挙げること', () => {
-    // 撃ち手を選ばないと向きが決まらないもの。
+  it('lists the kinds that need somewhere to fire from', () => {
+    // The ones whose direction is undecided until a caster is chosen.
     for (const kind of ['projectile', 'beam', 'breath', 'drain', 'arc'] as const) {
       expect(needsCaster(kind)).toBe(true);
     }
@@ -34,7 +34,7 @@ describe('種類ごとに意味を持つ項目', () => {
     }
   });
 
-  it('複数対象のときだけ上限を編集させること', () => {
+  it('lets the limit be edited only for something that takes several targets', () => {
     expect(usesTargetLimit('multi')).toBe(true);
     expect(usesTargetLimit('single')).toBe(false);
     expect(usesTargetLimit('self')).toBe(false);
@@ -42,16 +42,16 @@ describe('種類ごとに意味を持つ項目', () => {
 });
 
 describe('duplicatedEffectName()', () => {
-  it('重ならなければそのままの名前を使うこと', () => {
+  it('keeps a name that clashes with none', () => {
     expect(duplicatedEffectName('爆炎', ['斬撃'])).toBe('爆炎');
   });
 
-  it('重なったら連番を付けること', () => {
+  it('numbers one that does', () => {
     expect(duplicatedEffectName('爆炎', ['爆炎'])).toBe('爆炎 (2)');
     expect(duplicatedEffectName('爆炎', ['爆炎', '爆炎 (2)'])).toBe('爆炎 (3)');
   });
 
-  it('名前が空なら既定の名前を使うこと', () => {
+  it('falls back to the default for an empty name', () => {
     expect(duplicatedEffectName('   ', [])).toBe('無題');
   });
 });

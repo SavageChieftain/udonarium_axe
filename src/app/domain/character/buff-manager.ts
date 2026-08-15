@@ -45,7 +45,7 @@ export class BuffManager {
     }
   }
 
-  /** 残ラウンドを 1 減らし、尽きたバフを消してその名前を返す。 */
+  /** Counts the rounds down, removes the buffs that ran out and returns their names. */
   expireOneRound(): string[] {
     const container = this.container;
     if (!container) return [];

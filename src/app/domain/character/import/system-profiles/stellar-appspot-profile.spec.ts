@@ -5,7 +5,7 @@ import {
 } from '@axe/domain/character/import/system-profiles/stellar-appspot-profile';
 
 describe('buildStellarAppspotCharacter', () => {
-  // character-sheets.appspot.com の stellar（銀剣のステラナイツ）実データに即した構造
+  // built from real data of one system at the warehouse
   const stellar = {
     base: {
       name: 'ノヴァ',
@@ -35,12 +35,12 @@ describe('buildStellarAppspotCharacter', () => {
     return section.groups.find((group) => group.label === groupLabel)?.fields ?? [];
   }
 
-  it('倉庫 ステラナイツの構造を判別する', () => {
+  it('recognises the system', () => {
     expect(isStellarAppspotCharacter(stellar)).toBe(true);
     expect(isStellarAppspotCharacter({ kind: 'character' })).toBe(false);
   });
 
-  it('名前・dicebot・HP・ステータスを取り込む', () => {
+  it('takes the name, the dice bot, the health and the statuses', () => {
     const result = buildStellarAppspotCharacter(stellar)!;
     expect(result.sourceFormat).toBe('appspot');
     expect(result.name).toBe('ノヴァ');
@@ -48,11 +48,11 @@ describe('buildStellarAppspotCharacter', () => {
     expect(result.statuses).toContainEqual({ label: 'HP', value: 16, max: 16 });
     expect(result.params).toContainEqual({ label: '防御', value: '3' });
     expect(result.params).toContainEqual({ label: 'チャージ', value: '3' });
-    // null のステータス（メダル/共鳴）は出さない
+    // leaves an empty status off
     expect(result.params.some((param) => param.label === 'メダル')).toBe(false);
   });
 
-  it('スキル・鞘・プロフィールを日本語ラベルで展開する', () => {
+  it('spreads the skills, the sheaths and the profile under readable labels', () => {
     const result = buildStellarAppspotCharacter(stellar)!;
     expect(findGroupFields(findSection(result.sections, 'スキル')!, '騎士のたしなみ')).toContainEqual({
       label: 'タイミング',
@@ -67,7 +67,7 @@ describe('buildStellarAppspotCharacter', () => {
     });
   });
 
-  it('チャットパレットに StellarKnights の nSK アタック判定を生成する', () => {
+  it('builds the attack roll of that system into the palette', () => {
     const result = buildStellarAppspotCharacter(stellar)!;
     expect(result.commands).toContain('2SK 【アタック判定:2ダイス】');
     expect(result.commands).toContain('5SK 【アタック判定:5ダイス】');

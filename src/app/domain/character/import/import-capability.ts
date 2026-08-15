@@ -7,10 +7,10 @@ import {
 } from '@axe/domain/character/import/import-systems';
 
 /**
- * 取り込み能力の単一の真実源（レジストリ）。
- * 「どのサービスの・どのデータ種別を・どこまで取り込めるか」と「対応ゲームシステム一覧」を
- * 型付きデータとして集約し、取り込みパネル UI とマニュアルの表示元・整合テストの基準にする。
- * 現状の対応状況のみを表す（ロードマップは持たない）。
+ * The single source of truth for what can be imported.
+ * It gathers which service, which kind of data and how far, along with the systems each
+ * supports, as typed data: what the import panel and the manual show, and what the tests check against.
+ * It says where things stand, and holds no plans.
  */
 export type ImportSourceId = 'ccfolia' | 'charasheet' | 'appspot' | 'ytsheet' | 'charaxiv';
 
@@ -29,7 +29,7 @@ export type ImportDataTypeId =
 
 export type ImportInputMethod = 'pasteJson' | 'urlAutoFetch';
 
-/** full=対応 / partial=部分 / viaCcfolia=ココフォリア経由 / none=非対応 */
+/** Fully, partly, through the other tool, or not at all. */
 export type ImportSupportLevel = 'full' | 'partial' | 'viaCcfolia' | 'none';
 
 export interface ImportSourceDef {
@@ -38,10 +38,10 @@ export interface ImportSourceDef {
   hosts: string[];
   inputMethods: ImportInputMethod[];
   fetch: 'fetch' | 'jsonp' | 'none';
-  /** システムの扱い説明（i18n キー）。 */
+  /** The translation key of how the system is handled. */
   systemsCoverageKey: string;
   systems: ImportSystem[];
-  /** データ種別ごとの対応レベル。 */
+  /** How far each kind of data is supported. */
   levels: Record<ImportDataTypeId, ImportSupportLevel>;
 }
 

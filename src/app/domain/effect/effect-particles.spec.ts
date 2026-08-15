@@ -14,8 +14,8 @@ describe('effectParticles()', () => {
 
   const base = 50;
 
-  it('どの種類でも山場のあいだは粒子を返すこと', () => {
-    // 届くまで対象側に何も出さない種類は別で確かめる。
+  it('returns particles through the height of every kind', () => {
+    // The kinds that show nothing at the target until they arrive are checked apart.
     const flying: EffectKind[] = ['projectile', 'beam', 'skyblade', 'arrowrain', 'ballistic'];
     for (const kind of EFFECT_KINDS.filter((candidate) => !flying.includes(candidate))) {
       for (const progress of [0.3, 0.6]) {
@@ -25,9 +25,9 @@ describe('effectParticles()', () => {
     }
   });
 
-  it('煙で画面を沈めないこと', () => {
-    // 煙は canvas 全体へ広がるので、規模なりに大きく濃くすると画面そのものが暗く落ちる。
-    // 対象が複数いれば canvas も重なるため、1 枚あたりの暗さを抑えておく必要がある。
+  it('does not sink the screen in smoke', () => {
+    // Smoke spreads over the whole canvas, and made as large and thick as the effect is the
+    // screen itself goes dark. With several targets the canvases overlap, so each is kept light.
     const darkestSmoke = (kind: EffectKind, scale: number): number => {
       const preset = makePreset(kind);
       preset.grade = 3;
@@ -43,26 +43,26 @@ describe('effectParticles()', () => {
       return worst;
     };
 
-    // 爆発は閃光が主役。煙で覆うものではない。
+    // An explosion is its flash, not a covering of smoke.
     expect(darkestSmoke('nova', 1.8)).toBeLessThan(0.2);
     expect(darkestSmoke('burst', 1.4)).toBeLessThan(0.2);
-    // 煙そのものが主役の種類でも、覆いきらない範囲に収める。
+    // Even where the smoke is the point, it stops short of covering everything.
     for (const kind of EFFECT_KINDS) expect(darkestSmoke(kind, 1.9)).toBeLessThan(0.45);
   });
 
-  it('ブレスは届くまで対象側に何も出さないこと', () => {
-    // 吹き付ける前から燃えていると嘘になる。
+  it('shows nothing at the target until the breath arrives', () => {
+    // Burning before it is breathed on is a lie.
     expect(effectParticles(makePreset('breath'), 7, 0.1, base).particles).toHaveLength(0);
     expect(effectParticles(makePreset('breath'), 7, 0.5, base).particles.length).toBeGreaterThan(0);
   });
 
-  it('レーザーは届くまで対象側に何も出さないこと', () => {
-    // この層は対象の上にある。溜めているあいだに出すと、撃つ前から着弾していることになる。
+  it('shows nothing there until the beam arrives', () => {
+    // This layer sits over the target, and showing it while the beam gathers lands the shot before it is fired.
     expect(effectParticles(makePreset('beam'), 7, 0.15, base).particles).toHaveLength(0);
     expect(effectParticles(makePreset('beam'), 7, 0.6, base).particles.length).toBeGreaterThan(0);
   });
 
-  it('対象の足元が canvas の内側に来ること', () => {
+  it('keeps the feet of the target inside the canvas', () => {
     const layer = effectParticles(makePreset('flame'), 7, 0.5, base);
 
     expect(layer.originX).toBeGreaterThan(0);
@@ -71,7 +71,7 @@ describe('effectParticles()', () => {
     expect(layer.originY).toBeLessThan(layer.height);
   });
 
-  it('同じ種から同じ粒子を返すこと', () => {
+  it('returns the same particles from the same seed', () => {
     for (const kind of EFFECT_KINDS) {
       const first = effectParticles(makePreset(kind), 11, 0.4, base);
       const second = effectParticles(makePreset(kind), 11, 0.4, base);
@@ -80,14 +80,14 @@ describe('effectParticles()', () => {
     }
   });
 
-  it('種が違えば配置も変わること', () => {
+  it('arranges them differently from another', () => {
     const first = effectParticles(makePreset('burst'), 1, 0.4, base);
     const second = effectParticles(makePreset('burst'), 2, 0.4, base);
 
     expect(first.particles).not.toEqual(second.particles);
   });
 
-  it('不透明度を 0 以上 1 以下に収めること', () => {
+  it('keeps every opacity between none and full', () => {
     for (const kind of EFFECT_KINDS) {
       for (const progress of [0.02, 0.5, 0.99]) {
         for (const particle of effectParticles(makePreset(kind), 3, progress, base).particles) {
@@ -99,19 +99,19 @@ describe('effectParticles()', () => {
     }
   });
 
-  it('炎は根元が白熱し、上へ行くほど暗くなること', () => {
+  it('burns white at the foot of a flame and darker towards the top', () => {
     const layer = effectParticles(makePreset('flame'), 5, 0.5, base);
     const glows = layer.particles.filter((particle) => particle.shape === 'glow');
     const hottest = glows.filter((particle) => particle.color === '#ffffff');
 
     expect(hottest.length).toBeGreaterThan(0);
-    // 白熱している粒の平均高さは、赤い粒より下（y が大きい）にある。
+    // The white particles sit lower on average than the red ones.
     const meanY = (list: typeof glows) => list.reduce((sum, particle) => sum + particle.y, 0) / list.length;
     const cool = glows.filter((particle) => particle.color === '#ff5a33');
     expect(meanY(hottest)).toBeGreaterThan(meanY(cool));
   });
 
-  it('爆発の火花は時間とともに広がること', () => {
+  it('spreads the sparks of an explosion over time', () => {
     const spreadAt = (progress: number) => {
       const layer = effectParticles(makePreset('burst'), 9, progress, base);
       const streaks = layer.particles.filter((particle) => particle.shape === 'streak');
@@ -121,47 +121,47 @@ describe('effectParticles()', () => {
     expect(spreadAt(0.6)).toBeGreaterThan(spreadAt(0.15));
   });
 
-  it('飛翔体は着弾してから粒子を出すこと', () => {
+  it('shows the particles of a projectile only once it lands', () => {
     const preset = makePreset('projectile');
 
     expect(effectParticles(preset, 7, 0.2, base).particles).toHaveLength(0);
     expect(effectParticles(preset, 7, 0.7, base).particles.length).toBeGreaterThan(0);
   });
 
-  it('飛翔体の着弾演出を属性で差し替えられること', () => {
+  it('changes what it does on landing by its element', () => {
     const preset = makePreset('projectile');
     preset.impactKind = 'rubble';
 
-    // 岩が砕ける着弾なら、実体として描く岩片が混ざる。
+    // A landing that breaks rock mixes in fragments drawn as solid things.
     expect(effectParticles(preset, 7, 0.8, base).particles.some((particle) => particle.shape === 'chunk')).toBe(true);
   });
 
-  it('連撃は太刀ごとに火花を散らすこと', () => {
+  it('throws sparks from each stroke of a combination', () => {
     const preset = makePreset('slash');
     preset.slashStyle = 'combo';
 
-    // 5 連撃のあいだ、どの時点でも火花が出ている。
+    // Through five strokes there are sparks at every moment.
     for (const progress of [0.1, 0.35, 0.6, 0.85]) {
       expect(effectParticles(preset, 7, progress, base).particles.length).toBeGreaterThan(0);
     }
   });
 
-  it('煙は通常合成用に別の形として返すこと', () => {
+  it('returns the smoke separately, to be laid down plainly', () => {
     const layer = effectParticles(makePreset('flame'), 5, 0.6, base);
 
     expect(layer.particles.some((particle) => particle.shape === 'smoke')).toBe(true);
   });
 
-  it('大剣は振り下ろしてから的の側で弾けること', () => {
+  it('bursts a great sword at the target only after it falls', () => {
     const countAt = (progress: number) => effectParticles(makePreset('skyblade'), 3, progress, base).particles.length;
 
-    // 立ち上って刃を成すあいだに弾けると、当たる前に的が爆ぜたように見える。
+    // Bursting while the blade gathers makes the target burst before it is struck.
     expect(countAt(0.2)).toBe(0);
     expect(countAt(0.6)).toBe(0);
     expect(countAt(0.8)).toBeGreaterThan(0);
   });
 
-  it('属性を持つ大剣はその属性で弾けること', () => {
+  it('bursts one with an element in that element', () => {
     const blade = makePreset('skyblade');
     blade.impactKind = 'frost';
     const light = effectParticles(makePreset('skyblade'), 3, 0.8, base).particles;
@@ -171,16 +171,16 @@ describe('effectParticles()', () => {
     expect(frost).not.toEqual(light);
   });
 
-  it('弾道弾は落ちてきてから弾けること', () => {
+  it('bursts a ballistic shot only once it comes down', () => {
     const countAt = (progress: number) => effectParticles(makePreset('ballistic'), 3, progress, base).particles.length;
 
-    // 打ち上げているあいだに出すと、撃つ前に的が爆ぜたように見える。
+    // Showing it on the way up bursts the target before the shot is fired.
     expect(countAt(0.3)).toBe(0);
     expect(countAt(0.8)).toBe(0);
     expect(countAt(0.95)).toBeGreaterThan(0);
   });
 
-  it('降り注ぐ矢は刺さってから土埃を上げること', () => {
+  it('raises the dust of falling arrows only once they strike', () => {
     const countAt = (progress: number) => effectParticles(makePreset('arrowrain'), 3, progress, base).particles.length;
 
     expect(countAt(0.1)).toBe(0);
@@ -189,7 +189,7 @@ describe('effectParticles()', () => {
 });
 
 describe('seededRandom()', () => {
-  it('同じ種から同じ列を返すこと', () => {
+  it('returns the same sequence from the same seed', () => {
     const first = seededRandom(99);
     const second = seededRandom(99);
 
@@ -197,9 +197,9 @@ describe('seededRandom()', () => {
   });
 });
 
-describe('粒の振り分け', () => {
-  it('粒を出さない種類だけを表から外していること', () => {
-    // 表に無い種類は既定の「弾ける」に落ちる。飛んでいる間は canvas を使わないものだけが対象。
+describe('which kind gets which particles', () => {
+  it('leaves out of the table only the kinds that show none', () => {
+    // Anything not in the table falls back to bursting; only what uses no canvas in flight belongs here.
     const unrouted = EFFECT_KINDS.filter((kind) => !PARTICLE_EFFECT_KINDS.includes(kind));
 
     expect(unrouted.sort()).toEqual(['arrowrain', 'ballistic', 'burst', 'projectile', 'raybeam', 'skyblade']);

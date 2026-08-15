@@ -4,7 +4,7 @@ import {
 } from '@axe/domain/character/import/character-import-format';
 
 describe('parseImportedCharacterText', () => {
-  it('ココフォリアのコマJSONを正規化モデルへ変換する', () => {
+  it('turns a piece from the other tool into the model used here', () => {
     const json = JSON.stringify({
       kind: 'character',
       data: {
@@ -48,18 +48,18 @@ describe('parseImportedCharacterText', () => {
     ]);
   });
 
-  it('status.value 省略時は max を現在値とする', () => {
+  it('reads a missing current value as the maximum', () => {
     const json = JSON.stringify({ kind: 'character', data: { name: 'X', status: [{ label: 'HP', max: 20 }] } });
     const result = parseImportedCharacterText(json)!;
     expect(result.statuses[0]).toEqual({ label: 'HP', value: 20, max: 20 });
   });
 
-  it('不正な色は無視される', () => {
+  it('ignores a colour it cannot read', () => {
     const json = JSON.stringify({ kind: 'character', data: { name: 'X', color: 'red' } });
     expect(parseImportedCharacterText(json)!.color).toBe('');
   });
 
-  it('キャラクター保管所JSONを名前・色・画像・現在/最大ペアで取り込む', () => {
+  it('takes the name, the colour, the picture and the current and maximum pairs from the sheet archive', () => {
     const json = JSON.stringify({
       pc_name: '保管所太郎',
       color: '#abcdef',
@@ -84,17 +84,17 @@ describe('parseImportedCharacterText', () => {
     ]);
   });
 
-  it('base64Image が data URI の場合はそのまま使う', () => {
+  it('takes an inline picture as it is', () => {
     const json = JSON.stringify({ pc_name: 'X', base64Image: 'data:image/jpeg;base64,AAAA' });
     expect(parseImportedCharacterText(json)!.iconUrl).toBe('data:image/jpeg;base64,AAAA');
   });
 
-  it('JSONとして不正なテキストは null', () => {
+  it('returns nothing for text it cannot read as json', () => {
     expect(parseImportedCharacterText('not json')).toBeNull();
     expect(parseImportedCharacterText('')).toBeNull();
   });
 
-  it('未知の形式のJSONは null', () => {
+  it('returns nothing for a shape it does not know', () => {
     expect(parseImportedCharacterJson({ foo: 'bar' })).toBeNull();
   });
 });

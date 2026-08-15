@@ -20,8 +20,8 @@ describe('ChatPalette', () => {
     store.clearDeleteHistory();
   });
 
-  describe('SyncVar デフォルト値', () => {
-    it('dicebot がデフォルト "DiceBot"', () => {
+  describe('the defaults of the synchronised fields', () => {
+    it('starts with the default dice bot', () => {
       const palette = new ChatPalette();
       palette.initialize();
       expect(palette.dicebot).toBe('DiceBot');
@@ -29,7 +29,7 @@ describe('ChatPalette', () => {
   });
 
   describe('getPalette / setPalette', () => {
-    it('パレットを設定してパース結果を取得する', () => {
+    it('reads the palette it is given', () => {
       const palette = new ChatPalette();
       palette.initialize();
       palette.setPalette('2d6+3\n1d20\nCC<=50');
@@ -39,7 +39,7 @@ describe('ChatPalette', () => {
       expect(lines).toContain('CC<=50');
     });
 
-    it('空のパレットは空配列を返す', () => {
+    it('returns nothing for an empty one', () => {
       const palette = new ChatPalette();
       palette.initialize();
       palette.setPalette('');
@@ -48,7 +48,7 @@ describe('ChatPalette', () => {
   });
 
   describe('paletteLines', () => {
-    it('変数行を除いたパレット行を返す', () => {
+    it('returns the rows without the variable lines', () => {
       const palette = new ChatPalette();
       palette.initialize();
       palette.setPalette('2d6\n//HP=10\n1d20');
@@ -60,7 +60,7 @@ describe('ChatPalette', () => {
   });
 
   describe('paletteVariables', () => {
-    it('変数定義行をパースする', () => {
+    it('reads a line that defines a variable', () => {
       const palette = new ChatPalette();
       palette.initialize();
       palette.setPalette('//HP=10\n//MP=20\n2d6');
@@ -72,7 +72,7 @@ describe('ChatPalette', () => {
       expect(vars[1].value).toBe('20');
     });
 
-    it('全角スラッシュと全角イコールも認識する', () => {
+    it('reads the full-width forms of both marks', () => {
       const palette = new ChatPalette();
       palette.initialize();
       palette.setPalette('／／ATK＝5');
@@ -84,7 +84,7 @@ describe('ChatPalette', () => {
   });
 
   describe('paletteIndex', () => {
-    it('見出し行を認識する (//-- 形式)', () => {
+    it('reads a heading in one form', () => {
       const palette = new ChatPalette();
       palette.initialize();
       palette.setPalette('//---戦闘---\n2d6\n//---探索---\n1d100');
@@ -94,7 +94,7 @@ describe('ChatPalette', () => {
       expect(index[1].name).toBe('探索');
     });
 
-    it('見出し行を認識する (◆ 形式)', () => {
+    it('reads one in another', () => {
       const palette = new ChatPalette();
       palette.initialize();
       palette.setPalette('◆技能\n1d100\n◆ステータス\n2d6');
@@ -106,7 +106,7 @@ describe('ChatPalette', () => {
   });
 
   describe('paletteMatch()', () => {
-    it('テキストを含む行を検索する', () => {
+    it('finds a row holding a piece of text', () => {
       const palette = new ChatPalette();
       palette.initialize();
       palette.setPalette('2d6+3 攻撃\n1d20 命中\n2d6 ダメージ');
@@ -116,7 +116,7 @@ describe('ChatPalette', () => {
   });
 
   describe('paletteMatchLine()', () => {
-    it('N番目のマッチ行番号を返す', () => {
+    it('returns which row the nth match falls in', () => {
       const palette = new ChatPalette();
       palette.initialize();
       palette.setPalette('line0\nmatch1\nline2\nmatch2');
@@ -124,7 +124,7 @@ describe('ChatPalette', () => {
       expect(palette.paletteMatchLine('match', 1)).toBe(3);
     });
 
-    it('マッチしない場合-1を返す', () => {
+    it('returns nothing when none matches', () => {
       const palette = new ChatPalette();
       palette.initialize();
       palette.setPalette('abc');
@@ -133,19 +133,19 @@ describe('ChatPalette', () => {
   });
 
   describe('checkTargetCharacter()', () => {
-    it('t{}パターンを検出する', () => {
+    it('finds one form of the target pattern', () => {
       const palette = new ChatPalette();
       palette.initialize();
       expect(palette.checkTargetCharacter('2d6 t{ATK}')).toBe(true);
     });
 
-    it('T:パターンを検出する', () => {
+    it('finds the other', () => {
       const palette = new ChatPalette();
       palette.initialize();
       expect(palette.checkTargetCharacter('T:ターゲット名')).toBe(true);
     });
 
-    it('対象パターンがない場合falseを返す', () => {
+    it('is false when there is none', () => {
       const palette = new ChatPalette();
       palette.initialize();
       expect(palette.checkTargetCharacter('2d6+3')).toBe(false);
@@ -153,7 +153,7 @@ describe('ChatPalette', () => {
   });
 
   describe('evaluate()', () => {
-    it('変数を展開する', () => {
+    it('expands the variables', () => {
       const palette = new ChatPalette();
       palette.initialize();
       palette.setPalette('//HP=10\n2d6+{HP}');
@@ -161,7 +161,7 @@ describe('ChatPalette', () => {
       expect(result).toBe('2d6+10');
     });
 
-    it('未定義変数は空文字に置換する', () => {
+    it('expands one it does not know to nothing', () => {
       const palette = new ChatPalette();
       palette.initialize();
       palette.setPalette('2d6');
@@ -169,7 +169,7 @@ describe('ChatPalette', () => {
       expect(result).toBe('2d6+');
     });
 
-    it('PaletteLine引数でも動作する', () => {
+    it('works from a row as well', () => {
       const palette = new ChatPalette();
       palette.initialize();
       palette.setPalette('//ATK=5\n2d6+{ATK}');
@@ -181,7 +181,7 @@ describe('ChatPalette', () => {
       }
     });
 
-    it('extendVariables の単純名が重複する場合はパス指定で展開する', () => {
+    it('expands by the full path where two variables share a short name', () => {
       const palette = new ChatPalette();
       palette.initialize();
       const detail = DataElement.create('detail', '');
@@ -201,7 +201,7 @@ describe('ChatPalette', () => {
       expect(palette.evaluate('{戦闘特技/Lv1/名称}', detail)).toBe('ストラグチャアタック');
     });
 
-    it('evaluateWithAttachments は画像フィールド参照を添付画像として回収する', () => {
+    it('gathers a reference to an image field as an attached picture', () => {
       const palette = new ChatPalette();
       palette.initialize();
       const detail = DataElement.create('detail', '');
@@ -221,13 +221,13 @@ describe('ChatPalette', () => {
   });
 
   describe('BuffPalette / DiceTablePalette', () => {
-    it('BuffPaletteはChatPaletteのサブクラス', () => {
+    it('the buff palette is a palette', () => {
       const bp = new BuffPalette();
       bp.initialize();
       expect(bp).toBeInstanceOf(ChatPalette);
     });
 
-    it('DiceTablePaletteはChatPaletteのサブクラス', () => {
+    it('the table palette is one too', () => {
       const dtp = new DiceTablePalette();
       dtp.initialize();
       expect(dtp).toBeInstanceOf(ChatPalette);

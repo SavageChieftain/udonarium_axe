@@ -21,30 +21,30 @@ function moveEvent(seq: number, at: number, x: number, previousX: number, actorI
 }
 
 describe('canMergeReplayEvents()', () => {
-  it('同じ人が同じコマを続けて動かしたら畳めること', () => {
+  it('folds a run of moves of one piece by one person together', () => {
     expect(canMergeReplayEvents(moveEvent(1, 0, 10, 0), moveEvent(2, 200, 20, 10))).toBe(true);
   });
 
-  it('間が空いたら畳まないこと', () => {
+  it('folds nothing across a pause', () => {
     const gap = DEFAULT_COALESCE_WINDOWS.move + 1;
     expect(canMergeReplayEvents(moveEvent(1, 0, 10, 0), moveEvent(2, gap, 20, 10))).toBe(false);
   });
 
-  it('別の人の操作は畳まないこと', () => {
+  it('folds nothing across another person', () => {
     expect(canMergeReplayEvents(moveEvent(1, 0, 10, 0), moveEvent(2, 100, 20, 10, 'bob'))).toBe(false);
   });
 
-  it('別のコマは畳まないこと', () => {
+  it('folds nothing across another piece', () => {
     const next = { ...moveEvent(2, 100, 20, 10), targetId: 'c2' };
     expect(canMergeReplayEvents(moveEvent(1, 0, 10, 0), next)).toBe(false);
   });
 
-  it('種類が違えば畳まないこと', () => {
+  it('folds nothing across another kind', () => {
     const next = { ...moveEvent(2, 100, 20, 10), kind: ReplayEventKind.ObjectRotate };
     expect(canMergeReplayEvents(moveEvent(1, 0, 10, 0), next)).toBe(false);
   });
 
-  it('チャットは畳まないこと', () => {
+  it('folds no chat at all', () => {
     const chat: ReplayEvent = {
       seq: 1,
       at: 0,
@@ -60,26 +60,26 @@ describe('canMergeReplayEvents()', () => {
 });
 
 describe('mergeReplayEvents()', () => {
-  it('最初の始点と最後の終点を残すこと', () => {
+  it('keeps where the first began and where the last ended', () => {
     const merged = mergeReplayEvents(moveEvent(1, 0, 10, 0), moveEvent(2, 200, 90, 10));
     expect(merged.detail['from']).toEqual({ name: 'table', x: 0, y: 0, z: 0 });
     expect(merged.detail['to']).toEqual({ name: 'table', x: 90, y: 0, z: 0 });
   });
 
-  it('最初のイベントの位置と時刻を保つこと', () => {
+  it('keeps the position and the moment of the first event', () => {
     const merged = mergeReplayEvents(moveEvent(1, 500, 10, 0), moveEvent(2, 700, 90, 10));
     expect(merged.seq).toBe(1);
     expect(merged.at).toBe(500);
     expect(merged.t).toBe(500);
   });
 
-  it('パッチの before は最初、after は最後を採ること', () => {
+  it('takes the before of the first and the after of the last', () => {
     const merged = mergeReplayEvents(moveEvent(1, 0, 10, 0), moveEvent(2, 200, 90, 10));
     expect(merged.patch?.before).toEqual({ location: { name: 'table', x: 0, y: 0 } });
     expect(merged.patch?.after).toEqual({ location: { name: 'table', x: 90, y: 0 } });
   });
 
-  it('通った経路を残すこと', () => {
+  it('keeps the path it travelled', () => {
     const first = mergeReplayEvents(moveEvent(1, 0, 100, 0), moveEvent(2, 100, 200, 100));
     const second = mergeReplayEvents(first, moveEvent(3, 200, 300, 200));
 
@@ -90,14 +90,14 @@ describe('mergeReplayEvents()', () => {
     ]);
   });
 
-  it('動きの小さい刻みで経路を膨らませないこと', () => {
+  it('does not swell that path with the smallest steps', () => {
     let merged = moveEvent(1, 0, 1, 0);
     for (let x = 2; x <= 10; x++) merged = mergeReplayEvents(merged, moveEvent(x, x * 10, x, x - 1));
     expect((merged.detail['path'] as unknown[]).length).toBeLessThan(3);
   });
 
-  it('畳んだ増減の一覧を両方とも残すこと', () => {
-    // 上書きすると、先に減った分が後から数えられなくなる。
+  it('keeps both lists of changes it folded together', () => {
+    // Overwritten, what fell first could not be counted afterwards.
     const valueEvent = (seq: number, at: number, changes: Record<string, unknown>[]): ReplayEvent => ({
       seq,
       at,
@@ -120,7 +120,7 @@ describe('mergeReplayEvents()', () => {
     ]);
   });
 
-  it('移動以外では経路を作らないこと', () => {
+  it('builds no path for anything but a move', () => {
     const previous: ReplayEvent = {
       seq: 1,
       at: 0,
@@ -135,14 +135,14 @@ describe('mergeReplayEvents()', () => {
     expect(mergeReplayEvents(previous, next).detail['path']).toBeUndefined();
   });
 
-  it('畳んだ件数を数えること', () => {
+  it('counts how many it folded', () => {
     const first = mergeReplayEvents(moveEvent(1, 0, 10, 0), moveEvent(2, 100, 20, 10));
     const second = mergeReplayEvents(first, moveEvent(3, 200, 30, 20));
     expect(first.merged).toBe(2);
     expect(second.merged).toBe(3);
   });
 
-  it('入れ子の from/to も端点を残すこと', () => {
+  it('keeps the ends of a nested change too', () => {
     const previous: ReplayEvent = {
       seq: 1,
       at: 0,

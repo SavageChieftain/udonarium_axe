@@ -25,8 +25,8 @@ export interface ImportedGroup {
 }
 
 /**
- * システム固有データ（技能・コンボ・武器など）を構造を保ったまま運ぶための汎用セクション。
- * キャラクターシート倉庫のような system 依存スキーマを、項目を落とさず detail ツリーへ展開する。
+ * A general section that carries the system's own data with its structure intact.
+ * A shape that depends on the system, as the warehouse has, is spread onto the sheet without losing a field.
  */
 export interface ImportedSection {
   label: string;
@@ -34,9 +34,9 @@ export interface ImportedSection {
 }
 
 /**
- * サイコフィクション系の「ギャップ付き特技表」を運ぶための入力。
- * [カテゴリ][行] でセル名・習得フラグを持ち、factory が createSkillGapTableElement で
- * テーブル表示の CHECK_TABLE セクションへ展開する。
+ * What the gapped skill table of those systems arrives as.
+ * It holds the name and the learnt flag of each cell by category and row, and the factory
+ * spreads it into a section shown as a table of checks.
  */
 export interface ImportedSkillTable {
   name: string;
@@ -94,7 +94,7 @@ export function toFiniteNumber(value: unknown, fallback = 0): number {
   return fallback;
 }
 
-/** 文字にして扱う。数でも文字でも同じ入れ物に入るので、読む側は文字で受ける。 */
+/** Read as text. Numbers and words go into the same holder, so the reader takes text. */
 export function asString(value: unknown): string {
   if (typeof value === 'string') return value;
   if (typeof value === 'number' && Number.isFinite(value)) return String(value);
@@ -106,24 +106,24 @@ export function isNonEmptyScalar(value: unknown): value is string | number {
   return typeof value === 'string' && value.trim() !== '';
 }
 
-/** 値のある項目だけを 1 つの欄にする。空欄はコマに並べても読み手の役に立たない。 */
+/** Only the fields that hold something become a field; an empty one on a piece helps nobody. */
 export function scalarField(label: string, raw: unknown): ImportedField | null {
   if (!isNonEmptyScalar(raw)) return null;
   const classified = classifyScalar(raw);
   return { label, value: classified.value, kind: classified.kind };
 }
 
-/** シートの見出しと取り出し先の対応。システムごとに違うのはこの並びだけ。 */
+/** Which heading on the sheet goes where. It is the only thing that differs between systems. */
 export interface FieldLabel {
   key: string;
   label: string;
 }
 
 /**
- * どのシステムでも同じ形になる「プロフィール」の節。
+ * The profile section, which comes out the same shape whatever the system.
  *
- * 種族や年齢のような、値をそのまま並べるだけの欄をまとめる。
- * 先に出したい欄があるときは `leading` に渡す。
+ * It gathers the fields that only need laying out, such as the race and the age.
+ * Anything that should come first is passed as leading.
  */
 export function profileSectionOf(
   record: Record<string, unknown> | null,

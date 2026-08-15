@@ -33,27 +33,27 @@ export class EffectPreset extends GameObject {
   @SyncVar() scale: number = 1;
   @SyncVar() followTarget: boolean = true;
   @SyncVar() soundIdentifier: string = '';
-  /** 着弾で鳴らす音。空なら発射音だけ。 */
+  /** The sound of the landing. Empty for the shot alone. */
   @SyncVar() impactSoundIdentifier: string = '';
   @SyncVar() targeting: string = 'single';
   @SyncVar() maxTargets: number = 1;
-  /** 1=初級 / 2=中級 / 3=上級。粒子の量と演出の段数を決める。 */
+  /** The grade, from the lowest to the highest, which sets how many particles there are and how many stages the effect runs. */
   @SyncVar() grade: number = 2;
-  /** 飛翔体が着弾したときに起こすエフェクト。空なら爆発。 */
+  /** The effect a projectile makes on landing. Empty for an explosion. */
   @SyncVar() impactKind: string = '';
-  /** 飛翔体の見た目。bolt=魔法弾 / arrow=矢 / bullet=銃弾。 */
+  /** What a projectile looks like: a magical bolt, an arrow or a bullet. */
   @SyncVar() projectileStyle: string = 'bolt';
-  /** 1 回の発動で撃つ弾数。2 以上で連射になる。 */
+  /** How many shots one firing makes. More than one is a burst. */
   @SyncVar() shots: number = 1;
-  /** 斬撃の型。 */
+  /** The form of a cut. */
   @SyncVar() slashStyle: string = 'single';
-  /** 連射の間隔(ms)。0 なら再生時間へ均等に散らす。 */
+  /** How long between them. At nothing they are spread evenly through the playback. */
   @SyncVar() shotInterval: number = 0;
-  /** GM だけに見せる。演出で仕込みが割れるのを避けたいときに使う。 */
+  /** Shown to the game master alone, for when an effect would give the preparation away. */
   @SyncVar() gmOnly: boolean = false;
-  /** 巻き込む半径(マス)。0 なら 1 体ずつ選ぶ。 */
+  /** How far it reaches, in cells. At nothing the targets are chosen one at a time. */
   @SyncVar() areaRadius: number = 0;
-  /** 道中に散らす粒。空なら系統から決める。 */
+  /** The particles scattered along the way. Empty for whatever the family gives. */
   @SyncVar() moteStyle: string = '';
 
   static list(): EffectPreset[] {
@@ -80,22 +80,22 @@ export class EffectPreset extends GameObject {
     return clamp(this.scale, MIN_SCALE, MAX_SCALE, 1);
   }
 
-  /** 着弾エフェクト。飛翔体の入れ子は許さない。 */
+  /** The landing effect. A projectile may not nest inside one. */
   get impactEffectKind(): EffectKind {
     if (!isEffectKind(this.impactKind) || this.impactKind === 'projectile') return 'burst';
     return this.impactKind;
   }
 
-  /** 着弾音を鳴らす位置(0-1)。飛翔体は着弾の瞬間、それ以外は少し遅らせる。 */
+  /** Where through the effect the landing sounds. A projectile sounds it as it lands, and anything else a little later. */
   get impactSoundAt(): number {
     if (this.effectKind === 'arc') return 0.4;
-    // レーザーは撃った瞬間に鳴らす。着弾を待つと溜めのあいだ無音になる。
+    // A beam sounds as it fires; waiting for the landing leaves the gathering silent.
     if (this.effectKind === 'beam') return 0.28;
-    // 光の大剣は振り下ろしてから光が届く。掲げている間に鳴らすと号砲になってしまう。
+    // A great sword of light arrives after it falls; sounded while it is held up it becomes a starting gun.
     if (this.effectKind === 'skyblade') return 0.62;
-    // 降り注ぐ矢は最初の一群が刺さる頃。撃ち終わりに寄せると刺さる絵と音が離れる。
+    // Falling arrows sound as the first of them strike; at the end of the volley the sound parts from the picture.
     if (this.effectKind === 'arrowrain') return 0.35;
-    // 弾道弾は打ち上げてから落ちてくるまで当たらない。
+    // A ballistic shot strikes nothing between the launch and the fall.
     if (this.effectKind === 'ballistic') return 0.86;
     return 0.5;
   }
@@ -121,7 +121,7 @@ export class EffectPreset extends GameObject {
     return level === 1 || level === 3 ? level : 2;
   }
 
-  /** 等級に応じた粒子の量。上級ほど濃く長い。 */
+  /** How many particles the grade calls for. The higher grades are thicker and last longer. */
   get gradeDensity(): number {
     return this.gradeLevel === 1 ? 0.55 : this.gradeLevel === 3 ? 1.7 : 1;
   }
@@ -132,13 +132,13 @@ export class EffectPreset extends GameObject {
     return Math.round(clamp(this.maxTargets, 1, MAX_TARGET_LIMIT, 1));
   }
 
-  /** 巻き込む半径(マス)。単体対象のものは範囲を持たない。 */
+  /** How far it reaches, in cells. A single-target effect has none. */
   get areaRadiusCells(): number {
     if (this.effectTargeting !== 'multi') return 0;
     return clamp(this.areaRadius, 0, MAX_AREA_RADIUS, 0);
   }
 
-  /** 全対象ぶんの再生が終わるまでの長さ。 */
+  /** How long until the playback has finished for every target. */
   totalDuration(targetCount: number): number {
     const count = Math.max(targetCount, 1);
     return this.duration + this.stagger * (count - 1);

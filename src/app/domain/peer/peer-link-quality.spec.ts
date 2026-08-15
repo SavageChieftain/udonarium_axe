@@ -22,107 +22,107 @@ function session(overrides: Partial<PeerSessionState> = {}): PeerSessionState {
 }
 
 describe('linkQualityOf', () => {
-  it('閉じたリンクは Lost', () => {
+  it('counts a closed link as lost', () => {
     expect(linkQualityOf(session(), false)).toBe(PeerLinkQuality.Lost);
   });
 
-  it('未計測は Unknown', () => {
+  it('counts an unmeasured one as unknown', () => {
     const unmeasured = session({ grade: PeerSessionGrade.UNSPECIFIED, ping: 0, health: 0, speed: 0 });
     expect(linkQualityOf(unmeasured, true)).toBe(PeerLinkQuality.Unknown);
   });
 
-  it('健全で低遅延なら Good', () => {
+  it('counts a sound link with little delay as good', () => {
     expect(linkQualityOf(session(), true)).toBe(PeerLinkQuality.Good);
   });
 
-  it('無通信が始まると Fair', () => {
+  it('drops to fair once it goes quiet', () => {
     expect(linkQualityOf(session({ health: 0.9 }), true)).toBe(PeerLinkQuality.Fair);
   });
 
-  it('遅延が 200ms 以上なら Fair', () => {
+  it('drops to fair past a fifth of a second', () => {
     expect(linkQualityOf(session({ ping: 200 }), true)).toBe(PeerLinkQuality.Fair);
     expect(linkQualityOf(session({ ping: 199 }), true)).toBe(PeerLinkQuality.Good);
   });
 
-  it('health が 0.5 以下なら Poor', () => {
+  it('drops to poor once its health halves', () => {
     expect(linkQualityOf(session({ health: 0.5 }), true)).toBe(PeerLinkQuality.Poor);
   });
 
-  it('遅延が 500ms 以上なら Poor', () => {
+  it('drops to poor past half a second', () => {
     expect(linkQualityOf(session({ ping: 500 }), true)).toBe(PeerLinkQuality.Poor);
     expect(linkQualityOf(session({ ping: 499 }), true)).toBe(PeerLinkQuality.Fair);
   });
 
-  it('TURN 経由でも遅延が小さければ品質自体は Good', () => {
+  it('counts a relayed link with little delay as good all the same', () => {
     expect(linkQualityOf(session({ grade: PeerSessionGrade.LOW }), true)).toBe(PeerLinkQuality.Good);
   });
 });
 
 describe('worstLinkQuality', () => {
-  it('空なら Unknown', () => {
+  it('is unknown for no links at all', () => {
     expect(worstLinkQuality([])).toBe(PeerLinkQuality.Unknown);
   });
 
-  it('最も悪いものを返す', () => {
+  it('returns the worst of them', () => {
     expect(worstLinkQuality([PeerLinkQuality.Good, PeerLinkQuality.Poor, PeerLinkQuality.Fair])).toBe(
       PeerLinkQuality.Poor
     );
   });
 
-  it('Lost が最優先', () => {
+  it('a lost link comes first', () => {
     expect(worstLinkQuality([PeerLinkQuality.Poor, PeerLinkQuality.Lost])).toBe(PeerLinkQuality.Lost);
   });
 
-  it('Unknown は実際の問題を覆い隠さない', () => {
+  it('an unknown one never hides a real problem', () => {
     expect(worstLinkQuality([PeerLinkQuality.Unknown, PeerLinkQuality.Good])).toBe(PeerLinkQuality.Good);
     expect(worstLinkQuality([PeerLinkQuality.Unknown, PeerLinkQuality.Fair])).toBe(PeerLinkQuality.Fair);
   });
 
-  it('すべて Unknown なら Unknown', () => {
+  it('is unknown when they all are', () => {
     expect(worstLinkQuality([PeerLinkQuality.Unknown, PeerLinkQuality.Unknown])).toBe(PeerLinkQuality.Unknown);
   });
 });
 
 describe('isMeasured', () => {
-  it('初期値のセッションは未計測', () => {
+  it('counts a fresh session as unmeasured', () => {
     expect(isMeasured(session({ grade: PeerSessionGrade.UNSPECIFIED, ping: 0, health: 0, speed: 0 }))).toBe(false);
   });
 
-  it('grade だけでも付いていれば計測済み', () => {
+  it('counts one with a grade as measured', () => {
     expect(isMeasured(session({ grade: PeerSessionGrade.MIDDLE, ping: 0, health: 0 }))).toBe(true);
   });
 
-  it('ping だけでも付いていれば計測済み', () => {
+  it('counts one with a latency as measured', () => {
     expect(isMeasured(session({ grade: PeerSessionGrade.UNSPECIFIED, ping: 12, health: 0 }))).toBe(true);
   });
 });
 
 describe('isRelayedLink', () => {
-  it('grade LOW は TURN リレー', () => {
+  it('reads the lowest grade as a relay', () => {
     expect(isRelayedLink(session({ grade: PeerSessionGrade.LOW }))).toBe(true);
   });
 
-  it('それ以外は直結扱い', () => {
+  it('counts anything else as direct', () => {
     expect(isRelayedLink(session({ grade: PeerSessionGrade.HIGH }))).toBe(false);
     expect(isRelayedLink(session({ grade: PeerSessionGrade.UNSPECIFIED }))).toBe(false);
   });
 });
 
-describe('表示用の写像', () => {
-  it('すべての品質にラベルキーが対応する', () => {
+describe('what is shown for each', () => {
+  it('gives every quality a label', () => {
     for (const quality of Object.values(PeerLinkQuality)) {
       expect(linkQualityLabelKey(quality)).toBe(`feature.lobby.linkQuality.${quality}`);
     }
   });
 
-  it('すべての品質にアイコンと色が対応する', () => {
+  it('gives every one an icon and a colour', () => {
     for (const quality of Object.values(PeerLinkQuality)) {
       expect(linkQualityIcon(quality)).toBeTruthy();
       expect(linkQualityColorClass(quality)).toBeTruthy();
     }
   });
 
-  it('品質ごとに色が異なる', () => {
+  it('gives each a colour of its own', () => {
     const classes = Object.values(PeerLinkQuality).map(linkQualityColorClass);
     expect(new Set(classes).size).toBe(classes.length);
   });

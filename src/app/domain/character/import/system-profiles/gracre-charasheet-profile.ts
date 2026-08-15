@@ -13,7 +13,7 @@ import {
   paramsOf,
 } from '@axe/domain/character/import/system-profiles/charasheet-shared';
 
-// グランクレストRPG（保管所 game="gracre"）の能力ボーナス。NB{i} = 各能力値ボーナス。順序は標準（SNE 6 能力値）。
+// The ability bonuses of that system, in the usual order of that publisher's six abilities.
 const ABILITY_BONUSES: { key: string; label: string }[] = [
   { key: 'NB1', label: '器用B' },
   { key: 'NB2', label: '敏捷B' },

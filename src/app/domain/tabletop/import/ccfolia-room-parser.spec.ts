@@ -27,15 +27,15 @@ function roomData(overrides: Record<string, unknown> = {}): Record<string, unkno
 }
 
 describe('isCcfoliaRoomData', () => {
-  it('meta.version と entities を持つ JSON をルームデータと判定する', () => {
+  it('reads a document carrying a version and its entities as room data', () => {
     expect(isCcfoliaRoomData(roomData())).toBe(true);
   });
 
-  it('コマ JSON はルームデータと判定しない', () => {
+  it('reads a single piece as something else', () => {
     expect(isCcfoliaRoomData({ kind: 'character', data: { name: '探索者A' } })).toBe(false);
   });
 
-  it('entities を欠く JSON を弾く', () => {
+  it('turns away a document with no entities', () => {
     expect(isCcfoliaRoomData({ meta: { version: '1.1.0' } })).toBe(false);
     expect(isCcfoliaRoomData(null)).toBe(false);
     expect(isCcfoliaRoomData('__data.json')).toBe(false);
@@ -43,7 +43,7 @@ describe('isCcfoliaRoomData', () => {
 });
 
 describe('parseCcfoliaRoom', () => {
-  it('盤面サイズ・背景・画像リソースを取り込む', () => {
+  it('takes the size of the board, the background and the pictures', () => {
     const room = parseCcfoliaRoom(roomData())!;
 
     expect(room.version).toBe('1.1.0');
@@ -56,7 +56,7 @@ describe('parseCcfoliaRoom', () => {
     ]);
   });
 
-  it('前景画像を盤面の絵として取り込む', () => {
+  it('takes the foreground picture as the picture of the board', () => {
     const data = roomData();
     (data['entities'] as Record<string, unknown>)['room'] = {
       backgroundUrl: 'aaaa.jpeg',
@@ -68,7 +68,7 @@ describe('parseCcfoliaRoom', () => {
     expect(parseCcfoliaRoom(data)!.foregroundFileName).toBe('bbbb.png');
   });
 
-  it('scenes を order 順の場面として取り込む', () => {
+  it('takes the scenes in the order they are given', () => {
     const room = parseCcfoliaRoom(
       roomData({
         scenes: {
@@ -112,14 +112,14 @@ describe('parseCcfoliaRoom', () => {
     ]);
   });
 
-  it('画像でないリソースを除外する', () => {
+  it('leaves out a resource that is not a picture', () => {
     const data = roomData();
     data['resources'] = { 'cccc.mp3': { type: 'audio/mpeg' }, 'bbbb.png': { type: 'image/png' } };
 
     expect(parseCcfoliaRoom(data)!.resources).toEqual([{ fileName: 'bbbb.png', mime: 'image/png' }]);
   });
 
-  it('items をパネルとして order 順に取り込む', () => {
+  it('takes the items as panels, in order', () => {
     const room = parseCcfoliaRoom(
       roomData({
         items: {
@@ -170,7 +170,7 @@ describe('parseCcfoliaRoom', () => {
     expect(room.skipped.panels).toBe(0);
   });
 
-  it('画像を持たない item はパネルにせず件数だけ残す', () => {
+  it('counts an item without a picture rather than making a panel of it', () => {
     const room = parseCcfoliaRoom(
       roomData({ items: { aaaaaaaaaaaaaaaaaaaa: { x: 0, y: 0, width: 1, height: 1, imageUrl: null } } })
     )!;
@@ -179,7 +179,7 @@ describe('parseCcfoliaRoom', () => {
     expect(room.skipped.panels).toBe(1);
   });
 
-  it('characters をコマとして取り込み、アイコンは ZIP 内ファイル名として持つ', () => {
+  it('takes the characters as pieces, holding each icon as a name inside the archive', () => {
     const room = parseCcfoliaRoom(
       roomData({
         characters: {
@@ -239,13 +239,13 @@ describe('parseCcfoliaRoom', () => {
     });
   });
 
-  it('未対応の decks / effects は件数だけ数える', () => {
+  it('counts the decks and effects it cannot take', () => {
     const room = parseCcfoliaRoom(roomData({ decks: { d1: {}, d2: {} }, effects: { e1: {} } }))!;
 
     expect(room.skipped).toEqual({ panels: 0, decks: 2, effects: 1 });
   });
 
-  it('ルームデータでない JSON は null を返す', () => {
+  it('returns nothing for a document that is not room data', () => {
     expect(parseCcfoliaRoom({ kind: 'character', data: { name: '探索者A' } })).toBeNull();
   });
 });

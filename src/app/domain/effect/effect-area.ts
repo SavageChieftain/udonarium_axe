@@ -1,8 +1,8 @@
 /**
- * 範囲攻撃の巻き込み判定。
+ * What an area attack takes in.
  *
- * 中心に選んだコマからの距離で拾い、近い順に並べる。
- * 並び順がそのまま発動順になるので、中心から外へ広がって見える。
+ * It picks up by distance from the piece at the centre, nearest first.
+ * That order is the order they fire in, so it spreads from the centre out.
  */
 
 export interface EffectAreaCandidate {
@@ -16,7 +16,7 @@ export interface EffectAreaPoint {
   y: number;
 }
 
-/** 中心から半径内のコマを近い順に返す。中心のコマ自身は必ず先頭に来る。 */
+/** Returns the pieces within the radius, nearest first, with the one at the centre always at the front. */
 export function effectAreaTargets(
   center: EffectAreaPoint,
   candidates: readonly EffectAreaCandidate[],

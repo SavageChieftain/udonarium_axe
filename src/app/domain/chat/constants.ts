@@ -1,11 +1,11 @@
-/** チャットカラーコードのデフォルト値 (黒・赤・青) */
+/** The colours a chat starts with. */
 export const DEFAULT_CHAT_COLOR_CODES: readonly string[] = ['#000000', '#FF0000', '#0099FF'];
 
 /**
- * システムメッセージ専用タブの identifier。
+ * The identifier of the system tab.
  *
- * 入退室や無応答の知らせは、放っておくと会話のタブへ流れ込む。
- * 名前ではなく identifier で見分けるので、名前を変えても、部屋を保存し直しても同じタブを指す。
+ * Left alone, the arrivals, departures and silences flow into the conversation tabs.
+ * It is known by its identifier rather than its name, so a rename and a resaved room still name the same tab.
  */
 export const SYSTEM_CHAT_TAB_IDENTIFIER = 'SystemTab';
 

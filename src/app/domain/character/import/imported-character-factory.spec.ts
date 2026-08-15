@@ -26,20 +26,20 @@ describe('ImportedCharacterFactory', () => {
     return ImportedCharacterFactory.create(imported, 'image-id');
   }
 
-  it('名前・サイズ・画像が反映される', () => {
+  it('takes the name, the size and the picture', () => {
     const character = buildFromCcfolia({ name: '勇者', width: 2, height: 2 });
     expect(character.name).toBe('勇者');
     expect(character.size).toBe(2);
     expect(character.imageDataElement!.getFirstElementByName('imageIdentifier')!.value).toBe('image-id');
   });
 
-  it('名前が空ならフォールバック名になる', () => {
+  it('falls back to a name when it is given none', () => {
     const character = ImportedCharacterFactory.create(createEmptyImportedCharacter('ccfolia'), '');
     expect(character.name).toBe('インポートキャラクター');
     expect(character.size).toBe(1);
   });
 
-  it('status がリソース要素 (現在/最大) として作られる', () => {
+  it('builds each status as a resource with a current value and a maximum', () => {
     const character = buildFromCcfolia({ name: 'X', status: [{ label: 'HP', value: 7, max: 12 }] });
     const resource = character.detailDataElement!.getFirstElementByName('リソース');
     expect(resource?.fieldRole).toBe(DataElementRole.SECTION);
@@ -51,7 +51,7 @@ describe('ImportedCharacterFactory', () => {
     expect(hp.currentValue).toBe('7');
   });
 
-  it('params が数値/テキストフィールドとして作られる', () => {
+  it('builds each parameter as a number or a text field', () => {
     const character = buildFromCcfolia({
       name: 'X',
       params: [
@@ -68,7 +68,7 @@ describe('ImportedCharacterFactory', () => {
     expect(job.value).toBe('探偵');
   });
 
-  it('memo / externalUrl / initiative が取り込まれる', () => {
+  it('takes the notes, the address and the initiative', () => {
     const character = buildFromCcfolia({
       name: 'X',
       memo: '長文メモ',
@@ -86,7 +86,7 @@ describe('ImportedCharacterFactory', () => {
     expect(initiative.value).toBe(9);
   });
 
-  it('チャットパレットの commands が反映され {ラベル} 参照が解決できる', () => {
+  it('takes the palette commands and resolves the references in them', () => {
     const character = buildFromCcfolia({
       name: 'X',
       status: [{ label: 'HP', value: 7, max: 12 }],
@@ -99,7 +99,7 @@ describe('ImportedCharacterFactory', () => {
     expect(palette.evaluate('{HP}/{HP^}', character.detailDataElement!)).toBe('7/12');
   });
 
-  it('重複ラベルは一意な要素名へ退避される', () => {
+  it('gives a repeated label an element name of its own', () => {
     const character = buildFromCcfolia({
       name: 'X',
       status: [{ label: '値', value: 1, max: 1 }],
@@ -109,7 +109,7 @@ describe('ImportedCharacterFactory', () => {
     expect(character.detailDataElement!.getFirstElementByName('値_2')).toBeTruthy();
   });
 
-  it('保管所 CoC6 取り込みで dicebot と能力値・SAN・技能のパレット参照が解決できる', () => {
+  it('resolves the dice bot and the references to the abilities, sanity and skills of one system from the archive', () => {
     const imported = buildCoc6CharasheetCharacter({
       pc_name: '探索者',
       game: 'coc',
@@ -132,7 +132,7 @@ describe('ImportedCharacterFactory', () => {
     expect(palette.evaluate('CCB<={こぶし(パンチ)}', detail)).toBe('CCB<=60');
   });
 
-  it('保管所 CoC7 取り込みで dicebot=Cthulhu7th と能力値(×5なし)・SAN・技能のパレット参照が解決できる', () => {
+  it('resolves them for its later edition, whose abilities are not multiplied', () => {
     const imported = buildCoc7CharasheetCharacter({
       pc_name: '探索者',
       game: 'coc7',
@@ -158,7 +158,7 @@ describe('ImportedCharacterFactory', () => {
     expect(palette.evaluate('CC<={目星}', detail)).toBe('CC<=50');
   });
 
-  it('倉庫 DX3 取り込みで dicebot=DoubleCross と能力値・技能の nDX パレット参照が解決できる', () => {
+  it('resolves the dice bot and the ability and skill references of one system from the warehouse', () => {
     const imported = buildDx3AppspotCharacter({
       base: { name: 'DX' },
       baseAbility: { body: { total: '5' }, sense: { total: '2' } },
@@ -174,7 +174,7 @@ describe('ImportedCharacterFactory', () => {
     expect(palette.evaluate('{肉体}DX+2', detail)).toBe('5DX+2');
   });
 
-  it('シノビガミ取り込みで特技表（GAP表）がテーブル表示セクションとして detail に追加される', () => {
+  it('adds the skill table of one system to the sheet as a table', () => {
     const imported = buildShinobigamiAppspotCharacter({
       base: { name: '忍' },
       ninpou: [{ name: '接近戦攻撃', targetSkill: '掘削術' }],
@@ -189,7 +189,7 @@ describe('ImportedCharacterFactory', () => {
     expect(gapRow).toBeTruthy();
   });
 
-  it('ゆとシート SW2.5 取り込みで dicebot=SwordWorld2.5 と能力ボーナスのパレット参照が解決できる', () => {
+  it('resolves the dice bot and the ability bonuses of one system from the sheet service', () => {
     const imported = buildYtsheetSw25Character({
       characterName: 'SW',
       sttStr: 20,
@@ -208,12 +208,12 @@ describe('ImportedCharacterFactory', () => {
     expect(palette.evaluate('2d6+{器用B}', detail)).toBe('2d6+5');
   });
 
-  it('色指定があれば chatColorCode の先頭に入る', () => {
+  it('puts a colour, where one is given, at the head of the palette', () => {
     const character = buildFromCcfolia({ name: 'X', color: '#123456' });
     expect(character.chatColorCode[0]).toBe('#123456');
   });
 
-  it('sections（システム固有データ）が section > group > field として detail へ展開される', () => {
+  it('spreads the systems own data into sections, groups and fields on the sheet', () => {
     const imported = createEmptyImportedCharacter('appspot');
     imported.name = 'テスト';
     imported.sections = [

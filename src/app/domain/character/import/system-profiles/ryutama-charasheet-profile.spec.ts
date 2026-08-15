@@ -5,7 +5,7 @@ import {
 } from '@axe/domain/character/import/system-profiles/ryutama-charasheet-profile';
 
 describe('buildRyutamaCharasheetCharacter', () => {
-  // charasheet.vampire-blood.net の りゅうたま（game="ryutama"）実データに即した構造
+  // built from real data of one system at the archive
   const ryutama = {
     pc_name: 'ティナ',
     game: 'ryutama',
@@ -29,12 +29,12 @@ describe('buildRyutamaCharasheetCharacter', () => {
     return sections.find((section) => section.label === label);
   }
 
-  it('game="ryutama" を判別する', () => {
+  it('recognises the system', () => {
     expect(isRyutamaCharasheetCharacter(ryutama)).toBe(true);
     expect(isRyutamaCharasheetCharacter({ pc_name: 'X', game: 'coc' })).toBe(false);
   });
 
-  it('4 能力値（体力/敏捷/知力/精神）をサイコロ面数つき・dicebot Ryutama で取り込む', () => {
+  it('takes its four abilities as the dice they roll, and the dice bot', () => {
     const result = buildRyutamaCharasheetCharacter(ryutama)!;
     expect(result.dicebot).toBe('Ryutama');
     expect(result.params).toEqual([
@@ -45,14 +45,14 @@ describe('buildRyutamaCharasheetCharacter', () => {
     ]);
   });
 
-  it('クラス能力・呪文・所持品を名前付きで展開する', () => {
+  it('spreads the class abilities, the spells and the belongings with their names', () => {
     const result = buildRyutamaCharasheetCharacter(ryutama)!;
     expect(findSection(result.sections, 'クラス能力')!.groups.map((group) => group.label)).toEqual(['応急手当']);
     expect(findSection(result.sections, '呪文')!.groups.map((group) => group.label)).toEqual(['ヒール', '光の矢']);
     expect(findSection(result.sections, '所持品')!.groups[0].label).toBe('薬草');
   });
 
-  it('チャットパレットに各能力のサイコロを生成する', () => {
+  it('builds the die of each ability into the palette', () => {
     const result = buildRyutamaCharasheetCharacter(ryutama)!;
     expect(result.commands).toContain('1d4 【体力】');
     expect(result.commands).toContain('1d8 【知力】');

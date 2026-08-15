@@ -41,7 +41,7 @@ export interface ImportedRoomPiece {
 }
 
 /**
- * 場面。ココフォリアでは盤面の絵（前景）と広さだけが切り替わり、パネルとコマは場面をまたいで残る。
+ * A scene. In the other tool a change of scene changes the picture of the board and its size, while the panels and pieces stay.
  */
 export interface ImportedRoomScene {
   name: string;
@@ -52,7 +52,7 @@ export interface ImportedRoomScene {
   fieldHeight: number;
 }
 
-/** 取り込めなかった要素の件数。ココフォリア側にあって AXE に写せなかったものを利用者へ提示する。 */
+/** How many elements did not come across, so the user can see what the other tool had and this one could not take. */
 export interface ImportedRoomSkipped {
   panels: number;
   decks: number;

@@ -10,14 +10,14 @@ import {
 import { TabletopObject } from '@axe/domain/tabletop/tabletop-object';
 
 /**
- * 盤面の一角に敷く環境演出。毒沼や地面の噴出のように、その場に残り続けるもの。
+ * An effect laid over one part of the board and left there, such as a poisoned marsh or a vent in the ground.
  *
- * マップマスクと同じくテーブルの子なので、マップを切り替えると一緒に切り替わる。
+ * Like a mask it is a child of the table, so it changes with the map.
  */
 @SyncObject('table-ambience')
 export class TableAmbience extends TabletopObject {
   @SyncVar() ambienceKind: string = 'swamp';
-  /** 空なら種類ごとの既定色。 */
+  /** Empty for the colour of its kind. */
   @SyncVar() ambienceColor: string = '';
   @SyncVar() ambienceDensity: number = DEFAULT_AMBIENCE_DENSITY;
   @SyncVar() isLock: boolean = false;
@@ -49,8 +49,8 @@ export class TableAmbience extends TabletopObject {
   }
 
   /**
-   * 繰り返しの位相ずらし(ms)。
-   * 同じ場を並べたときに全部が同じ動きをすると、貼り絵に見える。
+   * How far the repetition is offset, in milliseconds.
+   * Several of these side by side all moving together would look pasted on.
    */
   get phaseOffset(): number {
     let hash = 0;

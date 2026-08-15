@@ -25,14 +25,14 @@ import {
 } from '@axe/domain/effect/timeline/shared';
 
 /**
- * 飛んでいくもの。
+ * What flies.
  *
- * 撃ち手から的へ向かって動く演出（弾・砲・矢の雨）。着弾の描き方は渡された側に委ねる。
+ * The effects that travel from the caster to the target: a bolt, a shot, a rain of arrows. How each lands is left to what it is given.
  */
 
 /**
- * 弾が飛んでいる時間(ms)。再生時間に対する割合ではなく実時間で決める。
- * 割合にすると、連射のように尺の長いものほど弾が遅くなってしまう。
+ * How long a shot is in the air, in real time rather than as a share of the playback.
+ * As a share, a longer effect such as a burst would fly its shots more slowly.
  */
 const PROJECTILE_TRAVEL_MS: Record<ProjectileStyle, number> = {
   bullet: 130,
@@ -46,31 +46,31 @@ const PROJECTILE_TRAVEL_MS: Record<ProjectileStyle, number> = {
 };
 
 export interface ProjectileShot {
-  /** 撃ち出す位置(0-1)。 */
+  /** Where through the effect it is fired. */
   launch: number;
-  /** 着弾する位置(0-1)。 */
+  /** Where it lands. */
   land: number;
 }
 
 /**
- * 飛翔体の刻み。最後の 1 発が終端で着弾するよう、発射を等間隔に並べる。
- * 弾ごとに独立して飛ぶので、機関銃は弾幕として見える。
+ * The rhythm of the shots, spaced evenly so the last of them lands at the end.
+ * Each flies on its own, which is what makes a machine gun read as a hail.
  */
-/** 高さの取り方。放物線を描くか、巡航して終末で突っ込むか。 */
+/** How the height is taken: an arc, or a cruise and a dive at the end. */
 function loft(at: number, level: boolean): number {
   if (!level) return Math.sin(Math.PI * at);
-  // 巡航高度まで一気に上がり、そこを保ったまま的の直前で一気に落とす。
-  // 放り投げると迫撃砲に、緩く下ろすと着陸に見える。
+  // It climbs to its cruising height at once, holds it, and drops all at once just short of the target.
+  // Thrown it reads as a mortar; let down gently, as a landing.
   return Math.min(at / 0.16, 1) - Math.max(0, (at - 0.88) / 0.12) ** 1.7;
 }
 
-/** 噴煙を継ぐ区間数。 */
+/** How many sections the exhaust smoke is joined from. */
 const SMOKE_SEGMENTS = 6;
 
-/** 弾ごとに横ぶれの向きを振り分ける。同じ側ばかりだと束になって 1 発に見える。 */
+/** Each shot strays to a different side; all to one they bunch and read as a single shot. */
 const SWERVE_SIDE = [1, -1, 0.55, -0.55, 1.4, -1.4];
 
-/** まっすぐ飛ぶ見た目。尾を粒に割らず 1 本に繋ぐ。 */
+/** What flies straight, its tail joined as one rather than broken into particles. */
 const STRAIGHT_LOOKS: ReadonlySet<ProjectileStyle> = new Set([
   'bullet',
   'blaster',
@@ -80,7 +80,7 @@ const STRAIGHT_LOOKS: ReadonlySet<ProjectileStyle> = new Set([
   'cruise',
 ]);
 
-/** 尾の長さ(飛翔の割合)。速いものほど長く引く。 */
+/** How long the tail is, as a share of the flight. The faster it flies the longer it draws out. */
 const TRAIL_SPAN: Record<ProjectileStyle, number> = {
   bolt: 0.3,
   arrow: 0.2,
@@ -92,7 +92,7 @@ const TRAIL_SPAN: Record<ProjectileStyle, number> = {
   cruise: 0.55,
 };
 
-/** 進行方向に対する見た目の傾き。三日月は弧の腹を前へ向けたいので直交させる。 */
+/** How it leans against its travel. A crescent is set across it, so the belly of the arc faces forward. */
 const PROJECTILE_TURN: Record<ProjectileStyle, number> = {
   bolt: 0,
   arrow: 0,
@@ -104,7 +104,7 @@ const PROJECTILE_TURN: Record<ProjectileStyle, number> = {
   cruise: 0,
 };
 
-/** 弧を描いて飛ぶ高さ。矢は山なりに、光り物と刃はまっすぐ飛ばす。 */
+/** How high the arc rises. An arrow arcs, while anything of light and any blade flies straight. */
 const PROJECTILE_ARC: Record<ProjectileStyle, number> = {
   bolt: 0.15,
   arrow: 1.1,
@@ -116,7 +116,7 @@ const PROJECTILE_ARC: Record<ProjectileStyle, number> = {
   cruise: 1.4,
 };
 
-/** 経路から横へ膨らむ量(base 比)。誘導弾は大きく回り込んでから食い付く。 */
+/** How far it strays to the side of the path. A guided missile swings wide before it closes. */
 const PROJECTILE_SWERVE: Record<ProjectileStyle, number> = {
   bolt: 0,
   arrow: 0,
@@ -128,7 +128,7 @@ const PROJECTILE_SWERVE: Record<ProjectileStyle, number> = {
   cruise: 2.4,
 };
 
-/** 尾の太さ(base 比)。頭の大きさから作ると、大きい刃で尾が帯のようになってしまう。 */
+/** How thick the tail is. Taken from the size of the head, a large blade would trail a band. */
 const TRAIL_THICKNESS: Record<ProjectileStyle, number> = {
   bolt: 0.34,
   arrow: 0.1,
@@ -175,8 +175,8 @@ export function projectileTiming(preset: EffectPreset): { travel: number; shots:
   const count = preset.shotCount;
   if (count === 1) return { travel, shots: [{ launch: 0, land: travel }] };
 
-  // 連射は「1 秒あたり何発か」で決める。尺へ均等に散らすと、
-  // 発射音が鳴り終わったあとも延々と撃ち続けることになる。
+  // A burst is set by shots a second; spread evenly through the effect it would keep firing
+  // long after the sound of the shots has ended.
   const even = (1 - travel) / (count - 1);
   const wanted = preset.shotIntervalMs > 0 ? preset.shotIntervalMs / preset.duration : even;
   const gap = Math.min(wanted, even);
@@ -190,22 +190,22 @@ export function projectileTiming(preset: EffectPreset): { travel: number; shots:
   };
 }
 const PROJECTILE_RIBBON_COUNT = 7;
-/** 打ち上げが終わる位置。ここまでで画面の外へ抜ける。 */
+/** Where the launch ends, by which point it has left the screen. */
 const BALLISTIC_LIFT_END = 0.32;
-/** 落ち始める位置。間を空けて、見えない所を飛んでいる時間を作る。 */
+/** Where it begins to fall, with a gap between that is the time it spends out of sight. */
 const BALLISTIC_DIVE_START = 0.6;
-/** 突き刺さる位置。ここから先が爆発。`EffectPreset.impactSoundAt` と揃える。 */
+/** Where it strikes, after which comes the explosion. It matches where the landing sounds. */
 export const BALLISTIC_DIVE_END = 0.86;
-/** 打ち上げと落下の高さ(base 比)。画面の外まで抜ける高さを取る。 */
+/** How high the launch and the fall reach, which is far enough to leave the screen. */
 const BALLISTIC_HEIGHT = 16;
-/** 落ちてくる筋の区間数。 */
+/** How many sections the falling streak is joined from. */
 const BALLISTIC_TRAIL_SEGMENTS = 7;
 
 /**
- * 弾道ミサイル。真上へ打ち上げ、見えない所を飛び、的の真上から落ちてくる。
+ * A ballistic missile: launched straight up, flying out of sight, and coming down directly over the target.
  *
- * 打ち上げ → 予告 → 落下 → 爆発、の 4 段。撃った先が見えないぶん、
- * 落ちてくる場所を地面に描いておかないと、ただ画面外から爆発が湧く。
+ * In four stages: the launch, the warning, the fall and the explosion. With the shot out
+ * of sight, without marking the ground where it will fall the explosion comes from nowhere.
  */
 export function appendBallistic(
   sprites: EffectSprite[],
@@ -224,7 +224,7 @@ export function appendBallistic(
   const burst = clamp01(normalize((progress - BALLISTIC_DIVE_END) / (1 - BALLISTIC_DIVE_END)));
   const body = { width: base * 2.4, height: base * 1.35 };
 
-  // 1. 打ち上げ。足元から真上へ、加速しながら抜けていく。
+  // First the launch, straight up from the feet, gathering speed as it goes.
   if (lift > 0 && lift < 1) {
     const up = projectDirection(0, 0, 1, view);
     const climbed = lift ** 1.9;
@@ -257,7 +257,7 @@ export function appendBallistic(
     });
   }
 
-  // 発射台の煙。打ち上げたあとも足元に残って広がる。
+  // The smoke of the launch, which stays at the feet and spreads after it has gone.
   const pad = clamp01(progress / BALLISTIC_DIVE_START);
   if (pad > 0 && pad < 1) {
     for (let puff = 0; puff < 4; puff += 1) {
@@ -279,7 +279,7 @@ export function appendBallistic(
     }
   }
 
-  // 2. 予告。落ちてくる位置を的の足元へ描いて絞り込む。
+  // Then the warning, drawn at the feet of the target and closing in.
   const tell = clamp01(normalize((progress - BALLISTIC_LIFT_END) / (BALLISTIC_DIVE_END - BALLISTIC_LIFT_END)));
   if (tell > 0 && tell < 1) {
     for (let ring = 0; ring < 2; ring += 1) {
@@ -298,7 +298,7 @@ export function appendBallistic(
     }
   }
 
-  // 3. 落下。的の真上から、加速しながら突っ込む。
+  // Then the fall, straight down onto the target, gathering speed.
   if (dive > 0 && dive < 1) {
     const sky = { x: center.x + base * 1.6, y: center.y - base * 1.6, z: center.z + base * BALLISTIC_HEIGHT };
     const at = (value: number): Point3 => {
@@ -317,7 +317,7 @@ export function appendBallistic(
       view
     );
 
-    // 再突入の筋。経路に沿って継ぐ。
+    // The streak of the re-entry, joined along the path.
     for (let segment = 0; segment < BALLISTIC_TRAIL_SEGMENTS; segment += 1) {
       const front = at(dive - segment * 0.07);
       const back = at(dive - (segment + 1) * 0.07);
@@ -351,7 +351,7 @@ export function appendBallistic(
       opacity: 1,
       svg: cruiseSvg(colors),
     });
-    // 再突入で灼ける弾頭。
+    // The head, burning as it comes down.
     sprites.push({
       ...blank(),
       key: `${prefix}-ballistic-heat`,
@@ -366,7 +366,7 @@ export function appendBallistic(
     });
   }
 
-  // 4. 爆発。属性の演出へ委ね、閃光と輪だけこちらで足す。
+  // Last the explosion, left to the effect of its element, with the flash and the ring added here.
   if (burst > 0) {
     paintImpact(
       preset.impactEffectKind,
@@ -404,39 +404,39 @@ export function appendBallistic(
   }
 }
 
-/** 降り注ぐ矢の本数。少ないと雨に見えない。 */
+/** How many arrows fall. Too few and it is no rain. */
 const ARROW_RAIN_COUNT = 36;
-/** 射手が撃ち終えるまでの長さ(全体比)。 */
+/** How long the archer takes to loose them all. */
 const ARROW_RAIN_LOOSE_END = 0.26;
-/** 1 本が空へ昇っていく長さ(全体比)。 */
+/** How long one takes to climb. */
 const ARROW_RAIN_CLIMB = 0.22;
-/** 1 本が落ちきるまでの長さ(全体比)。 */
+/** How long one takes to fall. */
 export const ARROW_RAIN_FALL = 0.18;
-/** 落下を撒く区間。最後の 1 本が刺さり終わるまで尺に納める。 */
+/** The stretch the falls are scattered over, which fits the last of them striking inside the effect. */
 const ARROW_RAIN_SPREAD = 0.5;
-/** 落下前に足元へ出す予告の長さ。どこへ落ちるか見せてから当てる。 */
+/** How long the warning shows at the feet before they fall, so where they will land is seen first. */
 const ARROW_RAIN_TELL = 0.14;
-/** 矢が昇る高さ(base 比)。画面の外まで昇って、そこから降ってくる。 */
+/** How high they climb, which is off the screen and back. */
 const ARROW_RAIN_HEIGHT = 9;
 
 export interface ArrowRainShot {
-  /** 弓を離れる位置(0-1)。 */
+  /** Where it leaves the bow. */
   loose: number;
-  /** 落ち始める位置(0-1)。 */
+  /** Where it begins to fall. */
   fall: number;
-  /** 突き刺さる位置(0-1)。 */
+  /** Where it strikes. */
   land: number;
 }
 
 /**
- * 矢 1 本ごとの撃つ・落ちる・刺さる。
+ * For each arrow: the loosing, the falling and the striking.
  *
- * 絵と音の両方がこの表を見るので、種に依らず同じ並びを返す。
+ * Both the picture and the sound read this table, so it returns the same order whatever the seed.
  */
 export function arrowRainShots(): ArrowRainShot[] {
   const shots: ArrowRainShot[] = [];
   for (let index = 0; index < ARROW_RAIN_COUNT; index += 1) {
-    // 等間隔だと機械仕掛けに聞こえるので、本数から決まるぶれを混ぜる。
+    // Evenly spaced they sound machined, so a waver worked out from the count is mixed in.
     const wobble = (((index * 37) % 13) / 13 - 0.5) * 0.04;
     const fall = ARROW_RAIN_LOOSE_END + (index / ARROW_RAIN_COUNT) * ARROW_RAIN_SPREAD + wobble;
     shots.push({
@@ -449,10 +449,10 @@ export function arrowRainShots(): ArrowRainShot[] {
 }
 
 /**
- * 降り注ぐ矢。射手が空へ撃ち上げ、落ちる位置を地面へ描いてから当てる。
+ * A rain of arrows: the archer looses them skyward, the ground is marked, and then they land.
  *
- * 撃ち上げ → 予告 → 落下 → 突き刺さり、の 4 段。撃ち上げを省くと矢がどこから
- * 湧いたのか分からず、予告を省くと当たった後で何が起きたかを知ることになる。
+ * In four stages: the loosing, the warning, the fall and the strike. Without the loosing
+ * the arrows come from nowhere; without the warning you learn what happened after it hit.
  */
 export function appendArrowRain(
   sprites: EffectSprite[],
@@ -479,7 +479,7 @@ export function appendArrowRain(
     const sky = { x: spot.x - base * lean, y: spot.y - base * lean * 1.4, z: spot.z + base * ARROW_RAIN_HEIGHT };
     const drop = projectDirection(spot.x - sky.x, spot.y - sky.y, spot.z - sky.z, view);
 
-    // 撃ち上げ。射手の足元から、的の方へ傾けて空へ抜けていく。
+    // The loosing: from the archer's feet, leaning towards the target, away into the sky.
     const climb = normalize((progress - loose) / ARROW_RAIN_CLIMB);
     if (climb > 0 && climb < 1) {
       const apex = {
@@ -487,7 +487,7 @@ export function appendArrowRain(
         y: origin.y + (center.y - origin.y) * 0.32 + sway * 0.6,
         z: origin.z + base * ARROW_RAIN_HEIGHT,
       };
-      // 昇るほど鈍る。等速だと打ち上げ花火のように伸びきってしまう。
+      // It slows as it climbs; at an even speed it stretches out like a firework.
       const eased = 1 - (1 - climb) ** 2;
       const rising = {
         x: origin.x + (apex.x - origin.x) * eased,
@@ -514,7 +514,7 @@ export function appendArrowRain(
       });
     }
 
-    // 予告。落ちる位置の輪を絞り込んでいく。
+    // The warning: the ring where they will fall, closing in.
     const tell = normalize((progress - (launch - ARROW_RAIN_TELL)) / (ARROW_RAIN_TELL + ARROW_RAIN_FALL));
     if (tell > 0 && tell < 1) {
       sprites.push({
@@ -530,7 +530,7 @@ export function appendArrowRain(
       });
     }
 
-    // 落下。落ちる向きへ寝かせた矢と、後ろに引く細い筋。
+    // The fall: each arrow laid along its descent, with a thin streak behind.
     const fall = normalize((progress - launch) / ARROW_RAIN_FALL);
     if (fall > 0 && fall < 1) {
       const eased = fall ** 1.4;
@@ -566,7 +566,7 @@ export function appendArrowRain(
       });
     }
 
-    // 突き刺さり。土埃と、地面に残って震える矢。
+    // The strike: the dust, and the arrow left quivering in the ground.
     const stuck = normalize((progress - land) / Math.max(1 - land, 0.01));
     if (stuck > 0 && stuck < 1) {
       sprites.push({
@@ -598,10 +598,10 @@ export function appendArrowRain(
 }
 
 /**
- * 飛翔体。発射 → 飛翔 → 着弾の 3 段で組む。
+ * A projectile, in three stages: the firing, the flight and the landing.
  *
- * 飛翔中は「速度方向へ引き伸ばした頭」と「位置を繋いだ帯（リボン）」を出す。
- * 丸い粒を等間隔に並べても速度が出ないので、画面上の進行方向へ潰す・伸ばすのが要点。
+ * In flight it shows a head drawn out along its speed and a ribbon joining where it has been.
+ * Round particles at even spacing carry no speed; the point is to squash and stretch along the travel seen on the screen.
  */
 export function appendProjectile(
   sprites: EffectSprite[],
@@ -619,7 +619,7 @@ export function appendProjectile(
   const arc = base * PROJECTILE_ARC[look];
   const timing = projectileTiming(preset);
 
-  // 弾ごとに撃つ・飛ぶ・当たるが独立する。連射はこれを前へ詰めて並べたもの。
+  // Each shot fires, flies and lands on its own, and a burst is these laid close together.
   timing.shots.forEach((shot, index) => {
     const travel = normalize((progress - shot.launch) / timing.travel);
     const shotKey = `${prefix}-s${index}`;
@@ -632,7 +632,7 @@ export function appendProjectile(
 
     const impact = normalize((progress - shot.land) / (1 - shot.land));
     if (impact > 0 && impact < 1) {
-      // 着弾は属性ごとの演出へ委譲する。氷なら霜の輪、土なら地割れが出る。
+      // The landing is left to the effect of its element: ice leaves a ring of frost and earth a crack.
       paintImpact(
         preset.impactEffectKind,
         sprites,
@@ -647,7 +647,7 @@ export function appendProjectile(
   });
 }
 
-/** 飛んでいる 1 発。速度方向へ引き伸ばした頭と、位置を繋いだ帯。 */
+/** One shot in flight: a head drawn out along its speed and a ribbon joining where it has been. */
 function appendFlyingShot(
   sprites: EffectSprite[],
   prefix: string,
@@ -666,7 +666,7 @@ function appendFlyingShot(
   const at = (value: number): Point3 => flightPoint(origin, center, base, value, arc, swerve, look === 'cruise');
   const head = at(travel);
 
-  // 尾。回り込むものは経路に沿って短い区間で継ぐ。1 本の弦で結ぶと弾だけ横を向いて見える。
+  // The tail. Anything that swings is joined in short sections along the path; as one chord the shot alone would look sideways.
   if (look === 'missile' || look === 'cruise') {
     const span = TRAIL_SPAN[look] / SMOKE_SEGMENTS;
     for (let segment = 0; segment < SMOKE_SEGMENTS; segment += 1) {
@@ -736,7 +736,7 @@ function appendFlyingShot(
     }
   }
 
-  // 頭。速度方向へ引き伸ばすことで、止め絵でも速く見える。
+  // The head, drawn out along its speed so it reads fast even in a still.
   const nose = at(travel - 0.02);
   const heading = projectDirection(head.x - nose.x, head.y - nose.y, head.z - nose.z, view);
   if (solid) {
@@ -754,10 +754,10 @@ function appendFlyingShot(
       shadow: look === 'blaster' || look === 'tracer' ? glow(base * 0.35, preset.colorPrimary) : '',
     });
 
-    // 推進炎。弾の後ろへ付けると、飛んでいるのではなく飛ばしているように見える。
+    // The exhaust behind it, which makes it read as driven rather than merely flying.
     if (look === 'missile' || look === 'cruise') {
       const flame = base * PROJECTILE_SIZE[look].width * 0.55;
-      // 弾の長さぶんだけ後ろへ置く。1 フレームの進みで測ると、速さや間合いで離れ方が変わる。
+      // It sits one length behind; measured by a frame's travel it would part differently at different speeds and reaches.
       const step = base * PROJECTILE_SIZE[look].width * 0.62;
       const reach = Math.hypot(head.x - nose.x, head.y - nose.y, head.z - nose.z);
       const behind = reach > 0.001 ? step / reach : 0;
@@ -809,7 +809,7 @@ function appendFlyingShot(
   });
 }
 
-/** 発射の瞬間。溜めの光と銃口炎。 */
+/** The moment of firing: the gathered light and the flash at the muzzle. */
 function appendLaunchFlash(
   sprites: EffectSprite[],
   prefix: string,
@@ -854,7 +854,7 @@ function appendLaunchFlash(
   }
 }
 
-/** 経路上の 1 点。`arc` を与えると山なりに飛ぶ。 */
+/** One point along the path. Given an arc it flies over one. */
 function flightPoint(
   origin: Point3,
   center: Point3,
@@ -865,7 +865,7 @@ function flightPoint(
   level = false
 ): Point3 {
   const clamped = Math.min(Math.max(value, 0), 1);
-  // わずかに加速させる。等速だと矢というより漂う光になる。
+  // It gathers a little speed; at an even one it drifts rather than flies.
   const eased = clamped ** 1.25;
   const point = {
     x: origin.x + (center.x - origin.x) * eased,
@@ -874,13 +874,13 @@ function flightPoint(
   };
   if (swerve === 0) return point;
 
-  // 経路と直交する向きへ膨らませる。盤面の上で回り込ませたいので水平面で取る。
+  // It swells across the path, taken in the horizontal plane so it swings over the board.
   const dx = center.x - origin.x;
   const dy = center.y - origin.y;
   const length = Math.hypot(dx, dy);
   if (length < 1) return point;
 
-  // 早めに振ってから的へ収束させる。折り返しが中央だと、着弾間際まで的から外れて飛ぶ。
+  // It strays early and closes on the target; turning back at the middle it would still be off the target near the landing.
   const bulge = Math.sin(Math.PI * clamped ** 0.7) * swerve;
   return { ...point, x: point.x + (-dy / length) * bulge, y: point.y + (dx / length) * bulge };
 }

@@ -1,7 +1,7 @@
 import { parseCharasheetCharacterForSystem } from '@axe/domain/character/import/system-profiles/charasheet-profiles';
 
 describe('parseCharasheetCharacterForSystem', () => {
-  it('game="coc" は CoC6 プロファイルへ委譲する', () => {
+  it('hands one edition to its own profile', () => {
     const result = parseCharasheetCharacterForSystem({
       pc_name: 'X',
       game: 'coc',
@@ -14,7 +14,7 @@ describe('parseCharasheetCharacterForSystem', () => {
     expect(result.sections.some((section) => section.label === '技能')).toBe(true);
   });
 
-  it('game="coc7" は CoC7 プロファイルへ委譲する', () => {
+  it('hands the later one to its own', () => {
     const result = parseCharasheetCharacterForSystem({
       pc_name: 'X',
       game: 'coc7',
@@ -29,23 +29,23 @@ describe('parseCharasheetCharacterForSystem', () => {
     expect(result.sections.some((section) => section.label === '技能')).toBe(true);
   });
 
-  it('未対応 game は汎用パースのまま dicebot 空', () => {
+  it('reads an unsupported system through the general path and names no dice bot', () => {
     const result = parseCharasheetCharacterForSystem({ pc_name: 'X', game: 'arianrhod', skillName: ['剣'] })!;
     expect(result.dicebot).toBe('');
   });
 
-  it('汎用フォールバックでも生成ラベルマップで位置依存能力値をラベル付けする（このすば）', () => {
+  it('labels the positional abilities from the generated map even on the general path', () => {
     const result = parseCharasheetCharacterForSystem({ pc_name: 'X', game: 'konosuba', NK1: '10' })!;
     const data = result.sections.find((section) => section.label === 'データ')!;
     expect(data.groups[0].fields).toContainEqual({ label: '筋力', value: 10, kind: 'number' });
   });
 
-  it('汎用フォールバックでも bcdice 収録系は正しい dicebot を付ける（ゴブスレ）', () => {
+  it('still names the right dice bot there for a system the library carries', () => {
     const result = parseCharasheetCharacterForSystem({ pc_name: 'X', game: 'gobusla', effect_name: ['x'] })!;
     expect(result.dicebot).toBe('GoblinSlayer');
   });
 
-  it('保管所キャラでなければ null', () => {
+  it('returns nothing for anything but an archive character', () => {
     expect(parseCharasheetCharacterForSystem({ kind: 'character' })).toBeNull();
   });
 });

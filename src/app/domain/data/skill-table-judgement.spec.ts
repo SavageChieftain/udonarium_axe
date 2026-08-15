@@ -6,7 +6,7 @@ import {
 } from '@axe/domain/data/data-element';
 import { findJudgementCandidates } from '@axe/domain/data/skill-table-judgement';
 
-/** テスト用チェックセルを生成するヘルパー */
+/** A helper that builds a check cell for the tests. */
 function makeCheckCell(name: string, checked: boolean, label = ''): DataElement {
   const cell = DataElement.create(name, checked ? 1 : 0, {
     [DataElementAttribute.ROLE]: DataElementRole.FIELD,
@@ -16,7 +16,7 @@ function makeCheckCell(name: string, checked: boolean, label = ''): DataElement 
   return cell;
 }
 
-/** テスト用行を生成するヘルパー */
+/** A helper that builds a row. */
 function makeRow(name: string, cells: DataElement[]): DataElement {
   const row = DataElement.create(name, '', { [DataElementAttribute.ROLE]: DataElementRole.GROUP });
   for (const cell of cells) row.appendChild(cell);
@@ -29,10 +29,10 @@ const isChecked = (cell: DataElement): boolean => {
 };
 
 /**
- * テスト用テーブル構造:
- *   列: A, B, C （3列）
- *   行: 行0, 行1, 行2, 行3 （4行）
- *   習得済み([x]): (0,0) (1,2) (3,1)
+ * The table the tests work against:
+ *   three columns,
+ *   four rows,
+ *   and three cells learnt.
  */
 function buildTestTable(): { rows: DataElement[]; columns: { name: string; label: string }[] } {
   const columns = [
@@ -66,10 +66,10 @@ function buildTestTable(): { rows: DataElement[]; columns: { name: string; label
 }
 
 describe('findJudgementCandidates', () => {
-  it('クリック位置からManhattan距離の近い順に習得済み技能を返す', () => {
+  it('returns the learnt skills nearest the cell pressed first', () => {
     const { rows, columns } = buildTestTable();
 
-    // クリック: (1, 0) → 距離: (0,0)=1, (1,2)=2, (3,1)=3
+    // one press, and the three learnt cells at increasing distances
     const result = findJudgementCandidates(rows, columns, 1, 0, isChecked);
 
     expect(result).toHaveLength(3);
@@ -78,7 +78,7 @@ describe('findJudgementCandidates', () => {
     expect(result[2]).toMatchObject({ rowName: '行3', colName: 'B', distance: 3 });
   });
 
-  it('クリックセル自身が習得済みの場合は距離0で先頭に返す', () => {
+  it('puts the pressed cell itself at the front when it was learnt', () => {
     const { rows, columns } = buildTestTable();
 
     const result = findJudgementCandidates(rows, columns, 0, 0, isChecked);
@@ -86,7 +86,7 @@ describe('findJudgementCandidates', () => {
     expect(result[0]).toMatchObject({ rowName: '行0', colName: 'A', distance: 0 });
   });
 
-  it('習得済みがない場合は空配列を返す', () => {
+  it('returns nothing when none was', () => {
     const columns = [{ name: 'A', label: 'A' }];
     const row = makeRow('行0', [makeCheckCell('A', false)]);
 
@@ -95,7 +95,7 @@ describe('findJudgementCandidates', () => {
     expect(result).toHaveLength(0);
   });
 
-  it('maxCandidates件数を超えないよう切り詰める（デフォルト5件）', () => {
+  it('returns no more candidates than it is allowed', () => {
     const columns = Array.from({ length: 6 }, (_, i) => ({ name: `C${i}`, label: `C${i}` }));
     const cells = columns.map((col) => makeCheckCell(col.name, true));
     const row = makeRow('行0', cells);
@@ -105,7 +105,7 @@ describe('findJudgementCandidates', () => {
     expect(result).toHaveLength(5);
   });
 
-  it('maxCandidatesを指定した件数に変更できる', () => {
+  it('takes any limit it is given', () => {
     const { rows, columns } = buildTestTable();
 
     const result = findJudgementCandidates(rows, columns, 0, 0, isChecked, 2);
@@ -113,7 +113,7 @@ describe('findJudgementCandidates', () => {
     expect(result).toHaveLength(2);
   });
 
-  it('cellLabelにCELL_TEXT属性値が含まれる', () => {
+  it('carries the text of the cell in its label', () => {
     const { rows, columns } = buildTestTable();
 
     const result = findJudgementCandidates(rows, columns, 0, 0, isChecked);
@@ -121,7 +121,7 @@ describe('findJudgementCandidates', () => {
     expect(result[0].cellLabel).toBe('A技能名');
   });
 
-  it('CELL_TEXT未設定のセルはcellLabelが空文字', () => {
+  it('leaves that label empty for a cell with no text', () => {
     const columns = [{ name: 'A', label: 'A技能' }];
     const row = makeRow('行0', [makeCheckCell('A', true)]);
 
@@ -130,10 +130,10 @@ describe('findJudgementCandidates', () => {
     expect(result[0].cellLabel).toBe('');
   });
 
-  it('行をまたぐ距離も正しく計算する', () => {
+  it('measures across the rows too', () => {
     const { rows, columns } = buildTestTable();
 
-    // クリック: (0, 2) → (0,0):距離2, (1,2):距離1, (3,1):距離4
+    // one press, and the learnt cells at their distances from it
     const result = findJudgementCandidates(rows, columns, 0, 2, isChecked);
 
     expect(result[0]).toMatchObject({ rowName: '行1', colName: 'C', distance: 1 });
@@ -141,20 +141,20 @@ describe('findJudgementCandidates', () => {
     expect(result[2]).toMatchObject({ rowName: '行3', colName: 'B', distance: 4 });
   });
 
-  describe('GAP距離オプション', () => {
-    it('アクティブGAPを通る場合、gapCostsBetweenColsが追加される', () => {
+  describe('counting the gaps into the distance', () => {
+    it('adds the cost of a gap that lies on the way', () => {
       const { rows, columns } = buildTestTable();
-      // 列0→1間にGAPコスト2（A→B間）
+      // a gap between the first two columns
       const gapCostsBetweenCols = [2, 0];
 
-      // クリック: (3, 0) → B(3,1)への基本距離=1、GAP=2 → 合計3
+      // one press, whose distance is the step plus that gap
       const result = findJudgementCandidates(rows, columns, 3, 0, isChecked, 5, { gapCostsBetweenCols });
 
       const bCandidate = result.find((c) => c.colName === 'B' && c.rowName === '行3');
       expect(bCandidate?.distance).toBe(3); // 基本1 + gap2
     });
 
-    it('非アクティブGAP（コスト0）は距離に影響しない', () => {
+    it('leaves the distance alone for a gap that costs nothing', () => {
       const { rows, columns } = buildTestTable();
       const gapCostsBetweenCols = [0, 0];
 
@@ -165,18 +165,18 @@ describe('findJudgementCandidates', () => {
     });
   });
 
-  describe('ループオプション', () => {
-    it('loopVerticalが真の場合、縦方向の最短距離を使う', () => {
+  describe('wrapping round', () => {
+    it('takes the shorter way round when the rows wrap', () => {
       const { rows, columns } = buildTestTable();
-      // 行0と行3: 通常距離3、ループ距離4-3=1
+      // two rows, further apart the long way than the short
       const result = findJudgementCandidates(rows, columns, 0, 1, isChecked, 5, { loopVertical: true });
 
       const bCandidate = result.find((c) => c.colName === 'B' && c.rowName === '行3');
       expect(bCandidate?.distance).toBe(1); // ループで距離1（縦3→0方向）
     });
 
-    it('loopHorizontalが真の場合、横方向の最短距離を使う', () => {
-      // 5列テーブル: A(0) B(1) C(2) D(3) E(4), 習得済み: A(0) E(4)
+    it('takes the shorter way round when the columns wrap', () => {
+      // five columns, with the first and the last learnt
       const columns = Array.from({ length: 5 }, (_, i) => ({ name: String.fromCharCode(65 + i), label: `技${i}` }));
       const row = makeRow('行0', [
         makeCheckCell('A', true),
@@ -186,7 +186,7 @@ describe('findJudgementCandidates', () => {
         makeCheckCell('E', true),
       ]);
 
-      // クリック: (0,2=C) → A:距離2、E:距離2（ループで）
+      // a press in the middle, equally far from each once it wraps
       const result = findJudgementCandidates([row], columns, 0, 2, isChecked, 5, { loopHorizontal: true });
       const aCandidate = result.find((c) => c.colName === 'A');
       const eCandidate = result.find((c) => c.colName === 'E');
@@ -194,9 +194,9 @@ describe('findJudgementCandidates', () => {
       expect(eCandidate?.distance).toBe(2);
     });
 
-    it('loopHorizontalで逆方向の方が近い場合はそちらを使う', () => {
-      // 6列: A B C D E F, 習得済み: A(0), クリック: F(5)
-      // 通常距離5, ループ距離1（F→A折り返し）
+    it('takes the other way round when it is nearer', () => {
+      // six columns, the first learnt and the last pressed
+      // far the long way and one step round
       const columns = Array.from({ length: 6 }, (_, i) => ({ name: String.fromCharCode(65 + i), label: `技${i}` }));
       const row = makeRow('行0', [
         makeCheckCell('A', true),

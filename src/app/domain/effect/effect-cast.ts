@@ -8,7 +8,7 @@ export interface EffectCastTarget {
 export interface EffectCast {
   presetIdentifier: string;
   casterIdentifier: string;
-  /** 飛翔体の発射位置。無ければ対象の真上から飛んでくる扱いにする。 */
+  /** Where a projectile is fired from. Without one it comes straight down onto the target. */
   origin: EffectCastPoint | null;
   targets: EffectCastTarget[];
   seed: number;

@@ -1,21 +1,21 @@
 /**
- * チャット本文に混ぜる演出トークン。
+ * The effect token written into a line of chat.
  *
- * `2d6+3 t:HP-10 《爆炎》` のように書いておくと、ダイスとダメージ処理に続けて演出が出る。
- * VN の `〔…〕` と同じく二重山括弧はチャット記法として空いているので、
- * 既存のダイス式やリソース操作と衝突しない。
+ * Written after the roll and the damage, the effect plays after both.
+ * The double brackets are free in the chat notation, as the novel mode's own brackets
+ * are, so they collide with neither the dice nor the resource changes.
  */
 
 const TOKEN_PATTERN = /《([^《》]+)》/g;
 
 export interface EffectChatToken {
-  /** 呼び出すエフェクトの名前。 */
+  /** The name of the effect called for. */
   name: string;
-  /** トークンを取り除いた本文。 */
+  /** The line with the token taken out. */
   text: string;
 }
 
-/** 本文から最初の演出トークンを取り出す。無ければ null。 */
+/** Takes the first effect token out of a line. Null when there is none. */
 export function parseEffectChatToken(text: string): EffectChatToken | null {
   TOKEN_PATTERN.lastIndex = 0;
   const matched = TOKEN_PATTERN.exec(text);
@@ -27,7 +27,7 @@ export function parseEffectChatToken(text: string): EffectChatToken | null {
   return { name, text: stripEffectChatTokens(text) };
 }
 
-/** 本文から演出トークンを全部取り除く。 */
+/** Takes every effect token out of a line. */
 export function stripEffectChatTokens(text: string): string {
   return text
     .replace(TOKEN_PATTERN, '')
@@ -35,7 +35,7 @@ export function stripEffectChatTokens(text: string): string {
     .trim();
 }
 
-/** パレット行へ足すトークン。 */
+/** The token added to a palette row. */
 export function buildEffectChatToken(name: string): string {
   return `《${name}》`;
 }

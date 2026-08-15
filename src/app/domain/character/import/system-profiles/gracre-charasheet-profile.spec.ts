@@ -5,7 +5,7 @@ import {
 } from '@axe/domain/character/import/system-profiles/gracre-charasheet-profile';
 
 describe('buildGracreCharasheetCharacter', () => {
-  // charasheet.vampire-blood.net の グランクレストRPG（game="gracre"）実データに即した構造
+  // built from real data of one system at the archive
   const gracre = {
     pc_name: 'リオ',
     game: 'gracre',
@@ -34,19 +34,19 @@ describe('buildGracreCharasheetCharacter', () => {
     return sections.find((section) => section.label === label);
   }
 
-  it('game="gracre" を判別する', () => {
+  it('recognises the system', () => {
     expect(isGracreCharasheetCharacter(gracre)).toBe(true);
     expect(isGracreCharasheetCharacter({ pc_name: 'X', game: 'swordworld2' })).toBe(false);
   });
 
-  it('能力ボーナス（標準順）と dicebot GranCrest を取り込む', () => {
+  it('takes its ability bonuses in their usual order, and the dice bot', () => {
     const result = buildGracreCharasheetCharacter(gracre)!;
     expect(result.dicebot).toBe('GranCrest');
     expect(result.params).toContainEqual({ label: '器用B', value: '3' });
     expect(result.params).toContainEqual({ label: '精神B', value: '7' });
   });
 
-  it('行動・特技・魔法を名前付きで展開する', () => {
+  it('spreads the actions, the talents and the spells with their names', () => {
     const result = buildGracreCharasheetCharacter(gracre)!;
     expect(findSection(result.sections, '行動')!.groups.map((group) => group.label)).toEqual([
       '魔法',
@@ -59,7 +59,7 @@ describe('buildGracreCharasheetCharacter', () => {
     ]);
   });
 
-  it('チャットパレットに能力判定・行動の振り式・回避を生成する', () => {
+  it('builds the ability rolls, the action rolls and the evasion into the palette', () => {
     const result = buildGracreCharasheetCharacter(gracre)!;
     expect(result.commands).toContain('2d6+{精神B} 【精神判定】');
     expect(result.commands).toContain('3d+10 【魔法】');

@@ -12,7 +12,7 @@ import {
   isCharasheetGame,
 } from '@axe/domain/character/import/system-profiles/charasheet-shared';
 
-// りゅうたま（保管所 game="ryutama"）の4能力値。S{i}=サイコロの面数（d4/d6/…）。順序は作成ページの <th> ヘッダで確認。
+// The four abilities of that system, each held as the size of its die, in the order the headings of its own page give.
 const ABILITIES: { key: string; label: string }[] = [
   { key: 'S1', label: '体力' },
   { key: 'S2', label: '敏捷' },

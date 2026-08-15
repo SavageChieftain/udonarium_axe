@@ -13,29 +13,29 @@ import {
 } from '@axe/domain/effect/timeline/shared';
 
 /**
- * コマそのものに起きること。
+ * What happens to the piece itself.
  *
- * 崩れて消える・血を噴く。立ち絵を切って動かすので、他の演出とは作りが違う。
+ * Crumbling away and spurting blood. They cut the picture and move it, which no other effect does.
  */
 
 const DEFEAT_SHARD_COUNT = 9;
 const DISSOLVE_COLUMNS = 4;
 const DISSOLVE_ROWS = 6;
-/** 破片 1 マスの大きさ。コマの絵はマス目 1 つぶんに収まっている。 */
+/** The size of one fragment. The picture of a piece fits one cell. */
 const DISSOLVE_PIECE_SCALE = 0.34;
 const GORE_DROP_COUNT = 14;
 const GORE_DRIP_COUNT = 5;
 const GORE_STAIN_COUNT = 9;
 const GORE_PULSE_COUNT = 3;
-/** 噴出の向き(度)。心拍ごとに少し振れる。 */
+/** Which way it spurts, wavering a little with each beat. */
 const GORE_JET_ANGLES = [-88, -104, -72];
-/** 滴の飛ぶ向き(度)。斬り抜けた側へ偏らせ、真上と真下は薄くする。 */
+/** Which way the drops fly, leaning towards the side the stroke passed and thin straight up and down. */
 const GORE_SPRAY_ANGLES = [-142, -118, -101, -84, -66, -49, -32, -14, 6, 26, -160, -75, -40, 44];
 /**
- * 崩壊。コマの絵そのものを格子に切り分け、破片として散らす。
+ * The crumbling: the picture itself is cut into a grid and scattered as fragments.
  *
- * 光の粒だけを出しても「消えた」にしかならない。コマの絵を切って動かすと、
- * その場に立っていた物が砕けたことになる。絵が無いコマは光の欠片で代用する。
+ * Particles of light alone only vanish; cutting the picture and moving it makes something
+ * that stood there break. A piece with no picture makes do with shards of light.
  */
 export function appendDissolve(
   sprites: EffectSprite[],
@@ -58,8 +58,8 @@ export function appendDissolve(
         const seed = jitters[index * 3];
         const spin = jitters[index * 3 + 1] - 0.5;
         const lift = jitters[index * 3 + 2];
-        // 下の段から先に崩れる。一斉に散ると爆発に見える。
-        // 下の段から順に、間を空けて崩す。一斉に散ると爆発に見える。
+        // The lower rows go first; all at once it reads as an explosion.
+        // They go from the bottom up with a pause between; all at once it reads as an explosion.
         const born = (1 - row / DISSOLVE_ROWS) * 0.42 + seed * 0.14;
         const local = clamp01((progress - born) / 0.52);
         if (local <= 0) continue;
@@ -72,7 +72,7 @@ export function appendDissolve(
           x: center.x,
           y: center.y,
           z: center.z + base * 0.9,
-          // 格子の 1 マスだけを見せ、そのマスごと飛ばす。
+          // One cell of the grid is shown and flown as a piece.
           offsetX: away * piece * (0.5 + fly * 2.2) + spin * piece * fly * 1.6,
           offsetY: (row / (DISSOLVE_ROWS - 1) - 0.5) * piece * DISSOLVE_ROWS * 0.5 - piece * fly * (1.6 + lift * 2.4),
           width: piece * DISSOLVE_COLUMNS,
@@ -86,7 +86,7 @@ export function appendDissolve(
     }
   }
 
-  // 砕けた縁から立ち上る光。破片だけだと、ただ散らばって見える。
+  // The light rising from the broken edges; the fragments alone merely scatter.
   for (let shard = 0; shard < DEFEAT_SHARD_COUNT; shard++) {
     const seed = jitters[shard % jitters.length];
     const phase = (progress * 1.5 + seed) % 1;
@@ -124,7 +124,7 @@ export function appendDissolve(
   });
 }
 
-/** 格子の 1 マスだけを見せる切り抜き。 */
+/** The clip that shows one cell of the grid. */
 function cellClipPath(column: number, row: number): string {
   const left = (column / DISSOLVE_COLUMNS) * 100;
   const right = 100 - ((column + 1) / DISSOLVE_COLUMNS) * 100;
@@ -134,11 +134,11 @@ function cellClipPath(column: number, row: number): string {
 }
 
 /**
- * 血しぶき。
+ * The blood.
  *
- * 中心から直線を放射させると星形の閃光になってしまう。実際の血は
- * 傷口の塊・飛んだ滴・したたり・地面の跡が別々に見えるので、層に分けて置く。
- * 地面の跡は真円ではなく、主だまりの周りに大小の飛沫が散る形にする。
+ * Straight lines from a centre make a star of light. Real blood shows as a mass at the
+ * wound, flying drops, a trickle and a stain on the ground, so it is laid out in layers.
+ * The stain is not a circle but a main pool with spatter of different sizes about it.
  */
 export function appendGore(
   sprites: EffectSprite[],
@@ -154,7 +154,7 @@ export function appendGore(
   const burst = Math.min(1, progress / 0.18);
   const wound = { x: center.x, y: center.y, z: center.z + base * 0.95 };
 
-  // 傷口の塊。まずここから出ていることを見せる。
+  // The mass at the wound, which shows where it comes from.
   const core = base * (0.5 + easeOutCubic(burst) * 0.45);
   sprites.push({
     ...blank(),
@@ -170,7 +170,7 @@ export function appendGore(
     borderRadius: '50%',
   });
 
-  // 飛んだ滴。大小を混ぜ、飛んだ向きへ伸ばす。粒が揃うと作り物に見える。
+  // The flying drops, mixed in size and drawn out along their flight; matched in size they read as made.
   for (let drop = 0; drop < GORE_DROP_COUNT; drop++) {
     const seed = jitters[drop * 3];
     const spin = jitters[drop * 3 + 1];
@@ -197,7 +197,7 @@ export function appendGore(
     });
   }
 
-  // 傷口からしたたる血。落ちきる前に細くなって切れる。
+  // The blood trickling from the wound, which thins and breaks before it falls clear.
   for (let drip = 0; drip < GORE_DRIP_COUNT; drip++) {
     const seed = jitters[GORE_DROP_COUNT * 3 + drip * 2];
     const spread = jitters[GORE_DROP_COUNT * 3 + drip * 2 + 1];
@@ -224,9 +224,9 @@ export function appendGore(
 }
 
 /**
- * 噴き出す血。傷口から太い筋が脈打って伸びる。
+ * The spurt: a thick line reaching from the wound in pulses.
  *
- * 滴を散らすだけでは「にじむ」で終わる。心拍で 3 度突き上げると噴出になる。
+ * Scattered drops alone only seep; three thrusts on the heartbeat make it spurt.
  */
 function appendGoreJet(
   sprites: EffectSprite[],
@@ -244,7 +244,7 @@ function appendGoreJet(
 
     const angle = GORE_JET_ANGLES[pulse % GORE_JET_ANGLES.length];
     const radians = (angle * Math.PI) / 180;
-    // 突き上げてから伸びきる。等速で伸ばすと水道の流れに見える。
+    // It thrusts and then reaches its length; at an even speed it reads as a tap running.
     const reach = base * (1.4 + pulse * 0.4) * easeOutCubic(Math.min(1, local * 1.8)) * 2.1;
     const thickness = base * (0.34 - pulse * 0.05) * (1 - local * 0.45);
     sprites.push({
@@ -263,7 +263,7 @@ function appendGoreJet(
       borderRadius: '50%',
     });
 
-    // 噴き上がった先で割れる塊。ここが「ブシャッ」の頭になる。
+    // The mass that breaks at the head of the spurt, which is where the noise of it lands.
     const head = base * (0.3 + local * 0.5);
     sprites.push({
       ...blank(),
@@ -283,7 +283,7 @@ function appendGoreJet(
   }
 }
 
-/** 地面の跡。真円のにじみではなく、主だまりと飛沫に分ける。 */
+/** The stain on the ground, parted into a main pool and its spatter rather than one round seep. */
 export function appendGoreStain(
   sprites: EffectSprite[],
   prefix: string,

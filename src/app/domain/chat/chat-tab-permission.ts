@@ -14,7 +14,7 @@ export function canRoleViewTab(tab: ChatTabPermission, role: PeerRole): boolean 
 }
 
 export function canRoleSpeakTab(tab: ChatTabPermission, role: PeerRole): boolean {
-  // 知らせの貼り紙。GM も含めて誰も書き込まない。
+  // It is a noticeboard, which nobody writes on, the game master included.
   if (tab.isSystemTab) return false;
   if (role === PeerRole.GameMaster) return true;
   return role === PeerRole.Guest ? tab.guestCanSpeak : tab.plCanSpeak;

@@ -25,7 +25,7 @@ export interface SwordWorldCharasheetConfig {
   skillColumns: { suffix: string; label: string }[];
 }
 
-// ソードワールド系（保管所）の能力ボーナス。NB{i} = 各能力値ボーナス（判定に使用）。順序は標準で全版共通。
+// The ability bonuses of that family of systems, rolled with, in the order every edition shares.
 const ABILITY_BONUSES: { key: string; label: string }[] = [
   { key: 'NB1', label: '器用B' },
   { key: 'NB2', label: '敏捷B' },

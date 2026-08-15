@@ -20,20 +20,20 @@ describe('DiceTable', () => {
     store.clearDeleteHistory();
   });
 
-  describe('SyncVar デフォルト値', () => {
-    it('name がデフォルト "ダイス表"', () => {
+  describe('the defaults of the synchronised fields', () => {
+    it('starts with the default name', () => {
       const dt = new DiceTable();
       dt.initialize();
       expect(dt.name).toBe('ダイス表');
     });
 
-    it('command がデフォルト "SAMPLE"', () => {
+    it('starts with the default command', () => {
       const dt = new DiceTable();
       dt.initialize();
       expect(dt.command).toBe('SAMPLE');
     });
 
-    it('dice がデフォルト "1d6"', () => {
+    it('starts with the default dice', () => {
       const dt = new DiceTable();
       dt.initialize();
       expect(dt.dice).toBe('1d6');
@@ -41,32 +41,32 @@ describe('DiceTable', () => {
   });
 
   describe('create()', () => {
-    it('DiceTableを作成する', () => {
+    it('creates a table', () => {
       const dt = DiceTable.create();
       expect(dt).toBeTruthy();
       expect(dt.name).toBe('白紙のダイス表');
     });
 
-    it('DiceTablePaletteが子要素として追加される', () => {
+    it('gives it a palette as a child', () => {
       const dt = DiceTable.create();
       expect(dt.diceTablePalette).toBeTruthy();
       expect(dt.diceTablePalette).toBeInstanceOf(DiceTablePalette);
     });
 
-    it('ObjectStoreに追加される', () => {
+    it('is added to the store', () => {
       const dt = DiceTable.create();
       expect(store.get(dt.identifier)).toBe(dt);
     });
   });
 
   describe('diceTablePalette', () => {
-    it('子要素のDiceTablePaletteを返す', () => {
+    it('returns that palette', () => {
       const dt = DiceTable.create();
       const palette = dt.diceTablePalette;
       expect(palette).toBeTruthy();
     });
 
-    it('DiceTablePaletteがない場合nullを返す', () => {
+    it('returns nothing when there is none', () => {
       const dt = new DiceTable();
       dt.initialize();
       expect(dt.diceTablePalette).toBeFalsy();

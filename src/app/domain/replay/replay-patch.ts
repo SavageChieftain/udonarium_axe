@@ -13,10 +13,10 @@ export function applyReplayPatch(syncData: SyncData | null, patch: ReplayPatch):
 
 export interface ApplyReplayOptions {
   /**
-   * 結果を書き換えないと約束できるとき、元の物をそのまま渡す。
+   * Where the caller promises not to write to the result, the original is handed over as it is.
    *
-   * 既定では盤面まるごとを複製してから当てる。動画の書き出しのように、場面ごとの盤面を
-   * 順に作って読むだけの使い方では、触られない物まで場面の数だけ複製することになる。
+   * By default the whole board is copied before the events are applied. Where the boards of
+   * each scene are only built and read in turn, as an export does, even what is never touched would be copied once per scene.
    */
   shareInput?: boolean;
 }

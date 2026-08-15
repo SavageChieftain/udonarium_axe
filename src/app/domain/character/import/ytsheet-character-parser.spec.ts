@@ -2,7 +2,7 @@ import { ImportedSection } from '@axe/domain/character/import/imported-character
 import { isYtsheetCharacter, parseYtsheetCharacter } from '@axe/domain/character/import/ytsheet-character-parser';
 
 describe('parseYtsheetCharacter', () => {
-  // ゆとシート（yutorize）の mode=json 出力に即した構造。キーは {family}{連番}{Field}。
+  // The shape of the json the sheet service puts out, whose keys are a family, a number and a field.
   const ytsheet = {
     characterName: '只人の戦士',
     sheetURL: 'https://yutorize.work/ytsheet/gs/?id=bUe1JF',
@@ -28,13 +28,13 @@ describe('parseYtsheetCharacter', () => {
     return sections.find((section) => section.label === label);
   }
 
-  it('ゆとシート JSON を判別する（sheetURL/ver マーカー）', () => {
+  it('recognises it by its address and version markers', () => {
     expect(isYtsheetCharacter(ytsheet)).toBe(true);
     expect(isYtsheetCharacter({ characterName: 'X' })).toBe(false);
     expect(isYtsheetCharacter({ pc_name: 'X', game: 'coc' })).toBe(false);
   });
 
-  it('characterName が無くても sheetURL マーカーと aka 名で取り込む（ar2e/dx3rd 型）', () => {
+  it('takes a sheet with no name field by its marker and its alias', () => {
     const ar2e = {
       sheetURL: 'https://yutorize.work/ytsheet/ar2e/?id=i7Crz9',
       ver: '1.29.001',
@@ -48,7 +48,7 @@ describe('parseYtsheetCharacter', () => {
     expect(result.sections.some((section) => section.label === '技能')).toBe(true);
   });
 
-  it('名前・色・要約メモを取り込む', () => {
+  it('takes the name, the colour and the summary', () => {
     const result = parseYtsheetCharacter(ytsheet)!;
     expect(result.sourceFormat).toBe('ytsheet');
     expect(result.name).toBe('只人の戦士');
@@ -56,7 +56,7 @@ describe('parseYtsheetCharacter', () => {
     expect(result.memo).toBe('種族:只人 職業:戦士3');
   });
 
-  it('{family}{連番}{Field} を名前付き節へ（行名＝Name、列＝共通ラベル）', () => {
+  it('spreads those keys into named sections, the rows by name and the columns by the shared labels', () => {
     const result = parseYtsheetCharacter(ytsheet)!;
     const weapon = findSection(result.sections, '武器')!;
     expect(weapon.groups[0].label).toBe('小剣（ショートソード）');
@@ -65,7 +65,7 @@ describe('parseYtsheetCharacter', () => {
     expect(findSection(result.sections, '技能')!.groups[0].label).toBe('過重行動');
   });
 
-  it('family を持たないスカラーは共通ラベルでデータ節へ、内部キーは除外', () => {
+  it('puts a scalar with no family into the data section under a shared label, and leaves the internal keys out', () => {
     const result = parseYtsheetCharacter(ytsheet)!;
     const data = findSection(result.sections, 'データ')!;
     expect(data.groups[0].fields).toContainEqual({ label: '種族', value: '只人', kind: 'text' });

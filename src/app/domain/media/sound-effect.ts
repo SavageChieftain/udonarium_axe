@@ -32,7 +32,7 @@ export class PresetSound {
   static sweep: string = '';
   static alarm: string = '';
 
-  // マップ演出のエフェクト用。
+  // For the effects on the map.
   static fireSmall: string = '';
   static fireMedium: string = '';
   static fireLarge: string = '';

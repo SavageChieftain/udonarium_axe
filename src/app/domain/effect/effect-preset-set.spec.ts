@@ -16,7 +16,7 @@ describe('EffectPresetSet', () => {
     return preset;
   }
 
-  it('今あるエフェクトを全部書き出すこと', () => {
+  it('writes every effect there is out', () => {
     makePreset('爆炎');
     makePreset('斬撃');
 
@@ -26,15 +26,15 @@ describe('EffectPresetSet', () => {
     expect(xml).toContain('斬撃');
   });
 
-  it('入れ物自体は残らないこと', () => {
+  it('leaves the holder itself behind', () => {
     const set = new EffectPresetSet();
     set.initialize();
 
-    // 書き出し・読み込みの間だけ存在すればよいので、部屋のデータには混ぜない。
+    // It need only exist across the export and the import, so it stays out of the room data.
     expect(ObjectStore.instance.get(set.identifier)).toBeNull();
   });
 
-  it('読み込んだぶんを足すこと', () => {
+  it('adds what it reads', () => {
     makePreset('元からある');
     const xml = new EffectPresetSet().innerXml();
     const element = new DOMParser().parseFromString(

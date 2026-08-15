@@ -15,12 +15,12 @@ import {
 } from '@axe/domain/data/data-element';
 
 describe('parseCheckTable', () => {
-  it('空文字列は空ブロック配列を返すこと', () => {
+  it('returns no blocks for an empty string', () => {
     const blocks = parseCheckTable('');
     expect(blocks).toEqual([{ kind: 'plain', tokens: [] }]);
   });
 
-  it('テキストのみの行を plain ブロックとして返すこと', () => {
+  it('returns a line of text alone as a plain block', () => {
     const blocks = parseCheckTable('テーブル表');
     expect(blocks).toHaveLength(1);
     expect(blocks[0].kind).toBe('plain');
@@ -30,33 +30,33 @@ describe('parseCheckTable', () => {
     });
   });
 
-  it('パイプ区切り行を table ブロックとして返すこと', () => {
+  it('returns a line of cells as a table block', () => {
     const blocks = parseCheckTable('|A|B|');
     expect(blocks).toHaveLength(1);
     expect(blocks[0].kind).toBe('table');
   });
 
-  it('チェックボックス [] をトークンとしてパースすること', () => {
+  it('reads an empty check box as a token', () => {
     const blocks = parseCheckTable('[]テスト');
     const tokens = (blocks[0] as { tokens: { kind: string }[] }).tokens;
     expect(tokens[0].kind).toBe('check');
     expect((tokens[0] as { kind: string; checked: boolean }).checked).toBe(false);
   });
 
-  it('チェック済み [x] をパースすること', () => {
+  it('reads a ticked one', () => {
     const blocks = parseCheckTable('[x]テスト');
     const tokens = (blocks[0] as { tokens: { kind: string }[] }).tokens;
     expect((tokens[0] as { kind: string; checked: boolean }).checked).toBe(true);
   });
 
-  it('連続するチェックボックスに連番インデックスを付与すること', () => {
+  it('numbers the check boxes in order', () => {
     const blocks = parseCheckTable('[][]');
     const tokens = (blocks[0] as { tokens: { kind: string; idx: number }[] }).tokens;
     expect(tokens[0].idx).toBe(0);
     expect(tokens[1].idx).toBe(1);
   });
 
-  it('テーブル行をまたいでインデックスが連番になること', () => {
+  it('keeps that numbering across the rows of a table', () => {
     const blocks = parseCheckTable('|[]A|[]B|\n[]C');
     const table = blocks[0] as { kind: string; rows: { cells: { kind: string; idx: number }[][] }[] };
     expect(table.rows[0].cells[0][0]).toMatchObject({ kind: 'check', idx: 0 });
@@ -67,25 +67,25 @@ describe('parseCheckTable', () => {
 });
 
 describe('toggleCheckbox', () => {
-  it('指定インデックスの [] を [x] に変換すること', () => {
+  it('ticks the box it is asked for', () => {
     expect(toggleCheckbox('[][]', 0)).toBe('[x][]');
   });
 
-  it('指定インデックスの [x] を [] に変換すること', () => {
+  it('unticks it', () => {
     expect(toggleCheckbox('[x][]', 0)).toBe('[][]');
   });
 
-  it('他のチェックボックスには影響しないこと', () => {
+  it('leaves the others alone', () => {
     expect(toggleCheckbox('[x][][x]', 1)).toBe('[x][x][x]');
   });
 
-  it('全角 [ｘ] も [] に変換できること', () => {
+  it('unticks a full-width mark as well', () => {
     expect(toggleCheckbox('[ｘ]', 0)).toBe('[]');
   });
 });
 
 describe('createStructuredCheckTableElement', () => {
-  it('markdownテーブルを表示用DataElementテーブルへ変換すること', () => {
+  it('turns a written table into one for display', () => {
     const table = createStructuredCheckTableElement('汎用表', '|項目|済み|点数|\n|灯火|[x]|2|');
     const row = table.children[0];
     const check = row.getFirstElementByName('済み');
@@ -99,7 +99,7 @@ describe('createStructuredCheckTableElement', () => {
     expect(row.getFirstElementByName('点数')?.value).toBe('2');
   });
 
-  it('チェック付きセルの表示テキストを cellText に保持すること', () => {
+  it('keeps the text of a ticked cell beside it', () => {
     const table = createStructuredCheckTableElement('技能表', 'テーブル表\n|[]|[]身体||\n|　|[]跳躍|2|');
     const row = table.children[0];
     const skill = row.getFirstElementByName('身体');
@@ -111,7 +111,7 @@ describe('createStructuredCheckTableElement', () => {
 });
 
 describe('convertLegacyCheckTableElements', () => {
-  it('旧チェック表フィールドを構造化テーブルに変換すること', () => {
+  it('turns the older check fields into proper tables', () => {
     const detail = DataElement.create('detail', '');
     const section = DataElement.create('情報', '', { role: DataElementRole.SECTION });
     const group = DataElement.create('基本', '', { role: DataElementRole.GROUP });

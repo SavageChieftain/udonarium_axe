@@ -15,8 +15,8 @@ import {
   paramsOf,
 } from '@axe/domain/character/import/system-profiles/charasheet-shared';
 
-// ガーデンオーダー（保管所 game="gorder"）は d100 ロールアンダー。能力値・固定技能の名称は
-// 作成ページ gorder_pc_making.html の <th> ヘッダを権威として転記。判定値はパーセント（成功率）。
+// That system rolls under a hundred. The names of its abilities and fixed skills are taken
+// from the headings of its own page, and each value is a percentage.
 const ABILITIES: { value: string; rate: string; label: string }[] = [
   { value: 'NK1', rate: 'NB1', label: '身体' },
   { value: 'NK2', rate: 'NB2', label: '感覚' },
@@ -25,7 +25,7 @@ const ABILITIES: { value: string; rate: string; label: string }[] = [
   { value: 'NK5', rate: 'NB5', label: '魅力' },
 ];
 
-// 固定技能（TBA* 並列配列の行順）。TBAP=合計成功率, TBAC=C値（=成功率/5、GO が自動算出）。
+// The fixed skills, in the order of the parallel arrays. One key holds the chance and the other the critical value the system works out from it.
 const SKILLS: string[] = [
   '当て身',
   '近接武器',

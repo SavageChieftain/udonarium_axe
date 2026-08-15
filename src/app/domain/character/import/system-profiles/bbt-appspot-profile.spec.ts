@@ -5,7 +5,7 @@ import {
 } from '@axe/domain/character/import/system-profiles/bbt-appspot-profile';
 
 describe('buildBbtAppspotCharacter', () => {
-  // character-sheets.appspot.com の bbt（ビーストバインド トリニティ）実データに即した構造
+  // built from real data of one system at the warehouse
   const bbt = {
     base: {
       name: '九十九 八重',
@@ -52,12 +52,12 @@ describe('buildBbtAppspotCharacter', () => {
     return section.groups.find((group) => group.label === groupLabel)?.fields ?? [];
   }
 
-  it('倉庫 ビーストバインドの構造を判別する', () => {
+  it('recognises the system', () => {
     expect(isBbtAppspotCharacter(bbt)).toBe(true);
     expect(isBbtAppspotCharacter({ base: { name: 'X' }, baseAbility: { body: { total: '5' } } })).toBe(false);
   });
 
-  it('能力値・FP を params、人間性をリソース、dicebot を取り込む', () => {
+  it('takes the abilities and the points as fields, the humanity as a resource, and the dice bot', () => {
     const result = buildBbtAppspotCharacter(bbt)!;
     expect(result.dicebot).toBe('BeastBindTrinity');
     expect(result.params).toContainEqual({ label: '肉体', value: '5' });
@@ -67,7 +67,7 @@ describe('buildBbtAppspotCharacter', () => {
     expect(result.statuses).toContainEqual({ label: '人間性', value: 57, max: 57 });
   });
 
-  it('エフェクト・武器・絆・プロフィールを日本語ラベルで展開する', () => {
+  it('spreads the effects, the weapons, the bonds and the profile under readable labels', () => {
     const result = buildBbtAppspotCharacter(bbt)!;
     expect(findGroupFields(findSection(result.sections, 'エフェクト')!, '吸血')).toContainEqual({
       label: 'タイミング',
@@ -91,7 +91,7 @@ describe('buildBbtAppspotCharacter', () => {
     });
   });
 
-  it('チャットパレットに 2D6+能力値 の判定を生成する', () => {
+  it('builds a roll of two dice plus the ability into the palette', () => {
     const result = buildBbtAppspotCharacter(bbt)!;
     expect(result.commands).toContain('2D6+{社会} 【社会判定】');
     expect(result.commands).toContain('2D6+{肉体} 【肉体判定】');

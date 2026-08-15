@@ -23,7 +23,7 @@ describe('chat-tab-permission', () => {
     expect(canRoleSpeakTab(tab({ plCanSpeak: true }), PeerRole.Player)).toBe(true);
   });
 
-  it('システムタブでは誰も発言できない', () => {
+  it('nobody may speak in the system tab', () => {
     const system = tab({ isSystemTab: true, plCanSpeak: true, guestCanSpeak: true });
     expect(canRoleSpeakTab(system, PeerRole.GameMaster)).toBe(false);
     expect(canRoleSpeakTab(system, PeerRole.Player)).toBe(false);

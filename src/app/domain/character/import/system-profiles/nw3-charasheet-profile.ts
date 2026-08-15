@@ -12,7 +12,7 @@ import {
   paramsOf,
 } from '@axe/domain/character/import/system-profiles/charasheet-shared';
 
-// ナイトウィザード3rd（保管所 game="nw3"）の能力値。S1-8 の順序は作成ページ <th> ヘッダで確認。
+// The abilities of that system, in the order the headings of its own page give.
 const ABILITIES: { key: string; label: string }[] = [
   { key: 'S1', label: '筋力' },
   { key: 'S2', label: '器用' },

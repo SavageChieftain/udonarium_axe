@@ -11,7 +11,7 @@ import {
 
 describe('vision-types', () => {
   describe('VisionType enum', () => {
-    it('5種の視界タイプを持つ', () => {
+    it('offers five kinds of sight', () => {
       expect(VisionType.NORMAL).toBe('normal');
       expect(VisionType.DARKVISION).toBe('darkvision');
       expect(VisionType.TRUESIGHT).toBe('truesight');
@@ -21,14 +21,14 @@ describe('vision-types', () => {
   });
 
   describe('LIGHT_PRESETS', () => {
-    it('CUSTOM 以外の全プリセットを定義する', () => {
+    it('defines every preset but the custom one', () => {
       const keys = Object.keys(LIGHT_PRESETS);
       expect(keys).toContain(LightPreset.TORCH);
       expect(keys).toContain(LightPreset.SPOTLIGHT);
       expect(keys).not.toContain(LightPreset.CUSTOM);
     });
 
-    it('spotlight は theatrical・遮蔽無視・全員可視・影あり', () => {
+    it('a spotlight is theatrical: it ignores obstacles, everybody sees it and it casts shadows', () => {
       const def = LIGHT_PRESETS[LightPreset.SPOTLIGHT];
       expect(def.category).toBe(LightCategory.THEATRICAL);
       expect(def.ignoreOcclusion).toBe(true);
@@ -37,15 +37,15 @@ describe('vision-types', () => {
       expect(def.angle).toBeLessThan(360);
     });
 
-    it('neon は NEON アニメーション', () => {
+    it('a neon light animates as neon', () => {
       expect(LIGHT_PRESETS[LightPreset.NEON].animation).toBe(LightAnimation.NEON);
     });
 
-    it('flashlight はコーン（angle<360）', () => {
+    it('a torch is a cone rather than a full turn', () => {
       expect(LIGHT_PRESETS[LightPreset.FLASHLIGHT].angle).toBeLessThan(360);
     });
 
-    it('円錐プリセットは既定で下向きピッチ、球プリセットはピッチ0', () => {
+    it('the cones start pitched down and the spheres level', () => {
       expect(LIGHT_PRESETS[LightPreset.FLASHLIGHT].pitch).toBe(-30);
       expect(LIGHT_PRESETS[LightPreset.SPOTLIGHT].pitch).toBe(-30);
       expect(LIGHT_PRESETS[LightPreset.TORCH].pitch).toBe(0);
@@ -53,7 +53,7 @@ describe('vision-types', () => {
   });
 
   describe('lightSpecFromPreset()', () => {
-    it('プリセット値を反映した LightSpec を返す', () => {
+    it('returns a specification built from the preset', () => {
       const spec = lightSpecFromPreset(LightPreset.TORCH);
       const def = LIGHT_PRESETS[LightPreset.TORCH];
       expect(spec.preset).toBe(LightPreset.TORCH);
@@ -62,14 +62,14 @@ describe('vision-types', () => {
       expect(spec.enabled).toBe(true);
     });
 
-    it('CUSTOM はプリセット既定を適用しない', () => {
+    it('applies no preset to a custom light', () => {
       const spec = lightSpecFromPreset(LightPreset.CUSTOM);
       expect(spec.preset).toBe(LightPreset.CUSTOM);
       expect(spec.brightRadius).toBe(0);
       expect(spec.category).toBe(LightCategory.PHYSICAL);
     });
 
-    it('overrides が最優先される', () => {
+    it('the overrides win over everything', () => {
       const spec = lightSpecFromPreset(LightPreset.TORCH, { brightRadius: 99, color: '#123456' });
       expect(spec.brightRadius).toBe(99);
       expect(spec.color).toBe('#123456');
@@ -77,7 +77,7 @@ describe('vision-types', () => {
   });
 
   describe('applyLightPreset()', () => {
-    it('基本フィールドへプリセット値を書き込む', () => {
+    it('writes the preset onto the basic fields', () => {
       const target: MutableLightFields = {
         lightPreset: LightPreset.CUSTOM,
         lightBrightRadius: 0,
@@ -94,7 +94,7 @@ describe('vision-types', () => {
       expect(target.lightColor).toBe(def.color);
     });
 
-    it('上級フィールドを持つ対象にはそれらも書き込む', () => {
+    it('writes onto the advanced ones as well where they exist', () => {
       const target: MutableLightFields = {
         lightPreset: LightPreset.CUSTOM,
         lightBrightRadius: 0,
@@ -114,7 +114,7 @@ describe('vision-types', () => {
       expect(target.lightCastShadows).toBe(true);
     });
 
-    it('CUSTOM 指定では値を上書きしない', () => {
+    it('writes nothing for a custom light', () => {
       const target: MutableLightFields = {
         lightPreset: LightPreset.TORCH,
         lightBrightRadius: 4,

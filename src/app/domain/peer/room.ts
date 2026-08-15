@@ -64,9 +64,9 @@ export class Room extends GameObject implements InnerXml {
   }
 
   parseInnerXml(element: Element) {
-    // 演出集は卓の備品ではなく道具箱の中身。持ち込みが無いなら手元のものを残す。
-    // 消してから同じ identifier で入れ直すと、同卓者側では「消えた物の復活」として拒まれ、
-    // 読み込んだ本人にだけ演出が残る。
+    // The effect library belongs to the toolbox rather than the table, so with none brought in what is here stays.
+    // Deleted and put back under the same identifiers, the others refuse them as the return of
+    // what was deleted, and only whoever loaded the room still has them.
     const bringsPresets = Array.from(element.children).some((child) => child.nodeName === EffectPreset.aliasName);
     const objects: GameObject[] = [
       ...ObjectStore.instance.getObjects(GameTable),
@@ -97,7 +97,7 @@ export class Room extends GameObject implements InnerXml {
       for (let i = 0; i < element.children.length; i++) {
         ObjectSerializer.instance.parseXml(element.children[i]);
       }
-      // 手元にも持ち込みにも演出が無いときだけ、既定の演出を用意する。
+      // The usual set is made only when there are none here and none brought in.
       if (ObjectStore.instance.getObjects(EffectPreset).length < 1) createDefaultEffectPresets();
       clearOwnership(ObjectStore.instance.getObjects());
     }

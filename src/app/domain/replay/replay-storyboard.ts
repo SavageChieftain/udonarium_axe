@@ -33,7 +33,7 @@ export interface ReplayStoryboardOptions {
   scope: ReplayShotScope;
   viewer?: ReplayViewer;
   caption?: ReplayShotCaption;
-  /** カットインの絵を引く。identifier から画像の identifier へ。 */
+  /** Looks the picture of a cut-in up, from its identifier to the picture's own. */
   cutInImage?: (identifier: string) => string;
 }
 
@@ -58,7 +58,7 @@ export interface ReplayShot {
   speakerColor: string;
   portraitId: string;
   backgroundId: string;
-  /** 出ていたカットインの絵。空なら出ていない。 */
+  /** The picture of the cut-in showing. Empty for none. */
   cutInId: string;
   text: string;
   isNarration: boolean;
@@ -192,7 +192,7 @@ function durationOf(
   pacing: ReplayShotPacing
 ): number {
   if (pacing === ReplayShotPacing.Recorded && next) {
-    // 「当日と同じ間」は当日の間をそのまま使う。丸めると、名乗った通りの間にならない。
+    // Matching the pace of the day means the gaps of that day; rounded, it is not the pace it claims.
     const gap = Math.round(next.t - event.t);
     if (gap > 0) return Math.max(REPLAY_SHOT_MIN_MS, gap);
   }
@@ -200,7 +200,7 @@ function durationOf(
   return Math.min(REPLAY_SHOT_MAX_MS, REPLAY_SHOT_MIN_MS + text.length * REPLAY_SHOT_PER_CHAR_MS);
 }
 
-/** カットインが出た場面の絵。音だけのカットインと動画のカットインには絵が無い。 */
+/** The picture of a scene a cut-in appeared in. A sound-only cut-in and a video one have none. */
 function cutInOf(event: ReplayEvent, resolve: ((identifier: string) => string) | undefined): string {
   if (event.kind !== ReplayEventKind.MediaCutIn || !resolve) return '';
   if (event.detail['isStart'] !== true || event.detail['soundOnly'] === true) return '';

@@ -5,7 +5,7 @@ import {
 } from '@axe/domain/character/import/system-profiles/dx3-appspot-profile';
 
 describe('buildDx3AppspotCharacter', () => {
-  // character-sheets.appspot.com の dx3（ダブルクロス3rd）実データに即した構造
+  // built from real data of one system at the warehouse
   const dx3 = {
     base: {
       name: '六条 錐華',
@@ -70,12 +70,12 @@ describe('buildDx3AppspotCharacter', () => {
     return section.groups.find((group) => group.label === groupLabel)?.fields ?? [];
   }
 
-  it('倉庫 DX3 の構造を判別する', () => {
+  it('recognises the system', () => {
     expect(isDx3AppspotCharacter(dx3)).toBe(true);
     expect(isDx3AppspotCharacter({ kind: 'character' })).toBe(false);
   });
 
-  it('名前・メモ・dicebot を取り込む', () => {
+  it('takes the name, the notes and the dice bot', () => {
     const result = buildDx3AppspotCharacter(dx3)!;
     expect(result.sourceFormat).toBe('appspot');
     expect(result.name).toBe('六条 錐華');
@@ -83,7 +83,7 @@ describe('buildDx3AppspotCharacter', () => {
     expect(result.dicebot).toBe('DoubleCross');
   });
 
-  it('能力値（日本語）・行動値・移動力を params に、HP/侵蝕率は出さない', () => {
+  it('takes the abilities, the initiative and the movement as fields, leaving the resources out', () => {
     const result = buildDx3AppspotCharacter(dx3)!;
     expect(result.params).toContainEqual({ label: '肉体', value: '5' });
     expect(result.params).toContainEqual({ label: '社会', value: '2' });
@@ -93,13 +93,13 @@ describe('buildDx3AppspotCharacter', () => {
     expect(result.params.some((param) => param.label === '侵蝕率')).toBe(false);
   });
 
-  it('HP・侵蝕率をリソースとして取り込む（侵蝕率の最大は100）', () => {
+  it('takes the health and the encroachment as resources, the latter to a hundred', () => {
     const result = buildDx3AppspotCharacter(dx3)!;
     expect(result.statuses).toContainEqual({ label: 'HP', value: 31, max: 31 });
     expect(result.statuses).toContainEqual({ label: '侵蝕率', value: 32, max: 100 });
   });
 
-  it('共通技能を能力値別グループに、自由技能をその他技能に展開する', () => {
+  it('spreads the common skills under their abilities and the free ones among the rest', () => {
     const result = buildDx3AppspotCharacter(dx3)!;
     const skills = findSection(result.sections, '技能')!;
     expect(findGroupFields(skills, '肉体技能')).toContainEqual({ label: '白兵', value: 2, kind: 'number' });
@@ -108,7 +108,7 @@ describe('buildDx3AppspotCharacter', () => {
     expect(findGroupFields(skills, 'その他技能')).toContainEqual({ label: '情報：UGN', value: 1, kind: 'number' });
   });
 
-  it('エフェクト・コンボ・武器・アイテム・ロイスを日本語ラベルでセクション化する', () => {
+  it('gathers the effects, the combos, the weapons, the items and the bonds into labelled sections', () => {
     const result = buildDx3AppspotCharacter(dx3)!;
     expect(findGroupFields(findSection(result.sections, 'エフェクト')!, 'リザレクト')).toContainEqual({
       label: 'レベル',
@@ -132,7 +132,7 @@ describe('buildDx3AppspotCharacter', () => {
     });
   });
 
-  it('全 null の防具行はスキップ、プロフィールにシンドロームをまとめる', () => {
+  it('passes over an empty armour row and gathers the syndromes into the profile', () => {
     const result = buildDx3AppspotCharacter(dx3)!;
     expect(findSection(result.sections, '防具')).toBeUndefined();
     const profile = findSection(result.sections, 'プロフィール')!;
@@ -144,14 +144,14 @@ describe('buildDx3AppspotCharacter', () => {
     expect(findGroupFields(profile, '基本')).toContainEqual({ label: 'カヴァー', value: '魔法使い', kind: 'text' });
   });
 
-  it('チャットパレットは DoubleCross の nDX 形式で能力値・技能（達成値=技能レベル）を生成する', () => {
+  it('builds the rolls of that system into the palette, with each skill at its own level', () => {
     const result = buildDx3AppspotCharacter(dx3)!;
     expect(result.commands).toContain('{肉体}DX 【肉体】');
     expect(result.commands).toContain('{肉体}DX+2 【白兵】');
     expect(result.commands).toContain('{感覚}DX+1 【射撃】');
     expect(result.commands).toContain('{精神}DX+3 【意志】');
     expect(result.commands).toContain('{肉体}DX 【回避】');
-    // 能力値が紐づかない自由技能（情報：UGN）はパレットに出さない
+    // leaves a free skill with no ability out of the palette
     expect(result.commands).not.toContain('情報：UGN');
   });
 });

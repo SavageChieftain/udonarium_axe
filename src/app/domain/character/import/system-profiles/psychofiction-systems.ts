@@ -18,7 +18,7 @@ const COMMON_ABILITY_FIELDS = [
   { key: 'page', label: 'ページ' },
 ];
 
-// ハンターズムーン系（hm / blcr / bloodmoon）共通の異能フィールド。
+// The power fields shared by one group of those systems.
 const HM_ABILITY_FIELDS = [
   { key: 'type', label: '種別' },
   { key: 'group', label: '系統' },
@@ -27,7 +27,7 @@ const HM_ABILITY_FIELDS = [
   { key: 'effect', label: '効果' },
 ];
 
-// ブラッド・クルセイド / ブラッドムーン 共通の特技表（同一）。
+// The skill table two of them share.
 const BLOOD_SKILLS = [
   ['怯える', '脅す', '考えない', '自信', '黙る', '伝える', 'だます', '地位', '笑う', '話す', '怒る'],
   ['聴く', '感覚器', '見る', '反応', '考える', '脳', '閃く', '予感', '叫ぶ', '口', '噛む'],
@@ -38,9 +38,9 @@ const BLOOD_SKILLS = [
 ];
 
 /**
- * サイコ・フィクション系（冒険企画局）の倉庫 appspot 取り込み設定レジストリ。slug → config。
- * 特技表は各システムの bcdice SaiFicSkillTable（inline / i18n RTT）を権威として転記する。
- * 追加は基本ここへ 1 エントリ足すだけ（特技表＋ability-key＋profileFields）。
+ * The register of import settings for that publisher's systems at the warehouse, by slug.
+ * Each skill table is taken from the dice library, which is the authority on it.
+ * Adding a system is usually one entry here: its skill table, its power key and its profile fields.
  */
 export const PF_APPSPOT_SYSTEMS: Record<string, PsychoFictionConfig> = {
   shinobigami: {

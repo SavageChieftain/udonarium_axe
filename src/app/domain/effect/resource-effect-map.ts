@@ -1,10 +1,10 @@
 import { ResourceChangeKind, ResourceChangeSeverity } from '@axe/domain/character/resource-change';
 
 /**
- * リソース増減に自動で当てる演出。
+ * The effects played by themselves when a resource changes.
  *
- * ダメージは殴打（打撃）、回復は回復光を規模で段階付ける。
- * 属性が分からない自動割り当てなので、系統色の付かない汎用の演出を選ぶ。
+ * Damage strikes and healing lights, each graded by size.
+ * Nothing here knows the element, so the effects chosen carry no family colour.
  */
 const AUTO_EFFECT_IDENTIFIERS: Record<ResourceChangeKind, Record<ResourceChangeSeverity, string>> = {
   damage: {

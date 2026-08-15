@@ -5,7 +5,7 @@ import {
 } from '@axe/domain/character/import/system-profiles/mk-charasheet-profile';
 
 describe('buildMkCharasheetCharacter', () => {
-  // charasheet.vampire-blood.net の 迷宮キングダム（game="mk"）実データに即した構造
+  // built from real data of one system at the archive
   const mk = {
     pc_name: 'ティナ',
     game: 'mk',
@@ -32,12 +32,12 @@ describe('buildMkCharasheetCharacter', () => {
     return sections.find((section) => section.label === label);
   }
 
-  it('game="mk" を判別する', () => {
+  it('recognises the system', () => {
     expect(isMkCharasheetCharacter(mk)).toBe(true);
     expect(isMkCharasheetCharacter({ pc_name: 'X', game: 'coc' })).toBe(false);
   });
 
-  it('主能力（才覚/魅力/探索/武勇）・副次値・dicebot MeikyuKingdom を取り込む', () => {
+  it('takes its four main abilities, the lesser values and the dice bot', () => {
     const result = buildMkCharasheetCharacter(mk)!;
     expect(result.dicebot).toBe('MeikyuKingdom');
     expect(result.params).toContainEqual({ label: '才覚', value: '1' });
@@ -46,7 +46,7 @@ describe('buildMkCharasheetCharacter', () => {
     expect(result.params).toContainEqual({ label: '気力', value: '12' });
   });
 
-  it('技能・コネ・プロフィールを名前付きで展開する', () => {
+  it('spreads the skills, the connections and the profile with their names', () => {
     const result = buildMkCharasheetCharacter(mk)!;
     expect(findSection(result.sections, '技能')!.groups.map((group) => group.label)).toEqual(['武勲']);
     expect(findSection(result.sections, 'コネ')!.groups[0].label).toBe('師匠');
@@ -57,7 +57,7 @@ describe('buildMkCharasheetCharacter', () => {
     });
   });
 
-  it('チャットパレットに 2MK+主能力 の判定を生成する', () => {
+  it('builds the roll of that system into the palette', () => {
     const result = buildMkCharasheetCharacter(mk)!;
     expect(result.commands).toContain('2MK+1 【才覚判定】');
     expect(result.commands).toContain('2MK+4 【武勇判定】');

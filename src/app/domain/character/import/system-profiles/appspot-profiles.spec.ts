@@ -7,13 +7,13 @@ describe('parseAppspotCharacterForSystem', () => {
     subAbility: { hp: { total: '31' } },
   };
 
-  it('slug="dx3" は DX3 プロファイルへ委譲する', () => {
+  it('hands one system to its own profile', () => {
     const result = parseAppspotCharacterForSystem(dx3, 'dx3')!;
     expect(result.dicebot).toBe('DoubleCross');
     expect(result.params).toContainEqual({ label: '肉体', value: '5' });
   });
 
-  it('slug="shinobigami" は シノビガミ プロファイルへ委譲する', () => {
+  it('hands another to its own', () => {
     const result = parseAppspotCharacterForSystem(
       { base: { name: 'かり' }, ninpou: [{ name: '接近戦攻撃', targetSkill: '掘削術' }] },
       'shinobigami'
@@ -22,7 +22,7 @@ describe('parseAppspotCharacterForSystem', () => {
     expect(result.sections.some((section) => section.label === '忍法')).toBe(true);
   });
 
-  it('slug="insane" は インセイン プロファイルへ委譲する', () => {
+  it('hands a third to its own', () => {
     const result = parseAppspotCharacterForSystem(
       { base: { name: '深夜' }, ability: [{ name: '基本攻撃', targetSkill: '殴打' }] },
       'insane'
@@ -31,20 +31,20 @@ describe('parseAppspotCharacterForSystem', () => {
     expect(result.sections.some((section) => section.label === 'アビリティ')).toBe(true);
   });
 
-  it('プロファイル未対応 slug でも dicebot は補完する（mglg → MagicaLogia）', () => {
+  it('still names the dice bot for a system with no profile', () => {
     const result = parseAppspotCharacterForSystem(dx3, 'mglg')!;
     expect(result.sourceFormat).toBe('appspot');
     expect(result.dicebot).toBe('MagicaLogia');
-    // プロファイル未対応なので汎用パース（英語ラベル）
+    // read by the general path, whose labels stay as they came
     expect(result.params.some((param) => param.label === 'body')).toBe(true);
   });
 
-  it('slug 無し（テキスト貼り付け等）は汎用パースのまま dicebot 空', () => {
+  it('reads pasted text with no system through the general path and names no dice bot', () => {
     const result = parseAppspotCharacterForSystem(dx3)!;
     expect(result.dicebot).toBe('');
   });
 
-  it('倉庫キャラでなければ null', () => {
+  it('returns nothing for anything but a warehouse character', () => {
     expect(parseAppspotCharacterForSystem({ foo: 'bar' }, 'dx3')).toBeNull();
   });
 });

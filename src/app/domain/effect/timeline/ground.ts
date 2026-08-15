@@ -21,16 +21,16 @@ import {
 } from '@axe/domain/effect/timeline/shared';
 
 /**
- * 地面。
+ * The ground.
  *
- * 叩きつけ・瓦礫・隆起・きのこ雲のように、足元から起きるもの。
+ * What comes from underfoot: a slam, rubble, an upheaval, a mushroom cloud.
  */
 
 const UPHEAVAL_SLAB_COUNT = 7;
-/** 障壁。六角のドームが張られ、脈打って消える。 */
+/** A shield: a hexagonal dome raised, which pulses and goes. */
 /**
- * 打撃。斬るのではなく潰す。
- * 当たった瞬間に星形が弾け、集中線が外へ抜ける。アニメの殴打の型をそのまま置く。
+ * A strike, which crushes rather than cuts.
+ * At the moment of the blow a star bursts and speed lines run out, as a drawn blow is drawn.
  */
 export function appendBash(
   sprites: EffectSprite[],
@@ -42,7 +42,7 @@ export function appendBash(
 ): void {
   const lift = base * 0.6;
 
-  // 当たった瞬間の白飛び。短いほど硬い音に聞こえる。
+  // The flash at that moment. The shorter it is, the harder it sounds.
   const flash = normalize(progress / 0.1);
   if (flash < 1) {
     const size = base * (1.4 + flash * 1.6);
@@ -60,7 +60,7 @@ export function appendBash(
     });
   }
 
-  // 星形。一気に開いて止まり、そのまま消える。
+  // The star, which opens at once, holds and goes.
   const star = normalize(progress / 0.42);
   if (star > 0 && star < 1) {
     const size = base * (0.9 + easeOutCubic(star) * 2.1);
@@ -79,7 +79,7 @@ export function appendBash(
     });
   }
 
-  // 集中線。星より一拍遅れて外へ抜ける。
+  // The speed lines, which run out a beat after it.
   const lines = normalize((progress - 0.04) / 0.4);
   if (lines > 0 && lines < 1) {
     const size = base * (1.4 + easeOutCubic(lines) * 3);
@@ -114,7 +114,7 @@ export function appendBash(
   }
 }
 
-/** 重力。輪が内へ縮み、中心へ引き込む。 */
+/** Gravity: the rings close inwards and pull towards the centre. */
 export function appendGravity(
   sprites: EffectSprite[],
   prefix: string,
@@ -139,7 +139,7 @@ export function appendGravity(
     flat: true,
   });
 
-  // 輪は外から内へ縮む。広がる衝撃波と逆にすることで、引き込まれる向きが読める。
+  // They close from outside in; the reverse of a spreading shock wave, which is what reads as a pull.
   for (let ring = 0; ring < 3; ring++) {
     const local = normalize((progress - ring * 0.18) / 0.62);
     if (local <= 0 || local >= 1) continue;
@@ -217,7 +217,7 @@ export function appendImpact(
   });
 }
 
-/** 岩石破砕。割れ目が走り、そこから岩が砕けて飛ぶ。飛ぶ岩は canvas 側。 */
+/** Shattering rock: the cracks run and the rock breaks and flies, the flying rock drawn on the canvas. */
 export function appendRubble(
   sprites: EffectSprite[],
   prefix: string,
@@ -261,7 +261,7 @@ export function appendRubble(
   }
 }
 
-/** 地面隆起。割れ目から岩盤がせり上がって対象を突き上げる。 */
+/** An upheaval: the bedrock rises from the crack and throws the target up. */
 export function appendUpheaval(
   sprites: EffectSprite[],
   prefix: string,
@@ -289,7 +289,7 @@ export function appendUpheaval(
     flat: true,
   });
 
-  // せり上がって、頂点で止まり、崩れて沈む。
+  // It rises, holds at the top, breaks and sinks.
   for (let slab = 0; slab < UPHEAVAL_SLAB_COUNT; slab++) {
     const local = normalize((progress - slab * 0.05) / 0.85);
     if (local <= 0 || local >= 1) continue;
@@ -312,7 +312,7 @@ export function appendUpheaval(
   }
 }
 
-/** きのこ雲。地面の衝撃輪だけ受け持ち、柱と笠は canvas 側で描く。 */
+/** A mushroom cloud. Only the ring on the ground belongs here; the column and the cap are drawn on the canvas. */
 export function appendMushroom(
   sprites: EffectSprite[],
   prefix: string,

@@ -1,10 +1,10 @@
 /**
- * 卓の記念写真の割り付け。
+ * The layout of the keepsake photo.
  *
- * 立ち絵を並べ、部屋の名前と日付を焼き込む。絵の縦横は卓ごとにばらばらなので、
- * 枠は同じ大きさで置き、絵は枠の中に収める（切らない）。
+ * The portraits are laid out and the name of the room and the date printed on. Their
+ * proportions differ from table to table, so the frames are all one size and each picture is fitted inside without cropping.
  *
- * ここは寸法だけを決める。絵を読み、描くのは別の層。
+ * Only the measurements are decided here; reading and drawing the pictures belongs elsewhere.
  */
 
 export interface TablePhotoMember {
@@ -39,13 +39,13 @@ export interface TablePhotoLayout {
   readonly subtitle: { readonly x: number; readonly y: number; readonly fontSize: number };
   readonly name: { readonly fontSize: number; readonly height: number };
   readonly radius: number;
-  /** 入りきらずに写らなかった人数。黙って切らず、呼ぶ側が知らせるために持つ。 */
+  /** How many did not fit and were left out, which the caller reports rather than cutting them in silence. */
   readonly omitted: number;
 }
 
 export const TABLE_PHOTO_WIDE: TablePhotoSize = { width: 1920, height: 1080 };
 
-/** これ以上入れると顔が豆粒になる。溢れた分は写さず、何人溢れたかを返す。 */
+/** Beyond this the faces are specks. Those over are not photographed, and their number is returned. */
 const MAX_MEMBERS = 24;
 
 const REFERENCE_WIDTH = 1920;
@@ -75,7 +75,7 @@ export function buildTablePhotoLayout(
   const cells: TablePhotoCell[] = shown.map((member, index) => {
     const row = Math.floor(index / columns);
     const column = index % columns;
-    // 最後の行が欠けたときは、その行だけ中央へ寄せる。端に寄ったままだと写真に見えない。
+    // A last row that is not full is centred on its own; left against the edge it does not read as a photograph.
     const inRow = Math.min(columns, shown.length - row * columns);
     const rowWidth = inRow * cellWidth + (inRow - 1) * gap;
     const left = margin + (fieldWidth - rowWidth) / 2;
@@ -106,7 +106,7 @@ export function buildTablePhotoLayout(
   };
 }
 
-/** 横並びの数。正方形に近い並びにしつつ、1 人でも間延びしないように上限を置く。 */
+/** How many across. It keeps the arrangement near square, with a ceiling so a single person does not sprawl. */
 function columnsFor(count: number): number {
   if (count < 1) return 0;
   if (count <= 3) return count;

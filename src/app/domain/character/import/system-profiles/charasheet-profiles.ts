@@ -20,7 +20,7 @@ import { buildSwordWorldCharasheetCharacter } from '@axe/domain/character/import
 import { buildSwordWorld2CharasheetCharacter } from '@axe/domain/character/import/system-profiles/swordworld2-charasheet-profile';
 import { buildUtakazeCharasheetCharacter } from '@axe/domain/character/import/system-profiles/utakaze-charasheet-profile';
 
-/** 保管庫の `game` の符丁と、そのシステムの組み立て。 */
+/** The token the archive uses for a system, and how that system is built. */
 const BUILDERS: Record<string, (parsed: unknown) => ImportedCharacter | null> = {
   coc: buildCoc6CharasheetCharacter,
   coc7: buildCoc7CharasheetCharacter,

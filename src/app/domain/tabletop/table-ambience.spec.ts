@@ -21,7 +21,7 @@ describe('TableAmbience', () => {
     store.clearDeleteHistory();
   });
 
-  it('create() で名前と広さを持つこと', () => {
+  it('is created with a name and an area', () => {
     const ambience = TableAmbience.create('毒沼', 'swamp', 4, 6);
     expect(ambience.name).toBe('毒沼');
     expect(ambience.kind).toBe('swamp');
@@ -29,7 +29,7 @@ describe('TableAmbience', () => {
     expect(ambience.height).toBe(6);
   });
 
-  it('広さを書き換えられること', () => {
+  it('takes a new area', () => {
     const ambience = TableAmbience.create('毒沼', 'swamp', 4, 4);
     ambience.width = 10;
     ambience.height = 2;
@@ -37,20 +37,20 @@ describe('TableAmbience', () => {
     expect(ambience.height).toBe(2);
   });
 
-  it('壊れた種類は毒沼へ倒すこと', () => {
+  it('falls back to the marsh for a kind it cannot read', () => {
     const ambience = TableAmbience.create('場', 'swamp', 2, 2);
     ambience.ambienceKind = 'unknown';
     expect(ambience.kind).toBe('swamp');
   });
 
-  it('色を指定しなければ種類ごとの既定色を使うこと', () => {
+  it('falls back to the colour of its kind when none is given', () => {
     const ambience = TableAmbience.create('溶岩', 'lava', 2, 2);
     expect(ambience.color).toBe(ambiencePalette('lava').primary);
     ambience.ambienceColor = '#123456';
     expect(ambience.color).toBe('#123456');
   });
 
-  it('濃さを 0〜1 に収めること', () => {
+  it('keeps the density between none and all', () => {
     const ambience = TableAmbience.create('場', 'swamp', 2, 2);
     ambience.ambienceDensity = 5;
     expect(ambience.density).toBe(1);
@@ -58,20 +58,20 @@ describe('TableAmbience', () => {
     expect(ambience.density).toBe(0);
   });
 
-  it('identifier ごとに位相がずれること', () => {
+  it('offsets the phase by the identifier', () => {
     const a = TableAmbience.create('場', 'swamp', 2, 2, 'ambience-a');
     const b = TableAmbience.create('場', 'swamp', 2, 2, 'ambience-b');
     expect(a.phaseOffset).not.toBe(b.phaseOffset);
   });
 
-  describe('部屋データへの保存', () => {
-    it('ObjectFactory に table-ambience が登録されていること', () => {
+  describe('saving into the room data', () => {
+    it('is registered with the factory', () => {
       const object = ObjectFactory.instance.create('table-ambience');
       expect(object).toBeInstanceOf(TableAmbience);
       object?.destroy();
     });
 
-    it('テーブルの子として書き出されること', () => {
+    it('is written out as a child of the table', () => {
       const table = new GameTable();
       table.initialize();
       const ambience = TableAmbience.create('毒沼', 'swamp', 4, 6);
@@ -88,13 +88,13 @@ describe('TableAmbience', () => {
       expect(xml).toContain('>毒沼</data>');
     });
 
-    it('書き出した内容から復元できること', () => {
+    it('is restored from what was written', () => {
       const ambience = TableAmbience.create('毒沼', 'swamp', 4, 6);
       ambience.ambienceDensity = 0.8;
       ambience.ambienceColor = '#123456';
 
-      // happy-dom の XML パーサは location.x のようなドット付き属性を受け付けないため、
-      // 座標だけ落として読み直す。座標の復元は共通の仕組み側で担保されている。
+      // The parser of happy-dom refuses an attribute name with a dot in it, so the position is
+      // dropped and the rest read back; restoring a position is settled by the shared machinery.
       const xml = ObjectSerializer.instance.toXml(ambience).replace(/location\.[a-z]+="[^"]*"\s*/g, '');
       for (const object of store.getObjects()) store.delete(object, false);
       store.clearDeleteHistory();
@@ -110,7 +110,7 @@ describe('TableAmbience', () => {
       expect(restored.color).toBe('#123456');
     });
 
-    it('テーブルの天候が書き出されること', () => {
+    it('writes the weather of the table out', () => {
       const table = new GameTable();
       table.initialize();
       table.weatherKind = 'rain';

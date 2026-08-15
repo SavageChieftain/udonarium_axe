@@ -28,12 +28,12 @@ import { EXCALIBUR_SWING_END, slashHits } from '@axe/domain/effect/timeline/blad
 import { ARROW_RAIN_FALL, BALLISTIC_DIVE_END, projectileTiming } from '@axe/domain/effect/timeline/flight';
 
 /**
- * 板ポリ面内で完結するパーティクル。canvas に加算合成で重ねて発光を作る。
+ * The particles that stay within the billboard, laid additively onto a canvas to glow.
  *
- * 座標は対象の足元を原点とした px で、canvas と同じく y は下方向が正。
- * 経過時間から毎回まるごと計算し直す純関数なので、フレームが飛んでも見た目がずれない。
+ * They are placed in pixels from the feet of the target, running down as the canvas does.
+ * Each frame is worked out afresh from the elapsed time, so a dropped frame does not knock it out of step.
  *
- * 粒の出し方そのものは `particles/` 配下に家族ごとに置く。ここは**どれを呼ぶか**だけを持つ。
+ * How each family makes its particles lives beside it; this holds only **which one is called**.
  */
 
 export {
@@ -54,7 +54,7 @@ export function effectParticles(
   const particles: EffectParticle[] = [];
 
   emitFor(preset, seededRandom(seed), progress, base, ramp, particles);
-  // 上級はもう一組重ねて濃くする。初級は間引いて地味にする。
+  // The higher grades lay on another set and the lower ones thin out.
   if (preset.gradeLevel === 3) emitFor(preset, seededRandom(seed + 104729), progress, base, ramp, particles);
   const graded = preset.gradeLevel === 1 ? particles.filter((_unused, index) => index % 2 === 0) : particles;
 
@@ -72,13 +72,13 @@ function emitFor(
   particles: EffectParticle[]
 ): void {
   if (preset.effectKind === 'slash') {
-    // 太刀ごとに火花を散らす。まとめて 1 回出すと、連撃でも 1 回斬ったように見える。
+    // Sparks fly from each stroke; thrown once for them all, a combination reads as a single cut.
     for (const hit of slashHits(preset.slashLook)) {
       const local = clamp01((progress - hit.at) / hit.span);
       if (local <= 0 || local >= 1) continue;
       emitSlash(particles, random, local, base, ramp);
-      // 上級の一撃は土煙と破片まで跳ねる。火花だけだと軽い。
-      // 力任せの型だけ土煙と破片まで跳ねる。居合は斬り口だけで見せる。
+      // The highest grade throws dust and fragments too; sparks alone are light.
+      // Only the heavier forms throw them; a drawing cut shows the cut alone.
       if (preset.slashLook === 'wide' || preset.slashLook === 'heavy') {
         emitSlash(particles, random, local, base * 1.4, ramp);
         emitImpact(particles, random, local, base, ramp);
@@ -87,25 +87,25 @@ function emitFor(
     return;
   }
   if (preset.effectKind === 'skyblade') {
-    // 振り下ろした先で弾ける。全体の進みで出すと、刃が立ち上る前に的が爆ぜる。
+    // It bursts where the blade falls; timed to the whole, the target bursts before the blade rises.
     const burst = clamp01((progress - EXCALIBUR_SWING_END) / (1 - EXCALIBUR_SWING_END));
     if (burst > 0 && burst < 1) emitKind(preset.impactEffectKind, particles, random, burst, base, ramp);
     return;
   }
   if (preset.effectKind === 'ballistic') {
-    // 落ちてきてから弾ける。打ち上げているあいだに出すと、撃つ前に的が爆ぜる。
+    // It bursts once the shot comes down; on the way up, the target bursts before it is fired.
     const burst = clamp01((progress - BALLISTIC_DIVE_END) / (1 - BALLISTIC_DIVE_END));
     if (burst > 0 && burst < 1) emitKind(preset.impactEffectKind, particles, random, burst, base * 1.2, ramp);
     return;
   }
   if (preset.effectKind === 'arrowrain') {
-    // 1 本目が刺さってから土埃。降り始める前に出すと、当たる前に地面が爆ぜる。
+    // The dust rises once the first arrow strikes; before they fall, the ground bursts unstruck.
     const local = clamp01((progress - ARROW_RAIN_FALL) / (1 - ARROW_RAIN_FALL));
     if (local > 0 && local < 1) emitImpact(particles, random, local, base * 0.7, ramp);
     return;
   }
   if (preset.effectKind === 'projectile') {
-    // 飛翔中は canvas を使わない。着弾した弾から順に、指定された属性の演出で爆ぜる。
+    // Nothing is drawn on the canvas in flight; each shot bursts as it lands, in the element it was given.
     for (const shot of projectileTiming(preset).shots) {
       const local = clamp01((progress - shot.land) / (1 - shot.land));
       if (local > 0 && local < 1) emitKind(preset.impactEffectKind, particles, random, local, base * 0.85, ramp);
@@ -115,7 +115,7 @@ function emitFor(
   emitKind(preset.effectKind, particles, random, progress, base, ramp);
 }
 
-/** 種類ごとの粒の出し方。表に無い種類は弾けさせる。 */
+/** How each kind makes its particles. Anything not in the table bursts. */
 const EMITTERS: Partial<Record<EffectKind, ParticleEmitter>> = {
   flame: emitFlame,
   slash: emitSlash,
@@ -135,10 +135,10 @@ const EMITTERS: Partial<Record<EffectKind, ParticleEmitter>> = {
   drain: emitDrain,
   warp: emitWarp,
   gravity: emitGravity,
-  // 魔法陣から伸びる稲妻。雷と同じ出し方で足りる。
+  // The lightning from a circle, which the same maker as lightning covers.
   arc: emitBolt,
   bash: emitBash,
-  // 呪いは瘴気を細く。同じ濃さだと、範囲攻撃と見分けが付かない。
+  // A curse thins its miasma; at the same thickness it could not be told from an area attack.
   curse: (particles, random, progress, base, ramp) => emitMiasma(particles, random, progress, base * 0.8, ramp),
   beam: emitBeam,
   dissolve: emitDissolve,
@@ -146,7 +146,7 @@ const EMITTERS: Partial<Record<EffectKind, ParticleEmitter>> = {
   bisect: emitBisect,
 };
 
-/** 粒を出せる種類。 */
+/** The kinds that make particles. */
 export const PARTICLE_EFFECT_KINDS: readonly EffectKind[] = Object.keys(EMITTERS) as EffectKind[];
 
 type ParticleEmitter = (

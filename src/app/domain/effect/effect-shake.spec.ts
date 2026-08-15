@@ -11,15 +11,15 @@ describe('effectShakeOf()', () => {
     return preset;
   }
 
-  it('衝撃が来る演出だけ揺らすこと', () => {
+  it('shakes only for an effect that lands a blow', () => {
     expect(effectShakeOf(makePreset('burst', 3))).toBe('hard');
     expect(effectShakeOf(makePreset('upheaval', 3))).toBe('hard');
-    // 回復や障壁まで揺らすと、何が起きても同じ手応えになる。
+    // Shaking for healing and shields too would give everything the same weight.
     expect(effectShakeOf(makePreset('heal', 3))).toBe('');
     expect(effectShakeOf(makePreset('barrier', 3))).toBe('');
   });
 
-  it('等級で強さを分け、初級は揺らさないこと', () => {
+  it('shakes harder at the higher grades and not at all at the lowest', () => {
     expect(effectShakeOf(makePreset('burst', 1))).toBe('');
     expect(effectShakeOf(makePreset('burst', 2))).toBe('soft');
     expect(effectShakeOf(makePreset('burst', 3))).toBe('hard');
@@ -35,7 +35,7 @@ describe('effectFlashColor()', () => {
     return preset;
   }
 
-  it('上級の閃光・きのこ雲・極太ビームだけ焼くこと', () => {
+  it('burns the screen only for the highest flash, the mushroom cloud and the heaviest beam', () => {
     expect(effectFlashColor(makePreset('nova', 3))).toBe('#dff2ff');
     expect(effectFlashColor(makePreset('mushroom', 3))).toBe('#dff2ff');
     expect(effectFlashColor(makePreset('beam', 3))).toBe('#dff2ff');

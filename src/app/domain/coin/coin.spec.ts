@@ -15,7 +15,7 @@ describe('Coin', () => {
     for (const image of ImageStorage.instance.images) ImageStorage.instance.delete(image.identifier);
   });
 
-  it('表向きで作られること', () => {
+  it('is created face up', () => {
     const coin = makeCoin();
 
     expect(coin.face).toBe('front');
@@ -23,7 +23,7 @@ describe('Coin', () => {
     expect(coin.size).toBe(1);
   });
 
-  it('乱数が 0.5 未満なら表、以上なら裏になること', () => {
+  it('lands on one face or the other by the toss', () => {
     const coin = makeCoin();
 
     expect(coin.flip(() => 0.49)).toBe('front');
@@ -32,14 +32,14 @@ describe('Coin', () => {
     expect(coin.face).toBe('back');
   });
 
-  it('両方の面が出ること', () => {
+  it('comes up either way over enough tosses', () => {
     const coin = makeCoin();
     const faces = new Set(Array.from({ length: 200 }, () => coin.flip()));
 
     expect([...faces].sort()).toEqual(['back', 'front']);
   });
 
-  it('向いている面の画像を返すこと', () => {
+  it('returns the picture of the face that is up', () => {
     const coin = makeCoin();
     const front = ImageStorage.instance.add('test://coin/front.png');
     const back = ImageStorage.instance.add('test://coin/back.png');
@@ -51,7 +51,7 @@ describe('Coin', () => {
     expect(coin.imageFile.identifier).toBe(back.identifier);
   });
 
-  it('画像が無ければ空の画像を返すこと', () => {
+  it('returns an empty picture when there is none', () => {
     expect(makeCoin().imageFile.url).toBe('');
   });
 });

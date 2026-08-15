@@ -29,7 +29,7 @@ function characterTree(identifier: string, name: string, image: string): ReplayO
 }
 
 describe('collectReplayCast()', () => {
-  it('盤面のコマを名前と立ち絵つきで集めること', () => {
+  it('gathers the pieces on the board with their names and portraits', () => {
     const cast = collectReplayCast([
       ...characterTree('c1', '盗賊', 'img-1'),
       ...characterTree('c2', '魔術師', 'img-2'),
@@ -41,12 +41,12 @@ describe('collectReplayCast()', () => {
     ]);
   });
 
-  it('イベントに出てこないコマも拾うこと', () => {
+  it('picks up a piece that appears in no event', () => {
     const cast = collectReplayCast([...characterTree('quiet', '沈黙の人', '')]);
     expect(cast.map((member) => member.name)).toEqual(['沈黙の人']);
   });
 
-  it('コマ以外を混ぜないこと', () => {
+  it('mixes in nothing that is not a piece', () => {
     const snapshots: ReplayObjectSnapshot[] = [
       ...characterTree('c1', '盗賊', 'img-1'),
       { identifier: 'k1', aliasName: 'card', syncData: { attributes: {} } },
@@ -55,12 +55,12 @@ describe('collectReplayCast()', () => {
     expect(collectReplayCast(snapshots).map((member) => member.identifier)).toEqual(['c1']);
   });
 
-  it('名前や立ち絵が無くても落ちないこと', () => {
+  it('does not fall over without a name or a portrait', () => {
     const cast = collectReplayCast([character('bare')]);
     expect(cast).toEqual([{ identifier: 'bare', name: '', imageIdentifier: '', chatColor: '#112233', onTable: true }]);
   });
 
-  it('しまってあるコマを盤の上と区別すること', () => {
+  it('tells a piece put away from one on the board', () => {
     const stored: ReplayObjectSnapshot = {
       identifier: 'kept',
       aliasName: 'character',
@@ -71,11 +71,11 @@ describe('collectReplayCast()', () => {
     expect(collectReplayCast([character('c1')])[0].onTable).toBe(true);
   });
 
-  it('色が無ければ空にすること', () => {
+  it('leaves the colour empty when there is none', () => {
     expect(collectReplayCast([character('c1', [])])[0].chatColor).toBe('');
   });
 
-  it('同じ名前の要素が他の節にもあるとき共通欄を選ぶこと', () => {
+  it('takes the common field where another section holds the same name', () => {
     const snapshots: ReplayObjectSnapshot[] = [
       ...characterTree('c1', '盗賊', 'img-1'),
       data('c1-detail', 'c1-root', 'detail'),
@@ -84,7 +84,7 @@ describe('collectReplayCast()', () => {
     expect(collectReplayCast(snapshots)[0].name).toBe('盗賊');
   });
 
-  it('空の盤面では空を返すこと', () => {
+  it('returns nothing for an empty board', () => {
     expect(collectReplayCast([])).toEqual([]);
   });
 });
@@ -93,11 +93,11 @@ describe('replayCastOnTable()', () => {
   const on = { identifier: 'a', name: 'アリス', imageIdentifier: '', chatColor: '', onTable: true };
   const off = { identifier: 'b', name: 'ボブ', imageIdentifier: '', chatColor: '', onTable: false };
 
-  it('盤に出ていたコマだけを残すこと', () => {
+  it('keeps only the pieces that were out on the board', () => {
     expect(replayCastOnTable([on, off])).toEqual([on]);
   });
 
-  it('盤に 1 つも出ていなければ、全員を返すこと', () => {
+  it('returns them all when none was', () => {
     expect(replayCastOnTable([off])).toEqual([off]);
   });
 });

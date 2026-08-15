@@ -38,7 +38,7 @@ function storyboardOf(events: readonly ReplayEvent[]) {
 }
 
 describe('buildReplayScriptLines()', () => {
-  it('発言を 1 行ずつ並べること', () => {
+  it('lays the lines out one at a time', () => {
     const lines = buildReplayScriptLines(storyboardOf([say(1, 'やあ'), say(2, 'こんばんは', 'ボブ')]));
 
     expect(lines.map((line) => [line.speaker, line.text])).toEqual([
@@ -47,35 +47,35 @@ describe('buildReplayScriptLines()', () => {
     ]);
   });
 
-  it('動画のために割られた長い発言を 1 つに戻すこと', () => {
+  it('puts a long line split for the video back together', () => {
     const long = 'あ'.repeat(REPLAY_SHOT_MAX_CHARS * 2 + 10);
     const lines = buildReplayScriptLines(storyboardOf([say(1, long)]));
 
-    // 読み物では、読める長さに割った切れ目が邪魔になる。
+    // In something to read, the breaks made to keep it readable get in the way.
     expect(lines).toHaveLength(1);
     expect(lines[0].text).toBe(long);
   });
 
-  it('同じ人が続けて喋った別の発言は分けたままにすること', () => {
+  it('leaves two lines by one person apart', () => {
     const lines = buildReplayScriptLines(storyboardOf([say(1, '一言目'), say(2, '二言目')]));
 
     expect(lines.map((line) => line.text)).toEqual(['一言目', '二言目']);
   });
 
-  it('章の見出しそのものは行にしないこと', () => {
+  it('makes no line of a chapter heading itself', () => {
     const lines = buildReplayScriptLines(storyboardOf([say(1, 'やあ'), marker(2, '第二幕'), say(3, 'ここから')]));
 
     expect(lines.map((line) => line.text)).toEqual(['やあ', 'ここから']);
     expect(lines.map((line) => line.chapter)).toEqual(['', '第二幕']);
   });
 
-  it('名前の無い発言を地の文として扱うこと', () => {
+  it('reads a line with no name as narration', () => {
     const lines = buildReplayScriptLines(storyboardOf([say(1, 'しんと静まり返った', '')]));
 
     expect(lines[0].isNarration).toBe(true);
   });
 
-  it('何も無ければ空にすること', () => {
+  it('returns nothing for nothing', () => {
     expect(buildReplayScriptLines(EMPTY_REPLAY_STORYBOARD)).toEqual([]);
   });
 });
@@ -83,7 +83,7 @@ describe('buildReplayScriptLines()', () => {
 describe('buildReplayScriptMarkdown()', () => {
   const events = [say(1, 'やあ'), marker(2, '第二幕'), say(3, 'ここから'), say(4, '風が吹いた', '')];
 
-  it('小説として組むこと', () => {
+  it('sets it as prose', () => {
     const text = buildReplayScriptMarkdown(storyboardOf(events), {
       ...DEFAULT_REPLAY_SCRIPT_OPTIONS,
       title: '第一夜',
@@ -92,12 +92,12 @@ describe('buildReplayScriptMarkdown()', () => {
     expect(text).toContain('# 第一夜');
     expect(text).toContain('## 第二幕');
     expect(text).toContain('アリス「やあ」');
-    // 地の文は鉤括弧を付けない。
+    // Narration takes no quotation marks.
     expect(text).toContain('\n風が吹いた');
     expect(text).not.toContain('「風が吹いた」');
   });
 
-  it('台本として組むこと', () => {
+  it('sets it as a script', () => {
     const text = buildReplayScriptMarkdown(storyboardOf(events), {
       ...DEFAULT_REPLAY_SCRIPT_OPTIONS,
       format: ReplayScriptFormat.Script,
@@ -107,12 +107,12 @@ describe('buildReplayScriptMarkdown()', () => {
     expect(text).not.toContain('「やあ」');
   });
 
-  it('表題を付けなければ見出しを置かないこと', () => {
+  it('writes no heading without a title', () => {
     expect(buildReplayScriptMarkdown(storyboardOf(events)).startsWith('#\n')).toBe(false);
     expect(buildReplayScriptMarkdown(storyboardOf(events)).startsWith('アリス「やあ」')).toBe(true);
   });
 
-  it('頼まれたときだけ章に経過時間を添えること', () => {
+  it('puts the elapsed time on a chapter only when it is asked to', () => {
     const withTime = buildReplayScriptMarkdown(storyboardOf(events), {
       ...DEFAULT_REPLAY_SCRIPT_OPTIONS,
       withTime: true,
@@ -122,13 +122,13 @@ describe('buildReplayScriptMarkdown()', () => {
     expect(buildReplayScriptMarkdown(storyboardOf(events))).not.toContain('<!--');
   });
 
-  it('何も無ければ空文字にすること', () => {
+  it('writes nothing for nothing', () => {
     expect(buildReplayScriptMarkdown(EMPTY_REPLAY_STORYBOARD)).toBe('');
   });
 });
 
 describe('replayScriptElapsed()', () => {
-  it('時分秒に組むこと', () => {
+  it('sets it as hours, minutes and seconds', () => {
     expect(replayScriptElapsed(0)).toBe('00:00:00');
     expect(replayScriptElapsed(65_000)).toBe('00:01:05');
     expect(replayScriptElapsed(3_725_000)).toBe('01:02:05');

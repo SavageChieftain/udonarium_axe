@@ -10,7 +10,7 @@ import {
   normalizeHexColor,
 } from '@axe/domain/character/import/imported-character';
 
-/** ゆとシートのキーは `{family}{連番}{Field}`（weapon1Name 等）。family 接頭辞 → 節見出し。 */
+/** The keys of that service are a family, a number and a field. These are the family prefixes and their headings. */
 const FAMILY_LABELS: Record<string, string> = {
   ability: '能力値',
   weapon: '武器',
@@ -28,7 +28,7 @@ const FAMILY_LABELS: Record<string, string> = {
   connection: 'コネクション',
 };
 
-/** family の各フィールド接尾辞 → 列名。ゆとシートのフレームワーク共通語彙。未知は接尾辞のまま。 */
+/** The field suffixes and their column names, shared across that framework. An unknown suffix keeps its own. */
 const FIELD_LABELS: Record<string, string> = {
   Name: '名前',
   Power: '威力',
@@ -55,7 +55,7 @@ const FIELD_LABELS: Record<string, string> = {
   Adp: '適用',
 };
 
-/** family を持たないスカラーのうち、共通で訳せるキー。未知は元キーのまま残す。 */
+/** The keys with no family that can be translated. An unknown one keeps its own. */
 const SCALAR_LABELS: Record<string, string> = {
   race: '種族',
   age: '年齢',
@@ -72,13 +72,13 @@ const SCALAR_LABELS: Record<string, string> = {
   moneyTotal: '所持金',
 };
 
-/** 取り込み対象外（内部・表示制御・同期メタ）。 */
+/** What is not imported: the internal, the display and the sync fields. */
 const INTERNAL_KEY =
   /^(id|mode|ver|result|message|group|tags|completed|lasttimever|updateTime|sheetURL|sheetDescription[MS]|unitStatus|protect|protectOld|palette|color[A-Z]|image[A-Z]|words[XY]|birthTime)/;
 
 const FAMILY_KEY = /^([a-z][a-zA-Z]*?)(\d+)([A-Z][a-zA-Z0-9]*)$/;
 
-// キャラクター名のキーは系統で異なる（characterName / aka …）。先頭から最初の非空を採る。
+// Systems name the character in different keys, so the first that holds something is taken.
 const NAME_KEYS = ['characterName', 'aka', 'name', 'pcName'];
 
 function resolveName(record: Record<string, unknown>): string {

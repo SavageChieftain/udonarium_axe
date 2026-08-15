@@ -16,20 +16,20 @@ import {
 } from '@axe/domain/effect/timeline/shared';
 
 /**
- * 吐くもの・吸うもの。
+ * What is breathed out and what is drawn in.
  *
- * 口から前へ広がるブレスと、的からこちらへ吸い上げるドレイン。
+ * A breath spreading forward from the mouth, and a drain pulling back from the target.
  */
 
-/** 口元から対象まで届くまで。 */
+/** How long it takes to reach the target from the mouth. */
 const BREATH_REACH_END = 0.12;
-/** 息が切れはじめる位置。 */
+/** Where the breath begins to fail. */
 const BREATH_RELEASE_AT = 0.74;
 const BREATH_LOBE_COUNT = 8;
 const BREATH_STREAK_COUNT = 6;
 const BREATH_MOTE_COUNT = 9;
 const BREATH_ARC_JITTER = [0.5, 0.14, 0.82, 0.28, 0.66, 0.5];
-/** 粒の流れる速さ。火花は弾け、氷と靄は漂い、木の葉は巻かれる。 */
+/** How fast the particles flow: sparks burst, ice and haze drift, and leaves are swept along. */
 const BREATH_MOTE_SPEED: Record<string, number> = {
   spark: 1.5,
   frost: 0.55,
@@ -38,14 +38,14 @@ const BREATH_MOTE_SPEED: Record<string, number> = {
   haze: 0.5,
   none: 0,
 };
-/** 流れが 1 巡する実時間(ms)。尺が変わっても見た目の速さを揃える。 */
+/** How long the flow takes to come round, so it looks the same speed however long the effect runs. */
 const BREATH_FLOW_MS = 300;
 const BREATH_TIP_COUNT = 4;
 const BREATH_SOOT_COUNT = 5;
 const BREATH_SPLASH_ANGLES = [-64, -34, 0, 34, 64];
 /**
- * 円錐の層。外は薄く広く、芯は細く濃い。
- * `ripple` を変えて層ごとに違う輪郭にすると、重ねたときに縁が単調にならない。
+ * The layers of the cone: thin and wide outside, narrow and thick at the core.
+ * Giving each layer its own outline keeps the edge from being even where they overlap.
  */
 const BREATH_LAYERS = [
   { key: 'haze', width: 1.55, opacity: 0.36, ripple: 0 },
@@ -54,11 +54,11 @@ const BREATH_LAYERS = [
 ];
 const DRAIN_MOTE_COUNT = 10;
 /**
- * ブレス。口元から対象へ、広がりながら吹き付ける。
+ * A breath, blown from the mouth to the target and widening as it goes.
  *
- * 丸を等間隔に並べると数珠になって「吹き付け」に見えないので、
- * 経路上の区間で 1 本の円錐を組み、縁に渦を転がして乱れを出す。
- * 区間ごとに自分の奥行きを持つので、間に立つコマと正しく前後する。
+ * Circles at even spacing string together like beads and never read as a breath, so the
+ * path is built as one cone in sections, with swirls rolling along its edge for turbulence.
+ * Each section carries its own depth, so the pieces between sit properly in front and behind.
  */
 export function appendBreath(
   sprites: EffectSprite[],
@@ -77,21 +77,21 @@ export function appendBreath(
   const acrossX = -Math.sin(radians);
   const acrossY = Math.cos(radians);
 
-  // 吹き始め → 吹き続け → 息が切れる。
+  // It begins, it holds, and the breath fails.
   const front = Math.min(1, progress / BREATH_REACH_END);
   const release = clamp01(normalize((progress - BREATH_RELEASE_AT) / (1 - BREATH_RELEASE_AT)));
-  // 吹き終わりは薄れながら散る。1 枚の円錐なので、口元から削るより自然に消える。
+  // It thins and scatters at the end; as one cone that goes more naturally than trimming it from the mouth.
   const life = 1 - release ** 1.4;
   const dissipate = 1 + release * 0.4;
   /**
-   * 流れの速さ。再生位置ではなく実尺から出す。
-   * 割合で回すと、尺の長いブレスほど中身がゆっくり動いて勢いが死ぬ。
+   * The speed of the flow, taken from the elapsed time rather than the playback position.
+   * Driven by the proportion, a longer breath moves more slowly inside and loses its force.
    */
   const flow = preset.duration / BREATH_FLOW_MS;
-  // 吐き出す量そのものを脈打たせる。一定量だと吹き付けている感じが出ない。
+  // How much is breathed out pulses; an even amount never reads as blowing.
   const swell = 1 + Math.sin(progress * flow * 4.4) * 0.13;
 
-  // 円錐は 1 枚で描く。区間に割ると、区間ごとの太さと濃さの差が縦縞になって出る。
+  // The cone is one shape; split into sections, the differences between them show as bands.
   const anchor = pointBetween(mouth, impact, front / 2);
   const coneLength = link.length * front;
   const coneSpread = breathSpread(front, progress) * base * swell * dissipate;
@@ -111,8 +111,8 @@ export function appendBreath(
     });
   }
 
-  // 縁を転がる渦。まっすぐな円錐に乱れが出て、気体らしく見える。
-  // 左右と大きさを規則的にすると回転する飾りに見えるので、粒ごとに崩す。
+  // The swirls rolling along the edge, whose turbulence is what makes a straight cone read as gas.
+  // Regular in side and size they read as a spinning ornament, so each is broken up.
   for (let lobe = 0; lobe < BREATH_LOBE_COUNT; lobe++) {
     const at = (progress * flow * 0.9 + lobe / BREATH_LOBE_COUNT) % 1;
     if (at > front) continue;
@@ -138,7 +138,7 @@ export function appendBreath(
     });
   }
 
-  // 軸を走り抜ける筋。流れている物が見えないと、色の付いた霧が漂っているだけになる。
+  // The streaks running along the axis; with nothing visibly flowing it is only coloured mist adrift.
   for (let streak = 0; streak < BREATH_STREAK_COUNT; streak++) {
     const at = (progress * flow * 1.9 + streak / BREATH_STREAK_COUNT) % 1;
     if (at > front) continue;
@@ -163,7 +163,7 @@ export function appendBreath(
     });
   }
 
-  // 先端はほどけて大きく散る。ここが細いままだと、ただの円錐に見える。
+  // The tip unravels and scatters wide; left narrow it is merely a cone.
   for (let puff = 0; puff < BREATH_TIP_COUNT; puff++) {
     const at = 0.72 + ((progress * flow * 0.7 + puff / BREATH_TIP_COUNT) % 1) * 0.28;
     if (at > front) continue;
@@ -190,7 +190,7 @@ export function appendBreath(
 
   appendBreathMotes(sprites, prefix, mouth, impact, base, progress, preset, link, acrossX, acrossY, front, flow, life);
 
-  // 流れの中に混ざる煙。光だけだと気体の密度が出ない。
+  // The smoke in the flow; light alone gives gas no density.
   for (let soot = 0; soot < BREATH_SOOT_COUNT; soot++) {
     const at = (progress * flow * 0.45 + soot / BREATH_SOOT_COUNT) % 1;
     if (at > front) continue;
@@ -233,7 +233,7 @@ export function appendBreath(
   }
 
   if (front >= 1) {
-    // 当たった面で気体が割れて、撃った側へ巻き返す。
+    // The gas breaks on the struck face and curls back towards the caster.
     for (let splash = 0; splash < BREATH_SPLASH_ANGLES.length; splash++) {
       const wave = (progress * 2.1 + splash / BREATH_SPLASH_ANGLES.length) % 1;
       const spray = link.angle + 180 + BREATH_SPLASH_ANGLES[splash];
@@ -274,10 +274,10 @@ export function appendBreath(
 }
 
 /**
- * 道中に散る粒。属性ごとに違う物を舞わせる。
+ * The particles scattered along the way, different things by element.
  *
- * 円錐の形と色だけだと、どの属性でも同じ物が色違いで飛んでいるように見える。
- * 火花は外へ弾け、氷は漂って瞬き、放電は途中で走り、木の葉は舞い、靄は流れに滲む。
+ * A cone and a colour alone would look like the same thing flying in different colours,
+ * Sparks burst outwards, ice drifts and glints, a discharge runs partway, leaves whirl and haze bleeds into the flow.
  */
 function appendBreathMotes(
   sprites: EffectSprite[],
@@ -304,7 +304,7 @@ function appendBreathMotes(
 
     const spread = breathSpread(at, progress) * base;
     const anchor = pointBetween(mouth, impact, at);
-    // 流れから外れるほど遠くへ飛ぶ。まっすぐ並んで流れると帯に見える。
+    // The further from the flow, the further it flies; in a straight line they read as a band.
     const scatter = Math.sin(index * 4.7) * spread * (0.25 + at * 0.45);
     const sprite: EffectSprite = {
       ...blank(),
@@ -321,7 +321,7 @@ function appendBreathMotes(
 
     switch (mote) {
       case 'spark':
-        // 弾ける火の粉。進む向きへ引き伸ばし、先へ行くほど小さく散る。
+        // The bursting sparks, drawn out along their travel and scattering smaller further on.
         sprites.push({
           ...sprite,
           width: base * (0.34 - at * 0.14),
@@ -334,7 +334,7 @@ function appendBreathMotes(
         });
         break;
       case 'frost':
-        // 舞う氷晶。ゆっくり回りながら瞬く。
+        // The ice crystals, turning slowly and glinting.
         sprites.push({
           ...sprite,
           width: base * (0.22 + at * 0.12),
@@ -345,7 +345,7 @@ function appendBreathMotes(
         });
         break;
       case 'arc':
-        // 途中で走る放電。出っぱなしにせず、点いたり消えたりさせる。
+        // The discharge that runs partway, flickering rather than held on.
         if (Math.sin(index * 5.3 + progress * flow * 5) < 0.1) break;
         sprites.push({
           ...sprite,
@@ -357,7 +357,7 @@ function appendBreathMotes(
         });
         break;
       case 'leaf':
-        // 舞う木の葉。ひらひら回して、風に巻かれている感じを出す。
+        // The leaves, turned over and over so they read as caught in the wind.
         sprites.push({
           ...sprite,
           width: base * (0.2 + at * 0.08),
@@ -369,7 +369,7 @@ function appendBreathMotes(
         });
         break;
       default:
-        // 流れに滲む黒い靄。輪郭を持たせず、密度だけを足す。
+        // The dark haze bleeding into the flow, given no outline and only adding density.
         sprites.push({
           ...sprite,
           width: spread * (0.35 + at * 0.3),
@@ -384,17 +384,17 @@ function appendBreathMotes(
 }
 
 /**
- * 口元から先端へ向かう広がり。根元は細く、先ほど大きく散る。
+ * How it widens from the mouth to the tip: narrow at the root and scattering wide ahead.
  *
- * きれいな三角形にすると噴射口から出る一様な流れに見えるので、
- * 位相の違う波を重ねて縁をうねらせ、そのうねりを先へ流す。
+ * A neat triangle reads as an even jet from a nozzle, so waves out of phase are laid over
+ * each other to make the edge waver, and that waver runs forward.
  */
 function breathSpread(at: number, progress: number): number {
   const roll = Math.sin(at * 7.3 - progress * 11) * 0.1 + Math.sin(at * 13.1 + progress * 6.2) * 0.05;
   return (0.4 + at ** 0.8 * 2.1) * (1 + roll);
 }
 
-/** 吸収。対象から発射元へ、光が繰り返し流れ戻る。 */
+/** A drain: light flowing back from the target to the caster, over and over. */
 export function appendDrain(
   sprites: EffectSprite[],
   prefix: string,
@@ -409,13 +409,13 @@ export function appendDrain(
   const source = { x: center.x, y: center.y, z: center.z + base * 0.6 };
   const link = projectDirection(origin.x - source.x, origin.y - source.y, origin.z - source.z, view);
   const radians = (link.angle * Math.PI) / 180;
-  // 膨らみは経路と直交させる。ワールドの y でずらすと、向きによっては
-  // 経路に沿って前後するだけになって弧を描かない。
+  // The swell runs across the path. Offset along the world axis it would, for some
+  // directions, only move back and forth along the path and never arc.
   const acrossX = -Math.sin(radians);
   const acrossY = Math.cos(radians);
 
   for (let mote = 0; mote < DRAIN_MOTE_COUNT; mote++) {
-    // 位相をずらした粒が繰り返し流れることで、吸われ続けている感じになる。
+    // Particles out of phase flowing over and over are what makes it read as being drained.
     const along = (progress * 1.8 + mote / DRAIN_MOTE_COUNT) % 1;
     const swing = Math.sin(along * Math.PI) * base * 0.5 * (mote % 2 === 0 ? 1 : -1);
     const size = base * (0.28 - along * 0.12);
@@ -427,7 +427,7 @@ export function appendDrain(
       z: source.z + (origin.z - source.z) * along,
       offsetX: acrossX * swing,
       offsetY: acrossY * swing,
-      // 流れる向きへ引き伸ばす。丸のままだと点滅しているように見える。
+      // It is drawn out along the flow; left round it merely blinks.
       width: size * 2.2,
       height: size,
       rotate: link.angle,

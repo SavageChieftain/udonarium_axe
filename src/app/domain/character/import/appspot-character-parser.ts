@@ -21,7 +21,7 @@ function isScalar(value: unknown): value is string | number {
   return typeof value === 'string' || (typeof value === 'number' && Number.isFinite(value));
 }
 
-/** トップレベルキー → 日本語見出し。未知のシステム/キーは原文キーのまま見出しにする（情報は落とさない）。 */
+/** The top-level keys and their headings. An unknown system or key keeps its own key as the heading, so nothing is lost. */
 const SECTION_LABELS: Record<string, string> = {
   base: 'プロフィール',
   ability: '能力値',
@@ -62,8 +62,8 @@ function hasCharacterShape(record: Record<string, unknown> | null): boolean {
 }
 
 /**
- * キャラクターシート倉庫 (character-sheets.appspot.com) のキャラクター本体を取り出す。
- * 系統により `data` でラップされる場合とトップレベルに展開される場合があるため吸収する。
+ * Takes the character itself out of the sheet warehouse data.
+ * Some systems wrap it and some do not, and both are read.
  */
 function resolveRoot(parsed: Record<string, unknown>): Record<string, unknown> {
   if (hasCharacterShape(parsed)) return parsed;
@@ -79,8 +79,8 @@ export function isAppspotCharacter(parsed: unknown): boolean {
 }
 
 /**
- * ネストしたオブジェクト/配列を、ドット記法のラベルへ平坦化したフィールド列にする。
- * detail ツリーの深さ制限（section > group > field）に収めつつ全項目を残すための処理。
+ * Flattens nested objects and arrays into fields named with dots.
+ * It keeps everything while fitting the three levels the sheet allows.
  */
 function flattenFields(source: Record<string, unknown>, prefix: string): ImportedField[] {
   const fields: ImportedField[] = [];
@@ -109,7 +109,7 @@ function flattenFields(source: Record<string, unknown>, prefix: string): Importe
   return fields;
 }
 
-/** 配列（武器・コンボ等）の各要素を 1 グループ（行）へ。全 null の空要素はスキップ。 */
+/** Each element of an array becomes one row, and an empty element is passed over. */
 function arrayToGroups(keyLabel: string, array: unknown[]): ImportedGroup[] {
   const groups: ImportedGroup[] = [];
   array.forEach((element, index) => {
@@ -130,7 +130,7 @@ function arrayToGroups(keyLabel: string, array: unknown[]): ImportedGroup[] {
   return groups;
 }
 
-/** オブジェクト（プロフィール等）をセクションへ。スカラーは「基本」グループ、入れ子は個別グループ。 */
+/** An object becomes a section, its scalars in the basic group and each nested part in its own. */
 function objectToSection(
   label: string,
   source: Record<string, unknown>,
@@ -164,7 +164,7 @@ function scalarToSection(label: string, raw: string | number): ImportedSection {
   return { label, groups: [{ label: '基本', fields: [{ label, value: classified.value, kind: classified.kind }] }] };
 }
 
-/** `{ key: { total: number } }` 構造から各キーの total を取り出す（能力値・サブ能力）。 */
+/** Takes the total out of each ability and sub-ability. */
 function collectTotals(container: unknown): { label: string; value: number }[] {
   const record = asRecord(container);
   if (!record) return [];

@@ -1,7 +1,7 @@
 export interface DealPlan {
-  /** 参加者ごとの配布枚数。参加者の並び順に対応する。 */
+  /** How many each player is dealt, in the order the players come. */
   counts: number[];
-  /** 参加者ごとに配るカードの位置（配列の先頭から数えた添字）。 */
+  /** Which cards each player is dealt, by their place in the deck. */
   indexes: number[][];
 }
 

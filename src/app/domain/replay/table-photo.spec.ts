@@ -9,7 +9,7 @@ function members(count: number): TablePhotoMember[] {
 }
 
 describe('buildTablePhotoLayout()', () => {
-  it('誰も居なければ枠を作らないこと', () => {
+  it('builds no frames for nobody', () => {
     const layout = buildTablePhotoLayout([]);
 
     expect(layout.cells).toEqual([]);
@@ -17,7 +17,7 @@ describe('buildTablePhotoLayout()', () => {
     expect(layout.omitted).toBe(0);
   });
 
-  it('枠を紙の中に収めること', () => {
+  it('keeps the frames inside the sheet', () => {
     const layout = buildTablePhotoLayout(members(7));
 
     for (const cell of layout.cells) {
@@ -28,7 +28,7 @@ describe('buildTablePhotoLayout()', () => {
     }
   });
 
-  it('枠を重ねないこと', () => {
+  it('lays no frame over another', () => {
     const layout = buildTablePhotoLayout(members(9));
 
     for (const [index, cell] of layout.cells.entries()) {
@@ -43,7 +43,7 @@ describe('buildTablePhotoLayout()', () => {
     }
   });
 
-  it('欠けた最後の行を中央へ寄せること', () => {
+  it('centres a last row that is not full', () => {
     const layout = buildTablePhotoLayout(members(5));
     const lastRow = layout.cells.slice(layout.columns);
     const left = lastRow[0].x;
@@ -52,26 +52,26 @@ describe('buildTablePhotoLayout()', () => {
     expect(layout.width - right).toBeCloseTo(left, 0);
   });
 
-  it('立ち絵の並びを見出しの下から始めること', () => {
+  it('starts the portraits below the heading', () => {
     const layout = buildTablePhotoLayout(members(4));
 
     for (const cell of layout.cells) expect(cell.y).toBeGreaterThan(layout.subtitle.y);
   });
 
-  it('人数が増えても横に並べすぎないこと', () => {
+  it('puts no more across a row however many there are', () => {
     expect(buildTablePhotoLayout(members(2)).columns).toBe(2);
     expect(buildTablePhotoLayout(members(6)).columns).toBe(3);
     expect(buildTablePhotoLayout(members(16)).columns).toBe(4);
   });
 
-  it('入りきらない分を黙って落とさず、数を返すこと', () => {
+  it('returns the count of who did not fit rather than dropping them in silence', () => {
     const layout = buildTablePhotoLayout(members(30));
 
     expect(layout.cells).toHaveLength(24);
     expect(layout.omitted).toBe(6);
   });
 
-  it('紙の大きさに合わせて寸法を縮めること', () => {
+  it('scales the measurements to the size of the sheet', () => {
     const wide = buildTablePhotoLayout(members(4), TABLE_PHOTO_WIDE);
     const small = buildTablePhotoLayout(members(4), { width: 960, height: 540 });
 

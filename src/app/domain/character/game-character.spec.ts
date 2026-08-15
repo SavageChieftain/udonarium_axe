@@ -27,7 +27,7 @@ describe('GameCharacter', () => {
   // aliasName
   // ----------------------------------------------------------------
   describe('aliasName', () => {
-    it("リテラル型 'character' を返す", () => {
+    it('names itself a character', () => {
       expect(character.aliasName).toBe('character');
     });
   });
@@ -36,11 +36,11 @@ describe('GameCharacter', () => {
   // chatBubbleAltitude
   // ----------------------------------------------------------------
   describe('chatBubbleAltitude', () => {
-    it('初期値は 0', () => {
+    it('starts at nothing', () => {
       expect(character.chatBubbleAltitude).toBe(0);
     });
 
-    it('数値を設定できる', () => {
+    it('takes a number', () => {
       character.chatBubbleAltitude = 120;
       expect(character.chatBubbleAltitude).toBe(120);
     });
@@ -50,25 +50,25 @@ describe('GameCharacter', () => {
   // specifyKomaImageFlag / komaImageHeight
   // ----------------------------------------------------------------
   describe('specifyKomaImageFlag', () => {
-    it('初期値は false', () => {
+    it('starts false', () => {
       expect(character.specifyKomaImageFlag).toBe(false);
     });
   });
 
-  describe('視界 / 照明 (暗闇システム)', () => {
-    it('視界はデフォルトで通常・範囲0・影を落とす', () => {
+  describe('sight and light in the dark', () => {
+    it('starts with ordinary sight, no range and shadows cast', () => {
       expect(character.visionType).toBe(VisionType.NORMAL);
       expect(character.visionRange).toBe(0);
       expect(character.castsShadow).toBe(true);
     });
 
-    it('光源はデフォルト無効・CUSTOM', () => {
+    it('starts unlit and custom', () => {
       expect(character.lightEnabled).toBe(false);
       expect(character.lightPreset).toBe(LightPreset.CUSTOM);
       expect(character.lightAngle).toBe(360);
     });
 
-    it('lightSpec は物理光源として組み立てられる', () => {
+    it('builds the specification as a physical light', () => {
       character.lightEnabled = true;
       character.lightBrightRadius = 3;
       character.lightDimRadius = 6;
@@ -81,7 +81,7 @@ describe('GameCharacter', () => {
       expect(spec.revealToAll).toBe(false);
     });
 
-    it('光の向きはキャラの向き(rotate)に追従し、lightDirection はオフセット', () => {
+    it('turns the light with the character, with its own direction as an offset', () => {
       character.rotate = 90;
       character.lightDirection = 10;
       expect(character.lightSpec.direction).toBe(100);
@@ -91,7 +91,7 @@ describe('GameCharacter', () => {
   });
 
   describe('komaImageHeight', () => {
-    it('初期値は 100', () => {
+    it('starts at a hundred', () => {
       expect(character.komaImageHeight).toBe(100);
     });
   });
@@ -100,34 +100,34 @@ describe('GameCharacter', () => {
   // imageFile null safety
   // ----------------------------------------------------------------
   describe('imageFile', () => {
-    it('imageDataElementが無い場合はImageFile.Emptyを返す', () => {
+    it('returns an empty picture when it carries no image element', () => {
       expect(character.imageFile).toBeDefined();
       expect(character.imageFile.url).toBe('');
     });
   });
 
   // ----------------------------------------------------------------
-  // buffs (キャッシュ)
+  // the buffs, which are cached
   // ----------------------------------------------------------------
   describe('buffs', () => {
-    it('createDataElements後に複数回呼び出しても同一インスタンスを返す', () => {
+    it('returns the same instance however often it is asked', () => {
       character.createDataElements();
       expect(character.buffs).toBe(character.buffs);
     });
   });
 
   // ----------------------------------------------------------------
-  // status (キャッシュ)
+  // the status, which is cached
   // ----------------------------------------------------------------
   describe('status', () => {
-    it('createDataElements後に複数回呼び出しても同一インスタンスを返す', () => {
+    it('returns the same instance however often it is asked', () => {
       character.createDataElements();
       expect(character.status).toBe(character.status);
     });
   });
 
   describe('detail data hierarchy migration', () => {
-    it('セクション直下の既存フィールドを基本グループ配下へ読み替える', () => {
+    it('reads a field directly under a section into the basic group', () => {
       character.createDataElements();
       const detail = character.detailDataElement!;
       const section = DataElement.create('旧セクション', '');
@@ -148,7 +148,7 @@ describe('GameCharacter', () => {
       expect(fieldB.fieldRole).toBe(DataElementRole.FIELD);
     });
 
-    it('既存グループとフィールドが混在する場合は順序を保って読み替える', () => {
+    it('keeps the order when groups and fields are mixed', () => {
       character.createDataElements();
       const detail = character.detailDataElement!;
       const section = DataElement.create('旧セクション', '');
@@ -170,7 +170,7 @@ describe('GameCharacter', () => {
       expect(section.children[2].children.map((child) => child.name)).toEqual(['B']);
     });
 
-    it('グループ内グループは3段階構造として保持する', () => {
+    it('keeps a group inside a group as the third level', () => {
       character.createDataElements();
       const detail = character.detailDataElement!;
       const section = DataElement.create('セクション', '', { role: DataElementRole.SECTION });
@@ -192,7 +192,7 @@ describe('GameCharacter', () => {
       expect(field.fieldRole).toBe(DataElementRole.FIELD);
     });
 
-    it('ロードされた旧XMLもparse時に3層構造へ読み替える', () => {
+    it('reads older saved data into those three levels', () => {
       const xml = `<character>
     <data name="character">
     <data name="image"><data name="imageIdentifier" type="image"></data></data>
@@ -209,7 +209,7 @@ describe('GameCharacter', () => {
       expect(restoredSection.children[0].children.map((child) => child.name)).toEqual(['A']);
     });
 
-    it('ロードされた旧チェック表フィールドをparse時に構造化テーブルへ読み替える', () => {
+    it('reads the older check fields into proper tables', () => {
       const xml = `<character>
     <data name="character">
     <data name="image"><data name="imageIdentifier" type="image"></data></data>
@@ -231,7 +231,7 @@ describe('GameCharacter', () => {
       expect(convertedTable.getAttribute(DataElementAttribute.FIELD_TYPE)).toBe('');
     });
 
-    it('旧ポップアップ表示タグ配列をDataElement属性へ読み替える', () => {
+    it('reads the older pop-up tags onto the elements themselves', () => {
       character.createDataElements();
       const detail = character.detailDataElement!;
       const section = DataElement.create('表示セクション', '', { role: DataElementRole.SECTION });

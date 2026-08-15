@@ -5,7 +5,7 @@ import {
 } from '@axe/domain/character/import/system-profiles/sengen-charasheet-profile';
 
 describe('buildSengenCharasheetCharacter', () => {
-  // charasheet.vampire-blood.net の 千幻抄（game="sengen"）実データに即した構造
+  // built from real data of one system at the archive
   const sengen = {
     pc_name: '香織',
     game: 'sengen',
@@ -25,12 +25,12 @@ describe('buildSengenCharasheetCharacter', () => {
     return sections.find((section) => section.label === label);
   }
 
-  it('game="sengen" を判別する', () => {
+  it('recognises the system', () => {
     expect(isSengenCharasheetCharacter(sengen)).toBe(true);
     expect(isSengenCharasheetCharacter({ pc_name: 'X', game: 'coc' })).toBe(false);
   });
 
-  it('5 能力値（身体/耐久/知性/感覚/意志）と dicebot Sengensyou を取り込む', () => {
+  it('takes its five abilities and the dice bot', () => {
     const result = buildSengenCharasheetCharacter(sengen)!;
     expect(result.dicebot).toBe('Sengensyou');
     expect(result.params).toEqual([
@@ -42,14 +42,14 @@ describe('buildSengenCharasheetCharacter', () => {
     ]);
   });
 
-  it('妖術・魔法を名前付きで展開し、系統コードを権威マップで変換する', () => {
+  it('spreads the arts and the spells with their names, reading each family code through the map', () => {
     const result = buildSengenCharasheetCharacter(sengen)!;
     const spells = findSection(result.sections, '妖術・魔法')!;
     expect(spells.groups[0].label).toBe('火炎の術');
     expect(spells.groups[0].fields).toContainEqual({ label: '系統', value: '妖術', kind: 'text' });
   });
 
-  it('チャットパレットに SGS+能力値 の判定を生成する（3D6系）', () => {
+  it('builds the roll of that system, on three dice, into the palette', () => {
     const result = buildSengenCharasheetCharacter(sengen)!;
     expect(result.commands).toContain('SGS+5 【身体判定】');
     expect(result.commands).toContain('SGS+7 【耐久判定】');

@@ -3,7 +3,7 @@ export interface ExpiredBuffEntry {
   buffNames: string[];
 }
 
-/** 失効したバフを「誰の何が切れたか」の 1 行にまとめる。 */
+/** Gathers the buffs that ran out into one line: whose, and which. */
 export function formatExpiredBuffs(entries: ExpiredBuffEntry[]): string {
   return entries
     .filter((entry) => entry.buffNames.length > 0)

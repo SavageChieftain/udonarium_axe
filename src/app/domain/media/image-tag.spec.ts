@@ -20,43 +20,43 @@ describe('ImageTag', () => {
   });
 
   describe('create()', () => {
-    it('imageIdentifierを指定して作成する', () => {
+    it('is created against an image identifier', () => {
       const tag = ImageTag.create('img001');
       expect(tag).toBeTruthy();
       expect(tag.imageIdentifier).toBe('img001');
     });
 
-    it('identifierが"imagetag_"接頭辞を持つ', () => {
+    it('carries the image tag prefix in its identifier', () => {
       const tag = ImageTag.create('img001');
       expect(tag.identifier).toBe('imagetag_img001');
     });
 
-    it('ObjectStoreに追加される', () => {
+    it('is added to the store', () => {
       const tag = ImageTag.create('img001');
       expect(store.get(tag.identifier)).toBe(tag);
     });
   });
 
   describe('get()', () => {
-    it('imageIdentifierでImageTagを取得する', () => {
+    it('looks a tag up by its image identifier', () => {
       ImageTag.create('img001');
       const found = ImageTag.get('img001');
       expect(found).toBeTruthy();
       expect(found.imageIdentifier).toBe('img001');
     });
 
-    it('存在しないIDの場合nullを返す', () => {
+    it('returns nothing for an identifier that is not there', () => {
       expect(ImageTag.get('nonexistent')).toBeFalsy();
     });
   });
 
   describe('SyncVar', () => {
-    it('tag がデフォルト空文字', () => {
+    it('starts untagged', () => {
       const tag = ImageTag.create('img001');
       expect(tag.tag).toBe('');
     });
 
-    it('tagを設定できる', () => {
+    it('takes a tag', () => {
       const tag = ImageTag.create('img001');
       tag.tag = 'モンスター 森';
       expect(tag.tag).toBe('モンスター 森');
@@ -64,19 +64,19 @@ describe('ImageTag', () => {
   });
 
   describe('containsWords()', () => {
-    it('全てのワードを含む場合trueを返す', () => {
+    it('is true when every word is there', () => {
       const tag = ImageTag.create('img001');
       tag.tag = 'モンスター 森 ボス';
       expect(tag.containsWords(['モンスター', '森'])).toBe(true);
     });
 
-    it('一部のワードが含まれない場合falseを返す', () => {
+    it('is false when one is missing', () => {
       const tag = ImageTag.create('img001');
       tag.tag = 'モンスター 森';
       expect(tag.containsWords(['モンスター', '海'])).toBe(false);
     });
 
-    it('空配列の場合trueを返す', () => {
+    it('is true for no words at all', () => {
       const tag = ImageTag.create('img001');
       tag.tag = 'anything';
       expect(tag.containsWords([])).toBe(true);

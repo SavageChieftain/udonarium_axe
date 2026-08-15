@@ -9,14 +9,14 @@ function circle(x: number, y: number, dimPx: number) {
 }
 
 describe('isPointInLitShape', () => {
-  it('半径の内側だけを照らす', () => {
+  it('lights only what falls inside the radius', () => {
     const shape = circle(100, 100, 50);
     expect(isPointInLitShape(shape, 100, 100)).toBe(true);
     expect(isPointInLitShape(shape, 140, 100)).toBe(true);
     expect(isPointInLitShape(shape, 160, 100)).toBe(false);
   });
 
-  it('扇形は向きと開き角で切る', () => {
+  it('cuts a wedge by its direction and its spread', () => {
     const cone = { x: 0, y: 0, dimPx: 100, angle: 90, direction: 0 };
     expect(isPointInLitShape(cone, 50, 0)).toBe(true);
     expect(isPointInLitShape(cone, 50, 40)).toBe(true);
@@ -24,13 +24,13 @@ describe('isPointInLitShape', () => {
     expect(isPointInLitShape(cone, -50, 0)).toBe(false);
   });
 
-  it('向きが 180 度をまたいでも判定できる', () => {
+  it('works across the half turn', () => {
     const cone = { x: 0, y: 0, dimPx: 100, angle: 90, direction: 180 };
     expect(isPointInLitShape(cone, -50, 0)).toBe(true);
     expect(isPointInLitShape(cone, 50, 0)).toBe(false);
   });
 
-  it('遮蔽ポリゴンの外は照らさない', () => {
+  it('lights nothing beyond an obstacle', () => {
     const shape = {
       ...circle(0, 0, 100),
       clipPolygon: [
@@ -46,7 +46,7 @@ describe('isPointInLitShape', () => {
 });
 
 describe('isPointInPolygon', () => {
-  it('内側と外側を判定する', () => {
+  it('tells the inside from the outside', () => {
     const square = [
       { x: 0, y: 0 },
       { x: 10, y: 0 },
@@ -59,11 +59,11 @@ describe('isPointInPolygon', () => {
 });
 
 describe('computeLitCells', () => {
-  it('照明が無ければセルを返さない', () => {
+  it('returns no cells without a light', () => {
     expect(computeLitCells([], 50, GridType.SQUARE, BOUNDS)).toEqual([]);
   });
 
-  it('スクウェアではセル中心が光の内側のマスだけを返す', () => {
+  it('returns the squares whose centres the light reaches', () => {
     const cells = computeLitCells([circle(25, 25, 30)], 50, GridType.SQUARE, BOUNDS);
 
     expect(cells).toHaveLength(1);
@@ -75,29 +75,29 @@ describe('computeLitCells', () => {
     ]);
   });
 
-  it('中心が届かないマスは含めない', () => {
+  it('leaves out those it does not', () => {
     const cells = computeLitCells([circle(25, 25, 60)], 50, GridType.SQUARE, BOUNDS);
     expect(cells).toHaveLength(3);
   });
 
-  it('重なった照明でもマスは重複しない', () => {
+  it('returns a cell once however many lights reach it', () => {
     const cells = computeLitCells([circle(25, 25, 30), circle(30, 30, 30)], 50, GridType.SQUARE, BOUNDS);
     expect(cells).toHaveLength(1);
   });
 
-  it('テーブルの外へはみ出さない', () => {
+  it('never runs off the table', () => {
     const cells = computeLitCells([circle(0, 0, 200)], 50, GridType.SQUARE, { widthPx: 100, heightPx: 100 });
     expect(cells).toHaveLength(4);
   });
 
-  it('ヘクスでは六角形の頂点を返す', () => {
+  it('returns the corners of a hex on a hex grid', () => {
     const cells = computeLitCells([circle(0, 0, 10)], 50, GridType.HEX_VERTICAL, BOUNDS);
 
     expect(cells).toHaveLength(1);
     expect(cells[0]).toHaveLength(6);
   });
 
-  it('グリッドサイズが 0 なら何も返さない', () => {
+  it('returns nothing for a cell of no size', () => {
     expect(computeLitCells([circle(25, 25, 30)], 0, GridType.SQUARE, BOUNDS)).toEqual([]);
   });
 });

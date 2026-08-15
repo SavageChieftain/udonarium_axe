@@ -29,38 +29,38 @@ describe('ChatTabList', () => {
   });
 
   describe('instance (singleton)', () => {
-    it('シングルトンインスタンスを返す', () => {
+    it('returns the one instance', () => {
       const instance1 = ChatTabList.instance;
       const instance2 = ChatTabList.instance;
       expect(instance1).toBe(instance2);
     });
 
-    it('identifierが"ChatTabList"', () => {
+    it('identifies itself as the tab list', () => {
       expect(ChatTabList.instance.identifier).toBe('ChatTabList');
     });
   });
 
-  describe('SyncVar デフォルト値', () => {
-    it('systemMessageTabIndex がデフォルト 0', () => {
+  describe('the defaults of the synchronised fields', () => {
+    it('starts sending the system messages to the first tab', () => {
       expect(ChatTabList.instance.systemMessageTabIndex).toBe(0);
     });
   });
 
   describe('chatTabs', () => {
-    it('初期状態では空配列', () => {
+    it('starts empty', () => {
       expect(ChatTabList.instance.chatTabs).toEqual([]);
     });
   });
 
   describe('addChatTab()', () => {
-    it('名前でChatTabを追加する', () => {
+    it('adds a tab by name', () => {
       const tab = ChatTabList.instance.addChatTab('テストタブ');
       expect(tab).toBeTruthy();
       expect(tab.name).toBe('テストタブ');
       expect(ChatTabList.instance.chatTabs).toHaveLength(1);
     });
 
-    it('ChatTabインスタンスを追加する', () => {
+    it('adds one it is given', () => {
       const tab = new ChatTab();
       tab.name = 'テスト';
       tab.initialize();
@@ -68,18 +68,18 @@ describe('ChatTabList', () => {
       expect(ChatTabList.instance.chatTabs).toHaveLength(1);
     });
 
-    it('identifierを指定してChatTabを追加する', () => {
+    it('adds one against an identifier', () => {
       const tab = ChatTabList.instance.addChatTab('タブ', 'custom-tab-id');
       expect(tab.identifier).toBe('custom-tab-id');
     });
   });
 
   describe('systemMessageTab', () => {
-    it('chatTabsが空の場合nullを返す', () => {
+    it('returns nothing while there are no tabs', () => {
       expect(ChatTabList.instance.systemMessageTab).toBeFalsy();
     });
 
-    it('指定インデックスのタブを返す', () => {
+    it('returns the tab at an index', () => {
       ChatTabList.instance.addChatTab('メイン');
       ChatTabList.instance.addChatTab('サブ');
       ChatTabList.instance.systemMessageTabIndex = 1;
@@ -87,41 +87,41 @@ describe('ChatTabList', () => {
     });
   });
 
-  describe('portrait設定', () => {
-    it('portraitHeight のデフォルトは200', () => {
+  describe('the portrait settings', () => {
+    it('starts at the default height', () => {
       expect(ChatTabList.instance.portraitHeight).toBe(200);
     });
 
-    it('minPortraitSize のデフォルトは100', () => {
+    it('starts at the default smallest size', () => {
       expect(ChatTabList.instance.minPortraitSize).toBe(100);
     });
 
-    it('maxPortraitSize のデフォルトは500', () => {
+    it('starts at the default largest', () => {
       expect(ChatTabList.instance.maxPortraitSize).toBe(500);
     });
 
-    it('isPortraitInWindow のデフォルトはfalse', () => {
+    it('starts with the portrait outside the window', () => {
       expect(ChatTabList.instance.isPortraitInWindow).toBe(false);
     });
   });
 
   describe('simpleDispFlag', () => {
-    it('simpleDispFlagTime のデフォルトは0', () => {
+    it('starts with the simple time display off', () => {
       expect(ChatTabList.instance.simpleDispFlagTime).toBe(0);
     });
 
-    it('simpleDispFlagTime を設定できる', () => {
+    it('takes the simple time display', () => {
       ChatTabList.instance.simpleDispFlagTime = 1;
       expect(ChatTabList.instance.simpleDispFlagTime).toBe(1);
     });
 
-    it('simpleDispFlagUserId のデフォルトは0', () => {
+    it('starts with the simple user display off', () => {
       expect(ChatTabList.instance.simpleDispFlagUserId).toBe(0);
     });
   });
 
-  describe('システムタブ', () => {
-    it('用意すると専用の identifier で 1 枚だけ増えること', () => {
+  describe('the system tab', () => {
+    it('adds exactly one, under its own identifier', () => {
       const list = ChatTabList.instance;
       list.addChatTab('メイン');
 
@@ -132,28 +132,28 @@ describe('ChatTabList', () => {
       expect(list.chatTabs.filter((tab) => tab.isSystemTab)).toHaveLength(1);
     });
 
-    it('名前を変えてもシステムタブのままであること', () => {
+    it('stays the system tab through a rename', () => {
       const list = ChatTabList.instance;
       const system = list.ensureSystemTab();
       system.name = 'お知らせ';
 
-      // 見分けは identifier で付ける。名前で見ると、改名した途端に別物になる。
+      // It is known by its identifier; known by its name, a rename would make it something else.
       expect(system.isSystemTab).toBe(true);
       expect(list.systemMessageTab).toBe(system);
     });
 
-    it('システムメッセージの行き先を専用タブにすること', () => {
+    it('sends the system messages to that tab', () => {
       const list = ChatTabList.instance;
       const main = list.addChatTab('メイン');
       const system = list.ensureSystemTab();
       list.systemMessageTabIndex = 0;
 
-      // 番号の指定より専用タブが優先される。
+      // It wins over the tab named by number.
       expect(list.systemMessageTab).toBe(system);
       expect(list.systemMessageTab).not.toBe(main);
     });
 
-    it('専用タブが無い部屋では今までどおり番号で決めること', () => {
+    it('falls back to that number in a room that has none', () => {
       const list = ChatTabList.instance;
       list.addChatTab('メイン');
       const sub = list.addChatTab('サブ');
@@ -162,7 +162,7 @@ describe('ChatTabList', () => {
       expect(list.systemMessageTab).toBe(sub);
     });
 
-    it('会話のタブにシステムタブを混ぜないこと', () => {
+    it('keeps it out of the conversation tabs', () => {
       const list = ChatTabList.instance;
       const main = list.addChatTab('メイン');
       list.ensureSystemTab();
@@ -170,7 +170,7 @@ describe('ChatTabList', () => {
       expect(list.spokenChatTabs).toEqual([main]);
     });
 
-    it('システムタブでは発言できない形にすること', () => {
+    it('leaves nobody able to speak in it', () => {
       const system = ChatTabList.instance.ensureSystemTab();
 
       expect(system.plCanSpeak).toBe(false);
@@ -179,7 +179,7 @@ describe('ChatTabList', () => {
       expect(canRoleSpeakTab(system, PeerRole.GameMaster)).toBe(false);
     });
 
-    it('発言できる形に書き換えられていても整え直すこと', () => {
+    it('sets it right again when it has been made speakable', () => {
       const list = ChatTabList.instance;
       const system = list.ensureSystemTab();
       system.plCanSpeak = true;
@@ -191,7 +191,7 @@ describe('ChatTabList', () => {
       expect(system.name).toBe(SYSTEM_CHAT_TAB_NAME);
     });
 
-    it('部屋データにシステムタブを書き出さないこと', () => {
+    it('keeps it out of the room data', () => {
       const list = ChatTabList.instance;
       list.addChatTab('メイン');
       list.ensureSystemTab();
@@ -202,7 +202,7 @@ describe('ChatTabList', () => {
       expect(xml).not.toContain(`name="${SYSTEM_CHAT_TAB_NAME}"`);
     });
 
-    it('部屋データを読み込んでもシステムタブが 1 枚だけ生き残ること', () => {
+    it('leaves exactly one of it after a room is loaded', () => {
       const reloadCheck = new ReloadCheck('ReloadCheck');
       reloadCheck.initialize();
       reloadCheck.reloadCheckStart(false);
@@ -211,7 +211,7 @@ describe('ChatTabList', () => {
       list.addChatTab('メインタブ', 'MainTab');
       const system = list.ensureSystemTab();
 
-      // 古い部屋データはタブに identifier を持たない。読み込むたびに作り直しになる。
+      // Older room data gives its tabs no identifier, so each load builds them afresh.
       ObjectSerializer.instance.parseXml(
         '<chat-tab-list _systemMessageTabIndex="0">' +
           '<chat-tab name="Main" plCanView="true" plCanSpeak="true"></chat-tab>' +
@@ -226,7 +226,7 @@ describe('ChatTabList', () => {
       expect(ChatTabList.instance.chatTabs.map((tab) => tab.name)).toEqual(['Main', 'Sub', SYSTEM_CHAT_TAB_NAME]);
     });
 
-    it('システムタブを持ち出していた頃の部屋データは知らせを 1 枚にまとめ直すこと', () => {
+    it('gathers the notices back into one tab from room data written while it was still exported', () => {
       const reloadCheck = new ReloadCheck('ReloadCheck');
       reloadCheck.initialize();
       reloadCheck.reloadCheckStart(false);
@@ -246,7 +246,7 @@ describe('ChatTabList', () => {
       expect(ChatTabList.instance.systemMessageTab!.isSystemTab).toBe(true);
     });
 
-    it('同じ部屋データを続けて読み込んでも壊れないこと', () => {
+    it('survives the same room data being loaded twice over', () => {
       const reloadCheck = new ReloadCheck('ReloadCheck');
       reloadCheck.initialize();
       reloadCheck.reloadCheckStart(false);
@@ -263,7 +263,7 @@ describe('ChatTabList', () => {
       for (const tab of tabs) expect(store.get(tab.identifier)).toBe(tab);
     });
 
-    it('全タブの書き出しにシステムタブを入れないこと', () => {
+    it('keeps it out of an export of every tab', () => {
       const list = ChatTabList.instance;
       const main = list.addChatTab('メイン');
       const system = list.ensureSystemTab();

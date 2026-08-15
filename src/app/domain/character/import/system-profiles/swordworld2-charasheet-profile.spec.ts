@@ -5,7 +5,7 @@ import {
 } from '@axe/domain/character/import/system-profiles/swordworld2-charasheet-profile';
 
 describe('buildSwordWorld2CharasheetCharacter', () => {
-  // charasheet.vampire-blood.net の ソードワールド2.0（game="swordworld2"）実データに即した構造
+  // built from real data of a later edition at the archive
   const sw20 = {
     pc_name: 'ルゥ',
     game: 'swordworld2',
@@ -36,12 +36,12 @@ describe('buildSwordWorld2CharasheetCharacter', () => {
     return sections.find((section) => section.label === label);
   }
 
-  it('game="swordworld2" を判別する', () => {
+  it('recognises the edition', () => {
     expect(isSwordWorld2CharasheetCharacter(sw20)).toBe(true);
     expect(isSwordWorld2CharasheetCharacter({ pc_name: 'X', game: 'swordworld' })).toBe(false);
   });
 
-  it('能力ボーナス（標準順）・HP/MP・dicebot を取り込む', () => {
+  it('takes the ability bonuses in their usual order, the two resources and the dice bot', () => {
     const result = buildSwordWorld2CharasheetCharacter(sw20)!;
     expect(result.dicebot).toBe('SwordWorld2.0');
     expect(result.params).toContainEqual({ label: '器用B', value: '2' });
@@ -51,7 +51,7 @@ describe('buildSwordWorld2CharasheetCharacter', () => {
     expect(result.statuses).toContainEqual({ label: 'MP', value: 20, max: 20 });
   });
 
-  it('技能・武器を名前付きで展開する', () => {
+  it('spreads the skills and the weapons with their names', () => {
     const result = buildSwordWorld2CharasheetCharacter(sw20)!;
     expect(findSection(result.sections, '技能')!.groups.map((group) => group.label)).toEqual(['魔法拡大/数', '鷹の目']);
     const weapon = findSection(result.sections, '武器')!.groups[0];
@@ -59,7 +59,7 @@ describe('buildSwordWorld2CharasheetCharacter', () => {
     expect(weapon.fields).toContainEqual({ label: '威力', value: 11, kind: 'number' });
   });
 
-  it('チャットパレットに能力判定と K式の打撃を生成する', () => {
+  it('builds the ability rolls and the damage rolls into the palette', () => {
     const result = buildSwordWorld2CharasheetCharacter(sw20)!;
     expect(result.commands).toContain('2d6+{器用B} 【器用判定】');
     expect(result.commands).toContain('K11@12+2 【メイジスタッフ 打撃】');

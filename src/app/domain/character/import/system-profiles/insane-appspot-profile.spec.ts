@@ -5,7 +5,7 @@ import {
 } from '@axe/domain/character/import/system-profiles/insane-appspot-profile';
 
 describe('buildInsaneAppspotCharacter', () => {
-  // character-sheets.appspot.com の insane（インセイン）実データに即した構造
+  // built from real data of one system at the warehouse
   const insane = {
     base: {
       name: '夜中 深夜',
@@ -35,12 +35,12 @@ describe('buildInsaneAppspotCharacter', () => {
     return section.groups.find((group) => group.label === groupLabel)?.fields ?? [];
   }
 
-  it('倉庫 インセインの構造を判別する', () => {
+  it('recognises the system', () => {
     expect(isInsaneAppspotCharacter(insane)).toBe(true);
     expect(isInsaneAppspotCharacter({ kind: 'character' })).toBe(false);
   });
 
-  it('名前・メモ・dicebot を取り込む', () => {
+  it('takes the name, the notes and the dice bot', () => {
     const result = buildInsaneAppspotCharacter(insane)!;
     expect(result.sourceFormat).toBe('appspot');
     expect(result.name).toBe('夜中 深夜');
@@ -48,34 +48,34 @@ describe('buildInsaneAppspotCharacter', () => {
     expect(result.dicebot).toBe('Insane');
   });
 
-  it('アビリティを指定特技つきの名前付きグループに展開する（空はスキップ）', () => {
+  it('spreads the abilities into named groups with the skill each calls for, passing over the empty ones', () => {
     const result = buildInsaneAppspotCharacter(insane)!;
     const abilities = findSection(result.sections, 'アビリティ')!;
     expect(abilities.groups.map((group) => group.label)).toEqual(['基本攻撃']);
     expect(findGroupFields(abilities, '基本攻撃')).toContainEqual({ label: '指定特技', value: '殴打', kind: 'text' });
   });
 
-  it('プロフィールを日本語ラベルで展開する', () => {
+  it('spreads the profile under readable labels', () => {
     const result = buildInsaneAppspotCharacter(insane)!;
     const profile = findSection(result.sections, 'プロフィール')!;
     expect(findGroupFields(profile, '基本')).toContainEqual({ label: 'カバー', value: '高校生', kind: 'text' });
     expect(findGroupFields(profile, '基本')).toContainEqual({ label: '好奇心', value: '怪異', kind: 'text' });
   });
 
-  it('特技表（GAP表）をインセインの正式特技表で構築し、learned/ギャップを反映する', () => {
+  it('builds the gapped skill table from that systems own, marking what was learnt and where the gaps fall', () => {
     const result = buildInsaneAppspotCharacter(insane)!;
     const table = result.skillTables[0];
     expect(table.categories).toEqual(['暴力', '情動', '知覚', '技術', '知識', '怪異']);
-    // 暴力の2行目（row1）＝拷問
+    // one row of one column
     expect(table.skillsByCategory[0][1]).toBe('拷問');
     expect(table.checked![0][1]).toBe(true);
-    // 技術(列3)の3行目（row2）＝整理
+    // another row of another
     expect(table.skillsByCategory[3][2]).toBe('整理');
     expect(table.checked![3][2]).toBe(true);
     expect(table.gaps).toEqual([true, false, false, false, false, true]);
   });
 
-  it('チャットパレットは Insane の 2D6>=5 でアビリティ（指定特技つき）の判定を生成する', () => {
+  it('builds the ability rolls of that system into the palette, each with the skill it calls for', () => {
     const result = buildInsaneAppspotCharacter(insane)!;
     expect(result.commands).toContain('2D6>=5 【判定】');
     expect(result.commands).toContain('2D6>=5 【基本攻撃／殴打】');

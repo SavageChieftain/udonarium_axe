@@ -1,7 +1,7 @@
 import { parseAppspotCharacterForSystem } from '@axe/domain/character/import/system-profiles/appspot-profiles';
 
 describe('PF_APPSPOT_SYSTEMS (registry-driven psycho-fiction imports)', () => {
-  it('helltv（キルデスビジネス）を特技表・アビリティ・dicebot つきで取り込む', () => {
+  it('takes one system with its skill table, its abilities and its dice bot', () => {
     const result = parseAppspotCharacterForSystem(
       {
         base: { name: '殺し屋' },
@@ -16,7 +16,7 @@ describe('PF_APPSPOT_SYSTEMS (registry-driven psycho-fiction imports)', () => {
 
     const table = result.skillTables[0];
     expect(table.categories).toEqual(['職業', '動作', '小道具', '衣装', '情動', '願望']);
-    // 職業の6行目（row5）＝悪漢
+    // one row of the occupation column
     expect(table.skillsByCategory[0][5]).toBe('悪漢');
     expect(table.checked![0][5]).toBe(true);
     expect(table.gaps).toEqual([true, false, false, false, false, false]);
@@ -24,7 +24,7 @@ describe('PF_APPSPOT_SYSTEMS (registry-driven psycho-fiction imports)', () => {
     expect(result.commands).toContain('2D6>=5 【必殺技／撃つ】');
   });
 
-  it('hm（ハンターズムーン）を body-part 特技表・アビリティ・dicebot つきで取り込む', () => {
+  it('takes another, whose skill table is laid out by body part', () => {
     const result = parseAppspotCharacterForSystem(
       {
         base: { name: 'ハンター' },
@@ -41,7 +41,7 @@ describe('PF_APPSPOT_SYSTEMS (registry-driven psycho-fiction imports)', () => {
     expect(result.commands).toContain('2D6>=5 【噛みつき／噛む】');
   });
 
-  it('cardranker（カードランカー）は cardlist/skill を指定特技として扱う', () => {
+  it('reads the skill a card calls for from its own key in a third', () => {
     const result = parseAppspotCharacterForSystem(
       {
         base: { name: 'ランカー' },
@@ -56,7 +56,7 @@ describe('PF_APPSPOT_SYSTEMS (registry-driven psycho-fiction imports)', () => {
     expect(result.commands).toContain('2D6>=5 【白竜ブレス／白竜】');
   });
 
-  it('kancolle（艦これRPG）を特技表・能力・装備つきで取り込み、装備配列を落とさない', () => {
+  it('takes a fourth with its skill table, its abilities and its equipment, losing none of the last', () => {
     const result = parseAppspotCharacterForSystem(
       {
         base: { name: '不知火', nameKana: '駆逐艦', level: '1', actionpoint: '17' },
@@ -78,13 +78,13 @@ describe('PF_APPSPOT_SYSTEMS (registry-driven psycho-fiction imports)', () => {
     expect(table.checked![1][1]).toBe(true); // 魅力 row1
     expect(table.gaps).toEqual([false, false, false, false, true, false]);
 
-    // 能力・装備の両方がセクション化され、装備（outfits）を取りこぼさない
+    // both become sections, and the equipment survives
     expect(result.sections.some((section) => section.label === '能力')).toBe(true);
     const outfits = result.sections.find((section) => section.label === '装備')!;
     expect(outfits.groups[0].label).toBe('小口径主砲');
   });
 
-  it('starrydolls（スタリィドール）は spells/skill を指定特技として扱う', () => {
+  it('reads the skill a spell calls for from its own key in a fifth', () => {
     const result = parseAppspotCharacterForSystem(
       {
         base: { name: '星子' },

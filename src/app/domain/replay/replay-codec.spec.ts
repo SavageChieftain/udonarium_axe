@@ -45,11 +45,11 @@ const chatEvent: ReplayEvent = {
 };
 
 describe('isSupportedReplayFormat()', () => {
-  it('現在の書式を受け入れること', () => {
+  it('takes the current format', () => {
     expect(isSupportedReplayFormat(REPLAY_FORMAT_VERSION)).toBe(true);
   });
 
-  it('未来の書式や壊れた値を拒むこと', () => {
+  it('turns away a later format and a broken value', () => {
     expect(isSupportedReplayFormat(REPLAY_FORMAT_VERSION + 1)).toBe(false);
     expect(isSupportedReplayFormat(0)).toBe(false);
     expect(isSupportedReplayFormat('1')).toBe(false);
@@ -58,28 +58,28 @@ describe('isSupportedReplayFormat()', () => {
 });
 
 describe('encodeReplayEvents() / decodeReplayEvents()', () => {
-  it('イベント列を往復できること', () => {
+  it('makes the round trip with a run of events', () => {
     const decoded = decodeReplayEvents(encodeReplayEvents([moveEvent, chatEvent]));
     expect(decoded).toEqual([moveEvent, chatEvent]);
   });
 
-  it('省略された項目を復元後も生やさないこと', () => {
+  it('grows no field that was left out', () => {
     const decoded = decodeReplayEvents(encodeReplayEvents([chatEvent]));
     expect('targetId' in decoded[0]).toBe(false);
     expect('patch' in decoded[0]).toBe(false);
     expect('merged' in decoded[0]).toBe(false);
   });
 
-  it('空の列を往復できること', () => {
+  it('makes it with an empty run', () => {
     expect(decodeReplayEvents(encodeReplayEvents([]))).toEqual([]);
   });
 
-  it('未対応の書式では空を返すこと', () => {
+  it('returns nothing for a format it does not support', () => {
     const future = encode({ v: REPLAY_FORMAT_VERSION + 1, events: [moveEvent] });
     expect(decodeReplayEvents(future)).toEqual([]);
   });
 
-  it('中身が壊れていても落ちないこと', () => {
+  it('does not fall over on broken contents', () => {
     expect(decodeReplayEvents(encode({ v: REPLAY_FORMAT_VERSION }))).toEqual([]);
     expect(decodeReplayEvents(encode(null))).toEqual([]);
   });
@@ -106,23 +106,23 @@ describe('encodeReplayManifest() / decodeReplayManifest()', () => {
     chunks: [{ index: 0, seqStart: 1, seqEnd: 40, eventCount: 40, byteSize: 900 }],
   };
 
-  it('目録を往復できること', () => {
+  it('makes the round trip with the catalogue', () => {
     expect(decodeReplayManifest(encodeReplayManifest(manifest))).toEqual(manifest);
   });
 
-  it('未対応の書式では null を返すこと', () => {
+  it('returns nothing for a format it does not support', () => {
     const future = encode({ v: REPLAY_FORMAT_VERSION + 1, manifest });
     expect(decodeReplayManifest(future)).toBeNull();
   });
 });
 
-describe('壊れた記録の読み込み', () => {
-  it('形の合わない出来事を落とすこと', () => {
+describe('reading a broken recording', () => {
+  it('drops an event of the wrong shape', () => {
     const bytes = encode({ v: REPLAY_FORMAT_VERSION, events: [{ seq: 1 }, null, 'x', { kind: 'chat.message' }] });
     expect(decodeReplayEvents(bytes)).toEqual([]);
   });
 
-  it('欠けている項目を既定で埋めること', () => {
+  it('fills a missing field in with its default', () => {
     const bytes = encode({
       v: REPLAY_FORMAT_VERSION,
       events: [{ seq: 1, kind: ReplayEventKind.ChatMessage, patch: 'こわれている' }],
@@ -136,7 +136,7 @@ describe('壊れた記録の読み込み', () => {
     expect(event.patch).toBeUndefined();
   });
 
-  it('宛先つきの秘匿を保つこと', () => {
+  it('keeps a hidden event addressed as it was', () => {
     const bytes = encode({
       v: REPLAY_FORMAT_VERSION,
       events: [
@@ -150,12 +150,12 @@ describe('壊れた記録の読み込み', () => {
     expect(gmOnly).toEqual(expect.objectContaining({ visibility: { kind: 'gm-only' } }));
   });
 
-  it('目録の形が合わなければ読まないこと', () => {
+  it('reads no catalogue of the wrong shape', () => {
     expect(decodeReplayManifest(encode({ v: REPLAY_FORMAT_VERSION, manifest: null }))).toBeNull();
     expect(decodeReplayManifest(encode({ v: REPLAY_FORMAT_VERSION, manifest: { formatVersion: 99 } }))).toBeNull();
   });
 
-  it('目録の欠けた一覧を空で埋めること', () => {
+  it('fills a missing list in as empty', () => {
     const bytes = encode({
       v: REPLAY_FORMAT_VERSION,
       manifest: { formatVersion: REPLAY_FORMAT_VERSION, roomName: 7, endedAt: 'まだ' },

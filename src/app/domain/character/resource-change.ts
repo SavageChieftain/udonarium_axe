@@ -10,8 +10,8 @@ export interface ResourceSnapshot {
   max: number;
   inverted?: boolean;
   /**
-   * この端末がその項目を変えた回数。
-   * 読み込みや同期で入ってきた値では増えないので、本物の増減と区別できる。
+   * How often this end has changed that field.
+   * A value arriving by load or sync does not count, which is how a real change is told apart.
    */
   changedBySelf?: number;
 }
@@ -47,7 +47,7 @@ export function diffResourceSnapshots(
     const previous = before.get(identifier);
     if (!previous) continue;
 
-    // 自分が変えたときだけ拾う。読み込みや同期で入れ替わった値は増減ではない。
+    // Only what you changed counts; a value replaced by a load or a sync is no change.
     if ((next.changedBySelf ?? 0) <= (previous.changedBySelf ?? 0)) continue;
 
     const delta = next.current - previous.current + (next.max - previous.max);

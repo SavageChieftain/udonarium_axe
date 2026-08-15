@@ -29,8 +29,8 @@ describe('ChatMessage', () => {
     vi.restoreAllMocks();
   });
 
-  describe('SyncVar デフォルト値', () => {
-    it('fixd がデフォルト false', () => {
+  describe('the defaults of the synchronised fields', () => {
+    it('starts unedited', () => {
       const msg = new ChatMessage();
       msg.initialize();
       expect(msg.fixd).toBe(false);
@@ -38,7 +38,7 @@ describe('ChatMessage', () => {
   });
 
   describe('text getter/setter', () => {
-    it('テキストを設定・取得できる', () => {
+    it('holds its text', () => {
       const msg = new ChatMessage();
       msg.initialize();
       msg.text = 'テストメッセージ';
@@ -47,7 +47,7 @@ describe('ChatMessage', () => {
   });
 
   describe('attachmentImageIdentifierList', () => {
-    it('JSON文字列から添付画像ID一覧を取得できる', () => {
+    it('reads the attached pictures out of the field', () => {
       const msg = new ChatMessage();
       msg.initialize();
       msg.attachmentImageIdentifiers = JSON.stringify(['image-a', ' image-b ']);
@@ -57,14 +57,14 @@ describe('ChatMessage', () => {
   });
 
   describe('timestamp', () => {
-    it('attributeが未設定の場合1を返す', () => {
+    it('returns one when the attribute is unset', () => {
       const msg = new ChatMessage();
       msg.initialize();
       const ts = msg.timestamp;
       expect(typeof ts).toBe('number');
     });
 
-    it('attributeに設定した値を返す', () => {
+    it('returns the value it is given', () => {
       const msg = new ChatMessage();
       msg.initialize();
       msg.setAttribute('timestamp', 1234567890);
@@ -73,14 +73,14 @@ describe('ChatMessage', () => {
   });
 
   describe('sendTo', () => {
-    it('toが空の場合空配列', () => {
+    it('returns nobody for an empty address', () => {
       const msg = new ChatMessage();
       msg.initialize();
       msg.to = '';
       expect(msg.sendTo).toEqual([]);
     });
 
-    it('スペース区切りで分割される', () => {
+    it('reads them apart by their spaces', () => {
       const msg = new ChatMessage();
       msg.initialize();
       msg.to = 'user1 user2';
@@ -89,14 +89,14 @@ describe('ChatMessage', () => {
   });
 
   describe('tags', () => {
-    it('tagが空の場合空配列', () => {
+    it('returns nothing for an empty tag', () => {
       const msg = new ChatMessage();
       msg.initialize();
       msg.tag = '';
       expect(msg.tags).toEqual([]);
     });
 
-    it('スペース区切りで分割される', () => {
+    it('reads them apart by their spaces', () => {
       const msg = new ChatMessage();
       msg.initialize();
       msg.tag = 'system secret';
@@ -105,14 +105,14 @@ describe('ChatMessage', () => {
   });
 
   describe('isDirect', () => {
-    it('sendToが空の場合false', () => {
+    it('is false when it is addressed to nobody', () => {
       const msg = new ChatMessage();
       msg.initialize();
       msg.to = '';
       expect(msg.isDirect).toBe(false);
     });
 
-    it('sendToがある場合true', () => {
+    it('is true when it is addressed to somebody', () => {
       const msg = new ChatMessage();
       msg.initialize();
       msg.to = 'user1';
@@ -121,21 +121,21 @@ describe('ChatMessage', () => {
   });
 
   describe('isSendFromSelf', () => {
-    it('fromが自分のuserIdの場合true', () => {
+    it('is true for a message you sent', () => {
       const msg = new ChatMessage();
       msg.initialize();
       msg.from = 'test-user';
       expect(msg.isSendFromSelf).toBe(true);
     });
 
-    it('fromが他のuserIdの場合false', () => {
+    it('is false for one somebody else did', () => {
       const msg = new ChatMessage();
       msg.initialize();
       msg.from = 'other-user';
       expect(msg.isSendFromSelf).toBe(false);
     });
 
-    it('originFromが自分のuserIdの場合もtrue', () => {
+    it('is true when you were the original sender', () => {
       const msg = new ChatMessage();
       msg.initialize();
       msg.from = 'other-user';
@@ -145,14 +145,14 @@ describe('ChatMessage', () => {
   });
 
   describe('isSystem', () => {
-    it('systemタグがある場合true', () => {
+    it('is true for a message tagged as the systems', () => {
       const msg = new ChatMessage();
       msg.initialize();
       msg.tag = 'system';
       expect(msg.isSystem).toBe(true);
     });
 
-    it('systemタグがない場合false', () => {
+    it('is false for one that is not', () => {
       const msg = new ChatMessage();
       msg.initialize();
       msg.tag = 'normal';
@@ -161,7 +161,7 @@ describe('ChatMessage', () => {
   });
 
   describe('isDicebot', () => {
-    it('system+System-BCDiceの場合true', () => {
+    it('is true for one from the dice bot', () => {
       const msg = new ChatMessage();
       msg.initialize();
       msg.tag = 'system';
@@ -171,7 +171,7 @@ describe('ChatMessage', () => {
   });
 
   describe('isSecret', () => {
-    it('secretタグがある場合true', () => {
+    it('is true for one tagged secret', () => {
       const msg = new ChatMessage();
       msg.initialize();
       msg.tag = 'secret';
@@ -180,14 +180,14 @@ describe('ChatMessage', () => {
   });
 
   describe('isDisplayable', () => {
-    it('directメッセージでない場合true', () => {
+    it('is true for a message addressed to nobody', () => {
       const msg = new ChatMessage();
       msg.initialize();
       msg.to = '';
       expect(msg.isDisplayable).toBe(true);
     });
 
-    it('自分宛のdirectメッセージはtrue', () => {
+    it('is true for one addressed to you', () => {
       const msg = new ChatMessage();
       msg.initialize();
       msg.to = 'test-user';
@@ -195,7 +195,7 @@ describe('ChatMessage', () => {
       expect(msg.isDisplayable).toBe(true);
     });
 
-    it('他人宛のdirectメッセージはfalse', () => {
+    it('is false for one addressed to somebody else', () => {
       const msg = new ChatMessage();
       msg.initialize();
       msg.to = 'other-user';
@@ -205,7 +205,7 @@ describe('ChatMessage', () => {
   });
 
   describe('changeable', () => {
-    it('自分が送信した通常メッセージの場合true', () => {
+    it('is true for an ordinary message you sent', () => {
       const msg = new ChatMessage();
       msg.initialize();
       msg.from = 'test-user';
@@ -213,7 +213,7 @@ describe('ChatMessage', () => {
       expect(msg.changeable).toBe(true);
     });
 
-    it('tag に system-message を含む場合は自分発信でも false', () => {
+    it('is false for one tagged as the systems, even from you', () => {
       const msg = new ChatMessage();
       msg.initialize();
       msg.from = 'test-user';
@@ -221,7 +221,7 @@ describe('ChatMessage', () => {
       expect(msg.changeable).toBe(false);
     });
 
-    it('tag に to-pl-system-message を含む場合は false', () => {
+    it('is false for one tagged as addressed to a player', () => {
       const msg = new ChatMessage();
       msg.initialize();
       msg.from = 'test-user';
@@ -229,14 +229,14 @@ describe('ChatMessage', () => {
       expect(msg.changeable).toBe(false);
     });
 
-    it('from === "System" の場合 false', () => {
+    it('is false for one sent by the system', () => {
       const msg = new ChatMessage();
       msg.initialize();
       msg.from = 'System';
       expect(msg.changeable).toBe(false);
     });
 
-    it('他人が送信したメッセージの場合false', () => {
+    it('is false for one somebody else sent', () => {
       const msg = new ChatMessage();
       msg.initialize();
       msg.from = 'other-user';
@@ -246,14 +246,14 @@ describe('ChatMessage', () => {
   });
 
   describe('isSentBy', () => {
-    it('fromが指定userIdの場合true', () => {
+    it('is true when the sender matches', () => {
       const msg = new ChatMessage();
       msg.initialize();
       msg.from = 'user-A';
       expect(msg.isSentBy('user-A')).toBe(true);
     });
 
-    it('originFromが指定userIdの場合もtrue', () => {
+    it('is true when the original sender does', () => {
       const msg = new ChatMessage();
       msg.initialize();
       msg.from = 'other';
@@ -261,7 +261,7 @@ describe('ChatMessage', () => {
       expect(msg.isSentBy('user-A')).toBe(true);
     });
 
-    it('どちらも一致しない場合false', () => {
+    it('is false when neither does', () => {
       const msg = new ChatMessage();
       msg.initialize();
       msg.from = 'user-A';
@@ -271,7 +271,7 @@ describe('ChatMessage', () => {
   });
 
   describe('isRelatedTo', () => {
-    it('sendTo に含まれる場合true', () => {
+    it('is true for somebody it is addressed to', () => {
       const msg = new ChatMessage();
       msg.initialize();
       msg.to = 'user-A user-B';
@@ -279,7 +279,7 @@ describe('ChatMessage', () => {
       expect(msg.isRelatedTo('user-A')).toBe(true);
     });
 
-    it('送信者の場合もtrue', () => {
+    it('is true for the sender', () => {
       const msg = new ChatMessage();
       msg.initialize();
       msg.to = 'target';
@@ -287,7 +287,7 @@ describe('ChatMessage', () => {
       expect(msg.isRelatedTo('user-A')).toBe(true);
     });
 
-    it('無関係の場合false', () => {
+    it('is false for anybody else', () => {
       const msg = new ChatMessage();
       msg.initialize();
       msg.to = 'target';
@@ -297,14 +297,14 @@ describe('ChatMessage', () => {
   });
 
   describe('isDisplayableTo', () => {
-    it('directでないメッセージは誰でもtrue', () => {
+    it('is true for everybody on a message addressed to nobody', () => {
       const msg = new ChatMessage();
       msg.initialize();
       msg.to = '';
       expect(msg.isDisplayableTo('anyone')).toBe(true);
     });
 
-    it('directメッセージで関連ユーザーはtrue', () => {
+    it('is true for somebody an addressed message concerns', () => {
       const msg = new ChatMessage();
       msg.initialize();
       msg.to = 'user-A';
@@ -312,7 +312,7 @@ describe('ChatMessage', () => {
       expect(msg.isDisplayableTo('user-A')).toBe(true);
     });
 
-    it('directメッセージで無関係ユーザーはfalse', () => {
+    it('is false for anybody it does not', () => {
       const msg = new ChatMessage();
       msg.initialize();
       msg.to = 'user-A';
@@ -322,7 +322,7 @@ describe('ChatMessage', () => {
   });
 
   describe('isChangeableBy', () => {
-    it('fromが一致しシステム系tagでない場合true', () => {
+    it('is true when the sender matches and it carries no system tag', () => {
       const msg = new ChatMessage();
       msg.initialize();
       msg.from = 'user-A';
@@ -330,7 +330,7 @@ describe('ChatMessage', () => {
       expect(msg.isChangeableBy('user-A')).toBe(true);
     });
 
-    it('tag に system-message を含む場合 false', () => {
+    it('is false when it is tagged as the systems', () => {
       const msg = new ChatMessage();
       msg.initialize();
       msg.from = 'user-A';
@@ -338,7 +338,7 @@ describe('ChatMessage', () => {
       expect(msg.isChangeableBy('user-A')).toBe(false);
     });
 
-    it('tag に to-pl-system-message を含む場合 false', () => {
+    it('is false when it is tagged as addressed to a player', () => {
       const msg = new ChatMessage();
       msg.initialize();
       msg.from = 'user-A';
@@ -346,7 +346,7 @@ describe('ChatMessage', () => {
       expect(msg.isChangeableBy('user-A')).toBe(false);
     });
 
-    it('fromが一致しない場合false', () => {
+    it('is false when the sender does not match', () => {
       const msg = new ChatMessage();
       msg.initialize();
       msg.from = 'user-A';
@@ -356,7 +356,7 @@ describe('ChatMessage', () => {
   });
 
   describe('XML round-trip', () => {
-    it('replyTo / quoteOf が toXml で属性として書き出され、parseXml で復元される', () => {
+    it('writes the reply and the quotation out as attributes and reads them back', () => {
       const msg = new ChatMessage();
       msg.initialize();
       msg.replyTo = 'msg-target-1';
@@ -368,7 +368,7 @@ describe('ChatMessage', () => {
       expect(xml).toContain('replyTo="msg-target-1"');
       expect(xml).toContain('quoteOf="msg-quote-1"');
 
-      // 再パースしても保持されている
+      // and keeps them through a reparse
       store.delete(msg, false);
       store.clearDeleteHistory();
       const restored = ObjectSerializer.instance.parseXml(xml) as ChatMessage;
@@ -377,7 +377,7 @@ describe('ChatMessage', () => {
       expect(restored.quoteOf).toBe('msg-quote-1');
     });
 
-    it('identifier が XML に保持されるので reload 後でも replyToMessage で被参照を辿れる', () => {
+    it('keeps the identifiers in the saved data, so the message replied to can still be found after a reload', () => {
       const target = new ChatMessage();
       target.initialize();
       target.name = '相手';
@@ -393,11 +393,11 @@ describe('ChatMessage', () => {
       const targetXml = target.toXml();
       const replyXml = reply.toXml();
 
-      // 両方の identifier が XML 属性として出ている
+      // both identifiers are written out as attributes
       expect(targetXml).toContain(`identifier="${targetId}"`);
       expect(replyXml).toContain(`identifier="${reply.identifier}"`);
 
-      // ストアを空にしてからパース (zip ロードのシミュレーション)
+      // the store is emptied before it is read, as loading an archive would
       store.delete(target, false);
       store.delete(reply, false);
       store.clearDeleteHistory();
@@ -407,13 +407,13 @@ describe('ChatMessage', () => {
 
       expect(restoredTarget.identifier).toBe(targetId);
       expect(restoredReply.replyTo).toBe(targetId);
-      // identifier が保たれていれば replyToMessage が再リンクできる
+      // with the identifiers kept, the link can be made again
       expect(restoredReply.replyToMessage).toBe(restoredTarget);
     });
   });
 
-  describe('振った中身', () => {
-    it('添えられた出目と成否を読めること', () => {
+  describe('what was rolled', () => {
+    it('reads the roll and whether it succeeded', () => {
       const message = new ChatMessage();
       message.from = 'System-BCDice';
       message.tag = 'system';
@@ -424,8 +424,8 @@ describe('ChatMessage', () => {
       expect(message.rollDetail?.faces).toHaveLength(1);
     });
 
-    it('この版より前の発言では中身なしになること', () => {
-      // 古い部屋データの同じ欄には別のものが入っていることがある。落とさない。
+    it('reads nothing from a message written before that was recorded', () => {
+      // The same field in older room data may hold something else, which is not thrown away.
       const message = new ChatMessage();
       message.from = 'System-BCDice';
       message.dicebot = 'Cthulhu7th';

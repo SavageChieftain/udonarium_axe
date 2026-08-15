@@ -34,52 +34,52 @@ describe('Alarm', () => {
     vi.restoreAllMocks();
   });
 
-  describe('初期状態', () => {
-    it('initTimeStamp が 0', () => {
+  describe('how it starts', () => {
+    it('starts unstamped', () => {
       expect(alarm.initTimeStamp).toBe(0);
     });
 
-    it('alarmTitle が空文字', () => {
+    it('starts untitled', () => {
       expect(alarm.alarmTitle).toBe('');
     });
 
-    it('targetPeerId が空配列', () => {
+    it('starts asking nobody', () => {
       expect(alarm.targetPeerId).toEqual([]);
     });
 
-    it('alarmTime が 0', () => {
+    it('starts at no time', () => {
       expect(alarm.alarmTime).toBe(0);
     });
 
-    it('alarmId が 0', () => {
+    it('starts unnumbered', () => {
       expect(alarm.alarmId).toBe(0);
     });
 
-    it('alarmPeerId が空文字', () => {
+    it('starts with no peer', () => {
       expect(alarm.alarmPeerId).toBe('');
     });
 
-    it('targetText が空文字', () => {
+    it('starts with no text', () => {
       expect(alarm.targetText).toBe('');
     });
 
-    it('isSound が false', () => {
+    it('starts silent', () => {
       expect(alarm.isSound).toBe(false);
     });
 
-    it('isPopUp が false', () => {
+    it('starts without a pop-up', () => {
       expect(alarm.isPopUp).toBe(false);
     });
   });
 
   describe('myPeer', () => {
-    it('PeerCursor.myCursor を返す', () => {
+    it('returns your own cursor', () => {
       expect(alarm.myPeer).toBe(PeerCursor.myCursor);
     });
   });
 
   describe('makeAlarm()', () => {
-    it('すべてのプロパティが設定される', () => {
+    it('takes every field', () => {
       alarm.makeAlarm(30, 'テストアラーム', ['peer-1', 'peer-2'], 'alarm-peer', '対象テキスト', true, true);
 
       expect(alarm.alarmTime).toBe(30);
@@ -91,7 +91,7 @@ describe('Alarm', () => {
       expect(alarm.isPopUp).toBe(true);
     });
 
-    it('alarmId がインクリメントされる', () => {
+    it('counts the alarm up', () => {
       expect(alarm.alarmId).toBe(0);
       alarm.makeAlarm(10, 'a', [], '', '', false, false);
       expect(alarm.alarmId).toBe(1);
@@ -99,7 +99,7 @@ describe('Alarm', () => {
       expect(alarm.alarmId).toBe(2);
     });
 
-    it('initTimeStamp が現在時刻に設定される', () => {
+    it('stamps it with the moment it started', () => {
       const before = Date.now();
       alarm.makeAlarm(10, 'title', [], '', '', false, false);
       const after = Date.now();
@@ -108,7 +108,7 @@ describe('Alarm', () => {
       expect(alarm.initTimeStamp).toBeLessThanOrEqual(after);
     });
 
-    it('isSound=false, isPopUp=false で設定できる', () => {
+    it('takes both the sound and the pop-up switched off', () => {
       alarm.makeAlarm(5, 'quiet', ['peer-1'], 'ap', '', false, false);
 
       expect(alarm.isSound).toBe(false);
@@ -117,22 +117,22 @@ describe('Alarm', () => {
   });
 
   describe('chkToMe()', () => {
-    it('targetPeerIdに自分のpeerIdが含まれていればtrue', () => {
+    it('is true when you are among those it is for', () => {
       alarm.targetPeerId = ['other-peer', 'my-peer-id'];
       expect(alarm.chkToMe()).toBe(true);
     });
 
-    it('targetPeerIdに自分のpeerIdが含まれていなければfalse', () => {
+    it('is false when you are not', () => {
       alarm.targetPeerId = ['other-peer', 'another-peer'];
       expect(alarm.chkToMe()).toBe(false);
     });
 
-    it('targetPeerIdが空配列ならfalse', () => {
+    it('is false when it is for nobody', () => {
       alarm.targetPeerId = [];
       expect(alarm.chkToMe()).toBe(false);
     });
 
-    it('自分のpeerIdだけがtargetならtrue', () => {
+    it('is true when it is for you alone', () => {
       alarm.targetPeerId = ['my-peer-id'];
       expect(alarm.chkToMe()).toBe(true);
     });
@@ -147,7 +147,7 @@ describe('Alarm', () => {
       vi.useRealTimers();
     });
 
-    it('自分が対象外ならsetTimeoutが呼ばれない', () => {
+    it('sets no timer when it is not for you', () => {
       alarm.targetPeerId = ['other-peer'];
       alarm.isSound = true;
       alarm.isPopUp = true;
@@ -166,7 +166,7 @@ describe('Alarm', () => {
       cleanups.forEach((off) => off());
     });
 
-    it('isSound=true ならタイムアップ時にALARM_TIMEUP_ORIGINがトリガーされる', () => {
+    it('sounds when the time is up, if it is set to', () => {
       alarm.targetPeerId = ['my-peer-id'];
       alarm.alarmTime = 5;
       alarm.alarmTitle = 'テスト';
@@ -187,7 +187,7 @@ describe('Alarm', () => {
       sub();
     });
 
-    it('isPopUp=true ならタイムアップ時にALARM_POPがトリガーされる', () => {
+    it('pops up then, if it is set to', () => {
       alarm.targetPeerId = ['my-peer-id'];
       alarm.alarmTime = 3;
       alarm.alarmTitle = 'ポップアップテスト';
@@ -205,7 +205,7 @@ describe('Alarm', () => {
       sub();
     });
 
-    it('alarmTime秒後にコールバックが実行される', () => {
+    it('runs after the time it was set for', () => {
       alarm.targetPeerId = ['my-peer-id'];
       alarm.alarmTime = 10;
       alarm.isSound = false;
@@ -217,11 +217,11 @@ describe('Alarm', () => {
 
       alarm.startAlarm();
 
-      // 9秒ではまだ実行されない
+      // not a moment before
       vi.advanceTimersByTime(9999);
       expect(popEvents).toHaveLength(0);
 
-      // 10秒で実行される
+      // and then it runs
       vi.advanceTimersByTime(1);
       expect(popEvents).toHaveLength(1);
       sub();
@@ -229,7 +229,7 @@ describe('Alarm', () => {
   });
 
   describe('apply()', () => {
-    it('initTimeStampが変更されたらstartAlarmが呼ばれる', () => {
+    it('starts the alarm when the stamp changes', () => {
       const startAlarmSpy = vi.spyOn(alarm, 'startAlarm').mockImplementation(() => {});
       alarm.initTimeStamp = 100;
 
@@ -241,12 +241,12 @@ describe('Alarm', () => {
       expect(startAlarmSpy).toHaveBeenCalled();
     });
 
-    it('initTimeStampが変更されなければstartAlarmは呼ばれない', () => {
+    it('starts none while it stays the same', () => {
       const startAlarmSpy = vi.spyOn(alarm, 'startAlarm').mockImplementation(() => {});
       alarm.initTimeStamp = 100;
 
       const context = alarm.toContext();
-      // syncDataのinitTimeStampは100のまま
+      // the stamp is left as it was
 
       alarm.apply(context);
 

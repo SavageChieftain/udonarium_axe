@@ -4,7 +4,7 @@ import { ObjectStore } from '@axe/core/sync/object-store';
 
 @SyncObject('playlist')
 export class Playlist extends GameObject {
-  /** 再生リスト（BGM audioIdentifier の順序付きリスト） */
+  /** The playlist: the music tracks in order. */
   @SyncVar() entries: string[] = [];
 
   static get instance(): Playlist | null {

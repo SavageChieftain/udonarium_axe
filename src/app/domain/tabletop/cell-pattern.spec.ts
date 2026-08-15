@@ -10,11 +10,11 @@ import {
 
 describe('cell-pattern', () => {
   describe('parseCellPattern', () => {
-    it('空文字列は空配列', () => {
+    it('returns nothing for an empty string', () => {
       expect(parseCellPattern('')).toEqual([]);
     });
 
-    it('"0,0;1,2;3,-4" を3要素にパース', () => {
+    it('reads three cells out of a list', () => {
       expect(parseCellPattern('0,0;1,2;3,-4')).toEqual([
         { gx: 0, gy: 0 },
         { gx: 1, gy: 2 },
@@ -22,21 +22,21 @@ describe('cell-pattern', () => {
       ]);
     });
 
-    it('空白や末尾セパレータを許容', () => {
+    it('forgives spaces and a trailing separator', () => {
       expect(parseCellPattern(' 0, 0 ; 1, 1 ; ')).toEqual([
         { gx: 0, gy: 0 },
         { gx: 1, gy: 1 },
       ]);
     });
 
-    it('重複は除去', () => {
+    it('drops the repeats', () => {
       expect(parseCellPattern('1,1;1,1;2,2')).toEqual([
         { gx: 1, gy: 1 },
         { gx: 2, gy: 2 },
       ]);
     });
 
-    it('不正トークンは無視', () => {
+    it('ignores a token it cannot read', () => {
       expect(parseCellPattern('1,1;abc;2,;,3;4,5')).toEqual([
         { gx: 1, gy: 1 },
         { gx: 4, gy: 5 },
@@ -45,7 +45,7 @@ describe('cell-pattern', () => {
   });
 
   describe('serializeCellPattern', () => {
-    it('整数化して結合', () => {
+    it('rounds to whole cells and joins them', () => {
       expect(
         serializeCellPattern([
           { gx: 1.7, gy: -2.3 },
@@ -54,7 +54,7 @@ describe('cell-pattern', () => {
       ).toBe('1,-2;3,4');
     });
 
-    it('重複を除去', () => {
+    it('drops the repeats', () => {
       expect(
         serializeCellPattern([
           { gx: 1, gy: 1 },
@@ -63,14 +63,14 @@ describe('cell-pattern', () => {
       ).toBe('1,1');
     });
 
-    it('parse -> serialize で正規化される', () => {
+    it('normalises through a read and a write', () => {
       const round = serializeCellPattern(parseCellPattern('0,0;1,1;0,0'));
       expect(round).toBe('0,0;1,1');
     });
   });
 
   describe('cellPatternBoundingBox', () => {
-    it('空のときはゼロ', () => {
+    it('is nothing when there are no cells', () => {
       expect(cellPatternBoundingBox([])).toEqual({
         minX: 0,
         minY: 0,
@@ -81,7 +81,7 @@ describe('cell-pattern', () => {
       });
     });
 
-    it('範囲を正しく算出', () => {
+    it('measures the extent', () => {
       expect(
         cellPatternBoundingBox([
           { gx: -1, gy: 2 },
@@ -98,28 +98,28 @@ describe('cell-pattern', () => {
       { gx: 0, gy: 1 },
     ];
 
-    it('quadrants=0 で同一', () => {
+    it('leaves the cells alone at no turn', () => {
       expect(rotateCellPattern(cells, 0)).toEqual(cells);
     });
 
-    it('90°回転で (1,0) -> (0,1), (0,1) -> (-1,0)', () => {
+    it('turns the cells a quarter', () => {
       expect(rotateCellPattern(cells, 1)).toEqual([
         { gx: 0, gy: 1 },
         { gx: -1, gy: 0 },
       ]);
     });
 
-    it('360°回転で元に戻る', () => {
+    it('brings them back round the full turn', () => {
       expect(rotateCellPattern(cells, 4)).toEqual(cells);
     });
 
-    it('負の回転も正規化', () => {
+    it('normalises a turn the other way', () => {
       expect(rotateCellPattern(cells, -1)).toEqual(rotateCellPattern(cells, 3));
     });
   });
 
   describe('normalizeCellPattern', () => {
-    it('bounding box の左上が (0,0) になる', () => {
+    it('puts the top left of the extent at the origin', () => {
       const normalized = normalizeCellPattern([
         { gx: 2, gy: 3 },
         { gx: 4, gy: 5 },
@@ -130,17 +130,17 @@ describe('cell-pattern', () => {
       ]);
     });
 
-    it('空配列は空のまま', () => {
+    it('leaves an empty list empty', () => {
       expect(normalizeCellPattern([])).toEqual([]);
     });
   });
 
   describe('cellKey & cellPatternToSet', () => {
-    it('cellKey は整数化', () => {
+    it('rounds a cell key to whole numbers', () => {
       expect(cellKey(1.7, -2.3)).toBe('1,-2');
     });
 
-    it('cellPatternToSet で集合化', () => {
+    it('gathers the pattern into a set', () => {
       const set = cellPatternToSet([
         { gx: 1, gy: 2 },
         { gx: 3, gy: 4 },

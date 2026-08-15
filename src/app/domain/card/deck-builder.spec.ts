@@ -9,7 +9,7 @@ function image(identifier: string, name: string): ImageFile {
 }
 
 describe('toDeckCardSources()', () => {
-  it('画像 1 枚をカード 1 枚にし、拡張子を落とした名前を付けること', () => {
+  it('makes one card of each picture, named after it without the extension', () => {
     const sources = toDeckCardSources([image('a', 'ドラゴン.png'), image('b', '魔法陣.webp')], 'カード');
 
     expect(sources).toEqual([
@@ -18,11 +18,11 @@ describe('toDeckCardSources()', () => {
     ]);
   });
 
-  it('名前が無い画像には既定の名前を使うこと', () => {
+  it('falls back to a default name for a picture with none', () => {
     expect(toDeckCardSources([image('a', '')], 'カード')[0].name).toBe('カード');
   });
 
-  it('識別子の無い画像は除くこと', () => {
+  it('leaves out a picture with no identifier', () => {
     expect(toDeckCardSources([image('', 'x.png')], 'カード')).toEqual([]);
   });
 });
@@ -34,7 +34,7 @@ describe('copyDetailSchema()', () => {
     return root;
   }
 
-  it('見本に無い項目だけを複製すること', () => {
+  it('copies only the fields the card does not already have', () => {
     const from = detailWith(['能力', '効果']);
     const to = detailWith(['能力']);
 
@@ -44,14 +44,14 @@ describe('copyDetailSchema()', () => {
     expect(to.children.map((child) => (child as DataElement).name)).toEqual(['能力', '効果']);
   });
 
-  it('同じ項目しか無ければ何も足さないこと', () => {
+  it('adds nothing when it has them all', () => {
     const from = detailWith(['能力']);
     const to = detailWith(['能力']);
 
     expect(copyDetailSchema(from, to)).toEqual([]);
   });
 
-  it('見本か対象が無ければ何もしないこと', () => {
+  it('does nothing without a sample or a card', () => {
     expect(copyDetailSchema(null, detailWith(['能力']))).toEqual([]);
     expect(copyDetailSchema(detailWith(['能力']), null)).toEqual([]);
   });

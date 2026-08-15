@@ -60,7 +60,7 @@ function mergeDetail(
   next: Readonly<Record<string, unknown>>
 ): Record<string, unknown> {
   const merged: Record<string, unknown> = { ...previous, ...next };
-  // 増減の一覧は前後で別の項目を指す。上書きすると、先に減った分が数えられなくなる。
+  // The lists before and after name different fields; overwritten, what fell first could not be counted.
   if (Array.isArray(previous['changes']) && Array.isArray(next['changes'])) {
     merged['changes'] = [...previous['changes'], ...next['changes']];
   }

@@ -1,8 +1,8 @@
 import { buildAppspotLabelMap } from '@axe/domain/character/import/appspot-label-map';
 
 describe('buildAppspotLabelMap', () => {
-  // 倉庫フォームに即した構造: 値要素の id に JSON パス、見出しは th。
-  // 能力名は class="title"、列指向のみのフォームは素の th を見出しにする。
+  // The shape of the warehouse form: the path in the identifier of each value, the label in a heading.
+  // An ability name carries the title class, and a form laid out in columns uses a plain heading.
   const html = `
     <table id="ability">
       <tr>
@@ -19,13 +19,13 @@ describe('buildAppspotLabelMap', () => {
       <tr><th class="item">職業</th><td><input id="base.job"></td></tr>
     </table>`;
 
-  it('class="title" の見出しを能力名のラベルにする（多列でも取り違えない）', () => {
+  it('takes a titled heading as the name of an ability, whatever the columns', () => {
     const map = buildAppspotLabelMap(html);
     expect(map['ability.brave']).toBe('武勇');
     expect(map['ability.technic']).toBe('技術');
   });
 
-  it('title が無いフォームは最寄りの th を行ラベルにする', () => {
+  it('falls back to the nearest heading as the row label', () => {
     const map = buildAppspotLabelMap(html);
     expect(map['base.name']).toBe('名前');
     expect(map['base.job']).toBe('職業');

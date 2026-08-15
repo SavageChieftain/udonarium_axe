@@ -15,7 +15,7 @@ export class CutIn extends GameObject {
   @SyncVar() x_pos = 50;
   @SyncVar() y_pos = 50;
 
-  // 主にジュークボックス機能を参考に作成
+  // Modelled on the jukebox.
   @SyncVar() imageIdentifier = 'imageIdentifier';
   @SyncVar() audioIdentifier = '';
   @SyncVar() audioName = '';
@@ -133,7 +133,7 @@ export class CutIn extends GameObject {
         return '';
       }
     } else {
-      // IDだけを許可すべきか？
+      // Should this take an identifier alone?
       return '';
     }
     return ret.replace(/[<>/:\s\r\n]/g, '');

@@ -36,7 +36,7 @@ const COLOR_ALIASES: Record<string, string> = {
 const DEFAULT_TOKENS = ['default', 'none', '既定', 'なし', '黒'];
 const HEX_PATTERN = /^#(?:[0-9a-f]{3}|[0-9a-f]{6})$/i;
 
-/** 色トークンを CSS 色に直す。既定へ戻すトークンと未知のトークンは空。 */
+/** Turns a colour token into a css colour. Empty for a reset and for anything unknown. */
 export function resolveBuffColor(token: string): string {
   const normalized = (token ?? '').trim();
   if (normalized.length < 1) return '';
@@ -55,7 +55,7 @@ export function isBuffColorToken(token: string): boolean {
   return DEFAULT_TOKENS.includes(normalized) || resolveBuffColor(normalized).length > 0;
 }
 
-/** 「red」「☠️」のような見た目トークンを、順不同で色とアイコンに振り分ける。 */
+/** Sorts tokens such as a colour name and an icon, in whichever order they come. */
 export function parseBuffAppearance(tokens: readonly string[]): BuffAppearance {
   const appearance: BuffAppearance = {};
   for (const token of tokens) {

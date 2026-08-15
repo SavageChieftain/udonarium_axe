@@ -1,23 +1,23 @@
 import type { ReplayBoardFraming } from '@axe/domain/replay/replay-board-view';
 
 /**
- * 動画に映す盤面の向き。
+ * How the board faces in a video.
  *
- * 卓のカメラの角度は同期していない（各自が勝手に回している）ので、記録には残っていない。
- * そこで「真上から」と「卓と同じ傾き」を選べるようにし、後者は卓の既定の角度で映す。
- * 遠近は付けない — 手前と奥で縮尺が変わらないぶん、コマの大小が距離ではなく実際の大きさとして読める。
+ * The angle of the camera is not shared — everybody turns their own — so the recording holds none.
+ * Instead it offers a view from above and the tilt of the table, the second at the usual angle.
+ * There is no perspective: with the scale the same near and far, the size of a piece reads as its size rather than its distance.
  */
 
 export interface ReplayBoardCamera {
-  /** 盤面を回す角度(度)。 */
+  /** How far the board is turned. */
   spin: number;
-  /** 手前へ倒す角度(度)。0 なら真上から。 */
+  /** How far it is tilted towards the viewer. At nothing it is seen from above. */
   tilt: number;
 }
 
 export const REPLAY_BOARD_TOP_DOWN: ReplayBoardCamera = { spin: 0, tilt: 0 };
 
-/** 卓の既定の見え方。`table-view` が使う回転と同じ。 */
+/** How the table usually looks, at the same angle the table view uses. */
 export const REPLAY_BOARD_TABLE_VIEW: ReplayBoardCamera = { spin: 10, tilt: 50 };
 
 export const REPLAY_BOARD_MAX_TILT = 75;
@@ -30,21 +30,21 @@ export interface ReplayBoardBox {
 }
 
 export interface ReplayBoardProjection {
-  /** 卓の座標を画面の座標へ。 */
+  /** From a point on the table to a point on the screen. */
   at(x: number, y: number): { x: number; y: number };
-  /** 卓の長さを画面の長さへ（傾けても縮まない向き＝横方向）。 */
+  /** From a length on the table to one on the screen, measured across, which the tilt does not shorten. */
   scale: number;
-  /** canvas の setTransform へ渡す行列。地面に貼り付くものはこれで描く。 */
+  /** The matrix given to the canvas, which is how anything clinging to the ground is drawn. */
   matrix: readonly [number, number, number, number, number, number];
-  /** 奥ほど小さい値。コマを並べる順に使う。 */
+  /** Smaller the further back, which is what the pieces are ordered by. */
   depthOf(x: number, y: number): number;
 }
 
 /**
- * 盤面を枠いっぱいに収める射影を作る。
+ * Builds the projection that fits the board to the frame.
  *
- * 回して・倒して・枠に合わせて拡大する、の順。倒すと縦が縮むので、
- * 縮んだ形のまま枠へ合わせないと上下に余白が空く。
+ * It turns, tilts and then scales to the frame. The tilt shortens the depth, and fitting
+ * the unshortened shape would leave a margin above and below.
  */
 export function replayBoardProjection(
   camera: ReplayBoardCamera,
@@ -57,7 +57,7 @@ export function replayBoardProjection(
   const cos = Math.cos(spin);
   const sin = Math.sin(spin);
 
-  // 回して倒す（枠に合わせる前）。
+  // Turned and tilted, before it is fitted.
   const turn = (x: number, y: number) => ({ x: x * cos - y * sin, y: (x * sin + y * cos) * squash });
 
   const corners = [

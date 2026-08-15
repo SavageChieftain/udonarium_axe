@@ -1,7 +1,7 @@
 import { effectPickOrder, reachedEffectPickLimit, toggleEffectPick } from '@axe/domain/effect/effect-target-picks';
 
 describe('toggleEffectPick()', () => {
-  it('選んだ順に足すこと', () => {
+  it('adds each target in the order it was chosen', () => {
     let picks = toggleEffectPick([], 'a', 3);
     picks = toggleEffectPick(picks, 'b', 3);
     picks = toggleEffectPick(picks, 'c', 3);
@@ -9,26 +9,26 @@ describe('toggleEffectPick()', () => {
     expect(picks).toEqual(['a', 'b', 'c']);
   });
 
-  it('選び直しで外すこと', () => {
+  it('takes one off when it is chosen again', () => {
     const picks = toggleEffectPick(['a', 'b', 'c'], 'b', 3);
 
-    // 抜けたあとも残りの順番は保つ。
+    // The rest keep their order after one goes.
     expect(picks).toEqual(['a', 'c']);
   });
 
-  it('上限に達したら古いほうから押し出すこと', () => {
+  it('pushes the oldest out once it is full', () => {
     expect(toggleEffectPick(['a', 'b'], 'c', 2)).toEqual(['b', 'c']);
-    // 単体対象は「選び直し」として振る舞う。
+    // A single-target effect behaves as a change of choice.
     expect(toggleEffectPick(['a'], 'b', 1)).toEqual(['b']);
   });
 
-  it('空の識別子を無視すること', () => {
+  it('ignores an empty identifier', () => {
     expect(toggleEffectPick(['a'], '', 3)).toEqual(['a']);
   });
 });
 
 describe('effectPickOrder()', () => {
-  it('1 始まりの順番を返し、未選択は 0 になること', () => {
+  it('numbers the chosen from one and leaves the unchosen at nothing', () => {
     expect(effectPickOrder(['a', 'b'], 'a')).toBe(1);
     expect(effectPickOrder(['a', 'b'], 'b')).toBe(2);
     expect(effectPickOrder(['a', 'b'], 'c')).toBe(0);
@@ -36,18 +36,18 @@ describe('effectPickOrder()', () => {
 });
 
 describe('reachedEffectPickLimit()', () => {
-  it('上限に届いた瞬間だけ真を返すこと', () => {
+  it('is true only at the moment it fills', () => {
     expect(reachedEffectPickLimit(['a'], ['a', 'b'], 2)).toBe(true);
     expect(reachedEffectPickLimit([], ['a'], 1)).toBe(true);
   });
 
-  it('はじめから埋まっている選び直しでは真を返さないこと', () => {
-    // 前の指定を引き継いだ状態で選び直しただけなら、意図せず発動させない。
+  it('is false when a full selection merely changes', () => {
+    // Changing a selection carried over from before should not fire it by accident.
     expect(reachedEffectPickLimit(['a', 'b'], ['b', 'c'], 2)).toBe(false);
     expect(reachedEffectPickLimit(['a'], ['b'], 1)).toBe(false);
   });
 
-  it('外したときは真を返さないこと', () => {
+  it('is false when one is taken off', () => {
     expect(reachedEffectPickLimit(['a', 'b'], ['a'], 2)).toBe(false);
   });
 });

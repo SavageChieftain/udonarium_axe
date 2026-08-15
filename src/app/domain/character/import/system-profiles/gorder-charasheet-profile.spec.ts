@@ -5,7 +5,7 @@ import {
 } from '@axe/domain/character/import/system-profiles/gorder-charasheet-profile';
 
 describe('buildGorderCharasheetCharacter', () => {
-  // charasheet.vampire-blood.net の ガーデンオーダー（game="gorder"）実データに即した構造
+  // built from real data of one system at the archive
   const gorder = {
     pc_name: 'ナナセ',
     game: 'gorder',
@@ -20,7 +20,7 @@ describe('buildGorderCharasheetCharacter', () => {
     NB3: '65',
     NB4: '80',
     NB5: '60',
-    // 固定20技能の合計成功率 / C値（行順）
+    // its twenty fixed skills, with the chance of success and the critical value, in order
     TBAP: [
       '100',
       '50',
@@ -77,12 +77,12 @@ describe('buildGorderCharasheetCharacter', () => {
     return sections.find((section) => section.label === label);
   }
 
-  it('game="gorder" を判別する', () => {
+  it('recognises the system', () => {
     expect(isGorderCharasheetCharacter(gorder)).toBe(true);
     expect(isGorderCharasheetCharacter({ pc_name: 'X', game: 'coc' })).toBe(false);
   });
 
-  it('5 能力値（身体/感覚/知力/意志/魅力）と dicebot GardenOrder を取り込む', () => {
+  it('takes its five abilities and the dice bot', () => {
     const result = buildGorderCharasheetCharacter(gorder)!;
     expect(result.dicebot).toBe('GardenOrder');
     expect(result.params).toEqual([
@@ -94,7 +94,7 @@ describe('buildGorderCharasheetCharacter', () => {
     ]);
   });
 
-  it('固定技能を作成ページ準拠の名称で成功率つきに展開する', () => {
+  it('spreads the fixed skills under the names its own page gives, with their chances', () => {
     const result = buildGorderCharasheetCharacter(gorder)!;
     const skills = findSection(result.sections, '技能')!;
     const gun = skills.groups.find((group) => group.label === '銃器')!;
@@ -103,13 +103,13 @@ describe('buildGorderCharasheetCharacter', () => {
     expect(skills.groups.find((group) => group.label === '特殊機械操作')).toBeDefined();
   });
 
-  it('特技・インプラントを名前付きで展開する', () => {
+  it('spreads the talents and the implants with their names', () => {
     const result = buildGorderCharasheetCharacter(gorder)!;
     expect(findSection(result.sections, '特技')!.groups.map((group) => group.label)).toEqual(['調達', '近接習熟']);
     expect(findSection(result.sections, 'インプラント')!.groups[0].label).toBe('強化義眼');
   });
 
-  it('チャットパレットに GO 式の能力値・技能ロールを生成する', () => {
+  it('builds the ability and skill rolls of that system into the palette', () => {
     const result = buildGorderCharasheetCharacter(gorder)!;
     expect(result.commands).toContain('GO80 【身体】');
     expect(result.commands).toContain('GO225 【銃器】');

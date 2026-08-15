@@ -9,7 +9,7 @@ import {
 } from '@axe/domain/effect/ambience/ambience-kind';
 
 describe('ambienceKindOf()', () => {
-  it('知らない値は既定へ倒すこと', () => {
+  it('falls back to the default for a value it does not know', () => {
     expect(ambienceKindOf('swamp')).toBe('swamp');
     expect(ambienceKindOf('unknown')).toBe('fog');
     expect(ambienceKindOf(undefined, 'lava')).toBe('lava');
@@ -17,7 +17,7 @@ describe('ambienceKindOf()', () => {
 });
 
 describe('isAmbienceKind()', () => {
-  it('文字列以外を弾くこと', () => {
+  it('turns away anything that is not text', () => {
     expect(isAmbienceKind('rain')).toBe(true);
     expect(isAmbienceKind('')).toBe(false);
     expect(isAmbienceKind(null)).toBe(false);
@@ -26,30 +26,30 @@ describe('isAmbienceKind()', () => {
 });
 
 describe('ambienceColorOf()', () => {
-  it('空なら種類ごとの既定色を返すこと', () => {
+  it('returns the colour of the kind when none is given', () => {
     expect(ambienceColorOf('swamp', '')).toBe(ambiencePalette('swamp').primary);
     expect(ambienceColorOf('swamp', '   ')).toBe(ambiencePalette('swamp').primary);
   });
 
-  it('指定があればそれを使うこと', () => {
+  it('takes the one that is', () => {
     expect(ambienceColorOf('swamp', '#123456')).toBe('#123456');
   });
 });
 
 describe('ambienceDensityOf()', () => {
-  it('0〜1 に収めること', () => {
+  it('keeps it between none and all', () => {
     expect(ambienceDensityOf(-1)).toBe(0);
     expect(ambienceDensityOf(2)).toBe(1);
     expect(ambienceDensityOf(0.4)).toBe(0.4);
   });
 
-  it('数でない値は既定へ倒すこと', () => {
+  it('falls back to the default for anything that is not a number', () => {
     expect(ambienceDensityOf(Number.NaN)).toBe(0.6);
   });
 });
 
-describe('種類の一覧', () => {
-  it('どの一覧の種類にも色が用意されていること', () => {
+describe('the list of kinds', () => {
+  it('gives every kind on either list a colour', () => {
     for (const kind of [...SKY_AMBIENCE_KINDS, ...GROUND_AMBIENCE_KINDS]) {
       expect(ambiencePalette(kind).primary).toMatch(/^#[0-9a-f]{6}$/);
       expect(ambiencePalette(kind).secondary).toMatch(/^#[0-9a-f]{6}$/);

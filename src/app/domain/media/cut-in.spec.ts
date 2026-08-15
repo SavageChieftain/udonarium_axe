@@ -19,7 +19,7 @@ describe('CutIn', () => {
     store.clearDeleteHistory();
   });
 
-  describe('SyncVar デフォルト値', () => {
+  describe('the defaults of the synchronised fields', () => {
     let cutIn: CutIn;
 
     beforeEach(() => {
@@ -27,51 +27,51 @@ describe('CutIn', () => {
       cutIn.initialize();
     });
 
-    it('name がデフォルト "カットイン"', () => {
+    it('starts with the default name', () => {
       expect(cutIn.name).toBe('カットイン');
     });
 
-    it('width がデフォルト 480', () => {
+    it('starts at the default width', () => {
       expect(cutIn.width).toBe(480);
     });
 
-    it('height がデフォルト 320', () => {
+    it('starts at the default height', () => {
       expect(cutIn.height).toBe(320);
     });
 
-    it('originalSize がデフォルト true', () => {
+    it('starts at its original size', () => {
       expect(cutIn.originalSize).toBe(true);
     });
 
-    it('x_pos がデフォルト 50', () => {
+    it('starts halfway across', () => {
       expect(cutIn.x_pos).toBe(50);
     });
 
-    it('y_pos がデフォルト 50', () => {
+    it('starts halfway down', () => {
       expect(cutIn.y_pos).toBe(50);
     });
 
-    it('isLoop がデフォルト false', () => {
+    it('starts without looping', () => {
       expect(cutIn.isLoop).toBe(false);
     });
 
-    it('chatActivate がデフォルト false', () => {
+    it('starts without the chat trigger', () => {
       expect(cutIn.chatActivate).toBe(false);
     });
 
-    it('isPlaying がデフォルト false', () => {
+    it('starts stopped', () => {
       expect(cutIn.isPlaying).toBe(false);
     });
 
-    it('isVideoCutIn がデフォルト false', () => {
+    it('starts as something other than a video', () => {
       expect(cutIn.isVideoCutIn).toBe(false);
     });
 
-    it('videoUrl がデフォルト空文字', () => {
+    it('starts with no address', () => {
       expect(cutIn.videoUrl).toBe('');
     });
 
-    it('videoVolume がデフォルト 50', () => {
+    it('starts at half volume', () => {
       expect(cutIn.videoVolume).toBe(50);
     });
   });
@@ -84,47 +84,47 @@ describe('CutIn', () => {
       cutIn.initialize();
     });
 
-    it('通常モードの最小幅は10', () => {
+    it('the narrowest an ordinary cut-in may be', () => {
       expect(cutIn.minSizeWidth(false)).toBe(10);
     });
 
-    it('通常モードの最大幅は1200', () => {
+    it('the widest', () => {
       expect(cutIn.maxSizeWidth(false)).toBe(1200);
     });
 
-    it('ビデオモードの最小幅は448', () => {
+    it('the narrowest a video may be', () => {
       expect(cutIn.minSizeWidth(true)).toBe(448);
     });
 
-    it('ビデオモードの最大幅は1920', () => {
+    it('the widest', () => {
       expect(cutIn.maxSizeWidth(true)).toBe(1920);
     });
 
-    it('通常モードの最小高さは10', () => {
+    it('the shortest an ordinary cut-in may be', () => {
       expect(cutIn.minSizeHeight(false)).toBe(10);
     });
 
-    it('ビデオモードの最小高さは252', () => {
+    it('the shortest a video may be', () => {
       expect(cutIn.minSizeHeight(true)).toBe(252);
     });
 
-    it('通常モードの最大高さは1200', () => {
+    it('the tallest an ordinary cut-in may be', () => {
       expect(cutIn.maxSizeHeight(false)).toBe(1200);
     });
 
-    it('ビデオモードの最大高さは1080', () => {
+    it('the tallest a video may be', () => {
       expect(cutIn.maxSizeHeight(true)).toBe(1080);
     });
   });
 
   describe('defVideoSize', () => {
-    it('デフォルトビデオ幅は640', () => {
+    it('the default width of a video', () => {
       const cutIn = new CutIn();
       cutIn.initialize();
       expect(cutIn.defVideoSizeWidth).toBe(640);
     });
 
-    it('デフォルトビデオ高さは360', () => {
+    it('its default height', () => {
       const cutIn = new CutIn();
       cutIn.initialize();
       expect(cutIn.defVideoSizeHeight).toBe(360);
@@ -139,23 +139,23 @@ describe('CutIn', () => {
       cutIn.initialize();
     });
 
-    it('有効なhttpsのURLはtrueを返す', () => {
+    it('is true for a secure address', () => {
       expect(cutIn.validUrl('https://example.com')).toBe(true);
     });
 
-    it('有効なhttpのURLはtrueを返す', () => {
+    it('is true for a plain one', () => {
       expect(cutIn.validUrl('http://example.com')).toBe(true);
     });
 
-    it('空文字列はfalseを返す', () => {
+    it('is false for an empty string', () => {
       expect(cutIn.validUrl('')).toBe(false);
     });
 
-    it('httpでないURLはfalseを返す', () => {
+    it('is false for another scheme', () => {
       expect(cutIn.validUrl('ftp://example.com')).toBe(false);
     });
 
-    it('不正なURLはfalseを返す', () => {
+    it('is false for an address it cannot read', () => {
       expect(cutIn.validUrl('not a url')).toBe(false);
     });
   });
@@ -168,42 +168,42 @@ describe('CutIn', () => {
       cutIn.initialize();
     });
 
-    it('isVideoCutInがfalseの場合空文字列を返す', () => {
+    it('returns nothing for a cut-in that is not a video', () => {
       cutIn.videoUrl = 'https://www.youtube.com/watch?v=dQw4w9WgXcQ';
       expect(cutIn.videoId).toBe('');
     });
 
-    it('youtube.comのv=パラメータからIDを抽出する', () => {
+    it('takes the identifier out of a full address', () => {
       cutIn.isVideoCutIn = true;
       cutIn.videoUrl = 'https://www.youtube.com/watch?v=dQw4w9WgXcQ';
       expect(cutIn.videoId).toBe('dQw4w9WgXcQ');
     });
 
-    it('youtu.be短縮URLからIDを抽出する', () => {
+    it('takes it out of a shortened one', () => {
       cutIn.isVideoCutIn = true;
       cutIn.videoUrl = 'https://youtu.be/dQw4w9WgXcQ';
       expect(cutIn.videoId).toBe('dQw4w9WgXcQ');
     });
 
-    it('URLが空の場合空文字列を返す', () => {
+    it('returns nothing for an empty address', () => {
       cutIn.isVideoCutIn = true;
       cutIn.videoUrl = '';
       expect(cutIn.videoId).toBe('');
     });
 
-    it('YouTube以外のURLは空文字列を返す', () => {
+    it('returns nothing for another host', () => {
       cutIn.isVideoCutIn = true;
       cutIn.videoUrl = 'https://vimeo.com/123456';
       expect(cutIn.videoId).toBe('');
     });
 
-    it('YouTube Shorts URLからIDを抽出する', () => {
+    it('takes it out of a short-form address', () => {
       cutIn.isVideoCutIn = true;
       cutIn.videoUrl = 'https://www.youtube.com/shorts/dQw4w9WgXcQ';
       expect(cutIn.videoId).toBe('dQw4w9WgXcQ');
     });
 
-    it('YouTube Shorts URLにクエリパラメータがあってもIDを抽出する', () => {
+    it('takes it out of one carrying query parameters', () => {
       cutIn.isVideoCutIn = true;
       cutIn.videoUrl = 'https://www.youtube.com/shorts/dQw4w9WgXcQ?feature=share';
       expect(cutIn.videoId).toBe('dQw4w9WgXcQ');
@@ -219,22 +219,22 @@ describe('CutIn', () => {
       cutIn.isVideoCutIn = true;
     });
 
-    it('startパラメータから秒数を抽出する', () => {
+    it('reads the seconds off the start parameter', () => {
       cutIn.videoUrl = 'https://www.youtube.com/watch?v=abc123&start=120';
       expect(cutIn.videoStart).toBe('120');
     });
 
-    it('tパラメータから秒数を抽出する', () => {
+    it('reads them off the time parameter', () => {
       cutIn.videoUrl = 'https://www.youtube.com/watch?v=abc123&t=60';
       expect(cutIn.videoStart).toBe('60');
     });
 
-    it('hms形式を変換する', () => {
+    it('reads them out of hours, minutes and seconds', () => {
       cutIn.videoUrl = 'https://www.youtube.com/watch?v=abc123&t=1h2m3s';
       expect(cutIn.videoStart).toBe('3723');
     });
 
-    it('パラメータがない場合nullを返す', () => {
+    it('returns nothing when neither is there', () => {
       cutIn.videoUrl = 'https://www.youtube.com/watch?v=abc123';
       expect(cutIn.videoStart).toBeFalsy();
     });
@@ -249,12 +249,12 @@ describe('CutIn', () => {
       cutIn.isVideoCutIn = true;
     });
 
-    it('listパラメータからプレイリストIDを抽出する', () => {
+    it('takes the playlist identifier out of the address', () => {
       cutIn.videoUrl = 'https://www.youtube.com/watch?v=abc123&list=PLtest123';
       expect(cutIn.playListId).toBe('PLtest123');
     });
 
-    it('listパラメータがない場合空文字列を返す', () => {
+    it('returns nothing when it is not there', () => {
       cutIn.videoUrl = 'https://www.youtube.com/watch?v=abc123';
       expect(cutIn.playListId).toBe('');
     });

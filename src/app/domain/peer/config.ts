@@ -26,8 +26,8 @@ export class Config extends ObjectNode implements InnerXml {
   set roomVolume(volume: number) {
     this._roomVolume = volume;
   }
-  // ジュークボックスの個人用設定はjukebox側
-  // 共通設定保存の都合でのため全体ボリュームはこちらにある
+  // The jukebox keeps the settings of the person listening.
+  // The master volume lives here because the shared settings are saved together.
   get jukebox(): Jukebox {
     return ObjectStore.instance.get<Jukebox>('Jukebox')!;
   }

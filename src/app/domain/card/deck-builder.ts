@@ -8,7 +8,7 @@ export interface DeckCardSource {
   name: string;
 }
 
-/** 画像 1 枚がカード 1 枚になる。名前は画像名から拡張子を落としたもの。 */
+/** One picture makes one card, named after it without the extension. */
 export function toDeckCardSources(images: readonly ImageFile[], fallbackName: string): DeckCardSource[] {
   return images
     .filter((image) => image.identifier.length > 0)
@@ -24,8 +24,8 @@ function cardNameOf(image: ImageFile, fallbackName: string): string {
 }
 
 /**
- * 見本カードの詳細項目の「枠」を、値を初期化したうえで複製する。
- * 同名の項目が既にあるカードには足さない。
+ * Copies the shape of the fields of a sample card, with their values cleared.
+ * A card that already has a field of that name is left alone.
  */
 export function copyDetailSchema(from: DataElement | null, to: DataElement | null): DataElement[] {
   if (!from || !to) return [];

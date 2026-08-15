@@ -1,8 +1,8 @@
 /**
- * 盤面に敷きっぱなしにする環境演出の種類。
+ * The kinds of effect laid over the board and left there.
  *
- * 発動する演出と違って終わりが来ないので、外から決められるのは強さと色だけにする。
- * 一つの種類をマップ全体にも範囲にも使えるが、描き方は空側と地表側で分かれる。
+ * Unlike an effect that fires, it never ends, so only its strength and its colour are set from outside.
+ * One kind serves both the whole map and a marked-off area, but the sky and the ground are drawn apart.
  */
 export type AmbienceKind =
   | 'fog'
@@ -20,7 +20,7 @@ export type AmbienceKind =
   | 'blaze'
   | 'frost';
 
-/** マップ全体に掛ける種類。空から降るもの、空気に満ちるもの。 */
+/** The kinds over the whole map: what falls from the sky and what fills the air. */
 export const SKY_AMBIENCE_KINDS: readonly AmbienceKind[] = [
   'fog',
   'rain',
@@ -33,7 +33,7 @@ export const SKY_AMBIENCE_KINDS: readonly AmbienceKind[] = [
   'bloom',
 ];
 
-/** 範囲を区切って置く種類。地面に貼り付くもの。 */
+/** The kinds laid over a marked-off area, which cling to the ground. */
 export const GROUND_AMBIENCE_KINDS: readonly AmbienceKind[] = [
   'swamp',
   'blaze',
@@ -46,9 +46,9 @@ export const GROUND_AMBIENCE_KINDS: readonly AmbienceKind[] = [
 ];
 
 export interface AmbiencePalette {
-  /** 粒と光の色。 */
+  /** The colour of the particles and the light. */
   primary: string;
-  /** 地面へ落とす影の色。 */
+  /** The colour of the shadow it casts on the ground. */
   secondary: string;
 }
 
@@ -85,7 +85,7 @@ export function ambiencePalette(kind: AmbienceKind): AmbiencePalette {
   return PALETTES[kind];
 }
 
-/** 指定色。空なら種類ごとの既定色を使う。 */
+/** The colour given. Empty for the colour of the kind. */
 export function ambienceColorOf(kind: AmbienceKind, color: string): string {
   const trimmed = typeof color === 'string' ? color.trim() : '';
   return trimmed.length > 0 ? trimmed : PALETTES[kind].primary;

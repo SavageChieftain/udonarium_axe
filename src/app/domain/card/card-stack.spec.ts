@@ -22,71 +22,71 @@ describe('CardStack', () => {
   });
 
   describe('create()', () => {
-    it('名前を設定してCardStackを作成する', () => {
+    it('creates a deck with a name', () => {
       const stack = CardStack.create('テストデッキ');
       expect(stack).toBeTruthy();
       expect(stack.name).toBe('テストデッキ');
     });
 
-    it('カスタムidentifierで作成する', () => {
+    it('is created against an identifier of its own', () => {
       const stack = CardStack.create('デッキ', 'custom-stack-id');
       expect(stack.identifier).toBe('custom-stack-id');
     });
 
-    it('ObjectStoreに追加される', () => {
+    it('is added to the store', () => {
       const stack = CardStack.create('デッキ');
       expect(store.get(stack.identifier)).toBe(stack);
     });
   });
 
   describe('aliasName', () => {
-    it('"card-stack"を返す', () => {
+    it('names itself a deck', () => {
       const stack = CardStack.create('test');
       expect(stack.aliasName).toBe('card-stack');
     });
   });
 
-  describe('SyncVar デフォルト値', () => {
-    it('isLock がデフォルト false', () => {
+  describe('the defaults of the synchronised fields', () => {
+    it('starts unlocked', () => {
       const stack = CardStack.create('test');
       expect(stack.isLock).toBe(false);
     });
 
-    it('rotate がデフォルト 0', () => {
+    it('starts unturned', () => {
       const stack = CardStack.create('test');
       expect(stack.rotate).toBe(0);
     });
 
-    it('zindex がデフォルト 0', () => {
+    it('starts at the bottom of the stack', () => {
       const stack = CardStack.create('test');
       expect(stack.zindex).toBe(0);
     });
 
-    it('owner がデフォルト空文字', () => {
+    it('starts unowned', () => {
       const stack = CardStack.create('test');
       expect(stack.owner).toBe('');
     });
 
-    it('isShowTotal がデフォルト true', () => {
+    it('starts showing the count', () => {
       const stack = CardStack.create('test');
       expect(stack.isShowTotal).toBe(true);
     });
   });
 
   describe('cards', () => {
-    it('空のスタックではcardsが空配列', () => {
+    it('holds no cards while it is empty', () => {
       const stack = CardStack.create('test');
       expect(stack.cards).toEqual([]);
     });
 
-    it('isEmptyがtrue', () => {
+    it('is empty', () => {
       const stack = CardStack.create('test');
       expect(stack.isEmpty).toBe(true);
     });
   });
 
   describe('putOnTop / putOnBottom', () => {
-    it('putOnTopでカードをスタック上部に追加する', () => {
+    it('puts a card on the top', () => {
       const stack = CardStack.create('test');
       const card = Card.create('カード1', '', '', 2);
 
@@ -95,7 +95,7 @@ describe('CardStack', () => {
       expect(stack.isEmpty).toBe(false);
     });
 
-    it('putOnBottomでカードをスタック下部に追加する', () => {
+    it('puts one on the bottom', () => {
       const stack = CardStack.create('test');
       const card = Card.create('カード1', '', '', 2);
 
@@ -103,7 +103,7 @@ describe('CardStack', () => {
       expect(stack.cards).toHaveLength(1);
     });
 
-    it('topCardが最後に追加されたカードを返す', () => {
+    it('returns the last card put on as the top one', () => {
       const stack = CardStack.create('test');
       const card1 = Card.create('カード1', '', '', 2);
       const card2 = Card.create('カード2', '', '', 2);
@@ -116,7 +116,7 @@ describe('CardStack', () => {
   });
 
   describe('drawCard()', () => {
-    it('スタックからカードを1枚引く', () => {
+    it('draws one card', () => {
       const stack = CardStack.create('test');
       const card = Card.create('カード1', '', '', 2);
       stack.putOnTop(card);
@@ -126,7 +126,7 @@ describe('CardStack', () => {
       expect(stack.cards).toHaveLength(0);
     });
 
-    it('空のスタックからはnullを返す', () => {
+    it('draws nothing from an empty deck', () => {
       const stack = CardStack.create('test');
       const drawn = stack.drawCard();
       expect(drawn).toBeFalsy();
@@ -134,7 +134,7 @@ describe('CardStack', () => {
   });
 
   describe('drawCardAll()', () => {
-    it('全カードを引く', () => {
+    it('draws them all', () => {
       const stack = CardStack.create('test');
       stack.putOnTop(Card.create('c1', '', '', 2));
       stack.putOnTop(Card.create('c2', '', '', 2));
@@ -147,7 +147,7 @@ describe('CardStack', () => {
   });
 
   describe('shuffle()', () => {
-    it('カードの順序をシャッフルする', () => {
+    it('shuffles them', () => {
       const stack = CardStack.create('test');
       for (let i = 0; i < 20; i++) {
         stack.putOnTop(Card.create(`c${i}`, '', '', 2));
@@ -157,15 +157,15 @@ describe('CardStack', () => {
       stack.shuffle();
       const after = stack.cards.map((c) => c.identifier);
 
-      // 20枚あれば同じ順序になる確率はほぼ0
+      // with twenty cards the same order is all but impossible
       expect(after).toHaveLength(before.length);
-      // 少なくとも同じカードが含まれている
+      // at least the same cards are there
       expect(after.sort()).toEqual(before.sort());
     });
   });
 
   describe('faceUp / faceDown', () => {
-    it('faceUpAllで全カードを表にする', () => {
+    it('turns them all face up', () => {
       const stack = CardStack.create('test');
       const card1 = Card.create('c1', '', '', 2);
       const card2 = Card.create('c2', '', '', 2);
@@ -180,7 +180,7 @@ describe('CardStack', () => {
       }
     });
 
-    it('faceDownAllで全カードを裏にする', () => {
+    it('turns them all face down', () => {
       const stack = CardStack.create('test');
       const card1 = Card.create('c1', '', '', 2);
       stack.putOnTop(card1);
@@ -194,20 +194,20 @@ describe('CardStack', () => {
   });
 
   describe('hasOwner', () => {
-    it('ownerが空文字ならfalse', () => {
+    it('is false while it is unowned', () => {
       const stack = CardStack.create('test');
       expect(stack.hasOwner).toBe(false);
     });
 
-    it('ownerがセットされていればtrue', () => {
+    it('is true once it has an owner', () => {
       const stack = CardStack.create('test');
       stack.owner = 'user-1';
       expect(stack.hasOwner).toBe(true);
     });
   });
 
-  describe('TabletopObject 継承', () => {
-    it('locationのデフォルトがtable', () => {
+  describe('what it inherits', () => {
+    it('starts on the table', () => {
       const stack = CardStack.create('test');
       expect(stack.location.name).toBe('table');
     });

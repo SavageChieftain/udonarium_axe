@@ -29,7 +29,7 @@ export class PeerCursor extends GameObject {
   @SyncVar() lastControlImageIndex = 0;
   @SyncVar() lastControlSendFrom = '';
 
-  // 点呼/投票回答 回答選択肢Indexと回答した投票のID
+  // The answer given to a vote or a roll call, and which vote it was.
   @SyncVar() voteAnswer = -1; // 投票選択肢のindex値、-2:棄権
   @SyncVar() voteId = -1; // 回答した投票のID
 

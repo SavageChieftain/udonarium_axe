@@ -21,40 +21,40 @@ describe('TextNote', () => {
   });
 
   describe('create()', () => {
-    it('タイトルとテキストを指定して作成する', () => {
+    it('is created with a title and a body', () => {
       const note = TextNote.create('メモ', 'テスト内容');
       expect(note).toBeTruthy();
       expect(note.title).toBe('メモ');
       expect(note.text).toBe('テスト内容');
     });
 
-    it('デフォルトのフォントサイズ16', () => {
+    it('starts at the default type size', () => {
       const note = TextNote.create('t', 'text');
       expect(note.fontSize).toBe(16);
     });
 
-    it('フォントサイズを指定できる', () => {
+    it('takes a type size', () => {
       const note = TextNote.create('t', 'text', 24);
       expect(note.fontSize).toBe(24);
     });
 
-    it('カスタムサイズを指定できる', () => {
+    it('takes a size of its own', () => {
       const note = TextNote.create('t', 'text', 16, 3, 4);
       expect(note.width).toBe(3);
       expect(note.height).toBe(4);
     });
 
-    it('カスタムidentifierで作成する', () => {
+    it('is created against an identifier of its own', () => {
       const note = TextNote.create('t', 'text', 16, 1, 1, 'note-id');
       expect(note.identifier).toBe('note-id');
     });
 
-    it('ObjectStoreに追加される', () => {
+    it('is added to the store', () => {
       const note = TextNote.create('t', 'text');
       expect(store.get(note.identifier)).toBe(note);
     });
 
-    it('デフォルトのwidth/heightが1', () => {
+    it('starts one cell either way', () => {
       const note = TextNote.create('t', 'text');
       expect(note.width).toBe(1);
       expect(note.height).toBe(1);
@@ -62,54 +62,54 @@ describe('TextNote', () => {
   });
 
   describe('aliasName', () => {
-    it('"text-note"を返す', () => {
+    it('names itself a note', () => {
       const note = TextNote.create('t', 'text');
       expect(note.aliasName).toBe('text-note');
     });
   });
 
-  describe('SyncVar デフォルト値', () => {
-    it('isLock がデフォルト false', () => {
+  describe('the defaults of the synchronised fields', () => {
+    it('starts unlocked', () => {
       const note = TextNote.create('t', 'text');
       expect(note.isLock).toBe(false);
     });
 
-    it('rotate がデフォルト 0', () => {
+    it('starts unturned', () => {
       const note = TextNote.create('t', 'text');
       expect(note.rotate).toBe(0);
     });
 
-    it('zindex がデフォルト 0', () => {
+    it('starts at the bottom of the stack', () => {
       const note = TextNote.create('t', 'text');
       expect(note.zindex).toBe(0);
     });
 
-    it('password がデフォルト空文字', () => {
+    it('starts without a password', () => {
       const note = TextNote.create('t', 'text');
       expect(note.password).toBe('');
     });
 
-    it('isUpright がデフォルト true', () => {
+    it('starts standing up', () => {
       const note = TextNote.create('t', 'text');
       expect(note.isUpright).toBe(true);
     });
 
-    it('limitHeight がデフォルト false', () => {
+    it('starts unlimited in height', () => {
       const note = TextNote.create('t', 'text');
       expect(note.limitHeight).toBe(false);
     });
   });
 
   describe('text setter', () => {
-    it('テキストを変更できる', () => {
+    it('takes new text', () => {
       const note = TextNote.create('t', '初期テキスト');
       note.text = '変更後テキスト';
       expect(note.text).toBe('変更後テキスト');
     });
   });
 
-  describe('TabletopObject 継承', () => {
-    it('locationのデフォルトがtable', () => {
+  describe('what it inherits', () => {
+    it('starts on the table', () => {
       const note = TextNote.create('t', 'text');
       expect(note.location.name).toBe('table');
     });

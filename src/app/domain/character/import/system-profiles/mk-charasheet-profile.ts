@@ -15,8 +15,8 @@ import {
   paramsOf,
 } from '@axe/domain/character/import/system-profiles/charasheet-shared';
 
-// 迷宮キングダム（保管所 game="mk"）。NC1-8 の順序は作成ページ <th> ヘッダで確認。
-// 主能力（判定に使う）= 才覚/魅力/探索/武勇、副次値 = 器/回避/配下/気力。
+// That system's eight values, in the order the headings of its own page give.
+// The first four are rolled with and the last four are lesser values.
 const PRIMARY: { key: string; label: string }[] = [
   { key: 'NC1', label: '才覚' },
   { key: 'NC2', label: '魅力' },

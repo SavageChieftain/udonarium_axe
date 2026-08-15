@@ -1,10 +1,10 @@
 import { clamp01, type ColorRamp, easeOutQuad, type EffectParticle } from '@axe/domain/effect/particles/shared';
 
 /**
- * 照射。
+ * A beam.
  */
 
-/** レーザーの着弾。柱が当たり続けるので、火花も出続ける。 */
+/** Where the beam lands. It is held there, so the sparks are held too. */
 export function emitBeam(
   particles: EffectParticle[],
   random: () => number,
@@ -12,13 +12,13 @@ export function emitBeam(
   base: number,
   ramp: ColorRamp
 ): void {
-  // この層は対象の上にある。撃つ前は何も起きていないので、溜めのあいだは出さない。
+  // This layer sits over the target; nothing happens before the shot, so nothing shows while it gathers.
   const fired = clamp01((progress - 0.28) / 0.72);
   if (fired < 0.09) return;
 
   const life = fired > 0.8 ? 1 - (fired - 0.8) / 0.2 : 1;
 
-  // 刺さった点で砕けて跳ね返る火花。上へ強く散らして噴き返りに見せる。
+  // The sparks broken and thrown back where it strikes, scattered strongly upwards so they read as a splash.
   for (let index = 0; index < 40; index++) {
     const angle = random() * Math.PI * 2;
     const speed = base * (1.4 + random() * 2.6);
@@ -36,7 +36,7 @@ export function emitBeam(
     });
   }
 
-  // 削れて弾ける破片。光だけだと重さが出ない。
+  // The fragments ground off and thrown; light alone has no weight.
   for (let index = 0; index < 12; index++) {
     const angle = random() * Math.PI * 2;
     const local = (progress * 2.4 + random()) % 1;

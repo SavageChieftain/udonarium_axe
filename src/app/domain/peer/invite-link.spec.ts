@@ -9,7 +9,7 @@ import { PeerRole } from '@axe/domain/peer/peer-role';
 const BASE_URL = 'https://example.test/axe/';
 
 describe('buildInviteLink', () => {
-  it('部屋 ID と部屋名を載せる', () => {
+  it('carries the identifier and the name of the room', () => {
     const link = buildInviteLink(BASE_URL, {
       roomId: 'a1b',
       roomName: '深海の街',
@@ -20,7 +20,7 @@ describe('buildInviteLink', () => {
     expect(link).toBe(`${BASE_URL}#join?r=a1b&n=${encodeURIComponent('深海の街')}`);
   });
 
-  it('合言葉は平文で載せない', () => {
+  it('never carries the password in the open', () => {
     const link = buildInviteLink(BASE_URL, {
       roomId: 'a1b',
       roomName: 'room',
@@ -33,7 +33,7 @@ describe('buildInviteLink', () => {
     expect(link).toContain('p=');
   });
 
-  it('ロールを指定すれば載せる', () => {
+  it('carries a role where one is given', () => {
     const link = buildInviteLink(BASE_URL, {
       roomId: 'a1b',
       roomName: 'room',
@@ -44,7 +44,7 @@ describe('buildInviteLink', () => {
     expect(link).toBe(`${BASE_URL}#join?r=a1b&n=room&role=guest`);
   });
 
-  it('空のパスワードは載せない', () => {
+  it('carries no empty password', () => {
     const link = buildInviteLink(BASE_URL, {
       roomId: 'a1b',
       roomName: 'room',
@@ -57,7 +57,7 @@ describe('buildInviteLink', () => {
 });
 
 describe('parseInviteLink', () => {
-  it('生成したリンクを往復できる', () => {
+  it('makes the round trip', () => {
     const params = {
       roomId: 'a1b',
       roomName: '深海の街 #2',
@@ -69,13 +69,13 @@ describe('parseInviteLink', () => {
     expect(parseInviteLink(link.slice(link.indexOf('#')))).toEqual(params);
   });
 
-  it('日本語や記号の合言葉も往復できる', () => {
+  it('makes it for a password of any characters', () => {
     const params = { roomId: 'xyz', roomName: 'room', password: '合言葉＆記号<>"', role: null, overlay: false };
     const link = buildInviteLink(BASE_URL, params);
     expect(parseInviteLink(link.slice(link.indexOf('#')))?.password).toBe(params.password);
   });
 
-  it('パスワードとロールが無ければ既定値になる', () => {
+  it('falls back to the defaults without either', () => {
     expect(parseInviteLink('#join?r=a1b&n=room')).toEqual({
       roomId: 'a1b',
       roomName: 'room',
@@ -85,51 +85,51 @@ describe('parseInviteLink', () => {
     });
   });
 
-  it('未知のロールは無視する', () => {
+  it('ignores a role it does not know', () => {
     expect(parseInviteLink('#join?r=a1b&n=room&role=admin')?.role).toBeNull();
   });
 
-  it('招待リンク以外のハッシュは受け付けない', () => {
+  it('takes nothing but an invitation', () => {
     expect(parseInviteLink('')).toBeNull();
     expect(parseInviteLink('#')).toBeNull();
     expect(parseInviteLink('#other?r=a1b&n=room')).toBeNull();
   });
 
-  it('部屋 ID か部屋名が欠けていれば受け付けない', () => {
+  it('takes none missing the identifier or the name of the room', () => {
     expect(parseInviteLink('#join?n=room')).toBeNull();
     expect(parseInviteLink('#join?r=a1b')).toBeNull();
     expect(parseInviteLink('#join?r=&n=room')).toBeNull();
   });
 
-  it('壊れた合言葉は空として扱う', () => {
+  it('reads a broken password as none', () => {
     expect(parseInviteLink('#join?r=a1b&n=room&p=!!!not-base64!!!')?.password).toBe('');
   });
 });
 
 describe('encodeInvitePassword / decodeInvitePassword', () => {
-  it('元の文字列を残さない', () => {
+  it('leaves none of the original text behind', () => {
     expect(encodeInvitePassword('himitsu', 'a1broom')).not.toContain('himitsu');
   });
 
-  it('同じ salt でのみ元に戻る', () => {
+  it('comes back only under the same salt', () => {
     const encoded = encodeInvitePassword('himitsu', 'a1broom');
 
     expect(decodeInvitePassword(encoded, 'a1broom')).toBe('himitsu');
     expect(decodeInvitePassword(encoded, 'other')).not.toBe('himitsu');
   });
 
-  it('部屋が違えば同じ合言葉でも別の文字列になる', () => {
+  it('writes one password differently for different rooms', () => {
     expect(encodeInvitePassword('himitsu', 'a1broom')).not.toBe(encodeInvitePassword('himitsu', 'xyzroom'));
   });
 
-  it('URL に入れても壊れない文字だけを使う', () => {
+  it('uses only what survives an address', () => {
     const encoded = encodeInvitePassword('合言葉＆記号 <>"/+=', 'a1broom');
 
     expect(encoded).toMatch(/^[A-Za-z0-9\-_]*$/);
     expect(encodeURIComponent(encoded)).toBe(encoded);
   });
 
-  it('復元できない値は空を返す', () => {
+  it('returns nothing for a value it cannot restore', () => {
     expect(decodeInvitePassword('!!!', 'a1broom')).toBe('');
     expect(decodeInvitePassword('', 'a1broom')).toBe('');
   });

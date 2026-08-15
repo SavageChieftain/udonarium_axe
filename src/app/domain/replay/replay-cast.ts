@@ -7,7 +7,7 @@ export interface ReplayCastMember {
   name: string;
   imageIdentifier: string;
   chatColor: string;
-  /** 記録を開いた時点で盤の上に居たか。しまってあるコマと分けるために持つ。 */
+  /** Whether it was on the board when the recording opened, which is how one put away is told apart. */
   onTable: boolean;
 }
 
@@ -31,10 +31,10 @@ export function collectReplayCast(snapshots: readonly ReplayObjectSnapshot[]): R
 }
 
 /**
- * 記念写真に写す顔ぶれ。
+ * Who is in the keepsake photo.
  *
- * 盤に出ていたコマだけを写す。しまってあるコマまで並べると、その日居なかった顔で紙が埋まる。
- * ただし盤に 1 つも出ていない記録では、写せるものが無くなるので全員を返す。
+ * Only the pieces that were out are photographed; with those put away as well the sheet fills with faces that were not there that day.
+ * In a recording where none was out there would be nobody to photograph, so it returns them all.
  */
 export function replayCastOnTable(cast: readonly ReplayCastMember[]): ReplayCastMember[] {
   const onTable = cast.filter((member) => member.onTable);

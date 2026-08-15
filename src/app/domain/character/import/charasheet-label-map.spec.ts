@@ -1,7 +1,7 @@
 import { buildCharasheetLabelMap } from '@axe/domain/character/import/charasheet-label-map';
 
 describe('buildCharasheetLabelMap', () => {
-  // 保管所ページに即した構造: 能力値は列指向（ヘッダ行 + 値行）、HP/MP は行指向。
+  // The shape of the archive page: the abilities in columns under a header row, the resources in rows.
   const html = `
     <table>
       <tr><th>筋力</th><th>器用</th><th>感覚</th></tr>
@@ -21,25 +21,25 @@ describe('buildCharasheetLabelMap', () => {
     </table>
     <input name="loose" value="x">`;
 
-  it('列指向テーブルの値入力に列ヘッダのラベルを与える', () => {
+  it('labels a value in a column with its column heading', () => {
     const map = buildCharasheetLabelMap(html);
     expect(map['S1']).toBe('筋力');
     expect(map['S2']).toBe('器用');
     expect(map['S3']).toBe('感覚');
   });
 
-  it('行指向テーブルの値入力に行ヘッダのラベルを与え、末尾の：を除く', () => {
+  it('labels one in a row with its row heading, without the trailing colon', () => {
     const map = buildCharasheetLabelMap(html);
     expect(map['HP']).toBe('HP');
     expect(map['MP']).toBe('MP');
   });
 
-  it('colspan を考慮して列見出しを対応づける', () => {
+  it('lines the headings up across a spanned column', () => {
     const map = buildCharasheetLabelMap(html);
     expect(map['NB1']).toBe('判定値');
   });
 
-  it('表の外などラベルの取れない入力は対象外', () => {
+  it('leaves out an input with no label to take, such as one outside a table', () => {
     const map = buildCharasheetLabelMap(html);
     expect(map['loose']).toBeUndefined();
   });

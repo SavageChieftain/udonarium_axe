@@ -14,27 +14,27 @@ import {
 
 describe('resource-edit-helpers', () => {
   describe('parseResourceEditOption', () => {
-    it('オプション無しの場合はすべてfalseを返す', () => {
+    it('is false throughout with no options given', () => {
       const result = parseResourceEditOption('HP+10');
       expect(result.limitMinMax).toBe(false);
       expect(result.zeroLimit).toBe(false);
       expect(result.isErr).toBe(false);
     });
 
-    it('LZの組み合わせで両方が有効になる', () => {
+    it('takes two options together', () => {
       const result = parseResourceEditOption('HP+10LZ');
       expect(result.limitMinMax).toBe(true);
       expect(result.zeroLimit).toBe(true);
       expect(result.isErr).toBe(false);
     });
 
-    it('不明なオプション文字でisErrがtrueになる', () => {
+    it('reports an error for an option letter it does not know', () => {
       expect(parseResourceEditOption('HP+10X').isErr).toBe(true);
     });
   });
 
   describe('createDefaultResourceEdit', () => {
-    it('デフォルト値を返す', () => {
+    it('returns the defaults', () => {
       const edit = createDefaultResourceEdit();
       expect(edit.target).toBe('');
       expect(edit.operator).toBe('');
@@ -51,7 +51,7 @@ describe('resource-edit-helpers', () => {
       character = GameCharacter.create('テスト戦士', 1, '');
     });
 
-    it('リソース加算コマンドを正しくパースする', () => {
+    it('reads a command that adds to a resource', () => {
       const edit = createDefaultResourceEdit();
 
       const ok = convertCommandToResourceEdit(edit, ':HP+10', character, false);
@@ -63,7 +63,7 @@ describe('resource-edit-helpers', () => {
       expect(edit.targeted).toBe(false);
     });
 
-    it('最大値指定(^)でnowOrMaxがmaxになる', () => {
+    it('aims at the maximum when it is marked', () => {
       const edit = createDefaultResourceEdit();
 
       const ok = convertCommandToResourceEdit(edit, ':HP^+50', character, true);
@@ -73,7 +73,7 @@ describe('resource-edit-helpers', () => {
       expect(edit.targeted).toBe(true);
     });
 
-    it('_MAX サフィックスで maxBase をターゲットにする', () => {
+    it('aims at the base maximum from one suffix', () => {
       const edit = createDefaultResourceEdit();
       const ok = convertCommandToResourceEdit(edit, ':HP_MAX+5', character, false);
       expect(ok).toBe(true);
@@ -81,7 +81,7 @@ describe('resource-edit-helpers', () => {
       expect(edit.target).toBe('HP');
     });
 
-    it('_MAX_BUFF サフィックスで maxCorrection をターゲットにする', () => {
+    it('aims at its correction from another', () => {
       const edit = createDefaultResourceEdit();
       const ok = convertCommandToResourceEdit(edit, ':HP_MAX_BUFF+5', character, false);
       expect(ok).toBe(true);
@@ -89,7 +89,7 @@ describe('resource-edit-helpers', () => {
       expect(edit.target).toBe('HP');
     });
 
-    it('_MIN サフィックスで minBase をターゲットにする', () => {
+    it('aims at the base minimum from a third', () => {
       const edit = createDefaultResourceEdit();
       const ok = convertCommandToResourceEdit(edit, ':HP_MIN-3', character, false);
       expect(ok).toBe(true);
@@ -97,7 +97,7 @@ describe('resource-edit-helpers', () => {
       expect(edit.target).toBe('HP');
     });
 
-    it('_MIN_BUFF サフィックスで minCorrection をターゲットにする', () => {
+    it('aims at its correction from a fourth', () => {
       const edit = createDefaultResourceEdit();
       const ok = convertCommandToResourceEdit(edit, ':HP_MIN_BUFF-3', character, false);
       expect(ok).toBe(true);
@@ -105,14 +105,14 @@ describe('resource-edit-helpers', () => {
       expect(edit.target).toBe('HP');
     });
 
-    it('サフィックスは大文字小文字を区別しない', () => {
+    it('pays no attention to the case of a suffix', () => {
       const edit = createDefaultResourceEdit();
       const ok = convertCommandToResourceEdit(edit, ':HP_max_buff+5', character, false);
       expect(ok).toBe(true);
       expect(edit.nowOrMax).toBe('maxCorrection');
     });
 
-    it('存在しないステータス名ではfalseを返す', () => {
+    it('is false for a status it does not have', () => {
       const edit = createDefaultResourceEdit();
       expect(convertCommandToResourceEdit(edit, ':存在しない+10', character, false)).toBe(false);
     });
@@ -125,7 +125,7 @@ describe('resource-edit-helpers', () => {
       character = GameCharacter.create('テスト戦士', 1, '');
     });
 
-    it('applyTextEdit はテキスト値を書き換える', () => {
+    it('writes to a text value', () => {
       const edit = createDefaultResourceEdit();
       edit.target = '器用度';
       edit.replace = '30';
@@ -135,7 +135,7 @@ describe('resource-edit-helpers', () => {
       expect(text).toContain('器用度＞30');
     });
 
-    it('applyResourceEdit は = で現在値を代入する', () => {
+    it('assigns the current value', () => {
       const edit: ResourceEdit = {
         ...createDefaultResourceEdit(),
         target: 'HP',
@@ -153,7 +153,7 @@ describe('resource-edit-helpers', () => {
       expect(character.status.getValue('HP', 'now')).toBe(50);
     });
 
-    it('applyBuffEdit はバフ付与テキストを返す', () => {
+    it('returns the text of a buff it granted', () => {
       const buff: BuffEdit = { command: '&マッスルベアー/筋B+2/3', object: character, targeted: false };
 
       const text = applyBuffEdit(buff, character);
@@ -162,7 +162,7 @@ describe('resource-edit-helpers', () => {
       expect(text).toContain('マッスルベアー');
     });
 
-    it('applyBuffEdit は 4 つ目以降で見た目を指定できる', () => {
+    it('takes the look of that buff after the first three words', () => {
       const buff: BuffEdit = { command: '&毒/継続2/3/red/☠️', object: character, targeted: false };
 
       const text = applyBuffEdit(buff, character);

@@ -26,25 +26,25 @@ function makeEvent(visibility: ReplayVisibility, actorId = 'alice'): ReplayEvent
 }
 
 describe('canViewReplayEvent()', () => {
-  it('公開イベントは誰でも見られること', () => {
+  it('lets everybody see an open event', () => {
     const event = makeEvent(PUBLIC_VISIBILITY);
     expect(canViewReplayEvent(event, { userId: 'bob', role: PeerRole.Guest })).toBe(true);
   });
 
-  it('GM 限定イベントは GM だけが見られること', () => {
+  it('lets the game master alone see one meant for them', () => {
     const event = makeEvent(GM_ONLY_VISIBILITY);
     expect(canViewReplayEvent(event, { userId: 'gm', role: PeerRole.GameMaster })).toBe(true);
     expect(canViewReplayEvent(event, { userId: 'bob', role: PeerRole.Player })).toBe(false);
   });
 
-  it('内緒話は宛先と発言者だけが見られること', () => {
+  it('lets the sender and whoever it is addressed to see a private line', () => {
     const event = makeEvent({ kind: 'direct', to: ['bob'] }, 'alice');
     expect(canViewReplayEvent(event, { userId: 'bob', role: PeerRole.Player })).toBe(true);
     expect(canViewReplayEvent(event, { userId: 'alice', role: PeerRole.Player })).toBe(true);
     expect(canViewReplayEvent(event, { userId: 'carol', role: PeerRole.Player })).toBe(false);
   });
 
-  it('内緒話も GM は見られること', () => {
+  it('lets the game master see it too', () => {
     const event = makeEvent({ kind: 'direct', to: ['bob'] }, 'alice');
     expect(canViewReplayEvent(event, { userId: 'gm', role: PeerRole.GameMaster })).toBe(true);
   });
@@ -57,18 +57,18 @@ describe('resolveSnapshotAt()', () => {
     { sinceSeq: 20, label: '再改名後' },
   ];
 
-  it('その時点で有効な版を返すこと', () => {
+  it('returns the version in force at that moment', () => {
     expect(resolveSnapshotAt(snapshots, 5)?.label).toBe('初期');
     expect(resolveSnapshotAt(snapshots, 10)?.label).toBe('改名後');
     expect(resolveSnapshotAt(snapshots, 19)?.label).toBe('改名後');
     expect(resolveSnapshotAt(snapshots, 999)?.label).toBe('再改名後');
   });
 
-  it('どの版よりも前の seq では null を返すこと', () => {
+  it('returns nothing before any version', () => {
     expect(resolveSnapshotAt([{ sinceSeq: 5 }], 1)).toBeNull();
   });
 
-  it('空配列では null を返すこと', () => {
+  it('returns nothing for an empty list', () => {
     expect(resolveSnapshotAt([], 1)).toBeNull();
   });
 });
@@ -84,18 +84,18 @@ describe('findActorAt() / findTargetAt()', () => {
     { identifier: 'c1', aliasName: 'character', name: '盗賊（負傷）', sinceSeq: 50 },
   ];
 
-  it('当時の名前で人物を引けること', () => {
+  it('looks a person up by the name they had then', () => {
     expect(findActorAt({ actors }, 'alice', 10)?.name).toBe('アリス');
     expect(findActorAt({ actors }, 'alice', 40)?.name).toBe('アリス改');
     expect(findActorAt({ actors }, 'bob', 40)?.name).toBe('ボブ');
   });
 
-  it('当時の名前でコマを引けること', () => {
+  it('looks a piece up by the name it had then', () => {
     expect(findTargetAt({ targets }, 'c1', 10)?.name).toBe('盗賊');
     expect(findTargetAt({ targets }, 'c1', 60)?.name).toBe('盗賊（負傷）');
   });
 
-  it('未知の id では null を返すこと', () => {
+  it('returns nothing for an identifier it does not know', () => {
     expect(findActorAt({ actors }, 'zoe', 10)).toBeNull();
     expect(findTargetAt({ targets }, 'x9', 10)).toBeNull();
   });

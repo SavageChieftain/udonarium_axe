@@ -12,24 +12,24 @@ const objects: ReplayObjectSnapshot[] = [
 ];
 
 describe('encodeReplayKeyframe() / decodeReplayKeyframe()', () => {
-  it('盤面を識別子ごと往復できること', () => {
+  it('makes the round trip with the board and its identifiers', () => {
     expect(decodeReplayKeyframe(encodeReplayKeyframe(objects))).toEqual(objects);
   });
 
-  it('空の盤面を往復できること', () => {
+  it('makes it with an empty board', () => {
     expect(decodeReplayKeyframe(encodeReplayKeyframe([]))).toEqual([]);
   });
 
-  it('未対応の書式では空を返すこと', () => {
+  it('returns nothing for a format it does not support', () => {
     expect(decodeReplayKeyframe(encode({ v: REPLAY_FORMAT_VERSION + 1, objects }))).toEqual([]);
   });
 
-  it('壊れた中身を読み飛ばすこと', () => {
+  it('passes over broken contents', () => {
     const broken = encode({ v: REPLAY_FORMAT_VERSION, objects: [objects[0], null, { aliasName: 'character' }, 42] });
     expect(decodeReplayKeyframe(broken)).toEqual([objects[0]]);
   });
 
-  it('中身が配列でなければ空を返すこと', () => {
+  it('returns nothing when the contents are not a list', () => {
     expect(decodeReplayKeyframe(encode({ v: REPLAY_FORMAT_VERSION }))).toEqual([]);
     expect(decodeReplayKeyframe(encode(null))).toEqual([]);
   });

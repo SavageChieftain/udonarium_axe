@@ -1,16 +1,16 @@
 import { resolveCharasheetDicebot } from '@axe/domain/character/import/system-profiles/dicebot-map';
 
 describe('resolveCharasheetDicebot', () => {
-  it('CoC6/CoC7 の game を bcdice のシステムIDへ写像する', () => {
+  it('maps each edition onto its dice bot', () => {
     expect(resolveCharasheetDicebot('coc')).toBe('Cthulhu');
     expect(resolveCharasheetDicebot('coc7')).toBe('Cthulhu7th');
   });
 
-  it('大文字・前後空白を吸収する', () => {
+  it('forgives case and surrounding spaces', () => {
     expect(resolveCharasheetDicebot(' COC ')).toBe('Cthulhu');
   });
 
-  it('未対応の game は空文字を返す', () => {
+  it('returns nothing for a system it does not support', () => {
     expect(resolveCharasheetDicebot('arianrhod')).toBe('');
     expect(resolveCharasheetDicebot('')).toBe('');
   });

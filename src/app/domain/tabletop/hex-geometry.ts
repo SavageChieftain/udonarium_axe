@@ -1,11 +1,11 @@
 /**
- * ヘクスグリッドの共通ジオメトリプリミティブ。
+ * The geometry shared by the hex grids.
  *
- * 用語:
- *   circumradius (s) — ヘクス中心から頂点までの距離 = gridSize / √3
- *   gridSize         — ヘクスの辺間距離 (inradius × 2) = √3 × s
- *   flat-top         — GridType.HEX_VERTICAL: 列が縦に直線
- *   pointy-top       — GridType.HEX_HORIZONTAL: 行が横に直線
+ * Terms:
+ *   the circumradius is the distance from the centre of a hex to a corner
+ *   the cell size is the distance between opposite sides
+ *   flat-topped hexes line their columns up vertically
+ *   pointy-topped hexes line their rows up horizontally
  */
 
 import { GridType } from '@axe/domain/tabletop/game-table';
@@ -55,7 +55,7 @@ export function hexCellCenter(
   };
 }
 
-/** 頂点は CW (時計回り) で返す。 */
+/** The corners come back clockwise. */
 export function hexVertices(cx: number, cy: number, s: number, startAngle: number): { x: number; y: number }[] {
   const verts: { x: number; y: number }[] = [];
   for (let i = 0; i < 6; i++) {

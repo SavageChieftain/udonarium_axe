@@ -19,8 +19,8 @@ export class CutInLauncher extends GameObject {
   reloadDummy = 5;
   private isInitialSync = true;
 
-  // chatActivateCutIn / isCutInBgmUploaded は application/media/cut-in.service.ts へ移動済み。
-  // 当クラスは startCutIn / stopCutIn / startSoundOnlyCutIn の同期辞書に専念する。
+  // The chat trigger and the uploaded music have moved to the cut-in service.
+  // This class keeps to the synchronised record of starting, stopping and sound-only launches.
 
   startSoundOnlyCutIn(cutIn: CutIn, sendTo?: string) {
     this.soundOnlyCutInIdentifier = cutIn.identifier;
@@ -131,7 +131,7 @@ export class CutInLauncher extends GameObject {
     }
 
     if (this.sendTo != '') {
-      // 秘話再生
+      // playing to one person
       if (this.sendTo != getPeerContext().userId) {
         return;
       }

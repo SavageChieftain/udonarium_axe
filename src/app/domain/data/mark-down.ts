@@ -18,7 +18,7 @@ export class MarkDown extends GameObject {
 
     if (!object) return;
 
-    // 2回連続イベントが発生した際の回避処置
+    // The guard against the same event arriving twice.
     if (this.clickTimeStamp == timeStamp) {
       return;
     } else {

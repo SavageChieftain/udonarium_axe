@@ -1,9 +1,9 @@
 /**
- * キャラクター保管所の「描画済みページ」から、フォーム入力名 → 表示ラベルの対応表を作る。
+ * Builds a map from the input names to the labels shown, out of the rendered page of the sheet archive.
  *
- * 保管所のページは能力値や各種値を `<input name="S1" value="4">` のように持ち、
- * その列見出し（`<th>筋力</th>`）や行見出しがラベルになっている。位置依存キー（S1/NB1…）を
- * 人間可読なラベルへ写すための権威情報がページ自身にあるので、システム別の対応表は要らない。
+ * The page holds each value in a named input, and its column or row heading is the label.
+ * The page itself is therefore the authority on which positional key means which label,
+ * and no table per system is needed.
  */
 
 function colspanOf(cell: Element): number {
@@ -28,7 +28,7 @@ function normalize(text: string | null): string {
     .trim();
 }
 
-/** 同じ列インデックスを持つ上方の `<th>` を列見出しとして探す（列指向テーブル）。 */
+/** Looks up the column for a heading at the same index, for a table laid out in columns. */
 function columnHeaderLabel(field: Element): string {
   const cell = field.closest('td, th');
   const row = cell?.closest('tr');
@@ -53,7 +53,7 @@ function columnHeaderLabel(field: Element): string {
   return '';
 }
 
-/** 同じ行内の先行する `<th>` を行見出しとして探す（行指向テーブル）。 */
+/** Looks back along the row for one, for a table laid out in rows. */
 function rowHeaderLabel(field: Element): string {
   const cell = field.closest('td');
   let sibling = cell?.previousElementSibling ?? null;
@@ -68,8 +68,8 @@ function rowHeaderLabel(field: Element): string {
 }
 
 /**
- * 描画済みページ HTML から `{入力名: ラベル}` を作る。列見出し優先、無ければ行見出し。
- * ラベルが取れない入力は対象外（呼び出し側で元キーをそのまま使う）。
+ * Builds the map from the input names to the labels out of the rendered page. A column heading wins, and a row heading fills in.
+ * An input with no label is left out, and the caller keeps its own key.
  */
 export function buildCharasheetLabelMap(html: string): Record<string, string> {
   const doc = new DOMParser().parseFromString(html, 'text/html');

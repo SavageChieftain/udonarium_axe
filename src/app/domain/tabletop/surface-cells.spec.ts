@@ -4,25 +4,25 @@ import { HEX_SURFACE_INFLATE_PX, hexSurfaceCells } from '@axe/domain/tabletop/su
 import { describe, expect, it } from 'vitest';
 
 describe('hexSurfaceCells', () => {
-  it('マス目でないグリッドでは空を返す', () => {
+  it('returns nothing for a grid that is not made of hexes', () => {
     expect(hexSurfaceCells(4, 4, 50, GridType.SQUARE)).toEqual([]);
     expect(hexSurfaceCells(4, 4, 50, GridType.NONE)).toEqual([]);
   });
 
-  it('不正な寸法では空を返す', () => {
+  it('returns nothing for a size it cannot use', () => {
     expect(hexSurfaceCells(0, 4, 50, GridType.HEX_VERTICAL)).toEqual([]);
     expect(hexSurfaceCells(4, 0, 50, GridType.HEX_VERTICAL)).toEqual([]);
     expect(hexSurfaceCells(4, 4, 0, GridType.HEX_VERTICAL)).toEqual([]);
   });
 
-  it('全マス分の六角形を返す', () => {
+  it('returns a hexagon for every cell', () => {
     const cells = hexSurfaceCells(4, 3, 50, GridType.HEX_VERTICAL);
 
     expect(cells).toHaveLength(12);
     for (const cell of cells) expect(cell).toHaveLength(6);
   });
 
-  it('先頭マスの中心は原点で、頂点は外接円上にある', () => {
+  it('puts the first centre at the origin and its corners on the circumcircle', () => {
     const cells = hexSurfaceCells(2, 2, 50, GridType.HEX_VERTICAL);
     const first = cells[0];
     const cx = first.reduce((sum, p) => sum + p.x, 0) / first.length;
@@ -33,7 +33,7 @@ describe('hexSurfaceCells', () => {
     for (const point of first) expect(Math.hypot(point.x - cx, point.y - cy)).toBeCloseTo(hexCircumradius(50), 6);
   });
 
-  it('inflatePx の分だけ六角形を広げる', () => {
+  it('widens each hexagon by the amount it is given', () => {
     const cells = hexSurfaceCells(1, 1, 50, GridType.HEX_HORIZONTAL, HEX_SURFACE_INFLATE_PX);
     const [cell] = cells;
     const cx = cell.reduce((sum, p) => sum + p.x, 0) / cell.length;
@@ -44,7 +44,7 @@ describe('hexSurfaceCells', () => {
     }
   });
 
-  it('端のマス中心から外接円ぶんだけ広がる', () => {
+  it('reaching a circumradius past the centre of an edge cell', () => {
     const gridSize = 50;
     const cols = 5;
     const rows = 4;

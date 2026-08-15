@@ -13,20 +13,20 @@ import {
 } from '@axe/domain/effect/particles/shared';
 
 /**
- * マップ全体に掛ける天候。画面いっぱいの 1 枚に描く。
+ * The weather over the whole map, drawn on one sheet across the screen.
  *
- * 経過時間から毎回まるごと計算し直す純関数で、位置は画面の端で折り返す。
- * 状態を持たないのでフレームが飛んでも降り方が乱れない。
+ * It is worked out afresh from the elapsed time each pass, and the positions wrap at the edges.
+ * It holds no state, so a dropped frame does not disturb the fall.
  */
 export interface SkyAmbienceSpec {
   kind: AmbienceKind;
-  /** 空なら種類ごとの既定色。 */
+  /** Empty for the colour of its kind. */
   color: string;
-  /** 0〜1。0 なら何も出さない。 */
+  /** Between none and all. At none nothing is made. */
   density: number;
-  /** 経過時間(ms)。折り返しは中で行うのでそのまま渡してよい。 */
+  /** The elapsed time. The wrapping happens inside, so it may be passed as it is. */
   elapsed: number;
-  /** 描画領域(px)。 */
+  /** How large an area is drawn. */
   width: number;
   height: number;
 }
@@ -34,7 +34,7 @@ export interface SkyAmbienceSpec {
 const SEED = 7717;
 const MAX_PARTICLES = 700;
 
-/** 100 万 px² あたりの粒の数。密度 1 のときの値。 */
+/** How many particles a megapixel holds at full density. */
 const DENSITY_PER_AREA: Record<AmbienceKind, number> = {
   rain: 420,
   storm: 620,
@@ -77,10 +77,10 @@ export function skyAmbienceLayer(spec: SkyAmbienceSpec): EffectParticleLayer {
 }
 
 /**
- * 空気の色。粒だけだと「霧が濃い」まで行かないので、塗りを 1 枚重ねる。
+ * The colour of the air. Particles alone never reach thick fog, so a wash is laid over them.
  *
- * `direction` は盤面の奥から手前へ向かう向き。塗りは奥ほど濃く、手前ほど薄い。
- * 一律に塗ると、濃くしたときにただの色板を被せただけになって奥行きが消える。
+ * The direction runs from the back of the board to the front, and the wash is thicker at the back than the front.
+ * Washed evenly, a dense one is a coloured sheet laid over everything and the depth is gone.
  */
 export function skyAmbienceWash(kind: AmbienceKind, color: string, density: number, direction = 'to bottom'): string {
   const raw = ambienceDensityOf(density);
@@ -95,7 +95,7 @@ export function skyAmbienceWash(kind: AmbienceKind, color: string, density: numb
 
   switch (kind) {
     case 'fog':
-      // 塗りは空気の色まで。濃さは雲の重なりが持つ。塗りで濃くすると団子になる。
+      // The wash carries only the colour of the air; the density belongs to the overlapping cloud, and thickened by the wash it becomes a lump.
       return depth(0.55, 0.12, tint);
     case 'rain':
       return depth(0.42, 0.12, shade);
@@ -119,16 +119,16 @@ export function skyAmbienceWash(kind: AmbienceKind, color: string, density: numb
   }
 }
 
-/** 落雷の間隔(ms)。この中の 1 回だけ光る。 */
+/** How long between strikes. There is one flash within each. */
 const STRIKE_CYCLE_MS = 5200;
-/** ひらめきが消えるまで(ms)。 */
+/** How long a flash takes to go. */
 const STRIKE_SPAN_MS = 460;
 
 /**
- * 稲光の強さ(0〜1)。雷を伴う天候だけが光る。
+ * How hard the lightning flashes. Only weather that carries it flashes at all.
  *
- * 経過時間だけから決まる純関数にしてあるので、誰の画面でも同じ拍で光る。
- * 一度で消さず二度光らせる。1 回きりだと写真のフラッシュに見えて雷にならない。
+ * It is worked out from the elapsed time alone, so every screen flashes on the same beat.
+ * It flashes twice rather than once; once alone it is a camera rather than lightning.
  */
 export function skyAmbienceFlash(kind: AmbienceKind, elapsed: number, density: number): number {
   if (kind !== 'storm') return 0;
@@ -256,7 +256,7 @@ function ember(r: Randoms, elapsed: number, width: number, height: number, color
   };
 }
 
-/** 横殴りの雨。まっすぐ落ちる雨より寝かせ、風にちぎれた飛沫を混ぜる。 */
+/** Driving rain: leaning further than rain that falls straight, with spray torn off by the wind mixed in. */
 function storm(r: Randoms, elapsed: number, width: number, height: number, color: string): EffectParticle {
   const gust = 1 + 0.35 * Math.sin(elapsed * 0.00035);
   const spray = r.d > 0.78;
@@ -265,7 +265,7 @@ function storm(r: Randoms, elapsed: number, width: number, height: number, color
   const slant = spray ? 0.62 : 0.92;
 
   return {
-    // 風で流されるぶん、落ちる間に大きく横へ運ばれる。
+    // Carried by the wind, it travels far sideways as it falls.
     x: wrap(r.a * (width + 900) + elapsed * speed * 0.62, width + 900) - 450,
     y: wrap(r.b * span + elapsed * speed, span) - 130,
     size: spray ? 1.4 + r.d * 1.4 : 2.4 + r.d * 2.2,
@@ -293,10 +293,10 @@ function sand(r: Randoms, elapsed: number, width: number, height: number, color:
 }
 
 /**
- * 流れる雲の塊。霧と瘴気はここを共有する。
+ * The masses of drifting cloud, which fog and miasma share.
  *
- * 薄い塗りを 1 枚被せただけでは、色の板を前に置いたようにしか見えない。
- * 濃さは塊の重なりで作る。大小と速さを大きく散らさないと、同じ雲が並んだ壁紙になる。
+ * A single thin wash is only a coloured sheet held in front.
+ * The density comes from the masses overlapping, and without a wide spread of size and speed it is wallpaper of one cloud repeated.
  */
 function haze(
   r: Randoms,
@@ -309,7 +309,7 @@ function haze(
 ): EffectParticle {
   const base = Math.max(width, height);
   const phase = r.a * TAU;
-  // 塊ごとに違う拍で膨らみ、ねじれ、にじむ。周期をずらさないと全部が同じ呼吸をする。
+  // Each swells, twists and bleeds on its own beat; in step, they all breathe together.
   const churn = elapsed * 0.00016;
   const swell = 0.82 + 0.18 * Math.sin(churn * 1.7 + phase);
   const size = base * (0.07 + Math.pow(r.d, 1.7) * 0.46) * swell;
@@ -323,7 +323,7 @@ function haze(
       Math.sin(churn * 1.9 + phase) * height * 0.09 +
       Math.cos(churn * 1.1 + phase * 0.7) * height * 0.05,
     size,
-    // 平行移動だけだと板が流れていくように見える。ゆっくり回して形も変える。
+    // Moved alone it reads as a sheet sliding, so it turns slowly and changes shape.
     angle: phase + churn * (0.6 + r.c * 0.9),
     stretch: 0.5 + r.c * 0.4 + 0.22 * Math.sin(churn * 2.3 + phase * 1.7),
     color,

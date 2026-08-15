@@ -1,12 +1,12 @@
 import { clamp01, type ColorRamp, type EffectParticle } from '@axe/domain/effect/particles/shared';
 
 /**
- * 刃。
+ * A blade.
  *
- * 斬撃の火花と、両断の断面。
+ * The sparks of a cut, and the cut face of a cleaving.
  */
 
-/** 斬撃。刃そのものは SVG 側で描き、ここでは着弾の閃光と飛散だけを持つ。 */
+/** A cut. The blade itself is drawn elsewhere; here are the flash of the landing and the scatter. */
 export function emitSlash(
   particles: EffectParticle[],
   random: () => number,
@@ -48,7 +48,7 @@ export function emitSlash(
   }
 }
 
-/** 両断。断面から血が噴き、欠片が斬られた向きへ滑る。 */
+/** A cleaving: blood from the cut face, and fragments sliding the way the stroke went. */
 export function emitBisect(
   particles: EffectParticle[],
   random: () => number,
@@ -65,7 +65,7 @@ export function emitBisect(
   for (let index = 0; index < 30; index++) {
     const along = random() - 0.5;
     const local = clamp01(after * (0.6 + random() * 0.9));
-    // 断面に沿って噴き、そのまま落ちる。
+    // It spurts along the face and falls.
     const spread = base * along * 2.2;
     particles.push({
       x: spread + Math.cos(along * 6) * base * 0.3 * local,

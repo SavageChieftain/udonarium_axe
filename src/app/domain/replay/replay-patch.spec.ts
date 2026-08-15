@@ -22,7 +22,7 @@ function patchEvent(seq: number, patch: ReplayPatch, kind: ReplayEventKind = Rep
 }
 
 describe('applyReplayPatch()', () => {
-  it('入れ子の属性を経路で書き換えること', () => {
+  it('writes to a nested attribute by its path', () => {
     const next = applyReplayPatch(
       { value: '', attributes: { posZ: 0, rotate: 45, owner: 'alice' } },
       {
@@ -35,7 +35,7 @@ describe('applyReplayPatch()', () => {
     expect(next).toEqual({ value: '', attributes: { posZ: 30, rotate: 45, owner: 'alice' } });
   });
 
-  it('後に無いキーを取り除くこと', () => {
+  it('removes a key the later state does not have', () => {
     const next = applyReplayPatch(
       { attributes: { posZ: 0, owner: 'alice' } },
       { identifier: 'c1', aliasName: 'character', before: { 'attributes.owner': 'alice' }, after: {} }
@@ -43,7 +43,7 @@ describe('applyReplayPatch()', () => {
     expect(next).toEqual({ attributes: { posZ: 0 } });
   });
 
-  it('元が無ければ後の値だけで作ること', () => {
+  it('builds from the later values alone when there was nothing before', () => {
     const next = applyReplayPatch(null, {
       identifier: 'c1',
       aliasName: 'character',
@@ -53,7 +53,7 @@ describe('applyReplayPatch()', () => {
     expect(next).toEqual({ attributes: { posZ: 10 } });
   });
 
-  it('元の値を書き換えないこと', () => {
+  it('leaves the values it was given alone', () => {
     const source = { attributes: { location: { x: 0, y: 0 } } };
     const next = applyReplayPatch(source, {
       identifier: 'c1',
@@ -72,7 +72,7 @@ describe('applyReplayEvents()', () => {
     { identifier: 'c2', aliasName: 'character', syncData: { attributes: { posZ: 0 } } },
   ];
 
-  it('順に適用して盤面を進めること', () => {
+  it('carries the board forward, applying them in order', () => {
     const result = applyReplayEvents(start, [
       patchEvent(1, {
         identifier: 'c1',
@@ -90,7 +90,7 @@ describe('applyReplayEvents()', () => {
     expect(result.find((o) => o.identifier === 'c1')?.syncData).toEqual({ attributes: { posZ: 30, rotate: 90 } });
   });
 
-  it('途中で現れたオブジェクトを足すこと', () => {
+  it('adds an object that appears along the way', () => {
     const result = applyReplayEvents(start, [
       patchEvent(
         1,
@@ -105,7 +105,7 @@ describe('applyReplayEvents()', () => {
     });
   });
 
-  it('片づけられたオブジェクトを外すこと', () => {
+  it('takes away one that is put away', () => {
     const removal: ReplayEvent = {
       seq: 1,
       at: 1000,
@@ -120,7 +120,7 @@ describe('applyReplayEvents()', () => {
     expect(result.map((o) => o.identifier)).toEqual(['c1']);
   });
 
-  it('元の盤面を書き換えないこと', () => {
+  it('leaves the board it was given alone', () => {
     applyReplayEvents(start, [
       patchEvent(1, {
         identifier: 'c1',
@@ -132,7 +132,7 @@ describe('applyReplayEvents()', () => {
     expect(start[0].syncData).toEqual({ attributes: { posZ: 0, rotate: 0 } });
   });
 
-  it('パッチの無いイベントを読み飛ばすこと', () => {
+  it('passes over an event with no patch', () => {
     const marker: ReplayEvent = {
       seq: 1,
       at: 1000,
@@ -151,37 +151,37 @@ describe('indexOfSeq()', () => {
     patchEvent(seq, { identifier: 'c1', aliasName: 'character', before: {}, after: {} })
   );
 
-  it('その seq 以下で一番後ろの位置を返すこと', () => {
+  it('returns the last position at or before that number', () => {
     expect(indexOfSeq(events, 0)).toBe(-1);
     expect(indexOfSeq(events, 1)).toBe(0);
     expect(indexOfSeq(events, 5)).toBe(1);
     expect(indexOfSeq(events, 100)).toBe(2);
   });
 
-  it('空なら -1 を返すこと', () => {
+  it('returns nothing for an empty run', () => {
     expect(indexOfSeq([], 5)).toBe(-1);
   });
 });
 
-describe('applyReplayEvents() の複製', () => {
+describe('copying as it applies the events', () => {
   const board: ReplayObjectSnapshot[] = [
     { identifier: 'c1', aliasName: 'character', syncData: { attributes: { name: 'アリス' } } },
   ];
 
-  it('既定では結果を書き換えても元が変わらないこと', () => {
+  it('leaves the original alone when the result is written to', () => {
     const applied = applyReplayEvents(board, []);
     (applied[0].syncData['attributes'] as Record<string, unknown>)['name'] = 'ボブ';
 
     expect((board[0].syncData['attributes'] as Record<string, unknown>)['name']).toBe('アリス');
   });
 
-  it('読むだけと分かっているときは複製しないこと', () => {
+  it('copies nothing where it is known that nothing will be written', () => {
     const applied = applyReplayEvents(board, [], { shareInput: true });
 
     expect(applied[0]).toBe(board[0]);
   });
 
-  it('複製しない指定でも、当てた物は別の物になること', () => {
+  it('still makes what it applied a separate thing even then', () => {
     const applied = applyReplayEvents(
       board,
       [

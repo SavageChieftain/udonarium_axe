@@ -10,14 +10,14 @@ import { EFFECT_KINDS } from '@axe/domain/effect/effect-kind';
 import { EffectPreset } from '@axe/domain/effect/effect-preset';
 import { PresetSound } from '@axe/domain/media/sound-effect';
 
-describe('既定エフェクトプリセット', () => {
-  it('内蔵アニメを 1 つ以上のプリセットで使い切ること', () => {
+describe('the effects that come with the tool', () => {
+  it('uses every built-in animation in at least one of them', () => {
     const used = new Set(DEFAULT_EFFECT_PRESET_SEEDS.map((seed) => seed.kind));
 
     for (const kind of EFFECT_KINDS) expect(used.has(kind)).toBe(true);
   });
 
-  it('同じ系統に初級から上級まで揃えること', () => {
+  it('gives each family a grade from the lowest to the highest', () => {
     const gradesOf = (kinds: string[]) =>
       DEFAULT_EFFECT_PRESET_SEEDS.filter((seed) => kinds.includes(seed.kind))
         .map((seed) => seed.grade)
@@ -35,9 +35,9 @@ describe('既定エフェクトプリセット', () => {
     }
   });
 
-  it('上級ほど大きいこと', () => {
+  it('makes the higher grades larger', () => {
     for (const kind of ['bolt', 'frost', 'heal', 'slash']) {
-      // 同じ等級が複数あってもよいので、等級ごとの最大値どうしで比べる。
+      // There may be several of a grade, so the largest of each is compared.
       const largestOf = (grade: number) =>
         Math.max(
           ...DEFAULT_EFFECT_PRESET_SEEDS.filter((seed) => seed.kind === kind && seed.grade === grade).map(
@@ -50,12 +50,12 @@ describe('既定エフェクトプリセット', () => {
     }
   });
 
-  it('演出の尺を音の長さに合わせること', () => {
+  it('runs each effect as long as its sound', () => {
     for (const seed of DEFAULT_EFFECT_PRESET_SEEDS) {
       const preset = createEffectPreset(seed);
       try {
-        // 音より短く終わると、絵が消えたあとに音だけ残って間延びする。
-        // 飛ぶものだけは弾が遅くなるので、明示した尺を使う。
+        // Ending sooner leaves the sound playing over nothing, which drags.
+        // A projectile alone would be slowed by that, so its length is given outright.
         expect(preset.duration).toBe(Math.min(Math.max(seed.durationMs ?? seed.soundMs, 400), 6000));
       } finally {
         ObjectStore.instance.remove(preset);
@@ -63,41 +63,41 @@ describe('既定エフェクトプリセット', () => {
     }
   });
 
-  it('飛ぶものは発射音と着弾音を分けること', () => {
+  it('gives a projectile a sound for the shot and another for the landing', () => {
     const flying = DEFAULT_EFFECT_PRESET_SEEDS.filter((seed) => seed.kind === 'projectile' || seed.kind === 'arc');
 
     expect(flying.length).toBeGreaterThan(0);
     for (const seed of flying) {
-      // 発射だけだと当たった感じが出ず、着弾だけだと撃った感じが出ない。
+      // The shot alone does not land and the landing alone was never fired.
       expect(seed.impactSoundKey).toBeDefined();
       expect(seed.durationMs).toBeDefined();
     }
   });
 
-  it('炎の最上級をきのこ雲にすること', () => {
+  it('ends the highest grade of fire in a mushroom cloud', () => {
     const top = DEFAULT_EFFECT_PRESET_SEEDS.find((seed) => seed.kind === 'mushroom');
 
     expect(top?.name).toBe('業火');
     expect(top?.grade).toBe(3);
   });
 
-  it('系統ごとに違う音を割り当てること', () => {
+  it('gives each family a sound of its own', () => {
     const soundOf = (kind: string) =>
       new Set(DEFAULT_EFFECT_PRESET_SEEDS.filter((seed) => seed.kind === kind).map((seed) => seed.soundKey));
 
-    // 氷と雷が同じ音だと、何が起きたか音で区別できない。
+    // Ice and lightning sharing one sound leaves the ear unable to tell them apart.
     expect([...soundOf('frost')].some((sound) => [...soundOf('bolt')].includes(sound))).toBe(false);
     expect(DEFAULT_EFFECT_PRESET_SEEDS.every((seed) => seed.soundKey.length > 0)).toBe(true);
   });
 
-  it('固定 identifier を持ち重複しないこと', () => {
+  it('gives each a fixed identifier of its own', () => {
     const identifiers = DEFAULT_EFFECT_PRESET_SEEDS.map((seed) => seed.identifier);
 
     expect(new Set(identifiers).size).toBe(identifiers.length);
     expect(identifiers.every((identifier) => identifier.startsWith('EffectPreset_'))).toBe(true);
   });
 
-  it('生成したプリセットを固定 identifier で登録し、SE を割り当てること', () => {
+  it('registers each under that identifier and gives it its sound', () => {
     PresetSound.slashSmall = 'se-slash-small';
     const created = createDefaultEffectPresets();
 
@@ -114,7 +114,7 @@ describe('既定エフェクトプリセット', () => {
     }
   });
 
-  it('種を当て直すと自分でいじった旗も戻ること', () => {
+  it('puts even the flags you changed back when the seed is applied again', () => {
     const preset = new EffectPreset('preset');
     preset.gmOnly = true;
     preset.followTarget = false;
@@ -122,17 +122,17 @@ describe('既定エフェクトプリセット', () => {
 
     applyEffectPresetSeed(preset, DEFAULT_EFFECT_PRESET_SEEDS[0]);
 
-    // 「既定を反映」で戻らない項目があると、直したつもりの卓で挙動が残る。
+    // A field that survives the reset leaves the old behaviour on a table you meant to fix.
     expect(preset.gmOnly).toBe(false);
     expect(preset.followTarget).toBe(true);
     expect(preset.moteStyle).toBe('');
   });
 });
 
-describe('飛ぶ物の新しい見た目', () => {
+describe('the newer looks for a projectile', () => {
   const seedOf = (identifier: string) => DEFAULT_EFFECT_PRESET_SEEDS.find((seed) => seed.identifier === identifier)!;
 
-  it('飛ぶ斬撃は三日月で飛んで斬って終わること', () => {
+  it('sends a flying cut as a crescent that flies, cuts and is done', () => {
     const seed = seedOf('EffectPreset_crescent_wave');
 
     expect(seed).toMatchObject({ kind: 'projectile', projectileStyle: 'crescent', impactKind: 'slash' });
@@ -140,7 +140,7 @@ describe('飛ぶ物の新しい見た目', () => {
     expect(seed.impactSoundKey).toBe('slashLarge');
   });
 
-  it('光線銃は連射で、弾ごとに着弾させること', () => {
+  it('fires a blaster in a burst, each shot landing', () => {
     const seed = seedOf('EffectPreset_blaster_bolt');
 
     expect(seed).toMatchObject({ kind: 'projectile', projectileStyle: 'blaster' });
@@ -150,21 +150,21 @@ describe('飛ぶ物の新しい見た目', () => {
     expect(seed.impactSoundKey).toBe('sfHit');
   });
 
-  it('光線銃は単発も選べること', () => {
+  it('fires it as a single shot as well', () => {
     const single = seedOf('EffectPreset_blaster_single');
 
     expect(single).toMatchObject({ projectileStyle: 'blaster', soundKey: 'sfShot' });
     expect(single.shots ?? 1).toBe(1);
   });
 
-  it('飛ぶ連斬は三日月を続けて飛ばすこと', () => {
+  it('sends a flying combination as crescents one after another', () => {
     const combo = seedOf('EffectPreset_crescent_combo');
 
     expect(combo).toMatchObject({ projectileStyle: 'crescent', impactKind: 'slash' });
     expect(combo.shots).toBeGreaterThan(1);
   });
 
-  it('光の剣は溜めてから振り下ろす尺を持つこと', () => {
+  it('gives a sword of light time to gather before it falls', () => {
     const blade = seedOf('EffectPreset_skyblade');
 
     expect(blade.kind).toBe('skyblade');
@@ -173,7 +173,7 @@ describe('飛ぶ物の新しい見た目', () => {
     expect(blade.tagName).toBe('物理');
   });
 
-  it('レーザー照射は撃ち続ける尺を持つこと', () => {
+  it('gives a beam time to keep firing', () => {
     const laser = seedOf('EffectPreset_laser_sustained');
 
     expect(laser.kind).toBe('raybeam');
@@ -181,7 +181,7 @@ describe('飛ぶ物の新しい見た目', () => {
     expect(laser.durationMs).toBeGreaterThan(seedOf('EffectPreset_blaster_single').durationMs!);
   });
 
-  it('狙撃は一発で、どの飛び物より速く着くこと', () => {
+  it('sends a snipers shot alone, and faster than anything else', () => {
     const sniper = seedOf('EffectPreset_sniper_shot');
 
     expect(sniper).toMatchObject({ kind: 'projectile', projectileStyle: 'tracer' });
@@ -191,13 +191,13 @@ describe('飛ぶ物の新しい見た目', () => {
     expect(sniper.scale).toBeLessThan(seedOf('EffectPreset_bullet_2').scale);
   });
 
-  it('新しい見た目が選べる一覧に載っていること', () => {
+  it('lists the newer looks among the choices', () => {
     expect([...PROJECTILE_STYLES]).toEqual(
       expect.arrayContaining(['crescent', 'blaster', 'tracer', 'missile', 'cruise'])
     );
   });
 
-  it('矢の連射は 1 本ずつ間を置いて撃つこと', () => {
+  it('looses arrows one at a time', () => {
     const volley = seedOf('EffectPreset_arrow_volley');
 
     expect(volley).toMatchObject({ kind: 'projectile', projectileStyle: 'arrow' });
@@ -207,7 +207,7 @@ describe('飛ぶ物の新しい見た目', () => {
     expect(volley.impactSoundKey).toBe('bowPierce');
   });
 
-  it('アローレインは広く取って降らせること', () => {
+  it('brings a rain of arrows down over a wide area', () => {
     const rain = seedOf('EffectPreset_arrow_rain');
 
     expect(rain.kind).toBe('arrowrain');
@@ -216,7 +216,7 @@ describe('飛ぶ物の新しい見た目', () => {
     expect(rain.durationMs).toBeGreaterThan(1200);
   });
 
-  it('マイクロミサイルは束で撃って弾ごとに爆ぜること', () => {
+  it('fires small missiles in a cluster, each bursting', () => {
     const micro = seedOf('EffectPreset_micro_missile');
 
     expect(micro).toMatchObject({ kind: 'projectile', projectileStyle: 'missile', impactKind: 'burst' });
@@ -225,7 +225,7 @@ describe('飛ぶ物の新しい見た目', () => {
     expect(micro.impactSoundKey).toBe('explosionSmall');
   });
 
-  it('誘導弾は一発を長く飛ばすこと', () => {
+  it('sends a guided missile alone and far', () => {
     const cruise = seedOf('EffectPreset_cruise_missile');
 
     expect(cruise).toMatchObject({ kind: 'projectile', projectileStyle: 'cruise' });
@@ -234,11 +234,11 @@ describe('飛ぶ物の新しい見た目', () => {
     expect(cruise.durationMs).toBeGreaterThan(seedOf('EffectPreset_micro_missile').durationMs!);
   });
 
-  it('大剣は属性ごとに締めと音を変えること', () => {
+  it('ends a great sword differently, and sounds it differently, by its element', () => {
     const blades = DEFAULT_EFFECT_PRESET_SEEDS.filter((seed) => seed.kind === 'skyblade');
 
     expect(blades.length).toBeGreaterThan(4);
-    // 属性を持つ剣は締めをその属性へ委ねる。光の剣だけは光のまま終わる。
+    // A sword with an element ends in that element; one of light ends as light.
     const elemental = blades.filter((seed) => seed.identifier !== 'EffectPreset_skyblade');
     expect(elemental.every((seed) => (seed.impactKind ?? '').length > 0)).toBe(true);
     expect(new Set(elemental.map((seed) => seed.impactKind)).size).toBe(elemental.length);

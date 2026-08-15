@@ -17,9 +17,9 @@ export interface FieldLabel {
 }
 
 /**
- * サイコ・フィクション系（冒険企画局: シノビガミ / インセイン / マギカロギア …、倉庫 appspot）共通の取り込みビルダー。
- * いずれも特技表＝分野×段階の GAP グリッド（skills.row{r}.check{c} ＋ ギャップ a..f ＋ learned[].id）と、
- * 指定特技つきの異能配列（忍法 / アビリティ …）を持つ。差分は SystemConfig で吸収する。
+ * The shared builder for one publisher's family of systems at the warehouse.
+ * Each has a skill table laid out as a grid of fields against ranks with gaps between them,
+ * and an array of powers that each call for a skill. What differs is settled by the configuration.
  */
 export interface PsychoFictionConfig {
   dicebot: string;
@@ -29,9 +29,9 @@ export interface PsychoFictionConfig {
   abilitySectionLabel: string;
   abilityFields: FieldLabel[];
   profileFields: FieldLabel[];
-  /** 異能配列の「指定特技」を持つキー（既定 'targetSkill'。マギカロギア/カードランカーは 'skill' 等）。 */
+  /** The key that holds the skill a power calls for, which is named differently by some systems. */
   targetSkillKey?: string;
-  /** 異能・背景以外の追加配列（例: 艦これの装備・人物欄）をラベル付きセクションとして取り込む。 */
+  /** Takes the further arrays some systems carry as labelled sections. */
   extraSections?: { key: string; label: string; fields: FieldLabel[] }[];
 }
 

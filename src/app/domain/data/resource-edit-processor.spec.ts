@@ -22,38 +22,38 @@ describe('ResourceEditProcessor', () => {
   });
 
   describe('parseOption', () => {
-    it('オプション無しの場合はすべてfalseを返す', () => {
+    it('is false throughout with no options given', () => {
       const result = processor.parseOption('HP+10');
       expect(result.limitMinMax).toBe(false);
       expect(result.zeroLimit).toBe(false);
       expect(result.isErr).toBe(false);
     });
 
-    it('Lオプションでlimitが有効になる', () => {
+    it('takes the limit option', () => {
       const result = processor.parseOption('HP+10L');
       expect(result.limitMinMax).toBe(true);
       expect(result.isErr).toBe(false);
     });
 
-    it('Zオプションでzeroが有効になる', () => {
+    it('takes the floor option', () => {
       const result = processor.parseOption('HP+10Z');
       expect(result.zeroLimit).toBe(true);
       expect(result.isErr).toBe(false);
     });
 
-    it('LZの組み合わせで両方が有効になる', () => {
+    it('takes two options together', () => {
       const result = processor.parseOption('HP+10LZ');
       expect(result.limitMinMax).toBe(true);
       expect(result.zeroLimit).toBe(true);
       expect(result.isErr).toBe(false);
     });
 
-    it('不明なオプション文字でisErrがtrueになる', () => {
+    it('reports an error for an option letter it does not know', () => {
       const result = processor.parseOption('HP+10X');
       expect(result.isErr).toBe(true);
     });
 
-    it('Dは正規表現でオプションとして扱われない（diceのD）', () => {
+    it('does not read the dice letter as an option', () => {
       const result = processor.parseOption('HP+10D');
       // D is excluded from [A-CE-Z] pattern — no options matched
       expect(result.limitMinMax).toBe(false);
@@ -63,7 +63,7 @@ describe('ResourceEditProcessor', () => {
   });
 
   describe('defaultResourceEdit', () => {
-    it('デフォルトのResourceEditオブジェクトを返す', () => {
+    it('returns the default edit', () => {
       const edit = processor.defaultResourceEdit();
       expect(edit.target).toBe('');
       expect(edit.operator).toBe('');
@@ -81,7 +81,7 @@ describe('ResourceEditProcessor', () => {
       character = GameCharacter.create('テスト戦士', 1, '');
     });
 
-    it('リソース加算コマンドを正しくパースする', () => {
+    it('reads a command that adds to a resource', () => {
       const edit = processor.defaultResourceEdit();
       const result = processor.commandToEdit(edit, ':HP+10', character, false);
 
@@ -91,7 +91,7 @@ describe('ResourceEditProcessor', () => {
       expect(edit.nowOrMax).toBe('now');
     });
 
-    it('リソース減算コマンドをパースする', () => {
+    it('reads a command that takes from a resource', () => {
       const edit = processor.defaultResourceEdit();
       const result = processor.commandToEdit(edit, ':HP-5', character, false);
 
@@ -100,7 +100,7 @@ describe('ResourceEditProcessor', () => {
       expect(edit.operator).toBe('-');
     });
 
-    it('代入コマンド(=)をパースする', () => {
+    it('reads one that assigns', () => {
       const edit = processor.defaultResourceEdit();
       const result = processor.commandToEdit(edit, ':HP=100', character, false);
 
@@ -108,7 +108,7 @@ describe('ResourceEditProcessor', () => {
       expect(edit.operator).toBe('=');
     });
 
-    it('テキスト置換コマンド(>)をパースする', () => {
+    it('reads one that replaces text', () => {
       const edit = processor.defaultResourceEdit();
       const result = processor.commandToEdit(edit, ':器用度>30', character, false);
 
@@ -117,7 +117,7 @@ describe('ResourceEditProcessor', () => {
       expect(edit.replace).toBe('30');
     });
 
-    it('最大値指定(^)でnowOrMaxがmaxになる', () => {
+    it('aims at the maximum when it is marked', () => {
       const edit = processor.defaultResourceEdit();
       const result = processor.commandToEdit(edit, ':HP^+50', character, false);
 
@@ -125,14 +125,14 @@ describe('ResourceEditProcessor', () => {
       expect(edit.nowOrMax).toBe('max');
     });
 
-    it('存在しないステータス名ではfalseを返す', () => {
+    it('is false for a status it does not have', () => {
       const edit = processor.defaultResourceEdit();
       const result = processor.commandToEdit(edit, ':存在しないステータス+10', character, false);
 
       expect(result).toBe(false);
     });
 
-    it('targeted=trueが設定される', () => {
+    it('marks it as aimed at a target', () => {
       const edit = processor.defaultResourceEdit();
       processor.commandToEdit(edit, ':HP+10', character, true);
 
@@ -147,7 +147,7 @@ describe('ResourceEditProcessor', () => {
       character = GameCharacter.create('テスト', 1, '');
     });
 
-    it('テキスト値を書き換えて結果文字列を返す', () => {
+    it('writes to a text value and says what it did', () => {
       const edit = processor.defaultResourceEdit();
       edit.target = '器用度';
       edit.replace = '30';
@@ -165,7 +165,7 @@ describe('ResourceEditProcessor', () => {
       character = GameCharacter.create('テスト戦士', 1, '');
     });
 
-    it('加算で現在値を変更し結果文字列を返す', () => {
+    it('adds to the current value and says what it did', () => {
       const edit: ResourceEdit = {
         target: 'HP',
         operator: '+',
@@ -185,7 +185,7 @@ describe('ResourceEditProcessor', () => {
       expect(result).toContain('200'); // 初期値
     });
 
-    it('=で代入する', () => {
+    it('assigns', () => {
       const edit: ResourceEdit = {
         target: 'HP',
         operator: '=',
@@ -205,7 +205,7 @@ describe('ResourceEditProcessor', () => {
       expect(character.status.getValue('HP', 'now')).toBe(50);
     });
 
-    it('limitMinMaxで最大値を超えない', () => {
+    it('never passes the maximum while it is limited', () => {
       const edit: ResourceEdit = {
         target: 'HP',
         operator: '+',
@@ -225,7 +225,7 @@ describe('ResourceEditProcessor', () => {
       expect(character.status.getValue('HP', 'now')).toBe(200);
     });
 
-    it('zeroLimitで+に対して負の値を0制限する', () => {
+    it('stops an addition at nothing while it is floored', () => {
       const edit: ResourceEdit = {
         target: 'HP',
         operator: '+',
@@ -252,7 +252,7 @@ describe('ResourceEditProcessor', () => {
       character = GameCharacter.create('テスト戦士', 1, '');
     });
 
-    it('バフを付与する', () => {
+    it('grants a buff', () => {
       const result = processor.buffEdit(
         { command: '&マッスルベアー/筋B+2/3', object: character, targeted: false },
         character
@@ -262,34 +262,34 @@ describe('ResourceEditProcessor', () => {
       expect(result).toContain('マッスルベアー');
     });
 
-    it('&R-でバフRを減少する', () => {
+    it('counts a named buff down', () => {
       character.buffs.addRound('テストバフ', '', 3);
       const result = processor.buffEdit({ command: '&R-', object: character, targeted: false }, character);
 
       expect(result).toContain('バフRを減少');
     });
 
-    it('&R+でバフRを増加する', () => {
+    it('counts it up', () => {
       character.buffs.addRound('テストバフ', '', 3);
       const result = processor.buffEdit({ command: '&R+', object: character, targeted: false }, character);
 
       expect(result).toContain('バフRを増加');
     });
 
-    it('&Dで0R以下のバフを消去する', () => {
+    it('removes the buffs that have run out', () => {
       const result = processor.buffEdit({ command: '&D', object: character, targeted: false }, character);
 
       expect(result).toContain('0R以下のバフを消去');
     });
 
-    it('&バフ名-でバフを消去する', () => {
+    it('removes a named buff', () => {
       character.buffs.addRound('消去対象', '', 3);
       const result = processor.buffEdit({ command: '&消去対象-', object: character, targeted: false }, character);
 
       expect(result).toContain('消去対象を消去');
     });
 
-    it('targetedがtrueの場合はキャラクター名が含まれる', () => {
+    it('names the character when it is aimed at one', () => {
       const result = processor.buffEdit({ command: '&テストバフ', object: character, targeted: true }, character);
 
       expect(result).toContain('テスト戦士');

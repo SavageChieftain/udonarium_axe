@@ -52,94 +52,94 @@ describe('GameTable', () => {
     });
   });
 
-  describe('インスタンス生成', () => {
-    it('GameTableを生成してObjectStoreに追加する', () => {
+  describe('creating one', () => {
+    it('creates a table and adds it to the store', () => {
       const table = new GameTable();
       table.initialize();
       expect(store.get(table.identifier)).toBe(table);
     });
 
-    it('aliasNameが"game-table"を返す', () => {
+    it('names itself a table', () => {
       const table = new GameTable();
       table.initialize();
       expect(table.aliasName).toBe('game-table');
     });
   });
 
-  describe('SyncVar デフォルト値', () => {
-    it('name がデフォルト "テーブル"', () => {
+  describe('the defaults of the synchronised fields', () => {
+    it('starts with the default name', () => {
       const table = new GameTable();
       table.initialize();
       expect(table.name).toBe('テーブル');
     });
 
-    it('width がデフォルト 20', () => {
+    it('starts twenty cells wide', () => {
       const table = new GameTable();
       table.initialize();
       expect(table.width).toBe(20);
     });
 
-    it('height がデフォルト 20', () => {
+    it('starts twenty cells deep', () => {
       const table = new GameTable();
       table.initialize();
       expect(table.height).toBe(20);
     });
 
-    it('gridSize がデフォルト 50', () => {
+    it('starts at the default cell size', () => {
       const table = new GameTable();
       table.initialize();
       expect(table.gridSize).toBe(50);
     });
 
-    it('selected がデフォルト false', () => {
+    it('starts unselected', () => {
       const table = new GameTable();
       table.initialize();
       expect(table.selected).toBe(false);
     });
 
-    it('gridType がデフォルト SQUARE', () => {
+    it('starts on squares', () => {
       const table = new GameTable();
       table.initialize();
       expect(table.gridType).toBe(GridType.SQUARE);
     });
 
-    it('backgroundFilterType がデフォルト NONE', () => {
+    it('starts with nothing over the background', () => {
       const table = new GameTable();
       table.initialize();
       expect(table.backgroundFilterType).toBe(FilterType.NONE);
     });
 
-    it('gridColor がデフォルト "#000000e6"', () => {
+    it('starts at the default grid colour', () => {
       const table = new GameTable();
       table.initialize();
       expect(table.gridColor).toBe('#000000e6');
     });
 
-    it('gridFontColor がデフォルト "#000000e6"', () => {
+    it('starts at the default label colour', () => {
       const table = new GameTable();
       table.initialize();
       expect(table.gridFontColor).toBe('#000000e6');
     });
 
-    it('gridShow がデフォルト false', () => {
+    it('starts with the grid hidden', () => {
       const table = new GameTable();
       table.initialize();
       expect(table.gridShow).toBe(false);
     });
 
-    it('gridSnap がデフォルト true', () => {
+    it('starts snapping to it', () => {
       const table = new GameTable();
       table.initialize();
       expect(table.gridSnap).toBe(true);
     });
 
-    it('wallHeight がデフォルト 10', () => {
+    it('starts at the default wall height', () => {
       const table = new GameTable();
       table.initialize();
       expect(table.wallHeight).toBe(10);
     });
 
-    it('北/東/南/西 の壁表示フラグがすべてデフォルト false', () => {
+    it('starts with every wall hidden', () => {
       const table = new GameTable();
       table.initialize();
       expect(table.showNorthWall).toBe(false);
@@ -148,7 +148,7 @@ describe('GameTable', () => {
       expect(table.showWestWall).toBe(false);
     });
 
-    it('暗闇（ステージ効果）はデフォルト無効', () => {
+    it('starts without the darkness', () => {
       const table = new GameTable();
       table.initialize();
       expect(table.darknessEnabled).toBe(false);
@@ -158,22 +158,22 @@ describe('GameTable', () => {
     });
   });
 
-  describe('プロパティ変更', () => {
-    it('nameを変更できる', () => {
+  describe('changing it', () => {
+    it('takes a new name', () => {
       const table = new GameTable();
       table.initialize();
       table.name = 'バトルマップ';
       expect(table.name).toBe('バトルマップ');
     });
 
-    it('widthを変更できる', () => {
+    it('takes a new width', () => {
       const table = new GameTable();
       table.initialize();
       table.width = 30;
       expect(table.width).toBe(30);
     });
 
-    it('gridTypeを変更できる', () => {
+    it('takes a new grid type', () => {
       const table = new GameTable();
       table.initialize();
       table.gridType = GridType.HEX_VERTICAL;
@@ -182,19 +182,19 @@ describe('GameTable', () => {
   });
 
   describe('terrains / masks / scratchMasks', () => {
-    it('初期状態でterrainsが空配列', () => {
+    it('starts with no terrain', () => {
       const table = new GameTable();
       table.initialize();
       expect(table.terrains).toEqual([]);
     });
 
-    it('初期状態でmasksが空配列', () => {
+    it('starts with no masks', () => {
       const table = new GameTable();
       table.initialize();
       expect(table.masks).toEqual([]);
     });
 
-    it('初期状態でscratchMasksが空配列', () => {
+    it('starts with no scratch masks', () => {
       const table = new GameTable();
       table.initialize();
       expect(table.scratchMasks).toEqual([]);

@@ -7,13 +7,13 @@ import {
 
 describe('range-shape-field', () => {
   describe('isRangeShapeGridType', () => {
-    it('square / hex-vertical / hex-horizontal を真と判定', () => {
+    it('is true for the three grids it knows', () => {
       expect(isRangeShapeGridType('square')).toBe(true);
       expect(isRangeShapeGridType('hex-vertical')).toBe(true);
       expect(isRangeShapeGridType('hex-horizontal')).toBe(true);
     });
 
-    it('未知の値や数値を偽と判定', () => {
+    it('is false for anything else', () => {
       expect(isRangeShapeGridType('hex')).toBe(false);
       expect(isRangeShapeGridType('')).toBe(false);
       expect(isRangeShapeGridType(123)).toBe(false);
@@ -21,8 +21,8 @@ describe('range-shape-field', () => {
     });
   });
 
-  describe('encode/decode 往復', () => {
-    it('全フィールドが保たれる', () => {
+  describe('the round trip', () => {
+    it('keeps every field', () => {
       const original = {
         name: '攻撃',
         cellPattern: '0,0;1,0;0,1',
@@ -35,34 +35,34 @@ describe('range-shape-field', () => {
       expect(decoded).toEqual(original);
     });
 
-    it('isRotatable 未指定は false', () => {
+    it('reads a missing turnable flag as false', () => {
       const decoded = decodeRangeShapeField('{"gridType":"square"}');
       expect(decoded?.isRotatable).toBe(false);
     });
   });
 
   describe('decodeRangeShapeField', () => {
-    it('空文字列は null', () => {
+    it('returns nothing for an empty string', () => {
       expect(decodeRangeShapeField('')).toBeNull();
       expect(decodeRangeShapeField('   ')).toBeNull();
     });
 
-    it('null / 数値は null', () => {
+    it('returns nothing for anything that is not text', () => {
       expect(decodeRangeShapeField(null)).toBeNull();
       expect(decodeRangeShapeField(123)).toBeNull();
     });
 
-    it('JSON 破損は null', () => {
+    it('returns nothing for broken json', () => {
       expect(decodeRangeShapeField('not json')).toBeNull();
       expect(decodeRangeShapeField('{')).toBeNull();
     });
 
-    it('gridType が不正な値なら null', () => {
+    it('returns nothing for a grid type it does not know', () => {
       expect(decodeRangeShapeField('{"gridType":"bad"}')).toBeNull();
       expect(decodeRangeShapeField('{}')).toBeNull();
     });
 
-    it('一部欠けているフィールドはデフォルトで埋まる', () => {
+    it('fills the missing fields in with their defaults', () => {
       const decoded = decodeRangeShapeField('{"gridType":"square"}');
       expect(decoded).toEqual({
         name: '',
@@ -76,7 +76,7 @@ describe('range-shape-field', () => {
   });
 
   describe('defaultRangeShapeFieldValue', () => {
-    it('デフォルトは square + 黄色グリッド + 黒レンジ + 回転不可', () => {
+    it('starts on squares, with the default colours, and cannot be turned', () => {
       expect(defaultRangeShapeFieldValue()).toEqual({
         name: '',
         cellPattern: '',

@@ -238,7 +238,7 @@ export class GameCharacter extends OwnedTabletopObject {
       const groupElement: DataElement = this.createDetailGroupElement('基本', `コマ画像基本${this.identifier}`);
       detail.appendChild(elementKoma);
 
-      //コマ画像作成時は立ち絵の次に差し込み
+      //puts the piece picture in after the portrait
       const portraitPosEls = detail.getElementsByName('立ち絵位置');
       if (portraitPosEls.length != 0) {
         const parentElement = portraitPosEls[0].parent;

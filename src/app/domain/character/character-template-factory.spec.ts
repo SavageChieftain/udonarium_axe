@@ -24,7 +24,7 @@ describe('CharacterTemplateFactory', () => {
   });
 
   describe('createDefault', () => {
-    it('キャラクターにname/size/altitudeが設定される', () => {
+    it('gives the character a name, a size and an altitude', () => {
       const character = GameCharacter.create('テスト勇者', 2, '');
 
       expect(character.name).toBe('テスト勇者');
@@ -34,7 +34,7 @@ describe('CharacterTemplateFactory', () => {
       expect(altitude!.value).toBe(0);
     });
 
-    it('HP/MPリソースが作成される', () => {
+    it('gives it the two usual resources', () => {
       const character = GameCharacter.create('戦士', 1, '');
 
       const resource = character.detailDataElement!.getFirstElementByName('リソース');
@@ -55,7 +55,7 @@ describe('CharacterTemplateFactory', () => {
       expect(mp!.currentValue).toBe('100');
     });
 
-    it('能力値が作成される', () => {
+    it('gives it its abilities', () => {
       const character = GameCharacter.create('魔法使い', 1, '');
 
       const dex = character.detailDataElement!.getFirstElementByName('器用度');
@@ -68,7 +68,7 @@ describe('CharacterTemplateFactory', () => {
       expect(int!.value).toBe(24);
     });
 
-    it('汎用プロフィールに各フィールドフォーマットのサンプルが作成される', () => {
+    it('puts a sample of every field format into the general profile', () => {
       const character = GameCharacter.create('サンプル', 1, 'image-id');
 
       const section = character.detailDataElement!.getFirstElementByName('プロフィール');
@@ -89,7 +89,7 @@ describe('CharacterTemplateFactory', () => {
       expect(group.getFirstElementByName('役割')?.getAttribute(DataElementAttribute.CHOICES)).toContain('調査役');
     });
 
-    it('chatPaletteが作成される', () => {
+    it('gives it a chat palette', () => {
       const character = GameCharacter.create('盗賊', 1, '');
 
       const palette = character.chatPalette;
@@ -102,7 +102,7 @@ describe('CharacterTemplateFactory', () => {
       );
     });
 
-    it('複雑なスキルフィールドグループ群が作成される', () => {
+    it('builds the deeper groups of skill fields', () => {
       const character = GameCharacter.create('スキル確認', 1, '');
 
       const skillSection = character.detailDataElement!.getFirstElementByName('スキル');
@@ -132,7 +132,7 @@ describe('CharacterTemplateFactory', () => {
       expect(firstAid?.getFirstElementByName('種別')?.value).toBe('回復');
     });
 
-    it('表示サンプル用の技能表が作成される', () => {
+    it('builds a sample skill table', () => {
       const character = GameCharacter.create('サンプル', 1, '');
 
       const skillTable = character.detailDataElement!.getFirstElementByName('技能表');
@@ -143,7 +143,7 @@ describe('CharacterTemplateFactory', () => {
       expect(skillTable?.children).toHaveLength(12);
     });
 
-    it('技能名と習熟度を2列ペアで持つ技能表タイプ2が作成される', () => {
+    it('builds one that pairs each skill with its proficiency', () => {
       const character = GameCharacter.create('タイプ2', 1, '');
 
       const skillTable = character.detailDataElement!.getFirstElementByName('技能表タイプ2');
@@ -185,7 +185,7 @@ describe('CharacterTemplateFactory', () => {
   });
 
   describe('createCheckTable', () => {
-    it('現行データ要素形式の技能表が作成される', () => {
+    it('builds one in the current element format', () => {
       const character = new GameCharacter();
       character.createDataElements();
       character.initialize();
@@ -235,7 +235,7 @@ describe('CharacterTemplateFactory', () => {
       expect(character.detailDataElement!.getFirstElementByName('技能表（旧形式）')).toBeNull();
     });
 
-    it('装備サンプルが構造化テーブルとして作成される', () => {
+    it('builds the sample equipment as a table', () => {
       const character = new GameCharacter();
       character.createDataElements();
       character.initialize();
@@ -250,7 +250,7 @@ describe('CharacterTemplateFactory', () => {
       expect(equipment!.children[0].getFirstElementByName('効果')?.value).toContain('回復');
     });
 
-    it('overViewWidthとoverViewMaxHeightがカスタム値に設定される', () => {
+    it('takes its own width and height for the overview', () => {
       const character = new GameCharacter();
       character.createDataElements();
       character.initialize();

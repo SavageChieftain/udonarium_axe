@@ -226,7 +226,7 @@ describe('Card', () => {
   });
 
   describe('hand', () => {
-    it('手札に加えると置き場所が移り、伏せた状態で所有権は外れる', () => {
+    it('moves a card into a hand face down, and out of its owners keeping', () => {
       const card = new Card();
       card.state = CardState.FRONT;
       card.owner = 'me';
@@ -238,7 +238,7 @@ describe('Card', () => {
       expect(card.owner).toBe('');
     });
 
-    it('表向きで場に出すと卓上へ戻る', () => {
+    it('puts a card played face up back on the table', () => {
       const card = new Card();
       card.toHand('me');
 
@@ -249,7 +249,7 @@ describe('Card', () => {
       expect(card.isInAnyHand).toBe(false);
     });
 
-    it('裏向きで場に出すと伏せたまま卓上へ戻る', () => {
+    it('puts one played face down back still hidden', () => {
       const card = new Card();
       card.toHand('me');
 
@@ -260,7 +260,7 @@ describe('Card', () => {
       expect(card.owner).toBe('');
     });
 
-    it('場に出しても座標は手札に入る前のまま', () => {
+    it('leaves it where it was before it went into the hand', () => {
       const card = new Card();
       card.location.x = 320;
       card.location.y = 240;
@@ -290,7 +290,7 @@ describe('Card', () => {
       expect(card.isVisible).toBe(true);
     });
 
-    it('自分の手札にあるカードは表として見える', () => {
+    it('a card in your own hand can be seen', () => {
       const card = new Card();
       card.state = CardState.BACK;
 
@@ -301,7 +301,7 @@ describe('Card', () => {
       expect(card.isVisible).toBe(true);
     });
 
-    it('他人の手札にあるカードは見えない', () => {
+    it('one in somebody elses cannot', () => {
       const card = new Card();
 
       vi.spyOn(Network, 'peerContext', 'get').mockReturnValue({ userId: 'me' } as IPeerContext);
@@ -438,13 +438,13 @@ describe('Card', () => {
   });
 
   describe('isOwnedBy', () => {
-    it('指定ユーザーがownerの場合true', () => {
+    it('is true for the owner', () => {
       const card = new Card();
       card.owner = 'user-A';
       expect(card.isOwnedBy('user-A')).toBe(true);
     });
 
-    it('指定ユーザーがownerでない場合false', () => {
+    it('is false for anybody else', () => {
       const card = new Card();
       card.owner = 'user-A';
       expect(card.isOwnedBy('user-B')).toBe(false);
@@ -452,21 +452,21 @@ describe('Card', () => {
   });
 
   describe('isOwnerOnline', () => {
-    it('ownerがオンラインの場合true', () => {
+    it('is true while the owner is here', () => {
       const card = new Card();
       card.owner = 'user-A';
       const contexts = [{ userId: 'user-A', isOpen: true }];
       expect(card.isOwnerOnline(contexts)).toBe(true);
     });
 
-    it('ownerがオフラインの場合false', () => {
+    it('is false once they are gone', () => {
       const card = new Card();
       card.owner = 'user-A';
       const contexts = [{ userId: 'user-A', isOpen: false }];
       expect(card.isOwnerOnline(contexts)).toBe(false);
     });
 
-    it('ownerが接続リストにない場合false', () => {
+    it('is false for an owner nobody has seen', () => {
       const card = new Card();
       card.owner = 'user-A';
       const contexts: { userId: string; isOpen: boolean }[] = [];

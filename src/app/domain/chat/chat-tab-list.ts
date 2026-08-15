@@ -18,14 +18,14 @@ export class ChatTabList extends ObjectNode implements InnerXml {
     return this._systemMessageTabIndex;
   }
 
-  /** システムメッセージの行き先。専用タブがあればそこ、無い部屋は従来どおり指定した番号のタブ。 */
+  /** Where the system messages go: the system tab where there is one, and otherwise the tab named by number, as before. */
   get systemMessageTab(): ChatTab | null {
     const system = this.chatTabs.find((tab) => tab.isSystemTab);
     if (system) return system;
     return this.chatTabs.length > this.systemMessageTabIndex ? this.chatTabs[this.systemMessageTabIndex] : null;
   }
 
-  /** 専用タブを用意する。すでにあれば形だけ整えて返す。 */
+  /** Makes the system tab. Where there is one already it is set right and returned. */
   ensureSystemTab(): ChatTab {
     const system = this.chatTabs.find((tab) => tab.isSystemTab);
     if (system) return this.shapeSystemTab(system);
@@ -43,7 +43,7 @@ export class ChatTabList extends ObjectNode implements InnerXml {
     return system;
   }
 
-  /** 人の会話のタブ。書き出しはこちらだけを対象にする。 */
+  /** The tabs people talk in. An export covers these alone. */
   get spokenChatTabs(): readonly ChatTab[] {
     return this.chatTabs.filter((tab) => !tab.isSystemTab);
   }
@@ -94,7 +94,7 @@ export class ChatTabList extends ObjectNode implements InnerXml {
     return this.children as readonly ChatTab[];
   }
 
-  //チャット簡易表示フラグ、拡張余地のため整数型
+  //The simple display flags, held as numbers to leave room to grow.
   private simpleDispFlagTime_: number = 0;
   set simpleDispFlagTime(flag: number) {
     this.simpleDispFlagTime_ = flag;
@@ -126,7 +126,7 @@ export class ChatTabList extends ObjectNode implements InnerXml {
     return this.appendChild(chatTab)!;
   }
 
-  /** 部屋データに書き出す分。システムタブはこの卓の備品なので持ち出さない。 */
+  /** What goes into the room data. The system tab belongs to the tool and does not travel. */
   override innerXml(): string {
     let xml = '';
     for (const child of this.children) {
@@ -140,7 +140,7 @@ export class ChatTabList extends ObjectNode implements InnerXml {
     const reLoadOk = this.reloadCheck.answerCheck();
 
     if (reLoadOk) {
-      // XMLからの新規作成を許可せず、既存のオブジェクトを更新する
+      // updates the existing object rather than making one from the saved data
       for (const child of [...ChatTabList.instance.children]) {
         if (child instanceof ChatTab && child.isSystemTab) continue;
         child.destroy();
@@ -157,7 +157,7 @@ export class ChatTabList extends ObjectNode implements InnerXml {
     }
   }
 
-  /** 読み込みの後始末。システムタブを持ち出していた頃の部屋データなら、知らせを 1 枚にまとめ直す。 */
+  /** The tidying after a load: room data written while the system tab still travelled has its notices gathered back into one. */
   private restoreSystemTab(): void {
     const system = this.ensureSystemTab();
     for (const tab of [...this.chatTabs]) {

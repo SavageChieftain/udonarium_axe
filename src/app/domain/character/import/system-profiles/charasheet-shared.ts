@@ -18,15 +18,15 @@ export interface Column {
 }
 
 /**
- * 保管庫のシートが、そのシステムのものか。
+ * Whether a sheet from the archive belongs to that system.
  *
- * どのシートも `pc_name` を持ち、`game` にシステムの符丁が入る。見るのはそこだけ。
+ * Every sheet carries a name and a system token, and nothing else is read.
  */
 export function isCharasheetGame(parsed: unknown, game: string): boolean {
   return charasheetGameOf(parsed) === game;
 }
 
-/** シートが名乗っているシステムの符丁。保管庫のシートでなければ空。 */
+/** The token the sheet gives for its system. Empty for anything but an archive sheet. */
 export function charasheetGameOf(parsed: unknown): string {
   if (parsed == null || typeof parsed !== 'object') return '';
   const record = parsed as Record<string, unknown>;
@@ -39,11 +39,11 @@ export function asArray(value: unknown): unknown[] {
 }
 
 /**
- * そのまま並べる能力値。値の入っていない欄は出さない。
+ * The abilities, laid out as they are. A field that holds nothing is left off.
  *
- * 何をどの名前で並べるかはシステムごとに違うが、並べ方は変わらない。
+ * What is laid out and under which name differs between systems; how it is laid out does not.
  */
-/** 保管庫のシートが持つ base64 の似顔絵。頭が付いていないものだけ足す。 */
+/** The portrait an archive sheet carries inline. Only one without a header is given one. */
 export function normalizeImage(record: Record<string, unknown>): string {
   const raw = asString(record['base64Image']).trim();
   if (raw === '') return '';
@@ -51,9 +51,9 @@ export function normalizeImage(record: Record<string, unknown>): string {
 }
 
 /**
- * 保管庫のシートに共通する見出し。名前・色・似顔絵・メモと、元のシートへの入り口。
+ * What every archive sheet has in common: the name, the colour, the portrait, the notes and the way back to the sheet itself.
  *
- * ここから先の中身はシステムごとに違うが、ここまでは同じ場所に同じ名前で入っている。
+ * What follows differs between systems; this much sits in the same place under the same name.
  */
 export function charasheetCharacterOf(record: Record<string, unknown>, dicebot: string): ImportedCharacter {
   const character = createEmptyImportedCharacter('charasheet');
@@ -99,10 +99,10 @@ export function buildParallelSection(
 }
 
 /**
- * `{prefix}_name` と `{prefix}_{suffix}` の並びを 1 行ずつ組にする。
+ * Pairs the names with the other columns, a row at a time.
  *
- * 保管庫のシートは 1 つの表を「名前の配列」「威力の配列」…と列ごとに持つ。
- * 同じ添字どうしが 1 行ぶんになる。
+ * The archive holds one table as an array per column, one of names, one of powers and so on.
+ * One index across them all makes a row.
  */
 export function buildPrefixedSection(
   label: string,

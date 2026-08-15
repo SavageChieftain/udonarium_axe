@@ -44,7 +44,7 @@ export class ChatPalette extends ObjectNode {
       line: 0,
     };
 
-    // コマ作成サイト(ユドナリウムのキャラコマを作るやつ様)の標準的な見出し区切りの書式から見出し語を抜き出す
+    // takes the heading out of the form the piece-building sites write
     const matchRes1 = line.match(/^\/\/--[-]+(.*)$/);
     const matchRes2 = line.match(/^◆(.*)$/);
     if (matchRes1) {

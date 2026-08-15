@@ -23,7 +23,7 @@ function makeReadyAudio(identifier: string): AudioFile {
   return makeAudioFile({ identifier, blob: new Blob(['x']), url: 'blob:x' });
 }
 
-/** AudioPlayer.play() をモックする (AudioContext 不要) */
+/** The player is mocked, so no audio context is needed. */
 function stubAudioPlayerPlay() {
   return vi.spyOn(AudioPlayer.prototype, 'play').mockImplementation(() => {});
 }
@@ -50,26 +50,26 @@ describe('Jukebox', () => {
     vi.restoreAllMocks();
   });
 
-  describe('SyncVar デフォルト値', () => {
-    it('audioIdentifierが空文字', () => {
+  describe('the defaults of the synchronised fields', () => {
+    it('names no track', () => {
       const jukebox = new Jukebox();
       jukebox.initialize();
       expect(jukebox.audioIdentifier).toBe('');
     });
 
-    it('startTimeが0', () => {
+    it('starts at the beginning', () => {
       const jukebox = new Jukebox();
       jukebox.initialize();
       expect(jukebox.startTime).toBe(0);
     });
 
-    it('repeatMode がデフォルト one', () => {
+    it('starts repeating one track', () => {
       const jukebox = new Jukebox();
       jukebox.initialize();
       expect(jukebox.repeatMode).toBe('one');
     });
 
-    it('isPlayingがfalse', () => {
+    it('starts stopped', () => {
       const jukebox = new Jukebox();
       jukebox.initialize();
       expect(jukebox.isPlaying).toBe(false);
@@ -77,13 +77,13 @@ describe('Jukebox', () => {
   });
 
   describe('volume', () => {
-    it('デフォルトは0.5', () => {
+    it('starts at half', () => {
       const jukebox = new Jukebox();
       jukebox.initialize();
       expect(jukebox.volume).toBe(0.5);
     });
 
-    it('設定できる', () => {
+    it('takes a value', () => {
       const jukebox = new Jukebox();
       jukebox.initialize();
       jukebox.volume = 0.8;
@@ -92,13 +92,13 @@ describe('Jukebox', () => {
   });
 
   describe('auditionVolume', () => {
-    it('デフォルトは0.5', () => {
+    it('starts at half', () => {
       const jukebox = new Jukebox();
       jukebox.initialize();
       expect(jukebox.auditionVolume).toBe(0.5);
     });
 
-    it('設定できる', () => {
+    it('takes a value', () => {
       const jukebox = new Jukebox();
       jukebox.initialize();
       jukebox.auditionVolume = 0.3;
@@ -107,13 +107,13 @@ describe('Jukebox', () => {
   });
 
   describe('seVolume', () => {
-    it('デフォルトは0.5', () => {
+    it('starts at half', () => {
       const jukebox = new Jukebox();
       jukebox.initialize();
       expect(jukebox.seVolume).toBe(0.5);
     });
 
-    it('設定できる', () => {
+    it('takes a value', () => {
       const jukebox = new Jukebox();
       jukebox.initialize();
       jukebox.seVolume = 0.7;
@@ -122,7 +122,7 @@ describe('Jukebox', () => {
   });
 
   describe('stop', () => {
-    it('停止するとaudioIdentifierが空になりisPlayingがfalse', () => {
+    it('clears the track and stops on a stop', () => {
       const jukebox = new Jukebox();
       jukebox.initialize();
       jukebox.audioIdentifier = 'some-audio';
@@ -134,7 +134,7 @@ describe('Jukebox', () => {
   });
 
   describe('play()', () => {
-    it('ready な AudioFile で isPlaying=true, audioIdentifier が設定される', () => {
+    it('plays a track that is ready and names it', () => {
       const playSpy = stubAudioPlayerPlay();
       stubAudioPlayerStop();
       const jukebox = new Jukebox();
@@ -150,7 +150,7 @@ describe('Jukebox', () => {
       expect(playSpy).toHaveBeenCalledOnce();
     });
 
-    it('AudioStorage に存在しない identifier では再生しない', () => {
+    it('plays nothing for a track the storage does not hold', () => {
       const playSpy = stubAudioPlayerPlay();
       const jukebox = new Jukebox();
       jukebox.initialize();
@@ -161,7 +161,7 @@ describe('Jukebox', () => {
       expect(playSpy).not.toHaveBeenCalled();
     });
 
-    it('isReady=false のオーディオでは再生しない', () => {
+    it('plays nothing for a track that is not ready', () => {
       const playSpy = stubAudioPlayerPlay();
       const jukebox = new Jukebox();
       jukebox.initialize();
@@ -176,8 +176,8 @@ describe('Jukebox', () => {
     });
   });
 
-  describe('_play() — SE タグ判定', () => {
-    it('SE タグなしの場合 volumeType=MASTER で loop が設定される', () => {
+  describe('telling a sound effect from music', () => {
+    it('plays an untagged track through the master volume, looping', () => {
       const playSpy = stubAudioPlayerPlay();
       stubAudioPlayerStop();
       const jukebox = new Jukebox();
@@ -195,7 +195,7 @@ describe('Jukebox', () => {
       expect(playSpy).toHaveBeenCalledOnce();
     });
 
-    it('SE タグ付きは BGM を止めず、SE バッファ再生で重ねて鳴らす', () => {
+    it('lays a sound effect over the music rather than stopping it', () => {
       stubAudioPlayerPlay();
       stubAudioPlayerStop();
       const seSpy = vi.spyOn(AudioPlayer, 'playSE').mockImplementation(() => {});
@@ -212,22 +212,22 @@ describe('Jukebox', () => {
       AudioTag.create('se-01').tag = 'SE';
       jukebox.play('se-01', true);
 
-      // BGM の再生状態は一切変わらない
+      // the music plays on untouched
       expect(jukebox.audioIdentifier).toBe('bgm-01');
       expect(jukebox.isPlaying).toBe(true);
-      // SE は別トリガで同期し、SE バッファ再生で鳴る
+      // the effect syncs on its own trigger and plays from its own buffer
       expect(jukebox.seIdentifier).toBe('se-01');
       expect(jukebox.seTrigger).toBe(1);
       expect(seSpy).toHaveBeenCalledWith(seAudio);
 
-      // もう一度鳴らすと重ねて再生される（停止しない）
+      // lays a second playing over the first rather than stopping it
       jukebox.play('se-01');
       expect(jukebox.seTrigger).toBe(2);
       expect(seSpy).toHaveBeenCalledTimes(2);
       expect(jukebox.audioIdentifier).toBe('bgm-01');
     });
 
-    it('stopSE は対象 SE を停止し、停止トリガを同期する', () => {
+    it('stops an effect and syncs the stop', () => {
       const stopSpy = vi.spyOn(AudioPlayer, 'stopSE').mockImplementation(() => {});
       const jukebox = new Jukebox();
       jukebox.initialize();
@@ -239,7 +239,7 @@ describe('Jukebox', () => {
       expect(jukebox.seStopTrigger).toBe(1);
     });
 
-    it('apply で seStopTrigger の変化を検知してリモートの SE を停止する', () => {
+    it('stops an effect at this end when that trigger changes', () => {
       stubAudioPlayerPlay();
       stubAudioPlayerStop();
       const stopSpy = vi.spyOn(AudioPlayer, 'stopSE').mockImplementation(() => {});
@@ -256,26 +256,26 @@ describe('Jukebox', () => {
   });
 
   describe('playAfterFileUpdate()', () => {
-    it('audio が未 ready なら updateAudioResource$ で再生を遅延する', () => {
+    it('waits for the track to be ready before playing it', () => {
       const playSpy = stubAudioPlayerPlay();
       stubAudioPlayerStop();
       const jukebox = new Jukebox();
       jukebox.initialize();
 
-      // NULL 状態のファイルを追加
+      // a file with nothing in it is added
       const audio = makeAudioFile({ identifier: 'lazy-audio' });
       AudioStorage.instance.add(audio);
 
-      // play() → ready でないので return → _play() 内で playAfterFileUpdate()
+      // it is not ready, so the play is put off until the file updates
       jukebox.audioIdentifier = 'lazy-audio';
       jukebox.isPlaying = true;
       jukebox.repeatMode = 'one';
-      // _play() を直接呼ぶ
+      // played directly
       (jukebox as unknown as { _play: () => void })._play();
 
       expect(playSpy).not.toHaveBeenCalled();
 
-      // AudioFile を ready にして updateAudioResource$ を emit
+      // the file is made ready and the update announced
       const ctx = (audio as unknown as { context: Record<string, unknown> }).context;
       ctx['blob'] = new Blob(['data']);
       ctx['url'] = 'blob:data';
@@ -286,8 +286,8 @@ describe('Jukebox', () => {
   });
 
   describe('setNewVolume()', () => {
-    it('AudioPlayer の静的ボリュームを roomVolume とかけ合わせて設定する', () => {
-      // AudioPlayer.volume setter は内部で AudioContext を使用するため stub
+    it('multiplies the room volume into the player volume', () => {
+      // The volume setter reaches for an audio context, so it is stubbed.
       const volumeSpy = vi.spyOn(AudioPlayer, 'volume', 'set').mockImplementation(() => {});
       const auditionSpy = vi.spyOn(AudioPlayer, 'auditionVolume', 'set').mockImplementation(() => {});
       const seSpy = vi.spyOn(AudioPlayer, 'seVolume', 'set').mockImplementation(() => {});
@@ -310,8 +310,8 @@ describe('Jukebox', () => {
     });
   });
 
-  describe('apply() — P2P 同期', () => {
-    it('初回 sync (isInitialSync) では isPlaying=true なら _play が呼ばれる', () => {
+  describe('syncing between peers', () => {
+    it('plays on the first sync when the track was playing', () => {
       stubAudioPlayerPlay();
       stubAudioPlayerStop();
       const jukebox = new Jukebox();
@@ -319,9 +319,9 @@ describe('Jukebox', () => {
 
       const playSpy = vi.spyOn(jukebox as unknown as { _play: () => void }, '_play');
 
-      // 初期コンテキストを取得
+      // the initial context is taken
       const context = jukebox.toContext();
-      // P2P で audioIdentifier と isPlaying が変わった想定
+      // as though the track and the playing had changed at another peer
       context.syncData = { ...context.syncData, audioIdentifier: 'bgm-sync', isPlaying: true };
 
       jukebox.apply(context);
@@ -329,13 +329,13 @@ describe('Jukebox', () => {
       expect(playSpy).toHaveBeenCalledOnce();
     });
 
-    it('初回 sync で audio が ready なら即座に再生される', () => {
+    it('plays at once on the first sync when the track is ready', () => {
       const playSpy = stubAudioPlayerPlay();
       stubAudioPlayerStop();
       const jukebox = new Jukebox();
       jukebox.initialize();
 
-      // ready なオーディオを事前に追加
+      // a ready track is added first
       const audio = makeReadyAudio('bgm-ready');
       AudioStorage.instance.add(audio);
 
@@ -344,17 +344,17 @@ describe('Jukebox', () => {
 
       jukebox.apply(context);
 
-      // AudioPlayer.play() が直接呼ばれている（イベント待ちではない）
+      // the player is called directly rather than waiting for an event
       expect(playSpy).toHaveBeenCalledOnce();
     });
 
-    it('初回 sync で audio が未 ready なら updateAudioResource$ 後に再生される', () => {
+    it('waits for the update when it is not', () => {
       const playSpy = stubAudioPlayerPlay();
       stubAudioPlayerStop();
       const jukebox = new Jukebox();
       jukebox.initialize();
 
-      // 未 ready なオーディオを追加
+      // a track that is not ready is added
       const audio = makeAudioFile({ identifier: 'bgm-lazy' });
       AudioStorage.instance.add(audio);
 
@@ -363,10 +363,10 @@ describe('Jukebox', () => {
 
       jukebox.apply(context);
 
-      // まだ再生されていない
+      // nothing plays yet
       expect(playSpy).not.toHaveBeenCalled();
 
-      // オーディオを ready にしてイベント発火
+      // the track is made ready and the event fired
       const ctx = (audio as unknown as { context: Record<string, unknown> }).context;
       ctx['blob'] = new Blob(['data']);
       ctx['url'] = 'blob:data';
@@ -375,7 +375,7 @@ describe('Jukebox', () => {
       expect(playSpy).toHaveBeenCalledOnce();
     });
 
-    it('初回 sync で isPlaying=false なら再生しない', () => {
+    it('plays nothing on the first sync when it was stopped', () => {
       stubAudioPlayerStop();
       const jukebox = new Jukebox();
       jukebox.initialize();
@@ -388,19 +388,19 @@ describe('Jukebox', () => {
       expect(playAfterSpy).not.toHaveBeenCalled();
     });
 
-    it('2回目以降: audioIdentifier が変わり isPlaying=true なら _play() が呼ばれる', () => {
+    it('plays on a later sync when the track changes and it is playing', () => {
       stubAudioPlayerPlay();
       stubAudioPlayerStop();
       const jukebox = new Jukebox();
       jukebox.initialize();
 
-      // 初回 sync をスキップ
+      // the first sync is passed over
       const initCtx = jukebox.toContext();
       jukebox.apply(initCtx);
 
       const playSpy = vi.spyOn(jukebox as unknown as { _play: () => void }, '_play');
 
-      // P2P で audioIdentifier が変わって isPlaying=true
+      // the track changed at another peer and it is playing
       const ctx2 = jukebox.toContext();
       ctx2.syncData = { ...ctx2.syncData, audioIdentifier: 'new-bgm', isPlaying: true };
       jukebox.apply(ctx2);
@@ -408,21 +408,21 @@ describe('Jukebox', () => {
       expect(playSpy).toHaveBeenCalledOnce();
     });
 
-    it('2回目以降: isPlaying が true→false に変わったら _stop() が呼ばれる', () => {
+    it('stops on a later sync when the playing stops', () => {
       stubAudioPlayerStop();
       const jukebox = new Jukebox();
       jukebox.initialize();
 
-      // 初回 sync をスキップ
+      // the first sync is passed over
       const initCtx = jukebox.toContext();
       jukebox.apply(initCtx);
 
-      // isPlaying=true にして状態を設定
+      // it is set playing first
       jukebox.isPlaying = true;
 
       const stopSpy = vi.spyOn(jukebox as unknown as { _stop: () => void }, '_stop');
 
-      // P2P で isPlaying=false に変更
+      // and stopped at another peer
       const ctx2 = jukebox.toContext();
       ctx2.syncData = { ...ctx2.syncData, isPlaying: false };
       jukebox.apply(ctx2);

@@ -10,7 +10,7 @@ describe('createDefaultEffectPresets()', () => {
     ObjectStore.instance.clearDeleteHistory();
   });
 
-  it('既定の演出を一式作ること', () => {
+  it('makes a full set of the usual effects', () => {
     createDefaultEffectPresets();
 
     expect(ObjectStore.instance.getObjects<EffectPreset>(EffectPreset)).toHaveLength(
@@ -18,12 +18,12 @@ describe('createDefaultEffectPresets()', () => {
     );
   });
 
-  it('一度消したあとでも作り直せること', () => {
+  it('makes them again after they have been deleted', () => {
     for (const preset of createDefaultEffectPresets()) preset.destroy();
 
     createDefaultEffectPresets();
 
-    // 消された identifier は再利用できないので、そのままでは 1 つも戻らない。
+    // A deleted identifier cannot be used again, so as it stands not one would come back.
     expect(ObjectStore.instance.getObjects<EffectPreset>(EffectPreset)).toHaveLength(
       DEFAULT_EFFECT_PRESET_SEEDS.length
     );

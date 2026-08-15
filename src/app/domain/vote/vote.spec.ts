@@ -31,42 +31,42 @@ describe('Vote', () => {
     vi.restoreAllMocks();
   });
 
-  describe('初期状態', () => {
-    it('initTimeStamp が 0', () => {
+  describe('how it starts', () => {
+    it('starts unstamped', () => {
       expect(vote.initTimeStamp).toBe(0);
     });
 
-    it('voteTitle が空文字', () => {
+    it('starts untitled', () => {
       expect(vote.voteTitle).toBe('');
     });
 
-    it('targetPeerId が空配列', () => {
+    it('starts asking nobody', () => {
       expect(vote.targetPeerId).toEqual([]);
     });
 
-    it('choices が空配列', () => {
+    it('starts with no choices', () => {
       expect(vote.choices).toEqual([]);
     });
 
-    it('chairId が空文字', () => {
+    it('starts with no chair', () => {
       expect(vote.chairId).toBe('');
     });
 
-    it('isRollCall が false', () => {
+    it('starts as a vote rather than a roll call', () => {
       expect(vote.isRollCall).toBe(false);
     });
 
-    it('isFinish が false', () => {
+    it('starts unfinished', () => {
       expect(vote.isFinish).toBe(false);
     });
 
-    it('voteId が 0', () => {
+    it('starts unnumbered', () => {
       expect(vote.voteId).toBe(0);
     });
   });
 
   describe('makeVote()', () => {
-    it('すべてのプロパティが設定される', () => {
+    it('takes every field', () => {
       vote.makeVote('chair-1', '投票テスト', ['peer-1', 'peer-2'], ['賛成', '反対'], false);
 
       expect(vote.chairId).toBe('chair-1');
@@ -76,7 +76,7 @@ describe('Vote', () => {
       expect(vote.isRollCall).toBe(false);
     });
 
-    it('voteId がインクリメントされる', () => {
+    it('counts the vote up', () => {
       expect(vote.voteId).toBe(0);
       vote.makeVote('c', 'v1', [], [], false);
       expect(vote.voteId).toBe(1);
@@ -84,7 +84,7 @@ describe('Vote', () => {
       expect(vote.voteId).toBe(2);
     });
 
-    it('initTimeStamp が現在時刻に設定される', () => {
+    it('stamps it with the moment it started', () => {
       const before = Date.now();
       vote.makeVote('c', 'v', [], [], false);
       const after = Date.now();
@@ -93,12 +93,12 @@ describe('Vote', () => {
       expect(vote.initTimeStamp).toBeLessThanOrEqual(after);
     });
 
-    it('isRollCall=true で点呼モードにする', () => {
+    it('makes it a roll call when asked', () => {
       vote.makeVote('c', '点呼', ['p1'], [], true);
       expect(vote.isRollCall).toBe(true);
     });
 
-    it('新規開始時に isFinish が false に戻る', () => {
+    it('puts the finished flag back as a new one starts', () => {
       vote.isFinish = true;
 
       vote.makeVote('c', '再点呼', ['p1'], ['準備完了'], true);
@@ -106,13 +106,13 @@ describe('Vote', () => {
       expect(vote.isFinish).toBe(false);
     });
 
-    it('開始したタブを覚える', () => {
+    it('remembers the tab it started in', () => {
       vote.makeVote('c', '点呼', ['p1'], ['準備完了'], true, 'tab-main');
 
       expect(vote.chatTabIdentifier).toBe('tab-main');
     });
 
-    it('タブ指定なしなら空のまま', () => {
+    it('remembers none when none is given', () => {
       vote.chatTabIdentifier = 'tab-old';
 
       vote.makeVote('c', '点呼', ['p1'], ['準備完了'], true);
@@ -122,12 +122,12 @@ describe('Vote', () => {
   });
 
   describe('voteAnswerByPeerId()', () => {
-    it('peerが見つからなければ-2(棄権扱い)', () => {
+    it('counts somebody who is not there as an abstention', () => {
       vi.spyOn(PeerCursor, 'findByPeerId').mockReturnValue(null!);
       expect(vote.voteAnswerByPeerId('nonexistent')).toBe(-2);
     });
 
-    it('peerのvoteIdが不一致なら-1(未投票)', () => {
+    it('counts somebody on another vote as not having answered', () => {
       vote.voteId = 5;
       vi.spyOn(PeerCursor, 'findByPeerId').mockReturnValue({
         voteId: 3,
@@ -137,7 +137,7 @@ describe('Vote', () => {
       expect(vote.voteAnswerByPeerId('peer-1')).toBe(-1);
     });
 
-    it('peerのvoteIdが一致すればvoteAnswerを返す', () => {
+    it('returns the answer of somebody on this one', () => {
       vote.voteId = 5;
       vi.spyOn(PeerCursor, 'findByPeerId').mockReturnValue({
         voteId: 5,
@@ -147,7 +147,7 @@ describe('Vote', () => {
       expect(vote.voteAnswerByPeerId('peer-1')).toBe(2);
     });
 
-    it('peerが切断中でも投票済みなら投票結果を返す', () => {
+    it('returns the answer of somebody who has dropped but had answered', () => {
       vote.voteId = 5;
       vi.spyOn(PeerCursor, 'findByPeerId').mockReturnValue({
         voteId: 5,
@@ -157,7 +157,7 @@ describe('Vote', () => {
       expect(vote.voteAnswerByPeerId('peer-1')).toBe(0);
     });
 
-    it('peerが切断中かつ未投票なら-2(棄権扱い)', () => {
+    it('counts one who dropped without answering as an abstention', () => {
       vote.voteId = 5;
       vi.spyOn(PeerCursor, 'findByPeerId').mockReturnValue({
         voteId: 0,
@@ -167,7 +167,7 @@ describe('Vote', () => {
       expect(vote.voteAnswerByPeerId('peer-1')).toBe(-2);
     });
 
-    it('peerの棄権(-2)も正しく返す', () => {
+    it('returns an abstention as one', () => {
       vote.voteId = 1;
       vi.spyOn(PeerCursor, 'findByPeerId').mockReturnValue({ voteId: 1, voteAnswer: -2 } as unknown as PeerCursor);
       expect(vote.voteAnswerByPeerId('peer-1')).toBe(-2);
@@ -175,7 +175,7 @@ describe('Vote', () => {
   });
 
   describe('voteAnswer (getter)', () => {
-    it('targetPeerIdの各人のvoteAnswerByPeerIdを配列で返す', () => {
+    it('returns the answer of everybody asked', () => {
       vote.targetPeerId = ['peer-1', 'peer-2'];
       vote.voteId = 1;
 
@@ -189,24 +189,24 @@ describe('Vote', () => {
       expect(vote.voteAnswer).toEqual([0, 1]);
     });
 
-    it('targetPeerIdが空なら空配列', () => {
+    it('returns nothing when nobody was asked', () => {
       vote.targetPeerId = [];
       expect(vote.voteAnswer).toEqual([]);
     });
   });
 
   describe('chkToMe()', () => {
-    it('targetPeerIdに自分が含まれていればtrue', () => {
+    it('is true when you were asked', () => {
       vote.targetPeerId = ['other-peer', 'my-peer-id'];
       expect(vote.chkToMe()).toBe(true);
     });
 
-    it('targetPeerIdに自分が含まれていなければfalse', () => {
+    it('is false when you were not', () => {
       vote.targetPeerId = ['other-peer'];
       expect(vote.chkToMe()).toBe(false);
     });
 
-    it('targetPeerIdが空ならfalse', () => {
+    it('is false when nobody was', () => {
       vote.targetPeerId = [];
       expect(vote.chkToMe()).toBe(false);
     });
@@ -217,25 +217,25 @@ describe('Vote', () => {
       vote.choices = ['賛成', '反対', '棄権'];
     });
 
-    it('有効なindexで選択肢を返す', () => {
+    it('returns the choice at an index it has', () => {
       expect(vote.indexToChoice(0)).toBe('賛成');
       expect(vote.indexToChoice(1)).toBe('反対');
       expect(vote.indexToChoice(2)).toBe('棄権');
     });
 
-    it('負のindexで空文字を返す', () => {
+    it('returns nothing for a negative one', () => {
       expect(vote.indexToChoice(-1)).toBe('');
       expect(vote.indexToChoice(-2)).toBe('');
     });
 
-    it('範囲外indexで空文字を返す', () => {
+    it('returns nothing for one out of range', () => {
       expect(vote.indexToChoice(3)).toBe('');
       expect(vote.indexToChoice(100)).toBe('');
     });
   });
 
   describe('votedTotalNum()', () => {
-    it('投票済み(index>=0)と棄権(-2)の合計を数える', () => {
+    it('counts the answers and the abstentions together', () => {
       vote.targetPeerId = ['p1', 'p2', 'p3'];
       vote.voteId = 1;
 
@@ -249,7 +249,7 @@ describe('Vote', () => {
       expect(vote.votedTotalNum()).toBe(2); // p1(投票) + p2(棄権)
     });
 
-    it('全員未投票なら0', () => {
+    it('counts none while nobody has answered', () => {
       vote.targetPeerId = ['p1', 'p2'];
       vote.voteId = 1;
       vi.spyOn(PeerCursor, 'findByPeerId').mockReturnValue({ voteId: 0, voteAnswer: 0 } as unknown as PeerCursor);
@@ -259,7 +259,7 @@ describe('Vote', () => {
   });
 
   describe('votedNumByIndex()', () => {
-    it('指定indexと一致する回答数を数える', () => {
+    it('counts the answers matching one choice', () => {
       vote.targetPeerId = ['p1', 'p2', 'p3'];
       vote.voteId = 1;
 
@@ -275,7 +275,7 @@ describe('Vote', () => {
       expect(vote.votedNumByIndex(2)).toBe(0);
     });
 
-    it('棄権(-2)の数を数える', () => {
+    it('counts the abstentions', () => {
       vote.targetPeerId = ['p1', 'p2'];
       vote.voteId = 1;
 
@@ -290,7 +290,7 @@ describe('Vote', () => {
   });
 
   describe('votedNumByChoice()', () => {
-    it('選択肢名から投票数を取得する', () => {
+    it('counts the votes for a choice by its name', () => {
       vote.choices = ['賛成', '反対'];
       vote.targetPeerId = ['p1', 'p2', 'p3'];
       vote.voteId = 1;
@@ -308,7 +308,7 @@ describe('Vote', () => {
   });
 
   describe('isVoteEnd()', () => {
-    it('投票済みならtrue', () => {
+    it('is true once somebody has answered', () => {
       vote.targetPeerId = ['peer-1'];
       vote.voteId = 3;
 
@@ -317,7 +317,7 @@ describe('Vote', () => {
       expect(vote.isVoteEnd('peer-1')).toBe(true);
     });
 
-    it('未投票ならfalse', () => {
+    it('is false until they have', () => {
       vote.targetPeerId = ['peer-1'];
       vote.voteId = 3;
 
@@ -326,14 +326,14 @@ describe('Vote', () => {
       expect(vote.isVoteEnd('peer-1')).toBe(false);
     });
 
-    it('対象外のpeerIdならfalse', () => {
+    it('is false for somebody who was not asked', () => {
       vote.targetPeerId = ['peer-1'];
       vote.voteId = 3;
 
       expect(vote.isVoteEnd('non-target')).toBe(false);
     });
 
-    it('peerが見つからなければtrue(退出扱い)', () => {
+    it('counts somebody who is not there as gone', () => {
       vote.targetPeerId = ['peer-1'];
       vote.voteId = 3;
 
@@ -344,7 +344,7 @@ describe('Vote', () => {
   });
 
   describe('voting()', () => {
-    it('選択肢を投票するとmyCursorにvoteAnswerが設定される', () => {
+    it('records your answer on your own cursor', () => {
       vote.choices = ['賛成', '反対'];
       vote.voteId = 1;
       vote.chairId = 'other-chair';
@@ -355,7 +355,7 @@ describe('Vote', () => {
       expect(PeerCursor.myCursor.voteId).toBe(1);
     });
 
-    it('null を投票すると棄権(-2)が設定される', () => {
+    it('records an abstention for no answer', () => {
       vote.choices = ['賛成', '反対'];
       vote.voteId = 1;
       vote.chairId = 'other-chair';
@@ -368,7 +368,7 @@ describe('Vote', () => {
   });
 
   describe('startVote()', () => {
-    it('END_OLD_VOTE と START_VOTE がトリガーされる', () => {
+    it('ends the old vote and starts the new one', () => {
       let endOldVoteCalled = false;
       let startVoteCalled = false;
       const cleanups = [
@@ -389,7 +389,7 @@ describe('Vote', () => {
   });
 
   describe('apply()', () => {
-    it('initTimeStampが変更されたらstartVoteが呼ばれる', () => {
+    it('starts the vote when the stamp changes', () => {
       const startVoteSpy = vi.spyOn(vote, 'startVote').mockImplementation(() => {});
       vi.spyOn(vote, 'chkFinishVote').mockImplementation(() => {});
       vote.initTimeStamp = 100;
@@ -402,7 +402,7 @@ describe('Vote', () => {
       expect(startVoteSpy).toHaveBeenCalled();
     });
 
-    it('initTimeStampが変更されなければstartVoteは呼ばれない', () => {
+    it('starts none while it stays the same', () => {
       const startVoteSpy = vi.spyOn(vote, 'startVote').mockImplementation(() => {});
       vi.spyOn(vote, 'chkFinishVote').mockImplementation(() => {});
       vote.initTimeStamp = 100;
@@ -414,7 +414,7 @@ describe('Vote', () => {
       expect(startVoteSpy).not.toHaveBeenCalled();
     });
 
-    it('apply後にchkFinishVoteが呼ばれる', () => {
+    it('checks whether the vote is over after each sync', () => {
       const chkFinishSpy = vi.spyOn(vote, 'chkFinishVote').mockImplementation(() => {});
       vi.spyOn(vote, 'startVote').mockImplementation(() => {});
 
@@ -426,7 +426,7 @@ describe('Vote', () => {
   });
 
   describe('chkFinishVote()', () => {
-    it('議長かつ全員投票済みでFINISH_VOTEがトリガーされる', () => {
+    it('finishes the vote for the chair once everybody has answered', () => {
       vi.useFakeTimers();
       vote.chairId = 'my-peer-id';
       vote.targetPeerId = ['peer-1'];
@@ -459,7 +459,7 @@ describe('Vote', () => {
       vi.useRealTimers();
     });
 
-    it('議長でなければFINISH_VOTEはトリガーされない', () => {
+    it('finishes it for nobody else', () => {
       vi.useFakeTimers();
       vote.chairId = 'other-peer-id';
       vote.targetPeerId = ['peer-1'];
@@ -477,7 +477,7 @@ describe('Vote', () => {
       vi.useRealTimers();
     });
 
-    it('切断中の対象者は棄権扱いとなりFINISH_VOTEがトリガーされる', () => {
+    it('counts somebody who dropped as abstaining and finishes', () => {
       vi.useFakeTimers();
       vote.chairId = 'my-peer-id';
       vote.targetPeerId = ['peer-1'];
@@ -501,7 +501,7 @@ describe('Vote', () => {
       vi.useRealTimers();
     });
 
-    it('一度完了した投票ではFINISH_VOTEを重複発火しない', () => {
+    it('finishes a vote once and no more', () => {
       vi.useFakeTimers();
       vote.chairId = 'my-peer-id';
       vote.targetPeerId = ['peer-1'];
@@ -525,7 +525,7 @@ describe('Vote', () => {
   });
 
   describe('finishByChair()', () => {
-    it('議長は未回答を残して締め切れる', () => {
+    it('lets the chair close it with answers outstanding', () => {
       vi.useFakeTimers();
       vote.chairId = 'my-peer-id';
       vote.targetPeerId = ['peer-1', 'peer-2'];
@@ -554,7 +554,7 @@ describe('Vote', () => {
       vi.useRealTimers();
     });
 
-    it('議長でなければ締め切らない', () => {
+    it('lets nobody else close it', () => {
       vote.chairId = 'other-peer-id';
       vote.targetPeerId = ['peer-1'];
 
@@ -564,9 +564,9 @@ describe('Vote', () => {
     });
   });
 
-  describe('自分を点呼に含む（リグレッション）', () => {
-    it('isDisConnect=true でも投票済みなら投票結果を返す', () => {
-      // myCursor が isDisConnect=true でも voteId が一致していれば投票結果を優先する
+  describe('counts you into your own roll call', () => {
+    it('returns the answer of somebody marked as dropped who had answered', () => {
+      // takes your own answer over the dropped mark when the vote matches
       vote.voteId = 1;
       vi.spyOn(PeerCursor, 'findByPeerId').mockImplementation((peerId: string) => {
         if (peerId === 'my-peer-id') return { voteId: 1, voteAnswer: 0, isDisConnect: true } as unknown as PeerCursor;
@@ -575,8 +575,8 @@ describe('Vote', () => {
       expect(vote.voteAnswerByPeerId('my-peer-id')).toBe(0);
     });
 
-    it('自分が接続中（isDisConnect=false）なら実際の投票値を返す', () => {
-      // createMyCursor() が isDisConnect=false を設定することで意図通りに動作する
+    it('returns your real answer while you are connected', () => {
+      // your cursor is created connected, which is what makes this work
       vote.voteId = 1;
       vi.spyOn(PeerCursor, 'findByPeerId').mockImplementation((peerId: string) => {
         if (peerId === 'my-peer-id') return { voteId: 1, voteAnswer: 0, isDisConnect: false } as unknown as PeerCursor;
@@ -585,9 +585,9 @@ describe('Vote', () => {
       expect(vote.voteAnswerByPeerId('my-peer-id')).toBe(0);
     });
 
-    it('自分を含む点呼で自分が接続中なら投票後に投票済みと判定される', () => {
-      // PeerCursor.myCursor に isDisConnect=false を設定した状態で voting() を呼び出すと
-      // voteId が揃い isVoteEnd() が true になること
+    it('counts you as having answered your own roll call', () => {
+      // voting from a cursor marked as connected lines the vote numbers up and ends it
+      //
       const myCursor = {
         peerId: 'my-peer-id',
         voteAnswer: -1,

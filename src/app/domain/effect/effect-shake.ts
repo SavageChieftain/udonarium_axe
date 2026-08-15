@@ -2,10 +2,10 @@ import { EffectKind } from '@axe/domain/effect/effect-kind';
 import { EffectPreset } from '@axe/domain/effect/effect-preset';
 
 /**
- * 画面を揺らす演出。
+ * Shaking the screen.
  *
- * 爆発や打撃のように「衝撃が来る」ものだけ揺らす。
- * 回復や障壁まで揺らすと、何が起きても同じ手応えになって重みが無くなる。
+ * Only what lands a blow, such as an explosion or a strike, shakes it.
+ * Shaking for healing and shields too would give everything the same weight and leave none of it heavy.
  */
 const SHAKING_KINDS: ReadonlySet<EffectKind> = new Set<EffectKind>([
   'burst',
@@ -22,28 +22,28 @@ const SHAKING_KINDS: ReadonlySet<EffectKind> = new Set<EffectKind>([
 ]);
 
 /**
- * 揺れの強さ。幅を数値で持たず段階で持つ。
- * 幅を CSS 変数で渡すと、継承する変数の書き換えで盤面配下の style が全て無効になる。
+ * How hard it shakes, held as a step rather than a distance.
+ * Passed as a css variable, rewriting an inherited variable would void every style under the board.
  */
 export type EffectShake = '' | 'soft' | 'hard';
 
 const SHAKE_BY_GRADE: Record<1 | 2 | 3, EffectShake> = { 1: '', 2: 'soft', 3: 'hard' };
 
-/** 画面の揺れの強さ。空なら揺らさない。 */
+/** How hard the screen shakes. Empty for not at all. */
 export function effectShakeOf(preset: EffectPreset): EffectShake {
   if (!SHAKING_KINDS.has(preset.effectKind)) return '';
   return SHAKE_BY_GRADE[preset.gradeLevel];
 }
 
 /**
- * 揺らすまでの待ち(ms)。当たった瞬間に揺らさないと、撃った側が殴られたように見える。
+ * How long before it shakes. Shaking anywhere but the moment of the blow makes the one who fired look struck.
  */
 export function effectShakeDelay(preset: EffectPreset): number {
   if (preset.effectKind !== 'ballistic') return 0;
   return Math.round(preset.duration * preset.impactSoundAt);
 }
 
-/** 閃光の色。上級の閃光・きのこ雲・極太ビームだけ画面全体を焼く。 */
+/** The colour of the flash. Only the highest flash, the mushroom cloud and the heaviest beam burn the whole screen. */
 export function effectFlashColor(preset: EffectPreset): string {
   if (preset.gradeLevel < 3) return '';
   if (preset.effectKind !== 'nova' && preset.effectKind !== 'mushroom' && preset.effectKind !== 'beam') return '';

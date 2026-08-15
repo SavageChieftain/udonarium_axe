@@ -5,10 +5,10 @@ import { ObjectStore } from '@axe/core/sync/object-store';
 import { EffectPreset } from '@axe/domain/effect/effect-preset';
 
 /**
- * エフェクト集そのものの持ち出し・持ち込み。
+ * Carrying the effect library itself out and in.
  *
- * 部屋データ全体ではなく演出だけを配りたいときに使う入れ物で、
- * `ObjectStore` には残さない（書き出し・読み込みの間だけ存在する）。
+ * It is the holder for handing on the effects rather than the whole room, and it is not
+ * kept in the store; it exists across the export and the import alone.
  */
 @SyncObject('effect-preset-set')
 export class EffectPresetSet extends ObjectNode implements InnerXml {
@@ -24,7 +24,7 @@ export class EffectPresetSet extends ObjectNode implements InnerXml {
       .join('');
   }
 
-  /** 読み込みは足すだけ。今ある演出は消さず、同じ identifier のものだけ上書きになる。 */
+  /** Importing only adds: nothing already there is removed, and only what shares an identifier is replaced. */
   override parseInnerXml(element: Element) {
     for (const child of Array.from(element.children)) {
       ObjectSerializer.instance.parseXml(child);

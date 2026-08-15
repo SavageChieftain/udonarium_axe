@@ -2,23 +2,23 @@ import { buffIconOf, parseBuffStrength, toBuffBadges } from '@axe/domain/charact
 import { DataElement, DataElementAttribute, DataElementType } from '@axe/domain/data/data-element';
 
 describe('parseBuffStrength()', () => {
-  it('効果欄から数値を取り出すこと', () => {
+  it('takes the number out of an effect', () => {
     expect(parseBuffStrength('防+1')).toBe('+1');
     expect(parseBuffStrength('ダメージ2')).toBe('2');
     expect(parseBuffStrength('攻撃力-3')).toBe('-3');
     expect(parseBuffStrength('移動0.5倍')).toBe('0.5');
   });
 
-  it('全角マイナスも符号として扱うこと', () => {
+  it('reads a full-width minus as a sign', () => {
     expect(parseBuffStrength('命中−2')).toBe('-2');
   });
 
-  it('数値が無ければ空を返すこと', () => {
+  it('returns nothing when there is no number', () => {
     expect(parseBuffStrength('麻痺')).toBe('');
     expect(parseBuffStrength('')).toBe('');
   });
 
-  it('0 は強度として出さないこと', () => {
+  it('shows no strength for a zero', () => {
     expect(parseBuffStrength('0')).toBe('');
     expect(parseBuffStrength('効果+0')).toBe('');
   });
@@ -41,7 +41,7 @@ describe('toBuffBadges()', () => {
     for (const element of created.splice(0)) element.destroy();
   });
 
-  it('アイコン・強度・残ラウンドに畳むこと', () => {
+  it('folds a buff into its icon, its strength and the rounds left', () => {
     const root = DataElement.create('buff', '', {});
     created.push(root);
     const container = DataElement.create('バフ', '', {});
@@ -57,14 +57,14 @@ describe('toBuffBadges()', () => {
     expect(badges[1]).toMatchObject({ name: '加護', strength: '+1', rounds: 1 });
   });
 
-  it('アイコン未設定なら既定の印を使うこと', () => {
+  it('falls back to the default mark without an icon', () => {
     const element = buff('加護', '防+1', 1);
 
     expect(buffIconOf(element)).not.toBe('');
     expect(buffIconOf(element)).toBe(buffIconOf(buff('別のバフ', '', 1)));
   });
 
-  it('未設定なら空を返すこと', () => {
+  it('returns nothing when it is unset', () => {
     expect(toBuffBadges(null)).toEqual([]);
   });
 });

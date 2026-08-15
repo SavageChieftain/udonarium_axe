@@ -5,7 +5,7 @@ import {
 } from '@axe/domain/character/import/system-profiles/ara2-charasheet-profile';
 
 describe('buildAra2CharasheetCharacter', () => {
-  // charasheet.vampire-blood.net の アリアンロッド2E（game="ara2"）実データに即した構造
+  // built from real data of one system at the archive
   const ara2 = {
     pc_name: 'リーフ',
     game: 'ara2',
@@ -49,12 +49,12 @@ describe('buildAra2CharasheetCharacter', () => {
     return section.groups.find((group) => group.label === groupLabel)?.fields ?? [];
   }
 
-  it('game="ara2" を判別する', () => {
+  it('recognises the system', () => {
     expect(isAra2CharasheetCharacter(ara2)).toBe(true);
     expect(isAra2CharasheetCharacter({ pc_name: 'X', game: 'coc' })).toBe(false);
   });
 
-  it('能力値（NK）とボーナス（NB）・レベル・フェイト・dicebot を取り込む', () => {
+  it('takes the abilities, their bonuses, the level, the fate and the dice bot', () => {
     const result = buildAra2CharasheetCharacter(ara2)!;
     expect(result.sourceFormat).toBe('charasheet');
     expect(result.name).toBe('リーフ');
@@ -65,7 +65,7 @@ describe('buildAra2CharasheetCharacter', () => {
     expect(result.params).toContainEqual({ label: 'フェイト', value: '5' });
   });
 
-  it('スキル・一般スキル・所持品・プロフィールを名前付きで展開する', () => {
+  it('spreads the skills, the general skills, the belongings and the profile with their names', () => {
     const result = buildAra2CharasheetCharacter(ara2)!;
     expect(findGroupFields(findSection(result.sections, 'スキル')!, 'ファイアボルト')).toContainEqual({
       label: 'タイミング',
@@ -83,7 +83,7 @@ describe('buildAra2CharasheetCharacter', () => {
     });
   });
 
-  it('チャットパレットに 2d6+能力ボーナス の判定を生成する', () => {
+  it('builds a roll of two dice plus the ability bonus into the palette', () => {
     const result = buildAra2CharasheetCharacter(ara2)!;
     expect(result.commands).toContain('2d6+{感覚B} 【感覚判定】');
     expect(result.commands).toContain('2d6+{器用B} 【器用判定】');

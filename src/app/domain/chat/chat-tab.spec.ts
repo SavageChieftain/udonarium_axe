@@ -19,32 +19,32 @@ describe('ChatTab', () => {
     store.clearDeleteHistory();
   });
 
-  describe('SyncVar デフォルト値', () => {
-    it('name がデフォルト "タブ"', () => {
+  describe('the defaults of the synchronised fields', () => {
+    it('starts with the default name', () => {
       const tab = new ChatTab();
       tab.initialize();
       expect(tab.name).toBe('タブ');
     });
 
-    it('pos_num がデフォルト -1', () => {
+    it('starts unpositioned', () => {
       const tab = new ChatTab();
       tab.initialize();
       expect(tab.pos_num).toBe(-1);
     });
 
-    it('count がデフォルト 0', () => {
+    it('starts at no messages', () => {
       const tab = new ChatTab();
       tab.initialize();
       expect(tab.count).toBe(0);
     });
 
-    it('imageIdentifier が12要素の配列', () => {
+    it('holds a picture for each of the twelve places', () => {
       const tab = new ChatTab();
       tab.initialize();
       expect(tab.imageIdentifier).toHaveLength(12);
     });
 
-    it('imageCharacterName が12要素の配列', () => {
+    it('holds a name for each of them', () => {
       const tab = new ChatTab();
       tab.initialize();
       expect(tab.imageCharacterName).toHaveLength(12);
@@ -52,7 +52,7 @@ describe('ChatTab', () => {
   });
 
   describe('chatMessages', () => {
-    it('初期状態では空配列', () => {
+    it('starts empty', () => {
       const tab = new ChatTab();
       tab.initialize();
       expect(tab.chatMessages).toEqual([]);
@@ -60,7 +60,7 @@ describe('ChatTab', () => {
   });
 
   describe('portraitReset()', () => {
-    it('立ち絵情報をリセットする', () => {
+    it('clears the portraits', () => {
       const tab = new ChatTab();
       tab.initialize();
       tab.imageIdentifier = ['x', 'y'];
@@ -71,14 +71,14 @@ describe('ChatTab', () => {
   });
 
   describe('portraitSlotOf()', () => {
-    it('キャラクタ名の位置を返す', () => {
+    it('returns which place a name is in', () => {
       const tab = new ChatTab();
       tab.initialize();
       expect(tab.portraitSlotOf('#0')).toBe(0);
       expect(tab.portraitSlotOf('#5')).toBe(5);
     });
 
-    it('存在しない名前は-1を返す', () => {
+    it('returns nothing for a name it does not have', () => {
       const tab = new ChatTab();
       tab.initialize();
       expect(tab.portraitSlotOf('unknown')).toBe(-1);
@@ -86,7 +86,7 @@ describe('ChatTab', () => {
   });
 
   describe('isPortraitPosVisible()', () => {
-    it('初期状態では全位置がtrue', () => {
+    it('starts with every place shown', () => {
       const tab = new ChatTab();
       tab.initialize();
       expect(tab.isPortraitPosVisible(0)).toBe(true);
@@ -95,7 +95,7 @@ describe('ChatTab', () => {
   });
 
   describe('hidePortraitPos()', () => {
-    it('指定位置を非表示にする', () => {
+    it('hides one', () => {
       const tab = new ChatTab();
       tab.initialize();
       tab.hidePortraitPos(3);
@@ -104,7 +104,7 @@ describe('ChatTab', () => {
   });
 
   describe('portraitZIndex()', () => {
-    it('位置のZ順序インデックスを返す', () => {
+    it('returns where a place sits in the stack', () => {
       const tab = new ChatTab();
       tab.initialize();
       expect(tab.portraitZIndex(0)).toBe(0);
@@ -113,7 +113,7 @@ describe('ChatTab', () => {
   });
 
   describe('replacePortraitZIndex()', () => {
-    it('指定位置をZ順序の最上位に移動する', () => {
+    it('brings one to the top of it', () => {
       const tab = new ChatTab();
       tab.initialize();
       tab.replacePortraitZIndex(3);
@@ -123,21 +123,21 @@ describe('ChatTab', () => {
   });
 
   describe('unread', () => {
-    it('初期状態でunreadLengthが0', () => {
+    it('starts with nothing unread', () => {
       const tab = new ChatTab();
       tab.initialize();
       expect(tab.unreadLength).toBe(0);
       expect(tab.hasUnread).toBe(false);
     });
 
-    it('markForReadでunreadを0にリセットする', () => {
+    it('clears the unread count on being read', () => {
       const tab = new ChatTab();
       tab.initialize();
       tab.markForRead();
       expect(tab.unreadLength).toBe(0);
     });
 
-    it('addMessage でメッセージを追加すると unreadLength が増加する', () => {
+    it('counts a new message as unread', () => {
       const tab = new ChatTab();
       tab.initialize();
       tab.addMessage({ text: 'hello', name: 'user1' });
@@ -145,28 +145,28 @@ describe('ChatTab', () => {
       expect(tab.hasUnread).toBe(true);
     });
 
-    it('addMessage で messColor が SyncVar に正しく保存される', () => {
+    it('keeps the colour of a message', () => {
       const tab = new ChatTab();
       tab.initialize();
       const msg = tab.addMessage({ text: 'hello', name: 'user1', messColor: '#0099FF' });
       expect(msg.messColor).toBe('#0099FF');
     });
 
-    it('addMessage で name が SyncVar に正しく保存される', () => {
+    it('keeps its name', () => {
       const tab = new ChatTab();
       tab.initialize();
       const msg = tab.addMessage({ text: 'hello', name: 'テストプレイヤー' });
       expect(msg.name).toBe('テストプレイヤー');
     });
 
-    it('addMessage で from が SyncVar に正しく保存される', () => {
+    it('keeps its sender', () => {
       const tab = new ChatTab();
       tab.initialize();
       const msg = tab.addMessage({ text: 'hello', name: 'user', from: 'user-id-123' });
       expect(msg.from).toBe('user-id-123');
     });
 
-    it('複数メッセージ追加で unreadLength が累積する', () => {
+    it('counts several unread messages up', () => {
       const tab = new ChatTab();
       tab.initialize();
       tab.addMessage({ text: 'msg1', name: 'user1' });
@@ -175,7 +175,7 @@ describe('ChatTab', () => {
       expect(tab.unreadLength).toBe(3);
     });
 
-    it('addMessage 後に markForRead すると unreadLength が 0 になる', () => {
+    it('clears that count once they are read', () => {
       const tab = new ChatTab();
       tab.initialize();
       tab.addMessage({ text: 'hello', name: 'user1' });
@@ -186,13 +186,13 @@ describe('ChatTab', () => {
   });
 
   describe('dispCharctorIcon', () => {
-    it('デフォルトがtrue', () => {
+    it('starts true', () => {
       const tab = new ChatTab();
       tab.initialize();
       expect(tab.dispCharctorIcon).toBe(true);
     });
 
-    it('falseに設定できる', () => {
+    it('takes a false', () => {
       const tab = new ChatTab();
       tab.initialize();
       tab.dispCharctorIcon = false;
@@ -201,7 +201,7 @@ describe('ChatTab', () => {
   });
 
   describe('latestTimeStamp', () => {
-    it('メッセージがない場合0を返す', () => {
+    it('returns nothing when there are no messages', () => {
       const tab = new ChatTab();
       tab.initialize();
       expect(tab.latestTimeStamp).toBe(0);
@@ -209,25 +209,25 @@ describe('ChatTab', () => {
   });
 
   describe('escapeHtml()', () => {
-    it('HTMLタグをエスケープする', () => {
+    it('escapes the markup', () => {
       const tab = new ChatTab();
       tab.initialize();
       expect(tab.escapeHtml('<script>')).toBe('&lt;script&gt;');
     });
 
-    it('&をエスケープする', () => {
+    it('escapes an ampersand', () => {
       const tab = new ChatTab();
       tab.initialize();
       expect(tab.escapeHtml('a&b')).toBe('a&amp;b');
     });
 
-    it('引用符をエスケープする', () => {
+    it('escapes a quote', () => {
       const tab = new ChatTab();
       tab.initialize();
       expect(tab.escapeHtml('"test"')).toBe('&quot;test&quot;');
     });
 
-    it('ルビ記法を変換する', () => {
+    it('reads the ruby notation', () => {
       const tab = new ChatTab();
       tab.initialize();
       const result = tab.escapeHtml('|漢字《かんじ》');
@@ -235,7 +235,7 @@ describe('ChatTab', () => {
       expect(result).toContain('<rt>かんじ</rt>');
     });
 
-    it('非文字列はStringに変換する', () => {
+    it('renders anything that is not text as text', () => {
       const tab = new ChatTab();
       tab.initialize();
       expect(tab.escapeHtml(123)).toBe('123');
@@ -243,7 +243,7 @@ describe('ChatTab', () => {
   });
 
   describe('displayableMessagesLength()', () => {
-    it('初期状態で0', () => {
+    it('starts at nothing', () => {
       const tab = new ChatTab();
       tab.initialize();
       expect(tab.displayableMessagesLength()).toBe(0);

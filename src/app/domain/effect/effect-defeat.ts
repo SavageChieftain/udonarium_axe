@@ -1,10 +1,10 @@
 import { EffectKind } from '@axe/domain/effect/effect-kind';
 
 /**
- * 倒れたコマ自身の反応。
+ * How a piece answers being knocked down.
  *
- * 崩壊や両断は、周りに演出を出すだけでは「倒れた」ことにならない。
- * コマ自体が崩れ落ちる／ずれて消える必要があるので、コマ側へ渡す合図を決める。
+ * Collapsing and cleaving do not read as falling from the effect around them alone:
+ * the piece itself has to come down or slide away, so this is the signal it is given.
  */
 export type DefeatReaction = '' | 'dissolve' | 'bisect' | 'flinch';
 
