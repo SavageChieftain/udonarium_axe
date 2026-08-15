@@ -11,6 +11,9 @@ describe('TableEffectOverlayComponent', () => {
   let preset: EffectPreset;
 
   beforeEach(() => {
+    // The 2D context of happy-dom has no drawing functions, so nothing is handed back to
+    // draw with. What is checked here is where the canvases go, not what lands on them.
+    vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue(null as never);
     TestBed.configureTestingModule({
       imports: [TableEffectOverlayComponent],
       providers: [...TEST_PROVIDERS],
@@ -26,7 +29,9 @@ describe('TableEffectOverlayComponent', () => {
   });
 
   afterEach(() => {
+    fixture.destroy();
     ObjectStore.instance.remove(preset);
+    vi.restoreAllMocks();
   });
 
   /** Only the outer layer, which places it; the inner one carries the look and the animation. */

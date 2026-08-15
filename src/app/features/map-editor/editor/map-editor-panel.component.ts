@@ -33,6 +33,7 @@ import {
 import { STAMP_CATEGORIES, StampCategory, StampDef } from '@axe/features/map-editor/assets/stamp-types';
 import { getStampById, getStampsByCategory, STAMPS } from '@axe/features/map-editor/assets/stamps';
 import { GestureKind, MapEditorGesture } from '@axe/features/map-editor/editor/map-editor-gesture';
+import { mapEditorKeyDown, mapEditorKeyUp } from '@axe/features/map-editor/editor/map-editor-shortcut';
 import {
   EditorTool,
   LineKind,
@@ -219,6 +220,7 @@ export class MapEditorPanelComponent implements AfterViewInit {
   protected readonly GridType = GridType;
 
   private readonly shortcutToTool = new Map<string, EditorTool>(this.tools.map((d) => [d.key, d.tool]));
+  private readonly toolKeys = new Set(this.shortcutToTool.keys());
 
   protected readonly textureIds = TEXTURE_IDS;
   protected readonly textureBaseColor = TEXTURE_BASE_COLOR;
@@ -1216,52 +1218,49 @@ export class MapEditorPanelComponent implements AfterViewInit {
   }
 
   protected onKeyUp(event: KeyboardEvent): void {
-    if (event.code === 'Space') this.spacePan.set(false);
+    if (mapEditorKeyUp(event.code)) this.spacePan.set(false);
   }
 
   protected onKeyDown(event: KeyboardEvent): void {
-    if (isTypingTarget(event.target)) return;
-    if (event.code === 'Space') {
-      event.preventDefault();
-      this.spacePan.set(true);
-      return;
-    }
-    if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'z' && !event.shiftKey) {
-      event.preventDefault();
-      this.state.undo();
-      return;
-    }
-    if (
-      (event.ctrlKey || event.metaKey) &&
-      (event.key.toLowerCase() === 'y' || (event.shiftKey && event.key.toLowerCase() === 'z'))
-    ) {
-      event.preventDefault();
-      this.state.redo();
-      return;
-    }
-    if (event.key === 'Delete' || event.key === 'Backspace') {
-      if (this.state.selection()) {
-        event.preventDefault();
+    const action = mapEditorKeyDown(event.key, event.code, {
+      typing: isTypingTarget(event.target),
+      chord: event.ctrlKey || event.metaKey,
+      shift: event.shiftKey,
+      alt: event.altKey,
+      hasSelection: this.state.selection() !== null,
+      toolKeys: this.toolKeys,
+    });
+    if (!action) return;
+    if (action.preventDefault) event.preventDefault();
+
+    switch (action.command) {
+      case 'panStart':
+        this.spacePan.set(true);
+        return;
+      case 'undo':
+        this.state.undo();
+        return;
+      case 'redo':
+        this.state.redo();
+        return;
+      case 'deleteSelection':
         this.state.deleteSelection();
         this.bumpDraft();
+        return;
+      case 'cancelDraft':
+        this.cancelDraft();
+        this.cancelTextEdit();
+        return;
+      case 'commitDraft':
+        this.commitDraftPolyline();
+        return;
+      case 'pickTool': {
+        const tool = this.shortcutToTool.get(action.shortcut ?? '');
+        if (tool) this.setTool(tool);
+        return;
       }
-      return;
-    }
-    if (event.key === 'Escape') {
-      this.cancelDraft();
-      this.cancelTextEdit();
-      return;
-    }
-    if (event.key === 'Enter') {
-      this.commitDraftPolyline();
-      return;
-    }
-    if (!event.ctrlKey && !event.metaKey && !event.altKey) {
-      const tool = this.shortcutToTool.get(event.key.toUpperCase());
-      if (tool) {
-        event.preventDefault();
-        this.setTool(tool);
-      }
+      default:
+        return;
     }
   }
 
