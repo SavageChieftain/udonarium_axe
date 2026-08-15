@@ -5,6 +5,7 @@ import {
 } from '@axe/application/ui/multi-selection-context-menu';
 import { SelectionSignalService } from '@axe/application/ui/selection-signal.service';
 import { ObjectStore } from '@axe/core/sync/object-store';
+import { DiceSymbol, DiceType } from '@axe/domain/dice/dice-symbol';
 import { TabletopObject } from '@axe/domain/tabletop/tabletop-object';
 
 const t = ((key: string, params?: Record<string, unknown>) => {
@@ -79,6 +80,102 @@ describe('buildMultiSelectionContextMenu', () => {
     moveAll.action?.();
     expect((a as unknown as { lastSetLocation?: string }).lastSetLocation).toBe('graveyard');
     expect((b as unknown as { lastSetLocation?: string }).lastSetLocation).toBeUndefined();
+  });
+});
+
+describe('the dice among a selection', () => {
+  const created: DiceSymbol[] = [];
+
+  function makeDie(name: string): TabletopObject {
+    const die = DiceSymbol.create(name, DiceType.D6, 1);
+    die.location.name = 'table';
+    created.push(die);
+    return die as unknown as TabletopObject;
+  }
+
+  afterEach(() => {
+    for (const die of created.splice(0)) die.destroy();
+  });
+
+  const owners = [{ identifier: 'goblin', name: 'ゴブリンA' }];
+
+  it('offers to throw them together', () => {
+    const selection = new SelectionSignalService();
+    const menu = buildMultiSelectionContextMenu([makeDie('a'), makeDie('b')], {
+      t,
+      selectionSignalService: selection,
+      gridSize: 50,
+      rollDice: () => undefined,
+    });
+
+    expect(menu.map((entry) => (entry as ContextMenuAction).name)).toContain(
+      'feature.tabletop.selection.rollAllDice(2)'
+    );
+  });
+
+  it('offers to put them away into a piece', () => {
+    const selection = new SelectionSignalService();
+    const menu = buildMultiSelectionContextMenu([makeDie('a'), makeDie('b')], {
+      t,
+      selectionSignalService: selection,
+      gridSize: 50,
+      diceOwners: owners,
+      storeDice: () => undefined,
+    });
+    const away = menu.find(
+      (entry) => (entry as ContextMenuAction).name === 'feature.tabletop.selection.storeAllDice(2)'
+    ) as ContextMenuAction;
+
+    expect(away.subActions?.map((entry) => entry.name)).toEqual(['ゴブリンA']);
+  });
+
+  it('puts every one of them away into the piece that was chosen', () => {
+    const selection = new SelectionSignalService();
+    const stored: { count: number; owner: string }[] = [];
+    const menu = buildMultiSelectionContextMenu([makeDie('a'), makeDie('b')], {
+      t,
+      selectionSignalService: selection,
+      gridSize: 50,
+      diceOwners: owners,
+      storeDice: (dice, owner) => stored.push({ count: dice.length, owner }),
+    });
+
+    const away = menu.find(
+      (entry) => (entry as ContextMenuAction).name === 'feature.tabletop.selection.storeAllDice(2)'
+    ) as ContextMenuAction;
+    away.subActions?.[0].action?.();
+
+    expect(stored).toEqual([{ count: 2, owner: 'goblin' }]);
+  });
+
+  it('offers neither where the selection holds no dice', () => {
+    const selection = new SelectionSignalService();
+    const menu = buildMultiSelectionContextMenu([makeObj('a')], {
+      t,
+      selectionSignalService: selection,
+      gridSize: 50,
+      rollDice: () => undefined,
+      diceOwners: owners,
+      storeDice: () => undefined,
+    });
+    const names = menu.map((entry) => (entry as ContextMenuAction).name);
+
+    expect(names).not.toContain('feature.tabletop.selection.rollAllDice(1)');
+    expect(names).not.toContain('feature.tabletop.selection.storeAllDice(1)');
+  });
+
+  it('offers no destination with no pieces to put them into', () => {
+    const selection = new SelectionSignalService();
+    const menu = buildMultiSelectionContextMenu([makeDie('a')], {
+      t,
+      selectionSignalService: selection,
+      gridSize: 50,
+      storeDice: () => undefined,
+    });
+
+    expect(menu.map((entry) => (entry as ContextMenuAction).name)).not.toContain(
+      'feature.tabletop.selection.storeAllDice(1)'
+    );
   });
 });
 

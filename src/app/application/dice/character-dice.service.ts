@@ -42,7 +42,7 @@ export class CharacterDiceService {
     const laid: DiceSymbol[] = [];
     for (const die of dice) {
       for (let index = 0; index < die.count; index++) {
-        laid.push(this.layOut(character, die, laid.length));
+        laid.push(this.layOut(character, die, laid.length, die.shown?.[index]));
       }
     }
     if (laid.length > 0) SoundEffect.play(PresetSound.dicePut);
@@ -66,9 +66,9 @@ export class CharacterDiceService {
     removeHeldDie(character, name);
   }
 
-  private layOut(character: GameCharacter, die: HeldDie, index: number): DiceSymbol {
+  private layOut(character: GameCharacter, die: HeldDie, index: number, shown: string | undefined): DiceSymbol {
     const symbol = DiceSymbol.create(die.name, DiceType.D6, 1);
-    this.applyFaces(symbol, die);
+    this.applyFaces(symbol, die, shown);
 
     symbol.ownerCharacterIdentifier = character.identifier;
     symbol.location.name = 'table';
@@ -79,8 +79,13 @@ export class CharacterDiceService {
     return symbol;
   }
 
-  /** The faces come from the sheet, so a die of any number of sides is laid out as it was kept. */
-  private applyFaces(symbol: DiceSymbol, die: HeldDie): void {
+  /**
+   * The faces come from the sheet, so a die of any number of sides is laid out as it was kept.
+   *
+   * It comes out on the face it was left on. A set put away mid-scene is the same set when
+   * it comes back, and a face the die no longer has falls back to its first.
+   */
+  private applyFaces(symbol: DiceSymbol, die: HeldDie, shown: string | undefined): void {
     const images = symbol.imageDataElement;
     if (!images) return;
 
@@ -88,6 +93,7 @@ export class CharacterDiceService {
     for (const face of die.faces) {
       images.appendChild(DataElement.create(face.label, face.imageIdentifier, { type: 'image' }));
     }
-    symbol.face = die.faces[0].label;
+    const labels = die.faces.map((face) => face.label);
+    symbol.face = shown && labels.includes(shown) ? shown : labels[0];
   }
 }

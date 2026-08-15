@@ -2,6 +2,7 @@ import { ObjectSerializer } from '@axe/core/sync/object-serializer';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import {
   HELD_DICE_SECTION,
+  HELD_DICE_SHOWN,
   heldDiceOf,
   heldDieOfSymbol,
   removeHeldDie,
@@ -147,5 +148,85 @@ describe('the dice a character keeps', () => {
     character.detailDataElement!.appendChild(restored);
 
     expect(heldDiceOf(character)).toEqual(expected);
+  });
+
+  describe('what each die was showing', () => {
+    it('records the face it was put away on', () => {
+      const character = makeCharacter();
+      const symbol = makeSymbol('攻撃ダイス');
+      symbol.face = '4';
+
+      storeHeldDie(character, heldDieOfSymbol(symbol));
+
+      expect(heldDiceOf(character)[0].shown).toEqual(['4']);
+    });
+
+    it('records one for each die of the same name', () => {
+      // A set put away mid-scene comes back out as it was left, die for die.
+      const character = makeCharacter();
+      const first = makeSymbol('攻撃ダイス');
+      first.face = '2';
+      const second = makeSymbol('攻撃ダイス');
+      second.face = '6';
+
+      storeHeldDie(character, heldDieOfSymbol(first));
+      storeHeldDie(character, heldDieOfSymbol(second));
+
+      expect(heldDiceOf(character)[0].shown).toEqual(['2', '6']);
+    });
+
+    it('keeps the faces of the ones still there when one is taken back', () => {
+      const character = makeCharacter();
+      const symbol = makeSymbol('攻撃ダイス');
+      symbol.face = '3';
+      storeHeldDie(character, { ...heldDieOfSymbol(symbol), count: 3, shown: ['3', '5', '1'] });
+
+      removeHeldDie(character, '攻撃ダイス');
+
+      expect(heldDiceOf(character)[0].shown).toEqual(['3', '5']);
+    });
+
+    it('records none for a die written onto the sheet by hand', () => {
+      const character = makeCharacter();
+
+      storeHeldDie(character, { name: '手書き', count: 1, faces: [{ label: '1', imageIdentifier: '' }] });
+
+      expect(heldDiceOf(character)[0].shown).toEqual([]);
+    });
+
+    it('writes them where the sheet shows them', () => {
+      const character = makeCharacter();
+      const symbol = makeSymbol('攻撃ダイス');
+      symbol.face = '4';
+
+      storeHeldDie(character, heldDieOfSymbol(symbol));
+
+      const section = character.detailDataElement!.getFirstElementByName(HELD_DICE_SECTION)!;
+      expect(section.getFirstElementByName(HELD_DICE_SHOWN)?.value).toBe('4');
+    });
+  });
+
+  describe('what the save data carries', () => {
+    it('writes the pictures where the archive looks for them', () => {
+      // The archiver gathers every element marked as an image, so the faces travel with the character.
+      const character = makeCharacter();
+      const symbol = makeSymbol('攻撃ダイス');
+      symbol.imageDataElement!.getFirstElementByName('1')!.value = 'picture-1';
+      storeHeldDie(character, heldDieOfSymbol(symbol));
+
+      const xml = character.toXml();
+
+      expect(xml).toContain('type="image"');
+      expect(xml).toContain('picture-1');
+    });
+
+    it('shows the dice as a table on the sheet', () => {
+      // A die reads as one row of faces rather than a field for each.
+      const character = makeCharacter();
+      storeHeldDie(character, heldDieOfSymbol(makeSymbol('攻撃ダイス')));
+
+      const section = character.detailDataElement!.getFirstElementByName(HELD_DICE_SECTION)!;
+      expect(section.viewMode).toBe('table');
+    });
   });
 });

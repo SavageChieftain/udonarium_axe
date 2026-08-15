@@ -12,13 +12,16 @@ export interface MultiSelectionContextDeps {
   readonly gridSize: number;
   /** Throws whatever dice are among the selection. Left out where nothing can throw them. */
   readonly rollDice?: (dice: DiceSymbol[]) => void;
+  /** The pieces the selected dice can be put away into, and how to do it. */
+  readonly diceOwners?: { identifier: string; name: string }[];
+  readonly storeDice?: (dice: DiceSymbol[], ownerIdentifier: string) => void;
 }
 
 export function buildMultiSelectionContextMenu(
   objects: readonly TabletopObject[],
   deps: MultiSelectionContextDeps
 ): ContextMenuAction[] {
-  const { t, selectionSignalService, gridSize, rollDice } = deps;
+  const { t, selectionSignalService, gridSize, rollDice, diceOwners, storeDice } = deps;
   const count = objects.length;
   const movable = objects.filter((o) => !(isLockable(o) && o.isLock));
   const dice = objects.filter((o): o is DiceSymbol => o instanceof DiceSymbol && o.isVisible);
@@ -36,9 +39,22 @@ export function buildMultiSelectionContextMenu(
             name: t('feature.tabletop.selection.rollAllDice', { count: dice.length }),
             action: () => rollDice(dice),
           },
-          ContextMenuSeparator,
         ]
       : []),
+    // A handful is put away in one go, which is how it was laid out.
+    ...(storeDice && dice.length > 0 && (diceOwners ?? []).length > 0
+      ? [
+          {
+            name: t('feature.tabletop.selection.storeAllDice', { count: dice.length }),
+            action: undefined,
+            subActions: (diceOwners ?? []).map((owner) => ({
+              name: owner.name,
+              action: () => storeDice(dice, owner.identifier),
+            })),
+          } as ContextMenuAction,
+        ]
+      : []),
+    ...(rollDice && dice.length > 0 ? [ContextMenuSeparator] : []),
     {
       name: t('feature.tabletop.selection.copyAll'),
       action: () => {
@@ -79,12 +95,14 @@ export interface TryBuildMultiSelectionContextMenuOptions {
   readonly t: TranslateFn;
   readonly gridSize: number;
   readonly rollDice?: (dice: DiceSymbol[]) => void;
+  readonly diceOwners?: { identifier: string; name: string }[];
+  readonly storeDice?: (dice: DiceSymbol[], ownerIdentifier: string) => void;
 }
 
 export function tryBuildMultiSelectionContextMenu(
   options: TryBuildMultiSelectionContextMenuOptions
 ): ContextMenuAction[] | null {
-  const { self, selectionSignalService, objectStore, t, gridSize, rollDice } = options;
+  const { self, selectionSignalService, objectStore, t, gridSize, rollDice, diceOwners, storeDice } = options;
   if (selectionSignalService.selectionSize() <= 1) return null;
   const selected = selectionSignalService.selectedObjects();
   if (!selected.has(self.identifier)) return null;
@@ -94,5 +112,12 @@ export function tryBuildMultiSelectionContextMenu(
     if (obj) objects.push(obj);
   }
   if (objects.length <= 1) return null;
-  return buildMultiSelectionContextMenu(objects, { t, selectionSignalService, gridSize, rollDice });
+  return buildMultiSelectionContextMenu(objects, {
+    t,
+    selectionSignalService,
+    gridSize,
+    rollDice,
+    diceOwners,
+    storeDice,
+  });
 }

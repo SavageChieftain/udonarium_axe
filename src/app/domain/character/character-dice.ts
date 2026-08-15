@@ -5,6 +5,7 @@ import {
   DataElementFieldType,
   DataElementRole,
   DataElementType,
+  DataElementViewMode,
 } from '@axe/domain/data/data-element';
 import { DiceSymbol } from '@axe/domain/dice/dice-symbol';
 
@@ -23,6 +24,9 @@ import { DiceSymbol } from '@axe/domain/dice/dice-symbol';
 
 export const HELD_DICE_SECTION = '所持ダイス';
 export const HELD_DICE_COUNT = '個数';
+export const HELD_DICE_SHOWN = '出目';
+export const HELD_DICE_ROW_HEADER = 'ダイス';
+const SHOWN_SEPARATOR = ', ';
 
 export interface HeldDieFace {
   /** What the face shows, which is also what the field is called. */
@@ -34,6 +38,13 @@ export interface HeldDie {
   name: string;
   count: number;
   faces: HeldDieFace[];
+  /**
+   * What each of them was showing when it was put away, in that order.
+   *
+   * A die keeps the face it came to rest on, so a set put away mid-scene comes back out as
+   * it was left. Left off where a die was written onto the sheet by hand.
+   */
+  shown?: string[];
 }
 
 /** The dice on a character's sheet, in the order they were put there. */
@@ -56,7 +67,7 @@ export function heldDieOfSymbol(symbol: DiceSymbol, count = 1): HeldDie {
     .filter((face): face is DataElement => face instanceof DataElement)
     .map<HeldDieFace>((face) => ({ label: face.name, imageIdentifier: String(face.value ?? '') }));
 
-  return { name: symbol.name, count, faces };
+  return { name: symbol.name, count, faces, shown: Array(count).fill(symbol.face) };
 }
 
 /**
@@ -77,6 +88,8 @@ export function storeHeldDie(character: GameCharacter, die: HeldDie): void {
   if (existing) {
     const count = existing.getFirstElementByName(HELD_DICE_COUNT);
     if (count) count.value = countOf(existing) + die.count;
+    const shown = existing.getFirstElementByName(HELD_DICE_SHOWN);
+    if (shown) shown.value = [...shownOf(existing), ...(die.shown ?? [])].join(SHOWN_SEPARATOR);
     return;
   }
 
@@ -95,6 +108,9 @@ export function removeHeldDie(character: GameCharacter, name: string, count = 1)
   if (left > 0) {
     const field = group.getFirstElementByName(HELD_DICE_COUNT);
     if (field) field.value = left;
+    // The last put away is the first taken back, so the rest keep the faces they were left on.
+    const shown = group.getFirstElementByName(HELD_DICE_SHOWN);
+    if (shown) shown.value = shownOf(group).slice(0, left).join(SHOWN_SEPARATOR);
     return;
   }
   group.destroy();
@@ -108,10 +124,15 @@ function createHeldDiceSection(character: GameCharacter): DataElement | null {
   const detail = character.detailDataElement;
   if (!detail) return null;
 
+  // Shown as a table, so a die reads as one row of faces rather than a field for each.
   const section = DataElement.create(
     HELD_DICE_SECTION,
     '',
-    { [DataElementAttribute.ROLE]: DataElementRole.SECTION },
+    {
+      [DataElementAttribute.ROLE]: DataElementRole.SECTION,
+      [DataElementAttribute.VIEW_MODE]: DataElementViewMode.TABLE,
+      [DataElementAttribute.ROW_HEADER_LABEL]: HELD_DICE_ROW_HEADER,
+    },
     `${HELD_DICE_SECTION}_${character.identifier}`
   );
   detail.appendChild(section);
@@ -124,6 +145,12 @@ function createGroup(character: GameCharacter, die: HeldDie): DataElement {
     DataElement.create(HELD_DICE_COUNT, die.count, {
       [DataElementAttribute.ROLE]: DataElementRole.FIELD,
       [DataElementAttribute.FIELD_TYPE]: DataElementFieldType.NUMBER,
+    })
+  );
+  group.appendChild(
+    DataElement.create(HELD_DICE_SHOWN, (die.shown ?? []).join(SHOWN_SEPARATOR), {
+      [DataElementAttribute.ROLE]: DataElementRole.FIELD,
+      [DataElementAttribute.FIELD_TYPE]: DataElementFieldType.TEXT,
     })
   );
   for (const face of die.faces) {
@@ -142,12 +169,22 @@ function heldDieFromGroup(group: DataElement): HeldDie | null {
   const faces: HeldDieFace[] = [];
   for (const field of group.children) {
     if (!(field instanceof DataElement)) continue;
-    if (field.name === HELD_DICE_COUNT) continue;
+    if (field.name === HELD_DICE_COUNT || field.name === HELD_DICE_SHOWN) continue;
     faces.push({ label: field.name, imageIdentifier: String(field.value ?? '') });
   }
   if (faces.length < 1) return null;
 
-  return { name: group.name, count: countOf(group), faces };
+  return { name: group.name, count: countOf(group), faces, shown: shownOf(group) };
+}
+
+/** What each of them is showing. Empty where the die was written onto the sheet by hand. */
+function shownOf(group: DataElement): string[] {
+  const raw = String(group.getFirstElementByName(HELD_DICE_SHOWN)?.value ?? '').trim();
+  if (raw.length < 1) return [];
+  return raw
+    .split(',')
+    .map((face) => face.trim())
+    .filter((face) => face.length > 0);
 }
 
 /** A count that cannot be read is one die: the group is there, so something is being kept. */

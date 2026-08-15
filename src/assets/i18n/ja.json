@@ -1151,6 +1151,7 @@
         "title": "選択中のオブジェクト",
         "countLabel": "{{count}} 件選択中",
         "rollAllDice": "ダイス{{count}}個をまとめて振る",
+        "storeAllDice": "ダイス{{count}}個をコマにしまう",
         "copyAll": "選択をすべてコピー",
         "moveAllGraveyard": "選択をすべて墓場へ",
         "clear": "選択をクリア"

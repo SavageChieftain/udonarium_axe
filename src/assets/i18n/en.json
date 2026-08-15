@@ -1151,6 +1151,7 @@
         "title": "Selected objects",
         "countLabel": "{{count}} selected",
         "rollAllDice": "Roll all {{count}} dice",
+        "storeAllDice": "Put all {{count}} dice away into",
         "copyAll": "Copy all selected",
         "moveAllGraveyard": "Move all to graveyard",
         "clear": "Clear selection"

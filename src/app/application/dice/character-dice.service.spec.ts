@@ -119,7 +119,47 @@ describe('CharacterDiceService', () => {
     storeHeldDie(character, { name: 'ダイス', count: 2, faces: [{ label: '1', imageIdentifier: '' }] });
 
     expect(service.held(character)).toEqual([
-      { name: 'ダイス', count: 2, faces: [{ label: '1', imageIdentifier: '' }] },
+      { name: 'ダイス', count: 2, faces: [{ label: '1', imageIdentifier: '' }], shown: [] },
     ]);
+  });
+
+  describe('the face each one was left on', () => {
+    it('records what a die was showing as it is put away', () => {
+      const character = makeCharacter();
+      const symbol = makeSymbol();
+      symbol.face = '4';
+
+      service.store(character, symbol);
+
+      expect(service.held(character)[0].shown).toEqual(['4']);
+    });
+
+    it('lays each one out on the face it was left on', () => {
+      const character = makeCharacter();
+      const first = makeSymbol('攻撃ダイス');
+      first.face = '2';
+      const second = makeSymbol('攻撃ダイス');
+      second.face = '6';
+      service.store(character, first);
+      service.store(character, second);
+
+      const laid = service.deploy(character);
+
+      expect(laid.map((die) => die.face)).toEqual(['2', '6']);
+    });
+
+    it('falls back to the first face for one it no longer has', () => {
+      const character = makeCharacter();
+      storeHeldDie(character, {
+        name: 'ダイス',
+        count: 1,
+        faces: [{ label: '1', imageIdentifier: '' }],
+        shown: ['99'],
+      });
+
+      const [die] = service.deploy(character);
+
+      expect(die.face).toBe('1');
+    });
   });
 });
