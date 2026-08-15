@@ -6,7 +6,6 @@ import {
   effect,
   inject,
   input,
-  signal,
   untracked,
 } from '@angular/core';
 import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
@@ -26,6 +25,7 @@ import {
 } from '@axe/features/card/card-stack-card-list/trump-card-label';
 import { FileSelecterComponent } from '@axe/ui/components/file-selecter/file-selecter.component';
 import { TooltipDirective } from '@axe/ui/directives/tooltip.directive';
+import { type DropSide, RowReorder } from '@axe/ui/dragging/row-reorder';
 import { SafePipe } from '@axe/ui/pipes/safe.pipe';
 import { TranslocoModule } from '@jsverse/transloco';
 
@@ -136,73 +136,53 @@ export class CardStackCardListComponent {
     return card.identifier;
   }
 
-  readonly draggedCardId = signal<string | null>(null);
-  readonly dragOverCardId = signal<string | null>(null);
-  readonly dropPosition = signal<'before' | 'after' | null>(null);
+  readonly cardDrag = new RowReorder<string>();
 
   private activePointerId: number | null = null;
 
   isDragging(card: Card): boolean {
-    return this.draggedCardId() === card.identifier;
+    return this.cardDrag.isHeld(card.identifier);
   }
 
   isDropBefore(card: Card): boolean {
-    return (
-      this.dragOverCardId() === card.identifier &&
-      this.dropPosition() === 'before' &&
-      this.draggedCardId() !== null &&
-      this.draggedCardId() !== card.identifier
-    );
+    return this.cardDrag.isDropBefore(card.identifier);
   }
 
   isDropAfter(card: Card): boolean {
-    return (
-      this.dragOverCardId() === card.identifier &&
-      this.dropPosition() === 'after' &&
-      this.draggedCardId() !== null &&
-      this.draggedCardId() !== card.identifier
-    );
+    return this.cardDrag.isDropAfter(card.identifier);
   }
 
   onPointerDown(event: PointerEvent, card: Card): void {
     if (event.pointerType === 'mouse' && event.button !== 0) return;
     event.preventDefault();
     this.activePointerId = event.pointerId;
-    this.draggedCardId.set(card.identifier);
+    this.cardDrag.begin(card.identifier);
     (event.currentTarget as Element).setPointerCapture(event.pointerId);
   }
 
   onPointerMove(event: PointerEvent): void {
     if (this.activePointerId !== event.pointerId) return;
-    const draggedId = this.draggedCardId();
-    if (!draggedId) return;
+    if (this.cardDrag.held() === null) return;
 
     const found = this.findCardRowUnderPointer(event.clientX, event.clientY);
-    if (!found || found.id === draggedId) {
-      this.dragOverCardId.set(null);
-      this.dropPosition.set(null);
+    if (!found) {
+      this.cardDrag.leave();
       return;
     }
-    const isAfter = event.clientY > found.rect.top + found.rect.height / 2;
-    this.dragOverCardId.set(found.id);
-    this.dropPosition.set(isAfter ? 'after' : 'before');
+    this.cardDrag.hoverHalf(found.id, found.rect, event.clientY);
   }
 
   onPointerUp(event: PointerEvent): void {
     if (this.activePointerId !== event.pointerId) return;
-    const draggedId = this.draggedCardId();
-    const overId = this.dragOverCardId();
-    const position = this.dropPosition();
-
-    this.resetDragState();
+    const drop = this.cardDrag.release();
+    this.activePointerId = null;
     try {
       (event.currentTarget as Element).releasePointerCapture(event.pointerId);
     } catch {
       // pointer capture may have been released already
     }
 
-    if (!draggedId || !overId || draggedId === overId || !position) return;
-    this.performReorder(draggedId, overId, position);
+    if (drop?.side) this.performReorder(drop.held, drop.over, drop.side);
   }
 
   onPointerCancel(event: PointerEvent): void {
@@ -212,9 +192,7 @@ export class CardStackCardListComponent {
 
   private resetDragState(): void {
     this.activePointerId = null;
-    this.draggedCardId.set(null);
-    this.dragOverCardId.set(null);
-    this.dropPosition.set(null);
+    this.cardDrag.cancel();
   }
 
   private findCardRowUnderPointer(x: number, y: number): { id: string; rect: DOMRect } | null {
@@ -230,7 +208,7 @@ export class CardStackCardListComponent {
     return null;
   }
 
-  private performReorder(draggedId: string, overId: string, position: 'before' | 'after'): void {
+  private performReorder(draggedId: string, overId: string, position: DropSide): void {
     const stack = this.cardStack();
     const dragged = stack.cards.find((c) => c.identifier === draggedId);
     const target = stack.cards.find((c) => c.identifier === overId);

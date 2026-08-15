@@ -115,23 +115,24 @@ describe('CardStackCardListComponent', () => {
         } as unknown as PointerEvent,
         stack.cards[0]
       );
-      expect(component.draggedCardId()).toBeNull();
+      expect(component.cardDrag.held()).toBeNull();
     });
 
     it('takes hold of the card and captures the pointer', () => {
       const target = startDrag(stack.cards[0]);
-      expect(component.draggedCardId()).toBe(stack.cards[0].identifier);
+      expect(component.cardDrag.held()).toBe(stack.cards[0].identifier);
       expect(target.setPointerCapture).toHaveBeenCalledWith(1);
     });
 
     it('marks the side the card would land on and no other', () => {
       const [a, b] = stack.cards;
-      component.draggedCardId.set(a.identifier);
-      component.dragOverCardId.set(b.identifier);
-      component.dropPosition.set('before');
+      component.cardDrag.begin(a.identifier);
+
+      component.cardDrag.hoverHalf(b.identifier, { top: 0, height: 40 }, 10);
       expect(component.isDropBefore(b)).toBe(true);
       expect(component.isDropAfter(b)).toBe(false);
-      component.dropPosition.set('after');
+
+      component.cardDrag.hoverHalf(b.identifier, { top: 0, height: 40 }, 30);
       expect(component.isDropBefore(b)).toBe(false);
       expect(component.isDropAfter(b)).toBe(true);
     });
@@ -165,16 +166,15 @@ describe('CardStackCardListComponent', () => {
 
     it('lets go on a cancelled pointer', () => {
       const target = startDrag(stack.cards[0]);
-      component.dragOverCardId.set('x');
-      component.dropPosition.set('after');
+      component.cardDrag.hoverHalf('x', { top: 0, height: 40 }, 30);
       component.onPointerCancel({
         pointerType: 'mouse',
         pointerId: 1,
         currentTarget: target,
       } as unknown as PointerEvent);
-      expect(component.draggedCardId()).toBeNull();
-      expect(component.dragOverCardId()).toBeNull();
-      expect(component.dropPosition()).toBeNull();
+      expect(component.cardDrag.held()).toBeNull();
+      expect(component.cardDrag.over()).toBeNull();
+      expect(component.isDropAfter({ identifier: 'x' } as Card)).toBe(false);
     });
   });
 

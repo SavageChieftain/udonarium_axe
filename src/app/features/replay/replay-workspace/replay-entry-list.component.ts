@@ -19,6 +19,7 @@ import {
 } from '@axe/features/replay/replay-log-filter';
 import { formatReplayElapsed, type ReplayLogLine, toReplayLogLine } from '@axe/features/replay/replay-log-line';
 import { EMPTY_REPLAY_DICTIONARY, replayActorsOf, replayNamesAt } from '@axe/features/replay/replay-names';
+import { landingIndex, RowReorder } from '@axe/ui/dragging/row-reorder';
 import { TranslocoModule } from '@jsverse/transloco';
 
 export interface ReplayEntryRow {
@@ -56,8 +57,7 @@ export class ReplayEntryListComponent {
   protected readonly filter = signal<ReplayLogFilter>(DEFAULT_REPLAY_LOG_FILTER);
   protected readonly composeAt = signal<number | null>(null);
   protected readonly editingSeq = signal<number | null>(null);
-  protected readonly draggingSeq = signal<number | null>(null);
-  protected readonly dropAt = signal<number | null>(null);
+  protected readonly rowDrag = new RowReorder<number>();
 
   protected readonly insertKind = signal<ReplayEventKind>(ReplayEventKind.ChatMessage);
   protected readonly insertCastId = signal('');
@@ -160,19 +160,18 @@ export class ReplayEntryListComponent {
 
   protected dragStart(row: ReplayEntryRow, event: DragEvent): void {
     if (!this.editing()) return;
-    this.draggingSeq.set(row.seq);
+    this.rowDrag.begin(row.seq);
     if (!event.dataTransfer) return;
     event.dataTransfer.effectAllowed = 'move';
     event.dataTransfer.setData('text/plain', String(row.seq));
   }
 
   protected dragOver(row: ReplayEntryRow, event: DragEvent): void {
-    if (this.draggingSeq() === null) return;
+    if (this.rowDrag.held() === null) return;
     event.preventDefault();
     event.stopPropagation();
     const bounds = (event.currentTarget as HTMLElement).getBoundingClientRect();
-    const isBelow = event.clientY > bounds.top + bounds.height / 2;
-    this.dropAt.set(isBelow ? row.index + 1 : row.index);
+    this.rowDrag.hoverHalf(row.seq, bounds, event.clientY);
   }
 
   protected dropHere(event: DragEvent): void {
@@ -180,27 +179,22 @@ export class ReplayEntryListComponent {
     // Dropping to reorder is not dropping to import; letting it through would run the path
     // for a file dropped on the table.
     event.stopPropagation();
-    const seq = this.draggingSeq();
-    const at = this.dropAt();
-    this.dragEnd();
-    if (seq === null || at === null) return;
+    const drop = this.rowDrag.release();
+    if (!drop) return;
 
-    const from = this.source().findIndex((entry) => entry.seq === seq);
-    if (from < 0) return;
-    const to = at > from ? at - 1 : at;
-    if (to === from) return;
-    this.editor.move(seq, to - from);
+    const order = this.source().map((entry) => entry.seq);
+    const to = landingIndex(order, drop.held, drop.over, drop.side);
+    if (to === null) return;
+    this.editor.move(drop.held, to - order.indexOf(drop.held));
   }
 
   protected dragEnd(): void {
-    this.draggingSeq.set(null);
-    this.dropAt.set(null);
+    this.rowDrag.cancel();
   }
 
   protected dropHint(row: ReplayEntryRow): string | null {
-    if (this.draggingSeq() === null || this.draggingSeq() === row.seq) return null;
-    if (this.dropAt() === row.index) return 'inset 0 2px 0 0 var(--color-ui-accent)';
-    if (this.dropAt() === row.index + 1) return 'inset 0 -2px 0 0 var(--color-ui-accent)';
+    if (this.rowDrag.isDropBefore(row.seq)) return 'inset 0 2px 0 0 var(--color-ui-accent)';
+    if (this.rowDrag.isDropAfter(row.seq)) return 'inset 0 -2px 0 0 var(--color-ui-accent)';
     return null;
   }
 

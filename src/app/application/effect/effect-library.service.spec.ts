@@ -10,16 +10,20 @@ import { TEST_PROVIDERS } from '@axe/testing/test-providers';
 describe('EffectLibraryService', () => {
   let service: EffectLibraryService;
 
+  function clearPresets(): void {
+    for (const preset of ObjectStore.instance.getObjects<EffectPreset>(EffectPreset)) {
+      ObjectStore.instance.remove(preset);
+    }
+  }
+
   beforeEach(() => {
+    // The store is shared, and a spec that left presets behind would make these read as already restored.
+    clearPresets();
     TestBed.configureTestingModule({ providers: [...TEST_PROVIDERS] });
     service = TestBed.inject(EffectLibraryService);
   });
 
-  afterEach(() => {
-    for (const preset of ObjectStore.instance.getObjects<EffectPreset>(EffectPreset)) {
-      ObjectStore.instance.remove(preset);
-    }
-  });
+  afterEach(() => clearPresets());
 
   it('builds the whole default set when there is nothing', () => {
     const result = service.restoreDefaults();

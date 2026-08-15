@@ -54,7 +54,7 @@
           [class.text-ui-dim]="!editing() && row.index > cursor()"
           [class.font-semibold]="row.isChapter"
           [class.cursor-grab]="editing()"
-          [class.opacity-40]="draggingSeq() === row.seq"
+          [class.opacity-40]="rowDrag.isHeld(row.seq)"
           [style.boxShadow]="dropHint(row)"
           [attr.draggable]="editing() ? 'true' : null"
           (click)="activate(row)"

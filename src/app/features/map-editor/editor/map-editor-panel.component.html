@@ -852,13 +852,13 @@
       @for (layer of layers(); track layer.id) {
         <div
           class="rounded-ui cursor-move border border-solid p-1.5"
-          [class.border-ui-accent]="state.activeLayerId() === layer.id || dragOverLayerId() === layer.id"
-          [class.border-ui-border-panel]="state.activeLayerId() !== layer.id && dragOverLayerId() !== layer.id"
-          [class.opacity-50]="draggingLayerId() === layer.id"
+          [class.border-ui-accent]="state.activeLayerId() === layer.id || layerDrag.over() === layer.id"
+          [class.border-ui-border-panel]="state.activeLayerId() !== layer.id && layerDrag.over() !== layer.id"
+          [class.opacity-50]="layerDrag.isHeld(layer.id)"
           draggable="true"
           (dragstart)="onLayerDragStart(layer, $event)"
           (dragover)="onLayerDragOver(layer, $event)"
-          (drop)="onLayerDrop(layer, $event)"
+          (drop)="onLayerDrop($event)"
           (dragend)="onLayerDragEnd()"
           (click)="setActive(layer)"
         >

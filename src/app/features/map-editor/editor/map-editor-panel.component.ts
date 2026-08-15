@@ -91,6 +91,7 @@ import { getStampImage, loadStampImage } from '@axe/features/map-editor/render/s
 import { createImageTexturePattern } from '@axe/features/map-editor/render/texture-pattern';
 import { ConfirmDialogComponent } from '@axe/ui/components/confirm-dialog/confirm-dialog.component';
 import { FileSelecterComponent } from '@axe/ui/components/file-selecter/file-selecter.component';
+import { reorderRows, RowReorder } from '@axe/ui/dragging/row-reorder';
 import { TranslocoModule } from '@jsverse/transloco';
 
 export function buildShapeKindPoints(kind: ShapeGeneratorKind): string {
@@ -249,8 +250,7 @@ export class MapEditorPanelComponent implements AfterViewInit {
   protected readonly errorNotice = signal('');
   protected readonly exportScale = signal(1);
   protected readonly renamingLayerId = signal<string | null>(null);
-  protected readonly draggingLayerId = signal<string | null>(null);
-  protected readonly dragOverLayerId = signal<string | null>(null);
+  protected readonly layerDrag = new RowReorder<string>();
 
   private pendingTextFocus = false;
   private pendingTextInitial = '';
@@ -1468,7 +1468,7 @@ export class MapEditorPanelComponent implements AfterViewInit {
   }
 
   protected onLayerDragStart(layer: MapLayer, event: DragEvent): void {
-    this.draggingLayerId.set(layer.id);
+    this.layerDrag.begin(layer.id);
     if (event.dataTransfer) {
       event.dataTransfer.effectAllowed = 'move';
       event.dataTransfer.setData('text/plain', layer.id);
@@ -1476,33 +1476,30 @@ export class MapEditorPanelComponent implements AfterViewInit {
   }
 
   protected onLayerDragOver(layer: MapLayer, event: DragEvent): void {
-    if (!this.draggingLayerId()) return;
+    if (this.layerDrag.held() === null) return;
     event.preventDefault();
     event.stopPropagation();
     if (event.dataTransfer) event.dataTransfer.dropEffect = 'move';
-    if (this.dragOverLayerId() !== layer.id) this.dragOverLayerId.set(layer.id);
+    this.layerDrag.hover(layer.id);
   }
 
-  protected onLayerDrop(target: MapLayer, event: DragEvent): void {
+  protected onLayerDrop(event: DragEvent): void {
     event.preventDefault();
     // Dropping to reorder is not dropping to import; letting it through would reach the archiver.
     event.stopPropagation();
-    const draggedId = this.draggingLayerId();
-    this.draggingLayerId.set(null);
-    this.dragOverLayerId.set(null);
-    if (!draggedId || draggedId === target.id) return;
-    const order = this.layers().map((l) => l.id);
-    const from = order.indexOf(draggedId);
-    const to = order.indexOf(target.id);
-    if (from === -1 || to === -1) return;
-    order.splice(from, 1);
-    order.splice(to, 0, draggedId);
-    this.state.reorderLayersTopFirst(order);
+    const drop = this.layerDrag.release();
+    if (!drop) return;
+    const order = reorderRows(
+      this.layers().map((layer) => layer.id),
+      drop.held,
+      drop.over,
+      drop.side
+    );
+    if (order) this.state.reorderLayersTopFirst(order);
   }
 
   protected onLayerDragEnd(): void {
-    this.draggingLayerId.set(null);
-    this.dragOverLayerId.set(null);
+    this.layerDrag.cancel();
   }
 
   private renderLayerThumb(layer: MapLayer): string {
