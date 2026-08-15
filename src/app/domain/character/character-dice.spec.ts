@@ -7,6 +7,7 @@ import {
   heldDieOfSymbol,
   removeHeldDie,
   storeHeldDie,
+  takeHeldDice,
 } from '@axe/domain/character/character-dice';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { DataElement } from '@axe/domain/data/data-element';
@@ -227,6 +228,29 @@ describe('the dice a character keeps', () => {
 
       const section = character.detailDataElement!.getFirstElementByName(HELD_DICE_SECTION)!;
       expect(section.viewMode).toBe('table');
+    });
+  });
+
+  describe('taking them all off the sheet', () => {
+    it('hands over what was kept', () => {
+      const character = makeCharacter();
+      storeHeldDie(character, heldDieOfSymbol(makeSymbol('攻撃ダイス')));
+
+      expect(takeHeldDice(character).map((die) => die.name)).toEqual(['攻撃ダイス']);
+    });
+
+    it('leaves the sheet keeping none', () => {
+      const character = makeCharacter();
+      storeHeldDie(character, heldDieOfSymbol(makeSymbol('攻撃ダイス')));
+
+      takeHeldDice(character);
+
+      expect(heldDiceOf(character)).toEqual([]);
+      expect(character.detailDataElement?.getFirstElementByName(HELD_DICE_SECTION)).toBeNull();
+    });
+
+    it('hands over nothing from a character that keeps none', () => {
+      expect(takeHeldDice(makeCharacter())).toEqual([]);
     });
   });
 });

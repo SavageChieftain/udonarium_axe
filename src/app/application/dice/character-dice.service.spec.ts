@@ -162,4 +162,37 @@ describe('CharacterDiceService', () => {
       expect(die.face).toBe('1');
     });
   });
+
+  describe('laying out takes them off the sheet', () => {
+    it('keeps none once they are on the table', () => {
+      const character = makeCharacter();
+      storeHeldDie(character, { name: 'ダイス', count: 2, faces: [{ label: '1', imageIdentifier: '' }] });
+
+      service.deploy(character);
+
+      expect(service.held(character)).toEqual([]);
+    });
+
+    it('lays out nothing on a second press', () => {
+      // A die is on the table or kept, never both, or every press would make a fresh set.
+      const character = makeCharacter();
+      storeHeldDie(character, { name: 'ダイス', count: 2, faces: [{ label: '1', imageIdentifier: '' }] });
+
+      service.deploy(character);
+      const again = service.deploy(character);
+
+      expect(again).toEqual([]);
+      expect(deployed()).toHaveLength(2);
+    });
+
+    it('puts them back when they are put away again', () => {
+      const character = makeCharacter();
+      storeHeldDie(character, { name: 'ダイス', count: 1, faces: [{ label: '1', imageIdentifier: '' }] });
+
+      const [die] = service.deploy(character);
+      service.store(character, die);
+
+      expect(service.held(character).map((held) => held.count)).toEqual([1]);
+    });
+  });
 });

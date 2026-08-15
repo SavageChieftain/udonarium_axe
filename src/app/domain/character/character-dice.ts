@@ -96,6 +96,19 @@ export function storeHeldDie(character: GameCharacter, die: HeldDie): void {
   section.appendChild(createGroup(character, die));
 }
 
+/**
+ * Takes every die off the sheet and hands them over.
+ *
+ * A die is either standing on the table or kept on the sheet, never both. Laying them out
+ * without taking them off would make a fresh set on every press, and the sheet would go on
+ * claiming to keep dice that are already in play.
+ */
+export function takeHeldDice(character: GameCharacter): HeldDie[] {
+  const dice = heldDiceOf(character);
+  heldDiceSection(character)?.destroy();
+  return dice;
+}
+
 /** Takes a die off the sheet, or lowers its count when there are several. */
 export function removeHeldDie(character: GameCharacter, name: string, count = 1): void {
   const section = heldDiceSection(character);

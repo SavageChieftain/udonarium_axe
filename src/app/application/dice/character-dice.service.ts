@@ -5,6 +5,7 @@ import {
   heldDieOfSymbol,
   removeHeldDie,
   storeHeldDie,
+  takeHeldDice,
 } from '@axe/domain/character/character-dice';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { DataElement } from '@axe/domain/data/data-element';
@@ -34,9 +35,12 @@ export class CharacterDiceService {
    * They are laid out in a row rather than in a pile, so a handful can be read and thrown
    * without moving them apart first. Each belongs to the character it came from, which is
    * what a chat roll written against that name reaches.
+   *
+   * Laying them out takes them off the sheet: a die is on the table or kept, never both,
+   * and pressing again would otherwise make a fresh set every time.
    */
   deploy(character: GameCharacter): DiceSymbol[] {
-    const dice = heldDiceOf(character);
+    const dice = takeHeldDice(character);
     if (dice.length < 1) return [];
 
     const laid: DiceSymbol[] = [];
