@@ -418,6 +418,7 @@
         "setFace": "ダイス目を設定",
         "owner": "コマに持たせる",
         "ownerNone": "持ち主を外す",
+        "storeToOwner": "コマにしまう",
         "hideNameOn": "☑ 名前を隠す",
         "hideNameOff": "☐ 名前を隠す",
         "editDice": "ダイス設定を編集",
@@ -938,7 +939,8 @@
         "movePersonal": "個人イベントリに移動",
         "moveGraveyard": "墓場に移動",
         "buffView": "バフの表示",
-        "invokeEffect": "演出を発動"
+        "invokeEffect": "演出を発動",
+        "deployDice": "ダイスを展開する（{{count}}個）"
       },
       "panel": {
         "sheet": "キャラクターシート",

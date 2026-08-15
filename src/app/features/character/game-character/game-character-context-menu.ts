@@ -8,6 +8,7 @@ import {
   buildToggleAction,
 } from '@axe/application/ui/tabletop-context-menu-actions';
 import { Network } from '@axe/core/index';
+import { heldDiceOf } from '@axe/domain/character/character-dice';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { DataElement, DataElementFieldType } from '@axe/domain/data/data-element';
 import { decodeRangeShapeField, RangeShapeFieldValue } from '@axe/domain/data/range-shape-field';
@@ -73,6 +74,8 @@ export function buildGameCharacterContextMenu(
     onShowLightSettings: () => void;
     onInvokeRangeShape?: (value: RangeShapeFieldValue) => void;
     onInvokeEffect?: (name: string) => void;
+    /** Lays the dice the character keeps onto the table. Left out where nothing can lay them out. */
+    onDeployDice?: () => void;
   },
   t: TranslateFn,
   overlapEntries: ContextMenuAction[] = [],
@@ -80,6 +83,8 @@ export function buildGameCharacterContextMenu(
 ): ContextMenuAction[] {
   const registeredShapes = callbacks.onInvokeRangeShape ? collectRegisteredRangeShapes(char) : [];
   const registeredEffects = callbacks.onInvokeEffect ? collectRegisteredEffects(char) : [];
+  const heldDice = callbacks.onDeployDice ? heldDiceOf(char) : [];
+  const heldDiceCount = heldDice.reduce((total, die) => total + die.count, 0);
 
   // opening and checking
   const openActions: ContextMenuAction[] = [
@@ -126,6 +131,14 @@ export function buildGameCharacterContextMenu(
                 callbacks.onInvokeRangeShape?.(shape.value);
               },
             })),
+          } as ContextMenuAction,
+        ]
+      : []),
+    ...(heldDiceCount > 0 && callbacks.onDeployDice
+      ? [
+          {
+            name: t('feature.character.contextMenu.deployDice', { count: heldDiceCount }),
+            action: () => callbacks.onDeployDice?.(),
           } as ContextMenuAction,
         ]
       : []),

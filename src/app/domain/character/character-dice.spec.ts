@@ -1,0 +1,151 @@
+import { ObjectSerializer } from '@axe/core/sync/object-serializer';
+import { ObjectStore } from '@axe/core/sync/object-store';
+import {
+  HELD_DICE_SECTION,
+  heldDiceOf,
+  heldDieOfSymbol,
+  removeHeldDie,
+  storeHeldDie,
+} from '@axe/domain/character/character-dice';
+import { GameCharacter } from '@axe/domain/character/game-character';
+import { DataElement } from '@axe/domain/data/data-element';
+import { DiceSymbol, DiceType } from '@axe/domain/dice/dice-symbol';
+
+describe('the dice a character keeps', () => {
+  const created: { destroy(): void }[] = [];
+
+  function makeCharacter(): GameCharacter {
+    const character = GameCharacter.create('ゴブリンA', 1, '');
+    created.push(character);
+    return character;
+  }
+
+  function makeSymbol(name = 'ダイス', type = DiceType.D6): DiceSymbol {
+    const symbol = DiceSymbol.create(name, type, 1);
+    created.push(symbol);
+    return symbol;
+  }
+
+  afterEach(() => {
+    for (const object of created.splice(0)) object.destroy();
+  });
+
+  it('keeps none to begin with', () => {
+    expect(heldDiceOf(makeCharacter())).toEqual([]);
+  });
+
+  it('reads a die off the table with its faces', () => {
+    const symbol = makeSymbol('攻撃ダイス');
+    symbol.imageDataElement!.getFirstElementByName('1')!.value = 'picture-1';
+
+    const die = heldDieOfSymbol(symbol);
+
+    expect(die.name).toBe('攻撃ダイス');
+    expect(die.count).toBe(1);
+    expect(die.faces).toHaveLength(6);
+    expect(die.faces[0]).toEqual({ label: '1', imageIdentifier: 'picture-1' });
+  });
+
+  it('puts one onto the sheet', () => {
+    const character = makeCharacter();
+
+    storeHeldDie(character, heldDieOfSymbol(makeSymbol('攻撃ダイス')));
+
+    const [die] = heldDiceOf(character);
+    expect(die.name).toBe('攻撃ダイス');
+    expect(die.count).toBe(1);
+    expect(die.faces.map((face) => face.label)).toEqual(['1', '2', '3', '4', '5', '6']);
+  });
+
+  it('keeps the pictures of each face', () => {
+    const character = makeCharacter();
+    const symbol = makeSymbol();
+    symbol.imageDataElement!.getFirstElementByName('3')!.value = 'picture-3';
+
+    storeHeldDie(character, heldDieOfSymbol(symbol));
+
+    const face = heldDiceOf(character)[0].faces.find((entry) => entry.label === '3');
+    expect(face?.imageIdentifier).toBe('picture-3');
+  });
+
+  it('counts a second die of the same name rather than writing it again', () => {
+    // Six identical dice are a count of six, not six groups to read past.
+    const character = makeCharacter();
+
+    storeHeldDie(character, heldDieOfSymbol(makeSymbol('攻撃ダイス')));
+    storeHeldDie(character, heldDieOfSymbol(makeSymbol('攻撃ダイス')));
+
+    expect(heldDiceOf(character)).toHaveLength(1);
+    expect(heldDiceOf(character)[0].count).toBe(2);
+  });
+
+  it('keeps a die of another name apart', () => {
+    const character = makeCharacter();
+
+    storeHeldDie(character, heldDieOfSymbol(makeSymbol('攻撃ダイス')));
+    storeHeldDie(character, heldDieOfSymbol(makeSymbol('守りのダイス', DiceType.D20)));
+
+    expect(heldDiceOf(character).map((die) => die.name)).toEqual(['攻撃ダイス', '守りのダイス']);
+    expect(heldDiceOf(character)[1].faces).toHaveLength(20);
+  });
+
+  it('keeps a die with no faces off the sheet', () => {
+    const character = makeCharacter();
+
+    storeHeldDie(character, { name: '空のダイス', count: 1, faces: [] });
+
+    expect(heldDiceOf(character)).toEqual([]);
+  });
+
+  it('lowers the count when one is taken back', () => {
+    const character = makeCharacter();
+    storeHeldDie(character, { ...heldDieOfSymbol(makeSymbol('攻撃ダイス')), count: 3 });
+
+    removeHeldDie(character, '攻撃ダイス');
+
+    expect(heldDiceOf(character)[0].count).toBe(2);
+  });
+
+  it('takes the last one off the sheet altogether', () => {
+    const character = makeCharacter();
+    storeHeldDie(character, heldDieOfSymbol(makeSymbol('攻撃ダイス')));
+
+    removeHeldDie(character, '攻撃ダイス');
+
+    expect(heldDiceOf(character)).toEqual([]);
+  });
+
+  it('takes nothing back that was never there', () => {
+    const character = makeCharacter();
+    storeHeldDie(character, heldDieOfSymbol(makeSymbol('攻撃ダイス')));
+
+    removeHeldDie(character, 'だれかのダイス');
+
+    expect(heldDiceOf(character)).toHaveLength(1);
+  });
+
+  it('writes them where the sheet can edit them', () => {
+    // The section is the sheet's own, so the pictures can be changed there by hand.
+    const character = makeCharacter();
+
+    storeHeldDie(character, heldDieOfSymbol(makeSymbol('攻撃ダイス')));
+
+    expect(character.detailDataElement?.getFirstElementByName(HELD_DICE_SECTION)).toBeTruthy();
+  });
+
+  it('survives the round trip through the saved data', () => {
+    // They are written as the sheet's own elements, so they are saved and read back with it.
+    const character = makeCharacter();
+    storeHeldDie(character, { ...heldDieOfSymbol(makeSymbol('攻撃ダイス')), count: 2 });
+    const section = character.detailDataElement!.getFirstElementByName(HELD_DICE_SECTION)!;
+    const xml = ObjectSerializer.instance.toXml(section);
+    const expected = heldDiceOf(character);
+
+    section.destroy();
+    ObjectStore.instance.clearDeleteHistory();
+    const restored = ObjectSerializer.instance.parseXml(xml) as DataElement;
+    character.detailDataElement!.appendChild(restored);
+
+    expect(heldDiceOf(character)).toEqual(expected);
+  });
+});

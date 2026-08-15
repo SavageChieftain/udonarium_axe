@@ -10,6 +10,7 @@ import {
   linkedSignal,
   signal,
 } from '@angular/core';
+import { CharacterDiceService } from '@axe/application/dice/character-dice.service';
 import { DiceRollService } from '@axe/application/dice/dice-roll.service';
 import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { DisclosureService } from '@axe/application/permission/disclosure.service';
@@ -27,6 +28,8 @@ import { buildSurfaceSwitchContextMenu } from '@axe/application/ui/surface-switc
 import { UiSignalService } from '@axe/application/ui/ui-signal.service';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { imageFileEqual } from '@axe/core/storage/image-file';
+import { ObjectStore } from '@axe/core/sync/object-store';
+import { GameCharacter } from '@axe/domain/character/game-character';
 import { DiceSymbol } from '@axe/domain/dice/dice-symbol';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
@@ -59,6 +62,8 @@ export class DiceSymbolComponent {
   private readonly contextMenuService = inject(ContextMenuService);
   private readonly pieceContextMenu = inject(PieceContextMenuService);
   private readonly diceRollService = inject(DiceRollService);
+  private readonly characterDice = inject(CharacterDiceService);
+  private readonly objectStore = inject(ObjectStore);
   private readonly elementRef = inject<ElementRef<HTMLElement>>(ElementRef);
   private readonly imageService = inject(ImageService);
   private readonly pointerDeviceService = inject(PointerDeviceService);
@@ -154,7 +159,6 @@ export class DiceSymbolComponent {
   }
 
   readonly animeState = signal<'inactive' | 'active'>('inactive');
-
   private readonly iconHiding = hideIconWhileTouched(this.destroyRef);
   readonly isIconHidden = this.iconHiding.isHidden;
 
@@ -343,6 +347,7 @@ export class DiceSymbolComponent {
           identifier: character.identifier,
           name: character.name,
         })),
+        onStoreToOwner: (ownerIdentifier) => this.storeToOwner(ownerIdentifier),
       },
       this.translateFn
     );
@@ -364,6 +369,11 @@ export class DiceSymbolComponent {
 
   onMoved() {
     SoundEffect.play(PresetSound.dicePut);
+  }
+
+  private storeToOwner(ownerIdentifier: string): void {
+    const owner = this.objectStore.get<GameCharacter>(ownerIdentifier);
+    if (owner instanceof GameCharacter) this.characterDice.store(owner, this.diceSymbol());
   }
 
   diceRoll(): string {

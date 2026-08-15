@@ -18,6 +18,8 @@ export function buildDiceSymbolContextMenu(
     onShowDetail: () => void;
     /** The pieces the die can be given to. Left out where there are none to offer. */
     ownerCandidates?: DiceOwnerCandidate[];
+    /** Takes the die off the table and onto the sheet of the piece it belongs to. */
+    onStoreToOwner?: (ownerIdentifier: string) => void;
   },
   t: TranslateFn
 ): ContextMenuAction[] {
@@ -72,6 +74,15 @@ export function buildDiceSymbolContextMenu(
       });
     }
     actions.push({ name: t('feature.dice.contextMenu.owner'), action: undefined, subActions });
+  }
+
+  // A die is put away onto the sheet of the piece that keeps it, which is where it came from.
+  const owner = diceSymbol.ownerCharacterIdentifier;
+  if (owner.length > 0 && callbacks.onStoreToOwner) {
+    actions.push({
+      name: t('feature.dice.contextMenu.storeToOwner'),
+      action: () => callbacks.onStoreToOwner?.(owner),
+    });
   }
 
   if (diceSymbol.isVisible) {

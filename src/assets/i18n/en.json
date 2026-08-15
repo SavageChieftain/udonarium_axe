@@ -418,6 +418,7 @@
         "setFace": "Set face",
         "owner": "Give to a piece",
         "ownerNone": "Belong to nobody",
+        "storeToOwner": "Put away into the piece",
         "hideNameOn": "☑ Hide name",
         "hideNameOff": "☐ Hide name",
         "editDice": "Edit dice settings",
@@ -938,7 +939,8 @@
         "movePersonal": "Move to personal inventory",
         "moveGraveyard": "Move to graveyard",
         "buffView": "Buff display",
-        "invokeEffect": "Play an effect"
+        "invokeEffect": "Play an effect",
+        "deployDice": "Lay out {{count}} dice"
       },
       "panel": {
         "sheet": "Character sheet",
