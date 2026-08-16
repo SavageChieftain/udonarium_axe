@@ -99,6 +99,8 @@ export class TableEffectOverlayComponent {
     const placements: EffectCanvasPlacement[] = [];
 
     for (const active of this.renderables()) {
+      if (placements.length >= MAX_CANVASES) break;
+
       const hiddenIdentifiers = active.hidden;
       const base = gridSize * active.preset.sizeScale;
 
@@ -115,7 +117,8 @@ export class TableEffectOverlayComponent {
             hiddenIdentifiers,
             resolvePosition: (identifier) => this.centerOf(identifier, gridSize),
           },
-          effectParticles
+          effectParticles,
+          MAX_CANVASES - placements.length
         )) {
           placements.push({
             key: `${active.key}-${placement.key}`,
@@ -131,6 +134,7 @@ export class TableEffectOverlayComponent {
 
       active.cast.targets.forEach((target, index) => {
         if (hiddenIdentifiers.has(target.identifier)) return;
+        if (placements.length >= MAX_CANVASES) return;
         const progress = effectTargetProgress(active.preset, active.elapsed, index);
         if (progress < 0 || progress > 1) return;
 

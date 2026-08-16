@@ -6,6 +6,7 @@ import {
   MAX_STAGES,
   parseEffectStages,
   stageDuration,
+  stageLayoutOf,
 } from '@axe/domain/effect/effect-stage';
 
 function stage(overrides: Partial<EffectStage> = {}): EffectStage {
@@ -91,6 +92,25 @@ describe('layOutStages()', () => {
     });
 
     expect(stageDuration(spawn)).toBe(550);
+  });
+});
+
+describe('stageLayoutOf()', () => {
+  it('lays the same list out once', () => {
+    // It is asked for the length, for the sounds and for every frame drawn.
+    const stages = [stage()];
+
+    expect(stageLayoutOf(stages)).toBe(stageLayoutOf(stages));
+  });
+
+  it('lays a list of its own out for itself', () => {
+    expect(stageLayoutOf([stage()])).not.toBe(stageLayoutOf([stage()]));
+  });
+
+  it('lays it out the same way as laying it out afresh', () => {
+    const stages = [stage({ role: 'travel', kind: 'projectile', durationMs: 600 }), stage()];
+
+    expect(stageLayoutOf(stages)).toEqual(layOutStages(stages));
   });
 });
 

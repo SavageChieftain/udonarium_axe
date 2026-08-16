@@ -1,6 +1,6 @@
 import { type EffectCast } from '@axe/domain/effect/effect-cast';
 import { type EffectPreset } from '@axe/domain/effect/effect-preset';
-import { type EffectStage, layOutStages, type StageWindow } from '@axe/domain/effect/effect-stage';
+import { type EffectStage, stageLayoutOf, type StageWindow } from '@axe/domain/effect/effect-stage';
 import type { EffectPaintContext } from '@axe/domain/effect/effect-timeline';
 import type { EffectParticleLayer } from '@axe/domain/effect/particles/shared';
 import {
@@ -58,7 +58,9 @@ export function stagedEffectSprites(
   if (stages.length < 1) return sprites;
 
   const base = Math.max(options.baseSize, 1) * preset.sizeScale;
-  const { windows } = layOutStages(stages);
+  const { windows } = stageLayoutOf(stages);
+  // The stage sees the same preset whichever target it is playing on, so it is laid out once.
+  const views = windows.map((window) => stageView(preset, window));
 
   cast.targets.forEach((target, index) => {
     if (options.hiddenIdentifiers?.has(target.identifier)) return;
@@ -71,7 +73,7 @@ export function stagedEffectSprites(
       const progress = progressIn(window, localMs);
       if (progress === null) return;
 
-      const view = stageView(preset, window);
+      const view = views[order];
       const places = placesFor(window, cast, center, base);
       const context: EffectPaintContext = {
         sprites,
@@ -110,39 +112,49 @@ export function stagedEffectParticles(
   elapsedMs: number,
   base: number,
   options: EffectSpriteOptions,
-  emit: StageParticleEmitter
+  emit: StageParticleEmitter,
+  limit = Number.POSITIVE_INFINITY
 ): StagedParticlePlacement[] {
   const placements: StagedParticlePlacement[] = [];
-  if (stages.length < 1) return placements;
+  if (stages.length < 1 || limit < 1) return placements;
 
-  const { windows } = layOutStages(stages);
+  const { windows } = stageLayoutOf(stages);
+  const views = windows.map((window) => stageView(preset, window));
 
-  cast.targets.forEach((target, index) => {
-    if (options.hiddenIdentifiers?.has(target.identifier)) return;
+  for (const [index, target] of cast.targets.entries()) {
+    if (options.hiddenIdentifiers?.has(target.identifier)) continue;
 
     const localMs = elapsedMs - preset.stagger * index;
-    if (localMs < 0) return;
+    if (localMs < 0) continue;
 
     const center = effectTargetCenter(target, preset, options);
-    windows.forEach((window, order) => {
-      const progress = progressIn(window, localMs);
-      if (progress === null) return;
+    for (const [order, window] of windows.entries()) {
+      // Particles are drawn onto a canvas apiece and only so many are kept, so what is
+      // over the count is never made rather than made and thrown away.
+      if (placements.length >= limit) return placements;
 
-      const view = stageView(preset, window);
+      const progress = progressIn(window, localMs);
+      if (progress === null) continue;
+
       const places = placesFor(window, cast, center, base);
-      const layer = emit(view, cast.seed + index * 7919 + order * 104729, progress, base * (window.stage.scale ?? 1));
-      if (layer.particles.length < 1) return;
+      const layer = emit(
+        views[order],
+        cast.seed + index * 7919 + order * 104729,
+        progress,
+        base * (window.stage.scale ?? 1)
+      );
+      if (layer.particles.length < 1) continue;
 
       placements.push({ key: `${index}-${order}`, layer, center: places.center });
-    });
-  });
+    }
+  }
 
   return placements;
 }
 
 /** How long the whole run takes, which is what the last stage to finish decides. */
 export function stagedEffectDuration(stages: readonly EffectStage[]): number {
-  return layOutStages(stages).totalMs;
+  return stageLayoutOf(stages).totalMs;
 }
 
 function progressIn(window: StageWindow, localMs: number): number | null {
@@ -199,9 +211,15 @@ function headingOf(origin: Point3 | null, center: Point3): number {
 function stageView(preset: EffectPreset, window: StageWindow): EffectPreset {
   const stage = window.stage;
   const view = Object.create(preset) as EffectPreset;
+  const length = Math.max(window.endMs - window.startMs, 1);
   const own: Record<string, unknown> = {
     kind: stage.kind,
-    durationMs: Math.max(window.endMs - window.startMs, 1),
+    durationMs: length,
+    // What the painters read is the worked-out length, which on the effect itself is the
+    // whole run. A stage lasts as long as its own window and nothing longer.
+    duration: length,
+    isStaged: false,
+    stageList: [],
     staggerMs: 0,
   };
   if (stage.grade !== undefined) own['grade'] = stage.grade;

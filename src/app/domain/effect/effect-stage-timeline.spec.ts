@@ -163,6 +163,35 @@ describe('stagedEffectSprites()', () => {
     expect(withBranches(4)).toBeGreaterThan(withBranches(2));
   });
 
+  it('tells a stage the length of its own window, not the length of the run', () => {
+    // The painters lay their animations out against the length they are given.
+    const preset = makePreset();
+    preset.stages = JSON.stringify([
+      { role: 'travel', kind: 'projectile', durationMs: 600 },
+      { role: 'impact', kind: 'burst', durationMs: 400 },
+    ]);
+    const stages = preset.stageList;
+    const lengths: number[] = [];
+
+    stagedEffectSprites(preset, stages, castOn(), 700, options, (_kind, context) => {
+      lengths.push(context.preset.duration);
+    });
+
+    expect(lengths).toEqual([400]);
+  });
+
+  it('lays out the same list once however many targets it plays on', () => {
+    const preset = makePreset();
+    const stages = [stage()];
+    const seen = new Set<object>();
+
+    stagedEffectSprites(preset, stages, castOn(3), 200, options, (_kind, context) => {
+      seen.add(context.preset);
+    });
+
+    expect(seen.size).toBe(1);
+  });
+
   it('draws a field for as long as it was given', () => {
     const stages = [
       stage({ role: 'field', kind: 'flame', durationMs: 3000 }),
@@ -255,6 +284,24 @@ describe('stagedEffectParticles()', () => {
     const centres = placements.map((placement) => `${placement.center.x},${placement.center.y}`);
 
     expect(new Set(centres).size).toBeGreaterThan(1);
+  });
+
+  it('makes no more glows than it was told to keep', () => {
+    // The canvases are capped; making what is thrown away is work for nothing.
+    const stages: EffectStage[] = [
+      { role: 'field', kind: 'flame', durationMs: 2000 },
+      { role: 'impact', kind: 'burst', durationMs: 2000 },
+    ];
+    let made = 0;
+    const count = (...args: Parameters<typeof effectParticles>) => {
+      made++;
+      return effectParticles(...args);
+    };
+
+    const placements = stagedEffectParticles(makePreset(), stages, castOn(4), 400, 50, { baseSize: 50 }, count, 3);
+
+    expect(placements.length).toBeLessThanOrEqual(3);
+    expect(made).toBeLessThanOrEqual(3);
   });
 
   it('glows nowhere for a run with no stages', () => {

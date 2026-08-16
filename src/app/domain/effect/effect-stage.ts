@@ -54,7 +54,30 @@ export interface StageWindow {
  * it ended. What is left behind runs alongside instead — a field is where the effect
  * finishes, not something the rest of it waits for.
  */
-export function layOutStages(stages: readonly EffectStage[]): { windows: StageWindow[]; totalMs: number } {
+export interface StageLayout {
+  windows: StageWindow[];
+  totalMs: number;
+}
+
+/**
+ * The same layout for as long as the list is the same one.
+ *
+ * A list is laid out to draw a frame, to say how long the run is and to place the sounds,
+ * and the effect hands back the same list until its stages are written again. Laying it
+ * out afresh for each of those, sixty times a second, is work with one answer.
+ */
+const laidOut = new WeakMap<readonly EffectStage[], StageLayout>();
+
+export function stageLayoutOf(stages: readonly EffectStage[]): StageLayout {
+  const known = laidOut.get(stages);
+  if (known) return known;
+
+  const layout = layOutStages(stages);
+  laidOut.set(stages, layout);
+  return layout;
+}
+
+export function layOutStages(stages: readonly EffectStage[]): StageLayout {
   const windows: StageWindow[] = [];
   let at = 0;
   let total = 0;
