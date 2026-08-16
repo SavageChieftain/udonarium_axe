@@ -175,5 +175,55 @@ describe('EffectPresetEditorComponent', () => {
 
       expect(notify).toHaveBeenCalledWith(preset.identifier);
     });
+
+    describe('what a spawn throws, through the screen', () => {
+      /** A branch is the row marked as one, which is what the screen draws beneath a spawn. */
+      function branchRows(): HTMLElement[] {
+        return Array.from((fixture.nativeElement as HTMLElement).querySelectorAll<HTMLElement>('i'))
+          .filter((icon) => (icon.textContent ?? '').includes('subdirectory_arrow_right'))
+          .map((icon) => icon.closest('div') as HTMLElement);
+      }
+
+      beforeEach(() => {
+        // The spawn is second on purpose: the screen has to name which stage it is editing.
+        preset.stages = JSON.stringify([
+          { role: 'travel', kind: 'projectile', durationMs: 400 },
+          {
+            role: 'spawn',
+            kind: 'burst',
+            durationMs: 120,
+            branches: 3,
+            spreadDeg: 120,
+            children: [{ role: 'impact', kind: 'burst', durationMs: 300 }],
+          },
+        ]);
+        fixture.detectChanges();
+      });
+
+      it('shows the chain each branch follows', () => {
+        expect(branchRows()).toHaveLength(1);
+      });
+
+      it('takes a branch out from its own row', () => {
+        branchRows()[0].querySelector('button')?.click();
+        fixture.detectChanges();
+
+        expect(preset.stageList[1].children).toEqual([]);
+        expect(preset.stageList[0].kind).toBe('projectile');
+      });
+
+      it('adds to the chain from the buttons beneath it', () => {
+        // The buttons under the spawn add to the branch, not to the run itself.
+        const spawnBlock = branchRows()[0].parentElement as HTMLElement;
+        const add = Array.from(spawnBlock.querySelectorAll<HTMLButtonElement>('button')).find((button) =>
+          (button.textContent ?? '').trim().startsWith('＋運び')
+        );
+
+        add?.click();
+        fixture.detectChanges();
+
+        expect(preset.stageList[1].children?.map((child) => child.role)).toEqual(['impact', 'travel']);
+      });
+    });
   });
 });

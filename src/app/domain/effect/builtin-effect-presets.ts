@@ -1,6 +1,7 @@
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { EffectKind, EffectTargeting, ProjectileStyle, SlashStyle } from '@axe/domain/effect/effect-kind';
 import { EffectPreset } from '@axe/domain/effect/effect-preset';
+import { type EffectStage, encodeEffectStages } from '@axe/domain/effect/effect-stage';
 import { PresetSound } from '@axe/domain/media/sound-effect';
 
 /** The sounds, chosen by family and size from a free library. */
@@ -41,11 +42,93 @@ export interface EffectPresetSeed {
   areaRadius?: number;
   /** The particles scattered along the way. Empty for whatever the family gives. */
   moteStyle?: string;
+  /** The run this effect goes through. Left off for an effect that draws one look. */
+  stages?: EffectStage[];
 }
 
 /** A sound too short or too long makes no effect at all, so it is kept within this range. */
 const MIN_EFFECT_MS = 400;
 const MAX_EFFECT_MS = 6000;
+
+/**
+ * A few runs built out of stages, so what the editor can do is on the shelf rather than
+ * only in the manual. Every part of them is a look that was already there.
+ */
+const STAGED_SEEDS: readonly EffectPresetSeed[] = [
+  {
+    identifier: 'EffectPreset_staged_scatter',
+    name: '散弾の魔弾',
+    tagName: '組み立て',
+    kind: 'projectile',
+    colorPrimary: '#cfe6ff',
+    colorSecondary: '#4f8bff',
+    soundMs: 1200,
+    staggerMs: 60,
+    scale: 1,
+    targeting: 'single',
+    maxTargets: 1,
+    soundKey: 'sfShot',
+    impactSoundKey: 'explosionSmall',
+    grade: 2,
+    stages: [
+      { role: 'travel', kind: 'projectile', durationMs: 520 },
+      {
+        role: 'spawn',
+        kind: 'burst',
+        durationMs: 120,
+        branches: 4,
+        spreadDeg: 140,
+        children: [
+          { role: 'travel', kind: 'projectile', durationMs: 320 },
+          { role: 'impact', kind: 'burst', durationMs: 280 },
+        ],
+      },
+    ],
+  },
+  {
+    identifier: 'EffectPreset_staged_freeze',
+    name: '氷結の追撃',
+    tagName: '組み立て',
+    kind: 'projectile',
+    colorPrimary: '#e6f7ff',
+    colorSecondary: '#4fc3f7',
+    soundMs: 1400,
+    staggerMs: 80,
+    scale: 1,
+    targeting: 'single',
+    maxTargets: 1,
+    soundKey: 'iceSmall',
+    impactSoundKey: 'iceLarge',
+    grade: 2,
+    stages: [
+      { role: 'travel', kind: 'projectile', durationMs: 480 },
+      { role: 'impact', kind: 'frost', durationMs: 520 },
+      { role: 'field', kind: 'miasma', durationMs: 2200, colorPrimary: '#dff3ff', colorSecondary: '#7fd4ff' },
+    ],
+  },
+  {
+    identifier: 'EffectPreset_staged_barrage',
+    name: '着弾の絨毯',
+    tagName: '組み立て',
+    kind: 'projectile',
+    colorPrimary: '#ffd9a0',
+    colorSecondary: '#ff6b2c',
+    soundMs: 1600,
+    staggerMs: 90,
+    scale: 1.1,
+    targeting: 'multi',
+    maxTargets: 4,
+    areaRadius: 2,
+    soundKey: 'missileLaunch',
+    impactSoundKey: 'explosionLarge',
+    grade: 3,
+    stages: [
+      { role: 'travel', kind: 'ballistic', durationMs: 900 },
+      { role: 'impact', kind: 'burst', durationMs: 420, grade: 3 },
+      { role: 'field', kind: 'flame', durationMs: 2400 },
+    ],
+  },
+];
 
 export const DEFAULT_EFFECT_PRESET_SEEDS: readonly EffectPresetSeed[] = [
   {
@@ -1539,6 +1622,7 @@ export const DEFAULT_EFFECT_PRESET_SEEDS: readonly EffectPresetSeed[] = [
     soundKey: 'buff',
     grade: 2,
   },
+  ...STAGED_SEEDS,
 ];
 
 /** Copies a seed onto an effect. It is also how the defaults are applied again. */
@@ -1567,6 +1651,7 @@ export function applyEffectPresetSeed(preset: EffectPreset, seed: EffectPresetSe
   preset.gmOnly = false;
   preset.moteStyle = seed.moteStyle ?? '';
   preset.soundIdentifier = PresetSound[seed.soundKey];
+  preset.stages = encodeEffectStages(seed.stages ?? []);
 }
 
 export function createEffectPreset(seed: EffectPresetSeed, identifier?: string): EffectPreset {

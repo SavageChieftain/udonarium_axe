@@ -8,6 +8,7 @@ import {
 import { PROJECTILE_STYLES } from '@axe/domain/effect/effect-kind';
 import { EFFECT_KINDS } from '@axe/domain/effect/effect-kind';
 import { EffectPreset } from '@axe/domain/effect/effect-preset';
+import { stagedEffectDuration } from '@axe/domain/effect/effect-stage-timeline';
 import { PresetSound } from '@axe/domain/media/sound-effect';
 
 describe('the effects that come with the tool', () => {
@@ -51,7 +52,8 @@ describe('the effects that come with the tool', () => {
   });
 
   it('runs each effect as long as its sound', () => {
-    for (const seed of DEFAULT_EFFECT_PRESET_SEEDS) {
+    // A run built of stages keeps its own clock: it is as long as its stages take.
+    for (const seed of DEFAULT_EFFECT_PRESET_SEEDS.filter((seed) => !seed.stages)) {
       const preset = createEffectPreset(seed);
       try {
         // Ending sooner leaves the sound playing over nothing, which drags.
@@ -64,7 +66,9 @@ describe('the effects that come with the tool', () => {
   });
 
   it('gives a projectile a sound for the shot and another for the landing', () => {
-    const flying = DEFAULT_EFFECT_PRESET_SEEDS.filter((seed) => seed.kind === 'projectile' || seed.kind === 'arc');
+    const flying = DEFAULT_EFFECT_PRESET_SEEDS.filter(
+      (seed) => !seed.stages && (seed.kind === 'projectile' || seed.kind === 'arc')
+    );
 
     expect(flying.length).toBeGreaterThan(0);
     for (const seed of flying) {
@@ -72,6 +76,43 @@ describe('the effects that come with the tool', () => {
       expect(seed.impactSoundKey).toBeDefined();
       expect(seed.durationMs).toBeDefined();
     }
+  });
+
+  describe('the runs built of stages', () => {
+    const staged = DEFAULT_EFFECT_PRESET_SEEDS.filter((seed) => seed.stages);
+
+    it('puts a few on the shelf, so what the editor can do is not only in the manual', () => {
+      expect(staged.length).toBeGreaterThan(0);
+    });
+
+    it('builds every one of them out of looks that were already there', () => {
+      for (const seed of staged) {
+        for (const stage of seed.stages ?? []) {
+          expect(EFFECT_KINDS).toContain(stage.kind);
+          for (const child of stage.children ?? []) expect(EFFECT_KINDS).toContain(child.kind);
+        }
+      }
+    });
+
+    it('runs each of them for as long as its stages take', () => {
+      for (const seed of staged) {
+        const preset = createEffectPreset(seed);
+        try {
+          expect(preset.isStaged).toBe(true);
+          expect(preset.duration).toBe(stagedEffectDuration(preset.stageList));
+        } finally {
+          ObjectStore.instance.remove(preset);
+        }
+      }
+    });
+
+    it('throws no branch that throws again', () => {
+      for (const seed of staged) {
+        for (const stage of seed.stages ?? []) {
+          for (const child of stage.children ?? []) expect(child.role).not.toBe('spawn');
+        }
+      }
+    });
   });
 
   it('ends the highest grade of fire in a mushroom cloud', () => {

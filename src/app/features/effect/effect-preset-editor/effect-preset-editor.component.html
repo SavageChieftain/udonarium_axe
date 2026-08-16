@@ -36,7 +36,7 @@
         <p class="text-ui-muted m-0 text-[11px]">{{ 'feature.effect.stagesEmpty' | transloco }}</p>
       }
 
-      @for (stage of stages(); track $index) {
+      @for (stage of stages(); track $index; let stageIndex = $index) {
         <div class="border-ui-border-panel flex flex-col gap-1.5 rounded-sm border border-solid p-2">
           <div class="flex items-center gap-1.5">
             <span class="text-ui-muted w-4 shrink-0 text-center text-[11px]">{{ $index + 1 }}</span>
@@ -44,7 +44,7 @@
               class="bg-ui-input border-ui-border-panel text-ui-text rounded-ui-sm min-w-0 border border-solid px-1.5 py-1 text-[12px] outline-none"
               [name]="'stage-role-' + $index"
               [ngModel]="stage.role"
-              (ngModelChange)="editStage($index, { role: $event })"
+              (ngModelChange)="editStage(stageIndex, { role: $event })"
             >
               @for (role of stageRoles; track role) {
                 <option [value]="role">{{ roleLabel(role) }}</option>
@@ -54,7 +54,7 @@
               class="bg-ui-input border-ui-border-panel text-ui-text rounded-ui-sm min-w-0 flex-1 border border-solid px-1.5 py-1 text-[12px] outline-none"
               [name]="'stage-kind-' + $index"
               [ngModel]="stage.kind"
-              (ngModelChange)="editStage($index, { kind: $event })"
+              (ngModelChange)="editStage(stageIndex, { kind: $event })"
             >
               @for (kind of kindsFor(stage.role); track kind) {
                 <option [value]="kind">{{ kindLabel(kind) }}</option>
@@ -68,13 +68,13 @@
               step="50"
               [name]="'stage-duration-' + $index"
               [ngModel]="stage.durationMs"
-              (ngModelChange)="editStageNumber($index, 'durationMs', $event)"
+              (ngModelChange)="editStageNumber(stageIndex, 'durationMs', $event)"
               [attr.aria-label]="'feature.effect.stageDuration' | transloco"
             />
             <button
               class="text-ui-muted hover:text-ui-text cursor-pointer border-none bg-transparent p-0.5"
               type="button"
-              (click)="moveStage($index, -1)"
+              (click)="moveStage(stageIndex, -1)"
               [attr.aria-label]="'feature.effect.stageUp' | transloco"
             >
               <i class="material-icons text-[16px]!">arrow_upward</i>
@@ -82,7 +82,7 @@
             <button
               class="text-ui-muted hover:text-ui-text cursor-pointer border-none bg-transparent p-0.5"
               type="button"
-              (click)="moveStage($index, 1)"
+              (click)="moveStage(stageIndex, 1)"
               [attr.aria-label]="'feature.effect.stageDown' | transloco"
             >
               <i class="material-icons text-[16px]!">arrow_downward</i>
@@ -90,7 +90,7 @@
             <button
               class="text-ui-muted hover:text-ui-danger cursor-pointer border-none bg-transparent p-0.5"
               type="button"
-              (click)="removeStage($index)"
+              (click)="removeStage(stageIndex)"
               [attr.aria-label]="'feature.effect.stageRemove' | transloco"
             >
               <i class="material-icons text-[16px]!">close</i>
@@ -108,7 +108,7 @@
                   max="8"
                   [name]="'stage-branches-' + $index"
                   [ngModel]="stage.branches"
-                  (ngModelChange)="editStageNumber($index, 'branches', $event)"
+                  (ngModelChange)="editStageNumber(stageIndex, 'branches', $event)"
                 />
                 <span class="text-ui-muted shrink-0 text-[11px]">{{ 'feature.effect.stageSpread' | transloco }}</span>
                 <input
@@ -119,7 +119,7 @@
                   step="10"
                   [name]="'stage-spread-' + $index"
                   [ngModel]="stage.spreadDeg"
-                  (ngModelChange)="editStageNumber($index, 'spreadDeg', $event)"
+                  (ngModelChange)="editStageNumber(stageIndex, 'spreadDeg', $event)"
                 />
               </div>
 
@@ -130,7 +130,7 @@
                     class="bg-ui-input border-ui-border-panel text-ui-text rounded-ui-sm min-w-0 flex-1 border border-solid px-1.5 py-1 text-[12px] outline-none"
                     [name]="'branch-kind-' + branchIndex"
                     [ngModel]="branch.kind"
-                    (ngModelChange)="editBranch($index, branchIndex, { kind: $event })"
+                    (ngModelChange)="editBranch(stageIndex, branchIndex, { kind: $event })"
                   >
                     @for (kind of kindsFor(branch.role); track kind) {
                       <option [value]="kind">{{ kindLabel(kind) }}</option>
@@ -144,12 +144,12 @@
                     step="50"
                     [name]="'branch-duration-' + branchIndex"
                     [ngModel]="branch.durationMs"
-                    (ngModelChange)="editBranchNumber($index, branchIndex, $event)"
+                    (ngModelChange)="editBranchNumber(stageIndex, branchIndex, $event)"
                   />
                   <button
                     class="text-ui-muted hover:text-ui-danger cursor-pointer border-none bg-transparent p-0.5"
                     type="button"
-                    (click)="removeBranch($index, branchIndex)"
+                    (click)="removeBranch(stageIndex, branchIndex)"
                     [attr.aria-label]="'feature.effect.stageRemove' | transloco"
                   >
                     <i class="material-icons text-[16px]!">close</i>
@@ -161,14 +161,14 @@
                 <button
                   class="border-ui-border-panel text-ui-muted hover:text-ui-text cursor-pointer rounded-sm border border-solid bg-transparent px-2 py-0.5 text-[11px]"
                   type="button"
-                  (click)="addBranch($index, 'travel')"
+                  (click)="addBranch(stageIndex, 'travel')"
                 >
                   ＋{{ roleLabel('travel') }}
                 </button>
                 <button
                   class="border-ui-border-panel text-ui-muted hover:text-ui-text cursor-pointer rounded-sm border border-solid bg-transparent px-2 py-0.5 text-[11px]"
                   type="button"
-                  (click)="addBranch($index, 'impact')"
+                  (click)="addBranch(stageIndex, 'impact')"
                 >
                   ＋{{ roleLabel('impact') }}
                 </button>

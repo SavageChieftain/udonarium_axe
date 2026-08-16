@@ -121,6 +121,26 @@ describe('stagedEffectSprites()', () => {
     expect(sprites.length).toBeGreaterThan(0);
   });
 
+  it('draws what each branch goes on to do, not only the throw itself', () => {
+    // The stage that throws is one window; each branch is another, and it is the branches
+    // that carry the run onwards.
+    const stages = [
+      stage({
+        role: 'spawn',
+        kind: 'burst',
+        durationMs: 100,
+        branches: 3,
+        children: [stage({ kind: 'frost', durationMs: 400 })],
+      }),
+    ];
+
+    const sprites = stagedEffectSprites(makePreset(), stages, castOn(), 200, options, paintEffectKind);
+    const orders = new Set(sprites.map((sprite) => sprite.key.split('-')[1]));
+
+    expect(orders.size).toBeGreaterThan(1);
+    expect([...orders]).toContain('1');
+  });
+
   it('draws every branch of a spawn', () => {
     const withBranches = (branches: number): number =>
       stagedEffectSprites(
