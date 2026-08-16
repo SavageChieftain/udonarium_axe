@@ -91,7 +91,7 @@ describe('EffectPresetSet', () => {
 
   describe('reading them back into a shelf that is not empty', () => {
     it('leaves one of each name however often the same file is read', () => {
-      // The identifier is not written into the file, so keying on it would add a copy every time.
+      // Read a second time it lands on the effect the first read left, rather than beside it.
       const xml = EffectPresetSet.of([makePreset('爆炎')]).innerXml();
 
       parse(xml);
@@ -186,7 +186,8 @@ describe('EffectPresetSet', () => {
       expect(other.name).toBe('わたしの演出');
     });
 
-    it('comes back once where it was thrown away here', () => {
+    it('comes back once, and under a name of its own, where it was thrown away here', () => {
+      // The others have it down as deleted, and would answer its return with the deletion again.
       const gone = makePreset('捨てた演出');
       const identifier = gone.identifier;
       const xml = EffectPresetSet.of([gone]).innerXml();
@@ -195,7 +196,8 @@ describe('EffectPresetSet', () => {
       parse(xml);
 
       const presets = ObjectStore.instance.getObjects<EffectPreset>(EffectPreset);
-      expect(presets.map((preset) => preset.identifier)).toEqual([identifier]);
+      expect(presets.map((preset) => preset.name)).toEqual(['捨てた演出']);
+      expect(presets[0].identifier).not.toBe(identifier);
     });
 
     it('carries the identifier in what it writes', () => {

@@ -75,6 +75,10 @@ export class EffectPreset extends GameObject {
    * The base class does not write it, so an effect read back would be a new object every
    * time: the same file read twice would leave two of everything, and an effect handed on
    * and handed back would no longer be the effect it left as.
+   *
+   * One thrown away here is the exception, and comes back under a name of its own. Everyone
+   * else at the table has it down as deleted and would answer its return with the deletion
+   * again, taking it from the one who brought it back.
    */
   toAttributes(): Attributes {
     return { ...ObjectSerializer.toAttributes(this.toContext().syncData), identifier: this.identifier };
@@ -89,7 +93,7 @@ export class EffectPreset extends GameObject {
     // The context is the one place an identifier belongs; it is no part of what is synchronised.
     delete syncData['identifier'];
     this.apply(context);
-    if (typeof persisted === 'string' && persisted.length > 0) {
+    if (typeof persisted === 'string' && persisted.length > 0 && !ObjectStore.instance.isDeleted(persisted)) {
       (this as unknown as { context: { identifier: string } }).context.identifier = persisted;
     }
   }
