@@ -248,4 +248,23 @@ describe('EffectPresetEditorComponent', () => {
     expect(saved[0].name).toBe('effect_爆炎');
     expect((saved[0].object as EffectPresetSet).innerXml()).toContain(preset.identifier);
   });
+
+  it('lets a length be typed out before it is held to what can be drawn', () => {
+    // Taken at every keystroke, the 5 of 500 would be pulled up to the shortest stage there is.
+    preset.stages = JSON.stringify([{ role: 'impact', kind: 'burst', durationMs: 400 }]);
+    fixture.detectChanges();
+
+    const input = (fixture.nativeElement as HTMLElement).querySelector<HTMLInputElement>('input[type=number]')!;
+    input.value = '5';
+    input.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+
+    expect(preset.stageList[0].durationMs).toBe(400);
+
+    input.value = '500';
+    input.dispatchEvent(new Event('change'));
+    fixture.detectChanges();
+
+    expect(preset.stageList[0].durationMs).toBe(500);
+  });
 });

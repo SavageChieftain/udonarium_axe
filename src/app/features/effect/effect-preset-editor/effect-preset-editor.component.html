@@ -76,7 +76,7 @@
               step="50"
               [name]="'stage-duration-' + $index"
               [ngModel]="stage.durationMs"
-              (ngModelChange)="editStageNumber(stageIndex, 'durationMs', $event)"
+              (change)="editStageNumber(stageIndex, 'durationMs', $any($event.target).value)"
               [attr.aria-label]="'feature.effect.stageDuration' | transloco"
             />
             <button
@@ -116,7 +116,7 @@
                   max="8"
                   [name]="'stage-branches-' + $index"
                   [ngModel]="stage.branches"
-                  (ngModelChange)="editStageNumber(stageIndex, 'branches', $event)"
+                  (change)="editStageNumber(stageIndex, 'branches', $any($event.target).value)"
                 />
                 <span class="text-ui-muted shrink-0 text-[11px]">{{ 'feature.effect.stageSpread' | transloco }}</span>
                 <input
@@ -127,7 +127,7 @@
                   step="10"
                   [name]="'stage-spread-' + $index"
                   [ngModel]="stage.spreadDeg"
-                  (ngModelChange)="editStageNumber(stageIndex, 'spreadDeg', $event)"
+                  (change)="editStageNumber(stageIndex, 'spreadDeg', $any($event.target).value)"
                 />
               </div>
 
@@ -152,7 +152,7 @@
                     step="50"
                     [name]="'branch-duration-' + branchIndex"
                     [ngModel]="branch.durationMs"
-                    (ngModelChange)="editBranchNumber(stageIndex, branchIndex, $event)"
+                    (change)="editBranchNumber(stageIndex, branchIndex, $any($event.target).value)"
                   />
                   <button
                     class="text-ui-muted hover:text-ui-danger cursor-pointer border-none bg-transparent p-0.5"
@@ -219,6 +219,10 @@
           }
         </select>
       </label>
+
+      @if (stages().length > 0) {
+        <p class="text-ui-muted m-0 text-[11px]">{{ 'feature.effect.kindStagedHint' | transloco }}</p>
+      }
 
       <label class="flex items-center gap-2">
         <span class="text-ui-muted w-20 shrink-0 text-[11px]">{{ 'feature.effect.tagLabel' | transloco }}</span>

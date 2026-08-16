@@ -517,6 +517,7 @@
       "sectionSound": "Sound",
       "nameLabel": "Name",
       "kindLabel": "Kind",
+      "kindStagedHint": "While stages are built, this look only marks the tile in the list. What plays on the table is the stages.",
       "tagLabel": "Category",
       "gradeLabel": "Grade",
       "colorLabel": "Colors",

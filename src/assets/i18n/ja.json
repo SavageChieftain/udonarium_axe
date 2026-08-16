@@ -517,6 +517,7 @@
       "sectionSound": "音",
       "nameLabel": "名前",
       "kindLabel": "種類",
+      "kindStagedHint": "段を組んでいる間、この見た目は一覧の印にだけ使われます。盤面に出るのは段の見た目です",
       "tagLabel": "系統",
       "gradeLabel": "等級",
       "colorLabel": "色",
