@@ -1,3 +1,23 @@
+## [1.38.0](https://github.com/SavageChieftain/udonarium_axe/compare/v1.37.0...v1.38.0) (2026-08-16)
+
+### ✨ Features
+
+* **effect:** build an effect out of stages ([6f58358](https://github.com/SavageChieftain/udonarium_axe/commit/6f583586273630d8c440d8a80355e55e9a21e044))
+* **effect:** build the run in the effect editor ([c62cc86](https://github.com/SavageChieftain/udonarium_axe/commit/c62cc8656d98bc09ea6490d62d9ddd34d1549f3d))
+* **effect:** hand one effect on and take it back as itself ([0165200](https://github.com/SavageChieftain/udonarium_axe/commit/0165200e2603ae46c9a9cf843a2bf88048993b0c))
+* **effect:** let the glow and the sound follow the stages ([5015e9b](https://github.com/SavageChieftain/udonarium_axe/commit/5015e9bd78b5a4ac27c73ac8daff3f543e3e37cc))
+
+### 🐛 Bug Fixes
+
+* **effect:** draw each stage at the length of its own window ([7dd5d7c](https://github.com/SavageChieftain/udonarium_axe/commit/7dd5d7cebaacaf40e72d4700ac769e2a33188e88))
+* **effect:** edit the branch of the spawn that is being looked at ([90daf75](https://github.com/SavageChieftain/udonarium_axe/commit/90daf750d0fa66f2afc5767bce27a6d8e5065684))
+* **effect:** follow the stages for the shake, the flash and the landing sound ([631e8b6](https://github.com/SavageChieftain/udonarium_axe/commit/631e8b66126f27212e5cf644d44579ecb140a46b))
+* **effect:** let a stage length be typed out in full ([4f28bda](https://github.com/SavageChieftain/udonarium_axe/commit/4f28bda4a6a32e57b68216eff92e903834a2d531))
+
+### 📝 Documentation
+
+* **website:** add v1.37.0 release notes ([0eb0135](https://github.com/SavageChieftain/udonarium_axe/commit/0eb0135b9f74da30ce106a6b0668559404cdbd42))
+
 ## [1.37.0](https://github.com/SavageChieftain/udonarium_axe/compare/v1.36.2...v1.37.0) (2026-08-15)
 
 ### ✨ Features
