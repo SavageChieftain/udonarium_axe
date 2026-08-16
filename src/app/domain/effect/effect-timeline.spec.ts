@@ -831,6 +831,21 @@ describe('the sounds of a run built of stages', () => {
 
     expect(launchSoundTimes(preset)).toEqual([0]);
   });
+
+  it('sounds the landing where the travelling stops for a run that lands nowhere', () => {
+    const preset = makeRun([
+      { role: 'travel', kind: 'projectile', durationMs: 600 },
+      { role: 'travel', kind: 'projectile', durationMs: 300 },
+    ]);
+
+    expect(impactSoundTimes(preset)).toEqual([900]);
+  });
+
+  it('sounds the landing as it opens for a run that only leaves something behind', () => {
+    const preset = makeRun([{ role: 'field', kind: 'flame', durationMs: 2000 }]);
+
+    expect(impactSoundTimes(preset)).toEqual([0]);
+  });
 });
 
 describe('isEffectFinished()', () => {

@@ -1,7 +1,7 @@
 import { type EffectCast, type EffectCastTarget } from '@axe/domain/effect/effect-cast';
 import { type EffectKind } from '@axe/domain/effect/effect-kind';
 import { type EffectPreset } from '@axe/domain/effect/effect-preset';
-import { layOutStages } from '@axe/domain/effect/effect-stage';
+import { stageLayoutOf } from '@axe/domain/effect/effect-stage';
 import { stagedEffectSprites } from '@axe/domain/effect/effect-stage-timeline';
 import { type ViewRotation } from '@axe/domain/effect/effect-view';
 import {
@@ -95,7 +95,10 @@ export function isEffectFinished(preset: EffectPreset, cast: EffectCast, elapsed
 export function impactSoundTimes(preset: EffectPreset): number[] {
   if (preset.impactSoundIdentifier.length < 1) return [];
   // A run lands once per stage that lands, which is where the ear expects it.
-  if (preset.isStaged) return stageSoundTimes(preset, ['impact', 'spawn'], IMPACT_SOUND_MIN_GAP_MS);
+  if (preset.isStaged) {
+    const times = stageSoundTimes(preset, ['impact', 'spawn'], IMPACT_SOUND_MIN_GAP_MS);
+    return times.length > 0 ? times : [arrivalOf(preset)];
+  }
   if (preset.effectKind === 'arrowrain')
     return soundTimesOf(
       arrowRainShots().map((shot) => shot.land),
@@ -146,13 +149,27 @@ export function launchSoundTimes(preset: EffectPreset): number[] {
  */
 function stageSoundTimes(preset: EffectPreset, roles: readonly string[], minGapMs: number): number[] {
   const times: number[] = [];
-  for (const window of layOutStages(preset.stageList).windows) {
+  for (const window of stageLayoutOf(preset.stageList).windows) {
     if (!roles.includes(window.stage.role)) continue;
     const at = Math.round(window.startMs);
     if (times.length > 0 && at - times[times.length - 1] < minGapMs) continue;
     times.push(at);
   }
   return times;
+}
+
+/**
+ * When a run that lands nowhere arrives.
+ *
+ * A run of nothing but travel arrives where the travelling stops. One of nothing but a
+ * field never arrives at all, so it sounds as it opens rather than falling silent.
+ */
+function arrivalOf(preset: EffectPreset): number {
+  let arrival = 0;
+  for (const window of stageLayoutOf(preset.stageList).windows) {
+    if (window.stage.role === 'travel') arrival = Math.max(arrival, window.endMs);
+  }
+  return Math.round(arrival);
 }
 
 /** When something that falls in numbers, such as a rain of arrows, sounds, thinned until it can be heard. */
