@@ -1,3 +1,13 @@
+## [1.38.1](https://github.com/SavageChieftain/udonarium_axe/compare/v1.38.0...v1.38.1) (2026-08-16)
+
+### 🐛 Bug Fixes
+
+* **effect:** give an effect thrown away here a name of its own on its return ([ee37658](https://github.com/SavageChieftain/udonarium_axe/commit/ee37658bd0b34b27172b01f55bc877fb27bc11a0))
+
+### 📝 Documentation
+
+* **website:** add v1.38.0 release notes ([9ab54c6](https://github.com/SavageChieftain/udonarium_axe/commit/9ab54c684b5077a7ec0e2a453dbe50199eb25dc7))
+
 ## [1.38.0](https://github.com/SavageChieftain/udonarium_axe/compare/v1.37.0...v1.38.0) (2026-08-16)
 
 ### ✨ Features
