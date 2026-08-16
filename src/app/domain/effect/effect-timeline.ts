@@ -1,6 +1,7 @@
 import { type EffectCast, type EffectCastTarget } from '@axe/domain/effect/effect-cast';
 import { type EffectKind } from '@axe/domain/effect/effect-kind';
 import { type EffectPreset } from '@axe/domain/effect/effect-preset';
+import { layOutStages } from '@axe/domain/effect/effect-stage';
 import { stagedEffectSprites } from '@axe/domain/effect/effect-stage-timeline';
 import { type ViewRotation } from '@axe/domain/effect/effect-view';
 import {
@@ -93,6 +94,8 @@ export function isEffectFinished(preset: EffectPreset, cast: EffectCast, elapsed
  */
 export function impactSoundTimes(preset: EffectPreset): number[] {
   if (preset.impactSoundIdentifier.length < 1) return [];
+  // A run lands once per stage that lands, which is where the ear expects it.
+  if (preset.isStaged) return stageSoundTimes(preset, ['impact', 'spawn'], IMPACT_SOUND_MIN_GAP_MS);
   if (preset.effectKind === 'arrowrain')
     return soundTimesOf(
       arrowRainShots().map((shot) => shot.land),
@@ -115,6 +118,10 @@ export function impactSoundTimes(preset: EffectPreset): number[] {
  */
 export function launchSoundTimes(preset: EffectPreset): number[] {
   if (preset.soundIdentifier.length < 1) return [];
+  if (preset.isStaged) {
+    const times = stageSoundTimes(preset, ['travel'], LAUNCH_SOUND_MIN_GAP_MS);
+    return times.length > 0 ? times : [0];
+  }
   if (preset.effectKind === 'arrowrain')
     return soundTimesOf(
       arrowRainShots().map((shot) => shot.loose),
@@ -129,6 +136,23 @@ export function launchSoundTimes(preset: EffectPreset): number[] {
     times.push(at);
   }
   return times.length > 0 ? times : [0];
+}
+
+/**
+ * When the stages of the given roles begin.
+ *
+ * Every branch of a spawn starts together, and sounding each of them would be one noise
+ * rather than several, so they are thinned to what the ear can tell apart.
+ */
+function stageSoundTimes(preset: EffectPreset, roles: readonly string[], minGapMs: number): number[] {
+  const times: number[] = [];
+  for (const window of layOutStages(preset.stageList).windows) {
+    if (!roles.includes(window.stage.role)) continue;
+    const at = Math.round(window.startMs);
+    if (times.length > 0 && at - times[times.length - 1] < minGapMs) continue;
+    times.push(at);
+  }
+  return times;
 }
 
 /** When something that falls in numbers, such as a rain of arrows, sounds, thinned until it can be heard. */

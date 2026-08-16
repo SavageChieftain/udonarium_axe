@@ -8,6 +8,7 @@ import { UiSignalService } from '@axe/application/ui/ui-signal.service';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { EffectParticleLayer, effectParticles } from '@axe/domain/effect/effect-particles';
+import { stagedEffectParticles } from '@axe/domain/effect/effect-stage-timeline';
 import {
   EffectSprite,
   effectSprites,
@@ -100,6 +101,33 @@ export class TableEffectOverlayComponent {
     for (const active of this.renderables()) {
       const hiddenIdentifiers = active.hidden;
       const base = gridSize * active.preset.sizeScale;
+
+      // A run glows once per stage that is up, each where that stage is happening.
+      if (active.preset.isStaged) {
+        for (const placement of stagedEffectParticles(
+          active.preset,
+          active.preset.stageList,
+          active.cast,
+          active.elapsed,
+          base,
+          {
+            baseSize: gridSize,
+            hiddenIdentifiers,
+            resolvePosition: (identifier) => this.centerOf(identifier, gridSize),
+          },
+          effectParticles
+        )) {
+          placements.push({
+            key: `${active.key}-${placement.key}`,
+            layer: placement.layer,
+            width: placement.layer.width,
+            height: placement.layer.height,
+            transform: this.billboardTransform(placement.center, placement.layer),
+          });
+        }
+        // The next effect still has its own canvases; this one merely has no targets to walk.
+        continue;
+      }
 
       active.cast.targets.forEach((target, index) => {
         if (hiddenIdentifiers.has(target.identifier)) return;

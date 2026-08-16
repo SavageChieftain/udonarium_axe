@@ -2,6 +2,7 @@ import { type EffectCast } from '@axe/domain/effect/effect-cast';
 import { type EffectPreset } from '@axe/domain/effect/effect-preset';
 import { type EffectStage, layOutStages, type StageWindow } from '@axe/domain/effect/effect-stage';
 import type { EffectPaintContext } from '@axe/domain/effect/effect-timeline';
+import type { EffectParticleLayer } from '@axe/domain/effect/particles/shared';
 import {
   type EffectSprite,
   type EffectSpriteOptions,
@@ -15,6 +16,21 @@ import {
  * single-look effect as well, and each calling the other would tie them in a knot.
  */
 export type EffectKindPainter = (kind: EffectStage['kind'], context: EffectPaintContext) => void;
+
+/** What makes the particles of one look, handed in for the same reason the painter is. */
+export type StageParticleEmitter = (
+  preset: EffectPreset,
+  seed: number,
+  progress: number,
+  base: number
+) => EffectParticleLayer;
+
+export interface StagedParticlePlacement {
+  key: string;
+  layer: EffectParticleLayer;
+  /** Where that stage is happening, which is not the target for what a branch throws off. */
+  center: Point3;
+}
 
 /**
  * Drawing an effect that runs in stages.
@@ -78,6 +94,50 @@ export function stagedEffectSprites(
   });
 
   return sprites;
+}
+
+/**
+ * The glowing particles of a run, one canvas for every stage that is showing.
+ *
+ * A single-look effect paints one canvas at the target. A run paints one per stage that is
+ * up, each where that stage is happening, so what a branch throws off glows where it went
+ * rather than back at the target.
+ */
+export function stagedEffectParticles(
+  preset: EffectPreset,
+  stages: readonly EffectStage[],
+  cast: EffectCast,
+  elapsedMs: number,
+  base: number,
+  options: EffectSpriteOptions,
+  emit: StageParticleEmitter
+): StagedParticlePlacement[] {
+  const placements: StagedParticlePlacement[] = [];
+  if (stages.length < 1) return placements;
+
+  const { windows } = layOutStages(stages);
+
+  cast.targets.forEach((target, index) => {
+    if (options.hiddenIdentifiers?.has(target.identifier)) return;
+
+    const localMs = elapsedMs - preset.stagger * index;
+    if (localMs < 0) return;
+
+    const center = effectTargetCenter(target, preset, options);
+    windows.forEach((window, order) => {
+      const progress = progressIn(window, localMs);
+      if (progress === null) return;
+
+      const view = stageView(preset, window);
+      const places = placesFor(window, cast, center, base);
+      const layer = emit(view, cast.seed + index * 7919 + order * 104729, progress, base * (window.stage.scale ?? 1));
+      if (layer.particles.length < 1) return;
+
+      placements.push({ key: `${index}-${order}`, layer, center: places.center });
+    });
+  });
+
+  return placements;
 }
 
 /** How long the whole run takes, which is what the last stage to finish decides. */

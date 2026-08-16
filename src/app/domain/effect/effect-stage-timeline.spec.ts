@@ -1,7 +1,12 @@
 import { type EffectCast } from '@axe/domain/effect/effect-cast';
+import { effectParticles } from '@axe/domain/effect/effect-particles';
 import { EffectPreset } from '@axe/domain/effect/effect-preset';
 import { type EffectStage } from '@axe/domain/effect/effect-stage';
-import { stagedEffectDuration, stagedEffectSprites } from '@axe/domain/effect/effect-stage-timeline';
+import {
+  stagedEffectDuration,
+  stagedEffectParticles,
+  stagedEffectSprites,
+} from '@axe/domain/effect/effect-stage-timeline';
 import { paintEffectKind } from '@axe/domain/effect/effect-timeline';
 import { type EffectSpriteOptions } from '@axe/domain/effect/timeline/shared';
 
@@ -158,5 +163,81 @@ describe('stagedEffectDuration()', () => {
         { role: 'impact', kind: 'burst', durationMs: 400 },
       ])
     ).toBe(1000);
+  });
+});
+
+describe('stagedEffectParticles()', () => {
+  const created: EffectPreset[] = [];
+
+  function makePreset(): EffectPreset {
+    const preset = new EffectPreset();
+    preset.kind = 'burst';
+    preset.durationMs = 900;
+    preset.initialize();
+    created.push(preset);
+    return preset;
+  }
+
+  function castOn(count = 1): EffectCast {
+    return {
+      presetIdentifier: 'preset',
+      casterIdentifier: 'caster',
+      origin: { x: 0, y: 0, z: 0 },
+      targets: Array.from({ length: count }, (_, index) => ({ identifier: `target-${index}`, x: 400, y: 0, z: 0 })),
+      seed: 7,
+    };
+  }
+
+  afterEach(() => {
+    for (const preset of created.splice(0)) preset.destroy();
+  });
+
+  it('glows once for each stage that is up', () => {
+    const stages: EffectStage[] = [
+      { role: 'field', kind: 'flame', durationMs: 2000 },
+      { role: 'impact', kind: 'burst', durationMs: 2000 },
+    ];
+
+    const placements = stagedEffectParticles(
+      makePreset(),
+      stages,
+      castOn(),
+      400,
+      50,
+      { baseSize: 50 },
+      effectParticles
+    );
+
+    expect(placements.length).toBeGreaterThan(1);
+  });
+
+  it('glows where a branch went rather than back at the target', () => {
+    const stages: EffectStage[] = [
+      {
+        role: 'spawn',
+        kind: 'burst',
+        durationMs: 100,
+        branches: 2,
+        spreadDeg: 180,
+        children: [{ role: 'impact', kind: 'flame', durationMs: 400 }],
+      },
+    ];
+
+    const placements = stagedEffectParticles(
+      makePreset(),
+      stages,
+      castOn(),
+      200,
+      50,
+      { baseSize: 50 },
+      effectParticles
+    );
+    const centres = placements.map((placement) => `${placement.center.x},${placement.center.y}`);
+
+    expect(new Set(centres).size).toBeGreaterThan(1);
+  });
+
+  it('glows nowhere for a run with no stages', () => {
+    expect(stagedEffectParticles(makePreset(), [], castOn(), 0, 50, { baseSize: 50 }, effectParticles)).toEqual([]);
   });
 });

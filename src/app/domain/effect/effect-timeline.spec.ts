@@ -782,6 +782,57 @@ describe('impactSoundTimes()', () => {
   });
 });
 
+describe('the sounds of a run built of stages', () => {
+  function makeRun(stages: unknown[]): EffectPreset {
+    const preset = new EffectPreset('preset');
+    preset.kind = 'burst';
+    preset.soundIdentifier = 'se-shot';
+    preset.impactSoundIdentifier = 'se-impact';
+    preset.stages = JSON.stringify(stages);
+    return preset;
+  }
+
+  it('sounds a shot as each stage that travels starts', () => {
+    const preset = makeRun([
+      { role: 'travel', kind: 'projectile', durationMs: 600 },
+      { role: 'impact', kind: 'burst', durationMs: 400 },
+      { role: 'travel', kind: 'projectile', durationMs: 500 },
+    ]);
+
+    expect(launchSoundTimes(preset)).toEqual([0, 1000]);
+  });
+
+  it('sounds a landing as each stage that lands starts', () => {
+    const preset = makeRun([
+      { role: 'travel', kind: 'projectile', durationMs: 600 },
+      { role: 'impact', kind: 'burst', durationMs: 400 },
+    ]);
+
+    expect(impactSoundTimes(preset)).toEqual([600]);
+  });
+
+  it('sounds the branches of a spawn once rather than one apiece', () => {
+    // They all start together, and one sound each would be a single noise.
+    const preset = makeRun([
+      {
+        role: 'spawn',
+        kind: 'burst',
+        durationMs: 100,
+        branches: 4,
+        children: [{ role: 'impact', kind: 'frost', durationMs: 300 }],
+      },
+    ]);
+
+    expect(impactSoundTimes(preset)).toEqual([0]);
+  });
+
+  it('sounds the shot at the start for a run that travels nowhere', () => {
+    const preset = makeRun([{ role: 'impact', kind: 'burst', durationMs: 400 }]);
+
+    expect(launchSoundTimes(preset)).toEqual([0]);
+  });
+});
+
 describe('isEffectFinished()', () => {
   it('counts it finished only once every target has played through', () => {
     const preset = new EffectPreset('preset');
