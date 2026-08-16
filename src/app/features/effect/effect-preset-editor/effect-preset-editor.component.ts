@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@a
 import { FormsModule } from '@angular/forms';
 import { EffectCastService } from '@axe/application/effect/effect-cast.service';
 import { EffectLibraryService } from '@axe/application/effect/effect-library.service';
+import { SaveDataService } from '@axe/application/file/save-data.service';
 import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { ModalService } from '@axe/application/ui/modal.service';
@@ -21,6 +22,7 @@ import {
   usesSlashFields,
   usesTargetLimit,
 } from '@axe/domain/effect/effect-preset-form';
+import { EffectPresetSet } from '@axe/domain/effect/effect-preset-set';
 import { kindGlyphSvg } from '@axe/domain/effect/effect-shapes';
 import {
   EFFECT_STAGE_ROLES,
@@ -67,6 +69,7 @@ export class EffectPresetEditorComponent {
   private readonly audioStorage = inject(AudioStorage);
   private readonly modalService = inject(ModalService);
   private readonly panelService = inject(PanelService);
+  private readonly saveDataService = inject(SaveDataService);
   private readonly t = inject(TRANSLATE_FN);
 
   /** The preset being edited, put there by whoever opened it. */
@@ -247,5 +250,18 @@ export class EffectPresetEditorComponent {
     if (!this.castService.preview(preset)) {
       this.notice.set(this.t('feature.effect.previewNoTarget'));
     }
+  }
+
+  /**
+   * Hands this one effect on, written in the same form the whole shelf is.
+   *
+   * It is read back by dropping it onto the table, where it lands on itself: the file
+   * carries the effect's identifier, so what comes back is the effect that left.
+   */
+  protected export(): void {
+    const preset = this.preset();
+    if (!preset) return;
+    void this.saveDataService.saveGameObjectAsync(EffectPresetSet.of([preset]), `effect_${preset.name}`);
+    this.notice.set(this.t('feature.effect.exported'));
   }
 }

@@ -505,6 +505,8 @@
       "newPresetName": "New effect",
       "editPreset": "Edit",
       "duplicatePreset": "Duplicate",
+      "exportPreset": "Export",
+      "exportPresetHint": "Write this effect alone to a file. Reading it back lands it on the same effect.",
       "removePreset": "Delete \"{{name}}\"",
       "removeConfirm": "Delete \"{{name}}\"?",
       "preview": "Test fire",

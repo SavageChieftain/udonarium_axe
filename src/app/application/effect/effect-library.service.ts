@@ -47,9 +47,16 @@ export class EffectLibraryService {
     return preset;
   }
 
-  /** Copies one whole, which is how to alter a default without breaking it. */
+  /**
+   * Copies one whole, which is how to alter a default without breaking it.
+   *
+   * The values are moved across rather than the effect written out and read back: an
+   * effect carries its identifier through the writing, so what came back would be it.
+   */
   duplicate(source: EffectPreset): EffectPreset {
-    const preset = source.clone();
+    const preset = new EffectPreset();
+    const context = source.toContext();
+    preset.apply({ ...context, identifier: preset.identifier });
     preset.name = duplicatedEffectName(
       source.name,
       this.presets().map((existing) => existing.name)

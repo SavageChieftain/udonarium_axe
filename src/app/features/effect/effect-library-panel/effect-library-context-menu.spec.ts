@@ -15,7 +15,7 @@ describe('buildEffectLibraryContextMenu()', () => {
     return menu.map((entry) => entry.name);
   }
 
-  it('offers a test fire, editing, copying and deleting', () => {
+  it('offers a test fire, editing, copying, handing on and deleting', () => {
     const menu = buildEffectLibraryContextMenu(
       makePreset(),
       {
@@ -24,6 +24,7 @@ describe('buildEffectLibraryContextMenu()', () => {
         onPreview: () => undefined,
         onInsertToken: () => undefined,
         onPlaceField: () => undefined,
+        onExport: () => undefined,
         onRemove: () => undefined,
       },
       t
@@ -35,6 +36,7 @@ describe('buildEffectLibraryContextMenu()', () => {
       'feature.effect.placeField',
       'feature.effect.editPreset',
       'feature.effect.duplicatePreset',
+      'feature.effect.exportPreset',
       'feature.effect.removePreset',
     ]);
   });
@@ -49,6 +51,7 @@ describe('buildEffectLibraryContextMenu()', () => {
         onPreview: () => called.push('preview'),
         onInsertToken: () => called.push('insertToken'),
         onPlaceField: () => called.push('placeField'),
+        onExport: () => called.push('export'),
         onRemove: () => called.push('remove'),
       },
       t
@@ -56,6 +59,6 @@ describe('buildEffectLibraryContextMenu()', () => {
 
     for (const entry of menu) entry.action?.();
 
-    expect(called).toEqual(['preview', 'insertToken', 'placeField', 'edit', 'duplicate', 'remove']);
+    expect(called).toEqual(['preview', 'insertToken', 'placeField', 'edit', 'duplicate', 'export', 'remove']);
   });
 });

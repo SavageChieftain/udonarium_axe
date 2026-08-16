@@ -505,6 +505,8 @@
       "newPresetName": "新しいエフェクト",
       "editPreset": "編集",
       "duplicatePreset": "複製",
+      "exportPreset": "書き出す",
+      "exportPresetHint": "この演出だけをファイルに書き出す。読み込むと同じ演出として卓に戻る",
       "removePreset": "「{{name}}」を削除",
       "removeConfirm": "「{{name}}」を削除します。よろしいですか？",
       "preview": "試し撃ち",

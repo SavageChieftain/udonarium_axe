@@ -1,7 +1,10 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { SaveDataService } from '@axe/application/file/save-data.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
+import { GameObject } from '@axe/core/sync/game-object';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { EffectPreset } from '@axe/domain/effect/effect-preset';
+import { EffectPresetSet } from '@axe/domain/effect/effect-preset-set';
 import { EffectPresetEditorComponent } from '@axe/features/effect/effect-preset-editor/effect-preset-editor.component';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
 
@@ -225,5 +228,24 @@ describe('EffectPresetEditorComponent', () => {
         expect(preset.stageList[1].children?.map((child) => child.role)).toEqual(['impact', 'travel']);
       });
     });
+  });
+
+  it('hands this one effect on by itself', () => {
+    const saved: { object: GameObject; name: string }[] = [];
+    const save = TestBed.inject(SaveDataService);
+    vi.spyOn(save, 'saveGameObjectAsync').mockImplementation((object: GameObject, name?: string) => {
+      saved.push({ object, name: name ?? '' });
+      return Promise.resolve();
+    });
+    fixture.detectChanges();
+
+    const button = [...(fixture.nativeElement as HTMLElement).querySelectorAll('button')].find((element) =>
+      (element.textContent ?? '').includes('書き出す')
+    )!;
+    button.click();
+
+    expect(saved).toHaveLength(1);
+    expect(saved[0].name).toBe('effect_爆炎');
+    expect((saved[0].object as EffectPresetSet).innerXml()).toContain(preset.identifier);
   });
 });

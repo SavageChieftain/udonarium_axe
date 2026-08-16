@@ -311,6 +311,7 @@ export class EffectLibraryPanelComponent {
           onPreview: () => this.previewPreset(preset),
           onInsertToken: () => this.insertToken(preset),
           onPlaceField: () => this.placeField(preset),
+          onExport: () => this.exportPreset(preset),
           onRemove: () => this.removePreset(preset),
         },
         this.t
@@ -354,6 +355,18 @@ export class EffectLibraryPanelComponent {
 
   protected toggleAutoPlay(): void {
     this.autoPlay.toggle();
+  }
+
+  /**
+   * Hands on one effect rather than the shelf.
+   *
+   * It is written in the same form as the shelf is, so it is read back the same way: by
+   * dropping it onto the table, where it lands on itself — the file carries the effect's
+   * identifier, so what comes back is the effect that left.
+   */
+  protected exportPreset(preset: EffectPreset): void {
+    void this.saveDataService.saveGameObjectAsync(EffectPresetSet.of([preset]), `effect_${preset.name}`);
+    this.notice.set(this.t('feature.effect.exported'));
   }
 
   /** Exports the effect library alone, so the effects can be handed on without the room. */

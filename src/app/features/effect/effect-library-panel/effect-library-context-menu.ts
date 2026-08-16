@@ -8,6 +8,7 @@ export interface EffectLibraryMenuCallbacks {
   onPreview: () => void;
   onInsertToken: () => void;
   onPlaceField: () => void;
+  onExport: () => void;
   onRemove: () => void;
 }
 
@@ -24,6 +25,7 @@ export function buildEffectLibraryContextMenu(
     ContextMenuSeparator,
     { name: t('feature.effect.editPreset'), action: () => callbacks.onEdit() },
     { name: t('feature.effect.duplicatePreset'), action: () => callbacks.onDuplicate() },
+    { name: t('feature.effect.exportPreset'), action: () => callbacks.onExport() },
     ContextMenuSeparator,
     { name: t('feature.effect.removePreset', { name: preset.name }), action: () => callbacks.onRemove() },
   ];

@@ -1,5 +1,7 @@
+import { Attributes } from '@axe/core/sync/attributes';
 import { SyncObject, SyncVar } from '@axe/core/sync/decorator';
 import { GameObject } from '@axe/core/sync/game-object';
+import { ObjectSerializer } from '@axe/core/sync/object-serializer';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import {
   EffectKind,
@@ -66,6 +68,31 @@ export class EffectPreset extends GameObject {
    * a room shared with them still plays.
    */
   @SyncVar() stages: string = '';
+
+  /**
+   * The identifier is written out with the rest and read back as it was.
+   *
+   * The base class does not write it, so an effect read back would be a new object every
+   * time: the same file read twice would leave two of everything, and an effect handed on
+   * and handed back would no longer be the effect it left as.
+   */
+  toAttributes(): Attributes {
+    return { ...ObjectSerializer.toAttributes(this.toContext().syncData), identifier: this.identifier };
+  }
+
+  parseAttributes(attributes: NamedNodeMap): void {
+    const context = this.toContext();
+    const syncData = context.syncData as Record<string, unknown>;
+    ObjectSerializer.parseAttributes(syncData, attributes);
+
+    const persisted = syncData['identifier'];
+    // The context is the one place an identifier belongs; it is no part of what is synchronised.
+    delete syncData['identifier'];
+    this.apply(context);
+    if (typeof persisted === 'string' && persisted.length > 0) {
+      (this as unknown as { context: { identifier: string } }).context.identifier = persisted;
+    }
+  }
 
   static list(): EffectPreset[] {
     return ObjectStore.instance.getObjects<EffectPreset>(EffectPreset);

@@ -255,7 +255,7 @@ SE は効果音ラボ・On-Jin の素材を取り込み、`PresetSound` 経由�
 
 一覧は検索・等級／対象数／系統での絞り込み・系統の折りたたみ・最近使った履歴を持ち、印には演出の形から起こした SVG グリフを当てる。一覧からは追加・複製（`duplicatedEffectName` で連番）・削除（右クリックメニュー、`effect-library-context-menu`）ができ、`gmOnly` のプリセットは PL の一覧に名前ごと出さない。
 
-エフェクト集だけの持ち出しは `EffectPresetSet`（`InnerXml` の入れ物。`ObjectStore` には残さない）で、読み込みは既存のドロップ経路に乗るので同 identifier は上書き・無いものは追加になる。プリセットは部屋データとしても保存され、「既定を反映」で既定プリセットを最新の seed へ再適用・欠けたものを再作成する（自作プリセットには触れない）。
+エフェクト集の持ち出しは `EffectPresetSet`（`InnerXml` の入れ物。`ObjectStore` には残さない）。`EffectPresetSet.of([preset])` で **1 つだけ**書き出せ（タイル右クリックと編集パネルの「書き出す」）、形式は集合と同じなのでドロップの読み込み経路も共通。`EffectPreset` は `toAttributes` / `parseAttributes` で identifier を XML に残す（`ChatMessage` と同じ手。既定では `ObjectSerializer.parseXml` が読むたびに新しい identifier を振る）ので、**併合の第一の鍵は identifier**（`domain/effect/effect-preset-merge` の `takeIntoLibrary`）: 同じ identifier があればそこへ、無ければ同名へ `toContext()` / `apply()` で中身を丸ごと移す（フィールドを列挙しないので段リストのような後付けも自動で乗る）。どちらも無ければ追加。identifier で重ねた結果その名前が別のエフェクトと衝突するときは、戻ってきた側を `duplicatedEffectName` で連番にする（名前はチャット記法やシートの演出欄から呼ばれるため、先に名乗っていた方を動かさない）。プリセットは部屋データとしても保存され、「既定を反映」で既定プリセットを最新の seed へ再適用・欠けたものを再作成する（自作プリセットには触れない）。
 
 ## PL ツール / 手札
 
