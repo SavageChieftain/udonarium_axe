@@ -697,6 +697,20 @@
         "warp": "転移",
         "wind-large": "風（大）",
         "wind-small": "風（小）"
+      },
+      "sectionStages": "演出の組み立て",
+      "stagesEmpty": "段を足すと、1 つの演出を複数の段で組み立てられます。段が無いときは上の「見た目」がそのまま再生されます。",
+      "stageDuration": "長さ (ms)",
+      "stageUp": "前へ",
+      "stageDown": "後ろへ",
+      "stageRemove": "この段を外す",
+      "stageBranches": "分裂数",
+      "stageSpread": "広がり (度)",
+      "stageRole": {
+        "travel": "運び",
+        "impact": "着弾",
+        "field": "残留",
+        "spawn": "派生"
       }
     },
     "turnOrder": {

@@ -697,6 +697,20 @@
         "warp": "Warp",
         "wind-large": "Wind (large)",
         "wind-small": "Wind (small)"
+      },
+      "sectionStages": "The run",
+      "stagesEmpty": "Add a stage to build one effect out of several. With no stages, the look above is what plays.",
+      "stageDuration": "Length (ms)",
+      "stageUp": "Earlier",
+      "stageDown": "Later",
+      "stageRemove": "Take this stage out",
+      "stageBranches": "Branches",
+      "stageSpread": "Spread (deg)",
+      "stageRole": {
+        "travel": "Travel",
+        "impact": "Land",
+        "field": "Leave behind",
+        "spawn": "Throw off"
       }
     },
     "turnOrder": {

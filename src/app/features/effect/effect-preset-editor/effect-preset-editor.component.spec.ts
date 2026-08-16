@@ -88,4 +88,92 @@ describe('EffectPresetEditorComponent', () => {
 
     expect(fixture.componentInstance.notice()).toContain('対象がいません');
   });
+
+  describe('building a run out of stages', () => {
+    function component(): {
+      addStage(role: string): void;
+      moveStage(index: number, offset: number): void;
+      removeStage(index: number): void;
+      editStage(index: number, patch: Record<string, unknown>): void;
+      addBranch(index: number, role: string): void;
+      stages(): { role: string; kind: string }[];
+    } {
+      return fixture.componentInstance as unknown as ReturnType<typeof component>;
+    }
+
+    it('draws one look until a stage is added', () => {
+      fixture.detectChanges();
+
+      expect(component().stages()).toEqual([]);
+      expect(preset.isStaged).toBe(false);
+    });
+
+    it('writes an added stage onto the effect', () => {
+      fixture.detectChanges();
+
+      component().addStage('travel');
+
+      expect(preset.isStaged).toBe(true);
+      expect(preset.stageList[0]).toMatchObject({ role: 'travel', kind: 'projectile' });
+    });
+
+    it('reads the run back in the order it happens', () => {
+      fixture.detectChanges();
+      component().addStage('travel');
+      component().addStage('impact');
+
+      component().moveStage(0, 1);
+
+      expect(
+        component()
+          .stages()
+          .map((stage) => stage.role)
+      ).toEqual(['impact', 'travel']);
+    });
+
+    it('takes a stage out again', () => {
+      fixture.detectChanges();
+      component().addStage('travel');
+
+      component().removeStage(0);
+
+      expect(preset.isStaged).toBe(false);
+    });
+
+    it('puts the look back where it no longer suits the role', () => {
+      fixture.detectChanges();
+      component().addStage('travel');
+
+      component().editStage(0, { role: 'field' });
+
+      expect(component().stages()[0].kind).toBe('flame');
+    });
+
+    it('gives a stage that throws something to throw', () => {
+      fixture.detectChanges();
+
+      component().addStage('spawn');
+
+      expect(preset.stageList[0].children).toHaveLength(1);
+      expect(preset.stageList[0].branches).toBe(3);
+    });
+
+    it('adds to the chain each branch follows', () => {
+      fixture.detectChanges();
+      component().addStage('spawn');
+
+      component().addBranch(0, 'travel');
+
+      expect(preset.stageList[0].children?.map((child) => child.role)).toEqual(['impact', 'travel']);
+    });
+
+    it('tells the room every time the run changes', () => {
+      const notify = vi.spyOn(change, 'notifyChanged');
+      fixture.detectChanges();
+
+      component().addStage('impact');
+
+      expect(notify).toHaveBeenCalledWith(preset.identifier);
+    });
+  });
 });

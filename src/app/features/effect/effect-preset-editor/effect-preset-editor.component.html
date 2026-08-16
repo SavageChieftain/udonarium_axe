@@ -29,6 +29,172 @@
 
     <fieldset class="border-ui-border-panel m-0 flex flex-col gap-2 rounded-sm border border-solid p-2.5">
       <legend class="text-ui-muted px-1 text-[11px] font-semibold tracking-wider">
+        {{ 'feature.effect.sectionStages' | transloco }}
+      </legend>
+
+      @if (stages().length < 1) {
+        <p class="text-ui-muted m-0 text-[11px]">{{ 'feature.effect.stagesEmpty' | transloco }}</p>
+      }
+
+      @for (stage of stages(); track $index) {
+        <div class="border-ui-border-panel flex flex-col gap-1.5 rounded-sm border border-solid p-2">
+          <div class="flex items-center gap-1.5">
+            <span class="text-ui-muted w-4 shrink-0 text-center text-[11px]">{{ $index + 1 }}</span>
+            <select
+              class="bg-ui-input border-ui-border-panel text-ui-text rounded-ui-sm min-w-0 border border-solid px-1.5 py-1 text-[12px] outline-none"
+              [name]="'stage-role-' + $index"
+              [ngModel]="stage.role"
+              (ngModelChange)="editStage($index, { role: $event })"
+            >
+              @for (role of stageRoles; track role) {
+                <option [value]="role">{{ roleLabel(role) }}</option>
+              }
+            </select>
+            <select
+              class="bg-ui-input border-ui-border-panel text-ui-text rounded-ui-sm min-w-0 flex-1 border border-solid px-1.5 py-1 text-[12px] outline-none"
+              [name]="'stage-kind-' + $index"
+              [ngModel]="stage.kind"
+              (ngModelChange)="editStage($index, { kind: $event })"
+            >
+              @for (kind of kindsFor(stage.role); track kind) {
+                <option [value]="kind">{{ kindLabel(kind) }}</option>
+              }
+            </select>
+            <input
+              class="bg-ui-input border-ui-border-panel text-ui-text rounded-ui-sm w-16 border border-solid px-1.5 py-1 text-[12px] outline-none"
+              type="number"
+              min="80"
+              max="6000"
+              step="50"
+              [name]="'stage-duration-' + $index"
+              [ngModel]="stage.durationMs"
+              (ngModelChange)="editStageNumber($index, 'durationMs', $event)"
+              [attr.aria-label]="'feature.effect.stageDuration' | transloco"
+            />
+            <button
+              class="text-ui-muted hover:text-ui-text cursor-pointer border-none bg-transparent p-0.5"
+              type="button"
+              (click)="moveStage($index, -1)"
+              [attr.aria-label]="'feature.effect.stageUp' | transloco"
+            >
+              <i class="material-icons text-[16px]!">arrow_upward</i>
+            </button>
+            <button
+              class="text-ui-muted hover:text-ui-text cursor-pointer border-none bg-transparent p-0.5"
+              type="button"
+              (click)="moveStage($index, 1)"
+              [attr.aria-label]="'feature.effect.stageDown' | transloco"
+            >
+              <i class="material-icons text-[16px]!">arrow_downward</i>
+            </button>
+            <button
+              class="text-ui-muted hover:text-ui-danger cursor-pointer border-none bg-transparent p-0.5"
+              type="button"
+              (click)="removeStage($index)"
+              [attr.aria-label]="'feature.effect.stageRemove' | transloco"
+            >
+              <i class="material-icons text-[16px]!">close</i>
+            </button>
+          </div>
+
+          @if (stage.role === 'spawn') {
+            <div class="border-ui-border-panel ml-4 flex flex-col gap-1.5 border-l border-solid pl-2">
+              <div class="flex items-center gap-1.5">
+                <span class="text-ui-muted shrink-0 text-[11px]">{{ 'feature.effect.stageBranches' | transloco }}</span>
+                <input
+                  class="bg-ui-input border-ui-border-panel text-ui-text rounded-ui-sm w-14 border border-solid px-1.5 py-1 text-[12px] outline-none"
+                  type="number"
+                  min="2"
+                  max="8"
+                  [name]="'stage-branches-' + $index"
+                  [ngModel]="stage.branches"
+                  (ngModelChange)="editStageNumber($index, 'branches', $event)"
+                />
+                <span class="text-ui-muted shrink-0 text-[11px]">{{ 'feature.effect.stageSpread' | transloco }}</span>
+                <input
+                  class="bg-ui-input border-ui-border-panel text-ui-text rounded-ui-sm w-16 border border-solid px-1.5 py-1 text-[12px] outline-none"
+                  type="number"
+                  min="10"
+                  max="360"
+                  step="10"
+                  [name]="'stage-spread-' + $index"
+                  [ngModel]="stage.spreadDeg"
+                  (ngModelChange)="editStageNumber($index, 'spreadDeg', $event)"
+                />
+              </div>
+
+              @for (branch of stage.children ?? []; track $index; let branchIndex = $index) {
+                <div class="flex items-center gap-1.5">
+                  <i class="material-icons text-ui-muted text-[14px]!">subdirectory_arrow_right</i>
+                  <select
+                    class="bg-ui-input border-ui-border-panel text-ui-text rounded-ui-sm min-w-0 flex-1 border border-solid px-1.5 py-1 text-[12px] outline-none"
+                    [name]="'branch-kind-' + branchIndex"
+                    [ngModel]="branch.kind"
+                    (ngModelChange)="editBranch($index, branchIndex, { kind: $event })"
+                  >
+                    @for (kind of kindsFor(branch.role); track kind) {
+                      <option [value]="kind">{{ kindLabel(kind) }}</option>
+                    }
+                  </select>
+                  <input
+                    class="bg-ui-input border-ui-border-panel text-ui-text rounded-ui-sm w-16 border border-solid px-1.5 py-1 text-[12px] outline-none"
+                    type="number"
+                    min="80"
+                    max="6000"
+                    step="50"
+                    [name]="'branch-duration-' + branchIndex"
+                    [ngModel]="branch.durationMs"
+                    (ngModelChange)="editBranchNumber($index, branchIndex, $event)"
+                  />
+                  <button
+                    class="text-ui-muted hover:text-ui-danger cursor-pointer border-none bg-transparent p-0.5"
+                    type="button"
+                    (click)="removeBranch($index, branchIndex)"
+                    [attr.aria-label]="'feature.effect.stageRemove' | transloco"
+                  >
+                    <i class="material-icons text-[16px]!">close</i>
+                  </button>
+                </div>
+              }
+
+              <div class="flex gap-1.5">
+                <button
+                  class="border-ui-border-panel text-ui-muted hover:text-ui-text cursor-pointer rounded-sm border border-solid bg-transparent px-2 py-0.5 text-[11px]"
+                  type="button"
+                  (click)="addBranch($index, 'travel')"
+                >
+                  ＋{{ roleLabel('travel') }}
+                </button>
+                <button
+                  class="border-ui-border-panel text-ui-muted hover:text-ui-text cursor-pointer rounded-sm border border-solid bg-transparent px-2 py-0.5 text-[11px]"
+                  type="button"
+                  (click)="addBranch($index, 'impact')"
+                >
+                  ＋{{ roleLabel('impact') }}
+                </button>
+              </div>
+            </div>
+          }
+        </div>
+      }
+
+      @if (canAddStage()) {
+        <div class="flex flex-wrap gap-1.5">
+          @for (role of stageRoles; track role) {
+            <button
+              class="border-ui-border-panel text-ui-muted hover:text-ui-text cursor-pointer rounded-sm border border-solid bg-transparent px-2 py-0.5 text-[11px]"
+              type="button"
+              (click)="addStage(role)"
+            >
+              ＋{{ roleLabel(role) }}
+            </button>
+          }
+        </div>
+      }
+    </fieldset>
+
+    <fieldset class="border-ui-border-panel m-0 flex flex-col gap-2 rounded-sm border border-solid p-2.5">
+      <legend class="text-ui-muted px-1 text-[11px] font-semibold tracking-wider">
         {{ 'feature.effect.sectionLook' | transloco }}
       </legend>
 

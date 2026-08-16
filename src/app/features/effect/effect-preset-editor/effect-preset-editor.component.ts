@@ -22,6 +22,23 @@ import {
   usesTargetLimit,
 } from '@axe/domain/effect/effect-preset-form';
 import { kindGlyphSvg } from '@axe/domain/effect/effect-shapes';
+import {
+  EFFECT_STAGE_ROLES,
+  type EffectStage,
+  type EffectStageRole,
+  encodeEffectStages,
+  MAX_STAGES,
+} from '@axe/domain/effect/effect-stage';
+import {
+  addBranchStage,
+  addStage,
+  kindsForRole,
+  moveStage,
+  removeBranchStage,
+  removeStage,
+  updateBranchStage,
+  updateStage,
+} from '@axe/domain/effect/effect-stage-form';
 import { presetSoundLabelKey, soundFileName } from '@axe/domain/media/preset-sound-labels';
 import { SafePipe } from '@axe/ui/pipes/safe.pipe';
 import { TranslocoModule } from '@jsverse/transloco';
@@ -110,6 +127,15 @@ export class EffectPresetEditorComponent {
     return usesTargetLimit(this.preset()?.effectTargeting ?? 'single');
   });
 
+  /** The run this effect goes through. An empty list is an effect that draws one look. */
+  protected readonly stages = computed<EffectStage[]>(() => {
+    this.version();
+    return this.preset()?.stageList ?? [];
+  });
+
+  protected readonly stageRoles = EFFECT_STAGE_ROLES;
+  protected readonly canAddStage = computed(() => this.stages().length < MAX_STAGES);
+
   protected readonly glyph = computed<string>(() => {
     this.version();
     const preset = this.preset();
@@ -159,6 +185,59 @@ export class EffectPresetEditorComponent {
     const numeric = Number(value);
     if (!Number.isFinite(numeric)) return;
     this.edit(key as never, numeric as never);
+  }
+
+  protected kindsFor(role: EffectStageRole): readonly EffectKind[] {
+    return kindsForRole(role);
+  }
+
+  protected roleLabel(role: string): string {
+    return this.t(`feature.effect.stageRole.${role}`);
+  }
+
+  /** The whole list is written in one go, so a half-finished edit never reaches the table. */
+  private writeStages(stages: EffectStage[]): void {
+    this.edit('stages', encodeEffectStages(stages));
+  }
+
+  protected addStage(role: EffectStageRole): void {
+    this.writeStages(addStage(this.stages(), role));
+  }
+
+  protected removeStage(index: number): void {
+    this.writeStages(removeStage(this.stages(), index));
+  }
+
+  protected moveStage(index: number, offset: number): void {
+    this.writeStages(moveStage(this.stages(), index, offset));
+  }
+
+  protected editStage(index: number, patch: Partial<EffectStage>): void {
+    this.writeStages(updateStage(this.stages(), index, patch));
+  }
+
+  protected editStageNumber(index: number, key: 'durationMs' | 'branches' | 'spreadDeg', value: string): void {
+    const numeric = Number(value);
+    if (!Number.isFinite(numeric)) return;
+    this.editStage(index, { [key]: numeric });
+  }
+
+  protected addBranch(index: number, role: EffectStageRole): void {
+    this.writeStages(addBranchStage(this.stages(), index, role));
+  }
+
+  protected removeBranch(index: number, branchIndex: number): void {
+    this.writeStages(removeBranchStage(this.stages(), index, branchIndex));
+  }
+
+  protected editBranch(index: number, branchIndex: number, patch: Partial<EffectStage>): void {
+    this.writeStages(updateBranchStage(this.stages(), index, branchIndex, patch));
+  }
+
+  protected editBranchNumber(index: number, branchIndex: number, value: string): void {
+    const numeric = Number(value);
+    if (!Number.isFinite(numeric)) return;
+    this.editBranch(index, branchIndex, { durationMs: numeric });
   }
 
   /** A test fire, played on this screen alone. */
