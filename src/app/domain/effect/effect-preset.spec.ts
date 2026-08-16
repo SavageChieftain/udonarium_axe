@@ -62,4 +62,56 @@ describe('EffectPreset', () => {
     expect(preset.totalDuration(3)).toBe(700);
     expect(preset.totalDuration(0)).toBe(500);
   });
+
+  describe('an effect built of stages', () => {
+    it('draws one look while it keeps no stages', () => {
+      const preset = makePreset();
+
+      expect(preset.isStaged).toBe(false);
+      expect(preset.stageList).toEqual([]);
+    });
+
+    it('reads the stages it was given', () => {
+      const preset = makePreset();
+      preset.stages = JSON.stringify([
+        { role: 'travel', kind: 'projectile', durationMs: 600 },
+        { role: 'impact', kind: 'frost', durationMs: 400 },
+      ]);
+
+      expect(preset.isStaged).toBe(true);
+      expect(preset.stageList.map((stage) => stage.kind)).toEqual(['projectile', 'frost']);
+    });
+
+    it('runs for as long as the stages take rather than the written length', () => {
+      const preset = makePreset();
+      preset.durationMs = 900;
+      preset.stages = JSON.stringify([
+        { role: 'travel', kind: 'projectile', durationMs: 600 },
+        { role: 'impact', kind: 'frost', durationMs: 400 },
+      ]);
+
+      expect(preset.duration).toBe(1000);
+    });
+
+    it('reads them again once they change', () => {
+      const preset = makePreset();
+      preset.stages = JSON.stringify([{ role: 'impact', kind: 'frost', durationMs: 400 }]);
+      expect(preset.stageList).toHaveLength(1);
+
+      preset.stages = JSON.stringify([
+        { role: 'impact', kind: 'frost', durationMs: 400 },
+        { role: 'field', kind: 'flame', durationMs: 800 },
+      ]);
+
+      expect(preset.stageList).toHaveLength(2);
+    });
+
+    it('goes on drawing its one look for a list it cannot read', () => {
+      const preset = makePreset();
+      preset.stages = '{';
+
+      expect(preset.isStaged).toBe(false);
+      expect(preset.duration).toBe(preset.durationMs);
+    });
+  });
 });

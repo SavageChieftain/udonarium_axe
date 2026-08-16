@@ -11,6 +11,8 @@ import {
   ProjectileStyle,
   SlashStyle,
 } from '@axe/domain/effect/effect-kind';
+import { type EffectStage, parseEffectStages } from '@axe/domain/effect/effect-stage';
+import { stagedEffectDuration } from '@axe/domain/effect/effect-stage-timeline';
 
 const MIN_DURATION_MS = 120;
 const MAX_DURATION_MS = 6000;
@@ -56,8 +58,34 @@ export class EffectPreset extends GameObject {
   /** The particles scattered along the way. Empty for whatever the family gives. */
   @SyncVar() moteStyle: string = '';
 
+  /**
+   * The run this effect goes through, written as a list of stages.
+   *
+   * Empty for an effect that draws one look, which is every effect written before stages
+   * existed. Old versions of the tool ignore the field and go on drawing that one look, so
+   * a room shared with them still plays.
+   */
+  @SyncVar() stages: string = '';
+
   static list(): EffectPreset[] {
     return ObjectStore.instance.getObjects<EffectPreset>(EffectPreset);
+  }
+
+  private stagesRaw = '';
+  private stagesParsed: EffectStage[] = [];
+
+  /** The stages, read once per change rather than once per frame. */
+  get stageList(): EffectStage[] {
+    const raw = this.stages ?? '';
+    if (raw !== this.stagesRaw) {
+      this.stagesRaw = raw;
+      this.stagesParsed = parseEffectStages(raw);
+    }
+    return this.stagesParsed;
+  }
+
+  get isStaged(): boolean {
+    return this.stageList.length > 0;
   }
 
   get effectKind(): EffectKind {
@@ -69,6 +97,8 @@ export class EffectPreset extends GameObject {
   }
 
   get duration(): number {
+    // A run is as long as its stages take; the written length belongs to the one look.
+    if (this.isStaged) return stagedEffectDuration(this.stageList);
     return clamp(this.durationMs, MIN_DURATION_MS, MAX_DURATION_MS, 900);
   }
 

@@ -1,6 +1,7 @@
 import { type EffectCast, type EffectCastTarget } from '@axe/domain/effect/effect-cast';
 import { type EffectKind } from '@axe/domain/effect/effect-kind';
 import { type EffectPreset } from '@axe/domain/effect/effect-preset';
+import { stagedEffectSprites } from '@axe/domain/effect/effect-stage-timeline';
 import { type ViewRotation } from '@axe/domain/effect/effect-view';
 import {
   appendArc,
@@ -39,6 +40,7 @@ import {
 import {
   type EffectSprite,
   type EffectSpriteOptions,
+  effectTargetCenter,
   imageOf,
   type ImpactPainter,
   type Point3,
@@ -145,14 +147,7 @@ export function effectTargetProgress(preset: EffectPreset, elapsedMs: number, in
   return (elapsedMs - preset.stagger * index) / preset.duration;
 }
 
-export function effectTargetCenter(
-  target: EffectCastTarget,
-  preset: EffectPreset,
-  options: EffectSpriteOptions
-): Point3 {
-  if (!preset.followTarget || target.identifier.length < 1) return target;
-  return options.resolvePosition?.(target.identifier) ?? target;
-}
+export { effectTargetCenter } from '@axe/domain/effect/timeline/shared';
 
 /** The effects that happen about the target. A projectile or a blade hands the landing to one of these. */
 const CENTERED: Partial<Record<EffectKind, (ctx: CenteredContext) => void>> = {
@@ -184,17 +179,17 @@ const AIMED: Partial<Record<EffectKind, (ctx: AimedContext) => void>> = {
   gore: (c) => appendGore(c.sprites, c.prefix, c.center, c.base, c.progress, c.preset, c.random),
   bisect: (c) => appendBisect(c.sprites, c.prefix, c.center, c.base, c.progress, c.preset, c.random, imageOfTarget(c)),
   ballistic: (c) =>
-    appendBallistic(c.sprites, c.prefix, c.center, c.base, c.progress, c.preset, originOf(c), c.view, paintCentered),
+    appendBallistic(c.sprites, c.prefix, c.center, c.base, c.progress, c.preset, originOf(c), c.view, painterOf(c)),
   arrowrain: (c) =>
     appendArrowRain(c.sprites, c.prefix, c.center, c.base, c.progress, c.preset, originOf(c), c.random, c.view),
   skyblade: (c) =>
-    appendSkyblade(c.sprites, c.prefix, c.center, c.base, c.progress, c.preset, originOf(c), c.view, paintCentered),
+    appendSkyblade(c.sprites, c.prefix, c.center, c.base, c.progress, c.preset, originOf(c), c.view, painterOf(c)),
   raybeam: (c) => appendRaybeam(c.sprites, c.prefix, c.center, c.base, c.progress, c.preset, originOf(c), c.view),
   beam: (c) => appendBeam(c.sprites, c.prefix, c.center, c.base, c.progress, c.preset, originOf(c), c.view),
   breath: (c) => appendBreath(c.sprites, c.prefix, c.center, c.base, c.progress, c.preset, originOf(c), c.view),
   drain: (c) => appendDrain(c.sprites, c.prefix, c.center, c.base, c.progress, c.preset, originOf(c), c.view),
   projectile: (c) =>
-    appendProjectile(c.sprites, c.prefix, c.center, c.base, c.progress, c.preset, originOf(c), c.view, paintCentered),
+    appendProjectile(c.sprites, c.prefix, c.center, c.base, c.progress, c.preset, originOf(c), c.view, painterOf(c)),
 };
 
 interface CenteredContext {
@@ -218,10 +213,18 @@ interface AimedContext extends CenteredContext {
   target: EffectCastTarget;
   options: EffectSpriteOptions;
   view: ViewRotation | null | undefined;
+  /** Where it is fired from, when that is not the caster — a stage thrown off another one. */
+  origin?: Point3;
+  /** What it paints where it lands. A stage hands in nothing, because the next stage lands. */
+  impactPainter?: ImpactPainter;
 }
 
 function originOf(context: AimedContext): Point3 {
-  return projectileOrigin(context.cast, context.center, context.base);
+  return context.origin ?? projectileOrigin(context.cast, context.center, context.base);
+}
+
+function painterOf(context: AimedContext): ImpactPainter {
+  return context.impactPainter ?? paintCentered;
 }
 
 function imageOfTarget(context: AimedContext): string {
@@ -234,12 +237,44 @@ export const AIMED_EFFECT_KINDS: readonly EffectKind[] = Object.keys(AIMED) as E
 /** The kinds that happen about the target. Anything in neither table simply bursts. */
 export const CENTERED_EFFECT_KINDS: readonly EffectKind[] = Object.keys(CENTERED) as EffectKind[];
 
+/**
+ * Paints one look, wherever it is asked for.
+ *
+ * The dispatch used to be reachable only by playing a whole effect from its start. A run
+ * built of stages paints one look at a time, each with its own clock and its own place, so
+ * the tables are reached through here as well.
+ */
+export function paintEffectKind(kind: EffectKind, context: EffectPaintContext): void {
+  const aimed = AIMED[kind];
+  if (aimed) {
+    aimed(context);
+    return;
+  }
+  paintCentered(
+    kind,
+    context.sprites,
+    context.prefix,
+    context.center,
+    context.base,
+    context.progress,
+    context.preset,
+    context.random
+  );
+}
+
+export type EffectPaintContext = AimedContext;
+
 export function effectSprites(
   preset: EffectPreset,
   cast: EffectCast,
   elapsedMs: number,
   options: EffectSpriteOptions
 ): EffectSprite[] {
+  // An effect built of stages runs through them; one built of a single look draws it.
+  if (preset.isStaged) {
+    return stagedEffectSprites(preset, preset.stageList, cast, elapsedMs, options, paintEffectKind);
+  }
+
   const sprites: EffectSprite[] = [];
   const base = Math.max(options.baseSize, 1) * preset.sizeScale;
 

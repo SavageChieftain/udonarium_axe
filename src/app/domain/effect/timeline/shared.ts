@@ -57,6 +57,16 @@ export interface EffectSprite {
   flat: boolean;
 }
 
+/** Where the effect is happening, which follows the target when it is set to. */
+export function effectTargetCenter(
+  target: { identifier: string; x: number; y: number; z: number },
+  preset: { followTarget: boolean },
+  options: EffectSpriteOptions
+): Point3 {
+  if (!preset.followTarget || target.identifier.length < 1) return target;
+  return options.resolvePosition?.(target.identifier) ?? target;
+}
+
 export interface EffectSpriteOptions {
   baseSize: number;
   /** Which way the board faces, which is how a projectile is drawn out along its travel on the screen. */
