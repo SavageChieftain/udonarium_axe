@@ -14,7 +14,8 @@ Comment: 本プロジェクトで作成した素材です。作り方は次の�
  Adobe Firefly で整形したもの。
  images/tiles/*.webp は Adobe Firefly による生成。
  images/piece_*.png と images/table_forest_clearing.jpg はローカルの ComfyUI による生成。
- images/avatar_default.png は作図。
+ images/avatar_default.png と images/loading.png は作図
+ (loading.png は 12 コマの APNG)。
 
 Files: images/dice/*
  images/april_dice/*
@@ -45,9 +46,7 @@ License: MIT
 Comment: 画像が欠けたときの仮表示として 2020-12-19 に Udonarium へ追加されたもので、
  配布元一覧 (2018-07-31 追加) より後に入っています。
 
-Files: images/loading.gif
- images/tex.jpg
- images/trump/*
+Files: images/trump/*
 Copyright: 無料素材倶楽部, 鍛冶屋黒胡椒
 License: distributor-terms
 Comment: Udonarium から引き継いだ素材で、上流の配布元表記を引き継ぎます。
