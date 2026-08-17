@@ -13,6 +13,7 @@ Comment: 本プロジェクトで作成した素材です。作り方は次の�
  images/system_chang.png と images/system_chang_roll.png は作者が描いたイラストを
  Adobe Firefly で整形したもの。
  images/tiles/*.webp は Adobe Firefly による生成。
+ images/terrain_crate.webp はローカルの ComfyUI による生成。
  images/piece_*.png と images/table_forest_clearing.jpg はローカルの ComfyUI による生成。
  images/avatar_default.png と images/loading.png は作図
  (loading.png は 12 コマの APNG)。
