@@ -29,7 +29,7 @@ export function makeDefaultTable(imageStorage: ImageStorage): void {
 
   const gameTable = new GameTable('gameTable');
   const bgFileContext = ImageFile.createEmpty('testTableBackgroundImage_image').toContext();
-  bgFileContext.url = './assets/images/BG10a_80.jpg';
+  bgFileContext.url = './assets/images/table_forest_clearing.jpg';
   const testBgFile = imageStorage.add(bgFileContext);
   ImageTag.create(testBgFile.identifier).tag = '背景';
   gameTable.name = '最初のテーブル';
