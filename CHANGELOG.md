@@ -1,3 +1,22 @@
+## [1.39.0](https://github.com/SavageChieftain/udonarium_axe/compare/v1.38.1...v1.39.0) (2026-08-17)
+
+### ✨ Features
+
+* **assets:** draw the loading spinner and drop the borrowed terrain texture ([92000b2](https://github.com/SavageChieftain/udonarium_axe/commit/92000b2f3dbb348022a9e42b24f9f491c51a6d56))
+* **lobby:** draw the default player icon ourselves ([c59f29f](https://github.com/SavageChieftain/udonarium_axe/commit/c59f29f991aebf88a4c95e3f6c15c9c37ea0f92a))
+* **tabletop:** draw the sample pieces ourselves ([4b60a51](https://github.com/SavageChieftain/udonarium_axe/commit/4b60a511699e555cce2c6bf9cd6627fd1a8132a0))
+* **tabletop:** give terrain a crate face rather than a floor tile ([54ee7c3](https://github.com/SavageChieftain/udonarium_axe/commit/54ee7c363d00a0a6b13486a5003108517d6cf784))
+* **tabletop:** lay the first table on a field of our own ([e9e0fe4](https://github.com/SavageChieftain/udonarium_axe/commit/e9e0fe41e37ba7abde1efd1b93b5c6f954a1b5ad))
+
+### 🐛 Bug Fixes
+
+* **tabletop:** cut the wizard's staff clean ([cbfbaf2](https://github.com/SavageChieftain/udonarium_axe/commit/cbfbaf2a6809530fe094510bc7f988440e261225))
+
+### 📝 Documentation
+
+* **assets:** gather the asset notices into one machine-readable file ([e81ed49](https://github.com/SavageChieftain/udonarium_axe/commit/e81ed496ae6ed8370d119142648368835248cba1))
+* **website:** add v1.38.1 release notes ([3bd3ff2](https://github.com/SavageChieftain/udonarium_axe/commit/3bd3ff2832bfb978ff36933e7879cc6705a18614))
+
 ## [1.38.1](https://github.com/SavageChieftain/udonarium_axe/compare/v1.38.0...v1.38.1) (2026-08-16)
 
 ### 🐛 Bug Fixes
