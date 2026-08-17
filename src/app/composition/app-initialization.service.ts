@@ -230,7 +230,7 @@ export class AppInitializationService {
 
   private initializePeerCursor(): void {
     const fileContext = ImageFile.createEmpty('none_icon').toContext();
-    fileContext.url = './assets/images/ic_account_circle_black_24dp_2x.png';
+    fileContext.url = './assets/images/avatar_default.png';
     const noneIconImage = this.imageStorage.add(fileContext);
 
     PeerCursor.createMyCursor();
