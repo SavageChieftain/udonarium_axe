@@ -48,7 +48,7 @@ export function makeDefaultTabletopObjects(imageStorage: ImageStorage): void {
 
   testCharacter = new GameCharacter('testCharacter_1');
   fileContext = ImageFile.createEmpty('testCharacter_1_image').toContext();
-  fileContext.url = './assets/images/mon_052.gif';
+  fileContext.url = './assets/images/piece_goblin.png';
   testFile = imageStorage.add(fileContext);
   testCharacter.location.x = 5 * 50;
   testCharacter.location.y = 9 * 50;
@@ -66,7 +66,7 @@ export function makeDefaultTabletopObjects(imageStorage: ImageStorage): void {
 
   testCharacter = new GameCharacter('testCharacter_3');
   fileContext = ImageFile.createEmpty('testCharacter_3_image').toContext();
-  fileContext.url = './assets/images/mon_128.gif';
+  fileContext.url = './assets/images/piece_golem.png';
   testCharacter.location.x = 4 * 50;
   testCharacter.location.y = 2 * 50;
   testCharacter.initialize();
@@ -77,7 +77,7 @@ export function makeDefaultTabletopObjects(imageStorage: ImageStorage): void {
 
   testCharacter = new GameCharacter('testCharacter_4');
   fileContext = ImageFile.createEmpty('testCharacter_4_image').toContext();
-  fileContext.url = './assets/images/mon_150.gif';
+  fileContext.url = './assets/images/piece_knight.png';
 
   testFile = imageStorage.add(fileContext);
 
@@ -90,7 +90,7 @@ export function makeDefaultTabletopObjects(imageStorage: ImageStorage): void {
 
   testCharacter = new GameCharacter('testCharacter_5');
   fileContext = ImageFile.createEmpty('testCharacter_5_image').toContext();
-  fileContext.url = './assets/images/mon_211.gif';
+  fileContext.url = './assets/images/piece_wizard.png';
   testFile = imageStorage.add(fileContext);
   testCharacter.location.x = 12 * 50;
   testCharacter.location.y = 12 * 50;
@@ -100,7 +100,7 @@ export function makeDefaultTabletopObjects(imageStorage: ImageStorage): void {
 
   testCharacter = new GameCharacter('testCharacter_6');
   fileContext = ImageFile.createEmpty('testCharacter_6_image').toContext();
-  fileContext.url = './assets/images/mon_135.gif';
+  fileContext.url = './assets/images/piece_scout.png';
   testFile = imageStorage.add(fileContext);
 
   ImageTag.create(testFile.identifier).tag = '';
