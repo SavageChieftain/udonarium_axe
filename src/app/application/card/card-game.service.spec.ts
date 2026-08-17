@@ -33,6 +33,13 @@ describe('CardGameService', () => {
   }
 
   beforeEach(() => {
+    // Whoever ran before may have left a cursor behind, and a stray one counts as
+    // another player at the table.
+    for (const cursor of ObjectStore.instance.getObjects<PeerCursor>(PeerCursor)) {
+      ObjectStore.instance.delete(cursor, false);
+    }
+    ObjectStore.instance.clearDeleteHistory();
+    PeerCursor.myCursor = null!;
     PeerCursor.createMyCursor();
     PeerCursor.myCursor.userId = 'me';
     PeerCursor.myCursor.name = 'わたし';

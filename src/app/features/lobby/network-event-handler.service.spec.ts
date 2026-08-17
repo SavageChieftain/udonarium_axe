@@ -8,6 +8,7 @@ import {
 } from '@axe/application/sync/object-change-network-helpers';
 import { EventChannel } from '@axe/core/event/event-channel';
 import { Network } from '@axe/core/network/network';
+import { ObjectStore } from '@axe/core/sync/object-store';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { NetworkEventHandlerService } from '@axe/features/lobby/network-event-handler.service';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
@@ -49,6 +50,13 @@ describe('NetworkEventHandlerService', () => {
 
   afterEach(() => {
     vi.restoreAllMocks();
+    // The tests hand the static cursor a new one, which leaves whoever held the post
+    // before it in the store for the next spec to count as a peer at the table.
+    for (const cursor of ObjectStore.instance.getObjects<PeerCursor>(PeerCursor)) {
+      ObjectStore.instance.delete(cursor, false);
+    }
+    ObjectStore.instance.clearDeleteHistory();
+    PeerCursor.myCursor = null!;
   });
 
   it('puts the peer and user identifiers onto the cursor as the connection opens', () => {
