@@ -158,3 +158,7 @@ npm run e2e        # Playwright E2E
 ## ライセンス
 
 [MIT License](LICENSE) — 上記すべての先行作品の著作権表示を含みます。
+
+同梱素材（画像・効果音）の帰属は [src/assets/copyright.txt](src/assets/copyright.txt) に
+1 ファイルでまとめています。形式は Debian machine-readable copyright format 1.0（DEP-5）で、
+ライセンス名には SPDX 短縮識別子を使っています。

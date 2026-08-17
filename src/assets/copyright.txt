@@ -1,0 +1,119 @@
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: Udonarium Axe
+Upstream-Contact: https://github.com/SavageChieftain/udonarium_axe
+Source: https://github.com/SavageChieftain/udonarium_axe
+Comment: 同梱素材の帰属をこの 1 ファイルにまとめたものです。パスは src/assets/ からの相対
+ (配布物では assets/ からの相対) で、Files の照合は後に書かれたものが優先されます。
+ ライセンス名は SPDX 短縮識別子、独自規約のものは配布元名を識別子にしています。
+
+Files: *
+Copyright: 2026 SavageChieftain
+License: MIT
+Comment: 本プロジェクトで作成した素材です。作り方は次のとおりです。
+ images/system_chang.png と images/system_chang_roll.png は作者が描いたイラストを
+ Adobe Firefly で整形したもの。
+ images/tiles/*.webp は Adobe Firefly による生成。
+ images/piece_*.png と images/table_forest_clearing.jpg はローカルの ComfyUI による生成。
+ images/avatar_default.png は作図。
+
+Files: images/dice/*
+ images/april_dice/*
+ sounds/alarm/*
+Copyright: 2014 torgtaitai
+License: BSD-3-Clause
+Comment: どどんとふ (DodontoF) 由来。原表記は「modified BSD licenses」。
+ 配布元: https://github.com/torgtaitai/DodontoF / http://www.dodontof.com
+
+Files: sounds/soundeffect-lab/*
+Copyright: 効果音ラボ
+License: soundeffect-lab
+Comment: 配布元: http://en.soundeffect-lab.info/
+
+Files: sounds/tm2/*
+Copyright: ザ・マッチメイカァズ
+License: matchmakers
+Comment: 配布元: http://osabisi.sakura.ne.jp/m2/
+
+Files: sounds/on-jin/*
+Copyright: On-Jin ～音人～
+License: on-jin
+Comment: 配布元: https://on-jin.com/
+
+Files: images/skeleton.png
+Copyright: 2020 TK11235
+License: MIT
+Comment: 画像が欠けたときの仮表示として 2020-12-19 に Udonarium へ追加されたもので、
+ 配布元一覧 (2018-07-31 追加) より後に入っています。
+
+Files: images/loading.gif
+ images/tex.jpg
+ images/trump/*
+Copyright: 無料素材倶楽部, 鍛冶屋黒胡椒
+License: distributor-terms
+Comment: Udonarium から引き継いだ素材で、上流の配布元表記を引き継ぎます。
+ 無料素材倶楽部は閉鎖済みです。
+ 鍛冶屋黒胡椒: https://w.atwiki.jp/smith_blp/
+
+License: MIT
+ Permission is hereby granted, free of charge, to any person obtaining a copy
+ of this software and associated documentation files (the "Software"), to deal
+ in the Software without restriction, including without limitation the rights
+ to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ copies of the Software, and to permit persons to whom the Software is
+ furnished to do so, subject to the following conditions:
+ .
+ The above copyright notice and this permission notice shall be included in all
+ copies or substantial portions of the Software.
+ .
+ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ SOFTWARE.
+
+License: BSD-3-Clause
+ Redistribution and use in source and binary forms, with or without
+ modification, are permitted provided that the following conditions are met:
+ .
+ 1. Redistributions of source code must retain the above copyright notice, this
+    list of conditions and the following disclaimer.
+ 2. Redistributions in binary form must reproduce the above copyright notice,
+    this list of conditions and the following disclaimer in the documentation
+    and/or other materials provided with the distribution.
+ 3. Neither the name of the copyright holder nor the names of its contributors
+    may be used to endorse or promote products derived from this software
+    without specific prior written permission.
+ .
+ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+ FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+License: soundeffect-lab
+ 効果音ラボの利用規約に従います。規約の全文は配布元を参照してください。
+ http://en.soundeffect-lab.info/
+
+License: matchmakers
+ ザ・マッチメイカァズの利用規約に従います。規約の全文は配布元を参照してください。
+ http://osabisi.sakura.ne.jp/m2/
+
+License: on-jin
+ On-Jin ～音人～ の利用規約に従います。原表記に「音源の二次配布・無断利用は禁止です」
+ とあります。規約の全文は配布元を参照してください。
+ https://on-jin.com/
+
+License: distributor-terms
+ 各配布元の利用規約に従います。規約の全文は配布元を参照してください。
+
+Comment: 同梱していない依存
+ Material Icons (https://fonts.googleapis.com/icon?family=Material+Icons) は
+ index.html から Google Fonts 経由で読み込むもので、この配布物には含まれません
+ (Apache-2.0)。npm 依存のライセンスは package-lock.json と各パッケージを参照してください。
