@@ -1,3 +1,14 @@
+## [1.40.0](https://github.com/SavageChieftain/udonarium_axe/compare/v1.39.0...v1.40.0) (2026-08-18)
+
+### ✨ Features
+
+* **card:** give the courts and jokers figures of their own ([f78ec5a](https://github.com/SavageChieftain/udonarium_axe/commit/f78ec5ae2e105e148322634b775c91bf3768ae57))
+* **card:** redraw the trump deck as original 400x600 WebP art ([df35f92](https://github.com/SavageChieftain/udonarium_axe/commit/df35f92857fb62a50551444719f1b54df3619967))
+
+### 📝 Documentation
+
+* **assets:** stop crediting the trump deck to its old distributors ([ff4d444](https://github.com/SavageChieftain/udonarium_axe/commit/ff4d4442667ee5e7d55c977c7ee865c504163ffe))
+
 ## [1.39.0](https://github.com/SavageChieftain/udonarium_axe/compare/v1.38.1...v1.39.0) (2026-08-17)
 
 ### ✨ Features
