@@ -424,6 +424,9 @@ chat-message > div > div {
    GitHub Dark Dimmed をベースにした 2026 年モダンデザイン
 ── */
 :root {
+  /* チャットの文字サイズ (チャット設定で上書きする) */
+  --chat-font-size: 13px;
+
   /* ベース背景 */
   --ui-bg: #0d1117;
   --ui-surface: #161b22;

@@ -1,6 +1,10 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { ChatPreferencesService } from '@axe/application/chat/chat-preferences.service';
+import {
+  CHAT_FONT_SIZE_MAX,
+  CHAT_FONT_SIZE_MIN,
+  ChatPreferencesService,
+} from '@axe/application/chat/chat-preferences.service';
 import { UiSignalService } from '@axe/application/ui/ui-signal.service';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { ChatTab } from '@axe/domain/chat/chat-tab';
@@ -19,9 +23,16 @@ export class ChatMessageSettingComponent {
   private readonly chatPrefs = inject(ChatPreferencesService);
 
   readonly autoFollowScroll = this.chatPrefs.autoFollowScroll;
+  readonly fontSize = this.chatPrefs.fontSize;
+  readonly minFontSize = CHAT_FONT_SIZE_MIN;
+  readonly maxFontSize = CHAT_FONT_SIZE_MAX;
 
   setAutoFollowScroll(v: boolean): void {
     this.chatPrefs.setAutoFollowScroll(v);
+  }
+
+  onChangeFontSize(event: Event): void {
+    this.chatPrefs.setFontSize((event.target as HTMLInputElement).valueAsNumber);
   }
 
   chatTabidentifier: string = '';

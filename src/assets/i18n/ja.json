@@ -1593,6 +1593,8 @@
         "footerHintTouch": "タップ: 入力 ／ 2回タップ: 送信"
       },
       "messageSetting": {
+        "sectionText": "文字",
+        "fontSize": "文字サイズ",
         "sectionPortrait": "立ち絵",
         "showPortraitThisTab": "立ち絵を表示（このタブ）",
         "portraitSize": "立ち絵サイズ",

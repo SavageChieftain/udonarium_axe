@@ -28,7 +28,7 @@
           class="group/body break-anywhere rounded-ui bg-ui-elevated text-ui-text relative ml-2 min-w-0 grow border border-solid border-(--ui-bubble-caret-border) px-1.5 pt-0.75 pb-1.25 [--bubble-bg:var(--ui-elevated)] before:absolute before:top-3 before:-left-2.25 before:border-y-[6px] before:border-r-[9px] before:border-l-0 before:border-solid before:border-y-transparent before:border-r-(--ui-bubble-caret-border) before:content-[''] after:absolute after:top-3.25 after:-left-1.75 after:border-y-[5px] after:border-r-8 after:border-l-0 after:border-solid after:border-y-transparent after:border-r-(--bubble-bg) after:content-['']"
           [ngStyle]="chatMessage.messColor | chatColorStyle"
         >
-          <div class="pl-2.5 align-top text-[13px] font-medium text-inherit">
+          <div class="pl-2.5 align-top text-(length:--chat-font-size) font-medium text-inherit">
             <span class="msg-name">{{ displayName(chatMessage.name) }}</span>
             <span class="tip"> | </span>
             <span class="tip msg-from" [title]="chatMessage.from">{{ shortFrom(chatMessage.from) }}</span>
@@ -96,13 +96,13 @@
             </button>
           }
           <div
-            class="msg-text [&_a]:text-ui-accent px-2.5 pt-0.5 align-top text-[13px] leading-normal whitespace-pre-line text-inherit"
+            class="msg-text [&_a]:text-ui-accent px-2.5 pt-0.5 align-top text-(length:--chat-font-size) leading-normal whitespace-pre-line text-inherit"
           >
             @if (isEditing()) {
               <div class="flex flex-col gap-1.5 py-1">
                 <textarea
                   #editingTextArea
-                  class="border-ui-accent bg-ui-input text-ui-text rounded-ui-sm focus:border-ui-accent block max-h-60 w-full resize-none border border-solid px-2 py-1 text-[13px] leading-normal outline-none"
+                  class="border-ui-accent bg-ui-input text-ui-text rounded-ui-sm focus:border-ui-accent block max-h-60 w-full resize-none border border-solid px-2 py-1 text-(length:--chat-font-size) leading-normal outline-none"
                   [ngModel]="editDraft()"
                   (ngModelChange)="onEditInput($event)"
                   (keydown)="onEditKeydown($event)"
@@ -166,7 +166,7 @@
           class="group/body rounded-ui-sm border-ui-border-panel bg-ui-elevated text-ui-text grow border border-solid px-1.5 pt-0.5 pb-0.75"
           [ngStyle]="chatMessage.messColor | chatColorStyle"
         >
-          <span class="pl-2.5 align-top text-[13px] font-medium text-inherit">
+          <span class="pl-2.5 align-top text-(length:--chat-font-size) font-medium text-inherit">
             <font class="msg-name">{{ displayName(chatMessage.name) }}</font
             >：
             @if (simpleDispFlagUserId()) {
@@ -206,13 +206,13 @@
               </button>
             }
             <font
-              class="msg-text [&_a]:text-ui-accent px-2.5 pt-0.5 align-top text-[13px] leading-normal whitespace-pre-line text-inherit"
+              class="msg-text [&_a]:text-ui-accent px-2.5 pt-0.5 align-top text-(length:--chat-font-size) leading-normal whitespace-pre-line text-inherit"
             >
               @if (isEditing()) {
                 <span class="ml-1.5 inline-flex w-full max-w-md flex-col gap-1 align-top">
                   <textarea
                     #editingTextArea
-                    class="border-ui-accent bg-ui-input text-ui-text rounded-ui-sm focus:border-ui-accent block max-h-60 w-full resize-none border border-solid px-2 py-1 text-[13px] leading-normal outline-none"
+                    class="border-ui-accent bg-ui-input text-ui-text rounded-ui-sm focus:border-ui-accent block max-h-60 w-full resize-none border border-solid px-2 py-1 text-(length:--chat-font-size) leading-normal outline-none"
                     [ngModel]="editDraft()"
                     (ngModelChange)="onEditInput($event)"
                     (keydown)="onEditKeydown($event)"

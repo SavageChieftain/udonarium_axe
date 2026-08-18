@@ -38,6 +38,7 @@ import { GameCharacterGeneratorComponent } from '@axe/features/character/game-ch
 import { GameCharacterSheetComponent } from '@axe/features/character/game-character-sheet/game-character-sheet.component';
 import { ImportCharacterComponent } from '@axe/features/character/import-character/import-character.component';
 import { ChatPortraitImageComponent } from '@axe/features/chat/chat-portrait-img/chat-portrait-img.component';
+import { ChatSettingsEventHandlerService } from '@axe/features/chat/chat-settings-event-handler.service';
 import { ChatWindowComponent } from '@axe/features/chat/chat-window/chat-window.component';
 import { DiceChatEventHandlerService } from '@axe/features/dice/dice-chat-event-handler.service';
 import { EffectChatEventHandlerService } from '@axe/features/effect/effect-chat-event-handler.service';
@@ -157,6 +158,7 @@ export class AppComponent {
     // so there is nothing to hold onto here — the injection is the point.
     inject(AlarmEventHandlerService);
     inject(DiceChatEventHandlerService);
+    inject(ChatSettingsEventHandlerService);
     inject(EffectChatEventHandlerService);
     inject(VoteEventHandlerService);
     inject(CutInEventHandlerService);

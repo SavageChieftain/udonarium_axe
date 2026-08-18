@@ -4,6 +4,7 @@ import { ModalService } from '@axe/application/ui/modal.service';
 import { PanelService } from '@axe/application/ui/panel.service';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
+import { ChatSettingsEventHandlerService } from '@axe/features/chat/chat-settings-event-handler.service';
 import { TranslocoModule } from '@jsverse/transloco';
 
 @Component({
@@ -17,6 +18,7 @@ export class ChatColorSettingComponent {
   private readonly panelService = inject(PanelService);
   private readonly modalService = inject(ModalService);
   private readonly objectChange = inject(ObjectChangeService);
+  private readonly chatSettings = inject(ChatSettingsEventHandlerService);
 
   isAllowedEmpty: boolean = false;
   tabletopObject: GameCharacter | null = null;
@@ -36,6 +38,7 @@ export class ChatColorSettingComponent {
       }
     } else {
       this.myPeer.chatColorCode[num] = event;
+      this.chatSettings.captureColors();
       this.objectChange.notifyChanged(this.myPeer.identifier);
     }
   }

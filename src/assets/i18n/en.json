@@ -1593,6 +1593,8 @@
         "footerHintTouch": "Tap: insert / Double tap: send"
       },
       "messageSetting": {
+        "sectionText": "Text",
+        "fontSize": "Font size",
         "sectionPortrait": "Standing portrait",
         "showPortraitThisTab": "Show portrait (this tab)",
         "portraitSize": "Portrait size",
