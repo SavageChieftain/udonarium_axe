@@ -1276,6 +1276,8 @@
         "textNoteUpright": "直立させる",
         "textNoteEdit": "メモを編集",
         "overlapBelow": "重なっているオブジェクト ({{count}})",
+        "moveToTopmost": "最前面へ",
+        "moveToBottommost": "最背面へ",
         "aliasTerrain": "地形",
         "aliasCharacter": "キャラクター",
         "aliasMask": "マスク",

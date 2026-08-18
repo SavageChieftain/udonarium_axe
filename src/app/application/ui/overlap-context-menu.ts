@@ -2,6 +2,7 @@ import { TranslateFn } from '@axe/application/i18n/translate.token';
 import { ContextMenuAction } from '@axe/application/ui/context-menu.service';
 import { TabletopOverlapService } from '@axe/application/ui/tabletop-overlap.service';
 import { TabletopObject } from '@axe/domain/tabletop/tabletop-object';
+import { moveToBottommost, moveToTopmost, Stackable } from '@axe/domain/tabletop/tabletop-object-util';
 
 const ALIAS_LABEL_KEY: Record<string, string> = {
   terrain: 'feature.tabletop.contextMenu.aliasTerrain',
@@ -22,6 +23,10 @@ function describeObject(obj: TabletopObject, t: TranslateFn): string {
   return name ? `${aliasLabel}: ${name}` : aliasLabel;
 }
 
+function asStackable(obj: TabletopObject): Stackable | null {
+  return typeof (obj as TabletopObject & { zindex?: unknown }).zindex === 'number' ? (obj as Stackable) : null;
+}
+
 export function buildOverlapContextMenu(
   service: TabletopOverlapService,
   current: TabletopObject,
@@ -37,11 +42,27 @@ export function buildOverlapContextMenu(
     action: () => service.reopenContextMenuFor(obj.identifier, pointerX, pointerY),
   }));
 
-  return [
+  const entries: ContextMenuAction[] = [
     {
       name: t('feature.tabletop.contextMenu.overlapBelow', { count: overlapping.length }),
       action: undefined,
       subActions,
     },
   ];
+
+  const stackable = asStackable(current);
+  if (stackable) {
+    entries.push(
+      {
+        name: t('feature.tabletop.contextMenu.moveToTopmost'),
+        action: () => moveToTopmost(stackable),
+      },
+      {
+        name: t('feature.tabletop.contextMenu.moveToBottommost'),
+        action: () => moveToBottommost(stackable),
+      }
+    );
+  }
+
+  return entries;
 }

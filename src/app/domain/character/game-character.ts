@@ -17,6 +17,7 @@ import {
   DataElementType,
 } from '@axe/domain/data/data-element';
 import { OwnedTabletopObject } from '@axe/domain/tabletop/owned-tabletop-object';
+import { moveToBottommost, moveToTopmost } from '@axe/domain/tabletop/tabletop-object-util';
 import {
   DEFAULT_LIGHT_COLOR,
   LightAnimation,
@@ -38,6 +39,7 @@ export class GameCharacter extends OwnedTabletopObject {
   }
 
   @SyncVar() isLock: boolean = false;
+  @SyncVar() zindex: number = 0;
 
   @SyncVar() rotate: number = 0;
   @SyncVar() roll: number = 0;
@@ -169,6 +171,14 @@ export class GameCharacter extends OwnedTabletopObject {
 
   get buffDataElement(): DataElement | null {
     return this.getElement('buff');
+  }
+
+  toTopmost() {
+    moveToTopmost(this);
+  }
+
+  toBottommost() {
+    moveToBottommost(this);
   }
 
   addBuffDataElement() {

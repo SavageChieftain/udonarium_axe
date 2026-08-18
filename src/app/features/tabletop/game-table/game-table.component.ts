@@ -479,7 +479,8 @@ export class GameTableComponent {
   }
   readonly characters = computed(() => {
     this.objectChangeService.collectionOf('character')();
-    return this.tabletopService.characters;
+    // Siblings that sit on the same spot are painted in the order they are laid out.
+    return [...this.tabletopService.characters].sort((a, b) => a.zindex - b.zindex);
   });
   readonly tableMasks = computed(() => {
     this.objectChangeService.collectionOf('table-mask')();

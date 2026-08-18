@@ -798,6 +798,7 @@ export class GameCharacterComponent {
   }
 
   onMove() {
+    this.gameCharacter()?.toTopmost();
     SoundEffect.play(PresetSound.piecePick);
   }
 

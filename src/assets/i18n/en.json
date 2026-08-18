@@ -1276,6 +1276,8 @@
         "textNoteUpright": "Stand up",
         "textNoteEdit": "Edit note",
         "overlapBelow": "Objects below ({{count}})",
+        "moveToTopmost": "Bring to front",
+        "moveToBottommost": "Send to back",
         "aliasTerrain": "Terrain",
         "aliasCharacter": "Character",
         "aliasMask": "Mask",
