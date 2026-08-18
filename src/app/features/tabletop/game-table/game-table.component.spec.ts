@@ -1,6 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { MobileLayoutService } from '@axe/application/ui/mobile-layout.service';
 import { ObjectStore } from '@axe/core/sync/object-store';
+import { GameCharacter } from '@axe/domain/character/game-character';
 import { GridType } from '@axe/domain/tabletop/game-table';
 import { GameTableComponent } from '@axe/features/tabletop/game-table/game-table.component';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
@@ -32,6 +33,47 @@ describe('GameTableComponent', () => {
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  describe('characters', () => {
+    const MINE = ['いち', 'に'];
+
+    function makeCharacter(name: string): GameCharacter {
+      const character = GameCharacter.create(name, 1, '');
+      character.location.name = 'table';
+      return character;
+    }
+
+    const laidOut = () =>
+      component
+        .characters()
+        .map((c) => c.name)
+        .filter((name) => MINE.includes(name));
+
+    it('lays the pieces out in the order they are stacked', () => {
+      const under = makeCharacter('いち');
+      const over = makeCharacter('に');
+      under.zindex = 5;
+      over.zindex = 1;
+
+      expect(laidOut()).toEqual(['に', 'いち']);
+    });
+
+    it('lays them out again once one of them moves up the pile', async () => {
+      const first = makeCharacter('いち');
+      const second = makeCharacter('に');
+      first.zindex = 0;
+      second.zindex = 1;
+      // Settle the arrivals first: a piece's own change bumps its version and not the
+      // collection's, and that is the only thing left to notice the order has moved.
+      await Promise.resolve();
+      expect(laidOut()).toEqual(['いち', 'に']);
+
+      first.toTopmost();
+      await Promise.resolve();
+
+      expect(laidOut()).toEqual(['に', 'いち']);
+    });
   });
 
   describe('buildContextMenuActions', () => {

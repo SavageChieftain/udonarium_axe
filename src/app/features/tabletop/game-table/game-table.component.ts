@@ -8,6 +8,7 @@ import {
   effect,
   ElementRef,
   inject,
+  signal,
   viewChild,
 } from '@angular/core';
 import { CardTargetService } from '@axe/application/card/card-target.service';
@@ -31,6 +32,7 @@ import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { isTypingTarget } from '@axe/core/input/typing-target';
 import { ImageFile, imageFileEqual } from '@axe/core/storage/image-file';
 import { ObjectStore } from '@axe/core/sync/object-store';
+import { GameCharacter } from '@axe/domain/character/game-character';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
 import { FilterType, GameTable, GridType } from '@axe/domain/tabletop/game-table';
 import { SurfaceDims } from '@axe/domain/tabletop/surface-space';
@@ -178,6 +180,21 @@ export class GameTableComponent {
   readonly gestureService = inject(GameTableGestureService);
 
   constructor() {
+    // A piece's own change bumps its version, not the collection's, so the order it is
+    // laid out in has to be told about separately - and only when the order really moved.
+    const seenStackIndex = new Map<string, number>();
+    this.objectChangeService.onObjectChangedForSingleAlias(
+      'character',
+      (event) => {
+        const char = this.objectStore.get<GameCharacter>(event.identifier);
+        if (!char) return;
+        if (seenStackIndex.get(event.identifier) === char.zindex) return;
+        seenStackIndex.set(event.identifier, char.zindex);
+        this.stackOrderVersion.update((v) => v + 1);
+      },
+      this.destroyRef
+    );
+
     effect(() => {
       this.selectionSignalService.cancelTableGestureVersion();
       this.gestureService.cancelInput();
@@ -477,8 +494,11 @@ export class GameTableComponent {
   get isPointerDragging(): boolean {
     return this.pointerDeviceService.isDragging;
   }
+  private readonly stackOrderVersion = signal(0);
+
   readonly characters = computed(() => {
     this.objectChangeService.collectionOf('character')();
+    this.stackOrderVersion();
     // Siblings that sit on the same spot are painted in the order they are laid out.
     return [...this.tabletopService.characters].sort((a, b) => a.zindex - b.zindex);
   });

@@ -41,6 +41,19 @@ describe('GameCharacterComponent', () => {
     expect(component).toBeTruthy();
   });
 
+  it('carries its place in the pile onto the element the table stacks', async () => {
+    const character = GameCharacter.create('コマ', 1, '');
+    fixture.componentRef.setInput('gameCharacter', character);
+    fixture.detectChanges();
+    expect((fixture.nativeElement as HTMLElement).style.zIndex).toBe('0');
+
+    character.zindex = 4;
+    await Promise.resolve();
+    fixture.detectChanges();
+
+    expect((fixture.nativeElement as HTMLElement).style.zIndex).toBe('4');
+  });
+
   it('registers its effect in the constructor, so nothing is set up outside an injection context', () => {
     expect(() => fixture.detectChanges()).not.toThrow();
   });

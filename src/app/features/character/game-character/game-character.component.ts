@@ -123,6 +123,7 @@ const BUFF_BADGES_PER_ROW = 6;
   host: {
     class: 'block',
     '[style.display]': "isHiddenByVision() ? 'none' : null",
+    '[style.z-index]': 'stackIndex()',
     '(dragstart)': 'onDragstart($event)',
     '(contextmenu)': 'onContextMenu($event)',
   },
@@ -796,6 +797,13 @@ export class GameCharacterComponent {
     }, FLOATING_CHANGE_MS);
     this.floatingTimers.add(floatTimer);
   }
+
+  readonly stackIndex = computed(() => {
+    const char = this.gameCharacter();
+    if (!char) return 0;
+    this.objectChange.versionOf(char.identifier)();
+    return char.zindex;
+  });
 
   onMove() {
     this.gameCharacter()?.toTopmost();
