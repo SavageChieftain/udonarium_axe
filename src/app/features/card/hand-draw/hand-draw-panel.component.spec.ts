@@ -16,7 +16,7 @@ describe('HandDrawPanelComponent', () => {
   const created: { destroy(): void }[] = [];
 
   function card(code: string, userId: string): Card {
-    const object = Card.create('カード', `./assets/images/trump/${code}.gif`, './assets/images/trump/z01.gif');
+    const object = Card.create('カード', `./assets/images/trump/${code}.webp`, './assets/images/trump/z01.webp');
     object.toHand(userId);
     created.push(object);
     return object;

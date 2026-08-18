@@ -9,7 +9,7 @@ import {
 } from '@axe/domain/card/trump-card';
 
 function trump(code: string): Card {
-  return Card.create('カード', `./assets/images/trump/${code}.gif`, './assets/images/trump/z01.gif');
+  return Card.create('カード', `./assets/images/trump/${code}.webp`, './assets/images/trump/z01.webp');
 }
 
 describe('trumpCodeOf()', () => {

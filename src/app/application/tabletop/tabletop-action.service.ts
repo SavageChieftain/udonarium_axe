@@ -238,7 +238,7 @@ export class TabletopActionService {
       ImageTag.create(image.identifier).tag = 'トランプ';
     }
     for (const trump of getTrumpCardCodes()) {
-      const url: string = './assets/images/trump/' + trump + '.gif';
+      const url: string = './assets/images/trump/' + trump + '.webp';
       if (!this.imageStorage.get(url)) {
         const image = this.imageStorage.add(url);
         ImageTag.create(image.identifier).tag = 'トランプ';

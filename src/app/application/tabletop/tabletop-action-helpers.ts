@@ -1,7 +1,7 @@
 import { DiceType } from '@axe/domain/dice/dice-symbol';
 
 export const TERRAIN_TEXTURE_PATH = './assets/images/terrain_crate.webp';
-export const TRUMP_BACK_IMAGE_PATH = './assets/images/trump/z02.gif';
+export const TRUMP_BACK_IMAGE_PATH = './assets/images/trump/z02.webp';
 
 export interface DiceMenuItem {
   menuName: string;

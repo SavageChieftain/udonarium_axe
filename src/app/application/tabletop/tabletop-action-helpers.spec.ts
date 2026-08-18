@@ -47,6 +47,6 @@ describe('tabletop-action-helpers', () => {
 
   it('provides the image paths for terrain and card backs', () => {
     expect(TERRAIN_TEXTURE_PATH).toBe('./assets/images/terrain_crate.webp');
-    expect(TRUMP_BACK_IMAGE_PATH).toBe('./assets/images/trump/z02.gif');
+    expect(TRUMP_BACK_IMAGE_PATH).toBe('./assets/images/trump/z02.webp');
   });
 });

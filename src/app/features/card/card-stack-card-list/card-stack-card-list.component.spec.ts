@@ -19,8 +19,8 @@ describe('CardStackCardListComponent', () => {
 
   beforeEach(() => {
     stack = CardStack.create('テスト山札');
-    stack.putOnBottom(Card.create('A', './assets/images/trump/s01.gif', './assets/images/trump/z02.gif'));
-    stack.putOnBottom(Card.create('B', './assets/images/trump/h13.gif', './assets/images/trump/z02.gif'));
+    stack.putOnBottom(Card.create('A', './assets/images/trump/s01.webp', './assets/images/trump/z02.webp'));
+    stack.putOnBottom(Card.create('B', './assets/images/trump/h13.webp', './assets/images/trump/z02.webp'));
 
     fixture = TestBed.createComponent(CardStackCardListComponent);
     fixture.componentRef.setInput('cardStack', stack);

@@ -16,7 +16,7 @@ describe('CardGameService', () => {
   const created: { destroy(): void }[] = [];
 
   function trumpCard(code: string): Card {
-    const card = Card.create('カード', `./assets/images/trump/${code}.gif`, './assets/images/trump/z01.gif');
+    const card = Card.create('カード', `./assets/images/trump/${code}.webp`, './assets/images/trump/z01.webp');
     created.push(card);
     return card;
   }
