@@ -17,6 +17,8 @@ Comment: 本プロジェクトで作成した素材です。作り方は次の�
  images/piece_*.png と images/table_forest_clearing.jpg はローカルの ComfyUI による生成。
  images/avatar_default.png と images/loading.png は作図
  (loading.png は 12 コマの APNG)。
+ images/trump/*.webp は数札・エース・裏面が作図、絵札とジョーカーの人物画は
+ ローカルの ComfyUI による生成で、指標を重ねたもの。
 
 Files: images/dice/*
  images/april_dice/*
@@ -46,13 +48,6 @@ Copyright: 2020 TK11235
 License: MIT
 Comment: 画像が欠けたときの仮表示として 2020-12-19 に Udonarium へ追加されたもので、
  配布元一覧 (2018-07-31 追加) より後に入っています。
-
-Files: images/trump/*
-Copyright: 無料素材倶楽部, 鍛冶屋黒胡椒
-License: distributor-terms
-Comment: Udonarium から引き継いだ素材で、上流の配布元表記を引き継ぎます。
- 無料素材倶楽部は閉鎖済みです。
- 鍛冶屋黒胡椒: https://w.atwiki.jp/smith_blp/
 
 License: MIT
  Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -109,9 +104,6 @@ License: on-jin
  On-Jin ～音人～ の利用規約に従います。原表記に「音源の二次配布・無断利用は禁止です」
  とあります。規約の全文は配布元を参照してください。
  https://on-jin.com/
-
-License: distributor-terms
- 各配布元の利用規約に従います。規約の全文は配布元を参照してください。
 
 Comment: 同梱していない依存
  Material Icons (https://fonts.googleapis.com/icon?family=Material+Icons) は
