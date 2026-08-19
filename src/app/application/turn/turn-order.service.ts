@@ -6,6 +6,7 @@ import { ObjectChangeService } from '@axe/application/sync/object-change.service
 import { SelectionSignalService } from '@axe/application/ui/selection-signal.service';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { ExpiredBuffEntry, formatExpiredBuffs } from '@axe/domain/character/buff-expiry';
+import { BuffTiming, BuffTurnActor } from '@axe/domain/character/buff-timing';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { TurnPhase, TurnState } from '@axe/domain/tabletop/turn-state';
 
@@ -76,13 +77,14 @@ export class TurnOrderService {
       return;
     }
     if (turnState.phase === 'roundStart') {
-      if (order.length > 0) this.enterActing(order[0].identifier);
+      if (order.length > 0) this.takeTurn(order[0].identifier);
       else this.finishRound();
       return;
     }
     const index = order.findIndex((character) => character.identifier === turnState.currentIdentifier);
+    this.expireBuffs('turnEnd', this.actorOf(turnState.currentIdentifier));
     if (index >= 0 && index < order.length - 1) {
-      this.enterActing(order[index + 1].identifier);
+      this.takeTurn(order[index + 1].identifier);
     } else {
       this.finishRound();
     }
@@ -122,6 +124,12 @@ export class TurnOrderService {
     this.chat.sendSystemMessageToMainTab(this.t('feature.turnOrder.roundStart', { n: turnState.round }));
   }
 
+  /** Hands the turn over, and lets whatever waits on its opening run out. */
+  private takeTurn(identifier: string): void {
+    this.enterActing(identifier);
+    this.expireBuffs('turnStart', this.actorOf(identifier));
+  }
+
   private enterActing(identifier: string): void {
     const turnState = this.turnState;
     turnState.phase = 'acting';
@@ -130,16 +138,30 @@ export class TurnOrderService {
   }
 
   /**
-   * Closes the round and moves on. Rewinding also ends a round, so buffs expire here.
-   * Only the peer that advanced the round runs it, so the countdown drops once even between peers.
+   * Closes the round and moves on. Only the peer that advanced it runs this, so the
+   * countdown drops once even between peers.
    */
   private finishRound(): void {
     this.endRound();
+    this.expireBuffs('roundEnd', { identifier: '', name: '' });
+  }
+
+  /**
+   * Counts down whatever this moment belongs to. A buff pinned to a trigger character
+   * waits for that character's turn, so the whole table is asked and only the buffs whose
+   * moment it is answer.
+   */
+  private actorOf(identifier: string): BuffTurnActor {
+    const character = this.objectStore.get<GameCharacter>(identifier);
+    return { identifier, name: character?.name ?? '' };
+  }
+
+  private expireBuffs(timing: BuffTiming, acting: BuffTurnActor): void {
     if (!this.turnState.buffDecay) return;
 
     const entries: ExpiredBuffEntry[] = [];
     for (const character of this.orderedCharacters(true)) {
-      const buffNames = character.buffs.expireOneRound();
+      const buffNames = character.buffs.expireAt(timing, acting);
       if (buffNames.length > 0) entries.push({ characterName: character.name, buffNames });
     }
 

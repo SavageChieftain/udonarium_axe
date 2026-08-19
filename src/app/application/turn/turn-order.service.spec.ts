@@ -146,6 +146,58 @@ describe('TurnOrderService', () => {
       expect(buffsOf(buffed[0])[0].value).toBe(1);
     });
 
+    it("counts a buff down as its trigger's turn opens, and leaves the rest alone", () => {
+      // A Sword World enhancement runs out as the caster comes round again, not with the round.
+      const [caster, target] = buffed;
+      target.buffs.addRound('練技', '', 1, { timing: 'turnStart', trigger: caster.identifier });
+      sendSpy.mockClear();
+
+      service.next(); // round 1 begins
+      expect(buffsOf(target).map((buff: DataElement) => buff.name)).toContain('練技');
+
+      service.next(); // the caster takes the first turn
+
+      expect(buffsOf(target).map((buff: DataElement) => buff.name)).not.toContain('練技');
+      expect(buffsOf(target).map((buff: DataElement) => buff.name)).toContain('猛攻撃');
+    });
+
+    it('waits for the bearer where the buff names no trigger', () => {
+      const second = buffed[1];
+      second.buffs.addRound('集中', '', 1, { timing: 'turnStart' });
+
+      service.next(); // round 1 begins
+      service.next(); // the first character acts
+      expect(buffsOf(second).map((buff: DataElement) => buff.name)).toContain('集中');
+
+      service.next(); // the bearer acts
+
+      expect(buffsOf(second).map((buff: DataElement) => buff.name)).not.toContain('集中');
+    });
+
+    it('counts a turn-end buff down as its bearer finishes acting', () => {
+      const [first] = buffed;
+      first.buffs.addRound('残心', '', 1, { timing: 'turnEnd' });
+
+      service.next(); // round 1 begins
+      service.next(); // the bearer acts
+      expect(buffsOf(first).map((buff: DataElement) => buff.name)).toContain('残心');
+
+      service.next(); // the bearer's turn closes
+
+      expect(buffsOf(first).map((buff: DataElement) => buff.name)).not.toContain('残心');
+    });
+
+    it('leaves a buff pinned to a turn out of the round-end sweep', () => {
+      const [, target] = buffed;
+      target.buffs.addRound('祝福', '', 1, { timing: 'turnStart', trigger: '居ない人' });
+      sendSpy.mockClear();
+
+      advanceToRoundEnd();
+
+      expect(buffsOf(target).map((buff: DataElement) => buff.name)).toContain('祝福');
+      expect(buffsOf(target)[0].value).toBe(1);
+    });
+
     it('says nothing when no buff expired', () => {
       buffed.forEach((character) => character.buffs.delete('猛攻撃'));
       buffed[0].buffs.addRound('長い', '', 5);

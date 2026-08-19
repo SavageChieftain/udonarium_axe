@@ -4,6 +4,7 @@ import { RolePermissionService } from '@axe/application/permission/role-permissi
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { BUFF_COLORS, DEFAULT_BUFF_COLOR } from '@axe/domain/character/buff-appearance';
 import { buffColorOf, buffIconOf, parseBuffStrength } from '@axe/domain/character/buff-badge';
+import { BUFF_TIMINGS, BuffTiming, buffTimingOf, buffTriggerOf } from '@axe/domain/character/buff-timing';
 import { DataElement, DataElementAttribute, DataElementType } from '@axe/domain/data/data-element';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { TranslocoModule } from '@jsverse/transloco';
@@ -83,6 +84,43 @@ export class GameDataElementBuffComponent {
   });
 
   readonly strength = computed(() => parseBuffStrength(`${this.currentValue ?? ''}`));
+
+  readonly timingChoices = BUFF_TIMINGS;
+
+  readonly timing = computed(() => {
+    const element = this.gameDataElement();
+    this.objectChange.versionOf(element.identifier)();
+    return buffTimingOf(element);
+  });
+
+  readonly trigger = computed(() => {
+    const element = this.gameDataElement();
+    this.objectChange.versionOf(element.identifier)();
+    return buffTriggerOf(element);
+  });
+
+  selectTiming(timing: BuffTiming): void {
+    const element = this.gameDataElement();
+    element.setAttribute(DataElementAttribute.BUFF_TIMING, timing);
+    if (timing === 'roundEnd') element.removeAttribute(DataElementAttribute.BUFF_TRIGGER);
+    this.objectChange.notifyChanged(element.identifier);
+  }
+
+  onSelectTiming(event: Event): void {
+    this.selectTiming((event.target as HTMLSelectElement).value as BuffTiming);
+  }
+
+  setTrigger(name: string): void {
+    const element = this.gameDataElement();
+    const trimmed = name.trim();
+    if (trimmed.length > 0) element.setAttribute(DataElementAttribute.BUFF_TRIGGER, trimmed);
+    else element.removeAttribute(DataElementAttribute.BUFF_TRIGGER);
+    this.objectChange.notifyChanged(element.identifier);
+  }
+
+  onSetTrigger(event: Event): void {
+    this.setTrigger((event.target as HTMLInputElement).value);
+  }
 
   selectIcon(icon: string): void {
     const element = this.gameDataElement();

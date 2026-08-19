@@ -994,7 +994,13 @@
         "delete": "Delete buff",
         "viewIcon": "Icons",
         "viewDetail": "Details",
-        "viewCount": "Count"
+        "viewCount": "Count",
+        "timing": "Expires",
+        "timing_roundEnd": "End of round",
+        "timing_turnStart": "Start of trigger's turn",
+        "timing_turnEnd": "End of trigger's turn",
+        "trigger": "Trigger character",
+        "triggerPlaceholder": "Defaults to the bearer"
       },
       "importImg": {
         "sourceLabel": "Source:",

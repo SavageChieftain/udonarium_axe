@@ -77,6 +77,8 @@ export const DataElementAttribute = {
   GAUGE_INVERTED: 'cs-gauge-inverted',
   BUFF_ICON: 'cs-buff-icon',
   BUFF_COLOR: 'cs-buff-color',
+  BUFF_TIMING: 'cs-buff-timing',
+  BUFF_TRIGGER: 'cs-buff-trigger',
   GAP_DISTANCE: 'cs-gap-distance',
   LOOP_HORIZONTAL: 'cs-loop-horizontal',
   LOOP_VERTICAL: 'cs-loop-vertical',

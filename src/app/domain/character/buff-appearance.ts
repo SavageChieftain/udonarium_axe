@@ -1,3 +1,4 @@
+import { BuffTiming, isBuffTimingToken, resolveBuffTiming } from '@axe/domain/character/buff-timing';
 export interface BuffColor {
   id: string;
   hex: string;
@@ -6,6 +7,8 @@ export interface BuffColor {
 export interface BuffAppearance {
   color?: string;
   icon?: string;
+  timing?: BuffTiming;
+  trigger?: string;
 }
 
 export const DEFAULT_BUFF_COLOR = 'rgba(0,0,0,0.7)';
@@ -63,6 +66,14 @@ export function parseBuffAppearance(tokens: readonly string[]): BuffAppearance {
     if (value.length < 1) continue;
     if (isBuffColorToken(value)) {
       appearance.color = resolveBuffColor(value);
+      continue;
+    }
+    if (isBuffTimingToken(value)) {
+      appearance.timing = resolveBuffTiming(value)!;
+      continue;
+    }
+    if (value.startsWith('@') && value.length > 1) {
+      appearance.trigger = value.slice(1);
       continue;
     }
     appearance.icon = value;

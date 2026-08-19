@@ -192,7 +192,10 @@ export class GameCharacter extends OwnedTabletopObject {
   private _status: StatusAccessor | null = null;
 
   get buffs(): BuffManager {
-    return (this._buffs ??= new BuffManager(this.buffDataElement ?? null));
+    return (this._buffs ??= new BuffManager(this.buffDataElement ?? null, () => ({
+      identifier: this.identifier,
+      name: this.name,
+    })));
   }
 
   get status(): StatusAccessor {

@@ -994,7 +994,13 @@
         "delete": "バフを削除",
         "viewIcon": "アイコン",
         "viewDetail": "詳細",
-        "viewCount": "個数"
+        "viewCount": "個数",
+        "timing": "消失タイミング",
+        "timing_roundEnd": "ラウンド終了時",
+        "timing_turnStart": "トリガーの手番開始時",
+        "timing_turnEnd": "トリガーの手番終了時",
+        "trigger": "トリガーキャラクター",
+        "triggerPlaceholder": "未指定なら本人"
       },
       "importImg": {
         "sourceLabel": "複製元＞",
