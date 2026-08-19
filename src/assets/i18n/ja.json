@@ -1000,7 +1000,8 @@
         "timing_turnStart": "トリガーの手番開始時",
         "timing_turnEnd": "トリガーの手番終了時",
         "trigger": "トリガーキャラクター",
-        "triggerPlaceholder": "未指定なら本人"
+        "triggerPlaceholder": "未指定なら本人",
+        "triggerUnknown": "{{name}}（卓外）"
       },
       "importImg": {
         "sourceLabel": "複製元＞",

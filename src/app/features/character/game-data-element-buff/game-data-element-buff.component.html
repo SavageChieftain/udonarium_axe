@@ -91,27 +91,6 @@
               />
               <span class="text-ui-dim text-[0.8em] select-none">R</span>
             </div>
-            <div class="col-span-3 flex items-center gap-1">
-              <select
-                class="rounded-ui-sm border-ui-border-panel bg-ui-input text-ui-text cursor-pointer border border-solid px-1 py-0.5 text-[11px]"
-                [value]="timing()"
-                (change)="onSelectTiming($event)"
-                [title]="'feature.character.buff.timing' | transloco"
-              >
-                @for (choice of timingChoices; track choice) {
-                  <option [value]="choice">{{ 'feature.character.buff.timing_' + choice | transloco }}</option>
-                }
-              </select>
-              @if (timing() !== 'roundEnd') {
-                <input
-                  class="text-ui-text hover:bg-ui-hover focus:bg-ui-input rounded-ui-sm border-ui-border-panel min-w-0 flex-1 border border-solid px-1 py-0.5 text-[11px] outline-none"
-                  [value]="trigger()"
-                  (change)="onSetTrigger($event)"
-                  [placeholder]="'feature.character.buff.triggerPlaceholder' | transloco"
-                  [title]="'feature.character.buff.trigger' | transloco"
-                />
-              }
-            </div>
             @if (!isTagLocked()) {
               <button
                 class="text-ui-dim hover:bg-ui-danger-bg hover:text-ui-danger rounded-ui-sm inline-flex cursor-pointer items-center justify-center border-none bg-transparent p-0.75 opacity-45 transition-[opacity,color,background] hover:opacity-100 [&_i]:text-base!"
@@ -121,6 +100,32 @@
                 <i class="material-icons">delete_outline</i>
               </button>
             }
+            <div class="col-span-3 -mt-0.5 flex items-center gap-1 pl-7">
+              <i class="material-icons text-ui-dim text-[13px]! leading-none" aria-hidden="true">schedule</i>
+              <select
+                class="text-ui-muted hover:bg-ui-hover focus:bg-ui-input rounded-ui-sm cursor-pointer border-none bg-transparent p-0.5 text-[11px] outline-none"
+                [value]="timing()"
+                (change)="onSelectTiming($event)"
+                [title]="'feature.character.buff.timing' | transloco"
+              >
+                @for (choice of timingChoices; track choice) {
+                  <option [value]="choice">{{ 'feature.character.buff.timing_' + choice | transloco }}</option>
+                }
+              </select>
+              @if (timing() !== 'roundEnd') {
+                <select
+                  class="text-ui-muted hover:bg-ui-hover focus:bg-ui-input rounded-ui-sm min-w-0 flex-1 cursor-pointer border-none bg-transparent p-0.5 text-[11px] outline-none"
+                  [value]="triggerValue()"
+                  (change)="onSetTrigger($event)"
+                  [title]="'feature.character.buff.trigger' | transloco"
+                >
+                  <option value="">{{ 'feature.character.buff.triggerPlaceholder' | transloco }}</option>
+                  @for (option of triggerOptions(); track option.value) {
+                    <option [value]="option.value">{{ option.label }}</option>
+                  }
+                </select>
+              }
+            </div>
           </div>
         }
         @default {

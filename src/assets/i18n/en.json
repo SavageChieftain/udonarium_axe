@@ -1000,7 +1000,8 @@
         "timing_turnStart": "Start of trigger's turn",
         "timing_turnEnd": "End of trigger's turn",
         "trigger": "Trigger character",
-        "triggerPlaceholder": "Defaults to the bearer"
+        "triggerPlaceholder": "Defaults to the bearer",
+        "triggerUnknown": "{{name}} (off table)"
       },
       "importImg": {
         "sourceLabel": "Source:",

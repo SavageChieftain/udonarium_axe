@@ -1,10 +1,13 @@
 import { ChangeDetectionStrategy, Component, computed, effect, inject, input, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
+import { GameObjectInventoryService } from '@axe/application/inventory/game-object-inventory.service';
 import { RolePermissionService } from '@axe/application/permission/role-permission.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { BUFF_COLORS, DEFAULT_BUFF_COLOR } from '@axe/domain/character/buff-appearance';
 import { buffColorOf, buffIconOf, parseBuffStrength } from '@axe/domain/character/buff-badge';
 import { BUFF_TIMINGS, BuffTiming, buffTimingOf, buffTriggerOf } from '@axe/domain/character/buff-timing';
+import { buffTriggerOptions, selectedTriggerValue } from '@axe/domain/character/buff-trigger-options';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { DataElement, DataElementAttribute, DataElementType } from '@axe/domain/data/data-element';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
@@ -20,6 +23,8 @@ import { TranslocoModule } from '@jsverse/transloco';
 export class GameDataElementBuffComponent {
   private readonly objectChange = inject(ObjectChangeService);
   private readonly rolePermission = inject(RolePermissionService);
+  private readonly inventory = inject(GameObjectInventoryService);
+  private readonly t = inject(TRANSLATE_FN);
 
   readonly isReadOnly = computed(() => {
     if (PeerCursor.myCursor) this.objectChange.versionOf(PeerCursor.myCursor.identifier)();
@@ -100,6 +105,22 @@ export class GameDataElementBuffComponent {
     return buffTriggerOf(element);
   });
 
+  private readonly candidates = computed(() => {
+    this.objectChange.collectionOf('character')();
+    return (this.inventory.tableInventory.tabletopObjects as GameCharacter[]).map((character) => ({
+      identifier: character.identifier,
+      name: character.name,
+    }));
+  });
+
+  readonly triggerOptions = computed(() =>
+    buffTriggerOptions(this.candidates(), this.trigger(), (name) =>
+      this.t('feature.character.buff.triggerUnknown', { name })
+    )
+  );
+
+  readonly triggerValue = computed(() => selectedTriggerValue(this.candidates(), this.trigger()));
+
   selectTiming(timing: BuffTiming): void {
     const element = this.gameDataElement();
     element.setAttribute(DataElementAttribute.BUFF_TIMING, timing);
@@ -120,7 +141,7 @@ export class GameDataElementBuffComponent {
   }
 
   onSetTrigger(event: Event): void {
-    this.setTrigger((event.target as HTMLInputElement).value);
+    this.setTrigger((event.target as HTMLSelectElement).value);
   }
 
   selectIcon(icon: string): void {

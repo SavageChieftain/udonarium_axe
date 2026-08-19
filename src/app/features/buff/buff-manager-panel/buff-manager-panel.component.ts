@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { GameObjectInventoryService } from '@axe/application/inventory/game-object-inventory.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { TurnOrderService } from '@axe/application/turn/turn-order.service';
@@ -13,6 +14,7 @@ import {
   toTimelineBars,
 } from '@axe/domain/character/buff-timeline';
 import { BUFF_TIMINGS, BuffTiming } from '@axe/domain/character/buff-timing';
+import { buffTriggerOptions, selectedTriggerValue } from '@axe/domain/character/buff-trigger-options';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { DataElement, DataElementAttribute } from '@axe/domain/data/data-element';
 import { SafePipe } from '@axe/ui/pipes/safe.pipe';
@@ -31,6 +33,7 @@ export class BuffManagerPanelComponent {
   private readonly objectChange = inject(ObjectChangeService);
   private readonly inventory = inject(GameObjectInventoryService);
   private readonly turnOrder = inject(TurnOrderService);
+  private readonly t = inject(TRANSLATE_FN);
 
   readonly timingChoices = BUFF_TIMINGS;
   readonly operatorChoices = BUILDER_OPERATORS;
@@ -58,6 +61,15 @@ export class BuffManagerPanelComponent {
       });
     }
     return rows;
+  });
+
+  private readonly candidates = computed(() => {
+    this.objectChange.collectionOf('character')();
+    this.bumped();
+    return (this.inventory.tableInventory.tabletopObjects as GameCharacter[]).map((character) => ({
+      identifier: character.identifier,
+      name: character.name,
+    }));
   });
 
   readonly span = computed(() => timelineSpan(this.rows()));
@@ -100,6 +112,19 @@ export class BuffManagerPanelComponent {
     }
     return null;
   });
+
+  readonly triggerOptions = computed(() =>
+    buffTriggerOptions(this.candidates(), this.selectedBar()?.trigger ?? '', (name) =>
+      this.t('feature.character.buff.triggerUnknown', { name })
+    )
+  );
+
+  readonly triggerValue = computed(() => selectedTriggerValue(this.candidates(), this.selectedBar()?.trigger ?? ''));
+
+  /** The builder writes a chat command, and a command names its trigger. */
+  readonly builderTriggerOptions = computed(() =>
+    this.candidates().map((candidate) => ({ value: candidate.name, label: candidate.name }))
+  );
 
   private ownerOf(element: DataElement): GameCharacter | null {
     let node = element.parent;
@@ -175,7 +200,7 @@ export class BuffManagerPanelComponent {
   }
 
   onSetTrigger(event: Event): void {
-    this.setTrigger((event.target as HTMLInputElement).value);
+    this.setTrigger((event.target as HTMLSelectElement).value);
   }
 
   private touch(element: DataElement): void {

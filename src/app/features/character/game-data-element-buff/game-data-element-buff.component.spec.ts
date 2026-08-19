@@ -1,5 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { GameDataElementBuffComponent } from '@axe/features/character/game-data-element-buff/game-data-element-buff.component';
+import { TEST_PROVIDERS } from '@axe/testing/test-providers';
 
 describe('GameDataElementBuffComponent', () => {
   let component: GameDataElementBuffComponent;
@@ -8,6 +9,7 @@ describe('GameDataElementBuffComponent', () => {
   beforeEach(async () => {
     TestBed.configureTestingModule({
       imports: [GameDataElementBuffComponent],
+      providers: [...TEST_PROVIDERS],
     }).compileComponents();
   });
 
