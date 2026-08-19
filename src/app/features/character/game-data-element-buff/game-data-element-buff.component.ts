@@ -5,6 +5,7 @@ import { ObjectChangeService } from '@axe/application/sync/object-change.service
 import { BUFF_COLORS, DEFAULT_BUFF_COLOR } from '@axe/domain/character/buff-appearance';
 import { buffColorOf, buffIconOf, parseBuffStrength } from '@axe/domain/character/buff-badge';
 import { BUFF_TIMINGS, BuffTiming, buffTimingOf, buffTriggerOf } from '@axe/domain/character/buff-timing';
+import { GameCharacter } from '@axe/domain/character/game-character';
 import { DataElement, DataElementAttribute, DataElementType } from '@axe/domain/data/data-element';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { TranslocoModule } from '@jsverse/transloco';
@@ -196,6 +197,18 @@ export class GameDataElementBuffComponent {
   }
 
   deletBuff(data: DataElement) {
-    data.destroy();
+    // Through the owner, so a buff that moved a status puts it back on the way out.
+    const owner = ownerCharacterOf(data);
+    if (owner) owner.buffs.remove(data);
+    else data.destroy();
   }
+}
+
+function ownerCharacterOf(data: DataElement): GameCharacter | null {
+  let node = data.parent;
+  while (node) {
+    if (node instanceof GameCharacter) return node;
+    node = node.parent;
+  }
+  return null;
 }

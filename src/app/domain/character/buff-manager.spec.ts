@@ -1,6 +1,8 @@
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { BuffManager } from '@axe/domain/character/buff-manager';
-import { DataElement, DataElementAttribute } from '@axe/domain/data/data-element';
+import { parseBuffModifierRequest } from '@axe/domain/character/buff-modifier';
+import { StatusAccessor } from '@axe/domain/character/status-accessor';
+import { DataElement, DataElementAttribute, DataElementType } from '@axe/domain/data/data-element';
 
 describe('BuffManager', () => {
   let store: ObjectStore;
@@ -201,6 +203,84 @@ describe('BuffManager', () => {
       const emptyBuff = DataElement.create('空バフ', '');
       const emptyManager = new BuffManager(emptyBuff);
       expect(() => emptyManager.deleteZeroRound()).not.toThrow();
+    });
+  });
+
+  describe('a buff that moves a status', () => {
+    let status: StatusAccessor;
+    let sheeted: BuffManager;
+
+    beforeEach(() => {
+      const detail = DataElement.create('detail', '');
+      const group = DataElement.create('能力', '');
+      detail.appendChild(group);
+      group.appendChild(DataElement.create('命中', 20, { type: DataElementType.NUMBER_RESOURCE, currentValue: '10' }));
+      status = new StatusAccessor(detail, () => 'テストキャラ');
+      sheeted = new BuffManager(
+        buffDataElement,
+        () => ({ identifier: 'owner', name: 'テストキャラ' }),
+        () => status
+      );
+    });
+
+    function grant(name: string, target: string, operator: string, amount: string, round = 2): void {
+      const request = parseBuffModifierRequest(target, operator, amount)!;
+      sheeted.addRound(name, '', round);
+      sheeted.applyModifier(sheeted.find(name)!, request);
+    }
+
+    it('moves the status as it goes on', () => {
+      grant('猛攻撃', '命中', '+', '2');
+
+      expect(status.getValue('命中', 'now')).toBe(12);
+    });
+
+    it('puts the status back as the buff runs out', () => {
+      grant('猛攻撃', '命中', '+', '2', 1);
+
+      expect(sheeted.expireOneRound()).toEqual(['猛攻撃']);
+      expect(status.getValue('命中', 'now')).toBe(10);
+    });
+
+    it('puts the status back when the buff is taken off by hand', () => {
+      grant('猛攻撃', '命中', '+', '2');
+
+      sheeted.delete('猛攻撃');
+
+      expect(status.getValue('命中', 'now')).toBe(10);
+    });
+
+    it('does not stack the same buff on itself', () => {
+      grant('猛攻撃', '命中', '+', '2');
+      grant('猛攻撃', '命中', '+', '2');
+
+      expect(status.getValue('命中', 'now')).toBe(12);
+    });
+
+    it('puts back only as far as the status actually moved', () => {
+      // The sheet caps 命中 at 20, so a buff that asked for more gives back what it got.
+      grant('大猛攻撃', '命中', '+', '30');
+      expect(status.getValue('命中', 'now')).toBe(20);
+
+      sheeted.delete('大猛攻撃');
+
+      expect(status.getValue('命中', 'now')).toBe(10);
+    });
+
+    it('holds a status at a value, and lets it go again', () => {
+      grant('石化', '命中', '=', '3');
+      expect(status.getValue('命中', 'now')).toBe(3);
+
+      sheeted.delete('石化');
+
+      expect(status.getValue('命中', 'now')).toBe(10);
+    });
+
+    it('leaves a buff that names no status a plain note', () => {
+      sheeted.addRound('気合', 'なんとなく', 2);
+
+      expect(sheeted.find('気合')).toBeTruthy();
+      expect(status.getValue('命中', 'now')).toBe(10);
     });
   });
 });

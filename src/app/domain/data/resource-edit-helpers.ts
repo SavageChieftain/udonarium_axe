@@ -1,5 +1,7 @@
 import { toHalfWidth } from '@axe/core/util/string-util';
 import { parseBuffAppearance } from '@axe/domain/character/buff-appearance';
+import { describeBuffModifier, parseBuffModifierRequest } from '@axe/domain/character/buff-modifier';
+import { resolveBuffTiming } from '@axe/domain/character/buff-timing';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { DataElement } from '@axe/domain/data/data-element';
 
@@ -263,6 +265,34 @@ export function applyResourceEdit(edit: ResourceEdit, character: GameCharacter):
   return `${edit.target}${suffix}:${oldNum}${operatorText}${edit.diceResult}＞${newNum}${optionText}${sideEffectText}    `;
 }
 
+/**
+ * `&!name/status/op/amount/R/timing/trigger` - a buff that moves a status as it goes on and
+ * moves it back as it runs out, so the table stops doing the arithmetic by hand.
+ */
+function applyCalculatedBuff(command: string, character: GameCharacter): string {
+  const parts = command.replace(/^[tTｔＴ]?&[!！]/i, '').split('/');
+  const name = (parts[0] ?? '').trim();
+  if (name.length < 1) return '';
+
+  const request = parseBuffModifierRequest(parts[1] ?? '', parts[2] ?? '', parts[3] ?? '');
+  if (!request) return `バフの書式が読めません ${name}    `;
+
+  const roundText = (parts[4] ?? '').trim();
+  const round = roundText.length > 0 && Number.isFinite(Number(roundText)) ? Number(roundText) : 3;
+  const timing = resolveBuffTiming(parts[5] ?? '') ?? undefined;
+  const trigger = (parts[6] ?? '').trim();
+
+  const effect = describeBuffModifier(request);
+  character.buffs.addRound(name, effect, round, { timing, trigger: trigger.length > 0 ? trigger : undefined });
+
+  const data = character.buffs.find(name);
+  if (!data) return '';
+  const applied = character.buffs.applyModifier(data, request);
+  if (!applied) return `${name}を付与 ${effect}/${round}R (${request.target}が見つかりません)    `;
+
+  return `${name}を付与 ${effect}/${round}R    `;
+}
+
 export function applyBuffEdit(buff: BuffEdit, character: GameCharacter): string {
   const command = buff.command;
   let text = '';
@@ -285,6 +315,8 @@ export function applyBuffEdit(buff: BuffEdit, character: GameCharacter): string 
     if (character.buffs.delete(reg1)) {
       text += `${reg1}を消去    `;
     }
+  } else if (command.match(/^[tTｔＴ]?&[!！]/i)) {
+    text += applyCalculatedBuff(command, character);
   } else {
     const splittext = command.replace(/^[tTｔＴ]?&/i, '').split('/');
     let round: number | undefined = undefined;

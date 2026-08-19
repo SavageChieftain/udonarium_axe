@@ -1,11 +1,20 @@
 import { BuffAppearance } from '@axe/domain/character/buff-appearance';
+import {
+  BuffModifier,
+  clearBuffModifier,
+  ParsedBuffModifierRequest,
+  readBuffModifier,
+  writeBuffModifier,
+} from '@axe/domain/character/buff-modifier';
 import { BuffTiming, BuffTurnActor, isBuffDueAt } from '@axe/domain/character/buff-timing';
+import { StatusAccessor } from '@axe/domain/character/status-accessor';
 import { DataElement, DataElementAttribute, DataElementType } from '@axe/domain/data/data-element';
 
 export class BuffManager {
   constructor(
     private readonly buffDataElement: DataElement | null,
-    private readonly owner: () => BuffTurnActor = () => ({ identifier: '', name: '' })
+    private readonly owner: () => BuffTurnActor = () => ({ identifier: '', name: '' }),
+    private readonly status: () => StatusAccessor | null = () => null
   ) {}
 
   private get container(): DataElement | null {
@@ -17,8 +26,45 @@ export class BuffManager {
     if (!container) return false;
     const data = container.getFirstElementByName(name);
     if (!data) return false;
-    data.destroy();
+    this.remove(data);
     return true;
+  }
+
+  /** Takes the buff away, putting back whatever it moved on the sheet. */
+  remove(data: DataElement): void {
+    this.revertModifier(data);
+    data.destroy();
+  }
+
+  /**
+   * Moves a status by what the buff asks for and writes down how far it moved, so the
+   * same distance goes back when the buff runs out. Null where the sheet has no such
+   * status, which leaves the buff a plain note.
+   */
+  applyModifier(data: DataElement, request: ParsedBuffModifierRequest): BuffModifier | null {
+    const status = this.status();
+    if (!status) return null;
+    const before = status.getValue(request.target, request.slot);
+    if (before == null) return null;
+
+    const wanted = request.operator === 'set' ? request.amount - before : request.amount;
+    status.changeValue(request.target, request.slot, wanted);
+    const after = status.getValue(request.target, request.slot);
+    const modifier: BuffModifier = {
+      target: request.target,
+      slot: request.slot,
+      operator: request.operator,
+      applied: (after ?? before) - before,
+    };
+    writeBuffModifier(data, modifier);
+    return modifier;
+  }
+
+  private revertModifier(data: DataElement): void {
+    const modifier = readBuffModifier(data);
+    if (!modifier) return;
+    this.status()?.changeValue(modifier.target, modifier.slot, -modifier.applied);
+    clearBuffModifier(data);
   }
 
   decreaseRound(): void {
@@ -44,7 +90,7 @@ export class BuffManager {
     if (!container) return;
     for (const data of [...container.children]) {
       if (parseInt(String(data.value)) <= 0) {
-        data.destroy();
+        this.remove(data);
       }
     }
   }
@@ -71,10 +117,15 @@ export class BuffManager {
       data.value = round;
       if (round <= 0) {
         expired.push(data.name);
-        data.destroy();
+        this.remove(data);
       }
     }
     return expired;
+  }
+
+  /** The buff that goes by this name, once it is there to be found. */
+  find(name: string): DataElement | null {
+    return this.container?.getFirstElementByName(name) ?? null;
   }
 
   addRound(name: string, info: string = '', round: number = 3, appearance: BuffAppearance = {}): void {
@@ -88,6 +139,8 @@ export class BuffManager {
       })();
     const data = this.buffDataElement?.getFirstElementByName(name);
     if (data) {
+      // Putting the same buff on again starts it over, so whatever it moved goes back first.
+      this.revertModifier(data);
       data.value = round;
       data.currentValue = info;
       applyAppearance(data, appearance);
