@@ -105,6 +105,11 @@ const TARGET_STACK_GAP_PX = 52;
 const BUFF_DETAIL_ROW_HEIGHT_PX = 12;
 const BUFF_BADGE_ROW_HEIGHT_PX = 22;
 const BUFF_BADGES_PER_ROW = 6;
+const ROLL_HANDLE_MIN_PX = 20;
+const ROLL_HANDLE_MAX_PX = 56;
+const ROLL_HANDLE_SIZE_RATIO = 0.56;
+const ROLL_HANDLE_GAP_RATIO = 0.25;
+const ROLL_HANDLE_ICON_RATIO = 24 / 28;
 
 @Component({
   selector: 'game-character',
@@ -439,6 +444,27 @@ export class GameCharacterComponent {
       anchor: 'bottom',
       inner: this.imageBillboardEnabled() ? this.billboardTransformImage() : '',
     })
+  );
+
+  private readonly pieceCenterShift = computed(
+    () => `translateX(-50%) translateX(${(this.size() * this.gridSize) / 2}px)`
+  );
+
+  readonly rollHandleSizePx = computed(() => {
+    const scaled = this.size() * this.gridSize * ROLL_HANDLE_SIZE_RATIO;
+    return Math.round(Math.min(ROLL_HANDLE_MAX_PX, Math.max(ROLL_HANDLE_MIN_PX, scaled)));
+  });
+
+  readonly rollHandleIconSizePx = computed(() => Math.round(this.rollHandleSizePx() * ROLL_HANDLE_ICON_RATIO));
+
+  private readonly rollHandleGapPx = computed(() => Math.round(this.rollHandleSizePx() * ROLL_HANDLE_GAP_RATIO));
+
+  readonly rollHandleHeadTransform = computed(
+    () => `${this.pieceCenterShift()} translateY(-100%) translateY(${-this.rollHandleGapPx()}px)`
+  );
+
+  readonly rollHandleFootTransform = computed(
+    () => `${this.pieceCenterShift()} translateY(100%) translateY(${this.rollHandleGapPx()}px)`
   );
 
   readonly mode2dEnabled = computed(() => {

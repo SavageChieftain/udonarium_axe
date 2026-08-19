@@ -458,6 +458,94 @@ describe('GameCharacterComponent', () => {
     }
   });
 
+  describe('the handles that tip a piece over', () => {
+    const headOf = () => fixture.nativeElement.querySelector('[data-testid="roll-grab-head"]') as HTMLElement | null;
+    const footOf = () => fixture.nativeElement.querySelector('[data-testid="roll-grab-foot"]') as HTMLElement | null;
+
+    it('hangs both handles off the picture box instead of off what the layout leaves behind', () => {
+      ImageStorage.instance.add('roll-grab-url');
+      const character = GameCharacter.create('roll-grab', 1, 'roll-grab-url');
+      fixture.componentRef.setInput('gameCharacter', character);
+
+      try {
+        fixture.detectChanges();
+        const pictureBox = (fixture.nativeElement.querySelector('img.image.chrome-smooth-image-trick') as HTMLElement)
+          .parentElement;
+
+        expect(headOf()?.parentElement).toBe(pictureBox);
+        expect(footOf()?.parentElement).toBe(pictureBox);
+        expect(headOf()?.className).toContain('top-0');
+        expect(footOf()?.className).toContain('bottom-0');
+      } finally {
+        character.destroy();
+        ImageStorage.instance.delete('roll-grab-url');
+      }
+    });
+
+    it('centres each handle on the piece and pushes it clear of the edge it hangs off', () => {
+      const character = GameCharacter.create('roll-grab-offset', 1, '');
+      fixture.componentRef.setInput('gameCharacter', character);
+
+      try {
+        expect(component.rollHandleHeadTransform()).toBe(
+          'translateX(-50%) translateX(25px) translateY(-100%) translateY(-7px)'
+        );
+        expect(component.rollHandleFootTransform()).toBe(
+          'translateX(-50%) translateX(25px) translateY(100%) translateY(7px)'
+        );
+      } finally {
+        character.destroy();
+      }
+    });
+
+    it('sizes the handle off the piece and still leaves the biggest and the smallest grabbable', () => {
+      const sizeOf = (pieceSize: number) => {
+        const character = GameCharacter.create('roll-grab-size', pieceSize, '');
+        fixture.componentRef.setInput('gameCharacter', character);
+        try {
+          return { handle: component.rollHandleSizePx(), icon: component.rollHandleIconSizePx() };
+        } finally {
+          character.destroy();
+        }
+      };
+
+      expect(sizeOf(1)).toEqual({ handle: 28, icon: 24 });
+      expect(sizeOf(2).handle).toBe(56);
+      expect(sizeOf(4).handle).toBe(56);
+      expect(sizeOf(0.5).handle).toBe(20);
+    });
+
+    it('centres the handle on a piece of any width', () => {
+      const character = GameCharacter.create('roll-grab-wide', 4, '');
+      fixture.componentRef.setInput('gameCharacter', character);
+
+      try {
+        expect(component.rollHandleFootTransform()).toContain('translateX(-50%) translateX(100px)');
+      } finally {
+        character.destroy();
+      }
+    });
+
+    it('takes the handles away once the table lies flat', async () => {
+      const character = GameCharacter.create('roll-grab-hidden', 1, '');
+      fixture.componentRef.setInput('gameCharacter', character);
+
+      try {
+        fixture.detectChanges();
+        expect(footOf()).toBeTruthy();
+
+        TestBed.inject(TabletopService).currentTable.mode2d = true;
+        await new Promise<void>((resolve) => queueMicrotask(resolve));
+        fixture.detectChanges();
+
+        expect(headOf()).toBeNull();
+        expect(footOf()).toBeNull();
+      } finally {
+        character.destroy();
+      }
+    });
+  });
+
   describe('following the table setting for facing the camera', () => {
     it('takes the setting from the table', async () => {
       const tabletopService = TestBed.inject(TabletopService);
