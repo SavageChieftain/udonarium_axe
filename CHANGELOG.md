@@ -1,3 +1,27 @@
+## [1.41.0](https://github.com/SavageChieftain/udonarium_axe/compare/v1.40.0...v1.41.0) (2026-08-19)
+
+### ✨ Features
+
+* **buff:** grant a buff that moves a status and moves it back ([e2da581](https://github.com/SavageChieftain/udonarium_axe/commit/e2da581f3f0d494f49e655db4eade24a159b44a8))
+* **buff:** let a buff run out on a turn rather than only with the round ([b24b47f](https://github.com/SavageChieftain/udonarium_axe/commit/b24b47fa06ce11e294869ff84cc1b0ca104b732d))
+* **buff:** make the buff chart a gantt that scrolls and zooms ([152bda1](https://github.com/SavageChieftain/udonarium_axe/commit/152bda1f301ff2493c79cae5902b4e5657473d58))
+* **buff:** pick the trigger off the table rather than typing a name ([95f9162](https://github.com/SavageChieftain/udonarium_axe/commit/95f9162b15887281a28d17abec4457cc94115040))
+* **buff:** read the whole table's buffs off one chart ([fac1da1](https://github.com/SavageChieftain/udonarium_axe/commit/fac1da104991d8baff7f915b4026054b7add4c9f))
+* **chat:** keep the chat's look on the machine that set it ([3b1aa62](https://github.com/SavageChieftain/udonarium_axe/commit/3b1aa621b82b77ca375e2766433256cfdc4cb571))
+* **tabletop:** let a piece move up and down a pile it is in ([c8420bf](https://github.com/SavageChieftain/udonarium_axe/commit/c8420bf6db426991512091846c437da3ac6ae72d))
+
+### 🐛 Bug Fixes
+
+* **character:** put the roll handle back at the piece's feet ([b8d464b](https://github.com/SavageChieftain/udonarium_axe/commit/b8d464b8a63d25a0c988b2774fb7d2ad001d399f))
+* **character:** stop a piece hopping every time the table re-sorts ([fdf3378](https://github.com/SavageChieftain/udonarium_axe/commit/fdf33782a3e5d23796797873a74f76efc5884790))
+* **inventory:** wrap the round widget's controls to the width it minimises to ([1d657a8](https://github.com/SavageChieftain/udonarium_axe/commit/1d657a817b4f8875d3e8d89fa0edf6887083c154))
+* **tabletop:** make a piece's place in the pile actually take ([0a51881](https://github.com/SavageChieftain/udonarium_axe/commit/0a51881a345b77a5dd4902fe153ed184bcda1152))
+
+### 📝 Documentation
+
+* **website:** add v1.39.0 release notes ([849f287](https://github.com/SavageChieftain/udonarium_axe/commit/849f287b93f3da28880e388e74d5c17495ff2793))
+* **website:** add v1.40.0 release notes ([bbc1cc6](https://github.com/SavageChieftain/udonarium_axe/commit/bbc1cc6fdde225053b44f86bfa2724efb892db1d))
+
 ## [1.40.0](https://github.com/SavageChieftain/udonarium_axe/compare/v1.39.0...v1.40.0) (2026-08-18)
 
 ### ✨ Features
