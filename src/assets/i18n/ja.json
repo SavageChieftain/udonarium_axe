@@ -2333,6 +2333,20 @@
         "blaze": "地面の炎上",
         "frost": "氷結"
       }
+    },
+    "buffManager": {
+      "title": "バフマネージャー",
+      "currentRound": "現在 {{n}}R",
+      "rowCount": "{{n}} 体",
+      "empty": "バフの付いたコマはありません",
+      "rounds": "残R",
+      "effect": "効果",
+      "status": "ステータス",
+      "operator": "操作",
+      "modifierNote": "{{target}} を自動補正中",
+      "builderTitle": "自動計算バフの記法を作る",
+      "copy": "コピー",
+      "copied": "コピーしました"
     }
   },
   "app": {

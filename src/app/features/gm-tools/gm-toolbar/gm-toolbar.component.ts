@@ -19,6 +19,7 @@ import { WidgetVisibilityService } from '@axe/application/ui/widget-visibility.s
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { findOrphanedOwnership } from '@axe/domain/tabletop/ownership';
+import { BuffManagerPanelComponent } from '@axe/features/buff/buff-manager-panel/buff-manager-panel.component';
 import { HandRailService } from '@axe/features/card/hand-rail/hand-rail.service';
 import { EffectLibraryPanelComponent } from '@axe/features/effect/effect-library-panel/effect-library-panel.component';
 import { GameObjectListPanelComponent } from '@axe/features/gm-object-list/game-object-list-panel.component';
@@ -128,6 +129,16 @@ export class GmToolbarComponent {
       left: 120,
       top: 60,
       title: this.t('feature.gmTools.party.title'),
+    });
+  }
+
+  protected openBuffManager(): void {
+    this.panelService.open(BuffManagerPanelComponent, {
+      width: 560,
+      height: 420,
+      left: 160,
+      top: 100,
+      title: this.t('feature.buffManager.title'),
     });
   }
 

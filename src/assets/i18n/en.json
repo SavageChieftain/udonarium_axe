@@ -2333,6 +2333,20 @@
         "blaze": "Burning ground",
         "frost": "Frost"
       }
+    },
+    "buffManager": {
+      "title": "Buff manager",
+      "currentRound": "Round {{n}}",
+      "rowCount": "{{n}} pieces",
+      "empty": "No piece is carrying a buff",
+      "rounds": "Rounds",
+      "effect": "Effect",
+      "status": "Status",
+      "operator": "Operator",
+      "modifierNote": "Holding {{target}}",
+      "builderTitle": "Build a calculated buff command",
+      "copy": "Copy",
+      "copied": "Copied"
     }
   },
   "app": {

@@ -1,0 +1,221 @@
+<div class="text-ui-text flex h-full min-h-0 flex-col text-[12px]">
+  <div class="border-ui-border-panel flex items-center gap-2 border-b border-solid px-3 py-2">
+    <span class="text-ui-dim text-[11px]">{{ 'feature.buffManager.currentRound' | transloco: { n: round() } }}</span>
+    <span class="text-ui-dim ml-auto text-[11px]">{{
+      'feature.buffManager.rowCount' | transloco: { n: rows().length }
+    }}</span>
+  </div>
+
+  <div class="min-h-0 flex-1 overflow-auto px-3 py-2">
+    @if (rows().length < 1) {
+      <p class="text-ui-dim m-0 py-6 text-center text-[12px]">{{ 'feature.buffManager.empty' | transloco }}</p>
+    } @else {
+      <div class="grid gap-1" [style.grid-template-columns]="'11rem repeat(' + span() + ', minmax(2.2rem, 1fr))'">
+        <div class="text-ui-dim sticky top-0 z-10 text-[10px]"></div>
+        @for (column of columns(); track column) {
+          <div
+            class="text-ui-dim border-ui-border-panel sticky top-0 z-10 border-b border-solid pb-0.5 text-center text-[10px]"
+            [class.text-ui-accent]="$first"
+          >
+            {{ column }}R
+          </div>
+        }
+
+        @for (row of rows(); track row.characterIdentifier) {
+          <div class="flex items-center gap-1.5 py-1">
+            <div
+              class="rounded-ui-sm bg-ui-input border-ui-border-panel size-8 shrink-0 overflow-hidden border border-solid"
+            >
+              @if (row.imageUrl) {
+                <img class="size-full object-cover object-[50%_0%]" [src]="row.imageUrl | safe: 'resourceUrl'" />
+              }
+            </div>
+            <span class="text-ui-text min-w-0 flex-1 truncate text-[12px]">{{ row.characterName }}</span>
+          </div>
+          <div [style.grid-column]="'span ' + span()" class="min-w-0">
+            <div class="grid gap-0.5" [style.grid-template-columns]="'repeat(' + span() + ', minmax(0, 1fr))'">
+              @for (bar of row.bars; track bar.identifier) {
+                <button
+                  type="button"
+                  class="rounded-ui-sm my-0.5 flex min-w-0 cursor-pointer items-center gap-1 border border-solid border-transparent p-1 text-left text-white transition-[filter] hover:brightness-125"
+                  [style.grid-column]="'span ' + barWidth(bar)"
+                  [style.background]="bar.color"
+                  [class.border-white]="selected() === bar.identifier"
+                  [class.rounded-r-none]="isRunningOff(bar)"
+                  [title]="bar.name + ' / ' + bar.effect + ' / ' + bar.rounds + 'R'"
+                  (click)="select(bar)"
+                >
+                  <span class="shrink-0 text-[12px] leading-none">{{ bar.icon }}</span>
+                  <span class="min-w-0 flex-1 truncate text-[11px] leading-none">{{ bar.name }}</span>
+                  @if (bar.modifierTarget) {
+                    <span class="shrink-0 text-[10px] leading-none opacity-80">{{ bar.effect }}</span>
+                  }
+                  @if (bar.timing !== 'roundEnd') {
+                    <span
+                      class="shrink-0 text-[10px] leading-none opacity-90"
+                      [title]="'feature.character.buff.timing_' + bar.timing | transloco"
+                      >⏱</span
+                    >
+                  }
+                  <span class="shrink-0 text-[10px] leading-none opacity-70">{{ bar.rounds }}R</span>
+                </button>
+              }
+            </div>
+          </div>
+        }
+      </div>
+    }
+  </div>
+
+  @if (selectedElement(); as element) {
+    <div class="border-ui-border-panel bg-ui-elevated border-t border-solid px-3 py-2">
+      <div class="grid grid-cols-[auto_1fr_auto_1fr] items-center gap-x-2 gap-y-1.5">
+        <label class="text-ui-muted text-[11px]">{{ 'feature.character.buff.namePlaceholder' | transloco }}</label>
+        <input
+          class="rounded-ui-sm border-ui-border-panel bg-ui-input text-ui-text min-w-0 border border-solid px-1 py-0.5 text-[11px] outline-none"
+          [value]="element.name"
+          (change)="onSetName($event)"
+        />
+        <label class="text-ui-muted text-[11px]">{{ 'feature.buffManager.rounds' | transloco }}</label>
+        <input
+          type="number"
+          min="0"
+          class="rounded-ui-sm border-ui-border-panel bg-ui-input text-ui-text w-16 border border-solid px-1 py-0.5 text-right text-[11px] outline-none"
+          [value]="element.value"
+          (change)="onSetRounds($event)"
+        />
+
+        <label class="text-ui-muted text-[11px]">{{ 'feature.buffManager.effect' | transloco }}</label>
+        <input
+          class="rounded-ui-sm border-ui-border-panel bg-ui-input text-ui-text min-w-0 border border-solid px-1 py-0.5 text-[11px] outline-none"
+          [value]="element.currentValue"
+          (change)="onSetEffect($event)"
+        />
+        <label class="text-ui-muted text-[11px]">{{ 'feature.character.buff.timing' | transloco }}</label>
+        <div class="flex min-w-0 items-center gap-1">
+          <select
+            class="rounded-ui-sm border-ui-border-panel bg-ui-input text-ui-text cursor-pointer border border-solid px-1 py-0.5 text-[11px]"
+            [value]="selectedBar()?.timing"
+            (change)="onSetTiming($event)"
+          >
+            @for (choice of timingChoices; track choice) {
+              <option [value]="choice">{{ 'feature.character.buff.timing_' + choice | transloco }}</option>
+            }
+          </select>
+          @if (selectedBar()?.timing !== 'roundEnd') {
+            <input
+              class="rounded-ui-sm border-ui-border-panel bg-ui-input text-ui-text min-w-0 flex-1 border border-solid px-1 py-0.5 text-[11px] outline-none"
+              [value]="selectedBar()?.trigger"
+              (change)="onSetTrigger($event)"
+              [placeholder]="'feature.character.buff.triggerPlaceholder' | transloco"
+            />
+          }
+        </div>
+      </div>
+      <div class="mt-1.5 flex items-center gap-2">
+        @if (selectedBar()?.modifierTarget; as target) {
+          <span class="text-ui-dim text-[10px]">{{
+            'feature.buffManager.modifierNote' | transloco: { target: target }
+          }}</span>
+        }
+        <button
+          type="button"
+          class="text-ui-danger hover:bg-ui-danger-bg rounded-ui-sm ml-auto cursor-pointer border-none bg-transparent px-2 py-0.5 text-[11px]"
+          (click)="removeSelected()"
+        >
+          {{ 'feature.character.buff.delete' | transloco }}
+        </button>
+      </div>
+    </div>
+  }
+
+  <details class="border-ui-border-panel border-t border-solid">
+    <summary
+      class="text-ui-muted hover:text-ui-text cursor-pointer list-none px-3 py-1.5 text-[11px] [&::-webkit-details-marker]:hidden"
+    >
+      {{ 'feature.buffManager.builderTitle' | transloco }}
+    </summary>
+    <div class="px-3 pb-2">
+      <div class="grid grid-cols-[auto_1fr_auto_1fr] items-center gap-x-2 gap-y-1.5">
+        <label class="text-ui-muted text-[11px]">{{ 'feature.character.buff.namePlaceholder' | transloco }}</label>
+        <input
+          class="rounded-ui-sm border-ui-border-panel bg-ui-input text-ui-text min-w-0 border border-solid px-1 py-0.5 text-[11px] outline-none"
+          [ngModel]="builderName()"
+          (ngModelChange)="builderName.set($event)"
+          name="builderName"
+        />
+        <label class="text-ui-muted text-[11px]">{{ 'feature.buffManager.status' | transloco }}</label>
+        <input
+          class="rounded-ui-sm border-ui-border-panel bg-ui-input text-ui-text min-w-0 border border-solid px-1 py-0.5 text-[11px] outline-none"
+          [ngModel]="builderStatus()"
+          (ngModelChange)="builderStatus.set($event)"
+          name="builderStatus"
+        />
+
+        <label class="text-ui-muted text-[11px]">{{ 'feature.buffManager.operator' | transloco }}</label>
+        <div class="flex items-center gap-1">
+          <select
+            class="rounded-ui-sm border-ui-border-panel bg-ui-input text-ui-text cursor-pointer border border-solid px-1 py-0.5 text-[11px]"
+            [ngModel]="builderOperator()"
+            (ngModelChange)="builderOperator.set($event)"
+            name="builderOperator"
+          >
+            @for (choice of operatorChoices; track choice) {
+              <option [value]="choice">{{ choice }}</option>
+            }
+          </select>
+          <input
+            class="rounded-ui-sm border-ui-border-panel bg-ui-input text-ui-text w-14 border border-solid px-1 py-0.5 text-right text-[11px] outline-none"
+            [ngModel]="builderAmount()"
+            (ngModelChange)="builderAmount.set($event)"
+            name="builderAmount"
+          />
+        </div>
+        <label class="text-ui-muted text-[11px]">{{ 'feature.buffManager.rounds' | transloco }}</label>
+        <input
+          class="rounded-ui-sm border-ui-border-panel bg-ui-input text-ui-text w-16 border border-solid px-1 py-0.5 text-right text-[11px] outline-none"
+          [ngModel]="builderRounds()"
+          (ngModelChange)="builderRounds.set($event)"
+          name="builderRounds"
+        />
+
+        <label class="text-ui-muted text-[11px]">{{ 'feature.character.buff.timing' | transloco }}</label>
+        <select
+          class="rounded-ui-sm border-ui-border-panel bg-ui-input text-ui-text cursor-pointer border border-solid px-1 py-0.5 text-[11px]"
+          [ngModel]="builderTiming()"
+          (ngModelChange)="builderTiming.set($event)"
+          name="builderTiming"
+        >
+          @for (choice of timingChoices; track choice) {
+            <option [value]="choice">{{ 'feature.character.buff.timing_' + choice | transloco }}</option>
+          }
+        </select>
+        <label class="text-ui-muted text-[11px]">{{ 'feature.character.buff.trigger' | transloco }}</label>
+        <input
+          class="rounded-ui-sm border-ui-border-panel bg-ui-input text-ui-text min-w-0 border border-solid px-1 py-0.5 text-[11px] outline-none"
+          [ngModel]="builderTrigger()"
+          (ngModelChange)="builderTrigger.set($event)"
+          [placeholder]="'feature.character.buff.triggerPlaceholder' | transloco"
+          name="builderTrigger"
+        />
+      </div>
+
+      <div class="mt-2 flex items-center gap-2">
+        <code
+          class="rounded-ui-sm bg-ui-input border-ui-border-panel text-ui-text min-w-0 flex-1 truncate border border-solid px-1.5 py-1 text-[11px]"
+          >{{ builderCommand() }}</code
+        >
+        @if (builderPreview()) {
+          <span class="text-ui-dim shrink-0 text-[10px]">{{ builderPreview() }}</span>
+        }
+        <button
+          type="button"
+          class="bg-ui-accent-bg border-ui-accent text-ui-accent hover:bg-ui-accent-glow rounded-ui-sm shrink-0 cursor-pointer border border-solid px-2 py-1 text-[11px]"
+          (click)="copyCommand()"
+        >
+          {{ (copied() ? 'feature.buffManager.copied' : 'feature.buffManager.copy') | transloco }}
+        </button>
+      </div>
+    </div>
+  </details>
+</div>

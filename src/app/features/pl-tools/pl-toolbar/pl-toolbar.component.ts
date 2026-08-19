@@ -21,6 +21,7 @@ import { GameCharacter } from '@axe/domain/character/game-character';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { PeerRole } from '@axe/domain/peer/peer-role';
+import { BuffManagerPanelComponent } from '@axe/features/buff/buff-manager-panel/buff-manager-panel.component';
 import { HandRailService } from '@axe/features/card/hand-rail/hand-rail.service';
 import { EffectLibraryPanelComponent } from '@axe/features/effect/effect-library-panel/effect-library-panel.component';
 import { ActiveCharacterService } from '@axe/features/pl-tools/active-character.service';
@@ -136,6 +137,16 @@ export class PlToolbarComponent {
       left: 100,
       top: 40,
       title: this.t('common.panel.ownedCharacters'),
+    });
+  }
+
+  protected openBuffManager(): void {
+    this.panelService.open(BuffManagerPanelComponent, {
+      width: 560,
+      height: 420,
+      left: 160,
+      top: 100,
+      title: this.t('feature.buffManager.title'),
     });
   }
 
