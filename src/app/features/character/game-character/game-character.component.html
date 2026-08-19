@@ -33,7 +33,11 @@
         [ngStyle]="{ background: 'radial-gradient(circle, rgba(90,230,120,0.7) 0%, rgba(90,230,120,0) 70%)' }"
       ></div>
     }
-    <div class="animate-bounce-in size-full [-webkit-transform-style:preserve-3d] transform-3d">
+    <div
+      class="size-full [-webkit-transform-style:preserve-3d] transform-3d"
+      [class.animate-bounce-in]="entryBounce()"
+      (animationend)="onEntryBounceEnd($event)"
+    >
       <div
         data-testid="piece-body"
         class="size-full [-webkit-transform-style:preserve-3d] transform-3d"

@@ -361,6 +361,13 @@ export class GameCharacterComponent {
     if (char) char.isAltitudeIndicate = isAltitudeIndicate;
   }
 
+  protected readonly entryBounce = signal(true);
+
+  protected onEntryBounceEnd(event: AnimationEvent): void {
+    if (event.animationName !== 'bounceIn') return;
+    this.entryBounce.set(false);
+  }
+
   protected readonly buffViewMode = signal<BuffViewMode>('icon');
   protected readonly foldingBuff = computed(() => this.buffViewMode() !== 'detail');
 

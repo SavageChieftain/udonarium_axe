@@ -659,6 +659,44 @@ describe('GameCharacterComponent', () => {
     });
   });
 
+  describe('the hop a piece makes when it arrives', () => {
+    const bodyWrapper = () =>
+      (fixture.nativeElement.querySelector('[data-testid="piece-body"]') as HTMLElement).parentElement!;
+
+    it('hops once and then stays put, so re-ordering the table does not set it off again', () => {
+      const character = GameCharacter.create('bounce', 1, '');
+      fixture.componentRef.setInput('gameCharacter', character);
+
+      try {
+        fixture.detectChanges();
+        expect(bodyWrapper().className).toContain('animate-bounce-in');
+
+        bodyWrapper().dispatchEvent(new AnimationEvent('animationend', { animationName: 'bounceIn' }));
+        fixture.detectChanges();
+
+        expect(bodyWrapper().className).not.toContain('animate-bounce-in');
+      } finally {
+        character.destroy();
+      }
+    });
+
+    it('keeps hopping while another animation on the piece finishes', () => {
+      const character = GameCharacter.create('bounce-other', 1, '');
+      fixture.componentRef.setInput('gameCharacter', character);
+
+      try {
+        fixture.detectChanges();
+
+        bodyWrapper().dispatchEvent(new AnimationEvent('animationend', { animationName: 'hitShake' }));
+        fixture.detectChanges();
+
+        expect(bodyWrapper().className).toContain('animate-bounce-in');
+      } finally {
+        character.destroy();
+      }
+    });
+  });
+
   describe('setting up and tearing down', () => {
     it('reads without throwing before a character is set', () => {
       expect(() => {
