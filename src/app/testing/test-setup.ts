@@ -6,6 +6,7 @@ import { TestBed, TestModuleMetadata } from '@angular/core/testing';
 import { BrowserDynamicTestingModule, platformBrowserDynamicTesting } from '@angular/platform-browser-dynamic/testing';
 import { Logger, LogLevel } from '@axe/core/logging/logger';
 import { resetPeerContextProvider } from '@axe/core/network/peer-context-source';
+import { ObjectStore } from '@axe/core/sync/object-store';
 import { readdirSync, readFileSync, statSync } from 'fs';
 import { basename, join, resolve } from 'path';
 
@@ -233,7 +234,19 @@ try {
   /* already initialized */
 }
 
+// ObjectStore is a static singleton and the runner shares it across spec files, so whatever the
+// previous file left behind is still in it. Specs that count what they put in - the effect presets,
+// a vote registered under a fixed identifier - then read someone else's leftovers, or fail to
+// register at all because the identifier is taken. Empty it before every test rather than trusting
+// each file to clean up after itself.
+function emptyObjectStore(): void {
+  const store = ObjectStore.instance;
+  for (const object of store.getObjects()) store.delete(object, false);
+  store.clearDeleteHistory();
+}
+
 beforeEach(async () => {
+  emptyObjectStore();
   resetPeerContextProvider();
   await resolveComponentResources(resourceResolver as Parameters<typeof resolveComponentResources>[0]);
   applyConfigureTestingModuleWrapper();
