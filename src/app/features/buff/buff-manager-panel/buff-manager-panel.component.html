@@ -1,74 +1,179 @@
 <div class="text-ui-text flex h-full min-h-0 flex-col text-[12px]">
-  <div class="border-ui-border-panel flex items-center gap-2 border-b border-solid px-3 py-2">
-    <span class="text-ui-dim text-[11px]">{{ 'feature.buffManager.currentRound' | transloco: { n: round() } }}</span>
-    <span class="text-ui-dim ml-auto text-[11px]">{{
+  <div class="border-ui-border-panel flex shrink-0 items-center gap-2 border-b border-solid px-3 py-1.5">
+    <span class="bg-ui-accent-bg text-ui-accent rounded-ui-sm px-1.5 py-0.5 text-[11px] font-bold whitespace-nowrap">{{
+      'feature.buffManager.currentRound' | transloco: { n: round() }
+    }}</span>
+    <span class="text-ui-dim text-[11px] whitespace-nowrap">{{
       'feature.buffManager.rowCount' | transloco: { n: rows().length }
     }}</span>
+    <span class="text-ui-dim text-[11px]">/</span>
+    <span class="text-ui-dim text-[11px] whitespace-nowrap">{{
+      'feature.buffManager.buffCount' | transloco: { n: buffCount() }
+    }}</span>
+
+    <div class="ml-auto flex shrink-0 items-center gap-0.5">
+      <button
+        data-testid="chart-back-to-now"
+        type="button"
+        class="text-ui-muted hover:bg-ui-hover hover:text-ui-text rounded-ui-sm flex size-6 cursor-pointer items-center justify-center border-none bg-transparent p-0 [&_.material-icons]:text-[16px]!"
+        [title]="'feature.buffManager.backToNow' | transloco"
+        (click)="backToNow()"
+      >
+        <i class="material-icons">first_page</i>
+      </button>
+      <button
+        data-testid="chart-zoom-out"
+        type="button"
+        class="text-ui-muted hover:bg-ui-hover hover:text-ui-text rounded-ui-sm flex size-6 cursor-pointer items-center justify-center border-none bg-transparent p-0 disabled:cursor-not-allowed disabled:opacity-40 [&_.material-icons]:text-[16px]!"
+        [disabled]="!canZoomOut()"
+        [title]="'feature.buffManager.zoomOut' | transloco"
+        (click)="zoomOut()"
+      >
+        <i class="material-icons">remove</i>
+      </button>
+      <button
+        data-testid="chart-zoom-in"
+        type="button"
+        class="text-ui-muted hover:bg-ui-hover hover:text-ui-text rounded-ui-sm flex size-6 cursor-pointer items-center justify-center border-none bg-transparent p-0 disabled:cursor-not-allowed disabled:opacity-40 [&_.material-icons]:text-[16px]!"
+        [disabled]="!canZoomIn()"
+        [title]="'feature.buffManager.zoomIn' | transloco"
+        (click)="zoomIn()"
+      >
+        <i class="material-icons">add</i>
+      </button>
+    </div>
   </div>
 
-  <div class="min-h-0 flex-1 overflow-auto px-3 py-2">
+  <div #chartScroller class="min-h-0 flex-1 overflow-auto">
     @if (rows().length < 1) {
-      <p class="text-ui-dim m-0 py-6 text-center text-[12px]">{{ 'feature.buffManager.empty' | transloco }}</p>
+      <div class="flex flex-col items-center gap-2 px-6 py-10 text-center">
+        <span class="text-ui-dim text-[12px]">{{ 'feature.buffManager.empty' | transloco }}</span>
+        <span class="text-ui-dim max-w-80 text-[11px] leading-relaxed opacity-70">{{
+          'feature.buffManager.emptyHint' | transloco
+        }}</span>
+      </div>
     } @else {
-      <div class="grid gap-1" [style.grid-template-columns]="'11rem repeat(' + span() + ', minmax(2.2rem, 1fr))'">
-        <div class="text-ui-dim sticky top-0 z-10 text-[10px]"></div>
-        @for (column of columns(); track column) {
+      <div class="flex flex-col pb-2" [style.width.px]="chartWidthPx()">
+        <div class="bg-ui-panel border-ui-border-panel sticky top-0 z-20 flex items-end border-b border-solid py-1">
           <div
-            class="text-ui-dim border-ui-border-panel sticky top-0 z-10 border-b border-solid pb-0.5 text-center text-[10px]"
-            [class.text-ui-accent]="$first"
+            class="bg-ui-panel sticky left-0 z-10 flex shrink-0 items-end px-3"
+            [style.width.px]="labelWidthPx"
+            [style.min-width.px]="labelWidthPx"
           >
-            {{ column }}R
+            <span class="text-ui-accent text-[10px] leading-tight font-bold">{{
+              'feature.buffManager.nowMarker' | transloco
+            }}</span>
           </div>
-        }
+          @for (column of columns(); track column; let i = $index) {
+            <div
+              data-testid="round-column"
+              class="shrink-0 overflow-hidden border-l border-solid text-center text-[10px] leading-tight"
+              [style.width.px]="columnWidth()"
+              [style.min-width.px]="columnWidth()"
+              [class.border-ui-accent]="i === 0"
+              [class.text-ui-accent]="i === 0"
+              [class.font-bold]="i === 0"
+              [class.border-ui-border-panel]="i !== 0"
+              [class.text-ui-dim]="i !== 0"
+            >
+              {{ column }}
+            </div>
+          }
+        </div>
 
         @for (row of rows(); track row.characterIdentifier) {
-          <div class="flex items-center gap-1.5 py-1">
+          <div data-testid="buff-group" class="flex items-center pt-2 pb-1">
             <div
-              class="rounded-ui-sm bg-ui-input border-ui-border-panel size-8 shrink-0 overflow-hidden border border-solid"
+              class="bg-ui-panel sticky left-0 z-10 flex shrink-0 items-center gap-1.5 px-3"
+              [style.width.px]="labelWidthPx"
+              [style.min-width.px]="labelWidthPx"
             >
-              @if (row.imageUrl) {
-                <img class="size-full object-cover object-[50%_0%]" [src]="row.imageUrl | safe: 'resourceUrl'" />
-              }
+              <div
+                class="rounded-ui-sm bg-ui-input border-ui-border-panel size-7 shrink-0 overflow-hidden border border-solid"
+              >
+                @if (row.imageUrl) {
+                  <img class="size-full object-cover object-[50%_0%]" [src]="row.imageUrl | safe: 'resourceUrl'" />
+                }
+              </div>
+              <span data-testid="buff-group-name" class="text-ui-text min-w-0 truncate text-[12px] font-bold">{{
+                row.characterName
+              }}</span>
             </div>
-            <span class="text-ui-text min-w-0 flex-1 truncate text-[12px]">{{ row.characterName }}</span>
+            <span class="text-ui-dim shrink-0 pl-1 text-[10px] whitespace-nowrap">{{
+              'feature.buffManager.groupCount' | transloco: { n: row.bars.length }
+            }}</span>
           </div>
-          <div [style.grid-column]="'span ' + span()" class="min-w-0">
-            <div class="grid gap-0.5" [style.grid-template-columns]="'repeat(' + span() + ', minmax(0, 1fr))'">
-              @for (bar of row.bars; track bar.identifier) {
+
+          @for (bar of row.bars; track bar.identifier) {
+            <div class="hover:bg-ui-hover/40 flex items-center py-px transition-colors">
+              <div
+                class="bg-ui-panel sticky left-0 z-10 flex shrink-0 items-baseline gap-1 pr-2 pl-6"
+                [style.width.px]="labelWidthPx"
+                [style.min-width.px]="labelWidthPx"
+              >
+                <span class="shrink-0 text-[11px] leading-none">{{ bar.icon }}</span>
+                <span
+                  class="min-w-0 truncate text-[11px]"
+                  [class.text-ui-accent]="selected() === bar.identifier"
+                  [class.font-bold]="selected() === bar.identifier"
+                  >{{ bar.name }}</span
+                >
+                @if (bar.effect) {
+                  <span class="text-ui-dim min-w-0 shrink-0 truncate text-[10px]">{{ bar.effect }}</span>
+                }
+              </div>
+              <div class="relative flex shrink-0 items-center py-0.5" [style.width.px]="span() * columnWidth()">
+                <div class="pointer-events-none absolute inset-y-0 left-0 flex">
+                  @for (column of columns(); track column; let i = $index) {
+                    <div
+                      class="shrink-0 border-l border-solid"
+                      [style.width.px]="columnWidth()"
+                      [class.border-ui-accent]="i === 0"
+                      [class.opacity-40]="i === 0"
+                      [class.border-ui-border-panel]="i !== 0"
+                      [class.opacity-30]="i !== 0"
+                    ></div>
+                  }
+                </div>
                 <button
+                  data-testid="buff-bar"
                   type="button"
-                  class="rounded-ui-sm my-0.5 flex min-w-0 cursor-pointer items-center gap-1 border border-solid border-transparent p-1 text-left text-white transition-[filter] hover:brightness-125"
-                  [style.grid-column]="'span ' + barWidth(bar)"
+                  class="rounded-ui-sm relative flex h-5 shrink-0 cursor-pointer items-center gap-1 overflow-hidden border border-solid border-transparent px-1 text-left text-white transition-[filter,box-shadow] hover:brightness-125"
+                  [style.width.px]="barWidthPx(bar)"
                   [style.background]="bar.color"
                   [class.border-white]="selected() === bar.identifier"
+                  [class.shadow-[0_0_0_2px_var(--ui-accent-glow)]]="selected() === bar.identifier"
                   [class.rounded-r-none]="isRunningOff(bar)"
                   [title]="bar.name + ' / ' + bar.effect + ' / ' + bar.rounds + 'R'"
                   (click)="select(bar)"
                 >
-                  <span class="shrink-0 text-[12px] leading-none">{{ bar.icon }}</span>
-                  <span class="min-w-0 flex-1 truncate text-[11px] leading-none">{{ bar.name }}</span>
-                  @if (bar.modifierTarget) {
-                    <span class="shrink-0 text-[10px] leading-none opacity-80">{{ bar.effect }}</span>
-                  }
                   @if (bar.timing !== 'roundEnd') {
                     <span
                       class="shrink-0 text-[10px] leading-none opacity-90"
                       [title]="'feature.character.buff.timing_' + bar.timing | transloco"
-                      >⏱</span
+                      >&#9200;</span
                     >
                   }
-                  <span class="shrink-0 text-[10px] leading-none opacity-70">{{ bar.rounds }}R</span>
+                  <span class="min-w-0 flex-1"></span>
+                  <span class="shrink-0 text-[10px] leading-none font-bold whitespace-nowrap">{{ bar.rounds }}R</span>
                 </button>
-              }
+                @if (isRunningOff(bar)) {
+                  <span
+                    class="text-ui-dim absolute right-0 pr-0.5 text-[10px] leading-none"
+                    [title]="'feature.buffManager.overflow' | transloco: { n: span() }"
+                    >&#8250;&#8250;</span
+                  >
+                }
+              </div>
             </div>
-          </div>
+          }
         }
       </div>
     }
   </div>
 
-  @if (selectedElement(); as element) {
-    <div class="border-ui-border-panel bg-ui-elevated border-t border-solid px-3 py-2">
+  <div class="border-ui-border-panel bg-ui-elevated shrink-0 border-t border-solid px-3 py-2">
+    @if (selectedElement(); as element) {
       <div class="grid grid-cols-[auto_1fr_auto_1fr] items-center gap-x-2 gap-y-1.5">
         <label class="text-ui-muted text-[11px]">{{ 'feature.character.buff.namePlaceholder' | transloco }}</label>
         <input
@@ -130,8 +235,12 @@
           {{ 'feature.character.buff.delete' | transloco }}
         </button>
       </div>
-    </div>
-  }
+    } @else {
+      <p data-testid="editor-hint" class="text-ui-dim m-0 py-1.5 text-center text-[11px]">
+        {{ 'feature.buffManager.selectHint' | transloco }}
+      </p>
+    }
+  </div>
 
   <details class="border-ui-border-panel border-t border-solid">
     <summary

@@ -61,10 +61,11 @@ export function toTimelineBars(buffRoot: DataElement | null): BuffTimelineBar[] 
 
 /**
  * How many columns the chart needs: the longest buff on the table, held between a floor
- * that keeps a nearly empty chart from looking broken and a ceiling that keeps one long
- * buff from squeezing the rest into nothing.
+ * that keeps a nearly empty chart from looking broken and a ceiling that stops a nonsense
+ * number of rounds from drawing a column apiece. The chart scrolls, so the span is not
+ * cut down to whatever happens to fit on screen.
  */
-export function timelineSpan(rows: readonly BuffTimelineRow[], min = 4, max = 12): number {
+export function timelineSpan(rows: readonly BuffTimelineRow[], min = 4, max = 60): number {
   const longest = rows.reduce((total, row) => Math.max(total, ...row.bars.map((bar) => bar.rounds), 0), 0);
   return Math.min(max, Math.max(min, longest));
 }
@@ -73,4 +74,9 @@ export function timelineSpan(rows: readonly BuffTimelineRow[], min = 4, max = 12
 export function timelineColumns(currentRound: number, span: number): number[] {
   const start = Math.max(1, currentRound);
   return Array.from({ length: span }, (_, i) => start + i);
+}
+
+/** Columns a bar covers. Every buff starts at the round being played, so it only needs a width. */
+export function barColumns(rounds: number, span: number): number {
+  return Math.min(span, Math.max(1, rounds));
 }

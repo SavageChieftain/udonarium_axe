@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, ElementRef, inject, signal, viewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { GameObjectInventoryService } from '@axe/application/inventory/game-object-inventory.service';
@@ -7,6 +7,7 @@ import { TurnOrderService } from '@axe/application/turn/turn-order.service';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { describeBuffModifier, parseBuffModifierRequest } from '@axe/domain/character/buff-modifier';
 import {
+  barColumns,
   BuffTimelineBar,
   BuffTimelineRow,
   timelineColumns,
@@ -21,6 +22,11 @@ import { SafePipe } from '@axe/ui/pipes/safe.pipe';
 import { TranslocoModule } from '@jsverse/transloco';
 
 const BUILDER_OPERATORS = ['+', '-', '='] as const;
+const COLUMN_WIDTH_MIN_PX = 16;
+const COLUMN_WIDTH_MAX_PX = 112;
+const COLUMN_WIDTH_STEP_PX = 12;
+const COLUMN_WIDTH_DEFAULT_PX = 44;
+const CHART_LABEL_WIDTH_PX = 176;
 
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -75,9 +81,41 @@ export class BuffManagerPanelComponent {
   readonly span = computed(() => timelineSpan(this.rows()));
   readonly columns = computed(() => timelineColumns(this.round(), this.span()));
 
+  readonly buffCount = computed(() => this.rows().reduce((total, row) => total + row.bars.length, 0));
+
+  private readonly chartScroller = viewChild<ElementRef<HTMLElement>>('chartScroller');
+
+  readonly labelWidthPx = CHART_LABEL_WIDTH_PX;
+
+  /** How wide one round is drawn. The chart scrolls, so this is a zoom rather than a fit. */
+  readonly columnWidth = signal(COLUMN_WIDTH_DEFAULT_PX);
+
+  readonly canZoomIn = computed(() => this.columnWidth() < COLUMN_WIDTH_MAX_PX);
+  readonly canZoomOut = computed(() => this.columnWidth() > COLUMN_WIDTH_MIN_PX);
+
+  zoomIn(): void {
+    this.columnWidth.update((width) => Math.min(COLUMN_WIDTH_MAX_PX, width + COLUMN_WIDTH_STEP_PX));
+  }
+
+  zoomOut(): void {
+    this.columnWidth.update((width) => Math.max(COLUMN_WIDTH_MIN_PX, width - COLUMN_WIDTH_STEP_PX));
+  }
+
+  /** Back to the round being played, which is the left edge of the chart. */
+  backToNow(): void {
+    const scroller = this.chartScroller()?.nativeElement;
+    if (scroller) scroller.scrollLeft = 0;
+  }
+
+  readonly chartWidthPx = computed(() => CHART_LABEL_WIDTH_PX + this.span() * this.columnWidth());
+
   /** Rounds that fall inside the chart, so a longer buff runs to the edge rather than off it. */
   barWidth(bar: BuffTimelineBar): number {
-    return Math.min(this.span(), Math.max(1, bar.rounds));
+    return barColumns(bar.rounds, this.span());
+  }
+
+  barWidthPx(bar: BuffTimelineBar): number {
+    return this.barWidth(bar) * this.columnWidth();
   }
 
   isRunningOff(bar: BuffTimelineBar): boolean {

@@ -2347,7 +2347,16 @@
       "modifierNote": "Holding {{target}}",
       "builderTitle": "Build a calculated buff command",
       "copy": "Copy",
-      "copied": "Copied"
+      "copied": "Copied",
+      "buffCount": "{{n}} buffs",
+      "groupCount": "{{n}} buffs",
+      "selectHint": "Pick a bar to edit its name and the rounds it has left",
+      "emptyHint": "Right-click a piece to add a buff, or type &!name/status/+/2/3 into the chat",
+      "overflow": "{{n}}R or more",
+      "nowMarker": "now",
+      "zoomIn": "Zoom in",
+      "zoomOut": "Zoom out",
+      "backToNow": "Back to now"
     }
   },
   "app": {

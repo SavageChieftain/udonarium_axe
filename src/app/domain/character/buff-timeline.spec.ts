@@ -1,4 +1,4 @@
-import { timelineColumns, timelineSpan, toTimelineBars } from '@axe/domain/character/buff-timeline';
+import { barColumns, timelineColumns, timelineSpan, toTimelineBars } from '@axe/domain/character/buff-timeline';
 import { DataElement, DataElementAttribute, DataElementType } from '@axe/domain/data/data-element';
 
 describe('buff-timeline', () => {
@@ -77,8 +77,27 @@ describe('buff-timeline', () => {
       expect(timelineSpan([row([2]), row([7])])).toBe(7);
     });
 
-    it('stops growing before one long buff squeezes out the rest', () => {
-      expect(timelineSpan([row([40])])).toBe(12);
+    it('follows a long buff rather than cutting it to what fits on screen', () => {
+      expect(timelineSpan([row([40])])).toBe(40);
+    });
+
+    it('stops at a span nobody would want a column apiece for', () => {
+      expect(timelineSpan([row([400])])).toBe(60);
+    });
+  });
+
+  describe('barColumns()', () => {
+    it('gives a bar a column per round it has left', () => {
+      expect(barColumns(1, 4)).toBe(1);
+      expect(barColumns(3, 4)).toBe(3);
+    });
+
+    it('holds a bar that outruns the chart at its edge', () => {
+      expect(barColumns(30, 4)).toBe(4);
+    });
+
+    it('still shows a buff that has run out of rounds', () => {
+      expect(barColumns(0, 4)).toBe(1);
     });
   });
 

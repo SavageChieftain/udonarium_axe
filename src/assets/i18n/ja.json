@@ -2347,7 +2347,16 @@
       "modifierNote": "{{target}} を自動補正中",
       "builderTitle": "自動計算バフの記法を作る",
       "copy": "コピー",
-      "copied": "コピーしました"
+      "copied": "コピーしました",
+      "buffCount": "{{n}} 件",
+      "groupCount": "バフ {{n}} 件",
+      "selectHint": "バーを選ぶと、名前や残ラウンドをここで直せます",
+      "emptyHint": "コマを右クリックしてバフを付けるか、チャットに &!名前/ステータス/+/2/3 と打ってください",
+      "overflow": "{{n}}R 以上",
+      "nowMarker": "今",
+      "zoomIn": "広げる",
+      "zoomOut": "縮める",
+      "backToNow": "今に戻る"
     }
   },
   "app": {

@@ -56,10 +56,11 @@ describe('BuffManagerPanelComponent', () => {
 
   it('holds a bar that outruns the chart to its edge', () => {
     const buffed = makeCharacter('長持ち');
-    buffed.buffs.addRound('祝福', '', 30);
+    buffed.buffs.addRound('祝福', '', 400);
     onTable([buffed]);
 
     const bar = component.rows()[0].bars[0];
+    expect(component.span()).toBe(60);
     expect(component.barWidth(bar)).toBe(component.span());
     expect(component.isRunningOff(bar)).toBe(true);
   });
@@ -102,6 +103,113 @@ describe('BuffManagerPanelComponent', () => {
     component.removeSelected();
 
     expect(component.rows()).toEqual([]);
+  });
+
+  describe('what the chart draws', () => {
+    const all = (testId: string) =>
+      Array.from(fixture.nativeElement.querySelectorAll(`[data-testid="${testId}"]`)) as HTMLElement[];
+
+    it('gives every buff its own lane under the piece that carries it', () => {
+      const first = makeCharacter('キャラA');
+      first.buffs.addRound('猛攻撃', '命中+2', 3);
+      first.buffs.addRound('祝福', '', 1);
+      const second = makeCharacter('キャラB');
+      second.buffs.addRound('守り', '', 2);
+      onTable([first, second]);
+      fixture.detectChanges();
+
+      expect(all('buff-group-name').map((name) => name.textContent?.trim())).toEqual(['キャラA', 'キャラB']);
+      expect(all('buff-bar')).toHaveLength(3);
+    });
+
+    it('starts every bar at the round being played, so a second buff does not slide right', () => {
+      const character = makeCharacter('キャラA');
+      character.buffs.addRound('長い', '', 3);
+      character.buffs.addRound('短い', '', 1);
+      onTable([character]);
+      fixture.detectChanges();
+
+      const width = component.columnWidth();
+      expect(all('buff-bar').map((bar) => bar.style.width)).toEqual([`${width * 3}px`, `${width}px`]);
+      expect(all('buff-bar').every((bar) => bar.style.marginLeft === '')).toBe(true);
+    });
+
+    it('draws one guide per round, headed by the round it stands for', () => {
+      const character = makeCharacter('キャラA');
+      character.buffs.addRound('猛攻撃', '', 2);
+      onTable([character]);
+      fixture.detectChanges();
+
+      expect(all('round-column').map((column) => column.textContent?.trim())).toEqual(['1', '2', '3', '4']);
+    });
+
+    it('draws a column per round the longest buff runs, rather than cutting it to fit', () => {
+      const character = makeCharacter('キャラA');
+      character.buffs.addRound('祝福', '', 30);
+      onTable([character]);
+
+      expect(component.span()).toBe(30);
+      expect(component.isRunningOff(component.rows()[0].bars[0])).toBe(false);
+      expect(component.chartWidthPx()).toBe(component.labelWidthPx + 30 * component.columnWidth());
+    });
+
+    it('widens and narrows the chart on the zoom, and stops at both ends', () => {
+      const character = makeCharacter('キャラA');
+      character.buffs.addRound('猛攻撃', '', 2);
+      onTable([character]);
+      const start = component.columnWidth();
+
+      component.zoomIn();
+      expect(component.columnWidth()).toBeGreaterThan(start);
+      expect(component.chartWidthPx()).toBe(component.labelWidthPx + component.span() * component.columnWidth());
+
+      while (component.canZoomOut()) component.zoomOut();
+      expect(component.columnWidth()).toBe(16);
+      expect(component.canZoomOut()).toBe(false);
+
+      while (component.canZoomIn()) component.zoomIn();
+      expect(component.columnWidth()).toBe(112);
+      expect(component.canZoomIn()).toBe(false);
+    });
+
+    it('scrolls the chart back to the round being played', () => {
+      const character = makeCharacter('キャラA');
+      character.buffs.addRound('祝福', '', 30);
+      onTable([character]);
+      fixture.detectChanges();
+
+      const scroller = fixture.nativeElement.querySelector('.overflow-auto') as HTMLElement;
+      scroller.scrollLeft = 400;
+      component.backToNow();
+
+      expect(scroller.scrollLeft).toBe(0);
+    });
+
+    it('counts the buffs as well as the pieces', () => {
+      const first = makeCharacter('キャラA');
+      first.buffs.addRound('猛攻撃', '', 3);
+      first.buffs.addRound('祝福', '', 1);
+      const second = makeCharacter('キャラB');
+      second.buffs.addRound('守り', '', 2);
+      onTable([first, second]);
+
+      expect(component.rows()).toHaveLength(2);
+      expect(component.buffCount()).toBe(3);
+    });
+
+    it('keeps the editor slot filled with a hint until a bar is picked', () => {
+      const character = makeCharacter('キャラA');
+      character.buffs.addRound('猛攻撃', '命中+2', 3);
+      onTable([character]);
+      fixture.detectChanges();
+
+      expect(all('editor-hint')).toHaveLength(1);
+
+      component.select(component.rows()[0].bars[0]);
+      fixture.detectChanges();
+
+      expect(all('editor-hint')).toHaveLength(0);
+    });
   });
 
   describe('the command builder', () => {
