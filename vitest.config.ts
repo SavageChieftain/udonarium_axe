@@ -2,6 +2,8 @@ import angular from '@analogjs/vite-plugin-angular';
 import { resolve } from 'path';
 import { defineConfig } from 'vitest/config';
 
+import base from './vitest-base.config';
+
 export default defineConfig({
   plugins: [angular({ jit: false })],
   resolve: {
@@ -12,6 +14,7 @@ export default defineConfig({
     },
   },
   test: {
+    ...base.test,
     globals: true,
     environment: 'happy-dom',
     pool: 'threads',

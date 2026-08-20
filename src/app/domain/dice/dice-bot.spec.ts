@@ -46,9 +46,14 @@ describe('DiceBot', () => {
       return { ID: 'FakeSystem', eval: () => result } as unknown as Parameters<typeof DiceBot.diceRollAsync>[1];
     }
 
-    // The rolls are served from one queue, and a system loaded by an earlier test sits ahead
-    // of it, so waiting for that can reach the usual limit.
-    it('puts the roll and whether it succeeded onto the result', { timeout: 20000 }, async () => {
+    // Importing DiceBot queues a load of every BCDice system, and every roll goes
+    // through that same queue, so the first roll pays for the whole catalogue.
+    // Drain it here instead of charging it to whichever test rolls first.
+    beforeAll(async () => {
+      await DiceBot.diceRollAsync('1D1', fakeSystem(null));
+    });
+
+    it('puts the roll and whether it succeeded onto the result', async () => {
       const rolled = await DiceBot.diceRollAsync(
         '2D6',
         fakeSystem({
@@ -71,7 +76,7 @@ describe('DiceBot', () => {
       expect(rolled.detail?.system).toBe('FakeSystem');
     });
 
-    it('returns nothing when nothing could be rolled', { timeout: 20000 }, async () => {
+    it('returns nothing when nothing could be rolled', async () => {
       const rolled = await DiceBot.diceRollAsync('2D6', fakeSystem(null));
 
       expect(rolled.result).toBe('');
