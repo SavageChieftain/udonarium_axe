@@ -1,15 +1,102 @@
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
+
 import { defineConfig } from 'vitepress';
 
 const repo = 'https://github.com/SavageChieftain/udonarium_axe';
 const base = '/udonarium_axe/';
 
+// Social crawlers ignore relative URLs, so the deployed origin has to be
+// spelled out here. Change it together with the Pages settings.
+const siteUrl = `https://savagechieftain.github.io${base}`;
+const siteName = 'Udonarium Axe';
+const siteDescription = 'ブラウザで動く TRPG オンラインセッション支援ツール — 利用ガイド';
+const ogImage = `${siteUrl}og.jpg`;
+
+/**
+ * The first real paragraph of a page, so a shared link describes that page
+ * instead of repeating the site description. Headings, containers, tables,
+ * lists and component tags are skipped.
+ */
+function leadParagraph(file: string): string {
+  let source: string;
+  try {
+    source = readFileSync(file, 'utf-8');
+  } catch {
+    return '';
+  }
+  const body = source.replace(/^---\r?\n[\s\S]*?\r?\n---\r?\n/, '');
+  const paragraphs: string[] = [];
+  let current: string[] = [];
+  const length = () => paragraphs.join('').length;
+  const flush = () => {
+    if (current.length) paragraphs.push(current.join(''));
+    current = [];
+  };
+
+  for (const raw of body.split('\n')) {
+    const line = raw.trim();
+    if (!line) {
+      flush();
+      // a release note opens with just its date, so keep reading until the
+      // description actually says something
+      if (length() >= 60) break;
+      continue;
+    }
+    if (/^[#>|:`-]|^<|^\d+\./.test(line)) {
+      flush();
+      if (paragraphs.length) break;
+      continue;
+    }
+    current.push(line);
+  }
+  flush();
+
+  const text = paragraphs
+    .join(' ')
+    .replace(/\[([^\]]*)\]\([^)]*\)/g, '$1')
+    .replace(/[*`]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+  return text.length > 140 ? `${text.slice(0, 139)}…` : text;
+}
+
 export default defineConfig({
   lang: 'ja-JP',
   title: 'Udonarium Axe',
-  description: 'ブラウザで動く TRPG オンラインセッション支援ツール — 利用ガイド',
+  description: siteDescription,
   base,
   cleanUrls: true,
   lastUpdated: true,
+  transformPageData(pageData, { siteConfig }) {
+    const isHome = pageData.relativePath === 'index.md';
+    const title = isHome ? siteName : `${pageData.title} | ${siteName}`;
+    const description =
+      pageData.description ||
+      (isHome ? siteDescription : leadParagraph(join(siteConfig.srcDir, pageData.filePath))) ||
+      siteDescription;
+    const url = siteUrl + pageData.relativePath.replace(/index\.md$/, '').replace(/\.md$/, '');
+
+    pageData.frontmatter.head ??= [];
+    pageData.frontmatter.head.push(
+      ['meta', { property: 'og:type', content: 'website' }],
+      ['meta', { property: 'og:site_name', content: siteName }],
+      ['meta', { property: 'og:locale', content: 'ja_JP' }],
+      ['meta', { property: 'og:title', content: title }],
+      ['meta', { property: 'og:description', content: description }],
+      ['meta', { property: 'og:url', content: url }],
+      ['meta', { property: 'og:image', content: ogImage }],
+      ['meta', { property: 'og:image:type', content: 'image/jpeg' }],
+      ['meta', { property: 'og:image:width', content: '1200' }],
+      ['meta', { property: 'og:image:height', content: '630' }],
+      ['meta', { property: 'og:image:alt', content: `${siteName} — ${siteDescription}` }],
+      ['meta', { name: 'twitter:card', content: 'summary_large_image' }],
+      ['meta', { name: 'twitter:title', content: title }],
+      ['meta', { name: 'twitter:description', content: description }],
+      ['meta', { name: 'twitter:image', content: ogImage }],
+      ['link', { rel: 'canonical', href: url }]
+    );
+  },
   head: [
     ['link', { rel: 'icon', type: 'image/svg+xml', href: `${base}favicon.svg` }],
     ['link', { rel: 'apple-touch-icon', href: `${base}icon-180.png` }],
