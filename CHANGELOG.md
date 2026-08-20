@@ -1,3 +1,13 @@
+## [1.41.1](https://github.com/SavageChieftain/udonarium_axe/compare/v1.41.0...v1.41.1) (2026-08-20)
+
+### 🐛 Bug Fixes
+
+* **testing:** empty the object store before every test ([3e317fd](https://github.com/SavageChieftain/udonarium_axe/commit/3e317fdf4097bbe1d9636e70bd0557e60dfdc6ae))
+
+### 📝 Documentation
+
+* **website:** add v1.41.0 release notes and document the buff work ([427be8b](https://github.com/SavageChieftain/udonarium_axe/commit/427be8b7a3d4dcb4f620b330d77303ce2c1bb577))
+
 ## [1.41.0](https://github.com/SavageChieftain/udonarium_axe/compare/v1.40.0...v1.41.0) (2026-08-19)
 
 ### ✨ Features
