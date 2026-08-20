@@ -1,0 +1,151 @@
+/**
+ * Brand palette is taken from the app's own theme colour (#8b7cf6) so the docs
+ * and the tool read as one product.
+ */
+:root {
+  --vp-c-brand-1: #6b4fd8;
+  --vp-c-brand-2: #7c62e0;
+  --vp-c-brand-3: #8b7cf6;
+  --vp-c-brand-soft: rgb(139 124 246 / 0.14);
+
+  --vp-home-hero-name-color: transparent;
+  --vp-home-hero-name-background: linear-gradient(120deg, #8b7cf6 30%, #41b6e6);
+  --vp-home-hero-image-background-image: linear-gradient(-45deg, #8b7cf6 45%, #41b6e6 50%);
+  --vp-home-hero-image-filter: blur(48px);
+
+  --axe-figure-radius: 12px;
+}
+
+.dark {
+  --vp-c-brand-1: #a897fb;
+  --vp-c-brand-2: #8b7cf6;
+  --vp-c-brand-3: #7c62e0;
+  --vp-c-brand-soft: rgb(139 124 246 / 0.22);
+}
+
+/* --------------------------------------------------------------- figures */
+
+.axe-figure {
+  margin: 24px 0;
+}
+
+.axe-figure img {
+  display: block;
+  width: 100%;
+  border: 1px solid var(--vp-c-divider);
+  border-radius: var(--axe-figure-radius);
+  background: var(--vp-c-bg-soft);
+  box-shadow:
+    0 1px 2px rgb(0 0 0 / 0.06),
+    0 8px 24px rgb(0 0 0 / 0.08);
+}
+
+.dark .axe-figure img {
+  box-shadow:
+    0 1px 2px rgb(0 0 0 / 0.3),
+    0 8px 24px rgb(0 0 0 / 0.36);
+}
+
+.axe-figure--capped {
+  margin-inline: auto;
+}
+
+.axe-pair {
+  display: grid;
+  gap: 20px;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  margin: 24px 0;
+}
+
+.axe-pair .axe-figure {
+  margin: 0;
+}
+
+.axe-figure figcaption {
+  margin-top: 10px;
+  color: var(--vp-c-text-2);
+  font-size: 13px;
+  line-height: 1.6;
+  text-align: center;
+}
+
+/* ------------------------------------------------------------- home page */
+
+.VPHome .vp-doc blockquote {
+  padding: 14px 18px;
+  border-left: none;
+  border-radius: 10px;
+  margin: 0 0 8px;
+  background: var(--vp-c-bg-soft);
+}
+
+.VPHome .vp-doc blockquote p {
+  margin: 0;
+  color: var(--vp-c-text-2);
+  font-size: 13.5px;
+  line-height: 1.75;
+}
+
+.VPHome .vp-doc h2 {
+  border-top: none;
+  margin-top: 40px;
+  padding-top: 0;
+}
+
+/* ---------------------------------------------------------------- tables */
+
+.vp-doc .table-wrap {
+  overflow-x: auto;
+  margin: 22px 0;
+}
+
+.vp-doc .table-wrap > table {
+  display: table;
+  width: 100%;
+  margin: 0;
+  overflow: visible;
+}
+
+/*
+ * Japanese breaks between any two characters, so a heading or a label cell can
+ * be squeezed down to one character per line（倉/庫, 消しゴ/ム）. `keep-all`
+ * keeps each word whole while still allowing a break at spaces and slashes.
+ */
+.vp-doc .table-wrap > table th,
+.vp-doc .table-wrap > table td:first-child {
+  word-break: keep-all;
+}
+
+/* ------------------------------------------------- comparison of options */
+
+.vp-doc .choice {
+  padding: 18px 20px;
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 12px;
+  margin: 14px 0;
+  background: var(--vp-c-bg-soft);
+}
+
+.vp-doc .choice > :first-child {
+  margin-top: 0;
+}
+
+.vp-doc .choice > :last-child {
+  margin-bottom: 0;
+}
+
+.vp-doc .choice p {
+  line-height: 1.75;
+}
+
+.vp-doc .choice__tag {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 999px;
+  margin-left: 8px;
+  background: var(--vp-c-brand-soft);
+  color: var(--vp-c-brand-1);
+  font-size: 11.5px;
+  font-weight: 600;
+  vertical-align: 2px;
+}

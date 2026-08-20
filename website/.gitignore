@@ -1,4 +1,5 @@
 node_modules/
-public/
+public/favicon.svg
+public/icon-180.png
 .vitepress/dist/
 .vitepress/cache/

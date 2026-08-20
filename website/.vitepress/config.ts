@@ -18,6 +18,42 @@ export default defineConfig({
   vite: {
     css: { postcss: { plugins: [] } },
   },
+  markdown: {
+    config: (md) => {
+      // Default VitePress tables are `display: block`, so they shrink to their
+      // content and hug the left edge. Wrapping them lets the table fill the
+      // column while wide ones scroll sideways inside the wrapper.
+      md.renderer.rules.table_open = () => '<div class="table-wrap">\n<table>\n';
+      md.renderer.rules.table_close = () => '</table>\n</div>\n';
+
+      // Sources here are written one sentence per line. A soft line break
+      // renders as a space, which Japanese does not want mid-sentence
+      // (「使います。 下記の」). Drop it when both sides are Japanese.
+      const cjk = /[\u3000-\u303f\u3040-\u309f\u30a0-\u30ff\u3400-\u4dbf\u4e00-\u9fff\uff01-\uff60]/;
+      const edgeChar = (tokens, from, step) => {
+        for (let i = from; i >= 0 && i < tokens.length; i += step) {
+          const { type, content } = tokens[i];
+          if (type === 'softbreak' || type === 'hardbreak') return '';
+          if (!content) continue;
+          return step > 0 ? content[0] : content[content.length - 1];
+        }
+        return '';
+      };
+      md.core.ruler.push('cjk-softbreak', (state) => {
+        for (const token of state.tokens) {
+          if (token.type !== 'inline' || !token.children) continue;
+          const kids = token.children;
+          for (let i = 1; i < kids.length - 1; i += 1) {
+            if (kids[i].type !== 'softbreak') continue;
+            if (cjk.test(edgeChar(kids, i - 1, -1)) && cjk.test(edgeChar(kids, i + 1, 1))) {
+              kids[i].type = 'text';
+              kids[i].content = '';
+            }
+          }
+        }
+      });
+    },
+  },
   themeConfig: {
     nav: [
       { text: 'ガイド', link: '/guide/getting-started' },
