@@ -7,6 +7,8 @@ Udonarium Axe は、ブラウザ上で動作する TRPG オンラインセッシ
 テーブル上のオブジェクト（コマ・カード・ダイスなど）は WebRTC（SkyWay SDK v2）の P2P 通信で
 ブラウザ間に直接同期され、ゲームデータが中央サーバーに保存されることはありません。
 
+<NetworkDiagram />
+
 [Udonarium](https://github.com/TK11235/udonarium)（TK11235）を源流とし、その派生である
 [Udonarium Lily](https://github.com/entyu/udonarium_lily)（entyu）の機能・コードを受け継いでいます。
 そのうえで実装基盤を Angular 22 / Zoneless + Signals で作り直し、独自の機能を加えました。
@@ -33,10 +35,10 @@ Udonarium Axe は、ブラウザ上で動作する TRPG オンラインセッシ
 Lily で追加された立ち絵差分・カットイン・バフ／デバフ管理・画像タグ等のコードを継承し、
 実装基盤を現行 Angular で作り直したうえで独自機能を加えています。
 
-| 作品               | 作者            | リポジトリ                                         |
-| ------------------ | --------------- | -------------------------------------------------- |
-| **Udonarium**      | TK11235         | <https://github.com/TK11235/udonarium>             |
-| **Udonarium Lily** | entyu（円柱）   | <https://github.com/entyu/udonarium_lily>          |
-| **Udonarium Axe**  | SavageChieftain | <https://github.com/SavageChieftain/udonarium_axe> |
+| 作品               | 作者            | リポジトリ                                                                        |
+| ------------------ | --------------- | --------------------------------------------------------------------------------- |
+| **Udonarium**      | TK11235         | [TK11235/udonarium](https://github.com/TK11235/udonarium)                         |
+| **Udonarium Lily** | entyu（円柱）   | [entyu/udonarium_lily](https://github.com/entyu/udonarium_lily)                   |
+| **Udonarium Axe**  | SavageChieftain | [SavageChieftain/udonarium_axe](https://github.com/SavageChieftain/udonarium_axe) |
 
 > 上記の機能の切り分けは、各リポジトリの LICENSE・コード・公開情報を根拠にした暫定整理です。

@@ -2,6 +2,8 @@
 
 [必要なもの](/guide/requirements) で挙げた 3 つを、次の手順で順に用意します。
 
+<SetupSteps />
+
 ## 1. SkyWay でアプリを作成
 
 [SkyWay](https://skyway.ntt.com/) でアカウントを作成し、アプリケーションを 1 つ作成して
