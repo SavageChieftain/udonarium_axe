@@ -7,19 +7,22 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: isCI,
   retries: isCI ? 2 : 1,
-  // CI: 1 worker (sequential). Local: 2 workers to avoid WSL2 OOM.
-  workers: isCI ? 1 : 2,
+  // The static server holds 77 MB where `ng serve` held 1.3 GB, so the run can
+  // afford real parallelism: 4 workers finish this suite in half the time of 2
+  // and still use less memory in total than the old dev-server setup.
+  workers: isCI ? 2 : 4,
   reporter: 'html',
-  // Per-test timeout (60s to account for slow WSL2 startup).
-  timeout: 60000,
+  // A page load off the build settles in well under a second; 60s was sized for
+  // the dev server compiling on demand.
+  timeout: 30000,
   use: {
-    baseURL: 'http://localhost:4200',
+    baseURL: 'http://localhost:4300',
     // UI 文言を前提にしたアサーションが多いので言語を固定する
     locale: 'ja-JP',
     trace: 'on-first-retry',
     // Action/navigation timeouts to prevent indefinite hangs.
-    actionTimeout: 15000,
-    navigationTimeout: 30000,
+    actionTimeout: 10000,
+    navigationTimeout: 15000,
   },
   projects: [
     {
@@ -54,8 +57,11 @@ export default defineConfig({
       : []),
   ],
   webServer: {
-    command: 'npm run start',
-    url: 'http://localhost:4200',
+    // The production build, not `ng serve` — see e2e/serve-dist.mjs. It listens
+    // on its own port so a dev server left running on 4200 is never picked up
+    // by mistake.
+    command: 'npm run e2e:serve',
+    url: 'http://localhost:4300',
     reuseExistingServer: !isCI,
   },
 });
