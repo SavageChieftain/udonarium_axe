@@ -56,7 +56,13 @@ test.describe('カード枚指定ダイアログ (card-draw-count-dialog)', () =
     await menu.getByText('X枚を引く').click();
     const input = page.locator('card-draw-count-dialog input[name="draw-count"]');
     await expect(input).toBeVisible({ timeout: 5000 });
-    await input.fill('3');
+
+    // type=number の入力に fill() で値を入れても ngModel には届かず、既定の 2 枚の
+    // まま引かれてしまう。人と同じように打ち込む。
+    await input.click();
+    await input.press('Control+a');
+    await input.pressSequentially('3');
+    await expect(input).toHaveValue('3');
     await page.locator('card-draw-count-dialog').getByRole('button', { name: '引く' }).click();
     await expect
       .poll(() => page.locator('card').count(), { timeout: 7000 })

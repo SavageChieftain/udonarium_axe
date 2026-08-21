@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, Locator, Page, test } from '@playwright/test';
 
 import { waitAppReady } from './helpers';
 
@@ -36,23 +36,54 @@ test.describe('アイコン変更モーダル (file-selector)', () => {
   });
 });
 
-test.describe('チャットメッセージ編集モーダル (chat-message-fix)', () => {
-  test('自分の送信メッセージにマウスをかざすと edit アイコンが現れて押すと chat-message-fix が開けること', async ({
-    page,
-  }) => {
-    await waitAppReady(page);
-    // メッセージ送信
-    const textarea = page.locator('textarea.chat-input');
-    await textarea.fill('編集テスト');
+test.describe('チャットメッセージの編集', () => {
+  /**
+   * 送った直後の行を返す。本文で絞り込んだままだと、編集に入った時点で本文が
+   * テキストエリアの値に移って掴めなくなるので、届いたことを確かめてから位置で
+   * 押さえ直す。件数で数えないのは、最初の送信でチュートリアルが消えるため。
+   */
+  async function sendMessage(page: Page, text: string) {
+    const rows = page.locator('chat-message');
+    await page.locator('textarea.chat-input').fill(text);
     await page.locator('chat-input').getByRole('button', { name: '送信' }).click();
-    await expect(textarea).toHaveValue('');
-    const messageRow = page.locator('chat-message', { hasText: '編集テスト' }).first();
-    await expect(messageRow).toBeVisible({ timeout: 5000 });
-    // 送信メッセージ内の edit icon は default opacity-0 だが click は可能 (peer-checked 不要)。
-    // 直接 click でテスト。
-    await messageRow.locator('i.material-icons', { hasText: 'edit' }).click({ force: true });
-    await expect(page.locator('chat-message-fix')).toBeVisible({ timeout: 5000 });
-    // 編集用テキストエリアに元の本文が入っている。
-    await expect(page.locator('chat-message-fix textarea').first()).toHaveValue('編集テスト');
+    await expect(rows.filter({ hasText: text })).toHaveCount(1, { timeout: 5000 });
+    return rows.last();
+  }
+
+  /** 編集アイコンは既定で opacity-0 なので force で押す。 */
+  const startEdit = (row: Locator) =>
+    row.locator('i.material-icons', { hasText: 'edit' }).first().click({ force: true });
+
+  test('自分の送信メッセージは edit アイコンからその場で編集できること', async ({ page }) => {
+    await waitAppReady(page);
+    const row = await sendMessage(page, '編集テスト');
+
+    // 別モーダルではなく、その場でテキストエリアに切り替わる。
+    await startEdit(row);
+    const editing = row.locator('textarea');
+    await expect(editing).toBeVisible({ timeout: 5000 });
+    await expect(editing).toHaveValue('編集テスト');
+
+    await editing.fill('編集しました');
+    await row.getByRole('button', { name: '変更' }).click();
+
+    await expect(editing).toBeHidden();
+    await expect(row).toContainText('編集しました');
+    await expect(row).toContainText('編集済');
+  });
+
+  test('編集をキャンセルすると本文が元のままであること', async ({ page }) => {
+    await waitAppReady(page);
+    const row = await sendMessage(page, '取消テスト');
+
+    await startEdit(row);
+    const editing = row.locator('textarea');
+    await expect(editing).toBeVisible({ timeout: 5000 });
+    await editing.fill('捨てる文');
+    await row.getByRole('button', { name: 'キャンセル' }).click();
+
+    await expect(editing).toBeHidden();
+    await expect(row).toContainText('取消テスト');
+    await expect(row).not.toContainText('編集済');
   });
 });

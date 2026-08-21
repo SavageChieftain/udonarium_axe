@@ -39,9 +39,14 @@ test.describe('チャット入力のキーボードショートカット', () =>
     await chatTabPill(page, 'サブタブ').click();
     const subTabRadio = page.locator('chat-window input[name="chat-tab"]').nth(1);
     await expect(subTabRadio).toBeChecked();
+
+    // ピルを押した直後はフォーカスがラジオ側にある。focus() だけだと入力欄に
+    // 戻りきる前にキーが飛び、切り替えが起きないまま先へ進んでしまう。
     const textarea = page.locator('textarea.chat-input');
-    await textarea.focus();
+    await textarea.click();
+    await expect(textarea).toBeFocused();
     await textarea.press('Control+ArrowLeft');
+
     const mainTabRadio = page.locator('chat-window input[name="chat-tab"]').nth(0);
     await expect(mainTabRadio).toBeChecked();
   });

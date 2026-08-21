@@ -64,6 +64,7 @@ test.describe('マップ演出（エフェクト）', () => {
     await page.locator('context-menu').getByText('編集', { exact: true }).click();
 
     await expect(page.locator('app-effect-preset-editor')).toBeVisible({ timeout: 5000 });
-    await expect(page.locator('app-effect-preset-editor').getByText('見た目')).toBeVisible();
+    // 「弾の見た目」など部分一致する項目が増えたので、節の見出しだけを指す。
+    await expect(page.locator('app-effect-preset-editor').getByText('見た目', { exact: true })).toBeVisible();
   });
 });

@@ -1,68 +1,43 @@
 import { expect, test } from '@playwright/test';
 
-declare global {
-  interface Window {
-    ng?: { getComponent(element: Element): unknown };
-  }
-}
+import { waitAppReady } from './helpers';
 
+/**
+ * Darkness used to be switched on by reaching into the component through
+ * `window.ng.getComponent`, which only exists in a development build. The suite
+ * now runs against the production bundle, so this drives the GM toolbar the way
+ * a game master would.
+ */
 test.describe('暗闇（ステージ効果）', () => {
-  test('暗闇を有効にするとマップ領域だけにオーバーレイが描画される', async ({ page }) => {
-    await page.goto('/');
-    await expect(page.locator('game-table')).toBeAttached({ timeout: 30000 });
+  /** How much of the overlay canvas has been painted. */
+  const paintedPixels = (page: import('@playwright/test').Page) =>
+    page.evaluate(() => {
+      const canvas = document.querySelector('table-vision-overlay canvas') as HTMLCanvasElement | null;
+      const context = canvas?.getContext('2d');
+      if (!canvas || !context || !canvas.width || !canvas.height) return 0;
+      const { data } = context.getImageData(0, 0, canvas.width, canvas.height);
+      let painted = 0;
+      for (let i = 3; i < data.length; i += 4) if (data[i] > 0) painted++;
+      return painted;
+    });
+
+  test('GM ツールバーの暗闇ボタンでオーバーレイが描画されること', async ({ page }) => {
+    await waitAppReady(page);
+
+    // 暗闇の切り替えは GM だけができる。
+    const connection = page.locator('ui-panel').filter({ hasText: '接続情報' });
+    await connection.getByRole('button', { name: /^\s*GM\s*$/ }).click();
+    const darkness = page.locator('app-gm-toolbar [title^="暗闇"]');
+    await expect(darkness).toBeVisible({ timeout: 10000 });
+
     await expect(page.locator('table-vision-overlay canvas')).toBeAttached({ timeout: 10000 });
+    expect(await paintedPixels(page)).toBe(0);
 
-    const readOverlay = () =>
-      page.evaluate(() => {
-        const canvas = document.querySelector('table-vision-overlay canvas') as HTMLCanvasElement | null;
-        if (!canvas) return { w: 0, h: 0, painted: 0 };
-        const ctx = canvas.getContext('2d');
-        if (!ctx || !canvas.width || !canvas.height) return { w: canvas.width, h: canvas.height, painted: 0 };
-        const data = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
-        let painted = 0;
-        for (let i = 3; i < data.length; i += 4) if (data[i] > 0) painted++;
-        return { w: canvas.width, h: canvas.height, painted };
-      });
+    await darkness.click();
+    await expect.poll(() => paintedPixels(page), { timeout: 10000 }).toBeGreaterThan(0);
 
-    const before = await readOverlay();
-    expect(before.painted).toBe(0);
-
-    const toggled = await page.evaluate(() => {
-      const ng = window.ng;
-      const element = document.querySelector('game-table');
-      if (!ng || !element) return false;
-      const component = ng.getComponent(element) as {
-        currentTable?: {
-          width: number;
-          height: number;
-          gridSize: number;
-          darknessEnabled: boolean;
-          update?: () => void;
-        };
-      };
-      const table = component?.currentTable;
-      if (!table) return false;
-      table.darknessEnabled = true;
-      table.update?.();
-      return true;
-    });
-    expect(toggled).toBe(true);
-
-    await expect.poll(async () => (await readOverlay()).painted, { timeout: 5000 }).toBeGreaterThan(0);
-
-    const after = await readOverlay();
-    const tableArea = await page.evaluate(() => {
-      const element = document.querySelector('game-table');
-      const ng = window.ng;
-      const component =
-        element && ng
-          ? (ng.getComponent(element) as { currentTable?: { width: number; height: number; gridSize: number } })
-          : null;
-      const table = component?.currentTable;
-      return table ? { w: table.width * table.gridSize, h: table.height * table.gridSize } : { w: 0, h: 0 };
-    });
-
-    expect(after.w).toBe(tableArea.w);
-    expect(after.h).toBe(tableArea.h);
+    // もう一度押すと元に戻る。
+    await darkness.click();
+    await expect.poll(() => paintedPixels(page), { timeout: 10000 }).toBe(0);
   });
 });
