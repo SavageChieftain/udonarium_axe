@@ -1,3 +1,16 @@
+## [1.41.2](https://github.com/SavageChieftain/udonarium_axe/compare/v1.41.1...v1.41.2) (2026-08-21)
+
+### 🐛 Bug Fixes
+
+* **tabletop:** shade wall lights by what blocks them and how tall it is ([fb9f736](https://github.com/SavageChieftain/udonarium_axe/commit/fb9f736a42344a6a53f6cc2442a121e20ecda762))
+
+### 📝 Documentation
+
+* **website:** add a screenshot and diagram layer to the site theme ([617a0d3](https://github.com/SavageChieftain/udonarium_axe/commit/617a0d36cd6fe195d43d12d2e03d3c03b138c616))
+* **website:** add v1.41.1 release notes ([629573f](https://github.com/SavageChieftain/udonarium_axe/commit/629573f63ef8c020553f3d1210be10e072ff45c3))
+* **website:** illustrate the home page, guide and manual ([f9946e5](https://github.com/SavageChieftain/udonarium_axe/commit/f9946e575f3b880ce4b5c73451582ec8c7b17a53))
+* **website:** serve Open Graph tags for every page ([88e8a3d](https://github.com/SavageChieftain/udonarium_axe/commit/88e8a3dff50490c815a5566b0d08c52fd8132c2e))
+
 ## [1.41.1](https://github.com/SavageChieftain/udonarium_axe/compare/v1.41.0...v1.41.1) (2026-08-20)
 
 ### 🐛 Bug Fixes
