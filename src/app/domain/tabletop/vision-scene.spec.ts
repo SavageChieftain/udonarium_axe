@@ -559,6 +559,47 @@ describe('vision-scene', () => {
       expect(computeWallLights(s, northFace)).toHaveLength(0);
     });
 
+    it('pools nothing on a face the corner of a wall keeps the light off', () => {
+      const s = scene({
+        lights: [light({ x: 160, y: -60, dimPx: 200 })],
+        lightSegments: [{ x1: 100, y1: 0, x2: 100, y2: -150, heightPx: 100 }],
+      });
+      const hidden: WallFace = { ax: 0, ay: 0, bx: 80, by: 0, nx: 0, ny: -1, heightPx: 100 };
+      expect(computeWallLights(s, hidden)).toHaveLength(0);
+    });
+
+    it('cuts the pool where a wall as tall as the face stands in the way', () => {
+      const s = scene({
+        lights: [light({ x: 160, y: -60, dimPx: 200 })],
+        lightSegments: [{ x1: 100, y1: 0, x2: 100, y2: -150, heightPx: 100 }],
+      });
+      const pools = computeWallLights(s, northFace);
+      expect(pools).toHaveLength(1);
+      const shadow = pools[0].shadow ?? [];
+      expect(shadow.length).toBeGreaterThan(1);
+      expect(shadow[0].y).toBe(0);
+      expect(shadow[shadow.length - 1].y).toBe(100);
+    });
+
+    it('lets the light over a low wall onto the top of the face', () => {
+      const s = scene({
+        lights: [light({ x: 160, y: -60, z: 25, dimPx: 200 })],
+        lightSegments: [{ x1: 100, y1: 0, x2: 100, y2: -150, heightPx: 30 }],
+      });
+      const shadow = computeWallLights(s, northFace)[0].shadow ?? [];
+      const hidden = shadow.filter((point) => point.x < 90);
+      expect(hidden.length).toBeGreaterThan(0);
+      for (const point of hidden) {
+        expect(point.y).toBeGreaterThan(0);
+        expect(point.y).toBeLessThan(100);
+      }
+    });
+
+    it('leaves a pool nothing blocks unclipped', () => {
+      const s = scene({ lights: [light({ x: 100, y: -60, dimPx: 200 })] });
+      expect(computeWallLights(s, northFace)[0].shadow).toBeUndefined();
+    });
+
     it('is full through the bright range and falls off through the dim one', () => {
       const near = scene({ lights: [light({ x: 100, y: -30, brightPx: 50, dimPx: 200 })] });
       expect(computeWallLights(near, northFace)[0].intensity).toBe(1);

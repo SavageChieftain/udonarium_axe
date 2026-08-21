@@ -16,7 +16,7 @@ export function wallLightLayerStyle(pool: WallLight, mirror = false, faceLen = 0
     'px ' +
     pool.localY +
     'px, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 35%, rgba(0,0,0,0) 78%)';
-  return {
+  const style: Record<string, string> = {
     position: 'absolute',
     inset: '0',
     'background-size': '100% 100%',
@@ -25,6 +25,17 @@ export function wallLightLayerStyle(pool: WallLight, mirror = false, faceLen = 0
     'mask-image': mask,
     '-webkit-mask-image': mask,
   };
+  const shadow = pool.shadow;
+  if (shadow && shadow.length > 1) {
+    const line = mirror ? shadow.map((point) => ({ x: faceLen - point.x, y: point.y })).reverse() : shadow;
+    const corners = [
+      line[0].x.toFixed(2) + 'px 0px',
+      line[line.length - 1].x.toFixed(2) + 'px 0px',
+      ...line.map((point) => point.x.toFixed(2) + 'px ' + point.y.toFixed(2) + 'px').reverse(),
+    ];
+    style['clip-path'] = 'polygon(' + corners.join(', ') + ')';
+  }
+  return style;
 }
 
 export function wallSilhouetteStyle(silhouette: WallSilhouette, mirror = false, faceLen = 0): Record<string, string> {

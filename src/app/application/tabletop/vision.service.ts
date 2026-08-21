@@ -19,6 +19,7 @@ import {
   isPointVisible,
   type LightBeam,
   type LightGlow,
+  type LightSegment,
   objectBrightnessFor,
   type SceneLight,
   type SceneViewer,
@@ -358,13 +359,14 @@ export class VisionService {
     gridSize: number,
     widthPx: number,
     heightPx: number
-  ): { sight: Segment[]; light: Segment[] } {
+  ): { sight: Segment[]; light: LightSegment[] } {
     const sight: Segment[] = [...perimeterSegments(widthPx, heightPx)];
-    const light: Segment[] = [];
-    const north: Segment = { x1: 0, y1: 0, x2: widthPx, y2: 0 };
-    const south: Segment = { x1: 0, y1: heightPx, x2: widthPx, y2: heightPx };
-    const west: Segment = { x1: 0, y1: 0, x2: 0, y2: heightPx };
-    const east: Segment = { x1: widthPx, y1: 0, x2: widthPx, y2: heightPx };
+    const light: LightSegment[] = [];
+    const wallHeightPx = table.wallHeight * gridSize;
+    const north: LightSegment = { x1: 0, y1: 0, x2: widthPx, y2: 0, heightPx: wallHeightPx };
+    const south: LightSegment = { x1: 0, y1: heightPx, x2: widthPx, y2: heightPx, heightPx: wallHeightPx };
+    const west: LightSegment = { x1: 0, y1: 0, x2: 0, y2: heightPx, heightPx: wallHeightPx };
+    const east: LightSegment = { x1: widthPx, y1: 0, x2: widthPx, y2: heightPx, heightPx: wallHeightPx };
     if (table.showNorthWall) light.push(north);
     if (table.showSouthWall) light.push(south);
     if (table.showWestWall) light.push(west);
@@ -380,7 +382,10 @@ export class VisionService {
         terrain.rotate
       );
       if (terrain.blocksSight) sight.push(...edges);
-      if (terrain.blocksLight && !terrain.lightEnabled) light.push(...edges);
+      if (terrain.blocksLight && !terrain.lightEnabled) {
+        const top = (terrain.altitude + terrain.height) * gridSize;
+        for (const edge of edges) light.push({ ...edge, heightPx: top });
+      }
     }
     return { sight, light };
   }
