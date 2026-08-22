@@ -212,5 +212,5 @@ Udonarium Axe が **追加** または **大きく拡張・再設計** した機
 ---
 
 開発者向けの詳細（実装場所・アーキテクチャ）は、リポジトリの
-[docs/features.md](https://github.com/SavageChieftain/udonarium_axe/blob/main/docs/features.md) と
-[docs/architecture.md](https://github.com/SavageChieftain/udonarium_axe/blob/main/docs/architecture.md) を参照してください。
+[docs/features.md](https://github.com/Xelltis/udonarium_axe/blob/main/docs/features.md) と
+[docs/architecture.md](https://github.com/Xelltis/udonarium_axe/blob/main/docs/architecture.md) を参照してください。

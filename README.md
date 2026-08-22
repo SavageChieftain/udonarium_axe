@@ -1,8 +1,8 @@
 # Udonarium Axe
 
-[![Release](https://github.com/SavageChieftain/udonarium_axe/actions/workflows/release.yml/badge.svg)](https://github.com/SavageChieftain/udonarium_axe/actions/workflows/release.yml)
-[![Docs](https://github.com/SavageChieftain/udonarium_axe/actions/workflows/docs.yml/badge.svg)](https://savagechieftain.github.io/udonarium_axe/)
-[![Latest release](https://img.shields.io/github/v/release/SavageChieftain/udonarium_axe?logo=github)](https://github.com/SavageChieftain/udonarium_axe/releases/latest)
+[![Release](https://github.com/Xelltis/udonarium_axe/actions/workflows/release.yml/badge.svg)](https://github.com/Xelltis/udonarium_axe/actions/workflows/release.yml)
+[![Docs](https://github.com/Xelltis/udonarium_axe/actions/workflows/docs.yml/badge.svg)](https://xelltis.github.io/udonarium_axe/)
+[![Latest release](https://img.shields.io/github/v/release/Xelltis/udonarium_axe?logo=github)](https://github.com/Xelltis/udonarium_axe/releases/latest)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Angular](https://img.shields.io/badge/Angular-22-DD0031?logo=angular&logoColor=white)](https://angular.dev/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-6.0-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
@@ -53,7 +53,7 @@ Secret をブラウザに置くわけにはいきません。そのため、**�
    ブラウザや `curl` で `https://<バックエンドのURL>/v1/status` を開き、`OK` が返れば成功です。
 
 3. **フロントエンドを配置**
-   [Releases](https://github.com/SavageChieftain/udonarium_axe/releases) の `axe_x.y.z.zip` を展開し
+   [Releases](https://github.com/Xelltis/udonarium_axe/releases) の `axe_x.y.z.zip` を展開し
    （または自分でビルドした `dist/` を使い）、中身を任意の静的ホスティング
    （Cloudflare Pages / Amazon S3 / レンタルサーバー など）に置きます。
 
@@ -77,11 +77,11 @@ Secret をブラウザに置くわけにはいきません。そのため、**�
 いずれも Axe が呼び出す API（`GET /v1/status`・`POST /v1/skyway2023/token`）に対応しており、そのまま利用できます。
 必要な環境変数（`SKYWAY_APP_ID` / `SKYWAY_SECRET` / `ACCESS_CONTROL_ALLOW_ORIGIN`）も共通です。
 
-| バックエンド                                                                            | 実装 / 配置先                                               | こんな人に                                   | デプロイ方法                                                |
-| --------------------------------------------------------------------------------------- | ----------------------------------------------------------- | -------------------------------------------- | ----------------------------------------------------------- |
-| [udonarium-backend-vercel](https://github.com/SavageChieftain/udonarium-backend-vercel) | TypeScript (Hono) / **Vercel Edge**                         | とにかく手軽に始めたい                       | ◎ README の **Deploy with Vercel** ボタンから               |
-| [udonarium_axe_backend](https://github.com/SavageChieftain/udonarium_axe_backend)       | **PHP 8.3 / Apache**                                        | レンタルサーバーを持っている                 | ○ Releases の zip を展開し `.env` を設定して docroot に配置 |
-| [udonarium-backend（本家）](https://github.com/TK11235/udonarium-backend)               | TypeScript (Hono) / Cloudflare Workers・AWS Lambda・Node.js | CF Workers / Lambda / 自前 Node で運用したい | ○ 各環境に自前でデプロイ（CLI）                             |
+| バックエンド                                                                    | 実装 / 配置先                                               | こんな人に                                   | デプロイ方法                                                |
+| ------------------------------------------------------------------------------- | ----------------------------------------------------------- | -------------------------------------------- | ----------------------------------------------------------- |
+| [udonarium-backend-vercel](https://github.com/Xelltis/udonarium-backend-vercel) | TypeScript (Hono) / **Vercel Edge**                         | とにかく手軽に始めたい                       | ◎ README の **Deploy with Vercel** ボタンから               |
+| [udonarium_axe_backend](https://github.com/Xelltis/udonarium_axe_backend)       | **PHP 8.3 / Apache**                                        | レンタルサーバーを持っている                 | ○ Releases の zip を展開し `.env` を設定して docroot に配置 |
+| [udonarium-backend（本家）](https://github.com/TK11235/udonarium-backend)       | TypeScript (Hono) / Cloudflare Workers・AWS Lambda・Node.js | CF Workers / Lambda / 自前 Node で運用したい | ○ 各環境に自前でデプロイ（CLI）                             |
 
 > 本家 [TK11235/udonarium-backend](https://github.com/TK11235/udonarium-backend) も **そのまま利用できます**。
 > Axe が呼び出す API（`GET /v1/status`・`POST /v1/skyway2023/token`、レスポンス `{ "token": ... }`）と
@@ -123,11 +123,11 @@ Secret をブラウザに置くわけにはいきません。そのため、**�
 Lily で追加された立ち絵差分・カットイン・バフ／デバフ管理・画像タグ等のコードを継承し、
 実装基盤を現行 Angular で作り直したうえで独自機能を加えています。
 
-| 作品               | 作者            | リポジトリ                                         | 位置づけ                                     |
-| ------------------ | --------------- | -------------------------------------------------- | -------------------------------------------- |
-| **Udonarium**      | TK11235         | <https://github.com/TK11235/udonarium>             | オリジナル                                   |
-| **Udonarium Lily** | entyu（円柱）   | <https://github.com/entyu/udonarium_lily>          | 派生・機能拡張版（画像タグ等のコードを継承） |
-| **Udonarium Axe**  | SavageChieftain | <https://github.com/SavageChieftain/udonarium_axe> | 本リポジトリ                                 |
+| 作品               | 作者                      | リポジトリ                                 | 位置づけ                                     |
+| ------------------ | ------------------------- | ------------------------------------------ | -------------------------------------------- |
+| **Udonarium**      | TK11235                   | <https://github.com/TK11235/udonarium>     | オリジナル                                   |
+| **Udonarium Lily** | entyu（円柱）             | <https://github.com/entyu/udonarium_lily>  | 派生・機能拡張版（画像タグ等のコードを継承） |
+| **Udonarium Axe**  | SavageChieftain / Xelltis | <https://github.com/Xelltis/udonarium_axe> | 本リポジトリ                                 |
 
 > 注: 上記の機能の切り分けは本リポジトリの LICENSE・コード・公開情報を根拠にした暫定整理です。
 

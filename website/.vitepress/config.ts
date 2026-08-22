@@ -3,12 +3,12 @@ import { join } from 'node:path';
 
 import { defineConfig } from 'vitepress';
 
-const repo = 'https://github.com/SavageChieftain/udonarium_axe';
+const repo = 'https://github.com/Xelltis/udonarium_axe';
 const base = '/udonarium_axe/';
 
 // Social crawlers ignore relative URLs, so the deployed origin has to be
 // spelled out here. Change it together with the Pages settings.
-const siteUrl = `https://savagechieftain.github.io${base}`;
+const siteUrl = `https://xelltis.github.io${base}`;
 const siteName = 'Udonarium Axe';
 const siteDescription = 'ブラウザで動く TRPG オンラインセッション支援ツール — 利用ガイド';
 const ogImage = `${siteUrl}og.jpg`;

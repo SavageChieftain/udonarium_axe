@@ -1,13 +1,13 @@
 Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
 Upstream-Name: Udonarium Axe
-Upstream-Contact: https://github.com/SavageChieftain/udonarium_axe
-Source: https://github.com/SavageChieftain/udonarium_axe
+Upstream-Contact: https://github.com/Xelltis/udonarium_axe
+Source: https://github.com/Xelltis/udonarium_axe
 Comment: 同梱素材の帰属をこの 1 ファイルにまとめたものです。パスは src/assets/ からの相対
  (配布物では assets/ からの相対) で、Files の照合は後に書かれたものが優先されます。
  ライセンス名は SPDX 短縮識別子、独自規約のものは配布元名を識別子にしています。
 
 Files: *
-Copyright: 2026 SavageChieftain
+Copyright: 2026 SavageChieftain / Xelltis
 License: MIT
 Comment: 本プロジェクトで作成した素材です。作り方は次のとおりです。
  images/system_chang.png と images/system_chang_roll.png は作者が描いたイラストを

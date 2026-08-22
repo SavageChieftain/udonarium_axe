@@ -6,7 +6,7 @@ Udonarium Axe は P2P 接続のために SkyWay の認証トークンを必要�
 
 <div class="choice">
 
-**[udonarium-backend-vercel](https://github.com/SavageChieftain/udonarium-backend-vercel)** <span class="choice__tag">いちばん手軽</span>
+**[udonarium-backend-vercel](https://github.com/Xelltis/udonarium-backend-vercel)** <span class="choice__tag">いちばん手軽</span>
 
 TypeScript (Hono) を **Vercel Edge** で動かします。README の **Deploy with Vercel** ボタンを押すだけで
 配置でき、サーバーを自分で用意する必要がありません。まず動かしてみたいならこれです。
@@ -15,7 +15,7 @@ TypeScript (Hono) を **Vercel Edge** で動かします。README の **Deploy w
 
 <div class="choice">
 
-**[udonarium_axe_backend](https://github.com/SavageChieftain/udonarium_axe_backend)** <span class="choice__tag">レンタルサーバー向け</span>
+**[udonarium_axe_backend](https://github.com/Xelltis/udonarium_axe_backend)** <span class="choice__tag">レンタルサーバー向け</span>
 
 **PHP 8.3 / Apache** で動きます。Releases の zip を展開し、`.env` を設定して docroot に置くだけです。
 すでに借りているサーバーがあるなら、契約を増やさずに済みます。

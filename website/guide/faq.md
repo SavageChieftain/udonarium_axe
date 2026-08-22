@@ -44,8 +44,8 @@ Axe が呼び出す API（`GET /v1/status`・`POST /v1/skyway2023/token`）と�
 
 ## どのバックエンドを選べばよいですか？
 
-- とにかく手軽に始めたい → **Vercel Edge**（[udonarium-backend-vercel](https://github.com/SavageChieftain/udonarium-backend-vercel)）
-- レンタルサーバーを持っている → **PHP 8.3 / Apache**（[udonarium_axe_backend](https://github.com/SavageChieftain/udonarium_axe_backend)）
+- とにかく手軽に始めたい → **Vercel Edge**（[udonarium-backend-vercel](https://github.com/Xelltis/udonarium-backend-vercel)）
+- レンタルサーバーを持っている → **PHP 8.3 / Apache**（[udonarium_axe_backend](https://github.com/Xelltis/udonarium_axe_backend)）
 - Cloudflare Workers / AWS Lambda / 自前 Node で運用したい → **本家バックエンド**
 
 ## 接続できないときは？
@@ -54,4 +54,4 @@ Axe が呼び出す API（`GET /v1/status`・`POST /v1/skyway2023/token`）と�
 2. バックエンドの `ACCESS_CONTROL_ALLOW_ORIGIN` が、Axe を公開している URL を許可しているか確認する
 3. フロントエンドの `assets/config.json` の `backend.url` が正しいバックエンド URL を指しているか確認する
 
-それでも解決しない場合は [GitHub の Issue](https://github.com/SavageChieftain/udonarium_axe/issues) で報告してください。
+それでも解決しない場合は [GitHub の Issue](https://github.com/Xelltis/udonarium_axe/issues) で報告してください。
