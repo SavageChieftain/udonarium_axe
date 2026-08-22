@@ -516,6 +516,7 @@
     [class.border-ui-border-panel!]="
       isInventoryHiddenObject(gameObject) && selectedIdentifier() !== gameObject.identifier
     "
+    [class.opacity-40]="isDragging(gameObject)"
     (contextmenu)="onContextMenu($event, gameObject)"
     (click)="selectGameObject(gameObject)"
     (dblclick)="focusToObject($event, gameObject)"
@@ -604,6 +605,8 @@
     data-folder-dropzone
     [attr.data-folder-path]="node.path"
     [attr.aria-expanded]="!isFolderCollapsed(node.path)"
+    [class.bg-ui-accent-bg!]="isDropFolder(node.path)"
+    [class.text-ui-accent!]="isDropFolder(node.path)"
     [style.padding-left.px]="6 + node.depth * 12"
     (click)="toggleFolder(node.path)"
     (contextmenu)="onFolderContextMenu($event, node.path)"

@@ -45,6 +45,7 @@ describe('GameObjectInventoryComponent', () => {
       store.getObjects().forEach((object) => store.delete(object, false));
       store.clearDeleteHistory();
       vi.unstubAllGlobals();
+      vi.restoreAllMocks();
     });
 
     it('shows everything while the search is empty', () => {
@@ -179,6 +180,81 @@ describe('GameObjectInventoryComponent', () => {
       component.clearFolder('第1話');
 
       expect(goblin.folderName).toBe('');
+    });
+
+    function folderHeading(path: string): HTMLElement {
+      const heading = document.createElement('div');
+      heading.setAttribute('data-folder-dropzone', '');
+      heading.setAttribute('data-folder-path', path);
+      return heading;
+    }
+
+    function pointerAt(x: number, y: number): PointerEvent {
+      return {
+        button: 0,
+        clientX: x,
+        clientY: y,
+        pointerId: 1,
+        target: document.createElement('div'),
+        currentTarget: { setPointerCapture: vi.fn(), releasePointerCapture: vi.fn() },
+      } as unknown as PointerEvent;
+    }
+
+    function dragOnto(character: GameCharacter, dropTarget: HTMLElement | null): void {
+      vi.spyOn(document, 'elementFromPoint').mockReturnValue(dropTarget);
+      component.onObjectPointerDown(pointerAt(0, 0), character);
+      component.onObjectPointerMove(pointerAt(40, 40));
+      component.onObjectPointerUp(pointerAt(40, 40));
+    }
+
+    it('moves a character dragged onto a folder into it', () => {
+      const goblin = putOnTable('ゴブリン');
+
+      dragOnto(goblin, folderHeading('第1話/洞窟'));
+
+      expect(goblin.folderName).toBe('第1話/洞窟');
+    });
+
+    it('takes a character dragged onto the unfiled heading out of its folder', () => {
+      const goblin = putOnTable('ゴブリン');
+      goblin.folderName = '第1話';
+
+      dragOnto(goblin, folderHeading(''));
+
+      expect(goblin.folderName).toBe('');
+    });
+
+    it('leaves a character dropped nowhere where it was', () => {
+      const goblin = putOnTable('ゴブリン');
+      goblin.folderName = '第1話';
+
+      dragOnto(goblin, document.createElement('div'));
+
+      expect(goblin.folderName).toBe('第1話');
+    });
+
+    it('carries the whole ticked selection along', () => {
+      const goblin = putOnTable('ゴブリン');
+      const village = putOnTable('村長');
+      component.isMultiMove.set(true);
+      component.multiMoveTargets.set(new Set([goblin.identifier, village.identifier]));
+
+      dragOnto(goblin, folderHeading('第1話'));
+
+      expect(goblin.folderName).toBe('第1話');
+      expect(village.folderName).toBe('第1話');
+    });
+
+    it('carries only what was grabbed when it is not part of the selection', () => {
+      const goblin = putOnTable('ゴブリン');
+      const village = putOnTable('村長');
+      component.isMultiMove.set(true);
+      component.multiMoveTargets.set(new Set([village.identifier]));
+
+      dragOnto(goblin, folderHeading('第1話'));
+
+      expect(goblin.folderName).toBe('第1話');
+      expect(village.folderName).toBe('');
     });
 
     it('ticks only the rows the search left when everything is selected', () => {

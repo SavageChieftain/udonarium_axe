@@ -37,6 +37,7 @@ import {
   buildInventoryMultiMoveContextMenu,
   buildInventoryObjectContextMenu,
 } from '@axe/features/inventory/game-object-inventory/game-object-inventory-context-menu';
+import { folderPathFromElement } from '@axe/features/inventory/game-object-inventory/inventory-folder-drag';
 import {
   buildFolderTree,
   collectFolderPaths,
@@ -75,7 +76,13 @@ export class GameObjectInventoryComponent {
   private readonly npcDrag = inject(NpcDragService);
   private readonly t = inject(TRANSLATE_FN);
 
-  private npcDragPending: { character: GameCharacter; startX: number; startY: number; dragging: boolean } | null = null;
+  private dragPending: {
+    character: GameCharacter;
+    startX: number;
+    startY: number;
+    dragging: boolean;
+    withNpcBar: boolean;
+  } | null = null;
   private suppressNextClick = false;
 
   constructor() {
@@ -722,34 +729,72 @@ export class GameObjectInventoryComponent {
     if (gameObject instanceof GameCharacter && PeerCursor.isMyselfGameMaster) event.stopPropagation();
   }
 
+  readonly draggingIdentifiers = signal<ReadonlySet<string>>(new Set());
+  readonly dropFolderPath = signal<string | null>(null);
+
+  isDragging(gameObject: GameObject): boolean {
+    return this.draggingIdentifiers().has(gameObject.identifier);
+  }
+
+  isDropFolder(folderPath: string): boolean {
+    return this.dropFolderPath() === folderPath;
+  }
+
   onObjectPointerDown(event: PointerEvent, gameObject: GameObject): void {
-    if (event.button !== 0 || !(gameObject instanceof GameCharacter) || !PeerCursor.isMyselfGameMaster) return;
+    if (event.button !== 0 || !(gameObject instanceof GameCharacter)) return;
+    if (!this.rolePermission.canEditTabletop) return;
     if ((event.target as HTMLElement).closest('button, input')) return;
-    this.npcDragPending = { character: gameObject, startX: event.clientX, startY: event.clientY, dragging: false };
+    this.dragPending = {
+      character: gameObject,
+      startX: event.clientX,
+      startY: event.clientY,
+      dragging: false,
+      withNpcBar: PeerCursor.isMyselfGameMaster,
+    };
     (event.currentTarget as HTMLElement).setPointerCapture?.(event.pointerId);
   }
 
   onObjectPointerMove(event: PointerEvent): void {
-    const pending = this.npcDragPending;
+    const pending = this.dragPending;
     if (!pending) return;
     if (!pending.dragging) {
       if (Math.hypot(event.clientX - pending.startX, event.clientY - pending.startY) < 6) return;
       pending.dragging = true;
-      this.npcDrag.begin(pending.character, event.clientX, event.clientY);
-    } else {
+      this.draggingIdentifiers.set(this.draggedIdentifiersFrom(pending.character));
+      if (pending.withNpcBar) this.npcDrag.begin(pending.character, event.clientX, event.clientY);
+    } else if (pending.withNpcBar) {
       this.npcDrag.move(event.clientX, event.clientY);
     }
+    this.dropFolderPath.set(folderPathFromElement(document.elementFromPoint(event.clientX, event.clientY)));
   }
 
   onObjectPointerUp(event: PointerEvent): void {
-    const pending = this.npcDragPending;
-    this.npcDragPending = null;
+    const pending = this.dragPending;
+    const folderPath = this.dropFolderPath();
+    const dragged = this.draggingIdentifiers();
+    this.dragPending = null;
+    this.draggingIdentifiers.set(new Set());
+    this.dropFolderPath.set(null);
     if (!pending) return;
     (event.currentTarget as HTMLElement).releasePointerCapture?.(event.pointerId);
     if (!pending.dragging) return;
     this.suppressNextClick = true;
+
+    if (folderPath !== null) {
+      if (pending.withNpcBar) this.npcDrag.end(false);
+      this.setFolderOf(dragged, folderPath);
+      SoundEffect.play(PresetSound.piecePut);
+      return;
+    }
+
     const target = document.elementFromPoint(event.clientX, event.clientY);
-    this.npcDrag.end(!!target?.closest('.npc-bar-dropzone'));
+    if (pending.withNpcBar) this.npcDrag.end(!!target?.closest('.npc-bar-dropzone'));
+  }
+
+  private draggedIdentifiersFrom(character: GameCharacter): ReadonlySet<string> {
+    const selected = this.multiMoveTargets();
+    if (this.isMultiMove() && selected.has(character.identifier)) return new Set(selected);
+    return new Set([character.identifier]);
   }
 
   selectGameObject(gameObject: GameObject) {
