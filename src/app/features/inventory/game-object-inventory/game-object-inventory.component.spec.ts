@@ -44,6 +44,7 @@ describe('GameObjectInventoryComponent', () => {
       const store = ObjectStore.instance;
       store.getObjects().forEach((object) => store.delete(object, false));
       store.clearDeleteHistory();
+      vi.unstubAllGlobals();
     });
 
     it('shows everything while the search is empty', () => {
@@ -128,6 +129,56 @@ describe('GameObjectInventoryComponent', () => {
 
       component.clearSearch();
       expect(component.isFolderCollapsed('第1話')).toBe(true);
+    });
+
+    it('normalizes a rough folder before putting a character in it', () => {
+      const goblin = putOnTable('ゴブリン');
+
+      component.setFolder(goblin, ' 第1話 // 洞窟 ');
+
+      expect(goblin.folderName).toBe('第1話/洞窟');
+    });
+
+    it('carries a renamed folder down through everything inside it', () => {
+      const deep = putOnTable('ゴブリン');
+      deep.folderName = '第1話/洞窟';
+      const shallow = putOnTable('村長');
+      shallow.folderName = '第1話';
+      vi.stubGlobal(
+        'prompt',
+        vi.fn(() => '序章')
+      );
+
+      component.renameFolder('第1話');
+
+      expect(shallow.folderName).toBe('序章');
+      expect(deep.folderName).toBe('序章/洞窟');
+    });
+
+    it('leaves a folder alone whose name merely starts the same way', () => {
+      const lookalike = putOnTable('ゴブリン');
+      lookalike.folderName = '第1話大全';
+      vi.stubGlobal(
+        'prompt',
+        vi.fn(() => '序章')
+      );
+
+      component.renameFolder('第1話');
+
+      expect(lookalike.folderName).toBe('第1話大全');
+    });
+
+    it('takes everything out of a folder it is asked to empty', () => {
+      const goblin = putOnTable('ゴブリン');
+      goblin.folderName = '第1話/洞窟';
+      vi.stubGlobal(
+        'confirm',
+        vi.fn(() => true)
+      );
+
+      component.clearFolder('第1話');
+
+      expect(goblin.folderName).toBe('');
     });
 
     it('ticks only the rows the search left when everything is selected', () => {

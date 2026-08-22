@@ -12,13 +12,89 @@ interface InventoryContextMenuCallbacks {
   showRemoteController: (character: GameCharacter) => void;
   cloneGameObject: (gameObject: TabletopObject) => void;
   deleteGameObject: (gameObject: TabletopObject) => void;
+  setFolder: (gameObject: TabletopObject, folderPath: string) => void;
+  promptNewFolder: (gameObject: TabletopObject) => void;
+}
+
+export interface InventoryFolderAssignCallbacks {
+  setFolder: (folderPath: string) => void;
+  promptNewFolder: () => void;
+}
+
+export function buildInventoryFolderAssignMenu(
+  currentPath: string | null,
+  folderPaths: readonly string[],
+  callbacks: InventoryFolderAssignCallbacks,
+  t: TranslateFn
+): ContextMenuAction[] {
+  const actions: ContextMenuAction[] = folderPaths.map((folderPath) => ({
+    name: `${currentPath === folderPath ? '◉' : '○'} ${folderPath}`,
+    action: () => callbacks.setFolder(folderPath),
+  }));
+
+  if (actions.length > 0) actions.push(ContextMenuSeparator);
+  actions.push({
+    name: t('feature.inventory.contextMenu.newFolder'),
+    action: () => callbacks.promptNewFolder(),
+  });
+  if (currentPath == null || currentPath.length > 0) {
+    actions.push({
+      name: t('feature.inventory.contextMenu.removeFromFolder'),
+      action: () => callbacks.setFolder(''),
+    });
+  }
+
+  return actions;
+}
+
+export interface InventoryFolderContextMenuCallbacks {
+  renameFolder: () => void;
+  clearFolder: () => void;
+  selectFolder: () => void;
+  collapseAll: () => void;
+  expandAll: () => void;
+}
+
+export function buildInventoryFolderContextMenu(
+  folderPath: string,
+  isMultiMove: boolean,
+  callbacks: InventoryFolderContextMenuCallbacks,
+  t: TranslateFn
+): ContextMenuAction[] {
+  const actions: ContextMenuAction[] = [];
+
+  if (folderPath.length > 0) {
+    actions.push({
+      name: t('feature.inventory.contextMenu.renameFolder'),
+      action: () => callbacks.renameFolder(),
+    });
+    actions.push({
+      name: t('feature.inventory.contextMenu.clearFolder'),
+      action: () => callbacks.clearFolder(),
+    });
+    actions.push(ContextMenuSeparator);
+  }
+
+  if (isMultiMove) {
+    actions.push({
+      name: t('feature.inventory.contextMenu.selectFolder'),
+      action: () => callbacks.selectFolder(),
+    });
+    actions.push(ContextMenuSeparator);
+  }
+
+  actions.push({ name: t('feature.inventory.contextMenu.collapseAll'), action: () => callbacks.collapseAll() });
+  actions.push({ name: t('feature.inventory.contextMenu.expandAll'), action: () => callbacks.expandAll() });
+
+  return actions;
 }
 
 export function buildInventoryObjectContextMenu(
   gameObject: TabletopObject,
   inventoryService: GameObjectInventoryService,
   callbacks: InventoryContextMenuCallbacks,
-  t: TranslateFn
+  t: TranslateFn,
+  folderPaths: readonly string[] = []
 ): ContextMenuAction[] {
   const actions: ContextMenuAction[] = [];
 
@@ -57,6 +133,19 @@ export function buildInventoryObjectContextMenu(
           }
     );
   }
+
+  actions.push({
+    name: t('feature.inventory.contextMenu.folder'),
+    subActions: buildInventoryFolderAssignMenu(
+      (gameObject as GameCharacter).folderName ?? '',
+      folderPaths,
+      {
+        setFolder: (folderPath) => callbacks.setFolder(gameObject, folderPath),
+        promptNewFolder: () => callbacks.promptNewFolder(gameObject),
+      },
+      t
+    ),
+  });
 
   actions.push(ContextMenuSeparator);
   for (const location of inventoryLocations(t)) {

@@ -15,6 +15,14 @@ import { Network } from '@axe/core/index';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { GameObject } from '@axe/core/sync/game-object';
 import { ObjectStore } from '@axe/core/sync/object-store';
+import {
+  ancestorFolderPaths,
+  FOLDER_SEPARATOR,
+  folderSegments,
+  isDescendantFolderPath,
+  normalizeFolderPath,
+  rewriteFolderPath,
+} from '@axe/domain/character/character-folder';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { DataElement } from '@axe/domain/data/data-element';
 import { SortOrder } from '@axe/domain/data/data-summary-setting';
@@ -24,10 +32,16 @@ import { OwnedTabletopObject } from '@axe/domain/tabletop/owned-tabletop-object'
 import { TabletopObject } from '@axe/domain/tabletop/tabletop-object';
 import { NpcDragService } from '@axe/features/gm-tools/npc-bar/npc-drag.service';
 import {
+  buildInventoryFolderAssignMenu,
+  buildInventoryFolderContextMenu,
   buildInventoryMultiMoveContextMenu,
   buildInventoryObjectContextMenu,
 } from '@axe/features/inventory/game-object-inventory/game-object-inventory-context-menu';
-import { buildFolderTree, type FolderTree } from '@axe/features/inventory/game-object-inventory/inventory-folder-tree';
+import {
+  buildFolderTree,
+  collectFolderPaths,
+  type FolderTree,
+} from '@axe/features/inventory/game-object-inventory/inventory-folder-tree';
 import {
   buildInventoryRow,
   filterInventoryRows,
@@ -298,6 +312,148 @@ export class GameObjectInventoryComponent {
     this.inventoryService.notifyInventoryUpdate();
   }
 
+  collapseAllFolders(): void {
+    const tree = this.folderTree();
+    const paths = collectFolderPaths(tree);
+    if (tree.loose.length > 0) paths.push('');
+    this.collapsedFolders.set(new Set(paths));
+  }
+
+  expandAllFolders(): void {
+    this.collapsedFolders.set(new Set());
+  }
+
+  readonly knownFolderPaths = computed<string[]>(() => {
+    this.inventoryService.inventoryVersion();
+    this.objectChange.collectionOf('character')();
+    const paths = new Set<string>();
+    for (const character of this.objectStore.getObjects<GameCharacter>(GameCharacter)) {
+      for (const path of ancestorFolderPaths(character.folderName)) paths.add(path);
+    }
+    return [...paths].sort((left, right) => left.localeCompare(right, 'ja', { numeric: true }));
+  });
+
+  setFolder(gameObject: TabletopObject, folderPath: string): void {
+    this.setFolderOf([gameObject.identifier], folderPath);
+  }
+
+  promptNewFolder(gameObject: TabletopObject): void {
+    const folderPath = prompt(this.t('feature.inventory.contextMenu.newFolderPrompt'), '');
+    if (folderPath == null) return;
+    this.setFolder(gameObject, folderPath);
+  }
+
+  multiSetFolder(folderPath: string): void {
+    this.setFolderOf(this.multiMoveTargets(), folderPath);
+    this.toggleMultiMove();
+    SoundEffect.play(PresetSound.piecePut);
+  }
+
+  onMultiMoveFolderMenu(): void {
+    if (!this.pointerDeviceService.isAllowedToOpenContextMenu) return;
+    const position = this.pointerDeviceService.pointers[0];
+    const actions = buildInventoryFolderAssignMenu(
+      null,
+      this.knownFolderPaths(),
+      {
+        setFolder: (folderPath) => this.multiSetFolder(folderPath),
+        promptNewFolder: () => {
+          const folderPath = prompt(this.t('feature.inventory.contextMenu.newFolderPrompt'), '');
+          if (folderPath == null) return;
+          this.multiSetFolder(folderPath);
+        },
+      },
+      this.t
+    );
+    this.contextMenuService.open(position, actions, this.t('feature.inventory.panel.folder'));
+  }
+
+  onFolderContextMenu(event: Event, folderPath: string): void {
+    event.stopPropagation();
+    event.preventDefault();
+    if (!this.pointerDeviceService.isAllowedToOpenContextMenu) return;
+
+    const position = this.pointerDeviceService.pointers[0];
+    const actions = buildInventoryFolderContextMenu(
+      folderPath,
+      this.isMultiMove(),
+      {
+        renameFolder: () => this.renameFolder(folderPath),
+        clearFolder: () => this.clearFolder(folderPath),
+        selectFolder: () => this.selectFolder(folderPath),
+        collapseAll: () => this.collapseAllFolders(),
+        expandAll: () => this.expandAllFolders(),
+      },
+      this.t
+    );
+    this.contextMenuService.open(
+      position,
+      actions,
+      folderPath.length > 0 ? folderPath : this.t('feature.inventory.panel.unfiled')
+    );
+  }
+
+  renameFolder(folderPath: string): void {
+    if (!this.rolePermission.canEditTabletop) return;
+    const segments = folderSegments(folderPath);
+    const input = prompt(this.t('feature.inventory.contextMenu.renameFolderPrompt'), segments.at(-1) ?? '');
+    if (input == null) return;
+
+    const renamed = normalizeFolderPath([...segments.slice(0, -1), input].join(FOLDER_SEPARATOR));
+    if (renamed.length < 1 || renamed === folderPath) return;
+
+    for (const character of this.charactersUnder(folderPath)) {
+      character.folderName = rewriteFolderPath(normalizeFolderPath(character.folderName), folderPath, renamed);
+    }
+    this.collapsedFolders.update(
+      (current) => new Set([...current].map((entry) => rewriteFolderPath(entry, folderPath, renamed)))
+    );
+    this.inventoryService.notifyInventoryUpdate();
+  }
+
+  clearFolder(folderPath: string): void {
+    if (!this.rolePermission.canEditTabletop) return;
+    const characters = this.charactersUnder(folderPath);
+    if (
+      !confirm(
+        this.t('feature.inventory.contextMenu.confirmClearFolder', { name: folderPath, count: characters.length })
+      )
+    )
+      return;
+    this.setFolderOf(
+      characters.map((character) => character.identifier),
+      ''
+    );
+  }
+
+  selectFolder(folderPath: string): void {
+    const rows =
+      folderPath.length < 1
+        ? this.folderTree().loose
+        : this.filteredRows().filter((row) => isDescendantFolderPath(row.folderPath, folderPath));
+    this.multiMoveTargets.update((current) => {
+      const next = new Set(current);
+      rows.forEach((row) => next.add(row.identifier));
+      return next;
+    });
+  }
+
+  private charactersUnder(folderPath: string): GameCharacter[] {
+    return this.objectStore
+      .getObjects<GameCharacter>(GameCharacter)
+      .filter((character) => isDescendantFolderPath(normalizeFolderPath(character.folderName), folderPath));
+  }
+
+  private setFolderOf(identifiers: Iterable<string>, folderPath: string): void {
+    if (!this.rolePermission.canEditTabletop) return;
+    const normalized = normalizeFolderPath(folderPath);
+    for (const identifier of identifiers) {
+      const character = this.objectStore.get<GameCharacter>(identifier);
+      if (character instanceof GameCharacter) character.folderName = normalized;
+    }
+    this.inventoryService.notifyInventoryUpdate();
+  }
+
   private elementTextsOf(inventoryType: string, object: TabletopObject): string[] {
     const elements = this.getInventory(inventoryType).dataElementMap.get(object.identifier) ?? [];
     const texts: string[] = [];
@@ -343,8 +499,11 @@ export class GameObjectInventoryComponent {
         showRemoteController: (c) => this.showRemoteController(c),
         cloneGameObject: (o) => this.cloneGameObject(o),
         deleteGameObject: (o) => this.deleteGameObject(o),
+        setFolder: (o, folderPath) => this.setFolder(o, folderPath),
+        promptNewFolder: (o) => this.promptNewFolder(o),
       },
-      this.t
+      this.t,
+      this.knownFolderPaths()
     );
 
     this.contextMenuService.open(position, actions, gameObject.name);

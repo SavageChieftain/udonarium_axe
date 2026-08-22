@@ -206,6 +206,16 @@
           }}
         </button>
         <span class="text-ui-muted text-[11px] whitespace-nowrap">{{
+          'feature.inventory.panel.selectedCount' | transloco: { count: multiMoveTargets().size }
+        }}</span>
+        <button
+          class="bg-ui-input border-ui-border-panel text-ui-text hover:bg-ui-hover hover:border-ui-accent hover:text-ui-accent rounded-ui-sm inline-flex cursor-pointer items-center gap-0.75 border border-solid px-2 py-1 text-[12px] transition-[background,color,border-color] [&_.material-icons]:text-[14px]!"
+          type="button"
+          (click)="onMultiMoveFolderMenu()"
+        >
+          <i class="material-icons">folder</i>{{ 'feature.inventory.panel.folder' | transloco }}
+        </button>
+        <span class="text-ui-muted text-[11px] whitespace-nowrap">{{
           'feature.inventory.panel.moveTargetLabel' | transloco
         }}</span>
         @for (loc of multiMoveLocations; track loc.name) {
@@ -596,6 +606,7 @@
     [attr.aria-expanded]="!isFolderCollapsed(node.path)"
     [style.padding-left.px]="6 + node.depth * 12"
     (click)="toggleFolder(node.path)"
+    (contextmenu)="onFolderContextMenu($event, node.path)"
   >
     <i class="material-icons shrink-0">{{ isFolderCollapsed(node.path) ? 'chevron_right' : 'expand_more' }}</i>
     <i class="material-icons text-ui-accent shrink-0">{{ node.path ? 'folder' : 'inbox' }}</i>

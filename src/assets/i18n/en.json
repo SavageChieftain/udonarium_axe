@@ -738,6 +738,17 @@
     },
     "inventory": {
       "contextMenu": {
+        "folder": "Folder",
+        "newFolder": "New folder…",
+        "newFolderPrompt": "Folder name (use / to nest)",
+        "removeFromFolder": "Remove from folder",
+        "renameFolder": "Rename folder",
+        "renameFolderPrompt": "New folder name",
+        "clearFolder": "Empty this folder",
+        "confirmClearFolder": "Remove {{count}} items from \"{{name}}\"?",
+        "collapseAll": "Collapse all",
+        "expandAll": "Expand all",
+        "selectFolder": "Select all in this folder",
         "moveTable": "Move to table",
         "moveCommon": "Move to shared inventory",
         "movePersonal": "Move to personal inventory",
@@ -899,6 +910,8 @@
         "popupMaxHeight": "Max height"
       },
       "panel": {
+        "folder": "Folder",
+        "selectedCount": "{{count}} selected",
         "groupByFolder": "Group by folder",
         "unfiled": "Unfiled",
         "searchPlaceholder": "Search name, owner or shown items",
