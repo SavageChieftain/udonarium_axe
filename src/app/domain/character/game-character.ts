@@ -26,12 +26,18 @@ import {
   LightSpec,
   VisionType,
 } from '@axe/domain/tabletop/vision-types';
+import {
+  toPortraitSlot,
+  VN_PORTRAIT_POS_UNSET,
+  VN_PORTRAIT_SLOT_COUNT,
+} from '@axe/domain/visual-novel/vn-portrait-position';
 
 @SyncObject('character')
 export class GameCharacter extends OwnedTabletopObject {
   @SyncVar() owner: string = '';
   @SyncVar() partyIdentifier: string = '';
   @SyncVar() folderName: string = '';
+  @SyncVar() vnPortraitPos: number = VN_PORTRAIT_POS_UNSET;
   private static readonly MAX_DETAIL_GROUP_DEPTH = 2;
 
   constructor(identifier: string = generateUuid()) {
@@ -76,6 +82,18 @@ export class GameCharacter extends OwnedTabletopObject {
   @SyncVar() lightDirection: number = 0;
   @SyncVar() lightPitch: number = 0;
   @SyncVar() lightAnimation: string = LightAnimation.NONE;
+
+  /** Where the portrait stands in chat. Null when the character has no such field yet. */
+  get portraitPosition(): number | null {
+    return toPortraitSlot(this.detailDataElement?.getFirstElementByName('POS')?.currentValue);
+  }
+  set portraitPosition(pos: number) {
+    this.addExtendData();
+    const element = this.detailDataElement?.getFirstElementByName('POS');
+    if (!element) return;
+    element.currentValue = Math.max(0, Math.min(VN_PORTRAIT_SLOT_COUNT - 1, Math.round(pos)));
+    this.update();
+  }
 
   get lightSpec(): LightSpec {
     return {

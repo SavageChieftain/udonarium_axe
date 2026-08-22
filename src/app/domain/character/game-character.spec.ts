@@ -246,6 +246,65 @@ describe('GameCharacter', () => {
   });
 
   // ----------------------------------------------------------------
+  // portraitPosition / vnPortraitPos
+  // ----------------------------------------------------------------
+  describe('portraitPosition', () => {
+    it('finds none on a character that has no such field yet', () => {
+      expect(character.portraitPosition).toBeNull();
+    });
+
+    it('reads back a number rather than the string the field holds', () => {
+      const built = GameCharacter.create('taro', 1, '');
+
+      built.portraitPosition = 7;
+
+      expect(built.portraitPosition).toBe(7);
+    });
+
+    it('reads the string a freshly built character starts with as a number', () => {
+      expect(GameCharacter.create('taro', 1, '').portraitPosition).toBe(0);
+    });
+
+    it('builds the field for a character old enough not to have one', () => {
+      const built = GameCharacter.create('taro', 1, '');
+      built.detailDataElement?.getFirstElementByName('立ち絵位置')?.destroy();
+      expect(built.portraitPosition).toBeNull();
+
+      built.portraitPosition = 3;
+
+      expect(built.portraitPosition).toBe(3);
+    });
+
+    it('keeps what it is given on the stage', () => {
+      const built = GameCharacter.create('taro', 1, '');
+
+      built.portraitPosition = 99;
+      expect(built.portraitPosition).toBe(11);
+
+      built.portraitPosition = -5;
+      expect(built.portraitPosition).toBe(0);
+    });
+  });
+
+  describe('vnPortraitPos', () => {
+    it('starts with no place of its own in novel mode', () => {
+      expect(character.vnPortraitPos).toBe(-1);
+    });
+
+    it('stays unset when older saved data says nothing about it', () => {
+      const restored = ObjectSerializer.instance.parseXml('<character></character>') as GameCharacter;
+
+      expect(restored.vnPortraitPos).toBe(-1);
+    });
+
+    it('comes back as a number from saved data', () => {
+      const restored = ObjectSerializer.instance.parseXml('<character vnPortraitPos="8"></character>') as GameCharacter;
+
+      expect(restored.vnPortraitPos).toBe(8);
+    });
+  });
+
+  // ----------------------------------------------------------------
   // folderName
   // ----------------------------------------------------------------
   describe('folderName', () => {

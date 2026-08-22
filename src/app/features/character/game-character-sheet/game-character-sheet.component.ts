@@ -377,8 +377,7 @@ export class GameCharacterSheetComponent {
     const char = this.character;
     if (!char) return 0;
     this.objectChange.versionOf(char.identifier)();
-    const posEl = char.detailDataElement?.getFirstElementByName('POS');
-    return posEl ? (posEl.currentValue as number) : 0;
+    return char.portraitPosition ?? 0;
   });
 
   readonly komaImageFile = computed(() => {
@@ -511,15 +510,7 @@ export class GameCharacterSheetComponent {
   setPortraitPos(pos: number) {
     const char = this.character;
     if (!char) return;
-    char.addExtendData();
-    const posEl = char.detailDataElement?.getFirstElementByName('POS');
-    if (!posEl) return;
-    posEl.currentValue = Math.max(0, Math.min(11, Math.round(pos)));
-    char.update();
-  }
-
-  onSetPortraitPos(event: Event): void {
-    this.setPortraitPos((event.target as HTMLInputElement).valueAsNumber);
+    char.portraitPosition = pos;
   }
 
   addPortrait() {

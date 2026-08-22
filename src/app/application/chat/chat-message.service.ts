@@ -370,10 +370,7 @@ export class ChatMessageService {
 
   private findImagePos(identifier: string): number {
     const object = this.objectStore.get(identifier);
-    if (object instanceof GameCharacter) {
-      const element = object.detailDataElement?.getFirstElementByName('POS');
-      return resolveImagePos(element ? (element.currentValue as number) : undefined);
-    }
+    if (object instanceof GameCharacter) return resolveImagePos(object.portraitPosition ?? undefined);
     return -1;
   }
 
