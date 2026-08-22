@@ -913,7 +913,6 @@
         "selectedCount": "{{count}} selected",
         "newFolder": "New folder",
         "defaultFolderName": "Folder {{index}}",
-        "groupByFolder": "Group by folder",
         "unfiled": "Unfiled",
         "searchPlaceholder": "Search name, owner or shown items",
         "clearSearch": "Clear search",

@@ -913,7 +913,6 @@
         "selectedCount": "選択 {{count}}",
         "newFolder": "新しいフォルダ",
         "defaultFolderName": "フォルダ{{index}}",
-        "groupByFolder": "フォルダで分ける",
         "unfiled": "未分類",
         "searchPlaceholder": "名前・所有者・表示項目で検索",
         "clearSearch": "検索をクリア",

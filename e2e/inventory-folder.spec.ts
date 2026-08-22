@@ -69,16 +69,12 @@ test.describe('インベントリの検索とフォルダ', () => {
     await expect(items(page)).toHaveCount(listed);
   });
 
-  test('フォルダがある間だけツールバーにフォルダ表示の切り替えが出ること', async ({ page }) => {
-    const toggle = page.locator('game-object-inventory button[title="フォルダで分ける"]');
-    await expect(toggle).toHaveCount(0);
+  test('フォルダがひとつも無い間は見出しが出ないこと', async ({ page }) => {
+    await expect(page.locator('game-object-inventory [data-folder-dropzone]')).toHaveCount(0);
 
     await putFirstInFolder(page, '第1話');
-    await expect(toggle).toBeVisible({ timeout: 5000 });
 
-    await toggle.click();
-    await expect(page.locator('game-object-inventory [data-folder-dropzone]')).toHaveCount(0);
-    await expect(items(page)).toHaveCount(listed);
+    await expect(page.locator('game-object-inventory [data-folder-dropzone]')).not.toHaveCount(0);
   });
 
   test('コマを入れなくてもフォルダだけ先に作れること', async ({ page }) => {

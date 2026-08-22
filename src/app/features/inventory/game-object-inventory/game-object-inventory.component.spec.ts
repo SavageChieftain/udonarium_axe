@@ -101,17 +101,6 @@ describe('GameObjectInventoryComponent', () => {
       expect(component.showTree()).toBe(false);
     });
 
-    it('leaves the list flat once the folders are turned off', () => {
-      const goblin = putOnTable('ゴブリン');
-      goblin.folderName = '第1話';
-
-      component.toggleGroupByFolder();
-
-      expect(component.hasFolders()).toBe(true);
-      expect(component.isGroupByFolder()).toBe(false);
-      expect(component.showTree()).toBe(false);
-    });
-
     it('folds a folder away and opens it again', () => {
       const goblin = putOnTable('ゴブリン');
       goblin.folderName = '第1話';
@@ -181,15 +170,6 @@ describe('GameObjectInventoryComponent', () => {
       component.createFolderFor(goblin);
 
       expect(goblin.folderName).toBe('フォルダ2');
-    });
-
-    it('turns the folders back on when one is made while they are off', () => {
-      component.toggleGroupByFolder();
-      const goblin = putOnTable('ゴブリン');
-
-      component.createFolderFor(goblin);
-
-      expect(component.isGroupByFolder()).toBe(true);
     });
 
     it('renames on commit and leaves the name alone when the edit is dropped', () => {

@@ -302,12 +302,7 @@ export class GameObjectInventoryComponent {
     () => this.declaredFolderPaths().length > 0 || this.visibleRows().some((row) => row.folderPath.length > 0)
   );
 
-  readonly isGroupByFolder = computed<boolean>(() => {
-    this.inventoryService.inventoryVersion();
-    return this.inventoryService.groupByFolder;
-  });
-
-  readonly showTree = computed<boolean>(() => this.isGroupByFolder() && this.hasFolders());
+  readonly showTree = computed<boolean>(() => this.hasFolders());
 
   isFolderCollapsed(path: string): boolean {
     if (this.hasQuery()) return false;
@@ -320,11 +315,6 @@ export class GameObjectInventoryComponent {
       if (!next.delete(path)) next.add(path);
       return next;
     });
-  }
-
-  toggleGroupByFolder(): void {
-    this.inventoryService.groupByFolder = !this.inventoryService.groupByFolder;
-    this.inventoryService.notifyInventoryUpdate();
   }
 
   collapseAllFolders(): void {
@@ -444,7 +434,6 @@ export class GameObjectInventoryComponent {
     const path = this.unusedFolderPath(parentPath);
     this.declareFolder(path);
     if (identifiers.length > 0) this.setFolderOf(identifiers, path);
-    if (!this.inventoryService.groupByFolder) this.toggleGroupByFolder();
     this.collapsedFolders.update((current) => {
       const next = new Set(current);
       for (const ancestor of ancestorFolderPaths(path)) next.delete(ancestor);

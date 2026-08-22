@@ -64,27 +64,9 @@ describe('DataSummarySetting', () => {
     it('starts with the default tags', () => {
       expect(DataSummarySetting.instance.dataTag).toBe('HP MP 敏捷度 精神力');
     });
-
-    it('starts with the list gathered into folders', () => {
-      expect(DataSummarySetting.instance.groupByFolder).toBe(true);
-    });
   });
 
-  describe('groupByFolder', () => {
-    it('remembers being turned off', () => {
-      DataSummarySetting.instance.groupByFolder = false;
-
-      expect(DataSummarySetting.instance.groupByFolder).toBe(false);
-    });
-
-    it('stays on when older saved data says nothing about it', () => {
-      const restored = ObjectSerializer.instance.parseXml(
-        '<summary-setting sortTag="HP"></summary-setting>'
-      ) as DataSummarySetting;
-
-      expect(restored.groupByFolder).toBe(true);
-    });
-
+  describe('folderPaths', () => {
     it('starts with no folders of its own', () => {
       expect(DataSummarySetting.instance.folderPaths).toEqual([]);
     });
@@ -119,12 +101,13 @@ describe('DataSummarySetting', () => {
       expect(syncData.folderPaths).toEqual(['第1話', '第1話/洞窟']);
     });
 
-    it('comes back turned off from saved data that says so', () => {
+    it('reads saved data naming a setting it no longer has without tripping', () => {
       const restored = ObjectSerializer.instance.parseXml(
-        '<summary-setting groupByFolder="false"></summary-setting>'
+        '<summary-setting groupByFolder="false" sortTag="HP"></summary-setting>'
       ) as DataSummarySetting;
 
-      expect(restored.groupByFolder).toBe(false);
+      expect(restored.sortTag).toBe('HP');
+      expect(restored.folderPaths).toEqual([]);
     });
   });
 

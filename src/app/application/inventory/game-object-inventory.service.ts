@@ -63,13 +63,6 @@ export class GameObjectInventoryService {
     return this.summarySetting.dataTags;
   }
 
-  get groupByFolder(): boolean {
-    return this.summarySetting.groupByFolder;
-  }
-  set groupByFolder(groupByFolder: boolean) {
-    this.summarySetting.groupByFolder = groupByFolder;
-  }
-
   get folderPaths(): string[] {
     return this.summarySetting.folderPaths;
   }

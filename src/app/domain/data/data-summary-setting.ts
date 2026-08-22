@@ -27,7 +27,6 @@ export class DataSummarySetting extends GameObject implements InnerXml {
 
   @SyncVar() dataTag: string = 'HP MP 敏捷度 精神力';
 
-  @SyncVar() groupByFolder: boolean = true;
   @SyncVar() folderPaths: string[] = [];
 
   private _dataTag!: string;
