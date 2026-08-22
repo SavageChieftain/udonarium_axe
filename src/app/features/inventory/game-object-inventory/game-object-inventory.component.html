@@ -274,96 +274,7 @@
       }
 
       @for (gameObject of objects; track gameObject.identifier) {
-        <div
-          data-testid="inventory-item"
-          class="hover:bg-ui-hover group relative flex cursor-pointer items-center gap-2 rounded-[5px] border border-solid border-transparent px-2 py-1.25 transition-[background,border-color] select-none [-moz-user-drag:none] [-webkit-user-drag:none]"
-          [class.bg-ui-accent-bg!]="selectedIdentifier() === gameObject.identifier"
-          [class.border-ui-accent!]="selectedIdentifier() === gameObject.identifier"
-          [class.opacity-50]="isInventoryHiddenObject(gameObject)"
-          [class.italic]="isInventoryHiddenObject(gameObject)"
-          [class.border-dashed!]="isInventoryHiddenObject(gameObject)"
-          [class.border-ui-border-panel!]="
-            isInventoryHiddenObject(gameObject) && selectedIdentifier() !== gameObject.identifier
-          "
-          (contextmenu)="onContextMenu($event, gameObject)"
-          (click)="selectGameObject(gameObject)"
-          (dblclick)="focusToObject($event, gameObject)"
-          (pointerdown)="onObjectPointerDown($event, gameObject)"
-          (pointermove)="onObjectPointerMove($event)"
-          (pointerup)="onObjectPointerUp($event)"
-          (mousedown)="onObjectDragBlock($event, gameObject)"
-          (touchstart)="onObjectDragBlock($event, gameObject)"
-        >
-          @if (selectTab() === 'table') {
-            <i
-              class="material-icons text-ui-accent w-3.5 shrink-0 text-[16px]!"
-              [class.invisible]="currentTurnId() !== gameObject.identifier"
-              >play_arrow</i
-            >
-          }
-          @if (isMultiMove()) {
-            <input
-              class="size-3.5 shrink-0 cursor-pointer [accent-color:var(--ui-accent)]"
-              type="checkbox"
-              [checked]="multiMoveTargets().has(gameObject.identifier)"
-              (change)="toggleMultiMoveTarget($event, $any(gameObject))"
-            />
-          }
-
-          <div
-            class="bg-ui-input border-ui-border-panel flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-sm border border-solid"
-          >
-            @if (gameObject.imageFile.url) {
-              <img
-                class="size-full object-cover object-top"
-                [src]="gameObject.imageFile.url | safe: 'resourceUrl'"
-                draggable="false"
-                alt=""
-              />
-            } @else {
-              <i class="material-icons text-ui-dim text-[20px]! opacity-50">person</i>
-            }
-          </div>
-
-          <div class="flex min-w-0 flex-1 flex-col gap-0.75">
-            <div
-              class="text-ui-text flex items-center gap-1 truncate text-[13px] font-semibold"
-              [class.text-ui-accent!]="selectedIdentifier() === gameObject.identifier"
-            >
-              <span class="truncate">{{ gameObject.name }}</span>
-              @if (!canView(gameObject)) {
-                <i class="material-icons text-ui-dim shrink-0 text-[13px]!">lock</i>
-              }
-            </div>
-            @if (gameObject.rootDataElement && canView(gameObject)) {
-              <div class="grid w-full grid-cols-2 items-start gap-x-2 gap-y-0.75">
-                @for (dataElm of getInventoryTags($any(gameObject)); track dataElm?.identifier ?? $index) {
-                  <ng-container *ngTemplateOutlet="dataElmTag; context: { dataElm: dataElm }"></ng-container>
-                }
-              </div>
-            }
-          </div>
-
-          <button
-            class="text-ui-muted hover:bg-ui-hover hover:text-ui-accent hidden size-6 shrink-0 cursor-pointer items-center justify-center rounded-sm border-none bg-transparent p-0 transition-[background,color] group-hover:inline-flex [&_.material-icons]:text-base!"
-            [class.inline-flex!]="selectedIdentifier() === gameObject.identifier"
-            type="button"
-            [title]="'feature.turnOrder.setCurrent' | transloco"
-            (click)="setTurnOrder($event, gameObject)"
-          >
-            <i class="material-icons">flag</i>
-          </button>
-
-          <button
-            class="text-ui-muted hover:bg-ui-hover hover:text-ui-text hidden size-6 shrink-0 cursor-pointer items-center justify-center rounded-sm border-none bg-transparent p-0 transition-[background] group-hover:inline-flex [&_.material-icons]:text-base!"
-            [class.inline-flex!]="selectedIdentifier() === gameObject.identifier"
-            type="button"
-            [title]="'feature.inventory.panel.menu' | transloco"
-            (click)="onContextMenu($event, gameObject)"
-          >
-            <i class="material-icons">more_vert</i>
-          </button>
-        </div>
+        <ng-container *ngTemplateOutlet="itemRow; context: { $implicit: gameObject }"></ng-container>
       }
     </div>
 
@@ -520,4 +431,97 @@
       }
     </span>
   }
+</ng-template>
+
+<ng-template #itemRow let-gameObject>
+  <div
+    data-testid="inventory-item"
+    class="hover:bg-ui-hover group relative flex cursor-pointer items-center gap-2 rounded-[5px] border border-solid border-transparent px-2 py-1.25 transition-[background,border-color] select-none [-moz-user-drag:none] [-webkit-user-drag:none]"
+    [class.bg-ui-accent-bg!]="selectedIdentifier() === gameObject.identifier"
+    [class.border-ui-accent!]="selectedIdentifier() === gameObject.identifier"
+    [class.opacity-50]="isInventoryHiddenObject(gameObject)"
+    [class.italic]="isInventoryHiddenObject(gameObject)"
+    [class.border-dashed!]="isInventoryHiddenObject(gameObject)"
+    [class.border-ui-border-panel!]="
+      isInventoryHiddenObject(gameObject) && selectedIdentifier() !== gameObject.identifier
+    "
+    (contextmenu)="onContextMenu($event, gameObject)"
+    (click)="selectGameObject(gameObject)"
+    (dblclick)="focusToObject($event, gameObject)"
+    (pointerdown)="onObjectPointerDown($event, gameObject)"
+    (pointermove)="onObjectPointerMove($event)"
+    (pointerup)="onObjectPointerUp($event)"
+    (mousedown)="onObjectDragBlock($event, gameObject)"
+    (touchstart)="onObjectDragBlock($event, gameObject)"
+  >
+    @if (selectTab() === 'table') {
+      <i
+        class="material-icons text-ui-accent w-3.5 shrink-0 text-[16px]!"
+        [class.invisible]="currentTurnId() !== gameObject.identifier"
+        >play_arrow</i
+      >
+    }
+    @if (isMultiMove()) {
+      <input
+        class="size-3.5 shrink-0 cursor-pointer [accent-color:var(--ui-accent)]"
+        type="checkbox"
+        [checked]="multiMoveTargets().has(gameObject.identifier)"
+        (change)="toggleMultiMoveTarget($event, $any(gameObject))"
+      />
+    }
+
+    <div
+      class="bg-ui-input border-ui-border-panel flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-sm border border-solid"
+    >
+      @if (gameObject.imageFile.url) {
+        <img
+          class="size-full object-cover object-top"
+          [src]="gameObject.imageFile.url | safe: 'resourceUrl'"
+          draggable="false"
+          alt=""
+        />
+      } @else {
+        <i class="material-icons text-ui-dim text-[20px]! opacity-50">person</i>
+      }
+    </div>
+
+    <div class="flex min-w-0 flex-1 flex-col gap-0.75">
+      <div
+        class="text-ui-text flex items-center gap-1 truncate text-[13px] font-semibold"
+        [class.text-ui-accent!]="selectedIdentifier() === gameObject.identifier"
+      >
+        <span class="truncate">{{ gameObject.name }}</span>
+        @if (!canView(gameObject)) {
+          <i class="material-icons text-ui-dim shrink-0 text-[13px]!">lock</i>
+        }
+      </div>
+      @if (gameObject.rootDataElement && canView(gameObject)) {
+        <div class="grid w-full grid-cols-2 items-start gap-x-2 gap-y-0.75">
+          @for (dataElm of getInventoryTags($any(gameObject)); track dataElm?.identifier ?? $index) {
+            <ng-container *ngTemplateOutlet="dataElmTag; context: { dataElm: dataElm }"></ng-container>
+          }
+        </div>
+      }
+    </div>
+
+    <button
+      class="text-ui-muted hover:bg-ui-hover hover:text-ui-accent hidden size-6 shrink-0 cursor-pointer items-center justify-center rounded-sm border-none bg-transparent p-0 transition-[background,color] group-hover:inline-flex [&_.material-icons]:text-base!"
+      [class.inline-flex!]="selectedIdentifier() === gameObject.identifier"
+      type="button"
+      [title]="'feature.turnOrder.setCurrent' | transloco"
+      (click)="setTurnOrder($event, gameObject)"
+    >
+      <i class="material-icons">flag</i>
+    </button>
+
+    <button
+      class="text-ui-muted hover:bg-ui-hover hover:text-ui-text hidden size-6 shrink-0 cursor-pointer items-center justify-center rounded-sm border-none bg-transparent p-0 transition-[background] group-hover:inline-flex [&_.material-icons]:text-base!"
+      [class.inline-flex!]="selectedIdentifier() === gameObject.identifier"
+      type="button"
+      [title]="'feature.inventory.panel.menu' | transloco"
+      (click)="onContextMenu($event, gameObject)"
+    >
+      <i class="material-icons">more_vert</i>
+    </button>
+  </div>
 </ng-template>
