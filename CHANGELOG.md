@@ -1,3 +1,16 @@
+## [1.41.3](https://github.com/Xelltis/udonarium_axe/compare/v1.41.2...v1.41.3) (2026-08-22)
+
+### 🐛 Bug Fixes
+
+* **i18n:** declare the page language on the html element ([084e412](https://github.com/Xelltis/udonarium_axe/commit/084e4123a833520dfc3b3ab7054c828e1a09ea9e))
+
+### 📝 Documentation
+
+* **readme:** make the docs badge a plain link ([169e6c1](https://github.com/Xelltis/udonarium_axe/commit/169e6c1baa3f9a8eed4ddfc7cb5bfef68d09ae13))
+* **readme:** order the badges by what they answer ([63cfeeb](https://github.com/Xelltis/udonarium_axe/commit/63cfeeb5239cbba98082ffa9e443d3261057b5fa))
+* **website:** add v1.41.2 release notes ([9252b06](https://github.com/Xelltis/udonarium_axe/commit/9252b062b2ddfa56e168e075f8565ef9f2d588fa))
+* **website:** move the public demo to axe.xelltis.com ([56f26e4](https://github.com/Xelltis/udonarium_axe/commit/56f26e4da7530f0329efc54b8df04a2f69243cd4))
+
 ## [1.41.2](https://github.com/SavageChieftain/udonarium_axe/compare/v1.41.1...v1.41.2) (2026-08-21)
 
 ### 🐛 Bug Fixes
