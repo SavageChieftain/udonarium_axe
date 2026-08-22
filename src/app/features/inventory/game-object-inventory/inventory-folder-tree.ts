@@ -22,9 +22,15 @@ interface FolderBuilder<T> {
   children: Map<string, FolderBuilder<T>>;
 }
 
-export function buildFolderTree<T>(items: readonly T[], pathOf: (item: T) => string): FolderTree<T> {
+export function buildFolderTree<T>(
+  items: readonly T[],
+  pathOf: (item: T) => string,
+  declaredPaths: readonly string[] = []
+): FolderTree<T> {
   const roots = new Map<string, FolderBuilder<T>>();
   const loose: T[] = [];
+
+  for (const declaredPath of declaredPaths) openFolder(roots, folderSegments(declaredPath));
 
   for (const item of items) {
     const segments = folderSegments(pathOf(item));
@@ -32,24 +38,27 @@ export function buildFolderTree<T>(items: readonly T[], pathOf: (item: T) => str
       loose.push(item);
       continue;
     }
-
-    let level = roots;
-    let path = '';
-    let node: FolderBuilder<T> | null = null;
-    for (const [depth, segment] of segments.entries()) {
-      path = path.length < 1 ? segment : `${path}${FOLDER_SEPARATOR}${segment}`;
-      let next = level.get(segment);
-      if (!next) {
-        next = { path, name: segment, depth, items: [], children: new Map() };
-        level.set(segment, next);
-      }
-      node = next;
-      level = next.children;
-    }
-    node?.items.push(item);
+    openFolder(roots, segments)?.items.push(item);
   }
 
   return { roots: settleLevel(roots), loose };
+}
+
+function openFolder<T>(roots: Map<string, FolderBuilder<T>>, segments: readonly string[]): FolderBuilder<T> | null {
+  let level = roots;
+  let path = '';
+  let node: FolderBuilder<T> | null = null;
+  for (const [depth, segment] of segments.entries()) {
+    path = path.length < 1 ? segment : `${path}${FOLDER_SEPARATOR}${segment}`;
+    let next = level.get(segment);
+    if (!next) {
+      next = { path, name: segment, depth, items: [], children: new Map() };
+      level.set(segment, next);
+    }
+    node = next;
+    level = next.children;
+  }
+  return node;
 }
 
 export function collectFolderPaths<T>(tree: FolderTree<T>): string[] {

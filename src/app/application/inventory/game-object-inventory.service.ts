@@ -70,6 +70,13 @@ export class GameObjectInventoryService {
     this.summarySetting.groupByFolder = groupByFolder;
   }
 
+  get folderPaths(): string[] {
+    return this.summarySetting.folderPaths;
+  }
+  set folderPaths(folderPaths: string[]) {
+    this.summarySetting.folderPaths = folderPaths;
+  }
+
   tableInventory: ObjectInventory = new ObjectInventory((object) => object.isVisibleOnTable);
   commonInventory: ObjectInventory = new ObjectInventory((object) => {
     return !this.isAnyLocation(object.location.name);

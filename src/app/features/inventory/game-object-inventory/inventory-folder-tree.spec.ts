@@ -87,6 +87,27 @@ describe('buildFolderTree()', () => {
     expect(findNode(tree.roots, '第1話/洞窟').items).toHaveLength(2);
   });
 
+  it('opens a folder it was told about even with nothing in it', () => {
+    const tree = buildFolderTree([item('ゴブリン')], (entry) => entry.folder, ['第1話']);
+
+    expect(tree.roots.map((node) => node.path)).toEqual(['第1話']);
+    expect(tree.roots[0].totalCount).toBe(0);
+    expect(tree.loose).toHaveLength(1);
+  });
+
+  it('opens every level of a folder it was told about', () => {
+    const tree = buildFolderTree([], (entry: Item) => entry.folder, ['第1話/洞窟']);
+
+    expect(collectFolderPaths(tree)).toEqual(['第1話', '第1話/洞窟']);
+  });
+
+  it('puts what is in a folder into the one it was told about rather than beside it', () => {
+    const tree = buildFolderTree([item('ゴブリン', '第1話')], (entry) => entry.folder, ['第1話']);
+
+    expect(tree.roots).toHaveLength(1);
+    expect(tree.roots[0].totalCount).toBe(1);
+  });
+
   it('opens no folder at all when nothing is in one', () => {
     const tree = treeOf(item('ゴブリン'), item('村長'));
 

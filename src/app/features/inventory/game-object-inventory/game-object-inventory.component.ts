@@ -289,11 +289,18 @@ export class GameObjectInventoryComponent {
 
   readonly collapsedFolders = signal<ReadonlySet<string>>(new Set());
 
+  readonly declaredFolderPaths = computed<string[]>(() => {
+    this.inventoryService.inventoryVersion();
+    return this.inventoryService.folderPaths;
+  });
+
   readonly folderTree = computed<FolderTree<InventoryRow>>(() =>
-    buildFolderTree(this.filteredRows(), (row) => row.folderPath)
+    buildFolderTree(this.filteredRows(), (row) => row.folderPath, this.declaredFolderPaths())
   );
 
-  readonly hasFolders = computed<boolean>(() => this.visibleRows().some((row) => row.folderPath.length > 0));
+  readonly hasFolders = computed<boolean>(
+    () => this.declaredFolderPaths().length > 0 || this.visibleRows().some((row) => row.folderPath.length > 0)
+  );
 
   readonly isGroupByFolder = computed<boolean>(() => {
     this.inventoryService.inventoryVersion();
@@ -332,9 +339,11 @@ export class GameObjectInventoryComponent {
   }
 
   readonly knownFolderPaths = computed<string[]>(() => {
-    this.inventoryService.inventoryVersion();
     this.objectChange.collectionOf('character')();
     const paths = new Set<string>();
+    for (const declared of this.declaredFolderPaths()) {
+      for (const path of ancestorFolderPaths(declared)) paths.add(path);
+    }
     for (const character of this.objectStore.getObjects<GameCharacter>(GameCharacter)) {
       for (const path of ancestorFolderPaths(character.folderName)) paths.add(path);
     }
@@ -347,6 +356,10 @@ export class GameObjectInventoryComponent {
 
   createFolderFor(gameObject: TabletopObject): void {
     this.createFolderOf([gameObject.identifier]);
+  }
+
+  createFolder(parentPath = ''): void {
+    this.createFolderOf([], parentPath);
   }
 
   multiSetFolder(folderPath: string): void {
@@ -385,7 +398,8 @@ export class GameObjectInventoryComponent {
       this.isMultiMove(),
       {
         renameFolder: () => this.startFolderRename(folderPath),
-        clearFolder: () => this.clearFolder(folderPath),
+        createSubfolder: () => this.createFolder(folderPath),
+        deleteFolder: () => this.deleteFolder(folderPath),
         selectFolder: () => this.selectFolder(folderPath),
         collapseAll: () => this.collapseAllFolders(),
         expandAll: () => this.expandAllFolders(),
@@ -425,21 +439,41 @@ export class GameObjectInventoryComponent {
     this.renameFolder(folderPath, name);
   }
 
-  private createFolderOf(identifiers: readonly string[]): void {
+  private createFolderOf(identifiers: readonly string[], parentPath = ''): void {
     if (!this.rolePermission.canEditTabletop) return;
-    const name = this.unusedFolderName();
-    this.setFolderOf(identifiers, name);
+    const path = this.unusedFolderPath(parentPath);
+    this.declareFolder(path);
+    if (identifiers.length > 0) this.setFolderOf(identifiers, path);
     if (!this.inventoryService.groupByFolder) this.toggleGroupByFolder();
-    this.editingFolder.set(name);
+    this.collapsedFolders.update((current) => {
+      const next = new Set(current);
+      for (const ancestor of ancestorFolderPaths(path)) next.delete(ancestor);
+      return next;
+    });
+    this.editingFolder.set(path);
   }
 
-  private unusedFolderName(): string {
-    const taken = new Set(this.knownFolderPaths());
-    for (let index = 1; index <= taken.size; index++) {
-      const name = this.t('feature.inventory.panel.defaultFolderName', { index });
-      if (!taken.has(name)) return name;
-    }
-    return this.t('feature.inventory.panel.defaultFolderName', { index: taken.size + 1 });
+  private unusedFolderPath(parentPath: string): string {
+    const parent = normalizeFolderPath(parentPath);
+    const prefix = parent.length > 0 ? `${parent}${FOLDER_SEPARATOR}` : '';
+    const taken = new Set(this.knownFolderPaths().map((path) => folderSegments(path).at(-1)));
+    let index = 1;
+    while (taken.has(this.t('feature.inventory.panel.defaultFolderName', { index }))) index++;
+    return normalizeFolderPath(prefix + this.t('feature.inventory.panel.defaultFolderName', { index }));
+  }
+
+  private declareFolder(folderPath: string): void {
+    const declared = this.inventoryService.folderPaths;
+    if (declared.includes(folderPath)) return;
+    this.inventoryService.folderPaths = [...declared, folderPath];
+    this.inventoryService.notifyInventoryUpdate();
+  }
+
+  private undeclareFoldersUnder(folderPath: string): void {
+    const declared = this.inventoryService.folderPaths;
+    const kept = declared.filter((path) => !isDescendantFolderPath(path, folderPath));
+    if (kept.length === declared.length) return;
+    this.inventoryService.folderPaths = kept;
   }
 
   renameFolder(folderPath: string, name: string): void {
@@ -451,25 +485,31 @@ export class GameObjectInventoryComponent {
     for (const character of this.charactersUnder(folderPath)) {
       character.folderName = rewriteFolderPath(normalizeFolderPath(character.folderName), folderPath, renamed);
     }
+    this.inventoryService.folderPaths = [
+      ...new Set(this.inventoryService.folderPaths.map((path) => rewriteFolderPath(path, folderPath, renamed))),
+    ];
     this.collapsedFolders.update(
       (current) => new Set([...current].map((entry) => rewriteFolderPath(entry, folderPath, renamed)))
     );
     this.inventoryService.notifyInventoryUpdate();
   }
 
-  clearFolder(folderPath: string): void {
+  deleteFolder(folderPath: string): void {
     if (!this.rolePermission.canEditTabletop) return;
     const characters = this.charactersUnder(folderPath);
     if (
+      characters.length > 0 &&
       !confirm(
-        this.t('feature.inventory.contextMenu.confirmClearFolder', { name: folderPath, count: characters.length })
+        this.t('feature.inventory.contextMenu.confirmDeleteFolder', { name: folderPath, count: characters.length })
       )
     )
       return;
+    this.undeclareFoldersUnder(folderPath);
     this.setFolderOf(
       characters.map((character) => character.identifier),
       ''
     );
+    this.inventoryService.notifyInventoryUpdate();
   }
 
   selectFolder(folderPath: string): void {

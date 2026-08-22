@@ -215,24 +215,27 @@ describe('buildInventoryFolderAssignMenu()', () => {
 describe('buildInventoryFolderContextMenu()', () => {
   const folderMenuCallbacks = () => ({
     renameFolder: vi.fn(),
-    clearFolder: vi.fn(),
+    createSubfolder: vi.fn(),
+    deleteFolder: vi.fn(),
     selectFolder: vi.fn(),
     collapseAll: vi.fn(),
     expandAll: vi.fn(),
   });
 
-  it('offers renaming and emptying a folder', () => {
+  it('offers renaming, nesting and deleting a folder', () => {
     const list = names(buildInventoryFolderContextMenu('第1話', false, folderMenuCallbacks(), t));
 
     expect(list).toContain('フォルダ名を変更');
-    expect(list).toContain('中身をフォルダから出す');
+    expect(list).toContain('この中に新しいフォルダ');
+    expect(list).toContain('このフォルダを削除');
   });
 
-  it('offers neither on what was never in a folder', () => {
+  it('offers none of them on the unfiled heading', () => {
     const list = names(buildInventoryFolderContextMenu('', false, folderMenuCallbacks(), t));
 
     expect(list).not.toContain('フォルダ名を変更');
-    expect(list).not.toContain('中身をフォルダから出す');
+    expect(list).not.toContain('この中に新しいフォルダ');
+    expect(list).not.toContain('このフォルダを削除');
   });
 
   it('offers folding every folder either way', () => {

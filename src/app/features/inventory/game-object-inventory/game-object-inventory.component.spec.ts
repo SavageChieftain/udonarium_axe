@@ -1,6 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { GameCharacter } from '@axe/domain/character/game-character';
+import { DataSummarySetting } from '@axe/domain/data/data-summary-setting';
 import { GameObjectInventoryComponent } from '@axe/features/inventory/game-object-inventory/game-object-inventory.component';
 import { expectPanelDragRecovery, PanelDragTestHostComponent } from '@axe/testing/panel-drag-recovery';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
@@ -44,6 +45,8 @@ describe('GameObjectInventoryComponent', () => {
       const store = ObjectStore.instance;
       store.getObjects().forEach((object) => store.delete(object, false));
       store.clearDeleteHistory();
+      // The summary settings are a synced singleton, so its folders outlive the store cleanup.
+      (DataSummarySetting as unknown as Record<string, unknown>)['_instance'] = undefined;
       vi.unstubAllGlobals();
       vi.restoreAllMocks();
     });
@@ -203,7 +206,44 @@ describe('GameObjectInventoryComponent', () => {
       expect(goblin.folderName).toBe('序章');
     });
 
-    it('takes everything out of a folder it is asked to empty', () => {
+    it('makes a folder with nothing in it yet', () => {
+      component.createFolder();
+
+      expect(component.declaredFolderPaths()).toEqual(['フォルダ1']);
+      expect(component.hasFolders()).toBe(true);
+      expect(component.folderTree().roots.map((node) => node.path)).toEqual(['フォルダ1']);
+      expect(component.folderTree().roots[0].totalCount).toBe(0);
+    });
+
+    it('makes a folder inside the one it was asked from', () => {
+      component.createFolder();
+
+      component.createFolder('フォルダ1');
+
+      expect(component.declaredFolderPaths()).toEqual(['フォルダ1', 'フォルダ1/フォルダ2']);
+      expect(component.folderTree().roots[0].children.map((node) => node.name)).toEqual(['フォルダ2']);
+    });
+
+    it('keeps an empty folder standing after the last character leaves it', () => {
+      const goblin = putOnTable('ゴブリン');
+      component.createFolderFor(goblin);
+
+      component.setFolder(goblin, '');
+
+      expect(component.folderTree().roots.map((node) => node.path)).toEqual(['フォルダ1']);
+      expect(component.folderTree().loose.map((row) => row.object.name)).toEqual(['ゴブリン']);
+    });
+
+    it('deletes an empty folder without asking', () => {
+      component.createFolder();
+
+      component.deleteFolder('フォルダ1');
+
+      expect(component.declaredFolderPaths()).toEqual([]);
+      expect(component.hasFolders()).toBe(false);
+    });
+
+    it('takes what is inside back to unfiled when a folder is deleted', () => {
       const goblin = putOnTable('ゴブリン');
       goblin.folderName = '第1話/洞窟';
       vi.stubGlobal(
@@ -211,9 +251,40 @@ describe('GameObjectInventoryComponent', () => {
         vi.fn(() => true)
       );
 
-      component.clearFolder('第1話');
+      component.deleteFolder('第1話');
 
       expect(goblin.folderName).toBe('');
+    });
+
+    it('leaves a folder alone when the deletion is called off', () => {
+      const goblin = putOnTable('ゴブリン');
+      goblin.folderName = '第1話';
+      vi.stubGlobal(
+        'confirm',
+        vi.fn(() => false)
+      );
+
+      component.deleteFolder('第1話');
+
+      expect(goblin.folderName).toBe('第1話');
+    });
+
+    it('merges rather than doubles up when a folder is renamed onto another', () => {
+      component.createFolder();
+      component.createFolder();
+
+      component.renameFolder('フォルダ2', 'フォルダ1');
+
+      expect(component.declaredFolderPaths()).toEqual(['フォルダ1']);
+    });
+
+    it('carries a rename through the folders it has been told about', () => {
+      component.createFolder();
+      component.createFolder('フォルダ1');
+
+      component.renameFolder('フォルダ1', '第1話');
+
+      expect(component.declaredFolderPaths()).toEqual(['第1話', '第1話/フォルダ2']);
     });
 
     function folderHeading(path: string): HTMLElement {

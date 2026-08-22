@@ -49,7 +49,8 @@ export function buildInventoryFolderAssignMenu(
 
 export interface InventoryFolderContextMenuCallbacks {
   renameFolder: () => void;
-  clearFolder: () => void;
+  createSubfolder: () => void;
+  deleteFolder: () => void;
   selectFolder: () => void;
   collapseAll: () => void;
   expandAll: () => void;
@@ -69,8 +70,12 @@ export function buildInventoryFolderContextMenu(
       action: () => callbacks.renameFolder(),
     });
     actions.push({
-      name: t('feature.inventory.contextMenu.clearFolder'),
-      action: () => callbacks.clearFolder(),
+      name: t('feature.inventory.contextMenu.newSubfolder'),
+      action: () => callbacks.createSubfolder(),
+    });
+    actions.push({
+      name: t('feature.inventory.contextMenu.deleteFolder'),
+      action: () => callbacks.deleteFolder(),
     });
     actions.push(ContextMenuSeparator);
   }
