@@ -89,12 +89,14 @@
 </div>
 
 @if (isPopover('slotGuide')) {
-  <div class="pointer-events-auto absolute inset-x-0 top-[10dvh] bottom-[15dvh] z-40 flex">
+  <div class="pointer-events-auto absolute inset-x-0 top-[10dvh] bottom-[15dvh] z-40 overflow-hidden">
     @for (slotIndex of slotIndexes; track slotIndex) {
       <button
         type="button"
-        class="relative grow cursor-pointer border-0 border-r border-dashed border-white/25 bg-transparent transition-colors first:border-l hover:bg-white/15"
+        class="absolute inset-y-0 -translate-x-1/2 cursor-pointer border-0 border-x border-dashed border-white/25 bg-transparent transition-colors hover:bg-white/15"
         [class.bg-white/10]="slotIndex === speakerSlot()"
+        [style.left.%]="leftOfSlot(slotIndex)"
+        [style.width.%]="slotBandWidth"
         (click)="pickSlot(slotIndex)"
       >
         <span
@@ -432,6 +434,17 @@
             <i class="material-icons">person_pin_circle</i>
             {{ speakerSlot() + 1 }}/12
           </button>
+          @if (speakerSlotOverridden()) {
+            <button
+              type="button"
+              class="border-ui-border-panel bg-ui-input text-ui-muted hover:border-ui-accent hover:text-ui-accent rounded-ui flex size-8 cursor-pointer items-center justify-center border border-solid transition-colors [&_i]:text-[15px]"
+              [title]="'feature.visualNovel.followChatSlot' | transloco"
+              [attr.aria-label]="'feature.visualNovel.followChatSlot' | transloco"
+              (click)="followChatSlot()"
+            >
+              <i class="material-icons">link</i>
+            </button>
+          }
         }
         @if (speakerFlip() !== null) {
           <button

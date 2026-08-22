@@ -1689,6 +1689,7 @@
       }
     },
     "visualNovel": {
+      "followChatSlot": "Follow the chat position",
       "exit": "Exit",
       "noMessages": "No messages yet. Use the input below to speak.",
       "prev": "Previous message",
