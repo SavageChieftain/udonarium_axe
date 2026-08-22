@@ -327,15 +327,15 @@
           <ng-container
             *ngTemplateOutlet="
               folderHeading;
-              context: { $implicit: { path: '', name: '', depth: 0, totalCount: folderTree().loose.length } }
+              context: { $implicit: { path: '', name: '', totalCount: folderTree().loose.length } }
             "
           ></ng-container>
           @if (!isFolderCollapsed('')) {
-            @for (row of folderTree().loose; track row.identifier) {
-              <div [style.padding-left.px]="12">
+            <div class="border-ui-border-panel ml-2.5 flex flex-col gap-0.5 border-l border-solid pl-1.5">
+              @for (row of folderTree().loose; track row.identifier) {
                 <ng-container *ngTemplateOutlet="itemRow; context: { $implicit: row.object }"></ng-container>
-              </div>
-            }
+              }
+            </div>
           }
         }
       } @else {
@@ -596,19 +596,22 @@
 
 <ng-template #folderHeading let-node>
   <div
-    class="text-ui-muted hover:bg-ui-hover group/folder flex cursor-pointer items-center gap-1 rounded-[5px] py-1 pr-2 text-[12px] font-semibold select-none [&_.material-icons]:text-[15px]!"
+    class="text-ui-text bg-ui-elevated border-ui-border-panel hover:border-ui-accent group/folder mt-1 flex cursor-pointer items-center gap-1 rounded-[5px] border border-solid p-1.5 text-[12px] font-semibold transition-[background,border-color] select-none first:mt-0"
     role="button"
     data-folder-dropzone
     [attr.data-folder-path]="node.path"
     [attr.aria-expanded]="!isFolderCollapsed(node.path)"
+    [class.text-ui-muted!]="!node.path"
     [class.bg-ui-accent-bg!]="isDropFolder(node.path)"
-    [class.text-ui-accent!]="isDropFolder(node.path)"
-    [style.padding-left.px]="6 + node.depth * 12"
+    [class.border-ui-accent!]="isDropFolder(node.path)"
     (click)="toggleFolder(node.path)"
     (contextmenu)="onFolderContextMenu($event, node.path)"
   >
-    <i class="material-icons shrink-0">{{ isFolderCollapsed(node.path) ? 'chevron_right' : 'expand_more' }}</i>
-    <i class="material-icons text-ui-accent shrink-0">{{ node.path ? 'folder' : 'inbox' }}</i>
+    <i
+      class="material-icons text-ui-muted shrink-0 text-[18px]! transition-transform"
+      [class.-rotate-90]="isFolderCollapsed(node.path)"
+      >expand_more</i
+    >
     @if (isEditingFolder(node.path)) {
       <input
         appAutoFocus
@@ -623,13 +626,10 @@
     } @else {
       <span class="truncate">{{ node.path ? node.name : ('feature.inventory.panel.unfiled' | transloco) }}</span>
     }
-    <span
-      class="text-ui-accent bg-ui-accent-bg inline-flex h-4 min-w-4.5 shrink-0 items-center justify-center rounded-lg px-1 text-[10px] font-bold"
-      >{{ node.totalCount }}</span
-    >
+    <span class="text-ui-dim ml-auto shrink-0 text-[11px] font-normal tabular-nums">{{ node.totalCount }}</span>
     @if (node.path && !isEditingFolder(node.path)) {
       <button
-        class="text-ui-muted hover:bg-ui-hover hover:text-ui-accent ml-auto hidden size-5 shrink-0 cursor-pointer items-center justify-center rounded-sm border-none bg-transparent p-0 transition-[background,color] group-hover/folder:inline-flex [&_.material-icons]:text-[13px]!"
+        class="text-ui-muted hover:bg-ui-hover hover:text-ui-accent hidden size-5 shrink-0 cursor-pointer items-center justify-center rounded-sm border-none bg-transparent p-0 transition-[background,color] group-hover/folder:inline-flex [&_.material-icons]:text-[14px]!"
         type="button"
         [title]="'feature.inventory.contextMenu.renameFolder' | transloco"
         (click)="$event.stopPropagation(); startFolderRename(node.path)"
@@ -643,13 +643,13 @@
 <ng-template #folderNode let-node>
   <ng-container *ngTemplateOutlet="folderHeading; context: { $implicit: node }"></ng-container>
   @if (!isFolderCollapsed(node.path)) {
-    @for (child of node.children; track child.path) {
-      <ng-container *ngTemplateOutlet="folderNode; context: { $implicit: child }"></ng-container>
-    }
-    @for (row of node.items; track row.identifier) {
-      <div [style.padding-left.px]="(node.depth + 1) * 12">
+    <div class="border-ui-border-panel ml-2.5 flex flex-col gap-0.5 border-l border-solid pl-1.5">
+      @for (child of node.children; track child.path) {
+        <ng-container *ngTemplateOutlet="folderNode; context: { $implicit: child }"></ng-container>
+      }
+      @for (row of node.items; track row.identifier) {
         <ng-container *ngTemplateOutlet="itemRow; context: { $implicit: row.object }"></ng-container>
-      </div>
-    }
+      }
+    </div>
   }
 </ng-template>
