@@ -60,7 +60,8 @@ export function buildInventoryFolderContextMenu(
   folderPath: string,
   isMultiMove: boolean,
   callbacks: InventoryFolderContextMenuCallbacks,
-  t: TranslateFn
+  t: TranslateFn,
+  canNest = true
 ): ContextMenuAction[] {
   const actions: ContextMenuAction[] = [];
 
@@ -69,10 +70,12 @@ export function buildInventoryFolderContextMenu(
       name: t('feature.inventory.contextMenu.renameFolder'),
       action: () => callbacks.renameFolder(),
     });
-    actions.push({
-      name: t('feature.inventory.contextMenu.newSubfolder'),
-      action: () => callbacks.createSubfolder(),
-    });
+    if (canNest) {
+      actions.push({
+        name: t('feature.inventory.contextMenu.newSubfolder'),
+        action: () => callbacks.createSubfolder(),
+      });
+    }
     actions.push({
       name: t('feature.inventory.contextMenu.deleteFolder'),
       action: () => callbacks.deleteFolder(),

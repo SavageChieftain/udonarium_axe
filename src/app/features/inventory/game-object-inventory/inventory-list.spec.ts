@@ -2,22 +2,22 @@ import { TabletopObject } from '@axe/domain/tabletop/tabletop-object';
 import {
   buildInventoryRow,
   filterInventoryRows,
-  type InventoryRowSource,
-  matchesInventoryRow,
+  type InventoryRow,
+  inventorySearchText,
+  matchesSearchText,
   normalizeInventoryText,
   splitSearchTerms,
 } from '@axe/features/inventory/game-object-inventory/inventory-list';
 
 let counter = 0;
 
-function makeSource(overrides: Partial<InventoryRowSource> & { name?: string } = {}): InventoryRowSource {
+function makeRow(name = 'ゴブリン', folderName = ''): InventoryRow {
   counter += 1;
-  return {
-    object: { identifier: `object-${counter}`, name: overrides.name ?? 'ゴブリン' } as TabletopObject,
-    folderName: overrides.folderName ?? '',
-    ownerName: overrides.ownerName ?? '',
-    elementTexts: overrides.elementTexts ?? [],
-  };
+  return buildInventoryRow({ identifier: `object-${counter}`, name } as TabletopObject, folderName);
+}
+
+function textOf(row: InventoryRow, ownerName = '', elementTexts: readonly string[] = []): string {
+  return inventorySearchText(row, ownerName, elementTexts);
 }
 
 describe('normalizeInventoryText()', () => {
@@ -54,65 +54,79 @@ describe('splitSearchTerms()', () => {
 
 describe('buildInventoryRow()', () => {
   it('takes its identifier from the object', () => {
-    const source = makeSource();
-    expect(buildInventoryRow(source).identifier).toBe(source.object.identifier);
+    const object = { identifier: 'abc', name: 'ゴブリン' } as TabletopObject;
+
+    expect(buildInventoryRow(object, '').identifier).toBe('abc');
   });
 
   it('normalizes the folder it was given', () => {
-    expect(buildInventoryRow(makeSource({ folderName: ' 第1話 // 洞窟 ' })).folderPath).toBe('第1話/洞窟');
-  });
-
-  it('searches over the name, the owner and the folder', () => {
-    const row = buildInventoryRow(makeSource({ name: 'ゴブリン', ownerName: '田中', folderName: '第1話' }));
-    expect(matchesInventoryRow(row, ['ゴブリン'])).toBe(true);
-    expect(matchesInventoryRow(row, ['田中'])).toBe(true);
-    expect(matchesInventoryRow(row, ['第1話'])).toBe(true);
-  });
-
-  it('searches over the values on show', () => {
-    const row = buildInventoryRow(makeSource({ elementTexts: ['毒'] }));
-    expect(matchesInventoryRow(row, ['毒'])).toBe(true);
-  });
-
-  it('leaves the values out when it is given none', () => {
-    const row = buildInventoryRow(makeSource({ name: 'ゴブリン', ownerName: '田中' }));
-    expect(row.searchText).toBe('ゴブリン 田中');
+    expect(makeRow('ゴブリン', ' 第1話 // 洞窟 ').folderPath).toBe('第1話/洞窟');
   });
 });
 
-describe('matchesInventoryRow()', () => {
+describe('inventorySearchText()', () => {
+  it('gathers the name, the owner and the folder', () => {
+    const text = textOf(makeRow('ゴブリン', '第1話'), '田中');
+
+    expect(matchesSearchText(text, ['ゴブリン'])).toBe(true);
+    expect(matchesSearchText(text, ['田中'])).toBe(true);
+    expect(matchesSearchText(text, ['第1話'])).toBe(true);
+  });
+
+  it('gathers the values it is handed', () => {
+    expect(matchesSearchText(textOf(makeRow(), '', ['毒']), ['毒'])).toBe(true);
+  });
+
+  it('holds only the name and the owner when it is handed no values', () => {
+    expect(textOf(makeRow('ゴブリン'), '田中')).toBe('ゴブリン 田中');
+  });
+});
+
+describe('matchesSearchText()', () => {
   it('lets everything through for an empty search', () => {
-    expect(matchesInventoryRow(buildInventoryRow(makeSource()), [])).toBe(true);
+    expect(matchesSearchText(textOf(makeRow()), [])).toBe(true);
   });
 
   it('finds a name by part of it', () => {
-    expect(matchesInventoryRow(buildInventoryRow(makeSource({ name: 'ゴブリン戦士' })), ['ブリン'])).toBe(true);
+    expect(matchesSearchText(textOf(makeRow('ゴブリン戦士')), ['ブリン'])).toBe(true);
   });
 
   it('wants every word of the search, not just one', () => {
-    const row = buildInventoryRow(makeSource({ name: 'ゴブリン戦士' }));
-    expect(matchesInventoryRow(row, ['ゴブリン', '戦士'])).toBe(true);
-    expect(matchesInventoryRow(row, ['ゴブリン', '魔術師'])).toBe(false);
+    const text = textOf(makeRow('ゴブリン戦士'));
+
+    expect(matchesSearchText(text, ['ゴブリン', '戦士'])).toBe(true);
+    expect(matchesSearchText(text, ['ゴブリン', '魔術師'])).toBe(false);
   });
 
   it('finds a full-width name typed in half-width', () => {
-    expect(matchesInventoryRow(buildInventoryRow(makeSource({ name: 'ＨＰポーション' })), ['hp'])).toBe(true);
+    expect(matchesSearchText(textOf(makeRow('ＨＰポーション')), ['hp'])).toBe(true);
   });
 });
 
 describe('filterInventoryRows()', () => {
   it('keeps every row when nothing is searched for', () => {
-    const rows = [buildInventoryRow(makeSource({ name: 'ゴブリン' })), buildInventoryRow(makeSource({ name: '村長' }))];
-    expect(filterInventoryRows(rows, [])).toHaveLength(2);
+    const rows = [makeRow('ゴブリン'), makeRow('村長')];
+
+    expect(filterInventoryRows(rows, [], (row) => textOf(row))).toHaveLength(2);
+  });
+
+  it('never asks for the text of a row when nothing is searched for', () => {
+    const searchTextOf = vi.fn((row: InventoryRow) => textOf(row));
+
+    filterInventoryRows([makeRow(), makeRow()], [], searchTextOf);
+
+    expect(searchTextOf).not.toHaveBeenCalled();
   });
 
   it('keeps only what matches', () => {
-    const rows = [buildInventoryRow(makeSource({ name: 'ゴブリン' })), buildInventoryRow(makeSource({ name: '村長' }))];
-    expect(filterInventoryRows(rows, ['村長']).map((row) => row.object.name)).toEqual(['村長']);
+    const rows = [makeRow('ゴブリン'), makeRow('村長')];
+
+    expect(filterInventoryRows(rows, ['村長'], (row) => textOf(row)).map((row) => row.object.name)).toEqual(['村長']);
   });
 
   it('hands back a list of its own rather than the one it was given', () => {
-    const rows = [buildInventoryRow(makeSource())];
-    expect(filterInventoryRows(rows, [])).not.toBe(rows);
+    const rows = [makeRow()];
+
+    expect(filterInventoryRows(rows, [], (row) => textOf(row))).not.toBe(rows);
   });
 });

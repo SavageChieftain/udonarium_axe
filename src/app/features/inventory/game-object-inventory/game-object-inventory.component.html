@@ -79,7 +79,7 @@
           <i class="material-icons">close</i>
         </button>
       }
-      @if (foldersApply()) {
+      @if (foldersApply() && canEdit()) {
         <span class="bg-ui-border-panel ml-0.5 h-4 w-px shrink-0"></span>
         <button
           class="text-ui-muted hover:bg-ui-hover hover:text-ui-accent flex size-6 shrink-0 cursor-pointer items-center justify-center rounded-sm border-none bg-transparent p-0 transition-[background,color] [&_.material-icons]:text-[18px]!"
@@ -308,7 +308,8 @@
     }
 
     <div class="flex flex-1 flex-col gap-0.5 overflow-y-auto px-1.5 py-1">
-      @if (filteredRows().length < 1) {
+      @let nothingListed = filteredRows().length < 1;
+      @if (nothingListed && (hasQuery() || !showTree())) {
         <div
           class="text-ui-dim flex flex-1 flex-col items-center justify-center gap-2 p-6 text-center [&_.material-icons]:text-[36px]! [&_.material-icons]:opacity-40"
         >
@@ -321,9 +322,7 @@
             }
           </p>
         </div>
-      }
-
-      @if (showTree()) {
+      } @else if (showTree()) {
         @for (node of folderTree().roots; track node.path) {
           <ng-container *ngTemplateOutlet="folderNode; context: { $implicit: node }"></ng-container>
         }
@@ -631,7 +630,7 @@
       <span class="truncate">{{ node.path ? node.name : ('feature.inventory.panel.unfiled' | transloco) }}</span>
     }
     <span class="text-ui-dim ml-auto shrink-0 text-[11px] font-normal tabular-nums">{{ node.totalCount }}</span>
-    @if (node.path && !isEditingFolder(node.path)) {
+    @if (node.path && canEdit() && !isEditingFolder(node.path)) {
       <button
         class="text-ui-dim hover:bg-ui-hover hover:text-ui-accent inline-flex size-5 shrink-0 cursor-pointer items-center justify-center rounded-sm border-none bg-transparent p-0 transition-[background,color] [&_.material-icons]:text-[14px]!"
         type="button"

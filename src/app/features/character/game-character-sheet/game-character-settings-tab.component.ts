@@ -125,6 +125,7 @@ export class GameCharacterSettingsTabComponent {
   }
 
   onSetFolder(event: Event): void {
+    if (!this.rolePermission.canEditTabletop) return;
     const character = this.character();
     const input = event.target as HTMLInputElement;
     const folderName = normalizeFolderPath(input.value);

@@ -252,6 +252,14 @@ describe('buildInventoryFolderContextMenu()', () => {
     expect(list).toContain('すべて展開');
   });
 
+  it('offers no folder inside one that has no room for another level', () => {
+    const list = names(buildInventoryFolderContextMenu('第1話', false, folderMenuCallbacks(), t, false));
+
+    expect(list).toContain('フォルダ名を変更');
+    expect(list).toContain('このフォルダを削除');
+    expect(list).not.toContain('この中に新しいフォルダ');
+  });
+
   it('offers taking the whole folder only while several are being moved', () => {
     const idle = names(buildInventoryFolderContextMenu('第1話', false, folderMenuCallbacks(), t));
     const moving = names(buildInventoryFolderContextMenu('第1話', true, folderMenuCallbacks(), t));

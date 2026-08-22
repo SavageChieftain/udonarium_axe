@@ -6,14 +6,6 @@ export interface InventoryRow {
   readonly object: TabletopObject;
   readonly identifier: string;
   readonly folderPath: string;
-  readonly searchText: string;
-}
-
-export interface InventoryRowSource {
-  readonly object: TabletopObject;
-  readonly folderName: string;
-  readonly ownerName: string;
-  readonly elementTexts: readonly string[];
 }
 
 const TERM_SEPARATOR = /[\s\u3000]+/;
@@ -28,23 +20,23 @@ export function splitSearchTerms(query: string): string[] {
     .filter((term) => term.length > 0);
 }
 
-export function buildInventoryRow(source: InventoryRowSource): InventoryRow {
-  const folderPath = normalizeFolderPath(source.folderName);
-  return {
-    object: source.object,
-    identifier: source.object.identifier,
-    folderPath,
-    searchText: normalizeInventoryText(
-      [source.object.name, source.ownerName, folderPath, ...source.elementTexts].join(' ')
-    ),
-  };
+export function buildInventoryRow(object: TabletopObject, folderName: string): InventoryRow {
+  return { object, identifier: object.identifier, folderPath: normalizeFolderPath(folderName) };
 }
 
-export function matchesInventoryRow(row: InventoryRow, terms: readonly string[]): boolean {
-  return terms.every((term) => row.searchText.includes(term));
+export function inventorySearchText(row: InventoryRow, ownerName: string, elementTexts: readonly string[]): string {
+  return normalizeInventoryText([row.object.name, ownerName, row.folderPath, ...elementTexts].join(' '));
 }
 
-export function filterInventoryRows(rows: readonly InventoryRow[], terms: readonly string[]): InventoryRow[] {
+export function matchesSearchText(searchText: string, terms: readonly string[]): boolean {
+  return terms.every((term) => searchText.includes(term));
+}
+
+export function filterInventoryRows(
+  rows: readonly InventoryRow[],
+  terms: readonly string[],
+  searchTextOf: (row: InventoryRow) => string
+): InventoryRow[] {
   if (terms.length < 1) return [...rows];
-  return rows.filter((row) => matchesInventoryRow(row, terms));
+  return rows.filter((row) => matchesSearchText(searchTextOf(row), terms));
 }

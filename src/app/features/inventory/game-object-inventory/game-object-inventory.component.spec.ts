@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { GameObjectInventoryService } from '@axe/application/inventory/game-object-inventory.service';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { DataSummarySetting } from '@axe/domain/data/data-summary-setting';
@@ -299,6 +300,72 @@ describe('GameObjectInventoryComponent', () => {
       expect(goblin.folderName).toBe('第1話');
     });
 
+    it('files what sits in a location nobody claimed, which the shared tab also lists', () => {
+      const orphan = GameCharacter.create('置き去り', 1, '');
+      orphan.setLocation('some-peer-who-left');
+      orphan.folderName = '第1話';
+      component.selectTab.set('common');
+
+      component.renameFolder('第1話', '序章');
+
+      expect(orphan.folderName).toBe('序章');
+    });
+
+    it('refuses a rename that would push what is inside past the depth limit', () => {
+      const deep = putInShared('ゴブリン');
+      deep.folderName = '第1話/洞窟/最奥/宝物庫';
+      component.selectTab.set('common');
+
+      expect(component.renameFolder('第1話', '序章/導入')).toBe(false);
+      expect(deep.folderName).toBe('第1話/洞窟/最奥/宝物庫');
+    });
+
+    it('keeps the editor open on a name it could not take', () => {
+      const goblin = putInShared('ゴブリン');
+      goblin.folderName = '第1話';
+      component.selectTab.set('common');
+      component.startFolderRename('第1話');
+
+      component.commitFolderRename('第1話', '   ');
+
+      expect(component.isEditingFolder('第1話')).toBe(true);
+    });
+
+    it('offers no folder inside one already at the depth limit', () => {
+      const deep = putInShared('ゴブリン');
+      deep.folderName = '第1話/洞窟/最奥/宝物庫';
+      component.selectTab.set('common');
+
+      expect(component.canNestInside('第1話/洞窟/最奥/宝物庫')).toBe(false);
+      component.createFolder('第1話/洞窟/最奥/宝物庫');
+
+      expect(component.declaredFolderPaths()).toEqual([]);
+      expect(deep.folderName).toBe('第1話/洞窟/最奥/宝物庫');
+    });
+
+    it('ignores a fold while a search is holding everything open', () => {
+      const goblin = putInShared('ゴブリン');
+      goblin.folderName = '第1話';
+      component.selectTab.set('common');
+      component.searchQuery.set('ゴブリン');
+
+      component.toggleFolder('第1話');
+      component.clearSearch();
+
+      expect(component.isFolderCollapsed('第1話')).toBe(false);
+    });
+
+    it('keeps personal folders off the room and out of the shared tab', () => {
+      component.selectTab.set(component.inventoryTypes()[2]);
+      component.createFolder();
+
+      expect(component.declaredFolderPaths()).toEqual(['フォルダ1']);
+      expect(TestBed.inject(GameObjectInventoryService).folderPaths).toEqual([]);
+
+      component.selectTab.set('common');
+      expect(component.declaredFolderPaths()).toEqual([]);
+    });
+
     it('merges rather than doubles up when a folder is renamed onto another', () => {
       component.selectTab.set('common');
       component.createFolder();
@@ -323,6 +390,8 @@ describe('GameObjectInventoryComponent', () => {
       const heading = document.createElement('div');
       heading.setAttribute('data-folder-dropzone', '');
       heading.setAttribute('data-folder-path', path);
+      // Only a heading this panel drew counts as a target, so it has to live inside the host.
+      fixture.nativeElement.append(heading);
       return heading;
     }
 
@@ -345,7 +414,8 @@ describe('GameObjectInventoryComponent', () => {
     }
 
     it('moves a character dragged onto a folder into it', () => {
-      const goblin = putOnTable('ゴブリン');
+      const goblin = putInShared('ゴブリン');
+      component.selectTab.set('common');
 
       dragOnto(goblin, folderHeading('第1話/洞窟'));
 
@@ -353,8 +423,9 @@ describe('GameObjectInventoryComponent', () => {
     });
 
     it('takes a character dragged onto the unfiled heading out of its folder', () => {
-      const goblin = putOnTable('ゴブリン');
+      const goblin = putInShared('ゴブリン');
       goblin.folderName = '第1話';
+      component.selectTab.set('common');
 
       dragOnto(goblin, folderHeading(''));
 
@@ -362,8 +433,9 @@ describe('GameObjectInventoryComponent', () => {
     });
 
     it('leaves a character dropped nowhere where it was', () => {
-      const goblin = putOnTable('ゴブリン');
+      const goblin = putInShared('ゴブリン');
       goblin.folderName = '第1話';
+      component.selectTab.set('common');
 
       dragOnto(goblin, document.createElement('div'));
 
@@ -371,8 +443,9 @@ describe('GameObjectInventoryComponent', () => {
     });
 
     it('carries the whole ticked selection along', () => {
-      const goblin = putOnTable('ゴブリン');
-      const village = putOnTable('村長');
+      const goblin = putInShared('ゴブリン');
+      const village = putInShared('村長');
+      component.selectTab.set('common');
       component.isMultiMove.set(true);
       component.multiMoveTargets.set(new Set([goblin.identifier, village.identifier]));
 
@@ -383,8 +456,9 @@ describe('GameObjectInventoryComponent', () => {
     });
 
     it('carries only what was grabbed when it is not part of the selection', () => {
-      const goblin = putOnTable('ゴブリン');
-      const village = putOnTable('村長');
+      const goblin = putInShared('ゴブリン');
+      const village = putInShared('村長');
+      component.selectTab.set('common');
       component.isMultiMove.set(true);
       component.multiMoveTargets.set(new Set([village.identifier]));
 
@@ -392,6 +466,14 @@ describe('GameObjectInventoryComponent', () => {
 
       expect(goblin.folderName).toBe('第1話');
       expect(village.folderName).toBe('');
+    });
+
+    it('refuses to file a character dragged on a tab that does not use folders', () => {
+      const goblin = putOnTable('ゴブリン');
+
+      dragOnto(goblin, folderHeading('第1話'));
+
+      expect(goblin.folderName).toBe('');
     });
 
     it('ticks only the rows the search left when everything is selected', () => {
