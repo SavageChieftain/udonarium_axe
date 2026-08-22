@@ -63,6 +63,13 @@ export class GameObjectInventoryService {
     return this.summarySetting.dataTags;
   }
 
+  get groupByFolder(): boolean {
+    return this.summarySetting.groupByFolder;
+  }
+  set groupByFolder(groupByFolder: boolean) {
+    this.summarySetting.groupByFolder = groupByFolder;
+  }
+
   tableInventory: ObjectInventory = new ObjectInventory((object) => object.isVisibleOnTable);
   commonInventory: ObjectInventory = new ObjectInventory((object) => {
     return !this.isAnyLocation(object.location.name);
@@ -76,6 +83,7 @@ export class GameObjectInventoryService {
 
   private locationMap: Map<ObjectIdentifier, LocationName> = new Map();
   private tagNameMap: Map<ObjectIdentifier, ElementName> = new Map();
+  private summarySnapshot: string = '';
 
   readonly newLineString: string = '/';
   readonly newLineDataElement: DataElement = DataElement.create(this.newLineString);
@@ -84,7 +92,12 @@ export class GameObjectInventoryService {
     this.initialize();
   }
 
+  private currentSummarySnapshot(): string {
+    return [this.sortTag, this.sortOrder, this.sortTag2nd, this.sortOrder2nd, this.dataTag].join('\n');
+  }
+
   private initialize() {
+    this.summarySnapshot = this.currentSummarySnapshot();
     this.objectChange.objectAdded$.subscribe((e) => {
       if (e.aliasName === GameCharacter.aliasName) this.refresh();
     }, this.destroyRef);
@@ -129,8 +142,12 @@ export class GameObjectInventoryService {
         }
         this.callInventoryUpdate();
       } else if (object instanceof DataSummarySetting) {
-        this.refreshDataElements();
-        this.refreshSort();
+        const snapshot = this.currentSummarySnapshot();
+        if (snapshot !== this.summarySnapshot) {
+          this.summarySnapshot = snapshot;
+          this.refreshDataElements();
+          this.refreshSort();
+        }
         this.callInventoryUpdate();
       }
     }, this.destroyRef);

@@ -77,6 +77,59 @@ describe('GameObjectInventoryComponent', () => {
       expect(component.filteredRows().map((row) => row.object.name)).toEqual(['ゴブリン戦士']);
     });
 
+    it('gathers the rows into the folders they name', () => {
+      const goblin = putOnTable('ゴブリン');
+      goblin.folderName = '第1話/洞窟';
+      putOnTable('村長');
+
+      expect(component.showTree()).toBe(true);
+      expect(component.folderTree().roots.map((node) => node.path)).toEqual(['第1話']);
+      expect(component.folderTree().roots[0].totalCount).toBe(1);
+      expect(component.folderTree().loose.map((row) => row.object.name)).toEqual(['村長']);
+    });
+
+    it('leaves the list flat while nothing is in a folder', () => {
+      putOnTable('ゴブリン');
+      putOnTable('村長');
+
+      expect(component.hasFolders()).toBe(false);
+      expect(component.showTree()).toBe(false);
+    });
+
+    it('leaves the list flat once the folders are turned off', () => {
+      const goblin = putOnTable('ゴブリン');
+      goblin.folderName = '第1話';
+
+      component.toggleGroupByFolder();
+
+      expect(component.hasFolders()).toBe(true);
+      expect(component.isGroupByFolder()).toBe(false);
+      expect(component.showTree()).toBe(false);
+    });
+
+    it('folds a folder away and opens it again', () => {
+      const goblin = putOnTable('ゴブリン');
+      goblin.folderName = '第1話';
+
+      component.toggleFolder('第1話');
+      expect(component.isFolderCollapsed('第1話')).toBe(true);
+
+      component.toggleFolder('第1話');
+      expect(component.isFolderCollapsed('第1話')).toBe(false);
+    });
+
+    it('opens every folder while a search is on, without forgetting what was folded', () => {
+      const goblin = putOnTable('ゴブリン');
+      goblin.folderName = '第1話';
+      component.toggleFolder('第1話');
+
+      component.searchQuery.set('ゴブリン');
+      expect(component.isFolderCollapsed('第1話')).toBe(false);
+
+      component.clearSearch();
+      expect(component.isFolderCollapsed('第1話')).toBe(true);
+    });
+
     it('ticks only the rows the search left when everything is selected', () => {
       putOnTable('ゴブリン');
       putOnTable('村長');

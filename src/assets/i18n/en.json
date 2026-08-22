@@ -899,6 +899,8 @@
         "popupMaxHeight": "Max height"
       },
       "panel": {
+        "groupByFolder": "Group by folder",
+        "unfiled": "Unfiled",
         "searchPlaceholder": "Search name, owner or shown items",
         "clearSearch": "Clear search",
         "noMatch": "No character matches",

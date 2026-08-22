@@ -32,6 +32,19 @@
       </form>
 
       <div class="flex gap-1 pb-1">
+        @if (hasFolders()) {
+          <button
+            class="border-ui-border-panel text-ui-muted hover:bg-ui-accent-bg hover:text-ui-accent hover:border-ui-accent rounded-ui-sm inline-flex size-7 cursor-pointer items-center justify-center border border-solid bg-transparent p-0 transition-[background,color,border-color] [&_.material-icons]:text-base!"
+            [class.bg-ui-accent-bg!]="isGroupByFolder()"
+            [class.text-ui-accent!]="isGroupByFolder()"
+            [class.border-ui-accent!]="isGroupByFolder()"
+            type="button"
+            [title]="'feature.inventory.panel.groupByFolder' | transloco"
+            (click)="toggleGroupByFolder()"
+          >
+            <i class="material-icons">{{ isGroupByFolder() ? 'folder_open' : 'folder' }}</i>
+          </button>
+        }
         @if (!isMultiMove()) {
           <button
             class="border-ui-border-panel text-ui-muted hover:bg-ui-accent-bg hover:text-ui-accent hover:border-ui-accent rounded-ui-sm inline-flex size-7 cursor-pointer items-center justify-center border border-solid bg-transparent p-0 transition-[background,color,border-color] [&_.material-icons]:text-base!"
@@ -300,8 +313,29 @@
         </div>
       }
 
-      @for (row of filteredRows(); track row.identifier) {
-        <ng-container *ngTemplateOutlet="itemRow; context: { $implicit: row.object }"></ng-container>
+      @if (showTree()) {
+        @for (node of folderTree().roots; track node.path) {
+          <ng-container *ngTemplateOutlet="folderNode; context: { $implicit: node }"></ng-container>
+        }
+        @if (folderTree().loose.length > 0) {
+          <ng-container
+            *ngTemplateOutlet="
+              folderHeading;
+              context: { $implicit: { path: '', name: '', depth: 0, totalCount: folderTree().loose.length } }
+            "
+          ></ng-container>
+          @if (!isFolderCollapsed('')) {
+            @for (row of folderTree().loose; track row.identifier) {
+              <div [style.padding-left.px]="12">
+                <ng-container *ngTemplateOutlet="itemRow; context: { $implicit: row.object }"></ng-container>
+              </div>
+            }
+          }
+        }
+      } @else {
+        @for (row of filteredRows(); track row.identifier) {
+          <ng-container *ngTemplateOutlet="itemRow; context: { $implicit: row.object }"></ng-container>
+        }
       }
     </div>
 
@@ -551,4 +585,38 @@
       <i class="material-icons">more_vert</i>
     </button>
   </div>
+</ng-template>
+
+<ng-template #folderHeading let-node>
+  <div
+    class="text-ui-muted hover:bg-ui-hover flex cursor-pointer items-center gap-1 rounded-[5px] py-1 pr-2 text-[12px] font-semibold select-none [&_.material-icons]:text-[15px]!"
+    role="button"
+    data-folder-dropzone
+    [attr.data-folder-path]="node.path"
+    [attr.aria-expanded]="!isFolderCollapsed(node.path)"
+    [style.padding-left.px]="6 + node.depth * 12"
+    (click)="toggleFolder(node.path)"
+  >
+    <i class="material-icons shrink-0">{{ isFolderCollapsed(node.path) ? 'chevron_right' : 'expand_more' }}</i>
+    <i class="material-icons text-ui-accent shrink-0">{{ node.path ? 'folder' : 'inbox' }}</i>
+    <span class="truncate">{{ node.path ? node.name : ('feature.inventory.panel.unfiled' | transloco) }}</span>
+    <span
+      class="text-ui-accent bg-ui-accent-bg inline-flex h-4 min-w-4.5 shrink-0 items-center justify-center rounded-lg px-1 text-[10px] font-bold"
+      >{{ node.totalCount }}</span
+    >
+  </div>
+</ng-template>
+
+<ng-template #folderNode let-node>
+  <ng-container *ngTemplateOutlet="folderHeading; context: { $implicit: node }"></ng-container>
+  @if (!isFolderCollapsed(node.path)) {
+    @for (child of node.children; track child.path) {
+      <ng-container *ngTemplateOutlet="folderNode; context: { $implicit: child }"></ng-container>
+    }
+    @for (row of node.items; track row.identifier) {
+      <div [style.padding-left.px]="(node.depth + 1) * 12">
+        <ng-container *ngTemplateOutlet="itemRow; context: { $implicit: row.object }"></ng-container>
+      </div>
+    }
+  }
 </ng-template>

@@ -27,6 +27,7 @@ import {
   buildInventoryMultiMoveContextMenu,
   buildInventoryObjectContextMenu,
 } from '@axe/features/inventory/game-object-inventory/game-object-inventory-context-menu';
+import { buildFolderTree, type FolderTree } from '@axe/features/inventory/game-object-inventory/inventory-folder-tree';
 import {
   buildInventoryRow,
   filterInventoryRows,
@@ -263,6 +264,39 @@ export class GameObjectInventoryComponent {
   });
 
   readonly filteredRows = computed<InventoryRow[]>(() => filterInventoryRows(this.visibleRows(), this.searchTerms()));
+
+  readonly collapsedFolders = signal<ReadonlySet<string>>(new Set());
+
+  readonly folderTree = computed<FolderTree<InventoryRow>>(() =>
+    buildFolderTree(this.filteredRows(), (row) => row.folderPath)
+  );
+
+  readonly hasFolders = computed<boolean>(() => this.visibleRows().some((row) => row.folderPath.length > 0));
+
+  readonly isGroupByFolder = computed<boolean>(() => {
+    this.inventoryService.inventoryVersion();
+    return this.inventoryService.groupByFolder;
+  });
+
+  readonly showTree = computed<boolean>(() => this.isGroupByFolder() && this.hasFolders());
+
+  isFolderCollapsed(path: string): boolean {
+    if (this.hasQuery()) return false;
+    return this.collapsedFolders().has(path);
+  }
+
+  toggleFolder(path: string): void {
+    this.collapsedFolders.update((current) => {
+      const next = new Set(current);
+      if (!next.delete(path)) next.add(path);
+      return next;
+    });
+  }
+
+  toggleGroupByFolder(): void {
+    this.inventoryService.groupByFolder = !this.inventoryService.groupByFolder;
+    this.inventoryService.notifyInventoryUpdate();
+  }
 
   private elementTextsOf(inventoryType: string, object: TabletopObject): string[] {
     const elements = this.getInventory(inventoryType).dataElementMap.get(object.identifier) ?? [];

@@ -1,4 +1,5 @@
 import { TestBed } from '@angular/core/testing';
+import { ObjectSerializer } from '@axe/core/sync/object-serializer';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { DataSummarySetting, SortOrder } from '@axe/domain/data/data-summary-setting';
 
@@ -62,6 +63,34 @@ describe('DataSummarySetting', () => {
 
     it('starts with the default tags', () => {
       expect(DataSummarySetting.instance.dataTag).toBe('HP MP 敏捷度 精神力');
+    });
+
+    it('starts with the list gathered into folders', () => {
+      expect(DataSummarySetting.instance.groupByFolder).toBe(true);
+    });
+  });
+
+  describe('groupByFolder', () => {
+    it('remembers being turned off', () => {
+      DataSummarySetting.instance.groupByFolder = false;
+
+      expect(DataSummarySetting.instance.groupByFolder).toBe(false);
+    });
+
+    it('stays on when older saved data says nothing about it', () => {
+      const restored = ObjectSerializer.instance.parseXml(
+        '<summary-setting sortTag="HP"></summary-setting>'
+      ) as DataSummarySetting;
+
+      expect(restored.groupByFolder).toBe(true);
+    });
+
+    it('comes back turned off from saved data that says so', () => {
+      const restored = ObjectSerializer.instance.parseXml(
+        '<summary-setting groupByFolder="false"></summary-setting>'
+      ) as DataSummarySetting;
+
+      expect(restored.groupByFolder).toBe(false);
     });
   });
 
