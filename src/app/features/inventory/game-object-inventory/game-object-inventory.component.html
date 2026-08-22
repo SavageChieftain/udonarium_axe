@@ -79,15 +79,17 @@
           <i class="material-icons">close</i>
         </button>
       }
-      <span class="bg-ui-border-panel ml-0.5 h-4 w-px shrink-0"></span>
-      <button
-        class="text-ui-muted hover:bg-ui-hover hover:text-ui-accent flex size-6 shrink-0 cursor-pointer items-center justify-center rounded-sm border-none bg-transparent p-0 transition-[background,color] [&_.material-icons]:text-[18px]!"
-        type="button"
-        [title]="'feature.inventory.panel.newFolder' | transloco"
-        (click)="createFolder()"
-      >
-        <i class="material-icons">create_new_folder</i>
-      </button>
+      @if (foldersApply()) {
+        <span class="bg-ui-border-panel ml-0.5 h-4 w-px shrink-0"></span>
+        <button
+          class="text-ui-muted hover:bg-ui-hover hover:text-ui-accent flex size-6 shrink-0 cursor-pointer items-center justify-center rounded-sm border-none bg-transparent p-0 transition-[background,color] [&_.material-icons]:text-[18px]!"
+          type="button"
+          [title]="'feature.inventory.panel.newFolder' | transloco"
+          (click)="createFolder()"
+        >
+          <i class="material-icons">create_new_folder</i>
+        </button>
+      }
     </div>
 
     @if (isEdit()) {
@@ -204,13 +206,15 @@
         <span class="text-ui-muted text-[11px] whitespace-nowrap">{{
           'feature.inventory.panel.selectedCount' | transloco: { count: multiMoveTargets().size }
         }}</span>
-        <button
-          class="bg-ui-input border-ui-border-panel text-ui-text hover:bg-ui-hover hover:border-ui-accent hover:text-ui-accent rounded-ui-sm inline-flex cursor-pointer items-center gap-0.75 border border-solid px-2 py-1 text-[12px] transition-[background,color,border-color] [&_.material-icons]:text-[14px]!"
-          type="button"
-          (click)="onMultiMoveFolderMenu()"
-        >
-          <i class="material-icons">folder</i>{{ 'feature.inventory.panel.folder' | transloco }}
-        </button>
+        @if (foldersApply()) {
+          <button
+            class="bg-ui-input border-ui-border-panel text-ui-text hover:bg-ui-hover hover:border-ui-accent hover:text-ui-accent rounded-ui-sm inline-flex cursor-pointer items-center gap-0.75 border border-solid px-2 py-1 text-[12px] transition-[background,color,border-color] [&_.material-icons]:text-[14px]!"
+            type="button"
+            (click)="onMultiMoveFolderMenu()"
+          >
+            <i class="material-icons">folder</i>{{ 'feature.inventory.panel.folder' | transloco }}
+          </button>
+        }
         <span class="text-ui-muted text-[11px] whitespace-nowrap">{{
           'feature.inventory.panel.moveTargetLabel' | transloco
         }}</span>

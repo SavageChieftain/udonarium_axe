@@ -31,7 +31,8 @@ async function putFirstInFolder(page: Page, folderName: string) {
 }
 
 test.describe('インベントリの検索とフォルダ', () => {
-  let listed: number;
+  // フォルダはテーブルタブには効かないので、共有タブに 1 体だけ置いた状態から始める。
+  const listed = 1;
 
   test.beforeEach(async ({ page }) => {
     await waitAppReady(page);
@@ -39,7 +40,25 @@ test.describe('インベントリの検索とフォルダ', () => {
     await openPanel(page, 'インベントリ');
     await expect(page.locator('game-object-inventory input[name="tab"]')).toHaveCount(4, { timeout: 5000 });
     await expect(items(page).first()).toBeVisible({ timeout: 5000 });
-    listed = await items(page).count();
+
+    await items(page).first().click({ button: 'right' });
+    const menu = page.locator('context-menu');
+    await expect(menu.locator('li').first()).toBeVisible({ timeout: 5000 });
+    await menu.getByText('共有イベントリに移動').click();
+
+    await page.locator('game-object-inventory form[name="game-object-inventory"] > label').nth(1).click();
+    await expect(items(page)).toHaveCount(listed, { timeout: 5000 });
+  });
+
+  test('テーブルタブではフォルダを使わせないこと', async ({ page }) => {
+    await page.locator('game-object-inventory form[name="game-object-inventory"] > label').nth(0).click();
+
+    await expect(page.locator('game-object-inventory button[title="新しいフォルダ"]')).toHaveCount(0);
+
+    await items(page).first().click({ button: 'right' });
+    const menu = page.locator('context-menu');
+    await expect(menu.locator('li').first()).toBeVisible({ timeout: 5000 });
+    await expect(menu.getByText('フォルダ', { exact: true })).toHaveCount(0);
   });
 
   test('検索ボックスで一覧を絞り込み、クリアで戻せること', async ({ page }) => {

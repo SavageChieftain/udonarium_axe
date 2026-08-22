@@ -99,7 +99,8 @@ export function buildInventoryObjectContextMenu(
   inventoryService: GameObjectInventoryService,
   callbacks: InventoryContextMenuCallbacks,
   t: TranslateFn,
-  folderPaths: readonly string[] = []
+  /** Null where folders do not apply, which leaves the submenu out rather than offering an empty one. */
+  folderPaths: readonly string[] | null = null
 ): ContextMenuAction[] {
   const actions: ContextMenuAction[] = [];
 
@@ -139,18 +140,20 @@ export function buildInventoryObjectContextMenu(
     );
   }
 
-  actions.push({
-    name: t('feature.inventory.contextMenu.folder'),
-    subActions: buildInventoryFolderAssignMenu(
-      (gameObject as GameCharacter).folderName ?? '',
-      folderPaths,
-      {
-        setFolder: (folderPath) => callbacks.setFolder(gameObject, folderPath),
-        createFolder: () => callbacks.createFolder(gameObject),
-      },
-      t
-    ),
-  });
+  if (folderPaths) {
+    actions.push({
+      name: t('feature.inventory.contextMenu.folder'),
+      subActions: buildInventoryFolderAssignMenu(
+        (gameObject as GameCharacter).folderName ?? '',
+        folderPaths,
+        {
+          setFolder: (folderPath) => callbacks.setFolder(gameObject, folderPath),
+          createFolder: () => callbacks.createFolder(gameObject),
+        },
+        t
+      ),
+    });
+  }
 
   actions.push(ContextMenuSeparator);
   for (const location of inventoryLocations(t)) {

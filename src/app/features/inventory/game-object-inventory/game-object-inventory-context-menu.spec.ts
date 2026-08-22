@@ -57,6 +57,13 @@ describe('buildInventoryObjectContextMenu()', () => {
     expect(names(actions)).toContain('フォルダ');
   });
 
+  it('leaves them out where folders do not apply', () => {
+    const character = makeCharacterAt('table');
+    const actions = buildInventoryObjectContextMenu(character, makeService(), defaultCallbacks(), t, null);
+
+    expect(names(actions)).not.toContain('フォルダ');
+  });
+
   it('offers the sheet, the palette, the remote and hiding from the list anywhere but the graveyard', () => {
     const character = makeCharacterAt('table');
     const actions = buildInventoryObjectContextMenu(character, makeService(), defaultCallbacks(), t);

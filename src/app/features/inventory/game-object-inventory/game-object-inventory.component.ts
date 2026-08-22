@@ -302,7 +302,10 @@ export class GameObjectInventoryComponent {
     () => this.declaredFolderPaths().length > 0 || this.visibleRows().some((row) => row.folderPath.length > 0)
   );
 
-  readonly showTree = computed<boolean>(() => this.hasFolders());
+  /** The table is the board in play, ordered by turn, so it is left as one flat list. */
+  readonly foldersApply = computed<boolean>(() => this.selectTab() !== 'table');
+
+  readonly showTree = computed<boolean>(() => this.foldersApply() && this.hasFolders());
 
   isFolderCollapsed(path: string): boolean {
     if (this.hasQuery()) return false;
@@ -578,7 +581,7 @@ export class GameObjectInventoryComponent {
         createFolder: (o) => this.createFolderFor(o),
       },
       this.t,
-      this.knownFolderPaths()
+      this.foldersApply() ? this.knownFolderPaths() : null
     );
 
     this.contextMenuService.open(position, actions, gameObject.name);

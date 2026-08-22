@@ -41,6 +41,12 @@ describe('GameObjectInventoryComponent', () => {
       return character;
     }
 
+    function putInShared(name: string): GameCharacter {
+      const character = GameCharacter.create(name, 1, '');
+      character.setLocation('common');
+      return character;
+    }
+
     afterEach(() => {
       const store = ObjectStore.instance;
       store.getObjects().forEach((object) => store.delete(object, false));
@@ -82,10 +88,21 @@ describe('GameObjectInventoryComponent', () => {
       expect(component.filteredRows().map((row) => row.object.name)).toEqual(['ゴブリン戦士']);
     });
 
-    it('gathers the rows into the folders they name', () => {
+    it('leaves the table flat, since that is the board rather than the stock', () => {
       const goblin = putOnTable('ゴブリン');
+      goblin.folderName = '第1話';
+
+      expect(component.selectTab()).toBe('table');
+      expect(component.foldersApply()).toBe(false);
+      expect(component.hasFolders()).toBe(true);
+      expect(component.showTree()).toBe(false);
+    });
+
+    it('gathers the rows into the folders they name', () => {
+      const goblin = putInShared('ゴブリン');
       goblin.folderName = '第1話/洞窟';
-      putOnTable('村長');
+      putInShared('村長');
+      component.selectTab.set('common');
 
       expect(component.showTree()).toBe(true);
       expect(component.folderTree().roots.map((node) => node.path)).toEqual(['第1話']);
@@ -94,8 +111,9 @@ describe('GameObjectInventoryComponent', () => {
     });
 
     it('leaves the list flat while nothing is in a folder', () => {
-      putOnTable('ゴブリン');
-      putOnTable('村長');
+      putInShared('ゴブリン');
+      putInShared('村長');
+      component.selectTab.set('common');
 
       expect(component.hasFolders()).toBe(false);
       expect(component.showTree()).toBe(false);
