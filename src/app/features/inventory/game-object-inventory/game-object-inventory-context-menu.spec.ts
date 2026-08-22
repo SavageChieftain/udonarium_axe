@@ -35,10 +35,10 @@ const defaultCallbacks = () => ({
   cloneGameObject: vi.fn(),
   deleteGameObject: vi.fn(),
   setFolder: vi.fn(),
-  promptNewFolder: vi.fn(),
+  createFolder: vi.fn(),
 });
 
-const folderCallbacks = () => ({ setFolder: vi.fn(), promptNewFolder: vi.fn() });
+const folderCallbacks = () => ({ setFolder: vi.fn(), createFolder: vi.fn() });
 
 describe('buildInventoryObjectContextMenu()', () => {
   it('offers the folders as a submenu', () => {
@@ -177,7 +177,7 @@ describe('buildInventoryFolderAssignMenu()', () => {
   it('offers a new folder even where none has been made yet', () => {
     const actions = buildInventoryFolderAssignMenu('', [], folderCallbacks(), t);
 
-    expect(names(actions)).toEqual(['新しいフォルダ…']);
+    expect(names(actions)).toEqual(['新しいフォルダ']);
   });
 
   it('lists the folders that exist and marks the one it is in', () => {

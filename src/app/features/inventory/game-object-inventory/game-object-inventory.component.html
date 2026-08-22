@@ -600,7 +600,7 @@
 
 <ng-template #folderHeading let-node>
   <div
-    class="text-ui-muted hover:bg-ui-hover flex cursor-pointer items-center gap-1 rounded-[5px] py-1 pr-2 text-[12px] font-semibold select-none [&_.material-icons]:text-[15px]!"
+    class="text-ui-muted hover:bg-ui-hover group/folder flex cursor-pointer items-center gap-1 rounded-[5px] py-1 pr-2 text-[12px] font-semibold select-none [&_.material-icons]:text-[15px]!"
     role="button"
     data-folder-dropzone
     [attr.data-folder-path]="node.path"
@@ -613,11 +613,34 @@
   >
     <i class="material-icons shrink-0">{{ isFolderCollapsed(node.path) ? 'chevron_right' : 'expand_more' }}</i>
     <i class="material-icons text-ui-accent shrink-0">{{ node.path ? 'folder' : 'inbox' }}</i>
-    <span class="truncate">{{ node.path ? node.name : ('feature.inventory.panel.unfiled' | transloco) }}</span>
+    @if (isEditingFolder(node.path)) {
+      <input
+        appAutoFocus
+        class="border-ui-accent text-ui-text box-border min-w-0 flex-1 rounded-none border-0 border-b border-solid bg-transparent px-0.5 font-[inherit] text-[12px] font-semibold outline-none"
+        name="folder-name"
+        [value]="node.name"
+        (click)="$event.stopPropagation()"
+        (keydown.escape)="cancelFolderRename()"
+        (keydown.enter)="commitFolderRename(node.path, $any($event.target).value)"
+        (blur)="commitFolderRename(node.path, $any($event.target).value)"
+      />
+    } @else {
+      <span class="truncate">{{ node.path ? node.name : ('feature.inventory.panel.unfiled' | transloco) }}</span>
+    }
     <span
       class="text-ui-accent bg-ui-accent-bg inline-flex h-4 min-w-4.5 shrink-0 items-center justify-center rounded-lg px-1 text-[10px] font-bold"
       >{{ node.totalCount }}</span
     >
+    @if (node.path && !isEditingFolder(node.path)) {
+      <button
+        class="text-ui-muted hover:bg-ui-hover hover:text-ui-accent ml-auto hidden size-5 shrink-0 cursor-pointer items-center justify-center rounded-sm border-none bg-transparent p-0 transition-[background,color] group-hover/folder:inline-flex [&_.material-icons]:text-[13px]!"
+        type="button"
+        [title]="'feature.inventory.contextMenu.renameFolder' | transloco"
+        (click)="$event.stopPropagation(); startFolderRename(node.path)"
+      >
+        <i class="material-icons">edit</i>
+      </button>
+    }
   </div>
 </ng-template>
 

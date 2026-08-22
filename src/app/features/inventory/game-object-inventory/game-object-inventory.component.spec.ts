@@ -145,12 +145,8 @@ describe('GameObjectInventoryComponent', () => {
       deep.folderName = '第1話/洞窟';
       const shallow = putOnTable('村長');
       shallow.folderName = '第1話';
-      vi.stubGlobal(
-        'prompt',
-        vi.fn(() => '序章')
-      );
 
-      component.renameFolder('第1話');
+      component.renameFolder('第1話', '序章');
 
       expect(shallow.folderName).toBe('序章');
       expect(deep.folderName).toBe('序章/洞窟');
@@ -159,14 +155,52 @@ describe('GameObjectInventoryComponent', () => {
     it('leaves a folder alone whose name merely starts the same way', () => {
       const lookalike = putOnTable('ゴブリン');
       lookalike.folderName = '第1話大全';
-      vi.stubGlobal(
-        'prompt',
-        vi.fn(() => '序章')
-      );
 
-      component.renameFolder('第1話');
+      component.renameFolder('第1話', '序章');
 
       expect(lookalike.folderName).toBe('第1話大全');
+    });
+
+    it('makes a folder with a name of its own and opens it for renaming', () => {
+      const goblin = putOnTable('ゴブリン');
+
+      component.createFolderFor(goblin);
+
+      expect(goblin.folderName).toBe('フォルダ1');
+      expect(component.isEditingFolder('フォルダ1')).toBe(true);
+    });
+
+    it('does not hand out a folder name that is already taken', () => {
+      const taken = putOnTable('村長');
+      taken.folderName = 'フォルダ1';
+      const goblin = putOnTable('ゴブリン');
+
+      component.createFolderFor(goblin);
+
+      expect(goblin.folderName).toBe('フォルダ2');
+    });
+
+    it('turns the folders back on when one is made while they are off', () => {
+      component.toggleGroupByFolder();
+      const goblin = putOnTable('ゴブリン');
+
+      component.createFolderFor(goblin);
+
+      expect(component.isGroupByFolder()).toBe(true);
+    });
+
+    it('renames on commit and leaves the name alone when the edit is dropped', () => {
+      const goblin = putOnTable('ゴブリン');
+      goblin.folderName = '第1話';
+
+      component.startFolderRename('第1話');
+      component.cancelFolderRename();
+      component.commitFolderRename('第1話', '序章');
+      expect(goblin.folderName).toBe('第1話');
+
+      component.startFolderRename('第1話');
+      component.commitFolderRename('第1話', '序章');
+      expect(goblin.folderName).toBe('序章');
     });
 
     it('takes everything out of a folder it is asked to empty', () => {

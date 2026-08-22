@@ -739,11 +739,9 @@
     "inventory": {
       "contextMenu": {
         "folder": "フォルダ",
-        "newFolder": "新しいフォルダ…",
-        "newFolderPrompt": "フォルダ名（/ で階層を作れます）",
+        "newFolder": "新しいフォルダ",
         "removeFromFolder": "フォルダから出す",
         "renameFolder": "フォルダ名を変更",
-        "renameFolderPrompt": "新しいフォルダ名",
         "clearFolder": "中身をフォルダから出す",
         "confirmClearFolder": "「{{name}}」の中身{{count}}件をフォルダから出しますか？",
         "collapseAll": "すべて折りたたむ",
@@ -912,6 +910,7 @@
       "panel": {
         "folder": "フォルダ",
         "selectedCount": "選択 {{count}}",
+        "defaultFolderName": "フォルダ{{index}}",
         "groupByFolder": "フォルダで分ける",
         "unfiled": "未分類",
         "searchPlaceholder": "名前・所有者・表示項目で検索",

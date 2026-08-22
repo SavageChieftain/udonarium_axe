@@ -49,6 +49,7 @@ import {
   type InventoryRow,
   splitSearchTerms,
 } from '@axe/features/inventory/game-object-inventory/inventory-list';
+import { AutoFocusDirective } from '@axe/ui/directives/auto-focus.directive';
 import { SafePipe } from '@axe/ui/pipes/safe.pipe';
 import { TranslocoModule } from '@jsverse/transloco';
 
@@ -59,7 +60,7 @@ const FOCUS_BLOCKED_TAGS = new Set(['input', 'button']);
   templateUrl: './game-object-inventory.component.html',
   host: { class: 'block' },
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [NgTemplateOutlet, FormsModule, SafePipe, TranslocoModule],
+  imports: [NgTemplateOutlet, FormsModule, AutoFocusDirective, SafePipe, TranslocoModule],
 })
 export class GameObjectInventoryComponent {
   private readonly panelService = inject(PanelService);
@@ -344,10 +345,8 @@ export class GameObjectInventoryComponent {
     this.setFolderOf([gameObject.identifier], folderPath);
   }
 
-  promptNewFolder(gameObject: TabletopObject): void {
-    const folderPath = prompt(this.t('feature.inventory.contextMenu.newFolderPrompt'), '');
-    if (folderPath == null) return;
-    this.setFolder(gameObject, folderPath);
+  createFolderFor(gameObject: TabletopObject): void {
+    this.createFolderOf([gameObject.identifier]);
   }
 
   multiSetFolder(folderPath: string): void {
@@ -364,10 +363,10 @@ export class GameObjectInventoryComponent {
       this.knownFolderPaths(),
       {
         setFolder: (folderPath) => this.multiSetFolder(folderPath),
-        promptNewFolder: () => {
-          const folderPath = prompt(this.t('feature.inventory.contextMenu.newFolderPrompt'), '');
-          if (folderPath == null) return;
-          this.multiSetFolder(folderPath);
+        createFolder: () => {
+          const targets = [...this.multiMoveTargets()];
+          this.toggleMultiMove();
+          this.createFolderOf(targets);
         },
       },
       this.t
@@ -385,7 +384,7 @@ export class GameObjectInventoryComponent {
       folderPath,
       this.isMultiMove(),
       {
-        renameFolder: () => this.renameFolder(folderPath),
+        renameFolder: () => this.startFolderRename(folderPath),
         clearFolder: () => this.clearFolder(folderPath),
         selectFolder: () => this.selectFolder(folderPath),
         collapseAll: () => this.collapseAllFolders(),
@@ -400,13 +399,53 @@ export class GameObjectInventoryComponent {
     );
   }
 
-  renameFolder(folderPath: string): void {
+  readonly editingFolder = signal<string | null>(null);
+
+  isEditingFolder(folderPath: string): boolean {
+    return this.editingFolder() === folderPath;
+  }
+
+  startFolderRename(folderPath: string): void {
+    if (!this.rolePermission.canEditTabletop || folderPath.length < 1) return;
+    this.collapsedFolders.update((current) => {
+      const next = new Set(current);
+      next.delete(folderPath);
+      return next;
+    });
+    this.editingFolder.set(folderPath);
+  }
+
+  cancelFolderRename(): void {
+    this.editingFolder.set(null);
+  }
+
+  commitFolderRename(folderPath: string, name: string): void {
+    if (this.editingFolder() !== folderPath) return;
+    this.editingFolder.set(null);
+    this.renameFolder(folderPath, name);
+  }
+
+  private createFolderOf(identifiers: readonly string[]): void {
+    if (!this.rolePermission.canEditTabletop) return;
+    const name = this.unusedFolderName();
+    this.setFolderOf(identifiers, name);
+    if (!this.inventoryService.groupByFolder) this.toggleGroupByFolder();
+    this.editingFolder.set(name);
+  }
+
+  private unusedFolderName(): string {
+    const taken = new Set(this.knownFolderPaths());
+    for (let index = 1; index <= taken.size; index++) {
+      const name = this.t('feature.inventory.panel.defaultFolderName', { index });
+      if (!taken.has(name)) return name;
+    }
+    return this.t('feature.inventory.panel.defaultFolderName', { index: taken.size + 1 });
+  }
+
+  renameFolder(folderPath: string, name: string): void {
     if (!this.rolePermission.canEditTabletop) return;
     const segments = folderSegments(folderPath);
-    const input = prompt(this.t('feature.inventory.contextMenu.renameFolderPrompt'), segments.at(-1) ?? '');
-    if (input == null) return;
-
-    const renamed = normalizeFolderPath([...segments.slice(0, -1), input].join(FOLDER_SEPARATOR));
+    const renamed = normalizeFolderPath([...segments.slice(0, -1), name].join(FOLDER_SEPARATOR));
     if (renamed.length < 1 || renamed === folderPath) return;
 
     for (const character of this.charactersUnder(folderPath)) {
@@ -507,7 +546,7 @@ export class GameObjectInventoryComponent {
         cloneGameObject: (o) => this.cloneGameObject(o),
         deleteGameObject: (o) => this.deleteGameObject(o),
         setFolder: (o, folderPath) => this.setFolder(o, folderPath),
-        promptNewFolder: (o) => this.promptNewFolder(o),
+        createFolder: (o) => this.createFolderFor(o),
       },
       this.t,
       this.knownFolderPaths()

@@ -13,12 +13,12 @@ interface InventoryContextMenuCallbacks {
   cloneGameObject: (gameObject: TabletopObject) => void;
   deleteGameObject: (gameObject: TabletopObject) => void;
   setFolder: (gameObject: TabletopObject, folderPath: string) => void;
-  promptNewFolder: (gameObject: TabletopObject) => void;
+  createFolder: (gameObject: TabletopObject) => void;
 }
 
 export interface InventoryFolderAssignCallbacks {
   setFolder: (folderPath: string) => void;
-  promptNewFolder: () => void;
+  createFolder: () => void;
 }
 
 export function buildInventoryFolderAssignMenu(
@@ -35,7 +35,7 @@ export function buildInventoryFolderAssignMenu(
   if (actions.length > 0) actions.push(ContextMenuSeparator);
   actions.push({
     name: t('feature.inventory.contextMenu.newFolder'),
-    action: () => callbacks.promptNewFolder(),
+    action: () => callbacks.createFolder(),
   });
   if (currentPath == null || currentPath.length > 0) {
     actions.push({
@@ -141,7 +141,7 @@ export function buildInventoryObjectContextMenu(
       folderPaths,
       {
         setFolder: (folderPath) => callbacks.setFolder(gameObject, folderPath),
-        promptNewFolder: () => callbacks.promptNewFolder(gameObject),
+        createFolder: () => callbacks.createFolder(gameObject),
       },
       t
     ),

@@ -7,14 +7,19 @@ function items(page: Page) {
 }
 
 async function putFirstInFolder(page: Page, folderName: string) {
-  page.once('dialog', (dialog) => dialog.accept(folderName));
   await items(page).first().click({ button: 'right' });
   const menu = page.locator('context-menu');
   await expect(menu.locator('li').first()).toBeVisible({ timeout: 5000 });
   await menu.getByText('フォルダ', { exact: true }).hover();
-  const newFolder = page.locator('context-menu').getByText('新しいフォルダ…');
+  const newFolder = page.locator('context-menu').getByText('新しいフォルダ');
   await expect(newFolder).toBeVisible({ timeout: 5000 });
   await newFolder.click();
+
+  const nameInput = page.locator('game-object-inventory input[name="folder-name"]');
+  await expect(nameInput).toBeFocused({ timeout: 5000 });
+  await nameInput.fill(folderName);
+  await nameInput.press('Enter');
+  await expect(nameInput).toHaveCount(0);
 }
 
 test.describe('インベントリの検索とフォルダ', () => {

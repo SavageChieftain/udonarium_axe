@@ -739,11 +739,9 @@
     "inventory": {
       "contextMenu": {
         "folder": "Folder",
-        "newFolder": "New folder…",
-        "newFolderPrompt": "Folder name (use / to nest)",
+        "newFolder": "New folder",
         "removeFromFolder": "Remove from folder",
         "renameFolder": "Rename folder",
-        "renameFolderPrompt": "New folder name",
         "clearFolder": "Empty this folder",
         "confirmClearFolder": "Remove {{count}} items from \"{{name}}\"?",
         "collapseAll": "Collapse all",
@@ -912,6 +910,7 @@
       "panel": {
         "folder": "Folder",
         "selectedCount": "{{count}} selected",
+        "defaultFolderName": "Folder {{index}}",
         "groupByFolder": "Group by folder",
         "unfiled": "Unfiled",
         "searchPlaceholder": "Search name, owner or shown items",
