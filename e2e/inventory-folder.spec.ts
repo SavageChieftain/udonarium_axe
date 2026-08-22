@@ -50,15 +50,36 @@ test.describe('インベントリの検索とフォルダ', () => {
     await expect(items(page)).toHaveCount(listed, { timeout: 5000 });
   });
 
-  test('テーブルタブではフォルダを使わせないこと', async ({ page }) => {
-    await page.locator('game-object-inventory form[name="game-object-inventory"] > label').nth(0).click();
+  for (const [label, index] of [
+    ['テーブル', 0],
+    ['墓場', 3],
+  ] as const) {
+    test(`${label}タブではフォルダを使わせないこと`, async ({ page }) => {
+      await page.locator('game-object-inventory form[name="game-object-inventory"] > label').nth(index).click();
 
-    await expect(page.locator('game-object-inventory button[title="新しいフォルダ"]')).toHaveCount(0);
+      await expect(page.locator('game-object-inventory button[title="新しいフォルダ"]')).toHaveCount(0);
+    });
+  }
+
+  test('テーブルタブではコマのメニューにフォルダが出ないこと', async ({ page }) => {
+    await page.locator('game-object-inventory form[name="game-object-inventory"] > label').nth(0).click();
 
     await items(page).first().click({ button: 'right' });
     const menu = page.locator('context-menu');
     await expect(menu.locator('li').first()).toBeVisible({ timeout: 5000 });
     await expect(menu.getByText('フォルダ', { exact: true })).toHaveCount(0);
+  });
+
+  test('共有と個人でフォルダが混ざらないこと', async ({ page }) => {
+    await makeEmptyFolder(page, '共有だけの棚');
+
+    await page.locator('game-object-inventory form[name="game-object-inventory"] > label').nth(2).click();
+    await expect(page.locator('game-object-inventory [data-folder-dropzone]')).toHaveCount(0);
+
+    await page.locator('game-object-inventory form[name="game-object-inventory"] > label').nth(1).click();
+    await expect(
+      page.locator('game-object-inventory [data-folder-dropzone][data-folder-path="共有だけの棚"]')
+    ).toBeVisible();
   });
 
   test('検索ボックスで一覧を絞り込み、クリアで戻せること', async ({ page }) => {
@@ -105,7 +126,16 @@ test.describe('インベントリの検索とフォルダ', () => {
     await expect(items(page)).toHaveCount(listed);
   });
 
-  test('空のフォルダが確認なしで削除できること', async ({ page }) => {
+  test('見出しのゴミ箱ボタンからフォルダを削除できること', async ({ page }) => {
+    await makeEmptyFolder(page, '第2話');
+    const heading = page.locator('game-object-inventory [data-folder-dropzone][data-folder-path="第2話"]');
+
+    await heading.locator('button[title="このフォルダを削除"]').click();
+
+    await expect(heading).toHaveCount(0);
+  });
+
+  test('右クリックからもフォルダを削除できること', async ({ page }) => {
     await makeEmptyFolder(page, '第2話');
     const heading = page.locator('game-object-inventory [data-folder-dropzone][data-folder-path="第2話"]');
 

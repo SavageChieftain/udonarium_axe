@@ -98,6 +98,26 @@ describe('GameObjectInventoryComponent', () => {
       expect(component.showTree()).toBe(false);
     });
 
+    it('leaves the graveyard flat too, since it is what has already left the table', () => {
+      component.selectTab.set('graveyard');
+
+      expect(component.foldersApply()).toBe(false);
+    });
+
+    it('files what is shared apart from what is personal', () => {
+      const shared = putInShared('ゴブリン');
+      shared.folderName = '第1話';
+      component.selectTab.set('common');
+      component.createFolder();
+
+      component.selectTab.set('graveyard');
+      expect(component.declaredFolderPaths()).toEqual([]);
+
+      component.selectTab.set('common');
+      expect(component.declaredFolderPaths()).toEqual(['フォルダ1']);
+      expect(component.knownFolderPaths()).toEqual(['フォルダ1', '第1話']);
+    });
+
     it('gathers the rows into the folders they name', () => {
       const goblin = putInShared('ゴブリン');
       goblin.folderName = '第1話/洞窟';
@@ -143,7 +163,8 @@ describe('GameObjectInventoryComponent', () => {
     });
 
     it('normalizes a rough folder before putting a character in it', () => {
-      const goblin = putOnTable('ゴブリン');
+      const goblin = putInShared('ゴブリン');
+      component.selectTab.set('common');
 
       component.setFolder(goblin, ' 第1話 // 洞窟 ');
 
@@ -151,10 +172,11 @@ describe('GameObjectInventoryComponent', () => {
     });
 
     it('carries a renamed folder down through everything inside it', () => {
-      const deep = putOnTable('ゴブリン');
+      const deep = putInShared('ゴブリン');
       deep.folderName = '第1話/洞窟';
-      const shallow = putOnTable('村長');
+      const shallow = putInShared('村長');
       shallow.folderName = '第1話';
+      component.selectTab.set('common');
 
       component.renameFolder('第1話', '序章');
 
@@ -163,8 +185,9 @@ describe('GameObjectInventoryComponent', () => {
     });
 
     it('leaves a folder alone whose name merely starts the same way', () => {
-      const lookalike = putOnTable('ゴブリン');
+      const lookalike = putInShared('ゴブリン');
       lookalike.folderName = '第1話大全';
+      component.selectTab.set('common');
 
       component.renameFolder('第1話', '序章');
 
@@ -172,7 +195,8 @@ describe('GameObjectInventoryComponent', () => {
     });
 
     it('makes a folder with a name of its own and opens it for renaming', () => {
-      const goblin = putOnTable('ゴブリン');
+      const goblin = putInShared('ゴブリン');
+      component.selectTab.set('common');
 
       component.createFolderFor(goblin);
 
@@ -181,9 +205,10 @@ describe('GameObjectInventoryComponent', () => {
     });
 
     it('does not hand out a folder name that is already taken', () => {
-      const taken = putOnTable('村長');
+      const taken = putInShared('村長');
       taken.folderName = 'フォルダ1';
-      const goblin = putOnTable('ゴブリン');
+      const goblin = putInShared('ゴブリン');
+      component.selectTab.set('common');
 
       component.createFolderFor(goblin);
 
@@ -191,8 +216,9 @@ describe('GameObjectInventoryComponent', () => {
     });
 
     it('renames on commit and leaves the name alone when the edit is dropped', () => {
-      const goblin = putOnTable('ゴブリン');
+      const goblin = putInShared('ゴブリン');
       goblin.folderName = '第1話';
+      component.selectTab.set('common');
 
       component.startFolderRename('第1話');
       component.cancelFolderRename();
@@ -205,6 +231,7 @@ describe('GameObjectInventoryComponent', () => {
     });
 
     it('makes a folder with nothing in it yet', () => {
+      component.selectTab.set('common');
       component.createFolder();
 
       expect(component.declaredFolderPaths()).toEqual(['フォルダ1']);
@@ -214,6 +241,7 @@ describe('GameObjectInventoryComponent', () => {
     });
 
     it('makes a folder inside the one it was asked from', () => {
+      component.selectTab.set('common');
       component.createFolder();
 
       component.createFolder('フォルダ1');
@@ -223,7 +251,8 @@ describe('GameObjectInventoryComponent', () => {
     });
 
     it('keeps an empty folder standing after the last character leaves it', () => {
-      const goblin = putOnTable('ゴブリン');
+      const goblin = putInShared('ゴブリン');
+      component.selectTab.set('common');
       component.createFolderFor(goblin);
 
       component.setFolder(goblin, '');
@@ -233,6 +262,7 @@ describe('GameObjectInventoryComponent', () => {
     });
 
     it('deletes an empty folder without asking', () => {
+      component.selectTab.set('common');
       component.createFolder();
 
       component.deleteFolder('フォルダ1');
@@ -242,8 +272,9 @@ describe('GameObjectInventoryComponent', () => {
     });
 
     it('takes what is inside back to unfiled when a folder is deleted', () => {
-      const goblin = putOnTable('ゴブリン');
+      const goblin = putInShared('ゴブリン');
       goblin.folderName = '第1話/洞窟';
+      component.selectTab.set('common');
       vi.stubGlobal(
         'confirm',
         vi.fn(() => true)
@@ -255,8 +286,9 @@ describe('GameObjectInventoryComponent', () => {
     });
 
     it('leaves a folder alone when the deletion is called off', () => {
-      const goblin = putOnTable('ゴブリン');
+      const goblin = putInShared('ゴブリン');
       goblin.folderName = '第1話';
+      component.selectTab.set('common');
       vi.stubGlobal(
         'confirm',
         vi.fn(() => false)
@@ -268,6 +300,7 @@ describe('GameObjectInventoryComponent', () => {
     });
 
     it('merges rather than doubles up when a folder is renamed onto another', () => {
+      component.selectTab.set('common');
       component.createFolder();
       component.createFolder();
 
@@ -277,6 +310,7 @@ describe('GameObjectInventoryComponent', () => {
     });
 
     it('carries a rename through the folders it has been told about', () => {
+      component.selectTab.set('common');
       component.createFolder();
       component.createFolder('フォルダ1');
 

@@ -289,9 +289,18 @@ export class GameObjectInventoryComponent {
 
   readonly collapsedFolders = signal<ReadonlySet<string>>(new Set());
 
+  /** Declared folders are stored as "<location>/<path>", so each tab keeps its own. */
+  private folderEntryPrefix(): string {
+    return `${this.selectTab()}${FOLDER_SEPARATOR}`;
+  }
+
   readonly declaredFolderPaths = computed<string[]>(() => {
     this.inventoryService.inventoryVersion();
-    return this.inventoryService.folderPaths;
+    const prefix = this.folderEntryPrefix();
+    return this.inventoryService.folderPaths
+      .filter((entry) => entry.startsWith(prefix))
+      .map((entry) => entry.slice(prefix.length))
+      .filter((path) => path.length > 0);
   });
 
   readonly folderTree = computed<FolderTree<InventoryRow>>(() =>
@@ -302,8 +311,14 @@ export class GameObjectInventoryComponent {
     () => this.declaredFolderPaths().length > 0 || this.visibleRows().some((row) => row.folderPath.length > 0)
   );
 
-  /** The table is the board in play, ordered by turn, so it is left as one flat list. */
-  readonly foldersApply = computed<boolean>(() => this.selectTab() !== 'table');
+  /**
+   * Folders sort out what is kept between scenes. The table is the board in play, ordered by
+   * turn, and the graveyard is what has already left it, so neither is filed.
+   */
+  readonly foldersApply = computed<boolean>(() => {
+    const inventoryType = this.selectTab();
+    return inventoryType !== 'table' && inventoryType !== 'graveyard';
+  });
 
   readonly showTree = computed<boolean>(() => this.foldersApply() && this.hasFolders());
 
@@ -333,11 +348,13 @@ export class GameObjectInventoryComponent {
 
   readonly knownFolderPaths = computed<string[]>(() => {
     this.objectChange.collectionOf('character')();
+    const location = this.selectTab();
     const paths = new Set<string>();
     for (const declared of this.declaredFolderPaths()) {
       for (const path of ancestorFolderPaths(declared)) paths.add(path);
     }
     for (const character of this.objectStore.getObjects<GameCharacter>(GameCharacter)) {
+      if (character.location.name !== location) continue;
       for (const path of ancestorFolderPaths(character.folderName)) paths.add(path);
     }
     return [...paths].sort((left, right) => left.localeCompare(right, 'ja', { numeric: true }));
@@ -455,15 +472,19 @@ export class GameObjectInventoryComponent {
   }
 
   private declareFolder(folderPath: string): void {
+    const entry = this.folderEntryPrefix() + folderPath;
     const declared = this.inventoryService.folderPaths;
-    if (declared.includes(folderPath)) return;
-    this.inventoryService.folderPaths = [...declared, folderPath];
+    if (declared.includes(entry)) return;
+    this.inventoryService.folderPaths = [...declared, entry];
     this.inventoryService.notifyInventoryUpdate();
   }
 
   private undeclareFoldersUnder(folderPath: string): void {
+    const prefix = this.folderEntryPrefix();
     const declared = this.inventoryService.folderPaths;
-    const kept = declared.filter((path) => !isDescendantFolderPath(path, folderPath));
+    const kept = declared.filter(
+      (entry) => !entry.startsWith(prefix) || !isDescendantFolderPath(entry.slice(prefix.length), folderPath)
+    );
     if (kept.length === declared.length) return;
     this.inventoryService.folderPaths = kept;
   }
@@ -477,8 +498,13 @@ export class GameObjectInventoryComponent {
     for (const character of this.charactersUnder(folderPath)) {
       character.folderName = rewriteFolderPath(normalizeFolderPath(character.folderName), folderPath, renamed);
     }
+    const prefix = this.folderEntryPrefix();
     this.inventoryService.folderPaths = [
-      ...new Set(this.inventoryService.folderPaths.map((path) => rewriteFolderPath(path, folderPath, renamed))),
+      ...new Set(
+        this.inventoryService.folderPaths.map((entry) =>
+          entry.startsWith(prefix) ? prefix + rewriteFolderPath(entry.slice(prefix.length), folderPath, renamed) : entry
+        )
+      ),
     ];
     this.collapsedFolders.update(
       (current) => new Set([...current].map((entry) => rewriteFolderPath(entry, folderPath, renamed)))
@@ -517,9 +543,14 @@ export class GameObjectInventoryComponent {
   }
 
   private charactersUnder(folderPath: string): GameCharacter[] {
+    const location = this.selectTab();
     return this.objectStore
       .getObjects<GameCharacter>(GameCharacter)
-      .filter((character) => isDescendantFolderPath(normalizeFolderPath(character.folderName), folderPath));
+      .filter(
+        (character) =>
+          character.location.name === location &&
+          isDescendantFolderPath(normalizeFolderPath(character.folderName), folderPath)
+      );
   }
 
   private setFolderOf(identifiers: Iterable<string>, folderPath: string): void {

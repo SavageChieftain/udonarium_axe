@@ -633,12 +633,20 @@
     <span class="text-ui-dim ml-auto shrink-0 text-[11px] font-normal tabular-nums">{{ node.totalCount }}</span>
     @if (node.path && !isEditingFolder(node.path)) {
       <button
-        class="text-ui-muted hover:bg-ui-hover hover:text-ui-accent hidden size-5 shrink-0 cursor-pointer items-center justify-center rounded-sm border-none bg-transparent p-0 transition-[background,color] group-hover/folder:inline-flex [&_.material-icons]:text-[14px]!"
+        class="text-ui-dim hover:bg-ui-hover hover:text-ui-accent inline-flex size-5 shrink-0 cursor-pointer items-center justify-center rounded-sm border-none bg-transparent p-0 transition-[background,color] [&_.material-icons]:text-[14px]!"
         type="button"
         [title]="'feature.inventory.contextMenu.renameFolder' | transloco"
         (click)="$event.stopPropagation(); startFolderRename(node.path)"
       >
         <i class="material-icons">edit</i>
+      </button>
+      <button
+        class="text-ui-dim hover:bg-ui-danger-bg hover:text-ui-danger inline-flex size-5 shrink-0 cursor-pointer items-center justify-center rounded-sm border-none bg-transparent p-0 transition-[background,color] [&_.material-icons]:text-[14px]!"
+        type="button"
+        [title]="'feature.inventory.contextMenu.deleteFolder' | transloco"
+        (click)="$event.stopPropagation(); deleteFolder(node.path)"
+      >
+        <i class="material-icons">delete</i>
       </button>
     }
   </div>
