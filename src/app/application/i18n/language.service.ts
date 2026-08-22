@@ -1,3 +1,4 @@
+import { DOCUMENT } from '@angular/common';
 import { computed, inject, Injectable, signal } from '@angular/core';
 import {
   detectInitialLang,
@@ -12,13 +13,16 @@ import { firstValueFrom } from 'rxjs';
 @Injectable({ providedIn: 'root' })
 export class LanguageService {
   private readonly transloco = inject(TranslocoService);
+  private readonly document = inject(DOCUMENT);
   private readonly _currentLang = signal<SupportedLang>('ja');
   readonly currentLang = this._currentLang.asReadonly();
   readonly availableLangs = computed(() => [...SUPPORTED_LANGS]);
 
   constructor() {
     this.transloco.langChanges$.subscribe((lang) => {
-      if (isSupportedLang(lang)) this._currentLang.set(lang);
+      if (!isSupportedLang(lang)) return;
+      this._currentLang.set(lang);
+      this.document.documentElement.lang = lang;
     });
   }
 
