@@ -1,12 +1,10 @@
+import { matchesSearchText } from '@axe/core/util/text-search';
 import { TabletopObject } from '@axe/domain/tabletop/tabletop-object';
 import {
   buildInventoryRow,
   filterInventoryRows,
   type InventoryRow,
   inventorySearchText,
-  matchesSearchText,
-  normalizeInventoryText,
-  splitSearchTerms,
 } from '@axe/features/inventory/game-object-inventory/inventory-list';
 
 let counter = 0;
@@ -19,38 +17,6 @@ function makeRow(name = 'ゴブリン', folderName = ''): InventoryRow {
 function textOf(row: InventoryRow, ownerName = '', elementTexts: readonly string[] = []): string {
   return inventorySearchText(row, ownerName, elementTexts);
 }
-
-describe('normalizeInventoryText()', () => {
-  it('brings full-width letters down to half-width', () => {
-    expect(normalizeInventoryText('ＡＢＣ')).toBe('abc');
-  });
-
-  it('pays no attention to case', () => {
-    expect(normalizeInventoryText('GoBLin')).toBe('goblin');
-  });
-
-  it('drops the spaces at either end', () => {
-    expect(normalizeInventoryText('  ゴブリン  ')).toBe('ゴブリン');
-  });
-});
-
-describe('splitSearchTerms()', () => {
-  it('finds nothing in an empty search', () => {
-    expect(splitSearchTerms('   ')).toEqual([]);
-  });
-
-  it('takes one word as one term', () => {
-    expect(splitSearchTerms('ゴブリン')).toEqual(['ゴブリン']);
-  });
-
-  it('takes words apart at a space', () => {
-    expect(splitSearchTerms('ゴブリン 戦士')).toEqual(['ゴブリン', '戦士']);
-  });
-
-  it('takes them apart at a full-width space too', () => {
-    expect(splitSearchTerms('ゴブリン　戦士')).toEqual(['ゴブリン', '戦士']);
-  });
-});
 
 describe('buildInventoryRow()', () => {
   it('takes its identifier from the object', () => {
@@ -79,27 +45,6 @@ describe('inventorySearchText()', () => {
 
   it('holds only the name and the owner when it is handed no values', () => {
     expect(textOf(makeRow('ゴブリン'), '田中')).toBe('ゴブリン 田中');
-  });
-});
-
-describe('matchesSearchText()', () => {
-  it('lets everything through for an empty search', () => {
-    expect(matchesSearchText(textOf(makeRow()), [])).toBe(true);
-  });
-
-  it('finds a name by part of it', () => {
-    expect(matchesSearchText(textOf(makeRow('ゴブリン戦士')), ['ブリン'])).toBe(true);
-  });
-
-  it('wants every word of the search, not just one', () => {
-    const text = textOf(makeRow('ゴブリン戦士'));
-
-    expect(matchesSearchText(text, ['ゴブリン', '戦士'])).toBe(true);
-    expect(matchesSearchText(text, ['ゴブリン', '魔術師'])).toBe(false);
-  });
-
-  it('finds a full-width name typed in half-width', () => {
-    expect(matchesSearchText(textOf(makeRow('ＨＰポーション')), ['hp'])).toBe(true);
   });
 });
 

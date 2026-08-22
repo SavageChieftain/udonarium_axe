@@ -24,6 +24,7 @@ import { Network } from '@axe/core/index';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { GameObject } from '@axe/core/sync/game-object';
 import { ObjectStore } from '@axe/core/sync/object-store';
+import { splitSearchTerms } from '@axe/core/util/text-search';
 import {
   ancestorFolderPaths,
   FOLDER_SEPARATOR,
@@ -58,7 +59,6 @@ import {
   filterInventoryRows,
   type InventoryRow,
   inventorySearchText,
-  splitSearchTerms,
 } from '@axe/features/inventory/game-object-inventory/inventory-list';
 import {
   readPersonalFolders,
