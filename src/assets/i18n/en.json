@@ -874,6 +874,8 @@
         "locationPersonal": "Personal inventory",
         "locationGraveyard": "Graveyard",
         "locationTitle": "Location",
+        "folder": "Folder",
+        "folderPlaceholder": "Unfiled (use / to nest)",
         "hide": "Hidden",
         "nonTalk": "Don't speak",
         "pieceSetting": "Piece settings",

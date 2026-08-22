@@ -244,4 +244,50 @@ describe('GameCharacter', () => {
       expect(character.overViewDataTags).toEqual([]);
     });
   });
+
+  // ----------------------------------------------------------------
+  // folderName
+  // ----------------------------------------------------------------
+  describe('folderName', () => {
+    it('starts in no folder', () => {
+      expect(character.folderName).toBe('');
+    });
+
+    it('stays out of one when older saved data says nothing about it', () => {
+      const xml = `<character>
+    <data name="character">
+    <data name="image"><data name="imageIdentifier" type="image"></data></data>
+    <data name="common"></data>
+    <data name="detail"></data>
+    </data>
+    </character>`;
+
+      const restored = ObjectSerializer.instance.parseXml(xml) as GameCharacter;
+
+      expect(restored.folderName).toBe('');
+    });
+
+    it('writes the folder it is in into saved data', () => {
+      character.folderName = '第1話/洞窟';
+
+      expect(ObjectSerializer.instance.toXml(character)).toContain('folderName="第1話/洞窟"');
+    });
+
+    it('reads the folder back out of saved data', () => {
+      const restored = ObjectSerializer.instance.parseXml(
+        '<character folderName="第1話/洞窟"></character>'
+      ) as GameCharacter;
+
+      expect(restored.folderName).toBe('第1話/洞窟');
+    });
+
+    it('keeps what a newer version wrote and it does not know about', () => {
+      const xml = '<character folderName="第1話" somethingLater="42"></character>';
+
+      const restored = ObjectSerializer.instance.parseXml(xml) as GameCharacter;
+
+      expect(restored.folderName).toBe('第1話');
+      expect(ObjectSerializer.instance.toXml(restored)).toContain('somethingLater="42"');
+    });
+  });
 });

@@ -874,6 +874,8 @@
         "locationPersonal": "個人インベントリ",
         "locationGraveyard": "墓地",
         "locationTitle": "配置場所",
+        "folder": "フォルダ",
+        "folderPlaceholder": "未分類（/ で階層）",
         "hide": "非表示",
         "nonTalk": "発言しない",
         "pieceSetting": "コマ設定",

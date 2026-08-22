@@ -31,6 +31,7 @@ import {
 export class GameCharacter extends OwnedTabletopObject {
   @SyncVar() owner: string = '';
   @SyncVar() partyIdentifier: string = '';
+  @SyncVar() folderName: string = '';
   private static readonly MAX_DETAIL_GROUP_DEPTH = 2;
 
   constructor(identifier: string = generateUuid()) {

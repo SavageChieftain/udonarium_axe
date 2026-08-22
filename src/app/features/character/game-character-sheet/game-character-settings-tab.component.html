@@ -17,6 +17,14 @@
       <option value="{{ myPeerId }}">{{ 'feature.inventory.settingsTab.locationPersonal' | transloco }}</option>
       <option value="graveyard">{{ 'feature.inventory.settingsTab.locationGraveyard' | transloco }}</option>
     </select>
+    <input
+      class="bg-ui-input text-ui-text border-ui-border-input rounded-ui-sm border border-solid px-1.5 py-0.75 text-[0.82em]"
+      name="folder"
+      [ngModel]="character().folderName"
+      (change)="onSetFolder($event)"
+      [placeholder]="'feature.inventory.settingsTab.folderPlaceholder' | transloco"
+      [title]="'feature.inventory.settingsTab.folder' | transloco"
+    />
     <div class="flex flex-wrap items-center gap-2">
       <label
         class="text-ui-muted inline-flex cursor-pointer items-center gap-1.25 text-[0.82em] select-none [&_input[type=checkbox]]:cursor-pointer [&_input[type=checkbox]]:[accent-color:var(--ui-accent)]"
