@@ -10,7 +10,7 @@ hero:
   actions:
     - theme: brand
       text: デモを触ってみる
-      link: https://demo.savage-tribe.com
+      link: https://axe.xelltis.com
     - theme: alt
       text: クイックスタート
       link: /guide/quickstart
@@ -39,7 +39,7 @@ features:
 
 ## まず触ってみる
 
-準備なしで動きを確かめられる **[デモサイト](https://demo.savage-tribe.com)** を用意しています。
+準備なしで動きを確かめられる **[デモサイト](https://axe.xelltis.com)** を用意しています。
 開いてルームを作れば、そのままコマを置いたりダイスを振ったりできます。
 [招待リンク](/manual/roles#招待リンクで参加者を招く) を渡せば、相手も準備なしで参加できます。
 
