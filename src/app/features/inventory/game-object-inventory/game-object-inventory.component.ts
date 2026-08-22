@@ -20,12 +20,19 @@ import { DataElement } from '@axe/domain/data/data-element';
 import { SortOrder } from '@axe/domain/data/data-summary-setting';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
+import { OwnedTabletopObject } from '@axe/domain/tabletop/owned-tabletop-object';
 import { TabletopObject } from '@axe/domain/tabletop/tabletop-object';
 import { NpcDragService } from '@axe/features/gm-tools/npc-bar/npc-drag.service';
 import {
   buildInventoryMultiMoveContextMenu,
   buildInventoryObjectContextMenu,
 } from '@axe/features/inventory/game-object-inventory/game-object-inventory-context-menu';
+import {
+  buildInventoryRow,
+  filterInventoryRows,
+  type InventoryRow,
+  splitSearchTerms,
+} from '@axe/features/inventory/game-object-inventory/inventory-list';
 import { SafePipe } from '@axe/ui/pipes/safe.pipe';
 import { TranslocoModule } from '@jsverse/transloco';
 
@@ -81,6 +88,14 @@ export class GameObjectInventoryComponent {
 
   readonly isEdit = signal(false);
   readonly isMultiMove = signal(false);
+
+  readonly searchQuery = signal('');
+  readonly searchTerms = computed<string[]>(() => splitSearchTerms(this.searchQuery()));
+  readonly hasQuery = computed<boolean>(() => this.searchTerms().length > 0);
+
+  clearSearch(): void {
+    this.searchQuery.set('');
+  }
 
   setTurnOrder(event: Event, gameObject: GameObject): void {
     event.stopPropagation();
@@ -217,11 +232,7 @@ export class GameObjectInventoryComponent {
     }
   }
 
-  getGameObjects(inventoryType: string): TabletopObject[] {
-    this.inventoryService.inventoryVersion();
-    this.objectChange.fileVersion();
-    this.objectChange.collectionOf('character')();
-    if (PeerCursor.myCursor) this.objectChange.versionOf(PeerCursor.myCursor.identifier)();
+  private baseObjectsOf(inventoryType: string): TabletopObject[] {
     switch (inventoryType) {
       case 'table': {
         const all = this.inventoryService.tableInventory.tabletopObjects as GameCharacter[];
@@ -232,6 +243,35 @@ export class GameObjectInventoryComponent {
       default:
         return this.getInventory(inventoryType).tabletopObjects;
     }
+  }
+
+  readonly visibleRows = computed<InventoryRow[]>(() => {
+    this.inventoryService.inventoryVersion();
+    this.objectChange.fileVersion();
+    this.objectChange.collectionOf('character')();
+    this.objectChange.collectionOf('PeerCursor')();
+    if (PeerCursor.myCursor) this.objectChange.versionOf(PeerCursor.myCursor.identifier)();
+    const inventoryType = this.selectTab();
+    return this.baseObjectsOf(inventoryType).map((object) =>
+      buildInventoryRow({
+        object,
+        folderName: object instanceof GameCharacter ? object.folderName : '',
+        ownerName: object instanceof OwnedTabletopObject ? object.ownerName : '',
+        elementTexts: this.canView(object) ? this.elementTextsOf(inventoryType, object) : [],
+      })
+    );
+  });
+
+  readonly filteredRows = computed<InventoryRow[]>(() => filterInventoryRows(this.visibleRows(), this.searchTerms()));
+
+  private elementTextsOf(inventoryType: string, object: TabletopObject): string[] {
+    const elements = this.getInventory(inventoryType).dataElementMap.get(object.identifier) ?? [];
+    const texts: string[] = [];
+    for (const element of elements) {
+      if (!element || element.name === this.newLineString) continue;
+      texts.push(`${element.value}`);
+    }
+    return texts;
   }
 
   isInventoryHiddenObject(gameObject: TabletopObject): boolean {
@@ -290,18 +330,22 @@ export class GameObjectInventoryComponent {
 
   cleanInventory() {
     if (!this.rolePermission.canEditTabletop) return;
-    const tabTitle = this.getTabTitle(this.selectTab());
-    const gameObjects = this.getGameObjects(this.selectTab());
-    if (!confirm(this.t('feature.inventory.panel.confirmCleanTab', { tab: tabTitle, count: gameObjects.length })))
-      return;
-    for (const gameObject of gameObjects) {
-      this.deleteGameObject(gameObject);
+    const rows = this.filteredRows();
+    const message = this.hasQuery()
+      ? this.t('feature.inventory.panel.confirmCleanFiltered', { count: rows.length })
+      : this.t('feature.inventory.panel.confirmCleanTab', {
+          tab: this.getTabTitle(this.selectTab()),
+          count: rows.length,
+        });
+    if (!confirm(message)) return;
+    for (const row of rows) {
+      this.deleteGameObject(row.object);
     }
     SoundEffect.play(PresetSound.sweep);
   }
 
   existsMultiMoveSelectedInTab(): boolean {
-    return this.getGameObjects(this.selectTab()).some((x) => this.multiMoveTargets().has(x.identifier));
+    return this.filteredRows().some((row) => this.multiMoveTargets().has(row.identifier));
   }
 
   toggleMultiMoveTarget(e: Event, gameObject: GameCharacter) {
@@ -320,16 +364,17 @@ export class GameObjectInventoryComponent {
   }
 
   allTabBoxCheck() {
+    const rows = this.filteredRows();
     if (this.existsMultiMoveSelectedInTab()) {
       this.multiMoveTargets.update((s) => {
         const n = new Set(s);
-        this.getGameObjects(this.selectTab()).forEach((x) => n.delete(x.identifier));
+        rows.forEach((row) => n.delete(row.identifier));
         return n;
       });
     } else {
       this.multiMoveTargets.update((s) => {
         const n = new Set(s);
-        this.getGameObjects(this.selectTab()).forEach((x) => n.add(x.identifier));
+        rows.forEach((row) => n.add(row.identifier));
         return n;
       });
     }

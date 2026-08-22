@@ -899,6 +899,10 @@
         "popupMaxHeight": "高さ最大"
       },
       "panel": {
+        "searchPlaceholder": "名前・所有者・表示項目で検索",
+        "clearSearch": "検索をクリア",
+        "noMatch": "一致するキャラクターがいません",
+        "confirmCleanFiltered": "絞り込み中の{{count}}個の要素を完全に削除しますか？",
         "multiMove": "一括移動",
         "displaySettings": "表示設定",
         "sortOrder1": "並び順 第1",

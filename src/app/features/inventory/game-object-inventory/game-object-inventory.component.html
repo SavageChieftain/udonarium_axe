@@ -1,7 +1,5 @@
 @if (!isPanelMinimized()) {
   <div class="text-ui-text bg-ui-panel flex h-full flex-col overflow-hidden text-[13px]">
-    @let objects = getGameObjects(selectTab());
-
     <div class="bg-ui-panel border-ui-border-panel flex shrink-0 items-center gap-1 border-b border-solid px-2 pt-1.5">
       <form name="game-object-inventory" class="flex min-w-0 flex-1 gap-0.5">
         @for (inventoryType of inventoryTypes(); track inventoryType) {
@@ -56,6 +54,31 @@
           <i class="material-icons">tune</i>
         </button>
       </div>
+    </div>
+
+    <div
+      class="bg-ui-panel border-ui-border-panel flex shrink-0 items-center gap-1.5 border-b border-solid px-2.5 py-1.5"
+    >
+      <i class="material-icons text-ui-muted text-[18px]!">search</i>
+      <input
+        class="bg-ui-input border-ui-border-panel text-ui-text rounded-ui-sm focus:border-ui-accent box-border min-w-0 flex-1 border border-solid px-1.75 py-1 text-[12px] transition-[border-color] outline-none"
+        name="inventory-search"
+        [(ngModel)]="searchQuery"
+        [placeholder]="'feature.inventory.panel.searchPlaceholder' | transloco"
+      />
+      @if (hasQuery()) {
+        <span class="text-ui-dim shrink-0 text-[11px] whitespace-nowrap"
+          >{{ filteredRows().length }} / {{ visibleRows().length }}</span
+        >
+        <button
+          class="text-ui-muted hover:bg-ui-hover hover:text-ui-text flex size-6 shrink-0 cursor-pointer items-center justify-center rounded-sm border-none bg-transparent p-0 transition-[background,color] [&_.material-icons]:text-base!"
+          type="button"
+          [title]="'feature.inventory.panel.clearSearch' | transloco"
+          (click)="clearSearch()"
+        >
+          <i class="material-icons">close</i>
+        </button>
+      }
     </div>
 
     @if (isEdit()) {
@@ -262,19 +285,23 @@
     }
 
     <div class="flex flex-1 flex-col gap-0.5 overflow-y-auto px-1.5 py-1">
-      @if (objects.length < 1) {
+      @if (filteredRows().length < 1) {
         <div
           class="text-ui-dim flex flex-1 flex-col items-center justify-center gap-2 p-6 text-center [&_.material-icons]:text-[36px]! [&_.material-icons]:opacity-40"
         >
-          <i class="material-icons">inbox</i>
+          <i class="material-icons">{{ hasQuery() ? 'search_off' : 'inbox' }}</i>
           <p class="m-0 text-[12px]">
-            {{ 'feature.inventory.panel.emptyMessage' | transloco: { name: getTabTitle(selectTab()) } }}
+            @if (hasQuery()) {
+              {{ 'feature.inventory.panel.noMatch' | transloco }}
+            } @else {
+              {{ 'feature.inventory.panel.emptyMessage' | transloco: { name: getTabTitle(selectTab()) } }}
+            }
           </p>
         </div>
       }
 
-      @for (gameObject of objects; track gameObject.identifier) {
-        <ng-container *ngTemplateOutlet="itemRow; context: { $implicit: gameObject }"></ng-container>
+      @for (row of filteredRows(); track row.identifier) {
+        <ng-container *ngTemplateOutlet="itemRow; context: { $implicit: row.object }"></ng-container>
       }
     </div>
 
@@ -284,7 +311,7 @@
           class="text-ui-danger border-ui-danger hover:bg-ui-danger-bg rounded-ui-sm inline-flex cursor-pointer items-center gap-1 border border-solid bg-transparent px-3 py-1.25 text-[12px] font-semibold transition-[background] disabled:cursor-not-allowed disabled:opacity-40 [&_.material-icons]:text-[15px]!"
           type="button"
           (click)="cleanInventory()"
-          [disabled]="objects.length < 1"
+          [disabled]="filteredRows().length < 1"
         >
           <i class="material-icons">delete_sweep</i>{{ 'feature.inventory.panel.cleanGraveyard' | transloco }}
         </button>

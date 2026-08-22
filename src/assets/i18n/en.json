@@ -899,6 +899,10 @@
         "popupMaxHeight": "Max height"
       },
       "panel": {
+        "searchPlaceholder": "Search name, owner or shown items",
+        "clearSearch": "Clear search",
+        "noMatch": "No character matches",
+        "confirmCleanFiltered": "Permanently delete the {{count}} items currently shown?",
         "multiMove": "Move multiple",
         "displaySettings": "Display settings",
         "sortOrder1": "Sort 1st",
