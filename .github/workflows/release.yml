@@ -63,19 +63,9 @@ jobs:
             echo "::notice::No release published; skipping deploy"
           fi
 
-  deploy-staging:
-    name: Staging
-    needs: release
-    if: needs.release.outputs.released == 'true'
-    uses: ./.github/workflows/deploy.yml
-    with:
-      environment: staging
-      ref: v${{ needs.release.outputs.version }}
-    secrets: inherit
-
   deploy-production:
     name: Production
-    needs: [release, deploy-staging]
+    needs: release
     if: needs.release.outputs.released == 'true'
     uses: ./.github/workflows/deploy.yml
     with:
@@ -83,12 +73,12 @@ jobs:
       ref: v${{ needs.release.outputs.version }}
     secrets: inherit
 
-  deploy-demo:
-    name: Demo
-    needs: [release, deploy-staging]
+  deploy-public:
+    name: Public
+    needs: [release, deploy-production]
     if: needs.release.outputs.released == 'true'
     uses: ./.github/workflows/deploy.yml
     with:
-      environment: demo
+      environment: public
       ref: v${{ needs.release.outputs.version }}
     secrets: inherit
