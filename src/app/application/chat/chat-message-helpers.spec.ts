@@ -68,12 +68,30 @@ describe('chat-message-helpers', () => {
       expect(parsePortraitCommand('hello @hide')).toEqual({ type: 'hide' });
     });
 
+    it('reads hide however it is typed', () => {
+      expect(parsePortraitCommand('hello @HIDE')).toEqual({ type: 'hide' });
+      expect(parsePortraitCommand('hello ＠ｈｉｄｅ')).toEqual({ type: 'hide' });
+    });
+
     it('recognises a numeric command', () => {
       expect(parsePortraitCommand('hello @12')).toEqual({ type: 'index', index: 12 });
     });
 
+    it('reads a full-width number as a number', () => {
+      expect(parsePortraitCommand('hello ＠２')).toEqual({ type: 'index', index: 2 });
+    });
+
     it('recognises the name command', () => {
       expect(parsePortraitCommand('hello @笑顔')).toEqual({ type: 'name', name: '笑顔' });
+    });
+
+    it('keeps a name that ends in digits whole', () => {
+      expect(parsePortraitCommand('hello @笑顔2')).toEqual({ type: 'name', name: '笑顔2' });
+    });
+
+    it('takes nothing from a line that ends in no command', () => {
+      expect(parsePortraitCommand('hello')).toEqual({ type: 'none' });
+      expect(parsePortraitCommand('mail@example.com')).toEqual({ type: 'none' });
     });
 
     it('strips a trailing command', () => {
@@ -99,6 +117,24 @@ describe('chat-message-helpers', () => {
 
     it('returns nothing when there is no match', () => {
       expect(findImageIdentifierByName(entries, '不存在')).toEqual({ identifier: '', index: 0 });
+    });
+
+    it('ignores the case and the width of what was typed', () => {
+      const cased = [
+        { label: 'Smile', identifier: 'id-smile' },
+        { label: 'Angry', identifier: 'id-angry' },
+      ];
+      expect(findImageIdentifierByName(cased, 'smile')).toEqual({ identifier: 'id-smile', index: 0 });
+      expect(findImageIdentifierByName(cased, 'ＡＮＧＲＹ')).toEqual({ identifier: 'id-angry', index: 1 });
+    });
+
+    it('never settles on a portrait nobody named', () => {
+      const unnamed = [
+        { label: '', identifier: 'id-first' },
+        { label: '笑顔', identifier: 'id-smile' },
+      ];
+      expect(findImageIdentifierByName(unnamed, '笑')).toEqual({ identifier: 'id-smile', index: 1 });
+      expect(findImageIdentifierByName(unnamed, '')).toEqual({ identifier: '', index: 0 });
     });
   });
 

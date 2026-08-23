@@ -3,6 +3,8 @@ import {
   calcChatTimestamp,
   emitChatMessageEvents,
   findImageIdentifierByName,
+  type ImageIdentifierResult,
+  type ImageNameEntry,
   parsePortraitCommand,
   resolveChatMessageTag,
   resolveImagePos,
@@ -17,6 +19,7 @@ import { Logger } from '@axe/core/logging/logger';
 import { ImageStorage } from '@axe/core/storage/image-storage';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { toHalfWidth } from '@axe/core/util/string-util';
+import { portraitNameOf } from '@axe/domain/character/character-portrait';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { ChatMessage, ChatMessageContext, ChatMessageTargetContext } from '@axe/domain/chat/chat-message';
 import { ChatTab } from '@axe/domain/chat/chat-tab';
@@ -197,9 +200,9 @@ export class ChatMessageService {
       chatMessage.quoteOf = quoteOf;
     }
 
-    this.setLastControlInfoToPeer(sendFrom, this.findImageIdentifier(sendFrom, imgIndex), imgIndex, sendTo);
+    const portrait = this.applyPortraitCommand(chatMessage, text, sendFrom, imgIndex);
+    this.setLastControlInfoToPeer(sendFrom, portrait.identifier, portrait.index, sendTo);
 
-    this.applyPortraitCommand(chatMessage, text, sendFrom);
     const chat = chatTab.addMessage(chatMessage);
 
     const eventPlan = emitChatMessageEvents(messageTargetContext ?? undefined);
@@ -248,34 +251,33 @@ export class ChatMessageService {
     };
   }
 
-  private applyPortraitCommand(chatMessage: ChatMessageContext, text: string, sendFrom: string): void {
+  private applyPortraitCommand(
+    chatMessage: ChatMessageContext,
+    text: string,
+    sendFrom: string,
+    imgIndex: number
+  ): ImageIdentifierResult {
+    const untouched = { identifier: chatMessage.imageIdentifier ?? '', index: imgIndex };
     const command = parsePortraitCommand(text);
-    if (command.type === 'none') return;
+    if (command.type === 'none') return untouched;
 
     if (command.type === 'hide') {
       chatMessage.imageIdentifier = '';
       chatMessage.text = stripPortraitCommand(text);
-      return;
+      return { identifier: '', index: imgIndex };
     }
 
-    if (command.type === 'index') {
-      const newIdentifier = this.findImageIdentifier(sendFrom, command.index);
-      if (!newIdentifier) return;
-
-      chatMessage.imageIdentifier = newIdentifier;
-      chatMessage.text = stripPortraitCommand(text);
-      const obj = this.objectStore.get(sendFrom);
-      if (obj instanceof GameCharacter) obj.selectedPortraitIndex = command.index;
-      return;
-    }
-
-    const found = this.findImageIdentifierName(sendFrom, command.name);
-    if (!found.identifier) return;
+    const found =
+      command.type === 'index'
+        ? { identifier: this.findImageIdentifier(sendFrom, command.index), index: command.index }
+        : this.findImageIdentifierName(sendFrom, command.name);
+    if (!found.identifier) return untouched;
 
     chatMessage.imageIdentifier = found.identifier;
     chatMessage.text = stripPortraitCommand(text);
     const obj = this.objectStore.get(sendFrom);
     if (obj instanceof GameCharacter) obj.selectedPortraitIndex = found.index;
+    return found;
   }
 
   private findId(identifier: string): string {
@@ -332,17 +334,17 @@ export class ChatMessageService {
     }
   }
 
-  private findImageIdentifierName(sendFrom: string, name: string): { identifier: string; index: number } {
+  private findImageIdentifierName(sendFrom: string, name: string): ImageIdentifierResult {
     const object = this.objectStore.get(sendFrom);
     if (object instanceof GameCharacter) {
       const data: DataElement | null = object.imageDataElement;
       if (!data) return findImageIdentifierByName([], name);
-      const entries: { label: string; identifier: string }[] = [];
+      const entries: ImageNameEntry[] = [];
       for (const child of data.children) {
         if (child instanceof DataElement) {
           const img = this.imageStorage.get(child.value as string);
           entries.push({
-            label: child.getAttribute('currentValue'),
+            label: portraitNameOf(child),
             identifier: img ? img.identifier : '',
           });
         }
