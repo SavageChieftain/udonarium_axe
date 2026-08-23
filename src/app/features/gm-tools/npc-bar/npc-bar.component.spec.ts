@@ -85,4 +85,24 @@ describe('NpcBarComponent', () => {
 
     expect(character.isNpc).toBe(false);
   });
+
+  it('narrows the strip by a word in the name', () => {
+    makeCharacter('ゴブリンA', { isNpc: true });
+    makeCharacter('ゴブリンB', { isNpc: true });
+    makeCharacter('村長', { isNpc: true });
+
+    expect(component.filteredNpcs()).toHaveLength(3);
+
+    component.search.set('ゴブリン');
+
+    expect(component.filteredNpcs().map((npc) => npc.name)).toEqual(['ゴブリンA', 'ゴブリンB']);
+  });
+
+  it('folds width so a full-width search still finds a half-width name', () => {
+    makeCharacter('HPポーション', { isNpc: true });
+
+    component.search.set('ＨＰ');
+
+    expect(component.filteredNpcs()).toHaveLength(1);
+  });
 });

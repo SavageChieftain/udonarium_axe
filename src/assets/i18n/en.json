@@ -68,6 +68,7 @@
     },
     "gmTools": {
       "npcBar": {
+        "searchPlaceholder": "Filter by name",
         "close": "Close",
         "empty": "Drag characters here from the GM object list to register",
         "unregister": "Remove from NPC bar"
@@ -103,6 +104,7 @@
         "noActive": "Pick the character to anchor the range on (opens the character list)"
       },
       "ownedCharacters": {
+        "searchPlaceholder": "Filter by name",
         "chatPalette": "Open chat palette",
         "sheet": "Open character sheet",
         "focus": "Move the view to the piece",

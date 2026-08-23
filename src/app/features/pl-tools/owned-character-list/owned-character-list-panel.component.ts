@@ -1,10 +1,11 @@
-import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { PartyService } from '@axe/application/party/party.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { SelectionSignalService } from '@axe/application/ui/selection-signal.service';
 import { ObjectStore } from '@axe/core/sync/object-store';
+import { matchesSearchText, normalizeSearchText, splitSearchTerms } from '@axe/core/util/text-search';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { DataElement } from '@axe/domain/data/data-element';
 import { Party } from '@axe/domain/party/party';
@@ -41,6 +42,16 @@ export class OwnedCharacterListPanelComponent {
     const all = this.objectStore.getObjects<GameCharacter>(GameCharacter);
     for (const character of all) this.objectChange.versionOf(character.identifier)();
     return selectOwnedCharacters(all, userId);
+  });
+
+  readonly search = signal('');
+
+  readonly filteredCharacters = computed<GameCharacter[]>(() => {
+    const terms = splitSearchTerms(this.search());
+    if (terms.length < 1) return this.characters();
+    return this.characters().filter((character) =>
+      matchesSearchText(normalizeSearchText(this.displayName(character)), terms)
+    );
   });
 
   protected imageUrl(character: GameCharacter): string {

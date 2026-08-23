@@ -1,8 +1,10 @@
-import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { PanelService } from '@axe/application/ui/panel.service';
 import { ObjectStore } from '@axe/core/sync/object-store';
+import { matchesSearchText, normalizeSearchText, splitSearchTerms } from '@axe/core/util/text-search';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { ChatPaletteRegistryService } from '@axe/features/chat/chat-palette/chat-palette-registry.service';
 import { NpcBarService } from '@axe/features/gm-tools/npc-bar/npc-bar.service';
@@ -15,7 +17,7 @@ import { TranslocoModule } from '@jsverse/transloco';
   selector: 'app-npc-bar',
   templateUrl: './npc-bar.component.html',
   host: { class: 'contents' },
-  imports: [SafePipe, TranslocoModule],
+  imports: [FormsModule, SafePipe, TranslocoModule],
 })
 export class NpcBarComponent {
   protected readonly barService = inject(NpcBarService);
@@ -31,6 +33,14 @@ export class NpcBarComponent {
     const all = this.objectStore.getObjects<GameCharacter>(GameCharacter);
     for (const c of all) this.objectChange.versionOf(c.identifier)();
     return all.filter((c) => c.isNpc && c.location.name !== 'graveyard');
+  });
+
+  readonly search = signal('');
+
+  readonly filteredNpcs = computed<GameCharacter[]>(() => {
+    const terms = splitSearchTerms(this.search());
+    if (terms.length < 1) return this.npcs();
+    return this.npcs().filter((npc) => matchesSearchText(normalizeSearchText(npc.name), terms));
   });
 
   protected select(npc: GameCharacter): void {

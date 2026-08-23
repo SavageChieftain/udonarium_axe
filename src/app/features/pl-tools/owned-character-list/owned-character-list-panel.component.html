@@ -1,122 +1,138 @@
-<div class="bg-ui-panel text-ui-text flex h-full flex-col overflow-y-auto p-2">
-  @for (character of characters(); track character.identifier) {
-    <div class="rounded-ui-sm border-ui-border-panel mb-1 border border-solid p-1.5">
-      <div class="flex items-center gap-2">
-        <div class="bg-ui-elevated size-10 shrink-0 overflow-hidden rounded-sm">
-          @if (imageUrl(character)) {
-            <img class="size-full object-contain" [src]="imageUrl(character) | safe: 'resourceUrl'" alt="" />
+<div class="bg-ui-panel text-ui-text flex h-full flex-col overflow-hidden p-2">
+  @if (characters().length > 0) {
+    <div class="mb-1.5 flex shrink-0 items-center gap-2">
+      <i class="material-icons text-ui-muted text-[18px]!">search</i>
+      <input
+        class="bg-ui-input border-ui-border-panel text-ui-text rounded-ui-sm focus:border-ui-accent box-border min-w-0 flex-1 border border-solid px-1.75 py-1 text-[12px] transition-[border-color] outline-none"
+        name="owned-character-search"
+        [(ngModel)]="search"
+        [placeholder]="'feature.plTools.ownedCharacters.searchPlaceholder' | transloco"
+      />
+      <span class="text-ui-dim shrink-0 text-[11px] whitespace-nowrap"
+        >{{ filteredCharacters().length }} / {{ characters().length }}</span
+      >
+    </div>
+  }
+  <div class="flex min-h-0 flex-1 flex-col overflow-y-auto">
+    @for (character of filteredCharacters(); track character.identifier) {
+      <div class="rounded-ui-sm border-ui-border-panel mb-1 border border-solid p-1.5">
+        <div class="flex items-center gap-2">
+          <div class="bg-ui-elevated size-10 shrink-0 overflow-hidden rounded-sm">
+            @if (imageUrl(character)) {
+              <img class="size-full object-contain" [src]="imageUrl(character) | safe: 'resourceUrl'" alt="" />
+            }
+          </div>
+
+          <span class="min-w-0 flex-1 truncate text-[13px]">{{ displayName(character) }}</span>
+
+          @if (party(character); as party) {
+            <span
+              class="rounded-ui-sm bg-ui-elevated text-ui-muted flex max-w-28 shrink-0 items-center gap-1 px-1.5 py-0.5 text-[10px]"
+              [title]="partyTooltip(character)"
+            >
+              <span class="size-2 shrink-0 rounded-full" [style.background]="party.color"></span>
+              <span class="truncate">{{ partyName(party) }}</span>
+            </span>
           }
+
+          <button
+            type="button"
+            class="rounded-ui-sm text-ui-text hover:bg-ui-menu-hover hover:text-ui-accent flex size-8 cursor-pointer items-center justify-center border-none bg-transparent transition-colors [&_i]:text-[18px]!"
+            [class.text-ui-accent]="activeCharacter.isActive(character.identifier)"
+            [class.bg-ui-accent-bg]="activeCharacter.isActive(character.identifier)"
+            [title]="
+              (activeCharacter.isActive(character.identifier)
+                ? 'feature.plTools.ownedCharacters.unsetActive'
+                : 'feature.plTools.ownedCharacters.setActive'
+              ) | transloco
+            "
+            (click)="setActive(character)"
+          >
+            <i class="material-icons">{{
+              activeCharacter.isActive(character.identifier) ? 'radio_button_checked' : 'radio_button_unchecked'
+            }}</i>
+          </button>
+
+          <button
+            type="button"
+            class="rounded-ui-sm text-ui-text hover:bg-ui-menu-hover hover:text-ui-accent flex size-8 cursor-pointer items-center justify-center border-none bg-transparent transition-colors [&_i]:text-[18px]!"
+            [title]="'feature.plTools.ownedCharacters.chatPalette' | transloco"
+            (click)="openChatPalette(character)"
+          >
+            <i class="material-icons">chat</i>
+          </button>
+
+          <button
+            type="button"
+            class="rounded-ui-sm text-ui-text hover:bg-ui-menu-hover hover:text-ui-accent flex size-8 cursor-pointer items-center justify-center border-none bg-transparent transition-colors [&_i]:text-[18px]!"
+            [title]="'feature.plTools.ownedCharacters.sheet' | transloco"
+            (click)="openSheet(character)"
+          >
+            <i class="material-icons">badge</i>
+          </button>
+
+          <button
+            type="button"
+            class="rounded-ui-sm text-ui-text hover:bg-ui-menu-hover hover:text-ui-accent flex size-8 cursor-pointer items-center justify-center border-none bg-transparent transition-colors [&_i]:text-[18px]!"
+            [title]="'feature.plTools.ownedCharacters.remoteController' | transloco"
+            (click)="openRemoteController(character)"
+          >
+            <i class="material-icons">tune</i>
+          </button>
+
+          <button
+            type="button"
+            class="rounded-ui-sm text-ui-text hover:bg-ui-menu-hover hover:text-ui-accent flex size-8 items-center justify-center border-none bg-transparent transition-colors disabled:cursor-default disabled:opacity-35 [&_i]:text-[18px]!"
+            [class.cursor-pointer]="canFocus(character)"
+            [disabled]="!canFocus(character)"
+            [title]="
+              (canFocus(character)
+                ? 'feature.plTools.ownedCharacters.focus'
+                : 'feature.plTools.ownedCharacters.notOnTable'
+              ) | transloco
+            "
+            (click)="focusToKoma(character)"
+          >
+            <i class="material-icons">my_location</i>
+          </button>
         </div>
 
-        <span class="min-w-0 flex-1 truncate text-[13px]">{{ displayName(character) }}</span>
-
-        @if (party(character); as party) {
-          <span
-            class="rounded-ui-sm bg-ui-elevated text-ui-muted flex max-w-28 shrink-0 items-center gap-1 px-1.5 py-0.5 text-[10px]"
-            [title]="partyTooltip(character)"
-          >
-            <span class="size-2 shrink-0 rounded-full" [style.background]="party.color"></span>
-            <span class="truncate">{{ partyName(party) }}</span>
-          </span>
-        }
-
-        <button
-          type="button"
-          class="rounded-ui-sm text-ui-text hover:bg-ui-menu-hover hover:text-ui-accent flex size-8 cursor-pointer items-center justify-center border-none bg-transparent transition-colors [&_i]:text-[18px]!"
-          [class.text-ui-accent]="activeCharacter.isActive(character.identifier)"
-          [class.bg-ui-accent-bg]="activeCharacter.isActive(character.identifier)"
-          [title]="
-            (activeCharacter.isActive(character.identifier)
-              ? 'feature.plTools.ownedCharacters.unsetActive'
-              : 'feature.plTools.ownedCharacters.setActive'
-            ) | transloco
-          "
-          (click)="setActive(character)"
-        >
-          <i class="material-icons">{{
-            activeCharacter.isActive(character.identifier) ? 'radio_button_checked' : 'radio_button_unchecked'
-          }}</i>
-        </button>
-
-        <button
-          type="button"
-          class="rounded-ui-sm text-ui-text hover:bg-ui-menu-hover hover:text-ui-accent flex size-8 cursor-pointer items-center justify-center border-none bg-transparent transition-colors [&_i]:text-[18px]!"
-          [title]="'feature.plTools.ownedCharacters.chatPalette' | transloco"
-          (click)="openChatPalette(character)"
-        >
-          <i class="material-icons">chat</i>
-        </button>
-
-        <button
-          type="button"
-          class="rounded-ui-sm text-ui-text hover:bg-ui-menu-hover hover:text-ui-accent flex size-8 cursor-pointer items-center justify-center border-none bg-transparent transition-colors [&_i]:text-[18px]!"
-          [title]="'feature.plTools.ownedCharacters.sheet' | transloco"
-          (click)="openSheet(character)"
-        >
-          <i class="material-icons">badge</i>
-        </button>
-
-        <button
-          type="button"
-          class="rounded-ui-sm text-ui-text hover:bg-ui-menu-hover hover:text-ui-accent flex size-8 cursor-pointer items-center justify-center border-none bg-transparent transition-colors [&_i]:text-[18px]!"
-          [title]="'feature.plTools.ownedCharacters.remoteController' | transloco"
-          (click)="openRemoteController(character)"
-        >
-          <i class="material-icons">tune</i>
-        </button>
-
-        <button
-          type="button"
-          class="rounded-ui-sm text-ui-text hover:bg-ui-menu-hover hover:text-ui-accent flex size-8 items-center justify-center border-none bg-transparent transition-colors disabled:cursor-default disabled:opacity-35 [&_i]:text-[18px]!"
-          [class.cursor-pointer]="canFocus(character)"
-          [disabled]="!canFocus(character)"
-          [title]="
-            (canFocus(character)
-              ? 'feature.plTools.ownedCharacters.focus'
-              : 'feature.plTools.ownedCharacters.notOnTable'
-            ) | transloco
-          "
-          (click)="focusToKoma(character)"
-        >
-          <i class="material-icons">my_location</i>
-        </button>
-      </div>
-
-      @if (resources(character); as elements) {
-        @if (elements.length) {
-          <div class="mt-1.5 grid grid-cols-2 gap-x-3 gap-y-1 pl-12">
-            @for (element of elements; track element.identifier) {
-              <span class="flex min-w-0 flex-col gap-0.5">
-                <span class="flex min-w-0 items-center gap-1">
-                  <span class="text-ui-muted shrink-0 text-[10px] whitespace-nowrap">{{ element.name }}</span>
+        @if (resources(character); as elements) {
+          @if (elements.length) {
+            <div class="mt-1.5 grid grid-cols-2 gap-x-3 gap-y-1 pl-12">
+              @for (element of elements; track element.identifier) {
+                <span class="flex min-w-0 flex-col gap-0.5">
+                  <span class="flex min-w-0 items-center gap-1">
+                    <span class="text-ui-muted shrink-0 text-[10px] whitespace-nowrap">{{ element.name }}</span>
+                    <input
+                      class="border-ui-border-panel text-ui-text hover:border-b-ui-accent focus:border-b-ui-accent box-border min-w-[2em] flex-1 [appearance:textfield] rounded-none border-0 border-b border-solid bg-transparent px-0.5 text-right font-[inherit] text-[12px] font-bold transition-[border-color] outline-none"
+                      type="number"
+                      [style.color]="element.nowValueColor"
+                      name="pl-resource-current"
+                      [(ngModel)]="element.currentValue"
+                      (ngModelChange)="onResourceChanged(character)"
+                    />
+                    <span class="text-ui-dim shrink-0 text-[10px]">/ {{ element.value }}</span>
+                  </span>
                   <input
-                    class="border-ui-border-panel text-ui-text hover:border-b-ui-accent focus:border-b-ui-accent box-border min-w-[2em] flex-1 [appearance:textfield] rounded-none border-0 border-b border-solid bg-transparent px-0.5 text-right font-[inherit] text-[12px] font-bold transition-[border-color] outline-none"
-                    type="number"
-                    [style.color]="element.nowValueColor"
-                    name="pl-resource-current"
+                    class="block h-3 w-full [accent-color:var(--ui-accent)]"
+                    type="range"
+                    min="0"
+                    [max]="resourceMax(element)"
+                    name="pl-resource-range"
                     [(ngModel)]="element.currentValue"
                     (ngModelChange)="onResourceChanged(character)"
                   />
-                  <span class="text-ui-dim shrink-0 text-[10px]">/ {{ element.value }}</span>
                 </span>
-                <input
-                  class="block h-3 w-full [accent-color:var(--ui-accent)]"
-                  type="range"
-                  min="0"
-                  [max]="resourceMax(element)"
-                  name="pl-resource-range"
-                  [(ngModel)]="element.currentValue"
-                  (ngModelChange)="onResourceChanged(character)"
-                />
-              </span>
-            }
-          </div>
+              }
+            </div>
+          }
         }
-      }
-    </div>
-  } @empty {
-    <p class="text-ui-dim m-0 p-3 text-center text-[12px]">
-      {{ 'feature.plTools.ownedCharacters.empty' | transloco }}
-    </p>
-  }
+      </div>
+    } @empty {
+      <p class="text-ui-dim m-0 p-3 text-center text-[12px]">
+        {{ 'feature.plTools.ownedCharacters.empty' | transloco }}
+      </p>
+    }
+  </div>
 </div>

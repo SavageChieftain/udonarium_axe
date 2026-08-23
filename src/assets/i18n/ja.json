@@ -68,6 +68,7 @@
     },
     "gmTools": {
       "npcBar": {
+        "searchPlaceholder": "名前で絞り込む",
         "close": "閉じる",
         "empty": "ここに一覧・GMオブジェクト一覧からキャラをドラッグして登録",
         "unregister": "NPC登録を解除"
@@ -103,6 +104,7 @@
         "noActive": "範囲の基点にするキャラを選ぶ（所有キャラクター一覧を開きます）"
       },
       "ownedCharacters": {
+        "searchPlaceholder": "名前で絞り込む",
         "chatPalette": "チャットパレットを開く",
         "sheet": "キャラクターシートを開く",
         "focus": "コマの位置へ視点を移す",

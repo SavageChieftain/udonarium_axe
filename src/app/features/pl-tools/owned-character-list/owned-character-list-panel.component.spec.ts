@@ -173,4 +173,25 @@ describe('OwnedCharacterListPanelComponent', () => {
     setActive.call(component, character);
     expect(active.identifier()).toBeNull();
   });
+
+  describe('narrowing the list', () => {
+    it('keeps only the characters whose name matches', () => {
+      makeCharacter('ゴブリンA', 'me', 'table');
+      makeCharacter('ゴブリンB', 'me', 'table');
+      makeCharacter('村長', 'me', 'table');
+      expect(component.filteredCharacters()).toHaveLength(3);
+
+      component.search.set('ゴブリン');
+
+      expect(component.filteredCharacters().map((character) => character.name)).toEqual(['ゴブリンA', 'ゴブリンB']);
+    });
+
+    it('folds width so a full-width search still finds a half-width name', () => {
+      makeCharacter('HPポーション', 'me', 'table');
+
+      component.search.set('ＨＰ');
+
+      expect(component.filteredCharacters()).toHaveLength(1);
+    });
+  });
 });
