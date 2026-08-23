@@ -23,6 +23,7 @@ import {
   DataElementRole,
   DataElementViewMode,
 } from '@axe/domain/data/data-element';
+import { evaluateCalcElement } from '@axe/domain/data/data-element-calc-env';
 import {
   decodeRangeShapeField,
   defaultRangeShapeFieldValue,
@@ -40,7 +41,6 @@ import {
   type TableColumnHeaderGroup as DataElementTableColumnHeaderGroup,
 } from '@axe/domain/data/table-layout';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
-import { evaluateCalcElement } from '@axe/features/data-element/game-data-element/game-data-element-calc-env';
 import {
   canAcceptChildRole,
   canDropStructureElement,

@@ -1,6 +1,6 @@
 import { DataElement } from '@axe/domain/data/data-element';
-import { evalCalcFormula } from '@axe/features/data-element/game-data-element/game-data-element-calc';
-import { buildCalcEnv } from '@axe/features/data-element/game-data-element/game-data-element-calc-env';
+import { evalCalcFormula } from '@axe/domain/data/data-element-calc';
+import { buildCalcEnv } from '@axe/domain/data/data-element-calc-env';
 
 describe('buildCalcEnv', () => {
   it('returns an environment that looks numeric leaves up by name', () => {

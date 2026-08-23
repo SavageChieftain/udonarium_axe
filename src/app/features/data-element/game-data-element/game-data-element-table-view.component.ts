@@ -4,6 +4,7 @@ import { ObjectChangeService } from '@axe/application/sync/object-change.service
 import { UiSignalService } from '@axe/application/ui/ui-signal.service';
 import { ImageStorage } from '@axe/core/storage/image-storage';
 import { DataElement, DataElementAttribute, DataElementFieldType } from '@axe/domain/data/data-element';
+import { evaluateCalcElement } from '@axe/domain/data/data-element-calc-env';
 import { findJudgementCandidates, type SkillJudgementCandidate } from '@axe/domain/data/skill-table-judgement';
 import {
   buildTableColumnHeaderGroups,
@@ -22,7 +23,6 @@ import {
   type TableColumn as DataElementTableColumn,
   type TableColumnHeaderGroup as DataElementTableColumnHeaderGroup,
 } from '@axe/domain/data/table-layout';
-import { evaluateCalcElement } from '@axe/features/data-element/game-data-element/game-data-element-calc-env';
 import {
   type JudgeCandidatesState,
   JudgementCandidatesModalComponent,

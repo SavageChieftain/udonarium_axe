@@ -1,5 +1,5 @@
 import { DataElement, DataElementAttribute } from '@axe/domain/data/data-element';
-import { type CalcEnv, evalCalcFormula } from '@axe/features/data-element/game-data-element/game-data-element-calc';
+import { type CalcEnv, evalCalcFormula } from '@axe/domain/data/data-element-calc';
 
 export function buildCalcEnv(self: DataElement): CalcEnv {
   const env: CalcEnv = {};
