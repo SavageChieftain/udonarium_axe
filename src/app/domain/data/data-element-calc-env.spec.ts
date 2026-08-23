@@ -1,6 +1,6 @@
-import { DataElement } from '@axe/domain/data/data-element';
+import { DataElement, DataElementAttribute, DataElementFieldType } from '@axe/domain/data/data-element';
 import { evalCalcFormula } from '@axe/domain/data/data-element-calc';
-import { buildCalcEnv } from '@axe/domain/data/data-element-calc-env';
+import { buildCalcEnv, evaluateCalcElement } from '@axe/domain/data/data-element-calc-env';
 
 describe('buildCalcEnv', () => {
   it('returns an environment that looks numeric leaves up by name', () => {
@@ -61,5 +61,67 @@ describe('buildCalcEnv', () => {
 
     const env = buildCalcEnv(hp);
     expect(evalCalcFormula('HP + buff', env)).toBe(15);
+  });
+});
+
+describe('a resource among the sources', () => {
+  function makeResource(name: string, current: number, max: number): DataElement {
+    const element = DataElement.create(name, max, { type: 'numberResource', currentValue: current });
+    return element;
+  }
+
+  it('stands at what it is now rather than at the top of its bar', () => {
+    const detail = DataElement.create('detail', '');
+    detail.appendChild(makeResource('HP', 4, 20));
+
+    const env = buildCalcEnv(detail);
+
+    expect(env['HP']).toBe(4);
+  });
+});
+
+describe('evaluateCalcElement', () => {
+  function makeCalc(name: string, formula: string): DataElement {
+    const element = DataElement.create(name, '');
+    element.setAttribute(DataElementAttribute.FIELD_TYPE, DataElementFieldType.CALC);
+    element.setAttribute(DataElementAttribute.FORMULA, formula);
+    return element;
+  }
+
+  it('works out the formula it holds', () => {
+    const detail = DataElement.create('detail', '');
+    detail.appendChild(DataElement.create('筋力', '8'));
+    const calc = makeCalc('攻撃力', '筋力 * 2');
+    detail.appendChild(calc);
+
+    expect(evaluateCalcElement(calc)).toBe('16');
+  });
+
+  it('reads a field that works itself out in turn', () => {
+    const detail = DataElement.create('detail', '');
+    detail.appendChild(DataElement.create('筋力', '8'));
+    detail.appendChild(makeCalc('攻撃力', '筋力 * 2'));
+    const total = makeCalc('総計', '攻撃力 + 1');
+    detail.appendChild(total);
+
+    expect(evaluateCalcElement(total)).toBe('17');
+  });
+
+  it('gives up rather than going round for ever on a field naming itself', () => {
+    const detail = DataElement.create('detail', '');
+    const a = makeCalc('あ', 'い + 1');
+    const b = makeCalc('い', 'あ + 1');
+    detail.appendChild(a);
+    detail.appendChild(b);
+
+    expect(evaluateCalcElement(a)).toBe('?');
+  });
+
+  it('shows nothing at all where no formula was written', () => {
+    const detail = DataElement.create('detail', '');
+    const calc = makeCalc('未設定', '');
+    detail.appendChild(calc);
+
+    expect(evaluateCalcElement(calc)).toBe('');
   });
 });
