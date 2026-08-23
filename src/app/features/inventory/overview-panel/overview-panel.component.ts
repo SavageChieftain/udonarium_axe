@@ -27,6 +27,7 @@ import {
   DataElementFieldType,
   DataElementViewMode,
 } from '@axe/domain/data/data-element';
+import { evaluateCalcElement } from '@axe/domain/data/data-element-calc-env';
 import { MarkDown } from '@axe/domain/data/mark-down';
 import {
   buildTableColumnHeaderGroups,
@@ -298,11 +299,21 @@ export class OverviewPanelComponent {
         return `${cell.currentValue}/${cell.value}`;
       case DataElementFieldType.CHECK:
         return getCellLabel(cell);
+      case DataElementFieldType.CALC:
+        return evaluateCalcElement(cell);
       default:
         return String(cell.value ?? '')
           .replace(/\s+/g, ' ')
           .trim();
     }
+  }
+
+  isCalcElement(element: DataElement): boolean {
+    return element.fieldType === DataElementFieldType.CALC;
+  }
+
+  calcText(element: DataElement): string {
+    return evaluateCalcElement(element);
   }
 
   getTableSelectOptions(cell: DataElement): string[] {

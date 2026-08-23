@@ -480,4 +480,31 @@ describe('OverviewPanelComponent', () => {
       expect(component.isEditUrl('elem-2')).toBe(true);
     });
   });
+
+  describe('a calculating field in the popup', () => {
+    it('shows the result rather than the empty value it stores', () => {
+      const detail = DataElement.create('detail', '');
+      detail.appendChild(DataElement.create('筋力', '8'));
+      const calc = DataElement.create('攻撃力', '', {
+        fieldType: DataElementFieldType.CALC,
+        formula: '筋力 * 2',
+      });
+      detail.appendChild(calc);
+
+      expect(component.isCalcElement(calc)).toBe(true);
+      expect(component.calcText(calc)).toBe('16');
+    });
+
+    it('shows the result in a table cell as well', () => {
+      const detail = DataElement.create('detail', '');
+      detail.appendChild(DataElement.create('筋力', '8'));
+      const calc = DataElement.create('攻撃力', '', {
+        fieldType: DataElementFieldType.CALC,
+        formula: '筋力 + 2',
+      });
+      detail.appendChild(calc);
+
+      expect(component.getTableCellDisplayText(calc)).toBe('10');
+    });
+  });
 });

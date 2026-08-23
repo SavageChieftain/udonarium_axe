@@ -509,14 +509,18 @@
       @default {
         <div class="box-border truncate pr-4 leading-6">{{ dataElm.name }}</div>
         <div class="box-border truncate text-right text-[1.2em]/6">
-          <div class="invisible h-0 min-w-12 overflow-hidden whitespace-pre-wrap">{{ dataElm.value }}</div>
-          <input
-            class="text-ui-text hover:bg-ui-hover focus:bg-ui-input box-border w-full min-w-12 rounded-xs border-none bg-transparent p-0 text-right font-[inherit] leading-[inherit] outline-none"
-            size="1"
-            name="data-value"
-            name="data-value"
-            [(ngModel)]="dataElm.value"
-          />
+          @if (isCalcElement(dataElm)) {
+            <span class="text-ui-text font-bold">{{ calcText(dataElm) }}</span>
+          } @else {
+            <div class="invisible h-0 min-w-12 overflow-hidden whitespace-pre-wrap">{{ dataElm.value }}</div>
+            <input
+              class="text-ui-text hover:bg-ui-hover focus:bg-ui-input box-border w-full min-w-12 rounded-xs border-none bg-transparent p-0 text-right font-[inherit] leading-[inherit] outline-none"
+              size="1"
+              name="data-value"
+              name="data-value"
+              [(ngModel)]="dataElm.value"
+            />
+          }
         </div>
       }
     }

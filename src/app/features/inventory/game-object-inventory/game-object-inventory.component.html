@@ -490,12 +490,18 @@
         @default {
           <span class="flex min-w-0 items-center gap-0.75">
             <span class="text-ui-muted shrink-0 text-[10px] whitespace-nowrap">{{ dataElm.name }}</span>
-            <input
-              class="border-ui-border-panel text-ui-text hover:border-b-ui-accent focus:border-b-ui-accent box-border min-w-[2em] flex-1 [appearance:textfield] rounded-none border-0 border-b border-solid bg-transparent px-0.5 text-right font-[inherit] text-[13px] font-bold transition-[border-color] outline-none hover:[appearance:number-input] focus:[appearance:number-input]"
-              size="1"
-              name="data-value"
-              [(ngModel)]="dataElm.value"
-            />
+            @if (isCalcElement(dataElm)) {
+              <span class="text-ui-text min-w-[2em] flex-1 text-right text-[13px] font-bold">{{
+                calcText(dataElm)
+              }}</span>
+            } @else {
+              <input
+                class="border-ui-border-panel text-ui-text hover:border-b-ui-accent focus:border-b-ui-accent box-border min-w-[2em] flex-1 [appearance:textfield] rounded-none border-0 border-b border-solid bg-transparent px-0.5 text-right font-[inherit] text-[13px] font-bold transition-[border-color] outline-none hover:[appearance:number-input] focus:[appearance:number-input]"
+                size="1"
+                name="data-value"
+                [(ngModel)]="dataElm.value"
+              />
+            }
           </span>
         }
       }

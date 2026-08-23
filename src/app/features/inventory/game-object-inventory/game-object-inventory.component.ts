@@ -35,7 +35,8 @@ import {
   rewriteFolderPath,
 } from '@axe/domain/character/character-folder';
 import { GameCharacter } from '@axe/domain/character/game-character';
-import { DataElement } from '@axe/domain/data/data-element';
+import { DataElement, DataElementFieldType } from '@axe/domain/data/data-element';
+import { evaluateCalcElement } from '@axe/domain/data/data-element-calc-env';
 import { SortOrder } from '@axe/domain/data/data-summary-setting';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
@@ -74,6 +75,14 @@ const FOCUS_BLOCKED_TAGS = new Set(['input', 'button']);
   imports: [NgTemplateOutlet, FormsModule, AutoFocusDirective, SafePipe, TranslocoModule],
 })
 export class GameObjectInventoryComponent {
+  isCalcElement(element: DataElement): boolean {
+    return element.fieldType === DataElementFieldType.CALC;
+  }
+
+  calcText(element: DataElement): string {
+    return evaluateCalcElement(element);
+  }
+
   private readonly panelService = inject(PanelService);
   private readonly inventoryService = inject(GameObjectInventoryService);
   private readonly contextMenuService = inject(ContextMenuService);
