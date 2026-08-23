@@ -39,6 +39,13 @@ import GameSystemClass from 'bcdice/lib/game_system';
 
 const NEAR_BOTTOM_THRESHOLD_PX = 350;
 const AT_BOTTOM_THRESHOLD_PX = 8;
+/**
+ * How far the wheel must travel to move one tab.
+ * A notch clears it on its own; a trackpad, which sends a stream of small deltas, gathers them up first.
+ */
+const WHEEL_TAB_STEP_PX = 40;
+/** A line of wheel travel in pixels, for the browsers that report the wheel in lines. */
+const WHEEL_LINE_PX = 16;
 
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -100,6 +107,7 @@ export class ChatWindowComponent {
   private readonly tabPillsContainer = viewChild<ElementRef<HTMLElement>>('tabPillsContainer');
   readonly chatTabRef = viewChild(ChatTabComponent);
   readonly canScrollLeft = signal(false);
+  private wheelTravel = 0;
   readonly canScrollRight = signal(false);
 
   updateTabScrollState(): void {
@@ -142,6 +150,32 @@ export class ChatWindowComponent {
     event.preventDefault();
     this.chatTabSwitchRelative(direction);
     if (!this.canSpeakCurrentTab()) this.hostElement.nativeElement.focus();
+  }
+
+  /**
+   * Moves through the tabs on the wheel, over the strip they are drawn in.
+   * The strip scrolls sideways, so the wheel would otherwise slide it about instead.
+   */
+  switchTabByWheel(event: WheelEvent): void {
+    const delta = wheelTravelOf(event);
+    if (delta === 0) return;
+    event.preventDefault();
+
+    if (this.wheelTravel !== 0 && Math.sign(delta) !== Math.sign(this.wheelTravel)) this.wheelTravel = 0;
+    this.wheelTravel += delta;
+    if (Math.abs(this.wheelTravel) < WHEEL_TAB_STEP_PX) return;
+
+    this.wheelTravel = 0;
+    this.switchTabWithinEnds(delta > 0 ? 1 : -1);
+  }
+
+  /** The wheel stops at either end. Coming back round reads as having lost your place rather than as having moved. */
+  private switchTabWithinEnds(direction: number): void {
+    const chatTabs = this.visibleChatTabs();
+    const index = chatTabs.findIndex((elm) => elm.identifier == this.chatTabidentifier);
+    const nextIndex = index + direction;
+    if (index < 0 || nextIndex < 0 || nextIndex >= chatTabs.length) return;
+    this.chatTabidentifier = chatTabs[nextIndex].identifier;
   }
 
   chatTabSwitchRelative(direction: number) {
@@ -540,4 +574,11 @@ export class ChatWindowComponent {
   trackByChatTab(index: number, chatTab: ChatTab) {
     return chatTab.identifier;
   }
+}
+
+function wheelTravelOf(event: WheelEvent): number {
+  const raw = Math.abs(event.deltaY) >= Math.abs(event.deltaX) ? event.deltaY : event.deltaX;
+  if (event.deltaMode === WheelEvent.DOM_DELTA_LINE) return raw * WHEEL_LINE_PX;
+  if (event.deltaMode === WheelEvent.DOM_DELTA_PAGE) return raw * WHEEL_TAB_STEP_PX;
+  return raw;
 }
