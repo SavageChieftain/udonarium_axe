@@ -49,9 +49,28 @@ function hslToRgb(h: number, s: number, l: number): [number, number, number] {
   return [hue2rgb(h + 1 / 3), hue2rgb(h), hue2rgb(h - 1 / 3)];
 }
 
+/** How light a bubble under dark text gets, and how dark one under light text gets. */
+const LIGHT_BUBBLE_L = 0.97;
+const DARK_BUBBLE_L = 0.09;
+/** Only a whisper of the speaker's hue: more of it costs the contrast the text needs. */
+const TINT = 0.12;
 const MIN_RATIO = 4.5;
 
-function contrastBackground(h: number, s: number, textLum: number): { bg: string; border: string } {
+function contrastRatio(a: number, b: number): number {
+  const [hi, lo] = a > b ? [a, b] : [b, a];
+  return (hi + 0.05) / (lo + 0.05);
+}
+
+function toCss([r, g, b]: [number, number, number]): string {
+  const toInt = (c: number) => Math.round(Math.min(1, Math.max(0, c)) * 255);
+  return `rgb(${toInt(r)},${toInt(g)},${toInt(b)})`;
+}
+
+/**
+ * The muted tint a system or dice message has always carried. Those are not somebody's chosen
+ * colour but a badge for what kind of message it is, so their look is left as it was.
+ */
+function mutedBackground(h: number, s: number, textLum: number): { bg: string; border: string } {
   const bgS = s * 0.06;
   const lighten = textLum < 0.5;
   const targetLum = lighten ? MIN_RATIO * (textLum + 0.05) - 0.05 : (textLum + 0.05) / MIN_RATIO - 0.05;
@@ -70,32 +89,45 @@ function contrastBackground(h: number, s: number, textLum: number): { bg: string
     }
   }
   const bgL = (lo + hi) / 2;
-  const borderL = lighten ? Math.max(0, bgL - 0.2) : Math.min(1, bgL + 0.22);
-  const toInt = (c: number) => Math.round(Math.min(1, Math.max(0, c)) * 255);
-  const toRgb = (l: number) => {
-    const [r, g, b] = hslToRgb(h, bgS, l);
-    return `rgb(${toInt(r)},${toInt(g)},${toInt(b)})`;
+  return {
+    bg: toCss(hslToRgb(h, bgS, bgL)),
+    border: toCss(hslToRgb(h, bgS, lighten ? Math.max(0, bgL - 0.2) : Math.min(1, bgL + 0.22))),
   };
-  return { bg: toRgb(bgL), border: toRgb(borderL) };
 }
 
 @Pipe({ name: 'chatColorStyle', pure: true })
 export class ChatColorStylePipe implements PipeTransform {
-  transform(color: string | null | undefined): Record<string, string> | null {
+  transform(color: string | null | undefined, muted = false): Record<string, string> | null {
     if (!color) return null;
 
     const rgb = parseHex(color);
     if (!rgb) return null;
 
-    const [r, g, b] = rgb;
-    const [h, s] = rgbToHsl(r, g, b);
-    const textLum = luminance(r, g, b);
-    const { bg, border } = contrastBackground(h, s, textLum);
+    const [h, s] = rgbToHsl(...rgb);
+
+    if (muted) {
+      const { bg, border } = mutedBackground(h, s, luminance(...rgb));
+      return { color, 'background-color': bg, '--bubble-bg': bg, '--ui-bubble-caret-border': border };
+    }
+
+    const textLum = luminance(...rgb);
+    const tint = Math.min(s, 1) * TINT;
+
+    // The colour the reader chose is the text, verbatim; the bubble goes all the way light or
+    // all the way dark to carry it, rather than stopping at the dimmest grey that would pass.
+    // Which way is whichever the colour can actually be read against.
+    const lightRatio = contrastRatio(textLum, luminance(...hslToRgb(h, tint, LIGHT_BUBBLE_L)));
+    const darkRatio = contrastRatio(textLum, luminance(...hslToRgb(h, tint, DARK_BUBBLE_L)));
+    const light = lightRatio >= MIN_RATIO || lightRatio >= darkRatio;
+
+    const bubbleL = light ? LIGHT_BUBBLE_L : DARK_BUBBLE_L;
+    const bubble = toCss(hslToRgb(h, tint, bubbleL));
+    const border = toCss(hslToRgb(h, tint, light ? bubbleL - 0.18 : bubbleL + 0.2));
 
     return {
       color,
-      'background-color': bg,
-      '--bubble-bg': bg,
+      'background-color': bubble,
+      '--bubble-bg': bubble,
       '--ui-bubble-caret-border': border,
     };
   }
