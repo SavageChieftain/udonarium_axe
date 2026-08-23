@@ -285,6 +285,33 @@ describe('ChatPalette', () => {
     });
   });
 
+  describe('a calculating field among the references', () => {
+    it('gives the result rather than the empty value it stores', () => {
+      const palette = new ChatPalette();
+      palette.initialize();
+      const detail = DataElement.create('detail', '');
+      detail.appendChild(DataElement.create('筋力', '8'));
+      const calc = DataElement.create('攻撃力', '', {
+        fieldType: DataElementFieldType.CALC,
+        formula: '筋力 * 2',
+      });
+      detail.appendChild(calc);
+
+      expect(palette.evaluate('2d6+{攻撃力}', detail)).toBe('2d6+16');
+    });
+
+    it('reads a resource it works from at what that is now', () => {
+      const palette = new ChatPalette();
+      palette.initialize();
+      const detail = DataElement.create('detail', '');
+      detail.appendChild(DataElement.create('HP', 20, { type: 'numberResource', currentValue: 7 }));
+      const calc = DataElement.create('残り', '', { fieldType: DataElementFieldType.CALC, formula: 'HP' });
+      detail.appendChild(calc);
+
+      expect(palette.evaluate('{残り}', detail)).toBe('7');
+    });
+  });
+
   describe('textTargetsCharacter()', () => {
     it('counts a t{} reference as aiming at the marked pieces', () => {
       expect(textTargetsCharacter('2d6 t{ATK}')).toBe(true);

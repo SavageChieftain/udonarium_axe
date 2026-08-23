@@ -4,6 +4,7 @@ import { ObjectNode } from '@axe/core/sync/object-node';
 import { toHalfWidth } from '@axe/core/util/string-util';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { DataElement, DataElementFieldType } from '@axe/domain/data/data-element';
+import { evaluateCalcElement } from '@axe/domain/data/data-element-calc-env';
 
 export interface PaletteLine {
   palette: string;
@@ -221,6 +222,9 @@ export function evaluateReferences(
       }
       return '';
     }
+
+    // A calculating field keeps its formula rather than its result, so the result is worked out here.
+    if (element.fieldType === DataElementFieldType.CALC) return evaluateCalcElement(element);
 
     if (useMax && element.isNumberResource) {
       return `${element.value}`;
