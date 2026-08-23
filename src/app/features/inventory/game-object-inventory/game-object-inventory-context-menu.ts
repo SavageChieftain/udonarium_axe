@@ -61,11 +61,14 @@ export function buildInventoryFolderContextMenu(
   isMultiMove: boolean,
   callbacks: InventoryFolderContextMenuCallbacks,
   t: TranslateFn,
-  canNest = true
+  canNest = true,
+  canEdit = true
 ): ContextMenuAction[] {
   const actions: ContextMenuAction[] = [];
 
-  if (folderPath.length > 0) {
+  // Every one of these ends in a handler that turns back at the same check, so offering them to
+  // someone who may not edit the table gives an entry that answers with nothing at all.
+  if (canEdit && folderPath.length > 0) {
     actions.push({
       name: t('feature.inventory.contextMenu.renameFolder'),
       action: () => callbacks.renameFolder(),

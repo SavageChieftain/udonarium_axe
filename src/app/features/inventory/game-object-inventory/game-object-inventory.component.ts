@@ -322,7 +322,12 @@ export class GameObjectInventoryComponent {
 
   readonly collapsedFolders = signal<ReadonlySet<string>>(new Set());
 
-  private readonly isSharedTab = computed<boolean>(() => this.selectTab() === 'common');
+  /**
+   * Whether the tab on view keeps its folders for the room rather than for this device.
+   * Anything that is not the table, the graveyard or this peer's own list reads the shared one,
+   * so the test has to be the same as the one that picks the inventory, not a single name.
+   */
+  private readonly isSharedTab = computed<boolean>(() => this.foldersApply() && this.selectTab() !== Network.peerId);
 
   readonly declaredFolderPaths = computed<string[]>(() => {
     if (!this.foldersApply()) return [];
@@ -383,6 +388,9 @@ export class GameObjectInventoryComponent {
   }
 
   collapseAllFolders(): void {
+    // A search opens every folder, so folding them now would only settle on the few that
+    // survived the filter and show itself once the search is cleared.
+    if (this.hasQuery()) return;
     const tree = this.folderTree();
     const paths = collectFolderPaths(tree);
     if (tree.loose.length > 0) paths.push('');
@@ -460,7 +468,8 @@ export class GameObjectInventoryComponent {
         expandAll: () => this.expandAllFolders(),
       },
       this.t,
-      this.canNestInside(folderPath)
+      this.canNestInside(folderPath),
+      this.canEdit()
     );
     this.contextMenuService.open(
       position,
@@ -601,10 +610,16 @@ export class GameObjectInventoryComponent {
    * A character carries one folder name wherever it stands, so a rename has to reach it even
    * while it is on the table. Scoping this to the tab on view left those behind, and the folder
    * came back the moment the character did.
+   *
+   * It stops at the edge of the scope on view, though. A folder kept for this device and one kept
+   * for the room are separate folders that only share a name, so a rename of one must not empty
+   * the other.
    */
   private charactersUnder(folderPath: string): GameCharacter[] {
+    const shared = this.isSharedTab();
     return this.objectStore
       .getObjects<GameCharacter>(GameCharacter)
+      .filter((character) => (character.location.name === Network.peerId) !== shared)
       .filter((character) => isDescendantFolderPath(normalizeFolderPath(character.folderName), folderPath));
   }
 

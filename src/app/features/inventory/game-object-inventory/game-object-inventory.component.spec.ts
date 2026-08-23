@@ -1,5 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { GameObjectInventoryService } from '@axe/application/inventory/game-object-inventory.service';
+import { Network } from '@axe/core/index';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { DataSummarySetting } from '@axe/domain/data/data-summary-setting';
@@ -414,6 +415,51 @@ describe('GameObjectInventoryComponent', () => {
       component.searchQuery.set('7');
 
       expect(component.filteredRows().map((row) => row.object.name)).toEqual(['ゴブリン']);
+    });
+
+    it('leaves the other scope alone when a folder of the same name is renamed', () => {
+      const shared = putInShared('ゴブリン');
+      shared.folderName = '第1話';
+      const mine = GameCharacter.create('相棒', 1, '');
+      mine.setLocation(Network.peerId);
+      mine.folderName = '第1話';
+
+      component.selectTab.set(Network.peerId);
+      component.renameFolder('第1話', '序章');
+
+      expect(mine.folderName).toBe('序章');
+      expect(shared.folderName).toBe('第1話');
+    });
+
+    it('leaves the other scope alone when a folder of the same name is deleted', () => {
+      const shared = putInShared('ゴブリン');
+      shared.folderName = '第1話';
+      const mine = GameCharacter.create('相棒', 1, '');
+      mine.setLocation(Network.peerId);
+      mine.folderName = '第1話';
+      const originalConfirm = window.confirm;
+      window.confirm = (() => true) as never;
+
+      try {
+        component.selectTab.set(Network.peerId);
+        component.deleteFolder('第1話');
+      } finally {
+        window.confirm = originalConfirm;
+      }
+
+      expect(mine.folderName).toBe('');
+      expect(shared.folderName).toBe('第1話');
+    });
+
+    it('holds still on collapse-all while a search is open', () => {
+      component.selectTab.set('common');
+      component.createFolder();
+      component.createFolder();
+      component.searchQuery.set('フォルダ1');
+
+      component.collapseAllFolders();
+
+      expect(component.collapsedFolders().size).toBe(0);
     });
 
     it('merges rather than doubles up when a folder is renamed onto another', () => {
