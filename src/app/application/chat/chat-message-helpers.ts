@@ -7,8 +7,9 @@ export interface DiceBotTagResolver {
   checkSecretEditCommand(text: string): boolean;
 }
 
+/** `position` counts from 1, the way every portrait picker in the app numbers them. */
 export type PortraitCommand =
-  { type: 'none' } | { type: 'hide' } | { type: 'index'; index: number } | { type: 'name'; name: string };
+  { type: 'none' } | { type: 'hide' } | { type: 'index'; position: number } | { type: 'name'; name: string };
 
 export interface ImageNameEntry {
   label: string;
@@ -57,7 +58,7 @@ export function parsePortraitCommand(text: string): PortraitCommand {
   }
 
   if (/^\d+$/.test(normalized)) {
-    return { type: 'index', index: parseInt(normalized, 10) };
+    return { type: 'index', position: parseInt(normalized, 10) };
   }
 
   return { type: 'name', name: token };

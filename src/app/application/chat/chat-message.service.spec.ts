@@ -85,14 +85,29 @@ describe('ChatMessageService', () => {
       expect(character.selectedPortraitIndex).toBe(2);
     });
 
+    it('remembers the portrait a number chose', () => {
+      speak('こんにちは @2');
+
+      expect(character.selectedPortraitIndex).toBe(1);
+    });
+
     it('minds neither case nor width', () => {
       expect(speak('こんにちは ＠笑顔').imageIdentifier).toBe('img-1');
-      expect(speak('こんにちは ＠２').imageIdentifier).toBe('img-2');
+      expect(speak('こんにちは ＠２').imageIdentifier).toBe('img-1');
       expect(speak('こんにちは ＠ＨＩＤＥ').imageIdentifier).toBe('');
     });
 
-    it('switches by number and hides on command', () => {
-      expect(speak('こんにちは @2').imageIdentifier).toBe('img-2');
+    it('counts the number from the first portrait, not from zero', () => {
+      expect(speak('こんにちは @1').imageIdentifier).toBe('img-0');
+      expect(speak('こんにちは @3').imageIdentifier).toBe('img-2');
+    });
+
+    it('leaves a number no portrait sits at in the line it was typed on', () => {
+      expect(speak('こんにちは @0').text).toBe('こんにちは @0');
+      expect(speak('こんにちは @4').text).toBe('こんにちは @4');
+    });
+
+    it('hides on command', () => {
       expect(speak('こんにちは @hide').imageIdentifier).toBe('');
     });
 

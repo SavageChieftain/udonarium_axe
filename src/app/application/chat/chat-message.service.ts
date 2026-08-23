@@ -269,7 +269,7 @@ export class ChatMessageService {
 
     const found =
       command.type === 'index'
-        ? { identifier: this.findImageIdentifier(sendFrom, command.index), index: command.index }
+        ? { identifier: this.findImageIdentifier(sendFrom, command.position - 1), index: command.position - 1 }
         : this.findImageIdentifierName(sendFrom, command.name);
     if (!found.identifier) return untouched;
 
@@ -357,7 +357,7 @@ export class ChatMessageService {
   private findImageIdentifier(sendFrom: string, index: number): string {
     const object = this.objectStore.get(sendFrom);
     if (object instanceof GameCharacter) {
-      if (object.imageDataElement && object.imageDataElement.children.length > index) {
+      if (index >= 0 && object.imageDataElement && object.imageDataElement.children.length > index) {
         const img = this.imageStorage.get(object.imageDataElement.children[index].value as string);
         if (img) {
           return img.identifier;

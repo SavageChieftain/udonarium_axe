@@ -74,11 +74,15 @@ describe('chat-message-helpers', () => {
     });
 
     it('recognises a numeric command', () => {
-      expect(parsePortraitCommand('hello @12')).toEqual({ type: 'index', index: 12 });
+      expect(parsePortraitCommand('hello @12')).toEqual({ type: 'index', position: 12 });
     });
 
     it('reads a full-width number as a number', () => {
-      expect(parsePortraitCommand('hello ＠２')).toEqual({ type: 'index', index: 2 });
+      expect(parsePortraitCommand('hello ＠２')).toEqual({ type: 'index', position: 2 });
+    });
+
+    it('reads a zero as the position it is, which no portrait holds', () => {
+      expect(parsePortraitCommand('hello @0')).toEqual({ type: 'index', position: 0 });
     });
 
     it('recognises the name command', () => {
