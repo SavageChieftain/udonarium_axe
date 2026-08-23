@@ -1,6 +1,6 @@
 import { DataElement, DataElementAttribute, DataElementFieldType } from '@axe/domain/data/data-element';
 import { evalCalcFormula } from '@axe/domain/data/data-element-calc';
-import { buildCalcEnv, evaluateCalcElement } from '@axe/domain/data/data-element-calc-env';
+import { buildCalcEnv, calcSourceIdentifiers, evaluateCalcElement } from '@axe/domain/data/data-element-calc-env';
 
 describe('buildCalcEnv', () => {
   it('returns an environment that looks numeric leaves up by name', () => {
@@ -123,5 +123,23 @@ describe('evaluateCalcElement', () => {
     detail.appendChild(calc);
 
     expect(evaluateCalcElement(calc)).toBe('');
+  });
+});
+
+describe('calcSourceIdentifiers', () => {
+  it('names the whole sheet the field reads, not only what its formula mentions', () => {
+    const detail = DataElement.create('detail', '');
+    const section = DataElement.create('基本', '');
+    const str = DataElement.create('筋力', '8');
+    const calc = DataElement.create('攻撃力', '');
+    detail.appendChild(section);
+    section.appendChild(str);
+    detail.appendChild(calc);
+
+    const identifiers = calcSourceIdentifiers(calc);
+
+    expect(identifiers).toContain(detail.identifier);
+    expect(identifiers).toContain(section.identifier);
+    expect(identifiers).toContain(str.identifier);
   });
 });

@@ -4,7 +4,7 @@ import { ObjectChangeService } from '@axe/application/sync/object-change.service
 import { UiSignalService } from '@axe/application/ui/ui-signal.service';
 import { ImageStorage } from '@axe/core/storage/image-storage';
 import { DataElement, DataElementAttribute, DataElementFieldType } from '@axe/domain/data/data-element';
-import { evaluateCalcElement } from '@axe/domain/data/data-element-calc-env';
+import { calcSourceIdentifiers, evaluateCalcElement } from '@axe/domain/data/data-element-calc-env';
 import { findJudgementCandidates, type SkillJudgementCandidate } from '@axe/domain/data/skill-table-judgement';
 import {
   buildTableColumnHeaderGroups,
@@ -143,6 +143,10 @@ export class GameDataElementTableViewComponent {
 
   getTableCellDisplayText(cell: DataElement): string {
     this.objectChange.versionOf(cell.identifier)();
+    if (cell.fieldType === DataElementFieldType.CALC) {
+      this.objectChange.collectionOf('data')();
+      for (const identifier of calcSourceIdentifiers(cell)) this.objectChange.versionOf(identifier)();
+    }
 
     switch (cell.fieldType) {
       case DataElementFieldType.RESOURCE:

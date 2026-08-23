@@ -17,6 +17,21 @@ export function evaluateCalcElement(element: DataElement): string {
   return Number.isNaN(result) ? '?' : String(result % 1 === 0 ? result : parseFloat(result.toFixed(4)));
 }
 
+/**
+ * Everything the result is worked out from, so a screen showing it can watch them all.
+ * A field reads the whole of the sheet it belongs to, not only what its formula names.
+ */
+export function calcSourceIdentifiers(element: DataElement): string[] {
+  const root = DataElement.getDetailNameScope(element);
+  const identifiers: string[] = [];
+  const collect = (node: DataElement): void => {
+    identifiers.push(node.identifier);
+    for (const child of node.children) collect(child);
+  };
+  collect(root);
+  return identifiers;
+}
+
 function evaluateCalcNumber(element: DataElement, visiting: ReadonlySet<string>): number | null {
   const formula = element.getAttribute(DataElementAttribute.FORMULA);
   if (!formula) return null;

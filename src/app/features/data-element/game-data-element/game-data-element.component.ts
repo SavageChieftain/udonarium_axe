@@ -23,7 +23,7 @@ import {
   DataElementRole,
   DataElementViewMode,
 } from '@axe/domain/data/data-element';
-import { evaluateCalcElement } from '@axe/domain/data/data-element-calc-env';
+import { calcSourceIdentifiers, evaluateCalcElement } from '@axe/domain/data/data-element-calc-env';
 import {
   decodeRangeShapeField,
   defaultRangeShapeFieldValue,
@@ -394,7 +394,10 @@ export class GameDataElementComponent {
 
   readonly calcResult = computed(() => {
     const el = this.gameDataElement();
-    this.objectChange.versionOf(el.identifier)();
+    // The result reads the whole sheet, so it goes stale on a change to any part of it, and on
+    // a field being added or taken away.
+    this.objectChange.collectionOf('data')();
+    for (const identifier of calcSourceIdentifiers(el)) this.objectChange.versionOf(identifier)();
     return evaluateCalcElement(el);
   });
 
