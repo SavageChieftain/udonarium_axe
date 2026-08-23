@@ -241,6 +241,21 @@
                   {{ 'feature.dataElement.imageUnset' | transloco }}
                 </div>
               }
+              @if (isImage()) {
+                <label class="flex min-w-30 flex-1 items-center gap-1.5 text-[0.8em]">
+                  <span class="text-ui-muted shrink-0">{{
+                    'feature.dataElement.portraitNumber' | transloco: { index: indexNum() }
+                  }}</span>
+                  <input
+                    class="w-full min-w-2.5"
+                    size="1"
+                    name="data-current-value"
+                    [(ngModel)]="currentValue"
+                    [readonly]="isValueLocked()"
+                    [placeholder]="'feature.dataElement.portraitName' | transloco"
+                  />
+                </label>
+              }
               @if (isEdit()) {
                 <button
                   class="portrait-button text-[1em]"
@@ -361,38 +376,6 @@
                 [readonly]="isValueLocked()"
                 placeholder="Value"
               />
-            }
-            @if (isImage()) {
-              <div class="table-2">
-                <div class="table-cell-2 sub-image-box">
-                  @if (imageFileUrl()) {
-                    <img
-                      class="sub-image"
-                      [src]="imageFileUrl() | safe: 'resourceUrl'"
-                      [alt]="gameDataElement().value"
-                    />
-                  }
-                </div>
-                <div class="table-cell-2 sub-table">
-                  <span>{{ 'feature.dataElement.portraitNumber' | transloco: { index: indexNum() } }}</span
-                  ><input
-                    class="w-full min-w-2.5"
-                    size="1"
-                    name="data-current-value"
-                    name="data-current-value"
-                    [(ngModel)]="currentValue"
-                    [readonly]="isValueLocked()"
-                    [placeholder]="'feature.dataElement.portraitName' | transloco"
-                  />
-                  <button
-                    class="portrait-button text-[1em]"
-                    [disabled]="isValueLocked()"
-                    (click)="!isValueLocked() && openModal('imageIdentifier', true)"
-                  >
-                    {{ 'feature.dataElement.imageChange' | transloco }}
-                  </button>
-                </div>
-              </div>
             }
           }
         }
