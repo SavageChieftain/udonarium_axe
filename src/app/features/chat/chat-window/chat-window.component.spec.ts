@@ -471,6 +471,16 @@ describe('ChatWindowComponent', () => {
       expect(component.chatTabidentifier).toBe(tabs[0].identifier);
     });
 
+    it('leaves a sideways push to the strip it is over', () => {
+      const event = new WheelEvent('wheel', { deltaX: -120, deltaY: 0, cancelable: true });
+      component.switchTabByWheel(event);
+      fixture.detectChanges();
+
+      // The strip is the one thing there that scrolls sideways, so the push belongs to it.
+      expect(event.defaultPrevented).toBe(false);
+      expect(component.chatTabidentifier).toBe(tabs[0].identifier);
+    });
+
     it('leaves a wheel that has not moved alone', () => {
       const event = turnWheel(0);
 

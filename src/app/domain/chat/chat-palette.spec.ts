@@ -281,7 +281,25 @@ describe('ChatPalette', () => {
     });
 
     it('leaves the line alone when nobody is speaking it', () => {
-      expect(evaluateCharacterReferences('2d6+{HP}', null).text).toBe('2d6+');
+      expect(evaluateCharacterReferences('2d6+{HP}', null).text).toBe('2d6+{HP}');
+    });
+
+    it('leaves what it cannot fill in rather than eating it', () => {
+      const character = makeCharacter(false);
+
+      expect(evaluateCharacterReferences('やった{歓喜}', character).text).toBe('やった{歓喜}');
+    });
+
+    it('leaves a calculating field alone where the formula cannot be worked out', () => {
+      const character = makeCharacter(false);
+      const calc = DataElement.create('攻撃力', '', {
+        fieldType: DataElementFieldType.CALC,
+        formula: '存在しない項目 * 2',
+      });
+      character.rootDataElement?.getFirstElementByName('detail')?.appendChild(calc);
+
+      // '?' reads as a hint on the sheet, but in a command it is only a broken roll.
+      expect(evaluateCharacterReferences('2d6+{攻撃力}', character).text).toBe('2d6+{攻撃力}');
     });
   });
 

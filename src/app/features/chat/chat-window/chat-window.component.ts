@@ -30,6 +30,7 @@ import { canRoleSpeakTab, canRoleViewTab } from '@axe/domain/chat/chat-tab-permi
 import { DiceBot } from '@axe/domain/dice/dice-bot';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { ChatInputComponent } from '@axe/features/chat/chat-input/chat-input.component';
+import { editsTextInPlace } from '@axe/features/chat/chat-input/chat-input-helpers';
 import { ChatMessageSettingComponent } from '@axe/features/chat/chat-message-setting/chat-message-setting.component';
 import { ChatPortraitComponent } from '@axe/features/chat/chat-portrait/chat-portrait.component';
 import { ChatTabComponent } from '@axe/features/chat/chat-tab/chat-tab.component';
@@ -177,6 +178,7 @@ export class ChatWindowComponent {
    * out by keyboard. Focus follows to the window when the input goes away.
    */
   switchTabByKey(event: Event, direction: number): void {
+    if (editsTextInPlace(event.target)) return;
     event.preventDefault();
     this.chatTabSwitchRelative(direction);
     if (!this.canSpeakCurrentTab()) this.hostElement.nativeElement.focus();
@@ -615,8 +617,15 @@ export class ChatWindowComponent {
   }
 }
 
+/**
+ * How far the wheel turned, in pixels. Zero for a sideways push.
+ *
+ * A trackpad swiped sideways over the strip means to slide the strip, and it is the one thing
+ * there that scrolls that way, so the wheel is only taken when it turns.
+ */
 function wheelTravelOf(event: WheelEvent): number {
-  const raw = Math.abs(event.deltaY) >= Math.abs(event.deltaX) ? event.deltaY : event.deltaX;
+  if (Math.abs(event.deltaX) > Math.abs(event.deltaY)) return 0;
+  const raw = event.deltaY;
   if (event.deltaMode === WheelEvent.DOM_DELTA_LINE) return raw * WHEEL_LINE_PX;
   if (event.deltaMode === WheelEvent.DOM_DELTA_PAGE) return raw * WHEEL_TAB_STEP_PX;
   return raw;

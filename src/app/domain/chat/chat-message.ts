@@ -31,7 +31,6 @@ export interface ChatMessageContext {
   attachmentImageIdentifiers?: string;
 
   imagePos?: number;
-  vnPortraitPos?: number;
   messColor?: string;
   sendFrom?: string;
   replyTo?: string;

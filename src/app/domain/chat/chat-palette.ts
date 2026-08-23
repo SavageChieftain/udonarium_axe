@@ -209,12 +209,18 @@ export function evaluateReferences(
   paletteVariables: readonly PaletteVariable[],
   extendVariables: DataElement | undefined,
   target: GameCharacter | undefined,
-  collectImageAttachments: boolean
+  collectImageAttachments: boolean,
+  /**
+   * What to do with a reference nothing answers. A palette line is written to be filled in, so an
+   * empty one is emptied out; a line typed into chat is not, and its braces are left as they were
+   * rather than eating the words around them.
+   */
+  keepUnfilled = false
 ): PaletteEvaluationResult {
   let evaluate = source;
   const attachmentImageIdentifiers: string[] = [];
 
-  const evaluateElementText = (element: DataElement, useMax: boolean): string => {
+  const evaluateElementText = (element: DataElement, useMax: boolean): string | null => {
     if (collectImageAttachments && element.fieldType === DataElementFieldType.IMAGE) {
       const imageIdentifier = String(element.value ?? '').trim();
       if (imageIdentifier.length > 0 && !attachmentImageIdentifiers.includes(imageIdentifier)) {
@@ -223,13 +229,38 @@ export function evaluateReferences(
       return '';
     }
 
-    // A calculating field keeps its formula rather than its result, so the result is worked out here.
-    if (element.fieldType === DataElementFieldType.CALC) return evaluateCalcElement(element);
+    // A calculating field keeps its formula rather than its result, so the result is worked out
+    // here. One that cannot be worked out has no value to lend: '?' would only break the command.
+    if (element.fieldType === DataElementFieldType.CALC) {
+      const result = evaluateCalcElement(element);
+      return result.length > 0 && result !== '?' ? result : null;
+    }
 
     if (useMax && element.isNumberResource) {
       return `${element.value}`;
     }
     return element.isNumberResource ? `${element.currentValue}` : `${element.value}`;
+  };
+
+  const fillReference = (match: string, name: string, useMax: boolean): string | null => {
+    if (match.match(/^[tTｔＴ].*/)) {
+      for (const variable of target?.chatPalette?.paletteVariables ?? []) {
+        if (variable.name == name) return variable.value.replace(/[{｛]/g, 't{');
+      }
+      const element = target?.rootDataElement ? DataElement.findElementByReference(target.rootDataElement, name) : null;
+      if (!element) return null;
+      const targetElementText = evaluateElementText(element, useMax);
+      if (targetElementText == null) return null;
+      return targetElementText.match(/[{｛]\s*([^{}｛｝]+)\s*[}｝]/g)
+        ? targetElementText.replace(/[{｛]/g, 't{')
+        : targetElementText;
+    }
+
+    for (const variable of paletteVariables) {
+      if (variable.name == name) return variable.value;
+    }
+    const element = extendVariables ? DataElement.findElementByReference(extendVariables, name) : null;
+    return element ? evaluateElementText(element, useMax) : null;
   };
 
   const limit = 128;
@@ -246,37 +277,11 @@ export function evaluateReferences(
         name = namematch[1];
         useMax = true;
       }
+      const filled = fillReference(match, name, useMax);
+      if (filled == null) return keepUnfilled ? match : '';
+      // Only a reference that was answered can bring more of them in, so only that keeps the pass going.
       isContinue = true;
-
-      if (match.match(/^[tTｔＴ].*/)) {
-        for (const variable of target?.chatPalette?.paletteVariables ?? []) {
-          if (variable.name == name) return variable.value.replace(/[{｛]/g, 't{');
-        }
-        if (target) {
-          const element = target.rootDataElement
-            ? DataElement.findElementByReference(target.rootDataElement, name)
-            : null;
-          if (element) {
-            let targetElementText = evaluateElementText(element, useMax);
-            if (targetElementText.match(/[{｛]\s*([^{}｛｝]+)\s*[}｝]/g)) {
-              targetElementText = targetElementText.replace(/[{｛]/g, 't{');
-            }
-            return targetElementText;
-          }
-        }
-      } else {
-        for (const variable of paletteVariables) {
-          if (variable.name == name) return variable.value;
-        }
-
-        if (extendVariables) {
-          const element = DataElement.findElementByReference(extendVariables, name);
-          if (element) {
-            return evaluateElementText(element, useMax);
-          }
-        }
-      }
-      return '';
+      return filled;
     });
     if (limit < loop) isContinue = false;
   }
@@ -294,6 +299,7 @@ export function evaluateCharacterReferences(
     speaker?.chatPalette?.paletteVariables ?? [],
     speaker?.rootDataElement ?? undefined,
     target,
+    true,
     true
   );
 }

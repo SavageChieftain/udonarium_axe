@@ -20,3 +20,30 @@ export function allowsChat(gameCharacter: GameCharacter, myPeerId: string, ignor
       return true;
   }
 }
+
+/**
+ * Whether the keys belong to the field the caret sits in rather than to the window around it.
+ *
+ * The tab shortcut used to live on the chat input alone. Bound to the window it also reaches the
+ * fields beside it — a tab name, a sheet value — where Ctrl+arrow is how you step over a word.
+ * The chat input itself is the one place the shortcut is meant to work from.
+ */
+export function editsTextInPlace(target: EventTarget | null): boolean {
+  if (!(target instanceof HTMLElement)) return false;
+  if (target.isContentEditable) return true;
+  if (target instanceof HTMLTextAreaElement) return !target.classList.contains('chat-input');
+  if (!(target instanceof HTMLInputElement)) return false;
+  return !NON_TEXT_INPUT_TYPES.has(target.type);
+}
+
+const NON_TEXT_INPUT_TYPES: ReadonlySet<string> = new Set([
+  'button',
+  'checkbox',
+  'color',
+  'file',
+  'image',
+  'radio',
+  'range',
+  'reset',
+  'submit',
+]);
