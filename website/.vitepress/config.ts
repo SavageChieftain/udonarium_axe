@@ -183,6 +183,7 @@ export default defineConfig({
           items: [
             { text: 'オブジェクトの基本操作', link: '/manual/objects' },
             { text: 'キャラクターコマ', link: '/manual/character' },
+            { text: 'シートの項目（データ要素）', link: '/manual/data-element' },
             { text: 'キャラクターの取り込み', link: '/manual/character-import' },
             { text: 'バフ／デバフ', link: '/manual/buff' },
             { text: 'カード', link: '/manual/cards' },
