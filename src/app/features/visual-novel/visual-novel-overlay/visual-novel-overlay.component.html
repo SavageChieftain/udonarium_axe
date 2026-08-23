@@ -380,16 +380,20 @@
             <option [value]="diceBotInfo.id">{{ diceBotInfo.name }}</option>
           }
         </select>
-        <select
-          class="border-ui-border-panel bg-ui-input text-ui-text rounded-ui max-w-36 cursor-pointer border border-solid px-2 py-1.5 text-xs outline-none"
+        <ng-select
+          class="ud-select vn-select"
+          name="vn-send-from"
+          data-testid="vn-speaker"
           [title]="'feature.visualNovel.speakerSelect' | transloco"
           [attr.aria-label]="'feature.visualNovel.speakerSelect' | transloco"
           [(ngModel)]="sendFrom"
+          [clearable]="false"
+          [notFoundText]="'feature.visualNovel.speakerNotFound' | transloco"
         >
           @for (character of speakerOptions(); track character.identifier) {
-            <option [value]="character.identifier">{{ character.name }}</option>
+            <ng-option [value]="character.identifier">{{ character.name }}</ng-option>
           }
-        </select>
+        </ng-select>
         @if (speakerPortrait(); as portrait) {
           <div
             class="border-ui-border-panel bg-ui-input text-ui-text rounded-ui flex h-8 items-center gap-0.5 border border-solid px-1"
@@ -1075,6 +1079,7 @@
       }
       <input
         type="text"
+        data-testid="vn-message"
         class="border-ui-border-panel bg-ui-input text-ui-text placeholder:text-ui-dim focus:border-ui-accent rounded-ui min-w-36 flex-1 border border-solid px-2.5 py-1.5 text-[13px] outline-none disabled:opacity-40"
         [placeholder]="
           (isCompact() ? 'feature.visualNovel.inputPlaceholderCompact' : 'feature.visualNovel.inputPlaceholder')

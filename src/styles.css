@@ -736,6 +736,15 @@ chat-message > div > div {
   }
 }
 
+/* ノベルモードのツールバーは横に詰まっているので、話者セレクタは幅を抑えて縮む。 */
+.ng-select.ud-select.vn-select {
+  flex: 0 1 9rem;
+  width: auto !important;
+  min-width: 6rem;
+  max-width: 12rem;
+  font-size: 0.75rem;
+}
+
 .ng-dropdown-panel.ud-select {
   background: var(--ui-menu-bg);
   border: 1px solid var(--ui-menu-border);

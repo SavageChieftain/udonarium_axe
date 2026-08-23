@@ -1689,6 +1689,7 @@
       }
     },
     "visualNovel": {
+      "speakerNotFound": "No character found",
       "slotFollow": "No place for this line",
       "followChatSlot": "Follow the chat position",
       "exit": "Exit",

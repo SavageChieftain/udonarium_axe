@@ -1,6 +1,13 @@
 import { expect, test } from '@playwright/test';
 
-import { openPanel, openTableContextMenu, waitAppReady } from './helpers';
+import {
+  openPanel,
+  openTableContextMenu,
+  openVnSpeakerList,
+  selectVnSpeaker,
+  vnMessageInput,
+  waitAppReady,
+} from './helpers';
 
 test.describe('ビジュアルノベルモード', () => {
   test.beforeEach(async ({ page }) => {
@@ -16,14 +23,14 @@ test.describe('ビジュアルノベルモード', () => {
   });
 
   test('入力欄から発言するとノベルウィンドウに表示されること', async ({ page }) => {
-    const input = page.locator('visual-novel-overlay input[type="text"]');
+    const input = vnMessageInput(page);
     await input.fill('やあ、これはテストです');
     await input.press('Enter');
     await expect(page.locator('visual-novel-overlay')).toContainText('やあ、これはテストです', { timeout: 15000 });
   });
 
   test('複数メッセージを履歴ナビゲーションで行き来できること', async ({ page }) => {
-    const input = page.locator('visual-novel-overlay input[type="text"]');
+    const input = vnMessageInput(page);
     await input.fill('一つ目');
     await input.press('Enter');
     await expect(page.locator('visual-novel-overlay')).toContainText('一つ目', { timeout: 15000 });
@@ -56,7 +63,7 @@ test.describe('ビジュアルノベルモード', () => {
     await page.locator('visual-novel-overlay button', { hasText: 'ゆれ' }).click();
     await page.locator('visual-novel-overlay button[title="演出"]').click();
 
-    const input = page.locator('visual-novel-overlay input[type="text"]');
+    const input = vnMessageInput(page);
     await input.fill('なんだって！？');
     await input.press('Enter');
 
@@ -75,7 +82,7 @@ test.describe('ビジュアルノベルモード', () => {
     const diceBotSelect = page.locator('visual-novel-overlay select[title="ダイスボット"]');
     await expect(diceBotSelect.locator('option').nth(1)).toBeAttached({ timeout: 15000 });
 
-    const input = page.locator('visual-novel-overlay input[type="text"]');
+    const input = vnMessageInput(page);
     await input.fill('2d6');
     await input.press('Enter');
     await expect(page.locator('visual-novel-overlay')).toContainText('2 / 2', { timeout: 20000 });
@@ -85,8 +92,8 @@ test.describe('ビジュアルノベルモード', () => {
   });
 
   test('キャラクターのダイスコマンド発言では立ち絵も吹き出しも出ないこと', async ({ page }) => {
-    await page.locator('visual-novel-overlay select[title="発言キャラクター"]').selectOption({ label: 'モンスターA' });
-    const input = page.locator('visual-novel-overlay input[type="text"]');
+    await selectVnSpeaker(page, 'モンスターA');
+    const input = vnMessageInput(page);
     await input.fill('5d6');
     await input.press('Enter');
 
@@ -100,7 +107,7 @@ test.describe('ビジュアルノベルモード', () => {
   });
 
   test('スロットガイドから立ち位置を直接指定できること', async ({ page }) => {
-    await page.locator('visual-novel-overlay select[title="発言キャラクター"]').selectOption({ label: 'モンスターB' });
+    await selectVnSpeaker(page, 'モンスターB');
     const slotButton = page.locator('visual-novel-overlay button[title="立ち位置スロット"]');
     await expect(slotButton).toContainText('1/12');
     await slotButton.click();
@@ -111,19 +118,18 @@ test.describe('ビジュアルノベルモード', () => {
   });
 
   test('右端スロット(11/12)でも立ち絵サイズが他と同じであること', async ({ page }) => {
-    const speaker = page.locator('visual-novel-overlay select[title="発言キャラクター"]');
-    const input = page.locator('visual-novel-overlay input[type="text"]');
+    const input = vnMessageInput(page);
     const slotBtn = page.locator('visual-novel-overlay button[title="立ち位置スロット"]');
     const columns = page.locator('visual-novel-overlay .pointer-events-auto.absolute.inset-x-0 > button');
 
-    await speaker.selectOption({ label: 'モンスターA' });
+    await selectVnSpeaker(page, 'モンスターA');
     await slotBtn.click();
     await columns.nth(1).click();
     await input.fill('スロット2です');
     await input.press('Enter');
     await expect(page.locator('visual-novel-overlay img[alt="モンスターA"]')).toBeVisible({ timeout: 15000 });
 
-    await speaker.selectOption({ label: 'モンスターB' });
+    await selectVnSpeaker(page, 'モンスターB');
     await slotBtn.click();
     await columns.nth(11).click();
     await input.fill('スロット12です');
@@ -142,7 +148,7 @@ test.describe('ビジュアルノベルモード', () => {
     await page.locator('visual-novel-overlay button', { hasText: '地の文' }).click();
     await page.locator('visual-novel-overlay button[title="演出"]').click();
 
-    const input = page.locator('visual-novel-overlay input[type="text"]');
+    const input = vnMessageInput(page);
     await input.fill('一行は深い森へと足を踏み入れた。');
     await input.press('Enter');
     await expect(page.locator('visual-novel-overlay .vn-enter-narration')).toContainText('一行は深い森へと', {
@@ -161,7 +167,7 @@ test.describe('ビジュアルノベルモード', () => {
   });
 
   test('ログから発言を編集できること（本文と演出の付け直し）', async ({ page }) => {
-    const input = page.locator('visual-novel-overlay input[type="text"]');
+    const input = vnMessageInput(page);
     await input.fill('もとの発言');
     await input.press('Enter');
     await expect(page.locator('visual-novel-overlay')).toContainText('もとの発言', { timeout: 15000 });
@@ -198,9 +204,8 @@ test.describe('ビジュアルノベルモード', () => {
   test('GM は場面転換で立ち絵と台詞を一掃できること', async ({ page }) => {
     await page.locator('peer-menu').getByRole('button', { name: 'GM', exact: true }).click();
 
-    const speaker = page.locator('visual-novel-overlay select[title="発言キャラクター"]');
-    const input = page.locator('visual-novel-overlay input[type="text"]');
-    await speaker.selectOption({ label: 'モンスターA' });
+    const input = vnMessageInput(page);
+    await selectVnSpeaker(page, 'モンスターA');
     await input.fill('第一幕の発言');
     await input.press('Enter');
     await expect(page.locator('visual-novel-overlay img[alt="モンスターA"]')).toBeVisible({ timeout: 15000 });
@@ -216,9 +221,8 @@ test.describe('ビジュアルノベルモード', () => {
   });
 
   test('退場を指定するとその発言以降は立ち絵が消えること', async ({ page }) => {
-    const speaker = page.locator('visual-novel-overlay select[title="発言キャラクター"]');
-    const input = page.locator('visual-novel-overlay input[type="text"]');
-    await speaker.selectOption({ label: 'モンスターA' });
+    const input = vnMessageInput(page);
+    await selectVnSpeaker(page, 'モンスターA');
     await input.fill('まだここにいる');
     await input.press('Enter');
     await expect(page.locator('visual-novel-overlay img[alt="モンスターA"]')).toBeVisible({ timeout: 15000 });
@@ -234,7 +238,7 @@ test.describe('ビジュアルノベルモード', () => {
   });
 
   test('表示レイアウトを ADV に切り替えられること', async ({ page }) => {
-    const input = page.locator('visual-novel-overlay input[type="text"]');
+    const input = vnMessageInput(page);
     await input.fill('レイアウトの確認');
     await input.press('Enter');
     await expect(page.locator('visual-novel-overlay')).toContainText('レイアウトの確認', { timeout: 15000 });
@@ -262,9 +266,8 @@ test.describe('ビジュアルノベルモード', () => {
   });
 
   test('立ち絵の反転が発言に記録されて表示・履歴再現されること', async ({ page }) => {
-    const speaker = page.locator('visual-novel-overlay select[title="発言キャラクター"]');
-    await speaker.selectOption({ label: 'モンスターA' });
-    const input = page.locator('visual-novel-overlay input[type="text"]');
+    await selectVnSpeaker(page, 'モンスターA');
+    const input = vnMessageInput(page);
     await input.fill('まっすぐ立つ');
     await input.press('Enter');
     const portrait = page.locator('visual-novel-overlay img[alt="モンスターA"]');
@@ -286,13 +289,13 @@ test.describe('ビジュアルノベルモード', () => {
   });
 
   test('チャットパレットの行を入力欄へ挿入できること', async ({ page }) => {
-    await page.locator('visual-novel-overlay select[title="発言キャラクター"]').selectOption({ label: 'モンスターA' });
+    await selectVnSpeaker(page, 'モンスターA');
     await page.locator('visual-novel-overlay button[title="チャットパレット"]').click();
     const firstLine = page.locator('visual-novel-overlay .vn-palette-line').first();
     await expect(firstLine).toBeVisible();
     const lineText = (await firstLine.textContent())?.trim() ?? '';
     await firstLine.click();
-    await expect(page.locator('visual-novel-overlay input[type="text"]')).toHaveValue(lineText);
+    await expect(vnMessageInput(page)).toHaveValue(lineText);
   });
 
   test('SEボードに登録音声の一覧が表示されること', async ({ page }) => {
@@ -301,7 +304,7 @@ test.describe('ビジュアルノベルモード', () => {
   });
 
   test('最初から再生で最古から最新まで自動再生されること', async ({ page }) => {
-    const input = page.locator('visual-novel-overlay input[type="text"]');
+    const input = vnMessageInput(page);
     for (const line of ['一幕', '二幕', '三幕']) {
       await input.fill(line);
       await input.press('Enter');
@@ -317,7 +320,7 @@ test.describe('ビジュアルノベルモード', () => {
   });
 
   test('オートプレイは現在地から再生され、最新表示中は開始できないこと', async ({ page }) => {
-    const input = page.locator('visual-novel-overlay input[type="text"]');
+    const input = vnMessageInput(page);
     for (const line of ['一幕', '二幕', '三幕']) {
       await input.fill(line);
       await input.press('Enter');
@@ -335,7 +338,7 @@ test.describe('ビジュアルノベルモード', () => {
   });
 
   test('オートプレイ中のクリック操作で自動再生が停止すること', async ({ page }) => {
-    const input = page.locator('visual-novel-overlay input[type="text"]');
+    const input = vnMessageInput(page);
     for (const line of ['一幕', '二幕', '三幕']) {
       await input.fill(line);
       await input.press('Enter');
@@ -349,10 +352,20 @@ test.describe('ビジュアルノベルモード', () => {
   });
 
   test('発言者の選択肢にプレイヤーが含まれないこと', async ({ page }) => {
-    const speaker = page.locator('visual-novel-overlay select[title="発言キャラクター"]');
-    await expect(speaker.locator('option').first()).toBeAttached();
-    await expect(speaker.locator('option', { hasText: 'プレイヤー' })).toHaveCount(0);
-    expect((await speaker.inputValue()).length).toBeGreaterThan(0);
+    const panel = await openVnSpeakerList(page);
+    await expect(panel.getByRole('option').first()).toBeVisible();
+    await expect(panel.getByRole('option', { name: /プレイヤー/ })).toHaveCount(0);
+  });
+
+  test('発言者を名前で絞り込めること', async ({ page }) => {
+    const panel = await openVnSpeakerList(page);
+    const before = await panel.getByRole('option').count();
+    expect(before).toBeGreaterThan(1);
+
+    await page.locator('visual-novel-overlay [data-testid="vn-speaker"] input').fill('モンスターB');
+
+    await expect(panel.getByRole('option')).toHaveCount(1);
+    await expect(panel.getByRole('option', { name: 'モンスターB', exact: true })).toBeVisible();
   });
 
   test('上段の再生速度スライダーとシート参照ボタンが機能すること', async ({ page }) => {
@@ -361,7 +374,7 @@ test.describe('ビジュアルノベルモード', () => {
     await slider.fill('2');
     await expect(page.locator('visual-novel-overlay [title="再生速度"]')).toContainText('×2');
 
-    await page.locator('visual-novel-overlay select[title="発言キャラクター"]').selectOption({ label: 'モンスターA' });
+    await selectVnSpeaker(page, 'モンスターA');
     const sheetButton = page.locator('visual-novel-overlay button[title="キャラクターシート参照"]');
     await sheetButton.click();
     await expect(page.locator('game-character-sheet')).toBeVisible({ timeout: 10000 });
@@ -370,7 +383,7 @@ test.describe('ビジュアルノベルモード', () => {
   });
 
   test('バックログから過去メッセージへジャンプできること', async ({ page }) => {
-    const input = page.locator('visual-novel-overlay input[type="text"]');
+    const input = vnMessageInput(page);
     await input.fill('一つ目');
     await input.press('Enter');
     await expect(page.locator('visual-novel-overlay')).toContainText('一つ目', { timeout: 15000 });

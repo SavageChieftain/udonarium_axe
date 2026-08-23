@@ -84,6 +84,7 @@ import {
 } from '@axe/features/visual-novel/visual-novel-stage';
 import { SafePipe } from '@axe/ui/pipes/safe.pipe';
 import { TranslocoModule } from '@jsverse/transloco';
+import { NgOptionComponent, NgSelectComponent } from '@ng-select/ng-select';
 
 const WHEEL_THROTTLE_MS = 160;
 
@@ -124,7 +125,7 @@ type VisualNovelPopover = 'backlog' | 'emote' | 'soundBoard' | 'slotGuide' | 'pa
     '(window:keyup)': 'onKeyup($event)',
     '(window:blur)': 'stopSkip()',
   },
-  imports: [FormsModule, SafePipe, TranslocoModule, VisualNovelBacklogComponent],
+  imports: [FormsModule, SafePipe, TranslocoModule, VisualNovelBacklogComponent, NgSelectComponent, NgOptionComponent],
 })
 export class VisualNovelOverlayComponent {
   protected readonly isCompact = inject(ViewportService).isCompact;
