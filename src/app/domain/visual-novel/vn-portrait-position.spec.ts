@@ -17,6 +17,14 @@ describe('isVnPortraitPosSet()', () => {
   it('reads a place off the stage as nothing chosen', () => {
     expect(isVnPortraitPosSet(12)).toBe(false);
   });
+
+  it('reads a missing attribute as nothing chosen, not as the left edge', () => {
+    // ObjectNode hands back '' for a key it does not hold, and '' passes both ends of a
+    // plain range comparison.
+    expect(isVnPortraitPosSet('')).toBe(false);
+    expect(isVnPortraitPosSet(undefined)).toBe(false);
+    expect(isVnPortraitPosSet(null)).toBe(false);
+  });
 });
 
 describe('toPortraitSlot()', () => {

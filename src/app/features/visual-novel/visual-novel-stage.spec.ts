@@ -125,6 +125,12 @@ describe('buildVnStage()', () => {
     expect(stage[0].slot).toBe(9);
   });
 
+  it('does not read a missing place as the left edge', () => {
+    const stage = buildVnStage([source({ imagePos: 9, vnPortraitPos: '' as unknown as number })], resolveUrl);
+
+    expect(stage[0].slot).toBe(9);
+  });
+
   it('reads the string older saved data holds as a place', () => {
     const stage = buildVnStage([source({ imagePos: '7' })], resolveUrl);
 

@@ -52,6 +52,8 @@ describe('GameObjectInventoryComponent', () => {
       const store = ObjectStore.instance;
       store.getObjects().forEach((object) => store.delete(object, false));
       store.clearDeleteHistory();
+      // Personal folders live on the device, so they outlive the store cleanup too.
+      localStorage.clear();
       // The summary settings are a synced singleton, so its folders outlive the store cleanup.
       (DataSummarySetting as unknown as Record<string, unknown>)['_instance'] = undefined;
       vi.unstubAllGlobals();
@@ -364,6 +366,54 @@ describe('GameObjectInventoryComponent', () => {
 
       component.selectTab.set('common');
       expect(component.declaredFolderPaths()).toEqual([]);
+    });
+
+    it('renames a character who has stepped out onto the table along with the folder', () => {
+      const away = putInShared('ゴブリン');
+      away.folderName = '第1話';
+      away.setLocation('table');
+      component.selectTab.set('common');
+
+      component.renameFolder('第1話', '序章');
+
+      expect(away.folderName).toBe('序章');
+    });
+
+    it('drops a name it could not take when the field is left rather than holding it', () => {
+      const goblin = putInShared('ゴブリン');
+      goblin.folderName = '第1話';
+      component.selectTab.set('common');
+      component.startFolderRename('第1話');
+
+      component.commitFolderRename('第1話', '   ', true);
+
+      expect(component.isEditingFolder('第1話')).toBe(false);
+      expect(goblin.folderName).toBe('第1話');
+    });
+
+    it('forgets a drag whose release never arrives', () => {
+      const goblin = putInShared('ゴブリン');
+      component.selectTab.set('common');
+      vi.spyOn(document, 'elementFromPoint').mockReturnValue(folderHeading('第1話'));
+      component.onObjectPointerDown(pointerAt(0, 0), goblin);
+      component.onObjectPointerMove(pointerAt(40, 40));
+
+      component.onObjectDragCancel();
+      component.onObjectPointerUp(pointerAt(40, 40));
+
+      expect(goblin.folderName).toBe('');
+    });
+
+    it('searches the shown side of a resource as well as its maximum', () => {
+      const goblin = putInShared('ゴブリン');
+      component.selectTab.set('common');
+      const hp = goblin.detailDataElement?.getFirstElementByName('HP');
+      expect(hp).toBeTruthy();
+      hp!.currentValue = 7;
+
+      component.searchQuery.set('7');
+
+      expect(component.filteredRows().map((row) => row.object.name)).toEqual(['ゴブリン']);
     });
 
     it('merges rather than doubles up when a folder is renamed onto another', () => {

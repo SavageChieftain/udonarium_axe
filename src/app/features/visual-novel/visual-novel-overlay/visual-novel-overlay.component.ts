@@ -417,11 +417,13 @@ export class VisualNovelOverlayComponent {
 
   /** A line of its own beats the character's novel-mode place, which beats where it stands in chat. */
   private stageSlotOf(source: VnStageSource): number {
-    if (isVnPortraitPosSet(source.vnPortraitPos)) return source.vnPortraitPos;
+    const linePosition = toPortraitSlot(source.vnPortraitPos);
+    if (linePosition != null) return linePosition;
     const character = this.objectStore.get(source.sendFrom);
     if (character instanceof GameCharacter) {
       this.objectChange.versionOf(character.identifier)();
-      if (isVnPortraitPosSet(character.vnPortraitPos)) return character.vnPortraitPos;
+      const novelPosition = toPortraitSlot(character.vnPortraitPos);
+      if (novelPosition != null) return novelPosition;
       const chatPosition = character.portraitPosition;
       if (chatPosition != null) return chatPosition;
     }
@@ -579,8 +581,7 @@ export class VisualNovelOverlayComponent {
   readonly speakerSlot = computed(() => {
     const character = this.speakerCharacter();
     if (!character) return -1;
-    if (isVnPortraitPosSet(character.vnPortraitPos)) return character.vnPortraitPos;
-    return character.portraitPosition ?? 0;
+    return toPortraitSlot(character.vnPortraitPos) ?? character.portraitPosition ?? 0;
   });
 
   readonly speakerSlotOverridden = computed(() => {

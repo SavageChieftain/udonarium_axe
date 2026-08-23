@@ -131,7 +131,12 @@
       </div>
     } @empty {
       <p class="text-ui-dim m-0 p-3 text-center text-[12px]">
-        {{ 'feature.plTools.ownedCharacters.empty' | transloco }}
+        {{
+          (characters().length > 0
+            ? 'feature.plTools.ownedCharacters.noMatch'
+            : 'feature.plTools.ownedCharacters.empty'
+          ) | transloco
+        }}
       </p>
     }
   </div>

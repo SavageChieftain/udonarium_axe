@@ -1,5 +1,10 @@
 import { DestroyRef, inject, Injectable, signal } from '@angular/core';
 import { ObjectInventory } from '@axe/application/inventory/object-inventory';
+import {
+  personalFolderStorage,
+  readPersonalFolders,
+  writePersonalFolders,
+} from '@axe/application/inventory/personal-folders';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { Network } from '@axe/core/index';
 import { ObjectStore } from '@axe/core/sync/object-store';
@@ -70,6 +75,25 @@ export class GameObjectInventoryService {
     this.summarySetting.folderPaths = folderPaths;
   }
 
+  /**
+   * The personal tab's folders belong to this device rather than the room, but every inventory
+   * panel has to see the same ones, so they are held here rather than in a component.
+   */
+  private readonly personalStorage = personalFolderStorage();
+  private personalRoomId = '';
+  private readonly _personalFolderPaths = signal<string[]>([]);
+  readonly personalFolderPaths = this._personalFolderPaths.asReadonly();
+
+  setPersonalFolderPaths(folderPaths: string[]): void {
+    this._personalFolderPaths.set(folderPaths);
+    writePersonalFolders(this.personalStorage, this.personalRoomId, folderPaths);
+  }
+
+  private reloadPersonalFolders(): void {
+    this.personalRoomId = Network.peerContext?.roomId ?? '';
+    this._personalFolderPaths.set(readPersonalFolders(this.personalStorage, this.personalRoomId));
+  }
+
   tableInventory: ObjectInventory = new ObjectInventory((object) => object.isVisibleOnTable);
   commonInventory: ObjectInventory = new ObjectInventory((object) => {
     return !this.isAnyLocation(object.location.name);
@@ -98,10 +122,12 @@ export class GameObjectInventoryService {
 
   private initialize() {
     this.summarySnapshot = this.currentSummarySnapshot();
+    this.reloadPersonalFolders();
     this.objectChange.objectAdded$.subscribe((e) => {
       if (e.aliasName === GameCharacter.aliasName) this.refresh();
     }, this.destroyRef);
     this.objectChange.networkOpen$.subscribe(() => {
+      this.reloadPersonalFolders();
       this.refresh();
     }, this.destroyRef);
     this.objectChange.peerConnect$.subscribe(() => {

@@ -46,7 +46,7 @@
         </div>
       } @empty {
         <span class="text-ui-dim p-2 text-[11px] whitespace-nowrap">{{
-          'feature.gmTools.npcBar.empty' | transloco
+          (npcs().length > 0 ? 'feature.gmTools.npcBar.noMatch' : 'feature.gmTools.npcBar.empty') | transloco
         }}</span>
       }
     </div>

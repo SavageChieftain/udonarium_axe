@@ -522,6 +522,8 @@
     (pointerdown)="onObjectPointerDown($event, gameObject)"
     (pointermove)="onObjectPointerMove($event)"
     (pointerup)="onObjectPointerUp($event)"
+    (pointercancel)="onObjectDragCancel()"
+    (lostpointercapture)="onObjectDragCancel()"
     (mousedown)="onObjectDragBlock($event, gameObject)"
     (touchstart)="onObjectDragBlock($event, gameObject)"
   >
@@ -624,7 +626,7 @@
         (click)="$event.stopPropagation()"
         (keydown.escape)="cancelFolderRename()"
         (keydown.enter)="commitFolderRename(node.path, $any($event.target).value)"
-        (blur)="commitFolderRename(node.path, $any($event.target).value)"
+        (blur)="commitFolderRename(node.path, $any($event.target).value, true)"
       />
     } @else {
       <span class="truncate">{{ node.path ? node.name : ('feature.inventory.panel.unfiled' | transloco) }}</span>

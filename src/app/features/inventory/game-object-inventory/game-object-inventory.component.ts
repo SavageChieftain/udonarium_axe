@@ -60,10 +60,6 @@ import {
   type InventoryRow,
   inventorySearchText,
 } from '@axe/features/inventory/game-object-inventory/inventory-list';
-import {
-  readPersonalFolders,
-  writePersonalFolders,
-} from '@axe/features/inventory/game-object-inventory/personal-folders';
 import { AutoFocusDirective } from '@axe/ui/directives/auto-focus.directive';
 import { SafePipe } from '@axe/ui/pipes/safe.pipe';
 import { TranslocoModule } from '@jsverse/transloco';
@@ -317,16 +313,11 @@ export class GameObjectInventoryComponent {
 
   readonly collapsedFolders = signal<ReadonlySet<string>>(new Set());
 
-  private readonly storage = typeof localStorage === 'undefined' ? null : localStorage;
-
-  /** The personal tab is nobody else's business, so its folders stay on this device. */
-  private readonly personalFolders = signal<string[]>(readPersonalFolders(this.storage));
-
   private readonly isSharedTab = computed<boolean>(() => this.selectTab() === 'common');
 
   readonly declaredFolderPaths = computed<string[]>(() => {
     if (!this.foldersApply()) return [];
-    if (!this.isSharedTab()) return this.personalFolders();
+    if (!this.isSharedTab()) return this.inventoryService.personalFolderPaths();
     this.inventoryService.inventoryVersion();
     return this.inventoryService.folderPaths;
   });
@@ -336,8 +327,7 @@ export class GameObjectInventoryComponent {
       this.inventoryService.folderPaths = folderPaths;
       return;
     }
-    this.personalFolders.set(folderPaths);
-    writePersonalFolders(this.storage, folderPaths);
+    this.inventoryService.setPersonalFolderPaths(folderPaths);
   }
 
   readonly folderTree = computed<FolderTree<InventoryRow>>(() =>
@@ -490,9 +480,10 @@ export class GameObjectInventoryComponent {
     this.editingFolder.set(null);
   }
 
-  commitFolderRename(folderPath: string, name: string): void {
+  /** Leaving the field is never a trap: a name that cannot be taken is dropped rather than held. */
+  commitFolderRename(folderPath: string, name: string, dropOnFailure = false): void {
     if (this.editingFolder() !== folderPath) return;
-    if (this.renameFolder(folderPath, name)) this.editingFolder.set(null);
+    if (this.renameFolder(folderPath, name) || dropOnFailure) this.editingFolder.set(null);
   }
 
   private createFolderOf(identifiers: readonly string[], parentPath = ''): void {
@@ -511,6 +502,8 @@ export class GameObjectInventoryComponent {
   private unusedFolderPath(parentPath: string): string {
     const parent = normalizeFolderPath(parentPath);
     const prefix = parent.length > 0 ? `${parent}${FOLDER_SEPARATOR}` : '';
+    // Numbered across the whole tree rather than among siblings: the free number under
+    // フォルダ1 is 1, and a フォルダ1 inside フォルダ1 is a worse name than a number that skips.
     const taken = new Set(this.knownFolderPaths().map((path) => folderSegments(path).at(-1)));
     let index = 1;
     while (taken.has(this.t('feature.inventory.panel.defaultFolderName', { index }))) index++;
@@ -596,12 +589,13 @@ export class GameObjectInventoryComponent {
   }
 
   /**
-   * The shared tab gathers every location nobody has claimed, not only "common", so what a folder
-   * holds has to come from the same list the tab draws rather than from a location name.
+   * A character carries one folder name wherever it stands, so a rename has to reach it even
+   * while it is on the table. Scoping this to the tab on view left those behind, and the folder
+   * came back the moment the character did.
    */
   private charactersUnder(folderPath: string): GameCharacter[] {
-    return this.baseObjectsOf(this.selectTab())
-      .filter((object): object is GameCharacter => object instanceof GameCharacter)
+    return this.objectStore
+      .getObjects<GameCharacter>(GameCharacter)
       .filter((character) => isDescendantFolderPath(normalizeFolderPath(character.folderName), folderPath));
   }
 
@@ -621,6 +615,7 @@ export class GameObjectInventoryComponent {
     for (const element of elements) {
       if (!element || element.name === this.newLineString) continue;
       texts.push(`${element.value}`);
+      if (element.currentValue != null && element.currentValue !== '') texts.push(`${element.currentValue}`);
     }
     return texts;
   }
@@ -640,7 +635,13 @@ export class GameObjectInventoryComponent {
   }
 
   onContextMenu(e: Event, gameObject: TabletopObject) {
-    if (document.activeElement instanceof HTMLInputElement && document.activeElement.getAttribute('type') !== 'range')
+    // Leaves an edit in progress on a row alone, without the search box blocking every menu.
+    const editing = document.activeElement;
+    if (
+      editing instanceof HTMLInputElement &&
+      editing.getAttribute('type') !== 'range' &&
+      editing.closest('[data-testid="inventory-item"]')
+    )
       return;
     e.stopPropagation();
     e.preventDefault();
@@ -933,6 +934,13 @@ export class GameObjectInventoryComponent {
     const element = document.elementFromPoint(x, y);
     if (!element || !this.hostElement.nativeElement.contains(element)) return null;
     return folderPathFromElement(element);
+  }
+
+  /** A row can be taken out from under the pointer, and then no release ever arrives. */
+  onObjectDragCancel(): void {
+    this.dragPending = null;
+    this.draggingIdentifiers.set(new Set());
+    this.dropFolderPath.set(null);
   }
 
   onObjectPointerUp(event: PointerEvent): void {

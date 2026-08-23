@@ -4,6 +4,7 @@ import { ObjectStore } from '@axe/core/sync/object-store';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { ChatPaletteRegistryService } from '@axe/features/chat/chat-palette/chat-palette-registry.service';
 import { NpcBarComponent } from '@axe/features/gm-tools/npc-bar/npc-bar.component';
+import { NpcBarService } from '@axe/features/gm-tools/npc-bar/npc-bar.service';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
 
 function makeCharacter(name: string, opts: { isNpc?: boolean; location?: string } = {}): GameCharacter {
@@ -104,5 +105,14 @@ describe('NpcBarComponent', () => {
     component.search.set('ＨＰ');
 
     expect(component.filteredNpcs()).toHaveLength(1);
+  });
+
+  it('says nothing matched rather than that there are none', () => {
+    makeCharacter('ゴブリン', { isNpc: true });
+    TestBed.inject(NpcBarService).open();
+    component.search.set('zzz');
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).toContain('一致する NPC がいません');
   });
 });

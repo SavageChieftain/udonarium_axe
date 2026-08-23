@@ -1,15 +1,18 @@
 export const VN_PORTRAIT_POS_UNSET = -1;
 export const VN_PORTRAIT_SLOT_COUNT = 12;
 
-export function isVnPortraitPosSet(pos: number): boolean {
-  return pos >= 0 && pos < VN_PORTRAIT_SLOT_COUNT;
-}
-
-/** Older saved data keeps positions as attribute strings, so a number has to be coaxed out. */
+/**
+ * Older saved data keeps positions as attribute strings, and a missing attribute reads as '',
+ * so a number has to be coaxed out rather than compared: '' passes both ends of the range.
+ */
 export function toPortraitSlot(value: unknown): number | null {
   if (value == null || value === '') return null;
   const pos = Number(value);
   if (!Number.isFinite(pos)) return null;
   const slot = Math.round(pos);
-  return isVnPortraitPosSet(slot) ? slot : null;
+  return slot >= 0 && slot < VN_PORTRAIT_SLOT_COUNT ? slot : null;
+}
+
+export function isVnPortraitPosSet(value: unknown): boolean {
+  return toPortraitSlot(value) !== null;
 }

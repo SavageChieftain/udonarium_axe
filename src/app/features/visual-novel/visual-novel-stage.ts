@@ -1,4 +1,4 @@
-import { isVnPortraitPosSet, toPortraitSlot } from '@axe/domain/visual-novel/vn-portrait-position';
+import { toPortraitSlot } from '@axe/domain/visual-novel/vn-portrait-position';
 import { VnEmote } from '@axe/features/visual-novel/visual-novel-emote';
 
 export const VN_STAGE_SLOT_COUNT = 12;
@@ -45,8 +45,7 @@ export function slotOf(imagePos: number | null): number {
 
 /** What a message alone can say about where its speaker stands. */
 export function messageSlotOf(source: VnStageSource): number {
-  if (isVnPortraitPosSet(source.vnPortraitPos)) return source.vnPortraitPos;
-  return toPortraitSlot(source.imagePos) ?? 0;
+  return toPortraitSlot(source.vnPortraitPos) ?? toPortraitSlot(source.imagePos) ?? 0;
 }
 
 /**

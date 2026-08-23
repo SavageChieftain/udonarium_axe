@@ -186,6 +186,14 @@ describe('OwnedCharacterListPanelComponent', () => {
       expect(component.filteredCharacters().map((character) => character.name)).toEqual(['ゴブリンA', 'ゴブリンB']);
     });
 
+    it('says nothing matched rather than that the player owns none', () => {
+      makeCharacter('ゴブリン', 'me', 'table');
+      component.search.set('zzz');
+      fixture.detectChanges();
+
+      expect(fixture.nativeElement.textContent).toContain('一致するキャラクターがいません');
+    });
+
     it('folds width so a full-width search still finds a half-width name', () => {
       makeCharacter('HPポーション', 'me', 'table');
 
