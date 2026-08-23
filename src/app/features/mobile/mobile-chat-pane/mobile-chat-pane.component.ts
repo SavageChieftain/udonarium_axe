@@ -17,7 +17,7 @@ export class MobileChatPaneComponent {
   constructor() {
     afterNextRender({
       write: () => {
-        this.panelService.scrollablePanel = this.chatScroll().nativeElement;
+        this.panelService.setDefaultScrollablePanel(this.chatScroll().nativeElement);
       },
     });
   }

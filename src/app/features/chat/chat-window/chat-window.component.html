@@ -1,11 +1,15 @@
-<div class="flex min-h-full min-w-0 flex-col">
-  <div class="min-w-0 flex-1">
+<div class="flex h-full min-h-0 min-w-0 flex-col">
+  <div
+    class="relative min-h-0 min-w-0 flex-1 overflow-y-auto overscroll-contain"
+    data-testid="chat-log-scroll"
+    #logScroll
+  >
     @if (chatTab()) {
       <chat-tab [chatTab]="chatTab()" (addMessage)="onAddMessage()"></chat-tab>
     }
   </div>
   <div
-    class="border-ui-border-panel bg-ui-titlebar shadow-ui-sm rounded-ui @container sticky bottom-0 z-10 box-border w-full min-w-0 border border-solid"
+    class="border-ui-border-panel bg-ui-titlebar shadow-ui-sm rounded-ui @container relative z-10 box-border w-full min-w-0 shrink-0 border border-solid"
   >
     @if (chatTabRef()?.writingSpeakers()?.length) {
       @let writingSpeakersList = chatTabRef()!.writingSpeakers();

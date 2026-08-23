@@ -54,6 +54,7 @@ const AT_BOTTOM_THRESHOLD_PX = 8;
     TranslocoModule,
   ],
   host: {
+    class: 'block h-full min-h-0 min-w-0',
     tabindex: '-1',
     '(keydown.control.arrowleft)': 'switchTabByKey($event, -1)',
     '(keydown.control.arrowright)': 'switchTabByKey($event, 1)',
@@ -95,6 +96,7 @@ export class ChatWindowComponent {
     }
   }
 
+  private readonly logScroll = viewChild.required<ElementRef<HTMLDivElement>>('logScroll');
   private readonly tabPillsContainer = viewChild<ElementRef<HTMLElement>>('tabPillsContainer');
   readonly chatTabRef = viewChild(ChatTabComponent);
   readonly canScrollLeft = signal(false);
@@ -264,6 +266,11 @@ export class ChatWindowComponent {
       if (current && !visible.some((tab) => tab.identifier === current)) {
         this.chatTabidentifier = visible.length > 0 ? visible[0].identifier : '';
       }
+    });
+    afterNextRender({
+      write: () => {
+        this.panelService.claimScrollablePanel(this.logScroll().nativeElement);
+      },
     });
     afterNextRender(() => {
       queueMicrotask(() => this.scrollToBottom(true));
