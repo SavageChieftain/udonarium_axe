@@ -28,6 +28,11 @@
       "dark": "Dark",
       "light": "Light"
     },
+    "motion": {
+      "auto": "Effects: Auto",
+      "on": "Effects: Always play",
+      "off": "Effects: Off"
+    },
     "panel": {
       "peerMenu": "Connection",
       "chatWindow": "Chat",
