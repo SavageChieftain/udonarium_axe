@@ -95,7 +95,8 @@ describe('VisualNovelBacklogComponent', () => {
     component.startEditEntry(entry);
     expect(component.editText()).toBe('やあ');
     expect(component.editShape()).toBe('shout');
-    expect(component.editSlot()).toBe(2);
+    // Where it was sent from is not a place chosen for this line.
+    expect(component.editSlot()).toBe(-1);
 
     component.editText.set('こんばんは');
     component.editShape.set('thought');
@@ -104,7 +105,8 @@ describe('VisualNovelBacklogComponent', () => {
 
     const message = TestBed.inject(VisualNovelPlaybackService).messages()[0];
     expect(message.text).toBe('こんばんは 〔もやもや〕');
-    expect(message.imagePos).toBe(7);
+    expect(message.vnPortraitPos).toBe(7);
+    expect(message.imagePos).toBe(2);
     expect(message.fixd).toBe(true);
     expect(component.editingIndex()).toBe(-1);
   });
@@ -159,5 +161,22 @@ describe('VisualNovelBacklogComponent', () => {
     rows[0].click();
 
     expect(jumped).toEqual([0]);
+  });
+
+  it('gives a line back to following the character once its place is dropped', () => {
+    addMessage('やあ', 'アリス', { imageIdentifier: addImage() });
+    createComponent();
+
+    component.startEditEntry(component.entries()[0]);
+    component.editSlot.set(7);
+    component.saveEditEntry();
+    expect(TestBed.inject(VisualNovelPlaybackService).messages()[0].vnPortraitPos).toBe(7);
+
+    component.startEditEntry(component.entries()[0]);
+    expect(component.editSlot()).toBe(7);
+    component.editSlot.set(-1);
+    component.saveEditEntry();
+
+    expect(TestBed.inject(VisualNovelPlaybackService).messages()[0].vnPortraitPos).toBe(-1);
   });
 });

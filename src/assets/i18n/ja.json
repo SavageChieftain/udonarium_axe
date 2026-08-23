@@ -1689,6 +1689,7 @@
       }
     },
     "visualNovel": {
+      "slotFollow": "この行だけの指定なし",
       "followChatSlot": "通常の位置に合わせる",
       "exit": "終了",
       "noMessages": "まだメッセージがありません。下の入力欄から発言できます。",
