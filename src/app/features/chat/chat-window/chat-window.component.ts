@@ -23,6 +23,7 @@ import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { ChatMessage, ChatMessageTargetContext } from '@axe/domain/chat/chat-message';
+import { evaluateCharacterReferences, textTargetsCharacter } from '@axe/domain/chat/chat-palette';
 import { ChatTab } from '@axe/domain/chat/chat-tab';
 import { ChatTabList } from '@axe/domain/chat/chat-tab-list';
 import { canRoleSpeakTab, canRoleViewTab } from '@axe/domain/chat/chat-tab-permission';
@@ -503,21 +504,10 @@ export class ChatWindowComponent {
     );
   }
 
-  checkTargetCharacter(text: string): boolean {
-    let istarget = false;
-    if (text.match(/^[sSｓＳ]?[tTｔＴ][:：]([^:：]+)/g)) {
-      istarget = true;
-    }
-    if (text.match(/\s[sSｓＳ]?[tTｔＴ][:：]([^:：]+)/g)) {
-      istarget = true;
-    }
-    if (text.match(/^[tTｔＴ][&＆]([^&＆]+)/g)) {
-      istarget = true;
-    }
-    if (text.match(/\s[tTｔＴ][&＆]([^&＆]+)/g)) {
-      istarget = true;
-    }
-    return istarget;
+  /** Who the line is spoken as. Speaking as yourself rather than as a piece leaves nothing to read. */
+  private speakingCharacterOf(sendFrom: string): GameCharacter | null {
+    const object = this.objectStore.get(sendFrom);
+    return object instanceof GameCharacter ? object : null;
   }
 
   private targeted(gameCharacter: GameCharacter): boolean {
@@ -549,7 +539,23 @@ export class ChatWindowComponent {
       let objects: GameCharacter[];
       const messageTargetContext: ChatMessageTargetContext[] = [];
 
-      if (this.checkTargetCharacter(value.text)) {
+      const speaker = this.speakingCharacterOf(value.sendFrom);
+      const attachmentImageIdentifiers: string[] = [];
+      const appendAttachmentImages = (identifiers: string[]) => {
+        for (const identifier of identifiers) {
+          if (!attachmentImageIdentifiers.includes(identifier)) attachmentImageIdentifiers.push(identifier);
+        }
+      };
+      const fillIn = (text: string, target?: GameCharacter): string => {
+        // Spoken as yourself there is nothing to read the references off, and blanking them would
+        // eat the braces out of whatever was typed.
+        if (!speaker) return text;
+        const evaluated = evaluateCharacterReferences(text, speaker, target);
+        appendAttachmentImages(evaluated.attachmentImageIdentifiers);
+        return evaluated.text;
+      };
+
+      if (textTargetsCharacter(value.text)) {
         objects = this.targetedGameCharacterList();
         let first = true;
         if (objects.length == 0) {
@@ -565,7 +571,8 @@ export class ChatWindowComponent {
             str2 = DiceBot.deleteMyselfResourceBuff(str);
           }
 
-          outtext += str2;
+          const filled = fillIn(str2, object);
+          outtext += filled;
           outtext += ' [' + object.name + ']';
           first = false;
 
@@ -573,17 +580,17 @@ export class ChatWindowComponent {
             text: '',
             object: null,
           };
-          targetContext.text = str2;
+          targetContext.text = filled;
           targetContext.object = object;
           messageTargetContext.push(targetContext);
         }
       } else {
-        outtext = value.text;
+        outtext = fillIn(value.text);
         const targetContext: ChatMessageTargetContext = {
           text: '',
           object: null,
         };
-        targetContext.text = value.text;
+        targetContext.text = outtext;
         targetContext.object = null;
         messageTargetContext.push(targetContext);
       }
@@ -596,7 +603,7 @@ export class ChatWindowComponent {
         value.portraitIndex,
         value.messColor,
         messageTargetContext,
-        undefined,
+        attachmentImageIdentifiers,
         value.replyTo,
         value.quoteOf
       );

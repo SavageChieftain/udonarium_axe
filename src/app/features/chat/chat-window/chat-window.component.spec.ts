@@ -1,10 +1,13 @@
 import { ChangeDetectorRef } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ChatMessageService } from '@axe/application/chat/chat-message.service';
 import { ObjectChangeService, ObjectDeleteEvent } from '@axe/application/sync/object-change.service';
 import { EventChannel } from '@axe/core/event/event-channel';
 import { childrenChanged$, objectChanged$ } from '@axe/core/sync/object-event-extension';
+import { GameCharacter } from '@axe/domain/character/game-character';
 import { ChatTab } from '@axe/domain/chat/chat-tab';
 import { ChatTabList } from '@axe/domain/chat/chat-tab-list';
+import { DataElement, DataElementFieldType } from '@axe/domain/data/data-element';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { PeerRole } from '@axe/domain/peer/peer-role';
 import { ChatWindowComponent } from '@axe/features/chat/chat-window/chat-window.component';
@@ -568,6 +571,73 @@ describe('ChatWindowComponent', () => {
 
       expect(component.chatTabidentifier).toBe(tabs[2].identifier);
       expect(scrolledTo).toEqual([94]);
+    });
+  });
+
+  describe('filling in the references of a line', () => {
+    let tab: ChatTab;
+    let character: GameCharacter;
+    let sent: { text: string; attachments: string[] | undefined }[];
+
+    function speak(text: string, sendFrom: string): void {
+      component.sendChat({
+        text,
+        gameSystem: null as never,
+        sendFrom,
+        sendTo: '',
+        portraitIndex: 0,
+        messColor: '#000000',
+        replyTo: '',
+        quoteOf: '',
+      });
+    }
+
+    beforeEach(() => {
+      tab = ChatTabList.instance.addChatTab('参照');
+      component.chatTabidentifier = tab.identifier;
+      fixture.detectChanges();
+
+      character = new GameCharacter();
+      character.initialize();
+      character.createDataElements();
+      const detail = DataElement.create('detail', '');
+      const status = DataElement.create('ステータス', '');
+      status.appendChild(DataElement.create('HP', '13'));
+      detail.appendChild(status);
+      character.rootDataElement?.appendChild(detail);
+
+      sent = [];
+      vi.spyOn(TestBed.inject(ChatMessageService), 'sendMessage').mockImplementation(((...args: unknown[]) => {
+        sent.push({ text: args[1] as string, attachments: args[8] as string[] | undefined });
+        return null as never;
+      }) as never);
+    });
+
+    afterEach(() => {
+      vi.restoreAllMocks();
+      character.destroy();
+      tab.destroy();
+    });
+
+    it('reads the sheet of the piece the line is spoken as', () => {
+      speak('2d6+{HP}', character.identifier);
+
+      expect(sent[0].text).toBe('2d6+13');
+    });
+
+    it('leaves the line alone when it is spoken as yourself', () => {
+      speak('2d6+{HP}', PeerCursor.myCursor.identifier);
+
+      expect(sent[0].text).toBe('2d6+{HP}');
+    });
+
+    it('sends on the picture a reference stands for', () => {
+      const detail = character.rootDataElement?.getFirstElementByName('detail');
+      detail?.appendChild(DataElement.create('立ち絵', 'portrait-id', { fieldType: DataElementFieldType.IMAGE }));
+
+      speak('{立ち絵}', character.identifier);
+
+      expect(sent[0].attachments).toEqual(['portrait-id']);
     });
   });
 });
