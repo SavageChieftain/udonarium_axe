@@ -141,12 +141,29 @@ export class GameDataElementTableViewComponent {
     return findGapCellInColumn(this.element(), column);
   }
 
+  /**
+   * Every calculating cell in the table, worked out once for the whole table.
+   *
+   * A formula reads the sheet it sits in, so asking cell by cell walks that sheet again for each
+   * one — and the display text is read from the template, which asks on every pass.
+   */
+  private readonly calcCellTexts = computed<ReadonlyMap<string, string>>(() => {
+    const cells = this.tableRows()
+      .flatMap((row) => [...row.children])
+      .filter((cell) => cell.fieldType === DataElementFieldType.CALC);
+    const texts = new Map<string, string>();
+    if (cells.length < 1) return texts;
+
+    // Every cell in one table reads the same sheet, so its parts are watched once for all of them.
+    this.objectChange.collectionOf('data')();
+    for (const identifier of calcSourceIdentifiers(cells[0])) this.objectChange.versionOf(identifier)();
+
+    for (const cell of cells) texts.set(cell.identifier, evaluateCalcElement(cell));
+    return texts;
+  });
+
   getTableCellDisplayText(cell: DataElement): string {
     this.objectChange.versionOf(cell.identifier)();
-    if (cell.fieldType === DataElementFieldType.CALC) {
-      this.objectChange.collectionOf('data')();
-      for (const identifier of calcSourceIdentifiers(cell)) this.objectChange.versionOf(identifier)();
-    }
 
     switch (cell.fieldType) {
       case DataElementFieldType.RESOURCE:
@@ -154,7 +171,7 @@ export class GameDataElementTableViewComponent {
       case DataElementFieldType.CHECK:
         return getCellLabel(cell);
       case DataElementFieldType.CALC:
-        return evaluateCalcElement(cell);
+        return this.calcCellTexts().get(cell.identifier) ?? '';
       case DataElementFieldType.IMAGE:
         return cell.value ? this.t('feature.dataElement.imageUnloaded') : '';
       default:
