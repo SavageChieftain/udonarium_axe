@@ -9,7 +9,7 @@ Udonarium Axe の画面構成と基本操作をまとめた操作マニュアル
 
 <ScreenTour />
 
-ツールバーはロールに応じて [GM ツールバー](/manual/roles#gm-ツールバー) または
+ツールバーはロールに応じて [GM ツールバー](/manual/roles#gm-ツールバー) または
 [PL ツールバー](/manual/pl-tools) が出ます。時計・ミニプレイヤーの表示切り替えもここです。
 
 ## FAB メニュー
