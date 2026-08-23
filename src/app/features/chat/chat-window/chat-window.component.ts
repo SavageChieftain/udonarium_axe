@@ -145,7 +145,7 @@ export class ChatWindowComponent {
   }
 
   chatTabSwitchRelative(direction: number) {
-    const chatTabs = this.chatMessageService.chatTabs;
+    const chatTabs = this.visibleChatTabs();
     const index = chatTabs.findIndex((elm) => elm.identifier == this.chatTabidentifier);
     if (index < 0) {
       return;

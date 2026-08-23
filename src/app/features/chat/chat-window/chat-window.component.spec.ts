@@ -6,6 +6,7 @@ import { childrenChanged$, objectChanged$ } from '@axe/core/sync/object-event-ex
 import { ChatTab } from '@axe/domain/chat/chat-tab';
 import { ChatTabList } from '@axe/domain/chat/chat-tab-list';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
+import { PeerRole } from '@axe/domain/peer/peer-role';
 import { ChatWindowComponent } from '@axe/features/chat/chat-window/chat-window.component';
 import { expectPanelDragRecovery, PanelDragTestHostComponent } from '@axe/testing/panel-drag-recovery';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
@@ -368,6 +369,17 @@ describe('ChatWindowComponent', () => {
 
       expect(component.chatTabidentifier).toBe(tabs[1].identifier);
       expect(document.activeElement).toBe(fixture.nativeElement);
+    });
+
+    it('walks only the tabs the strip shows', () => {
+      PeerCursor.myCursor.role = PeerRole.Player;
+      tabs[1].plCanView = false;
+      objectChange.notifyChanged(tabs[1].identifier);
+      fixture.detectChanges();
+
+      component.chatTabSwitchRelative(1);
+
+      expect(component.chatTabidentifier).toBe(tabs[0].identifier);
     });
   });
 });
