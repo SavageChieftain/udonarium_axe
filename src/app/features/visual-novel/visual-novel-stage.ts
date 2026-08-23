@@ -38,6 +38,27 @@ export function leftOfSlot(slot: number): number {
   return LEFT_MIN + LEFT_SPAN * (slot / (VN_STAGE_SLOT_COUNT - 1));
 }
 
+/**
+ * The strip of the slot guide that picks a slot.
+ *
+ * The slots themselves stand between 8% and 92%, but the guide covers the whole width, so the
+ * bands run to the edges rather than sitting as islands with dead ground on either side.
+ */
+export function slotBandLeft(slot: number): number {
+  if (slot <= 0) return 0;
+  return (leftOfSlot(slot - 1) + leftOfSlot(slot)) / 2;
+}
+
+export function slotBandWidth(slot: number): number {
+  const right = slot >= VN_STAGE_SLOT_COUNT - 1 ? 100 : (leftOfSlot(slot) + leftOfSlot(slot + 1)) / 2;
+  return right - slotBandLeft(slot);
+}
+
+/** Where the number sits inside its band, so it keeps standing over the slot itself. */
+export function slotLabelLeftInBand(slot: number): number {
+  return ((leftOfSlot(slot) - slotBandLeft(slot)) / slotBandWidth(slot)) * 100;
+}
+
 export function slotOf(imagePos: number | null): number {
   if (imagePos == null || imagePos < 0 || imagePos >= VN_STAGE_SLOT_COUNT) return 0;
   return imagePos;

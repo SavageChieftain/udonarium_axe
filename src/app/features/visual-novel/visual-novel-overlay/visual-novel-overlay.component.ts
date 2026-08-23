@@ -76,8 +76,10 @@ import {
 import {
   buildVnStage,
   leftOfSlot,
+  slotBandLeft,
+  slotBandWidth,
+  slotLabelLeftInBand,
   VN_STAGE_LOOKBACK,
-  VN_STAGE_MIN_GAP,
   VN_STAGE_SLOT_COUNT,
   VnStageCharacter,
   VnStageSource,
@@ -590,7 +592,9 @@ export class VisualNovelOverlayComponent {
   });
 
   protected leftOfSlot = leftOfSlot;
-  protected readonly slotBandWidth = VN_STAGE_MIN_GAP;
+  protected slotBandLeft = slotBandLeft;
+  protected slotBandWidth = slotBandWidth;
+  protected slotLabelLeftInBand = slotLabelLeftInBand;
 
   readonly speakerPortrait = computed(() => {
     this.objectChange.fileVersion();

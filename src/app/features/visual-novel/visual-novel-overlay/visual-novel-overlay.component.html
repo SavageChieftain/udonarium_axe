@@ -93,14 +93,15 @@
     @for (slotIndex of slotIndexes; track slotIndex) {
       <button
         type="button"
-        class="absolute inset-y-0 -translate-x-1/2 cursor-pointer border-0 border-x border-dashed border-white/25 bg-transparent transition-colors hover:bg-white/15"
+        class="absolute inset-y-0 cursor-pointer border-0 border-x border-dashed border-white/25 bg-transparent transition-colors hover:bg-white/15"
         [class.bg-white/10]="slotIndex === speakerSlot()"
-        [style.left.%]="leftOfSlot(slotIndex)"
-        [style.width.%]="slotBandWidth"
+        [style.left.%]="slotBandLeft(slotIndex)"
+        [style.width.%]="slotBandWidth(slotIndex)"
         (click)="pickSlot(slotIndex)"
       >
         <span
-          class="rounded-ui absolute top-2 left-1/2 -translate-x-1/2 px-1.5 py-0.5 text-[11px]"
+          class="rounded-ui absolute top-2 -translate-x-1/2 px-1.5 py-0.5 text-[11px]"
+          [style.left.%]="slotLabelLeftInBand(slotIndex)"
           [class]="slotIndex === speakerSlot() ? 'bg-ui-accent text-white' : 'bg-black/60 text-white/90'"
         >
           {{ slotIndex + 1 }}

@@ -2,9 +2,13 @@ import { VN_EMOTE_DEFAULT, VnEmote, VnMessageKind } from '@axe/features/visual-n
 import {
   buildVnStage,
   leftOfSlot,
+  slotBandLeft,
+  slotBandWidth,
+  slotLabelLeftInBand,
   spreadStagePositions,
   VN_STAGE_MAX,
   VN_STAGE_MIN_GAP,
+  VN_STAGE_SLOT_COUNT,
   VnStageSource,
 } from '@axe/features/visual-novel/visual-novel-stage';
 
@@ -276,5 +280,28 @@ describe('spreadStagePositions()', () => {
 
   it('pushes rather than reorders, so it wants them in order', () => {
     expect(spreadStagePositions([50, 20], 10, 8, 92)).toEqual([50, 60]);
+  });
+});
+
+describe('the bands of the slot guide', () => {
+  it('leaves no ground between one band and the next', () => {
+    for (let slot = 0; slot < VN_STAGE_SLOT_COUNT - 1; slot++) {
+      const right = slotBandLeft(slot) + slotBandWidth(slot);
+      expect(right).toBeCloseTo(slotBandLeft(slot + 1), 6);
+    }
+  });
+
+  it('runs out to both edges of the guide', () => {
+    const last = VN_STAGE_SLOT_COUNT - 1;
+
+    expect(slotBandLeft(0)).toBe(0);
+    expect(slotBandLeft(last) + slotBandWidth(last)).toBeCloseTo(100, 6);
+  });
+
+  it('keeps the number standing over its slot', () => {
+    for (const slot of [0, 5, VN_STAGE_SLOT_COUNT - 1]) {
+      const label = slotBandLeft(slot) + (slotBandWidth(slot) * slotLabelLeftInBand(slot)) / 100;
+      expect(label).toBeCloseTo(leftOfSlot(slot), 6);
+    }
   });
 });
