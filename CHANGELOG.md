@@ -1,3 +1,81 @@
+## [1.42.0](https://github.com/Xelltis/udonarium_axe/compare/v1.41.3...v1.42.0) (2026-08-23)
+
+### ✨ Features
+
+* **character:** add a folder name to characters ([709c386](https://github.com/Xelltis/udonarium_axe/commit/709c386f74d1129758c923cd6e95799d7ea31f60))
+* **character:** give the portrait position a typed home and a novel-mode override ([2dc3898](https://github.com/Xelltis/udonarium_axe/commit/2dc38982aff7d14f8cb73f2250f727191cff5480))
+* **character:** name a portrait from the sheet ([c1cf298](https://github.com/Xelltis/udonarium_axe/commit/c1cf298ad8a5d1d8975e47c0bdf015b97de5be28))
+* **chat:** fill in a piece's references from the normal chat window ([ad6b497](https://github.com/Xelltis/udonarium_axe/commit/ad6b497ec887b1db50924381149b94f7bf2212b8))
+* **chat:** switch tabs with the wheel over the tab strip ([de22481](https://github.com/Xelltis/udonarium_axe/commit/de2248161df87d3887b2c217023f114a53df9307))
+* **data-element:** say what a gap-table roll is for when sending it to chat ([d23254f](https://github.com/Xelltis/udonarium_axe/commit/d23254fda11458e780a9df2fb4582976df82c7db))
+* **effect:** let the table override the system's reduced-motion setting ([03b27dc](https://github.com/Xelltis/udonarium_axe/commit/03b27dcb98d19196116b15d2d82e1710970bdd6c))
+* **gm-tools,pl-tools:** let the NPC bar and the owned list be narrowed by name ([bf5334a](https://github.com/Xelltis/udonarium_axe/commit/bf5334a3af278439e21efda206f97f5c03a67e37))
+* **inventory:** add an incremental search box to the inventory panel ([f780a86](https://github.com/Xelltis/udonarium_axe/commit/f780a86188686ed040c3799fec6220f2d9b792fb))
+* **inventory:** assign folders from the context menus ([f102f95](https://github.com/Xelltis/udonarium_axe/commit/f102f95a1965855987f2ee3b05a0d5367486d22d))
+* **inventory:** drag characters onto a folder to move them ([e17087f](https://github.com/Xelltis/udonarium_axe/commit/e17087faa53cc1b7753bf0576235e18a1f1d23c2))
+* **inventory:** give shared and personal their own folders, and none to the rest ([f1d695d](https://github.com/Xelltis/udonarium_axe/commit/f1d695d31a6307225c549bb0efc473d8e0dcbdbb))
+* **inventory:** group the inventory list into folders ([9653ecc](https://github.com/Xelltis/udonarium_axe/commit/9653ecccdc25a67ff12ede57bff01687cf905bdb))
+* **inventory:** keep folders to the storage tabs and out of the table ([63b43a3](https://github.com/Xelltis/udonarium_axe/commit/63b43a34d650a6e89b5176c90d5f33eefb21c4fe))
+* **inventory:** make folders things the room keeps, not marks on characters ([9c5b970](https://github.com/Xelltis/udonarium_axe/commit/9c5b9700fbe566a1988f4f4d0d87b1b40f193daf))
+* **ui:** add an effects toggle beside the theme one ([ca9fa75](https://github.com/Xelltis/udonarium_axe/commit/ca9fa75c7a405f6361068f45ee84e8b114b540c6))
+* **visual-novel:** let the backlog place a portrait for one line only ([79a5dc3](https://github.com/Xelltis/udonarium_axe/commit/79a5dc395baa3a41341d3697ffeb27afcd333098))
+* **visual-novel:** let the speaker be found by typing ([d077e96](https://github.com/Xelltis/udonarium_axe/commit/d077e96510790afe501d98431f51ea2af20338a1))
+* **visual-novel:** stand portraits where they stand in chat, and stop them piling up ([f66393a](https://github.com/Xelltis/udonarium_axe/commit/f66393a4933f70adcddbd4990f60deebd311fb38))
+
+### 🐛 Bug Fixes
+
+* **character:** stop the portrait slot from sounding like a wound ([eafb511](https://github.com/Xelltis/udonarium_axe/commit/eafb511f2dc45833928171cebe01404320c37787))
+* **chat:** count the portrait number from the first portrait, not from zero ([9d36300](https://github.com/Xelltis/udonarium_axe/commit/9d3630056b3417d76724dba39796f1474cdad2ed))
+* **chat:** end the log's scroll range above the in-window portraits ([6153873](https://github.com/Xelltis/udonarium_axe/commit/61538733038481cc9c87d1cc316e5aba47b18855))
+* **chat:** fill in a calculating field where a reference names one ([7af694b](https://github.com/Xelltis/udonarium_axe/commit/7af694b489e260427801453e93e4daef5e591487))
+* **chat:** give a message bubble a background worth reading the text on ([55b8f12](https://github.com/Xelltis/udonarium_axe/commit/55b8f12ee53794e7ddb9de4444df08fef6a81789))
+* **chat:** keep Ctrl+arrow among the tabs the strip shows ([454239f](https://github.com/Xelltis/udonarium_axe/commit/454239fe41d21d75149d89847d1e4ec02a489904))
+* **chat:** keep Ctrl+arrow moving between tabs on a tab nobody may speak in ([791d0e4](https://github.com/Xelltis/udonarium_axe/commit/791d0e493a3f63bf7151d0e4f3f2283dd70fd576))
+* **chat:** keep the tab strip under the tab that is current ([9842c6b](https://github.com/Xelltis/udonarium_axe/commit/9842c6b69911a2c6d620c7188d1b2f4ae51ce029))
+* **chat:** let the portrait command pick a portrait out by name ([a8075c0](https://github.com/Xelltis/udonarium_axe/commit/a8075c0126126d691c5368e3104492a9f524c24b))
+* **chat:** stop a reference eating the words that were typed around it ([ef9eead](https://github.com/Xelltis/udonarium_axe/commit/ef9eeadd8c6fc9541c40c80f4c67339f50d057a5))
+* close the gaps the second review found ([16a7fa2](https://github.com/Xelltis/udonarium_axe/commit/16a7fa20e8f1e2cd0162db4d2eed0ff220ffb849))
+* **data-element:** put the name field back on a portrait ([708e4f2](https://github.com/Xelltis/udonarium_axe/commit/708e4f26c55a87d80f972247c230a0587ae89411))
+* **data-element:** stop the field-type names being cut short ([51754e0](https://github.com/Xelltis/udonarium_axe/commit/51754e0031c4f57de7fc254d12ddb5a09b941e0d))
+* **data-element:** work a calculating field out again when its sources change ([6820e3d](https://github.com/Xelltis/udonarium_axe/commit/6820e3d4640ff8b8b911e839ef020a9244a831c8))
+* **data-element:** work a calculating field out from what its sources hold ([0665378](https://github.com/Xelltis/udonarium_axe/commit/06653780c4e80e021bc6f506f8dd2bbeb2166be7))
+* **effect:** stop the standing-field draw loop while motion is off ([3569250](https://github.com/Xelltis/udonarium_axe/commit/3569250fdf224231a35ade4f682320d61932c83c))
+* **inventory:** close the gaps review found in the folder wiring ([b78506f](https://github.com/Xelltis/udonarium_axe/commit/b78506fb86cdd8d1f54ef7c8ea9d9f324324b10a))
+* **inventory:** keep a folder edit inside the scope it was made in ([4b0a40d](https://github.com/Xelltis/udonarium_axe/commit/4b0a40d7deebe8d7be5d97c1a1105181f24fabb8))
+* **inventory:** show a calculating field's result in the popup and the list ([7c0bcd6](https://github.com/Xelltis/udonarium_axe/commit/7c0bcd642f90c4b9497c703ab9ba1feec4abd3e0))
+* **ui:** write the motion setting down only when it is chosen ([e15d350](https://github.com/Xelltis/udonarium_axe/commit/e15d350ccb33ca297a1ae216ac6e6a6778514fe9))
+* **visual-novel:** let the whole slot guide pick a slot ([11d856d](https://github.com/Xelltis/udonarium_axe/commit/11d856d67b6c10539615ba8b81e10793299ee546))
+* **website:** build the heading ids the way links are written ([c5a9c34](https://github.com/Xelltis/udonarium_axe/commit/c5a9c343cb2a8223b142ee3d3fe9a4c6e6842577))
+* **website:** point the in-page links at the anchors that were built ([65b962a](https://github.com/Xelltis/udonarium_axe/commit/65b962a64ae2fe7e673ee11480a7618ddd0613af))
+* **website:** point three release-note links at headings that exist ([0ab7b30](https://github.com/Xelltis/udonarium_axe/commit/0ab7b308cba5f15120e45ac44cff53116017d1d9))
+
+### ⚡ Performance
+
+* **data-element:** work a table's calculating cells out once for the table ([90b5436](https://github.com/Xelltis/udonarium_axe/commit/90b54366a44ceb4b0a146065cb16da3a13f9e677))
+
+### 📝 Documentation
+
+* **features:** note that the system setting is a default, not a verdict ([dc20f12](https://github.com/Xelltis/udonarium_axe/commit/dc20f126ac0a9f4616fb61a42e02c440a39011f2))
+* **website:** add v1.41.3 release notes ([b4e344c](https://github.com/Xelltis/udonarium_axe/commit/b4e344c78b05a557ed8f298e42a1141cd271f9ed))
+* **website:** describe naming a portrait and calling it from chat ([d24d8b7](https://github.com/Xelltis/udonarium_axe/commit/d24d8b7a85b691cf4c35a1602d58fc04dfe471d8))
+* **website:** describe searching and folders in the inventory manual ([94c8c27](https://github.com/Xelltis/udonarium_axe/commit/94c8c27be2c38115d63ce20ab8f3da2e6b805f11))
+* **website:** describe the effects toggle and what to do when nothing shows ([f56ff09](https://github.com/Xelltis/udonarium_axe/commit/f56ff097ee05a5c62b15c66843e91622a3fc5553))
+* **website:** describe the field types a sheet item can take ([f6e98ac](https://github.com/Xelltis/udonarium_axe/commit/f6e98ac6c48eb553545a3ff6936141cdf618f56f))
+* **website:** describe the gap judgement over a check table ([dcee280](https://github.com/Xelltis/udonarium_axe/commit/dcee2808d2b7833f7ae11a5181b162b1bdc6d118))
+* **website:** describe where a portrait stands in novel mode ([f1e1b8c](https://github.com/Xelltis/udonarium_axe/commit/f1e1b8cd60a53653ea6338dea3fba99b46b5ae6f))
+* **website:** note that the wheel moves between chat tabs ([500b785](https://github.com/Xelltis/udonarium_axe/commit/500b785fc2d93942382d8ce6759e193830ca7889))
+* **website:** say that a reference fills in from the chat window too ([35b6d7f](https://github.com/Xelltis/udonarium_axe/commit/35b6d7fcfe0d3abc5ede9defd76b07a3c438c632))
+* **website:** show the field types on screen and how a check table is built ([62967a5](https://github.com/Xelltis/udonarium_axe/commit/62967a51d470991358437c33ef5fc756ab03116f))
+
+### ♻️ Refactor
+
+* **chat:** let anything fill in a character's references ([8de8406](https://github.com/Xelltis/udonarium_axe/commit/8de8406bdb2be1af9af1a3ba04b1b5001aee5be8))
+* **core:** move the search text helpers out of the inventory ([78f89f2](https://github.com/Xelltis/udonarium_axe/commit/78f89f274ae3ec9ae434c5662342de92a25163fd))
+* **data-element:** move a calculating field's workings into the domain ([bf7cda1](https://github.com/Xelltis/udonarium_axe/commit/bf7cda1089ffca4bc4b00406f057ca825ab6e407))
+* **inventory:** drop the folder view toggle and give the tabs their row back ([107d58f](https://github.com/Xelltis/udonarium_axe/commit/107d58f87d7b94ca84863517cee190579d103d7c))
+* **inventory:** move the inventory row into its own template ([1cba9f4](https://github.com/Xelltis/udonarium_axe/commit/1cba9f44c6091b14c947fa877058d144037d1f6a))
+* **inventory:** name folders in place instead of through a prompt ([f5c2b0f](https://github.com/Xelltis/udonarium_axe/commit/f5c2b0f60a6210a6c586a5be4e1348b37bb8b413))
+
 ## [1.41.3](https://github.com/Xelltis/udonarium_axe/compare/v1.41.2...v1.41.3) (2026-08-22)
 
 ### 🐛 Bug Fixes
