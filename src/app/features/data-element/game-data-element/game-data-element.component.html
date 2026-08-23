@@ -399,10 +399,10 @@
       </div>
       @if (isEdit() && !isImage()) {
         <div
-          class="elm-row-actions pointer-events-auto static z-2 col-start-2 row-start-1 grid w-(--gde-actions-width) min-w-(--gde-actions-width) grid-cols-[74px_repeat(5,20px)] items-center justify-end gap-0.5 self-center rounded-(--gde-radius-line) border border-(--gde-row-border) bg-(--gde-action-bg) p-0.5 opacity-100"
+          class="elm-row-actions pointer-events-auto static z-2 col-start-2 row-start-1 grid w-(--gde-actions-width) min-w-(--gde-actions-width) grid-cols-[var(--gde-select-width)_repeat(5,20px)] items-center justify-end gap-0.5 self-center rounded-(--gde-radius-line) border border-(--gde-row-border) bg-(--gde-action-bg) p-0.5 opacity-100"
         >
           <ng-select
-            class="ud-select min-h-5.5! w-18.5 min-w-18.5 text-[0.68em]! [&_.ng-select-container]:h-5.5! [&_.ng-select-container]:min-h-5.5! [&_.ng-select-container]:items-center [&_.ng-select-container]:rounded-(--gde-radius-control)! [&_.ng-select-container_.ng-arrow-wrapper]:self-center [&_.ng-select-container_.ng-arrow-wrapper]:pb-0"
+            class="ud-select gde-select min-h-5.5! text-[0.68em]! [&_.ng-select-container]:h-5.5! [&_.ng-select-container]:min-h-5.5! [&_.ng-select-container]:items-center [&_.ng-select-container]:rounded-(--gde-radius-control)! [&_.ng-select-container_.ng-arrow-wrapper]:self-center [&_.ng-select-container_.ng-arrow-wrapper]:pb-0"
             [ngModel]="gameDataElement().fieldType"
             [ngModelOptions]="{ standalone: true }"
             [clearable]="false"

@@ -488,6 +488,8 @@ chat-message > div > div {
 
   /* 丸み */
   --ui-radius-sm: 4px;
+  /* 種別ピッカーの幅。ドロップダウンは body 直下に出るので :root に置く。 */
+  --gde-select-width: 86px;
   --ui-radius: 8px;
   --ui-radius-lg: 12px;
   --ui-radius-xl: 16px;
@@ -679,6 +681,19 @@ chat-message > div > div {
 
 .ng-select.ud-select.ng-select-opened .ng-select-container .ng-arrow-wrapper .ng-arrow {
   border-color: transparent transparent var(--ui-accent);
+}
+
+/* データ要素の種別ピッカー。ng-select はホストの class をドロップダウンにも写すので、
+   幅は class ではなくここで与える。class で絞ると候補一覧まで同じ幅になり、
+   「テキスト」「射程図形」のような 4 文字が省略記号に丸められる。 */
+.ng-select.ud-select.gde-select {
+  width: var(--gde-select-width);
+  min-width: var(--gde-select-width);
+}
+
+.ng-dropdown-panel.ud-select.gde-select {
+  width: max-content !important;
+  min-width: var(--gde-select-width) !important;
 }
 
 /* dice-table-setting でフル幅にしたいセレクタに付けるバリアント。
@@ -1594,7 +1609,7 @@ game-data-element,
   --gde-section-shadow: inset 0 1px 0 color-mix(in srgb, var(--ui-text) 9%, transparent);
   --gde-structure-bg: color-mix(in srgb, var(--ui-accent-bg) 34%, var(--ui-elevated));
   --gde-structure-width: 30px;
-  --gde-actions-width: 186px;
+  --gde-actions-width: 198px;
   --gde-value-bg: color-mix(in srgb, var(--ui-input-bg) 88%, var(--ui-surface));
 
   position: relative;
