@@ -287,7 +287,19 @@ export class GameDataElementTableViewComponent {
     const element = this.element();
     const baseDifficulty = parseInt(element.getAttribute(DataElementAttribute.BASE_DIFFICULTY)) || 5;
     const totalDifficulty = baseDifficulty + candidate.distance;
-    this.uiSignalService.requestChatInputText(`2d6>=${totalDifficulty}`);
+    this.uiSignalService.requestChatInputText(`2d6>=${totalDifficulty}${this.judgementNote(candidate)}`);
     this.judgeCandidatesState.set(null);
+  }
+
+  /**
+   * What the roll is for: the skill being judged, and the learnt skill the distance is counted from.
+   * A dice bot reads as far as the first space, so the note rides along behind one without
+   * disturbing the roll. Without it the log holds a bare target number and nothing to read it against.
+   */
+  private judgementNote(candidate: SkillJudgementCandidate): string {
+    const target = (this.judgeCandidatesState()?.clickedCellLabel ?? '').trim();
+    const source = (candidate.cellLabel || candidate.colLabel).trim();
+    if (target.length < 1 || source.length < 1) return '';
+    return ` ${this.t('feature.dataElement.judgement.chatNote', { target, source, distance: candidate.distance })}`;
   }
 }

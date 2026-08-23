@@ -2651,6 +2651,7 @@
       "title": "Judgement candidates for {{label}}",
       "empty": "No learned skill found",
       "distance": "Distance: {{distance}}",
+      "chatNote": "{{target}} (from {{source}}, {{distance}})",
       "sendToChat": "Send to chat"
     }
   },

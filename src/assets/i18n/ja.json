@@ -2651,6 +2651,7 @@
       "title": "{{label}} の判定候補",
       "empty": "習得済みの技能が見つかりませんでした",
       "distance": "距離: {{distance}}",
+      "chatNote": "{{target}}（{{source}}から{{distance}}）",
       "sendToChat": "チャットに入力"
     }
   },

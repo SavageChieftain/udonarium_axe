@@ -130,6 +130,42 @@ describe('GameDataElementTableViewComponent', () => {
     expect(component.judgeCandidatesState()).toBeNull();
   });
 
+  it('says what the roll is for, behind a space the dice bot stops at', () => {
+    const uiSignal = TestBed.inject(UiSignalService);
+    const requestSpy = vi.spyOn(uiSignal, 'requestChatInputText').mockImplementation(() => {});
+    component.judgeCandidatesState.set({ clickedCellLabel: '静音移動', candidates: [] });
+    const candidate = { cell: null, rowName: '2', colName: '技巧', colLabel: '技巧', cellLabel: '解錠', distance: 2 };
+
+    component.sendCandidateToChat(candidate as never);
+
+    const [text] = requestSpy.mock.calls[0];
+    expect(text.split(' ')[0]).toBe('2d6>=7');
+    expect(text).toContain('静音移動');
+    expect(text).toContain('解錠');
+  });
+
+  it('names the column where the cell carries no label of its own', () => {
+    const uiSignal = TestBed.inject(UiSignalService);
+    const requestSpy = vi.spyOn(uiSignal, 'requestChatInputText').mockImplementation(() => {});
+    component.judgeCandidatesState.set({ clickedCellLabel: '静音移動', candidates: [] });
+    const candidate = { cell: null, rowName: '2', colName: '身体', colLabel: '身体', cellLabel: '', distance: 1 };
+
+    component.sendCandidateToChat(candidate as never);
+
+    expect(requestSpy.mock.calls[0][0]).toContain('身体');
+  });
+
+  it('sends the roll alone when there is nothing to name', () => {
+    const uiSignal = TestBed.inject(UiSignalService);
+    const requestSpy = vi.spyOn(uiSignal, 'requestChatInputText').mockImplementation(() => {});
+    component.judgeCandidatesState.set({ clickedCellLabel: '', candidates: [] });
+    const candidate = { cell: null, rowName: '', colName: '', colLabel: '', cellLabel: '', distance: 1 };
+
+    component.sendCandidateToChat(candidate as never);
+
+    expect(requestSpy).toHaveBeenCalledWith('2d6>=6');
+  });
+
   it('reads the base difficulty off the attribute', () => {
     const uiSignal = TestBed.inject(UiSignalService);
     const requestSpy = vi.spyOn(uiSignal, 'requestChatInputText').mockImplementation(() => {});
