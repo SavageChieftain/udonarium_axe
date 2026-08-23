@@ -53,6 +53,11 @@ const AT_BOTTOM_THRESHOLD_PX = 8;
     SafePipe,
     TranslocoModule,
   ],
+  host: {
+    tabindex: '-1',
+    '(keydown.control.arrowleft)': 'switchTabByKey($event, -1)',
+    '(keydown.control.arrowright)': 'switchTabByKey($event, 1)',
+  },
 })
 export class ChatWindowComponent {
   chatMessageService = inject(ChatMessageService);
@@ -64,6 +69,7 @@ export class ChatWindowComponent {
   private readonly chatPrefs = inject(ChatPreferencesService);
   private readonly activeChatTab = inject(ActiveChatTabService);
   private readonly t = inject(TRANSLATE_FN);
+  private readonly hostElement = inject<ElementRef<HTMLElement>>(ElementRef);
 
   sendFrom: string = 'Guest';
 
@@ -123,6 +129,17 @@ export class ChatWindowComponent {
       activeInput.parentElement.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
     }
     this.updateTabScrollState();
+  }
+
+  /**
+   * Bound to the window rather than to the input: a tab nobody may speak in renders no textarea,
+   * and the shortcut used to live on that textarea, so arriving at such a tab left no way back
+   * out by keyboard. Focus follows to the window when the input goes away.
+   */
+  switchTabByKey(event: Event, direction: number): void {
+    event.preventDefault();
+    this.chatTabSwitchRelative(direction);
+    if (!this.canSpeakCurrentTab()) this.hostElement.nativeElement.focus();
   }
 
   chatTabSwitchRelative(direction: number) {

@@ -48,7 +48,12 @@ export interface PaletteRow {
   changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'chat-palette',
   templateUrl: './chat-palette.component.html',
-  host: { class: 'block h-full' },
+  host: {
+    class: 'block h-full',
+    tabindex: '-1',
+    '(keydown.control.arrowleft)': 'switchTabByKey($event, -1)',
+    '(keydown.control.arrowright)': 'switchTabByKey($event, 1)',
+  },
   imports: [FormsModule, BadgeComponent, ChatInputComponent, GameDataElementComponent, TranslocoModule],
 })
 export class ChatPaletteComponent {
@@ -204,6 +209,12 @@ export class ChatPaletteComponent {
 
   resizeChatInput() {
     this.chatInputComponent().kickCalcFitHeight();
+  }
+
+  /** On the panel rather than on the input, so it keeps working wherever focus sits inside it. */
+  switchTabByKey(event: Event, direction: number): void {
+    event.preventDefault();
+    this.chatTabSwitchRelative(direction);
   }
 
   chatTabSwitchRelative(direction: number) {

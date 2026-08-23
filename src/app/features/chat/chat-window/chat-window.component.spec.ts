@@ -3,6 +3,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ObjectChangeService, ObjectDeleteEvent } from '@axe/application/sync/object-change.service';
 import { EventChannel } from '@axe/core/event/event-channel';
 import { childrenChanged$, objectChanged$ } from '@axe/core/sync/object-event-extension';
+import { ChatTab } from '@axe/domain/chat/chat-tab';
 import { ChatTabList } from '@axe/domain/chat/chat-tab-list';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { ChatWindowComponent } from '@axe/features/chat/chat-window/chat-window.component';
@@ -328,6 +329,45 @@ describe('ChatWindowComponent', () => {
       expect(component.newMessageCount()).toBe(3);
       expect(component.hasNewMessage()).toBe(true);
       expect(component.isNearBottom()).toBe(true);
+    });
+  });
+
+  describe('moving between tabs by keyboard', () => {
+    function pressControlArrow(direction: number): void {
+      const event = new KeyboardEvent('keydown', {
+        key: direction < 0 ? 'ArrowLeft' : 'ArrowRight',
+        ctrlKey: true,
+        bubbles: true,
+      });
+      fixture.nativeElement.dispatchEvent(event);
+      fixture.detectChanges();
+    }
+
+    let tabs: ChatTab[];
+
+    beforeEach(() => {
+      tabs = [ChatTabList.instance.addChatTab('一枚目'), ChatTabList.instance.addChatTab('二枚目')];
+      component.chatTabidentifier = tabs[0].identifier;
+      fixture.detectChanges();
+    });
+
+    afterEach(() => {
+      tabs.forEach((tab) => tab.destroy());
+    });
+
+    it('listens on the window, so the shortcut does not depend on the input being there', () => {
+      pressControlArrow(1);
+
+      expect(component.chatTabidentifier).toBe(tabs[1].identifier);
+    });
+
+    it('keeps hold of the keyboard on a tab that shows no input', () => {
+      Object.defineProperty(component, 'canSpeakCurrentTab', { value: () => false });
+
+      component.switchTabByKey(new KeyboardEvent('keydown'), 1);
+
+      expect(component.chatTabidentifier).toBe(tabs[1].identifier);
+      expect(document.activeElement).toBe(fixture.nativeElement);
     });
   });
 });
