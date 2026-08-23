@@ -37,22 +37,27 @@ export class MotionService {
       this.destroyRef.onDestroy(() => mql.removeEventListener('change', listener));
     }
 
-    this.apply();
-    effect(() => this.apply());
+    this.markDocument();
+    effect(() => this.markDocument());
   }
 
   cycle(): void {
     const index = MOTION_ORDER.indexOf(this.setting());
-    this.setting.set(MOTION_ORDER[(index + 1) % MOTION_ORDER.length]);
+    this.set(MOTION_ORDER[(index + 1) % MOTION_ORDER.length]);
   }
 
-  private apply(): void {
-    this.document.documentElement.classList.toggle('motion-reduced', !this.enabled());
+  /** Only a choice is written down. The system setting turning over is not one. */
+  set(setting: MotionSetting): void {
+    this.setting.set(setting);
     try {
-      localStorage.setItem(STORAGE_KEY, this.setting());
+      localStorage.setItem(STORAGE_KEY, setting);
     } catch {
       // Private browsing refuses the write; the setting still holds for this session.
     }
+  }
+
+  private markDocument(): void {
+    this.document.documentElement.classList.toggle('motion-reduced', !this.enabled());
   }
 }
 

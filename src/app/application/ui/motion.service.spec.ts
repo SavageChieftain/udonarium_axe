@@ -89,11 +89,16 @@ describe('MotionService', () => {
     expect(document.documentElement.classList.contains('motion-reduced')).toBe(true);
   });
 
-  it('remembers the setting across a reload', () => {
-    setup(false).setting.set('off');
-    TestBed.tick();
+  it('remembers a choice across a reload', () => {
+    setup(false).set('off');
     TestBed.resetTestingModule();
 
     expect(setup(false).setting()).toBe('off');
+  });
+
+  it('writes nothing down until a choice is made', () => {
+    setup(true);
+
+    expect(localStorage.getItem('ui-motion')).toBeNull();
   });
 });

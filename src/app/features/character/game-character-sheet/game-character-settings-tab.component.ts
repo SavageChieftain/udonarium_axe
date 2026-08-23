@@ -131,8 +131,9 @@ export class GameCharacterSettingsTabComponent {
     const folderName = normalizeFolderPath(input.value);
     input.value = folderName;
     if (character.folderName === folderName) return;
+    // The synchronised setter announces the change on its way through; saying so again here made
+    // every listener do its work twice.
     character.folderName = folderName;
-    this.objectChange.notifyChanged(character.identifier);
   }
 
   convertLegacyCheckTables(): void {
