@@ -1,4 +1,5 @@
 import { computed, DestroyRef, inject, Injectable, signal } from '@angular/core';
+import { MotionService } from '@axe/application/ui/motion.service';
 import { effectCast$ } from '@axe/core/event/domain-events';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { EffectCast, normalizeEffectCast } from '@axe/domain/effect/effect-cast';
@@ -23,6 +24,7 @@ const SHAKE_MS = 340;
 export class EffectPlaybackService {
   private readonly objectStore = inject(ObjectStore);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly motion = inject(MotionService);
 
   private readonly _activeCasts = signal<ActiveEffectCast[]>([]);
   readonly activeCasts = this._activeCasts.asReadonly();
@@ -90,7 +92,7 @@ export class EffectPlaybackService {
 
     this.scheduleLaunchSound(preset);
     this.scheduleImpactSound(preset);
-    if (prefersReducedMotion()) return null;
+    if (!this.motion.enabled()) return null;
 
     this.startScreenShake(preset);
 
@@ -188,10 +190,4 @@ export class EffectPlaybackService {
 
 function clock(): number {
   return typeof performance === 'object' ? performance.now() : Date.now();
-}
-
-/** The system's reduced-motion setting, used to decide on sound without the animation. */
-export function prefersReducedMotion(): boolean {
-  if (typeof matchMedia !== 'function') return false;
-  return matchMedia('(prefers-reduced-motion: reduce)').matches;
 }

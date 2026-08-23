@@ -1134,38 +1134,39 @@ input[type='range']::-moz-range-thumb {
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .animate-sheet-up,
-  .animate-fade-in,
-  .animate-fly-in,
-  .animate-vn-fade-in,
-  .animate-vn-slide-in,
-  .animate-vn-bounce-in,
-  .animate-vn-shake,
-  .animate-vn-pop,
-  .animate-vn-pulse,
-  .animate-vn-float,
-  .animate-vn-jump,
-  .animate-vn-tremble,
-  .animate-vn-zoom,
-  .animate-vn-nod,
-  .animate-vn-sway,
-  .animate-vn-droop,
-  .animate-vn-mark-in,
-  .animate-vn-speak-a,
-  .animate-vn-speak-b,
-  .vn-enter-normal,
-  .vn-enter-shout,
-  .vn-enter-thought,
-  .vn-enter-whisper,
-  .vn-enter-system,
-  .vn-enter-narration,
-  .vn-enter-location,
-  .vn-enter-scene,
-  .vn-bg-fade,
-  .vn-bg-wipe {
-    animation: none;
-  }
+:root.motion-reduced
+  :is(
+    .animate-sheet-up,
+    .animate-fade-in,
+    .animate-fly-in,
+    .animate-vn-fade-in,
+    .animate-vn-slide-in,
+    .animate-vn-bounce-in,
+    .animate-vn-shake,
+    .animate-vn-pop,
+    .animate-vn-pulse,
+    .animate-vn-float,
+    .animate-vn-jump,
+    .animate-vn-tremble,
+    .animate-vn-zoom,
+    .animate-vn-nod,
+    .animate-vn-sway,
+    .animate-vn-droop,
+    .animate-vn-mark-in,
+    .animate-vn-speak-a,
+    .animate-vn-speak-b,
+    .vn-enter-normal,
+    .vn-enter-shout,
+    .vn-enter-thought,
+    .vn-enter-whisper,
+    .vn-enter-system,
+    .vn-enter-narration,
+    .vn-enter-location,
+    .vn-enter-scene,
+    .vn-bg-fade,
+    .vn-bg-wipe
+  ) {
+  animation: none;
 }
 
 @keyframes sheetUp {

@@ -1,5 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { EffectFieldService } from '@axe/application/effect/effect-field.service';
+import { MotionService } from '@axe/application/ui/motion.service';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { EffectPreset } from '@axe/domain/effect/effect-preset';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
@@ -68,16 +69,11 @@ describe('EffectFieldService', () => {
     expect(service.renderables(0)).toHaveLength(0);
   });
 
-  it('draws nothing under reduced motion', () => {
+  it('draws nothing while motion is off', () => {
     service.place(preset, 0, 0, 0);
-    const original = window.matchMedia;
-    window.matchMedia = ((query: string) => ({ matches: query.includes('reduce') })) as never;
+    TestBed.inject(MotionService).setting.set('off');
 
-    try {
-      // A field never ends, so drawing on would ignore the setting for good.
-      expect(service.renderables(0)).toHaveLength(0);
-    } finally {
-      window.matchMedia = original;
-    }
+    // A field never ends, so drawing on would ignore the setting for good.
+    expect(service.renderables(0)).toHaveLength(0);
   });
 });
