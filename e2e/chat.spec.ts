@@ -179,3 +179,64 @@ test.describe('ダイス表設定パネル', () => {
     await expect(items).toHaveCount(initialCount + 1, { timeout: 5000 });
   });
 });
+
+test.describe('チャットログのスクロール枠', () => {
+  test.beforeEach(async ({ page }) => {
+    await waitAppReady(page);
+  });
+
+  test('ログが自前のスクロール枠を持ち、パネル本体は伸びないこと', async ({ page }) => {
+    const textarea = page.locator('textarea.chat-input');
+    const send = page.locator('chat-input').getByRole('button', { name: '送信' });
+    for (let i = 0; i < 30; i++) {
+      await textarea.fill(`スクロール検証 ${i}`);
+      await send.click();
+    }
+    await expect(page.locator('chat-tab').getByText('スクロール検証 29')).toBeVisible({ timeout: 10000 });
+
+    const log = page.locator('[data-testid="chat-log-scroll"]');
+    const box = await log.evaluate((el) => {
+      const panel = el.closest('ui-panel')!.querySelector<HTMLElement>('.overflow-auto');
+      return {
+        clientHeight: el.clientHeight,
+        scrollHeight: el.scrollHeight,
+        panelOverflow: panel ? panel.scrollHeight - panel.clientHeight : -1,
+      };
+    });
+
+    expect(box.clientHeight).toBeGreaterThan(0);
+    expect(box.scrollHeight).toBeGreaterThan(box.clientHeight);
+    expect(box.panelOverflow).toBeLessThanOrEqual(1);
+
+    await expect
+      .poll(() => log.evaluate((el) => el.scrollHeight - el.clientHeight - el.scrollTop), { timeout: 5000 })
+      .toBeLessThanOrEqual(8);
+  });
+
+  test('ログを遡ると最新メッセージへ移動するボタンが出ること', async ({ page }) => {
+    const textarea = page.locator('textarea.chat-input');
+    const send = page.locator('chat-input').getByRole('button', { name: '送信' });
+    for (let i = 0; i < 60; i++) {
+      await textarea.fill(`ジャンプ検証 ${i}`);
+      await send.click();
+    }
+    await expect(page.locator('chat-tab').getByText('ジャンプ検証 59')).toBeVisible({ timeout: 10000 });
+
+    const overflow = await page
+      .locator('[data-testid="chat-log-scroll"]')
+      .evaluate((el) => el.scrollHeight - el.clientHeight);
+    expect(overflow).toBeGreaterThan(400);
+
+    const jump = page.locator('chat-window button', { hasText: '最新メッセージへ移動' });
+    await expect(jump).toBeHidden();
+
+    await page.locator('[data-testid="chat-log-scroll"]').evaluate((el) => {
+      el.scrollTop = 0;
+      el.dispatchEvent(new Event('scroll'));
+    });
+    await expect(jump).toBeVisible({ timeout: 5000 });
+
+    await jump.click();
+    await expect(jump).toBeHidden({ timeout: 5000 });
+  });
+});

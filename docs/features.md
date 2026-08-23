@@ -228,12 +228,13 @@ Udonarium Axe が **追加** または **大きく拡張・再設計** した機
 - **濃霧の塗りだけ濃さを非線形に伸ばす**（`ambienceWashLevel`、`level^1.6`） — 100% で盤面が白く潰れるところまで届かせつつ、途中の薄さを保つ。線形にすると中ほどが一気に重くなる
 - **canvas は範囲より一回り大きく取る**（`SURFACE_PAD_UNITS` / `VAPOR_PAD_UNITS`） — 粒は canvas の形に切り取られるので、粒の直径が範囲と同じくらい大きいと、中心が真ん中にあっても裾が枠で切られて灰色の四角が浮く。中心からの距離で透明度を落としても防げない
 - **塗りのグラデーションは `closest-side`** — 既定の farthest-corner だと、中心を寄せた塊が箱からはみ出し、はみ出した側が不透明なまま直線で切られる
-- **`prefers-reduced-motion` でも面の塗り（`groundSurfaceWash` / `skyAmbienceWash`）は残す** — 発動する演出と違い、消すと「そこが毒沼である」という盤面の情報ごと消える
+- **演出を止めていても面の塗り（`groundSurfaceWash` / `skyAmbienceWash`）は残す** — 発動する演出と違い、消すと「そこが毒沼である」という盤面の情報ごと消える
+- **OS の設定は既定値であって最終決定ではない**（`application/ui/motion.service`、`auto` / `on` / `off`） — Windows は描画を軽くする目的で「アニメーション効果」を切る。`prefers-reduced-motion` にそのまま従うと、音だけ鳴って画面には何も出ない卓ができあがる
 - **描画ループの持ち主は複数いる** — `EffectPlaybackService.setPersistent(source, boolean)` はソース名で持ち主を数える。真偽値ひとつだと、場と環境演出のうち後から来たほうが前の要求を消してしまう
 
 ### 描画（canvas と SVG のハイブリッド）
 
-光る粒・炎・煙・岩片は対象ごとの canvas に `globalCompositeOperation: 'lighter'` の加算合成で描き（canvas 内で合成が閉じるので `preserve-3d` を壊さない）、魔法陣・衝撃波の輪・地割れ・稲妻・刃・氷柱は SVG のまま線のクリスプさを保つ。パーティクルは `domain/effect/effect-particles`（純関数・板ポリ面内座標）、形は `domain/effect/effect-shapes`（`0 0 100 100` 固定 viewBox）。回転・脈動は `@keyframes` に載せる。視界外のコマと `prefers-reduced-motion` 時は描画せず SE のみ。
+光る粒・炎・煙・岩片は対象ごとの canvas に `globalCompositeOperation: 'lighter'` の加算合成で描き（canvas 内で合成が閉じるので `preserve-3d` を壊さない）、魔法陣・衝撃波の輪・地割れ・稲妻・刃・氷柱は SVG のまま線のクリスプさを保つ。パーティクルは `domain/effect/effect-particles`（純関数・板ポリ面内座標）、形は `domain/effect/effect-shapes`（`0 0 100 100` 固定 viewBox）。回転・脈動は `@keyframes` に載せる。視界外のコマと演出を止めているときは描画せず SE のみ。
 
 - **スプライトに `will-change` は付けない** — 派手な演出は数百枚を同じフレームで出すので、その場で数百の合成レイヤーを確保することになり、確保が終わるまで画面が暗く落ちる。毎フレーム大きさも色も変わるため昇格させても得が無い
 - **経路に直交させるずらしは画面平面で取る**（ブレスの渦・吸収の弧・ミサイルの回り込み） — ワールドの y でずらすと、向きによっては経路に沿って前後するだけになって弧を描かない
@@ -307,6 +308,7 @@ SE は効果音ラボ・On-Jin の素材を取り込み、`PresetSound` 経由�
 
 - **ダーク / ライトテーマ** — グラスモーフィズム UI、ラベンダーパステルのライトテーマ、`resolved-theme` クラス
 - ユーザ選択式の light / dark / auto トグル
+- 演出の auto / on / off トグル（`MotionService`）— OS の reduced motion を既定値として読み、卓の側から上書きできる
 - `--ui-*` デザイントークンを Tailwind theme にブリッジ
 - カラースウォッチ（プリセットパレット）と `@acrodata/color-picker`
 - サイドバーナビを **FAB メニュー**に置換、初期パネルレイアウトの最適化

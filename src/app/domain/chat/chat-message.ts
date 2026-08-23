@@ -9,6 +9,7 @@ import { ObjectStore } from '@axe/core/sync/object-store';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { ChatTabList } from '@axe/domain/chat/chat-tab-list';
 import { type DiceRollDetail, parseDiceRollDetail } from '@axe/domain/dice/dice-roll-detail';
+import { VN_PORTRAIT_POS_UNSET } from '@axe/domain/visual-novel/vn-portrait-position';
 
 export interface ChatMessageTargetContext {
   text: string;
@@ -47,6 +48,7 @@ export class ChatMessage extends ObjectNode implements ChatMessageContext {
   @SyncVar() imageIdentifier: string;
   @SyncVar() attachmentImageIdentifiers: string = '';
   @SyncVar() imagePos: number;
+  @SyncVar() vnPortraitPos: number = VN_PORTRAIT_POS_UNSET;
   @SyncVar() messColor: string;
   @SyncVar() sendFrom: string;
   @SyncVar() replyTo: string = '';

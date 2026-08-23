@@ -63,9 +63,20 @@ export class PanelService {
   chatTab: ChatTab | null = null;
   cardStack: CardStack | null = null;
   scrollablePanel: HTMLDivElement | null = null;
+  private isScrollablePanelClaimed = false;
   readonly scrollToBottom$ = new EventChannel<void>();
   get isShow(): boolean {
     return this.panelComponentRef !== null;
+  }
+
+  setDefaultScrollablePanel(panel: HTMLDivElement): void {
+    if (this.isScrollablePanelClaimed) return;
+    this.scrollablePanel = panel;
+  }
+
+  claimScrollablePanel(panel: HTMLDivElement): void {
+    this.isScrollablePanelClaimed = true;
+    this.scrollablePanel = panel;
   }
 
   open<T>(childComponent: Type<T>, option?: PanelOption, parentViewContainerRef?: ViewContainerRef): T {

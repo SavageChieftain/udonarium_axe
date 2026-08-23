@@ -1,6 +1,13 @@
 import { TestBed } from '@angular/core/testing';
 import { ObjectStore } from '@axe/core/sync/object-store';
-import { BuffPalette, ChatPalette, DiceTablePalette } from '@axe/domain/chat/chat-palette';
+import { GameCharacter } from '@axe/domain/character/game-character';
+import {
+  BuffPalette,
+  ChatPalette,
+  DiceTablePalette,
+  evaluateCharacterReferences,
+  textTargetsCharacter,
+} from '@axe/domain/chat/chat-palette';
 import { DataElement, DataElementFieldType } from '@axe/domain/data/data-element';
 
 describe('ChatPalette', () => {
@@ -231,6 +238,105 @@ describe('ChatPalette', () => {
       const dtp = new DiceTablePalette();
       dtp.initialize();
       expect(dtp).toBeInstanceOf(ChatPalette);
+    });
+  });
+
+  describe('evaluateCharacterReferences()', () => {
+    function makeCharacter(withPalette: boolean, hp = '13'): GameCharacter {
+      const character = new GameCharacter();
+      character.initialize();
+      character.createDataElements();
+      const detail = DataElement.create('detail', '');
+      const status = DataElement.create('ステータス', '');
+      status.appendChild(DataElement.create('HP', hp));
+      detail.appendChild(status);
+      character.rootDataElement?.appendChild(detail);
+
+      if (withPalette) {
+        const palette = new ChatPalette();
+        palette.initialize();
+        palette.setPalette('//ATK=7\n2d6+{ATK}');
+        character.appendChild(palette);
+      }
+      return character;
+    }
+
+    it('reads the sheet of a piece that keeps no palette', () => {
+      const character = makeCharacter(false);
+
+      expect(evaluateCharacterReferences('2d6+{HP}', character).text).toBe('2d6+13');
+    });
+
+    it('reads the variables of a piece that keeps one', () => {
+      const character = makeCharacter(true);
+
+      expect(evaluateCharacterReferences('2d6+{ATK}', character).text).toBe('2d6+7');
+    });
+
+    it('reads the piece it is aimed at through t{}', () => {
+      const speaker = makeCharacter(false);
+      const target = makeCharacter(false, '4');
+
+      expect(evaluateCharacterReferences('{HP} t{HP}', speaker, target).text).toBe('13 4');
+    });
+
+    it('leaves the line alone when nobody is speaking it', () => {
+      expect(evaluateCharacterReferences('2d6+{HP}', null).text).toBe('2d6+{HP}');
+    });
+
+    it('leaves what it cannot fill in rather than eating it', () => {
+      const character = makeCharacter(false);
+
+      expect(evaluateCharacterReferences('やった{歓喜}', character).text).toBe('やった{歓喜}');
+    });
+
+    it('leaves a calculating field alone where the formula cannot be worked out', () => {
+      const character = makeCharacter(false);
+      const calc = DataElement.create('攻撃力', '', {
+        fieldType: DataElementFieldType.CALC,
+        formula: '存在しない項目 * 2',
+      });
+      character.rootDataElement?.getFirstElementByName('detail')?.appendChild(calc);
+
+      // '?' reads as a hint on the sheet, but in a command it is only a broken roll.
+      expect(evaluateCharacterReferences('2d6+{攻撃力}', character).text).toBe('2d6+{攻撃力}');
+    });
+  });
+
+  describe('a calculating field among the references', () => {
+    it('gives the result rather than the empty value it stores', () => {
+      const palette = new ChatPalette();
+      palette.initialize();
+      const detail = DataElement.create('detail', '');
+      detail.appendChild(DataElement.create('筋力', '8'));
+      const calc = DataElement.create('攻撃力', '', {
+        fieldType: DataElementFieldType.CALC,
+        formula: '筋力 * 2',
+      });
+      detail.appendChild(calc);
+
+      expect(palette.evaluate('2d6+{攻撃力}', detail)).toBe('2d6+16');
+    });
+
+    it('reads a resource it works from at what that is now', () => {
+      const palette = new ChatPalette();
+      palette.initialize();
+      const detail = DataElement.create('detail', '');
+      detail.appendChild(DataElement.create('HP', 20, { type: 'numberResource', currentValue: 7 }));
+      const calc = DataElement.create('残り', '', { fieldType: DataElementFieldType.CALC, formula: 'HP' });
+      detail.appendChild(calc);
+
+      expect(palette.evaluate('{残り}', detail)).toBe('7');
+    });
+  });
+
+  describe('textTargetsCharacter()', () => {
+    it('counts a t{} reference as aiming at the marked pieces', () => {
+      expect(textTargetsCharacter('2d6 t{ATK}')).toBe(true);
+    });
+
+    it('leaves a plain roll alone', () => {
+      expect(textTargetsCharacter('2d6+3')).toBe(false);
     });
   });
 });

@@ -1,7 +1,8 @@
 import { computed, effect, inject, Injectable } from '@angular/core';
-import { EffectPlaybackService, prefersReducedMotion } from '@axe/application/effect/effect-playback.service';
+import { EffectPlaybackService } from '@axe/application/effect/effect-playback.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { TabletopService } from '@axe/application/tabletop/tabletop.service';
+import { MotionService } from '@axe/application/ui/motion.service';
 import {
   ambienceColorOf,
   ambienceDensityOf,
@@ -29,6 +30,7 @@ export class AmbienceService {
   private readonly objectChange = inject(ObjectChangeService);
   private readonly tabletopService = inject(TabletopService);
   private readonly playbackService = inject(EffectPlaybackService);
+  private readonly motion = inject(MotionService);
 
   readonly areas = computed<TableAmbience[]>(() => {
     this.objectChange.collectionOf(TableAmbience.aliasName)();
@@ -49,9 +51,9 @@ export class AmbienceService {
 
   /**
    * Whether the particles may move.
-   * Reduced motion stops them, but the swamp and lava washes stay.
+   * Motion turned off stops them, but the swamp and lava washes stay.
    */
-  readonly motionEnabled = computed<boolean>(() => !prefersReducedMotion());
+  readonly motionEnabled = this.motion.enabled;
 
   readonly now = computed<number>(() => this.playbackService.now());
 

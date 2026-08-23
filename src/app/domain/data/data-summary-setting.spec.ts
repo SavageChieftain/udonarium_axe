@@ -1,4 +1,5 @@
 import { TestBed } from '@angular/core/testing';
+import { ObjectSerializer } from '@axe/core/sync/object-serializer';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { DataSummarySetting, SortOrder } from '@axe/domain/data/data-summary-setting';
 
@@ -62,6 +63,51 @@ describe('DataSummarySetting', () => {
 
     it('starts with the default tags', () => {
       expect(DataSummarySetting.instance.dataTag).toBe('HP MP 敏捷度 精神力');
+    });
+  });
+
+  describe('folderPaths', () => {
+    it('starts with no folders of its own', () => {
+      expect(DataSummarySetting.instance.folderPaths).toEqual([]);
+    });
+
+    it('has no folders when older saved data says nothing about them', () => {
+      const restored = ObjectSerializer.instance.parseXml(
+        '<summary-setting sortTag="HP"></summary-setting>'
+      ) as DataSummarySetting;
+
+      expect(restored.folderPaths).toEqual([]);
+    });
+
+    it('writes its folders into saved data', () => {
+      DataSummarySetting.instance.folderPaths = ['第1話', '第1話/洞窟'];
+
+      const xml = ObjectSerializer.instance.toXml(DataSummarySetting.instance);
+
+      expect(xml).toContain('folderPaths.0="第1話"');
+      expect(xml).toContain('folderPaths.1="第1話/洞窟"');
+    });
+
+    it('reads the folders back out of what it wrote', () => {
+      // The XML parser behind parseXml rejects a dotted attribute name, so the
+      // attributes go straight to the serializer the way a browser would hand them over.
+      const syncData = { folderPaths: [] as string[] };
+
+      ObjectSerializer.parseAttributes(syncData, [
+        { name: 'folderPaths.0', value: '第1話' },
+        { name: 'folderPaths.1', value: '第1話/洞窟' },
+      ] as unknown as NamedNodeMap);
+
+      expect(syncData.folderPaths).toEqual(['第1話', '第1話/洞窟']);
+    });
+
+    it('reads saved data naming a setting it no longer has without tripping', () => {
+      const restored = ObjectSerializer.instance.parseXml(
+        '<summary-setting groupByFolder="false" sortTag="HP"></summary-setting>'
+      ) as DataSummarySetting;
+
+      expect(restored.sortTag).toBe('HP');
+      expect(restored.folderPaths).toEqual([]);
     });
   });
 

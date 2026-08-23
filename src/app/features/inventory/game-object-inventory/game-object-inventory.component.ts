@@ -1,5 +1,14 @@
 import { NgTemplateOutlet } from '@angular/common';
-import { ChangeDetectionStrategy, Component, computed, DestroyRef, effect, inject, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  DestroyRef,
+  effect,
+  ElementRef,
+  inject,
+  signal,
+} from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { GameObjectInventoryService } from '@axe/application/inventory/game-object-inventory.service';
@@ -15,17 +24,44 @@ import { Network } from '@axe/core/index';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { GameObject } from '@axe/core/sync/game-object';
 import { ObjectStore } from '@axe/core/sync/object-store';
+import { splitSearchTerms } from '@axe/core/util/text-search';
+import {
+  ancestorFolderPaths,
+  FOLDER_SEPARATOR,
+  folderSegments,
+  isDescendantFolderPath,
+  MAX_FOLDER_DEPTH,
+  normalizeFolderPath,
+  rewriteFolderPath,
+} from '@axe/domain/character/character-folder';
 import { GameCharacter } from '@axe/domain/character/game-character';
-import { DataElement } from '@axe/domain/data/data-element';
+import { DataElement, DataElementFieldType } from '@axe/domain/data/data-element';
+import { evaluateCalcElement } from '@axe/domain/data/data-element-calc-env';
 import { SortOrder } from '@axe/domain/data/data-summary-setting';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
+import { OwnedTabletopObject } from '@axe/domain/tabletop/owned-tabletop-object';
 import { TabletopObject } from '@axe/domain/tabletop/tabletop-object';
 import { NpcDragService } from '@axe/features/gm-tools/npc-bar/npc-drag.service';
 import {
+  buildInventoryFolderAssignMenu,
+  buildInventoryFolderContextMenu,
   buildInventoryMultiMoveContextMenu,
   buildInventoryObjectContextMenu,
 } from '@axe/features/inventory/game-object-inventory/game-object-inventory-context-menu';
+import { folderPathFromElement } from '@axe/features/inventory/game-object-inventory/inventory-folder-drag';
+import {
+  buildFolderTree,
+  collectFolderPaths,
+  type FolderTree,
+} from '@axe/features/inventory/game-object-inventory/inventory-folder-tree';
+import {
+  buildInventoryRow,
+  filterInventoryRows,
+  type InventoryRow,
+  inventorySearchText,
+} from '@axe/features/inventory/game-object-inventory/inventory-list';
+import { AutoFocusDirective } from '@axe/ui/directives/auto-focus.directive';
 import { SafePipe } from '@axe/ui/pipes/safe.pipe';
 import { TranslocoModule } from '@jsverse/transloco';
 
@@ -36,9 +72,17 @@ const FOCUS_BLOCKED_TAGS = new Set(['input', 'button']);
   templateUrl: './game-object-inventory.component.html',
   host: { class: 'block' },
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [NgTemplateOutlet, FormsModule, SafePipe, TranslocoModule],
+  imports: [NgTemplateOutlet, FormsModule, AutoFocusDirective, SafePipe, TranslocoModule],
 })
 export class GameObjectInventoryComponent {
+  isCalcElement(element: DataElement): boolean {
+    return element.fieldType === DataElementFieldType.CALC;
+  }
+
+  calcText(element: DataElement): string {
+    return evaluateCalcElement(element);
+  }
+
   private readonly panelService = inject(PanelService);
   private readonly inventoryService = inject(GameObjectInventoryService);
   private readonly contextMenuService = inject(ContextMenuService);
@@ -51,9 +95,17 @@ export class GameObjectInventoryComponent {
   private readonly disclosureService = inject(DisclosureService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly npcDrag = inject(NpcDragService);
+  private readonly hostElement = inject<ElementRef<HTMLElement>>(ElementRef);
   private readonly t = inject(TRANSLATE_FN);
 
-  private npcDragPending: { character: GameCharacter; startX: number; startY: number; dragging: boolean } | null = null;
+  private dragPending: {
+    character: GameCharacter;
+    startX: number;
+    startY: number;
+    dragging: boolean;
+    withNpcBar: boolean;
+    withFolders: boolean;
+  } | null = null;
   private suppressNextClick = false;
 
   constructor() {
@@ -81,6 +133,14 @@ export class GameObjectInventoryComponent {
 
   readonly isEdit = signal(false);
   readonly isMultiMove = signal(false);
+
+  readonly searchQuery = signal('');
+  readonly searchTerms = computed<string[]>(() => splitSearchTerms(this.searchQuery()));
+  readonly hasQuery = computed<boolean>(() => this.searchTerms().length > 0);
+
+  clearSearch(): void {
+    this.searchQuery.set('');
+  }
 
   setTurnOrder(event: Event, gameObject: GameObject): void {
     event.stopPropagation();
@@ -217,11 +277,7 @@ export class GameObjectInventoryComponent {
     }
   }
 
-  getGameObjects(inventoryType: string): TabletopObject[] {
-    this.inventoryService.inventoryVersion();
-    this.objectChange.fileVersion();
-    this.objectChange.collectionOf('character')();
-    if (PeerCursor.myCursor) this.objectChange.versionOf(PeerCursor.myCursor.identifier)();
+  private baseObjectsOf(inventoryType: string): TabletopObject[] {
     switch (inventoryType) {
       case 'table': {
         const all = this.inventoryService.tableInventory.tabletopObjects as GameCharacter[];
@@ -232,6 +288,360 @@ export class GameObjectInventoryComponent {
       default:
         return this.getInventory(inventoryType).tabletopObjects;
     }
+  }
+
+  readonly visibleRows = computed<InventoryRow[]>(() => {
+    this.inventoryService.inventoryVersion();
+    this.objectChange.fileVersion();
+    this.objectChange.collectionOf('character')();
+    if (PeerCursor.myCursor) this.objectChange.versionOf(PeerCursor.myCursor.identifier)();
+    return this.baseObjectsOf(this.selectTab()).map((object) =>
+      buildInventoryRow(object, object instanceof GameCharacter ? object.folderName : '')
+    );
+  });
+
+  readonly filteredRows = computed<InventoryRow[]>(() => {
+    const terms = this.searchTerms();
+    const rows = this.visibleRows();
+    if (terms.length < 1) return rows;
+
+    // Owner names live on the cursors, so a rename over there has to reach the text being matched.
+    this.objectChange.collectionOf('PeerCursor')();
+    for (const cursor of this.objectStore.getObjects<PeerCursor>(PeerCursor)) {
+      this.objectChange.versionOf(cursor.identifier)();
+    }
+    const inventoryType = this.selectTab();
+    return filterInventoryRows(rows, terms, (row) =>
+      inventorySearchText(
+        row,
+        row.object instanceof OwnedTabletopObject ? row.object.ownerName : '',
+        this.canView(row.object) ? this.elementTextsOf(inventoryType, row.object) : []
+      )
+    );
+  });
+
+  readonly collapsedFolders = signal<ReadonlySet<string>>(new Set());
+
+  /**
+   * Whether the tab on view keeps its folders for the room rather than for this device.
+   * Anything that is not the table, the graveyard or this peer's own list reads the shared one,
+   * so the test has to be the same as the one that picks the inventory, not a single name.
+   */
+  private readonly isSharedTab = computed<boolean>(() => this.foldersApply() && this.selectTab() !== Network.peerId);
+
+  readonly declaredFolderPaths = computed<string[]>(() => {
+    if (!this.foldersApply()) return [];
+    if (!this.isSharedTab()) return this.inventoryService.personalFolderPaths();
+    this.inventoryService.inventoryVersion();
+    return this.inventoryService.folderPaths;
+  });
+
+  private setDeclaredFolderPaths(folderPaths: string[]): void {
+    if (this.isSharedTab()) {
+      this.inventoryService.folderPaths = folderPaths;
+      return;
+    }
+    this.inventoryService.setPersonalFolderPaths(folderPaths);
+  }
+
+  readonly folderTree = computed<FolderTree<InventoryRow>>(() =>
+    buildFolderTree(this.filteredRows(), (row) => row.folderPath, this.declaredFolderPaths())
+  );
+
+  readonly hasFolders = computed<boolean>(
+    () => this.declaredFolderPaths().length > 0 || this.visibleRows().some((row) => row.folderPath.length > 0)
+  );
+
+  /**
+   * Folders sort out what is kept between scenes. The table is the board in play, ordered by
+   * turn, and the graveyard is what has already left it, so neither is filed.
+   */
+  readonly foldersApply = computed<boolean>(() => {
+    const inventoryType = this.selectTab();
+    return inventoryType !== 'table' && inventoryType !== 'graveyard';
+  });
+
+  readonly showTree = computed<boolean>(() => this.foldersApply() && this.hasFolders());
+
+  readonly canEdit = computed<boolean>(() => {
+    if (PeerCursor.myCursor) this.objectChange.versionOf(PeerCursor.myCursor.identifier)();
+    return this.rolePermission.canEditTabletop;
+  });
+
+  /** A folder at the depth limit has no room for another level beneath it. */
+  canNestInside(folderPath: string): boolean {
+    return folderSegments(folderPath).length < MAX_FOLDER_DEPTH;
+  }
+
+  isFolderCollapsed(path: string): boolean {
+    if (this.hasQuery()) return false;
+    return this.collapsedFolders().has(path);
+  }
+
+  toggleFolder(path: string): void {
+    if (this.hasQuery()) return;
+    this.collapsedFolders.update((current) => {
+      const next = new Set(current);
+      if (!next.delete(path)) next.add(path);
+      return next;
+    });
+  }
+
+  collapseAllFolders(): void {
+    // A search opens every folder, so folding them now would only settle on the few that
+    // survived the filter and show itself once the search is cleared.
+    if (this.hasQuery()) return;
+    const tree = this.folderTree();
+    const paths = collectFolderPaths(tree);
+    if (tree.loose.length > 0) paths.push('');
+    this.collapsedFolders.set(new Set(paths));
+  }
+
+  expandAllFolders(): void {
+    this.collapsedFolders.set(new Set());
+  }
+
+  readonly knownFolderPaths = computed<string[]>(() => {
+    const paths = new Set<string>();
+    for (const declared of this.declaredFolderPaths()) {
+      for (const path of ancestorFolderPaths(declared)) paths.add(path);
+    }
+    for (const row of this.visibleRows()) {
+      for (const path of ancestorFolderPaths(row.folderPath)) paths.add(path);
+    }
+    return [...paths].sort((left, right) => left.localeCompare(right, 'ja', { numeric: true }));
+  });
+
+  setFolder(gameObject: TabletopObject, folderPath: string): void {
+    this.setFolderOf([gameObject.identifier], folderPath);
+  }
+
+  createFolderFor(gameObject: TabletopObject): void {
+    this.createFolderOf([gameObject.identifier]);
+  }
+
+  createFolder(parentPath = ''): void {
+    if (parentPath.length > 0 && !this.canNestInside(parentPath)) return;
+    this.createFolderOf([], parentPath);
+  }
+
+  multiSetFolder(folderPath: string): void {
+    this.setFolderOf(this.multiMoveTargets(), folderPath);
+    this.toggleMultiMove();
+    SoundEffect.play(PresetSound.piecePut);
+  }
+
+  onMultiMoveFolderMenu(): void {
+    if (!this.pointerDeviceService.isAllowedToOpenContextMenu) return;
+    const position = this.pointerDeviceService.pointers[0];
+    const actions = buildInventoryFolderAssignMenu(
+      null,
+      this.knownFolderPaths(),
+      {
+        setFolder: (folderPath) => this.multiSetFolder(folderPath),
+        createFolder: () => {
+          const targets = [...this.multiMoveTargets()];
+          this.toggleMultiMove();
+          this.createFolderOf(targets);
+        },
+      },
+      this.t
+    );
+    this.contextMenuService.open(position, actions, this.t('feature.inventory.panel.folder'));
+  }
+
+  onFolderContextMenu(event: Event, folderPath: string): void {
+    event.stopPropagation();
+    event.preventDefault();
+    if (!this.pointerDeviceService.isAllowedToOpenContextMenu) return;
+
+    const position = this.pointerDeviceService.pointers[0];
+    const actions = buildInventoryFolderContextMenu(
+      folderPath,
+      this.isMultiMove(),
+      {
+        renameFolder: () => this.startFolderRename(folderPath),
+        createSubfolder: () => this.createFolder(folderPath),
+        deleteFolder: () => this.deleteFolder(folderPath),
+        selectFolder: () => this.selectFolder(folderPath),
+        collapseAll: () => this.collapseAllFolders(),
+        expandAll: () => this.expandAllFolders(),
+      },
+      this.t,
+      this.canNestInside(folderPath),
+      this.canEdit()
+    );
+    this.contextMenuService.open(
+      position,
+      actions,
+      folderPath.length > 0 ? folderPath : this.t('feature.inventory.panel.unfiled')
+    );
+  }
+
+  readonly editingFolder = signal<string | null>(null);
+
+  isEditingFolder(folderPath: string): boolean {
+    return this.editingFolder() === folderPath;
+  }
+
+  startFolderRename(folderPath: string): void {
+    if (!this.rolePermission.canEditTabletop || folderPath.length < 1) return;
+    this.collapsedFolders.update((current) => {
+      const next = new Set(current);
+      next.delete(folderPath);
+      return next;
+    });
+    this.editingFolder.set(folderPath);
+  }
+
+  cancelFolderRename(): void {
+    this.editingFolder.set(null);
+  }
+
+  /** Leaving the field is never a trap: a name that cannot be taken is dropped rather than held. */
+  commitFolderRename(folderPath: string, name: string, dropOnFailure = false): void {
+    if (this.editingFolder() !== folderPath) return;
+    if (this.renameFolder(folderPath, name) || dropOnFailure) this.editingFolder.set(null);
+  }
+
+  private createFolderOf(identifiers: readonly string[], parentPath = ''): void {
+    if (!this.rolePermission.canEditTabletop) return;
+    const path = this.unusedFolderPath(parentPath);
+    this.declareFolder(path);
+    if (identifiers.length > 0) this.setFolderOf(identifiers, path);
+    this.collapsedFolders.update((current) => {
+      const next = new Set(current);
+      for (const ancestor of ancestorFolderPaths(path)) next.delete(ancestor);
+      return next;
+    });
+    this.editingFolder.set(path);
+  }
+
+  private unusedFolderPath(parentPath: string): string {
+    const parent = normalizeFolderPath(parentPath);
+    const prefix = parent.length > 0 ? `${parent}${FOLDER_SEPARATOR}` : '';
+    // Numbered across the whole tree rather than among siblings: the free number under
+    // フォルダ1 is 1, and a フォルダ1 inside フォルダ1 is a worse name than a number that skips.
+    const taken = new Set(this.knownFolderPaths().map((path) => folderSegments(path).at(-1)));
+    let index = 1;
+    while (taken.has(this.t('feature.inventory.panel.defaultFolderName', { index }))) index++;
+    return normalizeFolderPath(prefix + this.t('feature.inventory.panel.defaultFolderName', { index }));
+  }
+
+  private declareFolder(folderPath: string): void {
+    const declared = this.declaredFolderPaths();
+    if (declared.includes(folderPath)) return;
+    this.setDeclaredFolderPaths([...declared, folderPath]);
+    this.inventoryService.notifyInventoryUpdate();
+  }
+
+  private undeclareFoldersUnder(folderPath: string): void {
+    const declared = this.declaredFolderPaths();
+    const kept = declared.filter((entry) => !isDescendantFolderPath(entry, folderPath));
+    if (kept.length === declared.length) return;
+    this.setDeclaredFolderPaths(kept);
+  }
+
+  /** False where the name cannot be taken, so the caller can leave the editor open on it. */
+  renameFolder(folderPath: string, name: string): boolean {
+    if (!this.rolePermission.canEditTabletop) return false;
+    const segments = folderSegments(folderPath);
+    const renamed = normalizeFolderPath([...segments.slice(0, -1), name].join(FOLDER_SEPARATOR));
+    if (renamed.length < 1) return false;
+    if (renamed === folderPath) return true;
+    // Renaming into a deeper place would push the levels below past the limit, where they would be
+    // cut off and folders that held different characters would silently become one.
+    const deepest = this.deepestDepthUnder(folderPath);
+    if (folderSegments(renamed).length + deepest - segments.length > MAX_FOLDER_DEPTH) return false;
+
+    for (const character of this.charactersUnder(folderPath)) {
+      character.folderName = rewriteFolderPath(normalizeFolderPath(character.folderName), folderPath, renamed);
+    }
+    this.setDeclaredFolderPaths([
+      ...new Set(this.declaredFolderPaths().map((entry) => rewriteFolderPath(entry, folderPath, renamed))),
+    ]);
+    this.collapsedFolders.update(
+      (current) => new Set([...current].map((entry) => rewriteFolderPath(entry, folderPath, renamed)))
+    );
+    this.inventoryService.notifyInventoryUpdate();
+    return true;
+  }
+
+  private deepestDepthUnder(folderPath: string): number {
+    let deepest = folderSegments(folderPath).length;
+    for (const path of [...this.declaredFolderPaths(), ...this.visibleRows().map((row) => row.folderPath)]) {
+      if (!isDescendantFolderPath(path, folderPath)) continue;
+      deepest = Math.max(deepest, folderSegments(path).length);
+    }
+    return deepest;
+  }
+
+  deleteFolder(folderPath: string): void {
+    if (!this.rolePermission.canEditTabletop) return;
+    const characters = this.charactersUnder(folderPath);
+    if (
+      characters.length > 0 &&
+      !confirm(
+        this.t('feature.inventory.contextMenu.confirmDeleteFolder', { name: folderPath, count: characters.length })
+      )
+    )
+      return;
+    this.undeclareFoldersUnder(folderPath);
+    this.setFolderOf(
+      characters.map((character) => character.identifier),
+      ''
+    );
+    this.inventoryService.notifyInventoryUpdate();
+  }
+
+  selectFolder(folderPath: string): void {
+    const rows =
+      folderPath.length < 1
+        ? this.folderTree().loose
+        : this.filteredRows().filter((row) => isDescendantFolderPath(row.folderPath, folderPath));
+    this.multiMoveTargets.update((current) => {
+      const next = new Set(current);
+      rows.forEach((row) => next.add(row.identifier));
+      return next;
+    });
+  }
+
+  /**
+   * A character carries one folder name wherever it stands, so a rename has to reach it even
+   * while it is on the table. Scoping this to the tab on view left those behind, and the folder
+   * came back the moment the character did.
+   *
+   * It stops at the edge of the scope on view, though. A folder kept for this device and one kept
+   * for the room are separate folders that only share a name, so a rename of one must not empty
+   * the other.
+   */
+  private charactersUnder(folderPath: string): GameCharacter[] {
+    const shared = this.isSharedTab();
+    return this.objectStore
+      .getObjects<GameCharacter>(GameCharacter)
+      .filter((character) => (character.location.name === Network.peerId) !== shared)
+      .filter((character) => isDescendantFolderPath(normalizeFolderPath(character.folderName), folderPath));
+  }
+
+  private setFolderOf(identifiers: Iterable<string>, folderPath: string): void {
+    if (!this.rolePermission.canEditTabletop) return;
+    const normalized = normalizeFolderPath(folderPath);
+    for (const identifier of identifiers) {
+      const character = this.objectStore.get<GameCharacter>(identifier);
+      if (character instanceof GameCharacter) character.folderName = normalized;
+    }
+    this.inventoryService.notifyInventoryUpdate();
+  }
+
+  private elementTextsOf(inventoryType: string, object: TabletopObject): string[] {
+    const elements = this.getInventory(inventoryType).dataElementMap.get(object.identifier) ?? [];
+    const texts: string[] = [];
+    for (const element of elements) {
+      if (!element || element.name === this.newLineString) continue;
+      texts.push(`${element.value}`);
+      if (element.currentValue != null && element.currentValue !== '') texts.push(`${element.currentValue}`);
+    }
+    return texts;
   }
 
   isInventoryHiddenObject(gameObject: TabletopObject): boolean {
@@ -249,7 +659,13 @@ export class GameObjectInventoryComponent {
   }
 
   onContextMenu(e: Event, gameObject: TabletopObject) {
-    if (document.activeElement instanceof HTMLInputElement && document.activeElement.getAttribute('type') !== 'range')
+    // Leaves an edit in progress on a row alone, without the search box blocking every menu.
+    const editing = document.activeElement;
+    if (
+      editing instanceof HTMLInputElement &&
+      editing.getAttribute('type') !== 'range' &&
+      editing.closest('[data-testid="inventory-item"]')
+    )
       return;
     e.stopPropagation();
     e.preventDefault();
@@ -269,8 +685,11 @@ export class GameObjectInventoryComponent {
         showRemoteController: (c) => this.showRemoteController(c),
         cloneGameObject: (o) => this.cloneGameObject(o),
         deleteGameObject: (o) => this.deleteGameObject(o),
+        setFolder: (o, folderPath) => this.setFolder(o, folderPath),
+        createFolder: (o) => this.createFolderFor(o),
       },
-      this.t
+      this.t,
+      this.foldersApply() ? this.knownFolderPaths() : null
     );
 
     this.contextMenuService.open(position, actions, gameObject.name);
@@ -290,18 +709,22 @@ export class GameObjectInventoryComponent {
 
   cleanInventory() {
     if (!this.rolePermission.canEditTabletop) return;
-    const tabTitle = this.getTabTitle(this.selectTab());
-    const gameObjects = this.getGameObjects(this.selectTab());
-    if (!confirm(this.t('feature.inventory.panel.confirmCleanTab', { tab: tabTitle, count: gameObjects.length })))
-      return;
-    for (const gameObject of gameObjects) {
-      this.deleteGameObject(gameObject);
+    const rows = this.filteredRows();
+    const message = this.hasQuery()
+      ? this.t('feature.inventory.panel.confirmCleanFiltered', { count: rows.length })
+      : this.t('feature.inventory.panel.confirmCleanTab', {
+          tab: this.getTabTitle(this.selectTab()),
+          count: rows.length,
+        });
+    if (!confirm(message)) return;
+    for (const row of rows) {
+      this.deleteGameObject(row.object);
     }
     SoundEffect.play(PresetSound.sweep);
   }
 
   existsMultiMoveSelectedInTab(): boolean {
-    return this.getGameObjects(this.selectTab()).some((x) => this.multiMoveTargets().has(x.identifier));
+    return this.filteredRows().some((row) => this.multiMoveTargets().has(row.identifier));
   }
 
   toggleMultiMoveTarget(e: Event, gameObject: GameCharacter) {
@@ -320,16 +743,17 @@ export class GameObjectInventoryComponent {
   }
 
   allTabBoxCheck() {
+    const rows = this.filteredRows();
     if (this.existsMultiMoveSelectedInTab()) {
       this.multiMoveTargets.update((s) => {
         const n = new Set(s);
-        this.getGameObjects(this.selectTab()).forEach((x) => n.delete(x.identifier));
+        rows.forEach((row) => n.delete(row.identifier));
         return n;
       });
     } else {
       this.multiMoveTargets.update((s) => {
         const n = new Set(s);
-        this.getGameObjects(this.selectTab()).forEach((x) => n.add(x.identifier));
+        rows.forEach((row) => n.add(row.identifier));
         return n;
       });
     }
@@ -484,34 +908,92 @@ export class GameObjectInventoryComponent {
     if (gameObject instanceof GameCharacter && PeerCursor.isMyselfGameMaster) event.stopPropagation();
   }
 
+  readonly draggingIdentifiers = signal<ReadonlySet<string>>(new Set());
+  readonly dropFolderPath = signal<string | null>(null);
+
+  isDragging(gameObject: GameObject): boolean {
+    return this.draggingIdentifiers().has(gameObject.identifier);
+  }
+
+  isDropFolder(folderPath: string): boolean {
+    return this.dropFolderPath() === folderPath;
+  }
+
   onObjectPointerDown(event: PointerEvent, gameObject: GameObject): void {
-    if (event.button !== 0 || !(gameObject instanceof GameCharacter) || !PeerCursor.isMyselfGameMaster) return;
+    if (event.button !== 0 || !(gameObject instanceof GameCharacter)) return;
     if ((event.target as HTMLElement).closest('button, input')) return;
-    this.npcDragPending = { character: gameObject, startX: event.clientX, startY: event.clientY, dragging: false };
+
+    const withNpcBar = PeerCursor.isMyselfGameMaster;
+    const withFolders = this.foldersApply() && this.rolePermission.canEditTabletop;
+    // Arming a drag costs the click that follows it, so do not arm one with nowhere to drop.
+    if (!withNpcBar && !withFolders) return;
+
+    this.dragPending = {
+      character: gameObject,
+      startX: event.clientX,
+      startY: event.clientY,
+      dragging: false,
+      withNpcBar,
+      withFolders,
+    };
     (event.currentTarget as HTMLElement).setPointerCapture?.(event.pointerId);
   }
 
   onObjectPointerMove(event: PointerEvent): void {
-    const pending = this.npcDragPending;
+    const pending = this.dragPending;
     if (!pending) return;
     if (!pending.dragging) {
       if (Math.hypot(event.clientX - pending.startX, event.clientY - pending.startY) < 6) return;
       pending.dragging = true;
-      this.npcDrag.begin(pending.character, event.clientX, event.clientY);
-    } else {
+      this.draggingIdentifiers.set(this.draggedIdentifiersFrom(pending.character));
+      if (pending.withNpcBar) this.npcDrag.begin(pending.character, event.clientX, event.clientY);
+    } else if (pending.withNpcBar) {
       this.npcDrag.move(event.clientX, event.clientY);
     }
+    this.dropFolderPath.set(pending.withFolders ? this.folderPathUnder(event.clientX, event.clientY) : null);
+  }
+
+  /** Two inventory panels can be open, so only a heading drawn by this one counts as a target. */
+  private folderPathUnder(x: number, y: number): string | null {
+    const element = document.elementFromPoint(x, y);
+    if (!element || !this.hostElement.nativeElement.contains(element)) return null;
+    return folderPathFromElement(element);
+  }
+
+  /** A row can be taken out from under the pointer, and then no release ever arrives. */
+  onObjectDragCancel(): void {
+    this.dragPending = null;
+    this.draggingIdentifiers.set(new Set());
+    this.dropFolderPath.set(null);
   }
 
   onObjectPointerUp(event: PointerEvent): void {
-    const pending = this.npcDragPending;
-    this.npcDragPending = null;
+    const pending = this.dragPending;
+    const folderPath = this.dropFolderPath();
+    const dragged = this.draggingIdentifiers();
+    this.dragPending = null;
+    this.draggingIdentifiers.set(new Set());
+    this.dropFolderPath.set(null);
     if (!pending) return;
     (event.currentTarget as HTMLElement).releasePointerCapture?.(event.pointerId);
     if (!pending.dragging) return;
     this.suppressNextClick = true;
+
+    if (folderPath !== null && pending.withFolders) {
+      if (pending.withNpcBar) this.npcDrag.end(false);
+      this.setFolderOf(dragged, folderPath);
+      SoundEffect.play(PresetSound.piecePut);
+      return;
+    }
+
     const target = document.elementFromPoint(event.clientX, event.clientY);
-    this.npcDrag.end(!!target?.closest('.npc-bar-dropzone'));
+    if (pending.withNpcBar) this.npcDrag.end(!!target?.closest('.npc-bar-dropzone'));
+  }
+
+  private draggedIdentifiersFrom(character: GameCharacter): ReadonlySet<string> {
+    const selected = this.multiMoveTargets();
+    if (this.isMultiMove() && selected.has(character.identifier)) return new Set(selected);
+    return new Set([character.identifier]);
   }
 
   selectGameObject(gameObject: GameObject) {

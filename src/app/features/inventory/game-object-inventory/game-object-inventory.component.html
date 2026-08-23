@@ -1,7 +1,5 @@
 @if (!isPanelMinimized()) {
   <div class="text-ui-text bg-ui-panel flex h-full flex-col overflow-hidden text-[13px]">
-    @let objects = getGameObjects(selectTab());
-
     <div class="bg-ui-panel border-ui-border-panel flex shrink-0 items-center gap-1 border-b border-solid px-2 pt-1.5">
       <form name="game-object-inventory" class="flex min-w-0 flex-1 gap-0.5">
         @for (inventoryType of inventoryTypes(); track inventoryType) {
@@ -33,7 +31,7 @@
         }
       </form>
 
-      <div class="flex gap-1 pb-1">
+      <div class="flex shrink-0 gap-1 pb-1">
         @if (!isMultiMove()) {
           <button
             class="border-ui-border-panel text-ui-muted hover:bg-ui-accent-bg hover:text-ui-accent hover:border-ui-accent rounded-ui-sm inline-flex size-7 cursor-pointer items-center justify-center border border-solid bg-transparent p-0 transition-[background,color,border-color] [&_.material-icons]:text-base!"
@@ -56,6 +54,42 @@
           <i class="material-icons">tune</i>
         </button>
       </div>
+    </div>
+
+    <div
+      class="bg-ui-panel border-ui-border-panel flex shrink-0 items-center gap-1.5 border-b border-solid px-2.5 py-1.5"
+    >
+      <i class="material-icons text-ui-muted text-[18px]!">search</i>
+      <input
+        class="bg-ui-input border-ui-border-panel text-ui-text rounded-ui-sm focus:border-ui-accent box-border min-w-0 flex-1 border border-solid px-1.75 py-1 text-[12px] transition-[border-color] outline-none"
+        name="inventory-search"
+        [(ngModel)]="searchQuery"
+        [placeholder]="'feature.inventory.panel.searchPlaceholder' | transloco"
+      />
+      @if (hasQuery()) {
+        <span class="text-ui-dim shrink-0 text-[11px] whitespace-nowrap"
+          >{{ filteredRows().length }} / {{ visibleRows().length }}</span
+        >
+        <button
+          class="text-ui-muted hover:bg-ui-hover hover:text-ui-text flex size-6 shrink-0 cursor-pointer items-center justify-center rounded-sm border-none bg-transparent p-0 transition-[background,color] [&_.material-icons]:text-base!"
+          type="button"
+          [title]="'feature.inventory.panel.clearSearch' | transloco"
+          (click)="clearSearch()"
+        >
+          <i class="material-icons">close</i>
+        </button>
+      }
+      @if (foldersApply() && canEdit()) {
+        <span class="bg-ui-border-panel ml-0.5 h-4 w-px shrink-0"></span>
+        <button
+          class="text-ui-muted hover:bg-ui-hover hover:text-ui-accent flex size-6 shrink-0 cursor-pointer items-center justify-center rounded-sm border-none bg-transparent p-0 transition-[background,color] [&_.material-icons]:text-[18px]!"
+          type="button"
+          [title]="'feature.inventory.panel.newFolder' | transloco"
+          (click)="createFolder()"
+        >
+          <i class="material-icons">create_new_folder</i>
+        </button>
+      }
     </div>
 
     @if (isEdit()) {
@@ -170,6 +204,18 @@
           }}
         </button>
         <span class="text-ui-muted text-[11px] whitespace-nowrap">{{
+          'feature.inventory.panel.selectedCount' | transloco: { count: multiMoveTargets().size }
+        }}</span>
+        @if (foldersApply()) {
+          <button
+            class="bg-ui-input border-ui-border-panel text-ui-text hover:bg-ui-hover hover:border-ui-accent hover:text-ui-accent rounded-ui-sm inline-flex cursor-pointer items-center gap-0.75 border border-solid px-2 py-1 text-[12px] transition-[background,color,border-color] [&_.material-icons]:text-[14px]!"
+            type="button"
+            (click)="onMultiMoveFolderMenu()"
+          >
+            <i class="material-icons">folder</i>{{ 'feature.inventory.panel.folder' | transloco }}
+          </button>
+        }
+        <span class="text-ui-muted text-[11px] whitespace-nowrap">{{
           'feature.inventory.panel.moveTargetLabel' | transloco
         }}</span>
         @for (loc of multiMoveLocations; track loc.name) {
@@ -262,108 +308,43 @@
     }
 
     <div class="flex flex-1 flex-col gap-0.5 overflow-y-auto px-1.5 py-1">
-      @if (objects.length < 1) {
+      @let nothingListed = filteredRows().length < 1;
+      @if (nothingListed && (hasQuery() || !showTree())) {
         <div
           class="text-ui-dim flex flex-1 flex-col items-center justify-center gap-2 p-6 text-center [&_.material-icons]:text-[36px]! [&_.material-icons]:opacity-40"
         >
-          <i class="material-icons">inbox</i>
+          <i class="material-icons">{{ hasQuery() ? 'search_off' : 'inbox' }}</i>
           <p class="m-0 text-[12px]">
-            {{ 'feature.inventory.panel.emptyMessage' | transloco: { name: getTabTitle(selectTab()) } }}
+            @if (hasQuery()) {
+              {{ 'feature.inventory.panel.noMatch' | transloco }}
+            } @else {
+              {{ 'feature.inventory.panel.emptyMessage' | transloco: { name: getTabTitle(selectTab()) } }}
+            }
           </p>
         </div>
-      }
-
-      @for (gameObject of objects; track gameObject.identifier) {
-        <div
-          data-testid="inventory-item"
-          class="hover:bg-ui-hover group relative flex cursor-pointer items-center gap-2 rounded-[5px] border border-solid border-transparent px-2 py-1.25 transition-[background,border-color] select-none [-moz-user-drag:none] [-webkit-user-drag:none]"
-          [class.bg-ui-accent-bg!]="selectedIdentifier() === gameObject.identifier"
-          [class.border-ui-accent!]="selectedIdentifier() === gameObject.identifier"
-          [class.opacity-50]="isInventoryHiddenObject(gameObject)"
-          [class.italic]="isInventoryHiddenObject(gameObject)"
-          [class.border-dashed!]="isInventoryHiddenObject(gameObject)"
-          [class.border-ui-border-panel!]="
-            isInventoryHiddenObject(gameObject) && selectedIdentifier() !== gameObject.identifier
-          "
-          (contextmenu)="onContextMenu($event, gameObject)"
-          (click)="selectGameObject(gameObject)"
-          (dblclick)="focusToObject($event, gameObject)"
-          (pointerdown)="onObjectPointerDown($event, gameObject)"
-          (pointermove)="onObjectPointerMove($event)"
-          (pointerup)="onObjectPointerUp($event)"
-          (mousedown)="onObjectDragBlock($event, gameObject)"
-          (touchstart)="onObjectDragBlock($event, gameObject)"
-        >
-          @if (selectTab() === 'table') {
-            <i
-              class="material-icons text-ui-accent w-3.5 shrink-0 text-[16px]!"
-              [class.invisible]="currentTurnId() !== gameObject.identifier"
-              >play_arrow</i
-            >
-          }
-          @if (isMultiMove()) {
-            <input
-              class="size-3.5 shrink-0 cursor-pointer [accent-color:var(--ui-accent)]"
-              type="checkbox"
-              [checked]="multiMoveTargets().has(gameObject.identifier)"
-              (change)="toggleMultiMoveTarget($event, $any(gameObject))"
-            />
-          }
-
-          <div
-            class="bg-ui-input border-ui-border-panel flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-sm border border-solid"
-          >
-            @if (gameObject.imageFile.url) {
-              <img
-                class="size-full object-cover object-top"
-                [src]="gameObject.imageFile.url | safe: 'resourceUrl'"
-                draggable="false"
-                alt=""
-              />
-            } @else {
-              <i class="material-icons text-ui-dim text-[20px]! opacity-50">person</i>
-            }
-          </div>
-
-          <div class="flex min-w-0 flex-1 flex-col gap-0.75">
-            <div
-              class="text-ui-text flex items-center gap-1 truncate text-[13px] font-semibold"
-              [class.text-ui-accent!]="selectedIdentifier() === gameObject.identifier"
-            >
-              <span class="truncate">{{ gameObject.name }}</span>
-              @if (!canView(gameObject)) {
-                <i class="material-icons text-ui-dim shrink-0 text-[13px]!">lock</i>
+      } @else if (showTree()) {
+        @for (node of folderTree().roots; track node.path) {
+          <ng-container *ngTemplateOutlet="folderNode; context: { $implicit: node }"></ng-container>
+        }
+        @if (folderTree().loose.length > 0) {
+          <ng-container
+            *ngTemplateOutlet="
+              folderHeading;
+              context: { $implicit: { path: '', name: '', totalCount: folderTree().loose.length } }
+            "
+          ></ng-container>
+          @if (!isFolderCollapsed('')) {
+            <div class="border-ui-border-panel ml-2.5 flex flex-col gap-0.5 border-l border-solid pl-1.5">
+              @for (row of folderTree().loose; track row.identifier) {
+                <ng-container *ngTemplateOutlet="itemRow; context: { $implicit: row.object }"></ng-container>
               }
             </div>
-            @if (gameObject.rootDataElement && canView(gameObject)) {
-              <div class="grid w-full grid-cols-2 items-start gap-x-2 gap-y-0.75">
-                @for (dataElm of getInventoryTags($any(gameObject)); track dataElm?.identifier ?? $index) {
-                  <ng-container *ngTemplateOutlet="dataElmTag; context: { dataElm: dataElm }"></ng-container>
-                }
-              </div>
-            }
-          </div>
-
-          <button
-            class="text-ui-muted hover:bg-ui-hover hover:text-ui-accent hidden size-6 shrink-0 cursor-pointer items-center justify-center rounded-sm border-none bg-transparent p-0 transition-[background,color] group-hover:inline-flex [&_.material-icons]:text-base!"
-            [class.inline-flex!]="selectedIdentifier() === gameObject.identifier"
-            type="button"
-            [title]="'feature.turnOrder.setCurrent' | transloco"
-            (click)="setTurnOrder($event, gameObject)"
-          >
-            <i class="material-icons">flag</i>
-          </button>
-
-          <button
-            class="text-ui-muted hover:bg-ui-hover hover:text-ui-text hidden size-6 shrink-0 cursor-pointer items-center justify-center rounded-sm border-none bg-transparent p-0 transition-[background] group-hover:inline-flex [&_.material-icons]:text-base!"
-            [class.inline-flex!]="selectedIdentifier() === gameObject.identifier"
-            type="button"
-            [title]="'feature.inventory.panel.menu' | transloco"
-            (click)="onContextMenu($event, gameObject)"
-          >
-            <i class="material-icons">more_vert</i>
-          </button>
-        </div>
+          }
+        }
+      } @else {
+        @for (row of filteredRows(); track row.identifier) {
+          <ng-container *ngTemplateOutlet="itemRow; context: { $implicit: row.object }"></ng-container>
+        }
       }
     </div>
 
@@ -373,7 +354,7 @@
           class="text-ui-danger border-ui-danger hover:bg-ui-danger-bg rounded-ui-sm inline-flex cursor-pointer items-center gap-1 border border-solid bg-transparent px-3 py-1.25 text-[12px] font-semibold transition-[background] disabled:cursor-not-allowed disabled:opacity-40 [&_.material-icons]:text-[15px]!"
           type="button"
           (click)="cleanInventory()"
-          [disabled]="objects.length < 1"
+          [disabled]="filteredRows().length < 1"
         >
           <i class="material-icons">delete_sweep</i>{{ 'feature.inventory.panel.cleanGraveyard' | transloco }}
         </button>
@@ -509,15 +490,185 @@
         @default {
           <span class="flex min-w-0 items-center gap-0.75">
             <span class="text-ui-muted shrink-0 text-[10px] whitespace-nowrap">{{ dataElm.name }}</span>
-            <input
-              class="border-ui-border-panel text-ui-text hover:border-b-ui-accent focus:border-b-ui-accent box-border min-w-[2em] flex-1 [appearance:textfield] rounded-none border-0 border-b border-solid bg-transparent px-0.5 text-right font-[inherit] text-[13px] font-bold transition-[border-color] outline-none hover:[appearance:number-input] focus:[appearance:number-input]"
-              size="1"
-              name="data-value"
-              [(ngModel)]="dataElm.value"
-            />
+            @if (isCalcElement(dataElm)) {
+              <span class="text-ui-text min-w-[2em] flex-1 text-right text-[13px] font-bold">{{
+                calcText(dataElm)
+              }}</span>
+            } @else {
+              <input
+                class="border-ui-border-panel text-ui-text hover:border-b-ui-accent focus:border-b-ui-accent box-border min-w-[2em] flex-1 [appearance:textfield] rounded-none border-0 border-b border-solid bg-transparent px-0.5 text-right font-[inherit] text-[13px] font-bold transition-[border-color] outline-none hover:[appearance:number-input] focus:[appearance:number-input]"
+                size="1"
+                name="data-value"
+                [(ngModel)]="dataElm.value"
+              />
+            }
           </span>
         }
       }
     </span>
+  }
+</ng-template>
+
+<ng-template #itemRow let-gameObject>
+  <div
+    data-testid="inventory-item"
+    class="hover:bg-ui-hover group relative flex cursor-pointer items-center gap-2 rounded-[5px] border border-solid border-transparent px-2 py-1.25 transition-[background,border-color] select-none [-moz-user-drag:none] [-webkit-user-drag:none]"
+    [class.bg-ui-accent-bg!]="selectedIdentifier() === gameObject.identifier"
+    [class.border-ui-accent!]="selectedIdentifier() === gameObject.identifier"
+    [class.opacity-50]="isInventoryHiddenObject(gameObject)"
+    [class.italic]="isInventoryHiddenObject(gameObject)"
+    [class.border-dashed!]="isInventoryHiddenObject(gameObject)"
+    [class.border-ui-border-panel!]="
+      isInventoryHiddenObject(gameObject) && selectedIdentifier() !== gameObject.identifier
+    "
+    [class.opacity-40]="isDragging(gameObject)"
+    (contextmenu)="onContextMenu($event, gameObject)"
+    (click)="selectGameObject(gameObject)"
+    (dblclick)="focusToObject($event, gameObject)"
+    (pointerdown)="onObjectPointerDown($event, gameObject)"
+    (pointermove)="onObjectPointerMove($event)"
+    (pointerup)="onObjectPointerUp($event)"
+    (pointercancel)="onObjectDragCancel()"
+    (lostpointercapture)="onObjectDragCancel()"
+    (mousedown)="onObjectDragBlock($event, gameObject)"
+    (touchstart)="onObjectDragBlock($event, gameObject)"
+  >
+    @if (selectTab() === 'table') {
+      <i
+        class="material-icons text-ui-accent w-3.5 shrink-0 text-[16px]!"
+        [class.invisible]="currentTurnId() !== gameObject.identifier"
+        >play_arrow</i
+      >
+    }
+    @if (isMultiMove()) {
+      <input
+        class="size-3.5 shrink-0 cursor-pointer [accent-color:var(--ui-accent)]"
+        type="checkbox"
+        [checked]="multiMoveTargets().has(gameObject.identifier)"
+        (change)="toggleMultiMoveTarget($event, $any(gameObject))"
+      />
+    }
+
+    <div
+      class="bg-ui-input border-ui-border-panel flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-sm border border-solid"
+    >
+      @if (gameObject.imageFile.url) {
+        <img
+          class="size-full object-cover object-top"
+          [src]="gameObject.imageFile.url | safe: 'resourceUrl'"
+          draggable="false"
+          alt=""
+        />
+      } @else {
+        <i class="material-icons text-ui-dim text-[20px]! opacity-50">person</i>
+      }
+    </div>
+
+    <div class="flex min-w-0 flex-1 flex-col gap-0.75">
+      <div
+        class="text-ui-text flex items-center gap-1 truncate text-[13px] font-semibold"
+        [class.text-ui-accent!]="selectedIdentifier() === gameObject.identifier"
+      >
+        <span class="truncate">{{ gameObject.name }}</span>
+        @if (!canView(gameObject)) {
+          <i class="material-icons text-ui-dim shrink-0 text-[13px]!">lock</i>
+        }
+      </div>
+      @if (gameObject.rootDataElement && canView(gameObject)) {
+        <div class="grid w-full grid-cols-2 items-start gap-x-2 gap-y-0.75">
+          @for (dataElm of getInventoryTags($any(gameObject)); track dataElm?.identifier ?? $index) {
+            <ng-container *ngTemplateOutlet="dataElmTag; context: { dataElm: dataElm }"></ng-container>
+          }
+        </div>
+      }
+    </div>
+
+    <button
+      class="text-ui-muted hover:bg-ui-hover hover:text-ui-accent hidden size-6 shrink-0 cursor-pointer items-center justify-center rounded-sm border-none bg-transparent p-0 transition-[background,color] group-hover:inline-flex [&_.material-icons]:text-base!"
+      [class.inline-flex!]="selectedIdentifier() === gameObject.identifier"
+      type="button"
+      [title]="'feature.turnOrder.setCurrent' | transloco"
+      (click)="setTurnOrder($event, gameObject)"
+    >
+      <i class="material-icons">flag</i>
+    </button>
+
+    <button
+      class="text-ui-muted hover:bg-ui-hover hover:text-ui-text hidden size-6 shrink-0 cursor-pointer items-center justify-center rounded-sm border-none bg-transparent p-0 transition-[background] group-hover:inline-flex [&_.material-icons]:text-base!"
+      [class.inline-flex!]="selectedIdentifier() === gameObject.identifier"
+      type="button"
+      [title]="'feature.inventory.panel.menu' | transloco"
+      (click)="onContextMenu($event, gameObject)"
+    >
+      <i class="material-icons">more_vert</i>
+    </button>
+  </div>
+</ng-template>
+
+<ng-template #folderHeading let-node>
+  <div
+    class="text-ui-text bg-ui-elevated border-ui-border-panel hover:border-ui-accent group/folder mt-1 flex cursor-pointer items-center gap-1 rounded-[5px] border border-solid p-1.5 text-[12px] font-semibold transition-[background,border-color] select-none first:mt-0"
+    role="button"
+    data-folder-dropzone
+    [attr.data-folder-path]="node.path"
+    [attr.aria-expanded]="!isFolderCollapsed(node.path)"
+    [class.text-ui-muted!]="!node.path"
+    [class.bg-ui-accent-bg!]="isDropFolder(node.path)"
+    [class.border-ui-accent!]="isDropFolder(node.path)"
+    (click)="toggleFolder(node.path)"
+    (contextmenu)="onFolderContextMenu($event, node.path)"
+  >
+    <i
+      class="material-icons text-ui-muted shrink-0 text-[18px]! transition-transform"
+      [class.-rotate-90]="isFolderCollapsed(node.path)"
+      >expand_more</i
+    >
+    @if (isEditingFolder(node.path)) {
+      <input
+        appAutoFocus
+        class="border-ui-accent text-ui-text box-border min-w-0 flex-1 rounded-none border-0 border-b border-solid bg-transparent px-0.5 font-[inherit] text-[12px] font-semibold outline-none"
+        name="folder-name"
+        [value]="node.name"
+        (click)="$event.stopPropagation()"
+        (keydown.escape)="cancelFolderRename()"
+        (keydown.enter)="commitFolderRename(node.path, $any($event.target).value)"
+        (blur)="commitFolderRename(node.path, $any($event.target).value, true)"
+      />
+    } @else {
+      <span class="truncate">{{ node.path ? node.name : ('feature.inventory.panel.unfiled' | transloco) }}</span>
+    }
+    <span class="text-ui-dim ml-auto shrink-0 text-[11px] font-normal tabular-nums">{{ node.totalCount }}</span>
+    @if (node.path && canEdit() && !isEditingFolder(node.path)) {
+      <button
+        class="text-ui-dim hover:bg-ui-hover hover:text-ui-accent inline-flex size-5 shrink-0 cursor-pointer items-center justify-center rounded-sm border-none bg-transparent p-0 transition-[background,color] [&_.material-icons]:text-[14px]!"
+        type="button"
+        [title]="'feature.inventory.contextMenu.renameFolder' | transloco"
+        (click)="$event.stopPropagation(); startFolderRename(node.path)"
+      >
+        <i class="material-icons">edit</i>
+      </button>
+      <button
+        class="text-ui-dim hover:bg-ui-danger-bg hover:text-ui-danger inline-flex size-5 shrink-0 cursor-pointer items-center justify-center rounded-sm border-none bg-transparent p-0 transition-[background,color] [&_.material-icons]:text-[14px]!"
+        type="button"
+        [title]="'feature.inventory.contextMenu.deleteFolder' | transloco"
+        (click)="$event.stopPropagation(); deleteFolder(node.path)"
+      >
+        <i class="material-icons">delete</i>
+      </button>
+    }
+  </div>
+</ng-template>
+
+<ng-template #folderNode let-node>
+  <ng-container *ngTemplateOutlet="folderHeading; context: { $implicit: node }"></ng-container>
+  @if (!isFolderCollapsed(node.path)) {
+    <div class="border-ui-border-panel ml-2.5 flex flex-col gap-0.5 border-l border-solid pl-1.5">
+      @for (child of node.children; track child.path) {
+        <ng-container *ngTemplateOutlet="folderNode; context: { $implicit: child }"></ng-container>
+      }
+      @for (row of node.items; track row.identifier) {
+        <ng-container *ngTemplateOutlet="itemRow; context: { $implicit: row.object }"></ng-container>
+      }
+    </div>
   }
 </ng-template>

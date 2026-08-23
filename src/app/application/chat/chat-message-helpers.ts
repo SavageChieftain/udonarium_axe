@@ -1,3 +1,4 @@
+import { normalizeSearchText } from '@axe/core/util/text-search';
 import { ChatMessageTargetContext } from '@axe/domain/chat/chat-message';
 import GameSystemClass from 'bcdice/lib/game_system';
 
@@ -6,8 +7,9 @@ export interface DiceBotTagResolver {
   checkSecretEditCommand(text: string): boolean;
 }
 
+/** `position` counts from 1, the way every portrait picker in the app numbers them. */
 export type PortraitCommand =
-  { type: 'none' } | { type: 'hide' } | { type: 'index'; index: number } | { type: 'name'; name: string };
+  { type: 'none' } | { type: 'hide' } | { type: 'index'; position: number } | { type: 'name'; name: string };
 
 export interface ImageNameEntry {
   label: string;
@@ -50,13 +52,13 @@ export function parsePortraitCommand(text: string): PortraitCommand {
   if (!matchesArray) return { type: 'none' };
 
   const token = matchesArray[1];
-  if (/^[hHｈＨ][iIｉＩ][dDｄＤ][eEｅＥ]$/.test(token)) {
+  const normalized = normalizeSearchText(token);
+  if (normalized === 'hide') {
     return { type: 'hide' };
   }
 
-  const matchNum = token.match(/(\d+)$/);
-  if (matchNum) {
-    return { type: 'index', index: parseInt(matchNum[1]) };
+  if (/^\d+$/.test(normalized)) {
+    return { type: 'index', position: parseInt(normalized, 10) };
   }
 
   return { type: 'name', name: token };
@@ -67,14 +69,19 @@ export function stripPortraitCommand(text: string): string {
 }
 
 export function findImageIdentifierByName(entries: ImageNameEntry[], name: string): ImageIdentifierResult {
+  const wanted = normalizeSearchText(name);
+  if (wanted.length < 1) return { identifier: '', index: 0 };
+
+  const labels = entries.map((entry) => normalizeSearchText(entry.label));
+
   for (let i = 0; i < entries.length; i++) {
-    if (entries[i].label === name) {
+    if (labels[i].length > 0 && labels[i] === wanted) {
       return { identifier: entries[i].identifier, index: i };
     }
   }
 
   for (let i = 0; i < entries.length; i++) {
-    if (entries[i].label.startsWith(name)) {
+    if (labels[i].length > 0 && labels[i].startsWith(wanted)) {
       return { identifier: entries[i].identifier, index: i };
     }
   }

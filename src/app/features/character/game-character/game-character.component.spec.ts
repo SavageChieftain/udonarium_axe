@@ -249,6 +249,37 @@ describe('GameCharacterComponent', () => {
       }
     });
 
+    it('stays quiet for the portrait slot and the piece image', async () => {
+      const character = GameCharacter.create('立ち絵', 1, '');
+      fixture.componentRef.setInput('gameCharacter', character);
+      const objectChange = TestBed.inject(ObjectChangeService);
+      character.addExtendData();
+      const played: string[] = [];
+      vi.spyOn(SoundEffect, 'playLocal').mockImplementation((arg) => {
+        played.push(typeof arg === 'string' ? arg : arg.identifier);
+      });
+
+      try {
+        fixture.detectChanges();
+
+        character.portraitPosition = 7;
+        const pos = character.detailDataElement!.getFirstElementByName('POS')!;
+        objectChange.notifyChanged(pos.identifier);
+        await fixture.whenStable();
+
+        const icon = character.detailDataElement!.getFirstElementByName('ICON')!;
+        icon.currentValue = 3;
+        objectChange.notifyChanged(icon.identifier);
+        await fixture.whenStable();
+
+        expect(component.floatingChanges()).toEqual([]);
+        expect(component.hitFlash()).toBeNull();
+        expect(played).toEqual([]);
+      } finally {
+        character.destroy();
+      }
+    });
+
     it('shows nothing when nothing changed', async () => {
       const character = GameCharacter.create('無変化', 1, '');
       fixture.componentRef.setInput('gameCharacter', character);

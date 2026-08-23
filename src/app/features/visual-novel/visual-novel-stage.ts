@@ -1,17 +1,22 @@
+import { toPortraitSlot } from '@axe/domain/visual-novel/vn-portrait-position';
 import { VnEmote } from '@axe/features/visual-novel/visual-novel-emote';
 
 export const VN_STAGE_SLOT_COUNT = 12;
 export const VN_STAGE_MAX = 6;
 export const VN_STAGE_LOOKBACK = 60;
 
-const SLOT_DUPLICATE_OFFSET = 4;
 const LEFT_MIN = 8;
 const LEFT_MAX = 92;
+const LEFT_SPAN = LEFT_MAX - LEFT_MIN;
+
+export const VN_STAGE_MIN_GAP = LEFT_SPAN / (VN_STAGE_SLOT_COUNT - 1);
 
 export interface VnStageSource {
   name: string;
+  sendFrom: string;
   imageIdentifier: string;
-  imagePos: number | null;
+  imagePos: unknown;
+  vnPortraitPos: number;
   isSystemMessage: boolean;
   isDicebot: boolean;
   isGameCharacter: boolean;
@@ -28,14 +33,82 @@ export interface VnStageCharacter {
   isFlipped: boolean;
 }
 
+/** The same span the chat portraits use, so slot 0 and slot 11 land on the same edges. */
+export function leftOfSlot(slot: number): number {
+  return LEFT_MIN + LEFT_SPAN * (slot / (VN_STAGE_SLOT_COUNT - 1));
+}
+
+/**
+ * The strip of the slot guide that picks a slot.
+ *
+ * The slots themselves stand between 8% and 92%, but the guide covers the whole width, so the
+ * bands run to the edges rather than sitting as islands with dead ground on either side.
+ */
+export function slotBandLeft(slot: number): number {
+  if (slot <= 0) return 0;
+  return (leftOfSlot(slot - 1) + leftOfSlot(slot)) / 2;
+}
+
+export function slotBandWidth(slot: number): number {
+  const right = slot >= VN_STAGE_SLOT_COUNT - 1 ? 100 : (leftOfSlot(slot) + leftOfSlot(slot + 1)) / 2;
+  return right - slotBandLeft(slot);
+}
+
+/** Where the number sits inside its band, so it keeps standing over the slot itself. */
+export function slotLabelLeftInBand(slot: number): number {
+  return ((leftOfSlot(slot) - slotBandLeft(slot)) / slotBandWidth(slot)) * 100;
+}
+
 export function slotOf(imagePos: number | null): number {
   if (imagePos == null || imagePos < 0 || imagePos >= VN_STAGE_SLOT_COUNT) return 0;
   return imagePos;
 }
 
+/** What a message alone can say about where its speaker stands. */
+export function messageSlotOf(source: VnStageSource): number {
+  return toPortraitSlot(source.vnPortraitPos) ?? toPortraitSlot(source.imagePos) ?? 0;
+}
+
+/**
+ * Keeps `desired` in order and at least `gap` apart within `min`..`max`.
+ * `desired` must be ascending: the pass pushes rather than reorders.
+ */
+export function spreadStagePositions(desired: readonly number[], gap: number, min: number, max: number): number[] {
+  const clamp = (value: number) => Math.min(max, Math.max(min, value));
+  if (desired.length < 1) return [];
+  if (desired.length < 2) return [clamp(desired[0])];
+
+  const step = Math.min(gap, (max - min) / (desired.length - 1));
+  const spread = [clamp(desired[0])];
+  for (let i = 1; i < desired.length; i++) {
+    spread.push(Math.max(clamp(desired[i]), spread[i - 1] + step));
+  }
+
+  if (spread[spread.length - 1] > max) {
+    spread[spread.length - 1] = max;
+    for (let i = spread.length - 2; i >= 0; i--) {
+      spread[i] = Math.min(spread[i], spread[i + 1] - step);
+    }
+  }
+  return spread;
+}
+
+/**
+ * A cast entirely on slot 0 is a room that never touched the setting, since that is what every
+ * character is made with, so it is spread over the whole stage instead of stacked on the left.
+ * Anywhere else is taken as meant and only nudged apart.
+ */
+function desiredPositions(slots: readonly number[]): number[] {
+  if (slots.length > 1 && slots.every((slot) => slot === 0)) {
+    return slots.map((_, index) => LEFT_MIN + LEFT_SPAN * ((index + 0.5) / slots.length));
+  }
+  return slots.map(leftOfSlot);
+}
+
 export function buildVnStage(
   window: readonly VnStageSource[],
-  resolveUrl: (imageIdentifier: string) => string
+  resolveUrl: (imageIdentifier: string) => string,
+  resolveSlot: (source: VnStageSource) => number = messageSlotOf
 ): VnStageCharacter[] {
   const current = window[window.length - 1];
   if (!current) return [];
@@ -57,7 +130,7 @@ export function buildVnStage(
     }
     const url = resolveUrl(source.imageIdentifier);
     if (url.length < 1) continue;
-    found.set(source.name, { url, slot: slotOf(source.imagePos), isFlipped: source.emote.flipped });
+    found.set(source.name, { url, slot: slotOf(resolveSlot(source)), isFlipped: source.emote.flipped });
   }
   if (found.size < 1) return [];
 
@@ -67,18 +140,18 @@ export function buildVnStage(
       : '';
 
   const cast = [...found.entries()].sort(([nameA, a], [nameB, b]) => a.slot - b.slot || nameA.localeCompare(nameB));
-  const slotCounts = new Map<number, number>();
-  return cast.map(([name, info]) => {
-    const duplicates = slotCounts.get(info.slot) ?? 0;
-    slotCounts.set(info.slot, duplicates + 1);
-    const left = ((info.slot + 0.5) / VN_STAGE_SLOT_COUNT) * 100 + duplicates * SLOT_DUPLICATE_OFFSET;
-    return {
-      name,
-      url: info.url,
-      left: Math.min(LEFT_MAX, Math.max(LEFT_MIN, left)),
-      slot: info.slot,
-      isActive: name === activeName,
-      isFlipped: info.isFlipped,
-    };
-  });
+  const lefts = spreadStagePositions(
+    desiredPositions(cast.map(([, info]) => info.slot)),
+    VN_STAGE_MIN_GAP,
+    LEFT_MIN,
+    LEFT_MAX
+  );
+  return cast.map(([name, info], index) => ({
+    name,
+    url: info.url,
+    left: lefts[index],
+    slot: info.slot,
+    isActive: name === activeName,
+    isFlipped: info.isFlipped,
+  }));
 }

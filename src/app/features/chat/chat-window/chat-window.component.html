@@ -1,11 +1,15 @@
-<div class="flex min-h-full min-w-0 flex-col">
-  <div class="min-w-0 flex-1">
+<div class="flex h-full min-h-0 min-w-0 flex-col">
+  <div
+    class="relative min-h-0 min-w-0 flex-1 overflow-y-auto overscroll-contain"
+    data-testid="chat-log-scroll"
+    #logScroll
+  >
     @if (chatTab()) {
       <chat-tab [chatTab]="chatTab()" (addMessage)="onAddMessage()"></chat-tab>
     }
   </div>
   <div
-    class="border-ui-border-panel bg-ui-titlebar shadow-ui-sm rounded-ui @container sticky bottom-0 z-10 box-border w-full min-w-0 border border-solid"
+    class="border-ui-border-panel bg-ui-titlebar shadow-ui-sm rounded-ui @container relative z-10 box-border w-full min-w-0 shrink-0 border border-solid"
   >
     @if (chatTabRef()?.writingSpeakers()?.length) {
       @let writingSpeakersList = chatTabRef()!.writingSpeakers();
@@ -133,6 +137,7 @@
           class="-mx-1 flex min-h-7.5 min-w-0 flex-[999_1_160px] scrollbar-none items-center gap-0.75 overflow-x-auto overflow-y-hidden px-1.5 pt-2 pb-0.5 @max-[340px]:order-3 @max-[340px]:basis-full"
           #tabPillsContainer
           (scroll)="onTabPillsScroll()"
+          (wheel)="switchTabByWheel($event)"
         >
           @for (chatTab of visibleChatTabs(); track trackByChatTab($index, chatTab)) {
             <label class="relative inline-block flex-none overflow-visible">
@@ -241,7 +246,6 @@
       [(gameType)]="gameType"
       [(sendFrom)]="sendFrom"
       (chat)="sendChat($event)"
-      (tabSwitch)="chatTabSwitchRelative($event)"
     ></chat-input>
   </div>
 </div>

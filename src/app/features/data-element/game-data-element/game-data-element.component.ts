@@ -23,6 +23,7 @@ import {
   DataElementRole,
   DataElementViewMode,
 } from '@axe/domain/data/data-element';
+import { calcSourceIdentifiers, evaluateCalcElement } from '@axe/domain/data/data-element-calc-env';
 import {
   decodeRangeShapeField,
   defaultRangeShapeFieldValue,
@@ -40,7 +41,6 @@ import {
   type TableColumnHeaderGroup as DataElementTableColumnHeaderGroup,
 } from '@axe/domain/data/table-layout';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
-import { evaluateCalcElement } from '@axe/features/data-element/game-data-element/game-data-element-calc-env';
 import {
   canAcceptChildRole,
   canDropStructureElement,
@@ -394,7 +394,10 @@ export class GameDataElementComponent {
 
   readonly calcResult = computed(() => {
     const el = this.gameDataElement();
-    this.objectChange.versionOf(el.identifier)();
+    // The result reads the whole sheet, so it goes stale on a change to any part of it, and on
+    // a field being added or taken away.
+    this.objectChange.collectionOf('data')();
+    for (const identifier of calcSourceIdentifiers(el)) this.objectChange.versionOf(identifier)();
     return evaluateCalcElement(el);
   });
 

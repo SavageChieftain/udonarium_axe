@@ -4,6 +4,7 @@ import { RolePermissionService } from '@axe/application/permission/role-permissi
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { getMyPeerId } from '@axe/core/network/peer-context-source';
+import { normalizeFolderPath } from '@axe/domain/character/character-folder';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import {
   convertLegacyCheckTableElements,
@@ -121,6 +122,18 @@ export class GameCharacterSettingsTabComponent {
 
   onSetLocation(event: Event): void {
     this.locationChange.emit((event.target as HTMLSelectElement).value);
+  }
+
+  onSetFolder(event: Event): void {
+    if (!this.rolePermission.canEditTabletop) return;
+    const character = this.character();
+    const input = event.target as HTMLInputElement;
+    const folderName = normalizeFolderPath(input.value);
+    input.value = folderName;
+    if (character.folderName === folderName) return;
+    // The synchronised setter announces the change on its way through; saying so again here made
+    // every listener do its work twice.
+    character.folderName = folderName;
   }
 
   convertLegacyCheckTables(): void {

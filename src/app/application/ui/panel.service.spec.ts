@@ -217,4 +217,31 @@ describe('PanelService', () => {
       expect(adjusted.top).toBeUndefined();
     });
   });
+
+  describe('scrollable panel', () => {
+    const elementOf = (name: string) => ({ name }) as unknown as HTMLDivElement;
+
+    it('takes the default panel body when nobody claimed it', () => {
+      const service = new PanelService();
+      const body = elementOf('body');
+      service.setDefaultScrollablePanel(body);
+      expect(service.scrollablePanel).toBe(body);
+    });
+
+    it('keeps a claimed element even when the panel body arrives later', () => {
+      const service = new PanelService();
+      const log = elementOf('log');
+      service.claimScrollablePanel(log);
+      service.setDefaultScrollablePanel(elementOf('body'));
+      expect(service.scrollablePanel).toBe(log);
+    });
+
+    it('lets a claim replace the panel body', () => {
+      const service = new PanelService();
+      const log = elementOf('log');
+      service.setDefaultScrollablePanel(elementOf('body'));
+      service.claimScrollablePanel(log);
+      expect(service.scrollablePanel).toBe(log);
+    });
+  });
 });

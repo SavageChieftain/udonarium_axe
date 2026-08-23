@@ -1,7 +1,8 @@
 import { computed, effect, inject, Injectable } from '@angular/core';
-import { EffectPlaybackService, prefersReducedMotion } from '@axe/application/effect/effect-playback.service';
+import { EffectPlaybackService } from '@axe/application/effect/effect-playback.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { TabletopService } from '@axe/application/tabletop/tabletop.service';
+import { MotionService } from '@axe/application/ui/motion.service';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { EffectCast } from '@axe/domain/effect/effect-cast';
 import { EffectField } from '@axe/domain/effect/effect-field';
@@ -27,6 +28,7 @@ export class EffectFieldService {
   private readonly objectChange = inject(ObjectChangeService);
   private readonly tabletopService = inject(TabletopService);
   private readonly playbackService = inject(EffectPlaybackService);
+  private readonly motion = inject(MotionService);
 
   readonly fields = computed<EffectField[]>(() => {
     this.objectChange.collectionOf('effect-field')();
@@ -37,7 +39,7 @@ export class EffectFieldService {
 
   constructor() {
     // The draw loop runs for as long as a field exists; unlike a cast, it never ends.
-    effect(() => this.playbackService.setPersistent('effect-field', this.fields().length > 0));
+    effect(() => this.playbackService.setPersistent('effect-field', this.fields().length > 0 && this.motion.enabled()));
   }
 
   place(preset: EffectPreset, x: number, y: number, z: number): EffectField {
@@ -66,8 +68,8 @@ export class EffectFieldService {
 
   /** One frame to draw, looping over the effect's length. */
   renderables(now: number): EffectFieldRenderable[] {
-    // Reduced motion stops it as it stops a cast, which matters more here because a field never ends.
-    if (prefersReducedMotion()) return [];
+    // Motion turned off stops it as it stops a cast, which matters more here because a field never ends.
+    if (!this.motion.enabled()) return [];
 
     const gridSize = this.tabletopService.gridSize();
     const renderables: EffectFieldRenderable[] = [];

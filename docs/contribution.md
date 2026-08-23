@@ -76,6 +76,27 @@ chore(release): bump version to 1.2.2
 
 設定: [../lefthook.yml](../lefthook.yml)
 
+## CI（main への Pull Request）
+
+フックはコミットする人の手元でしか走らない。main への Pull Request では
+[GitHub Actions](../.github/workflows/ci.yml) が同じ関門を通したうえで、
+フックの外にあるものまで見る。
+
+| ジョブ           | 内容                                   |
+| ---------------- | -------------------------------------- |
+| `Format`         | `npm run format:check`                 |
+| `Lint`           | `npm run lint`                         |
+| `Test (ng test)` | `npm test`（Angular builder の設定）   |
+| `Test (vitest)`  | `npx vitest run`（`vitest.config.ts`） |
+| `Build`          | `npm run build`                        |
+| `Website`        | `website/` の VitePress ビルド         |
+
+ユニットテストの 2 経路は別ジョブに分けてある。片方だけ落ちることがあるので、
+チェック名で落ちた経路が分かるようにしている。
+
+E2E は載せていない。Playwright は CI だと 5 ブラウザぶん走る設定で、Pull Request
+1 回に何十分もかかる。手元で `npm run e2e` を回す。
+
 ## リリース
 
 - `package.json` の `version` がリリース番号

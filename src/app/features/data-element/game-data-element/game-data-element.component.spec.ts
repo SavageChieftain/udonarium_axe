@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { ImageStorage } from '@axe/core/storage/image-storage';
 import {
   DataElement,
@@ -971,6 +972,36 @@ describe('GameDataElementComponent', () => {
       component.formulaText = 'コスト + 1';
 
       expect(component.calcResult()).toBe('?');
+    });
+
+    it('works itself out again when what it reads changes', () => {
+      const root = DataElement.create('detail', '');
+      const hp = DataElement.create('HP', '30');
+      const calc = DataElement.create('合計', '', { fieldType: DataElementFieldType.CALC, formula: 'HP + 1' });
+      root.appendChild(hp);
+      root.appendChild(calc);
+
+      fixture.componentRef.setInput('gameDataElement', calc);
+      fixture.detectChanges();
+      expect(component.calcResult()).toBe('31');
+
+      hp.value = '40';
+      TestBed.inject(ObjectChangeService).notifyChanged(hp.identifier);
+
+      expect(component.calcResult()).toBe('41');
+    });
+
+    it('reads a resource at what it is now rather than at the top of its bar', () => {
+      const root = DataElement.create('detail', '');
+      const hp = DataElement.create('HP', 20, { type: 'numberResource', currentValue: 6 });
+      const calc = DataElement.create('残り', '', { fieldType: DataElementFieldType.CALC, formula: 'HP' });
+      root.appendChild(hp);
+      root.appendChild(calc);
+
+      fixture.componentRef.setInput('gameDataElement', calc);
+      fixture.detectChanges();
+
+      expect(component.calcResult()).toBe('6');
     });
 
     it('returns a question mark for a formula it cannot read', () => {

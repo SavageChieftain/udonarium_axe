@@ -24,6 +24,7 @@ import { ImageStorage } from '@axe/core/storage/image-storage';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { Card } from '@axe/domain/card/card';
 import { CardStack } from '@axe/domain/card/card-stack';
+import { portraitElementAt, portraitNameOf, setPortraitNameOf } from '@axe/domain/character/character-portrait';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import {
   DataElement,
@@ -361,24 +362,34 @@ export class GameCharacterSheetComponent {
     this.objectChange.versionOf(char.identifier)();
     return char.imageDataElement.children.map((child, index) => {
       const file = this.imageStorage.get(child.value as string) ?? ImageFile.Empty;
-      return { index, imageFile: file };
+      return { index, imageFile: file, name: portraitNameOf(child) };
     });
   });
+
+  private readKomaIndex(char: GameCharacter): number {
+    const iconEl = char.detailDataElement?.getFirstElementByName('ICON');
+    return iconEl ? (iconEl.currentValue as number) : 0;
+  }
 
   readonly komaImageIndex = computed(() => {
     const char = this.character;
     if (!char) return 0;
     this.objectChange.versionOf(char.identifier)();
-    const iconEl = char.detailDataElement?.getFirstElementByName('ICON');
-    return iconEl ? (iconEl.currentValue as number) : 0;
+    return this.readKomaIndex(char);
+  });
+
+  readonly portraitName = computed(() => {
+    const char = this.character;
+    if (!char) return '';
+    this.objectChange.versionOf(char.identifier)();
+    return portraitNameOf(portraitElementAt(char, this.readKomaIndex(char)));
   });
 
   readonly portraitPosIndex = computed(() => {
     const char = this.character;
     if (!char) return 0;
     this.objectChange.versionOf(char.identifier)();
-    const posEl = char.detailDataElement?.getFirstElementByName('POS');
-    return posEl ? (posEl.currentValue as number) : 0;
+    return char.portraitPosition ?? 0;
   });
 
   readonly komaImageFile = computed(() => {
@@ -508,18 +519,19 @@ export class GameCharacterSheetComponent {
     });
   }
 
-  setPortraitPos(pos: number) {
+  setPortraitName(event: Event) {
     const char = this.character;
     if (!char) return;
-    char.addExtendData();
-    const posEl = char.detailDataElement?.getFirstElementByName('POS');
-    if (!posEl) return;
-    posEl.currentValue = Math.max(0, Math.min(11, Math.round(pos)));
+    const element = portraitElementAt(char, this.readKomaIndex(char));
+    if (!element) return;
+    setPortraitNameOf(element, (event.target as HTMLInputElement).value);
     char.update();
   }
 
-  onSetPortraitPos(event: Event): void {
-    this.setPortraitPos((event.target as HTMLInputElement).valueAsNumber);
+  setPortraitPos(pos: number) {
+    const char = this.character;
+    if (!char) return;
+    char.portraitPosition = pos;
   }
 
   addPortrait() {

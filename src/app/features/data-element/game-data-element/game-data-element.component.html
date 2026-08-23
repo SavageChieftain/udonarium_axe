@@ -241,6 +241,21 @@
                   {{ 'feature.dataElement.imageUnset' | transloco }}
                 </div>
               }
+              @if (isImage()) {
+                <label class="flex min-w-30 flex-1 items-center gap-1.5 text-[0.8em]">
+                  <span class="text-ui-muted shrink-0">{{
+                    'feature.dataElement.portraitNumber' | transloco: { index: indexNum() + 1 }
+                  }}</span>
+                  <input
+                    class="w-full min-w-2.5"
+                    size="1"
+                    name="data-current-value"
+                    [(ngModel)]="currentValue"
+                    [readonly]="isValueLocked()"
+                    [placeholder]="'feature.dataElement.portraitName' | transloco"
+                  />
+                </label>
+              }
               @if (isEdit()) {
                 <button
                   class="portrait-button text-[1em]"
@@ -362,47 +377,15 @@
                 placeholder="Value"
               />
             }
-            @if (isImage()) {
-              <div class="table-2">
-                <div class="table-cell-2 sub-image-box">
-                  @if (imageFileUrl()) {
-                    <img
-                      class="sub-image"
-                      [src]="imageFileUrl() | safe: 'resourceUrl'"
-                      [alt]="gameDataElement().value"
-                    />
-                  }
-                </div>
-                <div class="table-cell-2 sub-table">
-                  <span>{{ 'feature.dataElement.portraitNumber' | transloco: { index: indexNum() } }}</span
-                  ><input
-                    class="w-full min-w-2.5"
-                    size="1"
-                    name="data-current-value"
-                    name="data-current-value"
-                    [(ngModel)]="currentValue"
-                    [readonly]="isValueLocked()"
-                    [placeholder]="'feature.dataElement.portraitName' | transloco"
-                  />
-                  <button
-                    class="portrait-button text-[1em]"
-                    [disabled]="isValueLocked()"
-                    (click)="!isValueLocked() && openModal('imageIdentifier', true)"
-                  >
-                    {{ 'feature.dataElement.imageChange' | transloco }}
-                  </button>
-                </div>
-              </div>
-            }
           }
         }
       </div>
       @if (isEdit() && !isImage()) {
         <div
-          class="elm-row-actions pointer-events-auto static z-2 col-start-2 row-start-1 grid w-(--gde-actions-width) min-w-(--gde-actions-width) grid-cols-[74px_repeat(5,20px)] items-center justify-end gap-0.5 self-center rounded-(--gde-radius-line) border border-(--gde-row-border) bg-(--gde-action-bg) p-0.5 opacity-100"
+          class="elm-row-actions pointer-events-auto static z-2 col-start-2 row-start-1 grid w-(--gde-actions-width) min-w-(--gde-actions-width) grid-cols-[var(--gde-select-width)_repeat(5,20px)] items-center justify-end gap-0.5 self-center rounded-(--gde-radius-line) border border-(--gde-row-border) bg-(--gde-action-bg) p-0.5 opacity-100"
         >
           <ng-select
-            class="ud-select min-h-5.5! w-18.5 min-w-18.5 text-[0.68em]! [&_.ng-select-container]:h-5.5! [&_.ng-select-container]:min-h-5.5! [&_.ng-select-container]:items-center [&_.ng-select-container_.ng-arrow-wrapper]:self-center [&_.ng-select-container_.ng-arrow-wrapper]:pb-0"
+            class="ud-select gde-select min-h-5.5! text-[0.68em]! [&_.ng-select-container]:h-5.5! [&_.ng-select-container]:min-h-5.5! [&_.ng-select-container]:items-center [&_.ng-select-container]:rounded-(--gde-radius-control)! [&_.ng-select-container_.ng-arrow-wrapper]:self-center [&_.ng-select-container_.ng-arrow-wrapper]:pb-0"
             [ngModel]="gameDataElement().fieldType"
             [ngModelOptions]="{ standalone: true }"
             [clearable]="false"

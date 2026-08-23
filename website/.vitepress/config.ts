@@ -106,6 +106,25 @@ export default defineConfig({
     css: { postcss: { plugins: [] } },
   },
   markdown: {
+    // A copy of VitePress's own slugify with the result put back into NFC.
+    // Its NFKD pass strips only the combining marks in U+0300..U+036F, which
+    // leaves a Japanese dakuten decomposed: the id holds ハ + U+3099 where a
+    // hand-written link holds バ. The two are indistinguishable on screen and
+    // never match, and neither the build nor a reviewer can see the difference.
+    // The same function makes the ids and the page outline, so both move together.
+    anchor: {
+      slugify: (str: string) =>
+        str
+          .normalize('NFKD')
+          .replace(/[\u0300-\u036F]/g, '')
+          .replace(/[\u0000-\u001f]/g, '')
+          .replace(/[\s~`!@#$%^&*()\-_+=[\]{}|\\;:"'“”‘’<>,.?/]+/g, '-')
+          .replace(/-{2,}/g, '-')
+          .replace(/^-+|-+$/g, '')
+          .replace(/^(\d)/, '_$1')
+          .toLowerCase()
+          .normalize('NFC'),
+    },
     config: (md) => {
       // Default VitePress tables are `display: block`, so they shrink to their
       // content and hug the left edge. Wrapping them lets the table fill the
@@ -183,6 +202,7 @@ export default defineConfig({
           items: [
             { text: 'オブジェクトの基本操作', link: '/manual/objects' },
             { text: 'キャラクターコマ', link: '/manual/character' },
+            { text: 'シートの項目（データ要素）', link: '/manual/data-element' },
             { text: 'キャラクターの取り込み', link: '/manual/character-import' },
             { text: 'バフ／デバフ', link: '/manual/buff' },
             { text: 'カード', link: '/manual/cards' },

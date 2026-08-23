@@ -4,6 +4,7 @@ import { ObjectChangeService } from '@axe/application/sync/object-change.service
 import { UiSignalService } from '@axe/application/ui/ui-signal.service';
 import { ImageStorage } from '@axe/core/storage/image-storage';
 import { DataElement, DataElementAttribute, DataElementFieldType } from '@axe/domain/data/data-element';
+import { calcSourceIdentifiers, evaluateCalcElement } from '@axe/domain/data/data-element-calc-env';
 import { findJudgementCandidates, type SkillJudgementCandidate } from '@axe/domain/data/skill-table-judgement';
 import {
   buildTableColumnHeaderGroups,
@@ -22,7 +23,6 @@ import {
   type TableColumn as DataElementTableColumn,
   type TableColumnHeaderGroup as DataElementTableColumnHeaderGroup,
 } from '@axe/domain/data/table-layout';
-import { evaluateCalcElement } from '@axe/features/data-element/game-data-element/game-data-element-calc-env';
 import {
   type JudgeCandidatesState,
   JudgementCandidatesModalComponent,
@@ -141,6 +141,27 @@ export class GameDataElementTableViewComponent {
     return findGapCellInColumn(this.element(), column);
   }
 
+  /**
+   * Every calculating cell in the table, worked out once for the whole table.
+   *
+   * A formula reads the sheet it sits in, so asking cell by cell walks that sheet again for each
+   * one — and the display text is read from the template, which asks on every pass.
+   */
+  private readonly calcCellTexts = computed<ReadonlyMap<string, string>>(() => {
+    const cells = this.tableRows()
+      .flatMap((row) => [...row.children])
+      .filter((cell) => cell.fieldType === DataElementFieldType.CALC);
+    const texts = new Map<string, string>();
+    if (cells.length < 1) return texts;
+
+    // Every cell in one table reads the same sheet, so its parts are watched once for all of them.
+    this.objectChange.collectionOf('data')();
+    for (const identifier of calcSourceIdentifiers(cells[0])) this.objectChange.versionOf(identifier)();
+
+    for (const cell of cells) texts.set(cell.identifier, evaluateCalcElement(cell));
+    return texts;
+  });
+
   getTableCellDisplayText(cell: DataElement): string {
     this.objectChange.versionOf(cell.identifier)();
 
@@ -150,7 +171,7 @@ export class GameDataElementTableViewComponent {
       case DataElementFieldType.CHECK:
         return getCellLabel(cell);
       case DataElementFieldType.CALC:
-        return evaluateCalcElement(cell);
+        return this.calcCellTexts().get(cell.identifier) ?? '';
       case DataElementFieldType.IMAGE:
         return cell.value ? this.t('feature.dataElement.imageUnloaded') : '';
       default:
@@ -283,7 +304,19 @@ export class GameDataElementTableViewComponent {
     const element = this.element();
     const baseDifficulty = parseInt(element.getAttribute(DataElementAttribute.BASE_DIFFICULTY)) || 5;
     const totalDifficulty = baseDifficulty + candidate.distance;
-    this.uiSignalService.requestChatInputText(`2d6>=${totalDifficulty}`);
+    this.uiSignalService.requestChatInputText(`2d6>=${totalDifficulty}${this.judgementNote(candidate)}`);
     this.judgeCandidatesState.set(null);
+  }
+
+  /**
+   * What the roll is for: the skill being judged, and the learnt skill the distance is counted from.
+   * A dice bot reads as far as the first space, so the note rides along behind one without
+   * disturbing the roll. Without it the log holds a bare target number and nothing to read it against.
+   */
+  private judgementNote(candidate: SkillJudgementCandidate): string {
+    const target = (this.judgeCandidatesState()?.clickedCellLabel ?? '').trim();
+    const source = (candidate.cellLabel || candidate.colLabel).trim();
+    if (target.length < 1 || source.length < 1) return '';
+    return ` ${this.t('feature.dataElement.judgement.chatNote', { target, source, distance: candidate.distance })}`;
   }
 }

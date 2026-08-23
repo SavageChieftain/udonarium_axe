@@ -89,3 +89,27 @@ export async function createDiceSymbol(page: Page) {
   await menu.getByText('D6').click();
   await expect(page.locator('dice-symbol').first()).toBeAttached({ timeout: 10000 });
 }
+
+/**
+ * ノベルモードの発言キャラクターを選ぶ。
+ * ng-select は候補パネルを body 直下の CDK オーバーレイに出すので、
+ * visual-novel-overlay スコープのロケータでは届かない。
+ */
+export async function openVnSpeakerList(page: Page): Promise<Locator> {
+  await page.locator('visual-novel-overlay [data-testid="vn-speaker"]').click();
+  const panel = page.locator('.ng-dropdown-panel');
+  await expect(panel).toBeVisible({ timeout: 5000 });
+  return panel;
+}
+
+export async function selectVnSpeaker(page: Page, name: string) {
+  const panel = await openVnSpeakerList(page);
+  await page.locator('visual-novel-overlay [data-testid="vn-speaker"] input').fill(name);
+  await panel.getByRole('option', { name, exact: true }).click();
+  await expect(panel).toBeHidden({ timeout: 5000 });
+}
+
+/** ノベルモードの発言入力欄。ng-select も input を持つので data-testid で拾う。 */
+export function vnMessageInput(page: Page): Locator {
+  return page.locator('visual-novel-overlay [data-testid="vn-message"]');
+}

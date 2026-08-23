@@ -1,8 +1,8 @@
 import { computed, inject, Injectable, signal } from '@angular/core';
-import { prefersReducedMotion } from '@axe/application/effect/effect-playback.service';
 import { readKeyframeBytes } from '@axe/application/replay/replay-keyframe-bytes';
 import { ReplayLibraryService } from '@axe/application/replay/replay-library.service';
 import { ReplayStagingService } from '@axe/application/replay/replay-staging.service';
+import { MotionService } from '@axe/application/ui/motion.service';
 import { Logger } from '@axe/core/logging/logger';
 import { setNetworkIsolated } from '@axe/core/network/network-isolation';
 import { localDispatch } from '@axe/core/network/network-messaging';
@@ -57,6 +57,7 @@ export class ReplayPlaybackService {
   private readonly objectFactory = inject(ObjectFactory);
   private readonly objectSynchronizer = inject(ObjectSynchronizer);
   private readonly staging = inject(ReplayStagingService);
+  private readonly motion = inject(MotionService);
 
   private readonly _recordingId = signal<number | null>(null);
   private readonly _manifest = signal<ReplayManifest | null>(null);
@@ -357,7 +358,7 @@ export class ReplayPlaybackService {
   }
 
   private startSlide(event: ReplayEvent): boolean {
-    if (!event.patch || prefersReducedMotion()) return false;
+    if (!event.patch || !this.motion.enabled()) return false;
     const object = this.objectStore.get(event.patch.identifier);
     if (!object) return false;
 

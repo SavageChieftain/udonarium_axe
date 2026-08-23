@@ -83,11 +83,16 @@ export class ChatPortraitImageComponent {
     return this.objectStore.get<ChatTabList>('ChatTabList')!;
   }
 
+  readonly isPortraitInWindow = computed<boolean>(() => {
+    this.chatTabListVersion();
+    return this.chatTabList?.isPortraitInWindow === true;
+  });
+
   readonly portraitYPos = computed<number>(() => {
     this.chatTabListVersion();
     const h = this.chatTabList?.portraitHeight ?? 0;
-    if (!this.chatTabList?.isPortraitInWindow) return -h - 28;
-    return -h;
+    if (!this.isPortraitInWindow()) return -h - 28;
+    return 0;
   });
 
   readonly isPortraitDispMode = computed<boolean>(() => {
@@ -125,6 +130,14 @@ export class ChatPortraitImageComponent {
       slots.push({ pos, imageFileUrl, zIndex, opacity, height });
     }
     return slots;
+  });
+
+  readonly bandHeight = computed<number>(() => {
+    if (!this.isPortraitInWindow() || this.vnMode.active()) return 0;
+    if (!this.chatTab?.portraitDisplayFlag || !this.isPortraitDispMode()) return 0;
+    return this.portraitSlots().some((slot) => slot.imageFileUrl && 0 < slot.height)
+      ? (this.chatTabList?.portraitHeight ?? 0)
+      : 0;
   });
 
   portraitClick(pos: number): void {

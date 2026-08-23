@@ -1,4 +1,4 @@
-import { evalCalcFormula } from '@axe/features/data-element/game-data-element/game-data-element-calc';
+import { evalCalcFormula } from '@axe/domain/data/data-element-calc';
 
 describe('evalCalcFormula', () => {
   it('evaluates a number', () => {

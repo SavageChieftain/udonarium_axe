@@ -7,6 +7,7 @@ import {
   effect,
   ElementRef,
   inject,
+  Injector,
   signal,
   viewChild,
 } from '@angular/core';
@@ -22,12 +23,14 @@ import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { ChatMessage, ChatMessageTargetContext } from '@axe/domain/chat/chat-message';
+import { evaluateCharacterReferences, textTargetsCharacter } from '@axe/domain/chat/chat-palette';
 import { ChatTab } from '@axe/domain/chat/chat-tab';
 import { ChatTabList } from '@axe/domain/chat/chat-tab-list';
 import { canRoleSpeakTab, canRoleViewTab } from '@axe/domain/chat/chat-tab-permission';
 import { DiceBot } from '@axe/domain/dice/dice-bot';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { ChatInputComponent } from '@axe/features/chat/chat-input/chat-input.component';
+import { editsTextInPlace } from '@axe/features/chat/chat-input/chat-input-helpers';
 import { ChatMessageSettingComponent } from '@axe/features/chat/chat-message-setting/chat-message-setting.component';
 import { ChatPortraitComponent } from '@axe/features/chat/chat-portrait/chat-portrait.component';
 import { ChatTabComponent } from '@axe/features/chat/chat-tab/chat-tab.component';
@@ -39,6 +42,19 @@ import GameSystemClass from 'bcdice/lib/game_system';
 
 const NEAR_BOTTOM_THRESHOLD_PX = 350;
 const AT_BOTTOM_THRESHOLD_PX = 8;
+/**
+ * How far the wheel must travel to move one tab.
+ * A notch clears it on its own; a trackpad, which sends a stream of small deltas, gathers them up first.
+ */
+const WHEEL_TAB_STEP_PX = 40;
+/** A line of wheel travel in pixels, for the browsers that report the wheel in lines. */
+const WHEEL_LINE_PX = 16;
+/**
+ * How much of the strip is kept beside the current tab.
+ * Brought only just inside, it ends up flush against the arrow that scrolls the strip, and
+ * whichever way the strip is still moving it can be carried back out again.
+ */
+const TAB_CLEARANCE_PX = 24;
 
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -53,6 +69,12 @@ const AT_BOTTOM_THRESHOLD_PX = 8;
     SafePipe,
     TranslocoModule,
   ],
+  host: {
+    class: 'block h-full min-h-0 min-w-0',
+    tabindex: '-1',
+    '(keydown.control.arrowleft)': 'switchTabByKey($event, -1)',
+    '(keydown.control.arrowright)': 'switchTabByKey($event, 1)',
+  },
 })
 export class ChatWindowComponent {
   chatMessageService = inject(ChatMessageService);
@@ -64,6 +86,8 @@ export class ChatWindowComponent {
   private readonly chatPrefs = inject(ChatPreferencesService);
   private readonly activeChatTab = inject(ActiveChatTabService);
   private readonly t = inject(TRANSLATE_FN);
+  private readonly hostElement = inject<ElementRef<HTMLElement>>(ElementRef);
+  private readonly injector = inject(Injector);
 
   sendFrom: string = 'Guest';
 
@@ -85,14 +109,16 @@ export class ChatWindowComponent {
     this.updatePanelTitle();
     if (hasChanged) {
       this.scrollToBottom(true);
-      queueMicrotask(() => this.scrollActiveTabIntoView());
+      afterNextRender(() => this.scrollActiveTabIntoView(), { injector: this.injector });
     }
   }
 
+  private readonly logScroll = viewChild.required<ElementRef<HTMLDivElement>>('logScroll');
   private readonly tabPillsContainer = viewChild<ElementRef<HTMLElement>>('tabPillsContainer');
   readonly chatTabRef = viewChild(ChatTabComponent);
   readonly canScrollLeft = signal(false);
   readonly canScrollRight = signal(false);
+  private wheelTravel = 0;
 
   updateTabScrollState(): void {
     const el = this.tabPillsContainer()?.nativeElement;
@@ -115,18 +141,80 @@ export class ChatWindowComponent {
     if (el) el.scrollBy({ left: 120, behavior: 'smooth' });
   }
 
+  /**
+   * Brings the tab now current back into the strip.
+   *
+   * The pill is found by its place in the strip rather than by which radio is checked: ngModel
+   * writes that mark in a promise of its own, after the view has been drawn, so looking for it
+   * lands on the tab that was just left and the strip trails a tab behind.
+   */
   private scrollActiveTabIntoView(): void {
     const el = this.tabPillsContainer()?.nativeElement;
     if (!el) return;
-    const activeInput = el.querySelector<HTMLInputElement>('input[type="radio"]:checked');
-    if (activeInput?.parentElement) {
-      activeInput.parentElement.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
-    }
     this.updateTabScrollState();
+
+    const index = this.visibleChatTabs().findIndex((tab) => tab.identifier === this._chatTabidentifier());
+    const pill = el.children.item(index);
+    if (!(pill instanceof HTMLElement)) return;
+
+    const strip = el.getBoundingClientRect();
+    const tab = pill.getBoundingClientRect();
+    const before = tab.left - strip.left;
+    const after = strip.right - tab.right;
+
+    let shift = 0;
+    if (before < TAB_CLEARANCE_PX) shift = before - TAB_CLEARANCE_PX;
+    else if (after < TAB_CLEARANCE_PX) shift = TAB_CLEARANCE_PX - after;
+    if (shift === 0) return;
+
+    // Where to end up, not how far to go: asked for a distance part way through a scroll of its
+    // own, the strip adds it to where it has reached and overshoots.
+    el.scrollTo({ left: el.scrollLeft + shift, behavior: 'smooth' });
+  }
+
+  /**
+   * Bound to the window rather than to the input: a tab nobody may speak in renders no textarea,
+   * and the shortcut used to live on that textarea, so arriving at such a tab left no way back
+   * out by keyboard. Focus follows to the window when the input goes away.
+   */
+  switchTabByKey(event: Event, direction: number): void {
+    if (editsTextInPlace(event.target)) return;
+    event.preventDefault();
+    this.chatTabSwitchRelative(direction);
+    if (!this.canSpeakCurrentTab()) this.hostElement.nativeElement.focus();
+  }
+
+  /**
+   * Moves through the tabs on the wheel, over the strip they are drawn in.
+   * The strip scrolls sideways, so the wheel would otherwise slide it about instead.
+   */
+  switchTabByWheel(event: WheelEvent): void {
+    const delta = wheelTravelOf(event);
+    if (delta === 0) return;
+    event.preventDefault();
+
+    if (this.wheelTravel !== 0 && Math.sign(delta) !== Math.sign(this.wheelTravel)) this.wheelTravel = 0;
+    this.wheelTravel += delta;
+    if (Math.abs(this.wheelTravel) < WHEEL_TAB_STEP_PX) return;
+
+    this.wheelTravel = 0;
+    // At either end the tab does not change, so nothing else brings it back into view, and the
+    // strip can be left part way through a scroll with the current tab off the end of it.
+    if (!this.switchTabWithinEnds(delta > 0 ? 1 : -1)) this.scrollActiveTabIntoView();
+  }
+
+  /** The wheel stops at either end. Coming back round reads as having lost your place rather than as having moved. */
+  private switchTabWithinEnds(direction: number): boolean {
+    const chatTabs = this.visibleChatTabs();
+    const index = chatTabs.findIndex((elm) => elm.identifier == this.chatTabidentifier);
+    const nextIndex = index + direction;
+    if (index < 0 || nextIndex < 0 || nextIndex >= chatTabs.length) return false;
+    this.chatTabidentifier = chatTabs[nextIndex].identifier;
+    return true;
   }
 
   chatTabSwitchRelative(direction: number) {
-    const chatTabs = this.chatMessageService.chatTabs;
+    const chatTabs = this.visibleChatTabs();
     const index = chatTabs.findIndex((elm) => elm.identifier == this.chatTabidentifier);
     if (index < 0) {
       return;
@@ -239,7 +327,7 @@ export class ChatWindowComponent {
     });
     effect(() => {
       this.chatTabsVersion();
-      queueMicrotask(() => this.updateTabScrollState());
+      afterNextRender(() => this.updateTabScrollState(), { injector: this.injector });
     });
     effect(() => {
       const visible = this.visibleChatTabs();
@@ -247,6 +335,11 @@ export class ChatWindowComponent {
       if (current && !visible.some((tab) => tab.identifier === current)) {
         this.chatTabidentifier = visible.length > 0 ? visible[0].identifier : '';
       }
+    });
+    afterNextRender({
+      write: () => {
+        this.panelService.claimScrollablePanel(this.logScroll().nativeElement);
+      },
     });
     afterNextRender(() => {
       queueMicrotask(() => this.scrollToBottom(true));
@@ -413,21 +506,10 @@ export class ChatWindowComponent {
     );
   }
 
-  checkTargetCharacter(text: string): boolean {
-    let istarget = false;
-    if (text.match(/^[sSｓＳ]?[tTｔＴ][:：]([^:：]+)/g)) {
-      istarget = true;
-    }
-    if (text.match(/\s[sSｓＳ]?[tTｔＴ][:：]([^:：]+)/g)) {
-      istarget = true;
-    }
-    if (text.match(/^[tTｔＴ][&＆]([^&＆]+)/g)) {
-      istarget = true;
-    }
-    if (text.match(/\s[tTｔＴ][&＆]([^&＆]+)/g)) {
-      istarget = true;
-    }
-    return istarget;
+  /** Who the line is spoken as. Speaking as yourself rather than as a piece leaves nothing to read. */
+  private speakingCharacterOf(sendFrom: string): GameCharacter | null {
+    const object = this.objectStore.get(sendFrom);
+    return object instanceof GameCharacter ? object : null;
   }
 
   private targeted(gameCharacter: GameCharacter): boolean {
@@ -459,7 +541,23 @@ export class ChatWindowComponent {
       let objects: GameCharacter[];
       const messageTargetContext: ChatMessageTargetContext[] = [];
 
-      if (this.checkTargetCharacter(value.text)) {
+      const speaker = this.speakingCharacterOf(value.sendFrom);
+      const attachmentImageIdentifiers: string[] = [];
+      const appendAttachmentImages = (identifiers: string[]) => {
+        for (const identifier of identifiers) {
+          if (!attachmentImageIdentifiers.includes(identifier)) attachmentImageIdentifiers.push(identifier);
+        }
+      };
+      const fillIn = (text: string, target?: GameCharacter): string => {
+        // Spoken as yourself there is nothing to read the references off, and blanking them would
+        // eat the braces out of whatever was typed.
+        if (!speaker) return text;
+        const evaluated = evaluateCharacterReferences(text, speaker, target);
+        appendAttachmentImages(evaluated.attachmentImageIdentifiers);
+        return evaluated.text;
+      };
+
+      if (textTargetsCharacter(value.text)) {
         objects = this.targetedGameCharacterList();
         let first = true;
         if (objects.length == 0) {
@@ -475,7 +573,8 @@ export class ChatWindowComponent {
             str2 = DiceBot.deleteMyselfResourceBuff(str);
           }
 
-          outtext += str2;
+          const filled = fillIn(str2, object);
+          outtext += filled;
           outtext += ' [' + object.name + ']';
           first = false;
 
@@ -483,17 +582,17 @@ export class ChatWindowComponent {
             text: '',
             object: null,
           };
-          targetContext.text = str2;
+          targetContext.text = filled;
           targetContext.object = object;
           messageTargetContext.push(targetContext);
         }
       } else {
-        outtext = value.text;
+        outtext = fillIn(value.text);
         const targetContext: ChatMessageTargetContext = {
           text: '',
           object: null,
         };
-        targetContext.text = value.text;
+        targetContext.text = outtext;
         targetContext.object = null;
         messageTargetContext.push(targetContext);
       }
@@ -506,7 +605,7 @@ export class ChatWindowComponent {
         value.portraitIndex,
         value.messColor,
         messageTargetContext,
-        undefined,
+        attachmentImageIdentifiers,
         value.replyTo,
         value.quoteOf
       );
@@ -516,4 +615,18 @@ export class ChatWindowComponent {
   trackByChatTab(index: number, chatTab: ChatTab) {
     return chatTab.identifier;
   }
+}
+
+/**
+ * How far the wheel turned, in pixels. Zero for a sideways push.
+ *
+ * A trackpad swiped sideways over the strip means to slide the strip, and it is the one thing
+ * there that scrolls that way, so the wheel is only taken when it turns.
+ */
+function wheelTravelOf(event: WheelEvent): number {
+  if (Math.abs(event.deltaX) > Math.abs(event.deltaY)) return 0;
+  const raw = event.deltaY;
+  if (event.deltaMode === WheelEvent.DOM_DELTA_LINE) return raw * WHEEL_LINE_PX;
+  if (event.deltaMode === WheelEvent.DOM_DELTA_PAGE) return raw * WHEEL_TAB_STEP_PX;
+  return raw;
 }

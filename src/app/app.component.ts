@@ -20,6 +20,7 @@ import { TurnOrderService } from '@axe/application/turn/turn-order.service';
 import { ContextMenuService } from '@axe/application/ui/context-menu.service';
 import { MobileLayoutService } from '@axe/application/ui/mobile-layout.service';
 import { ModalService } from '@axe/application/ui/modal.service';
+import { MotionService } from '@axe/application/ui/motion.service';
 import { OverlayModeService } from '@axe/application/ui/overlay-mode.service';
 import { PanelOption, PanelService } from '@axe/application/ui/panel.service';
 import { ThemeService } from '@axe/application/ui/theme.service';
@@ -115,6 +116,7 @@ import { version as APP_VERSION } from '@pkg';
 })
 export class AppComponent {
   readonly theme = inject(ThemeService);
+  readonly motion = inject(MotionService);
   readonly language = inject(LanguageService);
   readonly visualNovel = inject(VisualNovelModeService);
   readonly widgets = inject(WidgetVisibilityService);
@@ -147,6 +149,13 @@ export class AppComponent {
     if (t === 'dark') return this.t('common.theme.dark');
     if (t === 'light') return this.t('common.theme.light');
     return this.t('common.theme.auto');
+  });
+  readonly motionLabel = computed(() => {
+    this.language.currentLang();
+    const setting = this.motion.setting();
+    if (setting === 'on') return this.t('common.motion.on');
+    if (setting === 'off') return this.t('common.motion.off');
+    return this.t('common.motion.auto');
   });
   private openPanelCount = 0;
 

@@ -28,6 +28,11 @@
       "dark": "ダーク",
       "light": "ライト"
     },
+    "motion": {
+      "auto": "エフェクト: 自動",
+      "on": "エフェクト: 常に再生",
+      "off": "エフェクト: 停止"
+    },
     "panel": {
       "peerMenu": "接続情報",
       "chatWindow": "チャットウィンドウ",
@@ -68,6 +73,8 @@
     },
     "gmTools": {
       "npcBar": {
+        "noMatch": "一致する NPC がいません",
+        "searchPlaceholder": "名前で絞り込む",
         "close": "閉じる",
         "empty": "ここに一覧・GMオブジェクト一覧からキャラをドラッグして登録",
         "unregister": "NPC登録を解除"
@@ -103,6 +110,8 @@
         "noActive": "範囲の基点にするキャラを選ぶ（所有キャラクター一覧を開きます）"
       },
       "ownedCharacters": {
+        "noMatch": "一致するキャラクターがいません",
+        "searchPlaceholder": "名前で絞り込む",
         "chatPalette": "チャットパレットを開く",
         "sheet": "キャラクターシートを開く",
         "focus": "コマの位置へ視点を移す",
@@ -738,6 +747,16 @@
     },
     "inventory": {
       "contextMenu": {
+        "folder": "フォルダ",
+        "newFolder": "新しいフォルダ",
+        "removeFromFolder": "フォルダから出す",
+        "renameFolder": "フォルダ名を変更",
+        "newSubfolder": "この中に新しいフォルダ",
+        "deleteFolder": "このフォルダを削除",
+        "confirmDeleteFolder": "「{{name}}」を削除しますか？（中の{{count}}件は未分類に戻ります）",
+        "collapseAll": "すべて折りたたむ",
+        "expandAll": "すべて展開",
+        "selectFolder": "このフォルダを全選択",
         "moveTable": "テーブルに移動",
         "moveCommon": "共有イベントリに移動",
         "movePersonal": "個人イベントリに移動",
@@ -812,6 +831,8 @@
         "portraitClickHint": "クリックして画像を差し替え",
         "portraits": "立ち絵",
         "portraitIndexTitle": "立ち絵 {{index}}",
+        "portraitNamePlaceholder": "立ち絵名（チャットの @名前 で呼べます）",
+        "portraitNameHint": "この立ち絵に名前をつけると、チャットの文末に @名前 と書いて呼び出せます",
         "addPortraitTitle": "立ち絵を追加",
         "removePortraitTitle": "現在の立ち絵を削除",
         "import": "インポート",
@@ -874,6 +895,8 @@
         "locationPersonal": "個人インベントリ",
         "locationGraveyard": "墓地",
         "locationTitle": "配置場所",
+        "folder": "フォルダ",
+        "folderPlaceholder": "未分類（/ で階層）",
         "hide": "非表示",
         "nonTalk": "発言しない",
         "pieceSetting": "コマ設定",
@@ -897,6 +920,15 @@
         "popupMaxHeight": "高さ最大"
       },
       "panel": {
+        "folder": "フォルダ",
+        "selectedCount": "選択 {{count}}",
+        "newFolder": "新しいフォルダ",
+        "defaultFolderName": "フォルダ{{index}}",
+        "unfiled": "未分類",
+        "searchPlaceholder": "名前・所有者・表示項目で検索",
+        "clearSearch": "検索をクリア",
+        "noMatch": "一致するキャラクターがいません",
+        "confirmCleanFiltered": "絞り込み中の{{count}}個の要素を完全に削除しますか？",
         "multiMove": "一括移動",
         "displaySettings": "表示設定",
         "sortOrder1": "並び順 第1",
@@ -1668,6 +1700,9 @@
       }
     },
     "visualNovel": {
+      "speakerNotFound": "見つかりません",
+      "slotFollow": "この行だけの指定なし",
+      "followChatSlot": "通常の位置に合わせる",
       "exit": "終了",
       "noMessages": "まだメッセージがありません。下の入力欄から発言できます。",
       "prev": "前のメッセージ",
@@ -2618,6 +2653,7 @@
       "title": "{{label}} の判定候補",
       "empty": "習得済みの技能が見つかりませんでした",
       "distance": "距離: {{distance}}",
+      "chatNote": "{{target}}（{{source}}から{{distance}}）",
       "sendToChat": "チャットに入力"
     }
   },

@@ -29,6 +29,7 @@ import { DataElement } from '@axe/domain/data/data-element';
 import { DiceBot } from '@axe/domain/dice/dice-bot';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { ChatInputComponent } from '@axe/features/chat/chat-input/chat-input.component';
+import { editsTextInPlace } from '@axe/features/chat/chat-input/chat-input-helpers';
 import { ChatPaletteRegistryService } from '@axe/features/chat/chat-palette/chat-palette-registry.service';
 import { GameDataElementComponent } from '@axe/features/data-element/game-data-element/game-data-element.component';
 import { BadgeComponent } from '@axe/ui/components/badge/badge.component';
@@ -48,7 +49,12 @@ export interface PaletteRow {
   changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'chat-palette',
   templateUrl: './chat-palette.component.html',
-  host: { class: 'block h-full' },
+  host: {
+    class: 'block h-full',
+    tabindex: '-1',
+    '(keydown.control.arrowleft)': 'switchTabByKey($event, -1)',
+    '(keydown.control.arrowright)': 'switchTabByKey($event, 1)',
+  },
   imports: [FormsModule, BadgeComponent, ChatInputComponent, GameDataElementComponent, TranslocoModule],
 })
 export class ChatPaletteComponent {
@@ -204,6 +210,13 @@ export class ChatPaletteComponent {
 
   resizeChatInput() {
     this.chatInputComponent().kickCalcFitHeight();
+  }
+
+  /** On the panel rather than on the input, so it keeps working wherever focus sits inside it. */
+  switchTabByKey(event: Event, direction: number): void {
+    if (editsTextInPlace(event.target)) return;
+    event.preventDefault();
+    this.chatTabSwitchRelative(direction);
   }
 
   chatTabSwitchRelative(direction: number) {

@@ -15,6 +15,7 @@ import { FormsModule } from '@angular/forms';
 import { ImageService } from '@axe/application/storage/image.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { ChatMessage } from '@axe/domain/chat/chat-message';
+import { isVnPortraitPosSet, VN_PORTRAIT_POS_UNSET } from '@axe/domain/visual-novel/vn-portrait-position';
 import {
   buildVnEmoteSuffix,
   parseVnEmote,
@@ -176,8 +177,8 @@ export class VisualNovelBacklogComponent {
     this.editEmotionMark.set(parsed.emotionMark);
     this.editFlipped.set(parsed.flipped);
     this.editExited.set(parsed.exited);
-    const pos = entry.message.imagePos;
-    this.editSlot.set(typeof pos === 'number' && pos >= 0 && pos < VN_STAGE_SLOT_COUNT ? pos : -1);
+    const pos = entry.message.vnPortraitPos;
+    this.editSlot.set(isVnPortraitPosSet(pos) ? pos : VN_PORTRAIT_POS_UNSET);
     this.editingIndex.set(entry.index);
   }
 
@@ -208,8 +209,8 @@ export class VisualNovelBacklogComponent {
       message.text = next;
       message.fixd = true;
     }
-    if (this.editSlot() >= 0 && message.imagePos !== this.editSlot()) {
-      message.imagePos = this.editSlot();
+    if (message.vnPortraitPos !== this.editSlot()) {
+      message.vnPortraitPos = this.editSlot();
     }
     this.editingIndex.set(-1);
   }

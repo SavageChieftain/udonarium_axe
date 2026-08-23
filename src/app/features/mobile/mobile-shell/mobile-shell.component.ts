@@ -8,6 +8,7 @@ import { TabletopService } from '@axe/application/tabletop/tabletop.service';
 import { TurnOrderService } from '@axe/application/turn/turn-order.service';
 import { KeyboardInsetService } from '@axe/application/ui/keyboard-inset.service';
 import { MobileLayoutService } from '@axe/application/ui/mobile-layout.service';
+import { MotionService } from '@axe/application/ui/motion.service';
 import { PanelOption, PanelService } from '@axe/application/ui/panel.service';
 import { SelectionSignalService } from '@axe/application/ui/selection-signal.service';
 import { ThemeService } from '@axe/application/ui/theme.service';
@@ -67,6 +68,7 @@ export class MobileShellComponent {
   private readonly rolePermission = inject(RolePermissionService);
   private readonly destroyRef = inject(DestroyRef);
   protected readonly theme = inject(ThemeService);
+  protected readonly motion = inject(MotionService);
   protected readonly language = inject(LanguageService);
   protected readonly layout = inject(MobileLayoutService);
   protected readonly keyboardInset = inject(KeyboardInsetService).inset;
@@ -93,6 +95,14 @@ export class MobileShellComponent {
     if (theme === 'dark') return this.t('common.theme.dark');
     if (theme === 'light') return this.t('common.theme.light');
     return this.t('common.theme.auto');
+  });
+
+  protected readonly motionLabel = computed(() => {
+    this.language.currentLang();
+    const setting = this.motion.setting();
+    if (setting === 'on') return this.t('common.motion.on');
+    if (setting === 'off') return this.t('common.motion.off');
+    return this.t('common.motion.auto');
   });
 
   protected readonly sharedItems: MobileMenuItem[] = sharedMobileMenuItems();

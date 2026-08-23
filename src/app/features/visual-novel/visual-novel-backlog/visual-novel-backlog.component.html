@@ -190,18 +190,17 @@
                   <option [ngValue]="false">{{ 'feature.visualNovel.stageStay' | transloco }}</option>
                   <option [ngValue]="true">{{ 'feature.visualNovel.stageExit' | transloco }}</option>
                 </select>
-                @if (editSlot() >= 0) {
-                  <select
-                    class="border-ui-border-panel bg-ui-input text-ui-text rounded-ui cursor-pointer border border-solid px-1 py-0.5 text-[11px] outline-none"
-                    [title]="'feature.visualNovel.slot' | transloco"
-                    [ngModel]="editSlot()"
-                    (ngModelChange)="editSlot.set(+$event)"
-                  >
-                    @for (slotIndex of slotIndexes; track slotIndex) {
-                      <option [ngValue]="slotIndex">{{ slotIndex + 1 }}/12</option>
-                    }
-                  </select>
-                }
+                <select
+                  class="border-ui-border-panel bg-ui-input text-ui-text rounded-ui cursor-pointer border border-solid px-1 py-0.5 text-[11px] outline-none"
+                  [title]="'feature.visualNovel.slot' | transloco"
+                  [ngModel]="editSlot()"
+                  (ngModelChange)="editSlot.set(+$event)"
+                >
+                  <option [ngValue]="-1">{{ 'feature.visualNovel.slotFollow' | transloco }}</option>
+                  @for (slotIndex of slotIndexes; track slotIndex) {
+                    <option [ngValue]="slotIndex">{{ slotIndex + 1 }}/12</option>
+                  }
+                </select>
                 <button
                   type="button"
                   class="bg-ui-elevated border-ui-border-panel text-ui-muted hover:bg-ui-hover hover:text-ui-text rounded-ui-sm ml-auto inline-flex cursor-pointer items-center border border-solid px-2 py-0.5 text-[11px] leading-tight transition-[background,color]"

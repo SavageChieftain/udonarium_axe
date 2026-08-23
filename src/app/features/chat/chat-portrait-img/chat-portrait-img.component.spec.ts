@@ -1,5 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
+import { ImageStorage } from '@axe/core/storage/image-storage';
+import { ChatTab } from '@axe/domain/chat/chat-tab';
 import { ChatTabList } from '@axe/domain/chat/chat-tab-list';
 import { ChatPortraitImageComponent } from '@axe/features/chat/chat-portrait-img/chat-portrait-img.component';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
@@ -16,14 +18,19 @@ describe('ChatPortraitImageComponent', () => {
     }).compileComponents();
   });
 
+  let chatTab: ChatTab;
+
   beforeEach(() => {
     fixture = TestBed.createComponent(ChatPortraitImageComponent);
     component = fixture.componentInstance;
     objectChange = TestBed.inject(ObjectChangeService);
 
-    const chatTabList = ChatTabList.instance;
-    const chatTab = chatTabList.chatTabs[0] ?? chatTabList.addChatTab('テスト');
+    chatTab = ChatTabList.instance.addChatTab('立ち絵テスト');
     fixture.componentRef.setInput('chatTabidentifier', chatTab.identifier);
+  });
+
+  afterEach(() => {
+    ChatTabList.instance.removeChild(chatTab);
   });
 
   it('should create', () => {
@@ -43,6 +50,48 @@ describe('ChatPortraitImageComponent', () => {
       fixture.detectChanges();
       void component.chatTab;
       expect(spy).toHaveBeenCalledWith(component.chatTabidentifier());
+    });
+  });
+
+  describe('in-window band', () => {
+    let imageIdentifier: string;
+
+    beforeEach(() => {
+      imageIdentifier = ImageStorage.instance.add('portrait-band.png').identifier;
+      const identifiers = chatTab.imageIdentifier.slice();
+      identifiers[0] = imageIdentifier;
+      chatTab.imageIdentifier = identifiers;
+      chatTab.imageDispFlag[0] = true;
+      ChatTabList.instance.isKeepPortraitOutWindow = true;
+      ChatTabList.instance.portraitHeight = 200;
+      fixture.detectChanges();
+    });
+
+    afterEach(() => {
+      ImageStorage.instance.delete(imageIdentifier);
+      ChatTabList.instance.isPortraitInWindow = false;
+      ChatTabList.instance.isKeepPortraitOutWindow = false;
+    });
+
+    it('reserves no room while the portraits float outside the window', async () => {
+      ChatTabList.instance.isPortraitInWindow = false;
+      await Promise.resolve();
+      expect(component.bandHeight()).toBe(0);
+      expect(component.portraitYPos()).toBe(-228);
+    });
+
+    it('reserves the portrait height once they move into the window', async () => {
+      ChatTabList.instance.isPortraitInWindow = true;
+      await Promise.resolve();
+      expect(component.bandHeight()).toBe(200);
+      expect(component.portraitYPos()).toBe(0);
+    });
+
+    it('reserves nothing when every slot is hidden', async () => {
+      ChatTabList.instance.isPortraitInWindow = true;
+      chatTab.hidePortraitPos(0);
+      await Promise.resolve();
+      expect(component.bandHeight()).toBe(0);
     });
   });
 });

@@ -28,6 +28,11 @@
       "dark": "Dark",
       "light": "Light"
     },
+    "motion": {
+      "auto": "Effects: Auto",
+      "on": "Effects: Always play",
+      "off": "Effects: Off"
+    },
     "panel": {
       "peerMenu": "Connection",
       "chatWindow": "Chat",
@@ -68,6 +73,8 @@
     },
     "gmTools": {
       "npcBar": {
+        "noMatch": "No NPC matches",
+        "searchPlaceholder": "Filter by name",
         "close": "Close",
         "empty": "Drag characters here from the GM object list to register",
         "unregister": "Remove from NPC bar"
@@ -103,6 +110,8 @@
         "noActive": "Pick the character to anchor the range on (opens the character list)"
       },
       "ownedCharacters": {
+        "noMatch": "No character matches",
+        "searchPlaceholder": "Filter by name",
         "chatPalette": "Open chat palette",
         "sheet": "Open character sheet",
         "focus": "Move the view to the piece",
@@ -738,6 +747,16 @@
     },
     "inventory": {
       "contextMenu": {
+        "folder": "Folder",
+        "newFolder": "New folder",
+        "removeFromFolder": "Remove from folder",
+        "renameFolder": "Rename folder",
+        "newSubfolder": "New folder inside",
+        "deleteFolder": "Delete this folder",
+        "confirmDeleteFolder": "Delete \"{{name}}\"? The {{count}} inside go back to unfiled.",
+        "collapseAll": "Collapse all",
+        "expandAll": "Expand all",
+        "selectFolder": "Select all in this folder",
         "moveTable": "Move to table",
         "moveCommon": "Move to shared inventory",
         "movePersonal": "Move to personal inventory",
@@ -812,6 +831,8 @@
         "portraitClickHint": "Click to replace image",
         "portraits": "Portraits",
         "portraitIndexTitle": "Portrait {{index}}",
+        "portraitNamePlaceholder": "Portrait name (call it with @name in chat)",
+        "portraitNameHint": "Name this portrait to switch to it by writing @name at the end of a chat line",
         "addPortraitTitle": "Add portrait",
         "removePortraitTitle": "Remove current portrait",
         "import": "Import",
@@ -874,6 +895,8 @@
         "locationPersonal": "Personal inventory",
         "locationGraveyard": "Graveyard",
         "locationTitle": "Location",
+        "folder": "Folder",
+        "folderPlaceholder": "Unfiled (use / to nest)",
         "hide": "Hidden",
         "nonTalk": "Don't speak",
         "pieceSetting": "Piece settings",
@@ -897,6 +920,15 @@
         "popupMaxHeight": "Max height"
       },
       "panel": {
+        "folder": "Folder",
+        "selectedCount": "{{count}} selected",
+        "newFolder": "New folder",
+        "defaultFolderName": "Folder {{index}}",
+        "unfiled": "Unfiled",
+        "searchPlaceholder": "Search name, owner or shown items",
+        "clearSearch": "Clear search",
+        "noMatch": "No character matches",
+        "confirmCleanFiltered": "Permanently delete the {{count}} items currently shown?",
         "multiMove": "Move multiple",
         "displaySettings": "Display settings",
         "sortOrder1": "Sort 1st",
@@ -1668,6 +1700,9 @@
       }
     },
     "visualNovel": {
+      "speakerNotFound": "No character found",
+      "slotFollow": "No place for this line",
+      "followChatSlot": "Follow the chat position",
       "exit": "Exit",
       "noMessages": "No messages yet. Use the input below to speak.",
       "prev": "Previous message",
@@ -2618,6 +2653,7 @@
       "title": "Judgement candidates for {{label}}",
       "empty": "No learned skill found",
       "distance": "Distance: {{distance}}",
+      "chatNote": "{{target}} (from {{source}}, {{distance}})",
       "sendToChat": "Send to chat"
     }
   },

@@ -1,7 +1,6 @@
 import { GameCharacter } from '@axe/domain/character/game-character';
+import { isInternalResource } from '@axe/domain/character/internal-resource';
 import { DataElement, DataElementFieldType, DataElementType } from '@axe/domain/data/data-element';
-
-export const INTERNAL_RESOURCE_NAMES: ReadonlySet<string> = new Set(['ICON', 'POS']);
 
 export function resourceElementsOf(character: GameCharacter): DataElement[] {
   const detail = character.detailDataElement;
@@ -9,7 +8,7 @@ export function resourceElementsOf(character: GameCharacter): DataElement[] {
   return detail
     .getElementsByType(DataElementType.NUMBER_RESOURCE)
     .filter((element) => element.fieldType === DataElementFieldType.RESOURCE)
-    .filter((element) => !INTERNAL_RESOURCE_NAMES.has(element.name));
+    .filter((element) => !isInternalResource(element));
 }
 
 export function resourceMax(element: DataElement): number {

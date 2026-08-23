@@ -12,13 +12,101 @@ interface InventoryContextMenuCallbacks {
   showRemoteController: (character: GameCharacter) => void;
   cloneGameObject: (gameObject: TabletopObject) => void;
   deleteGameObject: (gameObject: TabletopObject) => void;
+  setFolder: (gameObject: TabletopObject, folderPath: string) => void;
+  createFolder: (gameObject: TabletopObject) => void;
+}
+
+export interface InventoryFolderAssignCallbacks {
+  setFolder: (folderPath: string) => void;
+  createFolder: () => void;
+}
+
+export function buildInventoryFolderAssignMenu(
+  currentPath: string | null,
+  folderPaths: readonly string[],
+  callbacks: InventoryFolderAssignCallbacks,
+  t: TranslateFn
+): ContextMenuAction[] {
+  const actions: ContextMenuAction[] = folderPaths.map((folderPath) => ({
+    name: `${currentPath === folderPath ? '◉' : '○'} ${folderPath}`,
+    action: () => callbacks.setFolder(folderPath),
+  }));
+
+  if (actions.length > 0) actions.push(ContextMenuSeparator);
+  actions.push({
+    name: t('feature.inventory.contextMenu.newFolder'),
+    action: () => callbacks.createFolder(),
+  });
+  if (currentPath == null || currentPath.length > 0) {
+    actions.push({
+      name: t('feature.inventory.contextMenu.removeFromFolder'),
+      action: () => callbacks.setFolder(''),
+    });
+  }
+
+  return actions;
+}
+
+export interface InventoryFolderContextMenuCallbacks {
+  renameFolder: () => void;
+  createSubfolder: () => void;
+  deleteFolder: () => void;
+  selectFolder: () => void;
+  collapseAll: () => void;
+  expandAll: () => void;
+}
+
+export function buildInventoryFolderContextMenu(
+  folderPath: string,
+  isMultiMove: boolean,
+  callbacks: InventoryFolderContextMenuCallbacks,
+  t: TranslateFn,
+  canNest = true,
+  canEdit = true
+): ContextMenuAction[] {
+  const actions: ContextMenuAction[] = [];
+
+  // Every one of these ends in a handler that turns back at the same check, so offering them to
+  // someone who may not edit the table gives an entry that answers with nothing at all.
+  if (canEdit && folderPath.length > 0) {
+    actions.push({
+      name: t('feature.inventory.contextMenu.renameFolder'),
+      action: () => callbacks.renameFolder(),
+    });
+    if (canNest) {
+      actions.push({
+        name: t('feature.inventory.contextMenu.newSubfolder'),
+        action: () => callbacks.createSubfolder(),
+      });
+    }
+    actions.push({
+      name: t('feature.inventory.contextMenu.deleteFolder'),
+      action: () => callbacks.deleteFolder(),
+    });
+    actions.push(ContextMenuSeparator);
+  }
+
+  if (isMultiMove) {
+    actions.push({
+      name: t('feature.inventory.contextMenu.selectFolder'),
+      action: () => callbacks.selectFolder(),
+    });
+    actions.push(ContextMenuSeparator);
+  }
+
+  actions.push({ name: t('feature.inventory.contextMenu.collapseAll'), action: () => callbacks.collapseAll() });
+  actions.push({ name: t('feature.inventory.contextMenu.expandAll'), action: () => callbacks.expandAll() });
+
+  return actions;
 }
 
 export function buildInventoryObjectContextMenu(
   gameObject: TabletopObject,
   inventoryService: GameObjectInventoryService,
   callbacks: InventoryContextMenuCallbacks,
-  t: TranslateFn
+  t: TranslateFn,
+  /** Null where folders do not apply, which leaves the submenu out rather than offering an empty one. */
+  folderPaths: readonly string[] | null = null
 ): ContextMenuAction[] {
   const actions: ContextMenuAction[] = [];
 
@@ -56,6 +144,21 @@ export function buildInventoryObjectContextMenu(
             },
           }
     );
+  }
+
+  if (folderPaths) {
+    actions.push({
+      name: t('feature.inventory.contextMenu.folder'),
+      subActions: buildInventoryFolderAssignMenu(
+        (gameObject as GameCharacter).folderName ?? '',
+        folderPaths,
+        {
+          setFolder: (folderPath) => callbacks.setFolder(gameObject, folderPath),
+          createFolder: () => callbacks.createFolder(gameObject),
+        },
+        t
+      ),
+    });
   }
 
   actions.push(ContextMenuSeparator);

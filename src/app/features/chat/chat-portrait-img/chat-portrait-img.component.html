@@ -1,6 +1,6 @@
 <div>
   <div id="portrait-component_">
-    <div class="h-0 w-full" #portraitArea>
+    <div class="w-full" [style.height.px]="bandHeight()" #portraitArea>
       @if (chatTab && !vnMode.active()) {
         @if (chatTab.portraitDisplayFlag) {
           @if (isPortraitDispMode()) {

@@ -173,8 +173,6 @@ export class ChatInputComponent {
     this.uiSignalService.clearChatQuote();
   }
 
-  readonly tabSwitch = output<number>();
-
   readonly autoCompleteSwitch = output<number>();
 
   readonly autoCompleteDo = output<number>();
@@ -418,11 +416,6 @@ export class ChatInputComponent {
       if (event) event.preventDefault();
     }
     this.autoCompleteSwitch.emit(direction);
-  }
-
-  tabSwitchAction(event: Event, direction: number) {
-    if (event) event.preventDefault();
-    this.tabSwitch.emit(direction);
   }
 
   sendChat(event: Event | null) {

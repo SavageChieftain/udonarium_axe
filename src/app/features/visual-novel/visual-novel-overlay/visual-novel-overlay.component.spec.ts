@@ -9,7 +9,6 @@ import { GameCharacter } from '@axe/domain/character/game-character';
 import { ChatMessage } from '@axe/domain/chat/chat-message';
 import { ChatTab } from '@axe/domain/chat/chat-tab';
 import { ChatTabList } from '@axe/domain/chat/chat-tab-list';
-import { DataElement } from '@axe/domain/data/data-element';
 import { DiceBot } from '@axe/domain/dice/dice-bot';
 import { AudioTag } from '@axe/domain/media/audio-tag';
 import { Jukebox } from '@axe/domain/media/jukebox';
@@ -20,7 +19,7 @@ import { VisualNovelModeService } from '@axe/features/visual-novel/visual-novel-
 import { VisualNovelOverlayComponent } from '@axe/features/visual-novel/visual-novel-overlay/visual-novel-overlay.component';
 import { VisualNovelPlaybackService } from '@axe/features/visual-novel/visual-novel-playback.service';
 import { VisualNovelSettingsService } from '@axe/features/visual-novel/visual-novel-settings.service';
-import { VN_STAGE_SLOT_COUNT } from '@axe/features/visual-novel/visual-novel-stage';
+import { leftOfSlot, VN_STAGE_SLOT_COUNT } from '@axe/features/visual-novel/visual-novel-stage';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
 import GameSystemClass from 'bcdice/lib/game_system';
 
@@ -315,7 +314,7 @@ describe('VisualNovelOverlayComponent', () => {
     addMessage('こんにちは', 'アリス', addImage(), 4);
     createComponent();
     const anchor = component.bubbleAnchor();
-    expect(anchor?.left).toBeCloseTo(((4 + 0.5) / 12) * 100, 3);
+    expect(anchor?.left).toBeCloseTo(leftOfSlot(4), 3);
     expect(anchor?.bottom).toBe('58vh');
   });
 
@@ -465,11 +464,8 @@ describe('VisualNovelOverlayComponent', () => {
   });
 
   it('keeps the place of the speaking character in range', () => {
-    // The chooser opens only for a speaker who has a place, so one is given first.
     addMessage('こんにちは', 'アリス', addImage());
     const speaker = charactersByName.get('アリス')!;
-    speaker.createDataElements();
-    speaker.detailDataElement!.appendChild(DataElement.create('POS', 0, {}));
     createComponent();
 
     component.toggleSlotGuide();
@@ -479,7 +475,38 @@ describe('VisualNovelOverlayComponent', () => {
 
     expect(component.isPopover('slotGuide')).toBe(false);
     // Anything outside is pulled to the end frame.
-    expect(Number(speaker.detailDataElement!.getFirstElementByName('POS')?.currentValue)).toBe(VN_STAGE_SLOT_COUNT - 1);
+    expect(speaker.vnPortraitPos).toBe(VN_STAGE_SLOT_COUNT - 1);
+  });
+
+  it('places from novel mode without disturbing where the character stands in chat', () => {
+    addMessage('こんにちは', 'アリス', addImage());
+    const speaker = charactersByName.get('アリス')!;
+    speaker.createDataElements();
+    speaker.portraitPosition = 2;
+    createComponent();
+
+    component.pickSlot(9);
+
+    expect(speaker.vnPortraitPos).toBe(9);
+    expect(speaker.portraitPosition).toBe(2);
+  });
+
+  it('follows the chat position again once the novel-mode place is given up', async () => {
+    addMessage('こんにちは', 'アリス', addImage());
+    const speaker = charactersByName.get('アリス')!;
+    speaker.createDataElements();
+    speaker.portraitPosition = 2;
+    createComponent();
+    component.pickSlot(9);
+    // Change notices are batched into a microtask, so the stage hears about them a tick later.
+    await Promise.resolve();
+    expect(component.speakerSlot()).toBe(9);
+
+    component.followChatSlot();
+    await Promise.resolve();
+
+    expect(component.speakerSlot()).toBe(2);
+    expect(component.speakerSlotOverridden()).toBe(false);
   });
 
   it('keeps a portrait from being cut off at the edge of the screen', () => {
@@ -543,8 +570,62 @@ describe('VisualNovelOverlayComponent', () => {
     expect(stage.map((chara) => chara.name)).toEqual(['ボブ', 'アリス']);
     expect(stage[0].slot).toBe(2);
     expect(stage[1].slot).toBe(8);
-    expect(stage[0].left).toBeCloseTo(((2 + 0.5) / 12) * 100, 3);
-    expect(stage[1].left).toBeCloseTo(((8 + 0.5) / 12) * 100, 3);
+    expect(stage[0].left).toBeCloseTo(leftOfSlot(2), 3);
+    expect(stage[1].left).toBeCloseTo(leftOfSlot(8), 3);
+  });
+
+  it('stands a character where they stand in chat, without a place of its own', () => {
+    addMessage('こんにちは', 'アリス', addImage());
+    const speaker = charactersByName.get('アリス')!;
+    speaker.createDataElements();
+    speaker.portraitPosition = 6;
+    createComponent();
+
+    expect(component.stageCharacters()[0].slot).toBe(6);
+  });
+
+  it('moves the portrait when the chat position is changed on the sheet', async () => {
+    addMessage('こんにちは', 'アリス', addImage());
+    const speaker = charactersByName.get('アリス')!;
+    speaker.createDataElements();
+    speaker.portraitPosition = 6;
+    createComponent();
+
+    speaker.portraitPosition = 1;
+    await Promise.resolve();
+
+    expect(component.stageCharacters()[0].slot).toBe(1);
+  });
+
+  it('prefers the place given in novel mode over the one used in chat', () => {
+    addMessage('こんにちは', 'アリス', addImage());
+    const speaker = charactersByName.get('アリス')!;
+    speaker.createDataElements();
+    speaker.portraitPosition = 6;
+    speaker.vnPortraitPos = 10;
+    createComponent();
+
+    expect(component.stageCharacters()[0].slot).toBe(10);
+  });
+
+  it('prefers the place given to one line over the one the character carries', () => {
+    addMessage('こんにちは', 'アリス', addImage());
+    const speaker = charactersByName.get('アリス')!;
+    speaker.createDataElements();
+    speaker.vnPortraitPos = 10;
+    tab.chatMessages[tab.chatMessages.length - 1].vnPortraitPos = 3;
+    createComponent();
+
+    expect(component.stageCharacters()[0].slot).toBe(3);
+  });
+
+  it('reads the place out of a message saved before places were numbers', () => {
+    addMessage('こんにちは', 'アリス', addImage());
+    // Attributes come back from XML as strings, which the stage used to throw away.
+    (tab.chatMessages[tab.chatMessages.length - 1] as unknown as Record<string, unknown>)['imagePos'] = '7';
+    createComponent();
+
+    expect(component.stageCharacters()[0].slot).toBe(7);
   });
 
   it('shifts two in the same place apart so they do not overlap', () => {

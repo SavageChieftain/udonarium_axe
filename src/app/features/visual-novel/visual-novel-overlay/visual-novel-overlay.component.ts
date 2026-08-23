@@ -27,6 +27,11 @@ import { DiceBot } from '@axe/domain/dice/dice-bot';
 import { AudioTag } from '@axe/domain/media/audio-tag';
 import { Jukebox } from '@axe/domain/media/jukebox';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
+import {
+  isVnPortraitPosSet,
+  toPortraitSlot,
+  VN_PORTRAIT_POS_UNSET,
+} from '@axe/domain/visual-novel/vn-portrait-position';
 import { VN_STAGE_TRANSITIONS } from '@axe/domain/visual-novel/vn-stage';
 import { GameCharacterSheetComponent } from '@axe/features/character/game-character-sheet/game-character-sheet.component';
 import { allowsChat } from '@axe/features/chat/chat-input/chat-input-helpers';
@@ -70,6 +75,10 @@ import {
 } from '@axe/features/visual-novel/visual-novel-shortcut';
 import {
   buildVnStage,
+  leftOfSlot,
+  slotBandLeft,
+  slotBandWidth,
+  slotLabelLeftInBand,
   VN_STAGE_LOOKBACK,
   VN_STAGE_SLOT_COUNT,
   VnStageCharacter,
@@ -77,6 +86,7 @@ import {
 } from '@axe/features/visual-novel/visual-novel-stage';
 import { SafePipe } from '@axe/ui/pipes/safe.pipe';
 import { TranslocoModule } from '@jsverse/transloco';
+import { NgOptionComponent, NgSelectComponent } from '@ng-select/ng-select';
 
 const WHEEL_THROTTLE_MS = 160;
 
@@ -117,7 +127,7 @@ type VisualNovelPopover = 'backlog' | 'emote' | 'soundBoard' | 'slotGuide' | 'pa
     '(window:keyup)': 'onKeyup($event)',
     '(window:blur)': 'stopSkip()',
   },
-  imports: [FormsModule, SafePipe, TranslocoModule, VisualNovelBacklogComponent],
+  imports: [FormsModule, SafePipe, TranslocoModule, VisualNovelBacklogComponent, NgSelectComponent, NgOptionComponent],
 })
 export class VisualNovelOverlayComponent {
   protected readonly isCompact = inject(ViewportService).isCompact;
@@ -380,6 +390,7 @@ export class VisualNovelOverlayComponent {
 
   readonly stageCharacters = computed<VnStageCharacter[]>(() => {
     this.objectChange.fileVersion();
+    this.objectChange.collectionOf(GameCharacter.aliasName)();
     const messages = this.messages();
     const index = this.currentIndex();
     if (index < 0) return [];
@@ -388,8 +399,10 @@ export class VisualNovelOverlayComponent {
       const message = messages[i];
       window.push({
         name: message.name ?? '',
+        sendFrom: message.sendFrom ?? '',
         imageIdentifier: message.imageIdentifier ?? '',
-        imagePos: typeof message.imagePos === 'number' ? message.imagePos : null,
+        imagePos: message.imagePos,
+        vnPortraitPos: message.vnPortraitPos,
         isSystemMessage: message.isSystemMessage,
         isDicebot: message.isDicebot,
         isGameCharacter: this.isGameCharacterSender(message.sendFrom ?? ''),
@@ -397,8 +410,27 @@ export class VisualNovelOverlayComponent {
         emote: parseVnEmote(message.text ?? ''),
       });
     }
-    return buildVnStage(window, (imageIdentifier) => this.imageService.getEmptyOr(imageIdentifier).url);
+    return buildVnStage(
+      window,
+      (imageIdentifier) => this.imageService.getEmptyOr(imageIdentifier).url,
+      (source) => this.stageSlotOf(source)
+    );
   });
+
+  /** A line of its own beats the character's novel-mode place, which beats where it stands in chat. */
+  private stageSlotOf(source: VnStageSource): number {
+    const linePosition = toPortraitSlot(source.vnPortraitPos);
+    if (linePosition != null) return linePosition;
+    const character = this.objectStore.get(source.sendFrom);
+    if (character instanceof GameCharacter) {
+      this.objectChange.versionOf(character.identifier)();
+      const novelPosition = toPortraitSlot(character.vnPortraitPos);
+      if (novelPosition != null) return novelPosition;
+      const chatPosition = character.portraitPosition;
+      if (chatPosition != null) return chatPosition;
+    }
+    return toPortraitSlot(source.imagePos) ?? 0;
+  }
 
   private isGameCharacterSender(identifier: string): boolean {
     if (identifier.length < 1) return false;
@@ -536,16 +568,33 @@ export class VisualNovelOverlayComponent {
     return canRoleSpeakTab(tab, PeerCursor.myRole);
   });
 
-  readonly speakerSlot = computed(() => {
+  /**
+   * A method rather than a computed: it hands back the same instance every time, so a computed
+   * of it would compare equal and whatever read it would never hear about a change.
+   */
+  private speakerCharacter(): GameCharacter | null {
     this.objectChange.collectionOf(GameCharacter.aliasName)();
     const object = this.objectStore.get(this._sendFrom());
-    if (!(object instanceof GameCharacter)) return -1;
+    if (!(object instanceof GameCharacter)) return null;
     this.objectChange.versionOf(object.identifier)();
-    const element = object.detailDataElement?.getFirstElementByName('POS');
-    if (!element) return -1;
-    const value = Number(element.currentValue ?? 0);
-    return Number.isNaN(value) ? 0 : Math.min(VN_STAGE_SLOT_COUNT - 1, Math.max(0, value));
+    return object;
+  }
+
+  readonly speakerSlot = computed(() => {
+    const character = this.speakerCharacter();
+    if (!character) return -1;
+    return toPortraitSlot(character.vnPortraitPos) ?? character.portraitPosition ?? 0;
   });
+
+  readonly speakerSlotOverridden = computed(() => {
+    const character = this.speakerCharacter();
+    return character != null && isVnPortraitPosSet(character.vnPortraitPos);
+  });
+
+  protected leftOfSlot = leftOfSlot;
+  protected slotBandLeft = slotBandLeft;
+  protected slotBandWidth = slotBandWidth;
+  protected slotLabelLeftInBand = slotLabelLeftInBand;
 
   readonly speakerPortrait = computed(() => {
     this.objectChange.fileVersion();
@@ -800,11 +849,14 @@ export class VisualNovelOverlayComponent {
   }
 
   pickSlot(slot: number): void {
-    const object = this.objectStore.get(this._sendFrom());
-    if (object instanceof GameCharacter) {
-      const element = object.detailDataElement?.getFirstElementByName('POS');
-      if (element) element.currentValue = Math.min(VN_STAGE_SLOT_COUNT - 1, Math.max(0, slot));
-    }
+    const character = this.speakerCharacter();
+    if (character) character.vnPortraitPos = Math.min(VN_STAGE_SLOT_COUNT - 1, Math.max(0, slot));
+    this.closePopovers();
+  }
+
+  followChatSlot(): void {
+    const character = this.speakerCharacter();
+    if (character) character.vnPortraitPos = VN_PORTRAIT_POS_UNSET;
     this.closePopovers();
   }
 

@@ -89,6 +89,8 @@ composition → features → ui → application → infrastructure → domain �
 - **lefthook 迂回は絶対禁止**（`--no-verify` / `LEFTHOOK=0` / `core.hooksPath` 変更等）。
   フックが落ちたら原因を直してから再コミットする
   - `commit-msg`: `commitlint` / `pre-commit`: `ng lint` + `ng test` / `pre-push`: `npm run build`
+- main への PR では [.github/workflows/ci.yml](.github/workflows/ci.yml) が
+  format / lint / **両テスト経路** / build / website ビルドを回す（E2E は所要時間の都合で手元のみ）
 
 ## コメント・テスト名は英語
 
