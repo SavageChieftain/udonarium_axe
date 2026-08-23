@@ -24,6 +24,7 @@ import { ImageStorage } from '@axe/core/storage/image-storage';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { Card } from '@axe/domain/card/card';
 import { CardStack } from '@axe/domain/card/card-stack';
+import { portraitElementAt, portraitNameOf, setPortraitNameOf } from '@axe/domain/character/character-portrait';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import {
   DataElement,
@@ -361,16 +362,27 @@ export class GameCharacterSheetComponent {
     this.objectChange.versionOf(char.identifier)();
     return char.imageDataElement.children.map((child, index) => {
       const file = this.imageStorage.get(child.value as string) ?? ImageFile.Empty;
-      return { index, imageFile: file };
+      return { index, imageFile: file, name: portraitNameOf(child) };
     });
   });
+
+  private readKomaIndex(char: GameCharacter): number {
+    const iconEl = char.detailDataElement?.getFirstElementByName('ICON');
+    return iconEl ? (iconEl.currentValue as number) : 0;
+  }
 
   readonly komaImageIndex = computed(() => {
     const char = this.character;
     if (!char) return 0;
     this.objectChange.versionOf(char.identifier)();
-    const iconEl = char.detailDataElement?.getFirstElementByName('ICON');
-    return iconEl ? (iconEl.currentValue as number) : 0;
+    return this.readKomaIndex(char);
+  });
+
+  readonly portraitName = computed(() => {
+    const char = this.character;
+    if (!char) return '';
+    this.objectChange.versionOf(char.identifier)();
+    return portraitNameOf(portraitElementAt(char, this.readKomaIndex(char)));
   });
 
   readonly portraitPosIndex = computed(() => {
@@ -505,6 +517,15 @@ export class GameCharacterSheetComponent {
       }
       char.update();
     });
+  }
+
+  setPortraitName(event: Event) {
+    const char = this.character;
+    if (!char) return;
+    const element = portraitElementAt(char, this.readKomaIndex(char));
+    if (!element) return;
+    setPortraitNameOf(element, (event.target as HTMLInputElement).value);
+    char.update();
   }
 
   setPortraitPos(pos: number) {

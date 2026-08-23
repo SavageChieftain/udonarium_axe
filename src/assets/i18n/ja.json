@@ -831,6 +831,8 @@
         "portraitClickHint": "クリックして画像を差し替え",
         "portraits": "立ち絵",
         "portraitIndexTitle": "立ち絵 {{index}}",
+        "portraitNamePlaceholder": "立ち絵名（チャットの @名前 で呼べます）",
+        "portraitNameHint": "この立ち絵に名前をつけると、チャットの文末に @名前 と書いて呼び出せます",
         "addPortraitTitle": "立ち絵を追加",
         "removePortraitTitle": "現在の立ち絵を削除",
         "import": "インポート",

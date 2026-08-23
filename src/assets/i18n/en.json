@@ -831,6 +831,8 @@
         "portraitClickHint": "Click to replace image",
         "portraits": "Portraits",
         "portraitIndexTitle": "Portrait {{index}}",
+        "portraitNamePlaceholder": "Portrait name (call it with @name in chat)",
+        "portraitNameHint": "Name this portrait to switch to it by writing @name at the end of a chat line",
         "addPortraitTitle": "Add portrait",
         "removePortraitTitle": "Remove current portrait",
         "import": "Import",

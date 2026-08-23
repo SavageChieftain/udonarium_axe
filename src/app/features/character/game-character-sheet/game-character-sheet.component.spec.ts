@@ -2,7 +2,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { Card } from '@axe/domain/card/card';
 import { GameCharacter } from '@axe/domain/character/game-character';
-import { DataElementAttribute, DataElementRole } from '@axe/domain/data/data-element';
+import { DataElement, DataElementAttribute, DataElementRole } from '@axe/domain/data/data-element';
 import { DiceSymbol } from '@axe/domain/dice/dice-symbol';
 import { Terrain } from '@axe/domain/tabletop/terrain';
 import { GameCharacterSheetComponent } from '@axe/features/character/game-character-sheet/game-character-sheet.component';
@@ -182,6 +182,62 @@ describe('GameCharacterSheetComponent', () => {
     it('saves without throwing', async () => {
       component.tabletopObject = null;
       await expect(component.saveToXML()).resolves.not.toThrow();
+    });
+  });
+
+  describe('naming a portrait', () => {
+    function makeCharacter(): GameCharacter {
+      const character = GameCharacter.create('立ち絵持ち', 1, '');
+      character.addExtendData();
+      character.imageDataElement!.appendChild(DataElement.create('imageIdentifier', 'img-1', { type: 'image' }, ''));
+      return character;
+    }
+
+    function changeEvent(value: string): Event {
+      return { target: { value } } as unknown as Event;
+    }
+
+    it('starts with no name on any portrait', () => {
+      const character = makeCharacter();
+      component.tabletopObject = character;
+
+      try {
+        expect(component.portraitName()).toBe('');
+        expect(component.portraitImages().map((portrait) => portrait.name)).toEqual(['', '']);
+      } finally {
+        character.destroy();
+      }
+    });
+
+    it('writes the name onto the portrait that is picked out', () => {
+      const character = makeCharacter();
+      component.tabletopObject = character;
+
+      try {
+        component.setKomaIndex(1);
+        component.setPortraitName(changeEvent('笑顔'));
+
+        expect(component.portraitName()).toBe('笑顔');
+        expect(component.portraitImages().map((portrait) => portrait.name)).toEqual(['', '笑顔']);
+      } finally {
+        character.destroy();
+      }
+    });
+
+    it('leaves the other portraits alone', () => {
+      const character = makeCharacter();
+      component.tabletopObject = character;
+
+      try {
+        component.setKomaIndex(0);
+        component.setPortraitName(changeEvent('通常'));
+        component.setKomaIndex(1);
+        component.setPortraitName(changeEvent('笑顔'));
+
+        expect(component.portraitImages().map((portrait) => portrait.name)).toEqual(['通常', '笑顔']);
+      } finally {
+        character.destroy();
+      }
     });
   });
 });
