@@ -127,21 +127,7 @@ export class ChatPalette extends ObjectNode {
   }
 
   checkTargetCharacter(text: string): boolean {
-    let istarget = !!text.match(/[tTｔＴ][{｛]\s*([^{}｛｝]+)\s*[}｝]/g);
-
-    if (text.match(/^[sSｓＳ]?[tTｔＴ][:：]([^:：]+)/g)) {
-      istarget = true;
-    }
-    if (text.match(/\s[sSｓＳ]?[tTｔＴ][:：]([^:：]+)/g)) {
-      istarget = true;
-    }
-    if (text.match(/^[tTｔＴ][&＆]([^&＆]+)/g)) {
-      istarget = true;
-    }
-    if (text.match(/\s[tTｔＴ][&＆]([^&＆]+)/g)) {
-      istarget = true;
-    }
-    return istarget;
+    return textTargetsCharacter(text);
   }
 
   evaluate(line: PaletteLine | string, extendVariables?: DataElement, target?: GameCharacter): string {
@@ -162,79 +148,13 @@ export class ChatPalette extends ObjectNode {
     target: GameCharacter | undefined,
     collectImageAttachments: boolean
   ): PaletteEvaluationResult {
-    let evaluate: string;
-    if (typeof line === 'string') {
-      evaluate = line;
-    } else {
-      evaluate = line.palette;
-    }
-
-    const attachmentImageIdentifiers: string[] = [];
-
-    const evaluateElementText = (element: DataElement, useMax: boolean): string => {
-      if (collectImageAttachments && element.fieldType === DataElementFieldType.IMAGE) {
-        const imageIdentifier = String(element.value ?? '').trim();
-        if (imageIdentifier.length > 0 && !attachmentImageIdentifiers.includes(imageIdentifier)) {
-          attachmentImageIdentifiers.push(imageIdentifier);
-        }
-        return '';
-      }
-
-      if (useMax && element.isNumberResource) {
-        return `${element.value}`;
-      }
-      return element.isNumberResource ? `${element.currentValue}` : `${element.value}`;
-    };
-
-    const limit = 128;
-    let loop = 0;
-    let isContinue = true;
-    while (isContinue) {
-      loop++;
-      isContinue = false;
-      evaluate = evaluate.replace(/[tTｔＴ]?[{｛]\s*([^{}｛｝]+)\s*[}｝]/g, (match, name) => {
-        name = toHalfWidth(name);
-        let useMax = false;
-        const namematch = name.match(/(.+)([\^＾]$)/);
-        if (namematch) {
-          name = namematch[1];
-          useMax = true;
-        }
-        isContinue = true;
-
-        if (match.match(/^[tTｔＴ].*/)) {
-          for (const variable of target?.chatPalette?.paletteVariables ?? []) {
-            if (variable.name == name) return variable.value.replace(/[{｛]/g, 't{');
-          }
-          if (target) {
-            const element = target.rootDataElement
-              ? DataElement.findElementByReference(target.rootDataElement, name)
-              : null;
-            if (element) {
-              let targetElementText = evaluateElementText(element, useMax);
-              if (targetElementText.match(/[{｛]\s*([^{}｛｝]+)\s*[}｝]/g)) {
-                targetElementText = targetElementText.replace(/[{｛]/g, 't{');
-              }
-              return targetElementText;
-            }
-          }
-        } else {
-          for (const variable of this.paletteVariables) {
-            if (variable.name == name) return variable.value;
-          }
-
-          if (extendVariables) {
-            const element = DataElement.findElementByReference(extendVariables, name);
-            if (element) {
-              return evaluateElementText(element, useMax);
-            }
-          }
-        }
-        return '';
-      });
-      if (limit < loop) isContinue = false;
-    }
-    return { text: evaluate, attachmentImageIdentifiers };
+    return evaluateReferences(
+      typeof line === 'string' ? line : line.palette,
+      this.paletteVariables,
+      extendVariables,
+      target,
+      collectImageAttachments
+    );
   }
 
   private parse(paletteSource: string) {
@@ -276,3 +196,111 @@ export class BuffPalette extends ChatPalette {}
 
 @SyncObject('dice-table-palette')
 export class DiceTablePalette extends ChatPalette {}
+
+/**
+ * Fills in the references in a line of text.
+ *
+ * `{name}` reads from the speaker, `t{name}` from the target it is aimed at, and a reference
+ * standing for an image is taken out of the line and sent alongside it instead.
+ */
+export function evaluateReferences(
+  source: string,
+  paletteVariables: readonly PaletteVariable[],
+  extendVariables: DataElement | undefined,
+  target: GameCharacter | undefined,
+  collectImageAttachments: boolean
+): PaletteEvaluationResult {
+  let evaluate = source;
+  const attachmentImageIdentifiers: string[] = [];
+
+  const evaluateElementText = (element: DataElement, useMax: boolean): string => {
+    if (collectImageAttachments && element.fieldType === DataElementFieldType.IMAGE) {
+      const imageIdentifier = String(element.value ?? '').trim();
+      if (imageIdentifier.length > 0 && !attachmentImageIdentifiers.includes(imageIdentifier)) {
+        attachmentImageIdentifiers.push(imageIdentifier);
+      }
+      return '';
+    }
+
+    if (useMax && element.isNumberResource) {
+      return `${element.value}`;
+    }
+    return element.isNumberResource ? `${element.currentValue}` : `${element.value}`;
+  };
+
+  const limit = 128;
+  let loop = 0;
+  let isContinue = true;
+  while (isContinue) {
+    loop++;
+    isContinue = false;
+    evaluate = evaluate.replace(/[tTｔＴ]?[{｛]\s*([^{}｛｝]+)\s*[}｝]/g, (match, name) => {
+      name = toHalfWidth(name);
+      let useMax = false;
+      const namematch = name.match(/(.+)([\^＾]$)/);
+      if (namematch) {
+        name = namematch[1];
+        useMax = true;
+      }
+      isContinue = true;
+
+      if (match.match(/^[tTｔＴ].*/)) {
+        for (const variable of target?.chatPalette?.paletteVariables ?? []) {
+          if (variable.name == name) return variable.value.replace(/[{｛]/g, 't{');
+        }
+        if (target) {
+          const element = target.rootDataElement
+            ? DataElement.findElementByReference(target.rootDataElement, name)
+            : null;
+          if (element) {
+            let targetElementText = evaluateElementText(element, useMax);
+            if (targetElementText.match(/[{｛]\s*([^{}｛｝]+)\s*[}｝]/g)) {
+              targetElementText = targetElementText.replace(/[{｛]/g, 't{');
+            }
+            return targetElementText;
+          }
+        }
+      } else {
+        for (const variable of paletteVariables) {
+          if (variable.name == name) return variable.value;
+        }
+
+        if (extendVariables) {
+          const element = DataElement.findElementByReference(extendVariables, name);
+          if (element) {
+            return evaluateElementText(element, useMax);
+          }
+        }
+      }
+      return '';
+    });
+    if (limit < loop) isContinue = false;
+  }
+  return { text: evaluate, attachmentImageIdentifiers };
+}
+
+/** The references a piece can fill in, whether or not it keeps a palette of its own to draw variables from. */
+export function evaluateCharacterReferences(
+  text: string,
+  speaker: GameCharacter | null,
+  target?: GameCharacter
+): PaletteEvaluationResult {
+  return evaluateReferences(
+    text,
+    speaker?.chatPalette?.paletteVariables ?? [],
+    speaker?.rootDataElement ?? undefined,
+    target,
+    true
+  );
+}
+
+/** Whether the line is aimed at the pieces marked on the table. */
+export function textTargetsCharacter(text: string): boolean {
+  let istarget = !!text.match(/[tTｔＴ][{｛]\s*([^{}｛｝]+)\s*[}｝]/g);
+
+  if (text.match(/^[sSｓＳ]?[tTｔＴ][:：]([^:：]+)/g)) istarget = true;
+  if (text.match(/\s[sSｓＳ]?[tTｔＴ][:：]([^:：]+)/g)) istarget = true;
+  if (text.match(/^[tTｔＴ][&＆]([^&＆]+)/g)) istarget = true;
+  if (text.match(/\s[tTｔＴ][&＆]([^&＆]+)/g)) istarget = true;
+  return istarget;
+}
