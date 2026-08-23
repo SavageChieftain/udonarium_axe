@@ -475,4 +475,99 @@ describe('ChatWindowComponent', () => {
       expect(component.chatTabidentifier).toBe(tabs[0].identifier);
     });
   });
+  describe('bringing the current tab back into the strip', () => {
+    const PILL_WIDTH = 50;
+    const PILL_PITCH = 60;
+
+    let tabs: ChatTab[];
+
+    /** happy-dom lays nothing out, so the strip is given a shape: three pills of 50 every 60. */
+    function layOutStrip(stripWidth: number): { strip: HTMLElement; scrolledTo: number[] } {
+      const inputs = [...fixture.nativeElement.querySelectorAll('input[name="chat-tab"]')] as HTMLInputElement[];
+      const pills = inputs.map((input) => input.closest('label') as HTMLElement);
+      const strip = pills[0].parentElement as HTMLElement;
+      const scrolledTo: number[] = [];
+
+      strip.getBoundingClientRect = () => ({ left: 0, right: stripWidth }) as DOMRect;
+      pills.forEach((pill, index) => {
+        pill.getBoundingClientRect = () => {
+          const left = index * PILL_PITCH - strip.scrollLeft;
+          return { left, right: left + PILL_WIDTH } as DOMRect;
+        };
+      });
+      strip.scrollTo = ((options: ScrollToOptions) => {
+        scrolledTo.push(options.left ?? 0);
+        strip.scrollLeft = options.left ?? 0;
+      }) as typeof strip.scrollTo;
+
+      return { strip, scrolledTo };
+    }
+
+    beforeEach(() => {
+      tabs = ['一枚目', '二枚目', '三枚目'].map((name) => ChatTabList.instance.addChatTab(name));
+      component.chatTabidentifier = tabs[0].identifier;
+      fixture.detectChanges();
+    });
+
+    afterEach(() => {
+      tabs.forEach((tab) => tab.destroy());
+    });
+
+    it('measures the tab it lands on rather than the one it left', () => {
+      const { strip, scrolledTo } = layOutStrip(100);
+
+      component.chatTabidentifier = tabs[2].identifier;
+      fixture.detectChanges();
+
+      // The third pill sits at 120 and the strip is 100 wide: 94 leaves it 24 clear of the far edge.
+      expect(scrolledTo).toEqual([94]);
+      expect(strip.scrollLeft).toBe(94);
+    });
+
+    it('leaves the tab clear of the edge it came in at', () => {
+      const { strip, scrolledTo } = layOutStrip(100);
+      component.chatTabidentifier = tabs[2].identifier;
+      fixture.detectChanges();
+      scrolledTo.length = 0;
+
+      component.chatTabidentifier = tabs[1].identifier;
+      fixture.detectChanges();
+
+      expect(strip.scrollLeft).toBe(36);
+      expect(60 - strip.scrollLeft).toBe(24);
+    });
+
+    it('holds still for a tab that already has room on both sides', () => {
+      const { scrolledTo } = layOutStrip(300);
+
+      component.chatTabidentifier = tabs[2].identifier;
+      fixture.detectChanges();
+
+      expect(scrolledTo).toEqual([]);
+    });
+
+    it('follows the wheel a tab at a time', () => {
+      const { strip, scrolledTo } = layOutStrip(100);
+
+      component.switchTabByWheel(new WheelEvent('wheel', { deltaY: 100, cancelable: true }));
+      fixture.detectChanges();
+
+      expect(component.chatTabidentifier).toBe(tabs[1].identifier);
+      expect(scrolledTo).toEqual([34]);
+      expect(strip.scrollLeft).toBe(34);
+    });
+
+    it('finishes the scroll when the wheel runs on past the last tab', () => {
+      const { strip, scrolledTo } = layOutStrip(100);
+      component.chatTabidentifier = tabs[2].identifier;
+      fixture.detectChanges();
+      strip.scrollLeft = 0;
+      scrolledTo.length = 0;
+
+      component.switchTabByWheel(new WheelEvent('wheel', { deltaY: 100, cancelable: true }));
+
+      expect(component.chatTabidentifier).toBe(tabs[2].identifier);
+      expect(scrolledTo).toEqual([94]);
+    });
+  });
 });

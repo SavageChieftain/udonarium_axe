@@ -7,6 +7,7 @@ import {
   effect,
   ElementRef,
   inject,
+  Injector,
   signal,
   viewChild,
 } from '@angular/core';
@@ -46,6 +47,12 @@ const AT_BOTTOM_THRESHOLD_PX = 8;
 const WHEEL_TAB_STEP_PX = 40;
 /** A line of wheel travel in pixels, for the browsers that report the wheel in lines. */
 const WHEEL_LINE_PX = 16;
+/**
+ * How much of the strip is kept beside the current tab.
+ * Brought only just inside, it ends up flush against the arrow that scrolls the strip, and
+ * whichever way the strip is still moving it can be carried back out again.
+ */
+const TAB_CLEARANCE_PX = 24;
 
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -78,6 +85,7 @@ export class ChatWindowComponent {
   private readonly activeChatTab = inject(ActiveChatTabService);
   private readonly t = inject(TRANSLATE_FN);
   private readonly hostElement = inject<ElementRef<HTMLElement>>(ElementRef);
+  private readonly injector = inject(Injector);
 
   sendFrom: string = 'Guest';
 
@@ -99,7 +107,7 @@ export class ChatWindowComponent {
     this.updatePanelTitle();
     if (hasChanged) {
       this.scrollToBottom(true);
-      queueMicrotask(() => this.scrollActiveTabIntoView());
+      afterNextRender(() => this.scrollActiveTabIntoView(), { injector: this.injector });
     }
   }
 
@@ -107,8 +115,8 @@ export class ChatWindowComponent {
   private readonly tabPillsContainer = viewChild<ElementRef<HTMLElement>>('tabPillsContainer');
   readonly chatTabRef = viewChild(ChatTabComponent);
   readonly canScrollLeft = signal(false);
-  private wheelTravel = 0;
   readonly canScrollRight = signal(false);
+  private wheelTravel = 0;
 
   updateTabScrollState(): void {
     const el = this.tabPillsContainer()?.nativeElement;
@@ -131,14 +139,35 @@ export class ChatWindowComponent {
     if (el) el.scrollBy({ left: 120, behavior: 'smooth' });
   }
 
+  /**
+   * Brings the tab now current back into the strip.
+   *
+   * The pill is found by its place in the strip rather than by which radio is checked: ngModel
+   * writes that mark in a promise of its own, after the view has been drawn, so looking for it
+   * lands on the tab that was just left and the strip trails a tab behind.
+   */
   private scrollActiveTabIntoView(): void {
     const el = this.tabPillsContainer()?.nativeElement;
     if (!el) return;
-    const activeInput = el.querySelector<HTMLInputElement>('input[type="radio"]:checked');
-    if (activeInput?.parentElement) {
-      activeInput.parentElement.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
-    }
     this.updateTabScrollState();
+
+    const index = this.visibleChatTabs().findIndex((tab) => tab.identifier === this._chatTabidentifier());
+    const pill = el.children.item(index);
+    if (!(pill instanceof HTMLElement)) return;
+
+    const strip = el.getBoundingClientRect();
+    const tab = pill.getBoundingClientRect();
+    const before = tab.left - strip.left;
+    const after = strip.right - tab.right;
+
+    let shift = 0;
+    if (before < TAB_CLEARANCE_PX) shift = before - TAB_CLEARANCE_PX;
+    else if (after < TAB_CLEARANCE_PX) shift = TAB_CLEARANCE_PX - after;
+    if (shift === 0) return;
+
+    // Where to end up, not how far to go: asked for a distance part way through a scroll of its
+    // own, the strip adds it to where it has reached and overshoots.
+    el.scrollTo({ left: el.scrollLeft + shift, behavior: 'smooth' });
   }
 
   /**
@@ -166,16 +195,19 @@ export class ChatWindowComponent {
     if (Math.abs(this.wheelTravel) < WHEEL_TAB_STEP_PX) return;
 
     this.wheelTravel = 0;
-    this.switchTabWithinEnds(delta > 0 ? 1 : -1);
+    // At either end the tab does not change, so nothing else brings it back into view, and the
+    // strip can be left part way through a scroll with the current tab off the end of it.
+    if (!this.switchTabWithinEnds(delta > 0 ? 1 : -1)) this.scrollActiveTabIntoView();
   }
 
   /** The wheel stops at either end. Coming back round reads as having lost your place rather than as having moved. */
-  private switchTabWithinEnds(direction: number): void {
+  private switchTabWithinEnds(direction: number): boolean {
     const chatTabs = this.visibleChatTabs();
     const index = chatTabs.findIndex((elm) => elm.identifier == this.chatTabidentifier);
     const nextIndex = index + direction;
-    if (index < 0 || nextIndex < 0 || nextIndex >= chatTabs.length) return;
+    if (index < 0 || nextIndex < 0 || nextIndex >= chatTabs.length) return false;
     this.chatTabidentifier = chatTabs[nextIndex].identifier;
+    return true;
   }
 
   chatTabSwitchRelative(direction: number) {
@@ -292,7 +324,7 @@ export class ChatWindowComponent {
     });
     effect(() => {
       this.chatTabsVersion();
-      queueMicrotask(() => this.updateTabScrollState());
+      afterNextRender(() => this.updateTabScrollState(), { injector: this.injector });
     });
     effect(() => {
       const visible = this.visibleChatTabs();
