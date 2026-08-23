@@ -39,7 +39,7 @@ export class EffectFieldService {
 
   constructor() {
     // The draw loop runs for as long as a field exists; unlike a cast, it never ends.
-    effect(() => this.playbackService.setPersistent('effect-field', this.fields().length > 0));
+    effect(() => this.playbackService.setPersistent('effect-field', this.fields().length > 0 && this.motion.enabled()));
   }
 
   place(preset: EffectPreset, x: number, y: number, z: number): EffectField {
