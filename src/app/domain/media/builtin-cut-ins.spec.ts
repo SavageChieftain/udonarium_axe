@@ -76,19 +76,35 @@ describe('the cut-ins a new room starts with', () => {
   });
 
   it('stamps the word for the sound it makes', () => {
-    const words = made().map((cutIn) => cutIn.scene?.layers.find((layer) => layer.kind === 'text')?.text);
+    const [flash, tear] = made();
+    const wordsOf = (cutIn: CutIn) =>
+      cutIn.scene!.layers.filter((layer) => layer.kind === 'text').map((layer) => layer.text);
 
-    expect(words).toEqual(['カッ', 'ブチッ']);
+    expect(wordsOf(flash).join('')).toBe('カッ');
+    expect(wordsOf(tear).join('')).toBe('ブチッ');
   });
 
-  it('lays the older one out as a band across the screen', () => {
+  it('sets the older word downwards, with the small letter small', () => {
+    const [flash] = made();
+    const words = flash.scene!.layers.filter((layer) => layer.kind === 'text');
+
+    expect(words.map((layer) => layer.text)).toEqual(['カ', 'ッ']);
+    for (const word of words) expect(word.vertical).toBe(true);
+    // The small letter is smaller, and sits below the one it follows.
+    expect(words[1].fontSizePx).toBeLessThan(words[0].fontSizePx);
+    expect(words[1].y).toBeGreaterThan(words[0].y);
+  });
+
+  it('lays the older one out as a plain band across the screen', () => {
     const [flash] = made();
     const band = flash.scene!.layers.find((layer) => layer.name === '帯の縁')!;
 
-    // Wide and short with its ends cut on the diagonal, which is the shape of it.
+    // Wide and short, and a rectangle: nothing cut off it and nothing leaning.
     expect(flash.width / flash.height).toBeGreaterThan(3);
     expect(band.width / band.height).toBeGreaterThan(3);
-    expect(band.clip).toBe('slant');
+    expect(band.clip).toBe('none');
+    expect(band.rotation).toBe(0);
+    expect(band.skewXDeg).toBe(0);
   });
 
   it('rips the newer one open as a gash rather than opening a window', () => {
@@ -130,7 +146,7 @@ describe('the cut-ins a new room starts with', () => {
     expect(layers.indexOf(backing)).toBeLessThan(layers.indexOf(edge));
   });
 
-  it('stacks the newer word down the right rather than along the band', () => {
+  it('sets the newer word down the right rather than along the band', () => {
     const [, tear] = made();
     const word = tear.scene!.layers.find((layer) => layer.kind === 'text')!;
 
@@ -191,7 +207,6 @@ describe('the cut-ins a new room starts with', () => {
     const word = flash.scene!.layers.find((layer) => layer.kind === 'text')!;
 
     expect(word.x).toBeGreaterThan(flash.width / 2);
-    expect(word.textAlign).toBe('right');
     expect(word.rotation).toBeLessThan(0);
   });
 
