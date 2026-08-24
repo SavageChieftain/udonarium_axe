@@ -1,3 +1,4 @@
+import { ImageStorage } from '@axe/core/storage/image-storage';
 import { SyncObject } from '@axe/core/sync/decorator';
 import { GameObject } from '@axe/core/sync/game-object';
 import { InnerXml, ObjectSerializer } from '@axe/core/sync/object-serializer';
@@ -11,6 +12,7 @@ import { DiceTable } from '@axe/domain/dice/dice-table';
 import { createDefaultEffectPresets } from '@axe/domain/effect/builtin-effect-presets';
 import { EffectField } from '@axe/domain/effect/effect-field';
 import { EffectPreset } from '@axe/domain/effect/effect-preset';
+import { createDefaultCutIns } from '@axe/domain/media/builtin-cut-ins';
 import { CutIn } from '@axe/domain/media/cut-in';
 import { Party } from '@axe/domain/party/party';
 import { ReloadCheck } from '@axe/domain/peer/reload-check';
@@ -99,6 +101,7 @@ export class Room extends GameObject implements InnerXml {
       }
       // The usual set is made only when there are none here and none brought in.
       if (ObjectStore.instance.getObjects(EffectPreset).length < 1) createDefaultEffectPresets();
+      if (ObjectStore.instance.getObjects(CutIn).length < 1) createDefaultCutIns(ImageStorage.instance);
       clearOwnership(ObjectStore.instance.getObjects());
     }
   }

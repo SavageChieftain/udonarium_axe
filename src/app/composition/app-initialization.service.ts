@@ -20,6 +20,7 @@ import { DiceBot } from '@axe/domain/dice/dice-bot';
 import { createDefaultEffectPresets } from '@axe/domain/effect/builtin-effect-presets';
 import { EffectPresetSet } from '@axe/domain/effect/effect-preset-set';
 import { AudioTag } from '@axe/domain/media/audio-tag';
+import { createDefaultCutIns } from '@axe/domain/media/builtin-cut-ins';
 import { CutInLauncher } from '@axe/domain/media/cut-in-launcher';
 import { Jukebox } from '@axe/domain/media/jukebox';
 import { Playlist } from '@axe/domain/media/playlist';
@@ -70,6 +71,7 @@ export class AppInitializationService {
     this.initializeChatTabs();
     this.initializeAudioPresets();
     this.initializeEffectPresets();
+    this.initializeCutIns();
     this.initializePeerCursor();
   }
 
@@ -77,6 +79,10 @@ export class AppInitializationService {
     createDefaultEffectPresets();
     // Register the container type up front so a dropped effect set can be read.
     void EffectPresetSet;
+  }
+
+  private initializeCutIns(): void {
+    createDefaultCutIns(this.imageStorage);
   }
 
   private initializeDomainObjects(): void {
