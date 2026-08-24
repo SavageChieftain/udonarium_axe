@@ -137,6 +137,21 @@
   </div>
 
   <div class="mb-1 flex flex-col gap-1">
+    <label
+      class="text-ui-text flex cursor-pointer items-center gap-1.5 text-[12px] font-medium select-none [&_input[type=checkbox]]:size-3.5 [&_input[type=checkbox]]:[accent-color:var(--ui-accent)]"
+    >
+      <input
+        type="checkbox"
+        [(ngModel)]="cutInFrameless"
+        name="cutInFrameless"
+        [attr.disabled]="!isEditable() ? '' : null"
+      />
+      <span>{{ 'feature.media.cutIn.frameless' | transloco }}</span>
+    </label>
+    <span class="text-ui-dim text-[11px]">{{ 'feature.media.cutIn.framelessHint' | transloco }}</span>
+  </div>
+
+  <div class="mb-1 flex flex-col gap-1">
     <label class="text-ui-muted text-[11px] font-semibold tracking-[0.04em] uppercase">{{
       'feature.media.cutIn.xPosition' | transloco
     }}</label>

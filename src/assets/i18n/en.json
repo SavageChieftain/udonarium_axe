@@ -252,6 +252,8 @@
         "standardSize": "Show at standard size",
         "originalSize": "Show at original size",
         "keepAspect": "Keep aspect ratio",
+        "frameless": "Play without a frame",
+        "framelessHint": "Drops the frame and the title bar, and lets clicks through. With no close button, end it with a play time, by turning the loop off, with the stop button in the list, or by playing another cut-in under the same tag.",
         "xPosition": "X position",
         "yPosition": "Y position",
         "playbackSection": "Playback settings",

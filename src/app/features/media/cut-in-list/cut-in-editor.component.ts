@@ -133,6 +133,14 @@ export class CutInEditorComponent {
     this.c.keepImageAspect = aspect;
   }
 
+  get cutInFrameless(): boolean {
+    if (!this.c) return false;
+    return this.editable ? this.c.frameless : false;
+  }
+  set cutInFrameless(frameless: boolean) {
+    if (this.editable && this.c) this.c.frameless = frameless;
+  }
+
   get cutInOriginalSize(): boolean {
     if (!this.c) return false;
     return this.editable ? this.c.originalSize : false;

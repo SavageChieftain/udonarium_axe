@@ -252,6 +252,8 @@
         "standardSize": "標準サイズで表示",
         "originalSize": "元サイズで表示",
         "keepAspect": "縦横比を維持",
+        "frameless": "枠なしで表示",
+        "framelessHint": "枠とタイトルバーを消し、クリックも通します。閉じるボタンが出ないので、再生時間かループ解除、一覧の停止ボタン、同じタグの別カットインで終わらせてください。",
         "xPosition": "X 位置",
         "yPosition": "Y 位置",
         "playbackSection": "再生設定",

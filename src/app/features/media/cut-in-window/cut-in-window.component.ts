@@ -20,7 +20,7 @@ import { ImageFile } from '@axe/core/storage/image-file';
 import { ImageStorage } from '@axe/core/storage/image-storage';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { AudioTag } from '@axe/domain/media/audio-tag';
-import { CutIn } from '@axe/domain/media/cut-in';
+import { CutIn, cutInPanelChrome } from '@axe/domain/media/cut-in';
 import { CutInLauncher } from '@axe/domain/media/cut-in-launcher';
 import { SafePipe } from '@axe/ui/pipes/safe.pipe';
 
@@ -185,17 +185,18 @@ export class CutInWindowComponent {
 
   moveCutInPos() {
     if (this.cutIn) {
+      const chrome = cutInPanelChrome(this.cutIn);
       const cutin_w = this.cutIn.width;
       const cutin_h = this.cutIn.height;
       let margin_w = window.innerWidth - cutin_w;
-      let margin_h = window.innerHeight - cutin_h - 25;
+      let margin_h = window.innerHeight - cutin_h - chrome;
       if (margin_w < 0) margin_w = 0;
       if (margin_h < 0) margin_h = 0;
       const margin_x = (margin_w * this.cutIn.x_pos) / 100;
       const margin_y = (margin_h * this.cutIn.y_pos) / 100;
 
       this.width = cutin_w;
-      this.height = cutin_h + 25;
+      this.height = cutin_h + chrome;
       this.left = margin_x;
       this.top = margin_y;
     }

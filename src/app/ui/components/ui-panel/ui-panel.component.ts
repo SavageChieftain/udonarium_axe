@@ -58,7 +58,6 @@ export class UIPanelComponent {
   readonly heightInput = input(100, { alias: 'height' });
   readonly minWidthInput = input(100, { alias: 'minWidth' });
   readonly minHeightInput = input(100, { alias: 'minHeight' });
-  readonly showTitleButtons = input(true);
   readonly showTitle = input(true);
   readonly overflowVisible = input(false);
 
@@ -141,6 +140,19 @@ export class UIPanelComponent {
 
   get contentMinimized(): boolean {
     return this.panelService.minimizeToContent && this.isMinimized();
+  }
+
+  get frameless(): boolean {
+    return this.panelService.frameless;
+  }
+
+  /** Wearing no box of its own: either shrunk to its content, or asked to play without a frame. */
+  get unboxed(): boolean {
+    return this.contentMinimized || this.frameless;
+  }
+
+  get showsTitleBar(): boolean {
+    return this.showTitle() && !this.frameless;
   }
 
   protected readonly portraitDispByMouse = signal(true);

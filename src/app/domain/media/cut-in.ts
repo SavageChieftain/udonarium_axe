@@ -29,6 +29,7 @@ export class CutIn extends GameObject {
 
   @SyncVar() isPlaying = false;
   @SyncVar() keepImageAspect = false;
+  @SyncVar() frameless = false;
 
   @SyncVar() isVideoCutIn = false;
   @SyncVar() videoUrl = '';
@@ -182,4 +183,12 @@ export class CutIn extends GameObject {
       !!AudioStorage.instance.get(this.audioIdentifier)
     );
   }
+}
+
+/** The height the title bar takes above a cut-in panel. */
+export const CUT_IN_TITLE_BAR_HEIGHT = 25;
+
+/** How much taller the panel stands than the cut-in itself. A frameless one wears no title bar. */
+export function cutInPanelChrome(cutIn: CutIn): number {
+  return cutIn.frameless ? 0 : CUT_IN_TITLE_BAR_HEIGHT;
 }

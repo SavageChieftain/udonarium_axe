@@ -102,6 +102,15 @@ describe('PanelService', () => {
     expect(setInput).toHaveBeenCalledWith('minHeight', 0);
   });
 
+  it('keeps frameless on the service rather than on the panel inputs', () => {
+    const { service, childPanelService, parentViewContainerRef, setInput } = setupOpenMocks();
+
+    service.open(DummyBodyComponent, { width: 320, height: 240, frameless: true }, parentViewContainerRef);
+
+    expect(childPanelService.frameless).toBe(true);
+    expect(setInput).not.toHaveBeenCalledWith('frameless', true);
+  });
+
   it('falls back to the default container when none is given', () => {
     const { service, childPanelService, setInput, bodyInstance, parentViewContainerRef } = setupOpenMocks();
 

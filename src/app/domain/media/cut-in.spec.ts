@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { ObjectStore } from '@axe/core/sync/object-store';
-import { CutIn } from '@axe/domain/media/cut-in';
+import { CUT_IN_TITLE_BAR_HEIGHT, CutIn, cutInPanelChrome } from '@axe/domain/media/cut-in';
 
 describe('CutIn', () => {
   let store: ObjectStore;
@@ -73,6 +73,28 @@ describe('CutIn', () => {
 
     it('starts at half volume', () => {
       expect(cutIn.videoVolume).toBe(50);
+    });
+
+    it('starts wearing a frame', () => {
+      expect(cutIn.frameless).toBe(false);
+    });
+  });
+
+  describe('cutInPanelChrome()', () => {
+    let cutIn: CutIn;
+
+    beforeEach(() => {
+      cutIn = new CutIn();
+      cutIn.initialize();
+    });
+
+    it('leaves room for the title bar of a framed cut-in', () => {
+      expect(cutInPanelChrome(cutIn)).toBe(CUT_IN_TITLE_BAR_HEIGHT);
+    });
+
+    it('leaves no room above a frameless one', () => {
+      cutIn.frameless = true;
+      expect(cutInPanelChrome(cutIn)).toBe(0);
     });
   });
 

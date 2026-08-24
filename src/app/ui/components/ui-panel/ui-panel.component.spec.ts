@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { PanelService } from '@axe/application/ui/panel.service';
 import { ViewportService } from '@axe/application/ui/viewport.service';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
@@ -22,6 +23,44 @@ describe('UIPanelComponent', () => {
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  describe('without a frame', () => {
+    function panel(): HTMLElement {
+      return fixture.nativeElement.querySelector('.draggable-panel');
+    }
+
+    function titleBar(): HTMLElement {
+      return fixture.nativeElement.querySelector('.bg-ui-titlebar');
+    }
+
+    function setFrameless(frameless: boolean): void {
+      fixture.debugElement.injector.get(PanelService).frameless = frameless;
+      fixture.detectChanges();
+    }
+
+    it('drops the box and the title bar', () => {
+      setFrameless(true);
+
+      expect(titleBar().style.display).toBe('none');
+      expect(panel().classList.contains('bg-transparent!')).toBe(true);
+      expect(panel().classList.contains('border-transparent!')).toBe(true);
+      expect(panel().classList.contains('shadow-none!')).toBe(true);
+    });
+
+    it('lets what is under it be clicked', () => {
+      setFrameless(true);
+
+      expect(panel().style.pointerEvents).toBe('none');
+    });
+
+    it('keeps the box and the title bar otherwise', () => {
+      setFrameless(false);
+
+      expect(titleBar().style.display).toBe('');
+      expect(panel().classList.contains('bg-transparent!')).toBe(false);
+      expect(panel().style.pointerEvents).toBe('');
+    });
   });
 
   describe('on a narrow screen', () => {
