@@ -131,6 +131,19 @@
           {{ 'feature.media.cutInEditor.fillGradient' | transloco }}
         </label>
         @if (fillGradient) {
+          <label class="text-ui-muted text-[11px]">{{ 'feature.media.cutInEditor.fillShape' | transloco }}</label>
+          <select
+            class="bg-ui-input border-ui-border-panel text-ui-text rounded-ui-sm box-border w-full border border-solid p-1 text-[12px] outline-none disabled:opacity-50"
+            name="cut-in-layer-fill-shape"
+            [(ngModel)]="fillShape"
+            [attr.disabled]="!isEditable() ? '' : null"
+          >
+            @for (shape of fillShapes; track shape) {
+              <option [value]="shape">{{ 'feature.media.cutInEditor.fillShape' + shape | transloco }}</option>
+            }
+          </select>
+        }
+        @if (fillGradient) {
           <label class="text-ui-muted text-[11px]">{{ 'feature.media.cutInEditor.fillTo' | transloco }}</label>
           <input
             class="bg-ui-input border-ui-border-panel rounded-ui-sm box-border h-7 w-full border border-solid p-0.5 disabled:opacity-50"
@@ -139,6 +152,27 @@
             [(ngModel)]="fillTo"
             [attr.disabled]="!isEditable() ? '' : null"
           />
+          <label
+            class="text-ui-muted col-span-2 flex cursor-pointer items-center gap-1 py-0.5 text-[11px] select-none [&_input]:size-3.5 [&_input]:[accent-color:var(--ui-accent)]"
+          >
+            <input
+              type="checkbox"
+              name="cut-in-layer-fill-has-mid"
+              [(ngModel)]="fillHasMid"
+              [attr.disabled]="!isEditable() ? '' : null"
+            />
+            {{ 'feature.media.cutInEditor.fillHasMid' | transloco }}
+          </label>
+          @if (fillHasMid) {
+            <label class="text-ui-muted text-[11px]">{{ 'feature.media.cutInEditor.fillMid' | transloco }}</label>
+            <input
+              class="bg-ui-input border-ui-border-panel rounded-ui-sm box-border h-7 w-full border border-solid p-0.5 disabled:opacity-50"
+              name="cut-in-layer-fill-mid"
+              type="color"
+              [(ngModel)]="fillMid"
+              [attr.disabled]="!isEditable() ? '' : null"
+            />
+          }
           <label class="text-ui-muted text-[11px]">{{ 'feature.media.cutInEditor.fillAngle' | transloco }}</label>
           <input
             class="bg-ui-input border-ui-border-panel text-ui-text rounded-ui-sm box-border w-full border border-solid px-1.5 py-1 text-right text-[12px] outline-none disabled:opacity-50"

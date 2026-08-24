@@ -14,6 +14,7 @@ import {
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { MotionService } from '@axe/application/ui/motion.service';
 import { ImageStorage } from '@axe/core/storage/image-storage';
+import { fillCss } from '@axe/domain/media/cut-in-fill';
 import { CutInLayer } from '@axe/domain/media/cut-in-layer';
 import { CutInScene } from '@axe/domain/media/cut-in-scene';
 import {
@@ -150,8 +151,8 @@ export class CutInStageComponent {
   }
 
   protected fillOf(layer: CutInLayer): string {
-    if (layer.fillTo.length < 1) return layer.fillFrom;
-    return `linear-gradient(${layer.fillAngleDeg}deg, ${layer.fillFrom}, ${layer.fillTo})`;
+    this.objectChange.versionOf(layer.identifier)();
+    return fillCss(layer.fill);
   }
 
   protected textShadowOf(layer: CutInLayer): string | null {

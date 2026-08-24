@@ -1,5 +1,6 @@
 import { SyncObject, SyncVar } from '@axe/core/sync/decorator';
 import { ObjectNode } from '@axe/core/sync/object-node';
+import type { CutInFill, CutInFillShape } from '@axe/domain/media/cut-in-fill';
 import { type CutInTrackSet, lastKeyTime, parseCutInTracks } from '@axe/domain/media/cut-in-keyframe';
 
 /**
@@ -69,10 +70,23 @@ export class CutInLayer extends ObjectNode {
   @SyncVar() strokeWidthPx: number = 0;
 
   // kind: fill
+  @SyncVar() fillShape: CutInFillShape = 'linear';
   @SyncVar() fillFrom: string = '#000000';
+  /** A colour passed through on the way. Empty for a straight run. */
+  @SyncVar() fillMid: string = '';
   /** Empty for one flat colour. */
   @SyncVar() fillTo: string = '';
   @SyncVar() fillAngleDeg: number = 90;
+
+  get fill(): CutInFill {
+    return {
+      shape: this.fillShape,
+      from: this.fillFrom,
+      mid: this.fillMid,
+      to: this.fillTo,
+      angleDeg: this.fillAngleDeg,
+    };
+  }
 
   /** What the layer does over time, as JSON. Empty for one that stays put. */
   @SyncVar() tracks: string = '';

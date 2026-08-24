@@ -1,3 +1,4 @@
+import { fillStops, STRIPE_WIDTH_PX } from '@axe/domain/media/cut-in-fill';
 import {
   REPLAY_BOARD_TOP_DOWN,
   type ReplayBoardCamera,
@@ -5,6 +6,7 @@ import {
 } from '@axe/domain/replay/replay-board-camera';
 import { framingOf, type ReplayBoardScene } from '@axe/domain/replay/replay-board-view';
 import {
+  layerFill,
   type ReplayCutInLayer,
   type ReplayCutInScene,
   replaySampleAt,
@@ -252,8 +254,7 @@ function paintLayer(
   style: ReplayFrameStyle
 ): void {
   if (layer.kind === 'fill') {
-    ctx.fillStyle = fillStyleOf(ctx, layer, left, top);
-    ctx.fillRect(left, top, layer.width, layer.height);
+    paintBand(ctx, layer, left, top);
     return;
   }
 
@@ -290,24 +291,68 @@ function paintLayer(
   );
 }
 
-function fillStyleOf(
-  ctx: ReplayFrameCanvas,
-  layer: ReplayCutInLayer,
-  left: number,
-  top: number
-): string | CanvasGradient {
-  if (layer.fillTo.length < 1) return layer.fillFrom;
+/**
+ * A band, in whichever shape it was given.
+ *
+ * Stripes are drawn as bands rather than as a gradient, because a canvas gradient has no
+ * repeat and hard edges are the whole point of them.
+ */
+function paintBand(ctx: ReplayFrameCanvas, layer: ReplayCutInLayer, left: number, top: number): void {
+  const stops = fillStops(layerFill(layer));
+  if (stops.length < 2) {
+    ctx.fillStyle = stops[0] ?? 'transparent';
+    ctx.fillRect(left, top, layer.width, layer.height);
+    return;
+  }
 
+  if (layer.fillShape === 'stripes') {
+    paintStripes(ctx, layer, left, top, stops);
+    return;
+  }
+
+  const midX = left + layer.width / 2;
+  const midY = top + layer.height / 2;
+  const gradient =
+    layer.fillShape === 'radial'
+      ? ctx.createRadialGradient(midX, midY, 0, midX, midY, Math.max(layer.width, layer.height) / 2)
+      : linearAcross(ctx, layer, midX, midY);
+
+  for (const [at, colour] of stops.entries()) gradient.addColorStop(at / (stops.length - 1), colour);
+  ctx.fillStyle = gradient;
+  ctx.fillRect(left, top, layer.width, layer.height);
+}
+
+function linearAcross(ctx: ReplayFrameCanvas, layer: ReplayCutInLayer, midX: number, midY: number): CanvasGradient {
   const radians = (layer.fillAngleDeg * Math.PI) / 180;
   const halfWidth = (Math.cos(radians) * layer.width) / 2;
   const halfHeight = (Math.sin(radians) * layer.height) / 2;
-  const midX = left + layer.width / 2;
-  const midY = top + layer.height / 2;
+  return ctx.createLinearGradient(midX - halfWidth, midY - halfHeight, midX + halfWidth, midY + halfHeight);
+}
 
-  const gradient = ctx.createLinearGradient(midX - halfWidth, midY - halfHeight, midX + halfWidth, midY + halfHeight);
-  gradient.addColorStop(0, layer.fillFrom);
-  gradient.addColorStop(1, layer.fillTo);
-  return gradient;
+function paintStripes(
+  ctx: ReplayFrameCanvas,
+  layer: ReplayCutInLayer,
+  left: number,
+  top: number,
+  stops: readonly string[]
+): void {
+  const radians = (layer.fillAngleDeg * Math.PI) / 180;
+  const reach = Math.hypot(layer.width, layer.height);
+
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(left, top, layer.width, layer.height);
+  ctx.clip();
+  ctx.translate(left + layer.width / 2, top + layer.height / 2);
+  ctx.rotate(radians);
+
+  let at = 0;
+  for (let offset = -reach; offset < reach; offset += STRIPE_WIDTH_PX) {
+    ctx.fillStyle = stops[at % stops.length];
+    ctx.fillRect(-reach, offset, reach * 2, STRIPE_WIDTH_PX);
+    at++;
+  }
+  ctx.restore();
 }
 
 /** The box the layers take up between them, which stands in for the cut-in's own size. */

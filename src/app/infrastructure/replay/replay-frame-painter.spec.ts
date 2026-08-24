@@ -65,6 +65,7 @@ function recorder(): {
       });
     },
     strokeRect() {},
+    rect() {},
     beginPath() {},
     moveTo() {},
     lineTo() {},
@@ -704,7 +705,9 @@ describe('paintReplayFrame()', () => {
           textAlign: 'center',
           strokeColor: '',
           strokeWidthPx: 0,
+          fillShape: 'linear',
           fillFrom: '#000000',
+          fillMid: '',
           fillTo: '',
           fillAngleDeg: 90,
           tracks: {},
@@ -815,6 +818,18 @@ describe('paintReplayFrame()', () => {
       paintReplayFrame(ctx, layout, shot({ cutInScene: scene }), assets, 0, DEFAULT_REPLAY_FRAME_STYLE, null, 0);
 
       expect(fills.map((fill) => fill.color)).toContain('#123456');
+    });
+
+    it('paints a striped band as bands rather than as one wash', () => {
+      const { ctx, fills } = recorder();
+      const scene = sceneOf([{ kind: 'fill', fillShape: 'stripes', fillFrom: '#111111', fillTo: '#eeeeee' }]);
+
+      paintReplayFrame(ctx, layout, shot({ cutInScene: scene }), assets, 0, DEFAULT_REPLAY_FRAME_STYLE, null, 0);
+
+      const colours = new Set(fills.map((fill) => fill.color));
+      expect(colours.has('#111111')).toBe(true);
+      expect(colours.has('#eeeeee')).toBe(true);
+      expect(fills.length).toBeGreaterThan(4);
     });
 
     it('draws nothing extra for a cut-in that is one picture', () => {

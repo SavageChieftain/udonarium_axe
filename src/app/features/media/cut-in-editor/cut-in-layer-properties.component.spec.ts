@@ -194,6 +194,34 @@ describe('CutInLayerPropertiesComponent', () => {
 
       expect(layer.fillAngleDeg).toBe(45);
     });
+
+    it('takes the shape the shading runs in', () => {
+      component.fillShape = 'radial';
+
+      expect(layer.fillShape).toBe('radial');
+    });
+
+    it('turns away a shape it does not know', () => {
+      component.fillShape = 'spiral' as never;
+
+      expect(layer.fillShape).toBe('linear');
+    });
+
+    it('passes through a third colour when asked', () => {
+      expect(component.fillHasMid).toBe(false);
+
+      component.fillHasMid = true;
+
+      expect(layer.fillMid.length).toBeGreaterThan(0);
+      expect(component.fillHasMid).toBe(true);
+    });
+
+    it('drops the third colour again', () => {
+      component.fillHasMid = true;
+      component.fillHasMid = false;
+
+      expect(layer.fillMid).toBe('');
+    });
   });
 
   describe('the curve out of a key', () => {

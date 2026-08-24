@@ -4,6 +4,7 @@ import { ImageService } from '@axe/application/storage/image.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { ModalService } from '@axe/application/ui/modal.service';
 import { CUT_IN_EASING_NAMES, type CutInEasingName, isCutInEasing } from '@axe/domain/media/cubic-bezier';
+import { CUT_IN_FILL_SHAPES, type CutInFillShape, isCutInFillShape } from '@axe/domain/media/cut-in-fill';
 import { CUT_IN_TRACKS, type CutInTrackName } from '@axe/domain/media/cut-in-keyframe';
 import { CUT_IN_TEXT_ALIGNS, CutInLayer, type CutInTextAlign, isCutInTextAlign } from '@axe/domain/media/cut-in-layer';
 import {
@@ -46,6 +47,7 @@ export class CutInLayerPropertiesComponent {
 
   readonly textAligns = CUT_IN_TEXT_ALIGNS;
   readonly easings = CUT_IN_EASING_NAMES;
+  readonly fillShapes = CUT_IN_FILL_SHAPES;
 
   readonly imageUrl = computed(() => {
     const layer = this.layer();
@@ -249,6 +251,28 @@ export class CutInLayerPropertiesComponent {
   }
   set strokeWidthPx(strokeWidthPx: number) {
     this.write((layer) => (layer.strokeWidthPx = Math.max(0, Number(strokeWidthPx) || 0)));
+  }
+
+  get fillShape(): CutInFillShape {
+    return this.layer()?.fillShape ?? 'linear';
+  }
+  set fillShape(fillShape: CutInFillShape) {
+    this.write((layer) => (layer.fillShape = isCutInFillShape(fillShape) ? fillShape : 'linear'));
+  }
+
+  get fillMid(): string {
+    return this.layer()?.fillMid || '#808080';
+  }
+  set fillMid(fillMid: string) {
+    this.write((layer) => (layer.fillMid = fillMid));
+  }
+
+  /** Whether the band passes through a third colour on its way. */
+  get fillHasMid(): boolean {
+    return (this.layer()?.fillMid.length ?? 0) > 0;
+  }
+  set fillHasMid(hasMid: boolean) {
+    this.write((layer) => (layer.fillMid = hasMid ? layer.fillMid || '#808080' : ''));
   }
 
   get fillFrom(): string {

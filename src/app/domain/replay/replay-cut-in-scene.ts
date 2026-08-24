@@ -1,3 +1,4 @@
+import { type CutInFill, type CutInFillShape, isCutInFillShape } from '@axe/domain/media/cut-in-fill';
 import type { CutInTrackSet } from '@axe/domain/media/cut-in-keyframe';
 import { parseCutInTracks, sampleTrack } from '@axe/domain/media/cut-in-keyframe';
 import type { CutInLayerKind, CutInTextAlign } from '@axe/domain/media/cut-in-layer';
@@ -38,7 +39,9 @@ export interface ReplayCutInLayer {
   textAlign: CutInTextAlign;
   strokeColor: string;
   strokeWidthPx: number;
+  fillShape: CutInFillShape;
   fillFrom: string;
+  fillMid: string;
   fillTo: string;
   fillAngleDeg: number;
   tracks: CutInTrackSet;
@@ -93,6 +96,17 @@ export function cutInScenesOf(snapshots: readonly ReplayObjectSnapshot[]): Map<s
     if (cutInIdentifier.length > 0 && scene.layers.length > 0) byCutIn.set(cutInIdentifier, scene);
   }
   return byCutIn;
+}
+
+/** What a band layer is painted with, in the shape the shared helper understands. */
+export function layerFill(layer: ReplayCutInLayer): CutInFill {
+  return {
+    shape: layer.fillShape,
+    from: layer.fillFrom,
+    mid: layer.fillMid,
+    to: layer.fillTo,
+    angleDeg: layer.fillAngleDeg,
+  };
 }
 
 /** How long the scene runs, never shorter than the layer that finishes last. */
@@ -168,7 +182,9 @@ function readLayer(attributes: Record<string, unknown>): ReplayCutInLayer {
     textAlign: (text(attributes['textAlign']) || 'center') as CutInTextAlign,
     strokeColor: text(attributes['strokeColor']),
     strokeWidthPx: number(attributes['strokeWidthPx'], 0),
+    fillShape: isCutInFillShape(attributes['fillShape']) ? attributes['fillShape'] : 'linear',
     fillFrom: text(attributes['fillFrom']) || '#000000',
+    fillMid: text(attributes['fillMid']),
     fillTo: text(attributes['fillTo']),
     fillAngleDeg: number(attributes['fillAngleDeg'], 90),
     tracks: parseCutInTracks(text(attributes['tracks'])),
