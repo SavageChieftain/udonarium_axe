@@ -32,6 +32,7 @@ const RESTING: Record<CutInTrackName, keyof CutInLayer> = {
   opacity: 'opacity',
   blur: 'blur',
   wipe: 'wipe',
+  crumble: 'crumble',
 };
 
 export function restingValue(layer: CutInLayer, track: CutInTrackName): number {

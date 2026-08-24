@@ -57,6 +57,9 @@ export class CutInLayer extends ObjectNode {
   /** Which way the layer is let in a part at a time, and how much of it is in so far. */
   @SyncVar() wipeShape: CutInWipe = 'none';
   @SyncVar() wipe: number = 1;
+  /** A second way of letting it in, or of taking it away again. */
+  @SyncVar() crumbleShape: CutInWipe = 'none';
+  @SyncVar() crumble: number = 1;
   @SyncVar() opacity: number = 1;
   @SyncVar() blur: number = 0;
   @SyncVar() blendMode: string = '';

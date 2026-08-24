@@ -1,5 +1,6 @@
 import {
   CHEVRON_LEAD,
+  CRUMBLE_REACH,
   CUT_IN_WIPES,
   isCutInWipe,
   wipeAmount,
@@ -101,6 +102,45 @@ describe('wipeCss()', () => {
 
     expect(css.startsWith('polygon(')).toBe(true);
     expect(css.split(',')).toHaveLength(4);
+  });
+});
+
+describe('an edge that crumbles', () => {
+  it('breaks up rather than travelling as one clean line', () => {
+    const edges = wipePoints('crumbleRight', 0.5)
+      .slice(0, -2)
+      .map(([x]) => x);
+
+    // The fingers reach different distances, which is what makes it come away in pieces.
+    expect(new Set(edges).size).toBeGreaterThan(4);
+    expect(Math.max(...edges) - Math.min(...edges)).toBeGreaterThan(CRUMBLE_REACH / 2);
+  });
+
+  it('eats a layer from the left when it is told to', () => {
+    const most = wipePoints('crumbleLeft', 0.8)
+      .slice(0, -2)
+      .map(([x]) => x);
+    const little = wipePoints('crumbleLeft', 0.2)
+      .slice(0, -2)
+      .map(([x]) => x);
+
+    // Less left means the edge has eaten further across.
+    expect(Math.min(...little)).toBeGreaterThan(Math.min(...most));
+  });
+
+  it('eats it from the right the other way round', () => {
+    const most = wipePoints('crumbleRight', 0.8)
+      .slice(0, -2)
+      .map(([x]) => x);
+    const little = wipePoints('crumbleRight', 0.2)
+      .slice(0, -2)
+      .map(([x]) => x);
+
+    expect(Math.max(...little)).toBeLessThan(Math.max(...most));
+  });
+
+  it('crumbles the same way twice, so a room looks the same on every screen', () => {
+    expect(wipePoints('crumbleLeft', 0.4)).toEqual(wipePoints('crumbleLeft', 0.4));
   });
 });
 

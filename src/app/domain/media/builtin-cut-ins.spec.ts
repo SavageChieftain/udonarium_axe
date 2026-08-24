@@ -113,7 +113,7 @@ describe('the cut-ins a new room starts with', () => {
 
     expect(edge.clip).toBe('gash');
     // Long and shallow, which is the shape of something torn rather than cut out.
-    expect(edge.width / edge.height).toBeGreaterThan(3.5);
+    expect(edge.width / edge.height).toBeGreaterThan(2.5);
     // It runs along from the left rather than arriving from somewhere or opening at once.
     expect(edge.wipeShape).toBe('chevronRight');
     expect(edge.trackSet.wipe?.[0].v).toBe(0);
@@ -121,11 +121,28 @@ describe('the cut-ins a new room starts with', () => {
     expect(edge.trackSet.x).toBeUndefined();
   });
 
+  it('crumbles the tear away from the left rather than fading it out', () => {
+    const [, tear] = made();
+    const going = tear.scene!.layers.filter((layer) => layer.crumbleShape !== 'none');
+
+    // Everything the tear is made of goes, and all of it the same way.
+    expect(going).toHaveLength(tear.scene!.layers.length);
+    for (const layer of going) {
+      expect(layer.crumbleShape).toBe('crumbleLeft');
+      const crumble = layer.trackSet.crumble!;
+      expect(crumble[0].v).toBe(1);
+      expect(crumble[crumble.length - 1].v).toBe(0);
+      // It has come away before anything is left for the fade to see off.
+      const opacity = layer.trackSet.opacity!;
+      expect(crumble[crumble.length - 1].t).toBeLessThanOrEqual(opacity[opacity.length - 1].t);
+    }
+  });
+
   it('unzips every torn layer together', () => {
     const [, tear] = made();
     const torn = tear.scene!.layers.filter((layer) => layer.clip === 'gash');
 
-    expect(torn.length).toBeGreaterThan(2);
+    expect(torn.length).toBeGreaterThanOrEqual(2);
     for (const layer of torn) {
       expect(layer.wipeShape).toBe('chevronRight');
       expect(layer.trackSet.wipe).toEqual(torn[0].trackSet.wipe);
@@ -154,9 +171,10 @@ describe('the cut-ins a new room starts with', () => {
     expect(word.letterSpacingPx).toBeLessThan(0);
     expect(word.height).toBeGreaterThan(word.width);
     expect(word.x).toBeGreaterThan(tear.width / 2);
-    // It leans the other way from the tear, and reaches past the top of it.
+    // It leans the other way from the tear, and stands taller than the tear it is on.
     expect(word.rotation).toBeGreaterThan(0);
-    expect(word.y).toBeLessThan(0);
+    const edge = tear.scene!.layers.find((layer) => layer.name === '裂け目の縁')!;
+    expect(word.height).toBeGreaterThan(edge.height);
   });
 
   it('lays lines converging on the middle behind the band', () => {

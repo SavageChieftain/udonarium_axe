@@ -9,13 +9,35 @@
  * apart — the shape says what the layer is, the wipe says how much of it has happened.
  */
 
-export const CUT_IN_WIPES = ['none', 'right', 'left', 'down', 'up', 'chevronRight', 'chevronLeft'] as const;
+export const CUT_IN_WIPES = [
+  'none',
+  'right',
+  'left',
+  'down',
+  'up',
+  'chevronRight',
+  'chevronLeft',
+  'crumbleRight',
+  'crumbleLeft',
+] as const;
 export type CutInWipe = (typeof CUT_IN_WIPES)[number];
 
 export type WipePoint = readonly [number, number];
 
 /** How far ahead of the edge the point of a chevron runs, as a fraction of the width. */
 export const CHEVRON_LEAD = 0.13;
+
+/** How deep the fingers of a crumbling edge run, and how many of them there are. */
+export const CRUMBLE_REACH = 0.11;
+const CRUMBLE_FINGERS = 17;
+
+/**
+ * How far each finger of a crumbling edge runs, as a fraction of the reach.
+ *
+ * Written out rather than drawn at random, so a layer crumbles the same way on every
+ * screen and the same way twice.
+ */
+const CRUMBLE_TEETH = [0.15, 0.9, 0.35, 1, 0.05, 0.6, 0.85, 0.2, 0.7, 0.45, 1, 0.1, 0.55, 0.95, 0.3, 0.75, 0.4];
 
 export function isCutInWipe(value: unknown): value is CutInWipe {
   return typeof value === 'string' && (CUT_IN_WIPES as readonly string[]).includes(value);
@@ -81,6 +103,10 @@ export function wipePoints(wipe: CutInWipe, amount: number): readonly WipePoint[
         [1 - at, 1],
         [1, 1],
       ];
+    case 'crumbleRight':
+      return crumbling(at, false);
+    case 'crumbleLeft':
+      return crumbling(at, true);
     default:
       return [];
   }
@@ -92,6 +118,28 @@ export function wipeCss(wipe: CutInWipe, amount: number): string {
 
   const corners = wipePoints(wipe, amount).map(([x, y]) => `${round(x * 100)}% ${round(y * 100)}%`);
   return `polygon(${corners.join(', ')})`;
+}
+
+/**
+ * An edge that breaks up as it goes, rather than one clean line travelling across.
+ *
+ * The fingers reach different distances, so what is left behind comes away in pieces —
+ * which is what makes it read as crumbling rather than as being wiped.
+ */
+function crumbling(at: number, fromLeft: boolean): readonly WipePoint[] {
+  const points: WipePoint[] = [];
+
+  for (let finger = 0; finger <= CRUMBLE_FINGERS; finger++) {
+    const down = finger / CRUMBLE_FINGERS;
+    const reach = CRUMBLE_TEETH[finger % CRUMBLE_TEETH.length] * CRUMBLE_REACH;
+    // At neither end does a finger reach past the layer, or the shape would turn itself out.
+    const edge = fromLeft ? Math.max(0, 1 - at - reach) : Math.min(1, at + reach);
+    points.push([edge, down]);
+  }
+
+  const back = fromLeft ? 1 : 0;
+  points.push([back, 1], [back, 0]);
+  return points;
 }
 
 function round(value: number): number {

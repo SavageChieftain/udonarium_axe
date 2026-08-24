@@ -204,6 +204,19 @@ describe('CutInStageComponent', () => {
     expect(wipe.style.clipPath).toContain('40%');
   });
 
+  it('lets a layer be taken away as well as let in, on an outline of its own', () => {
+    const scene = makeScene();
+    addLayer(scene, { wipeShape: 'chevronRight', wipe: 1, crumbleShape: 'crumbleLeft', crumble: 0.6 });
+
+    show(scene, false, 0);
+
+    const wipe = fixture.nativeElement.querySelector('.origin-top-left > div > div') as HTMLElement;
+    const crumble = fixture.nativeElement.querySelector('.origin-top-left > div > div > div') as HTMLElement;
+    expect(wipe.style.clipPath).toContain('polygon(');
+    expect(crumble.style.clipPath).toContain('polygon(');
+    expect(crumble.style.clipPath).not.toBe(wipe.style.clipPath);
+  });
+
   it('leaves a layer whole where it has no wipe', () => {
     const scene = makeScene();
     addLayer(scene);

@@ -29,6 +29,8 @@ const LAYER_FIELDS = [
   'clip',
   'wipeShape',
   'wipe',
+  'crumbleShape',
+  'crumble',
   'opacity',
   'blur',
   'blendMode',

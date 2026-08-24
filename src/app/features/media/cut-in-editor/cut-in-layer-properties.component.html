@@ -466,6 +466,40 @@
         </button>
       }
 
+      <label class="text-ui-muted text-[11px]">{{ 'feature.media.cutInEditor.crumbleLabel' | transloco }}</label>
+      <select
+        class="bg-ui-input border-ui-border-panel text-ui-text rounded-ui-sm col-span-2 box-border w-full border border-solid p-1 text-[12px] outline-none disabled:opacity-50"
+        name="cut-in-layer-crumble"
+        [(ngModel)]="crumbleShape"
+        [attr.disabled]="!isEditable() ? '' : null"
+      >
+        @for (shape of wipes; track shape) {
+          <option [value]="shape">{{ 'feature.media.cutInEditor.wipe' + shape | transloco }}</option>
+        }
+      </select>
+      @if (crumbleShape !== 'none') {
+        <label class="text-ui-muted text-[11px]">{{ 'feature.media.cutInEditor.crumbleAmount' | transloco }}</label>
+        <input
+          class="w-full [accent-color:var(--ui-accent)] disabled:opacity-50"
+          name="cut-in-layer-crumble-amount"
+          type="range"
+          min="0"
+          max="100"
+          [(ngModel)]="crumblePercent"
+          [attr.disabled]="!isEditable() ? '' : null"
+        />
+        <button
+          class="text-ui-dim hover:text-ui-accent m-0 inline-flex size-5 items-center justify-center border-none bg-transparent p-0 shadow-none disabled:opacity-40 [&_.material-icons]:text-[13px]!"
+          type="button"
+          [class.text-ui-accent!]="keyed('crumble')"
+          [disabled]="!isEditable()"
+          [title]="'feature.media.cutInEditor.toggleKey' | transloco"
+          (click)="toggleKey('crumble')"
+        >
+          <i class="material-icons">diamond</i>
+        </button>
+      }
+
       <label class="text-ui-muted text-[11px]">{{ 'feature.media.cutInEditor.startMsLabel' | transloco }}</label>
       <input
         class="bg-ui-input border-ui-border-panel text-ui-text rounded-ui-sm col-span-2 box-border w-full border border-solid px-1.5 py-1 text-right text-[12px] outline-none disabled:opacity-50"

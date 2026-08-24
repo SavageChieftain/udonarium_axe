@@ -253,7 +253,8 @@ function paintCutInScene(
     const left = -layer.width * layer.anchorX;
     const top = -layer.height * layer.anchorY;
     clipTo(ctx, layer, left, top);
-    wipeTo(ctx, layer, sample.wipe, left, top);
+    wipeTo(ctx, layer, layer.wipeShape, sample.wipe, left, top);
+    wipeTo(ctx, layer, layer.crumbleShape, sample.crumble, left, top);
     paintLayer(ctx, layer, left, top, assets, style);
 
     ctx.restore();
@@ -360,10 +361,17 @@ function paintWords(
 }
 
 /** What has been let in so far, cut over whatever outline the layer already has. */
-function wipeTo(ctx: ReplayFrameCanvas, layer: ReplayCutInLayer, amount: number, left: number, top: number): void {
-  if (layer.wipeShape === 'none') return;
+function wipeTo(
+  ctx: ReplayFrameCanvas,
+  layer: ReplayCutInLayer,
+  shape: ReplayCutInLayer['wipeShape'],
+  amount: number,
+  left: number,
+  top: number
+): void {
+  if (shape === 'none') return;
 
-  const corners = wipePoints(layer.wipeShape, amount);
+  const corners = wipePoints(shape, amount);
   if (corners.length < 3) return;
 
   ctx.beginPath();

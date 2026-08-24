@@ -40,6 +40,8 @@ export interface ReplayCutInLayer {
   clip: CutInClip;
   wipeShape: CutInWipe;
   wipe: number;
+  crumbleShape: CutInWipe;
+  crumble: number;
   opacity: number;
   blur: number;
   startMs: number;
@@ -150,6 +152,7 @@ export interface ReplayLayerSample {
   opacity: number;
   blur: number;
   wipe: number;
+  crumble: number;
   glowPx: number;
   shadowPx: number;
   glowColor: string;
@@ -169,6 +172,7 @@ export function replaySampleAt(layer: ReplayCutInLayer, ms: number, durationMs: 
     opacity: sampleTrack(layer.tracks.opacity, ms, layer.opacity) * touch.opacityMul,
     blur: sampleTrack(layer.tracks.blur, ms, layer.blur),
     wipe: sampleTrack(layer.tracks.wipe, ms, layer.wipe),
+    crumble: sampleTrack(layer.tracks.crumble, ms, layer.crumble),
     glowPx: touch.glowPx,
     shadowPx: touch.shadowPx,
     glowColor: layer.effectColor,
@@ -206,6 +210,8 @@ function readLayer(attributes: Record<string, unknown>): ReplayCutInLayer {
     clip: isCutInClip(attributes['clip']) ? attributes['clip'] : 'none',
     wipeShape: isCutInWipe(attributes['wipeShape']) ? attributes['wipeShape'] : 'none',
     wipe: number(attributes['wipe'], 1),
+    crumbleShape: isCutInWipe(attributes['crumbleShape']) ? attributes['crumbleShape'] : 'none',
+    crumble: number(attributes['crumble'], 1),
     opacity: number(attributes['opacity'], 1),
     blur: number(attributes['blur'], 0),
     startMs: number(attributes['startMs'], 0),

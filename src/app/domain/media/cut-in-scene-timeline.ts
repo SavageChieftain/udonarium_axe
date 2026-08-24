@@ -37,6 +37,8 @@ export interface CutInSample {
   blur: number;
   /** How much of the layer has been let in, from none of it to all of it. */
   wipe: number;
+  /** The same again, for the second way it is let in or taken away. */
+  crumble: number;
   /** How far the layer is leaned over, which squares nothing off. */
   skewXDeg: number;
   skewYDeg: number;
@@ -91,6 +93,7 @@ export function sampleLayerAt(layer: CutInLayer, ms: number, sceneDurationMs = 0
     opacity: sampleTrack(tracks.opacity, ms, numberOr(layer.opacity, 1)) * touch.opacityMul,
     blur: sampleTrack(tracks.blur, ms, numberOr(layer.blur, 0)),
     wipe: sampleTrack(tracks.wipe, ms, numberOr(layer.wipe, 1)),
+    crumble: sampleTrack(tracks.crumble, ms, numberOr(layer.crumble, 1)),
     skewXDeg: numberOr(layer.skewXDeg, 0),
     skewYDeg: numberOr(layer.skewYDeg, 0),
     glowPx: touch.glowPx,
@@ -130,7 +133,21 @@ export function layerOrigin(layer: CutInLayer): string {
  * element carries one clip-path.
  */
 export function toWipeFrames(layer: CutInLayer, sceneDurationMs: number): { offset: number; clipPath: string }[] {
-  if (layer.wipeShape === 'none') return [];
+  return outlineFrames(layer, sceneDurationMs, layer.wipeShape, (sample) => sample.wipe);
+}
+
+/** The same again for the second slot, which is what a layer leaves by. */
+export function toCrumbleFrames(layer: CutInLayer, sceneDurationMs: number): { offset: number; clipPath: string }[] {
+  return outlineFrames(layer, sceneDurationMs, layer.crumbleShape, (sample) => sample.crumble);
+}
+
+function outlineFrames(
+  layer: CutInLayer,
+  sceneDurationMs: number,
+  shape: CutInLayer['wipeShape'],
+  amountOf: (sample: CutInSample) => number
+): { offset: number; clipPath: string }[] {
+  if (shape === 'none') return [];
 
   const running = Math.max(1, sceneDurationMs);
   const { startMs, endMs } = layerWindow(layer, running);
@@ -140,7 +157,7 @@ export function toWipeFrames(layer: CutInLayer, sceneDurationMs: number): { offs
   for (const ms of marks) {
     frames.push({
       offset: clamp(ms / running, 0, 1),
-      clipPath: wipeCss(layer.wipeShape, sampleLayerAt(layer, ms, running).wipe),
+      clipPath: wipeCss(shape, amountOf(sampleLayerAt(layer, ms, running))),
     });
   }
   return frames;

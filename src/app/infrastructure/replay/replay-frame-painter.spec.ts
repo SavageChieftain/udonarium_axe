@@ -702,6 +702,8 @@ describe('paintReplayFrame()', () => {
           clip: 'none',
           wipeShape: 'none',
           wipe: 1,
+          crumbleShape: 'none',
+          crumble: 1,
           opacity: 1,
           blur: 0,
           startMs: 0,

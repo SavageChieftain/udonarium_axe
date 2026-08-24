@@ -45,6 +45,7 @@ interface LayerSeed {
   skewXDeg?: number;
   clip?: CutInClip;
   wipeShape?: CutInWipe;
+  crumbleShape?: CutInWipe;
   effect?: CutInEffect;
   effectStrength?: number;
   effectColor?: string;
@@ -119,9 +120,15 @@ const RIP_OPEN: CutInTrackSet = {
     { t: 0, v: 0, e: 'outQuad' },
     { t: 300, v: 1 },
   ],
+  // It comes away from the left rather than fading, the fingers of the edge taking it
+  // in pieces. The last of the opacity only sees off whatever the crumble has left.
+  crumble: [
+    { t: 1050, v: 1, e: 'inQuad' },
+    { t: 1440, v: 0 },
+  ],
   opacity: [
     { t: 0, v: 1, e: 'linear' },
-    { t: 1320, v: 1, e: 'inCubic' },
+    { t: 1400, v: 1, e: 'inCubic' },
     { t: 1500, v: 0 },
   ],
 };
@@ -150,7 +157,7 @@ export const DEFAULT_CUT_IN_SEEDS: readonly CutInSeed[] = [
     sceneIdentifier: 'sample-cut-in-flash-scene',
     name: '見本 : カッ',
     width: 1000,
-    height: 250,
+    height: 330,
     durationMs: 1100,
     sounds: [{ atMs: 0, soundKey: 'sfHit', volume: 90 }],
     layers: [
@@ -159,9 +166,9 @@ export const DEFAULT_CUT_IN_SEEDS: readonly CutInSeed[] = [
         name: '帯の縁',
         kind: 'fill',
         x: 0,
-        y: 24,
+        y: 12,
         width: 1000,
-        height: 202,
+        height: 306,
         fillFrom: '#d8f1ff',
         tracks: WIPE_OPEN,
       },
@@ -170,9 +177,9 @@ export const DEFAULT_CUT_IN_SEEDS: readonly CutInSeed[] = [
         name: '帯の下地',
         kind: 'fill',
         x: 6,
-        y: 30,
+        y: 18,
         width: 988,
-        height: 190,
+        height: 294,
         fillShape: 'linear',
         fillFrom: '#0a1c40',
         fillTo: '#04102a',
@@ -184,13 +191,14 @@ export const DEFAULT_CUT_IN_SEEDS: readonly CutInSeed[] = [
         name: '目 : 画像を差し替える',
         kind: 'image',
         x: 6,
-        y: 30,
+        y: 18,
         width: 988,
-        height: 190,
+        height: 294,
         portrait: true,
         objectFit: 'cover',
-        // Any portrait dropped in here is pulled up to the eyes rather than the chest.
-        objectPosY: 34,
+        // The box is cut to the picture's own proportions, so hardly anything is lost;
+        // a taller portrait dropped in its place is pulled up to the eyes.
+        objectPosY: 42,
         tracks: {
           ...WIPE_OPEN,
           scaleX: [
@@ -209,9 +217,9 @@ export const DEFAULT_CUT_IN_SEEDS: readonly CutInSeed[] = [
         name: '集中線',
         kind: 'fill',
         x: 6,
-        y: 30,
+        y: 18,
         width: 988,
-        height: 190,
+        height: 294,
         fillShape: 'speedlines',
         fillFrom: '#bfe9ff',
         fillTo: '#0a1c40',
@@ -231,9 +239,9 @@ export const DEFAULT_CUT_IN_SEEDS: readonly CutInSeed[] = [
         name: '走査光',
         kind: 'fill',
         x: 0,
-        y: 30,
-        width: 300,
-        height: 190,
+        y: 18,
+        width: 320,
+        height: 294,
         skewXDeg: -26,
         effect: 'glow',
         effectStrength: 0.9,
@@ -260,14 +268,14 @@ export const DEFAULT_CUT_IN_SEEDS: readonly CutInSeed[] = [
         identifier: 'sample-cut-in-flash-word',
         name: '文字 : カ',
         kind: 'text',
-        x: 786,
-        y: -18,
-        width: 150,
-        height: 160,
+        x: 774,
+        y: 8,
+        width: 160,
+        height: 180,
         rotation: -12,
         text: 'カ',
         vertical: true,
-        fontSizePx: 124,
+        fontSizePx: 138,
         fontWeight: 900,
         color: '#eafbff',
         textAlign: 'center',
@@ -283,13 +291,13 @@ export const DEFAULT_CUT_IN_SEEDS: readonly CutInSeed[] = [
         name: '文字 : ッ',
         kind: 'text',
         x: 872,
-        y: 118,
-        width: 110,
-        height: 120,
+        y: 168,
+        width: 120,
+        height: 140,
         rotation: -12,
         text: 'ッ',
         vertical: true,
-        fontSizePx: 76,
+        fontSizePx: 88,
         fontWeight: 900,
         color: '#eafbff',
         textAlign: 'center',
@@ -307,7 +315,7 @@ export const DEFAULT_CUT_IN_SEEDS: readonly CutInSeed[] = [
     sceneIdentifier: 'sample-cut-in-tear-scene',
     name: '見本 : ブチッ',
     width: 1240,
-    height: 420,
+    height: 500,
     durationMs: 1500,
     sounds: [{ atMs: 0, soundKey: 'slashIai', volume: 90 }],
     layers: [
@@ -316,12 +324,13 @@ export const DEFAULT_CUT_IN_SEEDS: readonly CutInSeed[] = [
         name: '裂け目の裏地',
         kind: 'fill',
         x: -12,
-        y: 66,
+        y: 48,
         width: 1264,
-        height: 300,
+        height: 404,
         rotation: -5,
         clip: 'gash',
         wipeShape: 'chevronRight',
+        crumbleShape: 'crumbleLeft',
         fillFrom: '#e10f22',
         tracks: RIP_OPEN,
       },
@@ -330,12 +339,13 @@ export const DEFAULT_CUT_IN_SEEDS: readonly CutInSeed[] = [
         name: '裂け目の縁',
         kind: 'fill',
         x: 0,
-        y: 72,
+        y: 56,
         width: 1240,
-        height: 288,
+        height: 388,
         rotation: -5,
         clip: 'gash',
         wipeShape: 'chevronRight',
+        crumbleShape: 'crumbleLeft',
         fillFrom: '#ffffff',
         tracks: RIP_OPEN,
       },
@@ -344,12 +354,13 @@ export const DEFAULT_CUT_IN_SEEDS: readonly CutInSeed[] = [
         name: '目 : 画像を差し替える',
         kind: 'image',
         x: 10,
-        y: 80,
+        y: 64,
         width: 1220,
-        height: 272,
+        height: 372,
         rotation: -5,
         clip: 'gash',
         wipeShape: 'chevronRight',
+        crumbleShape: 'crumbleLeft',
         face: true,
         objectFit: 'cover',
         objectPosY: 50,
@@ -368,9 +379,9 @@ export const DEFAULT_CUT_IN_SEEDS: readonly CutInSeed[] = [
         name: '文字 : ブチッ',
         kind: 'text',
         x: 930,
-        y: -30,
+        y: 10,
         width: 300,
-        height: 420,
+        height: 480,
         rotation: 8,
         text: 'ブチッ',
         vertical: true,
@@ -383,7 +394,12 @@ export const DEFAULT_CUT_IN_SEEDS: readonly CutInSeed[] = [
         strokeWidthPx: 8,
         effect: 'shake',
         effectStrength: 0.4,
+        crumbleShape: 'crumbleLeft',
         tracks: {
+          crumble: [
+            { t: 1150, v: 1, e: 'inQuad' },
+            { t: 1460, v: 0 },
+          ],
           x: [
             { t: 200, v: 1260, e: 'outBack' },
             { t: 440, v: 930 },
@@ -486,6 +502,7 @@ function makeLayer(seed: LayerSeed, pictures: SamplePictures): CutInLayer {
   if (seed.skewXDeg !== undefined) layer.skewXDeg = seed.skewXDeg;
   if (seed.clip) layer.clip = seed.clip;
   if (seed.wipeShape) layer.wipeShape = seed.wipeShape;
+  if (seed.crumbleShape) layer.crumbleShape = seed.crumbleShape;
   if (seed.opacity !== undefined) layer.opacity = seed.opacity;
   if (seed.effect) layer.effect = seed.effect;
   if (seed.effectStrength !== undefined) layer.effectStrength = seed.effectStrength;

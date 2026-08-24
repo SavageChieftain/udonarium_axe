@@ -350,6 +350,23 @@ export class CutInLayerPropertiesComponent {
     this.writeTracked('wipe', Math.min(1, Math.max(0, (Number(percent) || 0) / 100)));
   }
 
+  get crumbleShape(): CutInWipe {
+    return this.layer()?.crumbleShape ?? 'none';
+  }
+  set crumbleShape(crumbleShape: CutInWipe) {
+    this.write((layer) => {
+      layer.crumbleShape = isCutInWipe(crumbleShape) ? crumbleShape : 'none';
+      if (layer.crumbleShape !== 'none' && (layer.trackSet.crumble ?? []).length < 1) layer.crumble = 1;
+    });
+  }
+
+  get crumblePercent(): number {
+    return Math.round(this.tracked('crumble', 1) * 100);
+  }
+  set crumblePercent(percent: number) {
+    this.writeTracked('crumble', Math.min(1, Math.max(0, (Number(percent) || 0) / 100)));
+  }
+
   get letterSpacingPx(): number {
     return Math.round(this.layer()?.letterSpacingPx ?? 0);
   }

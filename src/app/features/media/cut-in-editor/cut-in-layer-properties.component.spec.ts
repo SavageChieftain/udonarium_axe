@@ -480,6 +480,40 @@ describe('CutInLayerPropertiesComponent', () => {
     });
   });
 
+  describe('taking a layer away again', () => {
+    it('leaves the whole of it there to begin with', () => {
+      expect(component.crumbleShape).toBe('none');
+      expect(component.crumblePercent).toBe(100);
+    });
+
+    it('takes a way of taking it away, apart from the way it came in', () => {
+      component.wipeShape = 'chevronRight';
+      component.crumbleShape = 'crumbleLeft';
+
+      expect(layer.wipeShape).toBe('chevronRight');
+      expect(layer.crumbleShape).toBe('crumbleLeft');
+    });
+
+    it('leaves a layer just given one whole rather than gone', () => {
+      layer.crumble = 0;
+
+      component.crumbleShape = 'crumbleLeft';
+
+      expect(layer.crumble).toBe(1);
+    });
+
+    it('takes how much is left, and can key it', () => {
+      component.crumblePercent = 30;
+      expect(layer.crumble).toBeCloseTo(0.3, 5);
+
+      fixture.componentRef.setInput('playheadMs', 400);
+      fixture.detectChanges();
+      component.toggleKey('crumble');
+
+      expect(component.keyed('crumble')).toBe(true);
+    });
+  });
+
   describe('how the words are set', () => {
     beforeEach(() => {
       layer.kind = 'text';

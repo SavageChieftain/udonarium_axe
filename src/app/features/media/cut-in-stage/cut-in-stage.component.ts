@@ -24,6 +24,7 @@ import {
   layerTransform,
   sampleLayerAt,
   sceneDurationOf,
+  toCrumbleFrames,
   toWebAnimationFrames,
   toWipeFrames,
 } from '@axe/domain/media/cut-in-scene-timeline';
@@ -67,8 +68,10 @@ export class CutInStageComponent {
 
   private readonly layerElements = viewChildren<ElementRef<HTMLElement>>('layerElement');
   private readonly wipeElements = viewChildren<ElementRef<HTMLElement>>('wipeElement');
+  private readonly crumbleElements = viewChildren<ElementRef<HTMLElement>>('crumbleElement');
   private readonly handles = new Map<string, Animation>();
   private readonly wipeHandles = new Map<string, Animation>();
+  private readonly crumbleHandles = new Map<string, Animation>();
   private readonly hostSize = signal({ width: 0, height: 0 });
 
   readonly layers = computed<CutInLayer[]>(() => {
@@ -129,7 +132,7 @@ export class CutInStageComponent {
       // Every layer's own version, so a keyframe moved while the editor is open is picked up.
       for (const layer of layers) this.objectChange.versionOf(layer.identifier)();
 
-      this.build(layers, elements, this.wipeElements(), durationMs, loops);
+      this.build(layers, elements, this.wipeElements(), this.crumbleElements(), durationMs, loops);
       this.runTo(untracked(this.playing), untracked(this.playheadMs), layers, elements, durationMs);
     });
 
@@ -170,6 +173,13 @@ export class CutInStageComponent {
     return wipeCss(layer.wipeShape, sampleLayerAt(layer, this.playheadMs(), this.durationMs()).wipe) || null;
   }
 
+  /** The same again for what the layer leaves by, which rides on an element of its own. */
+  protected crumbleOf(layer: CutInLayer): string | null {
+    this.objectChange.versionOf(layer.identifier)();
+    if (layer.crumbleShape === 'none') return null;
+    return wipeCss(layer.crumbleShape, sampleLayerAt(layer, this.playheadMs(), this.durationMs()).crumble) || null;
+  }
+
   protected imageUrl(layer: CutInLayer): string {
     this.objectChange.fileVersion();
     return this.imageStorage.get(layer.imageIdentifier)?.url ?? '';
@@ -195,6 +205,7 @@ export class CutInStageComponent {
     layers: readonly CutInLayer[],
     elements: readonly ElementRef<HTMLElement>[],
     wipes: readonly ElementRef<HTMLElement>[],
+    crumbles: readonly ElementRef<HTMLElement>[],
     durationMs: number,
     loops: boolean
   ): void {
@@ -220,6 +231,12 @@ export class CutInStageComponent {
       if (wipeFrames.length > 1 && wipeElement) {
         this.wipeHandles.set(layer.identifier, wipeElement.animate(wipeFrames, options));
       }
+
+      const crumbleFrames = toCrumbleFrames(layer, durationMs);
+      const crumbleElement = crumbles[at]?.nativeElement;
+      if (crumbleFrames.length > 1 && crumbleElement) {
+        this.crumbleHandles.set(layer.identifier, crumbleElement.animate(crumbleFrames, options));
+      }
     }
   }
 
@@ -241,17 +258,18 @@ export class CutInStageComponent {
         continue;
       }
 
-      const wipe = this.wipeHandles.get(layer.identifier);
+      const outlines = [this.wipeHandles.get(layer.identifier), this.crumbleHandles.get(layer.identifier)];
       if (playing) {
         handle.play();
-        wipe?.play();
+        for (const outline of outlines) outline?.play();
         continue;
       }
       handle.pause();
       handle.currentTime = playheadMs;
-      if (wipe) {
-        wipe.pause();
-        wipe.currentTime = playheadMs;
+      for (const outline of outlines) {
+        if (!outline) continue;
+        outline.pause();
+        outline.currentTime = playheadMs;
       }
     }
   }
@@ -273,6 +291,8 @@ export class CutInStageComponent {
     this.handles.clear();
     for (const handle of this.wipeHandles.values()) handle.cancel();
     this.wipeHandles.clear();
+    for (const handle of this.crumbleHandles.values()) handle.cancel();
+    this.crumbleHandles.clear();
   }
 
   private watchHostSize(): void {
