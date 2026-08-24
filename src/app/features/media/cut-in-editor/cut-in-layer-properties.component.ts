@@ -4,6 +4,17 @@ import { ImageService } from '@axe/application/storage/image.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { ModalService } from '@axe/application/ui/modal.service';
 import { CUT_IN_EASING_NAMES, type CutInEasingName, isCutInEasing } from '@axe/domain/media/cubic-bezier';
+import {
+  applyEntrance,
+  applyExit,
+  CUT_IN_ENTRANCES,
+  CUT_IN_EXITS,
+  type CutInEntrance,
+  type CutInExit,
+  DEFAULT_PRESET_MS,
+  isCutInEntrance,
+  isCutInExit,
+} from '@axe/domain/media/cut-in-animation-presets';
 import { CUT_IN_FILL_SHAPES, type CutInFillShape, isCutInFillShape } from '@axe/domain/media/cut-in-fill';
 import { CUT_IN_TRACKS, type CutInTrackName } from '@axe/domain/media/cut-in-keyframe';
 import { CUT_IN_TEXT_ALIGNS, CutInLayer, type CutInTextAlign, isCutInTextAlign } from '@axe/domain/media/cut-in-layer';
@@ -40,6 +51,10 @@ export class CutInLayerPropertiesComponent {
 
   readonly layer = input<CutInLayer | null>(null);
   readonly isEditable = input(false);
+  /** The cut-in's own size, which is where a layer slides in from and out to. */
+  readonly sceneWidth = input(0);
+  readonly sceneHeight = input(0);
+  readonly sceneDurationMs = input(0);
   /** Where the scrubber stands. A value written lands on the key there, if one does. */
   readonly playheadMs = input(0);
 
@@ -48,6 +63,11 @@ export class CutInLayerPropertiesComponent {
   readonly textAligns = CUT_IN_TEXT_ALIGNS;
   readonly easings = CUT_IN_EASING_NAMES;
   readonly fillShapes = CUT_IN_FILL_SHAPES;
+  readonly entrances = CUT_IN_ENTRANCES;
+  readonly exits = CUT_IN_EXITS;
+
+  /** How long an arrival or a departure takes, in ms. */
+  presetMs = DEFAULT_PRESET_MS;
 
   readonly imageUrl = computed(() => {
     const layer = this.layer();
@@ -302,6 +322,33 @@ export class CutInLayerPropertiesComponent {
   }
   set fillAngleDeg(fillAngleDeg: number) {
     this.write((layer) => (layer.fillAngleDeg = Number(fillAngleDeg) || 0));
+  }
+
+  /**
+   * The preset lists sit at nothing and go back to it.
+   *
+   * A preset is a way of laying keys down, not something the layer goes on being, so
+   * remembering which one was chosen would say more than is true — the keys can be
+   * dragged about afterwards like any others.
+   */
+  get entrance(): string {
+    return '';
+  }
+  set entrance(name: string) {
+    if (!isCutInEntrance(name)) return;
+    this.write((layer) => applyEntrance(layer, name as CutInEntrance, this.stage, this.presetMs));
+  }
+
+  get exit(): string {
+    return '';
+  }
+  set exit(name: string) {
+    if (!isCutInExit(name)) return;
+    this.write((layer) => applyExit(layer, name as CutInExit, this.stage, this.sceneDurationMs(), this.presetMs));
+  }
+
+  private get stage(): { width: number; height: number } {
+    return { width: this.sceneWidth(), height: this.sceneHeight() };
   }
 
   chooseImage(): void {

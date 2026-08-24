@@ -355,6 +355,48 @@
       </div>
     }
 
+    <div class="border-ui-border-panel flex flex-col gap-1 border-t border-solid pt-2">
+      <label class="text-ui-muted text-[11px] font-semibold tracking-[0.04em] uppercase">{{
+        'feature.media.cutInEditor.presets' | transloco
+      }}</label>
+      <div class="grid grid-cols-[3.6rem_minmax(0,1fr)] items-center gap-x-1.5 gap-y-1">
+        <label class="text-ui-muted text-[11px]">{{ 'feature.media.cutInEditor.entrance' | transloco }}</label>
+        <select
+          class="bg-ui-input border-ui-border-panel text-ui-text rounded-ui-sm box-border w-full border border-solid p-1 text-[12px] outline-none disabled:opacity-50"
+          name="cut-in-layer-entrance"
+          [(ngModel)]="entrance"
+          [attr.disabled]="!isEditable() ? '' : null"
+        >
+          <option value="">{{ 'feature.media.cutInEditor.presetPick' | transloco }}</option>
+          @for (name of entrances; track name) {
+            <option [value]="name">{{ 'feature.media.cutInEditor.preset' + name | transloco }}</option>
+          }
+        </select>
+        <label class="text-ui-muted text-[11px]">{{ 'feature.media.cutInEditor.exit' | transloco }}</label>
+        <select
+          class="bg-ui-input border-ui-border-panel text-ui-text rounded-ui-sm box-border w-full border border-solid p-1 text-[12px] outline-none disabled:opacity-50"
+          name="cut-in-layer-exit"
+          [(ngModel)]="exit"
+          [attr.disabled]="!isEditable() ? '' : null"
+        >
+          <option value="">{{ 'feature.media.cutInEditor.presetPick' | transloco }}</option>
+          @for (name of exits; track name) {
+            <option [value]="name">{{ 'feature.media.cutInEditor.preset' + name | transloco }}</option>
+          }
+        </select>
+        <label class="text-ui-muted text-[11px]">{{ 'feature.media.cutInEditor.presetMs' | transloco }}</label>
+        <input
+          class="bg-ui-input border-ui-border-panel text-ui-text rounded-ui-sm box-border w-full border border-solid px-1.5 py-1 text-right text-[12px] outline-none disabled:opacity-50"
+          name="cut-in-layer-preset-ms"
+          type="number"
+          min="1"
+          [(ngModel)]="presetMs"
+          [attr.disabled]="!isEditable() ? '' : null"
+        />
+      </div>
+      <span class="text-ui-dim text-[11px]">{{ 'feature.media.cutInEditor.presetHint' | transloco }}</span>
+    </div>
+
     <span class="text-ui-dim text-[11px]">{{ 'feature.media.cutInEditor.endMsHint' | transloco }}</span>
   </div>
 } @else {

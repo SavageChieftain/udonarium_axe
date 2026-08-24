@@ -270,4 +270,54 @@ describe('CutInLayerPropertiesComponent', () => {
       expect(component.easingHere).toBe('outCubic');
     });
   });
+
+  describe('the ready-made ways in and out', () => {
+    beforeEach(() => {
+      fixture.componentRef.setInput('sceneWidth', 640);
+      fixture.componentRef.setInput('sceneHeight', 360);
+      fixture.componentRef.setInput('sceneDurationMs', 3000);
+      fixture.detectChanges();
+    });
+
+    it('lays the keys of an entrance down', () => {
+      component.entrance = 'slideInLeft';
+
+      expect(layer.trackSet.x).toHaveLength(2);
+      expect(layer.trackSet.x?.[1].v).toBe(100);
+    });
+
+    it('lays the keys of an exit down, ending with the scene', () => {
+      component.exit = 'fadeOut';
+
+      expect(layer.trackSet.opacity?.[1].t).toBe(3000);
+    });
+
+    it('goes back to offering rather than remembering', () => {
+      component.entrance = 'fadeIn';
+
+      expect(component.entrance).toBe('');
+    });
+
+    it('takes how long it should last', () => {
+      component.presetMs = 900;
+      component.entrance = 'fadeIn';
+
+      expect(layer.trackSet.opacity?.[1].t).toBe(900);
+    });
+
+    it('turns away a preset it does not know', () => {
+      component.entrance = 'somersault' as never;
+
+      expect(layer.tracks).toBe('');
+    });
+
+    it('changes nothing for a reader', () => {
+      fixture.componentRef.setInput('isEditable', false);
+      fixture.detectChanges();
+
+      component.entrance = 'fadeIn';
+
+      expect(layer.tracks).toBe('');
+    });
+  });
 });
