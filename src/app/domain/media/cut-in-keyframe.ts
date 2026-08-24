@@ -12,7 +12,7 @@ import { type CutInEasingName, DEFAULT_CUT_IN_EASING, easingAt, readCutInEasing 
  * quote is written out as six characters.
  */
 
-export const CUT_IN_TRACKS = ['x', 'y', 'scaleX', 'scaleY', 'rotation', 'opacity', 'blur'] as const;
+export const CUT_IN_TRACKS = ['x', 'y', 'scaleX', 'scaleY', 'rotation', 'opacity', 'blur', 'wipe'] as const;
 export type CutInTrackName = (typeof CUT_IN_TRACKS)[number];
 
 /** How many keys one track may carry, and how far apart two count as the same moment. */

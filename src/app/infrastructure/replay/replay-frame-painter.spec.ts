@@ -700,6 +700,8 @@ describe('paintReplayFrame()', () => {
           skewXDeg: 0,
           skewYDeg: 0,
           clip: 'none',
+          wipeShape: 'none',
+          wipe: 1,
           opacity: 1,
           blur: 0,
           startMs: 0,
@@ -715,6 +717,9 @@ describe('paintReplayFrame()', () => {
           textAlign: 'center',
           strokeColor: '',
           strokeWidthPx: 0,
+          letterSpacingPx: 0,
+          lineHeight: 1.15,
+          vertical: false,
           fillShape: 'linear',
           fillFrom: '#000000',
           fillMid: '',
@@ -973,6 +978,40 @@ describe('paintReplayFrame()', () => {
 
       expect(images[0].width).toBeGreaterThanOrEqual(400);
       expect(images[0].height).toBeGreaterThanOrEqual(100);
+    });
+
+    it('lets a layer in a part at a time in the video too', () => {
+      const clipped: string[] = [];
+      const { ctx } = recorder();
+      (ctx as unknown as { clip: () => void }).clip = () => clipped.push('clip');
+      const scene = sceneOf([{ imageIdentifier: 'pic', wipeShape: 'chevronRight', wipe: 0.5 }]);
+
+      paintReplayFrame(ctx, layout, shot({ cutInScene: scene }), assets, 0, DEFAULT_REPLAY_FRAME_STYLE, null, 0);
+
+      expect(clipped.length).toBeGreaterThan(0);
+    });
+
+    it('breaks a text layer where the lines were written', () => {
+      const { ctx, texts } = recorder();
+      const scene = sceneOf([{ kind: 'text', text: '一\n二\n三', fontSizePx: 20 }]);
+
+      paintReplayFrame(ctx, layout, shot({ cutInScene: scene }), assets, 0, DEFAULT_REPLAY_FRAME_STYLE, null, 0);
+
+      const drawn = texts.filter((entry) => ['一', '二', '三'].includes(entry.text));
+      expect(drawn).toHaveLength(3);
+      expect(drawn[0].y).toBeLessThan(drawn[2].y);
+    });
+
+    it('sets a downward text layer a letter at a time, right column first', () => {
+      const { ctx, texts } = recorder();
+      const scene = sceneOf([{ kind: 'text', text: 'ブチッ', vertical: true, fontSizePx: 20 }]);
+
+      paintReplayFrame(ctx, layout, shot({ cutInScene: scene }), assets, 0, DEFAULT_REPLAY_FRAME_STYLE, null, 0);
+
+      const drawn = texts.filter((entry) => ['ブ', 'チ', 'ッ'].includes(entry.text));
+      expect(drawn).toHaveLength(3);
+      expect(drawn[0].y).toBeLessThan(drawn[2].y);
+      expect(drawn[0].x).toBe(drawn[2].x);
     });
 
     it('draws nothing extra for a cut-in that is one picture', () => {

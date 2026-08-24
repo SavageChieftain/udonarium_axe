@@ -3,6 +3,7 @@ import { effectAt, effectFilter, effectMovesOverTime } from '@axe/domain/media/c
 import { type CutInKey, keyTimes, sampleTrack, surroundingKeys } from '@axe/domain/media/cut-in-keyframe';
 import type { CutInLayer } from '@axe/domain/media/cut-in-layer';
 import type { CutInScene } from '@axe/domain/media/cut-in-scene';
+import { wipeCss } from '@axe/domain/media/cut-in-wipe';
 
 /**
  * Turning what a layer does into what the browser is handed.
@@ -34,6 +35,8 @@ export interface CutInSample {
   opacity: number;
   /** In pixels. */
   blur: number;
+  /** How much of the layer has been let in, from none of it to all of it. */
+  wipe: number;
   /** How far the layer is leaned over, which squares nothing off. */
   skewXDeg: number;
   skewYDeg: number;
@@ -87,6 +90,7 @@ export function sampleLayerAt(layer: CutInLayer, ms: number, sceneDurationMs = 0
     rotation: sampleTrack(tracks.rotation, ms, numberOr(layer.rotation, 0)),
     opacity: sampleTrack(tracks.opacity, ms, numberOr(layer.opacity, 1)) * touch.opacityMul,
     blur: sampleTrack(tracks.blur, ms, numberOr(layer.blur, 0)),
+    wipe: sampleTrack(tracks.wipe, ms, numberOr(layer.wipe, 1)),
     skewXDeg: numberOr(layer.skewXDeg, 0),
     skewYDeg: numberOr(layer.skewYDeg, 0),
     glowPx: touch.glowPx,
@@ -116,6 +120,30 @@ export function layerFilter(sample: CutInSample): string {
 /** What the layer turns and grows around, written the way CSS wants it. */
 export function layerOrigin(layer: CutInLayer): string {
   return `${round(numberOr(layer.anchorX, 0.5) * 100)}% ${round(numberOr(layer.anchorY, 0.5) * 100)}%`;
+}
+
+/**
+ * The outlines the wipe of a layer travels through, or none where it has no wipe.
+ *
+ * They ride on an element of their own rather than on the one carrying the transform,
+ * because a layer can be both cut to a shape and let in a part at a time, and one
+ * element carries one clip-path.
+ */
+export function toWipeFrames(layer: CutInLayer, sceneDurationMs: number): { offset: number; clipPath: string }[] {
+  if (layer.wipeShape === 'none') return [];
+
+  const running = Math.max(1, sceneDurationMs);
+  const { startMs, endMs } = layerWindow(layer, running);
+  const marks = marksOf(layer, running, startMs, endMs);
+  const frames: { offset: number; clipPath: string }[] = [];
+
+  for (const ms of marks) {
+    frames.push({
+      offset: clamp(ms / running, 0, 1),
+      clipPath: wipeCss(layer.wipeShape, sampleLayerAt(layer, ms, running).wipe),
+    });
+  }
+  return frames;
 }
 
 /** The keyframes a layer is handed to the browser as. */

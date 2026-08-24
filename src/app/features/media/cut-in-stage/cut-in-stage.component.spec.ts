@@ -193,6 +193,39 @@ describe('CutInStageComponent', () => {
     expect(layerElements()[0].style.transform).toContain('skew(20deg');
   });
 
+  it('lets a layer in a part at a time when it is told to', () => {
+    const scene = makeScene();
+    addLayer(scene, { wipeShape: 'chevronRight', wipe: 0.4 });
+
+    show(scene, false, 0);
+
+    const wipe = fixture.nativeElement.querySelector('.origin-top-left > div > div') as HTMLElement;
+    expect(wipe.style.clipPath).toContain('polygon(');
+    expect(wipe.style.clipPath).toContain('40%');
+  });
+
+  it('leaves a layer whole where it has no wipe', () => {
+    const scene = makeScene();
+    addLayer(scene);
+
+    show(scene, false, 0);
+
+    const wipe = fixture.nativeElement.querySelector('.origin-top-left > div > div') as HTMLElement;
+    expect(wipe.style.clipPath).toBe('');
+  });
+
+  it('sets a text layer downwards when it is told to', () => {
+    const scene = makeScene();
+    addLayer(scene, { kind: 'text', text: 'ブチッ', vertical: true, letterSpacingPx: -10 });
+
+    show(scene, false, 0);
+
+    const words = fixture.nativeElement.querySelector('.whitespace-pre-wrap') as HTMLElement;
+    expect(words.style.writingMode).toBe('vertical-rl');
+    expect(words.style.textOrientation).toBe('upright');
+    expect(words.style.letterSpacing).toBe('-10px');
+  });
+
   it('refuses to let the browser drag a layer picture away', () => {
     const scene = makeScene();
     addLayer(scene, { imageIdentifier: 'nothing' });

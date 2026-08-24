@@ -9,6 +9,7 @@ import {
 import type { CutInTrackSet } from '@axe/domain/media/cut-in-keyframe';
 import { parseCutInTracks, sampleTrack } from '@axe/domain/media/cut-in-keyframe';
 import type { CutInLayerKind, CutInTextAlign } from '@axe/domain/media/cut-in-layer';
+import { type CutInWipe, isCutInWipe } from '@axe/domain/media/cut-in-wipe';
 import type { ReplayObjectSnapshot } from '@axe/domain/replay/replay-keyframe';
 
 /**
@@ -37,6 +38,8 @@ export interface ReplayCutInLayer {
   skewXDeg: number;
   skewYDeg: number;
   clip: CutInClip;
+  wipeShape: CutInWipe;
+  wipe: number;
   opacity: number;
   blur: number;
   startMs: number;
@@ -52,6 +55,9 @@ export interface ReplayCutInLayer {
   textAlign: CutInTextAlign;
   strokeColor: string;
   strokeWidthPx: number;
+  letterSpacingPx: number;
+  lineHeight: number;
+  vertical: boolean;
   fillShape: CutInFillShape;
   fillFrom: string;
   fillMid: string;
@@ -143,6 +149,7 @@ export interface ReplayLayerSample {
   rotation: number;
   opacity: number;
   blur: number;
+  wipe: number;
   glowPx: number;
   shadowPx: number;
   glowColor: string;
@@ -161,6 +168,7 @@ export function replaySampleAt(layer: ReplayCutInLayer, ms: number, durationMs: 
     rotation: sampleTrack(layer.tracks.rotation, ms, layer.rotation),
     opacity: sampleTrack(layer.tracks.opacity, ms, layer.opacity) * touch.opacityMul,
     blur: sampleTrack(layer.tracks.blur, ms, layer.blur),
+    wipe: sampleTrack(layer.tracks.wipe, ms, layer.wipe),
     glowPx: touch.glowPx,
     shadowPx: touch.shadowPx,
     glowColor: layer.effectColor,
@@ -196,6 +204,8 @@ function readLayer(attributes: Record<string, unknown>): ReplayCutInLayer {
     skewXDeg: number(attributes['skewXDeg'], 0),
     skewYDeg: number(attributes['skewYDeg'], 0),
     clip: isCutInClip(attributes['clip']) ? attributes['clip'] : 'none',
+    wipeShape: isCutInWipe(attributes['wipeShape']) ? attributes['wipeShape'] : 'none',
+    wipe: number(attributes['wipe'], 1),
     opacity: number(attributes['opacity'], 1),
     blur: number(attributes['blur'], 0),
     startMs: number(attributes['startMs'], 0),
@@ -211,6 +221,9 @@ function readLayer(attributes: Record<string, unknown>): ReplayCutInLayer {
     textAlign: (text(attributes['textAlign']) || 'center') as CutInTextAlign,
     strokeColor: text(attributes['strokeColor']),
     strokeWidthPx: number(attributes['strokeWidthPx'], 0),
+    letterSpacingPx: number(attributes['letterSpacingPx'], 0),
+    lineHeight: number(attributes['lineHeight'], 1.15),
+    vertical: attributes['vertical'] === true,
     fillShape: isCutInFillShape(attributes['fillShape']) ? attributes['fillShape'] : 'linear',
     fillFrom: text(attributes['fillFrom']) || '#000000',
     fillMid: text(attributes['fillMid']),

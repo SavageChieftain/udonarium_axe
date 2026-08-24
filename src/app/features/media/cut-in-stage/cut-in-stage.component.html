@@ -19,39 +19,44 @@
         [style.mix-blend-mode]="layer.blendMode || null"
         [style.clip-path]="clipOf(layer)"
       >
-        @switch (layer.kind) {
-          @case ('text') {
-            <div
-              class="flex size-full items-center whitespace-pre-wrap"
-              [style.color]="layer.color"
-              [style.font-size.px]="layer.fontSizePx"
-              [style.font-weight]="layer.fontWeight"
-              [style.font-family]="layer.fontFamily || null"
-              [style.text-align]="layer.textAlign"
-              [style.justify-content]="
-                layer.textAlign === 'left' ? 'flex-start' : layer.textAlign === 'right' ? 'flex-end' : 'center'
-              "
-              [style.text-shadow]="textShadowOf(layer)"
-            >
-              {{ layer.text }}
-            </div>
-          }
-          @case ('fill') {
-            <div class="size-full" [style.background]="fillOf(layer)"></div>
-          }
-          @default {
-            @if (imageUrl(layer); as url) {
-              <img
-                class="size-full select-none"
-                draggable="false"
-                [src]="url | safe: 'resourceUrl'"
-                [style.object-fit]="layer.objectFit"
-                [style.object-position]="layer.objectPosX + '% ' + layer.objectPosY + '%'"
-                alt=""
-              />
+        <div class="size-full" #wipeElement [style.clip-path]="wipeOf(layer)">
+          @switch (layer.kind) {
+            @case ('text') {
+              <div
+                class="flex size-full items-center justify-center whitespace-pre-wrap"
+                [style.color]="layer.color"
+                [style.font-size.px]="layer.fontSizePx"
+                [style.font-weight]="layer.fontWeight"
+                [style.font-family]="layer.fontFamily || null"
+                [style.text-align]="layer.textAlign"
+                [style.letter-spacing.px]="layer.letterSpacingPx"
+                [style.line-height]="layer.lineHeight"
+                [style.writing-mode]="layer.vertical ? 'vertical-rl' : null"
+                [style.text-orientation]="layer.vertical ? 'upright' : null"
+                [style.align-items]="layer.vertical ? alignOf(layer) : 'center'"
+                [style.justify-content]="layer.vertical ? 'center' : alignOf(layer)"
+                [style.text-shadow]="textShadowOf(layer)"
+              >
+                {{ layer.text }}
+              </div>
+            }
+            @case ('fill') {
+              <div class="size-full" [style.background]="fillOf(layer)"></div>
+            }
+            @default {
+              @if (imageUrl(layer); as url) {
+                <img
+                  class="size-full select-none"
+                  draggable="false"
+                  [src]="url | safe: 'resourceUrl'"
+                  [style.object-fit]="layer.objectFit"
+                  [style.object-position]="layer.objectPosX + '% ' + layer.objectPosY + '%'"
+                  alt=""
+                />
+              }
             }
           }
-        }
+        </div>
       </div>
     }
   </div>

@@ -76,9 +76,7 @@ describe('the cut-ins a new room starts with', () => {
   });
 
   it('stamps the word for the sound it makes', () => {
-    const words = made().map((cutIn) =>
-      cutIn.scene?.layers.find((layer) => layer.kind === 'text')?.text.replace(/\n/g, '')
-    );
+    const words = made().map((cutIn) => cutIn.scene?.layers.find((layer) => layer.kind === 'text')?.text);
 
     expect(words).toEqual(['カッ', 'ブチッ']);
   });
@@ -100,9 +98,22 @@ describe('the cut-ins a new room starts with', () => {
     expect(edge.clip).toBe('gash');
     // Long and shallow, which is the shape of something torn rather than cut out.
     expect(edge.width / edge.height).toBeGreaterThan(3.5);
-    // The gap widens rather than the whole thing arriving from somewhere.
-    expect(edge.trackSet.scaleY?.[0].v).toBeLessThan(0.1);
+    // It runs along from the left rather than arriving from somewhere or opening at once.
+    expect(edge.wipeShape).toBe('chevronRight');
+    expect(edge.trackSet.wipe?.[0].v).toBe(0);
+    expect(edge.trackSet.wipe?.[1].v).toBe(1);
     expect(edge.trackSet.x).toBeUndefined();
+  });
+
+  it('unzips every torn layer together', () => {
+    const [, tear] = made();
+    const torn = tear.scene!.layers.filter((layer) => layer.clip === 'gash');
+
+    expect(torn.length).toBeGreaterThan(2);
+    for (const layer of torn) {
+      expect(layer.wipeShape).toBe('chevronRight');
+      expect(layer.trackSet.wipe).toEqual(torn[0].trackSet.wipe);
+    }
   });
 
   it('lets the red backing show past the torn white edge', () => {
@@ -123,7 +134,8 @@ describe('the cut-ins a new room starts with', () => {
     const [, tear] = made();
     const word = tear.scene!.layers.find((layer) => layer.kind === 'text')!;
 
-    expect(word.text.split('\n')).toHaveLength(3);
+    expect(word.vertical).toBe(true);
+    expect(word.letterSpacingPx).toBeLessThan(0);
     expect(word.height).toBeGreaterThan(word.width);
     expect(word.x).toBeGreaterThan(tear.width / 2);
     // It leans the other way from the tear, and reaches past the top of it.

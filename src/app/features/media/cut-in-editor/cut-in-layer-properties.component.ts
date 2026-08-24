@@ -28,6 +28,7 @@ import {
 import { CUT_IN_TRACKS, type CutInTrackName } from '@axe/domain/media/cut-in-keyframe';
 import { CUT_IN_TEXT_ALIGNS, CutInLayer, type CutInTextAlign, isCutInTextAlign } from '@axe/domain/media/cut-in-layer';
 import { applyLayerPreset, CUT_IN_LAYER_PRESETS } from '@axe/domain/media/cut-in-layer-presets';
+import { CUT_IN_WIPES, type CutInWipe, isCutInWipe } from '@axe/domain/media/cut-in-wipe';
 import {
   easingAtMoment,
   hasKeyAt,
@@ -74,6 +75,7 @@ export class CutInLayerPropertiesComponent {
   readonly easings = CUT_IN_EASING_NAMES;
   readonly fillShapes = CUT_IN_FILL_SHAPES;
   readonly clips = CUT_IN_CLIPS;
+  readonly wipes = CUT_IN_WIPES;
   readonly entrances = CUT_IN_ENTRANCES;
   readonly exits = CUT_IN_EXITS;
   readonly effects = CUT_IN_EFFECTS;
@@ -327,6 +329,47 @@ export class CutInLayerPropertiesComponent {
   }
   set clip(clip: CutInClip) {
     this.write((layer) => (layer.clip = isCutInClip(clip) ? clip : 'none'));
+  }
+
+  get wipeShape(): CutInWipe {
+    return this.layer()?.wipeShape ?? 'none';
+  }
+  set wipeShape(wipeShape: CutInWipe) {
+    this.write((layer) => {
+      layer.wipeShape = isCutInWipe(wipeShape) ? wipeShape : 'none';
+      // A layer just given a wipe would otherwise sit closed until a key says otherwise.
+      if (layer.wipeShape !== 'none' && (layer.trackSet.wipe ?? []).length < 1) layer.wipe = 1;
+    });
+  }
+
+  /** How much of the layer is let in at the scrubber, as a percentage. */
+  get wipePercent(): number {
+    return Math.round(this.tracked('wipe', 1) * 100);
+  }
+  set wipePercent(percent: number) {
+    this.writeTracked('wipe', Math.min(1, Math.max(0, (Number(percent) || 0) / 100)));
+  }
+
+  get letterSpacingPx(): number {
+    return Math.round(this.layer()?.letterSpacingPx ?? 0);
+  }
+  set letterSpacingPx(letterSpacingPx: number) {
+    this.write((layer) => (layer.letterSpacingPx = Number(letterSpacingPx) || 0));
+  }
+
+  get lineHeight(): number {
+    return Math.round((this.layer()?.lineHeight ?? 1.15) * 100);
+  }
+  set lineHeight(percent: number) {
+    const lineHeight = Math.min(4, Math.max(0.4, (Number(percent) || 115) / 100));
+    this.write((layer) => (layer.lineHeight = lineHeight));
+  }
+
+  get vertical(): boolean {
+    return this.layer()?.vertical ?? false;
+  }
+  set vertical(vertical: boolean) {
+    this.write((layer) => (layer.vertical = vertical));
   }
 
   /** Whether the fill chosen repeats, and so has a size worth setting. */

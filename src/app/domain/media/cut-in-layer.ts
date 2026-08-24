@@ -4,6 +4,7 @@ import type { CutInClip } from '@axe/domain/media/cut-in-clip';
 import type { CutInEffect } from '@axe/domain/media/cut-in-effect';
 import { type CutInFill, type CutInFillShape, DEFAULT_FILL_SCALE_PX } from '@axe/domain/media/cut-in-fill';
 import { type CutInTrackSet, lastKeyTime, parseCutInTracks } from '@axe/domain/media/cut-in-keyframe';
+import type { CutInWipe } from '@axe/domain/media/cut-in-wipe';
 
 /**
  * One thing laid into a cut-in: a picture, some words, or a band of colour.
@@ -53,6 +54,9 @@ export class CutInLayer extends ObjectNode {
   @SyncVar() skewYDeg: number = 0;
   /** The outline the layer is cut down to. */
   @SyncVar() clip: CutInClip = 'none';
+  /** Which way the layer is let in a part at a time, and how much of it is in so far. */
+  @SyncVar() wipeShape: CutInWipe = 'none';
+  @SyncVar() wipe: number = 1;
   @SyncVar() opacity: number = 1;
   @SyncVar() blur: number = 0;
   @SyncVar() blendMode: string = '';
@@ -78,6 +82,12 @@ export class CutInLayer extends ObjectNode {
   @SyncVar() textAlign: CutInTextAlign = 'center';
   @SyncVar() strokeColor: string = '';
   @SyncVar() strokeWidthPx: number = 0;
+  /** How far apart the letters sit, in pixels. Negative pulls them together. */
+  @SyncVar() letterSpacingPx: number = 0;
+  /** How far apart the lines sit, as a multiple of the size of the letters. */
+  @SyncVar() lineHeight: number = 1.15;
+  /** Whether the words run down the layer rather than across it. */
+  @SyncVar() vertical: boolean = false;
 
   // kind: fill
   @SyncVar() fillShape: CutInFillShape = 'linear';

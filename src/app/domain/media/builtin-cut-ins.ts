@@ -9,6 +9,7 @@ import { type CutInTrackSet, encodeCutInTracks } from '@axe/domain/media/cut-in-
 import { CutInLayer, type CutInLayerKind, type CutInTextAlign } from '@axe/domain/media/cut-in-layer';
 import { CutInScene } from '@axe/domain/media/cut-in-scene';
 import { type CutInSound, encodeCutInSounds } from '@axe/domain/media/cut-in-sound';
+import type { CutInWipe } from '@axe/domain/media/cut-in-wipe';
 import { ImageTag } from '@axe/domain/media/image-tag';
 import { PresetSound } from '@axe/domain/media/sound-effect';
 
@@ -43,6 +44,7 @@ interface LayerSeed {
   rotation?: number;
   skewXDeg?: number;
   clip?: CutInClip;
+  wipeShape?: CutInWipe;
   effect?: CutInEffect;
   effectStrength?: number;
   effectColor?: string;
@@ -65,6 +67,8 @@ interface LayerSeed {
 
   // text
   text?: string;
+  vertical?: boolean;
+  letterSpacingPx?: number;
   fontSizePx?: number;
   fontWeight?: number;
   color?: string;
@@ -104,11 +108,16 @@ const WIPE_OPEN: CutInTrackSet = {
   ],
 };
 
-/** The tear ripping open, which is a gap widening rather than a thing arriving. */
+/**
+ * The tear running along from the left like a zip being pulled.
+ *
+ * The point races ahead down the middle and the gap widens behind it, which is what the
+ * wipe does; the whole gash is there from the start, only not yet let in.
+ */
 const RIP_OPEN: CutInTrackSet = {
-  scaleY: [
-    { t: 0, v: 0.04, e: 'outCubic' },
-    { t: 140, v: 1 },
+  wipe: [
+    { t: 0, v: 0, e: 'outQuad' },
+    { t: 300, v: 1 },
   ],
   opacity: [
     { t: 0, v: 1, e: 'linear' },
@@ -299,6 +308,7 @@ export const DEFAULT_CUT_IN_SEEDS: readonly CutInSeed[] = [
         height: 300,
         rotation: -5,
         clip: 'gash',
+        wipeShape: 'chevronRight',
         fillFrom: '#e10f22',
         tracks: RIP_OPEN,
       },
@@ -312,6 +322,7 @@ export const DEFAULT_CUT_IN_SEEDS: readonly CutInSeed[] = [
         height: 288,
         rotation: -5,
         clip: 'gash',
+        wipeShape: 'chevronRight',
         fillFrom: '#ffffff',
         tracks: RIP_OPEN,
       },
@@ -325,6 +336,7 @@ export const DEFAULT_CUT_IN_SEEDS: readonly CutInSeed[] = [
         height: 272,
         rotation: -5,
         clip: 'gash',
+        wipeShape: 'chevronRight',
         face: true,
         objectFit: 'cover',
         objectPosY: 50,
@@ -347,7 +359,9 @@ export const DEFAULT_CUT_IN_SEEDS: readonly CutInSeed[] = [
         width: 300,
         height: 420,
         rotation: 8,
-        text: 'ブ\nチ\nッ',
+        text: 'ブチッ',
+        vertical: true,
+        letterSpacingPx: -14,
         fontSizePx: 104,
         fontWeight: 900,
         color: '#ffffff',
@@ -458,6 +472,7 @@ function makeLayer(seed: LayerSeed, pictures: SamplePictures): CutInLayer {
   if (seed.rotation !== undefined) layer.rotation = seed.rotation;
   if (seed.skewXDeg !== undefined) layer.skewXDeg = seed.skewXDeg;
   if (seed.clip) layer.clip = seed.clip;
+  if (seed.wipeShape) layer.wipeShape = seed.wipeShape;
   if (seed.opacity !== undefined) layer.opacity = seed.opacity;
   if (seed.effect) layer.effect = seed.effect;
   if (seed.effectStrength !== undefined) layer.effectStrength = seed.effectStrength;
@@ -477,6 +492,8 @@ function makeLayer(seed: LayerSeed, pictures: SamplePictures): CutInLayer {
   if (seed.objectPosY !== undefined) layer.objectPosY = seed.objectPosY;
 
   if (seed.text) layer.text = seed.text;
+  if (seed.vertical !== undefined) layer.vertical = seed.vertical;
+  if (seed.letterSpacingPx !== undefined) layer.letterSpacingPx = seed.letterSpacingPx;
   if (seed.fontSizePx !== undefined) layer.fontSizePx = seed.fontSizePx;
   if (seed.fontWeight !== undefined) layer.fontWeight = seed.fontWeight;
   if (seed.color) layer.color = seed.color;

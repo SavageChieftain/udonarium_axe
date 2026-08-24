@@ -141,6 +141,35 @@
           [(ngModel)]="strokeWidthPx"
           [attr.disabled]="!isEditable() ? '' : null"
         />
+        <label class="text-ui-muted text-[11px]">{{ 'feature.media.cutInEditor.letterSpacing' | transloco }}</label>
+        <input
+          class="bg-ui-input border-ui-border-panel text-ui-text rounded-ui-sm box-border w-full border border-solid px-1.5 py-1 text-right text-[12px] outline-none disabled:opacity-50"
+          name="cut-in-layer-letter-spacing"
+          type="number"
+          [(ngModel)]="letterSpacingPx"
+          [attr.disabled]="!isEditable() ? '' : null"
+        />
+        <label class="text-ui-muted text-[11px]">{{ 'feature.media.cutInEditor.lineHeight' | transloco }}</label>
+        <input
+          class="bg-ui-input border-ui-border-panel text-ui-text rounded-ui-sm box-border w-full border border-solid px-1.5 py-1 text-right text-[12px] outline-none disabled:opacity-50"
+          name="cut-in-layer-line-height"
+          type="number"
+          min="40"
+          max="400"
+          [(ngModel)]="lineHeight"
+          [attr.disabled]="!isEditable() ? '' : null"
+        />
+        <label
+          class="text-ui-muted col-span-2 flex cursor-pointer items-center gap-1 py-0.5 text-[11px] select-none [&_input]:size-3.5 [&_input]:[accent-color:var(--ui-accent)]"
+        >
+          <input
+            type="checkbox"
+            name="cut-in-layer-vertical"
+            [(ngModel)]="vertical"
+            [attr.disabled]="!isEditable() ? '' : null"
+          />
+          {{ 'feature.media.cutInEditor.vertical' | transloco }}
+        </label>
         <label class="text-ui-muted text-[11px]">{{ 'feature.media.cutInEditor.fontFamily' | transloco }}</label>
         <input
           class="bg-ui-input border-ui-border-panel text-ui-text rounded-ui-sm box-border w-full border border-solid px-1.5 py-1 text-[12px] outline-none disabled:opacity-50"
@@ -402,6 +431,40 @@
           <option [value]="shape">{{ 'feature.media.cutInEditor.clip' + shape | transloco }}</option>
         }
       </select>
+
+      <label class="text-ui-muted text-[11px]">{{ 'feature.media.cutInEditor.wipeLabel' | transloco }}</label>
+      <select
+        class="bg-ui-input border-ui-border-panel text-ui-text rounded-ui-sm col-span-2 box-border w-full border border-solid p-1 text-[12px] outline-none disabled:opacity-50"
+        name="cut-in-layer-wipe"
+        [(ngModel)]="wipeShape"
+        [attr.disabled]="!isEditable() ? '' : null"
+      >
+        @for (shape of wipes; track shape) {
+          <option [value]="shape">{{ 'feature.media.cutInEditor.wipe' + shape | transloco }}</option>
+        }
+      </select>
+      @if (wipeShape !== 'none') {
+        <label class="text-ui-muted text-[11px]">{{ 'feature.media.cutInEditor.wipeAmount' | transloco }}</label>
+        <input
+          class="w-full [accent-color:var(--ui-accent)] disabled:opacity-50"
+          name="cut-in-layer-wipe-amount"
+          type="range"
+          min="0"
+          max="100"
+          [(ngModel)]="wipePercent"
+          [attr.disabled]="!isEditable() ? '' : null"
+        />
+        <button
+          class="text-ui-dim hover:text-ui-accent m-0 inline-flex size-5 items-center justify-center border-none bg-transparent p-0 shadow-none disabled:opacity-40 [&_.material-icons]:text-[13px]!"
+          type="button"
+          [class.text-ui-accent!]="keyed('wipe')"
+          [disabled]="!isEditable()"
+          [title]="'feature.media.cutInEditor.toggleKey' | transloco"
+          (click)="toggleKey('wipe')"
+        >
+          <i class="material-icons">diamond</i>
+        </button>
+      }
 
       <label class="text-ui-muted text-[11px]">{{ 'feature.media.cutInEditor.startMsLabel' | transloco }}</label>
       <input

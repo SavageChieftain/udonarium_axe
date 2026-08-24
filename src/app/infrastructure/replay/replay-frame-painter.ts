@@ -1,5 +1,6 @@
 import { clipPoints } from '@axe/domain/media/cut-in-clip';
 import { fillScaleOf, fillStops, rayDegOf } from '@axe/domain/media/cut-in-fill';
+import { wipePoints } from '@axe/domain/media/cut-in-wipe';
 import {
   REPLAY_BOARD_TOP_DOWN,
   type ReplayBoardCamera,
@@ -252,6 +253,7 @@ function paintCutInScene(
     const left = -layer.width * layer.anchorX;
     const top = -layer.height * layer.anchorY;
     clipTo(ctx, layer, left, top);
+    wipeTo(ctx, layer, sample.wipe, left, top);
     paintLayer(ctx, layer, left, top, assets, style);
 
     ctx.restore();
@@ -293,6 +295,88 @@ function clipTo(ctx: ReplayFrameCanvas, layer: ReplayCutInLayer, left: number, t
   ctx.clip();
 }
 
+/**
+ * The words of a text layer, laid out the way the browser lays them out.
+ *
+ * Lines are broken where they were written, letters are set as far apart as they were
+ * told, and a layer told to run downwards is drawn a character at a time down columns
+ * going right to left — which is how vertical Japanese is set.
+ */
+function paintWords(
+  ctx: ReplayFrameCanvas,
+  layer: ReplayCutInLayer,
+  left: number,
+  top: number,
+  style: ReplayFrameStyle
+): void {
+  ctx.font = `${layer.fontWeight} ${layer.fontSizePx}px ${style.fontFamily}`;
+  const spaced = ctx as unknown as { letterSpacing?: string };
+  const wasSpaced = spaced.letterSpacing;
+  if ('letterSpacing' in ctx) spaced.letterSpacing = `${layer.letterSpacingPx}px`;
+
+  const lines = layer.text.split('\n');
+  const stroked = layer.strokeWidthPx > 0 && layer.strokeColor.length > 0;
+  ctx.strokeStyle = layer.strokeColor;
+  ctx.lineWidth = layer.strokeWidthPx * 2;
+  ctx.fillStyle = layer.color;
+  ctx.textBaseline = 'middle';
+
+  const step = layer.fontSizePx * Math.max(0.4, layer.lineHeight);
+
+  if (layer.vertical) {
+    ctx.textAlign = 'center';
+    const blockWidth = step * lines.length;
+    // The first line is the rightmost column, which is the way vertical Japanese reads.
+    const rightmost = left + (layer.width - blockWidth) / 2 + blockWidth - step / 2;
+
+    for (const [column, line] of lines.entries()) {
+      const x = rightmost - column * step;
+      const letters = [...line];
+      const down = layer.fontSizePx + layer.letterSpacingPx;
+      const startY = top + (layer.height - letters.length * down) / 2 + down / 2;
+
+      for (const [at, letter] of letters.entries()) {
+        const y = startY + at * down;
+        if (stroked) ctx.strokeText(letter, x, y);
+        ctx.fillText(letter, x, y);
+      }
+    }
+  } else {
+    ctx.textAlign = layer.textAlign === 'left' ? 'left' : layer.textAlign === 'right' ? 'right' : 'center';
+    const x =
+      layer.textAlign === 'left' ? left : layer.textAlign === 'right' ? left + layer.width : left + layer.width / 2;
+    const startY = top + (layer.height - lines.length * step) / 2 + step / 2;
+
+    for (const [at, line] of lines.entries()) {
+      const y = startY + at * step;
+      if (stroked) ctx.strokeText(line, x, y);
+      ctx.fillText(line, x, y);
+    }
+  }
+
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'alphabetic';
+  if ('letterSpacing' in ctx) spaced.letterSpacing = wasSpaced ?? '0px';
+}
+
+/** What has been let in so far, cut over whatever outline the layer already has. */
+function wipeTo(ctx: ReplayFrameCanvas, layer: ReplayCutInLayer, amount: number, left: number, top: number): void {
+  if (layer.wipeShape === 'none') return;
+
+  const corners = wipePoints(layer.wipeShape, amount);
+  if (corners.length < 3) return;
+
+  ctx.beginPath();
+  for (const [at, [x, y]] of corners.entries()) {
+    const px = left + x * layer.width;
+    const py = top + y * layer.height;
+    if (at === 0) ctx.moveTo(px, py);
+    else ctx.lineTo(px, py);
+  }
+  ctx.closePath();
+  ctx.clip();
+}
+
 function paintLayer(
   ctx: ReplayFrameCanvas,
   layer: ReplayCutInLayer,
@@ -307,22 +391,7 @@ function paintLayer(
   }
 
   if (layer.kind === 'text') {
-    ctx.font = `${layer.fontWeight} ${layer.fontSizePx}px ${style.fontFamily}`;
-    ctx.textAlign = layer.textAlign === 'left' ? 'left' : layer.textAlign === 'right' ? 'right' : 'center';
-    ctx.textBaseline = 'middle';
-
-    const x =
-      layer.textAlign === 'left' ? left : layer.textAlign === 'right' ? left + layer.width : left + layer.width / 2;
-    const y = top + layer.height / 2;
-    if (layer.strokeWidthPx > 0 && layer.strokeColor.length > 0) {
-      ctx.strokeStyle = layer.strokeColor;
-      ctx.lineWidth = layer.strokeWidthPx * 2;
-      ctx.strokeText(layer.text, x, y);
-    }
-    ctx.fillStyle = layer.color;
-    ctx.fillText(layer.text, x, y);
-    ctx.textAlign = 'left';
-    ctx.textBaseline = 'alphabetic';
+    paintWords(ctx, layer, left, top, style);
     return;
   }
 

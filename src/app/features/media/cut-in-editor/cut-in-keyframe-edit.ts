@@ -31,6 +31,7 @@ const RESTING: Record<CutInTrackName, keyof CutInLayer> = {
   rotation: 'rotation',
   opacity: 'opacity',
   blur: 'blur',
+  wipe: 'wipe',
 };
 
 export function restingValue(layer: CutInLayer, track: CutInTrackName): number {

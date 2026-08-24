@@ -441,4 +441,69 @@ describe('CutInLayerPropertiesComponent', () => {
       expect(layer.fillScalePx).toBe(24);
     });
   });
+
+  describe('letting a layer in a part at a time', () => {
+    it('lets the whole of it in to begin with', () => {
+      expect(component.wipeShape).toBe('none');
+      expect(component.wipePercent).toBe(100);
+    });
+
+    it('takes a way of letting it in', () => {
+      component.wipeShape = 'chevronRight';
+
+      expect(layer.wipeShape).toBe('chevronRight');
+    });
+
+    it('turns away one it does not know', () => {
+      component.wipeShape = 'spiral' as never;
+
+      expect(layer.wipeShape).toBe('none');
+    });
+
+    it('leaves a layer just given a wipe fully in rather than shut', () => {
+      layer.wipe = 0;
+
+      component.wipeShape = 'right';
+
+      expect(layer.wipe).toBe(1);
+    });
+
+    it('takes how far along it is, and can key it', () => {
+      component.wipePercent = 40;
+      expect(layer.wipe).toBeCloseTo(0.4, 5);
+
+      fixture.componentRef.setInput('playheadMs', 300);
+      fixture.detectChanges();
+      component.toggleKey('wipe');
+
+      expect(component.keyed('wipe')).toBe(true);
+    });
+  });
+
+  describe('how the words are set', () => {
+    beforeEach(() => {
+      layer.kind = 'text';
+      fixture.detectChanges();
+    });
+
+    it('pulls the letters together or pushes them apart', () => {
+      component.letterSpacingPx = -12;
+
+      expect(layer.letterSpacingPx).toBe(-12);
+    });
+
+    it('takes the space between the lines, held to what stays readable', () => {
+      component.lineHeight = 180;
+      expect(layer.lineHeight).toBeCloseTo(1.8, 5);
+
+      component.lineHeight = 9999;
+      expect(layer.lineHeight).toBe(4);
+    });
+
+    it('sets the words downwards when asked', () => {
+      component.vertical = true;
+
+      expect(layer.vertical).toBe(true);
+    });
+  });
 });

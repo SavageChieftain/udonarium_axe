@@ -25,7 +25,9 @@ import {
   sampleLayerAt,
   sceneDurationOf,
   toWebAnimationFrames,
+  toWipeFrames,
 } from '@axe/domain/media/cut-in-scene-timeline';
+import { wipeCss } from '@axe/domain/media/cut-in-wipe';
 import { type StageFit, stageFit } from '@axe/features/media/cut-in-editor/cut-in-stage-geometry';
 import { SafePipe } from '@axe/ui/pipes/safe.pipe';
 
@@ -64,7 +66,9 @@ export class CutInStageComponent {
   readonly playheadMs = input(0);
 
   private readonly layerElements = viewChildren<ElementRef<HTMLElement>>('layerElement');
+  private readonly wipeElements = viewChildren<ElementRef<HTMLElement>>('wipeElement');
   private readonly handles = new Map<string, Animation>();
+  private readonly wipeHandles = new Map<string, Animation>();
   private readonly hostSize = signal({ width: 0, height: 0 });
 
   readonly layers = computed<CutInLayer[]>(() => {
@@ -125,7 +129,7 @@ export class CutInStageComponent {
       // Every layer's own version, so a keyframe moved while the editor is open is picked up.
       for (const layer of layers) this.objectChange.versionOf(layer.identifier)();
 
-      this.build(layers, elements, durationMs, loops);
+      this.build(layers, elements, this.wipeElements(), durationMs, loops);
       this.runTo(untracked(this.playing), untracked(this.playheadMs), layers, elements, durationMs);
     });
 
@@ -146,9 +150,24 @@ export class CutInStageComponent {
     return layerOrigin(layer);
   }
 
+  /** Where the words sit along the line, as a flex box says it. */
+  protected alignOf(layer: CutInLayer): string {
+    if (layer.textAlign === 'left') return 'flex-start';
+    return layer.textAlign === 'right' ? 'flex-end' : 'center';
+  }
+
   protected clipOf(layer: CutInLayer): string | null {
     this.objectChange.versionOf(layer.identifier)();
     return clipCss(layer.clip) || null;
+  }
+
+  /** What has been let in so far, which the browser then travels along on its own. */
+  protected wipeOf(layer: CutInLayer): string | null {
+    this.objectChange.versionOf(layer.identifier)();
+    if (layer.wipeShape === 'none') return null;
+    // Where nothing may animate this is the whole of it; where something does, the
+    // animation writes over it.
+    return wipeCss(layer.wipeShape, sampleLayerAt(layer, this.playheadMs(), this.durationMs()).wipe) || null;
   }
 
   protected imageUrl(layer: CutInLayer): string {
@@ -175,24 +194,32 @@ export class CutInStageComponent {
   private build(
     layers: readonly CutInLayer[],
     elements: readonly ElementRef<HTMLElement>[],
+    wipes: readonly ElementRef<HTMLElement>[],
     durationMs: number,
     loops: boolean
   ): void {
     this.clearHandles();
     if (durationMs < 1) return;
 
+    const options: KeyframeAnimationOptions = {
+      duration: durationMs,
+      fill: 'both',
+      iterations: loops ? Infinity : 1,
+    };
+
     for (let at = 0; at < layers.length; at++) {
       const element = elements[at]?.nativeElement;
       if (!element || !this.canAnimate(element)) continue;
 
-      this.handles.set(
-        layers[at].identifier,
-        element.animate(toWebAnimationFrames(layers[at], durationMs), {
-          duration: durationMs,
-          fill: 'both',
-          iterations: loops ? Infinity : 1,
-        })
-      );
+      const layer = layers[at];
+      this.handles.set(layer.identifier, element.animate(toWebAnimationFrames(layer, durationMs), options));
+
+      // One element carries one clip-path, so what is let in rides on an element of its own.
+      const wipeFrames = toWipeFrames(layer, durationMs);
+      const wipeElement = wipes[at]?.nativeElement;
+      if (wipeFrames.length > 1 && wipeElement) {
+        this.wipeHandles.set(layer.identifier, wipeElement.animate(wipeFrames, options));
+      }
     }
   }
 
@@ -214,12 +241,18 @@ export class CutInStageComponent {
         continue;
       }
 
+      const wipe = this.wipeHandles.get(layer.identifier);
       if (playing) {
         handle.play();
+        wipe?.play();
         continue;
       }
       handle.pause();
       handle.currentTime = playheadMs;
+      if (wipe) {
+        wipe.pause();
+        wipe.currentTime = playheadMs;
+      }
     }
   }
 
@@ -238,6 +271,8 @@ export class CutInStageComponent {
   private clearHandles(): void {
     for (const handle of this.handles.values()) handle.cancel();
     this.handles.clear();
+    for (const handle of this.wipeHandles.values()) handle.cancel();
+    this.wipeHandles.clear();
   }
 
   private watchHostSize(): void {
