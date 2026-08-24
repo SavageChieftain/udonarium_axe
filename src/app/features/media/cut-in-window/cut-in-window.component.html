@@ -29,8 +29,8 @@
     @if (videoId) {
       <div class="yt-click-guard"></div>
     }
-    @if (!videoId) {
-      <img class="size-full" [src]="cutInImageUrl() | safe: 'resourceUrl'" />
+    @if (!videoId && cutInImageUrl()) {
+      <img class="size-full" [src]="cutInImageUrl() | safe: 'resourceUrl'" draggable="false" />
     }
     @if (scene(); as scene) {
       <app-cut-in-stage

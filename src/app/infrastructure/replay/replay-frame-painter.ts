@@ -1,4 +1,5 @@
-import { fillStops, STRIPE_WIDTH_PX } from '@axe/domain/media/cut-in-fill';
+import { clipPoints } from '@axe/domain/media/cut-in-clip';
+import { fillScaleOf, fillStops, rayDegOf } from '@axe/domain/media/cut-in-fill';
 import {
   REPLAY_BOARD_TOP_DOWN,
   type ReplayBoardCamera,
@@ -246,9 +247,11 @@ function paintCutInScene(
     ctx.translate(pivotX, pivotY);
     ctx.rotate((sample.rotation * Math.PI) / 180);
     ctx.scale(sample.scaleX * fit, sample.scaleY * fit);
+    leanBy(ctx, layer.skewXDeg, layer.skewYDeg);
 
     const left = -layer.width * layer.anchorX;
     const top = -layer.height * layer.anchorY;
+    clipTo(ctx, layer, left, top);
     paintLayer(ctx, layer, left, top, assets, style);
 
     ctx.restore();
@@ -259,6 +262,35 @@ function paintCutInScene(
     ctx.shadowOffsetX = 0;
     ctx.shadowOffsetY = 0;
   }
+}
+
+/** The same lean the browser applies as skew(), written as a matrix. */
+function leanBy(ctx: ReplayFrameCanvas, skewXDeg: number, skewYDeg: number): void {
+  if (!skewXDeg && !skewYDeg) return;
+
+  const held = (degrees: number) => Math.tan((Math.min(80, Math.max(-80, degrees || 0)) * Math.PI) / 180);
+  ctx.transform(1, held(skewYDeg), held(skewXDeg), 1, 0, 0);
+}
+
+/** The outline the layer is cut down to, as a path the rest of it is drawn inside. */
+function clipTo(ctx: ReplayFrameCanvas, layer: ReplayCutInLayer, left: number, top: number): void {
+  if (layer.clip === 'none') return;
+
+  ctx.beginPath();
+  if (layer.clip === 'circle') {
+    ctx.ellipse(left + layer.width / 2, top + layer.height / 2, layer.width / 2, layer.height / 2, 0, 0, Math.PI * 2);
+  } else {
+    const corners = clipPoints(layer.clip);
+    if (corners.length < 3) return;
+    for (const [at, [x, y]] of corners.entries()) {
+      const px = left + x * layer.width;
+      const py = top + y * layer.height;
+      if (at === 0) ctx.moveTo(px, py);
+      else ctx.lineTo(px, py);
+    }
+    ctx.closePath();
+  }
+  ctx.clip();
 }
 
 function paintLayer(
@@ -315,12 +347,22 @@ function paintLayer(
  */
 function paintBand(ctx: ReplayFrameCanvas, layer: ReplayCutInLayer, left: number, top: number): void {
   const stops = fillStops(layerFill(layer));
+
+  // These two draw a pattern rather than a run of colour, so one colour is enough.
+  if (layer.fillShape === 'speedlines') {
+    paintSpeedlines(ctx, layer, left, top, stops[0] ?? '#000000');
+    return;
+  }
+  if (layer.fillShape === 'halftone') {
+    paintHalftone(ctx, layer, left, top, stops[0] ?? '#000000');
+    return;
+  }
+
   if (stops.length < 2) {
     ctx.fillStyle = stops[0] ?? 'transparent';
     ctx.fillRect(left, top, layer.width, layer.height);
     return;
   }
-
   if (layer.fillShape === 'stripes') {
     paintStripes(ctx, layer, left, top, stops);
     return;
@@ -345,6 +387,79 @@ function linearAcross(ctx: ReplayFrameCanvas, layer: ReplayCutInLayer, midX: num
   return ctx.createLinearGradient(midX - halfWidth, midY - halfHeight, midX + halfWidth, midY + halfHeight);
 }
 
+/** Lines converging on the middle, with the middle left clear when a colour says so. */
+function paintSpeedlines(
+  ctx: ReplayFrameCanvas,
+  layer: ReplayCutInLayer,
+  left: number,
+  top: number,
+  colour: string
+): void {
+  const fill = layerFill(layer);
+  const ray = (rayDegOf(fill) * Math.PI) / 180;
+  const midX = left + layer.width / 2;
+  const midY = top + layer.height / 2;
+  const reach = Math.hypot(layer.width, layer.height);
+
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(left, top, layer.width, layer.height);
+  ctx.clip();
+  ctx.fillStyle = colour;
+
+  const step = ray * 3;
+  for (let angle = (fill.angleDeg * Math.PI) / 180; angle < Math.PI * 2; angle += step) {
+    ctx.beginPath();
+    ctx.moveTo(midX, midY);
+    ctx.lineTo(midX + Math.cos(angle) * reach, midY + Math.sin(angle) * reach);
+    ctx.lineTo(midX + Math.cos(angle + ray) * reach, midY + Math.sin(angle + ray) * reach);
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  if (fill.to.length > 0) {
+    const clear = ctx.createRadialGradient(midX, midY, 0, midX, midY, reach / 2);
+    clear.addColorStop(0, fill.to);
+    clear.addColorStop(0.55, fill.to);
+    clear.addColorStop(1, 'transparent');
+    ctx.fillStyle = clear;
+    ctx.fillRect(left, top, layer.width, layer.height);
+  }
+  ctx.restore();
+}
+
+/** Dots on a grid, the way a printed screen is made. */
+function paintHalftone(
+  ctx: ReplayFrameCanvas,
+  layer: ReplayCutInLayer,
+  left: number,
+  top: number,
+  colour: string
+): void {
+  const fill = layerFill(layer);
+  const pitch = fillScaleOf(fill);
+
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(left, top, layer.width, layer.height);
+  ctx.clip();
+
+  if (fill.to.length > 0) {
+    ctx.fillStyle = fill.to;
+    ctx.fillRect(left, top, layer.width, layer.height);
+  }
+
+  ctx.fillStyle = colour;
+  for (let y = top; y < top + layer.height + pitch; y += pitch) {
+    for (let x = left; x < left + layer.width + pitch; x += pitch) {
+      ctx.beginPath();
+      ctx.arc(x + pitch / 2, y + pitch / 2, pitch * 0.3, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+  ctx.restore();
+}
+
 function paintStripes(
   ctx: ReplayFrameCanvas,
   layer: ReplayCutInLayer,
@@ -354,6 +469,7 @@ function paintStripes(
 ): void {
   const radians = (layer.fillAngleDeg * Math.PI) / 180;
   const reach = Math.hypot(layer.width, layer.height);
+  const width = fillScaleOf(layerFill(layer));
 
   ctx.save();
   ctx.beginPath();
@@ -363,9 +479,9 @@ function paintStripes(
   ctx.rotate(radians);
 
   let at = 0;
-  for (let offset = -reach; offset < reach; offset += STRIPE_WIDTH_PX) {
+  for (let offset = -reach; offset < reach; offset += width) {
     ctx.fillStyle = stops[at % stops.length];
-    ctx.fillRect(-reach, offset, reach * 2, STRIPE_WIDTH_PX);
+    ctx.fillRect(-reach, offset, reach * 2, width);
     at++;
   }
   ctx.restore();

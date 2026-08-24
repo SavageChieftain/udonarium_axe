@@ -17,6 +17,7 @@
         [style.height.px]="layer.height"
         [style.transform-origin]="origin(layer)"
         [style.mix-blend-mode]="layer.blendMode || null"
+        [style.clip-path]="clipOf(layer)"
       >
         @switch (layer.kind) {
           @case ('text') {

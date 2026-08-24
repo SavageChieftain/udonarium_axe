@@ -172,6 +172,27 @@ describe('CutInStageComponent', () => {
     expect(layerElements()[0].style.transform).toContain('translate(50px');
   });
 
+  it('cuts a layer down to the outline it was given', () => {
+    const scene = makeScene();
+    addLayer(scene, { clip: 'slant' });
+    addLayer(scene, { clip: 'none' });
+
+    show(scene);
+
+    const [cut, whole] = layerElements();
+    expect(cut.style.clipPath).toContain('polygon(');
+    expect(whole.style.clipPath).toBe('');
+  });
+
+  it('leans a layer the way it was told to', () => {
+    const scene = makeScene();
+    addLayer(scene, { skewXDeg: 20 });
+
+    show(scene, false, 0);
+
+    expect(layerElements()[0].style.transform).toContain('skew(20deg');
+  });
+
   it('refuses to let the browser drag a layer picture away', () => {
     const scene = makeScene();
     addLayer(scene, { imageIdentifier: 'nothing' });

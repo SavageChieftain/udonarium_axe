@@ -198,7 +198,7 @@ describe('normaliseAngle()', () => {
 
 describe("reading the pointer in a layer's own frame", () => {
   const box = { x: 100, y: 100, width: 200, height: 100 };
-  const turned: LayerTransform = { rotationDeg: 90, scaleX: 1, scaleY: 1, anchorX: 0.5, anchorY: 0.5 };
+  const turned: LayerTransform = { ...UNTURNED, rotationDeg: 90 };
   const grown: LayerTransform = { ...UNTURNED, scaleX: 2, scaleY: 2 };
 
   it('leaves a layer that is neither turned nor grown where it is', () => {
@@ -252,7 +252,7 @@ describe("reading the pointer in a layer's own frame", () => {
 describe('grabbing a layer that has been turned', () => {
   const fit = { scale: 1, offsetX: 0, offsetY: 0 };
   const box = { x: 100, y: 100, width: 200, height: 100 };
-  const turned: LayerTransform = { rotationDeg: 90, scaleX: 1, scaleY: 1, anchorX: 0.5, anchorY: 0.5 };
+  const turned: LayerTransform = { ...UNTURNED, rotationDeg: 90 };
 
   it('finds the grip where it is drawn, not where it started', () => {
     // A quarter turn swings the grip from above the box round to the right of it.
@@ -289,8 +289,9 @@ describe('putting a point back where it is drawn', () => {
   it("undoes reading it in the layer's frame, whatever the layer is doing", () => {
     const transforms: LayerTransform[] = [
       UNTURNED,
-      { rotationDeg: 37, scaleX: 1, scaleY: 1, anchorX: 0.5, anchorY: 0.5 },
-      { rotationDeg: -120, scaleX: 2, scaleY: 0.5, anchorX: 0, anchorY: 1 },
+      { ...UNTURNED, rotationDeg: 37 },
+      { ...UNTURNED, rotationDeg: -120, scaleX: 2, scaleY: 0.5, anchorX: 0, anchorY: 1 },
+      { ...UNTURNED, rotationDeg: 20, skewXDeg: -18, skewYDeg: 6 },
     ];
 
     for (const transform of transforms) {
@@ -315,7 +316,7 @@ describe('rotateGripAt()', () => {
   });
 
   it('is exactly where the pointer is looked for', () => {
-    const turned: LayerTransform = { rotationDeg: 55, scaleX: 1.5, scaleY: 1.5, anchorX: 0.5, anchorY: 0.5 };
+    const turned: LayerTransform = { ...UNTURNED, rotationDeg: 55, scaleX: 1.5, scaleY: 1.5 };
     const grip = rotateGripAt(box, fit, turned);
 
     expect(isOnRotateHandle(grip, box, fit, undefined, turned)).toBe(true);
@@ -328,5 +329,36 @@ describe('rotateGripAt()', () => {
     const drawnTop = fromLayerLocal({ x: box.x + box.width / 2, y: box.y }, box, grown);
 
     expect(drawnTop.y - grip.y).toBeCloseTo(ROTATE_HANDLE_REACH_PX, 5);
+  });
+});
+
+describe('a layer that has been leaned over', () => {
+  const box = { x: 0, y: 0, width: 200, height: 200 };
+  const leaned: LayerTransform = { ...UNTURNED, skewXDeg: 30 };
+
+  it('reads the pointer straight again', () => {
+    // Leaning pushes a point across by the height it sits at; reading it back undoes that.
+    const drawn = fromLayerLocal({ x: 100, y: 150 }, box, leaned);
+
+    expect(drawn.x).toBeGreaterThan(100);
+    expect(toLayerLocal(drawn, box, leaned).x).toBeCloseTo(100, 5);
+  });
+
+  it('leaves a point on the line it leans around where it was', () => {
+    expect(fromLayerLocal({ x: 100, y: 100 }, box, leaned)).toEqual({ x: 100, y: 100 });
+  });
+
+  it('reads nothing out of a lean that means nothing', () => {
+    const nonsense: LayerTransform = { ...UNTURNED, skewXDeg: Number.NaN, skewYDeg: Number.NaN };
+
+    expect(toLayerLocal({ x: 40, y: 60 }, box, nonsense)).toEqual({ x: 40, y: 60 });
+  });
+
+  it('refuses a lean steep enough to flatten the layer', () => {
+    const steep: LayerTransform = { ...UNTURNED, skewXDeg: 89.99 };
+    const read = toLayerLocal({ x: 40, y: 60 }, box, steep);
+
+    expect(Number.isFinite(read.x)).toBe(true);
+    expect(Number.isFinite(read.y)).toBe(true);
   });
 });

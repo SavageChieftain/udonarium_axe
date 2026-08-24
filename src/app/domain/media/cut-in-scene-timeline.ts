@@ -34,6 +34,9 @@ export interface CutInSample {
   opacity: number;
   /** In pixels. */
   blur: number;
+  /** How far the layer is leaned over, which squares nothing off. */
+  skewXDeg: number;
+  skewYDeg: number;
   /** What the always-running touch adds, already folded into the rest of this sample. */
   glowPx: number;
   shadowPx: number;
@@ -84,6 +87,8 @@ export function sampleLayerAt(layer: CutInLayer, ms: number, sceneDurationMs = 0
     rotation: sampleTrack(tracks.rotation, ms, numberOr(layer.rotation, 0)),
     opacity: sampleTrack(tracks.opacity, ms, numberOr(layer.opacity, 1)) * touch.opacityMul,
     blur: sampleTrack(tracks.blur, ms, numberOr(layer.blur, 0)),
+    skewXDeg: numberOr(layer.skewXDeg, 0),
+    skewYDeg: numberOr(layer.skewYDeg, 0),
     glowPx: touch.glowPx,
     shadowPx: touch.shadowPx,
     glowColor: layer.effectColor,
@@ -91,10 +96,15 @@ export function sampleLayerAt(layer: CutInLayer, ms: number, sceneDurationMs = 0
 }
 
 export function layerTransform(sample: CutInSample): string {
-  const x = round(sample.x);
-  const y = round(sample.y);
-  const rotation = round(sample.rotation);
-  return `translate(${x}px, ${y}px) rotate(${rotation}deg) scale(${round(sample.scaleX)}, ${round(sample.scaleY)})`;
+  const parts = [
+    `translate(${round(sample.x)}px, ${round(sample.y)}px)`,
+    `rotate(${round(sample.rotation)}deg)`,
+    `scale(${round(sample.scaleX)}, ${round(sample.scaleY)})`,
+  ];
+  if (sample.skewXDeg !== 0 || sample.skewYDeg !== 0) {
+    parts.push(`skew(${round(sample.skewXDeg)}deg, ${round(sample.skewYDeg)}deg)`);
+  }
+  return parts.join(' ');
 }
 
 export function layerFilter(sample: CutInSample): string {

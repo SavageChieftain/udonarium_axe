@@ -135,18 +135,28 @@
           />
           {{ 'feature.media.cutInEditor.fillGradient' | transloco }}
         </label>
-        @if (fillGradient) {
-          <label class="text-ui-muted text-[11px]">{{ 'feature.media.cutInEditor.fillShape' | transloco }}</label>
-          <select
-            class="bg-ui-input border-ui-border-panel text-ui-text rounded-ui-sm box-border w-full border border-solid p-1 text-[12px] outline-none disabled:opacity-50"
-            name="cut-in-layer-fill-shape"
-            [(ngModel)]="fillShape"
+        <label class="text-ui-muted text-[11px]">{{ 'feature.media.cutInEditor.fillShape' | transloco }}</label>
+        <select
+          class="bg-ui-input border-ui-border-panel text-ui-text rounded-ui-sm box-border w-full border border-solid p-1 text-[12px] outline-none disabled:opacity-50"
+          name="cut-in-layer-fill-shape-any"
+          [(ngModel)]="fillShape"
+          [attr.disabled]="!isEditable() ? '' : null"
+        >
+          @for (shape of fillShapes; track shape) {
+            <option [value]="shape">{{ 'feature.media.cutInEditor.fillShape' + shape | transloco }}</option>
+          }
+        </select>
+        @if (fillRepeats) {
+          <label class="text-ui-muted text-[11px]">{{ 'feature.media.cutInEditor.fillScale' | transloco }}</label>
+          <input
+            class="bg-ui-input border-ui-border-panel text-ui-text rounded-ui-sm box-border w-full border border-solid px-1.5 py-1 text-right text-[12px] outline-none disabled:opacity-50"
+            name="cut-in-layer-fill-scale"
+            type="number"
+            min="2"
+            max="200"
+            [(ngModel)]="fillScalePx"
             [attr.disabled]="!isEditable() ? '' : null"
-          >
-            @for (shape of fillShapes; track shape) {
-              <option [value]="shape">{{ 'feature.media.cutInEditor.fillShape' + shape | transloco }}</option>
-            }
-          </select>
+          />
         }
         @if (fillGradient) {
           <label class="text-ui-muted text-[11px]">{{ 'feature.media.cutInEditor.fillTo' | transloco }}</label>
@@ -321,6 +331,39 @@
       >
         <i class="material-icons">diamond</i>
       </button>
+
+      <label class="text-ui-muted text-[11px]">{{ 'feature.media.cutInEditor.skewXLabel' | transloco }}</label>
+      <input
+        class="bg-ui-input border-ui-border-panel text-ui-text rounded-ui-sm col-span-2 box-border w-full border border-solid px-1.5 py-1 text-right text-[12px] outline-none disabled:opacity-50"
+        name="cut-in-layer-skew-x"
+        type="number"
+        min="-80"
+        max="80"
+        [(ngModel)]="skewXDeg"
+        [attr.disabled]="!isEditable() ? '' : null"
+      />
+      <label class="text-ui-muted text-[11px]">{{ 'feature.media.cutInEditor.skewYLabel' | transloco }}</label>
+      <input
+        class="bg-ui-input border-ui-border-panel text-ui-text rounded-ui-sm col-span-2 box-border w-full border border-solid px-1.5 py-1 text-right text-[12px] outline-none disabled:opacity-50"
+        name="cut-in-layer-skew-y"
+        type="number"
+        min="-80"
+        max="80"
+        [(ngModel)]="skewYDeg"
+        [attr.disabled]="!isEditable() ? '' : null"
+      />
+
+      <label class="text-ui-muted text-[11px]">{{ 'feature.media.cutInEditor.clipLabel' | transloco }}</label>
+      <select
+        class="bg-ui-input border-ui-border-panel text-ui-text rounded-ui-sm col-span-2 box-border w-full border border-solid p-1 text-[12px] outline-none disabled:opacity-50"
+        name="cut-in-layer-clip"
+        [(ngModel)]="clip"
+        [attr.disabled]="!isEditable() ? '' : null"
+      >
+        @for (shape of clips; track shape) {
+          <option [value]="shape">{{ 'feature.media.cutInEditor.clip' + shape | transloco }}</option>
+        }
+      </select>
 
       <label class="text-ui-muted text-[11px]">{{ 'feature.media.cutInEditor.startMsLabel' | transloco }}</label>
       <input

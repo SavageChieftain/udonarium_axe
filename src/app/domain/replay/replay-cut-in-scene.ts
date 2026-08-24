@@ -1,5 +1,11 @@
+import { type CutInClip, isCutInClip } from '@axe/domain/media/cut-in-clip';
 import { type CutInEffect, effectAt, isCutInEffect } from '@axe/domain/media/cut-in-effect';
-import { type CutInFill, type CutInFillShape, isCutInFillShape } from '@axe/domain/media/cut-in-fill';
+import {
+  type CutInFill,
+  type CutInFillShape,
+  DEFAULT_FILL_SCALE_PX,
+  isCutInFillShape,
+} from '@axe/domain/media/cut-in-fill';
 import type { CutInTrackSet } from '@axe/domain/media/cut-in-keyframe';
 import { parseCutInTracks, sampleTrack } from '@axe/domain/media/cut-in-keyframe';
 import type { CutInLayerKind, CutInTextAlign } from '@axe/domain/media/cut-in-layer';
@@ -28,6 +34,9 @@ export interface ReplayCutInLayer {
   scaleX: number;
   scaleY: number;
   rotation: number;
+  skewXDeg: number;
+  skewYDeg: number;
+  clip: CutInClip;
   opacity: number;
   blur: number;
   startMs: number;
@@ -45,6 +54,7 @@ export interface ReplayCutInLayer {
   fillMid: string;
   fillTo: string;
   fillAngleDeg: number;
+  fillScalePx: number;
   effect: CutInEffect;
   effectStrength: number;
   effectColor: string;
@@ -110,6 +120,7 @@ export function layerFill(layer: ReplayCutInLayer): CutInFill {
     mid: layer.fillMid,
     to: layer.fillTo,
     angleDeg: layer.fillAngleDeg,
+    scalePx: layer.fillScalePx,
   };
 }
 
@@ -179,6 +190,9 @@ function readLayer(attributes: Record<string, unknown>): ReplayCutInLayer {
     scaleX: number(attributes['scaleX'], 1),
     scaleY: number(attributes['scaleY'], 1),
     rotation: number(attributes['rotation'], 0),
+    skewXDeg: number(attributes['skewXDeg'], 0),
+    skewYDeg: number(attributes['skewYDeg'], 0),
+    clip: isCutInClip(attributes['clip']) ? attributes['clip'] : 'none',
     opacity: number(attributes['opacity'], 1),
     blur: number(attributes['blur'], 0),
     startMs: number(attributes['startMs'], 0),
@@ -196,6 +210,7 @@ function readLayer(attributes: Record<string, unknown>): ReplayCutInLayer {
     fillMid: text(attributes['fillMid']),
     fillTo: text(attributes['fillTo']),
     fillAngleDeg: number(attributes['fillAngleDeg'], 90),
+    fillScalePx: number(attributes['fillScalePx'], DEFAULT_FILL_SCALE_PX),
     effect: isCutInEffect(attributes['effect']) ? attributes['effect'] : 'none',
     effectStrength: number(attributes['effectStrength'], 1),
     effectColor: text(attributes['effectColor']) || '#ffffff',

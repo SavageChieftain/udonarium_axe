@@ -1,7 +1,8 @@
 import { SyncObject, SyncVar } from '@axe/core/sync/decorator';
 import { ObjectNode } from '@axe/core/sync/object-node';
+import type { CutInClip } from '@axe/domain/media/cut-in-clip';
 import type { CutInEffect } from '@axe/domain/media/cut-in-effect';
-import type { CutInFill, CutInFillShape } from '@axe/domain/media/cut-in-fill';
+import { type CutInFill, type CutInFillShape, DEFAULT_FILL_SCALE_PX } from '@axe/domain/media/cut-in-fill';
 import { type CutInTrackSet, lastKeyTime, parseCutInTracks } from '@axe/domain/media/cut-in-keyframe';
 
 /**
@@ -47,6 +48,11 @@ export class CutInLayer extends ObjectNode {
   @SyncVar() scaleX: number = 1;
   @SyncVar() scaleY: number = 1;
   @SyncVar() rotation: number = 0;
+  /** How far the layer is leaned over, in degrees, which squares nothing off. */
+  @SyncVar() skewXDeg: number = 0;
+  @SyncVar() skewYDeg: number = 0;
+  /** The outline the layer is cut down to. */
+  @SyncVar() clip: CutInClip = 'none';
   @SyncVar() opacity: number = 1;
   @SyncVar() blur: number = 0;
   @SyncVar() blendMode: string = '';
@@ -78,6 +84,8 @@ export class CutInLayer extends ObjectNode {
   /** Empty for one flat colour. */
   @SyncVar() fillTo: string = '';
   @SyncVar() fillAngleDeg: number = 90;
+  /** How far apart a repeating fill repeats, in the cut-in's own coordinates. */
+  @SyncVar() fillScalePx: number = DEFAULT_FILL_SCALE_PX;
 
   get fill(): CutInFill {
     return {
@@ -86,6 +94,7 @@ export class CutInLayer extends ObjectNode {
       mid: this.fillMid,
       to: this.fillTo,
       angleDeg: this.fillAngleDeg,
+      scalePx: this.fillScalePx,
     };
   }
 

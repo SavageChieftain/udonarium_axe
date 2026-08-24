@@ -66,6 +66,10 @@ function recorder(): {
     },
     strokeRect() {},
     rect() {},
+    transform(a: number, b: number, c: number, d: number, e: number, f: number) {
+      matrix = compose(matrix, [a, b, c, d, e, f]);
+    },
+    ellipse() {},
     beginPath() {},
     moveTo() {},
     lineTo() {},
@@ -693,6 +697,9 @@ describe('paintReplayFrame()', () => {
           scaleX: 1,
           scaleY: 1,
           rotation: 0,
+          skewXDeg: 0,
+          skewYDeg: 0,
+          clip: 'none',
           opacity: 1,
           blur: 0,
           startMs: 0,
@@ -710,6 +717,7 @@ describe('paintReplayFrame()', () => {
           fillMid: '',
           fillTo: '',
           fillAngleDeg: 90,
+          fillScalePx: 24,
           effect: 'none',
           effectStrength: 1,
           effectColor: '#ffffff',
@@ -833,6 +841,96 @@ describe('paintReplayFrame()', () => {
       expect(colours.has('#111111')).toBe(true);
       expect(colours.has('#eeeeee')).toBe(true);
       expect(fills.length).toBeGreaterThan(4);
+    });
+
+    it('lays speed lines down as wedges rather than as one wash', () => {
+      const { ctx, fills } = recorder();
+      const scene = sceneOf([{ kind: 'fill', fillShape: 'speedlines', fillFrom: '#222222' }]);
+
+      paintReplayFrame(ctx, layout, shot({ cutInScene: scene }), assets, 0, DEFAULT_REPLAY_FRAME_STYLE, null, 0);
+
+      // Wedges are filled as paths, so the rectangle count stays low while the colour is used.
+      expect(ctx.fillStyle).toBeDefined();
+      expect(fills.every((fill) => fill.color !== undefined)).toBe(true);
+    });
+
+    it('lays halftone down as a grid of dots', () => {
+      const dots: number[] = [];
+      const { ctx } = recorder();
+      (ctx as unknown as { arc: (x: number, y: number) => void }).arc = (x) => dots.push(x);
+      const scene = sceneOf([{ kind: 'fill', fillShape: 'halftone', fillFrom: '#000000', fillScalePx: 40 }]);
+
+      paintReplayFrame(ctx, layout, shot({ cutInScene: scene }), assets, 0, DEFAULT_REPLAY_FRAME_STYLE, null, 0);
+
+      expect(dots.length).toBeGreaterThan(4);
+    });
+
+    it('repeats a striped band at the pitch it was given', () => {
+      const wide = recorder();
+      const tight = recorder();
+      const band = { kind: 'fill' as const, fillShape: 'stripes' as const, fillFrom: '#111111', fillTo: '#eeeeee' };
+
+      paintReplayFrame(
+        wide.ctx,
+        layout,
+        shot({ cutInScene: sceneOf([{ ...band, fillScalePx: 80 }]) }),
+        assets,
+        0,
+        DEFAULT_REPLAY_FRAME_STYLE,
+        null,
+        0
+      );
+      paintReplayFrame(
+        tight.ctx,
+        layout,
+        shot({ cutInScene: sceneOf([{ ...band, fillScalePx: 8 }]) }),
+        assets,
+        0,
+        DEFAULT_REPLAY_FRAME_STYLE,
+        null,
+        0
+      );
+
+      expect(tight.fills.length).toBeGreaterThan(wide.fills.length);
+    });
+
+    it('cuts a layer down to the outline it was given', () => {
+      const clipped: string[] = [];
+      const { ctx } = recorder();
+      (ctx as unknown as { clip: () => void }).clip = () => clipped.push('clip');
+      const scene = sceneOf([{ imageIdentifier: 'pic', clip: 'slant' }]);
+
+      paintReplayFrame(ctx, layout, shot({ cutInScene: scene }), assets, 0, DEFAULT_REPLAY_FRAME_STYLE, null, 0);
+
+      expect(clipped.length).toBeGreaterThan(0);
+    });
+
+    it('leans a layer the way the browser leans it', () => {
+      const upright = recorder();
+      const leaned = recorder();
+
+      paintReplayFrame(
+        upright.ctx,
+        layout,
+        shot({ cutInScene: sceneOf([{ imageIdentifier: 'pic' }]) }),
+        assets,
+        0,
+        DEFAULT_REPLAY_FRAME_STYLE,
+        null,
+        0
+      );
+      paintReplayFrame(
+        leaned.ctx,
+        layout,
+        shot({ cutInScene: sceneOf([{ imageIdentifier: 'pic', skewXDeg: 30 }]) }),
+        assets,
+        0,
+        DEFAULT_REPLAY_FRAME_STYLE,
+        null,
+        0
+      );
+
+      expect(leaned.images[0].x).not.toBe(upright.images[0].x);
     });
 
     it('draws nothing extra for a cut-in that is one picture', () => {

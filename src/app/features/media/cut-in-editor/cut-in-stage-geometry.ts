@@ -23,12 +23,23 @@ export interface LayerTransform {
   rotationDeg: number;
   scaleX: number;
   scaleY: number;
+  /** How far it is leaned over, in degrees. */
+  skewXDeg: number;
+  skewYDeg: number;
   /** Where it turns and grows around, as a fraction of its own box. */
   anchorX: number;
   anchorY: number;
 }
 
-export const UNTURNED: LayerTransform = { rotationDeg: 0, scaleX: 1, scaleY: 1, anchorX: 0.5, anchorY: 0.5 };
+export const UNTURNED: LayerTransform = {
+  rotationDeg: 0,
+  scaleX: 1,
+  scaleY: 1,
+  skewXDeg: 0,
+  skewYDeg: 0,
+  anchorX: 0.5,
+  anchorY: 0.5,
+};
 
 export interface StageFit {
   /** How much the scene is shrunk to fit. */
@@ -104,11 +115,12 @@ export function fromLayerLocal(
   transform: LayerTransform = UNTURNED
 ): { x: number; y: number } {
   const pivot = pivotOf(box, transform);
+  const leaned = skew({ x: point.x - pivot.x, y: point.y - pivot.y }, transform);
   const radians = (transform.rotationDeg * Math.PI) / 180;
   const cos = Math.cos(radians);
   const sin = Math.sin(radians);
-  const dx = (point.x - pivot.x) * nonZero(transform.scaleX);
-  const dy = (point.y - pivot.y) * nonZero(transform.scaleY);
+  const dx = leaned.x * nonZero(transform.scaleX);
+  const dy = leaned.y * nonZero(transform.scaleY);
 
   return { x: pivot.x + dx * cos - dy * sin, y: pivot.y + dx * sin + dy * cos };
 }
@@ -133,17 +145,51 @@ export function toLayerLocalDelta(
   return unturn(delta, transform);
 }
 
+/**
+ * A vector with the layer's turn, growth and lean taken back off it.
+ *
+ * The three are undone in the order the browser applied them, backwards: the lean last
+ * on the way out is the lean first on the way back.
+ */
 function unturn(vector: { x: number; y: number }, transform: LayerTransform): { x: number; y: number } {
   const radians = (transform.rotationDeg * Math.PI) / 180;
   const cos = Math.cos(radians);
   const sin = Math.sin(radians);
-  const scaleX = nonZero(transform.scaleX);
-  const scaleY = nonZero(transform.scaleY);
+
+  const turned = { x: vector.x * cos + vector.y * sin, y: -vector.x * sin + vector.y * cos };
+  const grown = { x: turned.x / nonZero(transform.scaleX), y: turned.y / nonZero(transform.scaleY) };
+  return unskew(grown, transform);
+}
+
+/** A vector straightened back up, undoing the lean a browser applies as skew(). */
+function unskew(vector: { x: number; y: number }, transform: LayerTransform): { x: number; y: number } {
+  const tanX = leanOf(transform.skewXDeg);
+  const tanY = leanOf(transform.skewYDeg);
+  if (tanX === 0 && tanY === 0) return vector;
+
+  const determinant = 1 - tanX * tanY;
+  if (Math.abs(determinant) < 0.0001) return vector;
 
   return {
-    x: (vector.x * cos + vector.y * sin) / scaleX,
-    y: (-vector.x * sin + vector.y * cos) / scaleY,
+    x: (vector.x - tanX * vector.y) / determinant,
+    y: (vector.y - tanY * vector.x) / determinant,
   };
+}
+
+/** A vector leaned over the way the browser leans it. */
+function skew(vector: { x: number; y: number }, transform: LayerTransform): { x: number; y: number } {
+  const tanX = leanOf(transform.skewXDeg);
+  const tanY = leanOf(transform.skewYDeg);
+  if (tanX === 0 && tanY === 0) return vector;
+
+  return { x: vector.x + tanX * vector.y, y: vector.y + tanY * vector.x };
+}
+
+/** A lean read as a slope, and nothing at all where the figure means nothing. */
+function leanOf(degrees: number): number {
+  if (!Number.isFinite(degrees) || degrees === 0) return 0;
+  const held = Math.min(80, Math.max(-80, degrees));
+  return Math.tan((held * Math.PI) / 180);
 }
 
 function nonZero(value: number): number {

@@ -15,8 +15,16 @@ import {
   isCutInEntrance,
   isCutInExit,
 } from '@axe/domain/media/cut-in-animation-presets';
+import { CUT_IN_CLIPS, type CutInClip, isCutInClip } from '@axe/domain/media/cut-in-clip';
 import { CUT_IN_EFFECTS, type CutInEffect, isCutInEffect } from '@axe/domain/media/cut-in-effect';
-import { CUT_IN_FILL_SHAPES, type CutInFillShape, isCutInFillShape } from '@axe/domain/media/cut-in-fill';
+import {
+  CUT_IN_FILL_SHAPES,
+  type CutInFillShape,
+  DEFAULT_FILL_SCALE_PX,
+  isCutInFillShape,
+  MAX_FILL_SCALE_PX,
+  MIN_FILL_SCALE_PX,
+} from '@axe/domain/media/cut-in-fill';
 import { CUT_IN_TRACKS, type CutInTrackName } from '@axe/domain/media/cut-in-keyframe';
 import { CUT_IN_TEXT_ALIGNS, CutInLayer, type CutInTextAlign, isCutInTextAlign } from '@axe/domain/media/cut-in-layer';
 import { applyLayerPreset, CUT_IN_LAYER_PRESETS } from '@axe/domain/media/cut-in-layer-presets';
@@ -65,6 +73,7 @@ export class CutInLayerPropertiesComponent {
   readonly textAligns = CUT_IN_TEXT_ALIGNS;
   readonly easings = CUT_IN_EASING_NAMES;
   readonly fillShapes = CUT_IN_FILL_SHAPES;
+  readonly clips = CUT_IN_CLIPS;
   readonly entrances = CUT_IN_ENTRANCES;
   readonly exits = CUT_IN_EXITS;
   readonly effects = CUT_IN_EFFECTS;
@@ -275,6 +284,44 @@ export class CutInLayerPropertiesComponent {
   }
   set strokeWidthPx(strokeWidthPx: number) {
     this.write((layer) => (layer.strokeWidthPx = Math.max(0, Number(strokeWidthPx) || 0)));
+  }
+
+  get skewXDeg(): number {
+    return Math.round(this.layer()?.skewXDeg ?? 0);
+  }
+  set skewXDeg(skewXDeg: number) {
+    this.write((layer) => (layer.skewXDeg = Math.min(80, Math.max(-80, Number(skewXDeg) || 0))));
+  }
+
+  get skewYDeg(): number {
+    return Math.round(this.layer()?.skewYDeg ?? 0);
+  }
+  set skewYDeg(skewYDeg: number) {
+    this.write((layer) => (layer.skewYDeg = Math.min(80, Math.max(-80, Number(skewYDeg) || 0))));
+  }
+
+  get clip(): CutInClip {
+    return this.layer()?.clip ?? 'none';
+  }
+  set clip(clip: CutInClip) {
+    this.write((layer) => (layer.clip = isCutInClip(clip) ? clip : 'none'));
+  }
+
+  /** Whether the fill chosen repeats, and so has a size worth setting. */
+  get fillRepeats(): boolean {
+    const shape = this.fillShape;
+    return shape === 'stripes' || shape === 'speedlines' || shape === 'halftone';
+  }
+
+  get fillScalePx(): number {
+    return Math.round(this.layer()?.fillScalePx ?? DEFAULT_FILL_SCALE_PX);
+  }
+  set fillScalePx(fillScalePx: number) {
+    const scale = Math.min(
+      MAX_FILL_SCALE_PX,
+      Math.max(MIN_FILL_SCALE_PX, Number(fillScalePx) || DEFAULT_FILL_SCALE_PX)
+    );
+    this.write((layer) => (layer.fillScalePx = scale));
   }
 
   get fillShape(): CutInFillShape {

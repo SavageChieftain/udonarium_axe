@@ -201,7 +201,11 @@ export class CutInSceneEditorComponent {
     this.bumped();
 
     const transform = this.transformOf(layer);
-    return `rotate(${transform.rotationDeg}deg) scale(${transform.scaleX}, ${transform.scaleY})`;
+    const lean =
+      transform.skewXDeg !== 0 || transform.skewYDeg !== 0
+        ? ` skew(${transform.skewXDeg}deg, ${transform.skewYDeg}deg)`
+        : '';
+    return `rotate(${transform.rotationDeg}deg) scale(${transform.scaleX}, ${transform.scaleY})${lean}`;
   });
 
   /**
@@ -619,6 +623,8 @@ export class CutInSceneEditorComponent {
       rotationDeg: valueAt(layer, 'rotation', ms),
       scaleX: valueAt(layer, 'scaleX', ms),
       scaleY: valueAt(layer, 'scaleY', ms),
+      skewXDeg: layer.skewXDeg,
+      skewYDeg: layer.skewYDeg,
       anchorX: layer.anchorX,
       anchorY: layer.anchorY,
     };

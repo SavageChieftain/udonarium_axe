@@ -14,6 +14,7 @@ import {
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { MotionService } from '@axe/application/ui/motion.service';
 import { ImageStorage } from '@axe/core/storage/image-storage';
+import { clipCss } from '@axe/domain/media/cut-in-clip';
 import { fillCss } from '@axe/domain/media/cut-in-fill';
 import { CutInLayer } from '@axe/domain/media/cut-in-layer';
 import { CutInScene } from '@axe/domain/media/cut-in-scene';
@@ -143,6 +144,11 @@ export class CutInStageComponent {
 
   protected origin(layer: CutInLayer): string {
     return layerOrigin(layer);
+  }
+
+  protected clipOf(layer: CutInLayer): string | null {
+    this.objectChange.versionOf(layer.identifier)();
+    return clipCss(layer.clip) || null;
   }
 
   protected imageUrl(layer: CutInLayer): string {

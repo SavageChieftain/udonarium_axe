@@ -383,4 +383,62 @@ describe('CutInLayerPropertiesComponent', () => {
       expect(layer.tracks).toBe('');
     });
   });
+
+  describe('the shape a layer is cut down to', () => {
+    it('keeps its own box to begin with', () => {
+      expect(component.clip).toBe('none');
+    });
+
+    it('takes an outline to be cut to', () => {
+      component.clip = 'torn';
+
+      expect(layer.clip).toBe('torn');
+    });
+
+    it('turns away an outline it does not know', () => {
+      component.clip = 'trapezoid' as never;
+
+      expect(layer.clip).toBe('none');
+    });
+
+    it('takes a lean, held to what still leaves something to see', () => {
+      component.skewXDeg = 30;
+      expect(layer.skewXDeg).toBe(30);
+
+      component.skewXDeg = 400;
+      expect(layer.skewXDeg).toBe(80);
+
+      component.skewYDeg = -400;
+      expect(layer.skewYDeg).toBe(-80);
+    });
+  });
+
+  describe('a fill that repeats', () => {
+    beforeEach(() => {
+      layer.kind = 'fill';
+      fixture.detectChanges();
+    });
+
+    it('offers a pitch only for the fills that repeat', () => {
+      component.fillShape = 'linear';
+      expect(component.fillRepeats).toBe(false);
+
+      component.fillShape = 'halftone';
+      expect(component.fillRepeats).toBe(true);
+
+      component.fillShape = 'speedlines';
+      expect(component.fillRepeats).toBe(true);
+    });
+
+    it('takes the pitch, held to what can still be seen', () => {
+      component.fillScalePx = 40;
+      expect(layer.fillScalePx).toBe(40);
+
+      component.fillScalePx = 9999;
+      expect(layer.fillScalePx).toBe(200);
+
+      component.fillScalePx = 0;
+      expect(layer.fillScalePx).toBe(24);
+    });
+  });
 });
