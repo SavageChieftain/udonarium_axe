@@ -22,13 +22,17 @@ import { ObjectStore } from '@axe/core/sync/object-store';
 import { AudioTag } from '@axe/domain/media/audio-tag';
 import { CutIn, cutInPanelChrome } from '@axe/domain/media/cut-in';
 import { CutInLauncher } from '@axe/domain/media/cut-in-launcher';
+import { CutInLayer } from '@axe/domain/media/cut-in-layer';
+import { cutInPlaybackMs } from '@axe/domain/media/cut-in-playback-window';
+import { CutInScene } from '@axe/domain/media/cut-in-scene';
+import { CutInStageComponent } from '@axe/features/media/cut-in-stage/cut-in-stage.component';
 import { SafePipe } from '@axe/ui/pipes/safe.pipe';
 
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-cut-in-window',
   templateUrl: './cut-in-window.component.html',
-  imports: [YouTubePlayer, SafePipe],
+  imports: [YouTubePlayer, SafePipe, CutInStageComponent],
 })
 export class CutInWindowComponent {
   private readonly modalService = inject(ModalService);
@@ -137,6 +141,15 @@ export class CutInWindowComponent {
     return this.audioStorage.audios.filter((audio) => !audio.isHidden);
   });
 
+  /** The layers this cut-in is built from, if it is built from any. */
+  readonly scene = computed<CutInScene | null>(() => {
+    if (!this.cutIn) return null;
+    this.objectChange.collectionOf(CutInScene.aliasName)();
+    this.objectChange.collectionOf(CutInLayer.aliasName)();
+    const scene = this.cutIn.scene;
+    return scene && scene.layers.length > 0 ? scene : null;
+  });
+
   readonly cutInImageUrl = computed(() => {
     this.objectChange.fileVersion();
     if (!this.cutIn) return ImageFile.Empty.url;
@@ -171,11 +184,12 @@ export class CutInWindowComponent {
       }
     }
 
-    if (this.cutIn.outTime > 0) {
+    const playbackMs = cutInPlaybackMs(this.cutIn, this.cutIn.scene);
+    if (playbackMs > 0) {
       this.cutInTimeOut = setTimeout(() => {
         this.cutInTimeOut = null;
         this.panelService.close();
-      }, this.cutIn.outTime * 1000);
+      }, playbackMs);
     }
   }
 

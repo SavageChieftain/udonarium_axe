@@ -1,0 +1,211 @@
+import {
+  afterRenderEffect,
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  DestroyRef,
+  ElementRef,
+  inject,
+  input,
+  signal,
+  viewChildren,
+} from '@angular/core';
+import { ObjectChangeService } from '@axe/application/sync/object-change.service';
+import { MotionService } from '@axe/application/ui/motion.service';
+import { ImageStorage } from '@axe/core/storage/image-storage';
+import { CutInLayer } from '@axe/domain/media/cut-in-layer';
+import { CutInScene } from '@axe/domain/media/cut-in-scene';
+import {
+  layerFilter,
+  layerOrigin,
+  layerTransform,
+  sampleLayerAt,
+  sceneDurationOf,
+  toWebAnimationFrames,
+} from '@axe/domain/media/cut-in-scene-timeline';
+import { SafePipe } from '@axe/ui/pipes/safe.pipe';
+
+/**
+ * The layers of a cut-in, drawn and set going.
+ *
+ * The playing window and the editor's preview show the same thing, so this draws for
+ * both: playing runs the animations, and holding still puts every one of them at the
+ * same moment on the clock.
+ *
+ * The moving is handed to the browser through the Web Animations API rather than
+ * driven a frame at a time. Transforms and opacity then run off the main thread, which
+ * is busy decoding pictures and starting sound at exactly the moment a cut-in appears,
+ * and nothing here has to wake change detection sixty times a second.
+ */
+@Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  selector: 'app-cut-in-stage',
+  templateUrl: './cut-in-stage.component.html',
+  host: { class: 'block' },
+  imports: [SafePipe],
+})
+export class CutInStageComponent {
+  private readonly objectChange = inject(ObjectChangeService);
+  private readonly imageStorage = inject(ImageStorage);
+  private readonly motion = inject(MotionService);
+  private readonly elementRef = inject(ElementRef<HTMLElement>);
+  private readonly destroyRef = inject(DestroyRef);
+
+  readonly scene = input<CutInScene | null>(null);
+  /** The coordinates the layers were laid out in, which are the cut-in's own. */
+  readonly sceneWidth = input(0);
+  readonly sceneHeight = input(0);
+  readonly playing = input(true);
+  /** Where the scrubber stands, in ms. Read only while it is not playing. */
+  readonly playheadMs = input(0);
+
+  private readonly layerElements = viewChildren<ElementRef<HTMLElement>>('layerElement');
+  private readonly handles = new Map<string, Animation>();
+  private readonly hostSize = signal({ width: 0, height: 0 });
+
+  readonly layers = computed<CutInLayer[]>(() => {
+    const scene = this.scene();
+    if (!scene) return [];
+    this.objectChange.versionOf(scene.identifier)();
+    this.objectChange.collectionOf(CutInLayer.aliasName)();
+    return scene.layers.filter((layer) => !layer.hidden);
+  });
+
+  readonly durationMs = computed(() => {
+    const scene = this.scene();
+    if (!scene) return 0;
+    this.objectChange.versionOf(scene.identifier)();
+    for (const layer of scene.layers) this.objectChange.versionOf(layer.identifier)();
+    return sceneDurationOf(scene);
+  });
+
+  readonly loops = computed(() => {
+    const scene = this.scene();
+    if (!scene) return false;
+    this.objectChange.versionOf(scene.identifier)();
+    return scene.sceneLoop;
+  });
+
+  readonly background = computed(() => {
+    const scene = this.scene();
+    if (!scene) return null;
+    this.objectChange.versionOf(scene.identifier)();
+    return scene.backgroundColor.length > 0 ? scene.backgroundColor : null;
+  });
+
+  /** How much the scene is shrunk to sit inside whatever room it is given. */
+  readonly fit = computed(() => {
+    const width = this.sceneWidth();
+    const height = this.sceneHeight();
+    const host = this.hostSize();
+    if (width < 1 || height < 1 || host.width < 1 || host.height < 1) return 1;
+    return Math.min(host.width / width, host.height / height);
+  });
+
+  constructor() {
+    this.watchHostSize();
+
+    afterRenderEffect(() => {
+      const layers = this.layers();
+      const elements = this.layerElements();
+      const durationMs = this.durationMs();
+      const loops = this.loops();
+      const playing = this.playing();
+      const playheadMs = this.playheadMs();
+      // Every layer's own version, so a keyframe moved while the editor is open is picked up.
+      for (const layer of layers) this.objectChange.versionOf(layer.identifier)();
+
+      this.draw(layers, elements, durationMs, loops, playing, playheadMs);
+    });
+
+    this.destroyRef.onDestroy(() => this.clearHandles());
+  }
+
+  protected origin(layer: CutInLayer): string {
+    return layerOrigin(layer);
+  }
+
+  protected imageUrl(layer: CutInLayer): string {
+    this.objectChange.fileVersion();
+    return this.imageStorage.get(layer.imageIdentifier)?.url ?? '';
+  }
+
+  protected fillOf(layer: CutInLayer): string {
+    if (layer.fillTo.length < 1) return layer.fillFrom;
+    return `linear-gradient(${layer.fillAngleDeg}deg, ${layer.fillFrom}, ${layer.fillTo})`;
+  }
+
+  protected textShadowOf(layer: CutInLayer): string | null {
+    if (layer.strokeWidthPx <= 0 || layer.strokeColor.length < 1) return null;
+    const width = layer.strokeWidthPx;
+    return [
+      `${width}px 0 0 ${layer.strokeColor}`,
+      `-${width}px 0 0 ${layer.strokeColor}`,
+      `0 ${width}px 0 ${layer.strokeColor}`,
+      `0 -${width}px 0 ${layer.strokeColor}`,
+    ].join(', ');
+  }
+
+  private draw(
+    layers: readonly CutInLayer[],
+    elements: readonly ElementRef<HTMLElement>[],
+    durationMs: number,
+    loops: boolean,
+    playing: boolean,
+    playheadMs: number
+  ): void {
+    this.clearHandles();
+    if (durationMs < 1) return;
+
+    for (let at = 0; at < layers.length; at++) {
+      const element = elements[at]?.nativeElement;
+      if (!element) continue;
+
+      const layer = layers[at];
+      if (!this.canAnimate(element)) {
+        this.paintStill(element, layer, playing ? 0 : playheadMs, durationMs);
+        continue;
+      }
+
+      const handle = element.animate(toWebAnimationFrames(layer, durationMs), {
+        duration: durationMs,
+        fill: 'both',
+        iterations: loops ? Infinity : 1,
+      });
+      this.handles.set(layer.identifier, handle);
+
+      if (playing) continue;
+      handle.pause();
+      handle.currentTime = playheadMs;
+    }
+  }
+
+  /** Draws one moment with no animation at all, for a still preview or a quiet screen. */
+  private paintStill(element: HTMLElement, layer: CutInLayer, ms: number, durationMs: number): void {
+    const sample = sampleLayerAt(layer, ms, durationMs);
+    element.style.transform = layerTransform(sample);
+    element.style.opacity = `${sample.visible ? sample.opacity : 0}`;
+    element.style.filter = layerFilter(sample);
+  }
+
+  private canAnimate(element: HTMLElement): boolean {
+    return this.motion.enabled() && typeof element.animate === 'function';
+  }
+
+  private clearHandles(): void {
+    for (const handle of this.handles.values()) handle.cancel();
+    this.handles.clear();
+  }
+
+  private watchHostSize(): void {
+    if (typeof ResizeObserver !== 'function') return;
+
+    const observer = new ResizeObserver((entries) => {
+      const rect = entries[0]?.contentRect;
+      if (!rect) return;
+      this.hostSize.set({ width: Math.round(rect.width), height: Math.round(rect.height) });
+    });
+    observer.observe(this.elementRef.nativeElement);
+    this.destroyRef.onDestroy(() => observer.disconnect());
+  }
+}

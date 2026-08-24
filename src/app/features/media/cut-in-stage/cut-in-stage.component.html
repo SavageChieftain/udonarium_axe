@@ -1,0 +1,46 @@
+<div class="pointer-events-none absolute inset-0 overflow-hidden" [style.background]="background()">
+  <div
+    class="absolute top-0 left-0 origin-top-left"
+    [style.width.px]="sceneWidth()"
+    [style.height.px]="sceneHeight()"
+    [style.transform]="'scale(' + fit() + ')'"
+  >
+    @for (layer of layers(); track layer.identifier) {
+      <div
+        class="absolute top-0 left-0"
+        #layerElement
+        [style.width.px]="layer.width"
+        [style.height.px]="layer.height"
+        [style.transform-origin]="origin(layer)"
+        [style.mix-blend-mode]="layer.blendMode || null"
+      >
+        @switch (layer.kind) {
+          @case ('text') {
+            <div
+              class="flex size-full items-center whitespace-pre-wrap"
+              [style.color]="layer.color"
+              [style.font-size.px]="layer.fontSizePx"
+              [style.font-weight]="layer.fontWeight"
+              [style.font-family]="layer.fontFamily || null"
+              [style.text-align]="layer.textAlign"
+              [style.justify-content]="
+                layer.textAlign === 'left' ? 'flex-start' : layer.textAlign === 'right' ? 'flex-end' : 'center'
+              "
+              [style.text-shadow]="textShadowOf(layer)"
+            >
+              {{ layer.text }}
+            </div>
+          }
+          @case ('fill') {
+            <div class="size-full" [style.background]="fillOf(layer)"></div>
+          }
+          @default {
+            @if (imageUrl(layer); as url) {
+              <img class="size-full" [src]="url | safe: 'resourceUrl'" [style.object-fit]="layer.objectFit" alt="" />
+            }
+          }
+        }
+      </div>
+    }
+  </div>
+</div>
