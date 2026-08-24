@@ -58,16 +58,20 @@ import { CutInLayerPropertiesComponent } from '@axe/features/media/cut-in-editor
 import {
   angleFromCentre,
   applyResize,
+  fromLayerLocal,
   isInsideLayer,
   isOnRotateHandle,
   type LayerBox,
+  type LayerTransform,
   normaliseAngle,
   type ResizeHandle,
   resizeHandleAt,
-  ROTATE_HANDLE_REACH_PX,
+  rotateGripAt,
   stageDeltaToScene,
   stageFit,
   stageToScene,
+  toLayerLocal,
+  toLayerLocalDelta,
 } from '@axe/features/media/cut-in-editor/cut-in-stage-geometry';
 import { CutInTimelineComponent } from '@axe/features/media/cut-in-editor/cut-in-timeline.component';
 import { CutInStageComponent } from '@axe/features/media/cut-in-stage/cut-in-stage.component';
@@ -85,6 +89,7 @@ interface Drag {
   fromX: number;
   fromY: number;
   box: LayerBox;
+  transform: LayerTransform;
   rotation: number;
 }
 
@@ -188,13 +193,33 @@ export class CutInSceneEditorComponent {
     return this.boxOf(layer);
   });
 
-  /** How far the selected layer is turned, so the outline sits on it rather than beside it. */
-  readonly selectionRotation = computed(() => {
+  /** How the selected layer is turned and grown, so the outline sits on it rather than beside it. */
+  readonly selectionTransform = computed(() => {
     const layer = this.selected();
-    if (!layer) return 0;
+    if (!layer) return 'none';
     this.objectChange.versionOf(layer.identifier)();
     this.bumped();
-    return valueAt(layer, 'rotation', this.playheadMs());
+
+    const transform = this.transformOf(layer);
+    return `rotate(${transform.rotationDeg}deg) scale(${transform.scaleX}, ${transform.scaleY})`;
+  });
+
+  /**
+   * Where the grip that turns the layer is drawn.
+   *
+   * It is placed on the stage rather than inside the outline, so that turning and growing
+   * the layer move it without also stretching it. Where it is drawn is then exactly where
+   * the pointer is looked for.
+   */
+  readonly rotateGrip = computed<{ left: number; top: number } | null>(() => {
+    const layer = this.selected();
+    const box = this.selectionBox();
+    if (!layer || !box) return null;
+
+    const fit = this.fit();
+    const transform = this.transformOf(layer);
+    const drawn = fromLayerLocal(rotateGripAt(box, fit, transform), box, transform);
+    return { left: fit.offsetX + drawn.x * fit.scale, top: fit.offsetY + drawn.y * fit.scale };
   });
 
   readonly selectionOrigin = computed(() => {
@@ -306,15 +331,20 @@ export class CutInSceneEditorComponent {
     (event.target as HTMLElement | null)?.setPointerCapture?.(event.pointerId);
 
     const box = this.boxOf(layer);
-    const turning = isOnRotateHandle(point, box, this.fit());
+    const transform = this.transformOf(layer);
+    const local = toLayerLocal(point, box, transform);
+    const turning = isOnRotateHandle(local, box, this.fit(), undefined, transform);
+
     this.drag = {
       layer,
-      handle: turning ? null : resizeHandleAt(point, box, this.fit()),
-      turningFrom: turning ? angleFromCentre(point, box) : null,
+      handle: turning ? null : resizeHandleAt(local, box, this.fit(), undefined, transform),
+      // The angle is read in the stage's own frame, which is the frame the pointer travels in.
+      turningFrom: turning ? angleFromCentre(point, box, transform) : null,
       fromX: event.clientX,
       fromY: event.clientY,
       box,
-      rotation: valueAt(layer, 'rotation', this.playheadMs()),
+      transform,
+      rotation: transform.rotationDeg,
     };
   }
 
@@ -323,15 +353,17 @@ export class CutInSceneEditorComponent {
     if (!drag) return;
 
     if (drag.turningFrom !== null) {
-      const turned = angleFromCentre(this.pointAt(event), drag.box) - drag.turningFrom;
+      const turned = angleFromCentre(this.pointAt(event), drag.box, drag.transform) - drag.turningFrom;
       // Holding shift snaps to the eighths of a turn, for a level or a quarter-turned layer.
       this.queueTurn(drag.layer, normaliseAngle(drag.rotation + turned, event.shiftKey ? 45 : 0));
       return;
     }
 
     const moved = stageDeltaToScene(event.clientX - drag.fromX, event.clientY - drag.fromY, this.fit());
+    // Moving happens in the stage's frame; resizing happens along the layer's own edges.
+    const alongEdges = toLayerLocalDelta(moved, drag.transform);
     const box = drag.handle
-      ? applyResize(drag.box, drag.handle, moved.x, moved.y, event.shiftKey)
+      ? applyResize(drag.box, drag.handle, alongEdges.x, alongEdges.y, event.shiftKey)
       : { ...drag.box, x: drag.box.x + moved.x, y: drag.box.y + moved.y };
 
     this.queueFlush(drag.layer, box);
@@ -559,6 +591,18 @@ export class CutInSceneEditorComponent {
     };
   }
 
+  /** How a layer is turned and grown at the scrubber, which is how it is drawn. */
+  private transformOf(layer: CutInLayer): LayerTransform {
+    const ms = this.playheadMs();
+    return {
+      rotationDeg: valueAt(layer, 'rotation', ms),
+      scaleX: valueAt(layer, 'scaleX', ms),
+      scaleY: valueAt(layer, 'scaleY', ms),
+      anchorX: layer.anchorX,
+      anchorY: layer.anchorY,
+    };
+  }
+
   /** The topmost layer under the pointer, which is the last one drawn. */
   private layerAt(point: { x: number; y: number }): CutInLayer | null {
     const layers = this.layers();
@@ -567,15 +611,13 @@ export class CutInSceneEditorComponent {
       if (layer.hidden || layer.locked) continue;
 
       const box = this.boxOf(layer);
-      if (isOnRotateHandle(point, box, this.fit())) return layer;
-      if (resizeHandleAt(point, box, this.fit()) || isInsideLayer(point, box)) return layer;
+      const transform = this.transformOf(layer);
+      const local = toLayerLocal(point, box, transform);
+
+      if (isOnRotateHandle(local, box, this.fit(), undefined, transform)) return layer;
+      if (resizeHandleAt(local, box, this.fit(), undefined, transform) || isInsideLayer(local, box)) return layer;
     }
     return null;
-  }
-
-  /** The reach of the grip above a selected layer, in the cut-in's own coordinates. */
-  protected get rotateReach(): number {
-    return ROTATE_HANDLE_REACH_PX;
   }
 
   private queueTurn(layer: CutInLayer, rotation: number): void {

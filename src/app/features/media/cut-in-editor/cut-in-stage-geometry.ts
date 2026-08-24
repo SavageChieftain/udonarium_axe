@@ -18,6 +18,18 @@ export interface LayerBox {
   height: number;
 }
 
+/** How a layer is turned and grown, which is what the pointer has to be read through. */
+export interface LayerTransform {
+  rotationDeg: number;
+  scaleX: number;
+  scaleY: number;
+  /** Where it turns and grows around, as a fraction of its own box. */
+  anchorX: number;
+  anchorY: number;
+}
+
+export const UNTURNED: LayerTransform = { rotationDeg: 0, scaleX: 1, scaleY: 1, anchorX: 0.5, anchorY: 0.5 };
+
 export interface StageFit {
   /** How much the scene is shrunk to fit. */
   scale: number;
@@ -63,14 +75,98 @@ export function stageDeltaToScene(dx: number, dy: number, fit: StageFit): { x: n
   return { x: dx / fit.scale, y: dy / fit.scale };
 }
 
+/** What a layer turns and grows around, in the cut-in's own coordinates. */
+export function pivotOf(box: LayerBox, transform: LayerTransform = UNTURNED): { x: number; y: number } {
+  return { x: box.x + box.width * transform.anchorX, y: box.y + box.height * transform.anchorY };
+}
+
+/**
+ * A point on the stage, read in the layer's own frame.
+ *
+ * Everything the editor grabs — the corners, the body, the grip that turns it — is
+ * squared up with the box. Once the layer is turned or grown, the point has to be turned
+ * and shrunk back the same way before any of that means anything.
+ */
+export function toLayerLocal(
+  point: { x: number; y: number },
+  box: LayerBox,
+  transform: LayerTransform = UNTURNED
+): { x: number; y: number } {
+  const pivot = pivotOf(box, transform);
+  const local = unturn({ x: point.x - pivot.x, y: point.y - pivot.y }, transform);
+  return { x: pivot.x + local.x, y: pivot.y + local.y };
+}
+
+/** A point in the layer's own frame, put back where it is drawn on the stage. */
+export function fromLayerLocal(
+  point: { x: number; y: number },
+  box: LayerBox,
+  transform: LayerTransform = UNTURNED
+): { x: number; y: number } {
+  const pivot = pivotOf(box, transform);
+  const radians = (transform.rotationDeg * Math.PI) / 180;
+  const cos = Math.cos(radians);
+  const sin = Math.sin(radians);
+  const dx = (point.x - pivot.x) * nonZero(transform.scaleX);
+  const dy = (point.y - pivot.y) * nonZero(transform.scaleY);
+
+  return { x: pivot.x + dx * cos - dy * sin, y: pivot.y + dx * sin + dy * cos };
+}
+
+/** Where the grip that turns a layer sits, in the layer's own frame. */
+export function rotateGripAt(
+  box: LayerBox,
+  fit: StageFit,
+  transform: LayerTransform = UNTURNED
+): {
+  x: number;
+  y: number;
+} {
+  return { x: box.x + box.width / 2, y: box.y - ROTATE_HANDLE_REACH_PX / drawnScale(fit, transform) };
+}
+
+/** A drag across the stage, read in the layer's own frame. */
+export function toLayerLocalDelta(
+  delta: { x: number; y: number },
+  transform: LayerTransform = UNTURNED
+): { x: number; y: number } {
+  return unturn(delta, transform);
+}
+
+function unturn(vector: { x: number; y: number }, transform: LayerTransform): { x: number; y: number } {
+  const radians = (transform.rotationDeg * Math.PI) / 180;
+  const cos = Math.cos(radians);
+  const sin = Math.sin(radians);
+  const scaleX = nonZero(transform.scaleX);
+  const scaleY = nonZero(transform.scaleY);
+
+  return {
+    x: (vector.x * cos + vector.y * sin) / scaleX,
+    y: (-vector.x * sin + vector.y * cos) / scaleY,
+  };
+}
+
+function nonZero(value: number): number {
+  return Number.isFinite(value) && Math.abs(value) > 0.0001 ? value : 1;
+}
+
+/** How much bigger the layer is drawn than its box, for keeping a grip the same size on screen. */
+export function drawnScale(fit: StageFit, transform: LayerTransform = UNTURNED): number {
+  return Math.max(
+    0.0001,
+    fit.scale * Math.min(Math.abs(nonZero(transform.scaleX)), Math.abs(nonZero(transform.scaleY)))
+  );
+}
+
 /** The corner a pointer has hold of, or none where it has hold of the layer itself. */
 export function resizeHandleAt(
   point: { x: number; y: number },
   box: LayerBox,
   fit: StageFit,
-  tolerancePx = HANDLE_TOLERANCE_PX
+  tolerancePx = HANDLE_TOLERANCE_PX,
+  transform: LayerTransform = UNTURNED
 ): ResizeHandle | null {
-  const reach = tolerancePx / Math.max(fit.scale, 0.0001);
+  const reach = tolerancePx / drawnScale(fit, transform);
   const corners: Record<ResizeHandle, { x: number; y: number }> = {
     nw: { x: box.x, y: box.y },
     ne: { x: box.x + box.width, y: box.y },
@@ -124,10 +220,13 @@ export function isOnRotateHandle(
   point: { x: number; y: number },
   box: LayerBox,
   fit: StageFit,
-  tolerancePx = HANDLE_TOLERANCE_PX
+  tolerancePx = HANDLE_TOLERANCE_PX,
+  transform: LayerTransform = UNTURNED
 ): boolean {
-  const reach = tolerancePx / Math.max(fit.scale, 0.0001);
-  const grip = { x: box.x + box.width / 2, y: box.y - ROTATE_HANDLE_REACH_PX / Math.max(fit.scale, 0.0001) };
+  const drawn = drawnScale(fit, transform);
+  // The grip is given a wider grab than a corner, since it is the only way to turn a layer.
+  const reach = (tolerancePx * 1.5) / drawn;
+  const grip = { x: box.x + box.width / 2, y: box.y - ROTATE_HANDLE_REACH_PX / drawn };
   return Math.abs(point.x - grip.x) <= reach && Math.abs(point.y - grip.y) <= reach;
 }
 
@@ -137,10 +236,13 @@ export function isOnRotateHandle(
  * Zero points straight up, which is where the grip rests, so dragging it round reads as
  * turning the layer by the angle the pointer has travelled.
  */
-export function angleFromCentre(point: { x: number; y: number }, box: LayerBox): number {
-  const dx = point.x - (box.x + box.width / 2);
-  const dy = point.y - (box.y + box.height / 2);
-  return (Math.atan2(dx, -dy) * 180) / Math.PI;
+export function angleFromCentre(
+  point: { x: number; y: number },
+  box: LayerBox,
+  transform: LayerTransform = UNTURNED
+): number {
+  const pivot = pivotOf(box, transform);
+  return (Math.atan2(point.x - pivot.x, -(point.y - pivot.y)) * 180) / Math.PI;
 }
 
 /** An angle brought into 0-360, and snapped to the nearest step when asked. */

@@ -1,16 +1,24 @@
 import {
   angleFromCentre,
   applyResize,
+  drawnScale,
+  fromLayerLocal,
   isInsideLayer,
   isOnRotateHandle,
+  type LayerTransform,
   MIN_LAYER_SIZE,
   normaliseAngle,
+  pivotOf,
   resizeHandleAt,
   ROTATE_HANDLE_REACH_PX,
+  rotateGripAt,
   sceneToStage,
   stageDeltaToScene,
   stageFit,
   stageToScene,
+  toLayerLocal,
+  toLayerLocalDelta,
+  UNTURNED,
 } from '@axe/features/media/cut-in-editor/cut-in-stage-geometry';
 
 describe('stageFit()', () => {
@@ -185,5 +193,140 @@ describe('normaliseAngle()', () => {
     expect(normaliseAngle(43, 45)).toBe(45);
     expect(normaliseAngle(20, 45)).toBe(0);
     expect(normaliseAngle(350, 45)).toBe(0);
+  });
+});
+
+describe("reading the pointer in a layer's own frame", () => {
+  const box = { x: 100, y: 100, width: 200, height: 100 };
+  const turned: LayerTransform = { rotationDeg: 90, scaleX: 1, scaleY: 1, anchorX: 0.5, anchorY: 0.5 };
+  const grown: LayerTransform = { ...UNTURNED, scaleX: 2, scaleY: 2 };
+
+  it('leaves a layer that is neither turned nor grown where it is', () => {
+    expect(toLayerLocal({ x: 150, y: 120 }, box, UNTURNED)).toEqual({ x: 150, y: 120 });
+  });
+
+  it('finds what a layer turns around', () => {
+    expect(pivotOf(box, UNTURNED)).toEqual({ x: 200, y: 150 });
+    expect(pivotOf(box, { ...UNTURNED, anchorX: 0, anchorY: 0 })).toEqual({ x: 100, y: 100 });
+  });
+
+  it('turns the point back the way the layer was turned', () => {
+    // A quarter turn puts the top-left corner where the bottom-left was drawn.
+    const local = toLayerLocal({ x: 250, y: 50 }, box, turned);
+
+    expect(local.x).toBeCloseTo(100, 5);
+    expect(local.y).toBeCloseTo(100, 5);
+  });
+
+  it('shrinks the point back the way the layer was grown', () => {
+    const local = toLayerLocal({ x: 400, y: 250 }, box, grown);
+
+    expect(local.x).toBeCloseTo(300, 5);
+    expect(local.y).toBeCloseTo(200, 5);
+  });
+
+  it("reads a drag along the layer's own edges", () => {
+    const along = toLayerLocalDelta({ x: 0, y: 10 }, turned);
+
+    expect(along.x).toBeCloseTo(10, 5);
+    expect(along.y).toBeCloseTo(0, 5);
+  });
+
+  it('leaves a drag alone on a layer that is neither turned nor grown', () => {
+    expect(toLayerLocalDelta({ x: 5, y: -3 }, UNTURNED)).toEqual({ x: 5, y: -3 });
+  });
+
+  it('refuses to divide a drag by nothing', () => {
+    const flat = toLayerLocalDelta({ x: 5, y: 5 }, { ...UNTURNED, scaleX: 0, scaleY: 0 });
+
+    expect(Number.isFinite(flat.x)).toBe(true);
+    expect(Number.isFinite(flat.y)).toBe(true);
+  });
+
+  it('measures how much bigger the layer is drawn than its box', () => {
+    expect(drawnScale({ scale: 0.5, offsetX: 0, offsetY: 0 }, grown)).toBeCloseTo(1, 5);
+    expect(drawnScale({ scale: 1, offsetX: 0, offsetY: 0 }, UNTURNED)).toBe(1);
+  });
+});
+
+describe('grabbing a layer that has been turned', () => {
+  const fit = { scale: 1, offsetX: 0, offsetY: 0 };
+  const box = { x: 100, y: 100, width: 200, height: 100 };
+  const turned: LayerTransform = { rotationDeg: 90, scaleX: 1, scaleY: 1, anchorX: 0.5, anchorY: 0.5 };
+
+  it('finds the grip where it is drawn, not where it started', () => {
+    // A quarter turn swings the grip from above the box round to the right of it.
+    const drawn = { x: 200 + ROTATE_HANDLE_REACH_PX + 50, y: 150 };
+
+    expect(isOnRotateHandle(toLayerLocal(drawn, box, turned), box, fit, undefined, turned)).toBe(true);
+  });
+
+  it('no longer finds it above a turned layer', () => {
+    const before = { x: 200, y: 100 - ROTATE_HANDLE_REACH_PX };
+
+    expect(isOnRotateHandle(toLayerLocal(before, box, turned), box, fit, undefined, turned)).toBe(false);
+  });
+
+  it('reads the angle round the point the layer turns on', () => {
+    const offCentre: LayerTransform = { ...UNTURNED, anchorX: 0, anchorY: 0 };
+
+    expect(angleFromCentre({ x: 100, y: 0 }, box, offCentre)).toBeCloseTo(0, 5);
+    expect(angleFromCentre({ x: 200, y: 100 }, box, offCentre)).toBeCloseTo(90, 5);
+  });
+
+  it('keeps the grip the same size on screen however the layer is grown', () => {
+    const grown: LayerTransform = { ...UNTURNED, scaleX: 4, scaleY: 4 };
+    const justOff = { x: 200 + 2, y: 100 - ROTATE_HANDLE_REACH_PX / 4 };
+
+    expect(isOnRotateHandle(justOff, box, fit, undefined, grown)).toBe(true);
+    expect(isOnRotateHandle({ x: 200 + 20, y: justOff.y }, box, fit, undefined, grown)).toBe(false);
+  });
+});
+
+describe('putting a point back where it is drawn', () => {
+  const box = { x: 100, y: 100, width: 200, height: 100 };
+
+  it("undoes reading it in the layer's frame, whatever the layer is doing", () => {
+    const transforms: LayerTransform[] = [
+      UNTURNED,
+      { rotationDeg: 37, scaleX: 1, scaleY: 1, anchorX: 0.5, anchorY: 0.5 },
+      { rotationDeg: -120, scaleX: 2, scaleY: 0.5, anchorX: 0, anchorY: 1 },
+    ];
+
+    for (const transform of transforms) {
+      const drawn = fromLayerLocal({ x: 150, y: 120 }, box, transform);
+      const read = toLayerLocal(drawn, box, transform);
+
+      expect(read.x).toBeCloseTo(150, 5);
+      expect(read.y).toBeCloseTo(120, 5);
+    }
+  });
+});
+
+describe('rotateGripAt()', () => {
+  const fit = { scale: 1, offsetX: 0, offsetY: 0 };
+  const box = { x: 100, y: 100, width: 200, height: 100 };
+
+  it('sits above the middle of the top edge', () => {
+    const grip = rotateGripAt(box, fit, UNTURNED);
+
+    expect(grip.x).toBe(200);
+    expect(grip.y).toBe(100 - ROTATE_HANDLE_REACH_PX);
+  });
+
+  it('is exactly where the pointer is looked for', () => {
+    const turned: LayerTransform = { rotationDeg: 55, scaleX: 1.5, scaleY: 1.5, anchorX: 0.5, anchorY: 0.5 };
+    const grip = rotateGripAt(box, fit, turned);
+
+    expect(isOnRotateHandle(grip, box, fit, undefined, turned)).toBe(true);
+  });
+
+  it('stays the same distance away on screen however the layer is grown', () => {
+    const grown: LayerTransform = { ...UNTURNED, scaleX: 3, scaleY: 3 };
+    const grip = fromLayerLocal(rotateGripAt(box, fit, grown), box, grown);
+    // Measured from the top edge as it is drawn, which a grown layer moves.
+    const drawnTop = fromLayerLocal({ x: box.x + box.width / 2, y: box.y }, box, grown);
+
+    expect(drawnTop.y - grip.y).toBeCloseTo(ROTATE_HANDLE_REACH_PX, 5);
   });
 });

@@ -224,6 +224,39 @@ describe('CutInSceneEditorComponent', () => {
       expect(layer.x).toBe(box.x);
     });
 
+    it('can be turned again after being let go of', () => {
+      editor().addImageLayer();
+      const layer = component.layers()[0];
+      const box = { x: layer.x, y: layer.y, width: layer.width, height: layer.height };
+      const pivot = { x: box.x + box.width / 2, y: box.y + box.height / 2 };
+
+      // A quarter turn, released, and then the grip taken hold of where it now is.
+      drag([pivot.x, box.y - 22], [pivot.x + 200, pivot.y]);
+      const afterFirst = layer.rotation;
+      expect(afterFirst).toBeGreaterThan(60);
+
+      // A quarter turn swings the grip from above the box round to the right of the pivot.
+      drag([pivot.x + box.height / 2 + 22, pivot.y], [pivot.x, pivot.y + 200]);
+
+      expect(layer.rotation).toBeGreaterThan(afterFirst + 30);
+    });
+
+    it('picks a turned layer up by the body it is drawn with', () => {
+      editor().addImageLayer();
+      const layer = component.layers()[0];
+      layer.rotation = 90;
+      layer.width = 200;
+      layer.height = 100;
+      layer.x = 100;
+      layer.y = 100;
+      editor().selectedIdentifier.set('');
+
+      // Turned a quarter, the box covers where its top-left corner is drawn.
+      editor().onPointerDown(pointer('pointerdown', 200, 80));
+
+      expect(component.selected()).toBe(layer);
+    });
+
     it('writes a drag onto the key standing at the scrubber', () => {
       editor().addImageLayer();
       const layer = component.layers()[0];
