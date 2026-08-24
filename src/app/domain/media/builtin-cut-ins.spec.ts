@@ -10,6 +10,7 @@ import {
 } from '@axe/domain/media/builtin-cut-ins';
 import { CutIn } from '@axe/domain/media/cut-in';
 import { sceneDurationOf, toWebAnimationFrames } from '@axe/domain/media/cut-in-scene-timeline';
+import { PresetSound } from '@axe/domain/media/sound-effect';
 
 describe('the cut-ins a new room starts with', () => {
   let store: ObjectStore;
@@ -17,6 +18,10 @@ describe('the cut-ins a new room starts with', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({});
+    // The sounds are looked up by name at the moment they are needed, and nothing has
+    // registered them here the way starting the app would.
+    PresetSound.flashImpact = 'flash-sound';
+    PresetSound.collapse = 'collapse-sound';
     store = ObjectStore.instance;
     imageStorage = ImageStorage.instance;
     store.getObjects().forEach((object) => store.delete(object, false));
@@ -119,6 +124,17 @@ describe('the cut-ins a new room starts with', () => {
     expect(edge.trackSet.wipe?.[0].v).toBe(0);
     expect(edge.trackSet.wipe?.[1].v).toBe(1);
     expect(edge.trackSet.x).toBeUndefined();
+  });
+
+  it('strikes both of them on the same note, and hears the tear settle after', () => {
+    const [flash, tear] = made();
+
+    expect(flash.scene!.soundList.map((sound) => sound.a)).toEqual([PresetSound.flashImpact]);
+    // The tear is heard twice: once as it opens, once as what is left comes away.
+    expect(tear.scene!.soundList.map((sound) => sound.a)).toEqual([PresetSound.flashImpact, PresetSound.collapse]);
+    const settleAt = tear.scene!.soundList[1].t;
+    const crumbleTrack = tear.scene!.layers[0].trackSet.crumble!;
+    expect(settleAt).toBe(crumbleTrack[0].t);
   });
 
   it('crumbles the tear away from the left rather than fading it out', () => {

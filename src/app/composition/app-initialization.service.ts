@@ -227,6 +227,7 @@ export class AppInitializationService {
       holyBlade: './assets/sounds/soundeffect-lab/holy-blade.mp3',
       missileLaunch: './assets/sounds/soundeffect-lab/missile-launch.mp3',
       rocketLaunch: './assets/sounds/soundeffect-lab/rocket-launch.mp3',
+      flashImpact: './assets/sounds/soundeffect-lab/flash-impact.mp3',
     };
 
     for (const key of Object.keys(soundMap) as SoundKey[]) {

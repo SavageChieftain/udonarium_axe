@@ -159,7 +159,7 @@ export const DEFAULT_CUT_IN_SEEDS: readonly CutInSeed[] = [
     width: 1000,
     height: 330,
     durationMs: 1100,
-    sounds: [{ atMs: 0, soundKey: 'sfHit', volume: 90 }],
+    sounds: [{ atMs: 0, soundKey: 'flashImpact', volume: 90 }],
     layers: [
       {
         identifier: 'sample-cut-in-flash-frame',
@@ -317,7 +317,10 @@ export const DEFAULT_CUT_IN_SEEDS: readonly CutInSeed[] = [
     width: 1240,
     height: 500,
     durationMs: 1500,
-    sounds: [{ atMs: 0, soundKey: 'slashIai', volume: 90 }],
+    sounds: [
+      { atMs: 0, soundKey: 'flashImpact', volume: 90 },
+      { atMs: 1050, soundKey: 'collapse', volume: 55 },
+    ],
     layers: [
       {
         identifier: 'sample-cut-in-tear-backing',
