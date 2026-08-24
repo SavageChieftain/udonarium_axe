@@ -59,6 +59,28 @@ describe('clipPoints()', () => {
     expect(heights.size).toBeGreaterThan(15);
   });
 
+  it('bites into a gash a little way rather than halfway across', () => {
+    const corners = clipPoints('gash');
+    const middle = corners.filter(([x]) => x > 0.2 && x < 0.8);
+    const top = middle.filter(([, y]) => y < 0.5).map(([, y]) => y);
+    const bottom = middle.filter(([, y]) => y >= 0.5).map(([, y]) => y);
+
+    // Along the middle of the tear the edges stay near the outside, teeth and all.
+    expect(Math.max(...top)).toBeLessThan(0.3);
+    expect(Math.min(...bottom)).toBeGreaterThan(0.7);
+  });
+
+  it('narrows a gash towards each end', () => {
+    const corners = clipPoints('gash');
+    const heightAt = (from: number, to: number) => {
+      const slice = corners.filter(([x]) => x >= from && x <= to).map(([, y]) => y);
+      return Math.max(...slice) - Math.min(...slice);
+    };
+
+    expect(heightAt(0.4, 0.6)).toBeGreaterThan(heightAt(0, 0.08));
+    expect(heightAt(0.4, 0.6)).toBeGreaterThan(heightAt(0.92, 1));
+  });
+
   it('gives a burst points that reach out and come back', () => {
     const reaches = clipPoints('burst').map(([x, y]) => Math.hypot(x - 0.5, y - 0.5));
 

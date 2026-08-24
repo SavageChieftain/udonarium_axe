@@ -107,46 +107,62 @@ function tornOutline(right: boolean, left: boolean): readonly ClipPoint[] {
 }
 
 /**
- * A tear ripped across, wide and ragged, coming to a point at either end.
+ * A tear ripped across: long, coming to a point at either end, and ragged along its
+ * length by only a little.
  *
- * The teeth are written out rather than worked out, because a tear that came out
+ * The teeth bite a small way in rather than halfway across — paper gives way in
+ * splinters, not in saw teeth — and the shape narrows towards each end, so it reads as
+ * something torn open rather than a band with a pattern cut into it.
+ *
+ * The corners are written out rather than worked out, because a tear that came out
  * differently on each screen would not be the same cut-in twice.
  */
 function gashOutline(): readonly ClipPoint[] {
   const top: ClipPoint[] = [
     [0, 0.5],
-    [0.045, 0.3],
-    [0.09, 0.38],
-    [0.15, 0.16],
-    [0.2, 0.26],
-    [0.265, 0.08],
-    [0.325, 0.2],
-    [0.39, 0.05],
-    [0.455, 0.18],
-    [0.525, 0.03],
-    [0.59, 0.16],
-    [0.66, 0.06],
-    [0.725, 0.19],
-    [0.79, 0.1],
-    [0.86, 0.24],
-    [0.925, 0.16],
-    [1, 0.42],
+    [0.03, 0.4],
+    [0.06, 0.33],
+    [0.09, 0.39],
+    [0.13, 0.26],
+    [0.17, 0.32],
+    [0.22, 0.19],
+    [0.27, 0.25],
+    [0.33, 0.13],
+    [0.39, 0.19],
+    [0.45, 0.09],
+    [0.51, 0.15],
+    [0.57, 0.07],
+    [0.63, 0.14],
+    [0.69, 0.1],
+    [0.75, 0.18],
+    [0.8, 0.13],
+    [0.85, 0.23],
+    [0.89, 0.18],
+    [0.93, 0.3],
+    [0.96, 0.25],
+    [1, 0.47],
   ];
   const bottom: ClipPoint[] = [
-    [0.945, 0.6],
-    [0.88, 0.8],
-    [0.815, 0.68],
-    [0.745, 0.88],
-    [0.68, 0.74],
-    [0.61, 0.94],
-    [0.54, 0.8],
-    [0.47, 0.97],
-    [0.4, 0.82],
-    [0.33, 0.95],
-    [0.26, 0.79],
-    [0.19, 0.92],
-    [0.12, 0.74],
-    [0.055, 0.84],
+    [0.97, 0.61],
+    [0.94, 0.73],
+    [0.9, 0.67],
+    [0.86, 0.8],
+    [0.81, 0.75],
+    [0.76, 0.86],
+    [0.7, 0.81],
+    [0.64, 0.91],
+    [0.58, 0.86],
+    [0.52, 0.94],
+    [0.46, 0.89],
+    [0.4, 0.95],
+    [0.34, 0.9],
+    [0.28, 0.84],
+    [0.23, 0.88],
+    [0.18, 0.79],
+    [0.14, 0.83],
+    [0.1, 0.71],
+    [0.06, 0.76],
+    [0.03, 0.63],
   ];
   return [...top, ...bottom];
 }

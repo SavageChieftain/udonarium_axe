@@ -66,7 +66,8 @@ describe('the cut-ins a new room starts with', () => {
     for (const cutIn of [flash, tear]) {
       expect(faceOf(cutIn)).toHaveLength(1);
       expect(faceOf(cutIn)[0].objectFit).toBe('cover');
-      expect(faceOf(cutIn)[0].objectPosY).toBeLessThan(50);
+      // Never so far down the picture that a portrait would show its chest.
+      expect(faceOf(cutIn)[0].objectPosY).toBeLessThanOrEqual(50);
       expect(faceOf(cutIn)[0].name).toContain('差し替える');
     }
 
@@ -97,19 +98,25 @@ describe('the cut-ins a new room starts with', () => {
     const edge = tear.scene!.layers.find((layer) => layer.name === '裂け目の縁')!;
 
     expect(edge.clip).toBe('gash');
-    expect(edge.width).toBe(tear.width);
+    // Long and shallow, which is the shape of something torn rather than cut out.
+    expect(edge.width / edge.height).toBeGreaterThan(3.5);
     // The gap widens rather than the whole thing arriving from somewhere.
     expect(edge.trackSet.scaleY?.[0].v).toBeLessThan(0.1);
     expect(edge.trackSet.x).toBeUndefined();
   });
 
-  it('throws red shards in from either side behind the gash', () => {
+  it('lets the red backing show past the torn white edge', () => {
     const [, tear] = made();
-    const shards = tear.scene!.layers.filter((layer) => layer.name.startsWith('赤の破片'));
+    const layers = tear.scene!.layers;
+    const backing = layers.find((layer) => layer.name === '裂け目の裏地')!;
+    const edge = layers.find((layer) => layer.name === '裂け目の縁')!;
+    const face = layers.find((layer) => layer.kind === 'image')!;
 
-    expect(shards).toHaveLength(2);
-    expect(shards[0].trackSet.x?.[0].v).toBeLessThan(0);
-    expect(shards[1].trackSet.x?.[0].v).toBeGreaterThan(tear.width);
+    // Each is torn to the same outline and sits a little inside the one behind it.
+    for (const layer of [backing, edge, face]) expect(layer.clip).toBe('gash');
+    expect(backing.width).toBeGreaterThan(edge.width);
+    expect(edge.width).toBeGreaterThan(face.width);
+    expect(layers.indexOf(backing)).toBeLessThan(layers.indexOf(edge));
   });
 
   it('stacks the newer word down the right rather than along the band', () => {
@@ -119,6 +126,9 @@ describe('the cut-ins a new room starts with', () => {
     expect(word.text.split('\n')).toHaveLength(3);
     expect(word.height).toBeGreaterThan(word.width);
     expect(word.x).toBeGreaterThan(tear.width / 2);
+    // It leans the other way from the tear, and reaches past the top of it.
+    expect(word.rotation).toBeGreaterThan(0);
+    expect(word.y).toBeLessThan(0);
   });
 
   it('lays lines converging on the middle behind the band', () => {
