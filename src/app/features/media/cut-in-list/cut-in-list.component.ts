@@ -6,6 +6,7 @@ import { ModalService } from '@axe/application/ui/modal.service';
 import { PanelService } from '@axe/application/ui/panel.service';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { CutIn } from '@axe/domain/media/cut-in';
+import { CutInSceneEditorComponent } from '@axe/features/media/cut-in-editor/cut-in-scene-editor.component';
 import { CutInEditorComponent } from '@axe/features/media/cut-in-list/cut-in-editor.component';
 import { TranslocoModule } from '@jsverse/transloco';
 
@@ -13,7 +14,7 @@ import { TranslocoModule } from '@jsverse/transloco';
   changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-cut-in-list',
   templateUrl: './cut-in-list.component.html',
-  imports: [FormsModule, CutInEditorComponent, TranslocoModule],
+  imports: [FormsModule, CutInEditorComponent, CutInSceneEditorComponent, TranslocoModule],
 })
 export class CutInListComponent {
   private readonly modalService = inject(ModalService);
@@ -23,6 +24,10 @@ export class CutInListComponent {
   private readonly t = inject(TRANSLATE_FN);
 
   selectedCutIn: CutIn | null = null;
+
+  /** The settings a cut-in has always had, and the layers it may now be built from. */
+  readonly tabs = ['Basic', 'Scene'] as const;
+  readonly activeTab = signal<(typeof this.tabs)[number]>('Basic');
 
   readonly isSaving = signal(false);
   readonly progressPercent = signal(0);

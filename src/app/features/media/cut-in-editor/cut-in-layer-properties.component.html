@@ -1,0 +1,125 @@
+@if (layer(); as layer) {
+  <div class="flex flex-col gap-2 p-2 text-[12px]">
+    <label class="text-ui-muted text-[11px] font-semibold tracking-[0.04em] uppercase">{{
+      'feature.media.cutInEditor.layerName' | transloco
+    }}</label>
+    <input
+      class="bg-ui-input border-ui-border-panel text-ui-text rounded-ui-sm focus:border-ui-accent box-border w-full border border-solid px-2 py-1 text-[12px] outline-none disabled:cursor-not-allowed disabled:opacity-50"
+      name="cut-in-layer-name"
+      [(ngModel)]="name"
+      [attr.disabled]="!isEditable() ? '' : null"
+    />
+
+    @if (layer.kind === 'image') {
+      <button
+        class="border-ui-border-panel hover:bg-ui-hover rounded-ui-sm flex cursor-pointer items-center gap-2 border border-solid bg-transparent p-1 disabled:cursor-not-allowed disabled:opacity-50"
+        type="button"
+        [disabled]="!isEditable()"
+        [title]="'feature.media.cutInEditor.chooseImage' | transloco"
+        (click)="chooseImage()"
+      >
+        <img class="size-10 shrink-0 object-contain" [src]="imageUrl() | safe: 'resourceUrl'" alt="" />
+        <span class="text-ui-muted truncate text-[11px]">{{
+          'feature.media.cutInEditor.chooseImage' | transloco
+        }}</span>
+      </button>
+    }
+
+    <div class="grid grid-cols-[3.5rem_1fr_3.5rem_1fr] items-center gap-x-2 gap-y-1.5">
+      <label class="text-ui-muted text-[11px]">X</label>
+      <input
+        class="bg-ui-input border-ui-border-panel text-ui-text rounded-ui-sm box-border w-full border border-solid px-1.5 py-1 text-right text-[12px] outline-none disabled:opacity-50"
+        name="cut-in-layer-x"
+        type="number"
+        [(ngModel)]="x"
+        [attr.disabled]="!isEditable() ? '' : null"
+      />
+      <label class="text-ui-muted text-[11px]">Y</label>
+      <input
+        class="bg-ui-input border-ui-border-panel text-ui-text rounded-ui-sm box-border w-full border border-solid px-1.5 py-1 text-right text-[12px] outline-none disabled:opacity-50"
+        name="cut-in-layer-y"
+        type="number"
+        [(ngModel)]="y"
+        [attr.disabled]="!isEditable() ? '' : null"
+      />
+
+      <label class="text-ui-muted text-[11px]">{{ 'feature.media.cutInEditor.widthLabel' | transloco }}</label>
+      <input
+        class="bg-ui-input border-ui-border-panel text-ui-text rounded-ui-sm box-border w-full border border-solid px-1.5 py-1 text-right text-[12px] outline-none disabled:opacity-50"
+        name="cut-in-layer-width"
+        type="number"
+        [(ngModel)]="width"
+        [attr.disabled]="!isEditable() ? '' : null"
+      />
+      <label class="text-ui-muted text-[11px]">{{ 'feature.media.cutInEditor.heightLabel' | transloco }}</label>
+      <input
+        class="bg-ui-input border-ui-border-panel text-ui-text rounded-ui-sm box-border w-full border border-solid px-1.5 py-1 text-right text-[12px] outline-none disabled:opacity-50"
+        name="cut-in-layer-height"
+        type="number"
+        [(ngModel)]="height"
+        [attr.disabled]="!isEditable() ? '' : null"
+      />
+
+      <label class="text-ui-muted text-[11px]">{{ 'feature.media.cutInEditor.scaleLabel' | transloco }}</label>
+      <input
+        class="bg-ui-input border-ui-border-panel text-ui-text rounded-ui-sm box-border w-full border border-solid px-1.5 py-1 text-right text-[12px] outline-none disabled:opacity-50"
+        name="cut-in-layer-scale"
+        type="number"
+        [(ngModel)]="scalePercent"
+        [attr.disabled]="!isEditable() ? '' : null"
+      />
+      <label class="text-ui-muted text-[11px]">{{ 'feature.media.cutInEditor.rotationLabel' | transloco }}</label>
+      <input
+        class="bg-ui-input border-ui-border-panel text-ui-text rounded-ui-sm box-border w-full border border-solid px-1.5 py-1 text-right text-[12px] outline-none disabled:opacity-50"
+        name="cut-in-layer-rotation"
+        type="number"
+        [(ngModel)]="rotation"
+        [attr.disabled]="!isEditable() ? '' : null"
+      />
+
+      <label class="text-ui-muted text-[11px]">{{ 'feature.media.cutInEditor.opacityLabel' | transloco }}</label>
+      <input
+        class="bg-ui-input border-ui-border-panel text-ui-text rounded-ui-sm box-border w-full border border-solid px-1.5 py-1 text-right text-[12px] outline-none disabled:opacity-50"
+        name="cut-in-layer-opacity"
+        type="number"
+        min="0"
+        max="100"
+        [(ngModel)]="opacityPercent"
+        [attr.disabled]="!isEditable() ? '' : null"
+      />
+      <label class="text-ui-muted text-[11px]">{{ 'feature.media.cutInEditor.blurLabel' | transloco }}</label>
+      <input
+        class="bg-ui-input border-ui-border-panel text-ui-text rounded-ui-sm box-border w-full border border-solid px-1.5 py-1 text-right text-[12px] outline-none disabled:opacity-50"
+        name="cut-in-layer-blur"
+        type="number"
+        min="0"
+        [(ngModel)]="blur"
+        [attr.disabled]="!isEditable() ? '' : null"
+      />
+
+      <label class="text-ui-muted text-[11px]">{{ 'feature.media.cutInEditor.startMsLabel' | transloco }}</label>
+      <input
+        class="bg-ui-input border-ui-border-panel text-ui-text rounded-ui-sm box-border w-full border border-solid px-1.5 py-1 text-right text-[12px] outline-none disabled:opacity-50"
+        name="cut-in-layer-start"
+        type="number"
+        min="0"
+        [(ngModel)]="startMs"
+        [attr.disabled]="!isEditable() ? '' : null"
+      />
+      <label class="text-ui-muted text-[11px]">{{ 'feature.media.cutInEditor.endMsLabel' | transloco }}</label>
+      <input
+        class="bg-ui-input border-ui-border-panel text-ui-text rounded-ui-sm box-border w-full border border-solid px-1.5 py-1 text-right text-[12px] outline-none disabled:opacity-50"
+        name="cut-in-layer-end"
+        type="number"
+        min="0"
+        [(ngModel)]="endMs"
+        [attr.disabled]="!isEditable() ? '' : null"
+      />
+    </div>
+    <span class="text-ui-dim text-[11px]">{{ 'feature.media.cutInEditor.endMsHint' | transloco }}</span>
+  </div>
+} @else {
+  <div class="text-ui-dim flex h-full items-center justify-center p-4 text-center text-[11px]">
+    {{ 'feature.media.cutInEditor.noSelection' | transloco }}
+  </div>
+}

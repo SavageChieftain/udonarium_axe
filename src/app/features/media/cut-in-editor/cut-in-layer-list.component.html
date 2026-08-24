@@ -1,0 +1,50 @@
+<ul class="m-0 flex h-full list-none flex-col overflow-y-auto p-1" role="listbox" (dragover)="$event.preventDefault()">
+  @for (layer of rows; track layer.identifier) {
+    <li
+      class="text-ui-muted hover:bg-ui-hover hover:text-ui-text mx-0.5 flex cursor-pointer items-center gap-1 rounded-sm px-1.5 py-1 text-[12px] transition-colors"
+      #row
+      role="option"
+      [attr.aria-selected]="selected()?.identifier === layer.identifier"
+      [class.bg-ui-accent-bg!]="selected()?.identifier === layer.identifier"
+      [class.text-ui-accent!]="selected()?.identifier === layer.identifier"
+      [class.opacity-40]="layer.hidden"
+      [class.border-t-ui-accent]="dragging.isDropBefore(layer)"
+      [class.border-t]="dragging.isDropBefore(layer)"
+      [class.border-b-ui-accent]="dragging.isDropAfter(layer)"
+      [class.border-b]="dragging.isDropAfter(layer)"
+      [attr.draggable]="isEditable() ? 'true' : null"
+      (click)="selectLayer.emit(layer)"
+      (dragstart)="onDragStart(layer)"
+      (dragover)="onDragOver($event, layer, row)"
+      (drop)="onDrop($event)"
+      (dragend)="onDragEnd()"
+    >
+      <button
+        class="text-ui-dim hover:text-ui-text m-0 inline-flex size-5 shrink-0 items-center justify-center border-none bg-transparent p-0 shadow-none [&_.material-icons]:text-[14px]!"
+        type="button"
+        [title]="'feature.media.cutInEditor.toggleHidden' | transloco"
+        (click)="toggleHidden.emit(layer); $event.stopPropagation()"
+      >
+        <i class="material-icons">{{ layer.hidden ? 'visibility_off' : 'visibility' }}</i>
+      </button>
+      <button
+        class="text-ui-dim hover:text-ui-text m-0 inline-flex size-5 shrink-0 items-center justify-center border-none bg-transparent p-0 shadow-none [&_.material-icons]:text-[14px]!"
+        type="button"
+        [title]="'feature.media.cutInEditor.toggleLocked' | transloco"
+        (click)="toggleLocked.emit(layer); $event.stopPropagation()"
+      >
+        <i class="material-icons">{{ layer.locked ? 'lock' : 'lock_open' }}</i>
+      </button>
+      <i class="material-icons shrink-0 text-[14px]! opacity-70">{{
+        layer.kind === 'text' ? 'title' : layer.kind === 'fill' ? 'gradient' : 'image'
+      }}</i>
+      <span class="truncate">{{ layer.name || ('feature.media.cutInEditor.unnamedLayer' | transloco) }}</span>
+    </li>
+  }
+
+  @if (rows.length === 0) {
+    <li class="text-ui-dim px-2 py-3 text-center text-[11px]">
+      {{ 'feature.media.cutInEditor.noLayers' | transloco }}
+    </li>
+  }
+</ul>
