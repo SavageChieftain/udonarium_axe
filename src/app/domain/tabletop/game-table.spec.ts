@@ -156,6 +156,12 @@ describe('GameTable', () => {
       expect(table.globalIllumination).toBe(0);
       expect(table.ambientColor).toBeTruthy();
     });
+
+    it('asks for no cut-in on being chosen', () => {
+      const table = new GameTable();
+      table.initialize();
+      expect(table.cutInIdentifiers).toBe('');
+    });
   });
 
   describe('changing it', () => {
