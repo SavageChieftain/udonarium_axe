@@ -13,7 +13,9 @@ import {
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
+import { CutInSoundService } from '@axe/application/media/cut-in-sound.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
+import { ModalService } from '@axe/application/ui/modal.service';
 import { EditHistory } from '@axe/core/util/edit-history';
 import { CutIn } from '@axe/domain/media/cut-in';
 import { CutInLayer, type CutInLayerKind } from '@axe/domain/media/cut-in-layer';
@@ -25,6 +27,14 @@ import {
   snapshotScene,
 } from '@axe/domain/media/cut-in-scene-snapshot';
 import { sceneDurationOf } from '@axe/domain/media/cut-in-scene-timeline';
+import {
+  DEFAULT_SOUND_VOLUME,
+  encodeCutInSounds,
+  moveSound,
+  removeSoundAt,
+  upsertSound,
+} from '@axe/domain/media/cut-in-sound';
+import { CutInBgmComponent } from '@axe/features/media/cut-in-bgm/cut-in-bgm.component';
 import {
   addLayer,
   duplicateLayer,
@@ -102,6 +112,8 @@ interface Drag {
 })
 export class CutInSceneEditorComponent {
   private readonly objectChange = inject(ObjectChangeService);
+  private readonly cutInSound = inject(CutInSoundService);
+  private readonly modalService = inject(ModalService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly t = inject(TRANSLATE_FN);
 
@@ -139,6 +151,14 @@ export class CutInSceneEditorComponent {
     this.objectChange.collectionOf(CutInLayer.aliasName)();
     this.bumped();
     return scene.layers;
+  });
+
+  readonly sounds = computed(() => {
+    const scene = this.scene();
+    if (!scene) return [];
+    this.objectChange.versionOf(scene.identifier)();
+    this.bumped();
+    return scene.soundList;
   });
 
   readonly selected = computed<CutInLayer | null>(() => {
@@ -355,6 +375,38 @@ export class CutInSceneEditorComponent {
     if (removeLayerKeys(removed.layer, removed.ms)) this.changed();
   }
 
+  protected onMoveSound(moved: { fromMs: number; toMs: number }): void {
+    const scene = this.scene();
+    if (!scene || !this.isEditable()) return;
+
+    scene.sounds = encodeCutInSounds(moveSound(scene.soundList, moved.fromMs, moved.toMs));
+    this.changed();
+  }
+
+  protected onRemoveSound(removed: { ms: number }): void {
+    const scene = this.scene();
+    if (!scene || !this.isEditable()) return;
+
+    scene.sounds = encodeCutInSounds(removeSoundAt(scene.soundList, removed.ms));
+    this.changed();
+  }
+
+  /** Drops a sound at the scrubber, chosen from what the room has. */
+  protected addSound(): void {
+    const cutIn = this.cutIn();
+    if (!cutIn || !this.isEditable()) return;
+
+    this.modalService.open<string>(CutInBgmComponent).then((identifier) => {
+      if (!identifier) return;
+
+      const scene = ensureScene(cutIn);
+      scene.sounds = encodeCutInSounds(
+        upsertSound(scene.soundList, { t: this.playheadMs(), a: identifier, v: DEFAULT_SOUND_VOLUME })
+      );
+      this.changed();
+    });
+  }
+
   /**
    * The editor runs the clock itself rather than letting the animations run.
    *
@@ -368,6 +420,7 @@ export class CutInSceneEditorComponent {
     this.playing.set(true);
     const from = this.playheadMs() >= durationMs ? 0 : this.playheadMs();
     const startedAt = performance.now() - from;
+    this.cutInSound.play(this.scene(), from, this.sceneLoop);
 
     const step = () => {
       if (!this.playing()) return;
@@ -390,6 +443,7 @@ export class CutInSceneEditorComponent {
 
   private pause(): void {
     this.playing.set(false);
+    this.cutInSound.stop();
     if (this.clockId !== null) {
       cancelAnimationFrame(this.clockId);
       this.clockId = null;

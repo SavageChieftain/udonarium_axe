@@ -13,6 +13,7 @@ import {
 } from '@angular/core';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { CutInLayer } from '@axe/domain/media/cut-in-layer';
+import type { CutInSound } from '@axe/domain/media/cut-in-sound';
 import { layerKeyTimes } from '@axe/features/media/cut-in-editor/cut-in-keyframe-edit';
 import {
   barRect,
@@ -53,6 +54,7 @@ export class CutInTimelineComponent {
   private readonly destroyRef = inject(DestroyRef);
 
   readonly layers = input<readonly CutInLayer[]>([]);
+  readonly sounds = input<readonly CutInSound[]>([]);
   readonly selected = input<CutInLayer | null>(null);
   readonly durationMs = input(0);
   readonly playheadMs = input(0);
@@ -62,11 +64,14 @@ export class CutInTimelineComponent {
   readonly selectLayer = output<CutInLayer>();
   readonly moveKey = output<{ layer: CutInLayer; fromMs: number; toMs: number }>();
   readonly removeKey = output<{ layer: CutInLayer; ms: number }>();
+  readonly moveSound = output<{ fromMs: number; toMs: number }>();
+  readonly removeSound = output<{ ms: number }>();
 
   private readonly track = viewChild<ElementRef<HTMLElement>>('track');
   private readonly trackWidth = signal(0);
   private scrubbing = false;
   private keyDrag: KeyDrag | null = null;
+  private soundDrag: { fromMs: number; toMs: number } | null = null;
 
   readonly pxPerSec = computed(() => pxPerSecFor(this.durationMs(), this.trackWidth()));
 
@@ -88,6 +93,10 @@ export class CutInTimelineComponent {
       };
     });
   });
+
+  readonly soundMarks = computed(() =>
+    this.sounds().map((sound) => ({ ms: sound.t, x: msToX(sound.t, this.pxPerSec()) }))
+  );
 
   readonly playheadX = computed(() => msToX(this.playheadMs(), this.pxPerSec()));
 
@@ -134,7 +143,40 @@ export class CutInTimelineComponent {
     this.keyDrag = { layer: row.layer, fromMs: grabbed, toMs: grabbed };
   }
 
+  protected onSoundRowDown(event: PointerEvent): void {
+    const grabbed = this.isEditable()
+      ? keyAtX(
+          this.soundMarks().map((mark) => mark.ms),
+          this.offsetOf(event),
+          this.pxPerSec()
+        )
+      : null;
+    if (grabbed === null) {
+      this.onRulerDown(event);
+      return;
+    }
+
+    (event.target as HTMLElement | null)?.setPointerCapture?.(event.pointerId);
+    this.soundDrag = { fromMs: grabbed, toMs: grabbed };
+  }
+
+  protected onSoundRowDoubleClick(event: MouseEvent): void {
+    if (!this.isEditable()) return;
+
+    const at = keyAtX(
+      this.soundMarks().map((mark) => mark.ms),
+      this.offsetOf(event),
+      this.pxPerSec()
+    );
+    if (at === null) return;
+    this.removeSound.emit({ ms: at });
+  }
+
   protected onPointerMove(event: PointerEvent): void {
+    if (this.soundDrag) {
+      this.soundDrag.toMs = this.momentAt(event);
+      return;
+    }
     if (this.keyDrag) {
       this.keyDrag.toMs = this.momentAt(event);
       return;
@@ -145,6 +187,13 @@ export class CutInTimelineComponent {
   protected onPointerUp(event: PointerEvent): void {
     (event.target as HTMLElement | null)?.releasePointerCapture?.(event.pointerId);
     this.scrubbing = false;
+
+    const draggedSound = this.soundDrag;
+    this.soundDrag = null;
+    if (draggedSound && draggedSound.toMs !== draggedSound.fromMs) {
+      this.moveSound.emit(draggedSound);
+      return;
+    }
 
     const dragged = this.keyDrag;
     this.keyDrag = null;

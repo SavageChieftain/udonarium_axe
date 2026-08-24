@@ -52,6 +52,8 @@ describe('CutInSceneEditorComponent', () => {
     onPointerMove(event: PointerEvent): void;
     onPointerUp(event: PointerEvent): void;
     onKeyDown(event: KeyboardEvent): void;
+    onMoveSound(moved: { fromMs: number; toMs: number }): void;
+    onRemoveSound(removed: { ms: number }): void;
     undo(): void;
     redo(): void;
     canUndo(): boolean;
@@ -345,6 +347,43 @@ describe('CutInSceneEditorComponent', () => {
       editor().undo();
 
       expect(component.layers()).toHaveLength(1);
+    });
+  });
+
+  describe('the sounds a scene drops', () => {
+    it('has none to begin with', () => {
+      editor().addImageLayer();
+
+      expect(component.sounds()).toEqual([]);
+    });
+
+    it('slides one along the clock', () => {
+      editor().addImageLayer();
+      component.scene()!.sounds = '[{"t":200,"a":"se-1","v":100}]';
+
+      editor().onMoveSound({ fromMs: 200, toMs: 900 });
+
+      expect(component.sounds().map((sound) => sound.t)).toEqual([900]);
+    });
+
+    it('takes one away', () => {
+      editor().addImageLayer();
+      component.scene()!.sounds = '[{"t":200,"a":"se-1","v":100}]';
+
+      editor().onRemoveSound({ ms: 200 });
+
+      expect(component.sounds()).toEqual([]);
+    });
+
+    it('changes nothing for a reader', () => {
+      editor().addImageLayer();
+      component.scene()!.sounds = '[{"t":200,"a":"se-1","v":100}]';
+      fixture.componentRef.setInput('isEditable', false);
+      fixture.detectChanges();
+
+      editor().onRemoveSound({ ms: 200 });
+
+      expect(component.sounds()).toHaveLength(1);
     });
   });
 });

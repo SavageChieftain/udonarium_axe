@@ -58,17 +58,19 @@ export interface CutInSceneSnapshot {
   durationMs: number;
   sceneLoop: boolean;
   backgroundColor: string;
+  sounds: string;
   /** In the order they are drawn. */
   layers: CutInLayerSnapshot[];
 }
 
 export function snapshotScene(scene: CutInScene | null): CutInSceneSnapshot {
-  if (!scene) return { durationMs: 0, sceneLoop: false, backgroundColor: '', layers: [] };
+  if (!scene) return { durationMs: 0, sceneLoop: false, backgroundColor: '', sounds: '', layers: [] };
 
   return {
     durationMs: scene.durationMs,
     sceneLoop: scene.sceneLoop,
     backgroundColor: scene.backgroundColor,
+    sounds: scene.sounds,
     layers: scene.layers.map((layer) => snapshotLayer(layer)),
   };
 }
@@ -84,6 +86,7 @@ export function restoreScene(scene: CutInScene | null, snapshot: CutInSceneSnaps
   if (scene.durationMs !== snapshot.durationMs) scene.durationMs = snapshot.durationMs;
   if (scene.sceneLoop !== snapshot.sceneLoop) scene.sceneLoop = snapshot.sceneLoop;
   if (scene.backgroundColor !== snapshot.backgroundColor) scene.backgroundColor = snapshot.backgroundColor;
+  if (scene.sounds !== snapshot.sounds) scene.sounds = snapshot.sounds;
 
   const standing = new Map(scene.layers.map((layer) => [layer.identifier, layer]));
   const wanted = new Set(snapshot.layers.map((layer) => layer.identifier));

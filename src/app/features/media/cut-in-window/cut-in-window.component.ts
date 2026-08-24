@@ -11,6 +11,7 @@ import {
   viewChild,
 } from '@angular/core';
 import { YouTubePlayer } from '@angular/youtube-player';
+import { CutInSoundService } from '@axe/application/media/cut-in-sound.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { ModalService } from '@axe/application/ui/modal.service';
 import { PanelService } from '@axe/application/ui/panel.service';
@@ -41,6 +42,7 @@ export class CutInWindowComponent {
   private readonly audioStorage = inject(AudioStorage);
   private readonly imageStorage = inject(ImageStorage);
   private readonly objectChange = inject(ObjectChangeService);
+  private readonly cutInSound = inject(CutInSoundService);
   private readonly destroyRef = inject(DestroyRef);
 
   readonly cutInArea = viewChild<ElementRef<HTMLDivElement>>('cutInArea');
@@ -184,6 +186,9 @@ export class CutInWindowComponent {
       }
     }
 
+    const scene = this.cutIn.scene;
+    if (scene && scene.layers.length > 0) this.cutInSound.play(scene, 0, scene.sceneLoop);
+
     const playbackMs = cutInPlaybackMs(this.cutIn, this.cutIn.scene);
     if (playbackMs > 0) {
       this.cutInTimeOut = setTimeout(() => {
@@ -195,6 +200,7 @@ export class CutInWindowComponent {
 
   stopCutIn() {
     this.audioPlayer.stop();
+    this.cutInSound.stop();
   }
 
   moveCutInPos() {

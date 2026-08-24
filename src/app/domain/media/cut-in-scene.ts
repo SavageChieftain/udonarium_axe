@@ -2,6 +2,7 @@ import { SyncObject, SyncVar } from '@axe/core/sync/decorator';
 import { ObjectNode } from '@axe/core/sync/object-node';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { CutInLayer } from '@axe/domain/media/cut-in-layer';
+import { type CutInSound, parseCutInSounds } from '@axe/domain/media/cut-in-sound';
 
 /**
  * The layers a cut-in is built from, and how long they run.
@@ -28,6 +29,21 @@ export class CutInScene extends ObjectNode {
   @SyncVar() sceneLoop: boolean = false;
   /** What lies behind the layers. Empty leaves the cut-in's own picture or video showing. */
   @SyncVar() backgroundColor: string = '';
+  /** The sounds dropped along the scene's own clock, as JSON. */
+  @SyncVar() sounds: string = '';
+
+  private soundsRaw = '';
+  private soundsParsed: CutInSound[] = [];
+
+  /** Read once per change rather than once per frame, as a layer reads its tracks. */
+  get soundList(): CutInSound[] {
+    const raw = this.sounds ?? '';
+    if (raw !== this.soundsRaw) {
+      this.soundsRaw = raw;
+      this.soundsParsed = parseCutInSounds(raw);
+    }
+    return this.soundsParsed;
+  }
 
   get layers(): CutInLayer[] {
     return this.children.filter((child): child is CutInLayer => child instanceof CutInLayer);

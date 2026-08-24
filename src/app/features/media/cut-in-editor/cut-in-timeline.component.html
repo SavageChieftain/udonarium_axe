@@ -26,6 +26,24 @@
       }
     </div>
 
+    <div
+      class="border-ui-border-panel/60 relative h-5 border-b border-solid"
+      (pointerdown)="onSoundRowDown($event)"
+      (dblclick)="onSoundRowDoubleClick($event)"
+    >
+      <span class="text-ui-dim pointer-events-none absolute top-0.5 left-1 text-[10px]">{{
+        'feature.media.cutInEditor.soundRow' | transloco
+      }}</span>
+      @for (mark of soundMarks(); track mark.ms) {
+        <i
+          class="material-icons text-ui-accent pointer-events-none absolute top-0.5 text-[13px]!"
+          [style.left.px]="mark.x"
+          [style.margin-left.px]="-6"
+          >volume_up</i
+        >
+      }
+    </div>
+
     @for (row of rows(); track row.layer.identifier) {
       <div
         class="border-ui-border-panel/60 relative h-6 border-b border-solid"
