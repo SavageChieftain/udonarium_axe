@@ -42,6 +42,8 @@ describe('CutInSceneEditorComponent', () => {
 
   type EditorApi = {
     addImageLayer(): void;
+    addTextLayer(): void;
+    addFillLayer(): void;
     duplicateSelected(): void;
     removeSelected(): void;
     onToggleHidden(layer: CutInLayer): void;
@@ -99,6 +101,25 @@ describe('CutInSceneEditorComponent', () => {
     const layer = component.layers()[0];
     expect(layer.x + layer.width / 2).toBe(320);
     expect(layer.y + layer.height / 2).toBe(180);
+  });
+
+  it('lays down words and bands as well as pictures', () => {
+    editor().addTextLayer();
+    editor().addFillLayer();
+
+    expect(component.layers().map((layer) => layer.kind)).toEqual(['text', 'fill']);
+  });
+
+  it('gives a new text layer something to say', () => {
+    editor().addTextLayer();
+
+    expect(component.layers()[0].text.length).toBeGreaterThan(0);
+  });
+
+  it('runs a band across the whole width', () => {
+    editor().addFillLayer();
+
+    expect(component.layers()[0].width).toBe(640);
   });
 
   it('selects what it just added', () => {

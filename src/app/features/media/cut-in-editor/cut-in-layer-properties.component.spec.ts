@@ -124,4 +124,75 @@ describe('CutInLayerPropertiesComponent', () => {
 
     expect(layer.x).toBe(100);
   });
+
+  describe('what a text layer is told', () => {
+    beforeEach(() => {
+      layer.kind = 'text';
+      fixture.detectChanges();
+    });
+
+    it('takes the words and the way they look', () => {
+      component.text = '見せ場だ';
+      component.fontSizePx = 64;
+      component.color = '#ff8800';
+      component.textAlign = 'left';
+
+      expect(layer.text).toBe('見せ場だ');
+      expect(layer.fontSizePx).toBe(64);
+      expect(layer.color).toBe('#ff8800');
+      expect(layer.textAlign).toBe('left');
+    });
+
+    it('holds the weight to what a font has', () => {
+      component.fontWeight = 5000;
+      expect(layer.fontWeight).toBe(900);
+
+      component.fontWeight = 0;
+      expect(layer.fontWeight).toBe(400);
+    });
+
+    it('turns away an alignment that means nothing', () => {
+      component.textAlign = 'sideways' as never;
+
+      expect(layer.textAlign).toBe('center');
+    });
+
+    it('never gives the outline a negative width', () => {
+      component.strokeWidthPx = -4;
+
+      expect(layer.strokeWidthPx).toBe(0);
+    });
+  });
+
+  describe('what a band layer is told', () => {
+    beforeEach(() => {
+      layer.kind = 'fill';
+      fixture.detectChanges();
+    });
+
+    it('starts as one flat colour', () => {
+      expect(component.fillGradient).toBe(false);
+    });
+
+    it('shades into another colour when asked, starting from the one it has', () => {
+      component.fillFrom = '#102030';
+      component.fillGradient = true;
+
+      expect(layer.fillTo).toBe('#102030');
+      expect(component.fillGradient).toBe(true);
+    });
+
+    it('goes back to one colour when told to', () => {
+      component.fillGradient = true;
+      component.fillGradient = false;
+
+      expect(layer.fillTo).toBe('');
+    });
+
+    it('takes the angle it shades along', () => {
+      component.fillAngleDeg = 45;
+
+      expect(layer.fillAngleDeg).toBe(45);
+    });
+  });
 });

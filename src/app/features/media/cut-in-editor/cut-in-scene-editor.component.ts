@@ -16,7 +16,7 @@ import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { EditHistory } from '@axe/core/util/edit-history';
 import { CutIn } from '@axe/domain/media/cut-in';
-import { CutInLayer } from '@axe/domain/media/cut-in-layer';
+import { CutInLayer, type CutInLayerKind } from '@axe/domain/media/cut-in-layer';
 import { CutInScene } from '@axe/domain/media/cut-in-scene';
 import {
   cloneSceneSnapshot,
@@ -175,11 +175,23 @@ export class CutInSceneEditorComponent {
   }
 
   protected addImageLayer(): void {
+    this.addLayerOfKind('image', 'newImageLayer');
+  }
+
+  protected addTextLayer(): void {
+    this.addLayerOfKind('text', 'newTextLayer');
+  }
+
+  protected addFillLayer(): void {
+    this.addLayerOfKind('fill', 'newFillLayer');
+  }
+
+  private addLayerOfKind(kind: CutInLayerKind, nameKey: string): void {
     const cutIn = this.cutIn();
     if (!cutIn || !this.isEditable()) return;
 
     const scene = ensureScene(cutIn);
-    const layer = addLayer(scene, 'image', this.t('feature.media.cutInEditor.newImageLayer'), {
+    const layer = addLayer(scene, kind, this.t(`feature.media.cutInEditor.${nameKey}`), {
       width: cutIn.width,
       height: cutIn.height,
     });

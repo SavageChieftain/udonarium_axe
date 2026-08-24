@@ -25,6 +25,126 @@
       </button>
     }
 
+    @if (layer.kind === 'text') {
+      <textarea
+        class="bg-ui-input border-ui-border-panel text-ui-text rounded-ui-sm focus:border-ui-accent box-border h-14 w-full resize-none border border-solid px-2 py-1 text-[12px] outline-none disabled:opacity-50"
+        name="cut-in-layer-text"
+        [(ngModel)]="text"
+        [placeholder]="'feature.media.cutInEditor.textPlaceholder' | transloco"
+        [attr.disabled]="!isEditable() ? '' : null"
+      ></textarea>
+      <div class="grid grid-cols-[3.2rem_1fr_3.2rem_1fr] items-center gap-1.5">
+        <label class="text-ui-muted text-[11px]">{{ 'feature.media.cutInEditor.fontSize' | transloco }}</label>
+        <input
+          class="bg-ui-input border-ui-border-panel text-ui-text rounded-ui-sm box-border w-full border border-solid px-1.5 py-1 text-right text-[12px] outline-none disabled:opacity-50"
+          name="cut-in-layer-font-size"
+          type="number"
+          min="1"
+          [(ngModel)]="fontSizePx"
+          [attr.disabled]="!isEditable() ? '' : null"
+        />
+        <label class="text-ui-muted text-[11px]">{{ 'feature.media.cutInEditor.fontWeight' | transloco }}</label>
+        <input
+          class="bg-ui-input border-ui-border-panel text-ui-text rounded-ui-sm box-border w-full border border-solid px-1.5 py-1 text-right text-[12px] outline-none disabled:opacity-50"
+          name="cut-in-layer-font-weight"
+          type="number"
+          min="100"
+          max="900"
+          step="100"
+          [(ngModel)]="fontWeight"
+          [attr.disabled]="!isEditable() ? '' : null"
+        />
+        <label class="text-ui-muted text-[11px]">{{ 'feature.media.cutInEditor.color' | transloco }}</label>
+        <input
+          class="bg-ui-input border-ui-border-panel rounded-ui-sm box-border h-7 w-full border border-solid p-0.5 disabled:opacity-50"
+          name="cut-in-layer-color"
+          type="color"
+          [(ngModel)]="color"
+          [attr.disabled]="!isEditable() ? '' : null"
+        />
+        <label class="text-ui-muted text-[11px]">{{ 'feature.media.cutInEditor.align' | transloco }}</label>
+        <select
+          class="bg-ui-input border-ui-border-panel text-ui-text rounded-ui-sm box-border w-full border border-solid p-1 text-[12px] outline-none disabled:opacity-50"
+          name="cut-in-layer-align"
+          [(ngModel)]="textAlign"
+          [attr.disabled]="!isEditable() ? '' : null"
+        >
+          @for (align of textAligns; track align) {
+            <option [value]="align">{{ 'feature.media.cutInEditor.align' + align | transloco }}</option>
+          }
+        </select>
+        <label class="text-ui-muted text-[11px]">{{ 'feature.media.cutInEditor.strokeColor' | transloco }}</label>
+        <input
+          class="bg-ui-input border-ui-border-panel rounded-ui-sm box-border h-7 w-full border border-solid p-0.5 disabled:opacity-50"
+          name="cut-in-layer-stroke-color"
+          type="color"
+          [(ngModel)]="strokeColor"
+          [attr.disabled]="!isEditable() ? '' : null"
+        />
+        <label class="text-ui-muted text-[11px]">{{ 'feature.media.cutInEditor.strokeWidth' | transloco }}</label>
+        <input
+          class="bg-ui-input border-ui-border-panel text-ui-text rounded-ui-sm box-border w-full border border-solid px-1.5 py-1 text-right text-[12px] outline-none disabled:opacity-50"
+          name="cut-in-layer-stroke-width"
+          type="number"
+          min="0"
+          [(ngModel)]="strokeWidthPx"
+          [attr.disabled]="!isEditable() ? '' : null"
+        />
+        <label class="text-ui-muted col-span-2 text-[11px]">{{
+          'feature.media.cutInEditor.fontFamily' | transloco
+        }}</label>
+        <input
+          class="bg-ui-input border-ui-border-panel text-ui-text rounded-ui-sm col-span-2 box-border w-full border border-solid px-1.5 py-1 text-[12px] outline-none disabled:opacity-50"
+          name="cut-in-layer-font-family"
+          [(ngModel)]="fontFamily"
+          [placeholder]="'feature.media.cutInEditor.fontFamilyPlaceholder' | transloco"
+          [attr.disabled]="!isEditable() ? '' : null"
+        />
+      </div>
+    }
+
+    @if (layer.kind === 'fill') {
+      <div class="grid grid-cols-[3.2rem_1fr_3.2rem_1fr] items-center gap-1.5">
+        <label class="text-ui-muted text-[11px]">{{ 'feature.media.cutInEditor.fillFrom' | transloco }}</label>
+        <input
+          class="bg-ui-input border-ui-border-panel rounded-ui-sm box-border h-7 w-full border border-solid p-0.5 disabled:opacity-50"
+          name="cut-in-layer-fill-from"
+          type="color"
+          [(ngModel)]="fillFrom"
+          [attr.disabled]="!isEditable() ? '' : null"
+        />
+        <label
+          class="text-ui-muted col-span-2 flex cursor-pointer items-center gap-1 text-[11px] select-none [&_input]:size-3.5 [&_input]:[accent-color:var(--ui-accent)]"
+        >
+          <input
+            type="checkbox"
+            name="cut-in-layer-fill-gradient"
+            [(ngModel)]="fillGradient"
+            [attr.disabled]="!isEditable() ? '' : null"
+          />
+          {{ 'feature.media.cutInEditor.fillGradient' | transloco }}
+        </label>
+        @if (fillGradient) {
+          <label class="text-ui-muted text-[11px]">{{ 'feature.media.cutInEditor.fillTo' | transloco }}</label>
+          <input
+            class="bg-ui-input border-ui-border-panel rounded-ui-sm box-border h-7 w-full border border-solid p-0.5 disabled:opacity-50"
+            name="cut-in-layer-fill-to"
+            type="color"
+            [(ngModel)]="fillTo"
+            [attr.disabled]="!isEditable() ? '' : null"
+          />
+          <label class="text-ui-muted text-[11px]">{{ 'feature.media.cutInEditor.fillAngle' | transloco }}</label>
+          <input
+            class="bg-ui-input border-ui-border-panel text-ui-text rounded-ui-sm box-border w-full border border-solid px-1.5 py-1 text-right text-[12px] outline-none disabled:opacity-50"
+            name="cut-in-layer-fill-angle"
+            type="number"
+            [(ngModel)]="fillAngleDeg"
+            [attr.disabled]="!isEditable() ? '' : null"
+          />
+        }
+      </div>
+    }
+
     <div class="grid grid-cols-[3.2rem_1fr_auto_3.2rem_1fr_auto] items-center gap-1.5">
       <label class="text-ui-muted text-[11px]">X</label>
       <input

@@ -9,6 +9,22 @@
       <i class="material-icons">image</i>{{ 'feature.media.cutInEditor.addImage' | transloco }}
     </button>
     <button
+      class="border-ui-border-panel text-ui-muted hover:bg-ui-hover hover:text-ui-text rounded-ui-sm inline-flex cursor-pointer items-center gap-1 border border-solid bg-transparent px-2 py-1 disabled:cursor-not-allowed disabled:opacity-50 [&_.material-icons]:text-[14px]!"
+      type="button"
+      [disabled]="!isEditable()"
+      (click)="addTextLayer()"
+    >
+      <i class="material-icons">title</i>{{ 'feature.media.cutInEditor.addText' | transloco }}
+    </button>
+    <button
+      class="border-ui-border-panel text-ui-muted hover:bg-ui-hover hover:text-ui-text rounded-ui-sm inline-flex cursor-pointer items-center gap-1 border border-solid bg-transparent px-2 py-1 disabled:cursor-not-allowed disabled:opacity-50 [&_.material-icons]:text-[14px]!"
+      type="button"
+      [disabled]="!isEditable()"
+      (click)="addFillLayer()"
+    >
+      <i class="material-icons">gradient</i>{{ 'feature.media.cutInEditor.addFill' | transloco }}
+    </button>
+    <button
       class="border-ui-border-panel text-ui-muted hover:bg-ui-hover hover:text-ui-text rounded-ui-sm inline-flex size-7 cursor-pointer items-center justify-center border border-solid bg-transparent p-0 disabled:cursor-not-allowed disabled:opacity-50 [&_.material-icons]:text-[14px]!"
       type="button"
       [disabled]="!isEditable() || !selected()"

@@ -4,7 +4,7 @@ import { ImageService } from '@axe/application/storage/image.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { ModalService } from '@axe/application/ui/modal.service';
 import type { CutInTrackName } from '@axe/domain/media/cut-in-keyframe';
-import { CutInLayer } from '@axe/domain/media/cut-in-layer';
+import { CUT_IN_TEXT_ALIGNS, CutInLayer, type CutInTextAlign, isCutInTextAlign } from '@axe/domain/media/cut-in-layer';
 import { hasKeyAt, setValueAt, toggleKeyAt, valueAt } from '@axe/features/media/cut-in-editor/cut-in-keyframe-edit';
 import { FileSelecterComponent } from '@axe/ui/components/file-selecter/file-selecter.component';
 import { SafePipe } from '@axe/ui/pipes/safe.pipe';
@@ -35,6 +35,8 @@ export class CutInLayerPropertiesComponent {
   readonly playheadMs = input(0);
 
   readonly commit = output<void>();
+
+  readonly textAligns = CUT_IN_TEXT_ALIGNS;
 
   readonly imageUrl = computed(() => {
     const layer = this.layer();
@@ -161,6 +163,91 @@ export class CutInLayerPropertiesComponent {
   }
   set endMs(endMs: number) {
     this.write((layer) => (layer.endMs = Math.max(0, Number(endMs) || 0)));
+  }
+
+  get text(): string {
+    return this.layer()?.text ?? '';
+  }
+  set text(text: string) {
+    this.write((layer) => (layer.text = text));
+  }
+
+  get fontSizePx(): number {
+    return Math.round(this.layer()?.fontSizePx ?? 32);
+  }
+  set fontSizePx(fontSizePx: number) {
+    this.write((layer) => (layer.fontSizePx = Math.max(1, Number(fontSizePx) || 1)));
+  }
+
+  get fontWeight(): number {
+    return Math.round(this.layer()?.fontWeight ?? 700);
+  }
+  set fontWeight(fontWeight: number) {
+    this.write((layer) => (layer.fontWeight = Math.min(900, Math.max(100, Number(fontWeight) || 400))));
+  }
+
+  get fontFamily(): string {
+    return this.layer()?.fontFamily ?? '';
+  }
+  set fontFamily(fontFamily: string) {
+    this.write((layer) => (layer.fontFamily = fontFamily));
+  }
+
+  get color(): string {
+    return this.layer()?.color ?? '#ffffff';
+  }
+  set color(color: string) {
+    this.write((layer) => (layer.color = color));
+  }
+
+  get textAlign(): CutInTextAlign {
+    return this.layer()?.textAlign ?? 'center';
+  }
+  set textAlign(textAlign: CutInTextAlign) {
+    this.write((layer) => (layer.textAlign = isCutInTextAlign(textAlign) ? textAlign : 'center'));
+  }
+
+  get strokeColor(): string {
+    return this.layer()?.strokeColor || '#000000';
+  }
+  set strokeColor(strokeColor: string) {
+    this.write((layer) => (layer.strokeColor = strokeColor));
+  }
+
+  get strokeWidthPx(): number {
+    return Math.round(this.layer()?.strokeWidthPx ?? 0);
+  }
+  set strokeWidthPx(strokeWidthPx: number) {
+    this.write((layer) => (layer.strokeWidthPx = Math.max(0, Number(strokeWidthPx) || 0)));
+  }
+
+  get fillFrom(): string {
+    return this.layer()?.fillFrom ?? '#000000';
+  }
+  set fillFrom(fillFrom: string) {
+    this.write((layer) => (layer.fillFrom = fillFrom));
+  }
+
+  get fillTo(): string {
+    return this.layer()?.fillTo || '#000000';
+  }
+  set fillTo(fillTo: string) {
+    this.write((layer) => (layer.fillTo = fillTo));
+  }
+
+  /** Whether the band shades from one colour into another, rather than being one flat colour. */
+  get fillGradient(): boolean {
+    return (this.layer()?.fillTo.length ?? 0) > 0;
+  }
+  set fillGradient(gradient: boolean) {
+    this.write((layer) => (layer.fillTo = gradient ? layer.fillTo || layer.fillFrom : ''));
+  }
+
+  get fillAngleDeg(): number {
+    return Math.round(this.layer()?.fillAngleDeg ?? 90);
+  }
+  set fillAngleDeg(fillAngleDeg: number) {
+    this.write((layer) => (layer.fillAngleDeg = Number(fillAngleDeg) || 0));
   }
 
   chooseImage(): void {
