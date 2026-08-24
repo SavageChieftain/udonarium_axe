@@ -6,11 +6,20 @@
       [title]="'feature.media.cutIn.selectImageTitle' | transloco"
       role="button"
     >
-      <img
-        class="block size-full object-contain"
-        [src]="cutInImageUrl() | safe: 'resourceUrl'"
-        [alt]="'feature.media.cutIn.previewAlt' | transloco"
-      />
+      @if (cutInImageUrl(); as url) {
+        <img
+          class="block size-full object-contain"
+          [src]="url | safe: 'resourceUrl'"
+          [alt]="'feature.media.cutIn.previewAlt' | transloco"
+        />
+      } @else {
+        <div
+          class="text-ui-dim flex size-full flex-col items-center justify-center gap-0.5 [&_.material-icons]:text-[24px]!"
+        >
+          <i class="material-icons">add_photo_alternate</i>
+          <span class="text-[10px] leading-none">{{ 'feature.media.cutIn.noImage' | transloco }}</span>
+        </div>
+      }
       @if (isYouTubeCutIn()) {
         <i
           class="material-icons text-ui-danger absolute right-1 bottom-1 text-[18px]! [text-shadow:0_1px_3px_rgba(0,0,0,0.7)]"

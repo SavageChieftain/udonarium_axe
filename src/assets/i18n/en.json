@@ -240,6 +240,7 @@
         "defaultName": "Untitled cut-in",
         "panelTitleWith": "Cut-in : {{name}}",
         "selectImageTitle": "Select image",
+        "noImage": "No image",
         "previewAlt": "Preview",
         "nameLabel": "Name",
         "namePlaceholder": "Cut-in name",
