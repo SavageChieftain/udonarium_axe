@@ -329,11 +329,13 @@ function paintLayer(
   const picture = layer.imageIdentifier ? assets.imageOf(layer.imageIdentifier) : null;
   if (!picture) return;
 
-  const size = containRect(picture, layer.width, layer.height);
+  // A cropped picture keeps the part it was told to keep, the way object-position does.
+  const cover = layer.objectFit === 'cover';
+  const size = cover ? coverSize(picture, layer.width, layer.height) : containRect(picture, layer.width, layer.height);
   ctx.drawImage(
     picture,
-    left + (layer.width - size.width) / 2,
-    top + (layer.height - size.height) / 2,
+    left + ((layer.width - size.width) * layer.objectPosX) / 100,
+    top + ((layer.height - size.height) * layer.objectPosY) / 100,
     size.width,
     size.height
   );
@@ -485,6 +487,12 @@ function paintStripes(
     at++;
   }
   ctx.restore();
+}
+
+/** A picture blown up until it covers the box, which is what object-fit: cover does. */
+function coverSize(picture: ReplayFrameImage, width: number, height: number): { width: number; height: number } {
+  const scale = Math.max(width / picture.width, height / picture.height);
+  return { width: picture.width * scale, height: picture.height * scale };
 }
 
 /** The box the layers take up between them, which stands in for the cut-in's own size. */

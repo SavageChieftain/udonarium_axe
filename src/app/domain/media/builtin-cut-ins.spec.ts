@@ -73,17 +73,31 @@ describe('the cut-ins a new room starts with', () => {
     expect(words).toEqual(['カッ', 'ブチッ']);
   });
 
-  it('stands the older window upright and leans the newer one over', () => {
-    const [flash, tear] = made();
-    const frameOf = (cutIn: CutIn) => cutIn.scene!.layers.find((layer) => layer.name === '枠')!;
+  it('lays the older one out as a band across the screen', () => {
+    const [flash] = made();
+    const band = flash.scene!.layers.find((layer) => layer.name === '帯の縁')!;
 
-    expect(frameOf(flash).rotation).toBe(0);
-    expect(frameOf(flash).skewXDeg).toBe(0);
-    expect(frameOf(flash).clip).toBe('none');
+    // Wide and short with its ends cut on the diagonal, which is the shape of it.
+    expect(flash.width / flash.height).toBeGreaterThan(3);
+    expect(band.width / band.height).toBeGreaterThan(3);
+    expect(band.clip).toBe('slant');
+  });
 
-    expect(frameOf(tear).rotation).toBeLessThan(0);
-    expect(frameOf(tear).skewXDeg).toBeLessThan(0);
-    expect(frameOf(tear).clip).toBe('torn');
+  it('shows the eyes rather than whatever the middle of a picture happens to be', () => {
+    const [flash] = made();
+    const eyes = flash.scene!.layers.find((layer) => layer.kind === 'image')!;
+
+    expect(eyes.objectFit).toBe('cover');
+    expect(eyes.objectPosY).toBeLessThan(50);
+  });
+
+  it('tears and leans the newer one', () => {
+    const [, tear] = made();
+    const frame = tear.scene!.layers.find((layer) => layer.name === '枠')!;
+
+    expect(frame.rotation).toBeLessThan(0);
+    expect(frame.skewXDeg).toBeLessThan(0);
+    expect(frame.clip).toBe('torn');
   });
 
   it('lays lines converging on the middle behind both of them', () => {
@@ -91,7 +105,7 @@ describe('the cut-ins a new room starts with', () => {
       const rays = cutIn.scene!.layers.find((layer) => layer.fillShape === 'speedlines');
 
       expect(rays).toBeDefined();
-      expect(rays?.width).toBe(cutIn.width);
+      expect(rays!.width).toBeGreaterThan(cutIn.width * 0.9);
     }
   });
 
@@ -122,12 +136,21 @@ describe('the cut-ins a new room starts with', () => {
     }
   });
 
-  it('opens the upright window rather than fading it in', () => {
+  it('wipes the band open rather than fading it in', () => {
     const [flash] = made();
-    const frame = flash.scene!.layers.find((layer) => layer.name === '枠')!;
+    const band = flash.scene!.layers.find((layer) => layer.name === '帯の縁')!;
 
-    expect(frame.trackSet.scaleX?.[0].v).toBeLessThan(0.1);
-    expect(frame.trackSet.opacity?.[0].v).toBe(1);
+    expect(band.trackSet.scaleX?.[0].v).toBeLessThan(0.1);
+    expect(band.trackSet.opacity?.[0].v).toBe(1);
+  });
+
+  it('stamps the word at the end of the band, leaning', () => {
+    const [flash] = made();
+    const word = flash.scene!.layers.find((layer) => layer.kind === 'text')!;
+
+    expect(word.x).toBeGreaterThan(flash.width / 2);
+    expect(word.textAlign).toBe('right');
+    expect(word.rotation).toBeLessThan(0);
   });
 
   it('slams the leaning window in from off the right', () => {

@@ -42,6 +42,9 @@ export interface ReplayCutInLayer {
   startMs: number;
   endMs: number;
   imageIdentifier: string;
+  objectFit: string;
+  objectPosX: number;
+  objectPosY: number;
   text: string;
   fontSizePx: number;
   fontWeight: number;
@@ -198,6 +201,9 @@ function readLayer(attributes: Record<string, unknown>): ReplayCutInLayer {
     startMs: number(attributes['startMs'], 0),
     endMs: number(attributes['endMs'], 0),
     imageIdentifier: text(attributes['imageIdentifier']),
+    objectFit: text(attributes['objectFit']) || 'contain',
+    objectPosX: number(attributes['objectPosX'], 50),
+    objectPosY: number(attributes['objectPosY'], 50),
     text: text(attributes['text']),
     fontSizePx: number(attributes['fontSizePx'], 32),
     fontWeight: number(attributes['fontWeight'], 700),

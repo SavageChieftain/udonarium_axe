@@ -705,6 +705,9 @@ describe('paintReplayFrame()', () => {
           startMs: 0,
           endMs: 0,
           imageIdentifier: '',
+          objectFit: 'contain',
+          objectPosX: 50,
+          objectPosY: 50,
           text: '',
           fontSizePx: 32,
           fontWeight: 700,
@@ -931,6 +934,45 @@ describe('paintReplayFrame()', () => {
       );
 
       expect(leaned.images[0].x).not.toBe(upright.images[0].x);
+    });
+
+    it('keeps the part of a cropped picture it was told to keep', () => {
+      const high = recorder();
+      const low = recorder();
+      const cropped = { imageIdentifier: 'pic', objectFit: 'cover' as const, width: 400, height: 100 };
+
+      paintReplayFrame(
+        high.ctx,
+        layout,
+        shot({ cutInScene: sceneOf([{ ...cropped, objectPosY: 0 }]) }),
+        assets,
+        0,
+        DEFAULT_REPLAY_FRAME_STYLE,
+        null,
+        0
+      );
+      paintReplayFrame(
+        low.ctx,
+        layout,
+        shot({ cutInScene: sceneOf([{ ...cropped, objectPosY: 100 }]) }),
+        assets,
+        0,
+        DEFAULT_REPLAY_FRAME_STYLE,
+        null,
+        0
+      );
+
+      expect(low.images[0].y).toBeLessThan(high.images[0].y);
+    });
+
+    it('blows a cropped picture up until it covers the box', () => {
+      const { ctx, images } = recorder();
+      const scene = sceneOf([{ imageIdentifier: 'pic', objectFit: 'cover', width: 400, height: 100 }]);
+
+      paintReplayFrame(ctx, layout, shot({ cutInScene: scene }), assets, 0, DEFAULT_REPLAY_FRAME_STYLE, null, 0);
+
+      expect(images[0].width).toBeGreaterThanOrEqual(400);
+      expect(images[0].height).toBeGreaterThanOrEqual(100);
     });
 
     it('draws nothing extra for a cut-in that is one picture', () => {

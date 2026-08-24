@@ -65,6 +65,9 @@ export class CutInLayer extends ObjectNode {
   // The name matches what the save routine looks for, so a layer's picture rides along in the zip.
   @SyncVar() imageIdentifier: string = '';
   @SyncVar() objectFit: string = 'contain';
+  /** Which part of the picture is kept when it is cropped, as a percentage across and down. */
+  @SyncVar() objectPosX: number = 50;
+  @SyncVar() objectPosY: number = 50;
 
   // kind: text
   @SyncVar() text: string = '';

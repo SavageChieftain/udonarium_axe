@@ -34,6 +34,8 @@ const LAYER_FIELDS = [
   'endMs',
   'imageIdentifier',
   'objectFit',
+  'objectPosX',
+  'objectPosY',
   'text',
   'fontSizePx',
   'fontWeight',

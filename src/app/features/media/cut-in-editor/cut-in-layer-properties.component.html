@@ -38,6 +38,44 @@
       </button>
     }
 
+    @if (layer.kind === 'image') {
+      <label
+        class="text-ui-muted flex cursor-pointer items-center gap-1 py-0.5 text-[11px] select-none [&_input]:size-3.5 [&_input]:[accent-color:var(--ui-accent)]"
+      >
+        <input
+          type="checkbox"
+          name="cut-in-layer-image-crops"
+          [(ngModel)]="imageCrops"
+          [attr.disabled]="!isEditable() ? '' : null"
+        />
+        {{ 'feature.media.cutInEditor.imageCrops' | transloco }}
+      </label>
+      @if (imageCrops) {
+        <div class="grid grid-cols-[3.6rem_minmax(0,1fr)] items-center gap-x-1.5 gap-y-1">
+          <label class="text-ui-muted text-[11px]">{{ 'feature.media.cutInEditor.objectPosX' | transloco }}</label>
+          <input
+            class="w-full [accent-color:var(--ui-accent)] disabled:opacity-50"
+            name="cut-in-layer-object-pos-x"
+            type="range"
+            min="0"
+            max="100"
+            [(ngModel)]="objectPosX"
+            [attr.disabled]="!isEditable() ? '' : null"
+          />
+          <label class="text-ui-muted text-[11px]">{{ 'feature.media.cutInEditor.objectPosY' | transloco }}</label>
+          <input
+            class="w-full [accent-color:var(--ui-accent)] disabled:opacity-50"
+            name="cut-in-layer-object-pos-y"
+            type="range"
+            min="0"
+            max="100"
+            [(ngModel)]="objectPosY"
+            [attr.disabled]="!isEditable() ? '' : null"
+          />
+        </div>
+      }
+    }
+
     @if (layer.kind === 'text') {
       <textarea
         class="bg-ui-input border-ui-border-panel text-ui-text rounded-ui-sm focus:border-ui-accent box-border h-14 w-full resize-none border border-solid px-2 py-1 text-[12px] outline-none disabled:opacity-50"

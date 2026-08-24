@@ -230,6 +230,28 @@ export class CutInLayerPropertiesComponent {
     this.write((layer) => (layer.endMs = Math.max(0, Number(endMs) || 0)));
   }
 
+  /** Whether the picture is cropped, and so has a part worth choosing. */
+  get imageCrops(): boolean {
+    return (this.layer()?.objectFit ?? 'contain') === 'cover';
+  }
+  set imageCrops(crops: boolean) {
+    this.write((layer) => (layer.objectFit = crops ? 'cover' : 'contain'));
+  }
+
+  get objectPosX(): number {
+    return Math.round(this.layer()?.objectPosX ?? 50);
+  }
+  set objectPosX(objectPosX: number) {
+    this.write((layer) => (layer.objectPosX = Math.min(100, Math.max(0, Number(objectPosX) || 0))));
+  }
+
+  get objectPosY(): number {
+    return Math.round(this.layer()?.objectPosY ?? 50);
+  }
+  set objectPosY(objectPosY: number) {
+    this.write((layer) => (layer.objectPosY = Math.min(100, Math.max(0, Number(objectPosY) || 0))));
+  }
+
   get text(): string {
     return this.layer()?.text ?? '';
   }

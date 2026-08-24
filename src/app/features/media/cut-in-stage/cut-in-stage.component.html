@@ -46,6 +46,7 @@
                 draggable="false"
                 [src]="url | safe: 'resourceUrl'"
                 [style.object-fit]="layer.objectFit"
+                [style.object-position]="layer.objectPosX + '% ' + layer.objectPosY + '%'"
                 alt=""
               />
             }
