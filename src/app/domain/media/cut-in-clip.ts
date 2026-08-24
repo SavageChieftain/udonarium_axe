@@ -13,6 +13,7 @@ export const CUT_IN_CLIPS = [
   'slantBack',
   'torn',
   'tornLeft',
+  'gash',
   'burst',
   'star',
   'chevron',
@@ -47,6 +48,7 @@ const SHAPES: Record<Exclude<CutInClip, 'none' | 'circle'>, readonly ClipPoint[]
   ],
   torn: tornOutline(true, true),
   tornLeft: tornOutline(true, false),
+  gash: gashOutline(),
   burst: burstOutline(),
   star: starOutline(),
   chevron: [
@@ -102,6 +104,51 @@ function tornOutline(right: boolean, left: boolean): readonly ClipPoint[] {
     }
   }
   return points;
+}
+
+/**
+ * A tear ripped across, wide and ragged, coming to a point at either end.
+ *
+ * The teeth are written out rather than worked out, because a tear that came out
+ * differently on each screen would not be the same cut-in twice.
+ */
+function gashOutline(): readonly ClipPoint[] {
+  const top: ClipPoint[] = [
+    [0, 0.5],
+    [0.045, 0.3],
+    [0.09, 0.38],
+    [0.15, 0.16],
+    [0.2, 0.26],
+    [0.265, 0.08],
+    [0.325, 0.2],
+    [0.39, 0.05],
+    [0.455, 0.18],
+    [0.525, 0.03],
+    [0.59, 0.16],
+    [0.66, 0.06],
+    [0.725, 0.19],
+    [0.79, 0.1],
+    [0.86, 0.24],
+    [0.925, 0.16],
+    [1, 0.42],
+  ];
+  const bottom: ClipPoint[] = [
+    [0.945, 0.6],
+    [0.88, 0.8],
+    [0.815, 0.68],
+    [0.745, 0.88],
+    [0.68, 0.74],
+    [0.61, 0.94],
+    [0.54, 0.8],
+    [0.47, 0.97],
+    [0.4, 0.82],
+    [0.33, 0.95],
+    [0.26, 0.79],
+    [0.19, 0.92],
+    [0.12, 0.74],
+    [0.055, 0.84],
+  ];
+  return [...top, ...bottom];
 }
 
 function burstOutline(): readonly ClipPoint[] {

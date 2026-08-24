@@ -47,6 +47,18 @@ describe('clipPoints()', () => {
     expect(clipPoints('torn')).toEqual(clipPoints('torn'));
   });
 
+  it('rips a gash that is wide, ragged and pointed at both ends', () => {
+    const corners = clipPoints('gash');
+
+    expect(corners.length).toBeGreaterThan(20);
+    // It reaches both edges, and comes to a point rather than a flat end at each.
+    expect(corners.filter(([x]) => x === 0)).toHaveLength(1);
+    expect(corners.filter(([x]) => x === 1)).toHaveLength(1);
+    // Nothing along it runs straight, which is what makes it a tear.
+    const heights = new Set(corners.map(([, y]) => y));
+    expect(heights.size).toBeGreaterThan(15);
+  });
+
   it('gives a burst points that reach out and come back', () => {
     const reaches = clipPoints('burst').map(([x, y]) => Math.hypot(x - 0.5, y - 0.5));
 

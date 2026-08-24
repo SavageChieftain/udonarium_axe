@@ -28,7 +28,9 @@ import { PresetSound } from '@axe/domain/media/sound-effect';
 type PresetSoundKey = Exclude<keyof typeof PresetSound, 'prototype'>;
 
 export const SAMPLE_PORTRAIT_IDENTIFIER = 'cutInSamplePortrait_image';
+export const SAMPLE_FACE_IDENTIFIER = 'cutInSampleFace_image';
 const SAMPLE_PORTRAIT_URL = './assets/images/cutin_sample_portrait.png';
+const SAMPLE_FACE_URL = './assets/images/cutin_sample_face.png';
 
 interface LayerSeed {
   identifier: string;
@@ -56,6 +58,7 @@ interface LayerSeed {
 
   // image
   portrait?: boolean;
+  face?: boolean;
   objectFit?: string;
   objectPosY?: number;
   opacity?: number;
@@ -101,22 +104,18 @@ const WIPE_OPEN: CutInTrackSet = {
   ],
 };
 
-/** The leaning window slamming in from the right and settling back upright. */
-const SLAM_IN = (restX: number): CutInTrackSet => ({
-  x: [
-    { t: 120, v: restX + 980, e: 'outCubic' },
-    { t: 380, v: restX },
-  ],
-  rotation: [
-    { t: 120, v: -26, e: 'outCubic' },
-    { t: 380, v: -13 },
+/** The tear ripping open, which is a gap widening rather than a thing arriving. */
+const RIP_OPEN: CutInTrackSet = {
+  scaleY: [
+    { t: 0, v: 0.04, e: 'outCubic' },
+    { t: 140, v: 1 },
   ],
   opacity: [
-    { t: 120, v: 1, e: 'linear' },
-    { t: 1250, v: 1, e: 'inCubic' },
-    { t: 1400, v: 0 },
+    { t: 0, v: 1, e: 'linear' },
+    { t: 1320, v: 1, e: 'inCubic' },
+    { t: 1500, v: 0 },
   ],
-});
+};
 
 export const DEFAULT_CUT_IN_SEEDS: readonly CutInSeed[] = [
   {
@@ -285,155 +284,104 @@ export const DEFAULT_CUT_IN_SEEDS: readonly CutInSeed[] = [
     identifier: 'sample-cut-in-tear',
     sceneIdentifier: 'sample-cut-in-tear-scene',
     name: '見本 : ブチッ',
-    width: 800,
-    height: 450,
-    durationMs: 1400,
+    width: 1200,
+    height: 470,
+    durationMs: 1500,
     sounds: [{ atMs: 0, soundKey: 'slashIai', volume: 90 }],
     layers: [
       {
-        identifier: 'sample-cut-in-tear-dim',
-        name: '暗幕',
+        identifier: 'sample-cut-in-tear-shard-left',
+        name: '赤の破片 : 左',
         kind: 'fill',
-        x: 0,
-        y: 0,
-        width: 800,
-        height: 450,
-        fillFrom: '#0a0a0ccc',
-        tracks: {
-          opacity: [
-            { t: 0, v: 0, e: 'linear' },
-            { t: 50, v: 1 },
-            { t: 1250, v: 1, e: 'inCubic' },
-            { t: 1400, v: 0 },
-          ],
-        },
-      },
-      {
-        identifier: 'sample-cut-in-tear-dots',
-        name: '網点',
-        kind: 'fill',
-        x: 0,
-        y: 0,
-        width: 800,
-        height: 450,
-        fillShape: 'halftone',
-        fillFrom: '#5c0512',
-        fillScalePx: 14,
-        opacity: 0.7,
-        tracks: {
-          opacity: [
-            { t: 0, v: 0, e: 'linear' },
-            { t: 80, v: 0.7 },
-            { t: 1250, v: 0.7, e: 'inCubic' },
-            { t: 1400, v: 0 },
-          ],
-        },
-      },
-      {
-        identifier: 'sample-cut-in-tear-rays',
-        name: '集中線',
-        kind: 'fill',
-        x: 0,
-        y: 0,
-        width: 800,
-        height: 450,
-        fillShape: 'speedlines',
-        fillFrom: '#e0142f',
-        fillTo: '#0a0a0c',
-        fillAngleDeg: 8,
-        fillScalePx: 34,
-        tracks: {
-          scaleX: [
-            { t: 60, v: 1.7, e: 'outCubic' },
-            { t: 480, v: 1 },
-          ],
-          scaleY: [
-            { t: 60, v: 1.7, e: 'outCubic' },
-            { t: 480, v: 1 },
-          ],
-          opacity: [
-            { t: 60, v: 0, e: 'linear' },
-            { t: 130, v: 0.9 },
-            { t: 520, v: 0.9, e: 'inCubic' },
-            { t: 760, v: 0 },
-          ],
-        },
-      },
-      {
-        identifier: 'sample-cut-in-tear-rip',
-        name: '裂け目',
-        kind: 'fill',
-        x: -300,
-        y: 205,
-        width: 1400,
-        height: 44,
-        rotation: -24,
-        fillFrom: '#ffffff',
+        x: -60,
+        y: 30,
+        width: 700,
+        height: 150,
+        rotation: -12,
+        clip: 'slantBack',
+        fillFrom: '#e10f22',
         tracks: {
           x: [
-            { t: 0, v: 900, e: 'outCubic' },
-            { t: 180, v: -300 },
+            { t: 40, v: -820, e: 'outCubic' },
+            { t: 300, v: -60 },
           ],
           opacity: [
-            { t: 0, v: 0, e: 'linear' },
-            { t: 40, v: 1 },
-            { t: 420, v: 1, e: 'inCubic' },
-            { t: 600, v: 0 },
+            { t: 40, v: 1, e: 'linear' },
+            { t: 1320, v: 1, e: 'inCubic' },
+            { t: 1500, v: 0 },
           ],
         },
       },
       {
-        identifier: 'sample-cut-in-tear-frame',
-        name: '枠',
+        identifier: 'sample-cut-in-tear-shard-right',
+        name: '赤の破片 : 右',
         kind: 'fill',
-        x: 236,
-        y: 22,
-        width: 348,
-        height: 410,
-        rotation: -13,
-        skewXDeg: -9,
-        clip: 'torn',
-        fillFrom: '#0b0b0d',
-        tracks: SLAM_IN(236),
+        x: 560,
+        y: 290,
+        width: 700,
+        height: 150,
+        rotation: -12,
+        clip: 'slant',
+        fillFrom: '#e10f22',
+        tracks: {
+          x: [
+            { t: 40, v: 1320, e: 'outCubic' },
+            { t: 300, v: 560 },
+          ],
+          opacity: [
+            { t: 40, v: 1, e: 'linear' },
+            { t: 1320, v: 1, e: 'inCubic' },
+            { t: 1500, v: 0 },
+          ],
+        },
+      },
+      {
+        identifier: 'sample-cut-in-tear-edge',
+        name: '裂け目の縁',
+        kind: 'fill',
+        x: 0,
+        y: 0,
+        width: 1200,
+        height: 470,
+        rotation: -4,
+        clip: 'gash',
+        fillFrom: '#ffffff',
+        tracks: RIP_OPEN,
       },
       {
         identifier: 'sample-cut-in-tear-plate',
-        name: '枠の中',
+        name: '裂け目の中',
         kind: 'fill',
-        x: 246,
-        y: 32,
-        width: 328,
-        height: 390,
-        rotation: -13,
-        skewXDeg: -9,
-        clip: 'torn',
-        fillShape: 'linear',
-        fillFrom: '#e0142f',
-        fillMid: '#a30c22',
-        fillTo: '#5c0512',
-        fillAngleDeg: 120,
-        tracks: SLAM_IN(246),
+        x: 16,
+        y: 14,
+        width: 1168,
+        height: 442,
+        rotation: -4,
+        clip: 'gash',
+        fillFrom: '#0b0b0d',
+        tracks: RIP_OPEN,
       },
       {
         identifier: 'sample-cut-in-tear-face',
         name: '顔 : 画像を差し替える',
         kind: 'image',
-        x: 246,
-        y: 32,
-        width: 328,
-        height: 390,
-        rotation: -13,
-        skewXDeg: -9,
-        clip: 'torn',
-        portrait: true,
+        x: 16,
+        y: 14,
+        width: 1168,
+        height: 442,
+        rotation: -4,
+        clip: 'gash',
+        face: true,
         objectFit: 'cover',
+        // Cropped to the eyes rather than to whatever the middle of a portrait happens to be.
+        objectPosY: 36,
         tracks: {
-          ...SLAM_IN(246),
+          ...RIP_OPEN,
           opacity: [
-            { t: 120, v: 0, e: 'linear' },
-            { t: 240, v: 1 },
-            { t: 1250, v: 1, e: 'inCubic' },
-            { t: 1400, v: 0 },
+            { t: 80, v: 0, e: 'linear' },
+            { t: 170, v: 1 },
+            { t: 1320, v: 1, e: 'inCubic' },
+            { t: 1500, v: 0 },
           ],
         },
       },
@@ -441,42 +389,34 @@ export const DEFAULT_CUT_IN_SEEDS: readonly CutInSeed[] = [
         identifier: 'sample-cut-in-tear-word',
         name: '文字 : ブチッ',
         kind: 'text',
-        x: 10,
-        y: 288,
-        width: 500,
-        height: 150,
-        rotation: -7,
-        text: 'ブチッ',
-        fontSizePx: 104,
+        x: 880,
+        y: 10,
+        width: 300,
+        height: 450,
+        rotation: 9,
+        text: 'ブ\nチ\nッ',
+        fontSizePx: 92,
         fontWeight: 900,
         color: '#ffffff',
-        textAlign: 'left',
+        textAlign: 'center',
         strokeColor: '#0b0b0d',
         strokeWidthPx: 7,
         effect: 'shake',
-        effectStrength: 0.5,
+        effectStrength: 0.45,
         tracks: {
+          x: [
+            { t: 220, v: 1180, e: 'outBack' },
+            { t: 460, v: 880 },
+          ],
           rotation: [
-            { t: 300, v: -30, e: 'outBack' },
-            { t: 560, v: -7 },
-          ],
-          scaleX: [
-            { t: 300, v: 0.4, e: 'outBack' },
-            { t: 560, v: 1 },
-            { t: 1250, v: 1, e: 'inCubic' },
-            { t: 1400, v: 1.2 },
-          ],
-          scaleY: [
-            { t: 300, v: 0.4, e: 'outBack' },
-            { t: 560, v: 1 },
-            { t: 1250, v: 1, e: 'inCubic' },
-            { t: 1400, v: 1.2 },
+            { t: 220, v: 26, e: 'outBack' },
+            { t: 460, v: 9 },
           ],
           opacity: [
-            { t: 300, v: 0, e: 'linear' },
-            { t: 360, v: 1 },
-            { t: 1250, v: 1, e: 'inCubic' },
-            { t: 1400, v: 0 },
+            { t: 220, v: 0, e: 'linear' },
+            { t: 280, v: 1 },
+            { t: 1320, v: 1, e: 'inCubic' },
+            { t: 1500, v: 0 },
           ],
         },
       },
@@ -491,7 +431,10 @@ export const DEFAULT_CUT_IN_SEEDS: readonly CutInSeed[] = [
  * same two under the same identifiers and syncing settles them into one set.
  */
 export function createDefaultCutIns(imageStorage: ImageStorage): CutIn[] {
-  const portrait = registerPortrait(imageStorage);
+  const pictures = {
+    portrait: registerPicture(imageStorage, SAMPLE_PORTRAIT_IDENTIFIER, SAMPLE_PORTRAIT_URL),
+    face: registerPicture(imageStorage, SAMPLE_FACE_IDENTIFIER, SAMPLE_FACE_URL),
+  };
   const made: CutIn[] = [];
 
   for (const seed of DEFAULT_CUT_IN_SEEDS) {
@@ -499,22 +442,27 @@ export function createDefaultCutIns(imageStorage: ImageStorage): CutIn[] {
     cutIn.initialize();
     if (ObjectStore.instance.get(seed.identifier) !== cutIn) continue;
 
-    applyCutInSeed(cutIn, seed, portrait);
+    applyCutInSeed(cutIn, seed, pictures);
     made.push(cutIn);
   }
   return made;
 }
 
-/** The face the samples come with, which is one field away from being someone else's. */
-function registerPortrait(imageStorage: ImageStorage): string {
-  const context = ImageFile.createEmpty(SAMPLE_PORTRAIT_IDENTIFIER).toContext();
-  context.url = SAMPLE_PORTRAIT_URL;
+/** The faces the samples come with, each one field away from being someone else's. */
+function registerPicture(imageStorage: ImageStorage, identifier: string, url: string): string {
+  const context = ImageFile.createEmpty(identifier).toContext();
+  context.url = url;
   const file = imageStorage.add(context);
   ImageTag.create(file.identifier).tag = 'カットイン';
   return file.identifier;
 }
 
-function applyCutInSeed(cutIn: CutIn, seed: CutInSeed, portrait: string): void {
+interface SamplePictures {
+  portrait: string;
+  face: string;
+}
+
+function applyCutInSeed(cutIn: CutIn, seed: CutInSeed, pictures: SamplePictures): void {
   cutIn.name = seed.name;
   cutIn.width = seed.width;
   cutIn.height = seed.height;
@@ -531,7 +479,7 @@ function applyCutInSeed(cutIn: CutIn, seed: CutInSeed, portrait: string): void {
   scene.cutInIdentifier = cutIn.identifier;
   scene.durationMs = seed.durationMs;
   scene.sounds = encodeCutInSounds(soundsOf(seed));
-  for (const layerSeed of seed.layers) scene.appendChild(makeLayer(layerSeed, portrait));
+  for (const layerSeed of seed.layers) scene.appendChild(makeLayer(layerSeed, pictures));
 }
 
 /** The sounds the tool already carries, looked up by name at the moment they are needed. */
@@ -544,7 +492,7 @@ function soundsOf(seed: CutInSeed): CutInSound[] {
   return sounds;
 }
 
-function makeLayer(seed: LayerSeed, portrait: string): CutInLayer {
+function makeLayer(seed: LayerSeed, pictures: SamplePictures): CutInLayer {
   const layer = new CutInLayer(seed.identifier);
   layer.initialize();
 
@@ -570,7 +518,8 @@ function makeLayer(seed: LayerSeed, portrait: string): CutInLayer {
   if (seed.fillAngleDeg !== undefined) layer.fillAngleDeg = seed.fillAngleDeg;
   if (seed.fillScalePx !== undefined) layer.fillScalePx = seed.fillScalePx;
 
-  if (seed.portrait) layer.imageIdentifier = portrait;
+  if (seed.portrait) layer.imageIdentifier = pictures.portrait;
+  if (seed.face) layer.imageIdentifier = pictures.face;
   if (seed.objectFit) layer.objectFit = seed.objectFit;
   if (seed.objectPosY !== undefined) layer.objectPosY = seed.objectPosY;
 

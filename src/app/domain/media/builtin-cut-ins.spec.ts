@@ -5,6 +5,7 @@ import { ObjectStore } from '@axe/core/sync/object-store';
 import {
   createDefaultCutIns,
   DEFAULT_CUT_IN_SEEDS,
+  SAMPLE_FACE_IDENTIFIER,
   SAMPLE_PORTRAIT_IDENTIFIER,
 } from '@axe/domain/media/builtin-cut-ins';
 import { CutIn } from '@axe/domain/media/cut-in';
@@ -48,27 +49,35 @@ describe('the cut-ins a new room starts with', () => {
     expect(store.getObjects(CutIn)).toHaveLength(DEFAULT_CUT_IN_SEEDS.length);
   });
 
-  it('registers the face it comes with under one identifier', () => {
+  it('registers the faces it comes with, one identifier each', () => {
     made();
     made();
 
-    expect(imageStorage.get(SAMPLE_PORTRAIT_IDENTIFIER)).not.toBeNull();
-    expect(imageStorage.images.filter((image) => image.identifier === SAMPLE_PORTRAIT_IDENTIFIER)).toHaveLength(1);
-  });
-
-  it('puts a face in the window of each', () => {
-    for (const cutIn of made()) {
-      const faces = (cutIn.scene?.layers ?? []).filter((layer) => layer.kind === 'image');
-
-      expect(faces).toHaveLength(1);
-      expect(faces[0].imageIdentifier).toBe(SAMPLE_PORTRAIT_IDENTIFIER);
-      expect(faces[0].objectFit).toBe('cover');
-      expect(faces[0].name).toContain('差し替える');
+    for (const identifier of [SAMPLE_PORTRAIT_IDENTIFIER, SAMPLE_FACE_IDENTIFIER]) {
+      expect(imageStorage.get(identifier)).not.toBeNull();
+      expect(imageStorage.images.filter((image) => image.identifier === identifier)).toHaveLength(1);
     }
   });
 
+  it('shows a face through each of them, cropped to the eyes', () => {
+    const [flash, tear] = made();
+    const faceOf = (cutIn: CutIn) => cutIn.scene!.layers.filter((layer) => layer.kind === 'image');
+
+    for (const cutIn of [flash, tear]) {
+      expect(faceOf(cutIn)).toHaveLength(1);
+      expect(faceOf(cutIn)[0].objectFit).toBe('cover');
+      expect(faceOf(cutIn)[0].objectPosY).toBeLessThan(50);
+      expect(faceOf(cutIn)[0].name).toContain('差し替える');
+    }
+
+    expect(faceOf(flash)[0].imageIdentifier).toBe(SAMPLE_PORTRAIT_IDENTIFIER);
+    expect(faceOf(tear)[0].imageIdentifier).toBe(SAMPLE_FACE_IDENTIFIER);
+  });
+
   it('stamps the word for the sound it makes', () => {
-    const words = made().map((cutIn) => cutIn.scene?.layers.find((layer) => layer.kind === 'text')?.text);
+    const words = made().map((cutIn) =>
+      cutIn.scene?.layers.find((layer) => layer.kind === 'text')?.text.replace(/\n/g, '')
+    );
 
     expect(words).toEqual(['カッ', 'ブチッ']);
   });
@@ -83,30 +92,41 @@ describe('the cut-ins a new room starts with', () => {
     expect(band.clip).toBe('slant');
   });
 
-  it('shows the eyes rather than whatever the middle of a picture happens to be', () => {
-    const [flash] = made();
-    const eyes = flash.scene!.layers.find((layer) => layer.kind === 'image')!;
-
-    expect(eyes.objectFit).toBe('cover');
-    expect(eyes.objectPosY).toBeLessThan(50);
-  });
-
-  it('tears and leans the newer one', () => {
+  it('rips the newer one open as a gash rather than opening a window', () => {
     const [, tear] = made();
-    const frame = tear.scene!.layers.find((layer) => layer.name === '枠')!;
+    const edge = tear.scene!.layers.find((layer) => layer.name === '裂け目の縁')!;
 
-    expect(frame.rotation).toBeLessThan(0);
-    expect(frame.skewXDeg).toBeLessThan(0);
-    expect(frame.clip).toBe('torn');
+    expect(edge.clip).toBe('gash');
+    expect(edge.width).toBe(tear.width);
+    // The gap widens rather than the whole thing arriving from somewhere.
+    expect(edge.trackSet.scaleY?.[0].v).toBeLessThan(0.1);
+    expect(edge.trackSet.x).toBeUndefined();
   });
 
-  it('lays lines converging on the middle behind both of them', () => {
-    for (const cutIn of made()) {
-      const rays = cutIn.scene!.layers.find((layer) => layer.fillShape === 'speedlines');
+  it('throws red shards in from either side behind the gash', () => {
+    const [, tear] = made();
+    const shards = tear.scene!.layers.filter((layer) => layer.name.startsWith('赤の破片'));
 
-      expect(rays).toBeDefined();
-      expect(rays!.width).toBeGreaterThan(cutIn.width * 0.9);
-    }
+    expect(shards).toHaveLength(2);
+    expect(shards[0].trackSet.x?.[0].v).toBeLessThan(0);
+    expect(shards[1].trackSet.x?.[0].v).toBeGreaterThan(tear.width);
+  });
+
+  it('stacks the newer word down the right rather than along the band', () => {
+    const [, tear] = made();
+    const word = tear.scene!.layers.find((layer) => layer.kind === 'text')!;
+
+    expect(word.text.split('\n')).toHaveLength(3);
+    expect(word.height).toBeGreaterThan(word.width);
+    expect(word.x).toBeGreaterThan(tear.width / 2);
+  });
+
+  it('lays lines converging on the middle behind the band', () => {
+    const [flash] = made();
+    const rays = flash.scene!.layers.find((layer) => layer.fillShape === 'speedlines');
+
+    expect(rays).toBeDefined();
+    expect(rays!.width).toBeGreaterThan(flash.width * 0.9);
   });
 
   it('plays without a frame around it, and answers to its name in the chat', () => {
@@ -151,14 +171,6 @@ describe('the cut-ins a new room starts with', () => {
     expect(word.x).toBeGreaterThan(flash.width / 2);
     expect(word.textAlign).toBe('right');
     expect(word.rotation).toBeLessThan(0);
-  });
-
-  it('slams the leaning window in from off the right', () => {
-    const [, tear] = made();
-    const frame = tear.scene!.layers.find((layer) => layer.name === '枠')!;
-
-    expect(frame.trackSet.x?.[0].v).toBeGreaterThan(800);
-    expect(frame.trackSet.x?.[1].v).toBe(frame.x);
   });
 
   it('survives being written out and read back', () => {
