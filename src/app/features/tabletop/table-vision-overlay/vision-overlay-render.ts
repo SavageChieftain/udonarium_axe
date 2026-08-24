@@ -243,9 +243,62 @@ function drawShadowImage(
   ctx.restore();
 }
 
+/** Whether a light is one of the ones that moves, and so has to be drawn again each pass. */
+function isAnimated(shape: OverlayShape): boolean {
+  return !!shape.animation && shape.animation !== 'none';
+}
+
+export interface DirtyRect {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
+/**
+ * The ground the lights that move cover, and nothing else.
+ *
+ * A board is mostly still. One candle guttering in a corner used to mean clearing the whole
+ * board and laying the whole of it down again twenty times a second, which on a large table
+ * is tens of millions of pixels a frame for the sake of a few hundred thousand. Kept to the
+ * box the moving lights actually reach, the rest of the board is left where it is.
+ */
+export function animatedGlowBounds(
+  plan: OverlayPlan,
+  widthPx: number,
+  heightPx: number,
+  margin = 0,
+  surface?: OverlaySurface
+): DirtyRect | null {
+  const resolved = resolvedSurfaceOf(widthPx, heightPx, surface);
+  const offsetX = margin - resolved.originX;
+  const offsetY = margin - resolved.originY;
+
+  let left = Infinity;
+  let top = Infinity;
+  let right = -Infinity;
+  let bottom = -Infinity;
+  for (const shape of plan.glows) {
+    if (!isAnimated(shape) || shape.dimPx <= 0) continue;
+    left = Math.min(left, shape.x - shape.dimPx + offsetX);
+    top = Math.min(top, shape.y - shape.dimPx + offsetY);
+    right = Math.max(right, shape.x + shape.dimPx + offsetX);
+    bottom = Math.max(bottom, shape.y + shape.dimPx + offsetY);
+  }
+  if (!(right > left) || !(bottom > top)) return null;
+
+  const width = widthPx + 2 * margin;
+  const height = heightPx + 2 * margin;
+  const x = Math.max(0, Math.floor(left));
+  const y = Math.max(0, Math.floor(top));
+  const w = Math.min(width, Math.ceil(right)) - x;
+  const h = Math.min(height, Math.ceil(bottom)) - y;
+  return w > 0 && h > 0 ? { x, y, width: w, height: h } : null;
+}
+
 /** The baked surfaces, holding what does not change over time. */
 export interface OverlayBake {
-  /** The darkness, with what can be seen cut out of it. */
+  /** The darkness, with what can be seen cut out of it, and the lights that stay put. */
   base: BakeCanvas;
   /** The shadows, kept apart from the darkness because they go over the lights. */
   shadows: BakeCanvas | null;
@@ -279,7 +332,9 @@ function bakeCanvas(width: number, height: number, previous?: BakeCanvas | null)
  * Bakes the part that does not change over time.
  *
  * A table with a flickering light redraws the same picture over and over, when only the
- * brightness changes. Three board-sized fills become two blits.
+ * brightness changes. The darkness goes in, and so do the lights that stay put — a lamp
+ * that is not guttering has no business being laid down again every pass, and on a board
+ * with several of them that is most of the work.
  */
 export function bakeOverlayPlan(
   plan: OverlayPlan,
@@ -304,6 +359,10 @@ export function bakeOverlayPlan(
 
   base.context.translate(offsetX, offsetY);
   paintDarkness(base.context, plan, resolved);
+
+  base.context.globalCompositeOperation = 'lighter';
+  for (const shape of plan.glows) if (!isAnimated(shape)) drawGlow(base.context, shape, 0);
+  base.context.globalCompositeOperation = 'source-over';
 
   let shadows: BakeCanvas | null = null;
   if (plan.shadows.length > 0) {
@@ -380,7 +439,8 @@ export function drawOverlayPlan(
   images?: Map<string, HTMLImageElement>,
   margin = 0,
   surface?: OverlaySurface,
-  bake?: OverlayBake | null
+  bake?: OverlayBake | null,
+  dirty?: DirtyRect | null
 ): void {
   const resolved = resolvedSurfaceOf(widthPx, heightPx, surface);
   const offsetX = margin - resolved.originX;
@@ -388,25 +448,31 @@ export function drawOverlayPlan(
   const width = widthPx + 2 * margin;
   const height = heightPx + 2 * margin;
 
+  const usable = bake && bake.width === width && bake.height === height ? bake : null;
+  // Only a pass that has the still part already laid down may keep to a corner of the board.
+  const patch = usable && dirty ? dirty : null;
+
   ctx.setTransform(1, 0, 0, 1, 0, 0);
   ctx.globalCompositeOperation = 'source-over';
   ctx.globalAlpha = 1;
-  ctx.clearRect(0, 0, width, height);
+  if (patch) ctx.clearRect(patch.x, patch.y, patch.width, patch.height);
+  else ctx.clearRect(0, 0, width, height);
 
-  const usable = bake && bake.width === width && bake.height === height ? bake : null;
-  if (usable) ctx.drawImage(usable.base.image, 0, 0);
+  if (usable) blit(ctx, usable.base.image, patch);
 
   ctx.translate(offsetX, offsetY);
   if (!usable) paintDarkness(ctx, plan, resolved);
 
   ctx.globalCompositeOperation = 'lighter';
-  for (const shape of plan.glows) drawGlow(ctx, shape, timeMs);
+  // A light that stays put is already in the baked surface, so drawing it again would
+  // only add it to itself.
+  for (const shape of plan.glows) if (!usable || isAnimated(shape)) drawGlow(ctx, shape, timeMs);
 
   ctx.globalCompositeOperation = 'source-over';
   if (usable) {
     if (usable.shadows) {
       ctx.setTransform(1, 0, 0, 1, 0, 0);
-      ctx.drawImage(usable.shadows.image, 0, 0);
+      blit(ctx, usable.shadows.image, patch);
     }
   } else {
     paintShadows(ctx, plan, images, offsetX, offsetY);
@@ -414,4 +480,11 @@ export function drawOverlayPlan(
 
   ctx.globalAlpha = 1;
   ctx.setTransform(1, 0, 0, 1, 0, 0);
+}
+
+/** Lays a baked surface down, either whole or only over the part being redrawn. */
+function blit(ctx: CanvasRenderingContext2D, image: CanvasImageSource, patch: DirtyRect | null): void {
+  if (patch)
+    ctx.drawImage(image, patch.x, patch.y, patch.width, patch.height, patch.x, patch.y, patch.width, patch.height);
+  else ctx.drawImage(image, 0, 0);
 }

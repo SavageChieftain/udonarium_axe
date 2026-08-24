@@ -5,7 +5,9 @@ import { HEX_SURFACE_INFLATE_PX, hexSurfaceCells, SurfacePoint } from '@axe/doma
 import { computeOverlayPlan, OverlayPlan } from '@axe/domain/tabletop/vision-scene';
 import { computeHexMaskGeometry } from '@axe/features/tabletop/game-table-mask/game-table-mask-helpers';
 import {
+  animatedGlowBounds,
   bakeOverlayPlan,
+  type DirtyRect,
   drawOverlayPlan,
   type OverlayBake,
 } from '@axe/features/tabletop/table-vision-overlay/vision-overlay-render';
@@ -36,6 +38,7 @@ export class TableVisionOverlayComponent {
   private margin = 0;
   private animated = false;
   private bake: OverlayBake | null = null;
+  private dirty: DirtyRect | null = null;
   private rafId: number | null = null;
   private readonly images = new Map<string, HTMLImageElement>();
 
@@ -50,6 +53,7 @@ export class TableVisionOverlayComponent {
         this.plan = null;
         this.animated = false;
         this.bake = null;
+        this.dirty = null;
         this.margin = 0;
         this.surfaceCells = undefined;
         this.stopLoop();
@@ -84,7 +88,7 @@ export class TableVisionOverlayComponent {
       this.animated = scene.lights.some((light) => light.animation && light.animation !== 'none');
       this.ensureImages();
       this.refreshBake();
-      this.draw(this.now());
+      this.draw(this.now(), null);
       this.syncLoop();
     });
     this.destroyRef.onDestroy(() => this.stopLoop());
@@ -104,7 +108,7 @@ export class TableVisionOverlayComponent {
       const image = new Image();
       image.onload = () => {
         this.refreshBake();
-        this.draw(this.now());
+        this.draw(this.now(), null);
       };
       image.src = shadow.imageUrl;
       this.images.set(shadow.imageUrl, image);
@@ -124,6 +128,7 @@ export class TableVisionOverlayComponent {
   private refreshBake(): void {
     if (!this.plan || !this.animated) {
       this.bake = null;
+      this.dirty = null;
       return;
     }
     this.bake = bakeOverlayPlan(
@@ -135,13 +140,14 @@ export class TableVisionOverlayComponent {
       this.surfaceOf(),
       this.bake
     );
+    this.dirty = animatedGlowBounds(this.plan, this.surfaceWidth, this.surfaceHeight, this.margin, this.surfaceOf());
   }
 
   private surfaceOf() {
     return { originX: this.surfaceOriginX, originY: this.surfaceOriginY, cells: this.surfaceCells };
   }
 
-  private draw(timeMs: number): void {
+  private draw(timeMs: number, dirty: DirtyRect | null): void {
     const ctx = this.canvasRef().nativeElement.getContext('2d');
     if (!ctx || !this.plan) return;
     drawOverlayPlan(
@@ -153,7 +159,8 @@ export class TableVisionOverlayComponent {
       this.images,
       this.margin,
       this.surfaceOf(),
-      this.bake
+      this.bake,
+      dirty
     );
   }
 
@@ -169,7 +176,8 @@ export class TableVisionOverlayComponent {
     const now = this.now();
     if (now - this.lastFrameAt >= VISION_ANIMATION_INTERVAL_MS) {
       this.lastFrameAt = now;
-      this.draw(now);
+      // Only the ground the flickering lights cover; the rest was laid down once.
+      this.draw(now, this.dirty);
     }
     this.rafId = requestAnimationFrame(this.loop);
   };
