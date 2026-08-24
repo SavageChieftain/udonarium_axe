@@ -15,9 +15,11 @@ import {
   isCutInEntrance,
   isCutInExit,
 } from '@axe/domain/media/cut-in-animation-presets';
+import { CUT_IN_EFFECTS, type CutInEffect, isCutInEffect } from '@axe/domain/media/cut-in-effect';
 import { CUT_IN_FILL_SHAPES, type CutInFillShape, isCutInFillShape } from '@axe/domain/media/cut-in-fill';
 import { CUT_IN_TRACKS, type CutInTrackName } from '@axe/domain/media/cut-in-keyframe';
 import { CUT_IN_TEXT_ALIGNS, CutInLayer, type CutInTextAlign, isCutInTextAlign } from '@axe/domain/media/cut-in-layer';
+import { applyLayerPreset, CUT_IN_LAYER_PRESETS } from '@axe/domain/media/cut-in-layer-presets';
 import {
   easingAtMoment,
   hasKeyAt,
@@ -65,6 +67,8 @@ export class CutInLayerPropertiesComponent {
   readonly fillShapes = CUT_IN_FILL_SHAPES;
   readonly entrances = CUT_IN_ENTRANCES;
   readonly exits = CUT_IN_EXITS;
+  readonly effects = CUT_IN_EFFECTS;
+  readonly looks = CUT_IN_LAYER_PRESETS;
 
   /** How long an arrival or a departure takes, in ms. */
   presetMs = DEFAULT_PRESET_MS;
@@ -345,6 +349,41 @@ export class CutInLayerPropertiesComponent {
   set exit(name: string) {
     if (!isCutInExit(name)) return;
     this.write((layer) => applyExit(layer, name as CutInExit, this.stage, this.sceneDurationMs(), this.presetMs));
+  }
+
+  get effect(): CutInEffect {
+    return this.layer()?.effect ?? 'none';
+  }
+  set effect(effect: CutInEffect) {
+    this.write((layer) => (layer.effect = isCutInEffect(effect) ? effect : 'none'));
+  }
+
+  get effectStrength(): number {
+    return Math.round((this.layer()?.effectStrength ?? 1) * 100);
+  }
+  set effectStrength(percent: number) {
+    const strength = Math.min(3, Math.max(0, (Number(percent) || 0) / 100));
+    this.write((layer) => (layer.effectStrength = strength));
+  }
+
+  get effectColor(): string {
+    return this.layer()?.effectColor || '#ffffff';
+  }
+  set effectColor(effectColor: string) {
+    this.write((layer) => (layer.effectColor = effectColor));
+  }
+
+  /** Whether the touch chosen has a colour to it. */
+  get effectHasColor(): boolean {
+    return this.effect === 'glow';
+  }
+
+  /** A whole look: how it arrives, how it leaves, and what it does meanwhile. */
+  get look(): string {
+    return '';
+  }
+  set look(id: string) {
+    this.write((layer) => applyLayerPreset(layer, id, this.stage, this.sceneDurationMs()));
   }
 
   private get stage(): { width: number; height: number } {

@@ -1,3 +1,4 @@
+import { type CutInEffect, effectAt, isCutInEffect } from '@axe/domain/media/cut-in-effect';
 import { type CutInFill, type CutInFillShape, isCutInFillShape } from '@axe/domain/media/cut-in-fill';
 import type { CutInTrackSet } from '@axe/domain/media/cut-in-keyframe';
 import { parseCutInTracks, sampleTrack } from '@axe/domain/media/cut-in-keyframe';
@@ -44,6 +45,9 @@ export interface ReplayCutInLayer {
   fillMid: string;
   fillTo: string;
   fillAngleDeg: number;
+  effect: CutInEffect;
+  effectStrength: number;
+  effectColor: string;
   tracks: CutInTrackSet;
 }
 
@@ -116,11 +120,7 @@ export function replaySceneDurationOf(scene: ReplayCutInScene): number {
 }
 
 /** Everything about a layer at one moment, the way the editor would show it. */
-export function replaySampleAt(
-  layer: ReplayCutInLayer,
-  ms: number,
-  durationMs: number
-): {
+export interface ReplayLayerSample {
   visible: boolean;
   x: number;
   y: number;
@@ -129,18 +129,27 @@ export function replaySampleAt(
   rotation: number;
   opacity: number;
   blur: number;
-} {
+  glowPx: number;
+  shadowPx: number;
+  glowColor: string;
+}
+
+export function replaySampleAt(layer: ReplayCutInLayer, ms: number, durationMs: number): ReplayLayerSample {
   const endMs = layer.endMs > 0 ? Math.min(layer.endMs, durationMs) : durationMs;
+  const touch = effectAt(layer.effect, ms, layer.effectStrength);
 
   return {
     visible: !layer.hidden && ms >= layer.startMs && (ms < endMs || endMs >= durationMs),
-    x: sampleTrack(layer.tracks.x, ms, layer.x),
-    y: sampleTrack(layer.tracks.y, ms, layer.y),
-    scaleX: sampleTrack(layer.tracks.scaleX, ms, layer.scaleX),
-    scaleY: sampleTrack(layer.tracks.scaleY, ms, layer.scaleY),
+    x: sampleTrack(layer.tracks.x, ms, layer.x) + touch.dx,
+    y: sampleTrack(layer.tracks.y, ms, layer.y) + touch.dy,
+    scaleX: sampleTrack(layer.tracks.scaleX, ms, layer.scaleX) * touch.scaleMul,
+    scaleY: sampleTrack(layer.tracks.scaleY, ms, layer.scaleY) * touch.scaleMul,
     rotation: sampleTrack(layer.tracks.rotation, ms, layer.rotation),
-    opacity: sampleTrack(layer.tracks.opacity, ms, layer.opacity),
+    opacity: sampleTrack(layer.tracks.opacity, ms, layer.opacity) * touch.opacityMul,
     blur: sampleTrack(layer.tracks.blur, ms, layer.blur),
+    glowPx: touch.glowPx,
+    shadowPx: touch.shadowPx,
+    glowColor: layer.effectColor,
   };
 }
 
@@ -187,6 +196,9 @@ function readLayer(attributes: Record<string, unknown>): ReplayCutInLayer {
     fillMid: text(attributes['fillMid']),
     fillTo: text(attributes['fillTo']),
     fillAngleDeg: number(attributes['fillAngleDeg'], 90),
+    effect: isCutInEffect(attributes['effect']) ? attributes['effect'] : 'none',
+    effectStrength: number(attributes['effectStrength'], 1),
+    effectColor: text(attributes['effectColor']) || '#ffffff',
     tracks: parseCutInTracks(text(attributes['tracks'])),
   };
 }

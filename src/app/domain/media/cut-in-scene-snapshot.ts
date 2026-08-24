@@ -44,6 +44,9 @@ const LAYER_FIELDS = [
   'fillMid',
   'fillTo',
   'fillAngleDeg',
+  'effect',
+  'effectStrength',
+  'effectColor',
   'tracks',
 ] as const;
 

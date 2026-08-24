@@ -320,4 +320,67 @@ describe('CutInLayerPropertiesComponent', () => {
       expect(layer.tracks).toBe('');
     });
   });
+
+  describe('the touch a layer wears', () => {
+    it('starts wearing none', () => {
+      expect(component.effect).toBe('none');
+      expect(component.effectHasColor).toBe(false);
+    });
+
+    it('takes a touch and how strong it is', () => {
+      component.effect = 'shake';
+      component.effectStrength = 150;
+
+      expect(layer.effect).toBe('shake');
+      expect(layer.effectStrength).toBeCloseTo(1.5, 5);
+    });
+
+    it('holds the strength to what makes sense', () => {
+      component.effectStrength = 9000;
+
+      expect(layer.effectStrength).toBe(3);
+    });
+
+    it('offers a colour only for the one that has one', () => {
+      component.effect = 'glow';
+      expect(component.effectHasColor).toBe(true);
+
+      component.effect = 'shake';
+      expect(component.effectHasColor).toBe(false);
+    });
+
+    it('turns away a touch it does not know', () => {
+      component.effect = 'sparkle' as never;
+
+      expect(layer.effect).toBe('none');
+    });
+  });
+
+  describe('a whole look', () => {
+    beforeEach(() => {
+      fixture.componentRef.setInput('sceneWidth', 640);
+      fixture.componentRef.setInput('sceneHeight', 360);
+      fixture.componentRef.setInput('sceneDurationMs', 3000);
+      fixture.detectChanges();
+    });
+
+    it('writes the arrival, the departure and the touch at once', () => {
+      component.look = 'impact';
+
+      expect(layer.effect).toBe('shake');
+      expect(layer.trackSet.scaleX?.length).toBeGreaterThan(1);
+    });
+
+    it('goes back to offering rather than remembering', () => {
+      component.look = 'headline';
+
+      expect(component.look).toBe('');
+    });
+
+    it('leaves the layer alone for a look it does not know', () => {
+      component.look = 'nonsense';
+
+      expect(layer.tracks).toBe('');
+    });
+  });
 });

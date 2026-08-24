@@ -246,4 +246,44 @@ describe('cut-in scene timeline', () => {
       expect(sceneDurationOf(scene)).toBe(2500);
     });
   });
+
+  describe('a layer wearing an effect', () => {
+    it('is shifted about by one that moves it', () => {
+      const layer = makeLayer({}, { x: 100, effect: 'shake', effectStrength: 1 });
+
+      const early = sampleLayerAt(layer, 100, 2000).x;
+      const later = sampleLayerAt(layer, 160, 2000).x;
+
+      expect(early).not.toBe(100);
+      expect(early).not.toBe(later);
+    });
+
+    it('asks for the light in the colour it was given', () => {
+      const layer = makeLayer({}, { effect: 'glow', effectColor: '#ff8800' });
+
+      expect(layerFilter(sampleLayerAt(layer, 0, 2000))).toContain('#ff8800');
+    });
+
+    it('keeps whatever blur the layer already had', () => {
+      const layer = makeLayer({}, { blur: 3, effect: 'glow' });
+      const filter = layerFilter(sampleLayerAt(layer, 0, 2000));
+
+      expect(filter).toContain('blur(3px)');
+      expect(filter).toContain('drop-shadow');
+    });
+
+    it('is cut up finely enough for the browser to follow', () => {
+      const still = toWebAnimationFrames(makeLayer(), 2000);
+      const shaking = toWebAnimationFrames(makeLayer({}, { effect: 'shake' }), 2000);
+
+      expect(shaking.length).toBeGreaterThan(still.length);
+    });
+
+    it('leaves a layer wearing none exactly as it was', () => {
+      const layer = makeLayer({}, { x: 100, effect: 'none' });
+
+      expect(sampleLayerAt(layer, 500, 2000).x).toBe(100);
+      expect(layerFilter(sampleLayerAt(layer, 500, 2000))).toBe('none');
+    });
+  });
 });

@@ -228,6 +228,18 @@ function paintCutInScene(
     ctx.globalAlpha = Math.min(1, Math.max(0, sample.opacity));
     if (sample.blur > 0) ctx.filter = `blur(${sample.blur * fit}px)`;
 
+    // A canvas has one shadow rather than a list of filters, so the light and the shadow
+    // an effect asks for are drawn as that.
+    if (sample.glowPx > 0) {
+      ctx.shadowColor = sample.glowColor;
+      ctx.shadowBlur = sample.glowPx * fit;
+    } else if (sample.shadowPx > 0) {
+      ctx.shadowColor = 'rgba(0, 0, 0, 0.65)';
+      ctx.shadowBlur = sample.shadowPx * fit;
+      ctx.shadowOffsetX = (sample.shadowPx / 2) * fit;
+      ctx.shadowOffsetY = (sample.shadowPx / 2) * fit;
+    }
+
     // The layer turns and grows around its anchor, which is where the origin is put.
     const pivotX = originX + (sample.x + layer.width * layer.anchorX) * fit;
     const pivotY = originY + (sample.y + layer.height * layer.anchorY) * fit;
@@ -242,6 +254,10 @@ function paintCutInScene(
     ctx.restore();
     ctx.globalAlpha = 1;
     ctx.filter = 'none';
+    ctx.shadowColor = 'transparent';
+    ctx.shadowBlur = 0;
+    ctx.shadowOffsetX = 0;
+    ctx.shadowOffsetY = 0;
   }
 }
 

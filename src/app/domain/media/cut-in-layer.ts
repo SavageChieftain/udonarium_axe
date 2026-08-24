@@ -1,5 +1,6 @@
 import { SyncObject, SyncVar } from '@axe/core/sync/decorator';
 import { ObjectNode } from '@axe/core/sync/object-node';
+import type { CutInEffect } from '@axe/domain/media/cut-in-effect';
 import type { CutInFill, CutInFillShape } from '@axe/domain/media/cut-in-fill';
 import { type CutInTrackSet, lastKeyTime, parseCutInTracks } from '@axe/domain/media/cut-in-keyframe';
 
@@ -87,6 +88,12 @@ export class CutInLayer extends ObjectNode {
       angleDeg: this.fillAngleDeg,
     };
   }
+
+  // A small touch that runs the whole time the layer is on screen.
+  @SyncVar() effect: CutInEffect = 'none';
+  @SyncVar() effectStrength: number = 1;
+  /** What the light of a glow is coloured. */
+  @SyncVar() effectColor: string = '#ffffff';
 
   /** What the layer does over time, as JSON. Empty for one that stays put. */
   @SyncVar() tracks: string = '';

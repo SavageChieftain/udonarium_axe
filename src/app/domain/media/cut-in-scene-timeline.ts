@@ -1,4 +1,5 @@
 import { type CutInEasingName, DEFAULT_CUT_IN_EASING, easingCss } from '@axe/domain/media/cubic-bezier';
+import { effectAt, effectFilter, effectMovesOverTime } from '@axe/domain/media/cut-in-effect';
 import { type CutInKey, keyTimes, sampleTrack, surroundingKeys } from '@axe/domain/media/cut-in-keyframe';
 import type { CutInLayer } from '@axe/domain/media/cut-in-layer';
 import type { CutInScene } from '@axe/domain/media/cut-in-scene';
@@ -33,6 +34,10 @@ export interface CutInSample {
   opacity: number;
   /** In pixels. */
   blur: number;
+  /** What the always-running touch adds, already folded into the rest of this sample. */
+  glowPx: number;
+  shadowPx: number;
+  glowColor: string;
 }
 
 // A type rather than an interface, so it satisfies the index signature a Keyframe carries.
@@ -68,16 +73,20 @@ export function sampleLayerAt(layer: CutInLayer, ms: number, sceneDurationMs = 0
   const tracks = layer.trackSet;
   const running = sceneDurationMs > 0 ? sceneDurationMs : Math.max(1, layer.lastMomentMs);
   const { startMs, endMs } = layerWindow(layer, running);
+  const touch = effectAt(layer.effect, ms, numberOr(layer.effectStrength, 1));
 
   return {
     visible: isShown(ms, startMs, endMs, running),
-    x: sampleTrack(tracks.x, ms, numberOr(layer.x, 0)),
-    y: sampleTrack(tracks.y, ms, numberOr(layer.y, 0)),
-    scaleX: sampleTrack(tracks.scaleX, ms, numberOr(layer.scaleX, 1)),
-    scaleY: sampleTrack(tracks.scaleY, ms, numberOr(layer.scaleY, 1)),
+    x: sampleTrack(tracks.x, ms, numberOr(layer.x, 0)) + touch.dx,
+    y: sampleTrack(tracks.y, ms, numberOr(layer.y, 0)) + touch.dy,
+    scaleX: sampleTrack(tracks.scaleX, ms, numberOr(layer.scaleX, 1)) * touch.scaleMul,
+    scaleY: sampleTrack(tracks.scaleY, ms, numberOr(layer.scaleY, 1)) * touch.scaleMul,
     rotation: sampleTrack(tracks.rotation, ms, numberOr(layer.rotation, 0)),
-    opacity: sampleTrack(tracks.opacity, ms, numberOr(layer.opacity, 1)),
+    opacity: sampleTrack(tracks.opacity, ms, numberOr(layer.opacity, 1)) * touch.opacityMul,
     blur: sampleTrack(tracks.blur, ms, numberOr(layer.blur, 0)),
+    glowPx: touch.glowPx,
+    shadowPx: touch.shadowPx,
+    glowColor: layer.effectColor,
   };
 }
 
@@ -89,7 +98,9 @@ export function layerTransform(sample: CutInSample): string {
 }
 
 export function layerFilter(sample: CutInSample): string {
-  return sample.blur > 0 ? `blur(${round(sample.blur)}px)` : 'none';
+  const parts = sample.blur > 0 ? [`blur(${round(sample.blur)}px)`] : [];
+  parts.push(...effectFilter(sample, sample.glowColor));
+  return parts.length > 0 ? parts.join(' ') : 'none';
 }
 
 /** What the layer turns and grows around, written the way CSS wants it. */
@@ -107,7 +118,7 @@ export function toWebAnimationFrames(layer: CutInLayer, sceneDurationMs: number)
   for (let at = 0; at < marks.length; at++) {
     const ms = marks[at];
     const next = marks[at + 1];
-    const curve = next === undefined ? 'linear' : oneCurveBetween(layer, ms, next);
+    const curve = next === undefined || alwaysCutUp(layer) ? null : oneCurveBetween(layer, ms, next);
     const easing = easingCss(curve ?? 'linear');
 
     // Two frames sharing a moment is how a jump is written, so a layer arrives and
@@ -129,6 +140,14 @@ export function toWebAnimationFrames(layer: CutInLayer, sceneDurationMs: number)
 }
 
 /** The moments every track, and the layer's own time on screen, ask for. */
+/**
+ * A layer wearing a touch that changes with the clock cannot be described by its keys
+ * alone, so every stretch of it is cut up whatever the tracks say.
+ */
+function alwaysCutUp(layer: CutInLayer): boolean {
+  return effectMovesOverTime(layer.effect);
+}
+
 function marksOf(layer: CutInLayer, running: number, startMs: number, endMs: number): number[] {
   const wanted = new Set<number>([0, running, startMs, endMs]);
   for (const ms of keyTimes(layer.trackSet)) {

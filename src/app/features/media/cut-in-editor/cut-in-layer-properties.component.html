@@ -357,6 +357,59 @@
 
     <div class="border-ui-border-panel flex flex-col gap-1 border-t border-solid pt-2">
       <label class="text-ui-muted text-[11px] font-semibold tracking-[0.04em] uppercase">{{
+        'feature.media.cutInEditor.effects' | transloco
+      }}</label>
+      <div class="grid grid-cols-[3.6rem_minmax(0,1fr)] items-center gap-x-1.5 gap-y-1">
+        <label class="text-ui-muted text-[11px]">{{ 'feature.media.cutInEditor.effect' | transloco }}</label>
+        <select
+          class="bg-ui-input border-ui-border-panel text-ui-text rounded-ui-sm box-border w-full border border-solid p-1 text-[12px] outline-none disabled:opacity-50"
+          name="cut-in-layer-effect"
+          [(ngModel)]="effect"
+          [attr.disabled]="!isEditable() ? '' : null"
+        >
+          @for (name of effects; track name) {
+            <option [value]="name">{{ 'feature.media.cutInEditor.effect' + name | transloco }}</option>
+          }
+        </select>
+        @if (effect !== 'none') {
+          <label class="text-ui-muted text-[11px]">{{ 'feature.media.cutInEditor.effectStrength' | transloco }}</label>
+          <input
+            class="bg-ui-input border-ui-border-panel text-ui-text rounded-ui-sm box-border w-full border border-solid px-1.5 py-1 text-right text-[12px] outline-none disabled:opacity-50"
+            name="cut-in-layer-effect-strength"
+            type="number"
+            min="0"
+            max="300"
+            [(ngModel)]="effectStrength"
+            [attr.disabled]="!isEditable() ? '' : null"
+          />
+        }
+        @if (effectHasColor) {
+          <label class="text-ui-muted text-[11px]">{{ 'feature.media.cutInEditor.effectColor' | transloco }}</label>
+          <input
+            class="bg-ui-input border-ui-border-panel rounded-ui-sm box-border h-7 w-full border border-solid p-0.5 disabled:opacity-50"
+            name="cut-in-layer-effect-color"
+            type="color"
+            [(ngModel)]="effectColor"
+            [attr.disabled]="!isEditable() ? '' : null"
+          />
+        }
+        <label class="text-ui-muted text-[11px]">{{ 'feature.media.cutInEditor.look' | transloco }}</label>
+        <select
+          class="bg-ui-input border-ui-border-panel text-ui-text rounded-ui-sm box-border w-full border border-solid p-1 text-[12px] outline-none disabled:opacity-50"
+          name="cut-in-layer-look"
+          [(ngModel)]="look"
+          [attr.disabled]="!isEditable() ? '' : null"
+        >
+          <option value="">{{ 'feature.media.cutInEditor.presetPick' | transloco }}</option>
+          @for (preset of looks; track preset.id) {
+            <option [value]="preset.id">{{ 'feature.media.cutInEditor.look' + preset.id | transloco }}</option>
+          }
+        </select>
+      </div>
+    </div>
+
+    <div class="border-ui-border-panel flex flex-col gap-1 border-t border-solid pt-2">
+      <label class="text-ui-muted text-[11px] font-semibold tracking-[0.04em] uppercase">{{
         'feature.media.cutInEditor.presets' | transloco
       }}</label>
       <div class="grid grid-cols-[3.6rem_minmax(0,1fr)] items-center gap-x-1.5 gap-y-1">
