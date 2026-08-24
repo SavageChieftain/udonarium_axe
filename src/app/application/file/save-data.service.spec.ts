@@ -2,6 +2,12 @@ import { inject, TestBed } from '@angular/core/testing';
 import { SaveDataService } from '@axe/application/file/save-data.service';
 import { FileArchiver } from '@axe/core/storage/file-archiver';
 import { ImageFile, ImageState } from '@axe/core/storage/image-file';
+import { ImageStorage } from '@axe/core/storage/image-storage';
+import { ObjectSerializer } from '@axe/core/sync/object-serializer';
+import { ObjectStore } from '@axe/core/sync/object-store';
+import { CutIn } from '@axe/domain/media/cut-in';
+import { CutInLayer } from '@axe/domain/media/cut-in-layer';
+import { CutInScene } from '@axe/domain/media/cut-in-scene';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
 
 describe('SaveDataService', () => {
@@ -241,6 +247,36 @@ describe('SaveDataService', () => {
       await privateApi.saveAsync([], 'test', callback);
 
       expect(callback).toHaveBeenCalledTimes(2);
+    });
+  });
+
+  describe('the pictures a composed cut-in is built from', () => {
+    afterEach(() => {
+      const store = ObjectStore.instance;
+      store.getObjects().forEach((object) => store.delete(object, false));
+      store.clearDeleteHistory();
+    });
+
+    it("gathers the picture of every layer, not only the cut-in's own", () => {
+      const service = TestBed.inject(SaveDataService);
+      const privateApi = service as unknown as SaveDataServicePrivateApi;
+
+      ImageStorage.instance.add(ImageFile.createEmpty('layer-image-01'));
+
+      const cutIn = new CutIn();
+      cutIn.initialize();
+      cutIn.imageIdentifier = '';
+      const scene = new CutInScene();
+      scene.initialize();
+      scene.cutInIdentifier = cutIn.identifier;
+      const layer = new CutInLayer();
+      layer.initialize();
+      layer.imageIdentifier = 'layer-image-01';
+      scene.appendChild(layer);
+
+      const found = privateApi.searchImageFiles(ObjectSerializer.instance.toXml(cutIn));
+
+      expect(found.map((image) => image.identifier)).toContain('layer-image-01');
     });
   });
 });
