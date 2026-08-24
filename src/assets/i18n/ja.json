@@ -305,6 +305,8 @@
         "endMsLabel": "終了 ms",
         "endMsHint": "終了 0 でシーンの最後まで表示します。",
         "toggleKey": "この位置にキーを打つ / 外す",
+        "undo": "元に戻す",
+        "redo": "やり直す",
         "timeline": "タイムライン"
       }
     },

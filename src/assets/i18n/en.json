@@ -305,6 +305,8 @@
         "endMsLabel": "End ms",
         "endMsHint": "End at 0 keeps the layer to the end of the scene.",
         "toggleKey": "Set or clear a key here",
+        "undo": "Undo",
+        "redo": "Redo",
         "timeline": "Timeline"
       }
     },

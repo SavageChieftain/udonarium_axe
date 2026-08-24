@@ -49,6 +49,12 @@ describe('CutInSceneEditorComponent', () => {
     onPointerDown(event: PointerEvent): void;
     onPointerMove(event: PointerEvent): void;
     onPointerUp(event: PointerEvent): void;
+    onKeyDown(event: KeyboardEvent): void;
+    undo(): void;
+    redo(): void;
+    canUndo(): boolean;
+    canRedo(): boolean;
+    changed(): void;
     selectedIdentifier: { set(value: string): void };
   };
 
@@ -205,6 +211,94 @@ describe('CutInSceneEditorComponent', () => {
 
       expect(layer.x).toBe(from.x);
       expect(layer.y).toBe(from.y);
+    });
+  });
+
+  describe('taking a change back', () => {
+    function key(name: string, chord = true, shift = false): KeyboardEvent {
+      return {
+        key: name,
+        ctrlKey: chord,
+        metaKey: false,
+        shiftKey: shift,
+        target: document.createElement('div'),
+        preventDefault: () => {},
+      } as unknown as KeyboardEvent;
+    }
+
+    it('has nothing to take back to begin with', () => {
+      expect(editor().canUndo()).toBe(false);
+      expect(editor().canRedo()).toBe(false);
+    });
+
+    it('takes an added layer away again', () => {
+      editor().addImageLayer();
+      expect(editor().canUndo()).toBe(true);
+
+      editor().undo();
+
+      expect(component.layers()).toEqual([]);
+    });
+
+    it('puts it back', () => {
+      editor().addImageLayer();
+      editor().undo();
+
+      editor().redo();
+
+      expect(component.layers()).toHaveLength(1);
+    });
+
+    it('takes a whole drag back in one step', () => {
+      editor().addImageLayer();
+      const layer = component.layers()[0];
+      const from = { x: layer.x, y: layer.y };
+      drag([layer.x + 10, layer.y + 10], [layer.x + 60, layer.y + 40]);
+
+      editor().undo();
+
+      expect(component.layers()[0].x).toBe(from.x);
+      expect(component.layers()[0].y).toBe(from.y);
+    });
+
+    it('takes a deleted layer back, keeping what it was called', () => {
+      editor().addImageLayer();
+      component.layers()[0].name = '立ち絵';
+      // The properties panel commits after every write; this stands in for that.
+      editor().changed();
+      editor().removeSelected();
+
+      editor().undo();
+
+      expect(component.layers()).toHaveLength(1);
+      expect(component.layers()[0].name).toBe('立ち絵');
+    });
+
+    it('lets go of a selection that was taken away', () => {
+      editor().addImageLayer();
+      editor().undo();
+
+      expect(component.selected()).toBeNull();
+    });
+
+    it('listens for the keys', () => {
+      editor().addImageLayer();
+
+      editor().onKeyDown(key('z'));
+      expect(component.layers()).toEqual([]);
+
+      editor().onKeyDown(key('z', true, true));
+      expect(component.layers()).toHaveLength(1);
+    });
+
+    it('changes nothing for a reader', () => {
+      editor().addImageLayer();
+      fixture.componentRef.setInput('isEditable', false);
+      fixture.detectChanges();
+
+      editor().undo();
+
+      expect(component.layers()).toHaveLength(1);
     });
   });
 });

@@ -1,4 +1,4 @@
-<div class="text-ui-text flex h-full min-h-0 flex-col text-[12px]">
+<div class="text-ui-text flex h-full min-h-0 flex-col text-[12px]" tabindex="0" (keydown)="onKeyDown($event)">
   <div class="border-ui-border-panel flex shrink-0 flex-wrap items-center gap-1.5 border-b border-solid px-2 py-1.5">
     <button
       class="border-ui-border-panel text-ui-muted hover:bg-ui-hover hover:text-ui-text rounded-ui-sm inline-flex cursor-pointer items-center gap-1 border border-solid bg-transparent px-2 py-1 disabled:cursor-not-allowed disabled:opacity-50 [&_.material-icons]:text-[14px]!"
@@ -25,6 +25,27 @@
       (click)="removeSelected()"
     >
       <i class="material-icons">delete</i>
+    </button>
+
+    <span class="border-ui-border-panel mx-1 h-5 border-l border-solid"></span>
+
+    <button
+      class="border-ui-border-panel text-ui-muted hover:bg-ui-hover hover:text-ui-text rounded-ui-sm inline-flex size-7 cursor-pointer items-center justify-center border border-solid bg-transparent p-0 disabled:cursor-not-allowed disabled:opacity-40 [&_.material-icons]:text-[14px]!"
+      type="button"
+      [disabled]="!canUndo()"
+      [title]="'feature.media.cutInEditor.undo' | transloco"
+      (click)="undo()"
+    >
+      <i class="material-icons">undo</i>
+    </button>
+    <button
+      class="border-ui-border-panel text-ui-muted hover:bg-ui-hover hover:text-ui-text rounded-ui-sm inline-flex size-7 cursor-pointer items-center justify-center border border-solid bg-transparent p-0 disabled:cursor-not-allowed disabled:opacity-40 [&_.material-icons]:text-[14px]!"
+      type="button"
+      [disabled]="!canRedo()"
+      [title]="'feature.media.cutInEditor.redo' | transloco"
+      (click)="redo()"
+    >
+      <i class="material-icons">redo</i>
     </button>
 
     <span class="border-ui-border-panel mx-1 h-5 border-l border-solid"></span>

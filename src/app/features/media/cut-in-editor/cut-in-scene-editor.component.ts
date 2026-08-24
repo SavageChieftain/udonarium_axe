@@ -4,6 +4,7 @@ import {
   Component,
   computed,
   DestroyRef,
+  effect,
   ElementRef,
   inject,
   input,
@@ -13,9 +14,16 @@ import {
 import { FormsModule } from '@angular/forms';
 import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
+import { EditHistory } from '@axe/core/util/edit-history';
 import { CutIn } from '@axe/domain/media/cut-in';
 import { CutInLayer } from '@axe/domain/media/cut-in-layer';
 import { CutInScene } from '@axe/domain/media/cut-in-scene';
+import {
+  cloneSceneSnapshot,
+  type CutInSceneSnapshot,
+  restoreScene,
+  snapshotScene,
+} from '@axe/domain/media/cut-in-scene-snapshot';
 import { sceneDurationOf } from '@axe/domain/media/cut-in-scene-timeline';
 import {
   addLayer,
@@ -24,6 +32,11 @@ import {
   removeLayer,
   reorderLayers,
 } from '@axe/features/media/cut-in-editor/cut-in-editor-ops';
+import {
+  type CutInEditorCommand,
+  cutInEditorKeyDown,
+  isTypingTarget,
+} from '@axe/features/media/cut-in-editor/cut-in-editor-shortcut';
 import { moveLayerKeys, removeLayerKeys } from '@axe/features/media/cut-in-editor/cut-in-keyframe-edit';
 import { CutInLayerListComponent } from '@axe/features/media/cut-in-editor/cut-in-layer-list.component';
 import { CutInLayerPropertiesComponent } from '@axe/features/media/cut-in-editor/cut-in-layer-properties.component';
@@ -93,6 +106,9 @@ export class CutInSceneEditorComponent {
 
   private drag: Drag | null = null;
   private clockId: number | null = null;
+  private history: EditHistory<CutInSceneSnapshot> | null = null;
+  private historyOf = '';
+  protected readonly historyVersion = signal(0);
   private pending: { layer: CutInLayer; box: LayerBox } | null = null;
   private flushTimer: ReturnType<typeof setTimeout> | null = null;
 
@@ -141,6 +157,16 @@ export class CutInSceneEditorComponent {
   });
 
   constructor() {
+    // The stack is started from the scene as it stands, before anything is changed, so the
+    // very first change has something to be taken back to.
+    effect(() => {
+      const cutIn = this.cutIn();
+      this.historyOf = cutIn?.identifier ?? '';
+      this.history = cutIn ? new EditHistory(snapshotScene(cutIn.scene), cloneSceneSnapshot) : null;
+      this.selectedIdentifier.set('');
+      this.historyVersion.update((count) => count + 1);
+    });
+
     afterNextRender(() => this.watchStageSize());
     this.destroyRef.onDestroy(() => {
       this.flushDrag();
@@ -341,9 +367,70 @@ export class CutInSceneEditorComponent {
     this.changed();
   }
 
-  /** Something changed. Redraws what reads from the model, and later feeds the undo stack. */
+  /** Something changed: what reads from the model is redrawn, and the change can be taken back. */
   protected changed(): void {
     this.bumped.update((count) => count + 1);
+    this.stack()?.commit(snapshotScene(this.scene()));
+    this.historyVersion.update((count) => count + 1);
+  }
+
+  protected canUndo(): boolean {
+    this.historyVersion();
+    return this.stack()?.canUndo() ?? false;
+  }
+
+  protected canRedo(): boolean {
+    this.historyVersion();
+    return this.stack()?.canRedo() ?? false;
+  }
+
+  protected undo(): void {
+    this.stepHistory((stack) => stack.undo());
+  }
+
+  protected redo(): void {
+    this.stepHistory((stack) => stack.redo());
+  }
+
+  protected onKeyDown(event: KeyboardEvent): void {
+    const action = cutInEditorKeyDown(event.key, {
+      typing: isTypingTarget(event.target),
+      chord: event.ctrlKey || event.metaKey,
+      shift: event.shiftKey,
+      hasSelection: this.selected() !== null,
+    });
+    if (!action) return;
+    if (action.preventDefault) event.preventDefault();
+
+    this.run(action.command);
+  }
+
+  private run(command: CutInEditorCommand): void {
+    if (command === 'undo') this.undo();
+    else if (command === 'redo') this.redo();
+    else if (command === 'deleteSelection') this.removeSelected();
+    else if (command === 'togglePlaying') this.togglePlaying();
+  }
+
+  private stepHistory(step: (stack: EditHistory<CutInSceneSnapshot>) => CutInSceneSnapshot | null): void {
+    const stack = this.stack();
+    const scene = this.scene();
+    if (!stack || !scene || !this.isEditable()) return;
+
+    const wanted = step(stack);
+    if (!wanted) return;
+
+    restoreScene(scene, wanted);
+    this.bumped.update((count) => count + 1);
+    this.historyVersion.update((count) => count + 1);
+    if (!this.layers().some((layer) => layer.identifier === this.selectedIdentifier())) {
+      this.selectedIdentifier.set('');
+    }
+  }
+
+  /** The stack for the cut-in being edited. */
+  private stack(): EditHistory<CutInSceneSnapshot> | null {
+    return this.historyOf === (this.cutIn()?.identifier ?? '') ? this.history : null;
   }
 
   private watchCutIn(): CutIn | null {
@@ -394,7 +481,8 @@ export class CutInSceneEditorComponent {
     pending.layer.y = Math.round(pending.box.y);
     pending.layer.width = Math.round(pending.box.width);
     pending.layer.height = Math.round(pending.box.height);
-    this.changed();
+    // Only the redraw: the whole drag is one change to take back, committed on the release.
+    this.bumped.update((count) => count + 1);
   }
 
   private watchStageSize(): void {
