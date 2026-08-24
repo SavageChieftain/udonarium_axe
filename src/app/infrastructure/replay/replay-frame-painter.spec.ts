@@ -1,3 +1,4 @@
+import type { ReplayCutInScene } from '@axe/domain/replay/replay-cut-in-scene';
 import { ReplayEventKind } from '@axe/domain/replay/replay-event';
 import { REPLAY_FRAME_PRESETS, replayFrameLayout } from '@axe/domain/replay/replay-frame-layout';
 import type { ReplayShot } from '@axe/domain/replay/replay-storyboard';
@@ -22,10 +23,12 @@ function recorder(): {
   texts: { text: string; x: number; y: number; font: string; color: string }[];
   images: DrawnImage[];
   fills: { x: number; y: number; width: number; height: number; color: string }[];
+  strokes: { text: string; x: number; y: number; color: string }[];
 } {
   const texts: { text: string; x: number; y: number; font: string; color: string }[] = [];
   const images: DrawnImage[] = [];
   const fills: { x: number; y: number; width: number; height: number; color: string }[] = [];
+  const strokes: { text: string; x: number; y: number; color: string }[] = [];
 
   // Anything flat on the ground is drawn through the matrix, so the spec applies the same
   // transform and checks where it lands on screen.
@@ -35,6 +38,8 @@ function recorder(): {
   const atY = (x: number, y: number) => matrix[1] * x + matrix[3] * y + matrix[5];
 
   const ctx = {
+    globalAlpha: 1,
+    filter: 'none',
     fillStyle: '',
     strokeStyle: '',
     lineWidth: 0,
@@ -68,10 +73,25 @@ function recorder(): {
     fill() {},
     clip() {},
     arc() {},
-    translate() {},
-    rotate() {},
+    translate(tx: number, ty: number) {
+      matrix = compose(matrix, [1, 0, 0, 1, tx, ty]);
+    },
+    rotate(radians: number) {
+      const cos = Math.cos(radians);
+      const sin = Math.sin(radians);
+      matrix = compose(matrix, [cos, sin, -sin, cos, 0, 0]);
+    },
+    scale(sx: number, sy: number) {
+      matrix = compose(matrix, [sx, 0, 0, sy, 0, 0]);
+    },
     createRadialGradient() {
       return { addColorStop() {} };
+    },
+    createLinearGradient() {
+      return { addColorStop() {} };
+    },
+    strokeText(text: string, x: number, y: number) {
+      strokes.push({ text, x: atX(x, y), y: atY(x, y), color: String(ctx.strokeStyle) });
     },
     fillText(text: string, x: number, y: number) {
       texts.push({ text, x: atX(x, y), y: atY(x, y), font: ctx.font, color: String(ctx.fillStyle) });
@@ -84,7 +104,20 @@ function recorder(): {
     },
   } as unknown as ReplayFrameCanvas;
 
-  return { ctx, texts, images, fills };
+  return { ctx, texts, images, fills, strokes };
+}
+
+type Matrix = [number, number, number, number, number, number];
+
+function compose(left: Matrix, right: Matrix): Matrix {
+  return [
+    left[0] * right[0] + left[2] * right[1],
+    left[1] * right[0] + left[3] * right[1],
+    left[0] * right[2] + left[2] * right[3],
+    left[1] * right[2] + left[3] * right[3],
+    left[0] * right[4] + left[2] * right[5] + left[4],
+    left[1] * right[4] + left[3] * right[5] + left[5],
+  ];
 }
 
 function image(width: number, height: number): ReplayFrameImage {
@@ -106,6 +139,7 @@ function shot(overrides: Partial<ReplayShot> = {}): ReplayShot {
     portraitId: '',
     backgroundId: '',
     cutInId: '',
+    cutInScene: null,
     text: 'こんばんは',
     isNarration: false,
     move: null,
@@ -638,5 +672,157 @@ describe('paintReplayFrame()', () => {
     const surface = fills.find((one) => one.color === DEFAULT_REPLAY_FRAME_STYLE.boardSurface)!;
     expect(surface.x).toBeGreaterThanOrEqual(layout.board.x - 1);
     expect(surface.width).toBeLessThanOrEqual(layout.board.width + 1);
+  });
+
+  describe('a cut-in built out of layers', () => {
+    function sceneOf(layers: Partial<ReplayCutInScene['layers'][number]>[]): ReplayCutInScene {
+      return {
+        durationMs: 1000,
+        sceneLoop: false,
+        backgroundColor: '',
+        layers: layers.map((layer) => ({
+          kind: 'image',
+          hidden: false,
+          x: 0,
+          y: 0,
+          width: 400,
+          height: 200,
+          anchorX: 0.5,
+          anchorY: 0.5,
+          scaleX: 1,
+          scaleY: 1,
+          rotation: 0,
+          opacity: 1,
+          blur: 0,
+          startMs: 0,
+          endMs: 0,
+          imageIdentifier: '',
+          text: '',
+          fontSizePx: 32,
+          fontWeight: 700,
+          color: '#ffffff',
+          textAlign: 'center',
+          strokeColor: '',
+          strokeWidthPx: 0,
+          fillFrom: '#000000',
+          fillTo: '',
+          fillAngleDeg: 90,
+          tracks: {},
+          ...layer,
+        })),
+      };
+    }
+
+    const assets: ReplayFrameAssets = { imageOf: (identifier) => (identifier === 'pic' ? image(400, 200) : null) };
+
+    it('draws the picture of every layer that has one', () => {
+      const { ctx, images } = recorder();
+      const scene = sceneOf([{ imageIdentifier: 'pic' }, { imageIdentifier: 'pic', y: 200 }]);
+
+      paintReplayFrame(ctx, layout, shot({ cutInScene: scene }), assets, 0, DEFAULT_REPLAY_FRAME_STYLE, null, 0);
+
+      expect(images).toHaveLength(2);
+    });
+
+    it('follows the track as the shot goes on', () => {
+      const scene = sceneOf([
+        {
+          imageIdentifier: 'pic',
+          tracks: {
+            x: [
+              { t: 0, v: 0, e: 'linear' },
+              { t: 1000, v: 400 },
+            ],
+          },
+        },
+      ]);
+
+      const early = recorder();
+      paintReplayFrame(
+        early.ctx,
+        layout,
+        shot({ cutInScene: scene, durationMs: 1000 }),
+        assets,
+        0,
+        DEFAULT_REPLAY_FRAME_STYLE,
+        null,
+        0
+      );
+      const late = recorder();
+      paintReplayFrame(
+        late.ctx,
+        layout,
+        shot({ cutInScene: scene, durationMs: 1000 }),
+        assets,
+        0,
+        DEFAULT_REPLAY_FRAME_STYLE,
+        null,
+        1
+      );
+
+      expect(late.images[0].x).toBeGreaterThan(early.images[0].x);
+    });
+
+    it('leaves out a layer that is not on screen yet', () => {
+      const { ctx, images } = recorder();
+      const scene = sceneOf([{ imageIdentifier: 'pic', startMs: 800 }]);
+
+      paintReplayFrame(
+        ctx,
+        layout,
+        shot({ cutInScene: scene, durationMs: 1000 }),
+        assets,
+        0,
+        DEFAULT_REPLAY_FRAME_STYLE,
+        null,
+        0
+      );
+
+      expect(images).toHaveLength(0);
+    });
+
+    it('leaves out a layer that is turned off', () => {
+      const { ctx, images } = recorder();
+
+      paintReplayFrame(
+        ctx,
+        layout,
+        shot({ cutInScene: sceneOf([{ imageIdentifier: 'pic', hidden: true }]) }),
+        assets,
+        0,
+        DEFAULT_REPLAY_FRAME_STYLE,
+        null,
+        0
+      );
+
+      expect(images).toHaveLength(0);
+    });
+
+    it('writes the words of a text layer, outline first', () => {
+      const { ctx, texts, strokes } = recorder();
+      const scene = sceneOf([{ kind: 'text', text: '見せ場だ', strokeColor: '#000000', strokeWidthPx: 2 }]);
+
+      paintReplayFrame(ctx, layout, shot({ cutInScene: scene }), assets, 0, DEFAULT_REPLAY_FRAME_STYLE, null, 0);
+
+      expect(strokes.map((stroke) => stroke.text)).toContain('見せ場だ');
+      expect(texts.map((text) => text.text)).toContain('見せ場だ');
+    });
+
+    it('paints a band in the colour it was given', () => {
+      const { ctx, fills } = recorder();
+      const scene = sceneOf([{ kind: 'fill', fillFrom: '#123456' }]);
+
+      paintReplayFrame(ctx, layout, shot({ cutInScene: scene }), assets, 0, DEFAULT_REPLAY_FRAME_STYLE, null, 0);
+
+      expect(fills.map((fill) => fill.color)).toContain('#123456');
+    });
+
+    it('draws nothing extra for a cut-in that is one picture', () => {
+      const { ctx, images } = recorder();
+
+      paintReplayFrame(ctx, layout, shot({ cutInId: 'pic' }), assets, 0, DEFAULT_REPLAY_FRAME_STYLE, null, 0);
+
+      expect(images).toHaveLength(1);
+    });
   });
 });

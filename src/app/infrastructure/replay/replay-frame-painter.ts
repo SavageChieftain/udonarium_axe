@@ -4,6 +4,12 @@ import {
   replayBoardProjection,
 } from '@axe/domain/replay/replay-board-camera';
 import { framingOf, type ReplayBoardScene } from '@axe/domain/replay/replay-board-view';
+import {
+  type ReplayCutInLayer,
+  type ReplayCutInScene,
+  replaySampleAt,
+  replaySceneDurationOf,
+} from '@axe/domain/replay/replay-cut-in-scene';
 import { containRect, coverRect, type ReplayFrameLayout, wrapReplayText } from '@axe/domain/replay/replay-frame-layout';
 import { easeInOut, pointAlongRoute } from '@axe/domain/replay/replay-route';
 import type { ReplayShot, ReplayShotMove } from '@axe/domain/replay/replay-storyboard';
@@ -73,7 +79,7 @@ export function paintReplayFrame(
 ): void {
   paintBackdrop(ctx, layout, shot, assets, style);
   if (board) paintBoard(ctx, layout, board, assets, style, shot?.move ?? null, shotProgress, camera);
-  paintCutIn(ctx, layout, shot, assets);
+  paintCutIn(ctx, layout, shot, assets, style, shotProgress);
   if (shot) {
     if (shot.isChapterStart) paintChapterCard(ctx, layout, shot, style);
     else paintDialogue(ctx, layout, shot, assets, style, board !== null, sideOf(board, shot));
@@ -168,15 +174,151 @@ function paintCutIn(
   ctx: ReplayFrameCanvas,
   layout: ReplayFrameLayout,
   shot: ReplayShot | null,
-  assets: ReplayFrameAssets
+  assets: ReplayFrameAssets,
+  style: ReplayFrameStyle,
+  shotProgress: number
 ): void {
   const picture = shot?.cutInId ? assets.imageOf(shot.cutInId) : null;
+  if (picture) {
+    const size = containRect(picture, layout.board.width, layout.board.height);
+    const x = layout.board.x + (layout.board.width - size.width) / 2;
+    const y = layout.board.y + (layout.board.height - size.height) / 2;
+    ctx.drawImage(picture, x, y, size.width, size.height);
+  }
+
+  if (shot?.cutInScene) paintCutInScene(ctx, layout, shot, shot.cutInScene, assets, style, shotProgress);
+}
+
+/**
+ * A cut-in built out of layers, drawn at the moment the shot has reached.
+ *
+ * The scene was laid out in the cut-in's own coordinates, which nothing here knows, so
+ * the layers are fitted into the board by the box they take up between them.
+ */
+function paintCutInScene(
+  ctx: ReplayFrameCanvas,
+  layout: ReplayFrameLayout,
+  shot: ReplayShot,
+  scene: ReplayCutInScene,
+  assets: ReplayFrameAssets,
+  style: ReplayFrameStyle,
+  shotProgress: number
+): void {
+  const durationMs = replaySceneDurationOf(scene);
+  const elapsed = shotProgress * shot.durationMs;
+  const ms = scene.sceneLoop ? elapsed % durationMs : Math.min(elapsed, durationMs);
+
+  const stage = sceneStage(scene);
+  const fit = Math.min(layout.board.width / stage.width, layout.board.height / stage.height, 1);
+  const originX = layout.board.x + (layout.board.width - stage.width * fit) / 2;
+  const originY = layout.board.y + (layout.board.height - stage.height * fit) / 2;
+
+  if (scene.backgroundColor.length > 0) {
+    ctx.fillStyle = scene.backgroundColor;
+    ctx.fillRect(originX, originY, stage.width * fit, stage.height * fit);
+  }
+
+  for (const layer of scene.layers) {
+    const sample = replaySampleAt(layer, ms, durationMs);
+    if (!sample.visible || sample.opacity <= 0) continue;
+
+    ctx.save();
+    ctx.globalAlpha = Math.min(1, Math.max(0, sample.opacity));
+    if (sample.blur > 0) ctx.filter = `blur(${sample.blur * fit}px)`;
+
+    // The layer turns and grows around its anchor, which is where the origin is put.
+    const pivotX = originX + (sample.x + layer.width * layer.anchorX) * fit;
+    const pivotY = originY + (sample.y + layer.height * layer.anchorY) * fit;
+    ctx.translate(pivotX, pivotY);
+    ctx.rotate((sample.rotation * Math.PI) / 180);
+    ctx.scale(sample.scaleX * fit, sample.scaleY * fit);
+
+    const left = -layer.width * layer.anchorX;
+    const top = -layer.height * layer.anchorY;
+    paintLayer(ctx, layer, left, top, assets, style);
+
+    ctx.restore();
+    ctx.globalAlpha = 1;
+    ctx.filter = 'none';
+  }
+}
+
+function paintLayer(
+  ctx: ReplayFrameCanvas,
+  layer: ReplayCutInLayer,
+  left: number,
+  top: number,
+  assets: ReplayFrameAssets,
+  style: ReplayFrameStyle
+): void {
+  if (layer.kind === 'fill') {
+    ctx.fillStyle = fillStyleOf(ctx, layer, left, top);
+    ctx.fillRect(left, top, layer.width, layer.height);
+    return;
+  }
+
+  if (layer.kind === 'text') {
+    ctx.font = `${layer.fontWeight} ${layer.fontSizePx}px ${style.fontFamily}`;
+    ctx.textAlign = layer.textAlign === 'left' ? 'left' : layer.textAlign === 'right' ? 'right' : 'center';
+    ctx.textBaseline = 'middle';
+
+    const x =
+      layer.textAlign === 'left' ? left : layer.textAlign === 'right' ? left + layer.width : left + layer.width / 2;
+    const y = top + layer.height / 2;
+    if (layer.strokeWidthPx > 0 && layer.strokeColor.length > 0) {
+      ctx.strokeStyle = layer.strokeColor;
+      ctx.lineWidth = layer.strokeWidthPx * 2;
+      ctx.strokeText(layer.text, x, y);
+    }
+    ctx.fillStyle = layer.color;
+    ctx.fillText(layer.text, x, y);
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'alphabetic';
+    return;
+  }
+
+  const picture = layer.imageIdentifier ? assets.imageOf(layer.imageIdentifier) : null;
   if (!picture) return;
 
-  const size = containRect(picture, layout.board.width, layout.board.height);
-  const x = layout.board.x + (layout.board.width - size.width) / 2;
-  const y = layout.board.y + (layout.board.height - size.height) / 2;
-  ctx.drawImage(picture, x, y, size.width, size.height);
+  const size = containRect(picture, layer.width, layer.height);
+  ctx.drawImage(
+    picture,
+    left + (layer.width - size.width) / 2,
+    top + (layer.height - size.height) / 2,
+    size.width,
+    size.height
+  );
+}
+
+function fillStyleOf(
+  ctx: ReplayFrameCanvas,
+  layer: ReplayCutInLayer,
+  left: number,
+  top: number
+): string | CanvasGradient {
+  if (layer.fillTo.length < 1) return layer.fillFrom;
+
+  const radians = (layer.fillAngleDeg * Math.PI) / 180;
+  const halfWidth = (Math.cos(radians) * layer.width) / 2;
+  const halfHeight = (Math.sin(radians) * layer.height) / 2;
+  const midX = left + layer.width / 2;
+  const midY = top + layer.height / 2;
+
+  const gradient = ctx.createLinearGradient(midX - halfWidth, midY - halfHeight, midX + halfWidth, midY + halfHeight);
+  gradient.addColorStop(0, layer.fillFrom);
+  gradient.addColorStop(1, layer.fillTo);
+  return gradient;
+}
+
+/** The box the layers take up between them, which stands in for the cut-in's own size. */
+function sceneStage(scene: ReplayCutInScene): { width: number; height: number } {
+  let width = 1;
+  let height = 1;
+  for (const layer of scene.layers) {
+    width = Math.max(width, layer.x + layer.width);
+    height = Math.max(height, layer.y + layer.height);
+  }
+  return { width, height };
 }
 
 function paintBackdrop(
