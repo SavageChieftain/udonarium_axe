@@ -349,6 +349,20 @@ export class CutInSceneEditorComponent {
   }
 
   protected onPointerMove(event: PointerEvent): void {
+    if (!this.drag) return;
+
+    // A pointer that has already been let go of, or one taken away by something the
+    // browser started, leaves no release behind. Anything still held then would follow
+    // the pointer about for good, so the drag is closed off the moment that shows.
+    if (event.buttons === 0) {
+      this.finishDrag();
+      return;
+    }
+
+    this.applyMove(event);
+  }
+
+  private applyMove(event: PointerEvent): void {
     const drag = this.drag;
     if (!drag) return;
 
@@ -373,9 +387,16 @@ export class CutInSceneEditorComponent {
     if (!this.drag) return;
     (event.target as HTMLElement | null)?.releasePointerCapture?.(event.pointerId);
 
-    this.onPointerMove(event);
-    this.flushDrag();
+    if (event.type === 'pointerup') this.applyMove(event);
+    this.finishDrag();
+  }
+
+  /** Writes down where the drag got to and lets go of it. */
+  private finishDrag(): void {
+    if (!this.drag) return;
+
     this.drag = null;
+    this.flushDrag();
     this.changed();
   }
 

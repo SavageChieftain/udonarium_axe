@@ -132,12 +132,14 @@
     </div>
 
     <div
-      class="relative min-h-0 min-w-0 touch-none overflow-hidden bg-[repeating-conic-gradient(rgba(255,255,255,0.06)_0%_25%,transparent_0%_50%)] bg-size-[16px_16px]"
+      class="relative min-h-0 min-w-0 touch-none overflow-hidden bg-[repeating-conic-gradient(rgba(255,255,255,0.06)_0%_25%,transparent_0%_50%)] bg-size-[16px_16px] select-none"
       #stageArea
       (pointerdown)="onPointerDown($event)"
       (pointermove)="onPointerMove($event)"
       (pointerup)="onPointerUp($event)"
       (pointercancel)="onPointerUp($event)"
+      (pointerleave)="onPointerUp($event)"
+      (dragstart)="$event.preventDefault()"
     >
       @if (scene(); as scene) {
         <app-cut-in-stage

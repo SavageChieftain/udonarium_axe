@@ -172,6 +172,19 @@ describe('CutInStageComponent', () => {
     expect(layerElements()[0].style.transform).toContain('translate(50px');
   });
 
+  it('refuses to let the browser drag a layer picture away', () => {
+    const scene = makeScene();
+    addLayer(scene, { imageIdentifier: 'nothing' });
+
+    show(scene);
+
+    const stage = fixture.nativeElement.querySelector('.overflow-hidden') as HTMLElement;
+    const dragstart = new Event('dragstart', { bubbles: true, cancelable: true });
+    stage.dispatchEvent(dragstart);
+
+    expect(dragstart.defaultPrevented).toBe(true);
+  });
+
   it('places the scene inside the room it is given, as the editor measures it', () => {
     const scene = makeScene();
     addLayer(scene);

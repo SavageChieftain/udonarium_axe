@@ -66,14 +66,23 @@ describe('CutInSceneEditorComponent', () => {
     return component as unknown as EditorApi;
   }
 
-  function pointer(type: string, x: number, y: number): PointerEvent {
-    return { type, clientX: x, clientY: y, shiftKey: false, pointerId: 1, target: null } as unknown as PointerEvent;
+  function pointer(type: string, x: number, y: number, buttons = 1): PointerEvent {
+    return {
+      type,
+      clientX: x,
+      clientY: y,
+      buttons,
+      shiftKey: false,
+      pointerId: 1,
+      target: null,
+    } as unknown as PointerEvent;
   }
 
   function drag(from: [number, number], to: [number, number]): void {
     editor().onPointerDown(pointer('pointerdown', from[0], from[1]));
     editor().onPointerMove(pointer('pointermove', to[0], to[1]));
-    editor().onPointerUp(pointer('pointerup', to[0], to[1]));
+    // A real release carries no button, which is also what an abandoned drag looks like.
+    editor().onPointerUp(pointer('pointerup', to[0], to[1], 0));
   }
 
   it('starts with no scene at all', () => {
@@ -267,6 +276,21 @@ describe('CutInSceneEditorComponent', () => {
 
       expect(layer.x).toBe(from);
       expect(layer.trackSet.x?.[0].v).toBe(from + 40);
+    });
+
+    it('lets go of a drag the browser took away, keeping where it got to', () => {
+      editor().addImageLayer();
+      const layer = component.layers()[0];
+      const from = layer.x;
+
+      editor().onPointerDown(pointer('pointerdown', from + 10, layer.y + 10));
+      editor().onPointerMove(pointer('pointermove', from + 40, layer.y + 10));
+
+      // No release arrives; the next moves come with nothing held down.
+      editor().onPointerMove(pointer('pointermove', from + 400, layer.y + 400, 0));
+      editor().onPointerMove(pointer('pointermove', from + 900, layer.y + 900, 0));
+
+      expect(layer.x).toBe(from + 30);
     });
 
     it('leaves a locked layer alone', () => {

@@ -1,4 +1,8 @@
-<div class="pointer-events-none absolute inset-0 overflow-hidden" [style.background]="background()">
+<div
+  class="pointer-events-none absolute inset-0 overflow-hidden select-none"
+  [style.background]="background()"
+  (dragstart)="$event.preventDefault()"
+>
   <div
     class="absolute top-0 left-0 origin-top-left"
     [style.width.px]="sceneWidth()"
@@ -36,7 +40,13 @@
           }
           @default {
             @if (imageUrl(layer); as url) {
-              <img class="size-full" [src]="url | safe: 'resourceUrl'" [style.object-fit]="layer.objectFit" alt="" />
+              <img
+                class="size-full select-none"
+                draggable="false"
+                [src]="url | safe: 'resourceUrl'"
+                [style.object-fit]="layer.objectFit"
+                alt=""
+              />
             }
           }
         }

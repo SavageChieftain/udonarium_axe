@@ -19,7 +19,12 @@
         (click)="chooseImage()"
       >
         @if (imageUrl()) {
-          <img class="size-10 shrink-0 object-contain" [src]="imageUrl() | safe: 'resourceUrl'" alt="" />
+          <img
+            class="size-10 shrink-0 object-contain"
+            draggable="false"
+            [src]="imageUrl() | safe: 'resourceUrl'"
+            alt=""
+          />
         } @else {
           <span
             class="border-ui-border-panel text-ui-dim flex size-10 shrink-0 items-center justify-center border border-dashed [&_.material-icons]:text-[18px]!"
