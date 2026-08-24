@@ -303,7 +303,9 @@
         "blurLabel": "ぼかし px",
         "startMsLabel": "開始 ms",
         "endMsLabel": "終了 ms",
-        "endMsHint": "終了 0 でシーンの最後まで表示します。"
+        "endMsHint": "終了 0 でシーンの最後まで表示します。",
+        "toggleKey": "この位置にキーを打つ / 外す",
+        "timeline": "タイムライン"
       }
     },
     "card": {

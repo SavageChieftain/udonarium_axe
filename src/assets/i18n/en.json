@@ -303,7 +303,9 @@
         "blurLabel": "Blur px",
         "startMsLabel": "Start ms",
         "endMsLabel": "End ms",
-        "endMsHint": "End at 0 keeps the layer to the end of the scene."
+        "endMsHint": "End at 0 keeps the layer to the end of the scene.",
+        "toggleKey": "Set or clear a key here",
+        "timeline": "Timeline"
       }
     },
     "card": {

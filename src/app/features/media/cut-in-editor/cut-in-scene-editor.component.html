@@ -99,7 +99,7 @@
           [scene]="scene"
           [sceneWidth]="sceneWidth()"
           [sceneHeight]="sceneHeight()"
-          [playing]="playing()"
+          [playing]="false"
           [playheadMs]="playheadMs()"
         />
       }
@@ -135,7 +135,27 @@
     </div>
 
     <div class="border-ui-border-panel bg-ui-panel min-h-0 overflow-y-auto border-l border-solid">
-      <cut-in-layer-properties [layer]="selected()" [isEditable]="isEditable()" (commit)="changed()" />
+      <cut-in-layer-properties
+        [layer]="selected()"
+        [isEditable]="isEditable()"
+        [playheadMs]="playheadMs()"
+        (commit)="changed()"
+      />
     </div>
+  </div>
+
+  <div class="border-ui-border-panel h-40 shrink-0 border-t border-solid">
+    <cut-in-timeline
+      class="h-full"
+      [layers]="layers()"
+      [selected]="selected()"
+      [durationMs]="durationMs()"
+      [playheadMs]="playheadMs()"
+      [isEditable]="isEditable()"
+      (seek)="onSeek($event)"
+      (selectLayer)="onSelect($event)"
+      (moveKey)="onMoveKey($event)"
+      (removeKey)="onRemoveKey($event)"
+    />
   </div>
 </div>

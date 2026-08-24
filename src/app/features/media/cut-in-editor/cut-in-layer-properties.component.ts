@@ -3,7 +3,9 @@ import { FormsModule } from '@angular/forms';
 import { ImageService } from '@axe/application/storage/image.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { ModalService } from '@axe/application/ui/modal.service';
+import type { CutInTrackName } from '@axe/domain/media/cut-in-keyframe';
 import { CutInLayer } from '@axe/domain/media/cut-in-layer';
+import { hasKeyAt, setValueAt, toggleKeyAt, valueAt } from '@axe/features/media/cut-in-editor/cut-in-keyframe-edit';
 import { FileSelecterComponent } from '@axe/ui/components/file-selecter/file-selecter.component';
 import { SafePipe } from '@axe/ui/pipes/safe.pipe';
 import { TranslocoModule } from '@jsverse/transloco';
@@ -29,6 +31,8 @@ export class CutInLayerPropertiesComponent {
 
   readonly layer = input<CutInLayer | null>(null);
   readonly isEditable = input(false);
+  /** Where the scrubber stands. A value written lands on the key there, if one does. */
+  readonly playheadMs = input(0);
 
   readonly commit = output<void>();
 
@@ -59,17 +63,17 @@ export class CutInLayerPropertiesComponent {
   }
 
   get x(): number {
-    return Math.round(this.layer()?.x ?? 0);
+    return Math.round(this.tracked('x'));
   }
   set x(x: number) {
-    this.write((layer) => (layer.x = Number(x) || 0));
+    this.writeTracked('x', Number(x) || 0);
   }
 
   get y(): number {
-    return Math.round(this.layer()?.y ?? 0);
+    return Math.round(this.tracked('y'));
   }
   set y(y: number) {
-    this.write((layer) => (layer.y = Number(y) || 0));
+    this.writeTracked('y', Number(y) || 0);
   }
 
   get width(): number {
@@ -88,36 +92,61 @@ export class CutInLayerPropertiesComponent {
 
   /** One figure for both directions. The two are kept apart only so a track may move them apart. */
   get scalePercent(): number {
-    return Math.round((this.layer()?.scaleX ?? 1) * 100);
+    return Math.round(this.tracked('scaleX', 1) * 100);
   }
   set scalePercent(percent: number) {
     const scale = Math.max(0.01, (Number(percent) || 100) / 100);
     this.write((layer) => {
-      layer.scaleX = scale;
-      layer.scaleY = scale;
+      setValueAt(layer, 'scaleX', this.playheadMs(), scale);
+      setValueAt(layer, 'scaleY', this.playheadMs(), scale);
     });
   }
 
   get rotation(): number {
-    return Math.round(this.layer()?.rotation ?? 0);
+    return Math.round(this.tracked('rotation'));
   }
   set rotation(rotation: number) {
-    this.write((layer) => (layer.rotation = Number(rotation) || 0));
+    this.writeTracked('rotation', Number(rotation) || 0);
   }
 
   get opacityPercent(): number {
-    return Math.round((this.layer()?.opacity ?? 1) * 100);
+    return Math.round(this.tracked('opacity', 1) * 100);
   }
   set opacityPercent(percent: number) {
-    const opacity = Math.min(1, Math.max(0, (Number(percent) || 0) / 100));
-    this.write((layer) => (layer.opacity = opacity));
+    this.writeTracked('opacity', Math.min(1, Math.max(0, (Number(percent) || 0) / 100)));
   }
 
   get blur(): number {
-    return Math.round(this.layer()?.blur ?? 0);
+    return Math.round(this.tracked('blur'));
   }
   set blur(blur: number) {
-    this.write((layer) => (layer.blur = Math.max(0, Number(blur) || 0)));
+    this.writeTracked('blur', Math.max(0, Number(blur) || 0));
+  }
+
+  /** Whether a key stands at the scrubber for a track, which the diamond shows. */
+  keyed(track: CutInTrackName): boolean {
+    const layer = this.layer();
+    if (!layer) return false;
+    this.objectChange.versionOf(layer.identifier)();
+    return hasKeyAt(layer, track, this.playheadMs());
+  }
+
+  toggleKey(track: CutInTrackName): void {
+    this.write((layer) => {
+      toggleKeyAt(layer, track, this.playheadMs());
+      if (track === 'scaleX') toggleKeyAt(layer, 'scaleY', this.playheadMs());
+    });
+  }
+
+  private tracked(track: CutInTrackName, fallback = 0): number {
+    const layer = this.layer();
+    if (!layer) return fallback;
+    this.objectChange.versionOf(layer.identifier)();
+    return valueAt(layer, track, this.playheadMs());
+  }
+
+  private writeTracked(track: CutInTrackName, value: number): void {
+    this.write((layer) => setValueAt(layer, track, this.playheadMs(), value));
   }
 
   get startMs(): number {

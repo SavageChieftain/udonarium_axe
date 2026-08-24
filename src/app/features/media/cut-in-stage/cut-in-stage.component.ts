@@ -8,6 +8,7 @@ import {
   inject,
   input,
   signal,
+  untracked,
   viewChildren,
 } from '@angular/core';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
@@ -105,17 +106,28 @@ export class CutInStageComponent {
   constructor() {
     this.watchHostSize();
 
+    // Building is kept apart from running, so moving the scrubber only moves the clock
+    // rather than tearing every animation down and putting it up again sixty times a second.
     afterRenderEffect(() => {
       const layers = this.layers();
       const elements = this.layerElements();
       const durationMs = this.durationMs();
       const loops = this.loops();
-      const playing = this.playing();
-      const playheadMs = this.playheadMs();
       // Every layer's own version, so a keyframe moved while the editor is open is picked up.
       for (const layer of layers) this.objectChange.versionOf(layer.identifier)();
 
-      this.draw(layers, elements, durationMs, loops, playing, playheadMs);
+      this.build(layers, elements, durationMs, loops);
+      this.runTo(untracked(this.playing), untracked(this.playheadMs), layers, elements, durationMs);
+    });
+
+    afterRenderEffect(() => {
+      this.runTo(
+        this.playing(),
+        this.playheadMs(),
+        untracked(this.layers),
+        untracked(this.layerElements),
+        untracked(this.durationMs)
+      );
     });
 
     this.destroyRef.onDestroy(() => this.clearHandles());
@@ -146,35 +158,52 @@ export class CutInStageComponent {
     ].join(', ');
   }
 
-  private draw(
+  private build(
     layers: readonly CutInLayer[],
     elements: readonly ElementRef<HTMLElement>[],
     durationMs: number,
-    loops: boolean,
-    playing: boolean,
-    playheadMs: number
+    loops: boolean
   ): void {
     this.clearHandles();
     if (durationMs < 1) return;
 
     for (let at = 0; at < layers.length; at++) {
       const element = elements[at]?.nativeElement;
-      if (!element) continue;
+      if (!element || !this.canAnimate(element)) continue;
 
+      this.handles.set(
+        layers[at].identifier,
+        element.animate(toWebAnimationFrames(layers[at], durationMs), {
+          duration: durationMs,
+          fill: 'both',
+          iterations: loops ? Infinity : 1,
+        })
+      );
+    }
+  }
+
+  /** Lets the animations run, or holds every one of them at the same moment. */
+  private runTo(
+    playing: boolean,
+    playheadMs: number,
+    layers: readonly CutInLayer[],
+    elements: readonly ElementRef<HTMLElement>[],
+    durationMs: number
+  ): void {
+    for (let at = 0; at < layers.length; at++) {
       const layer = layers[at];
-      if (!this.canAnimate(element)) {
-        this.paintStill(element, layer, playing ? 0 : playheadMs, durationMs);
+      const handle = this.handles.get(layer.identifier);
+
+      if (!handle) {
+        const element = elements[at]?.nativeElement;
+        if (element) this.paintStill(element, layer, playing ? 0 : playheadMs, durationMs);
         continue;
       }
 
-      const handle = element.animate(toWebAnimationFrames(layer, durationMs), {
-        duration: durationMs,
-        fill: 'both',
-        iterations: loops ? Infinity : 1,
-      });
-      this.handles.set(layer.identifier, handle);
-
-      if (playing) continue;
+      if (playing) {
+        handle.play();
+        continue;
+      }
       handle.pause();
       handle.currentTime = playheadMs;
     }

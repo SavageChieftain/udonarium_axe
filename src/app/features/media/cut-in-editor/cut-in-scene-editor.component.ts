@@ -24,6 +24,7 @@ import {
   removeLayer,
   reorderLayers,
 } from '@axe/features/media/cut-in-editor/cut-in-editor-ops';
+import { moveLayerKeys, removeLayerKeys } from '@axe/features/media/cut-in-editor/cut-in-keyframe-edit';
 import { CutInLayerListComponent } from '@axe/features/media/cut-in-editor/cut-in-layer-list.component';
 import { CutInLayerPropertiesComponent } from '@axe/features/media/cut-in-editor/cut-in-layer-properties.component';
 import {
@@ -36,6 +37,7 @@ import {
   stageFit,
   stageToScene,
 } from '@axe/features/media/cut-in-editor/cut-in-stage-geometry';
+import { CutInTimelineComponent } from '@axe/features/media/cut-in-editor/cut-in-timeline.component';
 import { CutInStageComponent } from '@axe/features/media/cut-in-stage/cut-in-stage.component';
 import type { DropSide } from '@axe/ui/dragging/row-reorder';
 import { TranslocoModule } from '@jsverse/transloco';
@@ -64,7 +66,14 @@ interface Drag {
   selector: 'cut-in-scene-editor',
   templateUrl: './cut-in-scene-editor.component.html',
   host: { class: 'block' },
-  imports: [FormsModule, TranslocoModule, CutInStageComponent, CutInLayerListComponent, CutInLayerPropertiesComponent],
+  imports: [
+    FormsModule,
+    TranslocoModule,
+    CutInStageComponent,
+    CutInLayerListComponent,
+    CutInLayerPropertiesComponent,
+    CutInTimelineComponent,
+  ],
 })
 export class CutInSceneEditorComponent {
   private readonly objectChange = inject(ObjectChangeService);
@@ -83,6 +92,7 @@ export class CutInSceneEditorComponent {
   private readonly bumped = signal(0);
 
   private drag: Drag | null = null;
+  private clockId: number | null = null;
   private pending: { layer: CutInLayer; box: LayerBox } | null = null;
   private flushTimer: ReturnType<typeof setTimeout> | null = null;
 
@@ -132,7 +142,10 @@ export class CutInSceneEditorComponent {
 
   constructor() {
     afterNextRender(() => this.watchStageSize());
-    this.destroyRef.onDestroy(() => this.flushDrag());
+    this.destroyRef.onDestroy(() => {
+      this.flushDrag();
+      this.pause();
+    });
   }
 
   protected addImageLayer(): void {
@@ -240,12 +253,72 @@ export class CutInSceneEditorComponent {
   }
 
   protected togglePlaying(): void {
-    this.playing.update((playing) => !playing);
+    if (this.playing()) {
+      this.pause();
+      return;
+    }
+    this.start();
   }
 
   protected stop(): void {
-    this.playing.set(false);
+    this.pause();
     this.playheadMs.set(0);
+  }
+
+  protected onSeek(ms: number): void {
+    this.pause();
+    this.playheadMs.set(ms);
+  }
+
+  protected onMoveKey(moved: { layer: CutInLayer; fromMs: number; toMs: number }): void {
+    if (!this.isEditable()) return;
+    if (moveLayerKeys(moved.layer, moved.fromMs, moved.toMs)) this.changed();
+  }
+
+  protected onRemoveKey(removed: { layer: CutInLayer; ms: number }): void {
+    if (!this.isEditable()) return;
+    if (removeLayerKeys(removed.layer, removed.ms)) this.changed();
+  }
+
+  /**
+   * The editor runs the clock itself rather than letting the animations run.
+   *
+   * Holding every layer at the moment the scrubber names is the only way the picture and
+   * the playhead can be trusted to agree, which is what an editor is for.
+   */
+  private start(): void {
+    const durationMs = this.durationMs();
+    if (durationMs < 1) return;
+
+    this.playing.set(true);
+    const from = this.playheadMs() >= durationMs ? 0 : this.playheadMs();
+    const startedAt = performance.now() - from;
+
+    const step = () => {
+      if (!this.playing()) return;
+      const running = Math.max(1, this.durationMs());
+      const at = performance.now() - startedAt;
+
+      if (at < running) {
+        this.playheadMs.set(at);
+      } else if (this.sceneLoop) {
+        this.playheadMs.set(at % running);
+      } else {
+        this.playheadMs.set(running);
+        this.pause();
+        return;
+      }
+      this.clockId = requestAnimationFrame(step);
+    };
+    this.clockId = requestAnimationFrame(step);
+  }
+
+  private pause(): void {
+    this.playing.set(false);
+    if (this.clockId !== null) {
+      cancelAnimationFrame(this.clockId);
+      this.clockId = null;
+    }
   }
 
   protected get sceneDurationSeconds(): number {

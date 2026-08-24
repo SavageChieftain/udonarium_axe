@@ -1,0 +1,143 @@
+import {
+  barRect,
+  formatMs,
+  keyAtX,
+  msToX,
+  pxPerSecFor,
+  snapMs,
+  visibleTicks,
+  xToMs,
+} from '@axe/features/media/cut-in-editor/cut-in-timeline-geometry';
+
+describe('pxPerSecFor()', () => {
+  it('fits the whole scene into the room it has', () => {
+    expect(msToX(4000, pxPerSecFor(4000, 800))).toBeCloseTo(800, 5);
+  });
+
+  it('falls back where there is no scene or no room', () => {
+    expect(pxPerSecFor(0, 800)).toBe(100);
+    expect(pxPerSecFor(4000, 0)).toBe(100);
+  });
+});
+
+describe('msToX() and xToMs()', () => {
+  it('undo one another', () => {
+    expect(xToMs(msToX(1234, 200), 200)).toBeCloseTo(1234, 5);
+  });
+
+  it('start together at nothing', () => {
+    expect(msToX(0, 200)).toBe(0);
+    expect(xToMs(0, 200)).toBe(0);
+  });
+
+  it('reads nothing off a scale of nothing', () => {
+    expect(xToMs(100, 0)).toBe(0);
+  });
+});
+
+describe('snapMs()', () => {
+  it('rounds to the grid', () => {
+    expect(snapMs(1234, 5000)).toBe(1230);
+    expect(snapMs(1236, 5000)).toBe(1240);
+  });
+
+  it('never leaves the scene', () => {
+    expect(snapMs(-500, 5000)).toBe(0);
+    expect(snapMs(9000, 5000)).toBe(5000);
+  });
+
+  it('takes a grid of its own', () => {
+    expect(snapMs(1234, 5000, 500)).toBe(1000);
+  });
+});
+
+describe('barRect()', () => {
+  const pxPerSec = 100;
+
+  it('runs the whole track for a layer with no end', () => {
+    expect(barRect({ startMs: 0, endMs: 0 }, 4000, pxPerSec)).toEqual({ left: 0, width: 400 });
+  });
+
+  it('starts and ends where the layer does', () => {
+    expect(barRect({ startMs: 1000, endMs: 3000 }, 4000, pxPerSec)).toEqual({ left: 100, width: 200 });
+  });
+
+  it('is held inside the scene', () => {
+    expect(barRect({ startMs: 0, endMs: 9000 }, 4000, pxPerSec).width).toBe(400);
+  });
+
+  it('stays wide enough to be seen', () => {
+    expect(barRect({ startMs: 1000, endMs: 1000 }, 4000, pxPerSec).width).toBe(1);
+  });
+});
+
+describe('visibleTicks()', () => {
+  it('reads nothing off a scene of nothing', () => {
+    expect(visibleTicks(0, 100)).toEqual([]);
+  });
+
+  it('starts at nothing and reaches the end', () => {
+    const ticks = visibleTicks(3000, 100);
+
+    expect(ticks[0].ms).toBe(0);
+    expect(ticks[ticks.length - 1].ms).toBe(3000);
+  });
+
+  it('marks every fifth as a major', () => {
+    const ticks = visibleTicks(3000, 100);
+
+    expect(ticks[0].major).toBe(true);
+    expect(ticks[1].major).toBe(false);
+    expect(ticks[5].major).toBe(true);
+  });
+
+  it('keeps the readings apart on a long scene', () => {
+    const pxPerSec = pxPerSecFor(60_000, 600);
+    const ticks = visibleTicks(60_000, pxPerSec);
+
+    for (let at = 1; at < ticks.length; at++) {
+      expect(msToX(ticks[at].ms - ticks[at - 1].ms, pxPerSec)).toBeGreaterThanOrEqual(8);
+    }
+  });
+
+  it('does not leave a short scene with one tick', () => {
+    expect(visibleTicks(300, pxPerSecFor(300, 600)).length).toBeGreaterThan(2);
+  });
+});
+
+describe('keyAtX()', () => {
+  const moments = [0, 500, 1000];
+  const pxPerSec = 100;
+
+  it('finds the key under the pointer', () => {
+    expect(keyAtX(moments, 50, pxPerSec)).toBe(500);
+  });
+
+  it('finds one near enough to it', () => {
+    expect(keyAtX(moments, 53, pxPerSec)).toBe(500);
+  });
+
+  it('finds none where there is nothing near', () => {
+    expect(keyAtX(moments, 30, pxPerSec)).toBeNull();
+  });
+
+  it('takes the nearest where two are within reach', () => {
+    expect(keyAtX([500, 520], 51, pxPerSec)).toBe(500);
+  });
+
+  it('finds none on an empty track', () => {
+    expect(keyAtX([], 50, pxPerSec)).toBeNull();
+  });
+});
+
+describe('formatMs()', () => {
+  it('writes the clock out', () => {
+    expect(formatMs(0)).toBe('0:00.00');
+    expect(formatMs(1234)).toBe('0:01.23');
+    expect(formatMs(65_400)).toBe('1:05.40');
+  });
+
+  it('never goes below nothing', () => {
+    expect(formatMs(-100)).toBe('0:00.00');
+  });
+});

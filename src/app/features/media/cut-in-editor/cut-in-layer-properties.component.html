@@ -25,7 +25,7 @@
       </button>
     }
 
-    <div class="grid grid-cols-[3.5rem_1fr_3.5rem_1fr] items-center gap-x-2 gap-y-1.5">
+    <div class="grid grid-cols-[3.2rem_1fr_auto_3.2rem_1fr_auto] items-center gap-1.5">
       <label class="text-ui-muted text-[11px]">X</label>
       <input
         class="bg-ui-input border-ui-border-panel text-ui-text rounded-ui-sm box-border w-full border border-solid px-1.5 py-1 text-right text-[12px] outline-none disabled:opacity-50"
@@ -34,6 +34,16 @@
         [(ngModel)]="x"
         [attr.disabled]="!isEditable() ? '' : null"
       />
+      <button
+        class="text-ui-dim hover:text-ui-accent m-0 inline-flex size-5 items-center justify-center border-none bg-transparent p-0 shadow-none disabled:opacity-40 [&_.material-icons]:text-[13px]!"
+        type="button"
+        [class.text-ui-accent!]="keyed('x')"
+        [disabled]="!isEditable()"
+        [title]="'feature.media.cutInEditor.toggleKey' | transloco"
+        (click)="toggleKey('x')"
+      >
+        <i class="material-icons">diamond</i>
+      </button>
       <label class="text-ui-muted text-[11px]">Y</label>
       <input
         class="bg-ui-input border-ui-border-panel text-ui-text rounded-ui-sm box-border w-full border border-solid px-1.5 py-1 text-right text-[12px] outline-none disabled:opacity-50"
@@ -42,6 +52,16 @@
         [(ngModel)]="y"
         [attr.disabled]="!isEditable() ? '' : null"
       />
+      <button
+        class="text-ui-dim hover:text-ui-accent m-0 inline-flex size-5 items-center justify-center border-none bg-transparent p-0 shadow-none disabled:opacity-40 [&_.material-icons]:text-[13px]!"
+        type="button"
+        [class.text-ui-accent!]="keyed('y')"
+        [disabled]="!isEditable()"
+        [title]="'feature.media.cutInEditor.toggleKey' | transloco"
+        (click)="toggleKey('y')"
+      >
+        <i class="material-icons">diamond</i>
+      </button>
 
       <label class="text-ui-muted text-[11px]">{{ 'feature.media.cutInEditor.widthLabel' | transloco }}</label>
       <input
@@ -68,6 +88,16 @@
         [(ngModel)]="scalePercent"
         [attr.disabled]="!isEditable() ? '' : null"
       />
+      <button
+        class="text-ui-dim hover:text-ui-accent m-0 inline-flex size-5 items-center justify-center border-none bg-transparent p-0 shadow-none disabled:opacity-40 [&_.material-icons]:text-[13px]!"
+        type="button"
+        [class.text-ui-accent!]="keyed('scaleX')"
+        [disabled]="!isEditable()"
+        [title]="'feature.media.cutInEditor.toggleKey' | transloco"
+        (click)="toggleKey('scaleX')"
+      >
+        <i class="material-icons">diamond</i>
+      </button>
       <label class="text-ui-muted text-[11px]">{{ 'feature.media.cutInEditor.rotationLabel' | transloco }}</label>
       <input
         class="bg-ui-input border-ui-border-panel text-ui-text rounded-ui-sm box-border w-full border border-solid px-1.5 py-1 text-right text-[12px] outline-none disabled:opacity-50"
@@ -76,6 +106,16 @@
         [(ngModel)]="rotation"
         [attr.disabled]="!isEditable() ? '' : null"
       />
+      <button
+        class="text-ui-dim hover:text-ui-accent m-0 inline-flex size-5 items-center justify-center border-none bg-transparent p-0 shadow-none disabled:opacity-40 [&_.material-icons]:text-[13px]!"
+        type="button"
+        [class.text-ui-accent!]="keyed('rotation')"
+        [disabled]="!isEditable()"
+        [title]="'feature.media.cutInEditor.toggleKey' | transloco"
+        (click)="toggleKey('rotation')"
+      >
+        <i class="material-icons">diamond</i>
+      </button>
 
       <label class="text-ui-muted text-[11px]">{{ 'feature.media.cutInEditor.opacityLabel' | transloco }}</label>
       <input
@@ -87,6 +127,16 @@
         [(ngModel)]="opacityPercent"
         [attr.disabled]="!isEditable() ? '' : null"
       />
+      <button
+        class="text-ui-dim hover:text-ui-accent m-0 inline-flex size-5 items-center justify-center border-none bg-transparent p-0 shadow-none disabled:opacity-40 [&_.material-icons]:text-[13px]!"
+        type="button"
+        [class.text-ui-accent!]="keyed('opacity')"
+        [disabled]="!isEditable()"
+        [title]="'feature.media.cutInEditor.toggleKey' | transloco"
+        (click)="toggleKey('opacity')"
+      >
+        <i class="material-icons">diamond</i>
+      </button>
       <label class="text-ui-muted text-[11px]">{{ 'feature.media.cutInEditor.blurLabel' | transloco }}</label>
       <input
         class="bg-ui-input border-ui-border-panel text-ui-text rounded-ui-sm box-border w-full border border-solid px-1.5 py-1 text-right text-[12px] outline-none disabled:opacity-50"
@@ -96,6 +146,16 @@
         [(ngModel)]="blur"
         [attr.disabled]="!isEditable() ? '' : null"
       />
+      <button
+        class="text-ui-dim hover:text-ui-accent m-0 inline-flex size-5 items-center justify-center border-none bg-transparent p-0 shadow-none disabled:opacity-40 [&_.material-icons]:text-[13px]!"
+        type="button"
+        [class.text-ui-accent!]="keyed('blur')"
+        [disabled]="!isEditable()"
+        [title]="'feature.media.cutInEditor.toggleKey' | transloco"
+        (click)="toggleKey('blur')"
+      >
+        <i class="material-icons">diamond</i>
+      </button>
 
       <label class="text-ui-muted text-[11px]">{{ 'feature.media.cutInEditor.startMsLabel' | transloco }}</label>
       <input

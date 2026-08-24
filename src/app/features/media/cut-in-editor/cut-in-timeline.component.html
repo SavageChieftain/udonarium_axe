@@ -1,0 +1,58 @@
+<div class="flex h-full min-h-0 flex-col text-[11px]">
+  <div class="border-ui-border-panel text-ui-muted flex shrink-0 items-center gap-2 border-b border-solid px-2 py-1">
+    <i class="material-icons text-[13px]! opacity-70">schedule</i>
+    <span class="tabular-nums">{{ clock() }}</span>
+  </div>
+
+  <div
+    class="relative min-h-0 flex-1 touch-none overflow-y-auto"
+    #track
+    (pointermove)="onPointerMove($event)"
+    (pointerup)="onPointerUp($event)"
+    (pointercancel)="onPointerUp($event)"
+  >
+    <div class="border-ui-border-panel relative h-5 border-b border-solid" (pointerdown)="onRulerDown($event)">
+      @for (tick of ticks(); track tick.ms) {
+        <span
+          class="bg-ui-border-panel absolute bottom-0 w-px"
+          [style.left.px]="tickX(tick)"
+          [style.height.px]="tick.major ? 8 : 4"
+        ></span>
+        @if (tick.major) {
+          <span class="text-ui-dim absolute top-0 -translate-x-1/2 tabular-nums" [style.left.px]="tickX(tick)">{{
+            tickLabel(tick)
+          }}</span>
+        }
+      }
+    </div>
+
+    @for (row of rows(); track row.layer.identifier) {
+      <div
+        class="border-ui-border-panel/60 relative h-6 border-b border-solid"
+        [class.bg-ui-accent-bg]="isSelected(row)"
+        (pointerdown)="onRowDown($event, row)"
+        (dblclick)="onRowDoubleClick($event, row)"
+      >
+        <div
+          class="bg-ui-accent/25 border-ui-accent/60 absolute top-1 h-4 rounded-sm border border-solid"
+          [class.opacity-40]="row.layer.hidden"
+          [style.left.px]="row.left"
+          [style.width.px]="row.width"
+        ></div>
+        @for (key of row.keys; track key.ms) {
+          <span
+            class="bg-ui-accent absolute top-2 size-2 rotate-45"
+            [style.left.px]="key.x"
+            [style.margin-left.px]="-4"
+          ></span>
+        }
+      </div>
+    }
+
+    @if (rows().length === 0) {
+      <div class="text-ui-dim px-2 py-3 text-center">{{ 'feature.media.cutInEditor.noLayers' | transloco }}</div>
+    }
+
+    <div class="bg-ui-danger pointer-events-none absolute inset-y-0 w-px" [style.left.px]="playheadX()"></div>
+  </div>
+</div>
