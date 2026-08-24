@@ -296,6 +296,25 @@
         [attr.disabled]="!isEditable() ? '' : null"
       />
     </div>
+    @if (keyedHere) {
+      <div class="border-ui-border-panel flex items-center gap-1.5 border-t border-solid pt-2">
+        <label class="text-ui-muted shrink-0 text-[11px]">{{ 'feature.media.cutInEditor.easing' | transloco }}</label>
+        <select
+          class="bg-ui-input border-ui-border-panel text-ui-text rounded-ui-sm box-border w-full border border-solid p-1 text-[12px] outline-none disabled:opacity-50"
+          name="cut-in-layer-easing"
+          [(ngModel)]="easingHere"
+          [attr.disabled]="!isEditable() ? '' : null"
+        >
+          @if (easingHere === '') {
+            <option value="">{{ 'feature.media.cutInEditor.easingMixed' | transloco }}</option>
+          }
+          @for (easing of easings; track easing) {
+            <option [value]="easing">{{ 'feature.media.cutInEditor.easing' + easing | transloco }}</option>
+          }
+        </select>
+      </div>
+    }
+
     <span class="text-ui-dim text-[11px]">{{ 'feature.media.cutInEditor.endMsHint' | transloco }}</span>
   </div>
 } @else {

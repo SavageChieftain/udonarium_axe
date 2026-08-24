@@ -3,9 +3,17 @@ import { FormsModule } from '@angular/forms';
 import { ImageService } from '@axe/application/storage/image.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { ModalService } from '@axe/application/ui/modal.service';
-import type { CutInTrackName } from '@axe/domain/media/cut-in-keyframe';
+import { CUT_IN_EASING_NAMES, type CutInEasingName, isCutInEasing } from '@axe/domain/media/cubic-bezier';
+import { CUT_IN_TRACKS, type CutInTrackName } from '@axe/domain/media/cut-in-keyframe';
 import { CUT_IN_TEXT_ALIGNS, CutInLayer, type CutInTextAlign, isCutInTextAlign } from '@axe/domain/media/cut-in-layer';
-import { hasKeyAt, setValueAt, toggleKeyAt, valueAt } from '@axe/features/media/cut-in-editor/cut-in-keyframe-edit';
+import {
+  easingAtMoment,
+  hasKeyAt,
+  setEasingAtMoment,
+  setValueAt,
+  toggleKeyAt,
+  valueAt,
+} from '@axe/features/media/cut-in-editor/cut-in-keyframe-edit';
 import { FileSelecterComponent } from '@axe/ui/components/file-selecter/file-selecter.component';
 import { SafePipe } from '@axe/ui/pipes/safe.pipe';
 import { TranslocoModule } from '@jsverse/transloco';
@@ -37,6 +45,7 @@ export class CutInLayerPropertiesComponent {
   readonly commit = output<void>();
 
   readonly textAligns = CUT_IN_TEXT_ALIGNS;
+  readonly easings = CUT_IN_EASING_NAMES;
 
   readonly imageUrl = computed(() => {
     const layer = this.layer();
@@ -138,6 +147,26 @@ export class CutInLayerPropertiesComponent {
       toggleKeyAt(layer, track, this.playheadMs());
       if (track === 'scaleX') toggleKeyAt(layer, 'scaleY', this.playheadMs());
     });
+  }
+
+  /** Whether any key stands at the scrubber, which is when a curve can be chosen. */
+  get keyedHere(): boolean {
+    const layer = this.layer();
+    if (!layer) return false;
+    this.objectChange.versionOf(layer.identifier)();
+    return CUT_IN_TRACKS.some((track) => hasKeyAt(layer, track, this.playheadMs()));
+  }
+
+  /** The curve out of the keys standing at the scrubber, or nothing where they disagree. */
+  get easingHere(): CutInEasingName | '' {
+    const layer = this.layer();
+    if (!layer) return '';
+    this.objectChange.versionOf(layer.identifier)();
+    return easingAtMoment(layer, this.playheadMs()) ?? '';
+  }
+  set easingHere(easing: CutInEasingName | '') {
+    if (!isCutInEasing(easing)) return;
+    this.write((layer) => setEasingAtMoment(layer, this.playheadMs(), easing));
   }
 
   private tracked(track: CutInTrackName, fallback = 0): number {

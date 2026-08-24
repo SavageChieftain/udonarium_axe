@@ -195,4 +195,51 @@ describe('CutInLayerPropertiesComponent', () => {
       expect(layer.fillAngleDeg).toBe(45);
     });
   });
+
+  describe('the curve out of a key', () => {
+    it('is offered only where a key stands', () => {
+      atPlayhead(400);
+      expect(component.keyedHere).toBe(false);
+
+      component.toggleKey('x');
+      expect(component.keyedHere).toBe(true);
+    });
+
+    it('starts as the one a new key is drawn with', () => {
+      atPlayhead(400);
+      component.toggleKey('x');
+
+      expect(component.easingHere).toBe('outCubic');
+    });
+
+    it('is written to every key standing there', () => {
+      atPlayhead(400);
+      component.toggleKey('x');
+      component.toggleKey('opacity');
+
+      component.easingHere = 'linear';
+
+      expect(layer.trackSet.x?.[0].e).toBe('linear');
+      expect(layer.trackSet.opacity?.[0].e).toBe('linear');
+    });
+
+    it('says nothing where the keys standing there disagree', () => {
+      atPlayhead(400);
+      component.toggleKey('x');
+      component.toggleKey('opacity');
+      component.easingHere = 'linear';
+      layer.tracks = layer.tracks.replace('"e":"linear"', '"e":"outBack"');
+
+      expect(component.easingHere).toBe('');
+    });
+
+    it('turns away a curve it does not know', () => {
+      atPlayhead(400);
+      component.toggleKey('x');
+
+      component.easingHere = 'nonsense' as never;
+
+      expect(component.easingHere).toBe('outCubic');
+    });
+  });
 });
