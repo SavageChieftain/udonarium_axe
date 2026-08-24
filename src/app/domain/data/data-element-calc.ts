@@ -1,9 +1,18 @@
 export type CalcEnv = Record<string, number>;
 
-export function evalCalcFormula(formula: string, env: CalcEnv): number {
+/**
+ * Answers what one name stands for, by that name folded to lower case.
+ *
+ * A formula names a handful of fields out of a sheet that may hold hundreds, so it is asked
+ * rather than handed the lot: nothing the formula does not name is ever looked at, which is
+ * what keeps a field that reads one other field from costing what the whole sheet costs.
+ */
+export type CalcLookup = (name: string) => number;
+
+export function evalCalcFormula(formula: string, env: CalcEnv | CalcLookup): number {
   try {
     const tokens = tokenize(formula);
-    const parser = new Parser(tokens, env);
+    const parser = new Parser(tokens, typeof env === 'function' ? env : foldCase(env));
     const result = parser.parseExpr();
     if (parser.pos !== tokens.length) return NaN;
     return result;
@@ -100,13 +109,31 @@ function tokenize(src: string): Token[] {
   return tokens;
 }
 
+/**
+ * The environment keyed by lower-cased name, so a formula naming a field finds it in one
+ * step. Names are matched without regard to case, and a sheet can hold hundreds of them,
+ * so working that out per name read would cost more than the sum it is there to work out.
+ */
+function foldCase(env: CalcEnv): CalcLookup {
+  const folded = new Map<string, number>();
+  for (const key of Object.keys(env)) {
+    const lower = key.toLowerCase();
+    // The first spelling wins, which is the one the old search would have reached first.
+    if (!folded.has(lower)) folded.set(lower, env[key]);
+  }
+  return (name) => {
+    const value = folded.get(name);
+    return value !== undefined ? value : NaN;
+  };
+}
+
 const FUNCTIONS = new Set(['floor', 'ceil', 'round', 'abs', 'min', 'max']);
 
 class Parser {
   pos = 0;
   constructor(
     private readonly tokens: Token[],
-    private readonly env: CalcEnv
+    private readonly env: CalcLookup
   ) {}
 
   peek(): Token | undefined {
@@ -218,8 +245,7 @@ class Parser {
         }
       }
 
-      const envKey = Object.keys(this.env).find((k) => k.toLowerCase() === name);
-      return envKey !== undefined ? this.env[envKey] : NaN;
+      return this.env(name);
     }
 
     throw new Error(`unexpected token: ${JSON.stringify(tok)}`);

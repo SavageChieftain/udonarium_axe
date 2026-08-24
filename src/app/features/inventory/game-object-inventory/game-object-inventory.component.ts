@@ -25,6 +25,7 @@ import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { GameObject } from '@axe/core/sync/game-object';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { splitSearchTerms } from '@axe/core/util/text-search';
+import { turnCache } from '@axe/core/util/turn-cache';
 import {
   ancestorFolderPaths,
   FOLDER_SEPARATOR,
@@ -36,7 +37,7 @@ import {
 } from '@axe/domain/character/character-folder';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { DataElement, DataElementFieldType } from '@axe/domain/data/data-element';
-import { evaluateCalcElement } from '@axe/domain/data/data-element-calc-env';
+import { createCalcPass, evaluateCalcElement } from '@axe/domain/data/data-element-calc-env';
 import { SortOrder } from '@axe/domain/data/data-summary-setting';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
@@ -79,8 +80,11 @@ export class GameObjectInventoryComponent {
     return element.fieldType === DataElementFieldType.CALC;
   }
 
+  /** Every row asks while the list is being drawn, and they all read the same sheets. */
+  private readonly calcPass = turnCache(createCalcPass);
+
   calcText(element: DataElement): string {
-    return evaluateCalcElement(element);
+    return evaluateCalcElement(element, this.calcPass());
   }
 
   private readonly panelService = inject(PanelService);
