@@ -3,7 +3,7 @@
     class="absolute top-0 left-0 origin-top-left"
     [style.width.px]="sceneWidth()"
     [style.height.px]="sceneHeight()"
-    [style.transform]="'scale(' + fit() + ')'"
+    [style.transform]="sceneTransform()"
   >
     @for (layer of layers(); track layer.identifier) {
       <div

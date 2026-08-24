@@ -209,6 +209,31 @@ describe('CutInSceneEditorComponent', () => {
       expect(layer.width).toBeLessThan(320);
     });
 
+    it('turns the layer by the grip above it', () => {
+      editor().addImageLayer();
+      const layer = component.layers()[0];
+      const box = { x: layer.x, y: layer.y, width: layer.width, height: layer.height };
+
+      // From straight above the middle round to the right of it: a quarter turn.
+      drag([box.x + box.width / 2, box.y - 22], [box.x + box.width + 200, box.y + box.height / 2]);
+
+      expect(layer.rotation).toBeGreaterThan(60);
+      expect(layer.rotation).toBeLessThan(120);
+      expect(layer.x).toBe(box.x);
+    });
+
+    it('writes a drag onto the key standing at the scrubber', () => {
+      editor().addImageLayer();
+      const layer = component.layers()[0];
+      const from = layer.x;
+      layer.tracks = '{"x":[{"t":0,"v":' + from + '},{"t":1000,"v":' + from + '}]}';
+
+      drag([layer.x + 10, layer.y + 10], [layer.x + 50, layer.y + 10]);
+
+      expect(layer.x).toBe(from);
+      expect(layer.trackSet.x?.[0].v).toBe(from + 40);
+    });
+
     it('leaves a locked layer alone', () => {
       editor().addImageLayer();
       const layer = component.layers()[0];

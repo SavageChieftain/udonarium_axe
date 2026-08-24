@@ -255,7 +255,8 @@ export class AppComponent {
         break;
       case 'CutInListComponent':
         component = CutInListComponent;
-        option = { width: 650, height: 740, left: 100, title: this.t('common.panel.cutInList') };
+        // The scene tab wants room for a stage, a layer list and a properties column.
+        option = { width: 980, height: 760, left: 60, title: this.t('common.panel.cutInList') };
         break;
       case 'GameCharacterGeneratorComponent':
         component = GameCharacterGeneratorComponent;

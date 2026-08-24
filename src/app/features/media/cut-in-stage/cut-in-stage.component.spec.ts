@@ -172,12 +172,13 @@ describe('CutInStageComponent', () => {
     expect(layerElements()[0].style.transform).toContain('translate(50px');
   });
 
-  it('shrinks the scene to fit the room it is given', () => {
+  it('places the scene inside the room it is given, as the editor measures it', () => {
     const scene = makeScene();
     addLayer(scene);
 
     show(scene);
 
-    expect(fixture.componentInstance.fit()).toBe(1);
+    expect(fixture.componentInstance.fit()).toEqual({ scale: 1, offsetX: 0, offsetY: 0 });
+    expect(fixture.componentInstance.sceneTransform()).toBe('translate(0px, 0px) scale(1)');
   });
 });

@@ -363,8 +363,8 @@ export class CutInEditorComponent {
   openCutInImageModal() {
     if (!this.c) return;
     const cutIn = this.c;
-    this.modalService.open<string>(FileSelecterComponent).then((value) => {
-      if (!cutIn || !value) return;
+    this.modalService.open<string>(FileSelecterComponent, { isAllowedEmpty: true }).then((value) => {
+      if (!cutIn || value === undefined || value === null) return;
       cutIn.imageIdentifier = value;
     });
   }

@@ -37,15 +37,24 @@ import {
   cutInEditorKeyDown,
   isTypingTarget,
 } from '@axe/features/media/cut-in-editor/cut-in-editor-shortcut';
-import { moveLayerKeys, removeLayerKeys } from '@axe/features/media/cut-in-editor/cut-in-keyframe-edit';
+import {
+  moveLayerKeys,
+  removeLayerKeys,
+  setValueAt,
+  valueAt,
+} from '@axe/features/media/cut-in-editor/cut-in-keyframe-edit';
 import { CutInLayerListComponent } from '@axe/features/media/cut-in-editor/cut-in-layer-list.component';
 import { CutInLayerPropertiesComponent } from '@axe/features/media/cut-in-editor/cut-in-layer-properties.component';
 import {
+  angleFromCentre,
   applyResize,
   isInsideLayer,
+  isOnRotateHandle,
   type LayerBox,
+  normaliseAngle,
   type ResizeHandle,
   resizeHandleAt,
+  ROTATE_HANDLE_REACH_PX,
   stageDeltaToScene,
   stageFit,
   stageToScene,
@@ -61,9 +70,12 @@ const DRAG_FLUSH_MS = 66;
 interface Drag {
   layer: CutInLayer;
   handle: ResizeHandle | null;
+  /** Set while the grip above the box is being dragged round. */
+  turningFrom: number | null;
   fromX: number;
   fromY: number;
   box: LayerBox;
+  rotation: number;
 }
 
 /**
@@ -109,7 +121,7 @@ export class CutInSceneEditorComponent {
   private history: EditHistory<CutInSceneSnapshot> | null = null;
   private historyOf = '';
   protected readonly historyVersion = signal(0);
-  private pending: { layer: CutInLayer; box: LayerBox } | null = null;
+  private pending: { layer: CutInLayer; box: LayerBox | null; rotation: number | null } | null = null;
   private flushTimer: ReturnType<typeof setTimeout> | null = null;
 
   readonly scene = computed<CutInScene | null>(() => {
@@ -153,7 +165,22 @@ export class CutInSceneEditorComponent {
     if (!layer) return null;
     this.objectChange.versionOf(layer.identifier)();
     this.bumped();
-    return { x: layer.x, y: layer.y, width: layer.width, height: layer.height };
+    return this.boxOf(layer);
+  });
+
+  /** How far the selected layer is turned, so the outline sits on it rather than beside it. */
+  readonly selectionRotation = computed(() => {
+    const layer = this.selected();
+    if (!layer) return 0;
+    this.objectChange.versionOf(layer.identifier)();
+    this.bumped();
+    return valueAt(layer, 'rotation', this.playheadMs());
+  });
+
+  readonly selectionOrigin = computed(() => {
+    const layer = this.selected();
+    if (!layer) return '50% 50%';
+    return `${layer.anchorX * 100}% ${layer.anchorY * 100}%`;
   });
 
   constructor() {
@@ -258,19 +285,29 @@ export class CutInSceneEditorComponent {
     this.selectedIdentifier.set(layer.identifier);
     (event.target as HTMLElement | null)?.setPointerCapture?.(event.pointerId);
 
-    const box = { x: layer.x, y: layer.y, width: layer.width, height: layer.height };
+    const box = this.boxOf(layer);
+    const turning = isOnRotateHandle(point, box, this.fit());
     this.drag = {
       layer,
-      handle: resizeHandleAt(point, box, this.fit()),
+      handle: turning ? null : resizeHandleAt(point, box, this.fit()),
+      turningFrom: turning ? angleFromCentre(point, box) : null,
       fromX: event.clientX,
       fromY: event.clientY,
       box,
+      rotation: valueAt(layer, 'rotation', this.playheadMs()),
     };
   }
 
   protected onPointerMove(event: PointerEvent): void {
     const drag = this.drag;
     if (!drag) return;
+
+    if (drag.turningFrom !== null) {
+      const turned = angleFromCentre(this.pointAt(event), drag.box) - drag.turningFrom;
+      // Holding shift snaps to the eighths of a turn, for a level or a quarter-turned layer.
+      this.queueTurn(drag.layer, normaliseAngle(drag.rotation + turned, event.shiftKey ? 45 : 0));
+      return;
+    }
 
     const moved = stageDeltaToScene(event.clientX - drag.fromX, event.clientY - drag.fromY, this.fit());
     const box = drag.handle
@@ -457,20 +494,47 @@ export class CutInSceneEditorComponent {
     return stageToScene(event.clientX - bounds.left, event.clientY - bounds.top, this.fit());
   }
 
+  /** Where a layer stands at the scrubber, which is where it is grabbed. */
+  private boxOf(layer: CutInLayer): LayerBox {
+    const ms = this.playheadMs();
+    return {
+      x: valueAt(layer, 'x', ms),
+      y: valueAt(layer, 'y', ms),
+      width: layer.width,
+      height: layer.height,
+    };
+  }
+
   /** The topmost layer under the pointer, which is the last one drawn. */
   private layerAt(point: { x: number; y: number }): CutInLayer | null {
     const layers = this.layers();
     for (let at = layers.length - 1; at >= 0; at--) {
       const layer = layers[at];
       if (layer.hidden || layer.locked) continue;
-      const box = { x: layer.x, y: layer.y, width: layer.width, height: layer.height };
+
+      const box = this.boxOf(layer);
+      if (isOnRotateHandle(point, box, this.fit())) return layer;
       if (resizeHandleAt(point, box, this.fit()) || isInsideLayer(point, box)) return layer;
     }
     return null;
   }
 
+  /** The reach of the grip above a selected layer, in the cut-in's own coordinates. */
+  protected get rotateReach(): number {
+    return ROTATE_HANDLE_REACH_PX;
+  }
+
+  private queueTurn(layer: CutInLayer, rotation: number): void {
+    this.pending = { layer, box: null, rotation };
+    this.startFlushTimer();
+  }
+
   private queueFlush(layer: CutInLayer, box: LayerBox): void {
-    this.pending = { layer, box };
+    this.pending = { layer, box, rotation: null };
+    this.startFlushTimer();
+  }
+
+  private startFlushTimer(): void {
     if (this.flushTimer !== null) return;
 
     this.flushTimer = setTimeout(() => {
@@ -489,10 +553,15 @@ export class CutInSceneEditorComponent {
     this.pending = null;
     if (!pending) return;
 
-    pending.layer.x = Math.round(pending.box.x);
-    pending.layer.y = Math.round(pending.box.y);
-    pending.layer.width = Math.round(pending.box.width);
-    pending.layer.height = Math.round(pending.box.height);
+    if (pending.rotation !== null) {
+      setValueAt(pending.layer, 'rotation', this.playheadMs(), pending.rotation);
+    }
+    if (pending.box) {
+      setValueAt(pending.layer, 'x', this.playheadMs(), Math.round(pending.box.x));
+      setValueAt(pending.layer, 'y', this.playheadMs(), Math.round(pending.box.y));
+      pending.layer.width = Math.round(pending.box.width);
+      pending.layer.height = Math.round(pending.box.height);
+    }
     // Only the redraw: the whole drag is one change to take back, committed on the release.
     this.bumped.update((count) => count + 1);
   }

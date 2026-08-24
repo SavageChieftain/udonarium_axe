@@ -31,6 +31,8 @@ export type ResizeHandle = (typeof RESIZE_HANDLES)[number];
 
 export const HANDLE_TOLERANCE_PX = 8;
 export const MIN_LAYER_SIZE = 8;
+/** How far above the box the grip that turns it sits, in screen pixels. */
+export const ROTATE_HANDLE_REACH_PX = 22;
 
 /** The scene shrunk to fit and centred, never grown past its own size. */
 export function stageFit(scene: StageBox, room: StageBox): StageFit {
@@ -115,4 +117,35 @@ export function applyResize(box: LayerBox, handle: ResizeHandle, dx: number, dy:
     width,
     height,
   };
+}
+
+/** Whether a point has hold of the grip that turns a layer, which sits above it. */
+export function isOnRotateHandle(
+  point: { x: number; y: number },
+  box: LayerBox,
+  fit: StageFit,
+  tolerancePx = HANDLE_TOLERANCE_PX
+): boolean {
+  const reach = tolerancePx / Math.max(fit.scale, 0.0001);
+  const grip = { x: box.x + box.width / 2, y: box.y - ROTATE_HANDLE_REACH_PX / Math.max(fit.scale, 0.0001) };
+  return Math.abs(point.x - grip.x) <= reach && Math.abs(point.y - grip.y) <= reach;
+}
+
+/**
+ * The angle from the middle of a layer out to a point, in degrees.
+ *
+ * Zero points straight up, which is where the grip rests, so dragging it round reads as
+ * turning the layer by the angle the pointer has travelled.
+ */
+export function angleFromCentre(point: { x: number; y: number }, box: LayerBox): number {
+  const dx = point.x - (box.x + box.width / 2);
+  const dy = point.y - (box.y + box.height / 2);
+  return (Math.atan2(dx, -dy) * 180) / Math.PI;
+}
+
+/** An angle brought into 0-360, and snapped to the nearest step when asked. */
+export function normaliseAngle(degrees: number, stepDeg = 0): number {
+  const wrapped = ((degrees % 360) + 360) % 360;
+  if (stepDeg <= 0) return Math.round(wrapped * 10) / 10;
+  return (Math.round(wrapped / stepDeg) * stepDeg) % 360;
 }

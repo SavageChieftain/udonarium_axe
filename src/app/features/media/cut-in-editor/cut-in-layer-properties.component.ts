@@ -52,6 +52,7 @@ export class CutInLayerPropertiesComponent {
     if (!layer) return '';
     this.objectChange.fileVersion();
     this.objectChange.versionOf(layer.identifier)();
+    if (!layer.imageIdentifier) return '';
     return this.imageService.getEmptyOr(layer.imageIdentifier).url;
   });
 

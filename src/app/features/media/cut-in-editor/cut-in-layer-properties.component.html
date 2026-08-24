@@ -18,7 +18,15 @@
         [title]="'feature.media.cutInEditor.chooseImage' | transloco"
         (click)="chooseImage()"
       >
-        <img class="size-10 shrink-0 object-contain" [src]="imageUrl() | safe: 'resourceUrl'" alt="" />
+        @if (imageUrl()) {
+          <img class="size-10 shrink-0 object-contain" [src]="imageUrl() | safe: 'resourceUrl'" alt="" />
+        } @else {
+          <span
+            class="border-ui-border-panel text-ui-dim flex size-10 shrink-0 items-center justify-center border border-dashed [&_.material-icons]:text-[18px]!"
+          >
+            <i class="material-icons">add_photo_alternate</i>
+          </span>
+        }
         <span class="text-ui-muted truncate text-[11px]">{{
           'feature.media.cutInEditor.chooseImage' | transloco
         }}</span>
@@ -33,7 +41,7 @@
         [placeholder]="'feature.media.cutInEditor.textPlaceholder' | transloco"
         [attr.disabled]="!isEditable() ? '' : null"
       ></textarea>
-      <div class="grid grid-cols-[3.2rem_1fr_3.2rem_1fr] items-center gap-1.5">
+      <div class="grid grid-cols-[3.6rem_minmax(0,1fr)] items-center gap-x-1.5 gap-y-1">
         <label class="text-ui-muted text-[11px]">{{ 'feature.media.cutInEditor.fontSize' | transloco }}</label>
         <input
           class="bg-ui-input border-ui-border-panel text-ui-text rounded-ui-sm box-border w-full border border-solid px-1.5 py-1 text-right text-[12px] outline-none disabled:opacity-50"
@@ -90,11 +98,9 @@
           [(ngModel)]="strokeWidthPx"
           [attr.disabled]="!isEditable() ? '' : null"
         />
-        <label class="text-ui-muted col-span-2 text-[11px]">{{
-          'feature.media.cutInEditor.fontFamily' | transloco
-        }}</label>
+        <label class="text-ui-muted text-[11px]">{{ 'feature.media.cutInEditor.fontFamily' | transloco }}</label>
         <input
-          class="bg-ui-input border-ui-border-panel text-ui-text rounded-ui-sm col-span-2 box-border w-full border border-solid px-1.5 py-1 text-[12px] outline-none disabled:opacity-50"
+          class="bg-ui-input border-ui-border-panel text-ui-text rounded-ui-sm box-border w-full border border-solid px-1.5 py-1 text-[12px] outline-none disabled:opacity-50"
           name="cut-in-layer-font-family"
           [(ngModel)]="fontFamily"
           [placeholder]="'feature.media.cutInEditor.fontFamilyPlaceholder' | transloco"
@@ -104,7 +110,7 @@
     }
 
     @if (layer.kind === 'fill') {
-      <div class="grid grid-cols-[3.2rem_1fr_3.2rem_1fr] items-center gap-1.5">
+      <div class="grid grid-cols-[3.6rem_minmax(0,1fr)] items-center gap-x-1.5 gap-y-1">
         <label class="text-ui-muted text-[11px]">{{ 'feature.media.cutInEditor.fillFrom' | transloco }}</label>
         <input
           class="bg-ui-input border-ui-border-panel rounded-ui-sm box-border h-7 w-full border border-solid p-0.5 disabled:opacity-50"
@@ -114,7 +120,7 @@
           [attr.disabled]="!isEditable() ? '' : null"
         />
         <label
-          class="text-ui-muted col-span-2 flex cursor-pointer items-center gap-1 text-[11px] select-none [&_input]:size-3.5 [&_input]:[accent-color:var(--ui-accent)]"
+          class="text-ui-muted col-span-2 flex cursor-pointer items-center gap-1 py-0.5 text-[11px] select-none [&_input]:size-3.5 [&_input]:[accent-color:var(--ui-accent)]"
         >
           <input
             type="checkbox"
@@ -145,7 +151,7 @@
       </div>
     }
 
-    <div class="grid grid-cols-[3.2rem_1fr_auto_3.2rem_1fr_auto] items-center gap-1.5">
+    <div class="grid grid-cols-[2.6rem_minmax(0,1fr)_auto] items-center gap-x-1.5 gap-y-1">
       <label class="text-ui-muted text-[11px]">X</label>
       <input
         class="bg-ui-input border-ui-border-panel text-ui-text rounded-ui-sm box-border w-full border border-solid px-1.5 py-1 text-right text-[12px] outline-none disabled:opacity-50"
@@ -185,7 +191,7 @@
 
       <label class="text-ui-muted text-[11px]">{{ 'feature.media.cutInEditor.widthLabel' | transloco }}</label>
       <input
-        class="bg-ui-input border-ui-border-panel text-ui-text rounded-ui-sm box-border w-full border border-solid px-1.5 py-1 text-right text-[12px] outline-none disabled:opacity-50"
+        class="bg-ui-input border-ui-border-panel text-ui-text rounded-ui-sm col-span-2 box-border w-full border border-solid px-1.5 py-1 text-right text-[12px] outline-none disabled:opacity-50"
         name="cut-in-layer-width"
         type="number"
         [(ngModel)]="width"
@@ -193,7 +199,7 @@
       />
       <label class="text-ui-muted text-[11px]">{{ 'feature.media.cutInEditor.heightLabel' | transloco }}</label>
       <input
-        class="bg-ui-input border-ui-border-panel text-ui-text rounded-ui-sm box-border w-full border border-solid px-1.5 py-1 text-right text-[12px] outline-none disabled:opacity-50"
+        class="bg-ui-input border-ui-border-panel text-ui-text rounded-ui-sm col-span-2 box-border w-full border border-solid px-1.5 py-1 text-right text-[12px] outline-none disabled:opacity-50"
         name="cut-in-layer-height"
         type="number"
         [(ngModel)]="height"
@@ -279,7 +285,7 @@
 
       <label class="text-ui-muted text-[11px]">{{ 'feature.media.cutInEditor.startMsLabel' | transloco }}</label>
       <input
-        class="bg-ui-input border-ui-border-panel text-ui-text rounded-ui-sm box-border w-full border border-solid px-1.5 py-1 text-right text-[12px] outline-none disabled:opacity-50"
+        class="bg-ui-input border-ui-border-panel text-ui-text rounded-ui-sm col-span-2 box-border w-full border border-solid px-1.5 py-1 text-right text-[12px] outline-none disabled:opacity-50"
         name="cut-in-layer-start"
         type="number"
         min="0"
@@ -288,7 +294,7 @@
       />
       <label class="text-ui-muted text-[11px]">{{ 'feature.media.cutInEditor.endMsLabel' | transloco }}</label>
       <input
-        class="bg-ui-input border-ui-border-panel text-ui-text rounded-ui-sm box-border w-full border border-solid px-1.5 py-1 text-right text-[12px] outline-none disabled:opacity-50"
+        class="bg-ui-input border-ui-border-panel text-ui-text rounded-ui-sm col-span-2 box-border w-full border border-solid px-1.5 py-1 text-right text-[12px] outline-none disabled:opacity-50"
         name="cut-in-layer-end"
         type="number"
         min="0"

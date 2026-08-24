@@ -231,7 +231,7 @@ export class JukeboxComponent {
 
   openCutInList() {
     const coordinate = this.pointerDeviceService.pointers[0];
-    const option: PanelOption = { left: coordinate.x + 25, top: coordinate.y + 25, width: 650, height: 740 };
+    const option: PanelOption = { left: coordinate.x + 25, top: coordinate.y + 25, width: 980, height: 760 };
     this.panelService.open<CutInListComponent>(CutInListComponent, option);
   }
 }

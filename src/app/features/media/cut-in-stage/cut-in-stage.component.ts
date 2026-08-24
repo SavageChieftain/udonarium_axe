@@ -24,6 +24,7 @@ import {
   sceneDurationOf,
   toWebAnimationFrames,
 } from '@axe/domain/media/cut-in-scene-timeline';
+import { type StageFit, stageFit } from '@axe/features/media/cut-in-editor/cut-in-stage-geometry';
 import { SafePipe } from '@axe/ui/pipes/safe.pipe';
 
 /**
@@ -94,13 +95,19 @@ export class CutInStageComponent {
     return scene.backgroundColor.length > 0 ? scene.backgroundColor : null;
   });
 
-  /** How much the scene is shrunk to sit inside whatever room it is given. */
-  readonly fit = computed(() => {
-    const width = this.sceneWidth();
-    const height = this.sceneHeight();
-    const host = this.hostSize();
-    if (width < 1 || height < 1 || host.width < 1 || host.height < 1) return 1;
-    return Math.min(host.width / width, host.height / height);
+  /**
+   * Where the scene sits inside whatever room it is given.
+   *
+   * The editor draws its handles over this component from the same measurement and the
+   * same helper, so the outline lands exactly on the layer it belongs to.
+   */
+  readonly fit = computed<StageFit>(() =>
+    stageFit({ width: this.sceneWidth(), height: this.sceneHeight() }, this.hostSize())
+  );
+
+  readonly sceneTransform = computed(() => {
+    const fit = this.fit();
+    return `translate(${fit.offsetX}px, ${fit.offsetY}px) scale(${fit.scale})`;
   });
 
   constructor() {

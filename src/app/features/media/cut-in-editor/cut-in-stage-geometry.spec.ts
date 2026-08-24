@@ -1,8 +1,12 @@
 import {
+  angleFromCentre,
   applyResize,
   isInsideLayer,
+  isOnRotateHandle,
   MIN_LAYER_SIZE,
+  normaliseAngle,
   resizeHandleAt,
+  ROTATE_HANDLE_REACH_PX,
   sceneToStage,
   stageDeltaToScene,
   stageFit,
@@ -129,5 +133,57 @@ describe('applyResize()', () => {
 
     expect(resized.x + resized.width).toBe(box.x + box.width);
     expect(resized.y + resized.height).toBe(box.y + box.height);
+  });
+});
+
+describe('isOnRotateHandle()', () => {
+  const fit = { scale: 1, offsetX: 0, offsetY: 0 };
+  const box = { x: 100, y: 100, width: 200, height: 100 };
+
+  it('finds the grip above the middle of the box', () => {
+    expect(isOnRotateHandle({ x: 200, y: 100 - ROTATE_HANDLE_REACH_PX }, box, fit)).toBe(true);
+  });
+
+  it('finds nothing on the box itself', () => {
+    expect(isOnRotateHandle({ x: 200, y: 150 }, box, fit)).toBe(false);
+  });
+
+  it('finds nothing off to the side of it', () => {
+    expect(isOnRotateHandle({ x: 300, y: 100 - ROTATE_HANDLE_REACH_PX }, box, fit)).toBe(false);
+  });
+
+  it('keeps the grip the same distance away on screen, whatever the scale', () => {
+    const shrunk = { scale: 0.5, offsetX: 0, offsetY: 0 };
+
+    expect(isOnRotateHandle({ x: 200, y: 100 - ROTATE_HANDLE_REACH_PX * 2 }, box, shrunk)).toBe(true);
+  });
+});
+
+describe('angleFromCentre()', () => {
+  const box = { x: 0, y: 0, width: 200, height: 200 };
+
+  it('reads straight up as nothing', () => {
+    expect(angleFromCentre({ x: 100, y: -50 }, box)).toBeCloseTo(0, 5);
+  });
+
+  it('reads a quarter turn to the right', () => {
+    expect(angleFromCentre({ x: 250, y: 100 }, box)).toBeCloseTo(90, 5);
+  });
+
+  it('reads a quarter turn to the left', () => {
+    expect(angleFromCentre({ x: -50, y: 100 }, box)).toBeCloseTo(-90, 5);
+  });
+});
+
+describe('normaliseAngle()', () => {
+  it('brings an angle round into one turn', () => {
+    expect(normaliseAngle(370)).toBe(10);
+    expect(normaliseAngle(-90)).toBe(270);
+  });
+
+  it('snaps to the step it is given', () => {
+    expect(normaliseAngle(43, 45)).toBe(45);
+    expect(normaliseAngle(20, 45)).toBe(0);
+    expect(normaliseAngle(350, 45)).toBe(0);
   });
 });
