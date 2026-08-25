@@ -10,6 +10,7 @@ import {
   type DirtyRect,
   drawOverlayPlan,
   type OverlayBake,
+  overlayScale,
 } from '@axe/features/tabletop/table-vision-overlay/vision-overlay-render';
 import { translateZCss, Z_OFFSET_DARKNESS_PX } from '@axe/ui/tabletop/z-offset';
 
@@ -36,6 +37,7 @@ export class TableVisionOverlayComponent {
   private surfaceOriginY = 0;
   private surfaceCells: SurfacePoint[][] | undefined = undefined;
   private margin = 0;
+  private scale = 1;
   private animated = false;
   private bake: OverlayBake | null = null;
   private dirty: DirtyRect | null = null;
@@ -55,12 +57,15 @@ export class TableVisionOverlayComponent {
         this.bake = null;
         this.dirty = null;
         this.margin = 0;
+        this.scale = 1;
         this.surfaceCells = undefined;
         this.stopLoop();
         if (canvas.width !== 0) canvas.width = 0;
         if (canvas.height !== 0) canvas.height = 0;
         canvas.style.left = '0px';
         canvas.style.top = '0px';
+        canvas.style.width = '';
+        canvas.style.height = '';
         return;
       }
       const maxDim = scene.lights.reduce((m, l) => Math.max(m, l.dimPx), 0);
@@ -80,10 +85,17 @@ export class TableVisionOverlayComponent {
 
       const cw = this.surfaceWidth + 2 * this.margin;
       const ch = this.surfaceHeight + 2 * this.margin;
-      if (canvas.width !== cw) canvas.width = cw;
-      if (canvas.height !== ch) canvas.height = ch;
+      // A board too big to hold a canvas of its own size is drawn smaller and let up to
+      // size by the browser, which soft gradients take without complaint.
+      this.scale = overlayScale(cw, ch);
+      const pw = Math.ceil(cw * this.scale);
+      const ph = Math.ceil(ch * this.scale);
+      if (canvas.width !== pw) canvas.width = pw;
+      if (canvas.height !== ph) canvas.height = ph;
       canvas.style.left = this.surfaceOriginX - this.margin + 'px';
       canvas.style.top = this.surfaceOriginY - this.margin + 'px';
+      canvas.style.width = cw + 'px';
+      canvas.style.height = ch + 'px';
       this.plan = computeOverlayPlan(scene, viewer);
       this.animated = scene.lights.some((light) => light.animation && light.animation !== 'none');
       this.ensureImages();
@@ -138,7 +150,8 @@ export class TableVisionOverlayComponent {
       this.images,
       this.margin,
       this.surfaceOf(),
-      this.bake
+      this.bake,
+      this.scale
     );
     this.dirty = animatedGlowBounds(this.plan, this.surfaceWidth, this.surfaceHeight, this.margin, this.surfaceOf());
   }
@@ -160,7 +173,8 @@ export class TableVisionOverlayComponent {
       this.margin,
       this.surfaceOf(),
       this.bake,
-      dirty
+      dirty,
+      this.scale
     );
   }
 

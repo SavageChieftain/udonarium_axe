@@ -248,6 +248,30 @@ function isAnimated(shape: OverlayShape): boolean {
   return !!shape.animation && shape.animation !== 'none';
 }
 
+/**
+ * How many pixels an overlay is allowed to hold, and how far its resolution may be let
+ * down to stay inside that.
+ *
+ * The overlay covers the whole board plus the spill of the widest light, so on a
+ * hundred-cell table it comes to six and a half thousand pixels square — forty-three
+ * million of them, a hundred and seventy megabytes, and two more surfaces the same size
+ * again once a light flickers. Firefox gives up on a canvas long before Chrome does, and
+ * a browser that will not hold one in graphics memory draws it by hand instead.
+ *
+ * What the overlay draws is darkness and soft gradients, which is the one thing that
+ * survives being drawn smaller and stretched back up. So a board past the budget is drawn
+ * at less than a pixel each and let up to size by the browser, and never at less than
+ * half, past which the edges of a hex would start to show it.
+ */
+export const OVERLAY_PIXEL_BUDGET = 12_000_000;
+export const MIN_OVERLAY_SCALE = 0.5;
+
+export function overlayScale(width: number, height: number, budget = OVERLAY_PIXEL_BUDGET): number {
+  const pixels = width * height;
+  if (!(pixels > budget)) return 1;
+  return Math.max(MIN_OVERLAY_SCALE, Math.sqrt(budget / pixels));
+}
+
 export interface DirtyRect {
   x: number;
   y: number;
@@ -304,6 +328,8 @@ export interface OverlayBake {
   shadows: BakeCanvas | null;
   width: number;
   height: number;
+  /** How many canvas pixels went to one overlay pixel when it was drawn. */
+  scale: number;
 }
 
 interface BakeCanvas {
@@ -311,9 +337,9 @@ interface BakeCanvas {
   context: CanvasRenderingContext2D;
 }
 
-function bakeCanvas(width: number, height: number, previous?: BakeCanvas | null): BakeCanvas | null {
+function bakeCanvas(width: number, height: number, scale: number, previous?: BakeCanvas | null): BakeCanvas | null {
   if (previous) {
-    previous.context.setTransform(1, 0, 0, 1, 0, 0);
+    reset(previous.context, scale);
     previous.context.globalCompositeOperation = 'source-over';
     previous.context.globalAlpha = 1;
     previous.context.clearRect(0, 0, width, height);
@@ -321,11 +347,21 @@ function bakeCanvas(width: number, height: number, previous?: BakeCanvas | null)
   }
   if (typeof document === 'undefined') return null;
   const canvas = document.createElement('canvas');
-  canvas.width = width;
-  canvas.height = height;
+  canvas.width = Math.ceil(width * scale);
+  canvas.height = Math.ceil(height * scale);
   const context = canvas.getContext('2d');
   if (!context || typeof context.drawImage !== 'function') return null;
+  reset(context, scale);
   return { image: canvas, context };
+}
+
+/**
+ * Back to overlay coordinates, whatever the surface is really made of. Everything below
+ * works in the pixels of the board rather than the pixels of the canvas, so a canvas drawn
+ * smaller than the board it stands for needs saying only here.
+ */
+function reset(ctx: CanvasRenderingContext2D, scale: number): void {
+  ctx.setTransform(scale, 0, 0, scale, 0, 0);
 }
 
 /**
@@ -343,14 +379,16 @@ export function bakeOverlayPlan(
   images?: Map<string, HTMLImageElement>,
   margin = 0,
   surface?: OverlaySurface,
-  previous?: OverlayBake | null
+  previous?: OverlayBake | null,
+  scale = 1
 ): OverlayBake | null {
   const width = widthPx + 2 * margin;
   const height = heightPx + 2 * margin;
   if (width < 1 || height < 1) return null;
 
-  const reuse = previous && previous.width === width && previous.height === height ? previous : null;
-  const base = bakeCanvas(width, height, reuse?.base);
+  const reuse =
+    previous && previous.width === width && previous.height === height && previous.scale === scale ? previous : null;
+  const base = bakeCanvas(width, height, scale, reuse?.base);
   if (!base) return null;
 
   const resolved = resolvedSurfaceOf(widthPx, heightPx, surface);
@@ -366,16 +404,16 @@ export function bakeOverlayPlan(
 
   let shadows: BakeCanvas | null = null;
   if (plan.shadows.length > 0) {
-    shadows = bakeCanvas(width, height, reuse?.shadows);
+    shadows = bakeCanvas(width, height, scale, reuse?.shadows);
     if (shadows) {
       shadows.context.translate(offsetX, offsetY);
       paintShadows(shadows.context, plan, images, offsetX, offsetY);
-      shadows.context.setTransform(1, 0, 0, 1, 0, 0);
+      reset(shadows.context, scale);
     }
   }
 
-  base.context.setTransform(1, 0, 0, 1, 0, 0);
-  return { base, shadows, width, height };
+  reset(base.context, scale);
+  return { base, shadows, width, height, scale };
 }
 
 function resolvedSurfaceOf(widthPx: number, heightPx: number, surface?: OverlaySurface): ResolvedSurface {
@@ -440,7 +478,8 @@ export function drawOverlayPlan(
   margin = 0,
   surface?: OverlaySurface,
   bake?: OverlayBake | null,
-  dirty?: DirtyRect | null
+  dirty?: DirtyRect | null,
+  scale = 1
 ): void {
   const resolved = resolvedSurfaceOf(widthPx, heightPx, surface);
   const offsetX = margin - resolved.originX;
@@ -448,17 +487,17 @@ export function drawOverlayPlan(
   const width = widthPx + 2 * margin;
   const height = heightPx + 2 * margin;
 
-  const usable = bake && bake.width === width && bake.height === height ? bake : null;
+  const usable = bake && bake.width === width && bake.height === height && bake.scale === scale ? bake : null;
   // Only a pass that has the still part already laid down may keep to a corner of the board.
   const patch = usable && dirty ? dirty : null;
 
-  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  reset(ctx, scale);
   ctx.globalCompositeOperation = 'source-over';
   ctx.globalAlpha = 1;
   if (patch) ctx.clearRect(patch.x, patch.y, patch.width, patch.height);
   else ctx.clearRect(0, 0, width, height);
 
-  if (usable) blit(ctx, usable.base.image, patch);
+  if (usable) blit(ctx, usable.base.image, patch, width, height, scale);
 
   ctx.translate(offsetX, offsetY);
   if (!usable) paintDarkness(ctx, plan, resolved);
@@ -471,20 +510,44 @@ export function drawOverlayPlan(
   ctx.globalCompositeOperation = 'source-over';
   if (usable) {
     if (usable.shadows) {
-      ctx.setTransform(1, 0, 0, 1, 0, 0);
-      blit(ctx, usable.shadows.image, patch);
+      reset(ctx, scale);
+      blit(ctx, usable.shadows.image, patch, width, height, scale);
     }
   } else {
     paintShadows(ctx, plan, images, offsetX, offsetY);
   }
 
   ctx.globalAlpha = 1;
-  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  reset(ctx, scale);
 }
 
-/** Lays a baked surface down, either whole or only over the part being redrawn. */
-function blit(ctx: CanvasRenderingContext2D, image: CanvasImageSource, patch: DirtyRect | null): void {
-  if (patch)
-    ctx.drawImage(image, patch.x, patch.y, patch.width, patch.height, patch.x, patch.y, patch.width, patch.height);
-  else ctx.drawImage(image, 0, 0);
+/**
+ * Lays a baked surface down, either whole or only over the part being redrawn.
+ *
+ * The surface holds canvas pixels and is being laid onto overlay coordinates, so where it
+ * is taken from is measured one way and where it lands the other.
+ */
+function blit(
+  ctx: CanvasRenderingContext2D,
+  image: CanvasImageSource,
+  patch: DirtyRect | null,
+  width: number,
+  height: number,
+  scale: number
+): void {
+  if (!patch) {
+    ctx.drawImage(image, 0, 0, width, height);
+    return;
+  }
+  ctx.drawImage(
+    image,
+    patch.x * scale,
+    patch.y * scale,
+    patch.width * scale,
+    patch.height * scale,
+    patch.x,
+    patch.y,
+    patch.width,
+    patch.height
+  );
 }
