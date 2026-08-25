@@ -205,13 +205,7 @@ function silhouetteOf(img: CanvasImageSource, iw: number, ih: number, scale: num
   return baked;
 }
 
-function drawShadowImage(
-  ctx: CanvasRenderingContext2D,
-  shadow: ShadowShape,
-  img: CanvasImageSource,
-  offsetX = 0,
-  offsetY = 0
-): void {
+function drawShadowImage(ctx: CanvasRenderingContext2D, shadow: ShadowShape, img: CanvasImageSource): void {
   const ux = shadow.fx - shadow.x;
   const uy = shadow.fy - shadow.y;
   const len = Math.hypot(ux, uy);
@@ -227,14 +221,15 @@ function drawShadowImage(
   const clipped = clipToPolygon(ctx, shadow.clipPolygon);
   ctx.globalAlpha = 0.7;
   if (!baked) ctx.filter = SHADOW_FILTER;
-  // It is laid down as it was before baking, drawn from outside by the margin so it lands where it did.
-  ctx.setTransform(
+  // Laid onto what is already in force rather than in place of it, so the margin the surface
+  // is drawn from and the scale it is drawn at both still hold.
+  ctx.transform(
     (px * w) / iw,
     (py * w) / iw,
     (shadow.x - shadow.fx) / ih,
     (shadow.y - shadow.fy) / ih,
-    shadow.fx - (px * w) / 2 + offsetX,
-    shadow.fy - (py * w) / 2 + offsetY
+    shadow.fx - (px * w) / 2,
+    shadow.fy - (py * w) / 2
   );
   if (baked) ctx.drawImage(baked.canvas, -baked.pad, -baked.pad);
   else ctx.drawImage(img, 0, 0);
@@ -407,7 +402,7 @@ export function bakeOverlayPlan(
     shadows = bakeCanvas(width, height, scale, reuse?.shadows);
     if (shadows) {
       shadows.context.translate(offsetX, offsetY);
-      paintShadows(shadows.context, plan, images, offsetX, offsetY);
+      paintShadows(shadows.context, plan, images);
       reset(shadows.context, scale);
     }
   }
@@ -453,15 +448,13 @@ function paintDarkness(ctx: CanvasRenderingContext2D, plan: OverlayPlan, resolve
 function paintShadows(
   ctx: CanvasRenderingContext2D,
   plan: OverlayPlan,
-  images: Map<string, HTMLImageElement> | undefined,
-  offsetX: number,
-  offsetY: number
+  images: Map<string, HTMLImageElement> | undefined
 ): void {
   ctx.globalCompositeOperation = 'source-over';
   for (const shadow of plan.shadows) {
     const img = shadow.imageUrl && images ? images.get(shadow.imageUrl) : undefined;
     if (img && img.complete && img.naturalWidth > 0) {
-      drawShadowImage(ctx, shadow, img, offsetX, offsetY);
+      drawShadowImage(ctx, shadow, img);
     } else {
       drawShadow(ctx, shadow);
     }
@@ -514,7 +507,7 @@ export function drawOverlayPlan(
       blit(ctx, usable.shadows.image, patch, width, height, scale);
     }
   } else {
-    paintShadows(ctx, plan, images, offsetX, offsetY);
+    paintShadows(ctx, plan, images);
   }
 
   ctx.globalAlpha = 1;

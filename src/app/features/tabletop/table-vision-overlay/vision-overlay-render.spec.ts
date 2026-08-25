@@ -55,6 +55,7 @@ function fakeContext(): { ctx: CanvasRenderingContext2D; ops: Op[] } {
     lineTo: record('lineTo'),
     closePath: record('closePath'),
     setTransform: record('setTransform'),
+    transform: record('transform'),
     translate: record('translate'),
     drawImage: record('drawImage'),
     get filter() {
@@ -240,7 +241,35 @@ describe('vision-overlay-render', () => {
       const { ctx, ops } = fakeContext();
       drawOverlayPlan(ctx, plan, 1000, 1000, 0, images);
       expect(ops.some((o) => o.name === 'drawImage')).toBe(true);
-      expect(ops.some((o) => o.name === 'setTransform')).toBe(true);
+      expect(ops.some((o) => o.name === 'transform')).toBe(true);
+    });
+
+    it('lays the silhouette onto the scale the surface is drawn at, not in place of it', () => {
+      // Set in place of it, a shadow on a board drawn smaller than itself landed at the
+      // size and the offset it would have had on a full-sized one.
+      const plan: OverlayPlan = {
+        darknessAlpha: 0.9,
+        darknessColor: '#05060a',
+        baseRevealAlpha: 0,
+        reveals: [],
+        glows: [],
+        shadows: [{ x: 100, y: 100, fx: 100, fy: 400, width: 50, color: '#05060a', imageUrl: 'token.png', points: [] }],
+      };
+      const img = { complete: true, naturalWidth: 10, width: 10, height: 20 } as unknown as HTMLImageElement;
+      const images = new Map<string, HTMLImageElement>([['token.png', img]]);
+      const { ctx, ops } = fakeContext();
+
+      drawOverlayPlan(ctx, plan, 1000, 1000, 0, images, 0, undefined, null, null, 0.5);
+
+      const laid = ops.findIndex((o) => o.name === 'transform');
+      expect(laid).toBeGreaterThan(-1);
+      // Nothing sets the transform outright between the scale going on and the shadow going down.
+      expect(
+        ops
+          .slice(0, laid)
+          .filter((o) => o.name === 'setTransform')
+          .pop()?.args
+      ).toEqual([0.5, 0, 0, 0.5, 0, 0]);
     });
 
     it('fills a trapezium for a shadow that has none', () => {
