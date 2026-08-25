@@ -972,6 +972,30 @@ describe('paintReplayFrame()', () => {
       expect(low.images[0].y).toBeLessThan(high.images[0].y);
     });
 
+    it('blows a small picture up to fill the box it was fitted into', () => {
+      const small: ReplayFrameAssets = { imageOf: () => image(100, 50) };
+      const { ctx, images } = recorder();
+      const scene = sceneOf([{ imageIdentifier: 'pic', objectFit: 'contain', width: 400, height: 200 }]);
+
+      paintReplayFrame(ctx, layout, shot({ cutInScene: scene }), small, 0, DEFAULT_REPLAY_FRAME_STYLE, null, 0);
+
+      // Fitted rather than left at its own size, which is what object-fit: contain does.
+      expect(images[0].width).toBeGreaterThan(100 * layout.scale);
+    });
+
+    it('draws nothing of a picture that has no size to it', () => {
+      const nothing: ReplayFrameAssets = { imageOf: () => image(0, 0) };
+      const { ctx, images } = recorder();
+      const scene = sceneOf([{ imageIdentifier: 'pic', objectFit: 'cover' }]);
+
+      paintReplayFrame(ctx, layout, shot({ cutInScene: scene }), nothing, 0, DEFAULT_REPLAY_FRAME_STYLE, null, 0);
+
+      for (const drawn of images) {
+        expect(Number.isFinite(drawn.width)).toBe(true);
+        expect(Number.isFinite(drawn.height)).toBe(true);
+      }
+    });
+
     it('blows a cropped picture up until it covers the box', () => {
       const { ctx, images } = recorder();
       const scene = sceneOf([{ imageIdentifier: 'pic', objectFit: 'cover', width: 400, height: 100 }]);
