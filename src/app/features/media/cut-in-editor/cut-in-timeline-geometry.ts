@@ -71,6 +71,37 @@ export function scrollToHold(
   return Math.max(0, Math.min(width - viewportPx, msToX(atMs, pxPerSec) - holdPx));
 }
 
+/**
+ * The moment a drag lands on, drawn towards anything worth landing on that is near enough.
+ *
+ * A grid alone lands on round numbers, which are rarely what is wanted: what is wanted is
+ * the moment another key already sits at, or where the playhead is, or an end of the scene.
+ * Near enough is measured on screen rather than in time, so it holds however far the
+ * timeline is drawn out.
+ */
+export const MAGNET_PX = 7;
+
+export function snapToNearby(
+  ms: number,
+  nearby: readonly number[],
+  durationMs: number,
+  pxPerSec: number,
+  magnetPx = MAGNET_PX
+): number {
+  const held = Math.min(durationMs, Math.max(0, ms));
+  let best: number | null = null;
+  let bestGap = Infinity;
+
+  for (const candidate of nearby) {
+    const gap = Math.abs(msToX(candidate, pxPerSec) - msToX(held, pxPerSec));
+    if (gap <= magnetPx && gap < bestGap) {
+      best = candidate;
+      bestGap = gap;
+    }
+  }
+  return best ?? snapMs(held, durationMs);
+}
+
 /** Which end of a band the pointer has hold of, if either. */
 export type BandEdge = 'start' | 'end';
 

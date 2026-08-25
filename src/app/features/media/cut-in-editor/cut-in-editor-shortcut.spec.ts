@@ -1,4 +1,4 @@
-import { cutInEditorKeyDown } from '@axe/features/media/cut-in-editor/cut-in-editor-shortcut';
+import { cutInEditorKeyDown, NUDGE_FAR_PX, NUDGE_PX } from '@axe/features/media/cut-in-editor/cut-in-editor-shortcut';
 
 const plain = { typing: false, chord: false, shift: false, hasSelection: true };
 
@@ -84,6 +84,36 @@ describe('cutInEditorKeyDown()', () => {
 
     it('does neither while something is being typed', () => {
       expect(cutInEditorKeyDown('c', { ...plain, chord: true, typing: true })).toBeNull();
+    });
+  });
+
+  describe('moving the layer in hand', () => {
+    it('moves it up and down by one', () => {
+      expect(cutInEditorKeyDown('ArrowUp', plain)).toEqual({
+        command: 'nudge',
+        preventDefault: true,
+        dx: 0,
+        dy: -NUDGE_PX,
+      });
+      expect(cutInEditorKeyDown('ArrowDown', plain)?.dy).toBe(NUDGE_PX);
+    });
+
+    it('moves it sideways where alt is held, leaving the plain arrows to the playhead', () => {
+      expect(cutInEditorKeyDown('ArrowLeft', { ...plain, alt: true })).toEqual({
+        command: 'nudge',
+        preventDefault: true,
+        dx: -NUDGE_FAR_PX,
+        dy: 0,
+      });
+      expect(cutInEditorKeyDown('ArrowLeft', plain)?.command).toBe('stepBack');
+    });
+
+    it('moves it further at a time where alt is held', () => {
+      expect(cutInEditorKeyDown('ArrowUp', { ...plain, alt: true })?.dy).toBe(-NUDGE_FAR_PX);
+    });
+
+    it('does nothing up or down with no layer in hand', () => {
+      expect(cutInEditorKeyDown('ArrowUp', { ...plain, hasSelection: false })).toBeNull();
     });
   });
 });

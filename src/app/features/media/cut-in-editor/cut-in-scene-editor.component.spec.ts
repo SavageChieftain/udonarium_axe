@@ -87,6 +87,7 @@ describe('CutInSceneEditorComponent', () => {
     hasHeldPose: boolean;
     onSeekSeconds(event: Event): void;
     playheadSeconds(): number;
+    nudgeSelected(dx: number, dy: number): void;
   };
 
   function editor(): EditorApi {
@@ -745,6 +746,64 @@ describe('CutInSceneEditorComponent', () => {
       editor().onSeekSeconds({ target: { value: 'soon' } } as unknown as Event);
 
       expect(editor().playheadMs()).toBe(300);
+    });
+  });
+
+  describe('moving the layer in hand by the arrows', () => {
+    function aLayer(): CutInLayer {
+      editor().addTextLayer();
+      const layer = component.layers()[0];
+      editor().onSelect(layer);
+      fixture.detectChanges();
+      return layer;
+    }
+
+    it('moves where the layer rests, where it is keyed at nothing', () => {
+      const layer = aLayer();
+      const wasX = layer.x;
+      const wasY = layer.y;
+
+      editor().nudgeSelected(10, -10);
+
+      expect(layer.x).toBe(wasX + 10);
+      expect(layer.y).toBe(wasY - 10);
+    });
+
+    it('moves the key instead, where the layer is keyed at the playhead', () => {
+      const layer = aLayer();
+      layer.tracks = encodeCutInTracks({
+        x: [
+          { t: 0, v: 40 },
+          { t: 500, v: 90 },
+        ],
+      });
+
+      editor().nudgeSelected(10, 0);
+
+      expect(valueAt(layer, 'x', 0)).toBe(50);
+      // The one further along is left where it was.
+      expect(valueAt(layer, 'x', 500)).toBe(90);
+    });
+
+    it('leaves a locked layer where it is', () => {
+      const layer = aLayer();
+      layer.locked = true;
+      const was = layer.x;
+
+      editor().nudgeSelected(10, 0);
+
+      expect(layer.x).toBe(was);
+    });
+
+    it('leaves it alone where the scene is not open to being changed', () => {
+      const layer = aLayer();
+      const was = layer.x;
+      fixture.componentRef.setInput('isEditable', false);
+      fixture.detectChanges();
+
+      editor().nudgeSelected(10, 0);
+
+      expect(layer.x).toBe(was);
     });
   });
 });

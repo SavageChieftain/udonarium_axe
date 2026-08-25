@@ -13,6 +13,7 @@ import {
   scrollToHold,
   SNAP_MS,
   snapMs,
+  snapToNearby,
   trackWidthFor,
   visibleTicks,
   xToMs,
@@ -266,5 +267,41 @@ describe('dragging a band by its ends', () => {
 
   it('reads a layer that already runs to the end as ending there', () => {
     expect(bandDraggedTo({ startMs: 0, endMs: 0 }, 'start', 500, 2000)).toEqual({ startMs: 500, endMs: 0 });
+  });
+});
+
+describe('snapToNearby()', () => {
+  // A hundred pixels to the second, so ten ms comes to a pixel.
+  const PX_PER_SEC = 100;
+
+  it('lands on a moment worth landing on where one is near enough', () => {
+    expect(snapToNearby(497, [500, 1200], 2000, PX_PER_SEC)).toBe(500);
+  });
+
+  it('falls back to the grid where none is', () => {
+    expect(snapToNearby(497, [1200], 2000, PX_PER_SEC)).toBe(500);
+    expect(snapToNearby(493, [1200], 2000, PX_PER_SEC)).toBe(490);
+  });
+
+  it('takes the nearest of several', () => {
+    expect(snapToNearby(514, [500, 520], 2000, PX_PER_SEC)).toBe(520);
+    expect(snapToNearby(506, [500, 520], 2000, PX_PER_SEC)).toBe(500);
+  });
+
+  it('is not drawn to one too far off to be meant', () => {
+    // A hundred ms away is a whole pixel-per-ten, well past the reach of the magnet.
+    expect(snapToNearby(700, [500], 2000, PX_PER_SEC)).toBe(700);
+  });
+
+  it('measures nearness on screen, so it holds however far the timeline is drawn out', () => {
+    // Drawn out ten times, the same hundred ms is far too wide to be drawn across.
+    expect(snapToNearby(600, [500], 2000, PX_PER_SEC * 10)).toBe(600);
+    // Drawn in, the same gap is under a pixel.
+    expect(snapToNearby(600, [500], 2000, PX_PER_SEC / 20)).toBe(500);
+  });
+
+  it('holds the answer inside the scene', () => {
+    expect(snapToNearby(-200, [], 2000, PX_PER_SEC)).toBe(0);
+    expect(snapToNearby(9000, [], 2000, PX_PER_SEC)).toBe(2000);
   });
 });

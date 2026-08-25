@@ -654,11 +654,16 @@ export class CutInSceneEditorComponent {
       typing: isTypingTarget(event.target),
       chord: event.ctrlKey || event.metaKey,
       shift: event.shiftKey,
+      alt: event.altKey,
       hasSelection: this.selected() !== null,
     });
     if (!action) return;
     if (action.preventDefault) event.preventDefault();
 
+    if (action.command === 'nudge') {
+      this.nudgeSelected(action.dx ?? 0, action.dy ?? 0);
+      return;
+    }
     this.run(action.command);
   }
 
@@ -684,6 +689,22 @@ export class CutInSceneEditorComponent {
    * which holds text and would have nowhere to put nine numbers a reader could use.
    */
   private held: CutInPose | null = null;
+
+  /**
+   * Moves the layer in hand by a pixel or ten, in the cut-in's own coordinates.
+   *
+   * Where the layer is keyed at the playhead, the key is what moves; where it is not, the
+   * layer's own place does, which is the same rule every field in the properties panel goes by.
+   */
+  protected nudgeSelected(dx: number, dy: number): void {
+    const layer = this.selected();
+    if (!layer || !this.isEditable() || layer.locked) return;
+
+    const ms = this.playheadMs();
+    if (dx !== 0) setValueAt(layer, 'x', ms, valueAt(layer, 'x', ms) + dx);
+    if (dy !== 0) setValueAt(layer, 'y', ms, valueAt(layer, 'y', ms) + dy);
+    this.changed();
+  }
 
   protected copyPose(): void {
     const layer = this.selected();

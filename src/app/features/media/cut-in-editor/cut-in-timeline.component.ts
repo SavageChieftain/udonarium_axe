@@ -21,6 +21,7 @@ import {
   msToX,
   pxPerSecFor,
   snapMs,
+  snapToNearby,
   TIMELINE_ROW_H_PX,
   TIMELINE_RULER_H_PX,
   TIMELINE_SOUND_H_PX,
@@ -204,11 +205,11 @@ export class CutInTimelineComponent {
       return;
     }
     if (this.soundDrag) {
-      this.soundDrag.toMs = this.momentAt(event);
+      this.soundDrag.toMs = this.momentAt(event, [this.soundDrag.fromMs]);
       return;
     }
     if (this.keyDrag) {
-      this.keyDrag.toMs = this.momentAt(event);
+      this.keyDrag.toMs = this.momentAt(event, [this.keyDrag.fromMs]);
       return;
     }
     if (this.scrubbing) this.seek.emit(this.momentAt(event));
@@ -250,8 +251,29 @@ export class CutInTimelineComponent {
     this.removeKey.emit({ layer: row.layer, ms: at });
   }
 
-  private momentAt(event: MouseEvent): number {
-    return snapMs(xToMs(this.offsetOf(event), this.pxPerSec()), this.durationMs());
+  /**
+   * Where a drag lands: on a moment worth landing on where one is near, on the grid where
+   * none is. Holding shift lets go of the magnet, for the times a moment is wanted between.
+   */
+  private momentAt(event: MouseEvent, exclude?: readonly number[]): number {
+    const ms = xToMs(this.offsetOf(event), this.pxPerSec());
+    if (event.shiftKey) return snapMs(ms, this.durationMs());
+
+    const skip = new Set(exclude ?? []);
+    const nearby = this.magnets().filter((moment) => !skip.has(moment));
+    return snapToNearby(ms, nearby, this.durationMs(), this.pxPerSec());
+  }
+
+  /** Every moment on the timeline worth a drag landing on. */
+  private magnets(): number[] {
+    const moments = new Set<number>([0, this.durationMs(), this.playheadMs()]);
+    for (const row of this.rows()) {
+      for (const key of row.keys) moments.add(key.ms);
+      moments.add(xToMs(row.left, this.pxPerSec()));
+      moments.add(xToMs(row.left + row.width, this.pxPerSec()));
+    }
+    for (const mark of this.soundMarks()) moments.add(mark.ms);
+    return [...moments].map((moment) => Math.round(moment));
   }
 
   private offsetOf(event: MouseEvent): number {
