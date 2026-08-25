@@ -13,6 +13,9 @@ import { CutInLayer } from '@axe/domain/media/cut-in-layer';
 import type { CutInSound } from '@axe/domain/media/cut-in-sound';
 import { layerKeyTimes } from '@axe/features/media/cut-in-editor/cut-in-keyframe-edit';
 import {
+  bandDraggedTo,
+  type BandEdge,
+  bandEdgeAt,
   barRect,
   keyAtX,
   msToX,
@@ -65,6 +68,9 @@ export class CutInTimelineComponent {
   readonly seek = output<number>();
   readonly selectLayer = output<CutInLayer>();
   readonly moveKey = output<{ layer: CutInLayer; fromMs: number; toMs: number }>();
+  readonly trimLayer = output<{ layer: CutInLayer; startMs: number; endMs: number }>();
+  /** The drag is over, so what it did is worth remembering as one change. */
+  readonly trimmed = output<void>();
   readonly removeKey = output<{ layer: CutInLayer; ms: number }>();
   readonly moveSound = output<{ fromMs: number; toMs: number }>();
   readonly removeSound = output<{ ms: number }>();
@@ -74,6 +80,7 @@ export class CutInTimelineComponent {
   readonly trackWidth = computed(() => trackWidthFor(this.viewportPx(), this.zoom()));
   private scrubbing = false;
   private keyDrag: KeyDrag | null = null;
+  private bandDrag: { layer: CutInLayer; edge: BandEdge } | null = null;
   private soundDrag: { fromMs: number; toMs: number } | null = null;
 
   readonly pxPerSec = computed(() => pxPerSecFor(this.durationMs(), this.trackWidth()));
@@ -130,6 +137,17 @@ export class CutInTimelineComponent {
   protected onRowDown(event: PointerEvent, row: TimelineRow): void {
     this.selectLayer.emit(row.layer);
 
+    // The ends of the band come first: they sit where a key might, and one of them is
+    // almost always what a press near the edge of a band was meant for.
+    if (this.isEditable() && !row.layer.locked) {
+      const edge = bandEdgeAt({ left: row.left, width: row.width }, this.offsetOf(event));
+      if (edge) {
+        (event.target as HTMLElement | null)?.setPointerCapture?.(event.pointerId);
+        this.bandDrag = { layer: row.layer, edge };
+        return;
+      }
+    }
+
     // A locked layer is looked at, not moved, the same as on the stage.
     const grabbed =
       this.isEditable() && !row.layer.locked
@@ -178,6 +196,13 @@ export class CutInTimelineComponent {
   }
 
   protected onPointerMove(event: PointerEvent): void {
+    if (this.bandDrag) {
+      // A band follows the pointer as it is dragged, so its length can be seen being set.
+      const { layer, edge } = this.bandDrag;
+      const moved = bandDraggedTo(layer, edge, this.momentAt(event), this.durationMs());
+      this.trimLayer.emit({ layer, ...moved });
+      return;
+    }
     if (this.soundDrag) {
       this.soundDrag.toMs = this.momentAt(event);
       return;
@@ -192,6 +217,12 @@ export class CutInTimelineComponent {
   protected onPointerUp(event: PointerEvent): void {
     (event.target as HTMLElement | null)?.releasePointerCapture?.(event.pointerId);
     this.scrubbing = false;
+
+    if (this.bandDrag) {
+      this.bandDrag = null;
+      this.trimmed.emit();
+      return;
+    }
 
     const draggedSound = this.soundDrag;
     this.soundDrag = null;

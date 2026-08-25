@@ -59,15 +59,19 @@ import { CutInLayerPropertiesComponent } from '@axe/features/media/cut-in-editor
 import {
   angleFromCentre,
   applyResize,
+  clampStageZoom,
   fromLayerLocal,
   isInsideLayer,
   isOnRotateHandle,
   type LayerBox,
   type LayerTransform,
+  MAX_STAGE_ZOOM,
+  MIN_STAGE_ZOOM,
   normaliseAngle,
   type ResizeHandle,
   resizeHandleAt,
   rotateGripAt,
+  STAGE_ZOOM_STEP,
   stageDeltaToScene,
   stageFit,
   stageToScene,
@@ -221,7 +225,34 @@ export class CutInSceneEditorComponent {
   });
 
   /** Where the scene sits inside the room the stage has, so a pointer can be read back. */
-  readonly fit = computed(() => stageFit({ width: this.sceneWidth(), height: this.sceneHeight() }, this.stageSize()));
+  /** How far the stage is leaned into, past the scale that fits the cut-in in. */
+  protected readonly stageZoom = signal(MIN_STAGE_ZOOM);
+  protected readonly stagePercent = computed(() => Math.round(this.stageZoom() * 100));
+  protected readonly canStageZoomIn = computed(() => this.stageZoom() < MAX_STAGE_ZOOM);
+  protected readonly canStageZoomOut = computed(() => this.stageZoom() > MIN_STAGE_ZOOM);
+
+  readonly fit = computed(() =>
+    stageFit({ width: this.sceneWidth(), height: this.sceneHeight() }, this.stageSize(), this.stageZoom())
+  );
+
+  protected stageZoomIn(): void {
+    this.stageZoom.set(clampStageZoom(this.stageZoom() * STAGE_ZOOM_STEP));
+  }
+
+  protected stageZoomOut(): void {
+    this.stageZoom.set(clampStageZoom(this.stageZoom() / STAGE_ZOOM_STEP));
+  }
+
+  protected stageZoomToFit(): void {
+    this.stageZoom.set(MIN_STAGE_ZOOM);
+  }
+
+  protected onStageWheel(event: WheelEvent): void {
+    if (!event.ctrlKey && !event.metaKey) return;
+    event.preventDefault();
+    if (event.deltaY < 0) this.stageZoomIn();
+    else this.stageZoomOut();
+  }
 
   readonly selectionBox = computed<LayerBox | null>(() => {
     const layer = this.selected();
@@ -478,6 +509,17 @@ export class CutInSceneEditorComponent {
     if (!scene || !this.isEditable()) return;
 
     scene.sounds = encodeCutInSounds(moveSound(scene.soundList, moved.fromMs, moved.toMs));
+    this.changed();
+  }
+
+  /** How long a layer is on screen for, set by dragging the ends of its band. */
+  protected onTrimLayer(trimmed: { layer: CutInLayer; startMs: number; endMs: number }): void {
+    if (!this.isEditable() || trimmed.layer.locked) return;
+    trimmed.layer.startMs = trimmed.startMs;
+    trimmed.layer.endMs = trimmed.endMs;
+  }
+
+  protected onTrimmed(): void {
     this.changed();
   }
 

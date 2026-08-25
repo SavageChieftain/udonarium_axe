@@ -73,6 +73,14 @@ describe('CutInSceneEditorComponent', () => {
     zoomIn(): void;
     zoomOut(): void;
     zoomToFit(): void;
+    onTrimLayer(trimmed: { layer: CutInLayer; startMs: number; endMs: number }): void;
+    stageZoom(): number;
+    stagePercent(): number;
+    canStageZoomIn(): boolean;
+    canStageZoomOut(): boolean;
+    stageZoomIn(): void;
+    stageZoomOut(): void;
+    stageZoomToFit(): void;
   };
 
   function editor(): EditorApi {
@@ -574,6 +582,71 @@ describe('CutInSceneEditorComponent', () => {
       for (let at = 0; at < 40; at++) editor().zoomIn();
 
       expect(editor().canZoomIn()).toBe(false);
+    });
+  });
+
+  describe('how long a layer is on screen for', () => {
+    function aLayer(): CutInLayer {
+      editor().addTextLayer();
+      return component.layers()[0];
+    }
+
+    it('is set by dragging the ends of its band', () => {
+      const layer = aLayer();
+
+      editor().onTrimLayer({ layer, startMs: 200, endMs: 900 });
+
+      expect(layer.startMs).toBe(200);
+      expect(layer.endMs).toBe(900);
+    });
+
+    it('is left alone on a locked layer', () => {
+      const layer = aLayer();
+      layer.locked = true;
+
+      editor().onTrimLayer({ layer, startMs: 200, endMs: 900 });
+
+      expect(layer.startMs).toBe(0);
+    });
+
+    it('is left alone where the scene is not open to being changed', () => {
+      const layer = aLayer();
+      fixture.componentRef.setInput('isEditable', false);
+      fixture.detectChanges();
+
+      editor().onTrimLayer({ layer, startMs: 200, endMs: 900 });
+
+      expect(layer.startMs).toBe(0);
+    });
+  });
+
+  describe('leaning into the stage', () => {
+    it('starts fitted to the room it has', () => {
+      expect(editor().stageZoom()).toBe(1);
+      expect(editor().stagePercent()).toBe(100);
+      expect(editor().canStageZoomOut()).toBe(false);
+    });
+
+    it('leans in and back out again', () => {
+      editor().stageZoomIn();
+      expect(editor().stageZoom()).toBeGreaterThan(1);
+
+      editor().stageZoomOut();
+      expect(editor().stageZoom()).toBe(1);
+    });
+
+    it('comes back to fitting when asked', () => {
+      editor().stageZoomIn();
+      editor().stageZoomIn();
+      editor().stageZoomToFit();
+
+      expect(editor().stageZoom()).toBe(1);
+    });
+
+    it('stops where nothing more is gained by leaning further', () => {
+      for (let at = 0; at < 20; at++) editor().stageZoomIn();
+
+      expect(editor().canStageZoomIn()).toBe(false);
     });
   });
 });

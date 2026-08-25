@@ -147,7 +147,37 @@
       (pointercancel)="onPointerUp($event)"
       (pointerleave)="onPointerUp($event)"
       (dragstart)="$event.preventDefault()"
+      (wheel)="onStageWheel($event)"
     >
+      <div class="pointer-events-none absolute top-1 right-1 z-2 inline-flex items-center gap-0.5">
+        <button
+          class="border-ui-border-panel bg-ui-panel/80 text-ui-muted hover:bg-ui-hover hover:text-ui-text rounded-ui-sm pointer-events-auto inline-flex size-6 cursor-pointer items-center justify-center border border-solid p-0 disabled:cursor-not-allowed disabled:opacity-40 [&_.material-icons]:text-[13px]!"
+          type="button"
+          [disabled]="!canStageZoomOut()"
+          [title]="'feature.media.cutInEditor.stageZoomOut' | transloco"
+          (click)="stageZoomOut()"
+        >
+          <i class="material-icons">zoom_out</i>
+        </button>
+        <button
+          class="border-ui-border-panel bg-ui-panel/80 text-ui-muted hover:bg-ui-hover hover:text-ui-text rounded-ui-sm pointer-events-auto inline-flex h-6 min-w-11 cursor-pointer items-center justify-center border border-solid px-1 text-[10px] tabular-nums disabled:cursor-not-allowed disabled:opacity-40"
+          type="button"
+          [disabled]="!canStageZoomOut()"
+          [title]="'feature.media.cutInEditor.stageZoomFit' | transloco"
+          (click)="stageZoomToFit()"
+        >
+          {{ stagePercent() }}%
+        </button>
+        <button
+          class="border-ui-border-panel bg-ui-panel/80 text-ui-muted hover:bg-ui-hover hover:text-ui-text rounded-ui-sm pointer-events-auto inline-flex size-6 cursor-pointer items-center justify-center border border-solid p-0 disabled:cursor-not-allowed disabled:opacity-40 [&_.material-icons]:text-[13px]!"
+          type="button"
+          [disabled]="!canStageZoomIn()"
+          [title]="'feature.media.cutInEditor.stageZoomIn' | transloco"
+          (click)="stageZoomIn()"
+        >
+          <i class="material-icons">zoom_in</i>
+        </button>
+      </div>
       @if (scene(); as scene) {
         <app-cut-in-stage
           class="pointer-events-none absolute inset-0"
@@ -283,6 +313,8 @@
         (removeKey)="onRemoveKey($event)"
         (moveSound)="onMoveSound($event)"
         (removeSound)="onRemoveSound($event)"
+        (trimLayer)="onTrimLayer($event)"
+        (trimmed)="onTrimmed()"
       />
     </div>
   </div>

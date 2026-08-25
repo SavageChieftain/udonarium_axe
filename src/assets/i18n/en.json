@@ -430,7 +430,10 @@
         "zoomOut": "Draw it back in",
         "zoomFit": "Fit the whole scene (or hold ctrl and scroll)",
         "jumpBack": "To the key before (shift and left)",
-        "jumpForward": "To the next key (shift and right)"
+        "jumpForward": "To the next key (shift and right)",
+        "stageZoomIn": "Lean into the stage",
+        "stageZoomOut": "Lean back out",
+        "stageZoomFit": "Fit the whole cut-in (or hold ctrl and scroll)"
       }
     },
     "card": {

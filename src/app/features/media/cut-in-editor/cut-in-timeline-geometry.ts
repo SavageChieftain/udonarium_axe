@@ -71,6 +71,50 @@ export function scrollToHold(
   return Math.max(0, Math.min(width - viewportPx, msToX(atMs, pxPerSec) - holdPx));
 }
 
+/** Which end of a band the pointer has hold of, if either. */
+export type BandEdge = 'start' | 'end';
+
+/** How near an edge the pointer has to be to take hold of it rather than of the band. */
+export const EDGE_GRAB_PX = 5;
+
+/**
+ * The end of a band the pointer is on, where it is on one.
+ *
+ * A band is how long a layer is on screen for. Dragging its ends is how that is set in
+ * every editor; typing the two numbers into a form is how it was set here.
+ */
+export function bandEdgeAt(bar: { left: number; width: number }, x: number, grabPx = EDGE_GRAB_PX): BandEdge | null {
+  if (Math.abs(x - bar.left) <= grabPx) return 'start';
+  if (Math.abs(x - (bar.left + bar.width)) <= grabPx) return 'end';
+  return null;
+}
+
+/**
+ * Where a band's ends land once one of them is dragged to a moment.
+ *
+ * They may not cross, and a band must keep some length or it would be impossible to take
+ * hold of again. An end at the close of the scene is kept as nought, which is what the
+ * layer means by running to the end however long the scene later becomes.
+ */
+export function bandDraggedTo(
+  layer: { startMs: number; endMs: number },
+  edge: BandEdge,
+  ms: number,
+  durationMs: number,
+  leastMs = SNAP_MS
+): { startMs: number; endMs: number } {
+  const endMs = layer.endMs > 0 ? Math.min(layer.endMs, durationMs) : durationMs;
+  const startMs = Math.max(0, Math.min(layer.startMs, durationMs));
+
+  if (edge === 'start') {
+    const moved = Math.max(0, Math.min(ms, endMs - leastMs));
+    return { startMs: moved, endMs: layer.endMs };
+  }
+
+  const moved = Math.min(durationMs, Math.max(ms, startMs + leastMs));
+  return { startMs: layer.startMs, endMs: moved >= durationMs ? 0 : moved };
+}
+
 /** The key nearest to a moment, on one side of it or the other. Nothing where there is none. */
 export function keyBeyond(times: readonly number[], ms: number, forward: boolean): number | null {
   const beyond = times.filter((time) => (forward ? time > ms + 0.5 : time < ms - 0.5));

@@ -1,12 +1,15 @@
 import {
   angleFromCentre,
   applyResize,
+  clampStageZoom,
   drawnScale,
   fromLayerLocal,
   isInsideLayer,
   isOnRotateHandle,
   type LayerTransform,
+  MAX_STAGE_ZOOM,
   MIN_LAYER_SIZE,
+  MIN_STAGE_ZOOM,
   normaliseAngle,
   pivotOf,
   resizeHandleAt,
@@ -360,5 +363,38 @@ describe('a layer that has been leaned over', () => {
 
     expect(Number.isFinite(read.x)).toBe(true);
     expect(Number.isFinite(read.y)).toBe(true);
+  });
+});
+
+describe('leaning into the stage', () => {
+  const scene = { width: 1200, height: 600 };
+  const room = { width: 600, height: 400 };
+
+  it('fits the cut-in into the room it has at rest', () => {
+    expect(stageFit(scene, room).scale).toBeCloseTo(0.5, 5);
+  });
+
+  it('leans in past that, which is what lets a layer be put down where it is meant to go', () => {
+    expect(stageFit(scene, room, 2).scale).toBeCloseTo(1, 5);
+  });
+
+  it('will not lean out below fitting, which would only waste the room', () => {
+    expect(stageFit(scene, room, 0.2).scale).toBeCloseTo(0.5, 5);
+    expect(clampStageZoom(0.2)).toBe(MIN_STAGE_ZOOM);
+  });
+
+  it('stops where nothing more is gained by leaning further', () => {
+    expect(clampStageZoom(100)).toBe(MAX_STAGE_ZOOM);
+  });
+
+  it('takes a scale that means nothing as no scale at all', () => {
+    expect(clampStageZoom(Number.NaN)).toBe(MIN_STAGE_ZOOM);
+  });
+
+  it('keeps the cut-in in the middle of the room, however far in', () => {
+    const leaned = stageFit(scene, room, 2);
+
+    expect(leaned.offsetX).toBeCloseTo((600 - 1200) / 2, 5);
+    expect(leaned.offsetY).toBeCloseTo((400 - 600) / 2, 5);
   });
 });

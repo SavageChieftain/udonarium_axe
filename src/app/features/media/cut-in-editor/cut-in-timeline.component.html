@@ -56,9 +56,15 @@
         <div
           class="bg-ui-accent/25 border-ui-accent/60 absolute top-1 h-4 rounded-sm border border-solid"
           [class.opacity-40]="row.layer.hidden"
+          [class.cursor-ew-resize]="isEditable() && !row.layer.locked"
           [style.left.px]="row.left"
           [style.width.px]="row.width"
-        ></div>
+        >
+          @if (isEditable() && !row.layer.locked) {
+            <span class="bg-ui-accent/70 absolute inset-y-0 left-0 w-0.5 rounded-l-sm"></span>
+            <span class="bg-ui-accent/70 absolute inset-y-0 right-0 w-0.5 rounded-r-sm"></span>
+          }
+        </div>
         @for (key of row.keys; track key.ms) {
           <span
             class="bg-ui-accent absolute top-2 size-2 rotate-45"

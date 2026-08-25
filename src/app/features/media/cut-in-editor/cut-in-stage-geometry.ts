@@ -58,12 +58,29 @@ export const MIN_LAYER_SIZE = 8;
 export const ROTATE_HANDLE_REACH_PX = 22;
 
 /** The scene shrunk to fit and centred, never grown past its own size. */
-export function stageFit(scene: StageBox, room: StageBox): StageFit {
+/**
+ * How far the stage may be leaned into, past the scale that fits it in.
+ *
+ * Fitted into a panel a cut-in of twelve hundred pixels comes down to a third of itself,
+ * at which a layer cannot be put down where it is meant to go. Leaning in past that is
+ * what makes the work possible; leaning out below fitting only wastes the room.
+ */
+export const MIN_STAGE_ZOOM = 1;
+export const MAX_STAGE_ZOOM = 8;
+export const STAGE_ZOOM_STEP = 1.5;
+
+export function clampStageZoom(zoom: number): number {
+  if (!Number.isFinite(zoom)) return MIN_STAGE_ZOOM;
+  return Math.min(MAX_STAGE_ZOOM, Math.max(MIN_STAGE_ZOOM, zoom));
+}
+
+export function stageFit(scene: StageBox, room: StageBox, zoom = 1): StageFit {
   if (scene.width < 1 || scene.height < 1 || room.width < 1 || room.height < 1) {
     return { scale: 1, offsetX: 0, offsetY: 0 };
   }
 
-  const scale = Math.min(1, room.width / scene.width, room.height / scene.height);
+  const fitted = Math.min(1, room.width / scene.width, room.height / scene.height);
+  const scale = fitted * clampStageZoom(zoom);
   return {
     scale,
     offsetX: (room.width - scene.width * scale) / 2,

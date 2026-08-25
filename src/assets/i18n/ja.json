@@ -430,7 +430,10 @@
         "zoomOut": "タイムラインを縮小",
         "zoomFit": "全体を表示（Ctrl+ホイールでも拡縮）",
         "jumpBack": "前のキーへ（Shift+←）",
-        "jumpForward": "次のキーへ（Shift+→）"
+        "jumpForward": "次のキーへ（Shift+→）",
+        "stageZoomIn": "ステージを拡大",
+        "stageZoomOut": "ステージを縮小",
+        "stageZoomFit": "全体を表示（Ctrl+ホイールでも拡縮）"
       }
     },
     "card": {

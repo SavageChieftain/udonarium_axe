@@ -1,4 +1,6 @@
 import {
+  bandDraggedTo,
+  bandEdgeAt,
   barRect,
   clampZoom,
   formatMs,
@@ -9,6 +11,7 @@ import {
   msToX,
   pxPerSecFor,
   scrollToHold,
+  SNAP_MS,
   snapMs,
   trackWidthFor,
   visibleTicks,
@@ -209,5 +212,59 @@ describe('keyBeyond()', () => {
 
   it('finds nothing where there are no keys', () => {
     expect(keyBeyond([], 500, true)).toBeNull();
+  });
+});
+
+describe('taking hold of a band', () => {
+  const bar = { left: 100, width: 200 };
+
+  it('takes the near end where the pointer is on it', () => {
+    expect(bandEdgeAt(bar, 100)).toBe('start');
+    expect(bandEdgeAt(bar, 103)).toBe('start');
+  });
+
+  it('takes the far end the same way', () => {
+    expect(bandEdgeAt(bar, 300)).toBe('end');
+    expect(bandEdgeAt(bar, 297)).toBe('end');
+  });
+
+  it('takes neither in the middle of it, which is where a key would be', () => {
+    expect(bandEdgeAt(bar, 200)).toBeNull();
+  });
+
+  it('takes neither off the band altogether', () => {
+    expect(bandEdgeAt(bar, 20)).toBeNull();
+    expect(bandEdgeAt(bar, 400)).toBeNull();
+  });
+});
+
+describe('dragging a band by its ends', () => {
+  const layer = { startMs: 200, endMs: 800 };
+
+  it('moves the near end to the moment dragged to', () => {
+    expect(bandDraggedTo(layer, 'start', 400, 2000)).toEqual({ startMs: 400, endMs: 800 });
+  });
+
+  it('moves the far end to it', () => {
+    expect(bandDraggedTo(layer, 'end', 1200, 2000)).toEqual({ startMs: 200, endMs: 1200 });
+  });
+
+  it('will not let the ends cross, nor the band close up altogether', () => {
+    expect(bandDraggedTo(layer, 'start', 1500, 2000).startMs).toBe(800 - SNAP_MS);
+    expect(bandDraggedTo(layer, 'end', 0, 2000).endMs).toBe(200 + SNAP_MS);
+  });
+
+  it('holds either end inside the scene', () => {
+    expect(bandDraggedTo(layer, 'start', -500, 2000).startMs).toBe(0);
+    expect(bandDraggedTo(layer, 'end', 9000, 2000).endMs).toBe(0);
+  });
+
+  it('keeps an end at the close of the scene as running to the end', () => {
+    // Nought is what the layer means by 'as long as the scene is', however long that becomes.
+    expect(bandDraggedTo(layer, 'end', 2000, 2000).endMs).toBe(0);
+  });
+
+  it('reads a layer that already runs to the end as ending there', () => {
+    expect(bandDraggedTo({ startMs: 0, endMs: 0 }, 'start', 500, 2000)).toEqual({ startMs: 500, endMs: 0 });
   });
 });
