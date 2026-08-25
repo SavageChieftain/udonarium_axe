@@ -51,6 +51,33 @@ describe('ChatTabSettingComponent', () => {
     await expectPanelDragRecovery(ChatTabSettingComponent);
   });
 
+  describe('clearing the log', () => {
+    const originalCursor = PeerCursor.myCursor;
+
+    afterEach(() => {
+      PeerCursor.myCursor = originalCursor;
+    });
+
+    it('signs the notice with whoever asked for the clearing', () => {
+      PeerCursor.myCursor = { userId: 'gm-user', name: 'GM', identifier: 'gm-cursor' } as PeerCursor;
+      const tab = ChatTabList.instance.addChatTab('テストタブ');
+      try {
+        tab.addMessage({ from: 'someone', name: '誰か', text: '消される発言', timestamp: 1000 });
+        component.selectedTab.set(tab);
+        component.allowDeleteLog = true;
+
+        component.deleteLog();
+
+        const notice = tab.chatMessages[tab.chatMessages.length - 1];
+        expect(tab.chatMessages).toHaveLength(1);
+        expect(notice.isSystemMessage).toBe(true);
+        expect(notice.from).toBe('gm-user');
+      } finally {
+        tab.destroy();
+      }
+    });
+  });
+
   describe('saves the log whatever the role, in good faith', () => {
     let store: ObjectStore;
     let saveData: SaveDataService;

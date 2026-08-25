@@ -1,6 +1,11 @@
 import { DataElement, DataElementAttribute, DataElementFieldType } from '@axe/domain/data/data-element';
 import { evalCalcFormula } from '@axe/domain/data/data-element-calc';
-import { buildCalcEnv, calcSourceIdentifiers, evaluateCalcElement } from '@axe/domain/data/data-element-calc-env';
+import {
+  buildCalcEnv,
+  calcSourceIdentifiers,
+  createCalcPass,
+  evaluateCalcElement,
+} from '@axe/domain/data/data-element-calc-env';
 
 describe('buildCalcEnv', () => {
   it('returns an environment that looks numeric leaves up by name', () => {
@@ -52,6 +57,19 @@ describe('buildCalcEnv', () => {
     expect(env['値']).toBeUndefined();
   });
 
+  it('reads the number where a note beside it answers to the same name', () => {
+    const detail = DataElement.create('detail', '');
+    const sheet = DataElement.create('表', '');
+    const memo = DataElement.create('備考', '');
+    detail.appendChild(sheet);
+    detail.appendChild(memo);
+    sheet.appendChild(DataElement.create('HP', '15'));
+    memo.appendChild(DataElement.create('hp', '要確認'));
+
+    const env = buildCalcEnv(detail);
+    expect(env['HP']).toBe(15);
+  });
+
   it('resolves a formula together with the evaluator', () => {
     const detail = DataElement.create('detail', '');
     const hp = DataElement.create('HP', '10');
@@ -88,6 +106,34 @@ describe('evaluateCalcElement', () => {
     return element;
   }
 
+  it('works a name out from the field holding a number, not the note sharing its name', () => {
+    const detail = DataElement.create('detail', '');
+    const sheet = DataElement.create('表', '');
+    const memo = DataElement.create('備考', '');
+    detail.appendChild(sheet);
+    detail.appendChild(memo);
+    sheet.appendChild(DataElement.create('HP', '15'));
+    memo.appendChild(DataElement.create('hp', '要確認'));
+    const calc = makeCalc('総HP', 'HP * 2');
+    detail.appendChild(calc);
+
+    expect(evaluateCalcElement(calc)).toBe('30');
+  });
+
+  it('still means neither where two fields holding numbers share a name', () => {
+    const detail = DataElement.create('detail', '');
+    const sectionA = DataElement.create('A', '');
+    const sectionB = DataElement.create('B', '');
+    detail.appendChild(sectionA);
+    detail.appendChild(sectionB);
+    sectionA.appendChild(DataElement.create('値', '3'));
+    sectionB.appendChild(DataElement.create('値', '7'));
+    const calc = makeCalc('合計', '値 + 1');
+    detail.appendChild(calc);
+
+    expect(evaluateCalcElement(calc)).toBe('?');
+  });
+
   it('works out the formula it holds', () => {
     const detail = DataElement.create('detail', '');
     detail.appendChild(DataElement.create('筋力', '8'));
@@ -123,6 +169,130 @@ describe('evaluateCalcElement', () => {
     detail.appendChild(calc);
 
     expect(evaluateCalcElement(calc)).toBe('');
+  });
+});
+
+describe('what a sheet full of calculating fields costs', () => {
+  /**
+   * A sheet where every field stands on the one below it, which is the shape that used to
+   * cost more with each field added rather than less.
+   */
+  function stack(depth: number): { detail: DataElement; fields: DataElement[] } {
+    const detail = DataElement.create('detail', '');
+    detail.appendChild(DataElement.create('素', '2'));
+    const fields: DataElement[] = [];
+    for (let at = 0; at < depth; at++) {
+      const field = DataElement.create(`段${at}`, '');
+      field.setAttribute(DataElementAttribute.FIELD_TYPE, DataElementFieldType.CALC);
+      field.setAttribute(DataElementAttribute.FORMULA, at === 0 ? '素 + 1' : `段${at - 1} + 1`);
+      detail.appendChild(field);
+      fields.push(field);
+    }
+    return { detail, fields };
+  }
+
+  /** How many times a formula was read, which is how many times one was worked out. */
+  function countingFormulaReads(run: () => void): number {
+    const original = DataElement.prototype.getAttribute;
+    let reads = 0;
+    DataElement.prototype.getAttribute = function (name: string) {
+      if (name === DataElementAttribute.FORMULA) reads++;
+      return original.call(this, name);
+    };
+    try {
+      run();
+    } finally {
+      DataElement.prototype.getAttribute = original;
+    }
+    return reads;
+  }
+
+  it('works each field out once for the whole sheet rather than once per field that reads it', () => {
+    const { fields } = stack(12);
+
+    const reads = countingFormulaReads(() => {
+      const pass = createCalcPass();
+      for (const field of fields) evaluateCalcElement(field, pass);
+    });
+
+    // Once each. Anything that grows with the square, let alone with the power, of the
+    // count is the shape this was written to stop.
+    expect(reads).toBe(fields.length);
+  });
+
+  it('works each field out once even when only the last one is asked for', () => {
+    const { fields } = stack(12);
+
+    const reads = countingFormulaReads(() => evaluateCalcElement(fields[fields.length - 1]));
+
+    expect(reads).toBe(fields.length);
+  });
+
+  it('gets the same answers from one shared pass as from a pass each', () => {
+    const { fields } = stack(12);
+    const pass = createCalcPass();
+
+    const shared = fields.map((field) => evaluateCalcElement(field, pass));
+    const apart = fields.map((field) => evaluateCalcElement(field));
+
+    expect(shared).toEqual(apart);
+    // 素 is 2, the first step adds one to it, and each of the eleven after adds one more.
+    expect(shared[11]).toBe('14');
+  });
+
+  it('does not settle a field on what was unknown while some other field was being worked out', () => {
+    const { fields } = stack(12);
+    const pass = createCalcPass();
+
+    // Asking for the foot of the stack first used to leave every field above it remembered as
+    // unworkable, because each had been reached while the one it stands on was still going.
+    evaluateCalcElement(fields[0], pass);
+
+    expect(fields.map((field) => evaluateCalcElement(field, pass))).toEqual(
+      fields.map((field) => evaluateCalcElement(field))
+    );
+    expect(evaluateCalcElement(fields[11], pass)).toBe('14');
+  });
+
+  it('reads only the fields a formula names, not the whole sheet', () => {
+    const detail = DataElement.create('detail', '');
+    detail.appendChild(DataElement.create('素', '2'));
+    const named = (name: string, formula: string): DataElement => {
+      const field = DataElement.create(name, '');
+      field.setAttribute(DataElementAttribute.FIELD_TYPE, DataElementFieldType.CALC);
+      field.setAttribute(DataElementAttribute.FORMULA, formula);
+      detail.appendChild(field);
+      return field;
+    };
+    const wanted = named('ほしい', '素 + 1');
+    for (let at = 0; at < 30; at++) named(`他${at}`, '素 * 2');
+
+    const reads = countingFormulaReads(() => evaluateCalcElement(wanted));
+
+    // Its own formula and nothing else: the thirty fields beside it are never touched.
+    expect(reads).toBe(1);
+  });
+
+  it('still gives up on a ring of fields, and does not poison the pass', () => {
+    const detail = DataElement.create('detail', '');
+    detail.appendChild(DataElement.create('素', '4'));
+    const make = (name: string, formula: string): DataElement => {
+      const field = DataElement.create(name, '');
+      field.setAttribute(DataElementAttribute.FIELD_TYPE, DataElementFieldType.CALC);
+      field.setAttribute(DataElementAttribute.FORMULA, formula);
+      detail.appendChild(field);
+      return field;
+    };
+    const a = make('あ', 'い + 1');
+    const b = make('い', 'あ + 1');
+    const plain = make('平', '素 * 2');
+
+    const pass = createCalcPass();
+
+    expect(evaluateCalcElement(a, pass)).toBe('?');
+    expect(evaluateCalcElement(b, pass)).toBe('?');
+    // A field outside the ring is unharmed by having been read during it.
+    expect(evaluateCalcElement(plain, pass)).toBe('8');
   });
 });
 

@@ -31,17 +31,17 @@
 
 ## 意図的に規則を置いていない
 
-| alias                                                                                                          | 理由                                                              |
-| -------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------- |
-| `chat-tab` / `chat-tab-list`                                                                                   | タブの作成・改名は卓の出来事ではなく設定。`full` でのみ残る       |
-| `cut-in` / `effect-preset` / `effect-preset-set` / `dice-table` / `dice-bot` / `chat-palette` / `buff-palette` | 素材・定義の編集。使った瞬間は別途記録される                      |
-| `image-tag` / `image-tag-list` / `audio-tag` / `audio-tag-list` / `playlist`                                   | 素材の整理                                                        |
-| `config` / `summary-setting` / `markdown` / `reload-check` / `room` / `sound-effect`                           | 部屋の設定・内部管理                                              |
-| `party`                                                                                                        | 同行編成。卓の進行としては現れにくい。要望があれば規則を足せる    |
-| `TableSelecter`                                                                                                | テーブル切替は `SELECT_GAME_TABLE` の合図で拾うため二重に取らない |
-| `PeerCursor` の改名                                                                                            | 人物辞書が当時の名前を保持するため、行としては起こさない          |
-| `Alarm`                                                                                                        | タイマー。鳴った事実は SE として残る                              |
-| `node` / `TabletopObject`                                                                                      | 抽象基底。実体は個別 alias 側で拾う                               |
+| alias                                                                                                                                            | 理由                                                              |
+| ------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------- |
+| `chat-tab` / `chat-tab-list`                                                                                                                     | タブの作成・改名は卓の出来事ではなく設定。`full` でのみ残る       |
+| `cut-in` / `cut-in-scene` / `cut-in-layer` / `effect-preset` / `effect-preset-set` / `dice-table` / `dice-bot` / `chat-palette` / `buff-palette` | 素材・定義の編集。使った瞬間は別途記録される                      |
+| `image-tag` / `image-tag-list` / `audio-tag` / `audio-tag-list` / `playlist`                                                                     | 素材の整理                                                        |
+| `config` / `summary-setting` / `markdown` / `reload-check` / `room` / `sound-effect`                                                             | 部屋の設定・内部管理                                              |
+| `party`                                                                                                                                          | 同行編成。卓の進行としては現れにくい。要望があれば規則を足せる    |
+| `TableSelecter`                                                                                                                                  | テーブル切替は `SELECT_GAME_TABLE` の合図で拾うため二重に取らない |
+| `PeerCursor` の改名                                                                                                                              | 人物辞書が当時の名前を保持するため、行としては起こさない          |
+| `Alarm`                                                                                                                                          | タイマー。鳴った事実は SE として残る                              |
+| `node` / `TabletopObject`                                                                                                                        | 抽象基底。実体は個別 alias 側で拾う                               |
 
 ## 記録できないもの
 

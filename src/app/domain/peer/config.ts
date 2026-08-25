@@ -9,6 +9,10 @@ import { Jukebox } from '@axe/domain/media/jukebox';
 export class Config extends ObjectNode implements InnerXml {
   @SyncVar('_defaultDiceBot') private _defaultDiceBot: string = 'DiceBot';
   @SyncVar('_roomVolume') private _roomVolume: number = 1.0;
+  @SyncVar('_systemAvatarIdentifier') private _systemAvatarIdentifier: string = '';
+  @SyncVar('_systemDiceAvatarIdentifier') private _systemDiceAvatarIdentifier: string = '';
+  @SyncVar('_hideSystemAvatar') private _hideSystemAvatar: string = '';
+  @SyncVar('_showSpeakerAvatar') private _showSpeakerAvatar: string = '';
 
   get defaultDiceBot(): string {
     if (this._defaultDiceBot == '') {
@@ -26,6 +30,35 @@ export class Config extends ObjectNode implements InnerXml {
   set roomVolume(volume: number) {
     this._roomVolume = volume;
   }
+
+  get systemAvatarIdentifier(): string {
+    return this._systemAvatarIdentifier;
+  }
+  set systemAvatarIdentifier(identifier: string) {
+    this._systemAvatarIdentifier = identifier;
+  }
+
+  get systemDiceAvatarIdentifier(): string {
+    return this._systemDiceAvatarIdentifier;
+  }
+  set systemDiceAvatarIdentifier(identifier: string) {
+    this._systemDiceAvatarIdentifier = identifier;
+  }
+
+  get isSystemAvatarVisible(): boolean {
+    return this._hideSystemAvatar !== '1';
+  }
+  set isSystemAvatarVisible(visible: boolean) {
+    this._hideSystemAvatar = visible ? '' : '1';
+  }
+
+  get isSpeakerAvatarVisible(): boolean {
+    return this._showSpeakerAvatar === '1';
+  }
+  set isSpeakerAvatarVisible(visible: boolean) {
+    this._showSpeakerAvatar = visible ? '1' : '';
+  }
+
   // The jukebox keeps the settings of the person listening.
   // The master volume lives here because the shared settings are saved together.
   get jukebox(): Jukebox {

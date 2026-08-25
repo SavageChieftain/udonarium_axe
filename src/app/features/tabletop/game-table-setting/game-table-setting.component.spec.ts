@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { CutInService } from '@axe/application/media/cut-in.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { Config } from '@axe/domain/peer/config';
@@ -99,6 +100,53 @@ describe('GameTableSettingComponent', () => {
       component.selectedTable = table;
       void component.tableDistanceviewImage;
       expect(spy).toHaveBeenCalledWith(table.identifier);
+    });
+  });
+
+  describe('choosing a table from the list', () => {
+    let table: GameTable;
+
+    function watchLaunch() {
+      return vi.spyOn(TestBed.inject(CutInService), 'launchForTable').mockReturnValue(true);
+    }
+
+    beforeEach(() => {
+      table = new GameTable();
+      table.initialize();
+    });
+
+    it('plays what the table asks for', () => {
+      const launchForTable = watchLaunch();
+
+      component.chooseGameTable(table.identifier);
+
+      expect(launchForTable).toHaveBeenCalledWith(table);
+    });
+
+    it('stays quiet on the table already showing', () => {
+      const launchForTable = watchLaunch();
+      component.chooseGameTable(table.identifier);
+      launchForTable.mockClear();
+
+      component.chooseGameTable(table.identifier);
+
+      expect(launchForTable).not.toHaveBeenCalled();
+    });
+
+    it('stays quiet when a table is only created', () => {
+      const launchForTable = watchLaunch();
+
+      component.selectGameTable(table.identifier);
+
+      expect(launchForTable).not.toHaveBeenCalled();
+    });
+
+    it('reads and writes the cut-ins the table names', () => {
+      component.selectedTable = table;
+      component.tableCutIns = ['cut-1', 'cut-2'];
+
+      expect(table.cutInIdentifiers).toBe('cut-1,cut-2');
+      expect(component.tableCutIns).toEqual(['cut-1', 'cut-2']);
     });
   });
 

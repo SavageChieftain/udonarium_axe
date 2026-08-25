@@ -13,20 +13,24 @@ import {
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ChatMessageService } from '@axe/application/chat/chat-message.service';
+import { SystemAvatarKind, SystemAvatarService } from '@axe/application/chat/system-avatar.service';
 import { decodeI18nMessage } from '@axe/application/i18n/i18n-message';
 import { LanguageService } from '@axe/application/i18n/language.service';
 import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { RolePermissionService } from '@axe/application/permission/role-permission.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
+import { ThemeService } from '@axe/application/ui/theme.service';
 import { UiSignalService } from '@axe/application/ui/ui-signal.service';
 import { ImageFile } from '@axe/core/storage/image-file';
 import { ImageStorage } from '@axe/core/storage/image-storage';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { ChatMessage } from '@axe/domain/chat/chat-message';
+import { ChatTab } from '@axe/domain/chat/chat-tab';
 import { ChatTabList } from '@axe/domain/chat/chat-tab-list';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { TextNote } from '@axe/domain/tabletop/text-note';
+import { SystemAvatarMenuService } from '@axe/features/chat/system-avatar-menu.service';
 import { ChatColorStylePipe } from '@axe/ui/pipes/chat-color-style.pipe';
 import { LinkifyPipe } from '@axe/ui/pipes/linkify.pipe';
 import { SafePipe } from '@axe/ui/pipes/safe.pipe';
@@ -45,9 +49,6 @@ import { TranslocoModule } from '@jsverse/transloco';
   imports: [NgClass, NgStyle, DatePipe, FormsModule, LinkifyPipe, ChatColorStylePipe, SafePipe, TranslocoModule],
 })
 export class ChatMessageComponent {
-  protected readonly SYSTEM_ICON_URL = 'assets/images/system_chang.png';
-  protected readonly DICEBOT_ICON_URL = 'assets/images/system_chang_roll.png';
-
   private readonly chatMessageService = inject(ChatMessageService);
   private readonly objectStore = inject(ObjectStore);
   private readonly objectChange = inject(ObjectChangeService);
@@ -56,6 +57,9 @@ export class ChatMessageComponent {
   private readonly language = inject(LanguageService);
   private readonly uiSignalService = inject(UiSignalService);
   private readonly rolePermission = inject(RolePermissionService);
+  protected readonly theme = inject(ThemeService);
+  private readonly systemAvatar = inject(SystemAvatarService);
+  private readonly systemAvatarMenu = inject(SystemAvatarMenuService);
 
   protected get canRevealSecret(): boolean {
     return this.rolePermission.canSeeHidden;
@@ -73,6 +77,54 @@ export class ChatMessageComponent {
   readonly simpleDispFlagTime = input(false);
   readonly simpleDispFlagUserId = input(false);
   readonly chatSimpleDispFlag = input(false);
+
+  readonly systemAvatarImage = computed<{ kind: SystemAvatarKind; url: string; isSpeaker: boolean } | null>(() => {
+    const chatMessage = this.chatMessageInput();
+    if (!chatMessage) return null;
+    const isSystem = chatMessage.isSystemMessage;
+    if (!isSystem && !(chatMessage.isDicebot && !this.imageFile().url)) return null;
+    const kind: SystemAvatarKind = isSystem ? 'system' : 'dice';
+
+    if (this.systemAvatar.isSpeakerVisible()) {
+      const speakerUrl = this.speakerImageUrl();
+      if (speakerUrl.length > 0) return { kind, url: speakerUrl, isSpeaker: true };
+    }
+    if (!this.systemAvatar.isVisible()) return null;
+    const url = isSystem ? this.systemAvatar.systemUrl() : this.systemAvatar.diceUrl();
+    if (url.length < 1) return null;
+    return { kind, url, isSpeaker: false };
+  });
+
+  private readonly speakerImageUrl = computed<string>(() => {
+    const chatMessage = this.chatMessageInput();
+    if (!chatMessage) return '';
+    const character = this.rollSourceImageUrl();
+    if (character.length > 0) return character;
+    const own = this.imageFile().url;
+    if (own.length > 0) return own;
+    this.objectChange.collectionOf('PeerCursor')();
+    const userId = chatMessage.originFrom || chatMessage.from;
+    if (!userId) return '';
+    return PeerCursor.findByUserId(userId)?.image?.url ?? '';
+  });
+
+  private rollSourceImageUrl(): string {
+    const chatMessage = this.chatMessageInput();
+    if (!chatMessage?.isDicebot) return '';
+    this.objectChange.fileVersion();
+    const chatTab = this.objectStore.get<ChatTab>(chatMessage.tabIdentifier);
+    if (!chatTab) return '';
+    this.objectChange.versionOf(chatTab.identifier)();
+    const originFrom = chatMessage.originFrom ?? '';
+    const source = chatTab.chatMessages.find(
+      (candidate) => candidate.timestamp === chatMessage.timestamp - 1 && candidate.from === originFrom
+    );
+    return source?.image?.url ?? '';
+  }
+
+  protected onSystemAvatarContextMenu(event: Event, kind: SystemAvatarKind): void {
+    this.systemAvatarMenu.openContextMenu(event, kind);
+  }
 
   readonly imageFile = computed(() => {
     const chatMessage = this.chatMessageInput();

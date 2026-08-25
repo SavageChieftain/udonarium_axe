@@ -5,9 +5,11 @@ import { ImageFile } from '@axe/core/storage/image-file';
 import { ImageStorage } from '@axe/core/storage/image-storage';
 import { SyncObject, SyncVar } from '@axe/core/sync/decorator';
 import { GameObject } from '@axe/core/sync/game-object';
+import { type InnerXml, ObjectSerializer } from '@axe/core/sync/object-serializer';
+import { CutInScene } from '@axe/domain/media/cut-in-scene';
 
 @SyncObject('cut-in')
-export class CutIn extends GameObject {
+export class CutIn extends GameObject implements InnerXml {
   @SyncVar() name = 'カットイン';
   @SyncVar() width = 480;
   @SyncVar() height = 320;
@@ -29,6 +31,7 @@ export class CutIn extends GameObject {
 
   @SyncVar() isPlaying = false;
   @SyncVar() keepImageAspect = false;
+  @SyncVar() frameless = false;
 
   @SyncVar() isVideoCutIn = false;
   @SyncVar() videoUrl = '';
@@ -182,4 +185,46 @@ export class CutIn extends GameObject {
       !!AudioStorage.instance.get(this.audioIdentifier)
     );
   }
+
+  get scene(): CutInScene | null {
+    return CutInScene.of(this.identifier);
+  }
+
+  /** Whether this cut-in is built out of layers rather than being one picture. */
+  get isComposed(): boolean {
+    const scene = this.scene;
+    return scene !== null && scene.layers.length > 0;
+  }
+
+  /**
+   * The scene rides inside the cut-in, so a saved room or a saved cut_*.zip carries it
+   * and a build that knows nothing of layers reads the attributes and ignores the rest.
+   */
+  innerXml(): string {
+    const scene = this.scene;
+    return scene ? ObjectSerializer.instance.toXml(scene) : '';
+  }
+
+  parseInnerXml(element: Element): void {
+    for (const child of Array.from(element.children)) {
+      const parsed = ObjectSerializer.instance.parseXml(child);
+      // An identifier is never written out, so the scene read back belongs to this copy.
+      if (parsed instanceof CutInScene) parsed.cutInIdentifier = this.identifier;
+    }
+  }
+
+  // GameObject Lifecycle. ObjectStore.delete() calls remove() rather than destroy(),
+  // so a deletion made elsewhere reaches the scene only through here.
+  override onStoreRemoved(): void {
+    super.onStoreRemoved();
+    this.scene?.destroy();
+  }
+}
+
+/** The height the title bar takes above a cut-in panel. */
+export const CUT_IN_TITLE_BAR_HEIGHT = 25;
+
+/** How much taller the panel stands than the cut-in itself. A frameless one wears no title bar. */
+export function cutInPanelChrome(cutIn: CutIn): number {
+  return cutIn.frameless ? 0 : CUT_IN_TITLE_BAR_HEIGHT;
 }

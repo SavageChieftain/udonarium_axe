@@ -1,0 +1,54 @@
+import { readFileSync } from 'node:fs';
+
+import { CUT_IN_EASING_NAMES } from '@axe/domain/media/cubic-bezier';
+import { CUT_IN_ENTRANCES, CUT_IN_EXITS } from '@axe/domain/media/cut-in-animation-presets';
+import { CUT_IN_CLIPS } from '@axe/domain/media/cut-in-clip';
+import { CUT_IN_EFFECTS } from '@axe/domain/media/cut-in-effect';
+import { CUT_IN_FILL_SHAPES } from '@axe/domain/media/cut-in-fill';
+import { CUT_IN_TEXT_ALIGNS } from '@axe/domain/media/cut-in-layer';
+import { CUT_IN_LAYER_PRESETS } from '@axe/domain/media/cut-in-layer-presets';
+import { CUT_IN_WIPES } from '@axe/domain/media/cut-in-wipe';
+
+/**
+ * A screen that builds its key out of a value — `'…clip' + shape` — puts that key beyond
+ * the reach of the check that reads the templates, because there is nothing to read until
+ * it runs. So the values are taken from where they are declared and matched against the
+ * dictionaries here. A new shape with no name to show is then a failing test rather than
+ * a raw key on someone's screen.
+ */
+const CHOICES: Record<string, readonly string[]> = {
+  'feature.media.cutInEditor.clip': CUT_IN_CLIPS,
+  'feature.media.cutInEditor.wipe': CUT_IN_WIPES,
+  'feature.media.cutInEditor.effect': CUT_IN_EFFECTS,
+  'feature.media.cutInEditor.fillShape': CUT_IN_FILL_SHAPES,
+  'feature.media.cutInEditor.align': CUT_IN_TEXT_ALIGNS,
+  'feature.media.cutInEditor.easing': CUT_IN_EASING_NAMES,
+  'feature.media.cutInEditor.look': CUT_IN_LAYER_PRESETS.map((preset) => preset.id),
+  'feature.media.cutInEditor.preset': [...CUT_IN_ENTRANCES, ...CUT_IN_EXITS],
+};
+
+function dictionary(language: string): Record<string, unknown> {
+  return JSON.parse(readFileSync(`src/assets/i18n/${language}.json`, 'utf-8'));
+}
+
+function lookup(tree: Record<string, unknown>, key: string): unknown {
+  return key.split('.').reduce<unknown>((node, part) => {
+    return typeof node === 'object' && node !== null ? (node as Record<string, unknown>)[part] : undefined;
+  }, tree);
+}
+
+describe('the names shown for a choice', () => {
+  for (const language of ['ja', 'en']) {
+    it(`are all there in ${language}`, () => {
+      const tree = dictionary(language);
+      const missing: string[] = [];
+      for (const [prefix, values] of Object.entries(CHOICES)) {
+        for (const value of values) {
+          if (typeof lookup(tree, prefix + value) !== 'string') missing.push(prefix + value);
+        }
+      }
+
+      expect(missing).toEqual([]);
+    });
+  }
+});

@@ -6,19 +6,19 @@
     'w-screen!': isCompact(),
     'rounded-none!': isCompact(),
   }"
-  [class.bg-transparent!]="contentMinimized"
-  [class.border-transparent!]="contentMinimized"
-  [class.shadow-none!]="contentMinimized"
-  [style.backdrop-filter]="contentMinimized ? 'none' : null"
-  [style.-webkit-backdrop-filter]="contentMinimized ? 'none' : null"
+  [class.bg-transparent!]="unboxed"
+  [class.border-transparent!]="unboxed"
+  [class.shadow-none!]="unboxed"
+  [style.backdrop-filter]="unboxed ? 'none' : null"
+  [style.-webkit-backdrop-filter]="unboxed ? 'none' : null"
   [style.left.px]="left"
   [style.top.px]="top"
   [style.width.px]="width"
   [style.height]="contentMinimized ? 'auto' : isCompact() ? 'calc(100dvh - ' + keyboardInset() + 'px)' : height + 'px'"
   [style.zIndex]="isFullScreen() || isCompact() ? '201' : null"
   [style.visibility]="panelService.invisible ? 'hidden' : ''"
-  [style.pointer-events]="panelService.invisible ? 'none' : ''"
-  [resizable.disable]="isMinimized() || isFullScreen() || isCompact()"
+  [style.pointer-events]="panelService.invisible || frameless ? 'none' : ''"
+  [resizable.disable]="isMinimized() || isFullScreen() || isCompact() || frameless"
   [draggable.disable]="isCompact()"
   [resizable.minWidth]="minWidth"
   [resizable.minHeight]="minHeight"
@@ -41,7 +41,7 @@
     [style.background]="contentMinimized ? 'color-mix(in srgb, var(--color-ui-titlebar) 55%, transparent)' : null"
     [style.backdrop-filter]="contentMinimized ? 'blur(8px)' : null"
     [style.-webkit-backdrop-filter]="contentMinimized ? 'blur(8px)' : null"
-    [style.display]="showTitle() ? '' : 'none'"
+    [style.display]="showsTitleBar ? '' : 'none'"
   >
     @if (title !== menuTitle) {
       <div
@@ -104,7 +104,7 @@
     [class.static!]="contentMinimized"
     [ngStyle]="{
       padding: padding_,
-      top: showTitle() ? (isCompact() ? 'calc(2.75rem + env(safe-area-inset-top))' : '28px') : '0',
+      top: showsTitleBar ? (isCompact() ? 'calc(2.75rem + env(safe-area-inset-top))' : '28px') : '0',
       overflow: overflowVisible() || contentMinimized ? 'visible' : undefined,
     }"
     #scrollablePanel

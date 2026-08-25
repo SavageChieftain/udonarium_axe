@@ -3,6 +3,7 @@ import { ChangeDetectionStrategy, Component, computed, DestroyRef, inject, signa
 import { FormsModule } from '@angular/forms';
 import { SaveDataService } from '@axe/application/file/save-data.service';
 import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
+import { CutInService } from '@axe/application/media/cut-in.service';
 import { RolePermissionService } from '@axe/application/permission/role-permission.service';
 import { ImageService } from '@axe/application/storage/image.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
@@ -24,6 +25,8 @@ import {
   DEFAULT_AMBIENCE_DENSITY,
   SKY_AMBIENCE_KINDS,
 } from '@axe/domain/effect/ambience/ambience-kind';
+import { CutIn } from '@axe/domain/media/cut-in';
+import { encodeCutInIdentifiers, parseCutInIdentifiers } from '@axe/domain/media/table-cut-in';
 import { Config } from '@axe/domain/peer/config';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { FilterType, GameTable, GridSnapStyle, GridType } from '@axe/domain/tabletop/game-table';
@@ -62,6 +65,7 @@ export class GameTableSettingComponent {
   private readonly tableSelecter = inject(TableSelecter);
   private readonly objectChange = inject(ObjectChangeService);
   private readonly visionService = inject(VisionService);
+  private readonly cutInService = inject(CutInService);
   private readonly destroyRef = inject(DestroyRef);
 
   get gameType(): string {
@@ -437,10 +441,36 @@ export class GameTableSettingComponent {
     }, this.destroyRef);
   }
 
+  /**
+   * Chosen from the list, which is the one moment a cut-in belongs.
+   * Creating, restoring and loading a room go through selectGameTable() and stay quiet.
+   */
+  chooseGameTable(identifier: string): void {
+    const wasShowing = this.tableSelecter.viewTableIdentifier;
+    this.selectGameTable(identifier);
+    if (identifier === wasShowing) return;
+
+    const table = this.objectStore.get<GameTable>(identifier);
+    if (table) this.cutInService.launchForTable(table);
+  }
+
   selectGameTable(identifier: string) {
     emitSelectGameTable({ identifier });
     this.selectedTable = this.objectStore.get<GameTable>(identifier);
     this.selectedTableXml = '';
+  }
+
+  getCutIns(): CutIn[] {
+    this.objectChange.collectionOf(CutIn.aliasName)();
+    return this.objectStore.getObjects(CutIn);
+  }
+
+  get tableCutIns(): string[] {
+    return this.selectedTable ? parseCutInIdentifiers(this.selectedTable.cutInIdentifiers) : [];
+  }
+  set tableCutIns(identifiers: string[]) {
+    if (!this.isEditable || !this.selectedTable) return;
+    this.selectedTable.cutInIdentifiers = encodeCutInIdentifiers(identifiers ?? []);
   }
 
   getGameTables(): GameTable[] {
@@ -552,6 +582,6 @@ export class GameTableSettingComponent {
   }
 
   onSelectGameTable(event: Event): void {
-    this.selectGameTable((event.target as HTMLInputElement).value);
+    this.chooseGameTable((event.target as HTMLInputElement).value);
   }
 }

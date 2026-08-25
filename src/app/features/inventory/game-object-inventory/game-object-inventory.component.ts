@@ -25,6 +25,7 @@ import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { GameObject } from '@axe/core/sync/game-object';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { splitSearchTerms } from '@axe/core/util/text-search';
+import { turnCache } from '@axe/core/util/turn-cache';
 import {
   ancestorFolderPaths,
   FOLDER_SEPARATOR,
@@ -36,7 +37,7 @@ import {
 } from '@axe/domain/character/character-folder';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { DataElement, DataElementFieldType } from '@axe/domain/data/data-element';
-import { evaluateCalcElement } from '@axe/domain/data/data-element-calc-env';
+import { createCalcPass, evaluateCalcElement } from '@axe/domain/data/data-element-calc-env';
 import { SortOrder } from '@axe/domain/data/data-summary-setting';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
@@ -58,6 +59,10 @@ import {
 import {
   buildInventoryRow,
   filterInventoryRows,
+  filterInventoryRowsByHidden,
+  INVENTORY_HIDDEN_FILTERS,
+  type InventoryHiddenDisplay,
+  type InventoryHiddenFilter,
   type InventoryRow,
   inventorySearchText,
 } from '@axe/features/inventory/game-object-inventory/inventory-list';
@@ -79,8 +84,11 @@ export class GameObjectInventoryComponent {
     return element.fieldType === DataElementFieldType.CALC;
   }
 
+  /** Every row asks while the list is being drawn, and they all read the same sheets. */
+  private readonly calcPass = turnCache(createCalcPass);
+
   calcText(element: DataElement): string {
-    return evaluateCalcElement(element);
+    return evaluateCalcElement(element, this.calcPass());
   }
 
   private readonly panelService = inject(PanelService);
@@ -300,9 +308,40 @@ export class GameObjectInventoryComponent {
     );
   });
 
+  private readonly hiddenFilterLabelKeys: Record<InventoryHiddenFilter, string> = {
+    all: 'feature.inventory.panel.hiddenFilterAll',
+    only: 'feature.inventory.panel.hiddenFilterOnly',
+    exclude: 'feature.inventory.panel.hiddenFilterExclude',
+  };
+
+  readonly hiddenFilterOptions = INVENTORY_HIDDEN_FILTERS.map((value) => ({
+    value,
+    labelKey: this.hiddenFilterLabelKeys[value],
+  }));
+
+  readonly hiddenFilter = signal<InventoryHiddenFilter>('all');
+  readonly hiddenDisplay = signal<InventoryHiddenDisplay>('dim');
+
+  readonly canSeeHidden = computed<boolean>(() => {
+    if (PeerCursor.myCursor) this.objectChange.versionOf(PeerCursor.myCursor.identifier)();
+    return this.rolePermission.canSeeHidden;
+  });
+
+  readonly activeHiddenFilter = computed<InventoryHiddenFilter>(() =>
+    this.canSeeHidden() ? this.hiddenFilter() : 'all'
+  );
+
+  readonly isHiddenFiltered = computed<boolean>(() => this.activeHiddenFilter() !== 'all');
+
+  toggleHiddenDisplay(): void {
+    this.hiddenDisplay.update((display) => (display === 'dim' ? 'full' : 'dim'));
+  }
+
   readonly filteredRows = computed<InventoryRow[]>(() => {
     const terms = this.searchTerms();
-    const rows = this.visibleRows();
+    const rows = filterInventoryRowsByHidden(this.visibleRows(), this.activeHiddenFilter(), (row) =>
+      this.isInventoryHiddenObject(row.object)
+    );
     if (terms.length < 1) return rows;
 
     // Owner names live on the cursors, so a rename over there has to reach the text being matched.
@@ -646,6 +685,10 @@ export class GameObjectInventoryComponent {
 
   isInventoryHiddenObject(gameObject: TabletopObject): boolean {
     return gameObject instanceof GameCharacter && gameObject.hideInventory;
+  }
+
+  isHiddenRowDimmed(gameObject: TabletopObject): boolean {
+    return this.isInventoryHiddenObject(gameObject) && this.hiddenDisplay() === 'dim';
   }
 
   canView(gameObject: TabletopObject): boolean {

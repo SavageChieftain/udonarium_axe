@@ -1,0 +1,353 @@
+<div class="text-ui-text flex h-full min-h-0 flex-col text-[12px]" tabindex="0" (keydown)="onKeyDown($event)">
+  <div class="border-ui-border-panel flex shrink-0 flex-wrap items-center gap-1.5 border-b border-solid px-2 py-1.5">
+    <button
+      class="border-ui-border-panel text-ui-muted hover:bg-ui-hover hover:text-ui-text rounded-ui-sm inline-flex cursor-pointer items-center gap-1 border border-solid bg-transparent px-2 py-1 disabled:cursor-not-allowed disabled:opacity-50 [&_.material-icons]:text-[14px]!"
+      type="button"
+      [disabled]="!isEditable()"
+      (click)="addImageLayer()"
+    >
+      <i class="material-icons">image</i>{{ 'feature.media.cutInEditor.addImage' | transloco }}
+    </button>
+    <button
+      class="border-ui-border-panel text-ui-muted hover:bg-ui-hover hover:text-ui-text rounded-ui-sm inline-flex cursor-pointer items-center gap-1 border border-solid bg-transparent px-2 py-1 disabled:cursor-not-allowed disabled:opacity-50 [&_.material-icons]:text-[14px]!"
+      type="button"
+      [disabled]="!isEditable()"
+      (click)="addTextLayer()"
+    >
+      <i class="material-icons">title</i>{{ 'feature.media.cutInEditor.addText' | transloco }}
+    </button>
+    <button
+      class="border-ui-border-panel text-ui-muted hover:bg-ui-hover hover:text-ui-text rounded-ui-sm inline-flex cursor-pointer items-center gap-1 border border-solid bg-transparent px-2 py-1 disabled:cursor-not-allowed disabled:opacity-50 [&_.material-icons]:text-[14px]!"
+      type="button"
+      [disabled]="!isEditable()"
+      (click)="addFillLayer()"
+    >
+      <i class="material-icons">gradient</i>{{ 'feature.media.cutInEditor.addFill' | transloco }}
+    </button>
+    <button
+      class="border-ui-border-panel text-ui-muted hover:bg-ui-hover hover:text-ui-text rounded-ui-sm inline-flex cursor-pointer items-center gap-1 border border-solid bg-transparent px-2 py-1 disabled:cursor-not-allowed disabled:opacity-50 [&_.material-icons]:text-[14px]!"
+      type="button"
+      [disabled]="!isEditable()"
+      [title]="'feature.media.cutInEditor.addSoundHint' | transloco"
+      (click)="addSound()"
+    >
+      <i class="material-icons">volume_up</i>{{ 'feature.media.cutInEditor.addSound' | transloco }}
+    </button>
+    <button
+      class="border-ui-border-panel text-ui-muted hover:bg-ui-hover hover:text-ui-text rounded-ui-sm inline-flex size-7 cursor-pointer items-center justify-center border border-solid bg-transparent p-0 disabled:cursor-not-allowed disabled:opacity-50 [&_.material-icons]:text-[14px]!"
+      type="button"
+      [disabled]="!isEditable() || !selected()"
+      [title]="'feature.media.cutInEditor.duplicateLayer' | transloco"
+      (click)="duplicateSelected()"
+    >
+      <i class="material-icons">content_copy</i>
+    </button>
+    <button
+      class="text-ui-danger border-ui-danger hover:bg-ui-danger-bg rounded-ui-sm inline-flex size-7 cursor-pointer items-center justify-center border border-solid bg-transparent p-0 disabled:cursor-not-allowed disabled:opacity-50 [&_.material-icons]:text-[14px]!"
+      type="button"
+      [disabled]="!isEditable() || !selected()"
+      [title]="'feature.media.cutInEditor.deleteLayer' | transloco"
+      (click)="removeSelected()"
+    >
+      <i class="material-icons">delete</i>
+    </button>
+
+    <span class="border-ui-border-panel mx-1 h-5 border-l border-solid"></span>
+
+    <button
+      class="border-ui-border-panel text-ui-muted hover:bg-ui-hover hover:text-ui-text rounded-ui-sm inline-flex size-7 cursor-pointer items-center justify-center border border-solid bg-transparent p-0 disabled:cursor-not-allowed disabled:opacity-40 [&_.material-icons]:text-[14px]!"
+      type="button"
+      [disabled]="!isEditable() || !selected()"
+      [title]="'feature.media.cutInEditor.copyPose' | transloco"
+      (click)="copyPose()"
+    >
+      <i class="material-icons">bookmark_add</i>
+    </button>
+    <button
+      class="border-ui-border-panel text-ui-muted hover:bg-ui-hover hover:text-ui-text rounded-ui-sm inline-flex size-7 cursor-pointer items-center justify-center border border-solid bg-transparent p-0 disabled:cursor-not-allowed disabled:opacity-40 [&_.material-icons]:text-[14px]!"
+      type="button"
+      [disabled]="!isEditable() || !selected() || !hasHeldPose"
+      [title]="'feature.media.cutInEditor.pastePose' | transloco"
+      (click)="pastePose()"
+    >
+      <i class="material-icons">bookmark_added</i>
+    </button>
+
+    <span class="border-ui-border-panel mx-1 h-5 border-l border-solid"></span>
+
+    <button
+      class="border-ui-border-panel text-ui-muted hover:bg-ui-hover hover:text-ui-text rounded-ui-sm inline-flex size-7 cursor-pointer items-center justify-center border border-solid bg-transparent p-0 disabled:cursor-not-allowed disabled:opacity-40 [&_.material-icons]:text-[14px]!"
+      type="button"
+      [title]="'feature.media.cutInEditor.jumpBack' | transloco"
+      (click)="jumpToKey(false)"
+    >
+      <i class="material-icons">skip_previous</i>
+    </button>
+    <button
+      class="border-ui-border-panel text-ui-muted hover:bg-ui-hover hover:text-ui-text rounded-ui-sm inline-flex size-7 cursor-pointer items-center justify-center border border-solid bg-transparent p-0 disabled:cursor-not-allowed disabled:opacity-40 [&_.material-icons]:text-[14px]!"
+      type="button"
+      [title]="'feature.media.cutInEditor.jumpForward' | transloco"
+      (click)="jumpToKey(true)"
+    >
+      <i class="material-icons">skip_next</i>
+    </button>
+
+    <span class="border-ui-border-panel mx-1 h-5 border-l border-solid"></span>
+
+    <button
+      class="border-ui-border-panel text-ui-muted hover:bg-ui-hover hover:text-ui-text rounded-ui-sm inline-flex size-7 cursor-pointer items-center justify-center border border-solid bg-transparent p-0 disabled:cursor-not-allowed disabled:opacity-40 [&_.material-icons]:text-[14px]!"
+      type="button"
+      [disabled]="!canUndo()"
+      [title]="'feature.media.cutInEditor.undo' | transloco"
+      (click)="undo()"
+    >
+      <i class="material-icons">undo</i>
+    </button>
+    <button
+      class="border-ui-border-panel text-ui-muted hover:bg-ui-hover hover:text-ui-text rounded-ui-sm inline-flex size-7 cursor-pointer items-center justify-center border border-solid bg-transparent p-0 disabled:cursor-not-allowed disabled:opacity-40 [&_.material-icons]:text-[14px]!"
+      type="button"
+      [disabled]="!canRedo()"
+      [title]="'feature.media.cutInEditor.redo' | transloco"
+      (click)="redo()"
+    >
+      <i class="material-icons">redo</i>
+    </button>
+
+    <span class="border-ui-border-panel mx-1 h-5 border-l border-solid"></span>
+
+    <button
+      class="border-ui-border-panel text-ui-muted hover:bg-ui-hover hover:text-ui-text rounded-ui-sm inline-flex size-7 cursor-pointer items-center justify-center border border-solid bg-transparent p-0 [&_.material-icons]:text-[14px]!"
+      type="button"
+      [title]="(playing() ? 'feature.media.cutInEditor.pause' : 'feature.media.cutInEditor.play') | transloco"
+      (click)="togglePlaying()"
+    >
+      <i class="material-icons">{{ playing() ? 'pause' : 'play_arrow' }}</i>
+    </button>
+    <button
+      class="border-ui-border-panel text-ui-muted hover:bg-ui-hover hover:text-ui-text rounded-ui-sm inline-flex size-7 cursor-pointer items-center justify-center border border-solid bg-transparent p-0 [&_.material-icons]:text-[14px]!"
+      type="button"
+      [title]="'feature.media.cutInEditor.stop' | transloco"
+      (click)="stop()"
+    >
+      <i class="material-icons">stop</i>
+    </button>
+
+    <span class="border-ui-border-panel mx-1 h-5 border-l border-solid"></span>
+
+    <label class="text-ui-muted text-[11px]">{{ 'feature.media.cutInEditor.sceneSeconds' | transloco }}</label>
+    <input
+      class="bg-ui-input border-ui-border-panel text-ui-text rounded-ui-sm box-border w-14 border border-solid px-1.5 py-1 text-right text-[12px] outline-none disabled:opacity-50"
+      name="cut-in-scene-seconds"
+      type="number"
+      min="0.1"
+      step="0.1"
+      [(ngModel)]="sceneDurationSeconds"
+      [attr.disabled]="!isEditable() || !scene() ? '' : null"
+    />
+    <label
+      class="text-ui-muted flex cursor-pointer items-center gap-1 text-[11px] select-none [&_input]:size-3.5 [&_input]:[accent-color:var(--ui-accent)]"
+    >
+      <input
+        type="checkbox"
+        name="cut-in-scene-loop"
+        [(ngModel)]="sceneLoop"
+        [attr.disabled]="!isEditable() || !scene() ? '' : null"
+      />
+      {{ 'feature.media.cutInEditor.sceneLoop' | transloco }}
+    </label>
+  </div>
+
+  <div class="grid min-h-0 flex-1 grid-cols-[minmax(0,1fr)_13rem] gap-0">
+    <div
+      class="panel-no-drag relative min-h-0 min-w-0 touch-none overflow-hidden bg-[repeating-conic-gradient(rgba(255,255,255,0.06)_0%_25%,transparent_0%_50%)] bg-size-[16px_16px] select-none"
+      #stageArea
+      data-stage
+      (pointerdown)="onPointerDown($event)"
+      (pointermove)="onPointerMove($event)"
+      (pointerup)="onPointerUp($event)"
+      (pointercancel)="onPointerUp($event)"
+      (pointerleave)="onPointerUp($event)"
+      (dragstart)="$event.preventDefault()"
+      (wheel)="onStageWheel($event)"
+    >
+      <div class="pointer-events-none absolute top-1 right-1 z-2 inline-flex items-center gap-0.5">
+        <button
+          class="border-ui-border-panel bg-ui-panel/80 text-ui-muted hover:bg-ui-hover hover:text-ui-text rounded-ui-sm pointer-events-auto inline-flex size-6 cursor-pointer items-center justify-center border border-solid p-0 disabled:cursor-not-allowed disabled:opacity-40 [&_.material-icons]:text-[13px]!"
+          type="button"
+          [disabled]="!canStageZoomOut()"
+          [title]="'feature.media.cutInEditor.stageZoomOut' | transloco"
+          (click)="stageZoomOut()"
+        >
+          <i class="material-icons">zoom_out</i>
+        </button>
+        <button
+          class="border-ui-border-panel bg-ui-panel/80 text-ui-muted hover:bg-ui-hover hover:text-ui-text rounded-ui-sm pointer-events-auto inline-flex h-6 min-w-11 cursor-pointer items-center justify-center border border-solid px-1 text-[10px] tabular-nums disabled:cursor-not-allowed disabled:opacity-40"
+          type="button"
+          [disabled]="!canStageZoomOut()"
+          [title]="'feature.media.cutInEditor.stageZoomFit' | transloco"
+          (click)="stageZoomToFit()"
+        >
+          {{ stagePercent() }}%
+        </button>
+        <button
+          class="border-ui-border-panel bg-ui-panel/80 text-ui-muted hover:bg-ui-hover hover:text-ui-text rounded-ui-sm pointer-events-auto inline-flex size-6 cursor-pointer items-center justify-center border border-solid p-0 disabled:cursor-not-allowed disabled:opacity-40 [&_.material-icons]:text-[13px]!"
+          type="button"
+          [disabled]="!canStageZoomIn()"
+          [title]="'feature.media.cutInEditor.stageZoomIn' | transloco"
+          (click)="stageZoomIn()"
+        >
+          <i class="material-icons">zoom_in</i>
+        </button>
+      </div>
+      @if (scene(); as scene) {
+        <app-cut-in-stage
+          class="pointer-events-none absolute inset-0"
+          [scene]="scene"
+          [sceneWidth]="sceneWidth()"
+          [sceneHeight]="sceneHeight()"
+          [playing]="false"
+          [playheadMs]="playheadMs()"
+          [zoom]="stageZoom()"
+        />
+      }
+
+      <div
+        class="pointer-events-none absolute border border-dashed border-white/40"
+        [style.left.px]="fit().offsetX"
+        [style.top.px]="fit().offsetY"
+        [style.width.px]="sceneWidth() * fit().scale"
+        [style.height.px]="sceneHeight() * fit().scale"
+      ></div>
+
+      @if (selectionBox(); as box) {
+        <div
+          class="border-ui-accent pointer-events-none absolute border"
+          [style.left.px]="fit().offsetX + box.x * fit().scale"
+          [style.top.px]="fit().offsetY + box.y * fit().scale"
+          [style.width.px]="box.width * fit().scale"
+          [style.height.px]="box.height * fit().scale"
+          [style.transform]="selectionTransform()"
+          [style.transform-origin]="selectionOrigin()"
+        >
+          <span class="bg-ui-accent absolute -top-1 -left-1 size-2"></span>
+          <span class="bg-ui-accent absolute -top-1 -right-1 size-2"></span>
+          <span class="bg-ui-accent absolute -bottom-1 -left-1 size-2"></span>
+          <span class="bg-ui-accent absolute -right-1 -bottom-1 size-2"></span>
+        </div>
+      }
+
+      @if (rotateGrip(); as grip) {
+        <span
+          class="bg-ui-accent pointer-events-none absolute size-2.5 -translate-1/2 rounded-full"
+          [style.left.px]="grip.left"
+          [style.top.px]="grip.top"
+        ></span>
+      }
+
+      @if (layers().length === 0) {
+        <div class="text-ui-dim pointer-events-none absolute inset-0 flex items-center justify-center text-[12px]">
+          {{ 'feature.media.cutInEditor.emptyStage' | transloco }}
+        </div>
+      }
+    </div>
+
+    <div
+      class="border-ui-border-panel bg-ui-panel min-h-0 min-w-0 overflow-x-hidden overflow-y-auto border-l border-solid"
+    >
+      <cut-in-layer-properties
+        [layer]="selected()"
+        [isEditable]="isEditable()"
+        [playheadMs]="playheadMs()"
+        [sceneWidth]="sceneWidth()"
+        [sceneHeight]="sceneHeight()"
+        [sceneDurationMs]="durationMs()"
+        (commit)="changed()"
+      />
+    </div>
+  </div>
+
+  <div class="panel-no-drag border-ui-border-panel flex h-40 shrink-0 flex-col border-t border-solid">
+    <div class="border-ui-border-panel text-ui-muted flex shrink-0 items-center gap-2 border-b border-solid px-2 py-1">
+      <i class="material-icons text-[13px]! opacity-70">schedule</i>
+      <input
+        class="bg-ui-input border-ui-border-panel text-ui-text rounded-ui-sm focus:border-ui-accent w-16 border border-solid px-1 py-0.5 text-[11px] tabular-nums outline-none"
+        type="number"
+        step="0.01"
+        min="0"
+        [max]="durationMs() / 1000"
+        [value]="playheadSeconds()"
+        [title]="'feature.media.cutInEditor.seekTo' | transloco"
+        (change)="onSeekSeconds($event)"
+      />
+      <span class="text-ui-dim text-[11px] tabular-nums">/ {{ clock() }}</span>
+
+      <span class="ml-auto inline-flex items-center gap-0.5">
+        <button
+          class="border-ui-border-panel text-ui-muted hover:bg-ui-hover hover:text-ui-text rounded-ui-sm inline-flex size-6 cursor-pointer items-center justify-center border border-solid bg-transparent p-0 disabled:cursor-not-allowed disabled:opacity-40 [&_.material-icons]:text-[13px]!"
+          type="button"
+          [disabled]="!canZoomOut()"
+          [title]="'feature.media.cutInEditor.zoomOut' | transloco"
+          (click)="zoomOut()"
+        >
+          <i class="material-icons">zoom_out</i>
+        </button>
+        <button
+          class="border-ui-border-panel text-ui-muted hover:bg-ui-hover hover:text-ui-text rounded-ui-sm inline-flex h-6 min-w-11 cursor-pointer items-center justify-center border border-solid bg-transparent px-1 text-[10px] tabular-nums disabled:cursor-not-allowed disabled:opacity-40"
+          type="button"
+          [disabled]="!canZoomOut()"
+          [title]="'feature.media.cutInEditor.zoomFit' | transloco"
+          (click)="zoomToFit()"
+        >
+          {{ zoomPercent() }}%
+        </button>
+        <button
+          class="border-ui-border-panel text-ui-muted hover:bg-ui-hover hover:text-ui-text rounded-ui-sm inline-flex size-6 cursor-pointer items-center justify-center border border-solid bg-transparent p-0 disabled:cursor-not-allowed disabled:opacity-40 [&_.material-icons]:text-[13px]!"
+          type="button"
+          [disabled]="!canZoomIn()"
+          [title]="'feature.media.cutInEditor.zoomIn' | transloco"
+          (click)="zoomIn()"
+        >
+          <i class="material-icons">zoom_in</i>
+        </button>
+      </span>
+    </div>
+
+    <div class="flex min-h-0 flex-1 overflow-auto" #timelineArea (wheel)="onTimelineWheel($event)">
+      <div
+        class="border-ui-border-panel bg-ui-panel sticky left-0 z-2 shrink-0 border-r border-solid"
+        [style.width.px]="timelineHeadWidthPx"
+      >
+        <!-- Level with the ruler and the sound row, so the first head meets the first band. -->
+        <div class="border-ui-border-panel border-b border-solid" [style.height.px]="timelineHeadOffsetPx"></div>
+        <cut-in-layer-list
+          [layers]="layers()"
+          [selected]="selected()"
+          [isEditable]="isEditable()"
+          (selectLayer)="onSelect($event)"
+          (toggleHidden)="onToggleHidden($event)"
+          (toggleLocked)="onToggleLocked($event)"
+          (reorder)="onReorder($event)"
+        />
+      </div>
+
+      <cut-in-timeline
+        [viewportPx]="timelineViewportPx()"
+        [zoom]="timelineZoom()"
+        [layers]="layers()"
+        [sounds]="sounds()"
+        [selected]="selected()"
+        [durationMs]="durationMs()"
+        [playheadMs]="playheadMs()"
+        [isEditable]="isEditable()"
+        (seek)="onSeek($event)"
+        (selectLayer)="onSelect($event)"
+        (moveKey)="onMoveKey($event)"
+        (removeKey)="onRemoveKey($event)"
+        (moveSound)="onMoveSound($event)"
+        (removeSound)="onRemoveSound($event)"
+        (trimLayer)="onTrimLayer($event)"
+        (trimmed)="onTrimmed()"
+      />
+    </div>
+  </div>
+</div>

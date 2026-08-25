@@ -3,6 +3,7 @@ import { TabletopObject } from '@axe/domain/tabletop/tabletop-object';
 import {
   buildInventoryRow,
   filterInventoryRows,
+  filterInventoryRowsByHidden,
   type InventoryRow,
   inventorySearchText,
 } from '@axe/features/inventory/game-object-inventory/inventory-list';
@@ -73,5 +74,28 @@ describe('filterInventoryRows()', () => {
     const rows = [makeRow()];
 
     expect(filterInventoryRows(rows, [], (row) => textOf(row))).not.toBe(rows);
+  });
+});
+
+describe('filterInventoryRowsByHidden()', () => {
+  const shown = makeRow('村長');
+  const hidden = makeRow('伏せた敵');
+  const rows = [shown, hidden];
+  const isHidden = (row: InventoryRow) => row === hidden;
+
+  it('keeps every row when nothing is filtered out', () => {
+    expect(filterInventoryRowsByHidden(rows, 'all', isHidden)).toHaveLength(2);
+  });
+
+  it('hands back a list of its own rather than the one it was given', () => {
+    expect(filterInventoryRowsByHidden(rows, 'all', isHidden)).not.toBe(rows);
+  });
+
+  it('keeps only what the inventory hides', () => {
+    expect(filterInventoryRowsByHidden(rows, 'only', isHidden)).toEqual([hidden]);
+  });
+
+  it('drops what the inventory hides', () => {
+    expect(filterInventoryRowsByHidden(rows, 'exclude', isHidden)).toEqual([shown]);
   });
 });

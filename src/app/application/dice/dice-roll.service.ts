@@ -57,7 +57,8 @@ export class DiceRollService {
           });
 
     const tab = this.activeChatTab.current();
-    if (tab) this.chatMessageService.sendSystemMessageToTab(tab, text);
-    else this.chatMessageService.sendSystemMessage(text);
+    const roller = PeerCursor.myCursor?.userId ?? '';
+    if (tab) this.chatMessageService.sendSystemMessageToTab(tab, text, undefined, roller);
+    else this.chatMessageService.sendSystemMessage(text, undefined, roller);
   }
 }

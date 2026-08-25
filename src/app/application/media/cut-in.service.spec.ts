@@ -6,6 +6,7 @@ import { ObjectStore } from '@axe/core/sync/object-store';
 import { CutIn } from '@axe/domain/media/cut-in';
 import { CutInLauncher } from '@axe/domain/media/cut-in-launcher';
 import { Jukebox } from '@axe/domain/media/jukebox';
+import { GameTable } from '@axe/domain/tabletop/game-table';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
 
 describe('CutInService.activateFromChatText()', () => {
@@ -105,5 +106,72 @@ describe('CutInService.activateFromChatText()', () => {
 
     expect(soundSpy).not.toHaveBeenCalled();
     expect(startSpy).not.toHaveBeenCalled();
+  });
+});
+
+describe('CutInService.launchForTable()', () => {
+  let service: CutInService;
+  let launcher: CutInLauncher;
+  let table: GameTable;
+
+  beforeEach(() => {
+    TestBed.configureTestingModule({ providers: [...TEST_PROVIDERS] });
+
+    const store = ObjectStore.instance;
+    store.getObjects().forEach((obj) => store.delete(obj, false));
+    store.clearDeleteHistory();
+
+    launcher = new CutInLauncher('CutInLauncher');
+    launcher.initialize();
+    new Jukebox('Jukebox').initialize();
+
+    table = new GameTable();
+    table.initialize();
+
+    service = TestBed.inject(CutInService);
+  });
+
+  function makeCutIn(name: string): CutIn {
+    const cutIn = new CutIn();
+    cutIn.initialize();
+    cutIn.name = name;
+    return cutIn;
+  }
+
+  it('plays nothing for a table that asks for nothing', () => {
+    const spy = vi.spyOn(launcher, 'startCutIn');
+
+    expect(service.launchForTable(table)).toBe(false);
+    expect(spy).not.toHaveBeenCalled();
+  });
+
+  it('plays the only cut-in the table asks for', () => {
+    const cutIn = makeCutIn('開幕');
+    table.cutInIdentifiers = cutIn.identifier;
+    const spy = vi.spyOn(launcher, 'startCutIn').mockImplementation(() => {});
+
+    expect(service.launchForTable(table)).toBe(true);
+    expect(spy).toHaveBeenCalledWith(cutIn, '');
+  });
+
+  it('draws the one the roll names when the table asks for several', () => {
+    const first = makeCutIn('一番目');
+    const second = makeCutIn('二番目');
+    table.cutInIdentifiers = `${first.identifier},${second.identifier}`;
+    const spy = vi.spyOn(launcher, 'startCutIn').mockImplementation(() => {});
+
+    service.launchForTable(table, () => 1);
+
+    expect(spy).toHaveBeenCalledWith(second, '');
+  });
+
+  it('plays nothing once the cut-in it names is gone', () => {
+    const cutIn = makeCutIn('消えた');
+    table.cutInIdentifiers = cutIn.identifier;
+    cutIn.destroy();
+    const spy = vi.spyOn(launcher, 'startCutIn');
+
+    expect(service.launchForTable(table)).toBe(false);
+    expect(spy).not.toHaveBeenCalled();
   });
 });

@@ -11,6 +11,7 @@ import {
   viewChild,
 } from '@angular/core';
 import { YouTubePlayer } from '@angular/youtube-player';
+import { type CutInSoundHandle, CutInSoundService } from '@axe/application/media/cut-in-sound.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { ModalService } from '@axe/application/ui/modal.service';
 import { PanelService } from '@axe/application/ui/panel.service';
@@ -20,15 +21,19 @@ import { ImageFile } from '@axe/core/storage/image-file';
 import { ImageStorage } from '@axe/core/storage/image-storage';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { AudioTag } from '@axe/domain/media/audio-tag';
-import { CutIn } from '@axe/domain/media/cut-in';
+import { CutIn, cutInPanelChrome } from '@axe/domain/media/cut-in';
 import { CutInLauncher } from '@axe/domain/media/cut-in-launcher';
+import { CutInLayer } from '@axe/domain/media/cut-in-layer';
+import { cutInPlaybackMs } from '@axe/domain/media/cut-in-playback-window';
+import { CutInScene } from '@axe/domain/media/cut-in-scene';
+import { CutInStageComponent } from '@axe/features/media/cut-in-stage/cut-in-stage.component';
 import { SafePipe } from '@axe/ui/pipes/safe.pipe';
 
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-cut-in-window',
   templateUrl: './cut-in-window.component.html',
-  imports: [YouTubePlayer, SafePipe],
+  imports: [YouTubePlayer, SafePipe, CutInStageComponent],
 })
 export class CutInWindowComponent {
   private readonly modalService = inject(ModalService);
@@ -37,6 +42,7 @@ export class CutInWindowComponent {
   private readonly audioStorage = inject(AudioStorage);
   private readonly imageStorage = inject(ImageStorage);
   private readonly objectChange = inject(ObjectChangeService);
+  private readonly cutInSound = inject(CutInSoundService);
   private readonly destroyRef = inject(DestroyRef);
 
   readonly cutInArea = viewChild<ElementRef<HTMLDivElement>>('cutInArea');
@@ -48,6 +54,8 @@ export class CutInWindowComponent {
   height = 150;
 
   readonly audioPlayer: AudioPlayer = new AudioPlayer();
+  /** This window's own scene sounds, so closing it says nothing about anyone else's. */
+  private sceneSound: CutInSoundHandle | null = null;
   private cutInTimeOut: ReturnType<typeof setTimeout> | null = null;
   timerCheckWindowSize: ReturnType<typeof setTimeout> | null = null;
 
@@ -137,6 +145,15 @@ export class CutInWindowComponent {
     return this.audioStorage.audios.filter((audio) => !audio.isHidden);
   });
 
+  /** The layers this cut-in is built from, if it is built from any. */
+  readonly scene = computed<CutInScene | null>(() => {
+    if (!this.cutIn) return null;
+    this.objectChange.collectionOf(CutInScene.aliasName)();
+    this.objectChange.collectionOf(CutInLayer.aliasName)();
+    const scene = this.cutIn.scene;
+    return scene && scene.layers.length > 0 ? scene : null;
+  });
+
   readonly cutInImageUrl = computed(() => {
     this.objectChange.fileVersion();
     if (!this.cutIn) return ImageFile.Empty.url;
@@ -171,31 +188,38 @@ export class CutInWindowComponent {
       }
     }
 
-    if (this.cutIn.outTime > 0) {
+    const scene = this.cutIn.scene;
+    if (scene && scene.layers.length > 0) this.sceneSound = this.cutInSound.play(scene, 0, scene.sceneLoop);
+
+    const playbackMs = cutInPlaybackMs(this.cutIn, this.cutIn.scene);
+    if (playbackMs > 0) {
       this.cutInTimeOut = setTimeout(() => {
         this.cutInTimeOut = null;
         this.panelService.close();
-      }, this.cutIn.outTime * 1000);
+      }, playbackMs);
     }
   }
 
   stopCutIn() {
     this.audioPlayer.stop();
+    this.sceneSound?.stop();
+    this.sceneSound = null;
   }
 
   moveCutInPos() {
     if (this.cutIn) {
+      const chrome = cutInPanelChrome(this.cutIn);
       const cutin_w = this.cutIn.width;
       const cutin_h = this.cutIn.height;
       let margin_w = window.innerWidth - cutin_w;
-      let margin_h = window.innerHeight - cutin_h - 25;
+      let margin_h = window.innerHeight - cutin_h - chrome;
       if (margin_w < 0) margin_w = 0;
       if (margin_h < 0) margin_h = 0;
       const margin_x = (margin_w * this.cutIn.x_pos) / 100;
       const margin_y = (margin_h * this.cutIn.y_pos) / 100;
 
       this.width = cutin_w;
-      this.height = cutin_h + 25;
+      this.height = cutin_h + chrome;
       this.left = margin_x;
       this.top = margin_y;
     }

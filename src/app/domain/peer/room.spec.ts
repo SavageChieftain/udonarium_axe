@@ -1,18 +1,47 @@
 import { TestBed } from '@angular/core/testing';
 import { setNetworkIsolated } from '@axe/core/network/network-isolation';
 import { networkMessage$ } from '@axe/core/network/network-messaging';
+import { ImageStorage } from '@axe/core/storage/image-storage';
 import { ObjectSerializer } from '@axe/core/sync/object-serializer';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { Card } from '@axe/domain/card/card';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { createDefaultEffectPresets } from '@axe/domain/effect/builtin-effect-presets';
 import { EffectPreset } from '@axe/domain/effect/effect-preset';
+import { createDefaultCutIns } from '@axe/domain/media/builtin-cut-ins';
+import { CutIn } from '@axe/domain/media/cut-in';
 import { Party } from '@axe/domain/party/party';
 import { ReloadCheck } from '@axe/domain/peer/reload-check';
 import { Room } from '@axe/domain/peer/room';
 
 describe('Room', () => {
   let store: ObjectStore;
+
+  function loadRoom(inner: string): void {
+    const reloadCheck = new ReloadCheck('ReloadCheck');
+    reloadCheck.initialize();
+    reloadCheck.reloadCheckStart(false);
+    ObjectSerializer.instance.parseXml(`<room>${inner}</room>`);
+  }
+
+  /** Every deletion the others would be told about, out of the ones named. */
+  function deletionsAmong(identifiers: Set<string>, load: () => void): string[] {
+    const deleted: string[] = [];
+    const off = networkMessage$.subscribe((message) => {
+      if (message.eventName !== 'DELETE_GAME_OBJECT') return;
+      const identifier = String((message.data as { identifier?: string }).identifier ?? '');
+      if (identifiers.has(identifier)) deleted.push(identifier);
+    });
+
+    try {
+      setNetworkIsolated(true);
+      load();
+    } finally {
+      setNetworkIsolated(false);
+      off();
+    }
+    return deleted;
+  }
 
   beforeEach(() => {
     TestBed.configureTestingModule({});
@@ -92,32 +121,13 @@ describe('Room', () => {
   });
 
   describe('what happens to the effect library as it reads', () => {
-    function loadRoom(inner: string): void {
-      const reloadCheck = new ReloadCheck('ReloadCheck');
-      reloadCheck.initialize();
-      reloadCheck.reloadCheckStart(false);
-      ObjectSerializer.instance.parseXml(`<room>${inner}</room>`);
-    }
-
     it('sends no deletions to the others for room data that carries no effects', () => {
       // Deleted and put back under the same identifiers they return here, but the others refuse
       // them as the return of what was deleted, and only whoever loaded the room still has them.
       const before = createDefaultEffectPresets();
       const identifiers = new Set(before.map((preset) => preset.identifier));
-      const deleted: string[] = [];
-      const off = networkMessage$.subscribe((message) => {
-        if (message.eventName !== 'DELETE_GAME_OBJECT') return;
-        const identifier = String((message.data as { identifier?: string }).identifier ?? '');
-        if (identifiers.has(identifier)) deleted.push(identifier);
-      });
 
-      try {
-        setNetworkIsolated(true);
-        loadRoom('<card></card>');
-      } finally {
-        setNetworkIsolated(false);
-        off();
-      }
+      const deleted = deletionsAmong(identifiers, () => loadRoom('<card></card>'));
 
       expect(deleted).toEqual([]);
       expect(store.getObjects<EffectPreset>(EffectPreset)).toHaveLength(before.length);
@@ -137,6 +147,32 @@ describe('Room', () => {
       loadRoom('<card></card>');
 
       expect(store.getObjects<EffectPreset>(EffectPreset).length).toBeGreaterThan(0);
+    });
+  });
+
+  describe('what happens to the sample cut-ins as it reads', () => {
+    afterEach(() => {
+      ImageStorage.instance.images.forEach((image) => ImageStorage.instance.delete(image.identifier));
+    });
+
+    it('sends no deletions to the others for room data saved before there were any', () => {
+      const before = createDefaultCutIns(ImageStorage.instance);
+      const identifiers = new Set(before.map((cutIn) => cutIn.identifier));
+
+      const deleted = deletionsAmong(identifiers, () => loadRoom('<card></card>'));
+
+      expect(deleted).toEqual([]);
+      expect(store.getObjects(CutIn)).toHaveLength(before.length);
+    });
+
+    it('replaces them with what the room data brings, where it brings any', () => {
+      createDefaultCutIns(ImageStorage.instance);
+
+      loadRoom('<cut-in name="持ち込みの一枚"></cut-in>');
+
+      const after = store.getObjects(CutIn);
+      expect(after).toHaveLength(1);
+      expect(after[0].name).toBe('持ち込みの一枚');
     });
   });
 

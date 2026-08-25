@@ -10,6 +10,7 @@ import {
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ChatMessageService } from '@axe/application/chat/chat-message.service';
+import { SystemAvatarKind, SystemAvatarService } from '@axe/application/chat/system-avatar.service';
 import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { ImageService } from '@axe/application/storage/image.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
@@ -39,6 +40,7 @@ import {
   ChatPaletteHandle,
   ChatPaletteRegistryService,
 } from '@axe/features/chat/chat-palette/chat-palette-registry.service';
+import { SystemAvatarMenuService } from '@axe/features/chat/system-avatar-menu.service';
 import { VisualNovelBacklogComponent } from '@axe/features/visual-novel/visual-novel-backlog/visual-novel-backlog.component';
 import { VisualNovelDirectorService } from '@axe/features/visual-novel/visual-novel-director.service';
 import {
@@ -101,9 +103,6 @@ const SHORTCUT_HELP_ITEMS: readonly { keys: string; labelKey: string }[] = [
   { keys: 'Esc', labelKey: 'close' },
 ];
 
-const SYSTEM_ICON_URL = 'assets/images/system_chang.png';
-const DICEBOT_ICON_URL = 'assets/images/system_chang_roll.png';
-
 const EMOTION_MARK_COLORS: Record<Exclude<VnEmotionMark, 'none'>, string> = {
   surprise: 'text-red-500',
   question: 'text-sky-500',
@@ -143,6 +142,8 @@ export class VisualNovelOverlayComponent {
   private readonly objectChange = inject(ObjectChangeService);
   private readonly chatMessageService = inject(ChatMessageService);
   private readonly imageService = inject(ImageService);
+  private readonly systemAvatar = inject(SystemAvatarService);
+  private readonly systemAvatarMenu = inject(SystemAvatarMenuService);
   private readonly audioStorage = inject(AudioStorage);
   private readonly paletteRegistry = inject(ChatPaletteRegistryService);
   private readonly panelService = inject(PanelService);
@@ -451,15 +452,43 @@ export class VisualNovelOverlayComponent {
   readonly systemSpeaker = computed(() => {
     const message = this.currentMessage();
     if (!message) return null;
+    const visible = this.systemAvatar.isVisible();
+    const speakerVisible = this.systemAvatar.isSpeakerVisible();
     if (message.isDicebot) {
       const roller = this.findDiceRoller(message);
-      return { imageUrl: DICEBOT_ICON_URL, rollerName: roller?.name ?? '', rollerImageUrl: roller?.imageUrl ?? '' };
+      const rollerImageUrl = roller?.imageUrl ?? '';
+      const speakerUrl = rollerImageUrl.length > 0 ? rollerImageUrl : this.playerImageUrl(message);
+      const speaks = speakerVisible && speakerUrl.length > 0;
+      return {
+        kind: 'dice' as SystemAvatarKind,
+        imageUrl: speaks ? speakerUrl : visible ? this.systemAvatar.diceUrl() : '',
+        isSpeaker: speaks,
+        rollerName: roller?.name ?? '',
+        rollerImageUrl,
+      };
     }
     if (message.isSystemMessage || message.isSystem) {
-      return { imageUrl: SYSTEM_ICON_URL, rollerName: '', rollerImageUrl: '' };
+      return {
+        kind: 'system' as SystemAvatarKind,
+        imageUrl: visible ? this.systemAvatar.systemUrl() : '',
+        isSpeaker: false,
+        rollerName: '',
+        rollerImageUrl: '',
+      };
     }
     return null;
   });
+
+  protected onSystemAvatarContextMenu(event: Event, kind: SystemAvatarKind): void {
+    this.systemAvatarMenu.openContextMenu(event, kind);
+  }
+
+  private playerImageUrl(message: ChatMessage): string {
+    this.objectChange.collectionOf('PeerCursor')();
+    const userId = message.originFrom || message.from;
+    if (!userId) return '';
+    return PeerCursor.findByUserId(userId)?.image?.url ?? '';
+  }
 
   private findDiceRoller(message: ChatMessage): { name: string; imageUrl: string } | null {
     this.objectChange.fileVersion();

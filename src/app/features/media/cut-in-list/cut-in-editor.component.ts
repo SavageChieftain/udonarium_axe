@@ -133,6 +133,14 @@ export class CutInEditorComponent {
     this.c.keepImageAspect = aspect;
   }
 
+  get cutInFrameless(): boolean {
+    if (!this.c) return false;
+    return this.editable ? this.c.frameless : false;
+  }
+  set cutInFrameless(frameless: boolean) {
+    if (this.editable && this.c) this.c.frameless = frameless;
+  }
+
   get cutInOriginalSize(): boolean {
     if (!this.c) return false;
     return this.editable ? this.c.originalSize : false;
@@ -355,8 +363,8 @@ export class CutInEditorComponent {
   openCutInImageModal() {
     if (!this.c) return;
     const cutIn = this.c;
-    this.modalService.open<string>(FileSelecterComponent).then((value) => {
-      if (!cutIn || !value) return;
+    this.modalService.open<string>(FileSelecterComponent, { isAllowedEmpty: true }).then((value) => {
+      if (!cutIn || value === undefined || value === null) return;
       cutIn.imageIdentifier = value;
     });
   }

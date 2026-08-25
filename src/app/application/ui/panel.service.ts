@@ -21,6 +21,7 @@ export interface PanelOption {
   cutInIdentifier?: string;
   invisible?: boolean;
   minimizeToContent?: boolean;
+  frameless?: boolean;
 }
 
 interface UIPanelInstance {
@@ -38,7 +39,8 @@ type PanelServiceAssignableKey =
   | 'isCutIn'
   | 'cutInIdentifier'
   | 'invisible'
-  | 'minimizeToContent';
+  | 'minimizeToContent'
+  | 'frameless';
 
 @Injectable()
 export class PanelService {
@@ -59,6 +61,7 @@ export class PanelService {
   cutInIdentifier: string = '';
   invisible: boolean = false;
   minimizeToContent: boolean = false;
+  frameless: boolean = false;
   readonly isMinimized = signal(false);
   chatTab: ChatTab | null = null;
   cardStack: CardStack | null = null;
@@ -128,7 +131,7 @@ export class PanelService {
       panelComponentRef.setInput(key, value);
     }
 
-    const serviceOnly = ['isCutIn', 'cutInIdentifier', 'invisible', 'minimizeToContent'] as const;
+    const serviceOnly = ['isCutIn', 'cutInIdentifier', 'invisible', 'minimizeToContent', 'frameless'] as const;
     for (const key of serviceOnly) {
       const value = adjusted[key];
       if (value === undefined) continue;

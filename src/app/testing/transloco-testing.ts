@@ -1,20 +1,23 @@
 import { EnvironmentProviders, importProvidersFrom, Provider } from '@angular/core';
 import { TranslateFn } from '@axe/application/i18n/translate.token';
-import { SupportedLang } from '@axe/application/i18n/transloco.config';
+import { SUPPORTED_LANGS, SupportedLang } from '@axe/application/i18n/transloco.config';
 import { Translation, TranslocoTestingModule } from '@jsverse/transloco';
 import { readFileSync } from 'fs';
 import { resolve } from 'path';
 
 const jaDict = JSON.parse(readFileSync(resolve(process.cwd(), 'src/assets/i18n/ja.json'), 'utf-8')) as Translation;
 const enDict = JSON.parse(readFileSync(resolve(process.cwd(), 'src/assets/i18n/en.json'), 'utf-8')) as Translation;
+const koDict = JSON.parse(readFileSync(resolve(process.cwd(), 'src/assets/i18n/ko.json'), 'utf-8')) as Translation;
+
+const dictionaries: Record<SupportedLang, Translation> = { ja: jaDict, en: enDict, ko: koDict };
 
 export function provideTranslocoTesting(): (Provider | EnvironmentProviders)[] {
   return [
     importProvidersFrom(
       TranslocoTestingModule.forRoot({
-        langs: { ja: jaDict, en: enDict },
+        langs: dictionaries,
         translocoConfig: {
-          availableLangs: ['ja', 'en'],
+          availableLangs: [...SUPPORTED_LANGS],
           defaultLang: 'ja',
           fallbackLang: 'ja',
         },
@@ -25,7 +28,7 @@ export function provideTranslocoTesting(): (Provider | EnvironmentProviders)[] {
 }
 
 export function createSyncTranslate(lang: SupportedLang): TranslateFn {
-  const dict = lang === 'ja' ? jaDict : enDict;
+  const dict = dictionaries[lang];
   return (key, params) => resolveKey(dict, key, params);
 }
 

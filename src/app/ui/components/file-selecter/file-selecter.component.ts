@@ -1,13 +1,14 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
+import { RolePermissionService } from '@axe/application/permission/role-permission.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { ModalService } from '@axe/application/ui/modal.service';
 import { PanelService } from '@axe/application/ui/panel.service';
 import { emitSelectFile } from '@axe/core/event/domain-events';
 import { ImageFile } from '@axe/core/storage/image-file';
 import { ImageStorage } from '@axe/core/storage/image-storage';
-import { ImageTag } from '@axe/domain/media/image-tag';
+import { canBrowseImage, ImageTag } from '@axe/domain/media/image-tag';
 import { SafePipe } from '@axe/ui/pipes/safe.pipe';
 import { TranslocoModule } from '@jsverse/transloco';
 
@@ -23,28 +24,25 @@ export class FileSelecterComponent {
   private readonly modalService = inject(ModalService);
   private readonly imageStorage = inject(ImageStorage);
   private readonly objectChange = inject(ObjectChangeService);
+  private readonly rolePermission = inject(RolePermissionService);
   private readonly t = inject(TRANSLATE_FN);
 
   isAllowedEmpty: boolean = false;
 
-  private get systemReservedTag(): string {
-    return this.t('ui.fileSelecter.systemReserved');
-  }
   private get allTag(): string {
     return this.t('ui.fileSelecter.tagAll');
   }
 
+  /**
+   * A picture the master is keeping back is not offered to anyone else. Nothing here hides
+   * one already standing on the table: this is about what may be picked, not what is seen.
+   */
+  private mayShow(imageFile: ImageFile): boolean {
+    return canBrowseImage(ImageTag.get(imageFile.context.identifier) ?? null, this.rolePermission.canSeeHidden);
+  }
+
   getAllImage(): ImageFile[] {
-    const imageFileList: ImageFile[] = [];
-
-    for (const imageFile of this.fileStorageService.images) {
-      const identifier = imageFile.context.identifier;
-      let tag: string = '';
-      if (ImageTag.get(identifier)) tag = ImageTag.get(identifier).tag;
-
-      if (tag != this.systemReservedTag) imageFileList.push(imageFile);
-    }
-    return imageFileList;
+    return this.fileStorageService.images.filter((imageFile) => this.mayShow(imageFile));
   }
 
   readonly images = computed(() => {
@@ -57,7 +55,7 @@ export class FileSelecterComponent {
 
       if (ImageTag.get(identifier)) {
         const tag: string = ImageTag.get(identifier).tag;
-        if (this.selectTag() == tag) {
+        if (this.selectTag() == tag && this.mayShow(imageFile)) {
           imageFileList.push(imageFile);
         }
       } else {
@@ -83,13 +81,11 @@ export class FileSelecterComponent {
   get tagList(): string[] {
     const tags: string[] = [];
     for (const imageFile of this.fileStorageService.images) {
-      const identifier = imageFile.context.identifier;
-      const imageTag = ImageTag.get(identifier);
-      if (imageTag) {
-        if (imageTag.tag) {
-          if (imageTag.tag != this.systemReservedTag) tags.push(imageTag.tag);
-        }
-      }
+      // A tag whose pictures are every one of them kept back is not offered either: picking
+      // it would open on nothing, and its name says there is something there to find.
+      if (!this.mayShow(imageFile)) continue;
+      const imageTag = ImageTag.get(imageFile.context.identifier);
+      if (imageTag?.tag) tags.push(imageTag.tag);
     }
 
     const tags2: string[] = Array.from(new Set(tags));

@@ -91,11 +91,12 @@ export class ChatMessageService {
     return Math.floor(this.timeOffset + (performance.now() - this.performanceOffset));
   }
 
-  sendSystemMessage(text: string, color?: string): ChatMessage {
+  sendSystemMessage(text: string, color?: string, from?: string): ChatMessage {
     const chatTabList = this.objectStore.get<ChatTabList>('ChatTabList');
     const sysTab = chatTabList!.systemMessageTab!;
     const messageColor = resolveMessageColor(color, '#006633');
     const chatMessage: ChatMessageContext = {
+      from,
       name: encodeI18nMessage('common.chat.systemName'),
       imageIdentifier: '',
       timestamp: this.calcTimeStamp(sysTab),
@@ -107,9 +108,10 @@ export class ChatMessageService {
     return sysTab.addMessage(chatMessage);
   }
 
-  sendSystemMessageToTab(chatTab: ChatTab, text: string, color?: string): ChatMessage {
+  sendSystemMessageToTab(chatTab: ChatTab, text: string, color?: string, from?: string): ChatMessage {
     const messageColor = resolveMessageColor(color, '#006633');
     const chatMessage: ChatMessageContext = {
+      from,
       name: encodeI18nMessage('common.chat.systemName'),
       imageIdentifier: '',
       timestamp: this.calcTimeStamp(chatTab),

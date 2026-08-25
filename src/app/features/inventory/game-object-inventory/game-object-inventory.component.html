@@ -66,10 +66,12 @@
         [(ngModel)]="searchQuery"
         [placeholder]="'feature.inventory.panel.searchPlaceholder' | transloco"
       />
-      @if (hasQuery()) {
+      @if (hasQuery() || isHiddenFiltered()) {
         <span class="text-ui-dim shrink-0 text-[11px] whitespace-nowrap"
           >{{ filteredRows().length }} / {{ visibleRows().length }}</span
         >
+      }
+      @if (hasQuery()) {
         <button
           class="text-ui-muted hover:bg-ui-hover hover:text-ui-text flex size-6 shrink-0 cursor-pointer items-center justify-center rounded-sm border-none bg-transparent p-0 transition-[background,color] [&_.material-icons]:text-base!"
           type="button"
@@ -77,6 +79,34 @@
           (click)="clearSearch()"
         >
           <i class="material-icons">close</i>
+        </button>
+      }
+      @if (canSeeHidden()) {
+        <span class="bg-ui-border-panel ml-0.5 h-4 w-px shrink-0"></span>
+        <select
+          class="bg-ui-input border-ui-border-panel text-ui-text rounded-ui-sm shrink-0 cursor-pointer border border-solid px-1 py-0.5 text-[11px] outline-none"
+          name="inventory-hidden-filter"
+          [title]="'feature.inventory.panel.hiddenFilter' | transloco"
+          [ngModel]="hiddenFilter()"
+          (ngModelChange)="hiddenFilter.set($event)"
+        >
+          @for (option of hiddenFilterOptions; track option.value) {
+            <option [value]="option.value">{{ option.labelKey | transloco }}</option>
+          }
+        </select>
+        <button
+          class="text-ui-muted hover:bg-ui-hover hover:text-ui-accent flex size-6 shrink-0 cursor-pointer items-center justify-center rounded-sm border-none bg-transparent p-0 transition-[background,color] [&_.material-icons]:text-[18px]!"
+          [class.text-ui-accent!]="hiddenDisplay() === 'full'"
+          type="button"
+          [title]="
+            (hiddenDisplay() === 'dim'
+              ? 'feature.inventory.panel.hiddenDisplayDim'
+              : 'feature.inventory.panel.hiddenDisplayFull'
+            ) | transloco
+          "
+          (click)="toggleHiddenDisplay()"
+        >
+          <i class="material-icons">{{ hiddenDisplay() === 'dim' ? 'brightness_low' : 'brightness_high' }}</i>
         </button>
       }
       @if (foldersApply() && canEdit()) {
@@ -515,12 +545,10 @@
     class="hover:bg-ui-hover group relative flex cursor-pointer items-center gap-2 rounded-[5px] border border-solid border-transparent px-2 py-1.25 transition-[background,border-color] select-none [-moz-user-drag:none] [-webkit-user-drag:none]"
     [class.bg-ui-accent-bg!]="selectedIdentifier() === gameObject.identifier"
     [class.border-ui-accent!]="selectedIdentifier() === gameObject.identifier"
-    [class.opacity-50]="isInventoryHiddenObject(gameObject)"
-    [class.italic]="isInventoryHiddenObject(gameObject)"
-    [class.border-dashed!]="isInventoryHiddenObject(gameObject)"
-    [class.border-ui-border-panel!]="
-      isInventoryHiddenObject(gameObject) && selectedIdentifier() !== gameObject.identifier
-    "
+    [class.opacity-50]="isHiddenRowDimmed(gameObject)"
+    [class.italic]="isHiddenRowDimmed(gameObject)"
+    [class.border-dashed!]="isHiddenRowDimmed(gameObject)"
+    [class.border-ui-border-panel!]="isHiddenRowDimmed(gameObject) && selectedIdentifier() !== gameObject.identifier"
     [class.opacity-40]="isDragging(gameObject)"
     (contextmenu)="onContextMenu($event, gameObject)"
     (click)="selectGameObject(gameObject)"

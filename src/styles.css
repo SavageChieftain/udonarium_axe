@@ -22,7 +22,9 @@
   --color-danger: hsl(0 90% 62%);
   --color-danger-hover: hsl(0 90% 74%);
   --color-text-muted: hsl(220 10% 60%);
-  --font-family-sans: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Verdana, Meiryo, 'M+ 1p', sans-serif;
+  --font-family-sans:
+    -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Verdana, Meiryo, 'M+ 1p', 'Apple SD Gothic Neo',
+    'Malgun Gothic', 'Noto Sans KR', sans-serif;
 
   /* ── --ui-* ブリッジ: var(--ui-*) を Tailwind utility 経由で使えるようにする ──
      例: bg-ui-panel, text-ui-muted, border-ui-border-panel, shadow-ui-md, rounded-ui-lg, animate-fade-in
@@ -940,7 +942,9 @@ html[data-overlay] .sk-cube-grid {
 }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Verdana, Meiryo, 'M+ 1p', sans-serif;
+  font-family:
+    -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Verdana, Meiryo, 'M+ 1p', 'Apple SD Gothic Neo',
+    'Malgun Gothic', 'Noto Sans KR', sans-serif;
   position: relative;
   color: var(--ui-text);
 }

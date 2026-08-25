@@ -100,6 +100,7 @@ export class PresetSound {
   static holyBlade: string = '';
   static missileLaunch: string = '';
   static rocketLaunch: string = '';
+  static flashImpact: string = '';
 }
 
 @SyncObject('sound-effect')

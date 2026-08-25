@@ -15,6 +15,7 @@ import {
   type ReplayBoardScene,
 } from '@axe/domain/replay/replay-board-view';
 import { collectReplayCast } from '@axe/domain/replay/replay-cast';
+import { cutInScenesOf, sceneImageIdentifiers } from '@axe/domain/replay/replay-cut-in-scene';
 import { syncValueOf } from '@axe/domain/replay/replay-diff';
 import { earliestReplaySeq } from '@axe/domain/replay/replay-edit';
 import type { ReplayEvent, ReplayViewer } from '@axe/domain/replay/replay-event';
@@ -117,10 +118,12 @@ export class ReplayVideoService {
       const base = await this.baseBoardOf(meta.id, events);
       const cast = collectReplayCast(base);
       const cutIns = cutInImagesOf(base);
+      const cutInScenes = cutInScenesOf(base);
       const storyboard = buildReplayStoryboard(events, cast, {
         ...options,
         viewer,
         cutInImage: (identifier) => cutIns.get(identifier) ?? '',
+        cutInScene: (identifier) => cutInScenes.get(identifier) ?? null,
       });
       if (storyboard.shots.length < 1) {
         Logger.warn('[ReplayVideo] 画にできる場面がありませんでした', meta.id);
@@ -138,6 +141,8 @@ export class ReplayVideoService {
       if (this.cancelled) return false;
       const assets = await this.loadAssets([
         ...storyboard.shots.flatMap((shot) => [shot.portraitId, shot.backgroundId, shot.cutInId]),
+        // The pictures the layers of a composed cut-in are built from.
+        ...[...cutInScenes.values()].flatMap((scene) => sceneImageIdentifiers(scene)),
         // Counting images does not need the darkness solved.
         ...boards.flatMap((board) =>
           collectBoardAssetIds(board ? buildReplayBoardScene(board, undefined, { withOverlay: false }) : null)

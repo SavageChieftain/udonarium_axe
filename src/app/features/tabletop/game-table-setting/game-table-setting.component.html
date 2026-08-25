@@ -25,7 +25,7 @@
           class="text-ui-muted hover:bg-ui-hover hover:text-ui-text mx-1 my-0 flex cursor-pointer items-center gap-1.5 rounded-sm px-2.5 py-1.5 transition-colors"
           [class.bg-ui-accent-bg!]="selectedTable?.identifier === gameTable.identifier"
           [class.text-ui-accent!]="selectedTable?.identifier === gameTable.identifier"
-          (click)="selectGameTable(gameTable.identifier)"
+          (click)="chooseGameTable(gameTable.identifier)"
           role="option"
           [attr.aria-selected]="selectedTable?.identifier === gameTable.identifier"
         >
@@ -83,6 +83,24 @@
             [placeholder]="'feature.tabletop.tableSetting.tableNamePlaceholder' | transloco"
             [attr.disabled]="!isEditable ? '' : null"
           />
+          <label class="text-ui-muted text-[11px] whitespace-nowrap">{{
+            'feature.tabletop.tableSetting.cutIns' | transloco
+          }}</label>
+          <div class="flex flex-col gap-1">
+            <ng-select
+              class="ud-select"
+              [multiple]="true"
+              [(ngModel)]="tableCutIns"
+              [ngModelOptions]="{ standalone: true }"
+              [readonly]="!isEditable"
+              [placeholder]="'feature.tabletop.tableSetting.cutInsPlaceholder' | transloco"
+            >
+              @for (cutIn of getCutIns(); track cutIn.identifier) {
+                <ng-option [value]="cutIn.identifier">{{ cutIn.name }}</ng-option>
+              }
+            </ng-select>
+            <span class="text-ui-dim text-[11px]">{{ 'feature.tabletop.tableSetting.cutInsHint' | transloco }}</span>
+          </div>
         </div>
       </div>
 

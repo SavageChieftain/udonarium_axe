@@ -608,6 +608,61 @@ describe('vision-scene', () => {
     });
   });
 
+  describe('what a light bothers to look at', () => {
+    it('is not blocked by a wall standing outside its reach', () => {
+      const lit = light({ x: 0, y: 0, dimPx: 200 });
+      const far: Segment = { x1: 900, y1: -500, x2: 900, y2: 500 };
+      const built = scene({ lights: [lit], lightSegments: [far] });
+
+      expect(lightReaches(built, lit, 150, 0)).toBe(true);
+    });
+
+    it('is still blocked by a wall standing inside it', () => {
+      const lit = light({ x: 0, y: 0, dimPx: 200 });
+      const built = scene({ lights: [lit], lightSegments: [WALL_AT_X100] });
+
+      expect(lightReaches(built, lit, 150, 0)).toBe(false);
+    });
+
+    it('gives the same answer asked twice, having remembered what stands in its way', () => {
+      const lit = light({ x: 0, y: 0, dimPx: 200 });
+      const built = scene({ lights: [lit], lightSegments: [WALL_AT_X100] });
+
+      expect(lightReaches(built, lit, 150, 0)).toBe(lightReaches(built, lit, 150, 0));
+      expect(lightReaches(built, lit, 50, 0)).toBe(true);
+    });
+
+    it('answers for the scene it was asked about, not the one it was asked about first', () => {
+      // The same light can stand in two scenes at once, and what remembering it saves must
+      // not be what one scene knew handed to the other.
+      const lit = light({ x: 0, y: 0, dimPx: 200 });
+      const open = scene({ lights: [lit] });
+      const walled = scene({ lights: [lit], lightSegments: [WALL_AT_X100] });
+
+      expect(lightReaches(open, lit, 150, 0)).toBe(true);
+      expect(lightReaches(walled, lit, 150, 0)).toBe(false);
+      expect(lightReaches(open, lit, 150, 0)).toBe(true);
+    });
+
+    it('still sees a wall between a tilted light and the pool it throws off to one side', () => {
+      // Pitched over and aimed along +x, so the pool lands well away from the light itself.
+      const lit = light({ x: 0, y: 0, z: 200, dimPx: 600, angle: 60, direction: 0, pitch: -30 });
+      const between: Segment = { x1: 250, y1: -400, x2: 250, y2: 400 };
+
+      const open = computeOverlayPlan(scene({ lights: [lit] }), GM);
+      const blocked = computeOverlayPlan(scene({ lights: [lit], lightSegments: [between] }), GM);
+
+      const reachOf = (plan: typeof open) => Math.max(...(plan.glows[0].clipPolygon ?? []).map((point) => point.x));
+
+      expect(open.glows).toHaveLength(1);
+      expect(blocked.glows).toHaveLength(1);
+      // The wall stands well beyond the light's own box, so culling has to reach past it
+      // or the pool would spill straight through.
+      expect(reachOf(open)).toBeGreaterThan(250);
+      expect(reachOf(blocked)).toBeLessThan(reachOf(open));
+    });
+  });
+
   describe('computeOverlayPlan', () => {
     it('shows the game master a dim preview, brighter than a player sees', () => {
       const s = scene({ lights: [light(), light()] });

@@ -19,6 +19,7 @@ function makeCutIn(overrides: Partial<CutIn> = {}): CutIn {
     y_pos: 50,
     videoId: '',
     audioIdentifier: '',
+    frameless: false,
     ...overrides,
   } as unknown as CutIn;
 }
@@ -56,6 +57,20 @@ describe('CutInEventHandlerService', () => {
     expect(componentMock.cutIn).toBe(cutIn);
     expect(componentMock.forceNoLoop).toBe(false);
     expect(componentMock.startCutIn).toHaveBeenCalled();
+  });
+
+  it('leaves room above a framed cut-in for the title bar', () => {
+    emitStartCutIn({ cutIn: makeCutIn() });
+
+    expect(panelStub.open.mock.calls[0][1].height).toBe(265);
+    expect(panelStub.open.mock.calls[0][1].frameless).toBe(false);
+  });
+
+  it('gives a frameless cut-in the whole panel', () => {
+    emitStartCutIn({ cutIn: makeCutIn({ frameless: true }) });
+
+    expect(panelStub.open.mock.calls[0][1].height).toBe(240);
+    expect(panelStub.open.mock.calls[0][1].frameless).toBe(true);
   });
 
   it('opens an invisible panel for a sound-only cut-in carrying a video', () => {

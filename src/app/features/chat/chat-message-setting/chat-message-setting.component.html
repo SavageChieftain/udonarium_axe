@@ -72,6 +72,67 @@
     </label>
   </section>
 
+  <section class="mb-3">
+    <h3
+      class="border-ui-border-panel text-ui-dim m-0 mb-1.5 border-b border-solid pb-1 text-[10px] font-semibold tracking-[0.06em] uppercase"
+    >
+      {{ 'feature.chat.systemAvatar.title' | transloco }}
+    </h3>
+    <p class="text-ui-dim m-0 mb-1 text-[11px]">{{ 'feature.chat.systemAvatar.sharedHint' | transloco }}</p>
+    <label class="flex cursor-pointer items-center justify-between gap-2 py-1">
+      <span class="text-ui-muted flex-1 text-[12px]">{{ 'feature.chat.systemAvatar.show' | transloco }}</span>
+      <input
+        type="checkbox"
+        name="systemAvatarVisible"
+        [ngModel]="systemAvatarVisible()"
+        (ngModelChange)="setSystemAvatarVisible($event)"
+        [attr.disabled]="canEditRoom() ? null : ''"
+      />
+    </label>
+    <label class="flex cursor-pointer items-center justify-between gap-2 py-1">
+      <span class="text-ui-muted flex-1 text-[12px]">{{ 'feature.chat.systemAvatar.showSpeaker' | transloco }}</span>
+      <input
+        type="checkbox"
+        name="speakerAvatarVisible"
+        [ngModel]="speakerAvatarVisible()"
+        (ngModelChange)="setSpeakerAvatarVisible($event)"
+        [attr.disabled]="canEditRoom() ? null : ''"
+      />
+    </label>
+    <p class="text-ui-dim m-0 mb-1 text-[11px]">{{ 'feature.chat.systemAvatar.showSpeakerHint' | transloco }}</p>
+    @for (avatar of systemAvatarRows(); track avatar.kind) {
+      <div class="flex items-center gap-2 py-1">
+        <div
+          class="bg-ui-input border-ui-border-panel flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-sm border border-solid"
+          [class.opacity-40]="!systemAvatarVisible()"
+        >
+          @if (avatar.url.length > 0) {
+            <img class="size-full object-cover object-top" [src]="avatar.url | safe: 'resourceUrl'" alt="" />
+          } @else {
+            <i class="material-icons text-ui-dim text-[20px]! opacity-50">hide_image</i>
+          }
+        </div>
+        <span class="text-ui-muted min-w-0 flex-1 truncate text-[12px]">{{ avatar.labelKey | transloco }}</span>
+        <button
+          type="button"
+          class="border-ui-border-panel text-ui-muted hover:bg-ui-accent-bg hover:text-ui-accent hover:border-ui-accent rounded-ui-sm inline-flex cursor-pointer items-center gap-1 border border-solid bg-transparent px-2 py-1 text-[11px] transition-[background,color,border-color] disabled:cursor-not-allowed disabled:opacity-40"
+          [disabled]="!canEditRoom()"
+          (click)="changeSystemAvatarImage(avatar.kind)"
+        >
+          {{ 'feature.chat.systemAvatar.change' | transloco }}
+        </button>
+        <button
+          type="button"
+          class="border-ui-border-panel text-ui-muted hover:bg-ui-hover hover:text-ui-text rounded-ui-sm inline-flex cursor-pointer items-center gap-1 border border-solid bg-transparent px-2 py-1 text-[11px] transition-[background,color] disabled:cursor-not-allowed disabled:opacity-40"
+          [disabled]="!canEditRoom() || !avatar.hasOwnImage"
+          (click)="resetSystemAvatarImage(avatar.kind)"
+        >
+          {{ 'feature.chat.systemAvatar.reset' | transloco }}
+        </button>
+      </div>
+    }
+  </section>
+
   <section class="mb-0">
     <h3
       class="border-ui-border-panel text-ui-dim m-0 mb-1.5 border-b border-solid pb-1 text-[10px] font-semibold tracking-[0.06em] uppercase"

@@ -275,16 +275,79 @@ export function seesInDark(type: VisionType): boolean {
   return type === VisionType.DARKVISION || type === VisionType.TRUESIGHT || type === VisionType.THERMAL;
 }
 
-function occludersFor(scene: VisionScene, light: SceneLight, ignoreShadowCasters = false): Segment[] {
-  const walls = light.ignoreOcclusion ? [] : scene.lightSegments;
-  if (ignoreShadowCasters || !light.castShadows) return walls;
-  const shadowSegments: Segment[] = [];
-  for (const caster of scene.shadowCasters) {
-    if (caster.ownerId === light.sourceId) continue;
-    shadowSegments.push(...caster.segments);
+/**
+ * What stands in a light's way, worked out once for that light.
+ *
+ * It used to be gathered afresh on every question asked about the light, building a new
+ * array out of every wall on the table each time. A cone light asks a thousand times over
+ * while it feels for the edge of its own pool, and every piece on the board asks once per
+ * light per repaint, so the gathering cost more than the answering did.
+ *
+ * It is remembered against the scene and the light together, so it needs no clearing: a
+ * new scene brings a new answer, and when the old scene goes what was remembered of it
+ * goes with it. Against the light alone it would be wrong the moment the same light were
+ * asked about under two scenes.
+ */
+interface LightOccluders {
+  /** Everything, for a caller that culls in its own way. */
+  all: Segment[];
+  /** Only what falls within the light's own reach. */
+  near: Segment[];
+}
+
+type OccluderSlots = { yes?: LightOccluders; no?: LightOccluders };
+
+const occluderMemo = new WeakMap<VisionScene, WeakMap<SceneLight, OccluderSlots>>();
+
+function occludersOf(scene: VisionScene, light: SceneLight, ignoreShadowCasters: boolean): LightOccluders {
+  let byLight = occluderMemo.get(scene);
+  if (!byLight) {
+    byLight = new WeakMap();
+    occluderMemo.set(scene, byLight);
   }
-  if (shadowSegments.length === 0) return walls;
-  return [...walls, ...shadowSegments];
+  let held = byLight.get(light);
+  if (!held) {
+    held = {};
+    byLight.set(light, held);
+  }
+  const slot = ignoreShadowCasters ? 'yes' : 'no';
+  const known = held[slot];
+  if (known) return known;
+
+  const walls = light.ignoreOcclusion ? [] : scene.lightSegments;
+  let all: Segment[] = walls;
+  if (!ignoreShadowCasters && light.castShadows) {
+    const shadowSegments: Segment[] = [];
+    for (const caster of scene.shadowCasters) {
+      if (caster.ownerId === light.sourceId) continue;
+      shadowSegments.push(...caster.segments);
+    }
+    if (shadowSegments.length > 0) all = [...walls, ...shadowSegments];
+  }
+
+  const built: LightOccluders = {
+    all,
+    near: cullSegments(all, light.x - light.dimPx, light.y - light.dimPx, light.x + light.dimPx, light.y + light.dimPx),
+  };
+  held[slot] = built;
+  return built;
+}
+
+/** The segments that could possibly cross a box, which is most of them thrown away. */
+function cullSegments(segments: readonly Segment[], minX: number, minY: number, maxX: number, maxY: number): Segment[] {
+  const kept: Segment[] = [];
+  for (const seg of segments) {
+    if (Math.min(seg.x1, seg.x2) > maxX) continue;
+    if (Math.max(seg.x1, seg.x2) < minX) continue;
+    if (Math.min(seg.y1, seg.y2) > maxY) continue;
+    if (Math.max(seg.y1, seg.y2) < minY) continue;
+    kept.push(seg);
+  }
+  return kept;
+}
+
+function occludersFor(scene: VisionScene, light: SceneLight, ignoreShadowCasters = false): Segment[] {
+  return occludersOf(scene, light, ignoreShadowCasters).all;
 }
 
 export function lightReaches(
@@ -297,7 +360,8 @@ export function lightReaches(
 ): boolean {
   if (Math.hypot(x - light.x, y - light.y, pz - light.z) > light.dimPx) return false;
   if (!withinCone(light, x, y, pz)) return false;
-  const occluders = occludersFor(scene, light, ignoreShadowCasters);
+  // The point is inside the light's reach, so nothing outside that reach can stand between.
+  const occluders = occludersOf(scene, light, ignoreShadowCasters).near;
   if (occluders.length === 0) return true;
   return segmentClear(light.x, light.y, x, y, occluders);
 }
@@ -621,7 +685,14 @@ function coneFloorFootprint(
   const t = -light.z / axis.z;
   const cx = light.x + axis.x * t;
   const cy = light.y + axis.y * t;
-  const occluders = occludersFor(scene, light, true);
+  // The pool can sit off to one side of the light, so the box has to hold both.
+  const occluders = cullSegments(
+    occludersOf(scene, light, true).all,
+    Math.min(light.x, cx - light.dimPx),
+    Math.min(light.y, cy - light.dimPx),
+    Math.max(light.x, cx + light.dimPx),
+    Math.max(light.y, cy + light.dimPx)
+  );
   const points: Point[] = [];
   let maxR = 0;
   for (let i = 0; i < LIGHT_SAMPLE_COUNT; i++) {

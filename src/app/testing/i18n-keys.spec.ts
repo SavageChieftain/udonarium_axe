@@ -1,6 +1,8 @@
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 
+import { SUPPORTED_LANGS } from '@axe/application/i18n/transloco.config';
+
 type Tree = Record<string, unknown>;
 
 function flatten(value: unknown, prefix = ''): Record<string, string> {
@@ -21,13 +23,15 @@ function templatesIn(directory: string): string[] {
 const KEY_IN_TEMPLATE = /'([a-zA-Z][a-zA-Z0-9_.]*)'\s*\|\s*transloco/g;
 
 describe('translation keys', () => {
-  const dictionaries = {
-    ja: flatten(JSON.parse(readFileSync('src/assets/i18n/ja.json', 'utf-8'))),
-    en: flatten(JSON.parse(readFileSync('src/assets/i18n/en.json', 'utf-8'))),
-  };
+  const dictionaries = Object.fromEntries(
+    SUPPORTED_LANGS.map((lang) => [lang, flatten(JSON.parse(readFileSync(`src/assets/i18n/${lang}.json`, 'utf-8')))])
+  );
 
-  it('hold the same keys in Japanese and English', () => {
-    expect(Object.keys(dictionaries.ja).sort()).toEqual(Object.keys(dictionaries.en).sort());
+  it('hold the same keys in every language', () => {
+    const reference = Object.keys(dictionaries['ja']).sort();
+    for (const lang of SUPPORTED_LANGS) {
+      expect(Object.keys(dictionaries[lang]).sort()).toEqual(reference);
+    }
   });
 
   it('cover every key the screens ask for', () => {

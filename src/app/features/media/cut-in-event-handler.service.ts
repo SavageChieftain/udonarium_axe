@@ -5,7 +5,7 @@ import { PanelOption, PanelService } from '@axe/application/ui/panel.service';
 import { AudioPlayer, VolumeType } from '@axe/core/storage/audio-player';
 import { AudioStorage } from '@axe/core/storage/audio-storage';
 import { AudioTag } from '@axe/domain/media/audio-tag';
-import { CutIn } from '@axe/domain/media/cut-in';
+import { CutIn, cutInPanelChrome } from '@axe/domain/media/cut-in';
 import { CutInWindowComponent } from '@axe/features/media/cut-in-window/cut-in-window.component';
 
 @Injectable({ providedIn: 'root' })
@@ -41,18 +41,20 @@ export class CutInEventHandlerService {
 
   private openCutInPanel(cutIn: CutIn, invisible = false): void {
     if (!cutIn) return;
+    const chrome = cutInPanelChrome(cutIn);
     const marginW = Math.max(0, window.innerWidth - cutIn.width);
-    const marginH = Math.max(0, window.innerHeight - cutIn.height - 25);
+    const marginH = Math.max(0, window.innerHeight - cutIn.height - chrome);
 
     const option: PanelOption = {
       title: this.t('feature.media.cutIn.panelTitleWith', { name: cutIn.name }),
       width: cutIn.width,
-      height: cutIn.height + 25,
+      height: cutIn.height + chrome,
       left: (marginW * cutIn.x_pos) / 100,
       top: (marginH * cutIn.y_pos) / 100,
       isCutIn: true,
       cutInIdentifier: cutIn.identifier,
       invisible,
+      frameless: cutIn.frameless,
     };
 
     const component = this.panelService.open(CutInWindowComponent, option);

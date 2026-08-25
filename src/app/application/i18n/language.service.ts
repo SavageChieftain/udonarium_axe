@@ -44,7 +44,8 @@ export class LanguageService {
   }
 
   async toggle(): Promise<void> {
-    const next: SupportedLang = this._currentLang() === 'ja' ? 'en' : 'ja';
-    await this.setLang(next);
+    const langs = this.availableLangs();
+    const index = langs.indexOf(this._currentLang());
+    await this.setLang(langs[(index + 1) % langs.length]);
   }
 }

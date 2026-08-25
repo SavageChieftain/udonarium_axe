@@ -9,7 +9,7 @@ import { emitSelectFile } from '@axe/core/event/domain-events';
 import { FileArchiver } from '@axe/core/storage/file-archiver';
 import { ImageFile } from '@axe/core/storage/image-file';
 import { ImageStorage } from '@axe/core/storage/image-storage';
-import { ImageTag } from '@axe/domain/media/image-tag';
+import { canBrowseImage, ImageTag, SYSTEM_RESERVED_TAG } from '@axe/domain/media/image-tag';
 import { SafePipe } from '@axe/ui/pipes/safe.pipe';
 import { TranslocoModule } from '@jsverse/transloco';
 
@@ -39,17 +39,20 @@ export class FileStorageComponent {
 
   protected checkedFiles = new Set<string>();
 
+  /** Only the master may keep a picture back, or see one that is being kept. */
+  get canKeepSecret(): boolean {
+    return this.rolePermission.canSeeHidden;
+  }
+
+  /** The master's own view of what is being kept. Everyone else never sees them at all. */
+  readonly showSecret = signal(true);
+
+  private mayShow(imageFile: ImageFile): boolean {
+    return canBrowseImage(ImageTag.get(imageFile.context.identifier) ?? null, this.canKeepSecret, this.showSecret());
+  }
+
   getAllImage(): ImageFile[] {
-    const imageFileList: ImageFile[] = [];
-
-    for (const imageFile of this.fileStorageService.images) {
-      const identifier = imageFile.context.identifier;
-      let tag: string = '';
-      if (ImageTag.get(identifier)) tag = ImageTag.get(identifier).tag;
-
-      if (tag != 'システム予約') imageFileList.push(imageFile);
-    }
-    return imageFileList;
+    return this.fileStorageService.images.filter((imageFile) => this.mayShow(imageFile));
   }
 
   readonly images = computed(() => {
@@ -64,7 +67,7 @@ export class FileStorageComponent {
       if (imageTag) {
         this.objectChange.versionOf(imageTag.identifier)();
         const tag: string = imageTag.tag;
-        if (tag == this.selectTag()) {
+        if (tag == this.selectTag() && this.mayShow(imageFile)) {
           imageFileList.push(imageFile);
         }
       } else if (this.selectTag() == '') {
@@ -93,7 +96,7 @@ export class FileStorageComponent {
       const imageTag = ImageTag.get(identifier);
       if (imageTag) {
         this.objectChange.versionOf(imageTag.identifier)();
-        if (imageTag.tag && imageTag.tag != 'システム予約') tags.push(imageTag.tag);
+        if (imageTag.tag && imageTag.tag != SYSTEM_RESERVED_TAG) tags.push(imageTag.tag);
       }
     }
 
@@ -112,7 +115,7 @@ export class FileStorageComponent {
   changeTag() {
     const candidate = this.newTagName();
     if (candidate === ALL_TAG) return;
-    if (candidate === 'システム予約') return;
+    if (candidate === SYSTEM_RESERVED_TAG) return;
     if (candidate === this.t('feature.file.fileStorage.all')) return;
 
     const changeableImages = this.images();
@@ -127,6 +130,24 @@ export class FileStorageComponent {
           imageTag.tag = candidate;
         }
       }
+    }
+  }
+
+  isSecret(file: ImageFile): boolean {
+    return ImageTag.isSecret(file.context.identifier);
+  }
+
+  /** Keeps back, or gives up, every picture ticked. Only the master may. */
+  setCheckedSecret(secret: boolean): void {
+    if (!this.canKeepSecret) return;
+
+    for (const image of this.images()) {
+      const identifier = image.context.identifier;
+      if (!this.checkedFiles.has(identifier)) continue;
+      const tag = ImageTag.get(identifier) ?? ImageTag.create(identifier);
+      // What the tool brought with it is nobody's to keep or to give up.
+      if (tag.tag === SYSTEM_RESERVED_TAG) continue;
+      tag.isSecret = secret;
     }
   }
 

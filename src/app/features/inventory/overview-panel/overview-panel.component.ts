@@ -18,6 +18,7 @@ import { ObjectChangeService } from '@axe/application/sync/object-change.service
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { ImageStorage } from '@axe/core/storage/image-storage';
 import { ObjectStore } from '@axe/core/sync/object-store';
+import { turnCache } from '@axe/core/util/turn-cache';
 import { Card } from '@axe/domain/card/card'; //
 import { CardStack } from '@axe/domain/card/card-stack'; //
 import { GameCharacter } from '@axe/domain/character/game-character'; //
@@ -27,7 +28,7 @@ import {
   DataElementFieldType,
   DataElementViewMode,
 } from '@axe/domain/data/data-element';
-import { evaluateCalcElement } from '@axe/domain/data/data-element-calc-env';
+import { createCalcPass, evaluateCalcElement } from '@axe/domain/data/data-element-calc-env';
 import { MarkDown } from '@axe/domain/data/mark-down';
 import {
   buildTableColumnHeaderGroups,
@@ -293,6 +294,9 @@ export class OverviewPanelComponent {
     return findGapCellInColumn(element, column);
   }
 
+  /** Every cell asks while the table is being drawn, and they all read the same sheets. */
+  private readonly calcPass = turnCache(createCalcPass);
+
   getTableCellDisplayText(cell: DataElement): string {
     switch (cell.fieldType) {
       case DataElementFieldType.RESOURCE:
@@ -300,7 +304,7 @@ export class OverviewPanelComponent {
       case DataElementFieldType.CHECK:
         return getCellLabel(cell);
       case DataElementFieldType.CALC:
-        return evaluateCalcElement(cell);
+        return evaluateCalcElement(cell, this.calcPass());
       default:
         return String(cell.value ?? '')
           .replace(/\s+/g, ' ')
@@ -313,7 +317,7 @@ export class OverviewPanelComponent {
   }
 
   calcText(element: DataElement): string {
-    return evaluateCalcElement(element);
+    return evaluateCalcElement(element, this.calcPass());
   }
 
   getTableSelectOptions(cell: DataElement): string[] {

@@ -67,6 +67,9 @@ export class GameTable extends ObjectNode {
   @SyncVar() weatherColor: string = '';
   @SyncVar() weatherDensity: number = DEFAULT_AMBIENCE_DENSITY;
 
+  /** Cut-ins to play when this table is chosen. Several are separated by commas, and one is drawn. */
+  @SyncVar() cutInIdentifiers: string = '';
+
   gridClipRect: { top: number; right: number; bottom: number; left: number } | null = null;
   get terrains(): Terrain[] {
     return this.children.filter((o): o is Terrain => o instanceof Terrain);

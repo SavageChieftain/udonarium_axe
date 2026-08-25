@@ -6,6 +6,8 @@ import { ChatMessage } from '@axe/domain/chat/chat-message';
 import { CutIn } from '@axe/domain/media/cut-in';
 import { CutInLauncher } from '@axe/domain/media/cut-in-launcher';
 import { Jukebox } from '@axe/domain/media/jukebox';
+import { parseCutInIdentifiers, pickCutInIdentifier, rollCutIn } from '@axe/domain/media/table-cut-in';
+import { GameTable } from '@axe/domain/tabletop/game-table';
 
 const CHAT_TAIL_PATTERN = /\s(@?)(\S+)$/i;
 
@@ -42,6 +44,21 @@ export class CutInService {
     } else {
       this.launch(target, sendTo);
     }
+  }
+
+  /**
+   * Plays what the table asks for on being chosen, drawing one when it names several.
+   *
+   * The draw happens here, on the machine that changed the table, and reaches everyone
+   * else as the launcher's own update — so the whole room sees the same cut-in.
+   */
+  launchForTable(table: GameTable, roll: (count: number) => number = rollCutIn): boolean {
+    const identifiers = parseCutInIdentifiers(table.cutInIdentifiers);
+    const picked = pickCutInIdentifier(identifiers, (id) => this.objectStore.get<CutIn>(id) != null, roll);
+    if (!picked) return false;
+
+    const cutIn = this.objectStore.get<CutIn>(picked);
+    return cutIn ? this.launch(cutIn) : false;
   }
 
   /** Plays a cut-in for everyone, handling the music the same way a chat-started one does. */

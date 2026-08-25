@@ -1,0 +1,84 @@
+<div class="text-[11px]">
+  <div
+    class="relative touch-none"
+    [style.width.px]="trackWidth()"
+    #track
+    (pointermove)="onPointerMove($event)"
+    (pointerup)="onPointerUp($event)"
+    (pointercancel)="onPointerUp($event)"
+  >
+    <div
+      class="border-ui-border-panel relative border-b border-solid"
+      [style.height.px]="rulerHeightPx"
+      (pointerdown)="onRulerDown($event)"
+    >
+      @for (tick of ticks(); track tick.ms) {
+        <span
+          class="bg-ui-border-panel absolute bottom-0 w-px"
+          [style.left.px]="tickX(tick)"
+          [style.height.px]="tick.major ? 8 : 4"
+        ></span>
+        @if (tick.major) {
+          <span class="text-ui-dim absolute top-0 -translate-x-1/2 tabular-nums" [style.left.px]="tickX(tick)">{{
+            tickLabel(tick)
+          }}</span>
+        }
+      }
+    </div>
+
+    <div
+      class="border-ui-border-panel/60 relative border-b border-solid"
+      [style.height.px]="soundHeightPx"
+      (pointerdown)="onSoundRowDown($event)"
+      (dblclick)="onSoundRowDoubleClick($event)"
+    >
+      <span class="text-ui-dim pointer-events-none absolute top-0.5 left-1 text-[10px]">{{
+        'feature.media.cutInEditor.soundRow' | transloco
+      }}</span>
+      @for (mark of soundMarks(); track mark.ms) {
+        <i
+          class="material-icons text-ui-accent pointer-events-none absolute top-0.5 text-[13px]!"
+          [style.left.px]="mark.x"
+          [style.margin-left.px]="-6"
+          >volume_up</i
+        >
+      }
+    </div>
+
+    @for (row of rows(); track row.layer.identifier) {
+      <div
+        class="border-ui-border-panel/60 relative border-b border-solid"
+        [style.height.px]="rowHeightPx"
+        [class.bg-ui-accent-bg]="isSelected(row)"
+        (pointerdown)="onRowDown($event, row)"
+        (dblclick)="onRowDoubleClick($event, row)"
+      >
+        <div
+          class="bg-ui-accent/25 border-ui-accent/60 absolute top-1 h-4 rounded-sm border border-solid"
+          [class.opacity-40]="row.layer.hidden"
+          [class.cursor-ew-resize]="isEditable() && !row.layer.locked"
+          [style.left.px]="row.left"
+          [style.width.px]="row.width"
+        >
+          @if (isEditable() && !row.layer.locked) {
+            <span class="bg-ui-accent/70 absolute inset-y-0 left-0 w-0.5 rounded-l-sm"></span>
+            <span class="bg-ui-accent/70 absolute inset-y-0 right-0 w-0.5 rounded-r-sm"></span>
+          }
+        </div>
+        @for (key of row.keys; track key.ms) {
+          <span
+            class="bg-ui-accent absolute top-2 size-2 rotate-45"
+            [style.left.px]="key.x"
+            [style.margin-left.px]="-4"
+          ></span>
+        }
+      </div>
+    }
+
+    @if (rows().length === 0) {
+      <div class="text-ui-dim px-2 py-3 text-center">{{ 'feature.media.cutInEditor.noLayers' | transloco }}</div>
+    }
+
+    <div class="bg-ui-danger pointer-events-none absolute inset-y-0 w-px" [style.left.px]="playheadX()"></div>
+  </div>
+</div>

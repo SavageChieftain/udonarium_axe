@@ -1,5 +1,6 @@
 import { inject, Injectable } from '@angular/core';
 import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
+import { RolePermissionService } from '@axe/application/permission/role-permission.service';
 import {
   getDiceMenuItems,
   getRangeMenuItems,
@@ -24,7 +25,7 @@ import { Coin } from '@axe/domain/coin/coin';
 import { DiceSymbol, DiceType } from '@axe/domain/dice/dice-symbol';
 import { DisclosureMode } from '@axe/domain/disclosure/disclosure';
 import { type AmbienceKind, GROUND_AMBIENCE_KINDS } from '@axe/domain/effect/ambience/ambience-kind';
-import { ImageTag } from '@axe/domain/media/image-tag';
+import { canBrowseImage, ImageTag } from '@axe/domain/media/image-tag';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { GameTable } from '@axe/domain/tabletop/game-table';
@@ -45,6 +46,7 @@ const AMBIENCE_DEFAULT_SIZE = 4;
 })
 export class TabletopActionService {
   private readonly imageStorage = inject(ImageStorage);
+  private readonly rolePermission = inject(RolePermissionService);
   private readonly tableSelecter = inject(TableSelecter);
   private readonly selectionSignalService = inject(SelectionSignalService);
   private readonly t = inject(TRANSLATE_FN);
@@ -342,7 +344,12 @@ export class TabletopActionService {
   }
 
   createDeckFromTag(position: PointerCoordinate, tag: string, useImageName: boolean): CardStack | null {
-    const images = this.imageStorage.images.filter((image) => (ImageTag.get(image.identifier)?.tag ?? '') === tag);
+    // A picture the master is keeping back is not dealt onto the table by anyone else.
+    const images = this.imageStorage.images.filter(
+      (image) =>
+        (ImageTag.get(image.identifier)?.tag ?? '') === tag &&
+        canBrowseImage(ImageTag.get(image.identifier) ?? null, this.rolePermission.canSeeHidden)
+    );
     const sources = toDeckCardSources(images, this.t('feature.tabletop.action.defaultCardName'));
     if (sources.length < 1) return null;
 

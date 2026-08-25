@@ -293,22 +293,27 @@
   >
     @for (message of currentMessageList(); track message.identifier) {
       <div class="vn-enter-system flex flex-col items-center">
-        <img
-          class="h-[18dvh] drop-shadow-[0_6px_20px_rgba(0,0,0,0.55)]"
-          [src]="system.imageUrl | safe: 'resourceUrl'"
-          alt=""
-        />
+        @if (system.imageUrl.length > 0) {
+          <img
+            class="h-[18dvh] drop-shadow-[0_6px_20px_rgba(0,0,0,0.55)]"
+            [src]="system.imageUrl | safe: 'resourceUrl'"
+            (contextmenu)="onSystemAvatarContextMenu($event, system.kind)"
+            alt=""
+          />
+        }
         <div
           class="relative mt-1 w-max max-w-120 min-w-40 rounded-2xl border-2 border-solid border-amber-300/80 bg-white/95 px-6 py-3 text-center wrap-break-word text-gray-900 shadow-[0_0_28px_rgba(252,211,77,0.45)]"
           [class]="bubbleTextSizeClass()"
         >
           <span class="flex items-center justify-center gap-1.5">
-            <span class="text-[11px] font-bold text-amber-600">
-              {{ 'feature.visualNovel.systemChan' | transloco }}
-            </span>
+            @if (!system.isSpeaker) {
+              <span class="text-[11px] font-bold text-amber-600">
+                {{ 'feature.visualNovel.systemChan' | transloco }}
+              </span>
+            }
             @if (system.rollerName.length > 0) {
               <span class="flex min-w-0 items-center gap-1 text-[11px] text-gray-500">
-                @if (system.rollerImageUrl.length > 0) {
+                @if (!system.isSpeaker && system.rollerImageUrl.length > 0) {
                   <img
                     class="size-4.5 shrink-0 rounded-full object-cover object-top"
                     [src]="system.rollerImageUrl | safe: 'resourceUrl'"

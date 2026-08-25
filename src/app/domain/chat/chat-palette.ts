@@ -4,7 +4,7 @@ import { ObjectNode } from '@axe/core/sync/object-node';
 import { toHalfWidth } from '@axe/core/util/string-util';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { DataElement, DataElementFieldType } from '@axe/domain/data/data-element';
-import { evaluateCalcElement } from '@axe/domain/data/data-element-calc-env';
+import { createCalcPass, evaluateCalcElement } from '@axe/domain/data/data-element-calc-env';
 
 export interface PaletteLine {
   palette: string;
@@ -220,6 +220,9 @@ export function evaluateReferences(
   let evaluate = source;
   const attachmentImageIdentifiers: string[] = [];
 
+  // One line can name the same sheet several times over, so it is read once for all of them.
+  const calcPass = createCalcPass();
+
   const evaluateElementText = (element: DataElement, useMax: boolean): string | null => {
     if (collectImageAttachments && element.fieldType === DataElementFieldType.IMAGE) {
       const imageIdentifier = String(element.value ?? '').trim();
@@ -232,7 +235,7 @@ export function evaluateReferences(
     // A calculating field keeps its formula rather than its result, so the result is worked out
     // here. One that cannot be worked out has no value to lend: '?' would only break the command.
     if (element.fieldType === DataElementFieldType.CALC) {
-      const result = evaluateCalcElement(element);
+      const result = evaluateCalcElement(element, calcPass);
       return result.length > 0 && result !== '?' ? result : null;
     }
 

@@ -4,6 +4,7 @@ import { AppInitializationService } from '@axe/composition/app-initialization.se
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { Alarm } from '@axe/domain/alarm/alarm';
 import { DiceBot } from '@axe/domain/dice/dice-bot';
+import { CutIn } from '@axe/domain/media/cut-in';
 import { Jukebox } from '@axe/domain/media/jukebox';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
@@ -47,6 +48,18 @@ describe('AppInitializationService', () => {
       expect(objectStore.get<Alarm>('Alarm')).toBeTruthy();
       expect(objectStore.get<ReloadCheck>('ReloadCheck')).toBeTruthy();
       expect(objectStore.get<SoundEffect>('SoundEffect')).toBeTruthy();
+    });
+
+    it('lays down the sample cut-ins, each with a face and sounds of its own', () => {
+      const cutIns = objectStore.getObjects(CutIn);
+
+      expect(cutIns.length).toBeGreaterThan(0);
+      for (const cutIn of cutIns) {
+        expect(cutIn.isComposed).toBe(true);
+        expect(cutIn.scene?.layers.some((layer) => layer.imageIdentifier.length > 0)).toBe(true);
+        expect(cutIn.scene?.soundList.length).toBeGreaterThan(0);
+        for (const sound of cutIn.scene!.soundList) expect(sound.a).toBeTruthy();
+      }
     });
 
     it('sets up the audio presets', () => {

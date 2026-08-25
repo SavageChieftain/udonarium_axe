@@ -13,6 +13,7 @@ import {
 import { FormsModule } from '@angular/forms';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
+import { RolePermissionService } from '@axe/application/permission/role-permission.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { TabletopService } from '@axe/application/tabletop/tabletop.service';
 import { ModalService } from '@axe/application/ui/modal.service';
@@ -161,6 +162,7 @@ export class MapEditorPanelComponent implements AfterViewInit {
   }
   private readonly panelService = inject(PanelService);
   private readonly imageStorage = inject(ImageStorage);
+  private readonly rolePermission = inject(RolePermissionService);
   private readonly tabletopService = inject(TabletopService);
   private readonly objectChange = inject(ObjectChangeService);
   private readonly modalService = inject(ModalService);
@@ -299,13 +301,13 @@ export class MapEditorPanelComponent implements AfterViewInit {
   protected readonly imageTextures = computed<ImageFile[]>(() => {
     this.objectChange.fileVersion();
     this.objectChange.collectionOf('image-tag')();
-    return ImageTag.searchImages([TEXTURE_IMAGE_TAG]);
+    return ImageTag.searchImages([TEXTURE_IMAGE_TAG], this.rolePermission.canSeeHidden);
   });
 
   protected readonly stampImages = computed<ImageFile[]>(() => {
     this.objectChange.fileVersion();
     this.objectChange.collectionOf('image-tag')();
-    return ImageTag.searchImages([MAP_STAMP_TAG]);
+    return ImageTag.searchImages([MAP_STAMP_TAG], this.rolePermission.canSeeHidden);
   });
 
   protected readonly canvasCursor = computed(() => {

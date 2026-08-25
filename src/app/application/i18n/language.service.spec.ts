@@ -45,4 +45,24 @@ describe('LanguageService', () => {
     expect(html.lang).toBe('en');
     expect(service.currentLang()).toBe('en');
   });
+
+  it('comes back round to the first language it offers', async () => {
+    localStorage.setItem(TRANSLOCO_LANG_STORAGE_KEY, 'ja');
+    await service.initialize();
+
+    const seen: string[] = [];
+    for (let step = 0; step < service.availableLangs().length; step++) {
+      await service.toggle();
+      seen.push(service.currentLang());
+    }
+
+    expect(seen).toEqual(['en', 'ko', 'ja']);
+  });
+
+  it('serves Korean to a Korean browser', async () => {
+    await service.setLang('ko');
+
+    expect(service.currentLang()).toBe('ko');
+    expect(html.lang).toBe('ko');
+  });
 });

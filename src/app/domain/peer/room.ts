@@ -1,3 +1,4 @@
+import { ImageStorage } from '@axe/core/storage/image-storage';
 import { SyncObject } from '@axe/core/sync/decorator';
 import { GameObject } from '@axe/core/sync/game-object';
 import { InnerXml, ObjectSerializer } from '@axe/core/sync/object-serializer';
@@ -11,6 +12,7 @@ import { DiceTable } from '@axe/domain/dice/dice-table';
 import { createDefaultEffectPresets } from '@axe/domain/effect/builtin-effect-presets';
 import { EffectField } from '@axe/domain/effect/effect-field';
 import { EffectPreset } from '@axe/domain/effect/effect-preset';
+import { createDefaultCutIns } from '@axe/domain/media/builtin-cut-ins';
 import { CutIn } from '@axe/domain/media/cut-in';
 import { Party } from '@axe/domain/party/party';
 import { ReloadCheck } from '@axe/domain/peer/reload-check';
@@ -64,10 +66,15 @@ export class Room extends GameObject implements InnerXml {
   }
 
   parseInnerXml(element: Element) {
-    // The effect library belongs to the toolbox rather than the table, so with none brought in what is here stays.
     // Deleted and put back under the same identifiers, the others refuse them as the return of
-    // what was deleted, and only whoever loaded the room still has them.
-    const bringsPresets = Array.from(element.children).some((child) => child.nodeName === EffectPreset.aliasName);
+    // what was deleted, and only whoever loaded the room still has them. So what is made under
+    // a fixed identifier is left alone by a room that brings none of its own: the effect
+    // library, which belongs to the toolbox rather than the table, and the sample cut-ins,
+    // which a room saved before they existed knows nothing about.
+    const brings = (aliasName: string): boolean =>
+      Array.from(element.children).some((child) => child.nodeName === aliasName);
+    const bringsPresets = brings(EffectPreset.aliasName);
+    const bringsCutIns = brings(CutIn.aliasName);
     const objects: GameObject[] = [
       ...ObjectStore.instance.getObjects(GameTable),
       ...ObjectStore.instance.getObjects(GameTableMask),
@@ -83,7 +90,7 @@ export class Room extends GameObject implements InnerXml {
       ...ObjectStore.instance.getObjects(Card),
       ...ObjectStore.instance.getObjects(DiceSymbol),
       ...ObjectStore.instance.getObjects(Coin),
-      ...ObjectStore.instance.getObjects(CutIn),
+      ...(bringsCutIns ? ObjectStore.instance.getObjects(CutIn) : []),
       ...ObjectStore.instance.getObjects(DiceTable),
       ...(bringsPresets ? ObjectStore.instance.getObjects(EffectPreset) : []),
       ...ObjectStore.instance.getObjects(EffectField),
@@ -99,6 +106,7 @@ export class Room extends GameObject implements InnerXml {
       }
       // The usual set is made only when there are none here and none brought in.
       if (ObjectStore.instance.getObjects(EffectPreset).length < 1) createDefaultEffectPresets();
+      if (ObjectStore.instance.getObjects(CutIn).length < 1) createDefaultCutIns(ImageStorage.instance);
       clearOwnership(ObjectStore.instance.getObjects());
     }
   }
