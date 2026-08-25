@@ -7,7 +7,7 @@ import { PanelService } from '@axe/application/ui/panel.service';
 import { emitSelectFile } from '@axe/core/event/domain-events';
 import { ImageFile } from '@axe/core/storage/image-file';
 import { ImageStorage } from '@axe/core/storage/image-storage';
-import { ImageTag } from '@axe/domain/media/image-tag';
+import { ImageTag, SYSTEM_RESERVED_TAG } from '@axe/domain/media/image-tag';
 import { SafePipe } from '@axe/ui/pipes/safe.pipe';
 import { TranslocoModule } from '@jsverse/transloco';
 
@@ -27,9 +27,6 @@ export class FileSelecterComponent {
 
   isAllowedEmpty: boolean = false;
 
-  private get systemReservedTag(): string {
-    return this.t('ui.fileSelecter.systemReserved');
-  }
   private get allTag(): string {
     return this.t('ui.fileSelecter.tagAll');
   }
@@ -42,7 +39,7 @@ export class FileSelecterComponent {
       let tag: string = '';
       if (ImageTag.get(identifier)) tag = ImageTag.get(identifier).tag;
 
-      if (tag != this.systemReservedTag) imageFileList.push(imageFile);
+      if (tag != SYSTEM_RESERVED_TAG) imageFileList.push(imageFile);
     }
     return imageFileList;
   }
@@ -87,7 +84,7 @@ export class FileSelecterComponent {
       const imageTag = ImageTag.get(identifier);
       if (imageTag) {
         if (imageTag.tag) {
-          if (imageTag.tag != this.systemReservedTag) tags.push(imageTag.tag);
+          if (imageTag.tag != SYSTEM_RESERVED_TAG) tags.push(imageTag.tag);
         }
       }
     }

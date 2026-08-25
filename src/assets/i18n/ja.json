@@ -2830,8 +2830,7 @@
       "tagUnset": "未設定",
       "tagAll": "全て",
       "imageEmpty": "画像なし",
-      "noImagesInTag": "この分類に画像はありません",
-      "systemReserved": "システム予約"
+      "noImagesInTag": "この分類に画像はありません"
     },
     "contextMenu": {
       "index": "インデックス",

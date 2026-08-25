@@ -9,7 +9,7 @@ import { emitSelectFile } from '@axe/core/event/domain-events';
 import { FileArchiver } from '@axe/core/storage/file-archiver';
 import { ImageFile } from '@axe/core/storage/image-file';
 import { ImageStorage } from '@axe/core/storage/image-storage';
-import { ImageTag } from '@axe/domain/media/image-tag';
+import { ImageTag, SYSTEM_RESERVED_TAG } from '@axe/domain/media/image-tag';
 import { SafePipe } from '@axe/ui/pipes/safe.pipe';
 import { TranslocoModule } from '@jsverse/transloco';
 
@@ -47,7 +47,7 @@ export class FileStorageComponent {
       let tag: string = '';
       if (ImageTag.get(identifier)) tag = ImageTag.get(identifier).tag;
 
-      if (tag != 'システム予約') imageFileList.push(imageFile);
+      if (tag != SYSTEM_RESERVED_TAG) imageFileList.push(imageFile);
     }
     return imageFileList;
   }
@@ -93,7 +93,7 @@ export class FileStorageComponent {
       const imageTag = ImageTag.get(identifier);
       if (imageTag) {
         this.objectChange.versionOf(imageTag.identifier)();
-        if (imageTag.tag && imageTag.tag != 'システム予約') tags.push(imageTag.tag);
+        if (imageTag.tag && imageTag.tag != SYSTEM_RESERVED_TAG) tags.push(imageTag.tag);
       }
     }
 
@@ -112,7 +112,7 @@ export class FileStorageComponent {
   changeTag() {
     const candidate = this.newTagName();
     if (candidate === ALL_TAG) return;
-    if (candidate === 'システム予約') return;
+    if (candidate === SYSTEM_RESERVED_TAG) return;
     if (candidate === this.t('feature.file.fileStorage.all')) return;
 
     const changeableImages = this.images();

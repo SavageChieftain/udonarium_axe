@@ -2830,8 +2830,7 @@
       "tagUnset": "Untagged",
       "tagAll": "All",
       "imageEmpty": "No image",
-      "noImagesInTag": "No images in this category",
-      "systemReserved": "System reserved"
+      "noImagesInTag": "No images in this category"
     },
     "contextMenu": {
       "index": "Index",

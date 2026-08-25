@@ -10,6 +10,7 @@ import {
 } from '@axe/domain/media/builtin-cut-ins';
 import { CutIn } from '@axe/domain/media/cut-in';
 import { sceneDurationOf, toWebAnimationFrames } from '@axe/domain/media/cut-in-scene-timeline';
+import { ImageTag, SYSTEM_RESERVED_TAG } from '@axe/domain/media/image-tag';
 import { PresetSound } from '@axe/domain/media/sound-effect';
 
 describe('the cut-ins a new room starts with', () => {
@@ -61,6 +62,14 @@ describe('the cut-ins a new room starts with', () => {
     for (const identifier of [SAMPLE_PORTRAIT_IDENTIFIER, SAMPLE_FACE_IDENTIFIER]) {
       expect(imageStorage.get(identifier)).not.toBeNull();
       expect(imageStorage.images.filter((image) => image.identifier === identifier)).toHaveLength(1);
+    }
+  });
+
+  it('keeps the faces it comes with out of the media library', () => {
+    made();
+
+    for (const identifier of [SAMPLE_PORTRAIT_IDENTIFIER, SAMPLE_FACE_IDENTIFIER]) {
+      expect(ImageTag.get(identifier)?.tag).toBe(SYSTEM_RESERVED_TAG);
     }
   });
 

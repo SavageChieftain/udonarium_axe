@@ -1,6 +1,6 @@
 import { ImageContext, ImageFile } from '@axe/core/storage/image-file';
 import { ImageStorage } from '@axe/core/storage/image-storage';
-import { ImageTag } from '@axe/domain/media/image-tag';
+import { ImageTag, SYSTEM_RESERVED_TAG } from '@axe/domain/media/image-tag';
 
 const AVRIL_DICE_IMAGES = [
   '1d4_dice[00]',
@@ -43,7 +43,7 @@ function addSystemImage(imageStorage: ImageStorage, id: string, url: string): vo
   const fileContext: ImageContext = ImageFile.createEmpty(id).toContext();
   fileContext.url = url;
   const file = imageStorage.add(fileContext);
-  ImageTag.create(file.identifier).tag = 'システム予約';
+  ImageTag.create(file.identifier).tag = SYSTEM_RESERVED_TAG;
 }
 
 export function initAprilDiceImages(imageStorage: ImageStorage): void {
