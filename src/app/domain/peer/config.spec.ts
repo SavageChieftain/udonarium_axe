@@ -64,4 +64,47 @@ describe('Config', () => {
       expect(Config.instance.roomVolume).toBe(0.5);
     });
   });
+
+  describe('system avatar', () => {
+    it('starts with no picture of its own', () => {
+      expect(Config.instance.systemAvatarIdentifier).toBe('');
+      expect(Config.instance.systemDiceAvatarIdentifier).toBe('');
+    });
+
+    it('returns the pictures it is given', () => {
+      Config.instance.systemAvatarIdentifier = 'image-a';
+      Config.instance.systemDiceAvatarIdentifier = 'image-b';
+
+      expect(Config.instance.systemAvatarIdentifier).toBe('image-a');
+      expect(Config.instance.systemDiceAvatarIdentifier).toBe('image-b');
+    });
+
+    it('shows the avatar until it is asked not to', () => {
+      expect(Config.instance.isSystemAvatarVisible).toBe(true);
+
+      Config.instance.isSystemAvatarVisible = false;
+
+      expect(Config.instance.isSystemAvatarVisible).toBe(false);
+    });
+
+    it('keeps the speaker to itself until it is asked for', () => {
+      expect(Config.instance.isSpeakerAvatarVisible).toBe(false);
+
+      Config.instance.isSpeakerAvatarVisible = true;
+
+      expect(Config.instance.isSpeakerAvatarVisible).toBe(true);
+    });
+
+    it('reads the flag back the way a loaded room writes it', () => {
+      Config.instance.isSystemAvatarVisible = false;
+      Config.instance.setAttribute('_hideSystemAvatar', `${Config.instance.getAttribute('_hideSystemAvatar')}`);
+
+      expect(Config.instance.isSystemAvatarVisible).toBe(false);
+
+      Config.instance.isSystemAvatarVisible = true;
+      Config.instance.setAttribute('_hideSystemAvatar', `${Config.instance.getAttribute('_hideSystemAvatar')}`);
+
+      expect(Config.instance.isSystemAvatarVisible).toBe(true);
+    });
+  });
 });

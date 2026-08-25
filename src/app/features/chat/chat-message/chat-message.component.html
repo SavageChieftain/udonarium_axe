@@ -16,12 +16,14 @@
         <div
           class="rounded-ui-sm [&_img]:rounded-ui-sm size-16 shrink-0 overflow-hidden p-0 align-top [&_img]:size-full [&_img]:object-cover [&_img]:object-[50%_0%] [&_img]:align-bottom"
         >
-          @if (isSystemMessage) {
-            <img [src]="SYSTEM_ICON_URL | safe: 'resourceUrl'" />
-          } @else if (imageFile().url) {
+          @if (systemAvatarImage(); as avatar) {
+            <img
+              [src]="avatar.url | safe: 'resourceUrl'"
+              [title]="avatar.isSpeaker ? '' : ('feature.chat.systemAvatar.title' | transloco)"
+              (contextmenu)="onSystemAvatarContextMenu($event, avatar.kind)"
+            />
+          } @else if (!isSystemMessage && imageFile().url) {
             <img [src]="imageFile().url | safe: 'resourceUrl'" />
-          } @else if (chatMessage.isDicebot) {
-            <img [src]="DICEBOT_ICON_URL | safe: 'resourceUrl'" />
           }
         </div>
         <div

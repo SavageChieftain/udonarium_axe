@@ -1823,6 +1823,19 @@
         "autoFollowScroll": "Auto-follow latest message",
         "autoFollowScrollTooltip": "When off, new messages on the same tab will not auto-scroll"
       },
+      "systemAvatar": {
+        "title": "System-chan",
+        "sharedHint": "Shared with everyone in the room",
+        "show": "Show System-chan",
+        "showSpeaker": "Show the speaking character or player",
+        "showSpeakerHint": "Puts whoever rolled in place of System-chan on dice results",
+        "kindSystem": "System messages",
+        "kindDice": "Dice rolls",
+        "change": "Change",
+        "reset": "Default",
+        "changeImage": "Change the {{kind}} picture",
+        "resetImage": "Restore the default picture"
+      },
       "tabSetting": {
         "panelTitle": "Chat tab settings",
         "sidebarTitle": "Chat tabs",

@@ -1,5 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ChatMessageService } from '@axe/application/chat/chat-message.service';
+import { NO_SYSTEM_AVATAR, SystemAvatarService } from '@axe/application/chat/system-avatar.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { AudioFile } from '@axe/core/storage/audio-file';
 import { AudioStorage } from '@axe/core/storage/audio-storage';
@@ -336,6 +337,44 @@ describe('VisualNovelOverlayComponent', () => {
     createComponent();
     expect(component.systemSpeaker()?.imageUrl).toBe('assets/images/system_chang_roll.png');
     expect(component.bubbleAnchor()).toBeNull();
+  });
+
+  it('leaves the mascot out once the room picks no picture for the rolls', () => {
+    const systemAvatar = TestBed.inject(SystemAvatarService);
+    try {
+      systemAvatar.setImage('dice', NO_SYSTEM_AVATAR);
+      tab.addMessage({
+        from: 'System-BCDice',
+        name: 'BCDice',
+        tag: 'system',
+        text: 'DiceBot : (2D6) → 7[3,4]',
+        timestamp: nextTimestamp++,
+      });
+      createComponent();
+
+      expect(component.systemSpeaker()?.imageUrl).toBe('');
+    } finally {
+      systemAvatar.resetImage('dice');
+    }
+  });
+
+  it('leaves the mascot out of a dice bot message once the room hides it', () => {
+    const systemAvatar = TestBed.inject(SystemAvatarService);
+    try {
+      systemAvatar.setVisible(false);
+      tab.addMessage({
+        from: 'System-BCDice',
+        name: 'BCDice',
+        tag: 'system',
+        text: 'DiceBot : (2D6) → 7[3,4]',
+        timestamp: nextTimestamp++,
+      });
+      createComponent();
+
+      expect(component.systemSpeaker()?.imageUrl).toBe('');
+    } finally {
+      systemAvatar.setVisible(true);
+    }
   });
 
   it('never breaks an emoji as it types', () => {
