@@ -51,6 +51,24 @@
     },
     "party": {
       "unnamed": "이름 없는 파티"
+    },
+    "textures": {
+      "black_soil": "흑토",
+      "brick": "벽돌",
+      "desert": "사막",
+      "floor": "마룻바닥",
+      "forest": "숲",
+      "gravel": "자갈",
+      "lava": "용암",
+      "rock": "바위",
+      "rock_moss": "바위(이끼)",
+      "sand": "모래땅",
+      "sea": "바다",
+      "shallows": "얕은 물",
+      "steppe": "초원",
+      "stone_paving_big": "돌바닥(대)",
+      "stone_paving_small": "돌바닥(소)",
+      "stone_tile": "석재 타일"
     }
   },
   "feature": {
@@ -2072,24 +2090,6 @@
         "settings": "설정",
         "shape": "도형",
         "image": "이미지"
-      },
-      "textures": {
-        "black_soil": "흑토",
-        "brick": "벽돌",
-        "desert": "사막",
-        "floor": "마룻바닥",
-        "forest": "숲",
-        "gravel": "자갈",
-        "lava": "용암",
-        "rock": "바위",
-        "rock_moss": "바위(이끼)",
-        "sand": "모래땅",
-        "sea": "바다",
-        "shallows": "얕은 물",
-        "steppe": "초원",
-        "stone_paving_big": "돌바닥(대)",
-        "stone_paving_small": "돌바닥(소)",
-        "stone_tile": "석재 타일"
       },
       "stampCategories": {
         "door": "문",

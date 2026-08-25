@@ -51,6 +51,24 @@
     },
     "party": {
       "unnamed": "Unnamed party"
+    },
+    "textures": {
+      "black_soil": "Black soil",
+      "brick": "Brick",
+      "desert": "Desert",
+      "floor": "Wood floor",
+      "forest": "Forest",
+      "gravel": "Gravel",
+      "lava": "Lava",
+      "rock": "Rock",
+      "rock_moss": "Mossy rock",
+      "sand": "Sand",
+      "sea": "Sea",
+      "shallows": "Shallows",
+      "steppe": "Steppe",
+      "stone_paving_big": "Large paving",
+      "stone_paving_small": "Small paving",
+      "stone_tile": "Stone tile"
     }
   },
   "feature": {
@@ -2072,24 +2090,6 @@
         "settings": "Settings",
         "shape": "Shape",
         "image": "Image"
-      },
-      "textures": {
-        "black_soil": "Black soil",
-        "brick": "Brick",
-        "desert": "Desert",
-        "floor": "Wood floor",
-        "forest": "Forest",
-        "gravel": "Gravel",
-        "lava": "Lava",
-        "rock": "Rock",
-        "rock_moss": "Mossy rock",
-        "sand": "Sand",
-        "sea": "Sea",
-        "shallows": "Shallows",
-        "steppe": "Steppe",
-        "stone_paving_big": "Large paving",
-        "stone_paving_small": "Small paving",
-        "stone_tile": "Stone tile"
       },
       "stampCategories": {
         "door": "Doors",

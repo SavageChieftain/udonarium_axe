@@ -51,6 +51,24 @@
     },
     "party": {
       "unnamed": "無名のパーティ"
+    },
+    "textures": {
+      "black_soil": "黒土",
+      "brick": "レンガ",
+      "desert": "砂漠",
+      "floor": "床板",
+      "forest": "森林",
+      "gravel": "砂利",
+      "lava": "溶岩",
+      "rock": "岩",
+      "rock_moss": "岩（苔）",
+      "sand": "砂地",
+      "sea": "海",
+      "shallows": "浅瀬",
+      "steppe": "草原",
+      "stone_paving_big": "石畳（大）",
+      "stone_paving_small": "石畳（小）",
+      "stone_tile": "石タイル"
     }
   },
   "feature": {
@@ -2072,24 +2090,6 @@
         "settings": "設定",
         "shape": "図形",
         "image": "画像"
-      },
-      "textures": {
-        "black_soil": "黒土",
-        "brick": "レンガ",
-        "desert": "砂漠",
-        "floor": "床板",
-        "forest": "森林",
-        "gravel": "砂利",
-        "lava": "溶岩",
-        "rock": "岩",
-        "rock_moss": "岩（苔）",
-        "sand": "砂地",
-        "sea": "海",
-        "shallows": "浅瀬",
-        "steppe": "草原",
-        "stone_paving_big": "石畳（大）",
-        "stone_paving_small": "石畳（小）",
-        "stone_tile": "石タイル"
       },
       "stampCategories": {
         "door": "扉",

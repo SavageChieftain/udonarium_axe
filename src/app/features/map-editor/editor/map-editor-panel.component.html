@@ -1069,11 +1069,11 @@
         [class.border-ui-border-panel]="state.textureId() !== id"
         [style.background-image]="'url(' + textureAssetUrls[id] + ')'"
         [style.background-color]="textureBaseColor[id]"
-        [title]="'feature.mapEditor.textures.' + id | transloco"
+        [title]="'common.textures.' + id | transloco"
         (click)="selectTexture(id)"
       >
         <span class="absolute inset-x-0 bottom-0 truncate bg-black/55 px-0.5 text-center text-[10px] text-white">
-          {{ 'feature.mapEditor.textures.' + id | transloco }}
+          {{ 'common.textures.' + id | transloco }}
         </span>
       </button>
     }

@@ -1,3 +1,4 @@
+import { isTextureId, TEXTURE_ASSET_URLS } from '@axe/domain/media/texture-catalog';
 import { imageStampIdentifier, isImageStampId } from '@axe/features/map-editor/assets/image-stamp';
 import { StampDef } from '@axe/features/map-editor/assets/stamp-types';
 import {
@@ -10,13 +11,7 @@ import {
   StampItem,
   StampLayer,
 } from '@axe/features/map-editor/model/scene';
-import {
-  imageTextureIdentifier,
-  isImageTextureId,
-  isTextureId,
-  normalizeTextureId,
-  TEXTURE_ASSET_URLS,
-} from '@axe/features/map-editor/model/textures';
+import { imageTextureIdentifier, isImageTextureId, normalizeTextureId } from '@axe/features/map-editor/model/textures';
 import { getRasterImage, warmRasterImages } from '@axe/features/map-editor/render/raster-image';
 import { RenderHelpers, renderScene } from '@axe/features/map-editor/render/render-scene';
 import { getStampImage, warmStampImages } from '@axe/features/map-editor/render/stamp-image';
