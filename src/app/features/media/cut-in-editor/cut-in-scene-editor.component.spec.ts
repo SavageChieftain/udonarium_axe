@@ -1,10 +1,12 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { By } from '@angular/platform-browser';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { CutIn } from '@axe/domain/media/cut-in';
 import { encodeCutInTracks } from '@axe/domain/media/cut-in-keyframe';
 import { CutInLayer } from '@axe/domain/media/cut-in-layer';
 import { keysOf, valueAt } from '@axe/features/media/cut-in-editor/cut-in-keyframe-edit';
 import { CutInSceneEditorComponent } from '@axe/features/media/cut-in-editor/cut-in-scene-editor.component';
+import { CutInStageComponent } from '@axe/features/media/cut-in-stage/cut-in-stage.component';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
 
 describe('CutInSceneEditorComponent', () => {
@@ -654,6 +656,17 @@ describe('CutInSceneEditorComponent', () => {
       for (let at = 0; at < 20; at++) editor().stageZoomIn();
 
       expect(editor().canStageZoomIn()).toBe(false);
+    });
+
+    it('leans the layers in with the handles drawn over them', () => {
+      // The handles are worked out here and the layers are drawn by the stage. Leaning only
+      // one of the two in leaves every grip beside the layer it belongs to.
+      editor().addImageLayer();
+      editor().stageZoomIn();
+      fixture.detectChanges();
+
+      const stage = fixture.debugElement.query(By.directive(CutInStageComponent));
+      expect(stage.componentInstance.zoom()).toBe(editor().stageZoom());
     });
   });
 

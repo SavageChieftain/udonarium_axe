@@ -65,6 +65,8 @@ export class CutInStageComponent {
   readonly playing = input(true);
   /** Where the scrubber stands, in ms. Read only while it is not playing. */
   readonly playheadMs = input(0);
+  /** How far the stage is leaned into, past the scale that fits the scene in. */
+  readonly zoom = input(1);
 
   private readonly layerElements = viewChildren<ElementRef<HTMLElement>>('layerElement');
   private readonly wipeElements = viewChildren<ElementRef<HTMLElement>>('wipeElement');
@@ -111,7 +113,7 @@ export class CutInStageComponent {
    * same helper, so the outline lands exactly on the layer it belongs to.
    */
   readonly fit = computed<StageFit>(() =>
-    stageFit({ width: this.sceneWidth(), height: this.sceneHeight() }, this.hostSize())
+    stageFit({ width: this.sceneWidth(), height: this.sceneHeight() }, this.hostSize(), this.zoom())
   );
 
   readonly sceneTransform = computed(() => {
