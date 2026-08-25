@@ -68,7 +68,39 @@
       "steppe": "초원",
       "stone_paving_big": "돌바닥(대)",
       "stone_paving_small": "돌바닥(소)",
-      "stone_tile": "석재 타일"
+      "stone_tile": "석재 타일",
+      "blood_stone": "핏자국 돌바닥",
+      "bone_floor": "뼈 바닥",
+      "ice": "얼음",
+      "marble": "대리석",
+      "metal_grate": "철격자",
+      "moss_stone_floor": "이끼 낀 돌바닥",
+      "obsidian": "흑요석",
+      "packed_earth": "다져진 흙",
+      "rubble_floor": "잔해",
+      "sandstone_floor": "사암 바닥",
+      "stone_mosaic": "모자이크 바닥",
+      "stone_paving_wet": "젖은 돌포장",
+      "swamp_mud": "늪 진흙",
+      "wood_plank": "널판 바닥",
+      "wall_ashlar": "다듬돌 벽",
+      "wall_bone": "뼈 벽",
+      "wall_brick": "벽돌 벽",
+      "wall_cave_rock": "동굴 암벽",
+      "wall_earth": "흙벽",
+      "wall_ice": "얼음 벽",
+      "wall_metal": "철벽",
+      "wall_mossy_stone": "이끼 낀 돌벽",
+      "wall_obsidian": "흑요석 벽",
+      "wall_rubble": "막돌 벽",
+      "wall_sandstone": "사암 벽",
+      "wall_timber": "목재 벽",
+      "door_wood": "나무 문",
+      "door_iron_grate": "쇠창살 문",
+      "door_stone": "돌문",
+      "stair_up": "올라가는 계단",
+      "stair_down": "내려가는 계단",
+      "stair_spiral": "나선 계단"
     }
   },
   "feature": {
@@ -1634,6 +1666,73 @@
         "sectionWeather": "날씨(맵 전체)",
         "weatherKind": "날씨",
         "weatherNone": "없음"
+      },
+      "dungeonGenerator": {
+        "atmosphere": {
+          "stoneDungeon": "석조 미궁",
+          "crypt": "지하 묘소",
+          "ruins": "유적",
+          "cavern": "동굴",
+          "lavaCavern": "용암굴",
+          "iceCave": "얼음굴",
+          "sandTomb": "모래 무덤"
+        },
+        "role": {
+          "entrance": "입구의 방",
+          "hall": "대광간",
+          "treasure": "보물고",
+          "boss": "최심부",
+          "deadEnd": "막다른 길",
+          "chamber": "작은 방"
+        },
+        "piece": {
+          "wall": "벽",
+          "floor": "바닥",
+          "door": "문",
+          "doorLocked": "문(잠김)",
+          "entrance": "입구",
+          "exit": "출구",
+          "hazard": "용암",
+          "fog": "미탐색"
+        },
+        "summary": {
+          "title": "던전 개요",
+          "seed": "시드",
+          "start": "시작 위치",
+          "key": "열쇠",
+          "locked": "잠김",
+          "torch": "횃불"
+        },
+        "title": "던전 생성",
+        "gmOnly": "이 도구는 게임 마스터 전용입니다",
+        "props": {
+          "atmosphere": "분위기",
+          "wall": "벽 재질",
+          "floor": "바닥 재질",
+          "roomCount": "방 수",
+          "seed": "시드",
+          "tableName": "테이블 이름",
+          "placeDoors": "문 배치",
+          "placeStairs": "입구와 출구 배치",
+          "placeRoomNotes": "방 번호 배치",
+          "placeScratchMask": "미탐색 영역 덮기"
+        },
+        "actions": {
+          "generate": "생성",
+          "reroll": "시드 다시 뽑기",
+          "pickFromLibrary": "이미지 보관함에서 선택",
+          "resetMaterials": "기본값으로",
+          "goToTable": "이 테이블로 이동",
+          "discard": "이 테이블 삭제"
+        },
+        "status": {
+          "estimate": "지형 {{terrains}}개, 동기화 약 {{sync}}건",
+          "tooMany": "지형이 {{limit}}개를 넘습니다. 방 수를 줄여 주세요",
+          "heavy": "지형이 {{limit}}개를 넘습니다. 생성에 시간이 조금 걸립니다",
+          "built": "\"{{name}}\"을(를) 만들었습니다",
+          "roomsDiffer": "동굴은 공동이 이어지므로 실제 방은 {{found}}개가 되었습니다",
+          "squareOnly": "생성되는 테이블은 정사각 그리드 고정입니다"
+        }
       }
     },
     "lobby": {

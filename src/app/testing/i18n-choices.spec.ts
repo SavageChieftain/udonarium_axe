@@ -8,7 +8,7 @@ import { CUT_IN_FILL_SHAPES } from '@axe/domain/media/cut-in-fill';
 import { CUT_IN_TEXT_ALIGNS } from '@axe/domain/media/cut-in-layer';
 import { CUT_IN_LAYER_PRESETS } from '@axe/domain/media/cut-in-layer-presets';
 import { CUT_IN_WIPES } from '@axe/domain/media/cut-in-wipe';
-import { TEXTURE_IDS } from '@axe/domain/media/texture-catalog';
+import { DUNGEON_PROP_IDS, TEXTURE_IDS, WALL_TEXTURE_IDS } from '@axe/domain/media/texture-catalog';
 
 /**
  * A screen that builds its key out of a value — `'…clip' + shape` — puts that key beyond
@@ -18,7 +18,7 @@ import { TEXTURE_IDS } from '@axe/domain/media/texture-catalog';
  * a raw key on someone's screen.
  */
 const CHOICES: Record<string, readonly string[]> = {
-  'common.textures.': TEXTURE_IDS,
+  'common.textures.': [...TEXTURE_IDS, ...WALL_TEXTURE_IDS, ...DUNGEON_PROP_IDS],
   'feature.media.cutInEditor.clip': CUT_IN_CLIPS,
   'feature.media.cutInEditor.wipe': CUT_IN_WIPES,
   'feature.media.cutInEditor.effect': CUT_IN_EFFECTS,

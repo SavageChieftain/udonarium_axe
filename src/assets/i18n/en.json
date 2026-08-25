@@ -68,7 +68,39 @@
       "steppe": "Steppe",
       "stone_paving_big": "Large paving",
       "stone_paving_small": "Small paving",
-      "stone_tile": "Stone tile"
+      "stone_tile": "Stone tile",
+      "blood_stone": "Bloodstained stone",
+      "bone_floor": "Bone floor",
+      "ice": "Ice",
+      "marble": "Marble",
+      "metal_grate": "Iron grate",
+      "moss_stone_floor": "Mossy flagstone",
+      "obsidian": "Obsidian",
+      "packed_earth": "Packed earth",
+      "rubble_floor": "Rubble",
+      "sandstone_floor": "Sandstone floor",
+      "stone_mosaic": "Mosaic floor",
+      "stone_paving_wet": "Wet paving",
+      "swamp_mud": "Swamp mud",
+      "wood_plank": "Wooden planks",
+      "wall_ashlar": "Ashlar masonry",
+      "wall_bone": "Bone wall",
+      "wall_brick": "Brick wall",
+      "wall_cave_rock": "Cave rock",
+      "wall_earth": "Earth wall",
+      "wall_ice": "Ice wall",
+      "wall_metal": "Iron wall",
+      "wall_mossy_stone": "Mossy stone wall",
+      "wall_obsidian": "Obsidian wall",
+      "wall_rubble": "Rubble masonry",
+      "wall_sandstone": "Sandstone wall",
+      "wall_timber": "Timber wall",
+      "door_wood": "Wooden door",
+      "door_iron_grate": "Portcullis",
+      "door_stone": "Stone door",
+      "stair_up": "Stairs up",
+      "stair_down": "Stairs down",
+      "stair_spiral": "Spiral stairs"
     }
   },
   "feature": {
@@ -1634,6 +1666,73 @@
         "sectionWeather": "Weather (whole map)",
         "weatherKind": "Weather",
         "weatherNone": "None"
+      },
+      "dungeonGenerator": {
+        "atmosphere": {
+          "stoneDungeon": "Stone labyrinth",
+          "crypt": "Crypt",
+          "ruins": "Ruins",
+          "cavern": "Cavern",
+          "lavaCavern": "Lava cavern",
+          "iceCave": "Ice cave",
+          "sandTomb": "Sand tomb"
+        },
+        "role": {
+          "entrance": "Entrance hall",
+          "hall": "Great hall",
+          "treasure": "Treasury",
+          "boss": "Innermost room",
+          "deadEnd": "Dead end",
+          "chamber": "Chamber"
+        },
+        "piece": {
+          "wall": "Wall",
+          "floor": "Floor",
+          "door": "Door",
+          "doorLocked": "Door (locked)",
+          "entrance": "Way in",
+          "exit": "Way out",
+          "hazard": "Lava",
+          "fog": "Unexplored"
+        },
+        "summary": {
+          "title": "Dungeon notes",
+          "seed": "seed",
+          "start": "Start",
+          "key": "key",
+          "locked": "locked",
+          "torch": "torch"
+        },
+        "title": "Dungeon generator",
+        "gmOnly": "This tool is for the game master",
+        "props": {
+          "atmosphere": "Atmosphere",
+          "wall": "Wall material",
+          "floor": "Floor material",
+          "roomCount": "Rooms",
+          "seed": "Seed",
+          "tableName": "Table name",
+          "placeDoors": "Place doors",
+          "placeStairs": "Place the way in and out",
+          "placeRoomNotes": "Number the rooms",
+          "placeScratchMask": "Cover what is unexplored"
+        },
+        "actions": {
+          "generate": "Generate",
+          "reroll": "Roll a new seed",
+          "pickFromLibrary": "Choose from the library",
+          "resetMaterials": "Back to the defaults",
+          "goToTable": "Go to this table",
+          "discard": "Delete this table"
+        },
+        "status": {
+          "estimate": "{{terrains}} terrains, about {{sync}} to sync",
+          "tooMany": "That is over {{limit}} terrains. Try fewer rooms",
+          "heavy": "Over {{limit}} terrains. Building will take a moment",
+          "built": "Made \"{{name}}\"",
+          "roomsDiffer": "Caverns run together, so this one has {{found}} chambers",
+          "squareOnly": "A generated table always uses a square grid"
+        }
       }
     },
     "lobby": {

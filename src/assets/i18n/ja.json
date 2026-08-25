@@ -68,7 +68,39 @@
       "steppe": "草原",
       "stone_paving_big": "石畳（大）",
       "stone_paving_small": "石畳（小）",
-      "stone_tile": "石タイル"
+      "stone_tile": "石タイル",
+      "blood_stone": "血痕の石床",
+      "bone_floor": "骨の床",
+      "ice": "氷",
+      "marble": "大理石",
+      "metal_grate": "金属格子",
+      "moss_stone_floor": "苔むした石床",
+      "obsidian": "黒曜石",
+      "packed_earth": "踏み固めた土",
+      "rubble_floor": "瓦礫",
+      "sandstone_floor": "砂岩の床",
+      "stone_mosaic": "モザイク床",
+      "stone_paving_wet": "石畳（濡れ）",
+      "swamp_mud": "泥濘",
+      "wood_plank": "板張り",
+      "wall_ashlar": "切石積み",
+      "wall_bone": "骨の壁",
+      "wall_brick": "レンガ壁",
+      "wall_cave_rock": "洞窟の岩肌",
+      "wall_earth": "土壁",
+      "wall_ice": "氷壁",
+      "wall_metal": "金属壁",
+      "wall_mossy_stone": "苔むした石壁",
+      "wall_obsidian": "黒曜石の壁",
+      "wall_rubble": "粗石積み",
+      "wall_sandstone": "砂岩壁",
+      "wall_timber": "木の壁",
+      "door_wood": "木の扉",
+      "door_iron_grate": "鉄格子",
+      "door_stone": "石の扉",
+      "stair_up": "上り階段",
+      "stair_down": "下り階段",
+      "stair_spiral": "螺旋階段"
     }
   },
   "feature": {
@@ -1634,6 +1666,73 @@
         "sectionWeather": "天候（マップ全体）",
         "weatherKind": "天候",
         "weatherNone": "なし"
+      },
+      "dungeonGenerator": {
+        "atmosphere": {
+          "stoneDungeon": "石造迷宮",
+          "crypt": "地下墓所",
+          "ruins": "遺跡",
+          "cavern": "洞窟",
+          "lavaCavern": "溶岩洞",
+          "iceCave": "氷窟",
+          "sandTomb": "砂の墳墓"
+        },
+        "role": {
+          "entrance": "入口の間",
+          "hall": "大広間",
+          "treasure": "宝物庫",
+          "boss": "最奥",
+          "deadEnd": "行き止まり",
+          "chamber": "小部屋"
+        },
+        "piece": {
+          "wall": "壁",
+          "floor": "床",
+          "door": "扉",
+          "doorLocked": "扉（施錠）",
+          "entrance": "入口",
+          "exit": "出口",
+          "hazard": "溶岩",
+          "fog": "未探索"
+        },
+        "summary": {
+          "title": "ダンジョン概要",
+          "seed": "シード",
+          "start": "開始位置",
+          "key": "鍵",
+          "locked": "施錠",
+          "torch": "松明"
+        },
+        "title": "ダンジョン生成",
+        "gmOnly": "このツールはゲームマスター専用です",
+        "props": {
+          "atmosphere": "雰囲気",
+          "wall": "壁素材",
+          "floor": "床素材",
+          "roomCount": "部屋数",
+          "seed": "シード",
+          "tableName": "テーブル名",
+          "placeDoors": "扉を置く",
+          "placeStairs": "入口と出口を置く",
+          "placeRoomNotes": "部屋番号を置く",
+          "placeScratchMask": "未探索の覆いを敷く"
+        },
+        "actions": {
+          "generate": "生成する",
+          "reroll": "シードを振り直す",
+          "pickFromLibrary": "画像保管庫から選ぶ",
+          "resetMaterials": "既定に戻す",
+          "goToTable": "このテーブルへ移動",
+          "discard": "このテーブルを削除"
+        },
+        "status": {
+          "estimate": "地形 {{terrains}} 個・同期 約 {{sync}} 件",
+          "tooMany": "地形が {{limit}} 個を超えます。部屋数を減らしてください",
+          "heavy": "地形が {{limit}} 個を超えています。生成に少し時間がかかります",
+          "built": "「{{name}}」を作成しました",
+          "roomsDiffer": "洞窟は空洞がつながるため、実際の部屋は {{found}} 個になりました",
+          "squareOnly": "生成するテーブルは正方グリッド固定です"
+        }
       }
     },
     "lobby": {
