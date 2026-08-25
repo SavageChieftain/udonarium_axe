@@ -9,6 +9,7 @@ import {
   SAMPLE_PORTRAIT_IDENTIFIER,
 } from '@axe/domain/media/builtin-cut-ins';
 import { CutIn } from '@axe/domain/media/cut-in';
+import { CutInScene } from '@axe/domain/media/cut-in-scene';
 import { sceneDurationOf, toWebAnimationFrames } from '@axe/domain/media/cut-in-scene-timeline';
 import { ImageTag, SYSTEM_RESERVED_TAG } from '@axe/domain/media/image-tag';
 import { PresetSound } from '@axe/domain/media/sound-effect';
@@ -46,6 +47,17 @@ describe('the cut-ins a new room starts with', () => {
   it('makes one of each', () => {
     expect(made()).toHaveLength(DEFAULT_CUT_IN_SEEDS.length);
     expect(store.getObjects(CutIn)).toHaveLength(DEFAULT_CUT_IN_SEEDS.length);
+  });
+
+  it('claims no name for a sample whose scene is already taken', () => {
+    const seed = DEFAULT_CUT_IN_SEEDS[0];
+    const squatter = new CutInScene(seed.sceneIdentifier);
+    squatter.initialize();
+
+    const cutIns = made();
+
+    expect(cutIns.map((cutIn) => cutIn.identifier)).not.toContain(seed.identifier);
+    expect(store.get<CutIn>(seed.identifier)?.name).not.toBe(seed.name);
   });
 
   it('makes no second copy for someone joining a room that has them', () => {

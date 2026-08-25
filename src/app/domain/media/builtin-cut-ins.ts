@@ -441,7 +441,9 @@ export function createDefaultCutIns(imageStorage: ImageStorage): CutIn[] {
     cutIn.initialize();
     if (ObjectStore.instance.get(seed.identifier) !== cutIn) continue;
 
-    applyCutInSeed(cutIn, seed, pictures);
+    // The layers are what a sample is: one made without them would be an empty window
+    // with a name on it, so it is left as a plain cut-in rather than passed off as a sample.
+    if (!applyCutInSeed(cutIn, seed, pictures)) continue;
     made.push(cutIn);
   }
   return made;
@@ -461,7 +463,14 @@ interface SamplePictures {
   face: string;
 }
 
-function applyCutInSeed(cutIn: CutIn, seed: CutInSeed, pictures: SamplePictures): void {
+/** Fills a sample in, and says whether the scene it is made of could be claimed at all. */
+function applyCutInSeed(cutIn: CutIn, seed: CutInSeed, pictures: SamplePictures): boolean {
+  // The scene is claimed before the cut-in is written to: a name and a size set against
+  // nothing to show would be worse than leaving the cut-in as it was made.
+  const scene = new CutInScene(seed.sceneIdentifier);
+  scene.initialize();
+  if (ObjectStore.instance.get(seed.sceneIdentifier) !== scene) return false;
+
   cutIn.name = seed.name;
   cutIn.width = seed.width;
   cutIn.height = seed.height;
@@ -471,14 +480,11 @@ function applyCutInSeed(cutIn: CutIn, seed: CutInSeed, pictures: SamplePictures)
   cutIn.frameless = true;
   cutIn.chatActivate = true;
 
-  const scene = new CutInScene(seed.sceneIdentifier);
-  scene.initialize();
-  if (ObjectStore.instance.get(seed.sceneIdentifier) !== scene) return;
-
   scene.cutInIdentifier = cutIn.identifier;
   scene.durationMs = seed.durationMs;
   scene.sounds = encodeCutInSounds(soundsOf(seed));
   for (const layerSeed of seed.layers) scene.appendChild(makeLayer(layerSeed, pictures));
+  return true;
 }
 
 /** The sounds the tool already carries, looked up by name at the moment they are needed. */
