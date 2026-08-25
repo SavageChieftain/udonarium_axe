@@ -251,7 +251,7 @@ export class ChatTabSettingComponent {
       }
       this.selectedTab()!.portraitReset();
       const mess = encodeI18nMessage('common.chat.logClearedBy', { user: this.resolveRequesterName() });
-      this.chatMessageService.sendSystemMessageToTab(this.selectedTab()!, mess);
+      this.chatMessageService.sendSystemMessageToTab(this.selectedTab()!, mess, undefined, this.requesterUserId());
     }
   }
 
@@ -260,13 +260,18 @@ export class ChatTabSettingComponent {
 
     const mess = encodeI18nMessage('common.chat.logClearedBy', { user: this.resolveRequesterName() });
 
+    const requester = this.requesterUserId();
     for (const child of this.chatTabList.chatTabs) {
       while (child.children.length > 0) {
         child.children[0].destroy();
       }
       child.portraitReset();
-      this.chatMessageService.sendSystemMessageToTab(child, mess);
+      this.chatMessageService.sendSystemMessageToTab(child, mess, undefined, requester);
     }
+  }
+
+  private requesterUserId(): string {
+    return this.myPeer?.userId ?? '';
   }
 
   private resolveRequesterName(): string {

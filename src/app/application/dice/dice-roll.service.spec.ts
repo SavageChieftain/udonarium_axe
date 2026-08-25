@@ -125,6 +125,20 @@ describe('DiceRollService', () => {
 
       expect(sendSystemMessage).toHaveBeenCalledOnce();
     });
+
+    it('signs the result with whoever threw it', () => {
+      const tab = new ChatTab();
+      tab.initialize();
+      created.push(tab);
+      TestBed.inject(ActiveChatTabService).set(tab.identifier);
+      const toTab = vi
+        .spyOn(TestBed.inject(ChatMessageService), 'sendSystemMessageToTab')
+        .mockReturnValue(null as unknown as ChatMessage);
+
+      service.roll([makeDice('ダイスA')]);
+
+      expect(toTab.mock.calls[0][3]).toBe('me');
+    });
   });
 
   it('starts the die rolling on the screen of whoever threw it', () => {

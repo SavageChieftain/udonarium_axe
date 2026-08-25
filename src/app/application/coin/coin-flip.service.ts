@@ -36,10 +36,11 @@ export class CoinFlipService {
     });
     // Heads or tails is a two-sided die, so it lands in the tab the thrower is reading.
     const tab = this.activeChatTab.current();
+    const flipper = PeerCursor.myCursor?.userId ?? '';
     setTimeout(() => {
       if (!this.objectStore.get(coin.identifier)) return;
-      if (tab) this.chatMessageService.sendSystemMessageToTab(tab, text);
-      else this.chatMessageService.sendSystemMessage(text);
+      if (tab) this.chatMessageService.sendSystemMessageToTab(tab, text, undefined, flipper);
+      else this.chatMessageService.sendSystemMessage(text, undefined, flipper);
     }, RESULT_ANNOUNCE_DELAY_MS);
     return face;
   }
