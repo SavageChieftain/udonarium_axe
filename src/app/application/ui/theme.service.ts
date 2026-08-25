@@ -1,5 +1,5 @@
 import { DOCUMENT } from '@angular/common';
-import { DestroyRef, effect, inject, Injectable, signal } from '@angular/core';
+import { computed, DestroyRef, effect, inject, Injectable, signal } from '@angular/core';
 
 export type Theme = 'auto' | 'dark' | 'light';
 
@@ -15,6 +15,13 @@ export class ThemeService {
 
   private readonly systemPrefersDark = signal(window.matchMedia('(prefers-color-scheme: dark)').matches);
 
+  /** The theme actually on screen, with 'auto' settled against what the system asks for. */
+  readonly resolved = computed<Exclude<Theme, 'auto'>>(() => {
+    const theme = this.theme();
+    if (theme !== 'auto') return theme;
+    return this.systemPrefersDark() ? 'dark' : 'light';
+  });
+
   constructor() {
     const mql = window.matchMedia('(prefers-color-scheme: dark)');
     const listener = (e: MediaQueryListEvent) => this.systemPrefersDark.set(e.matches);
@@ -29,7 +36,7 @@ export class ThemeService {
       } else {
         html.setAttribute('data-theme', t);
       }
-      const resolved = t === 'auto' ? (this.systemPrefersDark() ? 'dark' : 'light') : t;
+      const resolved = this.resolved();
       html.classList.toggle('theme-light', resolved === 'light');
       html.classList.toggle('theme-dark', resolved === 'dark');
       localStorage.setItem(STORAGE_KEY, t);
