@@ -4,6 +4,8 @@ import { Network } from '@axe/core/index';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { DataSummarySetting } from '@axe/domain/data/data-summary-setting';
+import { PeerCursor } from '@axe/domain/peer/peer-cursor';
+import { PeerRole } from '@axe/domain/peer/peer-role';
 import { GameObjectInventoryComponent } from '@axe/features/inventory/game-object-inventory/game-object-inventory.component';
 import { expectPanelDragRecovery, PanelDragTestHostComponent } from '@axe/testing/panel-drag-recovery';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
@@ -570,6 +572,89 @@ describe('GameObjectInventoryComponent', () => {
       dragOnto(goblin, folderHeading('第1話'));
 
       expect(goblin.folderName).toBe('');
+    });
+
+    describe('the pieces the inventory hides', () => {
+      const originalCursor = PeerCursor.myCursor;
+
+      function beGameMaster(): void {
+        PeerCursor.myCursor = { role: PeerRole.GameMaster, identifier: 'gm-cursor' } as PeerCursor;
+      }
+
+      function bePlayer(): void {
+        PeerCursor.myCursor = { role: PeerRole.Player, identifier: 'pl-cursor' } as PeerCursor;
+      }
+
+      function putHiddenOnTable(name: string): GameCharacter {
+        const character = putOnTable(name);
+        character.hideInventory = true;
+        return character;
+      }
+
+      afterEach(() => {
+        PeerCursor.myCursor = originalCursor;
+      });
+
+      it('keeps every piece until the master filters', () => {
+        beGameMaster();
+        putOnTable('村長');
+        putHiddenOnTable('伏せた敵');
+
+        expect(component.filteredRows()).toHaveLength(2);
+        expect(component.isHiddenFiltered()).toBe(false);
+      });
+
+      it('narrows the list to what is hidden', () => {
+        beGameMaster();
+        putOnTable('村長');
+        putHiddenOnTable('伏せた敵');
+        component.hiddenFilter.set('only');
+
+        expect(component.filteredRows().map((row) => row.object.name)).toEqual(['伏せた敵']);
+        expect(component.isHiddenFiltered()).toBe(true);
+      });
+
+      it('drops what is hidden from the list', () => {
+        beGameMaster();
+        putOnTable('村長');
+        putHiddenOnTable('伏せた敵');
+        component.hiddenFilter.set('exclude');
+
+        expect(component.filteredRows().map((row) => row.object.name)).toEqual(['村長']);
+      });
+
+      it('narrows on the search as well as on what is hidden', () => {
+        beGameMaster();
+        putHiddenOnTable('伏せた敵');
+        putHiddenOnTable('伏せた罠');
+        component.hiddenFilter.set('only');
+        component.searchQuery.set('罠');
+
+        expect(component.filteredRows().map((row) => row.object.name)).toEqual(['伏せた罠']);
+      });
+
+      it('leaves a player the whole list, whatever the filter is set to', () => {
+        bePlayer();
+        putOnTable('村長');
+        component.hiddenFilter.set('only');
+
+        expect(component.activeHiddenFilter()).toBe('all');
+        expect(component.filteredRows().map((row) => row.object.name)).toEqual(['村長']);
+      });
+
+      it('darkens a hidden piece and lifts it again on request', () => {
+        beGameMaster();
+        const hidden = putHiddenOnTable('伏せた敵');
+        const shown = putOnTable('村長');
+
+        expect(component.isHiddenRowDimmed(hidden)).toBe(true);
+        expect(component.isHiddenRowDimmed(shown)).toBe(false);
+
+        component.toggleHiddenDisplay();
+
+        expect(component.hiddenDisplay()).toBe('full');
+        expect(component.isHiddenRowDimmed(hidden)).toBe(false);
+      });
     });
 
     it('ticks only the rows the search left when everything is selected', () => {

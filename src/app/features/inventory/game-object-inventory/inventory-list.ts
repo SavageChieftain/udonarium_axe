@@ -24,3 +24,18 @@ export function filterInventoryRows(
   if (terms.length < 1) return [...rows];
   return rows.filter((row) => matchesSearchText(searchTextOf(row), terms));
 }
+
+export type InventoryHiddenFilter = 'all' | 'only' | 'exclude';
+
+export const INVENTORY_HIDDEN_FILTERS: readonly InventoryHiddenFilter[] = ['all', 'only', 'exclude'];
+
+export type InventoryHiddenDisplay = 'dim' | 'full';
+
+export function filterInventoryRowsByHidden(
+  rows: readonly InventoryRow[],
+  filter: InventoryHiddenFilter,
+  isHidden: (row: InventoryRow) => boolean
+): InventoryRow[] {
+  if (filter === 'all') return [...rows];
+  return rows.filter((row) => isHidden(row) === (filter === 'only'));
+}

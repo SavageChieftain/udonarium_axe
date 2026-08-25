@@ -59,6 +59,10 @@ import {
 import {
   buildInventoryRow,
   filterInventoryRows,
+  filterInventoryRowsByHidden,
+  INVENTORY_HIDDEN_FILTERS,
+  type InventoryHiddenDisplay,
+  type InventoryHiddenFilter,
   type InventoryRow,
   inventorySearchText,
 } from '@axe/features/inventory/game-object-inventory/inventory-list';
@@ -304,9 +308,40 @@ export class GameObjectInventoryComponent {
     );
   });
 
+  private readonly hiddenFilterLabelKeys: Record<InventoryHiddenFilter, string> = {
+    all: 'feature.inventory.panel.hiddenFilterAll',
+    only: 'feature.inventory.panel.hiddenFilterOnly',
+    exclude: 'feature.inventory.panel.hiddenFilterExclude',
+  };
+
+  readonly hiddenFilterOptions = INVENTORY_HIDDEN_FILTERS.map((value) => ({
+    value,
+    labelKey: this.hiddenFilterLabelKeys[value],
+  }));
+
+  readonly hiddenFilter = signal<InventoryHiddenFilter>('all');
+  readonly hiddenDisplay = signal<InventoryHiddenDisplay>('dim');
+
+  readonly canSeeHidden = computed<boolean>(() => {
+    if (PeerCursor.myCursor) this.objectChange.versionOf(PeerCursor.myCursor.identifier)();
+    return this.rolePermission.canSeeHidden;
+  });
+
+  readonly activeHiddenFilter = computed<InventoryHiddenFilter>(() =>
+    this.canSeeHidden() ? this.hiddenFilter() : 'all'
+  );
+
+  readonly isHiddenFiltered = computed<boolean>(() => this.activeHiddenFilter() !== 'all');
+
+  toggleHiddenDisplay(): void {
+    this.hiddenDisplay.update((display) => (display === 'dim' ? 'full' : 'dim'));
+  }
+
   readonly filteredRows = computed<InventoryRow[]>(() => {
     const terms = this.searchTerms();
-    const rows = this.visibleRows();
+    const rows = filterInventoryRowsByHidden(this.visibleRows(), this.activeHiddenFilter(), (row) =>
+      this.isInventoryHiddenObject(row.object)
+    );
     if (terms.length < 1) return rows;
 
     // Owner names live on the cursors, so a rename over there has to reach the text being matched.
@@ -650,6 +685,10 @@ export class GameObjectInventoryComponent {
 
   isInventoryHiddenObject(gameObject: TabletopObject): boolean {
     return gameObject instanceof GameCharacter && gameObject.hideInventory;
+  }
+
+  isHiddenRowDimmed(gameObject: TabletopObject): boolean {
+    return this.isInventoryHiddenObject(gameObject) && this.hiddenDisplay() === 'dim';
   }
 
   canView(gameObject: TabletopObject): boolean {
