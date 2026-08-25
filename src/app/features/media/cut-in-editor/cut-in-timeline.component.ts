@@ -17,11 +17,13 @@ import type { CutInSound } from '@axe/domain/media/cut-in-sound';
 import { layerKeyTimes } from '@axe/features/media/cut-in-editor/cut-in-keyframe-edit';
 import {
   barRect,
-  formatMs,
   keyAtX,
   msToX,
   pxPerSecFor,
   snapMs,
+  TIMELINE_ROW_H_PX,
+  TIMELINE_RULER_H_PX,
+  TIMELINE_SOUND_H_PX,
   type TimelineTick,
   visibleTicks,
   xToMs,
@@ -75,6 +77,10 @@ export class CutInTimelineComponent {
 
   readonly pxPerSec = computed(() => pxPerSecFor(this.durationMs(), this.trackWidth()));
 
+  protected readonly rulerHeightPx = TIMELINE_RULER_H_PX;
+  protected readonly soundHeightPx = TIMELINE_SOUND_H_PX;
+  protected readonly rowHeightPx = TIMELINE_ROW_H_PX;
+
   readonly ticks = computed<TimelineTick[]>(() => visibleTicks(this.durationMs(), this.pxPerSec()));
 
   /** Topmost first, the way the layer list reads. */
@@ -99,8 +105,6 @@ export class CutInTimelineComponent {
   );
 
   readonly playheadX = computed(() => msToX(this.playheadMs(), this.pxPerSec()));
-
-  readonly clock = computed(() => `${formatMs(this.playheadMs())} / ${formatMs(this.durationMs())}`);
 
   constructor() {
     afterNextRender(() => this.watchTrackWidth());

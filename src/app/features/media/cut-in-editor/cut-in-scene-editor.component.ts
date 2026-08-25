@@ -74,6 +74,7 @@ import {
   toLayerLocalDelta,
 } from '@axe/features/media/cut-in-editor/cut-in-stage-geometry';
 import { CutInTimelineComponent } from '@axe/features/media/cut-in-editor/cut-in-timeline.component';
+import { formatMs, TIMELINE_HEAD_OFFSET_PX } from '@axe/features/media/cut-in-editor/cut-in-timeline-geometry';
 import { CutInStageComponent } from '@axe/features/media/cut-in-stage/cut-in-stage.component';
 import type { DropSide } from '@axe/ui/dragging/row-reorder';
 import { TranslocoModule } from '@jsverse/transloco';
@@ -130,6 +131,10 @@ export class CutInSceneEditorComponent {
   protected readonly selectedIdentifier = signal<string>('');
   protected readonly playing = signal(false);
   protected readonly playheadMs = signal(0);
+
+  /** The heads beside the timeline start below its ruler and its sound row. */
+  protected readonly timelineHeadOffsetPx = TIMELINE_HEAD_OFFSET_PX;
+  protected readonly clock = computed(() => `${formatMs(this.playheadMs())} / ${formatMs(this.durationMs())}`);
   private readonly stageSize = signal({ width: 0, height: 0 });
   private readonly bumped = signal(0);
 

@@ -2,6 +2,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { CutInLayer } from '@axe/domain/media/cut-in-layer';
 import { CutInLayerListComponent } from '@axe/features/media/cut-in-editor/cut-in-layer-list.component';
+import { TIMELINE_ROW_H_PX } from '@axe/features/media/cut-in-editor/cut-in-timeline-geometry';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
 
 describe('CutInLayerListComponent', () => {
@@ -46,10 +47,17 @@ describe('CutInLayerListComponent', () => {
     return [...fixture.nativeElement.querySelectorAll('li span')].map((el) => (el as HTMLElement).textContent?.trim());
   }
 
-  it('says so when there is nothing in it', () => {
+  it('has no heads to show where there are no layers', () => {
     show([]);
 
-    expect(fixture.nativeElement.textContent).toContain('レイヤーがありません');
+    expect(fixture.nativeElement.querySelectorAll('li')).toHaveLength(0);
+  });
+
+  it('stands each head as tall as the band it sits beside', () => {
+    show([makeLayer('上'), makeLayer('下')]);
+
+    const rows = [...fixture.nativeElement.querySelectorAll('li')] as HTMLElement[];
+    for (const row of rows) expect(row.style.height).toBe(`${TIMELINE_ROW_H_PX}px`);
   });
 
   it('reads the stack from the top down', () => {

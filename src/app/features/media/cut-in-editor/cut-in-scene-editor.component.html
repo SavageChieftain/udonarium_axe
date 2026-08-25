@@ -117,20 +117,7 @@
     </label>
   </div>
 
-  <div class="grid min-h-0 flex-1 grid-cols-[minmax(6rem,11rem)_minmax(0,1fr)_13rem] gap-0">
-    <div class="panel-no-drag border-ui-border-panel bg-ui-panel min-h-0 min-w-0 overflow-hidden border-r border-solid">
-      <cut-in-layer-list
-        class="h-full"
-        [layers]="layers()"
-        [selected]="selected()"
-        [isEditable]="isEditable()"
-        (selectLayer)="onSelect($event)"
-        (toggleHidden)="onToggleHidden($event)"
-        (toggleLocked)="onToggleLocked($event)"
-        (reorder)="onReorder($event)"
-      />
-    </div>
-
+  <div class="grid min-h-0 flex-1 grid-cols-[minmax(0,1fr)_13rem] gap-0">
     <div
       class="panel-no-drag relative min-h-0 min-w-0 touch-none overflow-hidden bg-[repeating-conic-gradient(rgba(255,255,255,0.06)_0%_25%,transparent_0%_50%)] bg-size-[16px_16px] select-none"
       #stageArea
@@ -208,21 +195,42 @@
     </div>
   </div>
 
-  <div class="panel-no-drag border-ui-border-panel h-32 shrink-0 border-t border-solid">
-    <cut-in-timeline
-      class="h-full"
-      [layers]="layers()"
-      [sounds]="sounds()"
-      [selected]="selected()"
-      [durationMs]="durationMs()"
-      [playheadMs]="playheadMs()"
-      [isEditable]="isEditable()"
-      (seek)="onSeek($event)"
-      (selectLayer)="onSelect($event)"
-      (moveKey)="onMoveKey($event)"
-      (removeKey)="onRemoveKey($event)"
-      (moveSound)="onMoveSound($event)"
-      (removeSound)="onRemoveSound($event)"
-    />
+  <div class="panel-no-drag border-ui-border-panel flex h-40 shrink-0 flex-col border-t border-solid">
+    <div class="border-ui-border-panel text-ui-muted flex shrink-0 items-center gap-2 border-b border-solid px-2 py-1">
+      <i class="material-icons text-[13px]! opacity-70">schedule</i>
+      <span class="text-[11px] tabular-nums">{{ clock() }}</span>
+    </div>
+
+    <div class="flex min-h-0 flex-1 overflow-y-auto">
+      <div class="border-ui-border-panel bg-ui-panel w-40 shrink-0 border-r border-solid">
+        <!-- Level with the ruler and the sound row, so the first head meets the first band. -->
+        <div class="border-ui-border-panel border-b border-solid" [style.height.px]="timelineHeadOffsetPx"></div>
+        <cut-in-layer-list
+          [layers]="layers()"
+          [selected]="selected()"
+          [isEditable]="isEditable()"
+          (selectLayer)="onSelect($event)"
+          (toggleHidden)="onToggleHidden($event)"
+          (toggleLocked)="onToggleLocked($event)"
+          (reorder)="onReorder($event)"
+        />
+      </div>
+
+      <cut-in-timeline
+        class="min-w-0 flex-1"
+        [layers]="layers()"
+        [sounds]="sounds()"
+        [selected]="selected()"
+        [durationMs]="durationMs()"
+        [playheadMs]="playheadMs()"
+        [isEditable]="isEditable()"
+        (seek)="onSeek($event)"
+        (selectLayer)="onSelect($event)"
+        (moveKey)="onMoveKey($event)"
+        (removeKey)="onRemoveKey($event)"
+        (moveSound)="onMoveSound($event)"
+        (removeSound)="onRemoveSound($event)"
+      />
+    </div>
   </div>
 </div>

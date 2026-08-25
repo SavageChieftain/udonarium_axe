@@ -3,6 +3,7 @@ import { ObjectStore } from '@axe/core/sync/object-store';
 import { encodeCutInTracks } from '@axe/domain/media/cut-in-keyframe';
 import { CutInLayer } from '@axe/domain/media/cut-in-layer';
 import { CutInTimelineComponent } from '@axe/features/media/cut-in-editor/cut-in-timeline.component';
+import { TIMELINE_ROW_H_PX, TIMELINE_RULER_H_PX } from '@axe/features/media/cut-in-editor/cut-in-timeline-geometry';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
 
 describe('CutInTimelineComponent', () => {
@@ -90,12 +91,14 @@ describe('CutInTimelineComponent', () => {
     expect(component.rows()[0].keys.map((key) => key.ms)).toEqual([0, 800]);
   });
 
-  it('writes the clock out for the scrubber and the scene', () => {
+  it('stands its bands at the height the heads beside it are cut to', () => {
     show([makeLayer('背景')], 2500);
-    fixture.componentRef.setInput('playheadMs', 1234);
-    fixture.detectChanges();
 
-    expect(component.clock()).toBe('0:01.23 / 0:02.50');
+    const heights = ([...fixture.nativeElement.querySelectorAll('div')] as HTMLElement[]).map(
+      (band) => band.style.height
+    );
+    expect(heights).toContain(`${TIMELINE_ROW_H_PX}px`);
+    expect(heights).toContain(`${TIMELINE_RULER_H_PX}px`);
   });
 
   it('lays a ruler with something to read along it', () => {

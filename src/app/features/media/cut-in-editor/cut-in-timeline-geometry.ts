@@ -13,6 +13,19 @@ export interface TimelineTick {
 
 /** How near a key has to be to count as the one grabbed, and what the clock is rounded to. */
 export const KEY_GRAB_PX = 6;
+
+/**
+ * How tall each band of the timeline stands.
+ *
+ * The layer heads sit beside the bands rather than off in a column of their own, so that a
+ * row of keyframes can be read off against the name of the layer it belongs to. Both are
+ * measured from here, which is what keeps them level with one another.
+ */
+export const TIMELINE_RULER_H_PX = 20;
+export const TIMELINE_SOUND_H_PX = 20;
+export const TIMELINE_ROW_H_PX = 24;
+/** How far down the first layer band begins: the ruler and the sound row above it. */
+export const TIMELINE_HEAD_OFFSET_PX = TIMELINE_RULER_H_PX + TIMELINE_SOUND_H_PX;
 export const SNAP_MS = 10;
 
 /** The scale that fits the whole scene into the room the track has. */

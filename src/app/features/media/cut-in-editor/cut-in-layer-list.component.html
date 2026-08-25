@@ -1,7 +1,8 @@
-<ul class="m-0 flex h-full list-none flex-col overflow-y-auto p-1" role="listbox" (dragover)="$event.preventDefault()">
+<ul class="m-0 flex list-none flex-col p-0" role="listbox" (dragover)="$event.preventDefault()">
   @for (layer of rows; track layer.identifier) {
     <li
-      class="text-ui-muted hover:bg-ui-hover hover:text-ui-text mx-0.5 flex cursor-pointer items-center gap-1 rounded-sm px-1.5 py-1 text-[12px] transition-colors"
+      class="border-ui-border-panel/60 text-ui-muted hover:bg-ui-hover hover:text-ui-text flex cursor-pointer items-center gap-1 border-b border-solid px-1.5 text-[11px] transition-colors"
+      [style.height.px]="rowHeightPx"
       #row
       role="option"
       [attr.aria-selected]="selected()?.identifier === layer.identifier"
@@ -41,12 +42,6 @@
       <span class="truncate" [title]="layer.name || ('feature.media.cutInEditor.unnamedLayer' | transloco)">{{
         layer.name || ('feature.media.cutInEditor.unnamedLayer' | transloco)
       }}</span>
-    </li>
-  }
-
-  @if (rows.length === 0) {
-    <li class="text-ui-dim px-2 py-3 text-center text-[11px]">
-      {{ 'feature.media.cutInEditor.noLayers' | transloco }}
     </li>
   }
 </ul>

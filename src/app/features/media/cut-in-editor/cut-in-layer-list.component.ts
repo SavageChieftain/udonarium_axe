@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, ElementRef, input, output } from '@angular/core';
 import { CutInLayer } from '@axe/domain/media/cut-in-layer';
+import { TIMELINE_ROW_H_PX } from '@axe/features/media/cut-in-editor/cut-in-timeline-geometry';
 import { type DropSide, RowReorder } from '@axe/ui/dragging/row-reorder';
 import { TranslocoModule } from '@jsverse/transloco';
 
@@ -20,6 +21,9 @@ export class CutInLayerListComponent {
   readonly toggleHidden = output<CutInLayer>();
   readonly toggleLocked = output<CutInLayer>();
   readonly reorder = output<{ held: CutInLayer; over: CutInLayer; side: DropSide | null }>();
+
+  /** The bands of the timeline are this tall, and these heads stand level with them. */
+  protected readonly rowHeightPx = TIMELINE_ROW_H_PX;
 
   protected readonly dragging = new RowReorder<CutInLayer>();
 
