@@ -3,6 +3,7 @@ import { ObjectStore } from '@axe/core/sync/object-store';
 import { CutIn } from '@axe/domain/media/cut-in';
 import { encodeCutInTracks } from '@axe/domain/media/cut-in-keyframe';
 import { CutInLayer } from '@axe/domain/media/cut-in-layer';
+import { keysOf, valueAt } from '@axe/features/media/cut-in-editor/cut-in-keyframe-edit';
 import { CutInSceneEditorComponent } from '@axe/features/media/cut-in-editor/cut-in-scene-editor.component';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
 
@@ -81,6 +82,11 @@ describe('CutInSceneEditorComponent', () => {
     stageZoomIn(): void;
     stageZoomOut(): void;
     stageZoomToFit(): void;
+    copyPose(): void;
+    pastePose(): void;
+    hasHeldPose: boolean;
+    onSeekSeconds(event: Event): void;
+    playheadSeconds(): number;
   };
 
   function editor(): EditorApi {
@@ -647,6 +653,98 @@ describe('CutInSceneEditorComponent', () => {
       for (let at = 0; at < 20; at++) editor().stageZoomIn();
 
       expect(editor().canStageZoomIn()).toBe(false);
+    });
+  });
+
+  describe('taking a moment and laying it down again', () => {
+    function movingLayer(): CutInLayer {
+      editor().addTextLayer();
+      const layer = component.layers()[0];
+      layer.tracks = encodeCutInTracks({
+        x: [
+          { t: 0, v: 0 },
+          { t: 1000, v: 200 },
+        ],
+      });
+      editor().onSelect(layer);
+      fixture.detectChanges();
+      return layer;
+    }
+
+    it('holds nothing to begin with', () => {
+      expect(editor().hasHeldPose).toBe(false);
+    });
+
+    it('takes what the layer in hand is holding at the playhead', () => {
+      movingLayer();
+
+      editor().copyPose();
+
+      expect(editor().hasHeldPose).toBe(true);
+    });
+
+    it('lays it down again where the playhead has moved to', () => {
+      const layer = movingLayer();
+      editor().onSeek(1000);
+      editor().copyPose();
+      editor().onSeek(1400);
+
+      editor().pastePose();
+
+      expect(valueAt(layer, 'x', 1400)).toBeCloseTo(200, 5);
+    });
+
+    it('lays nothing down on a locked layer', () => {
+      const layer = movingLayer();
+      editor().copyPose();
+      layer.locked = true;
+      editor().onSeek(1400);
+
+      editor().pastePose();
+
+      expect(keysOf(layer, 'x')).toHaveLength(2);
+    });
+
+    it('lays nothing down with nothing held', () => {
+      const layer = movingLayer();
+      editor().onSeek(1400);
+
+      editor().pastePose();
+
+      expect(keysOf(layer, 'x')).toHaveLength(2);
+    });
+  });
+
+  describe('typing a moment rather than dragging at one', () => {
+    it('goes to the second typed', () => {
+      editor().addTextLayer();
+      fixture.detectChanges();
+
+      editor().onSeekSeconds({ target: { value: '0.4' } } as unknown as Event);
+
+      expect(editor().playheadMs()).toBe(400);
+      expect(editor().playheadSeconds()).toBe(0.4);
+    });
+
+    it('holds what was typed inside the scene', () => {
+      editor().addTextLayer();
+      fixture.detectChanges();
+
+      editor().onSeekSeconds({ target: { value: '-5' } } as unknown as Event);
+      expect(editor().playheadMs()).toBe(0);
+
+      editor().onSeekSeconds({ target: { value: '9999' } } as unknown as Event);
+      expect(editor().playheadMs()).toBe(component.durationMs());
+    });
+
+    it('ignores anything that is not a number', () => {
+      editor().addTextLayer();
+      editor().onSeek(300);
+      fixture.detectChanges();
+
+      editor().onSeekSeconds({ target: { value: 'soon' } } as unknown as Event);
+
+      expect(editor().playheadMs()).toBe(300);
     });
   });
 });

@@ -433,7 +433,10 @@
         "jumpForward": "To the next key (shift and right)",
         "stageZoomIn": "Lean into the stage",
         "stageZoomOut": "Lean back out",
-        "stageZoomFit": "Fit the whole cut-in (or hold ctrl and scroll)"
+        "stageZoomFit": "Fit the whole cut-in (or hold ctrl and scroll)",
+        "copyPose": "Take the moment this layer is holding (ctrl and C)",
+        "pastePose": "Lay it down at the playhead (ctrl and V)",
+        "seekTo": "Go to a moment"
       }
     },
     "card": {

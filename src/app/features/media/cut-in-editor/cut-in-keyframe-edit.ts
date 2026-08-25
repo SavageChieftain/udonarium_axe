@@ -169,3 +169,46 @@ export function setEasingAtMoment(layer: CutInLayer, ms: number, easing: CutInEa
   if (written) writeTracks(layer, tracks);
   return written;
 }
+
+/**
+ * Every value a layer holds at one moment, and putting that back at another.
+ *
+ * A pose worked out once — where a layer sits, how far round, how faint — is often wanted
+ * again later in the scene, or on a layer beside it. Copying the moment rather than each
+ * of nine fields is what every editor offers, and there was no way to do it here at all.
+ */
+export interface CutInPose {
+  readonly values: Readonly<Record<CutInTrackName, number>>;
+  /** The tracks the layer it was taken from actually moves on. */
+  readonly moving: readonly CutInTrackName[];
+}
+
+export function poseAt(layer: CutInLayer, ms: number): CutInPose {
+  const values = {} as Record<CutInTrackName, number>;
+  const moving: CutInTrackName[] = [];
+  for (const track of CUT_IN_TRACKS) {
+    values[track] = valueAt(layer, track, ms);
+    if ((layer.trackSet[track]?.length ?? 0) > 0) moving.push(track);
+  }
+  return { values, moving };
+}
+
+/**
+ * Lays a pose down as keys at a moment.
+ *
+ * Only what the layer it came from was moving is written, so pasting a pose does not pin
+ * down nine properties that were never animated. A pose off a layer that moves at nothing
+ * has nothing to lay down.
+ */
+export function pastePoseAt(layer: CutInLayer, pose: CutInPose, ms: number): boolean {
+  if (pose.moving.length < 1) return false;
+
+  const tracks = { ...layer.trackSet };
+  for (const track of pose.moving) {
+    const value = pose.values[track];
+    if (!Number.isFinite(value)) continue;
+    tracks[track] = upsertKey(tracks[track], { t: ms, v: value });
+  }
+  writeTracks(layer, tracks);
+  return true;
+}

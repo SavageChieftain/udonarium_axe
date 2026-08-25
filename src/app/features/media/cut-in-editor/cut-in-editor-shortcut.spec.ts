@@ -67,4 +67,23 @@ describe('cutInEditorKeyDown()', () => {
       expect(cutInEditorKeyDown('ArrowLeft', { ...plain, chord: true })).toBeNull();
     });
   });
+
+  describe('taking a moment and laying it down again', () => {
+    it('takes the moment the layer in hand is holding', () => {
+      expect(cutInEditorKeyDown('c', { ...plain, chord: true })?.command).toBe('copyPose');
+    });
+
+    it('lays it down again', () => {
+      expect(cutInEditorKeyDown('v', { ...plain, chord: true })?.command).toBe('pastePose');
+    });
+
+    it('does neither with no layer in hand, leaving the keys to the browser', () => {
+      expect(cutInEditorKeyDown('c', { ...plain, chord: true, hasSelection: false })).toBeNull();
+      expect(cutInEditorKeyDown('v', { ...plain, chord: true, hasSelection: false })).toBeNull();
+    });
+
+    it('does neither while something is being typed', () => {
+      expect(cutInEditorKeyDown('c', { ...plain, chord: true, typing: true })).toBeNull();
+    });
+  });
 });

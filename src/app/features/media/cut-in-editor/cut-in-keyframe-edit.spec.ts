@@ -8,6 +8,8 @@ import {
   keysOf,
   layerKeyTimes,
   moveLayerKeys,
+  pastePoseAt,
+  poseAt,
   removeLayerKeys,
   restingValue,
   setEasingAtMoment,
@@ -234,5 +236,87 @@ describe('cut-in keyframe editing', () => {
     it('writes nothing where no key stands', () => {
       expect(setEasingAtMoment(makeLayer(), 500, 'linear')).toBe(false);
     });
+  });
+});
+
+describe('copying a moment and laying it down again', () => {
+  function layerWith(tracks: Record<string, { t: number; v: number }[]>): CutInLayer {
+    const layer = new CutInLayer();
+    layer.initialize();
+    layer.tracks = encodeCutInTracks(tracks as never);
+    return layer;
+  }
+
+  it('takes every value the layer holds at that moment', () => {
+    const layer = layerWith({
+      x: [
+        { t: 0, v: 10 },
+        { t: 1000, v: 110 },
+      ],
+    });
+
+    const pose = poseAt(layer, 500);
+
+    // Whatever the layer is doing there, easing and all, rather than a number worked out again.
+    expect(pose.values.x).toBe(valueAt(layer, 'x', 500));
+    expect(pose.values.x).toBeGreaterThan(10);
+    expect(pose.values.x).toBeLessThan(110);
+    // What is not keyed is taken as it rests, which is what the layer is doing there.
+    expect(pose.values.opacity).toBe(layer.opacity);
+  });
+
+  it('lays it down again as keys at another moment', () => {
+    const layer = layerWith({
+      x: [
+        { t: 0, v: 10 },
+        { t: 1000, v: 110 },
+      ],
+    });
+    const pose = poseAt(layer, 500);
+
+    expect(pastePoseAt(layer, pose, 1500)).toBe(true);
+    expect(valueAt(layer, 'x', 1500)).toBeCloseTo(pose.values.x, 5);
+  });
+
+  it('carries a moment from one layer to another', () => {
+    const from = layerWith({
+      rotation: [
+        { t: 0, v: 0 },
+        { t: 800, v: 90 },
+      ],
+    });
+    const onto = layerWith({ rotation: [{ t: 0, v: 0 }] });
+
+    pastePoseAt(onto, poseAt(from, 800), 400);
+
+    expect(valueAt(onto, 'rotation', 400)).toBeCloseTo(90, 5);
+  });
+
+  it('writes only what the layer it came from was moving', () => {
+    const from = layerWith({ x: [{ t: 0, v: 50 }] });
+    const onto = layerWith({ opacity: [{ t: 0, v: 1 }] });
+
+    pastePoseAt(onto, poseAt(from, 0), 500);
+
+    expect(keysOf(onto, 'x')).toHaveLength(1);
+    // Nine properties are not pinned down for the sake of the one that was moving.
+    expect(keysOf(onto, 'opacity')).toHaveLength(1);
+    expect(keysOf(onto, 'rotation')).toHaveLength(0);
+  });
+
+  it('has nothing to lay down from a layer that moves at nothing', () => {
+    const from = layerWith({});
+    const onto = layerWith({ x: [{ t: 0, v: 0 }] });
+
+    expect(pastePoseAt(onto, poseAt(from, 0), 300)).toBe(false);
+    expect(keysOf(onto, 'x')).toHaveLength(1);
+  });
+
+  it('starts a track off where the layer taken onto had none', () => {
+    const from = layerWith({ rotation: [{ t: 0, v: 45 }] });
+    const onto = layerWith({});
+
+    expect(pastePoseAt(onto, poseAt(from, 0), 300)).toBe(true);
+    expect(keysOf(onto, 'rotation')).toHaveLength(1);
   });
 });

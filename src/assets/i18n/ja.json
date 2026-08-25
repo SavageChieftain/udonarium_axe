@@ -433,7 +433,10 @@
         "jumpForward": "次のキーへ（Shift+→）",
         "stageZoomIn": "ステージを拡大",
         "stageZoomOut": "ステージを縮小",
-        "stageZoomFit": "全体を表示（Ctrl+ホイールでも拡縮）"
+        "stageZoomFit": "全体を表示（Ctrl+ホイールでも拡縮）",
+        "copyPose": "この瞬間の姿をコピー（Ctrl+C）",
+        "pastePose": "再生ヘッドの位置に貼り付け（Ctrl+V）",
+        "seekTo": "時刻を指定"
       }
     },
     "card": {

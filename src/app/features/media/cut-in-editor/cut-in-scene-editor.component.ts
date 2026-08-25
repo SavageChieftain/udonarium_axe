@@ -53,7 +53,12 @@ import {
   setValueAt,
   valueAt,
 } from '@axe/features/media/cut-in-editor/cut-in-keyframe-edit';
-import { layerKeyTimes } from '@axe/features/media/cut-in-editor/cut-in-keyframe-edit';
+import {
+  type CutInPose,
+  layerKeyTimes,
+  pastePoseAt,
+  poseAt,
+} from '@axe/features/media/cut-in-editor/cut-in-keyframe-edit';
 import { CutInLayerListComponent } from '@axe/features/media/cut-in-editor/cut-in-layer-list.component';
 import { CutInLayerPropertiesComponent } from '@axe/features/media/cut-in-editor/cut-in-layer-properties.component';
 import {
@@ -171,7 +176,16 @@ export class CutInSceneEditorComponent {
   protected readonly zoomPercent = computed(() => Math.round(this.timelineZoom() * 100));
   protected readonly canZoomIn = computed(() => this.timelineZoom() < MAX_TIMELINE_ZOOM);
   protected readonly canZoomOut = computed(() => this.timelineZoom() > MIN_TIMELINE_ZOOM);
-  protected readonly clock = computed(() => `${formatMs(this.playheadMs())} / ${formatMs(this.durationMs())}`);
+  protected readonly clock = computed(() => formatMs(this.durationMs()));
+  protected readonly playheadSeconds = computed(() => Math.round(this.playheadMs()) / 1000);
+
+  /** A moment typed rather than dragged at, which is the only way to hit an exact one. */
+  protected onSeekSeconds(event: Event): void {
+    const seconds = Number((event.target as HTMLInputElement).value);
+    if (!Number.isFinite(seconds)) return;
+    this.pause();
+    this.onSeek(Math.min(this.durationMs(), Math.max(0, Math.round(seconds * 1000))));
+  }
   private readonly stageSize = signal({ width: 0, height: 0 });
   private readonly bumped = signal(0);
 
@@ -659,6 +673,34 @@ export class CutInSceneEditorComponent {
     else if (command === 'jumpForward') this.jumpToKey(true);
     else if (command === 'toStart') this.onSeek(0);
     else if (command === 'toEnd') this.onSeek(this.durationMs());
+    else if (command === 'copyPose') this.copyPose();
+    else if (command === 'pastePose') this.pastePose();
+  }
+
+  /**
+   * The moment the layer in hand is holding, kept until it is laid down somewhere else.
+   *
+   * It lives for as long as the editor is open rather than going near the system clipboard,
+   * which holds text and would have nowhere to put nine numbers a reader could use.
+   */
+  private held: CutInPose | null = null;
+
+  protected copyPose(): void {
+    const layer = this.selected();
+    if (!layer) return;
+    this.held = poseAt(layer, this.playheadMs());
+  }
+
+  protected pastePose(): void {
+    const layer = this.selected();
+    const pose = this.held;
+    if (!layer || !pose || !this.isEditable() || layer.locked) return;
+    if (!pastePoseAt(layer, pose, this.playheadMs())) return;
+    this.changed();
+  }
+
+  protected get hasHeldPose(): boolean {
+    return this.held !== null;
   }
 
   /** A step along the scene, no smaller than what a moment is rounded to. */

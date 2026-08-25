@@ -17,7 +17,9 @@ export type CutInEditorCommand =
   | 'jumpBack'
   | 'jumpForward'
   | 'toStart'
-  | 'toEnd';
+  | 'toEnd'
+  | 'copyPose'
+  | 'pastePose';
 
 export interface CutInEditorKeyContext {
   /** The focus is in a field. */
@@ -42,6 +44,13 @@ export function cutInEditorKeyDown(key: string, context: CutInEditorKeyContext):
   if (context.chord && letter === 'z' && !context.shift) return { command: 'undo', preventDefault: true };
   if (context.chord && (letter === 'y' || (context.shift && letter === 'z'))) {
     return { command: 'redo', preventDefault: true };
+  }
+  // The moment a layer is holding, taken and laid down again.
+  if (context.chord && letter === 'c' && context.hasSelection) {
+    return { command: 'copyPose', preventDefault: true };
+  }
+  if (context.chord && letter === 'v' && context.hasSelection) {
+    return { command: 'pastePose', preventDefault: true };
   }
   if (context.chord) return null;
 

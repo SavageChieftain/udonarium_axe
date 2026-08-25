@@ -57,6 +57,27 @@
     <button
       class="border-ui-border-panel text-ui-muted hover:bg-ui-hover hover:text-ui-text rounded-ui-sm inline-flex size-7 cursor-pointer items-center justify-center border border-solid bg-transparent p-0 disabled:cursor-not-allowed disabled:opacity-40 [&_.material-icons]:text-[14px]!"
       type="button"
+      [disabled]="!isEditable() || !selected()"
+      [title]="'feature.media.cutInEditor.copyPose' | transloco"
+      (click)="copyPose()"
+    >
+      <i class="material-icons">bookmark_add</i>
+    </button>
+    <button
+      class="border-ui-border-panel text-ui-muted hover:bg-ui-hover hover:text-ui-text rounded-ui-sm inline-flex size-7 cursor-pointer items-center justify-center border border-solid bg-transparent p-0 disabled:cursor-not-allowed disabled:opacity-40 [&_.material-icons]:text-[14px]!"
+      type="button"
+      [disabled]="!isEditable() || !selected() || !hasHeldPose"
+      [title]="'feature.media.cutInEditor.pastePose' | transloco"
+      (click)="pastePose()"
+    >
+      <i class="material-icons">bookmark_added</i>
+    </button>
+
+    <span class="border-ui-border-panel mx-1 h-5 border-l border-solid"></span>
+
+    <button
+      class="border-ui-border-panel text-ui-muted hover:bg-ui-hover hover:text-ui-text rounded-ui-sm inline-flex size-7 cursor-pointer items-center justify-center border border-solid bg-transparent p-0 disabled:cursor-not-allowed disabled:opacity-40 [&_.material-icons]:text-[14px]!"
+      type="button"
       [title]="'feature.media.cutInEditor.jumpBack' | transloco"
       (click)="jumpToKey(false)"
     >
@@ -247,7 +268,17 @@
   <div class="panel-no-drag border-ui-border-panel flex h-40 shrink-0 flex-col border-t border-solid">
     <div class="border-ui-border-panel text-ui-muted flex shrink-0 items-center gap-2 border-b border-solid px-2 py-1">
       <i class="material-icons text-[13px]! opacity-70">schedule</i>
-      <span class="text-[11px] tabular-nums">{{ clock() }}</span>
+      <input
+        class="bg-ui-input border-ui-border-panel text-ui-text rounded-ui-sm focus:border-ui-accent w-16 border border-solid px-1 py-0.5 text-[11px] tabular-nums outline-none"
+        type="number"
+        step="0.01"
+        min="0"
+        [max]="durationMs() / 1000"
+        [value]="playheadSeconds()"
+        [title]="'feature.media.cutInEditor.seekTo' | transloco"
+        (change)="onSeekSeconds($event)"
+      />
+      <span class="text-ui-dim text-[11px] tabular-nums">/ {{ clock() }}</span>
 
       <span class="ml-auto inline-flex items-center gap-0.5">
         <button
