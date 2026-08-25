@@ -155,7 +155,7 @@ export const DEFAULT_CUT_IN_SEEDS: readonly CutInSeed[] = [
   {
     identifier: 'sample-cut-in-flash',
     sceneIdentifier: 'sample-cut-in-flash-scene',
-    name: '見本 : カッ',
+    name: 'Sample1',
     width: 1000,
     height: 330,
     durationMs: 1100,
@@ -313,7 +313,7 @@ export const DEFAULT_CUT_IN_SEEDS: readonly CutInSeed[] = [
   {
     identifier: 'sample-cut-in-tear',
     sceneIdentifier: 'sample-cut-in-tear-scene',
-    name: '見本 : ブチッ',
+    name: 'Sample2',
     width: 1240,
     height: 500,
     durationMs: 1500,
