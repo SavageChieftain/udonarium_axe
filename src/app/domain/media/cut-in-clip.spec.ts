@@ -43,6 +43,22 @@ describe('clipPoints()', () => {
     expect(corners.some(([x]) => x > 0 && x < 1)).toBe(true);
   });
 
+  it('bites the teeth of a left-torn edge into its left side', () => {
+    const teeth = clipPoints('tornLeft').filter(([x]) => x > 0 && x < 1);
+
+    expect(teeth.length).toBeGreaterThan(0);
+    // Every one of them near the left edge, which is what the name says.
+    expect(teeth.every(([x]) => x < 0.5)).toBe(true);
+  });
+
+  it('bites them into the right side of a right-torn edge', () => {
+    const teeth = clipPoints('torn')
+      .filter(([x]) => x > 0 && x < 1)
+      .filter(([x]) => x > 0.5);
+
+    expect(teeth.length).toBeGreaterThan(0);
+  });
+
   it('tears the same way every time, so a room looks the same on every screen', () => {
     expect(clipPoints('torn')).toEqual(clipPoints('torn'));
   });

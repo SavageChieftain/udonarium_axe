@@ -47,7 +47,7 @@ const SHAPES: Record<Exclude<CutInClip, 'none' | 'circle'>, readonly ClipPoint[]
     [LEAN, 1],
   ],
   torn: tornOutline(true, true),
-  tornLeft: tornOutline(true, false),
+  tornLeft: tornOutline(false, true),
   gash: gashOutline(),
   burst: burstOutline(),
   star: starOutline(),
