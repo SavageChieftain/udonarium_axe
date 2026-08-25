@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { ObjectStore } from '@axe/core/sync/object-store';
-import { ImageTag } from '@axe/domain/media/image-tag';
+import { canBrowseImage, ImageTag, SYSTEM_RESERVED_TAG } from '@axe/domain/media/image-tag';
 
 describe('ImageTag', () => {
   let store: ObjectStore;
@@ -63,6 +63,23 @@ describe('ImageTag', () => {
     });
   });
 
+  describe('keeping a picture back', () => {
+    it('keeps nothing back to begin with', () => {
+      expect(ImageTag.create('img001').isSecret).toBe(false);
+      expect(ImageTag.isSecret('img001')).toBe(false);
+    });
+
+    it('remembers what the master chose to keep', () => {
+      ImageTag.create('img001').isSecret = true;
+
+      expect(ImageTag.isSecret('img001')).toBe(true);
+    });
+
+    it('says nothing is kept back where there is no tag at all', () => {
+      expect(ImageTag.isSecret('never-tagged')).toBe(false);
+    });
+  });
+
   describe('containsWords()', () => {
     it('is true when every word is there', () => {
       const tag = ImageTag.create('img001');
@@ -81,5 +98,39 @@ describe('ImageTag', () => {
       tag.tag = 'anything';
       expect(tag.containsWords([])).toBe(true);
     });
+  });
+});
+
+describe('canBrowseImage()', () => {
+  function tag(partial: { tag?: string; isSecret?: boolean }): ImageTag {
+    return { tag: partial.tag ?? '', isSecret: partial.isSecret ?? false } as ImageTag;
+  }
+
+  it('shows a picture nobody has said anything about', () => {
+    expect(canBrowseImage(null, false)).toBe(true);
+    expect(canBrowseImage(tag({}), false)).toBe(true);
+  });
+
+  it('shows one a person has filed under a name of their own', () => {
+    expect(canBrowseImage(tag({ tag: 'コマ' }), false)).toBe(true);
+  });
+
+  it('never shows what the tool brought with it, master or not', () => {
+    expect(canBrowseImage(tag({ tag: SYSTEM_RESERVED_TAG }), false)).toBe(false);
+    expect(canBrowseImage(tag({ tag: SYSTEM_RESERVED_TAG }), true)).toBe(false);
+  });
+
+  it('keeps one the master has kept away from everyone else', () => {
+    expect(canBrowseImage(tag({ isSecret: true }), false)).toBe(false);
+  });
+
+  it('shows it to the master', () => {
+    expect(canBrowseImage(tag({ isSecret: true }), true)).toBe(true);
+  });
+
+  it('folds it away again when the master asks for that', () => {
+    expect(canBrowseImage(tag({ isSecret: true }), true, false)).toBe(false);
+    // Folding them away is the master's own view; it lets nothing else through.
+    expect(canBrowseImage(tag({ tag: 'コマ' }), true, false)).toBe(true);
   });
 });

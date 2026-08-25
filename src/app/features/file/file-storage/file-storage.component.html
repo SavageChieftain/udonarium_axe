@@ -1,22 +1,37 @@
 <div class="flex flex-col gap-0">
   <div
-    class="bg-ui-panel border-ui-border-panel sticky -top-2 z-2 -mx-2 -mt-2 flex shrink-0 flex-wrap gap-1 border-b border-solid px-2.5 py-2"
+    class="bg-ui-panel border-ui-border-panel sticky -top-2 z-2 -mx-2 -mt-2 flex shrink-0 items-start gap-2 border-b border-solid px-2.5 py-2"
   >
-    @for (tag of tagList(); track tag) {
-      <label class="peer/pill inline-flex cursor-pointer">
+    <div class="flex max-h-16 min-w-0 flex-1 flex-wrap gap-1 overflow-y-auto">
+      @for (tag of tagList(); track tag) {
+        <label class="peer/pill inline-flex cursor-pointer">
+          <input
+            class="peer hidden"
+            name="image-chg"
+            type="radio"
+            [value]="tag"
+            [ngModel]="selectTag()"
+            (ngModelChange)="selectTag.set($event)"
+            (change)="resetBtn()"
+          />
+          <span
+            class="border-ui-border-panel text-ui-muted hover:bg-ui-hover hover:text-ui-text peer-checked:bg-ui-accent-bg peer-checked:text-ui-accent peer-checked:border-ui-accent inline-flex items-center rounded-full border border-solid bg-transparent px-2.5 py-0.75 text-[12px] font-medium whitespace-nowrap transition-[background,color,border-color] select-none"
+            >{{ displayTagName(tag) }}</span
+          >
+        </label>
+      }
+    </div>
+    @if (canKeepSecret) {
+      <label class="inline-flex shrink-0 cursor-pointer items-center gap-1 py-0.75">
         <input
-          class="peer hidden"
-          name="image-chg"
-          type="radio"
-          [value]="tag"
-          [ngModel]="selectTag()"
-          (ngModelChange)="selectTag.set($event)"
-          (change)="resetBtn()"
+          class="size-3.5 [accent-color:var(--ui-accent)]"
+          type="checkbox"
+          [checked]="showSecret()"
+          (change)="showSecret.set(!showSecret())"
         />
-        <span
-          class="border-ui-border-panel text-ui-muted hover:bg-ui-hover hover:text-ui-text peer-checked:bg-ui-accent-bg peer-checked:text-ui-accent peer-checked:border-ui-accent inline-flex items-center rounded-full border border-solid bg-transparent px-2.5 py-0.75 text-[12px] font-medium whitespace-nowrap transition-[background,color,border-color] select-none"
-          >{{ displayTagName(tag) }}</span
-        >
+        <span class="text-ui-muted text-[12px] whitespace-nowrap">{{
+          'feature.file.fileStorage.showSecret' | transloco
+        }}</span>
       </label>
     }
   </div>
@@ -35,7 +50,7 @@
   </label>
 
   <div
-    class="bg-ui-panel border-ui-border-panel sticky top-8.25 z-1 mx-[-8] mt-2.5 flex items-center gap-1.5 border-y border-solid px-2.5 py-2"
+    class="bg-ui-panel border-ui-border-panel z-1 mx-[-8] mt-2.5 flex flex-wrap items-center gap-1.5 border-y border-solid px-2.5 py-2"
   >
     <input
       class="bg-ui-input border-ui-border-panel text-ui-text rounded-ui-sm focus:border-ui-accent placeholder:text-ui-dim min-w-0 flex-1 border border-solid px-2 py-1 text-[12px] transition-[border-color] outline-none"
@@ -51,6 +66,23 @@
       <i class="material-icons">label</i>
       {{ 'feature.file.fileStorage.changeTag' | transloco }}
     </button>
+    @if (canKeepSecret) {
+      <button
+        class="bg-ui-elevated border-ui-border-panel text-ui-muted rounded-ui-sm hover:bg-ui-hover hover:text-ui-text hover:border-ui-accent inline-flex cursor-pointer items-center gap-1 border border-solid px-2.5 py-1 text-[12px] whitespace-nowrap transition-[background,color,border-color] [&_.material-icons]:text-[14px]!"
+        [title]="'feature.file.fileStorage.makeSecretHint' | transloco"
+        (click)="setCheckedSecret(true)"
+      >
+        <i class="material-icons">visibility_off</i>
+        {{ 'feature.file.fileStorage.makeSecret' | transloco }}
+      </button>
+      <button
+        class="bg-ui-elevated border-ui-border-panel text-ui-muted rounded-ui-sm hover:bg-ui-hover hover:text-ui-text hover:border-ui-accent inline-flex cursor-pointer items-center gap-1 border border-solid px-2.5 py-1 text-[12px] whitespace-nowrap transition-[background,color,border-color] [&_.material-icons]:text-[14px]!"
+        (click)="setCheckedSecret(false)"
+      >
+        <i class="material-icons">visibility</i>
+        {{ 'feature.file.fileStorage.clearSecret' | transloco }}
+      </button>
+    }
   </div>
 
   <div class="grid grid-cols-[repeat(auto-fill,minmax(112px,1fr))] content-start gap-2 pt-3">
@@ -81,6 +113,14 @@
             tabindex="-1"
           />
         </div>
+        @if (isSecret(file)) {
+          <div
+            class="pointer-events-none absolute top-1 right-1 flex size-5 items-center justify-center rounded-full bg-amber-500/25 text-amber-300 [&_.material-icons]:text-[13px]!"
+            [title]="'feature.file.fileStorage.secretMark' | transloco"
+          >
+            <i class="material-icons">visibility_off</i>
+          </div>
+        }
         <span class="block max-w-full truncate text-center text-[11px] leading-[1.3]">{{ file.name }}</span>
       </div>
     }

@@ -1117,7 +1117,12 @@
         "newTagPlaceholder": "新タグ名",
         "changeTag": "タグを変更",
         "noImages": "この分類に画像はありません",
-        "clickToSelectTouch": "またはここをタップして選択"
+        "clickToSelectTouch": "またはここをタップして選択",
+        "showSecret": "秘匿画像を表示",
+        "makeSecret": "秘匿にする",
+        "clearSecret": "秘匿を解除",
+        "makeSecretHint": "チェックした画像を GM 以外の一覧から隠します",
+        "secretMark": "秘匿画像"
       }
     },
     "character": {

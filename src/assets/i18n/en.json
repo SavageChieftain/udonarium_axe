@@ -1117,7 +1117,12 @@
         "newTagPlaceholder": "New tag name",
         "changeTag": "Change tag",
         "noImages": "No images in this category",
-        "clickToSelectTouch": "or tap here to choose"
+        "clickToSelectTouch": "or tap here to choose",
+        "showSecret": "Show kept-back",
+        "makeSecret": "Keep back",
+        "clearSecret": "Give up",
+        "makeSecretHint": "Keeps the ticked pictures out of everyone else’s lists",
+        "secretMark": "Kept back"
       }
     },
     "character": {

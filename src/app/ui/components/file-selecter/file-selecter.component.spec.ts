@@ -1,6 +1,8 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ImageStorage } from '@axe/core/storage/image-storage';
 import { ImageTag, SYSTEM_RESERVED_TAG } from '@axe/domain/media/image-tag';
+import { PeerCursor } from '@axe/domain/peer/peer-cursor';
+import { PeerRole } from '@axe/domain/peer/peer-role';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
 import { FileSelecterComponent } from '@axe/ui/components/file-selecter/file-selecter.component';
 
@@ -43,6 +45,39 @@ describe('FileSelecterComponent', () => {
 
       expect(component.getAllImage().map((image) => image.identifier)).not.toContain('a-die-face');
       expect(component.tagList).not.toContain(SYSTEM_RESERVED_TAG);
+    });
+
+    describe('one the master is keeping back', () => {
+      function playing(role: PeerRole): void {
+        PeerCursor.createMyCursor().role = role;
+      }
+
+      beforeEach(() => {
+        const secret = TestBed.inject(ImageStorage).add('the-twist');
+        ImageTag.create(secret.identifier).isSecret = true;
+      });
+
+      afterEach(() => {
+        PeerCursor.myCursor = null!;
+      });
+
+      it('is not offered to a player', () => {
+        playing(PeerRole.Player);
+
+        expect(component.getAllImage().map((image) => image.identifier)).not.toContain('the-twist');
+      });
+
+      it('is not offered to a guest either', () => {
+        playing(PeerRole.Guest);
+
+        expect(component.getAllImage().map((image) => image.identifier)).not.toContain('the-twist');
+      });
+
+      it('is offered to the master', () => {
+        playing(PeerRole.GameMaster);
+
+        expect(component.getAllImage().map((image) => image.identifier)).toContain('the-twist');
+      });
     });
   });
 });
