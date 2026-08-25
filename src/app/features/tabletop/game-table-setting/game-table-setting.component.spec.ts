@@ -2,6 +2,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { CutInService } from '@axe/application/media/cut-in.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { ObjectStore } from '@axe/core/sync/object-store';
+import { CutIn } from '@axe/domain/media/cut-in';
 import { Config } from '@axe/domain/peer/config';
 import { FilterType, GameTable, GridSnapStyle, GridType } from '@axe/domain/tabletop/game-table';
 import { GameTableSettingComponent } from '@axe/features/tabletop/game-table-setting/game-table-setting.component';
@@ -147,6 +148,23 @@ describe('GameTableSettingComponent', () => {
 
       expect(table.cutInIdentifiers).toBe('cut-1,cut-2');
       expect(component.tableCutIns).toEqual(['cut-1', 'cut-2']);
+    });
+
+    it('names the cut-ins it shows as chips', async () => {
+      const cutIn = new CutIn();
+      cutIn.initialize();
+      cutIn.name = 'オープニング';
+      table.cutInIdentifiers = cutIn.identifier;
+      component.selectedTable = table;
+
+      fixture.detectChanges();
+      await fixture.whenStable();
+      fixture.detectChanges();
+
+      const labels = [...fixture.nativeElement.querySelectorAll('.ng-value-label')].map(
+        (node: Element) => node.textContent
+      );
+      expect(labels).toContain('オープニング');
     });
 
     it('hands back the same list until the table names other cut-ins', () => {

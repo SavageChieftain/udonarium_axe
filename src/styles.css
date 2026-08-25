@@ -685,6 +685,57 @@ chat-message > div > div {
   border-color: transparent transparent var(--ui-accent);
 }
 
+.ng-select.ud-select.ng-select-multiple .ng-select-container {
+  height: auto;
+  min-height: 26px;
+  padding: 2px 0;
+}
+
+.ng-select.ud-select.ng-select-multiple .ng-select-container .ng-value-container {
+  flex-wrap: wrap;
+  gap: 3px;
+  padding-top: 0;
+  padding-left: 4px;
+}
+
+.ng-select.ud-select.ng-select-multiple .ng-select-container .ng-value-container .ng-value {
+  display: inline-flex;
+  align-items: center;
+  max-width: 100%;
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.6;
+  color: var(--ui-accent);
+  background: var(--ui-accent-bg);
+  border: 1px solid var(--ui-accent-glow);
+  border-radius: var(--ui-radius-sm);
+}
+
+.ng-select.ud-select.ng-select-multiple .ng-select-container .ng-value-container .ng-value .ng-value-label {
+  min-width: 0;
+  padding: 0 6px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ng-select.ud-select.ng-select-multiple .ng-select-container .ng-value-container .ng-value .ng-value-icon {
+  padding: 0 5px;
+}
+
+.ng-select.ud-select.ng-select-multiple .ng-select-container .ng-value-container .ng-value .ng-value-icon.left {
+  border-right: 1px solid var(--ui-accent-glow);
+}
+
+.ng-select.ud-select.ng-select-multiple .ng-select-container .ng-value-container .ng-value .ng-value-icon:hover {
+  background: var(--ui-accent-glow);
+  color: var(--ui-text);
+}
+
+.ng-select.ud-select.ng-select-multiple .ng-select-container .ng-value-container .ng-input > input {
+  color: var(--ui-text);
+}
+
 /* データ要素の種別ピッカー。ng-select はホストの class をドロップダウンにも写すので、
    幅は class ではなくここで与える。class で絞ると候補一覧まで同じ幅になり、
    「テキスト」「射程図形」のような 4 文字が省略記号に丸められる。 */
