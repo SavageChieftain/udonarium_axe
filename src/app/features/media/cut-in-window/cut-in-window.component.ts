@@ -11,7 +11,7 @@ import {
   viewChild,
 } from '@angular/core';
 import { YouTubePlayer } from '@angular/youtube-player';
-import { CutInSoundService } from '@axe/application/media/cut-in-sound.service';
+import { type CutInSoundHandle, CutInSoundService } from '@axe/application/media/cut-in-sound.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { ModalService } from '@axe/application/ui/modal.service';
 import { PanelService } from '@axe/application/ui/panel.service';
@@ -54,6 +54,8 @@ export class CutInWindowComponent {
   height = 150;
 
   readonly audioPlayer: AudioPlayer = new AudioPlayer();
+  /** This window's own scene sounds, so closing it says nothing about anyone else's. */
+  private sceneSound: CutInSoundHandle | null = null;
   private cutInTimeOut: ReturnType<typeof setTimeout> | null = null;
   timerCheckWindowSize: ReturnType<typeof setTimeout> | null = null;
 
@@ -187,7 +189,7 @@ export class CutInWindowComponent {
     }
 
     const scene = this.cutIn.scene;
-    if (scene && scene.layers.length > 0) this.cutInSound.play(scene, 0, scene.sceneLoop);
+    if (scene && scene.layers.length > 0) this.sceneSound = this.cutInSound.play(scene, 0, scene.sceneLoop);
 
     const playbackMs = cutInPlaybackMs(this.cutIn, this.cutIn.scene);
     if (playbackMs > 0) {
@@ -200,7 +202,8 @@ export class CutInWindowComponent {
 
   stopCutIn() {
     this.audioPlayer.stop();
-    this.cutInSound.stop();
+    this.sceneSound?.stop();
+    this.sceneSound = null;
   }
 
   moveCutInPos() {

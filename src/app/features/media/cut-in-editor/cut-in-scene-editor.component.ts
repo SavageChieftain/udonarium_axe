@@ -13,7 +13,7 @@ import {
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
-import { CutInSoundService } from '@axe/application/media/cut-in-sound.service';
+import { type CutInSoundHandle, CutInSoundService } from '@axe/application/media/cut-in-sound.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { ModalService } from '@axe/application/ui/modal.service';
 import { EditHistory } from '@axe/core/util/edit-history';
@@ -190,6 +190,8 @@ export class CutInSceneEditorComponent {
   private readonly bumped = signal(0);
 
   private drag: Drag | null = null;
+  /** The preview's own scene sounds, which a cut-in playing in the room knows nothing about. */
+  private sceneSound: CutInSoundHandle | null = null;
   private clockId: number | null = null;
   private history: EditHistory<CutInSceneSnapshot> | null = null;
   private historyOf = '';
@@ -574,7 +576,8 @@ export class CutInSceneEditorComponent {
     this.playing.set(true);
     const from = this.playheadMs() >= durationMs ? 0 : this.playheadMs();
     const startedAt = performance.now() - from;
-    this.cutInSound.play(this.scene(), from, this.sceneLoop);
+    this.sceneSound?.stop();
+    this.sceneSound = this.cutInSound.play(this.scene(), from, this.sceneLoop);
 
     const step = () => {
       if (!this.playing()) return;
@@ -597,7 +600,8 @@ export class CutInSceneEditorComponent {
 
   private pause(): void {
     this.playing.set(false);
-    this.cutInSound.stop();
+    this.sceneSound?.stop();
+    this.sceneSound = null;
     if (this.clockId !== null) {
       cancelAnimationFrame(this.clockId);
       this.clockId = null;
