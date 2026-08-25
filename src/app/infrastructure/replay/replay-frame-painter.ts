@@ -258,12 +258,6 @@ function paintCutInScene(
     paintLayer(ctx, layer, left, top, assets, style);
 
     ctx.restore();
-    ctx.globalAlpha = 1;
-    ctx.filter = 'none';
-    ctx.shadowColor = 'transparent';
-    ctx.shadowBlur = 0;
-    ctx.shadowOffsetX = 0;
-    ctx.shadowOffsetY = 0;
   }
 }
 
