@@ -148,6 +148,19 @@ describe('GameTableSettingComponent', () => {
       expect(table.cutInIdentifiers).toBe('cut-1,cut-2');
       expect(component.tableCutIns).toEqual(['cut-1', 'cut-2']);
     });
+
+    it('hands back the same list until the table names other cut-ins', () => {
+      component.selectedTable = table;
+      component.tableCutIns = ['cut-1', 'cut-2'];
+      const list = component.tableCutIns;
+
+      expect(component.tableCutIns).toBe(list);
+
+      component.tableCutIns = ['cut-1'];
+
+      expect(component.tableCutIns).not.toBe(list);
+      expect(component.tableCutIns).toEqual(['cut-1']);
+    });
   });
 
   it('lets the panel take the pointer again once the drag ends', async () => {

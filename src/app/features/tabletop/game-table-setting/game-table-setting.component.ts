@@ -465,8 +465,16 @@ export class GameTableSettingComponent {
     return this.objectStore.getObjects(CutIn);
   }
 
+  private cutInIdentifiersRaw = '';
+  private cutInIdentifiers: string[] = [];
+
   get tableCutIns(): string[] {
-    return this.selectedTable ? parseCutInIdentifiers(this.selectedTable.cutInIdentifiers) : [];
+    const raw = this.selectedTable?.cutInIdentifiers ?? '';
+    if (raw !== this.cutInIdentifiersRaw) {
+      this.cutInIdentifiersRaw = raw;
+      this.cutInIdentifiers = parseCutInIdentifiers(raw);
+    }
+    return this.cutInIdentifiers;
   }
   set tableCutIns(identifiers: string[]) {
     if (!this.isEditable || !this.selectedTable) return;
