@@ -13,7 +13,17 @@ export class DraggableDirective {
   readonly isDisable = input(false, { alias: 'draggable.disable' });
   readonly boundsSelector = input('body', { alias: 'draggable.bounds' });
   readonly handleSelector = input('', { alias: 'draggable.handle' });
-  readonly unhandleSelector = input('input,textarea,button,select,option,span', { alias: 'draggable.unhandle' });
+  /**
+   * What a press must not start a drag on.
+   *
+   * Besides the controls a press belongs to, a panel's contents can claim a region of it
+   * by wearing `panel-no-drag`: a timeline being scrubbed, a stage a layer is dragged
+   * around, a list being reordered. Without it the panel takes the press as well and the
+   * two drags pull against each other.
+   */
+  readonly unhandleSelector = input('input,textarea,button,select,option,span,.panel-no-drag', {
+    alias: 'draggable.unhandle',
+  });
   readonly stackSelector = input('', { alias: 'draggable.stack' });
   readonly opacity = input(0.7, { alias: 'draggable.opacity' });
   readonly allowOverHalf = input(false, { alias: 'draggable.allowOverHalf' });

@@ -443,4 +443,18 @@ describe('CutInSceneEditorComponent', () => {
       expect(component.sounds()).toHaveLength(1);
     });
   });
+
+  describe('the regions that handle their own pointer', () => {
+    it('claims the stage, the timeline and the layer list from the panel', () => {
+      const root = fixture.nativeElement as HTMLElement;
+      const claimed = Array.from(root.querySelectorAll('.panel-no-drag'));
+
+      // A press in any of the three drags a layer, a keyframe or a row — not the panel.
+      expect(claimed).toHaveLength(3);
+      expect(root.querySelector('cut-in-layer-list')?.closest('.panel-no-drag')).toBeTruthy();
+      expect(root.querySelector('cut-in-timeline')?.closest('.panel-no-drag')).toBeTruthy();
+      // The stage is the one the press handlers sit on, whether or not a scene is up yet.
+      expect(claimed.some((element) => element.hasAttribute('data-stage'))).toBe(true);
+    });
+  });
 });

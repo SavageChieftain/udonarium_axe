@@ -117,8 +117,8 @@
     </label>
   </div>
 
-  <div class="grid min-h-0 flex-1 grid-cols-[7rem_minmax(0,1fr)_13rem] gap-0">
-    <div class="border-ui-border-panel bg-ui-panel min-h-0 min-w-0 overflow-hidden border-r border-solid">
+  <div class="grid min-h-0 flex-1 grid-cols-[minmax(6rem,11rem)_minmax(0,1fr)_13rem] gap-0">
+    <div class="panel-no-drag border-ui-border-panel bg-ui-panel min-h-0 min-w-0 overflow-hidden border-r border-solid">
       <cut-in-layer-list
         class="h-full"
         [layers]="layers()"
@@ -132,8 +132,9 @@
     </div>
 
     <div
-      class="relative min-h-0 min-w-0 touch-none overflow-hidden bg-[repeating-conic-gradient(rgba(255,255,255,0.06)_0%_25%,transparent_0%_50%)] bg-size-[16px_16px] select-none"
+      class="panel-no-drag relative min-h-0 min-w-0 touch-none overflow-hidden bg-[repeating-conic-gradient(rgba(255,255,255,0.06)_0%_25%,transparent_0%_50%)] bg-size-[16px_16px] select-none"
       #stageArea
+      data-stage
       (pointerdown)="onPointerDown($event)"
       (pointermove)="onPointerMove($event)"
       (pointerup)="onPointerUp($event)"
@@ -207,7 +208,7 @@
     </div>
   </div>
 
-  <div class="border-ui-border-panel h-32 shrink-0 border-t border-solid">
+  <div class="panel-no-drag border-ui-border-panel h-32 shrink-0 border-t border-solid">
     <cut-in-timeline
       class="h-full"
       [layers]="layers()"

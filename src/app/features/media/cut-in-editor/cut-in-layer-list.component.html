@@ -38,7 +38,9 @@
       <i class="material-icons shrink-0 text-[14px]! opacity-70">{{
         layer.kind === 'text' ? 'title' : layer.kind === 'fill' ? 'gradient' : 'image'
       }}</i>
-      <span class="truncate">{{ layer.name || ('feature.media.cutInEditor.unnamedLayer' | transloco) }}</span>
+      <span class="truncate" [title]="layer.name || ('feature.media.cutInEditor.unnamedLayer' | transloco)">{{
+        layer.name || ('feature.media.cutInEditor.unnamedLayer' | transloco)
+      }}</span>
     </li>
   }
 
