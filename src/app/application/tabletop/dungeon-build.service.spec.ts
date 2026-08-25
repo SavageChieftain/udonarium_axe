@@ -103,6 +103,24 @@ describe('DungeonBuildService', () => {
     });
   });
 
+  it('lifts a stair clear of the floor it stands on', async () => {
+    const { plan, result } = await build();
+    const stairIndex = plan.blocks.blocks.findIndex((block) => block.kind === 'stairUp');
+    const floorIndex = plan.blocks.blocks.findIndex((block) => block.kind === 'floor');
+
+    expect(stairIndex).toBeGreaterThanOrEqual(0);
+    expect(result.table.terrains[stairIndex].posZ).toBeGreaterThan(result.table.terrains[floorIndex].posZ);
+  });
+
+  it('gives a lit wall the radius and colour of a torch', async () => {
+    const { result } = await build();
+    const lit = result.table.terrains.find((terrain) => terrain.lightEnabled);
+
+    expect(lit).toBeDefined();
+    expect(lit!.lightPreset).toBe('torch');
+    expect(lit!.lightBrightRadius).toBeGreaterThan(0);
+  });
+
   it('shows walls whole and floors flat', async () => {
     const { plan, result } = await build();
 

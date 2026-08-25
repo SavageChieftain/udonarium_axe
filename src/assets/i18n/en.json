@@ -1730,7 +1730,7 @@
           "tooMany": "That is over {{limit}} terrains. Try fewer rooms",
           "heavy": "Over {{limit}} terrains. Building will take a moment",
           "built": "Made \"{{name}}\"",
-          "roomsDiffer": "Caverns run together, so this one has {{found}} chambers",
+          "roomsDiffer": "{{found}} rooms fitted. Caverns run together, so a cave ends up with fewer than asked",
           "squareOnly": "A generated table always uses a square grid"
         }
       }

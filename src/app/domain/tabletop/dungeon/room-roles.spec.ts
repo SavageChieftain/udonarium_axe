@@ -69,19 +69,51 @@ describe('assignRoomRoles()', () => {
     }
   });
 
-  it('locks at most one door', () => {
+  it('locks only doors that lead into the deepest room', () => {
     for (const seed of SEEDS) {
-      expect(build({ seed }).doors.filter((door) => door.locked).length).toBeLessThanOrEqual(1);
+      const layout = build({ seed });
+      const boss = roleOf(layout, DungeonRoomRole.Boss);
+      for (const door of layout.doors.filter((entry) => entry.locked)) {
+        expect(door.rooms).toContain(boss);
+      }
     }
   });
 
-  it('locks a door on the way to the deepest room', () => {
-    for (const seed of SEEDS) {
+  it('leaves no way into the deepest room standing open', () => {
+    // A single locked door among two makes the key an ornament: the party just walks round it.
+    for (const seed of [1, 7, 42, 1234, 99999, 5, 11, 23]) {
       const layout = build({ seed });
-      const locked = layout.doors.find((door) => door.locked);
-      if (!locked) continue;
+      if (layout.keyRoomIndex < 0) continue;
       const boss = roleOf(layout, DungeonRoomRole.Boss);
-      expect(locked.rooms).toContain(boss);
+      const ways = layout.doors.filter((door) => door.rooms.includes(boss));
+
+      expect(ways.length).toBeGreaterThan(0);
+      expect(ways.every((door) => door.locked)).toBe(true);
+    }
+  });
+
+  it('leaves the key somewhere the party can walk to without passing the deepest room', () => {
+    for (const seed of [1, 7, 42, 1234, 99999, 5, 11, 23]) {
+      const layout = build({ seed });
+      if (layout.keyRoomIndex < 0) continue;
+      const boss = roleOf(layout, DungeonRoomRole.Boss);
+
+      const neighbours = new Map<number, number[]>();
+      for (const [a, b] of layout.links) {
+        neighbours.set(a, [...(neighbours.get(a) ?? []), b]);
+        neighbours.set(b, [...(neighbours.get(b) ?? []), a]);
+      }
+      const seen = new Set([0]);
+      const queue = [0];
+      for (let head = 0; head < queue.length; head++) {
+        for (const next of neighbours.get(queue[head]) ?? []) {
+          if (next === boss || seen.has(next)) continue;
+          seen.add(next);
+          queue.push(next);
+        }
+      }
+
+      expect(seen.has(layout.keyRoomIndex)).toBe(true);
     }
   });
 

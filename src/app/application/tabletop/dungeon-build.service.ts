@@ -20,13 +20,18 @@ import { GameTable, GridType } from '@axe/domain/tabletop/game-table';
 import { GameTableScratchMask } from '@axe/domain/tabletop/game-table-scratch-mask';
 import { SlopeDirection, Terrain, TerrainViewState } from '@axe/domain/tabletop/terrain';
 import { TextNote } from '@axe/domain/tabletop/text-note';
-import { applyLightPreset, LightAnimation, LightPreset } from '@axe/domain/tabletop/vision-types';
+import { applyLightPreset, LightPreset } from '@axe/domain/tabletop/vision-types';
 
 const TERRAIN_IMAGE_TAG = '地形';
 const GRID_SIZE = 50;
 const FLOOR_HEIGHT = 0.05;
 /** How many terrains go in before the thread is handed back, so the panel can move its bar. */
 const CHUNK_SIZE = 32;
+const SUMMARY_WIDTH = 8;
+
+function onTopOfFloor(block: DungeonBlock): boolean {
+  return block.kind === 'stairUp' || block.kind === 'stairDown';
+}
 
 export type DungeonMaterial = { kind: 'texture'; id: string } | { kind: 'library'; identifier: string };
 
@@ -146,13 +151,12 @@ export class DungeonBuildService {
     if (block.torch) {
       terrain.lightEnabled = true;
       applyLightPreset(terrain, LightPreset.TORCH);
-      terrain.lightPreset = LightPreset.TORCH;
-      terrain.lightAnimation = LightAnimation.FLICKER;
     }
 
     // Writing the whole location goes through setAttribute, which syncs; touching location.x does not.
     terrain.location = { name: 'table', x: rect.x * GRID_SIZE, y: rect.y * GRID_SIZE };
-    terrain.posZ = 0;
+    // A stair shares its cell with the floor under it, and two faces at one height fight.
+    terrain.posZ = onTopOfFloor(block) ? Math.ceil(FLOOR_HEIGHT * GRID_SIZE) : 0;
     return terrain;
   }
 
@@ -263,8 +267,15 @@ export class DungeonBuildService {
       },
     });
 
-    const note = TextNote.create(this.t('feature.tabletop.dungeonGenerator.summary.title'), text, 12, 8, 10);
-    note.location = { name: 'table', x: 0, y: 0 };
+    const note = TextNote.create(
+      this.t('feature.tabletop.dungeonGenerator.summary.title'),
+      text,
+      12,
+      SUMMARY_WIDTH,
+      10
+    );
+    // Beside the board rather than on it, so a ten-cell note does not bury the first rooms.
+    note.location = { name: 'table', x: -(SUMMARY_WIDTH + 1) * GRID_SIZE, y: 0 };
     note.posZ = 0;
     note.disclosureMode = DisclosureMode.GameMaster;
     note.update();

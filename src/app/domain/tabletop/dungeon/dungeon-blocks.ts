@@ -71,14 +71,12 @@ function lightTheWalls(blocks: DungeonBlock[], layout: DungeonLayout, count: num
   if (candidates.length === 0) return [];
 
   const lit: number[] = [];
-  const used = new Set<number>();
 
   for (const room of layout.rooms) {
     if (lit.length >= count) break;
     const spot = candidates.find((block) => block.rooms.includes(room.index) && !block.torch);
-    if (!spot || used.has(room.index)) continue;
+    if (!spot) continue;
     spot.torch = true;
-    used.add(room.index);
     lit.push(room.index);
   }
 

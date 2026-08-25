@@ -228,7 +228,11 @@ function pourHazards(layout: DungeonLayout, pools: number, rng: () => number): v
         [0, 1],
         [0, -1],
       ]) {
-        const next = (y + dy) * layout.width + (x + dx);
+        const nx = x + dx;
+        const ny = y + dy;
+        // Without the bounds test a pool would wrap round the edge into the row above.
+        if (nx < 0 || ny < 0 || nx >= layout.width || ny >= layout.height) continue;
+        const next = ny * layout.width + nx;
         if (layout.cells[next] !== DungeonCell.Room || filled.has(next)) continue;
         filled.add(next);
         queue.push(next);

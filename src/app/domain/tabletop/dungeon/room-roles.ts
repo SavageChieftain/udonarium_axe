@@ -92,6 +92,21 @@ export function assignRoomRoles(layout: DungeonLayout): void {
   lockTheWayToTheBoss(layout, exitRoom);
 }
 
+/** Which rooms can still be walked to from the entrance once the deepest room is shut off. */
+function reachableWithout(layout: DungeonLayout, blocked: number): Set<number> {
+  const neighbours = neighboursOf(layout.links, layout.rooms.length);
+  const seen = new Set<number>([0]);
+  const queue = [0];
+  for (let head = 0; head < queue.length; head++) {
+    for (const next of neighbours[queue[head]]) {
+      if (next === blocked || seen.has(next)) continue;
+      seen.add(next);
+      queue.push(next);
+    }
+  }
+  return seen;
+}
+
 function lockTheWayToTheBoss(layout: DungeonLayout, boss: number): void {
   layout.keyRoomIndex = -1;
   for (const door of layout.doors) door.locked = false;
@@ -100,14 +115,16 @@ function lockTheWayToTheBoss(layout: DungeonLayout, boss: number): void {
   const path = pathBetween(layout.links, layout.rooms.length, 0, boss);
   if (path.length < 2) return;
 
-  // The key has to sit off the road to the boss, or shutting the door changes nothing.
+  // Every way in has to be shut. Leaving one open makes the key an ornament.
+  const doors = layout.doors.filter((door) => door.rooms.includes(boss));
+  if (doors.length === 0) return;
+
+  // And the key has to be somewhere the party can walk to without going through that room.
   const onPath = new Set(path);
-  const candidates = leafRooms(layout).filter((index) => !onPath.has(index));
+  const reachable = reachableWithout(layout, boss);
+  const candidates = leafRooms(layout).filter((index) => !onPath.has(index) && reachable.has(index));
   if (candidates.length === 0) return;
 
-  const lastDoor = layout.doors.find((door) => door.rooms.includes(boss));
-  if (!lastDoor) return;
-
-  lastDoor.locked = true;
+  for (const door of doors) door.locked = true;
   layout.keyRoomIndex = candidates[candidates.length - 1];
 }
