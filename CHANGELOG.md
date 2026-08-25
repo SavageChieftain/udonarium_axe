@@ -1,3 +1,14 @@
+## [1.43.1](https://github.com/Xelltis/udonarium_axe/compare/v1.43.0...v1.43.1) (2026-08-25)
+
+### 🐛 Bug Fixes
+
+* **tabletop:** stop the cut-in select from looping change detection ([79b7f80](https://github.com/Xelltis/udonarium_axe/commit/79b7f80797aa9b315e7fa26200911ea6e7b818f2))
+* **ui:** make the chips of a multiple select readable ([449ca0c](https://github.com/Xelltis/udonarium_axe/commit/449ca0c1997ad1f7e9068344094eb9d65f2b6198))
+
+### 📝 Documentation
+
+* **website:** add v1.43.0 release notes ([470b48a](https://github.com/Xelltis/udonarium_axe/commit/470b48a92bc149b713e9eedccf41fd0163c95899))
+
 ## [1.43.0](https://github.com/Xelltis/udonarium_axe/compare/v1.42.0...v1.43.0) (2026-08-25)
 
 ### ✨ Features
