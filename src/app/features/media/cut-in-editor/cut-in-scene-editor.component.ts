@@ -7,6 +7,7 @@ import {
   effect,
   ElementRef,
   inject,
+  Injector,
   input,
   signal,
   viewChild,
@@ -148,6 +149,7 @@ export class CutInSceneEditorComponent {
   private readonly cutInSound = inject(CutInSoundService);
   private readonly modalService = inject(ModalService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly injector = inject(Injector);
   private readonly t = inject(TRANSLATE_FN);
 
   readonly cutIn = input<CutIn | null>(null);
@@ -913,9 +915,14 @@ export class CutInSceneEditorComponent {
 
     if (!area) return;
     // Once the bands have been redrawn at the new scale, put the moment back where it was.
-    queueMicrotask(() => {
-      area.scrollLeft = scrollToHold(atMs, this.durationMs(), viewport, after, held);
-    });
+    // Any sooner and the track is still its old width, so the browser holds the scroll to
+    // what it was and the moment under the pointer slides off.
+    afterNextRender(
+      () => {
+        area.scrollLeft = scrollToHold(atMs, this.durationMs(), viewport, after, held);
+      },
+      { injector: this.injector }
+    );
   }
 
   protected zoomIn(): void {
