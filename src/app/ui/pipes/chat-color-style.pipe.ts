@@ -49,78 +49,78 @@ function hslToRgb(h: number, s: number, l: number): [number, number, number] {
   return [hue2rgb(h + 1 / 3), hue2rgb(h), hue2rgb(h - 1 / 3)];
 }
 
-/** How light a bubble under dark text gets, and how dark one under light text gets. */
+/** How light a bubble under dark text gets, and how dark one under light text is ever allowed to go. */
 const LIGHT_BUBBLE_L = 0.97;
 const DARK_BUBBLE_L = 0.09;
 /** Only a whisper of the speaker's hue: more of it costs the contrast the text needs. */
 const TINT = 0.12;
-const MIN_RATIO = 4.5;
+/** Below this the bubble gives up the side the theme asks for and goes to the other one. */
+const FLIP_RATIO = 2;
+/** As light as a dark bubble ever gets, so that light text keeps its edge. */
+const DARK_CEILING_L = 0.4;
+/**
+ * What a dark bubble holds to. On a dark page it is the norm and can stand well clear of the
+ * text; on a light one it is the odd one out, and is kept off black at the cost of some of that.
+ */
+const DARK_BUBBLE_RATIO_ON_DARK = 4.5;
+const DARK_BUBBLE_RATIO_ON_LIGHT = 3;
 
 function contrastRatio(a: number, b: number): number {
   const [hi, lo] = a > b ? [a, b] : [b, a];
   return (hi + 0.05) / (lo + 0.05);
 }
 
-function toCss([r, g, b]: [number, number, number]): string {
-  const toInt = (c: number) => Math.round(Math.min(1, Math.max(0, c)) * 255);
-  return `rgb(${toInt(r)},${toInt(g)},${toInt(b)})`;
+/** The colour as it will actually be written out, so the contrast is measured on what is shown. */
+function quantize([r, g, b]: [number, number, number]): [number, number, number] {
+  const toByte = (c: number) => Math.round(Math.min(1, Math.max(0, c)) * 255) / 255;
+  return [toByte(r), toByte(g), toByte(b)];
 }
 
-/**
- * The muted tint a system or dice message has always carried. Those are not somebody's chosen
- * colour but a badge for what kind of message it is, so their look is left as it was.
- */
-function mutedBackground(h: number, s: number, textLum: number): { bg: string; border: string } {
-  const bgS = s * 0.06;
-  const lighten = textLum < 0.5;
-  const targetLum = lighten ? MIN_RATIO * (textLum + 0.05) - 0.05 : (textLum + 0.05) / MIN_RATIO - 0.05;
+function toCss(rgb: [number, number, number]): string {
+  const [r, g, b] = quantize(rgb).map((c) => Math.round(c * 255));
+  return `rgb(${r},${g},${b})`;
+}
 
-  let lo = lighten ? 0.5 : 0;
-  let hi = lighten ? 1 : 0.5;
+/** The lightest dark bubble the colour still holds against, between the two ends it may take. */
+function darkBubbleL(h: number, tint: number, textLum: number, target: number): number {
+  const ratioAt = (l: number) => contrastRatio(textLum, luminance(...quantize(hslToRgb(h, tint, l))));
+  if (ratioAt(DARK_CEILING_L) >= target) return DARK_CEILING_L;
+  if (ratioAt(DARK_BUBBLE_L) < target) return DARK_BUBBLE_L;
+
+  let lo = DARK_BUBBLE_L;
+  let hi = DARK_CEILING_L;
   for (let i = 0; i < 24; i++) {
     const mid = (lo + hi) / 2;
-    const lum = luminance(...hslToRgb(h, bgS, mid));
-    if (lighten ? lum < targetLum : lum > targetLum) {
-      if (lighten) lo = mid;
-      else hi = mid;
-    } else {
-      if (lighten) hi = mid;
-      else lo = mid;
-    }
+    if (ratioAt(mid) >= target) lo = mid;
+    else hi = mid;
   }
-  const bgL = (lo + hi) / 2;
-  return {
-    bg: toCss(hslToRgb(h, bgS, bgL)),
-    border: toCss(hslToRgb(h, bgS, lighten ? Math.max(0, bgL - 0.2) : Math.min(1, bgL + 0.22))),
-  };
+  return lo;
 }
 
 @Pipe({ name: 'chatColorStyle', pure: true })
 export class ChatColorStylePipe implements PipeTransform {
-  transform(color: string | null | undefined, muted = false): Record<string, string> | null {
+  transform(color: string | null | undefined, theme: 'light' | 'dark' = 'light'): Record<string, string> | null {
     if (!color) return null;
 
     const rgb = parseHex(color);
     if (!rgb) return null;
 
     const [h, s] = rgbToHsl(...rgb);
-
-    if (muted) {
-      const { bg, border } = mutedBackground(h, s, luminance(...rgb));
-      return { color, 'background-color': bg, '--bubble-bg': bg, '--ui-bubble-caret-border': border };
-    }
-
     const textLum = luminance(...rgb);
     const tint = Math.min(s, 1) * TINT;
 
-    // The colour the reader chose is the text, verbatim; the bubble goes all the way light or
-    // all the way dark to carry it, rather than stopping at the dimmest grey that would pass.
-    // Which way is whichever the colour can actually be read against.
-    const lightRatio = contrastRatio(textLum, luminance(...hslToRgb(h, tint, LIGHT_BUBBLE_L)));
-    const darkRatio = contrastRatio(textLum, luminance(...hslToRgb(h, tint, DARK_BUBBLE_L)));
-    const light = lightRatio >= MIN_RATIO || lightRatio >= darkRatio;
+    // The colour the reader chose is the text, verbatim. The bubble takes the side the theme is
+    // on, and gives it up only for a colour that cannot be read there at all. The dark side then
+    // comes back up as far as the colour allows, so that it sits on a slate rather than on black.
+    const lightRatio = contrastRatio(textLum, luminance(...quantize(hslToRgb(h, tint, LIGHT_BUBBLE_L))));
+    const darkestRatio = contrastRatio(textLum, luminance(...quantize(hslToRgb(h, tint, DARK_BUBBLE_L))));
+    const wantsLight = theme !== 'dark';
+    const [onTheme, onOther] = wantsLight ? [lightRatio, darkestRatio] : [darkestRatio, lightRatio];
+    const keepsTheme = onTheme >= FLIP_RATIO || onTheme >= onOther;
+    const light = wantsLight === keepsTheme;
 
-    const bubbleL = light ? LIGHT_BUBBLE_L : DARK_BUBBLE_L;
+    const darkTarget = wantsLight ? DARK_BUBBLE_RATIO_ON_LIGHT : DARK_BUBBLE_RATIO_ON_DARK;
+    const bubbleL = light ? LIGHT_BUBBLE_L : darkBubbleL(h, tint, textLum, darkTarget);
     const bubble = toCss(hslToRgb(h, tint, bubbleL));
     const border = toCss(hslToRgb(h, tint, light ? bubbleL - 0.18 : bubbleL + 0.2));
 

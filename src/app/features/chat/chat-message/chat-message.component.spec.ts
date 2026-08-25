@@ -97,6 +97,38 @@ describe('ChatMessageComponent', () => {
     }
   });
 
+  describe('the bubble behind a line', () => {
+    function bubbleColourOf(message: ChatMessage): string | null {
+      fixture.componentRef.setInput('chatMessage', message);
+      fixture.detectChanges();
+      const bubble = fixture.nativeElement.querySelector('[style*="background-color"]') as HTMLElement | null;
+      return bubble?.style.backgroundColor ?? null;
+    }
+
+    it('is the same for a roll as for the line that asked for it', () => {
+      const spoken = new ChatMessage();
+      spoken.initialize();
+      spoken.from = 'roller-user';
+      spoken.name = 'アリス';
+      spoken.text = '2d6';
+      spoken.messColor = '#006633';
+
+      const rolled = new ChatMessage();
+      rolled.initialize();
+      rolled.from = 'System-BCDice';
+      rolled.originFrom = 'roller-user';
+      rolled.tag = 'system';
+      rolled.name = '<BCDice：アリス>';
+      rolled.text = 'DiceBot : (2D6) → 9';
+      rolled.messColor = '#006633';
+
+      const spokenColour = bubbleColourOf(spoken);
+
+      expect(spokenColour).toBeTruthy();
+      expect(bubbleColourOf(rolled)).toBe(spokenColour);
+    });
+  });
+
   describe('the system avatar', () => {
     function systemMessage(): ChatMessage {
       const message = new ChatMessage();

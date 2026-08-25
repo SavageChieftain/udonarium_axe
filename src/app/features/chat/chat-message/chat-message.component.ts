@@ -19,6 +19,7 @@ import { LanguageService } from '@axe/application/i18n/language.service';
 import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { RolePermissionService } from '@axe/application/permission/role-permission.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
+import { ThemeService } from '@axe/application/ui/theme.service';
 import { UiSignalService } from '@axe/application/ui/ui-signal.service';
 import { ImageFile } from '@axe/core/storage/image-file';
 import { ImageStorage } from '@axe/core/storage/image-storage';
@@ -56,6 +57,7 @@ export class ChatMessageComponent {
   private readonly language = inject(LanguageService);
   private readonly uiSignalService = inject(UiSignalService);
   private readonly rolePermission = inject(RolePermissionService);
+  protected readonly theme = inject(ThemeService);
   private readonly systemAvatar = inject(SystemAvatarService);
   private readonly systemAvatarMenu = inject(SystemAvatarMenuService);
 
