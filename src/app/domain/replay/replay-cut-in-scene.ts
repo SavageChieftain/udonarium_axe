@@ -137,7 +137,10 @@ export function layerFill(layer: ReplayCutInLayer): CutInFill {
 
 /** How long the scene runs, never shorter than the layer that finishes last. */
 export function replaySceneDurationOf(scene: ReplayCutInScene): number {
-  const lastMoment = scene.layers.reduce((last, layer) => Math.max(last, layer.endMs, lastTrackMoment(layer)), 0);
+  const lastMoment = scene.layers.reduce(
+    (last, layer) => Math.max(last, layer.startMs, layer.endMs, lastTrackMoment(layer)),
+    0
+  );
   return Math.min(60_000, Math.max(100, scene.durationMs, lastMoment));
 }
 

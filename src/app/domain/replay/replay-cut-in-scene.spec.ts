@@ -98,6 +98,12 @@ describe('replaySceneDurationOf()', () => {
     expect(replaySceneDurationOf(found({ tracks: '{"opacity":[{"t":5200,"v":0}]}' }))).toBe(5200);
   });
 
+  it('runs long enough to reach a layer that comes in after the end', () => {
+    // The window the cut-in is played in runs to the last moment any layer holds, and the
+    // moment one comes in is one of them. Exported shorter, the layer never appeared at all.
+    expect(replaySceneDurationOf(found({ startMs: 4000 }))).toBe(4000);
+  });
+
   it('stays inside what a scene may last', () => {
     expect(replaySceneDurationOf(found({}, { durationMs: 1 }))).toBe(100);
   });
