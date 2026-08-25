@@ -1,10 +1,16 @@
 import {
   barRect,
+  clampZoom,
   formatMs,
   keyAtX,
+  keyBeyond,
+  MAX_TIMELINE_ZOOM,
+  MIN_TIMELINE_ZOOM,
   msToX,
   pxPerSecFor,
+  scrollToHold,
   snapMs,
+  trackWidthFor,
   visibleTicks,
   xToMs,
 } from '@axe/features/media/cut-in-editor/cut-in-timeline-geometry';
@@ -139,5 +145,69 @@ describe('formatMs()', () => {
 
   it('never goes below nothing', () => {
     expect(formatMs(-100)).toBe('0:00.00');
+  });
+});
+
+describe('drawing the timeline out', () => {
+  it('leaves it fitted to the room it has at rest', () => {
+    expect(trackWidthFor(800, 1)).toBe(800);
+  });
+
+  it('draws it out by the scale asked for', () => {
+    expect(trackWidthFor(800, 4)).toBe(3200);
+  });
+
+  it('will not be drawn in narrower than the room it has', () => {
+    expect(trackWidthFor(800, 0.25)).toBe(800);
+    expect(clampZoom(0.25)).toBe(MIN_TIMELINE_ZOOM);
+  });
+
+  it('stops at a scale past which nothing more can be read', () => {
+    expect(clampZoom(1000)).toBe(MAX_TIMELINE_ZOOM);
+  });
+
+  it('takes a scale that means nothing as no scale at all', () => {
+    expect(clampZoom(Number.NaN)).toBe(MIN_TIMELINE_ZOOM);
+  });
+
+  describe('keeping a moment where it was', () => {
+    it('holds the moment under the pointer as it leans in', () => {
+      // Half a second into a two-second scene, held four hundred across an eight-hundred track.
+      const scrolled = scrollToHold(500, 2000, 800, 4, 400);
+
+      // At four times, half a second sits eight hundred along; held at four hundred, that is four hundred scrolled.
+      expect(scrolled).toBe(400);
+    });
+
+    it('never scrolls past the head of the track', () => {
+      expect(scrollToHold(0, 2000, 800, 4, 400)).toBe(0);
+    });
+
+    it('never scrolls past the tail of it', () => {
+      expect(scrollToHold(2000, 2000, 800, 4, 0)).toBe(3200 - 800);
+    });
+  });
+});
+
+describe('keyBeyond()', () => {
+  const times = [0, 300, 300, 1200];
+
+  it('finds the next one along', () => {
+    expect(keyBeyond(times, 0, true)).toBe(300);
+    expect(keyBeyond(times, 300, true)).toBe(1200);
+  });
+
+  it('finds the one before', () => {
+    expect(keyBeyond(times, 1200, false)).toBe(300);
+    expect(keyBeyond(times, 300, false)).toBe(0);
+  });
+
+  it('has nothing to find past either end', () => {
+    expect(keyBeyond(times, 1200, true)).toBeNull();
+    expect(keyBeyond(times, 0, false)).toBeNull();
+  });
+
+  it('finds nothing where there are no keys', () => {
+    expect(keyBeyond([], 500, true)).toBeNull();
   });
 });

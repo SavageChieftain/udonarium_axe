@@ -41,4 +41,30 @@ describe('cutInEditorKeyDown()', () => {
     expect(cutInEditorKeyDown('a', plain)).toBeNull();
     expect(cutInEditorKeyDown('s', { ...plain, chord: true })).toBeNull();
   });
+
+  describe('moving along the scene', () => {
+    it('steps by one on the arrows', () => {
+      expect(cutInEditorKeyDown('ArrowLeft', plain)?.command).toBe('stepBack');
+      expect(cutInEditorKeyDown('ArrowRight', plain)?.command).toBe('stepForward');
+    });
+
+    it('goes from key to key where shift is held', () => {
+      expect(cutInEditorKeyDown('ArrowLeft', { ...plain, shift: true })?.command).toBe('jumpBack');
+      expect(cutInEditorKeyDown('ArrowRight', { ...plain, shift: true })?.command).toBe('jumpForward');
+    });
+
+    it('goes to either end of the scene', () => {
+      expect(cutInEditorKeyDown('Home', plain)?.command).toBe('toStart');
+      expect(cutInEditorKeyDown('End', plain)?.command).toBe('toEnd');
+    });
+
+    it('leaves the arrows to the field where something is being typed', () => {
+      expect(cutInEditorKeyDown('ArrowLeft', { ...plain, typing: true })).toBeNull();
+      expect(cutInEditorKeyDown('Home', { ...plain, typing: true })).toBeNull();
+    });
+
+    it('leaves them alone where a chord is held, which belongs to the browser', () => {
+      expect(cutInEditorKeyDown('ArrowLeft', { ...plain, chord: true })).toBeNull();
+    });
+  });
 });

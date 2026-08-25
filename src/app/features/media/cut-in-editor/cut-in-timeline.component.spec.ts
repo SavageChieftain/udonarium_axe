@@ -39,10 +39,15 @@ describe('CutInTimelineComponent', () => {
     return layer;
   }
 
-  function show(layers: CutInLayer[], durationMs = 2000): void {
+  /** The room the bands have is measured by whatever holds them, so a test says how much. */
+  const ROOM_PX = 400;
+
+  function show(layers: CutInLayer[], durationMs = 2000, zoom = 1): void {
     fixture.componentRef.setInput('layers', layers);
     fixture.componentRef.setInput('durationMs', durationMs);
     fixture.componentRef.setInput('isEditable', true);
+    fixture.componentRef.setInput('viewportPx', ROOM_PX);
+    fixture.componentRef.setInput('zoom', zoom);
     fixture.detectChanges();
   }
 
@@ -106,5 +111,31 @@ describe('CutInTimelineComponent', () => {
 
     expect(component.ticks().length).toBeGreaterThan(2);
     expect(component.ticks()[0].ms).toBe(0);
+  });
+
+  describe('drawing the bands out', () => {
+    it('fits them to the room they have at rest', () => {
+      show([makeLayer('背景')]);
+
+      expect(component.trackWidth()).toBe(ROOM_PX);
+    });
+
+    it('draws them out past that room, which is what makes a moment reachable', () => {
+      const fitted = (() => {
+        show([makeLayer('背景')]);
+        return component.pxPerSec();
+      })();
+
+      show([makeLayer('背景')], 2000, 4);
+
+      expect(component.trackWidth()).toBe(ROOM_PX * 4);
+      expect(component.pxPerSec()).toBeCloseTo(fitted * 4, 5);
+    });
+
+    it('never draws them in narrower than the room, however far back it is asked', () => {
+      show([makeLayer('背景')], 2000, 0.1);
+
+      expect(component.trackWidth()).toBe(ROOM_PX);
+    });
   });
 });

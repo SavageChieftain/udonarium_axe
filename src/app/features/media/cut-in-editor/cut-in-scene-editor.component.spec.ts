@@ -1,6 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { CutIn } from '@axe/domain/media/cut-in';
+import { encodeCutInTracks } from '@axe/domain/media/cut-in-keyframe';
 import { CutInLayer } from '@axe/domain/media/cut-in-layer';
 import { CutInSceneEditorComponent } from '@axe/features/media/cut-in-editor/cut-in-scene-editor.component';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
@@ -60,6 +61,18 @@ describe('CutInSceneEditorComponent', () => {
     canRedo(): boolean;
     changed(): void;
     selectedIdentifier: { set(value: string): void };
+    onSelect(layer: CutInLayer): void;
+    onSeek(ms: number): void;
+    playheadMs(): number;
+    stepBy(deltaMs: number): void;
+    jumpToKey(forward: boolean): void;
+    timelineZoom(): number;
+    zoomPercent(): number;
+    canZoomIn(): boolean;
+    canZoomOut(): boolean;
+    zoomIn(): void;
+    zoomOut(): void;
+    zoomToFit(): void;
   };
 
   function editor(): EditorApi {
@@ -455,6 +468,112 @@ describe('CutInSceneEditorComponent', () => {
       expect(root.querySelector('cut-in-timeline')?.closest('.panel-no-drag')).toBeTruthy();
       // The stage is the one the press handlers sit on, whether or not a scene is up yet.
       expect(claimed.some((element) => element.hasAttribute('data-stage'))).toBe(true);
+    });
+  });
+
+  describe('moving along the scene', () => {
+    function withKeys(): void {
+      editor().addTextLayer();
+      const layer = component.layers()[0];
+      layer.tracks = encodeCutInTracks({
+        x: [
+          { t: 200, v: 0 },
+          { t: 800, v: 100 },
+        ],
+      });
+      editor().onSelect(layer);
+      fixture.detectChanges();
+    }
+
+    it('steps the playhead by the grid a moment is rounded to', () => {
+      withKeys();
+
+      editor().stepBy(10);
+      expect(editor().playheadMs()).toBe(10);
+
+      editor().stepBy(-10);
+      expect(editor().playheadMs()).toBe(0);
+    });
+
+    it('never steps out of the scene at either end', () => {
+      withKeys();
+
+      editor().stepBy(-10);
+      expect(editor().playheadMs()).toBe(0);
+
+      editor().onSeek(component.durationMs());
+      editor().stepBy(10);
+      expect(editor().playheadMs()).toBe(component.durationMs());
+    });
+
+    it('goes to the next moment something happens at, not the next tick', () => {
+      withKeys();
+
+      editor().jumpToKey(true);
+      expect(editor().playheadMs()).toBe(200);
+
+      editor().jumpToKey(true);
+      expect(editor().playheadMs()).toBe(800);
+    });
+
+    it('goes back the same way', () => {
+      withKeys();
+      editor().onSeek(1000);
+
+      editor().jumpToKey(false);
+      expect(editor().playheadMs()).toBe(800);
+    });
+
+    it('counts the ends of the scene among the moments worth landing on', () => {
+      withKeys();
+      editor().onSeek(900);
+
+      editor().jumpToKey(true);
+      expect(editor().playheadMs()).toBe(component.durationMs());
+    });
+
+    it('stays where it is where there is nothing further to reach', () => {
+      withKeys();
+      editor().onSeek(component.durationMs());
+
+      editor().jumpToKey(true);
+      expect(editor().playheadMs()).toBe(component.durationMs());
+    });
+  });
+
+  describe('drawing the timeline out', () => {
+    it('starts fitted to the room it has', () => {
+      expect(editor().timelineZoom()).toBe(1);
+      expect(editor().zoomPercent()).toBe(100);
+      expect(editor().canZoomOut()).toBe(false);
+    });
+
+    it('leans in and back out again', () => {
+      editor().zoomIn();
+      expect(editor().timelineZoom()).toBeGreaterThan(1);
+      expect(editor().canZoomOut()).toBe(true);
+
+      editor().zoomOut();
+      expect(editor().timelineZoom()).toBe(1);
+    });
+
+    it('will not be drawn in past fitting', () => {
+      editor().zoomOut();
+      expect(editor().timelineZoom()).toBe(1);
+    });
+
+    it('comes back to fitting when asked', () => {
+      editor().zoomIn();
+      editor().zoomIn();
+      editor().zoomToFit();
+
+      expect(editor().timelineZoom()).toBe(1);
+    });
+
+    it('stops at a scale past which nothing more can be read', () => {
+      for (let at = 0; at < 40; at++) editor().zoomIn();
+
+      expect(editor().canZoomIn()).toBe(false);
     });
   });
 });

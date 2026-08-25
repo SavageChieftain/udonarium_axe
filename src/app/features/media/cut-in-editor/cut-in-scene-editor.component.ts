@@ -53,6 +53,7 @@ import {
   setValueAt,
   valueAt,
 } from '@axe/features/media/cut-in-editor/cut-in-keyframe-edit';
+import { layerKeyTimes } from '@axe/features/media/cut-in-editor/cut-in-keyframe-edit';
 import { CutInLayerListComponent } from '@axe/features/media/cut-in-editor/cut-in-layer-list.component';
 import { CutInLayerPropertiesComponent } from '@axe/features/media/cut-in-editor/cut-in-layer-properties.component';
 import {
@@ -74,7 +75,21 @@ import {
   toLayerLocalDelta,
 } from '@axe/features/media/cut-in-editor/cut-in-stage-geometry';
 import { CutInTimelineComponent } from '@axe/features/media/cut-in-editor/cut-in-timeline.component';
-import { formatMs, TIMELINE_HEAD_OFFSET_PX } from '@axe/features/media/cut-in-editor/cut-in-timeline-geometry';
+import {
+  clampZoom,
+  formatMs,
+  keyBeyond,
+  MAX_TIMELINE_ZOOM,
+  MIN_TIMELINE_ZOOM,
+  pxPerSecFor,
+  scrollToHold,
+  SNAP_MS,
+  TIMELINE_HEAD_OFFSET_PX,
+  TIMELINE_HEAD_W_PX,
+  TIMELINE_ZOOM_STEP,
+  trackWidthFor,
+  xToMs,
+} from '@axe/features/media/cut-in-editor/cut-in-timeline-geometry';
 import { CutInStageComponent } from '@axe/features/media/cut-in-stage/cut-in-stage.component';
 import type { DropSide } from '@axe/ui/dragging/row-reorder';
 import { TranslocoModule } from '@jsverse/transloco';
@@ -102,6 +117,9 @@ interface Drag {
  * move, the way a piece being pushed around the table does, so a drag does not put sixty
  * messages a second onto the wire.
  */
+/** How far one press of an arrow moves the playhead: the same grid a moment is rounded to. */
+const STEP_MS = SNAP_MS;
+
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'cut-in-scene-editor',
@@ -127,6 +145,7 @@ export class CutInSceneEditorComponent {
   readonly isEditable = input(false);
 
   private readonly stageArea = viewChild<ElementRef<HTMLElement>>('stageArea');
+  private readonly timelineArea = viewChild<ElementRef<HTMLElement>>('timelineArea');
 
   protected readonly selectedIdentifier = signal<string>('');
   protected readonly playing = signal(false);
@@ -134,6 +153,20 @@ export class CutInSceneEditorComponent {
 
   /** The heads beside the timeline start below its ruler and its sound row. */
   protected readonly timelineHeadOffsetPx = TIMELINE_HEAD_OFFSET_PX;
+  protected readonly timelineHeadWidthPx = TIMELINE_HEAD_W_PX;
+
+  /**
+   * How far the timeline is drawn out, and the room the bands have to be drawn out in.
+   *
+   * Fitted to the panel a tenth of a second comes to a few pixels, which is no use for
+   * putting a key where it is meant to go.
+   */
+  protected readonly timelineZoom = signal(MIN_TIMELINE_ZOOM);
+  private readonly timelineRoomPx = signal(0);
+  protected readonly timelineViewportPx = computed(() => Math.max(1, this.timelineRoomPx() - TIMELINE_HEAD_W_PX));
+  protected readonly zoomPercent = computed(() => Math.round(this.timelineZoom() * 100));
+  protected readonly canZoomIn = computed(() => this.timelineZoom() < MAX_TIMELINE_ZOOM);
+  protected readonly canZoomOut = computed(() => this.timelineZoom() > MIN_TIMELINE_ZOOM);
   protected readonly clock = computed(() => `${formatMs(this.playheadMs())} / ${formatMs(this.durationMs())}`);
   private readonly stageSize = signal({ width: 0, height: 0 });
   private readonly bumped = signal(0);
@@ -248,7 +281,10 @@ export class CutInSceneEditorComponent {
       this.historyVersion.update((count) => count + 1);
     });
 
-    afterNextRender(() => this.watchStageSize());
+    afterNextRender(() => {
+      this.watchStageSize();
+      this.watchTimelineRoom();
+    });
     this.destroyRef.onDestroy(() => {
       this.flushDrag();
       this.pause();
@@ -575,6 +611,43 @@ export class CutInSceneEditorComponent {
     else if (command === 'redo') this.redo();
     else if (command === 'deleteSelection') this.removeSelected();
     else if (command === 'togglePlaying') this.togglePlaying();
+    else if (command === 'stepBack') this.stepBy(-STEP_MS);
+    else if (command === 'stepForward') this.stepBy(STEP_MS);
+    else if (command === 'jumpBack') this.jumpToKey(false);
+    else if (command === 'jumpForward') this.jumpToKey(true);
+    else if (command === 'toStart') this.onSeek(0);
+    else if (command === 'toEnd') this.onSeek(this.durationMs());
+  }
+
+  /** A step along the scene, no smaller than what a moment is rounded to. */
+  protected stepBy(deltaMs: number): void {
+    this.pause();
+    this.onSeek(Math.min(this.durationMs(), Math.max(0, this.playheadMs() + deltaMs)));
+  }
+
+  /**
+   * To the next moment something happens at, rather than to the next tick of the clock.
+   *
+   * The keys of the layer in hand where there is one, and of the whole scene where there
+   * is not, so that the playhead lands where there is something to see either way.
+   */
+  protected jumpToKey(forward: boolean): void {
+    const chosen = this.selected();
+    const layers = chosen ? [chosen] : this.layers();
+    const times = new Set<number>();
+    for (const layer of layers) for (const ms of layerKeyTimes(layer)) times.add(ms);
+    for (const sound of this.sounds()) times.add(sound.t);
+    times.add(0);
+    times.add(this.durationMs());
+
+    const landed = keyBeyond([...times], this.playheadMs(), forward);
+    if (landed === null) return;
+    this.pause();
+    this.onSeek(landed);
+  }
+
+  protected get canJumpBack(): boolean {
+    return this.playheadMs() > 0;
   }
 
   private stepHistory(step: (stack: EditHistory<CutInSceneSnapshot>) => CutInSceneSnapshot | null): void {
@@ -692,6 +765,72 @@ export class CutInSceneEditorComponent {
     }
     // Only the redraw: the whole drag is one change to take back, committed on the release.
     this.bumped.update((count) => count + 1);
+  }
+
+  /** How much room the bands have, which is what the scale is worked out against. */
+  private watchTimelineRoom(): void {
+    const element = this.timelineArea()?.nativeElement;
+    if (!element) return;
+
+    this.timelineRoomPx.set(Math.round(element.getBoundingClientRect().width));
+    if (typeof ResizeObserver !== 'function') return;
+
+    const observer = new ResizeObserver((entries) => {
+      const rect = entries[0]?.contentRect;
+      if (rect) this.timelineRoomPx.set(Math.round(rect.width));
+    });
+    observer.observe(element);
+    this.destroyRef.onDestroy(() => observer.disconnect());
+  }
+
+  /**
+   * Leans in and out, holding whatever is under the pointer where it was.
+   *
+   * Drawing out from the left edge would send the moment being worked on off the side.
+   */
+  protected zoomBy(factor: number, holdPx?: number): void {
+    const area = this.timelineArea()?.nativeElement;
+    const viewport = this.timelineViewportPx();
+    const held = holdPx ?? viewport / 2;
+    const before = this.timelineZoom();
+    const atMs = xToMs(
+      (area ? area.scrollLeft : 0) + held,
+      pxPerSecFor(this.durationMs(), trackWidthFor(viewport, before))
+    );
+
+    const after = clampZoom(before * factor);
+    if (after === before) return;
+    this.timelineZoom.set(after);
+
+    if (!area) return;
+    // Once the bands have been redrawn at the new scale, put the moment back where it was.
+    queueMicrotask(() => {
+      area.scrollLeft = scrollToHold(atMs, this.durationMs(), viewport, after, held);
+    });
+  }
+
+  protected zoomIn(): void {
+    this.zoomBy(TIMELINE_ZOOM_STEP);
+  }
+
+  protected zoomOut(): void {
+    this.zoomBy(1 / TIMELINE_ZOOM_STEP);
+  }
+
+  protected zoomToFit(): void {
+    this.timelineZoom.set(MIN_TIMELINE_ZOOM);
+    const area = this.timelineArea()?.nativeElement;
+    if (area) area.scrollLeft = 0;
+  }
+
+  protected onTimelineWheel(event: WheelEvent): void {
+    if (!event.ctrlKey && !event.metaKey) return;
+    event.preventDefault();
+
+    const area = this.timelineArea()?.nativeElement;
+    const bounds = area?.getBoundingClientRect();
+    const holdPx = bounds ? event.clientX - bounds.left - TIMELINE_HEAD_W_PX : undefined;
+    this.zoomBy(event.deltaY < 0 ? TIMELINE_ZOOM_STEP : 1 / TIMELINE_ZOOM_STEP, holdPx);
   }
 
   private watchStageSize(): void {

@@ -425,7 +425,12 @@
         "easingstep": "Snap",
         "undo": "Undo",
         "redo": "Redo",
-        "timeline": "Timeline"
+        "timeline": "Timeline",
+        "zoomIn": "Draw the timeline out",
+        "zoomOut": "Draw it back in",
+        "zoomFit": "Fit the whole scene (or hold ctrl and scroll)",
+        "jumpBack": "To the key before (shift and left)",
+        "jumpForward": "To the next key (shift and right)"
       }
     },
     "card": {

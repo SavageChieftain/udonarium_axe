@@ -26,7 +26,57 @@ export const TIMELINE_SOUND_H_PX = 20;
 export const TIMELINE_ROW_H_PX = 24;
 /** How far down the first layer band begins: the ruler and the sound row above it. */
 export const TIMELINE_HEAD_OFFSET_PX = TIMELINE_RULER_H_PX + TIMELINE_SOUND_H_PX;
+/** How wide the heads stand. The bands have whatever is left of the room. */
+export const TIMELINE_HEAD_W_PX = 160;
 export const SNAP_MS = 10;
+
+/**
+ * How far in the timeline may be drawn out.
+ *
+ * At rest the whole scene is fitted to the room there is, which is fine for reading it and
+ * hopeless for working on it: a tenth of a second comes to a few pixels, and a key cannot
+ * be put where it is meant to go. Drawing it out past the room it has is what lets a moment
+ * be aimed at, and the track scrolls sideways to reach the rest of the scene.
+ */
+export const MIN_TIMELINE_ZOOM = 1;
+export const MAX_TIMELINE_ZOOM = 32;
+export const TIMELINE_ZOOM_STEP = 1.5;
+
+export function clampZoom(zoom: number): number {
+  if (!Number.isFinite(zoom)) return MIN_TIMELINE_ZOOM;
+  return Math.min(MAX_TIMELINE_ZOOM, Math.max(MIN_TIMELINE_ZOOM, zoom));
+}
+
+/** How wide the track stands once drawn out. Never narrower than the room it has. */
+export function trackWidthFor(viewportPx: number, zoom: number): number {
+  return Math.max(1, Math.round(viewportPx * clampZoom(zoom)));
+}
+
+/**
+ * The moment that stays put while the scale changes.
+ *
+ * Drawing the timeline out from the left edge sends whatever is being worked on off the
+ * side of the track. Keeping a moment where it was on screen is what makes zooming feel
+ * like leaning in rather than like being moved.
+ */
+export function scrollToHold(
+  atMs: number,
+  durationMs: number,
+  viewportPx: number,
+  zoom: number,
+  holdPx: number
+): number {
+  const width = trackWidthFor(viewportPx, zoom);
+  const pxPerSec = pxPerSecFor(durationMs, width);
+  return Math.max(0, Math.min(width - viewportPx, msToX(atMs, pxPerSec) - holdPx));
+}
+
+/** The key nearest to a moment, on one side of it or the other. Nothing where there is none. */
+export function keyBeyond(times: readonly number[], ms: number, forward: boolean): number | null {
+  const beyond = times.filter((time) => (forward ? time > ms + 0.5 : time < ms - 0.5));
+  if (beyond.length < 1) return null;
+  return forward ? Math.min(...beyond) : Math.max(...beyond);
+}
 
 /** The scale that fits the whole scene into the room the track has. */
 export function pxPerSecFor(durationMs: number, width: number): number {

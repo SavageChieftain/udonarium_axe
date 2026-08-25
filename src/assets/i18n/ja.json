@@ -425,7 +425,12 @@
         "easingstep": "切り替わる",
         "undo": "元に戻す",
         "redo": "やり直す",
-        "timeline": "タイムライン"
+        "timeline": "タイムライン",
+        "zoomIn": "タイムラインを拡大",
+        "zoomOut": "タイムラインを縮小",
+        "zoomFit": "全体を表示（Ctrl+ホイールでも拡縮）",
+        "jumpBack": "前のキーへ（Shift+←）",
+        "jumpForward": "次のキーへ（Shift+→）"
       }
     },
     "card": {

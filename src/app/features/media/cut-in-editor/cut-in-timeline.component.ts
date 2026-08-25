@@ -1,14 +1,11 @@
 import {
-  afterNextRender,
   ChangeDetectionStrategy,
   Component,
   computed,
-  DestroyRef,
   ElementRef,
   inject,
   input,
   output,
-  signal,
   viewChild,
 } from '@angular/core';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
@@ -25,6 +22,7 @@ import {
   TIMELINE_RULER_H_PX,
   TIMELINE_SOUND_H_PX,
   type TimelineTick,
+  trackWidthFor,
   visibleTicks,
   xToMs,
 } from '@axe/features/media/cut-in-editor/cut-in-timeline-geometry';
@@ -53,7 +51,6 @@ interface KeyDrag {
 })
 export class CutInTimelineComponent {
   private readonly objectChange = inject(ObjectChangeService);
-  private readonly destroyRef = inject(DestroyRef);
 
   readonly layers = input<readonly CutInLayer[]>([]);
   readonly sounds = input<readonly CutInSound[]>([]);
@@ -61,6 +58,9 @@ export class CutInTimelineComponent {
   readonly durationMs = input(0);
   readonly playheadMs = input(0);
   readonly isEditable = input(false);
+  /** The room the bands have on screen, and how far they are drawn out past it. */
+  readonly viewportPx = input(0);
+  readonly zoom = input(1);
 
   readonly seek = output<number>();
   readonly selectLayer = output<CutInLayer>();
@@ -70,7 +70,8 @@ export class CutInTimelineComponent {
   readonly removeSound = output<{ ms: number }>();
 
   private readonly track = viewChild<ElementRef<HTMLElement>>('track');
-  private readonly trackWidth = signal(0);
+  /** How wide the bands stand once drawn out: the room they have, times the scale. */
+  readonly trackWidth = computed(() => trackWidthFor(this.viewportPx(), this.zoom()));
   private scrubbing = false;
   private keyDrag: KeyDrag | null = null;
   private soundDrag: { fromMs: number; toMs: number } | null = null;
@@ -106,9 +107,7 @@ export class CutInTimelineComponent {
 
   readonly playheadX = computed(() => msToX(this.playheadMs(), this.pxPerSec()));
 
-  constructor() {
-    afterNextRender(() => this.watchTrackWidth());
-  }
+  constructor() {}
 
   protected tickX(tick: TimelineTick): number {
     return msToX(tick.ms, this.pxPerSec());
@@ -131,13 +130,15 @@ export class CutInTimelineComponent {
   protected onRowDown(event: PointerEvent, row: TimelineRow): void {
     this.selectLayer.emit(row.layer);
 
-    const grabbed = this.isEditable()
-      ? keyAtX(
-          row.keys.map((key) => key.ms),
-          this.offsetOf(event),
-          this.pxPerSec()
-        )
-      : null;
+    // A locked layer is looked at, not moved, the same as on the stage.
+    const grabbed =
+      this.isEditable() && !row.layer.locked
+        ? keyAtX(
+            row.keys.map((key) => key.ms),
+            this.offsetOf(event),
+            this.pxPerSec()
+          )
+        : null;
     if (grabbed === null) {
       this.onRulerDown(event);
       return;
@@ -207,7 +208,7 @@ export class CutInTimelineComponent {
   }
 
   protected onRowDoubleClick(event: MouseEvent, row: TimelineRow): void {
-    if (!this.isEditable()) return;
+    if (!this.isEditable() || row.layer.locked) return;
 
     const at = keyAtX(
       row.keys.map((key) => key.ms),
@@ -225,20 +226,5 @@ export class CutInTimelineComponent {
   private offsetOf(event: MouseEvent): number {
     const bounds = this.track()?.nativeElement.getBoundingClientRect();
     return bounds ? event.clientX - bounds.left : event.clientX;
-  }
-
-  private watchTrackWidth(): void {
-    const element = this.track()?.nativeElement;
-    if (!element) return;
-
-    this.trackWidth.set(Math.round(element.getBoundingClientRect().width));
-    if (typeof ResizeObserver !== 'function') return;
-
-    const observer = new ResizeObserver((entries) => {
-      const rect = entries[0]?.contentRect;
-      if (rect) this.trackWidth.set(Math.round(rect.width));
-    });
-    observer.observe(element);
-    this.destroyRef.onDestroy(() => observer.disconnect());
   }
 }

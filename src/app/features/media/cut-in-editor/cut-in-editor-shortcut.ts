@@ -7,7 +7,17 @@ export { isTypingTarget } from '@axe/core/input/typing-target';
  * while something is being typed — a layer being renamed would lose its letters otherwise.
  */
 
-export type CutInEditorCommand = 'undo' | 'redo' | 'deleteSelection' | 'togglePlaying';
+export type CutInEditorCommand =
+  | 'undo'
+  | 'redo'
+  | 'deleteSelection'
+  | 'togglePlaying'
+  | 'stepBack'
+  | 'stepForward'
+  | 'jumpBack'
+  | 'jumpForward'
+  | 'toStart'
+  | 'toEnd';
 
 export interface CutInEditorKeyContext {
   /** The focus is in a field. */
@@ -39,6 +49,16 @@ export function cutInEditorKeyDown(key: string, context: CutInEditorKeyContext):
     return { command: 'deleteSelection', preventDefault: true };
   }
   if (key === ' ') return { command: 'togglePlaying', preventDefault: true };
+
+  // Along the scene: a step at a time, or from one key to the next where shift is held.
+  if (key === 'ArrowLeft') {
+    return { command: context.shift ? 'jumpBack' : 'stepBack', preventDefault: true };
+  }
+  if (key === 'ArrowRight') {
+    return { command: context.shift ? 'jumpForward' : 'stepForward', preventDefault: true };
+  }
+  if (key === 'Home') return { command: 'toStart', preventDefault: true };
+  if (key === 'End') return { command: 'toEnd', preventDefault: true };
 
   return null;
 }

@@ -57,6 +57,25 @@
     <button
       class="border-ui-border-panel text-ui-muted hover:bg-ui-hover hover:text-ui-text rounded-ui-sm inline-flex size-7 cursor-pointer items-center justify-center border border-solid bg-transparent p-0 disabled:cursor-not-allowed disabled:opacity-40 [&_.material-icons]:text-[14px]!"
       type="button"
+      [title]="'feature.media.cutInEditor.jumpBack' | transloco"
+      (click)="jumpToKey(false)"
+    >
+      <i class="material-icons">skip_previous</i>
+    </button>
+    <button
+      class="border-ui-border-panel text-ui-muted hover:bg-ui-hover hover:text-ui-text rounded-ui-sm inline-flex size-7 cursor-pointer items-center justify-center border border-solid bg-transparent p-0 disabled:cursor-not-allowed disabled:opacity-40 [&_.material-icons]:text-[14px]!"
+      type="button"
+      [title]="'feature.media.cutInEditor.jumpForward' | transloco"
+      (click)="jumpToKey(true)"
+    >
+      <i class="material-icons">skip_next</i>
+    </button>
+
+    <span class="border-ui-border-panel mx-1 h-5 border-l border-solid"></span>
+
+    <button
+      class="border-ui-border-panel text-ui-muted hover:bg-ui-hover hover:text-ui-text rounded-ui-sm inline-flex size-7 cursor-pointer items-center justify-center border border-solid bg-transparent p-0 disabled:cursor-not-allowed disabled:opacity-40 [&_.material-icons]:text-[14px]!"
+      type="button"
       [disabled]="!canUndo()"
       [title]="'feature.media.cutInEditor.undo' | transloco"
       (click)="undo()"
@@ -199,10 +218,43 @@
     <div class="border-ui-border-panel text-ui-muted flex shrink-0 items-center gap-2 border-b border-solid px-2 py-1">
       <i class="material-icons text-[13px]! opacity-70">schedule</i>
       <span class="text-[11px] tabular-nums">{{ clock() }}</span>
+
+      <span class="ml-auto inline-flex items-center gap-0.5">
+        <button
+          class="border-ui-border-panel text-ui-muted hover:bg-ui-hover hover:text-ui-text rounded-ui-sm inline-flex size-6 cursor-pointer items-center justify-center border border-solid bg-transparent p-0 disabled:cursor-not-allowed disabled:opacity-40 [&_.material-icons]:text-[13px]!"
+          type="button"
+          [disabled]="!canZoomOut()"
+          [title]="'feature.media.cutInEditor.zoomOut' | transloco"
+          (click)="zoomOut()"
+        >
+          <i class="material-icons">zoom_out</i>
+        </button>
+        <button
+          class="border-ui-border-panel text-ui-muted hover:bg-ui-hover hover:text-ui-text rounded-ui-sm inline-flex h-6 min-w-11 cursor-pointer items-center justify-center border border-solid bg-transparent px-1 text-[10px] tabular-nums disabled:cursor-not-allowed disabled:opacity-40"
+          type="button"
+          [disabled]="!canZoomOut()"
+          [title]="'feature.media.cutInEditor.zoomFit' | transloco"
+          (click)="zoomToFit()"
+        >
+          {{ zoomPercent() }}%
+        </button>
+        <button
+          class="border-ui-border-panel text-ui-muted hover:bg-ui-hover hover:text-ui-text rounded-ui-sm inline-flex size-6 cursor-pointer items-center justify-center border border-solid bg-transparent p-0 disabled:cursor-not-allowed disabled:opacity-40 [&_.material-icons]:text-[13px]!"
+          type="button"
+          [disabled]="!canZoomIn()"
+          [title]="'feature.media.cutInEditor.zoomIn' | transloco"
+          (click)="zoomIn()"
+        >
+          <i class="material-icons">zoom_in</i>
+        </button>
+      </span>
     </div>
 
-    <div class="flex min-h-0 flex-1 overflow-y-auto">
-      <div class="border-ui-border-panel bg-ui-panel w-40 shrink-0 border-r border-solid">
+    <div class="flex min-h-0 flex-1 overflow-auto" #timelineArea (wheel)="onTimelineWheel($event)">
+      <div
+        class="border-ui-border-panel bg-ui-panel sticky left-0 z-2 shrink-0 border-r border-solid"
+        [style.width.px]="timelineHeadWidthPx"
+      >
         <!-- Level with the ruler and the sound row, so the first head meets the first band. -->
         <div class="border-ui-border-panel border-b border-solid" [style.height.px]="timelineHeadOffsetPx"></div>
         <cut-in-layer-list
@@ -217,7 +269,8 @@
       </div>
 
       <cut-in-timeline
-        class="min-w-0 flex-1"
+        [viewportPx]="timelineViewportPx()"
+        [zoom]="timelineZoom()"
         [layers]="layers()"
         [sounds]="sounds()"
         [selected]="selected()"

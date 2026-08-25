@@ -1,6 +1,7 @@
 <div class="text-[11px]">
   <div
     class="relative touch-none"
+    [style.width.px]="trackWidth()"
     #track
     (pointermove)="onPointerMove($event)"
     (pointerup)="onPointerUp($event)"
