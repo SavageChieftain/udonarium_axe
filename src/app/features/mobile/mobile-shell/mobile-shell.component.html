@@ -176,7 +176,7 @@
         [attr.aria-label]="'common.language.switchTooltip' | transloco"
         (click)="toggleLanguage()"
       >
-        {{ language.currentLang() === 'ja' ? 'JA' : 'EN' }}
+        {{ language.currentLang() }}
       </button>
     </footer>
   </div>

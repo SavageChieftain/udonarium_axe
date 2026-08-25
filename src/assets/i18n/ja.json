@@ -17,6 +17,7 @@
     "language": {
       "ja": "日本語",
       "en": "English",
+      "ko": "한국어",
       "switchTooltip": "言語切替"
     },
     "chat": {
