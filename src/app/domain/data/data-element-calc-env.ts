@@ -27,11 +27,14 @@ interface ScopeLeaf {
 
 interface ScopeIndex {
   readonly leaves: readonly ScopeLeaf[];
+  /** Every field by its full path, folded to lower case. */
+  readonly byPath: ReadonlyMap<string, DataElement>;
   /**
-   * Every way a field on this sheet may be named, folded to lower case: by its path always,
-   * and by its bare name where one field alone answers to it.
+   * Every field answering to a bare name, folded to lower case, kept as a list rather than
+   * as one field. A name several fields answer to stands for the one of them holding a
+   * number, and which that is cannot be told from the shape of the sheet alone.
    */
-  readonly byName: ReadonlyMap<string, DataElement>;
+  readonly byName: ReadonlyMap<string, readonly DataElement[]>;
 }
 
 export function createCalcPass(): CalcPass {
@@ -48,7 +51,7 @@ export function buildCalcEnv(self: DataElement, pass: CalcPass = createCalcPass(
     const value = resolve(leaf.node, pass);
     if (value == null || Number.isNaN(value)) continue;
     env[leaf.path] = value;
-    if (index.byName.get(leaf.name.toLowerCase()) === leaf.node) env[leaf.name] = value;
+    if (soleNumbered(index.byName.get(leaf.name.toLowerCase()), pass) === leaf.node) env[leaf.name] = value;
   }
   return env;
 }
@@ -119,7 +122,7 @@ function resolve(node: DataElement, pass: CalcPass): number | null {
 function lookupWithin(self: DataElement, pass: CalcPass): CalcLookup {
   const index = scopeIndex(DataElement.getDetailNameScope(self), pass);
   return (name) => {
-    const node = index.byName.get(name);
+    const node = index.byPath.get(name) ?? soleNumbered(index.byName.get(name), pass);
     if (!node) return NaN;
     const value = resolve(node, pass);
     return value == null ? NaN : value;
@@ -127,8 +130,29 @@ function lookupWithin(self: DataElement, pass: CalcPass): CalcLookup {
 }
 
 /**
- * Where every numeric leaf of a sheet sits and what it may be called. This is the shape of the
- * sheet rather than its contents, so it is worked out once however many fields read it.
+ * The one field of those sharing a name that a formula may mean.
+ *
+ * A name two fields answer to means neither of them. A field holding words rather than a
+ * number is not one of the two: a sheet with a note called HP beside the number called HP
+ * still adds up.
+ */
+function soleNumbered(nodes: readonly DataElement[] | undefined, pass: CalcPass): DataElement | null {
+  if (!nodes) return null;
+  if (nodes.length === 1) return nodes[0];
+
+  let found: DataElement | null = null;
+  for (const node of nodes) {
+    const value = resolve(node, pass);
+    if (value == null || Number.isNaN(value)) continue;
+    if (found) return null;
+    found = node;
+  }
+  return found;
+}
+
+/**
+ * Where every leaf of a sheet sits and what it may be called. This is the shape of the sheet
+ * rather than its contents, so it is worked out once however many fields read it.
  */
 function scopeIndex(root: DataElement, pass: CalcPass): ScopeIndex {
   const known = pass.scopes.get(root);
@@ -137,22 +161,20 @@ function scopeIndex(root: DataElement, pass: CalcPass): ScopeIndex {
   const leaves: ScopeLeaf[] = [];
   collectLeaves(root, root, leaves);
 
-  const byName = new Map<string, DataElement>();
-  const counts = new Map<string, number>();
+  const byPath = new Map<string, DataElement>();
+  for (const leaf of leaves) byPath.set(leaf.path.toLowerCase(), leaf.node);
+
+  const byName = new Map<string, DataElement[]>();
   for (const leaf of leaves) {
+    // A full path is the surer name of the two, so it keeps whatever it already stands for.
     const folded = leaf.name.toLowerCase();
-    counts.set(folded, (counts.get(folded) ?? 0) + 1);
-  }
-  for (const leaf of leaves) {
-    byName.set(leaf.path.toLowerCase(), leaf.node);
-  }
-  for (const leaf of leaves) {
-    // A bare name stands for a field only where no other field answers to it.
-    const folded = leaf.name.toLowerCase();
-    if (counts.get(folded) === 1 && !byName.has(folded)) byName.set(folded, leaf.node);
+    if (byPath.has(folded)) continue;
+    const sharing = byName.get(folded);
+    if (sharing) sharing.push(leaf.node);
+    else byName.set(folded, [leaf.node]);
   }
 
-  const index: ScopeIndex = { leaves, byName };
+  const index: ScopeIndex = { leaves, byPath, byName };
   pass.scopes.set(root, index);
   return index;
 }

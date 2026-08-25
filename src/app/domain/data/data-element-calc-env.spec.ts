@@ -57,6 +57,19 @@ describe('buildCalcEnv', () => {
     expect(env['値']).toBeUndefined();
   });
 
+  it('reads the number where a note beside it answers to the same name', () => {
+    const detail = DataElement.create('detail', '');
+    const sheet = DataElement.create('表', '');
+    const memo = DataElement.create('備考', '');
+    detail.appendChild(sheet);
+    detail.appendChild(memo);
+    sheet.appendChild(DataElement.create('HP', '15'));
+    memo.appendChild(DataElement.create('hp', '要確認'));
+
+    const env = buildCalcEnv(detail);
+    expect(env['HP']).toBe(15);
+  });
+
   it('resolves a formula together with the evaluator', () => {
     const detail = DataElement.create('detail', '');
     const hp = DataElement.create('HP', '10');
@@ -92,6 +105,34 @@ describe('evaluateCalcElement', () => {
     element.setAttribute(DataElementAttribute.FORMULA, formula);
     return element;
   }
+
+  it('works a name out from the field holding a number, not the note sharing its name', () => {
+    const detail = DataElement.create('detail', '');
+    const sheet = DataElement.create('表', '');
+    const memo = DataElement.create('備考', '');
+    detail.appendChild(sheet);
+    detail.appendChild(memo);
+    sheet.appendChild(DataElement.create('HP', '15'));
+    memo.appendChild(DataElement.create('hp', '要確認'));
+    const calc = makeCalc('総HP', 'HP * 2');
+    detail.appendChild(calc);
+
+    expect(evaluateCalcElement(calc)).toBe('30');
+  });
+
+  it('still means neither where two fields holding numbers share a name', () => {
+    const detail = DataElement.create('detail', '');
+    const sectionA = DataElement.create('A', '');
+    const sectionB = DataElement.create('B', '');
+    detail.appendChild(sectionA);
+    detail.appendChild(sectionB);
+    sectionA.appendChild(DataElement.create('値', '3'));
+    sectionB.appendChild(DataElement.create('値', '7'));
+    const calc = makeCalc('合計', '値 + 1');
+    detail.appendChild(calc);
+
+    expect(evaluateCalcElement(calc)).toBe('?');
+  });
 
   it('works out the formula it holds', () => {
     const detail = DataElement.create('detail', '');
