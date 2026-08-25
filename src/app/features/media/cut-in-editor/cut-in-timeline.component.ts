@@ -45,6 +45,14 @@ interface KeyDrag {
   toMs: number;
 }
 
+/** What a drag has hold of, which is the one thing on the timeline it may not land on. */
+interface Held {
+  /** Moments the drag itself sits on. */
+  moments?: readonly number[];
+  /** A layer whose band is being dragged, whose own two ends move with the pointer. */
+  band?: CutInLayer;
+}
+
 /** The clock of a scene: what each layer is doing, and when. */
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -200,16 +208,16 @@ export class CutInTimelineComponent {
     if (this.bandDrag) {
       // A band follows the pointer as it is dragged, so its length can be seen being set.
       const { layer, edge } = this.bandDrag;
-      const moved = bandDraggedTo(layer, edge, this.momentAt(event), this.durationMs());
+      const moved = bandDraggedTo(layer, edge, this.momentAt(event, { band: layer }), this.durationMs());
       this.trimLayer.emit({ layer, ...moved });
       return;
     }
     if (this.soundDrag) {
-      this.soundDrag.toMs = this.momentAt(event, [this.soundDrag.fromMs]);
+      this.soundDrag.toMs = this.momentAt(event, { moments: [this.soundDrag.fromMs] });
       return;
     }
     if (this.keyDrag) {
-      this.keyDrag.toMs = this.momentAt(event, [this.keyDrag.fromMs]);
+      this.keyDrag.toMs = this.momentAt(event, { moments: [this.keyDrag.fromMs] });
       return;
     }
     if (this.scrubbing) this.seek.emit(this.momentAt(event));
@@ -254,21 +262,25 @@ export class CutInTimelineComponent {
   /**
    * Where a drag lands: on a moment worth landing on where one is near, on the grid where
    * none is. Holding shift lets go of the magnet, for the times a moment is wanted between.
+   *
+   * Nothing pulls on itself. A band dragged by one end would otherwise be held to the end
+   * it already sits on, and could be moved only in jumps of the magnet's own reach.
    */
-  private momentAt(event: MouseEvent, exclude?: readonly number[]): number {
+  private momentAt(event: MouseEvent, held?: Held): number {
     const ms = xToMs(this.offsetOf(event), this.pxPerSec());
     if (event.shiftKey) return snapMs(ms, this.durationMs());
 
-    const skip = new Set(exclude ?? []);
-    const nearby = this.magnets().filter((moment) => !skip.has(moment));
+    const skip = new Set(held?.moments ?? []);
+    const nearby = this.magnets(held?.band).filter((moment) => !skip.has(moment));
     return snapToNearby(ms, nearby, this.durationMs(), this.pxPerSec());
   }
 
   /** Every moment on the timeline worth a drag landing on. */
-  private magnets(): number[] {
+  private magnets(exceptBandOf?: CutInLayer): number[] {
     const moments = new Set<number>([0, this.durationMs(), this.playheadMs()]);
     for (const row of this.rows()) {
       for (const key of row.keys) moments.add(key.ms);
+      if (row.layer === exceptBandOf) continue;
       moments.add(xToMs(row.left, this.pxPerSec()));
       moments.add(xToMs(row.left + row.width, this.pxPerSec()));
     }

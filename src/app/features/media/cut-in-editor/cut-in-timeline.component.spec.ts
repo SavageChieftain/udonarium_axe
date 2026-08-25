@@ -2,7 +2,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { encodeCutInTracks } from '@axe/domain/media/cut-in-keyframe';
 import { CutInLayer } from '@axe/domain/media/cut-in-layer';
-import { CutInTimelineComponent } from '@axe/features/media/cut-in-editor/cut-in-timeline.component';
+import { CutInTimelineComponent, type TimelineRow } from '@axe/features/media/cut-in-editor/cut-in-timeline.component';
 import { TIMELINE_ROW_H_PX, TIMELINE_RULER_H_PX } from '@axe/features/media/cut-in-editor/cut-in-timeline-geometry';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
 
@@ -50,6 +50,16 @@ describe('CutInTimelineComponent', () => {
     fixture.componentRef.setInput('zoom', zoom);
     fixture.detectChanges();
   }
+
+  /** The track is measured from the DOM, which stands at nought here, so x is the pointer. */
+  function pointer(x: number): PointerEvent {
+    return { clientX: x, shiftKey: false, pointerId: 1, target: null } as unknown as PointerEvent;
+  }
+
+  type PointerApi = {
+    onRowDown(event: PointerEvent, row: TimelineRow): void;
+    onPointerMove(event: PointerEvent): void;
+  };
 
   it('says so when there is nothing to lay out', () => {
     show([]);
@@ -111,6 +121,39 @@ describe('CutInTimelineComponent', () => {
 
     expect(component.ticks().length).toBeGreaterThan(2);
     expect(component.ticks()[0].ms).toBe(0);
+  });
+
+  describe('dragging a band by one of its ends', () => {
+    it('follows the pointer rather than being held to where the end already is', () => {
+      const layer = makeLayer('文字', { startMs: 500, endMs: 1500 });
+      show([layer]);
+      const trimmed: { startMs: number; endMs: number }[] = [];
+      component.trimLayer.subscribe((moved) => trimmed.push(moved));
+
+      const row = component.rows()[0];
+      const api = component as unknown as PointerApi;
+      api.onRowDown(pointer(row.left), row);
+      api.onPointerMove(pointer(row.left + 4));
+
+      // Four pixels is inside the magnet's reach, so the band's own end used to pull it back.
+      expect(trimmed).toHaveLength(1);
+      expect(trimmed[0].startMs).toBeGreaterThan(500);
+    });
+
+    it('still lands on where another layer starts', () => {
+      const dragged = makeLayer('文字', { startMs: 500, endMs: 1500 });
+      const beside = makeLayer('背景', { startMs: 520, endMs: 1800 });
+      show([dragged, beside]);
+      const trimmed: { startMs: number; endMs: number }[] = [];
+      component.trimLayer.subscribe((moved) => trimmed.push(moved));
+
+      const row = component.rows().find((each) => each.layer === dragged)!;
+      const api = component as unknown as PointerApi;
+      api.onRowDown(pointer(row.left), row);
+      api.onPointerMove(pointer(row.left + 3));
+
+      expect(trimmed[0].startMs).toBe(520);
+    });
   });
 
   describe('drawing the bands out', () => {
