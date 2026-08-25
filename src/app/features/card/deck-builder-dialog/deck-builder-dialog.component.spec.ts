@@ -41,8 +41,8 @@ describe('DeckBuilderDialogComponent', () => {
 
   it('counts the pictures under a tag', () => {
     playing(PeerRole.Player);
-    put('one', '手札');
-    put('two', '手札');
+    put('deck-one', '手札');
+    put('deck-two', '手札');
 
     component.selectedTag.set('手札');
 
@@ -51,33 +51,38 @@ describe('DeckBuilderDialogComponent', () => {
 
   it('does not deal a player a picture the master is keeping back', () => {
     playing(PeerRole.Player);
-    put('plain', '手札');
-    put('the-twist', '手札', true);
+    put('deck-plain', '手札');
+    put('deck-kept-back', '手札', true);
 
     component.selectedTag.set('手札');
 
-    expect(component.imagesOf('手札').map((image) => image.identifier)).toEqual(['plain']);
+    expect(component.imagesOf('手札').map((image) => image.identifier)).toEqual(['deck-plain']);
   });
 
   it('deals the master the whole tag', () => {
     playing(PeerRole.GameMaster);
-    put('plain', '手札');
-    put('the-twist', '手札', true);
+    put('deck-plain', '手札');
+    put('deck-kept-back', '手札', true);
 
-    expect(component.imagesOf('手札').map((image) => image.identifier)).toEqual(['plain', 'the-twist']);
+    expect(
+      component
+        .imagesOf('手札')
+        .map((image) => image.identifier)
+        .sort()
+    ).toEqual(['deck-plain', 'deck-kept-back'].sort());
   });
 
   it('offers no tag that holds nothing but what is kept back', () => {
     playing(PeerRole.Player);
-    put('the-twist', '仕掛け', true);
-    put('plain', '手札');
+    put('deck-kept-back', '仕掛け', true);
+    put('deck-plain', '手札');
 
     expect(component.tags()).toEqual(['手札']);
   });
 
   it('never offers the tag the tool keeps for itself', () => {
     playing(PeerRole.GameMaster);
-    put('a-die-face', SYSTEM_RESERVED_TAG);
+    put('deck-die-face', SYSTEM_RESERVED_TAG);
 
     expect(component.tags()).not.toContain(SYSTEM_RESERVED_TAG);
   });
