@@ -18,17 +18,26 @@ interface DrawnImage {
   height: number;
 }
 
+interface GradientLine {
+  x0: number;
+  y0: number;
+  x1: number;
+  y1: number;
+}
+
 function recorder(): {
   ctx: ReplayFrameCanvas;
   texts: { text: string; x: number; y: number; font: string; color: string }[];
   images: DrawnImage[];
   fills: { x: number; y: number; width: number; height: number; color: string }[];
   strokes: { text: string; x: number; y: number; color: string }[];
+  gradients: GradientLine[];
 } {
   const texts: { text: string; x: number; y: number; font: string; color: string }[] = [];
   const images: DrawnImage[] = [];
   const fills: { x: number; y: number; width: number; height: number; color: string }[] = [];
   const strokes: { text: string; x: number; y: number; color: string }[] = [];
+  const gradients: GradientLine[] = [];
 
   // Anything flat on the ground is drawn through the matrix, so the spec applies the same
   // transform and checks where it lands on screen.
@@ -92,7 +101,8 @@ function recorder(): {
     createRadialGradient() {
       return { addColorStop() {} };
     },
-    createLinearGradient() {
+    createLinearGradient(x0: number, y0: number, x1: number, y1: number) {
+      gradients.push({ x0: atX(x0, y0), y0: atY(x0, y0), x1: atX(x1, y1), y1: atY(x1, y1) });
       return { addColorStop() {} };
     },
     strokeText(text: string, x: number, y: number) {
@@ -109,7 +119,7 @@ function recorder(): {
     },
   } as unknown as ReplayFrameCanvas;
 
-  return { ctx, texts, images, fills, strokes };
+  return { ctx, texts, images, fills, strokes, gradients };
 }
 
 type Matrix = [number, number, number, number, number, number];
@@ -994,6 +1004,27 @@ describe('paintReplayFrame()', () => {
         expect(Number.isFinite(drawn.width)).toBe(true);
         expect(Number.isFinite(drawn.height)).toBe(true);
       }
+    });
+
+    it('runs a band across the way the browser runs it', () => {
+      const { ctx, gradients } = recorder();
+      // Ninety degrees is left to right, the way CSS reads a linear-gradient.
+      const scene = sceneOf([{ kind: 'fill', fillFrom: '#000000', fillTo: '#ffffff', fillAngleDeg: 90 }]);
+
+      paintReplayFrame(ctx, layout, shot({ cutInScene: scene }), assets, 0, DEFAULT_REPLAY_FRAME_STYLE, null, 0);
+
+      expect(gradients[0].x1).toBeGreaterThan(gradients[0].x0);
+      expect(gradients[0].y1).toBeCloseTo(gradients[0].y0, 6);
+    });
+
+    it('runs a band down the screen where the angle says down', () => {
+      const { ctx, gradients } = recorder();
+      const scene = sceneOf([{ kind: 'fill', fillFrom: '#000000', fillTo: '#ffffff', fillAngleDeg: 180 }]);
+
+      paintReplayFrame(ctx, layout, shot({ cutInScene: scene }), assets, 0, DEFAULT_REPLAY_FRAME_STYLE, null, 0);
+
+      expect(gradients[0].y1).toBeGreaterThan(gradients[0].y0);
+      expect(gradients[0].x1).toBeCloseTo(gradients[0].x0, 6);
     });
 
     it('blows a cropped picture up until it covers the box', () => {

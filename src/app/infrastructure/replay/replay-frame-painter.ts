@@ -460,10 +460,17 @@ function paintBand(ctx: ReplayFrameCanvas, layer: ReplayCutInLayer, left: number
   ctx.fillRect(left, top, layer.width, layer.height);
 }
 
+/**
+ * The line a run of colour is laid along.
+ *
+ * CSS measures the angle from straight up and turns clockwise, so nought runs upwards and
+ * ninety runs to the right. A canvas measures from the x axis instead, and taking one for
+ * the other would lay every band across the way it was meant to lie.
+ */
 function linearAcross(ctx: ReplayFrameCanvas, layer: ReplayCutInLayer, midX: number, midY: number): CanvasGradient {
   const radians = (layer.fillAngleDeg * Math.PI) / 180;
-  const halfWidth = (Math.cos(radians) * layer.width) / 2;
-  const halfHeight = (Math.sin(radians) * layer.height) / 2;
+  const halfWidth = (Math.sin(radians) * layer.width) / 2;
+  const halfHeight = (-Math.cos(radians) * layer.height) / 2;
   return ctx.createLinearGradient(midX - halfWidth, midY - halfHeight, midX + halfWidth, midY + halfHeight);
 }
 
@@ -488,7 +495,9 @@ function paintSpeedlines(
   ctx.fillStyle = colour;
 
   const step = ray * 3;
-  for (let angle = (fill.angleDeg * Math.PI) / 180; angle < Math.PI * 2; angle += step) {
+  const from = ((fill.angleDeg - 90) * Math.PI) / 180;
+  for (let turned = 0; turned < Math.PI * 2; turned += step) {
+    const angle = from + turned;
     ctx.beginPath();
     ctx.moveTo(midX, midY);
     ctx.lineTo(midX + Math.cos(angle) * reach, midY + Math.sin(angle) * reach);
