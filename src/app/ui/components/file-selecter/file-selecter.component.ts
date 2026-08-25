@@ -8,7 +8,7 @@ import { PanelService } from '@axe/application/ui/panel.service';
 import { emitSelectFile } from '@axe/core/event/domain-events';
 import { ImageFile } from '@axe/core/storage/image-file';
 import { ImageStorage } from '@axe/core/storage/image-storage';
-import { canBrowseImage, ImageTag, SYSTEM_RESERVED_TAG } from '@axe/domain/media/image-tag';
+import { canBrowseImage, ImageTag } from '@axe/domain/media/image-tag';
 import { SafePipe } from '@axe/ui/pipes/safe.pipe';
 import { TranslocoModule } from '@jsverse/transloco';
 
@@ -81,13 +81,11 @@ export class FileSelecterComponent {
   get tagList(): string[] {
     const tags: string[] = [];
     for (const imageFile of this.fileStorageService.images) {
-      const identifier = imageFile.context.identifier;
-      const imageTag = ImageTag.get(identifier);
-      if (imageTag) {
-        if (imageTag.tag) {
-          if (imageTag.tag != SYSTEM_RESERVED_TAG) tags.push(imageTag.tag);
-        }
-      }
+      // A tag whose pictures are every one of them kept back is not offered either: picking
+      // it would open on nothing, and its name says there is something there to find.
+      if (!this.mayShow(imageFile)) continue;
+      const imageTag = ImageTag.get(imageFile.context.identifier);
+      if (imageTag?.tag) tags.push(imageTag.tag);
     }
 
     const tags2: string[] = Array.from(new Set(tags));

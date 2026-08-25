@@ -78,6 +78,21 @@ describe('FileSelecterComponent', () => {
 
         expect(component.getAllImage().map((image) => image.identifier)).toContain('the-twist');
       });
+
+      it('offers no tag that holds nothing but what is kept back', () => {
+        ImageTag.get('the-twist').tag = '仕掛け';
+        playing(PeerRole.Player);
+
+        expect(component.tagList).not.toContain('仕掛け');
+      });
+
+      it('offers the tag where something under it is there to be picked', () => {
+        ImageTag.get('the-twist').tag = '仕掛け';
+        put('a-hint', '仕掛け');
+        playing(PeerRole.Player);
+
+        expect(component.tagList).toContain('仕掛け');
+      });
     });
   });
 });
