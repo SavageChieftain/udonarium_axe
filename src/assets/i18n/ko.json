@@ -1529,7 +1529,9 @@
         "surfaceEastWall": "동쪽 벽",
         "surfaceSouthWall": "남쪽 벽",
         "surfaceWestWall": "서쪽 벽",
-        "createWithOptions": "말 만들기…"
+        "createWithOptions": "말 만들기…",
+        "tiledTextureOn": "텍스처를 타일로 깔기",
+        "tiledTextureOff": "텍스처를 다시 늘이기"
       },
       "tableSetting": {
         "title": "테이블 설정",

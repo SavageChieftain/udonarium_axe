@@ -1529,7 +1529,9 @@
         "surfaceEastWall": "East wall",
         "surfaceSouthWall": "South wall",
         "surfaceWestWall": "West wall",
-        "createWithOptions": "Create a piece…"
+        "createWithOptions": "Create a piece…",
+        "tiledTextureOn": "Tile the texture",
+        "tiledTextureOff": "Stretch the texture again"
       },
       "tableSetting": {
         "title": "Table settings",

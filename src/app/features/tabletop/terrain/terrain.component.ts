@@ -270,6 +270,15 @@ export class TerrainComponent {
     this.terrainVersion();
     return this.terrain().isSurfaceShading;
   });
+  readonly isTiledTexture = computed(() => {
+    this.terrainVersion();
+    return this.terrain().isTiledTexture;
+  });
+  readonly tileStyle = computed((): Record<string, string> => {
+    if (!this.isTiledTexture()) return {};
+    const side = `${this.gridSize}px`;
+    return { 'background-size': `${side} ${side}`, 'background-repeat': 'repeat' };
+  });
 
   readonly isSlope = computed(() => {
     this.terrainVersion();
@@ -620,7 +629,7 @@ export class TerrainComponent {
   }
 
   protected wallLightStyle(pool: WallLight): Record<string, string> {
-    return wallLightLayerStyle(pool);
+    return wallLightLayerStyle(pool, false, 0, this.isTiledTexture() ? this.gridSize : 0);
   }
 
   protected silhouetteBackground(silhouette: WallSilhouette): string {

@@ -17,6 +17,7 @@ interface MutableTerrain {
   hasWall: boolean;
   isSurfaceShading: boolean;
   isDropShadow: boolean;
+  isTiledTexture: boolean;
   mode: TerrainViewState;
   parent: null;
   clone: ReturnType<typeof vi.fn>;
@@ -35,6 +36,7 @@ function makeTerrain(overrides: Partial<MutableTerrain> = {}): MutableTerrain {
     hasWall: true,
     isSurfaceShading: false,
     isDropShadow: false,
+    isTiledTexture: false,
     mode: TerrainViewState.ALL,
     parent: null,
     clone: vi.fn(() => ({ location: { x: 0, y: 0 }, isLocked: false })),
@@ -66,6 +68,39 @@ describe('buildTerrainContextMenu()', () => {
     );
     expect(menu[0].name).toBe('高度設定');
     expect(menu[0].subActions?.length).toBe(3);
+  });
+
+  it('offers to tile a stretched texture and to stretch a tiled one', () => {
+    const build = (isTiledTexture: boolean) =>
+      buildTerrainContextMenu(
+        makeTerrain({ isTiledTexture }) as unknown as Terrain,
+        50,
+        { x: 0, y: 0, z: 0 },
+        makeService(),
+        makeActionService(),
+        vi.fn(),
+        t
+      );
+
+    expect(names(build(false))).toContain('テクスチャをタイル貼りにする');
+    expect(names(build(true))).toContain('テクスチャを引き伸ばしに戻す');
+  });
+
+  it('flips the tiling when that item is chosen', () => {
+    const terrain = makeTerrain();
+    const menu = buildTerrainContextMenu(
+      terrain as unknown as Terrain,
+      50,
+      { x: 0, y: 0, z: 0 },
+      makeService(),
+      makeActionService(),
+      vi.fn(),
+      t
+    );
+
+    menu.find((item) => item.name === 'テクスチャをタイル貼りにする')?.action?.();
+
+    expect(terrain.isTiledTexture).toBe(true);
   });
 
   it('offers to unlock what is locked and to lock what is not', () => {

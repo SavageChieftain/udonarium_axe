@@ -1529,7 +1529,9 @@
         "surfaceEastWall": "東壁",
         "surfaceSouthWall": "南壁",
         "surfaceWestWall": "西壁",
-        "createWithOptions": "コマを作る…"
+        "createWithOptions": "コマを作る…",
+        "tiledTextureOn": "テクスチャをタイル貼りにする",
+        "tiledTextureOff": "テクスチャを引き伸ばしに戻す"
       },
       "tableSetting": {
         "title": "テーブル設定",

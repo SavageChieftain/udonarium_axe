@@ -108,6 +108,10 @@ export function buildTerrainContextMenu(
             terrain.mode = TerrainViewState.ALL;
           },
         },
+    buildToggleAction(terrain.isTiledTexture, (next) => (terrain.isTiledTexture = next), {
+      on: t('feature.tabletop.contextMenu.tiledTextureOff'),
+      off: t('feature.tabletop.contextMenu.tiledTextureOn'),
+    }),
     terrain.isSurfaceShading
       ? {
           name: t('feature.tabletop.contextMenu.surfaceShadingOff'),

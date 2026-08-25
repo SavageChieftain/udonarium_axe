@@ -4,7 +4,7 @@ export function wallSilhouetteBackground(silhouette: WallSilhouette): string {
   return silhouette.imageUrl ? 'url(' + silhouette.imageUrl + ')' : 'none';
 }
 
-export function wallLightLayerStyle(pool: WallLight, mirror = false, faceLen = 0): Record<string, string> {
+export function wallLightLayerStyle(pool: WallLight, mirror = false, faceLen = 0, tilePx = 0): Record<string, string> {
   const cx = mirror ? faceLen - pool.localX : pool.localX;
   const mask =
     'radial-gradient(' +
@@ -19,8 +19,8 @@ export function wallLightLayerStyle(pool: WallLight, mirror = false, faceLen = 0
   const style: Record<string, string> = {
     position: 'absolute',
     inset: '0',
-    'background-size': '100% 100%',
-    'background-repeat': 'no-repeat',
+    'background-size': tilePx > 0 ? tilePx + 'px ' + tilePx + 'px' : '100% 100%',
+    'background-repeat': tilePx > 0 ? 'repeat' : 'no-repeat',
     filter: 'brightness(' + (0.7 + 0.3 * pool.intensity).toFixed(3) + ')',
     'mask-image': mask,
     '-webkit-mask-image': mask,

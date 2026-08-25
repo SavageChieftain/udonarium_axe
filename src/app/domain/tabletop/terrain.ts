@@ -40,6 +40,7 @@ export class Terrain extends TabletopObject {
   @SyncVar() slopeDirection: number = SlopeDirection.NONE;
 
   @SyncVar() isGrid: boolean = false;
+  @SyncVar() isTiledTexture: boolean = false;
 
   @SyncVar() blocksSight: boolean = true;
   @SyncVar() blocksLight: boolean = true;

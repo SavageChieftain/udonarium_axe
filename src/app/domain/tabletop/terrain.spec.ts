@@ -156,6 +156,11 @@ describe('Terrain', () => {
       expect(terrain.isGrid).toBe(false);
     });
 
+    it('starts with a stretched texture, as existing tables look', () => {
+      const terrain = Terrain.create('t', 1, 1, 1, '', '');
+      expect(terrain.isTiledTexture).toBe(false);
+    });
+
     it('starts blocking both sight and light, as existing tables look', () => {
       const terrain = Terrain.create('t', 1, 1, 1, '', '');
       expect(terrain.blocksSight).toBe(true);
