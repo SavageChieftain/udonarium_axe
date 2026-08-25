@@ -1,3 +1,86 @@
+## [1.43.0](https://github.com/Xelltis/udonarium_axe/compare/v1.42.0...v1.43.0) (2026-08-25)
+
+### ✨ Features
+
+* **chat:** make the system avatar a setting the room shares ([9c11d77](https://github.com/Xelltis/udonarium_axe/commit/9c11d77cf56ab1f8730123773bb1ef626517cd9b))
+* **i18n:** add Korean ([4d5f86b](https://github.com/Xelltis/udonarium_axe/commit/4d5f86bdd1350fa8c44805609f7609818a45c6e3))
+* **inventory:** filter what the inventory hides and lift it out of the dark ([f35e0f7](https://github.com/Xelltis/udonarium_axe/commit/f35e0f7363ae49424b10e6a2ffd4559d2a62d781))
+* **media:** add text and gradient layers to the cut-in editor ([bf696eb](https://github.com/Xelltis/udonarium_axe/commit/bf696ebfcd0a2e29bb3c2ec876b33d95f8da6486))
+* **media:** animate cut-in layers on a keyframe timeline ([2bb2340](https://github.com/Xelltis/udonarium_axe/commit/2bb23409c4d68a35ac1bcb75842832e0984bc443))
+* **media:** carry a layer scene inside the cut-in xml ([95022c7](https://github.com/Xelltis/udonarium_axe/commit/95022c788c55b3b068635d63f67498cb7901cecf))
+* **media:** compose cut-in layers in a scene editor ([9e78263](https://github.com/Xelltis/udonarium_axe/commit/9e78263fad54efe9c1e680b1150301e7b37de69a))
+* **media:** drag a layer's band to its length, and lean into the stage ([0cd933e](https://github.com/Xelltis/udonarium_axe/commit/0cd933ed17d2db231714251f41ad410f41062665))
+* **media:** draw a drag to what is worth landing on, and nudge a layer ([a0c643b](https://github.com/Xelltis/udonarium_axe/commit/a0c643b621389ec7b006d1c0872ca37a197eb646))
+* **media:** draw the shapes a cut-in window is actually made of ([9df5050](https://github.com/Xelltis/udonarium_axe/commit/9df505086e48798164a8e459313705826a86d0b6))
+* **media:** drop sounds along a scene's own clock ([f27ff3d](https://github.com/Xelltis/udonarium_axe/commit/f27ff3d99de5865c94d6ffc735228d15e85d3d87))
+* **media:** give a band layer more than one way to shade ([2ef95c4](https://github.com/Xelltis/udonarium_axe/commit/2ef95c4fdfc07578ebf828231500c86ea457ae2b))
+* **media:** give a layer a touch that runs the whole time ([85f51bf](https://github.com/Xelltis/udonarium_axe/commit/85f51bfe7dafcfef04821ddb2fafd06f510ef6e4))
+* **media:** give a layer ready-made ways to arrive and leave ([35a9abb](https://github.com/Xelltis/udonarium_axe/commit/35a9abb2ec8ce025c03c446480550c8229b6c59a))
+* **media:** let a cut-in play without a frame ([715037e](https://github.com/Xelltis/udonarium_axe/commit/715037e28e088ac46a4b92bf47ac2f1da9915665))
+* **media:** let a layer come away as well as arrive ([d968e83](https://github.com/Xelltis/udonarium_axe/commit/d968e8308d706e01b0e3ebf9b27f2c5a666f4e04))
+* **media:** let the cut-in timeline be leaned into and walked along ([997a181](https://github.com/Xelltis/udonarium_axe/commit/997a181a7329292a9a50416168db30e6404df997))
+* **media:** let the master keep a picture out of everyone else's lists ([ed18e73](https://github.com/Xelltis/udonarium_axe/commit/ed18e739bf98e5b11060c2bcaf69b2d3a72e025a))
+* **media:** pick an easing curve for each cut-in keyframe ([c69e123](https://github.com/Xelltis/udonarium_axe/commit/c69e123cc730b9de70d0e30878d70966fe191843))
+* **media:** play cut-in layers over the base image ([acc528a](https://github.com/Xelltis/udonarium_axe/commit/acc528ae96c76c8d2798788922db88db2704aeb1))
+* **media:** stand the layer heads beside the bands they belong to ([8baa0f9](https://github.com/Xelltis/udonarium_axe/commit/8baa0f9279d6a5246cf53e64da97afcbf18a242a))
+* **media:** start a room with a summoning cut-in of each kind ([f1b067a](https://github.com/Xelltis/udonarium_axe/commit/f1b067aa5da661398ca69710746dd15c36fb9760))
+* **media:** strike the sample cut-ins on a sound of their own ([73c2cfe](https://github.com/Xelltis/udonarium_axe/commit/73c2cfe825e465f373159f43c17391ed570635a5))
+* **media:** take back and redo what the cut-in editor changed ([1e38989](https://github.com/Xelltis/udonarium_axe/commit/1e389891dbaf6c8dd2d5f8ae05344dbbd274f41a))
+* **media:** take the moment a layer is holding, and type a moment to go to ([ab674a6](https://github.com/Xelltis/udonarium_axe/commit/ab674a668b1fef3e23ce479e3e229e1f7ba2e675))
+* **media:** unzip a layer open, and set its words downwards ([3cc5f71](https://github.com/Xelltis/udonarium_axe/commit/3cc5f71474a59aad3e421f44b13ca1a009ba5843))
+* **replay:** draw composed cut-ins into the exported video ([05ea27a](https://github.com/Xelltis/udonarium_axe/commit/05ea27a48bbcd03553a90db8930c7024e64cbbcb))
+* **tabletop:** play a cut-in when the table changes ([0b491c4](https://github.com/Xelltis/udonarium_axe/commit/0b491c455b697cb026d35e66272daab3251d81ef))
+
+### 🐛 Bug Fixes
+
+* **chat:** carry the sender on the notices a player sets off ([05f8dba](https://github.com/Xelltis/udonarium_axe/commit/05f8dba7e7c7d35bf9724467971dcc09c60e19d6))
+* **chat:** work a bubble colour out the same way for every line ([fcdefcd](https://github.com/Xelltis/udonarium_axe/commit/fcdefcdfb09f85faef04201185fe5c1f560ab164))
+* **data:** read a bare name from the field that holds a number ([07d7e4e](https://github.com/Xelltis/udonarium_axe/commit/07d7e4e4ac13a3be761a012beaacbf5fe70316ec))
+* **i18n:** name the gash, and check every name a choice needs ([3a2914e](https://github.com/Xelltis/udonarium_axe/commit/3a2914e2c500febd30337dfe9b834c8767f6e832))
+* **media:** ask for a picture instead of showing a broken one ([76c6ea6](https://github.com/Xelltis/udonarium_axe/commit/76c6ea6122d52ce622f7bfc505675099cf7b95c6))
+* **media:** give each cut-in scene its own run of sounds ([ab5135a](https://github.com/Xelltis/udonarium_axe/commit/ab5135a016369caf7d4b3d60515622f0139fde9d))
+* **media:** keep the pictures the tool brought with it out of the media library ([d33bc35](https://github.com/Xelltis/udonarium_axe/commit/d33bc35701a42720980f657fcccfcadfac8a5dd8))
+* **media:** lean the stage in under the handles drawn over it ([1cc24de](https://github.com/Xelltis/udonarium_axe/commit/1cc24de8ea6b4896ca076012ed4bdf733cd06618))
+* **media:** let a turned layer be taken hold of where it is drawn ([e3efb67](https://github.com/Xelltis/udonarium_axe/commit/e3efb6719c7153052ed8b657ed63d00f967af29d))
+* **media:** let the cut-in editor keep the presses meant for it ([35254ce](https://github.com/Xelltis/udonarium_axe/commit/35254ce804038c186ceca6ef58d2d6e66a116390))
+* **media:** make no sample cut-in without the scene it is built from ([addbd55](https://github.com/Xelltis/udonarium_axe/commit/addbd55242567176fba979f4ea7d2794d5ea5669))
+* **media:** make the flash sample the band it actually is ([e4eeb62](https://github.com/Xelltis/udonarium_axe/commit/e4eeb628dd2f955eee30a08df7eca0b6472971f0))
+* **media:** put the cut-in editor's handles where the layers are ([ab4d45b](https://github.com/Xelltis/udonarium_axe/commit/ab4d45b0030e8bb1a69e377623968f9ce5d58dc5))
+* **media:** put the held moment back once the timeline is redrawn ([4fc2286](https://github.com/Xelltis/udonarium_axe/commit/4fc2286bcdc23d0d9db16b16e848d8c90342b289))
+* **media:** rip the tear sample open instead of sliding a window in ([b52675d](https://github.com/Xelltis/udonarium_axe/commit/b52675de0b3aa6699ff39a85382fb084c85cbfe6))
+* **media:** square the flash band and set its word downwards ([4123ba3](https://github.com/Xelltis/udonarium_axe/commit/4123ba38df7e7fdcbc68fbe0aec25f034c21b22c))
+* **media:** stop a band being magnetised to where it already is ([ffc075c](https://github.com/Xelltis/udonarium_axe/commit/ffc075c31680de8c2f43a861e32cc1945d69a9ed))
+* **media:** stop a layer picture being dragged out from under the editor ([883916e](https://github.com/Xelltis/udonarium_axe/commit/883916eb7decfa494c680793c1f91f7be90680ee))
+* **media:** tear the gash instead of sawing it ([c3f005a](https://github.com/Xelltis/udonarium_axe/commit/c3f005af8d962304f8ad2159f36fdb838033eb62))
+* **media:** tear the left-torn clip down its left edge ([4acf53d](https://github.com/Xelltis/udonarium_axe/commit/4acf53d22f4509622627fe9c8b8b7fe60a46d3b0))
+* **peer:** leave the sample cut-ins to a room that brings none ([a19ad5e](https://github.com/Xelltis/udonarium_axe/commit/a19ad5ee64fe648d3f8fd7be720263417784de0c))
+* **replay:** fit a layer's picture the way object-fit does ([374b2d2](https://github.com/Xelltis/udonarium_axe/commit/374b2d2ac629bc59ed3b832b346803085db38b6a))
+* **replay:** leave the canvas as the caller had it after a layer ([98aa4ba](https://github.com/Xelltis/udonarium_axe/commit/98aa4baae3c2343c780571790e8c6df2e6ea1231))
+* **replay:** run a band the way the browser runs it ([468c362](https://github.com/Xelltis/udonarium_axe/commit/468c3621a92a9d9fd287e5d0b5a8e84fe0c1b3c4))
+* **replay:** run a scene long enough to reach a layer that comes in late ([30ca44c](https://github.com/Xelltis/udonarium_axe/commit/30ca44c5d18d11e40adc19ad8e79b80371a510f2))
+* **tabletop:** lay a shadow onto the scale the overlay is drawn at ([8976382](https://github.com/Xelltis/udonarium_axe/commit/8976382844888246d3ebf58b19d43d64a233766f))
+* **ui:** offer no tag whose pictures are all kept back ([e1999bb](https://github.com/Xelltis/udonarium_axe/commit/e1999bb100871cc9a5de7960d1ed91c525900075))
+
+### ⚡ Performance
+
+* **data:** settle each calculating field once instead of once per reader ([76221f8](https://github.com/Xelltis/udonarium_axe/commit/76221f80aa5e7f501196a19fa08f2ace4908015d))
+* **tabletop:** hold the vision overlay to a budget of pixels ([e0633ed](https://github.com/Xelltis/udonarium_axe/commit/e0633edd09960d9d0e5c80da872cfbf2ae2e024e))
+* **tabletop:** let a light look only at what could stand in its way ([604b2a0](https://github.com/Xelltis/udonarium_axe/commit/604b2a0180cfbc8fc0ab0c32c14527beeb811ee7))
+* **tabletop:** redraw only the lights that move, and only where they are ([a9fbbd6](https://github.com/Xelltis/udonarium_axe/commit/a9fbbd627d61f31fae6ea9e1fdb7edc23f650c9c))
+
+### 📝 Documentation
+
+* **website:** add v1.42.0 release notes ([40522de](https://github.com/Xelltis/udonarium_axe/commit/40522de437d7d04060964a191f0ba91d22da9190))
+* **website:** describe building a cut-in from layers ([edbafdd](https://github.com/Xelltis/udonarium_axe/commit/edbafdda715696cd280e710bdc88f6051def232d))
+* **website:** describe the rest of what the scene editor does ([84acc3b](https://github.com/Xelltis/udonarium_axe/commit/84acc3bb0bb4818d23c15a70261aa2927e0a9358))
+* **website:** describe what this branch added ([9a4ff56](https://github.com/Xelltis/udonarium_axe/commit/9a4ff56ba595a5853e0732bf01ff73150dae0a5f))
+
+### ♻️ Refactor
+
+* **map-editor:** share the undo stack as a generic history ([03a6aa4](https://github.com/Xelltis/udonarium_axe/commit/03a6aa48a5c9bec074a1ff95fec17239999e69b1))
+* **media:** name the sample cut-ins without a language ([4b782db](https://github.com/Xelltis/udonarium_axe/commit/4b782db6e620ac31dc3202fe80c6b420c8d5f44d))
+* **ui:** settle the theme in one place ([2d4ac20](https://github.com/Xelltis/udonarium_axe/commit/2d4ac20db7e7783d5f846edebfbd7935209c7611))
+
 ## [1.42.0](https://github.com/Xelltis/udonarium_axe/compare/v1.41.3...v1.42.0) (2026-08-23)
 
 ### ✨ Features
