@@ -1,0 +1,25 @@
+<div class="grid grid-cols-6 gap-1.5">
+  @for (id of ids(); track id) {
+    <button
+      class="rounded-ui-sm h-11 w-full cursor-pointer border-2 border-solid bg-cover bg-center p-0"
+      type="button"
+      [class.border-ui-accent]="chosenTexture() === id"
+      [class.border-transparent]="chosenTexture() !== id"
+      [style.background-image]="'url(' + urls()[id] + ')' | safe: 'style'"
+      [title]="'common.textures.' + id | transloco"
+      (click)="choose(id)"
+    ></button>
+  }
+  <button
+    class="rounded-ui-sm border-ui-border-panel bg-ui-input text-ui-text flex h-11 w-full cursor-pointer items-center justify-center border-2 border-solid bg-cover bg-center p-0"
+    type="button"
+    [class.border-ui-accent]="value().kind === 'library'"
+    [style.background-image]="libraryUrl().length > 0 ? ('url(' + libraryUrl() + ')' | safe: 'style') : 'none'"
+    [title]="'feature.tabletop.dungeonGenerator.actions.pickFromLibrary' | transloco"
+    (click)="chooseFromLibrary()"
+  >
+    @if (libraryUrl().length === 0) {
+      <i class="material-icons text-[18px]">photo_library</i>
+    }
+  </button>
+</div>

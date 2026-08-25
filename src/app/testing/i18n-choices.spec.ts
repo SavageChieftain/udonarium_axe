@@ -9,6 +9,8 @@ import { CUT_IN_TEXT_ALIGNS } from '@axe/domain/media/cut-in-layer';
 import { CUT_IN_LAYER_PRESETS } from '@axe/domain/media/cut-in-layer-presets';
 import { CUT_IN_WIPES } from '@axe/domain/media/cut-in-wipe';
 import { DUNGEON_PROP_IDS, TEXTURE_IDS, WALL_TEXTURE_IDS } from '@axe/domain/media/texture-catalog';
+import { DUNGEON_ATMOSPHERE_IDS } from '@axe/domain/tabletop/dungeon/dungeon-atmosphere';
+import { DUNGEON_ROOM_ROLES } from '@axe/domain/tabletop/dungeon/dungeon-layout';
 
 /**
  * A screen that builds its key out of a value — `'…clip' + shape` — puts that key beyond
@@ -19,6 +21,8 @@ import { DUNGEON_PROP_IDS, TEXTURE_IDS, WALL_TEXTURE_IDS } from '@axe/domain/med
  */
 const CHOICES: Record<string, readonly string[]> = {
   'common.textures.': [...TEXTURE_IDS, ...WALL_TEXTURE_IDS, ...DUNGEON_PROP_IDS],
+  'feature.tabletop.dungeonGenerator.atmosphere.': DUNGEON_ATMOSPHERE_IDS,
+  'feature.tabletop.dungeonGenerator.role.': DUNGEON_ROOM_ROLES,
   'feature.media.cutInEditor.clip': CUT_IN_CLIPS,
   'feature.media.cutInEditor.wipe': CUT_IN_WIPES,
   'feature.media.cutInEditor.effect': CUT_IN_EFFECTS,

@@ -1,0 +1,168 @@
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { RolePermissionService } from '@axe/application/permission/role-permission.service';
+import { ObjectStore } from '@axe/core/sync/object-store';
+import { GameTable } from '@axe/domain/tabletop/game-table';
+import { DungeonGeneratorComponent } from '@axe/features/tabletop/dungeon-generator/dungeon-generator.component';
+import { expectPanelDragRecovery, PanelDragTestHostComponent } from '@axe/testing/panel-drag-recovery';
+import { TEST_PROVIDERS } from '@axe/testing/test-providers';
+
+type Panel = DungeonGeneratorComponent & {
+  atmosphere: { (): string; set(value: string): void };
+  roomCount: { (): number; set(value: number): void };
+  seed: { (): number; set(value: number): void };
+  tableName: { (): string; set(value: string): void };
+  wall(): { kind: string; id?: string; identifier?: string };
+  floor(): { kind: string; id?: string; identifier?: string };
+  usingDefaults(): boolean;
+  terrainCount(): number;
+  syncCount(): number;
+  tooMany(): boolean;
+  preview(): { viewBox: string; rects: unknown[] };
+  builtTable(): GameTable | null;
+  canEdit: boolean;
+  setWall(material: { kind: 'texture'; id: string }): void;
+  resetMaterials(): void;
+  chooseAtmosphere(id: string): void;
+  reroll(): void;
+  nameFor(): string;
+  generate(): Promise<void>;
+  discardPrevious(): void;
+};
+
+describe('DungeonGeneratorComponent', () => {
+  let component: Panel;
+  let fixture: ComponentFixture<DungeonGeneratorComponent>;
+  let store: ObjectStore;
+
+  function wipe(): void {
+    for (const object of store.getObjects()) store.delete(object, false);
+    store.clearDeleteHistory();
+  }
+
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [DungeonGeneratorComponent, PanelDragTestHostComponent],
+      providers: [...TEST_PROVIDERS],
+    }).compileComponents();
+    store = ObjectStore.instance;
+    wipe();
+    fixture = TestBed.createComponent(DungeonGeneratorComponent);
+    component = fixture.componentInstance as Panel;
+  });
+
+  afterEach(() => {
+    wipe();
+    vi.restoreAllMocks();
+  });
+
+  it('should create', () => {
+    expect(component).toBeTruthy();
+  });
+
+  it('starts on the stone dungeon with eight rooms', () => {
+    expect(component.atmosphere()).toBe('stoneDungeon');
+    expect(component.roomCount()).toBe(8);
+    expect(component.usingDefaults()).toBe(true);
+  });
+
+  it('takes its materials from the atmosphere until they are touched', () => {
+    expect(component.wall()).toEqual({ kind: 'texture', id: 'wall_ashlar' });
+
+    component.chooseAtmosphere('crypt');
+    expect(component.wall()).toEqual({ kind: 'texture', id: 'wall_bone' });
+  });
+
+  it('leaves a chosen material alone when the atmosphere changes', () => {
+    component.setWall({ kind: 'texture', id: 'wall_metal' });
+    component.chooseAtmosphere('crypt');
+
+    expect(component.wall()).toEqual({ kind: 'texture', id: 'wall_metal' });
+    expect(component.usingDefaults()).toBe(false);
+  });
+
+  it('follows the atmosphere again once the materials are reset', () => {
+    component.setWall({ kind: 'texture', id: 'wall_metal' });
+    component.resetMaterials();
+    component.chooseAtmosphere('crypt');
+
+    expect(component.wall()).toEqual({ kind: 'texture', id: 'wall_bone' });
+    expect(component.usingDefaults()).toBe(true);
+  });
+
+  it('shows one rectangle for every terrain it would build', () => {
+    expect(component.preview().rects.length).toBe(component.terrainCount());
+    expect(component.syncCount()).toBe(component.terrainCount() * 12);
+  });
+
+  it('rolls a new shape when the seed changes', () => {
+    const before = component.preview().viewBox + JSON.stringify(component.preview().rects.slice(0, 5));
+    component.seed.set(component.seed() + 1);
+    const after = component.preview().viewBox + JSON.stringify(component.preview().rects.slice(0, 5));
+
+    expect(after).not.toBe(before);
+  });
+
+  it('keeps the shape when only the material changes', () => {
+    const before = component.preview().rects.length;
+    component.setWall({ kind: 'texture', id: 'wall_metal' });
+
+    expect(component.preview().rects.length).toBe(before);
+  });
+
+  it('names the table after the atmosphere until one is typed', () => {
+    expect(component.nameFor().length).toBeGreaterThan(0);
+
+    component.tableName.set('  Deep hold  ');
+    expect(component.nameFor()).toBe('Deep hold');
+  });
+
+  it('stays inside the budget at the sizes it offers', () => {
+    component.roomCount.set(20);
+
+    expect(component.tooMany()).toBe(false);
+  });
+
+  it('builds nothing for someone who may not edit the tabletop', async () => {
+    vi.spyOn(TestBed.inject(RolePermissionService), 'canEditTabletop', 'get').mockReturnValue(false);
+
+    await component.generate();
+
+    expect(store.getObjects(GameTable).length).toBe(0);
+    expect(component.builtTable()).toBeNull();
+  });
+
+  it('builds one table and remembers it', async () => {
+    component.roomCount.set(3);
+
+    await component.generate();
+
+    expect(component.builtTable()).not.toBeNull();
+    expect(store.getObjects(GameTable).length).toBe(1);
+  });
+
+  it('throws the last one away when it rolls again', async () => {
+    component.roomCount.set(3);
+    await component.generate();
+    const first = component.builtTable();
+
+    component.reroll();
+    await component.generate();
+
+    expect(store.getObjects(GameTable).length).toBe(1);
+    expect(component.builtTable()).not.toBe(first);
+  });
+
+  it('clears the table away when asked', async () => {
+    component.roomCount.set(3);
+    await component.generate();
+
+    component.discardPrevious();
+
+    expect(store.getObjects(GameTable).length).toBe(0);
+    expect(component.builtTable()).toBeNull();
+  });
+
+  it('lets the panel take the pointer again once the drag ends', async () => {
+    await expectPanelDragRecovery(DungeonGeneratorComponent);
+  });
+});

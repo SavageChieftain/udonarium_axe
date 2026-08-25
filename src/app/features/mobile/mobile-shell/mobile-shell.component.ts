@@ -43,6 +43,7 @@ import { OwnedCharacterListPanelComponent } from '@axe/features/pl-tools/owned-c
 import { isOwnedByUser } from '@axe/features/pl-tools/owned-character-list/owned-characters';
 import { ReplayWorkspaceComponent } from '@axe/features/replay/replay-workspace/replay-workspace.component';
 import { RoomSnapshotPanelComponent } from '@axe/features/room-archive/room-snapshot-panel/room-snapshot-panel.component';
+import { DungeonGeneratorComponent } from '@axe/features/tabletop/dungeon-generator/dungeon-generator.component';
 import { GameTableSettingComponent } from '@axe/features/tabletop/game-table-setting/game-table-setting.component';
 import { VisualNovelModeService } from '@axe/features/visual-novel/visual-novel-mode.service';
 import { TranslocoModule } from '@jsverse/transloco';
@@ -261,6 +262,11 @@ export class MobileShellComponent {
         return { component: PartyListPanelComponent, option: { title: this.t('feature.gmTools.party.title') } };
       case 'mapEditor':
         return { component: MapEditorPanelComponent, option: { title: this.t('feature.mapEditor.title') } };
+      case 'dungeonGenerator':
+        return {
+          component: DungeonGeneratorComponent,
+          option: { title: this.t('feature.tabletop.dungeonGenerator.title') },
+        };
       case 'createObject':
         return {
           component: GameCharacterGeneratorComponent,
