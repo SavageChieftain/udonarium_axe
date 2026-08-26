@@ -28,11 +28,7 @@ import {
   MAX_WALL_HEIGHT,
   MIN_WALL_HEIGHT,
 } from '@axe/domain/tabletop/dungeon/dungeon-atmosphere';
-import {
-  DUNGEON_HEAVY_TERRAINS,
-  DUNGEON_MAX_TERRAINS,
-  syncObjectCount,
-} from '@axe/domain/tabletop/dungeon/dungeon-blocks';
+import { DUNGEON_HEAVY_TERRAINS, DUNGEON_MAX_TERRAINS } from '@axe/domain/tabletop/dungeon/dungeon-blocks';
 import {
   clampRoomCount,
   MAX_ROOM_COUNT,
@@ -40,9 +36,11 @@ import {
   planDungeon,
 } from '@axe/domain/tabletop/dungeon/dungeon-generator';
 import { GameTable } from '@axe/domain/tabletop/game-table';
+import { syncObjectCount } from '@axe/domain/tabletop/map-blocks';
 import { exportSceneToBlob } from '@axe/features/map-editor/render/export-image';
 import { buildDungeonFloorScene } from '@axe/features/tabletop/dungeon-generator/dungeon-floor-scene';
 import { DungeonMaterialPickerComponent } from '@axe/features/tabletop/dungeon-generator/dungeon-material-picker.component';
+import { describeDungeon } from '@axe/features/tabletop/dungeon-generator/dungeon-notes';
 import { buildDungeonPreview, previewColors } from '@axe/features/tabletop/dungeon-generator/dungeon-preview';
 import { TranslocoModule } from '@jsverse/transloco';
 
@@ -203,15 +201,17 @@ export class DungeonGeneratorComponent {
       // Rolling again throws the last one away, so a shelf of rejected tables never builds up.
       this.discardPrevious();
       const plan = this.plan();
+      const name = this.nameFor();
       const result = await this.dungeonBuild.build(
         plan.layout,
         plan.atmosphere,
         plan.blocks,
         {
-          name: this.nameFor(),
+          name,
           wall: this.wall(),
           wallHeight: this.wallHeight(),
           floorImage: await this.paintFloor(plan),
+          summary: describeDungeon(plan.layout, plan.blocks, name, this.t),
         },
         (done, total) => this.progress.set(Math.round((done / total) * 100))
       );

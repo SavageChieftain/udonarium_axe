@@ -1,7 +1,7 @@
 import { DungeonMaterial } from '@axe/application/tabletop/dungeon-build.service';
-import { DungeonPaint, DungeonPaintKind } from '@axe/domain/tabletop/dungeon/dungeon-blocks';
 import { DungeonLayout } from '@axe/domain/tabletop/dungeon/dungeon-layout';
 import { GridType } from '@axe/domain/tabletop/game-table';
+import { MapPaint } from '@axe/domain/tabletop/map-blocks';
 import {
   cellKey,
   CellLayer,
@@ -31,14 +31,14 @@ function fillFor(material: DungeonMaterial): FillStyle {
  */
 export function buildDungeonFloorScene(
   layout: DungeonLayout,
-  paint: readonly DungeonPaint[],
+  paint: readonly MapPaint[],
   materials: DungeonFloorMaterials,
   cellPx: number
 ): MapScene {
   const scene = createScene(layout.width, layout.height, cellPx, GridType.SQUARE);
   scene.gridVisible = false;
 
-  const fills: Record<DungeonPaintKind, FillStyle> = {
+  const fills: Record<MapPaint['kind'], FillStyle> = {
     floor: fillFor(materials.floor),
     hazard: fillFor(materials.hazard),
   };
@@ -47,7 +47,9 @@ export function buildDungeonFloorScene(
   for (const patch of paint) {
     for (let dy = 0; dy < patch.rect.h; dy++) {
       for (let dx = 0; dx < patch.rect.w; dx++) {
-        layer.cells[cellKey(patch.rect.x + dx, patch.rect.y + dy)] = fills[patch.kind];
+        layer.cells[cellKey(patch.rect.x + dx, patch.rect.y + dy)] = patch.texture
+          ? fillFor({ kind: 'texture', id: patch.texture })
+          : fills[patch.kind];
       }
     }
   }

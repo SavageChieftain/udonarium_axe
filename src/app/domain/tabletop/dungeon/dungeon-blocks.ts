@@ -1,3 +1,4 @@
+import { DungeonPropId } from '@axe/domain/media/texture-catalog';
 import { DungeonAtmosphere } from '@axe/domain/tabletop/dungeon/dungeon-atmosphere';
 import {
   cellAt,
@@ -8,6 +9,7 @@ import {
   maskOfKind,
 } from '@axe/domain/tabletop/dungeon/dungeon-layout';
 import { mergeMaskToRects } from '@axe/domain/tabletop/dungeon/rect-merge';
+import { MapBlock, MapBlocks, MapLight, MapLightKind, MapPaint } from '@axe/domain/tabletop/map-blocks';
 
 export const MAX_MERGE_SPAN = 12;
 /**
@@ -16,34 +18,6 @@ export const MAX_MERGE_SPAN = 12;
  */
 export const DUNGEON_MAX_TERRAINS = 400;
 export const DUNGEON_HEAVY_TERRAINS = 200;
-/** What one terrain costs to sync: itself, the five it is built from, and its six values. */
-export const SYNC_OBJECTS_PER_TERRAIN = 12;
-
-export type DungeonBlockKind = 'wall' | 'door' | 'stairUp' | 'stairDown';
-
-export type DungeonPaintKind = 'floor' | 'hazard';
-
-/**
- * Ground that is painted rather than built.
- *
- * A floor holds nothing up and stops no one seeing, so a slab of terrain per patch buys
- * only sync traffic. These go into the picture the table wears instead.
- */
-export interface DungeonPaint {
-  kind: DungeonPaintKind;
-  rect: DungeonRect;
-}
-
-export interface DungeonBlock {
-  kind: DungeonBlockKind;
-  rect: DungeonRect;
-  blocksSight: boolean;
-  locked: boolean;
-  rooms: number[];
-  /** For a door, the axis it bars. A slab thin along x stands across an east-west passage. */
-  across?: 'x' | 'y';
-}
-
 export interface DungeonBlockOptions {
   placeDoors: boolean;
   placeStairs: boolean;
@@ -51,8 +25,8 @@ export interface DungeonBlockOptions {
 
 export const DEFAULT_BLOCK_OPTIONS: DungeonBlockOptions = { placeDoors: true, placeStairs: true };
 
-const OPEN_LIGHTS: readonly DungeonLightKind[] = ['campfire', 'brazier', 'stand'];
-const WALL_LIGHTS: readonly DungeonLightKind[] = ['sconce', 'sconce', 'lantern'];
+const OPEN_LIGHTS: readonly MapLightKind[] = ['campfire', 'brazier', 'stand'];
+const WALL_LIGHTS: readonly MapLightKind[] = ['sconce', 'sconce', 'lantern'];
 
 /** The four ways a light can look, with the heading that points away from that neighbour. */
 const FACINGS: readonly [number, number, number][] = [
@@ -105,15 +79,15 @@ function roomsBeside(layout: DungeonLayout, rect: DungeonRect): number[] {
  * A sconce goes up against the stone and throws its light away from the wall; a fire stands
  * out in the open where there is room around it. Rooms lit all the same way look staged.
  */
-function findLights(layout: DungeonLayout, count: number): DungeonLight[] {
-  const lights: DungeonLight[] = [];
+function findLights(layout: DungeonLayout, count: number): MapLight[] {
+  const lights: MapLight[] = [];
   const taken = new Set<number>();
   if (count < 1) return lights;
 
   for (const room of layout.rooms) {
     if (lights.length >= count) break;
 
-    let wall: DungeonLight | null = null;
+    let wall: MapLight | null = null;
     let open: DungeonPoint | null = null;
 
     for (let dy = 0; dy < room.h && (!wall || !open); dy++) {
@@ -136,7 +110,7 @@ function findLights(layout: DungeonLayout, count: number): DungeonLight[] {
 
     // A room with space to stand round a fire gets one; the cramped ones get something by the wall.
     const roomy = room.w * room.h >= 30 && open !== null;
-    const chosen: DungeonLight | null =
+    const chosen: MapLight | null =
       roomy && open
         ? { ...open, kind: OPEN_LIGHTS[lights.length % OPEN_LIGHTS.length], facing: 0, room: room.index }
         : wall && { ...wall, kind: WALL_LIGHTS[lights.length % WALL_LIGHTS.length] };
@@ -148,30 +122,18 @@ function findLights(layout: DungeonLayout, count: number): DungeonLight[] {
   return lights;
 }
 
-export type DungeonLightKind = 'sconce' | 'campfire' | 'brazier' | 'stand' | 'lantern';
-
-export interface DungeonLight extends DungeonPoint {
-  kind: DungeonLightKind;
-  /** Which way a wall light faces, in degrees, away from the stone behind it. */
-  facing: number;
-  room: number;
-}
-
-export interface DungeonBlocks {
-  blocks: DungeonBlock[];
-  paint: DungeonPaint[];
-  torchRooms: number[];
-  torchSpots: DungeonPoint[];
-  lights: DungeonLight[];
+function doorPropFor(atmosphere: DungeonAtmosphere): DungeonPropId {
+  if (atmosphere.algorithm === 'cave') return 'door_stone';
+  return atmosphere.id === 'crypt' ? 'door_iron_grate' : 'door_wood';
 }
 
 export function layoutToBlocks(
   layout: DungeonLayout,
   atmosphere: DungeonAtmosphere,
   options: DungeonBlockOptions = DEFAULT_BLOCK_OPTIONS
-): DungeonBlocks {
-  const blocks: DungeonBlock[] = [];
-  const paint: DungeonPaint[] = [];
+): MapBlocks {
+  const blocks: MapBlock[] = [];
+  const paint: MapPaint[] = [];
 
   const rockMask = maskOfKind(layout, [DungeonCell.Rock]);
   for (const rect of mergeMaskToRects(rockMask, layout.width, layout.height, MAX_MERGE_SPAN)) {
@@ -208,6 +170,8 @@ export function layoutToBlocks(
         locked: door.locked,
         rooms: door.rooms,
         across: doorAxis(layout, door.x, door.y),
+        prop: doorPropFor(atmosphere),
+        doorStyle: atmosphere.doorStyle,
       });
     }
   }
@@ -222,6 +186,7 @@ export function layoutToBlocks(
         blocksSight: false,
         locked: false,
         rooms: [0],
+        prop: 'stair_up',
       });
     }
     const sameSpot = layout.exit.x === layout.entrance.x && layout.exit.y === layout.entrance.y;
@@ -232,6 +197,7 @@ export function layoutToBlocks(
         blocksSight: false,
         locked: false,
         rooms: [],
+        prop: 'stair_down',
       });
     }
   }
@@ -247,8 +213,4 @@ export function layoutToBlocks(
     torchSpots: lights.map((light) => ({ x: light.x, y: light.y })),
     lights,
   };
-}
-
-export function syncObjectCount(blocks: readonly DungeonBlock[]): number {
-  return blocks.length * SYNC_OBJECTS_PER_TERRAIN;
 }

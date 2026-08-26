@@ -5,24 +5,15 @@ import { ImageTag } from '@axe/domain/media/image-tag';
 import { LIGHT_SKIN_ASSET_URLS, LightSkinId } from '@axe/domain/media/light-skins';
 import {
   DUNGEON_PROP_ASSET_URLS,
-  DungeonPropId,
   TEXTURE_ASSET_URLS,
   WALL_TEXTURE_ASSET_URLS,
   WALL_TOP_TEXTURE,
   WallTextureId,
 } from '@axe/domain/media/texture-catalog';
-import { DungeonAtmosphere } from '@axe/domain/tabletop/dungeon/dungeon-atmosphere';
-import {
-  DungeonBlock,
-  DungeonBlocks,
-  DungeonLight,
-  DungeonLightKind,
-} from '@axe/domain/tabletop/dungeon/dungeon-blocks';
-import { DungeonLayout } from '@axe/domain/tabletop/dungeon/dungeon-layout';
-import { buildDungeonSummary } from '@axe/domain/tabletop/dungeon/dungeon-summary';
 import { GameTable, GridType } from '@axe/domain/tabletop/game-table';
 import { LightSource } from '@axe/domain/tabletop/light-source';
-import { SlopeDirection, Terrain, TerrainViewState } from '@axe/domain/tabletop/terrain';
+import { MapBlock, MapBlocks, MapLight, MapLightKind, MapMood, MapSize } from '@axe/domain/tabletop/map-blocks';
+import { DoorStyle, SlopeDirection, Terrain, TerrainViewState } from '@axe/domain/tabletop/terrain';
 import { applyLightPreset, LightPreset } from '@axe/domain/tabletop/vision-types';
 
 const TERRAIN_IMAGE_TAG = '地形';
@@ -34,7 +25,7 @@ const STAIR_HEIGHT = 0.05;
 /** How deep a door slab is, so it reads as a door in the passage rather than a block filling it. */
 const DOOR_THICKNESS = 0.25;
 
-const LIGHT_PRESET: Record<DungeonLightKind, LightPreset> = {
+const LIGHT_PRESET: Record<MapLightKind, LightPreset> = {
   sconce: LightPreset.SCONCE,
   campfire: LightPreset.CAMPFIRE,
   brazier: LightPreset.BRAZIER,
@@ -43,14 +34,14 @@ const LIGHT_PRESET: Record<DungeonLightKind, LightPreset> = {
 };
 
 /** A stand and a lantern burn alike but do not look alike, so the picture follows the kind. */
-const LIGHT_SKIN: Record<DungeonLightKind, LightSkinId> = {
+const LIGHT_SKIN: Record<MapLightKind, LightSkinId> = {
   sconce: 'light_sconce',
   campfire: 'light_campfire',
   brazier: 'light_brazier',
   stand: 'light_stand',
   lantern: 'light_lantern',
 };
-const WALL_MOUNTED: readonly DungeonLightKind[] = ['sconce', 'lantern'];
+const WALL_MOUNTED: readonly MapLightKind[] = ['sconce', 'lantern'];
 
 /** How many terrains go in before the thread is handed back, so the panel can move its bar. */
 const CHUNK_SIZE = 32;
@@ -64,6 +55,8 @@ export interface DungeonBuildOptions {
   wallHeight: number;
   /** The painted ground, already in the image storage. The table wears it as its surface. */
   floorImage: string;
+  /** What the master needs to run the place. The caller writes it; the table never carries it. */
+  summary: string;
 }
 
 export interface DungeonBuildResult {
@@ -99,9 +92,9 @@ export class DungeonBuildService {
   }
 
   async build(
-    layout: DungeonLayout,
-    atmosphere: DungeonAtmosphere,
-    blocks: DungeonBlocks,
+    size: MapSize,
+    mood: MapMood,
+    blocks: MapBlocks,
     options: DungeonBuildOptions,
     onProgress?: (done: number, total: number) => void
   ): Promise<DungeonBuildResult> {
@@ -111,11 +104,11 @@ export class DungeonBuildService {
         ? this.registerAsset(TEXTURE_ASSET_URLS[WALL_TOP_TEXTURE[options.wall.id as WallTextureId]] ?? '')
         : wallSide;
 
-    const table = this.createTable(layout, atmosphere, options);
+    const table = this.createTable(size, mood, options);
 
     let done = 0;
     for (const block of blocks.blocks) {
-      table.appendChild(this.createTerrain(block, atmosphere, { wallSide, wallTop }, options.wallHeight));
+      table.appendChild(this.createTerrain(block, { wallSide, wallTop }, options.wallHeight));
       done++;
       if (done % CHUNK_SIZE === 0) {
         onProgress?.(done, blocks.blocks.length);
@@ -126,42 +119,33 @@ export class DungeonBuildService {
 
     this.standLights(table, blocks.lights, options.wallHeight);
 
-    return {
-      table,
-      terrainCount: blocks.blocks.length,
-      summary: this.describe(layout, blocks, options.name),
-    };
+    return { table, terrainCount: blocks.blocks.length, summary: options.summary };
   }
 
-  private createTable(layout: DungeonLayout, atmosphere: DungeonAtmosphere, options: DungeonBuildOptions): GameTable {
+  private createTable(size: MapSize, mood: MapMood, options: DungeonBuildOptions): GameTable {
     const table = new GameTable();
     table.name = options.name;
-    table.width = layout.width;
-    table.height = layout.height;
+    table.width = size.width;
+    table.height = size.height;
     table.gridSize = GRID_SIZE;
     // A generated dungeon is laid out on squares, and a hex table would clip every block to a ring.
     table.gridType = GridType.SQUARE;
-    table.gridShow = atmosphere.gridShow;
+    table.gridShow = mood.gridShow;
     table.imageIdentifier = options.floorImage;
     table.backgroundImageIdentifier = '';
-    table.darknessEnabled = atmosphere.darkness > 0;
-    if (atmosphere.darkness > 0) table.darknessLevel = atmosphere.darkness;
-    table.ambientColor = atmosphere.ambientColor;
-    table.weatherKind = atmosphere.weatherKind;
-    table.weatherDensity = atmosphere.weatherDensity;
+    table.darknessEnabled = mood.darkness > 0;
+    if (mood.darkness > 0) table.darknessLevel = mood.darkness;
+    table.ambientColor = mood.ambientColor;
+    table.weatherKind = mood.weatherKind;
+    table.weatherDensity = mood.weatherDensity;
     table.initialize();
     return table;
   }
 
-  private createTerrain(
-    block: DungeonBlock,
-    atmosphere: DungeonAtmosphere,
-    images: { wallSide: string; wallTop: string },
-    wallHeight: number
-  ): Terrain {
+  private createTerrain(block: MapBlock, images: { wallSide: string; wallTop: string }, wallHeight: number): Terrain {
     const { rect } = block;
     const name = this.terrainName(block);
-    const terrain = this.terrainFor(block, atmosphere, images, name, wallHeight);
+    const terrain = this.terrainFor(block, images, name, wallHeight);
 
     terrain.isTiledTexture = true;
     terrain.isLocked = true;
@@ -180,8 +164,7 @@ export class DungeonBuildService {
   }
 
   private terrainFor(
-    block: DungeonBlock,
-    atmosphere: DungeonAtmosphere,
+    block: MapBlock,
     images: { wallSide: string; wallTop: string },
     name: string,
     wallHeight: number
@@ -194,18 +177,24 @@ export class DungeonBuildService {
         return terrain;
       }
       case 'door': {
-        const door = this.registerAsset(DUNGEON_PROP_ASSET_URLS[this.doorPropFor(atmosphere)]);
+        const door = this.registerAsset(DUNGEON_PROP_ASSET_URLS[block.prop ?? 'door_wood']);
         const acrossX = block.across === 'x';
         const width = acrossX ? DOOR_THICKNESS : rect.w;
         const depth = acrossX ? rect.h : DOOR_THICKNESS;
         const terrain = Terrain.create(name, width, depth, wallHeight, door, door);
         terrain.mode = TerrainViewState.ALL;
-        terrain.doorStyle = atmosphere.doorStyle;
+        terrain.doorStyle = block.doorStyle ?? DoorStyle.SWING;
+        return terrain;
+      }
+      case 'prop': {
+        const side = this.registerAsset(WALL_TEXTURE_ASSET_URLS[block.skin?.side ?? 'wall_cave_rock']);
+        const top = this.registerAsset(TEXTURE_ASSET_URLS[block.skin?.top ?? 'rock']);
+        const terrain = Terrain.create(name, rect.w, rect.h, block.height ?? 1, side, top);
+        terrain.mode = TerrainViewState.ALL;
         return terrain;
       }
       default: {
-        const prop: DungeonPropId = block.kind === 'stairUp' ? 'stair_up' : 'stair_down';
-        const image = this.registerAsset(DUNGEON_PROP_ASSET_URLS[prop]);
+        const image = this.registerAsset(DUNGEON_PROP_ASSET_URLS[block.prop ?? 'stair_up']);
         const terrain = Terrain.create(name, rect.w, rect.h, STAIR_HEIGHT, image, image);
         terrain.mode = TerrainViewState.FLOOR;
         terrain.isSlope = true;
@@ -216,12 +205,8 @@ export class DungeonBuildService {
     }
   }
 
-  private doorPropFor(atmosphere: DungeonAtmosphere): DungeonPropId {
-    if (atmosphere.algorithm === 'cave') return 'door_stone';
-    return atmosphere.id === 'crypt' ? 'door_iron_grate' : 'door_wood';
-  }
-
-  private terrainName(block: DungeonBlock): string {
+  private terrainName(block: MapBlock): string {
+    if (block.name) return block.name;
     switch (block.kind) {
       case 'wall':
         return this.t('feature.tabletop.dungeonGenerator.piece.wall');
@@ -237,7 +222,7 @@ export class DungeonBuildService {
   }
 
   /** A light of its own for each spot, a child of the table so the table takes it away again. */
-  private standLights(table: GameTable, lights: readonly DungeonLight[], wallHeight: number): void {
+  private standLights(table: GameTable, lights: readonly MapLight[], wallHeight: number): void {
     for (const light of lights) {
       const source = LightSource.create(this.t(`feature.light.skin.${LIGHT_SKIN[light.kind]}`));
       applyLightPreset(source, LIGHT_PRESET[light.kind]);
@@ -252,22 +237,5 @@ export class DungeonBuildService {
       table.appendChild(source);
       source.update();
     }
-  }
-
-  private describe(layout: DungeonLayout, blocks: DungeonBlocks, name: string): string {
-    return buildDungeonSummary({
-      layout,
-      name,
-      torchRooms: blocks.torchRooms,
-      labels: {
-        roleName: (role) => this.t(`feature.tabletop.dungeonGenerator.role.${role}`),
-        title: this.t('feature.tabletop.dungeonGenerator.summary.seed'),
-        start: this.t('feature.tabletop.dungeonGenerator.summary.start'),
-        key: this.t('feature.tabletop.dungeonGenerator.summary.key'),
-        locked: this.t('feature.tabletop.dungeonGenerator.summary.locked'),
-        torch: this.t('feature.tabletop.dungeonGenerator.summary.torch'),
-        doors: this.t('feature.tabletop.dungeonGenerator.summary.doors'),
-      },
-    });
   }
 }

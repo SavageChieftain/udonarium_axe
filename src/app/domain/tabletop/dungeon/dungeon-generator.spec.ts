@@ -5,7 +5,7 @@ import {
   DUNGEON_DOOR_STYLES,
   DUNGEON_ENTRANCE_STYLES,
 } from '@axe/domain/tabletop/dungeon/dungeon-atmosphere';
-import { DUNGEON_MAX_TERRAINS, MAX_MERGE_SPAN, syncObjectCount } from '@axe/domain/tabletop/dungeon/dungeon-blocks';
+import { DUNGEON_MAX_TERRAINS, MAX_MERGE_SPAN } from '@axe/domain/tabletop/dungeon/dungeon-blocks';
 import {
   boardSizeFor,
   clampRoomCount,
@@ -15,6 +15,7 @@ import {
   planDungeon,
 } from '@axe/domain/tabletop/dungeon/dungeon-generator';
 import { cellAt, countOpenCells, DungeonCell, reachableCells } from '@axe/domain/tabletop/dungeon/dungeon-layout';
+import { syncObjectCount } from '@axe/domain/tabletop/map-blocks';
 
 const SEEDS = [1, 7, 42, 1234, 99999];
 

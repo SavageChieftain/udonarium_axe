@@ -9,13 +9,13 @@ import {
 import {
   DEFAULT_BLOCK_OPTIONS,
   DungeonBlockOptions,
-  DungeonBlocks,
   layoutToBlocks,
 } from '@axe/domain/tabletop/dungeon/dungeon-blocks';
 import { DungeonLayout } from '@axe/domain/tabletop/dungeon/dungeon-layout';
 import { assignRoomRoles } from '@axe/domain/tabletop/dungeon/room-roles';
 import { generateRoomsAndMazes } from '@axe/domain/tabletop/dungeon/rooms-and-mazes';
 import { openTunnelMouth } from '@axe/domain/tabletop/dungeon/tunnel-mouth';
+import { MapBlocks } from '@axe/domain/tabletop/map-blocks';
 
 export const MIN_ROOM_COUNT = 3;
 export const MAX_ROOM_COUNT = 20;
@@ -111,7 +111,7 @@ export function generateDungeon(request: DungeonRequest): DungeonLayout {
 export interface DungeonPlan {
   layout: DungeonLayout;
   atmosphere: DungeonAtmosphere;
-  blocks: DungeonBlocks;
+  blocks: MapBlocks;
 }
 
 /** The whole thing worked out but not yet built, which is what the preview and the estimate read. */

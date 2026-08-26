@@ -20,6 +20,7 @@ function options(overrides: Partial<Parameters<DungeonBuildService['build']>[3]>
     wall: { kind: 'texture' as const, id: 'wall_ashlar' },
     wallHeight: 2,
     floorImage: 'painted-ground',
+    summary: 'notes',
     ...overrides,
   };
 }
@@ -309,11 +310,10 @@ describe('DungeonBuildService', () => {
 
   it('hands the notes back as text and leaves nothing on the tabletop', async () => {
     // A shared memo is not a child of its table, so notes left here would follow the master everywhere.
-    const { plan, result } = await build();
+    const { result } = await build();
 
     expect(store.getObjects(TextNote).length).toBe(0);
-    expect(result.summary).toContain(plan.layout.rooms.length > 0 ? '#1' : '');
-    expect(result.summary.split('\n').length).toBeGreaterThan(plan.layout.rooms.length);
+    expect(result.summary).toBe('notes');
   });
 
   it('tells the caller how far it has got', async () => {
