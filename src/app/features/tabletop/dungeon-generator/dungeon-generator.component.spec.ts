@@ -18,6 +18,7 @@ type Panel = DungeonGeneratorComponent & {
   setWallHeight(height: number): void;
   terrainCount(): number;
   syncCount(): number;
+  lightCount(): number;
   tooMany(): boolean;
   preview(): { viewBox: string; rects: unknown[] };
   builtTable(): GameTable | null;
@@ -124,7 +125,7 @@ describe('DungeonGeneratorComponent', () => {
   });
 
   it('shows one rectangle for every terrain it would build', () => {
-    expect(component.preview().rects.length).toBe(component.terrainCount());
+    expect(component.preview().rects.length).toBe(component.terrainCount() + component.lightCount());
     expect(component.syncCount()).toBe(component.terrainCount() * 12);
   });
 

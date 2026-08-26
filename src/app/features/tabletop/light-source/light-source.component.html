@@ -29,24 +29,28 @@
     }
   </div>
 
-  @if (skinUrl().length > 0) {
-    <div
-      class="pointer-events-auto bg-contain bg-center bg-no-repeat backface-hidden transform-3d"
-      [class.opacity-40]="!enabled()"
-      [style.width.px]="gridSize"
-      [style.height.px]="gridSize"
-      [style.transform]="altitudeTransform()"
-      [style.background-image]="'url(' + skinUrl() + ')' | safe: 'style'"
-      [appTooltip]="lightSource()"
-    ></div>
-  } @else {
-    <div
-      class="pointer-events-auto flex size-9 items-center justify-center rounded-full border border-white/40 bg-black/40 backface-hidden transform-3d"
-      [class.opacity-40]="!enabled()"
-      [style.transform]="altitudeTransform()"
-      [appTooltip]="lightSource()"
-    >
-      <i class="material-icons text-[22px]" [style.color]="iconColor()">lightbulb</i>
-    </div>
-  }
+  <div
+    class="absolute inset-x-0 bottom-0 transform-3d"
+    [style.height.px]="gridSize"
+    [style.transform]="standTransform()"
+  >
+    @if (skinUrl().length > 0) {
+      <div
+        class="pointer-events-auto absolute inset-0 bg-contain bg-bottom bg-no-repeat backface-hidden transform-3d"
+        [class.opacity-40]="!enabled()"
+        [style.transform]="skinTransform()"
+        [style.background-image]="'url(' + skinUrl() + ')' | safe: 'style'"
+        [appTooltip]="lightSource()"
+      ></div>
+    } @else {
+      <div
+        class="pointer-events-auto absolute inset-x-0 bottom-0 m-auto flex size-9 items-center justify-center rounded-full border border-white/40 bg-black/40 backface-hidden transform-3d"
+        [class.opacity-40]="!enabled()"
+        [style.transform]="skinTransform()"
+        [appTooltip]="lightSource()"
+      >
+        <i class="material-icons text-[22px]" [style.color]="iconColor()">lightbulb</i>
+      </div>
+    }
+  </div>
 </div>

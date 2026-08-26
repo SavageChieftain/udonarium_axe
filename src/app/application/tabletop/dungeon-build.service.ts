@@ -22,13 +22,13 @@ import {
 import { DungeonLayout } from '@axe/domain/tabletop/dungeon/dungeon-layout';
 import { buildDungeonSummary } from '@axe/domain/tabletop/dungeon/dungeon-summary';
 import { GameTable, GridType } from '@axe/domain/tabletop/game-table';
+import { LightSource } from '@axe/domain/tabletop/light-source';
 import { SlopeDirection, Terrain, TerrainViewState } from '@axe/domain/tabletop/terrain';
 import { applyLightPreset, LightPreset } from '@axe/domain/tabletop/vision-types';
 
 const TERRAIN_IMAGE_TAG = '地形';
 const GRID_SIZE = 50;
 const FLOOR_HEIGHT = 0.05;
-const TORCH_HEIGHT = 0.6;
 /** How deep a door slab is, so it reads as a door in the passage rather than a block filling it. */
 const DOOR_THICKNESS = 0.25;
 
@@ -48,11 +48,13 @@ const LIGHT_SKIN: Record<DungeonLightKind, LightSkinId> = {
   stand: 'light_stand',
   lantern: 'light_lantern',
 };
+const WALL_MOUNTED: readonly DungeonLightKind[] = ['sconce', 'lantern'];
+
 /** How many terrains go in before the thread is handed back, so the panel can move its bar. */
 const CHUNK_SIZE = 32;
 
 function onTopOfFloor(block: DungeonBlock): boolean {
-  return block.kind === 'stairUp' || block.kind === 'stairDown' || block.kind === 'torch';
+  return block.kind === 'stairUp' || block.kind === 'stairDown';
 }
 
 export type DungeonMaterial = { kind: 'texture'; id: string } | { kind: 'library'; identifier: string };
@@ -81,7 +83,6 @@ export interface DungeonBuildResult {
 export class DungeonBuildService {
   private readonly imageStorage = inject(ImageStorage);
   private readonly t = inject(TRANSLATE_FN);
-  private plannedLights: readonly DungeonLight[] = [];
 
   /** Register a bundled picture once and hand back the identifier a terrain stores. */
   registerAsset(url: string): string {
@@ -115,7 +116,6 @@ export class DungeonBuildService {
       ? this.registerAsset(TEXTURE_ASSET_URLS[atmosphere.cave.hazardFloor as TextureId])
       : floor;
 
-    this.plannedLights = blocks.lights;
     const table = this.createTable(layout, atmosphere, options.name);
 
     let done = 0;
@@ -130,6 +130,8 @@ export class DungeonBuildService {
       }
     }
     onProgress?.(blocks.blocks.length, blocks.blocks.length);
+
+    this.standLights(table, blocks.lights, options.wallHeight);
 
     return {
       table,
@@ -185,10 +187,6 @@ export class DungeonBuildService {
     return terrain;
   }
 
-  private lightAt(block: DungeonBlock): DungeonLight | undefined {
-    return this.plannedLights.find((light) => light.x === block.rect.x && light.y === block.rect.y);
-  }
-
   private terrainFor(
     block: DungeonBlock,
     atmosphere: DungeonAtmosphere,
@@ -221,22 +219,6 @@ export class DungeonBuildService {
         terrain.mode = TerrainViewState.FLOOR;
         terrain.isSlope = true;
         terrain.slopeDirection = block.kind === 'stairUp' ? SlopeDirection.TOP : SlopeDirection.BOTTOM;
-        terrain.isDropShadow = false;
-        return terrain;
-      }
-      case 'torch': {
-        // A light of its own, one cell across. Lighting a wall block would stop that block
-        // blocking light, opening a hole as wide as the merge made it.
-        const light = this.lightAt(block);
-        const kind = light?.kind ?? 'sconce';
-        const preset = LIGHT_PRESET[kind];
-        const image = this.registerAsset(LIGHT_SKIN_ASSET_URLS[LIGHT_SKIN[kind]]);
-        const terrain = Terrain.create(name, 1, 1, TORCH_HEIGHT, image, image);
-        terrain.mode = TerrainViewState.ALL;
-        terrain.lightEnabled = true;
-        applyLightPreset(terrain, preset);
-        // A bracket throws its light away from the stone it is fixed to.
-        if (light && kind === 'sconce') terrain.rotate = light.facing;
         terrain.isDropShadow = false;
         return terrain;
       }
@@ -276,6 +258,24 @@ export class DungeonBuildService {
         return this.t('feature.tabletop.dungeonGenerator.piece.hazard');
       default:
         return this.t('feature.tabletop.dungeonGenerator.piece.floor');
+    }
+  }
+
+  /** A light of its own for each spot, a child of the table so the table takes it away again. */
+  private standLights(table: GameTable, lights: readonly DungeonLight[], wallHeight: number): void {
+    for (const light of lights) {
+      const source = LightSource.create(this.t(`feature.light.skin.${LIGHT_SKIN[light.kind]}`));
+      applyLightPreset(source, LIGHT_PRESET[light.kind]);
+      source.lightEnabled = true;
+      source.lightDirection = light.kind === 'sconce' ? light.facing : 0;
+      source.isLock = true;
+      const element = source.imageDataElement?.getFirstElementByName('imageIdentifier');
+      if (element) element.value = this.registerAsset(LIGHT_SKIN_ASSET_URLS[LIGHT_SKIN[light.kind]]);
+      source.location = { name: 'table', x: light.x * GRID_SIZE, y: light.y * GRID_SIZE };
+      source.posZ = 0;
+      source.altitude = WALL_MOUNTED.includes(light.kind) ? Math.max(0, wallHeight - 1) : 0;
+      table.appendChild(source);
+      source.update();
     }
   }
 

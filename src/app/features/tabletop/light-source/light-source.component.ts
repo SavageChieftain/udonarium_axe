@@ -6,6 +6,7 @@ import { ContextMenuService } from '@axe/application/ui/context-menu.service';
 import { ModalService } from '@axe/application/ui/modal.service';
 import { PanelOption, PanelService } from '@axe/application/ui/panel.service';
 import { PieceContextMenuService } from '@axe/application/ui/piece-context-menu.service';
+import { UiSignalService } from '@axe/application/ui/ui-signal.service';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { ImageStorage } from '@axe/core/storage/image-storage';
 import { ObjectStore } from '@axe/core/sync/object-store';
@@ -22,6 +23,7 @@ import { RotableDirective, RotableOption } from '@axe/ui/directives/rotable.dire
 import { SelectableDirective } from '@axe/ui/directives/selectable.directive';
 import { TooltipDirective } from '@axe/ui/directives/tooltip.directive';
 import { SafePipe } from '@axe/ui/pipes/safe.pipe';
+import { makeBillboardTransform } from '@axe/ui/tabletop/billboard-transform';
 import { setupMovableRotableForPiece } from '@axe/ui/tabletop/setup-tabletop-piece';
 import { translateZCss, Z_OFFSET_RANGE_PX } from '@axe/ui/tabletop/z-offset';
 
@@ -45,6 +47,7 @@ export class LightSourceComponent {
   private readonly modalService = inject(ModalService);
   private readonly panelService = inject(PanelService);
   private readonly tabletopService = inject(TabletopService);
+  private readonly uiSignalService = inject(UiSignalService);
   private readonly objectChange = inject(ObjectChangeService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly translateFn = inject(TRANSLATE_FN);
@@ -127,6 +130,18 @@ export class LightSourceComponent {
     this.objectChange.versionOf(light.identifier)();
     return light.lightAngle < 360;
   });
+
+  readonly standTransform = computed(() => `${this.altitudeTransform()} rotateX(-90deg) translateY(-50%)`.trim());
+
+  readonly skinTransform = computed(() =>
+    makeBillboardTransform({
+      rotation: this.uiSignalService.tableViewRotation(),
+      pieceRotate: 0,
+      parentInverseRotation: 'rotateX(90deg)',
+      verticalOffset3D: 0,
+      mode2d: this.tabletopService.mode2d(),
+    })
+  );
 
   readonly altitudeTransform = computed(() => {
     const light = this.lightSource();

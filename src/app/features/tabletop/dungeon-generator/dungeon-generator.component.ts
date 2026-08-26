@@ -123,6 +123,7 @@ export class DungeonGeneratorComponent {
   );
 
   protected readonly terrainCount = computed(() => this.plan().blocks.blocks.length);
+  protected readonly lightCount = computed(() => this.plan().blocks.lights.length);
   protected readonly syncCount = computed(() => syncObjectCount(this.plan().blocks.blocks));
   protected readonly tooMany = computed(() => this.terrainCount() > DUNGEON_MAX_TERRAINS);
   protected readonly heavy = computed(() => this.terrainCount() > DUNGEON_HEAVY_TERRAINS && !this.tooMany());
@@ -136,7 +137,7 @@ export class DungeonGeneratorComponent {
       floor.kind === 'texture' ? floor.id : '',
       plan.atmosphere.cave?.hazardFloor ?? ''
     );
-    return buildDungeonPreview(plan.layout, plan.blocks.blocks, colors);
+    return buildDungeonPreview(plan.layout, plan.blocks.blocks, colors, plan.blocks.torchSpots);
   });
 
   protected readonly roomsFound = computed(() => this.plan().layout.rooms.length);

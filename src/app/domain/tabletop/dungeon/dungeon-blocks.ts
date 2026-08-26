@@ -19,7 +19,7 @@ export const DUNGEON_HEAVY_TERRAINS = 200;
 /** What one terrain costs to sync: itself, the five it is built from, and its six values. */
 export const SYNC_OBJECTS_PER_TERRAIN = 12;
 
-export type DungeonBlockKind = 'wall' | 'floor' | 'hazard' | 'door' | 'stairUp' | 'stairDown' | 'torch';
+export type DungeonBlockKind = 'wall' | 'floor' | 'hazard' | 'door' | 'stairUp' | 'stairDown';
 
 export interface DungeonBlock {
   kind: DungeonBlockKind;
@@ -38,7 +38,6 @@ export interface DungeonBlockOptions {
 
 export const DEFAULT_BLOCK_OPTIONS: DungeonBlockOptions = { placeDoors: true, placeStairs: true };
 
-/** Which way the passage runs where a door stands, so the slab can be set across it. */
 const OPEN_LIGHTS: readonly DungeonLightKind[] = ['campfire', 'brazier', 'stand'];
 const WALL_LIGHTS: readonly DungeonLightKind[] = ['sconce', 'sconce', 'lantern'];
 
@@ -50,6 +49,7 @@ const FACINGS: readonly [number, number, number][] = [
   [1, 0, 270],
 ];
 
+/** Which way the passage runs where a door stands, so the slab can be set across it. */
 function doorAxis(layout: DungeonLayout, x: number, y: number): 'x' | 'y' {
   const open = (cx: number, cy: number) => cellAt(layout, cx, cy) !== DungeonCell.Rock;
   const eastWest = open(x + 1, y) && open(x - 1, y);
@@ -86,13 +86,6 @@ function roomsBeside(layout: DungeonLayout, rect: DungeonRect): number[] {
   return [...found].sort((left, right) => left - right);
 }
 
-/**
- * Pick a cell inside each room, up against a wall, to stand a torch in.
- *
- * The light rides on a sconce of its own rather than on the wall. A terrain carrying a
- * light stops blocking light, so a torch set on a rock rect twelve cells across would open
- * a hole that size in the dark, lit from the middle of the stone.
- */
 /**
  * Where to stand a light in each room, and what kind of light it should be.
  *
@@ -228,16 +221,9 @@ export function layoutToBlocks(
     }
   }
 
+  // A light is not terrain. Made one, its picture is painted on all four sides of a box and
+  // spills out around it; a light source of its own stands in the cell like a piece does.
   const lights = findLights(layout, atmosphere.torches);
-  for (const light of lights) {
-    blocks.push({
-      kind: 'torch',
-      rect: { x: light.x, y: light.y, w: 1, h: 1 },
-      blocksSight: false,
-      locked: false,
-      rooms: [light.room],
-    });
-  }
 
   return {
     blocks,

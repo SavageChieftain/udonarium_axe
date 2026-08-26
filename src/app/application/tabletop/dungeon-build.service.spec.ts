@@ -210,41 +210,44 @@ describe('DungeonBuildService', () => {
     });
   });
 
-  it('stands a lit sconce of its own for every spot the plan picked', async () => {
+  it('stands a lit source of its own for every spot the plan picked', async () => {
     const { plan, result } = await build();
-    const lit = result.table.terrains.filter((terrain) => terrain.lightEnabled);
+    const lights = result.table.lightSources;
 
     expect(plan.blocks.lights.length).toBeGreaterThan(0);
-    expect(lit.length).toBe(plan.blocks.lights.length);
-    for (const torch of lit) {
-      expect(['sconce', 'campfire', 'brazier', 'lantern']).toContain(torch.lightPreset);
-      expect(torch.lightBrightRadius).toBeGreaterThan(0);
+    expect(lights.length).toBe(plan.blocks.lights.length);
+    for (const light of lights) {
+      expect(light.lightEnabled).toBe(true);
+      expect(['sconce', 'campfire', 'brazier', 'lantern']).toContain(light.lightPreset);
+      expect(light.lightBrightRadius).toBeGreaterThan(0);
     }
   });
 
   it('gives every light a picture to stand as, and turns a bracket off the wall', async () => {
     const { plan, result } = await build();
+    const lights = result.table.lightSources;
 
-    plan.blocks.blocks.forEach((block, index) => {
-      if (block.kind !== 'torch') return;
-      const light = plan.blocks.lights.find((entry) => entry.x === block.rect.x && entry.y === block.rect.y);
-      const terrain = result.table.terrains[index];
-      expect(terrain.floorImage?.identifier ?? '').toContain('assets/images/lights/');
-      if (light?.kind === 'sconce') expect(terrain.rotate).toBe(light.facing);
-    });
+    expect(plan.blocks.lights.length).toBeGreaterThan(0);
+    expect(lights.length).toBe(plan.blocks.lights.length);
+    for (const light of lights) {
+      expect(light.imageFile.identifier).toContain('assets/images/lights/');
+    }
+    for (const planned of plan.blocks.lights) {
+      const built = lights.find((entry) => entry.location.x === planned.x * 50 && entry.location.y === planned.y * 50);
+      expect(built).toBeDefined();
+      if (planned.kind === 'sconce') {
+        expect(built!.lightDirection).toBe(planned.facing);
+        expect(built!.altitude).toBeGreaterThan(0);
+      }
+      if (planned.kind === 'campfire') expect(built!.altitude).toBe(0);
+    }
   });
 
-  it('keeps the light off the walls, so a merged rock block goes on blocking it', async () => {
-    // A terrain that carries a light stops blocking light; on a twelve-cell rect that is a hole.
-    const { plan, result } = await build();
+  it('keeps the light off the terrain entirely, so no block stops blocking it', async () => {
+    // A lit terrain lets light through, and painted on a box the picture spills out four ways.
+    const { result } = await build();
 
-    plan.blocks.blocks.forEach((block, index) => {
-      if (block.kind === 'wall') expect(result.table.terrains[index].lightEnabled).toBe(false);
-    });
-    for (const torch of result.table.terrains.filter((terrain) => terrain.lightEnabled)) {
-      expect(torch.width).toBe(1);
-      expect(torch.depth).toBe(1);
-    }
+    expect(result.table.terrains.some((terrain) => terrain.lightEnabled)).toBe(false);
   });
 
   it('leaves nothing behind that outlives its table', async () => {

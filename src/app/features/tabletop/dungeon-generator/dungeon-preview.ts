@@ -6,7 +6,7 @@ import {
   WallTextureId,
 } from '@axe/domain/media/texture-catalog';
 import { DungeonBlock } from '@axe/domain/tabletop/dungeon/dungeon-blocks';
-import { DungeonLayout } from '@axe/domain/tabletop/dungeon/dungeon-layout';
+import { DungeonLayout, DungeonPoint } from '@axe/domain/tabletop/dungeon/dungeon-layout';
 
 export interface PreviewRect {
   x: number;
@@ -58,8 +58,6 @@ export function previewColors(wall: string, floor: string, hazard: string): Prev
 
 function fillFor(block: DungeonBlock, colors: PreviewColors): string {
   switch (block.kind) {
-    case 'torch':
-      return TORCH_FILL;
     case 'wall':
       return colors.wall;
     case 'hazard':
@@ -83,10 +81,14 @@ function fillFor(block: DungeonBlock, colors: PreviewColors): string {
 export function buildDungeonPreview(
   layout: DungeonLayout,
   blocks: readonly DungeonBlock[],
-  colors: PreviewColors
+  colors: PreviewColors,
+  lights: readonly DungeonPoint[] = []
 ): DungeonPreview {
   return {
     viewBox: `0 0 ${layout.width} ${layout.height}`,
-    rects: blocks.map((block) => ({ ...block.rect, fill: fillFor(block, colors) })),
+    rects: [
+      ...blocks.map((block) => ({ ...block.rect, fill: fillFor(block, colors) })),
+      ...lights.map((light) => ({ x: light.x, y: light.y, w: 1, h: 1, fill: TORCH_FILL })),
+    ],
   };
 }
