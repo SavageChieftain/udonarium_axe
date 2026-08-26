@@ -73,8 +73,18 @@ export class ChatColorSettingComponent {
     return this.contrastOf(num, theme) < CHAT_TARGET_RATIO;
   }
 
+  /** Rounded down, so a pair that misses the standard is never shown as having met it. */
   contrastLabel(num: number, theme: ChatTheme): string {
-    return this.contrastOf(num, theme).toFixed(1);
+    return (Math.floor(this.contrastOf(num, theme) * 10) / 10).toFixed(1);
+  }
+
+  /** The page each preview sits on, so a dark sample reads as a dark room and not as the panel. */
+  backdrop(theme: ChatTheme): string {
+    return theme === 'dark' ? '#0d1117' : '#d4c8e2';
+  }
+
+  labelColor(theme: ChatTheme): string {
+    return theme === 'dark' ? '#8b949e' : '#5b4074';
   }
 
   changeColor(event: string, num: number): void {

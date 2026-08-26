@@ -1,74 +1,76 @@
-<div class="flex flex-col gap-3">
+<div class="flex flex-col gap-2.5">
   @for (slot of slots; track slot) {
-    <div class="border-ui-border-panel rounded-ui-sm flex flex-col gap-2 border border-solid p-2">
-      <div class="flex items-center gap-2">
-        <label class="text-ui-muted text-[11px] whitespace-nowrap" [attr.for]="'chat-color-' + slot">
+    <div class="border-ui-border-panel rounded-ui-sm border border-solid">
+      <div class="border-ui-border-panel flex items-center gap-2 border-0 border-b border-solid px-2 py-1.5">
+        <label class="text-ui-muted w-11 shrink-0 text-[11px]" [attr.for]="'chat-color-' + slot">
           {{ 'feature.chat.colorSetting.color' + (slot + 1) | transloco }}
         </label>
         <input
-          class="rounded-ui-sm border-ui-border-panel bg-ui-input hover:border-ui-accent h-7 w-10 cursor-pointer border border-solid p-0.5 transition-colors"
+          class="rounded-ui-sm border-ui-border-panel bg-ui-input hover:border-ui-accent h-6.5 w-9 shrink-0 cursor-pointer border border-solid p-0.5 transition-colors"
           type="color"
           [id]="'chat-color-' + slot"
           [name]="'chat-color-' + slot"
           [value]="chatColorCode(slot)"
           (change)="onChangeColor($event, slot)"
         />
-        <span class="text-ui-dim text-[11px]">{{ chatColorCode(slot) }}</span>
+        <span class="text-ui-dim font-mono text-[11px]">{{ chatColorCode(slot) }}</span>
       </div>
 
-      @for (theme of themes; track theme) {
-        <div class="rounded-ui-sm p-2" [style.background-color]="theme === 'dark' ? '#161b22' : '#ded3e8'">
-          <div class="mb-1 flex items-center gap-2">
-            <span
-              class="text-[10px] tracking-[0.04em] uppercase"
-              [style.color]="theme === 'dark' ? '#8b949e' : '#5b4074'"
-            >
-              {{ 'feature.chat.colorSetting.theme.' + theme | transloco }}
-            </span>
-            <input
-              class="rounded-ui-sm h-6 w-9 cursor-pointer border border-solid border-black/20 p-0.5"
-              type="color"
-              [name]="'chat-bubble-' + theme + '-' + slot"
-              [value]="shownBubble(slot, theme)"
-              (change)="onChangeBubble($event, slot, theme)"
-              [title]="'feature.chat.colorSetting.bubble' | transloco"
-            />
-            @if (bubbleCode(slot, theme)) {
-              <button
-                class="text-ui-accent cursor-pointer border-0 bg-transparent p-0 text-[10px]"
-                type="button"
-                (click)="clearBubble(slot, theme)"
-              >
-                {{ 'feature.chat.colorSetting.auto' | transloco }}
-              </button>
-            }
-          </div>
-
-          <div
-            class="rounded-ui-sm box-border border border-solid px-2 py-1"
-            [ngStyle]="chatColorCode(slot) | chatColorStyle: theme : bubbleCode(slot, theme)"
-            [style.border-color]="'var(--ui-bubble-caret-border)'"
-          >
-            <div class="text-[11px] font-medium opacity-90">{{ speakerName }}</div>
-            <div class="text-[12px]">{{ 'feature.chat.colorSetting.sample' | transloco }}</div>
-          </div>
-
-          @if (isHardToRead(slot, theme)) {
-            <div class="mt-1 flex items-center gap-2">
-              <span class="text-[10px] text-[#c93c3c]">
-                {{ 'feature.chat.colorSetting.hardToRead' | transloco: { ratio: contrastLabel(slot, theme) } }}
+      <div class="grid grid-cols-2 gap-px">
+        @for (theme of themes; track theme) {
+          <div class="flex flex-col gap-1 p-1.5" [style.background-color]="backdrop(theme)">
+            <div class="flex items-center justify-between gap-1">
+              <span class="text-[9px] tracking-[0.06em] uppercase" [style.color]="labelColor(theme)">
+                {{ 'feature.chat.colorSetting.theme.' + theme | transloco }}
               </span>
-              <button
-                class="rounded-ui-sm cursor-pointer border border-solid border-current bg-transparent px-1.5 py-0.5 text-[10px] text-[#c93c3c]"
-                type="button"
-                (click)="autoAdjust(slot, theme)"
-              >
-                {{ 'feature.chat.colorSetting.fix' | transloco }}
-              </button>
+              <input
+                class="rounded-ui-sm h-5 w-7 shrink-0 cursor-pointer border border-solid border-black/25 p-0"
+                type="color"
+                [name]="'chat-bubble-' + theme + '-' + slot"
+                [value]="shownBubble(slot, theme)"
+                (change)="onChangeBubble($event, slot, theme)"
+                [title]="'feature.chat.colorSetting.bubble' | transloco"
+              />
             </div>
-          }
-        </div>
-      }
+
+            <div
+              class="rounded-ui-sm box-border border border-solid px-1.5 py-1"
+              [ngStyle]="chatColorCode(slot) | chatColorStyle: theme : bubbleCode(slot, theme)"
+              [style.border-color]="'var(--ui-bubble-caret-border)'"
+            >
+              <div class="text-[10px] font-medium opacity-90">{{ speakerName }}</div>
+              <div class="text-[11px] leading-snug">{{ 'feature.chat.colorSetting.sample' | transloco }}</div>
+            </div>
+
+            <div class="flex min-h-5 items-center justify-between gap-1">
+              @if (isHardToRead(slot, theme)) {
+                <button
+                  class="rounded-ui-sm cursor-pointer border border-solid border-[#c93c3c] bg-[#c93c3c]/12 px-1 py-0.5 text-[9px] text-[#c93c3c]"
+                  type="button"
+                  [title]="'feature.chat.colorSetting.hardToRead' | transloco"
+                  (click)="autoAdjust(slot, theme)"
+                >
+                  {{ 'feature.chat.colorSetting.fix' | transloco }} · {{ contrastLabel(slot, theme) }}:1
+                </button>
+              } @else {
+                <span class="text-[9px] opacity-60" [style.color]="labelColor(theme)">
+                  {{ contrastLabel(slot, theme) }}:1
+                </span>
+              }
+              @if (bubbleCode(slot, theme)) {
+                <button
+                  class="cursor-pointer border-0 bg-transparent p-0 text-[9px] underline"
+                  type="button"
+                  [style.color]="labelColor(theme)"
+                  (click)="clearBubble(slot, theme)"
+                >
+                  {{ 'feature.chat.colorSetting.auto' | transloco }}
+                </button>
+              }
+            </div>
+          </div>
+        }
+      </div>
     </div>
   }
 </div>

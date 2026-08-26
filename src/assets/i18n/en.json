@@ -2063,8 +2063,8 @@
         },
         "bubble": "Bubble colour",
         "auto": "Back to automatic",
-        "fix": "Adjust it",
-        "hardToRead": "Hard to read on this theme ({{ratio}}:1)"
+        "fix": "Adjust",
+        "hardToRead": "Hard to read on this theme - press to put the bubble right"
       },
       "messageFix": {
         "change": "Apply",
