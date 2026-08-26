@@ -61,8 +61,23 @@ const BASE_L = { light: 0.898, dark: 0.153 };
 /** Only a whisper of the speaker's hue: more of it costs the contrast the text needs. */
 const TINT = 0.12;
 
-/** What text has to hold against the bubble it sits on: the reading standard for body text. */
-const TARGET_RATIO = 4.5;
+/**
+ * What text has to hold against the bubble it sits on.
+ *
+ * The reading standard asks four and a half to one of body text and seven of the text it
+ * holds to most strictly. The colours that can afford the stricter figure give up nothing
+ * for it - a bright blue keeps the ordinary panel background either way - and it is what
+ * lifts a near-black speaker off a bubble that was still too near black to read on.
+ */
+const TARGET_RATIO = 7;
+
+/**
+ * How far the bubble may go in either direction: as dark as the page's own darkest, and
+ * as light as its own lightest. Some colours cannot be read on anything within that, and
+ * for those a bubble of pure black or pure white would be a worse answer than the best one.
+ */
+const DARKEST_L = 0.07;
+const LIGHTEST_L = 0.97;
 
 /** How finely the search walks away from the base, which is below what an eye can tell apart. */
 const STEP = 0.005;
@@ -100,13 +115,13 @@ function bubbleLightness(h: number, tint: number, textLum: number, baseL: number
   for (let away = STEP; away <= 1; away += STEP) {
     const up = baseL + away;
     const down = baseL - away;
-    const upReads = up <= 1 && ratioAt(up) >= TARGET_RATIO;
-    const downReads = down >= 0 && ratioAt(down) >= TARGET_RATIO;
+    const upReads = up <= LIGHTEST_L && ratioAt(up) >= TARGET_RATIO;
+    const downReads = down >= DARKEST_L && ratioAt(down) >= TARGET_RATIO;
     if (upReads && downReads) return ratioAt(up) >= ratioAt(down) ? up : down;
     if (upReads) return up;
     if (downReads) return down;
   }
-  return ratioAt(1) >= ratioAt(0) ? 1 : 0;
+  return ratioAt(LIGHTEST_L) >= ratioAt(DARKEST_L) ? LIGHTEST_L : DARKEST_L;
 }
 
 @Pipe({ name: 'chatColorStyle', pure: true })
