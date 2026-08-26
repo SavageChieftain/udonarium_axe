@@ -98,6 +98,7 @@ function roomsBeside(layout: DungeonLayout, rect: DungeonRect): number[] {
  */
 function findLights(layout: DungeonLayout, count: number): DungeonLight[] {
   const lights: DungeonLight[] = [];
+  const taken = new Set<number>();
   if (count < 1) return lights;
 
   for (const room of layout.rooms) {
@@ -111,6 +112,8 @@ function findLights(layout: DungeonLayout, count: number): DungeonLight[] {
         const x = room.x + dx;
         const y = room.y + dy;
         if (cellAt(layout, x, y) !== DungeonCell.Room) continue;
+        // Two rooms sharing ground would otherwise stand two lights on the one cell.
+        if (taken.has(y * layout.width + x)) continue;
 
         const stone = FACINGS.find(([ox, oy]) => cellAt(layout, x + ox, y + oy) === DungeonCell.Rock);
         if (stone && !wall) {

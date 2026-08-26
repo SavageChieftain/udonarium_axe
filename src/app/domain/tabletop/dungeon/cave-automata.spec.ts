@@ -91,6 +91,44 @@ describe('generateCave()', () => {
     }
   });
 
+  it('digs its chambers apart from one another', () => {
+    // Placed on top of each other they are still reported as two rooms in the one spot.
+    for (const seed of SEEDS) {
+      const layout = build({ seed });
+      for (const room of layout.rooms) {
+        const cx = room.x + Math.floor(room.w / 2);
+        const cy = room.y + Math.floor(room.h / 2);
+        const inside = layout.rooms.filter(
+          (other) =>
+            other !== room && cx >= other.x && cx < other.x + other.w && cy >= other.y && cy < other.y + other.h
+        );
+        expect(inside).toEqual([]);
+      }
+    }
+  });
+
+  it('numbers the chambers it kept from nothing upward', () => {
+    for (const seed of SEEDS) {
+      build({ seed }).rooms.forEach((room, index) => expect(room.index).toBe(index));
+    }
+  });
+
+  it('digs its chambers apart from one another', () => {
+    // Placed on top of each other they are still reported as two rooms in the one spot.
+    for (const seed of SEEDS) {
+      const layout = build({ seed });
+      for (const room of layout.rooms) {
+        const cx = room.x + Math.floor(room.w / 2);
+        const cy = room.y + Math.floor(room.h / 2);
+        const inside = layout.rooms.filter(
+          (other) =>
+            other !== room && cx >= other.x && cx < other.x + other.w && cy >= other.y && cy < other.y + other.h
+        );
+        expect(inside).toEqual([]);
+      }
+    }
+  });
+
   it('never reports more chambers than it was asked to dig', () => {
     for (const seed of SEEDS) {
       expect(build({ seed }).rooms.length).toBeLessThanOrEqual(8);

@@ -25,6 +25,7 @@ export interface CaveParams {
 const CHAMBER_MIN_RADIUS = 2;
 const CHAMBER_MAX_RADIUS = 4;
 const HAZARD_POOL_CELLS = 12;
+const CHAMBER_TRIES = 40;
 
 function intRange(rng: () => number, low: number, high: number): number {
   if (high <= low) return low;
@@ -41,13 +42,24 @@ function seedNoise(layout: DungeonLayout, wallFill: number, rng: () => number): 
   }
 }
 
+/**
+ * Dig the chambers apart from one another.
+ *
+ * Placed without a check they land on top of each other, and each one is still reported as
+ * a room: two rooms at one spot, two torches on one cell, and a summary listing a place
+ * twice. The tunnels and the smoothing join them soon enough.
+ */
 function digChambers(layout: DungeonLayout, count: number, rng: () => number): DungeonRoom[] {
   const chambers: DungeonRoom[] = [];
+  const centres: { x: number; y: number; r: number }[] = [];
 
-  for (let index = 0; index < count; index++) {
+  for (let attempt = 0; attempt < count * CHAMBER_TRIES && chambers.length < count; attempt++) {
     const radius = intRange(rng, CHAMBER_MIN_RADIUS, CHAMBER_MAX_RADIUS);
     const cx = intRange(rng, radius + 1, layout.width - radius - 2);
     const cy = intRange(rng, radius + 1, layout.height - radius - 2);
+    const overlaps = centres.some((other) => (other.x - cx) ** 2 + (other.y - cy) ** 2 < (other.r + radius) ** 2);
+    if (overlaps) continue;
+    centres.push({ x: cx, y: cy, r: radius });
 
     for (let dy = -radius; dy <= radius; dy++) {
       for (let dx = -radius; dx <= radius; dx++) {
@@ -65,7 +77,7 @@ function digChambers(layout: DungeonLayout, count: number, rng: () => number): D
       y: cy - radius,
       w: size,
       h: size,
-      index,
+      index: chambers.length,
       role: DungeonRoomRole.Chamber,
     });
   }

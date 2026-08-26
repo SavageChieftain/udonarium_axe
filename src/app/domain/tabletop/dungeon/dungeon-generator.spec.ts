@@ -1,39 +1,3 @@
-it('stands every light on open floor, never inside the rock', () => {
-  // A light on a merged rock block stops the block blocking light, opening a hole its whole size.
-  for (const id of DUNGEON_ATMOSPHERE_IDS) {
-    const plan = planDungeon({ atmosphere: id, roomCount: 12, seed: 7 });
-    for (const light of plan.blocks.lights) {
-      expect(cellAt(plan.layout, light.x, light.y)).not.toBe(DungeonCell.Rock);
-    }
-  }
-});
-
-it('fixes a bracket to stone and leaves a fire room to stand around', () => {
-  for (const id of DUNGEON_ATMOSPHERE_IDS) {
-    const plan = planDungeon({ atmosphere: id, roomCount: 12, seed: 7 });
-    for (const light of plan.blocks.lights) {
-      const beside = [
-        cellAt(plan.layout, light.x + 1, light.y),
-        cellAt(plan.layout, light.x - 1, light.y),
-        cellAt(plan.layout, light.x, light.y + 1),
-        cellAt(plan.layout, light.x, light.y - 1),
-      ];
-      const againstStone = beside.some((cell) => cell === DungeonCell.Rock);
-      if (light.kind === 'sconce') expect(againstStone).toBe(true);
-      else expect(againstStone).toBe(false);
-    }
-  }
-});
-
-it('turns a bracket away from the stone behind it', () => {
-  const plan = planDungeon({ atmosphere: 'stoneDungeon', roomCount: 12, seed: 7 });
-
-  for (const light of plan.blocks.lights) {
-    if (light.kind !== 'sconce') continue;
-    expect([0, 90, 180, 270]).toContain(light.facing);
-  }
-});
-
 import {
   atmosphereById,
   DUNGEON_ATMOSPHERE_IDS,
@@ -139,6 +103,53 @@ describe('planDungeon()', () => {
     const plan = planDungeon({ atmosphere: 'stoneDungeon', roomCount: 8, seed: 7 });
 
     expect(syncObjectCount(plan.blocks.blocks)).toBe(plan.blocks.blocks.length * 12);
+  });
+
+  it('stands every light on open floor, never inside the rock', () => {
+    // A light on a merged rock block stops the block blocking light, opening a hole its whole size.
+    for (const id of DUNGEON_ATMOSPHERE_IDS) {
+      const plan = planDungeon({ atmosphere: id, roomCount: 12, seed: 7 });
+      for (const light of plan.blocks.lights) {
+        expect(cellAt(plan.layout, light.x, light.y)).not.toBe(DungeonCell.Rock);
+      }
+    }
+  });
+
+  it('fixes a bracket to stone and leaves a fire room to stand around', () => {
+    for (const id of DUNGEON_ATMOSPHERE_IDS) {
+      const plan = planDungeon({ atmosphere: id, roomCount: 12, seed: 7 });
+      for (const light of plan.blocks.lights) {
+        const beside = [
+          cellAt(plan.layout, light.x + 1, light.y),
+          cellAt(plan.layout, light.x - 1, light.y),
+          cellAt(plan.layout, light.x, light.y + 1),
+          cellAt(plan.layout, light.x, light.y - 1),
+        ];
+        const againstStone = beside.some((cell) => cell === DungeonCell.Rock);
+        if (light.kind === 'sconce') expect(againstStone).toBe(true);
+        else expect(againstStone).toBe(false);
+      }
+    }
+  });
+
+  it('turns a bracket away from the stone behind it', () => {
+    const plan = planDungeon({ atmosphere: 'stoneDungeon', roomCount: 12, seed: 7 });
+
+    for (const light of plan.blocks.lights) {
+      if (light.kind !== 'sconce') continue;
+      expect([0, 90, 180, 270]).toContain(light.facing);
+    }
+  });
+
+  it('never stands two lights on the one cell', () => {
+    for (const id of DUNGEON_ATMOSPHERE_IDS) {
+      for (const seed of SEEDS) {
+        const plan = planDungeon({ atmosphere: id, roomCount: 12, seed });
+        const cells = plan.blocks.lights.map((light) => `${light.x},${light.y}`);
+
+        expect(new Set(cells).size).toBe(cells.length);
+      }
+    }
   });
 
   it('never merges a block longer than the span', () => {
