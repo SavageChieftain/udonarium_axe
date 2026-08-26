@@ -39,6 +39,9 @@ export interface DungeonBlockOptions {
 export const DEFAULT_BLOCK_OPTIONS: DungeonBlockOptions = { placeDoors: true, placeStairs: true };
 
 /** Which way the passage runs where a door stands, so the slab can be set across it. */
+const OPEN_LIGHTS: readonly DungeonLightKind[] = ['campfire', 'brazier', 'stand'];
+const WALL_LIGHTS: readonly DungeonLightKind[] = ['sconce', 'sconce', 'lantern'];
+
 /** The four ways a light can look, with the heading that points away from that neighbour. */
 const FACINGS: readonly [number, number, number][] = [
   [0, -1, 180],
@@ -125,25 +128,21 @@ function findLights(layout: DungeonLayout, count: number): DungeonLight[] {
       }
     }
 
-    // A room with space to stand round a fire gets one; the cramped ones get a bracket.
+    // A room with space to stand round a fire gets one; the cramped ones get something by the wall.
     const roomy = room.w * room.h >= 30 && open !== null;
-    if (roomy && open) {
-      lights.push({
-        x: open.x,
-        y: open.y,
-        kind: lights.length % 2 === 0 ? 'campfire' : 'brazier',
-        facing: 0,
-        room: room.index,
-      });
-    } else if (wall) {
-      lights.push(wall);
-    }
+    const chosen: DungeonLight | null =
+      roomy && open
+        ? { ...open, kind: OPEN_LIGHTS[lights.length % OPEN_LIGHTS.length], facing: 0, room: room.index }
+        : wall && { ...wall, kind: WALL_LIGHTS[lights.length % WALL_LIGHTS.length] };
+    if (!chosen) continue;
+    lights.push(chosen);
+    taken.add(chosen.y * layout.width + chosen.x);
   }
 
   return lights;
 }
 
-export type DungeonLightKind = 'sconce' | 'campfire' | 'brazier';
+export type DungeonLightKind = 'sconce' | 'campfire' | 'brazier' | 'stand' | 'lantern';
 
 export interface DungeonLight extends DungeonPoint {
   kind: DungeonLightKind;

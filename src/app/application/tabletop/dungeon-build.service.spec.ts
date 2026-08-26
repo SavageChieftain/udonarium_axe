@@ -193,7 +193,7 @@ describe('DungeonBuildService', () => {
     expect(plan.blocks.lights.length).toBeGreaterThan(0);
     expect(lit.length).toBe(plan.blocks.lights.length);
     for (const torch of lit) {
-      expect(['sconce', 'campfire', 'brazier']).toContain(torch.lightPreset);
+      expect(['sconce', 'campfire', 'brazier', 'lantern']).toContain(torch.lightPreset);
       expect(torch.lightBrightRadius).toBeGreaterThan(0);
     }
   });

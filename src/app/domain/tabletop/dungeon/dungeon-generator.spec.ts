@@ -119,15 +119,16 @@ describe('planDungeon()', () => {
     for (const id of DUNGEON_ATMOSPHERE_IDS) {
       const plan = planDungeon({ atmosphere: id, roomCount: 12, seed: 7 });
       for (const light of plan.blocks.lights) {
-        const beside = [
+        const againstStone = [
           cellAt(plan.layout, light.x + 1, light.y),
           cellAt(plan.layout, light.x - 1, light.y),
           cellAt(plan.layout, light.x, light.y + 1),
           cellAt(plan.layout, light.x, light.y - 1),
-        ];
-        const againstStone = beside.some((cell) => cell === DungeonCell.Rock);
+        ].some((cell) => cell === DungeonCell.Rock);
+
+        // A bracket needs a wall to hang on; a fire needs room to stand around it.
         if (light.kind === 'sconce') expect(againstStone).toBe(true);
-        else expect(againstStone).toBe(false);
+        if (light.kind === 'campfire' || light.kind === 'brazier') expect(againstStone).toBe(false);
       }
     }
   });

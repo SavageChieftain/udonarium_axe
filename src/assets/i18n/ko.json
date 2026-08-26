@@ -1384,9 +1384,14 @@
       },
       "skin": {
         "light_campfire": "모닥불",
+        "light_torch": "횃불",
         "light_sconce": "벽걸이 횃불",
+        "light_lamp": "기름 램프",
+        "light_stand": "램프 스탠드",
         "light_brazier": "화로",
-        "light_lantern": "랜턴"
+        "light_lantern": "랜턴",
+        "light_candle": "양초",
+        "light_chandelier": "샹들리에"
       }
     },
     "vision": {

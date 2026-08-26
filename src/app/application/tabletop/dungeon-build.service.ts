@@ -2,7 +2,7 @@ import { inject, Injectable } from '@angular/core';
 import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { ImageStorage } from '@axe/core/storage/image-storage';
 import { ImageTag } from '@axe/domain/media/image-tag';
-import { LIGHT_PRESET_SKIN, LIGHT_SKIN_ASSET_URLS } from '@axe/domain/media/light-skins';
+import { LIGHT_SKIN_ASSET_URLS, LightSkinId } from '@axe/domain/media/light-skins';
 import {
   DUNGEON_PROP_ASSET_URLS,
   DungeonPropId,
@@ -36,6 +36,17 @@ const LIGHT_PRESET: Record<DungeonLightKind, LightPreset> = {
   sconce: LightPreset.SCONCE,
   campfire: LightPreset.CAMPFIRE,
   brazier: LightPreset.BRAZIER,
+  stand: LightPreset.LANTERN,
+  lantern: LightPreset.LANTERN,
+};
+
+/** A stand and a lantern burn alike but do not look alike, so the picture follows the kind. */
+const LIGHT_SKIN: Record<DungeonLightKind, LightSkinId> = {
+  sconce: 'light_sconce',
+  campfire: 'light_campfire',
+  brazier: 'light_brazier',
+  stand: 'light_stand',
+  lantern: 'light_lantern',
 };
 /** How many terrains go in before the thread is handed back, so the panel can move its bar. */
 const CHUNK_SIZE = 32;
@@ -216,15 +227,15 @@ export class DungeonBuildService {
         // A light of its own, one cell across. Lighting a wall block would stop that block
         // blocking light, opening a hole as wide as the merge made it.
         const light = this.lightAt(block);
-        const preset = LIGHT_PRESET[light?.kind ?? 'sconce'];
-        const skin = LIGHT_PRESET_SKIN[preset];
-        const image = skin ? this.registerAsset(LIGHT_SKIN_ASSET_URLS[skin]) : images.wallSide;
+        const kind = light?.kind ?? 'sconce';
+        const preset = LIGHT_PRESET[kind];
+        const image = this.registerAsset(LIGHT_SKIN_ASSET_URLS[LIGHT_SKIN[kind]]);
         const terrain = Terrain.create(name, 1, 1, TORCH_HEIGHT, image, image);
         terrain.mode = TerrainViewState.ALL;
         terrain.lightEnabled = true;
         applyLightPreset(terrain, preset);
         // A bracket throws its light away from the stone it is fixed to.
-        if (light && light.kind === 'sconce') terrain.rotate = light.facing;
+        if (light && kind === 'sconce') terrain.rotate = light.facing;
         terrain.isDropShadow = false;
         return terrain;
       }

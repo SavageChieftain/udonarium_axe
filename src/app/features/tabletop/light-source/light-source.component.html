@@ -29,19 +29,24 @@
     }
   </div>
 
-  <div
-    class="pointer-events-auto flex size-9 items-center justify-center rounded-full border border-white/40 bg-black/40 backface-hidden transform-3d"
-    [class.opacity-40]="!enabled()"
-    [style.transform]="altitudeTransform()"
-    [appTooltip]="lightSource()"
-  >
-    @if (skinUrl().length > 0) {
-      <div
-        class="size-8 bg-contain bg-center bg-no-repeat"
-        [style.background-image]="'url(' + skinUrl() + ')' | safe: 'style'"
-      ></div>
-    } @else {
+  @if (skinUrl().length > 0) {
+    <div
+      class="pointer-events-auto bg-contain bg-center bg-no-repeat backface-hidden transform-3d"
+      [class.opacity-40]="!enabled()"
+      [style.width.px]="gridSize"
+      [style.height.px]="gridSize"
+      [style.transform]="altitudeTransform()"
+      [style.background-image]="'url(' + skinUrl() + ')' | safe: 'style'"
+      [appTooltip]="lightSource()"
+    ></div>
+  } @else {
+    <div
+      class="pointer-events-auto flex size-9 items-center justify-center rounded-full border border-white/40 bg-black/40 backface-hidden transform-3d"
+      [class.opacity-40]="!enabled()"
+      [style.transform]="altitudeTransform()"
+      [appTooltip]="lightSource()"
+    >
       <i class="material-icons text-[22px]" [style.color]="iconColor()">lightbulb</i>
-    }
-  </div>
+    </div>
+  }
 </div>

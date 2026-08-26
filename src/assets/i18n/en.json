@@ -1384,9 +1384,14 @@
       },
       "skin": {
         "light_campfire": "Campfire",
+        "light_torch": "Torch",
         "light_sconce": "Wall sconce",
+        "light_lamp": "Oil lamp",
+        "light_stand": "Lamp stand",
         "light_brazier": "Brazier",
-        "light_lantern": "Lantern"
+        "light_lantern": "Lantern",
+        "light_candle": "Candle",
+        "light_chandelier": "Chandelier"
       }
     },
     "vision": {

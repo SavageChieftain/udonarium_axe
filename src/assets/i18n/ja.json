@@ -1384,9 +1384,14 @@
       },
       "skin": {
         "light_campfire": "焚き火",
+        "light_torch": "松明",
         "light_sconce": "壁掛け松明",
+        "light_lamp": "油ランプ",
+        "light_stand": "ランプスタンド",
         "light_brazier": "火鉢",
-        "light_lantern": "ランタン"
+        "light_lantern": "ランタン",
+        "light_candle": "ろうそく",
+        "light_chandelier": "シャンデリア"
       }
     },
     "vision": {
