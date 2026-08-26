@@ -30,7 +30,6 @@ import {
   planDungeon,
 } from '@axe/domain/tabletop/dungeon/dungeon-generator';
 import { GameTable } from '@axe/domain/tabletop/game-table';
-import { LightSource } from '@axe/domain/tabletop/light-source';
 import { DungeonMaterialPickerComponent } from '@axe/features/tabletop/dungeon-generator/dungeon-material-picker.component';
 import { buildDungeonPreview, previewColors } from '@axe/features/tabletop/dungeon-generator/dungeon-preview';
 import { TranslocoModule } from '@jsverse/transloco';
@@ -116,7 +115,7 @@ export class DungeonGeneratorComponent {
       floor.kind === 'texture' ? floor.id : '',
       plan.atmosphere.cave?.hazardFloor ?? ''
     );
-    return buildDungeonPreview(plan.layout, plan.blocks.blocks, colors, plan.blocks.torchSpots);
+    return buildDungeonPreview(plan.layout, plan.blocks.blocks, colors);
   });
 
   protected readonly roomsFound = computed(() => this.plan().layout.rooms.length);
@@ -185,22 +184,10 @@ export class DungeonGeneratorComponent {
   }
 
   protected discardPrevious(): void {
-    const table = this.builtTable();
-    if (table) {
-      for (const light of this.objectStore.getObjects(LightSource)) {
-        if (this.isInside(light, table)) light.destroy();
-      }
-      table.destroy();
-    }
+    // Everything the generator makes is a child of its table, so the table takes it all with it.
+    this.builtTable()?.destroy();
     this.builtTable.set(null);
     this.summary.set('');
-  }
-
-  /** A light stands on the table rather than under it, so it has to be found by where it is. */
-  private isInside(light: LightSource, table: GameTable): boolean {
-    const width = table.width * table.gridSize;
-    const height = table.height * table.gridSize;
-    return light.location.x >= 0 && light.location.y >= 0 && light.location.x < width && light.location.y < height;
   }
 
   protected async copySummary(): Promise<void> {

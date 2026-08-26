@@ -20,7 +20,6 @@ type Panel = DungeonGeneratorComponent & {
   preview(): { viewBox: string; rects: unknown[] };
   builtTable(): GameTable | null;
   summary(): string;
-  plan(): { blocks: { blocks: unknown[]; torchSpots: unknown[] } };
   canEdit: boolean;
   setWall(material: { kind: 'texture'; id: string }): void;
   resetMaterials(): void;
@@ -91,11 +90,8 @@ describe('DungeonGeneratorComponent', () => {
     expect(component.usingDefaults()).toBe(true);
   });
 
-  it('shows one rectangle for every terrain it would build, plus a mark per torch', () => {
-    const plan = component.plan();
-
-    expect(component.terrainCount()).toBe(plan.blocks.blocks.length);
-    expect(component.preview().rects.length).toBe(plan.blocks.blocks.length + plan.blocks.torchSpots.length);
+  it('shows one rectangle for every terrain it would build', () => {
+    expect(component.preview().rects.length).toBe(component.terrainCount());
     expect(component.syncCount()).toBe(component.terrainCount() * 12);
   });
 

@@ -17,18 +17,18 @@ import { DungeonLayout } from '@axe/domain/tabletop/dungeon/dungeon-layout';
 import { buildDungeonSummary } from '@axe/domain/tabletop/dungeon/dungeon-summary';
 import { GameTable, GridType } from '@axe/domain/tabletop/game-table';
 import { GameTableScratchMask } from '@axe/domain/tabletop/game-table-scratch-mask';
-import { LightSource } from '@axe/domain/tabletop/light-source';
 import { SlopeDirection, Terrain, TerrainViewState } from '@axe/domain/tabletop/terrain';
 import { applyLightPreset, LightPreset } from '@axe/domain/tabletop/vision-types';
 
 const TERRAIN_IMAGE_TAG = '地形';
 const GRID_SIZE = 50;
 const FLOOR_HEIGHT = 0.05;
+const TORCH_HEIGHT = 0.6;
 /** How many terrains go in before the thread is handed back, so the panel can move its bar. */
 const CHUNK_SIZE = 32;
 
 function onTopOfFloor(block: DungeonBlock): boolean {
-  return block.kind === 'stairUp' || block.kind === 'stairDown';
+  return block.kind === 'stairUp' || block.kind === 'stairDown' || block.kind === 'torch';
 }
 
 export type DungeonMaterial = { kind: 'texture'; id: string } | { kind: 'library'; identifier: string };
@@ -102,7 +102,6 @@ export class DungeonBuildService {
     }
     onProgress?.(blocks.blocks.length, blocks.blocks.length);
 
-    this.standTorches(blocks);
     if (options.placeScratchMask) this.placeScratchMask(table, layout);
 
     return {
@@ -183,6 +182,16 @@ export class DungeonBuildService {
         terrain.isDropShadow = false;
         return terrain;
       }
+      case 'torch': {
+        // A sconce of its own, one cell across. Lighting a wall block would stop that block
+        // blocking light, opening a hole as wide as the merge made it.
+        const terrain = Terrain.create(name, 1, 1, TORCH_HEIGHT, images.wallSide, images.wallTop);
+        terrain.mode = TerrainViewState.ALL;
+        terrain.lightEnabled = true;
+        applyLightPreset(terrain, LightPreset.TORCH);
+        terrain.isDropShadow = false;
+        return terrain;
+      }
       case 'hazard': {
         const terrain = Terrain.create(name, rect.w, rect.h, FLOOR_HEIGHT, images.hazard, images.hazard);
         terrain.mode = TerrainViewState.FLOOR;
@@ -219,18 +228,6 @@ export class DungeonBuildService {
         return this.t('feature.tabletop.dungeonGenerator.piece.hazard');
       default:
         return this.t('feature.tabletop.dungeonGenerator.piece.floor');
-    }
-  }
-
-  private standTorches(blocks: DungeonBlocks): void {
-    for (const spot of blocks.torchSpots) {
-      const torch = LightSource.create(this.t('feature.tabletop.dungeonGenerator.piece.torch'));
-      applyLightPreset(torch, LightPreset.TORCH);
-      torch.lightEnabled = true;
-      torch.isLock = true;
-      torch.location = { name: 'table', x: spot.x * GRID_SIZE, y: spot.y * GRID_SIZE };
-      torch.posZ = GRID_SIZE;
-      torch.update();
     }
   }
 

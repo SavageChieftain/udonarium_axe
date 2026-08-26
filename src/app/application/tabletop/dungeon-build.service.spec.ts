@@ -9,7 +9,7 @@ import { planDungeon } from '@axe/domain/tabletop/dungeon/dungeon-generator';
 import { GameTable, GridType } from '@axe/domain/tabletop/game-table';
 import { GameTableScratchMask } from '@axe/domain/tabletop/game-table-scratch-mask';
 import { LightSource } from '@axe/domain/tabletop/light-source';
-import { TerrainViewState } from '@axe/domain/tabletop/terrain';
+import { Terrain, TerrainViewState } from '@axe/domain/tabletop/terrain';
 import { TextNote } from '@axe/domain/tabletop/text-note';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
 
@@ -137,22 +137,41 @@ describe('DungeonBuildService', () => {
     });
   });
 
-  it('stands a torch of its own for every spot the plan picked', async () => {
-    const { plan } = await build();
-    const torches = store.getObjects(LightSource);
+  it('stands a lit sconce of its own for every spot the plan picked', async () => {
+    const { plan, result } = await build();
+    const lit = result.table.terrains.filter((terrain) => terrain.lightEnabled);
 
     expect(plan.blocks.torchSpots.length).toBeGreaterThan(0);
-    expect(torches.length).toBe(plan.blocks.torchSpots.length);
-    for (const torch of torches) {
-      expect(torch.lightEnabled).toBe(true);
+    expect(lit.length).toBe(plan.blocks.torchSpots.length);
+    for (const torch of lit) {
       expect(torch.lightPreset).toBe('torch');
+      expect(torch.lightBrightRadius).toBeGreaterThan(0);
     }
   });
 
-  it('leaves the light off the terrain, so a merged rock block keeps blocking it', async () => {
-    const { result } = await build();
+  it('keeps the light off the walls, so a merged rock block goes on blocking it', async () => {
+    // A terrain that carries a light stops blocking light; on a twelve-cell rect that is a hole.
+    const { plan, result } = await build();
 
-    expect(result.table.terrains.some((terrain) => terrain.lightEnabled)).toBe(false);
+    plan.blocks.blocks.forEach((block, index) => {
+      if (block.kind === 'wall') expect(result.table.terrains[index].lightEnabled).toBe(false);
+    });
+    for (const torch of result.table.terrains.filter((terrain) => terrain.lightEnabled)) {
+      expect(torch.width).toBe(1);
+      expect(torch.depth).toBe(1);
+    }
+  });
+
+  it('leaves nothing behind that outlives its table', async () => {
+    const { result } = await build({ placeScratchMask: true });
+    const made = result.table.terrains.length + result.table.scratchMasks.length;
+
+    result.table.destroy();
+
+    expect(made).toBeGreaterThan(0);
+    expect(store.getObjects(Terrain).length).toBe(0);
+    expect(store.getObjects(GameTableScratchMask).length).toBe(0);
+    expect(store.getObjects(LightSource).length).toBe(0);
   });
 
   it('registers a bundled picture once and tags it', async () => {

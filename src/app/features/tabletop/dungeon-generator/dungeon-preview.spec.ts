@@ -61,11 +61,12 @@ describe('buildDungeonPreview()', () => {
 
   it('marks where each torch stands', () => {
     const { layout, blocks } = plan();
-    const preview = buildDungeonPreview(layout, blocks.blocks, colors, blocks.torchSpots);
+    const preview = buildDungeonPreview(layout, blocks.blocks, colors);
+    const torches = blocks.blocks.filter((block) => block.kind === 'torch').length;
 
-    expect(blocks.torchSpots.length).toBeGreaterThan(0);
-    expect(preview.rects.filter((rect) => rect.fill === TORCH_FILL).length).toBe(blocks.torchSpots.length);
-    expect(preview.rects.length).toBe(blocks.blocks.length + blocks.torchSpots.length);
+    expect(torches).toBeGreaterThan(0);
+    expect(torches).toBe(blocks.torchSpots.length);
+    expect(preview.rects.filter((rect) => rect.fill === TORCH_FILL).length).toBe(torches);
   });
 
   it('shows the lava in a cave that has some', () => {

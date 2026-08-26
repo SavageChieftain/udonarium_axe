@@ -15,7 +15,7 @@ export const DUNGEON_HEAVY_TERRAINS = 150;
 /** What one terrain costs to sync: itself, the five it is built from, and its six values. */
 export const SYNC_OBJECTS_PER_TERRAIN = 12;
 
-export type DungeonBlockKind = 'wall' | 'floor' | 'hazard' | 'door' | 'stairUp' | 'stairDown';
+export type DungeonBlockKind = 'wall' | 'floor' | 'hazard' | 'door' | 'stairUp' | 'stairDown' | 'torch';
 
 export interface DungeonBlock {
   kind: DungeonBlockKind;
@@ -61,9 +61,9 @@ function roomsBeside(layout: DungeonLayout, rect: DungeonRect): number[] {
 /**
  * Pick a cell inside each room, up against a wall, to stand a torch in.
  *
- * The light goes on its own object rather than on a wall block. A block carrying a light
- * stops blocking it, so a torch set on a rock rect twelve cells across would open a hole
- * that size in the dark, lit from the middle of the stone.
+ * The light rides on a sconce of its own rather than on the wall. A terrain carrying a
+ * light stops blocking light, so a torch set on a rock rect twelve cells across would open
+ * a hole that size in the dark, lit from the middle of the stone.
  */
 function findTorchSpots(layout: DungeonLayout, count: number): { rooms: number[]; spots: DungeonPoint[] } {
   const rooms: number[] = [];
@@ -168,6 +168,16 @@ export function layoutToBlocks(
   }
 
   const { rooms: torchRooms, spots: torchSpots } = findTorchSpots(layout, atmosphere.torches);
+  for (const spot of torchSpots) {
+    blocks.push({
+      kind: 'torch',
+      rect: { x: spot.x, y: spot.y, w: 1, h: 1 },
+      blocksSight: false,
+      locked: false,
+      rooms: [],
+    });
+  }
+
   return { blocks, torchRooms, torchSpots };
 }
 
