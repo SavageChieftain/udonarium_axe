@@ -1,7 +1,6 @@
 import { inject, Injectable } from '@angular/core';
 import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { ImageStorage } from '@axe/core/storage/image-storage';
-import { DisclosureMode } from '@axe/domain/disclosure/disclosure';
 import { ImageTag } from '@axe/domain/media/image-tag';
 import {
   DUNGEON_PROP_ASSET_URLS,
@@ -18,8 +17,8 @@ import { DungeonLayout } from '@axe/domain/tabletop/dungeon/dungeon-layout';
 import { buildDungeonSummary } from '@axe/domain/tabletop/dungeon/dungeon-summary';
 import { GameTable, GridType } from '@axe/domain/tabletop/game-table';
 import { GameTableScratchMask } from '@axe/domain/tabletop/game-table-scratch-mask';
+import { LightSource } from '@axe/domain/tabletop/light-source';
 import { SlopeDirection, Terrain, TerrainViewState } from '@axe/domain/tabletop/terrain';
-import { TextNote } from '@axe/domain/tabletop/text-note';
 import { applyLightPreset, LightPreset } from '@axe/domain/tabletop/vision-types';
 
 const TERRAIN_IMAGE_TAG = '地形';
@@ -27,7 +26,6 @@ const GRID_SIZE = 50;
 const FLOOR_HEIGHT = 0.05;
 /** How many terrains go in before the thread is handed back, so the panel can move its bar. */
 const CHUNK_SIZE = 32;
-const SUMMARY_WIDTH = 8;
 
 function onTopOfFloor(block: DungeonBlock): boolean {
   return block.kind === 'stairUp' || block.kind === 'stairDown';
@@ -39,8 +37,6 @@ export interface DungeonBuildOptions {
   name: string;
   wall: DungeonMaterial;
   floor: DungeonMaterial;
-  placeRoomNotes: boolean;
-  placeSummary: boolean;
   placeScratchMask: boolean;
 }
 
@@ -48,12 +44,12 @@ export interface DungeonBuildResult {
   table: GameTable;
   terrainCount: number;
   /**
-   * The notes this run left behind.
+   * What the master needs to run the place, as text for the panel to show.
    *
-   * A shared memo is not a child of its table, so destroying the table would leave them on
-   * every other one. The caller keeps these to clear them when the dungeon is rolled again.
+   * It is not put on the table: a shared memo is not a child of its table, so notes left
+   * on one dungeon would follow the master onto every other table in the room.
    */
-  noteIdentifiers: string[];
+  summary: string;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -106,12 +102,14 @@ export class DungeonBuildService {
     }
     onProgress?.(blocks.blocks.length, blocks.blocks.length);
 
-    const noteIdentifiers: string[] = [];
-    if (options.placeRoomNotes) noteIdentifiers.push(...this.placeRoomNotes(layout));
-    if (options.placeSummary) noteIdentifiers.push(this.placeSummary(layout, blocks, options.name));
+    this.standTorches(blocks);
     if (options.placeScratchMask) this.placeScratchMask(table, layout);
 
-    return { table, terrainCount: blocks.blocks.length, noteIdentifiers };
+    return {
+      table,
+      terrainCount: blocks.blocks.length,
+      summary: this.describe(layout, blocks, options.name),
+    };
   }
 
   private createTable(layout: DungeonLayout, atmosphere: DungeonAtmosphere, name: string): GameTable {
@@ -147,11 +145,6 @@ export class DungeonBuildService {
     terrain.isLocked = true;
     terrain.blocksSight = block.blocksSight;
     terrain.blocksLight = block.blocksSight;
-
-    if (block.torch) {
-      terrain.lightEnabled = true;
-      applyLightPreset(terrain, LightPreset.TORCH);
-    }
 
     // Writing the whole location goes through setAttribute, which syncs; touching location.x does not.
     terrain.location = { name: 'table', x: rect.x * GRID_SIZE, y: rect.y * GRID_SIZE };
@@ -229,31 +222,20 @@ export class DungeonBuildService {
     }
   }
 
-  private placeRoomNotes(layout: DungeonLayout): string[] {
-    const identifiers: string[] = [];
-    for (const room of layout.rooms) {
-      const note = TextNote.create(
-        `#${room.index + 1}`,
-        this.t(`feature.tabletop.dungeonGenerator.role.${room.role}`),
-        14,
-        2,
-        1
-      );
-      note.location = {
-        name: 'table',
-        x: (room.x + Math.floor(room.w / 2)) * GRID_SIZE,
-        y: (room.y + Math.floor(room.h / 2)) * GRID_SIZE,
-      };
-      note.posZ = 0;
-      note.disclosureMode = DisclosureMode.GameMaster;
-      note.update();
-      identifiers.push(note.identifier);
+  private standTorches(blocks: DungeonBlocks): void {
+    for (const spot of blocks.torchSpots) {
+      const torch = LightSource.create(this.t('feature.tabletop.dungeonGenerator.piece.torch'));
+      applyLightPreset(torch, LightPreset.TORCH);
+      torch.lightEnabled = true;
+      torch.isLock = true;
+      torch.location = { name: 'table', x: spot.x * GRID_SIZE, y: spot.y * GRID_SIZE };
+      torch.posZ = GRID_SIZE;
+      torch.update();
     }
-    return identifiers;
   }
 
-  private placeSummary(layout: DungeonLayout, blocks: DungeonBlocks, name: string): string {
-    const text = buildDungeonSummary({
+  private describe(layout: DungeonLayout, blocks: DungeonBlocks, name: string): string {
+    return buildDungeonSummary({
       layout,
       name,
       torchRooms: blocks.torchRooms,
@@ -266,20 +248,6 @@ export class DungeonBuildService {
         torch: this.t('feature.tabletop.dungeonGenerator.summary.torch'),
       },
     });
-
-    const note = TextNote.create(
-      this.t('feature.tabletop.dungeonGenerator.summary.title'),
-      text,
-      12,
-      SUMMARY_WIDTH,
-      10
-    );
-    // Beside the board rather than on it, so a ten-cell note does not bury the first rooms.
-    note.location = { name: 'table', x: -(SUMMARY_WIDTH + 1) * GRID_SIZE, y: 0 };
-    note.posZ = 0;
-    note.disclosureMode = DisclosureMode.GameMaster;
-    note.update();
-    return note.identifier;
   }
 
   private placeScratchMask(table: GameTable, layout: DungeonLayout): void {

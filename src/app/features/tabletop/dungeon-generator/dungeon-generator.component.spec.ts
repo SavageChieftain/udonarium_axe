@@ -19,6 +19,8 @@ type Panel = DungeonGeneratorComponent & {
   tooMany(): boolean;
   preview(): { viewBox: string; rects: unknown[] };
   builtTable(): GameTable | null;
+  summary(): string;
+  plan(): { blocks: { blocks: unknown[]; torchSpots: unknown[] } };
   canEdit: boolean;
   setWall(material: { kind: 'texture'; id: string }): void;
   resetMaterials(): void;
@@ -89,8 +91,11 @@ describe('DungeonGeneratorComponent', () => {
     expect(component.usingDefaults()).toBe(true);
   });
 
-  it('shows one rectangle for every terrain it would build', () => {
-    expect(component.preview().rects.length).toBe(component.terrainCount());
+  it('shows one rectangle for every terrain it would build, plus a mark per torch', () => {
+    const plan = component.plan();
+
+    expect(component.terrainCount()).toBe(plan.blocks.blocks.length);
+    expect(component.preview().rects.length).toBe(plan.blocks.blocks.length + plan.blocks.torchSpots.length);
     expect(component.syncCount()).toBe(component.terrainCount() * 12);
   });
 
@@ -150,6 +155,22 @@ describe('DungeonGeneratorComponent', () => {
 
     expect(store.getObjects(GameTable).length).toBe(1);
     expect(component.builtTable()).not.toBe(first);
+  });
+
+  it('hands the notes to the panel rather than onto the tabletop', async () => {
+    component.roomCount.set(3);
+    await component.generate();
+
+    expect(component.summary().length).toBeGreaterThan(0);
+    expect(component.summary()).toContain('#1');
+  });
+
+  it('forgets the notes once the table is thrown away', async () => {
+    component.roomCount.set(3);
+    await component.generate();
+    component.discardPrevious();
+
+    expect(component.summary()).toBe('');
   });
 
   it('clears the table away when asked', async () => {

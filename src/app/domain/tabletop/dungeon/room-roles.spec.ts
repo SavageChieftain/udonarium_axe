@@ -1,6 +1,6 @@
 import { seededRandom } from '@axe/core/util/seeded-random';
 import { pathBetween } from '@axe/domain/tabletop/dungeon/dungeon-graph';
-import { DungeonLayout, DungeonRoomRole } from '@axe/domain/tabletop/dungeon/dungeon-layout';
+import { cellAt, DungeonCell, DungeonLayout, DungeonRoomRole } from '@axe/domain/tabletop/dungeon/dungeon-layout';
 import { assignRoomRoles } from '@axe/domain/tabletop/dungeon/room-roles';
 import { generateRoomsAndCorridors, RoomsAndCorridorsParams } from '@axe/domain/tabletop/dungeon/rooms-and-corridors';
 
@@ -80,15 +80,26 @@ describe('assignRoomRoles()', () => {
   });
 
   it('leaves no way into the deepest room standing open', () => {
-    // A single locked door among two makes the key an ornament: the party just walks round it.
-    for (const seed of [1, 7, 42, 1234, 99999, 5, 11, 23]) {
+    // Counting doors is not enough: a two-wide entrance leaves a plain corridor cell beside
+    // the door, and one gap anywhere in the wall makes the key an ornament.
+    for (const seed of [1, 7, 42, 1234, 99999, 5, 11, 23, 3, 17]) {
       const layout = build({ seed });
       if (layout.keyRoomIndex < 0) continue;
-      const boss = roleOf(layout, DungeonRoomRole.Boss);
-      const ways = layout.doors.filter((door) => door.rooms.includes(boss));
+      const boss = layout.rooms[roleOf(layout, DungeonRoomRole.Boss)];
 
-      expect(ways.length).toBeGreaterThan(0);
-      expect(ways.every((door) => door.locked)).toBe(true);
+      const ring: { x: number; y: number }[] = [];
+      for (let dx = 0; dx < boss.w; dx++) {
+        ring.push({ x: boss.x + dx, y: boss.y - 1 }, { x: boss.x + dx, y: boss.y + boss.h });
+      }
+      for (let dy = 0; dy < boss.h; dy++) {
+        ring.push({ x: boss.x - 1, y: boss.y + dy }, { x: boss.x + boss.w, y: boss.y + dy });
+      }
+
+      for (const cell of ring) {
+        if (cellAt(layout, cell.x, cell.y) === DungeonCell.Rock) continue;
+        const door = layout.doors.find((entry) => entry.x === cell.x && entry.y === cell.y);
+        expect(door?.locked).toBe(true);
+      }
     }
   });
 

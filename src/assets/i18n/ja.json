@@ -1693,7 +1693,8 @@
           "entrance": "入口",
           "exit": "出口",
           "hazard": "溶岩",
-          "fog": "未探索"
+          "fog": "未探索",
+          "torch": "松明"
         },
         "summary": {
           "title": "ダンジョン概要",
@@ -1714,7 +1715,6 @@
           "tableName": "テーブル名",
           "placeDoors": "扉を置く",
           "placeStairs": "入口と出口を置く",
-          "placeRoomNotes": "部屋番号を置く",
           "placeScratchMask": "未探索の覆いを敷く"
         },
         "actions": {
@@ -1723,7 +1723,9 @@
           "pickFromLibrary": "画像保管庫から選ぶ",
           "resetMaterials": "既定に戻す",
           "goToTable": "このテーブルへ移動",
-          "discard": "このテーブルを削除"
+          "discard": "このテーブルを削除",
+          "copySummary": "概要をコピー",
+          "copied": "コピーしました"
         },
         "status": {
           "estimate": "地形 {{terrains}} 個・同期 約 {{sync}} 件",

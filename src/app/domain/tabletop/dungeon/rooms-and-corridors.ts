@@ -110,7 +110,10 @@ function roomBorderCells(layout: DungeonLayout, room: DungeonRoom): { x: number;
   for (let dy = 0; dy < room.h; dy++) {
     cells.push({ x: room.x - 1, y: room.y + dy }, { x: room.x + room.w, y: room.y + dy });
   }
-  return cells.filter((cell) => cellAt(layout, cell.x, cell.y) === DungeonCell.Corridor);
+  return cells.filter((cell) => {
+    const value = cellAt(layout, cell.x, cell.y);
+    return value === DungeonCell.Corridor || value === DungeonCell.Door;
+  });
 }
 
 function markDoors(layout: DungeonLayout, rooms: readonly DungeonRoom[]): DungeonDoor[] {

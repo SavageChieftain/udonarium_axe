@@ -1,9 +1,14 @@
 import { hopDistances, neighboursOf, pathBetween } from '@axe/domain/tabletop/dungeon/dungeon-graph';
 import {
+  cellAt,
+  DungeonCell,
+  DungeonDoor,
   DungeonLayout,
+  DungeonRoom,
   DungeonRoomRole,
   DungeonRoomRoleValue,
   roomCenter,
+  setCell,
 } from '@axe/domain/tabletop/dungeon/dungeon-layout';
 
 function leafRooms(layout: DungeonLayout): number[] {
@@ -92,6 +97,46 @@ export function assignRoomRoles(layout: DungeonLayout): void {
   lockTheWayToTheBoss(layout, exitRoom);
 }
 
+/**
+ * Turn every opening in a room's wall into a locked door.
+ *
+ * Counting the doors already marked is not enough: a corridor two cells wide leaves one
+ * cell as a plain opening beside the door, and a single gap makes the key an ornament.
+ */
+function sealRoom(layout: DungeonLayout, roomIndex: number): DungeonDoor[] {
+  const room: DungeonRoom | undefined = layout.rooms[roomIndex];
+  if (!room) return [];
+
+  const ring: { x: number; y: number }[] = [];
+  for (let dx = 0; dx < room.w; dx++) {
+    ring.push({ x: room.x + dx, y: room.y - 1 }, { x: room.x + dx, y: room.y + room.h });
+  }
+  for (let dy = 0; dy < room.h; dy++) {
+    ring.push({ x: room.x - 1, y: room.y + dy }, { x: room.x + room.w, y: room.y + dy });
+  }
+
+  const sealed: DungeonDoor[] = [];
+  for (const cell of ring) {
+    const value = cellAt(layout, cell.x, cell.y);
+    if (value !== DungeonCell.Corridor && value !== DungeonCell.Door) continue;
+    setCell(layout, cell.x, cell.y, DungeonCell.Door);
+
+    const existing = layout.doors.find((door) => door.x === cell.x && door.y === cell.y);
+    if (existing) {
+      existing.locked = true;
+      if (!existing.rooms.includes(roomIndex)) existing.rooms.push(roomIndex);
+      sealed.push(existing);
+      continue;
+    }
+    const added: DungeonDoor = { x: cell.x, y: cell.y, rooms: [roomIndex], locked: true };
+    layout.doors.push(added);
+    sealed.push(added);
+  }
+
+  layout.doors.sort((left, right) => left.y * layout.width + left.x - (right.y * layout.width + right.x));
+  return sealed;
+}
+
 /** Which rooms can still be walked to from the entrance once the deepest room is shut off. */
 function reachableWithout(layout: DungeonLayout, blocked: number): Set<number> {
   const neighbours = neighboursOf(layout.links, layout.rooms.length);
@@ -115,16 +160,12 @@ function lockTheWayToTheBoss(layout: DungeonLayout, boss: number): void {
   const path = pathBetween(layout.links, layout.rooms.length, 0, boss);
   if (path.length < 2) return;
 
-  // Every way in has to be shut. Leaving one open makes the key an ornament.
-  const doors = layout.doors.filter((door) => door.rooms.includes(boss));
-  if (doors.length === 0) return;
-
-  // And the key has to be somewhere the party can walk to without going through that room.
+  // The key has to be somewhere the party can walk to without going through the room it opens.
   const onPath = new Set(path);
   const reachable = reachableWithout(layout, boss);
   const candidates = leafRooms(layout).filter((index) => !onPath.has(index) && reachable.has(index));
   if (candidates.length === 0) return;
 
-  for (const door of doors) door.locked = true;
+  if (sealRoom(layout, boss).length === 0) return;
   layout.keyRoomIndex = candidates[candidates.length - 1];
 }

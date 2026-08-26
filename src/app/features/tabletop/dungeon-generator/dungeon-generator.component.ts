@@ -23,8 +23,14 @@ import {
   DUNGEON_MAX_TERRAINS,
   syncObjectCount,
 } from '@axe/domain/tabletop/dungeon/dungeon-blocks';
-import { MAX_ROOM_COUNT, MIN_ROOM_COUNT, planDungeon } from '@axe/domain/tabletop/dungeon/dungeon-generator';
+import {
+  clampRoomCount,
+  MAX_ROOM_COUNT,
+  MIN_ROOM_COUNT,
+  planDungeon,
+} from '@axe/domain/tabletop/dungeon/dungeon-generator';
 import { GameTable } from '@axe/domain/tabletop/game-table';
+import { LightSource } from '@axe/domain/tabletop/light-source';
 import { DungeonMaterialPickerComponent } from '@axe/features/tabletop/dungeon-generator/dungeon-material-picker.component';
 import { buildDungeonPreview, previewColors } from '@axe/features/tabletop/dungeon-generator/dungeon-preview';
 import { TranslocoModule } from '@jsverse/transloco';
@@ -61,7 +67,6 @@ export class DungeonGeneratorComponent {
   protected readonly tableName = signal('');
   protected readonly placeDoors = signal(true);
   protected readonly placeStairs = signal(true);
-  protected readonly placeRoomNotes = signal(true);
   protected readonly placeScratchMask = signal(true);
 
   private readonly wallOverride = signal<DungeonMaterial | null>(null);
@@ -70,7 +75,8 @@ export class DungeonGeneratorComponent {
   protected readonly busy = signal(false);
   protected readonly progress = signal(0);
   protected readonly builtTable = signal<GameTable | null>(null);
-  private builtNotes: string[] = [];
+  protected readonly summary = signal('');
+  protected readonly copied = signal(false);
 
   constructor() {
     queueMicrotask(() => (this.panelService.title = this.t('feature.tabletop.dungeonGenerator.title')));
@@ -110,11 +116,11 @@ export class DungeonGeneratorComponent {
       floor.kind === 'texture' ? floor.id : '',
       plan.atmosphere.cave?.hazardFloor ?? ''
     );
-    return buildDungeonPreview(plan.layout, plan.blocks.blocks, colors);
+    return buildDungeonPreview(plan.layout, plan.blocks.blocks, colors, plan.blocks.torchSpots);
   });
 
   protected readonly roomsFound = computed(() => this.plan().layout.rooms.length);
-  protected readonly roomsDiffer = computed(() => this.roomsFound() !== this.roomCount());
+  protected readonly roomsDiffer = computed(() => this.roomsFound() !== clampRoomCount(this.roomCount()));
   protected readonly boardSize = computed(() => `${this.plan().layout.width} x ${this.plan().layout.height}`);
 
   protected chooseAtmosphere(id: DungeonAtmosphereId): void {
@@ -160,14 +166,13 @@ export class DungeonGeneratorComponent {
           name: this.nameFor(),
           wall: this.wall(),
           floor: this.floor(),
-          placeRoomNotes: this.placeRoomNotes(),
-          placeSummary: true,
           placeScratchMask: this.placeScratchMask(),
         },
         (done, total) => this.progress.set(Math.round((done / total) * 100))
       );
       this.builtTable.set(result.table);
-      this.builtNotes = result.noteIdentifiers;
+      this.summary.set(result.summary);
+      this.copied.set(false);
       SoundEffect.play(PresetSound.blockPut);
     } finally {
       this.busy.set(false);
@@ -181,11 +186,32 @@ export class DungeonGeneratorComponent {
 
   protected discardPrevious(): void {
     const table = this.builtTable();
-    // A shared memo is not a child of its table, so it has to be cleared by hand.
-    for (const identifier of this.builtNotes) this.objectStore.get(identifier)?.destroy();
-    this.builtNotes = [];
-    if (table) table.destroy();
+    if (table) {
+      for (const light of this.objectStore.getObjects(LightSource)) {
+        if (this.isInside(light, table)) light.destroy();
+      }
+      table.destroy();
+    }
     this.builtTable.set(null);
+    this.summary.set('');
+  }
+
+  /** A light stands on the table rather than under it, so it has to be found by where it is. */
+  private isInside(light: LightSource, table: GameTable): boolean {
+    const width = table.width * table.gridSize;
+    const height = table.height * table.gridSize;
+    return light.location.x >= 0 && light.location.y >= 0 && light.location.x < width && light.location.y < height;
+  }
+
+  protected async copySummary(): Promise<void> {
+    const text = this.summary();
+    if (text.length === 0) return;
+    try {
+      await navigator.clipboard.writeText(text);
+      this.copied.set(true);
+    } catch {
+      this.copied.set(false);
+    }
   }
 
   protected close(): void {

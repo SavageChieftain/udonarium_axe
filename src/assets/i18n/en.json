@@ -1693,7 +1693,8 @@
           "entrance": "Way in",
           "exit": "Way out",
           "hazard": "Lava",
-          "fog": "Unexplored"
+          "fog": "Unexplored",
+          "torch": "Torch"
         },
         "summary": {
           "title": "Dungeon notes",
@@ -1714,7 +1715,6 @@
           "tableName": "Table name",
           "placeDoors": "Place doors",
           "placeStairs": "Place the way in and out",
-          "placeRoomNotes": "Number the rooms",
           "placeScratchMask": "Cover what is unexplored"
         },
         "actions": {
@@ -1723,7 +1723,9 @@
           "pickFromLibrary": "Choose from the library",
           "resetMaterials": "Back to the defaults",
           "goToTable": "Go to this table",
-          "discard": "Delete this table"
+          "discard": "Delete this table",
+          "copySummary": "Copy the notes",
+          "copied": "Copied"
         },
         "status": {
           "estimate": "{{terrains}} terrains, about {{sync}} to sync",

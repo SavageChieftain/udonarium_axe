@@ -1693,7 +1693,8 @@
           "entrance": "입구",
           "exit": "출구",
           "hazard": "용암",
-          "fog": "미탐색"
+          "fog": "미탐색",
+          "torch": "횃불"
         },
         "summary": {
           "title": "던전 개요",
@@ -1714,7 +1715,6 @@
           "tableName": "테이블 이름",
           "placeDoors": "문 배치",
           "placeStairs": "입구와 출구 배치",
-          "placeRoomNotes": "방 번호 배치",
           "placeScratchMask": "미탐색 영역 덮기"
         },
         "actions": {
@@ -1723,7 +1723,9 @@
           "pickFromLibrary": "이미지 보관함에서 선택",
           "resetMaterials": "기본값으로",
           "goToTable": "이 테이블로 이동",
-          "discard": "이 테이블 삭제"
+          "discard": "이 테이블 삭제",
+          "copySummary": "개요 복사",
+          "copied": "복사했습니다"
         },
         "status": {
           "estimate": "지형 {{terrains}}개, 동기화 약 {{sync}}건",

@@ -40,7 +40,8 @@ export function buildDungeonSummary(input: DungeonSummaryInput): string {
       .slice()
       .sort((left, right) => left - right)
       .map((index) => {
-        const shut = lockedRooms.has(room.index) && lockedRooms.has(index);
+        // A locked door usually names only the room it seals, so either end being sealed shuts the way.
+        const shut = lockedRooms.has(room.index) || lockedRooms.has(index);
         return `#${index + 1}${shut ? `(${labels.locked})` : ''}`;
       })
       .join(' ');

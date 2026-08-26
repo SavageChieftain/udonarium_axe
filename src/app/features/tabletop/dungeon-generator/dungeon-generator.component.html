@@ -137,15 +137,6 @@
     <label class="flex cursor-pointer items-center gap-2">
       <input
         type="checkbox"
-        name="place-notes"
-        [ngModel]="placeRoomNotes()"
-        (ngModelChange)="placeRoomNotes.set($event)"
-      />
-      {{ 'feature.tabletop.dungeonGenerator.props.placeRoomNotes' | transloco }}
-    </label>
-    <label class="flex cursor-pointer items-center gap-2">
-      <input
-        type="checkbox"
         name="place-fog"
         [ngModel]="placeScratchMask()"
         (ngModelChange)="placeScratchMask.set($event)"
@@ -226,6 +217,26 @@
           {{ 'feature.tabletop.dungeonGenerator.actions.discard' | transloco }}
         </button>
       </div>
+      <div class="flex items-baseline justify-between">
+        <span class="text-ui-muted text-[0.78rem]">
+          {{ 'feature.tabletop.dungeonGenerator.summary.title' | transloco }}
+        </span>
+        <button
+          class="text-ui-accent cursor-pointer border-0 bg-transparent p-0 text-[0.78rem]"
+          type="button"
+          (click)="copySummary()"
+        >
+          {{
+            (copied()
+              ? 'feature.tabletop.dungeonGenerator.actions.copied'
+              : 'feature.tabletop.dungeonGenerator.actions.copySummary'
+            ) | transloco
+          }}
+        </button>
+      </div>
+      <pre
+        class="border-ui-border-panel bg-ui-input text-ui-text rounded-ui-sm m-0 max-h-48 overflow-auto border border-solid p-2 text-[0.72rem] leading-snug whitespace-pre"
+        >{{ summary() }}</pre>
     </div>
   }
 

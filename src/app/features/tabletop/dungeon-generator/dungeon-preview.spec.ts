@@ -54,18 +54,18 @@ describe('buildDungeonPreview()', () => {
     const preview = buildDungeonPreview(layout, blocks.blocks, colors);
 
     blocks.blocks.forEach((block, index) => {
-      if (block.torch) return;
       if (block.kind === 'wall') expect(preview.rects[index].fill).toBe(colors.wall);
       if (block.kind === 'floor') expect(preview.rects[index].fill).toBe(colors.floor);
     });
   });
 
-  it('picks out the walls that carry a torch', () => {
+  it('marks where each torch stands', () => {
     const { layout, blocks } = plan();
-    const preview = buildDungeonPreview(layout, blocks.blocks, colors);
-    const lit = blocks.blocks.filter((block) => block.torch).length;
+    const preview = buildDungeonPreview(layout, blocks.blocks, colors, blocks.torchSpots);
 
-    expect(preview.rects.filter((rect) => rect.fill === TORCH_FILL).length).toBe(lit);
+    expect(blocks.torchSpots.length).toBeGreaterThan(0);
+    expect(preview.rects.filter((rect) => rect.fill === TORCH_FILL).length).toBe(blocks.torchSpots.length);
+    expect(preview.rects.length).toBe(blocks.blocks.length + blocks.torchSpots.length);
   });
 
   it('shows the lava in a cave that has some', () => {

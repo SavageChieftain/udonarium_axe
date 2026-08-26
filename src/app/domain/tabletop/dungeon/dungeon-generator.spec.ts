@@ -12,7 +12,7 @@ import {
   MAX_BOARD_WIDTH,
   planDungeon,
 } from '@axe/domain/tabletop/dungeon/dungeon-generator';
-import { countOpenCells, reachableCells } from '@axe/domain/tabletop/dungeon/dungeon-layout';
+import { cellAt, countOpenCells, DungeonCell, reachableCells } from '@axe/domain/tabletop/dungeon/dungeon-layout';
 
 const SEEDS = [1, 7, 42, 1234, 99999];
 
@@ -123,12 +123,28 @@ describe('planDungeon()', () => {
     expect(plan.blocks.blocks.some((block) => block.kind.startsWith('stair'))).toBe(false);
   });
 
-  it('hangs no more torches than the atmosphere asks for', () => {
+  it('stands no more torches than the atmosphere asks for', () => {
     for (const id of DUNGEON_ATMOSPHERE_IDS) {
       const plan = planDungeon({ atmosphere: id, roomCount: 12, seed: 7 });
-      const lit = plan.blocks.blocks.filter((block) => block.torch).length;
 
-      expect(lit).toBeLessThanOrEqual(atmosphereById(id).torches);
+      expect(plan.blocks.torchSpots.length).toBeLessThanOrEqual(atmosphereById(id).torches);
+      expect(plan.blocks.torchSpots.length).toBe(plan.blocks.torchRooms.length);
+    }
+  });
+
+  it('stands every torch on open floor beside a wall, never inside the rock', () => {
+    // A light on a merged rock block stops the block blocking light, opening a hole its whole size.
+    for (const id of DUNGEON_ATMOSPHERE_IDS) {
+      const plan = planDungeon({ atmosphere: id, roomCount: 12, seed: 7 });
+      for (const spot of plan.blocks.torchSpots) {
+        expect(cellAt(plan.layout, spot.x, spot.y)).not.toBe(DungeonCell.Rock);
+        const beside =
+          cellAt(plan.layout, spot.x + 1, spot.y) === DungeonCell.Rock ||
+          cellAt(plan.layout, spot.x - 1, spot.y) === DungeonCell.Rock ||
+          cellAt(plan.layout, spot.x, spot.y + 1) === DungeonCell.Rock ||
+          cellAt(plan.layout, spot.x, spot.y - 1) === DungeonCell.Rock;
+        expect(beside).toBe(true);
+      }
     }
   });
 

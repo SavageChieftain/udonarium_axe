@@ -2,13 +2,13 @@ import { TestBed } from '@angular/core/testing';
 import { DungeonBuildService } from '@axe/application/tabletop/dungeon-build.service';
 import { ImageStorage } from '@axe/core/storage/image-storage';
 import { ObjectStore } from '@axe/core/sync/object-store';
-import { DisclosureMode } from '@axe/domain/disclosure/disclosure';
 import { ImageTag } from '@axe/domain/media/image-tag';
 import { WALL_TEXTURE_ASSET_URLS } from '@axe/domain/media/texture-catalog';
 import { atmosphereById } from '@axe/domain/tabletop/dungeon/dungeon-atmosphere';
 import { planDungeon } from '@axe/domain/tabletop/dungeon/dungeon-generator';
 import { GameTable, GridType } from '@axe/domain/tabletop/game-table';
 import { GameTableScratchMask } from '@axe/domain/tabletop/game-table-scratch-mask';
+import { LightSource } from '@axe/domain/tabletop/light-source';
 import { TerrainViewState } from '@axe/domain/tabletop/terrain';
 import { TextNote } from '@axe/domain/tabletop/text-note';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
@@ -20,8 +20,6 @@ function options(overrides: Partial<Parameters<DungeonBuildService['build']>[3]>
     name: 'Test dungeon',
     wall: { kind: 'texture' as const, id: 'wall_ashlar' },
     floor: { kind: 'texture' as const, id: 'stone_paving_big' },
-    placeRoomNotes: false,
-    placeSummary: false,
     placeScratchMask: false,
     ...overrides,
   };
@@ -112,15 +110,6 @@ describe('DungeonBuildService', () => {
     expect(result.table.terrains[stairIndex].posZ).toBeGreaterThan(result.table.terrains[floorIndex].posZ);
   });
 
-  it('gives a lit wall the radius and colour of a torch', async () => {
-    const { result } = await build();
-    const lit = result.table.terrains.find((terrain) => terrain.lightEnabled);
-
-    expect(lit).toBeDefined();
-    expect(lit!.lightPreset).toBe('torch');
-    expect(lit!.lightBrightRadius).toBeGreaterThan(0);
-  });
-
   it('shows walls whole and floors flat', async () => {
     const { plan, result } = await build();
 
@@ -148,11 +137,22 @@ describe('DungeonBuildService', () => {
     });
   });
 
-  it('lights the walls the plan asked to light', async () => {
-    const { plan, result } = await build();
-    const lit = plan.blocks.blocks.filter((block) => block.torch).length;
+  it('stands a torch of its own for every spot the plan picked', async () => {
+    const { plan } = await build();
+    const torches = store.getObjects(LightSource);
 
-    expect(result.table.terrains.filter((terrain) => terrain.lightEnabled).length).toBe(lit);
+    expect(plan.blocks.torchSpots.length).toBeGreaterThan(0);
+    expect(torches.length).toBe(plan.blocks.torchSpots.length);
+    for (const torch of torches) {
+      expect(torch.lightEnabled).toBe(true);
+      expect(torch.lightPreset).toBe('torch');
+    }
+  });
+
+  it('leaves the light off the terrain, so a merged rock block keeps blocking it', async () => {
+    const { result } = await build();
+
+    expect(result.table.terrains.some((terrain) => terrain.lightEnabled)).toBe(false);
   });
 
   it('registers a bundled picture once and tags it', async () => {
@@ -209,20 +209,13 @@ describe('DungeonBuildService', () => {
     expect(result.table.scratchMasks.length).toBe(1);
   });
 
-  it('writes the notes for the master alone and hands back their identifiers', async () => {
-    const { plan, result } = await build({ placeRoomNotes: true, placeSummary: true });
-    const notes = store.getObjects(TextNote);
-
-    expect(notes.length).toBe(plan.layout.rooms.length + 1);
-    for (const note of notes) expect(note.disclosureMode).toBe(DisclosureMode.GameMaster);
-    expect(result.noteIdentifiers.length).toBe(notes.length);
-  });
-
-  it('leaves the notes out when they are not wanted', async () => {
-    const { result } = await build();
+  it('hands the notes back as text and leaves nothing on the tabletop', async () => {
+    // A shared memo is not a child of its table, so notes left here would follow the master everywhere.
+    const { plan, result } = await build();
 
     expect(store.getObjects(TextNote).length).toBe(0);
-    expect(result.noteIdentifiers).toEqual([]);
+    expect(result.summary).toContain(plan.layout.rooms.length > 0 ? '#1' : '');
+    expect(result.summary.split('\n').length).toBeGreaterThan(plan.layout.rooms.length);
   });
 
   it('tells the caller how far it has got', async () => {
