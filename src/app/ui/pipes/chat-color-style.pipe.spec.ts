@@ -19,6 +19,22 @@ function luminance([r, g, b]: [number, number, number]): number {
   return 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b);
 }
 
+function contrast(style: Record<string, string>): number {
+  const text = luminance(rgbOf(style['color']));
+  const bubble = luminance(rgbOf(style['background-color']));
+  const [hi, lo] = text > bubble ? [text, bubble] : [bubble, text];
+  return (hi + 0.05) / (lo + 0.05);
+}
+
+function hue([r, g, b]: [number, number, number]): number {
+  const max = Math.max(r, g, b);
+  const min = Math.min(r, g, b);
+  if (max === min) return 0;
+  const d = max - min;
+  const h = max === r ? ((g - b) / d + (g < b ? 6 : 0)) / 6 : max === g ? ((b - r) / d + 2) / 6 : ((r - g) / d + 4) / 6;
+  return h * 360;
+}
+
 describe('ChatColorStylePipe', () => {
   let pipe: ChatColorStylePipe;
 
@@ -32,9 +48,34 @@ describe('ChatColorStylePipe', () => {
     expect(pipe.transform('not a colour')).toBeNull();
   });
 
-  it('uses the chosen colour for the text, exactly as it was chosen', () => {
-    expect(pipe.transform('#000000')?.['color']).toBe('#000000');
-    expect(pipe.transform('#ff0000')?.['color']).toBe('#ff0000');
+  it('leaves the chosen colour alone where it can already be read', () => {
+    expect(rgbOf(pipe.transform('#000000')!['color'])).toEqual(rgbOf('#000000'));
+    expect(rgbOf(pipe.transform('#ff0000', 'dark')!['color'])).toEqual(rgbOf('#ff0000'));
+    expect(rgbOf(pipe.transform('#006633')!['color'])).toEqual(rgbOf('#006633'));
+  });
+
+  it('holds every colour to the reading standard, on either theme', () => {
+    for (const color of ['#9900ff', '#006633', '#0000ff', '#ff0000', '#ffcc00', '#66ccff', '#000000', '#ffffff']) {
+      for (const theme of ['light', 'dark'] as const) {
+        expect(contrast(pipe.transform(color, theme)!)).toBeGreaterThanOrEqual(4.4);
+      }
+    }
+  });
+
+  it('lifts a dark colour off a dark bubble rather than leaving it unreadable', () => {
+    const style = pipe.transform('#006633', 'dark')!;
+
+    // The bubble cannot help here: lightening it carries it towards the text, not away.
+    expect(luminance(rgbOf(style['background-color']))).toBeLessThan(0.05);
+    expect(luminance(rgbOf(style['color']))).toBeGreaterThan(luminance(rgbOf('#006633')));
+  });
+
+  it('keeps the hue that says who is speaking when it moves the lightness', () => {
+    for (const color of ['#9900ff', '#006633', '#0000ff']) {
+      const moved = rgbOf(pipe.transform(color, 'dark')!['color']);
+
+      expect(hue(moved)).toBeCloseTo(hue(rgbOf(color)), 0);
+    }
   });
 
   it('gives black text a white bubble rather than a grey one', () => {

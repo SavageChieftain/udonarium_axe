@@ -63,7 +63,12 @@ const DARK_CEILING_L = 0.4;
  * text; on a light one it is the odd one out, and is kept off black at the cost of some of that.
  */
 const DARK_BUBBLE_RATIO_ON_DARK = 4.5;
-const DARK_BUBBLE_RATIO_ON_LIGHT = 3;
+const DARK_BUBBLE_RATIO_ON_LIGHT = 4.5;
+
+/** What text has to hold against the bubble it sits on: the reading standard for body text. */
+const TEXT_TARGET_RATIO = 4.5;
+/** How finely the search walks the lightness, which is well below what an eye can tell apart. */
+const TEXT_STEP = 0.005;
 
 function contrastRatio(a: number, b: number): number {
   const [hi, lo] = a > b ? [a, b] : [b, a];
@@ -97,6 +102,28 @@ function darkBubbleL(h: number, tint: number, textLum: number, target: number): 
   return lo;
 }
 
+/**
+ * The nearest lightness to the one chosen that can be read on this bubble.
+ *
+ * The bubble is settled first and moved as far as it can go; a dark colour on a dark page
+ * still lands under three to one, because lifting that bubble carries it towards the text
+ * rather than away. What is left is the text, so it steps away from the bubble - lighter on
+ * a dark one, darker on a light one - keeping the hue and the saturation that say who is
+ * speaking, and stopping at the first lightness that can be read.
+ */
+function readableTextL(h: number, s: number, l: number, bubbleLum: number): number {
+  const ratioAt = (candidate: number) => contrastRatio(luminance(...quantize(hslToRgb(h, s, candidate))), bubbleLum);
+  if (ratioAt(l) >= TEXT_TARGET_RATIO) return l;
+
+  for (let step = TEXT_STEP; step <= 1; step += TEXT_STEP) {
+    const up = l + step;
+    if (up <= 1 && ratioAt(up) >= TEXT_TARGET_RATIO) return up;
+    const down = l - step;
+    if (down >= 0 && ratioAt(down) >= TEXT_TARGET_RATIO) return down;
+  }
+  return ratioAt(1) >= ratioAt(0) ? 1 : 0;
+}
+
 @Pipe({ name: 'chatColorStyle', pure: true })
 export class ChatColorStylePipe implements PipeTransform {
   transform(color: string | null | undefined, theme: 'light' | 'dark' = 'light'): Record<string, string> | null {
@@ -105,13 +132,14 @@ export class ChatColorStylePipe implements PipeTransform {
     const rgb = parseHex(color);
     if (!rgb) return null;
 
-    const [h, s] = rgbToHsl(...rgb);
+    const [h, s, l] = rgbToHsl(...rgb);
     const textLum = luminance(...rgb);
     const tint = Math.min(s, 1) * TINT;
 
-    // The colour the reader chose is the text, verbatim. The bubble takes the side the theme is
-    // on, and gives it up only for a colour that cannot be read there at all. The dark side then
-    // comes back up as far as the colour allows, so that it sits on a slate rather than on black.
+    // The bubble takes the side the theme is on, and gives it up only for a colour that cannot be
+    // read there at all. The dark side then comes back up as far as the colour allows, so that it
+    // sits on a slate rather than on black. Only then is the text itself moved, and only as far
+    // as it must be to be read.
     const lightRatio = contrastRatio(textLum, luminance(...quantize(hslToRgb(h, tint, LIGHT_BUBBLE_L))));
     const darkestRatio = contrastRatio(textLum, luminance(...quantize(hslToRgb(h, tint, DARK_BUBBLE_L))));
     const wantsLight = theme !== 'dark';
@@ -123,9 +151,11 @@ export class ChatColorStylePipe implements PipeTransform {
     const bubbleL = light ? LIGHT_BUBBLE_L : darkBubbleL(h, tint, textLum, darkTarget);
     const bubble = toCss(hslToRgb(h, tint, bubbleL));
     const border = toCss(hslToRgb(h, tint, light ? bubbleL - 0.18 : bubbleL + 0.2));
+    const bubbleLum = luminance(...quantize(hslToRgb(h, tint, bubbleL)));
+    const text = toCss(hslToRgb(h, s, readableTextL(h, s, l, bubbleLum)));
 
     return {
-      color,
+      color: text,
       'background-color': bubble,
       '--bubble-bg': bubble,
       '--ui-bubble-caret-border': border,
