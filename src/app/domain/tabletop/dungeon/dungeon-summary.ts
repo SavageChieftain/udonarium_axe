@@ -1,4 +1,3 @@
-import { neighboursOf } from '@axe/domain/tabletop/dungeon/dungeon-graph';
 import { DungeonLayout, DungeonRoomRole, DungeonRoomRoleValue } from '@axe/domain/tabletop/dungeon/dungeon-layout';
 
 export interface DungeonSummaryLabels {
@@ -8,6 +7,7 @@ export interface DungeonSummaryLabels {
   key: string;
   locked: string;
   torch: string;
+  doors: string;
 }
 
 export interface DungeonSummaryInput {
@@ -25,8 +25,6 @@ export interface DungeonSummaryInput {
  */
 export function buildDungeonSummary(input: DungeonSummaryInput): string {
   const { layout, labels } = input;
-  const neighbours = neighboursOf(layout.links, layout.rooms.length);
-  const lockedRooms = new Set(layout.doors.filter((door) => door.locked).flatMap((door) => door.rooms));
   const torches = new Set(input.torchRooms);
 
   const lines = [
@@ -36,25 +34,19 @@ export function buildDungeonSummary(input: DungeonSummaryInput): string {
   ];
 
   for (const room of layout.rooms) {
-    const joins = neighbours[room.index]
-      .slice()
-      .sort((left, right) => left - right)
-      .map((index) => {
-        // A locked door usually names only the room it seals, so either end being sealed shuts the way.
-        const shut = lockedRooms.has(room.index) || lockedRooms.has(index);
-        return `#${index + 1}${shut ? `(${labels.locked})` : ''}`;
-      })
-      .join(' ');
+    const ways = layout.doors.filter((door) => door.rooms.includes(room.index));
+    const shut = ways.length > 0 && ways.every((door) => door.locked);
 
     const notes: string[] = [];
     if (layout.keyRoomIndex === room.index) notes.push(labels.key);
+    if (shut) notes.push(labels.locked);
     if (torches.has(room.index)) notes.push(labels.torch);
 
     const cells = [
       `#${room.index + 1}`,
       labels.roleName(room.role),
       `${room.w}x${room.h}`,
-      joins.length > 0 ? `-> ${joins}` : '',
+      `${labels.doors} ${ways.length}`,
       notes.join(' '),
     ];
     lines.push(cells.filter((cell) => cell.length > 0).join('  '));

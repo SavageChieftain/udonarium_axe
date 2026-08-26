@@ -10,8 +10,12 @@ import {
 import { mergeMaskToRects } from '@axe/domain/tabletop/dungeon/rect-merge';
 
 export const MAX_MERGE_SPAN = 12;
-export const DUNGEON_MAX_TERRAINS = 300;
-export const DUNGEON_HEAVY_TERRAINS = 150;
+/**
+ * A maze fills the rock between the rooms, which buys a dungeon worth walking through at
+ * roughly twice the pieces a straight corridor would cost. The ceiling was raised to match.
+ */
+export const DUNGEON_MAX_TERRAINS = 400;
+export const DUNGEON_HEAVY_TERRAINS = 200;
 /** What one terrain costs to sync: itself, the five it is built from, and its six values. */
 export const SYNC_OBJECTS_PER_TERRAIN = 12;
 

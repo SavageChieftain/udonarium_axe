@@ -13,7 +13,7 @@ import {
 } from '@axe/domain/tabletop/dungeon/dungeon-blocks';
 import { DungeonLayout } from '@axe/domain/tabletop/dungeon/dungeon-layout';
 import { assignRoomRoles } from '@axe/domain/tabletop/dungeon/room-roles';
-import { generateRoomsAndCorridors } from '@axe/domain/tabletop/dungeon/rooms-and-corridors';
+import { generateRoomsAndMazes } from '@axe/domain/tabletop/dungeon/rooms-and-mazes';
 
 export const MIN_ROOM_COUNT = 3;
 export const MAX_ROOM_COUNT = 20;
@@ -39,14 +39,23 @@ export function clampRoomCount(roomCount: number): number {
   return Math.min(MAX_ROOM_COUNT, Math.max(MIN_ROOM_COUNT, Math.round(roomCount)));
 }
 
+/** The maze steps two cells at a time, so a room-and-maze board is always an odd size. */
+function toOdd(value: number): number {
+  return value % 2 === 0 ? value - 1 : value;
+}
+
 export function boardSizeFor(atmosphere: DungeonAtmosphere, roomCount: number): DungeonBoardSize {
   const rooms = clampRoomCount(roomCount);
-  const width = Math.min(MAX_BOARD_WIDTH, 24 + rooms * 2);
-  const height = Math.min(MAX_BOARD_HEIGHT, 18 + Math.round(rooms * 1.5));
-  if (atmosphere.algorithm !== 'cave') return { width, height };
+  if (atmosphere.algorithm === 'cave') {
+    return {
+      width: Math.min(MAX_BOARD_WIDTH, Math.round((24 + rooms * 2) * CAVE_BOARD_SCALE)),
+      height: Math.min(MAX_BOARD_HEIGHT, Math.round((18 + Math.round(rooms * 1.5)) * CAVE_BOARD_SCALE)),
+    };
+  }
+  // A maze fills whatever rock is left, so slack in the board is paid for in corridor.
   return {
-    width: Math.round(width * CAVE_BOARD_SCALE),
-    height: Math.round(height * CAVE_BOARD_SCALE),
+    width: toOdd(Math.min(MAX_BOARD_WIDTH, 22 + Math.round(rooms * 1.8))),
+    height: toOdd(Math.min(MAX_BOARD_HEIGHT, 16 + Math.round(rooms * 1.4))),
   };
 }
 
@@ -73,16 +82,17 @@ export function generateDungeon(request: DungeonRequest): DungeonLayout {
           },
           rng
         )
-      : generateRoomsAndCorridors(
+      : generateRoomsAndMazes(
           {
             width,
             height,
             roomCount: rooms,
             minRoom: atmosphere.rooms!.minRoom,
             maxRoom: atmosphere.rooms!.maxRoom,
-            corridorWidth: atmosphere.rooms!.corridorWidth,
-            extraLoopRatio: atmosphere.rooms!.extraLoopRatio,
+            windingPercent: atmosphere.rooms!.windingPercent,
+            extraConnectorChance: atmosphere.rooms!.extraConnectorChance,
             wallBreakChance: atmosphere.rooms!.wallBreakChance,
+            shapes: atmosphere.rooms!.shapes,
             seed: request.seed,
           },
           rng

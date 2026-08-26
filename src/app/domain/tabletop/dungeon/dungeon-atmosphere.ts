@@ -1,4 +1,5 @@
 import { TextureId, WallTextureId } from '@axe/domain/media/texture-catalog';
+import { RoomShape } from '@axe/domain/tabletop/dungeon/room-shapes';
 
 export const DUNGEON_ATMOSPHERE_IDS = [
   'stoneDungeon',
@@ -12,12 +13,15 @@ export const DUNGEON_ATMOSPHERE_IDS = [
 
 export type DungeonAtmosphereId = (typeof DUNGEON_ATMOSPHERE_IDS)[number];
 
-export interface RoomShape {
+export interface RoomPlan {
   minRoom: number;
   maxRoom: number;
-  corridorWidth: number;
-  extraLoopRatio: number;
+  /** How much the passages twist. Nothing runs them dead straight, a hundred never does. */
+  windingPercent: number;
+  /** How often a join the maze no longer needs is opened anyway, which is what makes loops. */
+  extraConnectorChance: number;
   wallBreakChance: number;
+  shapes: readonly RoomShape[];
 }
 
 export interface CaveShape {
@@ -51,7 +55,7 @@ export interface DungeonAtmosphere {
   weatherDensity: number;
   gridShow: boolean;
   torches: number;
-  rooms?: RoomShape;
+  rooms?: RoomPlan;
   cave?: CaveShape;
 }
 
@@ -68,7 +72,14 @@ export const DUNGEON_ATMOSPHERES: Record<DungeonAtmosphereId, DungeonAtmosphere>
     weatherDensity: 0,
     gridShow: true,
     torches: 4,
-    rooms: { minRoom: 5, maxRoom: 10, corridorWidth: 1, extraLoopRatio: 0.15, wallBreakChance: 0 },
+    rooms: {
+      minRoom: 5,
+      maxRoom: 9,
+      windingPercent: 25,
+      extraConnectorChance: 0.06,
+      wallBreakChance: 0,
+      shapes: ['rect', 'overlap'],
+    },
   },
   crypt: {
     id: 'crypt',
@@ -82,7 +93,14 @@ export const DUNGEON_ATMOSPHERES: Record<DungeonAtmosphereId, DungeonAtmosphere>
     weatherDensity: 0,
     gridShow: true,
     torches: 3,
-    rooms: { minRoom: 3, maxRoom: 5, corridorWidth: 1, extraLoopRatio: 0.4, wallBreakChance: 0 },
+    rooms: {
+      minRoom: 3,
+      maxRoom: 5,
+      windingPercent: 45,
+      extraConnectorChance: 0.12,
+      wallBreakChance: 0,
+      shapes: ['rect', 'cross'],
+    },
   },
   ruins: {
     id: 'ruins',
@@ -96,7 +114,14 @@ export const DUNGEON_ATMOSPHERES: Record<DungeonAtmosphereId, DungeonAtmosphere>
     weatherDensity: 0,
     gridShow: true,
     torches: 0,
-    rooms: { minRoom: 6, maxRoom: 14, corridorWidth: 2, extraLoopRatio: 0.25, wallBreakChance: 0.12 },
+    rooms: {
+      minRoom: 5,
+      maxRoom: 13,
+      windingPercent: 15,
+      extraConnectorChance: 0.1,
+      wallBreakChance: 0.05,
+      shapes: ['rect', 'overlap', 'circle'],
+    },
   },
   cavern: {
     id: 'cavern',
@@ -160,7 +185,14 @@ export const DUNGEON_ATMOSPHERES: Record<DungeonAtmosphereId, DungeonAtmosphere>
     weatherDensity: 0,
     gridShow: true,
     torches: 4,
-    rooms: { minRoom: 4, maxRoom: 8, corridorWidth: 1, extraLoopRatio: 0.2, wallBreakChance: 0 },
+    rooms: {
+      minRoom: 5,
+      maxRoom: 7,
+      windingPercent: 10,
+      extraConnectorChance: 0.05,
+      wallBreakChance: 0,
+      shapes: ['rect', 'cross'],
+    },
   },
 };
 

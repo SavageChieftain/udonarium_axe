@@ -259,6 +259,7 @@ export class DungeonBuildService {
         key: this.t('feature.tabletop.dungeonGenerator.summary.key'),
         locked: this.t('feature.tabletop.dungeonGenerator.summary.locked'),
         torch: this.t('feature.tabletop.dungeonGenerator.summary.torch'),
+        doors: this.t('feature.tabletop.dungeonGenerator.summary.doors'),
       },
     });
   }

@@ -29,9 +29,10 @@ describe('boardSizeFor()', () => {
   it('grows the board with the number of rooms', () => {
     const rooms = DUNGEON_ATMOSPHERES.stoneDungeon;
 
-    expect(boardSizeFor(rooms, 3)).toEqual({ width: 30, height: 23 });
-    expect(boardSizeFor(rooms, 8)).toEqual({ width: 40, height: 30 });
-    expect(boardSizeFor(rooms, 12)).toEqual({ width: 48, height: 36 });
+    // A maze fills whatever rock is left over, so the board is kept snug and always odd.
+    expect(boardSizeFor(rooms, 3)).toEqual({ width: 27, height: 19 });
+    expect(boardSizeFor(rooms, 8)).toEqual({ width: 35, height: 27 });
+    expect(boardSizeFor(rooms, 20)).toEqual({ width: 49, height: 37 });
   });
 
   it('never lets the board outgrow one scratch mask', () => {
@@ -148,14 +149,24 @@ describe('planDungeon()', () => {
     }
   });
 
-  it('lets light past a floor and stops it at a wall that faces a room', () => {
+  it('lets light past a floor and stops it at a wall that faces open ground', () => {
     const plan = planDungeon({ atmosphere: 'stoneDungeon', roomCount: 8, seed: 7 });
+    const floors = plan.blocks.blocks.filter((block) => block.kind === 'floor');
+    const walls = plan.blocks.blocks.filter((block) => block.kind === 'wall');
 
-    expect(plan.blocks.blocks.filter((block) => block.kind === 'floor').every((block) => !block.blocksSight)).toBe(
-      true
-    );
-    expect(plan.blocks.blocks.some((block) => block.kind === 'wall' && block.blocksSight)).toBe(true);
-    expect(plan.blocks.blocks.some((block) => block.kind === 'wall' && !block.blocksSight)).toBe(true);
+    expect(floors.every((block) => !block.blocksSight)).toBe(true);
+    expect(walls.some((block) => block.blocksSight)).toBe(true);
+  });
+
+  it('spares the sight test the stone buried behind other stone', () => {
+    // How much stone ends up buried depends on the shape, so it is only checked where there is some.
+    for (const seed of SEEDS) {
+      const plan = planDungeon({ atmosphere: 'stoneDungeon', roomCount: 20, seed });
+      for (const block of plan.blocks.blocks) {
+        if (block.kind !== 'wall' || block.blocksSight) continue;
+        expect(block.rooms).toEqual([]);
+      }
+    }
   });
 });
 

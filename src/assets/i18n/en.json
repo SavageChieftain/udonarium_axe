@@ -1702,7 +1702,8 @@
           "start": "Start",
           "key": "key",
           "locked": "locked",
-          "torch": "torch"
+          "torch": "torch",
+          "doors": "doors"
         },
         "title": "Dungeon generator",
         "gmOnly": "This tool is for the game master",
