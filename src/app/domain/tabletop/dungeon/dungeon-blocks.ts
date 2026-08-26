@@ -205,13 +205,17 @@ export function layoutToBlocks(
   }
 
   if (options.placeStairs) {
-    blocks.push({
-      kind: 'stairUp',
-      rect: { x: layout.entrance.x, y: layout.entrance.y, w: 1, h: 1 },
-      blocksSight: false,
-      locked: false,
-      rooms: [0],
-    });
+    // Walked in through a break in the outer wall, the break itself is the way in; a stair
+    // drawn on top of it would say the party climbed down into their own doorway.
+    if (!layout.mouth) {
+      blocks.push({
+        kind: 'stairUp',
+        rect: { x: layout.entrance.x, y: layout.entrance.y, w: 1, h: 1 },
+        blocksSight: false,
+        locked: false,
+        rooms: [0],
+      });
+    }
     const sameSpot = layout.exit.x === layout.entrance.x && layout.exit.y === layout.entrance.y;
     if (!sameSpot) {
       blocks.push({

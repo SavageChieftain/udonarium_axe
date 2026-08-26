@@ -73,6 +73,56 @@ describe('generateDungeon()', () => {
     }
   });
 
+  it('breaks the outer wall in exactly one place for a tunnel mouth', () => {
+    for (const id of DUNGEON_ATMOSPHERE_IDS) {
+      for (const seed of SEEDS) {
+        const layout = generateDungeon({ atmosphere: id, roomCount: 8, seed, entrance: 'tunnel' });
+        expect(layout.mouth).not.toBeNull();
+
+        const open: string[] = [];
+        for (let x = 0; x < layout.width; x++) {
+          if (cellAt(layout, x, 0) !== DungeonCell.Rock) open.push(`${x},0`);
+          if (cellAt(layout, x, layout.height - 1) !== DungeonCell.Rock) open.push(`${x},${layout.height - 1}`);
+        }
+        for (let y = 0; y < layout.height; y++) {
+          if (cellAt(layout, 0, y) !== DungeonCell.Rock) open.push(`0,${y}`);
+          if (cellAt(layout, layout.width - 1, y) !== DungeonCell.Rock) open.push(`${layout.width - 1},${y}`);
+        }
+
+        expect(open).toEqual([`${layout.mouth!.x},${layout.mouth!.y}`]);
+      }
+    }
+  });
+
+  it('leaves the outer wall whole when the way in is a stair', () => {
+    for (const id of DUNGEON_ATMOSPHERE_IDS) {
+      const layout = generateDungeon({ atmosphere: id, roomCount: 8, seed: 7, entrance: 'stair' });
+
+      expect(layout.mouth).toBeNull();
+      for (let x = 0; x < layout.width; x++) {
+        expect(cellAt(layout, x, 0)).toBe(DungeonCell.Rock);
+        expect(cellAt(layout, x, layout.height - 1)).toBe(DungeonCell.Rock);
+      }
+    }
+  });
+
+  it('starts the party at the mouth, and can still walk the whole place from there', () => {
+    for (const seed of SEEDS) {
+      const layout = generateDungeon({ atmosphere: 'cavern', roomCount: 8, seed, entrance: 'tunnel' });
+
+      expect(layout.entrance).toEqual(layout.mouth);
+      expect(reachableCells(layout, layout.entrance).size).toBe(countOpenCells(layout));
+    }
+  });
+
+  it('draws no stair over a mouth, because the mouth is the way in', () => {
+    const tunnel = planDungeon({ atmosphere: 'stoneDungeon', roomCount: 8, seed: 7, entrance: 'tunnel' });
+    const stair = planDungeon({ atmosphere: 'stoneDungeon', roomCount: 8, seed: 7, entrance: 'stair' });
+
+    expect(tunnel.blocks.blocks.some((block) => block.kind === 'stairUp')).toBe(false);
+    expect(stair.blocks.blocks.some((block) => block.kind === 'stairUp')).toBe(true);
+  });
+
   it('gives back the same dungeon for the same request', () => {
     const first = generateDungeon({ atmosphere: 'stoneDungeon', roomCount: 8, seed: 55 });
     const second = generateDungeon({ atmosphere: 'stoneDungeon', roomCount: 8, seed: 55 });

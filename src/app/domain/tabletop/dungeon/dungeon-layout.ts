@@ -61,6 +61,13 @@ export interface DungeonLayout {
   links: [number, number][];
   entrance: DungeonPoint;
   exit: DungeonPoint;
+  /**
+   * The break in the outer wall, when the dungeon opens onto the world outside.
+   *
+   * A stairway suits a floor with more above it; a tunnel mouth suits the first one, or a
+   * cave in a hillside. Null when the way in is a stair inside the dungeon.
+   */
+  mouth: DungeonPoint | null;
   /** Where the key to the locked door lies, or -1 when nothing is locked. */
   keyRoomIndex: number;
   seed: number;

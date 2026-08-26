@@ -1734,7 +1734,8 @@
           "tableName": "Table name",
           "placeDoors": "Place doors",
           "placeStairs": "Place the way in and out",
-          "wallHeight": "Wall height (cells)"
+          "wallHeight": "Wall height (cells)",
+          "entrance": "Way in"
         },
         "actions": {
           "generate": "Generate",
@@ -1753,6 +1754,10 @@
           "built": "Made \"{{name}}\"",
           "roomsDiffer": "{{found}} rooms fitted. Caverns run together, so a cave ends up with fewer than asked",
           "squareOnly": "A generated table always uses a square grid"
+        },
+        "entrance": {
+          "stair": "Stairway down",
+          "tunnel": "Tunnel mouth"
         }
       }
     },

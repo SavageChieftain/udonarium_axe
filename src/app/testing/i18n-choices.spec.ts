@@ -10,7 +10,7 @@ import { CUT_IN_LAYER_PRESETS } from '@axe/domain/media/cut-in-layer-presets';
 import { CUT_IN_WIPES } from '@axe/domain/media/cut-in-wipe';
 import { LIGHT_SKIN_IDS } from '@axe/domain/media/light-skins';
 import { DUNGEON_PROP_IDS, TEXTURE_IDS, WALL_TEXTURE_IDS } from '@axe/domain/media/texture-catalog';
-import { DUNGEON_ATMOSPHERE_IDS } from '@axe/domain/tabletop/dungeon/dungeon-atmosphere';
+import { DUNGEON_ATMOSPHERE_IDS, DUNGEON_ENTRANCE_STYLES } from '@axe/domain/tabletop/dungeon/dungeon-atmosphere';
 import { DUNGEON_ROOM_ROLES } from '@axe/domain/tabletop/dungeon/dungeon-layout';
 import { LightPreset } from '@axe/domain/tabletop/vision-types';
 
@@ -26,6 +26,7 @@ const CHOICES: Record<string, readonly string[]> = {
   'feature.light.skin.': LIGHT_SKIN_IDS,
   'feature.light.preset.': Object.values(LightPreset),
   'feature.tabletop.dungeonGenerator.atmosphere.': DUNGEON_ATMOSPHERE_IDS,
+  'feature.tabletop.dungeonGenerator.entrance.': DUNGEON_ENTRANCE_STYLES,
   'feature.tabletop.dungeonGenerator.role.': DUNGEON_ROOM_ROLES,
   'feature.media.cutInEditor.clip': CUT_IN_CLIPS,
   'feature.media.cutInEditor.wipe': CUT_IN_WIPES,

@@ -17,7 +17,9 @@ import {
   atmosphereById,
   clampWallHeight,
   DUNGEON_ATMOSPHERE_IDS,
+  DUNGEON_ENTRANCE_STYLES,
   DungeonAtmosphereId,
+  DungeonEntranceStyle,
   MAX_WALL_HEIGHT,
   MIN_WALL_HEIGHT,
 } from '@axe/domain/tabletop/dungeon/dungeon-atmosphere';
@@ -62,6 +64,7 @@ export class DungeonGeneratorComponent {
   protected readonly maxRooms = MAX_ROOM_COUNT;
   protected readonly heavyLimit = DUNGEON_HEAVY_TERRAINS;
   protected readonly maxTerrains = DUNGEON_MAX_TERRAINS;
+  protected readonly entranceStyles = DUNGEON_ENTRANCE_STYLES;
   protected readonly minWallHeight = MIN_WALL_HEIGHT;
   protected readonly maxWallHeight = MAX_WALL_HEIGHT;
 
@@ -75,6 +78,7 @@ export class DungeonGeneratorComponent {
   private readonly wallOverride = signal<DungeonMaterial | null>(null);
   private readonly floorOverride = signal<DungeonMaterial | null>(null);
   private readonly heightOverride = signal<number | null>(null);
+  private readonly entranceOverride = signal<DungeonEntranceStyle | null>(null);
 
   protected readonly busy = signal(false);
   protected readonly progress = signal(0);
@@ -99,14 +103,21 @@ export class DungeonGeneratorComponent {
   protected readonly wallHeight = computed(() =>
     clampWallHeight(this.heightOverride() ?? atmosphereById(this.atmosphere()).wallHeight)
   );
+  protected readonly entrance = computed<DungeonEntranceStyle>(
+    () => this.entranceOverride() ?? atmosphereById(this.atmosphere()).entrance
+  );
   protected readonly usingDefaults = computed(
-    () => this.wallOverride() === null && this.floorOverride() === null && this.heightOverride() === null
+    () =>
+      this.wallOverride() === null &&
+      this.floorOverride() === null &&
+      this.heightOverride() === null &&
+      this.entranceOverride() === null
   );
 
   /** Materials do not change the shape, so a new swatch must not roll the dungeon again. */
   protected readonly plan = computed(() =>
     planDungeon(
-      { atmosphere: this.atmosphere(), roomCount: this.roomCount(), seed: this.seed() },
+      { atmosphere: this.atmosphere(), roomCount: this.roomCount(), seed: this.seed(), entrance: this.entrance() },
       { placeDoors: this.placeDoors(), placeStairs: this.placeStairs() }
     )
   );
@@ -148,10 +159,15 @@ export class DungeonGeneratorComponent {
     this.heightOverride.set(height);
   }
 
+  protected setEntrance(style: DungeonEntranceStyle): void {
+    this.entranceOverride.set(style);
+  }
+
   protected resetMaterials(): void {
     this.wallOverride.set(null);
     this.floorOverride.set(null);
     this.heightOverride.set(null);
+    this.entranceOverride.set(null);
   }
 
   protected reroll(): void {

@@ -272,6 +272,7 @@ export function generateCave(params: CaveParams, rng: () => number): DungeonLayo
     links: [],
     entrance: { x: 1, y: 1 },
     exit: { x: 1, y: 1 },
+    mouth: null,
     keyRoomIndex: -1,
     seed: params.seed,
   };

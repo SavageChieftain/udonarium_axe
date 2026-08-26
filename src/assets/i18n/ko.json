@@ -1734,7 +1734,8 @@
           "tableName": "테이블 이름",
           "placeDoors": "문 배치",
           "placeStairs": "입구와 출구 배치",
-          "wallHeight": "벽 높이(칸)"
+          "wallHeight": "벽 높이(칸)",
+          "entrance": "입구"
         },
         "actions": {
           "generate": "생성",
@@ -1753,6 +1754,10 @@
           "built": "\"{{name}}\"을(를) 만들었습니다",
           "roomsDiffer": "배치된 방은 {{found}}개입니다. 동굴은 공동이 이어지므로 요청보다 적어집니다",
           "squareOnly": "생성되는 테이블은 정사각 그리드 고정입니다"
+        },
+        "entrance": {
+          "stair": "계단(지하로)",
+          "tunnel": "갱도 입구(밖으로)"
         }
       }
     },

@@ -4,6 +4,7 @@ import {
   atmosphereById,
   DungeonAtmosphere,
   DungeonAtmosphereId,
+  DungeonEntranceStyle,
 } from '@axe/domain/tabletop/dungeon/dungeon-atmosphere';
 import {
   DEFAULT_BLOCK_OPTIONS,
@@ -14,6 +15,7 @@ import {
 import { DungeonLayout } from '@axe/domain/tabletop/dungeon/dungeon-layout';
 import { assignRoomRoles } from '@axe/domain/tabletop/dungeon/room-roles';
 import { generateRoomsAndMazes } from '@axe/domain/tabletop/dungeon/rooms-and-mazes';
+import { openTunnelMouth } from '@axe/domain/tabletop/dungeon/tunnel-mouth';
 
 export const MIN_ROOM_COUNT = 3;
 export const MAX_ROOM_COUNT = 20;
@@ -27,6 +29,8 @@ export interface DungeonRequest {
   atmosphere: DungeonAtmosphereId;
   roomCount: number;
   seed: number;
+  /** Left out, the atmosphere decides how the party gets in. */
+  entrance?: DungeonEntranceStyle;
 }
 
 export interface DungeonBoardSize {
@@ -98,6 +102,8 @@ export function generateDungeon(request: DungeonRequest): DungeonLayout {
           rng
         );
 
+  // Cut before the roles are given out, so depth is counted from the mouth the party walks in by.
+  if ((request.entrance ?? atmosphere.entrance) === 'tunnel') openTunnelMouth(layout);
   assignRoomRoles(layout);
   return layout;
 }

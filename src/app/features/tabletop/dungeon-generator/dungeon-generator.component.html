@@ -84,6 +84,24 @@
   </div>
 
   <div>
+    <label class="text-ui-muted mb-1.25 block text-[0.78rem] font-semibold tracking-[0.04em] uppercase">
+      {{ 'feature.tabletop.dungeonGenerator.props.entrance' | transloco }}
+    </label>
+    <div class="grid grid-cols-2 gap-1.5">
+      @for (style of entranceStyles; track style) {
+        <button
+          class="rounded-ui-sm border-ui-border-panel bg-ui-input text-ui-text cursor-pointer border border-solid px-2 py-1.5 text-[0.82rem]"
+          type="button"
+          [class.border-ui-accent]="entrance() === style"
+          (click)="setEntrance(style)"
+        >
+          {{ 'feature.tabletop.dungeonGenerator.entrance.' + style | transloco }}
+        </button>
+      }
+    </div>
+  </div>
+
+  <div>
     <label
       class="text-ui-muted mb-1.25 block text-[0.78rem] font-semibold tracking-[0.04em] uppercase"
       for="wall-height"

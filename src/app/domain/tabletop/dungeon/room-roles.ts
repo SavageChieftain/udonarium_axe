@@ -92,6 +92,8 @@ function deepest(depths: readonly number[], allowed: (index: number) => boolean)
 export function assignRoomRoles(layout: DungeonLayout): void {
   if (layout.rooms.length === 0) return;
 
+  // Walked in by a tunnel, the party starts at its mouth rather than in the middle of a room.
+  layout.entrance = layout.mouth ?? firstCellOf(layout, 0);
   const depths = roomDepths(layout);
   const taken = new Set<number>([0]);
   const roles = new Map<number, DungeonRoomRoleValue>([[0, DungeonRoomRole.Entrance]]);
@@ -142,7 +144,6 @@ export function assignRoomRoles(layout: DungeonLayout): void {
 
   for (const room of layout.rooms) room.role = roles.get(room.index) ?? DungeonRoomRole.Chamber;
 
-  layout.entrance = firstCellOf(layout, 0);
   layout.exit = boss >= 0 ? firstCellOf(layout, boss) : layout.entrance;
   if (boss > 0) lockTheDeepestRoom(layout, boss, depths);
 }
