@@ -1589,7 +1589,9 @@
         "doorStyleNone": "扉ではない",
         "doorStyleSwing": "開き戸",
         "doorStyleLift": "上へ上がる",
-        "doorStyleSink": "下へ沈む"
+        "doorStyleSink": "下へ沈む",
+        "doorStyleSlide": "横にスライド",
+        "doorFlip": "開く向きを反転"
       },
       "tableSetting": {
         "title": "テーブル設定",

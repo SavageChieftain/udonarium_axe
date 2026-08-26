@@ -234,6 +234,28 @@ describe('planDungeon()', () => {
     }
   });
 
+  it('opens two doors filling one gap outward from the middle, not both the same way', () => {
+    const plan = planDungeon({ atmosphere: 'stoneDungeon', roomCount: 12, seed: 7 });
+    const doors = plan.blocks.blocks.filter((block) => block.kind === 'door');
+    const at = new Map(doors.map((door) => [`${door.rect.x},${door.rect.y}`, door]));
+    let pairs = 0;
+
+    for (const door of doors) {
+      const before = door.across === 'x' ? `${door.rect.x},${door.rect.y - 1}` : `${door.rect.x - 1},${door.rect.y}`;
+      const partner = at.get(before);
+      if (!partner) {
+        expect(door.doorMirrored).toBe(false);
+        continue;
+      }
+      pairs++;
+      // One of the pair is turned round, so the two swing apart rather than following each other.
+      expect(door.doorMirrored).toBe(true);
+      expect(partner.doorMirrored).toBe(false);
+    }
+
+    expect(pairs).toBeGreaterThan(0);
+  });
+
   it('paints the ground rather than building it, and stops light at a wall facing open ground', () => {
     const plan = planDungeon({ atmosphere: 'stoneDungeon', roomCount: 8, seed: 7 });
     const walls = plan.blocks.blocks.filter((block) => block.kind === 'wall');

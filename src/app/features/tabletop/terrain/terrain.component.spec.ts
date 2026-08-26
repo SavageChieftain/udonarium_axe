@@ -1,7 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { UiSignalService } from '@axe/application/ui/ui-signal.service';
 import { GridType } from '@axe/domain/tabletop/game-table';
-import { SlopeDirection, Terrain } from '@axe/domain/tabletop/terrain';
+import { DoorStyle, SlopeDirection, Terrain } from '@axe/domain/tabletop/terrain';
 import { TerrainComponent } from '@axe/features/tabletop/terrain/terrain.component';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
 
@@ -34,6 +34,36 @@ describe('TerrainComponent', () => {
       const uiSignalService = TestBed.inject(UiSignalService);
       uiSignalService.notifyTableViewRotation(50, 20, 45);
       expect(component.viewRotateZ()).toBe(45);
+    });
+  });
+
+  describe('doors', () => {
+    it('runs a sliding door the length of itself, into the wall it was set into', () => {
+      const terrain = Terrain.create('sliding door', 0.25, 1, 2, '', '');
+      terrain.doorStyle = DoorStyle.SLIDE;
+      terrain.isDoorOpen = true;
+      fixture.componentRef.setInput('terrain', terrain);
+
+      expect(component.doorTransform()).toBe(` translateY(${component.gridSize}px)`);
+
+      terrain.destroy();
+    });
+
+    it('turns the other one of a pair the other way, so the two open apart', async () => {
+      const door = Terrain.create('door', 0.25, 1, 2, '', '');
+      door.doorStyle = DoorStyle.SWING;
+      door.isDoorOpen = true;
+      fixture.componentRef.setInput('terrain', door);
+      const swing = component.doorTransform();
+      const hinge = component.doorOrigin();
+
+      door.doorMirrored = true;
+      await new Promise((resolve) => setTimeout(resolve, 20));
+
+      expect(component.doorTransform()).not.toBe(swing);
+      expect(component.doorOrigin()).not.toBe(hinge);
+
+      door.destroy();
     });
   });
 

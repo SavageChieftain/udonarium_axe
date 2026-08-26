@@ -1,6 +1,6 @@
 import { GameObjectInventoryService } from '@axe/application/inventory/game-object-inventory.service';
 import { TabletopActionService } from '@axe/application/tabletop/tabletop-action.service';
-import { SlopeDirection, Terrain, TerrainViewState } from '@axe/domain/tabletop/terrain';
+import { DOOR_STYLES, SlopeDirection, Terrain, TerrainViewState } from '@axe/domain/tabletop/terrain';
 import { buildTerrainContextMenu } from '@axe/features/tabletop/terrain/terrain-context-menu';
 import { createSyncTranslate } from '@axe/testing/transloco-testing';
 
@@ -143,7 +143,7 @@ describe('buildTerrainContextMenu()', () => {
     expect(terrain.isDoorOpen).toBe(true);
   });
 
-  it('offers all three ways for a door to open', () => {
+  it('offers every way for a door to open, and none at all', () => {
     const menu = buildTerrainContextMenu(
       makeTerrain() as unknown as Terrain,
       50,
@@ -155,9 +155,10 @@ describe('buildTerrainContextMenu()', () => {
     );
     const styles = menu.find((item) => item.name === '扉の開き方');
 
-    expect(styles?.subActions?.length).toBe(4);
+    // Not a door, plus every way one can open. A piece that is not a door cannot be turned round.
+    expect(styles?.subActions?.length).toBe(DOOR_STYLES.length + 1);
     expect(styles?.subActions?.map((entry) => entry.name.slice(2)).sort()).toEqual(
-      ['上へ上がる', '下へ沈む', '扉ではない', '開き戸'].sort()
+      ['上へ上がる', '下へ沈む', '扉ではない', '開き戸', '横にスライド'].sort()
     );
   });
 

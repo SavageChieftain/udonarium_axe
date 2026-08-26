@@ -66,6 +66,8 @@ export interface MapBlock {
   offset?: { x: number; y: number };
   /** How a door moves when it opens. */
   doorStyle?: string;
+  /** Whether this one opens the other way round, which is what makes a pair of doors a pair. */
+  doorMirrored?: boolean;
   name?: string;
 }
 

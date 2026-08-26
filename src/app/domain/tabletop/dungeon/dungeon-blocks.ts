@@ -41,6 +41,13 @@ function doorAxis(layout: DungeonLayout, x: number, y: number): 'x' | 'y' {
   return open(x + 1, y) || open(x - 1, y) ? 'x' : 'y';
 }
 
+/** Whether the door before this one along the opening it fills is already a door. */
+function hasPartnerBefore(doors: Set<string>, door: DungeonPoint, across: 'x' | 'y'): boolean {
+  // A door barring an east-west way stands across the north-south span of the opening.
+  const before = across === 'x' ? `${door.x},${door.y - 1}` : `${door.x - 1},${door.y}`;
+  return doors.has(before);
+}
+
 function touchesOpenCell(layout: DungeonLayout, rect: DungeonRect): boolean {
   for (let dy = 0; dy < rect.h; dy++) {
     for (let dx = 0; dx < rect.w; dx++) {
@@ -156,6 +163,9 @@ export function layoutToBlocks(
   }
 
   if (options.placeDoors) {
+    // Two doors filling one opening are a pair, and a pair opens outward from the middle. The
+    // one nearer the far end is turned round, so no run of them all swings the same way.
+    const doorAt = new Set(layout.doors.map((door) => `${door.x},${door.y}`));
     for (const door of layout.doors) {
       blocks.push({
         kind: 'door',
@@ -166,6 +176,7 @@ export function layoutToBlocks(
         across: doorAxis(layout, door.x, door.y),
         prop: doorPropFor(atmosphere),
         doorStyle: atmosphere.doorStyle,
+        doorMirrored: hasPartnerBefore(doorAt, door, doorAxis(layout, door.x, door.y)),
       });
     }
   }

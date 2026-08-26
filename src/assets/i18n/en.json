@@ -1589,7 +1589,9 @@
         "doorStyleNone": "Not a door",
         "doorStyleSwing": "Swings on a hinge",
         "doorStyleLift": "Rises up",
-        "doorStyleSink": "Sinks down"
+        "doorStyleSink": "Sinks down",
+        "doorStyleSlide": "Slides aside",
+        "doorFlip": "Open the other way"
       },
       "tableSetting": {
         "title": "Table settings",

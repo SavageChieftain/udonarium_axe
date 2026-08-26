@@ -138,6 +138,17 @@ export function buildTerrainContextMenu(
             terrain.doorStyle = style;
           },
         })),
+        ...(terrain.isDoor
+          ? [
+              ContextMenuSeparator,
+              {
+                name: t('feature.tabletop.contextMenu.doorFlip'),
+                action: () => {
+                  terrain.doorMirrored = !terrain.doorMirrored;
+                },
+              },
+            ]
+          : []),
       ],
     },
     buildToggleAction(terrain.isTiledTexture, (next) => (terrain.isTiledTexture = next), {

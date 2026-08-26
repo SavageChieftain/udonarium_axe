@@ -201,6 +201,7 @@ export class DungeonBuildService {
         const terrain = Terrain.create(name, width, depth, wallHeight, door, door);
         terrain.mode = TerrainViewState.ALL;
         terrain.doorStyle = block.doorStyle ?? DoorStyle.SWING;
+        if (block.doorMirrored) terrain.doorMirrored = true;
         return terrain;
       }
       case 'prop': {

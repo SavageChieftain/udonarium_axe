@@ -283,11 +283,22 @@ export class TerrainComponent {
   /** A door thin across x turns on a hinge at one end of its long side, and the other way round. */
   private readonly hingeOnLongY = computed(() => this.width() < this.depth());
 
+  readonly doorMirrored = computed(() => {
+    this.terrainVersion();
+    return this.terrain().doorMirrored;
+  });
+
   readonly doorTransform = computed(() => {
     if (!this.isDoor() || !this.isDoorOpen()) return '';
+    const mirrored = this.doorMirrored() ? -1 : 1;
     switch (this.doorStyle()) {
       case DoorStyle.SWING:
-        return ` rotateZ(${this.hingeOnLongY() ? -95 : 95}deg)`;
+        return ` rotateZ(${(this.hingeOnLongY() ? -95 : 95) * mirrored}deg)`;
+      case DoorStyle.SLIDE: {
+        // It runs the length of itself, which puts it inside the wall it was set into.
+        const along = (this.hingeOnLongY() ? this.depth() : this.width()) * this.gridSize * mirrored;
+        return this.hingeOnLongY() ? ` translateY(${along}px)` : ` translateX(${along}px)`;
+      }
       case DoorStyle.LIFT:
         return ` translateZ(${this.height() * this.gridSize}px)`;
       case DoorStyle.SINK:
@@ -299,7 +310,8 @@ export class TerrainComponent {
 
   readonly doorOrigin = computed(() => {
     if (!this.isDoor() || this.doorStyle() !== DoorStyle.SWING) return '';
-    return this.hingeOnLongY() ? 'center top' : 'left center';
+    if (this.hingeOnLongY()) return this.doorMirrored() ? 'center bottom' : 'center top';
+    return this.doorMirrored() ? 'right center' : 'left center';
   });
 
   protected onDoorClick(): void {
