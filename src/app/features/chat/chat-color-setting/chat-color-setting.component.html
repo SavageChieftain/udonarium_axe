@@ -113,6 +113,11 @@
         >
           <div class="text-[11px] font-medium opacity-90">{{ speakerName }}</div>
           <div class="text-[12px]">{{ 'feature.chat.colorSetting.sample' | transloco }}</div>
+          @if (isHardToRead(slot, theme)) {
+            <div class="mt-0.5 text-[10px] opacity-75">
+              {{ 'feature.chat.colorSetting.hardToRead' | transloco }}
+            </div>
+          }
         </div>
       }
     </div>

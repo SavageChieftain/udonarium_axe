@@ -2060,7 +2060,8 @@
         "theme": {
           "light": "라이트 테마",
           "dark": "다크 테마"
-        }
+        },
+        "hardToRead": "이 색은 이 테마에서 읽기 어렵습니다"
       },
       "messageFix": {
         "change": "변경",

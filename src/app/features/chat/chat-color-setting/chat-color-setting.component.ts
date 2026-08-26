@@ -6,7 +6,7 @@ import { PanelService } from '@axe/application/ui/panel.service';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { ChatSettingsEventHandlerService } from '@axe/features/chat/chat-settings-event-handler.service';
-import { ChatColorStylePipe } from '@axe/ui/pipes/chat-color-style.pipe';
+import { chatBubbleContrast, ChatColorStylePipe } from '@axe/ui/pipes/chat-color-style.pipe';
 import { TranslocoModule } from '@jsverse/transloco';
 
 @Component({
@@ -65,6 +65,16 @@ export class ChatColorSettingComponent {
   onChangeColor(event: Event, index: number): void {
     this.changeColor((event.target as HTMLInputElement).value, index);
     this.objectChange.notifyChanged(this.myPeer.identifier);
+  }
+
+  /**
+   * Whether this colour will be hard to read where it is going.
+   *
+   * A colour the bubble cannot be brought far enough to help keeps the ordinary background,
+   * and saying so here is what makes that the reader's choice rather than a surprise.
+   */
+  isHardToRead(slot: number, theme: 'light' | 'dark'): boolean {
+    return chatBubbleContrast(this.chatColorCode(slot), theme) < 4.5;
   }
 
   /** The name a message would carry, so the sample reads as a message rather than as a swatch. */

@@ -58,15 +58,16 @@ function drift(style: Record<string, string>, theme: 'light' | 'dark'): number {
   return Math.abs(lightnessOf(rgbOf(style['background-color'])) - BASE_L[theme]);
 }
 
-/** As dark and as light as a bubble is allowed to be: the range the page's own colours live in. */
-const DARKEST_L = 0.07;
-const LIGHTEST_L = 0.97;
+/** How far the bubble will travel from the page's own background before it gives up. */
+const MAX_DRIFT = 0.5;
 
-/** The best any bubble within that range could do for this colour. */
-function bestPossible(colour: string): number {
+/** The best a bubble within reach of the background could do for this colour. */
+function bestWithinReach(colour: string, theme: 'light' | 'dark'): number {
   const text = luminance(rgbOf(colour));
   const at = (l: number) => ratio(text, luminance([l, l, l]));
-  return Math.max(at(LIGHTEST_L), at(DARKEST_L));
+  const up = Math.min(0.97, BASE_L[theme] + MAX_DRIFT);
+  const down = Math.max(0.07, BASE_L[theme] - MAX_DRIFT);
+  return Math.max(at(up), at(down));
 }
 
 describe('ChatColorStylePipe', () => {
@@ -93,18 +94,22 @@ describe('ChatColorStylePipe', () => {
   it('holds the reading standard wherever the colour can reach it', () => {
     for (const colour of PALETTE) {
       for (const theme of THEMES) {
-        if (bestPossible(colour) < 4.5) continue;
+        if (bestWithinReach(colour, theme) < 4.5) continue;
         expect(contrast(pipe.transform(colour, theme)!)).toBeGreaterThanOrEqual(4.4);
       }
     }
   });
 
-  it('gets as near the standard as the colour allows when it cannot be reached at all', () => {
-    // A pure red tops out at four to one on white and just over five on black.
-    const style = pipe.transform('#ff0000', 'light')!;
-
-    expect(bestPossible('#ff0000')).toBeGreaterThan(4.5);
-    expect(contrast(style)).toBeGreaterThanOrEqual(4.4);
+  it('keeps the ordinary background for a colour it would have to go too far to help', () => {
+    // Past half the range the cure is worse: a pale card in a dark room, which nobody asked for.
+    for (const colour of ['#006633', '#0000ff', '#9900ff']) {
+      expect(bestWithinReach(colour, 'dark')).toBeLessThan(4.5);
+      expect(drift(pipe.transform(colour, 'dark')!, 'dark')).toBeLessThan(0.01);
+    }
+    for (const colour of ['#0099ff', '#66ccff', '#ffcc00']) {
+      expect(bestWithinReach(colour, 'light')).toBeLessThan(4.5);
+      expect(drift(pipe.transform(colour, 'light')!, 'light')).toBeLessThan(0.01);
+    }
   });
 
   it('stays on the background the rest of the page has when the colour can be read there', () => {
@@ -119,6 +124,7 @@ describe('ChatColorStylePipe', () => {
         const style = pipe.transform(colour, theme)!;
         const away = drift(style, theme);
         if (contrast(style) < 4.4 || away < 0.02) continue;
+        expect(away).toBeLessThanOrEqual(MAX_DRIFT);
 
         // One step back towards the page's own background and the colour stops being readable.
         const shown = lightnessOf(rgbOf(style['background-color']));

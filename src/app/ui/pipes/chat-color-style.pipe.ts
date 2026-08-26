@@ -79,6 +79,16 @@ const TARGET_RATIO = 4.5;
 const DARKEST_L = 0.07;
 const LIGHTEST_L = 0.97;
 
+/**
+ * How far the bubble will go for a colour before it gives up and stays where it is.
+ *
+ * Past about half the range the cure is worse than the complaint: a pale card in a dark
+ * room, or a dark slab in a lit one, and the reader who chose that colour did not ask for
+ * either. Such a colour keeps the background every other panel has, and the setting panel
+ * shows it as it will be so that the choice is made with open eyes.
+ */
+const MAX_DRIFT = 0.5;
+
 /** How finely the search walks away from the base, which is below what an eye can tell apart. */
 const STEP = 0.005;
 
@@ -112,7 +122,7 @@ function bubbleLightness(h: number, tint: number, textLum: number, baseL: number
   const ratioAt = (l: number) => contrastRatio(textLum, luminance(...quantize(hslToRgb(h, tint, l))));
   if (ratioAt(baseL) >= TARGET_RATIO) return baseL;
 
-  for (let away = STEP; away <= 1; away += STEP) {
+  for (let away = STEP; away <= MAX_DRIFT; away += STEP) {
     const up = baseL + away;
     const down = baseL - away;
     const upReads = up <= LIGHTEST_L && ratioAt(up) >= TARGET_RATIO;
@@ -121,7 +131,17 @@ function bubbleLightness(h: number, tint: number, textLum: number, baseL: number
     if (upReads) return up;
     if (downReads) return down;
   }
-  return ratioAt(LIGHTEST_L) >= ratioAt(DARKEST_L) ? LIGHTEST_L : DARKEST_L;
+  return baseL;
+}
+
+/** How well a colour will read on the bubble it is going to be given. */
+export function chatBubbleContrast(color: string, theme: 'light' | 'dark'): number {
+  const rgb = parseHex(color);
+  if (!rgb) return 0;
+  const [h, s] = rgbToHsl(...rgb);
+  const tint = Math.min(s, 1) * TINT;
+  const l = bubbleLightness(h, tint, luminance(...rgb), theme === 'dark' ? BASE_L.dark : BASE_L.light);
+  return contrastRatio(luminance(...rgb), luminance(...quantize(hslToRgb(h, tint, l))));
 }
 
 @Pipe({ name: 'chatColorStyle', pure: true })
