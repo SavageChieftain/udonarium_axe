@@ -79,8 +79,11 @@ export const FIELD_PROP_SHAPES: Record<FieldPropId, FieldPropShape> = {
    *
    * Layers that only ever narrow are a staircase, and a staircase is the one thing a grid
    * makes on its own. A boulder is undercut: its widest course sits above its foot, so the
-   * base is in shadow and the mass leans out over it. That overhang is what stone does and
-   * what stacked steps never do.
+   * base is in shadow and the mass leans out over it.
+   *
+   * The courses are near enough the same width as each other, though. Seen from the side a
+   * stone is about as wide most of the way up as it is at the bottom, and narrows only at the
+   * crown; courses that step in and out by a third of their width read as stacked plates.
    */
   boulder: {
     side: 'rock',
@@ -89,14 +92,13 @@ export const FIELD_PROP_SHAPES: Record<FieldPropId, FieldPropShape> = {
     span: 1,
     blocksSight: false,
     layers: [
-      { spread: 0.58, height: 0.16 },
-      { spread: 0.92, height: 0.3 },
-      { spread: 0.74, height: 0.26 },
-      { spread: 0.4, height: 0.16 },
+      { spread: 0.82, height: 0.3 },
+      { spread: 0.92, height: 0.34 },
+      { spread: 0.56, height: 0.2 },
     ],
     spin: 45,
     squash: 0.32,
-    drift: 0.18,
+    drift: 0.08,
     spacing: 2,
   },
   outcrop: {
@@ -106,14 +108,13 @@ export const FIELD_PROP_SHAPES: Record<FieldPropId, FieldPropShape> = {
     span: 3,
     blocksSight: true,
     layers: [
-      { spread: 1.9, height: 0.5 },
-      { spread: 2.7, height: 0.75 },
-      { spread: 2.2, height: 0.6 },
-      { spread: 1.2, height: 0.55 },
+      { spread: 2.4, height: 0.8 },
+      { spread: 2.7, height: 0.9 },
+      { spread: 1.6, height: 0.7 },
     ],
     spin: 45,
     squash: 0.28,
-    drift: 0.36,
+    drift: 0.14,
     spacing: 4,
   },
   /**
