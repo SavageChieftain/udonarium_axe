@@ -62,16 +62,82 @@ describe('planField()', () => {
     expect(rocks.some((rock) => rock.squash !== 0)).toBe(true);
   });
 
-  it('stacks a rock rather than standing a block of tofu on the ground', () => {
+  it('undercuts a rock so it leans out over its foot rather than stepping up like a stair', () => {
     const plan = planField({ atmosphere: 'wasteland', size: 40, density: 100, seed: 7 });
-    const shape = FIELD_PROP_SHAPES.boulder;
     const stacked = plan.blocks.blocks.filter((block) => block.rotate !== undefined && block.altitude !== undefined);
 
-    expect(shape.layers!.length).toBeGreaterThan(1);
     expect(stacked.length).toBeGreaterThan(0);
-    // No two layers of one rock share an edge to line up along.
-    for (let i = 1; i < shape.layers!.length; i++) {
-      expect(shape.layers![i].spread).toBeLessThan(shape.layers![i - 1].spread);
+    for (const prop of ['boulder', 'outcrop'] as const) {
+      const layers = FIELD_PROP_SHAPES[prop].layers!;
+      const widest = layers.reduce((best, layer, at) => (layer.spread > layers[best].spread ? at : best), 0);
+
+      // A course that only ever narrows is a staircase, which is what a grid makes on its own.
+      expect(layers.length).toBeGreaterThan(2);
+      expect(widest).toBeGreaterThan(0);
+      expect(layers[widest].spread).toBeGreaterThan(layers[0].spread);
+      expect(layers[layers.length - 1].spread).toBeLessThan(layers[widest].spread);
+    }
+  });
+
+  it('cuts a rock from stone rather than from a built wall', () => {
+    // Coursed masonry has mortar lines running through it, and a boulder wearing one reads
+    // as a ruin. The ground textures are unworked stone.
+    for (const prop of ['boulder', 'outcrop'] as const) {
+      expect(FIELD_PROP_SHAPES[prop].side).not.toMatch(/^wall_/);
+      expect(FIELD_PROP_SHAPES[prop].top).not.toMatch(/^wall_/);
+    }
+  });
+
+  it('stands what belongs on the earth on the earth, and hangs only what hangs', () => {
+    const plan = planField({ atmosphere: 'meadow', size: 40, density: 100, seed: 7 });
+    const grounded = plan.layout.objects.filter((object) => FIELD_PROP_SHAPES[object.prop].altitude == null);
+
+    expect(grounded.length).toBeGreaterThan(0);
+    for (const object of grounded) {
+      const reach = (object.span - 1) / 2;
+      const layers = plan.blocks.blocks.filter(
+        (block) => block.rect.x === object.x - reach && block.rect.y === object.y - reach
+      );
+
+      expect(layers.length).toBeGreaterThan(0);
+      // Its own variation in height must not carry it off the ground it is standing on.
+      expect(Math.min(...layers.map((layer) => layer.altitude ?? 0))).toBe(0);
+    }
+  });
+
+  it('leaves a tree square to the board, since a trunk has no reason to be turned', () => {
+    expect(FIELD_PROP_SHAPES.tree.spin).toBeUndefined();
+    expect(FIELD_PROP_SHAPES.boulder.spin).toBeGreaterThan(0);
+  });
+
+  it('turns a rock as one thing, and sits its layers off the middle rather than on it', () => {
+    const plan = planField({ atmosphere: 'wasteland', size: 40, density: 100, seed: 7 });
+    const rock = plan.layout.objects.find((object) => object.prop === 'boulder')!;
+    const layers = plan.blocks.blocks.filter(
+      (block) => block.rect.x === rock.x && block.rect.y === rock.y && block.altitude !== undefined
+    );
+
+    // A layer turned past the one below it makes a screw. They share the one turn.
+    expect(layers.length).toBeGreaterThan(1);
+    expect(new Set(layers.map((layer) => layer.rotate)).size).toBe(1);
+    expect(layers.some((layer) => layer.offset!.x !== 0 || layer.offset!.y !== 0)).toBe(true);
+  });
+
+  it('sets everything that grows out of the ground on the ground', () => {
+    for (const id of ['wasteland', 'meadow'] as const) {
+      const plan = planField({ atmosphere: id, size: 40, density: 100, seed: 7 });
+      const standing = plan.layout.objects.filter((object) => !FIELD_PROP_SHAPES[object.prop].trunk);
+
+      expect(standing.length).toBeGreaterThan(0);
+      for (const object of standing) {
+        const reach = (object.span - 1) / 2;
+        const mine = plan.blocks.blocks.filter(
+          (block) => block.rect.x === object.x - reach && block.rect.y === object.y - reach
+        );
+
+        // A rock that starts above the ground is a rock hovering over it.
+        expect(Math.min(...mine.map((block) => block.altitude ?? 0))).toBe(0);
+      }
     }
   });
 

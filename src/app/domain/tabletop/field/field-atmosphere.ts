@@ -35,6 +35,13 @@ export interface FieldPropShape {
    */
   spin?: number;
   squash?: number;
+  /**
+   * How far a layer may sit off the middle of the one under it, in cells.
+   *
+   * Layers stacked concentrically make a ziggurat, which is a built thing. What weather
+   * leaves behind is off-centre, and that is most of the difference.
+   */
+  drift?: number;
   /** How near two of them may stand, in cells, when they are placed as whole things. */
   spacing?: number;
   /** Whether it takes the ground it covers, so that nothing else is put down on top of it. */
@@ -63,38 +70,50 @@ export const FIELD_PROP_SHAPES: Record<FieldPropId, FieldPropShape> = {
       { spread: 3.2, height: 0.5 },
       { spread: 1.6, height: 0.45 },
     ],
-    spin: 24,
+    drift: 0.35,
     spacing: 3,
   },
   bush: { side: 'steppe', top: 'steppe', height: 0.45, span: 1, blocksSight: false },
+  /**
+   * A stone worn round, not a little pyramid.
+   *
+   * Layers that only ever narrow are a staircase, and a staircase is the one thing a grid
+   * makes on its own. A boulder is undercut: its widest course sits above its foot, so the
+   * base is in shadow and the mass leans out over it. That overhang is what stone does and
+   * what stacked steps never do.
+   */
   boulder: {
-    side: 'wall_rubble',
+    side: 'rock',
     top: 'rock',
     height: 0.9,
     span: 1,
     blocksSight: false,
     layers: [
-      { spread: 0.95, height: 0.4 },
-      { spread: 0.66, height: 0.34 },
-      { spread: 0.36, height: 0.24 },
+      { spread: 0.58, height: 0.16 },
+      { spread: 0.92, height: 0.3 },
+      { spread: 0.74, height: 0.26 },
+      { spread: 0.4, height: 0.16 },
     ],
     spin: 45,
     squash: 0.32,
+    drift: 0.18,
     spacing: 2,
   },
   outcrop: {
-    side: 'wall_cave_rock',
+    side: 'rock_moss',
     top: 'rock_moss',
     height: 2.4,
     span: 3,
     blocksSight: true,
     layers: [
-      { spread: 2.7, height: 0.85 },
-      { spread: 1.9, height: 0.75 },
-      { spread: 1.1, height: 0.6 },
+      { spread: 1.9, height: 0.5 },
+      { spread: 2.7, height: 0.75 },
+      { spread: 2.2, height: 0.6 },
+      { spread: 1.2, height: 0.55 },
     ],
     spin: 45,
     squash: 0.28,
+    drift: 0.36,
     spacing: 4,
   },
   /**
@@ -114,8 +133,9 @@ export const FIELD_PROP_SHAPES: Record<FieldPropId, FieldPropShape> = {
       { spread: 4.8, height: 0.26 },
       { spread: 3, height: 0.24 },
     ],
-    spin: 30,
+    spin: 10,
     squash: 0.22,
+    drift: 0.5,
     spacing: 9,
     claimsGround: true,
   },
@@ -318,7 +338,7 @@ export const FIELD_ATMOSPHERES: Record<FieldAtmosphereId, FieldAtmosphere> = {
     props: [
       { prop: 'boulder', chance: 0.07, bands: [1, 2] },
       { prop: 'outcrop', chance: 0.08, bands: [2] },
-      { prop: 'bush', chance: 0.04, bands: [0] },
+      { prop: 'bush', chance: 0.04, bands: [0], skin: { side: 'rock_moss', top: 'rock_moss' } },
     ],
     darkness: 0,
     ambientColor: '#1a140e',

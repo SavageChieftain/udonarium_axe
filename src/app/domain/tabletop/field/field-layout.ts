@@ -33,6 +33,8 @@ export interface FieldObject {
   spin: number;
   /** How far from square its footprint falls, as a share of its width. */
   squash: number;
+  /** How far each layer sits off the middle, in cells. A weathered stack is not a ziggurat. */
+  drift: readonly { x: number; y: number }[];
 }
 
 export function bandAt(layout: FieldLayout, x: number, y: number): number {
@@ -137,6 +139,10 @@ function plant(
         lift: Math.round(rng() * 6) / 10,
         spin: Math.round((rng() * 2 - 1) * (shape.spin ?? 0)),
         squash: (rng() * 2 - 1) * (shape.squash ?? 0),
+        drift: (shape.layers ?? []).map(() => ({
+          x: (rng() * 2 - 1) * (shape.drift ?? 0),
+          y: (rng() * 2 - 1) * (shape.drift ?? 0),
+        })),
       };
       objects.push(object);
       standing.push(object);

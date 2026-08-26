@@ -19,9 +19,6 @@ export const FIELD_MERGE_SPAN = 4;
 
 const OPEN_FIRES: readonly MapLightKind[] = ['campfire', 'stand', 'brazier'];
 
-/** How far each layer is turned past the one below it, so their corners never line up. */
-const LAYER_TWIST = 11;
-
 function maskOfBand(layout: FieldLayout, band: number): Uint8Array {
   const mask = new Uint8Array(layout.width * layout.height);
   for (let i = 0; i < mask.length; i++) mask[i] = layout.ground[i] === band ? 1 : 0;
@@ -103,9 +100,11 @@ export function fieldToBlocks(layout: FieldLayout, atmosphere: FieldAtmosphere, 
       });
     }
 
-    // Layer on layer, each narrower than the one under it and each turned a little further,
-    // so that the corners never line up into the flat sides of a box.
-    let standing = (shape.altitude ?? 0) + object.lift;
+    // Layer on layer, each narrower than the one under it and each sitting a little off it.
+    // They share the one turn: a layer turned past the one below makes a screw, not a rock.
+    // Only what hangs is lifted. A rock or a hill starts on the earth: carrying its own
+    // variation upward left it floating a fraction of a cell above the ground it sits on.
+    let standing = shape.altitude != null ? shape.altitude + object.lift : 0;
     const layers = shape.layers ?? [{ spread: object.span, height: shape.height }];
     layers.forEach((layer, index) => {
       const spread = Math.min(layer.spread, object.span);
@@ -120,7 +119,8 @@ export function fieldToBlocks(layout: FieldLayout, atmosphere: FieldAtmosphere, 
         height: layer.height,
         footprint: { w: spread * squash, d: spread / squash },
         altitude: standing,
-        rotate: object.spin + index * LAYER_TWIST,
+        rotate: object.spin,
+        offset: object.drift[index],
       });
       standing += layer.height;
     });
