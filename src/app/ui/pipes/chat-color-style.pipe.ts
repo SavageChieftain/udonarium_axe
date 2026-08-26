@@ -11,8 +11,17 @@ import {
 /** The background every other panel on the page has: `--ui-elevated`, per theme. */
 const BASE_HEX = { light: '#e8dded', dark: '#21262d' };
 
-/** What text has to hold against the bubble it sits on: the reading standard for body text. */
+/** What the bubble aims for when it is worked out: the reading standard for body text. */
 export const CHAT_TARGET_RATIO = 4.5;
+
+/**
+ * How badly a pair has to read before the panel says anything about it.
+ *
+ * Saying so at the standard itself means saying so about a pair that missed it by a
+ * hundredth, which reads as the panel refusing to be satisfied. This is the figure below
+ * which a colour is genuinely hard to make out rather than merely short of the mark.
+ */
+export const CHAT_WARN_RATIO = 3;
 
 /** Only a whisper of the speaker's hue: more of it costs the contrast the text needs. */
 const BUBBLE_CHROMA = 8;
@@ -41,7 +50,10 @@ export function autoChatBubble(color: string, theme: 'light' | 'dark'): string {
   const tint = Math.min(chroma, BUBBLE_CHROMA);
   const textLum = relativeLuminance(rgb);
   const baseTone = baseToneOf(theme);
-  const at = (tone: number) => relativeLuminance(lchToRgb({ tone, chroma: tint, hue }));
+  // Measured on the colour as it will be written out, so what is returned is what was tested:
+  // a tone that clears the standard as a float can fall a hair under it once it is a byte.
+  const shown = (tone: number) => parseHexColor(cssToHex(rgbToCss(lchToRgb({ tone, chroma: tint, hue }))))!;
+  const at = (tone: number) => relativeLuminance(shown(tone));
   const reads = (tone: number) => contrastRatio(textLum, at(tone)) >= CHAT_TARGET_RATIO;
 
   if (reads(baseTone)) return rgbToCss(lchToRgb({ tone: baseTone, chroma: tint, hue }));

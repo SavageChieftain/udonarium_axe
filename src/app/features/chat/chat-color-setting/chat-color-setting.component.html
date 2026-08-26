@@ -38,8 +38,10 @@
               [ngStyle]="chatColorCode(slot) | chatColorStyle: theme : bubbleCode(slot, theme)"
               [style.border-color]="'var(--ui-bubble-caret-border)'"
             >
-              <div class="text-[10px] font-medium opacity-90">{{ speakerName }}</div>
-              <div class="text-[11px] leading-snug">{{ 'feature.chat.colorSetting.sample' | transloco }}</div>
+              <div class="truncate text-[10px] font-medium opacity-90">{{ speakerName }}</div>
+              <div class="truncate text-[11px] leading-snug">
+                {{ 'feature.chat.colorSetting.sample' | transloco }}
+              </div>
             </div>
 
             <div class="flex min-h-5 items-center justify-between gap-1">

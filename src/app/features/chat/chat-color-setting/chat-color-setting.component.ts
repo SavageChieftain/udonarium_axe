@@ -7,7 +7,7 @@ import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { ChatSettingsEventHandlerService } from '@axe/features/chat/chat-settings-event-handler.service';
 import {
   autoChatBubble,
-  CHAT_TARGET_RATIO,
+  CHAT_WARN_RATIO,
   chatColorContrast,
   ChatColorStylePipe,
 } from '@axe/ui/pipes/chat-color-style.pipe';
@@ -70,7 +70,7 @@ export class ChatColorSettingComponent {
   }
 
   isHardToRead(num: number, theme: ChatTheme): boolean {
-    return this.contrastOf(num, theme) < CHAT_TARGET_RATIO;
+    return this.contrastOf(num, theme) < CHAT_WARN_RATIO;
   }
 
   /** Rounded down, so a pair that misses the standard is never shown as having met it. */
