@@ -8,7 +8,7 @@
         class="message break-anywhere border-ui-border-panel hover:bg-ui-hover box-border flex w-full flex-nowrap border-b border-solid px-2 py-1.5 wrap-break-word transition-colors"
         [ngClass]="{
           'border-l-ui-accent bg-ui-accent-bg hover:bg-ui-accent-glow border-l-[3px] pl-1.25':
-            (chatMessage.isDirect || chatMessage.isSecret) && !chatMessage.isSystemToPL,
+            (isDirect() || isSecret()) && !chatMessage.isSystemToPL,
           'system-message': chatMessage.isSystem,
           'dicebot-message': chatMessage.isDicebot,
         }"
@@ -128,7 +128,7 @@
                   </button>
                 </div>
               </div>
-            } @else if (!chatMessage.isSecret || chatMessage.isSendFromSelf || canRevealSecret) {
+            } @else if (!isSecret() || chatMessage.isSendFromSelf || canRevealSecret) {
               <span [innerHTML]="escapeHtmlAndRuby(chatMessage.text) | linkify | safe"></span>
               @if (attachmentImageFiles().length > 0) {
                 <div class="mt-1.5 flex flex-wrap gap-1.5 whitespace-normal">
@@ -141,13 +141,13 @@
                   }
                 </div>
               }
-              @if (chatMessage.isSecret && chatMessage.isSendFromSelf) {
+              @if (isSecret() && chatMessage.isSendFromSelf) {
                 <button (click)="discloseMessage()">{{ 'feature.chat.message.discloseSecret' | transloco }}</button>
               }
             } @else {
               <span>{{ 'feature.chat.message.secretDice' | transloco }}</span>
             }
-            @if (!isEditing() && chatMessage.fixd) {
+            @if (!isEditing() && isEdited()) {
               &nbsp;{{ 'feature.chat.message.edited' | transloco }}
             }
           </div>
@@ -159,7 +159,7 @@
         class="message-small break-anywhere border-ui-border-panel hover:bg-ui-hover box-border flex w-full flex-nowrap border-b border-solid px-2 py-0.75 wrap-break-word transition-colors"
         [ngClass]="{
           'border-l-ui-accent bg-ui-accent-bg hover:bg-ui-accent-glow border-l-[3px] pl-1.25':
-            (chatMessage.isDirect || chatMessage.isSecret) && !chatMessage.isSystemToPL,
+            (isDirect() || isSecret()) && !chatMessage.isSystemToPL,
           'system-message': chatMessage.isSystem,
           'dicebot-message': chatMessage.isDicebot,
         }"
@@ -238,7 +238,7 @@
                     </button>
                   </span>
                 </span>
-              } @else if (!chatMessage.isSecret || chatMessage.isSendFromSelf || canRevealSecret) {
+              } @else if (!isSecret() || chatMessage.isSendFromSelf || canRevealSecret) {
                 <span [innerHTML]="escapeHtmlAndRuby(chatMessage.text) | linkify | safe"></span>
                 @if (attachmentImageFiles().length > 0) {
                   <span class="ml-1.5 inline-flex align-middle">
@@ -251,13 +251,13 @@
                     }
                   </span>
                 }
-                @if (chatMessage.isSecret) {
+                @if (isSecret()) {
                   <button (click)="discloseMessage()">{{ 'feature.chat.message.discloseSecret' | transloco }}</button>
                 }
               } @else {
                 <span>{{ 'feature.chat.message.secretDice' | transloco }}</span>
               }
-              @if (!isEditing() && chatMessage.fixd) {
+              @if (!isEditing() && isEdited()) {
                 {{ 'feature.chat.message.editedSimple' | transloco }}
               }
               @if (!isEditing()) {

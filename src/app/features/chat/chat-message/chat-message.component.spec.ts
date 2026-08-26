@@ -5,6 +5,7 @@ import {
   NO_SYSTEM_AVATAR,
   SystemAvatarService,
 } from '@axe/application/chat/system-avatar.service';
+import { RolePermissionService } from '@axe/application/permission/role-permission.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { UiSignalService } from '@axe/application/ui/ui-signal.service';
 import { emitFileLoaded } from '@axe/core/event/domain-events';
@@ -59,6 +60,34 @@ describe('ChatMessageComponent', () => {
     } finally {
       ImageStorage.instance.delete(image.identifier);
     }
+  });
+
+  it('drops the cover on a secret roll as soon as the tag loses it', () => {
+    // The reveal changes only the tag. Nothing else drawn while the line is hidden depends on
+    // that message, so without a version to watch the cover stayed on until something else drew.
+    vi.spyOn(TestBed.inject(RolePermissionService), 'canSeeHidden', 'get').mockReturnValue(false);
+
+    const message = new ChatMessage();
+    message.initialize();
+    message.from = 'someone-else';
+    // Both, or an unset originFrom matches the unset user id of the peer under test.
+    message.originFrom = 'someone-else';
+    message.to = '';
+    message.name = '<Secret-BCDice：テスト>';
+    message.tag = 'system secret';
+    message.imageIdentifier = '';
+    message.messColor = '#000000';
+    message.text = 'DiceBot : (1d6) → 4';
+    fixture.componentRef.setInput('chatMessage', message);
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).not.toContain('→ 4');
+
+    message.tag = 'system';
+    TestBed.inject(ObjectChangeService).notifyChanged(message.identifier);
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).toContain('→ 4');
   });
 
   it('takes a portrait that arrives later into the thumbnail', () => {
