@@ -12,7 +12,7 @@ import { GridSnapStyle, GridType } from '@axe/domain/tabletop/game-table';
 import { isHexGrid } from '@axe/domain/tabletop/hex-geometry';
 import { SurfaceDims, surfaceWorldBox, WorldBox } from '@axe/domain/tabletop/surface-space';
 import { TableSelecter } from '@axe/domain/tabletop/table-selecter';
-import { surfaceOf, TableSurface, TabletopObject } from '@axe/domain/tabletop/tabletop-object';
+import { boardSurfaceOf, surfaceOf, TableSurface, TabletopObject } from '@axe/domain/tabletop/tabletop-object';
 import { Terrain } from '@axe/domain/tabletop/terrain';
 import { InputHandler } from '@axe/ui/directives/input-handler';
 import {
@@ -135,6 +135,9 @@ export class MovableDirective {
   input: InputHandler | null = null;
 
   get isGridSnap(): boolean {
+    // A board is not ruled into squares. What is stuck to one keeps the spot it was put on
+    // it, the way a sticker does, rather than jumping to the nearest line of the table.
+    if (this.tabletopObject && boardSurfaceOf(this.tabletopObject)) return false;
     return this.tableSelecter.viewTable?.gridSnap ?? true;
   }
 
