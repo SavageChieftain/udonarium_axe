@@ -2813,7 +2813,8 @@
         "width": "太さ",
         "fontSize": "文字の大きさ",
         "clear": "すべて消す",
-        "typeHere": "ここに書く"
+        "typeHere": "ここに書く",
+        "board": "ボードの設定"
       }
     }
   },

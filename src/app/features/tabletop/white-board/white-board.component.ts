@@ -23,9 +23,8 @@ import { DiceSymbolComponent } from '@axe/features/dice/dice-symbol/dice-symbol.
 import { GameTableMaskComponent } from '@axe/features/tabletop/game-table-mask/game-table-mask.component';
 import { TerrainComponent } from '@axe/features/tabletop/terrain/terrain.component';
 import { TextNoteComponent } from '@axe/features/tabletop/text-note/text-note.component';
-import { detachAllFrom, gatherOverBoard } from '@axe/features/tabletop/white-board/white-board-contents';
+import { detachAllFrom } from '@axe/features/tabletop/white-board/white-board-contents';
 import { buildWhiteBoardContextMenu } from '@axe/features/tabletop/white-board/white-board-context-menu';
-import { WhiteBoardSettingsComponent } from '@axe/features/tabletop/white-board/white-board-settings.component';
 import { MovableDirective, MovableOption } from '@axe/ui/directives/movable.directive';
 import { RotableDirective, RotableOption } from '@axe/ui/directives/rotable.directive';
 import { SelectableDirective } from '@axe/ui/directives/selectable.directive';
@@ -180,10 +179,8 @@ export class WhiteBoardComponent {
     if (this.pieceContextMenu.openForSelection(board, this.gridSize, position)) return;
 
     const menu = buildWhiteBoardContextMenu(board, this.standingCount(), this.translateFn, {
-      onEdit: (target) => this.openSettings(target),
       onDraw: (target) => this.openDrawing(target),
       onDetachAll: (target) => this.detachAll(target),
-      onGather: (target) => this.gather(target),
       onCopy: (target) => this.copy(target),
       onDelete: (target) => this.remove(target),
     });
@@ -194,23 +191,6 @@ export class WhiteBoardComponent {
   detachAll(board: WhiteBoard): void {
     detachAllFrom(board, this.standing());
     SoundEffect.play(PresetSound.cardPut);
-  }
-
-  /** Whatever is lying over the board is taken up onto it, which is quicker than dragging each one. */
-  gather(board: WhiteBoard): void {
-    const taken = gatherOverBoard(board, this.widthPx(), this.heightPx(), this.overTheTable());
-    if (taken > 0) SoundEffect.play(PresetSound.cardPut);
-  }
-
-  private overTheTable(): TabletopObject[] {
-    return [
-      ...this.tabletopService.characters,
-      ...this.tabletopService.terrains,
-      ...this.tabletopService.tableMasks,
-      ...this.tabletopService.textNotes,
-      ...this.tabletopService.cards,
-      ...this.tabletopService.diceSymbols,
-    ];
   }
 
   private standing(): TabletopObject[] {
@@ -257,11 +237,5 @@ export class WhiteBoardComponent {
       option,
       (panel) => panel.bindToBoard(board)
     );
-  }
-
-  private openSettings(board: WhiteBoard): void {
-    const option: PanelOption = { width: 320, height: 300 };
-    const component = this.panelService.open<WhiteBoardSettingsComponent>(WhiteBoardSettingsComponent, option);
-    component.whiteBoard = board;
   }
 }

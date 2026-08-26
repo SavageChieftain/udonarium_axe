@@ -2813,7 +2813,8 @@
         "width": "Width",
         "fontSize": "Text size",
         "clear": "Wipe it clean",
-        "typeHere": "Type here"
+        "typeHere": "Type here",
+        "board": "The board itself"
       }
     }
   },

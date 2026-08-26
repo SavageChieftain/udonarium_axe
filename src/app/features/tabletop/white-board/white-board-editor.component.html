@@ -79,4 +79,116 @@
       />
     }
   </div>
+
+  <details class="border-ui-border-panel rounded-ui-sm border border-solid">
+    <summary class="text-ui-muted cursor-pointer px-2 py-1.5 text-[0.8rem]">
+      {{ 'feature.whiteBoard.editor.board' | transloco }}
+    </summary>
+
+    <div class="flex flex-col gap-2 p-2">
+      <input
+        class="border-ui-border-panel bg-ui-input text-ui-text focus:border-ui-accent rounded-ui-sm box-border w-full border border-solid px-2 py-1 text-[0.85rem] outline-none"
+        name="board-name"
+        [(ngModel)]="name"
+        [placeholder]="'feature.whiteBoard.settings.name' | transloco"
+      />
+
+      <div class="flex items-center gap-2 text-[0.8rem]">
+        <label class="text-ui-muted flex flex-1 items-center gap-1">
+          {{ 'feature.whiteBoard.settings.width' | transloco }}
+          <input
+            class="border-ui-border-panel bg-ui-input text-ui-text rounded-ui-sm w-full border border-solid p-1 text-center outline-none"
+            name="board-cols"
+            type="number"
+            [min]="minSide"
+            [max]="maxSide"
+            [(ngModel)]="width"
+          />
+        </label>
+        <label class="text-ui-muted flex flex-1 items-center gap-1">
+          {{ 'feature.whiteBoard.settings.height' | transloco }}
+          <input
+            class="border-ui-border-panel bg-ui-input text-ui-text rounded-ui-sm w-full border border-solid p-1 text-center outline-none"
+            name="board-rows"
+            type="number"
+            [min]="minSide"
+            [max]="maxSide"
+            [(ngModel)]="height"
+          />
+        </label>
+        <input
+          class="rounded-ui-sm border-ui-border-panel h-7 w-9 cursor-pointer border border-solid p-0.5"
+          type="color"
+          name="board-face"
+          [(ngModel)]="boardColor"
+          [title]="'feature.whiteBoard.settings.color' | transloco"
+        />
+      </div>
+
+      <label class="text-ui-muted flex items-center gap-2 text-[0.8rem]">
+        <span class="w-16 shrink-0">{{ 'feature.whiteBoard.settings.pitch' | transloco }}</span>
+        <input
+          class="flex-1"
+          type="range"
+          name="board-pitch"
+          [min]="minPitch"
+          [max]="maxPitch"
+          step="5"
+          [(ngModel)]="pitch"
+        />
+        <span class="w-10 text-right">{{ pitch }}°</span>
+      </label>
+      <label class="text-ui-muted flex items-center gap-2 text-[0.8rem]">
+        <span class="w-16 shrink-0">{{ 'feature.whiteBoard.settings.rotate' | transloco }}</span>
+        <input class="flex-1" type="range" name="board-rotate" min="0" max="359" step="1" [(ngModel)]="rotate" />
+        <span class="w-10 text-right">{{ rotate }}°</span>
+      </label>
+      <label class="text-ui-muted flex items-center gap-2 text-[0.8rem]">
+        <span class="w-16 shrink-0">{{ 'feature.whiteBoard.settings.opacity' | transloco }}</span>
+        <input
+          class="flex-1"
+          type="range"
+          name="board-opacity"
+          min="0"
+          max="100"
+          step="5"
+          [(ngModel)]="opacityPercent"
+        />
+        <span class="w-10 text-right">{{ opacityPercent }}%</span>
+      </label>
+
+      <div class="flex gap-4 text-[0.8rem]">
+        <label class="flex cursor-pointer items-center gap-1.5">
+          <input type="checkbox" name="board-shadow" [(ngModel)]="isDropShadow" />
+          {{ 'feature.whiteBoard.settings.dropShadow' | transloco }}
+        </label>
+        <label class="flex cursor-pointer items-center gap-1.5">
+          <input type="checkbox" name="board-lock" [(ngModel)]="isLock" />
+          {{ 'feature.whiteBoard.settings.lock' | transloco }}
+        </label>
+      </div>
+
+      @if (standing.length > 0) {
+        <div>
+          <div class="text-ui-muted mb-1 text-[0.78rem]">
+            {{ 'feature.whiteBoard.settings.contents' | transloco: { count: standing.length } }}
+          </div>
+          <div class="border-ui-border-panel rounded-ui-sm flex max-h-28 flex-col overflow-y-auto border border-solid">
+            @for (object of standing; track object.identifier) {
+              <div class="flex items-center justify-between gap-2 px-2 py-1 text-[0.8rem]">
+                <span class="truncate">{{ nameOf(object) }}</span>
+                <button
+                  class="text-ui-accent shrink-0 cursor-pointer border-0 bg-transparent p-0 text-[0.78rem]"
+                  type="button"
+                  (click)="takeOff(object)"
+                >
+                  {{ 'feature.whiteBoard.settings.takeOff' | transloco }}
+                </button>
+              </div>
+            }
+          </div>
+        </div>
+      }
+    </div>
+  </details>
 </div>

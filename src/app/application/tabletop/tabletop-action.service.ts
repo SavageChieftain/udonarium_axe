@@ -37,7 +37,7 @@ import { TableAmbience } from '@axe/domain/tabletop/table-ambience';
 import { TableSelecter } from '@axe/domain/tabletop/table-selecter';
 import { Terrain } from '@axe/domain/tabletop/terrain';
 import { TextNote } from '@axe/domain/tabletop/text-note';
-import { WhiteBoard } from '@axe/domain/tabletop/white-board';
+import { MAX_BOARD_PITCH, WhiteBoard } from '@axe/domain/tabletop/white-board';
 
 /** How wide an ambient effect starts, in cells. One cell reads as nothing, so it arrives with some ground under it. */
 const AMBIENCE_DEFAULT_SIZE = 4;
@@ -223,18 +223,27 @@ export class TabletopActionService {
     return range;
   }
 
-  createWhiteBoard(position: PointerCoordinate): WhiteBoard {
-    const board = WhiteBoard.create(
-      this.t('feature.whiteBoard.defaultName'),
-      BOARD_DEFAULT_WIDTH,
-      BOARD_DEFAULT_HEIGHT,
-      1
-    );
-    board.location.x = position.x;
-    board.location.y = position.y;
-    board.posZ = position.z;
+  /**
+   * A board is put up where a board goes: standing, behind the map, the size of the map.
+   *
+   * Laid flat over the middle of the table it covers the very thing everyone is looking at,
+   * and at six squares by four it is too small to write anything on. It stands a square clear
+   * of the north edge instead, as wide as the table it stands behind.
+   */
+  createWhiteBoard(_position: PointerCoordinate): WhiteBoard {
+    const table = this.getViewTable();
+    const width = table?.width ?? BOARD_DEFAULT_WIDTH;
+    const height = table?.height ?? BOARD_DEFAULT_HEIGHT;
+    const grid = table?.gridSize ?? 50;
+
+    const board = WhiteBoard.create(this.t('feature.whiteBoard.defaultName'), width, height, 1);
+    board.pitch = MAX_BOARD_PITCH;
+    // Standing, a board hinges on its bottom edge, so its foot is a square north of the table.
+    board.location.x = 0;
+    board.location.y = -(grid + height * grid);
+    board.posZ = 0;
     // A board belongs to its table, the way terrain does, so clearing the table clears it.
-    this.getViewTable()?.appendChild(board);
+    table?.appendChild(board);
     board.update();
     return board;
   }

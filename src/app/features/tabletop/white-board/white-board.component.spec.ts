@@ -73,18 +73,6 @@ describe('WhiteBoardComponent', () => {
     expect(theirs.location.surface).toBeUndefined();
   });
 
-  it('takes up whatever is lying over it, in the board’s own coordinates', () => {
-    const over = place(150, 240);
-    const beside = place(20, 20);
-
-    component.gather(board);
-
-    expect(over.location.surface).toBe(board.identifier);
-    expect(over.location.x).toBe(50);
-    expect(over.location.y).toBe(40);
-    expect(beside.location.surface).toBeUndefined();
-  });
-
   it('puts everything back where it appeared to be when the board is cleared', () => {
     const piece = place(50, 40, board.identifier);
 

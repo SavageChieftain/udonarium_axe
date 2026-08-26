@@ -11,10 +11,8 @@ function names(menu: ContextMenuAction[]): string[] {
 
 function handlers() {
   return {
-    onEdit: vi.fn(),
     onDraw: vi.fn(),
     onDetachAll: vi.fn(),
-    onGather: vi.fn(),
     onCopy: vi.fn(),
     onDelete: vi.fn(),
   };
@@ -31,10 +29,13 @@ describe('buildWhiteBoardContextMenu()', () => {
     ObjectStore.instance.remove(board);
   });
 
-  it('offers the settings, the angle and the lock', () => {
+  it('offers the drawing, the angle and the lock, and nothing the panel already covers', () => {
     const menu = names(buildWhiteBoardContextMenu(board, 0, t, handlers()));
 
-    expect(menu).toContain('feature.whiteBoard.contextMenu.settings');
+    expect(menu).toContain('feature.whiteBoard.contextMenu.draw');
+    // Everything a board is set to now lives in the one panel it is drawn on.
+    expect(menu).not.toContain('feature.whiteBoard.contextMenu.settings');
+    expect(menu).not.toContain('feature.whiteBoard.contextMenu.gather');
     expect(menu).toContain('feature.whiteBoard.contextMenu.pitch');
     expect(menu).toContain('feature.tabletop.contextMenu.lock');
   });
@@ -64,12 +65,11 @@ describe('buildWhiteBoardContextMenu()', () => {
     const spies = handlers();
     const menu = buildWhiteBoardContextMenu(board, 2, t, spies);
 
-    for (const key of ['settings', 'gather', 'detachAll', 'copy', 'delete']) {
+    for (const key of ['draw', 'detachAll', 'copy', 'delete']) {
       menu.find((item) => item.name === `feature.whiteBoard.contextMenu.${key}`)!.action!();
     }
 
-    expect(spies.onEdit).toHaveBeenCalledWith(board);
-    expect(spies.onGather).toHaveBeenCalledWith(board);
+    expect(spies.onDraw).toHaveBeenCalledWith(board);
     expect(spies.onDetachAll).toHaveBeenCalledWith(board);
     expect(spies.onCopy).toHaveBeenCalledWith(board);
     expect(spies.onDelete).toHaveBeenCalledWith(board);

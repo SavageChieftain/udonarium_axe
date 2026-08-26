@@ -5,7 +5,8 @@ import { TabletopService } from '@axe/application/tabletop/tabletop.service';
 import { ModalService } from '@axe/application/ui/modal.service';
 import { PanelService } from '@axe/application/ui/panel.service';
 import { ImageStorage } from '@axe/core/storage/image-storage';
-import { WhiteBoard } from '@axe/domain/tabletop/white-board';
+import { boardSurfaceOf, TabletopObject } from '@axe/domain/tabletop/tabletop-object';
+import { clampBoardPitch, MAX_BOARD_PITCH, MIN_BOARD_PITCH, WhiteBoard } from '@axe/domain/tabletop/white-board';
 import { MapScene, sceneHeightPx, sceneWidthPx } from '@axe/features/map-editor/model/scene';
 import {
   addImage,
@@ -20,6 +21,7 @@ import {
 import { deserializeScene, serializeScene } from '@axe/features/map-editor/model/serialize';
 import { getRasterImage, warmRasterImages } from '@axe/features/map-editor/render/raster-image';
 import { renderScene } from '@axe/features/map-editor/render/render-scene';
+import { detachFromBoard, standingOn } from '@axe/features/tabletop/white-board/white-board-contents';
 import {
   BOARD_TOOLS,
   BoardPoint,
@@ -44,6 +46,8 @@ import { TranslocoModule } from '@jsverse/transloco';
 const SAVE_DELAY = 600;
 /** How big a sticker goes down, in the board's own pixels. */
 const STICKER_SIZE = 120;
+const MIN_SIDE = 1;
+const MAX_SIDE = 40;
 
 @Component({
   selector: 'white-board-editor',
@@ -75,6 +79,140 @@ export class WhiteBoardEditorComponent {
   private drawingPoints: number[] = [];
   private dragFrom: BoardPoint | null = null;
   private held: { kind: 'image' | 'text'; id: string; grabX: number; grabY: number } | null = null;
+
+  readonly minPitch = MIN_BOARD_PITCH;
+  readonly maxPitch = MAX_BOARD_PITCH;
+  readonly minSide = MIN_SIDE;
+  readonly maxSide = MAX_SIDE;
+
+  /** Bumped by hand, since the board's own values are not signals. */
+  protected readonly revision = signal(0);
+
+  get name(): string {
+    this.revision();
+    return this.board?.name ?? '';
+  }
+  set name(value: string) {
+    if (!this.board) return;
+    this.board.name = value;
+    this.panelService.title = value;
+    this.settingChanged();
+  }
+
+  get width(): number {
+    this.revision();
+    return this.board?.width ?? 1;
+  }
+  set width(value: number) {
+    if (this.board) this.board.width = clampSide(value);
+    this.resized();
+  }
+
+  get height(): number {
+    this.revision();
+    return this.board?.height ?? 1;
+  }
+  set height(value: number) {
+    if (this.board) this.board.height = clampSide(value);
+    this.resized();
+  }
+
+  get pitch(): number {
+    this.revision();
+    return this.board?.pitch ?? 0;
+  }
+  set pitch(value: number) {
+    if (this.board) this.board.pitch = clampBoardPitch(value);
+    this.settingChanged();
+  }
+
+  get rotate(): number {
+    this.revision();
+    return this.board?.rotate ?? 0;
+  }
+  set rotate(value: number) {
+    if (this.board) this.board.rotate = Math.round(Number(value)) % 360;
+    this.settingChanged();
+  }
+
+  get opacityPercent(): number {
+    this.revision();
+    return Math.round((this.board?.opacity ?? 1) * 100);
+  }
+  set opacityPercent(value: number) {
+    if (!this.board) return;
+    this.board.opacity = Math.min(100, Math.max(0, Math.round(Number(value)))) / 100;
+    this.board.update();
+    this.settingChanged();
+  }
+
+  get boardColor(): string {
+    this.revision();
+    return this.board?.color ?? '#f4f1e8';
+  }
+  set boardColor(value: string) {
+    if (this.board) this.board.color = value;
+    this.settingChanged();
+  }
+
+  get isDropShadow(): boolean {
+    this.revision();
+    return this.board?.isDropShadow ?? true;
+  }
+  set isDropShadow(value: boolean) {
+    if (this.board) this.board.isDropShadow = value;
+    this.settingChanged();
+  }
+
+  get isLock(): boolean {
+    this.revision();
+    return this.board?.isLock ?? false;
+  }
+  set isLock(value: boolean) {
+    if (this.board) this.board.isLock = value;
+    this.settingChanged();
+  }
+
+  /** What is standing on the board, so it can be taken off without hunting for it. */
+  get standing(): TabletopObject[] {
+    this.revision();
+    const board = this.board;
+    if (!board) return [];
+    return standingOn(board, [
+      ...this.tabletopService.characters,
+      ...this.tabletopService.terrains,
+      ...this.tabletopService.tableMasks,
+      ...this.tabletopService.textNotes,
+      ...this.tabletopService.cards,
+      ...this.tabletopService.diceSymbols,
+    ]);
+  }
+
+  protected nameOf(object: TabletopObject): string {
+    return object.name?.length ? object.name : object.aliasName;
+  }
+
+  protected takeOff(object: TabletopObject): void {
+    if (!this.board || !boardSurfaceOf(object)) return;
+    detachFromBoard(this.board, object);
+    this.settingChanged();
+  }
+
+  private settingChanged(): void {
+    this.revision.update((value) => value + 1);
+  }
+
+  /** A wider board is a wider sheet to write on, so the drawing is given the new room. */
+  private resized(): void {
+    const board = this.board;
+    if (!board) return;
+    const grid = this.tabletopService.gridSize();
+    this.scene.cols = board.width;
+    this.scene.rows = board.height;
+    this.scene.cellPx = grid;
+    this.settingChanged();
+    this.touched();
+  }
 
   bindToBoard(board: WhiteBoard): void {
     this.board = board;
@@ -317,4 +455,10 @@ export class WhiteBoardEditorComponent {
     // The picture the board wore before this edit is worn by nothing now.
     if (typeof worn === 'string' && worn && worn !== file.identifier) this.imageStorage.delete(worn);
   }
+}
+
+function clampSide(value: number): number {
+  const side = Math.round(Number(value));
+  if (!Number.isFinite(side)) return MIN_SIDE;
+  return Math.min(MAX_SIDE, Math.max(MIN_SIDE, side));
 }
