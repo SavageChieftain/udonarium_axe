@@ -27,21 +27,17 @@ describe('LightSourceComponent', () => {
     light.destroy();
   });
 
-  it('stands the picture up off the board', () => {
-    expect(component.standTransform()).toBe('rotateX(-90deg) translateY(-50%)');
-  });
-
-  it('lifts a mounted light up the wall before standing it', () => {
-    light.altitude = 1;
-
-    expect(component.standTransform()).toBe('translateZ(50px) rotateX(-90deg) translateY(-50%)');
-  });
-
-  it('turns the picture back towards the camera, as a character piece does', () => {
+  it('stands the picture on the middle of its cell, facing the camera', () => {
     TestBed.inject(UiSignalService).notifyTableViewRotation(50, 0, 45);
 
-    expect(component.skinTransform()).toContain('rotateX(90deg)');
-    expect(component.skinTransform()).toContain('rotateZ(-45deg)');
-    expect(component.skinTransform()).toContain('rotateX(-50deg)');
+    expect(component.skinTransform()).toBe(
+      'translateZ(25px) translateZ(0.00px) rotateZ(0deg) rotateZ(-45deg) rotateX(-50deg) rotateY(0deg)'
+    );
+  });
+
+  it('lifts a light mounted up a wall by its altitude', () => {
+    light.altitude = 1;
+
+    expect(component.skinTransform()).toContain('translateZ(75px)');
   });
 });

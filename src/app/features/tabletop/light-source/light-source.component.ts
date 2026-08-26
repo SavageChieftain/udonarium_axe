@@ -131,23 +131,18 @@ export class LightSourceComponent {
     return light.lightAngle < 360;
   });
 
-  readonly standTransform = computed(() => `${this.altitudeTransform()} rotateX(-90deg) translateY(-50%)`.trim());
-
-  readonly skinTransform = computed(() =>
-    makeBillboardTransform({
-      rotation: this.uiSignalService.tableViewRotation(),
-      pieceRotate: 0,
-      parentInverseRotation: 'rotateX(90deg)',
-      verticalOffset3D: 0,
-      mode2d: this.tabletopService.mode2d(),
-    })
-  );
-
-  readonly altitudeTransform = computed(() => {
+  readonly skinTransform = computed(() => {
     const light = this.lightSource();
     this.objectChange.versionOf(light.identifier)();
-    const z = light.altitude * this.gridSize + light.posZ;
-    return z !== 0 ? 'translateZ(' + z + 'px)' : '';
+    const lift = light.altitude * this.gridSize + light.posZ + this.gridSize / 2;
+    const facing = makeBillboardTransform({
+      rotation: this.uiSignalService.tableViewRotation(),
+      pieceRotate: 0,
+      parentInverseRotation: '',
+      verticalOffset3D: 0,
+      mode2d: this.tabletopService.mode2d(),
+    });
+    return `translateZ(${lift}px) ${facing}`.replace(/\s{2,}/g, ' ');
   });
 
   onMove() {
