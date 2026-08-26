@@ -93,9 +93,18 @@ export interface MapLight extends MapPoint {
   facing: number;
 }
 
+/** An effect laid over a patch of the board and left there: a poisoned pool, a vent, a mire. */
+export interface MapAmbience {
+  rect: MapRect;
+  kind: string;
+  density: number;
+  name: string;
+}
+
 export interface MapBlocks {
   blocks: MapBlock[];
   paint: MapPaint[];
+  ambiences: MapAmbience[];
   torchRooms: number[];
   torchSpots: MapPoint[];
   lights: MapLight[];

@@ -1790,7 +1790,8 @@
           "bush": "덤불",
           "boulder": "바위",
           "outcrop": "암반",
-          "hill": "언덕"
+          "hill": "언덕",
+          "cactus": "선인장"
         }
       }
     },

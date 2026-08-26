@@ -79,6 +79,15 @@ export function fieldToBlocks(layout: FieldLayout, atmosphere: FieldAtmosphere, 
     }
   }
 
+  // Last laid wins where two patches cover one cell, so a pool goes down over the band it lies in.
+  for (const pool of layout.pools) {
+    paint.push({
+      kind: 'hazard',
+      rect: { x: pool.x, y: pool.y, w: pool.w, h: pool.h },
+      material: { kind: 'texture', id: pool.texture },
+    });
+  }
+
   for (const object of layout.objects) {
     const shape = FIELD_PROP_SHAPES[object.prop];
     const skin = object.skin ?? { side: shape.side, top: shape.top };
@@ -124,6 +133,22 @@ export function fieldToBlocks(layout: FieldLayout, atmosphere: FieldAtmosphere, 
       });
       standing += layer.height;
     });
+
+    for (const arm of shape.arms ?? []) {
+      blocks.push({
+        kind: 'prop',
+        rect: { x: object.x, y: object.y, w: 1, h: 1 },
+        blocksSight: false,
+        locked: false,
+        rooms: [],
+        skin: { side: { kind: 'texture', id: skin.side }, top: { kind: 'texture', id: skin.top } },
+        height: arm.height,
+        footprint: { w: arm.size, d: arm.size },
+        altitude: (shape.altitude ?? 0) + object.lift + arm.at,
+        rotate: object.spin,
+        offset: { x: arm.reach, y: 0 },
+      });
+    }
   }
 
   const lights = findFires(layout, atmosphere, seed);
@@ -131,6 +156,12 @@ export function fieldToBlocks(layout: FieldLayout, atmosphere: FieldAtmosphere, 
   return {
     blocks,
     paint,
+    ambiences: layout.pools.map((pool) => ({
+      rect: { x: pool.x, y: pool.y, w: pool.w, h: pool.h },
+      kind: pool.kind,
+      density: pool.density,
+      name: pool.name,
+    })),
     torchRooms: lights.map((light) => light.room),
     torchSpots: lights.map((light) => ({ x: light.x, y: light.y })),
     lights,

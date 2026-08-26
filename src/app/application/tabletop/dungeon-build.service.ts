@@ -1,6 +1,7 @@
 import { inject, Injectable } from '@angular/core';
 import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { ImageStorage } from '@axe/core/storage/image-storage';
+import { AmbienceKind } from '@axe/domain/effect/ambience/ambience-kind';
 import { ImageTag } from '@axe/domain/media/image-tag';
 import { LIGHT_SKIN_ASSET_URLS, LightSkinId } from '@axe/domain/media/light-skins';
 import {
@@ -13,6 +14,7 @@ import {
 import { GameTable, GridType } from '@axe/domain/tabletop/game-table';
 import { LightSource } from '@axe/domain/tabletop/light-source';
 import {
+  MapAmbience,
   MapBlock,
   MapBlocks,
   MapLight,
@@ -21,6 +23,7 @@ import {
   MapMood,
   MapSize,
 } from '@axe/domain/tabletop/map-blocks';
+import { TableAmbience } from '@axe/domain/tabletop/table-ambience';
 import { DoorStyle, SlopeDirection, Terrain, TerrainViewState } from '@axe/domain/tabletop/terrain';
 import { applyLightPreset, LightPreset } from '@axe/domain/tabletop/vision-types';
 
@@ -125,6 +128,7 @@ export class DungeonBuildService {
     }
     onProgress?.(blocks.blocks.length, blocks.blocks.length);
 
+    this.layAmbiences(table, blocks.ambiences);
     this.standLights(table, blocks.lights, options.wallHeight);
 
     return { table, terrainCount: blocks.blocks.length, summary: options.summary };
@@ -243,6 +247,24 @@ export class DungeonBuildService {
         return this.t('feature.tabletop.dungeonGenerator.piece.entrance');
       default:
         return this.t('feature.tabletop.dungeonGenerator.piece.exit');
+    }
+  }
+
+  /** What hangs in the air over a patch of ground, as a child of the table it hangs over. */
+  private layAmbiences(table: GameTable, ambiences: readonly MapAmbience[]): void {
+    for (const patch of ambiences) {
+      const ambience = TableAmbience.create(
+        this.t(`feature.ambience.kind.${patch.kind}`),
+        patch.kind as AmbienceKind,
+        patch.rect.w,
+        patch.rect.h
+      );
+      ambience.ambienceDensity = patch.density;
+      ambience.isLock = true;
+      ambience.location = { name: 'table', x: patch.rect.x * GRID_SIZE, y: patch.rect.y * GRID_SIZE };
+      ambience.posZ = 0;
+      table.appendChild(ambience);
+      ambience.update();
     }
   }
 

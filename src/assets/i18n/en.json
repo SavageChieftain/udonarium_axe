@@ -1790,7 +1790,8 @@
           "bush": "Bushes",
           "boulder": "Boulders",
           "outcrop": "Outcrops",
-          "hill": "Hills"
+          "hill": "Hills",
+          "cactus": "Cacti"
         }
       }
     },

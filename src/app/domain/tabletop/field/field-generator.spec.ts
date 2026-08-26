@@ -36,9 +36,17 @@ describe('planField()', () => {
   it('paints every cell of the board and no more', () => {
     for (const id of FIELD_ATMOSPHERE_IDS) {
       const plan = planField({ atmosphere: id, size: 30, density: 50, seed: 7 });
-      const painted = plan.blocks.paint.reduce((total, patch) => total + patch.rect.w * patch.rect.h, 0);
+      const covered = new Set<number>();
+      for (const patch of plan.blocks.paint) {
+        for (let dy = 0; dy < patch.rect.h; dy++) {
+          for (let dx = 0; dx < patch.rect.w; dx++) {
+            covered.add((patch.rect.y + dy) * plan.layout.width + patch.rect.x + dx);
+          }
+        }
+      }
 
-      expect(painted).toBe(plan.layout.width * plan.layout.height);
+      // Every cell is painted once, and a pool is painted again over the band it lies in.
+      expect(covered.size).toBe(plan.layout.width * plan.layout.height);
       expect(plan.blocks.paint.every((patch) => patch.material)).toBe(true);
     }
   });
@@ -137,6 +145,46 @@ describe('planField()', () => {
 
         // A rock that starts above the ground is a rock hovering over it.
         expect(Math.min(...mine.map((block) => block.altitude ?? 0))).toBe(0);
+      }
+    }
+  });
+
+  it('pours a poisoned pool into a marsh now and then, with something in the air over it', () => {
+    const found = [1, 7, 42, 1234, 999].map((seed) => planField({ atmosphere: 'marsh', size: 40, density: 50, seed }));
+    const withPools = found.filter((plan) => plan.layout.pools.length > 0);
+
+    // Now and then, not on every board and not a dozen to a board.
+    expect(withPools.length).toBeGreaterThan(0);
+    expect(withPools.length).toBeLessThan(found.length);
+    for (const plan of withPools) {
+      for (const pool of plan.blocks.ambiences) {
+        expect(pool.kind).toBe('miasma');
+        expect(pool.density).toBeGreaterThan(0);
+        // The bed of it is painted, so the ground reads as water rather than as marsh.
+        expect(plan.blocks.paint.some((patch) => patch.rect.x === pool.rect.x && patch.kind === 'hazard')).toBe(true);
+      }
+    }
+  });
+
+  it('grows cacti in the wasteland, with arms out on their flanks', () => {
+    const plan = planField({ atmosphere: 'wasteland', size: 40, density: 50, seed: 7 });
+    const cacti = plan.layout.objects.filter((object) => object.prop === 'cactus');
+    const arms = plan.blocks.blocks.filter((block) => block.offset && block.offset.x !== 0);
+
+    expect(cacti.length).toBeGreaterThan(0);
+    // What tells a cactus from a post is the pair of stubs on its flanks.
+    expect(FIELD_PROP_SHAPES.cactus.arms!.length).toBe(2);
+    expect(arms.length).toBeGreaterThanOrEqual(cacti.length);
+  });
+
+  it('leaves nothing standing in the middle of a pool', () => {
+    const plan = planField({ atmosphere: 'marsh', size: 40, density: 100, seed: 42 });
+
+    for (const pool of plan.layout.pools) {
+      for (const object of plan.layout.objects) {
+        const insideX = pool.x <= object.x && object.x < pool.x + pool.w;
+        const insideY = pool.y <= object.y && object.y < pool.y + pool.h;
+        expect(insideX && insideY).toBe(false);
       }
     }
   });

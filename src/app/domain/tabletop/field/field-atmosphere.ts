@@ -5,7 +5,7 @@ export const FIELD_ATMOSPHERE_IDS = ['woodland', 'meadow', 'coast', 'marsh', 'sn
 
 export type FieldAtmosphereId = (typeof FIELD_ATMOSPHERE_IDS)[number];
 
-export const FIELD_PROP_IDS = ['tree', 'bush', 'boulder', 'outcrop', 'hill'] as const;
+export const FIELD_PROP_IDS = ['tree', 'bush', 'boulder', 'outcrop', 'hill', 'cactus'] as const;
 
 export type FieldPropId = (typeof FIELD_PROP_IDS)[number];
 
@@ -46,6 +46,8 @@ export interface FieldPropShape {
   spacing?: number;
   /** Whether it takes the ground it covers, so that nothing else is put down on top of it. */
   claimsGround?: boolean;
+  /** Stubs set out on its flanks, which is what tells a cactus from a post. */
+  arms?: readonly { at: number; reach: number; size: number; height: number }[];
 }
 
 /**
@@ -118,6 +120,30 @@ export const FIELD_PROP_SHAPES: Record<FieldPropId, FieldPropShape> = {
     spacing: 4,
   },
   /**
+   * A column with its arms up.
+   *
+   * What tells a cactus from a post is the pair of stubs on its flanks, so it is a narrow
+   * trunk with two of them set at different heights on opposite sides.
+   */
+  cactus: {
+    side: 'steppe',
+    top: 'steppe',
+    height: 1.4,
+    span: 1,
+    blocksSight: false,
+    layers: [
+      { spread: 0.34, height: 0.6 },
+      { spread: 0.3, height: 0.6 },
+      { spread: 0.22, height: 0.2 },
+    ],
+    arms: [
+      { at: 0.55, reach: 0.28, size: 0.2, height: 0.42 },
+      { at: 0.85, reach: -0.26, size: 0.18, height: 0.34 },
+    ],
+    spin: 45,
+    spacing: 3,
+  },
+  /**
    * A rise in the ground rather than a thing standing on it.
    *
    * The ground itself is a picture painted flat, so the only way a meadow gets a fold in it
@@ -166,6 +192,18 @@ export interface FieldPropPlan {
   bands: readonly number[];
 }
 
+/** A patch of ground with something in the air over it, and how often one turns up. */
+export interface FieldPoolPlan {
+  kind: string;
+  texture: TextureId;
+  density: number;
+  /** How wide across it spreads, in cells. */
+  size: number;
+  /** About how many of them a board gets. */
+  chance: number;
+  bands: readonly number[];
+}
+
 export interface FieldAtmosphere extends MapMood {
   id: FieldAtmosphereId;
   defaultGround: TextureId;
@@ -179,6 +217,8 @@ export interface FieldAtmosphere extends MapMood {
    * height itself. It is what breaks the bands out of rings round the high ground.
    */
   damp: number;
+  /** Patches of ground that are worse than ground: a poisoned pool, a vent. */
+  pools?: readonly FieldPoolPlan[];
   /**
    * How much of a slope runs across the board, from nothing to all of it.
    *
@@ -295,6 +335,7 @@ export const FIELD_ATMOSPHERES: Record<FieldAtmosphereId, FieldAtmosphere> = {
       { prop: 'tree', chance: 0.13, bands: [1, 2] },
       { prop: 'bush', chance: 0.07, bands: [1] },
     ],
+    pools: [{ kind: 'miasma', texture: 'sea', density: 0.55, size: 3, chance: 5, bands: [0, 1] }],
     darkness: 0.35,
     ambientColor: '#101511',
     weatherKind: 'fog',
@@ -338,6 +379,7 @@ export const FIELD_ATMOSPHERES: Record<FieldAtmosphereId, FieldAtmosphere> = {
     ],
     props: [
       { prop: 'boulder', chance: 0.07, bands: [1, 2] },
+      { prop: 'cactus', chance: 0.06, bands: [1] },
       { prop: 'outcrop', chance: 0.08, bands: [2] },
       { prop: 'bush', chance: 0.04, bands: [0], skin: { side: 'rock_moss', top: 'rock_moss' } },
     ],

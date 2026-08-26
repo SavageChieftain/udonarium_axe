@@ -214,6 +214,7 @@ export function layoutToBlocks(
   return {
     blocks,
     paint,
+    ambiences: [],
     torchRooms: lights.map((light) => light.room),
     torchSpots: lights.map((light) => ({ x: light.x, y: light.y })),
     lights,

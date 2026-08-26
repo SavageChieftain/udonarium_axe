@@ -8,9 +8,26 @@ export interface FieldLayout {
   /** Which band of ground each cell fell into. */
   ground: Uint8Array;
   /** What stands on each cell, or an empty string where nothing does. */
-  props: (FieldPropId | '')[];
+  props: FieldGroundMark[];
   /** What stands on the ground as whole things rather than as cells: trees, boulders, crags. */
   objects: FieldObject[];
+  /** Patches of ground with something in the air over them: a poisoned pool, a vent, a mire. */
+  pools: FieldPool[];
+}
+
+/** What a cell is taken up by: something standing on it, a patch poured over it, or nothing. */
+export type FieldGroundMark = FieldPropId | 'pool' | '';
+
+/** A patch of ground that is not merely ground: what it is, and how thick it lies. */
+export interface FieldPool {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+  kind: string;
+  density: number;
+  name: string;
+  texture: string;
 }
 
 /**
@@ -42,7 +59,7 @@ export function bandAt(layout: FieldLayout, x: number, y: number): number {
   return layout.ground[y * layout.width + x];
 }
 
-export function propAt(layout: FieldLayout, x: number, y: number): FieldPropId | '' {
+export function propAt(layout: FieldLayout, x: number, y: number): FieldGroundMark {
   if (x < 0 || y < 0 || layout.width <= x || layout.height <= y) return '';
   return layout.props[y * layout.width + x];
 }
@@ -67,8 +84,11 @@ const CROWD_LIMIT = 2;
 const OCTAVES = 3;
 /** How far a point is displaced before the height is read there, in lattice units. */
 const WARP = 0.6;
+/** How near two pools may lie, in cells. */
+const POOL_SPACING = 8;
+
 /** What is put down as a whole thing rather than as a cell of ground cover. */
-const STANDING_PROPS: readonly FieldPropId[] = ['hill', 'tree', 'boulder', 'outcrop'];
+const STANDING_PROPS: readonly FieldPropId[] = ['hill', 'tree', 'boulder', 'outcrop', 'cactus'];
 
 /** Below this share of the growth field nothing grows, and above it the stand thickens. */
 const GROWTH_FLOOR = 0.3;
@@ -93,7 +113,7 @@ function plant(
   prop: FieldPropId,
   atmosphere: FieldAtmosphere,
   ground: Uint8Array,
-  props: (FieldPropId | '')[],
+  props: FieldGroundMark[],
   objects: FieldObject[],
   width: number,
   height: number,
@@ -157,6 +177,67 @@ function plant(
   }
 }
 
+/**
+ * Puts down the patches that are worse than ground.
+ *
+ * A marsh with nothing in it but mud is scenery; one with a pool of something in it that
+ * wants you out of it is a place to fight over. The patch takes the ground it covers, so
+ * nothing is left standing in the middle of it.
+ */
+function pourPools(
+  atmosphere: FieldAtmosphere,
+  ground: Uint8Array,
+  props: FieldGroundMark[],
+  pools: FieldPool[],
+  width: number,
+  height: number,
+  rng: () => number
+): void {
+  for (const plan of atmosphere.pools ?? []) {
+    for (let y = 1; y < height - plan.size; y++) {
+      for (let x = 1; x < width - plan.size; x++) {
+        if (rng() >= plan.chance / (width * height)) continue;
+        if (!clearFor(ground, props, width, x, y, plan.size, plan.bands)) continue;
+        if (pools.some((pool) => Math.abs(pool.x - x) < POOL_SPACING && Math.abs(pool.y - y) < POOL_SPACING)) continue;
+
+        for (let dy = 0; dy < plan.size; dy++) {
+          for (let dx = 0; dx < plan.size; dx++) props[(y + dy) * width + x + dx] = 'pool';
+        }
+        pools.push({
+          x,
+          y,
+          w: plan.size,
+          h: plan.size,
+          kind: plan.kind,
+          density: plan.density,
+          name: plan.kind,
+          texture: plan.texture,
+        });
+      }
+    }
+  }
+}
+
+/** Whether a whole patch of ground is of the right sort and has nothing standing on it. */
+function clearFor(
+  ground: Uint8Array,
+  props: FieldGroundMark[],
+  width: number,
+  x: number,
+  y: number,
+  size: number,
+  bands: readonly number[]
+): boolean {
+  for (let dy = 0; dy < size; dy++) {
+    for (let dx = 0; dx < size; dx++) {
+      const index = (y + dy) * width + x + dx;
+      if (props[index]) return false;
+      if (!bands.includes(ground[index])) return false;
+    }
+  }
+  return true;
+}
+
 /** The heights at which each band gives way to the next, so that each gets the share it asked for. */
 function quantileCuts(heights: Float64Array, shares: readonly number[]): number[] {
   const sorted = Float64Array.from(heights).sort();
@@ -170,7 +251,7 @@ function quantileCuts(heights: Float64Array, shares: readonly number[]): number[
 function fits(
   atmosphere: FieldAtmosphere,
   ground: Uint8Array,
-  props: (FieldPropId | '')[],
+  props: FieldGroundMark[],
   width: number,
   height: number,
   x: number,
@@ -188,7 +269,7 @@ function fits(
   return true;
 }
 
-function crowded(props: (FieldPropId | '')[], width: number, height: number, x: number, y: number): boolean {
+function crowded(props: FieldGroundMark[], width: number, height: number, x: number, y: number): boolean {
   let taken = 0;
   if (0 < x && props[y * width + x - 1]) taken++;
   if (x < width - 1 && props[y * width + x + 1]) taken++;
@@ -212,8 +293,9 @@ export function generateField(
 ): FieldLayout {
   const relief = Math.max(1, atmosphere.relief);
   const ground = new Uint8Array(width * height);
-  const props: (FieldPropId | '')[] = new Array(width * height).fill('');
+  const props: FieldGroundMark[] = new Array(width * height).fill('');
   const objects: FieldObject[] = [];
+  const pools: FieldPool[] = [];
 
   const land = makeValueNoise(seed);
   const drift = makeValueNoise(seed + 4409);
@@ -296,6 +378,7 @@ export function generateField(
   for (const prop of STANDING_PROPS) {
     plant(prop, atmosphere, ground, props, objects, width, height, growthField, thinnest, growthSpan, rng, scale);
   }
+  pourPools(atmosphere, ground, props, pools, width, height, rng);
 
-  return { width, height, ground, props, objects };
+  return { width, height, ground, props, objects, pools };
 }

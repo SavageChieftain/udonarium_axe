@@ -40,8 +40,9 @@ export function buildFieldSummary(input: FieldSummaryInput): string {
     .join(' / ');
 
   const perProp = new Map<FieldPropId, number>();
-  for (const prop of layout.props) {
-    if (prop) perProp.set(prop, (perProp.get(prop) ?? 0) + 1);
+  for (const mark of layout.props) {
+    if (!mark || mark === 'pool') continue;
+    perProp.set(mark, (perProp.get(mark) ?? 0) + 1);
   }
   const standing = [...perProp.entries()]
     .sort((left, right) => right[1] - left[1])

@@ -1790,7 +1790,8 @@
           "bush": "茂み",
           "boulder": "岩",
           "outcrop": "岩場",
-          "hill": "丘"
+          "hill": "丘",
+          "cactus": "サボテン"
         }
       }
     },
