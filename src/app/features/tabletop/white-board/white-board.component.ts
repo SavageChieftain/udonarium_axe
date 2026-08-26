@@ -250,7 +250,10 @@ export class WhiteBoardComponent {
       single: `white-board-${board.identifier}`,
     };
     this.panelService.openLazy(
-      () => import('@axe/features/map-editor/editor/map-editor-panel.component').then((m) => m.MapEditorPanelComponent),
+      () =>
+        import('@axe/features/tabletop/white-board/white-board-editor.component').then(
+          (m) => m.WhiteBoardEditorComponent
+        ),
       option,
       (panel) => panel.bindToBoard(board)
     );

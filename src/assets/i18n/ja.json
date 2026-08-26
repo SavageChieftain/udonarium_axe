@@ -2797,6 +2797,23 @@
         "takeOff": "降ろす",
         "gather": "重なっているものを載せる",
         "clear": "すべて降ろす"
+      },
+      "tool": {
+        "select": "選択",
+        "pen": "ペン",
+        "eraser": "消しゴム",
+        "line": "直線",
+        "box": "四角",
+        "ellipse": "円",
+        "text": "文字",
+        "sticker": "貼る"
+      },
+      "editor": {
+        "ink": "インクの色",
+        "width": "太さ",
+        "fontSize": "文字の大きさ",
+        "clear": "すべて消す",
+        "typeHere": "ここに書く"
       }
     }
   },

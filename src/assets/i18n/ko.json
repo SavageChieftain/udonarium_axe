@@ -3027,6 +3027,23 @@
         "takeOff": "내리기",
         "gather": "겹친 것을 올리기",
         "clear": "전부 내리기"
+      },
+      "tool": {
+        "select": "선택",
+        "pen": "펜",
+        "eraser": "지우개",
+        "line": "직선",
+        "box": "사각형",
+        "ellipse": "원",
+        "text": "글자",
+        "sticker": "붙이기"
+      },
+      "editor": {
+        "ink": "잉크 색",
+        "width": "굵기",
+        "fontSize": "글자 크기",
+        "clear": "모두 지우기",
+        "typeHere": "여기에 입력"
       }
     }
   },

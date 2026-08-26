@@ -2797,6 +2797,23 @@
         "takeOff": "Take off",
         "gather": "Take up what lies over it",
         "clear": "Take everything off"
+      },
+      "tool": {
+        "select": "Select",
+        "pen": "Pen",
+        "eraser": "Eraser",
+        "line": "Line",
+        "box": "Box",
+        "ellipse": "Ellipse",
+        "text": "Text",
+        "sticker": "Stick"
+      },
+      "editor": {
+        "ink": "Ink",
+        "width": "Width",
+        "fontSize": "Text size",
+        "clear": "Wipe it clean",
+        "typeHere": "Type here"
       }
     }
   },

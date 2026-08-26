@@ -1,0 +1,82 @@
+<div class="flex h-full flex-col gap-2 p-2">
+  <div class="flex flex-wrap items-center gap-1.5">
+    @for (entry of tools; track entry) {
+      <button
+        class="rounded-ui-sm border-ui-border-panel bg-ui-input text-ui-text cursor-pointer border border-solid px-2 py-1 text-[0.8rem]"
+        type="button"
+        [class.border-ui-accent]="tool() === entry"
+        (click)="choose(entry)"
+      >
+        {{ 'feature.whiteBoard.tool.' + entry | transloco }}
+      </button>
+    }
+  </div>
+
+  <div class="flex flex-wrap items-center gap-2 text-[0.8rem]">
+    <input
+      class="rounded-ui-sm border-ui-border-panel h-7 w-10 cursor-pointer border border-solid p-0.5"
+      type="color"
+      name="board-ink"
+      [ngModel]="color()"
+      (ngModelChange)="color.set($event)"
+      [title]="'feature.whiteBoard.editor.ink' | transloco"
+    />
+    <label class="text-ui-muted flex items-center gap-1">
+      {{ 'feature.whiteBoard.editor.width' | transloco }}
+      <input
+        class="w-24"
+        type="range"
+        name="board-width"
+        min="1"
+        max="24"
+        step="1"
+        [ngModel]="strokeWidth()"
+        (ngModelChange)="strokeWidth.set($event)"
+      />
+    </label>
+    <label class="text-ui-muted flex items-center gap-1">
+      {{ 'feature.whiteBoard.editor.fontSize' | transloco }}
+      <input
+        class="w-20"
+        type="range"
+        name="board-font"
+        min="10"
+        max="72"
+        step="2"
+        [ngModel]="fontSize()"
+        (ngModelChange)="fontSize.set($event)"
+      />
+    </label>
+    <button
+      class="text-ui-accent ml-auto cursor-pointer border-0 bg-transparent p-0 text-[0.8rem]"
+      type="button"
+      (click)="clearBoard()"
+    >
+      {{ 'feature.whiteBoard.editor.clear' | transloco }}
+    </button>
+  </div>
+
+  <div class="border-ui-border-panel rounded-ui-sm relative flex-1 overflow-auto border border-solid bg-white">
+    <canvas
+      #board
+      class="block h-auto w-full touch-none"
+      (pointerdown)="onPointerDown($event)"
+      (pointermove)="onPointerMove($event)"
+      (pointerup)="onPointerUp($event)"
+      (pointercancel)="onPointerUp($event)"
+    ></canvas>
+
+    @if (typing(); as at) {
+      <input
+        class="border-ui-accent rounded-ui-sm absolute border border-solid bg-white px-1 py-0.5 text-[0.9rem] text-black outline-none"
+        name="board-text"
+        [style.left.%]="(at.x / sceneWidth) * 100"
+        [style.top.%]="(at.y / sceneHeight) * 100"
+        [(ngModel)]="typedText"
+        (keydown.enter)="commitText()"
+        (blur)="commitText()"
+        [placeholder]="'feature.whiteBoard.editor.typeHere' | transloco"
+      />
+    }
+  </div>
+</div>
