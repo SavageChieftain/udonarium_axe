@@ -22,7 +22,7 @@ import {
 import { DungeonLayout } from '@axe/domain/tabletop/dungeon/dungeon-layout';
 import { buildDungeonSummary } from '@axe/domain/tabletop/dungeon/dungeon-summary';
 import { GameTable, GridType } from '@axe/domain/tabletop/game-table';
-import { GameTableScratchMask } from '@axe/domain/tabletop/game-table-scratch-mask';
+import { GameTableMask } from '@axe/domain/tabletop/game-table-mask';
 import { SlopeDirection, Terrain, TerrainViewState } from '@axe/domain/tabletop/terrain';
 import { applyLightPreset, LightPreset } from '@axe/domain/tabletop/vision-types';
 
@@ -122,7 +122,7 @@ export class DungeonBuildService {
     }
     onProgress?.(blocks.blocks.length, blocks.blocks.length);
 
-    if (options.placeScratchMask) this.placeScratchMask(table, layout);
+    if (options.placeScratchMask) this.placeFog(table, layout, options.wallHeight);
 
     return {
       table,
@@ -288,15 +288,23 @@ export class DungeonBuildService {
     });
   }
 
-  private placeScratchMask(table: GameTable, layout: DungeonLayout): void {
-    const mask = GameTableScratchMask.create(
+  /**
+   * A map mask over the whole board, which the master rubs away as the party explores.
+   *
+   * The map mask is the one that can be scratched off a cell at a time. Its neighbour the
+   * scratch mask, despite the name, is a plain sheet that can only be moved or thrown away.
+   */
+  private placeFog(table: GameTable, layout: DungeonLayout, wallHeight: number): void {
+    const mask = GameTableMask.create(
       this.t('feature.tabletop.dungeonGenerator.piece.fog'),
       layout.width,
       layout.height,
       100
     );
     mask.location = { name: 'table', x: 0, y: 0 };
-    mask.posZ = 0;
+    // Laid over the walls. On the floor it would sit under every piece of terrain and cover nothing.
+    mask.posZ = Math.ceil((wallHeight + 0.5) * GRID_SIZE);
+    mask.isLock = true;
     table.appendChild(mask);
   }
 }
