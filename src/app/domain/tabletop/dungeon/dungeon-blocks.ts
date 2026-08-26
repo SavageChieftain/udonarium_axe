@@ -12,12 +12,6 @@ import { mergeMaskToRects } from '@axe/domain/tabletop/dungeon/rect-merge';
 import { MapBlock, MapBlocks, MapLight, MapLightKind, MapPaint } from '@axe/domain/tabletop/map-blocks';
 
 export const MAX_MERGE_SPAN = 12;
-/**
- * A maze fills the rock between the rooms, which buys a dungeon worth walking through at
- * roughly twice the pieces a straight corridor would cost. The ceiling was raised to match.
- */
-export const DUNGEON_MAX_TERRAINS = 400;
-export const DUNGEON_HEAVY_TERRAINS = 200;
 export interface DungeonBlockOptions {
   placeDoors: boolean;
   placeStairs: boolean;

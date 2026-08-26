@@ -1725,9 +1725,12 @@
           "key": "key",
           "locked": "locked",
           "torch": "torch",
-          "doors": "doors"
+          "doors": "doors",
+          "ground": "Ground",
+          "standing": "Standing",
+          "fires": "Fires"
         },
-        "title": "Dungeon generator",
+        "title": "Map generator",
         "gmOnly": "This tool is for the game master",
         "props": {
           "atmosphere": "Atmosphere",
@@ -1739,7 +1742,12 @@
           "placeDoors": "Place doors",
           "placeStairs": "Place the way in and out",
           "wallHeight": "Wall height (cells)",
-          "entrance": "Way in"
+          "entrance": "Way in",
+          "kind": "Kind",
+          "prop": "Obstacle material",
+          "ground": "Ground material",
+          "fieldSize": "Map size",
+          "density": "Undergrowth"
         },
         "actions": {
           "generate": "Generate",
@@ -1762,6 +1770,24 @@
         "entrance": {
           "stair": "Stairway down",
           "tunnel": "Tunnel mouth"
+        },
+        "kind": {
+          "dungeon": "Dungeon",
+          "field": "Field"
+        },
+        "field": {
+          "woodland": "Woodland",
+          "meadow": "Meadow",
+          "coast": "Coast",
+          "marsh": "Marsh",
+          "snowfield": "Snowfield",
+          "wasteland": "Wasteland"
+        },
+        "prop": {
+          "tree": "Trees",
+          "bush": "Bushes",
+          "boulder": "Boulders",
+          "outcrop": "Outcrops"
         }
       }
     },

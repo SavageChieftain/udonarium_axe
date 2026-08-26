@@ -5,8 +5,7 @@ import {
   WALL_TEXTURE_BASE_COLOR,
   WallTextureId,
 } from '@axe/domain/media/texture-catalog';
-import { DungeonLayout } from '@axe/domain/tabletop/dungeon/dungeon-layout';
-import { MapBlock, MapBlocks, MapPaint } from '@axe/domain/tabletop/map-blocks';
+import { MapBlock, MapBlocks, MapPaint, MapSize } from '@axe/domain/tabletop/map-blocks';
 
 export interface PreviewRect {
   x: number;
@@ -16,7 +15,7 @@ export interface PreviewRect {
   fill: string;
 }
 
-export interface DungeonPreview {
+export interface MapPreview {
   viewBox: string;
   rects: PreviewRect[];
 }
@@ -72,7 +71,8 @@ function fillFor(block: MapBlock, colors: PreviewColors): string {
 }
 
 function paintFill(patch: MapPaint, colors: PreviewColors): string {
-  if (patch.texture) return TEXTURE_BASE_COLOR[patch.texture];
+  if (patch.material?.kind === 'texture') return TEXTURE_BASE_COLOR[patch.material.id as TextureId] ?? UNKNOWN_FLOOR;
+  if (patch.material) return UNKNOWN_FLOOR;
   return patch.kind === 'hazard' ? colors.hazard : colors.floor;
 }
 
@@ -82,9 +82,9 @@ function paintFill(patch: MapPaint, colors: PreviewColors): string {
  * Rolling again here costs nothing, while rolling again after the fact means a thousand
  * objects made and unmade. Showing the merged blocks also makes the count honest.
  */
-export function buildDungeonPreview(layout: DungeonLayout, blocks: MapBlocks, colors: PreviewColors): DungeonPreview {
+export function buildMapPreview(size: MapSize, blocks: MapBlocks, colors: PreviewColors): MapPreview {
   return {
-    viewBox: `0 0 ${layout.width} ${layout.height}`,
+    viewBox: `0 0 ${size.width} ${size.height}`,
     rects: [
       ...blocks.paint.map((patch) => ({ ...patch.rect, fill: paintFill(patch, colors) })),
       ...blocks.blocks.map((block) => ({ ...block.rect, fill: fillFor(block, colors) })),

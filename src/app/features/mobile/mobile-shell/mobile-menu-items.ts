@@ -46,7 +46,7 @@ export const MOBILE_MENU_ITEMS: readonly MobileMenuItem[] = [
   { action: 'mapEditor', icon: 'edit_square', labelKey: 'feature.mapEditor.title', gameMasterOnly: true },
   {
     action: 'dungeonGenerator',
-    icon: 'castle',
+    icon: 'map',
     labelKey: 'feature.tabletop.dungeonGenerator.title',
     gameMasterOnly: true,
   },

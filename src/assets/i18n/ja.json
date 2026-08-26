@@ -1725,9 +1725,12 @@
           "key": "鍵",
           "locked": "施錠",
           "torch": "松明",
-          "doors": "扉"
+          "doors": "扉",
+          "ground": "地面",
+          "standing": "地形",
+          "fires": "灯り"
         },
-        "title": "ダンジョン生成",
+        "title": "マップ生成",
         "gmOnly": "このツールはゲームマスター専用です",
         "props": {
           "atmosphere": "雰囲気",
@@ -1739,7 +1742,12 @@
           "placeDoors": "扉を置く",
           "placeStairs": "入口と出口を置く",
           "wallHeight": "壁の高さ（マス）",
-          "entrance": "入口"
+          "entrance": "入口",
+          "kind": "種類",
+          "prop": "障害物の素材",
+          "ground": "地面素材",
+          "fieldSize": "マップの広さ",
+          "density": "茂みの多さ"
         },
         "actions": {
           "generate": "生成する",
@@ -1762,6 +1770,24 @@
         "entrance": {
           "stair": "階段（地下へ降りる）",
           "tunnel": "坑道口（外へ通じる）"
+        },
+        "kind": {
+          "dungeon": "ダンジョン",
+          "field": "フィールド"
+        },
+        "field": {
+          "woodland": "森林",
+          "meadow": "草原",
+          "coast": "海岸",
+          "marsh": "湿地",
+          "snowfield": "雪原",
+          "wasteland": "荒野"
+        },
+        "prop": {
+          "tree": "木",
+          "bush": "茂み",
+          "boulder": "岩",
+          "outcrop": "岩場"
         }
       }
     },

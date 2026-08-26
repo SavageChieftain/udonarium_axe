@@ -1725,9 +1725,12 @@
           "key": "열쇠",
           "locked": "잠김",
           "torch": "횃불",
-          "doors": "문"
+          "doors": "문",
+          "ground": "지면",
+          "standing": "지형",
+          "fires": "불빛"
         },
-        "title": "던전 생성",
+        "title": "맵 생성",
         "gmOnly": "이 도구는 게임 마스터 전용입니다",
         "props": {
           "atmosphere": "분위기",
@@ -1739,7 +1742,12 @@
           "placeDoors": "문 배치",
           "placeStairs": "입구와 출구 배치",
           "wallHeight": "벽 높이(칸)",
-          "entrance": "입구"
+          "entrance": "입구",
+          "kind": "종류",
+          "prop": "장애물 재질",
+          "ground": "지면 재질",
+          "fieldSize": "맵 크기",
+          "density": "초목 밀도"
         },
         "actions": {
           "generate": "생성",
@@ -1762,6 +1770,24 @@
         "entrance": {
           "stair": "계단(지하로)",
           "tunnel": "갱도 입구(밖으로)"
+        },
+        "kind": {
+          "dungeon": "던전",
+          "field": "필드"
+        },
+        "field": {
+          "woodland": "삼림",
+          "meadow": "초원",
+          "coast": "해안",
+          "marsh": "습지",
+          "snowfield": "설원",
+          "wasteland": "황야"
+        },
+        "prop": {
+          "tree": "나무",
+          "bush": "덤불",
+          "boulder": "바위",
+          "outcrop": "암반"
         }
       }
     },

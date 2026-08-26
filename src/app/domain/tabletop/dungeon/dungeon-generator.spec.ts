@@ -5,7 +5,7 @@ import {
   DUNGEON_DOOR_STYLES,
   DUNGEON_ENTRANCE_STYLES,
 } from '@axe/domain/tabletop/dungeon/dungeon-atmosphere';
-import { DUNGEON_MAX_TERRAINS, MAX_MERGE_SPAN } from '@axe/domain/tabletop/dungeon/dungeon-blocks';
+import { MAX_MERGE_SPAN } from '@axe/domain/tabletop/dungeon/dungeon-blocks';
 import {
   boardSizeFor,
   clampRoomCount,
@@ -15,7 +15,7 @@ import {
   planDungeon,
 } from '@axe/domain/tabletop/dungeon/dungeon-generator';
 import { cellAt, countOpenCells, DungeonCell, reachableCells } from '@axe/domain/tabletop/dungeon/dungeon-layout';
-import { syncObjectCount } from '@axe/domain/tabletop/map-blocks';
+import { MAP_MAX_TERRAINS, syncObjectCount } from '@axe/domain/tabletop/map-blocks';
 
 const SEEDS = [1, 7, 42, 1234, 99999];
 
@@ -146,7 +146,7 @@ describe('planDungeon()', () => {
       for (const rooms of [8, 20]) {
         for (const seed of SEEDS) {
           const plan = planDungeon({ atmosphere: id, roomCount: rooms, seed });
-          expect(plan.blocks.blocks.length).toBeLessThanOrEqual(DUNGEON_MAX_TERRAINS);
+          expect(plan.blocks.blocks.length).toBeLessThanOrEqual(MAP_MAX_TERRAINS);
         }
       }
     }

@@ -28,25 +28,42 @@ import {
   MAX_WALL_HEIGHT,
   MIN_WALL_HEIGHT,
 } from '@axe/domain/tabletop/dungeon/dungeon-atmosphere';
-import { DUNGEON_HEAVY_TERRAINS, DUNGEON_MAX_TERRAINS } from '@axe/domain/tabletop/dungeon/dungeon-blocks';
 import {
   clampRoomCount,
   MAX_ROOM_COUNT,
   MIN_ROOM_COUNT,
   planDungeon,
 } from '@axe/domain/tabletop/dungeon/dungeon-generator';
+import {
+  clampFieldDensity,
+  clampFieldSize,
+  FIELD_ATMOSPHERE_IDS,
+  fieldAtmosphereById,
+  FieldAtmosphereId,
+  MAX_FIELD_DENSITY,
+  MAX_FIELD_SIZE,
+  MIN_FIELD_DENSITY,
+  MIN_FIELD_SIZE,
+} from '@axe/domain/tabletop/field/field-atmosphere';
+import { FieldPlan, planField } from '@axe/domain/tabletop/field/field-generator';
 import { GameTable } from '@axe/domain/tabletop/game-table';
-import { syncObjectCount } from '@axe/domain/tabletop/map-blocks';
+import { MAP_HEAVY_TERRAINS, MAP_MAX_TERRAINS, syncObjectCount } from '@axe/domain/tabletop/map-blocks';
 import { exportSceneToBlob } from '@axe/features/map-editor/render/export-image';
-import { buildDungeonFloorScene } from '@axe/features/tabletop/dungeon-generator/dungeon-floor-scene';
 import { DungeonMaterialPickerComponent } from '@axe/features/tabletop/dungeon-generator/dungeon-material-picker.component';
 import { describeDungeon } from '@axe/features/tabletop/dungeon-generator/dungeon-notes';
-import { buildDungeonPreview, previewColors } from '@axe/features/tabletop/dungeon-generator/dungeon-preview';
+import { withFieldMaterials } from '@axe/features/tabletop/dungeon-generator/field-materials';
+import { describeField } from '@axe/features/tabletop/dungeon-generator/field-notes';
+import { buildGroundScene } from '@axe/features/tabletop/dungeon-generator/ground-scene';
+import { buildMapPreview, previewColors } from '@axe/features/tabletop/dungeon-generator/map-preview';
 import { TranslocoModule } from '@jsverse/transloco';
 
 const SEED_LIMIT = 2 ** 31;
 
 type DungeonPlan = ReturnType<typeof planDungeon>;
+
+export type MapKind = 'dungeon' | 'field';
+
+export const MAP_KINDS: readonly MapKind[] = ['dungeon', 'field'];
 
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -70,13 +87,23 @@ export class DungeonGeneratorComponent {
   protected readonly floorUrls = TEXTURE_ASSET_URLS;
   protected readonly minRooms = MIN_ROOM_COUNT;
   protected readonly maxRooms = MAX_ROOM_COUNT;
-  protected readonly heavyLimit = DUNGEON_HEAVY_TERRAINS;
-  protected readonly maxTerrains = DUNGEON_MAX_TERRAINS;
+  protected readonly heavyLimit = MAP_HEAVY_TERRAINS;
+  protected readonly maxTerrains = MAP_MAX_TERRAINS;
   protected readonly entranceStyles = DUNGEON_ENTRANCE_STYLES;
+  protected readonly kinds = MAP_KINDS;
+  protected readonly fieldAtmosphereIds = FIELD_ATMOSPHERE_IDS;
+  protected readonly minFieldSize = MIN_FIELD_SIZE;
+  protected readonly maxFieldSize = MAX_FIELD_SIZE;
+  protected readonly minDensity = MIN_FIELD_DENSITY;
+  protected readonly maxDensity = MAX_FIELD_DENSITY;
   protected readonly minWallHeight = MIN_WALL_HEIGHT;
   protected readonly maxWallHeight = MAX_WALL_HEIGHT;
 
+  protected readonly kind = signal<MapKind>('dungeon');
   protected readonly atmosphere = signal<DungeonAtmosphereId>('stoneDungeon');
+  protected readonly fieldAtmosphere = signal<FieldAtmosphereId>('woodland');
+  protected readonly fieldSize = signal(40);
+  protected readonly fieldDensity = signal(50);
   protected readonly roomCount = signal(8);
   protected readonly seed = signal(Math.floor(Math.random() * SEED_LIMIT));
   protected readonly tableName = signal('');
@@ -103,12 +130,22 @@ export class DungeonGeneratorComponent {
     return this.rolePermission.canEditTabletop;
   }
 
-  protected readonly wall = computed<DungeonMaterial>(
-    () => this.wallOverride() ?? { kind: 'texture', id: atmosphereById(this.atmosphere()).defaultWall }
-  );
-  protected readonly floor = computed<DungeonMaterial>(
-    () => this.floorOverride() ?? { kind: 'texture', id: atmosphereById(this.atmosphere()).defaultFloor }
-  );
+  protected readonly field = computed(() => this.kind() === 'field');
+
+  protected readonly wall = computed<DungeonMaterial>(() => {
+    if (this.wallOverride()) return this.wallOverride()!;
+    const id = this.field()
+      ? fieldAtmosphereById(this.fieldAtmosphere()).defaultProp
+      : atmosphereById(this.atmosphere()).defaultWall;
+    return { kind: 'texture', id };
+  });
+  protected readonly floor = computed<DungeonMaterial>(() => {
+    if (this.floorOverride()) return this.floorOverride()!;
+    const id = this.field()
+      ? fieldAtmosphereById(this.fieldAtmosphere()).defaultGround
+      : atmosphereById(this.atmosphere()).defaultFloor;
+    return { kind: 'texture', id };
+  });
   protected readonly wallHeight = computed(() =>
     clampWallHeight(this.heightOverride() ?? atmosphereById(this.atmosphere()).wallHeight)
   );
@@ -131,33 +168,65 @@ export class DungeonGeneratorComponent {
     )
   );
 
-  protected readonly terrainCount = computed(() => this.plan().blocks.blocks.length);
-  protected readonly lightCount = computed(() => this.plan().blocks.lights.length);
-  protected readonly paintCount = computed(() => this.plan().blocks.paint.length);
-  protected readonly syncCount = computed(() => syncObjectCount(this.plan().blocks.blocks));
-  protected readonly tooMany = computed(() => this.terrainCount() > DUNGEON_MAX_TERRAINS);
-  protected readonly heavy = computed(() => this.terrainCount() > DUNGEON_HEAVY_TERRAINS && !this.tooMany());
+  protected readonly fieldPlan = computed<FieldPlan>(() => {
+    const plan = planField({
+      atmosphere: this.fieldAtmosphere(),
+      size: this.fieldSize(),
+      density: this.fieldDensity(),
+      seed: this.seed(),
+    });
+    return { ...plan, blocks: withFieldMaterials(plan.blocks, plan.atmosphere, this.floor(), this.wall()) };
+  });
+
+  protected readonly blocks = computed(() => (this.field() ? this.fieldPlan().blocks : this.plan().blocks));
+  protected readonly terrainCount = computed(() => this.blocks().blocks.length);
+  protected readonly lightCount = computed(() => this.blocks().lights.length);
+  protected readonly paintCount = computed(() => this.blocks().paint.length);
+  protected readonly syncCount = computed(() => syncObjectCount(this.blocks().blocks));
+  protected readonly tooMany = computed(() => this.terrainCount() > MAP_MAX_TERRAINS);
+  protected readonly heavy = computed(() => this.terrainCount() > MAP_HEAVY_TERRAINS && !this.tooMany());
 
   private readonly exportFn = exportSceneToBlob;
 
   protected readonly preview = computed(() => {
-    const plan = this.plan();
     const wall = this.wall();
     const floor = this.floor();
+    const size = this.field() ? this.fieldPlan().layout : this.plan().layout;
     const colors = previewColors(
       wall.kind === 'texture' ? wall.id : '',
       floor.kind === 'texture' ? floor.id : '',
-      plan.atmosphere.cave?.hazardFloor ?? ''
+      this.field() ? '' : (this.plan().atmosphere.cave?.hazardFloor ?? '')
     );
-    return buildDungeonPreview(plan.layout, plan.blocks, colors);
+    return buildMapPreview(size, this.blocks(), colors);
   });
 
   protected readonly roomsFound = computed(() => this.plan().layout.rooms.length);
-  protected readonly roomsDiffer = computed(() => this.roomsFound() !== clampRoomCount(this.roomCount()));
-  protected readonly boardSize = computed(() => `${this.plan().layout.width} x ${this.plan().layout.height}`);
+  protected readonly roomsDiffer = computed(
+    () => !this.field() && this.roomsFound() !== clampRoomCount(this.roomCount())
+  );
+  protected readonly boardSize = computed(() => {
+    const layout = this.field() ? this.fieldPlan().layout : this.plan().layout;
+    return `${layout.width} x ${layout.height}`;
+  });
+
+  protected chooseKind(kind: MapKind): void {
+    this.kind.set(kind);
+  }
 
   protected chooseAtmosphere(id: DungeonAtmosphereId): void {
     this.atmosphere.set(id);
+  }
+
+  protected chooseFieldAtmosphere(id: FieldAtmosphereId): void {
+    this.fieldAtmosphere.set(id);
+  }
+
+  protected setFieldSize(size: number): void {
+    this.fieldSize.set(clampFieldSize(size));
+  }
+
+  protected setFieldDensity(density: number): void {
+    this.fieldDensity.set(clampFieldDensity(density));
   }
 
   protected setWall(material: DungeonMaterial): void {
@@ -190,6 +259,7 @@ export class DungeonGeneratorComponent {
   protected nameFor(): string {
     const typed = this.tableName().trim();
     if (typed.length > 0) return typed;
+    if (this.field()) return this.t(`feature.tabletop.dungeonGenerator.field.${this.fieldAtmosphere()}`);
     return this.t(`feature.tabletop.dungeonGenerator.atmosphere.${this.atmosphere()}`);
   }
 
@@ -200,18 +270,22 @@ export class DungeonGeneratorComponent {
     try {
       // Rolling again throws the last one away, so a shelf of rejected tables never builds up.
       this.discardPrevious();
-      const plan = this.plan();
       const name = this.nameFor();
+      const plan = this.field() ? this.fieldPlan() : this.plan();
+      const blocks = plan.blocks;
+      const summary = this.field()
+        ? describeField(plan as FieldPlan, name, this.seed(), this.t)
+        : describeDungeon((plan as DungeonPlan).layout, blocks, name, this.t);
       const result = await this.dungeonBuild.build(
         plan.layout,
         plan.atmosphere,
-        plan.blocks,
+        blocks,
         {
           name,
           wall: this.wall(),
           wallHeight: this.wallHeight(),
           floorImage: await this.paintFloor(plan),
-          summary: describeDungeon(plan.layout, plan.blocks, name, this.t),
+          summary,
         },
         (done, total) => this.progress.set(Math.round((done / total) * 100))
       );
@@ -230,10 +304,11 @@ export class DungeonGeneratorComponent {
    * Nothing is left of the dungeon if the canvas will not draw, so a failure costs the
    * floor rather than the table.
    */
-  private async paintFloor(plan: DungeonPlan): Promise<string> {
+  private async paintFloor(plan: DungeonPlan | FieldPlan): Promise<string> {
     const floor = this.floor();
-    const hazardId = plan.atmosphere.cave?.hazardFloor;
-    const scene = buildDungeonFloorScene(
+    const hazardId =
+      'atmosphere' in plan ? ((plan.atmosphere as { cave?: { hazardFloor?: string } }).cave?.hazardFloor ?? '') : '';
+    const scene = buildGroundScene(
       plan.layout,
       plan.blocks.paint,
       { floor, hazard: hazardId ? { kind: 'texture', id: hazardId } : floor },

@@ -1,0 +1,221 @@
+import { TextureId, WallTextureId } from '@axe/domain/media/texture-catalog';
+import { MapMood } from '@axe/domain/tabletop/map-blocks';
+
+export const FIELD_ATMOSPHERE_IDS = ['woodland', 'meadow', 'coast', 'marsh', 'snowfield', 'wasteland'] as const;
+
+export type FieldAtmosphereId = (typeof FIELD_ATMOSPHERE_IDS)[number];
+
+export const FIELD_PROP_IDS = ['tree', 'bush', 'boulder', 'outcrop'] as const;
+
+export type FieldPropId = (typeof FIELD_PROP_IDS)[number];
+
+export interface FieldPropShape {
+  side: WallTextureId;
+  top: TextureId;
+  height: number;
+  /** How wide a patch of it grows, in cells. An outcrop is a hillside, not a stone. */
+  span: number;
+  blocksSight: boolean;
+}
+
+export const FIELD_PROP_SHAPES: Record<FieldPropId, FieldPropShape> = {
+  tree: { side: 'wall_timber', top: 'forest', height: 1.8, span: 1, blocksSight: true },
+  bush: { side: 'wall_mossy_stone', top: 'steppe', height: 0.5, span: 1, blocksSight: false },
+  boulder: { side: 'wall_rubble', top: 'rock', height: 0.9, span: 1, blocksSight: false },
+  outcrop: { side: 'wall_cave_rock', top: 'rock_moss', height: 2.4, span: 2, blocksSight: true },
+};
+
+/**
+ * A band of ground, taken by height.
+ *
+ * The lowest band is water on a coast and hollows on a moor, and it is the one thing the
+ * ground of a field cannot be painted without: every cell lands in some band.
+ */
+export interface GroundBand {
+  /** The highest ground this band covers, from nothing at zero to everything at one. */
+  upTo: number;
+  texture: TextureId;
+  /** Whether a piece can be put down here at all. Nothing grows out of open water. */
+  bare?: boolean;
+}
+
+export interface FieldPropPlan {
+  prop: FieldPropId;
+  /** How much of the ground it takes where it grows thickest, from nothing to all of it. */
+  chance: number;
+  /** Which bands it grows in, by index. */
+  bands: readonly number[];
+}
+
+export interface FieldAtmosphere extends MapMood {
+  id: FieldAtmosphereId;
+  defaultGround: TextureId;
+  defaultProp: WallTextureId;
+  bands: readonly GroundBand[];
+  props: readonly FieldPropPlan[];
+  /** How large the hills are, in cells to the hill. */
+  relief: number;
+  /**
+   * How much of a slope runs across the board, from nothing to all of it.
+   *
+   * Height taken from noise alone puts its water in ponds in the middle. A coast needs the
+   * sea along one side, which is a ramp with the noise laid over it.
+   */
+  gradient?: number;
+}
+
+export const MIN_FIELD_SIZE = 20;
+export const MAX_FIELD_SIZE = 60;
+export const MIN_FIELD_DENSITY = 0;
+export const MAX_FIELD_DENSITY = 100;
+
+export function clampFieldSize(size: number): number {
+  if (!Number.isFinite(size)) return MIN_FIELD_SIZE;
+  return Math.min(MAX_FIELD_SIZE, Math.max(MIN_FIELD_SIZE, Math.round(size)));
+}
+
+export function clampFieldDensity(density: number): number {
+  if (!Number.isFinite(density)) return 50;
+  return Math.min(MAX_FIELD_DENSITY, Math.max(MIN_FIELD_DENSITY, Math.round(density)));
+}
+
+export const FIELD_ATMOSPHERES: Record<FieldAtmosphereId, FieldAtmosphere> = {
+  woodland: {
+    id: 'woodland',
+    defaultGround: 'steppe',
+    defaultProp: 'wall_timber',
+    relief: 5,
+    bands: [
+      { upTo: 0.3, texture: 'black_soil' },
+      { upTo: 0.62, texture: 'steppe' },
+      { upTo: 1, texture: 'forest' },
+    ],
+    props: [
+      { prop: 'tree', chance: 0.14, bands: [1, 2] },
+      { prop: 'bush', chance: 0.07, bands: [0, 1] },
+      { prop: 'boulder', chance: 0.03, bands: [2] },
+    ],
+    darkness: 0,
+    ambientColor: '#101a12',
+    weatherKind: '',
+    weatherDensity: 0,
+    gridShow: true,
+    torches: 1,
+  },
+  meadow: {
+    id: 'meadow',
+    defaultGround: 'steppe',
+    defaultProp: 'wall_rubble',
+    relief: 4,
+    bands: [
+      { upTo: 0.38, texture: 'swamp_mud' },
+      { upTo: 0.8, texture: 'steppe' },
+      { upTo: 1, texture: 'gravel' },
+    ],
+    props: [
+      { prop: 'bush', chance: 0.08, bands: [1] },
+      { prop: 'tree', chance: 0.04, bands: [1] },
+      { prop: 'boulder', chance: 0.06, bands: [2] },
+    ],
+    darkness: 0,
+    ambientColor: '#141a10',
+    weatherKind: 'bloom',
+    weatherDensity: 0.15,
+    gridShow: true,
+    torches: 1,
+  },
+  coast: {
+    id: 'coast',
+    defaultGround: 'sand',
+    defaultProp: 'wall_rubble',
+    relief: 3,
+    gradient: 0.6,
+    bands: [
+      { upTo: 0.34, texture: 'sea', bare: true },
+      { upTo: 0.46, texture: 'shallows', bare: true },
+      { upTo: 0.68, texture: 'sand' },
+      { upTo: 1, texture: 'steppe' },
+    ],
+    props: [
+      { prop: 'boulder', chance: 0.06, bands: [2] },
+      { prop: 'bush', chance: 0.06, bands: [3] },
+      { prop: 'outcrop', chance: 0.05, bands: [3] },
+    ],
+    darkness: 0,
+    ambientColor: '#0e161c',
+    weatherKind: '',
+    weatherDensity: 0,
+    gridShow: true,
+    torches: 1,
+  },
+  marsh: {
+    id: 'marsh',
+    defaultGround: 'swamp_mud',
+    defaultProp: 'wall_timber',
+    relief: 6,
+    gradient: 0.15,
+    bands: [
+      { upTo: 0.4, texture: 'shallows', bare: true },
+      { upTo: 0.74, texture: 'swamp_mud' },
+      { upTo: 1, texture: 'moss_stone_floor' },
+    ],
+    props: [
+      { prop: 'tree', chance: 0.09, bands: [1, 2] },
+      { prop: 'bush', chance: 0.09, bands: [1] },
+    ],
+    darkness: 0.35,
+    ambientColor: '#101511',
+    weatherKind: 'fog',
+    weatherDensity: 0.3,
+    gridShow: true,
+    torches: 2,
+  },
+  snowfield: {
+    id: 'snowfield',
+    defaultGround: 'gravel',
+    defaultProp: 'wall_ice',
+    relief: 4,
+    bands: [
+      { upTo: 0.4, texture: 'ice' },
+      { upTo: 0.85, texture: 'gravel' },
+      { upTo: 1, texture: 'rock' },
+    ],
+    props: [
+      { prop: 'tree', chance: 0.06, bands: [1] },
+      { prop: 'boulder', chance: 0.05, bands: [1, 2] },
+      { prop: 'outcrop', chance: 0.06, bands: [2] },
+    ],
+    darkness: 0,
+    ambientColor: '#141c22',
+    weatherKind: 'snow',
+    weatherDensity: 0.35,
+    gridShow: true,
+    torches: 2,
+  },
+  wasteland: {
+    id: 'wasteland',
+    defaultGround: 'desert',
+    defaultProp: 'wall_sandstone',
+    relief: 5,
+    bands: [
+      { upTo: 0.4, texture: 'black_soil' },
+      { upTo: 0.82, texture: 'desert' },
+      { upTo: 1, texture: 'rubble_floor' },
+    ],
+    props: [
+      { prop: 'boulder', chance: 0.07, bands: [1, 2] },
+      { prop: 'outcrop', chance: 0.08, bands: [2] },
+      { prop: 'bush', chance: 0.05, bands: [0] },
+    ],
+    darkness: 0,
+    ambientColor: '#1a140e',
+    weatherKind: 'sand',
+    weatherDensity: 0.2,
+    gridShow: true,
+    torches: 1,
+  },
+};
+
+export function fieldAtmosphereById(id: string): FieldAtmosphere {
+  return FIELD_ATMOSPHERES[id as FieldAtmosphereId] ?? FIELD_ATMOSPHERES.woodland;
+}

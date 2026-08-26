@@ -12,7 +12,9 @@ import { LIGHT_SKIN_IDS } from '@axe/domain/media/light-skins';
 import { DUNGEON_PROP_IDS, TEXTURE_IDS, WALL_TEXTURE_IDS } from '@axe/domain/media/texture-catalog';
 import { DUNGEON_ATMOSPHERE_IDS, DUNGEON_ENTRANCE_STYLES } from '@axe/domain/tabletop/dungeon/dungeon-atmosphere';
 import { DUNGEON_ROOM_ROLES } from '@axe/domain/tabletop/dungeon/dungeon-layout';
+import { FIELD_ATMOSPHERE_IDS, FIELD_PROP_IDS } from '@axe/domain/tabletop/field/field-atmosphere';
 import { LightPreset } from '@axe/domain/tabletop/vision-types';
+import { MAP_KINDS } from '@axe/features/tabletop/dungeon-generator/dungeon-generator.component';
 
 /**
  * A screen that builds its key out of a value — `'…clip' + shape` — puts that key beyond
@@ -28,6 +30,9 @@ const CHOICES: Record<string, readonly string[]> = {
   'feature.tabletop.dungeonGenerator.atmosphere.': DUNGEON_ATMOSPHERE_IDS,
   'feature.tabletop.dungeonGenerator.entrance.': DUNGEON_ENTRANCE_STYLES,
   'feature.tabletop.dungeonGenerator.role.': DUNGEON_ROOM_ROLES,
+  'feature.tabletop.dungeonGenerator.field.': FIELD_ATMOSPHERE_IDS,
+  'feature.tabletop.dungeonGenerator.prop.': FIELD_PROP_IDS,
+  'feature.tabletop.dungeonGenerator.kind.': MAP_KINDS,
   'feature.media.cutInEditor.clip': CUT_IN_CLIPS,
   'feature.media.cutInEditor.wipe': CUT_IN_WIPES,
   'feature.media.cutInEditor.effect': CUT_IN_EFFECTS,

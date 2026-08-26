@@ -1,7 +1,6 @@
 import { DungeonMaterial } from '@axe/application/tabletop/dungeon-build.service';
-import { DungeonLayout } from '@axe/domain/tabletop/dungeon/dungeon-layout';
 import { GridType } from '@axe/domain/tabletop/game-table';
-import { MapPaint } from '@axe/domain/tabletop/map-blocks';
+import { MapPaint, MapSize } from '@axe/domain/tabletop/map-blocks';
 import {
   cellKey,
   CellLayer,
@@ -12,7 +11,7 @@ import {
 } from '@axe/features/map-editor/model/scene';
 import { IMAGE_TEXTURE_PREFIX } from '@axe/features/map-editor/model/textures';
 
-export interface DungeonFloorMaterials {
+export interface GroundMaterials {
   floor: DungeonMaterial;
   hazard: DungeonMaterial;
 }
@@ -29,13 +28,13 @@ function fillFor(material: DungeonMaterial): FillStyle {
  * seen past and lit through. Built out of terrain instead it was a third of the pieces on
  * the table and every one of them synced.
  */
-export function buildDungeonFloorScene(
-  layout: DungeonLayout,
+export function buildGroundScene(
+  size: MapSize,
   paint: readonly MapPaint[],
-  materials: DungeonFloorMaterials,
+  materials: GroundMaterials,
   cellPx: number
 ): MapScene {
-  const scene = createScene(layout.width, layout.height, cellPx, GridType.SQUARE);
+  const scene = createScene(size.width, size.height, cellPx, GridType.SQUARE);
   scene.gridVisible = false;
 
   const fills: Record<MapPaint['kind'], FillStyle> = {
@@ -47,8 +46,8 @@ export function buildDungeonFloorScene(
   for (const patch of paint) {
     for (let dy = 0; dy < patch.rect.h; dy++) {
       for (let dx = 0; dx < patch.rect.w; dx++) {
-        layer.cells[cellKey(patch.rect.x + dx, patch.rect.y + dy)] = patch.texture
-          ? fillFor({ kind: 'texture', id: patch.texture })
+        layer.cells[cellKey(patch.rect.x + dx, patch.rect.y + dy)] = patch.material
+          ? fillFor(patch.material)
           : fills[patch.kind];
       }
     }

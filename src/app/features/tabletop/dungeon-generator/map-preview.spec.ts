@@ -1,10 +1,6 @@
 import { TEXTURE_BASE_COLOR, WALL_TEXTURE_BASE_COLOR } from '@axe/domain/media/texture-catalog';
 import { planDungeon } from '@axe/domain/tabletop/dungeon/dungeon-generator';
-import {
-  buildDungeonPreview,
-  previewColors,
-  TORCH_FILL,
-} from '@axe/features/tabletop/dungeon-generator/dungeon-preview';
+import { buildMapPreview, previewColors, TORCH_FILL } from '@axe/features/tabletop/dungeon-generator/map-preview';
 
 const colors = previewColors('wall_ashlar', 'stone_paving_big', 'lava');
 
@@ -35,23 +31,23 @@ describe('previewColors()', () => {
   });
 });
 
-describe('buildDungeonPreview()', () => {
+describe('buildMapPreview()', () => {
   it('spans the board in cells', () => {
     const { layout, blocks } = plan();
 
-    expect(buildDungeonPreview(layout, blocks, colors).viewBox).toBe(`0 0 ${layout.width} ${layout.height}`);
+    expect(buildMapPreview(layout, blocks, colors).viewBox).toBe(`0 0 ${layout.width} ${layout.height}`);
   });
 
   it('draws the painted ground, then every block, then the lights', () => {
     const { layout, blocks } = plan();
-    const preview = buildDungeonPreview(layout, blocks, colors);
+    const preview = buildMapPreview(layout, blocks, colors);
 
     expect(preview.rects.length).toBe(blocks.paint.length + blocks.blocks.length + blocks.torchSpots.length);
   });
 
   it('keeps every rectangle where its block is', () => {
     const { layout, blocks } = plan();
-    const preview = buildDungeonPreview(layout, blocks, colors);
+    const preview = buildMapPreview(layout, blocks, colors);
 
     blocks.blocks.forEach((block, index) => {
       expect(preview.rects[blocks.paint.length + index]).toMatchObject(block.rect);
@@ -60,7 +56,7 @@ describe('buildDungeonPreview()', () => {
 
   it('paints walls and floors from the chosen materials', () => {
     const { layout, blocks } = plan();
-    const preview = buildDungeonPreview(layout, blocks, colors);
+    const preview = buildMapPreview(layout, blocks, colors);
 
     blocks.paint.forEach((patch, index) => {
       if (patch.kind === 'floor') expect(preview.rects[index].fill).toBe(colors.floor);
@@ -72,7 +68,7 @@ describe('buildDungeonPreview()', () => {
 
   it('marks where each torch stands', () => {
     const { layout, blocks } = plan();
-    const preview = buildDungeonPreview(layout, blocks, colors);
+    const preview = buildMapPreview(layout, blocks, colors);
 
     expect(blocks.torchSpots.length).toBeGreaterThan(0);
     expect(preview.rects.filter((rect) => rect.fill === TORCH_FILL).length).toBe(blocks.torchSpots.length);
@@ -80,7 +76,7 @@ describe('buildDungeonPreview()', () => {
 
   it('shows the lava in a cave that has some', () => {
     const { layout, blocks } = plan('lavaCavern');
-    const preview = buildDungeonPreview(layout, blocks, colors);
+    const preview = buildMapPreview(layout, blocks, colors);
     const hazard = blocks.paint.filter((patch) => patch.kind === 'hazard').length;
 
     expect(hazard).toBeGreaterThan(0);

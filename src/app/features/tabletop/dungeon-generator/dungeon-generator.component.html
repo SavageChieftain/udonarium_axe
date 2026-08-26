@@ -5,18 +5,49 @@
 <div class="flex flex-col gap-3.5 p-3">
   <div>
     <label class="text-ui-muted mb-1.25 block text-[0.78rem] font-semibold tracking-[0.04em] uppercase">
+      {{ 'feature.tabletop.dungeonGenerator.props.kind' | transloco }}
+    </label>
+    <div class="grid grid-cols-2 gap-1.5">
+      @for (option of kinds; track option) {
+        <button
+          class="rounded-ui-sm border-ui-border-panel bg-ui-input text-ui-text cursor-pointer border border-solid px-2 py-1.5 text-[0.82rem]"
+          type="button"
+          [class.border-ui-accent]="kind() === option"
+          (click)="chooseKind(option)"
+        >
+          {{ 'feature.tabletop.dungeonGenerator.kind.' + option | transloco }}
+        </button>
+      }
+    </div>
+  </div>
+
+  <div>
+    <label class="text-ui-muted mb-1.25 block text-[0.78rem] font-semibold tracking-[0.04em] uppercase">
       {{ 'feature.tabletop.dungeonGenerator.props.atmosphere' | transloco }}
     </label>
     <div class="grid grid-cols-2 gap-1.5">
-      @for (id of atmosphereIds; track id) {
-        <button
-          class="rounded-ui-sm border-ui-border-panel bg-ui-input text-ui-text flex cursor-pointer items-center gap-2 border border-solid px-2 py-1.5 text-left text-[0.82rem]"
-          type="button"
-          [class.border-ui-accent]="atmosphere() === id"
-          (click)="chooseAtmosphere(id)"
-        >
-          {{ 'feature.tabletop.dungeonGenerator.atmosphere.' + id | transloco }}
-        </button>
+      @if (field()) {
+        @for (id of fieldAtmosphereIds; track id) {
+          <button
+            class="rounded-ui-sm border-ui-border-panel bg-ui-input text-ui-text flex cursor-pointer items-center gap-2 border border-solid px-2 py-1.5 text-left text-[0.82rem]"
+            type="button"
+            [class.border-ui-accent]="fieldAtmosphere() === id"
+            (click)="chooseFieldAtmosphere(id)"
+          >
+            {{ 'feature.tabletop.dungeonGenerator.field.' + id | transloco }}
+          </button>
+        }
+      } @else {
+        @for (id of atmosphereIds; track id) {
+          <button
+            class="rounded-ui-sm border-ui-border-panel bg-ui-input text-ui-text flex cursor-pointer items-center gap-2 border border-solid px-2 py-1.5 text-left text-[0.82rem]"
+            type="button"
+            [class.border-ui-accent]="atmosphere() === id"
+            (click)="chooseAtmosphere(id)"
+          >
+            {{ 'feature.tabletop.dungeonGenerator.atmosphere.' + id | transloco }}
+          </button>
+        }
       }
     </div>
   </div>
@@ -24,7 +55,10 @@
   <div>
     <div class="mb-1.25 flex items-baseline justify-between">
       <label class="text-ui-muted text-[0.78rem] font-semibold tracking-[0.04em] uppercase">
-        {{ 'feature.tabletop.dungeonGenerator.props.wall' | transloco }}
+        {{
+          (field() ? 'feature.tabletop.dungeonGenerator.props.prop' : 'feature.tabletop.dungeonGenerator.props.wall')
+            | transloco
+        }}
       </label>
       @if (!usingDefaults()) {
         <button
@@ -41,97 +75,166 @@
 
   <div>
     <label class="text-ui-muted mb-1.25 block text-[0.78rem] font-semibold tracking-[0.04em] uppercase">
-      {{ 'feature.tabletop.dungeonGenerator.props.floor' | transloco }}
+      {{
+        (field() ? 'feature.tabletop.dungeonGenerator.props.ground' : 'feature.tabletop.dungeonGenerator.props.floor')
+          | transloco
+      }}
     </label>
     <dungeon-material-picker [ids]="floorIds" [urls]="floorUrls" [value]="floor()" (changed)="setFloor($event)" />
   </div>
 
-  <div>
-    <label
-      class="text-ui-muted mb-1.25 block text-[0.78rem] font-semibold tracking-[0.04em] uppercase"
-      for="room-count"
-    >
-      {{ 'feature.tabletop.dungeonGenerator.props.roomCount' | transloco }}
-    </label>
-    <div class="flex items-center gap-2">
-      <input
-        class="min-w-0 flex-1"
-        id="room-count"
-        name="room-count"
-        type="range"
-        [min]="minRooms"
-        [max]="maxRooms"
-        step="1"
-        [ngModel]="roomCount()"
-        (ngModelChange)="roomCount.set($event)"
-      />
-      <input
-        class="border-ui-border-panel bg-ui-input text-ui-text focus:border-ui-accent rounded-ui-sm w-16 shrink-0 border border-solid px-2 py-1.5 text-center text-[13px] outline-none"
-        name="room-count-number"
-        type="number"
-        [min]="minRooms"
-        [max]="maxRooms"
-        step="1"
-        [ngModel]="roomCount()"
-        (ngModelChange)="roomCount.set($event)"
-      />
-    </div>
-    @if (roomsDiffer()) {
-      <div class="text-ui-muted mt-1 text-[0.75rem]">
-        {{ 'feature.tabletop.dungeonGenerator.status.roomsDiffer' | transloco: { found: roomsFound() } }}
+  @if (field()) {
+    <div>
+      <label
+        class="text-ui-muted mb-1.25 block text-[0.78rem] font-semibold tracking-[0.04em] uppercase"
+        for="field-size"
+      >
+        {{ 'feature.tabletop.dungeonGenerator.props.fieldSize' | transloco }}
+      </label>
+      <div class="flex items-center gap-2">
+        <input
+          class="min-w-0 flex-1"
+          id="field-size"
+          name="field-size"
+          type="range"
+          [min]="minFieldSize"
+          [max]="maxFieldSize"
+          step="1"
+          [ngModel]="fieldSize()"
+          (ngModelChange)="setFieldSize($event)"
+        />
+        <input
+          class="border-ui-border-panel bg-ui-input text-ui-text focus:border-ui-accent rounded-ui-sm w-16 shrink-0 border border-solid px-2 py-1.5 text-center text-[13px] outline-none"
+          name="field-size-number"
+          type="number"
+          [min]="minFieldSize"
+          [max]="maxFieldSize"
+          step="1"
+          [ngModel]="fieldSize()"
+          (ngModelChange)="setFieldSize($event)"
+        />
       </div>
-    }
-  </div>
+    </div>
 
-  <div>
-    <label class="text-ui-muted mb-1.25 block text-[0.78rem] font-semibold tracking-[0.04em] uppercase">
-      {{ 'feature.tabletop.dungeonGenerator.props.entrance' | transloco }}
-    </label>
-    <div class="grid grid-cols-2 gap-1.5">
-      @for (style of entranceStyles; track style) {
-        <button
-          class="rounded-ui-sm border-ui-border-panel bg-ui-input text-ui-text cursor-pointer border border-solid px-2 py-1.5 text-[0.82rem]"
-          type="button"
-          [class.border-ui-accent]="entrance() === style"
-          (click)="setEntrance(style)"
-        >
-          {{ 'feature.tabletop.dungeonGenerator.entrance.' + style | transloco }}
-        </button>
+    <div>
+      <label
+        class="text-ui-muted mb-1.25 block text-[0.78rem] font-semibold tracking-[0.04em] uppercase"
+        for="field-density"
+      >
+        {{ 'feature.tabletop.dungeonGenerator.props.density' | transloco }}
+      </label>
+      <div class="flex items-center gap-2">
+        <input
+          class="min-w-0 flex-1"
+          id="field-density"
+          name="field-density"
+          type="range"
+          [min]="minDensity"
+          [max]="maxDensity"
+          step="5"
+          [ngModel]="fieldDensity()"
+          (ngModelChange)="setFieldDensity($event)"
+        />
+        <input
+          class="border-ui-border-panel bg-ui-input text-ui-text focus:border-ui-accent rounded-ui-sm w-16 shrink-0 border border-solid px-2 py-1.5 text-center text-[13px] outline-none"
+          name="field-density-number"
+          type="number"
+          [min]="minDensity"
+          [max]="maxDensity"
+          step="5"
+          [ngModel]="fieldDensity()"
+          (ngModelChange)="setFieldDensity($event)"
+        />
+      </div>
+    </div>
+  } @else {
+    <div>
+      <label
+        class="text-ui-muted mb-1.25 block text-[0.78rem] font-semibold tracking-[0.04em] uppercase"
+        for="room-count"
+      >
+        {{ 'feature.tabletop.dungeonGenerator.props.roomCount' | transloco }}
+      </label>
+      <div class="flex items-center gap-2">
+        <input
+          class="min-w-0 flex-1"
+          id="room-count"
+          name="room-count"
+          type="range"
+          [min]="minRooms"
+          [max]="maxRooms"
+          step="1"
+          [ngModel]="roomCount()"
+          (ngModelChange)="roomCount.set($event)"
+        />
+        <input
+          class="border-ui-border-panel bg-ui-input text-ui-text focus:border-ui-accent rounded-ui-sm w-16 shrink-0 border border-solid px-2 py-1.5 text-center text-[13px] outline-none"
+          name="room-count-number"
+          type="number"
+          [min]="minRooms"
+          [max]="maxRooms"
+          step="1"
+          [ngModel]="roomCount()"
+          (ngModelChange)="roomCount.set($event)"
+        />
+      </div>
+      @if (roomsDiffer()) {
+        <div class="text-ui-muted mt-1 text-[0.75rem]">
+          {{ 'feature.tabletop.dungeonGenerator.status.roomsDiffer' | transloco: { found: roomsFound() } }}
+        </div>
       }
     </div>
-  </div>
 
-  <div>
-    <label
-      class="text-ui-muted mb-1.25 block text-[0.78rem] font-semibold tracking-[0.04em] uppercase"
-      for="wall-height"
-    >
-      {{ 'feature.tabletop.dungeonGenerator.props.wallHeight' | transloco }}
-    </label>
-    <div class="flex items-center gap-2">
-      <input
-        class="min-w-0 flex-1"
-        id="wall-height"
-        name="wall-height"
-        type="range"
-        [min]="minWallHeight"
-        [max]="maxWallHeight"
-        step="0.5"
-        [ngModel]="wallHeight()"
-        (ngModelChange)="setWallHeight($event)"
-      />
-      <input
-        class="border-ui-border-panel bg-ui-input text-ui-text focus:border-ui-accent rounded-ui-sm w-16 shrink-0 border border-solid px-2 py-1.5 text-center text-[13px] outline-none"
-        name="wall-height-number"
-        type="number"
-        [min]="minWallHeight"
-        [max]="maxWallHeight"
-        step="0.5"
-        [ngModel]="wallHeight()"
-        (ngModelChange)="setWallHeight($event)"
-      />
+    <div>
+      <label class="text-ui-muted mb-1.25 block text-[0.78rem] font-semibold tracking-[0.04em] uppercase">
+        {{ 'feature.tabletop.dungeonGenerator.props.entrance' | transloco }}
+      </label>
+      <div class="grid grid-cols-2 gap-1.5">
+        @for (style of entranceStyles; track style) {
+          <button
+            class="rounded-ui-sm border-ui-border-panel bg-ui-input text-ui-text cursor-pointer border border-solid px-2 py-1.5 text-[0.82rem]"
+            type="button"
+            [class.border-ui-accent]="entrance() === style"
+            (click)="setEntrance(style)"
+          >
+            {{ 'feature.tabletop.dungeonGenerator.entrance.' + style | transloco }}
+          </button>
+        }
+      </div>
     </div>
-  </div>
+
+    <div>
+      <label
+        class="text-ui-muted mb-1.25 block text-[0.78rem] font-semibold tracking-[0.04em] uppercase"
+        for="wall-height"
+      >
+        {{ 'feature.tabletop.dungeonGenerator.props.wallHeight' | transloco }}
+      </label>
+      <div class="flex items-center gap-2">
+        <input
+          class="min-w-0 flex-1"
+          id="wall-height"
+          name="wall-height"
+          type="range"
+          [min]="minWallHeight"
+          [max]="maxWallHeight"
+          step="0.5"
+          [ngModel]="wallHeight()"
+          (ngModelChange)="setWallHeight($event)"
+        />
+        <input
+          class="border-ui-border-panel bg-ui-input text-ui-text focus:border-ui-accent rounded-ui-sm w-16 shrink-0 border border-solid px-2 py-1.5 text-center text-[13px] outline-none"
+          name="wall-height-number"
+          type="number"
+          [min]="minWallHeight"
+          [max]="maxWallHeight"
+          step="0.5"
+          [ngModel]="wallHeight()"
+          (ngModelChange)="setWallHeight($event)"
+        />
+      </div>
+    </div>
+  }
 
   <div>
     <label class="text-ui-muted mb-1.25 block text-[0.78rem] font-semibold tracking-[0.04em] uppercase" for="seed">
@@ -175,16 +278,23 @@
     />
   </div>
 
-  <div class="flex flex-col gap-1.5 text-[0.85rem]">
-    <label class="flex cursor-pointer items-center gap-2">
-      <input type="checkbox" name="place-doors" [ngModel]="placeDoors()" (ngModelChange)="placeDoors.set($event)" />
-      {{ 'feature.tabletop.dungeonGenerator.props.placeDoors' | transloco }}
-    </label>
-    <label class="flex cursor-pointer items-center gap-2">
-      <input type="checkbox" name="place-stairs" [ngModel]="placeStairs()" (ngModelChange)="placeStairs.set($event)" />
-      {{ 'feature.tabletop.dungeonGenerator.props.placeStairs' | transloco }}
-    </label>
-  </div>
+  @if (!field()) {
+    <div class="flex flex-col gap-1.5 text-[0.85rem]">
+      <label class="flex cursor-pointer items-center gap-2">
+        <input type="checkbox" name="place-doors" [ngModel]="placeDoors()" (ngModelChange)="placeDoors.set($event)" />
+        {{ 'feature.tabletop.dungeonGenerator.props.placeDoors' | transloco }}
+      </label>
+      <label class="flex cursor-pointer items-center gap-2">
+        <input
+          type="checkbox"
+          name="place-stairs"
+          [ngModel]="placeStairs()"
+          (ngModelChange)="placeStairs.set($event)"
+        />
+        {{ 'feature.tabletop.dungeonGenerator.props.placeStairs' | transloco }}
+      </label>
+    </div>
+  }
 
   <div>
     <div class="border-ui-border-panel rounded-ui-sm overflow-hidden border border-solid bg-black">

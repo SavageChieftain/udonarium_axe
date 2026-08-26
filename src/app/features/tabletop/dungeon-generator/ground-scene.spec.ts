@@ -3,7 +3,7 @@ import { planDungeon } from '@axe/domain/tabletop/dungeon/dungeon-generator';
 import { GridType } from '@axe/domain/tabletop/game-table';
 import { cellKey, CellLayer } from '@axe/features/map-editor/model/scene';
 import { IMAGE_TEXTURE_PREFIX } from '@axe/features/map-editor/model/textures';
-import { buildDungeonFloorScene } from '@axe/features/tabletop/dungeon-generator/dungeon-floor-scene';
+import { buildGroundScene } from '@axe/features/tabletop/dungeon-generator/ground-scene';
 
 const stone = { kind: 'texture' as const, id: 'stone_paving_big' };
 const lava = { kind: 'texture' as const, id: 'lava' };
@@ -12,11 +12,11 @@ function scene(atmosphere: DungeonAtmosphereId = 'stoneDungeon') {
   const plan = planDungeon({ atmosphere, roomCount: 8, seed: 7 });
   return {
     plan,
-    built: buildDungeonFloorScene(plan.layout, plan.blocks.paint, { floor: stone, hazard: lava }, 50),
+    built: buildGroundScene(plan.layout, plan.blocks.paint, { floor: stone, hazard: lava }, 50),
   };
 }
 
-describe('buildDungeonFloorScene()', () => {
+describe('buildGroundScene()', () => {
   it('covers the board a cell at a time, on squares', () => {
     const { plan, built } = scene();
 
@@ -58,7 +58,7 @@ describe('buildDungeonFloorScene()', () => {
   it('points a picture from the library at the image it came from', () => {
     const plan = planDungeon({ atmosphere: 'stoneDungeon', roomCount: 3, seed: 1 });
     const material = { kind: 'library' as const, identifier: 'some-hash' };
-    const built = buildDungeonFloorScene(plan.layout, plan.blocks.paint, { floor: material, hazard: material }, 50);
+    const built = buildGroundScene(plan.layout, plan.blocks.paint, { floor: material, hazard: material }, 50);
     const layer = built.layers[0] as CellLayer;
     const first = plan.blocks.paint[0];
 

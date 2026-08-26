@@ -21,6 +21,13 @@ type Panel = DungeonGeneratorComponent & {
   syncCount(): number;
   lightCount(): number;
   paintCount(): number;
+  kind(): 'dungeon' | 'field';
+  field(): boolean;
+  chooseKind(kind: 'dungeon' | 'field'): void;
+  chooseFieldAtmosphere(id: 'woodland' | 'meadow' | 'coast' | 'marsh' | 'snowfield' | 'wasteland'): void;
+  fieldSize: { set(value: number): void; (): number };
+  fieldDensity: { set(value: number): void; (): number };
+  boardSize(): string;
   tooMany(): boolean;
   preview(): { viewBox: string; rects: unknown[] };
   builtTable(): GameTable | null;
@@ -219,6 +226,64 @@ describe('DungeonGeneratorComponent', () => {
     component.discardPrevious();
 
     expect(ImageStorage.instance.get(PAINTED)).toBeNull();
+  });
+
+  describe('a field', () => {
+    beforeEach(() => {
+      component.chooseKind('field');
+    });
+
+    it('starts on a wood, and lays a board three deep for every four across', () => {
+      expect(component.field()).toBe(true);
+      component.fieldSize.set(40);
+
+      expect(component.boardSize()).toBe('40 x 30');
+    });
+
+    it('paints the whole board and stands things on it', () => {
+      expect(component.paintCount()).toBeGreaterThan(0);
+      expect(component.terrainCount()).toBeGreaterThan(0);
+      expect(component.preview().rects.length).toBe(
+        component.paintCount() + component.terrainCount() + component.lightCount()
+      );
+    });
+
+    it('grows thicker when asked for more and clears when asked for none', () => {
+      component.fieldDensity.set(0);
+      const bare = component.terrainCount();
+      component.fieldDensity.set(100);
+
+      expect(bare).toBe(0);
+      expect(component.terrainCount()).toBeGreaterThan(0);
+    });
+
+    it('changes what it is made of without rolling a new board', () => {
+      const before = component.preview().rects.length;
+      component.chooseFieldAtmosphere('coast');
+      component.setWall({ kind: 'texture', id: 'wall_ice' });
+
+      expect(component.preview().rects.length).not.toBe(0);
+      expect(before).toBeGreaterThan(0);
+    });
+
+    it('builds a table of open ground with notes to match', async () => {
+      (component as unknown as { exportFn: unknown }).exportFn = stubPainting();
+      component.fieldSize.set(20);
+
+      await component.generate();
+
+      expect(component.builtTable()).not.toBeNull();
+      expect(component.builtTable()!.terrains.length).toBe(component.terrainCount());
+      expect(component.summary()).toContain('20x15');
+    });
+
+    it('leaves the dungeon alone while it is on a field', () => {
+      expect(component.kind()).toBe('field');
+
+      component.chooseKind('dungeon');
+
+      expect(component.field()).toBe(false);
+    });
   });
 
   it('throws the last one away when it rolls again', async () => {

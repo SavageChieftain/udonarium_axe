@@ -12,7 +12,15 @@ import {
 } from '@axe/domain/media/texture-catalog';
 import { GameTable, GridType } from '@axe/domain/tabletop/game-table';
 import { LightSource } from '@axe/domain/tabletop/light-source';
-import { MapBlock, MapBlocks, MapLight, MapLightKind, MapMood, MapSize } from '@axe/domain/tabletop/map-blocks';
+import {
+  MapBlock,
+  MapBlocks,
+  MapLight,
+  MapLightKind,
+  MapMaterial,
+  MapMood,
+  MapSize,
+} from '@axe/domain/tabletop/map-blocks';
 import { DoorStyle, SlopeDirection, Terrain, TerrainViewState } from '@axe/domain/tabletop/terrain';
 import { applyLightPreset, LightPreset } from '@axe/domain/tabletop/vision-types';
 
@@ -46,7 +54,7 @@ const WALL_MOUNTED: readonly MapLightKind[] = ['sconce', 'lantern'];
 /** How many terrains go in before the thread is handed back, so the panel can move its bar. */
 const CHUNK_SIZE = 32;
 
-export type DungeonMaterial = { kind: 'texture'; id: string } | { kind: 'library'; identifier: string };
+export type DungeonMaterial = MapMaterial;
 
 export interface DungeonBuildOptions {
   name: string;
@@ -187,8 +195,8 @@ export class DungeonBuildService {
         return terrain;
       }
       case 'prop': {
-        const side = this.registerAsset(WALL_TEXTURE_ASSET_URLS[block.skin?.side ?? 'wall_cave_rock']);
-        const top = this.registerAsset(TEXTURE_ASSET_URLS[block.skin?.top ?? 'rock']);
+        const side = block.skin ? this.resolveMaterial(block.skin.side, WALL_TEXTURE_ASSET_URLS) : images.wallSide;
+        const top = block.skin ? this.resolveMaterial(block.skin.top, TEXTURE_ASSET_URLS) : images.wallTop;
         const terrain = Terrain.create(name, rect.w, rect.h, block.height ?? 1, side, top);
         terrain.mode = TerrainViewState.ALL;
         return terrain;

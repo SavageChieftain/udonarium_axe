@@ -1,4 +1,7 @@
-import { DungeonPropId, TextureId, WallTextureId } from '@axe/domain/media/texture-catalog';
+import { DungeonPropId } from '@axe/domain/media/texture-catalog';
+
+/** What a thing is made of: one of the bundled pictures, or one out of the image storage. */
+export type MapMaterial = { kind: 'texture'; id: string } | { kind: 'library'; identifier: string };
 
 export interface MapRect {
   x: number;
@@ -41,8 +44,8 @@ export interface MapBlock {
   across?: 'x' | 'y';
   /** A bundled picture for a piece that wears one of its own: a door, a stair, a tree. */
   prop?: DungeonPropId;
-  /** The two textures a prop is built from, when it is not made of the walls of the place. */
-  skin?: { side: WallTextureId; top: TextureId };
+  /** What a prop is built from, when it is not made of the walls of the place. */
+  skin?: { side: MapMaterial; top: MapMaterial };
   /** How tall it stands, in cells. Walls take the height the panel asks for. */
   height?: number;
   /** How a door moves when it opens. */
@@ -60,7 +63,7 @@ export interface MapPaint {
   kind: 'floor' | 'hazard';
   rect: MapRect;
   /** The ground of a field changes from patch to patch, so a patch may name its own. */
-  texture?: TextureId;
+  material?: MapMaterial;
 }
 
 export type MapLightKind = 'sconce' | 'campfire' | 'brazier' | 'stand' | 'lantern';
@@ -79,6 +82,15 @@ export interface MapBlocks {
   torchSpots: MapPoint[];
   lights: MapLight[];
 }
+
+/**
+ * How many pieces one table will carry.
+ *
+ * A maze fills the rock between the rooms, which buys a dungeon worth walking through at
+ * roughly twice the pieces a straight corridor would cost, and a wood is dearer still.
+ */
+export const MAP_MAX_TERRAINS = 400;
+export const MAP_HEAVY_TERRAINS = 200;
 
 /** What one terrain costs to sync: itself, the five it is built from, and its six values. */
 export const SYNC_OBJECTS_PER_TERRAIN = 12;
