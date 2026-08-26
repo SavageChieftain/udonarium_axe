@@ -1707,7 +1707,6 @@
           "entrance": "入口",
           "exit": "出口",
           "hazard": "溶岩",
-          "fog": "未探索",
           "torch": "松明"
         },
         "summary": {
@@ -1730,7 +1729,6 @@
           "tableName": "テーブル名",
           "placeDoors": "扉を置く",
           "placeStairs": "入口と出口を置く",
-          "placeScratchMask": "未探索の覆いを敷く",
           "wallHeight": "壁の高さ（マス）"
         },
         "actions": {

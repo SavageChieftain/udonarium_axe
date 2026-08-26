@@ -1707,7 +1707,6 @@
           "entrance": "Way in",
           "exit": "Way out",
           "hazard": "Lava",
-          "fog": "Unexplored",
           "torch": "Torch"
         },
         "summary": {
@@ -1730,7 +1729,6 @@
           "tableName": "Table name",
           "placeDoors": "Place doors",
           "placeStairs": "Place the way in and out",
-          "placeScratchMask": "Cover what is unexplored",
           "wallHeight": "Wall height (cells)"
         },
         "actions": {

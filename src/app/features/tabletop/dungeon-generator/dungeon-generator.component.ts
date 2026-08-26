@@ -71,7 +71,6 @@ export class DungeonGeneratorComponent {
   protected readonly tableName = signal('');
   protected readonly placeDoors = signal(true);
   protected readonly placeStairs = signal(true);
-  protected readonly placeScratchMask = signal(true);
 
   private readonly wallOverride = signal<DungeonMaterial | null>(null);
   private readonly floorOverride = signal<DungeonMaterial | null>(null);
@@ -182,7 +181,6 @@ export class DungeonGeneratorComponent {
           wall: this.wall(),
           floor: this.floor(),
           wallHeight: this.wallHeight(),
-          placeScratchMask: this.placeScratchMask(),
         },
         (done, total) => this.progress.set(Math.round((done / total) * 100))
       );

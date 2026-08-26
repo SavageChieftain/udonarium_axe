@@ -1707,7 +1707,6 @@
           "entrance": "입구",
           "exit": "출구",
           "hazard": "용암",
-          "fog": "미탐색",
           "torch": "횃불"
         },
         "summary": {
@@ -1730,7 +1729,6 @@
           "tableName": "테이블 이름",
           "placeDoors": "문 배치",
           "placeStairs": "입구와 출구 배치",
-          "placeScratchMask": "미탐색 영역 덮기",
           "wallHeight": "벽 높이(칸)"
         },
         "actions": {

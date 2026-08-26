@@ -166,15 +166,6 @@
       <input type="checkbox" name="place-stairs" [ngModel]="placeStairs()" (ngModelChange)="placeStairs.set($event)" />
       {{ 'feature.tabletop.dungeonGenerator.props.placeStairs' | transloco }}
     </label>
-    <label class="flex cursor-pointer items-center gap-2">
-      <input
-        type="checkbox"
-        name="place-fog"
-        [ngModel]="placeScratchMask()"
-        (ngModelChange)="placeScratchMask.set($event)"
-      />
-      {{ 'feature.tabletop.dungeonGenerator.props.placeScratchMask' | transloco }}
-    </label>
   </div>
 
   <div>

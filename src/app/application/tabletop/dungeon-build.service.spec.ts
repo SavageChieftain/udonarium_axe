@@ -7,7 +7,6 @@ import { WALL_TEXTURE_ASSET_URLS } from '@axe/domain/media/texture-catalog';
 import { atmosphereById } from '@axe/domain/tabletop/dungeon/dungeon-atmosphere';
 import { planDungeon } from '@axe/domain/tabletop/dungeon/dungeon-generator';
 import { GameTable, GridType } from '@axe/domain/tabletop/game-table';
-import { GameTableMask } from '@axe/domain/tabletop/game-table-mask';
 import { LightSource } from '@axe/domain/tabletop/light-source';
 import { Terrain, TerrainViewState } from '@axe/domain/tabletop/terrain';
 import { TextNote } from '@axe/domain/tabletop/text-note';
@@ -21,7 +20,6 @@ function options(overrides: Partial<Parameters<DungeonBuildService['build']>[3]>
     wall: { kind: 'texture' as const, id: 'wall_ashlar' },
     floor: { kind: 'texture' as const, id: 'stone_paving_big' },
     wallHeight: 2,
-    placeScratchMask: false,
     ...overrides,
   };
 }
@@ -226,14 +224,13 @@ describe('DungeonBuildService', () => {
   });
 
   it('leaves nothing behind that outlives its table', async () => {
-    const { result } = await build({ placeScratchMask: true });
-    const made = result.table.terrains.length + result.table.masks.length;
+    const { result } = await build();
+    const made = result.table.terrains.length;
 
     result.table.destroy();
 
     expect(made).toBeGreaterThan(0);
     expect(store.getObjects(Terrain).length).toBe(0);
-    expect(store.getObjects(GameTableMask).length).toBe(0);
     expect(store.getObjects(LightSource).length).toBe(0);
   });
 
@@ -279,26 +276,6 @@ describe('DungeonBuildService', () => {
     result.table.destroy();
 
     for (const identifier of identifiers) expect(store.get(identifier)).toBeNull();
-  });
-
-  it('lays one mask over the whole board when asked', async () => {
-    // The map mask, not the scratch mask: only the map mask can be rubbed away a cell at a time.
-    const { plan, result } = await build({ placeScratchMask: true });
-    const masks = store.getObjects(GameTableMask);
-
-    expect(masks.length).toBe(1);
-    expect(masks[0].width).toBe(plan.layout.width);
-    expect(masks[0].height).toBe(plan.layout.height);
-    expect(result.table.masks.length).toBe(1);
-  });
-
-  it('lays the cover over the walls rather than under the floor', async () => {
-    // At nothing it sits below every piece of terrain on the table and hides not one of them.
-    const { result } = await build({ placeScratchMask: true, wallHeight: 3 });
-    const mask = result.table.masks[0];
-    const tallest = Math.max(...result.table.terrains.map((terrain) => terrain.height * 50));
-
-    expect(mask.posZ).toBeGreaterThan(tallest);
   });
 
   it('hands the notes back as text and leaves nothing on the tabletop', async () => {
