@@ -2,6 +2,8 @@ import {
   atmosphereById,
   DUNGEON_ATMOSPHERE_IDS,
   DUNGEON_ATMOSPHERES,
+  DUNGEON_DOOR_STYLES,
+  DUNGEON_ENTRANCE_STYLES,
 } from '@axe/domain/tabletop/dungeon/dungeon-atmosphere';
 import { DUNGEON_MAX_TERRAINS, MAX_MERGE_SPAN, syncObjectCount } from '@axe/domain/tabletop/dungeon/dungeon-blocks';
 import {
@@ -256,6 +258,14 @@ describe('the atmosphere table', () => {
   it('has an entry for every id', () => {
     for (const id of DUNGEON_ATMOSPHERE_IDS) {
       expect(DUNGEON_ATMOSPHERES[id].id).toBe(id);
+    }
+  });
+
+  it('says how its doors open and how the party gets in', () => {
+    for (const id of DUNGEON_ATMOSPHERE_IDS) {
+      const atmosphere = DUNGEON_ATMOSPHERES[id];
+      expect(DUNGEON_DOOR_STYLES).toContain(atmosphere.doorStyle);
+      expect(DUNGEON_ENTRANCE_STYLES).toContain(atmosphere.entrance);
     }
   });
 

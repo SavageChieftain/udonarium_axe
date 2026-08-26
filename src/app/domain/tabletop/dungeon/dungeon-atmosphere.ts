@@ -18,6 +18,11 @@ export const DUNGEON_ENTRANCE_STYLES = ['stair', 'tunnel'] as const;
 /** A stair suits a floor with more above it; a mouth in the outer wall suits the first one. */
 export type DungeonEntranceStyle = (typeof DUNGEON_ENTRANCE_STYLES)[number];
 
+/** How the doors of a place open, which is as much a part of its character as its stone. */
+export const DUNGEON_DOOR_STYLES = ['swing', 'lift', 'sink'] as const;
+
+export type DungeonDoorStyle = (typeof DUNGEON_DOOR_STYLES)[number];
+
 export interface RoomPlan {
   minRoom: number;
   maxRoom: number;
@@ -61,6 +66,7 @@ export interface DungeonAtmosphere {
   gridShow: boolean;
   torches: number;
   entrance: DungeonEntranceStyle;
+  doorStyle: DungeonDoorStyle;
   rooms?: RoomPlan;
   cave?: CaveShape;
 }
@@ -79,6 +85,7 @@ export const DUNGEON_ATMOSPHERES: Record<DungeonAtmosphereId, DungeonAtmosphere>
     gridShow: true,
     torches: 4,
     entrance: 'stair',
+    doorStyle: 'swing',
     rooms: {
       minRoom: 5,
       maxRoom: 9,
@@ -101,6 +108,7 @@ export const DUNGEON_ATMOSPHERES: Record<DungeonAtmosphereId, DungeonAtmosphere>
     gridShow: true,
     torches: 3,
     entrance: 'stair',
+    doorStyle: 'sink',
     rooms: {
       minRoom: 3,
       maxRoom: 5,
@@ -123,6 +131,7 @@ export const DUNGEON_ATMOSPHERES: Record<DungeonAtmosphereId, DungeonAtmosphere>
     gridShow: true,
     torches: 0,
     entrance: 'tunnel',
+    doorStyle: 'swing',
     rooms: {
       minRoom: 5,
       maxRoom: 13,
@@ -145,6 +154,7 @@ export const DUNGEON_ATMOSPHERES: Record<DungeonAtmosphereId, DungeonAtmosphere>
     gridShow: false,
     torches: 5,
     entrance: 'tunnel',
+    doorStyle: 'lift',
     cave: { wallFill: 0.45, iterations: 4, birth: 5, survive: 4, tunnelWidth: 2, hazardPoolsPerRoom: 0 },
   },
   lavaCavern: {
@@ -160,6 +170,7 @@ export const DUNGEON_ATMOSPHERES: Record<DungeonAtmosphereId, DungeonAtmosphere>
     gridShow: false,
     torches: 2,
     entrance: 'tunnel',
+    doorStyle: 'sink',
     cave: {
       wallFill: 0.47,
       iterations: 4,
@@ -183,6 +194,7 @@ export const DUNGEON_ATMOSPHERES: Record<DungeonAtmosphereId, DungeonAtmosphere>
     gridShow: false,
     torches: 4,
     entrance: 'tunnel',
+    doorStyle: 'lift',
     cave: { wallFill: 0.44, iterations: 4, birth: 5, survive: 4, tunnelWidth: 2, hazardPoolsPerRoom: 0 },
   },
   sandTomb: {
@@ -198,6 +210,7 @@ export const DUNGEON_ATMOSPHERES: Record<DungeonAtmosphereId, DungeonAtmosphere>
     gridShow: true,
     torches: 4,
     entrance: 'stair',
+    doorStyle: 'lift',
     rooms: {
       minRoom: 5,
       maxRoom: 7,

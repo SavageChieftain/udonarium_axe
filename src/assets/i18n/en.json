@@ -1582,7 +1582,14 @@
         "surfaceWestWall": "West wall",
         "createWithOptions": "Create a piece…",
         "tiledTextureOn": "Tile the texture",
-        "tiledTextureOff": "Stretch the texture again"
+        "tiledTextureOff": "Stretch the texture again",
+        "doorOpen": "Open the door",
+        "doorClose": "Close the door",
+        "doorStyle": "How the door opens",
+        "doorStyleNone": "Not a door",
+        "doorStyleSwing": "Swings on a hinge",
+        "doorStyleLift": "Rises up",
+        "doorStyleSink": "Sinks down"
       },
       "tableSetting": {
         "title": "Table settings",

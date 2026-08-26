@@ -146,6 +146,30 @@ describe('DungeonBuildService', () => {
     }
   });
 
+  it('gives every door the way of opening its atmosphere calls for', async () => {
+    const { plan, result } = await build();
+    const style = atmosphereById('stoneDungeon').doorStyle;
+
+    plan.blocks.blocks.forEach((block, index) => {
+      if (block.kind !== 'door') return;
+      const door = result.table.terrains[index];
+      expect(door.doorStyle).toBe(style);
+      expect(door.isDoor).toBe(true);
+      expect(door.isDoorOpen).toBe(false);
+      // Shut, it is a wall; the sight test must go on seeing it that way.
+      expect(door.blocksSightNow).toBe(true);
+    });
+  });
+
+  it('leaves the walls and floors alone, which are not doors', async () => {
+    const { plan, result } = await build();
+
+    plan.blocks.blocks.forEach((block, index) => {
+      if (block.kind === 'door') return;
+      expect(result.table.terrains[index].isDoor).toBe(false);
+    });
+  });
+
   it('centres a door in its cell rather than leaving it against one side', async () => {
     const { plan, result } = await build();
 

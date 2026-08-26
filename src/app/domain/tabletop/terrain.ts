@@ -25,6 +25,19 @@ export enum SlopeDirection {
   RIGHT = 4,
 }
 
+export enum DoorStyle {
+  /** Not a door at all, which is every piece of terrain until it is told otherwise. */
+  NONE = 'none',
+  /** Turns on its hinge. */
+  SWING = 'swing',
+  /** Rises into the ceiling, the way a portcullis does. */
+  LIFT = 'lift',
+  /** Drops into the floor. */
+  SINK = 'sink',
+}
+
+export const DOOR_STYLES: readonly DoorStyle[] = [DoorStyle.SWING, DoorStyle.LIFT, DoorStyle.SINK];
+
 export type TerrainFace = 'top' | 'bottom' | 'north' | 'south' | 'east' | 'west';
 
 export const TERRAIN_FACES: readonly TerrainFace[] = ['top', 'bottom', 'north', 'south', 'east', 'west'] as const;
@@ -44,6 +57,26 @@ export class Terrain extends TabletopObject {
 
   @SyncVar() blocksSight: boolean = true;
   @SyncVar() blocksLight: boolean = true;
+
+  @SyncVar() doorStyle: string = DoorStyle.NONE;
+  @SyncVar() isDoorOpen: boolean = false;
+
+  get isDoor(): boolean {
+    return this.doorStyle !== DoorStyle.NONE;
+  }
+
+  /**
+   * What the terrain stops right now, rather than what it stops when shut.
+   *
+   * An open door has to let sight and light past without forgetting that it blocks them
+   * when it is closed again, so the standing setting is left alone and read through here.
+   */
+  get blocksSightNow(): boolean {
+    return this.blocksSight && !(this.isDoor && this.isDoorOpen);
+  }
+  get blocksLightNow(): boolean {
+    return this.blocksLight && !(this.isDoor && this.isDoorOpen);
+  }
 
   @SyncVar() lightEnabled: boolean = false;
   @SyncVar() lightPreset: string = LightPreset.CUSTOM;

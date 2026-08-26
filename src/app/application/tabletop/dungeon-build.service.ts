@@ -210,6 +210,7 @@ export class DungeonBuildService {
         const depth = acrossX ? rect.h : DOOR_THICKNESS;
         const terrain = Terrain.create(name, width, depth, wallHeight, door, door);
         terrain.mode = TerrainViewState.ALL;
+        terrain.doorStyle = atmosphere.doorStyle;
         return terrain;
       }
       case 'stairUp':

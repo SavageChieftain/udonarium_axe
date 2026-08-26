@@ -1582,7 +1582,14 @@
         "surfaceWestWall": "西壁",
         "createWithOptions": "コマを作る…",
         "tiledTextureOn": "テクスチャをタイル貼りにする",
-        "tiledTextureOff": "テクスチャを引き伸ばしに戻す"
+        "tiledTextureOff": "テクスチャを引き伸ばしに戻す",
+        "doorOpen": "扉を開く",
+        "doorClose": "扉を閉じる",
+        "doorStyle": "扉の開き方",
+        "doorStyleNone": "扉ではない",
+        "doorStyleSwing": "開き戸",
+        "doorStyleLift": "上へ上がる",
+        "doorStyleSink": "下へ沈む"
       },
       "tableSetting": {
         "title": "テーブル設定",

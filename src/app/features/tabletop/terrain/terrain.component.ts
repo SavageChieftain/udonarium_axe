@@ -37,7 +37,7 @@ import { GameTable, GridType } from '@axe/domain/tabletop/game-table';
 import { isFlatTopGrid, isHexGrid } from '@axe/domain/tabletop/hex-geometry';
 import { TableSelecter } from '@axe/domain/tabletop/table-selecter';
 import { surfaceOf } from '@axe/domain/tabletop/tabletop-object';
-import { SlopeDirection, Terrain, TerrainFace } from '@axe/domain/tabletop/terrain';
+import { DoorStyle, SlopeDirection, Terrain, TerrainFace } from '@axe/domain/tabletop/terrain';
 import { WallFace, WallLight, WallSilhouette } from '@axe/domain/tabletop/vision-scene';
 import { GridLineRender } from '@axe/features/tabletop/game-table/grid-line-render';
 import {
@@ -270,6 +270,45 @@ export class TerrainComponent {
     this.terrainVersion();
     return this.terrain().isSurfaceShading;
   });
+  readonly doorStyle = computed(() => {
+    this.terrainVersion();
+    return this.terrain().doorStyle;
+  });
+  readonly isDoor = computed(() => this.doorStyle() !== DoorStyle.NONE);
+  readonly isDoorOpen = computed(() => {
+    this.terrainVersion();
+    return this.terrain().isDoorOpen;
+  });
+
+  /** A door thin across x turns on a hinge at one end of its long side, and the other way round. */
+  private readonly hingeOnLongY = computed(() => this.width() < this.depth());
+
+  readonly doorTransform = computed(() => {
+    if (!this.isDoor() || !this.isDoorOpen()) return '';
+    switch (this.doorStyle()) {
+      case DoorStyle.SWING:
+        return ` rotateZ(${this.hingeOnLongY() ? -95 : 95}deg)`;
+      case DoorStyle.LIFT:
+        return ` translateZ(${this.height() * this.gridSize}px)`;
+      case DoorStyle.SINK:
+        return ` translateZ(${-this.height() * this.gridSize}px)`;
+      default:
+        return '';
+    }
+  });
+
+  readonly doorOrigin = computed(() => {
+    if (!this.isDoor() || this.doorStyle() !== DoorStyle.SWING) return '';
+    return this.hingeOnLongY() ? 'center top' : 'left center';
+  });
+
+  protected onDoorClick(): void {
+    if (!this.isDoor() || this.pointerDeviceService.isDragging) return;
+    const terrain = this.terrain();
+    terrain.isDoorOpen = !terrain.isDoorOpen;
+    SoundEffect.play(terrain.isDoorOpen ? PresetSound.unlock : PresetSound.lock);
+  }
+
   readonly isTiledTexture = computed(() => {
     this.terrainVersion();
     return this.terrain().isTiledTexture;

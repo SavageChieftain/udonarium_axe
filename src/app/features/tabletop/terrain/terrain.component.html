@@ -12,6 +12,8 @@
   <div
     class="pointer-events-auto size-full transform-3d"
     [class.cursor-grab]="!isLocked()"
+    [class.cursor-pointer]="isDoor() && isLocked()"
+    (click)="onDoorClick()"
     [attr.data-table-passthrough]="isLocked() ? '' : null"
     appRotable
     [rotable.option]="rotableOption()"
@@ -33,7 +35,12 @@
     <div
       class="absolute z-1 size-full bg-size-[100%_100%] bg-no-repeat backface-hidden transform-3d"
       [class.transition-[transform_132ms_cubic-bezier(0.21,0.97,0.75,1.25)]]="height() >= 0.5 && altitude() === 0"
-      [ngStyle]="{ transform: (onWall() ? 'rotateY(180deg) ' : '') + 'translateZ(' + altitude() * gridSize + 'px)' }"
+      [class.transition-[transform_320ms_cubic-bezier(0.32,0.72,0.3,1)]]="isDoor()"
+      [style.transform-origin]="doorOrigin()"
+      [ngStyle]="{
+        transform:
+          (onWall() ? 'rotateY(180deg) ' : '') + 'translateZ(' + altitude() * gridSize + 'px)' + doorTransform(),
+      }"
     >
       @if (hasFloor() && isVisibleFloor() && 0 < topFaceImage().url.length) {
         @if (isHexSlope() && hexSlopeSteps().floors.length > 0) {

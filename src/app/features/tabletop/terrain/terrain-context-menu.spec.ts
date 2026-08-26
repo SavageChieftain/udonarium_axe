@@ -18,6 +18,9 @@ interface MutableTerrain {
   isSurfaceShading: boolean;
   isDropShadow: boolean;
   isTiledTexture: boolean;
+  doorStyle: string;
+  isDoorOpen: boolean;
+  isDoor: boolean;
   mode: TerrainViewState;
   parent: null;
   clone: ReturnType<typeof vi.fn>;
@@ -37,6 +40,9 @@ function makeTerrain(overrides: Partial<MutableTerrain> = {}): MutableTerrain {
     isSurfaceShading: false,
     isDropShadow: false,
     isTiledTexture: false,
+    doorStyle: 'none',
+    isDoorOpen: false,
+    isDoor: false,
     mode: TerrainViewState.ALL,
     parent: null,
     clone: vi.fn(() => ({ location: { x: 0, y: 0 }, isLocked: false })),
@@ -101,6 +107,58 @@ describe('buildTerrainContextMenu()', () => {
     menu.find((item) => item.name === 'テクスチャをタイル貼りにする')?.action?.();
 
     expect(terrain.isTiledTexture).toBe(true);
+  });
+
+  it('offers to open a door and to shut an open one, and neither to a plain wall', () => {
+    const build = (overrides: Partial<MutableTerrain>) =>
+      buildTerrainContextMenu(
+        makeTerrain(overrides) as unknown as Terrain,
+        50,
+        { x: 0, y: 0, z: 0 },
+        makeService(),
+        makeActionService(),
+        vi.fn(),
+        t
+      );
+
+    expect(names(build({ isDoor: true, doorStyle: 'swing' }))).toContain('扉を開く');
+    expect(names(build({ isDoor: true, doorStyle: 'swing', isDoorOpen: true }))).toContain('扉を閉じる');
+    expect(names(build({}))).not.toContain('扉を開く');
+  });
+
+  it('swings the door when that item is chosen', () => {
+    const terrain = makeTerrain({ isDoor: true, doorStyle: 'swing' });
+    const menu = buildTerrainContextMenu(
+      terrain as unknown as Terrain,
+      50,
+      { x: 0, y: 0, z: 0 },
+      makeService(),
+      makeActionService(),
+      vi.fn(),
+      t
+    );
+
+    menu.find((item) => item.name === '扉を開く')?.action?.();
+
+    expect(terrain.isDoorOpen).toBe(true);
+  });
+
+  it('offers all three ways for a door to open', () => {
+    const menu = buildTerrainContextMenu(
+      makeTerrain() as unknown as Terrain,
+      50,
+      { x: 0, y: 0, z: 0 },
+      makeService(),
+      makeActionService(),
+      vi.fn(),
+      t
+    );
+    const styles = menu.find((item) => item.name === '扉の開き方');
+
+    expect(styles?.subActions?.length).toBe(4);
+    expect(styles?.subActions?.map((entry) => entry.name.slice(2)).sort()).toEqual(
+      ['上へ上がる', '下へ沈む', '扉ではない', '開き戸'].sort()
+    );
   });
 
   it('offers to unlock what is locked and to lock what is not', () => {

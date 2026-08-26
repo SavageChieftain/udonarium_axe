@@ -1582,7 +1582,14 @@
         "surfaceWestWall": "서쪽 벽",
         "createWithOptions": "말 만들기…",
         "tiledTextureOn": "텍스처를 타일로 깔기",
-        "tiledTextureOff": "텍스처를 다시 늘이기"
+        "tiledTextureOff": "텍스처를 다시 늘이기",
+        "doorOpen": "문 열기",
+        "doorClose": "문 닫기",
+        "doorStyle": "문이 열리는 방식",
+        "doorStyleNone": "문이 아님",
+        "doorStyleSwing": "여닫이",
+        "doorStyleLift": "위로 올라감",
+        "doorStyleSink": "아래로 가라앉음"
       },
       "tableSetting": {
         "title": "테이블 설정",

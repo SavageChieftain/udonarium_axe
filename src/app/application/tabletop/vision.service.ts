@@ -381,8 +381,8 @@ export class VisionService {
         terrain.depth * gridSize,
         terrain.rotate
       );
-      if (terrain.blocksSight) sight.push(...edges);
-      if (terrain.blocksLight && !terrain.lightEnabled) {
+      if (terrain.blocksSightNow) sight.push(...edges);
+      if (terrain.blocksLightNow && !terrain.lightEnabled) {
         const top = (terrain.altitude + terrain.height) * gridSize;
         for (const edge of edges) light.push({ ...edge, heightPx: top });
       }
