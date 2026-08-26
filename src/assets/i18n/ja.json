@@ -209,7 +209,8 @@
         "moveCommon": "共通へ",
         "moveGraveyard": "墓場へ",
         "delete": "削除する"
-      }
+      },
+      "typeLight": "光源"
     },
     "media": {
       "jukebox": {
@@ -1335,7 +1336,10 @@
         "turnOff": "消灯する",
         "preset": "プリセット",
         "follow": "トークンに追従",
-        "unfollow": "追従しない"
+        "unfollow": "追従しない",
+        "skin": "スキン",
+        "skinFromLibrary": "画像保管庫から選ぶ",
+        "skinNone": "スキンなし"
       },
       "preset": {
         "custom": "カスタム",
@@ -1345,7 +1349,11 @@
         "daylight": "太陽光",
         "flashlight": "懐中電灯",
         "neon": "ネオン",
-        "spotlight": "スポットライト"
+        "spotlight": "スポットライト",
+        "campfire": "焚き火",
+        "sconce": "壁掛け松明",
+        "brazier": "火鉢",
+        "chandelier": "シャンデリア"
       },
       "settings": {
         "title": "光源",
@@ -1373,6 +1381,12 @@
       "category": {
         "physical": "物理光源",
         "theatrical": "演出光源"
+      },
+      "skin": {
+        "light_campfire": "焚き火",
+        "light_sconce": "壁掛け松明",
+        "light_brazier": "火鉢",
+        "light_lantern": "ランタン"
       }
     },
     "vision": {

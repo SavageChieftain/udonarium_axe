@@ -19,6 +19,7 @@ import { LightSource } from '@axe/domain/tabletop/light-source';
 import { clearOwnershipTree } from '@axe/domain/tabletop/ownership';
 import { RangeArea } from '@axe/domain/tabletop/range';
 import { TableAmbience } from '@axe/domain/tabletop/table-ambience';
+import { lightSourcesOn } from '@axe/domain/tabletop/table-lights';
 import { TableSelecter } from '@axe/domain/tabletop/table-selecter';
 import { TabletopObject } from '@axe/domain/tabletop/tabletop-object';
 import { Terrain } from '@axe/domain/tabletop/terrain';
@@ -85,9 +86,7 @@ export class TabletopService {
   private rangeCache = new TabletopCache<RangeArea>(() =>
     this.objectStore.getObjects(RangeArea).filter((obj) => obj.isVisibleOnTable)
   );
-  private lightSourceCache = new TabletopCache<LightSource>(() =>
-    this.objectStore.getObjects(LightSource).filter((obj) => obj.isVisibleOnTable)
-  );
+  private lightSourceCache = new TabletopCache<LightSource>(() => lightSourcesOn(this.tableSelecter.viewTable));
   private terrainCache = new TabletopCache<Terrain>(() => {
     const viewTable = this.tableSelecter.viewTable;
     return viewTable ? viewTable.terrains : [];
@@ -305,6 +304,9 @@ export class TabletopService {
       // falls through
       case Terrain.aliasName:
         if (gameObject instanceof Terrain) gameObject.isLocked = false;
+      // falls through
+      case LightSource.aliasName:
+        if (gameObject instanceof LightSource) gameObject.isLock = false;
       // falls through
       case TableAmbience.aliasName:
         if (gameObject instanceof TableAmbience) gameObject.isLock = false;

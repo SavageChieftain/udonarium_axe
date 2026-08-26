@@ -192,12 +192,24 @@ describe('DungeonBuildService', () => {
     const { plan, result } = await build();
     const lit = result.table.terrains.filter((terrain) => terrain.lightEnabled);
 
-    expect(plan.blocks.torchSpots.length).toBeGreaterThan(0);
-    expect(lit.length).toBe(plan.blocks.torchSpots.length);
+    expect(plan.blocks.lights.length).toBeGreaterThan(0);
+    expect(lit.length).toBe(plan.blocks.lights.length);
     for (const torch of lit) {
-      expect(torch.lightPreset).toBe('torch');
+      expect(['sconce', 'campfire', 'brazier']).toContain(torch.lightPreset);
       expect(torch.lightBrightRadius).toBeGreaterThan(0);
     }
+  });
+
+  it('gives every light a picture to stand as, and turns a bracket off the wall', async () => {
+    const { plan, result } = await build();
+
+    plan.blocks.blocks.forEach((block, index) => {
+      if (block.kind !== 'torch') return;
+      const light = plan.blocks.lights.find((entry) => entry.x === block.rect.x && entry.y === block.rect.y);
+      const terrain = result.table.terrains[index];
+      expect(terrain.floorImage?.identifier ?? '').toContain('assets/images/lights/');
+      if (light?.kind === 'sconce') expect(terrain.rotate).toBe(light.facing);
+    });
   });
 
   it('keeps the light off the walls, so a merged rock block goes on blocking it', async () => {

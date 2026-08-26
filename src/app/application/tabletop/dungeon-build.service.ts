@@ -2,6 +2,7 @@ import { inject, Injectable } from '@angular/core';
 import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { ImageStorage } from '@axe/core/storage/image-storage';
 import { ImageTag } from '@axe/domain/media/image-tag';
+import { LIGHT_PRESET_SKIN, LIGHT_SKIN_ASSET_URLS } from '@axe/domain/media/light-skins';
 import {
   DUNGEON_PROP_ASSET_URLS,
   DungeonPropId,
@@ -12,7 +13,12 @@ import {
   WallTextureId,
 } from '@axe/domain/media/texture-catalog';
 import { DungeonAtmosphere } from '@axe/domain/tabletop/dungeon/dungeon-atmosphere';
-import { DungeonBlock, DungeonBlocks } from '@axe/domain/tabletop/dungeon/dungeon-blocks';
+import {
+  DungeonBlock,
+  DungeonBlocks,
+  DungeonLight,
+  DungeonLightKind,
+} from '@axe/domain/tabletop/dungeon/dungeon-blocks';
 import { DungeonLayout } from '@axe/domain/tabletop/dungeon/dungeon-layout';
 import { buildDungeonSummary } from '@axe/domain/tabletop/dungeon/dungeon-summary';
 import { GameTable, GridType } from '@axe/domain/tabletop/game-table';
@@ -26,6 +32,12 @@ const FLOOR_HEIGHT = 0.05;
 const TORCH_HEIGHT = 0.6;
 /** How deep a door slab is, so it reads as a door in the passage rather than a block filling it. */
 const DOOR_THICKNESS = 0.25;
+
+const LIGHT_PRESET: Record<DungeonLightKind, LightPreset> = {
+  sconce: LightPreset.SCONCE,
+  campfire: LightPreset.CAMPFIRE,
+  brazier: LightPreset.BRAZIER,
+};
 /** How many terrains go in before the thread is handed back, so the panel can move its bar. */
 const CHUNK_SIZE = 32;
 
@@ -60,6 +72,7 @@ export interface DungeonBuildResult {
 export class DungeonBuildService {
   private readonly imageStorage = inject(ImageStorage);
   private readonly t = inject(TRANSLATE_FN);
+  private plannedLights: readonly DungeonLight[] = [];
 
   /** Register a bundled picture once and hand back the identifier a terrain stores. */
   registerAsset(url: string): string {
@@ -93,6 +106,7 @@ export class DungeonBuildService {
       ? this.registerAsset(TEXTURE_ASSET_URLS[atmosphere.cave.hazardFloor as TextureId])
       : floor;
 
+    this.plannedLights = blocks.lights;
     const table = this.createTable(layout, atmosphere, options.name);
 
     let done = 0;
@@ -164,6 +178,10 @@ export class DungeonBuildService {
     return terrain;
   }
 
+  private lightAt(block: DungeonBlock): DungeonLight | undefined {
+    return this.plannedLights.find((light) => light.x === block.rect.x && light.y === block.rect.y);
+  }
+
   private terrainFor(
     block: DungeonBlock,
     atmosphere: DungeonAtmosphere,
@@ -199,12 +217,18 @@ export class DungeonBuildService {
         return terrain;
       }
       case 'torch': {
-        // A sconce of its own, one cell across. Lighting a wall block would stop that block
+        // A light of its own, one cell across. Lighting a wall block would stop that block
         // blocking light, opening a hole as wide as the merge made it.
-        const terrain = Terrain.create(name, 1, 1, TORCH_HEIGHT, images.wallSide, images.wallTop);
+        const light = this.lightAt(block);
+        const preset = LIGHT_PRESET[light?.kind ?? 'sconce'];
+        const skin = LIGHT_PRESET_SKIN[preset];
+        const image = skin ? this.registerAsset(LIGHT_SKIN_ASSET_URLS[skin]) : images.wallSide;
+        const terrain = Terrain.create(name, 1, 1, TORCH_HEIGHT, image, image);
         terrain.mode = TerrainViewState.ALL;
         terrain.lightEnabled = true;
-        applyLightPreset(terrain, LightPreset.TORCH);
+        applyLightPreset(terrain, preset);
+        // A bracket throws its light away from the stone it is fixed to.
+        if (light && light.kind === 'sconce') terrain.rotate = light.facing;
         terrain.isDropShadow = false;
         return terrain;
       }

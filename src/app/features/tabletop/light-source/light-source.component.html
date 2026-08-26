@@ -35,6 +35,13 @@
     [style.transform]="altitudeTransform()"
     [appTooltip]="lightSource()"
   >
-    <i class="material-icons text-[22px]" [style.color]="iconColor()">lightbulb</i>
+    @if (skinUrl().length > 0) {
+      <div
+        class="size-8 bg-contain bg-center bg-no-repeat"
+        [style.background-image]="'url(' + skinUrl() + ')' | safe: 'style'"
+      ></div>
+    } @else {
+      <i class="material-icons text-[22px]" [style.color]="iconColor()">lightbulb</i>
+    }
   </div>
 </div>

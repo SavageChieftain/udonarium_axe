@@ -1,6 +1,7 @@
 import { TranslateFn } from '@axe/application/i18n/translate.token';
 import { ContextMenuAction, ContextMenuSeparator } from '@axe/application/ui/context-menu.service';
 import { buildAltitudeAction, buildLockToggleAction } from '@axe/application/ui/tabletop-context-menu-actions';
+import { LIGHT_SKIN_IDS, LightSkinId } from '@axe/domain/media/light-skins';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
 import { LightSource } from '@axe/domain/tabletop/light-source';
 import { applyLightPreset, LightPreset } from '@axe/domain/tabletop/vision-types';
@@ -14,6 +15,10 @@ const PRESET_LABEL_KEYS: Record<LightPreset, string> = {
   [LightPreset.FLASHLIGHT]: 'feature.light.preset.flashlight',
   [LightPreset.NEON]: 'feature.light.preset.neon',
   [LightPreset.SPOTLIGHT]: 'feature.light.preset.spotlight',
+  [LightPreset.CAMPFIRE]: 'feature.light.preset.campfire',
+  [LightPreset.SCONCE]: 'feature.light.preset.sconce',
+  [LightPreset.BRAZIER]: 'feature.light.preset.brazier',
+  [LightPreset.CHANDELIER]: 'feature.light.preset.chandelier',
 };
 
 export function buildLightSourceContextMenu(
@@ -21,7 +26,8 @@ export function buildLightSourceContextMenu(
   gridSize: number,
   characters: readonly { identifier: string; name: string }[],
   onEdit: (light: LightSource) => void,
-  t: TranslateFn
+  t: TranslateFn,
+  onSkin?: (skin: LightSkinId | 'library' | 'none') => void
 ): ContextMenuAction[] {
   const menu: ContextMenuAction[] = [];
 
@@ -29,6 +35,22 @@ export function buildLightSourceContextMenu(
     name: t('feature.light.contextMenu.settings'),
     action: () => onEdit(light),
   });
+
+  if (onSkin) {
+    menu.push({
+      name: t('feature.light.contextMenu.skin'),
+      action: undefined,
+      subActions: [
+        ...LIGHT_SKIN_IDS.map((id) => ({
+          name: t('feature.light.skin.' + id),
+          action: () => onSkin(id),
+        })),
+        ContextMenuSeparator,
+        { name: t('feature.light.contextMenu.skinFromLibrary'), action: () => onSkin('library') },
+        { name: t('feature.light.contextMenu.skinNone'), action: () => onSkin('none') },
+      ],
+    });
+  }
 
   menu.push({
     name: t('feature.light.contextMenu.follow'),

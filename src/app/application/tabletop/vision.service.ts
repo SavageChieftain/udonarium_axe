@@ -5,9 +5,9 @@ import { GameCharacter } from '@axe/domain/character/game-character';
 import { partyIdsOwnedBy } from '@axe/domain/party/party-membership';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { GameTable } from '@axe/domain/tabletop/game-table';
-import { LightSource } from '@axe/domain/tabletop/light-source';
 import { perimeterSegments, rectangleSegments, Segment } from '@axe/domain/tabletop/los/segments';
 import { type SurfaceDims, surfaceInwardDirection, surfacePointTo3D } from '@axe/domain/tabletop/surface-space';
+import { lightSourcesOn } from '@axe/domain/tabletop/table-lights';
 import { TableSelecter } from '@axe/domain/tabletop/table-selecter';
 import { surfaceOf, TableSurface, TabletopObject } from '@axe/domain/tabletop/tabletop-object';
 import {
@@ -281,8 +281,8 @@ export class VisionService {
       wallHeightPx: table.wallHeight * gridSize,
     };
 
-    for (const source of this.objectStore.getObjects(LightSource)) {
-      if (!source.isVisibleOnTable || !source.lightEnabled) continue;
+    for (const source of lightSourcesOn(table)) {
+      if (!source.lightEnabled) continue;
       const followed = source.followingCharacterIdentifier
         ? this.objectStore.get<GameCharacter>(source.followingCharacterIdentifier)
         : null;

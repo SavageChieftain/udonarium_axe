@@ -1,3 +1,39 @@
+it('stands every light on open floor, never inside the rock', () => {
+  // A light on a merged rock block stops the block blocking light, opening a hole its whole size.
+  for (const id of DUNGEON_ATMOSPHERE_IDS) {
+    const plan = planDungeon({ atmosphere: id, roomCount: 12, seed: 7 });
+    for (const light of plan.blocks.lights) {
+      expect(cellAt(plan.layout, light.x, light.y)).not.toBe(DungeonCell.Rock);
+    }
+  }
+});
+
+it('fixes a bracket to stone and leaves a fire room to stand around', () => {
+  for (const id of DUNGEON_ATMOSPHERE_IDS) {
+    const plan = planDungeon({ atmosphere: id, roomCount: 12, seed: 7 });
+    for (const light of plan.blocks.lights) {
+      const beside = [
+        cellAt(plan.layout, light.x + 1, light.y),
+        cellAt(plan.layout, light.x - 1, light.y),
+        cellAt(plan.layout, light.x, light.y + 1),
+        cellAt(plan.layout, light.x, light.y - 1),
+      ];
+      const againstStone = beside.some((cell) => cell === DungeonCell.Rock);
+      if (light.kind === 'sconce') expect(againstStone).toBe(true);
+      else expect(againstStone).toBe(false);
+    }
+  }
+});
+
+it('turns a bracket away from the stone behind it', () => {
+  const plan = planDungeon({ atmosphere: 'stoneDungeon', roomCount: 12, seed: 7 });
+
+  for (const light of plan.blocks.lights) {
+    if (light.kind !== 'sconce') continue;
+    expect([0, 90, 180, 270]).toContain(light.facing);
+  }
+});
+
 import {
   atmosphereById,
   DUNGEON_ATMOSPHERE_IDS,
@@ -130,22 +166,6 @@ describe('planDungeon()', () => {
 
       expect(plan.blocks.torchSpots.length).toBeLessThanOrEqual(atmosphereById(id).torches);
       expect(plan.blocks.torchSpots.length).toBe(plan.blocks.torchRooms.length);
-    }
-  });
-
-  it('stands every torch on open floor beside a wall, never inside the rock', () => {
-    // A light on a merged rock block stops the block blocking light, opening a hole its whole size.
-    for (const id of DUNGEON_ATMOSPHERE_IDS) {
-      const plan = planDungeon({ atmosphere: id, roomCount: 12, seed: 7 });
-      for (const spot of plan.blocks.torchSpots) {
-        expect(cellAt(plan.layout, spot.x, spot.y)).not.toBe(DungeonCell.Rock);
-        const beside =
-          cellAt(plan.layout, spot.x + 1, spot.y) === DungeonCell.Rock ||
-          cellAt(plan.layout, spot.x - 1, spot.y) === DungeonCell.Rock ||
-          cellAt(plan.layout, spot.x, spot.y + 1) === DungeonCell.Rock ||
-          cellAt(plan.layout, spot.x, spot.y - 1) === DungeonCell.Rock;
-        expect(beside).toBe(true);
-      }
     }
   });
 

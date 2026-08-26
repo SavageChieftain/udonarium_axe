@@ -39,6 +39,14 @@ export interface DungeonBlockOptions {
 export const DEFAULT_BLOCK_OPTIONS: DungeonBlockOptions = { placeDoors: true, placeStairs: true };
 
 /** Which way the passage runs where a door stands, so the slab can be set across it. */
+/** The four ways a light can look, with the heading that points away from that neighbour. */
+const FACINGS: readonly [number, number, number][] = [
+  [0, -1, 180],
+  [0, 1, 0],
+  [-1, 0, 90],
+  [1, 0, 270],
+];
+
 function doorAxis(layout: DungeonLayout, x: number, y: number): 'x' | 'y' {
   const open = (cx: number, cy: number) => cellAt(layout, cx, cy) !== DungeonCell.Rock;
   const eastWest = open(x + 1, y) && open(x - 1, y);
@@ -82,41 +90,70 @@ function roomsBeside(layout: DungeonLayout, rect: DungeonRect): number[] {
  * light stops blocking light, so a torch set on a rock rect twelve cells across would open
  * a hole that size in the dark, lit from the middle of the stone.
  */
-function findTorchSpots(layout: DungeonLayout, count: number): { rooms: number[]; spots: DungeonPoint[] } {
-  const rooms: number[] = [];
-  const spots: DungeonPoint[] = [];
-  if (count < 1) return { rooms, spots };
+/**
+ * Where to stand a light in each room, and what kind of light it should be.
+ *
+ * A sconce goes up against the stone and throws its light away from the wall; a fire stands
+ * out in the open where there is room around it. Rooms lit all the same way look staged.
+ */
+function findLights(layout: DungeonLayout, count: number): DungeonLight[] {
+  const lights: DungeonLight[] = [];
+  if (count < 1) return lights;
 
   for (const room of layout.rooms) {
-    if (rooms.length >= count) break;
-    let found: DungeonPoint | null = null;
+    if (lights.length >= count) break;
 
-    for (let dy = 0; dy < room.h && !found; dy++) {
-      for (let dx = 0; dx < room.w && !found; dx++) {
+    let wall: DungeonLight | null = null;
+    let open: DungeonPoint | null = null;
+
+    for (let dy = 0; dy < room.h && (!wall || !open); dy++) {
+      for (let dx = 0; dx < room.w && (!wall || !open); dx++) {
         const x = room.x + dx;
         const y = room.y + dy;
         if (cellAt(layout, x, y) !== DungeonCell.Room) continue;
-        const againstWall =
-          cellAt(layout, x + 1, y) === DungeonCell.Rock ||
-          cellAt(layout, x - 1, y) === DungeonCell.Rock ||
-          cellAt(layout, x, y + 1) === DungeonCell.Rock ||
-          cellAt(layout, x, y - 1) === DungeonCell.Rock;
-        if (againstWall) found = { x, y };
+
+        const stone = FACINGS.find(([ox, oy]) => cellAt(layout, x + ox, y + oy) === DungeonCell.Rock);
+        if (stone && !wall) {
+          // Facing is measured away from the stone the bracket is fixed to.
+          wall = { x, y, kind: 'sconce', facing: stone[2], room: room.index };
+        }
+        const clear = FACINGS.every(([ox, oy]) => cellAt(layout, x + ox, y + oy) !== DungeonCell.Rock);
+        if (clear && !open) open = { x, y };
       }
     }
 
-    if (!found) continue;
-    rooms.push(room.index);
-    spots.push(found);
+    // A room with space to stand round a fire gets one; the cramped ones get a bracket.
+    const roomy = room.w * room.h >= 30 && open !== null;
+    if (roomy && open) {
+      lights.push({
+        x: open.x,
+        y: open.y,
+        kind: lights.length % 2 === 0 ? 'campfire' : 'brazier',
+        facing: 0,
+        room: room.index,
+      });
+    } else if (wall) {
+      lights.push(wall);
+    }
   }
 
-  return { rooms, spots };
+  return lights;
+}
+
+export type DungeonLightKind = 'sconce' | 'campfire' | 'brazier';
+
+export interface DungeonLight extends DungeonPoint {
+  kind: DungeonLightKind;
+  /** Which way a wall light faces, in degrees, away from the stone behind it. */
+  facing: number;
+  room: number;
 }
 
 export interface DungeonBlocks {
   blocks: DungeonBlock[];
   torchRooms: number[];
   torchSpots: DungeonPoint[];
+  lights: DungeonLight[];
 }
 
 export function layoutToBlocks(
@@ -185,18 +222,23 @@ export function layoutToBlocks(
     }
   }
 
-  const { rooms: torchRooms, spots: torchSpots } = findTorchSpots(layout, atmosphere.torches);
-  for (const spot of torchSpots) {
+  const lights = findLights(layout, atmosphere.torches);
+  for (const light of lights) {
     blocks.push({
       kind: 'torch',
-      rect: { x: spot.x, y: spot.y, w: 1, h: 1 },
+      rect: { x: light.x, y: light.y, w: 1, h: 1 },
       blocksSight: false,
       locked: false,
-      rooms: [],
+      rooms: [light.room],
     });
   }
 
-  return { blocks, torchRooms, torchSpots };
+  return {
+    blocks,
+    torchRooms: lights.map((light) => light.room),
+    torchSpots: lights.map((light) => ({ x: light.x, y: light.y })),
+    lights,
+  };
 }
 
 export function syncObjectCount(blocks: readonly DungeonBlock[]): number {

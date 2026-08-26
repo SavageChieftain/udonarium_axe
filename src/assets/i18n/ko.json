@@ -209,7 +209,8 @@
         "moveCommon": "공용으로",
         "moveGraveyard": "무덤으로",
         "delete": "삭제하기"
-      }
+      },
+      "typeLight": "광원"
     },
     "media": {
       "jukebox": {
@@ -1335,7 +1336,10 @@
         "turnOff": "끄기",
         "preset": "프리셋",
         "follow": "토큰을 따라가기",
-        "unfollow": "따라가지 않기"
+        "unfollow": "따라가지 않기",
+        "skin": "스킨",
+        "skinFromLibrary": "이미지 보관함에서 선택",
+        "skinNone": "스킨 없음"
       },
       "preset": {
         "custom": "커스텀",
@@ -1345,7 +1349,11 @@
         "daylight": "햇빛",
         "flashlight": "손전등",
         "neon": "네온",
-        "spotlight": "스포트라이트"
+        "spotlight": "스포트라이트",
+        "campfire": "모닥불",
+        "sconce": "벽걸이 횃불",
+        "brazier": "화로",
+        "chandelier": "샹들리에"
       },
       "settings": {
         "title": "광원",
@@ -1373,6 +1381,12 @@
       "category": {
         "physical": "물리 광원",
         "theatrical": "연출 광원"
+      },
+      "skin": {
+        "light_campfire": "모닥불",
+        "light_sconce": "벽걸이 횃불",
+        "light_brazier": "화로",
+        "light_lantern": "랜턴"
       }
     },
     "vision": {

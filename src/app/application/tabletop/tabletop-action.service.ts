@@ -224,6 +224,8 @@ export class TabletopActionService {
     light.location.y = position.y - 25;
     light.posZ = position.z;
     light.owner = PeerCursor.myCursor?.userId ?? '';
+    // A light belongs to its table, so clearing the table takes its lights with it.
+    this.getViewTable()?.appendChild(light);
     light.update();
     return light;
   }

@@ -209,7 +209,8 @@
         "moveCommon": "To common",
         "moveGraveyard": "To graveyard",
         "delete": "Delete"
-      }
+      },
+      "typeLight": "Lights"
     },
     "media": {
       "jukebox": {
@@ -1335,7 +1336,10 @@
         "turnOff": "Turn off",
         "preset": "Preset",
         "follow": "Follow token",
-        "unfollow": "Stop following"
+        "unfollow": "Stop following",
+        "skin": "Skin",
+        "skinFromLibrary": "Choose from the library",
+        "skinNone": "No skin"
       },
       "preset": {
         "custom": "Custom",
@@ -1345,7 +1349,11 @@
         "daylight": "Daylight",
         "flashlight": "Flashlight",
         "neon": "Neon",
-        "spotlight": "Spotlight"
+        "spotlight": "Spotlight",
+        "campfire": "Campfire",
+        "sconce": "Wall sconce",
+        "brazier": "Brazier",
+        "chandelier": "Chandelier"
       },
       "settings": {
         "title": "Light",
@@ -1373,6 +1381,12 @@
       "category": {
         "physical": "Physical",
         "theatrical": "Theatrical"
+      },
+      "skin": {
+        "light_campfire": "Campfire",
+        "light_sconce": "Wall sconce",
+        "light_brazier": "Brazier",
+        "light_lantern": "Lantern"
       }
     },
     "vision": {
