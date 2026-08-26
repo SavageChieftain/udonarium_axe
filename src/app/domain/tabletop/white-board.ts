@@ -81,3 +81,16 @@ export class WhiteBoard extends TabletopObject {
     return object;
   }
 }
+
+/**
+ * Changes how deep a board is without walking it towards the viewer.
+ *
+ * A board is held by its top left corner but hinges on its bottom edge, so every square of
+ * depth added pushed that edge one square south and the standing board crept forward. The
+ * foot is what stays put: the corner moves to keep it where it was.
+ */
+export function setBoardHeightKeepingFoot(board: WhiteBoard, height: number, gridSize: number): void {
+  const foot = board.location.y + board.height * gridSize;
+  board.height = height;
+  board.location = { ...board.location, y: foot - height * gridSize };
+}

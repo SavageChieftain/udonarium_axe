@@ -2814,7 +2814,19 @@
         "fontSize": "文字の大きさ",
         "clear": "すべて消す",
         "typeHere": "ここに書く",
-        "board": "ボードの設定"
+        "board": "ボードの設定",
+        "ruled": "方眼",
+        "layers": "レイヤー（{{count}}）",
+        "addLayer": "レイヤーを足す",
+        "visible": "表示の切り替え"
+      },
+      "layer": {
+        "freehand": "手描き",
+        "shape": "図形",
+        "text": "文字",
+        "image": "貼ったもの",
+        "cell": "塗り",
+        "stamp": "スタンプ"
       }
     }
   },

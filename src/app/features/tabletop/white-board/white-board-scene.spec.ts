@@ -3,11 +3,13 @@ import {
   boxBetween,
   createBoardScene,
   freehandLayer,
+  GRAPH_SPACINGS,
   imageLayer,
   layerFor,
   markUnder,
   penStroke,
   rubOutStrokes,
+  ruleBoard,
   shapeLayer,
   stickerAt,
   straightLine,
@@ -48,6 +50,59 @@ describe('layerFor()', () => {
 
     expect(layerFor(scene, 'text').kind).toBe('text');
     expect(layerFor(scene, 'image').kind).toBe('image');
+  });
+});
+
+describe('layerFor()', () => {
+  it('puts a mark on the sheet the reader is working on', () => {
+    const scene = createBoardScene(4, 3, 50);
+    const first = freehandLayer(scene);
+    const second = layerFor(scene, 'freehand');
+    second.id = 'second';
+    scene.layers.push(second);
+
+    expect(layerFor(scene, 'freehand', 'second')).toBe(second);
+    expect(layerFor(scene, 'freehand', first.id)).toBe(first);
+  });
+
+  it('passes over a locked sheet, and over one that takes another sort of mark', () => {
+    const scene = createBoardScene(4, 3, 50);
+    const locked = freehandLayer(scene);
+    locked.locked = true;
+
+    const chosen = layerFor(scene, 'freehand', locked.id);
+
+    expect(chosen).not.toBe(locked);
+    expect(chosen.kind).toBe('freehand');
+    expect(layerFor(scene, 'text', locked.id).kind).toBe('text');
+  });
+
+  it('takes the topmost that will have it where the reader has chosen none', () => {
+    const scene = createBoardScene(4, 3, 50);
+    freehandLayer(scene);
+    const upper = layerFor(scene, 'freehand');
+    upper.id = 'upper';
+    scene.layers.push(upper);
+
+    expect(layerFor(scene, 'freehand', null)).toBe(upper);
+  });
+});
+
+describe('ruleBoard()', () => {
+  it('rules the sheet more finely without shrinking it', () => {
+    const scene = createBoardScene(8, 6, 50);
+    const wide = 8 * 50;
+    const deep = 6 * 50;
+
+    ruleBoard(scene, wide, deep, 25);
+
+    expect(scene.cellPx).toBe(25);
+    expect(scene.cols * scene.cellPx).toBe(wide);
+    expect(scene.rows * scene.cellPx).toBe(deep);
+  });
+
+  it('is offered at spacings that divide a square evenly', () => {
+    for (const step of GRAPH_SPACINGS) expect(50 % step).toBe(0);
   });
 });
 

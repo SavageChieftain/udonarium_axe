@@ -6,14 +6,23 @@ import { ModalService } from '@axe/application/ui/modal.service';
 import { PanelService } from '@axe/application/ui/panel.service';
 import { ImageStorage } from '@axe/core/storage/image-storage';
 import { boardSurfaceOf, TabletopObject } from '@axe/domain/tabletop/tabletop-object';
-import { clampBoardPitch, MAX_BOARD_PITCH, MIN_BOARD_PITCH, WhiteBoard } from '@axe/domain/tabletop/white-board';
-import { MapScene, sceneHeightPx, sceneWidthPx } from '@axe/features/map-editor/model/scene';
+import {
+  clampBoardPitch,
+  MAX_BOARD_PITCH,
+  MIN_BOARD_PITCH,
+  setBoardHeightKeepingFoot,
+  WhiteBoard,
+} from '@axe/domain/tabletop/white-board';
+import { createLayer, MapLayer, MapScene, sceneHeightPx, sceneWidthPx } from '@axe/features/map-editor/model/scene';
 import {
   addImage,
+  addLayer,
   addShape,
   addStroke,
   addText,
+  moveLayer,
   removeImage,
+  removeLayer,
   removeText,
   updateImage,
   updateText,
@@ -29,10 +38,12 @@ import {
   boxBetween,
   createBoardScene,
   freehandLayer,
+  GRAPH_SPACINGS,
   imageLayer,
   markUnder,
   penStroke,
   rubOutStrokes,
+  ruleBoard,
   shapeLayer,
   stickerAt,
   straightLine,
@@ -69,6 +80,9 @@ export class WhiteBoardEditorComponent {
   readonly color = signal('#1a1a1a');
   readonly strokeWidth = signal(4);
   readonly fontSize = signal(24);
+
+  readonly spacings = GRAPH_SPACINGS;
+  readonly activeLayerId = signal<string | null>(null);
 
   protected readonly typing = signal<BoardPoint | null>(null);
   protected typedText = '';
@@ -113,7 +127,7 @@ export class WhiteBoardEditorComponent {
     return this.board?.height ?? 1;
   }
   set height(value: number) {
-    if (this.board) this.board.height = clampSide(value);
+    if (this.board) setBoardHeightKeepingFoot(this.board, clampSide(value), this.tabletopService.gridSize());
     this.resized();
   }
 
@@ -164,6 +178,68 @@ export class WhiteBoardEditorComponent {
     this.settingChanged();
   }
 
+  /** The sheets the board is made of, topmost first, as they are stacked on it. */
+  get layers(): MapLayer[] {
+    this.revision();
+    return [...this.scene.layers].reverse();
+  }
+
+  protected layerName(layer: MapLayer): string {
+    return layer.name?.length ? layer.name : this.t(`feature.whiteBoard.layer.${layer.kind}`);
+  }
+
+  protected chooseLayer(layer: MapLayer): void {
+    this.activeLayerId.set(layer.id);
+    this.settingChanged();
+  }
+
+  protected addSheet(): void {
+    const sheet = createLayer('freehand', '');
+    addLayer(this.scene, sheet);
+    this.activeLayerId.set(sheet.id);
+    this.touched();
+  }
+
+  protected toggleLayer(layer: MapLayer): void {
+    layer.visible = !layer.visible;
+    this.touched();
+  }
+
+  protected raiseLayer(layer: MapLayer): void {
+    moveLayer(this.scene, layer.id, 1);
+    this.touched();
+  }
+
+  protected lowerLayer(layer: MapLayer): void {
+    moveLayer(this.scene, layer.id, -1);
+    this.touched();
+  }
+
+  protected dropLayer(layer: MapLayer): void {
+    removeLayer(this.scene, layer.id);
+    if (this.activeLayerId() === layer.id) this.activeLayerId.set(null);
+    this.touched();
+  }
+
+  /** Ruled like graph paper, which is what anyone drawing a plan on a board wants under it. */
+  get isRuled(): boolean {
+    this.revision();
+    return this.scene.gridVisible;
+  }
+  set isRuled(value: boolean) {
+    this.scene.gridVisible = value;
+    this.touched();
+  }
+
+  get spacing(): number {
+    this.revision();
+    return this.scene.cellPx;
+  }
+  set spacing(value: number) {
+    ruleBoard(this.scene, this.sceneWidth, this.sceneHeight, Number(value));
+    this.touched();
+  }
+
   get isLock(): boolean {
     this.revision();
     return this.board?.isLock ?? false;
@@ -207,9 +283,7 @@ export class WhiteBoardEditorComponent {
     const board = this.board;
     if (!board) return;
     const grid = this.tabletopService.gridSize();
-    this.scene.cols = board.width;
-    this.scene.rows = board.height;
-    this.scene.cellPx = grid;
+    ruleBoard(this.scene, board.width * grid, board.height * grid, this.scene.cellPx || grid);
     this.settingChanged();
     this.touched();
   }
@@ -300,7 +374,7 @@ export class WhiteBoardEditorComponent {
     const at = this.pointOf(event);
 
     if (this.tool() === 'pen' && this.drawingPoints.length > 3) {
-      addStroke(freehandLayer(this.scene), penStroke([...this.drawingPoints], this.style()));
+      addStroke(freehandLayer(this.scene, this.activeLayerId()), penStroke([...this.drawingPoints], this.style()));
     }
     this.drawingPoints = [];
 
@@ -314,7 +388,7 @@ export class WhiteBoardEditorComponent {
           tool === 'line'
             ? straightLine(from, at, this.style())
             : boxBetween(tool as 'box' | 'ellipse', from, at, this.style());
-        addShape(shapeLayer(this.scene), mark);
+        addShape(shapeLayer(this.scene, this.activeLayerId()), mark);
       }
     }
     this.held = null;
@@ -326,10 +400,10 @@ export class WhiteBoardEditorComponent {
   }
 
   private rubOut(at: BoardPoint): void {
-    rubOutStrokes(freehandLayer(this.scene), at.x, at.y, this.strokeWidth() * 2);
+    rubOutStrokes(freehandLayer(this.scene, this.activeLayerId()), at.x, at.y, this.strokeWidth() * 2);
     const mark = markUnder(this.scene, at);
-    if (mark?.kind === 'image') removeImage(imageLayer(this.scene), mark.id);
-    if (mark?.kind === 'text') removeText(textLayer(this.scene), mark.id);
+    if (mark?.kind === 'image') removeImage(imageLayer(this.scene, this.activeLayerId()), mark.id);
+    if (mark?.kind === 'text') removeText(textLayer(this.scene, this.activeLayerId()), mark.id);
     void this.redraw();
   }
 
@@ -348,11 +422,11 @@ export class WhiteBoardEditorComponent {
     held.grabY = at.y;
 
     if (held.kind === 'image') {
-      const item = imageLayer(this.scene).items.find((entry) => entry.id === held.id);
-      if (item) updateImage(imageLayer(this.scene), held.id, { x: item.x + dx, y: item.y + dy });
+      const item = imageLayer(this.scene, this.activeLayerId()).items.find((entry) => entry.id === held.id);
+      if (item) updateImage(imageLayer(this.scene, this.activeLayerId()), held.id, { x: item.x + dx, y: item.y + dy });
     } else {
-      const item = textLayer(this.scene).items.find((entry) => entry.id === held.id);
-      if (item) updateText(textLayer(this.scene), held.id, { x: item.x + dx, y: item.y + dy });
+      const item = textLayer(this.scene, this.activeLayerId()).items.find((entry) => entry.id === held.id);
+      if (item) updateText(textLayer(this.scene, this.activeLayerId()), held.id, { x: item.x + dx, y: item.y + dy });
     }
     void this.redraw();
   }
@@ -363,7 +437,7 @@ export class WhiteBoardEditorComponent {
     this.typing.set(null);
     this.typedText = '';
     if (!at || words.length < 1) return;
-    addText(textLayer(this.scene), wordsAt(at, words, this.style()));
+    addText(textLayer(this.scene, this.activeLayerId()), wordsAt(at, words, this.style()));
     this.touched();
   }
 
@@ -371,7 +445,7 @@ export class WhiteBoardEditorComponent {
     this.modalService.open<string>(FileSelecterComponent, { isAllowedEmpty: true }).then((identifier) => {
       if (!identifier) return;
       const at = { x: this.sceneWidth / 2, y: this.sceneHeight / 2 };
-      addImage(imageLayer(this.scene), stickerAt(at, identifier, STICKER_SIZE));
+      addImage(imageLayer(this.scene, this.activeLayerId()), stickerAt(at, identifier, STICKER_SIZE));
       this.tool.set('select');
       this.touched();
     });
@@ -391,7 +465,7 @@ export class WhiteBoardEditorComponent {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    const urls = imageLayer(this.scene)
+    const urls = imageLayer(this.scene, this.activeLayerId())
       .items.map((item) => this.imageStorage.get(item.imageIdentifier)?.url)
       .filter((url): url is string => !!url);
     if (urls.length > 0) await warmRasterImages(urls);
@@ -407,7 +481,7 @@ export class WhiteBoardEditorComponent {
           return url ? getRasterImage(url) : null;
         },
       },
-      { drawGrid: false }
+      { drawGrid: this.scene.gridVisible }
     );
 
     if (pending && pending.length > 3) {

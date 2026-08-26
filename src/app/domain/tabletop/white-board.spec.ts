@@ -1,6 +1,11 @@
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { boardSurfaceOf, surfaceOf } from '@axe/domain/tabletop/tabletop-object';
-import { clampBoardPitch, MAX_BOARD_PITCH, WhiteBoard } from '@axe/domain/tabletop/white-board';
+import {
+  clampBoardPitch,
+  MAX_BOARD_PITCH,
+  setBoardHeightKeepingFoot,
+  WhiteBoard,
+} from '@axe/domain/tabletop/white-board';
 
 describe('WhiteBoard', () => {
   let board: WhiteBoard;
@@ -55,5 +60,43 @@ describe('boardSurfaceOf()', () => {
 
   it('leaves a piece on a board counted as being on the floor of the table', () => {
     expect(surfaceOf({ location: { surface: 'some-board' } })).toBe('floor');
+  });
+});
+
+describe('setBoardHeightKeepingFoot()', () => {
+  let board: WhiteBoard;
+
+  beforeEach(() => {
+    board = WhiteBoard.create('board', 6, 4, 1);
+  });
+
+  afterEach(() => {
+    board.destroy();
+  });
+
+  it('leaves the foot where it was, however deep the board is made', () => {
+    board.location = { name: 'table', x: 100, y: -350 };
+    const foot = board.location.y + board.height * 50;
+
+    setBoardHeightKeepingFoot(board, 10, 50);
+
+    expect(board.height).toBe(10);
+    expect(board.location.y + board.height * 50).toBe(foot);
+  });
+
+  it('walks the corner north as the board grows, rather than the foot south', () => {
+    board.location = { name: 'table', x: 0, y: 0 };
+
+    setBoardHeightKeepingFoot(board, board.height + 2, 50);
+
+    expect(board.location.y).toBe(-100);
+  });
+
+  it('keeps whatever face the board was standing on', () => {
+    board.location = { name: 'table', x: 0, y: 0, surface: 'north-wall' };
+
+    setBoardHeightKeepingFoot(board, 8, 50);
+
+    expect(board.location.surface).toBe('north-wall');
   });
 });

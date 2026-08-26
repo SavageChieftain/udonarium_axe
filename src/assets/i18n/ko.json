@@ -3044,7 +3044,19 @@
         "fontSize": "글자 크기",
         "clear": "모두 지우기",
         "typeHere": "여기에 입력",
-        "board": "보드 설정"
+        "board": "보드 설정",
+        "ruled": "모눈",
+        "layers": "레이어 ({{count}})",
+        "addLayer": "레이어 추가",
+        "visible": "표시 전환"
+      },
+      "layer": {
+        "freehand": "손그림",
+        "shape": "도형",
+        "text": "글자",
+        "image": "붙인 것",
+        "cell": "칠하기",
+        "stamp": "스탬프"
       }
     }
   },

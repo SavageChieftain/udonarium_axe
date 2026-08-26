@@ -2814,7 +2814,19 @@
         "fontSize": "Text size",
         "clear": "Wipe it clean",
         "typeHere": "Type here",
-        "board": "The board itself"
+        "board": "The board itself",
+        "ruled": "Ruled",
+        "layers": "Layers ({{count}})",
+        "addLayer": "Add a layer",
+        "visible": "Show or hide"
+      },
+      "layer": {
+        "freehand": "Drawing",
+        "shape": "Shapes",
+        "text": "Words",
+        "image": "Stuck on",
+        "cell": "Fill",
+        "stamp": "Stamps"
       }
     }
   },

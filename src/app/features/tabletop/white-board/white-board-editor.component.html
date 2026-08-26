@@ -47,6 +47,21 @@
         (ngModelChange)="fontSize.set($event)"
       />
     </label>
+    <label class="text-ui-muted flex cursor-pointer items-center gap-1">
+      <input type="checkbox" name="board-ruled" [(ngModel)]="isRuled" />
+      {{ 'feature.whiteBoard.editor.ruled' | transloco }}
+    </label>
+    @if (isRuled) {
+      <select
+        class="border-ui-border-panel bg-ui-input text-ui-text rounded-ui-sm border border-solid px-1 py-0.5 text-[0.78rem]"
+        name="board-spacing"
+        [(ngModel)]="spacing"
+      >
+        @for (step of spacings; track step) {
+          <option [value]="step">{{ step }}px</option>
+        }
+      </select>
+    }
     <button
       class="text-ui-accent ml-auto cursor-pointer border-0 bg-transparent p-0 text-[0.8rem]"
       type="button"
@@ -55,6 +70,59 @@
       {{ 'feature.whiteBoard.editor.clear' | transloco }}
     </button>
   </div>
+
+  <details class="border-ui-border-panel rounded-ui-sm border border-solid">
+    <summary class="text-ui-muted cursor-pointer px-2 py-1.5 text-[0.8rem]">
+      {{ 'feature.whiteBoard.editor.layers' | transloco: { count: layers.length } }}
+    </summary>
+    <div class="flex flex-col p-1">
+      <button
+        class="text-ui-accent mb-1 cursor-pointer self-start border-0 bg-transparent p-0 text-[0.78rem]"
+        type="button"
+        (click)="addSheet()"
+      >
+        {{ 'feature.whiteBoard.editor.addLayer' | transloco }}
+      </button>
+      @for (layer of layers; track layer.id) {
+        <div
+          class="rounded-ui-sm flex items-center gap-1.5 px-1.5 py-1 text-[0.8rem]"
+          [class.bg-ui-input]="activeLayerId() === layer.id"
+          (click)="chooseLayer(layer)"
+        >
+          <button
+            class="cursor-pointer border-0 bg-transparent p-0 leading-none"
+            type="button"
+            [title]="'feature.whiteBoard.editor.visible' | transloco"
+            (click)="toggleLayer(layer); $event.stopPropagation()"
+          >
+            <i class="material-icons text-[16px]">{{ layer.visible ? 'visibility' : 'visibility_off' }}</i>
+          </button>
+          <span class="flex-1 truncate">{{ layerName(layer) }}</span>
+          <button
+            class="text-ui-muted cursor-pointer border-0 bg-transparent p-0 leading-none"
+            type="button"
+            (click)="raiseLayer(layer); $event.stopPropagation()"
+          >
+            <i class="material-icons text-[16px]">arrow_upward</i>
+          </button>
+          <button
+            class="text-ui-muted cursor-pointer border-0 bg-transparent p-0 leading-none"
+            type="button"
+            (click)="lowerLayer(layer); $event.stopPropagation()"
+          >
+            <i class="material-icons text-[16px]">arrow_downward</i>
+          </button>
+          <button
+            class="text-ui-muted cursor-pointer border-0 bg-transparent p-0 leading-none"
+            type="button"
+            (click)="dropLayer(layer); $event.stopPropagation()"
+          >
+            <i class="material-icons text-[16px]">delete</i>
+          </button>
+        </div>
+      }
+    </div>
+  </details>
 
   <div class="border-ui-border-panel rounded-ui-sm relative flex-1 overflow-auto border border-solid bg-white">
     <canvas

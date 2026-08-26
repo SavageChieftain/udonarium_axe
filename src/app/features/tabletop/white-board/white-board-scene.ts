@@ -35,29 +35,56 @@ export const BOARD_TOOLS: readonly BoardTool[] = [
   'sticker',
 ];
 
-/** The one layer of each kind a board keeps, made the first time something needs it. */
-export function layerFor(scene: MapScene, kind: MapLayer['kind']): MapLayer {
-  const found = scene.layers.find((layer) => layer.kind === kind);
-  if (found) return found;
-  const layer = createLayer(kind, kind);
-  scene.layers.push(layer);
-  return layer;
+/**
+ * The sheet a new mark goes on.
+ *
+ * The one the reader is working on, if it takes marks of this sort and is not locked; the
+ * topmost that does otherwise; and a fresh one on top if none does. A board with sheets is
+ * what lets the plan be drawn once and the arrows over it rubbed out and drawn again.
+ */
+export function layerFor(scene: MapScene, kind: MapLayer['kind'], activeId?: string | null): MapLayer {
+  const active = scene.layers.find((layer) => layer.id === activeId);
+  if (active && active.kind === kind && !active.locked) return active;
+
+  for (let i = scene.layers.length - 1; i >= 0; i--) {
+    const layer = scene.layers[i];
+    if (layer.kind === kind && !layer.locked) return layer;
+  }
+
+  const made = createLayer(kind, kind);
+  scene.layers.push(made);
+  return made;
 }
 
-export function freehandLayer(scene: MapScene): FreehandLayer {
-  return layerFor(scene, 'freehand') as FreehandLayer;
+export function freehandLayer(scene: MapScene, activeId?: string | null): FreehandLayer {
+  return layerFor(scene, 'freehand', activeId) as FreehandLayer;
 }
 
-export function shapeLayer(scene: MapScene): ShapeLayer {
-  return layerFor(scene, 'shape') as ShapeLayer;
+export function shapeLayer(scene: MapScene, activeId?: string | null): ShapeLayer {
+  return layerFor(scene, 'shape', activeId) as ShapeLayer;
 }
 
-export function textLayer(scene: MapScene): TextLayer {
-  return layerFor(scene, 'text') as TextLayer;
+export function textLayer(scene: MapScene, activeId?: string | null): TextLayer {
+  return layerFor(scene, 'text', activeId) as TextLayer;
 }
 
-export function imageLayer(scene: MapScene): ImageLayer {
-  return layerFor(scene, 'image') as ImageLayer;
+export function imageLayer(scene: MapScene, activeId?: string | null): ImageLayer {
+  return layerFor(scene, 'image', activeId) as ImageLayer;
+}
+
+/** The spacings a board can be ruled at, in the board's own pixels. */
+export const GRAPH_SPACINGS: readonly number[] = [50, 25, 10];
+
+/**
+ * Rules the board at a chosen spacing without changing how big the board is.
+ *
+ * How wide the sheet is comes out of how many cells it has and how big each one is, so ruling
+ * it more finely has to buy back the size in cells or the sheet shrinks under the drawing.
+ */
+export function ruleBoard(scene: MapScene, widthPx: number, heightPx: number, spacing: number): void {
+  scene.cellPx = spacing;
+  scene.cols = Math.max(1, Math.round(widthPx / spacing));
+  scene.rows = Math.max(1, Math.round(heightPx / spacing));
 }
 
 /** A board's own surface: no grid, and nothing painted under what is drawn on it. */
