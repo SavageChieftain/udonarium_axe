@@ -2060,8 +2060,7 @@
         "theme": {
           "light": "Light theme",
           "dark": "Dark theme"
-        },
-        "hardToRead": "This colour is hard to read on this theme"
+        }
       },
       "messageFix": {
         "change": "Apply",
