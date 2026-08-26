@@ -5,8 +5,8 @@ import {
   WALL_TEXTURE_BASE_COLOR,
   WallTextureId,
 } from '@axe/domain/media/texture-catalog';
-import { DungeonBlock } from '@axe/domain/tabletop/dungeon/dungeon-blocks';
-import { DungeonLayout, DungeonPoint } from '@axe/domain/tabletop/dungeon/dungeon-layout';
+import { DungeonBlock, DungeonBlocks, DungeonPaint } from '@axe/domain/tabletop/dungeon/dungeon-blocks';
+import { DungeonLayout } from '@axe/domain/tabletop/dungeon/dungeon-layout';
 
 export interface PreviewRect {
   x: number;
@@ -60,16 +60,15 @@ function fillFor(block: DungeonBlock, colors: PreviewColors): string {
   switch (block.kind) {
     case 'wall':
       return colors.wall;
-    case 'hazard':
-      return colors.hazard;
     case 'door':
       return DOOR_FILL;
-    case 'stairUp':
-    case 'stairDown':
-      return STAIR_FILL;
     default:
-      return colors.floor;
+      return STAIR_FILL;
   }
+}
+
+function paintFill(patch: DungeonPaint, colors: PreviewColors): string {
+  return patch.kind === 'hazard' ? colors.hazard : colors.floor;
 }
 
 /**
@@ -80,15 +79,15 @@ function fillFor(block: DungeonBlock, colors: PreviewColors): string {
  */
 export function buildDungeonPreview(
   layout: DungeonLayout,
-  blocks: readonly DungeonBlock[],
-  colors: PreviewColors,
-  lights: readonly DungeonPoint[] = []
+  blocks: DungeonBlocks,
+  colors: PreviewColors
 ): DungeonPreview {
   return {
     viewBox: `0 0 ${layout.width} ${layout.height}`,
     rects: [
-      ...blocks.map((block) => ({ ...block.rect, fill: fillFor(block, colors) })),
-      ...lights.map((light) => ({ x: light.x, y: light.y, w: 1, h: 1, fill: TORCH_FILL })),
+      ...blocks.paint.map((patch) => ({ ...patch.rect, fill: paintFill(patch, colors) })),
+      ...blocks.blocks.map((block) => ({ ...block.rect, fill: fillFor(block, colors) })),
+      ...blocks.torchSpots.map((light) => ({ x: light.x, y: light.y, w: 1, h: 1, fill: TORCH_FILL })),
     ],
   };
 }

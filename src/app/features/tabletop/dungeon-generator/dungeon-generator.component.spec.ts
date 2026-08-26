@@ -1,5 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { RolePermissionService } from '@axe/application/permission/role-permission.service';
+import { ImageStorage } from '@axe/core/storage/image-storage';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { GameTable } from '@axe/domain/tabletop/game-table';
 import { DungeonGeneratorComponent } from '@axe/features/tabletop/dungeon-generator/dungeon-generator.component';
@@ -19,6 +20,7 @@ type Panel = DungeonGeneratorComponent & {
   terrainCount(): number;
   syncCount(): number;
   lightCount(): number;
+  paintCount(): number;
   tooMany(): boolean;
   preview(): { viewBox: string; rects: unknown[] };
   builtTable(): GameTable | null;
@@ -32,6 +34,15 @@ type Panel = DungeonGeneratorComponent & {
   generate(): Promise<void>;
   discardPrevious(): void;
 };
+
+const PAINTED = 'painted-ground';
+
+/** The real path decodes the picture it makes, which no test browser will do. */
+function stubPainting(): ReturnType<typeof vi.fn> {
+  const exportStub = vi.fn().mockResolvedValue(new Blob(['floor'], { type: 'image/webp' }));
+  vi.spyOn(ImageStorage.instance, 'addAsync').mockImplementation(async () => ImageStorage.instance.add(PAINTED));
+  return exportStub;
+}
 
 describe('DungeonGeneratorComponent', () => {
   let component: Panel;
@@ -124,8 +135,10 @@ describe('DungeonGeneratorComponent', () => {
     expect(component.usingDefaults()).toBe(true);
   });
 
-  it('shows one rectangle for every terrain it would build', () => {
-    expect(component.preview().rects.length).toBe(component.terrainCount() + component.lightCount());
+  it('shows the painted ground and one rectangle for every terrain it would build', () => {
+    expect(component.preview().rects.length).toBe(
+      component.paintCount() + component.terrainCount() + component.lightCount()
+    );
     expect(component.syncCount()).toBe(component.terrainCount() * 12);
   });
 
@@ -173,6 +186,39 @@ describe('DungeonGeneratorComponent', () => {
 
     expect(component.builtTable()).not.toBeNull();
     expect(store.getObjects(GameTable).length).toBe(1);
+  });
+
+  it('paints the ground and hangs it on the table', async () => {
+    const exportStub = stubPainting();
+    (component as unknown as { exportFn: unknown }).exportFn = exportStub;
+    component.roomCount.set(3);
+
+    await component.generate();
+
+    expect(exportStub).toHaveBeenCalledOnce();
+    expect(component.builtTable()!.imageIdentifier).toBe(PAINTED);
+  });
+
+  it('builds the dungeon even when the ground cannot be painted', async () => {
+    (component as unknown as { exportFn: unknown }).exportFn = vi.fn().mockRejectedValue(new Error('no canvas'));
+    component.roomCount.set(3);
+
+    await component.generate();
+
+    expect(component.builtTable()).not.toBeNull();
+    expect(component.builtTable()!.imageIdentifier).toBe('');
+  });
+
+  it('takes the painted ground away with the table it was made for', async () => {
+    (component as unknown as { exportFn: unknown }).exportFn = stubPainting();
+    component.roomCount.set(3);
+    await component.generate();
+
+    expect(ImageStorage.instance.get(PAINTED)).not.toBeNull();
+
+    component.discardPrevious();
+
+    expect(ImageStorage.instance.get(PAINTED)).toBeNull();
   });
 
   it('throws the last one away when it rolls again', async () => {

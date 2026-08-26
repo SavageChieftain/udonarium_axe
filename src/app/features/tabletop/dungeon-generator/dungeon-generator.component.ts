@@ -2,9 +2,14 @@ import { ChangeDetectionStrategy, Component, computed, inject, signal, ViewConta
 import { FormsModule } from '@angular/forms';
 import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { RolePermissionService } from '@axe/application/permission/role-permission.service';
-import { DungeonBuildService, DungeonMaterial } from '@axe/application/tabletop/dungeon-build.service';
+import {
+  DUNGEON_GRID_SIZE,
+  DungeonBuildService,
+  DungeonMaterial,
+} from '@axe/application/tabletop/dungeon-build.service';
 import { PanelService } from '@axe/application/ui/panel.service';
 import { emitSelectGameTable } from '@axe/core/event/domain-events';
+import { ImageStorage } from '@axe/core/storage/image-storage';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
 import {
@@ -35,11 +40,15 @@ import {
   planDungeon,
 } from '@axe/domain/tabletop/dungeon/dungeon-generator';
 import { GameTable } from '@axe/domain/tabletop/game-table';
+import { exportSceneToBlob } from '@axe/features/map-editor/render/export-image';
+import { buildDungeonFloorScene } from '@axe/features/tabletop/dungeon-generator/dungeon-floor-scene';
 import { DungeonMaterialPickerComponent } from '@axe/features/tabletop/dungeon-generator/dungeon-material-picker.component';
 import { buildDungeonPreview, previewColors } from '@axe/features/tabletop/dungeon-generator/dungeon-preview';
 import { TranslocoModule } from '@jsverse/transloco';
 
 const SEED_LIMIT = 2 ** 31;
+
+type DungeonPlan = ReturnType<typeof planDungeon>;
 
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -53,6 +62,7 @@ export class DungeonGeneratorComponent {
   private readonly rolePermission = inject(RolePermissionService);
   private readonly dungeonBuild = inject(DungeonBuildService);
   private readonly objectStore = inject(ObjectStore);
+  private readonly imageStorage = inject(ImageStorage);
   private readonly t = inject(TRANSLATE_FN);
 
   protected readonly atmosphereIds = DUNGEON_ATMOSPHERE_IDS;
@@ -84,6 +94,7 @@ export class DungeonGeneratorComponent {
   protected readonly progress = signal(0);
   protected readonly builtTable = signal<GameTable | null>(null);
   protected readonly summary = signal('');
+  private readonly floorImage = signal('');
   protected readonly copied = signal(false);
 
   constructor() {
@@ -124,9 +135,12 @@ export class DungeonGeneratorComponent {
 
   protected readonly terrainCount = computed(() => this.plan().blocks.blocks.length);
   protected readonly lightCount = computed(() => this.plan().blocks.lights.length);
+  protected readonly paintCount = computed(() => this.plan().blocks.paint.length);
   protected readonly syncCount = computed(() => syncObjectCount(this.plan().blocks.blocks));
   protected readonly tooMany = computed(() => this.terrainCount() > DUNGEON_MAX_TERRAINS);
   protected readonly heavy = computed(() => this.terrainCount() > DUNGEON_HEAVY_TERRAINS && !this.tooMany());
+
+  private readonly exportFn = exportSceneToBlob;
 
   protected readonly preview = computed(() => {
     const plan = this.plan();
@@ -137,7 +151,7 @@ export class DungeonGeneratorComponent {
       floor.kind === 'texture' ? floor.id : '',
       plan.atmosphere.cave?.hazardFloor ?? ''
     );
-    return buildDungeonPreview(plan.layout, plan.blocks.blocks, colors, plan.blocks.torchSpots);
+    return buildDungeonPreview(plan.layout, plan.blocks, colors);
   });
 
   protected readonly roomsFound = computed(() => this.plan().layout.rooms.length);
@@ -196,8 +210,8 @@ export class DungeonGeneratorComponent {
         {
           name: this.nameFor(),
           wall: this.wall(),
-          floor: this.floor(),
           wallHeight: this.wallHeight(),
+          floorImage: await this.paintFloor(plan),
         },
         (done, total) => this.progress.set(Math.round((done / total) * 100))
       );
@@ -210,6 +224,35 @@ export class DungeonGeneratorComponent {
     }
   }
 
+  /**
+   * Paints the ground and hands back the picture the table wears.
+   *
+   * Nothing is left of the dungeon if the canvas will not draw, so a failure costs the
+   * floor rather than the table.
+   */
+  private async paintFloor(plan: DungeonPlan): Promise<string> {
+    const floor = this.floor();
+    const hazardId = plan.atmosphere.cave?.hazardFloor;
+    const scene = buildDungeonFloorScene(
+      plan.layout,
+      plan.blocks.paint,
+      { floor, hazard: hazardId ? { kind: 'texture', id: hazardId } : floor },
+      DUNGEON_GRID_SIZE
+    );
+    try {
+      const blob = await this.exportFn(scene, [], {
+        drawGrid: false,
+        resolveImageUrl: (id) => this.imageStorage.get(id)?.url ?? null,
+      });
+      const file = await this.imageStorage.addAsync(blob);
+      this.floorImage.set(file.identifier);
+      return file.identifier;
+    } catch {
+      this.floorImage.set('');
+      return '';
+    }
+  }
+
   protected goToTable(): void {
     const table = this.builtTable();
     if (table) emitSelectGameTable({ identifier: table.identifier });
@@ -219,6 +262,10 @@ export class DungeonGeneratorComponent {
     // Everything the generator makes is a child of its table, so the table takes it all with it.
     this.builtTable()?.destroy();
     this.builtTable.set(null);
+    // The painted ground is not a child of anything, and rolling again would leave it behind.
+    const painted = this.floorImage();
+    if (painted) this.imageStorage.delete(painted);
+    this.floorImage.set('');
     this.summary.set('');
   }
 

@@ -1713,13 +1713,10 @@
         },
         "piece": {
           "wall": "壁",
-          "floor": "床",
           "door": "扉",
           "doorLocked": "扉（施錠）",
           "entrance": "入口",
-          "exit": "出口",
-          "hazard": "溶岩",
-          "torch": "松明"
+          "exit": "出口"
         },
         "summary": {
           "title": "ダンジョン概要",

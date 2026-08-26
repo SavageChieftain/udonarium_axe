@@ -233,12 +233,11 @@ describe('planDungeon()', () => {
     }
   });
 
-  it('lets light past a floor and stops it at a wall that faces open ground', () => {
+  it('paints the ground rather than building it, and stops light at a wall facing open ground', () => {
     const plan = planDungeon({ atmosphere: 'stoneDungeon', roomCount: 8, seed: 7 });
-    const floors = plan.blocks.blocks.filter((block) => block.kind === 'floor');
     const walls = plan.blocks.blocks.filter((block) => block.kind === 'wall');
 
-    expect(floors.every((block) => !block.blocksSight)).toBe(true);
+    expect(plan.blocks.paint.some((patch) => patch.kind === 'floor')).toBe(true);
     expect(walls.some((block) => block.blocksSight)).toBe(true);
   });
 

@@ -18,8 +18,8 @@ function options(overrides: Partial<Parameters<DungeonBuildService['build']>[3]>
   return {
     name: 'Test dungeon',
     wall: { kind: 'texture' as const, id: 'wall_ashlar' },
-    floor: { kind: 'texture' as const, id: 'stone_paving_big' },
     wallHeight: 2,
+    floorImage: 'painted-ground',
     ...overrides,
   };
 }
@@ -104,13 +104,15 @@ describe('DungeonBuildService', () => {
     });
   });
 
-  it('lifts a stair clear of the floor it stands on', async () => {
+  it('wears the painted ground as its surface, and builds no floor of its own', async () => {
     const { plan, result } = await build();
-    const stairIndex = plan.blocks.blocks.findIndex((block) => block.kind === 'stairUp');
-    const floorIndex = plan.blocks.blocks.findIndex((block) => block.kind === 'floor');
 
-    expect(stairIndex).toBeGreaterThanOrEqual(0);
-    expect(result.table.terrains[stairIndex].posZ).toBeGreaterThan(result.table.terrains[floorIndex].posZ);
+    expect(result.table.imageIdentifier).toBe('painted-ground');
+    expect(plan.blocks.paint.length).toBeGreaterThan(0);
+    expect(result.table.terrains.length).toBe(plan.blocks.blocks.length);
+    expect(result.table.terrains.some((terrain) => terrain.mode === TerrainViewState.FLOOR && !terrain.isSlope)).toBe(
+      false
+    );
   });
 
   it('stands the walls and the doors at the height it was given', async () => {
@@ -183,13 +185,13 @@ describe('DungeonBuildService', () => {
     });
   });
 
-  it('shows walls whole and floors flat', async () => {
+  it('shows walls whole and stairs flat', async () => {
     const { plan, result } = await build();
 
     plan.blocks.blocks.forEach((block, index) => {
       const terrain = result.table.terrains[index];
       if (block.kind === 'wall') expect(terrain.mode).toBe(TerrainViewState.ALL);
-      if (block.kind === 'floor') expect(terrain.mode).toBe(TerrainViewState.FLOOR);
+      if (block.kind === 'stairUp') expect(terrain.mode).toBe(TerrainViewState.FLOOR);
     });
   });
 
@@ -284,10 +286,10 @@ describe('DungeonBuildService', () => {
   });
 
   it('takes a picture from the library as it is', async () => {
-    const { result } = await build({ floor: { kind: 'library', identifier: 'some-hash' } });
-    const floor = result.table.terrains.find((terrain) => terrain.mode === TerrainViewState.FLOOR);
+    const { result } = await build({ wall: { kind: 'library', identifier: 'some-hash' } });
+    const wall = result.table.terrains.find((terrain) => terrain.mode === TerrainViewState.ALL);
 
-    expect(floor?.imageDataElement?.getFirstElementByName('floor')?.value).toBe('some-hash');
+    expect(wall?.imageDataElement?.getFirstElementByName('wall')?.value).toBe('some-hash');
   });
 
   it('never switches the table on its own', async () => {
@@ -330,10 +332,10 @@ describe('DungeonBuildService', () => {
       plan.layout,
       plan.atmosphere,
       plan.blocks,
-      options({ wall: { kind: 'texture', id: 'wall_obsidian' }, floor: { kind: 'texture', id: 'obsidian' } })
+      options({ wall: { kind: 'texture', id: 'wall_obsidian' } })
     );
 
     expect(result.table.terrains.length).toBe(plan.blocks.blocks.length);
-    expect(ImageStorage.instance.get('assets/images/tiles/lava.webp')).not.toBeNull();
+    expect(plan.blocks.paint.some((patch) => patch.kind === 'hazard')).toBe(true);
   });
 });

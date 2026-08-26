@@ -1713,13 +1713,10 @@
         },
         "piece": {
           "wall": "벽",
-          "floor": "바닥",
           "door": "문",
           "doorLocked": "문(잠김)",
           "entrance": "입구",
-          "exit": "출구",
-          "hazard": "용암",
-          "torch": "횃불"
+          "exit": "출구"
         },
         "summary": {
           "title": "던전 개요",

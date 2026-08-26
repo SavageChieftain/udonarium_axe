@@ -7,7 +7,6 @@ import {
   DUNGEON_PROP_ASSET_URLS,
   DungeonPropId,
   TEXTURE_ASSET_URLS,
-  TextureId,
   WALL_TEXTURE_ASSET_URLS,
   WALL_TOP_TEXTURE,
   WallTextureId,
@@ -27,8 +26,11 @@ import { SlopeDirection, Terrain, TerrainViewState } from '@axe/domain/tabletop/
 import { applyLightPreset, LightPreset } from '@axe/domain/tabletop/vision-types';
 
 const TERRAIN_IMAGE_TAG = '地形';
-const GRID_SIZE = 50;
-const FLOOR_HEIGHT = 0.05;
+/** A generated dungeon is drawn on fifty pixel squares, painted ground and terrain alike. */
+export const DUNGEON_GRID_SIZE = 50;
+const GRID_SIZE = DUNGEON_GRID_SIZE;
+/** How thick a stair reads on the ground it is drawn on. */
+const STAIR_HEIGHT = 0.05;
 /** How deep a door slab is, so it reads as a door in the passage rather than a block filling it. */
 const DOOR_THICKNESS = 0.25;
 
@@ -53,18 +55,15 @@ const WALL_MOUNTED: readonly DungeonLightKind[] = ['sconce', 'lantern'];
 /** How many terrains go in before the thread is handed back, so the panel can move its bar. */
 const CHUNK_SIZE = 32;
 
-function onTopOfFloor(block: DungeonBlock): boolean {
-  return block.kind === 'stairUp' || block.kind === 'stairDown';
-}
-
 export type DungeonMaterial = { kind: 'texture'; id: string } | { kind: 'library'; identifier: string };
 
 export interface DungeonBuildOptions {
   name: string;
   wall: DungeonMaterial;
-  floor: DungeonMaterial;
   /** How tall the walls stand, in cells. The atmosphere suggests one; the panel may override it. */
   wallHeight: number;
+  /** The painted ground, already in the image storage. The table wears it as its surface. */
+  floorImage: string;
 }
 
 export interface DungeonBuildResult {
@@ -111,18 +110,12 @@ export class DungeonBuildService {
       options.wall.kind === 'texture'
         ? this.registerAsset(TEXTURE_ASSET_URLS[WALL_TOP_TEXTURE[options.wall.id as WallTextureId]] ?? '')
         : wallSide;
-    const floor = this.resolveMaterial(options.floor, TEXTURE_ASSET_URLS);
-    const hazard = atmosphere.cave?.hazardFloor
-      ? this.registerAsset(TEXTURE_ASSET_URLS[atmosphere.cave.hazardFloor as TextureId])
-      : floor;
 
-    const table = this.createTable(layout, atmosphere, options.name);
+    const table = this.createTable(layout, atmosphere, options);
 
     let done = 0;
     for (const block of blocks.blocks) {
-      table.appendChild(
-        this.createTerrain(block, atmosphere, { wallSide, wallTop, floor, hazard }, options.wallHeight)
-      );
+      table.appendChild(this.createTerrain(block, atmosphere, { wallSide, wallTop }, options.wallHeight));
       done++;
       if (done % CHUNK_SIZE === 0) {
         onProgress?.(done, blocks.blocks.length);
@@ -140,16 +133,16 @@ export class DungeonBuildService {
     };
   }
 
-  private createTable(layout: DungeonLayout, atmosphere: DungeonAtmosphere, name: string): GameTable {
+  private createTable(layout: DungeonLayout, atmosphere: DungeonAtmosphere, options: DungeonBuildOptions): GameTable {
     const table = new GameTable();
-    table.name = name;
+    table.name = options.name;
     table.width = layout.width;
     table.height = layout.height;
     table.gridSize = GRID_SIZE;
     // A generated dungeon is laid out on squares, and a hex table would clip every block to a ring.
     table.gridType = GridType.SQUARE;
     table.gridShow = atmosphere.gridShow;
-    table.imageIdentifier = '';
+    table.imageIdentifier = options.floorImage;
     table.backgroundImageIdentifier = '';
     table.darknessEnabled = atmosphere.darkness > 0;
     if (atmosphere.darkness > 0) table.darknessLevel = atmosphere.darkness;
@@ -163,7 +156,7 @@ export class DungeonBuildService {
   private createTerrain(
     block: DungeonBlock,
     atmosphere: DungeonAtmosphere,
-    images: { wallSide: string; wallTop: string; floor: string; hazard: string },
+    images: { wallSide: string; wallTop: string },
     wallHeight: number
   ): Terrain {
     const { rect } = block;
@@ -182,15 +175,14 @@ export class DungeonBuildService {
 
     // Writing the whole location goes through setAttribute, which syncs; touching location.x does not.
     terrain.location = { name: 'table', x: rect.x * GRID_SIZE + offsetX, y: rect.y * GRID_SIZE + offsetY };
-    // A stair shares its cell with the floor under it, and two faces at one height fight.
-    terrain.posZ = onTopOfFloor(block) ? Math.ceil(FLOOR_HEIGHT * GRID_SIZE) : 0;
+    terrain.posZ = 0;
     return terrain;
   }
 
   private terrainFor(
     block: DungeonBlock,
     atmosphere: DungeonAtmosphere,
-    images: { wallSide: string; wallTop: string; floor: string; hazard: string },
+    images: { wallSide: string; wallTop: string },
     name: string,
     wallHeight: number
   ): Terrain {
@@ -211,26 +203,13 @@ export class DungeonBuildService {
         terrain.doorStyle = atmosphere.doorStyle;
         return terrain;
       }
-      case 'stairUp':
-      case 'stairDown': {
+      default: {
         const prop: DungeonPropId = block.kind === 'stairUp' ? 'stair_up' : 'stair_down';
         const image = this.registerAsset(DUNGEON_PROP_ASSET_URLS[prop]);
-        const terrain = Terrain.create(name, rect.w, rect.h, FLOOR_HEIGHT, image, image);
+        const terrain = Terrain.create(name, rect.w, rect.h, STAIR_HEIGHT, image, image);
         terrain.mode = TerrainViewState.FLOOR;
         terrain.isSlope = true;
         terrain.slopeDirection = block.kind === 'stairUp' ? SlopeDirection.TOP : SlopeDirection.BOTTOM;
-        terrain.isDropShadow = false;
-        return terrain;
-      }
-      case 'hazard': {
-        const terrain = Terrain.create(name, rect.w, rect.h, FLOOR_HEIGHT, images.hazard, images.hazard);
-        terrain.mode = TerrainViewState.FLOOR;
-        terrain.isDropShadow = false;
-        return terrain;
-      }
-      default: {
-        const terrain = Terrain.create(name, rect.w, rect.h, FLOOR_HEIGHT, images.floor, images.floor);
-        terrain.mode = TerrainViewState.FLOOR;
         terrain.isDropShadow = false;
         return terrain;
       }
@@ -252,12 +231,8 @@ export class DungeonBuildService {
           : this.t('feature.tabletop.dungeonGenerator.piece.door');
       case 'stairUp':
         return this.t('feature.tabletop.dungeonGenerator.piece.entrance');
-      case 'stairDown':
-        return this.t('feature.tabletop.dungeonGenerator.piece.exit');
-      case 'hazard':
-        return this.t('feature.tabletop.dungeonGenerator.piece.hazard');
       default:
-        return this.t('feature.tabletop.dungeonGenerator.piece.floor');
+        return this.t('feature.tabletop.dungeonGenerator.piece.exit');
     }
   }
 

@@ -39,47 +39,49 @@ describe('buildDungeonPreview()', () => {
   it('spans the board in cells', () => {
     const { layout, blocks } = plan();
 
-    expect(buildDungeonPreview(layout, blocks.blocks, colors).viewBox).toBe(`0 0 ${layout.width} ${layout.height}`);
+    expect(buildDungeonPreview(layout, blocks, colors).viewBox).toBe(`0 0 ${layout.width} ${layout.height}`);
   });
 
-  it('draws one rectangle per block, so the count on screen is the count that gets built', () => {
+  it('draws the painted ground, then every block, then the lights', () => {
     const { layout, blocks } = plan();
+    const preview = buildDungeonPreview(layout, blocks, colors);
 
-    expect(buildDungeonPreview(layout, blocks.blocks, colors).rects.length).toBe(blocks.blocks.length);
+    expect(preview.rects.length).toBe(blocks.paint.length + blocks.blocks.length + blocks.torchSpots.length);
   });
 
   it('keeps every rectangle where its block is', () => {
     const { layout, blocks } = plan();
-    const preview = buildDungeonPreview(layout, blocks.blocks, colors);
+    const preview = buildDungeonPreview(layout, blocks, colors);
 
     blocks.blocks.forEach((block, index) => {
-      expect(preview.rects[index]).toMatchObject(block.rect);
+      expect(preview.rects[blocks.paint.length + index]).toMatchObject(block.rect);
     });
   });
 
   it('paints walls and floors from the chosen materials', () => {
     const { layout, blocks } = plan();
-    const preview = buildDungeonPreview(layout, blocks.blocks, colors);
+    const preview = buildDungeonPreview(layout, blocks, colors);
 
+    blocks.paint.forEach((patch, index) => {
+      if (patch.kind === 'floor') expect(preview.rects[index].fill).toBe(colors.floor);
+    });
     blocks.blocks.forEach((block, index) => {
-      if (block.kind === 'wall') expect(preview.rects[index].fill).toBe(colors.wall);
-      if (block.kind === 'floor') expect(preview.rects[index].fill).toBe(colors.floor);
+      if (block.kind === 'wall') expect(preview.rects[blocks.paint.length + index].fill).toBe(colors.wall);
     });
   });
 
   it('marks where each torch stands', () => {
     const { layout, blocks } = plan();
-    const preview = buildDungeonPreview(layout, blocks.blocks, colors, blocks.torchSpots);
+    const preview = buildDungeonPreview(layout, blocks, colors);
 
     expect(blocks.torchSpots.length).toBeGreaterThan(0);
     expect(preview.rects.filter((rect) => rect.fill === TORCH_FILL).length).toBe(blocks.torchSpots.length);
-    expect(preview.rects.length).toBe(blocks.blocks.length + blocks.torchSpots.length);
   });
 
   it('shows the lava in a cave that has some', () => {
     const { layout, blocks } = plan('lavaCavern');
-    const preview = buildDungeonPreview(layout, blocks.blocks, colors);
-    const hazard = blocks.blocks.filter((block) => block.kind === 'hazard').length;
+    const preview = buildDungeonPreview(layout, blocks, colors);
+    const hazard = blocks.paint.filter((patch) => patch.kind === 'hazard').length;
 
     expect(hazard).toBeGreaterThan(0);
     expect(preview.rects.filter((rect) => rect.fill === colors.hazard).length).toBe(hazard);

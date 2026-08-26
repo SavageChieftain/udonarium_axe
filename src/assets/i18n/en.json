@@ -1713,13 +1713,10 @@
         },
         "piece": {
           "wall": "Wall",
-          "floor": "Floor",
           "door": "Door",
           "doorLocked": "Door (locked)",
           "entrance": "Way in",
-          "exit": "Way out",
-          "hazard": "Lava",
-          "torch": "Torch"
+          "exit": "Way out"
         },
         "summary": {
           "title": "Dungeon notes",

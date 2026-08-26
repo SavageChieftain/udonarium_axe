@@ -19,7 +19,20 @@ export const DUNGEON_HEAVY_TERRAINS = 200;
 /** What one terrain costs to sync: itself, the five it is built from, and its six values. */
 export const SYNC_OBJECTS_PER_TERRAIN = 12;
 
-export type DungeonBlockKind = 'wall' | 'floor' | 'hazard' | 'door' | 'stairUp' | 'stairDown';
+export type DungeonBlockKind = 'wall' | 'door' | 'stairUp' | 'stairDown';
+
+export type DungeonPaintKind = 'floor' | 'hazard';
+
+/**
+ * Ground that is painted rather than built.
+ *
+ * A floor holds nothing up and stops no one seeing, so a slab of terrain per patch buys
+ * only sync traffic. These go into the picture the table wears instead.
+ */
+export interface DungeonPaint {
+  kind: DungeonPaintKind;
+  rect: DungeonRect;
+}
 
 export interface DungeonBlock {
   kind: DungeonBlockKind;
@@ -146,6 +159,7 @@ export interface DungeonLight extends DungeonPoint {
 
 export interface DungeonBlocks {
   blocks: DungeonBlock[];
+  paint: DungeonPaint[];
   torchRooms: number[];
   torchSpots: DungeonPoint[];
   lights: DungeonLight[];
@@ -157,6 +171,7 @@ export function layoutToBlocks(
   options: DungeonBlockOptions = DEFAULT_BLOCK_OPTIONS
 ): DungeonBlocks {
   const blocks: DungeonBlock[] = [];
+  const paint: DungeonPaint[] = [];
 
   const rockMask = maskOfKind(layout, [DungeonCell.Rock]);
   for (const rect of mergeMaskToRects(rockMask, layout.width, layout.height, MAX_MERGE_SPAN)) {
@@ -176,12 +191,12 @@ export function layoutToBlocks(
     : [DungeonCell.Room, DungeonCell.Corridor, DungeonCell.Door];
   const floorMask = maskOfKind(layout, floorKinds);
   for (const rect of mergeMaskToRects(floorMask, layout.width, layout.height, MAX_MERGE_SPAN)) {
-    blocks.push({ kind: 'floor', rect, blocksSight: false, locked: false, rooms: [] });
+    paint.push({ kind: 'floor', rect });
   }
 
   const hazardMask = maskOfKind(layout, [DungeonCell.Hazard]);
   for (const rect of mergeMaskToRects(hazardMask, layout.width, layout.height, MAX_MERGE_SPAN)) {
-    blocks.push({ kind: 'hazard', rect, blocksSight: false, locked: false, rooms: [] });
+    paint.push({ kind: 'hazard', rect });
   }
 
   if (options.placeDoors) {
@@ -227,6 +242,7 @@ export function layoutToBlocks(
 
   return {
     blocks,
+    paint,
     torchRooms: lights.map((light) => light.room),
     torchSpots: lights.map((light) => ({ x: light.x, y: light.y })),
     lights,
