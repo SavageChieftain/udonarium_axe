@@ -23,6 +23,7 @@ import { DiceSymbolComponent } from '@axe/features/dice/dice-symbol/dice-symbol.
 import { GameTableMaskComponent } from '@axe/features/tabletop/game-table-mask/game-table-mask.component';
 import { TerrainComponent } from '@axe/features/tabletop/terrain/terrain.component';
 import { TextNoteComponent } from '@axe/features/tabletop/text-note/text-note.component';
+import { detachAllFrom, gatherOverBoard } from '@axe/features/tabletop/white-board/white-board-contents';
 import { buildWhiteBoardContextMenu } from '@axe/features/tabletop/white-board/white-board-context-menu';
 import { WhiteBoardSettingsComponent } from '@axe/features/tabletop/white-board/white-board-settings.component';
 import { MovableDirective, MovableOption } from '@axe/ui/directives/movable.directive';
@@ -190,25 +191,18 @@ export class WhiteBoardComponent {
 
   /** Everything on the board goes back to the table, keeping the place it appears to be in. */
   detachAll(board: WhiteBoard): void {
-    for (const object of this.standing()) {
-      object.location.surface = undefined;
-      object.location = {
-        name: 'table',
-        x: board.location.x + object.location.x,
-        y: board.location.y + object.location.y,
-      };
-      object.update();
-    }
+    detachAllFrom(board, this.standing());
     SoundEffect.play(PresetSound.cardPut);
   }
 
   /** Whatever is lying over the board is taken up onto it, which is quicker than dragging each one. */
   gather(board: WhiteBoard): void {
-    const left = board.location.x;
-    const top = board.location.y;
-    const right = left + this.widthPx();
-    const bottom = top + this.heightPx();
-    const candidates: TabletopObject[] = [
+    const taken = gatherOverBoard(board, this.widthPx(), this.heightPx(), this.overTheTable());
+    if (taken > 0) SoundEffect.play(PresetSound.cardPut);
+  }
+
+  private overTheTable(): TabletopObject[] {
+    return [
       ...this.tabletopService.characters,
       ...this.tabletopService.terrains,
       ...this.tabletopService.tableMasks,
@@ -216,19 +210,6 @@ export class WhiteBoardComponent {
       ...this.tabletopService.cards,
       ...this.tabletopService.diceSymbols,
     ];
-
-    let taken = 0;
-    for (const object of candidates) {
-      if (boardSurfaceOf(object)) continue;
-      const x = object.location.x;
-      const y = object.location.y;
-      if (x < left || right < x || y < top || bottom < y) continue;
-      object.location = { name: 'table', x: x - left, y: y - top, surface: board.identifier };
-      object.posZ = 0;
-      object.update();
-      taken++;
-    }
-    if (taken > 0) SoundEffect.play(PresetSound.cardPut);
   }
 
   private standing(): TabletopObject[] {

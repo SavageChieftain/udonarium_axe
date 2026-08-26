@@ -2785,7 +2785,17 @@
         "pitch": "Tilt",
         "rotate": "Facing",
         "opacity": "Opacity",
-        "color": "Board colour"
+        "color": "Board colour",
+        "image": "Picture",
+        "imageChoose": "Choose",
+        "imageClear": "Remove",
+        "dropShadow": "Cast a shadow",
+        "lock": "Hold in place",
+        "contents": "On the board ({{count}})",
+        "contentsEmpty": "Nothing on it yet",
+        "takeOff": "Take off",
+        "gather": "Take up what lies over it",
+        "clear": "Take everything off"
       }
     }
   },

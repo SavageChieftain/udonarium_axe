@@ -3015,7 +3015,17 @@
         "pitch": "기울기",
         "rotate": "방향",
         "opacity": "불투명도",
-        "color": "판 색상"
+        "color": "판 색상",
+        "image": "붙이는 그림",
+        "imageChoose": "이미지 선택",
+        "imageClear": "제거",
+        "dropShadow": "그림자 표시",
+        "lock": "고정",
+        "contents": "올려둔 것 ({{count}})",
+        "contentsEmpty": "아직 아무것도 없습니다",
+        "takeOff": "내리기",
+        "gather": "겹친 것을 올리기",
+        "clear": "전부 내리기"
       }
     }
   },

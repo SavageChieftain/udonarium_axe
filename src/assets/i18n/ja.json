@@ -2785,7 +2785,17 @@
         "pitch": "傾き",
         "rotate": "向き",
         "opacity": "不透明度",
-        "color": "板の色"
+        "color": "板の色",
+        "image": "貼る絵",
+        "imageChoose": "画像を選ぶ",
+        "imageClear": "外す",
+        "dropShadow": "影を落とす",
+        "lock": "固定する",
+        "contents": "載っているもの（{{count}}）",
+        "contentsEmpty": "まだ何も載っていません",
+        "takeOff": "降ろす",
+        "gather": "重なっているものを載せる",
+        "clear": "すべて降ろす"
       }
     }
   },

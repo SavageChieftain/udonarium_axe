@@ -105,4 +105,88 @@
     </label>
     <input class="h-8 w-full" id="board-color" name="board-color" type="color" [(ngModel)]="color" />
   </div>
+
+  <div>
+    <label class="text-ui-muted mb-1 block text-[0.78rem] font-semibold tracking-[0.04em] uppercase">
+      {{ 'feature.whiteBoard.settings.image' | transloco }}
+    </label>
+    <div class="flex items-center gap-2">
+      <div
+        class="border-ui-border-panel rounded-ui-sm size-12 shrink-0 border border-solid bg-contain bg-center bg-no-repeat"
+        [style.background-image]="imageUrl.length > 0 ? 'url(' + imageUrl + ')' : null"
+      ></div>
+      <button
+        class="rounded-ui-sm border-ui-border-panel bg-ui-input text-ui-text cursor-pointer border border-solid px-2 py-1.5 text-[0.82rem]"
+        type="button"
+        (click)="chooseImage()"
+      >
+        {{ 'feature.whiteBoard.settings.imageChoose' | transloco }}
+      </button>
+      @if (imageUrl.length > 0) {
+        <button
+          class="text-ui-accent cursor-pointer border-0 bg-transparent p-0 text-[0.8rem]"
+          type="button"
+          (click)="clearImage()"
+        >
+          {{ 'feature.whiteBoard.settings.imageClear' | transloco }}
+        </button>
+      }
+    </div>
+  </div>
+
+  <div class="flex flex-col gap-1.5 text-[0.85rem]">
+    <label class="flex cursor-pointer items-center gap-2">
+      <input type="checkbox" name="board-shadow" [(ngModel)]="isDropShadow" />
+      {{ 'feature.whiteBoard.settings.dropShadow' | transloco }}
+    </label>
+    <label class="flex cursor-pointer items-center gap-2">
+      <input type="checkbox" name="board-lock" [(ngModel)]="isLock" />
+      {{ 'feature.whiteBoard.settings.lock' | transloco }}
+    </label>
+  </div>
+
+  <div>
+    <div class="mb-1 flex items-baseline justify-between">
+      <label class="text-ui-muted text-[0.78rem] font-semibold tracking-[0.04em] uppercase">
+        {{ 'feature.whiteBoard.settings.contents' | transloco: { count: standing.length } }}
+      </label>
+      <div class="flex gap-2">
+        <button
+          class="text-ui-accent cursor-pointer border-0 bg-transparent p-0 text-[0.78rem]"
+          type="button"
+          (click)="gather()"
+        >
+          {{ 'feature.whiteBoard.settings.gather' | transloco }}
+        </button>
+        @if (standing.length > 0) {
+          <button
+            class="text-ui-accent cursor-pointer border-0 bg-transparent p-0 text-[0.78rem]"
+            type="button"
+            (click)="clearBoard()"
+          >
+            {{ 'feature.whiteBoard.settings.clear' | transloco }}
+          </button>
+        }
+      </div>
+    </div>
+
+    @if (standing.length === 0) {
+      <div class="text-ui-dim text-[0.8rem]">{{ 'feature.whiteBoard.settings.contentsEmpty' | transloco }}</div>
+    } @else {
+      <div class="border-ui-border-panel rounded-ui-sm flex max-h-40 flex-col overflow-y-auto border border-solid">
+        @for (object of standing; track object.identifier) {
+          <div class="flex items-center justify-between gap-2 px-2 py-1 text-[0.82rem]">
+            <span class="truncate">{{ nameOf(object) }}</span>
+            <button
+              class="text-ui-accent shrink-0 cursor-pointer border-0 bg-transparent p-0 text-[0.78rem]"
+              type="button"
+              (click)="takeOff(object)"
+            >
+              {{ 'feature.whiteBoard.settings.takeOff' | transloco }}
+            </button>
+          </div>
+        }
+      </div>
+    }
+  </div>
 </div>
