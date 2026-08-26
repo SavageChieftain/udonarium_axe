@@ -5,7 +5,7 @@ import { TabletopOverlapRegistryEntry, TabletopOverlapService } from '@axe/appli
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { SurfaceDims, surfaceWorldBox } from '@axe/domain/tabletop/surface-space';
-import { surfaceOf, TableSurface, TabletopObject } from '@axe/domain/tabletop/tabletop-object';
+import { boardSurfaceOf, surfaceOf, TableSurface, TabletopObject } from '@axe/domain/tabletop/tabletop-object';
 import { Terrain } from '@axe/domain/tabletop/terrain';
 
 const GRID_PX = 50;
@@ -108,8 +108,10 @@ export class GravityService {
     }
   }
 
+  /** Nothing standing on a board falls: the board holds it, whatever angle the board is at. */
   static isAffectedByGravity(obj: TabletopObject): boolean {
-    return obj instanceof Terrain || obj instanceof GameCharacter;
+    if (!(obj instanceof Terrain || obj instanceof GameCharacter)) return false;
+    return !boardSurfaceOf(obj);
   }
 
   static findSupportZ(target: TabletopOverlapRegistryEntry, entries: TabletopOverlapRegistryEntry[]): number {

@@ -37,7 +37,7 @@ import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
 import { FilterType, GameTable, GridType } from '@axe/domain/tabletop/game-table';
 import { SurfaceDims } from '@axe/domain/tabletop/surface-space';
 import { TableSelecter } from '@axe/domain/tabletop/table-selecter';
-import { surfaceOf, TABLE_SURFACES, TableSurface } from '@axe/domain/tabletop/tabletop-object';
+import { boardSurfaceOf, surfaceOf, TABLE_SURFACES, TableSurface } from '@axe/domain/tabletop/tabletop-object';
 import { WallFace, WallLight, WallSilhouette } from '@axe/domain/tabletop/vision-scene';
 import { CardComponent } from '@axe/features/card/card/card.component';
 import { CardStackComponent } from '@axe/features/card/card-stack/card-stack.component';
@@ -76,6 +76,7 @@ import {
   wallSilhouetteBackground,
   wallSilhouetteStyle,
 } from '@axe/features/tabletop/wall-projection';
+import { WhiteBoardComponent } from '@axe/features/tabletop/white-board/white-board.component';
 import { TooltipDirective } from '@axe/ui/directives/tooltip.directive';
 import { SafePipe } from '@axe/ui/pipes/safe.pipe';
 import { TranslocoModule } from '@jsverse/transloco';
@@ -120,6 +121,7 @@ interface BeamWallGrid {
   imports: [
     NgClass,
     TerrainComponent,
+    WhiteBoardComponent,
     GameTableMaskComponent,
     GameTableScratchMaskComponent,
     TextNoteComponent,
@@ -526,6 +528,10 @@ export class GameTableComponent {
     this.objectChangeService.collectionOf('light-source')();
     return this.tabletopService.lightSources;
   });
+  readonly whiteBoards = computed(() => {
+    this.objectChangeService.collectionOf('white-board')();
+    return this.tabletopService.whiteBoards;
+  });
   readonly terrains = computed(() => {
     this.objectChangeService.collectionOf('terrain')();
     return this.tabletopService.terrains;
@@ -551,7 +557,8 @@ export class GameTableComponent {
     return this.tabletopService.peerCursors;
   });
 
-  private static bySurface<T extends { location: { surface?: TableSurface } }>(
+  /** Anything standing on a board is drawn by that board, so the table passes it over. */
+  private static bySurface<T extends { location: { surface?: string } }>(
     list: readonly T[]
   ): Record<TableSurface, T[]> {
     const result = TABLE_SURFACES.reduce(
@@ -561,7 +568,10 @@ export class GameTableComponent {
       },
       {} as Record<TableSurface, T[]>
     );
-    for (const item of list) result[surfaceOf(item)].push(item);
+    for (const item of list) {
+      if (boardSurfaceOf(item)) continue;
+      result[surfaceOf(item)].push(item);
+    }
     return result;
   }
 

@@ -1,0 +1,76 @@
+import { ContextMenuAction } from '@axe/application/ui/context-menu.service';
+import { ObjectStore } from '@axe/core/sync/object-store';
+import { WhiteBoard } from '@axe/domain/tabletop/white-board';
+import { buildWhiteBoardContextMenu } from '@axe/features/tabletop/white-board/white-board-context-menu';
+
+const t = (key: string) => key;
+
+function names(menu: ContextMenuAction[]): string[] {
+  return menu.map((item) => item.name ?? '');
+}
+
+function handlers() {
+  return {
+    onEdit: vi.fn(),
+    onDetachAll: vi.fn(),
+    onGather: vi.fn(),
+    onCopy: vi.fn(),
+    onDelete: vi.fn(),
+  };
+}
+
+describe('buildWhiteBoardContextMenu()', () => {
+  let board: WhiteBoard;
+
+  beforeEach(() => {
+    board = WhiteBoard.create('board', 6, 4, 1);
+  });
+
+  afterEach(() => {
+    ObjectStore.instance.remove(board);
+  });
+
+  it('offers the settings, the angle and the lock', () => {
+    const menu = names(buildWhiteBoardContextMenu(board, 0, t, handlers()));
+
+    expect(menu).toContain('feature.whiteBoard.contextMenu.settings');
+    expect(menu).toContain('feature.whiteBoard.contextMenu.pitch');
+    expect(menu).toContain('feature.tabletop.contextMenu.lock');
+  });
+
+  it('ticks the angle the board is already at, and moves it when another is picked', () => {
+    board.pitch = 90;
+    const menu = buildWhiteBoardContextMenu(board, 0, t, handlers());
+    const angles = menu.find((item) => item.name === 'feature.whiteBoard.contextMenu.pitch')!.subActions!;
+
+    expect(angles.find((item) => item.name?.startsWith('✔'))!.name).toContain('feature.whiteBoard.pitch.90');
+
+    angles[0].action!();
+
+    expect(board.pitch).toBe(0);
+  });
+
+  it('only offers to clear the board when something is on it', () => {
+    expect(names(buildWhiteBoardContextMenu(board, 0, t, handlers()))).not.toContain(
+      'feature.whiteBoard.contextMenu.detachAll'
+    );
+    expect(names(buildWhiteBoardContextMenu(board, 3, t, handlers()))).toContain(
+      'feature.whiteBoard.contextMenu.detachAll'
+    );
+  });
+
+  it('hands each choice to the caller that knows how to do it', () => {
+    const spies = handlers();
+    const menu = buildWhiteBoardContextMenu(board, 2, t, spies);
+
+    for (const key of ['settings', 'gather', 'detachAll', 'copy', 'delete']) {
+      menu.find((item) => item.name === `feature.whiteBoard.contextMenu.${key}`)!.action!();
+    }
+
+    expect(spies.onEdit).toHaveBeenCalledWith(board);
+    expect(spies.onGather).toHaveBeenCalledWith(board);
+    expect(spies.onDetachAll).toHaveBeenCalledWith(board);
+    expect(spies.onCopy).toHaveBeenCalledWith(board);
+    expect(spies.onDelete).toHaveBeenCalledWith(board);
+  });
+});

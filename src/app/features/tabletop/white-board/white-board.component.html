@@ -1,0 +1,82 @@
+<div
+  class="absolute select-none backface-visible transform-3d"
+  [style.width.px]="widthPx()"
+  [style.height.px]="heightPx()"
+  [class.cursor-grab]="!isLock()"
+  appMovable
+  [movable.option]="movableOption()"
+  [movable.disable]="isLock()"
+  [appSelectable]="whiteBoard()"
+  (movable.ondragstart)="onMove()"
+  (movable.ondragend)="onMoved()"
+>
+  <div class="size-full origin-bottom transform-3d" [style.transform]="yawTransform()">
+    <div class="size-full origin-bottom transform-3d" [style.transform]="pitchTransform()">
+      <div
+        class="pointer-events-auto absolute inset-0 backface-visible"
+        [style.opacity]="opacity()"
+        [style.background-color]="color()"
+        [appTooltip]="whiteBoard()"
+      >
+        @if (imageUrl().length > 0) {
+          <div
+            class="absolute inset-0 bg-contain bg-center bg-no-repeat"
+            [style.background-image]="'url(' + imageUrl() + ')' | safe: 'style'"
+          ></div>
+        }
+      </div>
+
+      <div
+        class="pointer-events-none absolute inset-0 m-auto size-0 transform-3d"
+        appRotable
+        [rotable.option]="rotableOption()"
+        [rotable.disable]="isLock()"
+        (rotable.ondragstart)="onMove()"
+        (rotable.valueChange)="onRotated($event)"
+        (rotable.ondragend)="onMoved()"
+      ></div>
+
+      <div class="absolute inset-0 transform-3d" data-surface-overflow [attr.data-surface]="whiteBoard().identifier">
+        @for (mask of masks(); track mask.identifier) {
+          <game-table-mask
+            class="absolute will-change-transform backface-visible transform-3d"
+            [gameTableMask]="mask"
+          ></game-table-mask>
+        }
+        @for (terrain of terrains(); track terrain.identifier) {
+          <terrain class="absolute will-change-transform backface-visible transform-3d" [terrain]="terrain"></terrain>
+        }
+        @for (card of cards(); track card.identifier) {
+          <card
+            class="absolute will-change-transform backface-visible transform-3d"
+            [card]="card"
+            [appTooltip]="card"
+            [ngStyle]="{ 'z-index': card.zindex }"
+          ></card>
+        }
+        @for (textNote of textNotes(); track textNote.identifier) {
+          <text-note
+            class="absolute will-change-transform backface-visible transform-3d"
+            [textNote]="textNote"
+            [appTooltip]="textNote"
+            [ngStyle]="{ 'z-index': textNote.zindex }"
+          ></text-note>
+        }
+        @for (diceSymbol of diceSymbols(); track diceSymbol.identifier) {
+          <dice-symbol
+            class="absolute will-change-transform backface-visible transform-3d"
+            [diceSymbol]="diceSymbol"
+            [appTooltip]="diceSymbol"
+          ></dice-symbol>
+        }
+        @for (character of characters(); track character.identifier) {
+          <game-character
+            class="absolute will-change-transform backface-visible transform-3d"
+            [gameCharacter]="character"
+            [appTooltip]="character"
+          ></game-character>
+        }
+      </div>
+    </div>
+  </div>
+</div>

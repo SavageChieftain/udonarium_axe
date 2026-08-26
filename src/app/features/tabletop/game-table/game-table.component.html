@@ -227,6 +227,10 @@
       @for (range of ranges(); track range.identifier) {
         <range class="absolute will-change-transform backface-visible transform-3d" [range]="range"></range>
       }
+      @for (board of whiteBoards(); track board.identifier) {
+        <white-board class="absolute will-change-transform backface-visible transform-3d" [whiteBoard]="board">
+        </white-board>
+      }
       @for (light of lightSources(); track light.identifier) {
         <light-source
           class="absolute will-change-transform backface-visible transform-3d"

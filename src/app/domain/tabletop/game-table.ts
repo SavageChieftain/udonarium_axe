@@ -8,6 +8,7 @@ import { LightSource } from '@axe/domain/tabletop/light-source';
 import { TableAmbience } from '@axe/domain/tabletop/table-ambience';
 import { Terrain } from '@axe/domain/tabletop/terrain';
 import { DEFAULT_AMBIENT_COLOR } from '@axe/domain/tabletop/vision-types';
+import { WhiteBoard } from '@axe/domain/tabletop/white-board';
 
 export enum GridType {
   NONE = -1,
@@ -78,6 +79,10 @@ export class GameTable extends ObjectNode {
 
   get lightSources(): LightSource[] {
     return this.children.filter((o): o is LightSource => o instanceof LightSource);
+  }
+
+  get whiteBoards(): WhiteBoard[] {
+    return this.children.filter((o): o is WhiteBoard => o instanceof WhiteBoard);
   }
 
   get ambiences(): TableAmbience[] {

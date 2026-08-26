@@ -2743,6 +2743,34 @@
       "zoomIn": "Zoom in",
       "zoomOut": "Zoom out",
       "backToNow": "Back to now"
+    },
+    "whiteBoard": {
+      "defaultName": "Whiteboard",
+      "action": {
+        "create": "Create a whiteboard"
+      },
+      "pitch": {
+        "0": "Lay it flat",
+        "45": "Tilt it",
+        "90": "Stand it up"
+      },
+      "contextMenu": {
+        "settings": "Whiteboard settings",
+        "pitch": "Angle",
+        "gather": "Take up what overlaps it",
+        "detachAll": "Put everything back on the table",
+        "copy": "Make a copy",
+        "delete": "Delete"
+      },
+      "settings": {
+        "name": "Name",
+        "width": "Width (cells)",
+        "height": "Height (cells)",
+        "pitch": "Tilt",
+        "rotate": "Facing",
+        "opacity": "Opacity",
+        "color": "Board colour"
+      }
     }
   },
   "app": {

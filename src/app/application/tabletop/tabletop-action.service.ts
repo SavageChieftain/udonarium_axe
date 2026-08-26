@@ -37,9 +37,14 @@ import { TableAmbience } from '@axe/domain/tabletop/table-ambience';
 import { TableSelecter } from '@axe/domain/tabletop/table-selecter';
 import { Terrain } from '@axe/domain/tabletop/terrain';
 import { TextNote } from '@axe/domain/tabletop/text-note';
+import { WhiteBoard } from '@axe/domain/tabletop/white-board';
 
 /** How wide an ambient effect starts, in cells. One cell reads as nothing, so it arrives with some ground under it. */
 const AMBIENCE_DEFAULT_SIZE = 4;
+
+/** A board arrives big enough to lay a handful of pieces on without resizing it first. */
+const BOARD_DEFAULT_WIDTH = 6;
+const BOARD_DEFAULT_HEIGHT = 4;
 
 @Injectable({
   providedIn: 'root',
@@ -218,6 +223,22 @@ export class TabletopActionService {
     return range;
   }
 
+  createWhiteBoard(position: PointerCoordinate): WhiteBoard {
+    const board = WhiteBoard.create(
+      this.t('feature.whiteBoard.defaultName'),
+      BOARD_DEFAULT_WIDTH,
+      BOARD_DEFAULT_HEIGHT,
+      1
+    );
+    board.location.x = position.x;
+    board.location.y = position.y;
+    board.posZ = position.z;
+    // A board belongs to its table, the way terrain does, so clearing the table clears it.
+    this.getViewTable()?.appendChild(board);
+    board.update();
+    return board;
+  }
+
   createLightSource(position: PointerCoordinate): LightSource {
     const light = LightSource.create(this.t('feature.tabletop.action.defaultLightName'));
     light.location.x = position.x - 25;
@@ -276,6 +297,7 @@ export class TabletopActionService {
       this.getCreateCoinMenu(position),
       this.getCreateRangeMenu(position),
       this.getCreateLightSourceMenu(position),
+      this.getCreateWhiteBoardMenu(position),
       this.getCreateAmbienceMenu(position),
     ];
   }
@@ -411,6 +433,17 @@ export class TabletopActionService {
       action: () => {
         const light = this.createLightSource(position);
         this.selectionSignalService.selectObject(light.identifier, light.aliasName);
+        SoundEffect.play(PresetSound.cardPut);
+      },
+    };
+  }
+
+  private getCreateWhiteBoardMenu(position: PointerCoordinate): ContextMenuAction {
+    return {
+      name: this.t('feature.whiteBoard.action.create'),
+      action: () => {
+        const board = this.createWhiteBoard(position);
+        this.selectionSignalService.selectObject(board.identifier, board.aliasName);
         SoundEffect.play(PresetSound.cardPut);
       },
     };

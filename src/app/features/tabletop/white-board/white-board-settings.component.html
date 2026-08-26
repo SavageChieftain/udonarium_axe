@@ -1,0 +1,108 @@
+<div class="flex flex-col gap-3 p-3">
+  <div>
+    <label class="text-ui-muted mb-1 block text-[0.78rem] font-semibold tracking-[0.04em] uppercase" for="board-name">
+      {{ 'feature.whiteBoard.settings.name' | transloco }}
+    </label>
+    <input
+      class="border-ui-border-panel bg-ui-input text-ui-text focus:border-ui-accent rounded-ui-sm box-border w-full border border-solid px-2.5 py-1.5 text-[0.9rem] outline-none"
+      id="board-name"
+      name="board-name"
+      [(ngModel)]="name"
+    />
+  </div>
+
+  <div class="flex gap-2">
+    <div class="flex-1">
+      <label
+        class="text-ui-muted mb-1 block text-[0.78rem] font-semibold tracking-[0.04em] uppercase"
+        for="board-width"
+      >
+        {{ 'feature.whiteBoard.settings.width' | transloco }}
+      </label>
+      <input
+        class="border-ui-border-panel bg-ui-input text-ui-text focus:border-ui-accent rounded-ui-sm box-border w-full border border-solid px-2 py-1.5 text-center text-[13px] outline-none"
+        id="board-width"
+        name="board-width"
+        type="number"
+        [min]="minSide"
+        [max]="maxSide"
+        [(ngModel)]="width"
+      />
+    </div>
+    <div class="flex-1">
+      <label
+        class="text-ui-muted mb-1 block text-[0.78rem] font-semibold tracking-[0.04em] uppercase"
+        for="board-height"
+      >
+        {{ 'feature.whiteBoard.settings.height' | transloco }}
+      </label>
+      <input
+        class="border-ui-border-panel bg-ui-input text-ui-text focus:border-ui-accent rounded-ui-sm box-border w-full border border-solid px-2 py-1.5 text-center text-[13px] outline-none"
+        id="board-height"
+        name="board-height"
+        type="number"
+        [min]="minSide"
+        [max]="maxSide"
+        [(ngModel)]="height"
+      />
+    </div>
+  </div>
+
+  <div>
+    <label class="text-ui-muted mb-1 block text-[0.78rem] font-semibold tracking-[0.04em] uppercase" for="board-pitch">
+      {{ 'feature.whiteBoard.settings.pitch' | transloco }} ({{ pitch }}°)
+    </label>
+    <input
+      class="w-full"
+      id="board-pitch"
+      name="board-pitch"
+      type="range"
+      [min]="minPitch"
+      [max]="maxPitch"
+      step="5"
+      [(ngModel)]="pitch"
+    />
+  </div>
+
+  <div>
+    <label class="text-ui-muted mb-1 block text-[0.78rem] font-semibold tracking-[0.04em] uppercase" for="board-rotate">
+      {{ 'feature.whiteBoard.settings.rotate' | transloco }} ({{ rotate }}°)
+    </label>
+    <input
+      class="w-full"
+      id="board-rotate"
+      name="board-rotate"
+      type="range"
+      min="0"
+      max="359"
+      step="1"
+      [(ngModel)]="rotate"
+    />
+  </div>
+
+  <div>
+    <label
+      class="text-ui-muted mb-1 block text-[0.78rem] font-semibold tracking-[0.04em] uppercase"
+      for="board-opacity"
+    >
+      {{ 'feature.whiteBoard.settings.opacity' | transloco }} ({{ opacityPercent }}%)
+    </label>
+    <input
+      class="w-full"
+      id="board-opacity"
+      name="board-opacity"
+      type="range"
+      min="0"
+      max="100"
+      step="5"
+      [(ngModel)]="opacityPercent"
+    />
+  </div>
+
+  <div>
+    <label class="text-ui-muted mb-1 block text-[0.78rem] font-semibold tracking-[0.04em] uppercase" for="board-color">
+      {{ 'feature.whiteBoard.settings.color' | transloco }}
+    </label>
+    <input class="h-8 w-full" id="board-color" name="board-color" type="color" [(ngModel)]="color" />
+  </div>
+</div>

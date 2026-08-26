@@ -2973,6 +2973,34 @@
         "chatNote": "{{target}}({{source}}에서 {{distance}})",
         "sendToChat": "채팅에 입력"
       }
+    },
+    "whiteBoard": {
+      "defaultName": "화이트보드",
+      "action": {
+        "create": "화이트보드 만들기"
+      },
+      "pitch": {
+        "0": "눕히기",
+        "45": "기울이기",
+        "90": "세우기"
+      },
+      "contextMenu": {
+        "settings": "화이트보드 설정",
+        "pitch": "각도",
+        "gather": "겹쳐 있는 것을 올리기",
+        "detachAll": "올려둔 것을 내리기",
+        "copy": "복사본 만들기",
+        "delete": "삭제"
+      },
+      "settings": {
+        "name": "이름",
+        "width": "너비(칸)",
+        "height": "높이(칸)",
+        "pitch": "기울기",
+        "rotate": "방향",
+        "opacity": "불투명도",
+        "color": "판 색상"
+      }
     }
   },
   "app": {

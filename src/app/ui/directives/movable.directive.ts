@@ -419,8 +419,9 @@ export class MovableDirective {
     }
     const rawX = local.x - this.width / 2;
     const rawY = local.y - this.height / 2;
-    const x = Math.max(0, Math.min(Math.max(0, surfaceW - this.width), rawX));
-    const y = Math.max(0, Math.min(Math.max(0, surfaceH - this.height), rawY));
+    const overflows = targetSurface.hasAttribute('data-surface-overflow');
+    const x = overflows ? rawX : Math.max(0, Math.min(Math.max(0, surfaceW - this.width), rawX));
+    const y = overflows ? rawY : Math.max(0, Math.min(Math.max(0, surfaceH - this.height), rawY));
     this.dragPreviewElement!.style.transform = `translate3d(${Math.floor(x)}px, ${Math.floor(y)}px, 0)`;
   }
 
@@ -491,8 +492,10 @@ export class MovableDirective {
     }
     const rawX = local.x - this.width / 2;
     const rawY = local.y - this.height / 2;
-    const clampedX = Math.max(0, Math.min(Math.max(0, surfaceW - this.width), rawX));
-    const clampedY = Math.max(0, Math.min(Math.max(0, surfaceH - this.height), rawY));
+    // A board lets a piece hang over its edge; a wall of the table does not.
+    const overflows = targetSurfaceEl.hasAttribute('data-surface-overflow');
+    const clampedX = overflows ? rawX : Math.max(0, Math.min(Math.max(0, surfaceW - this.width), rawX));
+    const clampedY = overflows ? rawY : Math.max(0, Math.min(Math.max(0, surfaceH - this.height), rawY));
     const newX = this.mathFloor ? Math.floor(clampedX) : clampedX;
     const newY = this.mathFloor ? Math.floor(clampedY) : clampedY;
     if (this.updateTimer !== null) {

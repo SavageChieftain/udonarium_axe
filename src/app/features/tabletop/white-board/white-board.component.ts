@@ -1,0 +1,267 @@
+import { NgStyle } from '@angular/common';
+import { ChangeDetectionStrategy, Component, computed, inject, input, signal } from '@angular/core';
+import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
+import { ObjectChangeService } from '@axe/application/sync/object-change.service';
+import { TabletopService } from '@axe/application/tabletop/tabletop.service';
+import { ContextMenuService } from '@axe/application/ui/context-menu.service';
+import { PanelOption, PanelService } from '@axe/application/ui/panel.service';
+import { PieceContextMenuService } from '@axe/application/ui/piece-context-menu.service';
+import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
+import { ObjectStore } from '@axe/core/sync/object-store';
+import { Card } from '@axe/domain/card/card';
+import { GameCharacter } from '@axe/domain/character/game-character';
+import { DiceSymbol } from '@axe/domain/dice/dice-symbol';
+import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
+import { GameTableMask } from '@axe/domain/tabletop/game-table-mask';
+import { boardSurfaceOf, TabletopObject } from '@axe/domain/tabletop/tabletop-object';
+import { Terrain } from '@axe/domain/tabletop/terrain';
+import { TextNote } from '@axe/domain/tabletop/text-note';
+import { WhiteBoard } from '@axe/domain/tabletop/white-board';
+import { CardComponent } from '@axe/features/card/card/card.component';
+import { GameCharacterComponent } from '@axe/features/character/game-character/game-character.component';
+import { DiceSymbolComponent } from '@axe/features/dice/dice-symbol/dice-symbol.component';
+import { GameTableMaskComponent } from '@axe/features/tabletop/game-table-mask/game-table-mask.component';
+import { TerrainComponent } from '@axe/features/tabletop/terrain/terrain.component';
+import { TextNoteComponent } from '@axe/features/tabletop/text-note/text-note.component';
+import { buildWhiteBoardContextMenu } from '@axe/features/tabletop/white-board/white-board-context-menu';
+import { WhiteBoardSettingsComponent } from '@axe/features/tabletop/white-board/white-board-settings.component';
+import { MovableDirective, MovableOption } from '@axe/ui/directives/movable.directive';
+import { RotableDirective, RotableOption } from '@axe/ui/directives/rotable.directive';
+import { SelectableDirective } from '@axe/ui/directives/selectable.directive';
+import { TooltipDirective } from '@axe/ui/directives/tooltip.directive';
+import { SafePipe } from '@axe/ui/pipes/safe.pipe';
+import { setupMovableRotableForPiece } from '@axe/ui/tabletop/setup-tabletop-piece';
+
+@Component({
+  selector: 'white-board',
+  templateUrl: './white-board.component.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [
+    NgStyle,
+    MovableDirective,
+    RotableDirective,
+    SelectableDirective,
+    TooltipDirective,
+    SafePipe,
+    GameCharacterComponent,
+    TerrainComponent,
+    GameTableMaskComponent,
+    TextNoteComponent,
+    CardComponent,
+    DiceSymbolComponent,
+  ],
+  host: {
+    class: 'block',
+    '(contextmenu)': 'onContextMenu($event)',
+  },
+})
+export class WhiteBoardComponent {
+  private readonly contextMenuService = inject(ContextMenuService);
+  private readonly pieceContextMenu = inject(PieceContextMenuService);
+  private readonly pointerDeviceService = inject(PointerDeviceService);
+  private readonly tabletopService = inject(TabletopService);
+  private readonly objectStore = inject(ObjectStore);
+  private readonly panelService = inject(PanelService);
+  private readonly objectChange = inject(ObjectChangeService);
+  private readonly translateFn = inject(TRANSLATE_FN);
+
+  readonly whiteBoard = input.required<WhiteBoard>();
+  readonly movableOption = signal<MovableOption>({});
+  readonly rotableOption = signal<RotableOption>({});
+
+  constructor() {
+    setupMovableRotableForPiece(this, { target: this.whiteBoard });
+  }
+
+  get gridSize(): number {
+    return this.tabletopService.gridSize();
+  }
+
+  /**
+   * Reads the version, then hands back the board.
+   *
+   * It is the same board every time, so under the default equality a new version never
+   * reaches anything that reads this.
+   */
+  private readonly version = computed(
+    () => {
+      const board = this.whiteBoard();
+      this.objectChange.versionOf(board.identifier)();
+      return board;
+    },
+    { equal: () => false }
+  );
+
+  readonly isLock = computed(() => this.version().isLock);
+  readonly widthPx = computed(() => this.version().width * this.gridSize);
+  readonly heightPx = computed(() => this.version().height * this.gridSize);
+  readonly opacity = computed(() => this.version().opacity);
+  readonly color = computed(() => this.version().color);
+  readonly imageUrl = computed(() => this.version().imageFile.url);
+
+  /** Turned about the upright axis, which leaves the board lying where it was. */
+  readonly yawTransform = computed(() => `rotateZ(${this.version().rotate}deg)`);
+
+  /**
+   * Tilted about its lower edge, so that standing it up does not sink it into the table.
+   *
+   * Hinging on the middle would bury the near half of the board and lift the far half off
+   * the ground, which is not what standing a board up looks like.
+   */
+  readonly pitchTransform = computed(() => `rotateX(${-this.version().pitch}deg)`);
+
+  private readonly contentsOf = <T extends TabletopObject>(list: readonly T[]): T[] => {
+    const identifier = this.whiteBoard().identifier;
+    return list.filter((object) => boardSurfaceOf(object) === identifier);
+  };
+
+  private readonly surfaceVersion = computed(() => {
+    for (const alias of ['character', 'terrain', 'table-mask', 'text-note', 'card', 'dice-symbol']) {
+      this.objectChange.collectionOf(alias)();
+    }
+    return this.tabletopService.currentTable.identifier;
+  });
+
+  readonly characters = computed<GameCharacter[]>(() => {
+    this.surfaceVersion();
+    return this.contentsOf(this.tabletopService.characters);
+  });
+  readonly terrains = computed<Terrain[]>(() => {
+    this.surfaceVersion();
+    return this.contentsOf(this.tabletopService.terrains);
+  });
+  readonly masks = computed<GameTableMask[]>(() => {
+    this.surfaceVersion();
+    return this.contentsOf(this.tabletopService.tableMasks);
+  });
+  readonly textNotes = computed<TextNote[]>(() => {
+    this.surfaceVersion();
+    return this.contentsOf(this.tabletopService.textNotes);
+  });
+  readonly cards = computed<Card[]>(() => {
+    this.surfaceVersion();
+    return this.contentsOf(this.tabletopService.cards);
+  });
+  readonly diceSymbols = computed<DiceSymbol[]>(() => {
+    this.surfaceVersion();
+    return this.contentsOf(this.tabletopService.diceSymbols);
+  });
+
+  readonly standingCount = computed(
+    () =>
+      this.characters().length +
+      this.terrains().length +
+      this.masks().length +
+      this.textNotes().length +
+      this.cards().length +
+      this.diceSymbols().length
+  );
+
+  onMove(): void {
+    SoundEffect.play(PresetSound.cardPick);
+  }
+
+  onMoved(): void {
+    SoundEffect.play(PresetSound.cardPut);
+  }
+
+  onRotated(degree: number): void {
+    this.whiteBoard().rotate = degree;
+  }
+
+  onContextMenu(e: Event): void {
+    e.stopPropagation();
+    e.preventDefault();
+    if (!this.pointerDeviceService.isAllowedToOpenContextMenu) return;
+
+    const board = this.whiteBoard();
+    const position = this.pointerDeviceService.pointers[0];
+    if (this.pieceContextMenu.openForSelection(board, this.gridSize, position)) return;
+
+    const menu = buildWhiteBoardContextMenu(board, this.standingCount(), this.translateFn, {
+      onEdit: (target) => this.openSettings(target),
+      onDetachAll: (target) => this.detachAll(target),
+      onGather: (target) => this.gather(target),
+      onCopy: (target) => this.copy(target),
+      onDelete: (target) => this.remove(target),
+    });
+    this.contextMenuService.open(position, menu, board.name);
+  }
+
+  /** Everything on the board goes back to the table, keeping the place it appears to be in. */
+  detachAll(board: WhiteBoard): void {
+    for (const object of this.standing()) {
+      object.location.surface = undefined;
+      object.location = {
+        name: 'table',
+        x: board.location.x + object.location.x,
+        y: board.location.y + object.location.y,
+      };
+      object.update();
+    }
+    SoundEffect.play(PresetSound.cardPut);
+  }
+
+  /** Whatever is lying over the board is taken up onto it, which is quicker than dragging each one. */
+  gather(board: WhiteBoard): void {
+    const left = board.location.x;
+    const top = board.location.y;
+    const right = left + this.widthPx();
+    const bottom = top + this.heightPx();
+    const candidates: TabletopObject[] = [
+      ...this.tabletopService.characters,
+      ...this.tabletopService.terrains,
+      ...this.tabletopService.tableMasks,
+      ...this.tabletopService.textNotes,
+      ...this.tabletopService.cards,
+      ...this.tabletopService.diceSymbols,
+    ];
+
+    let taken = 0;
+    for (const object of candidates) {
+      if (boardSurfaceOf(object)) continue;
+      const x = object.location.x;
+      const y = object.location.y;
+      if (x < left || right < x || y < top || bottom < y) continue;
+      object.location = { name: 'table', x: x - left, y: y - top, surface: board.identifier };
+      object.posZ = 0;
+      object.update();
+      taken++;
+    }
+    if (taken > 0) SoundEffect.play(PresetSound.cardPut);
+  }
+
+  private standing(): TabletopObject[] {
+    return [
+      ...this.characters(),
+      ...this.terrains(),
+      ...this.masks(),
+      ...this.textNotes(),
+      ...this.cards(),
+      ...this.diceSymbols(),
+    ];
+  }
+
+  private copy(board: WhiteBoard): void {
+    const clone = this.objectStore.get<WhiteBoard>(board.identifier)?.clone();
+    if (!clone) return;
+    clone.location.x += this.gridSize;
+    clone.location.y += this.gridSize;
+    clone.isLock = false;
+    if (board.parent) board.parent.appendChild(clone);
+    clone.update();
+    SoundEffect.play(PresetSound.cardPut);
+  }
+
+  private remove(board: WhiteBoard): void {
+    this.detachAll(board);
+    board.destroy();
+    SoundEffect.play(PresetSound.sweep);
+  }
+
+  private openSettings(board: WhiteBoard): void {
+    const option: PanelOption = { width: 320, height: 300 };
+    const component = this.panelService.open<WhiteBoardSettingsComponent>(WhiteBoardSettingsComponent, option);
+    component.whiteBoard = board;
+  }
+}

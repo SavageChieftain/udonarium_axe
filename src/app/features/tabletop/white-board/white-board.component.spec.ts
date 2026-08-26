@@ -1,0 +1,112 @@
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ObjectStore } from '@axe/core/sync/object-store';
+import { GameCharacter } from '@axe/domain/character/game-character';
+import { GameTable } from '@axe/domain/tabletop/game-table';
+import { TableSelecter } from '@axe/domain/tabletop/table-selecter';
+import { Terrain } from '@axe/domain/tabletop/terrain';
+import { WhiteBoard } from '@axe/domain/tabletop/white-board';
+import { WhiteBoardComponent } from '@axe/features/tabletop/white-board/white-board.component';
+import { TEST_PROVIDERS } from '@axe/testing/test-providers';
+
+describe('WhiteBoardComponent', () => {
+  let fixture: ComponentFixture<WhiteBoardComponent>;
+  let component: WhiteBoardComponent;
+  let table: GameTable;
+  let board: WhiteBoard;
+
+  function place(x: number, y: number, surface?: string): GameCharacter {
+    const piece = GameCharacter.create('piece', 1, '');
+    piece.location = surface ? { name: 'table', x, y, surface } : { name: 'table', x, y };
+    return piece;
+  }
+
+  beforeEach(async () => {
+    TestBed.configureTestingModule({
+      imports: [WhiteBoardComponent],
+      providers: [...TEST_PROVIDERS],
+    }).compileComponents();
+
+    table = new GameTable();
+    table.initialize();
+    TableSelecter.instance.viewTableIdentifier = table.identifier;
+
+    board = WhiteBoard.create('board', 6, 4, 1);
+    board.location = { name: 'table', x: 100, y: 200 };
+    table.appendChild(board);
+
+    fixture = TestBed.createComponent(WhiteBoardComponent);
+    component = fixture.componentInstance;
+    fixture.componentRef.setInput('whiteBoard', board);
+  });
+
+  afterEach(() => {
+    for (const object of ObjectStore.instance.getObjects()) ObjectStore.instance.remove(object);
+  });
+
+  it('is the size it was given, in pixels', () => {
+    expect(component.widthPx()).toBe(6 * 50);
+    expect(component.heightPx()).toBe(4 * 50);
+  });
+
+  it('lies flat until it is tilted, and hinges rather than sinking', async () => {
+    expect(component.pitchTransform()).toBe('rotateX(0deg)');
+
+    board.pitch = 90;
+    await new Promise((resolve) => setTimeout(resolve, 20));
+
+    expect(component.pitchTransform()).toBe('rotateX(-90deg)');
+  });
+
+  it('turns about the upright axis on its own', async () => {
+    board.rotate = 30;
+    await new Promise((resolve) => setTimeout(resolve, 20));
+
+    expect(component.yawTransform()).toBe('rotateZ(30deg)');
+  });
+
+  it('shows only what names it as the face it stands on', () => {
+    const mine = place(10, 10, board.identifier);
+    const theirs = place(10, 10);
+
+    expect(component.characters().map((piece) => piece.identifier)).toEqual([mine.identifier]);
+    expect(component.standingCount()).toBe(1);
+    expect(theirs.location.surface).toBeUndefined();
+  });
+
+  it('takes up whatever is lying over it, in the board’s own coordinates', () => {
+    const over = place(150, 240);
+    const beside = place(20, 20);
+
+    component.gather(board);
+
+    expect(over.location.surface).toBe(board.identifier);
+    expect(over.location.x).toBe(50);
+    expect(over.location.y).toBe(40);
+    expect(beside.location.surface).toBeUndefined();
+  });
+
+  it('puts everything back where it appeared to be when the board is cleared', () => {
+    const piece = place(50, 40, board.identifier);
+
+    component.detachAll(board);
+
+    expect(piece.location.surface).toBeUndefined();
+    expect(piece.location.x).toBe(150);
+    expect(piece.location.y).toBe(240);
+  });
+
+  it('lets a piece hang over the edge', () => {
+    const piece = place(10, 10, board.identifier);
+    piece.location = { name: 'table', x: -40, y: 260, surface: board.identifier };
+
+    expect(component.characters().map((entry) => entry.identifier)).toContain(piece.identifier);
+  });
+
+  it('holds terrain as well as pieces', () => {
+    const terrain = Terrain.create('rock', 1, 1, 1, '', '');
+    terrain.location = { name: 'table', x: 0, y: 0, surface: board.identifier };
+    table.appendChild(terrain);
+
+    expect(component.terrains().map((entry) => entry.identifier)).toEqual([terrain.identifier]);
+  });
+});

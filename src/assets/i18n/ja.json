@@ -2743,6 +2743,34 @@
       "zoomIn": "広げる",
       "zoomOut": "縮める",
       "backToNow": "今に戻る"
+    },
+    "whiteBoard": {
+      "defaultName": "ホワイトボード",
+      "action": {
+        "create": "ホワイトボードを作成"
+      },
+      "pitch": {
+        "0": "寝かせる",
+        "45": "斜めに立てる",
+        "90": "立てる"
+      },
+      "contextMenu": {
+        "settings": "ホワイトボード設定",
+        "pitch": "角度",
+        "gather": "重なっているものを載せる",
+        "detachAll": "載っているものを降ろす",
+        "copy": "コピーを作る",
+        "delete": "削除する"
+      },
+      "settings": {
+        "name": "名前",
+        "width": "幅（マス）",
+        "height": "高さ（マス）",
+        "pitch": "傾き",
+        "rotate": "向き",
+        "opacity": "不透明度",
+        "color": "板の色"
+      }
     }
   },
   "app": {
