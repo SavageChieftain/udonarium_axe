@@ -83,6 +83,8 @@ describe('DungeonBuildService', () => {
     const atmosphere = atmosphereById('stoneDungeon');
 
     plan.blocks.blocks.forEach((block, index) => {
+      // A door is a slab thinner than its cell, which has its own tests.
+      if (block.kind === 'door') return;
       const terrain = result.table.terrains[index];
       expect(terrain.width).toBe(block.rect.w);
       expect(terrain.depth).toBe(block.rect.h);
@@ -94,6 +96,8 @@ describe('DungeonBuildService', () => {
     const { plan, result } = await build();
 
     plan.blocks.blocks.forEach((block, index) => {
+      // A door is set in the middle of its cell, which has its own tests.
+      if (block.kind === 'door') return;
       const terrain = result.table.terrains[index];
       expect(terrain.location.x).toBe(block.rect.x * GRID);
       expect(terrain.location.y).toBe(block.rect.y * GRID);
@@ -108,6 +112,35 @@ describe('DungeonBuildService', () => {
 
     expect(stairIndex).toBeGreaterThanOrEqual(0);
     expect(result.table.terrains[stairIndex].posZ).toBeGreaterThan(result.table.terrains[floorIndex].posZ);
+  });
+
+  it('sets a door as a thin slab across the way it bars', async () => {
+    const { plan, result } = await build();
+    const index = plan.blocks.blocks.findIndex((block) => block.kind === 'door');
+    const block = plan.blocks.blocks[index];
+    const door = result.table.terrains[index];
+
+    expect(index).toBeGreaterThanOrEqual(0);
+    if (block.across === 'x') {
+      expect(door.width).toBeLessThan(1);
+      expect(door.depth).toBe(1);
+    } else {
+      expect(door.width).toBe(1);
+      expect(door.depth).toBeLessThan(1);
+    }
+  });
+
+  it('centres a door in its cell rather than leaving it against one side', async () => {
+    const { plan, result } = await build();
+
+    plan.blocks.blocks.forEach((block, index) => {
+      if (block.kind !== 'door') return;
+      const door = result.table.terrains[index];
+      const offsetX = door.location.x - block.rect.x * 50;
+      const offsetY = door.location.y - block.rect.y * 50;
+      expect(block.across === 'x' ? offsetX : offsetY).toBeGreaterThan(0);
+      expect(block.across === 'x' ? offsetY : offsetX).toBe(0);
+    });
   });
 
   it('shows walls whole and floors flat', async () => {

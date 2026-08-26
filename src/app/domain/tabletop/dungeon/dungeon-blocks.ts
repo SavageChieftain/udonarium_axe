@@ -23,6 +23,8 @@ export interface DungeonBlock {
   blocksSight: boolean;
   locked: boolean;
   rooms: number[];
+  /** For a door, the axis it bars. A slab thin along x stands across an east-west passage. */
+  across?: 'x' | 'y';
 }
 
 export interface DungeonBlockOptions {
@@ -31,6 +33,17 @@ export interface DungeonBlockOptions {
 }
 
 export const DEFAULT_BLOCK_OPTIONS: DungeonBlockOptions = { placeDoors: true, placeStairs: true };
+
+/** Which way the passage runs where a door stands, so the slab can be set across it. */
+function doorAxis(layout: DungeonLayout, x: number, y: number): 'x' | 'y' {
+  const open = (cx: number, cy: number) => cellAt(layout, cx, cy) !== DungeonCell.Rock;
+  const eastWest = open(x + 1, y) && open(x - 1, y);
+  const northSouth = open(x, y + 1) && open(x, y - 1);
+  if (eastWest && !northSouth) return 'x';
+  if (northSouth && !eastWest) return 'y';
+  // A corner or a wide opening: bar the way the neighbouring stone leaves free.
+  return open(x + 1, y) || open(x - 1, y) ? 'x' : 'y';
+}
 
 function touchesOpenCell(layout: DungeonLayout, rect: DungeonRect): boolean {
   for (let dy = 0; dy < rect.h; dy++) {
@@ -143,6 +156,7 @@ export function layoutToBlocks(
         blocksSight: true,
         locked: door.locked,
         rooms: door.rooms,
+        across: doorAxis(layout, door.x, door.y),
       });
     }
   }

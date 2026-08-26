@@ -81,6 +81,55 @@ describe('generateRoomsAndCorridors()', () => {
     }
   });
 
+  it('never carves a corridor cell inside a room', () => {
+    for (const seed of SEEDS) {
+      const layout = build({ seed });
+      for (const room of layout.rooms) {
+        for (let dy = 0; dy < room.h; dy++) {
+          for (let dx = 0; dx < room.w; dx++) {
+            expect(cellAt(layout, room.x + dx, room.y + dy)).not.toBe(DungeonCell.Corridor);
+          }
+        }
+      }
+    }
+  });
+
+  it('routes around the rooms it is not joining rather than along their walls', () => {
+    // A passage with no stone beside it opens the room's whole flank and reads as if it went through.
+    for (const seed of SEEDS) {
+      const layout = build({ seed });
+      let grazing = 0;
+      for (let y = 0; y < layout.height; y++) {
+        for (let x = 0; x < layout.width; x++) {
+          if (cellAt(layout, x, y) !== DungeonCell.Corridor) continue;
+          const beside = layout.rooms.some(
+            (room) => x >= room.x - 1 && x <= room.x + room.w && y >= room.y - 1 && y <= room.y + room.h
+          );
+          if (beside) grazing++;
+        }
+      }
+      expect(grazing).toBeLessThan(8);
+    }
+  });
+
+  it('crumbles the stone of a ruin without dissolving the room walls', () => {
+    for (const seed of SEEDS) {
+      const layout = build({ seed, wallBreakChance: 0.2 });
+      for (const room of layout.rooms) {
+        const ring: { x: number; y: number }[] = [];
+        for (let dx = -1; dx <= room.w; dx++) {
+          ring.push({ x: room.x + dx, y: room.y - 1 }, { x: room.x + dx, y: room.y + room.h });
+        }
+        for (let dy = -1; dy <= room.h; dy++) {
+          ring.push({ x: room.x - 1, y: room.y + dy }, { x: room.x + room.w, y: room.y + dy });
+        }
+        // Openings come from corridors that were routed here, never from stone that fell away.
+        const opened = ring.filter((cell) => cellAt(layout, cell.x, cell.y) === DungeonCell.Corridor).length;
+        expect(opened).toBeLessThan(room.w + room.h);
+      }
+    }
+  });
+
   it('leaves every open cell reachable from the entrance', () => {
     for (const seed of SEEDS) {
       const layout = build({ seed });

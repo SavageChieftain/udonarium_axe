@@ -24,6 +24,8 @@ const TERRAIN_IMAGE_TAG = '地形';
 const GRID_SIZE = 50;
 const FLOOR_HEIGHT = 0.05;
 const TORCH_HEIGHT = 0.6;
+/** How deep a door slab is, so it reads as a door in the passage rather than a block filling it. */
+const DOOR_THICKNESS = 0.25;
 /** How many terrains go in before the thread is handed back, so the panel can move its bar. */
 const CHUNK_SIZE = 32;
 
@@ -145,8 +147,13 @@ export class DungeonBuildService {
     terrain.blocksSight = block.blocksSight;
     terrain.blocksLight = block.blocksSight;
 
+    // A door slab is thinner than its cell, so it is set in the middle of the way it bars.
+    const inset = ((1 - DOOR_THICKNESS) / 2) * GRID_SIZE;
+    const offsetX = block.kind === 'door' && block.across === 'x' ? inset : 0;
+    const offsetY = block.kind === 'door' && block.across === 'y' ? inset : 0;
+
     // Writing the whole location goes through setAttribute, which syncs; touching location.x does not.
-    terrain.location = { name: 'table', x: rect.x * GRID_SIZE, y: rect.y * GRID_SIZE };
+    terrain.location = { name: 'table', x: rect.x * GRID_SIZE + offsetX, y: rect.y * GRID_SIZE + offsetY };
     // A stair shares its cell with the floor under it, and two faces at one height fight.
     terrain.posZ = onTopOfFloor(block) ? Math.ceil(FLOOR_HEIGHT * GRID_SIZE) : 0;
     return terrain;
@@ -167,7 +174,10 @@ export class DungeonBuildService {
       }
       case 'door': {
         const door = this.registerAsset(DUNGEON_PROP_ASSET_URLS[this.doorPropFor(atmosphere)]);
-        const terrain = Terrain.create(name, rect.w, rect.h, atmosphere.wallHeight, door, door);
+        const acrossX = block.across === 'x';
+        const width = acrossX ? DOOR_THICKNESS : rect.w;
+        const depth = acrossX ? rect.h : DOOR_THICKNESS;
+        const terrain = Terrain.create(name, width, depth, atmosphere.wallHeight, door, door);
         terrain.mode = TerrainViewState.ALL;
         return terrain;
       }

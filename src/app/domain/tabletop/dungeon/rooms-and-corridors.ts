@@ -70,34 +70,104 @@ function paintCorridor(layout: DungeonLayout, x: number, y: number, thickness: n
   }
 }
 
-function carveElbow(
-  layout: DungeonLayout,
-  from: { x: number; y: number },
-  to: { x: number; y: number },
-  thickness: number,
-  horizontalFirst: boolean
-): void {
-  const step = (value: number, target: number) => (value === target ? 0 : value < target ? 1 : -1);
-  let { x, y } = from;
+type Step = { x: number; y: number };
 
-  if (horizontalFirst) {
-    while (x !== to.x) {
-      x += step(x, to.x);
-      paintCorridor(layout, x, y, thickness);
+const STRAY_INTO_ROOM = 400;
+const GRAZE_A_ROOM = 12;
+
+/**
+ * What it costs a corridor to stand on a cell.
+ *
+ * Running flush along someone else's wall leaves no stone between them, so the whole flank
+ * of that room opens onto the passage and reads as though the corridor went through it.
+ * Going around costs a few more cells, which is the cheaper of the two.
+ */
+function stepCost(
+  layout: DungeonLayout,
+  x: number,
+  y: number,
+  endpoints: readonly number[],
+  thickness: number
+): number {
+  let cost = 1;
+  // A wide corridor is painted down and to the right of the cell, so the whole print is weighed.
+  const reach = Math.max(1, thickness) - 1;
+  for (const room of layout.rooms) {
+    if (endpoints.includes(room.index)) continue;
+    const inside = x + reach >= room.x && x < room.x + room.w && y + reach >= room.y && y < room.y + room.h;
+    if (inside) {
+      cost += STRAY_INTO_ROOM;
+      continue;
     }
-    while (y !== to.y) {
-      y += step(y, to.y);
-      paintCorridor(layout, x, y, thickness);
+    const beside = x + reach >= room.x - 1 && x <= room.x + room.w && y + reach >= room.y - 1 && y <= room.y + room.h;
+    if (beside) cost += GRAZE_A_ROOM;
+  }
+  return cost;
+}
+
+/** The cheapest way from one room's middle to another's, given what each cell costs. */
+function findRoute(
+  layout: DungeonLayout,
+  from: Step,
+  to: Step,
+  endpoints: readonly number[],
+  thickness: number
+): Step[] {
+  const size = layout.width * layout.height;
+  const best = new Float64Array(size).fill(Number.POSITIVE_INFINITY);
+  const cameFrom = new Int32Array(size).fill(-1);
+  const start = from.y * layout.width + from.x;
+  const goal = to.y * layout.width + to.x;
+
+  best[start] = 0;
+  const pending: number[] = [start];
+
+  while (pending.length > 0) {
+    let pick = 0;
+    for (let index = 1; index < pending.length; index++) {
+      if (best[pending[index]] < best[pending[pick]]) pick = index;
     }
-  } else {
-    while (y !== to.y) {
-      y += step(y, to.y);
-      paintCorridor(layout, x, y, thickness);
+    const current = pending.splice(pick, 1)[0];
+    if (current === goal) break;
+
+    const x = current % layout.width;
+    const y = Math.floor(current / layout.width);
+    for (const [dx, dy] of [
+      [1, 0],
+      [-1, 0],
+      [0, 1],
+      [0, -1],
+    ]) {
+      const nx = x + dx;
+      const ny = y + dy;
+      // The outer ring stays solid, so a corridor may never be carved into it.
+      if (nx < 1 || ny < 1 || nx >= layout.width - 1 || ny >= layout.height - 1) continue;
+      const next = ny * layout.width + nx;
+      const cost = best[current] + stepCost(layout, nx, ny, endpoints, thickness);
+      if (cost >= best[next]) continue;
+      best[next] = cost;
+      cameFrom[next] = current;
+      if (!pending.includes(next)) pending.push(next);
     }
-    while (x !== to.x) {
-      x += step(x, to.x);
-      paintCorridor(layout, x, y, thickness);
-    }
+  }
+
+  if (!Number.isFinite(best[goal])) return [];
+  const route: Step[] = [];
+  for (let at = goal; at !== -1 && at !== start; at = cameFrom[at]) {
+    route.unshift({ x: at % layout.width, y: Math.floor(at / layout.width) });
+  }
+  return route;
+}
+
+function carveRoute(
+  layout: DungeonLayout,
+  from: Step,
+  to: Step,
+  endpoints: readonly number[],
+  thickness: number
+): void {
+  for (const cell of findRoute(layout, from, to, endpoints, thickness)) {
+    paintCorridor(layout, cell.x, cell.y, thickness);
   }
 }
 
@@ -160,13 +230,23 @@ function markDoors(layout: DungeonLayout, rooms: readonly DungeonRoom[]): Dungeo
     }));
 }
 
-function breakWalls(layout: DungeonLayout, chance: number, rng: () => number): void {
+/**
+ * Let the stone crumble where a ruin would, which is not through the rooms.
+ *
+ * Breaking cells that touch a room dissolves its walls: the flank opens onto whatever runs
+ * past and the room ends up ringed with doorway. The rubble belongs in the passages.
+ */
+function breakWalls(layout: DungeonLayout, rooms: readonly DungeonRoom[], chance: number, rng: () => number): void {
   if (chance <= 0) return;
   const doomed: number[] = [];
 
   for (let y = 1; y < layout.height - 1; y++) {
     for (let x = 1; x < layout.width - 1; x++) {
       if (cellAt(layout, x, y) !== DungeonCell.Rock) continue;
+      const besideARoom = rooms.some(
+        (room) => x >= room.x - 1 && x <= room.x + room.w && y >= room.y - 1 && y <= room.y + room.h
+      );
+      if (besideARoom) continue;
       const open =
         cellAt(layout, x + 1, y) !== DungeonCell.Rock ||
         cellAt(layout, x - 1, y) !== DungeonCell.Rock ||
@@ -203,10 +283,10 @@ export function generateRoomsAndCorridors(params: RoomsAndCorridorsParams, rng: 
   layout.links = [...tree, ...loops];
 
   for (const [from, to] of layout.links) {
-    carveElbow(layout, centers[from], centers[to], params.corridorWidth, rng() < 0.5);
+    carveRoute(layout, centers[from], centers[to], [from, to], params.corridorWidth);
   }
 
-  breakWalls(layout, params.wallBreakChance, rng);
+  breakWalls(layout, rooms, params.wallBreakChance, rng);
   layout.doors = markDoors(layout, rooms);
 
   const start = centers[0] ?? { x: 1, y: 1 };
