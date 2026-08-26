@@ -33,9 +33,24 @@ const STAIR_FILL = DUNGEON_PROP_BASE_COLOR.stair_up;
 const UNKNOWN_WALL = '#6b6b6b';
 const UNKNOWN_FLOOR = '#3a3a3a';
 
+/** Pull a colour towards black, which is what tells the rock from the floor at this size. */
+function darken(hex: string, keep: number): string {
+  const value = hex.replace('#', '');
+  if (value.length !== 6) return hex;
+  const channel = (at: number) =>
+    Math.round(parseInt(value.slice(at, at + 2), 16) * keep)
+      .toString(16)
+      .padStart(2, '0');
+  return `#${channel(0)}${channel(2)}${channel(4)}`;
+}
+
+/**
+ * A wall and the floor beside it are often near enough the same colour to read as one field,
+ * and a plan nobody can read is not worth drawing. The rock is sunk well below the floor.
+ */
 export function previewColors(wall: string, floor: string, hazard: string): PreviewColors {
   return {
-    wall: WALL_TEXTURE_BASE_COLOR[wall as WallTextureId] ?? UNKNOWN_WALL,
+    wall: darken(WALL_TEXTURE_BASE_COLOR[wall as WallTextureId] ?? UNKNOWN_WALL, 0.34),
     floor: TEXTURE_BASE_COLOR[floor as TextureId] ?? UNKNOWN_FLOOR,
     hazard: TEXTURE_BASE_COLOR[hazard as TextureId] ?? UNKNOWN_FLOOR,
   };

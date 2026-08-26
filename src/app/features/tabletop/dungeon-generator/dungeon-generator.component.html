@@ -179,7 +179,12 @@
 
   <div>
     <div class="border-ui-border-panel rounded-ui-sm overflow-hidden border border-solid bg-black">
-      <svg class="block h-auto w-full" [attr.viewBox]="preview().viewBox" preserveAspectRatio="xMidYMid meet">
+      <svg
+        class="block h-auto w-full"
+        shape-rendering="crispEdges"
+        [attr.viewBox]="preview().viewBox"
+        preserveAspectRatio="xMidYMid meet"
+      >
         @for (rect of preview().rects; track $index) {
           <rect
             [attr.x]="rect.x"

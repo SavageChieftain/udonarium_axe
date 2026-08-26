@@ -13,10 +13,18 @@ function plan(atmosphere: 'stoneDungeon' | 'lavaCavern' = 'stoneDungeon') {
 }
 
 describe('previewColors()', () => {
-  it('reads the colours out of the catalog', () => {
-    expect(colors.wall).toBe(WALL_TEXTURE_BASE_COLOR.wall_ashlar);
+  it('reads the floor and the hazard straight out of the catalog', () => {
     expect(colors.floor).toBe(TEXTURE_BASE_COLOR.stone_paving_big);
     expect(colors.hazard).toBe(TEXTURE_BASE_COLOR.lava);
+  });
+
+  it('sinks the rock below the floor so the plan can be read', () => {
+    // Ashlar and the paving beside it are near enough the same grey to read as one field.
+    const brightness = (hex: string) =>
+      parseInt(hex.slice(1, 3), 16) + parseInt(hex.slice(3, 5), 16) + parseInt(hex.slice(5, 7), 16);
+
+    expect(colors.wall).not.toBe(WALL_TEXTURE_BASE_COLOR.wall_ashlar);
+    expect(brightness(colors.wall)).toBeLessThan(brightness(colors.floor) * 0.6);
   });
 
   it('falls back to a plain grey for a picture from the library', () => {
