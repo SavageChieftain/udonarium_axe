@@ -1,5 +1,26 @@
 import { ChatColorStylePipe } from '@axe/ui/pipes/chat-color-style.pipe';
 
+/** The lightness of `--ui-elevated`: the background every other panel on the page has. */
+const BASE_L = { light: 0.898, dark: 0.153 };
+
+const PALETTE = [
+  '#000000',
+  '#333333',
+  '#888888',
+  '#cccccc',
+  '#ffffff',
+  '#ff0000',
+  '#ffcc00',
+  '#00cc00',
+  '#006633',
+  '#0099ff',
+  '#0000ff',
+  '#9900ff',
+  '#800080',
+];
+
+const THEMES = ['light', 'dark'] as const;
+
 function rgbOf(css: string): [number, number, number] {
   const hex = /^#([0-9a-f]{6})$/i.exec(css);
   if (hex) {
@@ -19,11 +40,28 @@ function luminance([r, g, b]: [number, number, number]): number {
   return 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b);
 }
 
-function contrast(style: Record<string, string>): number {
-  const text = luminance(rgbOf(style['color']));
-  const bubble = luminance(rgbOf(style['background-color']));
-  const [hi, lo] = text > bubble ? [text, bubble] : [bubble, text];
+function ratio(a: number, b: number): number {
+  const [hi, lo] = a > b ? [a, b] : [b, a];
   return (hi + 0.05) / (lo + 0.05);
+}
+
+function contrast(style: Record<string, string>): number {
+  return ratio(luminance(rgbOf(style['color'])), luminance(rgbOf(style['background-color'])));
+}
+
+function lightnessOf([r, g, b]: [number, number, number]): number {
+  return (Math.max(r, g, b) + Math.min(r, g, b)) / 2;
+}
+
+/** How far the bubble had to leave the background it shares with the rest of the page. */
+function drift(style: Record<string, string>, theme: 'light' | 'dark'): number {
+  return Math.abs(lightnessOf(rgbOf(style['background-color'])) - BASE_L[theme]);
+}
+
+/** The best any bubble could do for this colour, whatever it looked like. */
+function bestPossible(colour: string): number {
+  const text = luminance(rgbOf(colour));
+  return Math.max(ratio(text, luminance([1, 1, 1])), ratio(text, luminance([0, 0, 0])));
 }
 
 describe('ChatColorStylePipe', () => {
@@ -39,75 +77,50 @@ describe('ChatColorStylePipe', () => {
     expect(pipe.transform('not a colour')).toBeNull();
   });
 
-  it('uses the chosen colour for the text, exactly as it was chosen, whatever it costs the bubble', () => {
-    for (const colour of ['#000000', '#ff0000', '#006633', '#9900ff', '#0000ff', '#ffcc00', '#ffffff']) {
-      for (const theme of ['light', 'dark'] as const) {
+  it('never changes the colour the reader chose, whatever it costs the bubble', () => {
+    for (const colour of PALETTE) {
+      for (const theme of THEMES) {
         expect(pipe.transform(colour, theme)?.['color']).toBe(colour);
       }
     }
   });
 
-  it('holds every colour to the reading standard, or as near it as the colour allows', () => {
-    for (const color of ['#9900ff', '#006633', '#0000ff', '#ffcc00', '#66ccff', '#000000', '#ffffff']) {
-      for (const theme of ['light', 'dark'] as const) {
-        expect(contrast(pipe.transform(color, theme)!)).toBeGreaterThanOrEqual(4.4);
+  it('holds the reading standard wherever the colour can reach it', () => {
+    for (const colour of PALETTE) {
+      for (const theme of THEMES) {
+        if (bestPossible(colour) < 4.5) continue;
+        expect(contrast(pipe.transform(colour, theme)!)).toBeGreaterThanOrEqual(4.4);
       }
     }
-    // A pure red tops out just short of the standard on white, and a black slab in a lit room
-    // costs more than the little it would buy.
-    expect(contrast(pipe.transform('#ff0000', 'light')!)).toBeGreaterThan(3.5);
   });
 
-  it('gives up the side the theme is on for a colour that cannot be read there', () => {
-    // A dark colour on a dark page has nowhere to go: lightening the bubble carries it
-    // towards the text before it ever gets clear, so the bubble goes over to the light side.
-    for (const colour of ['#9900ff', '#006633', '#0000ff']) {
-      const bubble = luminance(rgbOf(pipe.transform(colour, 'dark')!['background-color']));
+  it('gets as near the standard as the colour allows when it cannot be reached at all', () => {
+    // A pure red tops out at four to one on white and just over five on black.
+    const style = pipe.transform('#ff0000', 'light')!;
 
-      expect(bubble).toBeGreaterThan(0.5);
+    expect(bestPossible('#ff0000')).toBeGreaterThan(4.5);
+    expect(contrast(style)).toBeGreaterThanOrEqual(4.4);
+  });
+
+  it('stays on the background the rest of the page has when the colour can be read there', () => {
+    for (const colour of ['#0099ff', '#66ccff', '#ffcc00', '#00cc00', '#ffffff', '#cccccc']) {
+      expect(drift(pipe.transform(colour, 'dark')!, 'dark')).toBeLessThan(0.01);
     }
   });
 
-  it('gives black text a white bubble rather than a grey one', () => {
-    const style = pipe.transform('#000000')!;
-
-    expect(luminance(rgbOf(style['background-color']))).toBeGreaterThan(0.85);
-  });
-
-  it('gives white text a bubble dark enough to read against, and no darker', () => {
-    const bubble = luminance(rgbOf(pipe.transform('#ffffff')!['background-color']));
-
-    expect(bubble).toBeGreaterThan(0.05);
-    expect(bubble).toBeLessThan(0.25);
-  });
-
-  it('gives a dark colour a light bubble and a light colour a dark one', () => {
-    expect(luminance(rgbOf(pipe.transform('#0000cc')!['background-color']))).toBeGreaterThan(0.35);
-    expect(luminance(rgbOf(pipe.transform('#ffff66')!['background-color']))).toBeLessThan(0.25);
-  });
-
-  it('lightens a coloured bubble only as far as the colour needs, rather than to a sheet of paper', () => {
-    for (const colour of ['#9900ff', '#006633', '#0000ff']) {
-      const bubble = luminance(rgbOf(pipe.transform(colour, 'dark')!['background-color']));
-
-      expect(bubble).toBeGreaterThan(0.4);
-      expect(bubble).toBeLessThan(0.85);
-    }
-  });
-
-  it('still gives black and the greys the paper they read best on', () => {
-    for (const colour of ['#000000', '#333333']) {
-      expect(luminance(rgbOf(pipe.transform(colour, 'dark')!['background-color']))).toBeGreaterThan(0.85);
-    }
-  });
-
-  it('goes as dark as it does only for a colour that needs it to be read', () => {
-    for (const colour of ['#ffffff', '#cccccc', '#ffff00', '#FF0000', '#0099FF', '#00CC00', '#888888']) {
-      for (const theme of ['light', 'dark'] as const) {
+  it('leaves that background only as far as it must', () => {
+    for (const colour of PALETTE) {
+      for (const theme of THEMES) {
         const style = pipe.transform(colour, theme)!;
-        const bubble = luminance(rgbOf(style['background-color']));
+        const away = drift(style, theme);
+        if (contrast(style) < 4.4 || away < 0.02) continue;
 
-        if (bubble <= 0.03) expect(contrast(style)).toBeGreaterThanOrEqual(4.4);
+        // One step back towards the page's own background and the colour stops being readable.
+        const shown = lightnessOf(rgbOf(style['background-color']));
+        const back = shown > BASE_L[theme] ? shown - 0.02 : shown + 0.02;
+        const grey: [number, number, number] = [back, back, back];
+
+        expect(ratio(luminance(rgbOf(colour)), luminance(grey))).toBeLessThan(5.2);
       }
     }
   });
@@ -117,57 +130,6 @@ describe('ChatColorStylePipe', () => {
 
     expect(r).toBeGreaterThan(g);
     expect(r - b).toBeLessThan(0.2);
-  });
-
-  it('keeps every colour on the palette readable on the bubble it is given, in either theme', () => {
-    for (const theme of ['light', 'dark'] as const) {
-      for (const colour of ['#000000', '#0099FF', '#00CC00', '#ffffff', '#006600', '#888888', '#ffff00', '#800080']) {
-        expect(contrast(pipe.transform(colour, theme)!)).toBeGreaterThanOrEqual(4.4);
-      }
-    }
-  });
-
-  it('stands well clear of the text on a dark page, where the bubble is the norm', () => {
-    for (const colour of ['#FF0000', '#0099FF', '#00CC00', '#888888', '#cccccc', '#ffffff']) {
-      const style = pipe.transform(colour, 'dark')!;
-      const [hi, lo] = [luminance(rgbOf(colour)), luminance(rgbOf(style['background-color']))].sort((a, b) => b - a);
-
-      expect((hi + 0.05) / (lo + 0.05)).toBeGreaterThanOrEqual(4.5);
-    }
-  });
-
-  it('gives a colour the same bubble on either theme where the colour alone settles it', () => {
-    for (const colour of ['#0099FF', '#00CC00', '#9900ff', '#006633']) {
-      expect(pipe.transform(colour, 'light')!['background-color']).toBe(
-        pipe.transform(colour, 'dark')!['background-color']
-      );
-    }
-  });
-
-  it('takes the side the theme is on', () => {
-    expect(luminance(rgbOf(pipe.transform('#FF0000', 'light')!['background-color']))).toBeGreaterThan(0.85);
-    expect(luminance(rgbOf(pipe.transform('#FF0000', 'dark')!['background-color']))).toBeLessThan(0.1);
-  });
-
-  it('gives that side up for a colour that cannot be read on it', () => {
-    expect(luminance(rgbOf(pipe.transform('#ffffff', 'light')!['background-color']))).toBeLessThan(0.25);
-    expect(luminance(rgbOf(pipe.transform('#000000', 'dark')!['background-color']))).toBeGreaterThan(0.85);
-  });
-
-  it('holds the reading minimum wherever a light bubble carries the colour', () => {
-    for (const colour of ['#000000', '#006600', '#800080', '#006633']) {
-      const style = pipe.transform(colour)!;
-      const [hi, lo] = [luminance(rgbOf(colour)), luminance(rgbOf(style['background-color']))].sort((a, b) => b - a);
-
-      expect((hi + 0.05) / (lo + 0.05)).toBeGreaterThanOrEqual(4.5);
-    }
-  });
-
-  it('carries a system colour onto the light side rather than leaving it on the dimmest grey that would pass', () => {
-    const style = pipe.transform('#006633')!;
-
-    expect(luminance(rgbOf(style['background-color']))).toBeGreaterThan(0.4);
-    expect(contrast(style)).toBeGreaterThanOrEqual(4.4);
   });
 
   it('gives the caret the same colour as the bubble it points out of', () => {

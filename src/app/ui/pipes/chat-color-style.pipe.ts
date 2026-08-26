@@ -49,42 +49,23 @@ function hslToRgb(h: number, s: number, l: number): [number, number, number] {
   return [hue2rgb(h + 1 / 3), hue2rgb(h), hue2rgb(h - 1 / 3)];
 }
 
-/** How light a bubble under dark text gets, and how dark one under light text is ever allowed to go. */
-const LIGHT_BUBBLE_L = 0.97;
-const DARK_BUBBLE_L = 0.09;
 /**
- * Where a dark bubble settles when the colour on it cannot be read at any darkness.
+ * Where the bubble starts: the background every other panel on the page already has.
  *
- * A mid grey is beyond help from either side; going darker still buys it almost nothing and
- * leaves a hole in the page where the message should be, so it sits on a slate instead.
+ * `--ui-elevated`, as a lightness. A bubble is furniture - it belongs to the page rather
+ * than to whoever is speaking - so it stands where the rest of the furniture stands until
+ * the colour on it cannot be read there.
  */
-const DARK_SLATE_L = 0.2;
-/** As dark as a light bubble is allowed to get, before it stops reading as the light side at all. */
-const LIGHT_FLOOR_L = 0.55;
-/**
- * Below this there is not enough colour in it to glare against a sheet of paper.
- *
- * A sheet of white behind coloured text is a lamp in the face, which is why a coloured
- * bubble comes down to where it is merely readable. Black and the greys have no such
- * quarrel with paper, and read better on it than on the least they would put up with.
- */
-const GREY_SATURATION = 0.15;
+const BASE_L = { light: 0.898, dark: 0.153 };
+
 /** Only a whisper of the speaker's hue: more of it costs the contrast the text needs. */
 const TINT = 0.12;
-/** As light as a dark bubble ever gets, so that light text keeps its edge. */
-const DARK_CEILING_L = 0.4;
 
 /** What text has to hold against the bubble it sits on: the reading standard for body text. */
 const TARGET_RATIO = 4.5;
-/**
- * How much better the far side has to be before the bubble crosses over to it.
- *
- * Some colours cannot reach the standard anywhere - a pure red tops out just short of it on
- * white - and putting those on a black slab in a lit room costs more than the little it buys.
- * The bubble only changes sides when the other side both reads properly and reads markedly
- * better, which is what tells a colour that is merely short of the mark from one that is lost.
- */
-const FLIP_GAIN = 1.3;
+
+/** How finely the search walks away from the base, which is below what an eye can tell apart. */
+const STEP = 0.005;
 
 function contrastRatio(a: number, b: number): number {
   const [hi, lo] = a > b ? [a, b] : [b, a];
@@ -103,58 +84,29 @@ function toCss(rgb: [number, number, number]): string {
 }
 
 /**
- * The best dark bubble the colour can be read on, and how well it reads there.
+ * The bubble nearest the page's own background that the chosen colour can be read on.
  *
- * Contrast does not climb steadily as the bubble lightens: for a dark colour, lifting the
- * bubble carries it towards the text before it ever gets clear of it, so both ends are
- * tried and the lightest one that can be read is taken.
+ * The colour is the reader's and is never touched, so everything the standard asks for has
+ * to come out of the bubble. It leaves the background it shares with every other panel only
+ * as far as it must, and in whichever direction is nearer: a sheet of white in a dark room
+ * and a black slab in a lit one are the same mistake, a bubble that went further than it had
+ * to. Some colours - a mid grey, a pure red - cannot reach the standard from either side; for
+ * those the search ends at whichever end of the range reads best.
  */
-/**
- * The least light bubble the colour can be read on, and how well it reads there.
- *
- * A bubble only has to be light enough, and a sheet of white in a dark room is a lamp in
- * the face. Coming down to where the colour stops being readable leaves a card on the
- * table instead.
- */
-function bestLightBubble(h: number, s: number, tint: number, textLum: number): { l: number; ratio: number } {
+function bubbleLightness(h: number, tint: number, textLum: number, baseL: number): number {
   const ratioAt = (l: number) => contrastRatio(textLum, luminance(...quantize(hslToRgb(h, tint, l))));
-  const atCeiling = ratioAt(LIGHT_BUBBLE_L);
-  if (s < GREY_SATURATION) return { l: LIGHT_BUBBLE_L, ratio: atCeiling };
-  if (atCeiling < TARGET_RATIO || ratioAt(LIGHT_FLOOR_L) >= TARGET_RATIO) {
-    const l = atCeiling < TARGET_RATIO ? LIGHT_BUBBLE_L : LIGHT_FLOOR_L;
-    return { l, ratio: ratioAt(l) };
-  }
+  if (ratioAt(baseL) >= TARGET_RATIO) return baseL;
 
-  let lo = LIGHT_FLOOR_L;
-  let hi = LIGHT_BUBBLE_L;
-  for (let i = 0; i < 24; i++) {
-    const mid = (lo + hi) / 2;
-    if (ratioAt(mid) >= TARGET_RATIO) hi = mid;
-    else lo = mid;
+  for (let away = STEP; away <= 1; away += STEP) {
+    const up = baseL + away;
+    const down = baseL - away;
+    const upReads = up <= 1 && ratioAt(up) >= TARGET_RATIO;
+    const downReads = down >= 0 && ratioAt(down) >= TARGET_RATIO;
+    if (upReads && downReads) return ratioAt(up) >= ratioAt(down) ? up : down;
+    if (upReads) return up;
+    if (downReads) return down;
   }
-  return { l: hi, ratio: ratioAt(hi) };
-}
-
-function bestDarkBubble(h: number, tint: number, textLum: number): { l: number; ratio: number } {
-  const ratioAt = (l: number) => contrastRatio(textLum, luminance(...quantize(hslToRgb(h, tint, l))));
-  const atCeiling = ratioAt(DARK_CEILING_L);
-  if (atCeiling >= TARGET_RATIO) return { l: DARK_CEILING_L, ratio: atCeiling };
-
-  const atDarkest = ratioAt(DARK_BUBBLE_L);
-  if (atDarkest < TARGET_RATIO) {
-    return atDarkest >= atCeiling
-      ? { l: DARK_SLATE_L, ratio: ratioAt(DARK_SLATE_L) }
-      : { l: DARK_CEILING_L, ratio: atCeiling };
-  }
-
-  let lo = DARK_BUBBLE_L;
-  let hi = DARK_CEILING_L;
-  for (let i = 0; i < 24; i++) {
-    const mid = (lo + hi) / 2;
-    if (ratioAt(mid) >= TARGET_RATIO) lo = mid;
-    else hi = mid;
-  }
-  return { l: lo, ratio: ratioAt(lo) };
+  return ratioAt(1) >= ratioAt(0) ? 1 : 0;
 }
 
 @Pipe({ name: 'chatColorStyle', pure: true })
@@ -166,22 +118,11 @@ export class ChatColorStylePipe implements PipeTransform {
     if (!rgb) return null;
 
     const [h, s] = rgbToHsl(...rgb);
-    const textLum = luminance(...rgb);
     const tint = Math.min(s, 1) * TINT;
+    const l = bubbleLightness(h, tint, luminance(...rgb), theme === 'dark' ? BASE_L.dark : BASE_L.light);
 
-    // The colour the reader chose is the text, verbatim, whatever it costs the bubble. The bubble
-    // takes the side the theme is on while the colour can be read there, and goes over to the
-    // other side when it cannot; the dark side comes up off black as far as the colour allows.
-    const lightSide = bestLightBubble(h, s, tint, textLum);
-    const dark = bestDarkBubble(h, tint, textLum);
-    const wantsLight = theme !== 'dark';
-    const [onTheme, onOther] = wantsLight ? [lightSide.ratio, dark.ratio] : [dark.ratio, lightSide.ratio];
-    const crosses = onTheme < TARGET_RATIO && onOther >= TARGET_RATIO && onOther >= onTheme * FLIP_GAIN;
-    const light = wantsLight !== crosses;
-
-    const bubbleL = light ? lightSide.l : dark.l;
-    const bubble = toCss(hslToRgb(h, tint, bubbleL));
-    const border = toCss(hslToRgb(h, tint, light ? bubbleL - 0.18 : bubbleL + 0.2));
+    const bubble = toCss(hslToRgb(h, tint, l));
+    const border = toCss(hslToRgb(h, tint, l > 0.5 ? l - 0.18 : l + 0.2));
 
     return {
       color,
