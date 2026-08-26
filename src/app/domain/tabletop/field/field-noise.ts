@@ -41,6 +41,7 @@ export function makeValueNoise(seed: number): ValueNoise {
  * Several octaves of the same noise, each half the size and half the weight of the last.
  *
  * One octave alone is too smooth to read as ground: rolling hills with no detail on them.
+ * Too many and the smallest is finer than a cell, which is static rather than detail.
  */
 export function fbm(noise: ValueNoise, x: number, y: number, octaves: number): number {
   let total = 0;
@@ -54,4 +55,25 @@ export function fbm(noise: ValueNoise, x: number, y: number, octaves: number): n
     frequency *= 2;
   }
   return sum > 0 ? total / sum : 0;
+}
+
+/**
+ * The same noise, read at a place the noise itself has moved.
+ *
+ * Read straight, octaves of noise give rounded blobs one inside the next, like the rings on
+ * a contour map, and ground made of those reads as a rash rather than as country. Displacing
+ * where each point is read by another sample of noise pulls those rings into the folds,
+ * peninsulas and inlets that ground actually has - domain warping, after Inigo Quilez.
+ */
+export function warpedFbm(
+  land: ValueNoise,
+  drift: ValueNoise,
+  x: number,
+  y: number,
+  octaves: number,
+  warp: number
+): number {
+  const dx = fbm(drift, x, y, 2) - 0.5;
+  const dy = fbm(drift, x + 5.2, y + 1.3, 2) - 0.5;
+  return fbm(land, x + warp * dx, y + warp * dy, octaves);
 }

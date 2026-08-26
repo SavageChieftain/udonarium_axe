@@ -48,6 +48,13 @@ export interface MapBlock {
   skin?: { side: MapMaterial; top: MapMaterial };
   /** How tall it stands, in cells. Walls take the height the panel asks for. */
   height?: number;
+  /**
+   * How much of its cell it actually fills, in cells, when it is thinner than the ground it
+   * stands on. A trunk is a post in the middle of its square, not the whole square.
+   */
+  footprint?: { w: number; d: number };
+  /** How far off the ground it floats, in cells. A canopy hangs over what walks beneath it. */
+  altitude?: number;
   /** How a door moves when it opens. */
   doorStyle?: string;
   name?: string;

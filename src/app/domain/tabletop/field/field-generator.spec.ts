@@ -89,6 +89,10 @@ describe('planField()', () => {
   it('builds each thing that stands out of its own stuff', () => {
     const plan = planField({ atmosphere: 'woodland', size: 40, density: 50, seed: 7 });
     const shapes = Object.values(FIELD_PROP_SHAPES);
+    const pairs = [
+      ...shapes.map((shape) => `${shape.side}/${shape.top}`),
+      ...shapes.filter((shape) => shape.trunk).map((shape) => `${shape.trunk!.side}/${shape.trunk!.top}`),
+    ];
 
     expect(plan.blocks.blocks.length).toBeGreaterThan(0);
     for (const block of plan.blocks.blocks) {
@@ -96,8 +100,29 @@ describe('planField()', () => {
       const side = block.skin?.side;
       const top = block.skin?.top;
       const named = side?.kind === 'texture' && top?.kind === 'texture';
-      expect(named && shapes.some((shape) => shape.side === side.id && shape.top === top.id)).toBe(true);
+      expect(named && pairs.includes(`${side.id}/${top.id}`)).toBe(true);
       expect(block.height).toBeGreaterThan(0);
+    }
+  });
+
+  it('stands a tree on a post and hangs its crown clear of the ground', () => {
+    const plan = planField({ atmosphere: 'woodland', size: 40, density: 100, seed: 7 });
+    const canopy = FIELD_PROP_SHAPES.tree;
+    const crowns = plan.blocks.blocks.filter((block) => block.altitude);
+    const posts = plan.blocks.blocks.filter((block) => block.footprint);
+
+    expect(crowns.length).toBeGreaterThan(0);
+    expect(posts.length).toBe(crowns.length);
+    for (const crown of crowns) {
+      // What walks under a wood has to fit under it, so the crown starts above head height.
+      expect(crown.altitude!).toBeGreaterThanOrEqual(canopy.altitude!);
+      expect(crown.rect.w % 2).toBe(1);
+    }
+    for (const post of posts) {
+      expect(post.footprint!.w).toBeLessThan(0.5);
+      expect(post.rect.w).toBe(1);
+      // The post has to reach into the crown it holds up, or the crown hangs in the air.
+      expect(post.height!).toBeGreaterThan(canopy.altitude!);
     }
   });
 

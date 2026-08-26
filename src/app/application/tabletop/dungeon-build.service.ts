@@ -162,8 +162,13 @@ export class DungeonBuildService {
 
     // A door slab is thinner than its cell, so it is set in the middle of the way it bars.
     const inset = ((1 - DOOR_THICKNESS) / 2) * GRID_SIZE;
-    const offsetX = block.kind === 'door' && block.across === 'x' ? inset : 0;
-    const offsetY = block.kind === 'door' && block.across === 'y' ? inset : 0;
+    let offsetX = block.kind === 'door' && block.across === 'x' ? inset : 0;
+    let offsetY = block.kind === 'door' && block.across === 'y' ? inset : 0;
+    // A piece narrower than the ground it stands on is put in the middle of it, not the corner.
+    if (block.footprint) {
+      offsetX = ((rect.w - block.footprint.w) / 2) * GRID_SIZE;
+      offsetY = ((rect.h - block.footprint.d) / 2) * GRID_SIZE;
+    }
 
     // Writing the whole location goes through setAttribute, which syncs; touching location.x does not.
     terrain.location = { name: 'table', x: rect.x * GRID_SIZE + offsetX, y: rect.y * GRID_SIZE + offsetY };
@@ -195,10 +200,16 @@ export class DungeonBuildService {
         return terrain;
       }
       case 'prop': {
-        const side = block.skin ? this.resolveMaterial(block.skin.side, WALL_TEXTURE_ASSET_URLS) : images.wallSide;
-        const top = block.skin ? this.resolveMaterial(block.skin.top, TEXTURE_ASSET_URLS) : images.wallTop;
-        const terrain = Terrain.create(name, rect.w, rect.h, block.height ?? 1, side, top);
+        // A prop is not made of the walls of a place, so its pictures come from either shelf:
+        // a canopy wears the same leaves on its flanks as it does on its crown.
+        const shelves = { ...WALL_TEXTURE_ASSET_URLS, ...TEXTURE_ASSET_URLS };
+        const side = block.skin ? this.resolveMaterial(block.skin.side, shelves) : images.wallSide;
+        const top = block.skin ? this.resolveMaterial(block.skin.top, shelves) : images.wallTop;
+        const width = block.footprint?.w ?? rect.w;
+        const depth = block.footprint?.d ?? rect.h;
+        const terrain = Terrain.create(name, width, depth, block.height ?? 1, side, top);
         terrain.mode = TerrainViewState.ALL;
+        if (block.altitude) terrain.altitude = block.altitude;
         return terrain;
       }
       default: {

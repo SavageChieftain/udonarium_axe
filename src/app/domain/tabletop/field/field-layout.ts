@@ -1,6 +1,6 @@
 import { seededRandom } from '@axe/core/util/seeded-random';
 import { FIELD_PROP_SHAPES, FieldAtmosphere, FieldPropId } from '@axe/domain/tabletop/field/field-atmosphere';
-import { fbm, makeValueNoise } from '@axe/domain/tabletop/field/field-noise';
+import { makeValueNoise, warpedFbm } from '@axe/domain/tabletop/field/field-noise';
 
 export interface FieldLayout {
   width: number;
@@ -9,6 +9,17 @@ export interface FieldLayout {
   ground: Uint8Array;
   /** What stands on each cell, or an empty string where nothing does. */
   props: (FieldPropId | '')[];
+  /** The trees, each one a place rather than a cell, since a tree is wider than it is rooted. */
+  trees: FieldTree[];
+}
+
+/** A tree: where its trunk stands, how wide its crown is, and how high it carries it. */
+export interface FieldTree {
+  x: number;
+  y: number;
+  span: number;
+  /** How far above the standing height this one holds its crown. No two woods are level. */
+  lift: number;
 }
 
 export function bandAt(layout: FieldLayout, x: number, y: number): number {
@@ -32,11 +43,106 @@ const RAMPS: readonly ((x: number, y: number, w: number, h: number) => number)[]
 /** How many neighbours may already be taken before a cell is left clear, so ground stays open. */
 const CROWD_LIMIT = 2;
 
-function bandFor(atmosphere: FieldAtmosphere, height: number): number {
-  for (let index = 0; index < atmosphere.bands.length; index++) {
-    if (height <= atmosphere.bands[index].upTo) return index;
+/**
+ * How the height field is read.
+ *
+ * Three octaves at this relief put the smallest fold at about three cells across; a fourth
+ * would be finer than a cell, which is the static that made open ground read as a rash.
+ */
+const OCTAVES = 3;
+/** How far a point is displaced before the height is read there, in lattice units. */
+const WARP = 0.6;
+/** How near two trunks may stand, in cells. Nearer and the crowns are one lid over both. */
+const TREE_SPACING = 2;
+
+/** Below this share of the growth field nothing grows, and above it the stand thickens. */
+const GROWTH_FLOOR = 0.3;
+const GROWTH_GAIN = 2.4;
+
+function bandFor(height: number, cuts: number[]): number {
+  for (let i = 0; i < cuts.length; i++) {
+    if (height <= cuts[i]) return i;
   }
-  return atmosphere.bands.length - 1;
+  return cuts.length - 1;
+}
+
+/**
+ * Puts the trees in, as trees rather than as a cell each.
+ *
+ * A tree is a trunk with a crown several times its width standing clear above it, so one to
+ * a cell can only ever be a post with a lid. They are placed as whole things instead, no two
+ * closer than a crown apart, which is what leaves the trunks visible under the canopy.
+ */
+function plantTrees(
+  atmosphere: FieldAtmosphere,
+  ground: Uint8Array,
+  props: (FieldPropId | '')[],
+  trees: FieldTree[],
+  width: number,
+  height: number,
+  growthField: Float64Array,
+  thinnest: number,
+  growthSpan: number,
+  rng: () => number,
+  scale: number
+): void {
+  const plan = atmosphere.props.find((entry) => entry.prop === 'tree');
+  if (!plan || scale <= 0) return;
+  const span = FIELD_PROP_SHAPES.tree.span;
+
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      const index = y * width + x;
+      if (props[index]) continue;
+      if (!plan.bands.includes(ground[index])) continue;
+      if (atmosphere.bands[ground[index]].bare) continue;
+
+      const thickness = (growthField[index] - thinnest) / growthSpan;
+      const clump = thickness <= GROWTH_FLOOR ? 0 : ((thickness - GROWTH_FLOOR) / (1 - GROWTH_FLOOR)) * GROWTH_GAIN;
+      if (rng() >= plan.chance * scale * clump) continue;
+      if (trees.some((tree) => Math.abs(tree.x - x) < TREE_SPACING && Math.abs(tree.y - y) < TREE_SPACING)) continue;
+      // A crown of its own width and height keeps two neighbours from sharing a face, which
+      // would flicker where they met, and a wood of one height reads as a hedge trimmed flat.
+      // Odd widths only: an even crown cannot be centred on the cell its trunk stands in.
+      const grown = rng() < 0.28 ? span - 2 : span;
+      const reachOf = (grown - 1) / 2;
+      if (x - reachOf < 0 || y - reachOf < 0 || width <= x + reachOf || height <= y + reachOf) continue;
+
+      trees.push({ x, y, span: grown, lift: Math.round(rng() * 6) / 10 });
+      props[index] = 'tree';
+    }
+  }
+}
+
+/** The heights at which each band gives way to the next, so that each gets the share it asked for. */
+function quantileCuts(heights: Float64Array, shares: readonly number[]): number[] {
+  const sorted = Float64Array.from(heights).sort();
+  return shares.map((share) => {
+    const at = Math.min(sorted.length - 1, Math.max(0, Math.round(share * sorted.length) - 1));
+    return sorted[at];
+  });
+}
+
+/** Whether the whole footprint stands on ground that will take it, and on nothing else. */
+function fits(
+  atmosphere: FieldAtmosphere,
+  ground: Uint8Array,
+  props: (FieldPropId | '')[],
+  width: number,
+  height: number,
+  x: number,
+  y: number,
+  span: number
+): boolean {
+  if (width - span < x || height - span < y) return false;
+  for (let dy = 0; dy < span; dy++) {
+    for (let dx = 0; dx < span; dx++) {
+      const index = (y + dy) * width + x + dx;
+      if (props[index]) return false;
+      if (atmosphere.bands[ground[index]].bare) return false;
+    }
+  }
+  return true;
 }
 
 function crowded(props: (FieldPropId | '')[], width: number, height: number, x: number, y: number): boolean {
@@ -64,30 +170,57 @@ export function generateField(
   const relief = Math.max(1, atmosphere.relief);
   const ground = new Uint8Array(width * height);
   const props: (FieldPropId | '')[] = new Array(width * height).fill('');
+  const trees: FieldTree[] = [];
 
   const land = makeValueNoise(seed);
+  const drift = makeValueNoise(seed + 4409);
+  const damp = makeValueNoise(seed + 2237);
   const growth = makeValueNoise(seed + 1013);
   const rng = seededRandom(seed + 7919);
   const ramp = RAMPS[Math.floor(rng() * RAMPS.length) % RAMPS.length];
   const gradient = atmosphere.gradient ?? 0;
 
-  // Octaves of noise crowd around the middle, which would land almost every cell in one
-  // band. Stretching the board's own range over the bands is what makes the ground vary.
   const raised = new Float64Array(width * height);
-  let lowest = Infinity;
-  let highest = -Infinity;
   for (let y = 0; y < height; y++) {
     for (let x = 0; x < width; x++) {
-      const noise = fbm(land, x / relief, y / relief, 4);
+      const noise = warpedFbm(land, drift, x / relief, y / relief, OCTAVES, WARP);
       const tilt = gradient > 0 ? ramp(x, y, width, height) : 0;
-      const value = noise * (1 - gradient) + tilt * gradient;
-      raised[y * width + x] = value;
-      lowest = Math.min(lowest, value);
-      highest = Math.max(highest, value);
+      // Moisture is mixed in before the bands are cut rather than shifting a cell across one
+      // afterwards: a hollow that holds water is lower ground as far as what grows there is
+      // concerned, and folding it in here is what keeps each band to the share it asked for.
+      const wetness = warpedFbm(damp, drift, x / (relief * 1.6), y / (relief * 1.6), 2, WARP);
+      const height01 = noise * (1 - gradient) + tilt * gradient;
+      raised[y * width + x] = height01 + (wetness - 0.5) * atmosphere.damp;
     }
   }
-  const span = highest - lowest || 1;
-  for (let i = 0; i < raised.length; i++) ground[i] = bandFor(atmosphere, (raised[i] - lowest) / span);
+  // Where each band starts is read off the board rather than set against the raw height: a
+  // preset says how much of its ground is water or wood, and gets that much of it whatever
+  // this particular board's noise happened to do.
+  const cuts = quantileCuts(
+    raised,
+    atmosphere.bands.map((band) => band.upTo)
+  );
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      const index = y * width + x;
+      ground[index] = bandFor(raised[index], cuts);
+    }
+  }
+
+  // Levelled over the board, the same way the height is, so that the bare places are as bare
+  // and the thick places as thick whatever this particular board's noise happened to span.
+  const growthField = new Float64Array(width * height);
+  let thinnest = Infinity;
+  let thickest = -Infinity;
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      const value = warpedFbm(growth, drift, x / (relief * 0.7), y / (relief * 0.7), 2, WARP);
+      growthField[y * width + x] = value;
+      thinnest = Math.min(thinnest, value);
+      thickest = Math.max(thickest, value);
+    }
+  }
+  const growthSpan = thickest - thinnest || 1;
 
   const scale = density / 50;
   for (let y = 0; y < height; y++) {
@@ -96,13 +229,18 @@ export function generateField(
       if (atmosphere.bands[band].bare) continue;
       if (crowded(props, width, height, x, y)) continue;
 
-      // Growth clumps: a wood is thick in places and thin in others, never evenly sprinkled.
-      const thickness = fbm(growth, x / 6, y / 6, 2);
+      // A wood is thick in places and thin in others, never evenly sprinkled, and the patches
+      // it comes in are the size of the ground's own folds. Squaring it empties the thin parts
+      // rather than dusting them, which is what makes a stand of trees read as a stand.
+      const thickness = (growthField[y * width + x] - thinnest) / growthSpan;
+      // Below the line nothing grows at all, which is what leaves clearings between the stands.
+      const clump = thickness <= GROWTH_FLOOR ? 0 : ((thickness - GROWTH_FLOOR) / (1 - GROWTH_FLOOR)) * GROWTH_GAIN;
       for (const plan of atmosphere.props) {
+        if (plan.prop === 'tree') continue;
         if (!plan.bands.includes(band)) continue;
         const shape = FIELD_PROP_SHAPES[plan.prop];
-        if (width - shape.span < x || height - shape.span < y) continue;
-        if (rng() < plan.chance * scale * (0.4 + thickness)) {
+        if (!fits(atmosphere, ground, props, width, height, x, y, shape.span)) continue;
+        if (rng() < plan.chance * scale * clump) {
           for (let dy = 0; dy < shape.span; dy++) {
             for (let dx = 0; dx < shape.span; dx++) props[(y + dy) * width + x + dx] = plan.prop;
           }
@@ -112,5 +250,7 @@ export function generateField(
     }
   }
 
-  return { width, height, ground, props };
+  plantTrees(atmosphere, ground, props, trees, width, height, growthField, thinnest, growthSpan, rng, scale);
+
+  return { width, height, ground, props, trees };
 }

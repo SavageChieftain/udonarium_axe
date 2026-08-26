@@ -15,7 +15,7 @@ import { MapBlock, MapBlocks, MapLight, MapLightKind, MapPaint } from '@axe/doma
  * A wood merged without limit becomes one canopy the size of the board, which reads as a
  * plateau rather than trees. Three cells is a stand of trees.
  */
-export const FIELD_MERGE_SPAN = 3;
+export const FIELD_MERGE_SPAN = 4;
 
 const OPEN_FIRES: readonly MapLightKind[] = ['campfire', 'stand', 'brazier'];
 
@@ -63,6 +63,7 @@ export function fieldToBlocks(layout: FieldLayout, atmosphere: FieldAtmosphere, 
   });
 
   for (const prop of FIELD_PROP_IDS) {
+    if (prop === 'tree') continue;
     const shape = FIELD_PROP_SHAPES[prop];
     const mask = maskOfProp(layout, prop);
     for (const rect of mergeMaskToRects(mask, layout.width, layout.height, FIELD_MERGE_SPAN)) {
@@ -76,6 +77,34 @@ export function fieldToBlocks(layout: FieldLayout, atmosphere: FieldAtmosphere, 
         height: shape.height,
       });
     }
+  }
+
+  const canopy = FIELD_PROP_SHAPES.tree;
+  const trunk = canopy.trunk!;
+  for (const tree of layout.trees) {
+    const reach = (tree.span - 1) / 2;
+    // The trunk stands on the ground and the crown hangs clear above it, three cells across
+    // to the trunk's third of one. That gap and that width are what make it read as a tree.
+    blocks.push({
+      kind: 'prop',
+      rect: { x: tree.x, y: tree.y, w: 1, h: 1 },
+      blocksSight: false,
+      locked: false,
+      rooms: [],
+      skin: { side: { kind: 'texture', id: trunk.side }, top: { kind: 'texture', id: trunk.top } },
+      height: trunk.height + tree.lift,
+      footprint: { w: trunk.width, d: trunk.width },
+    });
+    blocks.push({
+      kind: 'prop',
+      rect: { x: tree.x - reach, y: tree.y - reach, w: tree.span, h: tree.span },
+      blocksSight: canopy.blocksSight,
+      locked: false,
+      rooms: [],
+      skin: { side: { kind: 'texture', id: canopy.side }, top: { kind: 'texture', id: canopy.top } },
+      height: canopy.height,
+      altitude: (canopy.altitude ?? 0) + tree.lift,
+    });
   }
 
   const lights = findFires(layout, atmosphere, seed);

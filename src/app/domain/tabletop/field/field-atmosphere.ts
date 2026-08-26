@@ -10,17 +10,38 @@ export const FIELD_PROP_IDS = ['tree', 'bush', 'boulder', 'outcrop'] as const;
 export type FieldPropId = (typeof FIELD_PROP_IDS)[number];
 
 export interface FieldPropShape {
-  side: WallTextureId;
+  /** A prop wears whatever picture suits it, a wall texture or a ground one. */
+  side: WallTextureId | TextureId;
   top: TextureId;
   height: number;
   /** How wide a patch of it grows, in cells. An outcrop is a hillside, not a stone. */
   span: number;
   blocksSight: boolean;
+  /** How far off the ground it starts. A canopy hangs; everything else sits on the earth. */
+  altitude?: number;
+  /** The post that holds it up, where it is held up by one rather than standing on the ground. */
+  trunk?: { side: WallTextureId; top: TextureId; width: number; height: number };
 }
 
+/**
+ * A tree is not a box.
+ *
+ * Built as one it is a plank with a leaf lid, which reads as a vegetable pushed out of the
+ * ground rather than as a tree. It takes two pieces: a post of a third of a cell standing on
+ * the earth, and a canopy hanging over it that is wider than the post and clear of the ground,
+ * so that what walks under a wood walks under it.
+ */
 export const FIELD_PROP_SHAPES: Record<FieldPropId, FieldPropShape> = {
-  tree: { side: 'wall_timber', top: 'forest', height: 1.8, span: 1, blocksSight: true },
-  bush: { side: 'wall_mossy_stone', top: 'steppe', height: 0.5, span: 1, blocksSight: false },
+  tree: {
+    side: 'forest',
+    top: 'forest',
+    height: 0.9,
+    span: 3,
+    blocksSight: true,
+    altitude: 1.5,
+    trunk: { side: 'wall_timber', top: 'black_soil', width: 0.34, height: 1.7 },
+  },
+  bush: { side: 'steppe', top: 'steppe', height: 0.45, span: 1, blocksSight: false },
   boulder: { side: 'wall_rubble', top: 'rock', height: 0.9, span: 1, blocksSight: false },
   outcrop: { side: 'wall_cave_rock', top: 'rock_moss', height: 2.4, span: 2, blocksSight: true },
 };
@@ -32,7 +53,7 @@ export const FIELD_PROP_SHAPES: Record<FieldPropId, FieldPropShape> = {
  * ground of a field cannot be painted without: every cell lands in some band.
  */
 export interface GroundBand {
-  /** The highest ground this band covers, from nothing at zero to everything at one. */
+  /** How much of the board this band covers by the time it ends, counting from the lowest. */
   upTo: number;
   texture: TextureId;
   /** Whether a piece can be put down here at all. Nothing grows out of open water. */
@@ -55,6 +76,11 @@ export interface FieldAtmosphere extends MapMood {
   props: readonly FieldPropPlan[];
   /** How large the hills are, in cells to the hill. */
   relief: number;
+  /**
+   * How much a hollow holding water counts as lower ground, from nothing to as much as the
+   * height itself. It is what breaks the bands out of rings round the high ground.
+   */
+  damp: number;
   /**
    * How much of a slope runs across the board, from nothing to all of it.
    *
@@ -84,15 +110,16 @@ export const FIELD_ATMOSPHERES: Record<FieldAtmosphereId, FieldAtmosphere> = {
     id: 'woodland',
     defaultGround: 'steppe',
     defaultProp: 'wall_timber',
-    relief: 5,
+    relief: 11,
+    damp: 0.45,
     bands: [
-      { upTo: 0.3, texture: 'black_soil' },
-      { upTo: 0.62, texture: 'steppe' },
+      { upTo: 0.32, texture: 'black_soil' },
+      { upTo: 0.64, texture: 'steppe' },
       { upTo: 1, texture: 'forest' },
     ],
     props: [
-      { prop: 'tree', chance: 0.14, bands: [1, 2] },
-      { prop: 'bush', chance: 0.07, bands: [0, 1] },
+      { prop: 'tree', chance: 0.22, bands: [1, 2] },
+      { prop: 'bush', chance: 0.1, bands: [0, 1] },
       { prop: 'boulder', chance: 0.03, bands: [2] },
     ],
     darkness: 0,
@@ -106,15 +133,16 @@ export const FIELD_ATMOSPHERES: Record<FieldAtmosphereId, FieldAtmosphere> = {
     id: 'meadow',
     defaultGround: 'steppe',
     defaultProp: 'wall_rubble',
-    relief: 4,
+    relief: 12,
+    damp: 0.45,
     bands: [
-      { upTo: 0.38, texture: 'swamp_mud' },
-      { upTo: 0.8, texture: 'steppe' },
+      { upTo: 0.38, texture: 'black_soil' },
+      { upTo: 0.82, texture: 'steppe' },
       { upTo: 1, texture: 'gravel' },
     ],
     props: [
-      { prop: 'bush', chance: 0.08, bands: [1] },
-      { prop: 'tree', chance: 0.04, bands: [1] },
+      { prop: 'bush', chance: 0.12, bands: [1] },
+      { prop: 'tree', chance: 0.09, bands: [1] },
       { prop: 'boulder', chance: 0.06, bands: [2] },
     ],
     darkness: 0,
@@ -128,7 +156,8 @@ export const FIELD_ATMOSPHERES: Record<FieldAtmosphereId, FieldAtmosphere> = {
     id: 'coast',
     defaultGround: 'sand',
     defaultProp: 'wall_rubble',
-    relief: 3,
+    relief: 14,
+    damp: 0.45,
     gradient: 0.6,
     bands: [
       { upTo: 0.34, texture: 'sea', bare: true },
@@ -152,7 +181,8 @@ export const FIELD_ATMOSPHERES: Record<FieldAtmosphereId, FieldAtmosphere> = {
     id: 'marsh',
     defaultGround: 'swamp_mud',
     defaultProp: 'wall_timber',
-    relief: 6,
+    relief: 10,
+    damp: 0.45,
     gradient: 0.15,
     bands: [
       { upTo: 0.4, texture: 'shallows', bare: true },
@@ -160,8 +190,8 @@ export const FIELD_ATMOSPHERES: Record<FieldAtmosphereId, FieldAtmosphere> = {
       { upTo: 1, texture: 'moss_stone_floor' },
     ],
     props: [
-      { prop: 'tree', chance: 0.09, bands: [1, 2] },
-      { prop: 'bush', chance: 0.09, bands: [1] },
+      { prop: 'tree', chance: 0.13, bands: [1, 2] },
+      { prop: 'bush', chance: 0.13, bands: [1] },
     ],
     darkness: 0.35,
     ambientColor: '#101511',
@@ -174,7 +204,8 @@ export const FIELD_ATMOSPHERES: Record<FieldAtmosphereId, FieldAtmosphere> = {
     id: 'snowfield',
     defaultGround: 'gravel',
     defaultProp: 'wall_ice',
-    relief: 4,
+    relief: 12,
+    damp: 0.45,
     bands: [
       { upTo: 0.4, texture: 'ice' },
       { upTo: 0.85, texture: 'gravel' },
@@ -196,9 +227,10 @@ export const FIELD_ATMOSPHERES: Record<FieldAtmosphereId, FieldAtmosphere> = {
     id: 'wasteland',
     defaultGround: 'desert',
     defaultProp: 'wall_sandstone',
-    relief: 5,
+    relief: 11,
+    damp: 0.45,
     bands: [
-      { upTo: 0.4, texture: 'black_soil' },
+      { upTo: 0.38, texture: 'packed_earth' },
       { upTo: 0.82, texture: 'desert' },
       { upTo: 1, texture: 'rubble_floor' },
     ],
