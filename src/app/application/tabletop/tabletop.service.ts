@@ -24,6 +24,15 @@ import { TableSelecter } from '@axe/domain/tabletop/table-selecter';
 import { TabletopObject } from '@axe/domain/tabletop/tabletop-object';
 import { Terrain } from '@axe/domain/tabletop/terrain';
 import { TextNote } from '@axe/domain/tabletop/text-note';
+/** What a table carries with it, so that looking at another table brings its own along. */
+const TABLE_CHILD_ALIASES = [
+  GameTableMask.aliasName,
+  GameTableScratchMask.aliasName,
+  Terrain.aliasName,
+  TableAmbience.aliasName,
+  LightSource.aliasName,
+];
+
 type ObjectIdentifier = string;
 type LocationName = string;
 
@@ -152,14 +161,10 @@ export class TabletopService {
     }, this.destroyRef);
     this.objectChange.objectChanged$.subscribe((event) => {
       if (event.identifier === this.currentTable.identifier || event.identifier === this.tableSelecter.identifier) {
-        this.refreshCache(GameTableMask.aliasName);
-        this.refreshCache(GameTableScratchMask.aliasName);
-        this.refreshCache(Terrain.aliasName);
-        this.refreshCache(TableAmbience.aliasName);
-        this.objectChange.notifyCollectionChanged(GameTableMask.aliasName);
-        this.objectChange.notifyCollectionChanged(GameTableScratchMask.aliasName);
-        this.objectChange.notifyCollectionChanged(Terrain.aliasName);
-        this.objectChange.notifyCollectionChanged(TableAmbience.aliasName);
+        for (const aliasName of TABLE_CHILD_ALIASES) {
+          this.refreshCache(aliasName);
+          this.objectChange.notifyCollectionChanged(aliasName);
+        }
         return;
       }
 
