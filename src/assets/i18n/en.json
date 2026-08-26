@@ -1787,7 +1787,8 @@
           "tree": "Trees",
           "bush": "Bushes",
           "boulder": "Boulders",
-          "outcrop": "Outcrops"
+          "outcrop": "Outcrops",
+          "hill": "Hills"
         }
       }
     },

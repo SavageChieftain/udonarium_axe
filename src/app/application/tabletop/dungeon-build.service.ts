@@ -169,6 +169,10 @@ export class DungeonBuildService {
       offsetX = ((rect.w - block.footprint.w) / 2) * GRID_SIZE;
       offsetY = ((rect.h - block.footprint.d) / 2) * GRID_SIZE;
     }
+    if (block.offset) {
+      offsetX += block.offset.x * GRID_SIZE;
+      offsetY += block.offset.y * GRID_SIZE;
+    }
 
     // Writing the whole location goes through setAttribute, which syncs; touching location.x does not.
     terrain.location = { name: 'table', x: rect.x * GRID_SIZE + offsetX, y: rect.y * GRID_SIZE + offsetY };
@@ -210,6 +214,7 @@ export class DungeonBuildService {
         const terrain = Terrain.create(name, width, depth, block.height ?? 1, side, top);
         terrain.mode = TerrainViewState.ALL;
         if (block.altitude) terrain.altitude = block.altitude;
+        if (block.rotate) terrain.rotate = block.rotate;
         return terrain;
       }
       default: {

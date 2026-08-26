@@ -19,6 +19,9 @@ export const FIELD_MERGE_SPAN = 4;
 
 const OPEN_FIRES: readonly MapLightKind[] = ['campfire', 'stand', 'brazier'];
 
+/** How far each layer is turned past the one below it, so their corners never line up. */
+const LAYER_TWIST = 11;
+
 function maskOfBand(layout: FieldLayout, band: number): Uint8Array {
   const mask = new Uint8Array(layout.width * layout.height);
   for (let i = 0; i < mask.length; i++) mask[i] = layout.ground[i] === band ? 1 : 0;
@@ -63,7 +66,7 @@ export function fieldToBlocks(layout: FieldLayout, atmosphere: FieldAtmosphere, 
   });
 
   for (const prop of FIELD_PROP_IDS) {
-    if (prop === 'tree') continue;
+    if (FIELD_PROP_SHAPES[prop].layers) continue;
     const shape = FIELD_PROP_SHAPES[prop];
     const mask = maskOfProp(layout, prop);
     for (const rect of mergeMaskToRects(mask, layout.width, layout.height, FIELD_MERGE_SPAN)) {
@@ -79,39 +82,48 @@ export function fieldToBlocks(layout: FieldLayout, atmosphere: FieldAtmosphere, 
     }
   }
 
-  const canopy = FIELD_PROP_SHAPES.tree;
-  const trunk = canopy.trunk!;
-  for (const tree of layout.trees) {
-    const reach = (tree.span - 1) / 2;
-    // The trunk stands on the ground and the crown hangs clear above it, three cells across
-    // to the trunk's third of one. That gap and that width are what make it read as a tree.
-    blocks.push({
-      kind: 'prop',
-      rect: { x: tree.x, y: tree.y, w: 1, h: 1 },
-      blocksSight: false,
-      locked: false,
-      rooms: [],
-      skin: { side: { kind: 'texture', id: trunk.side }, top: { kind: 'texture', id: trunk.top } },
-      height: trunk.height + tree.lift,
-      footprint: { w: trunk.width, d: trunk.width },
-    });
-    // The crown goes up in layers, each narrower than the one under it, so that it tapers.
-    let standing = (canopy.altitude ?? 0) + tree.lift;
-    for (const layer of canopy.crown ?? [{ spread: tree.span, height: canopy.height }]) {
-      const spread = Math.min(layer.spread, tree.span);
+  for (const object of layout.objects) {
+    const shape = FIELD_PROP_SHAPES[object.prop];
+    const skin = object.skin ?? { side: shape.side, top: shape.top };
+    const reach = (object.span - 1) / 2;
+    const rect = { x: object.x - reach, y: object.y - reach, w: object.span, h: object.span };
+
+    if (shape.trunk) {
+      const trunk = shape.trunk;
       blocks.push({
         kind: 'prop',
-        rect: { x: tree.x - reach, y: tree.y - reach, w: tree.span, h: tree.span },
-        blocksSight: canopy.blocksSight && spread > 1,
+        rect: { x: object.x, y: object.y, w: 1, h: 1 },
+        blocksSight: false,
         locked: false,
         rooms: [],
-        skin: { side: { kind: 'texture', id: canopy.side }, top: { kind: 'texture', id: canopy.top } },
+        skin: { side: { kind: 'texture', id: trunk.side }, top: { kind: 'texture', id: trunk.top } },
+        height: trunk.height + object.lift,
+        footprint: { w: trunk.width, d: trunk.width },
+        rotate: object.spin,
+      });
+    }
+
+    // Layer on layer, each narrower than the one under it and each turned a little further,
+    // so that the corners never line up into the flat sides of a box.
+    let standing = (shape.altitude ?? 0) + object.lift;
+    const layers = shape.layers ?? [{ spread: object.span, height: shape.height }];
+    layers.forEach((layer, index) => {
+      const spread = Math.min(layer.spread, object.span);
+      const squash = 1 + object.squash * (index % 2 === 0 ? 1 : -1);
+      blocks.push({
+        kind: 'prop',
+        rect,
+        blocksSight: shape.blocksSight && spread > 1,
+        locked: false,
+        rooms: [],
+        skin: { side: { kind: 'texture', id: skin.side }, top: { kind: 'texture', id: skin.top } },
         height: layer.height,
-        footprint: { w: spread, d: spread },
+        footprint: { w: spread * squash, d: spread / squash },
         altitude: standing,
+        rotate: object.spin + index * LAYER_TWIST,
       });
       standing += layer.height;
-    }
+    });
   }
 
   const lights = findFires(layout, atmosphere, seed);

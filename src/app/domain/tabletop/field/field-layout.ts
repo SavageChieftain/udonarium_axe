@@ -9,17 +9,30 @@ export interface FieldLayout {
   ground: Uint8Array;
   /** What stands on each cell, or an empty string where nothing does. */
   props: (FieldPropId | '')[];
-  /** The trees, each one a place rather than a cell, since a tree is wider than it is rooted. */
-  trees: FieldTree[];
+  /** What stands on the ground as whole things rather than as cells: trees, boulders, crags. */
+  objects: FieldObject[];
 }
 
-/** A tree: where its trunk stands, how wide its crown is, and how high it carries it. */
-export interface FieldTree {
+/**
+ * One whole standing thing: a tree, a boulder, a crag.
+ *
+ * Placed as a thing rather than as a cell, because what makes it read as what it is - a
+ * crown wider than its trunk, a stack of stone leaning off the grid - does not fit in one
+ * square, and because two of them side by side have to differ to read as two.
+ */
+export interface FieldObject {
   x: number;
   y: number;
+  prop: FieldPropId;
+  /** What this one is made of, where its ground calls for something other than the usual. */
+  skin?: { side: string; top: string };
   span: number;
-  /** How far above the standing height this one holds its crown. No two woods are level. */
+  /** How far above its standing height this one sits. No two woods are level. */
   lift: number;
+  /** How far it is turned off the grid, in degrees. */
+  spin: number;
+  /** How far from square its footprint falls, as a share of its width. */
+  squash: number;
 }
 
 export function bandAt(layout: FieldLayout, x: number, y: number): number {
@@ -52,8 +65,8 @@ const CROWD_LIMIT = 2;
 const OCTAVES = 3;
 /** How far a point is displaced before the height is read there, in lattice units. */
 const WARP = 0.6;
-/** How near two trunks may stand, in cells. Nearer and the crowns are one lid over both. */
-const TREE_SPACING = 3;
+/** What is put down as a whole thing rather than as a cell of ground cover. */
+const STANDING_PROPS: readonly FieldPropId[] = ['hill', 'tree', 'boulder', 'outcrop'];
 
 /** Below this share of the growth field nothing grows, and above it the stand thickens. */
 const GROWTH_FLOOR = 0.3;
@@ -67,17 +80,19 @@ function bandFor(height: number, cuts: number[]): number {
 }
 
 /**
- * Puts the trees in, as trees rather than as a cell each.
+ * Puts the standing things in, as things rather than as a cell each.
  *
- * A tree is a trunk with a crown several times its width standing clear above it, so one to
- * a cell can only ever be a post with a lid. They are placed as whole things instead, no two
- * closer than a crown apart, which is what leaves the trunks visible under the canopy.
+ * A tree is a trunk with a crown several times its width above it, and a crag is a stack of
+ * stone leaning off the grid; one to a cell can only ever be a post with a lid or a block of
+ * tofu. They are placed as whole things instead, no two closer than their own spacing, and
+ * each one turned, squashed and lifted by its own amount so that no two are the same thing.
  */
-function plantTrees(
+function plant(
+  prop: FieldPropId,
   atmosphere: FieldAtmosphere,
   ground: Uint8Array,
   props: (FieldPropId | '')[],
-  trees: FieldTree[],
+  objects: FieldObject[],
   width: number,
   height: number,
   growthField: Float64Array,
@@ -86,15 +101,19 @@ function plantTrees(
   rng: () => number,
   scale: number
 ): void {
-  const plans = atmosphere.props.filter((entry) => entry.prop === 'tree');
+  const plans = atmosphere.props.filter((entry) => entry.prop === prop);
   if (plans.length === 0 || scale <= 0) return;
-  const span = FIELD_PROP_SHAPES.tree.span;
+
+  const shape = FIELD_PROP_SHAPES[prop];
+  const spacing = shape.spacing ?? 2;
+  const standing = objects.filter((object) => object.prop === prop);
 
   for (let y = 0; y < height; y++) {
     for (let x = 0; x < width; x++) {
       const index = y * width + x;
       if (props[index]) continue;
-      // A wood is thicker on the ground that suits it, so each band names its own thickness.
+      // Ground of one kind carries more of a thing than ground of another, so each band
+      // names its own thickness.
       const plan = plans.find((entry) => entry.bands.includes(ground[index]));
       if (!plan) continue;
       if (atmosphere.bands[ground[index]].bare) continue;
@@ -102,16 +121,32 @@ function plantTrees(
       const thickness = (growthField[index] - thinnest) / growthSpan;
       const clump = thickness <= GROWTH_FLOOR ? 0 : ((thickness - GROWTH_FLOOR) / (1 - GROWTH_FLOOR)) * GROWTH_GAIN;
       if (rng() >= plan.chance * scale * clump) continue;
-      if (trees.some((tree) => Math.abs(tree.x - x) < TREE_SPACING && Math.abs(tree.y - y) < TREE_SPACING)) continue;
-      // A crown of its own width and height keeps two neighbours from sharing a face, which
-      // would flicker where they met, and a wood of one height reads as a hedge trimmed flat.
-      // Odd widths only: an even crown cannot be centred on the cell its trunk stands in.
-      const grown = rng() < 0.3 ? span - 2 : span;
-      const reachOf = (grown - 1) / 2;
-      if (x - reachOf < 0 || y - reachOf < 0 || width <= x + reachOf || height <= y + reachOf) continue;
+      if (standing.some((other) => Math.abs(other.x - x) < spacing && Math.abs(other.y - y) < spacing)) continue;
 
-      trees.push({ x, y, span: grown, lift: Math.round(rng() * 6) / 10 });
-      props[index] = 'tree';
+      // Odd widths only: an even one cannot be centred on the cell it stands in.
+      const grown = shape.span > 2 && rng() < 0.3 ? shape.span - 2 : shape.span;
+      const reach = (grown - 1) / 2;
+      if (x - reach < 0 || y - reach < 0 || width <= x + reach || height <= y + reach) continue;
+
+      const object: FieldObject = {
+        x,
+        y,
+        prop,
+        skin: plan.skin,
+        span: grown,
+        lift: Math.round(rng() * 6) / 10,
+        spin: Math.round((rng() * 2 - 1) * (shape.spin ?? 0)),
+        squash: (rng() * 2 - 1) * (shape.squash ?? 0),
+      };
+      objects.push(object);
+      standing.push(object);
+      if (shape.claimsGround) {
+        for (let dy = -reach; dy <= reach; dy++) {
+          for (let dx = -reach; dx <= reach; dx++) props[(y + dy) * width + x + dx] = prop;
+        }
+      } else {
+        props[index] = prop;
+      }
     }
   }
 }
@@ -172,7 +207,7 @@ export function generateField(
   const relief = Math.max(1, atmosphere.relief);
   const ground = new Uint8Array(width * height);
   const props: (FieldPropId | '')[] = new Array(width * height).fill('');
-  const trees: FieldTree[] = [];
+  const objects: FieldObject[] = [];
 
   const land = makeValueNoise(seed);
   const drift = makeValueNoise(seed + 4409);
@@ -238,7 +273,7 @@ export function generateField(
       // Below the line nothing grows at all, which is what leaves clearings between the stands.
       const clump = thickness <= GROWTH_FLOOR ? 0 : ((thickness - GROWTH_FLOOR) / (1 - GROWTH_FLOOR)) * GROWTH_GAIN;
       for (const plan of atmosphere.props) {
-        if (plan.prop === 'tree') continue;
+        if (STANDING_PROPS.includes(plan.prop)) continue;
         if (!plan.bands.includes(band)) continue;
         const shape = FIELD_PROP_SHAPES[plan.prop];
         if (!fits(atmosphere, ground, props, width, height, x, y, shape.span)) continue;
@@ -252,7 +287,9 @@ export function generateField(
     }
   }
 
-  plantTrees(atmosphere, ground, props, trees, width, height, growthField, thinnest, growthSpan, rng, scale);
+  for (const prop of STANDING_PROPS) {
+    plant(prop, atmosphere, ground, props, objects, width, height, growthField, thinnest, growthSpan, rng, scale);
+  }
 
-  return { width, height, ground, props, trees };
+  return { width, height, ground, props, objects };
 }

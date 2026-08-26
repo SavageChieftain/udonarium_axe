@@ -52,6 +52,29 @@ describe('planField()', () => {
     }
   });
 
+  it('turns every standing thing off the grid and out of square, each by its own amount', () => {
+    const plan = planField({ atmosphere: 'wasteland', size: 40, density: 100, seed: 7 });
+    const rocks = plan.layout.objects.filter((object) => object.prop !== 'tree');
+
+    expect(rocks.length).toBeGreaterThan(3);
+    expect(new Set(rocks.map((rock) => rock.spin)).size).toBeGreaterThan(1);
+    expect(rocks.some((rock) => rock.spin !== 0)).toBe(true);
+    expect(rocks.some((rock) => rock.squash !== 0)).toBe(true);
+  });
+
+  it('stacks a rock rather than standing a block of tofu on the ground', () => {
+    const plan = planField({ atmosphere: 'wasteland', size: 40, density: 100, seed: 7 });
+    const shape = FIELD_PROP_SHAPES.boulder;
+    const stacked = plan.blocks.blocks.filter((block) => block.rotate !== undefined && block.altitude !== undefined);
+
+    expect(shape.layers!.length).toBeGreaterThan(1);
+    expect(stacked.length).toBeGreaterThan(0);
+    // No two layers of one rock share an edge to line up along.
+    for (let i = 1; i < shape.layers!.length; i++) {
+      expect(shape.layers![i].spread).toBeLessThan(shape.layers![i - 1].spread);
+    }
+  });
+
   it('leaves open water bare', () => {
     const plan = planField({ atmosphere: 'coast', size: 50, density: 100, seed: 7 });
     const atmosphere = fieldAtmosphereById('coast');
@@ -112,17 +135,19 @@ describe('planField()', () => {
     // between the two is the whole silhouette. Fewer, wider trees also cost less than many.
     expect(canopy.span).toBeGreaterThanOrEqual(5);
     expect(canopy.trunk!.width).toBeLessThan(0.5);
-    expect(canopy.crown!.length).toBeGreaterThan(1);
+    expect(canopy.layers!.length).toBeGreaterThan(1);
   });
 
   it('stands a tree on a post and hangs its crown clear of the ground', () => {
     const plan = planField({ atmosphere: 'woodland', size: 40, density: 100, seed: 7 });
     const canopy = FIELD_PROP_SHAPES.tree;
-    const crowns = plan.blocks.blocks.filter((block) => block.altitude);
-    const posts = plan.blocks.blocks.filter((block) => block.footprint && !block.altitude);
+    const trees = plan.layout.objects.filter((object) => object.prop === 'tree');
+    const posts = plan.blocks.blocks.filter((block) => block.footprint?.w === canopy.trunk!.width);
+    const crowns = plan.blocks.blocks.filter((block) => block.altitude !== undefined && block.rect.w === canopy.span);
 
+    expect(trees.length).toBeGreaterThan(0);
+    expect(posts.length).toBe(trees.length);
     expect(crowns.length).toBeGreaterThan(0);
-    expect(crowns.length).toBe(posts.length * canopy.crown!.length);
     for (const crown of crowns) {
       // What walks under a wood has to fit under it, so the crown starts above head height.
       expect(crown.altitude!).toBeGreaterThanOrEqual(canopy.altitude!);
@@ -130,8 +155,8 @@ describe('planField()', () => {
     }
 
     // A crown that narrows as it rises is what tells a tree from a table on a leg.
-    const layers = crowns.filter((crown) => crown.rect.w === canopy.span).slice(0, canopy.crown!.length);
-    expect(layers.length).toBe(canopy.crown!.length);
+    const layers = crowns.filter((crown) => crown.rect.w === canopy.span).slice(0, canopy.layers!.length);
+    expect(layers.length).toBe(canopy.layers!.length);
     for (let i = 1; i < layers.length; i++) {
       expect(layers[i].footprint!.w).toBeLessThan(layers[i - 1].footprint!.w);
       expect(layers[i].altitude!).toBeGreaterThan(layers[i - 1].altitude!);

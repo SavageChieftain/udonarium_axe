@@ -1787,7 +1787,8 @@
           "tree": "木",
           "bush": "茂み",
           "boulder": "岩",
-          "outcrop": "岩場"
+          "outcrop": "岩場",
+          "hill": "丘"
         }
       }
     },

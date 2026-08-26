@@ -5,7 +5,7 @@ export const FIELD_ATMOSPHERE_IDS = ['woodland', 'meadow', 'coast', 'marsh', 'sn
 
 export type FieldAtmosphereId = (typeof FIELD_ATMOSPHERE_IDS)[number];
 
-export const FIELD_PROP_IDS = ['tree', 'bush', 'boulder', 'outcrop'] as const;
+export const FIELD_PROP_IDS = ['tree', 'bush', 'boulder', 'outcrop', 'hill'] as const;
 
 export type FieldPropId = (typeof FIELD_PROP_IDS)[number];
 
@@ -22,12 +22,23 @@ export interface FieldPropShape {
   /** The post that holds it up, where it is held up by one rather than standing on the ground. */
   trunk?: { side: WallTextureId; top: TextureId; width: number; height: number };
   /**
-   * The crown, in layers from the bottom up.
+   * What it is built of, in layers from the bottom up.
    *
-   * One slab is a table on a leg. A crown narrows as it rises, and it is that taper - and the
-   * daylight the taper leaves at the corners - that reads as a tree rather than as furniture.
+   * One slab is a table on a leg, or a block of tofu. A crown narrows as it rises and a
+   * boulder narrows as it rises, and it is that taper - and the daylight the taper leaves
+   * at the corners - that reads as a growing or a weathered thing rather than as furniture.
    */
-  crown?: readonly { spread: number; height: number }[];
+  layers?: readonly { spread: number; height: number }[];
+  /**
+   * How far it may be turned off the grid, in degrees, and how far from square its footprint
+   * may fall. Nothing in open country is square to the board or square in itself.
+   */
+  spin?: number;
+  squash?: number;
+  /** How near two of them may stand, in cells, when they are placed as whole things. */
+  spacing?: number;
+  /** Whether it takes the ground it covers, so that nothing else is put down on top of it. */
+  claimsGround?: boolean;
 }
 
 /**
@@ -47,15 +58,67 @@ export const FIELD_PROP_SHAPES: Record<FieldPropId, FieldPropShape> = {
     blocksSight: true,
     altitude: 1.5,
     trunk: { side: 'wall_timber', top: 'black_soil', width: 0.38, height: 1.9 },
-    crown: [
+    layers: [
       { spread: 4.8, height: 0.55 },
       { spread: 3.2, height: 0.5 },
       { spread: 1.6, height: 0.45 },
     ],
+    spin: 24,
+    spacing: 3,
   },
   bush: { side: 'steppe', top: 'steppe', height: 0.45, span: 1, blocksSight: false },
-  boulder: { side: 'wall_rubble', top: 'rock', height: 0.9, span: 1, blocksSight: false },
-  outcrop: { side: 'wall_cave_rock', top: 'rock_moss', height: 2.4, span: 2, blocksSight: true },
+  boulder: {
+    side: 'wall_rubble',
+    top: 'rock',
+    height: 0.9,
+    span: 1,
+    blocksSight: false,
+    layers: [
+      { spread: 0.95, height: 0.4 },
+      { spread: 0.66, height: 0.34 },
+      { spread: 0.36, height: 0.24 },
+    ],
+    spin: 45,
+    squash: 0.32,
+    spacing: 2,
+  },
+  outcrop: {
+    side: 'wall_cave_rock',
+    top: 'rock_moss',
+    height: 2.4,
+    span: 3,
+    blocksSight: true,
+    layers: [
+      { spread: 2.7, height: 0.85 },
+      { spread: 1.9, height: 0.75 },
+      { spread: 1.1, height: 0.6 },
+    ],
+    spin: 45,
+    squash: 0.28,
+    spacing: 4,
+  },
+  /**
+   * A rise in the ground rather than a thing standing on it.
+   *
+   * The ground itself is a picture painted flat, so the only way a meadow gets a fold in it
+   * is to build one: broad, low steps with the grass of the field on top of them.
+   */
+  hill: {
+    side: 'black_soil',
+    top: 'steppe',
+    height: 1.2,
+    span: 7,
+    blocksSight: false,
+    layers: [
+      { spread: 6.6, height: 0.28 },
+      { spread: 4.8, height: 0.26 },
+      { spread: 3, height: 0.24 },
+    ],
+    spin: 30,
+    squash: 0.22,
+    spacing: 9,
+    claimsGround: true,
+  },
 };
 
 /**
@@ -74,6 +137,8 @@ export interface GroundBand {
 
 export interface FieldPropPlan {
   prop: FieldPropId;
+  /** What this ground makes it of, where that is not what it is usually made of. */
+  skin?: { side: WallTextureId | TextureId; top: TextureId };
   /** How much of the ground it takes where it grows thickest, from nothing to all of it. */
   chance: number;
   /** Which bands it grows in, by index. */
@@ -156,6 +221,7 @@ export const FIELD_ATMOSPHERES: Record<FieldAtmosphereId, FieldAtmosphere> = {
       { upTo: 1, texture: 'gravel' },
     ],
     props: [
+      { prop: 'hill', chance: 0.08, bands: [1] },
       { prop: 'bush', chance: 0.06, bands: [1] },
       { prop: 'tree', chance: 0.09, bands: [1] },
       { prop: 'boulder', chance: 0.06, bands: [2] },

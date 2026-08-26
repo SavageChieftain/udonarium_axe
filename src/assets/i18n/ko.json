@@ -1787,7 +1787,8 @@
           "tree": "나무",
           "bush": "덤불",
           "boulder": "바위",
-          "outcrop": "암반"
+          "outcrop": "암반",
+          "hill": "언덕"
         }
       }
     },

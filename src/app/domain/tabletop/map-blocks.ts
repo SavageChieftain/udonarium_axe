@@ -55,6 +55,15 @@ export interface MapBlock {
   footprint?: { w: number; d: number };
   /** How far off the ground it floats, in cells. A canopy hangs over what walks beneath it. */
   altitude?: number;
+  /**
+   * How far it is turned from the grid, in degrees.
+   *
+   * A boulder square to the board is a block of tofu. Nothing in open country is square to
+   * anything, and a few degrees of turn is most of what tells one from a built thing.
+   */
+  rotate?: number;
+  /** How far it sits from the middle of its cell, in cells. */
+  offset?: { x: number; y: number };
   /** How a door moves when it opens. */
   doorStyle?: string;
   name?: string;
