@@ -25,6 +25,7 @@ import {
   calcSnapNum,
   collectCollidableElements,
   ContactFootprint,
+  dropTargetSurface,
   findContactSupportZ,
   registerLayer,
   setLayerCollidable,
@@ -371,12 +372,17 @@ export class MovableDirective {
   }
 
   private isPointerOverDifferentSurface(): boolean {
-    const pointer = this.input?.pointer;
-    if (!pointer) return false;
-    const target = document.elementFromPoint(pointer.x, pointer.y) as HTMLElement | null;
-    const pointerSurface = target?.closest<HTMLElement>('[data-surface]') ?? null;
+    const pointerSurface = this.surfaceUnderPointer();
     if (!pointerSurface) return false;
     return pointerSurface !== this.surfaceElement();
+  }
+
+  /** The face under the pointer that this piece could be put down on, or nothing. */
+  private surfaceUnderPointer(): HTMLElement | null {
+    const pointer = this.input?.pointer;
+    if (!pointer) return null;
+    const under = document.elementFromPoint(pointer.x, pointer.y) as HTMLElement | null;
+    return dropTargetSurface(this.nativeElement, under);
   }
 
   private dragPreviewElement: HTMLElement | null = null;
@@ -392,8 +398,7 @@ export class MovableDirective {
       this.clearDragPreview();
       return;
     }
-    const target = document.elementFromPoint(pointer.x, pointer.y) as HTMLElement | null;
-    const targetSurface = target?.closest<HTMLElement>('[data-surface]') ?? null;
+    const targetSurface = this.surfaceUnderPointer();
     if (!targetSurface || targetSurface === this.surfaceElement()) {
       this.clearDragPreview();
       return;
@@ -471,9 +476,7 @@ export class MovableDirective {
     const pointer = this.input?.pointer;
     if (!pointer) return;
     if (this.restOnBeamUnderPointer(pointer)) return;
-    const target = document.elementFromPoint(pointer.x, pointer.y) as HTMLElement | null;
-    if (!target) return;
-    const targetSurfaceEl = target.closest<HTMLElement>('[data-surface]');
+    const targetSurfaceEl = this.surfaceUnderPointer();
     if (!targetSurfaceEl) return;
     const currentSurfaceEl = this.surfaceElement();
     if (targetSurfaceEl === currentSurfaceEl) return;
