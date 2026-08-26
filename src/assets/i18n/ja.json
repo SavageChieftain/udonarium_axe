@@ -2054,7 +2054,13 @@
       "colorSetting": {
         "color1": "第1色",
         "color2": "第2色",
-        "color3": "第3色"
+        "color3": "第3色",
+        "preview": "見え方",
+        "sample": "こんにちは、よろしくお願いします。",
+        "theme": {
+          "light": "ライトテーマ",
+          "dark": "ダークテーマ"
+        }
       },
       "messageFix": {
         "change": "変更",

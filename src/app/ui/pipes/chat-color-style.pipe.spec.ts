@@ -93,8 +93,8 @@ describe('ChatColorStylePipe', () => {
   it('holds the reading standard wherever the colour can reach it', () => {
     for (const colour of PALETTE) {
       for (const theme of THEMES) {
-        if (bestPossible(colour) < 7) continue;
-        expect(contrast(pipe.transform(colour, theme)!)).toBeGreaterThanOrEqual(6.9);
+        if (bestPossible(colour) < 4.5) continue;
+        expect(contrast(pipe.transform(colour, theme)!)).toBeGreaterThanOrEqual(4.4);
       }
     }
   });
@@ -103,12 +103,12 @@ describe('ChatColorStylePipe', () => {
     // A pure red tops out at four to one on white and just over five on black.
     const style = pipe.transform('#ff0000', 'light')!;
 
-    expect(bestPossible('#ff0000')).toBeLessThan(7);
-    expect(contrast(style)).toBeGreaterThanOrEqual(4.5);
+    expect(bestPossible('#ff0000')).toBeGreaterThan(4.5);
+    expect(contrast(style)).toBeGreaterThanOrEqual(4.4);
   });
 
   it('stays on the background the rest of the page has when the colour can be read there', () => {
-    for (const colour of ['#66ccff', '#ffcc00', '#ffffff', '#cccccc']) {
+    for (const colour of ['#0099ff', '#66ccff', '#ffcc00', '#00cc00', '#ffffff', '#cccccc']) {
       expect(drift(pipe.transform(colour, 'dark')!, 'dark')).toBeLessThan(0.01);
     }
   });
@@ -118,14 +118,14 @@ describe('ChatColorStylePipe', () => {
       for (const theme of THEMES) {
         const style = pipe.transform(colour, theme)!;
         const away = drift(style, theme);
-        if (contrast(style) < 6.9 || away < 0.02) continue;
+        if (contrast(style) < 4.4 || away < 0.02) continue;
 
         // One step back towards the page's own background and the colour stops being readable.
         const shown = lightnessOf(rgbOf(style['background-color']));
         const back = shown > BASE_L[theme] ? shown - 0.02 : shown + 0.02;
         const grey: [number, number, number] = [back, back, back];
 
-        expect(ratio(luminance(rgbOf(colour)), luminance(grey))).toBeLessThan(7.9);
+        expect(ratio(luminance(rgbOf(colour)), luminance(grey))).toBeLessThan(5.4);
       }
     }
   });

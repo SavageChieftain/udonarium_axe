@@ -43,6 +43,8 @@ import { TranslocoModule } from '@jsverse/transloco';
 import { NgOptionComponent, NgSelectComponent } from '@ng-select/ng-select';
 import GameSystemClass from 'bcdice/lib/game_system';
 
+const COLOR_SETTING_PANEL = 'chat-color-setting';
+
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'chat-input',
@@ -508,6 +510,8 @@ export class ChatInputComponent {
   }
 
   showColorSetting() {
+    // Pressing it again puts the panel away, rather than laying another one over it.
+    if (this.panelService.closeSingle(COLOR_SETTING_PANEL)) return;
     const object = this.objectStore.get(this.sendFrom);
     if (object instanceof GameCharacter) {
       const coordinate = this.pointerDeviceService.pointers[0];
@@ -518,8 +522,9 @@ export class ChatInputComponent {
         title: title,
         left: coordinate.x + 50,
         top: coordinate.y - 300,
-        width: 300,
-        height: 170,
+        width: 320,
+        height: 430,
+        single: COLOR_SETTING_PANEL,
       };
       const component = this.panelService.open<ChatColorSettingComponent>(ChatColorSettingComponent, option);
       component.tabletopObject = object;
@@ -530,8 +535,9 @@ export class ChatInputComponent {
         title: title,
         left: coordinate.x + 50,
         top: coordinate.y - 150,
-        width: 300,
-        height: 120,
+        width: 320,
+        height: 380,
+        single: COLOR_SETTING_PANEL,
       };
       const component = this.panelService.open<ChatColorSettingComponent>(ChatColorSettingComponent, option);
       component.tabletopObject = null;

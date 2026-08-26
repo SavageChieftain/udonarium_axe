@@ -22,6 +22,14 @@ export interface PanelOption {
   invisible?: boolean;
   minimizeToContent?: boolean;
   frameless?: boolean;
+
+  /**
+   * A name that only one panel at a time may hold.
+   *
+   * A button that opens a panel under this name can close it again with `closeSingle`, so
+   * pressing it twice puts the panel away rather than burying the screen in copies of it.
+   */
+  single?: string;
 }
 
 interface UIPanelInstance {
@@ -49,6 +57,7 @@ export class PanelService {
   static chatPortraitComponentClass: Type<unknown> | null = null;
   static cardStackListComponentClass: Type<unknown> | null = null;
   private panelComponentRef: ComponentRef<UIPanelInstance> | null = null;
+  private static readonly singles = new Map<string, ComponentRef<UIPanelInstance>>();
   title: string = '';
   titleTooltip: string = '';
   left: number = 0;
@@ -82,11 +91,21 @@ export class PanelService {
     this.scrollablePanel = panel;
   }
 
+  /** Closes the panel holding this name, and says whether there was one to close. */
+  closeSingle(name: string): boolean {
+    const open = PanelService.singles.get(name);
+    if (!open) return false;
+    open.destroy();
+    return true;
+  }
+
   open<T>(childComponent: Type<T>, option?: PanelOption, parentViewContainerRef?: ViewContainerRef): T {
     if (!parentViewContainerRef) {
       parentViewContainerRef = PanelService.defaultParentViewContainerRef;
     }
     const injector = parentViewContainerRef.injector;
+
+    if (option?.single) PanelService.singles.get(option.single)?.destroy();
 
     const panelComponentRef = parentViewContainerRef.createComponent(PanelService.UIPanelComponentClass, {
       index: parentViewContainerRef.length,
@@ -98,8 +117,11 @@ export class PanelService {
 
     childPanelService.panelComponentRef = panelComponentRef;
     if (option) this.applyPanelOption(panelComponentRef, childPanelService, option);
+    const single = option?.single;
+    if (single) PanelService.singles.set(single, panelComponentRef);
     panelComponentRef.onDestroy(() => {
       childPanelService.panelComponentRef = null;
+      if (single && PanelService.singles.get(single) === panelComponentRef) PanelService.singles.delete(single);
     });
 
     return bodyComponentRef.instance as T;

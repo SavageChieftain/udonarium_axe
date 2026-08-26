@@ -2054,7 +2054,13 @@
       "colorSetting": {
         "color1": "Color 1",
         "color2": "Color 2",
-        "color3": "Color 3"
+        "color3": "Color 3",
+        "preview": "How it looks",
+        "sample": "Hello, good to be here.",
+        "theme": {
+          "light": "Light theme",
+          "dark": "Dark theme"
+        }
       },
       "messageFix": {
         "change": "Apply",

@@ -1,3 +1,4 @@
+import { NgStyle } from '@angular/common';
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { ModalService } from '@axe/application/ui/modal.service';
@@ -5,6 +6,7 @@ import { PanelService } from '@axe/application/ui/panel.service';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { ChatSettingsEventHandlerService } from '@axe/features/chat/chat-settings-event-handler.service';
+import { ChatColorStylePipe } from '@axe/ui/pipes/chat-color-style.pipe';
 import { TranslocoModule } from '@jsverse/transloco';
 
 @Component({
@@ -12,9 +14,13 @@ import { TranslocoModule } from '@jsverse/transloco';
   templateUrl: './chat-color-setting.component.html',
   host: { class: 'block px-3 py-[10px]' },
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [TranslocoModule],
+  imports: [TranslocoModule, ChatColorStylePipe, NgStyle],
 })
 export class ChatColorSettingComponent {
+  /** Both sides of the page, so the reader sees what their colour costs on either. */
+  readonly themes = ['light', 'dark'] as const;
+  readonly slots = [0, 1, 2] as const;
+
   private readonly panelService = inject(PanelService);
   private readonly modalService = inject(ModalService);
   private readonly objectChange = inject(ObjectChangeService);
@@ -58,5 +64,11 @@ export class ChatColorSettingComponent {
 
   onChangeColor(event: Event, index: number): void {
     this.changeColor((event.target as HTMLInputElement).value, index);
+    this.objectChange.notifyChanged(this.myPeer.identifier);
+  }
+
+  /** The name a message would carry, so the sample reads as a message rather than as a swatch. */
+  get speakerName(): string {
+    return this.tabletopObject?.name || this.myPeer.name;
   }
 }

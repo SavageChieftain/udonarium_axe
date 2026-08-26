@@ -62,14 +62,14 @@ const BASE_L = { light: 0.898, dark: 0.153 };
 const TINT = 0.12;
 
 /**
- * What text has to hold against the bubble it sits on.
+ * What text has to hold against the bubble it sits on: the reading standard for body text.
  *
- * The reading standard asks four and a half to one of body text and seven of the text it
- * holds to most strictly. The colours that can afford the stricter figure give up nothing
- * for it - a bright blue keeps the ordinary panel background either way - and it is what
- * lifts a near-black speaker off a bubble that was still too near black to read on.
+ * Asking more than the standard was tried and taken back. It buys a near-black speaker a
+ * lighter bubble, but only by pushing off the ordinary panel background every colour that
+ * was comfortably readable where it stood: a bright blue reaches 5.06 there and no more, so
+ * a stricter figure sends it to the darkest end of the page instead.
  */
-const TARGET_RATIO = 7;
+const TARGET_RATIO = 4.5;
 
 /**
  * How far the bubble may go in either direction: as dark as the page's own darkest, and
