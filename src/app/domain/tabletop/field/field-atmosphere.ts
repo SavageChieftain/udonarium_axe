@@ -21,6 +21,13 @@ export interface FieldPropShape {
   altitude?: number;
   /** The post that holds it up, where it is held up by one rather than standing on the ground. */
   trunk?: { side: WallTextureId; top: TextureId; width: number; height: number };
+  /**
+   * The crown, in layers from the bottom up.
+   *
+   * One slab is a table on a leg. A crown narrows as it rises, and it is that taper - and the
+   * daylight the taper leaves at the corners - that reads as a tree rather than as furniture.
+   */
+  crown?: readonly { spread: number; height: number }[];
 }
 
 /**
@@ -36,10 +43,15 @@ export const FIELD_PROP_SHAPES: Record<FieldPropId, FieldPropShape> = {
     side: 'forest',
     top: 'forest',
     height: 0.9,
-    span: 3,
+    span: 5,
     blocksSight: true,
     altitude: 1.5,
-    trunk: { side: 'wall_timber', top: 'black_soil', width: 0.34, height: 1.7 },
+    trunk: { side: 'wall_timber', top: 'black_soil', width: 0.38, height: 1.9 },
+    crown: [
+      { spread: 4.8, height: 0.55 },
+      { spread: 3.2, height: 0.5 },
+      { spread: 1.6, height: 0.45 },
+    ],
   },
   bush: { side: 'steppe', top: 'steppe', height: 0.45, span: 1, blocksSight: false },
   boulder: { side: 'wall_rubble', top: 'rock', height: 0.9, span: 1, blocksSight: false },
@@ -112,14 +124,17 @@ export const FIELD_ATMOSPHERES: Record<FieldAtmosphereId, FieldAtmosphere> = {
     defaultProp: 'wall_timber',
     relief: 11,
     damp: 0.45,
+    // The wood is trees standing on the ground, not a picture of a wood painted on it: the
+    // high band is the floor of the forest and what makes it a forest is what stands there.
     bands: [
-      { upTo: 0.32, texture: 'black_soil' },
-      { upTo: 0.64, texture: 'steppe' },
-      { upTo: 1, texture: 'forest' },
+      { upTo: 0.26, texture: 'swamp_mud' },
+      { upTo: 0.58, texture: 'steppe' },
+      { upTo: 1, texture: 'black_soil' },
     ],
     props: [
-      { prop: 'tree', chance: 0.22, bands: [1, 2] },
-      { prop: 'bush', chance: 0.1, bands: [0, 1] },
+      { prop: 'tree', chance: 0.85, bands: [2] },
+      { prop: 'tree', chance: 0.14, bands: [1] },
+      { prop: 'bush', chance: 0.05, bands: [0, 1] },
       { prop: 'boulder', chance: 0.03, bands: [2] },
     ],
     darkness: 0,
@@ -141,7 +156,7 @@ export const FIELD_ATMOSPHERES: Record<FieldAtmosphereId, FieldAtmosphere> = {
       { upTo: 1, texture: 'gravel' },
     ],
     props: [
-      { prop: 'bush', chance: 0.12, bands: [1] },
+      { prop: 'bush', chance: 0.06, bands: [1] },
       { prop: 'tree', chance: 0.09, bands: [1] },
       { prop: 'boulder', chance: 0.06, bands: [2] },
     ],
@@ -167,7 +182,7 @@ export const FIELD_ATMOSPHERES: Record<FieldAtmosphereId, FieldAtmosphere> = {
     ],
     props: [
       { prop: 'boulder', chance: 0.06, bands: [2] },
-      { prop: 'bush', chance: 0.06, bands: [3] },
+      { prop: 'bush', chance: 0.04, bands: [3] },
       { prop: 'outcrop', chance: 0.05, bands: [3] },
     ],
     darkness: 0,
@@ -191,7 +206,7 @@ export const FIELD_ATMOSPHERES: Record<FieldAtmosphereId, FieldAtmosphere> = {
     ],
     props: [
       { prop: 'tree', chance: 0.13, bands: [1, 2] },
-      { prop: 'bush', chance: 0.13, bands: [1] },
+      { prop: 'bush', chance: 0.07, bands: [1] },
     ],
     darkness: 0.35,
     ambientColor: '#101511',
@@ -237,7 +252,7 @@ export const FIELD_ATMOSPHERES: Record<FieldAtmosphereId, FieldAtmosphere> = {
     props: [
       { prop: 'boulder', chance: 0.07, bands: [1, 2] },
       { prop: 'outcrop', chance: 0.08, bands: [2] },
-      { prop: 'bush', chance: 0.05, bands: [0] },
+      { prop: 'bush', chance: 0.04, bands: [0] },
     ],
     darkness: 0,
     ambientColor: '#1a140e',

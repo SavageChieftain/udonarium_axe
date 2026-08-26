@@ -94,10 +94,12 @@ export interface MapBlocks {
  * How many pieces one table will carry.
  *
  * A maze fills the rock between the rooms, which buys a dungeon worth walking through at
- * roughly twice the pieces a straight corridor would cost, and a wood is dearer still.
+ * roughly twice the pieces a straight corridor would cost. A wood is dearer again: a tree
+ * that reads as a tree is a post and a crown in three tapering layers, and a wood is a
+ * hundred of them. The ceiling is set where a thick wood on a middling board fits under it.
  */
-export const MAP_MAX_TERRAINS = 400;
-export const MAP_HEAVY_TERRAINS = 200;
+export const MAP_MAX_TERRAINS = 700;
+export const MAP_HEAVY_TERRAINS = 350;
 
 /** What one terrain costs to sync: itself, the five it is built from, and its six values. */
 export const SYNC_OBJECTS_PER_TERRAIN = 12;

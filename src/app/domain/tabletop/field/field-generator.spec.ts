@@ -105,18 +105,36 @@ describe('planField()', () => {
     }
   });
 
+  it('grows a crown several cells across over a trunk a third of one wide', () => {
+    const canopy = FIELD_PROP_SHAPES.tree;
+
+    // Minecraft's are a trunk of one block under a crown five to seven across, and the width
+    // between the two is the whole silhouette. Fewer, wider trees also cost less than many.
+    expect(canopy.span).toBeGreaterThanOrEqual(5);
+    expect(canopy.trunk!.width).toBeLessThan(0.5);
+    expect(canopy.crown!.length).toBeGreaterThan(1);
+  });
+
   it('stands a tree on a post and hangs its crown clear of the ground', () => {
     const plan = planField({ atmosphere: 'woodland', size: 40, density: 100, seed: 7 });
     const canopy = FIELD_PROP_SHAPES.tree;
     const crowns = plan.blocks.blocks.filter((block) => block.altitude);
-    const posts = plan.blocks.blocks.filter((block) => block.footprint);
+    const posts = plan.blocks.blocks.filter((block) => block.footprint && !block.altitude);
 
     expect(crowns.length).toBeGreaterThan(0);
-    expect(posts.length).toBe(crowns.length);
+    expect(crowns.length).toBe(posts.length * canopy.crown!.length);
     for (const crown of crowns) {
       // What walks under a wood has to fit under it, so the crown starts above head height.
       expect(crown.altitude!).toBeGreaterThanOrEqual(canopy.altitude!);
       expect(crown.rect.w % 2).toBe(1);
+    }
+
+    // A crown that narrows as it rises is what tells a tree from a table on a leg.
+    const layers = crowns.filter((crown) => crown.rect.w === canopy.span).slice(0, canopy.crown!.length);
+    expect(layers.length).toBe(canopy.crown!.length);
+    for (let i = 1; i < layers.length; i++) {
+      expect(layers[i].footprint!.w).toBeLessThan(layers[i - 1].footprint!.w);
+      expect(layers[i].altitude!).toBeGreaterThan(layers[i - 1].altitude!);
     }
     for (const post of posts) {
       expect(post.footprint!.w).toBeLessThan(0.5);

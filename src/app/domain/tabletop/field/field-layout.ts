@@ -53,7 +53,7 @@ const OCTAVES = 3;
 /** How far a point is displaced before the height is read there, in lattice units. */
 const WARP = 0.6;
 /** How near two trunks may stand, in cells. Nearer and the crowns are one lid over both. */
-const TREE_SPACING = 2;
+const TREE_SPACING = 3;
 
 /** Below this share of the growth field nothing grows, and above it the stand thickens. */
 const GROWTH_FLOOR = 0.3;
@@ -86,15 +86,17 @@ function plantTrees(
   rng: () => number,
   scale: number
 ): void {
-  const plan = atmosphere.props.find((entry) => entry.prop === 'tree');
-  if (!plan || scale <= 0) return;
+  const plans = atmosphere.props.filter((entry) => entry.prop === 'tree');
+  if (plans.length === 0 || scale <= 0) return;
   const span = FIELD_PROP_SHAPES.tree.span;
 
   for (let y = 0; y < height; y++) {
     for (let x = 0; x < width; x++) {
       const index = y * width + x;
       if (props[index]) continue;
-      if (!plan.bands.includes(ground[index])) continue;
+      // A wood is thicker on the ground that suits it, so each band names its own thickness.
+      const plan = plans.find((entry) => entry.bands.includes(ground[index]));
+      if (!plan) continue;
       if (atmosphere.bands[ground[index]].bare) continue;
 
       const thickness = (growthField[index] - thinnest) / growthSpan;
@@ -104,7 +106,7 @@ function plantTrees(
       // A crown of its own width and height keeps two neighbours from sharing a face, which
       // would flicker where they met, and a wood of one height reads as a hedge trimmed flat.
       // Odd widths only: an even crown cannot be centred on the cell its trunk stands in.
-      const grown = rng() < 0.28 ? span - 2 : span;
+      const grown = rng() < 0.3 ? span - 2 : span;
       const reachOf = (grown - 1) / 2;
       if (x - reachOf < 0 || y - reachOf < 0 || width <= x + reachOf || height <= y + reachOf) continue;
 

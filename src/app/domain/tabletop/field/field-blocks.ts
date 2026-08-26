@@ -95,16 +95,23 @@ export function fieldToBlocks(layout: FieldLayout, atmosphere: FieldAtmosphere, 
       height: trunk.height + tree.lift,
       footprint: { w: trunk.width, d: trunk.width },
     });
-    blocks.push({
-      kind: 'prop',
-      rect: { x: tree.x - reach, y: tree.y - reach, w: tree.span, h: tree.span },
-      blocksSight: canopy.blocksSight,
-      locked: false,
-      rooms: [],
-      skin: { side: { kind: 'texture', id: canopy.side }, top: { kind: 'texture', id: canopy.top } },
-      height: canopy.height,
-      altitude: (canopy.altitude ?? 0) + tree.lift,
-    });
+    // The crown goes up in layers, each narrower than the one under it, so that it tapers.
+    let standing = (canopy.altitude ?? 0) + tree.lift;
+    for (const layer of canopy.crown ?? [{ spread: tree.span, height: canopy.height }]) {
+      const spread = Math.min(layer.spread, tree.span);
+      blocks.push({
+        kind: 'prop',
+        rect: { x: tree.x - reach, y: tree.y - reach, w: tree.span, h: tree.span },
+        blocksSight: canopy.blocksSight && spread > 1,
+        locked: false,
+        rooms: [],
+        skin: { side: { kind: 'texture', id: canopy.side }, top: { kind: 'texture', id: canopy.top } },
+        height: layer.height,
+        footprint: { w: spread, d: spread },
+        altitude: standing,
+      });
+      standing += layer.height;
+    }
   }
 
   const lights = findFires(layout, atmosphere, seed);
