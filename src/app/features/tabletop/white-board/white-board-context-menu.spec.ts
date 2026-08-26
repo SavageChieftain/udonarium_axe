@@ -12,6 +12,7 @@ function names(menu: ContextMenuAction[]): string[] {
 function handlers() {
   return {
     onEdit: vi.fn(),
+    onDraw: vi.fn(),
     onDetachAll: vi.fn(),
     onGather: vi.fn(),
     onCopy: vi.fn(),
@@ -72,5 +73,14 @@ describe('buildWhiteBoardContextMenu()', () => {
     expect(spies.onDetachAll).toHaveBeenCalledWith(board);
     expect(spies.onCopy).toHaveBeenCalledWith(board);
     expect(spies.onDelete).toHaveBeenCalledWith(board);
+  });
+
+  it('offers to draw on the board, since a board is for drawing on', () => {
+    const spies = handlers();
+    const menu = buildWhiteBoardContextMenu(board, 0, t, spies);
+
+    menu.find((item) => item.name === 'feature.whiteBoard.contextMenu.draw')!.action!();
+
+    expect(spies.onDraw).toHaveBeenCalledWith(board);
   });
 });

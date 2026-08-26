@@ -27,6 +27,13 @@ export class WhiteBoard extends TabletopObject {
   @SyncVar() pitch: number = 0;
   @SyncVar() color: string = '#f4f1e8';
   @SyncVar() isDropShadow: boolean = true;
+  /**
+   * What has been drawn and stuck on the board, as a map editor scene.
+   *
+   * The board keeps the scene rather than only the picture of it, so that what was written
+   * on it a week ago can be rubbed out rather than painted over.
+   */
+  @SyncVar() scene: string = '';
 
   get width(): number {
     return this.getCommonValue('width', 4);

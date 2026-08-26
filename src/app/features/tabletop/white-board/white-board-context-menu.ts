@@ -9,6 +9,7 @@ export const BOARD_PITCH_STEPS: readonly number[] = [0, 45, MAX_BOARD_PITCH];
 
 export interface WhiteBoardMenuHandlers {
   onEdit(board: WhiteBoard): void;
+  onDraw(board: WhiteBoard): void;
   onDetachAll(board: WhiteBoard): void;
   onGather(board: WhiteBoard): void;
   onCopy(board: WhiteBoard): void;
@@ -22,6 +23,7 @@ export function buildWhiteBoardContextMenu(
   handlers: WhiteBoardMenuHandlers
 ): ContextMenuAction[] {
   const menu: ContextMenuAction[] = [
+    { name: t('feature.whiteBoard.contextMenu.draw'), action: () => handlers.onDraw(board) },
     { name: t('feature.whiteBoard.contextMenu.settings'), action: () => handlers.onEdit(board) },
     {
       name: t('feature.whiteBoard.contextMenu.pitch'),

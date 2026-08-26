@@ -7,6 +7,7 @@ import {
   effect,
   ElementRef,
   inject,
+  Injector,
   signal,
   viewChild,
 } from '@angular/core';
@@ -33,6 +34,7 @@ import {
 } from '@axe/domain/media/texture-catalog';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { GridType } from '@axe/domain/tabletop/game-table';
+import { WhiteBoard } from '@axe/domain/tabletop/white-board';
 import {
   imageStampIdentifier,
   isImageStampId,
@@ -62,6 +64,7 @@ import {
 import { cellCenter, pointToCell } from '@axe/features/map-editor/model/grid-cells';
 import {
   cellKey,
+  createScene,
   ImageItem,
   LayerKind,
   MapLayer,
@@ -75,7 +78,7 @@ import {
 import { isZipArchive } from '@axe/features/map-editor/model/scene-archive';
 import { packSceneWithImages, unpackSceneWithImages } from '@axe/features/map-editor/model/scene-archive-images';
 import { moveLayer, removeLayer, removeText, updateText } from '@axe/features/map-editor/model/scene-ops';
-import { deserializeScene } from '@axe/features/map-editor/model/serialize';
+import { deserializeScene, serializeScene } from '@axe/features/map-editor/model/serialize';
 import { generateShapePoints, regularPolygonPoints, starPoints } from '@axe/features/map-editor/model/shape-points';
 import { imageTextureIdentifier, isImageTextureId, normalizeTextureId } from '@axe/features/map-editor/model/textures';
 import { exportSceneToBlob } from '@axe/features/map-editor/render/export-image';
@@ -111,6 +114,9 @@ export function buildShapeKindPoints(kind: ShapeGeneratorKind): string {
   }
   return pairs.join(' ');
 }
+
+/** How long the drawing has to settle before the board keeps a picture of it. */
+const BOARD_SAVE_DELAY = 700;
 
 const ERASER_SVG =
   '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
@@ -152,6 +158,7 @@ interface ToolDef {
 })
 export class MapEditorPanelComponent implements AfterViewInit {
   protected readonly state = inject(MapEditorState);
+  private readonly injector = inject(Injector);
   protected readonly isCompact = inject(ViewportService).isCompact;
   protected readonly mobileDrawer = signal<'none' | 'props' | 'layers'>('none');
 
@@ -1632,6 +1639,67 @@ export class MapEditorPanelComponent implements AfterViewInit {
       this.flashError(this.t('feature.mapEditor.actions.exportError'));
     } finally {
       this.busy.set(false);
+    }
+  }
+
+  /**
+   * The board this panel is writing to, if it was opened from one rather than for the table.
+   *
+   * A board keeps its own scene, so what was drawn on it can be taken up and altered later
+   * rather than painted over. The picture it wears is made from that scene each time the
+   * drawing settles, which is what every other peer sees.
+   */
+  whiteBoard: WhiteBoard | null = null;
+
+  bindToBoard(board: WhiteBoard): void {
+    this.whiteBoard = board;
+    const saved = board.scene ? deserializeScene(board.scene) : null;
+    const grid = this.tabletopService.gridSize();
+    this.state.loadScene(saved ?? createScene(board.width, board.height, grid, GridType.SQUARE));
+    this.watchForBoardEdits();
+  }
+
+  private boardSaveTimer: ReturnType<typeof setTimeout> | null = null;
+
+  /** Saved once the drawing has settled, since a stroke is a hundred changes on its own. */
+  private watchForBoardEdits(): void {
+    effect(
+      () => {
+        this.state.sceneTick();
+        if (!this.whiteBoard) return;
+        if (this.boardSaveTimer !== null) clearTimeout(this.boardSaveTimer);
+        this.boardSaveTimer = setTimeout(() => {
+          this.boardSaveTimer = null;
+          void this.saveToBoard();
+        }, BOARD_SAVE_DELAY);
+      },
+      { injector: this.injector }
+    );
+  }
+
+  private async saveToBoard(): Promise<void> {
+    const board = this.whiteBoard;
+    if (!board) return;
+    const scene = this.state.current;
+    board.scene = serializeScene(scene);
+
+    try {
+      const blob = await this.exportFn(scene, STAMPS, {
+        scale: 1,
+        drawGrid: false,
+        resolveImageUrl: (id) => this.imageStorage.get(id)?.url ?? null,
+      });
+      const file = await this.imageStorage.addAsync(blob);
+      const element = board.imageDataElement?.getFirstElementByName('imageIdentifier');
+      const previous = element?.value;
+      if (element) element.value = file.identifier;
+      board.update();
+      // The picture the board wore before this edit is not worn by anything now.
+      if (typeof previous === 'string' && previous && previous !== file.identifier) {
+        this.imageStorage.delete(previous);
+      }
+    } catch {
+      // The scene is saved either way; only the picture of it is lost, and the next edit remakes it.
     }
   }
 

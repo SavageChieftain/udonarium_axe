@@ -181,6 +181,7 @@ export class WhiteBoardComponent {
 
     const menu = buildWhiteBoardContextMenu(board, this.standingCount(), this.translateFn, {
       onEdit: (target) => this.openSettings(target),
+      onDraw: (target) => this.openDrawing(target),
       onDetachAll: (target) => this.detachAll(target),
       onGather: (target) => this.gather(target),
       onCopy: (target) => this.copy(target),
@@ -238,6 +239,21 @@ export class WhiteBoardComponent {
     this.detachAll(board);
     board.destroy();
     SoundEffect.play(PresetSound.sweep);
+  }
+
+  /** The board's own drawing, opened in the editor that draws maps, since a board is one. */
+  private openDrawing(board: WhiteBoard): void {
+    const option: PanelOption = {
+      title: board.name,
+      width: 960,
+      height: 640,
+      single: `white-board-${board.identifier}`,
+    };
+    this.panelService.openLazy(
+      () => import('@axe/features/map-editor/editor/map-editor-panel.component').then((m) => m.MapEditorPanelComponent),
+      option,
+      (panel) => panel.bindToBoard(board)
+    );
   }
 
   private openSettings(board: WhiteBoard): void {

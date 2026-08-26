@@ -2776,7 +2776,8 @@
         "gather": "Take up what overlaps it",
         "detachAll": "Put everything back on the table",
         "copy": "Make a copy",
-        "delete": "Delete"
+        "delete": "Delete",
+        "draw": "Draw on it"
       },
       "settings": {
         "name": "Name",
