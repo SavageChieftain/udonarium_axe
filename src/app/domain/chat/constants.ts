@@ -2,6 +2,14 @@
 export const DEFAULT_CHAT_COLOR_CODES: readonly string[] = ['#000000', '#FF0000', '#0099FF'];
 
 /**
+ * The bubbles a chat starts with: none of its own.
+ *
+ * An empty entry means the bubble is worked out from the colour, which is what anyone who
+ * has never opened the colour panel wants. A reader who sets one is taken at their word.
+ */
+export const DEFAULT_CHAT_BUBBLE_CODES: readonly string[] = ['', '', ''];
+
+/**
  * The identifier of the system tab.
  *
  * Left alone, the arrivals, departures and silences flow into the conversation tabs.

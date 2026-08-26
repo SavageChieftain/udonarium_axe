@@ -531,6 +531,8 @@ export class ChatWindowComponent {
     sendTo: string;
     portraitIndex: number;
     messColor: string;
+    messBubbleLight?: string;
+    messBubbleDark?: string;
     replyTo: string;
     quoteOf: string;
   }) {
@@ -607,7 +609,8 @@ export class ChatWindowComponent {
         messageTargetContext,
         attachmentImageIdentifiers,
         value.replyTo,
-        value.quoteOf
+        value.quoteOf,
+        { light: value.messBubbleLight ?? '', dark: value.messBubbleDark ?? '' }
       );
     }
   }

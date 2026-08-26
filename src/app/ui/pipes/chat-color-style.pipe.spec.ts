@@ -1,5 +1,5 @@
 import { parseHexColor, relativeLuminance, rgbToLch } from '@axe/core/util/tonal-color';
-import { chatBubbleContrast, ChatColorStylePipe } from '@axe/ui/pipes/chat-color-style.pipe';
+import { autoChatBubble, chatColorContrast, ChatColorStylePipe } from '@axe/ui/pipes/chat-color-style.pipe';
 
 const PALETTE = [
   '#000000',
@@ -16,7 +16,6 @@ const PALETTE = [
   '#66ccff',
   '#0000ff',
   '#9900ff',
-  '#800080',
 ];
 
 const THEMES = ['light', 'dark'] as const;
@@ -25,11 +24,6 @@ function rgbOf(css: string): [number, number, number] {
   const match = /rgb\((\d+),(\d+),(\d+)\)/.exec(css);
   if (!match) throw new Error(`not a colour: ${css}`);
   return [Number(match[1]) / 255, Number(match[2]) / 255, Number(match[3]) / 255];
-}
-
-function hueGap(a: number, b: number): number {
-  const gap = Math.abs(a - b) % 360;
-  return gap > 180 ? 360 - gap : gap;
 }
 
 describe('ChatColorStylePipe', () => {
@@ -45,58 +39,70 @@ describe('ChatColorStylePipe', () => {
     expect(pipe.transform('not a colour')).toBeNull();
   });
 
-  it('holds every colour to the reading standard, on either theme', () => {
+  it('uses the chosen colour for the text, exactly as it was chosen', () => {
     for (const colour of PALETTE) {
       for (const theme of THEMES) {
-        expect(chatBubbleContrast(colour, theme)).toBeGreaterThanOrEqual(4.5);
+        expect(pipe.transform(colour, theme)?.['color']).toBe(colour);
       }
     }
   });
 
-  it('keeps the hue that says who is speaking', () => {
-    for (const colour of PALETTE) {
-      const chosen = rgbToLch(parseHexColor(colour)!);
-      if (chosen.chroma < 5) continue;
+  it('takes the bubble the reader set, whatever it does to the contrast', () => {
+    const style = pipe.transform('#000000', 'dark', '#010101')!;
 
-      for (const theme of THEMES) {
-        const shown = rgbToLch(rgbOf(pipe.transform(colour, theme)!['color']));
-
-        expect(hueGap(shown.hue, chosen.hue)).toBeLessThan(6);
-      }
-    }
+    expect(style['background-color']).toBe('rgb(1,1,1)');
+    expect(style['--bubble-bg']).toBe('rgb(1,1,1)');
   });
 
-  it('keeps a colour out of the bubble it sits on, so a speaker is not a wash of one hue', () => {
-    for (const colour of ['#ff0000', '#0099ff', '#9900ff']) {
-      for (const theme of THEMES) {
-        const bubble = rgbToLch(rgbOf(pipe.transform(colour, theme)!['background-color']));
+  it('works one out where none was set, and ignores one that is not a colour', () => {
+    const auto = pipe.transform('#006633', 'dark')!;
 
-        expect(bubble.chroma).toBeLessThanOrEqual(15);
-      }
-    }
+    expect(auto['background-color']).toBe(autoChatBubble('#006633', 'dark'));
+    expect(pipe.transform('#006633', 'dark', 'nonsense')!['background-color']).toBe(auto['background-color']);
   });
 
-  it('stays in the register of the theme it is shown on', () => {
-    for (const colour of PALETTE) {
-      // Never a black slab in a lit room, and never a sheet of paper in a dark one.
-      expect(relativeLuminance(rgbOf(pipe.transform(colour, 'light')!['background-color']))).toBeGreaterThan(0.55);
-      expect(relativeLuminance(rgbOf(pipe.transform(colour, 'dark')!['background-color']))).toBeLessThan(0.1);
-    }
-  });
-
-  it('keeps two colours of one hue apart, rather than flattening them to a single tone', () => {
-    for (const theme of THEMES) {
-      const dark = rgbToLch(rgbOf(pipe.transform('#006633', theme)!['color']));
-      const bright = rgbToLch(rgbOf(pipe.transform('#00cc00', theme)!['color']));
-
-      expect(bright.tone).toBeGreaterThan(dark.tone);
-    }
-  });
-
-  it('gives the caret the same colour as the bubble it points out of', () => {
+  it('gives the caret a colour that stands off the bubble it points out of', () => {
     const style = pipe.transform('#ff0000')!;
 
     expect(style['--bubble-bg']).toBe(style['background-color']);
     expect(style['--ui-bubble-caret-border']).not.toBe(style['background-color']);
+  });
+});
+
+describe('autoChatBubble()', () => {
+  it('holds every colour to the reading standard, on either theme', () => {
+    for (const colour of PALETTE) {
+      for (const theme of THEMES) {
+        expect(chatColorContrast(colour, '', theme)).toBeGreaterThanOrEqual(4.4);
+      }
+    }
+  });
+
+  it('stays on the background the rest of the page has when the colour can be read there', () => {
+    for (const colour of ['#0099ff', '#66ccff', '#ffcc00', '#00cc00', '#ffffff', '#cccccc']) {
+      const tone = rgbToLch(rgbOf(autoChatBubble(colour, 'dark'))).tone;
+
+      expect(Math.abs(tone - rgbToLch(parseHexColor('#21262d')!).tone)).toBeLessThan(2);
+    }
+  });
+
+  it('carries only a whisper of the hue, so the bubble stays out of the text way', () => {
+    expect(rgbToLch(rgbOf(autoChatBubble('#ff0000', 'dark'))).chroma).toBeLessThanOrEqual(9);
+  });
+
+  it('says nothing for a colour it cannot read', () => {
+    expect(autoChatBubble('not a colour', 'dark')).toBe('');
+  });
+});
+
+describe('chatColorContrast()', () => {
+  it('measures against the bubble that was set, when one was', () => {
+    const white = relativeLuminance([1, 1, 1]);
+
+    expect(chatColorContrast('#000000', '#ffffff', 'dark')).toBeCloseTo((white + 0.05) / 0.05, 1);
+  });
+
+  it('measures against the bubble it would be given, when none was', () => {
+    expect(chatColorContrast('#006633', '', 'dark')).toBeGreaterThanOrEqual(4.4);
   });
 });

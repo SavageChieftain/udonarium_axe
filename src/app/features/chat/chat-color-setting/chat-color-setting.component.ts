@@ -1,13 +1,19 @@
 import { NgStyle } from '@angular/common';
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { ModalService } from '@axe/application/ui/modal.service';
-import { PanelService } from '@axe/application/ui/panel.service';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { ChatSettingsEventHandlerService } from '@axe/features/chat/chat-settings-event-handler.service';
-import { ChatColorStylePipe } from '@axe/ui/pipes/chat-color-style.pipe';
+import {
+  autoChatBubble,
+  CHAT_TARGET_RATIO,
+  chatColorContrast,
+  ChatColorStylePipe,
+} from '@axe/ui/pipes/chat-color-style.pipe';
 import { TranslocoModule } from '@jsverse/transloco';
+
+export type ChatTheme = 'light' | 'dark';
 
 @Component({
   selector: 'chat-color-setting',
@@ -17,36 +23,21 @@ import { TranslocoModule } from '@jsverse/transloco';
   imports: [TranslocoModule, ChatColorStylePipe, NgStyle],
 })
 export class ChatColorSettingComponent {
-  /** Both sides of the page, so the reader sees what their colour costs on either. */
-  readonly themes = ['light', 'dark'] as const;
-  readonly slots = [0, 1, 2] as const;
-
-  private readonly panelService = inject(PanelService);
   private readonly modalService = inject(ModalService);
   private readonly objectChange = inject(ObjectChangeService);
   private readonly chatSettings = inject(ChatSettingsEventHandlerService);
 
+  readonly themes: readonly ChatTheme[] = ['light', 'dark'];
+  readonly slots = [0, 1, 2] as const;
+
   isAllowedEmpty: boolean = false;
   tabletopObject: GameCharacter | null = null;
 
+  /** Bumped by hand, since the colours live on arrays that no sync var watches element by element. */
+  protected readonly revision = signal(0);
+
   get myPeer(): PeerCursor {
     return PeerCursor.myCursor;
-  }
-
-  changeColor(event: string, num: number) {
-    if (this.tabletopObject) {
-      this.tabletopObject.chatColorCode[num] = event;
-
-      if (this.tabletopObject.syncDummyCounter < 2) {
-        this.tabletopObject.syncDummyCounter = this.tabletopObject.syncDummyCounter + 1;
-      } else {
-        this.tabletopObject.syncDummyCounter = 0;
-      }
-    } else {
-      this.myPeer.chatColorCode[num] = event;
-      this.chatSettings.captureColors();
-      this.objectChange.notifyChanged(this.myPeer.identifier);
-    }
   }
 
   constructor() {
@@ -54,21 +45,92 @@ export class ChatColorSettingComponent {
     this.isAllowedEmpty = !!option?.isAllowedEmpty;
   }
 
-  chatColorCode(num: number) {
+  private get owner(): GameCharacter | PeerCursor {
+    return this.tabletopObject ?? this.myPeer;
+  }
+
+  chatColorCode(num: number): string {
+    this.revision();
+    return this.owner.chatColorCode[num];
+  }
+
+  bubbleCode(num: number, theme: ChatTheme): string {
+    this.revision();
+    const codes = theme === 'dark' ? this.owner.chatBubbleDark : this.owner.chatBubbleLight;
+    return codes[num] ?? '';
+  }
+
+  /** What the bubble will actually be: the one that was set, or the one worked out for it. */
+  shownBubble(num: number, theme: ChatTheme): string {
+    return this.bubbleCode(num, theme) || autoChatBubble(this.chatColorCode(num), theme);
+  }
+
+  contrastOf(num: number, theme: ChatTheme): number {
+    return chatColorContrast(this.chatColorCode(num), this.bubbleCode(num, theme), theme);
+  }
+
+  isHardToRead(num: number, theme: ChatTheme): boolean {
+    return this.contrastOf(num, theme) < CHAT_TARGET_RATIO;
+  }
+
+  contrastLabel(num: number, theme: ChatTheme): string {
+    return this.contrastOf(num, theme).toFixed(1);
+  }
+
+  changeColor(event: string, num: number): void {
     if (this.tabletopObject) {
-      return this.tabletopObject.chatColorCode[num];
+      this.tabletopObject.chatColorCode[num] = event;
+      this.bumpCharacter();
     } else {
-      return this.myPeer.chatColorCode[num];
+      this.myPeer.chatColorCode[num] = event;
+      this.chatSettings.captureColors();
     }
+    this.touched();
+  }
+
+  changeBubble(event: string, num: number, theme: ChatTheme): void {
+    const codes = theme === 'dark' ? this.owner.chatBubbleDark : this.owner.chatBubbleLight;
+    codes[num] = event;
+    if (this.tabletopObject) this.bumpCharacter();
+    else this.chatSettings.captureColors();
+    this.touched();
+  }
+
+  /** Puts the bubble where the colour can be read on it, and leaves it there to be edited. */
+  autoAdjust(num: number, theme: ChatTheme): void {
+    this.changeBubble(cssToHex(autoChatBubble(this.chatColorCode(num), theme)), num, theme);
+  }
+
+  clearBubble(num: number, theme: ChatTheme): void {
+    this.changeBubble('', num, theme);
   }
 
   onChangeColor(event: Event, index: number): void {
     this.changeColor((event.target as HTMLInputElement).value, index);
-    this.objectChange.notifyChanged(this.myPeer.identifier);
   }
 
-  /** The name a message would carry, so the sample reads as a message rather than as a swatch. */
+  onChangeBubble(event: Event, index: number, theme: ChatTheme): void {
+    this.changeBubble((event.target as HTMLInputElement).value, index, theme);
+  }
+
   get speakerName(): string {
     return this.tabletopObject?.name || this.myPeer.name;
   }
+
+  private bumpCharacter(): void {
+    const object = this.tabletopObject;
+    if (!object) return;
+    object.syncDummyCounter = object.syncDummyCounter < 2 ? object.syncDummyCounter + 1 : 0;
+  }
+
+  private touched(): void {
+    this.revision.update((value) => value + 1);
+    this.objectChange.notifyChanged(this.owner.identifier);
+  }
+}
+
+function cssToHex(css: string): string {
+  const match = /rgb\((\d+),(\d+),(\d+)\)/.exec(css);
+  if (!match) return css;
+  return '#' + [1, 2, 3].map((i) => Number(match[i]).toString(16).padStart(2, '0')).join('');
 }

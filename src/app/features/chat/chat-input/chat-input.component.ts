@@ -143,6 +143,8 @@ export class ChatInputComponent {
     sendTo: string;
     portraitIndex: number;
     messColor: string;
+    messBubbleLight?: string;
+    messBubbleDark?: string;
     replyTo: string;
     quoteOf: string;
   }>();
@@ -312,6 +314,14 @@ export class ChatInputComponent {
     return this.chatColor(this.colorSelectNo());
   }
 
+  /** The bubble the sender asked for on each theme, which travels with the message. */
+  private chatBubbles(num: number): { light: string; dark: string } {
+    const object = this.objectStore.get(this.sendFrom);
+    const source = object instanceof GameCharacter ? object : this.myPeer;
+    this.objectChange.versionOf(source.identifier)();
+    return { light: source.chatBubbleLight[num] ?? '', dark: source.chatBubbleDark[num] ?? '' };
+  }
+
   chatColor(num: number): string {
     const object = this.objectStore.get(this.sendFrom);
     if (object instanceof GameCharacter) return this.characterChatColor(num);
@@ -443,6 +453,7 @@ export class ChatInputComponent {
       sendTo: this.sendTo,
       portraitIndex: this.portraitIndex,
       messColor: this.selectChatColor,
+      bubbles: this.chatBubbles(this.colorSelectNo()),
     };
     const replyTo = this.replyTarget()?.identifier ?? '';
     const quoteOf = this.quoteTarget()?.identifier ?? '';
@@ -454,6 +465,8 @@ export class ChatInputComponent {
         sendTo: message.sendTo,
         portraitIndex: message.portraitIndex,
         messColor: message.messColor,
+        messBubbleLight: message.bubbles.light,
+        messBubbleDark: message.bubbles.dark,
         replyTo,
         quoteOf,
       });

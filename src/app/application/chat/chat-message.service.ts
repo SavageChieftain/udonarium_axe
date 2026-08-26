@@ -169,7 +169,8 @@ export class ChatMessageService {
     messageTargetContext?: ChatMessageTargetContext[],
     attachmentImageIdentifiers?: string[],
     replyTo?: string,
-    quoteOf?: string
+    quoteOf?: string,
+    bubbles?: { light: string; dark: string }
   ): ChatMessage {
     const resolvedMessage = this.resolveAttachmentImageReferences(text, sendFrom, attachmentImageIdentifiers ?? []);
     text = resolvedMessage.text;
@@ -201,6 +202,8 @@ export class ChatMessageService {
     if (quoteOf) {
       chatMessage.quoteOf = quoteOf;
     }
+    if (bubbles?.light) chatMessage.messBubbleLight = bubbles.light;
+    if (bubbles?.dark) chatMessage.messBubbleDark = bubbles.dark;
 
     const portrait = this.applyPortraitCommand(chatMessage, text, sendFrom, imgIndex);
     this.setLastControlInfoToPeer(sendFrom, portrait.identifier, portrait.index, sendTo);

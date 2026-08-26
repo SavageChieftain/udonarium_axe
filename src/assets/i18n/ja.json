@@ -2060,7 +2060,11 @@
         "theme": {
           "light": "ライトテーマ",
           "dark": "ダークテーマ"
-        }
+        },
+        "bubble": "吹き出しの色",
+        "auto": "自動に戻す",
+        "fix": "自動調整",
+        "hardToRead": "このテーマでは読みにくくなります（{{ratio}}:1）"
       },
       "messageFix": {
         "change": "変更",

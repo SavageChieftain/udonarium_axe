@@ -86,6 +86,11 @@ export class ChatMessageComponent {
    * the view keeps the cover on until some unrelated thing forces it to draw again - which
    * looks exactly like the reveal failing to reach the other players.
    */
+  /** The bubble the sender asked for on the theme being looked at, if they asked for one. */
+  protected bubbleFor(message: ChatMessage): string {
+    return this.theme.resolved() === 'dark' ? message.messBubbleDark : message.messBubbleLight;
+  }
+
   readonly isSecret = computed(() => {
     const chatMessage = this.chatMessageInput();
     if (!chatMessage) return false;

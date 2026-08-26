@@ -32,6 +32,8 @@ export interface ChatMessageContext {
 
   imagePos?: number;
   messColor?: string;
+  messBubbleLight?: string;
+  messBubbleDark?: string;
   sendFrom?: string;
   replyTo?: string;
   quoteOf?: string;
@@ -50,6 +52,9 @@ export class ChatMessage extends ObjectNode implements ChatMessageContext {
   @SyncVar() imagePos: number;
   @SyncVar() vnPortraitPos: number = VN_PORTRAIT_POS_UNSET;
   @SyncVar() messColor: string;
+  /** The bubble the sender asked for on each theme. Empty is worked out from the colour. */
+  @SyncVar() messBubbleLight: string = '';
+  @SyncVar() messBubbleDark: string = '';
   @SyncVar() sendFrom: string;
   @SyncVar() replyTo: string = '';
   @SyncVar() quoteOf: string = '';

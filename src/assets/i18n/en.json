@@ -2060,7 +2060,11 @@
         "theme": {
           "light": "Light theme",
           "dark": "Dark theme"
-        }
+        },
+        "bubble": "Bubble colour",
+        "auto": "Back to automatic",
+        "fix": "Adjust it",
+        "hardToRead": "Hard to read on this theme ({{ratio}}:1)"
       },
       "messageFix": {
         "change": "Apply",

@@ -2060,7 +2060,11 @@
         "theme": {
           "light": "라이트 테마",
           "dark": "다크 테마"
-        }
+        },
+        "bubble": "말풍선 색",
+        "auto": "자동으로 되돌리기",
+        "fix": "자동 조정",
+        "hardToRead": "이 테마에서는 읽기 어렵습니다 ({{ratio}}:1)"
       },
       "messageFix": {
         "change": "변경",
