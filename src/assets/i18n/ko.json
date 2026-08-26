@@ -100,7 +100,9 @@
       "door_stone": "돌문",
       "stair_up": "올라가는 계단",
       "stair_down": "내려가는 계단",
-      "stair_spiral": "나선 계단"
+      "stair_spiral": "나선 계단",
+      "poison_pool": "독 늪",
+      "cactus_skin": "선인장 껍질"
     }
   },
   "feature": {

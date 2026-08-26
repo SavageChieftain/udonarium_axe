@@ -12,7 +12,7 @@ export type FieldPropId = (typeof FIELD_PROP_IDS)[number];
 export interface FieldPropShape {
   /** A prop wears whatever picture suits it, a wall texture or a ground one. */
   side: WallTextureId | TextureId;
-  top: TextureId;
+  top: WallTextureId | TextureId;
   height: number;
   /** How wide a patch of it grows, in cells. An outcrop is a hillside, not a stone. */
   span: number;
@@ -126,8 +126,8 @@ export const FIELD_PROP_SHAPES: Record<FieldPropId, FieldPropShape> = {
    * trunk with two of them set at different heights on opposite sides.
    */
   cactus: {
-    side: 'steppe',
-    top: 'steppe',
+    side: 'cactus_skin',
+    top: 'cactus_skin',
     height: 1.4,
     span: 1,
     blocksSight: false,
@@ -335,7 +335,7 @@ export const FIELD_ATMOSPHERES: Record<FieldAtmosphereId, FieldAtmosphere> = {
       { prop: 'tree', chance: 0.13, bands: [1, 2] },
       { prop: 'bush', chance: 0.07, bands: [1] },
     ],
-    pools: [{ kind: 'miasma', texture: 'sea', density: 0.55, size: 3, chance: 5, bands: [0, 1] }],
+    pools: [{ kind: 'miasma', texture: 'poison_pool', density: 0.55, size: 3, chance: 5, bands: [0, 1] }],
     darkness: 0.35,
     ambientColor: '#101511',
     weatherKind: 'fog',

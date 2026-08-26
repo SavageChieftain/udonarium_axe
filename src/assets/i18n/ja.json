@@ -100,7 +100,9 @@
       "door_stone": "石の扉",
       "stair_up": "上り階段",
       "stair_down": "下り階段",
-      "stair_spiral": "螺旋階段"
+      "stair_spiral": "螺旋階段",
+      "poison_pool": "毒の沼",
+      "cactus_skin": "サボテンの肌"
     }
   },
   "feature": {

@@ -32,6 +32,7 @@ export const TEXTURE_IDS = [
   'stone_paving_wet',
   'swamp_mud',
   'wood_plank',
+  'poison_pool',
 ] as const;
 
 export type TextureId = (typeof TEXTURE_IDS)[number];
@@ -67,6 +68,7 @@ export const TEXTURE_ASSET_URLS: Record<TextureId, string> = {
   stone_paving_wet: 'assets/images/tiles/stone_paving_wet.webp',
   swamp_mud: 'assets/images/tiles/swamp_mud.webp',
   wood_plank: 'assets/images/tiles/wood_plank.webp',
+  poison_pool: 'assets/images/tiles/poison_pool.webp',
 };
 
 export const TEXTURE_BASE_COLOR: Record<TextureId, string> = {
@@ -100,6 +102,7 @@ export const TEXTURE_BASE_COLOR: Record<TextureId, string> = {
   stone_paving_wet: '#718a9b',
   swamp_mud: '#444a13',
   wood_plank: '#bd8f46',
+  poison_pool: '#012304',
 };
 
 export function isTextureId(value: string): value is TextureId {
@@ -119,6 +122,7 @@ export const WALL_TEXTURE_IDS = [
   'wall_rubble',
   'wall_sandstone',
   'wall_timber',
+  'cactus_skin',
 ] as const;
 
 export type WallTextureId = (typeof WALL_TEXTURE_IDS)[number];
@@ -136,6 +140,7 @@ export const WALL_TEXTURE_ASSET_URLS: Record<WallTextureId, string> = {
   wall_rubble: 'assets/images/walls/wall_rubble.webp',
   wall_sandstone: 'assets/images/walls/wall_sandstone.webp',
   wall_timber: 'assets/images/walls/wall_timber.webp',
+  cactus_skin: 'assets/images/walls/cactus_skin.webp',
 };
 
 /** The floor tile a wall shows on its top and bottom, seen from above. */
@@ -152,6 +157,7 @@ export const WALL_TOP_TEXTURE: Record<WallTextureId, TextureId> = {
   wall_rubble: 'gravel',
   wall_sandstone: 'sandstone_floor',
   wall_timber: 'floor',
+  cactus_skin: 'steppe',
 };
 
 export const WALL_TEXTURE_BASE_COLOR: Record<WallTextureId, string> = {
@@ -167,6 +173,7 @@ export const WALL_TEXTURE_BASE_COLOR: Record<WallTextureId, string> = {
   wall_rubble: '#bbab7b',
   wall_sandstone: '#d7942b',
   wall_timber: '#976324',
+  cactus_skin: '#20520d',
 };
 
 export function isWallTextureId(value: string): value is WallTextureId {

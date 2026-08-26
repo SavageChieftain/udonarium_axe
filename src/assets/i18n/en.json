@@ -100,7 +100,9 @@
       "door_stone": "Stone door",
       "stair_up": "Stairs up",
       "stair_down": "Stairs down",
-      "stair_spiral": "Spiral stairs"
+      "stair_spiral": "Spiral stairs",
+      "poison_pool": "Poisoned pool",
+      "cactus_skin": "Cactus skin"
     }
   },
   "feature": {
