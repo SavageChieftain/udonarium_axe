@@ -1715,7 +1715,8 @@
           "tableName": "Table name",
           "placeDoors": "Place doors",
           "placeStairs": "Place the way in and out",
-          "placeScratchMask": "Cover what is unexplored"
+          "placeScratchMask": "Cover what is unexplored",
+          "wallHeight": "Wall height (cells)"
         },
         "actions": {
           "generate": "Generate",

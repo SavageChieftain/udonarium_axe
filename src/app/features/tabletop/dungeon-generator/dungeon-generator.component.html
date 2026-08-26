@@ -84,6 +84,38 @@
   </div>
 
   <div>
+    <label
+      class="text-ui-muted mb-1.25 block text-[0.78rem] font-semibold tracking-[0.04em] uppercase"
+      for="wall-height"
+    >
+      {{ 'feature.tabletop.dungeonGenerator.props.wallHeight' | transloco }}
+    </label>
+    <div class="flex items-center gap-2">
+      <input
+        class="min-w-0 flex-1"
+        id="wall-height"
+        name="wall-height"
+        type="range"
+        [min]="minWallHeight"
+        [max]="maxWallHeight"
+        step="0.5"
+        [ngModel]="wallHeight()"
+        (ngModelChange)="setWallHeight($event)"
+      />
+      <input
+        class="border-ui-border-panel bg-ui-input text-ui-text focus:border-ui-accent rounded-ui-sm w-16 shrink-0 border border-solid px-2 py-1.5 text-center text-[13px] outline-none"
+        name="wall-height-number"
+        type="number"
+        [min]="minWallHeight"
+        [max]="maxWallHeight"
+        step="0.5"
+        [ngModel]="wallHeight()"
+        (ngModelChange)="setWallHeight($event)"
+      />
+    </div>
+  </div>
+
+  <div>
     <label class="text-ui-muted mb-1.25 block text-[0.78rem] font-semibold tracking-[0.04em] uppercase" for="seed">
       {{ 'feature.tabletop.dungeonGenerator.props.seed' | transloco }}
     </label>

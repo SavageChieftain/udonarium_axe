@@ -1715,7 +1715,8 @@
           "tableName": "테이블 이름",
           "placeDoors": "문 배치",
           "placeStairs": "입구와 출구 배치",
-          "placeScratchMask": "미탐색 영역 덮기"
+          "placeScratchMask": "미탐색 영역 덮기",
+          "wallHeight": "벽 높이(칸)"
         },
         "actions": {
           "generate": "생성",

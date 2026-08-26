@@ -20,6 +20,7 @@ function options(overrides: Partial<Parameters<DungeonBuildService['build']>[3]>
     name: 'Test dungeon',
     wall: { kind: 'texture' as const, id: 'wall_ashlar' },
     floor: { kind: 'texture' as const, id: 'stone_paving_big' },
+    wallHeight: 2,
     placeScratchMask: false,
     ...overrides,
   };
@@ -112,6 +113,23 @@ describe('DungeonBuildService', () => {
 
     expect(stairIndex).toBeGreaterThanOrEqual(0);
     expect(result.table.terrains[stairIndex].posZ).toBeGreaterThan(result.table.terrains[floorIndex].posZ);
+  });
+
+  it('stands the walls and the doors at the height it was given', async () => {
+    const { plan, result } = await build({ wallHeight: 4 });
+
+    plan.blocks.blocks.forEach((block, index) => {
+      if (block.kind !== 'wall' && block.kind !== 'door') return;
+      expect(result.table.terrains[index].height).toBe(4);
+    });
+  });
+
+  it('takes the height from the caller rather than the atmosphere', async () => {
+    const stock = atmosphereById('stoneDungeon').wallHeight;
+    const { plan, result } = await build({ wallHeight: stock + 1.5 });
+    const index = plan.blocks.blocks.findIndex((block) => block.kind === 'wall');
+
+    expect(result.table.terrains[index].height).toBe(stock + 1.5);
   });
 
   it('sets a door as a thin slab across the way it bars', async () => {

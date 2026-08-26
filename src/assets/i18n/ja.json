@@ -1715,7 +1715,8 @@
           "tableName": "テーブル名",
           "placeDoors": "扉を置く",
           "placeStairs": "入口と出口を置く",
-          "placeScratchMask": "未探索の覆いを敷く"
+          "placeScratchMask": "未探索の覆いを敷く",
+          "wallHeight": "壁の高さ（マス）"
         },
         "actions": {
           "generate": "生成する",

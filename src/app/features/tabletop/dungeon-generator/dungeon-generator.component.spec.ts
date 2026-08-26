@@ -14,6 +14,8 @@ type Panel = DungeonGeneratorComponent & {
   wall(): { kind: string; id?: string; identifier?: string };
   floor(): { kind: string; id?: string; identifier?: string };
   usingDefaults(): boolean;
+  wallHeight(): number;
+  setWallHeight(height: number): void;
   terrainCount(): number;
   syncCount(): number;
   tooMany(): boolean;
@@ -87,6 +89,37 @@ describe('DungeonGeneratorComponent', () => {
     component.chooseAtmosphere('crypt');
 
     expect(component.wall()).toEqual({ kind: 'texture', id: 'wall_bone' });
+    expect(component.usingDefaults()).toBe(true);
+  });
+
+  it('takes the wall height from the atmosphere until it is touched', () => {
+    expect(component.wallHeight()).toBe(2);
+
+    component.chooseAtmosphere('cavern');
+    expect(component.wallHeight()).toBe(3);
+  });
+
+  it('keeps a height that was set by hand when the atmosphere changes', () => {
+    component.setWallHeight(4.5);
+    component.chooseAtmosphere('cavern');
+
+    expect(component.wallHeight()).toBe(4.5);
+    expect(component.usingDefaults()).toBe(false);
+  });
+
+  it('holds the height inside what a table can show', () => {
+    component.setWallHeight(99);
+    expect(component.wallHeight()).toBe(6);
+
+    component.setWallHeight(0);
+    expect(component.wallHeight()).toBe(0.5);
+  });
+
+  it('follows the atmosphere again once the defaults are restored', () => {
+    component.setWallHeight(4.5);
+    component.resetMaterials();
+
+    expect(component.wallHeight()).toBe(2);
     expect(component.usingDefaults()).toBe(true);
   });
 

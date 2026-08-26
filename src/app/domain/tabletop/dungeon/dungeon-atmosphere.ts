@@ -30,6 +30,14 @@ export interface CaveShape {
   hazardPoolsPerRoom: number;
 }
 
+export const MIN_WALL_HEIGHT = 0.5;
+export const MAX_WALL_HEIGHT = 6;
+
+export function clampWallHeight(height: number): number {
+  if (!Number.isFinite(height)) return MIN_WALL_HEIGHT;
+  return Math.min(MAX_WALL_HEIGHT, Math.max(MIN_WALL_HEIGHT, Math.round(height * 2) / 2));
+}
+
 export interface DungeonAtmosphere {
   id: DungeonAtmosphereId;
   algorithm: 'rooms' | 'cave';

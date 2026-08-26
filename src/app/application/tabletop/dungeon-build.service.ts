@@ -39,6 +39,8 @@ export interface DungeonBuildOptions {
   name: string;
   wall: DungeonMaterial;
   floor: DungeonMaterial;
+  /** How tall the walls stand, in cells. The atmosphere suggests one; the panel may override it. */
+  wallHeight: number;
   placeScratchMask: boolean;
 }
 
@@ -95,7 +97,9 @@ export class DungeonBuildService {
 
     let done = 0;
     for (const block of blocks.blocks) {
-      table.appendChild(this.createTerrain(block, atmosphere, { wallSide, wallTop, floor, hazard }));
+      table.appendChild(
+        this.createTerrain(block, atmosphere, { wallSide, wallTop, floor, hazard }, options.wallHeight)
+      );
       done++;
       if (done % CHUNK_SIZE === 0) {
         onProgress?.(done, blocks.blocks.length);
@@ -136,11 +140,12 @@ export class DungeonBuildService {
   private createTerrain(
     block: DungeonBlock,
     atmosphere: DungeonAtmosphere,
-    images: { wallSide: string; wallTop: string; floor: string; hazard: string }
+    images: { wallSide: string; wallTop: string; floor: string; hazard: string },
+    wallHeight: number
   ): Terrain {
     const { rect } = block;
     const name = this.terrainName(block);
-    const terrain = this.terrainFor(block, atmosphere, images, name);
+    const terrain = this.terrainFor(block, atmosphere, images, name, wallHeight);
 
     terrain.isTiledTexture = true;
     terrain.isLocked = true;
@@ -163,12 +168,13 @@ export class DungeonBuildService {
     block: DungeonBlock,
     atmosphere: DungeonAtmosphere,
     images: { wallSide: string; wallTop: string; floor: string; hazard: string },
-    name: string
+    name: string,
+    wallHeight: number
   ): Terrain {
     const { rect } = block;
     switch (block.kind) {
       case 'wall': {
-        const terrain = Terrain.create(name, rect.w, rect.h, atmosphere.wallHeight, images.wallSide, images.wallTop);
+        const terrain = Terrain.create(name, rect.w, rect.h, wallHeight, images.wallSide, images.wallTop);
         terrain.mode = TerrainViewState.ALL;
         return terrain;
       }
@@ -177,7 +183,7 @@ export class DungeonBuildService {
         const acrossX = block.across === 'x';
         const width = acrossX ? DOOR_THICKNESS : rect.w;
         const depth = acrossX ? rect.h : DOOR_THICKNESS;
-        const terrain = Terrain.create(name, width, depth, atmosphere.wallHeight, door, door);
+        const terrain = Terrain.create(name, width, depth, wallHeight, door, door);
         terrain.mode = TerrainViewState.ALL;
         return terrain;
       }

@@ -15,8 +15,11 @@ import {
 } from '@axe/domain/media/texture-catalog';
 import {
   atmosphereById,
+  clampWallHeight,
   DUNGEON_ATMOSPHERE_IDS,
   DungeonAtmosphereId,
+  MAX_WALL_HEIGHT,
+  MIN_WALL_HEIGHT,
 } from '@axe/domain/tabletop/dungeon/dungeon-atmosphere';
 import {
   DUNGEON_HEAVY_TERRAINS,
@@ -59,6 +62,8 @@ export class DungeonGeneratorComponent {
   protected readonly maxRooms = MAX_ROOM_COUNT;
   protected readonly heavyLimit = DUNGEON_HEAVY_TERRAINS;
   protected readonly maxTerrains = DUNGEON_MAX_TERRAINS;
+  protected readonly minWallHeight = MIN_WALL_HEIGHT;
+  protected readonly maxWallHeight = MAX_WALL_HEIGHT;
 
   protected readonly atmosphere = signal<DungeonAtmosphereId>('stoneDungeon');
   protected readonly roomCount = signal(8);
@@ -70,6 +75,7 @@ export class DungeonGeneratorComponent {
 
   private readonly wallOverride = signal<DungeonMaterial | null>(null);
   private readonly floorOverride = signal<DungeonMaterial | null>(null);
+  private readonly heightOverride = signal<number | null>(null);
 
   protected readonly busy = signal(false);
   protected readonly progress = signal(0);
@@ -91,7 +97,12 @@ export class DungeonGeneratorComponent {
   protected readonly floor = computed<DungeonMaterial>(
     () => this.floorOverride() ?? { kind: 'texture', id: atmosphereById(this.atmosphere()).defaultFloor }
   );
-  protected readonly usingDefaults = computed(() => this.wallOverride() === null && this.floorOverride() === null);
+  protected readonly wallHeight = computed(() =>
+    clampWallHeight(this.heightOverride() ?? atmosphereById(this.atmosphere()).wallHeight)
+  );
+  protected readonly usingDefaults = computed(
+    () => this.wallOverride() === null && this.floorOverride() === null && this.heightOverride() === null
+  );
 
   /** Materials do not change the shape, so a new swatch must not roll the dungeon again. */
   protected readonly plan = computed(() =>
@@ -134,9 +145,14 @@ export class DungeonGeneratorComponent {
     this.floorOverride.set(material);
   }
 
+  protected setWallHeight(height: number): void {
+    this.heightOverride.set(height);
+  }
+
   protected resetMaterials(): void {
     this.wallOverride.set(null);
     this.floorOverride.set(null);
+    this.heightOverride.set(null);
   }
 
   protected reroll(): void {
@@ -165,6 +181,7 @@ export class DungeonGeneratorComponent {
           name: this.nameFor(),
           wall: this.wall(),
           floor: this.floor(),
+          wallHeight: this.wallHeight(),
           placeScratchMask: this.placeScratchMask(),
         },
         (done, total) => this.progress.set(Math.round((done / total) * 100))
