@@ -20,13 +20,18 @@ export type ChatTheme = 'light' | 'dark';
  *
  * Picking a legible colour out of a wheel is a chore nobody wants before speaking, and these
  * are the ones the tool has always offered: a dark and a light of each hue, spread round it.
+ * Yellow was the one hue missing, and sixteen fills the two rows they are laid out in.
  */
+/** How many swatches a row of the palette holds, which the count of them has to divide into. */
+export const PRESET_COLUMNS = 8;
+
 export const CHAT_PRESET_COLORS: readonly string[] = [
   '#000000',
   '#999999',
   '#990000',
   '#FF0000',
   '#FF6633',
+  '#FFCC00',
   '#669933',
   '#00CC33',
   '#009966',

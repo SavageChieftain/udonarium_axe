@@ -1,7 +1,10 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ModalService } from '@axe/application/ui/modal.service';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
-import { ChatColorSettingComponent } from '@axe/features/chat/chat-color-setting/chat-color-setting.component';
+import {
+  ChatColorSettingComponent,
+  PRESET_COLUMNS,
+} from '@axe/features/chat/chat-color-setting/chat-color-setting.component';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
 
 describe('ChatColorSettingComponent', () => {
@@ -57,6 +60,21 @@ describe('ChatColorSettingComponent', () => {
 
     expect(component.presets.length).toBeGreaterThan(0);
     expect(swatches.length).toBe(component.presets.length);
+  });
+
+  it('fills whole rows, a palette with one swatch hanging off the end looking unfinished', () => {
+    const host = fixture.nativeElement as HTMLElement;
+    const palette = host.querySelector('button[title^="#"]')?.parentElement;
+
+    expect(component.presets.length % PRESET_COLUMNS).toBe(0);
+    // The row width is written into the layout as a class, so it has to agree with the count.
+    expect(palette?.className).toContain('grid-cols-' + PRESET_COLUMNS);
+  });
+
+  it('offers no colour twice', () => {
+    const seen = component.presets.map((preset) => preset.toLowerCase());
+
+    expect(new Set(seen).size).toBe(seen.length);
   });
 
   it('takes a colour straight off the palette', () => {
