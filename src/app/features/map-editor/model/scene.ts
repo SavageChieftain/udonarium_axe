@@ -102,6 +102,8 @@ export interface TextItem {
   bold: boolean;
   italic: boolean;
   align: TextAlign;
+  /** A card behind the words, which is what makes a note a note rather than a caption. */
+  background?: string;
 }
 
 export interface TextLayer extends BaseLayer {

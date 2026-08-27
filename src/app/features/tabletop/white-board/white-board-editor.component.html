@@ -4,8 +4,8 @@
   class="text-ui-text relative grid h-full text-[12px] outline-none"
   tabindex="0"
   (keydown)="onKeyDown($event)"
-  [class.grid-cols-\[56px_1fr\]]="isCompact()"
-  [class.grid-cols-\[56px_216px_1fr_196px\]]="!isCompact()"
+  (keyup)="onKeyUp($event)"
+  [ngClass]="isCompact() ? 'grid-cols-[56px_1fr]' : 'grid-cols-[56px_216px_1fr_196px]'"
   (mousedown)="$event.stopPropagation()"
   (touchstart)="$event.stopPropagation()"
 >
@@ -85,6 +85,22 @@
       </label>
     </div>
 
+    @if (tool() === 'note') {
+      <div class="flex flex-col gap-1.5">
+        <div class="font-semibold">{{ 'feature.whiteBoard.tool.note' | transloco }}</div>
+        <label class="flex items-center justify-between gap-2">
+          <span class="text-ui-muted">{{ 'feature.whiteBoard.editor.card' | transloco }}</span>
+          <input
+            class="h-6 w-12 cursor-pointer"
+            type="color"
+            name="board-card"
+            [ngModel]="noteColor()"
+            (ngModelChange)="noteColor.set($event)"
+          />
+        </label>
+      </div>
+    }
+
     @if (tool() === 'shape') {
       <div class="flex flex-col gap-1.5">
         <div class="font-semibold">{{ 'feature.whiteBoard.editor.shape' | transloco }}</div>
@@ -113,6 +129,10 @@
       <label class="flex cursor-pointer items-center gap-1.5">
         <input type="checkbox" name="board-ruled" [(ngModel)]="isRuled" />
         {{ 'feature.whiteBoard.editor.ruled' | transloco }}
+      </label>
+      <label class="flex cursor-pointer items-center gap-1.5">
+        <input type="checkbox" name="board-snap" [ngModel]="snapping()" (ngModelChange)="snapping.set($event)" />
+        {{ 'feature.whiteBoard.editor.snap' | transloco }}
       </label>
       @if (isRuled) {
         <label class="flex items-center justify-between gap-2">
@@ -228,14 +248,56 @@
         <i class="material-icons text-[16px]!">redo</i>
       </button>
       @if (selected()) {
-        <button
-          class="rounded-ui-sm hover:bg-ui-hover cursor-pointer border border-solid border-transparent px-1 py-0.5"
-          type="button"
-          [title]="'feature.whiteBoard.editor.removeSelected' | transloco"
-          (click)="removeSelected()"
-        >
-          <i class="material-icons text-[16px]!">delete</i>
-        </button>
+        <span class="border-ui-border-panel ml-1 flex items-center gap-0.5 border-l border-solid pl-2">
+          <button
+            class="rounded-ui-sm hover:bg-ui-hover cursor-pointer border border-solid border-transparent px-1 py-0.5"
+            type="button"
+            [title]="'feature.whiteBoard.editor.duplicate' | transloco"
+            (click)="duplicateSelected()"
+          >
+            <i class="material-icons text-[16px]!">content_copy</i>
+          </button>
+          <button
+            class="rounded-ui-sm hover:bg-ui-hover cursor-pointer border border-solid border-transparent px-1 py-0.5"
+            type="button"
+            [title]="'feature.whiteBoard.editor.turnLeft' | transloco"
+            (click)="turnSelected(-turnStep)"
+          >
+            <i class="material-icons text-[16px]!">rotate_left</i>
+          </button>
+          <button
+            class="rounded-ui-sm hover:bg-ui-hover cursor-pointer border border-solid border-transparent px-1 py-0.5"
+            type="button"
+            [title]="'feature.whiteBoard.editor.turnRight' | transloco"
+            (click)="turnSelected(turnStep)"
+          >
+            <i class="material-icons text-[16px]!">rotate_right</i>
+          </button>
+          <button
+            class="rounded-ui-sm hover:bg-ui-hover cursor-pointer border border-solid border-transparent px-1 py-0.5"
+            type="button"
+            [title]="'feature.whiteBoard.editor.bringForward' | transloco"
+            (click)="bringForward()"
+          >
+            <i class="material-icons text-[16px]!">flip_to_front</i>
+          </button>
+          <button
+            class="rounded-ui-sm hover:bg-ui-hover cursor-pointer border border-solid border-transparent px-1 py-0.5"
+            type="button"
+            [title]="'feature.whiteBoard.editor.sendBackward' | transloco"
+            (click)="sendBackward()"
+          >
+            <i class="material-icons text-[16px]!">flip_to_back</i>
+          </button>
+          <button
+            class="rounded-ui-sm hover:bg-ui-hover cursor-pointer border border-solid border-transparent px-1 py-0.5"
+            type="button"
+            [title]="'feature.whiteBoard.editor.removeSelected' | transloco"
+            (click)="removeSelected()"
+          >
+            <i class="material-icons text-[16px]!">delete</i>
+          </button>
+        </span>
       }
       <span class="text-ui-muted">{{ 'feature.whiteBoard.editor.zoom' | transloco }}</span>
       @for (step of zooms; track step) {
@@ -261,7 +323,7 @@
       }
     </div>
 
-    <div class="relative flex-1 overflow-auto bg-neutral-700 p-3">
+    <div #stage class="relative flex-1 overflow-auto bg-neutral-700 p-3" [class.cursor-grab]="panning()">
       <div class="relative mx-auto" [style.width.px]="sceneWidth * zoom()">
         <canvas
           #board

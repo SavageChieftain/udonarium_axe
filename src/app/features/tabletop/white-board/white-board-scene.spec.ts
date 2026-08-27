@@ -1,7 +1,9 @@
 import { createLayer, FreehandLayer, ImageLayer, MapScene, TextLayer } from '@axe/features/map-editor/model/scene';
 import { addImage, addShape, addStroke, addText } from '@axe/features/map-editor/model/scene-ops';
 import {
+  arrowBetween,
   boxOf,
+  copyMark,
   createBoardScene,
   fileUnder,
   freehandLayer,
@@ -10,22 +12,28 @@ import {
   groupNames,
   handleAt,
   handleUnder,
+  highlighterStyle,
   imageLayer,
   layerFor,
   markUnder,
   moveMark,
+  noteAt,
   penStroke,
   removeMark,
   renameGroup,
+  restack,
   rubOutStrokes,
   ruleBoard,
   scaleMark,
   shapeBetween,
   shapeLayer,
   showGroup,
+  snapTo,
   stickerAt,
   straightLine,
+  textBox,
   textLayer,
+  turnMark,
   wordsAt,
 } from '@axe/features/tabletop/white-board/white-board-scene';
 
@@ -228,7 +236,7 @@ describe('markUnder()', () => {
     const texts = textLayer(scene) as TextLayer;
     texts.items.push(wordsAt({ x: 50, y: 60 }, 'hello', style));
 
-    expect(markUnder(scene, { x: 55, y: 55 })?.kind).toBe('text');
+    expect(markUnder(scene, { x: 55, y: 65 })?.kind).toBe('text');
     expect(markUnder(scene, { x: 500, y: 500 })).toBeNull();
   });
 });
@@ -311,7 +319,7 @@ describe('taking hold of a mark', () => {
 
     expect(markUnder(scene, { x: 30, y: 12 })?.kind).toBe('stroke');
     expect(markUnder(scene, { x: 150, y: 130 })?.kind).toBe('shape');
-    expect(markUnder(scene, { x: 260, y: 240 })?.kind).toBe('text');
+    expect(markUnder(scene, { x: 260, y: 260 })?.kind).toBe('text');
     expect(markUnder(scene, { x: 350, y: 120 })?.kind).toBe('image');
   });
 
@@ -331,13 +339,16 @@ describe('taking hold of a mark', () => {
 
   it('moves whatever was taken hold of, whichever sort of mark it is', () => {
     const scene = drawnOn();
-    for (const at of [
+    // Taken hold of first and moved after, since moving one changes what is under a point.
+    const marks = [
       { x: 30, y: 12 },
       { x: 150, y: 130 },
-      { x: 260, y: 240 },
+      { x: 260, y: 260 },
       { x: 350, y: 120 },
-    ]) {
-      const mark = markUnder(scene, at)!;
+    ].map((at) => markUnder(scene, at)!);
+
+    expect(marks.every((mark) => mark)).toBe(true);
+    for (const mark of marks) {
       const before = boxOf(scene, mark)!;
 
       moveMark(scene, mark, 25, -15);
@@ -386,5 +397,82 @@ describe('handleUnder()', () => {
 
   it('puts each corner where the corner is', () => {
     expect(handleAt(box, 'sw')).toEqual({ x: 100, y: 140 });
+  });
+});
+
+describe('the rest of the marks', () => {
+  it('gives an arrow a shaft and two barbs drawn back from its point', () => {
+    const drawn = arrowBetween({ x: 0, y: 0 }, { x: 100, y: 0 }, style);
+
+    expect(drawn.shape).toBe('polyline');
+    // Shaft, then back to the point twice for the barbs.
+    expect(drawn.points.length).toBe(10);
+    expect(drawn.points[2]).toBe(100);
+    expect(drawn.points[6]).toBe(100);
+  });
+
+  it('puts a card behind a note, which is what makes it a note', () => {
+    const note = noteAt({ x: 10, y: 20 }, 'remember', style, '#fff59d');
+    const plain = wordsAt({ x: 10, y: 20 }, 'remember', style);
+
+    expect(note.background).toBe('#fff59d');
+    expect(plain.background).toBeUndefined();
+    expect(textBox(note).w).toBeGreaterThan(textBox(plain).w);
+  });
+
+  it('lets what is under a marker show through, and lays it on thick', () => {
+    const marked = highlighterStyle(style);
+
+    expect(marked.color).toMatch(/^rgba\(/);
+    expect(marked.width).toBeGreaterThan(style.width);
+  });
+
+  it('rounds onto the ruling only where there is a ruling to round onto', () => {
+    expect(snapTo({ x: 63, y: 38 }, 25)).toEqual({ x: 75, y: 50 });
+    expect(snapTo({ x: 63, y: 38 }, 1)).toEqual({ x: 63, y: 38 });
+  });
+});
+
+describe('copyMark(), restack() and turnMark()', () => {
+  function drawnOn(): MapScene {
+    const scene = createBoardScene(8, 6, 50);
+    addShape(shapeLayer(scene), shapeBetween('rect', { x: 100, y: 100 }, { x: 200, y: 160 }, style));
+    addImage(imageLayer(scene), stickerAt({ x: 350, y: 120 }, 'pic', 80));
+    return scene;
+  }
+
+  it('sets a copy down a little off the first, so both can be seen', () => {
+    const scene = drawnOn();
+    const first = markUnder(scene, { x: 150, y: 130 })!;
+    const before = boxOf(scene, first)!;
+
+    const made = copyMark(scene, first, 16)!;
+    const after = boxOf(scene, made)!;
+
+    expect(made.id).not.toBe(first.id);
+    expect(after.x - before.x).toBeCloseTo(16, 5);
+  });
+
+  it('brings a mark forward within the sheet it is on', () => {
+    const scene = drawnOn();
+    const shapes = scene.layers.find((layer) => layer.kind === 'shape')!;
+    addShape(shapes as never, shapeBetween('rect', { x: 0, y: 0 }, { x: 10, y: 10 }, style));
+    const first = (shapes as { items: { id: string }[] }).items[0].id;
+
+    restack(scene, { kind: 'shape', id: first }, 1);
+
+    expect((shapes as { items: { id: string }[] }).items[1].id).toBe(first);
+  });
+
+  it('turns a mark about its own middle, leaving it where it was', () => {
+    const scene = drawnOn();
+    const picture = markUnder(scene, { x: 350, y: 120 })!;
+    const before = boxOf(scene, picture)!;
+
+    turnMark(scene, picture, 90);
+    const after = boxOf(scene, picture)!;
+
+    expect(after.x + after.w / 2).toBeCloseTo(before.x + before.w / 2, 5);
+    expect(after.y + after.h / 2).toBeCloseTo(before.y + before.h / 2, 5);
   });
 });

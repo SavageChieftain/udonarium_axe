@@ -24,9 +24,21 @@ import { generateShapePoints } from '@axe/features/map-editor/model/shape-points
  * on. What it has is a pen, a straight edge, a few shapes, words, and whatever is stuck to
  * it, which is why it has an editor of its own rather than the one that draws maps.
  */
-export type BoardTool = 'select' | 'pen' | 'eraser' | 'line' | 'shape' | 'text' | 'sticker';
+export type BoardTool =
+  'select' | 'pen' | 'marker' | 'eraser' | 'line' | 'arrow' | 'shape' | 'text' | 'note' | 'sticker';
 
-export const BOARD_TOOLS: readonly BoardTool[] = ['select', 'pen', 'eraser', 'line', 'shape', 'text', 'sticker'];
+export const BOARD_TOOLS: readonly BoardTool[] = [
+  'select',
+  'pen',
+  'marker',
+  'eraser',
+  'line',
+  'arrow',
+  'shape',
+  'text',
+  'note',
+  'sticker',
+];
 
 /** The shapes a board can be marked with, which are the ones a map can be marked with. */
 export const BOARD_SHAPES: readonly ShapeGeneratorKind[] = [
@@ -300,6 +312,19 @@ function strokeBox(points: readonly number[]): MarkBox | null {
   return { x: left, y: top, w: right - left, h: bottom - top };
 }
 
+/** Words are drawn from their top, and a note carries a card round them. */
+export function textBox(item: TextItem): MarkBox {
+  const lines = item.text.split('\n');
+  const widest = lines.reduce((most, line) => Math.max(most, line.length), 1);
+  const pad = item.background ? item.fontSize * 0.5 : 0;
+  return {
+    x: item.x - pad,
+    y: item.y - pad,
+    w: widest * item.fontSize * 0.6 + pad * 2,
+    h: lines.length * item.fontSize * 1.2 + pad * 2,
+  };
+}
+
 function shapeBox(item: ShapeItem): MarkBox | null {
   if (item.shape === 'rect' || item.shape === 'ellipse') {
     const [x, y, w, h] = item.points;
@@ -317,10 +342,7 @@ export function boxOf(scene: MapScene, ref: MarkRef): MarkBox | null {
     }
     if (ref.kind === 'text' && layer.kind === 'text') {
       const item = layer.items.find((entry) => entry.id === ref.id);
-      if (item) {
-        const w = Math.max(item.fontSize, item.text.length * item.fontSize * 0.6);
-        return { x: item.x, y: item.y - item.fontSize, w, h: item.fontSize * 1.3 };
-      }
+      if (item) return textBox(item);
     }
     if (ref.kind === 'shape' && layer.kind === 'shape') {
       const item = layer.items.find((entry) => entry.id === ref.id);
@@ -488,4 +510,179 @@ export function handleUnder(at: BoardPoint, box: MarkBox, slack: number): Handle
     if (Math.abs(at.x - corner.x) <= slack && Math.abs(at.y - corner.y) <= slack) return handle;
   }
   return null;
+}
+
+/** How long the head of an arrow is against its shaft, and how wide it opens. */
+const ARROW_HEAD = 0.22;
+const ARROW_SPREAD = 0.4;
+
+/**
+ * An arrow, as a shaft with two barbs drawn back from its point.
+ *
+ * A line with nothing on the end of it says two things are joined; an arrow says which way
+ * round, which is most of what anyone draws on a board to explain something.
+ */
+export function arrowBetween(from: BoardPoint, to: BoardPoint, style: MarkStyle): ShapeItem {
+  const dx = to.x - from.x;
+  const dy = to.y - from.y;
+  const length = Math.hypot(dx, dy) || 1;
+  const head = Math.min(length * ARROW_HEAD, style.width * 6 + 16);
+  const ux = dx / length;
+  const uy = dy / length;
+  const back = { x: to.x - ux * head, y: to.y - uy * head };
+  const wing = head * ARROW_SPREAD;
+
+  return {
+    id: newId(),
+    shape: 'polyline',
+    points: [
+      from.x,
+      from.y,
+      to.x,
+      to.y,
+      back.x - uy * wing,
+      back.y + ux * wing,
+      to.x,
+      to.y,
+      back.x + uy * wing,
+      back.y - ux * wing,
+    ],
+    fill: null,
+    stroke: { color: style.color, width: style.width, dash: 'solid' },
+    rotation: 0,
+  };
+}
+
+/** A note: words on a card, which moves and is thrown away as the one thing. */
+export function noteAt(at: BoardPoint, text: string, style: MarkStyle, card: string): TextItem {
+  return { ...wordsAt(at, text, style), background: card };
+}
+
+/** Ink that lets what is under it show through, for marking up rather than drawing. */
+export function highlighterStyle(style: MarkStyle): MarkStyle {
+  return { ...style, color: withAlpha(style.color, 0.38), width: Math.max(style.width * 3, 14) };
+}
+
+function withAlpha(color: string, alpha: number): string {
+  const hex = /^#([0-9a-f]{6})$/i.exec(color);
+  if (!hex) return color;
+  const r = parseInt(hex[1].slice(0, 2), 16);
+  const g = parseInt(hex[1].slice(2, 4), 16);
+  const b = parseInt(hex[1].slice(4, 6), 16);
+  return `rgba(${r},${g},${b},${alpha})`;
+}
+
+/** Rounded onto the ruling, so what is drawn to a plan lines up with the rest of it. */
+export function snapTo(at: BoardPoint, spacing: number): BoardPoint {
+  if (spacing <= 1) return at;
+  return { x: Math.round(at.x / spacing) * spacing, y: Math.round(at.y / spacing) * spacing };
+}
+
+/** A copy of what is held, set down a little off the original so both can be seen. */
+export function copyMark(scene: MapScene, ref: MarkRef, offset: number): MarkRef | null {
+  for (const layer of scene.layers) {
+    if (ref.kind === 'image' && layer.kind === 'image') {
+      const item = layer.items.find((entry) => entry.id === ref.id);
+      if (item) {
+        const made = { ...item, id: newId(), x: item.x + offset, y: item.y + offset };
+        layer.items.push(made);
+        return { kind: 'image', id: made.id };
+      }
+    }
+    if (ref.kind === 'text' && layer.kind === 'text') {
+      const item = layer.items.find((entry) => entry.id === ref.id);
+      if (item) {
+        const made = { ...item, id: newId(), x: item.x + offset, y: item.y + offset };
+        layer.items.push(made);
+        return { kind: 'text', id: made.id };
+      }
+    }
+    if (ref.kind === 'shape' && layer.kind === 'shape') {
+      const item = layer.items.find((entry) => entry.id === ref.id);
+      if (item) {
+        const made = { ...item, id: newId(), points: [...item.points] };
+        layer.items.push(made);
+        shiftPoints(made, offset, offset);
+        return { kind: 'shape', id: made.id };
+      }
+    }
+    if (ref.kind === 'stroke' && layer.kind === 'freehand') {
+      const item = layer.strokes.find((entry) => entry.id === ref.id);
+      if (item) {
+        const made = {
+          ...item,
+          id: newId(),
+          points: item.points.map((value, index) => value + (index % 2 === 0 ? offset : offset)),
+        };
+        layer.strokes.push(made);
+        return { kind: 'stroke', id: made.id };
+      }
+    }
+  }
+  return null;
+}
+
+/** Brings a mark forward or sends it back within the sheet it is on. */
+export function restack(scene: MapScene, ref: MarkRef, delta: number): void {
+  for (const layer of scene.layers) {
+    const list: { id: string }[] | null =
+      ref.kind === 'image' && layer.kind === 'image'
+        ? layer.items
+        : ref.kind === 'text' && layer.kind === 'text'
+          ? layer.items
+          : ref.kind === 'shape' && layer.kind === 'shape'
+            ? layer.items
+            : ref.kind === 'stroke' && layer.kind === 'freehand'
+              ? layer.strokes
+              : null;
+    if (!list) continue;
+    const at = list.findIndex((entry) => entry.id === ref.id);
+    if (at < 0) continue;
+    const to = Math.min(list.length - 1, Math.max(0, at + delta));
+    if (to === at) return;
+    const [taken] = list.splice(at, 1);
+    list.splice(to, 0, taken);
+    return;
+  }
+}
+
+/** Turns a mark about its own middle, in degrees. */
+export function turnMark(scene: MapScene, ref: MarkRef, degrees: number): void {
+  const box = boxOf(scene, ref);
+  if (!box) return;
+  const cx = box.x + box.w / 2;
+  const cy = box.y + box.h / 2;
+  const radians = (degrees * Math.PI) / 180;
+  const cos = Math.cos(radians);
+  const sin = Math.sin(radians);
+  const turn = (x: number, y: number): [number, number] => [
+    cx + (x - cx) * cos - (y - cy) * sin,
+    cy + (x - cx) * sin + (y - cy) * cos,
+  ];
+
+  for (const layer of scene.layers) {
+    if (ref.kind === 'image' && layer.kind === 'image') {
+      const item = layer.items.find((entry) => entry.id === ref.id);
+      if (item) item.rotation = (item.rotation + degrees) % 360;
+    }
+    if (ref.kind === 'shape' && layer.kind === 'shape') {
+      const item = layer.items.find((entry) => entry.id === ref.id);
+      if (!item) continue;
+      if (item.shape === 'rect' || item.shape === 'ellipse') item.rotation = (item.rotation + degrees) % 360;
+      else item.points = mapPairs(item.points, turn);
+    }
+    if (ref.kind === 'stroke' && layer.kind === 'freehand') {
+      const item = layer.strokes.find((entry) => entry.id === ref.id);
+      if (item) item.points = mapPairs(item.points, turn);
+    }
+  }
+}
+
+function mapPairs(points: readonly number[], turn: (x: number, y: number) => [number, number]): number[] {
+  const out: number[] = [];
+  for (let i = 0; i + 1 < points.length; i += 2) {
+    const [x, y] = turn(points[i], points[i + 1]);
+    out.push(x, y);
+  }
+  return out;
 }

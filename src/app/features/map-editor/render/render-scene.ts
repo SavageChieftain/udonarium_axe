@@ -312,11 +312,26 @@ function drawText(ctx: CanvasRenderingContext2D, item: TextItem): void {
   if (item.bold) parts.push('bold');
   parts.push(`${item.fontSize}px`, 'sans-serif');
   ctx.font = parts.join(' ');
+  const lines = item.text.split('\n');
+  const lineHeight = item.fontSize * 1.2;
+
+  if (item.background) {
+    // A card behind the words, cornered and shadowed, which is what reads as a note.
+    const pad = item.fontSize * 0.5;
+    const widest = lines.reduce((most, line) => Math.max(most, ctx.measureText(line).width), 0);
+    ctx.fillStyle = item.background;
+    ctx.shadowColor = 'rgba(0,0,0,0.28)';
+    ctx.shadowBlur = pad * 0.8;
+    ctx.shadowOffsetY = pad * 0.25;
+    ctx.fillRect(item.x - pad, item.y - pad, widest + pad * 2, lines.length * lineHeight + pad * 2);
+    ctx.shadowColor = 'transparent';
+    ctx.shadowBlur = 0;
+    ctx.shadowOffsetY = 0;
+  }
+
   ctx.textAlign = item.align;
   ctx.textBaseline = 'top';
   ctx.fillStyle = item.color;
-  const lines = item.text.split('\n');
-  const lineHeight = item.fontSize * 1.2;
   for (let i = 0; i < lines.length; i += 1) {
     ctx.fillText(lines[i], item.x, item.y + i * lineHeight);
   }

@@ -3035,7 +3035,10 @@
         "line": "직선",
         "text": "글자",
         "sticker": "붙이기",
-        "shape": "도형"
+        "shape": "도형",
+        "marker": "마커",
+        "arrow": "화살표",
+        "note": "메모"
       },
       "editor": {
         "ink": "잉크 색",
@@ -3060,7 +3063,14 @@
         "noGroup": "(없음)",
         "undo": "실행 취소",
         "redo": "다시 실행",
-        "removeSelected": "선택한 것 삭제"
+        "removeSelected": "선택한 것 삭제",
+        "duplicate": "복제",
+        "turnLeft": "왼쪽으로 회전",
+        "turnRight": "오른쪽으로 회전",
+        "bringForward": "앞으로",
+        "sendBackward": "뒤로",
+        "card": "메모 색",
+        "snap": "모눈에 맞추기"
       },
       "layer": {
         "freehand": "손그림",

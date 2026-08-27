@@ -1,3 +1,4 @@
+import { NgClass } from '@angular/common';
 import { ChangeDetectionStrategy, Component, ElementRef, inject, signal, viewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
@@ -34,11 +35,13 @@ import { getRasterImage, warmRasterImages } from '@axe/features/map-editor/rende
 import { renderScene } from '@axe/features/map-editor/render/render-scene';
 import { detachFromBoard, standingOn } from '@axe/features/tabletop/white-board/white-board-contents';
 import {
+  arrowBetween,
   BOARD_SHAPES,
   BOARD_TOOLS,
   BoardPoint,
   BoardTool,
   boxOf,
+  copyMark,
   createBoardScene,
   fileUnder,
   freehandLayer,
@@ -49,24 +52,29 @@ import {
   handleAt,
   HANDLES,
   handleUnder,
+  highlighterStyle,
   imageLayer,
   LayerGroup,
   MarkBox,
   MarkRef,
   markUnder,
   moveMark,
+  noteAt,
   penStroke,
   removeMark,
   renameGroup,
+  restack,
   rubOutStrokes,
   ruleBoard,
   scaleMark,
   shapeBetween,
   shapeLayer,
   showGroup,
+  snapTo,
   stickerAt,
   straightLine,
   textLayer,
+  turnMark,
   wordsAt,
 } from '@axe/features/tabletop/white-board/white-board-scene';
 import { FileSelecterComponent } from '@axe/ui/components/file-selecter/file-selecter.component';
@@ -87,10 +95,13 @@ const ERASER_SVG =
 const TOOL_ICONS: Record<BoardTool, string> = {
   select: '',
   pen: 'edit',
+  marker: 'border_color',
   eraser: '',
   line: 'show_chart',
+  arrow: 'north_east',
   shape: 'category',
   text: 'title',
+  note: 'sticky_note_2',
   sticker: 'image',
 };
 
@@ -102,13 +113,22 @@ const BOARD_ZOOMS: readonly number[] = [0.5, 0.75, 1, 1.5, 2];
 /** How near a corner counts as taking hold of it, in the sheet's own pixels at full size. */
 const HANDLE_SLACK = 9;
 
+/** How far a copy is set down from what it was copied off, so both can be seen. */
+const DUPLICATE_OFFSET = 16;
+
+/** How far one press of the turn buttons takes a mark round. */
+const TURN_STEP = 15;
+
 const TOOL_KEYS: Record<string, BoardTool> = {
   v: 'select',
   p: 'pen',
+  m: 'marker',
   e: 'eraser',
   l: 'line',
+  a: 'arrow',
   r: 'shape',
   t: 'text',
+  n: 'note',
   i: 'sticker',
 };
 
@@ -119,7 +139,7 @@ const MAX_SIDE = 40;
   selector: 'white-board-editor',
   templateUrl: './white-board-editor.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FormsModule, TranslocoModule],
+  imports: [FormsModule, TranslocoModule, NgClass],
 })
 export class WhiteBoardEditorComponent {
   private readonly modalService = inject(ModalService);
@@ -160,9 +180,12 @@ export class WhiteBoardEditorComponent {
    * worse than.
    */
   readonly zoom = signal(1);
+  readonly turnStep = TURN_STEP;
   readonly shapes = BOARD_SHAPES;
   readonly shapeKind = signal<ShapeGeneratorKind>('rect');
   readonly filled = signal(false);
+  readonly noteColor = signal('#fff59d');
+  readonly snapping = signal(false);
   readonly activeLayerId = signal<string | null>(null);
 
   protected readonly typing = signal<BoardPoint | null>(null);
@@ -173,6 +196,8 @@ export class WhiteBoardEditorComponent {
   readonly selected = signal<MarkRef | null>(null);
 
   private history = new SceneHistory(createBoardScene(4, 3, 50));
+  private clipboard: MarkRef | null = null;
+  private panFrom: { x: number; y: number } | null = null;
   private board: WhiteBoard | null = null;
   private scene: MapScene = createBoardScene(4, 3, 50);
   private saveTimer: ReturnType<typeof setTimeout> | null = null;
@@ -453,26 +478,38 @@ export class WhiteBoardEditorComponent {
     if (!canvas) return { x: 0, y: 0 };
     const box = canvas.getBoundingClientRect();
     const scale = box.width / this.sceneWidth || 1;
-    return { x: (event.clientX - box.left) / scale, y: (event.clientY - box.top) / scale };
+    const at = { x: (event.clientX - box.left) / scale, y: (event.clientY - box.top) / scale };
+    // Snapped only where the reader asked for it, and never for a pen, which would step.
+    if (!this.snapping() || this.isPenning()) return at;
+    return snapTo(at, this.scene.cellPx);
   }
 
   protected onPointerDown(event: PointerEvent): void {
     if (!this.board) return;
+    // The middle button, or the space bar held down, slides the sheet rather than marking it.
+    if (event.button === 1 || this.panning()) {
+      this.panFrom = { x: event.clientX, y: event.clientY };
+      event.preventDefault();
+      return;
+    }
     (event.target as HTMLElement).setPointerCapture?.(event.pointerId);
     const at = this.pointOf(event);
 
     switch (this.tool()) {
       case 'pen':
+      case 'marker':
         this.drawingPoints = [at.x, at.y];
         break;
       case 'eraser':
         this.rubOut(at);
         break;
       case 'line':
+      case 'arrow':
       case 'shape':
         this.dragFrom = at;
         break;
       case 'text':
+      case 'note':
         this.typedText = '';
         this.typing.set(at);
         break;
@@ -486,8 +523,13 @@ export class WhiteBoardEditorComponent {
 
   protected onPointerMove(event: PointerEvent): void {
     if (!this.board) return;
+    if (this.panFrom) {
+      this.slideBy(event.clientX - this.panFrom.x, event.clientY - this.panFrom.y);
+      this.panFrom = { x: event.clientX, y: event.clientY };
+      return;
+    }
     const at = this.pointOf(event);
-    if (this.tool() === 'pen' && this.drawingPoints.length > 0) {
+    if (this.isPenning() && this.drawingPoints.length > 0) {
       this.drawingPoints.push(at.x, at.y);
       void this.redraw(this.drawingPoints);
       return;
@@ -505,10 +547,14 @@ export class WhiteBoardEditorComponent {
 
   protected onPointerUp(event: PointerEvent): void {
     if (!this.board) return;
+    if (this.panFrom) {
+      this.panFrom = null;
+      return;
+    }
     const at = this.pointOf(event);
 
-    if (this.tool() === 'pen' && this.drawingPoints.length > 3) {
-      addStroke(freehandLayer(this.scene, this.activeLayerId()), penStroke([...this.drawingPoints], this.style()));
+    if (this.isPenning() && this.drawingPoints.length > 3) {
+      addStroke(freehandLayer(this.scene, this.activeLayerId()), penStroke([...this.drawingPoints], this.inkStyle()));
     }
     this.drawingPoints = [];
 
@@ -521,7 +567,9 @@ export class WhiteBoardEditorComponent {
         const mark =
           tool === 'line'
             ? straightLine(from, at, this.style())
-            : shapeBetween(this.shapeKind(), from, at, this.style(), this.filled());
+            : tool === 'arrow'
+              ? arrowBetween(from, at, this.style())
+              : shapeBetween(this.shapeKind(), from, at, this.style(), this.filled());
         addShape(shapeLayer(this.scene, this.activeLayerId()), mark);
       }
     }
@@ -531,6 +579,15 @@ export class WhiteBoardEditorComponent {
 
   private style() {
     return { color: this.color(), width: this.strokeWidth(), fontSize: this.fontSize() };
+  }
+
+  private isPenning(): boolean {
+    return this.tool() === 'pen' || this.tool() === 'marker';
+  }
+
+  /** A marker lets what is under it show through; a pen does not. */
+  private inkStyle() {
+    return this.tool() === 'marker' ? highlighterStyle(this.style()) : this.style();
   }
 
   private rubOut(at: BoardPoint): void {
@@ -602,6 +659,48 @@ export class WhiteBoardEditorComponent {
     this.touched();
   }
 
+  /** A copy set down a little off the first, and already in hand, since that is what is next. */
+  protected duplicateSelected(): void {
+    const mark = this.selected();
+    if (!mark) return;
+    const made = copyMark(this.scene, mark, DUPLICATE_OFFSET);
+    if (made) this.selected.set(made);
+    this.touched();
+  }
+
+  protected copySelected(): void {
+    this.clipboard = this.selected();
+  }
+
+  protected pasteCopied(): void {
+    const held = this.clipboard;
+    if (!held) return;
+    const made = copyMark(this.scene, held, DUPLICATE_OFFSET);
+    if (made) this.selected.set(made);
+    this.touched();
+  }
+
+  protected bringForward(): void {
+    const mark = this.selected();
+    if (!mark) return;
+    restack(this.scene, mark, 1);
+    this.touched();
+  }
+
+  protected sendBackward(): void {
+    const mark = this.selected();
+    if (!mark) return;
+    restack(this.scene, mark, -1);
+    this.touched();
+  }
+
+  protected turnSelected(degrees: number): void {
+    const mark = this.selected();
+    if (!mark) return;
+    turnMark(this.scene, mark, degrees);
+    this.touched();
+  }
+
   protected undo(): void {
     const back = this.history.undo();
     if (!back) return;
@@ -630,9 +729,29 @@ export class WhiteBoardEditorComponent {
     this.canRedo.set(this.history.canRedo());
   }
 
+  readonly panning = signal(false);
+  private readonly stageRef = viewChild<ElementRef<HTMLElement>>('stage');
+
+  private slideBy(dx: number, dy: number): void {
+    const stage = this.stageRef()?.nativeElement;
+    if (!stage) return;
+    stage.scrollLeft -= dx;
+    stage.scrollTop -= dy;
+  }
+
+  protected onKeyUp(event: KeyboardEvent): void {
+    if (event.key === ' ') this.panning.set(false);
+  }
+
   protected onKeyDown(event: KeyboardEvent): void {
     const typing = event.target instanceof HTMLInputElement || event.target instanceof HTMLSelectElement;
     if (typing) return;
+
+    if (event.key === ' ') {
+      event.preventDefault();
+      this.panning.set(true);
+      return;
+    }
 
     if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'z') {
       event.preventDefault();
@@ -650,6 +769,35 @@ export class WhiteBoardEditorComponent {
       this.removeSelected();
       return;
     }
+    if (event.ctrlKey || event.metaKey) {
+      const key = event.key.toLowerCase();
+      if (key === 'd') {
+        event.preventDefault();
+        this.duplicateSelected();
+        return;
+      }
+      if (key === 'c') {
+        event.preventDefault();
+        this.copySelected();
+        return;
+      }
+      if (key === 'v') {
+        event.preventDefault();
+        this.pasteCopied();
+        return;
+      }
+      if (key === ']') {
+        event.preventDefault();
+        this.bringForward();
+        return;
+      }
+      if (key === '[') {
+        event.preventDefault();
+        this.sendBackward();
+        return;
+      }
+      return;
+    }
     const shortcut = TOOL_KEYS[event.key.toLowerCase()];
     if (shortcut) {
       event.preventDefault();
@@ -663,7 +811,8 @@ export class WhiteBoardEditorComponent {
     this.typing.set(null);
     this.typedText = '';
     if (!at || words.length < 1) return;
-    const written = wordsAt(at, words, this.style());
+    const written =
+      this.tool() === 'note' ? noteAt(at, words, this.style(), this.noteColor()) : wordsAt(at, words, this.style());
     addText(textLayer(this.scene, this.activeLayerId()), written);
     this.tool.set('select');
     this.selected.set({ kind: 'text', id: written.id });

@@ -2805,7 +2805,10 @@
         "line": "Line",
         "text": "Text",
         "sticker": "Stick",
-        "shape": "Shape"
+        "shape": "Shape",
+        "marker": "Marker",
+        "arrow": "Arrow",
+        "note": "Note"
       },
       "editor": {
         "ink": "Ink",
@@ -2830,7 +2833,14 @@
         "noGroup": "(none)",
         "undo": "Undo",
         "redo": "Redo",
-        "removeSelected": "Delete what is held"
+        "removeSelected": "Delete what is held",
+        "duplicate": "Duplicate",
+        "turnLeft": "Turn left",
+        "turnRight": "Turn right",
+        "bringForward": "Bring forward",
+        "sendBackward": "Send back",
+        "card": "Note colour",
+        "snap": "Snap to the ruling"
       },
       "layer": {
         "freehand": "Drawing",
