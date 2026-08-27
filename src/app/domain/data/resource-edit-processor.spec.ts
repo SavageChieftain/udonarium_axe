@@ -176,6 +176,7 @@ describe('ResourceEditProcessor', () => {
         command: '+10+(1d1-1)',
         replace: '',
         isDiceRoll: false,
+        embeddedRolls: [],
         calcAns: 10,
         nowOrMax: 'now',
         option: { limitMinMax: false, zeroLimit: false, isErr: false },
@@ -196,6 +197,7 @@ describe('ResourceEditProcessor', () => {
         command: '50+(1d1-1)',
         replace: '',
         isDiceRoll: false,
+        embeddedRolls: [],
         calcAns: 50,
         nowOrMax: 'now',
         option: { limitMinMax: false, zeroLimit: false, isErr: false },
@@ -216,6 +218,7 @@ describe('ResourceEditProcessor', () => {
         command: '+999+(1d1-1)',
         replace: '',
         isDiceRoll: false,
+        embeddedRolls: [],
         calcAns: 999,
         nowOrMax: 'now',
         option: { limitMinMax: true, zeroLimit: false, isErr: false },
@@ -236,6 +239,7 @@ describe('ResourceEditProcessor', () => {
         command: '-300+(1d1-1)',
         replace: '',
         isDiceRoll: false,
+        embeddedRolls: [],
         calcAns: -300,
         nowOrMax: 'now',
         option: { limitMinMax: false, zeroLimit: true, isErr: false },
@@ -292,6 +296,47 @@ describe('ResourceEditProcessor', () => {
       );
 
       expect(systemText()).toContain('[キャラクターB] t:HP-t{敏捷度}を計算できません');
+      expect(character.status.getValue('HP', 'now')).toBe(200);
+    });
+
+    it('rolls a bracketed command on its own and works its answer into the arithmetic', async () => {
+      mockDiceRollAsync.mockImplementation(async (command: string) =>
+        command === 'k10'
+          ? { id: 'SwordWorld2.5', result: 'SwordWorld2.5 : KeyNo.10c[10] ＞ 2D:[3,2]=5 ＞ 2', isSecret: false }
+          : {
+              id: 'SwordWorld2.5',
+              result: 'SwordWorld2.5 : (-(2+5-3)+(1D1-1)) ＞ -(2+5-3)+(1[1]-1) ＞ -4',
+              isSecret: false,
+            }
+      );
+
+      await processor.resourceEditProcess(
+        null,
+        [{ resourceCommand: 't:HP-([k10]+5-3)', object: character }],
+        [],
+        speak('t:HP-([k10]+5-3)'),
+        false
+      );
+
+      expect(mockDiceRollAsync).toHaveBeenNthCalledWith(1, 'k10', expect.anything());
+      expect(mockDiceRollAsync).toHaveBeenNthCalledWith(2, '-(2+5-3)+(1d1-1)', expect.anything());
+      expect(character.status.getValue('HP', 'now')).toBe(196);
+      expect(systemText()).toContain('└ [k10] KeyNo.10c[10] ＞ 2D:[3,2]=5 ＞ 2');
+    });
+
+    it('says so when the bracketed command is one the dice bot cannot answer', async () => {
+      mockDiceRollAsync.mockResolvedValue({ id: 'DiceBot', result: '', isSecret: false });
+
+      await processor.resourceEditProcess(
+        null,
+        [{ resourceCommand: 't:HP-([k10]+5)', object: character }],
+        [],
+        speak('t:HP-([k10]+5)'),
+        false
+      );
+
+      expect(mockDiceRollAsync).toHaveBeenCalledTimes(1);
+      expect(systemText()).toContain('t:HP-([k10]+5)を計算できません');
       expect(character.status.getValue('HP', 'now')).toBe(200);
     });
 

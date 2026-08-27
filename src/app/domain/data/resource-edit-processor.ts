@@ -3,6 +3,7 @@ import { ObjectStore } from '@axe/core/sync/object-store';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { ChatMessage, ChatMessageContext, ChatMessageTargetContext } from '@axe/domain/chat/chat-message';
 import { ChatTab } from '@axe/domain/chat/chat-tab';
+import { findEmbeddedRolls, replaceEmbeddedRolls } from '@axe/domain/data/embedded-roll';
 import {
   applyBuffEdit,
   applyResourceEdit,
@@ -171,17 +172,47 @@ export class ResourceEditProcessor {
   }
 
   private async rollResourceEdit(edit: ResourceEdit, gameSystem: GameSystemClass): Promise<boolean> {
+    if (!(await this.resolveEmbeddedRolls(edit, gameSystem))) return false;
+
+    const rolled = await this.rollOnce(edit.command, gameSystem);
+    if (rolled == null) return false;
+
+    const splitResult = rolled.result.split(' ＞ ');
+    if (splitResult.length < 2) return false;
+    edit.diceResult = splitResult[splitResult.length - 2].replace(/\+\(1\[1\]-1\)$/, '');
+    edit.calcAns = rolled.answer;
+    return true;
+  }
+
+  private async resolveEmbeddedRolls(edit: ResourceEdit, gameSystem: GameSystemClass): Promise<boolean> {
+    const sites = findEmbeddedRolls(edit.command);
+    if (sites.length < 1) return true;
+
+    const answers: number[] = [];
+    for (const site of sites) {
+      const rolled = await this.rollOnce(site.command, gameSystem);
+      if (rolled == null) return false;
+      answers.push(rolled.answer);
+      edit.embeddedRolls.push(`[${site.command}] ${rolled.result.replace(/^\S+ : /, '')}`);
+    }
+
+    edit.command = replaceEmbeddedRolls(edit.command, answers);
+    edit.isDiceRoll = true;
+    return true;
+  }
+
+  private async rollOnce(
+    command: string,
+    gameSystem: GameSystemClass
+  ): Promise<{ result: string; answer: number } | null> {
     try {
-      const rollResult = await this.diceRollAsync(edit.command, gameSystem);
-      const splitResult = rollResult.result.split(' ＞ ');
+      const rollResult = await this.diceRollAsync(command, gameSystem);
       const resultMatch = rollResult.result.match(/([-+]?\d+)$/);
-      if (splitResult.length < 2 || !resultMatch) return false;
-      edit.diceResult = splitResult[splitResult.length - 2].replace(/\+\(1\[1\]-1\)$/, '');
-      edit.calcAns = parseInt(resultMatch[1], 10);
-      return true;
+      if (!resultMatch) return null;
+      return { result: rollResult.result, answer: parseInt(resultMatch[1], 10) };
     } catch (e) {
       Logger.error('[DiceBot] リソース編集のダイスロールエラー', e);
-      return false;
+      return null;
     }
   }
 
@@ -216,6 +247,11 @@ export class ResourceEditProcessor {
       } else {
         text += this.resourceEdit(edit, character);
       }
+      if (edit.embeddedRolls.length > 0) {
+        text = text.replace(/[ ]+$/, '');
+        for (const embedded of edit.embeddedRolls) text += `\n  └ ${embedded}`;
+        text += '\n';
+      }
       if (edit.isDiceRoll) {
         isDiceRoll = true;
       }
@@ -226,7 +262,7 @@ export class ResourceEditProcessor {
     for (const unreadable of unreadableCommands) {
       text += unreadable;
     }
-    text = text.replace(/\s\s\s\s$/, '');
+    text = text.replace(/\s+$/, '');
 
     if (text == '') return;
     let fromText: string;

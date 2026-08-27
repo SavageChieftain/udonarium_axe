@@ -20,6 +20,7 @@ export interface ResourceEdit {
   command: string;
   replace: string;
   isDiceRoll: boolean;
+  embeddedRolls: string[];
   calcAns: number;
   nowOrMax: ResourceEditTarget;
   option: ResourceEditOption | null;
@@ -101,6 +102,7 @@ export function createDefaultResourceEdit(): ResourceEdit {
     command: '',
     replace: '',
     isDiceRoll: false,
+    embeddedRolls: [],
     calcAns: 0,
     nowOrMax: 'now',
     option: null,
