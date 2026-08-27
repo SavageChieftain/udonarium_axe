@@ -45,6 +45,7 @@ Udonarium Axe の画面構成と基本操作をまとめた操作マニュアル
 - [情報の公開範囲](/manual/disclosure) — 全員 / 特定PL / GMのみ・オーナー
 - [オブジェクト一覧（GM）](/manual/gm-object-list) — 全オブジェクトの俯瞰・管理・復旧
 - [マップエディター](/manual/map-editor) — セル・図形・スタンプでマップを作成（GM 専用）
+- [マップ生成](/manual/map-generator) — ダンジョンとフィールドをボタン 1 つで組み立てる（GM 専用）
 
 **テーブル**
 
@@ -53,6 +54,7 @@ Udonarium Axe の画面構成と基本操作をまとめた操作マニュアル
 - [暗闇・視界・光源](/manual/vision-lighting) — 暗闇の濃さ・キャラクターの視界・光源
 - [同行（パーティ）](/manual/party) — 仲間どうしの視界共有（GM 専用）
 - [地形](/manual/terrain) / [マップマスク](/manual/map-mask)
+- [ホワイトボード](/manual/white-board) — その場で描いて卓に立てるボード
 
 **オブジェクト**
 

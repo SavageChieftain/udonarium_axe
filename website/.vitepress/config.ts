@@ -184,6 +184,7 @@ export default defineConfig({
             { text: '情報の公開範囲', link: '/manual/disclosure' },
             { text: 'オブジェクト一覧（GM）', link: '/manual/gm-object-list' },
             { text: 'マップエディター', link: '/manual/map-editor' },
+            { text: 'マップ生成', link: '/manual/map-generator' },
           ],
         },
         {
@@ -195,6 +196,7 @@ export default defineConfig({
             { text: '同行（パーティ）', link: '/manual/party' },
             { text: '地形', link: '/manual/terrain' },
             { text: 'マップマスク', link: '/manual/map-mask' },
+            { text: 'ホワイトボード', link: '/manual/white-board' },
           ],
         },
         {
