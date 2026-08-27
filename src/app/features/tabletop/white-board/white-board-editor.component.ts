@@ -48,6 +48,7 @@ import { getRasterImage, warmRasterImages } from '@axe/features/map-editor/rende
 import { renderScene } from '@axe/features/map-editor/render/render-scene';
 import { detachFromBoard, standingOn } from '@axe/features/tabletop/white-board/white-board-contents';
 import {
+  addJoint,
   AlignEdge,
   alignMarks,
   anchorFor,
@@ -64,6 +65,7 @@ import {
   copyMark,
   createBoardScene,
   cropMark,
+  dropJoint,
   fadeMark,
   fileUnder,
   flipMark,
@@ -81,6 +83,8 @@ import {
   highlighterStyle,
   imageLayer,
   isTypingKey,
+  jointedShape,
+  jointUnder,
   LayerGroup,
   MarkBox,
   MarkRef,
@@ -88,6 +92,7 @@ import {
   MarkStyleChange,
   marksWithin,
   markUnder,
+  moveJoint,
   moveMark,
   newGuide,
   noteAt,
@@ -398,6 +403,7 @@ export class WhiteBoardEditorComponent {
     turnedTo: number;
   } | null = null;
   private hovering: BoardPoint | null = null;
+  private bending: { ref: MarkRef; joint: number } | null = null;
   private draggingGuide: SceneGuideLine | null = null;
   private bandFrom: BoardPoint | null = null;
   private bandTo: BoardPoint | null = null;
@@ -950,6 +956,13 @@ export class WhiteBoardEditorComponent {
       this.rubOut(at);
       return;
     }
+    if (this.bending) {
+      const bent = this.guiding() ? snapPoint(this.scene, at, [this.bending.ref], this.guides) : null;
+      if (bent) this.showing.set(bent.guides);
+      moveJoint(this.scene, this.bending.ref, this.bending.joint, bent?.at ?? at);
+      void this.redraw();
+      return;
+    }
     if (this.grabbed) {
       this.shift(at);
       return;
@@ -1009,6 +1022,7 @@ export class WhiteBoardEditorComponent {
       this.bandTo = null;
     }
     this.grabbed = null;
+    this.bending = null;
     this.draggingGuide = null;
     this.showing.set([]);
     this.touched();
@@ -1162,6 +1176,20 @@ export class WhiteBoardEditorComponent {
       }
       return;
     }
+    // A path's own corners are reached for before the box drawn round it, being on the line
+    // itself rather than out at the edges.
+    if (chosen && jointedShape(this.scene, chosen)) {
+      const joint = jointUnder(this.scene, chosen, at, this.handleSlack());
+      if (joint !== null) {
+        if (adding) {
+          if (dropJoint(this.scene, chosen, joint)) this.touched();
+          return;
+        }
+        this.bending = { ref: chosen, joint };
+        return;
+      }
+    }
+
     const box = chosen ? boxOf(this.scene, chosen) : null;
     const handle = box ? handleUnder(at, box, this.handleSlack()) : null;
     if (chosen && box && handle) {
@@ -1469,6 +1497,11 @@ export class WhiteBoardEditorComponent {
       return;
     }
     const at = this.pointOf(event);
+    const held = this.selected();
+    if (held && jointedShape(this.scene, held) && addJoint(this.scene, held, at, this.handleSlack()) !== null) {
+      this.touched();
+      return;
+    }
     const mark = markUnder(this.scene, at);
     const words = mark ? wordsOf(this.scene, mark) : null;
     if (!words) return;
@@ -1697,7 +1730,11 @@ export class WhiteBoardEditorComponent {
     const wants = overlaysWanted(bare, this.scene.gridVisible);
     await this.paintMarks(ctx, wants.grid);
 
-    const box = boxAround(this.scene, this.held());
+    // A path shows its own corners rather than the box round it, since it is the corners that
+    // are moved and the box is only where they happen to reach.
+    const bendable = this.selected();
+    const jointed = bendable ? jointedShape(this.scene, bendable) : null;
+    const box = jointed ? null : boxAround(this.scene, this.held());
     const window = this.trimming();
     if (box && window && wants.helpers) {
       // What is being trimmed away is greyed over, so what is left is what is being kept.
@@ -1745,6 +1782,23 @@ export class WhiteBoardEditorComponent {
         }
         ctx.fillRect(at.x - grip / 2, at.y - grip / 2, grip, grip);
         ctx.strokeRect(at.x - grip / 2, at.y - grip / 2, grip, grip);
+      }
+      ctx.restore();
+    }
+
+    if (jointed && wants.helpers) {
+      ctx.save();
+      ctx.strokeStyle = '#2f7fd8';
+      ctx.fillStyle = '#ffffff';
+      ctx.lineWidth = 1.5 / Math.max(0.25, this.zoom());
+      const grip = HANDLE_SLACK / Math.max(0.25, this.zoom());
+      for (let joint = 0; joint * 2 + 1 < jointed.points.length; joint += 1) {
+        const x = jointed.points[joint * 2];
+        const y = jointed.points[joint * 2 + 1];
+        ctx.beginPath();
+        ctx.arc(x, y, grip / 2, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
       }
       ctx.restore();
     }
