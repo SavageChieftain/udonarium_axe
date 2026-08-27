@@ -5,6 +5,7 @@ import {
   recordVideo,
 } from '@axe/core/media/media-recorder-encoder';
 import type { VideoEncodeRequest } from '@axe/core/media/video-encoder';
+import { BorrowedGlobals } from '@axe/testing/borrowed-globals';
 
 class FakeMediaRecorder {
   static supported: string[] = [];
@@ -42,7 +43,6 @@ function fakeStream(): MediaStream {
 }
 
 describe('exporting through the media recorder', () => {
-  const globals = globalThis as Record<string, unknown>;
   let captured: MediaStream;
 
   function request(overrides: Partial<VideoEncodeRequest> = {}): VideoEncodeRequest {
@@ -56,16 +56,18 @@ describe('exporting through the media recorder', () => {
     };
   }
 
+  const borrowed = new BorrowedGlobals();
+
   beforeEach(() => {
     captured = fakeStream();
     FakeMediaRecorder.supported = ['video/webm;codecs=vp9,opus'];
-    globals['MediaRecorder'] = FakeMediaRecorder;
-    (HTMLCanvasElement.prototype as unknown as { captureStream: () => MediaStream }).captureStream = () => captured;
-    HTMLCanvasElement.prototype.getContext = (() => ({}) as unknown) as HTMLCanvasElement['getContext'];
+    borrowed.lend('MediaRecorder', FakeMediaRecorder);
+    borrowed.lendOn(HTMLCanvasElement.prototype, 'captureStream', () => captured);
+    borrowed.lendOn(HTMLCanvasElement.prototype, 'getContext', () => ({}));
   });
 
   afterEach(() => {
-    delete globals['MediaRecorder'];
+    borrowed.giveBack();
   });
 
   it('picks a container this browser can take', () => {

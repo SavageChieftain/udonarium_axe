@@ -1,5 +1,6 @@
 import { isSoundMixingSupported, mixReplaySoundtrack } from '@axe/application/replay/replay-sound-mixer';
 import type { ReplaySoundtrack } from '@axe/domain/replay/replay-soundtrack';
+import { BorrowedGlobals } from '@axe/testing/borrowed-globals';
 
 const globals = globalThis as unknown as Record<string, unknown>;
 
@@ -85,16 +86,18 @@ const read = async (identifier: string): Promise<ArrayBuffer | null> => {
 };
 
 describe('mixReplaySoundtrack()', () => {
+  const borrowed = new BorrowedGlobals();
+
   beforeEach(() => {
     started = [];
     decoded = [];
     decodeFails = [];
     lastGain = 1;
-    globals['OfflineAudioContext'] = FakeOfflineAudioContext;
+    borrowed.lend('OfflineAudioContext', FakeOfflineAudioContext);
   });
 
   afterEach(() => {
-    delete globals['OfflineAudioContext'];
+    borrowed.giveBack();
   });
 
   it('returns nothing where mixing is unavailable', async () => {
