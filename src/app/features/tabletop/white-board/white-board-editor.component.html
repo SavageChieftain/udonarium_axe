@@ -638,7 +638,8 @@
     <div
       #stage
       class="relative flex-1 overflow-auto bg-neutral-700 p-3"
-      [class.cursor-grab]="panning()"
+      [class.cursor-grab]="panning() && !sliding()"
+      [class.cursor-grabbing]="sliding()"
       (wheel)="onWheel($event)"
     >
       <div

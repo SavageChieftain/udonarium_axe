@@ -871,9 +871,11 @@ export class WhiteBoardEditorComponent {
 
   protected onPointerDown(event: PointerEvent): void {
     if (!this.board) return;
-    // The middle button, or the space bar held down, slides the sheet rather than marking it.
+    // The hand, the middle button, or the space bar held down all slide the sheet rather
+    // than marking it. On a touch screen the hand is the only one of the three there is.
     if (event.button === 1 || this.panning()) {
       this.panFrom = { x: event.clientX, y: event.clientY };
+      this.sliding.set(true);
       event.preventDefault();
       return;
     }
@@ -913,9 +915,6 @@ export class WhiteBoardEditorComponent {
         break;
       case 'select':
         this.take(at, event.shiftKey);
-        break;
-      case 'hand':
-        this.panFrom = { x: event.clientX, y: event.clientY };
         break;
       case 'sticker':
         break;
@@ -969,6 +968,7 @@ export class WhiteBoardEditorComponent {
     if (!this.board) return;
     if (this.panFrom) {
       this.panFrom = null;
+      this.sliding.set(false);
       return;
     }
     const at = this.pointOf(event);
@@ -1342,6 +1342,8 @@ export class WhiteBoardEditorComponent {
   }
 
   readonly panning = signal(false);
+  /** Whether the sheet is being slid this instant, which is what changes the hand's shape. */
+  readonly sliding = signal(false);
   private readonly stageRef = viewChild<ElementRef<HTMLElement>>('stage');
 
   private slideBy(dx: number, dy: number): void {
@@ -1354,7 +1356,9 @@ export class WhiteBoardEditorComponent {
   protected onKeyUp(event: KeyboardEvent): void {
     if (isTypingKey(event.target, event.isComposing)) return;
     this.keepingShape = event.shiftKey;
-    if (event.key === ' ') this.panning.set(false);
+    // Letting go of the space bar gives the sheet back to whatever tool was chosen, unless
+    // the chosen tool is the hand, which does not answer to the space bar at all.
+    if (event.key === ' ') this.panning.set(this.tool() === 'hand');
   }
 
   protected onKeyDown(event: KeyboardEvent): void {
