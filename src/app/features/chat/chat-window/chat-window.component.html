@@ -1,104 +1,59 @@
 <div class="flex h-full min-h-0 min-w-0 flex-col">
-  <div
-    class="relative min-h-0 min-w-0 flex-1 overflow-y-auto overscroll-contain"
-    data-testid="chat-log-scroll"
-    #logScroll
-  >
-    @if (chatTab()) {
-      <chat-tab [chatTab]="chatTab()" (addMessage)="onAddMessage()"></chat-tab>
+  <!-- Who is typing hangs over the foot of the log rather than standing under it. Put in the
+       flow it grew the block it sat in, which took its height off the log, so every line the
+       reader was looking at moved the moment anybody touched a key. The strip it hangs over is
+       always there, whether or not anybody is typing, so nothing moves either way. -->
+  <div class="relative min-h-0 min-w-0 flex-1">
+    <div
+      class="absolute inset-0 overflow-y-auto overscroll-contain"
+      data-testid="chat-log-scroll"
+      [style.padding-bottom.px]="writingStripPx"
+      #logScroll
+    >
+      @if (chatTab()) {
+        <chat-tab [chatTab]="chatTab()" (addMessage)="onAddMessage()"></chat-tab>
+      }
+    </div>
+
+    @if (chatTabRef()?.writingSpeakers()?.length) {
+      @let writingSpeakersList = chatTabRef()!.writingSpeakers();
+      @let writingOverflow = writingSpeakersList.length - 2;
+      <div
+        class="from-ui-panel pointer-events-none absolute inset-x-0 bottom-0 flex items-center justify-between gap-2 bg-linear-to-t from-60% to-transparent px-2"
+        [style.height.px]="writingStripPx"
+        data-testid="writing-strip"
+        aria-live="polite"
+      >
+        @if (writingSpeakersList[0]; as speaker) {
+          <ng-container
+            [ngTemplateOutlet]="writingBadge"
+            [ngTemplateOutletContext]="{ speaker: speaker, tail: false }"
+          ></ng-container>
+        }
+        @if (writingOverflow > 0) {
+          <div
+            class="border-ui-border-panel bg-ui-elevated text-ui-muted inline-flex shrink-0 items-center gap-1.5 rounded-full border border-solid px-2 py-0.5 text-[10px] leading-[1.2]"
+          >
+            {{ 'feature.chat.window.writingOthers' | transloco: { count: writingOverflow } }}
+            <span class="inline-flex items-center gap-0.5">
+              <span class="animate-writing-dot bg-ui-muted block size-1 rounded-full [animation-delay:0.06s]"></span>
+              <span class="animate-writing-dot bg-ui-muted block size-1 rounded-full [animation-delay:0.21s]"></span>
+              <span class="animate-writing-dot bg-ui-muted block size-1 rounded-full [animation-delay:0.36s]"></span>
+            </span>
+          </div>
+        }
+        @if (writingSpeakersList[1]; as speaker) {
+          <ng-container
+            [ngTemplateOutlet]="writingBadge"
+            [ngTemplateOutletContext]="{ speaker: speaker, tail: true }"
+          ></ng-container>
+        }
+      </div>
     }
   </div>
   <div
     class="border-ui-border-panel bg-ui-titlebar shadow-ui-sm rounded-ui @container relative z-10 box-border w-full min-w-0 shrink-0 border border-solid"
   >
-    @if (chatTabRef()?.writingSpeakers()?.length) {
-      @let writingSpeakersList = chatTabRef()!.writingSpeakers();
-      @let writingOverflow = writingSpeakersList.length - 2;
-      <div class="border-ui-border-panel box-border w-full border-b border-solid px-2 pt-1 pb-2" aria-live="polite">
-        <div class="flex w-full items-end justify-between gap-2">
-          @if (writingSpeakersList[0]; as speaker) {
-            <div class="flex max-w-70 min-w-0 items-end gap-2">
-              <div
-                class="rounded-ui-sm border-ui-border-panel bg-ui-input text-ui-dim flex size-9.5 flex-none items-center justify-center overflow-hidden border border-solid [&_.material-icons]:text-[24px]!"
-              >
-                @if (speaker.imageFile.url) {
-                  <img
-                    class="size-full object-cover object-[50%_0%]"
-                    [src]="speaker.imageFile.url | safe: 'resourceUrl'"
-                    [alt]="speaker.name"
-                  />
-                } @else {
-                  <i class="material-icons">person</i>
-                }
-              </div>
-              <div
-                class="rounded-ui border-ui-border-panel bg-ui-elevated text-ui-muted relative min-w-0 border border-solid px-2.5 pt-1 pb-1.5 before:absolute before:bottom-2.5 before:-left-2 before:border-y-[5px] before:border-r-8 before:border-l-0 before:border-solid before:border-y-transparent before:border-r-(--ui-bubble-caret-border) before:content-[''] after:absolute after:bottom-2.75 after:-left-1.5 after:border-y-4 after:border-r-[7px] after:border-l-0 after:border-solid after:border-y-transparent after:border-r-(--ui-elevated) after:content-['']"
-              >
-                <div class="writing-speaker-name max-w-45 truncate text-[11px] leading-[1.2]">
-                  {{ speaker.name }}
-                </div>
-                <div class="flex h-4 items-center gap-1">
-                  <span class="animate-writing-dot bg-ui-muted block size-1.25 rounded-full"></span>
-                  <span
-                    class="animate-writing-dot bg-ui-muted block size-1.25 rounded-full [animation-delay:0.15s]"
-                  ></span>
-                  <span
-                    class="animate-writing-dot bg-ui-muted block size-1.25 rounded-full [animation-delay:0.3s]"
-                  ></span>
-                </div>
-              </div>
-            </div>
-          }
-          @if (writingOverflow > 0) {
-            <div
-              class="border-ui-border-panel bg-ui-elevated text-ui-muted inline-flex shrink-0 items-center gap-1.5 self-center rounded-full border border-solid px-2.5 py-0.5 text-[11px] leading-[1.2]"
-            >
-              {{ 'feature.chat.window.writingOthers' | transloco: { count: writingOverflow } }}
-              <span class="inline-flex items-center gap-0.5">
-                <span class="animate-writing-dot bg-ui-muted block size-1 rounded-full [animation-delay:0.06s]"></span>
-                <span class="animate-writing-dot bg-ui-muted block size-1 rounded-full [animation-delay:0.21s]"></span>
-                <span class="animate-writing-dot bg-ui-muted block size-1 rounded-full [animation-delay:0.36s]"></span>
-              </span>
-            </div>
-          }
-          @if (writingSpeakersList[1]; as speaker) {
-            <div class="flex max-w-70 min-w-0 flex-row-reverse items-end gap-2">
-              <div
-                class="rounded-ui-sm border-ui-border-panel bg-ui-input text-ui-dim flex size-9.5 flex-none items-center justify-center overflow-hidden border border-solid [&_.material-icons]:text-[24px]!"
-              >
-                @if (speaker.imageFile.url) {
-                  <img
-                    class="size-full object-cover object-[50%_0%]"
-                    [src]="speaker.imageFile.url | safe: 'resourceUrl'"
-                    [alt]="speaker.name"
-                  />
-                } @else {
-                  <i class="material-icons">person</i>
-                }
-              </div>
-              <div
-                class="rounded-ui border-ui-border-panel bg-ui-elevated text-ui-muted relative min-w-0 border border-solid px-2.5 pt-1 pb-1.5 before:absolute before:-right-2 before:bottom-2.5 before:border-y-[5px] before:border-r-0 before:border-l-8 before:border-solid before:border-y-transparent before:border-l-(--ui-bubble-caret-border) before:content-[''] after:absolute after:-right-1.5 after:bottom-2.75 after:border-y-4 after:border-r-0 after:border-l-[7px] after:border-solid after:border-y-transparent after:border-l-(--ui-elevated) after:content-['']"
-              >
-                <div class="writing-speaker-name max-w-45 truncate text-right text-[11px] leading-[1.2]">
-                  {{ speaker.name }}
-                </div>
-                <div class="flex h-4 items-center justify-end gap-1">
-                  <span
-                    class="animate-writing-dot bg-ui-muted block size-1.25 rounded-full [animation-delay:0.12s]"
-                  ></span>
-                  <span
-                    class="animate-writing-dot bg-ui-muted block size-1.25 rounded-full [animation-delay:0.27s]"
-                  ></span>
-                  <span
-                    class="animate-writing-dot bg-ui-muted block size-1.25 rounded-full [animation-delay:0.42s]"
-                  ></span>
-                </div>
-              </div>
-            </div>
-          }
-        </div>
-      </div>
-    }
     @if (newMessageCount() > 0 || !isNearBottom()) {
       <button
         type="button"
@@ -249,3 +204,31 @@
     ></chat-input>
   </div>
 </div>
+
+<ng-template #writingBadge let-speaker="speaker" let-tail="tail">
+  <div class="flex max-w-[45%] min-w-0 items-center gap-1.5" [class.flex-row-reverse]="tail">
+    <div
+      class="rounded-ui-sm border-ui-border-panel bg-ui-input text-ui-dim flex size-6 flex-none items-center justify-center overflow-hidden border border-solid [&_.material-icons]:text-[15px]!"
+    >
+      @if (speaker.imageFile.url) {
+        <img
+          class="size-full object-cover object-[50%_0%]"
+          [src]="speaker.imageFile.url | safe: 'resourceUrl'"
+          [alt]="speaker.name"
+        />
+      } @else {
+        <i class="material-icons">person</i>
+      }
+    </div>
+    <div
+      class="rounded-ui border-ui-border-panel bg-ui-elevated text-ui-muted flex min-w-0 items-center gap-1.5 border border-solid px-2 py-0.5"
+    >
+      <span class="writing-speaker-name max-w-32 truncate text-[11px] leading-[1.2]">{{ speaker.name }}</span>
+      <span class="flex items-center gap-1">
+        <span class="animate-writing-dot bg-ui-muted block size-1 rounded-full"></span>
+        <span class="animate-writing-dot bg-ui-muted block size-1 rounded-full [animation-delay:0.15s]"></span>
+        <span class="animate-writing-dot bg-ui-muted block size-1 rounded-full [animation-delay:0.3s]"></span>
+      </span>
+    </div>
+  </div>
+</ng-template>

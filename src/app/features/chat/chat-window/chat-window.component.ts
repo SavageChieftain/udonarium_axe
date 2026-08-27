@@ -1,3 +1,4 @@
+import { NgTemplateOutlet } from '@angular/common';
 import {
   afterNextRender,
   ChangeDetectionStrategy,
@@ -40,6 +41,14 @@ import { SafePipe } from '@axe/ui/pipes/safe.pipe';
 import { TranslocoModule } from '@jsverse/transloco';
 import GameSystemClass from 'bcdice/lib/game_system';
 
+/**
+ * The strip at the foot of the log that who-is-typing hangs over.
+ *
+ * It is held open whether or not anybody is typing, since the whole point is that the log
+ * does not move when somebody starts.
+ */
+const WRITING_STRIP_PX = 32;
+
 const NEAR_BOTTOM_THRESHOLD_PX = 350;
 const AT_BOTTOM_THRESHOLD_PX = 8;
 /**
@@ -63,6 +72,7 @@ const TAB_CLEARANCE_PX = 24;
   imports: [
     ChatTabComponent,
     FormsModule,
+    NgTemplateOutlet,
     ChatPortraitComponent,
     BadgeComponent,
     ChatInputComponent,
@@ -263,6 +273,7 @@ export class ChatWindowComponent {
   private isAutoScroll = true;
   readonly hasNewMessage = signal(false);
   readonly isNearBottom = signal(true);
+  readonly writingStripPx = WRITING_STRIP_PX;
   readonly newMessageCount = signal(0);
   private scrollToBottomTimer: ReturnType<typeof setTimeout> | null = null;
   private scrollListener: (() => void) | null = null;
