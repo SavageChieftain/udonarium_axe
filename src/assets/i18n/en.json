@@ -2886,7 +2886,9 @@
         "dropLayer": "Delete layer",
         "outline": "Outline",
         "underline": "Underline",
-        "strike": "Strikethrough"
+        "strike": "Strikethrough",
+        "centreAcross": "Centre across the sheet",
+        "centreDown": "Centre down the sheet"
       },
       "layer": {
         "freehand": "Drawing",

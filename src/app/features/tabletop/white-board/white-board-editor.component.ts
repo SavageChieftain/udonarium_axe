@@ -60,6 +60,7 @@ import {
   BoardTool,
   boxAround,
   boxOf,
+  centreOnSheet,
   CHEQUER_CLASS,
   clearSheet,
   copyMark,
@@ -1320,6 +1321,11 @@ export class WhiteBoardEditorComponent {
 
   protected alignHeld(edge: AlignEdge): void {
     alignMarks(this.scene, this.held(), edge);
+    this.touched();
+  }
+
+  protected centreHeld(way: 'across' | 'down' | 'both'): void {
+    centreOnSheet(this.scene, this.held(), way);
     this.touched();
   }
 

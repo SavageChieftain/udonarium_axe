@@ -2886,7 +2886,9 @@
         "dropLayer": "レイヤーを削除",
         "outline": "縁取り",
         "underline": "下線",
-        "strike": "取り消し線"
+        "strike": "取り消し線",
+        "centreAcross": "シートの左右中央へ",
+        "centreDown": "シートの上下中央へ"
       },
       "layer": {
         "freehand": "手描き",

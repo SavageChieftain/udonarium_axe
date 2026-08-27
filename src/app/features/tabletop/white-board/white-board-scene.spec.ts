@@ -4,6 +4,7 @@ import {
   ImageItem,
   ImageLayer,
   MapScene,
+  sceneHeightPx,
   sceneWidthPx,
   ShapeItem,
   TextLayer,
@@ -18,6 +19,7 @@ import {
   arrowBetween,
   boxAround,
   boxOf,
+  centreOnSheet,
   clearSheet,
   copyMark,
   createBoardScene,
@@ -1456,5 +1458,66 @@ describe('decorating words', () => {
 
     expect(textBox(lined).w).toBeGreaterThan(textBox(plain).w);
     expect(textBox(lined).x).toBeLessThan(textBox(plain).x);
+  });
+});
+
+describe('centreOnSheet()', () => {
+  function twoOffToOneSide(): { scene: MapScene; refs: MarkRef[] } {
+    const scene = createBoardScene(12, 10, 50);
+    const layer = shapeLayer(scene);
+    addShape(layer, shapeBetween('rect', { x: 10, y: 10 }, { x: 60, y: 40 }, style));
+    addShape(layer, shapeBetween('rect', { x: 70, y: 10 }, { x: 110, y: 40 }, style));
+    return { scene, refs: marksWithin(scene, { x: 0, y: 0, w: 200, h: 100 }) };
+  }
+
+  it('puts what is held in the middle of the sheet both ways', () => {
+    const { scene, refs } = twoOffToOneSide();
+
+    centreOnSheet(scene, refs, 'both');
+
+    const bounds = boxAround(scene, refs)!;
+    expect(bounds.x + bounds.w / 2).toBeCloseTo(sceneWidthPx(scene) / 2, 6);
+    expect(bounds.y + bounds.h / 2).toBeCloseTo(sceneHeightPx(scene) / 2, 6);
+  });
+
+  it('centres across the sheet without moving anything up or down', () => {
+    const { scene, refs } = twoOffToOneSide();
+    const was = boxAround(scene, refs)!.y;
+
+    centreOnSheet(scene, refs, 'across');
+
+    const bounds = boxAround(scene, refs)!;
+    expect(bounds.x + bounds.w / 2).toBeCloseTo(sceneWidthPx(scene) / 2, 6);
+    expect(bounds.y).toBe(was);
+  });
+
+  it('keeps the marks where they are to one another', () => {
+    const { scene, refs } = twoOffToOneSide();
+    const before = refs.map((ref) => boxOf(scene, ref)!);
+    const gap = before[1].x - before[0].x;
+
+    centreOnSheet(scene, refs, 'both');
+
+    const after = refs.map((ref) => boxOf(scene, ref)!);
+    expect(after[1].x - after[0].x).toBeCloseTo(gap, 6);
+    expect(after[0].y).toBe(after[1].y);
+  });
+
+  it('centres one mark on its own, there being nothing to line it up against', () => {
+    const scene = createBoardScene(12, 10, 50);
+    const stuck = stickerAt({ x: 20, y: 20 }, 'pic', 40);
+    addImage(imageLayer(scene), stuck);
+    const ref = { kind: 'image' as const, id: stuck.id };
+
+    centreOnSheet(scene, [ref], 'both');
+
+    expect(stuck.x).toBeCloseTo(sceneWidthPx(scene) / 2, 6);
+    expect(stuck.y).toBeCloseTo(sceneHeightPx(scene) / 2, 6);
+  });
+
+  it('has nothing to centre when nothing is held', () => {
+    const scene = createBoardScene(12, 10, 50);
+
+    expect(() => centreOnSheet(scene, [], 'both')).not.toThrow();
   });
 });

@@ -938,6 +938,23 @@ export function boxAround(scene: MapScene, refs: readonly MarkRef[]): MarkBox | 
 export type AlignEdge = 'left' | 'centre' | 'right' | 'top' | 'middle' | 'bottom';
 
 /**
+ * Puts what is held in the middle of the sheet, keeping the marks where they are to each other.
+ *
+ * Lining marks up against one another and putting them in the middle of the page are two
+ * different jobs: a title centred on its neighbours is still off to one side of the slide.
+ * They move as one thing, so a group laid out carefully is not pulled apart by being centred.
+ */
+export function centreOnSheet(scene: MapScene, refs: readonly MarkRef[], way: 'across' | 'down' | 'both'): void {
+  const bounds = boxAround(scene, refs);
+  if (!bounds) return;
+
+  const dx = way === 'down' ? 0 : (sceneWidthPx(scene) - bounds.w) / 2 - bounds.x;
+  const dy = way === 'across' ? 0 : (sceneHeightPx(scene) - bounds.h) / 2 - bounds.y;
+  if (!dx && !dy) return;
+  for (const ref of refs) moveMark(scene, ref, dx, dy);
+}
+
+/**
  * Lines several marks up against one another.
  *
  * Nudging each one by hand until they look level is what anyone does without this, and they

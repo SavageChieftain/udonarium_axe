@@ -558,6 +558,22 @@
           <button
             class="rounded-ui-sm hover:bg-ui-hover cursor-pointer border border-solid border-transparent px-1 py-0.5"
             type="button"
+            [title]="'feature.whiteBoard.editor.centreAcross' | transloco"
+            (click)="centreHeld('across')"
+          >
+            <i class="material-icons text-[16px]!">border_vertical</i>
+          </button>
+          <button
+            class="rounded-ui-sm hover:bg-ui-hover cursor-pointer border border-solid border-transparent px-1 py-0.5"
+            type="button"
+            [title]="'feature.whiteBoard.editor.centreDown' | transloco"
+            (click)="centreHeld('down')"
+          >
+            <i class="material-icons text-[16px]!">border_horizontal</i>
+          </button>
+          <button
+            class="rounded-ui-sm hover:bg-ui-hover cursor-pointer border border-solid border-transparent px-1 py-0.5"
+            type="button"
             [title]="'feature.whiteBoard.editor.zoomToHeld' | transloco"
             (click)="zoomToHeld()"
           >
