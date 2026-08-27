@@ -1,5 +1,6 @@
 import { ComponentRef, Injectable, signal, ViewContainerRef } from '@angular/core';
 import { EventChannel } from '@axe/core/event/event-channel';
+import { Logger } from '@axe/core/logging/logger';
 import { CardStack } from '@axe/domain/card/card-stack';
 import { ChatTab } from '@axe/domain/chat/chat-tab';
 
@@ -133,10 +134,16 @@ export class PanelService {
     setup?: (instance: T) => void,
     parentViewContainerRef?: ViewContainerRef
   ): void {
-    factory().then((childComponent) => {
-      const instance = this.open(childComponent, option, parentViewContainerRef);
-      setup?.(instance);
-    });
+    // A panel that fails to arrive says nothing for itself: the promise rejects into nowhere
+    // and the reader is left looking at a menu item that appears to do nothing.
+    factory()
+      .then((childComponent) => {
+        const instance = this.open(childComponent, option, parentViewContainerRef);
+        setup?.(instance);
+      })
+      .catch((reason) => {
+        Logger.error('[PanelService] パネルを開けませんでした', reason);
+      });
   }
 
   private applyPanelOption(
