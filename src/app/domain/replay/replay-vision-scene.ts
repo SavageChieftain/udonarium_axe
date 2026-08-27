@@ -3,9 +3,15 @@ import { PeerRole } from '@axe/domain/peer/peer-role';
 import { syncValueOf } from '@axe/domain/replay/replay-diff';
 import type { ReplayViewer } from '@axe/domain/replay/replay-event';
 import type { ReplayObjectSnapshot } from '@axe/domain/replay/replay-keyframe';
-import { perimeterSegments, rectangleSegments, type Segment } from '@axe/domain/tabletop/los/segments';
+import {
+  perimeterSegments,
+  rectangleSegments,
+  type Segment,
+  type TallSegment,
+} from '@axe/domain/tabletop/los/segments';
 import {
   computeOverlayPlan,
+  eyeHeightPx,
   type OverlayPlan,
   type SceneLight,
   type SceneViewer,
@@ -190,6 +196,7 @@ function visionSourcesOf(snapshots: readonly ReplayObjectSnapshot[], gridSize: n
     sources.push({
       x: location.x + centre,
       y: location.y + centre,
+      z: eyeHeightPx(number(character, 'altitude'), number(character, 'posZ'), gridSize),
       type: text(character, 'visionType') as VisionType,
       rangePx: number(character, 'visionRange') * gridSize,
       owner,
@@ -225,8 +232,8 @@ function segmentsOf(
   gridSize: number,
   widthPx: number,
   heightPx: number
-): { sightSegments: Segment[]; lightSegments: Segment[] } {
-  const sightSegments: Segment[] = [...perimeterSegments(widthPx, heightPx)];
+): { sightSegments: TallSegment[]; lightSegments: Segment[] } {
+  const sightSegments: TallSegment[] = [...perimeterSegments(widthPx, heightPx)];
   const lightSegments: Segment[] = [];
 
   const walls: [string, Segment][] = [
@@ -251,7 +258,8 @@ function segmentsOf(
       number(terrain, 'depth', 1) * gridSize,
       number(terrain, 'rotate')
     );
-    if (flag(terrain, 'blocksSight')) sightSegments.push(...edges);
+    const top = (number(terrain, 'altitude') + number(terrain, 'height', 1)) * gridSize;
+    if (flag(terrain, 'blocksSight')) for (const edge of edges) sightSegments.push({ ...edge, heightPx: top });
     if (flag(terrain, 'blocksLight') && !flag(terrain, 'lightEnabled')) lightSegments.push(...edges);
   }
 

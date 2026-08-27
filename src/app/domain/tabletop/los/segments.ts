@@ -10,6 +10,29 @@ export interface Segment {
   y2: number;
 }
 
+/**
+ * A segment that only reaches so high.
+ *
+ * Left out, it reaches high enough to stop anything: the edge of the table, and anything
+ * whose height nobody has said.
+ */
+export interface TallSegment extends Segment {
+  heightPx?: number;
+}
+
+/**
+ * The segments that still stand in the way of an eye at this height.
+ *
+ * Anything an eye is above is behind it once it is looked over, and a character who has
+ * climbed a tower is above most of what stood in the way on the ground.
+ */
+export function segmentsAbove(segments: readonly TallSegment[], eyeZ: number): readonly TallSegment[] {
+  if (!(eyeZ > 0)) return segments;
+  // Level with the top is not above it: an eye at the height of a wall sees none of the far
+  // side, and a character standing on something is above it by its own eye height anyway.
+  return segments.filter((seg) => seg.heightPx === undefined || seg.heightPx >= eyeZ);
+}
+
 export function rectangleSegments(x: number, y: number, width: number, height: number, rotateDeg: number): Segment[] {
   const cx = x + width / 2;
   const cy = y + height / 2;

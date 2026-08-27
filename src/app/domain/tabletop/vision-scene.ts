@@ -1,6 +1,6 @@
 import { GridType } from '@axe/domain/tabletop/game-table';
 import { computeLitCells } from '@axe/domain/tabletop/lit-cells';
-import { Point, Segment, segmentClear } from '@axe/domain/tabletop/los/segments';
+import { Point, Segment, segmentClear, segmentsAbove, TallSegment } from '@axe/domain/tabletop/los/segments';
 import { computeVisibilityPolygon } from '@axe/domain/tabletop/los/visibility-polygon';
 import { surfaceFrame } from '@axe/domain/tabletop/surface-space';
 import { TableSurface } from '@axe/domain/tabletop/tabletop-object';
@@ -32,10 +32,33 @@ export interface SceneLight {
 export interface SceneVisionSource {
   x: number;
   y: number;
+  /**
+   * How high the eye is, which is how high the ground under it is plus the eye's own height.
+   *
+   * Standing on a tower and being written down as high up are the same thing to an eye, so
+   * they are the same number here, and it is the number the light already carries.
+   */
+  z: number;
   type: VisionType;
   rangePx: number;
   owner: string;
   partyId?: string;
+}
+
+/** How far above whatever it stands on an eye, or the lamp it carries, sits. */
+export const EYE_HEIGHT_CELLS = 0.5;
+
+/**
+ * How high a thing on the table is.
+ *
+ * Being written down as high up and having climbed onto something are two ways of arriving at
+ * the same place, and the table already keeps them apart: the first is a number of cells the
+ * reader set, the second is where gravity came to rest. Nothing above the table cares which
+ * of the two got it there, so both are added up here, once, for everything that looks or
+ * shines from a height.
+ */
+export function eyeHeightPx(altitudeCells: number, posZ: number, gridSize: number): number {
+  return (altitudeCells + EYE_HEIGHT_CELLS) * gridSize + posZ;
 }
 
 export interface SceneViewer {
@@ -66,10 +89,7 @@ export interface ShadowShape {
   clipPolygon?: Point[];
 }
 
-export interface LightSegment extends Segment {
-  /** How high what stands here reaches. Left out, it reaches high enough to stop anything. */
-  heightPx?: number;
-}
+export type LightSegment = TallSegment;
 
 export interface WallFace {
   ax: number;
@@ -112,7 +132,7 @@ export interface VisionScene {
   heightPx: number;
   lights: SceneLight[];
   visionSources: SceneVisionSource[];
-  sightSegments: Segment[];
+  sightSegments: TallSegment[];
   lightSegments: LightSegment[];
   shadowCasters: ShadowCaster[];
 }
@@ -617,7 +637,7 @@ export function isPointVisible(scene: VisionScene, x: number, y: number, viewer:
   for (const source of sources) {
     const withinRange = source.rangePx > 0 && distance(x, y, source.x, source.y) <= source.rangePx;
     if (source.type === VisionType.TRUESIGHT && withinRange) return true;
-    if (!segmentClear(source.x, source.y, x, y, scene.sightSegments)) continue;
+    if (!segmentClear(source.x, source.y, x, y, segmentsAbove(scene.sightSegments, source.z))) continue;
     if (lit) return true;
     if (seesInDark(source.type) && withinRange) return true;
   }
@@ -814,7 +834,13 @@ export function computeOverlayPlan(scene: VisionScene, viewer: SceneViewer): Ove
       const clipPolygon =
         source.type === VisionType.TRUESIGHT
           ? undefined
-          : computeVisibilityPolygon(source.x, source.y, scene.sightSegments, source.rangePx, VISION_SAMPLE_COUNT);
+          : computeVisibilityPolygon(
+              source.x,
+              source.y,
+              segmentsAbove(scene.sightSegments, source.z),
+              source.rangePx,
+              VISION_SAMPLE_COUNT
+            );
       reveals.push({
         x: source.x,
         y: source.y,

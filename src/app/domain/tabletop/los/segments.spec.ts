@@ -1,4 +1,10 @@
-import { perimeterSegments, rectangleSegments, segmentClear, segmentsCross } from '@axe/domain/tabletop/los/segments';
+import {
+  perimeterSegments,
+  rectangleSegments,
+  segmentClear,
+  segmentsAbove,
+  segmentsCross,
+} from '@axe/domain/tabletop/los/segments';
 
 describe('los/segments', () => {
   describe('rectangleSegments', () => {
@@ -47,5 +53,27 @@ describe('los/segments', () => {
     it('always passes with no walls at all', () => {
       expect(segmentClear(0, 0, 100, 0, [])).toBe(true);
     });
+  });
+});
+
+describe('segmentsAbove()', () => {
+  const low = { x1: 0, y1: 0, x2: 10, y2: 0, heightPx: 50 };
+  const high = { x1: 0, y1: 10, x2: 10, y2: 10, heightPx: 300 };
+  const edgeOfTable = { x1: 0, y1: 20, x2: 10, y2: 20 };
+
+  it('leaves everything standing for an eye on the ground', () => {
+    expect(segmentsAbove([low, high, edgeOfTable], 0)).toHaveLength(3);
+  });
+
+  it('drops what the eye has climbed above', () => {
+    expect(segmentsAbove([low, high, edgeOfTable], 100)).toEqual([high, edgeOfTable]);
+  });
+
+  it('keeps what the eye is level with, an eye at the top of a wall seeing none of the far side', () => {
+    expect(segmentsAbove([low], 50)).toEqual([low]);
+  });
+
+  it('never drops the edge of the table, whose height nobody has said', () => {
+    expect(segmentsAbove([edgeOfTable], 100_000)).toEqual([edgeOfTable]);
   });
 });
