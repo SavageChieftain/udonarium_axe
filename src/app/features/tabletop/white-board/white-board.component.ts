@@ -1,4 +1,4 @@
-import { NgClass, NgStyle } from '@angular/common';
+import { NgStyle } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, inject, input, signal } from '@angular/core';
 import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
@@ -25,7 +25,6 @@ import { TerrainComponent } from '@axe/features/tabletop/terrain/terrain.compone
 import { TextNoteComponent } from '@axe/features/tabletop/text-note/text-note.component';
 import { detachAllFrom } from '@axe/features/tabletop/white-board/white-board-contents';
 import { buildWhiteBoardContextMenu } from '@axe/features/tabletop/white-board/white-board-context-menu';
-import { CHEQUER_CLASS } from '@axe/features/tabletop/white-board/white-board-scene';
 import { MovableDirective, MovableOption } from '@axe/ui/directives/movable.directive';
 import { RotableDirective, RotableOption } from '@axe/ui/directives/rotable.directive';
 import { SelectableDirective } from '@axe/ui/directives/selectable.directive';
@@ -38,7 +37,6 @@ import { setupMovableRotableForPiece } from '@axe/ui/tabletop/setup-tabletop-pie
   templateUrl: './white-board.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
-    NgClass,
     NgStyle,
     MovableDirective,
     RotableDirective,
@@ -100,16 +98,6 @@ export class WhiteBoardComponent {
   readonly opacity = computed(() => this.version().opacity);
   readonly color = computed(() => this.version().color);
 
-  /**
-   * Whether the board has been turned down until nothing of it is left.
-   *
-   * The marks drawn on it still hang where they were, but the board under them does not, and
-   * a board nobody can see is a board nobody can find to move.
-   */
-  readonly seeThrough = computed(() => this.version().opacity <= 0);
-  readonly faceOpacity = computed(() => (this.seeThrough() ? 1 : this.opacity()));
-  readonly faceColor = computed(() => (this.seeThrough() ? 'transparent' : this.color()));
-  readonly CHEQUER_CLASS = CHEQUER_CLASS;
   readonly imageUrl = computed(() => this.version().imageFile.url);
 
   /**

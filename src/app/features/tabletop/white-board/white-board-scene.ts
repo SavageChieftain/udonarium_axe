@@ -1405,8 +1405,9 @@ export function isTypingKey(target: EventTarget | null, composing: boolean): boo
  * The chequer that stands for nothing at all.
  *
  * Two greys in squares is what every drawing tool puts behind an empty picture, so a reader
- * who has seen one anywhere else already knows what it means here: there is no board, only
- * what has been drawn on it.
+ * who has seen one anywhere else already knows what it means here: there is nothing under the
+ * marks. It belongs to the editor and not to the board — a board on the table that has been
+ * turned down is meant to be seen through, not to be seen as squares.
  */
 export const CHEQUER_CLASS = '[background-image:repeating-conic-gradient(#c4c4c4_0%_25%,#f2f2f2_0%_50%)]';
 
