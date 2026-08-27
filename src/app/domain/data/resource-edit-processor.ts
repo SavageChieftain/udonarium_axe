@@ -118,56 +118,26 @@ export class ResourceEditProcessor {
     isSecret: boolean
   ) {
     const allEditList: ResourceEdit[] = [];
+    const unreadableCommands: string[] = [];
     const gameSystem = await this.loadGameSystemAsync(originalMessage.tags ? originalMessage.tags[0] : '');
 
     for (const res of resourceByCharacter) {
       const oneText = res.resourceCommand;
       const targeted = !!oneText.match(/^t:/i);
-      let obj: GameCharacter;
-      if (targeted) {
-        const object = res.object;
-        const oneResourceEdit = this.defaultResourceEdit();
-        if (!this.commandToEdit(oneResourceEdit, oneText, object, targeted)) return;
-        if (oneResourceEdit.operator != '>') {
-          try {
-            const rollResult = await this.diceRollAsync(oneResourceEdit.command, gameSystem);
-            if (!rollResult.result) {
-              return;
-            }
-            const splitResult = rollResult.result.split(' ＞ ');
-            oneResourceEdit.diceResult = splitResult[splitResult.length - 2].replace(/\+\(1\[1\]-1\)$/, '');
-            const resultMatch = rollResult.result.match(/([-+]?\d+)$/);
-            oneResourceEdit.calcAns = parseInt(resultMatch![1], 10);
-          } catch (e) {
-            Logger.error('[DiceBot] リソース編集のダイスロールエラー', e);
-          }
-        }
-        allEditList.push(oneResourceEdit);
-      } else {
-        if (sendFromObject == null) {
-          Logger.debug('[DiceBot] 送信元がキャラクターではないためリソース操作不可');
-          return;
-        } else {
-          obj = sendFromObject;
-          const oneResourceEdit = this.defaultResourceEdit();
-          if (!this.commandToEdit(oneResourceEdit, oneText, obj, targeted)) return;
-          if (oneResourceEdit.operator != '>') {
-            try {
-              const rollResult = await this.diceRollAsync(oneResourceEdit.command, gameSystem);
-              if (!rollResult.result) {
-                return;
-              }
-              const splitResult = rollResult.result.split(' ＞ ');
-              oneResourceEdit.diceResult = splitResult[splitResult.length - 2].replace(/\+\(1\[1\]-1\)$/, '');
-              const resultMatch = rollResult.result.match(/([-+]?\d+)$/);
-              oneResourceEdit.calcAns = parseInt(resultMatch![1], 10);
-            } catch (e) {
-              Logger.error('[DiceBot] リソース編集のダイスロールエラー', e);
-            }
-          }
-          allEditList.push(oneResourceEdit);
-        }
+      const object = targeted ? res.object : sendFromObject;
+      if (object == null) {
+        Logger.debug('[DiceBot] 送信元がキャラクターではないためリソース操作不可');
+        continue;
       }
+
+      const oneResourceEdit = this.defaultResourceEdit();
+      if (!this.commandToEdit(oneResourceEdit, oneText, object, targeted)) continue;
+
+      if (oneResourceEdit.operator != '>' && !(await this.rollResourceEdit(oneResourceEdit, gameSystem))) {
+        unreadableCommands.push(`${targeted ? `[${object.name}] ` : ''}${oneText}を計算できません    `);
+        continue;
+      }
+      allEditList.push(oneResourceEdit);
     }
 
     const repBuffCommandList: BuffEdit[] = [];
@@ -185,7 +155,7 @@ export class ResourceEditProcessor {
       } else {
         if (sendFromObject == null) {
           Logger.debug('[DiceBot] 送信元がキャラクターではないためバフ操作不可');
-          return;
+          continue;
         } else {
           const replaceText = oneText.replace('＆', '&').replace(/＋$/, '+').replace(/－$/, '-');
           repBuffCommandList.push({
@@ -197,7 +167,22 @@ export class ResourceEditProcessor {
       }
     }
 
-    this.applyResourceBuffEdits(allEditList, repBuffCommandList, originalMessage, isSecret);
+    this.applyResourceBuffEdits(allEditList, repBuffCommandList, unreadableCommands, originalMessage, isSecret);
+  }
+
+  private async rollResourceEdit(edit: ResourceEdit, gameSystem: GameSystemClass): Promise<boolean> {
+    try {
+      const rollResult = await this.diceRollAsync(edit.command, gameSystem);
+      const splitResult = rollResult.result.split(' ＞ ');
+      const resultMatch = rollResult.result.match(/([-+]?\d+)$/);
+      if (splitResult.length < 2 || !resultMatch) return false;
+      edit.diceResult = splitResult[splitResult.length - 2].replace(/\+\(1\[1\]-1\)$/, '');
+      edit.calcAns = parseInt(resultMatch[1], 10);
+      return true;
+    } catch (e) {
+      Logger.error('[DiceBot] リソース編集のダイスロールエラー', e);
+      return false;
+    }
   }
 
   textEdit(edit: ResourceEdit, character: GameCharacter): string {
@@ -215,6 +200,7 @@ export class ResourceEditProcessor {
   private applyResourceBuffEdits(
     allEditList: ResourceEdit[],
     buffList: BuffEdit[],
+    unreadableCommands: string[],
     originalMessage: ChatMessage,
     isSecret: boolean
   ) {
@@ -236,6 +222,9 @@ export class ResourceEditProcessor {
     }
     for (const buff of buffList) {
       text += this.buffEdit(buff, buff.object);
+    }
+    for (const unreadable of unreadableCommands) {
+      text += unreadable;
     }
     text = text.replace(/\s\s\s\s$/, '');
 

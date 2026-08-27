@@ -1,6 +1,9 @@
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { GameCharacter } from '@axe/domain/character/game-character';
+import { ChatMessage } from '@axe/domain/chat/chat-message';
+import { ChatTab } from '@axe/domain/chat/chat-tab';
 import { ResourceEdit, ResourceEditProcessor } from '@axe/domain/data/resource-edit-processor';
+import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 
 describe('ResourceEditProcessor', () => {
   let store: ObjectStore;
@@ -242,6 +245,76 @@ describe('ResourceEditProcessor', () => {
 
       const result = processor.resourceEdit(edit, character);
       expect(result).toContain('(0制限)');
+    });
+  });
+
+  describe('resourceEditProcess', () => {
+    let tab: ChatTab;
+    let character: GameCharacter;
+
+    function speak(text: string): ChatMessage {
+      return tab.addMessage({
+        identifier: '',
+        tabIdentifier: tab.identifier,
+        from: 'peer',
+        timestamp: 1,
+        imageIdentifier: '',
+        tag: '',
+        name: 'プレイヤー',
+        text,
+      });
+    }
+
+    function systemText(): string {
+      return tab.chatMessages
+        .filter((message) => message.tag === 'system')
+        .map((message) => message.text)
+        .join('\n');
+    }
+
+    beforeEach(() => {
+      PeerCursor.createMyCursor();
+      tab = new ChatTab();
+      tab.initialize();
+      character = GameCharacter.create('キャラクターB', 1, '');
+      mockLoadGameSystemAsync.mockResolvedValue({ ID: 'DiceBot' });
+    });
+
+    it('says which command it could not work out', async () => {
+      mockDiceRollAsync.mockResolvedValue({ id: 'DiceBot', result: '', isSecret: false });
+
+      await processor.resourceEditProcess(
+        null,
+        [{ resourceCommand: 't:HP-t{敏捷度}', object: character }],
+        [],
+        speak('t:HP-t{敏捷度}'),
+        false
+      );
+
+      expect(systemText()).toContain('[キャラクターB] t:HP-t{敏捷度}を計算できません');
+      expect(character.status.getValue('HP', 'now')).toBe(200);
+    });
+
+    it('keeps the edits it could work out when another command fails', async () => {
+      mockDiceRollAsync.mockImplementation(async (command: string) =>
+        command.includes('{')
+          ? { id: 'DiceBot', result: '', isSecret: false }
+          : { id: 'DiceBot', result: 'DiceBot : (-5+(1D1-1)) ＞ -5+(1[1]-1) ＞ -5', isSecret: false }
+      );
+
+      await processor.resourceEditProcess(
+        null,
+        [
+          { resourceCommand: 't:HP-t{敏捷度}', object: character },
+          { resourceCommand: 't:MP-5', object: character },
+        ],
+        [],
+        speak('t:HP-t{敏捷度} t:MP-5'),
+        false
+      );
+
+      expect(character.status.getValue('MP', 'now')).toBe(95);
+      expect(systemText()).toContain('t:HP-t{敏捷度}を計算できません');
     });
   });
 
