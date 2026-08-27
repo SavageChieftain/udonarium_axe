@@ -143,6 +143,14 @@ export interface MapScene {
   gridColor: string;
   gridVisible: boolean;
   layers: MapLayer[];
+  guides?: SceneGuideLine[];
+}
+
+/** A line laid across the scene to line things up against, kept with the scene it was laid on. */
+export interface SceneGuideLine {
+  id: string;
+  axis: 'x' | 'y';
+  at: number;
 }
 
 export function newId(): string {

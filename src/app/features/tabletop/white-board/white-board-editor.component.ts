@@ -23,6 +23,7 @@ import {
   ImageLayer,
   MapLayer,
   MapScene,
+  SceneGuideLine,
   sceneHeightPx,
   sceneWidthPx,
   ShapeItem,
@@ -70,6 +71,8 @@ import {
   groupLayers,
   groupNames,
   guessLineWidth,
+  guidesFor,
+  guideUnder,
   Handle,
   handleAt,
   HANDLES,
@@ -84,6 +87,7 @@ import {
   marksWithin,
   markUnder,
   moveMark,
+  newGuide,
   noteAt,
   pathThrough,
   penStroke,
@@ -97,11 +101,14 @@ import {
   scaleMark,
   shapeBetween,
   shapeLayer,
+  sheetGuides,
   sheetHolding,
   showGroup,
   smoothStroke,
+  SnapGuide,
   snapTo,
   spreadMarks,
+  squareOff,
   stickerAt,
   straightLine,
   stretchBy,
@@ -159,6 +166,11 @@ const HANDLE_SLACK = 9;
 const TURN_SNAP = 15;
 
 const MAX_TYPING_ROWS = 12;
+
+const RULER_WIDTH = 16;
+const RULER_STEPS: readonly number[] = [50, 100, 200, 500, 1000];
+/** How much room a number wants on a ruler before the next one is written. */
+const RULER_ROOM = 44;
 
 /** How far a copy is set down from what it was copied off, so both can be seen. */
 const DUPLICATE_OFFSET = 16;
@@ -334,6 +346,22 @@ export class WhiteBoardEditorComponent {
   readonly shadowed = signal(false);
   readonly noteColor = signal('#fff59d');
   readonly snapping = signal(false);
+  /** Lines drawn off the other marks, which is the only guide there is once the paper is plain. */
+  readonly guiding = signal(true);
+  readonly showRulers = signal(true);
+  readonly rulerWidth = RULER_WIDTH;
+
+  /** The numbers written along a ruler, spaced so they stay apart at whatever size the sheet is. */
+  protected ticks(axis: 'x' | 'y'): { at: number; px: number }[] {
+    const span = axis === 'x' ? this.sceneWidth : this.sceneHeight;
+    const zoom = this.zoom();
+    const step = RULER_STEPS.find((size) => size * zoom >= RULER_ROOM) ?? RULER_STEPS[RULER_STEPS.length - 1];
+    const marks: { at: number; px: number }[] = [];
+    for (let at = 0; at <= span; at += step) marks.push({ at, px: at * zoom });
+    return marks;
+  }
+  /** The lines shown this instant, which last only as long as the drag that raised them. */
+  readonly showing = signal<SnapGuide[]>([]);
   readonly activeLayerId = signal<string | null>(null);
 
   protected readonly typing = signal<BoardPoint | null>(null);
@@ -370,6 +398,7 @@ export class WhiteBoardEditorComponent {
     turnedTo: number;
   } | null = null;
   private hovering: BoardPoint | null = null;
+  private draggingGuide: SceneGuideLine | null = null;
   private bandFrom: BoardPoint | null = null;
   private bandTo: BoardPoint | null = null;
 
@@ -814,7 +843,11 @@ export class WhiteBoardEditorComponent {
         this.typing.set(at);
         break;
       case 'path':
-        this.laying.update((points) => [...points, at]);
+        this.laying.update((points) =>
+          this.keepingShape && points.length > 0
+            ? [...points, squareOff(points[points.length - 1], at)]
+            : [...points, at]
+        );
         void this.redraw();
         break;
       case 'select':
@@ -836,6 +869,12 @@ export class WhiteBoardEditorComponent {
       return;
     }
     const at = this.pointOf(event);
+    if (this.draggingGuide) {
+      const guide = this.draggingGuide;
+      guide.at = guide.axis === 'x' ? at.x : at.y;
+      void this.redraw();
+      return;
+    }
     if (this.laying().length > 0) {
       this.hovering = at;
       void this.redraw();
@@ -904,6 +943,8 @@ export class WhiteBoardEditorComponent {
       this.bandTo = null;
     }
     this.grabbed = null;
+    this.draggingGuide = null;
+    this.showing.set([]);
     this.touched();
   }
 
@@ -936,13 +977,58 @@ export class WhiteBoardEditorComponent {
    */
   private pendingMark(): ShapeItem | null {
     const from = this.dragFrom;
-    const to = this.dragTo;
+    const to = this.reachedTo();
     if (!from || !to) return null;
     const tool = this.tool();
     if (tool === 'line') return straightLine(from, to, this.style());
     if (tool === 'arrow') return arrowBetween(from, to, this.style());
     if (tool === 'shape') return shapeBetween(this.shapeKind(), from, to, this.style(), this.filled());
     return null;
+  }
+
+  /**
+   * Where the drag has reached, once the guides and the shift key have had their say.
+   *
+   * A line meant to be upright is never quite upright when it is dragged by hand, and a box
+   * meant to sit under another is never quite under it.
+   */
+  private reachedTo(): BoardPoint | null {
+    const from = this.dragFrom;
+    const to = this.dragTo;
+    if (!from || !to) return null;
+    const tool = this.tool();
+    if (this.keepingShape && (tool === 'line' || tool === 'arrow')) return squareOff(from, to);
+    if (!this.guiding()) return to;
+
+    const box = {
+      x: Math.min(from.x, to.x),
+      y: Math.min(from.y, to.y),
+      w: Math.abs(to.x - from.x),
+      h: Math.abs(to.y - from.y),
+    };
+    const snap = guidesFor(this.scene, box, [], this.guides);
+    this.showing.set(snap.guides);
+    return { x: to.x + snap.dx, y: to.y + snap.dy };
+  }
+
+  private drawGuides(ctx: CanvasRenderingContext2D, guides: readonly SnapGuide[], colour: string): void {
+    if (guides.length < 1) return;
+    ctx.save();
+    ctx.strokeStyle = colour;
+    ctx.lineWidth = 1 / Math.max(0.25, this.zoom());
+    ctx.setLineDash([5, 4]);
+    for (const guide of guides) {
+      ctx.beginPath();
+      if (guide.axis === 'x') {
+        ctx.moveTo(guide.at, guide.from);
+        ctx.lineTo(guide.at, guide.to);
+      } else {
+        ctx.moveTo(guide.from, guide.at);
+        ctx.lineTo(guide.to, guide.at);
+      }
+      ctx.stroke();
+    }
+    ctx.restore();
   }
 
   private drawPending(ctx: CanvasRenderingContext2D, item: ShapeItem): void {
@@ -992,6 +1078,11 @@ export class WhiteBoardEditorComponent {
   }
 
   private take(at: BoardPoint, adding: boolean): void {
+    const laid = guideUnder(this.guides, at);
+    if (laid) {
+      this.draggingGuide = laid;
+      return;
+    }
     const chosen = this.selected();
     const window = this.trimming();
     const picture = chosen && window ? boxOf(this.scene, chosen) : null;
@@ -1058,7 +1149,16 @@ export class WhiteBoardEditorComponent {
     }
 
     if (!held.handle) {
-      for (const ref of held.refs) moveMark(this.scene, ref, dx, dy);
+      let stepX = dx;
+      let stepY = dy;
+      const was = boxAround(this.scene, held.refs);
+      if (this.guiding() && was) {
+        const snap = guidesFor(this.scene, { ...was, x: was.x + dx, y: was.y + dy }, held.refs, this.guides);
+        stepX += snap.dx;
+        stepY += snap.dy;
+        this.showing.set(snap.guides);
+      }
+      for (const ref of held.refs) moveMark(this.scene, ref, stepX, stepY);
       void this.redraw();
       return;
     }
@@ -1397,6 +1497,31 @@ export class WhiteBoardEditorComponent {
     return image ? { x: image.naturalWidth, y: image.naturalHeight } : undefined;
   }
 
+  get guides(): SceneGuideLine[] {
+    this.revision();
+    return this.scene.guides ?? [];
+  }
+
+  /** A guide is pulled off a ruler onto the sheet, and pulled back onto the ruler to be rid of it. */
+  protected startGuide(axis: 'x' | 'y', event: PointerEvent): void {
+    const at = this.pointOf(event);
+    const guide = newGuide(axis, axis === 'x' ? at.x : at.y);
+    this.scene.guides = [...this.guides, guide];
+    this.draggingGuide = guide;
+    (event.target as HTMLElement).setPointerCapture?.(event.pointerId);
+    void this.redraw();
+  }
+
+  protected dropGuide(guide: SceneGuideLine): void {
+    this.scene.guides = this.guides.filter((entry) => entry.id !== guide.id);
+    this.touched();
+  }
+
+  protected clearGuides(): void {
+    this.scene.guides = [];
+    this.touched();
+  }
+
   protected clearBoard(): void {
     this.scene.layers = [];
     this.touched();
@@ -1491,6 +1616,18 @@ export class WhiteBoardEditorComponent {
         ctx.strokeRect(at.x - grip / 2, at.y - grip / 2, grip, grip);
       }
       ctx.restore();
+    }
+
+    if (ruled !== false) {
+      const standing = this.guiding() ? sheetGuides(this.scene) : [];
+      const laid: SnapGuide[] = this.guides.map((guide) => ({
+        axis: guide.axis,
+        at: guide.at,
+        from: 0,
+        to: guide.axis === 'x' ? this.sceneHeight : this.sceneWidth,
+      }));
+      this.drawGuides(ctx, [...standing, ...laid], 'rgba(70,130,220,0.35)');
+      this.drawGuides(ctx, this.showing(), '#e0457b');
     }
 
     const laying = this.laying();

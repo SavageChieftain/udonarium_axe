@@ -7,6 +7,7 @@ import {
   MAP_SCENE_VERSION,
   MapLayer,
   MapScene,
+  SceneGuideLine,
   ShapeItem,
   ShapeShadow,
   StrokeDash,
@@ -227,5 +228,15 @@ export function deserializeScene(json: string): MapScene | null {
     gridColor: typeof raw['gridColor'] === 'string' ? raw['gridColor'] : DEFAULT_SCENE_GRID_COLOR,
     gridVisible: raw['gridVisible'] !== false,
     layers: rawLayers.map((l) => sanitizeLayer(l as Record<string, unknown>)),
+    guides: sanitizeGuides(raw['guides']),
   };
+}
+
+function sanitizeGuides(raw: unknown): SceneGuideLine[] | undefined {
+  if (!Array.isArray(raw)) return undefined;
+  const kept = raw
+    .filter((entry): entry is Record<string, unknown> => typeof entry === 'object' && entry !== null)
+    .filter((entry) => (entry['axis'] === 'x' || entry['axis'] === 'y') && isFiniteNumber(entry['at']))
+    .map((entry) => ({ id: String(entry['id'] ?? ''), axis: entry['axis'] as 'x' | 'y', at: entry['at'] as number }));
+  return kept.length > 0 ? kept : undefined;
 }

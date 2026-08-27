@@ -3105,7 +3105,11 @@
         "untrim": "자르기 되돌리기",
         "trimApply": "적용",
         "trimCancel": "취소",
-        "trimHint": "모서리와 변을 움직여 남길 범위를 정합니다."
+        "trimHint": "모서리와 변을 움직여 남길 범위를 정합니다.",
+        "guides": "정렬 가이드",
+        "rulers": "눈금자",
+        "clearGuides": "가이드선 지우기 ({{count}})",
+        "rulerHint": "눈금자에서 끌어내면 가이드선이 생깁니다"
       },
       "layer": {
         "freehand": "손그림",

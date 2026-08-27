@@ -2875,7 +2875,11 @@
         "untrim": "Undo crop",
         "trimApply": "Apply",
         "trimCancel": "Cancel",
-        "trimHint": "Pull the corners and sides in to choose what to keep."
+        "trimHint": "Pull the corners and sides in to choose what to keep.",
+        "guides": "Alignment guides",
+        "rulers": "Rulers",
+        "clearGuides": "Clear guides ({{count}})",
+        "rulerHint": "Drag off the ruler to lay a guide"
       },
       "layer": {
         "freehand": "Drawing",

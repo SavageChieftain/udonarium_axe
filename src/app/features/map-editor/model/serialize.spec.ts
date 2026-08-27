@@ -528,4 +528,40 @@ describe('deserializeScene round-trip', () => {
     expect(result!.layers).toHaveLength(1);
     expect(result!.layers[0].id).toBe('l2');
   });
+
+  it('keeps the guides laid on a scene', () => {
+    const scene = createScene(5, 5, 64);
+    scene.guides = [
+      { id: 'g1', axis: 'x', at: 120 },
+      { id: 'g2', axis: 'y', at: 40 },
+    ];
+
+    const back = deserializeScene(serializeScene(scene));
+
+    expect(back!.guides).toEqual(scene.guides);
+  });
+
+  it('drops guides that name no axis or land nowhere', () => {
+    const raw = {
+      version: MAP_SCENE_VERSION,
+      cols: 5,
+      rows: 5,
+      cellPx: 64,
+      background: '#fff',
+      gridColor: '#000',
+      gridVisible: true,
+      layers: [],
+      guides: [
+        { id: 'g1', axis: 'z', at: 10 },
+        { id: 'g2', axis: 'x', at: 'over there' },
+        { id: 'g3', axis: 'y', at: 30 },
+      ],
+    };
+
+    expect(deserializeScene(JSON.stringify(raw))!.guides).toEqual([{ id: 'g3', axis: 'y', at: 30 }]);
+  });
+
+  it('leaves a scene that was never given guides without any', () => {
+    expect(deserializeScene(serializeScene(createScene(5, 5, 64)))!.guides).toBeUndefined();
+  });
 });

@@ -300,6 +300,23 @@
         <input type="checkbox" name="board-snap" [ngModel]="snapping()" (ngModelChange)="snapping.set($event)" />
         {{ 'feature.whiteBoard.editor.snap' | transloco }}
       </label>
+      <label class="flex cursor-pointer items-center gap-1.5">
+        <input type="checkbox" name="board-guides" [ngModel]="guiding()" (ngModelChange)="guiding.set($event)" />
+        {{ 'feature.whiteBoard.editor.guides' | transloco }}
+      </label>
+      <label class="flex cursor-pointer items-center gap-1.5">
+        <input type="checkbox" name="board-rulers" [ngModel]="showRulers()" (ngModelChange)="showRulers.set($event)" />
+        {{ 'feature.whiteBoard.editor.rulers' | transloco }}
+      </label>
+      @if (guides.length > 0) {
+        <button
+          class="text-ui-accent cursor-pointer self-start border-0 bg-transparent p-0"
+          type="button"
+          (click)="clearGuides()"
+        >
+          {{ 'feature.whiteBoard.editor.clearGuides' | transloco: { count: guides.length } }}
+        </button>
+      }
       @if (isRuled) {
         <label class="flex items-center justify-between gap-2">
           <span class="text-ui-muted">{{ 'feature.whiteBoard.editor.spacing' | transloco }}</span>
@@ -603,7 +620,45 @@
       [class.cursor-grab]="panning()"
       (wheel)="onWheel($event)"
     >
-      <div class="relative mx-auto" [style.width.px]="sceneWidth * zoom()">
+      <div
+        class="relative mx-auto"
+        [style.width.px]="sceneWidth * zoom() + (showRulers() ? rulerWidth : 0)"
+        [style.padding-left.px]="showRulers() ? rulerWidth : 0"
+        [style.padding-top.px]="showRulers() ? rulerWidth : 0"
+      >
+        @if (showRulers()) {
+          <!-- Pulling off a ruler leaves a line on the sheet; pulling the line back off is
+               how it is got rid of, which is how a ruler has always worked. -->
+          <div
+            class="bg-ui-panel border-ui-border-panel absolute top-0 right-0 cursor-ew-resize border-b border-solid"
+            [style.left.px]="rulerWidth"
+            [style.height.px]="rulerWidth"
+            [title]="'feature.whiteBoard.editor.rulerHint' | transloco"
+            (pointerdown)="startGuide('x', $event)"
+            (pointermove)="onPointerMove($event)"
+            (pointerup)="onPointerUp($event)"
+          >
+            @for (tick of ticks('x'); track tick.at) {
+              <span class="text-ui-muted absolute bottom-0 text-[8px] leading-none" [style.left.px]="tick.px + 1">
+                {{ tick.at }}
+              </span>
+            }
+          </div>
+          <div
+            class="bg-ui-panel border-ui-border-panel absolute bottom-0 left-0 cursor-ns-resize border-r border-solid"
+            [style.top.px]="rulerWidth"
+            [style.width.px]="rulerWidth"
+            (pointerdown)="startGuide('y', $event)"
+            (pointermove)="onPointerMove($event)"
+            (pointerup)="onPointerUp($event)"
+          >
+            @for (tick of ticks('y'); track tick.at) {
+              <span class="text-ui-muted absolute left-0 text-[8px] leading-none" [style.top.px]="tick.px + 1">
+                {{ tick.at }}
+              </span>
+            }
+          </div>
+        }
         <canvas
           #board
           class="block h-auto w-full touch-none bg-white shadow-md"

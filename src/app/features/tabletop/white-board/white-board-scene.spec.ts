@@ -4,6 +4,8 @@ import {
   ImageItem,
   ImageLayer,
   MapScene,
+  sceneWidthPx,
+  ShapeItem,
   TextLayer,
 } from '@axe/features/map-editor/model/scene';
 import { addImage, addShape, addStroke, addText } from '@axe/features/map-editor/model/scene-ops';
@@ -26,6 +28,8 @@ import {
   groupLayers,
   groupNames,
   guessLineWidth,
+  guidesFor,
+  guideUnder,
   handleAt,
   handleUnder,
   highlighterStyle,
@@ -37,6 +41,7 @@ import {
   marksWithin,
   markUnder,
   moveMark,
+  newGuide,
   noteAt,
   pathThrough,
   penStroke,
@@ -50,11 +55,13 @@ import {
   scaleMark,
   shapeBetween,
   shapeLayer,
+  sheetGuides,
   sheetHolding,
   showGroup,
   smoothStroke,
   snapTo,
   spreadMarks,
+  squareOff,
   stickerAt,
   straightLine,
   stretchBy,
@@ -1003,5 +1010,125 @@ describe('trimming a picture', () => {
     addShape(shapeLayer(scene), drawn);
 
     expect(pictureOf(scene, { kind: 'shape', id: drawn.id })).toBeNull();
+  });
+});
+
+describe('guides', () => {
+  function twoBoxes(): { scene: MapScene; still: ShapeItem } {
+    const scene = createBoardScene(12, 10, 50);
+    const still = shapeBetween('rect', { x: 100, y: 100 }, { x: 200, y: 160 }, style);
+    addShape(shapeLayer(scene), still);
+    return { scene, still };
+  }
+
+  it('lines a moving box up with the left edge of one standing still', () => {
+    const { scene } = twoBoxes();
+
+    const snap = guidesFor(scene, { x: 103, y: 400, w: 40, h: 20 }, []);
+
+    expect(snap.dx).toBe(-3);
+    expect(snap.guides.some((guide) => guide.axis === 'x' && guide.at === 100)).toBe(true);
+  });
+
+  it('lines it up with a middle as readily as with an edge', () => {
+    const { scene } = twoBoxes();
+
+    const snap = guidesFor(scene, { x: 400, y: 126, w: 40, h: 20 }, []);
+
+    expect(snap.dy).toBeCloseTo(4, 6);
+  });
+
+  it('leaves a box that is nowhere near a line alone', () => {
+    const { scene } = twoBoxes();
+
+    const snap = guidesFor(scene, { x: 400, y: 400, w: 40, h: 20 }, []);
+
+    expect(snap).toEqual({ dx: 0, dy: 0, guides: [] });
+  });
+
+  it('does not line a mark up against itself', () => {
+    const { scene, still } = twoBoxes();
+
+    const snap = guidesFor(scene, { x: 103, y: 400, w: 40, h: 20 }, [{ kind: 'shape', id: still.id }]);
+
+    expect(snap.dx).toBe(0);
+  });
+
+  it('offers the middle of the sheet, there being nothing else to line up against', () => {
+    const scene = createBoardScene(12, 10, 50);
+
+    const snap = guidesFor(scene, { x: sceneWidthPx(scene) / 2 - 2, y: 0, w: 20, h: 20 }, []);
+
+    expect(snap.dx).toBeCloseTo(2, 6);
+  });
+
+  it('draws the line only as far as the things it joins', () => {
+    const { scene } = twoBoxes();
+
+    const line = guidesFor(scene, { x: 100, y: 400, w: 40, h: 20 }, []).guides.find((one) => one.axis === 'x');
+
+    expect(line?.from).toBe(100);
+    expect(line?.to).toBe(420);
+  });
+
+  it('lines up against a guide left on the sheet', () => {
+    const scene = createBoardScene(12, 10, 50);
+    const laid = newGuide('x', 300);
+
+    const snap = guidesFor(scene, { x: 296, y: 0, w: 20, h: 20 }, [], [laid]);
+
+    expect(snap.dx).toBe(4);
+  });
+
+  it('passes over a sheet that has been put away', () => {
+    const { scene } = twoBoxes();
+    shapeLayer(scene).visible = false;
+
+    expect(guidesFor(scene, { x: 103, y: 400, w: 40, h: 20 }, []).dx).toBe(0);
+  });
+
+  it('names a guide the pointer landed on, and none where it landed on nothing', () => {
+    const laid = [newGuide('x', 300), newGuide('y', 80)];
+
+    expect(guideUnder(laid, { x: 302, y: 500 })).toBe(laid[0]);
+    expect(guideUnder(laid, { x: 500, y: 79 })).toBe(laid[1]);
+    expect(guideUnder(laid, { x: 500, y: 500 })).toBeNull();
+  });
+
+  it('gives the middle of the sheet both ways, whether or not the paper is ruled', () => {
+    const scene = createBoardScene(12, 10, 50);
+    scene.gridVisible = false;
+
+    const middles = sheetGuides(scene);
+
+    expect(middles.map((guide) => guide.axis)).toEqual(['x', 'y']);
+    expect(middles[0].at).toBe(sceneWidthPx(scene) / 2);
+  });
+});
+
+describe('squareOff()', () => {
+  const from = { x: 100, y: 100 };
+
+  it('stands a line that was nearly upright fully upright', () => {
+    const squared = squareOff(from, { x: 103, y: 200 });
+
+    expect(squared.x).toBeCloseTo(100, 6);
+    expect(squared.y).toBeGreaterThan(100);
+  });
+
+  it('keeps the line the length it was drawn', () => {
+    const squared = squareOff(from, { x: 160, y: 155 });
+
+    expect(Math.hypot(squared.x - from.x, squared.y - from.y)).toBeCloseTo(Math.hypot(60, 55), 6);
+  });
+
+  it('lets a line lie on the diagonal, that being one of the eighths', () => {
+    const squared = squareOff(from, { x: 170, y: 172 });
+
+    expect(squared.x - from.x).toBeCloseTo(squared.y - from.y, 6);
+  });
+
+  it('leaves a line that goes nowhere where it is', () => {
+    expect(squareOff(from, from)).toEqual(from);
   });
 });
