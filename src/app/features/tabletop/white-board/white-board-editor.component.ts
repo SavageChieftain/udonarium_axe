@@ -1,5 +1,14 @@
 import { NgClass } from '@angular/common';
-import { ChangeDetectionStrategy, Component, effect, ElementRef, inject, signal, viewChild } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  DestroyRef,
+  effect,
+  ElementRef,
+  inject,
+  signal,
+  viewChild,
+} from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
@@ -217,6 +226,7 @@ const MAX_SIDE = 40;
 export class WhiteBoardEditorComponent {
   private readonly modalService = inject(ModalService);
   private readonly imageStorage = inject(ImageStorage);
+  private readonly destroyRef = inject(DestroyRef);
   private readonly tabletopService = inject(TabletopService);
   private readonly panelService = inject(PanelService);
   protected readonly t = inject(TRANSLATE_FN);
@@ -738,7 +748,7 @@ export class WhiteBoardEditorComponent {
       selection?.addRange(range);
     });
     // The canvas measures what it will actually draw, which is the only honest measurement.
-    useTextMeasurer((text, fontSize, bold, italic) => {
+    const stopMeasuring = useTextMeasurer((text, fontSize, bold, italic) => {
       const ctx = this.canvasRef()?.nativeElement.getContext('2d');
       if (!ctx) return guessLineWidth(text, fontSize);
       ctx.save();
@@ -746,6 +756,10 @@ export class WhiteBoardEditorComponent {
       const width = ctx.measureText(text).width;
       ctx.restore();
       return width;
+    });
+    this.destroyRef.onDestroy(() => {
+      this.putDown();
+      stopMeasuring();
     });
   }
 
@@ -1919,6 +1933,28 @@ export class WhiteBoardEditorComponent {
     this.refreshHistory();
     void this.redraw();
     this.keepPicture();
+  }
+
+  /**
+   * Closing the panel writes down what was still waiting to be written.
+   *
+   * A drawing is kept a breath after the last stroke rather than on every one of them, so
+   * closing within that breath used to lose the stroke: the timer fired on a component that
+   * had gone, found no canvas, and returned before writing anything. The measurer is given
+   * back too, being a closure over this canvas that outlived it and went on being asked.
+   */
+  private putDown(): void {
+    if (this.saveTimer === null) return;
+    clearTimeout(this.saveTimer);
+    this.saveTimer = null;
+    this.writeScene();
+  }
+
+  /** The drawing itself, which is what must survive; the picture it wears can wait. */
+  private writeScene(): void {
+    if (!this.board) return;
+    this.board.scene = serializeScene(this.scene);
+    this.board.update();
   }
 
   private keepPicture(): void {

@@ -369,8 +369,20 @@ function strokeBox(points: readonly number[]): MarkBox | null {
  */
 let measureLine: ((text: string, fontSize: number, bold: boolean, italic: boolean) => number) | null = null;
 
-export function useTextMeasurer(measure: typeof measureLine): void {
+/**
+ * Lends a way of measuring words, and hands back the way to stop lending it.
+ *
+ * The measurer is one thing for the whole module, so an editor that installs one and closes
+ * leaves every later reckoning going through a canvas that has gone: open two boards, close
+ * the second, and the first is measured by the dead one. Giving it back on the way out costs
+ * nothing and keeps the answer to how wide a word is from depending on what was opened when.
+ */
+export function useTextMeasurer(measure: typeof measureLine): () => void {
+  const was = measureLine;
   measureLine = measure;
+  return () => {
+    if (measureLine === measure) measureLine = was;
+  };
 }
 
 /** Full width characters take a whole square; the rest take about six tenths of one. */
@@ -403,8 +415,11 @@ export function textBox(item: TextItem): MarkBox {
   const widest = lines.reduce((most, line) => Math.max(most, lineWidth(line, item)), item.fontSize);
   // The line struck round the letters stands outside them, so the hold has to reach past it.
   const pad = (item.background ? item.fontSize * 0.5 : 0) + (item.outline?.width ?? 0);
+  // Words are laid out from wherever they are set to start, so a hold on centred or right-hand
+  // words reaches back the way they run rather than forward from the point they are hung on.
+  const left = item.align === 'center' ? item.x - widest / 2 : item.align === 'right' ? item.x - widest : item.x;
   return {
-    x: item.x - pad,
+    x: left - pad,
     y: item.y - pad,
     w: widest + pad * 2,
     h: lines.length * item.fontSize * 1.2 + pad * 2,
@@ -707,7 +722,14 @@ export function copyMark(scene: MapScene, ref: MarkRef, offset: number): MarkRef
     if (ref.kind === 'text' && layer.kind === 'text') {
       const item = layer.items.find((entry) => entry.id === ref.id);
       if (item) {
-        const made = { ...item, id: newId(), x: item.x + offset, y: item.y + offset };
+        const made = {
+          ...item,
+          id: newId(),
+          x: item.x + offset,
+          y: item.y + offset,
+          outline: item.outline ? { ...item.outline } : item.outline,
+          shadow: item.shadow ? { ...item.shadow } : item.shadow,
+        };
         layer.items.push(made);
         return { kind: 'text', id: made.id };
       }
@@ -715,7 +737,16 @@ export function copyMark(scene: MapScene, ref: MarkRef, offset: number): MarkRef
     if (ref.kind === 'shape' && layer.kind === 'shape') {
       const item = layer.items.find((entry) => entry.id === ref.id);
       if (item) {
-        const made = { ...item, id: newId(), points: [...item.points] };
+        // How a mark is dressed is kept in objects of its own, and restyling one writes into
+        // them. Handed on as they stand, recolouring the copy would recolour what it came from.
+        const made = {
+          ...item,
+          id: newId(),
+          points: [...item.points],
+          stroke: item.stroke ? { ...item.stroke } : item.stroke,
+          fill: item.fill ? { ...item.fill } : item.fill,
+          shadow: item.shadow ? { ...item.shadow } : item.shadow,
+        };
         layer.items.push(made);
         shiftPoints(made, offset, offset);
         return { kind: 'shape', id: made.id };

@@ -106,6 +106,15 @@ export function setBoardHeightKeepingFoot(board: WhiteBoard, height: number, gri
   board.location = { ...board.location, y: foot - height * gridSize };
 }
 
+/**
+ * How a picture out of the storehouse is named where a texture is expected.
+ *
+ * The drawing names its pictures two ways: a sticker names one outright, and a fill names one
+ * by dressing its identifier up as a texture. Both have to be found, or a board saves without
+ * the ground it was painted with.
+ */
+const IMAGE_TEXTURE_PREFIX = 'image:';
+
 /** Every image identifier named anywhere in a packed drawing, however deeply it is buried. */
 function imagesNamedIn(scene: string): string[] {
   if (!scene) return [];
@@ -125,7 +134,10 @@ function imagesNamedIn(scene: string): string[] {
     if (typeof value !== 'object' || value === null) return;
     for (const [key, entry] of Object.entries(value)) {
       if (key === 'imageIdentifier' && typeof entry === 'string' && entry.length > 0) found.add(entry);
-      else walk(entry);
+      else if (key === 'textureId' && typeof entry === 'string' && entry.startsWith(IMAGE_TEXTURE_PREFIX)) {
+        const named = entry.slice(IMAGE_TEXTURE_PREFIX.length);
+        if (named.length > 0) found.add(named);
+      } else walk(entry);
     }
   };
   walk(parsed);

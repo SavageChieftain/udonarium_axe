@@ -329,7 +329,10 @@ function drawText(ctx: CanvasRenderingContext2D, item: TextItem): void {
     ctx.shadowColor = 'rgba(0,0,0,0.28)';
     ctx.shadowBlur = pad * 0.8;
     ctx.shadowOffsetY = pad * 0.25;
-    ctx.fillRect(item.x - pad, item.y - pad, widest + pad * 2, lines.length * lineHeight + pad * 2);
+    // Where the words start depends on which way they are set, so the card follows them: laid
+    // out from the left it sat off to one side of centred or right-hand words.
+    const left = item.align === 'center' ? item.x - widest / 2 : item.align === 'right' ? item.x - widest : item.x;
+    ctx.fillRect(left - pad, item.y - pad, widest + pad * 2, lines.length * lineHeight + pad * 2);
     ctx.shadowColor = 'transparent';
     ctx.shadowBlur = 0;
     ctx.shadowOffsetY = 0;

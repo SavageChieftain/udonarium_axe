@@ -120,6 +120,25 @@ describe('the pictures a board carries', () => {
     board.destroy();
   });
 
+  it('names a picture that a fill wears as a texture, not only one stuck on outright', () => {
+    const board = boardWith({
+      layers: [
+        { kind: 'cell', cells: { '0,0': { type: 'texture', textureId: 'image:painted-ground' } } },
+        { kind: 'shape', items: [{ fill: { type: 'texture', textureId: 'image:a-fill' } }] },
+      ],
+    });
+
+    expect([...board.carriedImageIdentifiers].sort()).toEqual(['a-fill', 'painted-ground']);
+    board.destroy();
+  });
+
+  it('passes over a texture that names one of the pictures it came with', () => {
+    const board = boardWith({ layers: [{ kind: 'cell', cells: { '0,0': { type: 'texture', textureId: 'brick' } } }] });
+
+    expect(board.carriedImageIdentifiers).toEqual([]);
+    board.destroy();
+  });
+
   it('names each picture once, however many times it was stuck on', () => {
     const board = boardWith({
       layers: [{ kind: 'image', items: [{ imageIdentifier: 'same' }, { imageIdentifier: 'same' }] }],

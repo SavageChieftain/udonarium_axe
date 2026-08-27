@@ -1538,3 +1538,62 @@ describe('centreOnSheet()', () => {
     expect(() => centreOnSheet(scene, [], 'both')).not.toThrow();
   });
 });
+
+describe('a copy stands on its own', () => {
+  it('takes its own outline, so recolouring the copy leaves the first alone', () => {
+    const scene = createBoardScene(8, 6, 50);
+    const drawn = shapeBetween('rect', { x: 0, y: 0 }, { x: 40, y: 20 }, { ...style, color: '#112233' });
+    addShape(shapeLayer(scene), drawn);
+
+    const made = copyMark(scene, { kind: 'shape', id: drawn.id }, 10)!;
+    restyleMark(scene, made, { color: '#ff0000' });
+
+    expect(drawn.stroke?.color).toBe('#112233');
+  });
+
+  it('takes its own filling and its own shadow', () => {
+    const scene = createBoardScene(8, 6, 50);
+    const dressed = { ...style, fillColor: '#00ff00', shadow: true };
+    const drawn = shapeBetween('rect', { x: 0, y: 0 }, { x: 40, y: 20 }, dressed, true);
+    addShape(shapeLayer(scene), drawn);
+
+    const made = copyMark(scene, { kind: 'shape', id: drawn.id }, 10)!;
+    restyleMark(scene, made, { fillColor: '#0000ff', shadow: false });
+
+    expect(drawn.fill).toEqual({ type: 'solid', color: '#00ff00' });
+    expect(drawn.shadow).not.toBeNull();
+  });
+
+  it('takes its own dressing when words are copied', () => {
+    const scene = createBoardScene(8, 6, 50);
+    const written = wordsAt({ x: 0, y: 0 }, 'hello', { ...style, fontSize: 40, outline: '#000000', outlineWidth: 10 });
+    addText(textLayer(scene), written);
+
+    const made = copyMark(scene, { kind: 'text', id: written.id }, 10)!;
+    restyleMark(scene, made, { outline: '#ff0000' });
+
+    expect(written.outline?.color).toBe('#000000');
+  });
+});
+
+describe('a hold on words that are not set from the left', () => {
+  it('reaches back the way centred words run', () => {
+    const centred = wordsAt({ x: 100, y: 0 }, 'hello', style);
+    centred.align = 'center';
+    const box = textBox(centred);
+
+    expect(box.x + box.w / 2).toBeCloseTo(100, 6);
+  });
+
+  it('reaches back the way right-hand words run', () => {
+    const right = wordsAt({ x: 100, y: 0 }, 'hello', style);
+    right.align = 'right';
+    const box = textBox(right);
+
+    expect(box.x + box.w).toBeCloseTo(100, 6);
+  });
+
+  it('still reaches forward from words set from the left', () => {
+    expect(textBox(wordsAt({ x: 100, y: 0 }, 'hello', style)).x).toBe(100);
+  });
+});

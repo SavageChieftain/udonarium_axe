@@ -115,12 +115,22 @@ export class WhiteBoardComponent {
     return list.filter((object) => boardSurfaceOf(object) === identifier);
   };
 
-  private readonly surfaceVersion = computed(() => {
-    for (const alias of ['character', 'terrain', 'table-mask', 'text-note', 'card', 'dice-symbol']) {
-      this.objectChange.collectionOf(alias)();
-    }
-    return this.tabletopService.currentTable.identifier;
-  });
+  /**
+   * Reads the collections, then hands back the table.
+   *
+   * It is the same table every time, so under the default equality a piece put on the board
+   * never reached anything that reads this: the collection said it had changed and the answer
+   * said it had not.
+   */
+  private readonly surfaceVersion = computed(
+    () => {
+      for (const alias of ['character', 'terrain', 'table-mask', 'text-note', 'card', 'dice-symbol']) {
+        this.objectChange.collectionOf(alias)();
+      }
+      return this.tabletopService.currentTable.identifier;
+    },
+    { equal: () => false }
+  );
 
   readonly characters = computed<GameCharacter[]>(() => {
     this.surfaceVersion();
