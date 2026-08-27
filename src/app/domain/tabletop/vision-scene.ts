@@ -309,10 +309,23 @@ export function seesInDark(type: VisionType): boolean {
  * asked about under two scenes.
  */
 interface LightOccluders {
-  /** Everything, for a caller that culls in its own way. */
-  all: Segment[];
-  /** Only what falls within the light's own reach. */
-  near: Segment[];
+  /**
+   * Everything, for a caller that culls in its own way and reckons with heights itself.
+   *
+   * Shading a wall face works out how far up the shadow of each thing climbs, so it wants
+   * everything, including what the lamp is hung above.
+   */
+  all: readonly TallSegment[];
+  /**
+   * What still stands in this lamp's way, given how high the lamp is hung.
+   *
+   * A lamp carried to the top of a tower is above the tower, and above most of what stood in
+   * its way on the ground. The flat reckoning of whether a spot is lit cannot tell, so what
+   * the lamp is over is taken out before it is asked.
+   */
+  overhead: readonly TallSegment[];
+  /** Only what falls within the light's own reach, and still stands in its way. */
+  near: readonly TallSegment[];
 }
 
 type OccluderSlots = { yes?: LightOccluders; no?: LightOccluders };
@@ -334,10 +347,10 @@ function occludersOf(scene: VisionScene, light: SceneLight, ignoreShadowCasters:
   const known = held[slot];
   if (known) return known;
 
-  const walls = light.ignoreOcclusion ? [] : scene.lightSegments;
-  let all: Segment[] = walls;
+  const walls: TallSegment[] = light.ignoreOcclusion ? [] : scene.lightSegments;
+  let all: TallSegment[] = walls;
   if (!ignoreShadowCasters && light.castShadows) {
-    const shadowSegments: Segment[] = [];
+    const shadowSegments: TallSegment[] = [];
     for (const caster of scene.shadowCasters) {
       if (caster.ownerId === light.sourceId) continue;
       shadowSegments.push(...caster.segments);
@@ -345,17 +358,31 @@ function occludersOf(scene: VisionScene, light: SceneLight, ignoreShadowCasters:
     if (shadowSegments.length > 0) all = [...walls, ...shadowSegments];
   }
 
+  const overhead = segmentsAbove(all, light.z);
   const built: LightOccluders = {
     all,
-    near: cullSegments(all, light.x - light.dimPx, light.y - light.dimPx, light.x + light.dimPx, light.y + light.dimPx),
+    overhead,
+    near: cullSegments(
+      overhead,
+      light.x - light.dimPx,
+      light.y - light.dimPx,
+      light.x + light.dimPx,
+      light.y + light.dimPx
+    ),
   };
   held[slot] = built;
   return built;
 }
 
 /** The segments that could possibly cross a box, which is most of them thrown away. */
-function cullSegments(segments: readonly Segment[], minX: number, minY: number, maxX: number, maxY: number): Segment[] {
-  const kept: Segment[] = [];
+function cullSegments(
+  segments: readonly TallSegment[],
+  minX: number,
+  minY: number,
+  maxX: number,
+  maxY: number
+): TallSegment[] {
+  const kept: TallSegment[] = [];
   for (const seg of segments) {
     if (Math.min(seg.x1, seg.x2) > maxX) continue;
     if (Math.max(seg.x1, seg.x2) < minX) continue;
@@ -366,7 +393,7 @@ function cullSegments(segments: readonly Segment[], minX: number, minY: number, 
   return kept;
 }
 
-function occludersFor(scene: VisionScene, light: SceneLight, ignoreShadowCasters = false): Segment[] {
+function occludersFor(scene: VisionScene, light: SceneLight, ignoreShadowCasters = false): readonly TallSegment[] {
   return occludersOf(scene, light, ignoreShadowCasters).all;
 }
 
@@ -691,7 +718,7 @@ export function objectBrightnessFor(
 }
 
 function lightClipPolygon(scene: VisionScene, light: SceneLight, radius: number = light.dimPx): Point[] | undefined {
-  const occluders = occludersFor(scene, light, true);
+  const occluders = occludersOf(scene, light, true).overhead;
   if (occluders.length === 0) return undefined;
   return computeVisibilityPolygon(light.x, light.y, occluders, radius, LIGHT_SAMPLE_COUNT);
 }
@@ -707,7 +734,7 @@ function coneFloorFootprint(
   const cy = light.y + axis.y * t;
   // The pool can sit off to one side of the light, so the box has to hold both.
   const occluders = cullSegments(
-    occludersOf(scene, light, true).all,
+    occludersOf(scene, light, true).overhead,
     Math.min(light.x, cx - light.dimPx),
     Math.min(light.y, cy - light.dimPx),
     Math.max(light.x, cx + light.dimPx),

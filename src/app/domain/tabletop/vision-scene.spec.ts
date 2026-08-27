@@ -852,3 +852,43 @@ describe('eyeHeightPx()', () => {
     expect(eyeHeightPx(0, 0, 50)).toBeGreaterThan(0);
   });
 });
+
+describe('a lamp carried up a tower', () => {
+  const tower = { x1: 100, y1: -1000, x2: 100, y2: 1000, heightPx: 150 };
+
+  function lamp(z: number): SceneLight {
+    return light({ x: 0, y: 0, z, brightPx: 500, dimPx: 500 });
+  }
+
+  function around(z: number) {
+    return scene({ darknessEnabled: true, darknessLevel: 1, lightSegments: [tower], lights: [lamp(z)] });
+  }
+
+  it('lights nothing past the tower from the ground beside it', () => {
+    expect(isLit(around(25), 300, 0)).toBe(false);
+  });
+
+  it('lights the ground past it from the top of it', () => {
+    expect(isLit(around(200), 300, 0)).toBe(true);
+  });
+
+  it('is still stopped by a tower it has not been carried above', () => {
+    expect(isLit(around(100), 300, 0)).toBe(false);
+  });
+
+  it('is never carried above the edge of the table, whose height nobody has said', () => {
+    const walled = scene({
+      darknessEnabled: true,
+      darknessLevel: 1,
+      lightSegments: [{ x1: 100, y1: -1000, x2: 100, y2: 1000 }],
+      lights: [lamp(10_000)],
+    });
+
+    expect(isLit(walled, 300, 0)).toBe(false);
+  });
+
+  it('lights what stands beside it either way, the tower being in neither path', () => {
+    expect(isLit(around(25), 50, 0)).toBe(true);
+    expect(isLit(around(200), 50, 0)).toBe(true);
+  });
+});
