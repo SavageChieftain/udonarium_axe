@@ -122,6 +122,7 @@ export interface ImageItem {
   opacity: number;
   flipX?: boolean;
   flipY?: boolean;
+  crop?: { x: number; y: number; w: number; h: number };
   clipToCells?: boolean;
 }
 

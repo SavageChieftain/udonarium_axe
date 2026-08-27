@@ -252,7 +252,12 @@ function drawImageItem(
   ctx.translate(item.x, item.y);
   if (item.rotation) ctx.rotate((item.rotation * Math.PI) / 180);
   if (item.flipX || item.flipY) ctx.scale(item.flipX ? -1 : 1, item.flipY ? -1 : 1);
-  ctx.drawImage(image, -item.w / 2, -item.h / 2, item.w, item.h);
+  const cut = item.crop;
+  if (cut && cut.w > 0 && cut.h > 0) {
+    ctx.drawImage(image, cut.x, cut.y, cut.w, cut.h, -item.w / 2, -item.h / 2, item.w, item.h);
+  } else {
+    ctx.drawImage(image, -item.w / 2, -item.h / 2, item.w, item.h);
+  }
   ctx.restore();
 }
 

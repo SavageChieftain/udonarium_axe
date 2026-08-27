@@ -101,7 +101,19 @@ function sanitizeImageItem(raw: unknown): ImageItem | null {
   if ('clipToCells' in r) item.clipToCells = r['clipToCells'] === true;
   if ('flipX' in r) item.flipX = r['flipX'] === true;
   if ('flipY' in r) item.flipY = r['flipY'] === true;
+  item.crop = sanitizeCrop(r['crop']);
+  if (!item.crop) delete item.crop;
   return item;
+}
+
+function sanitizeCrop(raw: unknown): ImageItem['crop'] {
+  if (typeof raw !== 'object' || raw === null) return undefined;
+  const r = raw as Record<string, unknown>;
+  const sides = ['x', 'y', 'w', 'h'].map((side) => r[side]);
+  if (!sides.every((side) => typeof side === 'number' && Number.isFinite(side))) return undefined;
+  const [x, y, w, h] = sides as number[];
+  if (w <= 0 || h <= 0) return undefined;
+  return { x, y, w, h };
 }
 
 const VALID_GRID_TYPES = new Set<number>([

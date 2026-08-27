@@ -3100,7 +3100,12 @@
         "clearLayer": "이 레이어 지우기",
         "curved": "곡선으로 잇기",
         "finishPath": "꺾은선 확정",
-        "pathHint": "클릭해서 점을 놓고, 더블 클릭이나 Enter로 확정합니다."
+        "pathHint": "클릭해서 점을 놓고, 더블 클릭이나 Enter로 확정합니다.",
+        "trim": "자르기",
+        "untrim": "자르기 되돌리기",
+        "trimApply": "적용",
+        "trimCancel": "취소",
+        "trimHint": "모서리와 변을 움직여 남길 범위를 정합니다."
       },
       "layer": {
         "freehand": "손그림",

@@ -1056,3 +1056,66 @@ export function pathThrough(points: readonly BoardPoint[], style: MarkStyle, cur
     shadow: style.shadow ? { ...MARK_SHADOW } : null,
   };
 }
+
+/** How big a picture is in its own pixels, before anything was trimmed off it. */
+export interface NaturalSize {
+  w: number;
+  h: number;
+}
+
+/** The picture held, so its crop can be read and written. */
+export function pictureOf(scene: MapScene, ref: MarkRef): ImageItem | null {
+  if (ref.kind !== 'image') return null;
+  for (const layer of scene.layers) {
+    if (layer.kind !== 'image') continue;
+    const item = layer.items.find((entry) => entry.id === ref.id);
+    if (item) return item;
+  }
+  return null;
+}
+
+/**
+ * Trims a picture down to the part of it that is wanted.
+ *
+ * A screenshot arrives with a window frame and a taskbar round what was actually being shown.
+ * Shrinking it only makes the frame smaller; the frame has to come off.
+ *
+ * The window is given in the drawn picture's own pixels, and is kept in the source picture's,
+ * so a picture already trimmed can be trimmed again without the first trim being lost.
+ */
+export function cropMark(scene: MapScene, ref: MarkRef, window: MarkBox, natural: NaturalSize): void {
+  const item = pictureOf(scene, ref);
+  if (!item || item.w <= 0 || item.h <= 0) return;
+  const was = item.crop ?? { x: 0, y: 0, w: natural.w, h: natural.h };
+  if (was.w <= 0 || was.h <= 0) return;
+
+  const left = Math.max(0, Math.min(window.x, item.w));
+  const top = Math.max(0, Math.min(window.y, item.h));
+  const right = Math.max(left, Math.min(window.x + window.w, item.w));
+  const bottom = Math.max(top, Math.min(window.y + window.h, item.h));
+  if (right - left < 1 || bottom - top < 1) return;
+
+  const acrossPer = was.w / item.w;
+  const downPer = was.h / item.h;
+  item.crop = {
+    x: was.x + left * acrossPer,
+    y: was.y + top * downPer,
+    w: (right - left) * acrossPer,
+    h: (bottom - top) * downPer,
+  };
+  // The picture shrinks to what is left of it, kept where its top left corner already was.
+  item.x = item.x - item.w / 2 + left + (right - left) / 2;
+  item.y = item.y - item.h / 2 + top + (bottom - top) / 2;
+  item.w = right - left;
+  item.h = bottom - top;
+}
+
+/** Puts back everything a picture was trimmed of, at the size it is being shown. */
+export function uncropMark(scene: MapScene, ref: MarkRef, natural: NaturalSize): void {
+  const item = pictureOf(scene, ref);
+  if (!item?.crop) return;
+  const grown = item.crop.w > 0 ? natural.w / item.crop.w : 1;
+  item.w *= grown;
+  item.h *= item.crop.h > 0 ? natural.h / item.crop.h : 1;
+  delete item.crop;
+}

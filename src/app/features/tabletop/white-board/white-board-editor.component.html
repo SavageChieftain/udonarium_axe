@@ -241,6 +241,40 @@
             <i class="material-icons rotate-90 text-[16px]!">flip</i>
           </button>
         </div>
+        @if (trimming()) {
+          <p class="text-ui-muted leading-snug">{{ 'feature.whiteBoard.editor.trimHint' | transloco }}</p>
+          <div class="flex gap-2">
+            <button
+              class="text-ui-accent cursor-pointer border-0 bg-transparent p-0"
+              type="button"
+              (click)="finishTrim(true)"
+            >
+              {{ 'feature.whiteBoard.editor.trimApply' | transloco }}
+            </button>
+            <button
+              class="text-ui-muted cursor-pointer border-0 bg-transparent p-0"
+              type="button"
+              (click)="finishTrim(false)"
+            >
+              {{ 'feature.whiteBoard.editor.trimCancel' | transloco }}
+            </button>
+          </div>
+        } @else {
+          <div class="flex gap-2">
+            <button
+              class="text-ui-accent cursor-pointer border-0 bg-transparent p-0"
+              type="button"
+              (click)="startTrim()"
+            >
+              {{ 'feature.whiteBoard.editor.trim' | transloco }}
+            </button>
+            @if (isTrimmed()) {
+              <button class="text-ui-muted cursor-pointer border-0 bg-transparent p-0" type="button" (click)="untrim()">
+                {{ 'feature.whiteBoard.editor.untrim' | transloco }}
+              </button>
+            }
+          </div>
+        }
         <label class="flex items-center justify-between gap-2">
           <span class="text-ui-muted">{{ 'feature.whiteBoard.editor.pictureOpacity' | transloco }}</span>
           <input

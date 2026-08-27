@@ -2870,7 +2870,12 @@
         "clearLayer": "Clear this layer",
         "curved": "Curve through the points",
         "finishPath": "Finish path",
-        "pathHint": "Click to set points; double-click or press Enter to finish."
+        "pathHint": "Click to set points; double-click or press Enter to finish.",
+        "trim": "Crop",
+        "untrim": "Undo crop",
+        "trimApply": "Apply",
+        "trimCancel": "Cancel",
+        "trimHint": "Pull the corners and sides in to choose what to keep."
       },
       "layer": {
         "freehand": "Drawing",

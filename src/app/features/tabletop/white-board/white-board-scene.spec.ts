@@ -1,4 +1,11 @@
-import { createLayer, FreehandLayer, ImageLayer, MapScene, TextLayer } from '@axe/features/map-editor/model/scene';
+import {
+  createLayer,
+  FreehandLayer,
+  ImageItem,
+  ImageLayer,
+  MapScene,
+  TextLayer,
+} from '@axe/features/map-editor/model/scene';
 import { addImage, addShape, addStroke, addText } from '@axe/features/map-editor/model/scene-ops';
 import {
   alignMarks,
@@ -10,6 +17,7 @@ import {
   clearSheet,
   copyMark,
   createBoardScene,
+  cropMark,
   fadeMark,
   fileUnder,
   flipMark,
@@ -25,12 +33,14 @@ import {
   layerFor,
   lineWidth,
   MARK_SHADOW,
+  MarkRef,
   marksWithin,
   markUnder,
   moveMark,
   noteAt,
   pathThrough,
   penStroke,
+  pictureOf,
   removeMark,
   renameGroup,
   restack,
@@ -52,6 +62,7 @@ import {
   textLayer,
   TURN_GRIP_REACH,
   turnMark,
+  uncropMark,
   useTextMeasurer,
   wordsAt,
   wordsOf,
@@ -901,5 +912,96 @@ describe('pathThrough()', () => {
     addShape(shapeLayer(scene), laid);
 
     expect(markUnder(scene, { x: 20, y: 40 })).toEqual({ kind: 'shape', id: laid.id });
+  });
+});
+
+describe('trimming a picture', () => {
+  const whole = { w: 800, h: 600 };
+
+  function stuckOn(): { scene: MapScene; ref: MarkRef; item: ImageItem } {
+    const scene = createBoardScene(12, 10, 50);
+    const item = stickerAt({ x: 100, y: 100 }, 'pic', 400, { x: 800, y: 600 });
+    addImage(imageLayer(scene), item);
+    return { scene, ref: { kind: 'image', id: item.id }, item };
+  }
+
+  it('takes the frame off, leaving the picture the size of what is left', () => {
+    const { scene, ref, item } = stuckOn();
+    const wide = item.w;
+    const tall = item.h;
+
+    cropMark(scene, ref, { x: 10, y: 20, w: wide - 40, h: tall - 30 }, whole);
+
+    expect(item.w).toBe(wide - 40);
+    expect(item.h).toBe(tall - 30);
+  });
+
+  it('keeps what is left where it already was, rather than sliding it', () => {
+    const { scene, ref, item } = stuckOn();
+    const left = item.x - item.w / 2;
+    const top = item.y - item.h / 2;
+
+    cropMark(scene, ref, { x: 12, y: 8, w: 60, h: 40 }, whole);
+
+    expect(item.x - item.w / 2).toBeCloseTo(left + 12, 6);
+    expect(item.y - item.h / 2).toBeCloseTo(top + 8, 6);
+  });
+
+  it('remembers the window in the picture own pixels, not in the drawn ones', () => {
+    const { scene, ref, item } = stuckOn();
+    const acrossPer = whole.w / item.w;
+
+    cropMark(scene, ref, { x: 10, y: 0, w: item.w - 10, h: item.h }, whole);
+
+    expect(item.crop?.x).toBeCloseTo(10 * acrossPer, 6);
+    expect(item.crop?.w).toBeCloseTo(whole.w - 10 * acrossPer, 6);
+  });
+
+  it('trims a picture already trimmed without losing the first trim', () => {
+    const { scene, ref, item } = stuckOn();
+
+    cropMark(scene, ref, { x: 0, y: 0, w: item.w / 2, h: item.h }, whole);
+    const once = item.crop?.w ?? 0;
+    cropMark(scene, ref, { x: 0, y: 0, w: item.w / 2, h: item.h }, whole);
+
+    expect(item.crop?.w).toBeCloseTo(once / 2, 6);
+  });
+
+  it('refuses a window that would leave nothing, and one outside the picture', () => {
+    const { scene, ref, item } = stuckOn();
+
+    cropMark(scene, ref, { x: 0, y: 0, w: 0, h: 0 }, whole);
+    expect(item.crop).toBeUndefined();
+
+    cropMark(scene, ref, { x: 9999, y: 9999, w: 50, h: 50 }, whole);
+    expect(item.crop).toBeUndefined();
+  });
+
+  it('puts back what was trimmed off, at the size it was being shown', () => {
+    const { scene, ref, item } = stuckOn();
+    const wide = item.w;
+
+    cropMark(scene, ref, { x: 0, y: 0, w: wide / 2, h: item.h }, whole);
+    uncropMark(scene, ref, whole);
+
+    expect(item.crop).toBeUndefined();
+    expect(item.w).toBeCloseTo(wide, 6);
+  });
+
+  it('has nothing to put back for a picture that was never trimmed', () => {
+    const { scene, ref, item } = stuckOn();
+    const wide = item.w;
+
+    uncropMark(scene, ref, whole);
+
+    expect(item.w).toBe(wide);
+  });
+
+  it('trims nothing that is not a picture', () => {
+    const scene = createBoardScene(8, 6, 50);
+    const drawn = shapeBetween('rect', { x: 0, y: 0 }, { x: 10, y: 10 }, style);
+    addShape(shapeLayer(scene), drawn);
+
+    expect(pictureOf(scene, { kind: 'shape', id: drawn.id })).toBeNull();
   });
 });

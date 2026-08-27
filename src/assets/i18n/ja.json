@@ -2870,7 +2870,12 @@
         "clearLayer": "このレイヤーを消去",
         "curved": "曲線でつなぐ",
         "finishPath": "折れ線を確定",
-        "pathHint": "クリックで点を置き、ダブルクリックか Enter で確定します。"
+        "pathHint": "クリックで点を置き、ダブルクリックか Enter で確定します。",
+        "trim": "切り抜く",
+        "untrim": "切り抜きを戻す",
+        "trimApply": "確定",
+        "trimCancel": "やめる",
+        "trimHint": "枠の四隅と辺を動かして、残す範囲を決めます。"
       },
       "layer": {
         "freehand": "手描き",

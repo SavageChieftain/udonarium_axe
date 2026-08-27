@@ -61,6 +61,7 @@ import {
   clearSheet,
   copyMark,
   createBoardScene,
+  cropMark,
   fadeMark,
   fileUnder,
   flipMark,
@@ -86,6 +87,7 @@ import {
   noteAt,
   pathThrough,
   penStroke,
+  pictureOf,
   removeMark,
   renameGroup,
   restack,
@@ -105,6 +107,7 @@ import {
   stretchBy,
   textLayer,
   turnMark,
+  uncropMark,
   useTextMeasurer,
   wordsAt,
   wordsOf,
@@ -701,6 +704,47 @@ export class WhiteBoardEditorComponent {
     this.touched();
   }
 
+  /** The window over the picture being trimmed, in the picture's own drawn pixels. */
+  readonly trimming = signal<MarkBox | null>(null);
+
+  protected startTrim(): void {
+    const one = this.selected();
+    const box = one?.kind === 'image' ? boxOf(this.scene, one) : null;
+    if (!box) return;
+    // The window starts as the whole picture, and is pulled inwards from there.
+    this.trimming.set({ x: 0, y: 0, w: box.w, h: box.h });
+    void this.redraw();
+  }
+
+  protected async finishTrim(keep: boolean): Promise<void> {
+    const window = this.trimming();
+    const one = this.selected();
+    this.trimming.set(null);
+    if (!keep || !window || one?.kind !== 'image') {
+      void this.redraw();
+      return;
+    }
+    const picture = pictureOf(this.scene, one);
+    const whole = picture ? await this.shapeOf(picture.imageIdentifier) : undefined;
+    cropMark(this.scene, one, window, { w: whole?.x ?? 1, h: whole?.y ?? 1 });
+    this.touched();
+  }
+
+  protected async untrim(): Promise<void> {
+    const one = this.selected();
+    if (one?.kind !== 'image') return;
+    const picture = pictureOf(this.scene, one);
+    const whole = picture ? await this.shapeOf(picture.imageIdentifier) : undefined;
+    uncropMark(this.scene, one, { w: whole?.x ?? 1, h: whole?.y ?? 1 });
+    this.touched();
+  }
+
+  protected isTrimmed(): boolean {
+    this.revision();
+    const one = this.selected();
+    return one?.kind === 'image' && !!pictureOf(this.scene, one)?.crop;
+  }
+
   protected flipHeld(way: 'across' | 'down'): void {
     for (const mark of this.held()) flipMark(this.scene, mark, way);
     this.touched();
@@ -949,6 +993,16 @@ export class WhiteBoardEditorComponent {
 
   private take(at: BoardPoint, adding: boolean): void {
     const chosen = this.selected();
+    const window = this.trimming();
+    const picture = chosen && window ? boxOf(this.scene, chosen) : null;
+    if (chosen && window && picture) {
+      const onScreen = { x: picture.x + window.x, y: picture.y + window.y, w: window.w, h: window.h };
+      const grip = handleUnder(at, onScreen, this.handleSlack());
+      if (grip && grip !== 'turn') {
+        this.grabbed = { refs: [chosen], grabX: at.x, grabY: at.y, handle: grip, box: onScreen, turnedTo: 0 };
+      }
+      return;
+    }
     const box = chosen ? boxOf(this.scene, chosen) : null;
     const handle = box ? handleUnder(at, box, this.handleSlack()) : null;
     if (chosen && box && handle) {
@@ -993,6 +1047,15 @@ export class WhiteBoardEditorComponent {
     const dy = at.y - held.grabY;
     held.grabX = at.x;
     held.grabY = at.y;
+
+    const window = this.trimming();
+    if (window && held.handle) {
+      const picture = boxOf(this.scene, held.refs[0]);
+      if (!picture) return;
+      this.trimming.set(pullWindow(window, held.handle, dx, dy, picture));
+      void this.redraw();
+      return;
+    }
 
     if (!held.handle) {
       for (const ref of held.refs) moveMark(this.scene, ref, dx, dy);
@@ -1379,7 +1442,28 @@ export class WhiteBoardEditorComponent {
     await this.paintMarks(ctx, ruled);
 
     const box = boxAround(this.scene, this.held());
-    if (box && ruled !== false) {
+    const window = this.trimming();
+    if (box && window && ruled !== false) {
+      // What is being trimmed away is greyed over, so what is left is what is being kept.
+      const cut = { x: box.x + window.x, y: box.y + window.y, w: window.w, h: window.h };
+      ctx.save();
+      ctx.fillStyle = 'rgba(0,0,0,0.45)';
+      ctx.beginPath();
+      ctx.rect(box.x, box.y, box.w, box.h);
+      ctx.rect(cut.x, cut.y, cut.w, cut.h);
+      ctx.fill('evenodd');
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 1.5 / Math.max(0.25, this.zoom());
+      ctx.strokeRect(cut.x, cut.y, cut.w, cut.h);
+      ctx.fillStyle = '#ffffff';
+      const grip = HANDLE_SLACK / Math.max(0.25, this.zoom());
+      for (const handle of HANDLES) {
+        if (handle === 'turn') continue;
+        const at = handleAt(cut, handle);
+        ctx.fillRect(at.x - grip / 2, at.y - grip / 2, grip, grip);
+      }
+      ctx.restore();
+    } else if (box && ruled !== false) {
       // The hold is drawn on the sheet but is not part of it, so it is left off the picture.
       ctx.save();
       ctx.strokeStyle = '#2f7fd8';
@@ -1513,3 +1597,24 @@ function boxBetweenPoints(from: BoardPoint, to: BoardPoint): MarkBox {
     h: Math.abs(to.y - from.y),
   };
 }
+
+/** Pulls one side or corner of the trim window in, never past the picture or past itself. */
+function pullWindow(window: MarkBox, grip: Handle, dx: number, dy: number, picture: MarkBox): MarkBox {
+  const next = { ...window };
+  if (grip.includes('w')) {
+    const left = Math.max(0, Math.min(next.x + dx, next.x + next.w - MIN_TRIM));
+    next.w += next.x - left;
+    next.x = left;
+  }
+  if (grip.includes('e')) next.w = Math.max(MIN_TRIM, Math.min(next.w + dx, picture.w - next.x));
+  if (grip.includes('n')) {
+    const top = Math.max(0, Math.min(next.y + dy, next.y + next.h - MIN_TRIM));
+    next.h += next.y - top;
+    next.y = top;
+  }
+  if (grip.includes('s')) next.h = Math.max(MIN_TRIM, Math.min(next.h + dy, picture.h - next.y));
+  return next;
+}
+
+/** How little of a picture may be left, so there is always something to pull back out by. */
+const MIN_TRIM = 8;
