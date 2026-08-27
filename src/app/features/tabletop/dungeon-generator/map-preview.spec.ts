@@ -1,5 +1,7 @@
 import { TEXTURE_BASE_COLOR, WALL_TEXTURE_BASE_COLOR } from '@axe/domain/media/texture-catalog';
 import { planDungeon } from '@axe/domain/tabletop/dungeon/dungeon-generator';
+import { GridType } from '@axe/domain/tabletop/game-table';
+import { MapBlocks } from '@axe/domain/tabletop/map-blocks';
 import { buildMapPreview, previewColors, TORCH_FILL } from '@axe/features/tabletop/dungeon-generator/map-preview';
 
 const colors = previewColors('wall_ashlar', 'stone_paving_big', 'lava');
@@ -81,5 +83,41 @@ describe('buildMapPreview()', () => {
 
     expect(hazard).toBeGreaterThan(0);
     expect(preview.rects.filter((rect) => rect.fill === colors.hazard).length).toBe(hazard);
+  });
+
+  describe('on a hex board', () => {
+    const blocks = {
+      blocks: [
+        { kind: 'wall', rect: { x: 0, y: 0, w: 1, h: 1 }, blocksSight: true, locked: true, rooms: [] },
+        { kind: 'wall', rect: { x: 1, y: 0, w: 1, h: 1 }, blocksSight: true, locked: true, rooms: [] },
+        { kind: 'wall', rect: { x: 0, y: 1, w: 1, h: 1 }, blocksSight: true, locked: true, rooms: [] },
+      ],
+      paint: [],
+      ambiences: [],
+      torchRooms: [],
+      torchSpots: [],
+      lights: [],
+    } as unknown as MapBlocks;
+    const size = { width: 4, height: 4 };
+
+    it('staggers the cells, so the preview is the board that will be built', () => {
+      const squared = buildMapPreview(size, blocks, colors, GridType.SQUARE);
+      const hexed = buildMapPreview(size, blocks, colors, GridType.HEX_VERTICAL);
+
+      expect(squared.rects[0].y).toBe(squared.rects[1].y);
+      expect(hexed.rects[0].y).not.toBe(hexed.rects[1].y);
+    });
+
+    it('draws a box round what was actually laid out rather than a count of cells', () => {
+      const squared = buildMapPreview(size, blocks, colors, GridType.SQUARE);
+      const hexed = buildMapPreview(size, blocks, colors, GridType.HEX_VERTICAL);
+
+      expect(squared.viewBox).toBe('0 0 4 4');
+      expect(hexed.viewBox).not.toBe(squared.viewBox);
+    });
+
+    it('is squares when nothing else was asked for', () => {
+      expect(buildMapPreview(size, blocks, colors).viewBox).toBe('0 0 4 4');
+    });
   });
 });

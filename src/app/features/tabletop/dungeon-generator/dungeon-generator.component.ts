@@ -215,7 +215,7 @@ export class DungeonGeneratorComponent {
       floor.kind === 'texture' ? floor.id : '',
       this.field() ? '' : (this.plan().atmosphere.cave?.hazardFloor ?? '')
     );
-    return buildMapPreview(size, this.blocks(), colors);
+    return buildMapPreview(size, this.blocks(), colors, this.gridType());
   });
 
   protected readonly roomsFound = computed(() => this.plan().layout.rooms.length);

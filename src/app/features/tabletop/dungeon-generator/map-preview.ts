@@ -5,7 +5,10 @@ import {
   WALL_TEXTURE_BASE_COLOR,
   WallTextureId,
 } from '@axe/domain/media/texture-catalog';
-import { MapBlock, MapBlocks, MapPaint, MapSize } from '@axe/domain/tabletop/map-blocks';
+import { GridType } from '@axe/domain/tabletop/game-table';
+import { isHexGrid } from '@axe/domain/tabletop/hex-geometry';
+import { MapBlock, MapBlocks, MapPaint, MapRect, MapSize } from '@axe/domain/tabletop/map-blocks';
+import { blockOrigin, MapGrid } from '@axe/domain/tabletop/map-grid';
 
 export interface PreviewRect {
   x: number;
@@ -82,13 +85,46 @@ function paintFill(patch: MapPaint, colors: PreviewColors): string {
  * Rolling again here costs nothing, while rolling again after the fact means a thousand
  * objects made and unmade. Showing the merged blocks also makes the count honest.
  */
-export function buildMapPreview(size: MapSize, blocks: MapBlocks, colors: PreviewColors): MapPreview {
-  return {
-    viewBox: `0 0 ${size.width} ${size.height}`,
-    rects: [
-      ...blocks.paint.map((patch) => ({ ...patch.rect, fill: paintFill(patch, colors) })),
-      ...blocks.blocks.map((block) => ({ ...block.rect, fill: fillFor(block, colors) })),
-      ...blocks.torchSpots.map((light) => ({ x: light.x, y: light.y, w: 1, h: 1, fill: TORCH_FILL })),
-    ],
-  };
+export function buildMapPreview(
+  size: MapSize,
+  blocks: MapBlocks,
+  colors: PreviewColors,
+  gridType: GridType = GridType.SQUARE
+): MapPreview {
+  // Measured in cells rather than pixels: the preview draws the board, not the table.
+  const grid: MapGrid = { type: gridType, sizePx: 1 };
+  const rects = [
+    ...blocks.paint.map((patch) => ({ ...laidOut(patch.rect, grid), fill: paintFill(patch, colors) })),
+    ...blocks.blocks.map((block) => ({ ...laidOut(block.rect, grid), fill: fillFor(block, colors) })),
+    ...blocks.torchSpots.map((light) => ({
+      ...laidOut({ x: light.x, y: light.y, w: 1, h: 1 }, grid),
+      fill: TORCH_FILL,
+    })),
+  ];
+  return { viewBox: viewBoxFor(size, grid, rects), rects };
+}
+
+/** Where a cell sits on the board it is laid on, so a hex board previews as the hexes it is. */
+function laidOut(rect: MapRect, grid: MapGrid): MapRect {
+  const at = blockOrigin(rect, grid);
+  return { x: at.x, y: at.y, w: rect.w, h: rect.h };
+}
+
+/**
+ * The box the preview is drawn in.
+ *
+ * A square board is exactly as wide as it has cells. A hex board is not - its columns overlap
+ * and its rows are staggered - so the box is taken from what was actually laid out, with the
+ * board's own size as the floor so an empty board is still the shape of a board.
+ */
+function viewBoxFor(size: MapSize, grid: MapGrid, rects: readonly PreviewRect[]): string {
+  if (!isHexGrid(grid.type) || rects.length === 0) return `0 0 ${size.width} ${size.height}`;
+  let right = 0;
+  let bottom = 0;
+  for (const rect of rects) {
+    right = Math.max(right, rect.x + rect.w);
+    bottom = Math.max(bottom, rect.y + rect.h);
+  }
+  const corner = blockOrigin({ x: 0, y: 0, w: 1, h: 1 }, grid);
+  return `${corner.x} ${corner.y} ${right - corner.x} ${bottom - corner.y}`;
 }
