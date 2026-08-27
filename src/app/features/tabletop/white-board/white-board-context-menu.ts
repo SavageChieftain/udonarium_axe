@@ -11,6 +11,7 @@ export interface WhiteBoardMenuHandlers {
   onDraw(board: WhiteBoard): void;
   onDetachAll(board: WhiteBoard): void;
   onCopy(board: WhiteBoard): void;
+  onSave(board: WhiteBoard): void;
   onDelete(board: WhiteBoard): void;
 }
 
@@ -48,6 +49,7 @@ export function buildWhiteBoardContextMenu(
   }
 
   menu.push(ContextMenuSeparator);
+  menu.push({ name: t('feature.whiteBoard.contextMenu.save'), action: () => handlers.onSave(board) });
   menu.push({ name: t('feature.whiteBoard.contextMenu.copy'), action: () => handlers.onCopy(board) });
   menu.push({ name: t('feature.whiteBoard.contextMenu.delete'), action: () => handlers.onDelete(board) });
 

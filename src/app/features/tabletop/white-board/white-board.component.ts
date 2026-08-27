@@ -1,5 +1,6 @@
 import { NgStyle } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, inject, input, signal } from '@angular/core';
+import { SaveDataService } from '@axe/application/file/save-data.service';
 import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { TabletopService } from '@axe/application/tabletop/tabletop.service';
@@ -62,6 +63,7 @@ export class WhiteBoardComponent {
   private readonly tabletopService = inject(TabletopService);
   private readonly objectStore = inject(ObjectStore);
   private readonly panelService = inject(PanelService);
+  private readonly saveDataService = inject(SaveDataService);
   private readonly objectChange = inject(ObjectChangeService);
   private readonly translateFn = inject(TRANSLATE_FN);
 
@@ -180,6 +182,7 @@ export class WhiteBoardComponent {
       onDraw: (target) => this.openDrawing(target),
       onDetachAll: (target) => this.detachAll(target),
       onCopy: (target) => this.copy(target),
+      onSave: (target) => void this.save(target),
       onDelete: (target) => this.remove(target),
     });
     this.contextMenuService.open(position, menu, board.name);
@@ -211,6 +214,16 @@ export class WhiteBoardComponent {
     if (board.parent) board.parent.appendChild(clone);
     clone.update();
     SoundEffect.play(PresetSound.cardPut);
+  }
+
+  /**
+   * The board on its own, drawing and all, as a file that can be carried to another room.
+   *
+   * What is standing on the board is not part of it: those are the room's pieces, which
+   * happen to be resting there, and each is saved on its own if it is wanted.
+   */
+  private async save(board: WhiteBoard): Promise<void> {
+    await this.saveDataService.saveGameObjectAsync(board, `whiteboard_${board.name}`);
   }
 
   private remove(board: WhiteBoard): void {

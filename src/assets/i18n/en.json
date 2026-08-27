@@ -2777,7 +2777,8 @@
         "detachAll": "Put everything back on the table",
         "copy": "Make a copy",
         "delete": "Delete",
-        "draw": "Draw on it"
+        "draw": "Draw on it",
+        "save": "Save this board"
       },
       "settings": {
         "name": "Name",

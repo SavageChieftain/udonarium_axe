@@ -14,6 +14,7 @@ function handlers() {
     onDraw: vi.fn(),
     onDetachAll: vi.fn(),
     onCopy: vi.fn(),
+    onSave: vi.fn(),
     onDelete: vi.fn(),
   };
 }
@@ -82,5 +83,15 @@ describe('buildWhiteBoardContextMenu()', () => {
     menu.find((item) => item.name === 'feature.whiteBoard.contextMenu.draw')!.action!();
 
     expect(spies.onDraw).toHaveBeenCalledWith(board);
+  });
+
+  it('offers to save the board on its own', () => {
+    const acted = handlers();
+
+    const menu = buildWhiteBoardContextMenu(board, 0, t, acted);
+    expect(names(menu)).toContain('feature.whiteBoard.contextMenu.save');
+
+    menu.find((item) => item.name === 'feature.whiteBoard.contextMenu.save')?.action?.();
+    expect(acted.onSave).toHaveBeenCalledWith(board);
   });
 });
