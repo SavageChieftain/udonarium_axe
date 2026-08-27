@@ -60,6 +60,33 @@ describe('TabletopActionService', () => {
 
       expect(table.whiteBoards.map((entry) => entry.identifier)).toContain(board.identifier);
     });
+
+    it('sets a second board down beside the first rather than on top of it', () => {
+      const first = service.createWhiteBoard({ x: 0, y: 0, z: 0 });
+      const second = service.createWhiteBoard({ x: 0, y: 0, z: 0 });
+
+      expect(second.location.x).not.toBe(first.location.x);
+      expect(table.whiteBoards).toHaveLength(2);
+    });
+
+    it('lines them up along the same edge, a board width and a square apart', () => {
+      service.createWhiteBoard({ x: 0, y: 0, z: 0 });
+      const second = service.createWhiteBoard({ x: 0, y: 0, z: 0 });
+      const third = service.createWhiteBoard({ x: 0, y: 0, z: 0 });
+      const step = table.width * table.gridSize + table.gridSize;
+
+      expect(second.location.x).toBe(step);
+      expect(third.location.x).toBe(step * 2);
+      expect(new Set([second.location.y, third.location.y]).size).toBe(1);
+    });
+
+    it('fills a gap left by a board that has been taken away', () => {
+      const first = service.createWhiteBoard({ x: 0, y: 0, z: 0 });
+      service.createWhiteBoard({ x: 0, y: 0, z: 0 });
+      first.destroy();
+
+      expect(service.createWhiteBoard({ x: 0, y: 0, z: 0 }).location.x).toBe(0);
+    });
   });
 
   describe('createDeckFromTag()', () => {

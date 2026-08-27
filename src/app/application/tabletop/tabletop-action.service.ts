@@ -239,7 +239,9 @@ export class TabletopActionService {
     const board = WhiteBoard.create(this.t('feature.whiteBoard.defaultName'), width, height, 1);
     board.pitch = MAX_BOARD_PITCH;
     // Standing, a board hinges on its bottom edge, so its foot is a square north of the table.
-    board.location.x = 0;
+    // A second board is set down beside the first rather than on top of it, where it would
+    // cover a board of the same size exactly and read as having taken its place.
+    board.location.x = freeBoardSpot(table?.whiteBoards ?? [], width * grid + grid);
     board.location.y = -(grid + height * grid);
     board.posZ = 0;
     // A board belongs to its table, the way terrain does, so clearing the table clears it.
@@ -476,4 +478,13 @@ export class TabletopActionService {
   private getViewTable(): GameTable | null {
     return this.tableSelecter.viewTable;
   }
+}
+
+/** The first spot in the row north of the table that no board is standing in already. */
+export function freeBoardSpot(standing: readonly { location: { x: number } }[], step: number): number {
+  const taken = new Set(standing.map((board) => Math.round(board.location.x)));
+  for (let spot = 0; spot <= taken.size * step; spot += step) {
+    if (!taken.has(spot)) return spot;
+  }
+  return (taken.size + 1) * step;
 }
