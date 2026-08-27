@@ -180,6 +180,18 @@ export function isWallTextureId(value: string): value is WallTextureId {
   return (WALL_TEXTURE_IDS as readonly string[]).includes(value);
 }
 
+/**
+ * Walls that belong to one thing rather than to the walls of a place.
+ *
+ * A cactus is green because it is a cactus. The material a map is dressed in has no business
+ * with it, however the picture is shelved.
+ */
+export const PROP_OWN_WALL_TEXTURE_IDS: readonly WallTextureId[] = ['cactus_skin'];
+
+export function isPropOwnWallTextureId(value: string): boolean {
+  return (PROP_OWN_WALL_TEXTURE_IDS as readonly string[]).includes(value);
+}
+
 export const DUNGEON_PROP_IDS = [
   'door_iron_grate',
   'door_stone',
