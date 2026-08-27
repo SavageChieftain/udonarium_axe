@@ -206,19 +206,32 @@ export function wordsAt(at: BoardPoint, text: string, style: MarkStyle): TextIte
   };
 }
 
-/**
- * A sticker goes down around where it was put, at the shape it actually is.
- *
- * Given a square to fill, a photograph three times as wide as it is tall is squashed into
- * one; the longest side is what is set instead, and the other follows from the picture.
- */
-export function stickerAt(at: BoardPoint, imageIdentifier: string, longest: number, natural?: BoardPoint): ImageItem {
-  const wide = natural && natural.x > 0 ? natural.x : 1;
-  const tall = natural && natural.y > 0 ? natural.y : 1;
-  const ratio = longest / Math.max(wide, tall);
-  const w = wide * ratio;
-  const h = tall * ratio;
+/** A sticker goes down around where it was put, at the size and shape it actually is. */
+export function stickerAt(
+  at: BoardPoint,
+  imageIdentifier: string,
+  fallback: number,
+  natural?: BoardPoint,
+  room?: NaturalSize
+): ImageItem {
+  const { w, h } = stickerSize(fallback, natural, room);
   return { id: newId(), imageIdentifier, x: at.x, y: at.y, w, h, rotation: 0, opacity: 1 };
+}
+
+/**
+ * How big a picture goes down: the size it actually is.
+ *
+ * A screenshot stuck onto a board at some size of the board's choosing has to be dragged back
+ * out to the size it already was, and never quite gets there. It only gives way when it will
+ * not fit on the sheet at all, where leaving it be would put its own corners out of reach.
+ */
+export function stickerSize(fallback: number, natural?: BoardPoint, room?: NaturalSize): { w: number; h: number } {
+  const wide = natural && natural.x > 0 ? natural.x : 0;
+  const tall = natural && natural.y > 0 ? natural.y : 0;
+  if (wide <= 0 || tall <= 0) return { w: fallback, h: fallback };
+
+  const spare = room && room.w > 0 && room.h > 0 ? Math.min(room.w / wide, room.h / tall, 1) : 1;
+  return { w: wide * spare, h: tall * spare };
 }
 
 /**

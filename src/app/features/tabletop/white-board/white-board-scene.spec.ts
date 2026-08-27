@@ -76,6 +76,7 @@ import {
   spreadMarks,
   squareOff,
   stickerAt,
+  stickerSize,
   straightLine,
   stretchBy,
   textBox,
@@ -226,15 +227,31 @@ describe('marks', () => {
     expect(stuck.y).toBe(100);
   });
 
-  it('sticks a picture up at the shape it actually is, rather than squashed into a square', () => {
+  it('sticks a picture up at the size it actually is', () => {
     const wide = stickerAt({ x: 0, y: 0 }, 'wide', 120, { x: 300, y: 100 });
-    const tall = stickerAt({ x: 0, y: 0 }, 'tall', 120, { x: 100, y: 400 });
 
-    // The longest side is what was asked for; the other follows from the picture.
-    expect(wide.w).toBe(120);
-    expect(wide.h).toBe(40);
-    expect(tall.h).toBe(120);
-    expect(tall.w).toBe(30);
+    expect(wide.w).toBe(300);
+    expect(wide.h).toBe(100);
+  });
+
+  it('falls back to a size of its own only when the picture will not say how big it is', () => {
+    const blind = stickerAt({ x: 0, y: 0 }, 'unknown', 120);
+
+    expect(blind.w).toBe(120);
+    expect(blind.h).toBe(120);
+  });
+
+  it('gives way only where the picture will not fit on the sheet at all', () => {
+    const room = { w: 300, h: 200 };
+
+    expect(stickerSize(120, { x: 150, y: 100 }, room)).toEqual({ w: 150, h: 100 });
+    expect(stickerSize(120, { x: 600, y: 200 }, room)).toEqual({ w: 300, h: 100 });
+  });
+
+  it('keeps the shape of a picture it has had to shrink', () => {
+    const shrunk = stickerSize(120, { x: 800, y: 600 }, { w: 400, h: 400 });
+
+    expect(shrunk.w / shrunk.h).toBeCloseTo(800 / 600, 6);
   });
 
   it('centres a picture of any shape on the spot it was stuck', () => {

@@ -96,6 +96,7 @@ import {
   markUnder,
   moveJoint,
   moveMark,
+  NaturalSize,
   newGuide,
   noteAt,
   outlineFor,
@@ -1653,7 +1654,8 @@ export class WhiteBoardEditorComponent {
         { x: this.sceneWidth / 2, y: this.sceneHeight / 2 },
         image.identifier,
         STICKER_SIZE,
-        await this.shapeOf(image.identifier)
+        await this.shapeOf(image.identifier),
+        this.sheetSize()
       );
       addImage(imageLayer(this.scene, this.activeLayerId()), made);
       stuck.push({ kind: 'image', id: made.id });
@@ -1688,12 +1690,16 @@ export class WhiteBoardEditorComponent {
     this.modalService.open<string>(FileSelecterComponent, { isAllowedEmpty: true }).then(async (identifier) => {
       if (!identifier) return;
       const at = { x: this.sceneWidth / 2, y: this.sceneHeight / 2 };
-      const made = stickerAt(at, identifier, STICKER_SIZE, await this.shapeOf(identifier));
+      const made = stickerAt(at, identifier, STICKER_SIZE, await this.shapeOf(identifier), this.sheetSize());
       addImage(imageLayer(this.scene, this.activeLayerId()), made);
       this.tool.set('select');
       this.hold([{ kind: 'image', id: made.id }]);
       this.touched();
     });
+  }
+
+  private sheetSize(): NaturalSize {
+    return { w: this.sceneWidth, h: this.sceneHeight };
   }
 
   /** How wide and how tall the picture actually is, so it is not stuck up squashed. */
