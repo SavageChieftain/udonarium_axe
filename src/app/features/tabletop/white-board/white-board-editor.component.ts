@@ -18,7 +18,14 @@ import {
 } from '@axe/domain/tabletop/white-board';
 import { ShapeGeneratorKind } from '@axe/features/map-editor/model/editor-tool';
 import { SceneHistory } from '@axe/features/map-editor/model/history';
-import { createLayer, MapLayer, MapScene, sceneHeightPx, sceneWidthPx } from '@axe/features/map-editor/model/scene';
+import {
+  createLayer,
+  MapLayer,
+  MapScene,
+  sceneHeightPx,
+  sceneWidthPx,
+  ShapeItem,
+} from '@axe/features/map-editor/model/scene';
 import {
   addImage,
   addLayer,
@@ -203,6 +210,7 @@ export class WhiteBoardEditorComponent {
   private saveTimer: ReturnType<typeof setTimeout> | null = null;
   private drawingPoints: number[] = [];
   private dragFrom: BoardPoint | null = null;
+  private dragTo: BoardPoint | null = null;
   private held: { ref: MarkRef; grabX: number; grabY: number; handle: Handle | null; box: MarkBox } | null = null;
 
   readonly minPitch = MIN_BOARD_PITCH;
@@ -542,7 +550,10 @@ export class WhiteBoardEditorComponent {
       this.shift(at);
       return;
     }
-    if (this.dragFrom) void this.redraw();
+    if (this.dragFrom) {
+      this.dragTo = at;
+      void this.redraw();
+    }
   }
 
   protected onPointerUp(event: PointerEvent): void {
@@ -561,6 +572,7 @@ export class WhiteBoardEditorComponent {
     if (this.dragFrom) {
       const from = this.dragFrom;
       this.dragFrom = null;
+      this.dragTo = null;
       const far = Math.hypot(at.x - from.x, at.y - from.y) > 4;
       if (far) {
         const tool = this.tool();
@@ -579,6 +591,52 @@ export class WhiteBoardEditorComponent {
 
   private style() {
     return { color: this.color(), width: this.strokeWidth(), fontSize: this.fontSize() };
+  }
+
+  /**
+   * The mark as it would be if the pointer were let go here.
+   *
+   * Drawn out and shown while the drag lasts, because dragging out a line and seeing nothing
+   * until it is finished is drawing blind.
+   */
+  private pendingMark(): ShapeItem | null {
+    const from = this.dragFrom;
+    const to = this.dragTo;
+    if (!from || !to) return null;
+    const tool = this.tool();
+    if (tool === 'line') return straightLine(from, to, this.style());
+    if (tool === 'arrow') return arrowBetween(from, to, this.style());
+    if (tool === 'shape') return shapeBetween(this.shapeKind(), from, to, this.style(), this.filled());
+    return null;
+  }
+
+  private drawPending(ctx: CanvasRenderingContext2D, item: ShapeItem): void {
+    ctx.save();
+    ctx.strokeStyle = item.stroke?.color ?? this.color();
+    ctx.lineWidth = item.stroke?.width ?? this.strokeWidth();
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    if (item.fill?.type === 'solid') ctx.fillStyle = item.fill.color;
+
+    if (item.shape === 'rect') {
+      const [x, y, w, h] = item.points;
+      if (item.fill?.type === 'solid') ctx.fillRect(x, y, w, h);
+      ctx.strokeRect(x, y, w, h);
+    } else if (item.shape === 'ellipse') {
+      const [x, y, w, h] = item.points;
+      ctx.beginPath();
+      ctx.ellipse(x + w / 2, y + h / 2, Math.abs(w) / 2, Math.abs(h) / 2, 0, 0, Math.PI * 2);
+      if (item.fill?.type === 'solid') ctx.fill();
+      ctx.stroke();
+    } else {
+      ctx.beginPath();
+      ctx.moveTo(item.points[0], item.points[1]);
+      for (let i = 2; i + 1 < item.points.length; i += 2) ctx.lineTo(item.points[i], item.points[i + 1]);
+      if (item.shape === 'polygon') ctx.closePath();
+      if (item.fill?.type === 'solid') ctx.fill();
+      ctx.stroke();
+    }
+    ctx.restore();
   }
 
   private isPenning(): boolean {
@@ -898,6 +956,9 @@ export class WhiteBoardEditorComponent {
       }
       ctx.restore();
     }
+
+    const dragging = this.pendingMark();
+    if (dragging && ruled !== false) this.drawPending(ctx, dragging);
 
     if (pending && pending.length > 3) {
       ctx.strokeStyle = this.color();
