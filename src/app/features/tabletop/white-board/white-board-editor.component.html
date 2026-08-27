@@ -678,9 +678,7 @@
             [rows]="typedRows()"
             cols="24"
             [(ngModel)]="typedText"
-            (keydown.escape)="commitText()"
-            (keydown.control.enter)="commitText()"
-            (keydown.meta.enter)="commitText()"
+            (keydown)="onTypedKey($event)"
             (blur)="commitText()"
             [placeholder]="'feature.whiteBoard.editor.typeHere' | transloco"
           ></textarea>

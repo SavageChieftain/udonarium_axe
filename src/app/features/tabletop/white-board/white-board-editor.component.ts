@@ -79,6 +79,7 @@ import {
   handleUnder,
   highlighterStyle,
   imageLayer,
+  isTypingKey,
   LayerGroup,
   MarkBox,
   MarkRef,
@@ -1292,13 +1293,13 @@ export class WhiteBoardEditorComponent {
   }
 
   protected onKeyUp(event: KeyboardEvent): void {
+    if (isTypingKey(event.target, event.isComposing)) return;
     this.keepingShape = event.shiftKey;
     if (event.key === ' ') this.panning.set(false);
   }
 
   protected onKeyDown(event: KeyboardEvent): void {
-    const typing = event.target instanceof HTMLInputElement || event.target instanceof HTMLSelectElement;
-    if (typing) return;
+    if (isTypingKey(event.target, event.isComposing)) return;
 
     this.keepingShape = event.shiftKey;
     if (event.key === ' ') {
@@ -1402,6 +1403,21 @@ export class WhiteBoardEditorComponent {
     this.retyping = mark;
     this.typedText = words.text;
     this.typing.set({ x: words.x, y: words.y });
+  }
+
+  /**
+   * The keys the text box answers to itself.
+   *
+   * Escape and enter both mean something to an input method while it is composing, so the box
+   * hears them only once the letters have been settled on.
+   */
+  protected onTypedKey(event: KeyboardEvent): void {
+    if (event.isComposing) return;
+    if (event.key === 'Escape' || (event.key === 'Enter' && (event.ctrlKey || event.metaKey))) {
+      event.preventDefault();
+      event.stopPropagation();
+      this.commitText();
+    }
   }
 
   protected commitText(): void {

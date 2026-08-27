@@ -1304,3 +1304,20 @@ export interface Overlays {
 export function overlaysWanted(bare: boolean, gridVisible: boolean): Overlays {
   return { grid: !bare && gridVisible, helpers: !bare };
 }
+
+/**
+ * Whether a key press belongs to whatever is being typed into rather than to the board.
+ *
+ * A key pressed into a box belongs to the box: backspace rubs out a letter there, not the
+ * picture that happens to be held. An input method is stricter still. Writing Japanese
+ * borrows the space bar to choose between candidates and escape to throw a candidate away,
+ * and neither key has reached the board yet — the reader is still deciding what the letters
+ * are. Nothing may be acted on until the composing is over.
+ */
+export function isTypingKey(target: EventTarget | null, composing: boolean): boolean {
+  if (composing) return true;
+  if (target instanceof HTMLInputElement) return true;
+  if (target instanceof HTMLTextAreaElement) return true;
+  if (target instanceof HTMLSelectElement) return true;
+  return target instanceof HTMLElement && target.isContentEditable;
+}

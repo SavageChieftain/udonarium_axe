@@ -34,6 +34,7 @@ import {
   handleUnder,
   highlighterStyle,
   imageLayer,
+  isTypingKey,
   layerFor,
   lineWidth,
   MARK_SHADOW,
@@ -1147,5 +1148,22 @@ describe('overlaysWanted()', () => {
   it('takes everything off for the picture the board wears, ruled paper or not', () => {
     expect(overlaysWanted(true, true)).toEqual({ grid: false, helpers: false });
     expect(overlaysWanted(true, false)).toEqual({ grid: false, helpers: false });
+  });
+});
+
+describe('isTypingKey()', () => {
+  it('lets a key pressed on the sheet itself reach the board', () => {
+    expect(isTypingKey(document.createElement('canvas'), false)).toBe(false);
+    expect(isTypingKey(null, false)).toBe(false);
+  });
+
+  it('leaves a key pressed into a box to the box, whichever kind of box it is', () => {
+    expect(isTypingKey(document.createElement('input'), false)).toBe(true);
+    expect(isTypingKey(document.createElement('textarea'), false)).toBe(true);
+    expect(isTypingKey(document.createElement('select'), false)).toBe(true);
+  });
+
+  it('holds every key back while an input method is still composing', () => {
+    expect(isTypingKey(document.createElement('canvas'), true)).toBe(true);
   });
 });
