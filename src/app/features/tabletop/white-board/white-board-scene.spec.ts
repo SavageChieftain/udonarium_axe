@@ -62,6 +62,7 @@ import {
   sheetHolding,
   showGroup,
   smoothStroke,
+  snapPoint,
   snapTo,
   spreadMarks,
   squareOff,
@@ -1211,5 +1212,53 @@ describe('a picture and the hold drawn round it', () => {
     const snap = guidesFor(scene, { x: 163, y: 400, w: 20, h: 20 }, []);
 
     expect(snap.dx).toBe(-3);
+  });
+});
+
+describe('snapPoint()', () => {
+  function withBox(): MapScene {
+    const scene = createBoardScene(12, 10, 50);
+    addShape(shapeLayer(scene), shapeBetween('rect', { x: 100, y: 100 }, { x: 200, y: 160 }, style));
+    return scene;
+  }
+
+  it('brings a grip pulled near an edge onto it', () => {
+    expect(snapPoint(withBox(), { x: 197, y: 400 }, []).at.x).toBe(200);
+  });
+
+  it('leaves a grip that is nowhere near a line where it was pulled', () => {
+    expect(snapPoint(withBox(), { x: 400, y: 400 }, []).at).toEqual({ x: 400, y: 400 });
+  });
+
+  it('names the line it gave in to, so it can be shown', () => {
+    const shown = snapPoint(withBox(), { x: 197, y: 400 }, []).guides;
+
+    expect(shown.some((guide) => guide.axis === 'x' && guide.at === 200)).toBe(true);
+  });
+
+  it('does not line a grip up against the mark it belongs to', () => {
+    const scene = createBoardScene(12, 10, 50);
+    const stuck = stickerAt({ x: 200, y: 150 }, 'pic', 80);
+    addImage(imageLayer(scene), stuck);
+
+    const held = [{ kind: 'image' as const, id: stuck.id }];
+
+    expect(snapPoint(scene, { x: 242, y: 400 }, held).at.x).toBe(242);
+  });
+
+  it('brings a picture pulled bigger onto the edge of what stands beside it', () => {
+    const scene = createBoardScene(12, 10, 50);
+    addShape(shapeLayer(scene), shapeBetween('rect', { x: 300, y: 0 }, { x: 360, y: 60 }, style));
+    const stuck = stickerAt({ x: 200, y: 150 }, 'pic', 80);
+    addImage(imageLayer(scene), stuck);
+    const ref = { kind: 'image' as const, id: stuck.id };
+
+    const box = boxOf(scene, ref)!;
+    const pulled = snapPoint(scene, { x: 297, y: box.y + box.h }, [ref]).at;
+    const { kx, ky } = stretchBy(box, 'se', pulled);
+    scaleMark(scene, ref, { ...anchorFor(box, 'se'), w: box.w, h: box.h }, kx, ky);
+
+    const after = boxOf(scene, ref)!;
+    expect(after.x + after.w).toBeCloseTo(300, 6);
   });
 });

@@ -1249,6 +1249,23 @@ function linesAlong(
   return lines;
 }
 
+/**
+ * Where a single point lands once it has given in to the nearest line.
+ *
+ * A grip being pulled is one point rather than a box, and it is that point which has to meet
+ * the line: an edge dragged to a hair off another edge is the whole reason guides exist.
+ */
+export function snapPoint(
+  scene: MapScene,
+  at: BoardPoint,
+  holding: readonly MarkRef[],
+  spare: readonly SceneGuideLine[] = [],
+  slack = GUIDE_SLACK
+): { at: BoardPoint; guides: SnapGuide[] } {
+  const snap = guidesFor(scene, { x: at.x, y: at.y, w: 0, h: 0 }, holding, spare, slack);
+  return { at: { x: at.x + snap.dx, y: at.y + snap.dy }, guides: snap.guides };
+}
+
 /** The lines that are always there, whether or not the paper is ruled. */
 export function sheetGuides(scene: MapScene): SnapGuide[] {
   const wide = sceneWidthPx(scene);

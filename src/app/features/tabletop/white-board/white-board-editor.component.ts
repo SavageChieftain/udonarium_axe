@@ -109,6 +109,7 @@ import {
   showGroup,
   smoothStroke,
   SnapGuide,
+  snapPoint,
   snapTo,
   spreadMarks,
   squareOff,
@@ -1234,6 +1235,7 @@ export class WhiteBoardEditorComponent {
     if (!box) return;
 
     if (held.handle === 'turn') {
+      this.showing.set([]);
       const now = angleFrom(box, at);
       const turned = this.keepingShape ? Math.round(now / TURN_SNAP) * TURN_SNAP : now;
       for (const ref of held.refs) turnMark(this.scene, ref, turned - held.turnedTo);
@@ -1242,8 +1244,15 @@ export class WhiteBoardEditorComponent {
       return;
     }
 
-    // Stretched away from the side facing the one being pulled, the way a picture is stretched.
-    const { kx, ky } = stretchBy(box, held.handle, at);
+    // Stretched away from the side facing the one being pulled, the way a picture is
+    // stretched, and the grip gives in to any line it is pulled near.
+    let reach = at;
+    if (this.guiding()) {
+      const snap = snapPoint(this.scene, at, held.refs, this.guides);
+      reach = snap.at;
+      this.showing.set(snap.guides);
+    }
+    const { kx, ky } = stretchBy(box, held.handle, reach);
     const anchor = anchorFor(box, held.handle);
     const anchored = { x: anchor.x, y: anchor.y, w: box.w, h: box.h };
     // Held down, a corner keeps the shape of what it is pulling, the way it does elsewhere.
