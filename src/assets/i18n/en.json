@@ -2796,7 +2796,8 @@
         "contentsEmpty": "Nothing on it yet",
         "takeOff": "Take off",
         "gather": "Take up what lies over it",
-        "clear": "Take everything off"
+        "clear": "Take everything off",
+        "seeThrough": "See-through board"
       },
       "tool": {
         "select": "Select",

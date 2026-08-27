@@ -2796,7 +2796,8 @@
         "contentsEmpty": "まだ何も載っていません",
         "takeOff": "降ろす",
         "gather": "重なっているものを載せる",
-        "clear": "すべて降ろす"
+        "clear": "すべて降ろす",
+        "seeThrough": "板を透過する"
       },
       "tool": {
         "select": "選択",

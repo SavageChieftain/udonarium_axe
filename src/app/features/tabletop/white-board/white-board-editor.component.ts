@@ -470,6 +470,29 @@ export class WhiteBoardEditorComponent {
     this.settingChanged();
   }
 
+  /**
+   * Whether the board itself shows at all.
+   *
+   * A board with no face is a sheet of marks hanging in the air over the table, which is what
+   * anyone wants when the drawing is meant to sit over the map rather than beside it. The
+   * face it had is remembered, so turning it back on does not lose the colour it was.
+   */
+  get isSeeThrough(): boolean {
+    this.revision();
+    return (this.board?.opacity ?? 1) <= 0;
+  }
+  set isSeeThrough(value: boolean) {
+    if (!this.board) return;
+    if (value) {
+      this.faceWas = this.board.opacity > 0 ? this.board.opacity : this.faceWas;
+      this.opacityPercent = 0;
+      return;
+    }
+    this.opacityPercent = Math.round(this.faceWas * 100);
+  }
+
+  private faceWas = 1;
+
   get boardColor(): string {
     this.revision();
     return this.board?.color ?? '#f4f1e8';

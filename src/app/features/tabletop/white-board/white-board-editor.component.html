@@ -373,7 +373,18 @@
       </label>
       <label class="flex items-center justify-between gap-2">
         <span class="text-ui-muted">{{ 'feature.whiteBoard.settings.color' | transloco }}</span>
-        <input class="h-6 w-12 cursor-pointer" type="color" name="board-face" [(ngModel)]="boardColor" />
+        <input
+          class="h-6 w-12 cursor-pointer"
+          type="color"
+          name="board-face"
+          [disabled]="isSeeThrough"
+          [class.opacity-40]="isSeeThrough"
+          [(ngModel)]="boardColor"
+        />
+      </label>
+      <label class="flex cursor-pointer items-center gap-1.5">
+        <input type="checkbox" name="board-see-through" [(ngModel)]="isSeeThrough" />
+        {{ 'feature.whiteBoard.settings.seeThrough' | transloco }}
       </label>
       <label class="flex items-center justify-between gap-2">
         <span class="text-ui-muted">{{ 'feature.whiteBoard.settings.pitch' | transloco }}</span>
@@ -391,10 +402,20 @@
         <span class="text-ui-muted">{{ 'feature.whiteBoard.settings.rotate' | transloco }}</span>
         <input class="w-24" type="range" name="board-rotate" min="0" max="359" step="1" [(ngModel)]="rotate" />
       </label>
-      <label class="flex items-center justify-between gap-2">
-        <span class="text-ui-muted">{{ 'feature.whiteBoard.settings.opacity' | transloco }}</span>
-        <input class="w-24" type="range" name="board-opacity" min="0" max="100" step="5" [(ngModel)]="opacityPercent" />
-      </label>
+      @if (!isSeeThrough) {
+        <label class="flex items-center justify-between gap-2">
+          <span class="text-ui-muted">{{ 'feature.whiteBoard.settings.opacity' | transloco }}</span>
+          <input
+            class="w-24"
+            type="range"
+            name="board-opacity"
+            min="5"
+            max="100"
+            step="5"
+            [(ngModel)]="opacityPercent"
+          />
+        </label>
+      }
       <label class="flex cursor-pointer items-center gap-1.5">
         <input type="checkbox" name="board-shadow" [(ngModel)]="isDropShadow" />
         {{ 'feature.whiteBoard.settings.dropShadow' | transloco }}

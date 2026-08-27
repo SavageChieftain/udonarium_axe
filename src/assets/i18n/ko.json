@@ -3026,7 +3026,8 @@
         "contentsEmpty": "아직 아무것도 없습니다",
         "takeOff": "내리기",
         "gather": "겹친 것을 올리기",
-        "clear": "전부 내리기"
+        "clear": "전부 내리기",
+        "seeThrough": "판을 투명하게"
       },
       "tool": {
         "select": "선택",
