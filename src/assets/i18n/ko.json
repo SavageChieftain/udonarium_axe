@@ -3113,7 +3113,10 @@
         "renameLayer": "레이어 이름 변경",
         "raiseLayer": "앞으로",
         "lowerLayer": "뒤로",
-        "dropLayer": "레이어 삭제"
+        "dropLayer": "레이어 삭제",
+        "outline": "테두리",
+        "underline": "밑줄",
+        "strike": "취소선"
       },
       "layer": {
         "freehand": "손그림",

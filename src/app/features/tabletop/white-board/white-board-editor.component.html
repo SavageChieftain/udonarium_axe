@@ -132,7 +132,64 @@
             <i class="material-icons text-[15px]!">format_align_{{ side }}</i>
           </button>
         }
+        <button
+          class="rounded-ui-sm hover:bg-ui-hover cursor-pointer border border-solid px-1 py-0.5"
+          type="button"
+          [class.border-ui-accent]="underline()"
+          [class.border-transparent]="!underline()"
+          [title]="'feature.whiteBoard.editor.underline' | transloco"
+          (click)="setInk({ underline: !underline() })"
+        >
+          <i class="material-icons text-[15px]!">format_underlined</i>
+        </button>
+        <button
+          class="rounded-ui-sm hover:bg-ui-hover cursor-pointer border border-solid px-1 py-0.5"
+          type="button"
+          [class.border-ui-accent]="strike()"
+          [class.border-transparent]="!strike()"
+          [title]="'feature.whiteBoard.editor.strike' | transloco"
+          (click)="setInk({ strike: !strike() })"
+        >
+          <i class="material-icons text-[15px]!">format_strikethrough</i>
+        </button>
       </div>
+
+      <!-- Pale words over a busy picture disappear without a line round them, which is the one
+           decoration a caption on a board cannot really do without. -->
+      <label class="flex items-center justify-between gap-2">
+        <span class="text-ui-muted">{{ 'feature.whiteBoard.editor.outline' | transloco }}</span>
+        <span class="flex items-center gap-1">
+          <input
+            class="w-16"
+            type="range"
+            name="board-outline-width"
+            min="0"
+            max="20"
+            step="1"
+            [ngModel]="outlineWidth()"
+            (ngModelChange)="setInk({ outlineWidth: $event })"
+          />
+          <input
+            class="h-6 w-8 cursor-pointer border-0 bg-transparent p-0"
+            type="color"
+            name="board-outline"
+            [disabled]="outlineWidth() < 1"
+            [class.opacity-40]="outlineWidth() < 1"
+            [ngModel]="outlineColor()"
+            (ngModelChange)="setInk({ outline: $event })"
+          />
+        </span>
+      </label>
+
+      <label class="flex cursor-pointer items-center gap-1.5">
+        <input
+          type="checkbox"
+          name="board-text-shadow"
+          [ngModel]="wordShadow()"
+          (ngModelChange)="setInk({ shadow: $event })"
+        />
+        {{ 'feature.whiteBoard.editor.shadow' | transloco }}
+      </label>
     </div>
 
     @if (tool() === 'note') {
@@ -713,6 +770,10 @@
               [style.color]="color()"
               [style.caret-color]="color()"
               [style.line-height]="'1.2'"
+              [style.-webkit-text-stroke]="typedStroke()"
+              [style.paint-order]="'stroke fill'"
+              [style.text-decoration]="typedRules()"
+              [style.text-shadow]="typedShadow()"
               [style.min-width.px]="1"
               [style.transform-origin]="'top left'"
               (input)="onTypedInput($event)"

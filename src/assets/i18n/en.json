@@ -2883,7 +2883,10 @@
         "renameLayer": "Rename layer",
         "raiseLayer": "Bring forward",
         "lowerLayer": "Send backward",
-        "dropLayer": "Delete layer"
+        "dropLayer": "Delete layer",
+        "outline": "Outline",
+        "underline": "Underline",
+        "strike": "Strikethrough"
       },
       "layer": {
         "freehand": "Drawing",

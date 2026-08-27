@@ -337,11 +337,46 @@ function drawText(ctx: CanvasRenderingContext2D, item: TextItem): void {
 
   ctx.textAlign = item.align;
   ctx.textBaseline = 'top';
+  if (item.shadow) applyShadow(ctx, item.shadow);
+
+  const outline = item.outline && item.outline.width > 0 ? item.outline : null;
+  if (outline) {
+    // Struck round the letters before they are filled, so the line sits behind the colour and
+    // the letters keep their own shape rather than being thinned by it.
+    ctx.strokeStyle = outline.color;
+    ctx.lineWidth = outline.width * 2;
+    ctx.lineJoin = 'round';
+    ctx.miterLimit = 2;
+    for (let i = 0; i < lines.length; i += 1) {
+      ctx.strokeText(lines[i], item.x, item.y + i * lineHeight);
+    }
+  }
+
   ctx.fillStyle = item.color;
   for (let i = 0; i < lines.length; i += 1) {
     ctx.fillText(lines[i], item.x, item.y + i * lineHeight);
   }
+  if (item.shadow) clearShadow(ctx);
+
+  if (item.underline || item.strike) {
+    ctx.strokeStyle = item.color;
+    ctx.lineWidth = Math.max(1, item.fontSize / 14);
+    for (let i = 0; i < lines.length; i += 1) {
+      const width = ctx.measureText(lines[i]).width;
+      const left = item.align === 'center' ? item.x - width / 2 : item.align === 'right' ? item.x - width : item.x;
+      const top = item.y + i * lineHeight;
+      if (item.underline) ruleUnder(ctx, left, top + item.fontSize * 1.02, width);
+      if (item.strike) ruleUnder(ctx, left, top + item.fontSize * 0.58, width);
+    }
+  }
   ctx.restore();
+}
+
+function ruleUnder(ctx: CanvasRenderingContext2D, left: number, at: number, width: number): void {
+  ctx.beginPath();
+  ctx.moveTo(left, at);
+  ctx.lineTo(left + width, at);
+  ctx.stroke();
 }
 
 function drawHexGridLines(ctx: CanvasRenderingContext2D, scene: MapScene): void {

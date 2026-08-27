@@ -104,6 +104,16 @@ export interface TextItem {
   align: TextAlign;
   /** A card behind the words, which is what makes a note a note rather than a caption. */
   background?: string;
+  /** A line drawn round every letter, so pale words hold up over a busy picture. */
+  outline?: TextOutline | null;
+  shadow?: ShapeShadow | null;
+  underline?: boolean;
+  strike?: boolean;
+}
+
+export interface TextOutline {
+  color: string;
+  width: number;
 }
 
 export interface TextLayer extends BaseLayer {

@@ -86,6 +86,7 @@ import {
   jointedShape,
   jointUnder,
   LayerGroup,
+  MARK_SHADOW,
   MarkBox,
   MarkRef,
   MarkStyle,
@@ -96,6 +97,7 @@ import {
   moveMark,
   newGuide,
   noteAt,
+  outlineFor,
   overlaysWanted,
   pathThrough,
   penStroke,
@@ -240,6 +242,12 @@ export class WhiteBoardEditorComponent {
   readonly bold = signal(false);
   readonly italic = signal(false);
   readonly align = signal<TextAlign>('left');
+  readonly underline = signal(false);
+  readonly strike = signal(false);
+  /** How thick the line round the letters is, against their own size, so it holds under zoom. */
+  readonly outlineWidth = signal(0);
+  readonly outlineColor = signal('#ffffff');
+  readonly wordShadow = signal(false);
   readonly dash = signal<StrokeDash>('solid');
 
   /**
@@ -258,7 +266,14 @@ export class WhiteBoardEditorComponent {
     if (change.dash !== undefined) this.dash.set(change.dash);
     if (change.filled !== undefined) this.filled.set(change.filled);
     if (change.fillColor) this.fillColor.set(change.fillColor);
-    if (change.shadow !== undefined) this.shadowed.set(change.shadow);
+    if (change.shadow !== undefined) {
+      this.shadowed.set(change.shadow);
+      this.wordShadow.set(change.shadow);
+    }
+    if (change.underline !== undefined) this.underline.set(change.underline);
+    if (change.strike !== undefined) this.strike.set(change.strike);
+    if (change.outlineWidth !== undefined) this.outlineWidth.set(change.outlineWidth);
+    if (change.outline) this.outlineColor.set(change.outline);
 
     const held = this.held();
     if (held.length < 1) return;
@@ -1035,7 +1050,11 @@ export class WhiteBoardEditorComponent {
       fontSize: this.fontSize(),
       fillColor: this.fillColor(),
       dash: this.dash(),
-      shadow: this.shadowed(),
+      shadow: this.tool() === 'text' || this.tool() === 'note' ? this.wordShadow() : this.shadowed(),
+      outline: this.outlineColor(),
+      outlineWidth: this.outlineWidth(),
+      underline: this.underline(),
+      strike: this.strike(),
     };
   }
 
@@ -1511,6 +1530,11 @@ export class WhiteBoardEditorComponent {
     this.color.set(words.color);
     this.bold.set(words.bold);
     this.italic.set(words.italic);
+    this.underline.set(!!words.underline);
+    this.strike.set(!!words.strike);
+    this.wordShadow.set(!!words.shadow);
+    this.outlineWidth.set(words.outline ? Math.round((words.outline.width / words.fontSize) * 100) : 0);
+    if (words.outline) this.outlineColor.set(words.outline.color);
     this.retyping = mark;
     this.startTyping({ x: words.x, y: words.y }, words.text);
   }
@@ -1522,6 +1546,24 @@ export class WhiteBoardEditorComponent {
     this.wantsCaret = true;
     this.typing.set(at);
     void this.redraw();
+  }
+
+  /** The decoration the words will carry, shown on the box they are being typed into. */
+  protected typedStroke(): string {
+    const line = outlineFor(this.style());
+    return line ? `${line.width * this.zoom()}px ${line.color}` : '';
+  }
+
+  protected typedRules(): string {
+    const rules = [this.underline() ? 'underline' : '', this.strike() ? 'line-through' : ''].filter(Boolean);
+    return rules.length > 0 ? rules.join(' ') : 'none';
+  }
+
+  protected typedShadow(): string {
+    if (!this.wordShadow()) return 'none';
+    const shadow = MARK_SHADOW;
+    const zoom = this.zoom();
+    return `${shadow.offsetX * zoom}px ${shadow.offsetY * zoom}px ${shadow.blur * zoom}px ${shadow.color}`;
   }
 
   protected onTypedInput(event: Event): void {

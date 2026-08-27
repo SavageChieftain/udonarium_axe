@@ -2883,7 +2883,10 @@
         "renameLayer": "レイヤー名を変更",
         "raiseLayer": "前面へ",
         "lowerLayer": "背面へ",
-        "dropLayer": "レイヤーを削除"
+        "dropLayer": "レイヤーを削除",
+        "outline": "縁取り",
+        "underline": "下線",
+        "strike": "取り消し線"
       },
       "layer": {
         "freehand": "手描き",

@@ -19,6 +19,7 @@ import {
   TextAlign,
   TextItem,
   TextLayer,
+  TextOutline,
 } from '@axe/features/map-editor/model/scene';
 import { eraseStrokeAtPoint } from '@axe/features/map-editor/model/scene-ops';
 import { generateShapePoints } from '@axe/features/map-editor/model/shape-points';
@@ -127,6 +128,17 @@ export interface MarkStyle {
   fillColor?: string;
   dash?: StrokeDash;
   shadow?: boolean;
+  outline?: string;
+  outlineWidth?: number;
+  underline?: boolean;
+  strike?: boolean;
+}
+
+/** The line struck round letters, against the size of the letters themselves. */
+export function outlineFor(style: MarkStyle): TextOutline | null {
+  const width = style.outlineWidth ?? 0;
+  if (width <= 0 || !style.outline) return null;
+  return { color: style.outline, width: (style.fontSize * width) / 100 };
 }
 
 /** What a shape is dropped onto the sheet with when it is asked to cast a shadow. */
@@ -187,6 +199,10 @@ export function wordsAt(at: BoardPoint, text: string, style: MarkStyle): TextIte
     bold: false,
     italic: false,
     align: 'left',
+    outline: outlineFor(style),
+    shadow: style.shadow ? { ...MARK_SHADOW } : null,
+    underline: !!style.underline,
+    strike: !!style.strike,
   };
 }
 
@@ -372,7 +388,8 @@ export function lineWidth(text: string, item: TextItem): number {
 export function textBox(item: TextItem): MarkBox {
   const lines = item.text.split('\n');
   const widest = lines.reduce((most, line) => Math.max(most, lineWidth(line, item)), item.fontSize);
-  const pad = item.background ? item.fontSize * 0.5 : 0;
+  // The line struck round the letters stands outside them, so the hold has to reach past it.
+  const pad = (item.background ? item.fontSize * 0.5 : 0) + (item.outline?.width ?? 0);
   return {
     x: item.x - pad,
     y: item.y - pad,
@@ -785,6 +802,10 @@ export interface MarkStyleChange {
   filled?: boolean;
   fillColor?: string;
   shadow?: boolean;
+  outline?: string;
+  outlineWidth?: number;
+  underline?: boolean;
+  strike?: boolean;
 }
 
 /**
@@ -826,6 +847,14 @@ export function restyleMark(scene: MapScene, ref: MarkRef, change: MarkStyleChan
       if (change.italic !== undefined) item.italic = change.italic;
       if (change.align) item.align = change.align;
       if (change.background !== undefined) item.background = change.background ?? undefined;
+      if (change.underline !== undefined) item.underline = change.underline;
+      if (change.strike !== undefined) item.strike = change.strike;
+      if (change.shadow !== undefined) item.shadow = change.shadow ? { ...MARK_SHADOW } : null;
+      if (change.outline !== undefined || change.outlineWidth !== undefined) {
+        const width = change.outlineWidth ?? (item.outline ? (item.outline.width / item.fontSize) * 100 : 0);
+        const colour = change.outline ?? item.outline?.color ?? '#ffffff';
+        item.outline = width > 0 ? { color: colour, width: (item.fontSize * width) / 100 } : null;
+      }
     }
   }
 }

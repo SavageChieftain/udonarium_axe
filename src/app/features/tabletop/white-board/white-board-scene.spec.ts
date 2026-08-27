@@ -51,6 +51,7 @@ import {
   moveMark,
   newGuide,
   noteAt,
+  outlineFor,
   overlaysWanted,
   pathThrough,
   penStroke,
@@ -1371,5 +1372,89 @@ describe('the balloon', () => {
 
     expect(drawn.shape).toBe('polygon');
     expect(drawn.fill).not.toBeNull();
+  });
+});
+
+describe('decorating words', () => {
+  const dressed = {
+    color: '#ffffff',
+    width: 2,
+    fontSize: 40,
+    outline: '#000000',
+    outlineWidth: 10,
+    underline: true,
+    strike: false,
+    shadow: true,
+  };
+
+  it('measures the line round the letters against the letters, not in bare pixels', () => {
+    expect(outlineFor(dressed)).toEqual({ color: '#000000', width: 4 });
+    expect(outlineFor({ ...dressed, fontSize: 20 })).toEqual({ color: '#000000', width: 2 });
+  });
+
+  it('strikes no line at all when none was asked for', () => {
+    expect(outlineFor({ ...dressed, outlineWidth: 0 })).toBeNull();
+    expect(outlineFor({ color: '#000', width: 1, fontSize: 20 })).toBeNull();
+  });
+
+  it('writes new words wearing whatever the pen was set to', () => {
+    const written = wordsAt({ x: 0, y: 0 }, 'hello', dressed);
+
+    expect(written.outline).toEqual({ color: '#000000', width: 4 });
+    expect(written.underline).toBe(true);
+    expect(written.strike).toBe(false);
+    expect(written.shadow).toEqual(MARK_SHADOW);
+  });
+
+  it('leaves plain words plain', () => {
+    const written = wordsAt({ x: 0, y: 0 }, 'hello', style);
+
+    expect(written.outline).toBeNull();
+    expect(written.shadow).toBeNull();
+    expect(written.underline).toBe(false);
+  });
+
+  it('redresses words already written', () => {
+    const scene = createBoardScene(8, 6, 50);
+    const written = wordsAt({ x: 0, y: 0 }, 'hello', { ...style, fontSize: 40 });
+    addText(textLayer(scene), written);
+    const ref = { kind: 'text' as const, id: written.id };
+
+    restyleMark(scene, ref, { outline: '#ff0000', outlineWidth: 5, underline: true });
+
+    expect(written.outline).toEqual({ color: '#ff0000', width: 2 });
+    expect(written.underline).toBe(true);
+  });
+
+  it('keeps the colour of a line when only its thickness is changed, and the other way round', () => {
+    const scene = createBoardScene(8, 6, 50);
+    const written = wordsAt({ x: 0, y: 0 }, 'hello', { ...style, fontSize: 40 });
+    addText(textLayer(scene), written);
+    const ref = { kind: 'text' as const, id: written.id };
+
+    restyleMark(scene, ref, { outline: '#00ff00', outlineWidth: 10 });
+    restyleMark(scene, ref, { outlineWidth: 20 });
+    expect(written.outline).toEqual({ color: '#00ff00', width: 8 });
+
+    restyleMark(scene, ref, { outline: '#0000ff' });
+    expect(written.outline).toEqual({ color: '#0000ff', width: 8 });
+  });
+
+  it('takes the line off again', () => {
+    const scene = createBoardScene(8, 6, 50);
+    const written = wordsAt({ x: 0, y: 0 }, 'hello', dressed);
+    addText(textLayer(scene), written);
+
+    restyleMark(scene, { kind: 'text', id: written.id }, { outlineWidth: 0 });
+
+    expect(written.outline).toBeNull();
+  });
+
+  it('reaches the hold past the line struck round the letters', () => {
+    const plain = wordsAt({ x: 100, y: 100 }, 'hello', { ...style, fontSize: 40 });
+    const lined = wordsAt({ x: 100, y: 100 }, 'hello', dressed);
+
+    expect(textBox(lined).w).toBeGreaterThan(textBox(plain).w);
+    expect(textBox(lined).x).toBeLessThan(textBox(plain).x);
   });
 });
