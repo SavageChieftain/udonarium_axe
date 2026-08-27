@@ -2,6 +2,8 @@ import { createLayer, FreehandLayer, ImageLayer, MapScene, TextLayer } from '@ax
 import { addImage, addShape, addStroke, addText } from '@axe/features/map-editor/model/scene-ops';
 import {
   alignMarks,
+  anchorFor,
+  angleFrom,
   arrowBetween,
   boxAround,
   boxOf,
@@ -33,13 +35,16 @@ import {
   scaleMark,
   shapeBetween,
   shapeLayer,
+  sheetHolding,
   showGroup,
   snapTo,
   spreadMarks,
   stickerAt,
   straightLine,
+  stretchBy,
   textBox,
   textLayer,
+  TURN_GRIP_REACH,
   turnMark,
   useTextMeasurer,
   wordsAt,
@@ -407,6 +412,37 @@ describe('handleUnder()', () => {
   it('puts each corner where the corner is', () => {
     expect(handleAt(box, 'sw')).toEqual({ x: 100, y: 140 });
   });
+
+  it('names the side the pointer landed on, halfway along it', () => {
+    expect(handleUnder({ x: 140, y: 100 }, box, 6)).toBe('n');
+    expect(handleUnder({ x: 100, y: 120 }, box, 6)).toBe('w');
+    expect(handleAt(box, 'e')).toEqual({ x: 180, y: 120 });
+  });
+
+  it('hangs the grip for turning above the hold, clear of the corners', () => {
+    expect(handleAt(box, 'turn')).toEqual({ x: 140, y: 100 - TURN_GRIP_REACH });
+    expect(handleUnder({ x: 140, y: 100 - TURN_GRIP_REACH }, box, 6)).toBe('turn');
+  });
+
+  it('anchors a pulled side against the side facing it', () => {
+    expect(anchorFor(box, 'e')).toEqual({ x: 100, y: 100 });
+    expect(anchorFor(box, 'nw')).toEqual({ x: 180, y: 140 });
+  });
+
+  it('leaves the other way alone when a side is pulled, and moves both when a corner is', () => {
+    expect(stretchBy(box, 'e', { x: 260, y: 999 })).toEqual({ kx: 2, ky: 1 });
+    expect(stretchBy(box, 's', { x: 999, y: 180 })).toEqual({ kx: 1, ky: 2 });
+    expect(stretchBy(box, 'se', { x: 260, y: 180 })).toEqual({ kx: 2, ky: 2 });
+  });
+
+  it('never squashes a hold flat, or there would be no grip left to pull it back out', () => {
+    expect(stretchBy(box, 'e', { x: 100, y: 100 }).kx).toBeGreaterThan(0);
+  });
+
+  it('reads the angle out to the pointer from the middle of the hold, up being nought', () => {
+    expect(angleFrom(box, { x: 140, y: 0 })).toBeCloseTo(0, 6);
+    expect(angleFrom(box, { x: 999, y: 120 })).toBeCloseTo(90, 6);
+  });
 });
 
 describe('the rest of the marks', () => {
@@ -670,5 +706,24 @@ describe('holding several marks at once', () => {
     shapeLayer(scene).visible = false;
 
     expect(marksWithin(scene, { x: 0, y: 0, w: 900, h: 900 })).toEqual([{ kind: 'image', id: expect.any(String) }]);
+  });
+});
+
+describe('sheetHolding()', () => {
+  it('names the sheet a mark lives on, whichever one is being worked on', () => {
+    const scene = createBoardScene(8, 6, 50);
+    const second = createLayer('text', 'notes') as TextLayer;
+    scene.layers.push(second);
+    addText(second, wordsAt({ x: 20, y: 20 }, 'over here', style));
+
+    const held = markUnder(scene, { x: 24, y: 24 });
+
+    expect(held).not.toBeNull();
+    expect(sheetHolding(scene, held!)).toBe(second);
+  });
+
+  it('names no sheet for a mark that has been rubbed out', () => {
+    const scene = createBoardScene(8, 6, 50);
+    expect(sheetHolding(scene, { kind: 'text', id: 'gone' })).toBeNull();
   });
 });

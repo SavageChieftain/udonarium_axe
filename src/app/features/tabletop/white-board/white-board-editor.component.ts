@@ -48,6 +48,8 @@ import { detachFromBoard, standingOn } from '@axe/features/tabletop/white-board/
 import {
   AlignEdge,
   alignMarks,
+  anchorFor,
+  angleFrom,
   arrowBetween,
   BOARD_SHAPES,
   BOARD_TOOLS,
@@ -87,11 +89,13 @@ import {
   scaleMark,
   shapeBetween,
   shapeLayer,
+  sheetHolding,
   showGroup,
   snapTo,
   spreadMarks,
   stickerAt,
   straightLine,
+  stretchBy,
   textLayer,
   turnMark,
   useTextMeasurer,
@@ -138,6 +142,11 @@ const ZOOM_STEP = 1.15;
 
 /** How near a corner counts as taking hold of it, in the sheet's own pixels at full size. */
 const HANDLE_SLACK = 9;
+
+/** With shift held, the turn grip falls onto steps, so a picture can be set square again. */
+const TURN_SNAP = 15;
+
+const MAX_TYPING_ROWS = 12;
 
 /** How far a copy is set down from what it was copied off, so both can be seen. */
 const DUPLICATE_OFFSET = 16;
@@ -311,6 +320,11 @@ export class WhiteBoardEditorComponent {
   protected readonly typing = signal<BoardPoint | null>(null);
   protected typedText = '';
 
+  /** The box grows with what is typed into it, so a long note is not written through a slot. */
+  protected typedRows(): number {
+    return Math.min(MAX_TYPING_ROWS, Math.max(1, this.typedText.split('\n').length));
+  }
+
   readonly canUndo = signal(false);
   readonly canRedo = signal(false);
   readonly selected = signal<MarkRef | null>(null);
@@ -328,7 +342,14 @@ export class WhiteBoardEditorComponent {
   private drawingPoints: number[] = [];
   private dragFrom: BoardPoint | null = null;
   private dragTo: BoardPoint | null = null;
-  private grabbed: { refs: MarkRef[]; grabX: number; grabY: number; handle: Handle | null; box: MarkBox } | null = null;
+  private grabbed: {
+    refs: MarkRef[];
+    grabX: number;
+    grabY: number;
+    handle: Handle | null;
+    box: MarkBox;
+    turnedTo: number;
+  } | null = null;
   private bandFrom: BoardPoint | null = null;
   private bandTo: BoardPoint | null = null;
 
@@ -814,7 +835,7 @@ export class WhiteBoardEditorComponent {
     const box = chosen ? boxOf(this.scene, chosen) : null;
     const handle = box ? handleUnder(at, box, this.handleSlack()) : null;
     if (chosen && box && handle) {
-      this.grabbed = { refs: [chosen], grabX: at.x, grabY: at.y, handle, box };
+      this.grabbed = { refs: [chosen], grabX: at.x, grabY: at.y, handle, box, turnedTo: angleFrom(box, at) };
       return;
     }
 
@@ -838,7 +859,9 @@ export class WhiteBoardEditorComponent {
         : [mark];
     this.hold(next);
     const bounds = boxAround(this.scene, next);
-    if (bounds) this.grabbed = { refs: next, grabX: at.x, grabY: at.y, handle: null, box: bounds };
+    if (bounds) {
+      this.grabbed = { refs: next, grabX: at.x, grabY: at.y, handle: null, box: bounds, turnedTo: 0 };
+    }
   }
 
   /** A handle has to stay big enough to hit however far the sheet is zoomed out. */
@@ -860,21 +883,24 @@ export class WhiteBoardEditorComponent {
       return;
     }
 
-    // Stretched from the corner opposite the one being pulled, the way a picture is stretched.
     const box = boxAround(this.scene, held.refs);
     if (!box) return;
-    const wide = held.handle.includes('e') ? box.w + dx : held.handle.includes('w') ? box.w - dx : box.w;
-    const tall = held.handle.includes('s') ? box.h + dy : held.handle.includes('n') ? box.h - dy : box.h;
-    const kx = box.w > 1 ? Math.max(0.05, wide / box.w) : 1;
-    const ky = box.h > 1 ? Math.max(0.05, tall / box.h) : 1;
-    const anchored = {
-      x: held.handle.includes('w') ? box.x + box.w : box.x,
-      y: held.handle.includes('n') ? box.y + box.h : box.y,
-      w: box.w,
-      h: box.h,
-    };
+
+    if (held.handle === 'turn') {
+      const now = angleFrom(box, at);
+      const turned = this.keepingShape ? Math.round(now / TURN_SNAP) * TURN_SNAP : now;
+      for (const ref of held.refs) turnMark(this.scene, ref, turned - held.turnedTo);
+      held.turnedTo = turned;
+      void this.redraw();
+      return;
+    }
+
+    // Stretched away from the side facing the one being pulled, the way a picture is stretched.
+    const { kx, ky } = stretchBy(box, held.handle, at);
+    const anchor = anchorFor(box, held.handle);
+    const anchored = { x: anchor.x, y: anchor.y, w: box.w, h: box.h };
     // Held down, a corner keeps the shape of what it is pulling, the way it does elsewhere.
-    const even = this.keepingShape ? Math.max(kx, ky) : 0;
+    const even = this.keepingShape && held.handle.length === 2 ? Math.max(kx, ky) : 0;
     for (const ref of held.refs) {
       scaleMark(this.scene, ref, anchored, even || kx, even || ky);
     }
@@ -1084,15 +1110,16 @@ export class WhiteBoardEditorComponent {
 
   protected commitText(): void {
     const at = this.typing();
-    const words = this.typedText.trim();
+    const words = this.typedText.replace(/\s+$/, '');
     const over = this.retyping;
     this.typing.set(null);
     this.typedText = '';
     this.retyping = null;
 
     if (over) {
+      const sheet = sheetHolding(this.scene, over);
       if (words.length < 1) removeMark(this.scene, over);
-      else updateText(textLayer(this.scene, this.activeLayerId()), over.id, { text: words });
+      else if (sheet?.kind === 'text') updateText(sheet, over.id, { text: words });
       this.touched();
       return;
     }
@@ -1183,8 +1210,20 @@ export class WhiteBoardEditorComponent {
       ctx.setLineDash([]);
       ctx.fillStyle = '#ffffff';
       const grip = HANDLE_SLACK / Math.max(0.25, this.zoom());
+      const stalk = handleAt(box, 'turn');
+      ctx.beginPath();
+      ctx.moveTo(box.x + box.w / 2, box.y);
+      ctx.lineTo(stalk.x, stalk.y);
+      ctx.stroke();
       for (const handle of HANDLES) {
         const at = handleAt(box, handle);
+        if (handle === 'turn') {
+          ctx.beginPath();
+          ctx.arc(at.x, at.y, grip / 2, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.stroke();
+          continue;
+        }
         ctx.fillRect(at.x - grip / 2, at.y - grip / 2, grip, grip);
         ctx.strokeRect(at.x - grip / 2, at.y - grip / 2, grip, grip);
       }

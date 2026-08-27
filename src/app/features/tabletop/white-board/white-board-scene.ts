@@ -532,24 +532,53 @@ export function removeMark(scene: MapScene, ref: MarkRef): void {
 }
 
 /** The corners a hold can be taken by, named for the compass so the maths reads plainly. */
-export type Handle = 'nw' | 'ne' | 'sw' | 'se';
+export type Handle = 'nw' | 'n' | 'ne' | 'e' | 'se' | 's' | 'sw' | 'w' | 'turn';
 
-export const HANDLES: readonly Handle[] = ['nw', 'ne', 'sw', 'se'];
+export const HANDLES: readonly Handle[] = ['nw', 'n', 'ne', 'e', 'se', 's', 'sw', 'w', 'turn'];
+
+/** How far above the hold the grip for turning it sits. */
+export const TURN_GRIP_REACH = 22;
 
 export function handleAt(box: MarkBox, handle: Handle): BoardPoint {
+  if (handle === 'turn') return { x: box.x + box.w / 2, y: box.y - TURN_GRIP_REACH };
+  const x = handle.includes('w') ? box.x : handle.includes('e') ? box.x + box.w : box.x + box.w / 2;
+  const y = handle.includes('n') ? box.y : handle.includes('s') ? box.y + box.h : box.y + box.h / 2;
+  return { x, y };
+}
+
+/** Which grip on the hold the pointer landed on, if it landed on one at all. */
+export function handleUnder(at: BoardPoint, box: MarkBox, slack: number): Handle | null {
+  for (const handle of HANDLES) {
+    const grip = handleAt(box, handle);
+    if (Math.abs(at.x - grip.x) <= slack && Math.abs(at.y - grip.y) <= slack) return handle;
+  }
+  return null;
+}
+
+/** The corner a pulled grip is anchored against — a side pulls away from the side facing it. */
+export function anchorFor(box: MarkBox, handle: Handle): BoardPoint {
   return {
-    x: handle.includes('w') ? box.x : box.x + box.w,
-    y: handle.includes('n') ? box.y : box.y + box.h,
+    x: handle.includes('w') ? box.x + box.w : box.x,
+    y: handle.includes('n') ? box.y + box.h : box.y,
   };
 }
 
-/** Which corner of the hold the pointer landed on, if it landed on one at all. */
-export function handleUnder(at: BoardPoint, box: MarkBox, slack: number): Handle | null {
-  for (const handle of HANDLES) {
-    const corner = handleAt(box, handle);
-    if (Math.abs(at.x - corner.x) <= slack && Math.abs(at.y - corner.y) <= slack) return handle;
-  }
-  return null;
+/** How a pulled grip stretches the hold: a side grip leaves the other way alone. */
+export function stretchBy(box: MarkBox, handle: Handle, at: BoardPoint): { kx: number; ky: number } {
+  const anchor = anchorFor(box, handle);
+  const across = handle === 'n' || handle === 's' ? 1 : Math.abs(at.x - anchor.x) / Math.max(1, box.w);
+  const down = handle === 'e' || handle === 'w' ? 1 : Math.abs(at.y - anchor.y) / Math.max(1, box.h);
+  return { kx: Math.max(MIN_STRETCH, across), ky: Math.max(MIN_STRETCH, down) };
+}
+
+/** Nothing may be squashed away to nothing, or there would be no grip left to pull back out. */
+const MIN_STRETCH = 0.05;
+
+/** The angle from the middle of the hold out to the pointer, which is where the turn grip points. */
+export function angleFrom(box: MarkBox, at: BoardPoint): number {
+  const dx = at.x - (box.x + box.w / 2);
+  const dy = at.y - (box.y + box.h / 2);
+  return (Math.atan2(dy, dx) * 180) / Math.PI + 90;
 }
 
 /** How long the head of an arrow is against its shaft, and how wide it opens. */
@@ -782,6 +811,19 @@ export function restyleMark(scene: MapScene, ref: MarkRef, change: MarkStyleChan
 }
 
 /** The words already written, so they can be typed over rather than written again. */
+/** The sheet a written mark lives on, which is not always the one being worked on. */
+export function sheetHolding(scene: MapScene, ref: MarkRef): MapLayer | null {
+  for (const layer of scene.layers) {
+    if (layer.kind === 'text' && ref.kind === 'text' && layer.items.some((item) => item.id === ref.id)) return layer;
+    if (layer.kind === 'shape' && ref.kind === 'shape' && layer.items.some((item) => item.id === ref.id)) return layer;
+    if (layer.kind === 'image' && ref.kind === 'image' && layer.items.some((item) => item.id === ref.id)) return layer;
+    if (layer.kind === 'freehand' && ref.kind === 'stroke' && layer.strokes.some((item) => item.id === ref.id)) {
+      return layer;
+    }
+  }
+  return null;
+}
+
 export function wordsOf(scene: MapScene, ref: MarkRef): TextItem | null {
   if (ref.kind !== 'text') return null;
   for (const layer of scene.layers) {

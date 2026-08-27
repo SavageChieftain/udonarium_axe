@@ -490,16 +490,20 @@
         ></canvas>
 
         @if (typing(); as at) {
-          <input
-            class="border-ui-accent rounded-ui-sm absolute border border-solid bg-white px-1 py-0.5 text-[0.9rem] text-black outline-none"
+          <textarea
+            class="border-ui-accent rounded-ui-sm absolute resize border border-solid bg-white px-1 py-0.5 text-[0.9rem] leading-tight text-black outline-none"
             name="board-text"
             [style.left.%]="(at.x / sceneWidth) * 100"
             [style.top.%]="(at.y / sceneHeight) * 100"
+            [rows]="typedRows()"
+            cols="24"
             [(ngModel)]="typedText"
-            (keydown.enter)="commitText()"
+            (keydown.escape)="commitText()"
+            (keydown.control.enter)="commitText()"
+            (keydown.meta.enter)="commitText()"
             (blur)="commitText()"
             [placeholder]="'feature.whiteBoard.editor.typeHere' | transloco"
-          />
+          ></textarea>
         }
       </div>
     </div>
