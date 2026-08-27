@@ -1,5 +1,3 @@
-import { LightPreset } from '@axe/domain/tabletop/vision-types';
-
 export const LIGHT_IMAGE_TAG = '光源';
 
 export const LIGHT_SKIN_IDS = [
@@ -27,19 +25,3 @@ export const LIGHT_SKIN_ASSET_URLS: Record<LightSkinId, string> = {
   light_candle: 'assets/images/lights/light_candle.webp',
   light_chandelier: 'assets/images/lights/light_chandelier.webp',
 };
-
-/** The picture a light wears when its preset is chosen and nothing has been picked by hand. */
-export const LIGHT_PRESET_SKIN: Partial<Record<LightPreset, LightSkinId>> = {
-  [LightPreset.CAMPFIRE]: 'light_campfire',
-  [LightPreset.SCONCE]: 'light_sconce',
-  [LightPreset.BRAZIER]: 'light_brazier',
-  [LightPreset.TORCH]: 'light_torch',
-  [LightPreset.LANTERN]: 'light_lantern',
-  [LightPreset.CANDLE]: 'light_candle',
-  [LightPreset.CHANDELIER]: 'light_chandelier',
-  [LightPreset.FLASHLIGHT]: 'light_lamp',
-};
-
-export function isLightSkinId(value: string): value is LightSkinId {
-  return (LIGHT_SKIN_IDS as readonly string[]).includes(value);
-}

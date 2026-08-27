@@ -85,7 +85,7 @@ export function chatColorContrast(color: string, bubble: string, theme: 'light' 
   return contrastRatio(relativeLuminance(text), relativeLuminance(shown));
 }
 
-function cssToHex(css: string): string {
+export function cssToHex(css: string): string {
   const match = /rgb\((\d+),(\d+),(\d+)\)/.exec(css);
   if (!match) return css;
   return '#' + [1, 2, 3].map((i) => Number(match[i]).toString(16).padStart(2, '0')).join('');

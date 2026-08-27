@@ -10,6 +10,7 @@ import {
   CHAT_WARN_RATIO,
   chatColorContrast,
   ChatColorStylePipe,
+  cssToHex,
 } from '@axe/ui/pipes/chat-color-style.pipe';
 import { TranslocoModule } from '@jsverse/transloco';
 
@@ -170,10 +171,4 @@ export class ChatColorSettingComponent {
     this.revision.update((value) => value + 1);
     this.objectChange.notifyChanged(this.owner.identifier);
   }
-}
-
-function cssToHex(css: string): string {
-  const match = /rgb\((\d+),(\d+),(\d+)\)/.exec(css);
-  if (!match) return css;
-  return '#' + [1, 2, 3].map((i) => Number(match[i]).toString(16).padStart(2, '0')).join('');
 }

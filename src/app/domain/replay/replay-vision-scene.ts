@@ -232,9 +232,9 @@ function segmentsOf(
   gridSize: number,
   widthPx: number,
   heightPx: number
-): { sightSegments: TallSegment[]; lightSegments: Segment[] } {
+): { sightSegments: TallSegment[]; lightSegments: TallSegment[] } {
   const sightSegments: TallSegment[] = [...perimeterSegments(widthPx, heightPx)];
-  const lightSegments: Segment[] = [];
+  const lightSegments: TallSegment[] = [];
 
   const walls: [string, Segment][] = [
     ['showNorthWall', { x1: 0, y1: 0, x2: widthPx, y2: 0 }],
@@ -258,9 +258,16 @@ function segmentsOf(
       number(terrain, 'depth', 1) * gridSize,
       number(terrain, 'rotate')
     );
+    // A door that stood open stopped nothing at the time, and must stop nothing in the replay:
+    // the snapshot carries whether it was open, so the same reckoning is made of it here.
+    const shut = !(flag(terrain, 'isDoor') && flag(terrain, 'isDoorOpen'));
     const top = (number(terrain, 'altitude') + number(terrain, 'height', 1)) * gridSize;
-    if (flag(terrain, 'blocksSight')) for (const edge of edges) sightSegments.push({ ...edge, heightPx: top });
-    if (flag(terrain, 'blocksLight') && !flag(terrain, 'lightEnabled')) lightSegments.push(...edges);
+    if (flag(terrain, 'blocksSight') && shut) {
+      for (const edge of edges) sightSegments.push({ ...edge, heightPx: top });
+    }
+    if (flag(terrain, 'blocksLight') && shut && !flag(terrain, 'lightEnabled')) {
+      for (const edge of edges) lightSegments.push({ ...edge, heightPx: top });
+    }
   }
 
   return { sightSegments, lightSegments };

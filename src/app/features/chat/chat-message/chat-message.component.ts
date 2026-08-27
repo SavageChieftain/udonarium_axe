@@ -78,6 +78,11 @@ export class ChatMessageComponent {
   readonly simpleDispFlagUserId = input(false);
   readonly chatSimpleDispFlag = input(false);
 
+  /** The bubble the sender asked for on the theme being looked at, if they asked for one. */
+  protected bubbleFor(message: ChatMessage): string {
+    return this.theme.resolved() === 'dark' ? message.messBubbleDark : message.messBubbleLight;
+  }
+
   /**
    * Whether the line is still under wraps, read through the object's version.
    *
@@ -86,11 +91,6 @@ export class ChatMessageComponent {
    * the view keeps the cover on until some unrelated thing forces it to draw again - which
    * looks exactly like the reveal failing to reach the other players.
    */
-  /** The bubble the sender asked for on the theme being looked at, if they asked for one. */
-  protected bubbleFor(message: ChatMessage): string {
-    return this.theme.resolved() === 'dark' ? message.messBubbleDark : message.messBubbleLight;
-  }
-
   readonly isSecret = computed(() => {
     const chatMessage = this.chatMessageInput();
     if (!chatMessage) return false;
