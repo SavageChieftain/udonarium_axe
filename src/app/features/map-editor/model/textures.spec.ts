@@ -1,57 +1,12 @@
+import { TEXTURE_IDS } from '@axe/domain/media/texture-catalog';
 import {
   IMAGE_TEXTURE_PREFIX,
   imageTextureIdentifier,
   isImageTextureId,
-  isTextureId,
   LEGACY_TEXTURE_ALIASES,
   normalizeTextureId,
-  TEXTURE_ASSET_URLS,
-  TEXTURE_BASE_COLOR,
-  TEXTURE_IDS,
 } from '@axe/features/map-editor/model/textures';
 import { describe, expect, it } from 'vitest';
-
-describe('isTextureId', () => {
-  it('accepts every built-in id and rejects others', () => {
-    for (const id of TEXTURE_IDS) expect(isTextureId(id)).toBe(true);
-    expect(isTextureId('image:abc')).toBe(false);
-    expect(isTextureId('nope')).toBe(false);
-    expect(isTextureId('grass')).toBe(false);
-  });
-
-  it('exposes the 16 asset ids', () => {
-    expect(TEXTURE_IDS).toEqual([
-      'black_soil',
-      'brick',
-      'desert',
-      'floor',
-      'forest',
-      'gravel',
-      'lava',
-      'rock',
-      'rock_moss',
-      'sand',
-      'sea',
-      'shallows',
-      'steppe',
-      'stone_paving_big',
-      'stone_paving_small',
-      'stone_tile',
-    ]);
-  });
-
-  it('has a base color for every id', () => {
-    for (const id of TEXTURE_IDS) {
-      expect(TEXTURE_BASE_COLOR[id]).toMatch(/^#[0-9a-fA-F]{6}$/);
-    }
-  });
-
-  it('maps every id to its webp asset url', () => {
-    for (const id of TEXTURE_IDS) {
-      expect(TEXTURE_ASSET_URLS[id]).toBe(`assets/images/tiles/${id}.webp`);
-    }
-  });
-});
 
 describe('normalizeTextureId', () => {
   it('maps legacy aliases to the new ids', () => {

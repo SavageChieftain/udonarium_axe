@@ -25,6 +25,21 @@ export enum SlopeDirection {
   RIGHT = 4,
 }
 
+export enum DoorStyle {
+  /** Not a door at all, which is every piece of terrain until it is told otherwise. */
+  NONE = 'none',
+  /** Turns on its hinge. */
+  SWING = 'swing',
+  /** Runs sideways into the wall beside it. */
+  SLIDE = 'slide',
+  /** Rises into the ceiling, the way a portcullis does. */
+  LIFT = 'lift',
+  /** Drops into the floor. */
+  SINK = 'sink',
+}
+
+export const DOOR_STYLES: readonly DoorStyle[] = [DoorStyle.SWING, DoorStyle.SLIDE, DoorStyle.LIFT, DoorStyle.SINK];
+
 export type TerrainFace = 'top' | 'bottom' | 'north' | 'south' | 'east' | 'west';
 
 export const TERRAIN_FACES: readonly TerrainFace[] = ['top', 'bottom', 'north', 'south', 'east', 'west'] as const;
@@ -40,9 +55,37 @@ export class Terrain extends TabletopObject {
   @SyncVar() slopeDirection: number = SlopeDirection.NONE;
 
   @SyncVar() isGrid: boolean = false;
+  @SyncVar() isTiledTexture: boolean = false;
 
   @SyncVar() blocksSight: boolean = true;
   @SyncVar() blocksLight: boolean = true;
+
+  @SyncVar() doorStyle: string = DoorStyle.NONE;
+  @SyncVar() isDoorOpen: boolean = false;
+  /**
+   * Which way round it opens: the hinge at the other end, the slide the other way.
+   *
+   * Two doors filling one opening are a pair, and a pair opens outward from the middle. Both
+   * turning the same way is what a single door does, and reads as one door cut in half.
+   */
+  @SyncVar() doorMirrored: boolean = false;
+
+  get isDoor(): boolean {
+    return this.doorStyle !== DoorStyle.NONE;
+  }
+
+  /**
+   * What the terrain stops right now, rather than what it stops when shut.
+   *
+   * An open door has to let sight and light past without forgetting that it blocks them
+   * when it is closed again, so the standing setting is left alone and read through here.
+   */
+  get blocksSightNow(): boolean {
+    return this.blocksSight && !(this.isDoor && this.isDoorOpen);
+  }
+  get blocksLightNow(): boolean {
+    return this.blocksLight && !(this.isDoor && this.isDoorOpen);
+  }
 
   @SyncVar() lightEnabled: boolean = false;
   @SyncVar() lightPreset: string = LightPreset.CUSTOM;

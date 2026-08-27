@@ -51,6 +51,58 @@
     },
     "party": {
       "unnamed": "이름 없는 파티"
+    },
+    "textures": {
+      "black_soil": "흑토",
+      "brick": "벽돌",
+      "desert": "사막",
+      "floor": "마룻바닥",
+      "forest": "숲",
+      "gravel": "자갈",
+      "lava": "용암",
+      "rock": "바위",
+      "rock_moss": "바위(이끼)",
+      "sand": "모래땅",
+      "sea": "바다",
+      "shallows": "얕은 물",
+      "steppe": "초원",
+      "stone_paving_big": "돌바닥(대)",
+      "stone_paving_small": "돌바닥(소)",
+      "stone_tile": "석재 타일",
+      "blood_stone": "핏자국 돌바닥",
+      "bone_floor": "뼈 바닥",
+      "ice": "얼음",
+      "marble": "대리석",
+      "metal_grate": "철격자",
+      "moss_stone_floor": "이끼 낀 돌바닥",
+      "obsidian": "흑요석",
+      "packed_earth": "다져진 흙",
+      "rubble_floor": "잔해",
+      "sandstone_floor": "사암 바닥",
+      "stone_mosaic": "모자이크 바닥",
+      "stone_paving_wet": "젖은 돌포장",
+      "swamp_mud": "늪 진흙",
+      "wood_plank": "널판 바닥",
+      "wall_ashlar": "다듬돌 벽",
+      "wall_bone": "뼈 벽",
+      "wall_brick": "벽돌 벽",
+      "wall_cave_rock": "동굴 암벽",
+      "wall_earth": "흙벽",
+      "wall_ice": "얼음 벽",
+      "wall_metal": "철벽",
+      "wall_mossy_stone": "이끼 낀 돌벽",
+      "wall_obsidian": "흑요석 벽",
+      "wall_rubble": "막돌 벽",
+      "wall_sandstone": "사암 벽",
+      "wall_timber": "목재 벽",
+      "door_wood": "나무 문",
+      "door_iron_grate": "쇠창살 문",
+      "door_stone": "돌문",
+      "stair_up": "올라가는 계단",
+      "stair_down": "내려가는 계단",
+      "stair_spiral": "나선 계단",
+      "poison_pool": "독 늪",
+      "cactus_skin": "선인장 껍질"
     }
   },
   "feature": {
@@ -159,7 +211,8 @@
         "moveCommon": "공용으로",
         "moveGraveyard": "무덤으로",
         "delete": "삭제하기"
-      }
+      },
+      "typeLight": "광원"
     },
     "media": {
       "jukebox": {
@@ -1285,7 +1338,10 @@
         "turnOff": "끄기",
         "preset": "프리셋",
         "follow": "토큰을 따라가기",
-        "unfollow": "따라가지 않기"
+        "unfollow": "따라가지 않기",
+        "skin": "스킨",
+        "skinFromLibrary": "이미지 보관함에서 선택",
+        "skinNone": "스킨 없음"
       },
       "preset": {
         "custom": "커스텀",
@@ -1295,7 +1351,11 @@
         "daylight": "햇빛",
         "flashlight": "손전등",
         "neon": "네온",
-        "spotlight": "스포트라이트"
+        "spotlight": "스포트라이트",
+        "campfire": "모닥불",
+        "sconce": "벽걸이 횃불",
+        "brazier": "화로",
+        "chandelier": "샹들리에"
       },
       "settings": {
         "title": "광원",
@@ -1323,6 +1383,17 @@
       "category": {
         "physical": "물리 광원",
         "theatrical": "연출 광원"
+      },
+      "skin": {
+        "light_campfire": "모닥불",
+        "light_torch": "횃불",
+        "light_sconce": "벽걸이 횃불",
+        "light_lamp": "기름 램프",
+        "light_stand": "램프 스탠드",
+        "light_brazier": "화로",
+        "light_lantern": "랜턴",
+        "light_candle": "양초",
+        "light_chandelier": "샹들리에"
       }
     },
     "vision": {
@@ -1511,7 +1582,18 @@
         "surfaceEastWall": "동쪽 벽",
         "surfaceSouthWall": "남쪽 벽",
         "surfaceWestWall": "서쪽 벽",
-        "createWithOptions": "말 만들기…"
+        "createWithOptions": "말 만들기…",
+        "tiledTextureOn": "텍스처를 타일로 깔기",
+        "tiledTextureOff": "텍스처를 다시 늘이기",
+        "doorOpen": "문 열기",
+        "doorClose": "문 닫기",
+        "doorStyle": "문이 열리는 방식",
+        "doorStyleNone": "문이 아님",
+        "doorStyleSwing": "여닫이",
+        "doorStyleLift": "위로 올라감",
+        "doorStyleSink": "아래로 가라앉음",
+        "doorStyleSlide": "옆으로 미닫이",
+        "doorFlip": "열리는 방향 반전"
       },
       "tableSetting": {
         "title": "테이블 설정",
@@ -1614,6 +1696,112 @@
         "sectionWeather": "날씨(맵 전체)",
         "weatherKind": "날씨",
         "weatherNone": "없음"
+      },
+      "dungeonGenerator": {
+        "atmosphere": {
+          "stoneDungeon": "석조 미궁",
+          "crypt": "지하 묘소",
+          "ruins": "유적",
+          "cavern": "동굴",
+          "lavaCavern": "용암굴",
+          "iceCave": "얼음굴",
+          "sandTomb": "모래 무덤"
+        },
+        "role": {
+          "entrance": "입구의 방",
+          "hall": "대광간",
+          "treasure": "보물고",
+          "boss": "최심부",
+          "deadEnd": "막다른 길",
+          "chamber": "작은 방"
+        },
+        "piece": {
+          "wall": "벽",
+          "door": "문",
+          "doorLocked": "문(잠김)",
+          "entrance": "입구",
+          "exit": "출구"
+        },
+        "summary": {
+          "title": "던전 개요",
+          "seed": "시드",
+          "start": "시작 위치",
+          "key": "열쇠",
+          "locked": "잠김",
+          "torch": "횃불",
+          "doors": "문",
+          "ground": "지면",
+          "standing": "지형",
+          "fires": "불빛"
+        },
+        "title": "맵 생성",
+        "gmOnly": "이 도구는 게임 마스터 전용입니다",
+        "props": {
+          "atmosphere": "분위기",
+          "wall": "벽 재질",
+          "floor": "바닥 재질",
+          "roomCount": "방 수",
+          "seed": "시드",
+          "tableName": "테이블 이름",
+          "placeDoors": "문 배치",
+          "placeStairs": "입구와 출구 배치",
+          "wallHeight": "벽 높이(칸)",
+          "entrance": "입구",
+          "kind": "종류",
+          "prop": "장애물 재질",
+          "ground": "지면 재질",
+          "fieldSize": "맵 크기",
+          "density": "초목 밀도",
+          "gridType": "칸 모양",
+          "hexNote": "헥스는 하나로 묶을 수 없어 칸마다 지형을 놓습니다. 그만큼 판이 작아집니다."
+        },
+        "actions": {
+          "generate": "생성",
+          "reroll": "시드 다시 뽑기",
+          "pickFromLibrary": "이미지 보관함에서 선택",
+          "resetMaterials": "기본값으로",
+          "goToTable": "이 테이블로 이동",
+          "discard": "이 테이블 삭제",
+          "copySummary": "개요 복사",
+          "copied": "복사했습니다"
+        },
+        "status": {
+          "estimate": "지형 {{terrains}}개, 동기화 약 {{sync}}건",
+          "tooMany": "지형이 {{limit}}개를 넘습니다. 방 수를 줄여 주세요",
+          "heavy": "지형이 {{limit}}개를 넘습니다. 생성에 시간이 조금 걸립니다",
+          "built": "\"{{name}}\"을(를) 만들었습니다",
+          "roomsDiffer": "배치된 방은 {{found}}개입니다. 동굴은 공동이 이어지므로 요청보다 적어집니다",
+          "squareOnly": "생성되는 테이블은 정사각 그리드 고정입니다"
+        },
+        "entrance": {
+          "stair": "계단(지하로)",
+          "tunnel": "갱도 입구(밖으로)"
+        },
+        "kind": {
+          "dungeon": "던전",
+          "field": "필드"
+        },
+        "field": {
+          "woodland": "삼림",
+          "meadow": "초원",
+          "coast": "해안",
+          "marsh": "습지",
+          "snowfield": "설원",
+          "wasteland": "황야"
+        },
+        "prop": {
+          "tree": "나무",
+          "bush": "덤불",
+          "boulder": "바위",
+          "outcrop": "암반",
+          "hill": "언덕",
+          "cactus": "선인장"
+        },
+        "grid": {
+          "0": "사각",
+          "1": "헥스 (세로)",
+          "2": "헥스 (가로)"
+        }
       }
     },
     "lobby": {
@@ -1877,9 +2065,18 @@
         "systemTabNote": "알림 게시판입니다. 전원에게 보이고 아무도 쓸 수 없습니다. 이름과 순서는 고정이며 방 데이터에도 저장되지 않습니다."
       },
       "colorSetting": {
-        "color1": "제1색",
-        "color2": "제2색",
-        "color3": "제3색"
+        "sample": "안녕하세요!",
+        "theme": {
+          "light": "라이트 테마",
+          "dark": "다크 테마"
+        },
+        "bubble": "말풍선 색 (눌러서 변경)",
+        "auto": "말풍선 색을 자동으로 되돌리기",
+        "hardToRead": "읽기 어렵습니다. 눌러서 수정",
+        "slot": "색",
+        "textColor": "글자색",
+        "bubbleLabel": "말풍선",
+        "otherColor": "다른 색 고르기"
       },
       "messageFix": {
         "change": "변경",
@@ -2073,24 +2270,6 @@
         "shape": "도형",
         "image": "이미지"
       },
-      "textures": {
-        "black_soil": "흑토",
-        "brick": "벽돌",
-        "desert": "사막",
-        "floor": "마룻바닥",
-        "forest": "숲",
-        "gravel": "자갈",
-        "lava": "용암",
-        "rock": "바위",
-        "rock_moss": "바위(이끼)",
-        "sand": "모래땅",
-        "sea": "바다",
-        "shallows": "얕은 물",
-        "steppe": "초원",
-        "stone_paving_big": "돌바닥(대)",
-        "stone_paving_small": "돌바닥(소)",
-        "stone_tile": "석재 타일"
-      },
       "stampCategories": {
         "door": "문",
         "stair": "계단",
@@ -2164,7 +2343,8 @@
           "pentagon": "오각형",
           "hexagon": "육각형",
           "star5": "오각별",
-          "star6": "육각별"
+          "star6": "육각별",
+          "balloon": "말풍선"
         },
         "lineKinds": {
           "straight": "직선",
@@ -2815,6 +2995,168 @@
         "distance": "거리: {{distance}}",
         "chatNote": "{{target}}({{source}}에서 {{distance}})",
         "sendToChat": "채팅에 입력"
+      }
+    },
+    "whiteBoard": {
+      "defaultName": "화이트보드",
+      "action": {
+        "create": "화이트보드 만들기"
+      },
+      "pitch": {
+        "0": "눕히기",
+        "45": "기울이기",
+        "90": "세우기"
+      },
+      "contextMenu": {
+        "settings": "화이트보드 설정",
+        "pitch": "각도",
+        "gather": "겹쳐 있는 것을 올리기",
+        "detachAll": "올려둔 것을 내리기",
+        "copy": "복사본 만들기",
+        "delete": "삭제",
+        "draw": "보드에 그리기",
+        "save": "이 보드 저장"
+      },
+      "settings": {
+        "name": "이름",
+        "width": "너비(칸)",
+        "height": "높이(칸)",
+        "pitch": "기울기",
+        "rotate": "방향",
+        "opacity": "불투명도",
+        "color": "판 색상",
+        "image": "붙이는 그림",
+        "imageChoose": "이미지 선택",
+        "imageClear": "제거",
+        "dropShadow": "그림자 표시",
+        "lock": "고정",
+        "contents": "올려둔 것 ({{count}})",
+        "contentsEmpty": "아직 아무것도 없습니다",
+        "takeOff": "내리기",
+        "gather": "겹친 것을 올리기",
+        "clear": "전부 내리기",
+        "seeThrough": "판을 투명하게"
+      },
+      "tool": {
+        "select": "선택",
+        "pen": "펜",
+        "eraser": "지우개",
+        "line": "직선",
+        "text": "글자",
+        "sticker": "붙이기",
+        "shape": "도형",
+        "marker": "마커",
+        "arrow": "화살표",
+        "note": "메모",
+        "hand": "손 도구",
+        "path": "꺾은선"
+      },
+      "editor": {
+        "ink": "잉크 색",
+        "width": "굵기",
+        "fontSize": "글자 크기",
+        "clear": "모두 지우기",
+        "board": "보드 설정",
+        "ruled": "모눈",
+        "layers": "레이어 ({{count}})",
+        "addLayer": "레이어 추가",
+        "visible": "표시 전환",
+        "color": "잉크 색",
+        "shape": "도형",
+        "filled": "채우기",
+        "paper": "종이",
+        "spacing": "눈금 간격",
+        "zoom": "배율",
+        "tools": "도구",
+        "addGroup": "그룹화",
+        "groupName": "그룹",
+        "noGroup": "(없음)",
+        "undo": "실행 취소",
+        "redo": "다시 실행",
+        "removeSelected": "선택한 것 삭제",
+        "duplicate": "복제",
+        "turnLeft": "왼쪽으로 회전",
+        "turnRight": "오른쪽으로 회전",
+        "bringForward": "앞으로",
+        "sendBackward": "뒤로",
+        "card": "메모 색",
+        "snap": "모눈에 맞추기",
+        "zoomIn": "확대 (Ctrl++)",
+        "zoomOut": "축소 (Ctrl+-)",
+        "zoomFit": "전체 보기 (Ctrl+9)",
+        "dash": "선 종류",
+        "words": "글자",
+        "alignLeft": "왼쪽 정렬",
+        "alignCentre": "가로 가운데",
+        "alignRight": "오른쪽 정렬",
+        "alignTop": "위쪽 정렬",
+        "alignMiddle": "세로 가운데",
+        "alignBottom": "아래쪽 정렬",
+        "spreadAcross": "가로 균등 배분",
+        "spreadDown": "세로 균등 배분",
+        "holdEverything": "전체 선택",
+        "fillColor": "채우기 색",
+        "shadow": "그림자",
+        "lockLayer": "레이어 잠금",
+        "layerOpacity": "레이어 불투명도",
+        "saveAsPicture": "이미지로 저장",
+        "picture": "이미지",
+        "flipAcross": "좌우 반전",
+        "flipDown": "상하 반전",
+        "pictureOpacity": "불투명도",
+        "zoomToHeld": "선택 영역에 맞추기",
+        "clearLayer": "이 레이어 지우기",
+        "curved": "곡선으로 잇기",
+        "finishPath": "꺾은선 확정",
+        "pathHint": "클릭해서 점을 놓고, 더블 클릭이나 Enter로 확정합니다.",
+        "trim": "자르기",
+        "untrim": "자르기 되돌리기",
+        "trimApply": "적용",
+        "trimCancel": "취소",
+        "trimHint": "모서리와 변을 움직여 남길 범위를 정합니다.",
+        "guides": "정렬 가이드",
+        "rulers": "눈금자",
+        "clearGuides": "가이드선 지우기 ({{count}})",
+        "rulerHint": "눈금자에서 끌어내면 가이드선이 생깁니다",
+        "renameLayer": "레이어 이름 변경",
+        "raiseLayer": "앞으로",
+        "lowerLayer": "뒤로",
+        "dropLayer": "레이어 삭제",
+        "outline": "테두리",
+        "underline": "밑줄",
+        "strike": "취소선",
+        "centreAcross": "시트의 좌우 가운데로",
+        "centreDown": "시트의 위아래 가운데로"
+      },
+      "layer": {
+        "freehand": "손그림",
+        "shape": "도형",
+        "text": "글자",
+        "image": "붙인 것",
+        "cell": "칠하기",
+        "stamp": "스탬프"
+      },
+      "shape": {
+        "rect": "사각",
+        "ellipse": "원",
+        "triangle": "삼각",
+        "pentagon": "오각",
+        "hexagon": "육각",
+        "star5": "별5",
+        "star6": "별6",
+        "balloon": "말풍선"
+      },
+      "dash": {
+        "solid": "실선",
+        "dashed": "파선",
+        "dotted": "점선",
+        "dashdot": "일점쇄선",
+        "longdash": "긴 파선"
+      },
+      "align": {
+        "left": "왼쪽",
+        "center": "가운데",
+        "right": "오른쪽"
       }
     }
   },

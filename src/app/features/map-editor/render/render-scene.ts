@@ -251,7 +251,13 @@ function drawImageItem(
   }
   ctx.translate(item.x, item.y);
   if (item.rotation) ctx.rotate((item.rotation * Math.PI) / 180);
-  ctx.drawImage(image, -item.w / 2, -item.h / 2, item.w, item.h);
+  if (item.flipX || item.flipY) ctx.scale(item.flipX ? -1 : 1, item.flipY ? -1 : 1);
+  const cut = item.crop;
+  if (cut && cut.w > 0 && cut.h > 0) {
+    ctx.drawImage(image, cut.x, cut.y, cut.w, cut.h, -item.w / 2, -item.h / 2, item.w, item.h);
+  } else {
+    ctx.drawImage(image, -item.w / 2, -item.h / 2, item.w, item.h);
+  }
   ctx.restore();
 }
 
@@ -312,15 +318,68 @@ function drawText(ctx: CanvasRenderingContext2D, item: TextItem): void {
   if (item.bold) parts.push('bold');
   parts.push(`${item.fontSize}px`, 'sans-serif');
   ctx.font = parts.join(' ');
-  ctx.textAlign = item.align;
-  ctx.textBaseline = 'top';
-  ctx.fillStyle = item.color;
   const lines = item.text.split('\n');
   const lineHeight = item.fontSize * 1.2;
+
+  if (item.background) {
+    // A card behind the words, cornered and shadowed, which is what reads as a note.
+    const pad = item.fontSize * 0.5;
+    const widest = lines.reduce((most, line) => Math.max(most, ctx.measureText(line).width), 0);
+    ctx.fillStyle = item.background;
+    ctx.shadowColor = 'rgba(0,0,0,0.28)';
+    ctx.shadowBlur = pad * 0.8;
+    ctx.shadowOffsetY = pad * 0.25;
+    // Where the words start depends on which way they are set, so the card follows them: laid
+    // out from the left it sat off to one side of centred or right-hand words.
+    const left = item.align === 'center' ? item.x - widest / 2 : item.align === 'right' ? item.x - widest : item.x;
+    ctx.fillRect(left - pad, item.y - pad, widest + pad * 2, lines.length * lineHeight + pad * 2);
+    ctx.shadowColor = 'transparent';
+    ctx.shadowBlur = 0;
+    ctx.shadowOffsetY = 0;
+  }
+
+  ctx.textAlign = item.align;
+  ctx.textBaseline = 'top';
+  if (item.shadow) applyShadow(ctx, item.shadow);
+
+  const outline = item.outline && item.outline.width > 0 ? item.outline : null;
+  if (outline) {
+    // Struck round the letters before they are filled, so the line sits behind the colour and
+    // the letters keep their own shape rather than being thinned by it.
+    ctx.strokeStyle = outline.color;
+    ctx.lineWidth = outline.width * 2;
+    ctx.lineJoin = 'round';
+    ctx.miterLimit = 2;
+    for (let i = 0; i < lines.length; i += 1) {
+      ctx.strokeText(lines[i], item.x, item.y + i * lineHeight);
+    }
+  }
+
+  ctx.fillStyle = item.color;
   for (let i = 0; i < lines.length; i += 1) {
     ctx.fillText(lines[i], item.x, item.y + i * lineHeight);
   }
+  if (item.shadow) clearShadow(ctx);
+
+  if (item.underline || item.strike) {
+    ctx.strokeStyle = item.color;
+    ctx.lineWidth = Math.max(1, item.fontSize / 14);
+    for (let i = 0; i < lines.length; i += 1) {
+      const width = ctx.measureText(lines[i]).width;
+      const left = item.align === 'center' ? item.x - width / 2 : item.align === 'right' ? item.x - width : item.x;
+      const top = item.y + i * lineHeight;
+      if (item.underline) ruleUnder(ctx, left, top + item.fontSize * 1.02, width);
+      if (item.strike) ruleUnder(ctx, left, top + item.fontSize * 0.58, width);
+    }
+  }
   ctx.restore();
+}
+
+function ruleUnder(ctx: CanvasRenderingContext2D, left: number, at: number, width: number): void {
+  ctx.beginPath();
+  ctx.moveTo(left, at);
+  ctx.lineTo(left + width, at);
+  ctx.stroke();
 }
 
 function drawHexGridLines(ctx: CanvasRenderingContext2D, scene: MapScene): void {

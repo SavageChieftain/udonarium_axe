@@ -5,6 +5,8 @@ import {
   computeOverlayPlan,
   computeWallLights,
   computeWallSilhouettes,
+  EYE_HEIGHT_CELLS,
+  eyeHeightPx,
   floorRadii,
   isLit,
   isPointVisible,
@@ -53,7 +55,7 @@ function caster(partial: Partial<ShadowCaster> = {}): ShadowCaster {
 }
 
 function source(partial: Partial<SceneVisionSource> = {}): SceneVisionSource {
-  return { x: 0, y: 0, type: VisionType.NORMAL, rangePx: 0, owner: 'p1', ...partial };
+  return { x: 0, y: 0, z: 0, type: VisionType.NORMAL, rangePx: 0, owner: 'p1', ...partial };
 }
 
 function scene(partial: Partial<VisionScene> = {}): VisionScene {
@@ -791,5 +793,102 @@ describe('vision-scene', () => {
       expect(plan.baseRevealAlpha).toBeCloseTo(0.5);
       expect(plan.darknessAlpha).toBeCloseTo(0.9 * 0.5);
     });
+  });
+});
+
+describe('looking down from a height', () => {
+  const player = { userId: 'p1', isGameMaster: false };
+  const tower = { x1: 100, y1: -1000, x2: 100, y2: 1000, heightPx: 150 };
+
+  function lookingFrom(z: number) {
+    return scene({
+      darknessEnabled: true,
+      darknessLevel: 1,
+      globalIllumination: 0,
+      sightSegments: [tower],
+      visionSources: [source({ x: 0, y: 0, z, type: VisionType.DARKVISION, rangePx: 500 })],
+    });
+  }
+
+  it('sees nothing past a tower from the ground beside it', () => {
+    expect(isPointVisible(lookingFrom(0), 300, 0, player)).toBe(false);
+  });
+
+  it('sees past it from on top of it', () => {
+    expect(isPointVisible(lookingFrom(200), 300, 0, player)).toBe(true);
+  });
+
+  it('still sees nothing past it from halfway up', () => {
+    expect(isPointVisible(lookingFrom(100), 300, 0, player)).toBe(false);
+  });
+
+  it('is not stopped by the edge of the table however high the eye is', () => {
+    const walled = scene({
+      darknessEnabled: true,
+      darknessLevel: 1,
+      globalIllumination: 0,
+      sightSegments: [{ x1: 100, y1: -1000, x2: 100, y2: 1000 }],
+      visionSources: [source({ x: 0, y: 0, z: 10_000, type: VisionType.DARKVISION, rangePx: 500 })],
+    });
+
+    expect(isPointVisible(walled, 300, 0, player)).toBe(false);
+  });
+
+  it('reaches round the tower rather than through it, whatever the height', () => {
+    expect(isPointVisible(lookingFrom(0), 50, 0, player)).toBe(true);
+  });
+});
+
+describe('eyeHeightPx()', () => {
+  it('counts being written down as high up and having climbed as one and the same', () => {
+    expect(eyeHeightPx(2, 0, 50)).toBe(eyeHeightPx(0, 100, 50));
+  });
+
+  it('adds the two where a character has both', () => {
+    expect(eyeHeightPx(1, 100, 50)).toBe((1 + EYE_HEIGHT_CELLS) * 50 + 100);
+  });
+
+  it('sits an eye above the ground it stands on rather than in it', () => {
+    expect(eyeHeightPx(0, 0, 50)).toBeGreaterThan(0);
+  });
+});
+
+describe('a lamp carried up a tower', () => {
+  const tower = { x1: 100, y1: -1000, x2: 100, y2: 1000, heightPx: 150 };
+
+  function lamp(z: number): SceneLight {
+    return light({ x: 0, y: 0, z, brightPx: 500, dimPx: 500 });
+  }
+
+  function around(z: number) {
+    return scene({ darknessEnabled: true, darknessLevel: 1, lightSegments: [tower], lights: [lamp(z)] });
+  }
+
+  it('lights nothing past the tower from the ground beside it', () => {
+    expect(isLit(around(25), 300, 0)).toBe(false);
+  });
+
+  it('lights the ground past it from the top of it', () => {
+    expect(isLit(around(200), 300, 0)).toBe(true);
+  });
+
+  it('is still stopped by a tower it has not been carried above', () => {
+    expect(isLit(around(100), 300, 0)).toBe(false);
+  });
+
+  it('is never carried above the edge of the table, whose height nobody has said', () => {
+    const walled = scene({
+      darknessEnabled: true,
+      darknessLevel: 1,
+      lightSegments: [{ x1: 100, y1: -1000, x2: 100, y2: 1000 }],
+      lights: [lamp(10_000)],
+    });
+
+    expect(isLit(walled, 300, 0)).toBe(false);
+  });
+
+  it('lights what stands beside it either way, the tower being in neither path', () => {
+    expect(isLit(around(25), 50, 0)).toBe(true);
+    expect(isLit(around(200), 50, 0)).toBe(true);
   });
 });

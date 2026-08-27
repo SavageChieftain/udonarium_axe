@@ -70,6 +70,7 @@ import { RoomRestoreBannerComponent } from '@axe/features/room-archive/room-rest
 import { RoomSnapshotPanelComponent } from '@axe/features/room-archive/room-snapshot-panel/room-snapshot-panel.component';
 import { StreamingOverlayComponent } from '@axe/features/streaming-overlay/streaming-overlay.component';
 import { CcfoliaRoomImportEventHandlerService } from '@axe/features/tabletop/ccfolia-room-import/ccfolia-room-import-event-handler.service';
+import { DungeonGeneratorComponent } from '@axe/features/tabletop/dungeon-generator/dungeon-generator.component';
 import { GameTableComponent } from '@axe/features/tabletop/game-table/game-table.component';
 import { GameTableSettingComponent } from '@axe/features/tabletop/game-table-setting/game-table-setting.component';
 import { ImageDropEventHandlerService } from '@axe/features/tabletop/image-drop/image-drop-event-handler.service';
@@ -222,6 +223,7 @@ export class AppComponent {
       | 'GameObjectListPanelComponent'
       | 'RoomSnapshotPanelComponent'
       | 'ReplayWorkspaceComponent'
+      | 'DungeonGeneratorComponent'
   ) {
     let component: { new (...args: unknown[]): unknown } | null = null;
     let option: PanelOption = { width: 450, height: 600, left: 100 };
@@ -278,6 +280,16 @@ export class AppComponent {
       case 'RoomSnapshotPanelComponent':
         component = RoomSnapshotPanelComponent;
         option = { width: 460, height: 460, left: 100, title: this.t('common.panel.roomSnapshot') };
+        break;
+      case 'DungeonGeneratorComponent':
+        component = DungeonGeneratorComponent;
+        option = {
+          width: 460,
+          height: 660,
+          minWidth: 400,
+          minHeight: 520,
+          title: this.t('feature.tabletop.dungeonGenerator.title'),
+        };
         break;
       case 'ReplayWorkspaceComponent':
         component = ReplayWorkspaceComponent;

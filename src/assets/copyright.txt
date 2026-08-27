@@ -12,7 +12,14 @@ License: MIT
 Comment: 本プロジェクトで作成した素材です。作り方は次のとおりです。
  images/system_chang.png と images/system_chang_roll.png は作者が描いたイラストを
  Adobe Firefly で整形したもの。
- images/tiles/*.webp は Adobe Firefly による生成。
+ images/tiles/*.webp のうち black_soil, brick, desert, floor, forest, gravel, lava, rock,
+ rock_moss, sand, sea, shallows, steppe, stone_paving_big, stone_paving_small, stone_tile の
+ 16 点は Adobe Firefly による生成。同フォルダの残りと images/walls/*.webp は
+ ローカルの ComfyUI による生成で、繰り返しても継ぎ目が出ないよう切り出したもの。
+ images/tiles/metal_grate.webp と images/dungeon/*.webp は作図。
+ images/lights/*.webp はローカルの ComfyUI による生成で、背景を抜いたもの。
+ images/tiles/poison_pool.webp と images/walls/cactus_skin.webp もローカルの
+ ComfyUI による生成で、繰り返しても継ぎ目が出ないよう処理したもの。
  images/terrain_crate.webp はローカルの ComfyUI による生成。
  images/piece_*.png と images/table_forest_clearing.jpg はローカルの ComfyUI による生成。
  images/avatar_default.png と images/loading.png は作図

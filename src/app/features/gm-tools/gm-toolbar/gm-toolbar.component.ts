@@ -28,6 +28,7 @@ import { NpcBarService } from '@axe/features/gm-tools/npc-bar/npc-bar.service';
 import { NpcDragService } from '@axe/features/gm-tools/npc-bar/npc-drag.service';
 import { PartyListPanelComponent } from '@axe/features/gm-tools/party-list/party-list-panel.component';
 import { MapEditorPanelComponent } from '@axe/features/map-editor/editor/map-editor-panel.component';
+import { DungeonGeneratorComponent } from '@axe/features/tabletop/dungeon-generator/dungeon-generator.component';
 import { DraggableDirective } from '@axe/ui/directives/draggable.directive';
 import { turnIndicatorSignal } from '@axe/ui/turn/turn-indicator.signal';
 import { TranslocoModule } from '@jsverse/transloco';
@@ -159,6 +160,18 @@ export class GmToolbarComponent {
       left: 80,
       top: 60,
       title: this.t('feature.mapEditor.title'),
+    });
+  }
+
+  protected openDungeonGenerator(): void {
+    this.panelService.open(DungeonGeneratorComponent, {
+      width: 460,
+      height: 660,
+      minWidth: 400,
+      minHeight: 520,
+      left: 100,
+      top: 60,
+      title: this.t('feature.tabletop.dungeonGenerator.title'),
     });
   }
 

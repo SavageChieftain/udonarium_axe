@@ -1,8 +1,11 @@
+import { seededRandom } from '@axe/core/util/seeded-random';
 import { type EffectCast } from '@axe/domain/effect/effect-cast';
 import { type EffectKind } from '@axe/domain/effect/effect-kind';
 import { type EffectPreset } from '@axe/domain/effect/effect-preset';
 import { type ShapeColors } from '@axe/domain/effect/effect-shapes';
 import { type ViewRotation } from '@axe/domain/effect/effect-view';
+
+export { seededRandom };
 
 /**
  * The shared groundwork.
@@ -211,14 +214,4 @@ export function fadeInOut(value: number, rise: number): number {
   const clamped = clamp01(value);
   if (clamped < rise) return clamped / rise;
   return 1 - (clamped - rise) / (1 - rise);
-}
-
-export function seededRandom(seed: number): () => number {
-  let state = Math.floor(Math.abs(seed)) % 4294967296 || 1;
-  return () => {
-    state = (state + 0x6d2b79f5) >>> 0;
-    let value = Math.imul(state ^ (state >>> 15), 1 | state);
-    value = (value + Math.imul(value ^ (value >>> 7), 61 | value)) ^ value;
-    return ((value ^ (value >>> 14)) >>> 0) / 4294967296;
-  };
 }

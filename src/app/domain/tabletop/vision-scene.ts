@@ -1,6 +1,6 @@
 import { GridType } from '@axe/domain/tabletop/game-table';
 import { computeLitCells } from '@axe/domain/tabletop/lit-cells';
-import { Point, Segment, segmentClear } from '@axe/domain/tabletop/los/segments';
+import { Point, Segment, segmentClear, segmentsAbove, TallSegment } from '@axe/domain/tabletop/los/segments';
 import { computeVisibilityPolygon } from '@axe/domain/tabletop/los/visibility-polygon';
 import { surfaceFrame } from '@axe/domain/tabletop/surface-space';
 import { TableSurface } from '@axe/domain/tabletop/tabletop-object';
@@ -32,10 +32,33 @@ export interface SceneLight {
 export interface SceneVisionSource {
   x: number;
   y: number;
+  /**
+   * How high the eye is, which is how high the ground under it is plus the eye's own height.
+   *
+   * Standing on a tower and being written down as high up are the same thing to an eye, so
+   * they are the same number here, and it is the number the light already carries.
+   */
+  z: number;
   type: VisionType;
   rangePx: number;
   owner: string;
   partyId?: string;
+}
+
+/** How far above whatever it stands on an eye, or the lamp it carries, sits. */
+export const EYE_HEIGHT_CELLS = 0.5;
+
+/**
+ * How high a thing on the table is.
+ *
+ * Being written down as high up and having climbed onto something are two ways of arriving at
+ * the same place, and the table already keeps them apart: the first is a number of cells the
+ * reader set, the second is where gravity came to rest. Nothing above the table cares which
+ * of the two got it there, so both are added up here, once, for everything that looks or
+ * shines from a height.
+ */
+export function eyeHeightPx(altitudeCells: number, posZ: number, gridSize: number): number {
+  return (altitudeCells + EYE_HEIGHT_CELLS) * gridSize + posZ;
 }
 
 export interface SceneViewer {
@@ -66,10 +89,7 @@ export interface ShadowShape {
   clipPolygon?: Point[];
 }
 
-export interface LightSegment extends Segment {
-  /** How high what stands here reaches. Left out, it reaches high enough to stop anything. */
-  heightPx?: number;
-}
+export type LightSegment = TallSegment;
 
 export interface WallFace {
   ax: number;
@@ -112,7 +132,7 @@ export interface VisionScene {
   heightPx: number;
   lights: SceneLight[];
   visionSources: SceneVisionSource[];
-  sightSegments: Segment[];
+  sightSegments: TallSegment[];
   lightSegments: LightSegment[];
   shadowCasters: ShadowCaster[];
 }
@@ -289,10 +309,23 @@ export function seesInDark(type: VisionType): boolean {
  * asked about under two scenes.
  */
 interface LightOccluders {
-  /** Everything, for a caller that culls in its own way. */
-  all: Segment[];
-  /** Only what falls within the light's own reach. */
-  near: Segment[];
+  /**
+   * Everything, for a caller that culls in its own way and reckons with heights itself.
+   *
+   * Shading a wall face works out how far up the shadow of each thing climbs, so it wants
+   * everything, including what the lamp is hung above.
+   */
+  all: readonly TallSegment[];
+  /**
+   * What still stands in this lamp's way, given how high the lamp is hung.
+   *
+   * A lamp carried to the top of a tower is above the tower, and above most of what stood in
+   * its way on the ground. The flat reckoning of whether a spot is lit cannot tell, so what
+   * the lamp is over is taken out before it is asked.
+   */
+  overhead: readonly TallSegment[];
+  /** Only what falls within the light's own reach, and still stands in its way. */
+  near: readonly TallSegment[];
 }
 
 type OccluderSlots = { yes?: LightOccluders; no?: LightOccluders };
@@ -314,10 +347,10 @@ function occludersOf(scene: VisionScene, light: SceneLight, ignoreShadowCasters:
   const known = held[slot];
   if (known) return known;
 
-  const walls = light.ignoreOcclusion ? [] : scene.lightSegments;
-  let all: Segment[] = walls;
+  const walls: TallSegment[] = light.ignoreOcclusion ? [] : scene.lightSegments;
+  let all: TallSegment[] = walls;
   if (!ignoreShadowCasters && light.castShadows) {
-    const shadowSegments: Segment[] = [];
+    const shadowSegments: TallSegment[] = [];
     for (const caster of scene.shadowCasters) {
       if (caster.ownerId === light.sourceId) continue;
       shadowSegments.push(...caster.segments);
@@ -325,17 +358,31 @@ function occludersOf(scene: VisionScene, light: SceneLight, ignoreShadowCasters:
     if (shadowSegments.length > 0) all = [...walls, ...shadowSegments];
   }
 
+  const overhead = segmentsAbove(all, light.z);
   const built: LightOccluders = {
     all,
-    near: cullSegments(all, light.x - light.dimPx, light.y - light.dimPx, light.x + light.dimPx, light.y + light.dimPx),
+    overhead,
+    near: cullSegments(
+      overhead,
+      light.x - light.dimPx,
+      light.y - light.dimPx,
+      light.x + light.dimPx,
+      light.y + light.dimPx
+    ),
   };
   held[slot] = built;
   return built;
 }
 
 /** The segments that could possibly cross a box, which is most of them thrown away. */
-function cullSegments(segments: readonly Segment[], minX: number, minY: number, maxX: number, maxY: number): Segment[] {
-  const kept: Segment[] = [];
+function cullSegments(
+  segments: readonly TallSegment[],
+  minX: number,
+  minY: number,
+  maxX: number,
+  maxY: number
+): TallSegment[] {
+  const kept: TallSegment[] = [];
   for (const seg of segments) {
     if (Math.min(seg.x1, seg.x2) > maxX) continue;
     if (Math.max(seg.x1, seg.x2) < minX) continue;
@@ -346,7 +393,7 @@ function cullSegments(segments: readonly Segment[], minX: number, minY: number, 
   return kept;
 }
 
-function occludersFor(scene: VisionScene, light: SceneLight, ignoreShadowCasters = false): Segment[] {
+function occludersFor(scene: VisionScene, light: SceneLight, ignoreShadowCasters = false): readonly TallSegment[] {
   return occludersOf(scene, light, ignoreShadowCasters).all;
 }
 
@@ -617,7 +664,7 @@ export function isPointVisible(scene: VisionScene, x: number, y: number, viewer:
   for (const source of sources) {
     const withinRange = source.rangePx > 0 && distance(x, y, source.x, source.y) <= source.rangePx;
     if (source.type === VisionType.TRUESIGHT && withinRange) return true;
-    if (!segmentClear(source.x, source.y, x, y, scene.sightSegments)) continue;
+    if (!segmentClear(source.x, source.y, x, y, segmentsAbove(scene.sightSegments, source.z))) continue;
     if (lit) return true;
     if (seesInDark(source.type) && withinRange) return true;
   }
@@ -671,7 +718,7 @@ export function objectBrightnessFor(
 }
 
 function lightClipPolygon(scene: VisionScene, light: SceneLight, radius: number = light.dimPx): Point[] | undefined {
-  const occluders = occludersFor(scene, light, true);
+  const occluders = occludersOf(scene, light, true).overhead;
   if (occluders.length === 0) return undefined;
   return computeVisibilityPolygon(light.x, light.y, occluders, radius, LIGHT_SAMPLE_COUNT);
 }
@@ -687,7 +734,7 @@ function coneFloorFootprint(
   const cy = light.y + axis.y * t;
   // The pool can sit off to one side of the light, so the box has to hold both.
   const occluders = cullSegments(
-    occludersOf(scene, light, true).all,
+    occludersOf(scene, light, true).overhead,
     Math.min(light.x, cx - light.dimPx),
     Math.min(light.y, cy - light.dimPx),
     Math.max(light.x, cx + light.dimPx),
@@ -814,7 +861,13 @@ export function computeOverlayPlan(scene: VisionScene, viewer: SceneViewer): Ove
       const clipPolygon =
         source.type === VisionType.TRUESIGHT
           ? undefined
-          : computeVisibilityPolygon(source.x, source.y, scene.sightSegments, source.rangePx, VISION_SAMPLE_COUNT);
+          : computeVisibilityPolygon(
+              source.x,
+              source.y,
+              segmentsAbove(scene.sightSegments, source.z),
+              source.rangePx,
+              VISION_SAMPLE_COUNT
+            );
       reveals.push({
         x: source.x,
         y: source.y,

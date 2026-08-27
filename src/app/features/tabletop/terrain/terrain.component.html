@@ -12,6 +12,8 @@
   <div
     class="pointer-events-auto size-full transform-3d"
     [class.cursor-grab]="!isLocked()"
+    [class.cursor-pointer]="isDoor() && isLocked()"
+    (click)="onDoorClick()"
     [attr.data-table-passthrough]="isLocked() ? '' : null"
     appRotable
     [rotable.option]="rotableOption()"
@@ -33,7 +35,12 @@
     <div
       class="absolute z-1 size-full bg-size-[100%_100%] bg-no-repeat backface-hidden transform-3d"
       [class.transition-[transform_132ms_cubic-bezier(0.21,0.97,0.75,1.25)]]="height() >= 0.5 && altitude() === 0"
-      [ngStyle]="{ transform: (onWall() ? 'rotateY(180deg) ' : '') + 'translateZ(' + altitude() * gridSize + 'px)' }"
+      [class.transition-[transform_320ms_cubic-bezier(0.32,0.72,0.3,1)]]="isDoor()"
+      [style.transform-origin]="doorOrigin()"
+      [ngStyle]="{
+        transform:
+          (onWall() ? 'rotateY(180deg) ' : '') + 'translateZ(' + altitude() * gridSize + 'px)' + doorTransform(),
+      }"
     >
       @if (hasFloor() && isVisibleFloor() && 0 < topFaceImage().url.length) {
         @if (isHexSlope() && hexSlopeSteps().floors.length > 0) {
@@ -48,6 +55,7 @@
                 '-webkit-mask': step.mask,
                 mask: step.mask,
                 ...hexFloorDimStyle(),
+                ...tileStyle(),
               }"
               [style.background-image]="'url(' + topFaceImage().url + ')' | safe: 'style'"
             ></div>
@@ -61,6 +69,7 @@
               transform: 'translateZ(' + (height() / (isSlope() ? 2 : 1)) * gridSize + 'px)' + floorModCss(),
               filter: 'brightness(' + floorBrightness() + ')',
               ...hexFloorDimStyle(),
+              ...tileStyle(),
             }"
             [style.background-image]="'url(' + topFaceImage().url + ')' | safe: 'style'"
             [style.clip-path]="hexFloorClipPath()"
@@ -113,6 +122,7 @@
                   wall.angle +
                   'rad) rotateX(-90deg) translateY(-100%)',
                 filter: dimBrightness(wall.brightness),
+                ...tileStyle(),
               }"
             ></div>
           }
@@ -134,6 +144,7 @@
                   wall.angle +
                   'rad) rotateX(-90deg) translateY(-100%)',
                 filter: dimBrightness(wall.brightness),
+                ...tileStyle(),
               }"
             ></div>
           }
@@ -151,6 +162,7 @@
               >
                 <div
                   class="chrome-smooth-image-trick absolute inset-0 bg-size-[100%_100%] bg-no-repeat backface-hidden"
+                  [ngStyle]="tileStyle()"
                   [style.filter]="faceFilter(isSurfaceShading() ? 0.3 : 1)"
                   [style.background-image]="'url(' + northFaceImage().url + ')' | safe: 'style'"
                 ></div>
@@ -185,6 +197,7 @@
               >
                 <div
                   class="chrome-smooth-image-trick absolute inset-0 bg-size-[100%_100%] bg-no-repeat backface-hidden"
+                  [ngStyle]="tileStyle()"
                   [style.filter]="faceFilter(1)"
                   [style.background-image]="'url(' + southFaceImage().url + ')' | safe: 'style'"
                 ></div>
@@ -219,6 +232,7 @@
               >
                 <div
                   class="chrome-smooth-image-trick absolute inset-0 bg-size-[100%_100%] bg-no-repeat backface-hidden"
+                  [ngStyle]="tileStyle()"
                   [style.filter]="faceFilter(isSurfaceShading() ? 0.5 : 1)"
                   [style.background-image]="'url(' + westFaceImage().url + ')' | safe: 'style'"
                 ></div>
@@ -253,6 +267,7 @@
               >
                 <div
                   class="chrome-smooth-image-trick absolute inset-0 bg-size-[100%_100%] bg-no-repeat backface-hidden"
+                  [ngStyle]="tileStyle()"
                   [style.filter]="faceFilter(isSurfaceShading() ? 0.8 : 1)"
                   [style.background-image]="'url(' + eastFaceImage().url + ')' | safe: 'style'"
                 ></div>

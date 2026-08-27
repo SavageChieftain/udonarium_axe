@@ -8,7 +8,7 @@
         class="message break-anywhere border-ui-border-panel hover:bg-ui-hover box-border flex w-full flex-nowrap border-b border-solid px-2 py-1.5 wrap-break-word transition-colors"
         [ngClass]="{
           'border-l-ui-accent bg-ui-accent-bg hover:bg-ui-accent-glow border-l-[3px] pl-1.25':
-            (chatMessage.isDirect || chatMessage.isSecret) && !chatMessage.isSystemToPL,
+            (isDirect() || isSecret()) && !chatMessage.isSystemToPL,
           'system-message': chatMessage.isSystem,
           'dicebot-message': chatMessage.isDicebot,
         }"
@@ -28,7 +28,7 @@
         </div>
         <div
           class="group/body break-anywhere rounded-ui bg-ui-elevated text-ui-text relative ml-2 min-w-0 grow border border-solid border-(--ui-bubble-caret-border) px-1.5 pt-0.75 pb-1.25 [--bubble-bg:var(--ui-elevated)] before:absolute before:top-3 before:-left-2.25 before:border-y-[6px] before:border-r-[9px] before:border-l-0 before:border-solid before:border-y-transparent before:border-r-(--ui-bubble-caret-border) before:content-[''] after:absolute after:top-3.25 after:-left-1.75 after:border-y-[5px] after:border-r-8 after:border-l-0 after:border-solid after:border-y-transparent after:border-r-(--bubble-bg) after:content-['']"
-          [ngStyle]="chatMessage.messColor | chatColorStyle: theme.resolved()"
+          [ngStyle]="chatMessage.messColor | chatColorStyle: theme.resolved() : bubbleFor(chatMessage)"
         >
           <div class="pl-2.5 align-top text-(length:--chat-font-size) font-medium text-inherit">
             <span class="msg-name">{{ displayName(chatMessage.name) }}</span>
@@ -128,7 +128,7 @@
                   </button>
                 </div>
               </div>
-            } @else if (!chatMessage.isSecret || chatMessage.isSendFromSelf || canRevealSecret) {
+            } @else if (!isSecret() || chatMessage.isSendFromSelf || canRevealSecret) {
               <span [innerHTML]="escapeHtmlAndRuby(chatMessage.text) | linkify | safe"></span>
               @if (attachmentImageFiles().length > 0) {
                 <div class="mt-1.5 flex flex-wrap gap-1.5 whitespace-normal">
@@ -141,13 +141,13 @@
                   }
                 </div>
               }
-              @if (chatMessage.isSecret && chatMessage.isSendFromSelf) {
+              @if (isSecret() && chatMessage.isSendFromSelf) {
                 <button (click)="discloseMessage()">{{ 'feature.chat.message.discloseSecret' | transloco }}</button>
               }
             } @else {
               <span>{{ 'feature.chat.message.secretDice' | transloco }}</span>
             }
-            @if (!isEditing() && chatMessage.fixd) {
+            @if (!isEditing() && isEdited()) {
               &nbsp;{{ 'feature.chat.message.edited' | transloco }}
             }
           </div>
@@ -159,14 +159,14 @@
         class="message-small break-anywhere border-ui-border-panel hover:bg-ui-hover box-border flex w-full flex-nowrap border-b border-solid px-2 py-0.75 wrap-break-word transition-colors"
         [ngClass]="{
           'border-l-ui-accent bg-ui-accent-bg hover:bg-ui-accent-glow border-l-[3px] pl-1.25':
-            (chatMessage.isDirect || chatMessage.isSecret) && !chatMessage.isSystemToPL,
+            (isDirect() || isSecret()) && !chatMessage.isSystemToPL,
           'system-message': chatMessage.isSystem,
           'dicebot-message': chatMessage.isDicebot,
         }"
       >
         <div
           class="group/body rounded-ui-sm border-ui-border-panel bg-ui-elevated text-ui-text grow border border-solid px-1.5 pt-0.5 pb-0.75"
-          [ngStyle]="chatMessage.messColor | chatColorStyle: theme.resolved()"
+          [ngStyle]="chatMessage.messColor | chatColorStyle: theme.resolved() : bubbleFor(chatMessage)"
         >
           <span class="pl-2.5 align-top text-(length:--chat-font-size) font-medium text-inherit">
             <font class="msg-name">{{ displayName(chatMessage.name) }}</font
@@ -238,7 +238,7 @@
                     </button>
                   </span>
                 </span>
-              } @else if (!chatMessage.isSecret || chatMessage.isSendFromSelf || canRevealSecret) {
+              } @else if (!isSecret() || chatMessage.isSendFromSelf || canRevealSecret) {
                 <span [innerHTML]="escapeHtmlAndRuby(chatMessage.text) | linkify | safe"></span>
                 @if (attachmentImageFiles().length > 0) {
                   <span class="ml-1.5 inline-flex align-middle">
@@ -251,13 +251,13 @@
                     }
                   </span>
                 }
-                @if (chatMessage.isSecret) {
+                @if (isSecret()) {
                   <button (click)="discloseMessage()">{{ 'feature.chat.message.discloseSecret' | transloco }}</button>
                 }
               } @else {
                 <span>{{ 'feature.chat.message.secretDice' | transloco }}</span>
               }
-              @if (!isEditing() && chatMessage.fixd) {
+              @if (!isEditing() && isEdited()) {
                 {{ 'feature.chat.message.editedSimple' | transloco }}
               }
               @if (!isEditing()) {

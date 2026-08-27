@@ -46,6 +46,68 @@ describe('ChatWindowComponent', () => {
     await expectPanelDragRecovery(ChatWindowComponent);
   });
 
+  describe('who is typing', () => {
+    function log(): HTMLElement {
+      return fixture.nativeElement.querySelector('[data-testid="chat-log-scroll"]') as HTMLElement;
+    }
+
+    let tab: ChatTab;
+
+    beforeEach(() => {
+      tab = ChatTabList.instance.addChatTab('話している卓');
+      component.chatTabidentifier = tab.identifier;
+      fixture.detectChanges();
+    });
+
+    afterEach(() => {
+      tab.destroy();
+    });
+
+    function typing(names: string[]): void {
+      const speakers = names.map((name, at) => ({
+        peerId: `peer-${at}`,
+        name,
+        imageFile: GameCharacter.create(name, 1, '').imageFile,
+      }));
+      component.chatTabRef()?.writingSpeakers.set(speakers);
+      fixture.detectChanges();
+    }
+
+    it('holds the strip open whether or not anybody is typing', () => {
+      typing([]);
+      const quiet = log().style.paddingBottom;
+
+      typing(['somebody']);
+
+      expect(log().style.paddingBottom).toBe(quiet);
+      expect(quiet).toBe(`${component.writingStripPx}px`);
+    });
+
+    it('hangs it over the log rather than under it, so no line the reader is on moves', () => {
+      typing(['somebody']);
+      const strip = fixture.nativeElement.querySelector('[data-testid="writing-strip"]') as HTMLElement;
+
+      expect(strip).not.toBeNull();
+      expect(strip.className).toContain('absolute');
+      expect(strip.style.height).toBe(`${component.writingStripPx}px`);
+    });
+
+    it('shows nothing at all while nobody is typing', () => {
+      typing([]);
+
+      expect(fixture.nativeElement.querySelector('[data-testid="writing-strip"]')).toBeNull();
+    });
+
+    it('names the first two and counts the rest', () => {
+      typing(['one', 'two', 'three', 'four']);
+      const words = (fixture.nativeElement as HTMLElement).textContent ?? '';
+
+      expect(words).toContain('one');
+      expect(words).toContain('two');
+      expect(words).not.toContain('three');
+    });
+  });
+
   describe('noticing a change of chat tab', () => {
     it('moves off a tab that is no longer there when the list changes', () => {
       fixture.detectChanges();

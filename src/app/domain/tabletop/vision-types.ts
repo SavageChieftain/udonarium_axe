@@ -27,6 +27,10 @@ export enum LightPreset {
   FLASHLIGHT = 'flashlight',
   NEON = 'neon',
   SPOTLIGHT = 'spotlight',
+  CAMPFIRE = 'campfire',
+  SCONCE = 'sconce',
+  BRAZIER = 'brazier',
+  CHANDELIER = 'chandelier',
 }
 
 export interface LightSpec {
@@ -63,6 +67,55 @@ export interface LightPresetDef {
 }
 
 export const LIGHT_PRESETS: Record<Exclude<LightPreset, LightPreset.CUSTOM>, LightPresetDef> = {
+  [LightPreset.CAMPFIRE]: {
+    brightRadius: 5,
+    dimRadius: 11,
+    color: '#ff9d4d',
+    angle: 360,
+    pitch: 0,
+    animation: LightAnimation.FLICKER,
+    category: LightCategory.PHYSICAL,
+    ignoreOcclusion: false,
+    revealToAll: false,
+    castShadows: true,
+  },
+  // A torch in a bracket throws its light out from the wall rather than all round it.
+  [LightPreset.SCONCE]: {
+    brightRadius: 3,
+    dimRadius: 7,
+    color: '#ffb36b',
+    angle: 200,
+    pitch: 8,
+    animation: LightAnimation.FLICKER,
+    category: LightCategory.PHYSICAL,
+    ignoreOcclusion: false,
+    revealToAll: false,
+    castShadows: true,
+  },
+  [LightPreset.BRAZIER]: {
+    brightRadius: 4,
+    dimRadius: 9,
+    color: '#ffa347',
+    angle: 360,
+    pitch: 0,
+    animation: LightAnimation.FLICKER,
+    category: LightCategory.PHYSICAL,
+    ignoreOcclusion: false,
+    revealToAll: false,
+    castShadows: true,
+  },
+  [LightPreset.CHANDELIER]: {
+    brightRadius: 6,
+    dimRadius: 12,
+    color: '#ffe0b0',
+    angle: 360,
+    pitch: -20,
+    animation: LightAnimation.FLICKER,
+    category: LightCategory.PHYSICAL,
+    ignoreOcclusion: false,
+    revealToAll: false,
+    castShadows: true,
+  },
   [LightPreset.TORCH]: {
     brightRadius: 4,
     dimRadius: 8,

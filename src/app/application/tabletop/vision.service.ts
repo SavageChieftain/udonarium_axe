@@ -5,9 +5,9 @@ import { GameCharacter } from '@axe/domain/character/game-character';
 import { partyIdsOwnedBy } from '@axe/domain/party/party-membership';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { GameTable } from '@axe/domain/tabletop/game-table';
-import { LightSource } from '@axe/domain/tabletop/light-source';
-import { perimeterSegments, rectangleSegments, Segment } from '@axe/domain/tabletop/los/segments';
+import { perimeterSegments, rectangleSegments, TallSegment } from '@axe/domain/tabletop/los/segments';
 import { type SurfaceDims, surfaceInwardDirection, surfacePointTo3D } from '@axe/domain/tabletop/surface-space';
+import { lightSourcesOn } from '@axe/domain/tabletop/table-lights';
 import { TableSelecter } from '@axe/domain/tabletop/table-selecter';
 import { surfaceOf, TableSurface, TabletopObject } from '@axe/domain/tabletop/tabletop-object';
 import {
@@ -16,6 +16,7 @@ import {
   computeWallLights,
   computeWallSilhouettes,
   darknessAlphaFor,
+  eyeHeightPx,
   isPointVisible,
   type LightBeam,
   type LightGlow,
@@ -43,7 +44,6 @@ const EMPTY_WALL_LIGHTS: WallLight[] = [];
 function faceKey(face: WallFace): string {
   return `${face.ax}:${face.ay}:${face.bx}:${face.by}:${face.nx}:${face.ny}:${face.heightPx}`;
 }
-const LIGHT_EMITTER_HEIGHT_CELLS = 0.5;
 const WALL_LIGHT_INSET_CELLS = 0.4;
 
 @Injectable({ providedIn: 'root' })
@@ -246,7 +246,7 @@ export class VisionService {
   }
 
   private objectZ(altitude: number, posZ: number, gridSize: number): number {
-    return (altitude + LIGHT_EMITTER_HEIGHT_CELLS) * gridSize + posZ;
+    return eyeHeightPx(altitude, posZ, gridSize);
   }
 
   private placeLight(obj: TabletopObject, centerX: number, centerY: number, gridSize: number, dims: SurfaceDims) {
@@ -281,8 +281,8 @@ export class VisionService {
       wallHeightPx: table.wallHeight * gridSize,
     };
 
-    for (const source of this.objectStore.getObjects(LightSource)) {
-      if (!source.isVisibleOnTable || !source.lightEnabled) continue;
+    for (const source of lightSourcesOn(table)) {
+      if (!source.lightEnabled) continue;
       const followed = source.followingCharacterIdentifier
         ? this.objectStore.get<GameCharacter>(source.followingCharacterIdentifier)
         : null;
@@ -359,8 +359,8 @@ export class VisionService {
     gridSize: number,
     widthPx: number,
     heightPx: number
-  ): { sight: Segment[]; light: LightSegment[] } {
-    const sight: Segment[] = [...perimeterSegments(widthPx, heightPx)];
+  ): { sight: TallSegment[]; light: LightSegment[] } {
+    const sight: TallSegment[] = [...perimeterSegments(widthPx, heightPx)];
     const light: LightSegment[] = [];
     const wallHeightPx = table.wallHeight * gridSize;
     const north: LightSegment = { x1: 0, y1: 0, x2: widthPx, y2: 0, heightPx: wallHeightPx };
@@ -381,9 +381,9 @@ export class VisionService {
         terrain.depth * gridSize,
         terrain.rotate
       );
-      if (terrain.blocksSight) sight.push(...edges);
-      if (terrain.blocksLight && !terrain.lightEnabled) {
-        const top = (terrain.altitude + terrain.height) * gridSize;
+      const top = (terrain.altitude + terrain.height) * gridSize;
+      if (terrain.blocksSightNow) for (const edge of edges) sight.push({ ...edge, heightPx: top });
+      if (terrain.blocksLightNow && !terrain.lightEnabled) {
         for (const edge of edges) light.push({ ...edge, heightPx: top });
       }
     }
@@ -418,6 +418,9 @@ export class VisionService {
       sources.push({
         x: character.location.x + center,
         y: character.location.y + center,
+        // The same height the light it carries is hung at: standing on a tower and being
+        // written down as high up reach an eye the same way, so they reach it as one number.
+        z: this.objectZ(character.altitude, character.posZ, gridSize),
         type: character.visionType as VisionType,
         rangePx: character.visionRange * gridSize,
         owner: character.owner,

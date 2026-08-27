@@ -1,5 +1,9 @@
 import type { OverlayPlan } from '@axe/domain/tabletop/vision-scene';
-import { type DarknessCanvas, paintReplayDarkness } from '@axe/infrastructure/replay/replay-darkness-painter';
+import {
+  type DarknessCanvas,
+  defaultDarknessLayer,
+  paintReplayDarkness,
+} from '@axe/infrastructure/replay/replay-darkness-painter';
 
 interface Call {
   op: string;
@@ -148,5 +152,37 @@ describe('paintReplayDarkness()', () => {
     paintReplayDarkness(ctx, plan(), { ...place, width: 0 }, () => recorder().ctx);
 
     expect(calls).toHaveLength(0);
+  });
+
+  describe('the surface it draws the shroud on', () => {
+    const proto = HTMLCanvasElement.prototype as unknown as Record<string, unknown>;
+    let real: unknown;
+
+    beforeEach(() => {
+      real = proto['getContext'];
+    });
+
+    afterEach(() => {
+      proto['getContext'] = real;
+    });
+
+    it('refuses a context that came back unable to draw', () => {
+      proto['getContext'] = () => ({});
+
+      expect(defaultDarknessLayer(64, 64)).toBeNull();
+    });
+
+    it('draws no shroud at all rather than failing on one it cannot draw', () => {
+      proto['getContext'] = () => ({});
+      const { ctx, calls } = recorder();
+
+      expect(() => paintReplayDarkness(ctx, plan(), place, defaultDarknessLayer)).not.toThrow();
+      expect(calls).toHaveLength(0);
+    });
+
+    it('asks for nothing at all for a surface with no size', () => {
+      expect(defaultDarknessLayer(0, 10)).toBeNull();
+      expect(defaultDarknessLayer(10, 0)).toBeNull();
+    });
   });
 });

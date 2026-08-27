@@ -7,7 +7,7 @@ import { BuffManager } from '@axe/domain/character/buff-manager';
 import { CharacterTemplateFactory } from '@axe/domain/character/character-template-factory';
 import { StatusAccessor } from '@axe/domain/character/status-accessor';
 import { BuffPalette, ChatPalette } from '@axe/domain/chat/chat-palette';
-import { DEFAULT_CHAT_COLOR_CODES } from '@axe/domain/chat/constants';
+import { DEFAULT_CHAT_BUBBLE_CODES, DEFAULT_CHAT_COLOR_CODES } from '@axe/domain/chat/constants';
 import { convertLegacyCheckTableElements } from '@axe/domain/data/check-table-converter';
 import {
   DataElement,
@@ -66,6 +66,9 @@ export class GameCharacter extends OwnedTabletopObject {
   @SyncVar('komaImageHeignt') komaImageHeight: number = 100;
 
   @SyncVar() chatColorCode: string[] = [...DEFAULT_CHAT_COLOR_CODES];
+  /** The bubble each colour is shown on, per theme. An empty entry is worked out instead. */
+  @SyncVar() chatBubbleLight: string[] = [...DEFAULT_CHAT_BUBBLE_CODES];
+  @SyncVar() chatBubbleDark: string[] = [...DEFAULT_CHAT_BUBBLE_CODES];
   @SyncVar() overViewDataTags: string[] = [];
   @SyncVar() syncDummyCounter: number = 0;
 

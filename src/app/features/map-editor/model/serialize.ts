@@ -7,6 +7,7 @@ import {
   MAP_SCENE_VERSION,
   MapLayer,
   MapScene,
+  SceneGuideLine,
   ShapeItem,
   ShapeShadow,
   StrokeDash,
@@ -99,7 +100,21 @@ function sanitizeImageItem(raw: unknown): ImageItem | null {
   const r = raw as Record<string, unknown>;
   const item = { ...r } as unknown as ImageItem;
   if ('clipToCells' in r) item.clipToCells = r['clipToCells'] === true;
+  if ('flipX' in r) item.flipX = r['flipX'] === true;
+  if ('flipY' in r) item.flipY = r['flipY'] === true;
+  item.crop = sanitizeCrop(r['crop']);
+  if (!item.crop) delete item.crop;
   return item;
+}
+
+function sanitizeCrop(raw: unknown): ImageItem['crop'] {
+  if (typeof raw !== 'object' || raw === null) return undefined;
+  const r = raw as Record<string, unknown>;
+  const sides = ['x', 'y', 'w', 'h'].map((side) => r[side]);
+  if (!sides.every((side) => typeof side === 'number' && Number.isFinite(side))) return undefined;
+  const [x, y, w, h] = sides as number[];
+  if (w <= 0 || h <= 0) return undefined;
+  return { x, y, w, h };
 }
 
 const VALID_GRID_TYPES = new Set<number>([
@@ -144,6 +159,7 @@ function sanitizeLayer(raw: Record<string, unknown>): MapLayer {
     visible: raw['visible'] !== false,
     locked: raw['locked'] === true,
     opacity: Math.max(0, Math.min(1, isFiniteNumber(raw['opacity']) ? (raw['opacity'] as number) : 1)),
+    group: typeof raw['group'] === 'string' && raw['group'] ? (raw['group'] as string) : undefined,
   };
 
   switch (raw['kind']) {
@@ -212,5 +228,15 @@ export function deserializeScene(json: string): MapScene | null {
     gridColor: typeof raw['gridColor'] === 'string' ? raw['gridColor'] : DEFAULT_SCENE_GRID_COLOR,
     gridVisible: raw['gridVisible'] !== false,
     layers: rawLayers.map((l) => sanitizeLayer(l as Record<string, unknown>)),
+    guides: sanitizeGuides(raw['guides']),
   };
+}
+
+function sanitizeGuides(raw: unknown): SceneGuideLine[] | undefined {
+  if (!Array.isArray(raw)) return undefined;
+  const kept = raw
+    .filter((entry): entry is Record<string, unknown> => typeof entry === 'object' && entry !== null)
+    .filter((entry) => (entry['axis'] === 'x' || entry['axis'] === 'y') && isFiniteNumber(entry['at']))
+    .map((entry) => ({ id: String(entry['id'] ?? ''), axis: entry['axis'] as 'x' | 'y', at: entry['at'] as number }));
+  return kept.length > 0 ? kept : undefined;
 }

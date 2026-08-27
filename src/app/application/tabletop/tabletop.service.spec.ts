@@ -2,6 +2,7 @@ import { inject, TestBed } from '@angular/core/testing';
 import { TabletopService } from '@axe/application/tabletop/tabletop.service';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { GameTable } from '@axe/domain/tabletop/game-table';
+import { LightSource } from '@axe/domain/tabletop/light-source';
 import { TableSelecter } from '@axe/domain/tabletop/table-selecter';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
 
@@ -15,6 +16,31 @@ describe('TabletopService', () => {
   it('should be created', inject([TabletopService], (service: TabletopService) => {
     expect(service).toBeTruthy();
   }));
+
+  describe('lightSources', () => {
+    it('brings the lights of the table being looked at, and leaves the other table its own', async () => {
+      const service = TestBed.inject(TabletopService);
+      const here = new GameTable();
+      here.initialize();
+      const there = new GameTable();
+      there.initialize();
+      const lamp = LightSource.create('lamp');
+      lamp.location = { name: 'table', x: 0, y: 0 };
+      there.appendChild(lamp);
+      TableSelecter.instance.viewTableIdentifier = here.identifier;
+      await new Promise((resolve) => setTimeout(resolve, 20));
+
+      expect(service.lightSources).toEqual([]);
+
+      TableSelecter.instance.viewTableIdentifier = there.identifier;
+      await new Promise((resolve) => setTimeout(resolve, 20));
+
+      expect(service.lightSources.map((light) => light.identifier)).toEqual([lamp.identifier]);
+
+      here.destroy();
+      there.destroy();
+    });
+  });
 
   describe('currentTableVersion', () => {
     let table: GameTable;

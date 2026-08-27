@@ -21,6 +21,12 @@ export const OBJECT_LIST_TYPES: readonly ObjectListTypeConfig[] = [
   { key: 'text-note', alias: 'text-note', icon: 'sticky_note_2', labelKey: 'feature.gmObjectList.typeNote' },
   { key: 'terrain', alias: 'terrain', icon: 'terrain', labelKey: 'feature.gmObjectList.typeTerrain' },
   { key: 'range', alias: 'range', icon: 'radar', labelKey: 'feature.gmObjectList.typeRange' },
+  {
+    key: 'light-source',
+    alias: 'light-source',
+    icon: 'wb_incandescent',
+    labelKey: 'feature.gmObjectList.typeLight',
+  },
 ];
 
 export type LocationKind = 'table' | 'common' | 'graveyard' | 'personal' | 'other';

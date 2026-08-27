@@ -1,6 +1,6 @@
 import { GameObjectInventoryService } from '@axe/application/inventory/game-object-inventory.service';
 import { TabletopActionService } from '@axe/application/tabletop/tabletop-action.service';
-import { SlopeDirection, Terrain, TerrainViewState } from '@axe/domain/tabletop/terrain';
+import { DOOR_STYLES, SlopeDirection, Terrain, TerrainViewState } from '@axe/domain/tabletop/terrain';
 import { buildTerrainContextMenu } from '@axe/features/tabletop/terrain/terrain-context-menu';
 import { createSyncTranslate } from '@axe/testing/transloco-testing';
 
@@ -17,6 +17,10 @@ interface MutableTerrain {
   hasWall: boolean;
   isSurfaceShading: boolean;
   isDropShadow: boolean;
+  isTiledTexture: boolean;
+  doorStyle: string;
+  isDoorOpen: boolean;
+  isDoor: boolean;
   mode: TerrainViewState;
   parent: null;
   clone: ReturnType<typeof vi.fn>;
@@ -35,6 +39,10 @@ function makeTerrain(overrides: Partial<MutableTerrain> = {}): MutableTerrain {
     hasWall: true,
     isSurfaceShading: false,
     isDropShadow: false,
+    isTiledTexture: false,
+    doorStyle: 'none',
+    isDoorOpen: false,
+    isDoor: false,
     mode: TerrainViewState.ALL,
     parent: null,
     clone: vi.fn(() => ({ location: { x: 0, y: 0 }, isLocked: false })),
@@ -66,6 +74,92 @@ describe('buildTerrainContextMenu()', () => {
     );
     expect(menu[0].name).toBe('高度設定');
     expect(menu[0].subActions?.length).toBe(3);
+  });
+
+  it('offers to tile a stretched texture and to stretch a tiled one', () => {
+    const build = (isTiledTexture: boolean) =>
+      buildTerrainContextMenu(
+        makeTerrain({ isTiledTexture }) as unknown as Terrain,
+        50,
+        { x: 0, y: 0, z: 0 },
+        makeService(),
+        makeActionService(),
+        vi.fn(),
+        t
+      );
+
+    expect(names(build(false))).toContain('テクスチャをタイル貼りにする');
+    expect(names(build(true))).toContain('テクスチャを引き伸ばしに戻す');
+  });
+
+  it('flips the tiling when that item is chosen', () => {
+    const terrain = makeTerrain();
+    const menu = buildTerrainContextMenu(
+      terrain as unknown as Terrain,
+      50,
+      { x: 0, y: 0, z: 0 },
+      makeService(),
+      makeActionService(),
+      vi.fn(),
+      t
+    );
+
+    menu.find((item) => item.name === 'テクスチャをタイル貼りにする')?.action?.();
+
+    expect(terrain.isTiledTexture).toBe(true);
+  });
+
+  it('offers to open a door and to shut an open one, and neither to a plain wall', () => {
+    const build = (overrides: Partial<MutableTerrain>) =>
+      buildTerrainContextMenu(
+        makeTerrain(overrides) as unknown as Terrain,
+        50,
+        { x: 0, y: 0, z: 0 },
+        makeService(),
+        makeActionService(),
+        vi.fn(),
+        t
+      );
+
+    expect(names(build({ isDoor: true, doorStyle: 'swing' }))).toContain('扉を開く');
+    expect(names(build({ isDoor: true, doorStyle: 'swing', isDoorOpen: true }))).toContain('扉を閉じる');
+    expect(names(build({}))).not.toContain('扉を開く');
+  });
+
+  it('swings the door when that item is chosen', () => {
+    const terrain = makeTerrain({ isDoor: true, doorStyle: 'swing' });
+    const menu = buildTerrainContextMenu(
+      terrain as unknown as Terrain,
+      50,
+      { x: 0, y: 0, z: 0 },
+      makeService(),
+      makeActionService(),
+      vi.fn(),
+      t
+    );
+
+    menu.find((item) => item.name === '扉を開く')?.action?.();
+
+    expect(terrain.isDoorOpen).toBe(true);
+  });
+
+  it('offers every way for a door to open, and none at all', () => {
+    const menu = buildTerrainContextMenu(
+      makeTerrain() as unknown as Terrain,
+      50,
+      { x: 0, y: 0, z: 0 },
+      makeService(),
+      makeActionService(),
+      vi.fn(),
+      t
+    );
+    const styles = menu.find((item) => item.name === '扉の開き方');
+
+    // Not a door, plus every way one can open. A piece that is not a door cannot be turned round.
+    expect(styles?.subActions?.length).toBe(DOOR_STYLES.length + 1);
+    expect(styles?.subActions?.map((entry) => entry.name.slice(2)).sort()).toEqual(
+      ['上へ上がる', '下へ沈む', '扉ではない', '開き戸', '横にスライド'].sort()
+    );
   });
 
   it('offers to unlock what is locked and to lock what is not', () => {

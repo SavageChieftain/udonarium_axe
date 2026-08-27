@@ -2,7 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { ImageFile } from '@axe/core/storage/image-file';
 import { ImageStorage } from '@axe/core/storage/image-storage';
 import { ObjectStore } from '@axe/core/sync/object-store';
-import { SlopeDirection, Terrain, TerrainViewState } from '@axe/domain/tabletop/terrain';
+import { DoorStyle, SlopeDirection, Terrain, TerrainViewState } from '@axe/domain/tabletop/terrain';
 
 describe('Terrain', () => {
   let store: ObjectStore;
@@ -154,6 +154,52 @@ describe('Terrain', () => {
     it('starts without a grid', () => {
       const terrain = Terrain.create('t', 1, 1, 1, '', '');
       expect(terrain.isGrid).toBe(false);
+    });
+
+    it('starts with a stretched texture, as existing tables look', () => {
+      const terrain = Terrain.create('t', 1, 1, 1, '', '');
+      expect(terrain.isTiledTexture).toBe(false);
+    });
+
+    it('is not a door until it is told to be one', () => {
+      const terrain = Terrain.create('t', 1, 1, 1, '', '');
+
+      expect(terrain.doorStyle).toBe(DoorStyle.NONE);
+      expect(terrain.isDoor).toBe(false);
+      expect(terrain.isDoorOpen).toBe(false);
+    });
+
+    it('lets sight and light past while it stands open, without forgetting it stops them shut', () => {
+      const terrain = Terrain.create('t', 1, 1, 1, '', '');
+      terrain.doorStyle = DoorStyle.SWING;
+
+      expect(terrain.blocksSightNow).toBe(true);
+      expect(terrain.blocksLightNow).toBe(true);
+
+      terrain.isDoorOpen = true;
+      expect(terrain.blocksSightNow).toBe(false);
+      expect(terrain.blocksLightNow).toBe(false);
+      // The standing setting is untouched, so shutting it again puts the wall back.
+      expect(terrain.blocksSight).toBe(true);
+
+      terrain.isDoorOpen = false;
+      expect(terrain.blocksSightNow).toBe(true);
+    });
+
+    it('does not open a wall that was never a door', () => {
+      const terrain = Terrain.create('t', 1, 1, 1, '', '');
+      terrain.isDoorOpen = true;
+
+      expect(terrain.blocksSightNow).toBe(true);
+    });
+
+    it('stops blocking nothing when it never blocked anything', () => {
+      const terrain = Terrain.create('t', 1, 1, 1, '', '');
+      terrain.blocksSight = false;
+      terrain.doorStyle = DoorStyle.LIFT;
+      terrain.isDoorOpen = true;
+
+      expect(terrain.blocksSightNow).toBe(false);
     });
 
     it('starts blocking both sight and light, as existing tables look', () => {

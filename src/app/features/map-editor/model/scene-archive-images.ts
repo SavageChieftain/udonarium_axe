@@ -1,5 +1,6 @@
 import { ImageStorage } from '@axe/core/storage/image-storage';
 import { ImageTag } from '@axe/domain/media/image-tag';
+import { TEXTURE_IMAGE_TAG } from '@axe/domain/media/texture-catalog';
 import { FillStyle, MapScene } from '@axe/features/map-editor/model/scene';
 import {
   packSceneArchive,
@@ -7,7 +8,7 @@ import {
   unpackSceneArchive,
 } from '@axe/features/map-editor/model/scene-archive';
 import { deserializeScene, serializeScene } from '@axe/features/map-editor/model/serialize';
-import { imageTextureIdentifier, isImageTextureId, TEXTURE_IMAGE_TAG } from '@axe/features/map-editor/model/textures';
+import { imageTextureIdentifier, isImageTextureId } from '@axe/features/map-editor/model/textures';
 
 /**
  * The images a map uses. Patterns and placed pictures live in different places.

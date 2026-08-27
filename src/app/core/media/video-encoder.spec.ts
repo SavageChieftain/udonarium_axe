@@ -6,6 +6,7 @@ import {
   isVideoEncodingSupported,
   VIDEO_KEYFRAME_INTERVAL,
 } from '@axe/core/media/video-encoder';
+import { BorrowedGlobals } from '@axe/testing/borrowed-globals';
 
 interface FakeEncoderCall {
   timestamp: number;
@@ -138,6 +139,8 @@ class FakeVideoEncoder {
 }
 
 describe('video encoding', () => {
+  const borrowed = new BorrowedGlobals();
+
   beforeEach(() => {
     calls = [];
     configured = null;
@@ -145,25 +148,19 @@ describe('video encoding', () => {
     flushed = false;
     failOn = null;
     hasContext = true;
-    globals['OffscreenCanvas'] = FakeOffscreenCanvas;
-    globals['VideoEncoder'] = FakeVideoEncoder;
-    globals['VideoFrame'] = FakeVideoFrame;
-    globals['EncodedVideoChunk'] = FakeEncodedVideoChunk;
+    borrowed.lend('OffscreenCanvas', FakeOffscreenCanvas);
+    borrowed.lend('VideoEncoder', FakeVideoEncoder);
+    borrowed.lend('VideoFrame', FakeVideoFrame);
+    borrowed.lend('EncodedVideoChunk', FakeEncodedVideoChunk);
     audioFrames = [];
     audioConfigured = null;
-    globals['AudioEncoder'] = FakeAudioEncoder;
-    globals['AudioData'] = FakeAudioData;
-    globals['EncodedAudioChunk'] = FakeEncodedAudioChunk;
+    borrowed.lend('AudioEncoder', FakeAudioEncoder);
+    borrowed.lend('AudioData', FakeAudioData);
+    borrowed.lend('EncodedAudioChunk', FakeEncodedAudioChunk);
   });
 
   afterEach(() => {
-    delete globals['OffscreenCanvas'];
-    delete globals['VideoEncoder'];
-    delete globals['VideoFrame'];
-    delete globals['EncodedVideoChunk'];
-    delete globals['AudioEncoder'];
-    delete globals['AudioData'];
-    delete globals['EncodedAudioChunk'];
+    borrowed.giveBack();
   });
 
   function request(overrides: Record<string, unknown> = {}) {

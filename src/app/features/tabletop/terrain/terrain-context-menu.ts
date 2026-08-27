@@ -9,7 +9,7 @@ import {
 } from '@axe/application/ui/tabletop-context-menu-actions';
 import { PointerCoordinate } from '@axe/core/input/pointer-device.service';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
-import { SlopeDirection, Terrain, TerrainViewState } from '@axe/domain/tabletop/terrain';
+import { DOOR_STYLES, DoorStyle, SlopeDirection, Terrain, TerrainViewState } from '@axe/domain/tabletop/terrain';
 import { applyLightPreset, LightPreset } from '@axe/domain/tabletop/vision-types';
 
 export function buildTerrainContextMenu(
@@ -108,6 +108,53 @@ export function buildTerrainContextMenu(
             terrain.mode = TerrainViewState.ALL;
           },
         },
+    ...(terrain.isDoor
+      ? [
+          {
+            name: terrain.isDoorOpen
+              ? t('feature.tabletop.contextMenu.doorClose')
+              : t('feature.tabletop.contextMenu.doorOpen'),
+            action: () => {
+              terrain.isDoorOpen = !terrain.isDoorOpen;
+              SoundEffect.play(terrain.isDoorOpen ? PresetSound.unlock : PresetSound.lock);
+            },
+          },
+        ]
+      : []),
+    {
+      name: t('feature.tabletop.contextMenu.doorStyle'),
+      action: undefined,
+      subActions: [
+        {
+          name: `${terrain.doorStyle === DoorStyle.NONE ? '◉' : '○'} ${t('feature.tabletop.contextMenu.doorStyleNone')}`,
+          action: () => {
+            terrain.doorStyle = DoorStyle.NONE;
+            terrain.isDoorOpen = false;
+          },
+        },
+        ...DOOR_STYLES.map((style) => ({
+          name: `${terrain.doorStyle === style ? '◉' : '○'} ${t('feature.tabletop.contextMenu.doorStyle' + style[0].toUpperCase() + style.slice(1))}`,
+          action: () => {
+            terrain.doorStyle = style;
+          },
+        })),
+        ...(terrain.isDoor
+          ? [
+              ContextMenuSeparator,
+              {
+                name: t('feature.tabletop.contextMenu.doorFlip'),
+                action: () => {
+                  terrain.doorMirrored = !terrain.doorMirrored;
+                },
+              },
+            ]
+          : []),
+      ],
+    },
+    buildToggleAction(terrain.isTiledTexture, (next) => (terrain.isTiledTexture = next), {
+      on: t('feature.tabletop.contextMenu.tiledTextureOff'),
+      off: t('feature.tabletop.contextMenu.tiledTextureOn'),
+    }),
     terrain.isSurfaceShading
       ? {
           name: t('feature.tabletop.contextMenu.surfaceShadingOff'),

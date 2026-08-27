@@ -61,4 +61,33 @@ describe('MovableDirective', () => {
       expect(directive['shouldTransition']({} as unknown as TabletopObject)).toBe(false);
     });
   });
+
+  describe('what is stuck to a board', () => {
+    let fixture: ComponentFixture<TestHostComponent>;
+
+    beforeEach(async () => {
+      TestBed.configureTestingModule({
+        imports: [TestHostComponent],
+        providers: [...TEST_PROVIDERS],
+      }).compileComponents();
+      fixture = TestBed.createComponent(TestHostComponent);
+      fixture.detectChanges();
+    });
+
+    function directiveFor(surface: string | undefined): MovableDirective {
+      const directive = fixture.debugElement.children[0].injector.get(MovableDirective);
+      directive['tabletopObject'] = { location: { name: 'table', x: 0, y: 0, surface } } as TabletopObject;
+      return directive;
+    }
+
+    it('keeps the spot it was put on, rather than jumping to a line of the table', () => {
+      // A board is not ruled into squares, so what is stuck to one is not snapped to them.
+      expect(directiveFor('some-board-identifier').isGridSnap).toBe(false);
+    });
+
+    it('still snaps on the table itself, and on a wall of it', () => {
+      expect(directiveFor(undefined).isGridSnap).toBe(true);
+      expect(directiveFor('north-wall').isGridSnap).toBe(true);
+    });
+  });
 });

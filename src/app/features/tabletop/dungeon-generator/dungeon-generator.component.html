@@ -1,0 +1,427 @@
+@if (!canEdit) {
+  <div class="text-ui-muted p-3 text-[0.85rem]">{{ 'feature.tabletop.dungeonGenerator.gmOnly' | transloco }}</div>
+}
+
+<div class="flex flex-col gap-3.5 p-3">
+  <div>
+    <label class="text-ui-muted mb-1.25 block text-[0.78rem] font-semibold tracking-[0.04em] uppercase">
+      {{ 'feature.tabletop.dungeonGenerator.props.kind' | transloco }}
+    </label>
+    <div class="grid grid-cols-2 gap-1.5">
+      @for (option of kinds; track option) {
+        <button
+          class="rounded-ui-sm border-ui-border-panel bg-ui-input text-ui-text cursor-pointer border border-solid px-2 py-1.5 text-[0.82rem]"
+          type="button"
+          [class.border-ui-accent]="kind() === option"
+          (click)="chooseKind(option)"
+        >
+          {{ 'feature.tabletop.dungeonGenerator.kind.' + option | transloco }}
+        </button>
+      }
+    </div>
+  </div>
+
+  <div>
+    <label class="text-ui-muted mb-1.25 block text-[0.78rem] font-semibold tracking-[0.04em] uppercase">
+      {{ 'feature.tabletop.dungeonGenerator.props.atmosphere' | transloco }}
+    </label>
+    <div class="grid grid-cols-2 gap-1.5">
+      @if (field()) {
+        @for (id of fieldAtmosphereIds; track id) {
+          <button
+            class="rounded-ui-sm border-ui-border-panel bg-ui-input text-ui-text flex cursor-pointer items-center gap-2 border border-solid px-2 py-1.5 text-left text-[0.82rem]"
+            type="button"
+            [class.border-ui-accent]="fieldAtmosphere() === id"
+            (click)="chooseFieldAtmosphere(id)"
+          >
+            {{ 'feature.tabletop.dungeonGenerator.field.' + id | transloco }}
+          </button>
+        }
+      } @else {
+        @for (id of atmosphereIds; track id) {
+          <button
+            class="rounded-ui-sm border-ui-border-panel bg-ui-input text-ui-text flex cursor-pointer items-center gap-2 border border-solid px-2 py-1.5 text-left text-[0.82rem]"
+            type="button"
+            [class.border-ui-accent]="atmosphere() === id"
+            (click)="chooseAtmosphere(id)"
+          >
+            {{ 'feature.tabletop.dungeonGenerator.atmosphere.' + id | transloco }}
+          </button>
+        }
+      }
+    </div>
+  </div>
+
+  <div>
+    <div class="mb-1.25 flex items-baseline justify-between">
+      <label class="text-ui-muted text-[0.78rem] font-semibold tracking-[0.04em] uppercase">
+        {{
+          (field() ? 'feature.tabletop.dungeonGenerator.props.prop' : 'feature.tabletop.dungeonGenerator.props.wall')
+            | transloco
+        }}
+      </label>
+      @if (!usingDefaults()) {
+        <button
+          class="text-ui-accent cursor-pointer border-0 bg-transparent p-0 text-[0.78rem]"
+          type="button"
+          (click)="resetMaterials()"
+        >
+          {{ 'feature.tabletop.dungeonGenerator.actions.resetMaterials' | transloco }}
+        </button>
+      }
+    </div>
+    <dungeon-material-picker [ids]="wallIds" [urls]="wallUrls" [value]="wall()" (changed)="setWall($event)" />
+  </div>
+
+  <div>
+    <label class="text-ui-muted mb-1.25 block text-[0.78rem] font-semibold tracking-[0.04em] uppercase">
+      {{
+        (field() ? 'feature.tabletop.dungeonGenerator.props.ground' : 'feature.tabletop.dungeonGenerator.props.floor')
+          | transloco
+      }}
+    </label>
+    <dungeon-material-picker [ids]="floorIds" [urls]="floorUrls" [value]="floor()" (changed)="setFloor($event)" />
+  </div>
+
+  @if (field()) {
+    <div>
+      <label
+        class="text-ui-muted mb-1.25 block text-[0.78rem] font-semibold tracking-[0.04em] uppercase"
+        for="field-size"
+      >
+        {{ 'feature.tabletop.dungeonGenerator.props.fieldSize' | transloco }}
+      </label>
+      <div class="flex items-center gap-2">
+        <input
+          class="min-w-0 flex-1"
+          id="field-size"
+          name="field-size"
+          type="range"
+          [min]="minFieldSize"
+          [max]="maxFieldSize"
+          step="1"
+          [ngModel]="fieldSize()"
+          (ngModelChange)="setFieldSize($event)"
+        />
+        <input
+          class="border-ui-border-panel bg-ui-input text-ui-text focus:border-ui-accent rounded-ui-sm w-16 shrink-0 border border-solid px-2 py-1.5 text-center text-[13px] outline-none"
+          name="field-size-number"
+          type="number"
+          [min]="minFieldSize"
+          [max]="maxFieldSize"
+          step="1"
+          [ngModel]="fieldSize()"
+          (ngModelChange)="setFieldSize($event)"
+        />
+      </div>
+    </div>
+
+    <div>
+      <label
+        class="text-ui-muted mb-1.25 block text-[0.78rem] font-semibold tracking-[0.04em] uppercase"
+        for="field-density"
+      >
+        {{ 'feature.tabletop.dungeonGenerator.props.density' | transloco }}
+      </label>
+      <div class="flex items-center gap-2">
+        <input
+          class="min-w-0 flex-1"
+          id="field-density"
+          name="field-density"
+          type="range"
+          [min]="minDensity"
+          [max]="maxDensity"
+          step="5"
+          [ngModel]="fieldDensity()"
+          (ngModelChange)="setFieldDensity($event)"
+        />
+        <input
+          class="border-ui-border-panel bg-ui-input text-ui-text focus:border-ui-accent rounded-ui-sm w-16 shrink-0 border border-solid px-2 py-1.5 text-center text-[13px] outline-none"
+          name="field-density-number"
+          type="number"
+          [min]="minDensity"
+          [max]="maxDensity"
+          step="5"
+          [ngModel]="fieldDensity()"
+          (ngModelChange)="setFieldDensity($event)"
+        />
+      </div>
+    </div>
+  } @else {
+    <div>
+      <label
+        class="text-ui-muted mb-1.25 block text-[0.78rem] font-semibold tracking-[0.04em] uppercase"
+        for="room-count"
+      >
+        {{ 'feature.tabletop.dungeonGenerator.props.roomCount' | transloco }}
+      </label>
+      <div class="flex items-center gap-2">
+        <input
+          class="min-w-0 flex-1"
+          id="room-count"
+          name="room-count"
+          type="range"
+          [min]="minRooms"
+          [max]="maxRooms"
+          step="1"
+          [ngModel]="roomCount()"
+          (ngModelChange)="roomCount.set($event)"
+        />
+        <input
+          class="border-ui-border-panel bg-ui-input text-ui-text focus:border-ui-accent rounded-ui-sm w-16 shrink-0 border border-solid px-2 py-1.5 text-center text-[13px] outline-none"
+          name="room-count-number"
+          type="number"
+          [min]="minRooms"
+          [max]="maxRooms"
+          step="1"
+          [ngModel]="roomCount()"
+          (ngModelChange)="roomCount.set($event)"
+        />
+      </div>
+      @if (roomsDiffer()) {
+        <div class="text-ui-muted mt-1 text-[0.75rem]">
+          {{ 'feature.tabletop.dungeonGenerator.status.roomsDiffer' | transloco: { found: roomsFound() } }}
+        </div>
+      }
+    </div>
+
+    <div>
+      <label class="text-ui-muted mb-1.25 block text-[0.78rem] font-semibold tracking-[0.04em] uppercase">
+        {{ 'feature.tabletop.dungeonGenerator.props.entrance' | transloco }}
+      </label>
+      <div class="grid grid-cols-2 gap-1.5">
+        @for (style of entranceStyles; track style) {
+          <button
+            class="rounded-ui-sm border-ui-border-panel bg-ui-input text-ui-text cursor-pointer border border-solid px-2 py-1.5 text-[0.82rem]"
+            type="button"
+            [class.border-ui-accent]="entrance() === style"
+            (click)="setEntrance(style)"
+          >
+            {{ 'feature.tabletop.dungeonGenerator.entrance.' + style | transloco }}
+          </button>
+        }
+      </div>
+    </div>
+
+    <div>
+      <label
+        class="text-ui-muted mb-1.25 block text-[0.78rem] font-semibold tracking-[0.04em] uppercase"
+        for="wall-height"
+      >
+        {{ 'feature.tabletop.dungeonGenerator.props.wallHeight' | transloco }}
+      </label>
+      <div class="flex items-center gap-2">
+        <input
+          class="min-w-0 flex-1"
+          id="wall-height"
+          name="wall-height"
+          type="range"
+          [min]="minWallHeight"
+          [max]="maxWallHeight"
+          step="0.5"
+          [ngModel]="wallHeight()"
+          (ngModelChange)="setWallHeight($event)"
+        />
+        <input
+          class="border-ui-border-panel bg-ui-input text-ui-text focus:border-ui-accent rounded-ui-sm w-16 shrink-0 border border-solid px-2 py-1.5 text-center text-[13px] outline-none"
+          name="wall-height-number"
+          type="number"
+          [min]="minWallHeight"
+          [max]="maxWallHeight"
+          step="0.5"
+          [ngModel]="wallHeight()"
+          (ngModelChange)="setWallHeight($event)"
+        />
+      </div>
+    </div>
+  }
+
+  <div>
+    <label class="text-ui-muted mb-1.25 block text-[0.78rem] font-semibold tracking-[0.04em] uppercase">
+      {{ 'feature.tabletop.dungeonGenerator.props.gridType' | transloco }}
+    </label>
+    <div class="grid grid-cols-3 gap-1">
+      @for (choice of gridChoices; track choice) {
+        <button
+          class="hover:bg-ui-hover rounded-ui-sm border border-solid p-1 text-[0.72rem]"
+          type="button"
+          [class.border-ui-accent]="gridType() === choice"
+          [class.border-transparent]="gridType() !== choice"
+          (click)="gridType.set(choice)"
+        >
+          {{ 'feature.tabletop.dungeonGenerator.grid.' + choice | transloco }}
+        </button>
+      }
+    </div>
+    <!-- A hex board pays a block for every cell, since hexes do not gather into rectangles. -->
+    @if (gridType() !== 0) {
+      <p class="text-ui-muted mt-1 text-[0.7rem] leading-snug">
+        {{ 'feature.tabletop.dungeonGenerator.props.hexNote' | transloco }}
+      </p>
+    }
+  </div>
+
+  <div>
+    <label class="text-ui-muted mb-1.25 block text-[0.78rem] font-semibold tracking-[0.04em] uppercase" for="seed">
+      {{ 'feature.tabletop.dungeonGenerator.props.seed' | transloco }}
+    </label>
+    <div class="flex items-center gap-2">
+      <input
+        class="border-ui-border-panel bg-ui-input text-ui-text focus:border-ui-accent rounded-ui-sm min-w-0 flex-1 border border-solid px-2 py-1.5 text-[13px] outline-none"
+        id="seed"
+        name="seed"
+        type="number"
+        min="0"
+        [ngModel]="seed()"
+        (ngModelChange)="seed.set($event)"
+      />
+      <button
+        class="rounded-ui-sm border-ui-border-panel bg-ui-input text-ui-text shrink-0 cursor-pointer border border-solid px-2 py-1.5"
+        type="button"
+        [title]="'feature.tabletop.dungeonGenerator.actions.reroll' | transloco"
+        (click)="reroll()"
+      >
+        <i class="material-icons text-[18px]">casino</i>
+      </button>
+    </div>
+  </div>
+
+  <div>
+    <label
+      class="text-ui-muted mb-1.25 block text-[0.78rem] font-semibold tracking-[0.04em] uppercase"
+      for="table-name"
+    >
+      {{ 'feature.tabletop.dungeonGenerator.props.tableName' | transloco }}
+    </label>
+    <input
+      class="border-ui-border-panel bg-ui-input text-ui-text focus:border-ui-accent rounded-ui-sm box-border w-full border border-solid px-2.5 py-1.5 text-[0.9rem] outline-none"
+      id="table-name"
+      name="table-name"
+      [ngModel]="tableName()"
+      (ngModelChange)="tableName.set($event)"
+      [placeholder]="nameFor()"
+    />
+  </div>
+
+  @if (!field()) {
+    <div class="flex flex-col gap-1.5 text-[0.85rem]">
+      <label class="flex cursor-pointer items-center gap-2">
+        <input type="checkbox" name="place-doors" [ngModel]="placeDoors()" (ngModelChange)="placeDoors.set($event)" />
+        {{ 'feature.tabletop.dungeonGenerator.props.placeDoors' | transloco }}
+      </label>
+      <label class="flex cursor-pointer items-center gap-2">
+        <input
+          type="checkbox"
+          name="place-stairs"
+          [ngModel]="placeStairs()"
+          (ngModelChange)="placeStairs.set($event)"
+        />
+        {{ 'feature.tabletop.dungeonGenerator.props.placeStairs' | transloco }}
+      </label>
+    </div>
+  }
+
+  <div>
+    <div class="border-ui-border-panel rounded-ui-sm overflow-hidden border border-solid bg-black">
+      <svg
+        class="block h-auto w-full"
+        shape-rendering="crispEdges"
+        [attr.viewBox]="preview().viewBox"
+        preserveAspectRatio="xMidYMid meet"
+      >
+        @for (rect of preview().rects; track $index) {
+          <rect
+            [attr.x]="rect.x"
+            [attr.y]="rect.y"
+            [attr.width]="rect.w"
+            [attr.height]="rect.h"
+            [attr.fill]="rect.fill"
+          />
+        }
+      </svg>
+    </div>
+    <div class="mt-1 flex items-baseline justify-between text-[0.78rem]">
+      <span class="text-ui-muted">{{ boardSize() }}</span>
+      <span
+        [class.text-ui-danger]="tooMany()"
+        [class.text-ui-warning]="heavy()"
+        [class.text-ui-muted]="!tooMany() && !heavy()"
+      >
+        {{
+          'feature.tabletop.dungeonGenerator.status.estimate'
+            | transloco: { terrains: terrainCount(), sync: syncCount() }
+        }}
+      </span>
+    </div>
+    @if (tooMany()) {
+      <div class="text-ui-danger mt-1 text-[0.78rem]">
+        {{ 'feature.tabletop.dungeonGenerator.status.tooMany' | transloco: { limit: maxTerrains } }}
+      </div>
+    } @else if (heavy()) {
+      <div class="mt-1 text-[0.78rem] opacity-80">
+        {{ 'feature.tabletop.dungeonGenerator.status.heavy' | transloco: { limit: heavyLimit } }}
+      </div>
+    }
+  </div>
+
+  @if (busy()) {
+    <div class="bg-ui-input h-2 w-full overflow-hidden rounded-full">
+      <div class="bg-ui-accent h-full" [style.width.%]="progress()"></div>
+    </div>
+  }
+
+  <button
+    class="rounded-ui-sm border-ui-accent bg-ui-accent hover:border-ui-accent-hover hover:bg-ui-accent-hover w-full cursor-pointer border border-solid px-[1.2em] py-[0.55em] text-[0.9rem] text-white disabled:cursor-not-allowed disabled:opacity-50"
+    type="button"
+    [disabled]="!canEdit || busy() || tooMany()"
+    (click)="generate()"
+  >
+    {{ 'feature.tabletop.dungeonGenerator.actions.generate' | transloco }}
+  </button>
+
+  @if (builtTable(); as table) {
+    <div class="border-ui-border-panel rounded-ui-sm flex flex-col gap-2 border border-solid p-2 text-[0.85rem]">
+      <span>{{ 'feature.tabletop.dungeonGenerator.status.built' | transloco: { name: table.name } }}</span>
+      <div class="flex gap-2">
+        <button
+          class="rounded-ui-sm border-ui-border-panel bg-ui-input text-ui-text flex-1 cursor-pointer border border-solid px-2 py-1.5"
+          type="button"
+          (click)="goToTable()"
+        >
+          {{ 'feature.tabletop.dungeonGenerator.actions.goToTable' | transloco }}
+        </button>
+        <button
+          class="rounded-ui-sm border-ui-border-panel bg-ui-input text-ui-text flex-1 cursor-pointer border border-solid px-2 py-1.5"
+          type="button"
+          (click)="discardPrevious()"
+        >
+          {{ 'feature.tabletop.dungeonGenerator.actions.discard' | transloco }}
+        </button>
+      </div>
+      <div class="flex items-baseline justify-between">
+        <span class="text-ui-muted text-[0.78rem]">
+          {{ 'feature.tabletop.dungeonGenerator.summary.title' | transloco }}
+        </span>
+        <button
+          class="text-ui-accent cursor-pointer border-0 bg-transparent p-0 text-[0.78rem]"
+          type="button"
+          (click)="copySummary()"
+        >
+          {{
+            (copied()
+              ? 'feature.tabletop.dungeonGenerator.actions.copied'
+              : 'feature.tabletop.dungeonGenerator.actions.copySummary'
+            ) | transloco
+          }}
+        </button>
+      </div>
+      <pre
+        class="border-ui-border-panel bg-ui-input text-ui-text rounded-ui-sm m-0 max-h-48 overflow-auto border border-solid p-2 text-[0.72rem] leading-snug whitespace-pre"
+        >{{ summary() }}</pre>
+    </div>
+  }
+
+  <div class="text-ui-muted text-[0.75rem]">
+    {{ 'feature.tabletop.dungeonGenerator.status.squareOnly' | transloco }}
+  </div>
+</div>

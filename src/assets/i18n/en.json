@@ -51,6 +51,58 @@
     },
     "party": {
       "unnamed": "Unnamed party"
+    },
+    "textures": {
+      "black_soil": "Black soil",
+      "brick": "Brick",
+      "desert": "Desert",
+      "floor": "Wood floor",
+      "forest": "Forest",
+      "gravel": "Gravel",
+      "lava": "Lava",
+      "rock": "Rock",
+      "rock_moss": "Mossy rock",
+      "sand": "Sand",
+      "sea": "Sea",
+      "shallows": "Shallows",
+      "steppe": "Steppe",
+      "stone_paving_big": "Large paving",
+      "stone_paving_small": "Small paving",
+      "stone_tile": "Stone tile",
+      "blood_stone": "Bloodstained stone",
+      "bone_floor": "Bone floor",
+      "ice": "Ice",
+      "marble": "Marble",
+      "metal_grate": "Iron grate",
+      "moss_stone_floor": "Mossy flagstone",
+      "obsidian": "Obsidian",
+      "packed_earth": "Packed earth",
+      "rubble_floor": "Rubble",
+      "sandstone_floor": "Sandstone floor",
+      "stone_mosaic": "Mosaic floor",
+      "stone_paving_wet": "Wet paving",
+      "swamp_mud": "Swamp mud",
+      "wood_plank": "Wooden planks",
+      "wall_ashlar": "Ashlar masonry",
+      "wall_bone": "Bone wall",
+      "wall_brick": "Brick wall",
+      "wall_cave_rock": "Cave rock",
+      "wall_earth": "Earth wall",
+      "wall_ice": "Ice wall",
+      "wall_metal": "Iron wall",
+      "wall_mossy_stone": "Mossy stone wall",
+      "wall_obsidian": "Obsidian wall",
+      "wall_rubble": "Rubble masonry",
+      "wall_sandstone": "Sandstone wall",
+      "wall_timber": "Timber wall",
+      "door_wood": "Wooden door",
+      "door_iron_grate": "Portcullis",
+      "door_stone": "Stone door",
+      "stair_up": "Stairs up",
+      "stair_down": "Stairs down",
+      "stair_spiral": "Spiral stairs",
+      "poison_pool": "Poisoned pool",
+      "cactus_skin": "Cactus skin"
     }
   },
   "feature": {
@@ -159,7 +211,8 @@
         "moveCommon": "To common",
         "moveGraveyard": "To graveyard",
         "delete": "Delete"
-      }
+      },
+      "typeLight": "Lights"
     },
     "media": {
       "jukebox": {
@@ -1285,7 +1338,10 @@
         "turnOff": "Turn off",
         "preset": "Preset",
         "follow": "Follow token",
-        "unfollow": "Stop following"
+        "unfollow": "Stop following",
+        "skin": "Skin",
+        "skinFromLibrary": "Choose from the library",
+        "skinNone": "No skin"
       },
       "preset": {
         "custom": "Custom",
@@ -1295,7 +1351,11 @@
         "daylight": "Daylight",
         "flashlight": "Flashlight",
         "neon": "Neon",
-        "spotlight": "Spotlight"
+        "spotlight": "Spotlight",
+        "campfire": "Campfire",
+        "sconce": "Wall sconce",
+        "brazier": "Brazier",
+        "chandelier": "Chandelier"
       },
       "settings": {
         "title": "Light",
@@ -1323,6 +1383,17 @@
       "category": {
         "physical": "Physical",
         "theatrical": "Theatrical"
+      },
+      "skin": {
+        "light_campfire": "Campfire",
+        "light_torch": "Torch",
+        "light_sconce": "Wall sconce",
+        "light_lamp": "Oil lamp",
+        "light_stand": "Lamp stand",
+        "light_brazier": "Brazier",
+        "light_lantern": "Lantern",
+        "light_candle": "Candle",
+        "light_chandelier": "Chandelier"
       }
     },
     "vision": {
@@ -1511,7 +1582,18 @@
         "surfaceEastWall": "East wall",
         "surfaceSouthWall": "South wall",
         "surfaceWestWall": "West wall",
-        "createWithOptions": "Create a piece…"
+        "createWithOptions": "Create a piece…",
+        "tiledTextureOn": "Tile the texture",
+        "tiledTextureOff": "Stretch the texture again",
+        "doorOpen": "Open the door",
+        "doorClose": "Close the door",
+        "doorStyle": "How the door opens",
+        "doorStyleNone": "Not a door",
+        "doorStyleSwing": "Swings on a hinge",
+        "doorStyleLift": "Rises up",
+        "doorStyleSink": "Sinks down",
+        "doorStyleSlide": "Slides aside",
+        "doorFlip": "Open the other way"
       },
       "tableSetting": {
         "title": "Table settings",
@@ -1614,6 +1696,112 @@
         "sectionWeather": "Weather (whole map)",
         "weatherKind": "Weather",
         "weatherNone": "None"
+      },
+      "dungeonGenerator": {
+        "atmosphere": {
+          "stoneDungeon": "Stone labyrinth",
+          "crypt": "Crypt",
+          "ruins": "Ruins",
+          "cavern": "Cavern",
+          "lavaCavern": "Lava cavern",
+          "iceCave": "Ice cave",
+          "sandTomb": "Sand tomb"
+        },
+        "role": {
+          "entrance": "Entrance hall",
+          "hall": "Great hall",
+          "treasure": "Treasury",
+          "boss": "Innermost room",
+          "deadEnd": "Dead end",
+          "chamber": "Chamber"
+        },
+        "piece": {
+          "wall": "Wall",
+          "door": "Door",
+          "doorLocked": "Door (locked)",
+          "entrance": "Way in",
+          "exit": "Way out"
+        },
+        "summary": {
+          "title": "Dungeon notes",
+          "seed": "seed",
+          "start": "Start",
+          "key": "key",
+          "locked": "locked",
+          "torch": "torch",
+          "doors": "doors",
+          "ground": "Ground",
+          "standing": "Standing",
+          "fires": "Fires"
+        },
+        "title": "Map generator",
+        "gmOnly": "This tool is for the game master",
+        "props": {
+          "atmosphere": "Atmosphere",
+          "wall": "Wall material",
+          "floor": "Floor material",
+          "roomCount": "Rooms",
+          "seed": "Seed",
+          "tableName": "Table name",
+          "placeDoors": "Place doors",
+          "placeStairs": "Place the way in and out",
+          "wallHeight": "Wall height (cells)",
+          "entrance": "Way in",
+          "kind": "Kind",
+          "prop": "Obstacle material",
+          "ground": "Ground material",
+          "fieldSize": "Map size",
+          "density": "Undergrowth",
+          "gridType": "Cell shape",
+          "hexNote": "Hexes cannot be gathered up, so a block is placed per cell and the board is made smaller to pay for it."
+        },
+        "actions": {
+          "generate": "Generate",
+          "reroll": "Roll a new seed",
+          "pickFromLibrary": "Choose from the library",
+          "resetMaterials": "Back to the defaults",
+          "goToTable": "Go to this table",
+          "discard": "Delete this table",
+          "copySummary": "Copy the notes",
+          "copied": "Copied"
+        },
+        "status": {
+          "estimate": "{{terrains}} terrains, about {{sync}} to sync",
+          "tooMany": "That is over {{limit}} terrains. Try fewer rooms",
+          "heavy": "Over {{limit}} terrains. Building will take a moment",
+          "built": "Made \"{{name}}\"",
+          "roomsDiffer": "{{found}} rooms fitted. Caverns run together, so a cave ends up with fewer than asked",
+          "squareOnly": "A generated table always uses a square grid"
+        },
+        "entrance": {
+          "stair": "Stairway down",
+          "tunnel": "Tunnel mouth"
+        },
+        "kind": {
+          "dungeon": "Dungeon",
+          "field": "Field"
+        },
+        "field": {
+          "woodland": "Woodland",
+          "meadow": "Meadow",
+          "coast": "Coast",
+          "marsh": "Marsh",
+          "snowfield": "Snowfield",
+          "wasteland": "Wasteland"
+        },
+        "prop": {
+          "tree": "Trees",
+          "bush": "Bushes",
+          "boulder": "Boulders",
+          "outcrop": "Outcrops",
+          "hill": "Hills",
+          "cactus": "Cacti"
+        },
+        "grid": {
+          "0": "Square",
+          "1": "Hex (flat top)",
+          "2": "Hex (pointy top)"
+        }
       }
     },
     "lobby": {
@@ -1877,9 +2065,18 @@
         "systemTabNote": "A notice board: everyone sees it, no one writes in it. Its name and position are fixed, and it is never saved with the room."
       },
       "colorSetting": {
-        "color1": "Color 1",
-        "color2": "Color 2",
-        "color3": "Color 3"
+        "sample": "Hello, world!",
+        "theme": {
+          "light": "Light theme",
+          "dark": "Dark theme"
+        },
+        "bubble": "Bubble colour (click to change)",
+        "auto": "Let the bubble colour be worked out again",
+        "hardToRead": "Hard to read. Click to fix",
+        "slot": "Colour",
+        "textColor": "Text",
+        "bubbleLabel": "Bubble",
+        "otherColor": "Pick another colour"
       },
       "messageFix": {
         "change": "Apply",
@@ -2073,24 +2270,6 @@
         "shape": "Shape",
         "image": "Image"
       },
-      "textures": {
-        "black_soil": "Black soil",
-        "brick": "Brick",
-        "desert": "Desert",
-        "floor": "Wood floor",
-        "forest": "Forest",
-        "gravel": "Gravel",
-        "lava": "Lava",
-        "rock": "Rock",
-        "rock_moss": "Mossy rock",
-        "sand": "Sand",
-        "sea": "Sea",
-        "shallows": "Shallows",
-        "steppe": "Steppe",
-        "stone_paving_big": "Large paving",
-        "stone_paving_small": "Small paving",
-        "stone_tile": "Stone tile"
-      },
       "stampCategories": {
         "door": "Doors",
         "stair": "Stairs",
@@ -2164,7 +2343,8 @@
           "pentagon": "Pentagon",
           "hexagon": "Hexagon",
           "star5": "5-point star",
-          "star6": "6-point star"
+          "star6": "6-point star",
+          "balloon": "Balloon"
         },
         "lineKinds": {
           "straight": "Straight",
@@ -2586,6 +2766,168 @@
       "zoomIn": "Zoom in",
       "zoomOut": "Zoom out",
       "backToNow": "Back to now"
+    },
+    "whiteBoard": {
+      "defaultName": "Whiteboard",
+      "action": {
+        "create": "Create a whiteboard"
+      },
+      "pitch": {
+        "0": "Lay it flat",
+        "45": "Tilt it",
+        "90": "Stand it up"
+      },
+      "contextMenu": {
+        "settings": "Whiteboard settings",
+        "pitch": "Angle",
+        "gather": "Take up what overlaps it",
+        "detachAll": "Put everything back on the table",
+        "copy": "Make a copy",
+        "delete": "Delete",
+        "draw": "Draw on it",
+        "save": "Save this board"
+      },
+      "settings": {
+        "name": "Name",
+        "width": "Width (cells)",
+        "height": "Height (cells)",
+        "pitch": "Tilt",
+        "rotate": "Facing",
+        "opacity": "Opacity",
+        "color": "Board colour",
+        "image": "Picture",
+        "imageChoose": "Choose",
+        "imageClear": "Remove",
+        "dropShadow": "Cast a shadow",
+        "lock": "Hold in place",
+        "contents": "On the board ({{count}})",
+        "contentsEmpty": "Nothing on it yet",
+        "takeOff": "Take off",
+        "gather": "Take up what lies over it",
+        "clear": "Take everything off",
+        "seeThrough": "See-through board"
+      },
+      "tool": {
+        "select": "Select",
+        "pen": "Pen",
+        "eraser": "Eraser",
+        "line": "Line",
+        "text": "Text",
+        "sticker": "Stick",
+        "shape": "Shape",
+        "marker": "Marker",
+        "arrow": "Arrow",
+        "note": "Note",
+        "hand": "Hand",
+        "path": "Path"
+      },
+      "editor": {
+        "ink": "Ink",
+        "width": "Width",
+        "fontSize": "Text size",
+        "clear": "Wipe it clean",
+        "board": "The board itself",
+        "ruled": "Ruled",
+        "layers": "Layers ({{count}})",
+        "addLayer": "Add a layer",
+        "visible": "Show or hide",
+        "color": "Colour",
+        "shape": "Shape",
+        "filled": "Fill it in",
+        "paper": "Paper",
+        "spacing": "Spacing",
+        "zoom": "Zoom",
+        "tools": "Tools",
+        "addGroup": "Group",
+        "groupName": "Group",
+        "noGroup": "(none)",
+        "undo": "Undo",
+        "redo": "Redo",
+        "removeSelected": "Delete what is held",
+        "duplicate": "Duplicate",
+        "turnLeft": "Turn left",
+        "turnRight": "Turn right",
+        "bringForward": "Bring forward",
+        "sendBackward": "Send back",
+        "card": "Note colour",
+        "snap": "Snap to the ruling",
+        "zoomIn": "Zoom in (Ctrl++)",
+        "zoomOut": "Zoom out (Ctrl+-)",
+        "zoomFit": "Fit the panel (Ctrl+9)",
+        "dash": "Line",
+        "words": "Words",
+        "alignLeft": "Align left",
+        "alignCentre": "Align centre",
+        "alignRight": "Align right",
+        "alignTop": "Align top",
+        "alignMiddle": "Align middle",
+        "alignBottom": "Align bottom",
+        "spreadAcross": "Space across",
+        "spreadDown": "Space down",
+        "holdEverything": "Select all",
+        "fillColor": "Fill colour",
+        "shadow": "Drop shadow",
+        "lockLayer": "Lock layer",
+        "layerOpacity": "Layer opacity",
+        "saveAsPicture": "Save as picture",
+        "picture": "Picture",
+        "flipAcross": "Flip across",
+        "flipDown": "Flip down",
+        "pictureOpacity": "Opacity",
+        "zoomToHeld": "Zoom to selection",
+        "clearLayer": "Clear this layer",
+        "curved": "Curve through the points",
+        "finishPath": "Finish path",
+        "pathHint": "Click to set points; double-click or press Enter to finish.",
+        "trim": "Crop",
+        "untrim": "Undo crop",
+        "trimApply": "Apply",
+        "trimCancel": "Cancel",
+        "trimHint": "Pull the corners and sides in to choose what to keep.",
+        "guides": "Alignment guides",
+        "rulers": "Rulers",
+        "clearGuides": "Clear guides ({{count}})",
+        "rulerHint": "Drag off the ruler to lay a guide",
+        "renameLayer": "Rename layer",
+        "raiseLayer": "Bring forward",
+        "lowerLayer": "Send backward",
+        "dropLayer": "Delete layer",
+        "outline": "Outline",
+        "underline": "Underline",
+        "strike": "Strikethrough",
+        "centreAcross": "Centre across the sheet",
+        "centreDown": "Centre down the sheet"
+      },
+      "layer": {
+        "freehand": "Drawing",
+        "shape": "Shapes",
+        "text": "Words",
+        "image": "Stuck on",
+        "cell": "Fill",
+        "stamp": "Stamps"
+      },
+      "shape": {
+        "rect": "Box",
+        "ellipse": "Ellipse",
+        "triangle": "Triangle",
+        "pentagon": "Pentagon",
+        "hexagon": "Hexagon",
+        "star5": "Star 5",
+        "star6": "Star 6",
+        "balloon": "Balloon"
+      },
+      "dash": {
+        "solid": "Solid",
+        "dashed": "Dashed",
+        "dotted": "Dotted",
+        "dashdot": "Dash dot",
+        "longdash": "Long dash"
+      },
+      "align": {
+        "left": "Left",
+        "center": "Centre",
+        "right": "Right"
+      }
     }
   },
   "app": {

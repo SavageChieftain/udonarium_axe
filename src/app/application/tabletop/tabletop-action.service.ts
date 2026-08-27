@@ -37,9 +37,14 @@ import { TableAmbience } from '@axe/domain/tabletop/table-ambience';
 import { TableSelecter } from '@axe/domain/tabletop/table-selecter';
 import { Terrain } from '@axe/domain/tabletop/terrain';
 import { TextNote } from '@axe/domain/tabletop/text-note';
+import { MAX_BOARD_PITCH, WhiteBoard } from '@axe/domain/tabletop/white-board';
 
 /** How wide an ambient effect starts, in cells. One cell reads as nothing, so it arrives with some ground under it. */
 const AMBIENCE_DEFAULT_SIZE = 4;
+
+/** A board arrives big enough to lay a handful of pieces on without resizing it first. */
+const BOARD_DEFAULT_WIDTH = 6;
+const BOARD_DEFAULT_HEIGHT = 4;
 
 @Injectable({
   providedIn: 'root',
@@ -218,12 +223,41 @@ export class TabletopActionService {
     return range;
   }
 
+  /**
+   * A board is put up where a board goes: standing, behind the map, the size of the map.
+   *
+   * Laid flat over the middle of the table it covers the very thing everyone is looking at,
+   * and at six squares by four it is too small to write anything on. It stands a square clear
+   * of the north edge instead, as wide as the table it stands behind.
+   */
+  createWhiteBoard(_position: PointerCoordinate): WhiteBoard {
+    const table = this.getViewTable();
+    const width = table?.width ?? BOARD_DEFAULT_WIDTH;
+    const height = table?.height ?? BOARD_DEFAULT_HEIGHT;
+    const grid = table?.gridSize ?? 50;
+
+    const board = WhiteBoard.create(this.t('feature.whiteBoard.defaultName'), width, height, 1);
+    board.pitch = MAX_BOARD_PITCH;
+    // Standing, a board hinges on its bottom edge, so its foot is a square north of the table.
+    // A second board is set down beside the first rather than on top of it, where it would
+    // cover a board of the same size exactly and read as having taken its place.
+    board.location.x = freeBoardSpot(table?.whiteBoards ?? [], width * grid + grid);
+    board.location.y = -(grid + height * grid);
+    board.posZ = 0;
+    // A board belongs to its table, the way terrain does, so clearing the table clears it.
+    table?.appendChild(board);
+    board.update();
+    return board;
+  }
+
   createLightSource(position: PointerCoordinate): LightSource {
     const light = LightSource.create(this.t('feature.tabletop.action.defaultLightName'));
     light.location.x = position.x - 25;
     light.location.y = position.y - 25;
     light.posZ = position.z;
     light.owner = PeerCursor.myCursor?.userId ?? '';
+    // A light belongs to its table, so clearing the table takes its lights with it.
+    this.getViewTable()?.appendChild(light);
     light.update();
     return light;
   }
@@ -274,6 +308,7 @@ export class TabletopActionService {
       this.getCreateCoinMenu(position),
       this.getCreateRangeMenu(position),
       this.getCreateLightSourceMenu(position),
+      this.getCreateWhiteBoardMenu(position),
       this.getCreateAmbienceMenu(position),
     ];
   }
@@ -414,6 +449,17 @@ export class TabletopActionService {
     };
   }
 
+  private getCreateWhiteBoardMenu(position: PointerCoordinate): ContextMenuAction {
+    return {
+      name: this.t('feature.whiteBoard.action.create'),
+      action: () => {
+        const board = this.createWhiteBoard(position);
+        this.selectionSignalService.selectObject(board.identifier, board.aliasName);
+        SoundEffect.play(PresetSound.cardPut);
+      },
+    };
+  }
+
   private getCreateRangeMenu(position: PointerCoordinate): ContextMenuAction {
     const subMenus: ContextMenuAction[] = [];
 
@@ -432,4 +478,13 @@ export class TabletopActionService {
   private getViewTable(): GameTable | null {
     return this.tableSelecter.viewTable;
   }
+}
+
+/** The first spot in the row north of the table that no board is standing in already. */
+export function freeBoardSpot(standing: readonly { location: { x: number } }[], step: number): number {
+  const taken = new Set(standing.map((board) => Math.round(board.location.x)));
+  for (let spot = 0; spot <= taken.size * step; spot += step) {
+    if (!taken.has(spot)) return spot;
+  }
+  return (taken.size + 1) * step;
 }

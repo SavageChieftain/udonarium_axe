@@ -4,9 +4,11 @@ import { ObjectNode } from '@axe/core/sync/object-node';
 import { DEFAULT_AMBIENCE_DENSITY } from '@axe/domain/effect/ambience/ambience-kind';
 import { GameTableMask } from '@axe/domain/tabletop/game-table-mask';
 import { GameTableScratchMask } from '@axe/domain/tabletop/game-table-scratch-mask';
+import { LightSource } from '@axe/domain/tabletop/light-source';
 import { TableAmbience } from '@axe/domain/tabletop/table-ambience';
 import { Terrain } from '@axe/domain/tabletop/terrain';
 import { DEFAULT_AMBIENT_COLOR } from '@axe/domain/tabletop/vision-types';
+import { WhiteBoard } from '@axe/domain/tabletop/white-board';
 
 export enum GridType {
   NONE = -1,
@@ -73,6 +75,14 @@ export class GameTable extends ObjectNode {
   gridClipRect: { top: number; right: number; bottom: number; left: number } | null = null;
   get terrains(): Terrain[] {
     return this.children.filter((o): o is Terrain => o instanceof Terrain);
+  }
+
+  get lightSources(): LightSource[] {
+    return this.children.filter((o): o is LightSource => o instanceof LightSource);
+  }
+
+  get whiteBoards(): WhiteBoard[] {
+    return this.children.filter((o): o is WhiteBoard => o instanceof WhiteBoard);
   }
 
   get ambiences(): TableAmbience[] {

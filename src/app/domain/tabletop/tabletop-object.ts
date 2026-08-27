@@ -10,7 +10,8 @@ export interface TabletopLocation {
   name: string;
   x: number;
   y: number;
-  surface?: TableSurface;
+  /** One of the table's own faces, or the identifier of a board standing on it. */
+  surface?: string;
 }
 
 export type TableSurface = 'floor' | 'north-wall' | 'east-wall' | 'south-wall' | 'west-wall';
@@ -23,9 +24,21 @@ export const TABLE_SURFACES: readonly TableSurface[] = [
   'west-wall',
 ] as const;
 
-export function surfaceOf(object: { location: { surface?: TableSurface } }): TableSurface {
-  const surface = object.location.surface;
+export function surfaceOf(object: { location: { surface?: string } }): TableSurface {
+  const surface = object.location.surface as TableSurface | undefined;
   return surface && TABLE_SURFACES.includes(surface) ? surface : 'floor';
+}
+
+/**
+ * The board an object is standing on, or nothing when it is on the table itself.
+ *
+ * A board names its face by its own identifier, so anything that is not one of the five
+ * faces the table has is the name of a board.
+ */
+export function boardSurfaceOf(object: { location: { surface?: string } }): string {
+  const surface = object.location.surface;
+  if (!surface || TABLE_SURFACES.includes(surface as TableSurface)) return '';
+  return surface;
 }
 
 @SyncObject('TabletopObject')

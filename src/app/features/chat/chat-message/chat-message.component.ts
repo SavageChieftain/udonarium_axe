@@ -78,6 +78,40 @@ export class ChatMessageComponent {
   readonly simpleDispFlagUserId = input(false);
   readonly chatSimpleDispFlag = input(false);
 
+  /** The bubble the sender asked for on the theme being looked at, if they asked for one. */
+  protected bubbleFor(message: ChatMessage): string {
+    return this.theme.resolved() === 'dark' ? message.messBubbleDark : message.messBubbleLight;
+  }
+
+  /**
+   * Whether the line is still under wraps, read through the object's version.
+   *
+   * Revealing a secret roll only changes the message's tag. Nothing else this component
+   * draws while the line is hidden depends on that message, so without a version to watch
+   * the view keeps the cover on until some unrelated thing forces it to draw again - which
+   * looks exactly like the reveal failing to reach the other players.
+   */
+  readonly isSecret = computed(() => {
+    const chatMessage = this.chatMessageInput();
+    if (!chatMessage) return false;
+    this.objectChange.versionOf(chatMessage.identifier)();
+    return chatMessage.isSecret;
+  });
+
+  readonly isDirect = computed(() => {
+    const chatMessage = this.chatMessageInput();
+    if (!chatMessage) return false;
+    this.objectChange.versionOf(chatMessage.identifier)();
+    return chatMessage.isDirect;
+  });
+
+  readonly isEdited = computed(() => {
+    const chatMessage = this.chatMessageInput();
+    if (!chatMessage) return false;
+    this.objectChange.versionOf(chatMessage.identifier)();
+    return chatMessage.fixd;
+  });
+
   readonly systemAvatarImage = computed<{ kind: SystemAvatarKind; url: string; isSpeaker: boolean } | null>(() => {
     const chatMessage = this.chatMessageInput();
     if (!chatMessage) return null;

@@ -6,7 +6,7 @@ import { ImageStorage } from '@axe/core/storage/image-storage';
 import { SyncObject, SyncVar } from '@axe/core/sync/decorator';
 import { GameObject, ObjectContext } from '@axe/core/sync/game-object';
 import { ObjectStore } from '@axe/core/sync/object-store';
-import { DEFAULT_CHAT_COLOR_CODES } from '@axe/domain/chat/constants';
+import { DEFAULT_CHAT_BUBBLE_CODES, DEFAULT_CHAT_COLOR_CODES } from '@axe/domain/chat/constants';
 import { DEFAULT_PEER_ROLE, PeerRole } from '@axe/domain/peer/peer-role';
 import { Vote } from '@axe/domain/vote/vote';
 
@@ -151,6 +151,9 @@ export class PeerCursor extends GameObject {
   private static userIdMap: Map<UserId, ObjectIdentifier> = new Map();
   private static peerIdMap: Map<PeerId, ObjectIdentifier> = new Map();
   chatColorCode: string[] = [...DEFAULT_CHAT_COLOR_CODES];
+  /** The bubble each colour is shown on, per theme. An empty entry is worked out instead. */
+  chatBubbleLight: string[] = [...DEFAULT_CHAT_BUBBLE_CODES];
+  chatBubbleDark: string[] = [...DEFAULT_CHAT_BUBBLE_CODES];
   private cleanups: (() => void)[] = [];
 
   private _diceImageType = '';

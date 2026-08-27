@@ -23,6 +23,14 @@ import { isTypingTarget } from '@axe/core/input/typing-target';
 import { ImageFile } from '@axe/core/storage/image-file';
 import { ImageStorage } from '@axe/core/storage/image-storage';
 import { ImageTag } from '@axe/domain/media/image-tag';
+import {
+  isTextureId,
+  TEXTURE_ASSET_URLS,
+  TEXTURE_BASE_COLOR,
+  TEXTURE_IDS,
+  TEXTURE_IMAGE_TAG,
+  TextureId,
+} from '@axe/domain/media/texture-catalog';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { GridType } from '@axe/domain/tabletop/game-table';
 import {
@@ -69,17 +77,7 @@ import { packSceneWithImages, unpackSceneWithImages } from '@axe/features/map-ed
 import { moveLayer, removeLayer, removeText, updateText } from '@axe/features/map-editor/model/scene-ops';
 import { deserializeScene } from '@axe/features/map-editor/model/serialize';
 import { generateShapePoints, regularPolygonPoints, starPoints } from '@axe/features/map-editor/model/shape-points';
-import { TEXTURE_IMAGE_TAG } from '@axe/features/map-editor/model/textures';
-import {
-  imageTextureIdentifier,
-  isImageTextureId,
-  isTextureId,
-  normalizeTextureId,
-  TEXTURE_ASSET_URLS,
-  TEXTURE_BASE_COLOR,
-  TEXTURE_IDS,
-  TextureId,
-} from '@axe/features/map-editor/model/textures';
+import { imageTextureIdentifier, isImageTextureId, normalizeTextureId } from '@axe/features/map-editor/model/textures';
 import { exportSceneToBlob } from '@axe/features/map-editor/render/export-image';
 import { getRasterImage, loadRasterImage } from '@axe/features/map-editor/render/raster-image';
 import {
@@ -211,6 +209,7 @@ export class MapEditorPanelComponent implements AfterViewInit {
     'hexagon',
     'star5',
     'star6',
+    'balloon',
   ];
 
   protected readonly gridTypeOptions: { type: GridType; label: string }[] = [

@@ -4,6 +4,9 @@ import { ImageStorage } from '@axe/core/storage/image-storage';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { CardStack } from '@axe/domain/card/card-stack';
 import { ImageTag } from '@axe/domain/media/image-tag';
+import { GameTable } from '@axe/domain/tabletop/game-table';
+import { TableSelecter } from '@axe/domain/tabletop/table-selecter';
+import { MAX_BOARD_PITCH } from '@axe/domain/tabletop/white-board';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
 
 describe('TabletopActionService', () => {
@@ -16,6 +19,74 @@ describe('TabletopActionService', () => {
 
   it('should be created', () => {
     expect(service).toBeTruthy();
+  });
+
+  describe('createWhiteBoard()', () => {
+    let table: GameTable;
+
+    beforeEach(() => {
+      table = new GameTable();
+      table.width = 20;
+      table.height = 15;
+      table.gridSize = 50;
+      table.initialize();
+      TableSelecter.instance.viewTableIdentifier = table.identifier;
+    });
+
+    afterEach(() => {
+      table.destroy();
+    });
+
+    it('puts a board up standing, the size of the table it stands behind', () => {
+      const board = service.createWhiteBoard({ x: 300, y: 400, z: 0 });
+
+      // Laid flat over the middle of the table it would cover the thing everyone is looking at.
+      expect(board.pitch).toBe(MAX_BOARD_PITCH);
+      expect(board.width).toBe(table.width);
+      expect(board.height).toBe(table.height);
+    });
+
+    it('stands it a square clear of the north edge, whatever was clicked', () => {
+      const board = service.createWhiteBoard({ x: 300, y: 400, z: 0 });
+      const grid = table.gridSize;
+
+      // Standing, it hinges on its bottom edge, so that edge is the square north of the table.
+      expect(board.location.x).toBe(0);
+      expect(board.location.y + board.height * grid).toBe(-grid);
+    });
+
+    it('belongs to its table, so clearing the table clears it', () => {
+      const board = service.createWhiteBoard({ x: 0, y: 0, z: 0 });
+
+      expect(table.whiteBoards.map((entry) => entry.identifier)).toContain(board.identifier);
+    });
+
+    it('sets a second board down beside the first rather than on top of it', () => {
+      const first = service.createWhiteBoard({ x: 0, y: 0, z: 0 });
+      const second = service.createWhiteBoard({ x: 0, y: 0, z: 0 });
+
+      expect(second.location.x).not.toBe(first.location.x);
+      expect(table.whiteBoards).toHaveLength(2);
+    });
+
+    it('lines them up along the same edge, a board width and a square apart', () => {
+      service.createWhiteBoard({ x: 0, y: 0, z: 0 });
+      const second = service.createWhiteBoard({ x: 0, y: 0, z: 0 });
+      const third = service.createWhiteBoard({ x: 0, y: 0, z: 0 });
+      const step = table.width * table.gridSize + table.gridSize;
+
+      expect(second.location.x).toBe(step);
+      expect(third.location.x).toBe(step * 2);
+      expect(new Set([second.location.y, third.location.y]).size).toBe(1);
+    });
+
+    it('fills a gap left by a board that has been taken away', () => {
+      const first = service.createWhiteBoard({ x: 0, y: 0, z: 0 });
+      service.createWhiteBoard({ x: 0, y: 0, z: 0 });
+      first.destroy();
+
+      expect(service.createWhiteBoard({ x: 0, y: 0, z: 0 }).location.x).toBe(0);
+    });
   });
 
   describe('createDeckFromTag()', () => {

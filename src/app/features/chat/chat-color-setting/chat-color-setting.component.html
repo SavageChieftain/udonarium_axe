@@ -1,94 +1,105 @@
-<div class="flex items-end gap-4">
-  <div class="flex flex-col items-center gap-1.5">
-    <label class="text-ui-muted text-[11px] whitespace-nowrap">{{
-      'feature.chat.colorSetting.color1' | transloco
-    }}</label>
-    <input
-      type="color"
-      class="rounded-ui-sm border-ui-border-panel bg-ui-input hover:border-ui-accent h-7.5 w-11 cursor-pointer border border-solid p-0.5 transition-colors"
-      name="color01"
-      list="color-list_01"
-      [value]="chatColorCode(0)"
-      (change)="onChangeColor($event, 0)"
-    />
-    <datalist id="color-list_01">
-      <option value="#000000"></option>
-      <option value="#FF0000"></option>
-      <option value="#999999"></option>
-      <option value="#990000"></option>
-      <option value="#FF6633"></option>
-      <option value="#669933"></option>
-      <option value="#00CC33"></option>
-      <option value="#009966"></option>
-      <option value="#33CCFF"></option>
-      <option value="#0099FF"></option>
-      <option value="#3366FF"></option>
-      <option value="#003399"></option>
-      <option value="#9933CC"></option>
-      <option value="#663366"></option>
-      <option value="#FF66FF"></option>
-    </datalist>
+<!-- One colour is worked on at a time. Three of everything laid out at once had to be scrolled
+     to, both across and down, and what was off the edge might as well not have been there. -->
+<div class="flex flex-col gap-2">
+  <div class="flex items-center gap-1.5">
+    <span class="text-ui-muted shrink-0 text-[11px]">{{ 'feature.chat.colorSetting.slot' | transloco }}</span>
+    @for (slot of slots; track slot) {
+      <button
+        class="rounded-ui-sm flex h-6 flex-1 cursor-pointer items-center justify-center border-2 border-solid text-[11px] font-semibold transition-colors"
+        type="button"
+        [class.border-ui-accent]="editing() === slot"
+        [class.border-transparent]="editing() !== slot"
+        [style.background-color]="shownBubble(slot, 'light')"
+        [style.color]="chatColorCode(slot)"
+        (click)="editing.set(slot)"
+      >
+        {{ slot + 1 }}
+      </button>
+    }
   </div>
 
-  <div class="flex flex-col items-center gap-1.5">
-    <label class="text-ui-muted text-[11px] whitespace-nowrap">{{
-      'feature.chat.colorSetting.color2' | transloco
-    }}</label>
+  <div class="border-ui-border-panel flex items-center gap-2 border-0 border-t border-solid pt-2">
+    <span class="text-ui-muted shrink-0 text-[11px]">{{ 'feature.chat.colorSetting.textColor' | transloco }}</span>
+    <div class="grid min-w-0 flex-1 grid-cols-8 gap-1">
+      @for (preset of presets; track preset) {
+        <button
+          class="h-4.5 w-full cursor-pointer rounded-[3px] border-2 border-solid p-0 transition-transform hover:scale-110"
+          type="button"
+          [class.border-ui-accent]="sameColor(preset, chatColorCode(editing()))"
+          [class.border-black/25]="!sameColor(preset, chatColorCode(editing()))"
+          [style.background-color]="preset"
+          [title]="preset"
+          (click)="changeColor(preset, editing())"
+        ></button>
+      }
+    </div>
     <input
+      class="rounded-ui-sm border-ui-border-panel bg-ui-input hover:border-ui-accent h-6 w-8 shrink-0 cursor-pointer border border-solid p-0.5 transition-colors"
       type="color"
-      class="rounded-ui-sm border-ui-border-panel bg-ui-input hover:border-ui-accent h-7.5 w-11 cursor-pointer border border-solid p-0.5 transition-colors"
-      name="color02"
-      list="color-list_02"
-      [value]="chatColorCode(1)"
-      (change)="onChangeColor($event, 1)"
+      [id]="'chat-color-' + editing()"
+      [name]="'chat-color-' + editing()"
+      [value]="chatColorCode(editing())"
+      [title]="'feature.chat.colorSetting.otherColor' | transloco"
+      (change)="onChangeColor($event, editing())"
     />
-    <datalist id="color-list_02">
-      <option value="#000000"></option>
-      <option value="#FF0000"></option>
-      <option value="#999999"></option>
-      <option value="#990000"></option>
-      <option value="#FF6633"></option>
-      <option value="#669933"></option>
-      <option value="#00CC33"></option>
-      <option value="#009966"></option>
-      <option value="#33CCFF"></option>
-      <option value="#0099FF"></option>
-      <option value="#3366FF"></option>
-      <option value="#003399"></option>
-      <option value="#9933CC"></option>
-      <option value="#663366"></option>
-      <option value="#FF66FF"></option>
-    </datalist>
   </div>
 
-  <div class="flex flex-col items-center gap-1.5">
-    <label class="text-ui-muted text-[11px] whitespace-nowrap">{{
-      'feature.chat.colorSetting.color3' | transloco
-    }}</label>
-    <input
-      type="color"
-      class="rounded-ui-sm border-ui-border-panel bg-ui-input hover:border-ui-accent h-7.5 w-11 cursor-pointer border border-solid p-0.5 transition-colors"
-      name="color03"
-      list="color-list_03"
-      [value]="chatColorCode(2)"
-      (change)="onChangeColor($event, 2)"
-    />
-    <datalist id="color-list_03">
-      <option value="#000000"></option>
-      <option value="#FF0000"></option>
-      <option value="#999999"></option>
-      <option value="#990000"></option>
-      <option value="#FF6633"></option>
-      <option value="#669933"></option>
-      <option value="#00CC33"></option>
-      <option value="#009966"></option>
-      <option value="#33CCFF"></option>
-      <option value="#0099FF"></option>
-      <option value="#3366FF"></option>
-      <option value="#003399"></option>
-      <option value="#9933CC"></option>
-      <option value="#663366"></option>
-      <option value="#FF66FF"></option>
-    </datalist>
+  <div class="grid grid-cols-2 gap-2">
+    @for (theme of themes; track theme) {
+      <!-- The sample sits on the page that theme paints, so a dark one reads as a dark room
+           rather than as this panel. -->
+      <div class="rounded-ui-sm flex flex-col gap-1.5 p-1.5" [style.background-color]="backdrop(theme)">
+        <span class="text-[10px]" [style.color]="labelColor(theme)">
+          {{ 'feature.chat.colorSetting.theme.' + theme | transloco }}
+        </span>
+
+        <div
+          class="rounded-ui-sm border border-solid px-1.5 py-1"
+          [ngStyle]="chatColorCode(editing()) | chatColorStyle: theme : bubbleCode(editing(), theme)"
+          [style.border-color]="isHardToRead(editing(), theme) ? '#c93c3c' : 'var(--ui-bubble-caret-border)'"
+        >
+          <div class="truncate text-[10px] font-medium opacity-90">{{ speakerName }}</div>
+          <div class="truncate text-[11px] leading-snug">
+            {{ 'feature.chat.colorSetting.sample' | transloco }}
+          </div>
+        </div>
+
+        <div class="flex items-center gap-1">
+          <span class="min-w-0 flex-1 truncate text-[10px]" [style.color]="labelColor(theme)">
+            {{ 'feature.chat.colorSetting.bubbleLabel' | transloco }}
+          </span>
+          <input
+            class="rounded-ui-sm h-5 w-7 shrink-0 cursor-pointer border border-solid border-black/25 p-0"
+            type="color"
+            [name]="'chat-bubble-' + theme + '-' + editing()"
+            [value]="shownBubble(editing(), theme)"
+            (change)="onChangeBubble($event, editing(), theme)"
+            [title]="'feature.chat.colorSetting.bubble' | transloco"
+          />
+          @if (bubbleCode(editing(), theme)) {
+            <button
+              class="flex size-5 shrink-0 cursor-pointer items-center justify-center rounded-full border-0 bg-transparent p-0 opacity-70"
+              type="button"
+              [style.color]="labelColor(theme)"
+              [title]="'feature.chat.colorSetting.auto' | transloco"
+              (click)="clearBubble(editing(), theme)"
+            >
+              <i class="material-icons text-[13px]!">restart_alt</i>
+            </button>
+          }
+        </div>
+
+        @if (isHardToRead(editing(), theme)) {
+          <button
+            class="rounded-ui-sm flex cursor-pointer items-center gap-1 border border-solid border-[#c93c3c] bg-[#c93c3c]/15 px-1 py-0.5 text-left text-[10px] leading-tight text-[#c93c3c]"
+            type="button"
+            (click)="autoAdjust(editing(), theme)"
+          >
+            <i class="material-icons shrink-0 text-[13px]!">priority_high</i>
+            {{ 'feature.chat.colorSetting.hardToRead' | transloco }}
+          </button>
+        }
+      </div>
+    }
   </div>
 </div>

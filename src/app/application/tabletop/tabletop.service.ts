@@ -19,10 +19,22 @@ import { LightSource } from '@axe/domain/tabletop/light-source';
 import { clearOwnershipTree } from '@axe/domain/tabletop/ownership';
 import { RangeArea } from '@axe/domain/tabletop/range';
 import { TableAmbience } from '@axe/domain/tabletop/table-ambience';
+import { lightSourcesOn } from '@axe/domain/tabletop/table-lights';
 import { TableSelecter } from '@axe/domain/tabletop/table-selecter';
 import { TabletopObject } from '@axe/domain/tabletop/tabletop-object';
 import { Terrain } from '@axe/domain/tabletop/terrain';
 import { TextNote } from '@axe/domain/tabletop/text-note';
+import { WhiteBoard } from '@axe/domain/tabletop/white-board';
+/** What a table carries with it, so that looking at another table brings its own along. */
+const TABLE_CHILD_ALIASES = [
+  GameTableMask.aliasName,
+  GameTableScratchMask.aliasName,
+  Terrain.aliasName,
+  TableAmbience.aliasName,
+  LightSource.aliasName,
+  WhiteBoard.aliasName,
+];
+
 type ObjectIdentifier = string;
 type LocationName = string;
 
@@ -85,9 +97,11 @@ export class TabletopService {
   private rangeCache = new TabletopCache<RangeArea>(() =>
     this.objectStore.getObjects(RangeArea).filter((obj) => obj.isVisibleOnTable)
   );
-  private lightSourceCache = new TabletopCache<LightSource>(() =>
-    this.objectStore.getObjects(LightSource).filter((obj) => obj.isVisibleOnTable)
-  );
+  private lightSourceCache = new TabletopCache<LightSource>(() => lightSourcesOn(this.tableSelecter.viewTable));
+  private whiteBoardCache = new TabletopCache<WhiteBoard>(() => {
+    const viewTable = this.tableSelecter.viewTable;
+    return viewTable ? viewTable.whiteBoards : [];
+  });
   private terrainCache = new TabletopCache<Terrain>(() => {
     const viewTable = this.tableSelecter.viewTable;
     return viewTable ? viewTable.terrains : [];
@@ -123,6 +137,9 @@ export class TabletopService {
   get lightSources(): LightSource[] {
     return this.lightSourceCache.objects;
   }
+  get whiteBoards(): WhiteBoard[] {
+    return this.whiteBoardCache.objects;
+  }
   get terrains(): Terrain[] {
     return this.terrainCache.objects;
   }
@@ -153,14 +170,10 @@ export class TabletopService {
     }, this.destroyRef);
     this.objectChange.objectChanged$.subscribe((event) => {
       if (event.identifier === this.currentTable.identifier || event.identifier === this.tableSelecter.identifier) {
-        this.refreshCache(GameTableMask.aliasName);
-        this.refreshCache(GameTableScratchMask.aliasName);
-        this.refreshCache(Terrain.aliasName);
-        this.refreshCache(TableAmbience.aliasName);
-        this.objectChange.notifyCollectionChanged(GameTableMask.aliasName);
-        this.objectChange.notifyCollectionChanged(GameTableScratchMask.aliasName);
-        this.objectChange.notifyCollectionChanged(Terrain.aliasName);
-        this.objectChange.notifyCollectionChanged(TableAmbience.aliasName);
+        for (const aliasName of TABLE_CHILD_ALIASES) {
+          this.refreshCache(aliasName);
+          this.objectChange.notifyCollectionChanged(aliasName);
+        }
         return;
       }
 
@@ -242,6 +255,8 @@ export class TabletopService {
         return this.rangeCache;
       case LightSource.aliasName:
         return this.lightSourceCache;
+      case WhiteBoard.aliasName:
+        return this.whiteBoardCache;
       case Terrain.aliasName:
         return this.terrainCache;
       case TableAmbience.aliasName:
@@ -270,6 +285,7 @@ export class TabletopService {
     this.tableScratchMaskCache.refresh();
     this.rangeCache.refresh();
     this.lightSourceCache.refresh();
+    this.whiteBoardCache.refresh();
     this.terrainCache.refresh();
     this.ambienceCache.refresh();
     this.textNoteCache.refresh();
@@ -305,6 +321,9 @@ export class TabletopService {
       // falls through
       case Terrain.aliasName:
         if (gameObject instanceof Terrain) gameObject.isLocked = false;
+      // falls through
+      case LightSource.aliasName:
+        if (gameObject instanceof LightSource) gameObject.isLock = false;
       // falls through
       case TableAmbience.aliasName:
         if (gameObject instanceof TableAmbience) gameObject.isLock = false;

@@ -12,7 +12,7 @@ import { GridSnapStyle, GridType } from '@axe/domain/tabletop/game-table';
 import { isHexGrid } from '@axe/domain/tabletop/hex-geometry';
 import { SurfaceDims, surfaceWorldBox, WorldBox } from '@axe/domain/tabletop/surface-space';
 import { TableSelecter } from '@axe/domain/tabletop/table-selecter';
-import { surfaceOf, TableSurface, TabletopObject } from '@axe/domain/tabletop/tabletop-object';
+import { boardSurfaceOf, surfaceOf, TableSurface, TabletopObject } from '@axe/domain/tabletop/tabletop-object';
 import { Terrain } from '@axe/domain/tabletop/terrain';
 import { InputHandler } from '@axe/ui/directives/input-handler';
 import {
@@ -25,6 +25,7 @@ import {
   calcSnapNum,
   collectCollidableElements,
   ContactFootprint,
+  dropTargetSurface,
   findContactSupportZ,
   registerLayer,
   setLayerCollidable,
@@ -134,6 +135,9 @@ export class MovableDirective {
   input: InputHandler | null = null;
 
   get isGridSnap(): boolean {
+    // A board is not ruled into squares. What is stuck to one keeps the spot it was put on
+    // it, the way a sticker does, rather than jumping to the nearest line of the table.
+    if (this.tabletopObject && boardSurfaceOf(this.tabletopObject)) return false;
     return this.tableSelecter.viewTable?.gridSnap ?? true;
   }
 
@@ -371,12 +375,17 @@ export class MovableDirective {
   }
 
   private isPointerOverDifferentSurface(): boolean {
-    const pointer = this.input?.pointer;
-    if (!pointer) return false;
-    const target = document.elementFromPoint(pointer.x, pointer.y) as HTMLElement | null;
-    const pointerSurface = target?.closest<HTMLElement>('[data-surface]') ?? null;
+    const pointerSurface = this.surfaceUnderPointer();
     if (!pointerSurface) return false;
     return pointerSurface !== this.surfaceElement();
+  }
+
+  /** The face under the pointer that this piece could be put down on, or nothing. */
+  private surfaceUnderPointer(): HTMLElement | null {
+    const pointer = this.input?.pointer;
+    if (!pointer) return null;
+    const under = document.elementFromPoint(pointer.x, pointer.y) as HTMLElement | null;
+    return dropTargetSurface(this.nativeElement, under);
   }
 
   private dragPreviewElement: HTMLElement | null = null;
@@ -392,8 +401,7 @@ export class MovableDirective {
       this.clearDragPreview();
       return;
     }
-    const target = document.elementFromPoint(pointer.x, pointer.y) as HTMLElement | null;
-    const targetSurface = target?.closest<HTMLElement>('[data-surface]') ?? null;
+    const targetSurface = this.surfaceUnderPointer();
     if (!targetSurface || targetSurface === this.surfaceElement()) {
       this.clearDragPreview();
       return;
@@ -419,8 +427,9 @@ export class MovableDirective {
     }
     const rawX = local.x - this.width / 2;
     const rawY = local.y - this.height / 2;
-    const x = Math.max(0, Math.min(Math.max(0, surfaceW - this.width), rawX));
-    const y = Math.max(0, Math.min(Math.max(0, surfaceH - this.height), rawY));
+    const overflows = targetSurface.hasAttribute('data-surface-overflow');
+    const x = overflows ? rawX : Math.max(0, Math.min(Math.max(0, surfaceW - this.width), rawX));
+    const y = overflows ? rawY : Math.max(0, Math.min(Math.max(0, surfaceH - this.height), rawY));
     this.dragPreviewElement!.style.transform = `translate3d(${Math.floor(x)}px, ${Math.floor(y)}px, 0)`;
   }
 
@@ -470,9 +479,7 @@ export class MovableDirective {
     const pointer = this.input?.pointer;
     if (!pointer) return;
     if (this.restOnBeamUnderPointer(pointer)) return;
-    const target = document.elementFromPoint(pointer.x, pointer.y) as HTMLElement | null;
-    if (!target) return;
-    const targetSurfaceEl = target.closest<HTMLElement>('[data-surface]');
+    const targetSurfaceEl = this.surfaceUnderPointer();
     if (!targetSurfaceEl) return;
     const currentSurfaceEl = this.surfaceElement();
     if (targetSurfaceEl === currentSurfaceEl) return;
@@ -491,8 +498,10 @@ export class MovableDirective {
     }
     const rawX = local.x - this.width / 2;
     const rawY = local.y - this.height / 2;
-    const clampedX = Math.max(0, Math.min(Math.max(0, surfaceW - this.width), rawX));
-    const clampedY = Math.max(0, Math.min(Math.max(0, surfaceH - this.height), rawY));
+    // A board lets a piece hang over its edge; a wall of the table does not.
+    const overflows = targetSurfaceEl.hasAttribute('data-surface-overflow');
+    const clampedX = overflows ? rawX : Math.max(0, Math.min(Math.max(0, surfaceW - this.width), rawX));
+    const clampedY = overflows ? rawY : Math.max(0, Math.min(Math.max(0, surfaceH - this.height), rawY));
     const newX = this.mathFloor ? Math.floor(clampedX) : clampedX;
     const newY = this.mathFloor ? Math.floor(clampedY) : clampedY;
     if (this.updateTimer !== null) {

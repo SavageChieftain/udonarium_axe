@@ -35,6 +35,8 @@ export interface BaseLayer {
   visible: boolean;
   locked: boolean;
   opacity: number;
+  /** The bundle this layer is filed under, where it is filed under one at all. */
+  group?: string;
 }
 
 export interface CellLayer extends BaseLayer {
@@ -100,6 +102,18 @@ export interface TextItem {
   bold: boolean;
   italic: boolean;
   align: TextAlign;
+  /** A card behind the words, which is what makes a note a note rather than a caption. */
+  background?: string;
+  /** A line drawn round every letter, so pale words hold up over a busy picture. */
+  outline?: TextOutline | null;
+  shadow?: ShapeShadow | null;
+  underline?: boolean;
+  strike?: boolean;
+}
+
+export interface TextOutline {
+  color: string;
+  width: number;
 }
 
 export interface TextLayer extends BaseLayer {
@@ -116,6 +130,9 @@ export interface ImageItem {
   h: number;
   rotation: number;
   opacity: number;
+  flipX?: boolean;
+  flipY?: boolean;
+  crop?: { x: number; y: number; w: number; h: number };
   clipToCells?: boolean;
 }
 
@@ -136,6 +153,14 @@ export interface MapScene {
   gridColor: string;
   gridVisible: boolean;
   layers: MapLayer[];
+  guides?: SceneGuideLine[];
+}
+
+/** A line laid across the scene to line things up against, kept with the scene it was laid on. */
+export interface SceneGuideLine {
+  id: string;
+  axis: 'x' | 'y';
+  at: number;
 }
 
 export function newId(): string {

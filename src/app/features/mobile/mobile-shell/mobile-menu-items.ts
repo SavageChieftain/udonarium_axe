@@ -9,6 +9,7 @@ export type MobileMenuAction =
   | 'objectList'
   | 'party'
   | 'mapEditor'
+  | 'dungeonGenerator'
   | 'createObject'
   | 'importCharacter'
   | 'roomSnapshot'
@@ -43,6 +44,12 @@ export const MOBILE_MENU_ITEMS: readonly MobileMenuItem[] = [
   { action: 'turnPrev', icon: 'skip_previous', labelKey: 'feature.mobile.turnPrev', gameMasterOnly: true },
   { action: 'turnNext', icon: 'skip_next', labelKey: 'feature.mobile.turnNext', gameMasterOnly: true },
   { action: 'mapEditor', icon: 'edit_square', labelKey: 'feature.mapEditor.title', gameMasterOnly: true },
+  {
+    action: 'dungeonGenerator',
+    icon: 'map',
+    labelKey: 'feature.tabletop.dungeonGenerator.title',
+    gameMasterOnly: true,
+  },
   { action: 'createObject', icon: 'add_circle', labelKey: 'app.fab.createObject' },
   { action: 'importCharacter', icon: 'person_add', labelKey: 'app.fab.importCharacter' },
   { action: 'roomSnapshot', icon: 'history', labelKey: 'app.fab.roomSnapshot' },

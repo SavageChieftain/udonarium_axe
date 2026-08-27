@@ -43,6 +43,8 @@ import { TranslocoModule } from '@jsverse/transloco';
 import { NgOptionComponent, NgSelectComponent } from '@ng-select/ng-select';
 import GameSystemClass from 'bcdice/lib/game_system';
 
+const COLOR_SETTING_PANEL = 'chat-color-setting';
+
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'chat-input',
@@ -141,6 +143,8 @@ export class ChatInputComponent {
     sendTo: string;
     portraitIndex: number;
     messColor: string;
+    messBubbleLight?: string;
+    messBubbleDark?: string;
     replyTo: string;
     quoteOf: string;
   }>();
@@ -310,6 +314,14 @@ export class ChatInputComponent {
     return this.chatColor(this.colorSelectNo());
   }
 
+  /** The bubble the sender asked for on each theme, which travels with the message. */
+  private chatBubbles(num: number): { light: string; dark: string } {
+    const object = this.objectStore.get(this.sendFrom);
+    const source = object instanceof GameCharacter ? object : this.myPeer;
+    this.objectChange.versionOf(source.identifier)();
+    return { light: source.chatBubbleLight[num] ?? '', dark: source.chatBubbleDark[num] ?? '' };
+  }
+
   chatColor(num: number): string {
     const object = this.objectStore.get(this.sendFrom);
     if (object instanceof GameCharacter) return this.characterChatColor(num);
@@ -441,6 +453,7 @@ export class ChatInputComponent {
       sendTo: this.sendTo,
       portraitIndex: this.portraitIndex,
       messColor: this.selectChatColor,
+      bubbles: this.chatBubbles(this.colorSelectNo()),
     };
     const replyTo = this.replyTarget()?.identifier ?? '';
     const quoteOf = this.quoteTarget()?.identifier ?? '';
@@ -452,6 +465,8 @@ export class ChatInputComponent {
         sendTo: message.sendTo,
         portraitIndex: message.portraitIndex,
         messColor: message.messColor,
+        messBubbleLight: message.bubbles.light,
+        messBubbleDark: message.bubbles.dark,
         replyTo,
         quoteOf,
       });
@@ -508,6 +523,8 @@ export class ChatInputComponent {
   }
 
   showColorSetting() {
+    // Pressing it again puts the panel away, rather than laying another one over it.
+    if (this.panelService.closeSingle(COLOR_SETTING_PANEL)) return;
     const object = this.objectStore.get(this.sendFrom);
     if (object instanceof GameCharacter) {
       const coordinate = this.pointerDeviceService.pointers[0];
@@ -517,9 +534,10 @@ export class ChatInputComponent {
       const option: PanelOption = {
         title: title,
         left: coordinate.x + 50,
-        top: coordinate.y - 300,
-        width: 300,
-        height: 170,
+        top: coordinate.y - 200,
+        width: 384,
+        height: 300,
+        single: COLOR_SETTING_PANEL,
       };
       const component = this.panelService.open<ChatColorSettingComponent>(ChatColorSettingComponent, option);
       component.tabletopObject = object;
@@ -530,8 +548,9 @@ export class ChatInputComponent {
         title: title,
         left: coordinate.x + 50,
         top: coordinate.y - 150,
-        width: 300,
-        height: 120,
+        width: 384,
+        height: 282,
+        single: COLOR_SETTING_PANEL,
       };
       const component = this.panelService.open<ChatColorSettingComponent>(ChatColorSettingComponent, option);
       component.tabletopObject = null;

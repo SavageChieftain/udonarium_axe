@@ -51,6 +51,58 @@
     },
     "party": {
       "unnamed": "無名のパーティ"
+    },
+    "textures": {
+      "black_soil": "黒土",
+      "brick": "レンガ",
+      "desert": "砂漠",
+      "floor": "床板",
+      "forest": "森林",
+      "gravel": "砂利",
+      "lava": "溶岩",
+      "rock": "岩",
+      "rock_moss": "岩（苔）",
+      "sand": "砂地",
+      "sea": "海",
+      "shallows": "浅瀬",
+      "steppe": "草原",
+      "stone_paving_big": "石畳（大）",
+      "stone_paving_small": "石畳（小）",
+      "stone_tile": "石タイル",
+      "blood_stone": "血痕の石床",
+      "bone_floor": "骨の床",
+      "ice": "氷",
+      "marble": "大理石",
+      "metal_grate": "金属格子",
+      "moss_stone_floor": "苔むした石床",
+      "obsidian": "黒曜石",
+      "packed_earth": "踏み固めた土",
+      "rubble_floor": "瓦礫",
+      "sandstone_floor": "砂岩の床",
+      "stone_mosaic": "モザイク床",
+      "stone_paving_wet": "石畳（濡れ）",
+      "swamp_mud": "泥濘",
+      "wood_plank": "板張り",
+      "wall_ashlar": "切石積み",
+      "wall_bone": "骨の壁",
+      "wall_brick": "レンガ壁",
+      "wall_cave_rock": "洞窟の岩肌",
+      "wall_earth": "土壁",
+      "wall_ice": "氷壁",
+      "wall_metal": "金属壁",
+      "wall_mossy_stone": "苔むした石壁",
+      "wall_obsidian": "黒曜石の壁",
+      "wall_rubble": "粗石積み",
+      "wall_sandstone": "砂岩壁",
+      "wall_timber": "木の壁",
+      "door_wood": "木の扉",
+      "door_iron_grate": "鉄格子",
+      "door_stone": "石の扉",
+      "stair_up": "上り階段",
+      "stair_down": "下り階段",
+      "stair_spiral": "螺旋階段",
+      "poison_pool": "毒の沼",
+      "cactus_skin": "サボテンの肌"
     }
   },
   "feature": {
@@ -159,7 +211,8 @@
         "moveCommon": "共通へ",
         "moveGraveyard": "墓場へ",
         "delete": "削除する"
-      }
+      },
+      "typeLight": "光源"
     },
     "media": {
       "jukebox": {
@@ -1285,7 +1338,10 @@
         "turnOff": "消灯する",
         "preset": "プリセット",
         "follow": "トークンに追従",
-        "unfollow": "追従しない"
+        "unfollow": "追従しない",
+        "skin": "スキン",
+        "skinFromLibrary": "画像保管庫から選ぶ",
+        "skinNone": "スキンなし"
       },
       "preset": {
         "custom": "カスタム",
@@ -1295,7 +1351,11 @@
         "daylight": "太陽光",
         "flashlight": "懐中電灯",
         "neon": "ネオン",
-        "spotlight": "スポットライト"
+        "spotlight": "スポットライト",
+        "campfire": "焚き火",
+        "sconce": "壁掛け松明",
+        "brazier": "火鉢",
+        "chandelier": "シャンデリア"
       },
       "settings": {
         "title": "光源",
@@ -1323,6 +1383,17 @@
       "category": {
         "physical": "物理光源",
         "theatrical": "演出光源"
+      },
+      "skin": {
+        "light_campfire": "焚き火",
+        "light_torch": "松明",
+        "light_sconce": "壁掛け松明",
+        "light_lamp": "油ランプ",
+        "light_stand": "ランプスタンド",
+        "light_brazier": "火鉢",
+        "light_lantern": "ランタン",
+        "light_candle": "ろうそく",
+        "light_chandelier": "シャンデリア"
       }
     },
     "vision": {
@@ -1511,7 +1582,18 @@
         "surfaceEastWall": "東壁",
         "surfaceSouthWall": "南壁",
         "surfaceWestWall": "西壁",
-        "createWithOptions": "コマを作る…"
+        "createWithOptions": "コマを作る…",
+        "tiledTextureOn": "テクスチャをタイル貼りにする",
+        "tiledTextureOff": "テクスチャを引き伸ばしに戻す",
+        "doorOpen": "扉を開く",
+        "doorClose": "扉を閉じる",
+        "doorStyle": "扉の開き方",
+        "doorStyleNone": "扉ではない",
+        "doorStyleSwing": "開き戸",
+        "doorStyleLift": "上へ上がる",
+        "doorStyleSink": "下へ沈む",
+        "doorStyleSlide": "横にスライド",
+        "doorFlip": "開く向きを反転"
       },
       "tableSetting": {
         "title": "テーブル設定",
@@ -1614,6 +1696,112 @@
         "sectionWeather": "天候（マップ全体）",
         "weatherKind": "天候",
         "weatherNone": "なし"
+      },
+      "dungeonGenerator": {
+        "atmosphere": {
+          "stoneDungeon": "石造迷宮",
+          "crypt": "地下墓所",
+          "ruins": "遺跡",
+          "cavern": "洞窟",
+          "lavaCavern": "溶岩洞",
+          "iceCave": "氷窟",
+          "sandTomb": "砂の墳墓"
+        },
+        "role": {
+          "entrance": "入口の間",
+          "hall": "大広間",
+          "treasure": "宝物庫",
+          "boss": "最奥",
+          "deadEnd": "行き止まり",
+          "chamber": "小部屋"
+        },
+        "piece": {
+          "wall": "壁",
+          "door": "扉",
+          "doorLocked": "扉（施錠）",
+          "entrance": "入口",
+          "exit": "出口"
+        },
+        "summary": {
+          "title": "ダンジョン概要",
+          "seed": "シード",
+          "start": "開始位置",
+          "key": "鍵",
+          "locked": "施錠",
+          "torch": "松明",
+          "doors": "扉",
+          "ground": "地面",
+          "standing": "地形",
+          "fires": "灯り"
+        },
+        "title": "マップ生成",
+        "gmOnly": "このツールはゲームマスター専用です",
+        "props": {
+          "atmosphere": "雰囲気",
+          "wall": "壁素材",
+          "floor": "床素材",
+          "roomCount": "部屋数",
+          "seed": "シード",
+          "tableName": "テーブル名",
+          "placeDoors": "扉を置く",
+          "placeStairs": "入口と出口を置く",
+          "wallHeight": "壁の高さ（マス）",
+          "entrance": "入口",
+          "kind": "種類",
+          "prop": "障害物の素材",
+          "ground": "地面素材",
+          "fieldSize": "マップの広さ",
+          "density": "茂みの多さ",
+          "gridType": "マスの形",
+          "hexNote": "ヘクスはまとめられないため、1 マスごとに地形を置きます。盤面はその分小さくなります。"
+        },
+        "actions": {
+          "generate": "生成する",
+          "reroll": "シードを振り直す",
+          "pickFromLibrary": "画像保管庫から選ぶ",
+          "resetMaterials": "既定に戻す",
+          "goToTable": "このテーブルへ移動",
+          "discard": "このテーブルを削除",
+          "copySummary": "概要をコピー",
+          "copied": "コピーしました"
+        },
+        "status": {
+          "estimate": "地形 {{terrains}} 個・同期 約 {{sync}} 件",
+          "tooMany": "地形が {{limit}} 個を超えます。部屋数を減らしてください",
+          "heavy": "地形が {{limit}} 個を超えています。生成に少し時間がかかります",
+          "built": "「{{name}}」を作成しました",
+          "roomsDiffer": "置けた部屋は {{found}} 個です。洞窟は空洞どうしがつながるため要求より少なくなります",
+          "squareOnly": "生成するテーブルは正方グリッド固定です"
+        },
+        "entrance": {
+          "stair": "階段（地下へ降りる）",
+          "tunnel": "坑道口（外へ通じる）"
+        },
+        "kind": {
+          "dungeon": "ダンジョン",
+          "field": "フィールド"
+        },
+        "field": {
+          "woodland": "森林",
+          "meadow": "草原",
+          "coast": "海岸",
+          "marsh": "湿地",
+          "snowfield": "雪原",
+          "wasteland": "荒野"
+        },
+        "prop": {
+          "tree": "木",
+          "bush": "茂み",
+          "boulder": "岩",
+          "outcrop": "岩場",
+          "hill": "丘",
+          "cactus": "サボテン"
+        },
+        "grid": {
+          "0": "四角",
+          "1": "ヘクス（縦）",
+          "2": "ヘクス（横）"
+        }
       }
     },
     "lobby": {
@@ -1877,9 +2065,18 @@
         "systemTabNote": "知らせの貼り紙です。全員に見え、誰も書き込めません。名前と並びは固定で、部屋データにも保存されません。"
       },
       "colorSetting": {
-        "color1": "第1色",
-        "color2": "第2色",
-        "color3": "第3色"
+        "sample": "こんにちは！",
+        "theme": {
+          "light": "ライトテーマ",
+          "dark": "ダークテーマ"
+        },
+        "bubble": "吹き出しの色（押して変更）",
+        "auto": "吹き出しの色を自動に戻す",
+        "hardToRead": "読みにくい。押して直す",
+        "slot": "色",
+        "textColor": "文字色",
+        "bubbleLabel": "吹き出し",
+        "otherColor": "他の色を選ぶ"
       },
       "messageFix": {
         "change": "変更",
@@ -2073,24 +2270,6 @@
         "shape": "図形",
         "image": "画像"
       },
-      "textures": {
-        "black_soil": "黒土",
-        "brick": "レンガ",
-        "desert": "砂漠",
-        "floor": "床板",
-        "forest": "森林",
-        "gravel": "砂利",
-        "lava": "溶岩",
-        "rock": "岩",
-        "rock_moss": "岩（苔）",
-        "sand": "砂地",
-        "sea": "海",
-        "shallows": "浅瀬",
-        "steppe": "草原",
-        "stone_paving_big": "石畳（大）",
-        "stone_paving_small": "石畳（小）",
-        "stone_tile": "石タイル"
-      },
       "stampCategories": {
         "door": "扉",
         "stair": "階段",
@@ -2164,7 +2343,8 @@
           "pentagon": "五角形",
           "hexagon": "六角形",
           "star5": "五芒星",
-          "star6": "六芒星"
+          "star6": "六芒星",
+          "balloon": "吹き出し"
         },
         "lineKinds": {
           "straight": "直線",
@@ -2586,6 +2766,168 @@
       "zoomIn": "広げる",
       "zoomOut": "縮める",
       "backToNow": "今に戻る"
+    },
+    "whiteBoard": {
+      "defaultName": "ホワイトボード",
+      "action": {
+        "create": "ホワイトボードを作成"
+      },
+      "pitch": {
+        "0": "寝かせる",
+        "45": "斜めに立てる",
+        "90": "立てる"
+      },
+      "contextMenu": {
+        "settings": "ホワイトボード設定",
+        "pitch": "角度",
+        "gather": "重なっているものを載せる",
+        "detachAll": "載っているものを降ろす",
+        "copy": "コピーを作る",
+        "delete": "削除する",
+        "draw": "ボードに書く",
+        "save": "このボードを保存"
+      },
+      "settings": {
+        "name": "名前",
+        "width": "幅（マス）",
+        "height": "高さ（マス）",
+        "pitch": "傾き",
+        "rotate": "向き",
+        "opacity": "不透明度",
+        "color": "板の色",
+        "image": "貼る絵",
+        "imageChoose": "画像を選ぶ",
+        "imageClear": "外す",
+        "dropShadow": "影を落とす",
+        "lock": "固定する",
+        "contents": "載っているもの（{{count}}）",
+        "contentsEmpty": "まだ何も載っていません",
+        "takeOff": "降ろす",
+        "gather": "重なっているものを載せる",
+        "clear": "すべて降ろす",
+        "seeThrough": "板を透過する"
+      },
+      "tool": {
+        "select": "選択",
+        "pen": "ペン",
+        "eraser": "消しゴム",
+        "line": "直線",
+        "text": "文字",
+        "sticker": "貼る",
+        "shape": "図形",
+        "marker": "マーカー",
+        "arrow": "矢印",
+        "note": "付箋",
+        "hand": "手のひら",
+        "path": "折れ線"
+      },
+      "editor": {
+        "ink": "インクの色",
+        "width": "太さ",
+        "fontSize": "文字の大きさ",
+        "clear": "すべて消す",
+        "board": "ボードの設定",
+        "ruled": "方眼",
+        "layers": "レイヤー（{{count}}）",
+        "addLayer": "レイヤーを足す",
+        "visible": "表示の切り替え",
+        "color": "インクの色",
+        "shape": "図形",
+        "filled": "塗りつぶす",
+        "paper": "紙",
+        "spacing": "目の細かさ",
+        "zoom": "表示倍率",
+        "tools": "道具",
+        "addGroup": "まとめる",
+        "groupName": "グループ",
+        "noGroup": "（なし）",
+        "undo": "元に戻す",
+        "redo": "やり直す",
+        "removeSelected": "選択中を消す",
+        "duplicate": "複製",
+        "turnLeft": "左に回す",
+        "turnRight": "右に回す",
+        "bringForward": "前へ",
+        "sendBackward": "後ろへ",
+        "card": "付箋の色",
+        "snap": "方眼に合わせる",
+        "zoomIn": "拡大（Ctrl++）",
+        "zoomOut": "縮小（Ctrl+-）",
+        "zoomFit": "全体を表示（Ctrl+9）",
+        "dash": "線の種類",
+        "words": "文字",
+        "alignLeft": "左揃え",
+        "alignCentre": "左右中央",
+        "alignRight": "右揃え",
+        "alignTop": "上揃え",
+        "alignMiddle": "上下中央",
+        "alignBottom": "下揃え",
+        "spreadAcross": "横に等間隔",
+        "spreadDown": "縦に等間隔",
+        "holdEverything": "すべて選択",
+        "fillColor": "塗りの色",
+        "shadow": "影を落とす",
+        "lockLayer": "レイヤーを固定",
+        "layerOpacity": "レイヤーの不透明度",
+        "saveAsPicture": "画像として保存",
+        "picture": "画像",
+        "flipAcross": "左右反転",
+        "flipDown": "上下反転",
+        "pictureOpacity": "不透明度",
+        "zoomToHeld": "選択範囲に合わせる",
+        "clearLayer": "このレイヤーを消去",
+        "curved": "曲線でつなぐ",
+        "finishPath": "折れ線を確定",
+        "pathHint": "クリックで点を置き、ダブルクリックか Enter で確定します。",
+        "trim": "切り抜く",
+        "untrim": "切り抜きを戻す",
+        "trimApply": "確定",
+        "trimCancel": "やめる",
+        "trimHint": "枠の四隅と辺を動かして、残す範囲を決めます。",
+        "guides": "整列ガイド",
+        "rulers": "定規",
+        "clearGuides": "ガイド線を消す（{{count}}）",
+        "rulerHint": "定規からドラッグするとガイド線を引けます",
+        "renameLayer": "レイヤー名を変更",
+        "raiseLayer": "前面へ",
+        "lowerLayer": "背面へ",
+        "dropLayer": "レイヤーを削除",
+        "outline": "縁取り",
+        "underline": "下線",
+        "strike": "取り消し線",
+        "centreAcross": "シートの左右中央へ",
+        "centreDown": "シートの上下中央へ"
+      },
+      "layer": {
+        "freehand": "手描き",
+        "shape": "図形",
+        "text": "文字",
+        "image": "貼ったもの",
+        "cell": "塗り",
+        "stamp": "スタンプ"
+      },
+      "shape": {
+        "rect": "四角",
+        "ellipse": "円",
+        "triangle": "三角",
+        "pentagon": "五角",
+        "hexagon": "六角",
+        "star5": "星5",
+        "star6": "星6",
+        "balloon": "吹き出し"
+      },
+      "dash": {
+        "solid": "実線",
+        "dashed": "破線",
+        "dotted": "点線",
+        "dashdot": "一点鎖線",
+        "longdash": "長破線"
+      },
+      "align": {
+        "left": "左揃え",
+        "center": "中央揃え",
+        "right": "右揃え"
+      }
     }
   },
   "app": {
