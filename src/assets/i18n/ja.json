@@ -2840,7 +2840,10 @@
         "bringForward": "前へ",
         "sendBackward": "後ろへ",
         "card": "付箋の色",
-        "snap": "方眼に合わせる"
+        "snap": "方眼に合わせる",
+        "zoomIn": "拡大（Ctrl++）",
+        "zoomOut": "縮小（Ctrl+-）",
+        "zoomFit": "全体を表示（Ctrl+9）"
       },
       "layer": {
         "freehand": "手描き",

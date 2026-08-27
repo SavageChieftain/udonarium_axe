@@ -3070,7 +3070,10 @@
         "bringForward": "앞으로",
         "sendBackward": "뒤로",
         "card": "메모 색",
-        "snap": "모눈에 맞추기"
+        "snap": "모눈에 맞추기",
+        "zoomIn": "확대 (Ctrl++)",
+        "zoomOut": "축소 (Ctrl+-)",
+        "zoomFit": "전체 보기 (Ctrl+9)"
       },
       "layer": {
         "freehand": "손그림",

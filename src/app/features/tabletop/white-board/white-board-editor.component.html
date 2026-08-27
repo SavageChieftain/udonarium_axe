@@ -299,18 +299,45 @@
           </button>
         </span>
       }
-      <span class="text-ui-muted">{{ 'feature.whiteBoard.editor.zoom' | transloco }}</span>
-      @for (step of zooms; track step) {
+      <span class="border-ui-border-panel ml-1 flex items-center gap-0.5 border-l border-solid pl-2">
         <button
-          class="rounded-ui-sm hover:bg-ui-hover cursor-pointer border border-solid px-1.5 py-0.5"
+          class="rounded-ui-sm hover:bg-ui-hover cursor-pointer border border-solid border-transparent px-1 py-0.5"
           type="button"
-          [class.border-ui-accent]="zoom() === step"
-          [class.border-transparent]="zoom() !== step"
-          (click)="zoom.set(step)"
+          [title]="'feature.whiteBoard.editor.zoomOut' | transloco"
+          (click)="zoomOut()"
         >
-          {{ step * 100 }}%
+          <i class="material-icons text-[16px]!">remove</i>
         </button>
-      }
+        <select
+          class="bg-ui-input rounded-ui-sm w-16 px-1 py-0.5 text-center"
+          name="board-zoom"
+          [ngModel]="zoom()"
+          (ngModelChange)="zoomTo($event)"
+        >
+          @if (!zooms.includes(zoom())) {
+            <option [ngValue]="zoom()">{{ zoomPercent() }}%</option>
+          }
+          @for (step of zooms; track step) {
+            <option [ngValue]="step">{{ step * 100 }}%</option>
+          }
+        </select>
+        <button
+          class="rounded-ui-sm hover:bg-ui-hover cursor-pointer border border-solid border-transparent px-1 py-0.5"
+          type="button"
+          [title]="'feature.whiteBoard.editor.zoomIn' | transloco"
+          (click)="zoomIn()"
+        >
+          <i class="material-icons text-[16px]!">add</i>
+        </button>
+        <button
+          class="rounded-ui-sm hover:bg-ui-hover cursor-pointer border border-solid border-transparent px-1 py-0.5"
+          type="button"
+          [title]="'feature.whiteBoard.editor.zoomFit' | transloco"
+          (click)="zoomToFit()"
+        >
+          <i class="material-icons text-[16px]!">fit_screen</i>
+        </button>
+      </span>
       <span class="text-ui-dim ml-auto">{{ sceneWidth }} × {{ sceneHeight }}</span>
       @if (isCompact()) {
         <button
@@ -323,7 +350,12 @@
       }
     </div>
 
-    <div #stage class="relative flex-1 overflow-auto bg-neutral-700 p-3" [class.cursor-grab]="panning()">
+    <div
+      #stage
+      class="relative flex-1 overflow-auto bg-neutral-700 p-3"
+      [class.cursor-grab]="panning()"
+      (wheel)="onWheel($event)"
+    >
       <div class="relative mx-auto" [style.width.px]="sceneWidth * zoom()">
         <canvas
           #board

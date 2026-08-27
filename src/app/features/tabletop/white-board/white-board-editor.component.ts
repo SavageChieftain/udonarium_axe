@@ -114,8 +114,13 @@ const TOOL_ICONS: Record<BoardTool, string> = {
 
 const TOOL_SVG: Partial<Record<BoardTool, string>> = { select: SELECT_SVG, eraser: ERASER_SVG };
 
-/** The sizes a sheet is shown at, against its own. */
-const BOARD_ZOOMS: readonly number[] = [0.5, 0.75, 1, 1.5, 2];
+/** The sizes offered in the list. Anything between them is reachable by the wheel. */
+const BOARD_ZOOMS: readonly number[] = [0.25, 0.5, 0.75, 1, 1.5, 2, 3, 4];
+
+const MIN_ZOOM = 0.1;
+const MAX_ZOOM = 8;
+/** How much one notch of the wheel or one press of the buttons changes the size. */
+const ZOOM_STEP = 1.15;
 
 /** How near a corner counts as taking hold of it, in the sheet's own pixels at full size. */
 const HANDLE_SLACK = 9;
@@ -125,6 +130,9 @@ const DUPLICATE_OFFSET = 16;
 
 /** How far one press of the turn buttons takes a mark round. */
 const TURN_STEP = 15;
+
+/** The room left round the sheet when it is fitted to the panel. */
+const STAGE_MARGIN = 24;
 
 const TOOL_KEYS: Record<string, BoardTool> = {
   v: 'select',
@@ -188,6 +196,69 @@ export class WhiteBoardEditorComponent {
    */
   readonly zoom = signal(1);
   readonly turnStep = TURN_STEP;
+
+  protected zoomPercent(): number {
+    return Math.round(this.zoom() * 100);
+  }
+
+  protected zoomIn(): void {
+    this.zoomAbout(this.zoom() * ZOOM_STEP, null);
+  }
+
+  protected zoomOut(): void {
+    this.zoomAbout(this.zoom() / ZOOM_STEP, null);
+  }
+
+  protected zoomTo(value: number | string): void {
+    this.zoomAbout(Number(value), null);
+  }
+
+  /** Big enough to fill the panel and no bigger, which is what anyone means by fit. */
+  protected zoomToFit(): void {
+    const stage = this.stageRef()?.nativeElement;
+    if (!stage) return;
+    const room = Math.min(
+      (stage.clientWidth - STAGE_MARGIN) / this.sceneWidth,
+      (stage.clientHeight - STAGE_MARGIN) / this.sceneHeight
+    );
+    this.zoomAbout(room, null);
+  }
+
+  /**
+   * Changes the size, keeping the point under the pointer under the pointer.
+   *
+   * Zooming about the corner of the sheet walks whatever is being worked on off the screen,
+   * so what is under the cursor is what stays put, the way it does in anything else.
+   */
+  private zoomAbout(next: number, at: { x: number; y: number } | null): void {
+    const stage = this.stageRef()?.nativeElement;
+    const was = this.zoom();
+    const now = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, next));
+    if (Math.abs(now - was) < 0.0001) return;
+
+    if (!stage) {
+      this.zoom.set(now);
+      return;
+    }
+    const box = stage.getBoundingClientRect();
+    const holdX = at ? at.x - box.left : stage.clientWidth / 2;
+    const holdY = at ? at.y - box.top : stage.clientHeight / 2;
+    const sheetX = (stage.scrollLeft + holdX) / was;
+    const sheetY = (stage.scrollTop + holdY) / was;
+
+    this.zoom.set(now);
+    queueMicrotask(() => {
+      stage.scrollLeft = sheetX * now - holdX;
+      stage.scrollTop = sheetY * now - holdY;
+    });
+  }
+
+  protected onWheel(event: WheelEvent): void {
+    if (!event.ctrlKey && !event.metaKey) return;
+    event.preventDefault();
+    const by = event.deltaY < 0 ? ZOOM_STEP : 1 / ZOOM_STEP;
+    this.zoomAbout(this.zoom() * by, { x: event.clientX, y: event.clientY });
+  }
   readonly shapes = BOARD_SHAPES;
   readonly shapeKind = signal<ShapeGeneratorKind>('rect');
   readonly filled = signal(false);
@@ -829,6 +900,26 @@ export class WhiteBoardEditorComponent {
     }
     if (event.ctrlKey || event.metaKey) {
       const key = event.key.toLowerCase();
+      if (key === '0') {
+        event.preventDefault();
+        this.zoomTo(1);
+        return;
+      }
+      if (key === '=' || key === '+') {
+        event.preventDefault();
+        this.zoomIn();
+        return;
+      }
+      if (key === '-') {
+        event.preventDefault();
+        this.zoomOut();
+        return;
+      }
+      if (key === '9') {
+        event.preventDefault();
+        this.zoomToFit();
+        return;
+      }
       if (key === 'd') {
         event.preventDefault();
         this.duplicateSelected();
