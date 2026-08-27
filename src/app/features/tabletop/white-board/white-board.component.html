@@ -39,10 +39,13 @@
       </div>
     }
     <div class="size-full origin-bottom transform-3d" [style.transform]="pitchTransform()">
+      <!-- A face turned all the way down leaves nothing to see and nothing to reach for, so
+           it wears the chequer that stands for nothing everywhere else instead. -->
       <div
-        class="pointer-events-auto absolute inset-0 backface-visible"
-        [style.opacity]="opacity()"
-        [style.background-color]="color()"
+        class="pointer-events-auto absolute inset-0 bg-size-[16px_16px] backface-visible"
+        [ngClass]="seeThrough() ? CHEQUER_CLASS : ''"
+        [style.opacity]="faceOpacity()"
+        [style.background-color]="faceColor()"
         [appTooltip]="whiteBoard()"
       ></div>
 

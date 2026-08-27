@@ -2818,7 +2818,6 @@
         "width": "太さ",
         "fontSize": "文字の大きさ",
         "clear": "すべて消す",
-        "typeHere": "ここに書く",
         "board": "ボードの設定",
         "ruled": "方眼",
         "layers": "レイヤー（{{count}}）",

@@ -1323,3 +1323,12 @@ export function isTypingKey(target: EventTarget | null, composing: boolean): boo
   if (target instanceof HTMLSelectElement) return true;
   return target instanceof HTMLElement && target.isContentEditable;
 }
+
+/**
+ * The chequer that stands for nothing at all.
+ *
+ * Two greys in squares is what every drawing tool puts behind an empty picture, so a reader
+ * who has seen one anywhere else already knows what it means here: there is no board, only
+ * what has been drawn on it.
+ */
+export const CHEQUER_CLASS = '[background-image:repeating-conic-gradient(#c4c4c4_0%_25%,#f2f2f2_0%_50%)]';

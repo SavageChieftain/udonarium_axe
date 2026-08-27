@@ -2818,7 +2818,6 @@
         "width": "Width",
         "fontSize": "Text size",
         "clear": "Wipe it clean",
-        "typeHere": "Type here",
         "board": "The board itself",
         "ruled": "Ruled",
         "layers": "Layers ({{count}})",

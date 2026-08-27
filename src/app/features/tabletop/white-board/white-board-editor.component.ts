@@ -1,5 +1,5 @@
 import { NgClass } from '@angular/common';
-import { ChangeDetectionStrategy, Component, ElementRef, inject, signal, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, effect, ElementRef, inject, signal, viewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
@@ -59,6 +59,7 @@ import {
   BoardTool,
   boxAround,
   boxOf,
+  CHEQUER_CLASS,
   clearSheet,
   copyMark,
   createBoardScene,
@@ -166,8 +167,6 @@ const HANDLE_SLACK = 9;
 
 /** With shift held, the turn grip falls onto steps, so a picture can be set square again. */
 const TURN_SNAP = 15;
-
-const MAX_TYPING_ROWS = 12;
 
 const RULER_WIDTH = 16;
 const RULER_STEPS: readonly number[] = [50, 100, 200, 500, 1000];
@@ -369,11 +368,6 @@ export class WhiteBoardEditorComponent {
   protected readonly typing = signal<BoardPoint | null>(null);
   protected typedText = '';
 
-  /** The box grows with what is typed into it, so a long note is not written through a slot. */
-  protected typedRows(): number {
-    return Math.min(MAX_TYPING_ROWS, Math.max(1, this.typedText.split('\n').length));
-  }
-
   readonly canUndo = signal(false);
   readonly canRedo = signal(false);
   readonly selected = signal<MarkRef | null>(null);
@@ -385,6 +379,9 @@ export class WhiteBoardEditorComponent {
   private panFrom: { x: number; y: number } | null = null;
   private keepingShape = false;
   private retyping: MarkRef | null = null;
+  private wantsCaret = false;
+  private wordsWere = '';
+  protected readonly wordBoxRef = viewChild<ElementRef<HTMLElement>>('wordBox');
   private board: WhiteBoard | null = null;
   private scene: MapScene = createBoardScene(4, 3, 50);
   private saveTimer: ReturnType<typeof setTimeout> | null = null;
@@ -492,6 +489,14 @@ export class WhiteBoardEditorComponent {
   }
 
   private faceWas = 1;
+
+  readonly chequer = CHEQUER_CLASS;
+
+  /** How much of the board's own face shows, which is what the chequer shows through. */
+  get faceOpacity(): number {
+    this.revision();
+    return this.board?.opacity ?? 1;
+  }
 
   get boardColor(): string {
     this.revision();
@@ -695,6 +700,19 @@ export class WhiteBoardEditorComponent {
   }
 
   constructor() {
+    effect(() => {
+      const box = this.wordBoxRef()?.nativeElement;
+      if (!this.wantsCaret || !box) return;
+      this.wantsCaret = false;
+      box.textContent = this.wordsWere;
+      box.focus();
+      const range = document.createRange();
+      range.selectNodeContents(box);
+      range.collapse(false);
+      const selection = window.getSelection();
+      selection?.removeAllRanges();
+      selection?.addRange(range);
+    });
     // The canvas measures what it will actually draw, which is the only honest measurement.
     useTextMeasurer((text, fontSize, bold, italic) => {
       const ctx = this.canvasRef()?.nativeElement.getContext('2d');
@@ -743,6 +761,7 @@ export class WhiteBoardEditorComponent {
   }
 
   protected choose(tool: BoardTool): void {
+    if (this.typing()) this.commitText();
     if (this.tool() === 'path' && tool !== 'path') this.finishPath();
     this.tool.set(tool);
     this.panning.set(tool === 'hand');
@@ -858,6 +877,12 @@ export class WhiteBoardEditorComponent {
       event.preventDefault();
       return;
     }
+    // Words being typed are written down before the click is dealt with, so that opening a
+    // second box cannot be undone by the first one letting go of the caret afterwards.
+    if (this.typing()) {
+      this.commitText();
+      return;
+    }
     (event.target as HTMLElement).setPointerCapture?.(event.pointerId);
     const at = this.pointOf(event);
 
@@ -876,8 +901,7 @@ export class WhiteBoardEditorComponent {
         break;
       case 'text':
       case 'note':
-        this.typedText = '';
-        this.typing.set(at);
+        this.startTyping(at, '');
         break;
       case 'path':
         this.laying.update((points) =>
@@ -1435,24 +1459,56 @@ export class WhiteBoardEditorComponent {
     const mark = markUnder(this.scene, at);
     const words = mark ? wordsOf(this.scene, mark) : null;
     if (!words) return;
+    // The words already written are picked up along with how they were written, so retyping
+    // them does not quietly restyle them.
+    this.fontSize.set(words.fontSize);
+    this.color.set(words.color);
+    this.bold.set(words.bold);
+    this.italic.set(words.italic);
     this.retyping = mark;
-    this.typedText = words.text;
-    this.typing.set({ x: words.x, y: words.y });
+    this.startTyping({ x: words.x, y: words.y }, words.text);
+  }
+
+  /** Puts the box on the sheet and the caret in it, since nobody opens one meaning to wait. */
+  private startTyping(at: BoardPoint, words: string): void {
+    this.typedText = words;
+    this.wordsWere = words;
+    this.wantsCaret = true;
+    this.typing.set(at);
+    void this.redraw();
+  }
+
+  protected onTypedInput(event: Event): void {
+    this.typedText = (event.target as HTMLElement).innerText;
   }
 
   /**
-   * The keys the text box answers to itself.
+   * The keys the word box answers to itself.
    *
    * Escape and enter both mean something to an input method while it is composing, so the box
    * hears them only once the letters have been settled on.
    */
   protected onTypedKey(event: KeyboardEvent): void {
     if (event.isComposing) return;
-    if (event.key === 'Escape' || (event.key === 'Enter' && (event.ctrlKey || event.metaKey))) {
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      event.stopPropagation();
+      this.dropTyping();
+      return;
+    }
+    if (event.key === 'Enter' && (event.ctrlKey || event.metaKey)) {
       event.preventDefault();
       event.stopPropagation();
       this.commitText();
     }
+  }
+
+  /** Thrown away rather than written down, which is what escape means everywhere. */
+  private dropTyping(): void {
+    this.typing.set(null);
+    this.typedText = '';
+    this.retyping = null;
+    void this.redraw();
   }
 
   protected commitText(): void {
@@ -1604,7 +1660,9 @@ export class WhiteBoardEditorComponent {
           return url ? getRasterImage(url) : null;
         },
       },
-      { drawGrid: ruled }
+      // Words being typed over are shown in the box, so drawing them underneath as well
+      // would leave the old and the new overlapping.
+      { drawGrid: ruled, hideTextId: this.retyping?.kind === 'text' ? this.retyping.id : undefined }
     );
   }
 

@@ -680,30 +680,46 @@
             }
           </div>
         }
-        <canvas
-          #board
-          class="block h-auto w-full touch-none bg-white shadow-md"
-          (dblclick)="onDoubleClick($any($event))"
-          (pointerdown)="onPointerDown($event)"
-          (pointermove)="onPointerMove($event)"
-          (pointerup)="onPointerUp($event)"
-          (pointercancel)="onPointerUp($event)"
-        ></canvas>
+        <!-- The chequer stands for nothing at all, the way it does anywhere else, and the
+             board's own face is laid over it at whatever weight the face carries. -->
+        <div class="relative shadow-md">
+          <div
+            class="absolute inset-0 bg-[repeating-conic-gradient(#c4c4c4_0%_25%,#f2f2f2_0%_50%)] bg-size-[16px_16px]"
+          ></div>
+          <div class="absolute inset-0" [style.background-color]="boardColor" [style.opacity]="faceOpacity"></div>
+          <canvas
+            #board
+            class="relative block h-auto w-full touch-none"
+            (dblclick)="onDoubleClick($any($event))"
+            (pointerdown)="onPointerDown($event)"
+            (pointermove)="onPointerMove($event)"
+            (pointerup)="onPointerUp($event)"
+            (pointercancel)="onPointerUp($event)"
+          ></canvas>
 
-        @if (typing(); as at) {
-          <textarea
-            class="border-ui-accent rounded-ui-sm absolute resize border border-solid bg-white px-1 py-0.5 text-[0.9rem] leading-tight text-black outline-none"
-            name="board-text"
-            [style.left.%]="(at.x / sceneWidth) * 100"
-            [style.top.%]="(at.y / sceneHeight) * 100"
-            [rows]="typedRows()"
-            cols="24"
-            [(ngModel)]="typedText"
-            (keydown)="onTypedKey($event)"
-            (blur)="commitText()"
-            [placeholder]="'feature.whiteBoard.editor.typeHere' | transloco"
-          ></textarea>
-        }
+          @if (typing(); as at) {
+            <!-- Typed straight onto the sheet at the size, weight and colour the words will
+                 have, rather than into a box off to one side that looks like none of it. -->
+            <div
+              #wordBox
+              class="absolute z-20 m-0 box-border cursor-text border-0 bg-[rgba(127,127,127,0.12)] p-0 whitespace-pre outline-1 outline-(--ui-accent) outline-dashed"
+              contenteditable="true"
+              [style.left.px]="at.x * zoom()"
+              [style.top.px]="at.y * zoom()"
+              [style.font-size.px]="fontSize() * zoom()"
+              [style.font-weight]="bold() ? 'bold' : 'normal'"
+              [style.font-style]="italic() ? 'italic' : 'normal'"
+              [style.color]="color()"
+              [style.caret-color]="color()"
+              [style.line-height]="'1.2'"
+              [style.min-width.px]="1"
+              [style.transform-origin]="'top left'"
+              (input)="onTypedInput($event)"
+              (keydown)="onTypedKey($event)"
+              (pointerdown)="$event.stopPropagation()"
+            ></div>
+          }
+        </div>
       </div>
     </div>
   </div>
