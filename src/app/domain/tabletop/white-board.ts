@@ -35,6 +35,17 @@ export class WhiteBoard extends TabletopObject {
    */
   @SyncVar() scene: string = '';
 
+  /**
+   * The pictures stuck onto the board, which have to travel with it when it is saved.
+   *
+   * They are named inside the packed drawing rather than by an attribute of their own, so
+   * nothing walking the board's XML would find them, and a board saved without them would
+   * come back with holes where its pictures were.
+   */
+  get carriedImageIdentifiers(): readonly string[] {
+    return imagesNamedIn(this.scene);
+  }
+
   get width(): number {
     return this.getCommonValue('width', 4);
   }
@@ -93,4 +104,30 @@ export function setBoardHeightKeepingFoot(board: WhiteBoard, height: number, gri
   const foot = board.location.y + board.height * gridSize;
   board.height = height;
   board.location = { ...board.location, y: foot - height * gridSize };
+}
+
+/** Every image identifier named anywhere in a packed drawing, however deeply it is buried. */
+function imagesNamedIn(scene: string): string[] {
+  if (!scene) return [];
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(scene);
+  } catch {
+    return [];
+  }
+
+  const found = new Set<string>();
+  const walk = (value: unknown): void => {
+    if (Array.isArray(value)) {
+      for (const entry of value) walk(entry);
+      return;
+    }
+    if (typeof value !== 'object' || value === null) return;
+    for (const [key, entry] of Object.entries(value)) {
+      if (key === 'imageIdentifier' && typeof entry === 'string' && entry.length > 0) found.add(entry);
+      else walk(entry);
+    }
+  };
+  walk(parsed);
+  return [...found];
 }

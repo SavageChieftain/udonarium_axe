@@ -8,6 +8,7 @@ import { ObjectStore } from '@axe/core/sync/object-store';
 import { CutIn } from '@axe/domain/media/cut-in';
 import { CutInLayer } from '@axe/domain/media/cut-in-layer';
 import { CutInScene } from '@axe/domain/media/cut-in-scene';
+import { WhiteBoard } from '@axe/domain/tabletop/white-board';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
 
 describe('SaveDataService', () => {
@@ -17,6 +18,7 @@ describe('SaveDataService', () => {
     createChatLogImageSrc: (image: ImageFile, maxDimension: number, square?: boolean) => Promise<string>;
     convertToXml: (gameObject: unknown) => string;
     searchImageFiles: (xml: string) => ImageFile[];
+    withCarried: (found: ImageFile[], carriers: readonly unknown[]) => ImageFile[];
     saveAsync: (files: File[], zipName: string, updateCallback?: (percent: number) => void) => Promise<void>;
   };
 
@@ -277,6 +279,48 @@ describe('SaveDataService', () => {
       const found = privateApi.searchImageFiles(ObjectSerializer.instance.toXml(cutIn));
 
       expect(found.map((image) => image.identifier)).toContain('layer-image-01');
+    });
+  });
+
+  describe('the pictures a board carries inside its drawing', () => {
+    afterEach(() => {
+      const store = ObjectStore.instance;
+      store.getObjects().forEach((object) => store.delete(object, false));
+      store.clearDeleteHistory();
+    });
+
+    it('bundles a sticker that no walk of the XML would have found', () => {
+      const service = TestBed.inject(SaveDataService);
+      const privateApi = service as unknown as SaveDataServicePrivateApi;
+      ImageStorage.instance.add(ImageFile.createEmpty('stuck-on-the-board'));
+
+      const board = WhiteBoard.create('board', 6, 4, 1);
+      board.scene = JSON.stringify({ layers: [{ kind: 'image', items: [{ imageIdentifier: 'stuck-on-the-board' }] }] });
+
+      const bundled = privateApi.withCarried([], [board]);
+
+      expect(bundled.map((image) => image.identifier)).toEqual(['stuck-on-the-board']);
+    });
+
+    it('bundles a picture only once, however it was come by', () => {
+      const service = TestBed.inject(SaveDataService);
+      const privateApi = service as unknown as SaveDataServicePrivateApi;
+      const already = ImageStorage.instance.add(ImageFile.createEmpty('both-ways'));
+
+      const board = WhiteBoard.create('board', 6, 4, 1);
+      board.scene = JSON.stringify({ layers: [{ kind: 'image', items: [{ imageIdentifier: 'both-ways' }] }] });
+
+      expect(privateApi.withCarried([already], [board])).toHaveLength(1);
+    });
+
+    it('passes over a picture the board names that the room has never held', () => {
+      const service = TestBed.inject(SaveDataService);
+      const privateApi = service as unknown as SaveDataServicePrivateApi;
+
+      const board = WhiteBoard.create('board', 6, 4, 1);
+      board.scene = JSON.stringify({ layers: [{ kind: 'image', items: [{ imageIdentifier: 'never-seen' }] }] });
+
+      expect(privateApi.withCarried([], [board])).toEqual([]);
     });
   });
 });

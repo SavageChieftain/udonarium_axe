@@ -10,6 +10,7 @@ import { ImageFile, ImageState } from '@axe/core/storage/image-file';
 import { ImageStorage } from '@axe/core/storage/image-storage';
 import * as MimeType from '@axe/core/storage/mime-type';
 import { GameObject } from '@axe/core/sync/game-object';
+import { ObjectStore } from '@axe/core/sync/object-store';
 import { downloadBlob } from '@axe/core/util/download-blob';
 import { formatXml } from '@axe/core/util/format-xml';
 import { PromiseQueue } from '@axe/core/util/promise-queue';
@@ -19,9 +20,11 @@ import { ChatTab } from '@axe/domain/chat/chat-tab';
 import { ChatTabList } from '@axe/domain/chat/chat-tab-list';
 import { DataSummarySetting } from '@axe/domain/data/data-summary-setting';
 import { AudioTagList } from '@axe/domain/media/audio-tag-list';
+import { carriedImagesOf } from '@axe/domain/media/carried-images';
 import { ImageTagList } from '@axe/domain/media/image-tag-list';
 import { Config } from '@axe/domain/peer/config';
 import { Room } from '@axe/domain/peer/room';
+import { WhiteBoard } from '@axe/domain/tabletop/white-board';
 type UpdateCallback = (percent: number) => void;
 
 @Injectable({
@@ -87,7 +90,10 @@ export class SaveDataService {
   private buildRoomFiles(): File[] {
     const { roomXml, chatXml, files } = this.buildRoomXmlParts();
 
-    const images: ImageFile[] = [...this.searchImageFiles(roomXml), ...this.searchImageFiles(chatXml)];
+    const images: ImageFile[] = this.withCarried(
+      [...this.searchImageFiles(roomXml), ...this.searchImageFiles(chatXml)],
+      ObjectStore.instance.getObjects(WhiteBoard)
+    );
     for (const image of images) {
       const file = this.createImageArchiveFile(image);
       if (file) files.push(file);
@@ -120,7 +126,7 @@ export class SaveDataService {
     const xml: string = this.convertToXml(gameObject);
 
     files.push(new File([xml], 'data.xml', { type: 'text/plain' }));
-    const images: ImageFile[] = this.searchImageFiles(xml);
+    const images: ImageFile[] = this.withCarried(this.searchImageFiles(xml), [gameObject]);
     for (const image of images) {
       const file = this.createImageArchiveFile(image);
       if (file) files.push(file);
@@ -157,6 +163,19 @@ export class SaveDataService {
     const xmlDeclaration = '<?xml version="1.0" encoding="UTF-8"?>';
     return formatXml(xmlDeclaration + gameObject.toXml(), { indentation: '  ', lineSeparator: '\n' });
   }
+  /** Adds the pictures an object names for itself, which no walk of its XML could find. */
+  private withCarried(found: ImageFile[], carriers: readonly unknown[]): ImageFile[] {
+    const kept = new Map(found.map((image) => [image.identifier, image]));
+    for (const carrier of carriers) {
+      for (const identifier of carriedImagesOf(carrier)) {
+        if (kept.has(identifier)) continue;
+        const image = this.imageStorage.get(identifier);
+        if (image) kept.set(identifier, image);
+      }
+    }
+    return [...kept.values()];
+  }
+
   private searchImageFiles(xml: string): ImageFile[] {
     const xmlElement: Element | null = xml2element(xml);
 

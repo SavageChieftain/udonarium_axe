@@ -100,3 +100,54 @@ describe('setBoardHeightKeepingFoot()', () => {
     expect(board.location.surface).toBe('north-wall');
   });
 });
+
+describe('the pictures a board carries', () => {
+  function boardWith(scene: unknown): WhiteBoard {
+    const board = WhiteBoard.create('board', 6, 4, 1);
+    board.scene = JSON.stringify(scene);
+    return board;
+  }
+
+  it('names every picture stuck onto it, however deep in the drawing it sits', () => {
+    const board = boardWith({
+      layers: [
+        { kind: 'image', items: [{ imageIdentifier: 'one' }, { imageIdentifier: 'two' }] },
+        { kind: 'freehand', strokes: [] },
+      ],
+    });
+
+    expect([...board.carriedImageIdentifiers].sort()).toEqual(['one', 'two']);
+    board.destroy();
+  });
+
+  it('names each picture once, however many times it was stuck on', () => {
+    const board = boardWith({
+      layers: [{ kind: 'image', items: [{ imageIdentifier: 'same' }, { imageIdentifier: 'same' }] }],
+    });
+
+    expect(board.carriedImageIdentifiers).toEqual(['same']);
+    board.destroy();
+  });
+
+  it('names none for a board with nothing drawn on it', () => {
+    const board = WhiteBoard.create('board', 6, 4, 1);
+
+    expect(board.carriedImageIdentifiers).toEqual([]);
+    board.destroy();
+  });
+
+  it('names none rather than throwing when the drawing cannot be read', () => {
+    const board = WhiteBoard.create('board', 6, 4, 1);
+    board.scene = 'not a drawing at all';
+
+    expect(board.carriedImageIdentifiers).toEqual([]);
+    board.destroy();
+  });
+
+  it('passes over a name that is not a name', () => {
+    const board = boardWith({ layers: [{ kind: 'image', items: [{ imageIdentifier: '' }, { imageIdentifier: 7 }] }] });
+
+    expect(board.carriedImageIdentifiers).toEqual([]);
+    board.destroy();
+  });
+});
