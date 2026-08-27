@@ -3073,7 +3073,9 @@
         "snap": "모눈에 맞추기",
         "zoomIn": "확대 (Ctrl++)",
         "zoomOut": "축소 (Ctrl+-)",
-        "zoomFit": "전체 보기 (Ctrl+9)"
+        "zoomFit": "전체 보기 (Ctrl+9)",
+        "dash": "선 종류",
+        "words": "글자"
       },
       "layer": {
         "freehand": "손그림",
@@ -3091,6 +3093,18 @@
         "hexagon": "육각",
         "star5": "별5",
         "star6": "별6"
+      },
+      "dash": {
+        "solid": "실선",
+        "dashed": "파선",
+        "dotted": "점선",
+        "dashdot": "일점쇄선",
+        "longdash": "긴 파선"
+      },
+      "align": {
+        "left": "왼쪽",
+        "center": "가운데",
+        "right": "오른쪽"
       }
     }
   },

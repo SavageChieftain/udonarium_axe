@@ -11,6 +11,8 @@ import {
   newId,
   ShapeItem,
   ShapeLayer,
+  StrokeDash,
+  TextAlign,
   TextItem,
   TextLayer,
 } from '@axe/features/map-editor/model/scene';
@@ -312,15 +314,53 @@ function strokeBox(points: readonly number[]): MarkBox | null {
   return { x: left, y: top, w: right - left, h: bottom - top };
 }
 
+/**
+ * How wide a line of words is.
+ *
+ * Counting characters and multiplying by six tenths of the size is right for the alphabet
+ * and wrong by nearly half for Japanese, whose characters are a full square each, so a
+ * Japanese line could not be taken hold of by its right half. The editor lends the canvas's
+ * own measurement; the guess below is what is left when there is no canvas to ask.
+ */
+let measureLine: ((text: string, fontSize: number, bold: boolean, italic: boolean) => number) | null = null;
+
+export function useTextMeasurer(measure: typeof measureLine): void {
+  measureLine = measure;
+}
+
+/** Full width characters take a whole square; the rest take about six tenths of one. */
+export function guessLineWidth(text: string, fontSize: number): number {
+  let squares = 0;
+  for (const ch of text) squares += isFullWidth(ch) ? 1 : 0.6;
+  return squares * fontSize;
+}
+
+function isFullWidth(ch: string): boolean {
+  const code = ch.codePointAt(0) ?? 0;
+  return (
+    (code >= 0x1100 && code <= 0x115f) ||
+    (code >= 0x2e80 && code <= 0xa4cf) ||
+    (code >= 0xac00 && code <= 0xd7a3) ||
+    (code >= 0xf900 && code <= 0xfaff) ||
+    (code >= 0xfe30 && code <= 0xfe6f) ||
+    (code >= 0xff00 && code <= 0xff60) ||
+    (code >= 0xffe0 && code <= 0xffe6)
+  );
+}
+
+export function lineWidth(text: string, item: TextItem): number {
+  return measureLine ? measureLine(text, item.fontSize, item.bold, item.italic) : guessLineWidth(text, item.fontSize);
+}
+
 /** Words are drawn from their top, and a note carries a card round them. */
 export function textBox(item: TextItem): MarkBox {
   const lines = item.text.split('\n');
-  const widest = lines.reduce((most, line) => Math.max(most, line.length), 1);
+  const widest = lines.reduce((most, line) => Math.max(most, lineWidth(line, item)), item.fontSize);
   const pad = item.background ? item.fontSize * 0.5 : 0;
   return {
     x: item.x - pad,
     y: item.y - pad,
-    w: widest * item.fontSize * 0.6 + pad * 2,
+    w: widest + pad * 2,
     h: lines.length * item.fontSize * 1.2 + pad * 2,
   };
 }
@@ -685,4 +725,69 @@ function mapPairs(points: readonly number[], turn: (x: number, y: number) => [nu
     out.push(x, y);
   }
   return out;
+}
+
+/** What a mark is drawn in, so what is already on the board can be changed rather than redrawn. */
+export interface MarkStyleChange {
+  color?: string;
+  width?: number;
+  fontSize?: number;
+  background?: string | null;
+  bold?: boolean;
+  italic?: boolean;
+  align?: TextAlign;
+  dash?: StrokeDash;
+  filled?: boolean;
+}
+
+/**
+ * Restyles what is held.
+ *
+ * A line drawn in the wrong colour was a line to be rubbed out and drawn again, which is not
+ * how anything else works: the ink settings reach what is already down, not only what is next.
+ */
+export function restyleMark(scene: MapScene, ref: MarkRef, change: MarkStyleChange): void {
+  for (const layer of scene.layers) {
+    if (ref.kind === 'stroke' && layer.kind === 'freehand') {
+      const item = layer.strokes.find((entry) => entry.id === ref.id);
+      if (!item) continue;
+      if (change.color) item.color = item.color.startsWith('rgba') ? withAlpha(change.color, 0.38) : change.color;
+      if (change.width) item.width = change.width;
+    }
+    if (ref.kind === 'shape' && layer.kind === 'shape') {
+      const item = layer.items.find((entry) => entry.id === ref.id);
+      if (!item) continue;
+      if (item.stroke) {
+        if (change.color) item.stroke.color = change.color;
+        if (change.width) item.stroke.width = change.width;
+        if (change.dash) item.stroke.dash = change.dash;
+      }
+      if (change.filled !== undefined) {
+        item.fill = change.filled ? { type: 'solid', color: change.color ?? item.stroke?.color ?? '#000000' } : null;
+      } else if (change.color && item.fill?.type === 'solid') {
+        item.fill = { type: 'solid', color: change.color };
+      }
+    }
+    if (ref.kind === 'text' && layer.kind === 'text') {
+      const item = layer.items.find((entry) => entry.id === ref.id);
+      if (!item) continue;
+      if (change.color) item.color = change.color;
+      if (change.fontSize) item.fontSize = change.fontSize;
+      if (change.bold !== undefined) item.bold = change.bold;
+      if (change.italic !== undefined) item.italic = change.italic;
+      if (change.align) item.align = change.align;
+      if (change.background !== undefined) item.background = change.background ?? undefined;
+    }
+  }
+}
+
+/** The words already written, so they can be typed over rather than written again. */
+export function wordsOf(scene: MapScene, ref: MarkRef): TextItem | null {
+  if (ref.kind !== 'text') return null;
+  for (const layer of scene.layers) {
+    if (layer.kind !== 'text') continue;
+    const item = layer.items.find((entry) => entry.id === ref.id);
+    if (item) return item;
+  }
+  return null;
 }

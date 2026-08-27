@@ -2843,7 +2843,9 @@
         "snap": "Snap to the ruling",
         "zoomIn": "Zoom in (Ctrl++)",
         "zoomOut": "Zoom out (Ctrl+-)",
-        "zoomFit": "Fit the panel (Ctrl+9)"
+        "zoomFit": "Fit the panel (Ctrl+9)",
+        "dash": "Line",
+        "words": "Words"
       },
       "layer": {
         "freehand": "Drawing",
@@ -2861,6 +2863,18 @@
         "hexagon": "Hexagon",
         "star5": "Star 5",
         "star6": "Star 6"
+      },
+      "dash": {
+        "solid": "Solid",
+        "dashed": "Dashed",
+        "dotted": "Dotted",
+        "dashdot": "Dash dot",
+        "longdash": "Long dash"
+      },
+      "align": {
+        "left": "Left",
+        "center": "Centre",
+        "right": "Right"
       }
     }
   },

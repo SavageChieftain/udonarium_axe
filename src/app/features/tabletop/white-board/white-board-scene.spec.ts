@@ -10,11 +10,13 @@ import {
   GRAPH_SPACINGS,
   groupLayers,
   groupNames,
+  guessLineWidth,
   handleAt,
   handleUnder,
   highlighterStyle,
   imageLayer,
   layerFor,
+  lineWidth,
   markUnder,
   moveMark,
   noteAt,
@@ -22,6 +24,7 @@ import {
   removeMark,
   renameGroup,
   restack,
+  restyleMark,
   rubOutStrokes,
   ruleBoard,
   scaleMark,
@@ -34,7 +37,9 @@ import {
   textBox,
   textLayer,
   turnMark,
+  useTextMeasurer,
   wordsAt,
+  wordsOf,
 } from '@axe/features/tabletop/white-board/white-board-scene';
 
 const style = { color: '#112233', width: 5, fontSize: 20 };
@@ -474,5 +479,96 @@ describe('copyMark(), restack() and turnMark()', () => {
 
     expect(after.x + after.w / 2).toBeCloseTo(before.x + before.w / 2, 5);
     expect(after.y + after.h / 2).toBeCloseTo(before.y + before.h / 2, 5);
+  });
+});
+
+describe('measuring words', () => {
+  it('gives a full square to a full width character and less to the alphabet', () => {
+    // Counting characters alike is wrong by nearly half for Japanese, whose characters are
+    // a full square each, and a line measured short cannot be taken hold of by its right half.
+    expect(guessLineWidth('ああああ', 20)).toBeCloseTo(80, 5);
+    expect(guessLineWidth('aaaa', 20)).toBeCloseTo(48, 5);
+  });
+
+  it('measures with the canvas where there is one to ask', () => {
+    useTextMeasurer(() => 123);
+
+    expect(lineWidth('anything', wordsAt({ x: 0, y: 0 }, 'anything', style))).toBe(123);
+
+    useTextMeasurer(null);
+  });
+
+  it('draws a box round the words from their top, and round the card of a note', () => {
+    useTextMeasurer(null);
+    const plain = wordsAt({ x: 10, y: 20 }, 'ab', style);
+    const box = textBox(plain);
+
+    expect(box.x).toBe(10);
+    expect(box.y).toBe(20);
+    expect(box.h).toBeCloseTo(style.fontSize * 1.2, 5);
+  });
+});
+
+describe('restyleMark()', () => {
+  function drawn(): MapScene {
+    const scene = createBoardScene(8, 6, 50);
+    addStroke(freehandLayer(scene), penStroke([0, 0, 10, 10], style));
+    addShape(shapeLayer(scene), shapeBetween('rect', { x: 0, y: 0 }, { x: 40, y: 40 }, style));
+    addText(textLayer(scene), wordsAt({ x: 100, y: 100 }, 'hi', style));
+    return scene;
+  }
+
+  it('recolours a line already drawn rather than making it be drawn again', () => {
+    const scene = drawn();
+    const stroke = scene.layers.find((l) => l.kind === 'freehand')! as {
+      strokes: { id: string; color: string; width: number }[];
+    };
+
+    restyleMark(scene, { kind: 'stroke', id: stroke.strokes[0].id }, { color: '#ff0000', width: 9 });
+
+    expect(stroke.strokes[0].color).toBe('#ff0000');
+    expect(stroke.strokes[0].width).toBe(9);
+  });
+
+  it('keeps a marker see through when its colour is changed', () => {
+    const scene = drawn();
+    const layer = scene.layers.find((l) => l.kind === 'freehand')! as { strokes: { id: string; color: string }[] };
+    layer.strokes[0].color = 'rgba(0,0,0,0.38)';
+
+    restyleMark(scene, { kind: 'stroke', id: layer.strokes[0].id }, { color: '#00ff00' });
+
+    expect(layer.strokes[0].color).toMatch(/^rgba\(/);
+  });
+
+  it('fills and unfills a shape already drawn', () => {
+    const scene = drawn();
+    const shapes = scene.layers.find((l) => l.kind === 'shape')! as { items: { id: string; fill: unknown }[] };
+    const ref = { kind: 'shape' as const, id: shapes.items[0].id };
+
+    restyleMark(scene, ref, { filled: true, color: '#123456' });
+    expect(shapes.items[0].fill).toEqual({ type: 'solid', color: '#123456' });
+
+    restyleMark(scene, ref, { filled: false });
+    expect(shapes.items[0].fill).toBeNull();
+  });
+
+  it('sets the weight and the side words are set to', () => {
+    const scene = drawn();
+    const texts = scene.layers.find((l) => l.kind === 'text')! as {
+      items: { id: string; bold: boolean; align: string }[];
+    };
+
+    restyleMark(scene, { kind: 'text', id: texts.items[0].id }, { bold: true, align: 'center' });
+
+    expect(texts.items[0].bold).toBe(true);
+    expect(texts.items[0].align).toBe('center');
+  });
+
+  it('hands back the words already written, so they can be typed over', () => {
+    const scene = drawn();
+    const texts = scene.layers.find((l) => l.kind === 'text')! as { items: { id: string }[] };
+
+    expect(wordsOf(scene, { kind: 'text', id: texts.items[0].id })?.text).toBe('hi');
+    expect(wordsOf(scene, { kind: 'shape', id: 'whatever' })).toBeNull();
   });
 });

@@ -25,6 +25,9 @@ import {
   sceneHeightPx,
   sceneWidthPx,
   ShapeItem,
+  StrokeDash,
+  TextAlign,
+  TextItem,
 } from '@axe/features/map-editor/model/scene';
 import {
   addImage,
@@ -36,6 +39,7 @@ import {
   removeImage,
   removeLayer,
   removeText,
+  updateText,
 } from '@axe/features/map-editor/model/scene-ops';
 import { deserializeScene, serializeScene } from '@axe/features/map-editor/model/serialize';
 import { getRasterImage, warmRasterImages } from '@axe/features/map-editor/render/raster-image';
@@ -55,6 +59,7 @@ import {
   GRAPH_SPACINGS,
   groupLayers,
   groupNames,
+  guessLineWidth,
   Handle,
   handleAt,
   HANDLES,
@@ -64,6 +69,7 @@ import {
   LayerGroup,
   MarkBox,
   MarkRef,
+  MarkStyleChange,
   markUnder,
   moveMark,
   noteAt,
@@ -71,6 +77,7 @@ import {
   removeMark,
   renameGroup,
   restack,
+  restyleMark,
   rubOutStrokes,
   ruleBoard,
   scaleMark,
@@ -82,7 +89,9 @@ import {
   straightLine,
   textLayer,
   turnMark,
+  useTextMeasurer,
   wordsAt,
+  wordsOf,
 } from '@axe/features/tabletop/white-board/white-board-scene';
 import { FileSelecterComponent } from '@axe/ui/components/file-selecter/file-selecter.component';
 import { TranslocoModule } from '@jsverse/transloco';
@@ -183,6 +192,32 @@ export class WhiteBoardEditorComponent {
   readonly color = signal('#1a1a1a');
   readonly strokeWidth = signal(4);
   readonly fontSize = signal(24);
+  readonly bold = signal(false);
+  readonly italic = signal(false);
+  readonly align = signal<TextAlign>('left');
+  readonly dash = signal<StrokeDash>('solid');
+
+  /**
+   * Ink settings reach what is already down as well as what is next.
+   *
+   * A line drawn in the wrong colour was a line to be rubbed out and drawn again, which is
+   * not how anything else works.
+   */
+  protected setInk(change: MarkStyleChange): void {
+    if (change.color !== undefined) this.color.set(change.color);
+    if (change.width !== undefined) this.strokeWidth.set(change.width);
+    if (change.fontSize !== undefined) this.fontSize.set(change.fontSize);
+    if (change.bold !== undefined) this.bold.set(change.bold);
+    if (change.italic !== undefined) this.italic.set(change.italic);
+    if (change.align !== undefined) this.align.set(change.align);
+    if (change.dash !== undefined) this.dash.set(change.dash);
+    if (change.filled !== undefined) this.filled.set(change.filled);
+
+    const held = this.held2();
+    if (held.length < 1) return;
+    for (const mark of held) restyleMark(this.scene, mark, change);
+    this.touched();
+  }
 
   readonly spacings = GRAPH_SPACINGS;
   readonly zooms = BOARD_ZOOMS;
@@ -260,6 +295,8 @@ export class WhiteBoardEditorComponent {
     this.zoomAbout(this.zoom() * by, { x: event.clientX, y: event.clientY });
   }
   readonly shapes = BOARD_SHAPES;
+  readonly dashes: readonly StrokeDash[] = ['solid', 'dashed', 'dotted', 'dashdot', 'longdash'];
+  readonly alignments: readonly TextAlign[] = ['left', 'center', 'right'];
   readonly shapeKind = signal<ShapeGeneratorKind>('rect');
   readonly filled = signal(false);
   readonly noteColor = signal('#fff59d');
@@ -276,6 +313,7 @@ export class WhiteBoardEditorComponent {
   private history = new SceneHistory(createBoardScene(4, 3, 50));
   private clipboard: MarkRef | null = null;
   private panFrom: { x: number; y: number } | null = null;
+  private retyping: MarkRef | null = null;
   private board: WhiteBoard | null = null;
   private scene: MapScene = createBoardScene(4, 3, 50);
   private saveTimer: ReturnType<typeof setTimeout> | null = null;
@@ -527,6 +565,19 @@ export class WhiteBoardEditorComponent {
     this.touched();
   }
 
+  constructor() {
+    // The canvas measures what it will actually draw, which is the only honest measurement.
+    useTextMeasurer((text, fontSize, bold, italic) => {
+      const ctx = this.canvasRef()?.nativeElement.getContext('2d');
+      if (!ctx) return guessLineWidth(text, fontSize);
+      ctx.save();
+      ctx.font = `${italic ? 'italic ' : ''}${bold ? 'bold ' : ''}${fontSize}px sans-serif`;
+      const width = ctx.measureText(text).width;
+      ctx.restore();
+      return width;
+    });
+  }
+
   bindToBoard(board: WhiteBoard): void {
     this.board = board;
     const grid = this.tabletopService.gridSize();
@@ -662,6 +713,16 @@ export class WhiteBoardEditorComponent {
 
   private style() {
     return { color: this.color(), width: this.strokeWidth(), fontSize: this.fontSize() };
+  }
+
+  private wordStyle(): TextItem {
+    return { bold: this.bold(), italic: this.italic(), align: this.align() } as TextItem;
+  }
+
+  /** Everything held, which is one mark today and may be several tomorrow. */
+  private held2(): MarkRef[] {
+    const one = this.selected();
+    return one ? [one] : [];
   }
 
   /**
@@ -954,14 +1015,41 @@ export class WhiteBoardEditorComponent {
     }
   }
 
+  /** Words already written are typed over rather than written again. */
+  protected onDoubleClick(event: PointerEvent): void {
+    const at = this.pointOf(event);
+    const mark = markUnder(this.scene, at);
+    const words = mark ? wordsOf(this.scene, mark) : null;
+    if (!words) return;
+    this.retyping = mark;
+    this.typedText = words.text;
+    this.typing.set({ x: words.x, y: words.y });
+  }
+
   protected commitText(): void {
     const at = this.typing();
     const words = this.typedText.trim();
+    const over = this.retyping;
     this.typing.set(null);
     this.typedText = '';
+    this.retyping = null;
+
+    if (over) {
+      if (words.length < 1) removeMark(this.scene, over);
+      else updateText(textLayer(this.scene, this.activeLayerId()), over.id, { text: words });
+      this.touched();
+      return;
+    }
     if (!at || words.length < 1) return;
-    const written =
-      this.tool() === 'note' ? noteAt(at, words, this.style(), this.noteColor()) : wordsAt(at, words, this.style());
+    const marks = this.wordStyle();
+    const written = {
+      ...(this.tool() === 'note'
+        ? noteAt(at, words, this.style(), this.noteColor())
+        : wordsAt(at, words, this.style())),
+      bold: marks.bold,
+      italic: marks.italic,
+      align: marks.align,
+    };
     addText(textLayer(this.scene, this.activeLayerId()), written);
     this.tool.set('select');
     this.selected.set({ kind: 'text', id: written.id });

@@ -54,7 +54,7 @@
           type="color"
           name="board-ink"
           [ngModel]="color()"
-          (ngModelChange)="color.set($event)"
+          (ngModelChange)="setInk({ color: $event })"
         />
       </label>
       <label class="flex items-center justify-between gap-2">
@@ -67,9 +67,26 @@
           max="24"
           step="1"
           [ngModel]="strokeWidth()"
-          (ngModelChange)="strokeWidth.set($event)"
+          (ngModelChange)="setInk({ width: +$event })"
         />
       </label>
+      <label class="flex items-center justify-between gap-2">
+        <span class="text-ui-muted">{{ 'feature.whiteBoard.editor.dash' | transloco }}</span>
+        <select
+          class="bg-ui-input rounded-ui-sm px-1 py-0.5"
+          name="board-dash"
+          [ngModel]="dash()"
+          (ngModelChange)="setInk({ dash: $event })"
+        >
+          @for (kind of dashes; track kind) {
+            <option [value]="kind">{{ 'feature.whiteBoard.dash.' + kind | transloco }}</option>
+          }
+        </select>
+      </label>
+    </div>
+
+    <div class="flex flex-col gap-1.5">
+      <div class="font-semibold">{{ 'feature.whiteBoard.editor.words' | transloco }}</div>
       <label class="flex items-center justify-between gap-2">
         <span class="text-ui-muted">{{ 'feature.whiteBoard.editor.fontSize' | transloco }}</span>
         <input
@@ -80,9 +97,41 @@
           max="72"
           step="2"
           [ngModel]="fontSize()"
-          (ngModelChange)="fontSize.set($event)"
+          (ngModelChange)="setInk({ fontSize: +$event })"
         />
       </label>
+      <div class="flex items-center gap-1">
+        <button
+          class="rounded-ui-sm hover:bg-ui-hover cursor-pointer border border-solid px-2 py-0.5 font-bold"
+          type="button"
+          [class.border-ui-accent]="bold()"
+          [class.border-transparent]="!bold()"
+          (click)="setInk({ bold: !bold() })"
+        >
+          B
+        </button>
+        <button
+          class="rounded-ui-sm hover:bg-ui-hover cursor-pointer border border-solid px-2 py-0.5 italic"
+          type="button"
+          [class.border-ui-accent]="italic()"
+          [class.border-transparent]="!italic()"
+          (click)="setInk({ italic: !italic() })"
+        >
+          I
+        </button>
+        @for (side of alignments; track side) {
+          <button
+            class="rounded-ui-sm hover:bg-ui-hover cursor-pointer border border-solid px-1 py-0.5"
+            type="button"
+            [class.border-ui-accent]="align() === side"
+            [class.border-transparent]="align() !== side"
+            [title]="'feature.whiteBoard.align.' + side | transloco"
+            (click)="setInk({ align: side })"
+          >
+            <i class="material-icons text-[15px]!">format_align_{{ side }}</i>
+          </button>
+        }
+      </div>
     </div>
 
     @if (tool() === 'note') {
@@ -95,7 +144,7 @@
             type="color"
             name="board-card"
             [ngModel]="noteColor()"
-            (ngModelChange)="noteColor.set($event)"
+            (ngModelChange)="setInk({ background: $event }); noteColor.set($event)"
           />
         </label>
       </div>
@@ -118,7 +167,12 @@
           }
         </div>
         <label class="flex cursor-pointer items-center gap-1.5">
-          <input type="checkbox" name="board-filled" [ngModel]="filled()" (ngModelChange)="filled.set($event)" />
+          <input
+            type="checkbox"
+            name="board-filled"
+            [ngModel]="filled()"
+            (ngModelChange)="setInk({ filled: $event })"
+          />
           {{ 'feature.whiteBoard.editor.filled' | transloco }}
         </label>
       </div>
@@ -360,6 +414,7 @@
         <canvas
           #board
           class="block h-auto w-full touch-none bg-white shadow-md"
+          (dblclick)="onDoubleClick($any($event))"
           (pointerdown)="onPointerDown($event)"
           (pointermove)="onPointerMove($event)"
           (pointerup)="onPointerUp($event)"

@@ -2843,7 +2843,9 @@
         "snap": "方眼に合わせる",
         "zoomIn": "拡大（Ctrl++）",
         "zoomOut": "縮小（Ctrl+-）",
-        "zoomFit": "全体を表示（Ctrl+9）"
+        "zoomFit": "全体を表示（Ctrl+9）",
+        "dash": "線の種類",
+        "words": "文字"
       },
       "layer": {
         "freehand": "手描き",
@@ -2861,6 +2863,18 @@
         "hexagon": "六角",
         "star5": "星5",
         "star6": "星6"
+      },
+      "dash": {
+        "solid": "実線",
+        "dashed": "破線",
+        "dotted": "点線",
+        "dashdot": "一点鎖線",
+        "longdash": "長破線"
+      },
+      "align": {
+        "left": "左揃え",
+        "center": "中央揃え",
+        "right": "右揃え"
       }
     }
   },
