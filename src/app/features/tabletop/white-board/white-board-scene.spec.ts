@@ -43,6 +43,7 @@ import {
   moveMark,
   newGuide,
   noteAt,
+  overlaysWanted,
   pathThrough,
   penStroke,
   pictureOf,
@@ -1130,5 +1131,21 @@ describe('squareOff()', () => {
 
   it('leaves a line that goes nowhere where it is', () => {
     expect(squareOff(from, from)).toEqual(from);
+  });
+});
+
+describe('overlaysWanted()', () => {
+  it('keeps the guides, the hold and the line being laid down when the paper is plain', () => {
+    expect(overlaysWanted(false, false)).toEqual({ grid: false, helpers: true });
+  });
+
+  it('draws the ruling only when the reader asked for it', () => {
+    expect(overlaysWanted(false, true).grid).toBe(true);
+    expect(overlaysWanted(false, false).grid).toBe(false);
+  });
+
+  it('takes everything off for the picture the board wears, ruled paper or not', () => {
+    expect(overlaysWanted(true, true)).toEqual({ grid: false, helpers: false });
+    expect(overlaysWanted(true, false)).toEqual({ grid: false, helpers: false });
   });
 });

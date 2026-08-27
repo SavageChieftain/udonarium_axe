@@ -1284,3 +1284,23 @@ export function squareOff(from: BoardPoint, to: BoardPoint): BoardPoint {
   const turn = Math.round(Math.atan2(dy, dx) / step) * step;
   return { x: from.x + Math.cos(turn) * reach, y: from.y + Math.sin(turn) * reach };
 }
+
+/** What the sheet wears over the marks while it is being worked on. */
+export interface Overlays {
+  /** The ruling, which is the one thing the reader chooses to see or not. */
+  grid: boolean;
+  /** The guides, the hold and its grips, the band, and whatever is still under the pointer. */
+  helpers: boolean;
+}
+
+/**
+ * Whether to draw over the marks, and what.
+ *
+ * These are all for whoever is drawing rather than part of what is drawn, so they come off
+ * together when the picture the board wears is taken. Ruling the paper is a separate question,
+ * asked of the reader: turning it off must not take the guides, the hold or the line still
+ * being laid down away with it.
+ */
+export function overlaysWanted(bare: boolean, gridVisible: boolean): Overlays {
+  return { grid: !bare && gridVisible, helpers: !bare };
+}

@@ -89,6 +89,7 @@ import {
   moveMark,
   newGuide,
   noteAt,
+  overlaysWanted,
   pathThrough,
   penStroke,
   pictureOf,
@@ -899,7 +900,7 @@ export class WhiteBoardEditorComponent {
       return;
     }
     if (this.dragFrom) {
-      this.dragTo = at;
+      this.dragTo = this.reachedTo(at);
       void this.redraw();
     }
   }
@@ -922,18 +923,22 @@ export class WhiteBoardEditorComponent {
 
     if (this.dragFrom) {
       const from = this.dragFrom;
+      // What was previewed is what is laid down: the guides and the shift key had their say
+      // on the way, and a mark that ignored them would land somewhere the reader never saw.
+      const to = this.dragTo ?? this.reachedTo(at);
       this.dragFrom = null;
       this.dragTo = null;
-      const far = Math.hypot(at.x - from.x, at.y - from.y) > 4;
+      const far = Math.hypot(to.x - from.x, to.y - from.y) > 4;
       if (far) {
         const tool = this.tool();
         const mark =
           tool === 'line'
-            ? straightLine(from, at, this.style())
+            ? straightLine(from, to, this.style())
             : tool === 'arrow'
-              ? arrowBetween(from, at, this.style())
-              : shapeBetween(this.shapeKind(), from, at, this.style(), this.filled());
+              ? arrowBetween(from, to, this.style())
+              : shapeBetween(this.shapeKind(), from, to, this.style(), this.filled());
         addShape(shapeLayer(this.scene, this.activeLayerId()), mark);
+        this.hold([{ kind: 'shape', id: mark.id }]);
       }
     }
     if (this.bandFrom && this.bandTo) {
@@ -977,7 +982,7 @@ export class WhiteBoardEditorComponent {
    */
   private pendingMark(): ShapeItem | null {
     const from = this.dragFrom;
-    const to = this.reachedTo();
+    const to = this.dragTo;
     if (!from || !to) return null;
     const tool = this.tool();
     if (tool === 'line') return straightLine(from, to, this.style());
@@ -992,12 +997,14 @@ export class WhiteBoardEditorComponent {
    * A line meant to be upright is never quite upright when it is dragged by hand, and a box
    * meant to sit under another is never quite under it.
    */
-  private reachedTo(): BoardPoint | null {
+  private reachedTo(to: BoardPoint): BoardPoint {
     const from = this.dragFrom;
-    const to = this.dragTo;
-    if (!from || !to) return null;
+    if (!from) return to;
     const tool = this.tool();
-    if (this.keepingShape && (tool === 'line' || tool === 'arrow')) return squareOff(from, to);
+    if (this.keepingShape && (tool === 'line' || tool === 'arrow')) {
+      this.showing.set([]);
+      return squareOff(from, to);
+    }
     if (!this.guiding()) return to;
 
     const box = {
@@ -1553,10 +1560,11 @@ export class WhiteBoardEditorComponent {
   /**
    * Draws the board as it stands, plus the stroke still under the pen.
    *
-   * The ruling is a guide for whoever is drawing, not something printed on the board, so it
-   * is left off when the picture the board wears is taken.
+   * The ruling, the guides and the hold are for whoever is drawing, not part of what is
+   * drawn, so a bare pass leaves them all off when the picture the board wears is taken.
+   * Whether the paper is ruled says nothing about whether any of the rest is wanted.
    */
-  private async redraw(pending?: number[], ruled = this.scene.gridVisible): Promise<void> {
+  private async redraw(pending?: number[], bare = false): Promise<void> {
     const canvas = this.canvasRef()?.nativeElement;
     if (!canvas) return;
     canvas.width = this.sceneWidth;
@@ -1564,11 +1572,12 @@ export class WhiteBoardEditorComponent {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    await this.paintMarks(ctx, ruled);
+    const wants = overlaysWanted(bare, this.scene.gridVisible);
+    await this.paintMarks(ctx, wants.grid);
 
     const box = boxAround(this.scene, this.held());
     const window = this.trimming();
-    if (box && window && ruled !== false) {
+    if (box && window && wants.helpers) {
       // What is being trimmed away is greyed over, so what is left is what is being kept.
       const cut = { x: box.x + window.x, y: box.y + window.y, w: window.w, h: window.h };
       ctx.save();
@@ -1588,7 +1597,7 @@ export class WhiteBoardEditorComponent {
         ctx.fillRect(at.x - grip / 2, at.y - grip / 2, grip, grip);
       }
       ctx.restore();
-    } else if (box && ruled !== false) {
+    } else if (box && wants.helpers) {
       // The hold is drawn on the sheet but is not part of it, so it is left off the picture.
       ctx.save();
       ctx.strokeStyle = '#2f7fd8';
@@ -1618,7 +1627,7 @@ export class WhiteBoardEditorComponent {
       ctx.restore();
     }
 
-    if (ruled !== false) {
+    if (wants.helpers) {
       const standing = this.guiding() ? sheetGuides(this.scene) : [];
       const laid: SnapGuide[] = this.guides.map((guide) => ({
         axis: guide.axis,
@@ -1631,7 +1640,7 @@ export class WhiteBoardEditorComponent {
     }
 
     const laying = this.laying();
-    if (laying.length > 0 && ruled !== false) {
+    if (laying.length > 0 && wants.helpers) {
       ctx.save();
       ctx.strokeStyle = this.color();
       ctx.lineWidth = this.strokeWidth();
@@ -1647,7 +1656,7 @@ export class WhiteBoardEditorComponent {
       ctx.restore();
     }
 
-    if (this.bandFrom && this.bandTo && ruled !== false) {
+    if (this.bandFrom && this.bandTo && wants.helpers) {
       const area = boxBetweenPoints(this.bandFrom, this.bandTo);
       ctx.save();
       ctx.strokeStyle = '#2f7fd8';
@@ -1660,7 +1669,7 @@ export class WhiteBoardEditorComponent {
     }
 
     const dragging = this.pendingMark();
-    if (dragging && ruled !== false) this.drawPending(ctx, dragging);
+    if (dragging && wants.helpers) this.drawPending(ctx, dragging);
 
     if (pending && pending.length > 3) {
       ctx.strokeStyle = this.color();
@@ -1696,8 +1705,8 @@ export class WhiteBoardEditorComponent {
     if (!board || !canvas) return;
     board.scene = serializeScene(this.scene);
 
-    // Taken off the sheet with the ruling left off, since the ruling is not part of the board.
-    await this.redraw(undefined, false);
+    // Taken off the sheet bare: neither the ruling nor the guides are part of the board.
+    await this.redraw(undefined, true);
     const blob = await new Promise<Blob | null>((resolve) => {
       if (typeof canvas.toBlob !== 'function') resolve(null);
       else canvas.toBlob((made) => resolve(made), 'image/webp', 0.92);
