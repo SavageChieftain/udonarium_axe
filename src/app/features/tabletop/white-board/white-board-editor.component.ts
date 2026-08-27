@@ -46,11 +46,14 @@ import { getRasterImage, warmRasterImages } from '@axe/features/map-editor/rende
 import { renderScene } from '@axe/features/map-editor/render/render-scene';
 import { detachFromBoard, standingOn } from '@axe/features/tabletop/white-board/white-board-contents';
 import {
+  AlignEdge,
+  alignMarks,
   arrowBetween,
   BOARD_SHAPES,
   BOARD_TOOLS,
   BoardPoint,
   BoardTool,
+  boxAround,
   boxOf,
   copyMark,
   createBoardScene,
@@ -70,6 +73,7 @@ import {
   MarkBox,
   MarkRef,
   MarkStyleChange,
+  marksWithin,
   markUnder,
   moveMark,
   noteAt,
@@ -85,6 +89,7 @@ import {
   shapeLayer,
   showGroup,
   snapTo,
+  spreadMarks,
   stickerAt,
   straightLine,
   textLayer,
@@ -213,7 +218,7 @@ export class WhiteBoardEditorComponent {
     if (change.dash !== undefined) this.dash.set(change.dash);
     if (change.filled !== undefined) this.filled.set(change.filled);
 
-    const held = this.held2();
+    const held = this.held();
     if (held.length < 1) return;
     for (const mark of held) restyleMark(this.scene, mark, change);
     this.touched();
@@ -309,10 +314,13 @@ export class WhiteBoardEditorComponent {
   readonly canUndo = signal(false);
   readonly canRedo = signal(false);
   readonly selected = signal<MarkRef | null>(null);
+  /** Everything held. One mark is the common case; a dragged out box takes several. */
+  readonly held = signal<MarkRef[]>([]);
 
   private history = new SceneHistory(createBoardScene(4, 3, 50));
-  private clipboard: MarkRef | null = null;
+  private clipboard: MarkRef[] = [];
   private panFrom: { x: number; y: number } | null = null;
+  private keepingShape = false;
   private retyping: MarkRef | null = null;
   private board: WhiteBoard | null = null;
   private scene: MapScene = createBoardScene(4, 3, 50);
@@ -320,7 +328,9 @@ export class WhiteBoardEditorComponent {
   private drawingPoints: number[] = [];
   private dragFrom: BoardPoint | null = null;
   private dragTo: BoardPoint | null = null;
-  private held: { ref: MarkRef; grabX: number; grabY: number; handle: Handle | null; box: MarkBox } | null = null;
+  private grabbed: { refs: MarkRef[]; grabX: number; grabY: number; handle: Handle | null; box: MarkBox } | null = null;
+  private bandFrom: BoardPoint | null = null;
+  private bandTo: BoardPoint | null = null;
 
   readonly minPitch = MIN_BOARD_PITCH;
   readonly maxPitch = MAX_BOARD_PITCH;
@@ -644,7 +654,7 @@ export class WhiteBoardEditorComponent {
         this.typing.set(at);
         break;
       case 'select':
-        this.take(at);
+        this.take(at, event.shiftKey);
         break;
       case 'sticker':
         break;
@@ -668,8 +678,13 @@ export class WhiteBoardEditorComponent {
       this.rubOut(at);
       return;
     }
-    if (this.held) {
+    if (this.grabbed) {
       this.shift(at);
+      return;
+    }
+    if (this.bandFrom) {
+      this.bandTo = at;
+      void this.redraw();
       return;
     }
     if (this.dragFrom) {
@@ -707,7 +722,13 @@ export class WhiteBoardEditorComponent {
         addShape(shapeLayer(this.scene, this.activeLayerId()), mark);
       }
     }
-    this.held = null;
+    if (this.bandFrom && this.bandTo) {
+      const area = boxBetweenPoints(this.bandFrom, this.bandTo);
+      if (area.w > 3 || area.h > 3) this.hold(marksWithin(this.scene, area));
+      this.bandFrom = null;
+      this.bandTo = null;
+    }
+    this.grabbed = null;
     this.touched();
   }
 
@@ -719,10 +740,10 @@ export class WhiteBoardEditorComponent {
     return { bold: this.bold(), italic: this.italic(), align: this.align() } as TextItem;
   }
 
-  /** Everything held, which is one mark today and may be several tomorrow. */
-  private held2(): MarkRef[] {
-    const one = this.selected();
-    return one ? [one] : [];
+  private hold(marks: MarkRef[]): void {
+    this.held.set(marks);
+    this.selected.set(marks.length === 1 ? marks[0] : null);
+    this.settingChanged();
   }
 
   /**
@@ -788,21 +809,36 @@ export class WhiteBoardEditorComponent {
     void this.redraw();
   }
 
-  private take(at: BoardPoint): void {
+  private take(at: BoardPoint, adding: boolean): void {
     const chosen = this.selected();
     const box = chosen ? boxOf(this.scene, chosen) : null;
     const handle = box ? handleUnder(at, box, this.handleSlack()) : null;
     if (chosen && box && handle) {
-      this.held = { ref: chosen, grabX: at.x, grabY: at.y, handle, box };
+      this.grabbed = { refs: [chosen], grabX: at.x, grabY: at.y, handle, box };
       return;
     }
 
     const mark = markUnder(this.scene, at);
-    this.selected.set(mark);
-    this.settingChanged();
-    if (!mark) return;
-    const grabbed = boxOf(this.scene, mark);
-    if (grabbed) this.held = { ref: mark, grabX: at.x, grabY: at.y, handle: null, box: grabbed };
+    if (!mark) {
+      // Nothing under the pointer: a box is dragged out to take everything inside it.
+      if (!adding) this.hold([]);
+      this.bandFrom = at;
+      this.bandTo = at;
+      return;
+    }
+
+    const already = this.held();
+    const has = already.some((entry) => entry.kind === mark.kind && entry.id === mark.id);
+    const next = adding
+      ? has
+        ? already.filter((entry) => !(entry.kind === mark.kind && entry.id === mark.id))
+        : [...already, mark]
+      : has
+        ? already
+        : [mark];
+    this.hold(next);
+    const bounds = boxAround(this.scene, next);
+    if (bounds) this.grabbed = { refs: next, grabX: at.x, grabY: at.y, handle: null, box: bounds };
   }
 
   /** A handle has to stay big enough to hit however far the sheet is zoomed out. */
@@ -811,7 +847,7 @@ export class WhiteBoardEditorComponent {
   }
 
   private shift(at: BoardPoint): void {
-    const held = this.held;
+    const held = this.grabbed;
     if (!held) return;
     const dx = at.x - held.grabX;
     const dy = at.y - held.grabY;
@@ -819,13 +855,13 @@ export class WhiteBoardEditorComponent {
     held.grabY = at.y;
 
     if (!held.handle) {
-      moveMark(this.scene, held.ref, dx, dy);
+      for (const ref of held.refs) moveMark(this.scene, ref, dx, dy);
       void this.redraw();
       return;
     }
 
     // Stretched from the corner opposite the one being pulled, the way a picture is stretched.
-    const box = boxOf(this.scene, held.ref);
+    const box = boxAround(this.scene, held.refs);
     if (!box) return;
     const wide = held.handle.includes('e') ? box.w + dx : held.handle.includes('w') ? box.w - dx : box.w;
     const tall = held.handle.includes('s') ? box.h + dy : held.handle.includes('n') ? box.h - dy : box.h;
@@ -837,57 +873,70 @@ export class WhiteBoardEditorComponent {
       w: box.w,
       h: box.h,
     };
-    scaleMark(this.scene, held.ref, anchored, kx, ky);
+    // Held down, a corner keeps the shape of what it is pulling, the way it does elsewhere.
+    const even = this.keepingShape ? Math.max(kx, ky) : 0;
+    for (const ref of held.refs) {
+      scaleMark(this.scene, ref, anchored, even || kx, even || ky);
+    }
     void this.redraw();
   }
 
   protected removeSelected(): void {
-    const mark = this.selected();
-    if (!mark) return;
-    removeMark(this.scene, mark);
-    this.selected.set(null);
+    const marks = this.held();
+    if (marks.length < 1) return;
+    for (const mark of marks) removeMark(this.scene, mark);
+    this.hold([]);
     this.touched();
   }
 
-  /** A copy set down a little off the first, and already in hand, since that is what is next. */
+  protected alignHeld(edge: AlignEdge): void {
+    alignMarks(this.scene, this.held(), edge);
+    this.touched();
+  }
+
+  protected spreadHeld(along: 'x' | 'y'): void {
+    spreadMarks(this.scene, this.held(), along);
+    this.touched();
+  }
+
+  protected holdEverything(): void {
+    this.hold(marksWithin(this.scene, { x: -1e6, y: -1e6, w: 2e6, h: 2e6 }));
+  }
+
+  /** Copies set down a little off the first, and already in hand, since that is what is next. */
   protected duplicateSelected(): void {
-    const mark = this.selected();
-    if (!mark) return;
-    const made = copyMark(this.scene, mark, DUPLICATE_OFFSET);
-    if (made) this.selected.set(made);
+    const made = this.held()
+      .map((mark) => copyMark(this.scene, mark, DUPLICATE_OFFSET))
+      .filter((mark): mark is MarkRef => mark !== null);
+    if (made.length > 0) this.hold(made);
     this.touched();
   }
 
   protected copySelected(): void {
-    this.clipboard = this.selected();
+    this.clipboard = this.held();
   }
 
   protected pasteCopied(): void {
-    const held = this.clipboard;
-    if (!held) return;
-    const made = copyMark(this.scene, held, DUPLICATE_OFFSET);
-    if (made) this.selected.set(made);
+    const made = this.clipboard
+      .map((mark) => copyMark(this.scene, mark, DUPLICATE_OFFSET))
+      .filter((mark): mark is MarkRef => mark !== null);
+    if (made.length < 1) return;
+    this.hold(made);
     this.touched();
   }
 
   protected bringForward(): void {
-    const mark = this.selected();
-    if (!mark) return;
-    restack(this.scene, mark, 1);
+    for (const mark of this.held()) restack(this.scene, mark, 1);
     this.touched();
   }
 
   protected sendBackward(): void {
-    const mark = this.selected();
-    if (!mark) return;
-    restack(this.scene, mark, -1);
+    for (const mark of this.held()) restack(this.scene, mark, -1);
     this.touched();
   }
 
   protected turnSelected(degrees: number): void {
-    const mark = this.selected();
-    if (!mark) return;
-    turnMark(this.scene, mark, degrees);
+    for (const mark of this.held()) turnMark(this.scene, mark, degrees);
     this.touched();
   }
 
@@ -930,6 +979,7 @@ export class WhiteBoardEditorComponent {
   }
 
   protected onKeyUp(event: KeyboardEvent): void {
+    this.keepingShape = event.shiftKey;
     if (event.key === ' ') this.panning.set(false);
   }
 
@@ -937,6 +987,7 @@ export class WhiteBoardEditorComponent {
     const typing = event.target instanceof HTMLInputElement || event.target instanceof HTMLSelectElement;
     if (typing) return;
 
+    this.keepingShape = event.shiftKey;
     if (event.key === ' ') {
       event.preventDefault();
       this.panning.set(true);
@@ -979,6 +1030,11 @@ export class WhiteBoardEditorComponent {
       if (key === '9') {
         event.preventDefault();
         this.zoomToFit();
+        return;
+      }
+      if (key === 'a') {
+        event.preventDefault();
+        this.holdEverything();
         return;
       }
       if (key === 'd') {
@@ -1116,8 +1172,7 @@ export class WhiteBoardEditorComponent {
       { drawGrid: ruled }
     );
 
-    const chosen = this.selected();
-    const box = chosen ? boxOf(this.scene, chosen) : null;
+    const box = boxAround(this.scene, this.held());
     if (box && ruled !== false) {
       // The hold is drawn on the sheet but is not part of it, so it is left off the picture.
       ctx.save();
@@ -1133,6 +1188,18 @@ export class WhiteBoardEditorComponent {
         ctx.fillRect(at.x - grip / 2, at.y - grip / 2, grip, grip);
         ctx.strokeRect(at.x - grip / 2, at.y - grip / 2, grip, grip);
       }
+      ctx.restore();
+    }
+
+    if (this.bandFrom && this.bandTo && ruled !== false) {
+      const area = boxBetweenPoints(this.bandFrom, this.bandTo);
+      ctx.save();
+      ctx.strokeStyle = '#2f7fd8';
+      ctx.fillStyle = 'rgba(47,127,216,0.12)';
+      ctx.lineWidth = 1 / Math.max(0.25, this.zoom());
+      ctx.setLineDash([3, 3]);
+      ctx.fillRect(area.x, area.y, area.w, area.h);
+      ctx.strokeRect(area.x, area.y, area.w, area.h);
       ctx.restore();
     }
 
@@ -1200,4 +1267,14 @@ function clampSide(value: number): number {
   const side = Math.round(Number(value));
   if (!Number.isFinite(side)) return MIN_SIDE;
   return Math.min(MAX_SIDE, Math.max(MIN_SIDE, side));
+}
+
+/** The box two dragged out corners make, whichever way round they were dragged. */
+function boxBetweenPoints(from: BoardPoint, to: BoardPoint): MarkBox {
+  return {
+    x: Math.min(from.x, to.x),
+    y: Math.min(from.y, to.y),
+    w: Math.abs(to.x - from.x),
+    h: Math.abs(to.y - from.y),
+  };
 }

@@ -2845,7 +2845,16 @@
         "zoomOut": "縮小（Ctrl+-）",
         "zoomFit": "全体を表示（Ctrl+9）",
         "dash": "線の種類",
-        "words": "文字"
+        "words": "文字",
+        "alignLeft": "左揃え",
+        "alignCentre": "左右中央",
+        "alignRight": "右揃え",
+        "alignTop": "上揃え",
+        "alignMiddle": "上下中央",
+        "alignBottom": "下揃え",
+        "spreadAcross": "横に等間隔",
+        "spreadDown": "縦に等間隔",
+        "holdEverything": "すべて選択"
       },
       "layer": {
         "freehand": "手描き",

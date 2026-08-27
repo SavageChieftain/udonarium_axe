@@ -2845,7 +2845,16 @@
         "zoomOut": "Zoom out (Ctrl+-)",
         "zoomFit": "Fit the panel (Ctrl+9)",
         "dash": "Line",
-        "words": "Words"
+        "words": "Words",
+        "alignLeft": "Align left",
+        "alignCentre": "Align centre",
+        "alignRight": "Align right",
+        "alignTop": "Align top",
+        "alignMiddle": "Align middle",
+        "alignBottom": "Align bottom",
+        "spreadAcross": "Space across",
+        "spreadDown": "Space down",
+        "holdEverything": "Select all"
       },
       "layer": {
         "freehand": "Drawing",

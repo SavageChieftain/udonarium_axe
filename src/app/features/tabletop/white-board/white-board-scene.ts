@@ -791,3 +791,106 @@ export function wordsOf(scene: MapScene, ref: MarkRef): TextItem | null {
   }
   return null;
 }
+
+/** Everything caught inside a dragged out box, so several things can be taken at once. */
+export function marksWithin(scene: MapScene, area: MarkBox): MarkRef[] {
+  const caught: MarkRef[] = [];
+  const holds = (box: MarkBox | null) =>
+    !!box && box.x >= area.x && box.y >= area.y && box.x + box.w <= area.x + area.w && box.y + box.h <= area.y + area.h;
+
+  for (const layer of scene.layers) {
+    if (!layer.visible || layer.locked) continue;
+    if (layer.kind === 'image') {
+      for (const item of layer.items) {
+        if (holds({ x: item.x, y: item.y, w: item.w, h: item.h })) caught.push({ kind: 'image', id: item.id });
+      }
+    }
+    if (layer.kind === 'text') {
+      for (const item of layer.items) {
+        if (holds(textBox(item))) caught.push({ kind: 'text', id: item.id });
+      }
+    }
+    if (layer.kind === 'shape') {
+      for (const item of layer.items) {
+        if (holds(boxOf(scene, { kind: 'shape', id: item.id }))) caught.push({ kind: 'shape', id: item.id });
+      }
+    }
+    if (layer.kind === 'freehand') {
+      for (const item of layer.strokes) {
+        if (holds(boxOf(scene, { kind: 'stroke', id: item.id }))) caught.push({ kind: 'stroke', id: item.id });
+      }
+    }
+  }
+  return caught;
+}
+
+/** The one box that holds all of them, which is what a hold on several things is drawn as. */
+export function boxAround(scene: MapScene, refs: readonly MarkRef[]): MarkBox | null {
+  let bounds: MarkBox | null = null;
+  for (const ref of refs) {
+    const box = boxOf(scene, ref);
+    if (!box) continue;
+    if (!bounds) {
+      bounds = { ...box };
+      continue;
+    }
+    const right = Math.max(bounds.x + bounds.w, box.x + box.w);
+    const bottom = Math.max(bounds.y + bounds.h, box.y + box.h);
+    bounds.x = Math.min(bounds.x, box.x);
+    bounds.y = Math.min(bounds.y, box.y);
+    bounds.w = right - bounds.x;
+    bounds.h = bottom - bounds.y;
+  }
+  return bounds;
+}
+
+export type AlignEdge = 'left' | 'centre' | 'right' | 'top' | 'middle' | 'bottom';
+
+/**
+ * Lines several marks up against one another.
+ *
+ * Nudging each one by hand until they look level is what anyone does without this, and they
+ * never quite are. They are lined up against the box that holds all of them.
+ */
+export function alignMarks(scene: MapScene, refs: readonly MarkRef[], edge: AlignEdge): void {
+  const bounds = boxAround(scene, refs);
+  if (!bounds || refs.length < 2) return;
+
+  for (const ref of refs) {
+    const box = boxOf(scene, ref);
+    if (!box) continue;
+    let dx = 0;
+    let dy = 0;
+    if (edge === 'left') dx = bounds.x - box.x;
+    if (edge === 'right') dx = bounds.x + bounds.w - (box.x + box.w);
+    if (edge === 'centre') dx = bounds.x + bounds.w / 2 - (box.x + box.w / 2);
+    if (edge === 'top') dy = bounds.y - box.y;
+    if (edge === 'bottom') dy = bounds.y + bounds.h - (box.y + box.h);
+    if (edge === 'middle') dy = bounds.y + bounds.h / 2 - (box.y + box.h / 2);
+    if (dx || dy) moveMark(scene, ref, dx, dy);
+  }
+}
+
+/** Sets even gaps between them, along whichever way they are more spread out. */
+export function spreadMarks(scene: MapScene, refs: readonly MarkRef[], along: 'x' | 'y'): void {
+  if (refs.length < 3) return;
+  const measured = refs
+    .map((ref) => ({ ref, box: boxOf(scene, ref) }))
+    .filter((entry): entry is { ref: MarkRef; box: MarkBox } => entry.box !== null)
+    .sort((left, right) => left.box[along] - right.box[along]);
+  if (measured.length < 3) return;
+
+  const first = measured[0].box;
+  const last = measured[measured.length - 1].box;
+  const span = along === 'x' ? last.x + last.w - first.x : last.y + last.h - first.y;
+  const filled = measured.reduce((total, entry) => total + (along === 'x' ? entry.box.w : entry.box.h), 0);
+  const gap = (span - filled) / (measured.length - 1);
+
+  let at = along === 'x' ? first.x : first.y;
+  for (const entry of measured) {
+    const was = along === 'x' ? entry.box.x : entry.box.y;
+    const shift = at - was;
+    if (shift) moveMark(scene, entry.ref, along === 'x' ? shift : 0, along === 'y' ? shift : 0);
+    at += (along === 'x' ? entry.box.w : entry.box.h) + gap;
+  }
+}

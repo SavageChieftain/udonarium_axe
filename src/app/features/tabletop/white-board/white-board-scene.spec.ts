@@ -1,7 +1,9 @@
 import { createLayer, FreehandLayer, ImageLayer, MapScene, TextLayer } from '@axe/features/map-editor/model/scene';
 import { addImage, addShape, addStroke, addText } from '@axe/features/map-editor/model/scene-ops';
 import {
+  alignMarks,
   arrowBetween,
+  boxAround,
   boxOf,
   copyMark,
   createBoardScene,
@@ -17,6 +19,7 @@ import {
   imageLayer,
   layerFor,
   lineWidth,
+  marksWithin,
   markUnder,
   moveMark,
   noteAt,
@@ -32,6 +35,7 @@ import {
   shapeLayer,
   showGroup,
   snapTo,
+  spreadMarks,
   stickerAt,
   straightLine,
   textBox,
@@ -570,5 +574,101 @@ describe('restyleMark()', () => {
 
     expect(wordsOf(scene, { kind: 'text', id: texts.items[0].id })?.text).toBe('hi');
     expect(wordsOf(scene, { kind: 'shape', id: 'whatever' })).toBeNull();
+  });
+});
+
+describe('holding several marks at once', () => {
+  function scattered(): MapScene {
+    const scene = createBoardScene(12, 10, 50);
+    addShape(shapeLayer(scene), shapeBetween('rect', { x: 20, y: 30 }, { x: 60, y: 90 }, style));
+    addShape(shapeLayer(scene), shapeBetween('rect', { x: 100, y: 10 }, { x: 180, y: 50 }, style));
+    addImage(imageLayer(scene), stickerAt({ x: 300, y: 300 }, 'pic', 40));
+    return scene;
+  }
+
+  it('takes everything the dragged out box holds, and leaves what hangs out of it', () => {
+    const caught = marksWithin(scattered(), { x: 0, y: 0, w: 200, h: 120 });
+
+    expect(caught).toHaveLength(2);
+    expect(caught.every((mark) => mark.kind === 'shape')).toBe(true);
+  });
+
+  it('half inside is not inside', () => {
+    expect(marksWithin(scattered(), { x: 0, y: 0, w: 120, h: 120 })).toHaveLength(1);
+  });
+
+  it('draws one box round everything held', () => {
+    const scene = scattered();
+    const held = marksWithin(scene, { x: 0, y: 0, w: 200, h: 120 });
+
+    expect(boxAround(scene, held)).toEqual({ x: 20, y: 10, w: 160, h: 80 });
+  });
+
+  it('has no box to draw when nothing is held', () => {
+    expect(boxAround(scattered(), [])).toBeNull();
+  });
+
+  it('lines marks up on their left edges without moving them up or down', () => {
+    const scene = scattered();
+    const held = marksWithin(scene, { x: 0, y: 0, w: 200, h: 120 });
+
+    alignMarks(scene, held, 'left');
+
+    expect(held.map((mark) => boxOf(scene, mark)?.x)).toEqual([20, 20]);
+    expect(held.map((mark) => boxOf(scene, mark)?.y)).toEqual([30, 10]);
+  });
+
+  it('lines them up on their far edges and on their middles', () => {
+    const scene = scattered();
+    const held = marksWithin(scene, { x: 0, y: 0, w: 200, h: 120 });
+
+    alignMarks(scene, held, 'bottom');
+    expect(held.map((mark) => (boxOf(scene, mark)?.y ?? 0) + (boxOf(scene, mark)?.h ?? 0))).toEqual([90, 90]);
+
+    alignMarks(scene, held, 'centre');
+    const middles = held.map((mark) => (boxOf(scene, mark)?.x ?? 0) + (boxOf(scene, mark)?.w ?? 0) / 2);
+    expect(middles[0]).toBeCloseTo(middles[1], 6);
+  });
+
+  it('leaves a single mark where it stands, having nothing to line it up against', () => {
+    const scene = scattered();
+    const one = marksWithin(scene, { x: 0, y: 0, w: 120, h: 120 });
+
+    alignMarks(scene, one, 'right');
+
+    expect(boxOf(scene, one[0])).toEqual({ x: 20, y: 30, w: 40, h: 60 });
+  });
+
+  it('sets even gaps between three, keeping the outer two where they were', () => {
+    const scene = createBoardScene(12, 10, 50);
+    const layer = shapeLayer(scene);
+    addShape(layer, shapeBetween('rect', { x: 0, y: 0 }, { x: 20, y: 20 }, style));
+    addShape(layer, shapeBetween('rect', { x: 30, y: 0 }, { x: 50, y: 20 }, style));
+    addShape(layer, shapeBetween('rect', { x: 200, y: 0 }, { x: 220, y: 20 }, style));
+    const held = marksWithin(scene, { x: -10, y: -10, w: 400, h: 100 });
+
+    spreadMarks(scene, held, 'x');
+
+    const lefts = held.map((mark) => boxOf(scene, mark)?.x ?? 0).sort((a, b) => a - b);
+    expect(lefts[0]).toBe(0);
+    expect(lefts[2]).toBe(200);
+    expect(lefts[1] - lefts[0]).toBeCloseTo(lefts[2] - lefts[1], 6);
+  });
+
+  it('has no gaps to even out when only two are held', () => {
+    const scene = scattered();
+    const held = marksWithin(scene, { x: 0, y: 0, w: 200, h: 120 });
+
+    spreadMarks(scene, held, 'x');
+
+    expect(boxOf(scene, held[0])?.x).toBe(20);
+    expect(boxOf(scene, held[1])?.x).toBe(100);
+  });
+
+  it('passes over a layer that is put away or held shut', () => {
+    const scene = scattered();
+    shapeLayer(scene).visible = false;
+
+    expect(marksWithin(scene, { x: 0, y: 0, w: 900, h: 900 })).toEqual([{ kind: 'image', id: expect.any(String) }]);
   });
 });

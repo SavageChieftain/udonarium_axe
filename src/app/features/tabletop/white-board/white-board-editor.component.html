@@ -301,7 +301,7 @@
       >
         <i class="material-icons text-[16px]!">redo</i>
       </button>
-      @if (selected()) {
+      @if (held().length > 0) {
         <span class="border-ui-border-panel ml-1 flex items-center gap-0.5 border-l border-solid pl-2">
           <button
             class="rounded-ui-sm hover:bg-ui-hover cursor-pointer border border-solid border-transparent px-1 py-0.5"
@@ -350,6 +350,74 @@
             (click)="removeSelected()"
           >
             <i class="material-icons text-[16px]!">delete</i>
+          </button>
+        </span>
+      }
+      @if (held().length > 1) {
+        <span class="border-ui-border-panel ml-1 flex items-center gap-0.5 border-l border-solid pl-2">
+          <button
+            class="rounded-ui-sm hover:bg-ui-hover cursor-pointer border border-solid border-transparent px-1 py-0.5"
+            type="button"
+            [title]="'feature.whiteBoard.editor.alignLeft' | transloco"
+            (click)="alignHeld('left')"
+          >
+            <i class="material-icons text-[16px]!">align_horizontal_left</i>
+          </button>
+          <button
+            class="rounded-ui-sm hover:bg-ui-hover cursor-pointer border border-solid border-transparent px-1 py-0.5"
+            type="button"
+            [title]="'feature.whiteBoard.editor.alignCentre' | transloco"
+            (click)="alignHeld('centre')"
+          >
+            <i class="material-icons text-[16px]!">align_horizontal_center</i>
+          </button>
+          <button
+            class="rounded-ui-sm hover:bg-ui-hover cursor-pointer border border-solid border-transparent px-1 py-0.5"
+            type="button"
+            [title]="'feature.whiteBoard.editor.alignRight' | transloco"
+            (click)="alignHeld('right')"
+          >
+            <i class="material-icons text-[16px]!">align_horizontal_right</i>
+          </button>
+          <button
+            class="rounded-ui-sm hover:bg-ui-hover cursor-pointer border border-solid border-transparent px-1 py-0.5"
+            type="button"
+            [title]="'feature.whiteBoard.editor.alignTop' | transloco"
+            (click)="alignHeld('top')"
+          >
+            <i class="material-icons text-[16px]!">align_vertical_top</i>
+          </button>
+          <button
+            class="rounded-ui-sm hover:bg-ui-hover cursor-pointer border border-solid border-transparent px-1 py-0.5"
+            type="button"
+            [title]="'feature.whiteBoard.editor.alignMiddle' | transloco"
+            (click)="alignHeld('middle')"
+          >
+            <i class="material-icons text-[16px]!">align_vertical_center</i>
+          </button>
+          <button
+            class="rounded-ui-sm hover:bg-ui-hover cursor-pointer border border-solid border-transparent px-1 py-0.5"
+            type="button"
+            [title]="'feature.whiteBoard.editor.alignBottom' | transloco"
+            (click)="alignHeld('bottom')"
+          >
+            <i class="material-icons text-[16px]!">align_vertical_bottom</i>
+          </button>
+          <button
+            class="rounded-ui-sm hover:bg-ui-hover cursor-pointer border border-solid border-transparent px-1 py-0.5"
+            type="button"
+            [title]="'feature.whiteBoard.editor.spreadAcross' | transloco"
+            (click)="spreadHeld('x')"
+          >
+            <i class="material-icons text-[16px]!">horizontal_distribute</i>
+          </button>
+          <button
+            class="rounded-ui-sm hover:bg-ui-hover cursor-pointer border border-solid border-transparent px-1 py-0.5"
+            type="button"
+            [title]="'feature.whiteBoard.editor.spreadDown' | transloco"
+            (click)="spreadHeld('y')"
+          >
+            <i class="material-icons text-[16px]!">vertical_distribute</i>
           </button>
         </span>
       }

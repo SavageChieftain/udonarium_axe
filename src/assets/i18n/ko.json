@@ -3075,7 +3075,16 @@
         "zoomOut": "축소 (Ctrl+-)",
         "zoomFit": "전체 보기 (Ctrl+9)",
         "dash": "선 종류",
-        "words": "글자"
+        "words": "글자",
+        "alignLeft": "왼쪽 정렬",
+        "alignCentre": "가로 가운데",
+        "alignRight": "오른쪽 정렬",
+        "alignTop": "위쪽 정렬",
+        "alignMiddle": "세로 가운데",
+        "alignBottom": "아래쪽 정렬",
+        "spreadAcross": "가로 균등 배분",
+        "spreadDown": "세로 균등 배분",
+        "holdEverything": "전체 선택"
       },
       "layer": {
         "freehand": "손그림",
