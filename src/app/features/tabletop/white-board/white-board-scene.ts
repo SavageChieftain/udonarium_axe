@@ -28,7 +28,7 @@ import { generateShapePoints } from '@axe/features/map-editor/model/shape-points
  * it, which is why it has an editor of its own rather than the one that draws maps.
  */
 export type BoardTool =
-  'select' | 'hand' | 'pen' | 'marker' | 'eraser' | 'line' | 'arrow' | 'shape' | 'text' | 'note' | 'sticker';
+  'select' | 'hand' | 'pen' | 'marker' | 'eraser' | 'line' | 'arrow' | 'shape' | 'path' | 'text' | 'note' | 'sticker';
 
 export const BOARD_TOOLS: readonly BoardTool[] = [
   'select',
@@ -39,6 +39,7 @@ export const BOARD_TOOLS: readonly BoardTool[] = [
   'line',
   'arrow',
   'shape',
+  'path',
   'text',
   'note',
   'sticker',
@@ -1035,4 +1036,23 @@ export function fadeMark(scene: MapScene, ref: MarkRef, opacity: number): void {
     const item = layer.items.find((entry) => entry.id === ref.id);
     if (item) item.opacity = Math.min(1, Math.max(0, opacity));
   }
+}
+
+/**
+ * A line through as many points as were set down, straight or curved.
+ *
+ * Two points make a connector between two boxes; a diagram wants one that goes round the
+ * boxes in between, which a line between two points cannot do.
+ */
+export function pathThrough(points: readonly BoardPoint[], style: MarkStyle, curved: boolean): ShapeItem | null {
+  if (points.length < 2) return null;
+  return {
+    id: newId(),
+    shape: curved ? 'curve' : 'polyline',
+    points: points.flatMap((at) => [at.x, at.y]),
+    fill: null,
+    stroke: { color: style.color, width: style.width, dash: style.dash ?? 'solid' },
+    rotation: 0,
+    shadow: style.shadow ? { ...MARK_SHADOW } : null,
+  };
 }

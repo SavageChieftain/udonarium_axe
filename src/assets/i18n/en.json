@@ -2809,7 +2809,8 @@
         "marker": "Marker",
         "arrow": "Arrow",
         "note": "Note",
-        "hand": "Hand"
+        "hand": "Hand",
+        "path": "Path"
       },
       "editor": {
         "ink": "Ink",
@@ -2866,7 +2867,10 @@
         "flipDown": "Flip down",
         "pictureOpacity": "Opacity",
         "zoomToHeld": "Zoom to selection",
-        "clearLayer": "Clear this layer"
+        "clearLayer": "Clear this layer",
+        "curved": "Curve through the points",
+        "finishPath": "Finish path",
+        "pathHint": "Click to set points; double-click or press Enter to finish."
       },
       "layer": {
         "freehand": "Drawing",

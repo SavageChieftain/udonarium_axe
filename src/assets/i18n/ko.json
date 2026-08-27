@@ -3039,7 +3039,8 @@
         "marker": "마커",
         "arrow": "화살표",
         "note": "메모",
-        "hand": "손 도구"
+        "hand": "손 도구",
+        "path": "꺾은선"
       },
       "editor": {
         "ink": "잉크 색",
@@ -3096,7 +3097,10 @@
         "flipDown": "상하 반전",
         "pictureOpacity": "불투명도",
         "zoomToHeld": "선택 영역에 맞추기",
-        "clearLayer": "이 레이어 지우기"
+        "clearLayer": "이 레이어 지우기",
+        "curved": "곡선으로 잇기",
+        "finishPath": "꺾은선 확정",
+        "pathHint": "클릭해서 점을 놓고, 더블 클릭이나 Enter로 확정합니다."
       },
       "layer": {
         "freehand": "손그림",

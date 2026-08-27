@@ -84,6 +84,7 @@ import {
   markUnder,
   moveMark,
   noteAt,
+  pathThrough,
   penStroke,
   removeMark,
   renameGroup,
@@ -132,6 +133,7 @@ const TOOL_ICONS: Record<BoardTool, string> = {
   line: 'show_chart',
   arrow: 'north_east',
   shape: 'category',
+  path: 'polyline',
   text: 'title',
   note: 'sticky_note_2',
   sticker: 'image',
@@ -322,6 +324,9 @@ export class WhiteBoardEditorComponent {
   readonly alignments: readonly TextAlign[] = ['left', 'center', 'right'];
   readonly shapeKind = signal<ShapeGeneratorKind>('rect');
   readonly filled = signal(false);
+  /** The points set down for a path so far, which is not a mark until it is finished. */
+  readonly laying = signal<BoardPoint[]>([]);
+  readonly curved = signal(false);
   readonly fillColor = signal('#ffd54f');
   readonly shadowed = signal(false);
   readonly noteColor = signal('#fff59d');
@@ -361,6 +366,7 @@ export class WhiteBoardEditorComponent {
     box: MarkBox;
     turnedTo: number;
   } | null = null;
+  private hovering: BoardPoint | null = null;
   private bandFrom: BoardPoint | null = null;
   private bandTo: BoardPoint | null = null;
 
@@ -651,7 +657,24 @@ export class WhiteBoardEditorComponent {
     return sceneHeightPx(this.scene);
   }
 
+  /** Sets down what has been laid out so far, or throws it away if it goes nowhere. */
+  protected finishPath(keep = true): void {
+    const points = this.laying();
+    this.laying.set([]);
+    if (!keep || points.length < 2) {
+      void this.redraw();
+      return;
+    }
+    const made = pathThrough(points, this.style(), this.curved());
+    if (!made) return;
+    addShape(shapeLayer(this.scene, this.activeLayerId()), made);
+    this.tool.set('select');
+    this.hold([{ kind: 'shape', id: made.id }]);
+    this.touched();
+  }
+
   protected choose(tool: BoardTool): void {
+    if (this.tool() === 'path' && tool !== 'path') this.finishPath();
     this.tool.set(tool);
     this.panning.set(tool === 'hand');
     if (tool === 'sticker') this.pickSticker();
@@ -746,6 +769,10 @@ export class WhiteBoardEditorComponent {
         this.typedText = '';
         this.typing.set(at);
         break;
+      case 'path':
+        this.laying.update((points) => [...points, at]);
+        void this.redraw();
+        break;
       case 'select':
         this.take(at, event.shiftKey);
         break;
@@ -765,6 +792,11 @@ export class WhiteBoardEditorComponent {
       return;
     }
     const at = this.pointOf(event);
+    if (this.laying().length > 0) {
+      this.hovering = at;
+      void this.redraw();
+      return;
+    }
     if (this.isPenning() && this.drawingPoints.length > 0) {
       this.drawingPoints.push(at.x, at.y);
       void this.redraw(this.drawingPoints);
@@ -1116,6 +1148,11 @@ export class WhiteBoardEditorComponent {
       this.redo();
       return;
     }
+    if (this.laying().length > 0 && (event.key === 'Enter' || event.key === 'Escape')) {
+      event.preventDefault();
+      this.finishPath(event.key === 'Enter');
+      return;
+    }
     if (event.key === 'Delete' || event.key === 'Backspace') {
       event.preventDefault();
       this.removeSelected();
@@ -1184,6 +1221,10 @@ export class WhiteBoardEditorComponent {
 
   /** Words already written are typed over rather than written again. */
   protected onDoubleClick(event: PointerEvent): void {
+    if (this.tool() === 'path') {
+      this.finishPath();
+      return;
+    }
     const at = this.pointOf(event);
     const mark = markUnder(this.scene, at);
     const words = mark ? wordsOf(this.scene, mark) : null;
@@ -1365,6 +1406,23 @@ export class WhiteBoardEditorComponent {
         ctx.fillRect(at.x - grip / 2, at.y - grip / 2, grip, grip);
         ctx.strokeRect(at.x - grip / 2, at.y - grip / 2, grip, grip);
       }
+      ctx.restore();
+    }
+
+    const laying = this.laying();
+    if (laying.length > 0 && ruled !== false) {
+      ctx.save();
+      ctx.strokeStyle = this.color();
+      ctx.lineWidth = this.strokeWidth();
+      ctx.lineJoin = 'round';
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.moveTo(laying[0].x, laying[0].y);
+      for (const at of laying.slice(1)) ctx.lineTo(at.x, at.y);
+      if (this.hovering) ctx.lineTo(this.hovering.x, this.hovering.y);
+      ctx.stroke();
+      ctx.fillStyle = '#2f7fd8';
+      for (const at of laying) ctx.fillRect(at.x - 2, at.y - 2, 4, 4);
       ctx.restore();
     }
 

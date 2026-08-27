@@ -29,6 +29,7 @@ import {
   markUnder,
   moveMark,
   noteAt,
+  pathThrough,
   penStroke,
   removeMark,
   renameGroup,
@@ -866,5 +867,39 @@ describe('clearing, flipping and fading', () => {
     addShape(shapeLayer(scene), drawn);
 
     expect(() => flipMark(scene, { kind: 'shape', id: drawn.id }, 'down')).not.toThrow();
+  });
+});
+
+describe('pathThrough()', () => {
+  const along = [
+    { x: 0, y: 0 },
+    { x: 20, y: 40 },
+    { x: 60, y: 10 },
+  ];
+
+  it('runs a line through every point set down, not only through the first and last', () => {
+    expect(pathThrough(along, style, false)?.points).toEqual([0, 0, 20, 40, 60, 10]);
+  });
+
+  it('bends the line through them when it is asked to', () => {
+    expect(pathThrough(along, style, false)?.shape).toBe('polyline');
+    expect(pathThrough(along, style, true)?.shape).toBe('curve');
+  });
+
+  it('has no line to draw through one point, or through none', () => {
+    expect(pathThrough([along[0]], style, false)).toBeNull();
+    expect(pathThrough([], style, false)).toBeNull();
+  });
+
+  it('leaves the inside of a path unpainted, a line having no inside', () => {
+    expect(pathThrough(along, { ...style, fillColor: '#ff0000' }, false)?.fill).toBeNull();
+  });
+
+  it('can be taken hold of where it runs, once it is down', () => {
+    const scene = createBoardScene(8, 6, 50);
+    const laid = pathThrough(along, style, false)!;
+    addShape(shapeLayer(scene), laid);
+
+    expect(markUnder(scene, { x: 20, y: 40 })).toEqual({ kind: 'shape', id: laid.id });
   });
 });
