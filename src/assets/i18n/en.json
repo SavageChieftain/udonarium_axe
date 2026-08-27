@@ -1751,7 +1751,9 @@
           "prop": "Obstacle material",
           "ground": "Ground material",
           "fieldSize": "Map size",
-          "density": "Undergrowth"
+          "density": "Undergrowth",
+          "gridType": "Cell shape",
+          "hexNote": "Hexes cannot be gathered up, so a block is placed per cell and the board is made smaller to pay for it."
         },
         "actions": {
           "generate": "Generate",
@@ -1794,6 +1796,11 @@
           "outcrop": "Outcrops",
           "hill": "Hills",
           "cactus": "Cacti"
+        },
+        "grid": {
+          "0": "Square",
+          "1": "Hex (flat top)",
+          "2": "Hex (pointy top)"
         }
       }
     },

@@ -5,12 +5,16 @@ import {
   fieldAtmosphereById,
   FieldAtmosphereId,
 } from '@axe/domain/tabletop/field/field-atmosphere';
-import { fieldToBlocks } from '@axe/domain/tabletop/field/field-blocks';
+import { FIELD_MERGE_SPAN, fieldToBlocks } from '@axe/domain/tabletop/field/field-blocks';
 import { FieldLayout, generateField } from '@axe/domain/tabletop/field/field-layout';
+import { GridType } from '@axe/domain/tabletop/game-table';
 import { MapBlocks } from '@axe/domain/tabletop/map-blocks';
+import { boardSizeOn, MapGrid, mergeSpanFor } from '@axe/domain/tabletop/map-grid';
 
 export interface FieldRequest {
   atmosphere: FieldAtmosphereId;
+  /** What shape the cells are. Left out, squares. */
+  gridType?: GridType;
   /** How many cells across. The board is laid out three deep for every four across. */
   size: number;
   density: number;
@@ -23,15 +27,18 @@ export interface FieldPlan {
   blocks: MapBlocks;
 }
 
-export function fieldBoardSize(size: number): { width: number; height: number } {
+export function fieldBoardSize(size: number, gridType: GridType = GridType.SQUARE): { width: number; height: number } {
   const width = clampFieldSize(size);
-  return { width, height: Math.max(12, Math.round(width * 0.75)) };
+  const square = { width, height: Math.max(12, Math.round(width * 0.75)) };
+  return boardSizeOn(square, { type: gridType, sizePx: 1 });
 }
 
 export function planField(request: FieldRequest): FieldPlan {
   const atmosphere = fieldAtmosphereById(request.atmosphere);
-  const { width, height } = fieldBoardSize(request.size);
+  const grid: MapGrid = { type: request.gridType ?? GridType.SQUARE, sizePx: 1 };
+  const { width, height } = fieldBoardSize(request.size, grid.type);
   const density = clampFieldDensity(request.density);
   const layout = generateField(atmosphere, width, height, request.seed, density);
-  return { atmosphere, layout, blocks: fieldToBlocks(layout, atmosphere, request.seed) };
+  const span = mergeSpanFor(grid, FIELD_MERGE_SPAN);
+  return { atmosphere, layout, blocks: fieldToBlocks(layout, atmosphere, request.seed, span) };
 }

@@ -51,13 +51,19 @@ function findFires(layout: FieldLayout, atmosphere: FieldAtmosphere, seed: numbe
   return lights;
 }
 
-export function fieldToBlocks(layout: FieldLayout, atmosphere: FieldAtmosphere, seed: number): MapBlocks {
+export function fieldToBlocks(
+  layout: FieldLayout,
+  atmosphere: FieldAtmosphere,
+  seed: number,
+  mergeSpan: number = FIELD_MERGE_SPAN
+): MapBlocks {
   const blocks: MapBlock[] = [];
   const paint: MapPaint[] = [];
+  const span = mergeSpan;
 
   atmosphere.bands.forEach((band, index) => {
     const mask = maskOfBand(layout, index);
-    for (const rect of mergeMaskToRects(mask, layout.width, layout.height, FIELD_MERGE_SPAN)) {
+    for (const rect of mergeMaskToRects(mask, layout.width, layout.height, span)) {
       paint.push({ kind: 'floor', rect, material: { kind: 'texture', id: band.texture } });
     }
   });
@@ -66,7 +72,7 @@ export function fieldToBlocks(layout: FieldLayout, atmosphere: FieldAtmosphere, 
     if (FIELD_PROP_SHAPES[prop].layers) continue;
     const shape = FIELD_PROP_SHAPES[prop];
     const mask = maskOfProp(layout, prop);
-    for (const rect of mergeMaskToRects(mask, layout.width, layout.height, FIELD_MERGE_SPAN)) {
+    for (const rect of mergeMaskToRects(mask, layout.width, layout.height, span)) {
       blocks.push({
         kind: 'prop',
         rect,

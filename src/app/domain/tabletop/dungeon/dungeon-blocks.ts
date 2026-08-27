@@ -15,6 +15,8 @@ export const MAX_MERGE_SPAN = 12;
 export interface DungeonBlockOptions {
   placeDoors: boolean;
   placeStairs: boolean;
+  /** How many cells one block may stand for. Hexes take one each; see mergeSpanFor. */
+  mergeSpan?: number;
 }
 
 export const DEFAULT_BLOCK_OPTIONS: DungeonBlockOptions = { placeDoors: true, placeStairs: true };
@@ -135,9 +137,10 @@ export function layoutToBlocks(
 ): MapBlocks {
   const blocks: MapBlock[] = [];
   const paint: MapPaint[] = [];
+  const span = options.mergeSpan ?? MAX_MERGE_SPAN;
 
   const rockMask = maskOfKind(layout, [DungeonCell.Rock]);
-  for (const rect of mergeMaskToRects(rockMask, layout.width, layout.height, MAX_MERGE_SPAN)) {
+  for (const rect of mergeMaskToRects(rockMask, layout.width, layout.height, span)) {
     // Rock buried behind more rock cannot be seen past, so it need not be tested against.
     const boundary = touchesOpenCell(layout, rect);
     blocks.push({
@@ -153,12 +156,12 @@ export function layoutToBlocks(
     ? [DungeonCell.Room, DungeonCell.Corridor]
     : [DungeonCell.Room, DungeonCell.Corridor, DungeonCell.Door];
   const floorMask = maskOfKind(layout, floorKinds);
-  for (const rect of mergeMaskToRects(floorMask, layout.width, layout.height, MAX_MERGE_SPAN)) {
+  for (const rect of mergeMaskToRects(floorMask, layout.width, layout.height, span)) {
     paint.push({ kind: 'floor', rect });
   }
 
   const hazardMask = maskOfKind(layout, [DungeonCell.Hazard]);
-  for (const rect of mergeMaskToRects(hazardMask, layout.width, layout.height, MAX_MERGE_SPAN)) {
+  for (const rect of mergeMaskToRects(hazardMask, layout.width, layout.height, span)) {
     paint.push({ kind: 'hazard', rect });
   }
 

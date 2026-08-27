@@ -23,6 +23,7 @@ import {
   MapMood,
   MapSize,
 } from '@axe/domain/tabletop/map-blocks';
+import { blockOrigin, MapGrid } from '@axe/domain/tabletop/map-grid';
 import { TableAmbience } from '@axe/domain/tabletop/table-ambience';
 import { DoorStyle, SlopeDirection, Terrain, TerrainViewState } from '@axe/domain/tabletop/terrain';
 import { applyLightPreset, LightPreset } from '@axe/domain/tabletop/vision-types';
@@ -68,6 +69,8 @@ export interface DungeonBuildOptions {
   floorImage: string;
   /** What the master needs to run the place. The caller writes it; the table never carries it. */
   summary: string;
+  /** What shape the cells are. Left out, squares. */
+  gridType?: GridType;
 }
 
 export interface DungeonBuildResult {
@@ -115,11 +118,12 @@ export class DungeonBuildService {
         ? this.registerAsset(TEXTURE_ASSET_URLS[WALL_TOP_TEXTURE[options.wall.id as WallTextureId]] ?? '')
         : wallSide;
 
+    const grid: MapGrid = { type: options.gridType ?? GridType.SQUARE, sizePx: GRID_SIZE };
     const table = this.createTable(size, mood, options);
 
     let done = 0;
     for (const block of blocks.blocks) {
-      table.appendChild(this.createTerrain(block, { wallSide, wallTop }, options.wallHeight));
+      table.appendChild(this.createTerrain(block, { wallSide, wallTop }, options.wallHeight, grid));
       done++;
       if (done % CHUNK_SIZE === 0) {
         onProgress?.(done, blocks.blocks.length);
@@ -128,8 +132,8 @@ export class DungeonBuildService {
     }
     onProgress?.(blocks.blocks.length, blocks.blocks.length);
 
-    this.layAmbiences(table, blocks.ambiences);
-    this.standLights(table, blocks.lights, options.wallHeight);
+    this.layAmbiences(table, blocks.ambiences, grid);
+    this.standLights(table, blocks.lights, options.wallHeight, grid);
 
     return { table, terrainCount: blocks.blocks.length, summary: options.summary };
   }
@@ -140,8 +144,7 @@ export class DungeonBuildService {
     table.width = size.width;
     table.height = size.height;
     table.gridSize = GRID_SIZE;
-    // A generated dungeon is laid out on squares, and a hex table would clip every block to a ring.
-    table.gridType = GridType.SQUARE;
+    table.gridType = options.gridType ?? GridType.SQUARE;
     table.gridShow = mood.gridShow;
     table.imageIdentifier = options.floorImage;
     table.backgroundImageIdentifier = '';
@@ -154,7 +157,12 @@ export class DungeonBuildService {
     return table;
   }
 
-  private createTerrain(block: MapBlock, images: { wallSide: string; wallTop: string }, wallHeight: number): Terrain {
+  private createTerrain(
+    block: MapBlock,
+    images: { wallSide: string; wallTop: string },
+    wallHeight: number,
+    grid: MapGrid
+  ): Terrain {
     const { rect } = block;
     const name = this.terrainName(block);
     const terrain = this.terrainFor(block, images, name, wallHeight);
@@ -179,7 +187,8 @@ export class DungeonBuildService {
     }
 
     // Writing the whole location goes through setAttribute, which syncs; touching location.x does not.
-    terrain.location = { name: 'table', x: rect.x * GRID_SIZE + offsetX, y: rect.y * GRID_SIZE + offsetY };
+    const at = blockOrigin(rect, grid);
+    terrain.location = { name: 'table', x: at.x + offsetX, y: at.y + offsetY };
     terrain.posZ = 0;
     return terrain;
   }
@@ -251,7 +260,7 @@ export class DungeonBuildService {
   }
 
   /** What hangs in the air over a patch of ground, as a child of the table it hangs over. */
-  private layAmbiences(table: GameTable, ambiences: readonly MapAmbience[]): void {
+  private layAmbiences(table: GameTable, ambiences: readonly MapAmbience[], grid: MapGrid): void {
     for (const patch of ambiences) {
       const ambience = TableAmbience.create(
         this.t(`feature.ambience.kind.${patch.kind}`),
@@ -261,7 +270,8 @@ export class DungeonBuildService {
       );
       ambience.ambienceDensity = patch.density;
       ambience.isLock = true;
-      ambience.location = { name: 'table', x: patch.rect.x * GRID_SIZE, y: patch.rect.y * GRID_SIZE };
+      const at = blockOrigin(patch.rect, grid);
+      ambience.location = { name: 'table', x: at.x, y: at.y };
       ambience.posZ = 0;
       table.appendChild(ambience);
       ambience.update();
@@ -269,7 +279,7 @@ export class DungeonBuildService {
   }
 
   /** A light of its own for each spot, a child of the table so the table takes it away again. */
-  private standLights(table: GameTable, lights: readonly MapLight[], wallHeight: number): void {
+  private standLights(table: GameTable, lights: readonly MapLight[], wallHeight: number, grid: MapGrid): void {
     for (const light of lights) {
       const source = LightSource.create(this.t(`feature.light.skin.${LIGHT_SKIN[light.kind]}`));
       applyLightPreset(source, LIGHT_PRESET[light.kind]);
@@ -278,7 +288,8 @@ export class DungeonBuildService {
       source.isLock = true;
       const element = source.imageDataElement?.getFirstElementByName('imageIdentifier');
       if (element) element.value = this.registerAsset(LIGHT_SKIN_ASSET_URLS[LIGHT_SKIN[light.kind]]);
-      source.location = { name: 'table', x: light.x * GRID_SIZE, y: light.y * GRID_SIZE };
+      const at = blockOrigin({ x: light.x, y: light.y, w: 1, h: 1 }, grid);
+      source.location = { name: 'table', x: at.x, y: at.y };
       source.posZ = 0;
       source.altitude = WALL_MOUNTED.includes(light.kind) ? Math.max(0, wallHeight - 1) : 0;
       table.appendChild(source);

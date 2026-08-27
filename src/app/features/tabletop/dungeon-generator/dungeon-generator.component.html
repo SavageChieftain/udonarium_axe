@@ -237,6 +237,31 @@
   }
 
   <div>
+    <label class="text-ui-muted mb-1.25 block text-[0.78rem] font-semibold tracking-[0.04em] uppercase">
+      {{ 'feature.tabletop.dungeonGenerator.props.gridType' | transloco }}
+    </label>
+    <div class="grid grid-cols-3 gap-1">
+      @for (choice of gridChoices; track choice) {
+        <button
+          class="hover:bg-ui-hover rounded-ui-sm border border-solid p-1 text-[0.72rem]"
+          type="button"
+          [class.border-ui-accent]="gridType() === choice"
+          [class.border-transparent]="gridType() !== choice"
+          (click)="gridType.set(choice)"
+        >
+          {{ 'feature.tabletop.dungeonGenerator.grid.' + choice | transloco }}
+        </button>
+      }
+    </div>
+    <!-- A hex board pays a block for every cell, since hexes do not gather into rectangles. -->
+    @if (gridType() !== 0) {
+      <p class="text-ui-muted mt-1 text-[0.7rem] leading-snug">
+        {{ 'feature.tabletop.dungeonGenerator.props.hexNote' | transloco }}
+      </p>
+    }
+  </div>
+
+  <div>
     <label class="text-ui-muted mb-1.25 block text-[0.78rem] font-semibold tracking-[0.04em] uppercase" for="seed">
       {{ 'feature.tabletop.dungeonGenerator.props.seed' | transloco }}
     </label>

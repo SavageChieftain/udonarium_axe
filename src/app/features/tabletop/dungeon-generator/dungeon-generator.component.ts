@@ -46,6 +46,7 @@ import {
   MIN_FIELD_SIZE,
 } from '@axe/domain/tabletop/field/field-atmosphere';
 import { FieldPlan, planField } from '@axe/domain/tabletop/field/field-generator';
+import { GridType } from '@axe/domain/tabletop/game-table';
 import { GameTable } from '@axe/domain/tabletop/game-table';
 import { MAP_HEAVY_TERRAINS, MAP_MAX_TERRAINS, syncObjectCount } from '@axe/domain/tabletop/map-blocks';
 import { exportSceneToBlob } from '@axe/features/map-editor/render/export-image';
@@ -160,10 +161,26 @@ export class DungeonGeneratorComponent {
       this.entranceOverride() === null
   );
 
+  /**
+   * What shape the cells are.
+   *
+   * Hexes cannot be gathered into rectangles, so a hex board pays a block for every cell and
+   * is made smaller to afford it. The shape is part of the plan rather than of the building,
+   * since it changes how much of a board there is to draw.
+   */
+  readonly gridType = signal<GridType>(GridType.SQUARE);
+  readonly gridChoices: readonly GridType[] = [GridType.SQUARE, GridType.HEX_VERTICAL, GridType.HEX_HORIZONTAL];
+
   /** Materials do not change the shape, so a new swatch must not roll the dungeon again. */
   protected readonly plan = computed(() =>
     planDungeon(
-      { atmosphere: this.atmosphere(), roomCount: this.roomCount(), seed: this.seed(), entrance: this.entrance() },
+      {
+        atmosphere: this.atmosphere(),
+        roomCount: this.roomCount(),
+        seed: this.seed(),
+        entrance: this.entrance(),
+        gridType: this.gridType(),
+      },
       { placeDoors: this.placeDoors(), placeStairs: this.placeStairs() }
     )
   );
@@ -174,6 +191,7 @@ export class DungeonGeneratorComponent {
       size: this.fieldSize(),
       density: this.fieldDensity(),
       seed: this.seed(),
+      gridType: this.gridType(),
     });
     return { ...plan, blocks: withFieldMaterials(plan.blocks, plan.atmosphere, this.floor(), this.wall()) };
   });
@@ -286,6 +304,7 @@ export class DungeonGeneratorComponent {
           wallHeight: this.wallHeight(),
           floorImage: await this.paintFloor(plan),
           summary,
+          gridType: this.gridType(),
         },
         (done, total) => this.progress.set(Math.round((done / total) * 100))
       );

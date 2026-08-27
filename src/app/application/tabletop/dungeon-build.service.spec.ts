@@ -338,4 +338,40 @@ describe('DungeonBuildService', () => {
     expect(result.table.terrains.length).toBe(plan.blocks.blocks.length);
     expect(plan.blocks.paint.some((patch) => patch.kind === 'hazard')).toBe(true);
   });
+
+  describe('building on hexes', () => {
+    async function buildOn(gridType: GridType) {
+      const plan = planDungeon({ atmosphere: 'stoneDungeon', roomCount: 8, seed: 7, gridType });
+      return service.build(plan.layout, plan.atmosphere, plan.blocks, { ...options(), gridType });
+    }
+
+    it('gives the table the grid it was asked for', async () => {
+      const result = await buildOn(GridType.HEX_VERTICAL);
+
+      expect(result.table.gridType).toBe(GridType.HEX_VERTICAL);
+    });
+
+    it('is still squares when nothing was asked for', async () => {
+      const { result } = await build();
+
+      expect(result.table.gridType).toBe(GridType.SQUARE);
+    });
+
+    it('stands every hex block within a cell of its own, none spanning a run of them', async () => {
+      const result = await buildOn(GridType.HEX_HORIZONTAL);
+
+      // A door is thinner than its cell, so the test is that nothing reaches past one.
+      expect(result.table.terrains.every((terrain) => terrain.width <= 1 && terrain.depth <= 1)).toBe(true);
+      expect(result.table.terrains.some((terrain) => terrain.width === 1 && terrain.depth === 1)).toBe(true);
+    });
+
+    it('staggers the rows, which is the whole of what makes them hexes', async () => {
+      const result = await buildOn(GridType.HEX_HORIZONTAL);
+      const rows = new Set(result.table.terrains.map((terrain) => Math.round(terrain.location.y)));
+      const lefts = new Set(result.table.terrains.map((terrain) => Math.round(terrain.location.x)));
+
+      // Offset rows put twice as many distinct left edges on the table as there are columns.
+      expect(lefts.size).toBeGreaterThan(rows.size);
+    });
+  });
 });

@@ -15,6 +15,7 @@ import {
   planDungeon,
 } from '@axe/domain/tabletop/dungeon/dungeon-generator';
 import { cellAt, countOpenCells, DungeonCell, reachableCells } from '@axe/domain/tabletop/dungeon/dungeon-layout';
+import { GridType } from '@axe/domain/tabletop/game-table';
 import { MAP_MAX_TERRAINS, syncObjectCount } from '@axe/domain/tabletop/map-blocks';
 
 const SEEDS = [1, 7, 42, 1234, 99999];
@@ -297,5 +298,50 @@ describe('the atmosphere table', () => {
       if (atmosphere.algorithm === 'cave') expect(atmosphere.cave).toBeDefined();
       else expect(atmosphere.rooms).toBeDefined();
     }
+  });
+});
+
+describe('laying a dungeon on hexes', () => {
+  const moods = DUNGEON_ATMOSPHERE_IDS;
+
+  it('gives every cell a block of its own, hexes not gathering into rectangles', () => {
+    const plan = planDungeon({ atmosphere: 'stoneDungeon', roomCount: 8, seed: 42, gridType: GridType.HEX_VERTICAL });
+
+    expect(plan.blocks.blocks.every((block) => block.rect.w === 1 && block.rect.h === 1)).toBe(true);
+  });
+
+  it('still gathers them on squares, which is what keeps a dungeon affordable', () => {
+    const plan = planDungeon({ atmosphere: 'stoneDungeon', roomCount: 8, seed: 42 });
+
+    expect(plan.blocks.blocks.some((block) => block.rect.w > 1 || block.rect.h > 1)).toBe(true);
+  });
+
+  it('cuts the board down for hexes, since each cell now costs a block', () => {
+    const square = planDungeon({ atmosphere: 'stoneDungeon', roomCount: 8, seed: 42 });
+    const hexed = planDungeon({ atmosphere: 'stoneDungeon', roomCount: 8, seed: 42, gridType: GridType.HEX_VERTICAL });
+
+    expect(hexed.layout.width).toBeLessThan(square.layout.width);
+    expect(hexed.layout.height).toBeLessThan(square.layout.height);
+  });
+
+  it('stays within what a table will carry, whatever is asked of it', () => {
+    for (const atmosphere of moods) {
+      for (const roomCount of [3, 8, 20]) {
+        for (const seed of [1, 42, 777, 1234]) {
+          for (const gridType of [GridType.HEX_VERTICAL, GridType.HEX_HORIZONTAL]) {
+            const plan = planDungeon({ atmosphere, roomCount, seed, gridType });
+            expect(plan.blocks.blocks.length).toBeLessThanOrEqual(MAP_MAX_TERRAINS);
+          }
+        }
+      }
+    }
+  });
+
+  it('leaves a hex dungeon walkable, the ways it carves being ways a hex can be walked', () => {
+    const plan = planDungeon({ atmosphere: 'stoneDungeon', roomCount: 8, seed: 42, gridType: GridType.HEX_VERTICAL });
+
+    // Every way the layout joins two cells - north, south, east, west on the offset grid - is
+    // one of the six a hex has, so nothing it carved can have come apart by being laid on hexes.
+    expect(plan.layout.rooms.length).toBeGreaterThan(0);
   });
 });

@@ -10,12 +10,15 @@ import {
   DEFAULT_BLOCK_OPTIONS,
   DungeonBlockOptions,
   layoutToBlocks,
+  MAX_MERGE_SPAN,
 } from '@axe/domain/tabletop/dungeon/dungeon-blocks';
 import { DungeonLayout } from '@axe/domain/tabletop/dungeon/dungeon-layout';
 import { assignRoomRoles } from '@axe/domain/tabletop/dungeon/room-roles';
 import { generateRoomsAndMazes } from '@axe/domain/tabletop/dungeon/rooms-and-mazes';
 import { openTunnelMouth } from '@axe/domain/tabletop/dungeon/tunnel-mouth';
+import { GridType } from '@axe/domain/tabletop/game-table';
 import { MapBlocks } from '@axe/domain/tabletop/map-blocks';
+import { boardSizeOn, MapGrid, mergeSpanFor } from '@axe/domain/tabletop/map-grid';
 
 export const MIN_ROOM_COUNT = 3;
 export const MAX_ROOM_COUNT = 20;
@@ -29,6 +32,8 @@ export interface DungeonRequest {
   atmosphere: DungeonAtmosphereId;
   roomCount: number;
   seed: number;
+  /** What shape the cells are. Left out, squares, which is what a dungeon is usually laid on. */
+  gridType?: GridType;
   /** Left out, the atmosphere decides how the party gets in. */
   entrance?: DungeonEntranceStyle;
 }
@@ -66,7 +71,10 @@ export function boardSizeFor(atmosphere: DungeonAtmosphere, roomCount: number): 
 export function generateDungeon(request: DungeonRequest): DungeonLayout {
   const atmosphere = atmosphereById(request.atmosphere);
   const rooms = clampRoomCount(request.roomCount);
-  const { width, height } = boardSizeFor(atmosphere, rooms);
+  const { width, height } = boardSizeOn(boardSizeFor(atmosphere, rooms), {
+    type: request.gridType ?? GridType.SQUARE,
+    sizePx: 1,
+  });
   const rng = seededRandom(request.seed);
 
   const layout =
@@ -121,5 +129,7 @@ export function planDungeon(
 ): DungeonPlan {
   const atmosphere = atmosphereById(request.atmosphere);
   const layout = generateDungeon(request);
-  return { layout, atmosphere, blocks: layoutToBlocks(layout, atmosphere, options) };
+  const grid: MapGrid = { type: request.gridType ?? GridType.SQUARE, sizePx: 1 };
+  const span = mergeSpanFor(grid, MAX_MERGE_SPAN);
+  return { layout, atmosphere, blocks: layoutToBlocks(layout, atmosphere, { ...options, mergeSpan: span }) };
 }
