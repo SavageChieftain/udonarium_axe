@@ -57,6 +57,7 @@ export const BOARD_SHAPES: readonly ShapeGeneratorKind[] = [
   'hexagon',
   'star5',
   'star6',
+  'balloon',
 ];
 
 /**
@@ -1349,3 +1350,81 @@ export function isTypingKey(target: EventTarget | null, composing: boolean): boo
  * what has been drawn on it.
  */
 export const CHEQUER_CLASS = '[background-image:repeating-conic-gradient(#c4c4c4_0%_25%,#f2f2f2_0%_50%)]';
+
+/** The shapes that are a run of points rather than a box, and so have corners to take hold of. */
+const JOINTED = new Set<ShapeItem['shape']>(['line', 'polyline', 'curve', 'polygon', 'closedCurve']);
+
+/** The shape held, if it is one whose corners can be moved about one at a time. */
+export function jointedShape(scene: MapScene, ref: MarkRef): ShapeItem | null {
+  if (ref.kind !== 'shape') return null;
+  for (const layer of scene.layers) {
+    if (layer.kind !== 'shape') continue;
+    const item = layer.items.find((entry) => entry.id === ref.id);
+    if (item) return JOINTED.has(item.shape) ? item : null;
+  }
+  return null;
+}
+
+/** Which corner of a path the pointer landed on, counted in corners rather than in numbers. */
+export function jointUnder(scene: MapScene, ref: MarkRef, at: BoardPoint, slack: number): number | null {
+  const item = jointedShape(scene, ref);
+  if (!item) return null;
+  for (let joint = 0; joint * 2 + 1 < item.points.length; joint += 1) {
+    const x = item.points[joint * 2];
+    const y = item.points[joint * 2 + 1];
+    if (Math.abs(at.x - x) <= slack && Math.abs(at.y - y) <= slack) return joint;
+  }
+  return null;
+}
+
+export function moveJoint(scene: MapScene, ref: MarkRef, joint: number, to: BoardPoint): void {
+  const item = jointedShape(scene, ref);
+  if (!item || joint * 2 + 1 >= item.points.length) return;
+  item.points[joint * 2] = to.x;
+  item.points[joint * 2 + 1] = to.y;
+}
+
+/**
+ * Puts a new corner into the run where the pointer landed, on whichever stretch it landed on.
+ *
+ * A path drawn in one go is never quite the path that was wanted, and redrawing the whole
+ * thing to move one bend is the sort of thing that makes people stop using a tool.
+ */
+export function addJoint(scene: MapScene, ref: MarkRef, at: BoardPoint, slack: number): number | null {
+  const item = jointedShape(scene, ref);
+  if (!item || item.points.length < 4) return null;
+
+  let nearest = -1;
+  let closest = slack;
+  for (let joint = 0; joint * 2 + 3 < item.points.length; joint += 1) {
+    const away = awayFromSegment(
+      at,
+      { x: item.points[joint * 2], y: item.points[joint * 2 + 1] },
+      { x: item.points[joint * 2 + 2], y: item.points[joint * 2 + 3] }
+    );
+    if (away <= closest) {
+      closest = away;
+      nearest = joint;
+    }
+  }
+  if (nearest < 0) return null;
+  item.points.splice(nearest * 2 + 2, 0, at.x, at.y);
+  return nearest + 1;
+}
+
+/** Takes a corner out, so long as two are left, a path with one point being nothing at all. */
+export function dropJoint(scene: MapScene, ref: MarkRef, joint: number): boolean {
+  const item = jointedShape(scene, ref);
+  if (!item || item.points.length <= 4 || joint * 2 + 1 >= item.points.length) return false;
+  item.points.splice(joint * 2, 2);
+  return true;
+}
+
+function awayFromSegment(at: BoardPoint, from: BoardPoint, to: BoardPoint): number {
+  const dx = to.x - from.x;
+  const dy = to.y - from.y;
+  const span = dx * dx + dy * dy;
+  if (span === 0) return Math.hypot(at.x - from.x, at.y - from.y);
+  const along = Math.max(0, Math.min(1, ((at.x - from.x) * dx + (at.y - from.y) * dy) / span));
+  return Math.hypot(at.x - (from.x + along * dx), at.y - (from.y + along * dy));
+}

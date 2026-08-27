@@ -9,7 +9,9 @@ import {
   TextLayer,
 } from '@axe/features/map-editor/model/scene';
 import { addImage, addShape, addStroke, addText } from '@axe/features/map-editor/model/scene-ops';
+import { generateShapePoints } from '@axe/features/map-editor/model/shape-points';
 import {
+  addJoint,
   alignMarks,
   anchorFor,
   angleFrom,
@@ -20,6 +22,7 @@ import {
   copyMark,
   createBoardScene,
   cropMark,
+  dropJoint,
   fadeMark,
   fileUnder,
   flipMark,
@@ -36,12 +39,15 @@ import {
   imageBox,
   imageLayer,
   isTypingKey,
+  jointedShape,
+  jointUnder,
   layerFor,
   lineWidth,
   MARK_SHADOW,
   MarkRef,
   marksWithin,
   markUnder,
+  moveJoint,
   moveMark,
   newGuide,
   noteAt,
@@ -1260,5 +1266,110 @@ describe('snapPoint()', () => {
 
     const after = boxOf(scene, ref)!;
     expect(after.x + after.w).toBeCloseTo(300, 6);
+  });
+});
+
+describe('bending a path after it is down', () => {
+  function laid(): { scene: MapScene; ref: MarkRef; item: ShapeItem } {
+    const scene = createBoardScene(12, 10, 50);
+    const item = pathThrough(
+      [
+        { x: 0, y: 0 },
+        { x: 100, y: 0 },
+        { x: 100, y: 100 },
+      ],
+      style,
+      false
+    )!;
+    addShape(shapeLayer(scene), item);
+    return { scene, ref: { kind: 'shape', id: item.id }, item };
+  }
+
+  it('offers its corners, a box shape offering none', () => {
+    const { scene, ref } = laid();
+    const boxy = shapeBetween('rect', { x: 0, y: 0 }, { x: 10, y: 10 }, style);
+    addShape(shapeLayer(scene), boxy);
+
+    expect(jointedShape(scene, ref)).not.toBeNull();
+    expect(jointedShape(scene, { kind: 'shape', id: boxy.id })).toBeNull();
+  });
+
+  it('names the corner the pointer landed on, and none between them', () => {
+    const { scene, ref } = laid();
+
+    expect(jointUnder(scene, ref, { x: 98, y: 2 }, 6)).toBe(1);
+    expect(jointUnder(scene, ref, { x: 50, y: 0 }, 6)).toBeNull();
+  });
+
+  it('moves one corner and leaves the others where they were', () => {
+    const { scene, ref, item } = laid();
+
+    moveJoint(scene, ref, 1, { x: 140, y: 20 });
+
+    expect(item.points).toEqual([0, 0, 140, 20, 100, 100]);
+  });
+
+  it('puts a new corner into the stretch the pointer landed on', () => {
+    const { scene, ref, item } = laid();
+
+    const made = addJoint(scene, ref, { x: 50, y: 2 }, 6);
+
+    expect(made).toBe(1);
+    expect(item.points).toEqual([0, 0, 50, 2, 100, 0, 100, 100]);
+  });
+
+  it('puts no corner in where the pointer landed on no stretch', () => {
+    const { scene, ref, item } = laid();
+
+    expect(addJoint(scene, ref, { x: 400, y: 400 }, 6)).toBeNull();
+    expect(item.points).toHaveLength(6);
+  });
+
+  it('takes a corner out', () => {
+    const { scene, ref, item } = laid();
+
+    expect(dropJoint(scene, ref, 1)).toBe(true);
+    expect(item.points).toEqual([0, 0, 100, 100]);
+  });
+
+  it('will not take the last corner out, a path of one point being nothing at all', () => {
+    const { scene, ref, item } = laid();
+    dropJoint(scene, ref, 1);
+
+    expect(dropJoint(scene, ref, 0)).toBe(false);
+    expect(item.points).toHaveLength(4);
+  });
+});
+
+describe('the balloon', () => {
+  it('hangs its tail below the body rather than inside it', () => {
+    const outline = generateShapePoints('balloon', 0, 0, 100, 100);
+    const lowest = Math.max(...outline.filter((_, at) => at % 2 === 1));
+
+    expect(lowest).toBeCloseTo(100, 6);
+  });
+
+  it('keeps the body clear of the bottom, which is where the tail goes', () => {
+    const outline = generateShapePoints('balloon', 0, 0, 100, 100);
+    const downs = outline.filter((_, at) => at % 2 === 1).filter((y) => y < 100);
+
+    expect(Math.max(...downs)).toBeLessThan(100);
+  });
+
+  it('stays inside the box it was drawn in', () => {
+    const outline = generateShapePoints('balloon', 10, 20, 80, 60);
+    for (let at = 0; at + 1 < outline.length; at += 2) {
+      expect(outline[at]).toBeGreaterThanOrEqual(10);
+      expect(outline[at]).toBeLessThanOrEqual(90);
+      expect(outline[at + 1]).toBeGreaterThanOrEqual(20);
+      expect(outline[at + 1]).toBeLessThanOrEqual(80);
+    }
+  });
+
+  it('is drawn as one closed outline, so it can be filled', () => {
+    const drawn = shapeBetween('balloon', { x: 0, y: 0 }, { x: 100, y: 100 }, style, true);
+
+    expect(drawn.shape).toBe('polygon');
+    expect(drawn.fill).not.toBeNull();
   });
 });

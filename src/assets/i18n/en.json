@@ -2337,7 +2337,8 @@
           "pentagon": "Pentagon",
           "hexagon": "Hexagon",
           "star5": "5-point star",
-          "star6": "6-point star"
+          "star6": "6-point star",
+          "balloon": "Balloon"
         },
         "lineKinds": {
           "straight": "Straight",
@@ -2900,7 +2901,8 @@
         "pentagon": "Pentagon",
         "hexagon": "Hexagon",
         "star5": "Star 5",
-        "star6": "Star 6"
+        "star6": "Star 6",
+        "balloon": "Balloon"
       },
       "dash": {
         "solid": "Solid",

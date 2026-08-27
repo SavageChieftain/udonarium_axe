@@ -2337,7 +2337,8 @@
           "pentagon": "五角形",
           "hexagon": "六角形",
           "star5": "五芒星",
-          "star6": "六芒星"
+          "star6": "六芒星",
+          "balloon": "吹き出し"
         },
         "lineKinds": {
           "straight": "直線",
@@ -2900,7 +2901,8 @@
         "pentagon": "五角",
         "hexagon": "六角",
         "star5": "星5",
-        "star6": "星6"
+        "star6": "星6",
+        "balloon": "吹き出し"
       },
       "dash": {
         "solid": "実線",

@@ -2337,7 +2337,8 @@
           "pentagon": "오각형",
           "hexagon": "육각형",
           "star5": "오각별",
-          "star6": "육각별"
+          "star6": "육각별",
+          "balloon": "말풍선"
         },
         "lineKinds": {
           "straight": "직선",
@@ -3130,7 +3131,8 @@
         "pentagon": "오각",
         "hexagon": "육각",
         "star5": "별5",
-        "star6": "별6"
+        "star6": "별6",
+        "balloon": "말풍선"
       },
       "dash": {
         "solid": "실선",

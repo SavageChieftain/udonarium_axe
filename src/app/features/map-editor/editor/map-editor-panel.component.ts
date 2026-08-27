@@ -209,6 +209,7 @@ export class MapEditorPanelComponent implements AfterViewInit {
     'hexagon',
     'star5',
     'star6',
+    'balloon',
   ];
 
   protected readonly gridTypeOptions: { type: GridType; label: string }[] = [
