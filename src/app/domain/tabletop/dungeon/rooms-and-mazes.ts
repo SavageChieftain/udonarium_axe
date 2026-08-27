@@ -4,6 +4,7 @@ import {
   DungeonLayout,
   DungeonRoom,
   DungeonRoomRole,
+  firstCellOf,
 } from '@axe/domain/tabletop/dungeon/dungeon-layout';
 import { ROOM_SHAPES, RoomShape, shapeCells, shapeFits } from '@axe/domain/tabletop/dungeon/room-shapes';
 
@@ -82,7 +83,7 @@ export function generateRoomsAndMazes(params: RoomsAndMazesParams, rng: () => nu
   layout.doors = layout.doors.filter((door) => layout.cells[door.y * width + door.x] === DungeonCell.Door);
   layout.links = deriveLinks(layout);
 
-  const start = firstRoomCell(layout, 0);
+  const start = firstCellOf(layout, 0);
   layout.entrance = { ...start };
   layout.exit = { ...start };
   return layout;
@@ -259,7 +260,10 @@ function joinRegions(
 
     const sources = chosen.regions.map((region) => merged[region]);
     const target = sources[0];
-    const absorbed = sources.slice(1);
+    // A join can touch the same region twice over, or two that have already been joined. Only
+    // the ones that are really being swallowed may be struck off, or the survivor goes with them
+    // and the count of what is left falls below what is still standing apart.
+    const absorbed = [...new Set(sources)].filter((root) => root !== target);
     for (let index = 0; index < regionCount; index++) {
       if (absorbed.includes(merged[index])) merged[index] = target;
     }
@@ -396,28 +400,4 @@ function deriveLinks(layout: DungeonLayout): [number, number][] {
   }
 
   return [...links].map((key) => key.split(',').map(Number) as [number, number]);
-}
-
-function firstRoomCell(layout: DungeonLayout, index: number): { x: number; y: number } {
-  const room = layout.rooms[index];
-  if (!room) return { x: 1, y: 1 };
-  const cx = room.x + Math.floor(room.w / 2);
-  const cy = room.y + Math.floor(room.h / 2);
-  if (layout.cells[cy * layout.width + cx] === DungeonCell.Room) return { x: cx, y: cy };
-
-  let best = { x: cx, y: cy };
-  let bestDistance = Number.POSITIVE_INFINITY;
-  for (let dy = 0; dy < room.h; dy++) {
-    for (let dx = 0; dx < room.w; dx++) {
-      const x = room.x + dx;
-      const y = room.y + dy;
-      if (layout.cells[y * layout.width + x] !== DungeonCell.Room) continue;
-      const distance = (x - cx) ** 2 + (y - cy) ** 2;
-      if (distance < bestDistance) {
-        bestDistance = distance;
-        best = { x, y };
-      }
-    }
-  }
-  return best;
 }

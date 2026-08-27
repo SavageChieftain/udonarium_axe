@@ -32,9 +32,13 @@ export function buildGroundScene(
   size: MapSize,
   paint: readonly MapPaint[],
   materials: GroundMaterials,
-  cellPx: number
+  cellPx: number,
+  gridType: GridType = GridType.SQUARE
 ): MapScene {
-  const scene = createScene(size.width, size.height, cellPx, GridType.SQUARE);
+  // The ground is painted on the same cells the blocks stand on. Painted as squares under a
+  // hex board it would drift from them by an eighth of a cell across, since a hex column is
+  // narrower than a hex is wide.
+  const scene = createScene(size.width, size.height, cellPx, gridType);
   scene.gridVisible = false;
 
   const fills: Record<MapPaint['kind'], FillStyle> = {

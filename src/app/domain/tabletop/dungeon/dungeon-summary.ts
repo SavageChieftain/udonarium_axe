@@ -1,4 +1,4 @@
-import { DungeonLayout, DungeonRoomRole, DungeonRoomRoleValue } from '@axe/domain/tabletop/dungeon/dungeon-layout';
+import { DungeonLayout, DungeonRoomRoleValue } from '@axe/domain/tabletop/dungeon/dungeon-layout';
 
 export interface DungeonSummaryLabels {
   roleName(role: DungeonRoomRoleValue): string;
@@ -53,15 +53,4 @@ export function buildDungeonSummary(input: DungeonSummaryInput): string {
   }
 
   return lines.join('\n');
-}
-
-export function defaultRoleOrder(): DungeonRoomRoleValue[] {
-  return [
-    DungeonRoomRole.Entrance,
-    DungeonRoomRole.Hall,
-    DungeonRoomRole.Treasure,
-    DungeonRoomRole.Boss,
-    DungeonRoomRole.DeadEnd,
-    DungeonRoomRole.Chamber,
-  ];
 }

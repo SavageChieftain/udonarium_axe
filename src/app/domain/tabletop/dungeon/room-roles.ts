@@ -3,9 +3,10 @@ import {
   DungeonCell,
   DungeonDoor,
   DungeonLayout,
-  DungeonRoom,
   DungeonRoomRole,
   DungeonRoomRoleValue,
+  firstCellOf,
+  roomCells,
 } from '@axe/domain/tabletop/dungeon/dungeon-layout';
 
 const NEIGHBOURS: readonly [number, number][] = [
@@ -14,18 +15,6 @@ const NEIGHBOURS: readonly [number, number][] = [
   [0, 1],
   [0, -1],
 ];
-
-function roomCells(layout: DungeonLayout, room: DungeonRoom): number[] {
-  const cells: number[] = [];
-  for (let dy = 0; dy < room.h; dy++) {
-    for (let dx = 0; dx < room.w; dx++) {
-      const x = room.x + dx;
-      const y = room.y + dy;
-      if (cellAt(layout, x, y) === DungeonCell.Room) cells.push(y * layout.width + x);
-    }
-  }
-  return cells;
-}
 
 /**
  * How far each room lies from the way in, counted in steps across the floor.
@@ -145,28 +134,7 @@ export function assignRoomRoles(layout: DungeonLayout): void {
   for (const room of layout.rooms) room.role = roles.get(room.index) ?? DungeonRoomRole.Chamber;
 
   layout.exit = boss >= 0 ? firstCellOf(layout, boss) : layout.entrance;
-  if (boss > 0) lockTheDeepestRoom(layout, boss, depths);
-}
-
-function firstCellOf(layout: DungeonLayout, index: number): { x: number; y: number } {
-  const room = layout.rooms[index];
-  if (!room) return { x: 1, y: 1 };
-  const cx = room.x + Math.floor(room.w / 2);
-  const cy = room.y + Math.floor(room.h / 2);
-  if (cellAt(layout, cx, cy) === DungeonCell.Room) return { x: cx, y: cy };
-
-  let best = { x: cx, y: cy };
-  let bestDistance = Number.POSITIVE_INFINITY;
-  for (const cell of roomCells(layout, room)) {
-    const x = cell % layout.width;
-    const y = Math.floor(cell / layout.width);
-    const distance = (x - cx) ** 2 + (y - cy) ** 2;
-    if (distance < bestDistance) {
-      bestDistance = distance;
-      best = { x, y };
-    }
-  }
-  return best;
+  if (boss > 0) lockTheDeepestRoom(layout, boss);
 }
 
 /**
@@ -222,7 +190,7 @@ function sealRoom(layout: DungeonLayout, index: number): DungeonDoor[] {
   return sealed;
 }
 
-function lockTheDeepestRoom(layout: DungeonLayout, boss: number, depths: readonly number[]): void {
+function lockTheDeepestRoom(layout: DungeonLayout, boss: number): void {
   layout.keyRoomIndex = -1;
   for (const door of layout.doors) door.locked = false;
 
@@ -231,7 +199,6 @@ function lockTheDeepestRoom(layout: DungeonLayout, boss: number, depths: readonl
   // The key has to lie somewhere the party can walk to without going through the room it opens.
   const candidate = deepest(withoutBoss, (index) => index !== 0 && index !== boss);
   if (candidate < 0) return;
-  void depths;
 
   if (sealRoom(layout, boss).length === 0) return;
   layout.keyRoomIndex = candidate;

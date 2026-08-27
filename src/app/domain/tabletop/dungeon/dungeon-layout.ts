@@ -142,3 +142,43 @@ export function countOpenCells(layout: DungeonLayout): number {
   for (const cell of layout.cells) if (cell !== DungeonCell.Rock) total++;
   return total;
 }
+
+/** Every cell of the board that really is this room, the shape of one not always being its box. */
+export function roomCells(layout: DungeonLayout, room: DungeonRoom): number[] {
+  const cells: number[] = [];
+  for (let dy = 0; dy < room.h; dy++) {
+    for (let dx = 0; dx < room.w; dx++) {
+      const x = room.x + dx;
+      const y = room.y + dy;
+      if (cellAt(layout, x, y) === DungeonCell.Room) cells.push(y * layout.width + x);
+    }
+  }
+  return cells;
+}
+
+/**
+ * A cell of the room to stand something on: its middle, or the nearest of its own cells.
+ *
+ * The middle of a room is not always part of it - a room carved to a shape can be hollow
+ * there - so the nearest cell that really is the room stands in for it.
+ */
+export function firstCellOf(layout: DungeonLayout, index: number): { x: number; y: number } {
+  const room = layout.rooms[index];
+  if (!room) return { x: 1, y: 1 };
+  const cx = room.x + Math.floor(room.w / 2);
+  const cy = room.y + Math.floor(room.h / 2);
+  if (cellAt(layout, cx, cy) === DungeonCell.Room) return { x: cx, y: cy };
+
+  let best = { x: cx, y: cy };
+  let bestDistance = Number.POSITIVE_INFINITY;
+  for (const cell of roomCells(layout, room)) {
+    const x = cell % layout.width;
+    const y = Math.floor(cell / layout.width);
+    const distance = (x - cx) ** 2 + (y - cy) ** 2;
+    if (distance < bestDistance) {
+      bestDistance = distance;
+      best = { x, y };
+    }
+  }
+  return best;
+}

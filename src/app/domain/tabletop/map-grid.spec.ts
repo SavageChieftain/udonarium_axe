@@ -1,6 +1,14 @@
 import { GridType } from '@axe/domain/tabletop/game-table';
 import { hexCellCenter, hexSpacing } from '@axe/domain/tabletop/hex-geometry';
-import { blockOrigin, boardSizeOn, cellCentre, MapGrid, mergeSpanFor } from '@axe/domain/tabletop/map-grid';
+import {
+  blockOrigin,
+  boardExtentPx,
+  boardSizeOn,
+  cellCentre,
+  MapGrid,
+  mergeSpanFor,
+  tableSizeFor,
+} from '@axe/domain/tabletop/map-grid';
 
 const squares: MapGrid = { type: GridType.SQUARE, sizePx: 50 };
 const flatTop: MapGrid = { type: GridType.HEX_VERTICAL, sizePx: 50 };
@@ -73,5 +81,43 @@ describe('boardSizeOn()', () => {
 
   it('never cuts a board down to nothing', () => {
     expect(boardSizeOn({ width: 1, height: 1 }, flatTop)).toEqual({ width: 4, height: 4 });
+  });
+});
+
+describe('boardExtentPx()', () => {
+  it('makes a board of squares exactly as wide as it has cells', () => {
+    expect(boardExtentPx({ width: 26, height: 20 }, squares)).toEqual({ widthPx: 1300, heightPx: 1000 });
+  });
+
+  it('makes a flat-topped board narrower across and longer down, its columns overlapping', () => {
+    const extent = boardExtentPx({ width: 26, height: 20 }, flatTop);
+
+    expect(extent.widthPx).toBeCloseTo(1140.2668, 3);
+    expect(extent.heightPx).toBeCloseTo(1025, 6);
+  });
+
+  it('turns it the other way round for a pointy-topped board', () => {
+    const extent = boardExtentPx({ width: 26, height: 20 }, pointyTop);
+
+    expect(extent.widthPx).toBeCloseTo(1325, 6);
+    expect(extent.heightPx).toBeCloseTo(880.4592, 3);
+  });
+});
+
+describe('tableSizeFor()', () => {
+  it('leaves a board of squares alone', () => {
+    expect(tableSizeFor({ width: 26, height: 20 }, squares)).toEqual({ width: 26, height: 20 });
+  });
+
+  it('rounds up, so no row of hexes hangs off the edge of the table', () => {
+    const room = tableSizeFor({ width: 26, height: 20 }, flatTop);
+    const extent = boardExtentPx({ width: 26, height: 20 }, flatTop);
+
+    expect(room.width * flatTop.sizePx).toBeGreaterThanOrEqual(extent.widthPx);
+    expect(room.height * flatTop.sizePx).toBeGreaterThanOrEqual(extent.heightPx);
+  });
+
+  it('holds a hex board that is longer than its cell count, which the old sizing cut off', () => {
+    expect(tableSizeFor({ width: 26, height: 20 }, flatTop).height).toBeGreaterThan(20);
   });
 });

@@ -71,6 +71,11 @@ export function fieldToBlocks(
   for (const prop of FIELD_PROP_IDS) {
     if (FIELD_PROP_SHAPES[prop].layers) continue;
     const shape = FIELD_PROP_SHAPES[prop];
+    // A thing laid flat on the ground is kept as a bare mark per cell, with no room on it for
+    // what it is made of, so what the mood asked for is looked up here instead of being lost.
+    const asked = atmosphere.props.find((plan) => plan.prop === prop && plan.skin)?.skin;
+    const side = asked?.side ?? shape.side;
+    const top = asked?.top ?? shape.top;
     const mask = maskOfProp(layout, prop);
     for (const rect of mergeMaskToRects(mask, layout.width, layout.height, span)) {
       blocks.push({
@@ -79,7 +84,7 @@ export function fieldToBlocks(
         blocksSight: shape.blocksSight,
         locked: false,
         rooms: [],
-        skin: { side: { kind: 'texture', id: shape.side }, top: { kind: 'texture', id: shape.top } },
+        skin: { side: { kind: 'texture', id: side }, top: { kind: 'texture', id: top } },
         height: shape.height,
       });
     }

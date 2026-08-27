@@ -185,14 +185,19 @@ export class DungeonGeneratorComponent {
     )
   );
 
-  protected readonly fieldPlan = computed<FieldPlan>(() => {
-    const plan = planField({
+  /** Rolled from the shape alone, so a new swatch does not roll the field again either. */
+  private readonly fieldShape = computed(() =>
+    planField({
       atmosphere: this.fieldAtmosphere(),
       size: this.fieldSize(),
       density: this.fieldDensity(),
       seed: this.seed(),
       gridType: this.gridType(),
-    });
+    })
+  );
+
+  protected readonly fieldPlan = computed<FieldPlan>(() => {
+    const plan = this.fieldShape();
     return { ...plan, blocks: withFieldMaterials(plan.blocks, plan.atmosphere, this.floor(), this.wall()) };
   });
 
@@ -306,7 +311,8 @@ export class DungeonGeneratorComponent {
           summary,
           gridType: this.gridType(),
         },
-        (done, total) => this.progress.set(Math.round((done / total) * 100))
+        // A map with nothing standing on it is finished the moment it starts, not NaN done.
+        (done, total) => this.progress.set(total > 0 ? Math.round((done / total) * 100) : 100)
       );
       this.builtTable.set(result.table);
       this.summary.set(result.summary);
@@ -331,7 +337,8 @@ export class DungeonGeneratorComponent {
       plan.layout,
       plan.blocks.paint,
       { floor, hazard: hazardId ? { kind: 'texture', id: hazardId } : floor },
-      DUNGEON_GRID_SIZE
+      DUNGEON_GRID_SIZE,
+      this.gridType()
     );
     try {
       const blob = await this.exportFn(scene, [], {

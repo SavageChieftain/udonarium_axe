@@ -23,7 +23,7 @@ import {
   MapMood,
   MapSize,
 } from '@axe/domain/tabletop/map-blocks';
-import { blockOrigin, MapGrid } from '@axe/domain/tabletop/map-grid';
+import { blockOrigin, MapGrid, tableSizeFor } from '@axe/domain/tabletop/map-grid';
 import { TableAmbience } from '@axe/domain/tabletop/table-ambience';
 import { DoorStyle, SlopeDirection, Terrain, TerrainViewState } from '@axe/domain/tabletop/terrain';
 import { applyLightPreset, LightPreset } from '@axe/domain/tabletop/vision-types';
@@ -119,7 +119,7 @@ export class DungeonBuildService {
         : wallSide;
 
     const grid: MapGrid = { type: options.gridType ?? GridType.SQUARE, sizePx: GRID_SIZE };
-    const table = this.createTable(size, mood, options);
+    const table = this.createTable(size, mood, options, grid);
 
     let done = 0;
     for (const block of blocks.blocks) {
@@ -138,11 +138,12 @@ export class DungeonBuildService {
     return { table, terrainCount: blocks.blocks.length, summary: options.summary };
   }
 
-  private createTable(size: MapSize, mood: MapMood, options: DungeonBuildOptions): GameTable {
+  private createTable(size: MapSize, mood: MapMood, options: DungeonBuildOptions, grid: MapGrid): GameTable {
     const table = new GameTable();
+    const room = tableSizeFor(size, grid);
     table.name = options.name;
-    table.width = size.width;
-    table.height = size.height;
+    table.width = room.width;
+    table.height = room.height;
     table.gridSize = GRID_SIZE;
     table.gridType = options.gridType ?? GridType.SQUARE;
     table.gridShow = mood.gridShow;

@@ -1,5 +1,11 @@
 import { GridType } from '@axe/domain/tabletop/game-table';
-import { hexCellCenter, hexSpacing, isFlatTopGrid, isHexGrid } from '@axe/domain/tabletop/hex-geometry';
+import {
+  hexCellCenter,
+  hexCircumradius,
+  hexSpacing,
+  isFlatTopGrid,
+  isHexGrid,
+} from '@axe/domain/tabletop/hex-geometry';
 import { MapPoint, MapRect, MapSize } from '@axe/domain/tabletop/map-blocks';
 
 /** The board a generated map is laid out on: what shape its cells are and how big they are. */
@@ -52,5 +58,46 @@ export function boardSizeOn(size: MapSize, grid: MapGrid): MapSize {
   return {
     width: Math.max(4, Math.round(size.width * HEX_BOARD_FACTOR)),
     height: Math.max(4, Math.round(size.height * HEX_BOARD_FACTOR)),
+  };
+}
+
+/**
+ * How much room a board of this many cells actually takes, in table pixels.
+ *
+ * A board of squares is as wide as it has cells and no wider. A hex board is neither: its
+ * columns overlap by a quarter of a hex and every other one is dropped half a row, so a board
+ * of the same count of cells is narrower one way and longer the other.
+ */
+export function boardExtentPx(size: MapSize, grid: MapGrid): { widthPx: number; heightPx: number } {
+  if (!isHexGrid(grid.type)) {
+    return { widthPx: size.width * grid.sizePx, heightPx: size.height * grid.sizePx };
+  }
+  const flatTop = isFlatTopGrid(grid.type);
+  const { colSpacing, rowSpacing } = hexSpacing(grid.sizePx, flatTop);
+  const across = hexCircumradius(grid.sizePx) * 2;
+  return flatTop
+    ? {
+        widthPx: colSpacing * (size.width - 1) + across,
+        heightPx: rowSpacing * size.height + rowSpacing / 2,
+      }
+    : {
+        widthPx: colSpacing * size.width + colSpacing / 2,
+        heightPx: rowSpacing * (size.height - 1) + across,
+      };
+}
+
+/**
+ * How many cells of table it takes to hold a board of this many cells.
+ *
+ * A table is measured in whole cells, and a hex board does not come to a whole number of them,
+ * so it is rounded up: a table cut to the nearest cell would leave the last row of hexes
+ * hanging off the edge of it.
+ */
+export function tableSizeFor(size: MapSize, grid: MapGrid): MapSize {
+  if (!isHexGrid(grid.type)) return size;
+  const { widthPx, heightPx } = boardExtentPx(size, grid);
+  return {
+    width: Math.ceil(widthPx / grid.sizePx),
+    height: Math.ceil(heightPx / grid.sizePx),
   };
 }
