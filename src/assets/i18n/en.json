@@ -2808,7 +2808,8 @@
         "shape": "Shape",
         "marker": "Marker",
         "arrow": "Arrow",
-        "note": "Note"
+        "note": "Note",
+        "hand": "Hand"
       },
       "editor": {
         "ink": "Ink",
@@ -2859,7 +2860,13 @@
         "shadow": "Drop shadow",
         "lockLayer": "Lock layer",
         "layerOpacity": "Layer opacity",
-        "saveAsPicture": "Save as picture"
+        "saveAsPicture": "Save as picture",
+        "picture": "Picture",
+        "flipAcross": "Flip across",
+        "flipDown": "Flip down",
+        "pictureOpacity": "Opacity",
+        "zoomToHeld": "Zoom to selection",
+        "clearLayer": "Clear this layer"
       },
       "layer": {
         "freehand": "Drawing",

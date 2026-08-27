@@ -28,10 +28,11 @@ import { generateShapePoints } from '@axe/features/map-editor/model/shape-points
  * it, which is why it has an editor of its own rather than the one that draws maps.
  */
 export type BoardTool =
-  'select' | 'pen' | 'marker' | 'eraser' | 'line' | 'arrow' | 'shape' | 'text' | 'note' | 'sticker';
+  'select' | 'hand' | 'pen' | 'marker' | 'eraser' | 'line' | 'arrow' | 'shape' | 'text' | 'note' | 'sticker';
 
 export const BOARD_TOOLS: readonly BoardTool[] = [
   'select',
+  'hand',
   'pen',
   'marker',
   'eraser',
@@ -946,5 +947,92 @@ export function spreadMarks(scene: MapScene, refs: readonly MarkRef[], along: 'x
     const shift = at - was;
     if (shift) moveMark(scene, entry.ref, along === 'x' ? shift : 0, along === 'y' ? shift : 0);
     at += (along === 'x' ? entry.box.w : entry.box.h) + gap;
+  }
+}
+
+/**
+ * How far a point may sit off the line between its neighbours before it is worth keeping.
+ *
+ * A pen reports a point every few milliseconds, so a stroke drawn slowly carries hundreds of
+ * them, most saying nothing the two either side did not. They cost synchronisation and make
+ * the line jitter where the hand did.
+ */
+const SMOOTH_SLACK = 1.1;
+
+/** Thins a freehand stroke down to the points that carry its shape, and rounds the corners. */
+export function smoothStroke(points: readonly number[]): number[] {
+  if (points.length <= 6) return [...points];
+  const kept = thin(points, 0, points.length / 2 - 1, SMOOTH_SLACK);
+  if (kept.length <= 6) return kept;
+
+  // Each kept point is pulled a quarter of the way towards each of its neighbours, which
+  // takes the wobble out of a hand-drawn line without moving where the line goes.
+  const eased = [kept[0], kept[1]];
+  for (let i = 2; i < kept.length - 2; i += 2) {
+    eased.push(
+      kept[i] * 0.5 + kept[i - 2] * 0.25 + kept[i + 2] * 0.25,
+      kept[i + 1] * 0.5 + kept[i - 1] * 0.25 + kept[i + 3] * 0.25
+    );
+  }
+  eased.push(kept[kept.length - 2], kept[kept.length - 1]);
+  return eased;
+}
+
+/** Douglas-Peucker: keeps the point furthest off the line, and asks the same of each half. */
+function thin(points: readonly number[], first: number, last: number, slack: number): number[] {
+  const ax = points[first * 2];
+  const ay = points[first * 2 + 1];
+  const bx = points[last * 2];
+  const by = points[last * 2 + 1];
+  let worst = 0;
+  let at = first;
+
+  for (let i = first + 1; i < last; i++) {
+    const off = awayFromLine(points[i * 2], points[i * 2 + 1], ax, ay, bx, by);
+    if (off > worst) {
+      worst = off;
+      at = i;
+    }
+  }
+  if (worst <= slack) return [ax, ay, bx, by];
+  return [...thin(points, first, at, slack).slice(0, -2), ...thin(points, at, last, slack)];
+}
+
+function awayFromLine(px: number, py: number, ax: number, ay: number, bx: number, by: number): number {
+  const dx = bx - ax;
+  const dy = by - ay;
+  const span = dx * dx + dy * dy;
+  if (span === 0) return Math.hypot(px - ax, py - ay);
+  const along = Math.max(0, Math.min(1, ((px - ax) * dx + (py - ay) * dy) / span));
+  return Math.hypot(px - (ax + along * dx), py - (ay + along * dy));
+}
+
+/** Everything on one sheet is swept off, leaving the sheet and everything under it. */
+export function clearSheet(layer: MapLayer): void {
+  if (layer.kind === 'freehand') layer.strokes = [];
+  if (layer.kind === 'shape' || layer.kind === 'text' || layer.kind === 'image') layer.items = [];
+  if (layer.kind === 'cell') layer.cells = {};
+  if (layer.kind === 'stamp') layer.items = [];
+}
+
+/** Turns a picture over, which is how anyone makes a figure face the other way. */
+export function flipMark(scene: MapScene, ref: MarkRef, way: 'across' | 'down'): void {
+  if (ref.kind !== 'image') return;
+  for (const layer of scene.layers) {
+    if (layer.kind !== 'image') continue;
+    const item = layer.items.find((entry) => entry.id === ref.id);
+    if (!item) continue;
+    if (way === 'across') item.flipX = !item.flipX;
+    else item.flipY = !item.flipY;
+  }
+}
+
+/** How solid a picture is, so one can be laid under the rest as a tracing to work over. */
+export function fadeMark(scene: MapScene, ref: MarkRef, opacity: number): void {
+  if (ref.kind !== 'image') return;
+  for (const layer of scene.layers) {
+    if (layer.kind !== 'image') continue;
+    const item = layer.items.find((entry) => entry.id === ref.id);
+    if (item) item.opacity = Math.min(1, Math.max(0, opacity));
   }
 }

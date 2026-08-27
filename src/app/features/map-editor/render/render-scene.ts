@@ -251,6 +251,7 @@ function drawImageItem(
   }
   ctx.translate(item.x, item.y);
   if (item.rotation) ctx.rotate((item.rotation * Math.PI) / 180);
+  if (item.flipX || item.flipY) ctx.scale(item.flipX ? -1 : 1, item.flipY ? -1 : 1);
   ctx.drawImage(image, -item.w / 2, -item.h / 2, item.w, item.h);
   ctx.restore();
 }

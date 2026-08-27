@@ -2808,7 +2808,8 @@
         "shape": "図形",
         "marker": "マーカー",
         "arrow": "矢印",
-        "note": "付箋"
+        "note": "付箋",
+        "hand": "手のひら"
       },
       "editor": {
         "ink": "インクの色",
@@ -2859,7 +2860,13 @@
         "shadow": "影を落とす",
         "lockLayer": "レイヤーを固定",
         "layerOpacity": "レイヤーの不透明度",
-        "saveAsPicture": "画像として保存"
+        "saveAsPicture": "画像として保存",
+        "picture": "画像",
+        "flipAcross": "左右反転",
+        "flipDown": "上下反転",
+        "pictureOpacity": "不透明度",
+        "zoomToHeld": "選択範囲に合わせる",
+        "clearLayer": "このレイヤーを消去"
       },
       "layer": {
         "freehand": "手描き",

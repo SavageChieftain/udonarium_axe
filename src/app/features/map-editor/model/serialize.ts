@@ -99,6 +99,8 @@ function sanitizeImageItem(raw: unknown): ImageItem | null {
   const r = raw as Record<string, unknown>;
   const item = { ...r } as unknown as ImageItem;
   if ('clipToCells' in r) item.clipToCells = r['clipToCells'] === true;
+  if ('flipX' in r) item.flipX = r['flipX'] === true;
+  if ('flipY' in r) item.flipY = r['flipY'] === true;
   return item;
 }
 

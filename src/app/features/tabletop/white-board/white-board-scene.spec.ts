@@ -7,9 +7,12 @@ import {
   arrowBetween,
   boxAround,
   boxOf,
+  clearSheet,
   copyMark,
   createBoardScene,
+  fadeMark,
   fileUnder,
+  flipMark,
   freehandLayer,
   GRAPH_SPACINGS,
   groupLayers,
@@ -38,6 +41,7 @@ import {
   shapeLayer,
   sheetHolding,
   showGroup,
+  smoothStroke,
   snapTo,
   spreadMarks,
   stickerAt,
@@ -771,5 +775,96 @@ describe('fill and shadow', () => {
 
     restyleMark(scene, { kind: 'shape', id: drawn.id }, { shadow: false });
     expect(drawn.shadow).toBeNull();
+  });
+});
+
+describe('smoothStroke()', () => {
+  it('leaves a short stroke alone, there being nothing in it to thin out', () => {
+    expect(smoothStroke([0, 0, 5, 5])).toEqual([0, 0, 5, 5]);
+  });
+
+  it('drops the points a straight line does not need', () => {
+    const straight = [];
+    for (let x = 0; x <= 100; x += 5) straight.push(x, 0);
+
+    const thinned = smoothStroke(straight);
+
+    expect(thinned.length).toBeLessThan(straight.length);
+    expect(thinned.slice(0, 2)).toEqual([0, 0]);
+    expect(thinned.slice(-2)).toEqual([100, 0]);
+  });
+
+  it('keeps the corner of a stroke that turns, rather than cutting it off', () => {
+    const bent = [];
+    for (let x = 0; x <= 60; x += 4) bent.push(x, 0);
+    for (let y = 4; y <= 60; y += 4) bent.push(60, y);
+
+    const thinned = smoothStroke(bent);
+    const nearCorner = [];
+    for (let i = 0; i < thinned.length; i += 2) {
+      if (Math.hypot(thinned[i] - 60, thinned[i + 1]) < 10) nearCorner.push(i);
+    }
+
+    expect(nearCorner.length).toBeGreaterThan(0);
+  });
+
+  it('does not wander off the line it was given', () => {
+    const wobbly = [];
+    for (let x = 0; x <= 200; x += 4) wobbly.push(x, Math.sin(x / 8) * 0.6);
+
+    const thinned = smoothStroke(wobbly);
+
+    for (let i = 1; i < thinned.length; i += 2) expect(Math.abs(thinned[i])).toBeLessThan(3);
+  });
+});
+
+describe('clearing, flipping and fading', () => {
+  it('sweeps one sheet and leaves the sheets under it', () => {
+    const scene = createBoardScene(8, 6, 50);
+    addStroke(freehandLayer(scene), penStroke([0, 0, 10, 10], style));
+    addShape(shapeLayer(scene), shapeBetween('rect', { x: 0, y: 0 }, { x: 10, y: 10 }, style));
+
+    clearSheet(freehandLayer(scene));
+
+    expect(freehandLayer(scene).strokes).toHaveLength(0);
+    expect(shapeLayer(scene).items).toHaveLength(1);
+  });
+
+  it('turns a picture over and back again', () => {
+    const scene = createBoardScene(8, 6, 50);
+    const stuck = stickerAt({ x: 50, y: 50 }, 'pic', 40);
+    addImage(imageLayer(scene), stuck);
+    const ref = { kind: 'image' as const, id: stuck.id };
+
+    flipMark(scene, ref, 'across');
+    expect(stuck.flipX).toBe(true);
+    expect(stuck.flipY).toBeFalsy();
+
+    flipMark(scene, ref, 'across');
+    expect(stuck.flipX).toBe(false);
+  });
+
+  it('fades a picture, and will not fade one past nothing or past solid', () => {
+    const scene = createBoardScene(8, 6, 50);
+    const stuck = stickerAt({ x: 50, y: 50 }, 'pic', 40);
+    addImage(imageLayer(scene), stuck);
+    const ref = { kind: 'image' as const, id: stuck.id };
+
+    fadeMark(scene, ref, 0.4);
+    expect(stuck.opacity).toBe(0.4);
+
+    fadeMark(scene, ref, 5);
+    expect(stuck.opacity).toBe(1);
+
+    fadeMark(scene, ref, -1);
+    expect(stuck.opacity).toBe(0);
+  });
+
+  it('leaves marks that are not pictures alone', () => {
+    const scene = createBoardScene(8, 6, 50);
+    const drawn = shapeBetween('rect', { x: 0, y: 0 }, { x: 10, y: 10 }, style);
+    addShape(shapeLayer(scene), drawn);
+
+    expect(() => flipMark(scene, { kind: 'shape', id: drawn.id }, 'down')).not.toThrow();
   });
 });

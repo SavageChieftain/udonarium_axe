@@ -120,6 +120,8 @@ export interface ImageItem {
   h: number;
   rotation: number;
   opacity: number;
+  flipX?: boolean;
+  flipY?: boolean;
   clipToCells?: boolean;
 }
 

@@ -58,9 +58,12 @@ import {
   BoardTool,
   boxAround,
   boxOf,
+  clearSheet,
   copyMark,
   createBoardScene,
+  fadeMark,
   fileUnder,
+  flipMark,
   freehandLayer,
   GRAPH_SPACINGS,
   groupLayers,
@@ -93,6 +96,7 @@ import {
   shapeLayer,
   sheetHolding,
   showGroup,
+  smoothStroke,
   snapTo,
   spreadMarks,
   stickerAt,
@@ -121,6 +125,7 @@ const ERASER_SVG =
 
 const TOOL_ICONS: Record<BoardTool, string> = {
   select: '',
+  hand: 'pan_tool',
   pen: 'edit',
   marker: 'border_color',
   eraser: '',
@@ -648,7 +653,56 @@ export class WhiteBoardEditorComponent {
 
   protected choose(tool: BoardTool): void {
     this.tool.set(tool);
+    this.panning.set(tool === 'hand');
     if (tool === 'sticker') this.pickSticker();
+  }
+
+  /** Fills the panel with what is held, which is how anyone looks closely at one thing. */
+  protected zoomToHeld(): void {
+    const stage = this.stageRef()?.nativeElement;
+    const box = boxAround(this.scene, this.held());
+    if (!stage || !box) return;
+    const room = Math.min(
+      (stage.clientWidth - STAGE_MARGIN) / Math.max(1, box.w),
+      (stage.clientHeight - STAGE_MARGIN) / Math.max(1, box.h)
+    );
+    this.zoomTo(room);
+    stage.scrollLeft = (box.x + box.w / 2) * this.zoom() - stage.clientWidth / 2;
+    stage.scrollTop = (box.y + box.h / 2) * this.zoom() - stage.clientHeight / 2;
+  }
+
+  /** Sweeps one sheet, which is not the same as sweeping the board and starting again. */
+  protected clearSheet(layer: MapLayer): void {
+    clearSheet(layer);
+    this.hold([]);
+    this.touched();
+  }
+
+  protected flipHeld(way: 'across' | 'down'): void {
+    for (const mark of this.held()) flipMark(this.scene, mark, way);
+    this.touched();
+  }
+
+  protected fadeHeld(opacity: number): void {
+    for (const mark of this.held()) fadeMark(this.scene, mark, opacity);
+    this.touched();
+  }
+
+  /** How solid the picture in hand is, so the slider knows where to sit. */
+  protected heldOpacity(): number {
+    this.revision();
+    const one = this.selected();
+    if (one?.kind !== 'image') return 1;
+    for (const layer of this.scene.layers) {
+      if (layer.kind !== 'image') continue;
+      const item = layer.items.find((entry) => entry.id === one.id);
+      if (item) return Number.isFinite(item.opacity) ? item.opacity : 1;
+    }
+    return 1;
+  }
+
+  protected holdsPicture(): boolean {
+    return this.held().some((mark) => mark.kind === 'image');
   }
 
   /** Where on the board a pointer landed, whatever size the canvas is being shown at. */
@@ -694,6 +748,9 @@ export class WhiteBoardEditorComponent {
         break;
       case 'select':
         this.take(at, event.shiftKey);
+        break;
+      case 'hand':
+        this.panFrom = { x: event.clientX, y: event.clientY };
         break;
       case 'sticker':
         break;
@@ -741,7 +798,10 @@ export class WhiteBoardEditorComponent {
     const at = this.pointOf(event);
 
     if (this.isPenning() && this.drawingPoints.length > 3) {
-      addStroke(freehandLayer(this.scene, this.activeLayerId()), penStroke([...this.drawingPoints], this.inkStyle()));
+      addStroke(
+        freehandLayer(this.scene, this.activeLayerId()),
+        penStroke(smoothStroke(this.drawingPoints), this.inkStyle())
+      );
     }
     this.drawingPoints = [];
 
