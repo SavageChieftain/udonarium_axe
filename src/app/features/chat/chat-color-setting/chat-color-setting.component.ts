@@ -15,6 +15,30 @@ import { TranslocoModule } from '@jsverse/transloco';
 
 export type ChatTheme = 'light' | 'dark';
 
+/**
+ * The colours offered without having to open a picker.
+ *
+ * Picking a legible colour out of a wheel is a chore nobody wants before speaking, and these
+ * are the ones the tool has always offered: a dark and a light of each hue, spread round it.
+ */
+export const CHAT_PRESET_COLORS: readonly string[] = [
+  '#000000',
+  '#999999',
+  '#990000',
+  '#FF0000',
+  '#FF6633',
+  '#669933',
+  '#00CC33',
+  '#009966',
+  '#33CCFF',
+  '#0099FF',
+  '#3366FF',
+  '#003399',
+  '#9933CC',
+  '#663366',
+  '#FF66FF',
+];
+
 @Component({
   selector: 'chat-color-setting',
   templateUrl: './chat-color-setting.component.html',
@@ -29,6 +53,10 @@ export class ChatColorSettingComponent {
 
   readonly themes: readonly ChatTheme[] = ['light', 'dark'];
   readonly slots = [0, 1, 2] as const;
+  readonly presets = CHAT_PRESET_COLORS;
+
+  /** Which of the three is being worked on, the other two waiting behind their own buttons. */
+  readonly editing = signal(0);
 
   isAllowedEmpty: boolean = false;
   tabletopObject: GameCharacter | null = null;
@@ -71,11 +99,6 @@ export class ChatColorSettingComponent {
 
   isHardToRead(num: number, theme: ChatTheme): boolean {
     return this.contrastOf(num, theme) < CHAT_WARN_RATIO;
-  }
-
-  /** Rounded down, so a pair that misses the standard is never shown as having met it. */
-  contrastLabel(num: number, theme: ChatTheme): string {
-    return (Math.floor(this.contrastOf(num, theme) * 10) / 10).toFixed(1);
   }
 
   /** The page each preview sits on, so a dark sample reads as a dark room and not as the panel. */
@@ -121,6 +144,11 @@ export class ChatColorSettingComponent {
 
   onChangeBubble(event: Event, index: number, theme: ChatTheme): void {
     this.changeBubble((event.target as HTMLInputElement).value, index, theme);
+  }
+
+  /** Colours are written down in whichever case the picker felt like, so they are matched loosely. */
+  sameColor(one: string, other: string): boolean {
+    return one.toLowerCase() === other.toLowerCase();
   }
 
   get speakerName(): string {

@@ -2058,19 +2058,18 @@
         "systemTabNote": "A notice board: everyone sees it, no one writes in it. Its name and position are fixed, and it is never saved with the room."
       },
       "colorSetting": {
-        "color1": "Color 1",
-        "color2": "Color 2",
-        "color3": "Color 3",
-        "preview": "How it looks",
         "sample": "Hello, world!",
         "theme": {
           "light": "Light theme",
           "dark": "Dark theme"
         },
-        "bubble": "Bubble colour",
-        "auto": "Back to automatic",
-        "fix": "Adjust",
-        "hardToRead": "Hard to read on this theme - press to put the bubble right"
+        "bubble": "Bubble colour (click to change)",
+        "auto": "Let the bubble colour be worked out again",
+        "hardToRead": "Hard to read. Click to fix",
+        "slot": "Colour",
+        "textColor": "Text",
+        "bubbleLabel": "Bubble",
+        "otherColor": "Pick another colour"
       },
       "messageFix": {
         "change": "Apply",

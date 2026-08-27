@@ -2058,19 +2058,18 @@
         "systemTabNote": "知らせの貼り紙です。全員に見え、誰も書き込めません。名前と並びは固定で、部屋データにも保存されません。"
       },
       "colorSetting": {
-        "color1": "第1色",
-        "color2": "第2色",
-        "color3": "第3色",
-        "preview": "見え方",
         "sample": "こんにちは！",
         "theme": {
           "light": "ライトテーマ",
           "dark": "ダークテーマ"
         },
-        "bubble": "吹き出しの色",
-        "auto": "自動に戻す",
-        "fix": "調整",
-        "hardToRead": "このテーマでは読みにくいので、押すと吹き出しを調整します"
+        "bubble": "吹き出しの色（押して変更）",
+        "auto": "吹き出しの色を自動に戻す",
+        "hardToRead": "読みにくい。押して直す",
+        "slot": "色",
+        "textColor": "文字色",
+        "bubbleLabel": "吹き出し",
+        "otherColor": "他の色を選ぶ"
       },
       "messageFix": {
         "change": "変更",

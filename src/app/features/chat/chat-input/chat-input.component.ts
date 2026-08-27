@@ -534,9 +534,9 @@ export class ChatInputComponent {
       const option: PanelOption = {
         title: title,
         left: coordinate.x + 50,
-        top: coordinate.y - 300,
-        width: 348,
-        height: 400,
+        top: coordinate.y - 200,
+        width: 384,
+        height: 300,
         single: COLOR_SETTING_PANEL,
       };
       const component = this.panelService.open<ChatColorSettingComponent>(ChatColorSettingComponent, option);
@@ -548,8 +548,8 @@ export class ChatInputComponent {
         title: title,
         left: coordinate.x + 50,
         top: coordinate.y - 150,
-        width: 348,
-        height: 370,
+        width: 384,
+        height: 282,
         single: COLOR_SETTING_PANEL,
       };
       const component = this.panelService.open<ChatColorSettingComponent>(ChatColorSettingComponent, option);

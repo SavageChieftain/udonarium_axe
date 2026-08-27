@@ -2058,19 +2058,18 @@
         "systemTabNote": "알림 게시판입니다. 전원에게 보이고 아무도 쓸 수 없습니다. 이름과 순서는 고정이며 방 데이터에도 저장되지 않습니다."
       },
       "colorSetting": {
-        "color1": "제1색",
-        "color2": "제2색",
-        "color3": "제3색",
-        "preview": "보이는 방식",
         "sample": "안녕하세요!",
         "theme": {
           "light": "라이트 테마",
           "dark": "다크 테마"
         },
-        "bubble": "말풍선 색",
-        "auto": "자동으로 되돌리기",
-        "fix": "조정",
-        "hardToRead": "이 테마에서는 읽기 어렵습니다 - 누르면 말풍선을 조정합니다"
+        "bubble": "말풍선 색 (눌러서 변경)",
+        "auto": "말풍선 색을 자동으로 되돌리기",
+        "hardToRead": "읽기 어렵습니다. 눌러서 수정",
+        "slot": "색",
+        "textColor": "글자색",
+        "bubbleLabel": "말풍선",
+        "otherColor": "다른 색 고르기"
       },
       "messageFix": {
         "change": "변경",

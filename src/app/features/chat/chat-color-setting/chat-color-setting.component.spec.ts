@@ -33,4 +33,83 @@ describe('ChatColorSettingComponent', () => {
     expect(component.speakerName).toBe('Somebody');
     expect((fixture.nativeElement as HTMLElement).textContent).toContain('Somebody');
   });
+
+  it('offers every colour, whichever one is being worked on', () => {
+    const host = fixture.nativeElement as HTMLElement;
+    const tabs = host.querySelectorAll<HTMLButtonElement>('button');
+
+    expect(component.editing()).toBe(0);
+    expect(tabs.length).toBeGreaterThanOrEqual(component.slots.length);
+  });
+
+  it('works on whichever colour was asked for', () => {
+    component.editing.set(2);
+    fixture.detectChanges();
+
+    const picker = (fixture.nativeElement as HTMLElement).querySelector<HTMLInputElement>('input[type="color"]');
+
+    expect(picker?.id).toBe('chat-color-2');
+  });
+
+  it('offers colours to pick without opening a wheel', () => {
+    const host = fixture.nativeElement as HTMLElement;
+    const swatches = host.querySelectorAll('button[title^="#"]');
+
+    expect(component.presets.length).toBeGreaterThan(0);
+    expect(swatches.length).toBe(component.presets.length);
+  });
+
+  it('takes a colour straight off the palette', () => {
+    component.changeColor(component.presets[3], 0);
+
+    expect(component.chatColorCode(0)).toBe(component.presets[3]);
+  });
+
+  it('matches a colour whichever case it was written in', () => {
+    expect(component.sameColor('#FF0000', '#ff0000')).toBe(true);
+    expect(component.sameColor('#FF0000', '#00ff00')).toBe(false);
+  });
+
+  it('writes no contrast ratio, a number the reader has no way to read', () => {
+    const words = (fixture.nativeElement as HTMLElement).textContent ?? '';
+
+    expect(words).not.toMatch(/\d+(\.\d+)?\s*:\s*1/);
+  });
+
+  it('says what each swatch is for rather than leaving it to be guessed', () => {
+    const host = fixture.nativeElement as HTMLElement;
+    const text = host.querySelector<HTMLInputElement>('input[id="chat-color-0"]');
+    const bubble = host.querySelector<HTMLInputElement>('input[name="chat-bubble-light-0"]');
+
+    expect(text?.title).toBeTruthy();
+    expect(bubble?.title).toBeTruthy();
+  });
+
+  it('offers to fix only the pairing that cannot be read', () => {
+    component.changeColor('#808080', 0);
+    component.changeBubble('#808080', 0, 'light');
+    fixture.detectChanges();
+
+    expect(component.isHardToRead(0, 'light')).toBe(true);
+    expect(component.isHardToRead(1, 'light')).toBe(false);
+  });
+
+  it('puts a bubble the colour can be read on when the fix is taken up', () => {
+    component.changeColor('#808080', 0);
+    component.changeBubble('#808080', 0, 'light');
+
+    component.autoAdjust(0, 'light');
+
+    expect(component.isHardToRead(0, 'light')).toBe(false);
+  });
+
+  it('gives the bubble back to being worked out', () => {
+    component.changeBubble('#123456', 1, 'dark');
+    expect(component.bubbleCode(1, 'dark')).toBe('#123456');
+
+    component.clearBubble(1, 'dark');
+
+    expect(component.bubbleCode(1, 'dark')).toBe('');
+    expect(component.shownBubble(1, 'dark')).not.toBe('');
+  });
 });
