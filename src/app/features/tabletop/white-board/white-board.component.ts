@@ -99,9 +99,6 @@ export class WhiteBoardComponent {
   readonly color = computed(() => this.version().color);
   readonly imageUrl = computed(() => this.version().imageFile.url);
 
-  /** Turned about the upright axis, which leaves the board lying where it was. */
-  readonly yawTransform = computed(() => `rotateZ(${this.version().rotate}deg)`);
-
   /**
    * Tilted about its lower edge, so that standing it up does not sink it into the table.
    *

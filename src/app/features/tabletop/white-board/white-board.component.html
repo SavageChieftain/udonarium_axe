@@ -1,5 +1,5 @@
 <div
-  class="absolute select-none backface-visible transform-3d"
+  class="group absolute select-none backface-visible transform-3d"
   [style.width.px]="widthPx()"
   [style.height.px]="heightPx()"
   [class.cursor-grab]="!isLock()"
@@ -10,7 +10,34 @@
   (movable.ondragstart)="onMove()"
   (movable.ondragend)="onMoved()"
 >
-  <div class="size-full origin-bottom transform-3d" [style.transform]="yawTransform()">
+  <!-- The board turns about its upright axis, the way a terrain block does, and is taken hold
+       of at its foot, which is the only part of it that touches the table. -->
+  <div
+    class="size-full origin-bottom transform-3d"
+    appRotable
+    [rotable.option]="rotableOption()"
+    [rotable.disable]="isLock()"
+    (rotable.ondragstart)="onMove()"
+    (rotable.valueChange)="onRotated($event)"
+    (rotable.ondragend)="onMoved()"
+  >
+    @if (!isLock()) {
+      <div class="pointer-events-none absolute inset-x-0 bottom-0 h-0 transform-3d">
+        <div
+          class="rotate-grab pointer-events-auto absolute -inset-x-3.5 -top-3.5 box-border h-7 cursor-default rounded-[14px] border-2 border-solid border-(--ui-panel-border) opacity-0 will-change-[opacity] transform-3d group-hover:opacity-100 group-active:opacity-100"
+        ></div>
+        <div
+          class="rotate-grab pointer-events-auto absolute -top-3.5 -left-3.5 box-border size-7 cursor-default rounded-[14px_7px_14px_7px] border-2 border-solid border-(--ui-panel-border) bg-(--ui-elevated) p-0 text-(--ui-text-muted) opacity-0 will-change-[opacity] transform-3d group-hover:opacity-100 group-active:opacity-100"
+        >
+          <i class="material-icons text-[20px]!">autorenew</i>
+        </div>
+        <div
+          class="rotate-grab pointer-events-auto absolute -top-3.5 -right-3.5 box-border size-7 cursor-default rounded-[7px_14px_7px_14px] border-2 border-solid border-(--ui-panel-border) bg-(--ui-elevated) p-0 text-(--ui-text-muted) opacity-0 will-change-[opacity] transform-3d group-hover:opacity-100 group-active:opacity-100"
+        >
+          <i class="material-icons text-[20px]!">autorenew</i>
+        </div>
+      </div>
+    }
     <div class="size-full origin-bottom transform-3d" [style.transform]="pitchTransform()">
       <div
         class="pointer-events-auto absolute inset-0 backface-visible"
@@ -27,16 +54,6 @@
           [style.background-image]="'url(' + imageUrl() + ')' | safe: 'style'"
         ></div>
       }
-
-      <div
-        class="pointer-events-none absolute inset-0 m-auto size-0 transform-3d"
-        appRotable
-        [rotable.option]="rotableOption()"
-        [rotable.disable]="isLock()"
-        (rotable.ondragstart)="onMove()"
-        (rotable.valueChange)="onRotated($event)"
-        (rotable.ondragend)="onMoved()"
-      ></div>
 
       <div class="absolute inset-0 transform-3d" data-surface-overflow [attr.data-surface]="whiteBoard().identifier">
         @for (mask of masks(); track mask.identifier) {

@@ -57,11 +57,10 @@ describe('WhiteBoardComponent', () => {
     expect(component.pitchTransform()).toBe('rotateX(-90deg)');
   });
 
-  it('turns about the upright axis on its own', async () => {
-    board.rotate = 30;
-    await new Promise((resolve) => setTimeout(resolve, 20));
+  it('takes the turn it was dragged to, so the board keeps facing where it was left', () => {
+    component.onRotated(30);
 
-    expect(component.yawTransform()).toBe('rotateZ(30deg)');
+    expect(board.rotate).toBe(30);
   });
 
   it('shows only what names it as the face it stands on', () => {
