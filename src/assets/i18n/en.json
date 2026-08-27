@@ -2803,10 +2803,9 @@
         "pen": "Pen",
         "eraser": "Eraser",
         "line": "Line",
-        "box": "Box",
-        "ellipse": "Ellipse",
         "text": "Text",
-        "sticker": "Stick"
+        "sticker": "Stick",
+        "shape": "Shape"
       },
       "editor": {
         "ink": "Ink",
@@ -2818,7 +2817,20 @@
         "ruled": "Ruled",
         "layers": "Layers ({{count}})",
         "addLayer": "Add a layer",
-        "visible": "Show or hide"
+        "visible": "Show or hide",
+        "color": "Colour",
+        "shape": "Shape",
+        "filled": "Fill it in",
+        "paper": "Paper",
+        "spacing": "Spacing",
+        "zoom": "Zoom",
+        "tools": "Tools",
+        "addGroup": "Group",
+        "groupName": "Group",
+        "noGroup": "(none)",
+        "undo": "Undo",
+        "redo": "Redo",
+        "removeSelected": "Delete what is held"
       },
       "layer": {
         "freehand": "Drawing",
@@ -2827,6 +2839,15 @@
         "image": "Stuck on",
         "cell": "Fill",
         "stamp": "Stamps"
+      },
+      "shape": {
+        "rect": "Box",
+        "ellipse": "Ellipse",
+        "triangle": "Triangle",
+        "pentagon": "Pentagon",
+        "hexagon": "Hexagon",
+        "star5": "Star 5",
+        "star6": "Star 6"
       }
     }
   },

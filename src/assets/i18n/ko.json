@@ -3033,10 +3033,9 @@
         "pen": "펜",
         "eraser": "지우개",
         "line": "직선",
-        "box": "사각형",
-        "ellipse": "원",
         "text": "글자",
-        "sticker": "붙이기"
+        "sticker": "붙이기",
+        "shape": "도형"
       },
       "editor": {
         "ink": "잉크 색",
@@ -3048,7 +3047,20 @@
         "ruled": "모눈",
         "layers": "레이어 ({{count}})",
         "addLayer": "레이어 추가",
-        "visible": "표시 전환"
+        "visible": "표시 전환",
+        "color": "잉크 색",
+        "shape": "도형",
+        "filled": "채우기",
+        "paper": "종이",
+        "spacing": "눈금 간격",
+        "zoom": "배율",
+        "tools": "도구",
+        "addGroup": "그룹화",
+        "groupName": "그룹",
+        "noGroup": "(없음)",
+        "undo": "실행 취소",
+        "redo": "다시 실행",
+        "removeSelected": "선택한 것 삭제"
       },
       "layer": {
         "freehand": "손그림",
@@ -3057,6 +3069,15 @@
         "image": "붙인 것",
         "cell": "칠하기",
         "stamp": "스탬프"
+      },
+      "shape": {
+        "rect": "사각",
+        "ellipse": "원",
+        "triangle": "삼각",
+        "pentagon": "오각",
+        "hexagon": "육각",
+        "star5": "별5",
+        "star6": "별6"
       }
     }
   },

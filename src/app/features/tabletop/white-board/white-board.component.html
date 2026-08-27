@@ -17,14 +17,16 @@
         [style.opacity]="opacity()"
         [style.background-color]="color()"
         [appTooltip]="whiteBoard()"
-      >
-        @if (imageUrl().length > 0) {
-          <div
-            class="absolute inset-0 bg-contain bg-center bg-no-repeat"
-            [style.background-image]="'url(' + imageUrl() + ')' | safe: 'style'"
-          ></div>
-        }
-      </div>
+      ></div>
+
+      @if (imageUrl().length > 0) {
+        <!-- Whatever is drawn on the board is not the board: it hangs at its own weight over a
+             face that may be faded to nothing, so a plan can float in the air over the table. -->
+        <div
+          class="pointer-events-none absolute inset-0 bg-contain bg-center bg-no-repeat backface-visible"
+          [style.background-image]="'url(' + imageUrl() + ')' | safe: 'style'"
+        ></div>
+      }
 
       <div
         class="pointer-events-none absolute inset-0 m-auto size-0 transform-3d"

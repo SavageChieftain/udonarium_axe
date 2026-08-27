@@ -1,16 +1,28 @@
-import { FreehandLayer, ImageLayer, MapScene, TextLayer } from '@axe/features/map-editor/model/scene';
+import { createLayer, FreehandLayer, ImageLayer, MapScene, TextLayer } from '@axe/features/map-editor/model/scene';
+import { addImage, addShape, addStroke, addText } from '@axe/features/map-editor/model/scene-ops';
 import {
-  boxBetween,
+  boxOf,
   createBoardScene,
+  fileUnder,
   freehandLayer,
   GRAPH_SPACINGS,
+  groupLayers,
+  groupNames,
+  handleAt,
+  handleUnder,
   imageLayer,
   layerFor,
   markUnder,
+  moveMark,
   penStroke,
+  removeMark,
+  renameGroup,
   rubOutStrokes,
   ruleBoard,
+  scaleMark,
+  shapeBetween,
   shapeLayer,
+  showGroup,
   stickerAt,
   straightLine,
   textLayer,
@@ -108,7 +120,7 @@ describe('ruleBoard()', () => {
 
 describe('marks', () => {
   it('draws a box corner to corner, whichever way round it was dragged', () => {
-    const drawn = boxBetween('box', { x: 90, y: 80 }, { x: 10, y: 20 }, style);
+    const drawn = shapeBetween('rect', { x: 90, y: 80 }, { x: 10, y: 20 }, style);
 
     expect(drawn.shape).toBe('rect');
     expect(drawn.points).toEqual([10, 20, 80, 60]);
@@ -117,7 +129,24 @@ describe('marks', () => {
   });
 
   it('draws an ellipse from the same drag', () => {
-    expect(boxBetween('ellipse', { x: 0, y: 0 }, { x: 40, y: 30 }, style).shape).toBe('ellipse');
+    expect(shapeBetween('ellipse', { x: 0, y: 0 }, { x: 40, y: 30 }, style).shape).toBe('ellipse');
+  });
+
+  it('draws the many sided ones as polygons, from the same drag', () => {
+    for (const kind of ['triangle', 'pentagon', 'hexagon', 'star5', 'star6'] as const) {
+      const drawn = shapeBetween(kind, { x: 0, y: 0 }, { x: 40, y: 30 }, style);
+
+      expect(drawn.shape).toBe('polygon');
+      expect(drawn.points.length).toBeGreaterThan(4);
+    }
+  });
+
+  it('fills a shape only when the reader asked for it filled', () => {
+    expect(shapeBetween('rect', { x: 0, y: 0 }, { x: 4, y: 4 }, style).fill).toBeNull();
+    expect(shapeBetween('rect', { x: 0, y: 0 }, { x: 4, y: 4 }, style, true).fill).toEqual({
+      type: 'solid',
+      color: style.color,
+    });
   });
 
   it('runs a line from where it started to where it ended', () => {
@@ -131,6 +160,24 @@ describe('marks', () => {
     expect(stuck.y).toBe(80);
     expect(stuck.w).toBe(40);
     expect(stuck.imageIdentifier).toBe('some-image');
+  });
+
+  it('sticks a picture up at the shape it actually is, rather than squashed into a square', () => {
+    const wide = stickerAt({ x: 0, y: 0 }, 'wide', 120, { x: 300, y: 100 });
+    const tall = stickerAt({ x: 0, y: 0 }, 'tall', 120, { x: 100, y: 400 });
+
+    // The longest side is what was asked for; the other follows from the picture.
+    expect(wide.w).toBe(120);
+    expect(wide.h).toBe(40);
+    expect(tall.h).toBe(120);
+    expect(tall.w).toBe(30);
+  });
+
+  it('centres a picture of any shape on the spot it was stuck', () => {
+    const stuck = stickerAt({ x: 100, y: 100 }, 'wide', 120, { x: 300, y: 100 });
+
+    expect(stuck.x + stuck.w / 2).toBe(100);
+    expect(stuck.y + stuck.h / 2).toBe(100);
   });
 
   it('takes the ink and the size from the pen that wrote it', () => {
@@ -183,5 +230,161 @@ describe('markUnder()', () => {
 
     expect(markUnder(scene, { x: 55, y: 55 })?.kind).toBe('text');
     expect(markUnder(scene, { x: 500, y: 500 })).toBeNull();
+  });
+});
+
+describe('layer groups', () => {
+  function sheets(): { scene: ReturnType<typeof createBoardScene> } {
+    const scene = createBoardScene(4, 3, 50);
+    for (let i = 0; i < 3; i++) {
+      const layer = createLayer('freehand', `sheet ${i}`);
+      layer.id = `sheet-${i}`;
+      scene.layers.push(layer);
+    }
+    return { scene };
+  }
+
+  it('shows a loose sheet on its own and a bundle as one', () => {
+    const { scene } = sheets();
+    fileUnder(scene.layers[0], 'plan');
+    fileUnder(scene.layers[1], 'plan');
+
+    const groups = groupLayers(scene);
+
+    expect(groups.length).toBe(2);
+    expect(groups.find((group) => group.name === 'plan')?.layers.length).toBe(2);
+    expect(groups.find((group) => group.name === '')?.layers.length).toBe(1);
+  });
+
+  it('stacks the bundles topmost first, the way the sheets are stacked', () => {
+    const { scene } = sheets();
+    fileUnder(scene.layers[0], 'under');
+
+    expect(groupLayers(scene)[0].layers[0]).toBe(scene.layers[scene.layers.length - 1]);
+  });
+
+  it('hides a whole bundle at once, and shows it again', () => {
+    const { scene } = sheets();
+    fileUnder(scene.layers[0], 'plan');
+    fileUnder(scene.layers[2], 'plan');
+
+    showGroup(scene, 'plan', false);
+
+    expect(scene.layers[0].visible).toBe(false);
+    expect(scene.layers[2].visible).toBe(false);
+    expect(scene.layers[1].visible).toBe(true);
+  });
+
+  it('renames a bundle, taking every sheet in it with the name', () => {
+    const { scene } = sheets();
+    fileUnder(scene.layers[0], 'plan');
+    fileUnder(scene.layers[1], 'plan');
+
+    renameGroup(scene, 'plan', 'the ground floor');
+
+    expect(groupNames(scene)).toEqual(['the ground floor']);
+  });
+
+  it('takes a sheet out of its bundle when it is filed under nothing', () => {
+    const { scene } = sheets();
+    fileUnder(scene.layers[0], 'plan');
+
+    fileUnder(scene.layers[0], '');
+
+    expect(scene.layers[0].group).toBeUndefined();
+    expect(groupNames(scene)).toEqual([]);
+  });
+});
+
+describe('taking hold of a mark', () => {
+  function drawnOn(): MapScene {
+    const scene = createBoardScene(8, 6, 50);
+    addStroke(freehandLayer(scene), penStroke([10, 10, 60, 10, 60, 60], style));
+    addShape(shapeLayer(scene), shapeBetween('rect', { x: 100, y: 100 }, { x: 200, y: 160 }, style));
+    addText(textLayer(scene), wordsAt({ x: 250, y: 250 }, 'hello', style));
+    addImage(imageLayer(scene), stickerAt({ x: 350, y: 120 }, 'pic', 80));
+    return scene;
+  }
+
+  it('takes hold of a line drawn in the wrong place, not only of what was stuck on', () => {
+    const scene = drawnOn();
+
+    expect(markUnder(scene, { x: 30, y: 12 })?.kind).toBe('stroke');
+    expect(markUnder(scene, { x: 150, y: 130 })?.kind).toBe('shape');
+    expect(markUnder(scene, { x: 260, y: 240 })?.kind).toBe('text');
+    expect(markUnder(scene, { x: 350, y: 120 })?.kind).toBe('image');
+  });
+
+  it('passes over a sheet that is hidden or locked', () => {
+    const scene = drawnOn();
+    for (const layer of scene.layers) layer.visible = false;
+
+    expect(markUnder(scene, { x: 150, y: 130 })).toBeNull();
+  });
+
+  it('measures a mark so a hold can be drawn round it', () => {
+    const scene = drawnOn();
+    const shape = markUnder(scene, { x: 150, y: 130 })!;
+
+    expect(boxOf(scene, shape)).toEqual({ x: 100, y: 100, w: 100, h: 60 });
+  });
+
+  it('moves whatever was taken hold of, whichever sort of mark it is', () => {
+    const scene = drawnOn();
+    for (const at of [
+      { x: 30, y: 12 },
+      { x: 150, y: 130 },
+      { x: 260, y: 240 },
+      { x: 350, y: 120 },
+    ]) {
+      const mark = markUnder(scene, at)!;
+      const before = boxOf(scene, mark)!;
+
+      moveMark(scene, mark, 25, -15);
+      const after = boxOf(scene, mark)!;
+
+      expect(after.x - before.x).toBeCloseTo(25, 5);
+      expect(after.y - before.y).toBeCloseTo(-15, 5);
+    }
+  });
+
+  it('stretches what is held from the corner opposite the one being pulled', () => {
+    const scene = drawnOn();
+    const shape = markUnder(scene, { x: 150, y: 130 })!;
+    const box = boxOf(scene, shape)!;
+
+    scaleMark(scene, shape, box, 2, 1);
+    const after = boxOf(scene, shape)!;
+
+    expect(after.x).toBeCloseTo(box.x, 5);
+    expect(after.w).toBeCloseTo(box.w * 2, 5);
+    expect(after.h).toBeCloseTo(box.h, 5);
+  });
+
+  it('takes a mark off the board, whichever sort it is', () => {
+    const scene = drawnOn();
+    const mark = markUnder(scene, { x: 350, y: 120 })!;
+
+    removeMark(scene, mark);
+
+    expect(markUnder(scene, { x: 350, y: 120 })).toBeNull();
+  });
+});
+
+describe('handleUnder()', () => {
+  const box = { x: 100, y: 100, w: 80, h: 40 };
+
+  it('names the corner the pointer landed on', () => {
+    expect(handleUnder({ x: 100, y: 100 }, box, 6)).toBe('nw');
+    expect(handleUnder({ x: 180, y: 140 }, box, 6)).toBe('se');
+    expect(handleUnder({ x: 180, y: 100 }, box, 6)).toBe('ne');
+  });
+
+  it('says nothing where the pointer landed on no corner', () => {
+    expect(handleUnder({ x: 140, y: 120 }, box, 6)).toBeNull();
+  });
+
+  it('puts each corner where the corner is', () => {
+    expect(handleAt(box, 'sw')).toEqual({ x: 100, y: 140 });
   });
 });

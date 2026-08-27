@@ -144,6 +144,7 @@ function sanitizeLayer(raw: Record<string, unknown>): MapLayer {
     visible: raw['visible'] !== false,
     locked: raw['locked'] === true,
     opacity: Math.max(0, Math.min(1, isFiniteNumber(raw['opacity']) ? (raw['opacity'] as number) : 1)),
+    group: typeof raw['group'] === 'string' && raw['group'] ? (raw['group'] as string) : undefined,
   };
 
   switch (raw['kind']) {

@@ -1,9 +1,11 @@
 import { ChangeDetectionStrategy, Component, ElementRef, inject, signal, viewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { TabletopService } from '@axe/application/tabletop/tabletop.service';
 import { ModalService } from '@axe/application/ui/modal.service';
 import { PanelService } from '@axe/application/ui/panel.service';
+import { ViewportService } from '@axe/application/ui/viewport.service';
 import { ImageStorage } from '@axe/core/storage/image-storage';
 import { boardSurfaceOf, TabletopObject } from '@axe/domain/tabletop/tabletop-object';
 import {
@@ -13,6 +15,8 @@ import {
   setBoardHeightKeepingFoot,
   WhiteBoard,
 } from '@axe/domain/tabletop/white-board';
+import { ShapeGeneratorKind } from '@axe/features/map-editor/model/editor-tool';
+import { SceneHistory } from '@axe/features/map-editor/model/history';
 import { createLayer, MapLayer, MapScene, sceneHeightPx, sceneWidthPx } from '@axe/features/map-editor/model/scene';
 import {
   addImage,
@@ -24,27 +28,42 @@ import {
   removeImage,
   removeLayer,
   removeText,
-  updateImage,
-  updateText,
 } from '@axe/features/map-editor/model/scene-ops';
 import { deserializeScene, serializeScene } from '@axe/features/map-editor/model/serialize';
 import { getRasterImage, warmRasterImages } from '@axe/features/map-editor/render/raster-image';
 import { renderScene } from '@axe/features/map-editor/render/render-scene';
 import { detachFromBoard, standingOn } from '@axe/features/tabletop/white-board/white-board-contents';
 import {
+  BOARD_SHAPES,
   BOARD_TOOLS,
   BoardPoint,
   BoardTool,
-  boxBetween,
+  boxOf,
   createBoardScene,
+  fileUnder,
   freehandLayer,
   GRAPH_SPACINGS,
+  groupLayers,
+  groupNames,
+  Handle,
+  handleAt,
+  HANDLES,
+  handleUnder,
   imageLayer,
+  LayerGroup,
+  MarkBox,
+  MarkRef,
   markUnder,
+  moveMark,
   penStroke,
+  removeMark,
+  renameGroup,
   rubOutStrokes,
   ruleBoard,
+  scaleMark,
+  shapeBetween,
   shapeLayer,
+  showGroup,
   stickerAt,
   straightLine,
   textLayer,
@@ -57,6 +76,42 @@ import { TranslocoModule } from '@jsverse/transloco';
 const SAVE_DELAY = 600;
 /** How big a sticker goes down, in the board's own pixels. */
 const STICKER_SIZE = 120;
+const SELECT_SVG =
+  '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor">' +
+  '<path d="M7 2 L7 19 L11.3 15.4 L13.9 21.3 L16.6 20.1 L14 14.3 L19.5 13.8 Z"/></svg>';
+
+const ERASER_SVG =
+  '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
+  '<path d="M20 20H7L3 16l10-10 7 7-2.5 2.5"/><path d="M6.0 20l4-4"/></svg>';
+
+const TOOL_ICONS: Record<BoardTool, string> = {
+  select: '',
+  pen: 'edit',
+  eraser: '',
+  line: 'show_chart',
+  shape: 'category',
+  text: 'title',
+  sticker: 'image',
+};
+
+const TOOL_SVG: Partial<Record<BoardTool, string>> = { select: SELECT_SVG, eraser: ERASER_SVG };
+
+/** The sizes a sheet is shown at, against its own. */
+const BOARD_ZOOMS: readonly number[] = [0.5, 0.75, 1, 1.5, 2];
+
+/** How near a corner counts as taking hold of it, in the sheet's own pixels at full size. */
+const HANDLE_SLACK = 9;
+
+const TOOL_KEYS: Record<string, BoardTool> = {
+  v: 'select',
+  p: 'pen',
+  e: 'eraser',
+  l: 'line',
+  r: 'shape',
+  t: 'text',
+  i: 'sticker',
+};
+
 const MIN_SIDE = 1;
 const MAX_SIDE = 40;
 
@@ -72,27 +127,58 @@ export class WhiteBoardEditorComponent {
   private readonly tabletopService = inject(TabletopService);
   private readonly panelService = inject(PanelService);
   protected readonly t = inject(TRANSLATE_FN);
+  protected readonly isCompact = inject(ViewportService).isCompact;
+  protected readonly drawer = signal<'none' | 'props' | 'layers'>('none');
+
+  protected toggleDrawer(which: 'props' | 'layers'): void {
+    this.drawer.update((open) => (open === which ? 'none' : which));
+  }
 
   private readonly canvasRef = viewChild<ElementRef<HTMLCanvasElement>>('board');
 
-  readonly tools = BOARD_TOOLS;
+  private readonly sanitizer = inject(DomSanitizer);
+
+  /** Laid out the way the map editor lays its tools out, since a reader learns one of them once. */
+  readonly tools: { tool: BoardTool; icon: string; svg?: SafeHtml }[] = BOARD_TOOLS.map((tool) => ({
+    tool,
+    icon: TOOL_ICONS[tool],
+    svg: TOOL_SVG[tool] ? this.sanitizer.bypassSecurityTrustHtml(TOOL_SVG[tool]!) : undefined,
+  }));
   readonly tool = signal<BoardTool>('pen');
   readonly color = signal('#1a1a1a');
   readonly strokeWidth = signal(4);
   readonly fontSize = signal(24);
 
   readonly spacings = GRAPH_SPACINGS;
+  readonly zooms = BOARD_ZOOMS;
+  /**
+   * How big the sheet is shown, against its own size.
+   *
+   * Squeezed into the width of the panel a sheet loses its ruling: a hairline drawn a pixel
+   * wide and then shrunk by half is a pixel of nothing. Shown at its own size it is legible,
+   * and the panel scrolls, which is what the map editor does and what a board must not do
+   * worse than.
+   */
+  readonly zoom = signal(1);
+  readonly shapes = BOARD_SHAPES;
+  readonly shapeKind = signal<ShapeGeneratorKind>('rect');
+  readonly filled = signal(false);
   readonly activeLayerId = signal<string | null>(null);
 
   protected readonly typing = signal<BoardPoint | null>(null);
   protected typedText = '';
 
+  readonly canUndo = signal(false);
+  readonly canRedo = signal(false);
+  readonly selected = signal<MarkRef | null>(null);
+
+  private history = new SceneHistory(createBoardScene(4, 3, 50));
   private board: WhiteBoard | null = null;
   private scene: MapScene = createBoardScene(4, 3, 50);
   private saveTimer: ReturnType<typeof setTimeout> | null = null;
   private drawingPoints: number[] = [];
   private dragFrom: BoardPoint | null = null;
-  private held: { kind: 'image' | 'text'; id: string; grabX: number; grabY: number } | null = null;
+  private held: { ref: MarkRef; grabX: number; grabY: number; handle: Handle | null; box: MarkBox } | null = null;
 
   readonly minPitch = MIN_BOARD_PITCH;
   readonly maxPitch = MAX_BOARD_PITCH;
@@ -178,10 +264,59 @@ export class WhiteBoardEditorComponent {
     this.settingChanged();
   }
 
-  /** The sheets the board is made of, topmost first, as they are stacked on it. */
+  /** The sheets the board is made of, topmost first, gathered into their bundles. */
+  get groups(): LayerGroup[] {
+    this.revision();
+    return groupLayers(this.scene);
+  }
+
   get layers(): MapLayer[] {
     this.revision();
     return [...this.scene.layers].reverse();
+  }
+
+  get groupNames(): string[] {
+    this.revision();
+    return groupNames(this.scene);
+  }
+
+  protected groupLabel(group: LayerGroup): string {
+    return group.name.length > 0 ? group.name : this.layerName(group.layers[0]);
+  }
+
+  protected isGroupShown(group: LayerGroup): boolean {
+    return group.layers.some((layer) => layer.visible);
+  }
+
+  protected toggleGroup(group: LayerGroup): void {
+    if (group.name.length < 1) {
+      this.toggleLayer(group.layers[0]);
+      return;
+    }
+    showGroup(this.scene, group.name, !this.isGroupShown(group));
+    this.touched();
+  }
+
+  /** Files the sheet being worked on under a bundle of its own, for the rest to join. */
+  protected makeGroup(): void {
+    const layer = this.scene.layers.find((entry) => entry.id === this.activeLayerId()) ?? this.scene.layers.at(-1);
+    if (!layer) return;
+    const taken = new Set(groupNames(this.scene));
+    let name = this.t('feature.whiteBoard.editor.groupName');
+    for (let n = 2; taken.has(name); n++) name = `${this.t('feature.whiteBoard.editor.groupName')} ${n}`;
+    fileUnder(layer, name);
+    this.touched();
+  }
+
+  protected fileLayer(layer: MapLayer, group: string): void {
+    fileUnder(layer, group);
+    this.touched();
+  }
+
+  protected renameGroup(group: LayerGroup, name: string): void {
+    if (group.name.length < 1) return;
+    renameGroup(this.scene, group.name, name);
+    this.touched();
   }
 
   protected layerName(layer: MapLayer): string {
@@ -334,8 +469,7 @@ export class WhiteBoardEditorComponent {
         this.rubOut(at);
         break;
       case 'line':
-      case 'box':
-      case 'ellipse':
+      case 'shape':
         this.dragFrom = at;
         break;
       case 'text':
@@ -387,7 +521,7 @@ export class WhiteBoardEditorComponent {
         const mark =
           tool === 'line'
             ? straightLine(from, at, this.style())
-            : boxBetween(tool as 'box' | 'ellipse', from, at, this.style());
+            : shapeBetween(this.shapeKind(), from, at, this.style(), this.filled());
         addShape(shapeLayer(this.scene, this.activeLayerId()), mark);
       }
     }
@@ -408,9 +542,25 @@ export class WhiteBoardEditorComponent {
   }
 
   private take(at: BoardPoint): void {
+    const chosen = this.selected();
+    const box = chosen ? boxOf(this.scene, chosen) : null;
+    const handle = box ? handleUnder(at, box, this.handleSlack()) : null;
+    if (chosen && box && handle) {
+      this.held = { ref: chosen, grabX: at.x, grabY: at.y, handle, box };
+      return;
+    }
+
     const mark = markUnder(this.scene, at);
+    this.selected.set(mark);
+    this.settingChanged();
     if (!mark) return;
-    this.held = { ...mark, grabX: at.x, grabY: at.y };
+    const grabbed = boxOf(this.scene, mark);
+    if (grabbed) this.held = { ref: mark, grabX: at.x, grabY: at.y, handle: null, box: grabbed };
+  }
+
+  /** A handle has to stay big enough to hit however far the sheet is zoomed out. */
+  private handleSlack(): number {
+    return HANDLE_SLACK / Math.max(0.25, this.zoom());
   }
 
   private shift(at: BoardPoint): void {
@@ -421,14 +571,90 @@ export class WhiteBoardEditorComponent {
     held.grabX = at.x;
     held.grabY = at.y;
 
-    if (held.kind === 'image') {
-      const item = imageLayer(this.scene, this.activeLayerId()).items.find((entry) => entry.id === held.id);
-      if (item) updateImage(imageLayer(this.scene, this.activeLayerId()), held.id, { x: item.x + dx, y: item.y + dy });
-    } else {
-      const item = textLayer(this.scene, this.activeLayerId()).items.find((entry) => entry.id === held.id);
-      if (item) updateText(textLayer(this.scene, this.activeLayerId()), held.id, { x: item.x + dx, y: item.y + dy });
+    if (!held.handle) {
+      moveMark(this.scene, held.ref, dx, dy);
+      void this.redraw();
+      return;
     }
+
+    // Stretched from the corner opposite the one being pulled, the way a picture is stretched.
+    const box = boxOf(this.scene, held.ref);
+    if (!box) return;
+    const wide = held.handle.includes('e') ? box.w + dx : held.handle.includes('w') ? box.w - dx : box.w;
+    const tall = held.handle.includes('s') ? box.h + dy : held.handle.includes('n') ? box.h - dy : box.h;
+    const kx = box.w > 1 ? Math.max(0.05, wide / box.w) : 1;
+    const ky = box.h > 1 ? Math.max(0.05, tall / box.h) : 1;
+    const anchored = {
+      x: held.handle.includes('w') ? box.x + box.w : box.x,
+      y: held.handle.includes('n') ? box.y + box.h : box.y,
+      w: box.w,
+      h: box.h,
+    };
+    scaleMark(this.scene, held.ref, anchored, kx, ky);
     void this.redraw();
+  }
+
+  protected removeSelected(): void {
+    const mark = this.selected();
+    if (!mark) return;
+    removeMark(this.scene, mark);
+    this.selected.set(null);
+    this.touched();
+  }
+
+  protected undo(): void {
+    const back = this.history.undo();
+    if (!back) return;
+    this.scene = back;
+    this.selected.set(null);
+    this.afterHistory();
+  }
+
+  protected redo(): void {
+    const forward = this.history.redo();
+    if (!forward) return;
+    this.scene = forward;
+    this.selected.set(null);
+    this.afterHistory();
+  }
+
+  private afterHistory(): void {
+    this.refreshHistory();
+    this.settingChanged();
+    void this.redraw();
+    this.keepPicture();
+  }
+
+  private refreshHistory(): void {
+    this.canUndo.set(this.history.canUndo());
+    this.canRedo.set(this.history.canRedo());
+  }
+
+  protected onKeyDown(event: KeyboardEvent): void {
+    const typing = event.target instanceof HTMLInputElement || event.target instanceof HTMLSelectElement;
+    if (typing) return;
+
+    if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'z') {
+      event.preventDefault();
+      if (event.shiftKey) this.redo();
+      else this.undo();
+      return;
+    }
+    if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'y') {
+      event.preventDefault();
+      this.redo();
+      return;
+    }
+    if (event.key === 'Delete' || event.key === 'Backspace') {
+      event.preventDefault();
+      this.removeSelected();
+      return;
+    }
+    const shortcut = TOOL_KEYS[event.key.toLowerCase()];
+    if (shortcut) {
+      event.preventDefault();
+      this.choose(shortcut);
+    }
   }
 
   protected commitText(): void {
@@ -437,18 +663,33 @@ export class WhiteBoardEditorComponent {
     this.typing.set(null);
     this.typedText = '';
     if (!at || words.length < 1) return;
-    addText(textLayer(this.scene, this.activeLayerId()), wordsAt(at, words, this.style()));
+    const written = wordsAt(at, words, this.style());
+    addText(textLayer(this.scene, this.activeLayerId()), written);
+    this.tool.set('select');
+    this.selected.set({ kind: 'text', id: written.id });
     this.touched();
   }
 
   private pickSticker(): void {
-    this.modalService.open<string>(FileSelecterComponent, { isAllowedEmpty: true }).then((identifier) => {
+    this.modalService.open<string>(FileSelecterComponent, { isAllowedEmpty: true }).then(async (identifier) => {
       if (!identifier) return;
       const at = { x: this.sceneWidth / 2, y: this.sceneHeight / 2 };
-      addImage(imageLayer(this.scene, this.activeLayerId()), stickerAt(at, identifier, STICKER_SIZE));
+      addImage(
+        imageLayer(this.scene, this.activeLayerId()),
+        stickerAt(at, identifier, STICKER_SIZE, await this.shapeOf(identifier))
+      );
       this.tool.set('select');
       this.touched();
     });
+  }
+
+  /** How wide and how tall the picture actually is, so it is not stuck up squashed. */
+  private async shapeOf(identifier: string): Promise<BoardPoint | undefined> {
+    const url = this.imageStorage.get(identifier)?.url;
+    if (!url) return undefined;
+    await warmRasterImages([url]);
+    const image = getRasterImage(url);
+    return image ? { x: image.naturalWidth, y: image.naturalHeight } : undefined;
   }
 
   protected clearBoard(): void {
@@ -456,8 +697,13 @@ export class WhiteBoardEditorComponent {
     this.touched();
   }
 
-  /** Draws the board as it stands, plus the stroke still under the pen. */
-  private async redraw(pending?: number[]): Promise<void> {
+  /**
+   * Draws the board as it stands, plus the stroke still under the pen.
+   *
+   * The ruling is a guide for whoever is drawing, not something printed on the board, so it
+   * is left off when the picture the board wears is taken.
+   */
+  private async redraw(pending?: number[], ruled = this.scene.gridVisible): Promise<void> {
     const canvas = this.canvasRef()?.nativeElement;
     if (!canvas) return;
     canvas.width = this.sceneWidth;
@@ -481,8 +727,28 @@ export class WhiteBoardEditorComponent {
           return url ? getRasterImage(url) : null;
         },
       },
-      { drawGrid: this.scene.gridVisible }
+      { drawGrid: ruled }
     );
+
+    const chosen = this.selected();
+    const box = chosen ? boxOf(this.scene, chosen) : null;
+    if (box && ruled !== false) {
+      // The hold is drawn on the sheet but is not part of it, so it is left off the picture.
+      ctx.save();
+      ctx.strokeStyle = '#2f7fd8';
+      ctx.lineWidth = 1.5 / Math.max(0.25, this.zoom());
+      ctx.setLineDash([4, 3]);
+      ctx.strokeRect(box.x, box.y, box.w, box.h);
+      ctx.setLineDash([]);
+      ctx.fillStyle = '#ffffff';
+      const grip = HANDLE_SLACK / Math.max(0.25, this.zoom());
+      for (const handle of HANDLES) {
+        const at = handleAt(box, handle);
+        ctx.fillRect(at.x - grip / 2, at.y - grip / 2, grip, grip);
+        ctx.strokeRect(at.x - grip / 2, at.y - grip / 2, grip, grip);
+      }
+      ctx.restore();
+    }
 
     if (pending && pending.length > 3) {
       ctx.strokeStyle = this.color();
@@ -498,7 +764,13 @@ export class WhiteBoardEditorComponent {
 
   /** Kept once the drawing settles, since a single stroke is a hundred changes on its own. */
   private touched(): void {
+    this.history.commit(this.scene);
+    this.refreshHistory();
     void this.redraw();
+    this.keepPicture();
+  }
+
+  private keepPicture(): void {
     if (this.saveTimer !== null) clearTimeout(this.saveTimer);
     this.saveTimer = setTimeout(() => {
       this.saveTimer = null;
@@ -512,12 +784,15 @@ export class WhiteBoardEditorComponent {
     if (!board || !canvas) return;
     board.scene = serializeScene(this.scene);
 
+    // Taken off the sheet with the ruling left off, since the ruling is not part of the board.
+    await this.redraw(undefined, false);
     const blob = await new Promise<Blob | null>((resolve) => {
       if (typeof canvas.toBlob !== 'function') resolve(null);
       else canvas.toBlob((made) => resolve(made), 'image/webp', 0.92);
     });
     if (!blob) {
       board.update();
+      void this.redraw();
       return;
     }
 
@@ -528,6 +803,7 @@ export class WhiteBoardEditorComponent {
     board.update();
     // The picture the board wore before this edit is worn by nothing now.
     if (typeof worn === 'string' && worn && worn !== file.identifier) this.imageStorage.delete(worn);
+    void this.redraw();
   }
 }
 

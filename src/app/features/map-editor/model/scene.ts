@@ -35,6 +35,8 @@ export interface BaseLayer {
   visible: boolean;
   locked: boolean;
   opacity: number;
+  /** The bundle this layer is filed under, where it is filed under one at all. */
+  group?: string;
 }
 
 export interface CellLayer extends BaseLayer {

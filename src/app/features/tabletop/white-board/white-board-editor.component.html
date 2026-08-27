@@ -1,202 +1,176 @@
-<div class="flex h-full flex-col gap-2 p-2">
-  <div class="flex flex-wrap items-center gap-1.5">
-    @for (entry of tools; track entry) {
+<!-- A drag inside the panel is meant for what it landed on - a slider, a swatch, the sheet -
+     and not for the panel. The title bar is what moves the panel. -->
+<div
+  class="text-ui-text relative grid h-full text-[12px] outline-none"
+  tabindex="0"
+  (keydown)="onKeyDown($event)"
+  [class.grid-cols-\[56px_1fr\]]="isCompact()"
+  [class.grid-cols-\[56px_216px_1fr_196px\]]="!isCompact()"
+  (mousedown)="$event.stopPropagation()"
+  (touchstart)="$event.stopPropagation()"
+>
+  <div class="bg-ui-panel border-ui-border-panel flex flex-col gap-1 border-r border-solid p-1">
+    @for (def of tools; track def.tool) {
       <button
-        class="rounded-ui-sm border-ui-border-panel bg-ui-input text-ui-text cursor-pointer border border-solid px-2 py-1 text-[0.8rem]"
+        class="hover:bg-ui-hover rounded-ui-sm flex w-full flex-col items-center gap-0.5 border border-solid py-1"
         type="button"
-        [class.border-ui-accent]="tool() === entry"
-        (click)="choose(entry)"
+        [class.bg-ui-accent-bg]="tool() === def.tool"
+        [class.text-ui-accent]="tool() === def.tool"
+        [class.border-ui-accent]="tool() === def.tool"
+        [class.border-transparent]="tool() !== def.tool"
+        [title]="'feature.whiteBoard.tool.' + def.tool | transloco"
+        (click)="choose(def.tool)"
       >
-        {{ 'feature.whiteBoard.tool.' + entry | transloco }}
-      </button>
-    }
-  </div>
-
-  <div class="flex flex-wrap items-center gap-2 text-[0.8rem]">
-    <input
-      class="rounded-ui-sm border-ui-border-panel h-7 w-10 cursor-pointer border border-solid p-0.5"
-      type="color"
-      name="board-ink"
-      [ngModel]="color()"
-      (ngModelChange)="color.set($event)"
-      [title]="'feature.whiteBoard.editor.ink' | transloco"
-    />
-    <label class="text-ui-muted flex items-center gap-1">
-      {{ 'feature.whiteBoard.editor.width' | transloco }}
-      <input
-        class="w-24"
-        type="range"
-        name="board-width"
-        min="1"
-        max="24"
-        step="1"
-        [ngModel]="strokeWidth()"
-        (ngModelChange)="strokeWidth.set($event)"
-      />
-    </label>
-    <label class="text-ui-muted flex items-center gap-1">
-      {{ 'feature.whiteBoard.editor.fontSize' | transloco }}
-      <input
-        class="w-20"
-        type="range"
-        name="board-font"
-        min="10"
-        max="72"
-        step="2"
-        [ngModel]="fontSize()"
-        (ngModelChange)="fontSize.set($event)"
-      />
-    </label>
-    <label class="text-ui-muted flex cursor-pointer items-center gap-1">
-      <input type="checkbox" name="board-ruled" [(ngModel)]="isRuled" />
-      {{ 'feature.whiteBoard.editor.ruled' | transloco }}
-    </label>
-    @if (isRuled) {
-      <select
-        class="border-ui-border-panel bg-ui-input text-ui-text rounded-ui-sm border border-solid px-1 py-0.5 text-[0.78rem]"
-        name="board-spacing"
-        [(ngModel)]="spacing"
-      >
-        @for (step of spacings; track step) {
-          <option [value]="step">{{ step }}px</option>
+        @if (def.svg) {
+          <span class="flex size-4.5 items-center justify-center" [innerHTML]="def.svg"></span>
+        } @else {
+          <i class="material-icons text-[18px]!">{{ def.icon }}</i>
         }
-      </select>
-    }
-    <button
-      class="text-ui-accent ml-auto cursor-pointer border-0 bg-transparent p-0 text-[0.8rem]"
-      type="button"
-      (click)="clearBoard()"
-    >
-      {{ 'feature.whiteBoard.editor.clear' | transloco }}
-    </button>
-  </div>
-
-  <details class="border-ui-border-panel rounded-ui-sm border border-solid">
-    <summary class="text-ui-muted cursor-pointer px-2 py-1.5 text-[0.8rem]">
-      {{ 'feature.whiteBoard.editor.layers' | transloco: { count: layers.length } }}
-    </summary>
-    <div class="flex flex-col p-1">
-      <button
-        class="text-ui-accent mb-1 cursor-pointer self-start border-0 bg-transparent p-0 text-[0.78rem]"
-        type="button"
-        (click)="addSheet()"
-      >
-        {{ 'feature.whiteBoard.editor.addLayer' | transloco }}
+        <span class="text-[9px] leading-tight">{{ 'feature.whiteBoard.tool.' + def.tool | transloco }}</span>
       </button>
-      @for (layer of layers; track layer.id) {
-        <div
-          class="rounded-ui-sm flex items-center gap-1.5 px-1.5 py-1 text-[0.8rem]"
-          [class.bg-ui-input]="activeLayerId() === layer.id"
-          (click)="chooseLayer(layer)"
-        >
-          <button
-            class="cursor-pointer border-0 bg-transparent p-0 leading-none"
-            type="button"
-            [title]="'feature.whiteBoard.editor.visible' | transloco"
-            (click)="toggleLayer(layer); $event.stopPropagation()"
-          >
-            <i class="material-icons text-[16px]">{{ layer.visible ? 'visibility' : 'visibility_off' }}</i>
-          </button>
-          <span class="flex-1 truncate">{{ layerName(layer) }}</span>
-          <button
-            class="text-ui-muted cursor-pointer border-0 bg-transparent p-0 leading-none"
-            type="button"
-            (click)="raiseLayer(layer); $event.stopPropagation()"
-          >
-            <i class="material-icons text-[16px]">arrow_upward</i>
-          </button>
-          <button
-            class="text-ui-muted cursor-pointer border-0 bg-transparent p-0 leading-none"
-            type="button"
-            (click)="lowerLayer(layer); $event.stopPropagation()"
-          >
-            <i class="material-icons text-[16px]">arrow_downward</i>
-          </button>
-          <button
-            class="text-ui-muted cursor-pointer border-0 bg-transparent p-0 leading-none"
-            type="button"
-            (click)="dropLayer(layer); $event.stopPropagation()"
-          >
-            <i class="material-icons text-[16px]">delete</i>
-          </button>
-        </div>
-      }
-    </div>
-  </details>
-
-  <div class="border-ui-border-panel rounded-ui-sm relative flex-1 overflow-auto border border-solid bg-white">
-    <canvas
-      #board
-      class="block h-auto w-full touch-none"
-      (pointerdown)="onPointerDown($event)"
-      (pointermove)="onPointerMove($event)"
-      (pointerup)="onPointerUp($event)"
-      (pointercancel)="onPointerUp($event)"
-    ></canvas>
-
-    @if (typing(); as at) {
-      <input
-        class="border-ui-accent rounded-ui-sm absolute border border-solid bg-white px-1 py-0.5 text-[0.9rem] text-black outline-none"
-        name="board-text"
-        [style.left.%]="(at.x / sceneWidth) * 100"
-        [style.top.%]="(at.y / sceneHeight) * 100"
-        [(ngModel)]="typedText"
-        (keydown.enter)="commitText()"
-        (blur)="commitText()"
-        [placeholder]="'feature.whiteBoard.editor.typeHere' | transloco"
-      />
     }
   </div>
 
-  <details class="border-ui-border-panel rounded-ui-sm border border-solid">
-    <summary class="text-ui-muted cursor-pointer px-2 py-1.5 text-[0.8rem]">
-      {{ 'feature.whiteBoard.editor.board' | transloco }}
-    </summary>
+  @if (isCompact() && drawer() !== 'none') {
+    <div class="absolute inset-0 z-20" (click)="drawer.set('none')"></div>
+  }
 
-    <div class="flex flex-col gap-2 p-2">
+  <div
+    class="bg-ui-panel border-ui-border-panel flex flex-col gap-3 overflow-auto border-r border-solid p-2"
+    [class.absolute]="isCompact()"
+    [class.inset-y-0]="isCompact()"
+    [class.left-14]="isCompact()"
+    [class.z-30]="isCompact()"
+    [class.w-56]="isCompact()"
+    [class.shadow-lg]="isCompact()"
+    [class.hidden]="isCompact() && drawer() !== 'props'"
+  >
+    <div class="flex flex-col gap-1.5">
+      <div class="font-semibold">{{ 'feature.whiteBoard.editor.ink' | transloco }}</div>
+      <label class="flex items-center justify-between gap-2">
+        <span class="text-ui-muted">{{ 'feature.whiteBoard.editor.color' | transloco }}</span>
+        <input
+          class="h-6 w-12 cursor-pointer"
+          type="color"
+          name="board-ink"
+          [ngModel]="color()"
+          (ngModelChange)="color.set($event)"
+        />
+      </label>
+      <label class="flex items-center justify-between gap-2">
+        <span class="text-ui-muted">{{ 'feature.whiteBoard.editor.width' | transloco }}</span>
+        <input
+          class="w-28"
+          type="range"
+          name="board-width"
+          min="1"
+          max="24"
+          step="1"
+          [ngModel]="strokeWidth()"
+          (ngModelChange)="strokeWidth.set($event)"
+        />
+      </label>
+      <label class="flex items-center justify-between gap-2">
+        <span class="text-ui-muted">{{ 'feature.whiteBoard.editor.fontSize' | transloco }}</span>
+        <input
+          class="w-28"
+          type="range"
+          name="board-font"
+          min="10"
+          max="72"
+          step="2"
+          [ngModel]="fontSize()"
+          (ngModelChange)="fontSize.set($event)"
+        />
+      </label>
+    </div>
+
+    @if (tool() === 'shape') {
+      <div class="flex flex-col gap-1.5">
+        <div class="font-semibold">{{ 'feature.whiteBoard.editor.shape' | transloco }}</div>
+        <div class="grid grid-cols-4 gap-1">
+          @for (kind of shapes; track kind) {
+            <button
+              class="hover:bg-ui-hover rounded-ui-sm border border-solid p-1 text-[9px]"
+              type="button"
+              [class.border-ui-accent]="shapeKind() === kind"
+              [class.border-transparent]="shapeKind() !== kind"
+              (click)="shapeKind.set(kind)"
+            >
+              {{ 'feature.whiteBoard.shape.' + kind | transloco }}
+            </button>
+          }
+        </div>
+        <label class="flex cursor-pointer items-center gap-1.5">
+          <input type="checkbox" name="board-filled" [ngModel]="filled()" (ngModelChange)="filled.set($event)" />
+          {{ 'feature.whiteBoard.editor.filled' | transloco }}
+        </label>
+      </div>
+    }
+
+    <div class="flex flex-col gap-1.5">
+      <div class="font-semibold">{{ 'feature.whiteBoard.editor.paper' | transloco }}</div>
+      <label class="flex cursor-pointer items-center gap-1.5">
+        <input type="checkbox" name="board-ruled" [(ngModel)]="isRuled" />
+        {{ 'feature.whiteBoard.editor.ruled' | transloco }}
+      </label>
+      @if (isRuled) {
+        <label class="flex items-center justify-between gap-2">
+          <span class="text-ui-muted">{{ 'feature.whiteBoard.editor.spacing' | transloco }}</span>
+          <select class="bg-ui-input rounded-ui-sm px-1 py-0.5" name="board-spacing" [(ngModel)]="spacing">
+            @for (step of spacings; track step) {
+              <option [value]="step">{{ step }}px</option>
+            }
+          </select>
+        </label>
+      }
+      <button
+        class="text-ui-accent cursor-pointer self-start border-0 bg-transparent p-0"
+        type="button"
+        (click)="clearBoard()"
+      >
+        {{ 'feature.whiteBoard.editor.clear' | transloco }}
+      </button>
+    </div>
+
+    <div class="flex flex-col gap-1.5">
+      <div class="font-semibold">{{ 'feature.whiteBoard.editor.board' | transloco }}</div>
       <input
-        class="border-ui-border-panel bg-ui-input text-ui-text focus:border-ui-accent rounded-ui-sm box-border w-full border border-solid px-2 py-1 text-[0.85rem] outline-none"
+        class="bg-ui-input rounded-ui-sm px-1 py-0.5"
         name="board-name"
         [(ngModel)]="name"
         [placeholder]="'feature.whiteBoard.settings.name' | transloco"
       />
-
-      <div class="flex items-center gap-2 text-[0.8rem]">
-        <label class="text-ui-muted flex flex-1 items-center gap-1">
-          {{ 'feature.whiteBoard.settings.width' | transloco }}
-          <input
-            class="border-ui-border-panel bg-ui-input text-ui-text rounded-ui-sm w-full border border-solid p-1 text-center outline-none"
-            name="board-cols"
-            type="number"
-            [min]="minSide"
-            [max]="maxSide"
-            [(ngModel)]="width"
-          />
-        </label>
-        <label class="text-ui-muted flex flex-1 items-center gap-1">
-          {{ 'feature.whiteBoard.settings.height' | transloco }}
-          <input
-            class="border-ui-border-panel bg-ui-input text-ui-text rounded-ui-sm w-full border border-solid p-1 text-center outline-none"
-            name="board-rows"
-            type="number"
-            [min]="minSide"
-            [max]="maxSide"
-            [(ngModel)]="height"
-          />
-        </label>
+      <label class="flex items-center justify-between gap-2">
+        <span class="text-ui-muted">{{ 'feature.whiteBoard.settings.width' | transloco }}</span>
         <input
-          class="rounded-ui-sm border-ui-border-panel h-7 w-9 cursor-pointer border border-solid p-0.5"
-          type="color"
-          name="board-face"
-          [(ngModel)]="boardColor"
-          [title]="'feature.whiteBoard.settings.color' | transloco"
+          class="bg-ui-input rounded-ui-sm w-16 px-1 py-0.5"
+          name="board-cols"
+          type="number"
+          [min]="minSide"
+          [max]="maxSide"
+          [(ngModel)]="width"
         />
-      </div>
-
-      <label class="text-ui-muted flex items-center gap-2 text-[0.8rem]">
-        <span class="w-16 shrink-0">{{ 'feature.whiteBoard.settings.pitch' | transloco }}</span>
+      </label>
+      <label class="flex items-center justify-between gap-2">
+        <span class="text-ui-muted">{{ 'feature.whiteBoard.settings.height' | transloco }}</span>
         <input
-          class="flex-1"
+          class="bg-ui-input rounded-ui-sm w-16 px-1 py-0.5"
+          name="board-rows"
+          type="number"
+          [min]="minSide"
+          [max]="maxSide"
+          [(ngModel)]="height"
+        />
+      </label>
+      <label class="flex items-center justify-between gap-2">
+        <span class="text-ui-muted">{{ 'feature.whiteBoard.settings.color' | transloco }}</span>
+        <input class="h-6 w-12 cursor-pointer" type="color" name="board-face" [(ngModel)]="boardColor" />
+      </label>
+      <label class="flex items-center justify-between gap-2">
+        <span class="text-ui-muted">{{ 'feature.whiteBoard.settings.pitch' | transloco }}</span>
+        <input
+          class="w-24"
           type="range"
           name="board-pitch"
           [min]="minPitch"
@@ -204,59 +178,228 @@
           step="5"
           [(ngModel)]="pitch"
         />
-        <span class="w-10 text-right">{{ pitch }}°</span>
       </label>
-      <label class="text-ui-muted flex items-center gap-2 text-[0.8rem]">
-        <span class="w-16 shrink-0">{{ 'feature.whiteBoard.settings.rotate' | transloco }}</span>
-        <input class="flex-1" type="range" name="board-rotate" min="0" max="359" step="1" [(ngModel)]="rotate" />
-        <span class="w-10 text-right">{{ rotate }}°</span>
+      <label class="flex items-center justify-between gap-2">
+        <span class="text-ui-muted">{{ 'feature.whiteBoard.settings.rotate' | transloco }}</span>
+        <input class="w-24" type="range" name="board-rotate" min="0" max="359" step="1" [(ngModel)]="rotate" />
       </label>
-      <label class="text-ui-muted flex items-center gap-2 text-[0.8rem]">
-        <span class="w-16 shrink-0">{{ 'feature.whiteBoard.settings.opacity' | transloco }}</span>
-        <input
-          class="flex-1"
-          type="range"
-          name="board-opacity"
-          min="0"
-          max="100"
-          step="5"
-          [(ngModel)]="opacityPercent"
-        />
-        <span class="w-10 text-right">{{ opacityPercent }}%</span>
+      <label class="flex items-center justify-between gap-2">
+        <span class="text-ui-muted">{{ 'feature.whiteBoard.settings.opacity' | transloco }}</span>
+        <input class="w-24" type="range" name="board-opacity" min="0" max="100" step="5" [(ngModel)]="opacityPercent" />
       </label>
+      <label class="flex cursor-pointer items-center gap-1.5">
+        <input type="checkbox" name="board-shadow" [(ngModel)]="isDropShadow" />
+        {{ 'feature.whiteBoard.settings.dropShadow' | transloco }}
+      </label>
+      <label class="flex cursor-pointer items-center gap-1.5">
+        <input type="checkbox" name="board-lock" [(ngModel)]="isLock" />
+        {{ 'feature.whiteBoard.settings.lock' | transloco }}
+      </label>
+    </div>
+  </div>
 
-      <div class="flex gap-4 text-[0.8rem]">
-        <label class="flex cursor-pointer items-center gap-1.5">
-          <input type="checkbox" name="board-shadow" [(ngModel)]="isDropShadow" />
-          {{ 'feature.whiteBoard.settings.dropShadow' | transloco }}
-        </label>
-        <label class="flex cursor-pointer items-center gap-1.5">
-          <input type="checkbox" name="board-lock" [(ngModel)]="isLock" />
-          {{ 'feature.whiteBoard.settings.lock' | transloco }}
-        </label>
-      </div>
-
-      @if (standing.length > 0) {
-        <div>
-          <div class="text-ui-muted mb-1 text-[0.78rem]">
-            {{ 'feature.whiteBoard.settings.contents' | transloco: { count: standing.length } }}
-          </div>
-          <div class="border-ui-border-panel rounded-ui-sm flex max-h-28 flex-col overflow-y-auto border border-solid">
-            @for (object of standing; track object.identifier) {
-              <div class="flex items-center justify-between gap-2 px-2 py-1 text-[0.8rem]">
-                <span class="truncate">{{ nameOf(object) }}</span>
-                <button
-                  class="text-ui-accent shrink-0 cursor-pointer border-0 bg-transparent p-0 text-[0.78rem]"
-                  type="button"
-                  (click)="takeOff(object)"
-                >
-                  {{ 'feature.whiteBoard.settings.takeOff' | transloco }}
-                </button>
-              </div>
-            }
-          </div>
-        </div>
+  <div class="flex min-w-0 flex-col">
+    <div class="bg-ui-panel border-ui-border-panel flex items-center gap-2 border-b border-solid px-2 py-1">
+      @if (isCompact()) {
+        <button
+          class="text-ui-accent cursor-pointer border-0 bg-transparent p-0"
+          type="button"
+          (click)="toggleDrawer('props')"
+        >
+          {{ 'feature.whiteBoard.editor.tools' | transloco }}
+        </button>
+      }
+      <button
+        class="rounded-ui-sm hover:bg-ui-hover cursor-pointer border border-solid border-transparent px-1 py-0.5 disabled:opacity-40"
+        type="button"
+        [disabled]="!canUndo()"
+        [title]="'feature.whiteBoard.editor.undo' | transloco"
+        (click)="undo()"
+      >
+        <i class="material-icons text-[16px]!">undo</i>
+      </button>
+      <button
+        class="rounded-ui-sm hover:bg-ui-hover cursor-pointer border border-solid border-transparent px-1 py-0.5 disabled:opacity-40"
+        type="button"
+        [disabled]="!canRedo()"
+        [title]="'feature.whiteBoard.editor.redo' | transloco"
+        (click)="redo()"
+      >
+        <i class="material-icons text-[16px]!">redo</i>
+      </button>
+      @if (selected()) {
+        <button
+          class="rounded-ui-sm hover:bg-ui-hover cursor-pointer border border-solid border-transparent px-1 py-0.5"
+          type="button"
+          [title]="'feature.whiteBoard.editor.removeSelected' | transloco"
+          (click)="removeSelected()"
+        >
+          <i class="material-icons text-[16px]!">delete</i>
+        </button>
+      }
+      <span class="text-ui-muted">{{ 'feature.whiteBoard.editor.zoom' | transloco }}</span>
+      @for (step of zooms; track step) {
+        <button
+          class="rounded-ui-sm hover:bg-ui-hover cursor-pointer border border-solid px-1.5 py-0.5"
+          type="button"
+          [class.border-ui-accent]="zoom() === step"
+          [class.border-transparent]="zoom() !== step"
+          (click)="zoom.set(step)"
+        >
+          {{ step * 100 }}%
+        </button>
+      }
+      <span class="text-ui-dim ml-auto">{{ sceneWidth }} × {{ sceneHeight }}</span>
+      @if (isCompact()) {
+        <button
+          class="text-ui-accent cursor-pointer border-0 bg-transparent p-0"
+          type="button"
+          (click)="toggleDrawer('layers')"
+        >
+          {{ 'feature.whiteBoard.editor.layers' | transloco: { count: layers.length } }}
+        </button>
       }
     </div>
-  </details>
+
+    <div class="relative flex-1 overflow-auto bg-neutral-700 p-3">
+      <div class="relative mx-auto" [style.width.px]="sceneWidth * zoom()">
+        <canvas
+          #board
+          class="block h-auto w-full touch-none bg-white shadow-md"
+          (pointerdown)="onPointerDown($event)"
+          (pointermove)="onPointerMove($event)"
+          (pointerup)="onPointerUp($event)"
+          (pointercancel)="onPointerUp($event)"
+        ></canvas>
+
+        @if (typing(); as at) {
+          <input
+            class="border-ui-accent rounded-ui-sm absolute border border-solid bg-white px-1 py-0.5 text-[0.9rem] text-black outline-none"
+            name="board-text"
+            [style.left.%]="(at.x / sceneWidth) * 100"
+            [style.top.%]="(at.y / sceneHeight) * 100"
+            [(ngModel)]="typedText"
+            (keydown.enter)="commitText()"
+            (blur)="commitText()"
+            [placeholder]="'feature.whiteBoard.editor.typeHere' | transloco"
+          />
+        }
+      </div>
+    </div>
+  </div>
+
+  <div
+    class="bg-ui-panel border-ui-border-panel flex flex-col gap-1 overflow-auto border-l border-solid p-2"
+    [class.absolute]="isCompact()"
+    [class.inset-y-0]="isCompact()"
+    [class.right-0]="isCompact()"
+    [class.z-30]="isCompact()"
+    [class.w-56]="isCompact()"
+    [class.shadow-lg]="isCompact()"
+    [class.hidden]="isCompact() && drawer() !== 'layers'"
+  >
+    <div class="flex items-baseline justify-between">
+      <span class="font-semibold">{{ 'feature.whiteBoard.editor.layers' | transloco: { count: layers.length } }}</span>
+      <span class="flex gap-2">
+        <button class="text-ui-accent cursor-pointer border-0 bg-transparent p-0" type="button" (click)="addSheet()">
+          {{ 'feature.whiteBoard.editor.addLayer' | transloco }}
+        </button>
+        <button class="text-ui-accent cursor-pointer border-0 bg-transparent p-0" type="button" (click)="makeGroup()">
+          {{ 'feature.whiteBoard.editor.addGroup' | transloco }}
+        </button>
+      </span>
+    </div>
+
+    @for (group of groups; track group.name + group.layers[0].id) {
+      <div class="border-ui-border-panel rounded-ui-sm mt-0.5 border border-solid">
+        <div class="bg-ui-input flex items-center gap-1 p-1">
+          <button
+            class="cursor-pointer border-0 bg-transparent p-0 leading-none"
+            type="button"
+            [title]="'feature.whiteBoard.editor.visible' | transloco"
+            (click)="toggleGroup(group)"
+          >
+            <i class="material-icons text-[15px]!">{{ isGroupShown(group) ? 'visibility' : 'visibility_off' }}</i>
+          </button>
+          @if (group.name.length > 0) {
+            <input
+              class="min-w-0 flex-1 border-0 bg-transparent p-0 outline-none"
+              [value]="group.name"
+              (change)="renameGroup(group, $any($event.target).value)"
+            />
+            <span class="text-ui-dim">{{ group.layers.length }}</span>
+          } @else {
+            <span class="flex-1 truncate">{{ groupLabel(group) }}</span>
+          }
+        </div>
+
+        @for (layer of group.layers; track layer.id) {
+          <div
+            class="flex items-center gap-1 p-1"
+            [class.bg-ui-hover]="activeLayerId() === layer.id"
+            (click)="chooseLayer(layer)"
+          >
+            <button
+              class="cursor-pointer border-0 bg-transparent p-0 leading-none"
+              type="button"
+              (click)="toggleLayer(layer); $event.stopPropagation()"
+            >
+              <i class="material-icons text-[15px]!">{{ layer.visible ? 'visibility' : 'visibility_off' }}</i>
+            </button>
+            <span class="flex-1 truncate">{{ layerName(layer) }}</span>
+            <select
+              class="bg-ui-input rounded-ui-sm max-w-16 px-0.5 text-[10px]"
+              [value]="layer.group ?? ''"
+              (click)="$event.stopPropagation()"
+              (change)="fileLayer(layer, $any($event.target).value)"
+            >
+              <option value="">{{ 'feature.whiteBoard.editor.noGroup' | transloco }}</option>
+              @for (name of groupNames; track name) {
+                <option [value]="name">{{ name }}</option>
+              }
+            </select>
+            <button
+              class="text-ui-muted cursor-pointer border-0 bg-transparent p-0 leading-none"
+              type="button"
+              (click)="raiseLayer(layer); $event.stopPropagation()"
+            >
+              <i class="material-icons text-[15px]!">arrow_upward</i>
+            </button>
+            <button
+              class="text-ui-muted cursor-pointer border-0 bg-transparent p-0 leading-none"
+              type="button"
+              (click)="lowerLayer(layer); $event.stopPropagation()"
+            >
+              <i class="material-icons text-[15px]!">arrow_downward</i>
+            </button>
+            <button
+              class="text-ui-muted cursor-pointer border-0 bg-transparent p-0 leading-none"
+              type="button"
+              (click)="dropLayer(layer); $event.stopPropagation()"
+            >
+              <i class="material-icons text-[15px]!">delete</i>
+            </button>
+          </div>
+        }
+      </div>
+    }
+
+    @if (standing.length > 0) {
+      <div class="mt-2 font-semibold">
+        {{ 'feature.whiteBoard.settings.contents' | transloco: { count: standing.length } }}
+      </div>
+      @for (object of standing; track object.identifier) {
+        <div class="flex items-center justify-between gap-2 px-1 py-0.5">
+          <span class="truncate">{{ nameOf(object) }}</span>
+          <button
+            class="text-ui-accent shrink-0 cursor-pointer border-0 bg-transparent p-0"
+            type="button"
+            (click)="takeOff(object)"
+          >
+            {{ 'feature.whiteBoard.settings.takeOff' | transloco }}
+          </button>
+        </div>
+      }
+    }
+  </div>
 </div>

@@ -97,4 +97,17 @@ describe('WhiteBoardComponent', () => {
 
     expect(component.terrains().map((entry) => entry.identifier)).toEqual([terrain.identifier]);
   });
+
+  it('fades only the face, so what is drawn on the board floats over it', () => {
+    board.opacity = 0.2;
+    fixture.detectChanges();
+    const host = fixture.nativeElement as HTMLElement;
+    const faded = host.querySelectorAll<HTMLElement>('[style*="opacity"]');
+
+    // The face may be faded to nothing; a plan drawn on it still reads at its own weight.
+    expect(faded.length).toBeGreaterThan(0);
+    for (const element of faded) {
+      expect(element.style.backgroundImage).toBe('');
+    }
+  });
 });

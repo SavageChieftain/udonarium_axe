@@ -1,4 +1,5 @@
 import { GridType } from '@axe/domain/tabletop/game-table';
+import { ShapeGeneratorKind } from '@axe/features/map-editor/model/editor-tool';
 import {
   createLayer,
   createScene,
@@ -14,6 +15,7 @@ import {
   TextLayer,
 } from '@axe/features/map-editor/model/scene';
 import { eraseStrokeAtPoint } from '@axe/features/map-editor/model/scene-ops';
+import { generateShapePoints } from '@axe/features/map-editor/model/shape-points';
 
 /**
  * What a board can be marked with.
@@ -22,17 +24,19 @@ import { eraseStrokeAtPoint } from '@axe/features/map-editor/model/scene-ops';
  * on. What it has is a pen, a straight edge, a few shapes, words, and whatever is stuck to
  * it, which is why it has an editor of its own rather than the one that draws maps.
  */
-export type BoardTool = 'select' | 'pen' | 'eraser' | 'line' | 'box' | 'ellipse' | 'text' | 'sticker';
+export type BoardTool = 'select' | 'pen' | 'eraser' | 'line' | 'shape' | 'text' | 'sticker';
 
-export const BOARD_TOOLS: readonly BoardTool[] = [
-  'select',
-  'pen',
-  'eraser',
-  'line',
-  'box',
+export const BOARD_TOOLS: readonly BoardTool[] = ['select', 'pen', 'eraser', 'line', 'shape', 'text', 'sticker'];
+
+/** The shapes a board can be marked with, which are the ones a map can be marked with. */
+export const BOARD_SHAPES: readonly ShapeGeneratorKind[] = [
+  'rect',
   'ellipse',
-  'text',
-  'sticker',
+  'triangle',
+  'pentagon',
+  'hexagon',
+  'star5',
+  'star6',
 ];
 
 /**
@@ -121,17 +125,24 @@ export interface BoardPoint {
   y: number;
 }
 
-/** A box or an ellipse is drawn corner to corner, whichever way round it was dragged. */
-export function boxBetween(kind: 'box' | 'ellipse', from: BoardPoint, to: BoardPoint, style: MarkStyle): ShapeItem {
+/** A shape is drawn corner to corner, whichever way round it was dragged. */
+export function shapeBetween(
+  kind: ShapeGeneratorKind,
+  from: BoardPoint,
+  to: BoardPoint,
+  style: MarkStyle,
+  filled = false
+): ShapeItem {
   const x = Math.min(from.x, to.x);
   const y = Math.min(from.y, to.y);
   const w = Math.abs(to.x - from.x);
   const h = Math.abs(to.y - from.y);
+  const boxy = kind === 'rect' || kind === 'ellipse';
   return {
     id: newId(),
-    shape: kind === 'box' ? 'rect' : 'ellipse',
-    points: [x, y, w, h],
-    fill: null,
+    shape: boxy ? (kind as 'rect' | 'ellipse') : 'polygon',
+    points: boxy ? [x, y, w, h] : generateShapePoints(kind, x, y, w, h),
+    fill: filled ? { type: 'solid', color: style.color } : null,
     stroke: { color: style.color, width: style.width, dash: 'solid' },
     rotation: 0,
   };
@@ -151,15 +162,25 @@ export function wordsAt(at: BoardPoint, text: string, style: MarkStyle): TextIte
   };
 }
 
-/** A sticker goes down where it was put, at a size that reads on the board it is stuck to. */
-export function stickerAt(at: BoardPoint, imageIdentifier: string, size: number): ImageItem {
+/**
+ * A sticker goes down around where it was put, at the shape it actually is.
+ *
+ * Given a square to fill, a photograph three times as wide as it is tall is squashed into
+ * one; the longest side is what is set instead, and the other follows from the picture.
+ */
+export function stickerAt(at: BoardPoint, imageIdentifier: string, longest: number, natural?: BoardPoint): ImageItem {
+  const wide = natural && natural.x > 0 ? natural.x : 1;
+  const tall = natural && natural.y > 0 ? natural.y : 1;
+  const ratio = longest / Math.max(wide, tall);
+  const w = wide * ratio;
+  const h = tall * ratio;
   return {
     id: newId(),
     imageIdentifier,
-    x: at.x - size / 2,
-    y: at.y - size / 2,
-    w: size,
-    h: size,
+    x: at.x - w / 2,
+    y: at.y - h / 2,
+    w,
+    h,
     rotation: 0,
     opacity: 1,
   };
@@ -189,22 +210,282 @@ export function rubOutStrokes(layer: FreehandLayer, x: number, y: number, radius
   return rubbed;
 }
 
-/** What lies under the pointer, topmost first, so that a click takes what it looks like it takes. */
-export function markUnder(scene: MapScene, at: BoardPoint): { kind: 'image' | 'text'; id: string } | null {
-  const images = (scene.layers.find((layer) => layer.kind === 'image') as ImageLayer | undefined)?.items ?? [];
-  for (let i = images.length - 1; i >= 0; i--) {
-    const item = images[i];
-    if (at.x >= item.x && at.x <= item.x + item.w && at.y >= item.y && at.y <= item.y + item.h) {
-      return { kind: 'image', id: item.id };
+/** A bundle of sheets, kept together so a whole part of the drawing can be hidden at once. */
+export interface LayerGroup {
+  name: string;
+  layers: MapLayer[];
+}
+
+/**
+ * The sheets as they are stacked, gathered into the bundles they are filed under.
+ *
+ * Sheets in one bundle are shown together wherever the topmost of them sits, so hiding the
+ * bundle hides the whole of a drawing rather than one sheet of it at a time.
+ */
+export function groupLayers(scene: MapScene): LayerGroup[] {
+  const groups: LayerGroup[] = [];
+  const byName = new Map<string, LayerGroup>();
+
+  for (let i = scene.layers.length - 1; i >= 0; i--) {
+    const layer = scene.layers[i];
+    const name = layer.group ?? '';
+    if (!name) {
+      groups.push({ name: '', layers: [layer] });
+      continue;
+    }
+    const found = byName.get(name);
+    if (found) {
+      found.layers.push(layer);
+      continue;
+    }
+    const made: LayerGroup = { name, layers: [layer] };
+    byName.set(name, made);
+    groups.push(made);
+  }
+
+  return groups;
+}
+
+/** The bundles that exist, so a sheet can be filed under one that is already there. */
+export function groupNames(scene: MapScene): string[] {
+  const names = new Set<string>();
+  for (const layer of scene.layers) {
+    if (layer.group) names.add(layer.group);
+  }
+  return [...names];
+}
+
+export function fileUnder(layer: MapLayer, group: string): void {
+  layer.group = group.length > 0 ? group : undefined;
+}
+
+/** Renames a bundle, taking every sheet in it with the name. */
+export function renameGroup(scene: MapScene, from: string, to: string): void {
+  for (const layer of scene.layers) {
+    if (layer.group === from) layer.group = to.length > 0 ? to : undefined;
+  }
+}
+
+export function showGroup(scene: MapScene, name: string, visible: boolean): void {
+  for (const layer of scene.layers) {
+    if ((layer.group ?? '') === name) layer.visible = visible;
+  }
+}
+
+/** Everything on the board that can be taken hold of, whatever sort of mark it is. */
+export type MarkKind = 'image' | 'text' | 'shape' | 'stroke';
+
+export interface MarkRef {
+  kind: MarkKind;
+  id: string;
+}
+
+export interface MarkBox extends BoardPoint {
+  w: number;
+  h: number;
+}
+
+function strokeBox(points: readonly number[]): MarkBox | null {
+  if (points.length < 2) return null;
+  let left = points[0];
+  let right = points[0];
+  let top = points[1];
+  let bottom = points[1];
+  for (let i = 0; i + 1 < points.length; i += 2) {
+    left = Math.min(left, points[i]);
+    right = Math.max(right, points[i]);
+    top = Math.min(top, points[i + 1]);
+    bottom = Math.max(bottom, points[i + 1]);
+  }
+  return { x: left, y: top, w: right - left, h: bottom - top };
+}
+
+function shapeBox(item: ShapeItem): MarkBox | null {
+  if (item.shape === 'rect' || item.shape === 'ellipse') {
+    const [x, y, w, h] = item.points;
+    return { x, y, w, h };
+  }
+  return strokeBox(item.points);
+}
+
+/** Where a mark sits and how big it is, so a hold on it can be drawn round it. */
+export function boxOf(scene: MapScene, ref: MarkRef): MarkBox | null {
+  for (const layer of scene.layers) {
+    if (ref.kind === 'image' && layer.kind === 'image') {
+      const item = layer.items.find((entry) => entry.id === ref.id);
+      if (item) return { x: item.x, y: item.y, w: item.w, h: item.h };
+    }
+    if (ref.kind === 'text' && layer.kind === 'text') {
+      const item = layer.items.find((entry) => entry.id === ref.id);
+      if (item) {
+        const w = Math.max(item.fontSize, item.text.length * item.fontSize * 0.6);
+        return { x: item.x, y: item.y - item.fontSize, w, h: item.fontSize * 1.3 };
+      }
+    }
+    if (ref.kind === 'shape' && layer.kind === 'shape') {
+      const item = layer.items.find((entry) => entry.id === ref.id);
+      if (item) return shapeBox(item);
+    }
+    if (ref.kind === 'stroke' && layer.kind === 'freehand') {
+      const item = layer.strokes.find((entry) => entry.id === ref.id);
+      if (item) return strokeBox(item.points);
     }
   }
-  const texts = (scene.layers.find((layer) => layer.kind === 'text') as TextLayer | undefined)?.items ?? [];
-  for (let i = texts.length - 1; i >= 0; i--) {
-    const item = texts[i];
-    const width = item.text.length * item.fontSize * 0.6;
-    if (at.x >= item.x && at.x <= item.x + width && at.y >= item.y - item.fontSize && at.y <= item.y) {
-      return { kind: 'text', id: item.id };
+  return null;
+}
+
+/** How near a stroke a pointer has to land to have taken hold of it. */
+const GRAB_SLACK = 6;
+
+/**
+ * What the pointer has taken hold of, topmost first.
+ *
+ * Anything drawn can be taken hold of, not only what was stuck on: a line drawn in the wrong
+ * place is moved rather than rubbed out and drawn again, which is what anyone expects of a
+ * thing they can see.
+ */
+export function markUnder(scene: MapScene, at: BoardPoint): MarkRef | null {
+  for (let i = scene.layers.length - 1; i >= 0; i--) {
+    const layer = scene.layers[i];
+    if (!layer.visible || layer.locked) continue;
+
+    if (layer.kind === 'image') {
+      for (let n = layer.items.length - 1; n >= 0; n--) {
+        const item = layer.items[n];
+        if (at.x >= item.x && at.x <= item.x + item.w && at.y >= item.y && at.y <= item.y + item.h) {
+          return { kind: 'image', id: item.id };
+        }
+      }
     }
+    if (layer.kind === 'text') {
+      for (let n = layer.items.length - 1; n >= 0; n--) {
+        const box = boxOf(scene, { kind: 'text', id: layer.items[n].id });
+        if (box && within(at, box, 0)) return { kind: 'text', id: layer.items[n].id };
+      }
+    }
+    if (layer.kind === 'shape') {
+      for (let n = layer.items.length - 1; n >= 0; n--) {
+        const box = shapeBox(layer.items[n]);
+        if (box && within(at, box, GRAB_SLACK)) return { kind: 'shape', id: layer.items[n].id };
+      }
+    }
+    if (layer.kind === 'freehand') {
+      for (let n = layer.strokes.length - 1; n >= 0; n--) {
+        const box = strokeBox(layer.strokes[n].points);
+        if (box && within(at, box, GRAB_SLACK)) return { kind: 'stroke', id: layer.strokes[n].id };
+      }
+    }
+  }
+  return null;
+}
+
+function within(at: BoardPoint, box: MarkBox, slack: number): boolean {
+  return (
+    at.x >= box.x - slack && at.x <= box.x + box.w + slack && at.y >= box.y - slack && at.y <= box.y + box.h + slack
+  );
+}
+
+/** Moves whatever was taken hold of, whichever sort of mark it turned out to be. */
+export function moveMark(scene: MapScene, ref: MarkRef, dx: number, dy: number): void {
+  for (const layer of scene.layers) {
+    if (ref.kind === 'image' && layer.kind === 'image') {
+      const item = layer.items.find((entry) => entry.id === ref.id);
+      if (item) {
+        item.x += dx;
+        item.y += dy;
+      }
+    }
+    if (ref.kind === 'text' && layer.kind === 'text') {
+      const item = layer.items.find((entry) => entry.id === ref.id);
+      if (item) {
+        item.x += dx;
+        item.y += dy;
+      }
+    }
+    if (ref.kind === 'shape' && layer.kind === 'shape') {
+      const item = layer.items.find((entry) => entry.id === ref.id);
+      if (item) shiftPoints(item, dx, dy);
+    }
+    if (ref.kind === 'stroke' && layer.kind === 'freehand') {
+      const item = layer.strokes.find((entry) => entry.id === ref.id);
+      if (item) item.points = item.points.map((value, index) => value + (index % 2 === 0 ? dx : dy));
+    }
+  }
+}
+
+function shiftPoints(item: ShapeItem, dx: number, dy: number): void {
+  if (item.shape === 'rect' || item.shape === 'ellipse') {
+    item.points = [item.points[0] + dx, item.points[1] + dy, item.points[2], item.points[3]];
+    return;
+  }
+  item.points = item.points.map((value, index) => value + (index % 2 === 0 ? dx : dy));
+}
+
+/** Stretches whatever was taken hold of, about its own top left corner. */
+export function scaleMark(scene: MapScene, ref: MarkRef, box: MarkBox, kx: number, ky: number): void {
+  const grow = (x: number, y: number): [number, number] => [box.x + (x - box.x) * kx, box.y + (y - box.y) * ky];
+
+  for (const layer of scene.layers) {
+    if (ref.kind === 'image' && layer.kind === 'image') {
+      const item = layer.items.find((entry) => entry.id === ref.id);
+      if (item) {
+        const [x, y] = grow(item.x, item.y);
+        item.x = x;
+        item.y = y;
+        item.w *= kx;
+        item.h *= ky;
+      }
+    }
+    if (ref.kind === 'text' && layer.kind === 'text') {
+      const item = layer.items.find((entry) => entry.id === ref.id);
+      if (item) item.fontSize = Math.max(6, item.fontSize * Math.max(kx, ky));
+    }
+    if (ref.kind === 'shape' && layer.kind === 'shape') {
+      const item = layer.items.find((entry) => entry.id === ref.id);
+      if (!item) continue;
+      if (item.shape === 'rect' || item.shape === 'ellipse') {
+        const [x, y] = grow(item.points[0], item.points[1]);
+        item.points = [x, y, item.points[2] * kx, item.points[3] * ky];
+      } else {
+        item.points = item.points.map((value, index) => (index % 2 === 0 ? grow(value, 0)[0] : grow(0, value)[1]));
+      }
+    }
+    if (ref.kind === 'stroke' && layer.kind === 'freehand') {
+      const item = layer.strokes.find((entry) => entry.id === ref.id);
+      if (item)
+        item.points = item.points.map((value, index) => (index % 2 === 0 ? grow(value, 0)[0] : grow(0, value)[1]));
+    }
+  }
+}
+
+/** Takes a mark off the board, whichever sort it is. */
+export function removeMark(scene: MapScene, ref: MarkRef): void {
+  for (const layer of scene.layers) {
+    if (ref.kind === 'image' && layer.kind === 'image') layer.items = layer.items.filter((e) => e.id !== ref.id);
+    if (ref.kind === 'text' && layer.kind === 'text') layer.items = layer.items.filter((e) => e.id !== ref.id);
+    if (ref.kind === 'shape' && layer.kind === 'shape') layer.items = layer.items.filter((e) => e.id !== ref.id);
+    if (ref.kind === 'stroke' && layer.kind === 'freehand')
+      layer.strokes = layer.strokes.filter((e) => e.id !== ref.id);
+  }
+}
+
+/** The corners a hold can be taken by, named for the compass so the maths reads plainly. */
+export type Handle = 'nw' | 'ne' | 'sw' | 'se';
+
+export const HANDLES: readonly Handle[] = ['nw', 'ne', 'sw', 'se'];
+
+export function handleAt(box: MarkBox, handle: Handle): BoardPoint {
+  return {
+    x: handle.includes('w') ? box.x : box.x + box.w,
+    y: handle.includes('n') ? box.y : box.y + box.h,
+  };
+}
+
+/** Which corner of the hold the pointer landed on, if it landed on one at all. */
+export function handleUnder(at: BoardPoint, box: MarkBox, slack: number): Handle | null {
+  for (const handle of HANDLES) {
+    const corner = handleAt(box, handle);
+    if (Math.abs(at.x - corner.x) <= slack && Math.abs(at.y - corner.y) <= slack) return handle;
   }
   return null;
 }

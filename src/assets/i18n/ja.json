@@ -2803,10 +2803,9 @@
         "pen": "ペン",
         "eraser": "消しゴム",
         "line": "直線",
-        "box": "四角",
-        "ellipse": "円",
         "text": "文字",
-        "sticker": "貼る"
+        "sticker": "貼る",
+        "shape": "図形"
       },
       "editor": {
         "ink": "インクの色",
@@ -2818,7 +2817,20 @@
         "ruled": "方眼",
         "layers": "レイヤー（{{count}}）",
         "addLayer": "レイヤーを足す",
-        "visible": "表示の切り替え"
+        "visible": "表示の切り替え",
+        "color": "インクの色",
+        "shape": "図形",
+        "filled": "塗りつぶす",
+        "paper": "紙",
+        "spacing": "目の細かさ",
+        "zoom": "表示倍率",
+        "tools": "道具",
+        "addGroup": "まとめる",
+        "groupName": "グループ",
+        "noGroup": "（なし）",
+        "undo": "元に戻す",
+        "redo": "やり直す",
+        "removeSelected": "選択中を消す"
       },
       "layer": {
         "freehand": "手描き",
@@ -2827,6 +2839,15 @@
         "image": "貼ったもの",
         "cell": "塗り",
         "stamp": "スタンプ"
+      },
+      "shape": {
+        "rect": "四角",
+        "ellipse": "円",
+        "triangle": "三角",
+        "pentagon": "五角",
+        "hexagon": "六角",
+        "star5": "星5",
+        "star6": "星6"
       }
     }
   },
