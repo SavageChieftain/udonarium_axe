@@ -2879,7 +2879,11 @@
         "guides": "整列ガイド",
         "rulers": "定規",
         "clearGuides": "ガイド線を消す（{{count}}）",
-        "rulerHint": "定規からドラッグするとガイド線を引けます"
+        "rulerHint": "定規からドラッグするとガイド線を引けます",
+        "renameLayer": "レイヤー名を変更",
+        "raiseLayer": "前面へ",
+        "lowerLayer": "背面へ",
+        "dropLayer": "レイヤーを削除"
       },
       "layer": {
         "freehand": "手描き",

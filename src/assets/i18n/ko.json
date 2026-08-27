@@ -3109,7 +3109,11 @@
         "guides": "정렬 가이드",
         "rulers": "눈금자",
         "clearGuides": "가이드선 지우기 ({{count}})",
-        "rulerHint": "눈금자에서 끌어내면 가이드선이 생깁니다"
+        "rulerHint": "눈금자에서 끌어내면 가이드선이 생깁니다",
+        "renameLayer": "레이어 이름 변경",
+        "raiseLayer": "앞으로",
+        "lowerLayer": "뒤로",
+        "dropLayer": "레이어 삭제"
       },
       "layer": {
         "freehand": "손그림",

@@ -547,6 +547,18 @@ export class WhiteBoardEditorComponent {
     return layer.name?.length ? layer.name : this.t(`feature.whiteBoard.layer.${layer.kind}`);
   }
 
+  /**
+   * Names a sheet.
+   *
+   * A stack of sheets called shape, shape and shape is no better than no stack at all. Cleared
+   * back to nothing, a sheet falls back to being named after what it holds.
+   */
+  protected renameLayer(layer: MapLayer, name: string): void {
+    const given = name.trim();
+    layer.name = given === this.t(`feature.whiteBoard.layer.${layer.kind}`) ? '' : given;
+    this.touched();
+  }
+
   protected chooseLayer(layer: MapLayer): void {
     this.activeLayerId.set(layer.id);
     this.settingChanged();

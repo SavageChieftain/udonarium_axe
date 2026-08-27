@@ -2879,7 +2879,11 @@
         "guides": "Alignment guides",
         "rulers": "Rulers",
         "clearGuides": "Clear guides ({{count}})",
-        "rulerHint": "Drag off the ruler to lay a guide"
+        "rulerHint": "Drag off the ruler to lay a guide",
+        "renameLayer": "Rename layer",
+        "raiseLayer": "Bring forward",
+        "lowerLayer": "Send backward",
+        "dropLayer": "Delete layer"
       },
       "layer": {
         "freehand": "Drawing",
