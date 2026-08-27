@@ -2854,7 +2854,12 @@
         "alignBottom": "下揃え",
         "spreadAcross": "横に等間隔",
         "spreadDown": "縦に等間隔",
-        "holdEverything": "すべて選択"
+        "holdEverything": "すべて選択",
+        "fillColor": "塗りの色",
+        "shadow": "影を落とす",
+        "lockLayer": "レイヤーを固定",
+        "layerOpacity": "レイヤーの不透明度",
+        "saveAsPicture": "画像として保存"
       },
       "layer": {
         "freehand": "手描き",

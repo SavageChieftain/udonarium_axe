@@ -11,6 +11,7 @@ import {
   newId,
   ShapeItem,
   ShapeLayer,
+  ShapeShadow,
   StrokeDash,
   TextAlign,
   TextItem,
@@ -117,7 +118,13 @@ export interface MarkStyle {
   color: string;
   width: number;
   fontSize: number;
+  fillColor?: string;
+  dash?: StrokeDash;
+  shadow?: boolean;
 }
+
+/** What a shape is dropped onto the sheet with when it is asked to cast a shadow. */
+export const MARK_SHADOW: ShapeShadow = { color: 'rgba(0,0,0,0.35)', blur: 8, offsetX: 3, offsetY: 4 };
 
 export function penStroke(points: number[], style: MarkStyle) {
   return { id: newId(), points, color: style.color, width: style.width };
@@ -156,9 +163,10 @@ export function shapeBetween(
     id: newId(),
     shape: boxy ? (kind as 'rect' | 'ellipse') : 'polygon',
     points: boxy ? [x, y, w, h] : generateShapePoints(kind, x, y, w, h),
-    fill: filled ? { type: 'solid', color: style.color } : null,
-    stroke: { color: style.color, width: style.width, dash: 'solid' },
+    fill: filled ? { type: 'solid', color: style.fillColor ?? style.color } : null,
+    stroke: { color: style.color, width: style.width, dash: style.dash ?? 'solid' },
     rotation: 0,
+    shadow: style.shadow ? { ...MARK_SHADOW } : null,
   };
 }
 
@@ -767,6 +775,8 @@ export interface MarkStyleChange {
   align?: TextAlign;
   dash?: StrokeDash;
   filled?: boolean;
+  fillColor?: string;
+  shadow?: boolean;
 }
 
 /**
@@ -792,10 +802,12 @@ export function restyleMark(scene: MapScene, ref: MarkRef, change: MarkStyleChan
         if (change.dash) item.stroke.dash = change.dash;
       }
       if (change.filled !== undefined) {
-        item.fill = change.filled ? { type: 'solid', color: change.color ?? item.stroke?.color ?? '#000000' } : null;
-      } else if (change.color && item.fill?.type === 'solid') {
-        item.fill = { type: 'solid', color: change.color };
+        const paint = change.fillColor ?? (item.fill?.type === 'solid' ? item.fill.color : null);
+        item.fill = change.filled ? { type: 'solid', color: paint ?? item.stroke?.color ?? '#000000' } : null;
+      } else if (change.fillColor && item.fill?.type === 'solid') {
+        item.fill = { type: 'solid', color: change.fillColor };
       }
+      if (change.shadow !== undefined) item.shadow = change.shadow ? { ...MARK_SHADOW } : null;
     }
     if (ref.kind === 'text' && layer.kind === 'text') {
       const item = layer.items.find((entry) => entry.id === ref.id);
@@ -810,7 +822,6 @@ export function restyleMark(scene: MapScene, ref: MarkRef, change: MarkStyleChan
   }
 }
 
-/** The words already written, so they can be typed over rather than written again. */
 /** The sheet a written mark lives on, which is not always the one being worked on. */
 export function sheetHolding(scene: MapScene, ref: MarkRef): MapLayer | null {
   for (const layer of scene.layers) {
@@ -824,6 +835,7 @@ export function sheetHolding(scene: MapScene, ref: MarkRef): MapLayer | null {
   return null;
 }
 
+/** The words already written, so they can be typed over rather than written again. */
 export function wordsOf(scene: MapScene, ref: MarkRef): TextItem | null {
   if (ref.kind !== 'text') return null;
   for (const layer of scene.layers) {

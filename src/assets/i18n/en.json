@@ -2854,7 +2854,12 @@
         "alignBottom": "Align bottom",
         "spreadAcross": "Space across",
         "spreadDown": "Space down",
-        "holdEverything": "Select all"
+        "holdEverything": "Select all",
+        "fillColor": "Fill colour",
+        "shadow": "Drop shadow",
+        "lockLayer": "Lock layer",
+        "layerOpacity": "Layer opacity",
+        "saveAsPicture": "Save as picture"
       },
       "layer": {
         "freehand": "Drawing",

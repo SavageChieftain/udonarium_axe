@@ -20,6 +20,7 @@ import { ShapeGeneratorKind } from '@axe/features/map-editor/model/editor-tool';
 import { SceneHistory } from '@axe/features/map-editor/model/history';
 import {
   createLayer,
+  ImageLayer,
   MapLayer,
   MapScene,
   sceneHeightPx,
@@ -74,6 +75,7 @@ import {
   LayerGroup,
   MarkBox,
   MarkRef,
+  MarkStyle,
   MarkStyleChange,
   marksWithin,
   markUnder,
@@ -226,6 +228,8 @@ export class WhiteBoardEditorComponent {
     if (change.align !== undefined) this.align.set(change.align);
     if (change.dash !== undefined) this.dash.set(change.dash);
     if (change.filled !== undefined) this.filled.set(change.filled);
+    if (change.fillColor) this.fillColor.set(change.fillColor);
+    if (change.shadow !== undefined) this.shadowed.set(change.shadow);
 
     const held = this.held();
     if (held.length < 1) return;
@@ -313,6 +317,8 @@ export class WhiteBoardEditorComponent {
   readonly alignments: readonly TextAlign[] = ['left', 'center', 'right'];
   readonly shapeKind = signal<ShapeGeneratorKind>('rect');
   readonly filled = signal(false);
+  readonly fillColor = signal('#ffd54f');
+  readonly shadowed = signal(false);
   readonly noteColor = signal('#fff59d');
   readonly snapping = signal(false);
   readonly activeLayerId = signal<string | null>(null);
@@ -510,6 +516,18 @@ export class WhiteBoardEditorComponent {
 
   protected toggleLayer(layer: MapLayer): void {
     layer.visible = !layer.visible;
+    this.touched();
+  }
+
+  /** A sheet held shut keeps what is on it out of reach, so the sheet above can be worked on. */
+  protected toggleLock(layer: MapLayer): void {
+    layer.locked = !layer.locked;
+    if (layer.locked) this.hold(this.held().filter((mark) => sheetHolding(this.scene, mark) !== layer));
+    this.touched();
+  }
+
+  protected setLayerOpacity(layer: MapLayer, opacity: number): void {
+    layer.opacity = Math.min(1, Math.max(0, opacity));
     this.touched();
   }
 
@@ -753,8 +771,15 @@ export class WhiteBoardEditorComponent {
     this.touched();
   }
 
-  private style() {
-    return { color: this.color(), width: this.strokeWidth(), fontSize: this.fontSize() };
+  private style(): MarkStyle {
+    return {
+      color: this.color(),
+      width: this.strokeWidth(),
+      fontSize: this.fontSize(),
+      fillColor: this.fillColor(),
+      dash: this.dash(),
+      shadow: this.shadowed(),
+    };
   }
 
   private wordStyle(): TextItem {
@@ -1139,15 +1164,62 @@ export class WhiteBoardEditorComponent {
     this.touched();
   }
 
+  /**
+   * A picture on the clipboard is stuck straight onto the sheet.
+   *
+   * Cropping a screenshot and pressing the two keys is how a picture gets into a deck; going
+   * out to a file, saving it, and coming back through a picker is not.
+   */
+  protected async onPaste(event: ClipboardEvent): Promise<void> {
+    const files = Array.from(event.clipboardData?.files ?? []).filter((file) => file.type.startsWith('image/'));
+    if (files.length < 1) return;
+    event.preventDefault();
+    const stuck: MarkRef[] = [];
+    for (const file of files) {
+      const image = await this.imageStorage.addAsync(file);
+      const made = stickerAt(
+        { x: this.sceneWidth / 2, y: this.sceneHeight / 2 },
+        image.identifier,
+        STICKER_SIZE,
+        await this.shapeOf(image.identifier)
+      );
+      addImage(imageLayer(this.scene, this.activeLayerId()), made);
+      stuck.push({ kind: 'image', id: made.id });
+    }
+    // Whatever has just been stuck on is what wants moving next, so it comes up already held.
+    this.tool.set('select');
+    this.hold(stuck);
+    this.touched();
+  }
+
+  /** The board as a picture, for anyone who wants it in a deck rather than on the table. */
+  protected async saveAsPicture(): Promise<void> {
+    const sheet = document.createElement('canvas');
+    sheet.width = this.sceneWidth;
+    sheet.height = this.sceneHeight;
+    const ctx = sheet.getContext('2d');
+    if (!ctx) return;
+    // The sheet under the marks is white, as it is on the board, not the transparency of a canvas.
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, sheet.width, sheet.height);
+    await this.paintMarks(ctx, false);
+    const blob = await new Promise<Blob | null>((keep) => sheet.toBlob(keep, 'image/png'));
+    if (!blob) return;
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `${this.board?.name || 'whiteboard'}.png`;
+    link.click();
+    URL.revokeObjectURL(link.href);
+  }
+
   private pickSticker(): void {
     this.modalService.open<string>(FileSelecterComponent, { isAllowedEmpty: true }).then(async (identifier) => {
       if (!identifier) return;
       const at = { x: this.sceneWidth / 2, y: this.sceneHeight / 2 };
-      addImage(
-        imageLayer(this.scene, this.activeLayerId()),
-        stickerAt(at, identifier, STICKER_SIZE, await this.shapeOf(identifier))
-      );
+      const made = stickerAt(at, identifier, STICKER_SIZE, await this.shapeOf(identifier));
+      addImage(imageLayer(this.scene, this.activeLayerId()), made);
       this.tool.set('select');
+      this.hold([{ kind: 'image', id: made.id }]);
       this.touched();
     });
   }
@@ -1166,22 +1238,11 @@ export class WhiteBoardEditorComponent {
     this.touched();
   }
 
-  /**
-   * Draws the board as it stands, plus the stroke still under the pen.
-   *
-   * The ruling is a guide for whoever is drawing, not something printed on the board, so it
-   * is left off when the picture the board wears is taken.
-   */
-  private async redraw(pending?: number[], ruled = this.scene.gridVisible): Promise<void> {
-    const canvas = this.canvasRef()?.nativeElement;
-    if (!canvas) return;
-    canvas.width = this.sceneWidth;
-    canvas.height = this.sceneHeight;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    const urls = imageLayer(this.scene, this.activeLayerId())
-      .items.map((item) => this.imageStorage.get(item.imageIdentifier)?.url)
+  /** Everything on the sheet, onto whichever canvas is asked for. */
+  private async paintMarks(ctx: CanvasRenderingContext2D, ruled: boolean): Promise<void> {
+    const urls = this.scene.layers
+      .filter((layer): layer is ImageLayer => layer.kind === 'image')
+      .flatMap((layer) => layer.items.map((item) => this.imageStorage.get(item.imageIdentifier)?.url))
       .filter((url): url is string => !!url);
     if (urls.length > 0) await warmRasterImages(urls);
 
@@ -1198,6 +1259,23 @@ export class WhiteBoardEditorComponent {
       },
       { drawGrid: ruled }
     );
+  }
+
+  /**
+   * Draws the board as it stands, plus the stroke still under the pen.
+   *
+   * The ruling is a guide for whoever is drawing, not something printed on the board, so it
+   * is left off when the picture the board wears is taken.
+   */
+  private async redraw(pending?: number[], ruled = this.scene.gridVisible): Promise<void> {
+    const canvas = this.canvasRef()?.nativeElement;
+    if (!canvas) return;
+    canvas.width = this.sceneWidth;
+    canvas.height = this.sceneHeight;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    await this.paintMarks(ctx, ruled);
 
     const box = boxAround(this.scene, this.held());
     if (box && ruled !== false) {

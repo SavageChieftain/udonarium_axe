@@ -3084,7 +3084,12 @@
         "alignBottom": "아래쪽 정렬",
         "spreadAcross": "가로 균등 배분",
         "spreadDown": "세로 균등 배분",
-        "holdEverything": "전체 선택"
+        "holdEverything": "전체 선택",
+        "fillColor": "채우기 색",
+        "shadow": "그림자",
+        "lockLayer": "레이어 잠금",
+        "layerOpacity": "레이어 불투명도",
+        "saveAsPicture": "이미지로 저장"
       },
       "layer": {
         "freehand": "손그림",

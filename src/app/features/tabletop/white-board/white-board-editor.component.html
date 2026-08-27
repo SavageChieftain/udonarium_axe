@@ -5,6 +5,7 @@
   tabindex="0"
   (keydown)="onKeyDown($event)"
   (keyup)="onKeyUp($event)"
+  (paste)="onPaste($event)"
   [ngClass]="isCompact() ? 'grid-cols-[56px_1fr]' : 'grid-cols-[56px_216px_1fr_196px]'"
   (mousedown)="$event.stopPropagation()"
   (touchstart)="$event.stopPropagation()"
@@ -175,6 +176,27 @@
           />
           {{ 'feature.whiteBoard.editor.filled' | transloco }}
         </label>
+        @if (filled()) {
+          <label class="flex items-center justify-between gap-2">
+            <span class="text-ui-muted">{{ 'feature.whiteBoard.editor.fillColor' | transloco }}</span>
+            <input
+              class="h-6 w-10 cursor-pointer border-0 bg-transparent p-0"
+              type="color"
+              name="board-fill-color"
+              [ngModel]="fillColor()"
+              (ngModelChange)="setInk({ fillColor: $event })"
+            />
+          </label>
+        }
+        <label class="flex cursor-pointer items-center gap-1.5">
+          <input
+            type="checkbox"
+            name="board-shadow"
+            [ngModel]="shadowed()"
+            (ngModelChange)="setInk({ shadow: $event })"
+          />
+          {{ 'feature.whiteBoard.editor.shadow' | transloco }}
+        </label>
       </div>
     }
 
@@ -198,13 +220,18 @@
           </select>
         </label>
       }
-      <button
-        class="text-ui-accent cursor-pointer self-start border-0 bg-transparent p-0"
-        type="button"
-        (click)="clearBoard()"
-      >
-        {{ 'feature.whiteBoard.editor.clear' | transloco }}
-      </button>
+      <div class="flex items-center gap-3">
+        <button class="text-ui-accent cursor-pointer border-0 bg-transparent p-0" type="button" (click)="clearBoard()">
+          {{ 'feature.whiteBoard.editor.clear' | transloco }}
+        </button>
+        <button
+          class="text-ui-accent cursor-pointer border-0 bg-transparent p-0"
+          type="button"
+          (click)="saveAsPicture()"
+        >
+          {{ 'feature.whiteBoard.editor.saveAsPicture' | transloco }}
+        </button>
+      </div>
     </div>
 
     <div class="flex flex-col gap-1.5">
@@ -567,7 +594,27 @@
             >
               <i class="material-icons text-[15px]!">{{ layer.visible ? 'visibility' : 'visibility_off' }}</i>
             </button>
+            <button
+              class="cursor-pointer border-0 bg-transparent p-0 leading-none"
+              type="button"
+              [class.text-ui-muted]="!layer.locked"
+              [title]="'feature.whiteBoard.editor.lockLayer' | transloco"
+              (click)="toggleLock(layer); $event.stopPropagation()"
+            >
+              <i class="material-icons text-[15px]!">{{ layer.locked ? 'lock' : 'lock_open' }}</i>
+            </button>
             <span class="flex-1 truncate">{{ layerName(layer) }}</span>
+            <input
+              class="w-10"
+              type="range"
+              min="0"
+              max="1"
+              step="0.05"
+              [value]="layer.opacity"
+              [title]="'feature.whiteBoard.editor.layerOpacity' | transloco"
+              (click)="$event.stopPropagation()"
+              (input)="setLayerOpacity(layer, +$any($event.target).value)"
+            />
             <select
               class="bg-ui-input rounded-ui-sm max-w-16 px-0.5 text-[10px]"
               [value]="layer.group ?? ''"

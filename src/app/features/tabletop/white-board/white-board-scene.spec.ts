@@ -21,6 +21,7 @@ import {
   imageLayer,
   layerFor,
   lineWidth,
+  MARK_SHADOW,
   marksWithin,
   markUnder,
   moveMark,
@@ -725,5 +726,50 @@ describe('sheetHolding()', () => {
   it('names no sheet for a mark that has been rubbed out', () => {
     const scene = createBoardScene(8, 6, 50);
     expect(sheetHolding(scene, { kind: 'text', id: 'gone' })).toBeNull();
+  });
+});
+
+describe('fill and shadow', () => {
+  const painted = { color: '#112233', width: 3, fontSize: 16, fillColor: '#ffcc00', dash: 'dashed' as const };
+
+  it('fills a shape with its own colour, not with the colour of its outline', () => {
+    const drawn = shapeBetween('rect', { x: 0, y: 0 }, { x: 40, y: 20 }, painted, true);
+
+    expect(drawn.fill).toEqual({ type: 'solid', color: '#ffcc00' });
+    expect(drawn.stroke?.color).toBe('#112233');
+  });
+
+  it('draws a shape with the dash chosen for it, rather than always solid', () => {
+    expect(shapeBetween('rect', { x: 0, y: 0 }, { x: 40, y: 20 }, painted).stroke?.dash).toBe('dashed');
+  });
+
+  it('casts no shadow unless one is asked for', () => {
+    expect(shapeBetween('rect', { x: 0, y: 0 }, { x: 40, y: 20 }, painted).shadow).toBeNull();
+    expect(shapeBetween('rect', { x: 0, y: 0 }, { x: 40, y: 20 }, { ...painted, shadow: true }).shadow).toEqual(
+      MARK_SHADOW
+    );
+  });
+
+  it('repaints the inside of a shape already drawn, leaving its outline alone', () => {
+    const scene = createBoardScene(8, 6, 50);
+    const drawn = shapeBetween('rect', { x: 0, y: 0 }, { x: 40, y: 20 }, painted, true);
+    addShape(shapeLayer(scene), drawn);
+
+    restyleMark(scene, { kind: 'shape', id: drawn.id }, { fillColor: '#00ff00' });
+
+    expect(drawn.fill).toEqual({ type: 'solid', color: '#00ff00' });
+    expect(drawn.stroke?.color).toBe('#112233');
+  });
+
+  it('gives a shadow to a shape already drawn, and takes it away again', () => {
+    const scene = createBoardScene(8, 6, 50);
+    const drawn = shapeBetween('rect', { x: 0, y: 0 }, { x: 40, y: 20 }, painted);
+    addShape(shapeLayer(scene), drawn);
+
+    restyleMark(scene, { kind: 'shape', id: drawn.id }, { shadow: true });
+    expect(drawn.shadow).toEqual(MARK_SHADOW);
+
+    restyleMark(scene, { kind: 'shape', id: drawn.id }, { shadow: false });
+    expect(drawn.shadow).toBeNull();
   });
 });
