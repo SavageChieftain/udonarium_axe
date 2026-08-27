@@ -201,16 +201,18 @@ export function stickerAt(at: BoardPoint, imageIdentifier: string, longest: numb
   const ratio = longest / Math.max(wide, tall);
   const w = wide * ratio;
   const h = tall * ratio;
-  return {
-    id: newId(),
-    imageIdentifier,
-    x: at.x - w / 2,
-    y: at.y - h / 2,
-    w,
-    h,
-    rotation: 0,
-    opacity: 1,
-  };
+  return { id: newId(), imageIdentifier, x: at.x, y: at.y, w, h, rotation: 0, opacity: 1 };
+}
+
+/**
+ * Where a picture actually sits.
+ *
+ * A picture is hung by its middle rather than by its corner, which is how it is drawn and how
+ * it stays put when it is turned. The hold, the guides and the pointer all have to agree with
+ * the paint, so they all ask here.
+ */
+export function imageBox(item: ImageItem): MarkBox {
+  return { x: item.x - item.w / 2, y: item.y - item.h / 2, w: item.w, h: item.h };
 }
 
 /**
@@ -391,7 +393,7 @@ export function boxOf(scene: MapScene, ref: MarkRef): MarkBox | null {
   for (const layer of scene.layers) {
     if (ref.kind === 'image' && layer.kind === 'image') {
       const item = layer.items.find((entry) => entry.id === ref.id);
-      if (item) return { x: item.x, y: item.y, w: item.w, h: item.h };
+      if (item) return imageBox(item);
     }
     if (ref.kind === 'text' && layer.kind === 'text') {
       const item = layer.items.find((entry) => entry.id === ref.id);
@@ -426,9 +428,9 @@ export function markUnder(scene: MapScene, at: BoardPoint): MarkRef | null {
 
     if (layer.kind === 'image') {
       for (let n = layer.items.length - 1; n >= 0; n--) {
-        const item = layer.items[n];
-        if (at.x >= item.x && at.x <= item.x + item.w && at.y >= item.y && at.y <= item.y + item.h) {
-          return { kind: 'image', id: item.id };
+        const box = imageBox(layer.items[n]);
+        if (at.x >= box.x && at.x <= box.x + box.w && at.y >= box.y && at.y <= box.y + box.h) {
+          return { kind: 'image', id: layer.items[n].id };
         }
       }
     }
@@ -861,7 +863,7 @@ export function marksWithin(scene: MapScene, area: MarkBox): MarkRef[] {
     if (!layer.visible || layer.locked) continue;
     if (layer.kind === 'image') {
       for (const item of layer.items) {
-        if (holds({ x: item.x, y: item.y, w: item.w, h: item.h })) caught.push({ kind: 'image', id: item.id });
+        if (holds(imageBox(item))) caught.push({ kind: 'image', id: item.id });
       }
     }
     if (layer.kind === 'text') {

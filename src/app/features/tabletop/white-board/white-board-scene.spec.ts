@@ -33,6 +33,7 @@ import {
   handleAt,
   handleUnder,
   highlighterStyle,
+  imageBox,
   imageLayer,
   isTypingKey,
   layerFor,
@@ -204,10 +205,15 @@ describe('marks', () => {
   it('puts a sticker down around the spot it was stuck, not off one corner of it', () => {
     const stuck = stickerAt({ x: 100, y: 100 }, 'some-image', 40);
 
-    expect(stuck.x).toBe(80);
-    expect(stuck.y).toBe(80);
-    expect(stuck.w).toBe(40);
+    expect(imageBox(stuck)).toEqual({ x: 80, y: 80, w: 40, h: 40 });
     expect(stuck.imageIdentifier).toBe('some-image');
+  });
+
+  it('hangs a picture by its middle, which is where the paint hangs it', () => {
+    const stuck = stickerAt({ x: 100, y: 100 }, 'some-image', 40);
+
+    expect(stuck.x).toBe(100);
+    expect(stuck.y).toBe(100);
   });
 
   it('sticks a picture up at the shape it actually is, rather than squashed into a square', () => {
@@ -223,9 +229,10 @@ describe('marks', () => {
 
   it('centres a picture of any shape on the spot it was stuck', () => {
     const stuck = stickerAt({ x: 100, y: 100 }, 'wide', 120, { x: 300, y: 100 });
+    const box = imageBox(stuck);
 
-    expect(stuck.x + stuck.w / 2).toBe(100);
-    expect(stuck.y + stuck.h / 2).toBe(100);
+    expect(box.x + box.w / 2).toBe(100);
+    expect(box.y + box.h / 2).toBe(100);
   });
 
   it('takes the ink and the size from the pen that wrote it', () => {
@@ -1165,5 +1172,44 @@ describe('isTypingKey()', () => {
 
   it('holds every key back while an input method is still composing', () => {
     expect(isTypingKey(document.createElement('canvas'), true)).toBe(true);
+  });
+});
+
+describe('a picture and the hold drawn round it', () => {
+  it('draws the hold over the picture, not off its corner', () => {
+    const scene = createBoardScene(12, 10, 50);
+    const stuck = stickerAt({ x: 200, y: 150 }, 'pic', 80);
+    addImage(imageLayer(scene), stuck);
+
+    expect(boxOf(scene, { kind: 'image', id: stuck.id })).toEqual({ x: 160, y: 110, w: 80, h: 80 });
+  });
+
+  it('takes hold of a picture where the picture is drawn', () => {
+    const scene = createBoardScene(12, 10, 50);
+    const stuck = stickerAt({ x: 200, y: 150 }, 'pic', 80);
+    addImage(imageLayer(scene), stuck);
+
+    expect(markUnder(scene, { x: 165, y: 115 })).toEqual({ kind: 'image', id: stuck.id });
+    expect(markUnder(scene, { x: 235, y: 185 })).toEqual({ kind: 'image', id: stuck.id });
+    expect(markUnder(scene, { x: 245, y: 195 })).toBeNull();
+  });
+
+  it('catches a picture in a dragged out box that covers where it is drawn', () => {
+    const scene = createBoardScene(12, 10, 50);
+    const stuck = stickerAt({ x: 200, y: 150 }, 'pic', 80);
+    addImage(imageLayer(scene), stuck);
+
+    expect(marksWithin(scene, { x: 150, y: 100, w: 100, h: 100 })).toHaveLength(1);
+    expect(marksWithin(scene, { x: 200, y: 150, w: 100, h: 100 })).toHaveLength(0);
+  });
+
+  it('lines a picture up by the edges it is drawn with', () => {
+    const scene = createBoardScene(12, 10, 50);
+    const stuck = stickerAt({ x: 200, y: 150 }, 'pic', 80);
+    addImage(imageLayer(scene), stuck);
+
+    const snap = guidesFor(scene, { x: 163, y: 400, w: 20, h: 20 }, []);
+
+    expect(snap.dx).toBe(-3);
   });
 });
