@@ -254,14 +254,16 @@ export function lightFloorPool(light: SceneLight): { cx: number; cy: number; bri
 }
 
 export function computeLightBeam(light: SceneLight): LightBeam | null {
-  if (light.angle >= 360 || light.z < 1) return null;
+  if (light.angle >= 360) return null;
   const axis = lightAxis(light);
-  if (axis.z > -0.05) return null;
   const half = (light.angle * Math.PI) / 360;
   const tanHalf = Math.tan(half);
-  const tFloor = -light.z / axis.z;
-  const slant = Math.min(tFloor, light.dimPx);
-  const height = Math.max(slant, 1);
+  // A beam turned down is cut off where it meets the floor. Turned up or held level it meets
+  // nothing, and runs the length the light carries.
+  const toFloor = axis.z < -0.05 ? -light.z / axis.z : Number.POSITIVE_INFINITY;
+  const slant = Math.min(toFloor, light.dimPx);
+  if (slant < 1) return null;
+  const height = slant;
   const width = Math.max(2 * slant * tanHalf, 1);
   let ux = axis.y;
   let uy = -axis.x;

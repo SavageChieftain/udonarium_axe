@@ -143,10 +143,31 @@ describe('vision-scene', () => {
       expect(beam!.clip.startsWith('polygon(')).toBe(true);
     });
 
-    it('builds none for a sphere, for a light on the ground or for one pointing up', () => {
+    it('builds none for a sphere, nor for a light lying on the ground pointing down', () => {
       expect(computeLightBeam(light({ angle: 360, z: 200 }))).toBeNull();
       expect(computeLightBeam(light({ angle: 45, z: 0, pitch: -52 }))).toBeNull();
-      expect(computeLightBeam(light({ angle: 45, z: 200, pitch: 30 }))).toBeNull();
+    });
+
+    it('runs a beam turned upward the whole length the light carries', () => {
+      const beam = computeLightBeam(light({ x: 0, y: 0, z: 25, angle: 23, direction: 334, pitch: 25, dimPx: 500 }));
+
+      expect(beam).not.toBeNull();
+      expect(beam!.height).toBeCloseTo(500, 6);
+      expect(beam!.fins.length).toBeGreaterThan(1);
+    });
+
+    it('cuts a beam turned down where it meets the floor', () => {
+      // Two hundred up and turned a right angle down: it has two hundred to run, not its five
+      // hundred of reach.
+      const beam = computeLightBeam(light({ x: 0, y: 0, z: 200, angle: 23, pitch: -90, dimPx: 500 }));
+
+      expect(beam!.height).toBeCloseTo(200, 6);
+    });
+
+    it('holds a beam held level to the length the light carries', () => {
+      const beam = computeLightBeam(light({ x: 0, y: 0, z: 100, angle: 23, pitch: 0, dimPx: 500 }));
+
+      expect(beam!.height).toBeCloseTo(500, 6);
     });
 
     it('gives a sphere on the floor an orb that faces the camera', () => {
