@@ -1,5 +1,5 @@
 import { Injectable, signal } from '@angular/core';
-import { perfCounters } from '@axe/core/util/perf-counters';
+import { perfCounters, perfTimed } from '@axe/core/util/perf-counters';
 
 const SAMPLE_INTERVAL_MS = 1000;
 const FRAME_RING = 180;
@@ -134,6 +134,7 @@ export class RenderStatsService {
 
   private onFrame(now: number): void {
     if (!this.watching()) return;
+    perfTimed('layoutFlush', () => document.body.offsetHeight);
     this.frames.push(now - this.lastFrameAt);
     if (this.frames.length > FRAME_RING) this.frames.shift();
     this.lastFrameAt = now;
