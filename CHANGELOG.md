@@ -1,3 +1,25 @@
+## [1.44.1](https://github.com/Xelltis/udonarium_axe/compare/v1.44.0...v1.44.1) (2026-08-28)
+
+### 🐛 Bug Fixes
+
+* **chat:** fill in a target's references when nobody speaks as a character ([9e54fd2](https://github.com/Xelltis/udonarium_axe/commit/9e54fd29b33fc85b4397d8b120fc9bc6250c217f))
+* **chat:** roll a bracketed dice command on its own inside a resource edit ([098b340](https://github.com/Xelltis/udonarium_axe/commit/098b340a66b29a537e823fb8f3059c7e762729c2))
+* **chat:** say which resource command could not be worked out ([169f6dd](https://github.com/Xelltis/udonarium_axe/commit/169f6ddc8e692fd25f96dda174cba682e74957bb))
+* **tabletop:** lay a generated hex map on a table the size of the map ([c559649](https://github.com/Xelltis/udonarium_axe/commit/c559649b0ac341d8e4a0c5a66a68ca5d1c9b03a3))
+* **tabletop:** leave a cactus in its own skin when a field is dressed ([6864f1b](https://github.com/Xelltis/udonarium_axe/commit/6864f1badb6a9d4f5a6cee9d9de003ac26455e5a))
+* **tabletop:** stop gravity from lifting terrain by its own altitude ([a5f7d9f](https://github.com/Xelltis/udonarium_axe/commit/a5f7d9f18dc7854f9f62129048d540ad2987ac6d))
+
+### ⚡ Performance
+
+* **tabletop:** cut the walls of a place only when the place has changed ([6043415](https://github.com/Xelltis/udonarium_axe/commit/604341545131a94dfddc70c0ab391cda502c0cbc))
+* **tabletop:** hold on to the walls that stand in an eye's way ([e8b515f](https://github.com/Xelltis/udonarium_axe/commit/e8b515f14d129fe0e97777f5fa77488cf0755fd1))
+* **tabletop:** stop working out a brightness a table with no dark has already answered ([521d64d](https://github.com/Xelltis/udonarium_axe/commit/521d64d52c6b2dc1c348401d7a0415798eeab6c4))
+
+### 📝 Documentation
+
+* **tabletop:** say why a hex board takes a block for every cell ([c6545bc](https://github.com/Xelltis/udonarium_axe/commit/c6545bc2f31465570eca58cc00347df063423828))
+* **website:** write the release note for v1.44.0 ([f7e852a](https://github.com/Xelltis/udonarium_axe/commit/f7e852ae60ac29945bc1687a9036852deb4637a7))
+
 ## [1.44.0](https://github.com/Xelltis/udonarium_axe/compare/v1.43.1...v1.44.0) (2026-08-27)
 
 ### ✨ Features
