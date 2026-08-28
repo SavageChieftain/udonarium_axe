@@ -51,13 +51,12 @@
               [ngStyle]="{
                 'backface-visibility': 'visible',
                 transform: 'translateZ(' + step.heightPx + 'px)',
-                filter: 'brightness(' + floorBrightness() + ')',
                 '-webkit-mask': step.mask,
                 mask: step.mask,
                 ...hexFloorDimStyle(),
                 ...tileStyle(),
               }"
-              [style.background-image]="'url(' + topFaceImage().url + ')' | safe: 'style'"
+              [style.background-image]="shaded(topFaceImage().url, floorBrightness()) | safe: 'style'"
             ></div>
           }
         } @else {
@@ -67,11 +66,10 @@
             [ngStyle]="{
               'backface-visibility': isSlope() ? 'visible' : 'hidden',
               transform: 'translateZ(' + (height() / (isSlope() ? 2 : 1)) * gridSize + 'px)' + floorModCss(),
-              filter: 'brightness(' + floorBrightness() + ')',
               ...hexFloorDimStyle(),
               ...tileStyle(),
             }"
-            [style.background-image]="'url(' + topFaceImage().url + ')' | safe: 'style'"
+            [style.background-image]="shaded(topFaceImage().url, floorBrightness()) | safe: 'style'"
             [style.clip-path]="hexFloorClipPath()"
           ></div>
         }
@@ -109,7 +107,7 @@
             <div
               class="chrome-smooth-image-trick absolute top-0 left-0 origin-top-left bg-size-[100%_100%] bg-no-repeat backface-hidden transform-3d"
               [class.blinking-animation]="!isLocked()"
-              [style.background-image]="'url(' + wallImage().url + ')' | safe: 'style'"
+              [style.background-image]="shaded(wallImage().url, wallShade(wall.brightness)) | safe: 'style'"
               [style.width.px]="wall.edgeLength"
               [style.height.px]="wall.wallHeightPx"
               [ngStyle]="{
@@ -123,7 +121,6 @@
                   'px) rotateZ(' +
                   wall.angle +
                   'rad) rotateX(-90deg) translateY(-100%)',
-                filter: dimBrightness(wall.brightness),
                 ...tileStyle(),
               }"
             ></div>
@@ -133,7 +130,7 @@
             <div
               class="chrome-smooth-image-trick absolute top-0 left-0 origin-top-left bg-size-[100%_100%] bg-no-repeat backface-hidden transform-3d"
               [class.blinking-animation]="!isLocked()"
-              [style.background-image]="'url(' + wallImage().url + ')' | safe: 'style'"
+              [style.background-image]="shaded(wallImage().url, wallShade(wall.brightness)) | safe: 'style'"
               [style.width.px]="wall.edgeLength"
               [style.height.px]="height() * gridSize"
               [ngStyle]="{
@@ -145,7 +142,6 @@
                   'px) rotateZ(' +
                   wall.angle +
                   'rad) rotateX(-90deg) translateY(-100%)',
-                filter: dimBrightness(wall.brightness),
                 ...tileStyle(),
               }"
             ></div>
@@ -165,8 +161,9 @@
                 <div
                   class="chrome-smooth-image-trick absolute inset-0 bg-size-[100%_100%] bg-no-repeat backface-hidden"
                   [ngStyle]="tileStyle()"
-                  [style.filter]="faceFilter(isSurfaceShading() ? 0.3 : 1)"
-                  [style.background-image]="'url(' + northFaceImage().url + ')' | safe: 'style'"
+                  [style.background-image]="
+                    shaded(northFaceImage().url, faceShade(isSurfaceShading() ? 0.3 : 1)) | safe: 'style'
+                  "
                 ></div>
                 @if (visionService.active()) {
                   <div class="pointer-events-none absolute inset-0 overflow-hidden backface-hidden">
@@ -202,8 +199,7 @@
                 <div
                   class="chrome-smooth-image-trick absolute inset-0 bg-size-[100%_100%] bg-no-repeat backface-hidden"
                   [ngStyle]="tileStyle()"
-                  [style.filter]="faceFilter(1)"
-                  [style.background-image]="'url(' + southFaceImage().url + ')' | safe: 'style'"
+                  [style.background-image]="shaded(southFaceImage().url, faceShade(1)) | safe: 'style'"
                 ></div>
                 @if (visionService.active()) {
                   <div class="pointer-events-none absolute inset-0 overflow-hidden backface-hidden">
@@ -239,8 +235,9 @@
                 <div
                   class="chrome-smooth-image-trick absolute inset-0 bg-size-[100%_100%] bg-no-repeat backface-hidden"
                   [ngStyle]="tileStyle()"
-                  [style.filter]="faceFilter(isSurfaceShading() ? 0.5 : 1)"
-                  [style.background-image]="'url(' + westFaceImage().url + ')' | safe: 'style'"
+                  [style.background-image]="
+                    shaded(westFaceImage().url, faceShade(isSurfaceShading() ? 0.5 : 1)) | safe: 'style'
+                  "
                 ></div>
                 @if (visionService.active()) {
                   <div class="pointer-events-none absolute inset-0 overflow-hidden backface-hidden">
@@ -276,8 +273,9 @@
                 <div
                   class="chrome-smooth-image-trick absolute inset-0 bg-size-[100%_100%] bg-no-repeat backface-hidden"
                   [ngStyle]="tileStyle()"
-                  [style.filter]="faceFilter(isSurfaceShading() ? 0.8 : 1)"
-                  [style.background-image]="'url(' + eastFaceImage().url + ')' | safe: 'style'"
+                  [style.background-image]="
+                    shaded(eastFaceImage().url, faceShade(isSurfaceShading() ? 0.8 : 1)) | safe: 'style'
+                  "
                 ></div>
                 @if (visionService.active()) {
                   <div class="pointer-events-none absolute inset-0 overflow-hidden backface-hidden">

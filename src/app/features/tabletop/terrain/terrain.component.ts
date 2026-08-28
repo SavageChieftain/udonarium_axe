@@ -62,6 +62,7 @@ import { SelectableDirective } from '@axe/ui/directives/selectable.directive';
 import { SafePipe } from '@axe/ui/pipes/safe.pipe';
 import { buildHexRingClipPath, calcHexFlowerParams, HexFlowerParams } from '@axe/ui/tabletop/hex-pedestal-geometry';
 import { setupInputHandler, setupMovableRotableForPiece } from '@axe/ui/tabletop/setup-tabletop-piece';
+import { shadedBackgroundImage } from '@axe/ui/tabletop/shaded-background';
 import { translateZCss, Z_OFFSET_TABLETOP_OBJECT_PX } from '@axe/ui/tabletop/z-offset';
 
 interface TerrainGridBounds {
@@ -676,8 +677,12 @@ export class TerrainComponent {
 
   readonly floorBrightness = computed(() => this.floorShade() * this.centerBrightness());
 
-  protected dimBrightness(base: number): string {
-    return 'brightness(' + (base * this.centerBrightness()).toFixed(3) + ')';
+  protected wallShade(base: number): number {
+    return base * this.centerBrightness();
+  }
+
+  protected shaded(url: string, brightness: number): string {
+    return shadedBackgroundImage(url, brightness);
   }
 
   private faceOf(side: WallSide): WallFace {
@@ -739,8 +744,8 @@ export class TerrainComponent {
     return wallSilhouetteStyle(silhouette);
   }
 
-  protected faceFilter(base: number): string {
-    return 'brightness(' + (base * this.ambientBrightness()).toFixed(3) + ')';
+  protected faceShade(base: number): number {
+    return base * this.ambientBrightness();
   }
 
   private getFloorBounds(width: number = this.width(), depth: number = this.depth()): TerrainGridBounds {

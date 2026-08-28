@@ -178,6 +178,31 @@ describe('TerrainComponent', () => {
     });
   });
 
+  describe('how it shades its faces', () => {
+    it('lays the shade over the texture rather than filtering the face', async () => {
+      const table = new GameTable();
+      table.width = 20;
+      table.height = 20;
+      table.gridSize = 50;
+      table.initialize();
+      ObjectStore.instance.add(table);
+      const terrain = Terrain.create('wall', 1, 1, 2, 'wall', 'floor');
+      terrain.isSurfaceShading = true;
+      fixture.componentRef.setInput('terrain', terrain);
+      await fixture.whenStable();
+
+      const root = fixture.nativeElement as HTMLElement;
+      const faces = [...root.querySelectorAll<HTMLElement>('[style*="background-image"]')];
+
+      expect(faces.length).toBeGreaterThan(0);
+      expect(faces.every((face) => face.style.filter === '')).toBe(true);
+      expect(faces.some((face) => face.style.backgroundImage.includes('linear-gradient'))).toBe(true);
+
+      terrain.destroy();
+      ObjectStore.instance.delete(table, false);
+    });
+  });
+
   describe('the lights it shows on its walls', () => {
     interface WallLighting {
       northLights: () => unknown[];
