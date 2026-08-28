@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { DungeonBuildService } from '@axe/application/tabletop/dungeon-build.service';
-import { wallLightPitch } from '@axe/application/tabletop/dungeon-build.service';
+import { wallLightInset, wallLightPitch } from '@axe/application/tabletop/dungeon-build.service';
 import { ImageStorage } from '@axe/core/storage/image-storage';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { ImageTag } from '@axe/domain/media/image-tag';
@@ -26,6 +26,14 @@ function options(overrides: Partial<Parameters<DungeonBuildService['build']>[3]>
   };
 }
 
+/** Where a light ends up, which for a bracket is set back against the stone it hangs on. */
+function builtAt(lights: readonly LightSource[], planned: { x: number; y: number; kind: string; facing: number }) {
+  const back = planned.kind === 'sconce' ? wallLightInset(planned.facing, 0.4) : { x: 0, y: 0 };
+  const x = planned.x * 50 + back.x * 50;
+  const y = planned.y * 50 + back.y * 50;
+  return lights.find((entry) => Math.abs(entry.location.x - x) < 0.001 && Math.abs(entry.location.y - y) < 0.001);
+}
+
 describe('wallLightPitch', () => {
   /** Where the axis lands on the floor, which is the drop over the tangent of the angle. */
   function throwOf(altitudeCells: number, pitch: number): number {
@@ -48,6 +56,25 @@ describe('wallLightPitch', () => {
 
   it('points a lamp straight down when it is asked to throw nothing', () => {
     expect(wallLightPitch(2, 0)).toBe(-90);
+  });
+});
+
+describe('wallLightInset', () => {
+  it.each([
+    [0, -0.4, 0],
+    [90, 0, -0.4],
+    [180, 0.4, 0],
+    [270, 0, 0.4],
+  ])('sets a bracket throwing at %i back the way it came', (facing, x, y) => {
+    const back = wallLightInset(facing, 0.4);
+
+    expect(back.x).toBeCloseTo(x, 6);
+    expect(back.y).toBeCloseTo(y, 6);
+  });
+
+  it('keeps the bracket inside the cell it was given, so its own stone cannot stop it', () => {
+    const back = wallLightInset(0, 0.4);
+    expect(Math.hypot(back.x, back.y)).toBeLessThan(0.5);
   });
 });
 
@@ -262,7 +289,7 @@ describe('DungeonBuildService', () => {
       expect(light.imageFile.identifier).toContain('assets/images/lights/');
     }
     for (const planned of plan.blocks.lights) {
-      const built = lights.find((entry) => entry.location.x === planned.x * 50 && entry.location.y === planned.y * 50);
+      const built = builtAt(lights, planned);
       expect(built).toBeDefined();
       if (planned.kind === 'sconce') {
         expect(built!.lightDirection).toBe(planned.facing);
@@ -279,7 +306,7 @@ describe('DungeonBuildService', () => {
 
     expect(sconces.length).toBeGreaterThan(0);
     for (const planned of sconces) {
-      const built = lights.find((entry) => entry.location.x === planned.x * 50 && entry.location.y === planned.y * 50);
+      const built = builtAt(lights, planned);
       expect(built!.lightPitch).toBeLessThan(0);
       expect(built!.lightPitch).toBeCloseTo(wallLightPitch(built!.altitude, 2), 3);
     }

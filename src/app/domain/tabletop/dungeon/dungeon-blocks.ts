@@ -25,11 +25,17 @@ const OPEN_LIGHTS: readonly MapLightKind[] = ['campfire', 'brazier', 'stand'];
 const WALL_LIGHTS: readonly MapLightKind[] = ['sconce', 'sconce', 'lantern'];
 
 /** The four ways a light can look, with the heading that points away from that neighbour. */
+/**
+ * Where the stone lies, and which way a bracket fixed to it throws.
+ *
+ * The angle is the one everything else on the table measures: the cosine along x, the sine
+ * along y, with y running down the board. Stone to the north is therefore thrown at ninety.
+ */
 const FACINGS: readonly [number, number, number][] = [
-  [0, -1, 180],
-  [0, 1, 0],
-  [-1, 0, 90],
-  [1, 0, 270],
+  [0, -1, 90],
+  [0, 1, 270],
+  [-1, 0, 0],
+  [1, 0, 180],
 ];
 
 /** Which way the passage runs where a door stands, so the slab can be set across it. */

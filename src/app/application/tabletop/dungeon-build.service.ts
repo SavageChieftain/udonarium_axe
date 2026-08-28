@@ -60,6 +60,21 @@ const WALL_MOUNTED: readonly MapLightKind[] = ['sconce', 'lantern'];
 const SCONCE_THROW_CELLS = 2;
 
 /**
+ * How far back toward its stone a bracket is set, so it hangs on the wall rather than in the air.
+ *
+ * The plan picks the open cell beside the stone, and left there the torch floats a half cell
+ * off the wall. It is not set the whole half: a light standing inside the stone is behind it,
+ * and stone stops light.
+ */
+const SCONCE_WALL_INSET_CELLS = 0.4;
+
+/** Which way to set a bracket back, given the way it throws. Facings are quarter turns. */
+export function wallLightInset(facing: number, cells: number): { x: number; y: number } {
+  const radians = (facing * Math.PI) / 180;
+  return { x: -Math.round(Math.cos(radians)) * cells, y: -Math.round(Math.sin(radians)) * cells };
+}
+
+/**
  * How far down a lamp on a wall is turned, so that its light lands in front of it.
  *
  * A sconce comes out of the preset turned a little upward, which is how a torch stands in a
@@ -309,7 +324,8 @@ export class DungeonBuildService {
       const element = source.imageDataElement?.getFirstElementByName('imageIdentifier');
       if (element) element.value = this.registerAsset(LIGHT_SKIN_ASSET_URLS[LIGHT_SKIN[light.kind]]);
       const at = blockOrigin({ x: light.x, y: light.y, w: 1, h: 1 }, grid);
-      source.location = { name: 'table', x: at.x, y: at.y };
+      const back = light.kind === 'sconce' ? wallLightInset(light.facing, SCONCE_WALL_INSET_CELLS) : { x: 0, y: 0 };
+      source.location = { name: 'table', x: at.x + back.x * GRID_SIZE, y: at.y + back.y * GRID_SIZE };
       source.posZ = 0;
       source.altitude = WALL_MOUNTED.includes(light.kind) ? Math.max(0, wallHeight - 1) : 0;
       if (light.kind === 'sconce') source.lightPitch = wallLightPitch(source.altitude, SCONCE_THROW_CELLS);
