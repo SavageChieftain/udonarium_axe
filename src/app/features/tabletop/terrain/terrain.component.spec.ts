@@ -67,6 +67,29 @@ describe('TerrainComponent', () => {
     });
   });
 
+  describe('the grid it carries', () => {
+    it('builds no canvas for terrain that was never asked to show a grid', async () => {
+      const terrain = Terrain.create('wall', 1, 1, 2, '', '');
+      fixture.componentRef.setInput('terrain', terrain);
+      await fixture.whenStable();
+
+      expect(fixture.nativeElement.querySelectorAll('canvas')).toHaveLength(0);
+
+      terrain.destroy();
+    });
+
+    it('builds one the moment the terrain is asked to show a grid', async () => {
+      const terrain = Terrain.create('floor', 1, 1, 0, '', '');
+      terrain.isGrid = true;
+      fixture.componentRef.setInput('terrain', terrain);
+      await fixture.whenStable();
+
+      expect(fixture.nativeElement.querySelectorAll('canvas')).toHaveLength(1);
+
+      terrain.destroy();
+    });
+  });
+
   describe('terrainGridCanvasStyle', () => {
     it('centres the hex grid canvas within its clip', () => {
       const terrain = Terrain.create('hex terrain', 3, 3, 1, '', '');

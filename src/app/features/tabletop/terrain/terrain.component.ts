@@ -353,6 +353,13 @@ export class TerrainComponent {
     return this.terrain().rotate;
   });
 
+  readonly isGrid = computed(() => {
+    this.terrainVersion();
+    return this.terrain().isGrid;
+  });
+
+  readonly showsGrid = computed(() => this.isGrid() && !this.onWall());
+
   readonly isVisibleFloor = computed(() => 0 < this.width() * this.depth());
   readonly isVisibleWallTopBottom = computed(() => 0 < this.width() * this.height());
   readonly isVisibleWallLeftRight = computed(() => 0 < this.depth() * this.height());
@@ -764,6 +771,7 @@ export class TerrainComponent {
     gridColor: string = '#000000e6',
     gridFontColor: string = gridColor
   ) {
+    if (this.gridCanvases().length < 1) return;
     const viewport = this.getGridViewport(this.getFloorBounds(width, depth));
 
     perfCounters.bump(PERF_TERRAIN_GRID_RASTER);

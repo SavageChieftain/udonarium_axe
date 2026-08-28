@@ -76,11 +76,24 @@
           ></div>
         }
       }
-      @if (isHexSlope() && hexSlopeSteps().floors.length > 0) {
-        @for (step of hexSlopeSteps().floors; track $index) {
+      @if (showsGrid()) {
+        @if (isHexSlope() && hexSlopeSteps().floors.length > 0) {
+          @for (step of hexSlopeSteps().floors; track $index) {
+            <div
+              class="pointer-events-none absolute origin-center overflow-hidden transform-3d"
+              [ngStyle]="terrainGridClipStepStyle(step)"
+            >
+              <canvas
+                class="pointer-events-none absolute origin-center opacity-0 transition-[0.3s_ease-out] backface-hidden"
+                [ngStyle]="terrainGridCanvasStyle()"
+                #gridCanvas
+              ></canvas>
+            </div>
+          }
+        } @else {
           <div
             class="pointer-events-none absolute origin-center overflow-hidden transform-3d"
-            [ngStyle]="terrainGridClipStepStyle(step)"
+            [ngStyle]="terrainGridClipStyle()"
           >
             <canvas
               class="pointer-events-none absolute origin-center opacity-0 transition-[0.3s_ease-out] backface-hidden"
@@ -89,17 +102,6 @@
             ></canvas>
           </div>
         }
-      } @else {
-        <div
-          class="pointer-events-none absolute origin-center overflow-hidden transform-3d"
-          [ngStyle]="terrainGridClipStyle()"
-        >
-          <canvas
-            class="pointer-events-none absolute origin-center opacity-0 transition-[0.3s_ease-out] backface-hidden"
-            [ngStyle]="terrainGridCanvasStyle()"
-            #gridCanvas
-          ></canvas>
-        </div>
       }
       @if (hasWall()) {
         @if (isHexSlope() && hexSlopeSteps().walls.length > 0 && 0 < wallImage().url.length) {
