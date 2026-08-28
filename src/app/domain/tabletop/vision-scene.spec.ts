@@ -617,6 +617,32 @@ describe('vision-scene', () => {
       });
       expect(computeWallSilhouettes(s, northFace, 75)).toHaveLength(0);
     });
+
+    it('throws none onto a wall another wall hides from the light', () => {
+      const s = scene({
+        lights: [light({ x: 100, y: -300, dimPx: 1000, castShadows: true, sourceId: 'L' })],
+        shadowCasters: [caster({ ownerId: 'c', x: 100, y: -250, radiusPx: 25, segments: [] })],
+        lightSegments: [{ x1: -100, y1: -150, x2: 300, y2: -150, heightPx: 100 }],
+      });
+      expect(computeWallSilhouettes(s, northFace, 75)).toHaveLength(0);
+    });
+
+    it('throws one over a wall too low to hide the face', () => {
+      const s = scene({
+        lights: [light({ x: 100, y: -300, dimPx: 1000, castShadows: true, sourceId: 'L' })],
+        shadowCasters: [caster({ ownerId: 'c', x: 100, y: -250, radiusPx: 25, segments: [] })],
+        lightSegments: [{ x1: -100, y1: -150, x2: 300, y2: -150, heightPx: 5 }],
+      });
+      expect(computeWallSilhouettes(s, northFace, 75)).toHaveLength(1);
+    });
+
+    it('throws none onto a face the light falls short of', () => {
+      const s = scene({
+        lights: [light({ x: 100, y: -300, dimPx: 100, castShadows: true, sourceId: 'L' })],
+        shadowCasters: [caster({ ownerId: 'c', x: 100, y: -250, radiusPx: 25, segments: [] })],
+      });
+      expect(computeWallSilhouettes(s, northFace, 75)).toHaveLength(0);
+    });
   });
 
   describe('the pools of light on a wall', () => {
