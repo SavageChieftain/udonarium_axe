@@ -2,7 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { VisionService } from '@axe/application/tabletop/vision.service';
 import { objectChanged$ } from '@axe/core/sync/object-event-extension';
 import { ObjectStore } from '@axe/core/sync/object-store';
-import { perfCounters, PERF_VISION_SCENE } from '@axe/core/util/perf-counters';
+import { PERF_VISION_SCENE, perfCounters } from '@axe/core/util/perf-counters';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { PeerRole } from '@axe/domain/peer/peer-role';

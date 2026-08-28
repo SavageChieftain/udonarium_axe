@@ -130,50 +130,54 @@ export class TerrainComponent {
     });
     effect(() => {
       const gridCanvases = this.gridCanvases();
+      this.gridRasterKey();
       if (!this._initialized || gridCanvases.length < 1) return;
-      this.setGameTableGrid(
-        this.width(),
-        this.depth(),
-        this.gridSize,
-        this.currentTable.gridType,
-        this.currentTable.gridColor,
-        this.currentTable.gridFontColor
-      );
+      this.rasterizeGrid();
     });
     setupMovableRotableForPiece(this, {
       target: this.terrain,
       collideLayers: ['terrain'],
     });
-    this.objectChange.onObjectChangedFor(
-      // input.required guarded by _initialized to avoid NG0950 during construction.
-      () => {
-        if (!this._initialized) return [];
-        return [this.currentTable.identifier, this.tableSelecter.identifier, this.terrain().identifier];
-      },
-      () => {
-        if (!this._initialized) return;
-        this.setGameTableGrid(
-          this.width(),
-          this.depth(),
-          this.gridSize,
-          this.currentTable.gridType,
-          this.currentTable.gridColor,
-          this.currentTable.gridFontColor
-        );
-      },
-      this.destroyRef
-    );
     afterNextRender(() => {
       this._initialized = true;
-      this.setGameTableGrid(
-        this.width(),
-        this.depth(),
-        this.gridSize,
-        this.currentTable.gridType,
-        this.currentTable.gridColor,
-        this.currentTable.gridFontColor
-      );
+      this.rasterizeGrid();
     });
+  }
+
+  /**
+   * Everything the grid is cut from. The same key cuts the same picture, so it is cut once.
+   */
+  private readonly gridRasterKey = computed(() => {
+    this.terrainVersion();
+    this.objectChange.versionOf(this.tabletopService.tableSelecter.identifier)();
+    this.objectChange.versionOf(this.tabletopService.currentTable.identifier)();
+    const table = this.currentTable;
+    const terrain = this.terrain();
+    const bbox = this.pedestalHexParams()?.bbox;
+    return [
+      this.width(),
+      this.depth(),
+      this.gridSize,
+      table.gridType,
+      table.gridColor,
+      table.gridFontColor,
+      this.terrainRotate(),
+      terrain.location.x,
+      terrain.location.y,
+      bbox ? `${bbox.minX}:${bbox.minY}:${bbox.maxX}:${bbox.maxY}` : '',
+      this.hexSlopeSteps().floors.length,
+    ].join('|');
+  });
+
+  private rasterizeGrid(): void {
+    this.setGameTableGrid(
+      this.width(),
+      this.depth(),
+      this.gridSize,
+      this.currentTable.gridType,
+      this.currentTable.gridColor,
+      this.currentTable.gridFontColor
+    );
   }
 
   private readonly inputRef = setupInputHandler({

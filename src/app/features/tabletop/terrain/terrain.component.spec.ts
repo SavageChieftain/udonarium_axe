@@ -1,9 +1,23 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { UiSignalService } from '@axe/application/ui/ui-signal.service';
+import { objectChanged$ } from '@axe/core/sync/object-event-extension';
+import { perfCounters, PERF_TERRAIN_GRID_RASTER } from '@axe/core/util/perf-counters';
 import { GridType } from '@axe/domain/tabletop/game-table';
 import { DoorStyle, SlopeDirection, Terrain } from '@axe/domain/tabletop/terrain';
 import { TerrainComponent } from '@axe/features/tabletop/terrain/terrain.component';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
+
+/** happy-dom hands back no drawing context, and the grid render writes to one. */
+function stubCanvasContext(): void {
+  const context = new Proxy({} as Record<string | symbol, unknown>, {
+    get: (target, key) => (key in target ? target[key] : () => undefined),
+    set: (target, key, value) => {
+      target[key] = value;
+      return true;
+    },
+  });
+  vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue(context as unknown as null);
+}
 
 describe('TerrainComponent', () => {
   let component: TerrainComponent;
@@ -17,8 +31,15 @@ describe('TerrainComponent', () => {
   });
 
   beforeEach(() => {
+    stubCanvasContext();
     fixture = TestBed.createComponent(TerrainComponent);
     component = fixture.componentInstance;
+  });
+
+  afterEach(() => {
+    perfCounters.enabled = false;
+    perfCounters.clear();
+    vi.restoreAllMocks();
   });
 
   it('should create', () => {
@@ -86,6 +107,43 @@ describe('TerrainComponent', () => {
 
       expect(fixture.nativeElement.querySelectorAll('canvas')).toHaveLength(1);
 
+      terrain.destroy();
+    });
+
+    it('cuts the grid once for a key it has already cut', async () => {
+      const terrain = Terrain.create('floor', 1, 1, 0, '', '');
+      terrain.isGrid = true;
+      fixture.componentRef.setInput('terrain', terrain);
+      await fixture.whenStable();
+      const table = component.currentTable;
+      perfCounters.enabled = true;
+      perfCounters.clear();
+
+      objectChanged$.emit({ aliasName: 'game-table', identifier: table.identifier, isSendFromSelf: true });
+      await fixture.whenStable();
+
+      expect(perfCounters.drain().get(PERF_TERRAIN_GRID_RASTER)).toBeUndefined();
+
+      terrain.destroy();
+    });
+
+    it('cuts it again when the table changes the colour of its lines', async () => {
+      const terrain = Terrain.create('floor', 1, 1, 0, '', '');
+      terrain.isGrid = true;
+      fixture.componentRef.setInput('terrain', terrain);
+      await fixture.whenStable();
+      const table = component.currentTable;
+      const original = table.gridColor;
+      perfCounters.enabled = true;
+      perfCounters.clear();
+
+      table.gridColor = '#ff0000';
+      objectChanged$.emit({ aliasName: 'game-table', identifier: table.identifier, isSendFromSelf: true });
+      await fixture.whenStable();
+
+      expect(perfCounters.drain().get(PERF_TERRAIN_GRID_RASTER)).toBe(1);
+
+      table.gridColor = original;
       terrain.destroy();
     });
   });
