@@ -1,3 +1,44 @@
+## [1.45.0](https://github.com/Xelltis/udonarium_axe/compare/v1.44.1...v1.45.0) (2026-08-28)
+
+### ✨ Features
+
+* **tabletop:** turn a generated bracket down toward the floor it lights ([318929e](https://github.com/Xelltis/udonarium_axe/commit/318929e0cddd31f98876808c82206e9bb773560b))
+* **widgets:** count what the table is spending on itself ([0a9d16c](https://github.com/Xelltis/udonarium_axe/commit/0a9d16c24da05b46936be5dc62daf71688dee9c7))
+* **widgets:** say which of the vision answers the time went into ([3192bd7](https://github.com/Xelltis/udonarium_axe/commit/3192bd729ceb2eddae1ba7ca87ad34376b6f301e))
+* **widgets:** tell javascript time apart from time spent drawing ([1540761](https://github.com/Xelltis/udonarium_axe/commit/154076104b0dc594aedaed1d791a0c9137009c5b))
+* **widgets:** tell laying the table out apart from painting it ([f681dfa](https://github.com/Xelltis/udonarium_axe/commit/f681dfa88c7ea5e574159651e1b6aac4ff87f161))
+* **widgets:** time the three things a moving piece sets going ([c83cd35](https://github.com/Xelltis/udonarium_axe/commit/c83cd350d9e4ce813baae3f97433efcb7bc9d712))
+* **widgets:** time what a piece being dragged puts the browser through ([34fc708](https://github.com/Xelltis/udonarium_axe/commit/34fc708a562515fc6fde4dcee8935c814f40c1b2))
+
+### 🐛 Bug Fixes
+
+* **gm-tools:** list the ambience laid on the table among the objects ([4f04fde](https://github.com/Xelltis/udonarium_axe/commit/4f04fde9cb71374912677cc73ec6c277d6bf6029))
+* **tabletop:** fix a generated bracket to the stone it was meant to hang on ([84cccaf](https://github.com/Xelltis/udonarium_axe/commit/84cccaf228447e683722540666fc1b5177484581))
+* **tabletop:** hang a copy where the thing it was copied from hangs ([93551ab](https://github.com/Xelltis/udonarium_axe/commit/93551abd01afea83a02f6592f0b4d1074d19078c))
+* **tabletop:** let a lamp on a wall light the floor under it ([523d3d7](https://github.com/Xelltis/udonarium_axe/commit/523d3d7cfaad13176760784e6be3e7eff3718af8))
+* **tabletop:** let a light rise to the head it falls on ([5599af2](https://github.com/Xelltis/udonarium_axe/commit/5599af2109a39fba05d91bdef6892452f8ba7c75))
+* **tabletop:** let a look rise to the head it is aimed at ([718f343](https://github.com/Xelltis/udonarium_axe/commit/718f3433be3b193f2423c59ea03358d6bb192755))
+* **tabletop:** let the light fall away instead of dropping in steps ([398a62d](https://github.com/Xelltis/udonarium_axe/commit/398a62d7a47ef450b56f8030997ee222d83eba0a))
+* **tabletop:** read a block and the floor beneath it off the same pool ([daa9c4f](https://github.com/Xelltis/udonarium_axe/commit/daa9c4f6eef0543cfcc13376368d61415e6aa4e7))
+* **tabletop:** show the shaft of a light turned upward ([a7f33ae](https://github.com/Xelltis/udonarium_axe/commit/a7f33ae36df32eac0ac5d3015dcc993b45e13ece))
+
+### ⚡ Performance
+
+* **tabletop:** cut a terrain's grid only when what it is cut from has changed ([c50486b](https://github.com/Xelltis/udonarium_axe/commit/c50486b780c05106bd3d0a7b322f91ddbc7b0891))
+* **tabletop:** draw no grid on terrain that was never asked to carry one ([65ba81b](https://github.com/Xelltis/udonarium_axe/commit/65ba81b35c8f3da7e25d9e8e16d36ab0bef7b734))
+* **tabletop:** hand back the same nothing when there is nothing to hand back ([e8f0042](https://github.com/Xelltis/udonarium_axe/commit/e8f004245565e748570363e201d336092bff7b2c))
+* **tabletop:** hang no place for lights on a table with no dark in it ([921755d](https://github.com/Xelltis/udonarium_axe/commit/921755dd933d14bc3114037105fd2b215cb4c102))
+* **tabletop:** keep a hex terrain's shape while the shape has not changed ([4a83dbd](https://github.com/Xelltis/udonarium_axe/commit/4a83dbde443eb26e6664de9ba71ad9bb8fa50bdf))
+* **tabletop:** let a wall keep the lights it was already showing ([fbdfe01](https://github.com/Xelltis/udonarium_axe/commit/fbdfe0147afcc080f7a3d308f8f1a86757cde209))
+* **tabletop:** measure terrain from its own footprint, not from the page ([bfadf10](https://github.com/Xelltis/udonarium_axe/commit/bfadf109edb1ba33b1b47ac25dfb022af7ddb8d2))
+* **tabletop:** say which piece is moving, so the rest can be left alone ([ab2ca20](https://github.com/Xelltis/udonarium_axe/commit/ab2ca20cc18db69ba849fd53ef767823644de7e8))
+* **tabletop:** shade a face by laying black over it rather than filtering it ([b3903bd](https://github.com/Xelltis/udonarium_axe/commit/b3903bd5235afdd361a74b2c406dacf148648db0))
+* **tabletop:** stop a lit table's terrain from asking the dark anything ([85d88b4](https://github.com/Xelltis/udonarium_axe/commit/85d88b4cca19bcfe04e91bdd9b7d97d36675864c))
+
+### 📝 Documentation
+
+* **website:** write the release note for v1.44.1 ([7f939dc](https://github.com/Xelltis/udonarium_axe/commit/7f939dc7c186643f254e9c368785a6e7979acd0b))
+
 ## [1.44.1](https://github.com/Xelltis/udonarium_axe/compare/v1.44.0...v1.44.1) (2026-08-28)
 
 ### 🐛 Bug Fixes
