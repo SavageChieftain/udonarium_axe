@@ -446,7 +446,7 @@ export function lightReaches(
   // The point is inside the light's reach, so nothing outside that reach can stand between.
   const occluders = occludersOf(scene, light, ignoreShadowCasters).near;
   if (occluders.length === 0) return true;
-  return segmentClear(light.x, light.y, x, y, occluders);
+  return segmentClearBetween(light.x, light.y, light.z, x, y, pz, occluders);
 }
 
 export function lightLevelAt(scene: VisionScene, x: number, y: number, ignoreShadowCasters = false, pz = 0): number {
@@ -694,7 +694,7 @@ export function isPointVisible(scene: VisionScene, x: number, y: number, viewer:
   if (viewer.isGameMaster) return true;
 
   const sources = ownedSources(scene, viewer);
-  const lit = isLit(scene, x, y, true);
+  const lit = isLit(scene, x, y, true, z);
   if (sources.length === 0) return lit;
 
   for (const source of sources) {

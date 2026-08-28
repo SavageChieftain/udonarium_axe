@@ -967,6 +967,31 @@ describe('looking down from a height', () => {
     expect(isPointVisible(lookingFrom(25), 110, 0, player)).toBe(false);
   });
 
+  describe('a piece standing on a crate, seen by the light shone at it', () => {
+    const crate = { x1: 100, y1: -1000, x2: 100, y2: 1000, heightPx: 150 };
+
+    /** Ordinary sight, no range of its own: it sees what its own lamp picks out. */
+    function withLamp() {
+      return scene({
+        darknessEnabled: true,
+        darknessLevel: 1,
+        globalIllumination: 0,
+        sightSegments: [crate],
+        lightSegments: [crate],
+        lights: [light({ x: 0, y: 0, z: 25, brightPx: 300, dimPx: 600 })],
+        visionSources: [source({ x: 0, y: 0, z: 25, type: VisionType.NORMAL, rangePx: 0 })],
+      });
+    }
+
+    it('picks out a head standing on top of it', () => {
+      expect(isPointVisible(withLamp(), 110, 0, player, 175)).toBe(true);
+    });
+
+    it('picks out nothing on the ground the crate stands on', () => {
+      expect(isPointVisible(withLamp(), 110, 0, player, 0)).toBe(false);
+    });
+  });
+
   it('is not stopped by the edge of the table however high the eye is', () => {
     const walled = scene({
       darknessEnabled: true,
