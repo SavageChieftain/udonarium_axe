@@ -212,7 +212,8 @@
         "moveGraveyard": "墓場へ",
         "delete": "削除する"
       },
-      "typeLight": "光源"
+      "typeLight": "光源",
+      "typeAmbience": "環境エフェクト"
     },
     "media": {
       "jukebox": {

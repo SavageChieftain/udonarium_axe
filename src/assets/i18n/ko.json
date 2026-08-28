@@ -212,7 +212,8 @@
         "moveGraveyard": "무덤으로",
         "delete": "삭제하기"
       },
-      "typeLight": "광원"
+      "typeLight": "광원",
+      "typeAmbience": "환경 효과"
     },
     "media": {
       "jukebox": {
