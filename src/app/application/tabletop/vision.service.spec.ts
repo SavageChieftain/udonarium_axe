@@ -1,5 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { VisionService } from '@axe/application/tabletop/vision.service';
+import { objectChanged$ } from '@axe/core/sync/object-event-extension';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
@@ -25,6 +26,9 @@ function addPeer(userId: string, role: PeerRole): PeerCursor {
   cursor.initialize();
   return cursor;
 }
+
+/** The throttle the service puts on a change before it acts on it. */
+const GEOMETRY_THROTTLE = 50;
 
 function makeDarkTable(): GameTable {
   const table = new GameTable();
@@ -53,6 +57,58 @@ describe('VisionService', () => {
     store.clearDeleteHistory();
     PeerCursor.myCursor = null!;
     vi.clearAllMocks();
+  });
+
+  describe('the walls it cuts from what stands on the table', () => {
+    async function announce(aliasName: string, identifier: string): Promise<void> {
+      objectChanged$.emit({ aliasName, identifier, isSendFromSelf: true });
+      await vi.advanceTimersByTimeAsync(GEOMETRY_THROTTLE);
+    }
+
+    /**
+     * Everything the setup itself stirred up, so only what a test does is measured. Reading a
+     * terrain writes the values nobody has set yet, so the second round is what settles.
+     */
+    async function settle(): Promise<void> {
+      for (let round = 0; round < 3; round++) {
+        await vi.advanceTimersByTimeAsync(GEOMETRY_THROTTLE);
+        service.scene();
+      }
+    }
+
+    beforeEach(() => {
+      vi.useFakeTimers();
+      makeMyCursor('p1', PeerRole.Player);
+      const table = makeDarkTable();
+      const terrain = Terrain.create('wall', 1, 1, 2, '', '');
+      terrain.location.x = 200;
+      terrain.location.y = 200;
+      table.appendChild(terrain);
+    });
+
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it('hands the same walls back when a piece has moved and nothing else', async () => {
+      const character = GameCharacter.create('c', 1, '');
+      await settle();
+      const before = service.scene()!.sightSegments;
+
+      await announce('character', character.identifier);
+
+      expect(service.scene()!.sightSegments).toBe(before);
+    });
+
+    it('cuts them again once something standing has changed', async () => {
+      await settle();
+      const before = service.scene()!.sightSegments;
+
+      await announce('terrain', store.getObjects(Terrain)[0].identifier);
+
+      expect(service.scene()!.sightSegments).not.toBe(before);
+      expect(service.scene()!.sightSegments).toEqual(before);
+    });
   });
 
   it('builds a scene with the darkness off, marked as such', () => {

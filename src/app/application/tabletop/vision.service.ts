@@ -36,6 +36,8 @@ import { LightSpec, VisionType } from '@axe/domain/tabletop/vision-types';
 
 const GEOMETRY_THROTTLE_MS = 40;
 const RELEVANT_ALIASES = new Set(['character', 'light-source', 'terrain', 'game-table']);
+/** What the walls of a place are cut from. A piece walking past moves none of it. */
+const STANDING_ALIASES = new Set(['terrain', 'game-table']);
 /** How many answers to keep, set well above what a single repaint asks for. */
 const MEMO_LIMIT = 8192;
 const EMPTY_SILHOUETTES: WallSilhouette[] = [];
@@ -55,6 +57,7 @@ export class VisionService {
 
   readonly previewAsUserId = signal<string | null>(null);
   private readonly geometryEpoch = signal(0);
+  private readonly standingEpoch = signal(0);
 
   /**
    * Remembers the answers for as long as the scene and the viewer hold still.
@@ -86,6 +89,7 @@ export class VisionService {
 
   constructor() {
     let timer: ReturnType<typeof setTimeout> | null = null;
+    let standingTimer: ReturnType<typeof setTimeout> | null = null;
     const bump = () => {
       if (timer !== null) return;
       timer = setTimeout(() => {
@@ -93,17 +97,45 @@ export class VisionService {
         this.geometryEpoch.update((v) => v + 1);
       }, GEOMETRY_THROTTLE_MS);
     };
-    this.objectChange.onObjectChangedForAlias([...RELEVANT_ALIASES], bump, this.destroyRef);
-    this.objectChange.objectAdded$.subscribe((event) => {
-      if (RELEVANT_ALIASES.has(event.aliasName)) bump();
-    }, this.destroyRef);
-    this.objectChange.objectRemoved$.subscribe((event) => {
-      if (RELEVANT_ALIASES.has(event.aliasName)) bump();
-    }, this.destroyRef);
+    const bumpStanding = () => {
+      if (standingTimer !== null) return;
+      standingTimer = setTimeout(() => {
+        standingTimer = null;
+        this.standingEpoch.update((v) => v + 1);
+      }, GEOMETRY_THROTTLE_MS);
+    };
+    const changed = (aliasName: string) => {
+      if (!RELEVANT_ALIASES.has(aliasName)) return;
+      bump();
+      if (STANDING_ALIASES.has(aliasName)) bumpStanding();
+    };
+    this.objectChange.onObjectChangedForAlias(
+      [...RELEVANT_ALIASES],
+      (event) => changed(event.aliasName),
+      this.destroyRef
+    );
+    this.objectChange.objectAdded$.subscribe((event) => changed(event.aliasName), this.destroyRef);
+    this.objectChange.objectRemoved$.subscribe((event) => changed(event.aliasName), this.destroyRef);
     this.destroyRef.onDestroy(() => {
       if (timer !== null) clearTimeout(timer);
+      if (standingTimer !== null) clearTimeout(standingTimer);
     });
   }
+
+  /**
+   * The walls in the way of sight and of light, which only what stands on the table can move.
+   *
+   * Kept apart from the scene so that a piece crossing the floor hands the same lists back
+   * rather than cutting seven hundred terrains into segments again, and so that what has been
+   * worked out about those lists survives the walk.
+   */
+  private readonly standingSegments = computed(() => {
+    this.standingEpoch();
+    const table = this.currentTable();
+    if (!table) return null;
+    const gridSize = table.gridSize;
+    return this.collectSegments(table, gridSize, table.width * gridSize, table.height * gridSize);
+  });
 
   readonly viewer = computed<SceneViewer>(() => {
     this.objectChange.versionOf(PeerCursor.myCursor?.identifier ?? '')();
@@ -149,10 +181,12 @@ export class VisionService {
     const table = this.currentTable();
     if (!table) return null;
 
+    const standing = this.standingSegments();
+    if (!standing) return null;
     const gridSize = table.gridSize;
     const widthPx = table.width * gridSize;
     const heightPx = table.height * gridSize;
-    const { sight, light } = this.collectSegments(table, gridSize, widthPx, heightPx);
+    const { sight, light } = standing;
     return {
       darknessEnabled: table.darknessEnabled,
       darknessLevel: table.darknessLevel,
