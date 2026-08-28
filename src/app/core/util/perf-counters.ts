@@ -30,3 +30,11 @@ class PerfCounters {
 
 /** What the table does to itself, counted only while somebody is watching. */
 export const perfCounters = new PerfCounters();
+
+export function perfTimed<T>(label: string, compute: () => T): T {
+  if (!perfCounters.enabled) return compute();
+  const started = performance.now();
+  const value = compute();
+  perfCounters.add(`${label}.ms`, performance.now() - started);
+  return value;
+}

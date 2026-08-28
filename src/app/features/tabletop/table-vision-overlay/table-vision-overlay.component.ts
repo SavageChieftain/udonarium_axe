@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, effect, ElementRef, inject, viewChild } from '@angular/core';
 import { VisionService } from '@axe/application/tabletop/vision.service';
+import { perfCounters, perfTimed } from '@axe/core/util/perf-counters';
 import { GridType } from '@axe/domain/tabletop/game-table';
 import { HEX_SURFACE_INFLATE_PX, hexSurfaceCells, SurfacePoint } from '@axe/domain/tabletop/surface-cells';
 import { computeOverlayPlan, OverlayPlan } from '@axe/domain/tabletop/vision-scene';
@@ -161,6 +162,11 @@ export class TableVisionOverlayComponent {
   }
 
   private draw(timeMs: number, dirty: DirtyRect | null): void {
+    perfCounters.bump('overlayDraw');
+    perfTimed('overlay', () => this.drawNow(timeMs, dirty));
+  }
+
+  private drawNow(timeMs: number, dirty: DirtyRect | null): void {
     const ctx = this.canvasRef().nativeElement.getContext('2d');
     if (!ctx || !this.plan) return;
     drawOverlayPlan(

@@ -3,6 +3,7 @@ import { ObjectChangeService } from '@axe/application/sync/object-change.service
 import { TabletopService } from '@axe/application/tabletop/tabletop.service';
 import { TabletopOverlapRegistryEntry, TabletopOverlapService } from '@axe/application/ui/tabletop-overlap.service';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
+import { perfCounters, perfTimed } from '@axe/core/util/perf-counters';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { SurfaceDims, surfaceWorldBox } from '@axe/domain/tabletop/surface-space';
 import { boardSurfaceOf, surfaceOf, TableSurface, TabletopObject } from '@axe/domain/tabletop/tabletop-object';
@@ -69,6 +70,11 @@ export class GravityService {
   }
 
   private apply(): void {
+    perfCounters.bump('gravityPass');
+    perfTimed('gravity', () => this.applyNow());
+  }
+
+  private applyNow(): void {
     this.applying = true;
     try {
       // All surfaces participate: a floor object can rest on a wall terrain (a beam) and

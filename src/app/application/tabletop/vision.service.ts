@@ -1,7 +1,7 @@
 import { computed, DestroyRef, inject, Injectable, signal } from '@angular/core';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { ObjectStore } from '@axe/core/sync/object-store';
-import { PERF_VISION_MEMO_MISS, PERF_VISION_SCENE, perfCounters } from '@axe/core/util/perf-counters';
+import { PERF_VISION_MEMO_MISS, PERF_VISION_SCENE, perfCounters, perfTimed } from '@axe/core/util/perf-counters';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { partyIdsOwnedBy } from '@axe/domain/party/party-membership';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
@@ -48,13 +48,6 @@ function faceKey(face: WallFace): string {
   return `${face.ax}:${face.ay}:${face.bx}:${face.by}:${face.nx}:${face.ny}:${face.heightPx}`;
 }
 const WALL_LIGHT_INSET_CELLS = 0.4;
-
-function timed<T>(label: string, compute: () => T): T {
-  const started = performance.now();
-  const value = compute();
-  perfCounters.add(`${label}.ms`, performance.now() - started);
-  return value;
-}
 
 function sameIds(a: readonly string[] | undefined, b: readonly string[] | undefined): boolean {
   if (a === b) return true;
@@ -105,7 +98,7 @@ export class VisionService {
     const cached = this.memo.get(key);
     if (cached !== undefined) return cached as T;
     perfCounters.bump(PERF_VISION_MEMO_MISS);
-    const value = perfCounters.enabled ? timed(key.slice(0, key.indexOf(':')), compute) : compute();
+    const value = perfTimed(key.slice(0, key.indexOf(':')), compute);
     // It grows with the number of places asked about, so it is capped rather than left to swell.
     if (this.memo.size >= MEMO_LIMIT) this.memo.clear();
     this.memo.set(key, value);
@@ -208,6 +201,10 @@ export class VisionService {
   readonly scene = computed<VisionScene | null>(() => {
     this.geometryEpoch();
     perfCounters.bump(PERF_VISION_SCENE);
+    return perfTimed('scene', () => this.buildScene());
+  });
+
+  private buildScene(): VisionScene | null {
     const table = this.currentTable();
     if (!table) return null;
 
@@ -233,7 +230,7 @@ export class VisionService {
       lightSegments: light,
       shadowCasters: this.collectShadowCasters(gridSize),
     };
-  });
+  }
 
   objectBrightness(x: number, y: number, radiusPx = 0, ignoreShadowCasters = false): number {
     if (!this.active()) return 1;
