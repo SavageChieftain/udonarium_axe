@@ -275,6 +275,18 @@ describe('applying gravity through the spatial index', () => {
     expect(flying.object.posZ).toBe(50);
   });
 
+  it('measures terrain from its own footprint rather than from the page', () => {
+    const base = makeTerrain({ x: 0, y: 0, w: 2, d: 2, h: 1, identifier: 'base' });
+    Object.defineProperty(base.element, 'offsetWidth', { value: 0, configurable: true });
+    Object.defineProperty(base.element, 'offsetHeight', { value: 0, configurable: true });
+    const char = makeCharacter({ x: 25, y: 25, posZ: 200 });
+    const svc = setup([base, char]);
+
+    applyNow(svc);
+
+    expect(char.object.posZ).toBe(50);
+  });
+
   it('can be scheduled again once the microtasks from the last pass have drained', async () => {
     const base = makeTerrain({ x: 0, y: 0, w: 1, d: 1, h: 1, identifier: 'base' });
     const char = makeCharacter({ x: 25, y: 25, posZ: 200 });
