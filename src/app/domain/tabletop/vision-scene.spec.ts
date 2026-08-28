@@ -737,6 +737,42 @@ describe('vision-scene', () => {
     });
   });
 
+  describe('the floor a cone light throws its pool on', () => {
+    /** What the dungeon generator hangs on a wall: wide, and turned a little upward. */
+    function sconce(): SceneLight {
+      return light({ x: 500, y: 500, z: 150, brightPx: 150, dimPx: 350, angle: 200, pitch: 8 });
+    }
+
+    it('lights the floor under a lamp on a wall, turned a little upward', () => {
+      const plan = computeOverlayPlan(scene({ lights: [sconce()] }), GM);
+
+      expect(plan.reveals).toHaveLength(1);
+      expect(plan.reveals[0].dimPx).toBeGreaterThan(0);
+    });
+
+    it('lays the pool about the spot below the lamp', () => {
+      const plan = computeOverlayPlan(scene({ lights: [sconce()] }), GM);
+
+      expect(plan.reveals[0].x).toBeCloseTo(500, 0);
+      expect(plan.reveals[0].y).toBeCloseTo(500, 0);
+    });
+
+    it('leaves the floor alone for a narrow light pointed at the ceiling', () => {
+      const upward = light({ x: 500, y: 500, z: 150, angle: 60, pitch: 80 });
+
+      expect(computeOverlayPlan(scene({ lights: [upward] }), GM).reveals).toHaveLength(0);
+    });
+
+    it('still throws the pool where a light pointed down is aimed', () => {
+      const spot = light({ x: 500, y: 500, z: 200, angle: 60, pitch: -90, dimPx: 400 });
+      const plan = computeOverlayPlan(scene({ lights: [spot] }), GM);
+
+      expect(plan.reveals).toHaveLength(1);
+      expect(plan.reveals[0].x).toBeCloseTo(500, 0);
+      expect(plan.reveals[0].y).toBeCloseTo(500, 0);
+    });
+  });
+
   describe('computeOverlayPlan', () => {
     it('shows the game master a dim preview, brighter than a player sees', () => {
       const s = scene({ lights: [light(), light()] });

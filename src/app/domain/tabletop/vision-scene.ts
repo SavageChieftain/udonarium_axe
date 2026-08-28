@@ -749,8 +749,13 @@ function coneFloorFootprint(
   light: SceneLight
 ): { cx: number; cy: number; maxR: number; points: Point[] } | null {
   const axis = lightAxis(light);
-  if (axis.z > -0.05) return null;
-  const t = -light.z / axis.z;
+  // A wide cone reaches the floor whichever way its axis is turned: what settles it is the
+  // lowest ray, which is the axis tilted down by half the spread. Only a cone whose every ray
+  // goes upward leaves the floor alone.
+  if (light.pitch >= light.angle / 2) return null;
+  // Where the axis meets the floor, when it meets it in front of the light; otherwise the
+  // pool lies about the spot below the lamp, which is where a sconce throws it.
+  const t = axis.z < -0.05 ? -light.z / axis.z : 0;
   const cx = light.x + axis.x * t;
   const cy = light.y + axis.y * t;
   // The pool can sit off to one side of the light, so the box has to hold both.
