@@ -200,6 +200,20 @@ class FileReaderPolyfill {
 (globalThis as unknown as Record<string, unknown>)['fetch'] = () =>
   Promise.reject(new Error('fetch is disabled in unit tests'));
 
+// happy-dom refuses to fetch a script, and @angular/youtube-player sends for the iframe API the
+// moment a player is rendered; the refusal surfaces as an unhandled DOMException in the run log.
+// An API already in place is never sent for, and the player asks nothing of it without a videoId.
+if (typeof (globalThis as unknown as Record<string, unknown>)['YT'] === 'undefined') {
+  (globalThis as unknown as Record<string, unknown>)['YT'] = {
+    Player: class Player {
+      destroy() {}
+      addEventListener() {}
+      removeEventListener() {}
+    },
+    PlayerState: { UNSTARTED: -1, ENDED: 0, PLAYING: 1, PAUSED: 2, BUFFERING: 3, CUED: 5 },
+  };
+}
+
 const GLOBAL_TEST_PROVIDERS = [
   AppConfigService,
   ChatMessageService,

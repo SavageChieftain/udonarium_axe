@@ -562,9 +562,7 @@ export class ChatWindowComponent {
         }
       };
       const fillIn = (text: string, target?: GameCharacter): string => {
-        // Spoken as yourself there is nothing to read the references off, and blanking them would
-        // eat the braces out of whatever was typed.
-        if (!speaker) return text;
+        if (!speaker && !target) return text;
         const evaluated = evaluateCharacterReferences(text, speaker, target);
         appendAttachmentImages(evaluated.attachmentImageIdentifiers);
         return evaluated.text;

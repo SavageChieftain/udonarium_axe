@@ -26,11 +26,33 @@ export interface TallSegment extends Segment {
  * Anything an eye is above is behind it once it is looked over, and a character who has
  * climbed a tower is above most of what stood in the way on the ground.
  */
+/**
+ * The answers are held against the list they were drawn from, so a scene that is asked the same
+ * question by every piece on it pays for it once. A list is built whole and never added to
+ * afterwards, and the answers go when it does.
+ */
+const aboveByList = new WeakMap<readonly TallSegment[], Map<number, readonly TallSegment[]>>();
+
+/** Well above the handful of eye heights one scene holds, and a guard against an unbounded map. */
+const ABOVE_MEMO_LIMIT = 64;
+
 export function segmentsAbove(segments: readonly TallSegment[], eyeZ: number): readonly TallSegment[] {
   if (!(eyeZ > 0)) return segments;
+
+  let byEye = aboveByList.get(segments);
+  if (!byEye) {
+    byEye = new Map();
+    aboveByList.set(segments, byEye);
+  }
+  const remembered = byEye.get(eyeZ);
+  if (remembered) return remembered;
+
   // Level with the top is not above it: an eye at the height of a wall sees none of the far
   // side, and a character standing on something is above it by its own eye height anyway.
-  return segments.filter((seg) => seg.heightPx === undefined || seg.heightPx >= eyeZ);
+  const above = segments.filter((seg) => seg.heightPx === undefined || seg.heightPx >= eyeZ);
+  if (byEye.size >= ABOVE_MEMO_LIMIT) byEye.clear();
+  byEye.set(eyeZ, above);
+  return above;
 }
 
 export function rectangleSegments(x: number, y: number, width: number, height: number, rotateDeg: number): Segment[] {

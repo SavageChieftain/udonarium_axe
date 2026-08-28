@@ -202,6 +202,41 @@ describe('applying gravity through the spatial index', () => {
     expect(char.object.posZ).toBe(50 + 50);
   });
 
+  it('leaves a canopy at the height it was built, rather than stacking it on its trunk again', () => {
+    // what the field generator builds: a post in the middle of the square, layers of leaves
+    // over it at an altitude counted from the ground
+    const trunk = makeTerrain({ x: 100, y: 100, w: 0.4, d: 0.4, h: 3, identifier: 'trunk' });
+    const lower = makeTerrain({ x: 25, y: 25, w: 3, d: 3, h: 1, altitude: 3, identifier: 'lower' });
+    const upper = makeTerrain({ x: 50, y: 50, w: 2, d: 2, h: 1, altitude: 4, identifier: 'upper' });
+    const svc = setup([trunk, lower, upper]);
+
+    applyNow(svc);
+
+    expect(lower.object.posZ).toBe(0);
+    expect(upper.object.posZ).toBe(0);
+  });
+
+  it('still drops terrain that was lifted into the air, down to what is under it', () => {
+    const base = makeTerrain({ x: 0, y: 0, w: 4, d: 4, h: 2, identifier: 'base' });
+    const falling = makeTerrain({ x: 50, y: 50, w: 1, d: 1, h: 1, altitude: 1, posZ: 300, identifier: 'falling' });
+    const svc = setup([base, falling]);
+
+    applyNow(svc);
+
+    // its altitude covers one cell of the two the base stands, so the offset makes up the rest
+    expect(falling.object.posZ).toBe(50);
+  });
+
+  it('carries a character up with the support, its altitude kept as clearance', () => {
+    const base = makeTerrain({ x: 0, y: 0, w: 4, d: 4, h: 2, identifier: 'base' });
+    const flying = makeCharacter({ x: 50, y: 50, altitude: 2, posZ: 300 });
+    const svc = setup([base, flying]);
+
+    applyNow(svc);
+
+    expect(flying.object.posZ).toBe(100);
+  });
+
   it('forces no reflow under a crowd of objects', () => {
     const entries: TabletopOverlapRegistryEntry[] = [];
     const ROWS = 10;

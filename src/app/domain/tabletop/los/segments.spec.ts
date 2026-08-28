@@ -76,4 +76,20 @@ describe('segmentsAbove()', () => {
   it('never drops the edge of the table, whose height nobody has said', () => {
     expect(segmentsAbove([edgeOfTable], 100_000)).toEqual([edgeOfTable]);
   });
+
+  it('hands the same answer back rather than working the list through again', () => {
+    const list = [low, high, edgeOfTable];
+
+    expect(segmentsAbove(list, 100)).toBe(segmentsAbove(list, 100));
+  });
+
+  it('keeps an answer per height, and per list', () => {
+    const list = [low, high, edgeOfTable];
+    const other = [low, high, edgeOfTable];
+
+    expect(segmentsAbove(list, 100)).toEqual([high, edgeOfTable]);
+    expect(segmentsAbove(list, 400)).toEqual([edgeOfTable]);
+    expect(segmentsAbove(other, 100)).not.toBe(segmentsAbove(list, 100));
+    expect(segmentsAbove(other, 100)).toEqual(segmentsAbove(list, 100));
+  });
 });

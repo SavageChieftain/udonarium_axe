@@ -109,15 +109,8 @@ describe('tableSizeFor()', () => {
     expect(tableSizeFor({ width: 26, height: 20 }, squares)).toEqual({ width: 26, height: 20 });
   });
 
-  it('rounds up, so no row of hexes hangs off the edge of the table', () => {
-    const room = tableSizeFor({ width: 26, height: 20 }, flatTop);
-    const extent = boardExtentPx({ width: 26, height: 20 }, flatTop);
-
-    expect(room.width * flatTop.sizePx).toBeGreaterThanOrEqual(extent.widthPx);
-    expect(room.height * flatTop.sizePx).toBeGreaterThanOrEqual(extent.heightPx);
-  });
-
-  it('holds a hex board that is longer than its cell count, which the old sizing cut off', () => {
-    expect(tableSizeFor({ width: 26, height: 20 }, flatTop).height).toBeGreaterThan(20);
+  it('gives a hex board a table of the same count, a table counting hexes as the board does', () => {
+    expect(tableSizeFor({ width: 26, height: 20 }, flatTop)).toEqual({ width: 26, height: 20 });
+    expect(tableSizeFor({ width: 26, height: 20 }, pointyTop)).toEqual({ width: 26, height: 20 });
   });
 });

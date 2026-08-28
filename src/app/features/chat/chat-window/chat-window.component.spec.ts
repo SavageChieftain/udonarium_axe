@@ -650,6 +650,7 @@ describe('ChatWindowComponent', () => {
     let tab: ChatTab;
     let character: GameCharacter;
     let sent: { text: string; attachments: string[] | undefined }[];
+    let mark: GameCharacter | null;
 
     function speak(text: string, sendFrom: string): void {
       component.sendChat({
@@ -679,6 +680,7 @@ describe('ChatWindowComponent', () => {
       character.rootDataElement?.appendChild(detail);
 
       sent = [];
+      mark = null;
       vi.spyOn(TestBed.inject(ChatMessageService), 'sendMessage').mockImplementation(((...args: unknown[]) => {
         sent.push({ text: args[1] as string, attachments: args[8] as string[] | undefined });
         return null as never;
@@ -687,6 +689,7 @@ describe('ChatWindowComponent', () => {
 
     afterEach(() => {
       vi.restoreAllMocks();
+      mark?.destroy();
       character.destroy();
       tab.destroy();
     });
@@ -701,6 +704,17 @@ describe('ChatWindowComponent', () => {
       speak('2d6+{HP}', PeerCursor.myCursor.identifier);
 
       expect(sent[0].text).toBe('2d6+{HP}');
+    });
+
+    it('reads the sheet of the piece the line is aimed at, spoken as yourself', () => {
+      mark = GameCharacter.create('対象', 1, '');
+      mark.status.setValue('HP', 'now', 7);
+      mark.setLocation('table');
+      mark.targeted = true;
+
+      speak('t:HP-t{HP}', PeerCursor.myCursor.identifier);
+
+      expect(sent[0].text).toBe('t:HP-7 [対象]');
     });
 
     it('sends on the picture a reference stands for', () => {

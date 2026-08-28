@@ -18,9 +18,14 @@ export interface MapGrid {
  * How many cells may be gathered into one block.
  *
  * On squares, a run of cells is a rectangle and one block can stand for a great many of them,
- * which is most of what keeps a generated map affordable. Hexes do not tile into rectangles,
- * so a block that stood for several would sit across the grid rather than on it: on a hex
- * board every cell is its own block, and the board is made smaller to pay for it.
+ * which is most of what keeps a generated map affordable. On a hex board every cell is its own
+ * block, and the board is made smaller to pay for it.
+ *
+ * Not because the cells will not gather: a column of a flat-top board stands squarely one cell
+ * above the next, and the squares of a run of them cover exactly what the cells did. It is that
+ * a terrain on a hex table is drawn as a hex flower of `Math.min(width, depth)` cells across, so
+ * a block standing for five would be drawn as one and the other four would go unpainted. Making
+ * a run of them worth having means teaching the terrain to draw a run first.
  */
 export function mergeSpanFor(grid: MapGrid, span: number): number {
   return isHexGrid(grid.type) ? 1 : span;
@@ -89,15 +94,11 @@ export function boardExtentPx(size: MapSize, grid: MapGrid): { widthPx: number; 
 /**
  * How many cells of table it takes to hold a board of this many cells.
  *
- * A table is measured in whole cells, and a hex board does not come to a whole number of them,
- * so it is rounded up: a table cut to the nearest cell would leave the last row of hexes
- * hanging off the edge of it.
+ * A table counts its cells the way a board does — a hex table is so many hex columns across,
+ * not so many grid squares — so a board of any shape is held by a table of the same count.
+ * Measuring the board in pixels and dividing by the grid instead made a hex table three
+ * columns short of the map laid on it, and the far side of the map hung off the table.
  */
-export function tableSizeFor(size: MapSize, grid: MapGrid): MapSize {
-  if (!isHexGrid(grid.type)) return size;
-  const { widthPx, heightPx } = boardExtentPx(size, grid);
-  return {
-    width: Math.ceil(widthPx / grid.sizePx),
-    height: Math.ceil(heightPx / grid.sizePx),
-  };
+export function tableSizeFor(size: MapSize, _grid: MapGrid): MapSize {
+  return size;
 }

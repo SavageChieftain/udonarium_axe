@@ -88,10 +88,11 @@ export class GravityService {
         let changed = false;
         for (const c of targets) {
           const support = GravityService.findSupportZAtCenter(c, grid);
-          if (Math.abs(c.posZ - support) > POSZ_EPSILON) {
-            c.entry.object.posZ = support;
-            c.posZ = support;
-            c.bottomZ = c.altitudePx + support;
+          const resting = GravityService.restingPosZ(c.entry.object, support, c.altitudePx);
+          if (Math.abs(c.posZ - resting) > POSZ_EPSILON) {
+            c.entry.object.posZ = resting;
+            c.posZ = resting;
+            c.bottomZ = c.altitudePx + resting;
             c.topZ = c.bottomZ + c.thicknessPx;
             changed = true;
           }
@@ -106,6 +107,18 @@ export class GravityService {
         this.applying = false;
       });
     }
+  }
+
+  /**
+   * Where an object comes to rest over a support reaching up to `supportZ`.
+   *
+   * A character's altitude is the height it keeps over whatever is under it, so it rides up with
+   * the support. Terrain's is the height it was built at — a canopy is three cells off the ground,
+   * not three cells over the trunk it crowns — so the support only fills the gap beneath it.
+   */
+  static restingPosZ(obj: TabletopObject, supportZ: number, altitudePx: number): number {
+    if (obj instanceof Terrain) return Math.max(0, supportZ - altitudePx);
+    return supportZ;
   }
 
   /** Nothing standing on a board falls: the board holds it, whatever angle the board is at. */
