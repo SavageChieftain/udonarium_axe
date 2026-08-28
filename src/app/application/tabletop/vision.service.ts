@@ -307,7 +307,8 @@ export class VisionService {
     const half = (scene.gridSize * (character.size || 1)) / 2;
     const x = character.location.x + half;
     const y = character.location.y + half;
-    return this.recall(`tok:${x}:${y}`, () => isPointVisible(scene, x, y, viewer));
+    const z = this.objectZ(character.altitude, character.posZ, scene.gridSize);
+    return this.recall(`tok:${x}:${y}:${z}`, () => isPointVisible(scene, x, y, viewer, z));
   }
 
   private objectZ(altitude: number, posZ: number, gridSize: number): number {

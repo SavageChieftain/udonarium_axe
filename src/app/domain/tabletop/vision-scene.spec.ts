@@ -952,6 +952,21 @@ describe('looking down from a height', () => {
     expect(isPointVisible(lookingFrom(100), 300, 0, player)).toBe(false);
   });
 
+  it('sees a head standing on top of the tower', () => {
+    // The stone is a hundred out and a hundred and fifty up. A head just past its edge, a
+    // hundred and seventy-five up, stands at a steeper angle than the parapet, so it is seen.
+    expect(isPointVisible(lookingFrom(25), 110, 0, player, 175)).toBe(true);
+  });
+
+  it('does not see the same head away beyond the tower', () => {
+    // Far enough back the look comes in under the parapet again, whatever it is aimed at.
+    expect(isPointVisible(lookingFrom(25), 800, 0, player, 175)).toBe(false);
+  });
+
+  it('sees nothing standing on the ground behind it, as before', () => {
+    expect(isPointVisible(lookingFrom(25), 110, 0, player)).toBe(false);
+  });
+
   it('is not stopped by the edge of the table however high the eye is', () => {
     const walled = scene({
       darknessEnabled: true,

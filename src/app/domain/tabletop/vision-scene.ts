@@ -1,6 +1,13 @@
 import { GridType } from '@axe/domain/tabletop/game-table';
 import { computeLitCells } from '@axe/domain/tabletop/lit-cells';
-import { Point, Segment, segmentClear, segmentsAbove, TallSegment } from '@axe/domain/tabletop/los/segments';
+import {
+  Point,
+  Segment,
+  segmentClear,
+  segmentClearBetween,
+  segmentsAbove,
+  TallSegment,
+} from '@axe/domain/tabletop/los/segments';
 import { computeVisibilityPolygon } from '@axe/domain/tabletop/los/visibility-polygon';
 import { surfaceFrame } from '@axe/domain/tabletop/surface-space';
 import { TableSurface } from '@axe/domain/tabletop/tabletop-object';
@@ -683,7 +690,7 @@ export function darknessAlphaFor(scene: VisionScene, viewer: SceneViewer): numbe
   return viewer.isGameMaster ? base * GM_DIM_FACTOR : base;
 }
 
-export function isPointVisible(scene: VisionScene, x: number, y: number, viewer: SceneViewer): boolean {
+export function isPointVisible(scene: VisionScene, x: number, y: number, viewer: SceneViewer, z = 0): boolean {
   if (viewer.isGameMaster) return true;
 
   const sources = ownedSources(scene, viewer);
@@ -693,7 +700,8 @@ export function isPointVisible(scene: VisionScene, x: number, y: number, viewer:
   for (const source of sources) {
     const withinRange = source.rangePx > 0 && distance(x, y, source.x, source.y) <= source.rangePx;
     if (source.type === VisionType.TRUESIGHT && withinRange) return true;
-    if (!segmentClear(source.x, source.y, x, y, segmentsAbove(scene.sightSegments, source.z))) continue;
+    const between = segmentsAbove(scene.sightSegments, source.z);
+    if (!segmentClearBetween(source.x, source.y, source.z, x, y, z, between)) continue;
     if (lit) return true;
     if (seesInDark(source.type) && withinRange) return true;
   }
