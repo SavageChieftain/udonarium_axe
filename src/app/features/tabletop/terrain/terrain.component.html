@@ -168,22 +168,24 @@
                   [style.filter]="faceFilter(isSurfaceShading() ? 0.3 : 1)"
                   [style.background-image]="'url(' + northFaceImage().url + ')' | safe: 'style'"
                 ></div>
-                <div class="pointer-events-none absolute inset-0 overflow-hidden backface-hidden">
-                  @for (pool of faceLights('north'); track $index) {
-                    <div
-                      class="pointer-events-none absolute backface-hidden"
-                      [style.background-image]="'url(' + wallImage().url + ')' | safe: 'style'"
-                      [ngStyle]="wallLightStyle(pool)"
-                    ></div>
-                  }
-                  @for (sil of faceSilhouettes('north'); track $index) {
-                    <div
-                      class="pointer-events-none absolute backface-hidden"
-                      [style.background-image]="silhouetteBackground(sil) | safe: 'style'"
-                      [ngStyle]="silhouetteStyle(sil)"
-                    ></div>
-                  }
-                </div>
+                @if (visionService.active()) {
+                  <div class="pointer-events-none absolute inset-0 overflow-hidden backface-hidden">
+                    @for (pool of faceLights('north'); track $index) {
+                      <div
+                        class="pointer-events-none absolute backface-hidden"
+                        [style.background-image]="'url(' + wallImage().url + ')' | safe: 'style'"
+                        [ngStyle]="wallLightStyle(pool)"
+                      ></div>
+                    }
+                    @for (sil of faceSilhouettes('north'); track $index) {
+                      <div
+                        class="pointer-events-none absolute backface-hidden"
+                        [style.background-image]="silhouetteBackground(sil) | safe: 'style'"
+                        [ngStyle]="silhouetteStyle(sil)"
+                      ></div>
+                    }
+                  </div>
+                }
               </div>
             }
           }
@@ -203,22 +205,24 @@
                   [style.filter]="faceFilter(1)"
                   [style.background-image]="'url(' + southFaceImage().url + ')' | safe: 'style'"
                 ></div>
-                <div class="pointer-events-none absolute inset-0 overflow-hidden backface-hidden">
-                  @for (pool of faceLights('south'); track $index) {
-                    <div
-                      class="pointer-events-none absolute backface-hidden"
-                      [style.background-image]="'url(' + wallImage().url + ')' | safe: 'style'"
-                      [ngStyle]="wallLightStyle(pool)"
-                    ></div>
-                  }
-                  @for (sil of faceSilhouettes('south'); track $index) {
-                    <div
-                      class="pointer-events-none absolute backface-hidden"
-                      [style.background-image]="silhouetteBackground(sil) | safe: 'style'"
-                      [ngStyle]="silhouetteStyle(sil)"
-                    ></div>
-                  }
-                </div>
+                @if (visionService.active()) {
+                  <div class="pointer-events-none absolute inset-0 overflow-hidden backface-hidden">
+                    @for (pool of faceLights('south'); track $index) {
+                      <div
+                        class="pointer-events-none absolute backface-hidden"
+                        [style.background-image]="'url(' + wallImage().url + ')' | safe: 'style'"
+                        [ngStyle]="wallLightStyle(pool)"
+                      ></div>
+                    }
+                    @for (sil of faceSilhouettes('south'); track $index) {
+                      <div
+                        class="pointer-events-none absolute backface-hidden"
+                        [style.background-image]="silhouetteBackground(sil) | safe: 'style'"
+                        [ngStyle]="silhouetteStyle(sil)"
+                      ></div>
+                    }
+                  </div>
+                }
               </div>
             }
           }
@@ -238,22 +242,24 @@
                   [style.filter]="faceFilter(isSurfaceShading() ? 0.5 : 1)"
                   [style.background-image]="'url(' + westFaceImage().url + ')' | safe: 'style'"
                 ></div>
-                <div class="pointer-events-none absolute inset-0 overflow-hidden backface-hidden">
-                  @for (pool of faceLights('west'); track $index) {
-                    <div
-                      class="pointer-events-none absolute backface-hidden"
-                      [style.background-image]="'url(' + wallImage().url + ')' | safe: 'style'"
-                      [ngStyle]="wallLightStyle(pool)"
-                    ></div>
-                  }
-                  @for (sil of faceSilhouettes('west'); track $index) {
-                    <div
-                      class="pointer-events-none absolute backface-hidden"
-                      [style.background-image]="silhouetteBackground(sil) | safe: 'style'"
-                      [ngStyle]="silhouetteStyle(sil)"
-                    ></div>
-                  }
-                </div>
+                @if (visionService.active()) {
+                  <div class="pointer-events-none absolute inset-0 overflow-hidden backface-hidden">
+                    @for (pool of faceLights('west'); track $index) {
+                      <div
+                        class="pointer-events-none absolute backface-hidden"
+                        [style.background-image]="'url(' + wallImage().url + ')' | safe: 'style'"
+                        [ngStyle]="wallLightStyle(pool)"
+                      ></div>
+                    }
+                    @for (sil of faceSilhouettes('west'); track $index) {
+                      <div
+                        class="pointer-events-none absolute backface-hidden"
+                        [style.background-image]="silhouetteBackground(sil) | safe: 'style'"
+                        [ngStyle]="silhouetteStyle(sil)"
+                      ></div>
+                    }
+                  </div>
+                }
               </div>
             }
           }
@@ -273,22 +279,24 @@
                   [style.filter]="faceFilter(isSurfaceShading() ? 0.8 : 1)"
                   [style.background-image]="'url(' + eastFaceImage().url + ')' | safe: 'style'"
                 ></div>
-                <div class="pointer-events-none absolute inset-0 overflow-hidden backface-hidden">
-                  @for (pool of faceLights('east'); track $index) {
-                    <div
-                      class="pointer-events-none absolute backface-hidden"
-                      [style.background-image]="'url(' + wallImage().url + ')' | safe: 'style'"
-                      [ngStyle]="wallLightStyle(pool)"
-                    ></div>
-                  }
-                  @for (sil of faceSilhouettes('east'); track $index) {
-                    <div
-                      class="pointer-events-none absolute backface-hidden"
-                      [style.background-image]="silhouetteBackground(sil) | safe: 'style'"
-                      [ngStyle]="silhouetteStyle(sil)"
-                    ></div>
-                  }
-                </div>
+                @if (visionService.active()) {
+                  <div class="pointer-events-none absolute inset-0 overflow-hidden backface-hidden">
+                    @for (pool of faceLights('east'); track $index) {
+                      <div
+                        class="pointer-events-none absolute backface-hidden"
+                        [style.background-image]="'url(' + wallImage().url + ')' | safe: 'style'"
+                        [ngStyle]="wallLightStyle(pool)"
+                      ></div>
+                    }
+                    @for (sil of faceSilhouettes('east'); track $index) {
+                      <div
+                        class="pointer-events-none absolute backface-hidden"
+                        [style.background-image]="silhouetteBackground(sil) | safe: 'style'"
+                        [ngStyle]="silhouetteStyle(sil)"
+                      ></div>
+                    }
+                  </div>
+                }
               </div>
             }
           }

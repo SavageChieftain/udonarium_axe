@@ -1,8 +1,9 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { UiSignalService } from '@axe/application/ui/ui-signal.service';
 import { objectChanged$ } from '@axe/core/sync/object-event-extension';
+import { ObjectStore } from '@axe/core/sync/object-store';
 import { PERF_TERRAIN_GRID_RASTER, perfCounters } from '@axe/core/util/perf-counters';
-import { GridType } from '@axe/domain/tabletop/game-table';
+import { GameTable, GridType } from '@axe/domain/tabletop/game-table';
 import { DoorStyle, SlopeDirection, Terrain } from '@axe/domain/tabletop/terrain';
 import { TerrainComponent } from '@axe/features/tabletop/terrain/terrain.component';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
@@ -145,6 +146,35 @@ describe('TerrainComponent', () => {
 
       table.gridColor = original;
       terrain.destroy();
+    });
+  });
+
+  describe('the place it hangs for lights', () => {
+    async function wallFaceOverlays(darknessEnabled: boolean): Promise<number> {
+      const table = new GameTable();
+      table.width = 20;
+      table.height = 20;
+      table.gridSize = 50;
+      table.darknessEnabled = darknessEnabled;
+      table.initialize();
+      ObjectStore.instance.add(table);
+
+      const terrain = Terrain.create('wall', 1, 1, 2, 'wall', 'floor');
+      fixture.componentRef.setInput('terrain', terrain);
+      await fixture.whenStable();
+
+      const count = fixture.nativeElement.querySelectorAll('.inset-0.overflow-hidden').length;
+      terrain.destroy();
+      ObjectStore.instance.delete(table, false);
+      return count;
+    }
+
+    it('hangs one on every wall face of a table with dark in it', async () => {
+      expect(await wallFaceOverlays(true)).toBe(4);
+    });
+
+    it('hangs none on a table with no dark in it', async () => {
+      expect(await wallFaceOverlays(false)).toBe(0);
     });
   });
 
