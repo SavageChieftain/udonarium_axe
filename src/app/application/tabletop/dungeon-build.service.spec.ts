@@ -1,5 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { DungeonBuildService } from '@axe/application/tabletop/dungeon-build.service';
+import { wallLightPitch } from '@axe/application/tabletop/dungeon-build.service';
 import { ImageStorage } from '@axe/core/storage/image-storage';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { ImageTag } from '@axe/domain/media/image-tag';
@@ -24,6 +25,31 @@ function options(overrides: Partial<Parameters<DungeonBuildService['build']>[3]>
     ...overrides,
   };
 }
+
+describe('wallLightPitch', () => {
+  /** Where the axis lands on the floor, which is the drop over the tangent of the angle. */
+  function throwOf(altitudeCells: number, pitch: number): number {
+    const drop = altitudeCells + 0.5;
+    return drop / Math.tan((-pitch * Math.PI) / 180);
+  }
+
+  it('turns the lamp down, not up', () => {
+    expect(wallLightPitch(2, 2)).toBeLessThan(0);
+  });
+
+  it('lands the pool the asked-for distance out from the wall', () => {
+    expect(throwOf(2, wallLightPitch(2, 2))).toBeCloseTo(2, 6);
+    expect(throwOf(5, wallLightPitch(5, 3))).toBeCloseTo(3, 6);
+  });
+
+  it('turns a lamp hung higher down more steeply', () => {
+    expect(wallLightPitch(5, 2)).toBeLessThan(wallLightPitch(2, 2));
+  });
+
+  it('points a lamp straight down when it is asked to throw nothing', () => {
+    expect(wallLightPitch(2, 0)).toBe(-90);
+  });
+});
 
 describe('DungeonBuildService', () => {
   let service: DungeonBuildService;
@@ -243,6 +269,19 @@ describe('DungeonBuildService', () => {
         expect(built!.altitude).toBeGreaterThan(0);
       }
       if (planned.kind === 'campfire') expect(built!.altitude).toBe(0);
+    }
+  });
+
+  it('turns a bracket down toward the floor it is meant to light', async () => {
+    const { plan, result } = await build();
+    const lights = result.table.lightSources;
+    const sconces = plan.blocks.lights.filter((planned) => planned.kind === 'sconce');
+
+    expect(sconces.length).toBeGreaterThan(0);
+    for (const planned of sconces) {
+      const built = lights.find((entry) => entry.location.x === planned.x * 50 && entry.location.y === planned.y * 50);
+      expect(built!.lightPitch).toBeLessThan(0);
+      expect(built!.lightPitch).toBeCloseTo(wallLightPitch(built!.altitude, 2), 3);
     }
   });
 
