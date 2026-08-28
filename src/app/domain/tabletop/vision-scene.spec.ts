@@ -494,6 +494,40 @@ describe('vision-scene', () => {
       expect(reads).toBe(0);
     });
 
+    it('falls away across the ring rather than dropping in one step', () => {
+      const s = scene({ lights: [light({ x: 0, y: 0, brightPx: 100, dimPx: 300 })] });
+
+      expect(objectLightLevel(s, 100, 0, 0)).toBe(1);
+      expect(objectLightLevel(s, 200, 0, 0)).toBeCloseTo(0.5, 3);
+      expect(objectLightLevel(s, 300, 0, 0)).toBeCloseTo(0, 3);
+    });
+
+    it('carries a thing from what the eye is worth up to the full light', () => {
+      const s = scene({
+        lights: [light({ x: 0, y: 0, brightPx: 100, dimPx: 300 })],
+        visionSources: [source({ x: 0, y: 0, type: VisionType.NORMAL, owner: 'p1', rangePx: 1000 })],
+      });
+
+      expect(objectBrightnessFor(s, PLAYER, 100, 0, 0)).toBe(1);
+      expect(objectBrightnessFor(s, PLAYER, 200, 0, 0)).toBeCloseTo(0.7, 3);
+      expect(objectBrightnessFor(s, PLAYER, 300, 0, 0)).toBeCloseTo(0.4, 3);
+    });
+
+    it('rises without a step anywhere along the way', () => {
+      const s = scene({
+        lights: [light({ x: 0, y: 0, brightPx: 100, dimPx: 300 })],
+        visionSources: [source({ x: 0, y: 0, type: VisionType.NORMAL, owner: 'p1', rangePx: 1000 })],
+      });
+
+      let previous = objectBrightnessFor(s, PLAYER, 300, 0, 0);
+      for (let x = 295; x >= 100; x -= 5) {
+        const here = objectBrightnessFor(s, PLAYER, x, 0, 0);
+        expect(here).toBeGreaterThanOrEqual(previous);
+        expect(here - previous).toBeLessThan(0.05);
+        previous = here;
+      }
+    });
+
     it('lights the face turned to the light and leaves the opposite one dark', () => {
       const s = scene({
         lights: [light({ x: 0, y: 0, brightPx: 50, dimPx: 300 })],

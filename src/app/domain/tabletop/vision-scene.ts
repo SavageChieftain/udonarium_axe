@@ -671,6 +671,22 @@ export function isPointVisible(scene: VisionScene, x: number, y: number, viewer:
   return false;
 }
 
+/** What a thing is worth to the eye before any light falls on it. */
+const SEEN_BRIGHTNESS = 0.4;
+
+/**
+ * How much of a light is left at a distance from it.
+ *
+ * Full out to the bright radius, then away to nothing at the edge of the dim one. The middle
+ * of that fall is a half, which is what the whole ring used to be worth.
+ */
+function lightFalloff(reach: number, brightPx: number, dimPx: number): number {
+  if (reach <= brightPx) return 1;
+  const ring = dimPx - brightPx;
+  if (ring <= 0) return 0;
+  return clamp01(1 - (reach - brightPx) / ring);
+}
+
 export function objectLightLevel(
   scene: VisionScene,
   x: number,
@@ -695,7 +711,7 @@ export function objectLightLevel(
     }
     if (!lightReaches(scene, light, sx, sy, ignoreShadowCasters, pz)) continue;
     const reach = Math.hypot(light.x - sx, light.y - sy, light.z - pz);
-    const contribution = reach <= light.brightPx ? 1 : 0.5;
+    const contribution = lightFalloff(reach, light.brightPx, light.dimPx);
     if (contribution > level) level = contribution;
   }
   return level;
@@ -715,9 +731,11 @@ export function objectBrightnessFor(
   if (base >= 1) return 1;
   const level = objectLightLevel(scene, x, y, radiusPx, ignoreShadowCasters);
   if (level >= 1) return 1;
-  if (level > 0) return Math.max(base, 0.7);
-  if (isPointVisible(scene, x, y, viewer)) return Math.max(base, 0.4);
-  return base;
+  // Lit or merely in sight, a thing is worth four tenths before any light is added to it, and
+  // the light carries it the rest of the way. Nothing in between is a step.
+  const lit = level > 0 || isPointVisible(scene, x, y, viewer);
+  const floor = lit ? SEEN_BRIGHTNESS : base;
+  return Math.max(base, floor + (1 - floor) * level);
 }
 
 function lightClipPolygon(scene: VisionScene, light: SceneLight, radius: number = light.dimPx): Point[] | undefined {
