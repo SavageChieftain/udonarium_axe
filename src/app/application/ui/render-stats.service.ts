@@ -20,6 +20,9 @@ export interface RenderStats {
   readonly frameP95: number;
   readonly frameMax: number;
   readonly slowFrames: number;
+  readonly longTasks: number;
+  readonly longTaskMs: number;
+  readonly longTasksAvailable: boolean;
   readonly profilerAvailable: boolean;
 }
 
@@ -35,6 +38,9 @@ const EMPTY_STATS: RenderStats = {
   frameP95: 0,
   frameMax: 0,
   slowFrames: 0,
+  longTasks: 0,
+  longTaskMs: 0,
+  longTasksAvailable: false,
   profilerAvailable: false,
 };
 
@@ -62,6 +68,9 @@ export class RenderStatsService {
   private rafHandle: number | null = null;
   private sampleHandle: ReturnType<typeof setInterval> | null = null;
   private stopProfiler: (() => void) | null = null;
+  private longTaskObserver: PerformanceObserver | null = null;
+  private longTasks = 0;
+  private longTaskMs = 0;
   private updates: Record<WatchedComponent, number> = { TerrainComponent: 0, GameTableComponent: 0 };
 
   start(): void {
@@ -71,6 +80,7 @@ export class RenderStatsService {
     perfCounters.clear();
     this.reset();
     this.installProfiler();
+    this.installLongTaskObserver();
     this.lastFrameAt = performance.now();
     this.rafHandle = requestAnimationFrame((now) => this.onFrame(now));
     this.sampleHandle = setInterval(() => this.sample(), SAMPLE_INTERVAL_MS);
@@ -84,6 +94,8 @@ export class RenderStatsService {
     if (this.rafHandle !== null) cancelAnimationFrame(this.rafHandle);
     if (this.sampleHandle !== null) clearInterval(this.sampleHandle);
     this.stopProfiler?.();
+    this.longTaskObserver?.disconnect();
+    this.longTaskObserver = null;
     this.rafHandle = null;
     this.sampleHandle = null;
     this.stopProfiler = null;
@@ -93,7 +105,21 @@ export class RenderStatsService {
   reset(): void {
     this.frames = [];
     this.updates = { TerrainComponent: 0, GameTableComponent: 0 };
+    this.longTasks = 0;
+    this.longTaskMs = 0;
     perfCounters.clear();
+  }
+
+  private installLongTaskObserver(): void {
+    if (typeof PerformanceObserver === 'undefined') return;
+    if (!PerformanceObserver.supportedEntryTypes?.includes('longtask')) return;
+    this.longTaskObserver = new PerformanceObserver((list) => {
+      for (const entry of list.getEntries()) {
+        this.longTasks++;
+        this.longTaskMs += entry.duration;
+      }
+    });
+    this.longTaskObserver.observe({ entryTypes: ['longtask'] });
   }
 
   private installProfiler(): void {
@@ -133,8 +159,13 @@ export class RenderStatsService {
       frameP95: percentile(sorted, 0.95),
       frameMax: sorted.at(-1) ?? 0,
       slowFrames: this.frames.filter((ms) => ms > SLOW_FRAME_MS).length,
+      longTasks: this.longTasks,
+      longTaskMs: this.longTaskMs,
+      longTasksAvailable: this.longTaskObserver !== null,
       profilerAvailable: this.stopProfiler !== null,
     });
     this.updates = { TerrainComponent: 0, GameTableComponent: 0 };
+    this.longTasks = 0;
+    this.longTaskMs = 0;
   }
 }

@@ -1,7 +1,7 @@
 @if (widgets.renderStats()) {
   <div
     #panel
-    class="rounded-ui-lg border-ui-border-panel bg-ui-panel text-ui-text shadow-ui-md fixed top-0 left-0 z-100 box-border flex w-64 cursor-grab flex-col border border-solid [backdrop-filter:blur(24px)_saturate(1.5)] select-none [-webkit-backdrop-filter:blur(24px)_saturate(1.5)] active:cursor-grabbing"
+    class="rounded-ui-lg border-ui-border-panel bg-ui-panel text-ui-text shadow-ui-md fixed top-0 left-0 z-100 box-border flex w-64 cursor-grab flex-col border border-solid select-none active:cursor-grabbing"
     appDraggable
     (draggable.end)="rememberSpot()"
     [draggable.unhandle]="'button'"
@@ -68,6 +68,18 @@
 
       <dt class="text-ui-muted">max / over 50ms</dt>
       <dd class="m-0 text-right font-semibold">{{ millis(stats().frameMax) }} / {{ stats().slowFrames }}</dd>
+
+      <dt class="text-ui-muted col-span-2 pt-1.5 text-[10px] tracking-wide uppercase">javascript</dt>
+
+      <dt class="text-ui-muted">blocking / s</dt>
+      <dd class="m-0 text-right font-semibold">
+        {{ stats().longTasksAvailable ? millis(stats().longTaskMs) + ' ms' : '—' }}
+      </dd>
+
+      <dt class="text-ui-muted">long tasks / s</dt>
+      <dd class="m-0 text-right font-semibold">
+        {{ stats().longTasksAvailable ? stats().longTasks : '—' }}
+      </dd>
     </dl>
   </div>
 }
