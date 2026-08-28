@@ -103,6 +103,9 @@ export function buildCopyAction<T extends TabletopObject>(
       copy.location.x += gridSize;
       copy.location.y += gridSize;
       afterClone?.(copy);
+      // A copy is built from the original's own xml, which says nothing of what it hangs from.
+      // Anything the table keeps as a child of its own is nowhere until it is hung there too.
+      obj.parent?.appendChild(copy);
       copy.update();
       SoundEffect.play(sound);
     },
