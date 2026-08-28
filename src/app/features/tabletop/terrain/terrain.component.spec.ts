@@ -178,6 +178,39 @@ describe('TerrainComponent', () => {
     });
   });
 
+  describe('the lights it shows on its walls', () => {
+    interface WallLighting {
+      northLights: () => unknown[];
+      northSilhouettes: () => unknown[];
+    }
+
+    it('hands back the same lights however far a piece walks', async () => {
+      const table = new GameTable();
+      table.width = 20;
+      table.height = 20;
+      table.gridSize = 50;
+      table.darknessEnabled = true;
+      table.initialize();
+      ObjectStore.instance.add(table);
+      const terrain = Terrain.create('wall', 1, 1, 2, 'wall', 'floor');
+      fixture.componentRef.setInput('terrain', terrain);
+      await fixture.whenStable();
+      const walls = component as unknown as WallLighting;
+      const lights = walls.northLights();
+      const silhouettes = walls.northSilhouettes();
+
+      objectChanged$.emit({ aliasName: 'character', identifier: 'somebody', isSendFromSelf: true });
+      await new Promise((resolve) => setTimeout(resolve, 60));
+      await fixture.whenStable();
+
+      expect(walls.northLights()).toBe(lights);
+      expect(walls.northSilhouettes()).toBe(silhouettes);
+
+      terrain.destroy();
+      ObjectStore.instance.delete(table, false);
+    });
+  });
+
   describe('the hex shape it stands on', () => {
     it('hands back the same shape after a change elsewhere on the table', async () => {
       const terrain = Terrain.create('hex terrain', 3, 3, 1, '', '');

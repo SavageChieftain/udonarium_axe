@@ -9,6 +9,7 @@ import {
   ElementRef,
   inject,
   input,
+  Signal,
   signal,
   viewChildren,
 } from '@angular/core';
@@ -77,6 +78,11 @@ interface TerrainGridViewport extends TerrainGridBounds {
   canvasHeight: number;
   offsetLeft: number;
   offsetTop: number;
+}
+
+/** The same list, or two empty ones: an empty @for renders nothing either way. */
+function sameOrBothEmpty<T>(a: readonly T[], b: readonly T[]): boolean {
+  return a === b || (a.length === 0 && b.length === 0);
 }
 
 @Component({
@@ -684,15 +690,40 @@ export class TerrainComponent {
     });
   }
 
-  protected faceSilhouettes(side: WallSide): WallSilhouette[] {
-    this.objectChange.versionOf(this.terrain().identifier)();
-    return this.visionService.wallSilhouettes(this.faceOf(side));
+  private lightsOf(side: WallSide): Signal<WallLight[]> {
+    return computed(
+      () => {
+        this.terrainVersion();
+        return this.visionService.wallLights(this.faceOf(side));
+      },
+      { equal: sameOrBothEmpty }
+    );
   }
 
-  protected faceLights(side: WallSide): WallLight[] {
-    this.objectChange.versionOf(this.terrain().identifier)();
-    return this.visionService.wallLights(this.faceOf(side));
+  private silhouettesOf(side: WallSide): Signal<WallSilhouette[]> {
+    return computed(
+      () => {
+        this.terrainVersion();
+        return this.visionService.wallSilhouettes(this.faceOf(side));
+      },
+      { equal: sameOrBothEmpty }
+    );
   }
+
+  protected readonly northLights = this.lightsOf('north');
+  protected readonly southLights = this.lightsOf('south');
+  protected readonly eastLights = this.lightsOf('east');
+  protected readonly westLights = this.lightsOf('west');
+
+  protected readonly northSilhouettes = this.silhouettesOf('north');
+  protected readonly southSilhouettes = this.silhouettesOf('south');
+  protected readonly eastSilhouettes = this.silhouettesOf('east');
+  protected readonly westSilhouettes = this.silhouettesOf('west');
+
+  private readonly ambientBrightness = computed(() => {
+    this.terrainVersion();
+    return this.visionService.ambientBrightness();
+  });
 
   protected wallLightStyle(pool: WallLight): Record<string, string> {
     return wallLightLayerStyle(pool, false, 0, this.isTiledTexture() ? this.gridSize : 0);
@@ -707,8 +738,7 @@ export class TerrainComponent {
   }
 
   protected faceFilter(base: number): string {
-    this.objectChange.versionOf(this.terrain().identifier)();
-    return 'brightness(' + (base * this.visionService.ambientBrightness()).toFixed(3) + ')';
+    return 'brightness(' + (base * this.ambientBrightness()).toFixed(3) + ')';
   }
 
   private getFloorBounds(width: number = this.width(), depth: number = this.depth()): TerrainGridBounds {

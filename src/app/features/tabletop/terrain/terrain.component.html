@@ -170,14 +170,14 @@
                 ></div>
                 @if (visionService.active()) {
                   <div class="pointer-events-none absolute inset-0 overflow-hidden backface-hidden">
-                    @for (pool of faceLights('north'); track $index) {
+                    @for (pool of northLights(); track $index) {
                       <div
                         class="pointer-events-none absolute backface-hidden"
                         [style.background-image]="'url(' + wallImage().url + ')' | safe: 'style'"
                         [ngStyle]="wallLightStyle(pool)"
                       ></div>
                     }
-                    @for (sil of faceSilhouettes('north'); track $index) {
+                    @for (sil of northSilhouettes(); track $index) {
                       <div
                         class="pointer-events-none absolute backface-hidden"
                         [style.background-image]="silhouetteBackground(sil) | safe: 'style'"
@@ -207,14 +207,14 @@
                 ></div>
                 @if (visionService.active()) {
                   <div class="pointer-events-none absolute inset-0 overflow-hidden backface-hidden">
-                    @for (pool of faceLights('south'); track $index) {
+                    @for (pool of southLights(); track $index) {
                       <div
                         class="pointer-events-none absolute backface-hidden"
                         [style.background-image]="'url(' + wallImage().url + ')' | safe: 'style'"
                         [ngStyle]="wallLightStyle(pool)"
                       ></div>
                     }
-                    @for (sil of faceSilhouettes('south'); track $index) {
+                    @for (sil of southSilhouettes(); track $index) {
                       <div
                         class="pointer-events-none absolute backface-hidden"
                         [style.background-image]="silhouetteBackground(sil) | safe: 'style'"
@@ -244,14 +244,14 @@
                 ></div>
                 @if (visionService.active()) {
                   <div class="pointer-events-none absolute inset-0 overflow-hidden backface-hidden">
-                    @for (pool of faceLights('west'); track $index) {
+                    @for (pool of westLights(); track $index) {
                       <div
                         class="pointer-events-none absolute backface-hidden"
                         [style.background-image]="'url(' + wallImage().url + ')' | safe: 'style'"
                         [ngStyle]="wallLightStyle(pool)"
                       ></div>
                     }
-                    @for (sil of faceSilhouettes('west'); track $index) {
+                    @for (sil of westSilhouettes(); track $index) {
                       <div
                         class="pointer-events-none absolute backface-hidden"
                         [style.background-image]="silhouetteBackground(sil) | safe: 'style'"
@@ -281,14 +281,14 @@
                 ></div>
                 @if (visionService.active()) {
                   <div class="pointer-events-none absolute inset-0 overflow-hidden backface-hidden">
-                    @for (pool of faceLights('east'); track $index) {
+                    @for (pool of eastLights(); track $index) {
                       <div
                         class="pointer-events-none absolute backface-hidden"
                         [style.background-image]="'url(' + wallImage().url + ')' | safe: 'style'"
                         [ngStyle]="wallLightStyle(pool)"
                       ></div>
                     }
-                    @for (sil of faceSilhouettes('east'); track $index) {
+                    @for (sil of eastSilhouettes(); track $index) {
                       <div
                         class="pointer-events-none absolute backface-hidden"
                         [style.background-image]="silhouetteBackground(sil) | safe: 'style'"
