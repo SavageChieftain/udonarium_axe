@@ -217,6 +217,35 @@ export function floorRadii(light: SceneLight): { brightFloor: number; dimFloor: 
   };
 }
 
+/**
+ * Where a light lands on the floor, and how far it carries once it is there.
+ *
+ * The floor and the things standing on it used to be told apart by different geometry: the
+ * floor by this projection, a block by the plain distance through the air. A lamp hung on a
+ * wall is nearer to the block beside it than to the floor below, so the block came out lit
+ * over a floor that was left dark. Both now read the pool from here.
+ */
+export function lightFloorPool(light: SceneLight): { cx: number; cy: number; brightPx: number; dimPx: number } | null {
+  const { brightFloor, dimFloor } = floorRadii(light);
+  if (dimFloor < 1) return null;
+  if (light.angle >= 360) return { cx: light.x, cy: light.y, brightPx: brightFloor, dimPx: dimFloor };
+
+  // A wide cone reaches the floor whichever way its axis is turned: what settles it is the
+  // lowest ray, which is the axis tilted down by half the spread.
+  if (light.pitch >= light.angle / 2) return null;
+  const axis = lightAxis(light);
+  // Where the axis meets the floor, when it meets it in front of the light; otherwise the pool
+  // lies about the spot below the lamp, which is where a sconce throws it.
+  const t = axis.z < -0.05 ? -light.z / axis.z : 0;
+  const ratio = light.dimPx > 0 ? light.brightPx / light.dimPx : 1;
+  return {
+    cx: light.x + axis.x * t,
+    cy: light.y + axis.y * t,
+    brightPx: dimFloor * ratio,
+    dimPx: dimFloor,
+  };
+}
+
 export function computeLightBeam(light: SceneLight): LightBeam | null {
   if (light.angle >= 360 || light.z < 1) return null;
   const axis = lightAxis(light);
@@ -697,21 +726,21 @@ export function objectLightLevel(
 ): number {
   let level = clamp01(scene.globalIllumination);
   for (const light of scene.lights) {
-    const dx = light.x - x;
-    const dy = light.y - y;
-    const dist = Math.hypot(dx, dy, light.z - pz);
-    if (dist - radiusPx > light.dimPx) continue;
+    const pool = lightFloorPool(light);
+    if (!pool) continue;
+    const dx = pool.cx - x;
+    const dy = pool.cy - y;
+    const dist = Math.hypot(dx, dy);
+    if (dist - radiusPx > pool.dimPx) continue;
     let sx = x;
     let sy = y;
-    const dist2d = Math.hypot(dx, dy);
-    if (radiusPx > 0 && dist2d > radiusPx) {
-      const u = radiusPx / dist2d;
+    if (radiusPx > 0 && dist > radiusPx) {
+      const u = radiusPx / dist;
       sx = x + dx * u;
       sy = y + dy * u;
     }
     if (!lightReaches(scene, light, sx, sy, ignoreShadowCasters, pz)) continue;
-    const reach = Math.hypot(light.x - sx, light.y - sy, light.z - pz);
-    const contribution = lightFalloff(reach, light.brightPx, light.dimPx);
+    const contribution = lightFalloff(Math.hypot(pool.cx - sx, pool.cy - sy), pool.brightPx, pool.dimPx);
     if (contribution > level) level = contribution;
   }
   return level;
@@ -748,16 +777,9 @@ function coneFloorFootprint(
   scene: VisionScene,
   light: SceneLight
 ): { cx: number; cy: number; maxR: number; points: Point[] } | null {
-  const axis = lightAxis(light);
-  // A wide cone reaches the floor whichever way its axis is turned: what settles it is the
-  // lowest ray, which is the axis tilted down by half the spread. Only a cone whose every ray
-  // goes upward leaves the floor alone.
-  if (light.pitch >= light.angle / 2) return null;
-  // Where the axis meets the floor, when it meets it in front of the light; otherwise the
-  // pool lies about the spot below the lamp, which is where a sconce throws it.
-  const t = axis.z < -0.05 ? -light.z / axis.z : 0;
-  const cx = light.x + axis.x * t;
-  const cy = light.y + axis.y * t;
+  const pool = lightFloorPool(light);
+  if (!pool) return null;
+  const { cx, cy } = pool;
   // The pool can sit off to one side of the light, so the box has to hold both.
   const occluders = cullSegments(
     occludersOf(scene, light, true).overhead,

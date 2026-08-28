@@ -11,6 +11,7 @@ import {
   isLit,
   isPointVisible,
   lightAxis,
+  lightFloorPool,
   lightLevelAt,
   lightReaches,
   objectBrightnessFor,
@@ -755,6 +756,27 @@ describe('vision-scene', () => {
 
       expect(plan.reveals[0].x).toBeCloseTo(500, 0);
       expect(plan.reveals[0].y).toBeCloseTo(500, 0);
+    });
+
+    it('lights a block only as far as the pool it throws on the floor', () => {
+      const lamp = sconce();
+      const s = scene({ lights: [lamp] });
+      const pool = lightFloorPool(lamp);
+
+      expect(pool).not.toBeNull();
+      expect(objectLightLevel(s, pool!.cx + pool!.brightPx - 5, pool!.cy, 0)).toBeCloseTo(1, 2);
+      expect(objectLightLevel(s, pool!.cx + pool!.dimPx + 5, pool!.cy, 0)).toBe(0);
+    });
+
+    it('reads a block and the floor beneath it off the same pool', () => {
+      const lamp = sconce();
+      const s = scene({ lights: [lamp] });
+      const pool = lightFloorPool(lamp);
+      const plan = computeOverlayPlan(s, GM);
+
+      expect(plan.reveals[0].x).toBeCloseTo(pool!.cx, 0);
+      expect(plan.reveals[0].y).toBeCloseTo(pool!.cy, 0);
+      expect(pool!.brightPx / pool!.dimPx).toBeCloseTo(lamp.brightPx / lamp.dimPx, 3);
     });
 
     it('leaves the floor alone for a narrow light pointed at the ceiling', () => {
