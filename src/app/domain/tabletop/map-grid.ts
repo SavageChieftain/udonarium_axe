@@ -18,9 +18,14 @@ export interface MapGrid {
  * How many cells may be gathered into one block.
  *
  * On squares, a run of cells is a rectangle and one block can stand for a great many of them,
- * which is most of what keeps a generated map affordable. Hexes do not tile into rectangles,
- * so a block that stood for several would sit across the grid rather than on it: on a hex
- * board every cell is its own block, and the board is made smaller to pay for it.
+ * which is most of what keeps a generated map affordable. On a hex board every cell is its own
+ * block, and the board is made smaller to pay for it.
+ *
+ * Not because the cells will not gather: a column of a flat-top board stands squarely one cell
+ * above the next, and the squares of a run of them cover exactly what the cells did. It is that
+ * a terrain on a hex table is drawn as a hex flower of `Math.min(width, depth)` cells across, so
+ * a block standing for five would be drawn as one and the other four would go unpainted. Making
+ * a run of them worth having means teaching the terrain to draw a run first.
  */
 export function mergeSpanFor(grid: MapGrid, span: number): number {
   return isHexGrid(grid.type) ? 1 : span;
