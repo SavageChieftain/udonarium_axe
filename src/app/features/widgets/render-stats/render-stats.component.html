@@ -61,6 +61,11 @@
       <dt class="text-ui-muted">Grid rasters</dt>
       <dd class="m-0 text-right font-semibold">{{ gridRasters() }}</dd>
 
+      @for (counter of otherCounters(); track counter.key) {
+        <dt class="text-ui-muted truncate">{{ counter.key }}</dt>
+        <dd class="m-0 text-right font-semibold">{{ counter.count | number: '1.0-1' }}</dd>
+      }
+
       <dt class="text-ui-muted col-span-2 pt-1.5 text-[10px] tracking-wide uppercase">frame ms</dt>
 
       <dt class="text-ui-muted">p50 / p95</dt>

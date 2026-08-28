@@ -49,6 +49,13 @@ function faceKey(face: WallFace): string {
 }
 const WALL_LIGHT_INSET_CELLS = 0.4;
 
+function timed<T>(label: string, compute: () => T): T {
+  const started = performance.now();
+  const value = compute();
+  perfCounters.add(`${label}.ms`, performance.now() - started);
+  return value;
+}
+
 function sameIds(a: readonly string[] | undefined, b: readonly string[] | undefined): boolean {
   if (a === b) return true;
   if (!a || !b || a.length !== b.length) return false;
@@ -98,7 +105,7 @@ export class VisionService {
     const cached = this.memo.get(key);
     if (cached !== undefined) return cached as T;
     perfCounters.bump(PERF_VISION_MEMO_MISS);
-    const value = compute();
+    const value = perfCounters.enabled ? timed(key.slice(0, key.indexOf(':')), compute) : compute();
     // It grows with the number of places asked about, so it is capped rather than left to swell.
     if (this.memo.size >= MEMO_LIMIT) this.memo.clear();
     this.memo.set(key, value);
@@ -124,6 +131,7 @@ export class VisionService {
     };
     const changed = (aliasName: string) => {
       if (!RELEVANT_ALIASES.has(aliasName)) return;
+      perfCounters.bump(`dirty:${aliasName}`);
       bump();
       if (STANDING_ALIASES.has(aliasName)) bumpStanding();
     };

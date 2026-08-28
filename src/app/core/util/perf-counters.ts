@@ -12,6 +12,11 @@ class PerfCounters {
     this.counts.set(key, (this.counts.get(key) ?? 0) + 1);
   }
 
+  add(key: string, amount: number): void {
+    if (!this.enabled) return;
+    this.counts.set(key, (this.counts.get(key) ?? 0) + amount);
+  }
+
   drain(): ReadonlyMap<string, number> {
     const taken = new Map(this.counts);
     this.counts.clear();

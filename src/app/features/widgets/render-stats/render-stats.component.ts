@@ -1,3 +1,4 @@
+import { DecimalPipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, effect, ElementRef, inject, viewChild } from '@angular/core';
 import { RenderStatsService } from '@axe/application/ui/render-stats.service';
 import { WidgetLayoutService } from '@axe/application/ui/widget-layout.service';
@@ -10,7 +11,7 @@ import { DraggableDirective } from '@axe/ui/directives/draggable.directive';
   changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-render-stats',
   templateUrl: './render-stats.component.html',
-  imports: [DraggableDirective],
+  imports: [DecimalPipe, DraggableDirective],
 })
 export class RenderStatsComponent {
   protected readonly widgets = inject(WidgetVisibilityService);
@@ -25,6 +26,15 @@ export class RenderStatsComponent {
   protected readonly sceneBuilds = computed(() => this.counterOf(PERF_VISION_SCENE));
   protected readonly memoMisses = computed(() => this.counterOf(PERF_VISION_MEMO_MISS));
   protected readonly gridRasters = computed(() => this.counterOf(PERF_TERRAIN_GRID_RASTER));
+
+  private static readonly named = new Set<string>([PERF_VISION_SCENE, PERF_VISION_MEMO_MISS, PERF_TERRAIN_GRID_RASTER]);
+
+  protected readonly otherCounters = computed(() =>
+    [...this.stats().counters]
+      .filter(([key]) => !RenderStatsComponent.named.has(key))
+      .sort((a, b) => b[1] - a[1])
+      .map(([key, count]) => ({ key, count }))
+  );
 
   constructor() {
     effect(() => {
