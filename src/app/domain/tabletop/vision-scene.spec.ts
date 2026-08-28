@@ -11,6 +11,7 @@ import {
   isLit,
   isPointVisible,
   lightAxis,
+  lightFloorPool,
   lightLevelAt,
   lightReaches,
   objectBrightnessFor,
@@ -142,10 +143,31 @@ describe('vision-scene', () => {
       expect(beam!.clip.startsWith('polygon(')).toBe(true);
     });
 
-    it('builds none for a sphere, for a light on the ground or for one pointing up', () => {
+    it('builds none for a sphere, nor for a light lying on the ground pointing down', () => {
       expect(computeLightBeam(light({ angle: 360, z: 200 }))).toBeNull();
       expect(computeLightBeam(light({ angle: 45, z: 0, pitch: -52 }))).toBeNull();
-      expect(computeLightBeam(light({ angle: 45, z: 200, pitch: 30 }))).toBeNull();
+    });
+
+    it('runs a beam turned upward the whole length the light carries', () => {
+      const beam = computeLightBeam(light({ x: 0, y: 0, z: 25, angle: 23, direction: 334, pitch: 25, dimPx: 500 }));
+
+      expect(beam).not.toBeNull();
+      expect(beam!.height).toBeCloseTo(500, 6);
+      expect(beam!.fins.length).toBeGreaterThan(1);
+    });
+
+    it('cuts a beam turned down where it meets the floor', () => {
+      // Two hundred up and turned a right angle down: it has two hundred to run, not its five
+      // hundred of reach.
+      const beam = computeLightBeam(light({ x: 0, y: 0, z: 200, angle: 23, pitch: -90, dimPx: 500 }));
+
+      expect(beam!.height).toBeCloseTo(200, 6);
+    });
+
+    it('holds a beam held level to the length the light carries', () => {
+      const beam = computeLightBeam(light({ x: 0, y: 0, z: 100, angle: 23, pitch: 0, dimPx: 500 }));
+
+      expect(beam!.height).toBeCloseTo(500, 6);
     });
 
     it('gives a sphere on the floor an orb that faces the camera', () => {
@@ -494,6 +516,40 @@ describe('vision-scene', () => {
       expect(reads).toBe(0);
     });
 
+    it('falls away across the ring rather than dropping in one step', () => {
+      const s = scene({ lights: [light({ x: 0, y: 0, brightPx: 100, dimPx: 300 })] });
+
+      expect(objectLightLevel(s, 100, 0, 0)).toBe(1);
+      expect(objectLightLevel(s, 200, 0, 0)).toBeCloseTo(0.5, 3);
+      expect(objectLightLevel(s, 300, 0, 0)).toBeCloseTo(0, 3);
+    });
+
+    it('carries a thing from what the eye is worth up to the full light', () => {
+      const s = scene({
+        lights: [light({ x: 0, y: 0, brightPx: 100, dimPx: 300 })],
+        visionSources: [source({ x: 0, y: 0, type: VisionType.NORMAL, owner: 'p1', rangePx: 1000 })],
+      });
+
+      expect(objectBrightnessFor(s, PLAYER, 100, 0, 0)).toBe(1);
+      expect(objectBrightnessFor(s, PLAYER, 200, 0, 0)).toBeCloseTo(0.7, 3);
+      expect(objectBrightnessFor(s, PLAYER, 300, 0, 0)).toBeCloseTo(0.4, 3);
+    });
+
+    it('rises without a step anywhere along the way', () => {
+      const s = scene({
+        lights: [light({ x: 0, y: 0, brightPx: 100, dimPx: 300 })],
+        visionSources: [source({ x: 0, y: 0, type: VisionType.NORMAL, owner: 'p1', rangePx: 1000 })],
+      });
+
+      let previous = objectBrightnessFor(s, PLAYER, 300, 0, 0);
+      for (let x = 295; x >= 100; x -= 5) {
+        const here = objectBrightnessFor(s, PLAYER, x, 0, 0);
+        expect(here).toBeGreaterThanOrEqual(previous);
+        expect(here - previous).toBeLessThan(0.05);
+        previous = here;
+      }
+    });
+
     it('lights the face turned to the light and leaves the opposite one dark', () => {
       const s = scene({
         lights: [light({ x: 0, y: 0, brightPx: 50, dimPx: 300 })],
@@ -703,6 +759,63 @@ describe('vision-scene', () => {
     });
   });
 
+  describe('the floor a cone light throws its pool on', () => {
+    /** What the dungeon generator hangs on a wall: wide, and turned a little upward. */
+    function sconce(): SceneLight {
+      return light({ x: 500, y: 500, z: 150, brightPx: 150, dimPx: 350, angle: 200, pitch: 8 });
+    }
+
+    it('lights the floor under a lamp on a wall, turned a little upward', () => {
+      const plan = computeOverlayPlan(scene({ lights: [sconce()] }), GM);
+
+      expect(plan.reveals).toHaveLength(1);
+      expect(plan.reveals[0].dimPx).toBeGreaterThan(0);
+    });
+
+    it('lays the pool about the spot below the lamp', () => {
+      const plan = computeOverlayPlan(scene({ lights: [sconce()] }), GM);
+
+      expect(plan.reveals[0].x).toBeCloseTo(500, 0);
+      expect(plan.reveals[0].y).toBeCloseTo(500, 0);
+    });
+
+    it('lights a block only as far as the pool it throws on the floor', () => {
+      const lamp = sconce();
+      const s = scene({ lights: [lamp] });
+      const pool = lightFloorPool(lamp);
+
+      expect(pool).not.toBeNull();
+      expect(objectLightLevel(s, pool!.cx + pool!.brightPx - 5, pool!.cy, 0)).toBeCloseTo(1, 2);
+      expect(objectLightLevel(s, pool!.cx + pool!.dimPx + 5, pool!.cy, 0)).toBe(0);
+    });
+
+    it('reads a block and the floor beneath it off the same pool', () => {
+      const lamp = sconce();
+      const s = scene({ lights: [lamp] });
+      const pool = lightFloorPool(lamp);
+      const plan = computeOverlayPlan(s, GM);
+
+      expect(plan.reveals[0].x).toBeCloseTo(pool!.cx, 0);
+      expect(plan.reveals[0].y).toBeCloseTo(pool!.cy, 0);
+      expect(pool!.brightPx / pool!.dimPx).toBeCloseTo(lamp.brightPx / lamp.dimPx, 3);
+    });
+
+    it('leaves the floor alone for a narrow light pointed at the ceiling', () => {
+      const upward = light({ x: 500, y: 500, z: 150, angle: 60, pitch: 80 });
+
+      expect(computeOverlayPlan(scene({ lights: [upward] }), GM).reveals).toHaveLength(0);
+    });
+
+    it('still throws the pool where a light pointed down is aimed', () => {
+      const spot = light({ x: 500, y: 500, z: 200, angle: 60, pitch: -90, dimPx: 400 });
+      const plan = computeOverlayPlan(scene({ lights: [spot] }), GM);
+
+      expect(plan.reveals).toHaveLength(1);
+      expect(plan.reveals[0].x).toBeCloseTo(500, 0);
+      expect(plan.reveals[0].y).toBeCloseTo(500, 0);
+    });
+  });
+
   describe('computeOverlayPlan', () => {
     it('shows the game master a dim preview, brighter than a player sees', () => {
       const s = scene({ lights: [light(), light()] });
@@ -858,6 +971,46 @@ describe('looking down from a height', () => {
 
   it('still sees nothing past it from halfway up', () => {
     expect(isPointVisible(lookingFrom(100), 300, 0, player)).toBe(false);
+  });
+
+  it('sees a head standing on top of the tower', () => {
+    // The stone is a hundred out and a hundred and fifty up. A head just past its edge, a
+    // hundred and seventy-five up, stands at a steeper angle than the parapet, so it is seen.
+    expect(isPointVisible(lookingFrom(25), 110, 0, player, 175)).toBe(true);
+  });
+
+  it('does not see the same head away beyond the tower', () => {
+    // Far enough back the look comes in under the parapet again, whatever it is aimed at.
+    expect(isPointVisible(lookingFrom(25), 800, 0, player, 175)).toBe(false);
+  });
+
+  it('sees nothing standing on the ground behind it, as before', () => {
+    expect(isPointVisible(lookingFrom(25), 110, 0, player)).toBe(false);
+  });
+
+  describe('a piece standing on a crate, seen by the light shone at it', () => {
+    const crate = { x1: 100, y1: -1000, x2: 100, y2: 1000, heightPx: 150 };
+
+    /** Ordinary sight, no range of its own: it sees what its own lamp picks out. */
+    function withLamp() {
+      return scene({
+        darknessEnabled: true,
+        darknessLevel: 1,
+        globalIllumination: 0,
+        sightSegments: [crate],
+        lightSegments: [crate],
+        lights: [light({ x: 0, y: 0, z: 25, brightPx: 300, dimPx: 600 })],
+        visionSources: [source({ x: 0, y: 0, z: 25, type: VisionType.NORMAL, rangePx: 0 })],
+      });
+    }
+
+    it('picks out a head standing on top of it', () => {
+      expect(isPointVisible(withLamp(), 110, 0, player, 175)).toBe(true);
+    });
+
+    it('picks out nothing on the ground the crate stands on', () => {
+      expect(isPointVisible(withLamp(), 110, 0, player, 0)).toBe(false);
+    });
   });
 
   it('is not stopped by the edge of the table however high the eye is', () => {

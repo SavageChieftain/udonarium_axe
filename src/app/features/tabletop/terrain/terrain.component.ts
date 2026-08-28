@@ -9,6 +9,7 @@ import {
   ElementRef,
   inject,
   input,
+  Signal,
   signal,
   viewChildren,
 } from '@angular/core';
@@ -32,6 +33,7 @@ import { UiSignalService } from '@axe/application/ui/ui-signal.service';
 import { CoordinateService } from '@axe/core/input/coordinate.service';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { imageFileEqual } from '@axe/core/storage/image-file';
+import { PERF_TERRAIN_GRID_RASTER, perfCounters } from '@axe/core/util/perf-counters';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
 import { GameTable, GridType } from '@axe/domain/tabletop/game-table';
 import { isFlatTopGrid, isHexGrid } from '@axe/domain/tabletop/hex-geometry';
@@ -60,6 +62,7 @@ import { SelectableDirective } from '@axe/ui/directives/selectable.directive';
 import { SafePipe } from '@axe/ui/pipes/safe.pipe';
 import { buildHexRingClipPath, calcHexFlowerParams, HexFlowerParams } from '@axe/ui/tabletop/hex-pedestal-geometry';
 import { setupInputHandler, setupMovableRotableForPiece } from '@axe/ui/tabletop/setup-tabletop-piece';
+import { shadedBackgroundImage } from '@axe/ui/tabletop/shaded-background';
 import { translateZCss, Z_OFFSET_TABLETOP_OBJECT_PX } from '@axe/ui/tabletop/z-offset';
 
 interface TerrainGridBounds {
@@ -76,6 +79,13 @@ interface TerrainGridViewport extends TerrainGridBounds {
   canvasHeight: number;
   offsetLeft: number;
   offsetTop: number;
+}
+
+const NO_HEX_SLOPE: HexSlopeStepData = { floors: [], walls: [] };
+
+/** The same list, or two empty ones: an empty @for renders nothing either way. */
+function sameOrBothEmpty<T>(a: readonly T[], b: readonly T[]): boolean {
+  return a === b || (a.length === 0 && b.length === 0);
 }
 
 @Component({
@@ -129,50 +139,54 @@ export class TerrainComponent {
     });
     effect(() => {
       const gridCanvases = this.gridCanvases();
+      this.gridRasterKey();
       if (!this._initialized || gridCanvases.length < 1) return;
-      this.setGameTableGrid(
-        this.width(),
-        this.depth(),
-        this.gridSize,
-        this.currentTable.gridType,
-        this.currentTable.gridColor,
-        this.currentTable.gridFontColor
-      );
+      this.rasterizeGrid();
     });
     setupMovableRotableForPiece(this, {
       target: this.terrain,
       collideLayers: ['terrain'],
     });
-    this.objectChange.onObjectChangedFor(
-      // input.required guarded by _initialized to avoid NG0950 during construction.
-      () => {
-        if (!this._initialized) return [];
-        return [this.currentTable.identifier, this.tableSelecter.identifier, this.terrain().identifier];
-      },
-      () => {
-        if (!this._initialized) return;
-        this.setGameTableGrid(
-          this.width(),
-          this.depth(),
-          this.gridSize,
-          this.currentTable.gridType,
-          this.currentTable.gridColor,
-          this.currentTable.gridFontColor
-        );
-      },
-      this.destroyRef
-    );
     afterNextRender(() => {
       this._initialized = true;
-      this.setGameTableGrid(
-        this.width(),
-        this.depth(),
-        this.gridSize,
-        this.currentTable.gridType,
-        this.currentTable.gridColor,
-        this.currentTable.gridFontColor
-      );
+      this.rasterizeGrid();
     });
+  }
+
+  /**
+   * Everything the grid is cut from. The same key cuts the same picture, so it is cut once.
+   */
+  private readonly gridRasterKey = computed(() => {
+    this.terrainVersion();
+    this.objectChange.versionOf(this.tabletopService.tableSelecter.identifier)();
+    this.objectChange.versionOf(this.tabletopService.currentTable.identifier)();
+    const table = this.currentTable;
+    const terrain = this.terrain();
+    const bbox = this.pedestalHexParams()?.bbox;
+    return [
+      this.width(),
+      this.depth(),
+      this.gridSize,
+      table.gridType,
+      table.gridColor,
+      table.gridFontColor,
+      this.terrainRotate(),
+      terrain.location.x,
+      terrain.location.y,
+      bbox ? `${bbox.minX}:${bbox.minY}:${bbox.maxX}:${bbox.maxY}` : '',
+      this.hexSlopeSteps().floors.length,
+    ].join('|');
+  });
+
+  private rasterizeGrid(): void {
+    this.setGameTableGrid(
+      this.width(),
+      this.depth(),
+      this.gridSize,
+      this.currentTable.gridType,
+      this.currentTable.gridColor,
+      this.currentTable.gridFontColor
+    );
   }
 
   private readonly inputRef = setupInputHandler({
@@ -352,6 +366,13 @@ export class TerrainComponent {
     return this.terrain().rotate;
   });
 
+  readonly isGrid = computed(() => {
+    this.terrainVersion();
+    return this.terrain().isGrid;
+  });
+
+  readonly showsGrid = computed(() => this.isGrid() && !this.onWall());
+
   readonly isVisibleFloor = computed(() => 0 < this.width() * this.depth());
   readonly isVisibleWallTopBottom = computed(() => 0 < this.width() * this.height());
   readonly isVisibleWallLeftRight = computed(() => 0 < this.depth() * this.height());
@@ -378,11 +399,14 @@ export class TerrainComponent {
   readonly movableOption = signal<MovableOption>({});
   readonly rotableOption = signal<RotableOption>({});
 
-  readonly pedestalHexParams = computed<HexFlowerParams | null>(() => {
+  private readonly gridType = computed(() => {
     this.objectChange.versionOf(this.tabletopService.tableSelecter.identifier)();
     this.objectChange.versionOf(this.tabletopService.currentTable.identifier)();
-    this.terrainVersion();
-    const gridType = this.currentTable.gridType;
+    return this.currentTable.gridType;
+  });
+
+  readonly pedestalHexParams = computed<HexFlowerParams | null>(() => {
+    const gridType = this.gridType();
     if (!isHexGrid(gridType)) return null;
     const hexSize = Math.min(this.width(), this.depth());
     if (hexSize < 1) return null;
@@ -395,7 +419,7 @@ export class TerrainComponent {
 
   readonly hexSlopeSteps = computed<HexSlopeStepData>(() => {
     const params = this.pedestalHexParams();
-    if (!params || !this.isHexSlope()) return { floors: [], walls: [] };
+    if (!params || !this.isHexSlope()) return NO_HEX_SLOPE;
     return computeHexSlopeSteps(
       Math.min(this.width(), this.depth()),
       this.gridSize,
@@ -653,8 +677,12 @@ export class TerrainComponent {
 
   readonly floorBrightness = computed(() => this.floorShade() * this.centerBrightness());
 
-  protected dimBrightness(base: number): string {
-    return 'brightness(' + (base * this.centerBrightness()).toFixed(3) + ')';
+  protected wallShade(base: number): number {
+    return base * this.centerBrightness();
+  }
+
+  protected shaded(url: string, brightness: number): string {
+    return shadedBackgroundImage(url, brightness);
   }
 
   private faceOf(side: WallSide): WallFace {
@@ -669,15 +697,40 @@ export class TerrainComponent {
     });
   }
 
-  protected faceSilhouettes(side: WallSide): WallSilhouette[] {
-    this.objectChange.versionOf(this.terrain().identifier)();
-    return this.visionService.wallSilhouettes(this.faceOf(side));
+  private lightsOf(side: WallSide): Signal<WallLight[]> {
+    return computed(
+      () => {
+        this.terrainVersion();
+        return this.visionService.wallLights(this.faceOf(side));
+      },
+      { equal: sameOrBothEmpty }
+    );
   }
 
-  protected faceLights(side: WallSide): WallLight[] {
-    this.objectChange.versionOf(this.terrain().identifier)();
-    return this.visionService.wallLights(this.faceOf(side));
+  private silhouettesOf(side: WallSide): Signal<WallSilhouette[]> {
+    return computed(
+      () => {
+        this.terrainVersion();
+        return this.visionService.wallSilhouettes(this.faceOf(side));
+      },
+      { equal: sameOrBothEmpty }
+    );
   }
+
+  protected readonly northLights = this.lightsOf('north');
+  protected readonly southLights = this.lightsOf('south');
+  protected readonly eastLights = this.lightsOf('east');
+  protected readonly westLights = this.lightsOf('west');
+
+  protected readonly northSilhouettes = this.silhouettesOf('north');
+  protected readonly southSilhouettes = this.silhouettesOf('south');
+  protected readonly eastSilhouettes = this.silhouettesOf('east');
+  protected readonly westSilhouettes = this.silhouettesOf('west');
+
+  private readonly ambientBrightness = computed(() => {
+    this.terrainVersion();
+    return this.visionService.ambientBrightness();
+  });
 
   protected wallLightStyle(pool: WallLight): Record<string, string> {
     return wallLightLayerStyle(pool, false, 0, this.isTiledTexture() ? this.gridSize : 0);
@@ -691,9 +744,8 @@ export class TerrainComponent {
     return wallSilhouetteStyle(silhouette);
   }
 
-  protected faceFilter(base: number): string {
-    this.objectChange.versionOf(this.terrain().identifier)();
-    return 'brightness(' + (base * this.visionService.ambientBrightness()).toFixed(3) + ')';
+  protected faceShade(base: number): number {
+    return base * this.ambientBrightness();
   }
 
   private getFloorBounds(width: number = this.width(), depth: number = this.depth()): TerrainGridBounds {
@@ -763,8 +815,10 @@ export class TerrainComponent {
     gridColor: string = '#000000e6',
     gridFontColor: string = gridColor
   ) {
+    if (this.gridCanvases().length < 1) return;
     const viewport = this.getGridViewport(this.getFloorBounds(width, depth));
 
+    perfCounters.bump(PERF_TERRAIN_GRID_RASTER);
     for (const gridCanvas of this.gridCanvases()) {
       const render = new GridLineRender(gridCanvas.nativeElement);
       render.renderViewport(

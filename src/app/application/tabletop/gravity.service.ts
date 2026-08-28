@@ -3,6 +3,7 @@ import { ObjectChangeService } from '@axe/application/sync/object-change.service
 import { TabletopService } from '@axe/application/tabletop/tabletop.service';
 import { TabletopOverlapRegistryEntry, TabletopOverlapService } from '@axe/application/ui/tabletop-overlap.service';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
+import { perfCounters, perfTimed } from '@axe/core/util/perf-counters';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { SurfaceDims, surfaceWorldBox } from '@axe/domain/tabletop/surface-space';
 import { boardSurfaceOf, surfaceOf, TableSurface, TabletopObject } from '@axe/domain/tabletop/tabletop-object';
@@ -69,6 +70,11 @@ export class GravityService {
   }
 
   private apply(): void {
+    perfCounters.bump('gravityPass');
+    perfTimed('gravity', () => this.applyNow());
+  }
+
+  private applyNow(): void {
     this.applying = true;
     try {
       // All surfaces participate: a floor object can rest on a wall terrain (a beam) and
@@ -77,7 +83,7 @@ export class GravityService {
       if (entries.length === 0) return;
 
       // Read each footprint and height once into a cache, so the inner loop never triggers a reflow
-      const cached = GravityService.buildCache(entries, this.surfaceDims());
+      const cached = GravityService.buildCache(entries, this.surfaceDims(), this.tabletopService.gridSize());
       const targets = cached.filter((c) => c.isGravity);
       if (targets.length === 0) return;
 
@@ -176,13 +182,16 @@ export class GravityService {
     };
   }
 
-  private static buildCache(entries: TabletopOverlapRegistryEntry[], dims: SurfaceDims): CachedEntry[] {
+  private static buildCache(
+    entries: TabletopOverlapRegistryEntry[],
+    dims: SurfaceDims,
+    gridSizePx: number
+  ): CachedEntry[] {
     const cached: CachedEntry[] = [];
     for (const entry of entries) {
       const obj = entry.object;
       const surface = surfaceOf(obj);
-      const w = entry.element.offsetWidth;
-      const h = entry.element.offsetHeight;
+      const { width: w, height: h } = GravityService.footprintOf(obj, entry.element, gridSizePx);
       const altitudePx = obj.altitude * GRID_PX;
       const posZ = obj.posZ;
       const thicknessPx = obj instanceof Terrain ? obj.height * GRID_PX : 0;
@@ -205,6 +214,23 @@ export class GravityService {
       });
     }
     return cached;
+  }
+
+  /**
+   * How much floor a piece stands on.
+   *
+   * Terrain is laid out from its own footprint, so the numbers are already known and asking
+   * the element for them makes the browser lay the page out to answer.
+   */
+  private static footprintOf(
+    obj: TabletopObject,
+    element: HTMLElement,
+    gridSizePx: number
+  ): { width: number; height: number } {
+    if (obj instanceof Terrain) {
+      return { width: Math.max(0, obj.width) * gridSizePx, height: Math.max(0, obj.depth) * gridSizePx };
+    }
+    return { width: element.offsetWidth, height: element.offsetHeight };
   }
 
   private static buildSpatialIndex(cached: CachedEntry[]): Map<string, CachedEntry[]> {

@@ -1,5 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { ObjectStore } from '@axe/core/sync/object-store';
+import { GameTable } from '@axe/domain/tabletop/game-table';
 import { TableAmbience } from '@axe/domain/tabletop/table-ambience';
 import { buildTableAmbienceContextMenu } from '@axe/features/tabletop/table-ambience/table-ambience-context-menu';
 
@@ -31,6 +32,30 @@ describe('buildTableAmbienceContextMenu', () => {
   function makeAmbience(): TableAmbience {
     return TableAmbience.create('毒沼', 'swamp', 4, 4);
   }
+
+  it('hangs a copy on the table the original hangs on', () => {
+    // The copy itself is built by going out to xml and back, which happy-dom will not do: its
+    // parser turns away an attribute with a dot in its name, and every object on the table
+    // carries location.name. What is under test here is where the copy is hung, not how it is made.
+    const table = new GameTable();
+    table.initialize();
+    store.add(table);
+    const ambience = makeAmbience();
+    table.appendChild(ambience);
+    const made = TableAmbience.create('毒沼', 'swamp', 4, 4);
+    made.isLock = true;
+    vi.spyOn(ambience, 'clone').mockReturnValue(made);
+
+    const copy = findByName(
+      buildTableAmbienceContextMenu(ambience, 50, () => undefined, t),
+      'copy'
+    );
+    (copy as { action: () => void }).action();
+
+    expect(table.ambiences).toContain(made);
+    expect(made.location.x).toBe(ambience.location.x + 50);
+    expect(made.isLock).toBe(false);
+  });
 
   it('switches kind on a choice', () => {
     const ambience = makeAmbience();

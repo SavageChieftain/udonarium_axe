@@ -27,6 +27,12 @@ export const OBJECT_LIST_TYPES: readonly ObjectListTypeConfig[] = [
     icon: 'wb_incandescent',
     labelKey: 'feature.gmObjectList.typeLight',
   },
+  {
+    key: 'table-ambience',
+    alias: 'table-ambience',
+    icon: 'blur_on',
+    labelKey: 'feature.gmObjectList.typeAmbience',
+  },
 ];
 
 export type LocationKind = 'table' | 'common' | 'graveyard' | 'personal' | 'other';

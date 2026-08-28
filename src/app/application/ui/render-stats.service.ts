@@ -1,0 +1,172 @@
+import { Injectable, signal } from '@angular/core';
+import { perfCounters, perfTimed } from '@axe/core/util/perf-counters';
+
+const SAMPLE_INTERVAL_MS = 1000;
+const FRAME_RING = 180;
+const SLOW_FRAME_MS = 50;
+const TEMPLATE_UPDATE_START = 2;
+
+type WatchedComponent = 'TerrainComponent' | 'GameTableComponent';
+
+export interface RenderStats {
+  readonly terrains: number;
+  readonly terrainCanvases: number;
+  readonly tableElements: number;
+  readonly elementsPerTerrain: number;
+  readonly updates: Readonly<Record<WatchedComponent, number>>;
+  readonly counters: ReadonlyMap<string, number>;
+  readonly frameLast: number;
+  readonly frameP50: number;
+  readonly frameP95: number;
+  readonly frameMax: number;
+  readonly slowFrames: number;
+  readonly longTasks: number;
+  readonly longTaskMs: number;
+  readonly longTasksAvailable: boolean;
+  readonly profilerAvailable: boolean;
+}
+
+const EMPTY_STATS: RenderStats = {
+  terrains: 0,
+  terrainCanvases: 0,
+  tableElements: 0,
+  elementsPerTerrain: 0,
+  updates: { TerrainComponent: 0, GameTableComponent: 0 },
+  counters: new Map(),
+  frameLast: 0,
+  frameP50: 0,
+  frameP95: 0,
+  frameMax: 0,
+  slowFrames: 0,
+  longTasks: 0,
+  longTaskMs: 0,
+  longTasksAvailable: false,
+  profilerAvailable: false,
+};
+
+interface AngularDebugGlobal {
+  ɵsetProfiler?(profiler: ((event: number, instance?: object | null) => void) | null): () => void;
+}
+
+function debugGlobal(): AngularDebugGlobal | undefined {
+  return (globalThis as { ng?: AngularDebugGlobal }).ng;
+}
+
+function percentile(sorted: readonly number[], fraction: number): number {
+  if (sorted.length < 1) return 0;
+  const index = Math.min(sorted.length - 1, Math.floor(sorted.length * fraction));
+  return sorted[index];
+}
+
+@Injectable({ providedIn: 'root' })
+export class RenderStatsService {
+  readonly watching = signal(false);
+  readonly stats = signal<RenderStats>(EMPTY_STATS);
+
+  private frames: number[] = [];
+  private lastFrameAt = 0;
+  private rafHandle: number | null = null;
+  private sampleHandle: ReturnType<typeof setInterval> | null = null;
+  private stopProfiler: (() => void) | null = null;
+  private longTaskObserver: PerformanceObserver | null = null;
+  private longTasks = 0;
+  private longTaskMs = 0;
+  private updates: Record<WatchedComponent, number> = { TerrainComponent: 0, GameTableComponent: 0 };
+
+  start(): void {
+    if (this.watching()) return;
+    this.watching.set(true);
+    perfCounters.enabled = true;
+    perfCounters.clear();
+    this.reset();
+    this.installProfiler();
+    this.installLongTaskObserver();
+    this.lastFrameAt = performance.now();
+    this.rafHandle = requestAnimationFrame((now) => this.onFrame(now));
+    this.sampleHandle = setInterval(() => this.sample(), SAMPLE_INTERVAL_MS);
+  }
+
+  stop(): void {
+    if (!this.watching()) return;
+    this.watching.set(false);
+    perfCounters.enabled = false;
+    perfCounters.clear();
+    if (this.rafHandle !== null) cancelAnimationFrame(this.rafHandle);
+    if (this.sampleHandle !== null) clearInterval(this.sampleHandle);
+    this.stopProfiler?.();
+    this.longTaskObserver?.disconnect();
+    this.longTaskObserver = null;
+    this.rafHandle = null;
+    this.sampleHandle = null;
+    this.stopProfiler = null;
+    this.stats.set(EMPTY_STATS);
+  }
+
+  reset(): void {
+    this.frames = [];
+    this.updates = { TerrainComponent: 0, GameTableComponent: 0 };
+    this.longTasks = 0;
+    this.longTaskMs = 0;
+    perfCounters.clear();
+  }
+
+  private installLongTaskObserver(): void {
+    if (typeof PerformanceObserver === 'undefined') return;
+    if (!PerformanceObserver.supportedEntryTypes?.includes('longtask')) return;
+    this.longTaskObserver = new PerformanceObserver((list) => {
+      for (const entry of list.getEntries()) {
+        this.longTasks++;
+        this.longTaskMs += entry.duration;
+      }
+    });
+    this.longTaskObserver.observe({ entryTypes: ['longtask'] });
+  }
+
+  private installProfiler(): void {
+    const setProfiler = debugGlobal()?.ɵsetProfiler;
+    if (!setProfiler) return;
+    this.stopProfiler = setProfiler((event, instance) => {
+      if (event !== TEMPLATE_UPDATE_START) return;
+      const name = instance?.constructor?.name;
+      if (name === 'TerrainComponent' || name === 'GameTableComponent') this.updates[name]++;
+    });
+  }
+
+  private onFrame(now: number): void {
+    if (!this.watching()) return;
+    perfTimed('layoutFlush', () => document.body.offsetHeight);
+    this.frames.push(now - this.lastFrameAt);
+    if (this.frames.length > FRAME_RING) this.frames.shift();
+    this.lastFrameAt = now;
+    this.rafHandle = requestAnimationFrame((next) => this.onFrame(next));
+  }
+
+  private sample(): void {
+    const terrains = document.querySelectorAll('terrain').length;
+    const terrainCanvases = document.querySelectorAll('terrain canvas').length;
+    const table = document.getElementById('app-game-table');
+    const tableElements = table ? table.querySelectorAll('*').length : 0;
+    const sorted = [...this.frames].sort((a, b) => a - b);
+
+    this.stats.set({
+      terrains,
+      terrainCanvases,
+      tableElements,
+      elementsPerTerrain: terrains > 0 ? tableElements / terrains : 0,
+      updates: { ...this.updates },
+      counters: perfCounters.drain(),
+      frameLast: this.frames.at(-1) ?? 0,
+      frameP50: percentile(sorted, 0.5),
+      frameP95: percentile(sorted, 0.95),
+      frameMax: sorted.at(-1) ?? 0,
+      slowFrames: this.frames.filter((ms) => ms > SLOW_FRAME_MS).length,
+      longTasks: this.longTasks,
+      longTaskMs: this.longTaskMs,
+      longTasksAvailable: this.longTaskObserver !== null,
+      profilerAvailable: this.stopProfiler !== null,
+    });
+    this.updates = { TerrainComponent: 0, GameTableComponent: 0 };
+    this.longTasks = 0;
+    this.longTaskMs = 0;
+  }
+}

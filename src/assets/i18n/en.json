@@ -212,7 +212,8 @@
         "moveGraveyard": "To graveyard",
         "delete": "Delete"
       },
-      "typeLight": "Lights"
+      "typeLight": "Lights",
+      "typeAmbience": "Ambience"
     },
     "media": {
       "jukebox": {

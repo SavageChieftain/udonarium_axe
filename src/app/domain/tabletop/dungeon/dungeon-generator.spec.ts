@@ -189,11 +189,23 @@ describe('planDungeon()', () => {
 
   it('turns a bracket away from the stone behind it', () => {
     const plan = planDungeon({ atmosphere: 'stoneDungeon', roomCount: 12, seed: 7 });
+    let checked = 0;
 
     for (const light of plan.blocks.lights) {
       if (light.kind !== 'sconce') continue;
       expect([0, 90, 180, 270]).toContain(light.facing);
+
+      // The angle everything on the table measures: cosine along x, sine along y, y running down.
+      const radians = (light.facing * Math.PI) / 180;
+      const ax = Math.round(Math.cos(radians));
+      const ay = Math.round(Math.sin(radians));
+
+      expect(cellAt(plan.layout, light.x - ax, light.y - ay)).toBe(DungeonCell.Rock);
+      expect(cellAt(plan.layout, light.x + ax, light.y + ay)).not.toBe(DungeonCell.Rock);
+      checked++;
     }
+
+    expect(checked).toBeGreaterThan(0);
   });
 
   it('never stands two lights on the one cell', () => {

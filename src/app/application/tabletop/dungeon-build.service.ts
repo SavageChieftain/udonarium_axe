@@ -26,6 +26,7 @@ import {
 import { blockOrigin, MapGrid, tableSizeFor } from '@axe/domain/tabletop/map-grid';
 import { TableAmbience } from '@axe/domain/tabletop/table-ambience';
 import { DoorStyle, SlopeDirection, Terrain, TerrainViewState } from '@axe/domain/tabletop/terrain';
+import { EYE_HEIGHT_CELLS } from '@axe/domain/tabletop/vision-scene';
 import { applyLightPreset, LightPreset } from '@axe/domain/tabletop/vision-types';
 
 const TERRAIN_IMAGE_TAG = '地形';
@@ -54,6 +55,39 @@ const LIGHT_SKIN: Record<MapLightKind, LightSkinId> = {
   lantern: 'light_lantern',
 };
 const WALL_MOUNTED: readonly MapLightKind[] = ['sconce', 'lantern'];
+
+/** How far out from its wall a sconce is meant to throw the middle of its pool. */
+const SCONCE_THROW_CELLS = 2;
+
+/**
+ * How far back toward its stone a bracket is set, so it hangs on the wall rather than in the air.
+ *
+ * The plan picks the open cell beside the stone, and left there the torch floats a half cell
+ * off the wall. It is not set the whole half: a light standing inside the stone is behind it,
+ * and stone stops light.
+ */
+const SCONCE_WALL_INSET_CELLS = 0.4;
+
+/** Which way to set a bracket back, given the way it throws. Facings are quarter turns. */
+export function wallLightInset(facing: number, cells: number): { x: number; y: number } {
+  const radians = (facing * Math.PI) / 180;
+  return { x: -Math.round(Math.cos(radians)) * cells, y: -Math.round(Math.sin(radians)) * cells };
+}
+
+/**
+ * How far down a lamp on a wall is turned, so that its light lands in front of it.
+ *
+ * A sconce comes out of the preset turned a little upward, which is how a torch stands in a
+ * bracket but not where it throws anything: hung high on a wall, it lit the stone above itself
+ * and left the floor to the dark. Aiming it is a right-angled triangle — the drop is how high
+ * it hangs, the run is how far out the pool should sit — so the angle follows from the two
+ * rather than being guessed at.
+ */
+export function wallLightPitch(altitudeCells: number, throwCells: number): number {
+  const drop = altitudeCells + EYE_HEIGHT_CELLS;
+  if (throwCells <= 0) return -90;
+  return -(Math.atan2(drop, throwCells) * 180) / Math.PI;
+}
 
 /** How many terrains go in before the thread is handed back, so the panel can move its bar. */
 const CHUNK_SIZE = 32;
@@ -290,9 +324,11 @@ export class DungeonBuildService {
       const element = source.imageDataElement?.getFirstElementByName('imageIdentifier');
       if (element) element.value = this.registerAsset(LIGHT_SKIN_ASSET_URLS[LIGHT_SKIN[light.kind]]);
       const at = blockOrigin({ x: light.x, y: light.y, w: 1, h: 1 }, grid);
-      source.location = { name: 'table', x: at.x, y: at.y };
+      const back = light.kind === 'sconce' ? wallLightInset(light.facing, SCONCE_WALL_INSET_CELLS) : { x: 0, y: 0 };
+      source.location = { name: 'table', x: at.x + back.x * GRID_SIZE, y: at.y + back.y * GRID_SIZE };
       source.posZ = 0;
       source.altitude = WALL_MOUNTED.includes(light.kind) ? Math.max(0, wallHeight - 1) : 0;
+      if (light.kind === 'sconce') source.lightPitch = wallLightPitch(source.altitude, SCONCE_THROW_CELLS);
       table.appendChild(source);
       source.update();
     }

@@ -1,6 +1,7 @@
 import { computed, DestroyRef, inject, Injectable, signal } from '@angular/core';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { ObjectStore } from '@axe/core/sync/object-store';
+import { PERF_VISION_MEMO_MISS, PERF_VISION_SCENE, perfCounters, perfTimed } from '@axe/core/util/perf-counters';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { partyIdsOwnedBy } from '@axe/domain/party/party-membership';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
@@ -48,6 +49,22 @@ function faceKey(face: WallFace): string {
 }
 const WALL_LIGHT_INSET_CELLS = 0.4;
 
+function sameIds(a: readonly string[] | undefined, b: readonly string[] | undefined): boolean {
+  if (a === b) return true;
+  if (!a || !b || a.length !== b.length) return false;
+  return a.every((id, index) => id === b[index]);
+}
+
+/** Who is looking, by what they are rather than by the object that says so. */
+function sameViewer(a: SceneViewer, b: SceneViewer): boolean {
+  return (
+    a.userId === b.userId &&
+    a.isGameMaster === b.isGameMaster &&
+    sameIds(a.visionOwnerIds, b.visionOwnerIds) &&
+    sameIds(a.partyIds, b.partyIds)
+  );
+}
+
 @Injectable({ providedIn: 'root' })
 export class VisionService {
   private readonly objectChange = inject(ObjectChangeService);
@@ -80,7 +97,8 @@ export class VisionService {
     }
     const cached = this.memo.get(key);
     if (cached !== undefined) return cached as T;
-    const value = compute();
+    perfCounters.bump(PERF_VISION_MEMO_MISS);
+    const value = perfTimed(key.slice(0, key.indexOf(':')), compute);
     // It grows with the number of places asked about, so it is capped rather than left to swell.
     if (this.memo.size >= MEMO_LIMIT) this.memo.clear();
     this.memo.set(key, value);
@@ -106,6 +124,7 @@ export class VisionService {
     };
     const changed = (aliasName: string) => {
       if (!RELEVANT_ALIASES.has(aliasName)) return;
+      perfCounters.bump(`dirty:${aliasName}`);
       bump();
       if (STANDING_ALIASES.has(aliasName)) bumpStanding();
     };
@@ -137,24 +156,27 @@ export class VisionService {
     return this.collectSegments(table, gridSize, table.width * gridSize, table.height * gridSize);
   });
 
-  readonly viewer = computed<SceneViewer>(() => {
-    this.objectChange.versionOf(PeerCursor.myCursor?.identifier ?? '')();
-    this.objectChange.collectionOf('PeerCursor')();
-    this.geometryEpoch();
-    const preview = this.previewAsUserId();
-    if (preview) {
-      const cursor = PeerCursor.findByUserId(preview);
-      return cursor?.isGuest
-        ? { userId: preview, isGameMaster: false, visionOwnerIds: this.playerVisionOwnerIds() }
-        : { userId: preview, isGameMaster: false, partyIds: this.partyIdsOf(preview) };
-    }
-    const my = PeerCursor.myCursor;
-    if (my?.isGuest) {
-      return { userId: my.userId, isGameMaster: false, visionOwnerIds: this.playerVisionOwnerIds() };
-    }
-    const userId = my?.userId ?? '';
-    return { userId, isGameMaster: my?.isGameMaster ?? false, partyIds: this.partyIdsOf(userId) };
-  });
+  readonly viewer = computed<SceneViewer>(
+    () => {
+      this.objectChange.versionOf(PeerCursor.myCursor?.identifier ?? '')();
+      this.objectChange.collectionOf('PeerCursor')();
+      this.geometryEpoch();
+      const preview = this.previewAsUserId();
+      if (preview) {
+        const cursor = PeerCursor.findByUserId(preview);
+        return cursor?.isGuest
+          ? { userId: preview, isGameMaster: false, visionOwnerIds: this.playerVisionOwnerIds() }
+          : { userId: preview, isGameMaster: false, partyIds: this.partyIdsOf(preview) };
+      }
+      const my = PeerCursor.myCursor;
+      if (my?.isGuest) {
+        return { userId: my.userId, isGameMaster: false, visionOwnerIds: this.playerVisionOwnerIds() };
+      }
+      const userId = my?.userId ?? '';
+      return { userId, isGameMaster: my?.isGameMaster ?? false, partyIds: this.partyIdsOf(userId) };
+    },
+    { equal: sameViewer }
+  );
 
   private playerVisionOwnerIds(): string[] {
     return this.objectStore
@@ -178,6 +200,11 @@ export class VisionService {
 
   readonly scene = computed<VisionScene | null>(() => {
     this.geometryEpoch();
+    perfCounters.bump(PERF_VISION_SCENE);
+    return perfTimed('scene', () => this.buildScene());
+  });
+
+  private buildScene(): VisionScene | null {
     const table = this.currentTable();
     if (!table) return null;
 
@@ -203,9 +230,10 @@ export class VisionService {
       lightSegments: light,
       shadowCasters: this.collectShadowCasters(gridSize),
     };
-  });
+  }
 
   objectBrightness(x: number, y: number, radiusPx = 0, ignoreShadowCasters = false): number {
+    if (!this.active()) return 1;
     const scene = this.scene();
     if (!scene) return 1;
     return this.recall(`bright:${x}:${y}:${radiusPx}:${ignoreShadowCasters}`, () =>
@@ -219,18 +247,21 @@ export class VisionService {
   }
 
   wallSilhouettes(face: WallFace): WallSilhouette[] {
+    if (!this.active()) return EMPTY_SILHOUETTES;
     const scene = this.scene();
-    if (!scene || !scene.darknessEnabled) return EMPTY_SILHOUETTES;
+    if (!scene) return EMPTY_SILHOUETTES;
     return this.recall(`sil:${faceKey(face)}`, () => computeWallSilhouettes(scene, face, scene.gridSize * 1.5));
   }
 
   wallLights(face: WallFace): WallLight[] {
+    if (!this.active()) return EMPTY_WALL_LIGHTS;
     const scene = this.scene();
-    if (!scene || !scene.darknessEnabled) return EMPTY_WALL_LIGHTS;
+    if (!scene) return EMPTY_WALL_LIGHTS;
     return this.recall(`wl:${faceKey(face)}`, () => computeWallLights(scene, face));
   }
 
   ambientBrightness(): number {
+    if (!this.active()) return 1;
     const scene = this.scene();
     if (!scene) return 1;
     return 1 - darknessAlphaFor(scene, this.viewer());
@@ -276,7 +307,8 @@ export class VisionService {
     const half = (scene.gridSize * (character.size || 1)) / 2;
     const x = character.location.x + half;
     const y = character.location.y + half;
-    return this.recall(`tok:${x}:${y}`, () => isPointVisible(scene, x, y, viewer));
+    const z = this.objectZ(character.altitude, character.posZ, scene.gridSize);
+    return this.recall(`tok:${x}:${y}:${z}`, () => isPointVisible(scene, x, y, viewer, z));
   }
 
   private objectZ(altitude: number, posZ: number, gridSize: number): number {

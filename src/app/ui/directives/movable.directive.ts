@@ -8,6 +8,7 @@ import { SelectionSignalService } from '@axe/application/ui/selection-signal.ser
 import { TabletopOverlapRegistryEntry, TabletopOverlapService } from '@axe/application/ui/tabletop-overlap.service';
 import { CoordinateService } from '@axe/core/input/coordinate.service';
 import { PointerCoordinate, PointerDeviceService } from '@axe/core/input/pointer-device.service';
+import { perfCounters, perfTimed } from '@axe/core/util/perf-counters';
 import { GridSnapStyle, GridType } from '@axe/domain/tabletop/game-table';
 import { isHexGrid } from '@axe/domain/tabletop/hex-geometry';
 import { SurfaceDims, surfaceWorldBox, WorldBox } from '@axe/domain/tabletop/surface-space';
@@ -313,10 +314,21 @@ export class MovableDirective {
 
   cancel() {
     if (this.input) this.input.cancel();
+    this.promoteWhileMoving(false);
     this.setPointerEvents(true);
     this.setAnimatedTransition(true);
     this.setCollidableLayer(false);
     this.clearContactProbe();
+  }
+
+  /**
+   * A piece being dragged is the only thing on the table that is moving.
+   *
+   * The table is one 3D rendering context, so what the compositor cannot hold apart it has to
+   * draw again together. Saying which one moves lets it keep the rest.
+   */
+  private promoteWhileMoving(isMoving: boolean): void {
+    this.nativeElement.style.willChange = isMoving ? 'transform' : '';
   }
 
   cancelTableGesture() {
@@ -347,6 +359,7 @@ export class MovableDirective {
 
   onInputStart(e: MouseEvent | TouchEvent) {
     this.callSelectedEvent();
+    this.promoteWhileMoving(true);
     if (this.collidableElements.length < 1) this.findCollidableElements();
 
     if (this._multiAdapter) this.multiMovableService.beginDrag(this._multiAdapter);
@@ -354,6 +367,11 @@ export class MovableDirective {
   }
 
   onInputMove(e: MouseEvent | TouchEvent) {
+    perfCounters.bump('inputMove');
+    perfTimed('inputMove', () => this.onInputMoveNow(e));
+  }
+
+  private onInputMoveNow(e: MouseEvent | TouchEvent) {
     const overDifferentSurface = this.isPointerOverDifferentSurface();
     if (overDifferentSurface && this.input?.isDragging && this.input.pointer) {
       const rest = this.computeBeamRest(this.input.pointer);
@@ -370,8 +388,8 @@ export class MovableDirective {
       this.updateDragPreview();
       return;
     }
-    handleInputMove(this as unknown as MovableInteractionContext, e);
-    this.updateDragPreview();
+    perfTimed('collide', () => handleInputMove(this as unknown as MovableInteractionContext, e));
+    perfTimed('dragPreview', () => this.updateDragPreview());
   }
 
   private isPointerOverDifferentSurface(): boolean {
@@ -384,7 +402,7 @@ export class MovableDirective {
   private surfaceUnderPointer(): HTMLElement | null {
     const pointer = this.input?.pointer;
     if (!pointer) return null;
-    const under = document.elementFromPoint(pointer.x, pointer.y) as HTMLElement | null;
+    const under = perfTimed('hitTest', () => document.elementFromPoint(pointer.x, pointer.y) as HTMLElement | null);
     return dropTargetSurface(this.nativeElement, under);
   }
 

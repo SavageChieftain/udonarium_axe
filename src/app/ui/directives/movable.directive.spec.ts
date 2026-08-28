@@ -37,6 +37,20 @@ describe('MovableDirective', () => {
       expect(() => fixture.detectChanges()).not.toThrow();
     });
 
+    it('says which piece is moving only while it moves', () => {
+      fixture.detectChanges();
+      const element = fixture.debugElement.children[0].nativeElement as HTMLElement;
+      const directive = fixture.debugElement.children[0].injector.get(MovableDirective);
+
+      expect(element.style.willChange).toBe('');
+
+      directive['promoteWhileMoving'](true);
+      expect(element.style.willChange).toBe('transform');
+
+      directive.cancel();
+      expect(element.style.willChange).toBe('');
+    });
+
     it('sets a position with no tabletop object', () => {
       fixture.detectChanges();
       const directive = fixture.debugElement.children[0].injector.get(MovableDirective);

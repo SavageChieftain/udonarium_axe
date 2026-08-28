@@ -1,6 +1,13 @@
 import { GridType } from '@axe/domain/tabletop/game-table';
 import { computeLitCells } from '@axe/domain/tabletop/lit-cells';
-import { Point, Segment, segmentClear, segmentsAbove, TallSegment } from '@axe/domain/tabletop/los/segments';
+import {
+  Point,
+  Segment,
+  segmentClear,
+  segmentClearBetween,
+  segmentsAbove,
+  TallSegment,
+} from '@axe/domain/tabletop/los/segments';
 import { computeVisibilityPolygon } from '@axe/domain/tabletop/los/visibility-polygon';
 import { surfaceFrame } from '@axe/domain/tabletop/surface-space';
 import { TableSurface } from '@axe/domain/tabletop/tabletop-object';
@@ -217,15 +224,46 @@ export function floorRadii(light: SceneLight): { brightFloor: number; dimFloor: 
   };
 }
 
-export function computeLightBeam(light: SceneLight): LightBeam | null {
-  if (light.angle >= 360 || light.z < 1) return null;
+/**
+ * Where a light lands on the floor, and how far it carries once it is there.
+ *
+ * The floor and the things standing on it used to be told apart by different geometry: the
+ * floor by this projection, a block by the plain distance through the air. A lamp hung on a
+ * wall is nearer to the block beside it than to the floor below, so the block came out lit
+ * over a floor that was left dark. Both now read the pool from here.
+ */
+export function lightFloorPool(light: SceneLight): { cx: number; cy: number; brightPx: number; dimPx: number } | null {
+  const { brightFloor, dimFloor } = floorRadii(light);
+  if (dimFloor < 1) return null;
+  if (light.angle >= 360) return { cx: light.x, cy: light.y, brightPx: brightFloor, dimPx: dimFloor };
+
+  // A wide cone reaches the floor whichever way its axis is turned: what settles it is the
+  // lowest ray, which is the axis tilted down by half the spread.
+  if (light.pitch >= light.angle / 2) return null;
   const axis = lightAxis(light);
-  if (axis.z > -0.05) return null;
+  // Where the axis meets the floor, when it meets it in front of the light; otherwise the pool
+  // lies about the spot below the lamp, which is where a sconce throws it.
+  const t = axis.z < -0.05 ? -light.z / axis.z : 0;
+  const ratio = light.dimPx > 0 ? light.brightPx / light.dimPx : 1;
+  return {
+    cx: light.x + axis.x * t,
+    cy: light.y + axis.y * t,
+    brightPx: dimFloor * ratio,
+    dimPx: dimFloor,
+  };
+}
+
+export function computeLightBeam(light: SceneLight): LightBeam | null {
+  if (light.angle >= 360) return null;
+  const axis = lightAxis(light);
   const half = (light.angle * Math.PI) / 360;
   const tanHalf = Math.tan(half);
-  const tFloor = -light.z / axis.z;
-  const slant = Math.min(tFloor, light.dimPx);
-  const height = Math.max(slant, 1);
+  // A beam turned down is cut off where it meets the floor. Turned up or held level it meets
+  // nothing, and runs the length the light carries.
+  const toFloor = axis.z < -0.05 ? -light.z / axis.z : Number.POSITIVE_INFINITY;
+  const slant = Math.min(toFloor, light.dimPx);
+  if (slant < 1) return null;
+  const height = slant;
   const width = Math.max(2 * slant * tanHalf, 1);
   let ux = axis.y;
   let uy = -axis.x;
@@ -410,7 +448,7 @@ export function lightReaches(
   // The point is inside the light's reach, so nothing outside that reach can stand between.
   const occluders = occludersOf(scene, light, ignoreShadowCasters).near;
   if (occluders.length === 0) return true;
-  return segmentClear(light.x, light.y, x, y, occluders);
+  return segmentClearBetween(light.x, light.y, light.z, x, y, pz, occluders);
 }
 
 export function lightLevelAt(scene: VisionScene, x: number, y: number, ignoreShadowCasters = false, pz = 0): number {
@@ -654,21 +692,38 @@ export function darknessAlphaFor(scene: VisionScene, viewer: SceneViewer): numbe
   return viewer.isGameMaster ? base * GM_DIM_FACTOR : base;
 }
 
-export function isPointVisible(scene: VisionScene, x: number, y: number, viewer: SceneViewer): boolean {
+export function isPointVisible(scene: VisionScene, x: number, y: number, viewer: SceneViewer, z = 0): boolean {
   if (viewer.isGameMaster) return true;
 
   const sources = ownedSources(scene, viewer);
-  const lit = isLit(scene, x, y, true);
+  const lit = isLit(scene, x, y, true, z);
   if (sources.length === 0) return lit;
 
   for (const source of sources) {
     const withinRange = source.rangePx > 0 && distance(x, y, source.x, source.y) <= source.rangePx;
     if (source.type === VisionType.TRUESIGHT && withinRange) return true;
-    if (!segmentClear(source.x, source.y, x, y, segmentsAbove(scene.sightSegments, source.z))) continue;
+    const between = segmentsAbove(scene.sightSegments, source.z);
+    if (!segmentClearBetween(source.x, source.y, source.z, x, y, z, between)) continue;
     if (lit) return true;
     if (seesInDark(source.type) && withinRange) return true;
   }
   return false;
+}
+
+/** What a thing is worth to the eye before any light falls on it. */
+const SEEN_BRIGHTNESS = 0.4;
+
+/**
+ * How much of a light is left at a distance from it.
+ *
+ * Full out to the bright radius, then away to nothing at the edge of the dim one. The middle
+ * of that fall is a half, which is what the whole ring used to be worth.
+ */
+function lightFalloff(reach: number, brightPx: number, dimPx: number): number {
+  if (reach <= brightPx) return 1;
+  const ring = dimPx - brightPx;
+  if (ring <= 0) return 0;
+  return clamp01(1 - (reach - brightPx) / ring);
 }
 
 export function objectLightLevel(
@@ -681,21 +736,21 @@ export function objectLightLevel(
 ): number {
   let level = clamp01(scene.globalIllumination);
   for (const light of scene.lights) {
-    const dx = light.x - x;
-    const dy = light.y - y;
-    const dist = Math.hypot(dx, dy, light.z - pz);
-    if (dist - radiusPx > light.dimPx) continue;
+    const pool = lightFloorPool(light);
+    if (!pool) continue;
+    const dx = pool.cx - x;
+    const dy = pool.cy - y;
+    const dist = Math.hypot(dx, dy);
+    if (dist - radiusPx > pool.dimPx) continue;
     let sx = x;
     let sy = y;
-    const dist2d = Math.hypot(dx, dy);
-    if (radiusPx > 0 && dist2d > radiusPx) {
-      const u = radiusPx / dist2d;
+    if (radiusPx > 0 && dist > radiusPx) {
+      const u = radiusPx / dist;
       sx = x + dx * u;
       sy = y + dy * u;
     }
     if (!lightReaches(scene, light, sx, sy, ignoreShadowCasters, pz)) continue;
-    const reach = Math.hypot(light.x - sx, light.y - sy, light.z - pz);
-    const contribution = reach <= light.brightPx ? 1 : 0.5;
+    const contribution = lightFalloff(Math.hypot(pool.cx - sx, pool.cy - sy), pool.brightPx, pool.dimPx);
     if (contribution > level) level = contribution;
   }
   return level;
@@ -715,9 +770,11 @@ export function objectBrightnessFor(
   if (base >= 1) return 1;
   const level = objectLightLevel(scene, x, y, radiusPx, ignoreShadowCasters);
   if (level >= 1) return 1;
-  if (level > 0) return Math.max(base, 0.7);
-  if (isPointVisible(scene, x, y, viewer)) return Math.max(base, 0.4);
-  return base;
+  // Lit or merely in sight, a thing is worth four tenths before any light is added to it, and
+  // the light carries it the rest of the way. Nothing in between is a step.
+  const lit = level > 0 || isPointVisible(scene, x, y, viewer);
+  const floor = lit ? SEEN_BRIGHTNESS : base;
+  return Math.max(base, floor + (1 - floor) * level);
 }
 
 function lightClipPolygon(scene: VisionScene, light: SceneLight, radius: number = light.dimPx): Point[] | undefined {
@@ -730,11 +787,9 @@ function coneFloorFootprint(
   scene: VisionScene,
   light: SceneLight
 ): { cx: number; cy: number; maxR: number; points: Point[] } | null {
-  const axis = lightAxis(light);
-  if (axis.z > -0.05) return null;
-  const t = -light.z / axis.z;
-  const cx = light.x + axis.x * t;
-  const cy = light.y + axis.y * t;
+  const pool = lightFloorPool(light);
+  if (!pool) return null;
+  const { cx, cy } = pool;
   // The pool can sit off to one side of the light, so the box has to hold both.
   const occluders = cullSegments(
     occludersOf(scene, light, true).overhead,

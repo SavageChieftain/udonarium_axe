@@ -104,6 +104,55 @@ export function segmentsCross(
   return ((d1 > 0 && d2 < 0) || (d1 < 0 && d2 > 0)) && ((d3 > 0 && d4 < 0) || (d3 < 0 && d4 > 0));
 }
 
+/**
+ * How far along AB the two segments meet, or nothing if they do not.
+ *
+ * The same crossing test, keeping the number it already worked out rather than throwing it
+ * away: it is what says how high a line of sight has risen where something stands in it.
+ */
+export function crossingAlong(
+  ax: number,
+  ay: number,
+  bx: number,
+  by: number,
+  cx: number,
+  cy: number,
+  dx: number,
+  dy: number
+): number | null {
+  const d1 = cross(cx, cy, dx, dy, ax, ay);
+  const d2 = cross(cx, cy, dx, dy, bx, by);
+  const d3 = cross(ax, ay, bx, by, cx, cy);
+  const d4 = cross(ax, ay, bx, by, dx, dy);
+  const crosses = ((d1 > 0 && d2 < 0) || (d1 < 0 && d2 > 0)) && ((d3 > 0 && d4 < 0) || (d3 < 0 && d4 > 0));
+  if (!crosses) return null;
+  return d1 / (d1 - d2);
+}
+
+/**
+ * Whether a line of sight from one height to another clears everything standing in it.
+ *
+ * A wall stops a look only where it is taller than the look is high as it passes: a head on a
+ * roof is seen over the parapet from far enough back, and not from the foot of it.
+ */
+export function segmentClearBetween(
+  ax: number,
+  ay: number,
+  az: number,
+  bx: number,
+  by: number,
+  bz: number,
+  segments: readonly TallSegment[]
+): boolean {
+  for (const seg of segments) {
+    const at = crossingAlong(ax, ay, bx, by, seg.x1, seg.y1, seg.x2, seg.y2);
+    if (at === null) continue;
+    if (seg.heightPx === undefined) return false;
+    if (seg.heightPx >= az + (bz - az) * at) return false;
+  }
+  return true;
+}
+
 export function segmentClear(ax: number, ay: number, bx: number, by: number, segments: readonly Segment[]): boolean {
   for (const seg of segments) {
     if (segmentsCross(ax, ay, bx, by, seg.x1, seg.y1, seg.x2, seg.y2)) return false;
