@@ -456,6 +456,44 @@ describe('vision-scene', () => {
       expect(objectLightLevel(s, 200, 0, 0, true)).toBeGreaterThan(0);
     });
 
+    it('is at full brightness everywhere once the dark is switched off', () => {
+      const s = scene({
+        darknessEnabled: false,
+        lights: [light({ x: 0, y: 0, brightPx: 50, dimPx: 300 })],
+        sightSegments: [WALL_AT_X100],
+      });
+
+      expect(objectBrightnessFor(s, PLAYER, 100, 0, 0)).toBe(1);
+      expect(objectBrightnessFor(s, PLAYER, 600, 0, 0)).toBe(1);
+    });
+
+    it('is at full brightness everywhere once the whole table is lit', () => {
+      const s = scene({
+        globalIllumination: 1,
+        sightSegments: [WALL_AT_X100],
+      });
+
+      expect(objectBrightnessFor(s, PLAYER, 600, 0, 0)).toBe(1);
+    });
+
+    it('asks the geometry nothing once the dark is switched off', () => {
+      const s = scene({ darknessEnabled: false });
+      let reads = 0;
+      for (const field of ['lights', 'sightSegments', 'shadowCasters', 'visionSources'] as const) {
+        const value = s[field];
+        Object.defineProperty(s, field, {
+          get: () => {
+            reads++;
+            return value;
+          },
+        });
+      }
+
+      objectBrightnessFor(s, PLAYER, 600, 0, 0);
+
+      expect(reads).toBe(0);
+    });
+
     it('lights the face turned to the light and leaves the opposite one dark', () => {
       const s = scene({
         lights: [light({ x: 0, y: 0, brightPx: 50, dimPx: 300 })],

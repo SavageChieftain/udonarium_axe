@@ -710,6 +710,9 @@ export function objectBrightnessFor(
   ignoreShadowCasters = false
 ): number {
   const base = 1 - darknessAlphaFor(scene, viewer);
+  // Nothing below can come out under the base, so a table with no dark in it is at full
+  // brightness wherever the light and the sight lines happen to fall.
+  if (base >= 1) return 1;
   const level = objectLightLevel(scene, x, y, radiusPx, ignoreShadowCasters);
   if (level >= 1) return 1;
   if (level > 0) return Math.max(base, 0.7);
