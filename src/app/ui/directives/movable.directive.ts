@@ -314,10 +314,21 @@ export class MovableDirective {
 
   cancel() {
     if (this.input) this.input.cancel();
+    this.promoteWhileMoving(false);
     this.setPointerEvents(true);
     this.setAnimatedTransition(true);
     this.setCollidableLayer(false);
     this.clearContactProbe();
+  }
+
+  /**
+   * A piece being dragged is the only thing on the table that is moving.
+   *
+   * The table is one 3D rendering context, so what the compositor cannot hold apart it has to
+   * draw again together. Saying which one moves lets it keep the rest.
+   */
+  private promoteWhileMoving(isMoving: boolean): void {
+    this.nativeElement.style.willChange = isMoving ? 'transform' : '';
   }
 
   cancelTableGesture() {
@@ -348,6 +359,7 @@ export class MovableDirective {
 
   onInputStart(e: MouseEvent | TouchEvent) {
     this.callSelectedEvent();
+    this.promoteWhileMoving(true);
     if (this.collidableElements.length < 1) this.findCollidableElements();
 
     if (this._multiAdapter) this.multiMovableService.beginDrag(this._multiAdapter);
