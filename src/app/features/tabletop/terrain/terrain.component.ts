@@ -32,6 +32,7 @@ import { UiSignalService } from '@axe/application/ui/ui-signal.service';
 import { CoordinateService } from '@axe/core/input/coordinate.service';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { imageFileEqual } from '@axe/core/storage/image-file';
+import { PERF_TERRAIN_GRID_RASTER, perfCounters } from '@axe/core/util/perf-counters';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
 import { GameTable, GridType } from '@axe/domain/tabletop/game-table';
 import { isFlatTopGrid, isHexGrid } from '@axe/domain/tabletop/hex-geometry';
@@ -765,6 +766,7 @@ export class TerrainComponent {
   ) {
     const viewport = this.getGridViewport(this.getFloorBounds(width, depth));
 
+    perfCounters.bump(PERF_TERRAIN_GRID_RASTER);
     for (const gridCanvas of this.gridCanvases()) {
       const render = new GridLineRender(gridCanvas.nativeElement);
       render.renderViewport(

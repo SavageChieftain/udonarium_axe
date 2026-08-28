@@ -1,6 +1,7 @@
 import { computed, DestroyRef, inject, Injectable, signal } from '@angular/core';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { ObjectStore } from '@axe/core/sync/object-store';
+import { PERF_VISION_MEMO_MISS, PERF_VISION_SCENE, perfCounters } from '@axe/core/util/perf-counters';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { partyIdsOwnedBy } from '@axe/domain/party/party-membership';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
@@ -80,6 +81,7 @@ export class VisionService {
     }
     const cached = this.memo.get(key);
     if (cached !== undefined) return cached as T;
+    perfCounters.bump(PERF_VISION_MEMO_MISS);
     const value = compute();
     // It grows with the number of places asked about, so it is capped rather than left to swell.
     if (this.memo.size >= MEMO_LIMIT) this.memo.clear();
@@ -178,6 +180,7 @@ export class VisionService {
 
   readonly scene = computed<VisionScene | null>(() => {
     this.geometryEpoch();
+    perfCounters.bump(PERF_VISION_SCENE);
     const table = this.currentTable();
     if (!table) return null;
 

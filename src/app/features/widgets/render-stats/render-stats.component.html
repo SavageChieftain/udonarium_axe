@@ -1,0 +1,73 @@
+@if (widgets.renderStats()) {
+  <div
+    #panel
+    class="rounded-ui-lg border-ui-border-panel bg-ui-panel text-ui-text shadow-ui-md fixed top-0 left-0 z-100 box-border flex w-64 cursor-grab flex-col border border-solid [backdrop-filter:blur(24px)_saturate(1.5)] select-none [-webkit-backdrop-filter:blur(24px)_saturate(1.5)] active:cursor-grabbing"
+    appDraggable
+    (draggable.end)="rememberSpot()"
+    [draggable.unhandle]="'button'"
+  >
+    <div class="border-ui-border-panel flex items-center gap-2 border-b border-solid px-2.5 py-1.5">
+      <i class="material-icons text-[18px]!">speed</i>
+      <span class="min-w-0 flex-1 truncate text-[12px] font-semibold">Render stats</span>
+      <button
+        type="button"
+        class="rounded-ui-sm text-ui-dim hover:bg-ui-hover hover:text-ui-text inline-flex h-5.5 cursor-pointer items-center justify-center border-none bg-transparent px-1 leading-none shadow-none transition-colors outline-none hover:border-transparent hover:shadow-none"
+        title="Reset counters"
+        (click)="reset()"
+      >
+        <i class="material-icons text-[14px]!">restart_alt</i>
+      </button>
+      <button
+        type="button"
+        class="rounded-ui-sm text-ui-dim hover:bg-ui-hover hover:text-ui-text inline-flex h-5.5 cursor-pointer items-center justify-center border-none bg-transparent px-1 leading-none shadow-none transition-colors outline-none hover:border-transparent hover:shadow-none"
+        title="Close"
+        (click)="close()"
+      >
+        <i class="material-icons text-[14px]!">close</i>
+      </button>
+    </div>
+
+    <dl class="m-0 grid grid-cols-[1fr_auto] gap-x-3 gap-y-0.5 px-2.5 py-2 text-[11px] tabular-nums">
+      <dt class="text-ui-muted">Terrains</dt>
+      <dd class="m-0 text-right font-semibold">{{ stats().terrains }}</dd>
+
+      <dt class="text-ui-muted">Grid canvases</dt>
+      <dd class="m-0 text-right font-semibold">{{ stats().terrainCanvases }}</dd>
+
+      <dt class="text-ui-muted">Table elements</dt>
+      <dd class="m-0 text-right font-semibold">{{ stats().tableElements }}</dd>
+
+      <dt class="text-ui-muted">Per terrain</dt>
+      <dd class="m-0 text-right font-semibold">{{ perTerrain() }}</dd>
+
+      <dt class="text-ui-muted col-span-2 pt-1.5 text-[10px] tracking-wide uppercase">per second</dt>
+
+      <dt class="text-ui-muted">Terrain updates</dt>
+      <dd class="m-0 text-right font-semibold">
+        {{ stats().profilerAvailable ? stats().updates.TerrainComponent : '—' }}
+      </dd>
+
+      <dt class="text-ui-muted">Table updates</dt>
+      <dd class="m-0 text-right font-semibold">
+        {{ stats().profilerAvailable ? stats().updates.GameTableComponent : '—' }}
+      </dd>
+
+      <dt class="text-ui-muted">Vision scenes</dt>
+      <dd class="m-0 text-right font-semibold">{{ sceneBuilds() }}</dd>
+
+      <dt class="text-ui-muted">Memo misses</dt>
+      <dd class="m-0 text-right font-semibold">{{ memoMisses() }}</dd>
+
+      <dt class="text-ui-muted">Grid rasters</dt>
+      <dd class="m-0 text-right font-semibold">{{ gridRasters() }}</dd>
+
+      <dt class="text-ui-muted col-span-2 pt-1.5 text-[10px] tracking-wide uppercase">frame ms</dt>
+
+      <dt class="text-ui-muted">p50 / p95</dt>
+      <dd class="m-0 text-right font-semibold">{{ millis(stats().frameP50) }} / {{ millis(stats().frameP95) }}</dd>
+
+      <dt class="text-ui-muted">max / over 50ms</dt>
+      <dd class="m-0 text-right font-semibold">{{ millis(stats().frameMax) }} / {{ stats().slowFrames }}</dd>
+    </dl>
+  </div>
+}

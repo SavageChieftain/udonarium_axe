@@ -80,6 +80,7 @@ import { VoteEventHandlerService } from '@axe/features/vote/vote-event-handler.s
 import { VoteWidgetComponent } from '@axe/features/vote/vote-widget/vote-widget.component';
 import { ConnectionQualityComponent } from '@axe/features/widgets/connection-quality/connection-quality.component';
 import { DigitalClockComponent } from '@axe/features/widgets/digital-clock/digital-clock.component';
+import { RenderStatsComponent } from '@axe/features/widgets/render-stats/render-stats.component';
 import { ContextMenuComponent } from '@axe/ui/components/context-menu/context-menu.component';
 import { ModalComponent } from '@axe/ui/components/modal/modal.component';
 import { UIPanelComponent } from '@axe/ui/components/ui-panel/ui-panel.component';
@@ -101,6 +102,7 @@ import { version as APP_VERSION } from '@pkg';
     HandDragGhostComponent,
     NpcDragGhostComponent,
     ConnectionQualityComponent,
+    RenderStatsComponent,
     DigitalClockComponent,
     VoteWidgetComponent,
     MobileShellComponent,
@@ -162,6 +164,8 @@ export class AppComponent {
 
   constructor() {
     inject(Title).setTitle(`Udonarium Axe ${APP_VERSION}`);
+
+    if (new URLSearchParams(window.location.search).get('stats') === '1') this.widgets.renderStats.set(true);
 
     // Start every feature's event handler and the application layer's orchestration services.
     // Each one subscribes from its own constructor under @Injectable({ providedIn: 'root' }),

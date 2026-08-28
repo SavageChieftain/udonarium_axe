@@ -7,6 +7,7 @@ export interface WidgetVisibility {
   readonly miniPlayer: boolean;
   readonly connectionQuality: boolean;
   readonly recording: boolean;
+  readonly renderStats: boolean;
 }
 
 const DEFAULT_VISIBILITY: WidgetVisibility = {
@@ -14,6 +15,7 @@ const DEFAULT_VISIBILITY: WidgetVisibility = {
   miniPlayer: true,
   connectionQuality: false,
   recording: true,
+  renderStats: false,
 };
 
 export function parseWidgetVisibility(raw: string | null): WidgetVisibility {
@@ -26,6 +28,7 @@ export function parseWidgetVisibility(raw: string | null): WidgetVisibility {
       connectionQuality:
         typeof parsed.connectionQuality === 'boolean' ? parsed.connectionQuality : DEFAULT_VISIBILITY.connectionQuality,
       recording: typeof parsed.recording === 'boolean' ? parsed.recording : DEFAULT_VISIBILITY.recording,
+      renderStats: typeof parsed.renderStats === 'boolean' ? parsed.renderStats : DEFAULT_VISIBILITY.renderStats,
     };
   } catch {
     return DEFAULT_VISIBILITY;
@@ -40,6 +43,7 @@ export class WidgetVisibilityService {
   readonly miniPlayer = signal(this.restored.miniPlayer);
   readonly connectionQuality = signal(this.restored.connectionQuality);
   readonly recording = signal(this.restored.recording);
+  readonly renderStats = signal(this.restored.renderStats);
 
   constructor() {
     effect(() => {
@@ -48,6 +52,7 @@ export class WidgetVisibilityService {
         miniPlayer: this.miniPlayer(),
         connectionQuality: this.connectionQuality(),
         recording: this.recording(),
+        renderStats: this.renderStats(),
       };
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
     });
@@ -67,5 +72,9 @@ export class WidgetVisibilityService {
 
   toggleRecording(): void {
     this.recording.update((visible) => !visible);
+  }
+
+  toggleRenderStats(): void {
+    this.renderStats.update((visible) => !visible);
   }
 }
