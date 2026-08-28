@@ -390,11 +390,14 @@ export class TerrainComponent {
   readonly movableOption = signal<MovableOption>({});
   readonly rotableOption = signal<RotableOption>({});
 
-  readonly pedestalHexParams = computed<HexFlowerParams | null>(() => {
+  private readonly gridType = computed(() => {
     this.objectChange.versionOf(this.tabletopService.tableSelecter.identifier)();
     this.objectChange.versionOf(this.tabletopService.currentTable.identifier)();
-    this.terrainVersion();
-    const gridType = this.currentTable.gridType;
+    return this.currentTable.gridType;
+  });
+
+  readonly pedestalHexParams = computed<HexFlowerParams | null>(() => {
+    const gridType = this.gridType();
     if (!isHexGrid(gridType)) return null;
     const hexSize = Math.min(this.width(), this.depth());
     if (hexSize < 1) return null;

@@ -1,7 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { UiSignalService } from '@axe/application/ui/ui-signal.service';
 import { objectChanged$ } from '@axe/core/sync/object-event-extension';
-import { perfCounters, PERF_TERRAIN_GRID_RASTER } from '@axe/core/util/perf-counters';
+import { PERF_TERRAIN_GRID_RASTER, perfCounters } from '@axe/core/util/perf-counters';
 import { GridType } from '@axe/domain/tabletop/game-table';
 import { DoorStyle, SlopeDirection, Terrain } from '@axe/domain/tabletop/terrain';
 import { TerrainComponent } from '@axe/features/tabletop/terrain/terrain.component';
@@ -144,6 +144,43 @@ describe('TerrainComponent', () => {
       expect(perfCounters.drain().get(PERF_TERRAIN_GRID_RASTER)).toBe(1);
 
       table.gridColor = original;
+      terrain.destroy();
+    });
+  });
+
+  describe('the hex shape it stands on', () => {
+    it('hands back the same shape after a change elsewhere on the table', async () => {
+      const terrain = Terrain.create('hex terrain', 3, 3, 1, '', '');
+      const table = component.currentTable;
+      const originalGridType = table.gridType;
+      table.gridType = GridType.HEX_VERTICAL;
+      fixture.componentRef.setInput('terrain', terrain);
+      const before = component.pedestalHexParams();
+
+      objectChanged$.emit({ aliasName: 'game-table', identifier: table.identifier, isSendFromSelf: true });
+      await fixture.whenStable();
+
+      expect(component.pedestalHexParams()).toBe(before);
+
+      table.gridType = originalGridType;
+      terrain.destroy();
+    });
+
+    it('cuts a new one when the table changes what shape its cells are', async () => {
+      const terrain = Terrain.create('hex terrain', 3, 3, 1, '', '');
+      const table = component.currentTable;
+      const originalGridType = table.gridType;
+      table.gridType = GridType.HEX_VERTICAL;
+      fixture.componentRef.setInput('terrain', terrain);
+      const before = component.pedestalHexParams();
+
+      table.gridType = GridType.HEX_HORIZONTAL;
+      objectChanged$.emit({ aliasName: 'game-table', identifier: table.identifier, isSendFromSelf: true });
+      await fixture.whenStable();
+
+      expect(component.pedestalHexParams()).not.toBe(before);
+
+      table.gridType = originalGridType;
       terrain.destroy();
     });
   });
