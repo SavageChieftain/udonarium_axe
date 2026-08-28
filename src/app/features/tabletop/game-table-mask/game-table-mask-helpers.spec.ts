@@ -1,4 +1,5 @@
 import { GridType } from '@axe/domain/tabletop/game-table';
+import { boardExtentPx, tableSizeFor } from '@axe/domain/tabletop/map-grid';
 import {
   buildHexOuterBorderSvg,
   buildHexOutlineMask,
@@ -286,6 +287,23 @@ describe('game-table-mask-helpers', () => {
 
     it('returns nothing for no grid at all', () => {
       expect(buildHexOutlineMask(50, GridType.NONE, 2, 2)).toBe('');
+    });
+  });
+
+  describe('the table a generated board is laid on', () => {
+    it.each([
+      ['flat-top', GridType.HEX_VERTICAL],
+      ['pointy-top', GridType.HEX_HORIZONTAL],
+    ])('covers the board exactly, on a %s board', (_label, gridType) => {
+      const board = { width: 25, height: 19 };
+      const grid = { type: gridType, sizePx: 50 };
+      const table = tableSizeFor(board, grid);
+
+      const field = computeHexMaskGeometry(table.width, table.height, 50, gridType)!;
+      const extent = boardExtentPx(board, grid);
+
+      expect(field.pixelW).toBeCloseTo(extent.widthPx);
+      expect(field.pixelH).toBeCloseTo(extent.heightPx);
     });
   });
 

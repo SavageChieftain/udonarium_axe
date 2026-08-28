@@ -89,15 +89,11 @@ export function boardExtentPx(size: MapSize, grid: MapGrid): { widthPx: number; 
 /**
  * How many cells of table it takes to hold a board of this many cells.
  *
- * A table is measured in whole cells, and a hex board does not come to a whole number of them,
- * so it is rounded up: a table cut to the nearest cell would leave the last row of hexes
- * hanging off the edge of it.
+ * A table counts its cells the way a board does — a hex table is so many hex columns across,
+ * not so many grid squares — so a board of any shape is held by a table of the same count.
+ * Measuring the board in pixels and dividing by the grid instead made a hex table three
+ * columns short of the map laid on it, and the far side of the map hung off the table.
  */
-export function tableSizeFor(size: MapSize, grid: MapGrid): MapSize {
-  if (!isHexGrid(grid.type)) return size;
-  const { widthPx, heightPx } = boardExtentPx(size, grid);
-  return {
-    width: Math.ceil(widthPx / grid.sizePx),
-    height: Math.ceil(heightPx / grid.sizePx),
-  };
+export function tableSizeFor(size: MapSize, _grid: MapGrid): MapSize {
+  return size;
 }
