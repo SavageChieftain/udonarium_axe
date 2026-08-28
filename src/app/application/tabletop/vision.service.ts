@@ -49,6 +49,22 @@ function faceKey(face: WallFace): string {
 }
 const WALL_LIGHT_INSET_CELLS = 0.4;
 
+function sameIds(a: readonly string[] | undefined, b: readonly string[] | undefined): boolean {
+  if (a === b) return true;
+  if (!a || !b || a.length !== b.length) return false;
+  return a.every((id, index) => id === b[index]);
+}
+
+/** Who is looking, by what they are rather than by the object that says so. */
+function sameViewer(a: SceneViewer, b: SceneViewer): boolean {
+  return (
+    a.userId === b.userId &&
+    a.isGameMaster === b.isGameMaster &&
+    sameIds(a.visionOwnerIds, b.visionOwnerIds) &&
+    sameIds(a.partyIds, b.partyIds)
+  );
+}
+
 @Injectable({ providedIn: 'root' })
 export class VisionService {
   private readonly objectChange = inject(ObjectChangeService);
@@ -139,24 +155,27 @@ export class VisionService {
     return this.collectSegments(table, gridSize, table.width * gridSize, table.height * gridSize);
   });
 
-  readonly viewer = computed<SceneViewer>(() => {
-    this.objectChange.versionOf(PeerCursor.myCursor?.identifier ?? '')();
-    this.objectChange.collectionOf('PeerCursor')();
-    this.geometryEpoch();
-    const preview = this.previewAsUserId();
-    if (preview) {
-      const cursor = PeerCursor.findByUserId(preview);
-      return cursor?.isGuest
-        ? { userId: preview, isGameMaster: false, visionOwnerIds: this.playerVisionOwnerIds() }
-        : { userId: preview, isGameMaster: false, partyIds: this.partyIdsOf(preview) };
-    }
-    const my = PeerCursor.myCursor;
-    if (my?.isGuest) {
-      return { userId: my.userId, isGameMaster: false, visionOwnerIds: this.playerVisionOwnerIds() };
-    }
-    const userId = my?.userId ?? '';
-    return { userId, isGameMaster: my?.isGameMaster ?? false, partyIds: this.partyIdsOf(userId) };
-  });
+  readonly viewer = computed<SceneViewer>(
+    () => {
+      this.objectChange.versionOf(PeerCursor.myCursor?.identifier ?? '')();
+      this.objectChange.collectionOf('PeerCursor')();
+      this.geometryEpoch();
+      const preview = this.previewAsUserId();
+      if (preview) {
+        const cursor = PeerCursor.findByUserId(preview);
+        return cursor?.isGuest
+          ? { userId: preview, isGameMaster: false, visionOwnerIds: this.playerVisionOwnerIds() }
+          : { userId: preview, isGameMaster: false, partyIds: this.partyIdsOf(preview) };
+      }
+      const my = PeerCursor.myCursor;
+      if (my?.isGuest) {
+        return { userId: my.userId, isGameMaster: false, visionOwnerIds: this.playerVisionOwnerIds() };
+      }
+      const userId = my?.userId ?? '';
+      return { userId, isGameMaster: my?.isGameMaster ?? false, partyIds: this.partyIdsOf(userId) };
+    },
+    { equal: sameViewer }
+  );
 
   private playerVisionOwnerIds(): string[] {
     return this.objectStore

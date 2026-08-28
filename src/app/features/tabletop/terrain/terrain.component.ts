@@ -80,6 +80,8 @@ interface TerrainGridViewport extends TerrainGridBounds {
   offsetTop: number;
 }
 
+const NO_HEX_SLOPE: HexSlopeStepData = { floors: [], walls: [] };
+
 /** The same list, or two empty ones: an empty @for renders nothing either way. */
 function sameOrBothEmpty<T>(a: readonly T[], b: readonly T[]): boolean {
   return a === b || (a.length === 0 && b.length === 0);
@@ -416,7 +418,7 @@ export class TerrainComponent {
 
   readonly hexSlopeSteps = computed<HexSlopeStepData>(() => {
     const params = this.pedestalHexParams();
-    if (!params || !this.isHexSlope()) return { floors: [], walls: [] };
+    if (!params || !this.isHexSlope()) return NO_HEX_SLOPE;
     return computeHexSlopeSteps(
       Math.min(this.width(), this.depth()),
       this.gridSize,

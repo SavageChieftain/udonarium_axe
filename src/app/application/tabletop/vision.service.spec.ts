@@ -103,6 +103,16 @@ describe('VisionService', () => {
       expect(service.scene()!.sightSegments).toBe(before);
     });
 
+    it('hands back the same viewer when a piece has moved and nothing else', async () => {
+      const character = GameCharacter.create('c', 1, '');
+      await settle();
+      const before = service.viewer();
+
+      await announce('character', character.identifier);
+
+      expect(service.viewer()).toBe(before);
+    });
+
     it('cuts them again once something standing has changed', async () => {
       await settle();
       const before = service.scene()!.sightSegments;
