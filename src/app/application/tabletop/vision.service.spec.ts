@@ -2,6 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { VisionService } from '@axe/application/tabletop/vision.service';
 import { objectChanged$ } from '@axe/core/sync/object-event-extension';
 import { ObjectStore } from '@axe/core/sync/object-store';
+import { perfCounters, PERF_VISION_SCENE } from '@axe/core/util/perf-counters';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { PeerRole } from '@axe/domain/peer/peer-role';
@@ -56,6 +57,8 @@ describe('VisionService', () => {
     store.getObjects().forEach((obj) => store.delete(obj, false));
     store.clearDeleteHistory();
     PeerCursor.myCursor = null!;
+    perfCounters.enabled = false;
+    perfCounters.clear();
     vi.clearAllMocks();
   });
 
@@ -331,6 +334,23 @@ describe('VisionService', () => {
 
       expect(service.wallSilhouettes(face)).toBe(service.wallSilhouettes(face));
       expect(service.wallLights(face)).toBe(service.wallLights(face));
+    });
+
+    it('builds no scene at all for a table with no dark in it', () => {
+      const table = makeDarkTable();
+      table.darknessEnabled = false;
+      ObjectStore.instance.add(table);
+      makeMyCursor('p1', PeerRole.Player);
+      const face = { ax: 0, ay: 0, bx: 50, by: 0, nx: 0, ny: -1, heightPx: 50 };
+      perfCounters.enabled = true;
+      perfCounters.clear();
+
+      expect(service.wallSilhouettes(face)).toHaveLength(0);
+      expect(service.wallLights(face)).toHaveLength(0);
+      expect(service.ambientBrightness()).toBe(1);
+      expect(service.objectBrightness(25, 25, 10)).toBe(1);
+
+      expect(perfCounters.drain().get(PERF_VISION_SCENE)).toBeUndefined();
     });
   });
 });

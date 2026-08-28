@@ -209,6 +209,7 @@ export class VisionService {
   });
 
   objectBrightness(x: number, y: number, radiusPx = 0, ignoreShadowCasters = false): number {
+    if (!this.active()) return 1;
     const scene = this.scene();
     if (!scene) return 1;
     return this.recall(`bright:${x}:${y}:${radiusPx}:${ignoreShadowCasters}`, () =>
@@ -222,18 +223,21 @@ export class VisionService {
   }
 
   wallSilhouettes(face: WallFace): WallSilhouette[] {
+    if (!this.active()) return EMPTY_SILHOUETTES;
     const scene = this.scene();
-    if (!scene || !scene.darknessEnabled) return EMPTY_SILHOUETTES;
+    if (!scene) return EMPTY_SILHOUETTES;
     return this.recall(`sil:${faceKey(face)}`, () => computeWallSilhouettes(scene, face, scene.gridSize * 1.5));
   }
 
   wallLights(face: WallFace): WallLight[] {
+    if (!this.active()) return EMPTY_WALL_LIGHTS;
     const scene = this.scene();
-    if (!scene || !scene.darknessEnabled) return EMPTY_WALL_LIGHTS;
+    if (!scene) return EMPTY_WALL_LIGHTS;
     return this.recall(`wl:${faceKey(face)}`, () => computeWallLights(scene, face));
   }
 
   ambientBrightness(): number {
+    if (!this.active()) return 1;
     const scene = this.scene();
     if (!scene) return 1;
     return 1 - darknessAlphaFor(scene, this.viewer());
