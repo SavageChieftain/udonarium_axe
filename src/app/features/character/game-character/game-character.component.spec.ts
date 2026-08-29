@@ -2,6 +2,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { EffectPlaybackService } from '@axe/application/effect/effect-playback.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { TabletopService } from '@axe/application/tabletop/tabletop.service';
+import { BuffViewPreferenceService } from '@axe/application/ui/buff-view-preference.service';
 import { UiSignalService } from '@axe/application/ui/ui-signal.service';
 import { ImageStorage } from '@axe/core/storage/image-storage';
 import { ObjectStore } from '@axe/core/sync/object-store';
@@ -112,6 +113,138 @@ describe('GameCharacterComponent', () => {
       } finally {
         character.destroy();
       }
+    });
+
+    describe('the buffs as the switch for how they show', () => {
+      beforeEach(() => TestBed.inject(BuffViewPreferenceService).set('icon'));
+
+      const bearBuff = () => {
+        const character = GameCharacter.create('バフ', 1, '');
+        character.addExtendData();
+        fixture.componentRef.setInput('gameCharacter', character);
+        const buffRoot = character.buffDataElement!;
+        buffRoot.appendChild(
+          DataElement.create('毒', 3, { type: DataElementType.NUMBER_RESOURCE, currentValue: 'ダメージ2' })
+        );
+        TestBed.inject(ObjectChangeService).notifyChanged(buffRoot.identifier);
+        fixture.detectChanges();
+        return character;
+      };
+
+      const root = () => fixture.nativeElement as HTMLElement;
+      const switchButton = () => root().querySelector('[data-testid="buff-view-switch"]') as HTMLButtonElement;
+
+      it('carries the display on to the next type at every press', () => {
+        const character = bearBuff();
+
+        try {
+          expect(root().querySelector('[data-testid="buff-badge"]')).not.toBeNull();
+
+          switchButton().click();
+          fixture.detectChanges();
+          expect(root().querySelector('[data-testid="buff-badge"]')).toBeNull();
+          expect(root().querySelector('[game-data-element-buff]')).not.toBeNull();
+
+          switchButton().click();
+          fixture.detectChanges();
+          expect(root().querySelector('[game-data-element-buff]')).toBeNull();
+
+          switchButton().click();
+          fixture.detectChanges();
+          expect(root().querySelector('[data-testid="buff-badge"]')).not.toBeNull();
+        } finally {
+          character.destroy();
+        }
+      });
+
+      it('names the type on show', () => {
+        const character = bearBuff();
+
+        try {
+          expect(switchButton().getAttribute('title')).toContain('アイコン');
+        } finally {
+          character.destroy();
+        }
+      });
+
+      it('opens on the display the table is set to', () => {
+        TestBed.inject(BuffViewPreferenceService).set('count');
+        const character = bearBuff();
+
+        try {
+          expect(root().querySelector('[data-testid="buff-badge"]')).toBeNull();
+          expect(switchButton().getAttribute('title')).toContain('個数');
+        } finally {
+          character.destroy();
+        }
+      });
+
+      it('gives its own display up when the table turns over to another', () => {
+        const preference = TestBed.inject(BuffViewPreferenceService);
+        const character = bearBuff();
+
+        try {
+          switchButton().click();
+          fixture.detectChanges();
+          expect(switchButton().getAttribute('title')).toContain('詳細');
+
+          preference.set('count');
+          fixture.detectChanges();
+
+          expect(switchButton().getAttribute('title')).toContain('個数');
+        } finally {
+          character.destroy();
+        }
+      });
+
+      it('turns over on the press, so nothing that pops up before the release can eat it', () => {
+        const character = bearBuff();
+
+        try {
+          switchButton().dispatchEvent(new MouseEvent('mousedown', { bubbles: true, button: 0 }));
+          fixture.detectChanges();
+          expect(switchButton().getAttribute('title')).toContain('詳細');
+
+          switchButton().dispatchEvent(new MouseEvent('click', { bubbles: true, detail: 1 }));
+          fixture.detectChanges();
+          expect(switchButton().getAttribute('title')).toContain('詳細');
+        } finally {
+          character.destroy();
+        }
+      });
+
+      it('leaves the right button to the menu', () => {
+        const character = bearBuff();
+        let reached = 0;
+        const count = () => reached++;
+        root().addEventListener('mousedown', count);
+
+        try {
+          switchButton().dispatchEvent(new MouseEvent('mousedown', { bubbles: true, button: 2 }));
+          fixture.detectChanges();
+
+          expect(switchButton().getAttribute('title')).toContain('アイコン');
+          expect(reached).toBe(1);
+        } finally {
+          root().removeEventListener('mousedown', count);
+          character.destroy();
+        }
+      });
+
+      it('keeps the press off the piece, so it is no drag', () => {
+        const character = bearBuff();
+        let reached = 0;
+        const count = () => reached++;
+        root().addEventListener('mousedown', count);
+
+        try {
+          switchButton().dispatchEvent(new MouseEvent('mousedown', { bubbles: true, button: 0 }));
+          expect(reached).toBe(0);
+        } finally {
+          root().removeEventListener('mousedown', count);
+          character.destroy();
+        }
+      });
     });
   });
 

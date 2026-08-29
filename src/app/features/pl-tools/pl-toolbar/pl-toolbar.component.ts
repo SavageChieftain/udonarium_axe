@@ -13,10 +13,12 @@ import { ObjectChangeService } from '@axe/application/sync/object-change.service
 import { TabletopActionService } from '@axe/application/tabletop/tabletop-action.service';
 import { getRangeMenuItems } from '@axe/application/tabletop/tabletop-action-helpers';
 import { TurnOrderService } from '@axe/application/turn/turn-order.service';
+import { BuffViewPreferenceService } from '@axe/application/ui/buff-view-preference.service';
 import { PanelService } from '@axe/application/ui/panel.service';
 import { ViewportService } from '@axe/application/ui/viewport.service';
 import { WidgetVisibilityService } from '@axe/application/ui/widget-visibility.service';
 import { ObjectStore } from '@axe/core/sync/object-store';
+import { BUFF_VIEW_LABEL_KEYS, type BuffViewMode } from '@axe/domain/character/buff-view-mode';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
@@ -32,6 +34,12 @@ import { DraggableDirective } from '@axe/ui/directives/draggable.directive';
 import { SafePipe } from '@axe/ui/pipes/safe.pipe';
 import { turnIndicatorSignal } from '@axe/ui/turn/turn-indicator.signal';
 import { TranslocoModule } from '@jsverse/transloco';
+
+const BUFF_VIEW_ICONS: Record<BuffViewMode, string> = {
+  icon: 'bubble_chart',
+  detail: 'format_list_bulleted',
+  count: 'tag',
+};
 
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -50,7 +58,15 @@ export class PlToolbarComponent {
   protected readonly handRail = inject(HandRailService);
   protected readonly widgets = inject(WidgetVisibilityService);
   protected readonly active = inject(ActiveCharacterService);
+  private readonly buffViewPreference = inject(BuffViewPreferenceService);
   private readonly t = inject(TRANSLATE_FN);
+
+  protected readonly buffViewIcon = computed(() => BUFF_VIEW_ICONS[this.buffViewPreference.mode()]);
+  protected readonly buffViewLabelKey = computed(() => BUFF_VIEW_LABEL_KEYS[this.buffViewPreference.mode()]);
+
+  protected cycleBuffView(): void {
+    this.buffViewPreference.cycle();
+  }
 
   protected readonly rangeMenuItems = getRangeMenuItems();
   protected readonly rangeOpen = signal(false);

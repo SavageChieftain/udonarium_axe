@@ -184,18 +184,28 @@
                         [ngStyle]="{ transform: buffStackTransform() }"
                       >
                         <div class="flex w-full items-end justify-start pl-[1.5em]">
-                          <div
-                            class="flex w-max flex-none justify-start rounded-[1.2em] border border-solid px-[0.5em] py-[0.15em]"
+                          <button
+                            type="button"
+                            data-testid="buff-view-switch"
+                            class="flex w-max flex-none cursor-pointer justify-start rounded-[1.2em] border border-solid px-[0.5em] py-[0.15em] transition-colors duration-150 hover:border-white/45 hover:bg-black/45"
                             [ngClass]="
                               buffViewMode() === 'detail'
                                 ? 'border-ui-border-panel bg-ui-panel'
                                 : 'border-transparent bg-transparent'
                             "
+                            [attr.title]="
+                              ('feature.character.contextMenu.buffView' | transloco) +
+                              ': ' +
+                              (buffViewLabelKey() | transloco)
+                            "
+                            (click)="cycleBuffView($event)"
+                            (mousedown)="cycleBuffView($event)"
+                            (touchstart)="$event.stopPropagation()"
                           >
                             @switch (buffViewMode()) {
                               @case ('detail') {
                                 <div
-                                  class="flex w-max flex-col items-start justify-end whitespace-nowrap [-webkit-font-smoothing:antialiased] [text-rendering:optimizeLegibility]"
+                                  class="animate-buff-swap flex w-max flex-col items-start justify-end whitespace-nowrap [-webkit-font-smoothing:antialiased] [text-rendering:optimizeLegibility]"
                                 >
                                   @for (childElement of buffChildren(); track childElement.identifier) {
                                     <div
@@ -210,12 +220,12 @@
                               }
                               @case ('count') {
                                 <span
-                                  class="bg-ui-panel text-ui-text rounded-full px-[0.6em] py-[0.15em] text-[1.1em] leading-normal whitespace-nowrap"
+                                  class="animate-buff-swap bg-ui-panel text-ui-text rounded-full px-[0.6em] py-[0.15em] text-[1.1em] leading-normal whitespace-nowrap"
                                   >{{ 'feature.character.buff.count' | transloco: { count: buffNum() } }}</span
                                 >
                               }
                               @default {
-                                <div class="grid w-max grid-cols-5 items-end gap-[0.8em]">
+                                <div class="animate-buff-swap grid w-max grid-cols-5 items-end gap-[0.8em]">
                                   @for (badge of buffBadges(); track badge.identifier) {
                                     <span
                                       data-testid="buff-badge"
@@ -244,7 +254,7 @@
                                 </div>
                               }
                             }
-                          </div>
+                          </button>
                         </div>
                       </div>
                     </div>

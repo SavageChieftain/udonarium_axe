@@ -155,6 +155,7 @@
       }
     },
     "plTools": {
+      "buffView": "バフ表示（全体）",
       "active": {
         "openChatPalette": "{{name}} のチャットパレットを開く"
       },

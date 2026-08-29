@@ -26,6 +26,7 @@ import { ObjectChangeService } from '@axe/application/sync/object-change.service
 import { RangeShapeInvokeService } from '@axe/application/tabletop/range-shape-invoke.service';
 import { TabletopService } from '@axe/application/tabletop/tabletop.service';
 import { VisionService } from '@axe/application/tabletop/vision.service';
+import { BuffViewPreferenceService } from '@axe/application/ui/buff-view-preference.service';
 import { ContextMenuSeparator, ContextMenuService } from '@axe/application/ui/context-menu.service';
 import { buildOverlapContextMenu } from '@axe/application/ui/overlap-context-menu';
 import { PanelOption, PanelService } from '@axe/application/ui/panel.service';
@@ -42,6 +43,7 @@ import { getPeerContext } from '@axe/core/network/peer-context-source';
 import { imageFileEqual } from '@axe/core/storage/image-file';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { BuffBadge, toBuffBadges } from '@axe/domain/character/buff-badge';
+import { BUFF_VIEW_LABEL_KEYS, type BuffViewMode, nextBuffViewMode } from '@axe/domain/character/buff-view-mode';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { isInternalResource } from '@axe/domain/character/internal-resource';
 import { isGaugeInverted, PieceGauge, selectPieceGauges } from '@axe/domain/character/piece-gauge';
@@ -84,7 +86,6 @@ const DECOR_SUPERSAMPLE = 3;
 const DECOR_BASE_FONT_PX = 10;
 const NAME_BASE_FONT_PX = 15;
 const GAUGE_ROW_HEIGHT_PX = 13;
-type BuffViewMode = 'icon' | 'detail' | 'count';
 
 function resourceChangeSound(kind: 'damage' | 'heal', ratio: number): string {
   const severity = resourceChangeSeverity(ratio);
@@ -145,6 +146,7 @@ export class GameCharacterComponent {
   private readonly selectionSignalService = inject(SelectionSignalService);
   private readonly inventoryService = inject(GameObjectInventoryService);
   private readonly uiSignalService = inject(UiSignalService);
+  private readonly buffViewPreference = inject(BuffViewPreferenceService);
   private readonly objectChange = inject(ObjectChangeService);
   private readonly tabletopService = inject(TabletopService);
   private readonly tabletopOverlap = inject(TabletopOverlapService);
@@ -369,8 +371,17 @@ export class GameCharacterComponent {
     this.entryBounce.set(false);
   }
 
-  protected readonly buffViewMode = signal<BuffViewMode>('icon');
+  protected readonly buffViewMode = linkedSignal<BuffViewMode>(() => this.buffViewPreference.mode());
   protected readonly foldingBuff = computed(() => this.buffViewMode() !== 'detail');
+  protected readonly buffViewLabelKey = computed(() => BUFF_VIEW_LABEL_KEYS[this.buffViewMode()]);
+
+  protected cycleBuffView(event: MouseEvent): void {
+    const fromPress = event.type === 'mousedown';
+    if (fromPress && event.button !== 0) return;
+    if (!fromPress && event.detail !== 0) return;
+    event.stopPropagation();
+    this.buffViewMode.update(nextBuffViewMode);
+  }
 
   get gridSize(): number {
     return this.tabletopService.gridSize();

@@ -155,6 +155,7 @@
       }
     },
     "plTools": {
+      "buffView": "Buff display (all)",
       "active": {
         "openChatPalette": "Open the chat palette for {{name}}"
       },

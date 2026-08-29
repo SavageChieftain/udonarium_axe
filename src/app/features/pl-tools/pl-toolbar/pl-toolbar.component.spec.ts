@@ -1,5 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
+import { BuffViewPreferenceService } from '@axe/application/ui/buff-view-preference.service';
 import { PanelService } from '@axe/application/ui/panel.service';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
@@ -45,6 +46,22 @@ describe('PlToolbarComponent', () => {
     PeerCursor.myCursor.role = role;
     objectChange.notifyChanged(PeerCursor.myCursor.identifier);
   }
+
+  it('carries the buffs on every piece to the next display, and shows which one is on', () => {
+    const preference = TestBed.inject(BuffViewPreferenceService);
+    preference.set('icon');
+    fixture.detectChanges();
+    const button = fixture.nativeElement.querySelector('[data-testid="buff-view-cycle"]') as HTMLButtonElement;
+
+    expect(button.querySelector('i')!.textContent).toBe('bubble_chart');
+
+    button.click();
+    fixture.detectChanges();
+
+    expect(preference.mode()).toBe('detail');
+    expect(button.querySelector('i')!.textContent).toBe('format_list_bulleted');
+    expect(button.title).toContain('詳細');
+  });
 
   it('opens the list of the characters you own', () => {
     (component as unknown as { openOwnedCharacterList: () => void }).openOwnedCharacterList();
