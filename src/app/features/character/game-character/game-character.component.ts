@@ -467,9 +467,7 @@ export class GameCharacterComponent {
 
   private readonly rollHandleGapPx = computed(() => Math.round(this.rollHandleSizePx() * ROLL_HANDLE_GAP_RATIO));
 
-  readonly rollHandleHeadTransform = computed(
-    () => `${this.pieceCenterShift()} translateY(-100%) translateY(${-this.rollHandleGapPx()}px)`
-  );
+  readonly rollHandleHeadTransform = computed(() => this.pieceCenterShift());
 
   readonly rollHandleFootTransform = computed(
     () => `${this.pieceCenterShift()} translateY(100%) translateY(${this.rollHandleGapPx()}px)`

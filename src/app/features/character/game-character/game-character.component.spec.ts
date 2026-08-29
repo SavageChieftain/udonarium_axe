@@ -513,19 +513,30 @@ describe('GameCharacterComponent', () => {
       }
     });
 
-    it('centres each handle on the piece and pushes it clear of the edge it hangs off', () => {
+    it('holds the head handle inside the top edge and hangs the foot one clear below', () => {
       const character = GameCharacter.create('roll-grab-offset', 1, '');
       fixture.componentRef.setInput('gameCharacter', character);
 
       try {
-        expect(component.rollHandleHeadTransform()).toBe(
-          'translateX(-50%) translateX(25px) translateY(-100%) translateY(-7px)'
-        );
+        expect(component.rollHandleHeadTransform()).toBe('translateX(-50%) translateX(25px)');
         expect(component.rollHandleFootTransform()).toBe(
           'translateX(-50%) translateX(25px) translateY(100%) translateY(7px)'
         );
       } finally {
         character.destroy();
+      }
+    });
+
+    it('keeps the head handle out of the band the name hangs in, however big the piece grows', () => {
+      for (const pieceSize of [0.5, 1, 4]) {
+        const character = GameCharacter.create('roll-grab-name-clear', pieceSize, '');
+        fixture.componentRef.setInput('gameCharacter', character);
+
+        try {
+          expect(component.rollHandleHeadTransform()).not.toContain('translateY');
+        } finally {
+          character.destroy();
+        }
       }
     });
 
