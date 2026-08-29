@@ -87,6 +87,50 @@ describe('FileArchiver', () => {
     });
   });
 
+  describe('a drop that began on the page', () => {
+    const INTERNAL_DRAG_TYPE = 'application/x-axe-internal-drag';
+
+    function dragStart(): { setData: ReturnType<typeof vi.fn> } {
+      const dataTransfer = { setData: vi.fn(), types: [] as string[], files: [] as File[] };
+      const event = new Event('dragstart', { bubbles: true, cancelable: true });
+      Object.defineProperty(event, 'dataTransfer', { value: dataTransfer });
+      document.body.dispatchEvent(event);
+      return dataTransfer;
+    }
+
+    function drop(types: string[], files: File[]): void {
+      const event = new Event('drop', { bubbles: true, cancelable: true });
+      Object.defineProperty(event, 'dataTransfer', { value: { types, files } });
+      document.body.dispatchEvent(event);
+    }
+
+    it('marks what a drag begun on the page carries', () => {
+      FileArchiver.instance.initialize();
+
+      expect(dragStart().setData).toHaveBeenCalledWith(INTERNAL_DRAG_TYPE, '1');
+    });
+
+    it('lays out nothing from a picture the page was already showing', () => {
+      const addAsync = vi.spyOn(ImageStorage.instance, 'addAsync');
+      FileArchiver.instance.initialize();
+
+      drop(['Files', INTERNAL_DRAG_TYPE], [new File([new Uint8Array([1])], 'a.png', { type: 'image/png' })]);
+
+      expect(addAsync).not.toHaveBeenCalled();
+    });
+
+    it('still lays out a picture brought in from outside', async () => {
+      const addAsync = vi
+        .spyOn(ImageStorage.instance, 'addAsync')
+        .mockImplementation(() => Promise.resolve(ImageFile.createEmpty('image-a.png')));
+      FileArchiver.instance.initialize();
+
+      drop(['Files'], [new File([new Uint8Array([1])], 'a.png', { type: 'image/png' })]);
+
+      await vi.waitFor(() => expect(addAsync).toHaveBeenCalled());
+    });
+  });
+
   describe('load', () => {
     it('survives an empty file list', async () => {
       await FileArchiver.instance.load([]);

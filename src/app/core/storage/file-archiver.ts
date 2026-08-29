@@ -27,6 +27,7 @@ interface LoadGuard extends GameObject {
 const MEGA_BYTE = 1024 * 1024;
 const DROP_STACK_OFFSET = 20;
 const XML_MIME_TYPE = 'text/xml';
+const INTERNAL_DRAG_TYPE = 'application/x-axe-internal-drag';
 
 export function isXmlCandidateFile(file: File): boolean {
   if (!file.type.startsWith('text/')) return false;
@@ -51,6 +52,7 @@ export class FileArchiver {
   private maxImageSize = 2 * MEGA_BYTE;
   private maxAudioSize = 10 * MEGA_BYTE;
 
+  private callbackOnDragStart: ((this: HTMLElement, e: DragEvent) => void) | null = null;
   private callbackOnDragEnter: ((this: HTMLElement, e: DragEvent) => void) | null = null;
   private callbackOnDragOver: ((this: HTMLElement, e: DragEvent) => void) | null = null;
   private callbackOnDrop: ((this: HTMLElement, e: DragEvent) => void) | null = null;
@@ -68,23 +70,32 @@ export class FileArchiver {
 
   private addEventListeners() {
     this.removeEventListeners();
+    this.callbackOnDragStart = (e) => this.onDragStart(e);
     this.callbackOnDragEnter = (e) => this.onDragEnter(e);
     this.callbackOnDragOver = (e) => this.onDragOver(e);
     this.callbackOnDrop = (e) => this.onDrop(e);
+    document.body.addEventListener('dragstart', this.callbackOnDragStart as EventListener, true);
     document.body.addEventListener('dragenter', this.callbackOnDragEnter as EventListener, false);
     document.body.addEventListener('dragover', this.callbackOnDragOver as EventListener, false);
     document.body.addEventListener('drop', this.callbackOnDrop as EventListener, false);
   }
 
   private removeEventListeners() {
+    if (this.callbackOnDragStart)
+      document.body.removeEventListener('dragstart', this.callbackOnDragStart as EventListener, true);
     if (this.callbackOnDragEnter)
       document.body.removeEventListener('dragenter', this.callbackOnDragEnter as EventListener, false);
     if (this.callbackOnDragOver)
       document.body.removeEventListener('dragover', this.callbackOnDragOver as EventListener, false);
     if (this.callbackOnDrop) document.body.removeEventListener('drop', this.callbackOnDrop as EventListener, false);
+    this.callbackOnDragStart = null;
     this.callbackOnDragEnter = null;
     this.callbackOnDragOver = null;
     this.callbackOnDrop = null;
+  }
+
+  private onDragStart(event: DragEvent) {
+    event.dataTransfer?.setData(INTERNAL_DRAG_TYPE, '1');
   }
 
   private onDragEnter(event: DragEvent) {
@@ -97,6 +108,7 @@ export class FileArchiver {
 
   private onDrop(event: DragEvent) {
     event.preventDefault();
+    if (event.dataTransfer?.types.includes(INTERNAL_DRAG_TYPE)) return;
 
     // A drop can arrive before startup finishes, or where no guard exists at all.
     this.reloadCheck?.reloadCheckStart(this.networkService.peerContext?.roomName !== '');
