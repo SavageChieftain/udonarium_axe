@@ -30,6 +30,22 @@ describe('GameCharacterSheetComponent', () => {
     expect(component).toBeTruthy();
   });
 
+  it('leaves a drop it has nothing to reorder for the rest of the page to answer', () => {
+    const character = GameCharacter.create('落とされ先', 1, '');
+    component.tabletopObject = character;
+
+    try {
+      const dropped = { preventDefault: vi.fn(), stopPropagation: vi.fn() } as unknown as DragEvent;
+
+      component.onDrop(dropped, 'nothing-was-dragged');
+
+      expect(dropped.preventDefault).not.toHaveBeenCalled();
+      expect(dropped.stopPropagation).not.toHaveBeenCalled();
+    } finally {
+      character.destroy();
+    }
+  });
+
   it('edits a card and adds to it as well', () => {
     const card = Card.create('効果カード', 'front.png', 'back.png');
     component.tabletopObject = card;

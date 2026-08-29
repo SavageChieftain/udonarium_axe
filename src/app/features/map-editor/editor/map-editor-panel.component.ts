@@ -1484,11 +1484,11 @@ export class MapEditorPanelComponent implements AfterViewInit {
   }
 
   protected onLayerDrop(event: DragEvent): void {
-    event.preventDefault();
-    // Dropping to reorder is not dropping to import; letting it through would reach the archiver.
-    event.stopPropagation();
     const drop = this.layerDrag.release();
     if (!drop) return;
+
+    event.preventDefault();
+    event.stopPropagation();
     const order = reorderRows(
       this.layers().map((layer) => layer.id),
       drop.held,

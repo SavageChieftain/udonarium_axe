@@ -94,6 +94,28 @@ describe('rearranging the entries', () => {
     PeerCursor.myCursor = null as unknown as PeerCursor;
   });
 
+  it('leaves a drop it has no row to move for the rest of the page to answer', () => {
+    const dropped = dragEvent('drop');
+
+    rows()[0].dispatchEvent(dropped);
+
+    expect(dropped.defaultPrevented).toBe(false);
+  });
+
+  it('keeps the drop that moves a row to itself', () => {
+    const source = rows()[0];
+    const destination = rows()[2];
+    place(destination, 100);
+    source.dispatchEvent(dragEvent('dragstart'));
+    destination.dispatchEvent(dragEvent('dragover', 115));
+    fixture.detectChanges();
+    const dropped = dragEvent('drop');
+
+    destination.dispatchEvent(dropped);
+
+    expect(dropped.defaultPrevented).toBe(true);
+  });
+
   it('names the insert buttons between the rows readably', () => {
     const labels: string[] = Array.from(
       fixture.nativeElement.querySelectorAll('button[aria-label]'),

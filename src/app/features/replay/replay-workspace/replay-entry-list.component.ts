@@ -175,12 +175,11 @@ export class ReplayEntryListComponent {
   }
 
   protected dropHere(event: DragEvent): void {
-    event.preventDefault();
-    // Dropping to reorder is not dropping to import; letting it through would run the path
-    // for a file dropped on the table.
-    event.stopPropagation();
     const drop = this.rowDrag.release();
     if (!drop) return;
+
+    event.preventDefault();
+    event.stopPropagation();
 
     const order = this.source().map((entry) => entry.seq);
     const to = landingIndex(order, drop.held, drop.over, drop.side);

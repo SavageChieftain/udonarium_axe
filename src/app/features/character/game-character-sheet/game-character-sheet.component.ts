@@ -148,14 +148,14 @@ export class GameCharacterSheetComponent {
   }
 
   onDrop(event: DragEvent, targetId: string) {
-    event.preventDefault();
-    // Dropping to reorder is not dropping to import; letting it through would reach the archiver.
-    event.stopPropagation();
     this.dragOverId.set(null);
     const draggedId = this.dataElementDrag.getDraggedId(event) ?? this._draggedId;
     this._draggedId = null;
     this.dataElementDrag.end();
     if (!draggedId || draggedId === targetId) return;
+
+    event.preventDefault();
+    event.stopPropagation();
     reorderDetailElement(this.character, this.objectStore, this.objectChange, draggedId, targetId);
   }
 
