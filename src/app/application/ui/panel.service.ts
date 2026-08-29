@@ -1,4 +1,4 @@
-import { ComponentRef, Injectable, signal, ViewContainerRef } from '@angular/core';
+import { ComponentRef, Injectable, reflectComponentType, signal, ViewContainerRef } from '@angular/core';
 import { EventChannel } from '@axe/core/event/event-channel';
 import { Logger } from '@axe/core/logging/logger';
 import { CardStack } from '@axe/domain/card/card-stack';
@@ -7,6 +7,11 @@ import { ChatTab } from '@axe/domain/chat/chat-tab';
 declare const Type: FunctionConstructor;
 interface Type<T> {
   new (...args: unknown[]): T;
+}
+
+function panelKindOf(childComponent: Type<unknown>): string {
+  const selector = reflectComponentType(childComponent as never)?.selector;
+  return selector && selector.length > 0 ? selector : '';
 }
 
 export interface PanelOption {
@@ -73,6 +78,8 @@ export class PanelService {
   minimizeToContent: boolean = false;
   frameless: boolean = false;
   readonly isMinimized = signal(false);
+  /** What kind of panel this is, taken from the selector of what it was opened with. */
+  readonly panelKind = signal('');
   chatTab: ChatTab | null = null;
   cardStack: CardStack | null = null;
   scrollablePanel: HTMLDivElement | null = null;
@@ -117,6 +124,7 @@ export class PanelService {
     const childPanelService: PanelService = panelComponentRef.injector.get(PanelService);
 
     childPanelService.panelComponentRef = panelComponentRef;
+    childPanelService.panelKind.set(panelKindOf(childComponent));
     if (option) this.applyPanelOption(panelComponentRef, childPanelService, option);
     const single = option?.single;
     if (single) PanelService.singles.set(single, panelComponentRef);

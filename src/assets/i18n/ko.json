@@ -3222,7 +3222,8 @@
       "altitudeLabel": "고도"
     },
     "panel": {
-      "menuTitle": "메뉴"
+      "menuTitle": "메뉴",
+      "transparency": "투명도"
     }
   }
 }

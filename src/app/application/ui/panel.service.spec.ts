@@ -1,7 +1,10 @@
-import { ComponentRef, ViewContainerRef } from '@angular/core';
+import { Component, ComponentRef, ViewContainerRef } from '@angular/core';
 import { PanelOption, PanelService } from '@axe/application/ui/panel.service';
 
 class DummyBodyComponent {}
+
+@Component({ selector: 'dummy-panel-body', template: '' })
+class DummyPanelBodyComponent {}
 
 function setupOpenMocks(initialChildState?: Partial<PanelService>) {
   const service = new PanelService();
@@ -49,6 +52,22 @@ function setupOpenMocks(initialChildState?: Partial<PanelService>) {
 }
 
 describe('PanelService', () => {
+  it('takes what kind of panel it is from the selector of what it opens', () => {
+    const { service, childPanelService, parentViewContainerRef } = setupOpenMocks();
+
+    service.open(DummyPanelBodyComponent, undefined, parentViewContainerRef);
+
+    expect(childPanelService.panelKind()).toBe('dummy-panel-body');
+  });
+
+  it('leaves the kind empty for what carries no selector of its own', () => {
+    const { service, childPanelService, parentViewContainerRef } = setupOpenMocks();
+
+    service.open(DummyBodyComponent, undefined, parentViewContainerRef);
+
+    expect(childPanelService.panelKind()).toBe('');
+  });
+
   it('starts hidden', () => {
     const { service } = setupOpenMocks();
     expect(service.isShow).toBe(false);

@@ -1,5 +1,5 @@
 <div
-  class="draggable-panel animate-fly-in rounded-ui-lg border-ui-border-panel bg-ui-panel text-ui-text absolute top-50 box-border h-50 max-h-full w-75 max-w-full overflow-visible border border-solid p-0 shadow-[var(--ui-shadow-md),inset_0_1px_0_rgba(255,255,255,0.06)] [backdrop-filter:blur(24px)_saturate(1.5)] [-webkit-backdrop-filter:blur(24px)_saturate(1.5)]"
+  class="draggable-panel animate-fly-in rounded-ui-lg border-ui-border-panel bg-ui-panel text-ui-text absolute top-50 box-border h-50 max-h-full w-75 max-w-full overflow-visible border border-solid p-0 shadow-[var(--ui-shadow-md),inset_0_1px_0_rgba(255,255,255,0.06)] [backdrop-filter:blur(24px)_saturate(1.5)] transition-opacity duration-200 outline-none [-webkit-backdrop-filter:blur(24px)_saturate(1.5)]"
   [ngClass]="{
     'pointer-events-none': isPointerDragging,
     'inset-0!': isCompact(),
@@ -16,6 +16,10 @@
   [style.width.px]="width"
   [style.height]="contentMinimized ? 'auto' : isCompact() ? 'calc(100dvh - ' + keyboardInset() + 'px)' : height + 'px'"
   [style.zIndex]="isFullScreen() || isCompact() ? '201' : null"
+  [style.opacity]="panelOpacity() < 1 ? panelOpacity() : null"
+  tabindex="-1"
+  (focusin)="onFocusIn()"
+  (focusout)="onFocusOut($event)"
   [style.visibility]="panelService.invisible ? 'hidden' : ''"
   [style.pointer-events]="panelService.invisible || frameless ? 'none' : ''"
   [resizable.disable]="isMinimized() || isFullScreen() || isCompact() || frameless"
@@ -49,6 +53,22 @@
         [ngClass]="isCompact() ? 'top-[env(safe-area-inset-top)]! h-11! px-1!' : ''"
       >
         @if (!isCompact()) {
+          <input
+            type="range"
+            data-testid="panel-transparency"
+            class="mr-1 w-14 cursor-pointer align-middle text-[10px]"
+            min="0"
+            max="100"
+            step="5"
+            [style.--min]="0"
+            [style.--max]="100"
+            [style.--val]="transparency()"
+            [value]="transparency()"
+            [title]="transparencyLabel"
+            (input)="onTransparencyInput($event)"
+            (focus)="onBarFocus(true)"
+            (blur)="onBarFocus(false)"
+          />
           <button
             class="rounded-ui-sm text-ui-dim hover:bg-ui-hover hover:text-ui-text m-0 inline-flex h-5.5 transform-none items-center justify-center border-none bg-transparent px-1 py-0.5 leading-none shadow-none transition-colors outline-none hover:border-transparent hover:shadow-none"
             [disabled]="isFullScreen()"
@@ -75,7 +95,7 @@
     }
     <div
       class="block truncate"
-      [ngClass]="isCompact() ? 'min-w-0 flex-1 pr-11' : 'pr-21.5'"
+      [ngClass]="isCompact() ? 'min-w-0 flex-1 pr-11' : 'pr-38'"
       [class.invisible]="contentMinimized"
       [appTextTooltip]="panelService.titleTooltip"
     >

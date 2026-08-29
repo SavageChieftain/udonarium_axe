@@ -3220,7 +3220,8 @@
       "altitudeLabel": "Altitude"
     },
     "panel": {
-      "menuTitle": "Menu"
+      "menuTitle": "Menu",
+      "transparency": "Transparency"
     }
   },
   "error": {}
