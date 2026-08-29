@@ -259,7 +259,9 @@
                 @for (childElement of detailElements(); track childElement.identifier) {
                   <div
                     class="bg-ui-elevated border-ui-border-panel text-ui-text box-border max-w-full min-w-50 flex-[1_1_200px] overflow-hidden rounded-sm border border-solid px-2.5 py-2 transition-[outline] duration-100"
-                    [class.flex-[1_1_100%]!]="isElementEditing(childElement.identifier)"
+                    [class.flex-[1_1_100%]!]="
+                      isElementEditing(childElement.identifier) || getCardColspan(childElement) === 'full'
+                    "
                     [class.min-w-0!]="isElementEditing(childElement.identifier)"
                     [class.overflow-x-auto!]="isElementEditing(childElement.identifier)"
                     [class.border-[color-mix(in_srgb,var(--ui-accent)_62%,var(--ui-panel-border))]!]="
@@ -267,7 +269,6 @@
                     "
                     [class.grow-2!]="getCardColspan(childElement) === '2'"
                     [class.min-w-[min(420px,100%)]!]="getCardColspan(childElement) === '2'"
-                    [class.flex-[1_1_100%]]="getCardColspan(childElement) === 'full'"
                     [class.outline-2]="dragOverId() === childElement.identifier"
                     [class.outline-ui-accent]="dragOverId() === childElement.identifier"
                     [class.-outline-offset-2]="dragOverId() === childElement.identifier"
