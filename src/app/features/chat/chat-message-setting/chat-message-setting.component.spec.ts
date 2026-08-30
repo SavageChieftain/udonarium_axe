@@ -128,17 +128,21 @@ describe('ChatMessageSettingComponent', () => {
       });
     });
 
+    function tabOf(name: string): ChatTab {
+      return ChatTabList.instance.chatTabs.find((tab) => tab.name === name)!;
+    }
+
     it('asks for each tab once the answers differ per tab', () => {
       chooseScope('soundScope', 'perTab');
 
       expect(checkboxes('chatSoundEnabled-')).toHaveLength(2);
-      expect(soundSelect('雑談')).toBeTruthy();
+      expect(soundSelect(tabOf('雑談').identifier)).toBeTruthy();
     });
 
     it('writes a per-tab answer onto that tab alone', () => {
       chooseScope('soundScope', 'perTab');
 
-      const select = soundSelect('雑談');
+      const select = soundSelect(tabOf('雑談').identifier);
       select.value = 'bubble';
       select.dispatchEvent(new Event('change'));
       fixture.detectChanges();
@@ -146,6 +150,30 @@ describe('ChatMessageSettingComponent', () => {
       const preferences = TestBed.inject(ChatPreferencesService);
       expect(preferences.soundOfTab('雑談').type).toBe('bubble');
       expect(preferences.soundOfTab('メイン').type).toBe('notify1');
+    });
+
+    it('asks for two tabs of one name without falling over', () => {
+      makeTab('雑談');
+      fixture.detectChanges();
+
+      chooseScope('soundScope', 'perTab');
+
+      expect(checkboxes('chatSoundEnabled-')).toHaveLength(3);
+    });
+
+    it('keeps a tab named after the room-wide answer to itself', () => {
+      const odd = makeTab('all');
+      fixture.detectChanges();
+      chooseScope('soundScope', 'perTab');
+
+      const select = soundSelect(odd.identifier);
+      select.value = 'cyber';
+      select.dispatchEvent(new Event('change'));
+      fixture.detectChanges();
+
+      const preferences = TestBed.inject(ChatPreferencesService);
+      expect(preferences.sound().all.type).toBe('notify1');
+      expect(preferences.soundOfTab('all').type).toBe('cyber');
     });
 
     it('plays what a type sounds like when asked', () => {

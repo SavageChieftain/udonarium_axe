@@ -143,9 +143,21 @@ export class ChatPreferencesService {
     this.setSound({ ...setting, tabs: { ...setting.tabs, [name]: { ...sound } } });
   }
 
-  /** Tabs are remembered by name; see the note on the stored shape. */
-  tabPreferencesOf(name: string): ChatTabPreferences | null {
-    return this.stored().tabs?.[name] ?? null;
+  /**
+   * Tabs are remembered by name; see the note on the stored shape.
+   *
+   * They were once remembered by identifier, so an answer stored under one is taken as the
+   * answer for the tab that still carries it, and written back under the name from then on.
+   */
+  tabPreferencesOf(name: string, identifier?: string): ChatTabPreferences | null {
+    const tabs = this.stored().tabs;
+    if (!tabs) return null;
+    const byName = tabs[name];
+    if (byName) return byName;
+    const byIdentifier = identifier ? tabs[identifier] : undefined;
+    if (!byIdentifier) return null;
+    this.setTabPreferences(name, byIdentifier);
+    return byIdentifier;
   }
 
   setTabPreferences(name: string, preferences: ChatTabPreferences): void {
@@ -201,10 +213,12 @@ function readStored(): StoredChatPreferences {
     if (display) stored.display = display;
     const tabs = readTabs(source['tabs']);
     if (tabs) stored.tabs = tabs;
-    const portrait = readScoped(source['portrait']);
-    if (portrait) stored.portrait = portrait;
-    const simple = readScoped(source['simple']);
-    if (simple) stored.simple = simple;
+    // A reader from before the scope was asked about kept an answer per tab, and meant it.
+    const perTab: ChatSettingScope = stored.tabs ? 'perTab' : 'all';
+    const portrait = readScoped(source['portrait']) ?? { ...DEFAULT_PORTRAIT, scope: perTab };
+    stored.portrait = portrait;
+    const simple = readScoped(source['simple']) ?? { ...DEFAULT_SIMPLE, scope: perTab };
+    stored.simple = simple;
     const sound = readScopedSound(source['sound']);
     if (sound) stored.sound = sound;
     return stored;

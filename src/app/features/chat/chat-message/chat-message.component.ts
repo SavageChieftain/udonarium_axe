@@ -338,7 +338,16 @@ export class ChatMessageComponent {
     return this.chatTabList.chatTabs.filter((tab) => tab.identifier !== here && canRoleSpeakTab(tab, role));
   }
 
+  /**
+   * A line meant for one person is not offered.
+   *
+   * Copied as it stands it would stay addressed to them and be invisible in the tab it was
+   * carried to, and copied without the address it would put a whisper on the noticeboard.
+   * Neither is what pressing a copy button asks for.
+   */
   get canCopyToTab(): boolean {
+    const message = this.chatMessage;
+    if (!message || message.isDirect || message.isSecret) return false;
     return this.canInteract && this.copyTargets().length > 0;
   }
 

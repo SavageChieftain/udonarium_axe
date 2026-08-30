@@ -15,6 +15,7 @@ import { ObjectStore } from '@axe/core/sync/object-store';
 import { CHAT_SOUND_TYPES, ChatSoundSetting, ChatSoundType } from '@axe/domain/chat/chat-sound';
 import { ChatTab } from '@axe/domain/chat/chat-tab';
 import { ChatTabList } from '@axe/domain/chat/chat-tab-list';
+import { canRoleViewTab } from '@axe/domain/chat/chat-tab-permission';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { ChatSoundEventHandlerService } from '@axe/features/chat/chat-sound-event-handler.service';
 import { SystemAvatarMenuService } from '@axe/features/chat/system-avatar-menu.service';
@@ -122,12 +123,15 @@ export class ChatMessageSettingComponent {
    * The tabs a reader may set an answer for, once the answers differ per tab.
    *
    * The system tab is left out: what it shows is the room talking to itself, not a place
-   * anyone speaks, and it takes what the rest of the room is set to.
+   * anyone speaks, and it takes what the rest of the room is set to. So is a tab the reader
+   * may not read, whose name is none of their business.
    */
   readonly tabRows = computed<{ identifier: string; name: string; portrait: boolean; simple: boolean }[]>(() => {
     this.objectChange.collectionOf('chat-tab')();
+    if (PeerCursor.myCursor) this.objectChange.versionOf(PeerCursor.myCursor.identifier)();
+    const role = PeerCursor.myRole;
     return this.chatTabList.chatTabs
-      .filter((tab) => !tab.isSystemTab)
+      .filter((tab) => !tab.isSystemTab && canRoleViewTab(tab, role))
       .map((tab) => {
         this.objectChange.versionOf(tab.identifier)();
         return {
@@ -166,9 +170,18 @@ export class ChatMessageSettingComponent {
   readonly soundScope = computed(() => this.chatPrefs.sound().scope);
   readonly soundForAll = computed<ChatSoundSetting>(() => this.chatPrefs.sound().all);
 
-  /** The tabs a sound may be set for, each with what it is set to now. */
-  readonly soundRows = computed<{ name: string; sound: ChatSoundSetting }[]>(() =>
-    this.tabRows().map((row) => ({ name: row.name, sound: this.chatPrefs.soundOfTab(row.name) }))
+  /**
+   * The tabs a sound may be set for, each with what it is set to now.
+   *
+   * A row is followed by the tab's identifier, two tabs being free to share a name, while the
+   * answer itself is kept under the name so that it survives the room being passed around.
+   */
+  readonly soundRows = computed<{ identifier: string; name: string; sound: ChatSoundSetting }[]>(() =>
+    this.tabRows().map((row) => ({
+      identifier: row.identifier,
+      name: row.name,
+      sound: this.chatPrefs.soundOfTab(row.name),
+    }))
   );
 
   setSoundScope(scope: ChatSettingScope): void {

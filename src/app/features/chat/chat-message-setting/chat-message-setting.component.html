@@ -254,12 +254,15 @@
     </label>
     @if (soundScope() === 'all') {
       <ng-container
-        *ngTemplateOutlet="soundControls; context: { $implicit: soundForAll(), key: 'all', label: '' }"
+        *ngTemplateOutlet="soundControls; context: { $implicit: soundForAll(), key: 'all', forAll: true, label: '' }"
       ></ng-container>
     } @else {
-      @for (row of soundRows(); track row.name) {
+      @for (row of soundRows(); track row.identifier) {
         <ng-container
-          *ngTemplateOutlet="soundControls; context: { $implicit: row.sound, key: row.name, label: row.name }"
+          *ngTemplateOutlet="
+            soundControls;
+            context: { $implicit: row.sound, key: row.identifier, forAll: false, name: row.name, label: row.name }
+          "
         ></ng-container>
       }
     }
@@ -288,7 +291,7 @@
   </section>
 </form>
 
-<ng-template #soundControls let-sound let-key="key" let-label="label">
+<ng-template #soundControls let-sound let-key="key" let-forAll="forAll" let-name="name" let-label="label">
   <div class="border-ui-border-panel mb-1 border-b border-dashed pb-1 last:border-b-0">
     @if (label.length > 0) {
       <div class="text-ui-text truncate py-0.5 text-[12px] font-semibold">{{ label }}</div>
@@ -300,7 +303,7 @@
         [attr.name]="'chatSoundEnabled-' + key"
         [ngModel]="sound.enabled"
         [ngModelOptions]="{ standalone: true }"
-        (ngModelChange)="key === 'all' ? setSoundForAll({ enabled: $event }) : setSoundOfTab(key, { enabled: $event })"
+        (ngModelChange)="forAll ? setSoundForAll({ enabled: $event }) : setSoundOfTab(name, { enabled: $event })"
       />
     </label>
     <label class="flex items-center justify-between gap-2 py-1">
@@ -309,9 +312,9 @@
         class="rounded-ui-sm border-ui-border-panel bg-ui-input text-ui-text cursor-pointer border border-solid px-1 py-0.5 text-[12px]"
         [attr.name]="'chatSoundType-' + key"
         (change)="
-          key === 'all'
+          forAll
             ? setSoundForAll({ type: asSoundType($any($event.target).value) })
-            : setSoundOfTab(key, { type: asSoundType($any($event.target).value) })
+            : setSoundOfTab(name, { type: asSoundType($any($event.target).value) })
         "
       >
         @for (choice of soundTypes; track choice) {
@@ -332,9 +335,9 @@
         [attr.name]="'chatSoundVolume-' + key"
         [value]="toPercent(sound.volume)"
         (input)="
-          key === 'all'
+          forAll
             ? setSoundForAll({ volume: toVolume($any($event.target).value) })
-            : setSoundOfTab(key, { volume: toVolume($any($event.target).value) })
+            : setSoundOfTab(name, { volume: toVolume($any($event.target).value) })
         "
       />
       <span class="text-ui-dim w-8 text-right text-[11px]">{{ toPercent(sound.volume) }}</span>

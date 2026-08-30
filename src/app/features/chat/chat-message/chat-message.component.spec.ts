@@ -588,6 +588,23 @@ describe('ChatMessageComponent', () => {
       expect(copyIcon()).toBeNull();
     });
 
+    it('does not offer to carry a line meant for one person', () => {
+      const here = makeTab('メイン');
+      makeTab('雑談');
+      const whisper = here.addMessage({
+        from: 'test-user',
+        to: 'someone',
+        name: 'アリス',
+        text: 'ここだけの話',
+        timestamp: 1000,
+      });
+      fixture.componentRef.setInput('chatMessage', whisper);
+      fixture.detectChanges();
+
+      expect(component.canCopyToTab).toBe(false);
+      expect(copyIcon()).toBeNull();
+    });
+
     it('says the line again in the chosen tab, as it was said here', () => {
       const here = makeTab('メイン');
       const there = makeTab('雑談');

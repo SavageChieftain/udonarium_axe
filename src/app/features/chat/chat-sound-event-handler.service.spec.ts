@@ -9,6 +9,7 @@ import { ChatTab } from '@axe/domain/chat/chat-tab';
 import { ChatTabList } from '@axe/domain/chat/chat-tab-list';
 import { PresetSound } from '@axe/domain/media/sound-effect';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
+import { PeerRole } from '@axe/domain/peer/peer-role';
 import { ChatSoundEventHandlerService } from '@axe/features/chat/chat-sound-event-handler.service';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
 
@@ -28,8 +29,8 @@ describe('ChatSoundEventHandlerService', () => {
     return TestBed.inject(ChatSoundEventHandlerService);
   }
 
-  function speak(tab: ChatTab, text: string, from = 'someone-else', tag = ''): void {
-    tab.addMessage({ from, name: '誰か', text, tag, timestamp: Date.now() });
+  function speak(tab: ChatTab, text: string, from = 'someone-else', tag = '', timestamp = Date.now()): void {
+    tab.addMessage({ from, name: '誰か', text, tag, timestamp });
   }
 
   function enable(setting: Record<string, unknown>): void {
@@ -118,6 +119,28 @@ describe('ChatSoundEventHandlerService', () => {
     speak(small, 'こんばんは');
 
     expect(played).toEqual([{ identifier: 'cyber', volume: 0.8 }]);
+  });
+
+  it('says nothing for an evening of talk handed over on joining', () => {
+    enable({ scope: 'all', all: { enabled: true, volume: 0.5, type: 'bubble' }, tabs: {} });
+    start();
+
+    const main = makeTab('メイン');
+    for (const line of ['ひとつ', 'ふたつ', 'みっつ']) speak(main, line, 'someone-else', '', Date.now() - 600_000);
+
+    expect(played).toEqual([]);
+  });
+
+  it('says nothing of a tab the reader may not read', () => {
+    enable({ scope: 'all', all: { enabled: true, volume: 0.5, type: 'bubble' }, tabs: {} });
+    start();
+
+    const secret = makeTab('GM');
+    secret.plCanView = false;
+    PeerCursor.myCursor.role = PeerRole.Player;
+    speak(secret, 'こんばんは');
+
+    expect(played).toEqual([]);
   });
 
   it('plays a type on demand, for someone choosing one', () => {

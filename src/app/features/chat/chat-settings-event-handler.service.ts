@@ -68,7 +68,7 @@ export class ChatSettingsEventHandlerService {
   private restoreTab(tab: ChatTab): void {
     const portrait = this.preferences.portrait();
     const simple = this.preferences.simple();
-    const stored = this.preferences.tabPreferencesOf(tab.name);
+    const stored = this.preferences.tabPreferencesOf(tab.name, tab.identifier);
 
     if (portrait.scope === 'all') tab.portraitDisplayFlag = portrait.all;
     else if (stored) tab.portraitDisplayFlag = stored.portraitDisplayFlag;

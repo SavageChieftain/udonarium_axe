@@ -143,4 +143,23 @@ describe('ChatSettingsEventHandlerService', () => {
 
     expect(TestBed.inject(ChatPreferencesService).tabPreferencesOf(tab.name)?.chatSimpleDispFlag).toBe(1);
   });
+
+  it('keeps the answers of a reader who set them before the scope was asked about', () => {
+    // Kept under the tab's identifier, as it was before, and with no scope stored at all.
+    const tab = makeTab('雑談');
+    localStorage.setItem(
+      'chat-preferences',
+      JSON.stringify({ tabs: { [tab.identifier]: { portraitDisplayFlag: 0, chatSimpleDispFlag: 1 } } })
+    );
+
+    start();
+    TestBed.tick();
+
+    expect(tab.portraitDisplayFlag).toBe(0);
+    expect(tab.chatSimpleDispFlag).toBe(1);
+    const kept = JSON.parse(localStorage.getItem('chat-preferences') ?? '{}') as {
+      tabs?: Record<string, unknown>;
+    };
+    expect(kept.tabs?.['雑談']).toEqual({ portraitDisplayFlag: 0, chatSimpleDispFlag: 1 });
+  });
 });
