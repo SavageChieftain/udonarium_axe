@@ -6,6 +6,7 @@ import { GameTableMask } from '@axe/domain/tabletop/game-table-mask';
 import { GameTableScratchMask } from '@axe/domain/tabletop/game-table-scratch-mask';
 import { LightSource } from '@axe/domain/tabletop/light-source';
 import { TableAmbience } from '@axe/domain/tabletop/table-ambience';
+import { DEFAULT_TABLE_FACING_MARK, TableFacingMark } from '@axe/domain/tabletop/table-facing-mark';
 import { Terrain } from '@axe/domain/tabletop/terrain';
 import { DEFAULT_AMBIENT_COLOR } from '@axe/domain/tabletop/vision-types';
 import { WhiteBoard } from '@axe/domain/tabletop/white-board';
@@ -49,6 +50,8 @@ export class GameTable extends ObjectNode {
   @SyncVar() gridSnapStyle: GridSnapStyle = GridSnapStyle.CENTER;
   @SyncVar() imageBillboard: boolean = false;
   @SyncVar() mode2d: boolean = false;
+  /** How a piece shows which way it faces; see {@link TableFacingMark}. */
+  @SyncVar() facingMark: TableFacingMark = DEFAULT_TABLE_FACING_MARK;
   @SyncVar() wallHeight: number = 10;
   @SyncVar() northWallImageIdentifier: string = 'imageIdentifier';
   @SyncVar() eastWallImageIdentifier: string = 'imageIdentifier';

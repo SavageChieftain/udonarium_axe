@@ -15,6 +15,7 @@ import { DUNGEON_PROP_IDS, TEXTURE_IDS, WALL_TEXTURE_IDS } from '@axe/domain/med
 import { DUNGEON_ATMOSPHERE_IDS, DUNGEON_ENTRANCE_STYLES } from '@axe/domain/tabletop/dungeon/dungeon-atmosphere';
 import { DUNGEON_ROOM_ROLES } from '@axe/domain/tabletop/dungeon/dungeon-layout';
 import { FIELD_ATMOSPHERE_IDS, FIELD_PROP_IDS } from '@axe/domain/tabletop/field/field-atmosphere';
+import { TABLE_FACING_MARKS } from '@axe/domain/tabletop/table-facing-mark';
 import { LightPreset } from '@axe/domain/tabletop/vision-types';
 import { MAP_KINDS } from '@axe/features/tabletop/dungeon-generator/dungeon-generator.component';
 const HOTBAR_FAILURES = ['noCharacter', 'notFound', 'noTab', 'offTable', 'empty'] as const;
@@ -37,6 +38,7 @@ const CHOICES: Record<string, readonly string[]> = {
   'feature.tabletop.dungeonGenerator.prop.': FIELD_PROP_IDS,
   'feature.tabletop.dungeonGenerator.kind.': MAP_KINDS,
   'feature.chat.messageSetting.soundType_': CHAT_SOUND_TYPES,
+  'feature.tabletop.tableSetting.facingMark_': TABLE_FACING_MARKS,
   'feature.hotbar.kind.': HOTBAR_SLOT_KINDS,
   'feature.hotbar.kindHint.': HOTBAR_SLOT_KINDS,
   'feature.hotbar.failure.': HOTBAR_FAILURES,

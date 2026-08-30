@@ -1811,7 +1811,12 @@
         "diceBotHint": "部屋接続時に選択されるダイスボットです（テーブル毎ではなく部屋全体の設定）",
         "sectionWeather": "天候（マップ全体）",
         "weatherKind": "天候",
-        "weatherNone": "なし"
+        "weatherNone": "なし",
+        "facingMark": "キャラクターの向き",
+        "facingMark_none": "示さない",
+        "facingMark_turn": "コマごと回す",
+        "facingMark_arrow": "矢尻で示す",
+        "facingMarkHint": "2Dモードでコマを回せるようにします。矢尻はカメラ追従のまま向きだけを示し、3Dモードでも出ます"
       },
       "dungeonGenerator": {
         "atmosphere": {

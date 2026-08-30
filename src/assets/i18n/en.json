@@ -1811,7 +1811,12 @@
         "diceBotHint": "This dice bot is selected when joining a room (not per-table; room-wide setting)",
         "sectionWeather": "Weather (whole map)",
         "weatherKind": "Weather",
-        "weatherNone": "None"
+        "weatherNone": "None",
+        "facingMark": "Which way a piece faces",
+        "facingMark_none": "Do not show",
+        "facingMark_turn": "Turn the picture",
+        "facingMark_arrow": "Show an arrowhead",
+        "facingMarkHint": "Lets a piece be turned in 2D. An arrowhead leaves the picture facing you and shows the facing on its own, in 3D as well"
       },
       "dungeonGenerator": {
         "atmosphere": {

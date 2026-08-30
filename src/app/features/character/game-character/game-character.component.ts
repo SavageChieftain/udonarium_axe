@@ -61,6 +61,7 @@ import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { GridSnapStyle } from '@axe/domain/tabletop/game-table';
 import { isFlatTopGrid, isHexGrid } from '@axe/domain/tabletop/hex-geometry';
+import { asTableFacingMark, TableFacingMark } from '@axe/domain/tabletop/table-facing-mark';
 import { buildGameCharacterContextMenu } from '@axe/features/character/game-character/game-character-context-menu';
 import { GameCharacterBuffViewComponent } from '@axe/features/character/game-character-buff-view/game-character-buff-view.component';
 import { GameCharacterSheetComponent } from '@axe/features/character/game-character-sheet/game-character-sheet.component';
@@ -405,7 +406,9 @@ export class GameCharacterComponent {
     this.isPoster() ? '' : this.makeBillboardTransform(BUFF_STACK_GAP_PX + this.gaugePanelHeightEstimate())
   );
 
-  readonly billboardTransformImage = computed(() => (this.isPoster() ? '' : this.makeBillboardTransform(0)));
+  readonly billboardTransformImage = computed(() =>
+    this.isPoster() ? '' : this.makeBillboardTransform(0, this.imageTurnsWithPiece())
+  );
 
   readonly imageBillboardEnabled = computed(() => {
     if (this.isPoster()) return true;
@@ -492,6 +495,35 @@ export class GameCharacterComponent {
     this.objectChange.versionOf(this.tabletopService.tableSelecter.identifier)();
     return table.mode2d;
   });
+
+  /** What the table asks of a piece that has to show which way it faces. */
+  readonly facingMark = computed<TableFacingMark>(() => {
+    const table = this.tabletopService.currentTable;
+    this.objectChange.versionOf(table.identifier)();
+    this.objectChange.versionOf(this.tabletopService.tableSelecter.identifier)();
+    return asTableFacingMark(table.facingMark);
+  });
+
+  /**
+   * Whether the piece may be turned at all.
+   *
+   * Seen from above there was nothing turning it would show, so it was held still. A table
+   * that shows facing has something to show, and hands the handles back.
+   */
+  readonly canTurn = computed(() => {
+    if (this.isPoster()) return false;
+    return !this.mode2dEnabled() || this.facingMark() !== 'none';
+  });
+
+  /** The picture itself turns with the piece, rather than staying square to the reader. */
+  readonly imageTurnsWithPiece = computed(() => this.mode2dEnabled() && this.facingMark() === 'turn');
+
+  readonly showFacingArrow = computed(() => !this.isPoster() && this.facingMark() === 'arrow');
+
+  /** The mark sits just outside the piece, pointing the way the picture's own head points. */
+  readonly facingArrowSizePx = computed(() => Math.max(10, Math.round(this.gridSize * 0.24)));
+
+  readonly facingArrowOffsetPx = computed(() => Math.round(this.gridSize * 0.1));
 
   private labelOrbitTransform(distance3d: number, distance2d: number): string {
     return makeLabelOrbitTransform({
@@ -645,10 +677,11 @@ export class GameCharacterComponent {
     });
   }
 
-  private makeBillboardTransform(verticalOffset3D: number): string {
+  private makeBillboardTransform(verticalOffset3D: number, turnsWithPiece = false): string {
     return makeBillboardTransform({
       rotation: this.uiSignalService.tableViewRotation(),
-      pieceRotate: this.rotateSignal(),
+      // Left at nothing, the piece's own turn is not taken back out, so the picture turns with it.
+      pieceRotate: turnsWithPiece ? 0 : this.rotateSignal(),
       pieceRoll: this.rollSignal(),
       parentInverseRotation: 'rotateY(90deg) rotateZ(90deg) rotateY(-90deg)',
       verticalOffset3D,

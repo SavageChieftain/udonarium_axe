@@ -50,7 +50,7 @@
           class="pointer-events-auto size-full [-webkit-transform-style:preserve-3d] transform-3d"
           appRotable
           [rotable.option]="rotableOption()"
-          [rotable.disable]="mode2dEnabled()"
+          [rotable.disable]="!canTurn()"
           (rotable.ondragstart)="onMove()"
           (rotable.ondragend)="onMoved()"
         >
@@ -70,6 +70,28 @@
             class="absolute box-border size-full rounded-[25px] border-2 border-solid border-[#212121] backface-hidden"
             [ngStyle]="pedestalOuterStyle()"
           ></div>
+          @if (showFacingArrow()) {
+            <!-- Lying on the same plane as the pedestal, so it turns with the piece and is seen
+                 foreshortened from a tilted table, the way a mark painted on the floor would be. -->
+            <svg
+              data-testid="facing-arrow"
+              class="pointer-events-none absolute left-1/2 backface-hidden"
+              [style.width.px]="facingArrowSizePx()"
+              [style.height.px]="facingArrowSizePx()"
+              [style.top.px]="-(facingArrowSizePx() + facingArrowOffsetPx())"
+              [style.margin-left.px]="-facingArrowSizePx() / 2"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+            >
+              <path
+                d="M12 2 L22 20 L12 15 L2 20 Z"
+                fill="#ffffff"
+                stroke="#212121"
+                stroke-width="2"
+                stroke-linejoin="round"
+              />
+            </svg>
+          }
           @if (isTargeted()) {
             <div
               data-testid="target-ring"
@@ -77,7 +99,7 @@
               [ngStyle]="pedestalStyle('#ff3b30')"
             ></div>
           }
-          @if (!isLock && !mode2dEnabled()) {
+          @if (!isLock && canTurn()) {
             <div
               class="rotate-grab absolute -top-5.5 -left-1.5 z-[-1] h-[calc(100%+44px)] w-[calc(100%+12px)] cursor-default rounded-[37px] opacity-0 will-change-[opacity] backface-hidden group-hover:opacity-50 group-active:opacity-0 hover:opacity-100! active:opacity-100!"
               [ngStyle]="pedestalGrabStyle()"

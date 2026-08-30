@@ -1811,7 +1811,12 @@
         "diceBotHint": "방에 접속할 때 선택되는 다이스봇입니다(테이블별이 아니라 방 전체 설정)",
         "sectionWeather": "날씨(맵 전체)",
         "weatherKind": "날씨",
-        "weatherNone": "없음"
+        "weatherNone": "없음",
+        "facingMark": "캐릭터의 방향",
+        "facingMark_none": "표시하지 않음",
+        "facingMark_turn": "말째로 회전",
+        "facingMark_arrow": "화살촉으로 표시",
+        "facingMarkHint": "2D 모드에서 말을 회전할 수 있게 합니다. 화살촉은 그림을 카메라 쪽으로 둔 채 방향만 나타내며 3D 모드에서도 보입니다"
       },
       "dungeonGenerator": {
         "atmosphere": {

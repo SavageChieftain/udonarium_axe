@@ -59,6 +59,74 @@ describe('GameCharacterComponent', () => {
     expect(() => fixture.detectChanges()).not.toThrow();
   });
 
+  describe('which way a piece faces', () => {
+    function tableShowing(mark: 'none' | 'turn' | 'arrow', mode2d: boolean): void {
+      const table = TestBed.inject(TabletopService).currentTable;
+      table.mode2d = mode2d;
+      table.facingMark = mark;
+    }
+
+    function place(rotate = 0): GameCharacter {
+      const character = GameCharacter.create('向き', 1, '');
+      character.rotate = rotate;
+      fixture.componentRef.setInput('gameCharacter', character);
+      fixture.detectChanges();
+      return character;
+    }
+
+    function arrow(): SVGElement | null {
+      return (fixture.nativeElement as HTMLElement).querySelector<SVGElement>('[data-testid="facing-arrow"]');
+    }
+
+    it('holds a piece still from above while the table shows nothing', () => {
+      tableShowing('none', true);
+      place();
+
+      expect(component.canTurn()).toBe(false);
+      expect(arrow()).toBeNull();
+    });
+
+    it('hands the handles back once the table shows facing', () => {
+      tableShowing('turn', true);
+      place();
+
+      expect(component.canTurn()).toBe(true);
+    });
+
+    it('turns the picture with the piece from above', () => {
+      tableShowing('turn', true);
+      place(90);
+
+      expect(component.imageTurnsWithPiece()).toBe(true);
+      expect(component.billboardTransformImage()).not.toContain('rotateZ(-90deg)');
+    });
+
+    it('leaves the picture square to the reader where a mark shows the facing instead', () => {
+      tableShowing('arrow', true);
+      place(90);
+
+      expect(component.imageTurnsWithPiece()).toBe(false);
+      expect(component.billboardTransformImage()).toContain('rotateZ(-90deg)');
+      expect(arrow()).not.toBeNull();
+    });
+
+    it('shows the same mark on a table seen from the side', () => {
+      tableShowing('arrow', false);
+      place(45);
+
+      expect(component.showFacingArrow()).toBe(true);
+      expect(arrow()).not.toBeNull();
+      expect(component.canTurn()).toBe(true);
+    });
+
+    it('turns the picture only from above, a turned billboard being no help from the side', () => {
+      tableShowing('turn', false);
+      place(90);
+
+      expect(component.imageTurnsWithPiece()).toBe(false);
+    });
+  });
+
   describe('what shows above a piece', () => {
     it('gives a character bars for the usual two resources', () => {
       const character = GameCharacter.create('ゲージ', 1, '');
