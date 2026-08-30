@@ -15,6 +15,23 @@ class TestHostComponent {
 }
 
 @Component({
+  selector: 'stack-host',
+  template: `<div
+    class="stacked"
+    appDraggable
+    draggable.stack=".stacked"
+    [attr.data-z-layer]="layer"
+    [style.zIndex]="zIndex"
+  ></div>`,
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [DraggableDirective],
+})
+class StackHostComponent {
+  layer: string | null = null;
+  zIndex = '10';
+}
+
+@Component({
   selector: 'regions-host',
   template: `<div appDraggable>
     <div class="loose"><span class="inside-loose">plain</span></div>
@@ -185,6 +202,69 @@ describe('DraggableDirective', () => {
 
     it('leaves alone what sits inside such a region, however deep', () => {
       expect(claimed('.inside-claimed')).toBe(true);
+    });
+  });
+
+  describe('bringing what was taken hold of to the front', () => {
+    function sibling(zIndex: string, layered = false): HTMLElement {
+      const element = document.createElement('div');
+      element.className = 'stacked';
+      element.style.zIndex = zIndex;
+      if (layered) element.setAttribute('data-z-layer', zIndex);
+      document.body.appendChild(element);
+      return element;
+    }
+
+    function pressOn(fixture: ComponentFixture<StackHostComponent>): void {
+      const directive = fixture.debugElement.children[0].injector.get(DraggableDirective);
+      const start = (directive as unknown as { onInputStart(event: MouseEvent): void }).onInputStart.bind(directive);
+      start(new MouseEvent('mousedown', { button: 0 }));
+    }
+
+    beforeEach(() => {
+      TestBed.configureTestingModule({ imports: [StackHostComponent], providers: [...TEST_PROVIDERS] });
+    });
+
+    afterEach(() => {
+      for (const element of [...document.querySelectorAll('.stacked')]) element.remove();
+    });
+
+    it('raises an ordinary panel over the others', () => {
+      sibling('100');
+      sibling('101');
+      const fixture = TestBed.createComponent(StackHostComponent);
+      fixture.detectChanges();
+
+      pressOn(fixture);
+
+      expect(parseInt((fixture.debugElement.children[0].nativeElement as HTMLElement).style.zIndex)).toBeGreaterThan(0);
+    });
+
+    it('leaves a panel on a layer of its own where it was put, and out of the reckoning', () => {
+      const ordinary = sibling('100');
+      const layered = sibling('1900001', true);
+      const fixture = TestBed.createComponent(StackHostComponent);
+      fixture.detectChanges();
+
+      pressOn(fixture);
+      const host = fixture.debugElement.children[0].nativeElement as HTMLElement;
+
+      expect(layered.style.zIndex).toBe('1900001');
+      expect(parseInt(host.style.zIndex)).toBeLessThan(1_000_000);
+      expect(parseInt(ordinary.style.zIndex)).toBeLessThan(1_000_000);
+    });
+
+    it('holds still itself when it is the one on its own layer', () => {
+      sibling('100');
+      sibling('900');
+      const fixture = TestBed.createComponent(StackHostComponent);
+      fixture.componentInstance.layer = '1900001';
+      fixture.componentInstance.zIndex = '1900001';
+      fixture.detectChanges();
+
+      pressOn(fixture);
+
+      expect((fixture.debugElement.children[0].nativeElement as HTMLElement).style.zIndex).toBe('1900001');
     });
   });
 });

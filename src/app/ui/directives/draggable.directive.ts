@@ -7,6 +7,9 @@ const ORIENTATION_SETTLE_MS = 250;
 /** How long the window is left alone before the place it pushed something to is taken as final. */
 const RESIZE_SETTLE_MS = 400;
 
+/** Marks an element whose place in the stack was chosen for it. */
+const Z_LAYER_ATTRIBUTE = 'data-z-layer';
+
 @Directive({ selector: '[appDraggable]' })
 export class DraggableDirective {
   private readonly elementRef = inject<ElementRef<HTMLElement>>(ElementRef);
@@ -285,9 +288,19 @@ export class DraggableDirective {
     };
   }
 
+  /**
+   * Brings what was taken hold of to the front of its own stack.
+   *
+   * Anything put on a layer of its own is left out of this on both sides: it was opened above
+   * or below the ordinary stack on purpose, so it is neither shuffled down into that stack nor
+   * counted as the top of it, which would carry every other panel up over the modal veil.
+   */
   private setForeground() {
     if (this.stackSelector().length < 1) return;
-    const stacks = this.elementRef.nativeElement.ownerDocument.querySelectorAll<HTMLElement>(this.stackSelector());
+    if (this.elementRef.nativeElement.hasAttribute(Z_LAYER_ATTRIBUTE)) return;
+    const stacks = [
+      ...this.elementRef.nativeElement.ownerDocument.querySelectorAll<HTMLElement>(this.stackSelector()),
+    ].filter((elm) => !elm.hasAttribute(Z_LAYER_ATTRIBUTE));
     let topZindex: number = 0;
     let bottomZindex: number = 99999;
     stacks.forEach((elm) => {
