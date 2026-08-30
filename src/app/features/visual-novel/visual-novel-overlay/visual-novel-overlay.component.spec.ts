@@ -518,6 +518,21 @@ describe('VisualNovelOverlayComponent', () => {
     expect(speaker.vnPortraitPos).toBe(VN_STAGE_SLOT_COUNT - 1);
   });
 
+  it('reads what the room says of itself in words, not as the key it is kept under', () => {
+    tab.addMessage({
+      from: 'System',
+      name: '@i18n:common.chat.systemName:{}',
+      text: '@i18n:common.chat.logClearedBy:{"user":"GM"}',
+      tag: 'system-message',
+      timestamp: nextTimestamp++,
+    });
+    createComponent();
+
+    expect(component.currentFullText()).toContain('ログをクリア');
+    expect(component.currentFullText()).toContain('GM');
+    expect(component.speakerName()).not.toContain('@i18n:');
+  });
+
   describe('choosing which picture speaks', () => {
     /** The character comes with one picture already; the named ones are added after it. */
     function speakerWithPortraits(...names: string[]): GameCharacter {

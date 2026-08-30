@@ -11,6 +11,7 @@ import {
 import { FormsModule } from '@angular/forms';
 import { ChatMessageService } from '@axe/application/chat/chat-message.service';
 import { SystemAvatarKind, SystemAvatarService } from '@axe/application/chat/system-avatar.service';
+import { LanguageService } from '@axe/application/i18n/language.service';
 import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { ImageService } from '@axe/application/storage/image.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
@@ -59,6 +60,7 @@ import {
   VnMessageKind,
   VnPortraitEmote,
 } from '@axe/features/visual-novel/visual-novel-emote';
+import { readableMessageName, readableMessageText } from '@axe/features/visual-novel/visual-novel-message';
 import { VisualNovelModeService } from '@axe/features/visual-novel/visual-novel-mode.service';
 import { VisualNovelPlaybackService } from '@axe/features/visual-novel/visual-novel-playback.service';
 import { VisualNovelSceneService } from '@axe/features/visual-novel/visual-novel-scene.service';
@@ -149,6 +151,7 @@ export class VisualNovelOverlayComponent {
   private readonly paletteRegistry = inject(ChatPaletteRegistryService);
   private readonly panelService = inject(PanelService);
   private readonly t = inject(TRANSLATE_FN);
+  private readonly language = inject(LanguageService);
   private readonly vnMode = inject(VisualNovelModeService);
   readonly settings = inject(VisualNovelSettingsService);
 
@@ -266,7 +269,10 @@ export class VisualNovelOverlayComponent {
 
   private readonly currentEmote = this.playback.currentEmote;
 
-  readonly speakerName = computed(() => this.currentMessage()?.name ?? '');
+  readonly speakerName = computed(() => {
+    this.language.currentLang();
+    return readableMessageName(this.currentMessage(), this.t);
+  });
 
   readonly announcedLine = computed(() => {
     if (this.isTyping()) return '';
@@ -400,7 +406,7 @@ export class VisualNovelOverlayComponent {
     for (let i = Math.max(0, index - VN_STAGE_LOOKBACK); i <= index; i++) {
       const message = messages[i];
       window.push({
-        name: message.name ?? '',
+        name: readableMessageName(message, this.t),
         sendFrom: message.sendFrom ?? '',
         imageIdentifier: message.imageIdentifier ?? '',
         imagePos: message.imagePos,
@@ -409,7 +415,7 @@ export class VisualNovelOverlayComponent {
         isDicebot: message.isDicebot,
         isGameCharacter: this.isGameCharacterSender(message.sendFrom ?? ''),
         isDiceCommand: this.playback.isDiceCommandAt(i),
-        emote: parseVnEmote(message.text ?? ''),
+        emote: parseVnEmote(readableMessageText(message, this.t)),
       });
     }
     return buildVnStage(
@@ -447,7 +453,7 @@ export class VisualNovelOverlayComponent {
     if (!this.currentIsDiceCommand()) return null;
     const message = this.currentMessage();
     if (!message) return null;
-    return { name: message.name ?? '' };
+    return { name: readableMessageName(message, this.t) };
   });
 
   readonly systemSpeaker = computed(() => {
