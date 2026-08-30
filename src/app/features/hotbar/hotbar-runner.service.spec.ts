@@ -12,6 +12,7 @@ import { UiSignalService } from '@axe/application/ui/ui-signal.service';
 import { AudioStorage } from '@axe/core/storage/audio-storage';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { GameCharacter } from '@axe/domain/character/game-character';
+import { EffectField } from '@axe/domain/effect/effect-field';
 import { Hotbar } from '@axe/domain/hotbar/hotbar';
 import { emptyHotbarSlotDraft, HotbarSlotDraft } from '@axe/domain/hotbar/hotbar-draft';
 import { HotbarPayload, RangeSlotOptions } from '@axe/domain/hotbar/hotbar-payload';
@@ -59,8 +60,8 @@ describe('HotbarRunnerService', () => {
 
   const CELL = { page: 0, slotIndex: 0 };
 
-  function run(slot: HotbarSlot, character: GameCharacter | null) {
-    return runner.run(slot, character, CELL);
+  function run(slot: HotbarSlot, character: GameCharacter | null, cell = CELL) {
+    return runner.run(slot, character, cell);
   }
 
   beforeEach(() => {
@@ -491,6 +492,44 @@ describe('HotbarRunnerService', () => {
   it('says a slot with nothing in it is empty', () => {
     expect(run(slotOf('chat', '   '), character)).toEqual({ ok: false, reason: 'empty' });
     expect(run(slotOf('sound', ''), null)).toEqual({ ok: false, reason: 'empty' });
+  });
+
+  describe('an effect put on the ground', () => {
+    function fieldPreset(): { identifier: string; name: string } {
+      const preset = { identifier: 'preset', name: '毒沼' };
+      vi.spyOn(TestBed.inject(EffectLibraryService), 'findByName').mockReturnValue(preset as never);
+      return preset;
+    }
+
+    function fields(): EffectField[] {
+      return ObjectStore.instance.getObjects<EffectField>(EffectField);
+    }
+
+    it('puts it where the piece stands, and takes it away when pressed again', () => {
+      fieldPreset();
+      const slot = slotOf('effect', '毒沼', { kind: 'effect', mode: 'field', onSelf: false });
+      const cell = { page: 0, slotIndex: 3 };
+
+      expect(run(slot, character, cell)).toEqual({ ok: true });
+      expect(fields()).toHaveLength(1);
+
+      expect(run(slot, character, cell)).toEqual({ ok: true });
+      expect(fields()).toHaveLength(0);
+    });
+
+    it('takes away only what its own slot put there', () => {
+      fieldPreset();
+      const mine = slotOf('effect', '毒沼', { kind: 'effect', mode: 'field', onSelf: false });
+      const other = slotOf('effect', '毒沼', { kind: 'effect', mode: 'field', onSelf: false });
+
+      run(mine, character, { page: 0, slotIndex: 3 });
+      run(other, character, { page: 0, slotIndex: 4 });
+      expect(fields()).toHaveLength(2);
+
+      run(mine, character, { page: 0, slotIndex: 3 });
+
+      expect(fields()).toHaveLength(1);
+    });
   });
 
   describe('an effect told to pay no heed to what is targeted', () => {

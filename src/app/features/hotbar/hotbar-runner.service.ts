@@ -17,6 +17,8 @@ import { AudioStorage } from '@axe/core/storage/audio-storage';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { decodeRangeShapeField } from '@axe/domain/data/range-shape-field';
+import { EffectField } from '@axe/domain/effect/effect-field';
+import { EffectPreset } from '@axe/domain/effect/effect-preset';
 import { Hotbar } from '@axe/domain/hotbar/hotbar';
 import { HotbarStep, RangeSlotOptions } from '@axe/domain/hotbar/hotbar-payload';
 import { findByReference } from '@axe/domain/hotbar/hotbar-reference';
@@ -80,7 +82,7 @@ export class HotbarRunnerService {
       case 'chat':
         return this.runChat(slot, character!);
       case 'effect':
-        return this.runEffect(slot, character!);
+        return this.runEffect(slot, character!, cell);
       case 'range':
         return this.runRange(slot, character!, cell);
       case 'diceDeploy':
@@ -120,23 +122,47 @@ export class HotbarRunnerService {
     return OK;
   }
 
-  private runEffect(slot: HotbarSlot, character: GameCharacter): HotbarRunResult {
+  private runEffect(slot: HotbarSlot, character: GameCharacter, cell: HotbarCell): HotbarRunResult {
     const preset = this.effectLibrary.findByName(slot.argument);
     if (!preset) return failed('notFound');
 
     const options = slot.options;
     const mode = options.kind === 'effect' ? options.mode : 'cast';
     if (mode === 'preview') return this.effectCast.preview(preset) ? OK : failed('notFound');
-    if (mode === 'field') {
-      this.effectField.place(preset, character.location.x, character.location.y, character.posZ);
-      return OK;
-    }
+    if (mode === 'field') return this.layField(preset, character, cell);
     // Told to pay no heed to what is targeted, the effect plays on the piece that pressed it,
     // so a guard put up in the middle of a fight does not fly at whoever happens to be marked.
     if (options.kind === 'effect' && options.onSelf) {
       return this.effectCast.fire(preset, [character], null) ? OK : failed('notFound');
     }
     return this.effectCast.fireFromCharacter(preset, character) ? OK : failed('notFound');
+  }
+
+  /**
+   * Puts the effect on the ground, or takes away the one this slot put there for this piece.
+   *
+   * The same press does both, as it does for a range: what a slot lays out is the slot's to
+   * take away again, and there is nowhere else to reach a field from once it is down.
+   */
+  private layField(preset: EffectPreset, character: GameCharacter, cell: HotbarCell): HotbarRunResult {
+    const tag = hotbarSlotTag(Hotbar.ownerId, cell, character.identifier);
+    if (this.takeAwayField(tag)) return OK;
+
+    const field = this.effectField.place(preset, character.location.x, character.location.y, character.posZ);
+    field.laidByHotbarSlot = tag;
+    field.update();
+    return OK;
+  }
+
+  private takeAwayField(tag: string): boolean {
+    const laid = this.objectStore
+      .getObjects<EffectField>(EffectField)
+      .filter((field) => field.laidByHotbarSlot === tag);
+    if (laid.length < 1) return false;
+
+    for (const field of laid) this.effectField.remove(field);
+    SoundEffect.play(PresetSound.sweep);
+    return true;
   }
 
   /** Lays the range out, or takes down the one this slot laid for this character. */
@@ -196,7 +222,10 @@ export class HotbarRunnerService {
   /** Takes down whatever a trial in the editor laid on the table, its cell belonging to no slot. */
   takeDownRehearsal(cell: HotbarCell, character: GameCharacter | null): boolean {
     if (!character) return false;
-    return this.takeDownRange(hotbarSlotTag(Hotbar.ownerId, cell, character.identifier));
+
+    const tag = hotbarSlotTag(Hotbar.ownerId, cell, character.identifier);
+    const range = this.takeDownRange(tag);
+    return this.takeAwayField(tag) || range;
   }
 
   private takeDownRange(tag: string): boolean {
