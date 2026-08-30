@@ -313,8 +313,16 @@ export class ChatMessageComponent {
     this.uiSignalService.requestChatJump(target);
   }
 
+  /**
+   * A memo is a note laid on the table, so it is only for those who may put things there.
+   * A guest is at the table to watch, and had a button that put a note on it.
+   */
+  get canShareAsMemo(): boolean {
+    return this.canInteract && this.rolePermission.canEditTabletop;
+  }
+
   clickShareAsMemo() {
-    if (!this.canInteract) return;
+    if (!this.canShareAsMemo) return;
     const msg = this.chatMessage;
     if (!msg) return;
     const text = (msg.text ?? '').trim();

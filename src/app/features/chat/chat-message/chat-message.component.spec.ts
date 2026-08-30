@@ -400,6 +400,11 @@ describe('ChatMessageComponent', () => {
   });
 
   describe('clickShareAsMemo', () => {
+    function memoIcon(): Element | null {
+      const icons = [...(fixture.nativeElement as HTMLElement).querySelectorAll('i.material-icons')];
+      return icons.find((icon) => icon.textContent?.trim() === 'sticky_note_2') ?? null;
+    }
+
     it('turns a line into a note and puts it in the store', () => {
       const message = new ChatMessage();
       message.initialize();
@@ -407,6 +412,9 @@ describe('ChatMessageComponent', () => {
       message.name = '勇者';
       message.text = '世界を救うのだ';
       fixture.componentRef.setInput('chatMessage', message);
+
+      fixture.detectChanges();
+      expect(memoIcon()).not.toBeNull();
 
       const beforeNotes = ObjectStore.instance.getObjects(TextNote);
       try {
@@ -420,6 +428,24 @@ describe('ChatMessageComponent', () => {
         const created = ObjectStore.instance.getObjects(TextNote).find((n) => !beforeNotes.includes(n));
         created?.destroy();
       }
+    });
+
+    it('offers nothing to a guest, who is at the table to watch', () => {
+      const message = new ChatMessage();
+      message.initialize();
+      message.from = 'tester';
+      message.name = '勇者';
+      message.text = '世界を救うのだ';
+      fixture.componentRef.setInput('chatMessage', message);
+      vi.spyOn(TestBed.inject(RolePermissionService), 'canEditTabletop', 'get').mockReturnValue(false);
+      fixture.detectChanges();
+
+      const before = ObjectStore.instance.getObjects(TextNote).length;
+      component.clickShareAsMemo();
+
+      expect(component.canShareAsMemo).toBe(false);
+      expect(ObjectStore.instance.getObjects(TextNote).length).toBe(before);
+      expect(memoIcon()).toBeNull();
     });
 
     it('does nothing for a line of nothing but spaces', () => {
