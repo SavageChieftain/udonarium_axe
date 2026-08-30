@@ -74,6 +74,7 @@ export class DraggableDirective {
 
   private onInputStart(e: MouseEvent | TouchEvent) {
     if ((e as MouseEvent).button === 1 || (e as MouseEvent).button === 2) return this.cancel();
+    if (this.isDisable()) return this.cancel();
     if (!this.input) return this.cancel();
 
     this.setForeground();

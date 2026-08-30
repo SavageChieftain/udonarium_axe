@@ -50,6 +50,30 @@ describe('DraggableDirective', () => {
       expect(directive).toBeDefined();
     });
 
+    it('holds still while it is told to be still', () => {
+      fixture.componentInstance.isDisabled = true;
+      fixture.detectChanges();
+      directive = fixture.debugElement.children[0].injector.get(DraggableDirective);
+      const cancel = vi.spyOn(directive, 'cancel');
+
+      const start = (directive as unknown as { onInputStart(event: MouseEvent): void }).onInputStart.bind(directive);
+      start(new MouseEvent('mousedown', { button: 0 }));
+
+      expect(cancel).toHaveBeenCalled();
+    });
+
+    it('takes a press again once it is let go', () => {
+      fixture.componentInstance.isDisabled = false;
+      fixture.detectChanges();
+      directive = fixture.debugElement.children[0].injector.get(DraggableDirective);
+      const cancel = vi.spyOn(directive, 'cancel');
+
+      const start = (directive as unknown as { onInputStart(event: MouseEvent): void }).onInputStart.bind(directive);
+      start(new MouseEvent('mousedown', { button: 0 }));
+
+      expect(cancel).not.toHaveBeenCalled();
+    });
+
     it('cleans up on destroy without throwing', () => {
       fixture.detectChanges();
       directive = fixture.debugElement.children[0].injector.get(DraggableDirective);
