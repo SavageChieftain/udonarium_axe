@@ -520,10 +520,15 @@ export class GameCharacterComponent {
 
   readonly showFacingArrow = computed(() => !this.isPoster() && this.facingMark() === 'arrow');
 
-  /** The mark sits just outside the piece, pointing the way the picture's own head points. */
-  readonly facingArrowSizePx = computed(() => Math.max(10, Math.round(this.gridSize * 0.24)));
+  /**
+   * The mark sits just outside the piece, pointing the way the picture's own head points.
+   *
+   * It is drawn as boldly as the target marker: a piece's facing is read at a glance across
+   * the whole table, and a faint mark on a painted floor is read at none.
+   */
+  readonly facingArrowSizePx = computed(() => Math.max(16, Math.round(this.gridSize * 0.44)));
 
-  readonly facingArrowOffsetPx = computed(() => Math.round(this.gridSize * 0.1));
+  readonly facingArrowOffsetPx = computed(() => Math.round(this.gridSize * 0.06));
 
   private labelOrbitTransform(distance3d: number, distance2d: number): string {
     return makeLabelOrbitTransform({
@@ -677,11 +682,28 @@ export class GameCharacterComponent {
     });
   }
 
+  /**
+   * The frame everything above the pedestal hangs from.
+   *
+   * Seen from above, the piece's own turn is taken back out here, once, so that the name, the
+   * bars and the balloon keep the side of the piece they were on however it is turned. The
+   * picture puts the turn back on itself where the table asks the picture to turn.
+   */
+  readonly standTransform = computed(() => {
+    if (this.isPoster()) return 'translateY(-50%)';
+    const held = this.mode2dEnabled() ? `rotateZ(${-this.rotateSignal()}deg) ` : '';
+    return (
+      `${held}rotateY(90deg) rotateZ(-90deg) rotateY(-90deg) ` +
+      `translateY(-50%) translateY(${-this.altitude() * this.gridSize}px)`
+    );
+  });
+
   private makeBillboardTransform(verticalOffset3D: number, turnsWithPiece = false): string {
+    // Above the pedestal in plan there is no turn left to take out; only the picture puts one back.
+    const pieceRotate = this.mode2dEnabled() ? (turnsWithPiece ? -this.rotateSignal() : 0) : this.rotateSignal();
     return makeBillboardTransform({
       rotation: this.uiSignalService.tableViewRotation(),
-      // Left at nothing, the piece's own turn is not taken back out, so the picture turns with it.
-      pieceRotate: turnsWithPiece ? 0 : this.rotateSignal(),
+      pieceRotate,
       pieceRoll: this.rollSignal(),
       parentInverseRotation: 'rotateY(90deg) rotateZ(90deg) rotateY(-90deg)',
       verticalOffset3D,

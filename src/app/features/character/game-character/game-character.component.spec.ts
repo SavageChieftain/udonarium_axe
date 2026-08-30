@@ -98,7 +98,9 @@ describe('GameCharacterComponent', () => {
       place(90);
 
       expect(component.imageTurnsWithPiece()).toBe(true);
-      expect(component.billboardTransformImage()).not.toContain('rotateZ(-90deg)');
+      // The frame above the pedestal holds the turn back; the picture alone puts it on again.
+      expect(component.standTransform().startsWith('rotateZ(-90deg)')).toBe(true);
+      expect(component.billboardTransformImage()).toContain('rotateZ(90deg)');
     });
 
     it('leaves the picture square to the reader where a mark shows the facing instead', () => {
@@ -106,8 +108,26 @@ describe('GameCharacterComponent', () => {
       place(90);
 
       expect(component.imageTurnsWithPiece()).toBe(false);
-      expect(component.billboardTransformImage()).toContain('rotateZ(-90deg)');
+      expect(component.standTransform().startsWith('rotateZ(-90deg)')).toBe(true);
+      expect(component.billboardTransformImage()).toContain('rotateZ(0deg)');
       expect(arrow()).not.toBeNull();
+    });
+
+    it('keeps the name and the bars on the side of the piece they were on', () => {
+      tableShowing('turn', true);
+      place(180);
+
+      // Held still once above the pedestal, so nothing hanging there turns with the piece.
+      expect(component.standTransform().startsWith('rotateZ(-180deg)')).toBe(true);
+      expect(component.billboardTransform()).toContain('rotateZ(0deg)');
+    });
+
+    it('leaves a table seen from the side to turn its pieces as it always did', () => {
+      tableShowing('arrow', false);
+      place(90);
+
+      expect(component.standTransform().startsWith('rotateY(90deg)')).toBe(true);
+      expect(component.billboardTransform()).toContain('rotateZ(-90deg)');
     });
 
     it('shows the same mark on a table seen from the side', () => {
