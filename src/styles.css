@@ -2595,38 +2595,42 @@ game-data-element .elm-markdown-view,
 /**************** mobile layout ****************/
 
 body.mobile-layout
-  :is(ui-panel, app-mobile-shell, modal, context-menu, app-hand-rail)
+  :is(ui-panel, app-mobile-shell, modal, context-menu, app-hand-rail, app-hotbar)
   input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='color']),
-body.mobile-layout :is(ui-panel, app-mobile-shell, modal, context-menu, app-hand-rail) select,
-body.mobile-layout :is(ui-panel, app-mobile-shell, modal, context-menu, app-hand-rail) textarea {
+body.mobile-layout :is(ui-panel, app-mobile-shell, modal, context-menu, app-hand-rail, app-hotbar) select,
+body.mobile-layout :is(ui-panel, app-mobile-shell, modal, context-menu, app-hand-rail, app-hotbar) textarea {
   min-height: 40px;
   font-size: 16px;
 }
 
-body.mobile-layout :is(ui-panel, app-mobile-shell, modal, context-menu, app-hand-rail) button:not(.material-icons) {
+body.mobile-layout
+  :is(ui-panel, app-mobile-shell, modal, context-menu, app-hand-rail, app-hotbar)
+  button:not(.material-icons) {
   min-height: 36px;
 }
 
-body.mobile-layout :is(ui-panel, app-mobile-shell, modal, context-menu, app-hand-rail) input[type='checkbox'],
-body.mobile-layout :is(ui-panel, app-mobile-shell, modal, context-menu, app-hand-rail) input[type='radio'] {
+body.mobile-layout
+  :is(ui-panel, app-mobile-shell, modal, context-menu, app-hand-rail, app-hotbar)
+  input[type='checkbox'],
+body.mobile-layout :is(ui-panel, app-mobile-shell, modal, context-menu, app-hand-rail, app-hotbar) input[type='radio'] {
   width: 20px;
   height: 20px;
 }
 
-body.mobile-layout :is(ui-panel, app-mobile-shell, modal, context-menu, app-hand-rail) table {
+body.mobile-layout :is(ui-panel, app-mobile-shell, modal, context-menu, app-hand-rail, app-hotbar) table {
   display: block;
   max-width: 100%;
   overflow-x: auto;
 }
 
-body.mobile-layout :is(ui-panel, app-mobile-shell, modal, context-menu, app-hand-rail) img,
-body.mobile-layout :is(ui-panel, app-mobile-shell, modal, context-menu, app-hand-rail) canvas,
-body.mobile-layout :is(ui-panel, app-mobile-shell, modal, context-menu, app-hand-rail) video {
+body.mobile-layout :is(ui-panel, app-mobile-shell, modal, context-menu, app-hand-rail, app-hotbar) img,
+body.mobile-layout :is(ui-panel, app-mobile-shell, modal, context-menu, app-hand-rail, app-hotbar) canvas,
+body.mobile-layout :is(ui-panel, app-mobile-shell, modal, context-menu, app-hand-rail, app-hotbar) video {
   max-width: 100%;
 }
 
 body.mobile-layout .modal-window,
-body.mobile-layout :is(ui-panel, app-mobile-shell, modal, context-menu, app-hand-rail) {
+body.mobile-layout :is(ui-panel, app-mobile-shell, modal, context-menu, app-hand-rail, app-hotbar) {
   -webkit-text-size-adjust: 100%;
 }
 
@@ -2787,7 +2791,7 @@ body.mobile-layout visual-novel-overlay button:not(.material-icons) {
   min-height: 40px;
 }
 
-body.touch-input :is(ui-panel, app-mobile-shell, modal, context-menu, app-hand-rail) {
+body.touch-input :is(ui-panel, app-mobile-shell, modal, context-menu, app-hand-rail, app-hotbar) {
   -webkit-touch-callout: none;
 }
 

@@ -42,6 +42,11 @@ export class ContextMenuComponent {
   readonly rootElementRef = viewChild.required<ElementRef<HTMLElement>>('root');
 
   readonly isSubmenu = input(false);
+  /** Where this menu sits, for one opened by something that lives above where menus usually go. */
+  protected layer(): number {
+    return this.contextMenuService.layer;
+  }
+
   protected readonly titleInput = input('', { alias: 'title' });
   readonly titleColor = input('');
   readonly titleBold = input(false);

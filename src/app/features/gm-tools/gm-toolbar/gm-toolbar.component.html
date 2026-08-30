@@ -113,6 +113,18 @@
 
     <button
       type="button"
+      data-testid="hotbar-toggle"
+      class="rounded-ui-sm text-ui-text hover:bg-ui-menu-hover hover:text-ui-accent flex size-8 cursor-pointer items-center justify-center border-none bg-transparent transition-colors [&_i]:text-[20px]!"
+      [class.text-ui-accent]="widgets.hotbar()"
+      [class.bg-ui-accent-bg]="widgets.hotbar()"
+      [title]="'feature.hotbar.toggle' | transloco"
+      (click)="widgets.toggleHotbar()"
+    >
+      <i class="material-icons">apps</i>
+    </button>
+
+    <button
+      type="button"
       class="rounded-ui-sm text-ui-text hover:bg-ui-menu-hover hover:text-ui-accent flex size-8 cursor-pointer items-center justify-center border-none bg-transparent transition-colors [&_i]:text-[20px]!"
       [class.text-ui-accent]="widgets.clock()"
       [class.bg-ui-accent-bg]="widgets.clock()"
