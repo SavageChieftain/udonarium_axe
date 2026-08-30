@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, DestroyRef, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ChatSpeakerService } from '@axe/application/chat/chat-speaker.service';
 import { EffectLibraryService } from '@axe/application/effect/effect-library.service';
@@ -42,7 +42,12 @@ import { HotbarRunnerService } from '@axe/features/hotbar/hotbar-runner.service'
 import { selectControllableCharacters } from '@axe/features/pl-tools/owned-character-list/owned-characters';
 import { TranslocoModule } from '@jsverse/transloco';
 
-/** A trial belongs to no cell of the bar, so what it lays out is its own to take down again. */
+/**
+ * A trial belongs to no cell of the bar, so what it lays out is its own to take down again.
+ *
+ * Nothing saved can ever sit at this cell, so a range laid by a trial is never mistaken for
+ * one a slot laid - and never left behind either: the editor takes its own down when it goes.
+ */
 const REHEARSAL_CELL: HotbarCell = { page: -1, slotIndex: -1 };
 
 @Component({
@@ -54,6 +59,12 @@ const REHEARSAL_CELL: HotbarCell = { page: -1, slotIndex: -1 };
 export class HotbarSlotEditorComponent {
   private readonly panelService = inject(PanelService);
   private readonly runner = inject(HotbarRunnerService);
+  private readonly destroyRef = inject(DestroyRef);
+
+  constructor() {
+    // Saved, emptied or simply closed, the editor leaves nothing of its trials behind.
+    this.destroyRef.onDestroy(() => this.clearRehearsal());
+  }
   private readonly objectStore = inject(ObjectStore);
   private readonly objectChange = inject(ObjectChangeService);
   private readonly audioStorage = inject(AudioStorage);
@@ -339,6 +350,8 @@ export class HotbarSlotEditorComponent {
     const character = this.actingCharacter();
 
     const rehearsal = new HotbarSlot();
+    // The trial is never on a bar and never anybody else's business, so it is not put in the
+    // store: doing so sent it to every peer and left a tombstone there when it was thrown away.
     rehearsal.kind = draft.kind;
     rehearsal.value = draft.value;
     rehearsal.label = draft.label;
@@ -348,12 +361,17 @@ export class HotbarSlotEditorComponent {
     rehearsal.characterIdentifier = draft.characterIdentifier;
     rehearsal.characterName = draft.characterName;
     rehearsal.valueName = draft.valueName;
-    rehearsal.initialize();
-    try {
-      this.runner.run(rehearsal, character, REHEARSAL_CELL);
-    } finally {
-      rehearsal.destroy();
-    }
+    this.runner.run(rehearsal, character, REHEARSAL_CELL);
+    this.rehearsedAs.set(character);
+  }
+
+  /** Whoever the last trial acted as, so that what it laid out can be taken down again. */
+  private readonly rehearsedAs = signal<GameCharacter | null>(null);
+
+  private clearRehearsal(): void {
+    const character = this.rehearsedAs();
+    this.rehearsedAs.set(null);
+    this.runner.takeDownRehearsal(REHEARSAL_CELL, character);
   }
 
   protected close(): void {

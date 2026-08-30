@@ -115,4 +115,42 @@ describe('carrying a hotbar between rooms', () => {
 
     expect(store.getObjects<HotbarSet>(HotbarSet)).toHaveLength(0);
   });
+
+  it('leaves the bar alone for a file with nothing readable on it', () => {
+    const hotbar = myHotbar();
+    const draft = emptyHotbarSlotDraft('chat');
+    draft.value = '2d6+3 攻撃';
+    hotbar.put(0, 0, draft);
+
+    const parser = new DOMParser();
+    const empty = parser.parseFromString('<hotbar-set identifier="x"></hotbar-set>', 'application/xml');
+    HotbarSet.of(hotbar).parseInnerXml(empty.documentElement);
+
+    expect(hotbar.slotAt(0, 0)?.value).toBe('2d6+3 攻撃');
+    expect(hotbar.hasDisplaced).toBe(false);
+  });
+
+  it('keeps the reader’s own bar as the way back, however many files are read', () => {
+    const hotbar = myHotbar();
+    const mine = emptyHotbarSlotDraft('chat');
+    mine.value = '自分の一撃';
+    hotbar.put(0, 0, mine);
+
+    const carried = new Hotbar('Hotbar_carried');
+    carried.ownerUserId = 'someone-else';
+    carried.initialize();
+    const theirs = emptyHotbarSlotDraft('chat');
+    theirs.value = '誰かの一撃';
+    carried.put(0, 0, theirs);
+    const xml = serializer.toXml(HotbarSet.of(carried));
+
+    const parser = new DOMParser();
+    const first = parser.parseFromString(xml, 'application/xml');
+    HotbarSet.of(hotbar).parseInnerXml(first.documentElement);
+    const second = parser.parseFromString(xml, 'application/xml');
+    HotbarSet.of(hotbar).parseInnerXml(second.documentElement);
+
+    expect(hotbar.restoreDisplaced()).toBe(true);
+    expect(hotbar.slotAt(0, 0)?.value).toBe('自分の一撃');
+  });
 });

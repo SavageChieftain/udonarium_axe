@@ -457,9 +457,15 @@ export class HotbarBarComponent {
       color: hotbarSlotColor(kind, slot.color),
       needsCharacter: hotbarSlotNeedsCharacter(kind),
       key: this.keyOf(slotIndex),
-      actor: named ?? this.speaker(),
-      actorName: named?.name ?? '',
+      // A slot that names a piece acts as that piece or as nobody. Falling back to whoever the
+      // chat is set to speak as would send someone else's attack under the reader's own name.
+      actor: this.bindsCharacter(slot) ? named : this.speaker(),
+      actorName: named?.name ?? slot.characterName,
     };
+  }
+
+  private bindsCharacter(slot: HotbarSlot): boolean {
+    return slot.characterIdentifier.trim().length > 0 || slot.characterName.trim().length > 0;
   }
 
   /** Who a slot naming nobody acts as: whoever the chat is set to speak as. */
@@ -474,7 +480,7 @@ export class HotbarBarComponent {
 
   /** The piece a slot names for itself, found again by name in a room that brought new ones. */
   private namedCharacter(slot: HotbarSlot, controllable: readonly GameCharacter[]): GameCharacter | null {
-    if (!slot.characterIdentifier.trim() && !slot.characterName.trim()) return null;
+    if (!this.bindsCharacter(slot)) return null;
 
     if (slot.characterIdentifier) this.objectChange.versionOf(slot.characterIdentifier)();
     return findSlotActorAmong(slot, controllable)?.character ?? null;
@@ -487,7 +493,10 @@ export class HotbarBarComponent {
    * that mean nothing there. Firing such a slot once puts it right.
    */
   private settleActor(slot: HotbarSlot): void {
-    if (!slot.characterIdentifier.trim() && !slot.characterName.trim()) return;
+    if (!this.bindsCharacter(slot)) return;
+    // A piece still in the room keeps the slot pointing at it, whether or not the reader may
+    // work it today. Only a piece that is gone lets the name find another one in its place.
+    if (this.objectStore.get(slot.characterIdentifier) instanceof GameCharacter) return;
 
     const found = findSlotActorAmong(slot, this.controllableCharacters());
     if (!found?.renamed) return;

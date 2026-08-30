@@ -81,12 +81,19 @@ export class Hotbar extends ObjectNode {
     return this.displaced !== null;
   }
 
-  /** Empties the bar and keeps what was on it, for putting straight back. */
+  /**
+   * Empties the bar and keeps what was on it, for putting straight back.
+   *
+   * What is kept is what the reader built, not what a file put there: reading a second file
+   * before undoing the first would otherwise leave the evening's work with no way back, the
+   * bar having been emptied twice and only the last emptying remembered.
+   */
   displace(): void {
-    this.displaced = this.slots.map((slot) => ({
+    const standing = this.slots.map((slot) => ({
       cell: { page: slot.pageNo, slotIndex: slot.slotNo },
       draft: draftOfSlot(slot),
     }));
+    if (this.displaced === null) this.displaced = standing;
     for (const slot of this.slots) slot.destroy();
   }
 

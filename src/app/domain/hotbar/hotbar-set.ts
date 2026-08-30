@@ -46,12 +46,19 @@ export class HotbarSet extends ObjectNode implements InnerXml {
       return;
     }
 
-    hotbar.displace();
-    for (const child of Array.from(element.children)) {
-      if (child.nodeName !== HotbarSlot.aliasName) continue;
-      const read = readSlot(child);
-      if (read) hotbar.put(read.page, read.slotIndex, read.draft);
+    // Read first, replace after: a file holding nothing readable leaves the bar as it was,
+    // rather than emptying it and handing back nothing in its place.
+    const read = Array.from(element.children)
+      .filter((child) => child.nodeName === HotbarSlot.aliasName)
+      .map((child) => readSlot(child))
+      .filter((slot): slot is { page: number; slotIndex: number; draft: HotbarSlotDraft } => slot !== null);
+    if (read.length < 1) {
+      Logger.warn('[Hotbar] 読み取れるスロットが無いため、ホットバーはそのままにしました');
+      return;
     }
+
+    hotbar.displace();
+    for (const slot of read) hotbar.put(slot.page, slot.slotIndex, slot.draft);
   }
 }
 

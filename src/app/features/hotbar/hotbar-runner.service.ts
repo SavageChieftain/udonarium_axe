@@ -1,4 +1,4 @@
-import { inject, Injectable } from '@angular/core';
+import { DestroyRef, inject, Injectable } from '@angular/core';
 import { CharacterMacroService } from '@axe/application/chat/character-macro.service';
 import { CharacterDiceService } from '@axe/application/dice/character-dice.service';
 import { EffectCastService } from '@axe/application/effect/effect-cast.service';
@@ -63,6 +63,14 @@ export class HotbarRunnerService {
   private readonly cutInService = inject(CutInService);
   private readonly turnOrder = inject(TurnOrderService);
   private readonly t = inject(TRANSLATE_FN);
+  private readonly destroyRef = inject(DestroyRef);
+
+  constructor() {
+    this.destroyRef.onDestroy(() => {
+      for (const timer of this.pending) clearTimeout(timer);
+      this.pending.clear();
+    });
+  }
 
   run(slot: HotbarSlot, character: GameCharacter | null, cell: HotbarCell): HotbarRunResult {
     const kind = slot.slotKind;
@@ -180,6 +188,12 @@ export class HotbarRunnerService {
    * The mark is on the ranges themselves, so a slot finds its own again after a reload, in
    * another window of the same reader, and however many it managed to leave lying about.
    */
+  /** Takes down whatever a trial in the editor laid on the table, its cell belonging to no slot. */
+  takeDownRehearsal(cell: HotbarCell, character: GameCharacter | null): boolean {
+    if (!character) return false;
+    return this.takeDownRange(hotbarSlotTag(Hotbar.ownerId, cell, character.identifier));
+  }
+
   private takeDownRange(tag: string): boolean {
     const laid = this.objectStore.getObjects<RangeArea>(RangeArea).filter((range) => range.laidByHotbarSlot === tag);
     if (laid.length < 1) return false;
@@ -260,6 +274,9 @@ export class HotbarRunnerService {
    * What runs at once is answered for; what waits for its turn is taken as fired, since the
    * answer would arrive long after the reader has looked away.
    */
+  /** What a group has left to do. A step never runs after the room it was pressed in is gone. */
+  private readonly pending = new Set<ReturnType<typeof setTimeout>>();
+
   private runGroup(slot: HotbarSlot, character: GameCharacter | null): HotbarRunResult {
     const options = slot.options;
     if (options.kind !== 'group' || options.steps.length < 1) return failed('empty');
@@ -279,8 +296,14 @@ export class HotbarRunnerService {
     steps.forEach(({ step }, order) => {
       if (options.delayMs > 0 && order > 0) {
         waiting += 1;
-        // The slot is looked for again when its turn comes: the bar may have changed by then.
-        setTimeout(() => this.fireStep(hotbar, step, character), options.delayMs * order);
+        // The slot is looked for again when its turn comes: the bar may have changed by then,
+        // and so may the piece - one that has left the table takes the rest of the run with it.
+        const timer = setTimeout(() => {
+          this.pending.delete(timer);
+          if (character && !this.objectStore.get(character.identifier)) return;
+          this.fireStep(hotbar, step, character);
+        }, options.delayMs * order);
+        this.pending.add(timer);
         return;
       }
 

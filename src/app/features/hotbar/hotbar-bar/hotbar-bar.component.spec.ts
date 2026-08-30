@@ -184,6 +184,42 @@ describe('HotbarBarComponent', () => {
     expect(run.mock.calls[0][1]).not.toBe(speaker);
   });
 
+  it("refuses a slot whose piece is not the reader's to work, rather than acting as somebody else", () => {
+    const speaker = ownedCharacter('術者');
+    const theirs = GameCharacter.create('ゴブリンA', 1, '');
+    theirs.owner = 'someone-else';
+    const draft = emptyHotbarSlotDraft('chat');
+    draft.value = '2d6+3 攻撃';
+    draft.characterIdentifier = theirs.identifier;
+    draft.characterName = 'ゴブリンA';
+    ownHotbar().put(preference.page(), 7, draft);
+    fixture.detectChanges();
+    const run = vi.spyOn(TestBed.inject(HotbarRunnerService), 'run').mockReturnValue({ ok: true });
+
+    slots()[7].click();
+
+    expect(run).not.toHaveBeenCalled();
+    expect(speaker).toBeTruthy();
+  });
+
+  it('keeps a slot pointing at the piece it names while that piece is still in the room', () => {
+    ownedCharacter('術者');
+    const theirs = GameCharacter.create('ゴブリンA', 1, '');
+    theirs.owner = 'someone-else';
+    const mine = GameCharacter.create('ゴブリンA', 1, '');
+    mine.owner = 'me';
+    const draft = emptyHotbarSlotDraft('chat');
+    draft.value = '2d6+3 攻撃';
+    draft.characterIdentifier = theirs.identifier;
+    draft.characterName = 'ゴブリンA';
+    const slot = ownHotbar().put(preference.page(), 7, draft);
+    fixture.detectChanges();
+
+    slots()[7].click();
+
+    expect(slot?.characterIdentifier).toBe(theirs.identifier);
+  });
+
   it('runs a slot whose piece was made again, finding it by the name it kept', () => {
     const character = ownedCharacter('術者');
     const draft = emptyHotbarSlotDraft('sound');
