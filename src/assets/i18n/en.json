@@ -2122,17 +2122,20 @@
         "sectionText": "Text",
         "fontSize": "Font size",
         "sectionPortrait": "Standing portrait",
-        "showPortraitThisTab": "Show portrait (this tab)",
         "portraitSize": "Portrait size",
         "portraitInWindow": "Show portrait inside window",
         "keepPortraitOutWindow": "Keep portrait outside window",
         "sectionSimple": "Simple view",
-        "enableSimpleThisTab": "Enable simple view (this tab)",
         "showTime": "Show time",
         "showUserId": "Show ID",
         "sectionScroll": "Scroll",
         "autoFollowScroll": "Auto-follow latest message",
-        "autoFollowScrollTooltip": "When off, new messages on the same tab will not auto-scroll"
+        "autoFollowScrollTooltip": "When off, new messages on the same tab will not auto-scroll",
+        "scope": "Applies to",
+        "scope_all": "Every tab",
+        "scope_perTab": "Each tab",
+        "showPortrait": "Show portraits",
+        "enableSimple": "Show messages plainly"
       },
       "systemAvatar": {
         "title": "System-chan",

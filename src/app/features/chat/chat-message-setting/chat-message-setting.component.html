@@ -25,16 +25,46 @@
     >
       {{ 'feature.chat.messageSetting.sectionPortrait' | transloco }}
     </h3>
-    <label class="flex cursor-pointer items-center justify-between gap-2 py-1">
-      <span class="text-ui-muted flex-1 text-[12px]">{{
-        'feature.chat.messageSetting.showPortraitThisTab' | transloco
-      }}</span>
-      @if (chatTab) {
-        <input type="checkbox" [(ngModel)]="chatTab.portraitDisplayFlag" name="portraitDisplayFlag" />
-      } @else {
-        <input type="checkbox" name="portraitDisplayFlag" disabled />
-      }
+    <label class="flex items-center justify-between gap-2 py-1">
+      <span class="text-ui-muted flex-1 text-[12px]">{{ 'feature.chat.messageSetting.scope' | transloco }}</span>
+      <select
+        class="rounded-ui-sm border-ui-border-panel bg-ui-input text-ui-text cursor-pointer border border-solid px-1 py-0.5 text-[12px]"
+        [attr.name]="'portraitScope'"
+        (change)="setPortraitScope($any($event.target).value)"
+      >
+        @for (choice of scopes; track choice) {
+          <option [value]="choice" [selected]="choice === portraitScope()">
+            {{ 'feature.chat.messageSetting.scope_' + choice | transloco }}
+          </option>
+        }
+      </select>
     </label>
+    @if (portraitScope() === 'all') {
+      <label class="flex cursor-pointer items-center justify-between gap-2 py-1">
+        <span class="text-ui-muted flex-1 text-[12px]">{{
+          'feature.chat.messageSetting.showPortrait' | transloco
+        }}</span>
+        <input
+          type="checkbox"
+          name="portraitDisplayFlag"
+          [ngModel]="portraitForAll()"
+          (ngModelChange)="setPortraitForAll($event)"
+        />
+      </label>
+    } @else {
+      @for (row of tabRows(); track row.identifier) {
+        <label class="flex cursor-pointer items-center justify-between gap-2 py-1 pl-2">
+          <span class="text-ui-muted min-w-0 flex-1 truncate text-[12px]">{{ row.name }}</span>
+          <input
+            type="checkbox"
+            [attr.name]="'portraitDisplayFlag-' + row.identifier"
+            [ngModel]="row.portrait"
+            [ngModelOptions]="{ standalone: true }"
+            (ngModelChange)="setPortraitOfTab(row.identifier, $event)"
+          />
+        </label>
+      }
+    }
     <label class="flex cursor-pointer items-center justify-between gap-2 py-1">
       <span class="text-ui-muted flex-1 text-[12px]">{{ 'feature.chat.messageSetting.portraitSize' | transloco }}</span>
       <input
@@ -139,21 +169,46 @@
     >
       {{ 'feature.chat.messageSetting.sectionSimple' | transloco }}
     </h3>
-    <label class="flex cursor-pointer items-center justify-between gap-2 py-1">
-      <span class="text-ui-muted flex-1 text-[12px]">{{
-        'feature.chat.messageSetting.enableSimpleThisTab' | transloco
-      }}</span>
-      @if (chatTab) {
+    <label class="flex items-center justify-between gap-2 py-1">
+      <span class="text-ui-muted flex-1 text-[12px]">{{ 'feature.chat.messageSetting.scope' | transloco }}</span>
+      <select
+        class="rounded-ui-sm border-ui-border-panel bg-ui-input text-ui-text cursor-pointer border border-solid px-1 py-0.5 text-[12px]"
+        [attr.name]="'simpleScope'"
+        (change)="setSimpleScope($any($event.target).value)"
+      >
+        @for (choice of scopes; track choice) {
+          <option [value]="choice" [selected]="choice === simpleScope()">
+            {{ 'feature.chat.messageSetting.scope_' + choice | transloco }}
+          </option>
+        }
+      </select>
+    </label>
+    @if (simpleScope() === 'all') {
+      <label class="flex cursor-pointer items-center justify-between gap-2 py-1">
+        <span class="text-ui-muted flex-1 text-[12px]">{{
+          'feature.chat.messageSetting.enableSimple' | transloco
+        }}</span>
         <input
           type="checkbox"
-          [(ngModel)]="chatTab.chatSimpleDispFlag"
           name="chatSimpleDispFlag"
-          (click)="changeSimpleDisp()"
+          [ngModel]="simpleForAll()"
+          (ngModelChange)="setSimpleForAll($event)"
         />
-      } @else {
-        <input type="checkbox" name="chatSimpleDispFlag" disabled />
+      </label>
+    } @else {
+      @for (row of tabRows(); track row.identifier) {
+        <label class="flex cursor-pointer items-center justify-between gap-2 py-1 pl-2">
+          <span class="text-ui-muted min-w-0 flex-1 truncate text-[12px]">{{ row.name }}</span>
+          <input
+            type="checkbox"
+            [attr.name]="'chatSimpleDispFlag-' + row.identifier"
+            [ngModel]="row.simple"
+            [ngModelOptions]="{ standalone: true }"
+            (ngModelChange)="setSimpleOfTab(row.identifier, $event)"
+          />
+        </label>
       }
-    </label>
+    }
     <label class="flex cursor-pointer items-center justify-between gap-2 py-1">
       <span class="text-ui-muted flex-1 text-[12px]">{{ 'feature.chat.messageSetting.showTime' | transloco }}</span>
       <input

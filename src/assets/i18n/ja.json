@@ -2122,17 +2122,20 @@
         "sectionText": "文字",
         "fontSize": "文字サイズ",
         "sectionPortrait": "立ち絵",
-        "showPortraitThisTab": "立ち絵を表示（このタブ）",
         "portraitSize": "立ち絵サイズ",
         "portraitInWindow": "立ち絵をウィンドウ内に表示",
         "keepPortraitOutWindow": "ウィンドウ外の立ち絵を保持",
         "sectionSimple": "簡易表示",
-        "enableSimpleThisTab": "簡易表示を有効にする（このタブ）",
         "showTime": "時間を表示",
         "showUserId": "IDを表示",
         "sectionScroll": "スクロール",
         "autoFollowScroll": "スクロール位置を最新に追従",
-        "autoFollowScrollTooltip": "オフ時は同一タブ内の新着メッセージで自動スクロールしません"
+        "autoFollowScrollTooltip": "オフ時は同一タブ内の新着メッセージで自動スクロールしません",
+        "scope": "適用範囲",
+        "scope_all": "全体",
+        "scope_perTab": "タブ毎",
+        "showPortrait": "立ち絵を表示",
+        "enableSimple": "簡易表示を有効にする"
       },
       "systemAvatar": {
         "title": "システムちゃん",

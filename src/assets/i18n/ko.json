@@ -2122,17 +2122,20 @@
         "sectionText": "글자",
         "fontSize": "글자 크기",
         "sectionPortrait": "입화",
-        "showPortraitThisTab": "입화 표시(이 탭)",
         "portraitSize": "입화 크기",
         "portraitInWindow": "입화를 창 안에 표시",
         "keepPortraitOutWindow": "창 밖의 입화 유지",
         "sectionSimple": "간단히 보기",
-        "enableSimpleThisTab": "간단히 보기 사용(이 탭)",
         "showTime": "시간 표시",
         "showUserId": "ID 표시",
         "sectionScroll": "스크롤",
         "autoFollowScroll": "스크롤 위치를 최신에 맞추기",
-        "autoFollowScrollTooltip": "끄면 같은 탭의 새 메시지로 자동 스크롤하지 않습니다"
+        "autoFollowScrollTooltip": "끄면 같은 탭의 새 메시지로 자동 스크롤하지 않습니다",
+        "scope": "적용 범위",
+        "scope_all": "전체",
+        "scope_perTab": "탭별",
+        "showPortrait": "일러스트 표시",
+        "enableSimple": "간이 표시 사용"
       },
       "systemAvatar": {
         "title": "시스템쨩",

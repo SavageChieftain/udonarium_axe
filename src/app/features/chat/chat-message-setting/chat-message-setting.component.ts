@@ -4,6 +4,7 @@ import {
   CHAT_FONT_SIZE_MAX,
   CHAT_FONT_SIZE_MIN,
   ChatPreferencesService,
+  ChatSettingScope,
 } from '@axe/application/chat/chat-preferences.service';
 import { SystemAvatarKind, SystemAvatarService } from '@axe/application/chat/system-avatar.service';
 import { RolePermissionService } from '@axe/application/permission/role-permission.service';
@@ -104,6 +105,68 @@ export class ChatMessageSettingComponent {
 
   onChkHeight(event: Event): void {
     this.chkHeight((event.target as HTMLInputElement).valueAsNumber);
+  }
+
+  readonly scopes: readonly ChatSettingScope[] = ['all', 'perTab'];
+
+  readonly portraitScope = computed(() => this.chatPrefs.portrait().scope);
+  readonly simpleScope = computed(() => this.chatPrefs.simple().scope);
+  readonly portraitForAll = computed(() => this.chatPrefs.portrait().all !== 0);
+  readonly simpleForAll = computed(() => this.chatPrefs.simple().all !== 0);
+
+  /**
+   * The tabs a reader may set an answer for, once the answers differ per tab.
+   *
+   * The system tab is left out: what it shows is the room talking to itself, not a place
+   * anyone speaks, and it takes what the rest of the room is set to.
+   */
+  readonly tabRows = computed<{ identifier: string; name: string; portrait: boolean; simple: boolean }[]>(() => {
+    this.objectChange.collectionOf('chat-tab')();
+    return this.chatTabList.chatTabs
+      .filter((tab) => !tab.isSystemTab)
+      .map((tab) => {
+        this.objectChange.versionOf(tab.identifier)();
+        return {
+          identifier: tab.identifier,
+          name: tab.name,
+          portrait: tab.portraitDisplayFlag !== 0,
+          simple: tab.chatSimpleDispFlag !== 0,
+        };
+      });
+  });
+
+  /** Taking one answer for the room writes it onto every tab, so nothing is left behind. */
+  setPortraitScope(scope: ChatSettingScope): void {
+    this.chatPrefs.setPortrait({ scope, all: this.chatPrefs.portrait().all });
+    if (scope === 'all') this.setPortraitForAll(this.portraitForAll());
+  }
+
+  setSimpleScope(scope: ChatSettingScope): void {
+    this.chatPrefs.setSimple({ scope, all: this.chatPrefs.simple().all });
+    if (scope === 'all') this.setSimpleForAll(this.simpleForAll());
+  }
+
+  setPortraitForAll(shown: boolean): void {
+    this.chatPrefs.setPortrait({ scope: 'all', all: shown ? 1 : 0 });
+    for (const tab of this.chatTabList.chatTabs) tab.portraitDisplayFlag = shown ? 1 : 0;
+  }
+
+  setSimpleForAll(simple: boolean): void {
+    this.chatPrefs.setSimple({ scope: 'all', all: simple ? 1 : 0 });
+    for (const tab of this.chatTabList.chatTabs) tab.chatSimpleDispFlag = simple ? 1 : 0;
+    this.uiSignalService.notifyChatRedraw();
+  }
+
+  setPortraitOfTab(identifier: string, shown: boolean): void {
+    const tab = this.objectStore.get<ChatTab>(identifier);
+    if (tab) tab.portraitDisplayFlag = shown ? 1 : 0;
+  }
+
+  setSimpleOfTab(identifier: string, simple: boolean): void {
+    const tab = this.objectStore.get<ChatTab>(identifier);
+    if (!tab) return;
+    tab.chatSimpleDispFlag = simple ? 1 : 0;
+    this.uiSignalService.notifyChatRedraw();
   }
 
   changeSimpleDisp() {

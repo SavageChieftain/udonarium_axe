@@ -23,10 +23,31 @@ export interface ChatTabPreferences {
   chatSimpleDispFlag: number;
 }
 
+/** Whether a display setting is one answer for the room or an answer per tab. */
+export type ChatSettingScope = 'all' | 'perTab';
+
+export interface ChatScopedSetting {
+  scope: ChatSettingScope;
+  /** The answer used everywhere while the scope is 'all'. */
+  all: number;
+}
+
+const DEFAULT_PORTRAIT: ChatScopedSetting = { scope: 'all', all: 1 };
+const DEFAULT_SIMPLE: ChatScopedSetting = { scope: 'all', all: 0 };
+
 interface StoredChatPreferences {
   fontSize?: number;
   colors?: string[];
   display?: ChatDisplayPreferences;
+  portrait?: ChatScopedSetting;
+  simple?: ChatScopedSetting;
+  /**
+   * What each tab was set to, under the tab's name.
+   *
+   * A room loaded from a file makes its tabs afresh under new identifiers, and a reader's own
+   * settings should not be lost with them. Two tabs of one name share an answer, which is a
+   * fair trade for settings that survive the room being passed around.
+   */
   tabs?: Record<string, ChatTabPreferences>;
 }
 
@@ -41,6 +62,8 @@ export class ChatPreferencesService {
   readonly fontSize = computed(() => clampFontSize(this.stored().fontSize ?? CHAT_FONT_SIZE_DEFAULT));
   readonly colors = computed<readonly string[] | null>(() => this.stored().colors ?? null);
   readonly display = computed<ChatDisplayPreferences | null>(() => this.stored().display ?? null);
+  readonly portrait = computed<ChatScopedSetting>(() => this.stored().portrait ?? DEFAULT_PORTRAIT);
+  readonly simple = computed<ChatScopedSetting>(() => this.stored().simple ?? DEFAULT_SIMPLE);
 
   constructor() {
     effect(() => {
@@ -73,15 +96,24 @@ export class ChatPreferencesService {
     this.patch({ display: { ...display } });
   }
 
-  tabPreferencesOf(identifier: string): ChatTabPreferences | null {
-    return this.stored().tabs?.[identifier] ?? null;
+  setPortrait(setting: ChatScopedSetting): void {
+    this.patch({ portrait: { ...setting } });
   }
 
-  setTabPreferences(identifier: string, preferences: ChatTabPreferences): void {
+  setSimple(setting: ChatScopedSetting): void {
+    this.patch({ simple: { ...setting } });
+  }
+
+  /** Tabs are remembered by name; see the note on the stored shape. */
+  tabPreferencesOf(name: string): ChatTabPreferences | null {
+    return this.stored().tabs?.[name] ?? null;
+  }
+
+  setTabPreferences(name: string, preferences: ChatTabPreferences): void {
     this.stored.update((current) => {
       const tabs: Record<string, ChatTabPreferences> = { ...current.tabs };
-      delete tabs[identifier];
-      tabs[identifier] = { ...preferences };
+      delete tabs[name];
+      tabs[name] = { ...preferences };
       const keys = Object.keys(tabs);
       for (const stale of keys.slice(0, Math.max(0, keys.length - TAB_PREFERENCE_LIMIT))) delete tabs[stale];
       return { ...current, tabs };
@@ -130,6 +162,10 @@ function readStored(): StoredChatPreferences {
     if (display) stored.display = display;
     const tabs = readTabs(source['tabs']);
     if (tabs) stored.tabs = tabs;
+    const portrait = readScoped(source['portrait']);
+    if (portrait) stored.portrait = portrait;
+    const simple = readScoped(source['simple']);
+    if (simple) stored.simple = simple;
     return stored;
   } catch {
     /* corrupt or unavailable storage — start from the defaults */
@@ -157,6 +193,14 @@ function readDisplay(value: unknown): ChatDisplayPreferences | null {
     simpleDispFlagTime: typeof simpleDispFlagTime === 'number' ? simpleDispFlagTime : 0,
     simpleDispFlagUserId: typeof simpleDispFlagUserId === 'number' ? simpleDispFlagUserId : 0,
   };
+}
+
+function readScoped(value: unknown): ChatScopedSetting | null {
+  if (!value || typeof value !== 'object') return null;
+  const source = value as Record<string, unknown>;
+  const scope = source['scope'] === 'perTab' ? 'perTab' : 'all';
+  const all = Number(source['all']);
+  return { scope, all: Number.isFinite(all) && all !== 0 ? 1 : 0 };
 }
 
 function readTabs(value: unknown): Record<string, ChatTabPreferences> | null {
