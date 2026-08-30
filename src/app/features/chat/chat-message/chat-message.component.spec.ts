@@ -13,7 +13,9 @@ import { ImageStorage } from '@axe/core/storage/image-storage';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { ChatMessage } from '@axe/domain/chat/chat-message';
 import { ChatTab } from '@axe/domain/chat/chat-tab';
+import { ChatTabList } from '@axe/domain/chat/chat-tab-list';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
+import { PeerRole } from '@axe/domain/peer/peer-role';
 import { TextNote } from '@axe/domain/tabletop/text-note';
 import { ChatMessageComponent } from '@axe/features/chat/chat-message/chat-message.component';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
@@ -527,6 +529,103 @@ describe('ChatMessageComponent', () => {
           .find((n, idx) => idx >= before && n.text === '2D6 → 7');
         created?.destroy();
       }
+    });
+  });
+
+  describe('saying a line again in another tab', () => {
+    const tabs: ChatTab[] = [];
+
+    function makeTab(name: string): ChatTab {
+      const tab = new ChatTab();
+      tab.name = name;
+      tab.initialize();
+      const kept = ChatTabList.instance.appendChild(tab)!;
+      tabs.push(kept);
+      return kept;
+    }
+
+    function copyIcon(): Element | null {
+      const icons = [...(fixture.nativeElement as HTMLElement).querySelectorAll('i.material-icons')];
+      return icons.find((icon) => icon.textContent?.trim() === 'move_to_inbox') ?? null;
+    }
+
+    function spoken(tab: ChatTab): ChatMessage {
+      const message = tab.addMessage({
+        from: 'test-user',
+        name: 'アリス',
+        text: 'こんばんは',
+        timestamp: 1000,
+        messColor: '#123456',
+      });
+      fixture.componentRef.setInput('chatMessage', message);
+      fixture.detectChanges();
+      return message;
+    }
+
+    beforeEach(() => {
+      PeerCursor.createMyCursor();
+    });
+
+    afterEach(() => {
+      for (const tab of tabs.splice(0)) tab.destroy();
+      (ChatTabList as unknown as { _instance: ChatTabList | undefined })._instance = undefined;
+    });
+
+    it('offers the tabs the reader may speak in, and not the one the line is already in', () => {
+      const here = makeTab('メイン');
+      makeTab('雑談');
+      spoken(here);
+
+      expect(component.copyTargets().map((tab) => tab.name)).toEqual(['雑談']);
+      expect(copyIcon()).not.toBeNull();
+    });
+
+    it('offers nothing where there is nowhere else to say it', () => {
+      const here = makeTab('メイン');
+      spoken(here);
+
+      expect(component.canCopyToTab).toBe(false);
+      expect(copyIcon()).toBeNull();
+    });
+
+    it('says the line again in the chosen tab, as it was said here', () => {
+      const here = makeTab('メイン');
+      const there = makeTab('雑談');
+      const message = spoken(here);
+
+      component.copyToTab(there);
+
+      const copied = there.chatMessages.at(-1)!;
+      expect(copied.identifier).not.toBe(message.identifier);
+      expect(copied.text).toBe('こんばんは');
+      expect(copied.name).toBe('アリス');
+      expect(copied.messColor).toBe('#123456');
+      expect(copied.timestamp).toBeGreaterThanOrEqual(message.timestamp);
+      expect(here.chatMessages).toHaveLength(1);
+    });
+
+    it('closes the list once a tab is chosen', () => {
+      const here = makeTab('メイン');
+      const there = makeTab('雑談');
+      spoken(here);
+
+      component.toggleCopyPicker();
+      expect(component.isCopyPickerOpen()).toBe(true);
+
+      component.copyToTab(there);
+      expect(component.isCopyPickerOpen()).toBe(false);
+    });
+
+    it('copies nothing into a tab the reader may not speak in', () => {
+      const here = makeTab('メイン');
+      const there = makeTab('雑談');
+      there.plCanSpeak = false;
+      PeerCursor.myCursor.role = PeerRole.Player;
+      spoken(here);
+
+      component.copyToTab(there);
+
+      expect(there.chatMessages).toHaveLength(0);
     });
   });
 

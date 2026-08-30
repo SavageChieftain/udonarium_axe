@@ -50,6 +50,37 @@
                   (click)="clickQuote()"
                   >format_quote</i
                 >
+                @if (canCopyToTab) {
+                  <span class="relative inline-block">
+                    <i
+                      class="material-icons text-ui-dim hover:text-ui-accent ml-1 cursor-pointer align-middle text-[14px]! opacity-0 transition-opacity duration-150 group-hover/body:opacity-100"
+                      [class.text-ui-accent]="isCopyPickerOpen()"
+                      [class.opacity-100]="isCopyPickerOpen()"
+                      [title]="'feature.chat.message.copyToTab' | transloco"
+                      (click)="toggleCopyPicker()"
+                      >move_to_inbox</i
+                    >
+                    @if (isCopyPickerOpen()) {
+                      <span
+                        class="border-ui-border-panel bg-ui-panel rounded-ui-sm shadow-ui-md absolute top-[calc(100%+4px)] left-0 z-20 flex w-40 flex-col border border-solid p-1"
+                      >
+                        <span class="text-ui-dim px-1.5 pb-1 text-[10px]">{{
+                          'feature.chat.message.copyToTab' | transloco
+                        }}</span>
+                        @for (tab of copyTargets(); track tab.identifier) {
+                          <button
+                            type="button"
+                            class="text-ui-text hover:bg-ui-hover rounded-ui-sm cursor-pointer truncate border-0 bg-transparent px-1.5 py-1 text-left text-[12px] transition-colors"
+                            [title]="tab.name"
+                            (click)="copyToTab(tab)"
+                          >
+                            {{ tab.name }}
+                          </button>
+                        }
+                      </span>
+                    }
+                  </span>
+                }
                 @if (canShareAsMemo) {
                   <i
                     class="material-icons text-ui-dim hover:text-ui-accent ml-1 cursor-pointer align-middle text-[14px]! opacity-0 transition-opacity duration-150 group-hover/body:opacity-100"
@@ -276,6 +307,37 @@
                     (click)="clickQuote()"
                     >format_quote</i
                   >
+                  @if (canCopyToTab) {
+                    <span class="relative inline-block">
+                      <i
+                        class="material-icons text-ui-dim hover:text-ui-accent ml-1 cursor-pointer align-middle text-[14px]! opacity-0 transition-opacity duration-150 group-hover/body:opacity-100"
+                        [class.text-ui-accent]="isCopyPickerOpen()"
+                        [class.opacity-100]="isCopyPickerOpen()"
+                        [title]="'feature.chat.message.copyToTab' | transloco"
+                        (click)="toggleCopyPicker()"
+                        >move_to_inbox</i
+                      >
+                      @if (isCopyPickerOpen()) {
+                        <span
+                          class="border-ui-border-panel bg-ui-panel rounded-ui-sm shadow-ui-md absolute top-[calc(100%+4px)] left-0 z-20 flex w-40 flex-col border border-solid p-1"
+                        >
+                          <span class="text-ui-dim px-1.5 pb-1 text-[10px]">{{
+                            'feature.chat.message.copyToTab' | transloco
+                          }}</span>
+                          @for (tab of copyTargets(); track tab.identifier) {
+                            <button
+                              type="button"
+                              class="text-ui-text hover:bg-ui-hover rounded-ui-sm cursor-pointer truncate border-0 bg-transparent px-1.5 py-1 text-left text-[12px] transition-colors"
+                              [title]="tab.name"
+                              (click)="copyToTab(tab)"
+                            >
+                              {{ tab.name }}
+                            </button>
+                          }
+                        </span>
+                      }
+                    </span>
+                  }
                   @if (canShareAsMemo) {
                     <i
                       class="material-icons text-ui-dim hover:text-ui-accent ml-1 cursor-pointer align-middle text-[14px]! opacity-0 transition-opacity duration-150 group-hover/body:opacity-100"

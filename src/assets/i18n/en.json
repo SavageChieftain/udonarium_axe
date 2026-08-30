@@ -2099,7 +2099,8 @@
         "reply": "Reply",
         "quote": "Quote",
         "jumpToOriginal": "Jump to original message",
-        "shareAsMemo": "Send to shared memo"
+        "shareAsMemo": "Send to shared memo",
+        "copyToTab": "Copy to another tab"
       },
       "palette": {
         "panelTitle": "Chat palette",
