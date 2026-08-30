@@ -116,6 +116,23 @@ describe('carrying a hotbar between rooms', () => {
     expect(store.getObjects<HotbarSet>(HotbarSet)).toHaveLength(0);
   });
 
+  it('leaves the bar alone for a file whose slots name no cell this bar has', () => {
+    const hotbar = myHotbar();
+    const draft = emptyHotbarSlotDraft('chat');
+    draft.value = '2d6+3 攻撃';
+    hotbar.put(0, 0, draft);
+
+    const parser = new DOMParser();
+    const beyond = parser.parseFromString(
+      '<hotbar-set identifier="x"><hotbar-slot page="7" slotIndex="3" kind="chat">遠い頁</hotbar-slot></hotbar-set>',
+      'application/xml'
+    );
+    HotbarSet.of(hotbar).parseInnerXml(beyond.documentElement);
+
+    expect(hotbar.slotAt(0, 0)?.value).toBe('2d6+3 攻撃');
+    expect(hotbar.hasDisplaced).toBe(false);
+  });
+
   it('leaves the bar alone for a file with nothing readable on it', () => {
     const hotbar = myHotbar();
     const draft = emptyHotbarSlotDraft('chat');

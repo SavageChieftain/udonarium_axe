@@ -39,10 +39,16 @@ export class CharacterDiceService {
       .filter((die) => die.ownerCharacterIdentifier === character.identifier);
   }
 
-  /** Takes every die of this character off the table, and says how many came back. */
+  /**
+   * Takes every die of this character off the table, and says how many came back.
+   *
+   * A handful swept up is one sweep: the sound belongs to the gesture rather than to each
+   * die, and six of them at once was six of the same noise over one another.
+   */
   putAway(character: GameCharacter): number {
     const dice = this.laidOut(character);
-    for (const die of dice) this.store(character, die);
+    for (const die of dice) this.take(character, die);
+    if (dice.length > 0) SoundEffect.play(PresetSound.sweep);
     return dice.length;
   }
 
@@ -77,9 +83,13 @@ export class CharacterDiceService {
    * leaving the object behind as well would put the same die in two places.
    */
   store(character: GameCharacter, symbol: DiceSymbol): void {
+    this.take(character, symbol);
+    SoundEffect.play(PresetSound.sweep);
+  }
+
+  private take(character: GameCharacter, symbol: DiceSymbol): void {
     storeHeldDie(character, heldDieOfSymbol(symbol));
     symbol.destroy();
-    SoundEffect.play(PresetSound.sweep);
   }
 
   /** Puts one back onto the sheet without a die on the table to take it from. */

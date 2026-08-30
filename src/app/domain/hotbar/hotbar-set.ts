@@ -6,6 +6,7 @@ import { ObjectStore } from '@axe/core/sync/object-store';
 import { Hotbar } from '@axe/domain/hotbar/hotbar';
 import { HotbarSlotDraft } from '@axe/domain/hotbar/hotbar-draft';
 import { parseHotbarPayload } from '@axe/domain/hotbar/hotbar-payload';
+import { holdsHotbarCell } from '@axe/domain/hotbar/hotbar-size';
 import { HotbarSlot } from '@axe/domain/hotbar/hotbar-slot';
 import { toHotbarSlotKind } from '@axe/domain/hotbar/hotbar-slot-kind';
 
@@ -72,10 +73,13 @@ export class HotbarSet extends ObjectNode implements InnerXml {
 function readSlot(element: Element): { page: number; slotIndex: number; draft: HotbarSlotDraft } | null {
   const attribute = (name: string): string => element.getAttribute(name) ?? '';
   const kind = toHotbarSlotKind(attribute('kind'));
+  const cell = { page: toCoordinate(attribute('page')), slotIndex: toCoordinate(attribute('slotIndex')) };
+  // A file naming a sixth page, or naming no cell at all, holds nothing this bar can take.
+  if (!holdsHotbarCell(cell)) return null;
 
   return {
-    page: toCoordinate(attribute('page')),
-    slotIndex: toCoordinate(attribute('slotIndex')),
+    page: cell.page,
+    slotIndex: cell.slotIndex,
     draft: {
       kind,
       value: element.textContent ?? '',

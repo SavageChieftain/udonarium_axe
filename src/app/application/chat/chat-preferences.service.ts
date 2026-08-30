@@ -86,6 +86,16 @@ export class ChatPreferencesService {
   readonly display = computed<ChatDisplayPreferences | null>(() => this.stored().display ?? null);
   readonly portrait = computed<ChatScopedSetting>(() => this.stored().portrait ?? DEFAULT_PORTRAIT);
   readonly simple = computed<ChatScopedSetting>(() => this.stored().simple ?? DEFAULT_SIMPLE);
+
+  /**
+   * Whether this reader ever answered at all.
+   *
+   * A tab's setting is shared with the room, so a reader with nothing of their own to say
+   * must say nothing: joining with an empty store would otherwise write the defaults onto
+   * every tab and hand them to everybody else.
+   */
+  readonly hasPortraitAnswer = computed(() => this.stored().portrait !== undefined);
+  readonly hasSimpleAnswer = computed(() => this.stored().simple !== undefined);
   readonly sound = computed<ChatScopedSoundSetting>(() => this.stored().sound ?? DEFAULT_SOUND);
 
   constructor() {
@@ -214,11 +224,11 @@ function readStored(): StoredChatPreferences {
     const tabs = readTabs(source['tabs']);
     if (tabs) stored.tabs = tabs;
     // A reader from before the scope was asked about kept an answer per tab, and meant it.
-    const perTab: ChatSettingScope = stored.tabs ? 'perTab' : 'all';
-    const portrait = readScoped(source['portrait']) ?? { ...DEFAULT_PORTRAIT, scope: perTab };
-    stored.portrait = portrait;
-    const simple = readScoped(source['simple']) ?? { ...DEFAULT_SIMPLE, scope: perTab };
-    stored.simple = simple;
+    // A reader who kept nothing at all is left with nothing, and writes on no tab.
+    const portrait = readScoped(source['portrait']) ?? (stored.tabs ? { ...DEFAULT_PORTRAIT, scope: 'perTab' } : null);
+    if (portrait) stored.portrait = portrait;
+    const simple = readScoped(source['simple']) ?? (stored.tabs ? { ...DEFAULT_SIMPLE, scope: 'perTab' } : null);
+    if (simple) stored.simple = simple;
     const sound = readScopedSound(source['sound']);
     if (sound) stored.sound = sound;
     return stored;

@@ -63,18 +63,24 @@ export class ChatSettingsEventHandlerService {
    * Puts the reader's own answers back on a tab.
    *
    * A setting kept for the room over all its tabs is written straight on; one kept per tab is
-   * looked up by the tab's name, since a room read from a file makes its tabs afresh.
+   * looked up by the tab's name, since a room read from a file makes its tabs afresh. A reader
+   * who has never answered writes on nothing: what a tab is set to is shared with the room, so
+   * somebody joining on a fresh browser would otherwise hand their defaults to everybody.
    */
   private restoreTab(tab: ChatTab): void {
-    const portrait = this.preferences.portrait();
-    const simple = this.preferences.simple();
     const stored = this.preferences.tabPreferencesOf(tab.name, tab.identifier);
 
-    if (portrait.scope === 'all') tab.portraitDisplayFlag = portrait.all;
-    else if (stored) tab.portraitDisplayFlag = stored.portraitDisplayFlag;
+    if (this.preferences.hasPortraitAnswer()) {
+      const portrait = this.preferences.portrait();
+      if (portrait.scope === 'all') tab.portraitDisplayFlag = portrait.all;
+      else if (stored) tab.portraitDisplayFlag = stored.portraitDisplayFlag;
+    }
 
-    if (simple.scope === 'all') tab.chatSimpleDispFlag = simple.all;
-    else if (stored) tab.chatSimpleDispFlag = stored.chatSimpleDispFlag;
+    if (this.preferences.hasSimpleAnswer()) {
+      const simple = this.preferences.simple();
+      if (simple.scope === 'all') tab.chatSimpleDispFlag = simple.all;
+      else if (stored) tab.chatSimpleDispFlag = stored.chatSimpleDispFlag;
+    }
   }
 
   private captureDisplay(): void {

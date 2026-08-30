@@ -162,4 +162,18 @@ describe('ChatSettingsEventHandlerService', () => {
     };
     expect(kept.tabs?.['雑談']).toEqual({ portraitDisplayFlag: 0, chatSimpleDispFlag: 1 });
   });
+
+  it('writes on no tab for a reader who has never answered', () => {
+    // What a tab is set to is shared with the room; a fresh browser must not hand its
+    // defaults to everybody who is already there.
+    const tab = makeTab('雑談');
+    tab.portraitDisplayFlag = 0;
+    tab.chatSimpleDispFlag = 1;
+    localStorage.removeItem('chat-preferences');
+
+    start();
+
+    expect(tab.portraitDisplayFlag).toBe(0);
+    expect(tab.chatSimpleDispFlag).toBe(1);
+  });
 });

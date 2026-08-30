@@ -775,8 +775,6 @@ export class WhiteBoardEditorComponent {
     // undone went back to the blank sheet the editor was built with, four squares by three.
     this.history.reset(this.scene);
     this.refreshHistory();
-    // The board as it stands is the bottom of the undo stack. Left unset, the first thing
-    // undone went back to the blank sheet the editor was built with, four squares by three.
     queueMicrotask(() => {
       this.panelService.title = board.name;
       void this.redraw();
