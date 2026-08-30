@@ -24,6 +24,7 @@ describe('buildEffectLibraryContextMenu()', () => {
         onPreview: () => undefined,
         onInsertToken: () => undefined,
         onPlaceField: () => undefined,
+        onAddToHotbar: () => undefined,
         onExport: () => undefined,
         onRemove: () => undefined,
       },
@@ -34,6 +35,7 @@ describe('buildEffectLibraryContextMenu()', () => {
       'feature.effect.preview',
       'feature.effect.insertToken',
       'feature.effect.placeField',
+      'feature.hotbar.menu.fillFromHere',
       'feature.effect.editPreset',
       'feature.effect.duplicatePreset',
       'feature.effect.exportPreset',
@@ -51,6 +53,7 @@ describe('buildEffectLibraryContextMenu()', () => {
         onPreview: () => called.push('preview'),
         onInsertToken: () => called.push('insertToken'),
         onPlaceField: () => called.push('placeField'),
+        onAddToHotbar: () => called.push('addToHotbar'),
         onExport: () => called.push('export'),
         onRemove: () => called.push('remove'),
       },
@@ -59,6 +62,15 @@ describe('buildEffectLibraryContextMenu()', () => {
 
     for (const entry of menu) entry.action?.();
 
-    expect(called).toEqual(['preview', 'insertToken', 'placeField', 'edit', 'duplicate', 'export', 'remove']);
+    expect(called).toEqual([
+      'preview',
+      'insertToken',
+      'placeField',
+      'addToHotbar',
+      'edit',
+      'duplicate',
+      'export',
+      'remove',
+    ]);
   });
 });

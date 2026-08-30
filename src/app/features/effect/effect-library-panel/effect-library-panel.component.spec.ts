@@ -2,6 +2,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { EffectPreset } from '@axe/domain/effect/effect-preset';
 import { EffectLibraryPanelComponent } from '@axe/features/effect/effect-library-panel/effect-library-panel.component';
+import { HotbarFillService } from '@axe/features/hotbar/hotbar-fill.service';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
 
 describe('EffectLibraryPanelComponent', () => {
@@ -80,6 +81,15 @@ describe('EffectLibraryPanelComponent', () => {
     // The heading stays and only the contents go.
     expect((fixture.nativeElement as HTMLElement).textContent).toContain('炎');
     expect((fixture.nativeElement as HTMLElement).textContent).not.toContain('爆炎');
+  });
+
+  it('hands an effect to the hotbar, under the name it goes by', () => {
+    const fill = vi.spyOn(TestBed.inject(HotbarFillService), 'fill').mockReturnValue({ page: 0, slotIndex: 0 });
+    fixture.detectChanges();
+
+    (fixture.componentInstance as unknown as { addToHotbar(preset: EffectPreset): void }).addToHotbar(preset);
+
+    expect(fill.mock.calls[0][0]).toMatchObject({ kind: 'effect', value: '爆炎', valueName: '爆炎' });
   });
 
   it('does nothing when it is fired with nothing to aim at', () => {

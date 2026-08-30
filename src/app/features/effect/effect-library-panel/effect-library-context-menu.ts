@@ -8,6 +8,7 @@ export interface EffectLibraryMenuCallbacks {
   onPreview: () => void;
   onInsertToken: () => void;
   onPlaceField: () => void;
+  onAddToHotbar: () => void;
   onExport: () => void;
   onRemove: () => void;
 }
@@ -22,6 +23,7 @@ export function buildEffectLibraryContextMenu(
     { name: t('feature.effect.preview'), action: () => callbacks.onPreview() },
     { name: t('feature.effect.insertToken'), action: () => callbacks.onInsertToken() },
     { name: t('feature.effect.placeField'), action: () => callbacks.onPlaceField() },
+    { name: t('feature.hotbar.menu.fillFromHere'), action: () => callbacks.onAddToHotbar() },
     ContextMenuSeparator,
     { name: t('feature.effect.editPreset'), action: () => callbacks.onEdit() },
     { name: t('feature.effect.duplicatePreset'), action: () => callbacks.onDuplicate() },
