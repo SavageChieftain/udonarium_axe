@@ -1,5 +1,5 @@
-import { ImageItem, ImageLayer, MapScene } from '@axe/features/map-editor/model/scene';
-import { isHangable, livePicturesOf } from '@axe/features/tabletop/white-board/white-board-live-pictures';
+import { createLayer, FreehandLayer, ImageItem, ImageLayer, MapScene } from '@axe/features/map-editor/model/scene';
+import { hangablePictureIds, livePicturesOf } from '@axe/features/tabletop/white-board/white-board-live-pictures';
 import { createBoardScene } from '@axe/features/tabletop/white-board/white-board-scene';
 
 function sceneWith(...items: Partial<ImageItem>[]): MapScene {
@@ -90,10 +90,33 @@ describe('livePicturesOf()', () => {
   });
 });
 
-describe('isHangable()', () => {
-  it('agrees with what the board hangs', () => {
-    expect(isHangable('moving', undefined, undefined, moves)).toBe(true);
-    expect(isHangable('still', undefined, undefined, moves)).toBe(false);
-    expect(isHangable('', undefined, undefined, moves)).toBe(false);
+describe('hangablePictureIds()', () => {
+  it('names the moving pictures the board will hang', () => {
+    expect([...hangablePictureIds(sceneWith({}, { imageIdentifier: 'still' }), moves)]).toEqual(['item-0']);
+  });
+
+  function notesOver(scene: MapScene, drawn: boolean): void {
+    const layer = createLayer('freehand', '書き込み') as FreehandLayer;
+    if (drawn) layer.strokes.push({ id: 'stroke-0', points: [0, 0, 10, 10], color: '#000000', width: 2 });
+    scene.layers.push(layer);
+  }
+
+  it('leaves a picture with anything drawn over it in the paint, so nothing is covered', () => {
+    const scene = sceneWith({});
+    notesOver(scene, true);
+
+    expect(hangablePictureIds(scene, moves).size).toBe(0);
+    expect(livePicturesOf(scene, 200, 150, moves)).toEqual([]);
+  });
+
+  it('hangs it again where the layer over it is empty', () => {
+    const scene = sceneWith({});
+    notesOver(scene, false);
+
+    expect(hangablePictureIds(scene, moves).size).toBe(1);
+  });
+
+  it('names nothing without a drawing', () => {
+    expect(hangablePictureIds(null, moves).size).toBe(0);
   });
 });

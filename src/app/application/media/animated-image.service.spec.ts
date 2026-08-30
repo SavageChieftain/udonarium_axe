@@ -63,6 +63,43 @@ describe('AnimatedImageService', () => {
     expect(animated.isAnimated('picture')).toBe(false);
   });
 
+  it('asks again once a picture that had not arrived yet is there', async () => {
+    const get = vi.spyOn(ImageStorage.prototype, 'get').mockReturnValue(undefined as never);
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => ({ blob: async () => ({ slice: () => ({ arrayBuffer: async () => gif }) }) }) as never)
+    );
+    const animated = service();
+
+    expect(await animated.probe('picture')).toBe(false);
+
+    get.mockReturnValue({ url: 'blob:picture' } as never);
+    expect(await animated.probe('picture')).toBe(true);
+  });
+
+  it('reads a picture once however many ask at once', async () => {
+    serve(gif);
+    const animated = service();
+
+    const asked = await Promise.all([animated.probe('picture'), animated.probe('picture')]);
+
+    expect(asked).toEqual([true, true]);
+    expect(fetch).toHaveBeenCalledTimes(1);
+  });
+
+  it('asks again after a reading that could not be made', async () => {
+    vi.spyOn(ImageStorage.prototype, 'get').mockReturnValue({ url: 'blob:picture' } as never);
+    const fetcher = vi.fn(async () => {
+      throw new Error('gone');
+    });
+    vi.stubGlobal('fetch', fetcher);
+    const animated = service();
+
+    expect(await animated.probe('picture')).toBe(false);
+    expect(await animated.probe('picture')).toBe(false);
+    expect(fetcher).toHaveBeenCalledTimes(2);
+  });
+
   it('says nothing of a picture the storehouse does not have', async () => {
     vi.spyOn(ImageStorage.prototype, 'get').mockReturnValue(undefined as never);
     const animated = service();

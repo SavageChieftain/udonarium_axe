@@ -57,7 +57,7 @@ import { deserializeScene, serializeScene } from '@axe/features/map-editor/model
 import { getRasterImage, warmRasterImages } from '@axe/features/map-editor/render/raster-image';
 import { renderScene } from '@axe/features/map-editor/render/render-scene';
 import { detachFromBoard, standingOn } from '@axe/features/tabletop/white-board/white-board-contents';
-import { isHangable } from '@axe/features/tabletop/white-board/white-board-live-pictures';
+import { hangablePictureIds } from '@axe/features/tabletop/white-board/white-board-live-pictures';
 import {
   addJoint,
   AlignEdge,
@@ -1773,7 +1773,17 @@ export class WhiteBoardEditorComponent {
       .map((item) => this.imageStorage.get(item.imageIdentifier)?.url)
       .filter((url): url is string => !!url);
     if (urls.length > 0) await warmRasterImages(urls);
-    if (hangingLeftOut) await Promise.all(items.map((item) => this.animatedImage.probe(item.imageIdentifier)));
+
+    // What is left out has to be exactly what the board hangs, so the reading is waited for
+    // here rather than asked about again below, where a picture still being read answers "still".
+    const moving = new Set<string>();
+    if (hangingLeftOut) {
+      const read = await Promise.all(
+        items.map(async (item) => [item.imageIdentifier, await this.animatedImage.probe(item.imageIdentifier)] as const)
+      );
+      for (const [identifier, animated] of read) if (animated) moving.add(identifier);
+    }
+    const hung = hangablePictureIds(hangingLeftOut ? this.scene : null, (identifier) => moving.has(identifier));
 
     renderScene(
       ctx,
@@ -1782,14 +1792,7 @@ export class WhiteBoardEditorComponent {
         texturePattern: () => null,
         stampImage: () => null,
         rasterImage: (item) => {
-          if (
-            hangingLeftOut &&
-            isHangable(item.imageIdentifier, item.crop, item.clipToCells, (identifier) =>
-              this.animatedImage.isAnimated(identifier)
-            )
-          ) {
-            return null;
-          }
+          if (hung.has(item.id)) return null;
           const url = this.imageStorage.get(item.imageIdentifier)?.url;
           return url ? getRasterImage(url) : null;
         },

@@ -11,12 +11,17 @@ const HEAD_BYTES = 64 * 1024;
  * The answer is in the bytes rather than in anything the storehouse knows, so it is read
  * once per picture and kept. Until it is read a picture is taken as still, and whatever
  * asked is told again when the bytes come back.
+ *
+ * Only an answer actually read from bytes is kept. A picture still on its way from another
+ * peer, or one whose bytes cannot be fetched, is left unanswered and asked about again:
+ * remembering "still" for those would leave a moving picture neither hung nor painted, since
+ * the board leaves what moves out of the picture it wears.
  */
 @Injectable({ providedIn: 'root' })
 export class AnimatedImageService {
   private readonly imageStorage = inject(ImageStorage);
   private readonly answers = signal<ReadonlyMap<string, boolean>>(new Map());
-  private readonly asking = new Set<string>();
+  private readonly asking = new Map<string, Promise<boolean>>();
 
   isAnimated(identifier: string): boolean {
     const known = this.answers().get(identifier);
@@ -25,21 +30,30 @@ export class AnimatedImageService {
     return false;
   }
 
-  async probe(identifier: string): Promise<boolean> {
+  probe(identifier: string): Promise<boolean> {
     const known = this.answers().get(identifier);
-    if (known !== undefined) return known;
-    if (this.asking.has(identifier)) return false;
-    this.asking.add(identifier);
+    if (known !== undefined) return Promise.resolve(known);
+    // One reading is enough; whoever else asks in the meantime waits for the same one.
+    const asked = this.asking.get(identifier);
+    if (asked) return asked;
 
-    let animated = false;
+    const reading = this.read(identifier).finally(() => this.asking.delete(identifier));
+    this.asking.set(identifier, reading);
+    return reading;
+  }
+
+  private async read(identifier: string): Promise<boolean> {
+    let head: ArrayBuffer;
     try {
-      animated = isAnimatedImageBytes(await this.headOf(identifier));
+      head = await this.headOf(identifier);
     } catch {
-      /* a picture that cannot be read is drawn as it always was */
-    } finally {
-      this.asking.delete(identifier);
-      this.answers.update((current) => new Map(current).set(identifier, animated));
+      // Unreadable for now; the picture is drawn as it always was and asked about again later.
+      return false;
     }
+    if (head.byteLength < 1) return false;
+
+    const animated = isAnimatedImageBytes(head);
+    this.answers.update((current) => new Map(current).set(identifier, animated));
     return animated;
   }
 

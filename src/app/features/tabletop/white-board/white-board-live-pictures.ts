@@ -1,4 +1,4 @@
-import { ImageLayer, MapScene, sceneHeightPx, sceneWidthPx } from '@axe/features/map-editor/model/scene';
+import { ImageLayer, MapLayer, MapScene, sceneHeightPx, sceneWidthPx } from '@axe/features/map-editor/model/scene';
 import { imageBox } from '@axe/features/tabletop/white-board/white-board-scene';
 
 export interface LivePicture {
@@ -37,11 +37,12 @@ export function livePicturesOf(
   const offsetX = (boardWidth - sceneWidth * scale) / 2;
   const offsetY = (boardHeight - sceneHeight * scale) / 2;
 
+  const hangable = hangablePictureIds(scene, isAnimated);
   const hung: LivePicture[] = [];
   for (const layer of scene.layers) {
     if (layer.kind !== 'image' || !layer.visible) continue;
     for (const item of (layer as ImageLayer).items) {
-      if (!isHangable(item.imageIdentifier, item.crop, item.clipToCells, isAnimated)) continue;
+      if (!hangable.has(item.id)) continue;
       const box = imageBox(item);
       hung.push({
         id: item.id,
@@ -58,16 +59,53 @@ export function livePicturesOf(
   return hung;
 }
 
-/** The same reading of the scene the board uses, so that what is hung is never also painted. */
-export function isHangable(
-  imageIdentifier: string,
-  crop: { w: number; h: number } | undefined,
-  clipToCells: boolean | undefined,
+/**
+ * Which drawings are hung over the board's picture rather than painted into it.
+ *
+ * The same reading serves the board and the editor that takes its picture, so that what is
+ * hung is never also painted. A picture is hung when it moves, when the paint could not put
+ * it where a hung one goes anyway, and when nothing is drawn over it: a hung picture sits
+ * above the whole picture the board wears, and would otherwise cover the lines and words
+ * somebody drew on top of it.
+ */
+export function hangablePictureIds(
+  scene: MapScene | null,
   isAnimated: (imageIdentifier: string) => boolean
-): boolean {
-  if (!imageIdentifier || !isAnimated(imageIdentifier)) return false;
-  if (clipToCells) return false;
-  return !(crop && crop.w > 0 && crop.h > 0);
+): Set<string> {
+  const hangable = new Set<string>();
+  if (!scene) return hangable;
+
+  const topDrawn = topmostDrawnIndex(scene.layers);
+  for (const [index, layer] of scene.layers.entries()) {
+    if (layer.kind !== 'image' || !layer.visible || index < topDrawn) continue;
+    for (const item of (layer as ImageLayer).items) {
+      if (!item.imageIdentifier || !isAnimated(item.imageIdentifier)) continue;
+      if (item.clipToCells) continue;
+      if (item.crop && item.crop.w > 0 && item.crop.h > 0) continue;
+      hangable.add(item.id);
+    }
+  }
+  return hangable;
+}
+
+/** The highest layer anybody has actually drawn on; empty layers hide nothing. */
+function topmostDrawnIndex(layers: readonly MapLayer[]): number {
+  let top = 0;
+  for (const [index, layer] of layers.entries()) {
+    if (layer.visible && hasContent(layer)) top = index;
+  }
+  return top;
+}
+
+function hasContent(layer: MapLayer): boolean {
+  switch (layer.kind) {
+    case 'cell':
+      return Object.keys(layer.cells).length > 0;
+    case 'freehand':
+      return layer.strokes.length > 0;
+    default:
+      return layer.items.length > 0;
+  }
 }
 
 function transformOf(rotation: number, flipX?: boolean, flipY?: boolean): string {
