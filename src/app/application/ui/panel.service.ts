@@ -64,6 +64,8 @@ export class PanelService {
   static cardStackListComponentClass: Type<unknown> | null = null;
   private panelComponentRef: ComponentRef<UIPanelInstance> | null = null;
   private static readonly singles = new Map<string, ComponentRef<UIPanelInstance>>();
+  /** Names spoken for by a panel whose code is still being fetched. */
+  private static readonly opening = new Set<string>();
   title: string = '';
   titleTooltip: string = '';
   left: number = 0;
@@ -99,8 +101,16 @@ export class PanelService {
     this.scrollablePanel = panel;
   }
 
-  /** Closes the panel holding this name, and says whether there was one to close. */
+  /**
+   * Closes the panel holding this name, and says whether there was one to close.
+   *
+   * A panel still on its way counts as one: a name asked for and not yet arrived is taken
+   * back, and the panel is dropped when it lands rather than opening after the reader has
+   * asked it to go away.
+   */
   closeSingle(name: string): boolean {
+    if (PanelService.opening.delete(name)) return true;
+
     const open = PanelService.singles.get(name);
     if (!open) return false;
     open.destroy();
@@ -144,12 +154,20 @@ export class PanelService {
   ): void {
     // A panel that fails to arrive says nothing for itself: the promise rejects into nowhere
     // and the reader is left looking at a menu item that appears to do nothing.
+    const single = option?.single;
+    if (single) PanelService.opening.add(single);
+
     factory()
       .then((childComponent) => {
+        // Asked to close while it was being fetched, it never opens at all.
+        if (single && !PanelService.opening.delete(single)) return;
+
         const instance = this.open(childComponent, option, parentViewContainerRef);
         setup?.(instance);
       })
       .catch((reason) => {
+        // The name is let go of as well, or nothing under it could ever be opened again.
+        if (single) PanelService.opening.delete(single);
         Logger.error('[PanelService] パネルを開けませんでした', reason);
       });
   }

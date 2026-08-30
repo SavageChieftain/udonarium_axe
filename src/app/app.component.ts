@@ -22,7 +22,7 @@ import { MobileLayoutService } from '@axe/application/ui/mobile-layout.service';
 import { ModalService } from '@axe/application/ui/modal.service';
 import { MotionService } from '@axe/application/ui/motion.service';
 import { OverlayModeService } from '@axe/application/ui/overlay-mode.service';
-import { PanelOption, PanelService } from '@axe/application/ui/panel.service';
+import { PanelService } from '@axe/application/ui/panel.service';
 import { ThemeService } from '@axe/application/ui/theme.service';
 import { ViewportService } from '@axe/application/ui/viewport.service';
 import { WidgetVisibilityService } from '@axe/application/ui/widget-visibility.service';
@@ -31,48 +31,37 @@ import { FileArchiver } from '@axe/core/storage/file-archiver';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { ReloadCheck } from '@axe/domain/peer/reload-check';
+import { RoomPanelName } from '@axe/domain/ui/room-panel';
 import { AlarmEventHandlerService } from '@axe/features/alarm/alarm-event-handler.service';
 import { CardStackListImageComponent } from '@axe/features/card/card-stack-list-img/card-stack-list-img.component';
 import { HandDragGhostComponent } from '@axe/features/card/hand-rail/hand-drag-ghost.component';
 import { HandRailComponent } from '@axe/features/card/hand-rail/hand-rail.component';
-import { GameCharacterGeneratorComponent } from '@axe/features/character/game-character-generator/game-character-generator.component';
-import { GameCharacterSheetComponent } from '@axe/features/character/game-character-sheet/game-character-sheet.component';
-import { ImportCharacterComponent } from '@axe/features/character/import-character/import-character.component';
 import { ChatPortraitImageComponent } from '@axe/features/chat/chat-portrait-img/chat-portrait-img.component';
 import { ChatSettingsEventHandlerService } from '@axe/features/chat/chat-settings-event-handler.service';
-import { ChatWindowComponent } from '@axe/features/chat/chat-window/chat-window.component';
 import { DiceChatEventHandlerService } from '@axe/features/dice/dice-chat-event-handler.service';
 import { EffectChatEventHandlerService } from '@axe/features/effect/effect-chat-event-handler.service';
-import { FileStorageComponent } from '@axe/features/file/file-storage/file-storage.component';
-import { GameObjectListPanelComponent } from '@axe/features/gm-object-list/game-object-list-panel.component';
 import { GmToolbarComponent } from '@axe/features/gm-tools/gm-toolbar/gm-toolbar.component';
 import { NpcDragGhostComponent } from '@axe/features/gm-tools/npc-bar/npc-drag-ghost.component';
-import { GameObjectInventoryComponent } from '@axe/features/inventory/game-object-inventory/game-object-inventory.component';
+import { HotbarBarComponent } from '@axe/features/hotbar/hotbar-bar/hotbar-bar.component';
 import { OverviewPanelComponent } from '@axe/features/inventory/overview-panel/overview-panel.component';
 import { LanguageSelectorComponent } from '@axe/features/language-selector/language-selector.component';
 import { InviteJoinComponent } from '@axe/features/lobby/invite-join/invite-join.component';
 import { NetworkEventHandlerService } from '@axe/features/lobby/network-event-handler.service';
 import { NetworkIndicatorComponent } from '@axe/features/lobby/network-indicator/network-indicator.component';
-import { PeerMenuComponent } from '@axe/features/lobby/peer-menu/peer-menu.component';
 import { CutInEventHandlerService } from '@axe/features/media/cut-in-event-handler.service';
-import { CutInListComponent } from '@axe/features/media/cut-in-list/cut-in-list.component';
-import { JukeboxComponent } from '@axe/features/media/jukebox/jukebox.component';
 import { MiniJukeboxComponent } from '@axe/features/media/mini-jukebox/mini-jukebox.component';
 import { MobileShellComponent } from '@axe/features/mobile/mobile-shell/mobile-shell.component';
+import { RoomPanelService } from '@axe/features/panels/room-panel.service';
 import { PlToolbarComponent } from '@axe/features/pl-tools/pl-toolbar/pl-toolbar.component';
 import { ReplayBoardBannerComponent } from '@axe/features/replay/replay-board-banner/replay-board-banner.component';
 import { ReplayEventHandlerService } from '@axe/features/replay/replay-event-handler.service';
 import { ReplayIndicatorComponent } from '@axe/features/replay/replay-indicator/replay-indicator.component';
 import { ReplayStagingBannerComponent } from '@axe/features/replay/replay-staging-banner/replay-staging-banner.component';
-import { ReplayWorkspaceComponent } from '@axe/features/replay/replay-workspace/replay-workspace.component';
 import { RoomArchiveEventHandlerService } from '@axe/features/room-archive/room-archive-event-handler.service';
 import { RoomRestoreBannerComponent } from '@axe/features/room-archive/room-restore-banner/room-restore-banner.component';
-import { RoomSnapshotPanelComponent } from '@axe/features/room-archive/room-snapshot-panel/room-snapshot-panel.component';
 import { StreamingOverlayComponent } from '@axe/features/streaming-overlay/streaming-overlay.component';
 import { CcfoliaRoomImportEventHandlerService } from '@axe/features/tabletop/ccfolia-room-import/ccfolia-room-import-event-handler.service';
-import { DungeonGeneratorComponent } from '@axe/features/tabletop/dungeon-generator/dungeon-generator.component';
 import { GameTableComponent } from '@axe/features/tabletop/game-table/game-table.component';
-import { GameTableSettingComponent } from '@axe/features/tabletop/game-table-setting/game-table-setting.component';
 import { ImageDropEventHandlerService } from '@axe/features/tabletop/image-drop/image-drop-event-handler.service';
 import { VisualNovelModeService } from '@axe/features/visual-novel/visual-novel-mode.service';
 import { VisualNovelOverlayComponent } from '@axe/features/visual-novel/visual-novel-overlay/visual-novel-overlay.component';
@@ -105,6 +94,7 @@ import { version as APP_VERSION } from '@pkg';
     RenderStatsComponent,
     DigitalClockComponent,
     VoteWidgetComponent,
+    HotbarBarComponent,
     MobileShellComponent,
     RoomRestoreBannerComponent,
     ReplayStagingBannerComponent,
@@ -130,6 +120,7 @@ export class AppComponent {
   readonly isTableSplit = computed(() => this.mobile.isActive() && !this.visualNovel.active());
   private readonly t = inject(TRANSLATE_FN);
   private readonly panelService = inject(PanelService);
+  private readonly roomPanels = inject(RoomPanelService);
   private readonly saveDataService = inject(SaveDataService);
   private readonly fileArchiver = inject(FileArchiver);
   private readonly rolePermission = inject(RolePermissionService);
@@ -160,7 +151,6 @@ export class AppComponent {
     if (setting === 'off') return this.t('common.motion.off');
     return this.t('common.motion.auto');
   });
-  private openPanelCount = 0;
 
   constructor() {
     inject(Title).setTitle(`Udonarium Axe ${APP_VERSION}`);
@@ -190,129 +180,22 @@ export class AppComponent {
         ModalService.defaultParentViewContainerRef =
         ContextMenuService.defaultParentViewContainerRef =
           this.modalLayerViewContainerRef();
-      this.panelService.open(PeerMenuComponent, {
-        title: this.t('common.panel.peerMenu'),
-        width: 420,
-        height: 300,
-        left: 80,
-        top: 10,
-      });
+      this.roomPanels.open('peerMenu', { left: 80, top: 10 });
       if (this.viewport.isCompact()) return;
 
       const chatHeight = 460;
-      this.panelService.open(ChatWindowComponent, {
-        title: this.t('common.panel.chatWindow'),
+      this.roomPanels.open('chatWindow', {
         width: 660,
         height: chatHeight,
-        minWidth: 300,
-        minHeight: 460,
         left: 80,
         top: Math.max(10, window.innerHeight - chatHeight - 20),
       });
     });
   }
 
-  open(
-    componentName:
-      | 'PeerMenuComponent'
-      | 'ChatWindowComponent'
-      | 'GameTableSettingComponent'
-      | 'FileStorageComponent'
-      | 'GameCharacterSheetComponent'
-      | 'JukeboxComponent'
-      | 'CutInListComponent'
-      | 'GameCharacterGeneratorComponent'
-      | 'ImportCharacterComponent'
-      | 'GameObjectInventoryComponent'
-      | 'GameObjectListPanelComponent'
-      | 'RoomSnapshotPanelComponent'
-      | 'ReplayWorkspaceComponent'
-      | 'DungeonGeneratorComponent'
-  ) {
-    let component: { new (...args: unknown[]): unknown } | null = null;
-    let option: PanelOption = { width: 450, height: 600, left: 100 };
-    switch (componentName) {
-      case 'PeerMenuComponent':
-        component = PeerMenuComponent;
-        option = { width: 420, height: 300, left: 100, title: this.t('common.panel.peerMenu') };
-        break;
-      case 'ChatWindowComponent':
-        component = ChatWindowComponent;
-        option.width = 700;
-        option.height = 500;
-        option.minWidth = 300;
-        option.minHeight = 460;
-        option.title = this.t('common.panel.chatWindow');
-        break;
-      case 'GameTableSettingComponent':
-        component = GameTableSettingComponent;
-        option = { width: 630, height: 500, left: 100, title: this.t('common.panel.gameTableSetting') };
-        break;
-      case 'FileStorageComponent':
-        component = FileStorageComponent;
-        option.title = this.t('common.panel.fileStorage');
-        break;
-      case 'GameCharacterSheetComponent':
-        component = GameCharacterSheetComponent;
-        break;
-      case 'JukeboxComponent':
-        component = JukeboxComponent;
-        option.title = this.t('common.panel.jukebox');
-        break;
-      case 'CutInListComponent':
-        component = CutInListComponent;
-        // The scene tab wants room for a stage, a layer list and a properties column.
-        option = { width: 980, height: 760, left: 60, title: this.t('common.panel.cutInList') };
-        break;
-      case 'GameCharacterGeneratorComponent':
-        component = GameCharacterGeneratorComponent;
-        option = { width: 500, height: 300, left: 100, title: this.t('common.panel.characterGenerator') };
-        break;
-      case 'ImportCharacterComponent':
-        component = ImportCharacterComponent;
-        option = { width: 480, height: 460, left: 100, title: this.t('common.panel.characterImport') };
-        break;
-      case 'GameObjectInventoryComponent':
-        component = GameObjectInventoryComponent;
-        option.title = this.t('common.panel.inventory');
-        option.minimizeToContent = true;
-        break;
-      case 'GameObjectListPanelComponent':
-        component = GameObjectListPanelComponent;
-        option = { width: 460, height: 620, left: 100, title: this.t('common.panel.objectList') };
-        break;
-      case 'RoomSnapshotPanelComponent':
-        component = RoomSnapshotPanelComponent;
-        option = { width: 460, height: 460, left: 100, title: this.t('common.panel.roomSnapshot') };
-        break;
-      case 'DungeonGeneratorComponent':
-        component = DungeonGeneratorComponent;
-        option = {
-          width: 460,
-          height: 660,
-          minWidth: 400,
-          minHeight: 520,
-          title: this.t('feature.tabletop.dungeonGenerator.title'),
-        };
-        break;
-      case 'ReplayWorkspaceComponent':
-        component = ReplayWorkspaceComponent;
-        option = {
-          width: 900,
-          height: 640,
-          left: 100,
-          minWidth: 600,
-          minHeight: 420,
-          title: this.t('common.panel.replay'),
-        };
-        break;
-    }
-    if (component) {
-      option.top = ((this.openPanelCount % 10) + 1) * 20;
-      option.left = 100 + ((this.openPanelCount % 20) + 1) * 5;
-      this.openPanelCount = this.openPanelCount + 1;
-      this.panelService.open(component, option);
-    }
+  /** The menu asks for a panel by name; where it opens and how big it is lives with the panels. */
+  open(name: RoomPanelName): void {
+    this.roomPanels.open(name);
   }
 
   async save() {
