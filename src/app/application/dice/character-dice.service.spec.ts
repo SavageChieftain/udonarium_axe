@@ -56,6 +56,24 @@ describe('CharacterDiceService', () => {
     expect(deployed()).toHaveLength(3);
   });
 
+  it('takes back every die of that character on the table', () => {
+    const character = makeCharacter();
+    storeHeldDie(character, { name: '攻撃ダイス', count: 2, faces: [{ label: '1', imageIdentifier: '' }] });
+    service.deploy(character);
+    const stranger = makeSymbol('よその出目');
+
+    expect(service.laidOut(character)).toHaveLength(2);
+    expect(service.putAway(character)).toBe(2);
+
+    expect(service.laidOut(character)).toHaveLength(0);
+    expect(heldDiceOf(character)[0].count).toBe(2);
+    expect(ObjectStore.instance.get(stranger.identifier)).toBe(stranger);
+  });
+
+  it('takes back nothing where the character has laid none out', () => {
+    expect(service.putAway(makeCharacter())).toBe(0);
+  });
+
   it('gives each one the faces it was kept with', () => {
     const character = makeCharacter();
     storeHeldDie(character, {

@@ -1,4 +1,5 @@
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
+import { ObjectStore } from '@axe/core/sync/object-store';
 import {
   heldDiceOf,
   HeldDie,
@@ -25,8 +26,24 @@ const DICE_OFFSET_PX = 60;
  */
 @Injectable({ providedIn: 'root' })
 export class CharacterDiceService {
+  private readonly objectStore = inject(ObjectStore);
+
   held(character: GameCharacter): HeldDie[] {
     return heldDiceOf(character);
+  }
+
+  /** The dice of this character that are out on the table, in the order they were laid. */
+  laidOut(character: GameCharacter): DiceSymbol[] {
+    return this.objectStore
+      .getObjects<DiceSymbol>(DiceSymbol)
+      .filter((die) => die.ownerCharacterIdentifier === character.identifier);
+  }
+
+  /** Takes every die of this character off the table, and says how many came back. */
+  putAway(character: GameCharacter): number {
+    const dice = this.laidOut(character);
+    for (const die of dice) this.store(character, die);
+    return dice.length;
   }
 
   /**
