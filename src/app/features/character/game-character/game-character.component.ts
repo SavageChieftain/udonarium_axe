@@ -54,6 +54,7 @@ import {
   resourceChangeSeverity,
   ResourceSnapshot,
 } from '@axe/domain/character/resource-change';
+import { playsEffectOnChange, playsSoundOnChange } from '@axe/domain/character/resource-feedback';
 import { DataElement } from '@axe/domain/data/data-element';
 import { collectDataElements } from '@axe/domain/data/data-element-tree';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
@@ -540,6 +541,8 @@ export class GameCharacterComponent {
         current: Number(element.currentValue),
         max: Number(element.value),
         inverted: isGaugeInverted(element),
+        playsEffect: playsEffectOnChange(element),
+        playsSound: playsSoundOnChange(element),
         changedBySelf: this.objectStore.localChangeCountOf(element.identifier),
       });
     }
@@ -819,10 +822,16 @@ export class GameCharacterComponent {
 
     const kind = entries.some((entry) => entry.kind === 'damage') ? 'damage' : 'heal';
     this.hitFlash.set(kind);
-    SoundEffect.playLocal(resourceChangeSound(kind, loudestChangeRatio(entries)));
 
+    const heard = entries.filter((entry) => entry.playsSound);
+    if (heard.length > 0) {
+      const heardKind = heard.some((entry) => entry.kind === 'damage') ? 'damage' : 'heal';
+      SoundEffect.playLocal(resourceChangeSound(heardKind, loudestChangeRatio(heard)));
+    }
+
+    const shown = entries.filter((entry) => entry.playsEffect);
     const char = this.gameCharacter();
-    if (char) this.effectAutoPlay.play(char, entries);
+    if (char && shown.length > 0) this.effectAutoPlay.play(char, shown);
 
     const flashTimer = setTimeout(
       () => {

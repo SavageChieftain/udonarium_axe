@@ -1,6 +1,7 @@
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { CharacterTemplateFactory } from '@axe/domain/character/character-template-factory';
 import { GameCharacter } from '@axe/domain/character/game-character';
+import { playsEffectOnChange, playsSoundOnChange } from '@axe/domain/character/resource-feedback';
 import {
   DataElement,
   DataElementAttribute,
@@ -53,6 +54,16 @@ describe('CharacterTemplateFactory', () => {
       expect(mp).toBeTruthy();
       expect(mp!.value).toBe(100);
       expect(mp!.currentValue).toBe('100');
+    });
+
+    it('lets the two usual resources be both seen and heard when they move', () => {
+      const character = GameCharacter.create('戦士', 1, '');
+
+      for (const name of ['HP', 'MP']) {
+        const element = character.detailDataElement!.getFirstElementByName(name)!;
+        expect(playsEffectOnChange(element)).toBe(true);
+        expect(playsSoundOnChange(element)).toBe(true);
+      }
     });
 
     it('gives it its abilities', () => {

@@ -26,7 +26,16 @@ describe('diffResourceSnapshots()', () => {
     const to = after({ hp: { current: 170, max: 200 } });
 
     expect(diffResourceSnapshots(from, to, nameOf)).toEqual([
-      { identifier: 'hp', name: 'HP', kind: 'damage', delta: -30, label: '-30', ratio: 0.15 },
+      {
+        identifier: 'hp',
+        name: 'HP',
+        kind: 'damage',
+        delta: -30,
+        label: '-30',
+        ratio: 0.15,
+        playsEffect: true,
+        playsSound: false,
+      },
     ]);
   });
 
@@ -94,6 +103,22 @@ describe('diffResourceSnapshots()', () => {
 
     expect(diffResourceSnapshots(from, to, nameOf)[0]).toMatchObject({ kind: 'damage', label: '-30' });
   });
+
+  it('answers a change the way the field says to, and plays no sound unless it asks for one', () => {
+    const quiet = diffResourceSnapshots(
+      before({ hp: { current: 200, max: 200 } }),
+      after({ hp: { current: 190, max: 200 } }),
+      nameOf
+    );
+    expect(quiet[0]).toMatchObject({ playsEffect: true, playsSound: false });
+
+    const asked = diffResourceSnapshots(
+      before({ hp: { current: 200, max: 200, playsEffect: false, playsSound: true } }),
+      after({ hp: { current: 190, max: 200, playsEffect: false, playsSound: true } }),
+      nameOf
+    );
+    expect(asked[0]).toMatchObject({ playsEffect: false, playsSound: true });
+  });
 });
 
 describe('resourceChangeSeverity()', () => {
@@ -115,8 +140,26 @@ describe('resourceChangeSeverity()', () => {
 describe('loudestChangeRatio()', () => {
   it('returns the largest share', () => {
     const changes = [
-      { identifier: 'a', name: 'HP', kind: 'damage' as const, delta: -10, label: '-10', ratio: 0.05 },
-      { identifier: 'b', name: 'MP', kind: 'damage' as const, delta: -20, label: '-20', ratio: 0.5 },
+      {
+        identifier: 'a',
+        name: 'HP',
+        kind: 'damage' as const,
+        delta: -10,
+        label: '-10',
+        ratio: 0.05,
+        playsEffect: true,
+        playsSound: false,
+      },
+      {
+        identifier: 'b',
+        name: 'MP',
+        kind: 'damage' as const,
+        delta: -20,
+        label: '-20',
+        ratio: 0.5,
+        playsEffect: true,
+        playsSound: false,
+      },
     ];
 
     expect(loudestChangeRatio(changes)).toBe(0.5);

@@ -14,7 +14,16 @@ describe('EffectAutoPlayService', () => {
   let character: GameCharacter;
 
   function change(kind: 'damage' | 'heal', ratio: number): ResourceChange {
-    return { identifier: 'HP', name: 'HP', kind, delta: kind === 'damage' ? -10 : 10, label: '-10', ratio };
+    return {
+      identifier: 'HP',
+      name: 'HP',
+      kind,
+      delta: kind === 'damage' ? -10 : 10,
+      label: '-10',
+      ratio,
+      playsEffect: true,
+      playsSound: false,
+    };
   }
 
   beforeEach(() => {

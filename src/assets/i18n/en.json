@@ -3254,6 +3254,8 @@
       "imagePopupOriginal": "Show full size in popup",
       "pieceGauge": "Show a bar on the piece",
       "gaugeInverted": "Negative resource",
+      "changeEffect": "Effect on change",
+      "changeSound": "Sound on change",
       "columnLabel": "Column label",
       "columnLabelPlaceholder": "Empty: use name",
       "columnGroup": "Column group",

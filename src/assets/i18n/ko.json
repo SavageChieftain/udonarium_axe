@@ -3058,6 +3058,8 @@
         "imagePopupOriginal": "팝업에서 원본 크기로 표시",
         "pieceGauge": "말에 막대 표시",
         "gaugeInverted": "마이너스 리소스",
+        "changeEffect": "증감 시 이펙트",
+        "changeSound": "증감 시 효과음",
         "columnLabel": "열 표시",
         "columnLabelPlaceholder": "비우면 이름",
         "columnGroup": "열 그룹",

@@ -15,6 +15,7 @@ import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { ImageStorage } from '@axe/core/storage/image-storage';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { GameCharacter } from '@axe/domain/character/game-character';
+import { playsEffectOnChange, playsSoundOnChange } from '@axe/domain/character/resource-feedback';
 import {
   DataElement,
   DataElementAttribute,
@@ -780,6 +781,36 @@ export class GameDataElementComponent {
     const element = this.gameDataElement();
     if (this.isPieceGauge()) element.removeAttribute(DataElementAttribute.PIECE_GAUGE);
     else element.setAttribute(DataElementAttribute.PIECE_GAUGE, 'true');
+    this.objectChange.notifyChanged(element.identifier);
+  }
+
+  canShowChangeFeedback(): boolean {
+    return this.gameDataElement().isNumberResource;
+  }
+
+  playsEffectOnChange(): boolean {
+    const element = this.gameDataElement();
+    this.objectChange.versionOf(element.identifier)();
+    return playsEffectOnChange(element);
+  }
+
+  playsSoundOnChange(): boolean {
+    const element = this.gameDataElement();
+    this.objectChange.versionOf(element.identifier)();
+    return playsSoundOnChange(element);
+  }
+
+  toggleChangeEffect(): void {
+    if (!this.canShowChangeFeedback()) return;
+    const element = this.gameDataElement();
+    element.setAttribute(DataElementAttribute.CHANGE_EFFECT, this.playsEffectOnChange() ? 'false' : 'true');
+    this.objectChange.notifyChanged(element.identifier);
+  }
+
+  toggleChangeSound(): void {
+    if (!this.canShowChangeFeedback()) return;
+    const element = this.gameDataElement();
+    element.setAttribute(DataElementAttribute.CHANGE_SOUND, this.playsSoundOnChange() ? 'false' : 'true');
     this.objectChange.notifyChanged(element.identifier);
   }
 

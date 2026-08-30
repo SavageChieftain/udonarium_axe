@@ -75,6 +75,8 @@ export const DataElementAttribute = {
   JUDGE_MODE: 'cs-judge-mode',
   PIECE_GAUGE: 'cs-piece-gauge',
   GAUGE_INVERTED: 'cs-gauge-inverted',
+  CHANGE_EFFECT: 'cs-change-effect',
+  CHANGE_SOUND: 'cs-change-sound',
   BUFF_ICON: 'cs-buff-icon',
   BUFF_COLOR: 'cs-buff-color',
   BUFF_TIMING: 'cs-buff-timing',
