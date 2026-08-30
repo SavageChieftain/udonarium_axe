@@ -1,5 +1,6 @@
 import { readFileSync } from 'node:fs';
 
+import { HOTBAR_SLOT_KINDS } from '@axe/domain/hotbar/hotbar-slot-kind';
 import { CUT_IN_EASING_NAMES } from '@axe/domain/media/cubic-bezier';
 import { CUT_IN_ENTRANCES, CUT_IN_EXITS } from '@axe/domain/media/cut-in-animation-presets';
 import { CUT_IN_CLIPS } from '@axe/domain/media/cut-in-clip';
@@ -15,6 +16,7 @@ import { DUNGEON_ROOM_ROLES } from '@axe/domain/tabletop/dungeon/dungeon-layout'
 import { FIELD_ATMOSPHERE_IDS, FIELD_PROP_IDS } from '@axe/domain/tabletop/field/field-atmosphere';
 import { LightPreset } from '@axe/domain/tabletop/vision-types';
 import { MAP_KINDS } from '@axe/features/tabletop/dungeon-generator/dungeon-generator.component';
+const HOTBAR_FAILURES = ['noCharacter', 'notFound', 'noTab', 'offTable', 'empty'] as const;
 
 /**
  * A screen that builds its key out of a value — `'…clip' + shape` — puts that key beyond
@@ -33,6 +35,12 @@ const CHOICES: Record<string, readonly string[]> = {
   'feature.tabletop.dungeonGenerator.field.': FIELD_ATMOSPHERE_IDS,
   'feature.tabletop.dungeonGenerator.prop.': FIELD_PROP_IDS,
   'feature.tabletop.dungeonGenerator.kind.': MAP_KINDS,
+  'feature.hotbar.kind.': HOTBAR_SLOT_KINDS,
+  'feature.hotbar.kindHint.': HOTBAR_SLOT_KINDS,
+  'feature.hotbar.failure.': HOTBAR_FAILURES,
+  'feature.hotbar.mode.': ['cast', 'field', 'preview'],
+  'feature.hotbar.panelName.': ['chatPalette', 'sheet', 'remoteController'],
+  'feature.hotbar.turnAction.': ['next', 'prev', 'reset'],
   'feature.media.cutInEditor.clip': CUT_IN_CLIPS,
   'feature.media.cutInEditor.wipe': CUT_IN_WIPES,
   'feature.media.cutInEditor.effect': CUT_IN_EFFECTS,
