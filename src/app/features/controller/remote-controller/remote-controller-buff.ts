@@ -1,8 +1,5 @@
-import { ChatMessageService } from '@axe/application/chat/chat-message.service';
 import { BuffAppearance, parseBuffAppearance } from '@axe/domain/character/buff-appearance';
 import { GameCharacter } from '@axe/domain/character/game-character';
-import { ChatTab } from '@axe/domain/chat/chat-tab';
-import GameSystemClass from 'bcdice/lib/game_system';
 
 export interface RemoteControllerSelect {
   name: string;
@@ -51,38 +48,22 @@ export function addBuffRound(
   }
 }
 
-export function sendDecBuffRoundMessage(
-  chatTab: ChatTab,
-  svc: ChatMessageService,
-  gameSystem: GameSystemClass,
-  sendFrom: string,
-  portraitIndex: number,
-  gameCharacters: GameCharacter[],
-  formatMessage: (targets: string) => string
-): void {
-  if (gameCharacters.length <= 0 || !chatTab) return;
-  const parts: string[] = [];
-  for (const object of gameCharacters) {
-    object.buffs.decreaseRound();
-    parts.push(`[${object.name}]`);
-  }
-  svc.sendMessage(chatTab, formatMessage(parts.join('')), gameSystem, sendFrom, '', portraitIndex);
+/** Steps every buff on the given pieces down a round, and names the pieces it touched. */
+export function decreaseBuffRound(characters: readonly GameCharacter[]): string {
+  return actOnBuffs(characters, (character) => character.buffs.decreaseRound());
 }
 
-export function sendDeleteZeroRoundBuffMessage(
-  chatTab: ChatTab,
-  svc: ChatMessageService,
-  gameSystem: GameSystemClass,
-  sendFrom: string,
-  portraitIndex: number,
-  gameCharacters: GameCharacter[],
-  formatMessage: (targets: string) => string
-): void {
-  if (gameCharacters.length <= 0 || !chatTab) return;
-  const parts: string[] = [];
-  for (const object of gameCharacters) {
-    object.buffs.deleteZeroRound();
-    parts.push(`[${object.name}]`);
+/** Clears the buffs that have run out on the given pieces, and names the pieces it touched. */
+export function deleteZeroRoundBuffs(characters: readonly GameCharacter[]): string {
+  return actOnBuffs(characters, (character) => character.buffs.deleteZeroRound());
+}
+
+function actOnBuffs(characters: readonly GameCharacter[], act: (character: GameCharacter) => void): string {
+  if (characters.length < 1) return '';
+  const names: string[] = [];
+  for (const character of characters) {
+    act(character);
+    names.push(`[${character.name}]`);
   }
-  svc.sendMessage(chatTab, formatMessage(parts.join('')), gameSystem, sendFrom, '', portraitIndex);
+  return names.join('');
 }
