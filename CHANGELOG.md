@@ -1,3 +1,14 @@
+## [1.46.1](https://github.com/Xelltis/udonarium_axe/compare/v1.46.0...v1.46.1) (2026-08-30)
+
+### 🐛 Bug Fixes
+
+* **hotbar:** let the slot that put an effect on the ground take it away again ([8592cf2](https://github.com/Xelltis/udonarium_axe/commit/8592cf25c9fe004da505dce396df2cde4793b6e6))
+
+### 📝 Documentation
+
+* **website:** name the icon the hotbar is opened from ([06b2b5e](https://github.com/Xelltis/udonarium_axe/commit/06b2b5e467767da2bf5bcdc16fabce4f8b9a7c65))
+* **website:** write the release note for v1.46.0 ([05e090d](https://github.com/Xelltis/udonarium_axe/commit/05e090de35ed50a4c3b6ec6c7a527af61ba7f01a))
+
 ## [1.46.0](https://github.com/Xelltis/udonarium_axe/compare/v1.45.0...v1.46.0) (2026-08-30)
 
 ### ✨ Features
