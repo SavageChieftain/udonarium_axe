@@ -74,6 +74,39 @@ describe('DraggableDirective', () => {
       expect(cancel).not.toHaveBeenCalled();
     });
 
+    it('tells the host when a drag ends, so what moved can be written down', () => {
+      fixture.detectChanges();
+      directive = fixture.debugElement.children[0].injector.get(DraggableDirective);
+      const ended: unknown[] = [];
+      directive.onend.subscribe((event) => ended.push(event));
+
+      const end = (directive as unknown as { onInputEnd(event: MouseEvent): void }).onInputEnd.bind(directive);
+      end(new MouseEvent('mouseup'));
+
+      expect(ended).toHaveLength(1);
+    });
+
+    it('says the place is settled once the window stops changing shape', () => {
+      vi.useFakeTimers();
+      try {
+        fixture.detectChanges();
+        directive = fixture.debugElement.children[0].injector.get(DraggableDirective);
+        let settled = 0;
+        directive.onsettle.subscribe(() => (settled += 1));
+
+        window.dispatchEvent(new Event('resize'));
+        window.dispatchEvent(new Event('resize'));
+        window.dispatchEvent(new Event('resize'));
+        expect(settled).toBe(0);
+
+        vi.advanceTimersByTime(400);
+
+        expect(settled).toBe(1);
+      } finally {
+        vi.useRealTimers();
+      }
+    });
+
     it('cleans up on destroy without throwing', () => {
       fixture.detectChanges();
       directive = fixture.debugElement.children[0].injector.get(DraggableDirective);

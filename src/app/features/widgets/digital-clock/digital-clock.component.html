@@ -4,6 +4,7 @@
     class="digital-clock group rounded-ui-lg text-ui-text hover:bg-ui-panel/65 hover:border-ui-border-panel fixed top-0 left-0 z-100 box-border flex cursor-grab items-start gap-2 border border-solid border-transparent py-2 pr-2 pl-3 transition-[background-color,border-color] select-none hover:[backdrop-filter:blur(20px)_saturate(1.4)] hover:[-webkit-backdrop-filter:blur(20px)_saturate(1.4)] active:cursor-grabbing"
     appDraggable
     (draggable.end)="rememberSpot()"
+    (draggable.settled)="rememberSpot()"
     [draggable.unhandle]="'button'"
   >
     <div

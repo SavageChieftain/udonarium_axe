@@ -9,6 +9,7 @@
     [draggable.disable]="mobile.isActive() || preference.locked()"
     [draggable.unhandle]="'button'"
     (draggable.end)="rememberSpot()"
+    (draggable.settled)="rememberSpot()"
     (contextmenu)="openBarMenu($event)"
   >
     <input #file type="file" accept=".zip,.xml" class="hidden" data-testid="hotbar-file" (change)="loadFile($event)" />
