@@ -1120,10 +1120,10 @@ describe('GameDataElementComponent', () => {
       expect(component.canShowChangeFeedback()).toBe(true);
     });
 
-    it('starts out seen but not heard', () => {
+    it('starts out neither seen nor heard', () => {
       fixture.componentRef.setInput('gameDataElement', resourceField());
 
-      expect(component.playsEffectOnChange()).toBe(true);
+      expect(component.playsEffectOnChange()).toBe(false);
       expect(component.playsSoundOnChange()).toBe(false);
     });
 
@@ -1132,9 +1132,9 @@ describe('GameDataElementComponent', () => {
       fixture.componentRef.setInput('gameDataElement', element);
 
       component.toggleChangeEffect();
-      expect(component.playsEffectOnChange()).toBe(false);
-      component.toggleChangeEffect();
       expect(component.playsEffectOnChange()).toBe(true);
+      component.toggleChangeEffect();
+      expect(component.playsEffectOnChange()).toBe(false);
 
       component.toggleChangeSound();
       expect(component.playsSoundOnChange()).toBe(true);

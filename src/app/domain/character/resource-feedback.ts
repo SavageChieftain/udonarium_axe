@@ -3,12 +3,11 @@ import { DataElement, DataElementAttribute } from '@axe/domain/data/data-element
 /**
  * What a resource does to the table when it moves.
  *
- * An effect is played unless the field says otherwise, as it has always been.
- * A sound is played only where the field asks for one: a table that hears a blow for every
- * point of every counter soon hears nothing at all.
+ * Neither an effect nor a sound is played unless the field asks for one: a table that sees a
+ * blow struck and hears it for every point of every counter soon notices none of them.
  */
 export function playsEffectOnChange(element: DataElement): boolean {
-  return element.getAttribute(DataElementAttribute.CHANGE_EFFECT) !== 'false';
+  return element.getAttribute(DataElementAttribute.CHANGE_EFFECT) === 'true';
 }
 
 export function playsSoundOnChange(element: DataElement): boolean {

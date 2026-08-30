@@ -33,7 +33,7 @@ describe('diffResourceSnapshots()', () => {
         delta: -30,
         label: '-30',
         ratio: 0.15,
-        playsEffect: true,
+        playsEffect: false,
         playsSound: false,
       },
     ]);
@@ -104,20 +104,20 @@ describe('diffResourceSnapshots()', () => {
     expect(diffResourceSnapshots(from, to, nameOf)[0]).toMatchObject({ kind: 'damage', label: '-30' });
   });
 
-  it('answers a change the way the field says to, and plays no sound unless it asks for one', () => {
+  it('answers a change only the way the field asks to be answered', () => {
     const quiet = diffResourceSnapshots(
       before({ hp: { current: 200, max: 200 } }),
       after({ hp: { current: 190, max: 200 } }),
       nameOf
     );
-    expect(quiet[0]).toMatchObject({ playsEffect: true, playsSound: false });
+    expect(quiet[0]).toMatchObject({ playsEffect: false, playsSound: false });
 
     const asked = diffResourceSnapshots(
-      before({ hp: { current: 200, max: 200, playsEffect: false, playsSound: true } }),
-      after({ hp: { current: 190, max: 200, playsEffect: false, playsSound: true } }),
+      before({ hp: { current: 200, max: 200, playsEffect: true, playsSound: true } }),
+      after({ hp: { current: 190, max: 200, playsEffect: true, playsSound: true } }),
       nameOf
     );
-    expect(asked[0]).toMatchObject({ playsEffect: false, playsSound: true });
+    expect(asked[0]).toMatchObject({ playsEffect: true, playsSound: true });
   });
 });
 

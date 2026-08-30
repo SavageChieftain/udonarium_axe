@@ -66,7 +66,7 @@ export function diffResourceSnapshots(
       delta,
       label: `${delta < 0 ? '' : '+'}${trim(delta)}`,
       ratio: Number.isFinite(max) && max > 0 ? Math.abs(delta) / max : 0,
-      playsEffect: next.playsEffect !== false,
+      playsEffect: next.playsEffect === true,
       playsSound: next.playsSound === true,
     });
   }

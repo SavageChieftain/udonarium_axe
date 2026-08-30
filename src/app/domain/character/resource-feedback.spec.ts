@@ -15,12 +15,10 @@ describe('what a resource does when it moves', () => {
     for (const element of created.splice(0)) element.destroy();
   });
 
-  it('plays an effect for a field that says nothing, which is how it has always gone', () => {
-    expect(playsEffectOnChange(resource())).toBe(true);
-  });
-
-  it('stays still for a field told not to', () => {
+  it('stays still unless the field asks to be seen', () => {
+    expect(playsEffectOnChange(resource())).toBe(false);
     expect(playsEffectOnChange(resource({ [DataElementAttribute.CHANGE_EFFECT]: 'false' }))).toBe(false);
+    expect(playsEffectOnChange(resource({ [DataElementAttribute.CHANGE_EFFECT]: 'true' }))).toBe(true);
   });
 
   it('stays quiet unless the field asks to be heard', () => {
