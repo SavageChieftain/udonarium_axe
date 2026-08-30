@@ -25,7 +25,10 @@ const events: readonly ReplayEvent[] = [event(1, 'ひとつめ'), event(2, 'ふ�
 function dragEvent(name: string, clientY = 0): Event {
   const fired = new Event(name, { bubbles: true, cancelable: true });
   Object.defineProperty(fired, 'clientY', { value: clientY });
-  Object.defineProperty(fired, 'dataTransfer', { value: { effectAllowed: '', setData: vi.fn() } });
+  // A real one always carries the list, and something listening on the page may read it.
+  Object.defineProperty(fired, 'dataTransfer', {
+    value: { effectAllowed: '', types: [], setData: vi.fn(), getData: vi.fn(() => '') },
+  });
   return fired;
 }
 

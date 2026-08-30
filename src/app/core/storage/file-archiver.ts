@@ -64,7 +64,8 @@ export class FileArchiver {
     this.addEventListeners();
   }
 
-  private destroy() {
+  /** Lets go of the page again, which a test that started one has to be able to ask for. */
+  destroy() {
     this.removeEventListeners();
   }
 
@@ -108,7 +109,8 @@ export class FileArchiver {
 
   private onDrop(event: DragEvent) {
     event.preventDefault();
-    if (event.dataTransfer?.types.includes(INTERNAL_DRAG_TYPE)) return;
+    // A drop made up rather than made by a browser may carry no list of types at all.
+    if (event.dataTransfer?.types?.includes(INTERNAL_DRAG_TYPE)) return;
 
     // A drop can arrive before startup finishes, or where no guard exists at all.
     this.reloadCheck?.reloadCheckStart(this.networkService.peerContext?.roomName !== '');

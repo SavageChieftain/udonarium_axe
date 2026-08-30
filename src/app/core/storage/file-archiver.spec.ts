@@ -57,6 +57,9 @@ describe('FileArchiver', () => {
   });
 
   afterEach(() => {
+    // The listeners are on the page itself, and the page outlives this file: left on, they
+    // answer drops made up by every spec that runs after this one in the same worker.
+    FileArchiver.instance.destroy();
     (FileArchiver as unknown as { _instance: FileArchiver | undefined })._instance = undefined;
     vi.restoreAllMocks();
   });
@@ -73,6 +76,15 @@ describe('FileArchiver', () => {
     it('survives being initialised', () => {
       FileArchiver.instance.initialize();
       expect(true).toBe(true);
+    });
+
+    it('survives a drop carrying no list of types', () => {
+      FileArchiver.instance.initialize();
+
+      const drop = new Event('drop', { bubbles: true, cancelable: true });
+      Object.defineProperty(drop, 'dataTransfer', { value: { effectAllowed: '', setData: vi.fn() } });
+
+      expect(() => document.body.dispatchEvent(drop)).not.toThrow();
     });
 
     it('survives a drop before the guard exists', () => {
