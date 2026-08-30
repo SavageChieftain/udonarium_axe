@@ -399,6 +399,7 @@ export class VisualNovelOverlayComponent {
   readonly stageCharacters = computed<VnStageCharacter[]>(() => {
     this.objectChange.fileVersion();
     this.objectChange.collectionOf(GameCharacter.aliasName)();
+    this.language.currentLang();
     const messages = this.messages();
     const index = this.currentIndex();
     if (index < 0) return [];
@@ -451,6 +452,7 @@ export class VisualNovelOverlayComponent {
 
   readonly diceCommand = computed(() => {
     if (!this.currentIsDiceCommand()) return null;
+    this.language.currentLang();
     const message = this.currentMessage();
     if (!message) return null;
     return { name: readableMessageName(message, this.t) };

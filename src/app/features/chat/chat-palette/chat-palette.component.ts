@@ -14,6 +14,7 @@ import { FormsModule } from '@angular/forms';
 import { CharacterMacroService } from '@axe/application/chat/character-macro.service';
 import { ChatMessageService } from '@axe/application/chat/chat-message.service';
 import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
+import { RolePermissionService } from '@axe/application/permission/role-permission.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { ContextMenuService } from '@axe/application/ui/context-menu.service';
 import { PanelService } from '@axe/application/ui/panel.service';
@@ -54,6 +55,7 @@ import GameSystemClass from 'bcdice/lib/game_system';
 export class ChatPaletteComponent {
   protected readonly isCompact = inject(ViewportService).isCompact;
   private readonly contextMenuService = inject(ContextMenuService);
+  private readonly rolePermission = inject(RolePermissionService);
   private readonly hotbarFill = inject(HotbarFillService);
   private readonly pointerDeviceService = inject(PointerDeviceService);
   chatMessageService = inject(ChatMessageService);
@@ -318,8 +320,16 @@ export class ChatPaletteComponent {
     this.clickPalette(row.text);
   }
 
-  /** A line worth pressing twice belongs on the bar, where it can be reached without this panel. */
+  /**
+   * A line worth pressing twice belongs on the bar, where it can be reached without this panel.
+   *
+   * Only a line that is actually said: a heading names a group and a variable line sets a
+   * number, and putting either on the bar would send the palette's own syntax to the room.
+   * The browser's own menu is left alone where nothing of ours is offered in its place.
+   */
   onPaletteRowMenu(row: PaletteRow, event: MouseEvent): void {
+    if (row.kind !== 'command') return;
+    if (!this.rolePermission.canEditTabletop) return;
     event.preventDefault();
     event.stopPropagation();
 

@@ -1,6 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ChatMessageService } from '@axe/application/chat/chat-message.service';
 import { NO_SYSTEM_AVATAR, SystemAvatarService } from '@axe/application/chat/system-avatar.service';
+import { LanguageService } from '@axe/application/i18n/language.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { AudioFile } from '@axe/core/storage/audio-file';
 import { AudioStorage } from '@axe/core/storage/audio-storage';
@@ -531,6 +532,27 @@ describe('VisualNovelOverlayComponent', () => {
     expect(component.currentFullText()).toContain('ログをクリア');
     expect(component.currentFullText()).toContain('GM');
     expect(component.speakerName()).not.toContain('@i18n:');
+  });
+
+  it('reads a line again when the language is changed', async () => {
+    tab.addMessage({
+      from: 'System',
+      name: '@i18n:common.chat.systemName:{}',
+      text: '@i18n:common.chat.logClearedBy:{"user":"GM"}',
+      tag: 'system-message',
+      timestamp: nextTimestamp++,
+    });
+    createComponent();
+    const spokenAs = component.speakerName();
+    const said = component.currentFullText();
+    expect(spokenAs).toBeTruthy();
+    expect(said).toContain('ログをクリア');
+
+    await TestBed.inject(LanguageService).setLang('en');
+    fixture.detectChanges();
+
+    expect(component.speakerName()).not.toBe(spokenAs);
+    expect(component.currentFullText()).not.toBe(said);
   });
 
   describe('choosing which picture speaks', () => {
