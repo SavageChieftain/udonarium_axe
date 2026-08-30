@@ -10,6 +10,7 @@ import { GameCharacter } from '@axe/domain/character/game-character';
 import { ChatMessage } from '@axe/domain/chat/chat-message';
 import { ChatTab } from '@axe/domain/chat/chat-tab';
 import { ChatTabList } from '@axe/domain/chat/chat-tab-list';
+import { DataElement } from '@axe/domain/data/data-element';
 import { DiceBot } from '@axe/domain/dice/dice-bot';
 import { AudioTag } from '@axe/domain/media/audio-tag';
 import { Jukebox } from '@axe/domain/media/jukebox';
@@ -515,6 +516,70 @@ describe('VisualNovelOverlayComponent', () => {
     expect(component.isPopover('slotGuide')).toBe(false);
     // Anything outside is pulled to the end frame.
     expect(speaker.vnPortraitPos).toBe(VN_STAGE_SLOT_COUNT - 1);
+  });
+
+  describe('choosing which picture speaks', () => {
+    /** The character comes with one picture already; the named ones are added after it. */
+    function speakerWithPortraits(...names: string[]): GameCharacter {
+      addMessage('こんにちは', 'アリス', addImage());
+      const speaker = charactersByName.get('アリス')!;
+      speaker.createDataElements();
+      for (const [index, name] of names.entries()) {
+        const element = DataElement.create(`portrait-${index}`, addImage(), { type: 'image' });
+        element.currentValue = name;
+        speaker.imageDataElement!.appendChild(element);
+      }
+      return speaker;
+    }
+
+    function speakAs(speaker: GameCharacter): void {
+      createComponent();
+      component.sendFrom = speaker.identifier;
+      fixture.detectChanges();
+    }
+
+    it('answers the arrow with the next picture', () => {
+      const speaker = speakerWithPortraits('笑顔', '怒り');
+      speakAs(speaker);
+
+      component.stepSpeakerPortrait(1);
+
+      expect(speaker.selectedPortraitIndex).toBe(1);
+      expect(component.speakerPortrait()?.index).toBe(1);
+    });
+
+    it('stops at either end of the row', () => {
+      const speaker = speakerWithPortraits('笑顔');
+      speakAs(speaker);
+      const last = speaker.imageDataElement!.children.length - 1;
+
+      component.stepSpeakerPortrait(-1);
+      expect(component.speakerPortrait()?.index).toBe(0);
+
+      for (let step = 0; step <= last + 1; step += 1) component.stepSpeakerPortrait(1);
+      expect(component.speakerPortrait()?.index).toBe(last);
+    });
+
+    it('shows the name of a lone picture too, there being no place to read', () => {
+      const speaker = speakerWithPortraits();
+      const only = speaker.imageDataElement!.children[0] as DataElement;
+      only.currentValue = 'いつもの';
+      speakAs(speaker);
+
+      expect(component.speakerPortrait()?.count).toBe(1);
+      expect(component.speakerPortraitLabel()).toBe('いつもの');
+    });
+
+    it('calls a picture by its name where it has one', () => {
+      const speaker = speakerWithPortraits('笑顔');
+      speakAs(speaker);
+
+      // The picture the character came with was never named, so it answers to its place.
+      expect(component.speakerPortraitLabel()).toBe(`1/${speaker.imageDataElement!.children.length}`);
+
+      component.stepSpeakerPortrait(1);
+      expect(component.speakerPortraitLabel()).toBe('笑顔');
+    });
   });
 
   it('places from novel mode without disturbing where the character stands in chat', () => {

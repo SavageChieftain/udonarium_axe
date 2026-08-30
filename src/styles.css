@@ -809,9 +809,16 @@ chat-message > div > div {
 .ng-select.ud-select.vn-select {
   flex: 0 1 9rem;
   width: auto !important;
-  min-width: 6rem;
+  min-width: 7rem;
   max-width: 12rem;
   font-size: 0.75rem;
+}
+
+/* The novel bar stands its selects beside buttons a shade taller, and one row of one height reads as one row. */
+.ng-select.ud-select.vn-select,
+.ng-select.ud-select.vn-select .ng-select-container {
+  height: 2rem;
+  min-height: 2rem;
 }
 
 .ng-dropdown-panel.ud-select {

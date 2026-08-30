@@ -366,7 +366,7 @@
       <div class="flex w-full flex-wrap items-center gap-1">
         @if (chatTabOptions().length > 1) {
           <select
-            class="border-ui-border-panel bg-ui-input text-ui-text rounded-ui max-w-32 cursor-pointer border border-solid px-2 py-1.5 text-xs outline-none"
+            class="border-ui-border-panel bg-ui-input text-ui-text rounded-ui-sm h-8 min-w-28 flex-[0_1_9rem] cursor-pointer border border-solid px-2 text-xs outline-none"
             [title]="'feature.visualNovel.chatTab' | transloco"
             [attr.aria-label]="'feature.visualNovel.chatTab' | transloco"
             [(ngModel)]="chatTabIdentifier"
@@ -377,7 +377,7 @@
           </select>
         }
         <select
-          class="border-ui-border-panel bg-ui-input text-ui-text rounded-ui max-w-32 cursor-pointer border border-solid px-2 py-1.5 text-xs outline-none"
+          class="border-ui-border-panel bg-ui-input text-ui-text rounded-ui-sm h-8 min-w-28 flex-[0_1_9rem] cursor-pointer border border-solid px-2 text-xs outline-none"
           [title]="'feature.visualNovel.diceBot' | transloco"
           [attr.aria-label]="'feature.visualNovel.diceBot' | transloco"
           [(ngModel)]="gameType"
@@ -410,6 +410,9 @@
                 <img class="size-full object-cover object-top" [src]="portrait.url | safe: 'resourceUrl'" alt="" />
               }
             </span>
+            @if (portrait.count <= 1 && portrait.name.length > 0) {
+              <span class="max-w-24 truncate text-[11px]" [title]="portrait.name">{{ portrait.name }}</span>
+            }
             @if (portrait.count > 1) {
               <button
                 type="button"
@@ -419,7 +422,9 @@
               >
                 <i class="material-icons text-base!">chevron_left</i>
               </button>
-              <span class="min-w-7 text-center text-[11px]">{{ portrait.index + 1 }}/{{ portrait.count }}</span>
+              <span class="max-w-24 min-w-7 truncate text-center text-[11px]" [title]="speakerPortraitLabel()">{{
+                speakerPortraitLabel()
+              }}</span>
               <button
                 type="button"
                 class="text-ui-dim hover:text-ui-accent flex cursor-pointer items-center border-0 bg-transparent p-0 transition-colors disabled:cursor-default disabled:opacity-40"
@@ -475,57 +480,7 @@
         }
         <button
           type="button"
-          class="text-ui-dim hover:text-ui-accent hover:bg-ui-accent-bg rounded-ui ml-auto flex size-8 cursor-pointer items-center justify-center border-0 bg-transparent transition-[color,background] [&_i]:text-[18px]"
-          [class.text-ui-accent]="autoPlay()"
-          [title]="'feature.visualNovel.autoPlay' | transloco"
-          [attr.aria-label]="'feature.visualNovel.autoPlay' | transloco"
-          [disabled]="!autoPlay() && isLatest()"
-          (click)="toggleAutoPlay()"
-        >
-          <i class="material-icons">{{ autoPlay() ? 'pause_circle' : 'play_circle' }}</i>
-        </button>
-        <button
-          type="button"
-          class="text-ui-dim hover:text-ui-accent hover:bg-ui-accent-bg rounded-ui flex size-8 cursor-pointer items-center justify-center border-0 bg-transparent transition-[color,background] disabled:cursor-default disabled:opacity-40 [&_i]:text-[18px]"
-          [title]="'feature.visualNovel.playFromStart' | transloco"
-          [attr.aria-label]="'feature.visualNovel.playFromStart' | transloco"
-          [disabled]="messages().length < 2"
-          (click)="playFromStart()"
-        >
-          <i class="material-icons">replay</i>
-        </button>
-        <div class="text-ui-dim flex items-center gap-1 px-1" [title]="'feature.visualNovel.playbackSpeed' | transloco">
-          <i class="material-icons text-[15px]!">speed</i>
-          <input
-            type="range"
-            class="w-24 cursor-pointer"
-            min="0.5"
-            max="2"
-            step="0.25"
-            [style.--min]="0.5"
-            [style.--max]="2"
-            [style.--val]="settings.autoPlaySpeed()"
-            [ngModel]="settings.autoPlaySpeed()"
-            (ngModelChange)="settings.setAutoPlaySpeed(+$event)"
-          />
-          <span class="min-w-8 text-[10px]">×{{ settings.autoPlaySpeed() }}</span>
-        </div>
-        @if (director.canDirect()) {
-          <button
-            type="button"
-            class="rounded-ui hover:bg-ui-accent-bg flex size-8 cursor-pointer items-center justify-center border-0 bg-transparent transition-[color,background] [&_i]:text-[18px]"
-            [class]="director.isDirector() ? 'text-ui-accent' : 'text-ui-dim hover:text-ui-accent'"
-            [title]="'feature.visualNovel.showcase.title' | transloco"
-            [attr.aria-label]="'feature.visualNovel.showcase.title' | transloco"
-            [attr.aria-pressed]="director.isDirector()"
-            (click)="director.toggleDirecting()"
-          >
-            <i class="material-icons">co_present</i>
-          </button>
-        }
-        <button
-          type="button"
-          class="text-ui-dim hover:text-ui-danger rounded-ui flex size-8 cursor-pointer items-center justify-center border-0 bg-transparent transition-[color,background] hover:bg-(--ui-danger-bg) [&_i]:text-[18px]"
+          class="text-ui-dim hover:text-ui-danger rounded-ui ml-auto flex size-8 cursor-pointer items-center justify-center border-0 bg-transparent transition-[color,background] hover:bg-(--ui-danger-bg) [&_i]:text-[18px]"
           [title]="'feature.visualNovel.exit' | transloco"
           [attr.aria-label]="'feature.visualNovel.exit' | transloco"
           (click)="exit()"
@@ -533,10 +488,7 @@
           <i class="material-icons">close</i>
         </button>
       </div>
-    }
-
-    <div class="flex w-full flex-wrap items-center gap-1">
-      @if (!isCompact() || isControlsOpen()) {
+      <div class="flex w-full flex-wrap items-center gap-1">
         <button
           type="button"
           class="text-ui-dim hover:text-ui-accent hover:bg-ui-accent-bg rounded-ui flex size-8 cursor-pointer items-center justify-center border-0 bg-transparent transition-[color,background] disabled:cursor-default disabled:opacity-40 [&_i]:text-[18px]"
@@ -572,7 +524,54 @@
             {{ 'feature.visualNovel.toLatest' | transloco }}
           </button>
         }
-        <div class="relative">
+        <button
+          type="button"
+          class="text-ui-dim hover:text-ui-accent hover:bg-ui-accent-bg rounded-ui flex size-8 cursor-pointer items-center justify-center border-0 bg-transparent transition-[color,background] [&_i]:text-[18px]"
+          [class.text-ui-accent]="isPopover('backlog')"
+          [title]="'feature.visualNovel.log' | transloco"
+          [attr.aria-label]="'feature.visualNovel.log' | transloco"
+          (click)="toggleBacklog()"
+        >
+          <i class="material-icons">history</i>
+        </button>
+        <button
+          type="button"
+          class="text-ui-dim hover:text-ui-accent hover:bg-ui-accent-bg rounded-ui flex size-8 cursor-pointer items-center justify-center border-0 bg-transparent transition-[color,background] [&_i]:text-[18px]"
+          [class.text-ui-accent]="autoPlay()"
+          [title]="'feature.visualNovel.autoPlay' | transloco"
+          [attr.aria-label]="'feature.visualNovel.autoPlay' | transloco"
+          [disabled]="!autoPlay() && isLatest()"
+          (click)="toggleAutoPlay()"
+        >
+          <i class="material-icons">{{ autoPlay() ? 'pause_circle' : 'play_circle' }}</i>
+        </button>
+        <button
+          type="button"
+          class="text-ui-dim hover:text-ui-accent hover:bg-ui-accent-bg rounded-ui flex size-8 cursor-pointer items-center justify-center border-0 bg-transparent transition-[color,background] disabled:cursor-default disabled:opacity-40 [&_i]:text-[18px]"
+          [title]="'feature.visualNovel.playFromStart' | transloco"
+          [attr.aria-label]="'feature.visualNovel.playFromStart' | transloco"
+          [disabled]="messages().length < 2"
+          (click)="playFromStart()"
+        >
+          <i class="material-icons">replay</i>
+        </button>
+        <div class="text-ui-dim flex items-center gap-1 px-1" [title]="'feature.visualNovel.playbackSpeed' | transloco">
+          <i class="material-icons text-[15px]!">speed</i>
+          <input
+            type="range"
+            class="w-24 cursor-pointer"
+            min="0.5"
+            max="2"
+            step="0.25"
+            [style.--min]="0.5"
+            [style.--max]="2"
+            [style.--val]="settings.autoPlaySpeed()"
+            [ngModel]="settings.autoPlaySpeed()"
+            (ngModelChange)="settings.setAutoPlaySpeed(+$event)"
+          />
+          <span class="min-w-8 text-[10px]">×{{ settings.autoPlaySpeed() }}</span>
+        </div>
+        <div class="relative ml-auto">
           <button
             type="button"
             class="text-ui-dim hover:text-ui-accent hover:bg-ui-accent-bg rounded-ui flex size-8 cursor-pointer items-center justify-center border-0 bg-transparent transition-[color,background] [&_i]:text-[18px]"
@@ -599,16 +598,23 @@
             </div>
           }
         </div>
-        <button
-          type="button"
-          class="text-ui-dim hover:text-ui-accent hover:bg-ui-accent-bg rounded-ui flex size-8 cursor-pointer items-center justify-center border-0 bg-transparent transition-[color,background] [&_i]:text-[18px]"
-          [class.text-ui-accent]="isPopover('backlog')"
-          [title]="'feature.visualNovel.log' | transloco"
-          [attr.aria-label]="'feature.visualNovel.log' | transloco"
-          (click)="toggleBacklog()"
-        >
-          <i class="material-icons">history</i>
-        </button>
+        @if (director.canDirect()) {
+          <button
+            type="button"
+            class="rounded-ui hover:bg-ui-accent-bg flex size-8 cursor-pointer items-center justify-center border-0 bg-transparent transition-[color,background] [&_i]:text-[18px]"
+            [class]="director.isDirector() ? 'text-ui-accent' : 'text-ui-dim hover:text-ui-accent'"
+            [title]="'feature.visualNovel.showcase.title' | transloco"
+            [attr.aria-label]="'feature.visualNovel.showcase.title' | transloco"
+            [attr.aria-pressed]="director.isDirector()"
+            (click)="director.toggleDirecting()"
+          >
+            <i class="material-icons">co_present</i>
+          </button>
+        }
+      </div>
+    }
+    <div class="flex w-full flex-wrap items-center gap-1">
+      @if (!isCompact() || isControlsOpen()) {
         <div class="relative">
           <button
             type="button"

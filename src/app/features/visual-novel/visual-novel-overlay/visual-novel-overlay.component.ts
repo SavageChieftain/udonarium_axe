@@ -20,6 +20,7 @@ import { sheetPanelTitle } from '@axe/application/ui/sheet-panel';
 import { ViewportService } from '@axe/application/ui/viewport.service';
 import { AudioStorage } from '@axe/core/storage/audio-storage';
 import { ObjectStore } from '@axe/core/sync/object-store';
+import { portraitNameOf } from '@axe/domain/character/character-portrait';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { ChatMessage } from '@axe/domain/chat/chat-message';
 import { canRoleSpeakTab } from '@axe/domain/chat/chat-tab-permission';
@@ -625,17 +626,34 @@ export class VisualNovelOverlayComponent {
   protected slotBandWidth = slotBandWidth;
   protected slotLabelLeftInBand = slotLabelLeftInBand;
 
+  /**
+   * Which picture speaks next.
+   *
+   * The chosen one is the speaker's own, and is not part of what the room shares, so nothing
+   * announces that it changed. This counts the changes made here so the bar redraws for them.
+   */
+  private readonly _portraitTick = signal(0);
+
   readonly speakerPortrait = computed(() => {
     this.objectChange.fileVersion();
     this.objectChange.collectionOf(GameCharacter.aliasName)();
+    this._portraitTick();
     const object = this.objectStore.get(this._sendFrom());
     if (!(object instanceof GameCharacter)) return null;
     this.objectChange.versionOf(object.identifier)();
     const children = object.imageDataElement?.children ?? [];
     if (children.length < 1) return null;
     const index = Math.min(Math.max(0, object.selectedPortraitIndex), children.length - 1);
-    const url = this.imageService.getEmptyOr((children[index]?.value as string) ?? '').url;
-    return { index, count: children.length, url };
+    const element = children[index] as DataElement | undefined;
+    const url = this.imageService.getEmptyOr((element?.value as string) ?? '').url;
+    return { index, count: children.length, url, name: portraitNameOf(element) };
+  });
+
+  /** A picture answers to its name where it was given one, and to its place in the row otherwise. */
+  readonly speakerPortraitLabel = computed(() => {
+    const portrait = this.speakerPortrait();
+    if (!portrait) return '';
+    return portrait.name.length > 0 ? portrait.name : `${portrait.index + 1}/${portrait.count}`;
   });
 
   stepSpeakerPortrait(direction: number): void {
@@ -645,6 +663,7 @@ export class VisualNovelOverlayComponent {
     const next = object.selectedPortraitIndex + direction;
     if (next < 0 || next >= count) return;
     object.selectedPortraitIndex = next;
+    this._portraitTick.update((tick) => tick + 1);
   }
 
   readonly soundEffects = computed(() => {
