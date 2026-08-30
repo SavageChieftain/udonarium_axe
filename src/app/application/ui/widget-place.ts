@@ -4,6 +4,7 @@ export const WIDGET_CLOCK = 'clock';
 export const WIDGET_CONNECTION_QUALITY = 'connectionQuality';
 export const WIDGET_VOTE = 'vote';
 export const WIDGET_RENDER_STATS = 'renderStats';
+export const WIDGET_HOTBAR = 'hotbar';
 
 export function placeWidget(
   layout: WidgetLayoutService,

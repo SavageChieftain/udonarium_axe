@@ -16,6 +16,7 @@ import { FormsModule } from '@angular/forms';
 import { ActiveChatTabService } from '@axe/application/chat/active-chat-tab.service';
 import { ChatMessageService } from '@axe/application/chat/chat-message.service';
 import { ChatPreferencesService } from '@axe/application/chat/chat-preferences.service';
+import { ChatSpeakerService } from '@axe/application/chat/chat-speaker.service';
 import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { PanelOption, PanelService } from '@axe/application/ui/panel.service';
@@ -95,11 +96,20 @@ export class ChatWindowComponent {
   private readonly objectStore = inject(ObjectStore);
   private readonly chatPrefs = inject(ChatPreferencesService);
   private readonly activeChatTab = inject(ActiveChatTabService);
+  private readonly chatSpeaker = inject(ChatSpeakerService);
   private readonly t = inject(TRANSLATE_FN);
   private readonly hostElement = inject<ElementRef<HTMLElement>>(ElementRef);
   private readonly injector = inject(Injector);
 
-  sendFrom: string = 'Guest';
+  private readonly _sendFrom = signal('Guest');
+  get sendFrom(): string {
+    return this._sendFrom();
+  }
+  /** Choosing who to speak as tells the rest of the room; a window opening does not. */
+  set sendFrom(sendFrom: string) {
+    this._sendFrom.set(sendFrom);
+    this.chatSpeaker.set(sendFrom);
+  }
 
   get gameType(): string {
     return !this.chatMessageService.gameType ? 'DiceBot' : this.chatMessageService.gameType;
@@ -279,7 +289,9 @@ export class ChatWindowComponent {
   private scrollListener: (() => void) | null = null;
 
   constructor() {
-    this.sendFrom = PeerCursor.myCursor.identifier;
+    // Opening a window is nobody's choice of speaker: a second one would otherwise put back
+    // the reader's own name over the character the first one is speaking as.
+    this._sendFrom.set(PeerCursor.myCursor.identifier);
     this.chatTabidentifier =
       0 < this.chatMessageService.chatTabs.length ? this.chatMessageService.chatTabs[0].identifier : '';
     this.objectChange.messageAdded$.subscribe((event) => {

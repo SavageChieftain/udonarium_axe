@@ -4,6 +4,11 @@ import { CSSNumber } from '@axe/core/transform/css-number';
 import { InputHandler } from '@axe/ui/directives/input-handler';
 
 const ORIENTATION_SETTLE_MS = 250;
+/** How long the window is left alone before the place it pushed something to is taken as final. */
+const RESIZE_SETTLE_MS = 400;
+
+/** Marks an element whose place in the stack was chosen for it. */
+const Z_LAYER_ATTRIBUTE = 'data-z-layer';
 
 @Directive({ selector: '[appDraggable]' })
 export class DraggableDirective {
@@ -31,9 +36,24 @@ export class DraggableDirective {
   readonly onstart = output<MouseEvent | TouchEvent>({ alias: 'draggable.start' });
   readonly onmove = output<MouseEvent | TouchEvent>({ alias: 'draggable.move' });
   readonly onend = output<MouseEvent | TouchEvent>({ alias: 'draggable.end' });
+  /**
+   * The window stopped changing shape, and what it pushed about has come to rest.
+   *
+   * A host that writes down where a thing sits listens for this as well as for the end of a
+   * drag: a window resized around a widget moves it just as surely as a hand does.
+   */
+  readonly onsettle = output<void>({ alias: 'draggable.settled' });
 
-  private callbackOnResize = () => this.adjustPosition();
-  private callbackOnOrientationChange = () => setTimeout(() => this.adjustPosition(), ORIENTATION_SETTLE_MS);
+  private callbackOnResize = () => {
+    this.adjustPosition();
+    this.settleLater();
+  };
+  private callbackOnOrientationChange = () =>
+    setTimeout(() => {
+      this.adjustPosition();
+      this.settleLater();
+    }, ORIENTATION_SETTLE_MS);
+  private settleTimer: ReturnType<typeof setTimeout> | null = null;
 
   private input: InputHandler | null = null;
   private startPosition: PointerCoordinate = { x: 0, y: 0, z: 0 };
@@ -67,6 +87,8 @@ export class DraggableDirective {
   }
 
   destroy() {
+    if (this.settleTimer) clearTimeout(this.settleTimer);
+    this.settleTimer = null;
     window.removeEventListener('resize', this.callbackOnResize, false);
     window.removeEventListener('orientationchange', this.callbackOnOrientationChange, false);
     if (this.input) this.input.destroy();
@@ -74,6 +96,7 @@ export class DraggableDirective {
 
   private onInputStart(e: MouseEvent | TouchEvent) {
     if ((e as MouseEvent).button === 1 || (e as MouseEvent).button === 2) return this.cancel();
+    if (this.isDisable()) return this.cancel();
     if (!this.input) return this.cancel();
 
     this.setForeground();
@@ -91,6 +114,7 @@ export class DraggableDirective {
       return;
     }
     e.stopPropagation();
+    this.onstart.emit(e);
   }
 
   private onInputMove(e: MouseEvent | TouchEvent) {
@@ -125,8 +149,14 @@ export class DraggableDirective {
     this.prevTrans = trans;
     if (e.cancelable) e.preventDefault();
     e.stopPropagation();
+    this.onmove.emit(e);
   }
 
+  /**
+   * Letting go is what the host waits for: it is where a moved thing writes down where it
+   * came to rest. The three outputs are told each time, or a host listening for the end of a
+   * drag would hear nothing until the page went away.
+   */
   private onInputEnd(e: MouseEvent | TouchEvent) {
     this.elementRef.nativeElement.style.opacity = '';
     this.elementRef.nativeElement.style.willChange = '';
@@ -135,6 +165,16 @@ export class DraggableDirective {
       e.preventDefault();
     }
     e.stopPropagation();
+    this.onend.emit(e);
+  }
+
+  /** A window being dragged by its edge fires by the dozen, so only the last one counts. */
+  private settleLater(): void {
+    if (this.settleTimer) clearTimeout(this.settleTimer);
+    this.settleTimer = setTimeout(() => {
+      this.settleTimer = null;
+      this.onsettle.emit();
+    }, RESIZE_SETTLE_MS);
   }
 
   private onContextMenu(e: MouseEvent | TouchEvent) {
@@ -248,9 +288,19 @@ export class DraggableDirective {
     };
   }
 
+  /**
+   * Brings what was taken hold of to the front of its own stack.
+   *
+   * Anything put on a layer of its own is left out of this on both sides: it was opened above
+   * or below the ordinary stack on purpose, so it is neither shuffled down into that stack nor
+   * counted as the top of it, which would carry every other panel up over the modal veil.
+   */
   private setForeground() {
     if (this.stackSelector().length < 1) return;
-    const stacks = this.elementRef.nativeElement.ownerDocument.querySelectorAll<HTMLElement>(this.stackSelector());
+    if (this.elementRef.nativeElement.hasAttribute(Z_LAYER_ATTRIBUTE)) return;
+    const stacks = [
+      ...this.elementRef.nativeElement.ownerDocument.querySelectorAll<HTMLElement>(this.stackSelector()),
+    ].filter((elm) => !elm.hasAttribute(Z_LAYER_ATTRIBUTE));
     let topZindex: number = 0;
     let bottomZindex: number = 99999;
     stacks.forEach((elm) => {

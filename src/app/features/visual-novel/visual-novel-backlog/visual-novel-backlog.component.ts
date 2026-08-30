@@ -12,6 +12,8 @@ import {
   viewChild,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { LanguageService } from '@axe/application/i18n/language.service';
+import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { ImageService } from '@axe/application/storage/image.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { ChatMessage } from '@axe/domain/chat/chat-message';
@@ -31,6 +33,7 @@ import {
   VnMessageKind,
   VnPortraitEmote,
 } from '@axe/features/visual-novel/visual-novel-emote';
+import { readableMessageName, readableMessageText } from '@axe/features/visual-novel/visual-novel-message';
 import { VisualNovelPlaybackService } from '@axe/features/visual-novel/visual-novel-playback.service';
 import { VN_STAGE_SLOT_COUNT } from '@axe/features/visual-novel/visual-novel-stage';
 import { DraggableDirective } from '@axe/ui/directives/draggable.directive';
@@ -42,6 +45,8 @@ const BACKLOG_PAGE_SIZE = 200;
 export interface VnBacklogEntry {
   message: ChatMessage;
   index: number;
+  /** Read in the reader's language, which matters for what the room says of itself. */
+  name: string;
   text: string;
   suffix: string;
   imageUrl: string;
@@ -57,6 +62,8 @@ export interface VnBacklogEntry {
 export class VisualNovelBacklogComponent {
   private readonly objectChange = inject(ObjectChangeService);
   private readonly imageService = inject(ImageService);
+  private readonly translate = inject(TRANSLATE_FN);
+  private readonly language = inject(LanguageService);
   private readonly playback = inject(VisualNovelPlaybackService);
 
   readonly messageKindOptions = input.required<readonly VnMessageKind[]>();
@@ -89,12 +96,14 @@ export class VisualNovelBacklogComponent {
 
   readonly entries = computed<VnBacklogEntry[]>(() => {
     this.objectChange.fileVersion();
+    this.language.currentLang();
     return this.playback.messages().map((message, index) => {
-      const { text, suffix } = splitVnEmoteSuffix(message.text ?? '');
+      const { text, suffix } = splitVnEmoteSuffix(readableMessageText(message, this.translate));
       const hasPortrait = !message.isSystemMessage && !message.isDicebot;
       return {
         message,
         index,
+        name: readableMessageName(message, this.translate),
         text,
         suffix,
         imageUrl: hasPortrait ? this.imageService.getEmptyOr(message.imageIdentifier).url : '',
@@ -113,7 +122,7 @@ export class VisualNovelBacklogComponent {
       if (onlyMine && !entry.message.isSendFromSelf) return false;
       if (onlyEmote && entry.suffix.length < 1) return false;
       if (keyword.length < 1) return true;
-      return entry.text.toLowerCase().includes(keyword) || (entry.message.name ?? '').toLowerCase().includes(keyword);
+      return entry.text.toLowerCase().includes(keyword) || entry.name.toLowerCase().includes(keyword);
     });
   });
 

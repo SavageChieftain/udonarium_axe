@@ -1102,4 +1102,53 @@ describe('GameDataElementComponent', () => {
       expect(component.isEditUrl('elem-b')).toBe(true);
     });
   });
+
+  describe('what a resource does when it moves', () => {
+    function resourceField(): DataElement {
+      return DataElement.create('HP', 200, {
+        type: DataElementType.NUMBER_RESOURCE,
+        currentValue: 200,
+        [DataElementAttribute.FIELD_TYPE]: DataElementFieldType.RESOURCE,
+      });
+    }
+
+    it('is asked about only for a resource', () => {
+      fixture.componentRef.setInput('gameDataElement', DataElement.create('メモ', 'テキスト'));
+      expect(component.canShowChangeFeedback()).toBe(false);
+
+      fixture.componentRef.setInput('gameDataElement', resourceField());
+      expect(component.canShowChangeFeedback()).toBe(true);
+    });
+
+    it('starts out neither seen nor heard', () => {
+      fixture.componentRef.setInput('gameDataElement', resourceField());
+
+      expect(component.playsEffectOnChange()).toBe(false);
+      expect(component.playsSoundOnChange()).toBe(false);
+    });
+
+    it('turns each one on and off again', () => {
+      const element = resourceField();
+      fixture.componentRef.setInput('gameDataElement', element);
+
+      component.toggleChangeEffect();
+      expect(component.playsEffectOnChange()).toBe(true);
+      component.toggleChangeEffect();
+      expect(component.playsEffectOnChange()).toBe(false);
+
+      component.toggleChangeSound();
+      expect(component.playsSoundOnChange()).toBe(true);
+      component.toggleChangeSound();
+      expect(component.playsSoundOnChange()).toBe(false);
+    });
+
+    it('leaves anything that is not a resource alone', () => {
+      const note = DataElement.create('メモ', 'テキスト');
+      fixture.componentRef.setInput('gameDataElement', note);
+
+      component.toggleChangeSound();
+
+      expect(note.getAttribute(DataElementAttribute.CHANGE_SOUND)).toBe('');
+    });
+  });
 });

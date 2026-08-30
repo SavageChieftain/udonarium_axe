@@ -3,6 +3,7 @@ import {
   afterNextRender,
   ChangeDetectionStrategy,
   Component,
+  computed,
   DestroyRef,
   effect,
   ElementRef,
@@ -15,6 +16,7 @@ import {
 import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { KeyboardInsetService } from '@axe/application/ui/keyboard-inset.service';
 import { PanelService } from '@axe/application/ui/panel.service';
+import { PanelTransparencyService } from '@axe/application/ui/panel-transparency.service';
 import { ViewportService } from '@axe/application/ui/viewport.service';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { ObjectStore } from '@axe/core/sync/object-store';
@@ -22,6 +24,8 @@ import { CutIn } from '@axe/domain/media/cut-in';
 import { DraggableDirective } from '@axe/ui/directives/draggable.directive';
 import { ResizableDirective } from '@axe/ui/directives/resizable.directive';
 import { TextTooltipDirective } from '@axe/ui/directives/text-tooltip.directive';
+
+const PANEL_FLOOR_OPACITY = 0.25;
 
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -37,6 +41,7 @@ export class UIPanelComponent {
   private readonly objectStore = inject(ObjectStore);
   private readonly destroyRef = inject(DestroyRef);
   private readonly viewport = inject(ViewportService);
+  private readonly panelTransparency = inject(PanelTransparencyService);
   private readonly t = inject(TRANSLATE_FN);
 
   readonly isCompact = this.viewport.isCompact;
@@ -44,6 +49,46 @@ export class UIPanelComponent {
 
   get menuTitle(): string {
     return this.t('ui.panel.menuTitle');
+  }
+
+  get transparencyLabel(): string {
+    return this.t('ui.panel.transparency');
+  }
+
+  readonly transparency = computed(() => this.panelTransparency.valueOf(this.panelService.panelKind()));
+
+  /** The shelf this panel was opened on, where whatever opened it asked for one. */
+  protected layer(): number {
+    return this.panelService.layer;
+  }
+
+  readonly restingOpacity = computed(() => 1 - (this.transparency() / 100) * (1 - PANEL_FLOOR_OPACITY));
+
+  private readonly hasFocus = signal(false);
+  private readonly barHasFocus = signal(false);
+
+  readonly panelOpacity = computed(() => (this.hasFocus() && !this.barHasFocus() ? 1 : this.restingOpacity()));
+
+  setTransparency(value: number): void {
+    this.panelTransparency.set(this.panelService.panelKind(), value);
+  }
+
+  protected onTransparencyInput(event: Event): void {
+    this.setTransparency(Number((event.target as HTMLInputElement).value));
+  }
+
+  protected onFocusIn(): void {
+    this.hasFocus.set(true);
+  }
+
+  protected onFocusOut(event: FocusEvent): void {
+    const next = event.relatedTarget;
+    if (next instanceof Node && this.draggablePanel().nativeElement.contains(next)) return;
+    this.hasFocus.set(false);
+  }
+
+  protected onBarFocus(focused: boolean): void {
+    this.barHasFocus.set(focused);
   }
 
   readonly draggablePanel = viewChild.required<ElementRef<HTMLElement>>('draggablePanel');

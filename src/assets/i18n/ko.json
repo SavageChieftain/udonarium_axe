@@ -154,7 +154,129 @@
         "focus": "말로 이동"
       }
     },
+    "hotbar": {
+      "failure": {
+        "noCharacter": "조작 대상 캐릭터가 없습니다",
+        "notFound": "등록된 대상을 찾을 수 없습니다",
+        "noTab": "채팅 탭이 없습니다",
+        "empty": "이 칸은 비어 있습니다",
+        "offTable": "말이 탁자에 없습니다"
+      },
+      "emptySlot": "빈 칸",
+      "pin": "항상 앞에 표시",
+      "toggle": "핫바",
+      "menu": {
+        "edit": "편집",
+        "fill": "여기에 등록",
+        "copy": "복사",
+        "paste": "붙여넣기",
+        "clear": "비우기",
+        "showLabel": "라벨 표시",
+        "resetPlace": "위치 초기화",
+        "undo": "지운 칸 되돌리기",
+        "hide": "핫바 숨기기",
+        "openList": "캐릭터 목록 열기",
+        "save": "핫바 저장",
+        "load": "핫바 불러오기",
+        "undoRead": "불러오기 전 핫바로 되돌리기",
+        "showHint": "단축키 설명 표시",
+        "fillFromHere": "핫바에 넣기"
+      },
+      "editor": {
+        "title": "칸 설정",
+        "kind": "종류",
+        "argument": "내용",
+        "label": "라벨",
+        "icon": "아이콘",
+        "color": "색",
+        "labelHint": "비우면 내용에서 자동",
+        "iconHint": "material icons 이름",
+        "colorHint": "색 이름 또는 #rrggbb",
+        "try": "시험",
+        "save": "저장",
+        "clear": "비우기",
+        "cancel": "닫기",
+        "mode": "동작",
+        "panel": "열 것",
+        "action": "조작",
+        "local": "내 화면에서만 재생",
+        "soundOnly": "소리만 재생",
+        "dock": "말에 따라붙기",
+        "unchosen": "(선택하세요)",
+        "iconAuto": "내용에서 자동 결정",
+        "colorAuto": "종류의 색 사용",
+        "actor": "누구로서",
+        "actorNone": "채팅의 발언자",
+        "fromPalette": "팔레트에서",
+        "fromPaletteHint": "(채팅 팔레트의 줄을 고른다)",
+        "paletteLoose": "제목 없음",
+        "rangeName": "사거리 이름",
+        "rangeSize": "크기",
+        "rangeLength": "길이",
+        "rangeWidth": "너비",
+        "sizeAsIs": "기본",
+        "rangeOpacity": "불투명도",
+        "rangeColorAuto": "기본 색으로 되돌리기",
+        "steps": "차례로 쏠 칸",
+        "stepsNone": "다른 칸을 채우면 여기서 고를 수 있습니다.",
+        "stepDelay": "간격",
+        "effectOnSelf": "타겟을 무시하고 자신에게",
+        "stepsOrder": "실행 순서와 간격",
+        "stepAtOnce": "즉시",
+        "stepUp": "위로",
+        "stepDown": "아래로",
+        "stepDrop": "빼기",
+        "stepGone": "(사라진 칸)"
+      },
+      "kind": {
+        "chat": "채팅 / 주사위",
+        "effect": "이펙트",
+        "range": "범위 놓기／지우기",
+        "diceDeploy": "소지 주사위 꺼내기／넣기",
+        "panel": "패널 열기",
+        "focus": "말로 시점 이동",
+        "sound": "효과음",
+        "cutIn": "컷인",
+        "prefill": "채팅창에 초안 넣기",
+        "turn": "행동 순서",
+        "group": "멀티 액션"
+      },
+      "mode": {
+        "cast": "발동",
+        "field": "설치",
+        "preview": "나만"
+      },
+      "panelName": {
+        "chatPalette": "채팅 팔레트",
+        "sheet": "캐릭터 시트",
+        "remoteController": "리모트 컨트롤러"
+      },
+      "turnAction": {
+        "next": "다음",
+        "prev": "이전",
+        "reset": "초기화"
+      },
+      "pickCharacter": "조작 대상 선택",
+      "noCharacter": "보유한 캐릭터가 없습니다",
+      "kindHint": {
+        "chat": "채팅에 보낼 문자열. 주사위(2d6+3), 리소스(:HP-5), 버프(&!독/지속/3), 이펙트(《불꽃》)도 그대로 쓸 수 있습니다.",
+        "effect": "탁자에 등록된 이펙트에서 고릅니다. 조작 중인 말을 기점으로 발동합니다.",
+        "range": "사거리 모양을 고릅니다. 이름과 크기, 색과 칠하는 방식, 말에 따라붙일지를 아래에서 정합니다. 다시 누르면 이 칸이 놓은 범위를 지웁니다.",
+        "diceDeploy": "캐릭터가 가진 주사위를 탁자에 꺼냅니다. 탁자에 나와 있을 때 다시 누르면 넣습니다.",
+        "panel": "그 캐릭터의 패널을 엽니다. 다시 누르면 닫힙니다.",
+        "focus": "그 캐릭터의 말로 시점을 옮깁니다.",
+        "sound": "탁자에 등록된 소리에서 고릅니다.",
+        "cutIn": "탁자에 등록된 컷인에서 고릅니다.",
+        "prefill": "채팅 입력창에 문자를 넣기만 하고 보내지는 않습니다. 긴 문장의 초안에 씁니다.",
+        "turn": "행동 순서를 진행하거나 되돌립니다.",
+        "group": "다른 칸을 골라 차례로 쏩니다. 멀티 액션끼리는 고를 수 없습니다."
+      },
+      "lock": "위치 고정",
+      "pageTitle": "{{page}} 페이지",
+      "shortcutHint": "1〜0 으로 칸 / Shift＋숫자 로 페이지 / [ ] 로 페이지 넘김"
+    },
     "plTools": {
+      "buffView": "버프 표시(전체)",
       "active": {
         "openChatPalette": "{{name}}의 채팅 팔레트 열기"
       },
@@ -1696,7 +1818,12 @@
         "diceBotHint": "방에 접속할 때 선택되는 다이스봇입니다(테이블별이 아니라 방 전체 설정)",
         "sectionWeather": "날씨(맵 전체)",
         "weatherKind": "날씨",
-        "weatherNone": "없음"
+        "weatherNone": "없음",
+        "facingMark": "캐릭터의 방향",
+        "facingMark_none": "표시하지 않음",
+        "facingMark_turn": "말째로 회전",
+        "facingMark_arrow": "화살촉으로 표시",
+        "facingMarkHint": "2D 모드에서 말을 회전할 수 있게 합니다. 화살촉은 그림을 카메라 쪽으로 둔 채 방향만 나타내며 3D 모드에서도 보입니다"
       },
       "dungeonGenerator": {
         "atmosphere": {
@@ -1979,7 +2106,8 @@
         "reply": "답장",
         "quote": "인용",
         "jumpToOriginal": "원래 메시지로 이동",
-        "shareAsMemo": "공유 메모로 보내기"
+        "shareAsMemo": "공유 메모로 보내기",
+        "copyToTab": "다른 탭으로 복사"
       },
       "palette": {
         "panelTitle": "채팅 팔레트",
@@ -2007,17 +2135,31 @@
         "sectionText": "글자",
         "fontSize": "글자 크기",
         "sectionPortrait": "입화",
-        "showPortraitThisTab": "입화 표시(이 탭)",
         "portraitSize": "입화 크기",
         "portraitInWindow": "입화를 창 안에 표시",
         "keepPortraitOutWindow": "창 밖의 입화 유지",
         "sectionSimple": "간단히 보기",
-        "enableSimpleThisTab": "간단히 보기 사용(이 탭)",
         "showTime": "시간 표시",
         "showUserId": "ID 표시",
         "sectionScroll": "스크롤",
         "autoFollowScroll": "스크롤 위치를 최신에 맞추기",
-        "autoFollowScrollTooltip": "끄면 같은 탭의 새 메시지로 자동 스크롤하지 않습니다"
+        "autoFollowScrollTooltip": "끄면 같은 탭의 새 메시지로 자동 스크롤하지 않습니다",
+        "scope": "적용 범위",
+        "scope_all": "전체",
+        "scope_perTab": "탭별",
+        "showPortrait": "일러스트 표시",
+        "enableSimple": "간이 표시 사용",
+        "sectionSound": "발언 효과음",
+        "soundHint": "다른 사람의 발언에서 울립니다. 이 설정은 이 기기에만 적용됩니다",
+        "soundEnabled": "소리 내기",
+        "soundType": "효과음 종류",
+        "soundVolume": "음량",
+        "soundPreview": "미리 듣기",
+        "soundType_pageTurn": "페이지 넘김",
+        "soundType_bubble": "버블",
+        "soundType_cyber": "사이버",
+        "soundType_notify1": "알림1",
+        "soundType_notify2": "알림2"
       },
       "systemAvatar": {
         "title": "시스템쨩",
@@ -2940,6 +3082,8 @@
         "imagePopupOriginal": "팝업에서 원본 크기로 표시",
         "pieceGauge": "말에 막대 표시",
         "gaugeInverted": "마이너스 리소스",
+        "changeEffect": "증감 시 이펙트",
+        "changeSound": "증감 시 효과음",
         "columnLabel": "열 표시",
         "columnLabelPlaceholder": "비우면 이름",
         "columnGroup": "열 그룹",
@@ -3221,7 +3365,8 @@
       "altitudeLabel": "고도"
     },
     "panel": {
-      "menuTitle": "메뉴"
+      "menuTitle": "메뉴",
+      "transparency": "투명도"
     }
   }
 }

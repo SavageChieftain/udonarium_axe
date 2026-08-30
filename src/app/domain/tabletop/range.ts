@@ -7,6 +7,9 @@ import { DataElement, DataElementType } from '@axe/domain/data/data-element';
 import { cellPatternBoundingBox, parseCellPattern } from '@axe/domain/tabletop/cell-pattern';
 import { TabletopObject } from '@axe/domain/tabletop/tabletop-object';
 
+export const RANGE_DEFAULT_FILL_COLOR = '#FFFF00';
+export const RANGE_DEFAULT_BORDER_COLOR = '#000000';
+
 @SyncObject('range')
 export class RangeArea extends TabletopObject {
   constructor(identifier: string = generateUuid()) {
@@ -21,14 +24,16 @@ export class RangeArea extends TabletopObject {
 
   @SyncVar() offSetX: boolean = false;
   @SyncVar() offSetY: boolean = false;
-  @SyncVar() gridColor: string = '#FFFF00';
-  @SyncVar() rangeColor: string = '#000000';
+  @SyncVar() gridColor: string = RANGE_DEFAULT_FILL_COLOR;
+  @SyncVar() rangeColor: string = RANGE_DEFAULT_BORDER_COLOR;
   @SyncVar('type') private _type: string = 'CORN';
   @SyncVar() fillOutLine: boolean = false;
   @SyncVar() subDivisionSnapPolygonal: boolean = true;
   @SyncVar() cellPattern: string = '';
   @SyncVar() customGridType: string = '';
   @SyncVar() isRotatable: boolean = false;
+  /** The hotbar slot that laid this out, so the same slot can take it down again later. */
+  @SyncVar() laidByHotbarSlot: string = '';
 
   get type(): string {
     return this._type;
@@ -45,11 +50,32 @@ export class RangeArea extends TabletopObject {
   get length(): number {
     return this.getCommonValue('length', 1);
   }
+  set length(length: number) {
+    this.setCommonValue('length', length);
+  }
   get width(): number {
     return this.getCommonValue('width', 1);
   }
+  set width(width: number) {
+    this.setCommonValue('width', width);
+  }
 
   gridSize: number = 50;
+
+  /**
+   * How much of the range is painted, as a share of the whole its sheet keeps.
+   *
+   * The sheet holds this as a resource: the whole in `value` and what is used in
+   * `currentValue`, which is the half the reader moves.
+   */
+  setOpacityPercent(percent: number): void {
+    const element = this.getElement('opacity', this.commonDataElement);
+    if (!element) return;
+
+    const whole = Number(element.value);
+    const full = Number.isFinite(whole) && whole > 0 ? whole : 100;
+    element.currentValue = Math.round(Math.max(0, Math.min(full, percent)));
+  }
 
   followingCounterDummyCount() {
     this.followingCounterDummy++;

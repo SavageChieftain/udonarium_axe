@@ -8,6 +8,7 @@ export interface WidgetVisibility {
   readonly connectionQuality: boolean;
   readonly recording: boolean;
   readonly renderStats: boolean;
+  readonly hotbar: boolean;
 }
 
 const DEFAULT_VISIBILITY: WidgetVisibility = {
@@ -16,6 +17,7 @@ const DEFAULT_VISIBILITY: WidgetVisibility = {
   connectionQuality: false,
   recording: true,
   renderStats: false,
+  hotbar: false,
 };
 
 export function parseWidgetVisibility(raw: string | null): WidgetVisibility {
@@ -29,6 +31,7 @@ export function parseWidgetVisibility(raw: string | null): WidgetVisibility {
         typeof parsed.connectionQuality === 'boolean' ? parsed.connectionQuality : DEFAULT_VISIBILITY.connectionQuality,
       recording: typeof parsed.recording === 'boolean' ? parsed.recording : DEFAULT_VISIBILITY.recording,
       renderStats: typeof parsed.renderStats === 'boolean' ? parsed.renderStats : DEFAULT_VISIBILITY.renderStats,
+      hotbar: typeof parsed.hotbar === 'boolean' ? parsed.hotbar : DEFAULT_VISIBILITY.hotbar,
     };
   } catch {
     return DEFAULT_VISIBILITY;
@@ -44,6 +47,7 @@ export class WidgetVisibilityService {
   readonly connectionQuality = signal(this.restored.connectionQuality);
   readonly recording = signal(this.restored.recording);
   readonly renderStats = signal(this.restored.renderStats);
+  readonly hotbar = signal(this.restored.hotbar);
 
   constructor() {
     effect(() => {
@@ -53,6 +57,7 @@ export class WidgetVisibilityService {
         connectionQuality: this.connectionQuality(),
         recording: this.recording(),
         renderStats: this.renderStats(),
+        hotbar: this.hotbar(),
       };
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
     });
@@ -76,5 +81,9 @@ export class WidgetVisibilityService {
 
   toggleRenderStats(): void {
     this.renderStats.update((visible) => !visible);
+  }
+
+  toggleHotbar(): void {
+    this.hotbar.update((visible) => !visible);
   }
 }

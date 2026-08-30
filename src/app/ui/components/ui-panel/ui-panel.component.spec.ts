@@ -25,6 +25,136 @@ describe('UIPanelComponent', () => {
     expect(component).toBeTruthy();
   });
 
+  describe('the bar that fades a panel', () => {
+    const STORAGE_KEY = 'ui-panel-transparency';
+
+    beforeEach(() => localStorage.removeItem(STORAGE_KEY));
+    afterEach(() => localStorage.removeItem(STORAGE_KEY));
+
+    function panel(): HTMLElement {
+      return fixture.nativeElement.querySelector('.draggable-panel');
+    }
+
+    function bar(): HTMLInputElement | null {
+      return fixture.nativeElement.querySelector('[data-testid="panel-transparency"]');
+    }
+
+    it('leaves a panel as it is until the bar is moved', () => {
+      fixture.detectChanges();
+
+      expect(component.panelOpacity()).toBe(1);
+      expect(panel().style.opacity).toBe('');
+    });
+
+    it('fades the panel as the bar goes up', () => {
+      component.setTransparency(50);
+      fixture.detectChanges();
+
+      expect(component.panelOpacity()).toBeCloseTo(0.625, 5);
+      expect(Number(panel().style.opacity)).toBeCloseTo(0.625, 5);
+    });
+
+    it('still leaves a panel to be seen at the far end of the bar', () => {
+      component.setTransparency(100);
+      fixture.detectChanges();
+
+      expect(component.panelOpacity()).toBe(0.25);
+      expect(Number(panel().style.opacity)).toBeGreaterThan(0);
+    });
+
+    it('holds a panel whole while it has the focus, and lets it fade once that goes', () => {
+      component.setTransparency(100);
+      fixture.detectChanges();
+
+      panel().dispatchEvent(new FocusEvent('focusin', { bubbles: true }));
+      fixture.detectChanges();
+      expect(component.panelOpacity()).toBe(1);
+      expect(panel().style.opacity).toBe('');
+
+      panel().dispatchEvent(new FocusEvent('focusout', { bubbles: true, relatedTarget: null }));
+      fixture.detectChanges();
+      expect(component.panelOpacity()).toBe(0.25);
+    });
+
+    it("keeps the focus while it moves between the panel's own parts", () => {
+      component.setTransparency(100);
+      fixture.detectChanges();
+      panel().dispatchEvent(new FocusEvent('focusin', { bubbles: true }));
+
+      panel().dispatchEvent(new FocusEvent('focusout', { bubbles: true, relatedTarget: bar() }));
+      fixture.detectChanges();
+
+      expect(component.panelOpacity()).toBe(1);
+    });
+
+    it('shows what the bar is set to while the bar is the thing being used', () => {
+      component.setTransparency(100);
+      panel().dispatchEvent(new FocusEvent('focusin', { bubbles: true }));
+      fixture.detectChanges();
+      const input = bar()!;
+
+      input.dispatchEvent(new FocusEvent('focus'));
+      fixture.detectChanges();
+      expect(component.panelOpacity()).toBe(0.25);
+
+      input.dispatchEvent(new FocusEvent('blur'));
+      fixture.detectChanges();
+      expect(component.panelOpacity()).toBe(1);
+    });
+
+    it('holds the bar to its own two ends', () => {
+      component.setTransparency(140);
+      expect(component.transparency()).toBe(100);
+
+      component.setTransparency(-20);
+      expect(component.transparency()).toBe(0);
+
+      component.setTransparency(Number.NaN);
+      expect(component.transparency()).toBe(0);
+    });
+
+    it('takes what the reader drags the bar to', () => {
+      fixture.detectChanges();
+      const input = bar()!;
+
+      input.value = '75';
+      input.dispatchEvent(new Event('input'));
+      fixture.detectChanges();
+
+      expect(component.transparency()).toBe(75);
+    });
+
+    function openAs(kind: string) {
+      const opened = TestBed.createComponent(UIPanelComponent);
+      opened.debugElement.injector.get(PanelService).panelKind.set(kind);
+      opened.detectChanges();
+      return opened;
+    }
+
+    it('opens the next panel of the same kind where the bar was left', () => {
+      fixture.debugElement.injector.get(PanelService).panelKind.set('chat-window');
+      component.setTransparency(70);
+
+      expect(openAs('chat-window').componentInstance.transparency()).toBe(70);
+      expect(localStorage.getItem(STORAGE_KEY)).toBe('{"chat-window":70}');
+    });
+
+    it('leaves the other kinds of panel as they were', () => {
+      fixture.debugElement.injector.get(PanelService).panelKind.set('chat-window');
+      component.setTransparency(70);
+
+      expect(openAs('game-character-sheet').componentInstance.transparency()).toBe(0);
+    });
+
+    it('leaves the bar out where a panel fills the screen', () => {
+      const viewport = TestBed.inject(ViewportService);
+      (viewport as unknown as { _isCompact: { set(value: boolean): void } })._isCompact.set(true);
+      fixture.detectChanges();
+
+      expect(bar()).toBeNull();
+    });
+  });
+
   describe('without a frame', () => {
     function panel(): HTMLElement {
       return fixture.nativeElement.querySelector('.draggable-panel');

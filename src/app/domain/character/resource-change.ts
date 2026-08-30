@@ -9,6 +9,8 @@ export interface ResourceSnapshot {
   current: number;
   max: number;
   inverted?: boolean;
+  playsEffect?: boolean;
+  playsSound?: boolean;
   /**
    * How often this end has changed that field.
    * A value arriving by load or sync does not count, which is how a real change is told apart.
@@ -23,6 +25,8 @@ export interface ResourceChange {
   delta: number;
   label: string;
   ratio: number;
+  playsEffect: boolean;
+  playsSound: boolean;
 }
 
 export function resourceChangeSeverity(ratio: number): ResourceChangeSeverity {
@@ -62,6 +66,8 @@ export function diffResourceSnapshots(
       delta,
       label: `${delta < 0 ? '' : '+'}${trim(delta)}`,
       ratio: Number.isFinite(max) && max > 0 ? Math.abs(delta) / max : 0,
+      playsEffect: next.playsEffect === true,
+      playsSound: next.playsSound === true,
     });
   }
   return changes;

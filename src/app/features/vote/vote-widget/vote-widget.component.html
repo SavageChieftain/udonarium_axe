@@ -5,6 +5,7 @@
     data-testid="vote-widget"
     appDraggable
     (draggable.end)="rememberSpot()"
+    (draggable.settled)="rememberSpot()"
     [draggable.unhandle]="'button'"
   >
     <div class="border-ui-border-panel flex items-center gap-2 border-b border-solid px-2.5 py-1.5">

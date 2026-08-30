@@ -37,6 +37,8 @@ export class CharacterTemplateFactory {
       {
         [DataElementAttribute.FIELD_TYPE]: DataElementFieldType.RESOURCE,
         [DataElementAttribute.PIECE_GAUGE]: 'true',
+        [DataElementAttribute.CHANGE_EFFECT]: 'true',
+        [DataElementAttribute.CHANGE_SOUND]: 'true',
         type: DataElementType.NUMBER_RESOURCE,
         currentValue: '200',
       },
@@ -48,6 +50,8 @@ export class CharacterTemplateFactory {
       {
         [DataElementAttribute.FIELD_TYPE]: DataElementFieldType.RESOURCE,
         [DataElementAttribute.PIECE_GAUGE]: 'true',
+        [DataElementAttribute.CHANGE_EFFECT]: 'true',
+        [DataElementAttribute.CHANGE_SOUND]: 'true',
         type: DataElementType.NUMBER_RESOURCE,
         currentValue: '100',
       },
@@ -92,6 +96,8 @@ export class CharacterTemplateFactory {
       {
         [DataElementAttribute.FIELD_TYPE]: DataElementFieldType.RESOURCE,
         [DataElementAttribute.PIECE_GAUGE]: 'true',
+        [DataElementAttribute.CHANGE_EFFECT]: 'true',
+        [DataElementAttribute.CHANGE_SOUND]: 'true',
         type: DataElementType.NUMBER_RESOURCE,
         currentValue: '200',
       },
@@ -103,6 +109,8 @@ export class CharacterTemplateFactory {
       {
         [DataElementAttribute.FIELD_TYPE]: DataElementFieldType.RESOURCE,
         [DataElementAttribute.PIECE_GAUGE]: 'true',
+        [DataElementAttribute.CHANGE_EFFECT]: 'true',
+        [DataElementAttribute.CHANGE_SOUND]: 'true',
         type: DataElementType.NUMBER_RESOURCE,
         currentValue: '100',
       },

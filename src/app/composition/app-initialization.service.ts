@@ -228,6 +228,12 @@ export class AppInitializationService {
       missileLaunch: './assets/sounds/soundeffect-lab/missile-launch.mp3',
       rocketLaunch: './assets/sounds/soundeffect-lab/rocket-launch.mp3',
       flashImpact: './assets/sounds/soundeffect-lab/flash-impact.mp3',
+      chatPageTurnLong: './assets/sounds/otologic/chat-page-turn-long.mp3',
+      chatPageTurnShort: './assets/sounds/otologic/chat-page-turn-short.mp3',
+      chatBubble: './assets/sounds/otologic/chat-bubble.mp3',
+      chatCyber: './assets/sounds/otologic/chat-cyber.mp3',
+      chatNotify1: './assets/sounds/otologic/chat-notify1.mp3',
+      chatNotify2: './assets/sounds/otologic/chat-notify2.mp3',
     };
 
     for (const key of Object.keys(soundMap) as SoundKey[]) {

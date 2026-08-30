@@ -22,6 +22,7 @@ import { toHalfWidth } from '@axe/core/util/string-util';
 import { portraitNameOf } from '@axe/domain/character/character-portrait';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { ChatMessage, ChatMessageContext, ChatMessageTargetContext } from '@axe/domain/chat/chat-message';
+import { copiedMessageContext } from '@axe/domain/chat/chat-message-copy';
 import { ChatTab } from '@axe/domain/chat/chat-tab';
 import { ChatTabList } from '@axe/domain/chat/chat-tab-list';
 import { DataElement, DataElementFieldType } from '@axe/domain/data/data-element';
@@ -379,6 +380,16 @@ export class ChatMessageService {
     const object = this.objectStore.get(identifier);
     if (object instanceof GameCharacter) return resolveImagePos(object.portraitPosition ?? undefined);
     return -1;
+  }
+
+  /**
+   * Says a line again in another tab, as though it had been said there.
+   *
+   * It goes to the end of that tab rather than back into the middle of it under its old time:
+   * a line copied over is being brought into that conversation now.
+   */
+  copyMessageToTab(message: ChatMessage, chatTab: ChatTab): ChatMessage {
+    return chatTab.addMessage(copiedMessageContext(message, this.calcTimeStamp(chatTab)));
   }
 
   private calcTimeStamp(chatTab: ChatTab): number {

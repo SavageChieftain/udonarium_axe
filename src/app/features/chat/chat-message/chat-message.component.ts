@@ -27,6 +27,7 @@ import { ObjectStore } from '@axe/core/sync/object-store';
 import { ChatMessage } from '@axe/domain/chat/chat-message';
 import { ChatTab } from '@axe/domain/chat/chat-tab';
 import { ChatTabList } from '@axe/domain/chat/chat-tab-list';
+import { canRoleSpeakTab } from '@axe/domain/chat/chat-tab-permission';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { TextNote } from '@axe/domain/tabletop/text-note';
@@ -313,8 +314,60 @@ export class ChatMessageComponent {
     this.uiSignalService.requestChatJump(target);
   }
 
+  /**
+   * A memo is a note laid on the table, so it is only for those who may put things there.
+   * A guest is at the table to watch, and had a button that put a note on it.
+   */
+  get canShareAsMemo(): boolean {
+    return this.canInteract && this.rolePermission.canEditTabletop;
+  }
+
+  readonly isCopyPickerOpen = signal(false);
+
+  /**
+   * The tabs this line could be said again in.
+   *
+   * A reader may only copy into a tab they are allowed to speak in, and copying a line into
+   * the tab it is already in says nothing, so neither is offered.
+   */
+  copyTargets(): ChatTab[] {
+    this.objectChange.collectionOf(ChatTab.aliasName)();
+    if (PeerCursor.myCursor) this.objectChange.versionOf(PeerCursor.myCursor.identifier)();
+    const role = PeerCursor.myRole;
+    const here = this.chatMessage?.tabIdentifier ?? '';
+    return this.chatTabList.chatTabs.filter((tab) => tab.identifier !== here && canRoleSpeakTab(tab, role));
+  }
+
+  /**
+   * A line meant for one person is not offered.
+   *
+   * Copied as it stands it would stay addressed to them and be invisible in the tab it was
+   * carried to, and copied without the address it would put a whisper on the noticeboard.
+   * Neither is what pressing a copy button asks for.
+   */
+  get canCopyToTab(): boolean {
+    const message = this.chatMessage;
+    if (!message || message.isDirect || message.isSecret) return false;
+    return this.canInteract && this.copyTargets().length > 0;
+  }
+
+  toggleCopyPicker(): void {
+    if (!this.canCopyToTab) return;
+    this.isCopyPickerOpen.update((open) => !open);
+  }
+
+  copyToTab(tab: ChatTab): void {
+    this.isCopyPickerOpen.set(false);
+    if (!this.canCopyToTab) return;
+    const message = this.chatMessage;
+    if (!message) return;
+    if (!canRoleSpeakTab(tab, PeerCursor.myRole)) return;
+    this.chatMessageService.copyMessageToTab(message, tab);
+    SoundEffect.play(PresetSound.cardPut);
+  }
+
   clickShareAsMemo() {
-    if (!this.canInteract) return;
+    if (!this.canShareAsMemo) return;
     const msg = this.chatMessage;
     if (!msg) return;
     const text = (msg.text ?? '').trim();

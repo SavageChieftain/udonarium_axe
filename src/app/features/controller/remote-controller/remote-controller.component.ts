@@ -12,6 +12,7 @@ import {
   viewChild,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { CharacterMacroService } from '@axe/application/chat/character-macro.service';
 import { ChatMessageService } from '@axe/application/chat/chat-message.service';
 import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { GameObjectInventoryService } from '@axe/application/inventory/game-object-inventory.service';
@@ -29,6 +30,7 @@ import { GameCharacter } from '@axe/domain/character/game-character';
 import { ChatPalette } from '@axe/domain/chat/chat-palette';
 import { ChatTab } from '@axe/domain/chat/chat-tab';
 import { ChatTabList } from '@axe/domain/chat/chat-tab-list';
+import { PaletteRow, paletteRowsOf } from '@axe/domain/chat/palette-rows';
 import { DataElement } from '@axe/domain/data/data-element';
 import { SortOrder } from '@axe/domain/data/data-summary-setting';
 import { DiceBot } from '@axe/domain/dice/dice-bot';
@@ -37,10 +39,10 @@ import { TabletopObject } from '@axe/domain/tabletop/tabletop-object';
 import { ControllerInputComponent } from '@axe/features/controller/controller-input/controller-input.component';
 import {
   addBuffRound,
+  decreaseBuffRound,
+  deleteZeroRoundBuffs,
   parseBuffInput,
   RemoteControllerSelect,
-  sendDecBuffRoundMessage,
-  sendDeleteZeroRoundBuffMessage,
 } from '@axe/features/controller/remote-controller/remote-controller-buff';
 import {
   getCounterElements,
@@ -54,15 +56,6 @@ import { SafePipe } from '@axe/ui/pipes/safe.pipe';
 import { TranslocoModule } from '@jsverse/transloco';
 import GameSystemClass from 'bcdice/lib/game_system';
 
-type PaletteLineKind = 'command' | 'heading' | 'variable' | 'empty';
-
-interface PaletteRow {
-  text: string;
-  kind: PaletteLineKind;
-  lineIndex: number;
-  headingName?: string;
-}
-
 export type MobileSection = 'targets' | 'buff' | 'resource';
 
 @Component({
@@ -74,6 +67,7 @@ export type MobileSection = 'targets' | 'buff' | 'resource';
 export class RemoteControllerComponent {
   protected readonly isCompact = inject(ViewportService).isCompact;
   readonly chatMessageService = inject(ChatMessageService);
+  private readonly characterMacro = inject(CharacterMacroService);
   private readonly panelService = inject(PanelService);
   private readonly inventoryService = inject(GameObjectInventoryService);
   private readonly disclosureService = inject(DisclosureService);
@@ -214,17 +208,7 @@ export class RemoteControllerComponent {
     const palette = char?.remoteController ?? null;
     if (!palette) return [];
     this.objectChange.versionOf(palette.identifier)();
-    return palette.getPalette().map((text, i): PaletteRow => {
-      if (/^\s*$/.test(text)) return { text, kind: 'empty', lineIndex: i };
-      const m1 = text.match(/^\/\/--[-]+(.*)$/);
-      const m2 = text.match(/^◆(.*)$/);
-      if (m1) return { text, kind: 'heading', lineIndex: i, headingName: m1[1].replace(/-+$/, '') };
-      if (m2) return { text, kind: 'heading', lineIndex: i, headingName: m2[1] };
-      if (/^\s*[/／]{2}([^=＝{}｛｝\s]+)\s*[=＝]\s*(.+)/.test(text)) {
-        return { text, kind: 'variable', lineIndex: i };
-      }
-      return { text, kind: 'command', lineIndex: i };
-    });
+    return paletteRowsOf(palette.getPalette());
   });
 
   errorMessageBuff = '';
@@ -299,15 +283,10 @@ export class RemoteControllerComponent {
       bufftext += `/${this.buffColorId()}`;
     }
     addBuffRound(gameCharacters, parsed.buffname, parsed.sub, parsed.round, appearance);
-    this.chatMessageService.sendMessage(
-      this.chatTab(),
-      this.t('feature.controller.remote.addBuffMessage', { buff: bufftext, targets: parts }),
-      this._gameSystem,
-      this.sendFrom,
-      '',
-      ci.portraitIndex(),
-      ci.selectChatColor
-    );
+    this.announce(this.t('feature.controller.remote.addBuffMessage', { buff: bufftext, targets: parts }), {
+      portraitIndex: ci.portraitIndex(),
+      color: ci.selectChatColor,
+    });
     this.errorMessageBuff = '';
     this.text.set('');
   }
@@ -406,6 +385,18 @@ export class RemoteControllerComponent {
     return getInventoryTags(gameObject, this.inventoryService);
   }
 
+  /** Everything this panel says is already worked out, so none of it is evaluated again. */
+  private announce(text: string, options: { portraitIndex: number; color?: string }): void {
+    this.characterMacro.announce(this.character(), text, {
+      tab: this.chatTab(),
+      gameSystem: this._gameSystem,
+      sendFrom: this.sendFrom,
+      portraitIndex: options.portraitIndex,
+      color: options.color ?? '#000000',
+      bubbles: null,
+    });
+  }
+
   getTargetCharacters(checkedOnly: boolean): GameCharacter[] {
     this.uiSignalService.targetChange();
     const objectList = this.getGameObjects(this.selectTab());
@@ -413,15 +404,12 @@ export class RemoteControllerComponent {
   }
 
   remoteDecBuffRound(checkedOnly: boolean) {
-    sendDecBuffRoundMessage(
-      this.chatTab(),
-      this.chatMessageService,
-      this._gameSystem,
-      this.sendFrom,
-      this.controllerInputComponent().portraitIndex(),
-      this.getTargetCharacters(checkedOnly),
-      (targets) => this.t('feature.controller.remote.decBuffRoundMessage', { targets })
-    );
+    if (!this.chatTab()) return;
+    const targets = decreaseBuffRound(this.getTargetCharacters(checkedOnly));
+    if (!targets) return;
+    this.announce(this.t('feature.controller.remote.decBuffRoundMessage', { targets }), {
+      portraitIndex: this.controllerInputComponent().portraitIndex(),
+    });
   }
 
   decBuffRoundSelect() {
@@ -433,15 +421,12 @@ export class RemoteControllerComponent {
   }
 
   remoteBuffDeleteZeroRound(checkedOnly: boolean) {
-    sendDeleteZeroRoundBuffMessage(
-      this.chatTab(),
-      this.chatMessageService,
-      this._gameSystem,
-      this.sendFrom,
-      this.controllerInputComponent().portraitIndex(),
-      this.getTargetCharacters(checkedOnly),
-      (targets) => this.t('feature.controller.remote.deleteZeroBuffMessage', { targets })
-    );
+    if (!this.chatTab()) return;
+    const targets = deleteZeroRoundBuffs(this.getTargetCharacters(checkedOnly));
+    if (!targets) return;
+    this.announce(this.t('feature.controller.remote.deleteZeroBuffMessage', { targets }), {
+      portraitIndex: this.controllerInputComponent().portraitIndex(),
+    });
   }
 
   deleteZeroRoundBuffSelect() {
@@ -476,15 +461,10 @@ export class RemoteControllerComponent {
         value: this.remoteNumber,
         detail: text,
       });
-      this.chatMessageService.sendMessage(
-        this.chatTab(),
-        mess,
-        this._gameSystem,
-        this.sendFrom,
-        '',
-        this.controllerInputComponent().portraitIndex(),
-        this.controllerInputComponent().selectChatColor
-      );
+      this.announce(mess, {
+        portraitIndex: this.controllerInputComponent().portraitIndex(),
+        color: this.controllerInputComponent().selectChatColor,
+      });
       this.errorMessageController = '';
     } else {
       this.errorMessageController = this.t('feature.controller.remote.noTargetCharacter');

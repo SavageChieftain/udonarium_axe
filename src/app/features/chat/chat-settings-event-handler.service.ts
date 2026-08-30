@@ -59,11 +59,28 @@ export class ChatSettingsEventHandlerService {
     list.simpleDispFlagUserId = stored.simpleDispFlagUserId;
   }
 
+  /**
+   * Puts the reader's own answers back on a tab.
+   *
+   * A setting kept for the room over all its tabs is written straight on; one kept per tab is
+   * looked up by the tab's name, since a room read from a file makes its tabs afresh. A reader
+   * who has never answered writes on nothing: what a tab is set to is shared with the room, so
+   * somebody joining on a fresh browser would otherwise hand their defaults to everybody.
+   */
   private restoreTab(tab: ChatTab): void {
-    const stored = this.preferences.tabPreferencesOf(tab.identifier);
-    if (!stored) return;
-    tab.portraitDisplayFlag = stored.portraitDisplayFlag;
-    tab.chatSimpleDispFlag = stored.chatSimpleDispFlag;
+    const stored = this.preferences.tabPreferencesOf(tab.name, tab.identifier);
+
+    if (this.preferences.hasPortraitAnswer()) {
+      const portrait = this.preferences.portrait();
+      if (portrait.scope === 'all') tab.portraitDisplayFlag = portrait.all;
+      else if (stored) tab.portraitDisplayFlag = stored.portraitDisplayFlag;
+    }
+
+    if (this.preferences.hasSimpleAnswer()) {
+      const simple = this.preferences.simple();
+      if (simple.scope === 'all') tab.chatSimpleDispFlag = simple.all;
+      else if (stored) tab.chatSimpleDispFlag = stored.chatSimpleDispFlag;
+    }
   }
 
   private captureDisplay(): void {
@@ -80,7 +97,7 @@ export class ChatSettingsEventHandlerService {
   private captureTab(identifier: string): void {
     const tab = this.objectStore.get<ChatTab>(identifier);
     if (!tab) return;
-    this.preferences.setTabPreferences(identifier, {
+    this.preferences.setTabPreferences(tab.name, {
       portraitDisplayFlag: tab.portraitDisplayFlag,
       chatSimpleDispFlag: tab.chatSimpleDispFlag,
     });

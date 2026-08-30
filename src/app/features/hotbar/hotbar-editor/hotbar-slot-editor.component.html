@@ -1,0 +1,489 @@
+<div class="flex h-full flex-col gap-2 p-2 text-[13px]">
+  <label class="flex items-center gap-2">
+    <span class="text-ui-muted w-20 shrink-0">{{ 'feature.hotbar.editor.kind' | transloco }}</span>
+    <select
+      data-testid="hotbar-editor-kind"
+      class="border-ui-border-panel bg-ui-elevated text-ui-text min-w-0 flex-1 rounded-[3px] border border-solid px-1.5 py-1"
+      (change)="setKind($any($event.target).value)"
+    >
+      @for (choice of kinds; track choice) {
+        <option [value]="choice" [selected]="choice === kind()">
+          {{ 'feature.hotbar.kind.' + choice | transloco }}
+        </option>
+      }
+    </select>
+  </label>
+
+  <p class="text-ui-muted m-0 text-[11px] leading-snug">{{ 'feature.hotbar.kindHint.' + kind() | transloco }}</p>
+
+  @if (picksFromList()) {
+    <label class="flex items-center gap-2">
+      <span class="text-ui-muted w-20 shrink-0">{{ 'feature.hotbar.editor.argument' | transloco }}</span>
+      <select
+        data-testid="hotbar-editor-choice"
+        class="border-ui-border-panel bg-ui-elevated text-ui-text min-w-0 flex-1 rounded-[3px] border border-solid px-1.5 py-1"
+        (change)="setChoice($any($event.target).value)"
+      >
+        <option value="" [selected]="!draft().value">{{ 'feature.hotbar.editor.unchosen' | transloco }}</option>
+        @for (choice of choices(); track choice.value) {
+          <option [value]="choice.value" [selected]="choice.value === draft().value">{{ choice.name }}</option>
+        }
+      </select>
+    </label>
+  } @else if (
+    kind() !== 'diceDeploy' && kind() !== 'focus' && kind() !== 'panel' && kind() !== 'turn' && kind() !== 'group'
+  ) {
+    <label class="flex flex-1 flex-col gap-1">
+      <span class="text-ui-muted">{{ 'feature.hotbar.editor.argument' | transloco }}</span>
+      <textarea
+        data-testid="hotbar-editor-argument"
+        class="border-ui-border-panel bg-ui-elevated text-ui-text min-h-24 w-full resize-y rounded-[3px] border border-solid px-1.5 py-1 font-sans"
+        [value]="draft().value"
+        (input)="setValue($any($event.target).value)"
+      ></textarea>
+    </label>
+  }
+
+  @if (palettePicks().length) {
+    <label class="flex items-center gap-2">
+      <span class="text-ui-muted w-20 shrink-0">{{ 'feature.hotbar.editor.fromPalette' | transloco }}</span>
+      <select
+        data-testid="hotbar-editor-palette"
+        class="border-ui-border-panel bg-ui-elevated text-ui-text min-w-0 flex-1 rounded-[3px] border border-solid px-1.5 py-1"
+        (change)="takeFromPalette($any($event.target).value)"
+      >
+        <option value="">{{ 'feature.hotbar.editor.fromPaletteHint' | transloco }}</option>
+        @for (group of palettePicks(); track $index) {
+          <optgroup [label]="group.heading || ('feature.hotbar.editor.paletteLoose' | transloco)">
+            @for (line of group.lines; track $index) {
+              <option [value]="line" [selected]="line === draft().value">{{ line }}</option>
+            }
+          </optgroup>
+        }
+      </select>
+    </label>
+  }
+
+  @switch (kind()) {
+    @case ('effect') {
+      <label class="flex items-center gap-2">
+        <span class="text-ui-muted w-20 shrink-0">{{ 'feature.hotbar.editor.mode' | transloco }}</span>
+        <select
+          class="border-ui-border-panel bg-ui-elevated text-ui-text flex-1 rounded-[3px] border border-solid px-1.5 py-1"
+          (change)="patchOptions({ mode: $any($event.target).value })"
+        >
+          @for (mode of effectModes; track mode) {
+            <option [value]="mode" [selected]="mode === effectMode()">
+              {{ 'feature.hotbar.mode.' + mode | transloco }}
+            </option>
+          }
+        </select>
+      </label>
+      @if (effectMode() === 'cast') {
+        <label class="flex items-center gap-2">
+          <input
+            type="checkbox"
+            data-testid="hotbar-editor-effect-on-self"
+            [checked]="effectOnSelf()"
+            (change)="patchOptions({ onSelf: $any($event.target).checked })"
+          />
+          <span>{{ 'feature.hotbar.editor.effectOnSelf' | transloco }}</span>
+        </label>
+      }
+    }
+    @case ('panel') {
+      <label class="flex items-center gap-2">
+        <span class="text-ui-muted w-20 shrink-0">{{ 'feature.hotbar.editor.panel' | transloco }}</span>
+        <select
+          class="border-ui-border-panel bg-ui-elevated text-ui-text flex-1 rounded-[3px] border border-solid px-1.5 py-1"
+          (change)="patchOptions({ panel: $any($event.target).value })"
+        >
+          @for (name of panelNames; track name) {
+            <option [value]="name" [selected]="name === panelName()">
+              {{ panelLabelKey(name) | transloco }}
+            </option>
+          }
+        </select>
+      </label>
+    }
+    @case ('turn') {
+      <label class="flex items-center gap-2">
+        <span class="text-ui-muted w-20 shrink-0">{{ 'feature.hotbar.editor.action' | transloco }}</span>
+        <select
+          class="border-ui-border-panel bg-ui-elevated text-ui-text flex-1 rounded-[3px] border border-solid px-1.5 py-1"
+          (change)="patchOptions({ action: $any($event.target).value })"
+        >
+          @for (action of turnActions; track action) {
+            <option [value]="action" [selected]="action === turnAction()">
+              {{ 'feature.hotbar.turnAction.' + action | transloco }}
+            </option>
+          }
+        </select>
+      </label>
+    }
+    @case ('sound') {
+      <label class="flex items-center gap-2">
+        <input
+          type="checkbox"
+          [checked]="playsLocally()"
+          (change)="patchOptions({ local: $any($event.target).checked })"
+        />
+        <span>{{ 'feature.hotbar.editor.local' | transloco }}</span>
+      </label>
+    }
+    @case ('cutIn') {
+      <label class="flex items-center gap-2">
+        <input
+          type="checkbox"
+          [checked]="playsSoundOnly()"
+          (change)="patchOptions({ soundOnly: $any($event.target).checked })"
+        />
+        <span>{{ 'feature.hotbar.editor.soundOnly' | transloco }}</span>
+      </label>
+    }
+    @case ('group') {
+      <div class="flex flex-col gap-1">
+        <span class="text-ui-muted">{{ 'feature.hotbar.editor.steps' | transloco }}</span>
+        @if (stepChoices().length) {
+          <div
+            class="border-ui-border-panel flex max-h-40 flex-col gap-0.5 overflow-y-auto rounded-[3px] border border-solid p-1"
+          >
+            @for (choice of stepChoices(); track choice.key) {
+              <label class="hover:bg-ui-hover flex items-center gap-1.5 rounded-[3px] px-1 py-0.5">
+                <input
+                  type="checkbox"
+                  data-testid="hotbar-editor-step"
+                  [checked]="choice.chosen"
+                  (change)="toggleStep(choice.step, $any($event.target).checked)"
+                />
+                <span class="text-ui-dim w-8 shrink-0 text-[10px]">{{ choice.key }}</span>
+                <span class="min-w-0 flex-1 truncate text-[11px]">{{ choice.label }}</span>
+              </label>
+            }
+          </div>
+        } @else {
+          <p class="text-ui-muted m-0 text-[11px]">{{ 'feature.hotbar.editor.stepsNone' | transloco }}</p>
+        }
+      </div>
+      @if (stepRows().length) {
+        <div class="flex flex-col gap-1">
+          <span class="text-ui-muted">{{ 'feature.hotbar.editor.stepsOrder' | transloco }}</span>
+          <div class="border-ui-border-panel flex flex-col gap-0.5 rounded-[3px] border border-solid p-1">
+            @for (row of stepRows(); track row.step.slotIdentifier) {
+              <div class="flex items-center gap-1" data-testid="hotbar-editor-step-row">
+                <span class="text-ui-dim w-4 shrink-0 text-right text-[10px]">{{ row.order + 1 }}</span>
+                <span class="text-ui-dim w-8 shrink-0 text-[10px]">{{ row.key }}</span>
+                <span class="min-w-0 flex-1 truncate text-[11px]">{{ row.label }}</span>
+                @if (row.order === 0) {
+                  <span class="text-ui-dim w-24 shrink-0 text-right text-[10px]">{{
+                    'feature.hotbar.editor.stepAtOnce' | transloco
+                  }}</span>
+                } @else {
+                  <input
+                    type="number"
+                    min="0"
+                    [max]="maxStepDelay"
+                    step="100"
+                    data-testid="hotbar-editor-step-delay"
+                    class="border-ui-border-panel bg-ui-elevated text-ui-text w-16 shrink-0 rounded-[3px] border border-solid px-1 py-0.5 text-right"
+                    [value]="row.step.delayMs"
+                    [title]="'feature.hotbar.editor.stepDelay' | transloco"
+                    (input)="setStepDelay(row.order, $any($event.target).valueAsNumber)"
+                  />
+                  <span class="text-ui-dim w-6 shrink-0 text-[10px]">ms</span>
+                }
+                <button
+                  type="button"
+                  class="text-ui-dim hover:text-ui-accent shrink-0 cursor-pointer border-0 bg-transparent p-0 disabled:cursor-default disabled:opacity-30 [&_i]:text-[14px]"
+                  data-testid="hotbar-editor-step-up"
+                  [disabled]="row.order === 0"
+                  [title]="'feature.hotbar.editor.stepUp' | transloco"
+                  (click)="moveStep(row.order, -1)"
+                >
+                  <i class="material-icons">arrow_upward</i>
+                </button>
+                <button
+                  type="button"
+                  class="text-ui-dim hover:text-ui-accent shrink-0 cursor-pointer border-0 bg-transparent p-0 disabled:cursor-default disabled:opacity-30 [&_i]:text-[14px]"
+                  data-testid="hotbar-editor-step-down"
+                  [disabled]="row.order === stepRows().length - 1"
+                  [title]="'feature.hotbar.editor.stepDown' | transloco"
+                  (click)="moveStep(row.order, 1)"
+                >
+                  <i class="material-icons">arrow_downward</i>
+                </button>
+                <button
+                  type="button"
+                  class="text-ui-dim hover:text-ui-danger shrink-0 cursor-pointer border-0 bg-transparent p-0 [&_i]:text-[14px]"
+                  data-testid="hotbar-editor-step-drop"
+                  [title]="'feature.hotbar.editor.stepDrop' | transloco"
+                  (click)="dropStep(row.order)"
+                >
+                  <i class="material-icons">close</i>
+                </button>
+              </div>
+            }
+          </div>
+        </div>
+      }
+    }
+    @case ('range') {
+      <label class="flex items-center gap-2">
+        <span class="text-ui-muted w-20 shrink-0">{{ 'feature.hotbar.editor.rangeName' | transloco }}</span>
+        <input
+          data-testid="hotbar-editor-range-name"
+          class="border-ui-border-panel bg-ui-elevated text-ui-text min-w-0 flex-1 rounded-[3px] border border-solid px-1.5 py-1"
+          [value]="rangeName()"
+          [attr.placeholder]="'feature.tabletop.action.defaultRangeName' | transloco"
+          (input)="patchOptions({ name: $any($event.target).value })"
+        />
+      </label>
+      <div class="flex items-center gap-2">
+        <span class="text-ui-muted w-20 shrink-0">{{ 'feature.hotbar.editor.rangeSize' | transloco }}</span>
+        <label class="flex items-center gap-1">
+          <span class="text-ui-muted text-[11px]">{{ 'feature.hotbar.editor.rangeLength' | transloco }}</span>
+          <input
+            type="number"
+            min="1"
+            max="99"
+            data-testid="hotbar-editor-range-length"
+            class="border-ui-border-panel bg-ui-elevated text-ui-text w-16 rounded-[3px] border border-solid px-1.5 py-1"
+            [value]="rangeLength()"
+            [attr.placeholder]="'feature.hotbar.editor.sizeAsIs' | transloco"
+            (input)="patchSize('length', $any($event.target).valueAsNumber)"
+          />
+        </label>
+        <label class="flex items-center gap-1">
+          <span class="text-ui-muted text-[11px]">{{ 'feature.hotbar.editor.rangeWidth' | transloco }}</span>
+          <input
+            type="number"
+            min="1"
+            max="99"
+            data-testid="hotbar-editor-range-width"
+            class="border-ui-border-panel bg-ui-elevated text-ui-text w-16 rounded-[3px] border border-solid px-1.5 py-1"
+            [value]="rangeWidth()"
+            [attr.placeholder]="'feature.hotbar.editor.sizeAsIs' | transloco"
+            (input)="patchSize('width', $any($event.target).valueAsNumber)"
+          />
+        </label>
+      </div>
+      <div class="flex flex-wrap items-center gap-2">
+        <span class="text-ui-muted w-20 shrink-0">{{ 'feature.inventory.sheet.color' | transloco }}</span>
+        <label class="flex items-center gap-1">
+          <span class="text-ui-muted text-[11px]">{{ 'feature.inventory.sheet.rangeBorder' | transloco }}</span>
+          <input
+            type="color"
+            data-testid="hotbar-editor-range-border"
+            class="h-6 w-9 cursor-pointer border-none bg-transparent p-0"
+            [value]="rangeBorderColor()"
+            (input)="patchOptions({ borderColor: $any($event.target).value })"
+          />
+        </label>
+        <label class="flex items-center gap-1">
+          <span class="text-ui-muted text-[11px]">{{ 'feature.inventory.sheet.rangeFill' | transloco }}</span>
+          <input
+            type="color"
+            data-testid="hotbar-editor-range-fill"
+            class="h-6 w-9 cursor-pointer border-none bg-transparent p-0"
+            [value]="rangeFillColor()"
+            (input)="patchOptions({ fillColor: $any($event.target).value })"
+          />
+        </label>
+        <button
+          type="button"
+          data-testid="hotbar-editor-range-color-auto"
+          class="rounded-ui-sm border-ui-border-panel flex size-6 cursor-pointer items-center justify-center border border-solid bg-transparent p-0"
+          [attr.title]="'feature.hotbar.editor.rangeColorAuto' | transloco"
+          (click)="patchOptions({ borderColor: '', fillColor: '' })"
+        >
+          <i class="material-icons text-ui-dim text-[15px]!">auto_mode</i>
+        </button>
+      </div>
+
+      <label class="flex items-center gap-2">
+        <span class="text-ui-muted w-20 shrink-0">{{ 'feature.hotbar.editor.rangeOpacity' | transloco }}</span>
+        <input
+          type="range"
+          min="0"
+          max="100"
+          step="5"
+          data-testid="hotbar-editor-range-opacity"
+          class="min-w-0 flex-1 cursor-pointer"
+          [value]="rangeOpacity()"
+          (input)="patchOptions({ opacity: $any($event.target).valueAsNumber })"
+        />
+        <span class="text-ui-muted w-10 text-right text-[11px]">{{ rangeOpacity() }}%</span>
+      </label>
+
+      <div class="flex flex-col gap-1">
+        <span class="text-ui-muted">{{ 'feature.inventory.sheet.fillOptions' | transloco }}</span>
+        <div class="flex flex-wrap items-center gap-2">
+          <label class="flex items-center gap-1">
+            <input
+              type="checkbox"
+              data-testid="hotbar-editor-range-outline"
+              [checked]="rangeFillsOutline()"
+              (change)="patchOptions({ fillOutline: $any($event.target).checked })"
+            />
+            <span class="text-[11px]">{{ 'feature.inventory.sheet.fillOutline' | transloco }}</span>
+          </label>
+          <label class="flex items-center gap-1">
+            <input
+              type="checkbox"
+              [checked]="rangeSnapsOnRotate()"
+              (change)="patchOptions({ rotateSnap: $any($event.target).checked })"
+            />
+            <span class="text-[11px]">{{ 'feature.inventory.sheet.rotateSnap' | transloco }}</span>
+          </label>
+          <span class="text-ui-muted text-[11px]">{{ 'feature.inventory.sheet.halfCellShift' | transloco }}</span>
+          <label class="flex items-center gap-1">
+            <input
+              type="checkbox"
+              [checked]="rangeShiftsX()"
+              (change)="patchOptions({ shiftX: $any($event.target).checked })"
+            />
+            <span class="text-[11px]">{{ 'feature.inventory.sheet.shiftHorizontal' | transloco }}</span>
+          </label>
+          <label class="flex items-center gap-1">
+            <input
+              type="checkbox"
+              [checked]="rangeShiftsY()"
+              (change)="patchOptions({ shiftY: $any($event.target).checked })"
+            />
+            <span class="text-[11px]">{{ 'feature.inventory.sheet.shiftVertical' | transloco }}</span>
+          </label>
+        </div>
+      </div>
+
+      <label class="flex items-center gap-2">
+        <input
+          type="checkbox"
+          [checked]="docksToPiece()"
+          (change)="patchOptions({ dock: $any($event.target).checked })"
+        />
+        <span>{{ 'feature.hotbar.editor.dock' | transloco }}</span>
+      </label>
+    }
+  }
+
+  @if (needsActor()) {
+    <label class="flex items-center gap-2">
+      <span class="text-ui-muted w-20 shrink-0">{{ 'feature.hotbar.editor.actor' | transloco }}</span>
+      <select
+        data-testid="hotbar-editor-actor"
+        class="border-ui-border-panel bg-ui-elevated text-ui-text min-w-0 flex-1 rounded-[3px] border border-solid px-1.5 py-1"
+        (change)="setActor($any($event.target).value)"
+      >
+        <option value="" [selected]="!draft().characterIdentifier">
+          {{ 'feature.hotbar.editor.actorNone' | transloco }}
+        </option>
+        @for (actor of actors(); track actor.value) {
+          <option [value]="actor.value" [selected]="actor.value === draft().characterIdentifier">
+            {{ actor.name }}
+          </option>
+        }
+      </select>
+    </label>
+  }
+
+  <label class="flex items-center gap-2">
+    <span class="text-ui-muted w-20 shrink-0">{{ 'feature.hotbar.editor.label' | transloco }}</span>
+    <input
+      data-testid="hotbar-editor-label"
+      class="border-ui-border-panel bg-ui-elevated text-ui-text min-w-0 flex-1 rounded-[3px] border border-solid px-1.5 py-1"
+      [value]="draft().label"
+      [attr.placeholder]="'feature.hotbar.editor.labelHint' | transloco"
+      (input)="setLabel($any($event.target).value)"
+    />
+  </label>
+
+  <div class="flex flex-col gap-1">
+    <span class="text-ui-muted">{{ 'feature.hotbar.editor.icon' | transloco }}</span>
+    <div class="flex flex-wrap gap-1">
+      <button
+        type="button"
+        data-testid="hotbar-editor-icon"
+        class="rounded-ui-sm border-ui-border-panel text-ui-text flex size-7 cursor-pointer items-center justify-center border border-solid bg-transparent p-0"
+        [class.border-ui-accent]="!draft().icon"
+        [attr.title]="'feature.hotbar.editor.iconAuto' | transloco"
+        (click)="setIcon('')"
+      >
+        <i class="material-icons text-ui-dim text-[15px]!">auto_mode</i>
+      </button>
+      @for (name of icons; track name) {
+        <button
+          type="button"
+          data-testid="hotbar-editor-icon"
+          class="rounded-ui-sm border-ui-border-panel text-ui-text flex size-7 cursor-pointer items-center justify-center border border-solid bg-transparent p-0"
+          [class.border-ui-accent]="draft().icon === name"
+          [class.bg-ui-accent-bg]="draft().icon === name"
+          [attr.title]="name"
+          (click)="setIcon(name)"
+        >
+          <i class="material-icons text-[15px]!">{{ name }}</i>
+        </button>
+      }
+    </div>
+  </div>
+
+  <div class="flex flex-col gap-1">
+    <span class="text-ui-muted">{{ 'feature.hotbar.editor.color' | transloco }}</span>
+    <div class="flex flex-wrap items-center gap-1">
+      <button
+        type="button"
+        data-testid="hotbar-editor-color"
+        class="rounded-ui-sm border-ui-border-panel flex size-7 cursor-pointer items-center justify-center border border-solid bg-transparent p-0"
+        [class.border-ui-accent]="!draft().color"
+        [attr.title]="'feature.hotbar.editor.colorAuto' | transloco"
+        (click)="setColor('')"
+      >
+        <i class="material-icons text-ui-dim text-[15px]!">auto_mode</i>
+      </button>
+      @for (swatch of colors; track swatch.id) {
+        <button
+          type="button"
+          data-testid="hotbar-editor-color"
+          class="size-7 cursor-pointer rounded-full border-2 border-solid p-0"
+          [style.background]="swatch.hex"
+          [class.border-ui-accent]="draft().color === swatch.id"
+          [class.border-transparent]="draft().color !== swatch.id"
+          [attr.title]="swatch.id"
+          (click)="setColor(swatch.id)"
+        ></button>
+      }
+      <input
+        class="border-ui-border-panel bg-ui-elevated text-ui-text w-24 rounded-[3px] border border-solid px-1.5 py-1"
+        [value]="draft().color"
+        [attr.placeholder]="'feature.hotbar.editor.colorHint' | transloco"
+        (input)="setColor($any($event.target).value)"
+      />
+    </div>
+  </div>
+
+  <div class="border-ui-border-panel mt-auto flex items-center gap-1.5 border-t border-solid pt-2">
+    <button
+      type="button"
+      data-testid="hotbar-editor-save"
+      class="rounded-ui-sm bg-ui-accent cursor-pointer border-none px-3 py-1 font-semibold text-white"
+      (click)="save()"
+    >
+      {{ 'feature.hotbar.editor.save' | transloco }}
+    </button>
+    <button
+      type="button"
+      data-testid="hotbar-editor-try"
+      class="rounded-ui-sm border-ui-border-panel text-ui-text cursor-pointer border border-solid bg-transparent px-3 py-1"
+      (click)="tryIt()"
+    >
+      {{ 'feature.hotbar.editor.try' | transloco }}
+    </button>
+    <button
+      type="button"
+      data-testid="hotbar-editor-clear"
+      class="rounded-ui-sm border-ui-border-panel text-ui-dim ml-auto cursor-pointer border border-solid bg-transparent px-3 py-1"
+      (click)="clear()"
+    >
+      {{ 'feature.hotbar.editor.clear' | transloco }}
+    </button>
+  </div>
+</div>

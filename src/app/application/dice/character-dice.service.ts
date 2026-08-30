@@ -1,4 +1,5 @@
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
+import { ObjectStore } from '@axe/core/sync/object-store';
 import {
   heldDiceOf,
   HeldDie,
@@ -25,8 +26,30 @@ const DICE_OFFSET_PX = 60;
  */
 @Injectable({ providedIn: 'root' })
 export class CharacterDiceService {
+  private readonly objectStore = inject(ObjectStore);
+
   held(character: GameCharacter): HeldDie[] {
     return heldDiceOf(character);
+  }
+
+  /** The dice of this character that are out on the table, in the order they were laid. */
+  laidOut(character: GameCharacter): DiceSymbol[] {
+    return this.objectStore
+      .getObjects<DiceSymbol>(DiceSymbol)
+      .filter((die) => die.ownerCharacterIdentifier === character.identifier);
+  }
+
+  /**
+   * Takes every die of this character off the table, and says how many came back.
+   *
+   * A handful swept up is one sweep: the sound belongs to the gesture rather than to each
+   * die, and six of them at once was six of the same noise over one another.
+   */
+  putAway(character: GameCharacter): number {
+    const dice = this.laidOut(character);
+    for (const die of dice) this.take(character, die);
+    if (dice.length > 0) SoundEffect.play(PresetSound.sweep);
+    return dice.length;
   }
 
   /**
@@ -60,9 +83,13 @@ export class CharacterDiceService {
    * leaving the object behind as well would put the same die in two places.
    */
   store(character: GameCharacter, symbol: DiceSymbol): void {
+    this.take(character, symbol);
+    SoundEffect.play(PresetSound.sweep);
+  }
+
+  private take(character: GameCharacter, symbol: DiceSymbol): void {
     storeHeldDie(character, heldDieOfSymbol(symbol));
     symbol.destroy();
-    SoundEffect.play(PresetSound.sweep);
   }
 
   /** Puts one back onto the sheet without a die on the table to take it from. */

@@ -2,6 +2,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { EffectPlaybackService } from '@axe/application/effect/effect-playback.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { TabletopService } from '@axe/application/tabletop/tabletop.service';
+import { BuffViewPreferenceService } from '@axe/application/ui/buff-view-preference.service';
 import { UiSignalService } from '@axe/application/ui/ui-signal.service';
 import { ImageStorage } from '@axe/core/storage/image-storage';
 import { ObjectStore } from '@axe/core/sync/object-store';
@@ -58,6 +59,94 @@ describe('GameCharacterComponent', () => {
     expect(() => fixture.detectChanges()).not.toThrow();
   });
 
+  describe('which way a piece faces', () => {
+    function tableShowing(mark: 'none' | 'turn' | 'arrow', mode2d: boolean): void {
+      const table = TestBed.inject(TabletopService).currentTable;
+      table.mode2d = mode2d;
+      table.facingMark = mark;
+    }
+
+    function place(rotate = 0): GameCharacter {
+      const character = GameCharacter.create('向き', 1, '');
+      character.rotate = rotate;
+      fixture.componentRef.setInput('gameCharacter', character);
+      fixture.detectChanges();
+      return character;
+    }
+
+    function arrow(): SVGElement | null {
+      return (fixture.nativeElement as HTMLElement).querySelector<SVGElement>('[data-testid="facing-arrow"]');
+    }
+
+    it('holds a piece still from above while the table shows nothing', () => {
+      tableShowing('none', true);
+      place();
+
+      expect(component.canTurn()).toBe(false);
+      expect(arrow()).toBeNull();
+    });
+
+    it('hands the handles back once the table shows facing', () => {
+      tableShowing('turn', true);
+      place();
+
+      expect(component.canTurn()).toBe(true);
+    });
+
+    it('turns the picture with the piece from above', () => {
+      tableShowing('turn', true);
+      place(90);
+
+      expect(component.imageTurnsWithPiece()).toBe(true);
+      // The frame above the pedestal holds the turn back; the picture alone puts it on again.
+      expect(component.standTransform().startsWith('rotateZ(-90deg)')).toBe(true);
+      expect(component.billboardTransformImage()).toContain('rotateZ(90deg)');
+    });
+
+    it('leaves the picture square to the reader where a mark shows the facing instead', () => {
+      tableShowing('arrow', true);
+      place(90);
+
+      expect(component.imageTurnsWithPiece()).toBe(false);
+      expect(component.standTransform().startsWith('rotateZ(-90deg)')).toBe(true);
+      expect(component.billboardTransformImage()).toContain('rotateZ(0deg)');
+      expect(arrow()).not.toBeNull();
+    });
+
+    it('keeps the name and the bars on the side of the piece they were on', () => {
+      tableShowing('turn', true);
+      place(180);
+
+      // Held still once above the pedestal, so nothing hanging there turns with the piece.
+      expect(component.standTransform().startsWith('rotateZ(-180deg)')).toBe(true);
+      expect(component.billboardTransform()).toContain('rotateZ(0deg)');
+    });
+
+    it('leaves a table seen from the side to turn its pieces as it always did', () => {
+      tableShowing('arrow', false);
+      place(90);
+
+      expect(component.standTransform().startsWith('rotateY(90deg)')).toBe(true);
+      expect(component.billboardTransform()).toContain('rotateZ(-90deg)');
+    });
+
+    it('shows the same mark on a table seen from the side', () => {
+      tableShowing('arrow', false);
+      place(45);
+
+      expect(component.showFacingArrow()).toBe(true);
+      expect(arrow()).not.toBeNull();
+      expect(component.canTurn()).toBe(true);
+    });
+
+    it('turns the picture only from above, a turned billboard being no help from the side', () => {
+      tableShowing('turn', false);
+      place(90);
+
+      expect(component.imageTurnsWithPiece()).toBe(false);
+    });
+  });
+
   describe('what shows above a piece', () => {
     it('gives a character bars for the usual two resources', () => {
       const character = GameCharacter.create('ゲージ', 1, '');
@@ -112,6 +201,138 @@ describe('GameCharacterComponent', () => {
       } finally {
         character.destroy();
       }
+    });
+
+    describe('the buffs as the switch for how they show', () => {
+      beforeEach(() => TestBed.inject(BuffViewPreferenceService).set('icon'));
+
+      const bearBuff = () => {
+        const character = GameCharacter.create('バフ', 1, '');
+        character.addExtendData();
+        fixture.componentRef.setInput('gameCharacter', character);
+        const buffRoot = character.buffDataElement!;
+        buffRoot.appendChild(
+          DataElement.create('毒', 3, { type: DataElementType.NUMBER_RESOURCE, currentValue: 'ダメージ2' })
+        );
+        TestBed.inject(ObjectChangeService).notifyChanged(buffRoot.identifier);
+        fixture.detectChanges();
+        return character;
+      };
+
+      const root = () => fixture.nativeElement as HTMLElement;
+      const switchButton = () => root().querySelector('[data-testid="buff-view-switch"]') as HTMLButtonElement;
+
+      it('carries the display on to the next type at every press', () => {
+        const character = bearBuff();
+
+        try {
+          expect(root().querySelector('[data-testid="buff-badge"]')).not.toBeNull();
+
+          switchButton().click();
+          fixture.detectChanges();
+          expect(root().querySelector('[data-testid="buff-badge"]')).toBeNull();
+          expect(root().querySelector('[game-data-element-buff]')).not.toBeNull();
+
+          switchButton().click();
+          fixture.detectChanges();
+          expect(root().querySelector('[game-data-element-buff]')).toBeNull();
+
+          switchButton().click();
+          fixture.detectChanges();
+          expect(root().querySelector('[data-testid="buff-badge"]')).not.toBeNull();
+        } finally {
+          character.destroy();
+        }
+      });
+
+      it('names the type on show', () => {
+        const character = bearBuff();
+
+        try {
+          expect(switchButton().getAttribute('title')).toContain('アイコン');
+        } finally {
+          character.destroy();
+        }
+      });
+
+      it('opens on the display the table is set to', () => {
+        TestBed.inject(BuffViewPreferenceService).set('count');
+        const character = bearBuff();
+
+        try {
+          expect(root().querySelector('[data-testid="buff-badge"]')).toBeNull();
+          expect(switchButton().getAttribute('title')).toContain('個数');
+        } finally {
+          character.destroy();
+        }
+      });
+
+      it('gives its own display up when the table turns over to another', () => {
+        const preference = TestBed.inject(BuffViewPreferenceService);
+        const character = bearBuff();
+
+        try {
+          switchButton().click();
+          fixture.detectChanges();
+          expect(switchButton().getAttribute('title')).toContain('詳細');
+
+          preference.set('count');
+          fixture.detectChanges();
+
+          expect(switchButton().getAttribute('title')).toContain('個数');
+        } finally {
+          character.destroy();
+        }
+      });
+
+      it('turns over on the press, so nothing that pops up before the release can eat it', () => {
+        const character = bearBuff();
+
+        try {
+          switchButton().dispatchEvent(new MouseEvent('mousedown', { bubbles: true, button: 0 }));
+          fixture.detectChanges();
+          expect(switchButton().getAttribute('title')).toContain('詳細');
+
+          switchButton().dispatchEvent(new MouseEvent('click', { bubbles: true, detail: 1 }));
+          fixture.detectChanges();
+          expect(switchButton().getAttribute('title')).toContain('詳細');
+        } finally {
+          character.destroy();
+        }
+      });
+
+      it('leaves the right button to the menu', () => {
+        const character = bearBuff();
+        let reached = 0;
+        const count = () => reached++;
+        root().addEventListener('mousedown', count);
+
+        try {
+          switchButton().dispatchEvent(new MouseEvent('mousedown', { bubbles: true, button: 2 }));
+          fixture.detectChanges();
+
+          expect(switchButton().getAttribute('title')).toContain('アイコン');
+          expect(reached).toBe(1);
+        } finally {
+          root().removeEventListener('mousedown', count);
+          character.destroy();
+        }
+      });
+
+      it('keeps the press off the piece, so it is no drag', () => {
+        const character = bearBuff();
+        let reached = 0;
+        const count = () => reached++;
+        root().addEventListener('mousedown', count);
+
+        try {
+          switchButton().dispatchEvent(new MouseEvent('mousedown', { bubbles: true, button: 0 }));
+          expect(reached).toBe(0);
+        } finally {
+          root().removeEventListener('mousedown', count);
+          character.destroy();
+        }
+      });
     });
   });
 
@@ -513,19 +734,30 @@ describe('GameCharacterComponent', () => {
       }
     });
 
-    it('centres each handle on the piece and pushes it clear of the edge it hangs off', () => {
+    it('holds the head handle inside the top edge and hangs the foot one clear below', () => {
       const character = GameCharacter.create('roll-grab-offset', 1, '');
       fixture.componentRef.setInput('gameCharacter', character);
 
       try {
-        expect(component.rollHandleHeadTransform()).toBe(
-          'translateX(-50%) translateX(25px) translateY(-100%) translateY(-7px)'
-        );
+        expect(component.rollHandleHeadTransform()).toBe('translateX(-50%) translateX(25px)');
         expect(component.rollHandleFootTransform()).toBe(
           'translateX(-50%) translateX(25px) translateY(100%) translateY(7px)'
         );
       } finally {
         character.destroy();
+      }
+    });
+
+    it('keeps the head handle out of the band the name hangs in, however big the piece grows', () => {
+      for (const pieceSize of [0.5, 1, 4]) {
+        const character = GameCharacter.create('roll-grab-name-clear', pieceSize, '');
+        fixture.componentRef.setInput('gameCharacter', character);
+
+        try {
+          expect(component.rollHandleHeadTransform()).not.toContain('translateY');
+        } finally {
+          character.destroy();
+        }
       }
     });
 

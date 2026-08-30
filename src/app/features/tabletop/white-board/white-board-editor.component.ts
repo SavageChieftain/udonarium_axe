@@ -12,6 +12,7 @@ import {
 import { FormsModule } from '@angular/forms';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
+import { AnimatedImageService } from '@axe/application/media/animated-image.service';
 import { TabletopService } from '@axe/application/tabletop/tabletop.service';
 import { ModalService } from '@axe/application/ui/modal.service';
 import { PanelService } from '@axe/application/ui/panel.service';
@@ -56,6 +57,7 @@ import { deserializeScene, serializeScene } from '@axe/features/map-editor/model
 import { getRasterImage, warmRasterImages } from '@axe/features/map-editor/render/raster-image';
 import { renderScene } from '@axe/features/map-editor/render/render-scene';
 import { detachFromBoard, standingOn } from '@axe/features/tabletop/white-board/white-board-contents';
+import { hangablePictureIds } from '@axe/features/tabletop/white-board/white-board-live-pictures';
 import {
   addJoint,
   AlignEdge,
@@ -226,6 +228,7 @@ const MAX_SIDE = 40;
 export class WhiteBoardEditorComponent {
   private readonly modalService = inject(ModalService);
   private readonly imageStorage = inject(ImageStorage);
+  private readonly animatedImage = inject(AnimatedImageService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly tabletopService = inject(TabletopService);
   private readonly panelService = inject(PanelService);
@@ -768,6 +771,10 @@ export class WhiteBoardEditorComponent {
     const grid = this.tabletopService.gridSize();
     this.scene =
       (board.scene ? deserializeScene(board.scene) : null) ?? createBoardScene(board.width, board.height, grid);
+    // The board as it stands is the bottom of the undo stack. Left unset, the first thing
+    // undone went back to the blank sheet the editor was built with, four squares by three.
+    this.history.reset(this.scene);
+    this.refreshHistory();
     queueMicrotask(() => {
       this.panelService.title = board.name;
       void this.redraw();
@@ -1755,13 +1762,32 @@ export class WhiteBoardEditorComponent {
     this.touched();
   }
 
-  /** Everything on the sheet, onto whichever canvas is asked for. */
-  private async paintMarks(ctx: CanvasRenderingContext2D, ruled: boolean): Promise<void> {
-    const urls = this.scene.layers
+  /**
+   * Everything on the sheet, onto whichever canvas is asked for.
+   *
+   * A picture that moves is left out of the one the board wears, because the board hangs
+   * that one over the top where it can go on moving. Every other canvas - the sheet being
+   * drawn on, a picture saved to a file - takes the lot, standing still.
+   */
+  private async paintMarks(ctx: CanvasRenderingContext2D, ruled: boolean, hangingLeftOut = false): Promise<void> {
+    const items = this.scene.layers
       .filter((layer): layer is ImageLayer => layer.kind === 'image')
-      .flatMap((layer) => layer.items.map((item) => this.imageStorage.get(item.imageIdentifier)?.url))
+      .flatMap((layer) => layer.items);
+    const urls = items
+      .map((item) => this.imageStorage.get(item.imageIdentifier)?.url)
       .filter((url): url is string => !!url);
     if (urls.length > 0) await warmRasterImages(urls);
+
+    // What is left out has to be exactly what the board hangs, so the reading is waited for
+    // here rather than asked about again below, where a picture still being read answers "still".
+    const moving = new Set<string>();
+    if (hangingLeftOut) {
+      const read = await Promise.all(
+        items.map(async (item) => [item.imageIdentifier, await this.animatedImage.probe(item.imageIdentifier)] as const)
+      );
+      for (const [identifier, animated] of read) if (animated) moving.add(identifier);
+    }
+    const hung = hangablePictureIds(hangingLeftOut ? this.scene : null, (identifier) => moving.has(identifier));
 
     renderScene(
       ctx,
@@ -1770,6 +1796,7 @@ export class WhiteBoardEditorComponent {
         texturePattern: () => null,
         stampImage: () => null,
         rasterImage: (item) => {
+          if (hung.has(item.id)) return null;
           const url = this.imageStorage.get(item.imageIdentifier)?.url;
           return url ? getRasterImage(url) : null;
         },
@@ -1787,7 +1814,7 @@ export class WhiteBoardEditorComponent {
    * drawn, so a bare pass leaves them all off when the picture the board wears is taken.
    * Whether the paper is ruled says nothing about whether any of the rest is wanted.
    */
-  private async redraw(pending?: number[], bare = false): Promise<void> {
+  private async redraw(pending?: number[], bare = false, hangingLeftOut = false): Promise<void> {
     const canvas = this.canvasRef()?.nativeElement;
     if (!canvas) return;
     canvas.width = this.sceneWidth;
@@ -1796,7 +1823,7 @@ export class WhiteBoardEditorComponent {
     if (!ctx) return;
 
     const wants = overlaysWanted(bare, this.scene.gridVisible);
-    await this.paintMarks(ctx, wants.grid);
+    await this.paintMarks(ctx, wants.grid, hangingLeftOut);
 
     // A path shows its own corners rather than the box round it, since it is the corners that
     // are moved and the box is only where they happen to reach.
@@ -1972,7 +1999,7 @@ export class WhiteBoardEditorComponent {
     board.scene = serializeScene(this.scene);
 
     // Taken off the sheet bare: neither the ruling nor the guides are part of the board.
-    await this.redraw(undefined, true);
+    await this.redraw(undefined, true, true);
     const blob = await new Promise<Blob | null>((resolve) => {
       if (typeof canvas.toBlob !== 'function') resolve(null);
       else canvas.toBlob((made) => resolve(made), 'image/webp', 0.92);

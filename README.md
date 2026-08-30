@@ -122,12 +122,14 @@ Secret をブラウザに置くわけにはいきません。そのため、**�
 本プロジェクトは以下の MIT ライセンス作品の系譜にあります（詳細は [LICENSE](LICENSE)）。
 Lily で追加された立ち絵差分・カットイン・バフ／デバフ管理・画像タグ等のコードを継承し、
 実装基盤を現行 Angular で作り直したうえで独自機能を加えています。
+Lycoris はコードの継承元ではなく、ホットバーの着想を得た作品として挙げています。
 
-| 作品               | 作者                      | リポジトリ                                 | 位置づけ                                     |
-| ------------------ | ------------------------- | ------------------------------------------ | -------------------------------------------- |
-| **Udonarium**      | TK11235                   | <https://github.com/TK11235/udonarium>     | オリジナル                                   |
-| **Udonarium Lily** | entyu（円柱）             | <https://github.com/entyu/udonarium_lily>  | 派生・機能拡張版（画像タグ等のコードを継承） |
-| **Udonarium Axe**  | SavageChieftain / Xelltis | <https://github.com/Xelltis/udonarium_axe> | 本リポジトリ                                 |
+| 作品                  | 作者                      | リポジトリ                                      | 位置づけ                                     |
+| --------------------- | ------------------------- | ----------------------------------------------- | -------------------------------------------- |
+| **Udonarium**         | TK11235                   | <https://github.com/TK11235/udonarium>          | オリジナル                                   |
+| **Udonarium Lily**    | entyu（円柱）             | <https://github.com/entyu/udonarium_lily>       | 派生・機能拡張版（画像タグ等のコードを継承） |
+| **Udonarium Lycoris** | oron1208                  | <https://github.com/oron1208/udonarium-lycoris> | 着想元（ホットバー）。コードの継承はなし     |
+| **Udonarium Axe**     | SavageChieftain / Xelltis | <https://github.com/Xelltis/udonarium_axe>      | 本リポジトリ                                 |
 
 > 注: 上記の機能の切り分けは本リポジトリの LICENSE・コード・公開情報を根拠にした暫定整理です。
 

@@ -1,8 +1,10 @@
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import {
+  isControllableByUser,
   isOnTable,
   isOwnedByUser,
+  selectControllableCharacters,
   selectOwnedCharacters,
 } from '@axe/features/pl-tools/owned-character-list/owned-characters';
 import { afterEach, describe, expect, it } from 'vitest';
@@ -51,6 +53,35 @@ describe('owned-characters', () => {
       const alsoMine = makeCharacter('me', 'common');
 
       expect(selectOwnedCharacters([mine, others, buried, alsoMine], 'me')).toEqual([mine, alsoMine]);
+    });
+  });
+
+  describe('isControllableByUser', () => {
+    it('takes your own piece and one nobody has claimed', () => {
+      expect(isControllableByUser(makeCharacter('me', 'table'), 'me')).toBe(true);
+      expect(isControllableByUser(makeCharacter('', 'table'), 'me')).toBe(true);
+    });
+
+    it('leaves the piece of another, and anything buried, alone', () => {
+      expect(isControllableByUser(makeCharacter('other', 'table'), 'me')).toBe(false);
+      expect(isControllableByUser(makeCharacter('', 'graveyard'), 'me')).toBe(false);
+      expect(isControllableByUser(makeCharacter('me', 'graveyard'), 'me')).toBe(false);
+    });
+
+    it('still offers an unclaimed piece to someone the room does not know yet', () => {
+      expect(isControllableByUser(makeCharacter('', 'table'), '')).toBe(true);
+      expect(isControllableByUser(makeCharacter('me', 'table'), '')).toBe(false);
+    });
+  });
+
+  describe('selectControllableCharacters', () => {
+    it('keeps yours and the unclaimed, in the order they were in', () => {
+      const mine = makeCharacter('me', 'table');
+      const unclaimed = makeCharacter('', 'table');
+      const theirs = makeCharacter('other', 'table');
+      const buried = makeCharacter('', 'graveyard');
+
+      expect(selectControllableCharacters([mine, unclaimed, theirs, buried], 'me')).toEqual([mine, unclaimed]);
     });
   });
 

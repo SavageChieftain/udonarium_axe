@@ -11,8 +11,10 @@ import {
   viewChild,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { CharacterMacroService } from '@axe/application/chat/character-macro.service';
 import { ChatMessageService } from '@axe/application/chat/chat-message.service';
 import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
+import { RolePermissionService } from '@axe/application/permission/role-permission.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { ContextMenuService } from '@axe/application/ui/context-menu.service';
 import { PanelService } from '@axe/application/ui/panel.service';
@@ -21,29 +23,22 @@ import { ViewportService } from '@axe/application/ui/viewport.service';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { GameCharacter } from '@axe/domain/character/game-character';
-import { ChatMessageTargetContext } from '@axe/domain/chat/chat-message';
 import { ChatPalette, PaletteIndex } from '@axe/domain/chat/chat-palette';
 import { ChatTab } from '@axe/domain/chat/chat-tab';
 import { ChatTabList } from '@axe/domain/chat/chat-tab-list';
+import { PaletteRow, paletteRowsOf } from '@axe/domain/chat/palette-rows';
 import { DataElement } from '@axe/domain/data/data-element';
 import { DiceBot } from '@axe/domain/dice/dice-bot';
+import { emptyHotbarSlotDraft } from '@axe/domain/hotbar/hotbar-draft';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { ChatInputComponent } from '@axe/features/chat/chat-input/chat-input.component';
 import { editsTextInPlace } from '@axe/features/chat/chat-input/chat-input-helpers';
 import { ChatPaletteRegistryService } from '@axe/features/chat/chat-palette/chat-palette-registry.service';
 import { GameDataElementComponent } from '@axe/features/data-element/game-data-element/game-data-element.component';
+import { HotbarFillService } from '@axe/features/hotbar/hotbar-fill.service';
 import { BadgeComponent } from '@axe/ui/components/badge/badge.component';
 import { TranslocoModule } from '@jsverse/transloco';
 import GameSystemClass from 'bcdice/lib/game_system';
-
-type PaletteLineKind = 'command' | 'heading' | 'variable' | 'empty';
-
-export interface PaletteRow {
-  text: string;
-  kind: PaletteLineKind;
-  lineIndex: number;
-  headingName?: string;
-}
 
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -60,10 +55,13 @@ export interface PaletteRow {
 export class ChatPaletteComponent {
   protected readonly isCompact = inject(ViewportService).isCompact;
   private readonly contextMenuService = inject(ContextMenuService);
+  private readonly rolePermission = inject(RolePermissionService);
+  private readonly hotbarFill = inject(HotbarFillService);
   private readonly pointerDeviceService = inject(PointerDeviceService);
   chatMessageService = inject(ChatMessageService);
   private readonly panelService = inject(PanelService);
   private readonly objectStore = inject(ObjectStore);
+  private readonly characterMacro = inject(CharacterMacroService);
   private readonly uiSignalService = inject(UiSignalService);
   private readonly objectChange = inject(ObjectChangeService);
   private readonly destroyRef = inject(DestroyRef);
@@ -84,17 +82,7 @@ export class ChatPaletteComponent {
     const palette = char?.chatPalette ?? null;
     if (!palette) return [];
     this.objectChange.versionOf(palette.identifier)();
-    return palette.getPalette().map((text, i): PaletteRow => {
-      if (/^\s*$/.test(text)) return { text, kind: 'empty', lineIndex: i };
-      const m1 = text.match(/^\/\/--[-]+(.*)$/);
-      const m2 = text.match(/^◆(.*)$/);
-      if (m1) return { text, kind: 'heading', lineIndex: i, headingName: m1[1].replace(/-+$/, '') };
-      if (m2) return { text, kind: 'heading', lineIndex: i, headingName: m2[1] };
-      if (/^\s*[/／]{2}([^=＝{}｛｝\s]+)\s*[=＝]\s*(.+)/.test(text)) {
-        return { text, kind: 'variable', lineIndex: i };
-      }
-      return { text, kind: 'command', lineIndex: i };
-    });
+    return paletteRowsOf(palette.getPalette());
   });
 
   get palette(): ChatPalette | null {
@@ -301,18 +289,6 @@ export class ChatPaletteComponent {
     }
   }
 
-  private targeted(gameCharacter: GameCharacter): boolean {
-    if (gameCharacter.location.name != 'table') return false;
-    return gameCharacter.targeted;
-  }
-
-  private targetedGameCharacterList(): GameCharacter[] {
-    const objects = this.objectStore
-      .getObjects<GameCharacter>(GameCharacter)
-      .filter((character) => this.targeted(character));
-    return objects;
-  }
-
   sendChat(value: {
     text: string;
     gameSystem: GameSystemClass;
@@ -324,79 +300,56 @@ export class ChatPaletteComponent {
     quoteOf: string;
   }) {
     const character = this.character();
-    const palette = this.palette;
-    if (this.chatTab && character && palette) {
-      let outtext = '';
-      let objects: GameCharacter[];
-      const messageTargetContext: ChatMessageTargetContext[] = [];
-      const attachmentImageIdentifiers: string[] = [];
-      const appendAttachmentImages = (identifiers: string[]) => {
-        for (const identifier of identifiers) {
-          if (!attachmentImageIdentifiers.includes(identifier)) attachmentImageIdentifiers.push(identifier);
-        }
-      };
-      if (palette.checkTargetCharacter(value.text)) {
-        objects = this.targetedGameCharacterList();
-        let first = true;
-        if (objects.length == 0) {
-          outtext += this.t('feature.chat.palette.noTarget');
-        }
+    if (!this.chatTab || !character || !this.palette) return;
 
-        for (const object of objects) {
-          outtext += first ? '' : '\n';
-          const str = value.text;
-          let str2: string;
-          if (first) {
-            str2 = str;
-          } else {
-            str2 = DiceBot.deleteMyselfResourceBuff(str);
-          }
-
-          const evaluated = palette.evaluateWithAttachments(str2, character.rootDataElement ?? undefined, object);
-          appendAttachmentImages(evaluated.attachmentImageIdentifiers);
-          outtext += evaluated.text;
-          outtext += ' [' + object.name + ']';
-          first = false;
-
-          const targetContext: ChatMessageTargetContext = {
-            text: '',
-            object: null,
-          };
-          targetContext.text = evaluated.text;
-          targetContext.object = object;
-          messageTargetContext.push(targetContext);
-        }
-      } else {
-        const evaluated = palette.evaluateWithAttachments(value.text, character.rootDataElement ?? undefined);
-        appendAttachmentImages(evaluated.attachmentImageIdentifiers);
-        outtext = evaluated.text;
-        const targetContext: ChatMessageTargetContext = {
-          text: '',
-          object: null,
-        };
-        targetContext.text = outtext;
-        targetContext.object = null;
-        messageTargetContext.push(targetContext);
-      }
-      this.chatMessageService.sendMessage(
-        this.chatTab,
-        outtext,
-        value.gameSystem,
-        value.sendFrom,
-        value.sendTo,
-        value.portraitIndex,
-        value.messColor,
-        messageTargetContext,
-        attachmentImageIdentifiers,
-        value.replyTo,
-        value.quoteOf
-      );
-    }
+    this.characterMacro.send(character, value.text, {
+      tab: this.chatTab,
+      gameSystem: value.gameSystem,
+      sendFrom: value.sendFrom,
+      sendTo: value.sendTo,
+      portraitIndex: value.portraitIndex,
+      color: value.messColor,
+      replyTo: value.replyTo,
+      quoteOf: value.quoteOf,
+      bubbles: null,
+    });
   }
 
   onClickPaletteRow(row: PaletteRow): void {
     this.selectedLine.set(row.lineIndex);
     this.clickPalette(row.text);
+  }
+
+  /**
+   * A line worth pressing twice belongs on the bar, where it can be reached without this panel.
+   *
+   * Only a line that is actually said: a heading names a group and a variable line sets a
+   * number, and putting either on the bar would send the palette's own syntax to the room.
+   * The browser's own menu is left alone where nothing of ours is offered in its place.
+   */
+  onPaletteRowMenu(row: PaletteRow, event: MouseEvent): void {
+    if (row.kind !== 'command') return;
+    if (!this.rolePermission.canEditTabletop) return;
+    event.preventDefault();
+    event.stopPropagation();
+
+    const character = this.character();
+    this.contextMenuService.open(
+      { x: event.clientX, y: event.clientY },
+      [
+        {
+          name: this.t('feature.hotbar.menu.fillFromHere'),
+          action: () => {
+            const draft = emptyHotbarSlotDraft('chat');
+            draft.value = row.text.trim();
+            draft.characterIdentifier = character?.identifier ?? '';
+            draft.characterName = character?.name ?? '';
+            this.hotbarFill.fill(draft);
+          },
+        },
+      ],
+      row.text.trim()
+    );
   }
 
   resetPaletteSelect() {

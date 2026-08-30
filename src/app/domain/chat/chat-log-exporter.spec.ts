@@ -35,6 +35,10 @@ describe('ChatLogExporter', () => {
         expect(block).toContain(cls);
       }
     });
+
+    it('holds a tall portrait by its top edge, so the head is not cut off', () => {
+      expect(ChatLogExporter.STYLE_BLOCK).toContain('object-position:50% 0');
+    });
   });
 
   describe('escapeHtml', () => {

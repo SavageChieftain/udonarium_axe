@@ -89,14 +89,38 @@ describe('ChatSettingsEventHandlerService', () => {
     expect(ChatTabList.instance.portraitHeight).toBe(ChatTabList.instance.maxPortraitSize);
   });
 
-  it('writes the stored flags back onto a tab that arrives later', async () => {
+  it('writes the flags stored under a tab name back onto a tab that arrives later', async () => {
     localStorage.setItem(
       'chat-preferences',
-      JSON.stringify({ tabs: { 'tab-late': { portraitDisplayFlag: 0, chatSimpleDispFlag: 1 } } })
+      JSON.stringify({
+        portrait: { scope: 'perTab', all: 1 },
+        simple: { scope: 'perTab', all: 0 },
+        tabs: { 雑談: { portraitDisplayFlag: 0, chatSimpleDispFlag: 1 } },
+      })
     );
     start();
 
     const tab = new ChatTab('tab-late');
+    tab.name = '雑談';
+    tab.initialize();
+
+    expect(tab.portraitDisplayFlag).toBe(0);
+    expect(tab.chatSimpleDispFlag).toBe(1);
+  });
+
+  it('writes one answer onto every tab while the setting is kept for the room', async () => {
+    localStorage.setItem(
+      'chat-preferences',
+      JSON.stringify({
+        portrait: { scope: 'all', all: 0 },
+        simple: { scope: 'all', all: 1 },
+        tabs: { 雑談: { portraitDisplayFlag: 1, chatSimpleDispFlag: 0 } },
+      })
+    );
+    start();
+
+    const tab = new ChatTab('tab-late');
+    tab.name = '雑談';
     tab.initialize();
 
     expect(tab.portraitDisplayFlag).toBe(0);
@@ -117,6 +141,39 @@ describe('ChatSettingsEventHandlerService', () => {
     tab.chatSimpleDispFlag = 1;
     await Promise.resolve();
 
-    expect(TestBed.inject(ChatPreferencesService).tabPreferencesOf(tab.identifier)?.chatSimpleDispFlag).toBe(1);
+    expect(TestBed.inject(ChatPreferencesService).tabPreferencesOf(tab.name)?.chatSimpleDispFlag).toBe(1);
+  });
+
+  it('keeps the answers of a reader who set them before the scope was asked about', () => {
+    // Kept under the tab's identifier, as it was before, and with no scope stored at all.
+    const tab = makeTab('雑談');
+    localStorage.setItem(
+      'chat-preferences',
+      JSON.stringify({ tabs: { [tab.identifier]: { portraitDisplayFlag: 0, chatSimpleDispFlag: 1 } } })
+    );
+
+    start();
+    TestBed.tick();
+
+    expect(tab.portraitDisplayFlag).toBe(0);
+    expect(tab.chatSimpleDispFlag).toBe(1);
+    const kept = JSON.parse(localStorage.getItem('chat-preferences') ?? '{}') as {
+      tabs?: Record<string, unknown>;
+    };
+    expect(kept.tabs?.['雑談']).toEqual({ portraitDisplayFlag: 0, chatSimpleDispFlag: 1 });
+  });
+
+  it('writes on no tab for a reader who has never answered', () => {
+    // What a tab is set to is shared with the room; a fresh browser must not hand its
+    // defaults to everybody who is already there.
+    const tab = makeTab('雑談');
+    tab.portraitDisplayFlag = 0;
+    tab.chatSimpleDispFlag = 1;
+    localStorage.removeItem('chat-preferences');
+
+    start();
+
+    expect(tab.portraitDisplayFlag).toBe(0);
+    expect(tab.chatSimpleDispFlag).toBe(1);
   });
 });

@@ -30,6 +30,92 @@ describe('GameCharacterSheetComponent', () => {
     expect(component).toBeTruthy();
   });
 
+  describe('the width a card is set to', () => {
+    function sheetWith(sectionName: string): { character: GameCharacter; section: DataElement } {
+      const character = GameCharacter.create('幅', 1, '');
+      character.addExtendData();
+      const section = DataElement.create(sectionName, '', {});
+      character.detailDataElement!.appendChild(section);
+      component.tabletopObject = character;
+      fixture.detectChanges();
+      return { character, section };
+    }
+
+    function cardOf(sectionName: string): HTMLElement {
+      return [...(fixture.nativeElement as HTMLElement).querySelectorAll('div')].find(
+        (element) => element.className.includes('flex-[1_1_200px]') && (element.textContent ?? '').includes(sectionName)
+      )!;
+    }
+
+    function pressWidth(sectionName: string): void {
+      [...cardOf(sectionName).querySelectorAll('button')]
+        .find((button) => button.getAttribute('title') === 'カラム幅を切り替え')!
+        .click();
+      fixture.detectChanges();
+    }
+
+    it('holds a card to the full row once it is done being edited', () => {
+      const { character, section } = sheetWith('全幅の節');
+
+      try {
+        component.toggleElementEdit(section.identifier);
+        fixture.detectChanges();
+        pressWidth('全幅の節');
+        pressWidth('全幅の節');
+        expect(component.getCardColspan(section)).toBe('full');
+
+        component.toggleElementEdit(section.identifier);
+        fixture.detectChanges();
+
+        expect(cardOf('全幅の節').className).toContain('flex-[1_1_100%]!');
+      } finally {
+        character.destroy();
+      }
+    });
+
+    it('gives a card set to two the room for two, and the plain one none of it', () => {
+      const { character, section } = sheetWith('二列の節');
+
+      try {
+        component.toggleElementEdit(section.identifier);
+        fixture.detectChanges();
+        pressWidth('二列の節');
+        component.toggleElementEdit(section.identifier);
+        fixture.detectChanges();
+        expect(cardOf('二列の節').className).toContain('grow-2!');
+
+        component.toggleElementEdit(section.identifier);
+        fixture.detectChanges();
+        pressWidth('二列の節');
+        pressWidth('二列の節');
+        component.toggleElementEdit(section.identifier);
+        fixture.detectChanges();
+
+        expect(component.getCardColspan(section)).toBe('1');
+        expect(cardOf('二列の節').className).not.toContain('grow-2!');
+        expect(cardOf('二列の節').className).not.toContain('flex-[1_1_100%]!');
+      } finally {
+        character.destroy();
+      }
+    });
+  });
+
+  it('leaves a drop it has nothing to reorder for the rest of the page to answer', () => {
+    const character = GameCharacter.create('落とされ先', 1, '');
+    component.tabletopObject = character;
+
+    try {
+      const dropped = { preventDefault: vi.fn(), stopPropagation: vi.fn() } as unknown as DragEvent;
+
+      component.onDrop(dropped, 'nothing-was-dragged');
+
+      expect(dropped.preventDefault).not.toHaveBeenCalled();
+      expect(dropped.stopPropagation).not.toHaveBeenCalled();
+    } finally {
+      character.destroy();
+    }
+  });
+
   it('edits a card and adds to it as well', () => {
     const card = Card.create('効果カード', 'front.png', 'back.png');
     component.tabletopObject = card;

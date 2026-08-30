@@ -1,5 +1,7 @@
 import { computed, DestroyRef, effect, inject, Injectable, signal, untracked } from '@angular/core';
 import { ChatMessageService } from '@axe/application/chat/chat-message.service';
+import { LanguageService } from '@axe/application/i18n/language.service';
+import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { ChatMessage } from '@axe/domain/chat/chat-message';
@@ -8,6 +10,7 @@ import { ChatTabList } from '@axe/domain/chat/chat-tab-list';
 import { canRoleViewTab } from '@axe/domain/chat/chat-tab-permission';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { parseVnEmote } from '@axe/features/visual-novel/visual-novel-emote';
+import { readableMessageText } from '@axe/features/visual-novel/visual-novel-message';
 import {
   VisualNovelSettingsService,
   VN_TYPEWRITER_INTERVAL_MS,
@@ -26,6 +29,8 @@ export class VisualNovelPlaybackService {
   private readonly objectChange = inject(ObjectChangeService);
   private readonly chatMessageService = inject(ChatMessageService);
   private readonly settings = inject(VisualNovelSettingsService);
+  private readonly translate = inject(TRANSLATE_FN);
+  private readonly language = inject(LanguageService);
 
   private readonly renderVersion = signal(0);
   private readonly cursor = signal(-1);
@@ -70,7 +75,8 @@ export class VisualNovelPlaybackService {
 
   readonly currentEmote = computed(() => {
     this.renderVersion();
-    return parseVnEmote(this.currentMessage()?.text ?? '');
+    this.language.currentLang();
+    return parseVnEmote(readableMessageText(this.currentMessage(), this.translate));
   });
 
   readonly currentFullText = computed(() => this.currentEmote().text);
@@ -295,7 +301,7 @@ export class VisualNovelPlaybackService {
 
   private restartTypewriter(message: ChatMessage | null): void {
     this.stopTypewriter();
-    const parsed = parseVnEmote(message?.text ?? '');
+    const parsed = parseVnEmote(readableMessageText(message, this.translate));
     const total = toGraphemes(parsed.text).length;
     const interval = VN_TYPEWRITER_INTERVAL_MS[this.settings.typewriterSpeed()];
     const isDiceCommand = this.currentIsDiceCommand();

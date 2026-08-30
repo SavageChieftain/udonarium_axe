@@ -1,7 +1,11 @@
-import { ComponentRef, ViewContainerRef } from '@angular/core';
+import { Component, ComponentRef, ViewContainerRef } from '@angular/core';
 import { PanelOption, PanelService } from '@axe/application/ui/panel.service';
+import { Logger } from '@axe/core/logging/logger';
 
 class DummyBodyComponent {}
+
+@Component({ selector: 'dummy-panel-body', template: '' })
+class DummyPanelBodyComponent {}
 
 function setupOpenMocks(initialChildState?: Partial<PanelService>) {
   const service = new PanelService();
@@ -49,6 +53,22 @@ function setupOpenMocks(initialChildState?: Partial<PanelService>) {
 }
 
 describe('PanelService', () => {
+  it('takes what kind of panel it is from the selector of what it opens', () => {
+    const { service, childPanelService, parentViewContainerRef } = setupOpenMocks();
+
+    service.open(DummyPanelBodyComponent, undefined, parentViewContainerRef);
+
+    expect(childPanelService.panelKind()).toBe('dummy-panel-body');
+  });
+
+  it('leaves the kind empty for what carries no selector of its own', () => {
+    const { service, childPanelService, parentViewContainerRef } = setupOpenMocks();
+
+    service.open(DummyBodyComponent, undefined, parentViewContainerRef);
+
+    expect(childPanelService.panelKind()).toBe('');
+  });
+
   it('starts hidden', () => {
     const { service } = setupOpenMocks();
     expect(service.isShow).toBe(false);
@@ -224,6 +244,55 @@ describe('PanelService', () => {
       const adjusted = PanelService.clampPanelOptionToViewport({ width: 400, height: 300 }, fallback);
       expect(adjusted.left).toBeUndefined();
       expect(adjusted.top).toBeUndefined();
+    });
+  });
+
+  describe('a panel still on its way', () => {
+    it('never opens when it was told to close before it arrived', async () => {
+      const service = new PanelService();
+      const opened = vi.spyOn(service, 'open').mockReturnValue({} as never);
+      let arrive: () => void = () => undefined;
+      const waiting = new Promise<typeof DummyPanelBodyComponent>((resolve) => {
+        arrive = () => resolve(DummyPanelBodyComponent);
+      });
+
+      service.openLazy(() => waiting, { single: 'a-panel' });
+      expect(service.closeSingle('a-panel')).toBe(true);
+      arrive();
+      await waiting;
+      await Promise.resolve();
+
+      expect(opened).not.toHaveBeenCalled();
+    });
+
+    it('opens as asked when nobody took the name back', async () => {
+      const service = new PanelService();
+      const opened = vi.spyOn(service, 'open').mockReturnValue({} as never);
+
+      service.openLazy(() => Promise.resolve(DummyPanelBodyComponent), { single: 'another-panel' });
+      await Promise.resolve();
+      await Promise.resolve();
+
+      expect(opened).toHaveBeenCalled();
+    });
+
+    it('lets the name go when it never arrives, so the next ask can open', async () => {
+      const service = new PanelService();
+      const opened = vi.spyOn(service, 'open').mockReturnValue({} as never);
+      vi.spyOn(Logger, 'error').mockImplementation(() => undefined);
+
+      service.openLazy(() => Promise.reject(new Error('no chunk')), { single: 'third-panel' });
+      await Promise.resolve();
+      await Promise.resolve();
+      await Promise.resolve();
+
+      expect(service.closeSingle('third-panel')).toBe(false);
+
+      service.openLazy(() => Promise.resolve(DummyPanelBodyComponent), { single: 'third-panel' });
+      await Promise.resolve();
+      await Promise.resolve();
+
+      expect(opened).toHaveBeenCalled();
     });
   });
 

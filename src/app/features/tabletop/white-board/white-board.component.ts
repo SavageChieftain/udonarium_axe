@@ -2,12 +2,14 @@ import { NgStyle } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, inject, input, signal } from '@angular/core';
 import { SaveDataService } from '@axe/application/file/save-data.service';
 import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
+import { AnimatedImageService } from '@axe/application/media/animated-image.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { TabletopService } from '@axe/application/tabletop/tabletop.service';
 import { ContextMenuService } from '@axe/application/ui/context-menu.service';
 import { PanelOption, PanelService } from '@axe/application/ui/panel.service';
 import { PieceContextMenuService } from '@axe/application/ui/piece-context-menu.service';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
+import { ImageStorage } from '@axe/core/storage/image-storage';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { Card } from '@axe/domain/card/card';
 import { GameCharacter } from '@axe/domain/character/game-character';
@@ -21,11 +23,13 @@ import { WhiteBoard } from '@axe/domain/tabletop/white-board';
 import { CardComponent } from '@axe/features/card/card/card.component';
 import { GameCharacterComponent } from '@axe/features/character/game-character/game-character.component';
 import { DiceSymbolComponent } from '@axe/features/dice/dice-symbol/dice-symbol.component';
+import { deserializeScene } from '@axe/features/map-editor/model/serialize';
 import { GameTableMaskComponent } from '@axe/features/tabletop/game-table-mask/game-table-mask.component';
 import { TerrainComponent } from '@axe/features/tabletop/terrain/terrain.component';
 import { TextNoteComponent } from '@axe/features/tabletop/text-note/text-note.component';
 import { detachAllFrom } from '@axe/features/tabletop/white-board/white-board-contents';
 import { buildWhiteBoardContextMenu } from '@axe/features/tabletop/white-board/white-board-context-menu';
+import { LivePicture, livePicturesOf } from '@axe/features/tabletop/white-board/white-board-live-pictures';
 import { MovableDirective, MovableOption } from '@axe/ui/directives/movable.directive';
 import { RotableDirective, RotableOption } from '@axe/ui/directives/rotable.directive';
 import { SelectableDirective } from '@axe/ui/directives/selectable.directive';
@@ -66,6 +70,8 @@ export class WhiteBoardComponent {
   private readonly saveDataService = inject(SaveDataService);
   private readonly objectChange = inject(ObjectChangeService);
   private readonly translateFn = inject(TRANSLATE_FN);
+  private readonly animatedImage = inject(AnimatedImageService);
+  private readonly imageStorage = inject(ImageStorage);
 
   readonly whiteBoard = input.required<WhiteBoard>();
   readonly movableOption = signal<MovableOption>({});
@@ -101,6 +107,20 @@ export class WhiteBoardComponent {
   readonly color = computed(() => this.version().color);
 
   readonly imageUrl = computed(() => this.version().imageFile.url);
+
+  /**
+   * The drawings on the board that move, which the flat picture it wears cannot show.
+   *
+   * They are hung over the picture in the place the paint would have put them, so a board
+   * with a moving picture on it looks the same and moves as well.
+   */
+  readonly livePictures = computed<(LivePicture & { url: string })[]>(() =>
+    livePicturesOf(deserializeScene(this.version().scene), this.widthPx(), this.heightPx(), (identifier) =>
+      this.animatedImage.isAnimated(identifier)
+    )
+      .map((picture) => ({ ...picture, url: this.imageStorage.get(picture.imageIdentifier)?.url ?? '' }))
+      .filter((picture) => picture.url.length > 0)
+  );
 
   /**
    * Tilted about its lower edge, so that standing it up does not sink it into the table.

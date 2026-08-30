@@ -1,0 +1,129 @@
+@if (shows()) {
+  <div
+    #bar
+    data-testid="hotbar"
+    class="fixed top-0 left-0 box-border flex cursor-grab flex-col gap-1 select-none active:cursor-grabbing"
+    [style.zIndex]="zIndex()"
+    [class.w-full!]="mobile.isActive()"
+    appDraggable
+    [draggable.disable]="mobile.isActive() || preference.locked()"
+    [draggable.unhandle]="'button'"
+    (draggable.end)="rememberSpot()"
+    (draggable.settled)="rememberSpot()"
+    (contextmenu)="openBarMenu($event)"
+  >
+    <input #file type="file" accept=".zip,.xml" class="hidden" data-testid="hotbar-file" (change)="loadFile($event)" />
+
+    <div class="flex items-center gap-2 px-1">
+      @if (failure(); as reason) {
+        <span
+          data-testid="hotbar-reason"
+          class="text-ui-danger pointer-events-none min-w-0 flex-1 truncate text-[10px] leading-tight font-semibold"
+          >{{ 'feature.hotbar.failure.' + reason | transloco }}</span
+        >
+      } @else if (preference.showsHint() && !mobile.isActive()) {
+        <span
+          data-testid="hotbar-hint"
+          class="text-ui-dim pointer-events-none min-w-0 flex-1 truncate text-[10px] leading-tight"
+          >{{ 'feature.hotbar.shortcutHint' | transloco }}</span
+        >
+      } @else {
+        <span class="min-w-0 flex-1"></span>
+      }
+      <div class="flex items-center gap-0.5">
+        @for (page of pages; track page) {
+          <button
+            type="button"
+            data-testid="hotbar-page"
+            [attr.data-page]="page"
+            class="rounded-ui-sm border-ui-border-panel flex size-6 cursor-pointer items-center justify-center border border-solid text-[11px] leading-none font-semibold [backdrop-filter:blur(12px)] transition-colors [-webkit-backdrop-filter:blur(12px)]"
+            [class.bg-ui-accent]="preference.page() === page"
+            [class.text-white]="preference.page() === page"
+            [class.bg-ui-panel]="preference.page() !== page"
+            [class.text-ui-dim]="preference.page() !== page"
+            [attr.aria-current]="preference.page() === page"
+            [attr.title]="'feature.hotbar.pageTitle' | transloco: { page: page + 1 }"
+            (click)="preference.gotoPage(page)"
+          >
+            {{ page + 1 }}
+          </button>
+        }
+      </div>
+    </div>
+
+    <div
+      class="rounded-ui-lg border-ui-border-panel bg-ui-panel text-ui-text shadow-ui-md box-border flex items-center gap-1 border border-solid px-1.5 py-1 [backdrop-filter:blur(24px)_saturate(1.5)] [-webkit-backdrop-filter:blur(24px)_saturate(1.5)]"
+      [class.overflow-x-auto]="mobile.isActive()"
+    >
+      <div class="flex items-center gap-1">
+        @for (cell of cells(); track cell.slotIndex) {
+          <button
+            type="button"
+            data-testid="hotbar-slot"
+            [attr.data-slot]="cell.slotIndex"
+            [attr.data-filled]="cell.slot ? 'true' : 'false'"
+            class="rounded-ui-sm relative flex size-11 shrink-0 cursor-pointer flex-col items-center justify-center gap-0.5 border border-solid p-0 transition-colors"
+            [class.border-ui-border-panel]="cell.slot"
+            [class.border-dashed]="!cell.slot"
+            [class.border-ui-dim]="!cell.slot"
+            [class.bg-transparent]="!cell.slot"
+            [class.opacity-45]="cell.needsCharacter && !cell.actor"
+            [class.animate-hit-flash]="isFailing(cell.slotIndex)"
+            [class.opacity-50]="isDragging(cell.slotIndex)"
+            [class.scale-110]="isDragging(cell.slotIndex)"
+            [style.background]="cell.slot ? cell.color : null"
+            [attr.title]="cell.slot ? cell.label : ('feature.hotbar.emptySlot' | transloco)"
+            (click)="press(cell, $event)"
+            (pointerdown)="onSlotDown(cell, $event)"
+            (pointermove)="onSlotMove($event)"
+            (pointerup)="onSlotUp($event)"
+            (pointercancel)="onSlotCancel()"
+            (contextmenu)="openSlotMenu(cell, $event)"
+          >
+            @if (cell.slot) {
+              <i class="material-icons text-[17px]! leading-none text-white">{{ cell.icon }}</i>
+              @if (preference.showsLabel() && cell.label) {
+                <span class="w-10 truncate text-center text-[9px] leading-tight text-white/90">{{ cell.label }}</span>
+              }
+            } @else {
+              <i class="material-icons text-ui-dim text-[15px]! leading-none">add</i>
+            }
+            <span class="text-ui-dim pointer-events-none absolute top-0 right-0.5 text-[9px] leading-tight">{{
+              cell.key
+            }}</span>
+            @if (cell.actorName) {
+              <span
+                data-testid="hotbar-slot-actor"
+                class="bg-ui-panel text-ui-text pointer-events-none absolute bottom-0 left-0 max-w-full truncate rounded-tr-[3px] px-0.5 text-[8px] leading-tight"
+                >{{ cell.actorName }}</span
+              >
+            }
+          </button>
+        }
+      </div>
+
+      <div class="border-ui-border-panel ml-1 flex items-center gap-0.5 border-l border-solid pl-1.5">
+        <button
+          type="button"
+          data-testid="hotbar-save"
+          class="rounded-ui-sm text-ui-dim hover:bg-ui-hover hover:text-ui-text flex size-6 cursor-pointer items-center justify-center border-none bg-transparent p-0 transition-colors"
+          [attr.title]="'feature.hotbar.menu.save' | transloco"
+          (click)="saveToFile()"
+        >
+          <i class="material-icons text-[14px]!">save</i>
+        </button>
+        <button
+          type="button"
+          data-testid="hotbar-lock"
+          class="rounded-ui-sm hover:bg-ui-hover hover:text-ui-text flex size-6 cursor-pointer items-center justify-center border-none bg-transparent p-0 transition-colors"
+          [class.text-ui-accent]="preference.locked()"
+          [class.text-ui-dim]="!preference.locked()"
+          [attr.title]="'feature.hotbar.lock' | transloco"
+          (click)="preference.setLocked(!preference.locked())"
+        >
+          <i class="material-icons text-[14px]!">{{ preference.locked() ? 'lock' : 'lock_open' }}</i>
+        </button>
+      </div>
+    </div>
+  </div>
+}

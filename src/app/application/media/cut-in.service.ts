@@ -73,6 +73,15 @@ export class CutInService {
     return true;
   }
 
+  /** Plays only what a cut-in sounds like, the way a chat line ending in `@` asks for. */
+  launchSoundOnly(cutIn: CutIn, sendTo = ''): boolean {
+    const launcher = this.objectStore.get<CutInLauncher>('CutInLauncher');
+    if (!launcher) return false;
+
+    launcher.startSoundOnlyCutIn(cutIn, sendTo);
+    return true;
+  }
+
   private isCutInBgmUploaded(audioIdentifier: string): boolean {
     return this.audioStorage.get(audioIdentifier) !== null;
   }

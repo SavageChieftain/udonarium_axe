@@ -10,6 +10,9 @@ import {
   DataElementFieldType,
   DataElementRole,
 } from '@axe/domain/data/data-element';
+import { Hotbar } from '@axe/domain/hotbar/hotbar';
+import { emptyHotbarSlotDraft } from '@axe/domain/hotbar/hotbar-draft';
+import { HotbarSlot } from '@axe/domain/hotbar/hotbar-slot';
 import { ReloadCheck } from '@axe/domain/peer/reload-check';
 import { GameTable } from '@axe/domain/tabletop/game-table';
 import { Terrain, TerrainViewState } from '@axe/domain/tabletop/terrain';
@@ -189,6 +192,70 @@ describe('save and load round trip', () => {
 
       expect(restoredSection.getAttribute('cs-colspan')).toBe('full');
       expect(restoredSection.getAttribute(DataElementAttribute.POPUP)).toBe('true');
+    });
+  });
+
+  describe('hotbar round trip', () => {
+    function hotbarFor(userId: string): Hotbar {
+      const hotbar = new Hotbar(`Hotbar_${userId}`);
+      hotbar.ownerUserId = userId;
+      hotbar.initialize();
+      return hotbar;
+    }
+
+    it('registers the hotbar and its slots with the object factory', () => {
+      expect(ObjectFactory.instance.create('hotbar')).toBeInstanceOf(Hotbar);
+      expect(ObjectFactory.instance.create('hotbar-slot')).toBeInstanceOf(HotbarSlot);
+    });
+
+    it('writes a slot down with where it sits and who it acts as', () => {
+      const character = GameCharacter.create('ホットバー確認', 1, '');
+      const hotbar = hotbarFor('reader');
+      const draft = emptyHotbarSlotDraft('chat');
+      draft.value = '2d6+3 攻撃';
+      draft.label = '全力攻撃';
+      draft.characterIdentifier = character.identifier;
+      hotbar.put(1, 4, draft);
+
+      const xml = serializer.toXml(hotbar);
+
+      expect(xml).toContain('ownerUserId="reader"');
+      expect(xml).toContain('page="1"');
+      expect(xml).toContain('slotIndex="4"');
+      expect(xml).toContain('label="全力攻撃"');
+      expect(xml).toContain(`characterIdentifier="${character.identifier}"`);
+      expect(xml).toContain('2d6+3 攻撃');
+
+      character.destroy();
+      store.clearDeleteHistory();
+    });
+
+    it('reads a slot back with its place as numbers', () => {
+      const hotbar = hotbarFor('reader');
+      const draft = emptyHotbarSlotDraft('effect');
+      draft.value = '爆炎';
+      hotbar.put(2, 9, draft);
+      const slotXml = serializer.toXml(hotbar.slotAt(2, 9)!);
+
+      hotbar.destroy();
+      store.clearDeleteHistory();
+
+      const restored = serializer.parseXml(slotXml) as HotbarSlot;
+
+      expect(restored.pageNo).toBe(2);
+      expect(restored.slotNo).toBe(9);
+      expect(restored.slotKind).toBe('effect');
+      expect(restored.argument).toBe('爆炎');
+    });
+
+    it('reads a slot whose place was never written as the first one', () => {
+      const slot = new HotbarSlot();
+      slot.initialize();
+
+      expect(slot.pageNo).toBe(0);
+      expect(slot.slotNo).toBe(0);
+      expect(slot.slotKind).toBe('chat');
+      expect(slot.characterIdentifier).toBe('');
     });
   });
 

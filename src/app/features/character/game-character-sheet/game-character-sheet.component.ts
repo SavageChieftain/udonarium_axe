@@ -147,15 +147,24 @@ export class GameCharacterSheetComponent {
     if (this.dragOverId() === id) this.dragOverId.set(null);
   }
 
+  /**
+   * A card let go of over another takes its place.
+   *
+   * A drop carrying no card of ours is somebody else's business - a picture, an archive -
+   * and is left to travel on to whatever else the page listens for. A card let go of over
+   * itself is ours all the same, and is answered for here rather than let out.
+   */
   onDrop(event: DragEvent, targetId: string) {
-    event.preventDefault();
-    // Dropping to reorder is not dropping to import; letting it through would reach the archiver.
-    event.stopPropagation();
     this.dragOverId.set(null);
     const draggedId = this.dataElementDrag.getDraggedId(event) ?? this._draggedId;
     this._draggedId = null;
     this.dataElementDrag.end();
-    if (!draggedId || draggedId === targetId) return;
+    if (!draggedId) return;
+
+    event.preventDefault();
+    event.stopPropagation();
+    if (draggedId === targetId) return;
+
     reorderDetailElement(this.character, this.objectStore, this.objectChange, draggedId, targetId);
   }
 

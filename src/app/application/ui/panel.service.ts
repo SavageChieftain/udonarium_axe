@@ -1,4 +1,4 @@
-import { ComponentRef, Injectable, signal, ViewContainerRef } from '@angular/core';
+import { ComponentRef, Injectable, reflectComponentType, signal, ViewContainerRef } from '@angular/core';
 import { EventChannel } from '@axe/core/event/event-channel';
 import { Logger } from '@axe/core/logging/logger';
 import { CardStack } from '@axe/domain/card/card-stack';
@@ -7,6 +7,11 @@ import { ChatTab } from '@axe/domain/chat/chat-tab';
 declare const Type: FunctionConstructor;
 interface Type<T> {
   new (...args: unknown[]): T;
+}
+
+function panelKindOf(childComponent: Type<unknown>): string {
+  const selector = reflectComponentType(childComponent as never)?.selector;
+  return selector && selector.length > 0 ? selector : '';
 }
 
 export interface PanelOption {
@@ -25,6 +30,13 @@ export interface PanelOption {
   frameless?: boolean;
 
   /**
+   * Where this panel sits, for one opened by something that lives above where panels go.
+   *
+   * Left out, the panel takes its turn among the others as the reader brings them forward.
+   */
+  layer?: number;
+
+  /**
    * A name that only one panel at a time may hold.
    *
    * A button that opens a panel under this name can close it again with `closeSingle`, so
@@ -38,6 +50,7 @@ interface UIPanelInstance {
 }
 
 type PanelServiceAssignableKey =
+  | 'layer'
   | 'title'
   | 'top'
   | 'left'
@@ -59,6 +72,8 @@ export class PanelService {
   static cardStackListComponentClass: Type<unknown> | null = null;
   private panelComponentRef: ComponentRef<UIPanelInstance> | null = null;
   private static readonly singles = new Map<string, ComponentRef<UIPanelInstance>>();
+  /** Names spoken for by a panel whose code is still being fetched. */
+  private static readonly opening = new Set<string>();
   title: string = '';
   titleTooltip: string = '';
   left: number = 0;
@@ -69,10 +84,14 @@ export class PanelService {
   minHeight: number = 100;
   isCutIn: boolean = false;
   cutInIdentifier: string = '';
+  /** Zero for a panel that takes its turn among the others, which is nearly all of them. */
+  layer: number = 0;
   invisible: boolean = false;
   minimizeToContent: boolean = false;
   frameless: boolean = false;
   readonly isMinimized = signal(false);
+  /** What kind of panel this is, taken from the selector of what it was opened with. */
+  readonly panelKind = signal('');
   chatTab: ChatTab | null = null;
   cardStack: CardStack | null = null;
   scrollablePanel: HTMLDivElement | null = null;
@@ -92,8 +111,16 @@ export class PanelService {
     this.scrollablePanel = panel;
   }
 
-  /** Closes the panel holding this name, and says whether there was one to close. */
+  /**
+   * Closes the panel holding this name, and says whether there was one to close.
+   *
+   * A panel still on its way counts as one: a name asked for and not yet arrived is taken
+   * back, and the panel is dropped when it lands rather than opening after the reader has
+   * asked it to go away.
+   */
   closeSingle(name: string): boolean {
+    if (PanelService.opening.delete(name)) return true;
+
     const open = PanelService.singles.get(name);
     if (!open) return false;
     open.destroy();
@@ -117,6 +144,7 @@ export class PanelService {
     const childPanelService: PanelService = panelComponentRef.injector.get(PanelService);
 
     childPanelService.panelComponentRef = panelComponentRef;
+    childPanelService.panelKind.set(panelKindOf(childComponent));
     if (option) this.applyPanelOption(panelComponentRef, childPanelService, option);
     const single = option?.single;
     if (single) PanelService.singles.set(single, panelComponentRef);
@@ -136,12 +164,20 @@ export class PanelService {
   ): void {
     // A panel that fails to arrive says nothing for itself: the promise rejects into nowhere
     // and the reader is left looking at a menu item that appears to do nothing.
+    const single = option?.single;
+    if (single) PanelService.opening.add(single);
+
     factory()
       .then((childComponent) => {
+        // Asked to close while it was being fetched, it never opens at all.
+        if (single && !PanelService.opening.delete(single)) return;
+
         const instance = this.open(childComponent, option, parentViewContainerRef);
         setup?.(instance);
       })
       .catch((reason) => {
+        // The name is let go of as well, or nothing under it could ever be opened again.
+        if (single) PanelService.opening.delete(single);
         Logger.error('[PanelService] パネルを開けませんでした', reason);
       });
   }
@@ -160,7 +196,7 @@ export class PanelService {
       panelComponentRef.setInput(key, value);
     }
 
-    const serviceOnly = ['isCutIn', 'cutInIdentifier', 'invisible', 'minimizeToContent', 'frameless'] as const;
+    const serviceOnly = ['isCutIn', 'cutInIdentifier', 'invisible', 'minimizeToContent', 'frameless', 'layer'] as const;
     for (const key of serviceOnly) {
       const value = adjusted[key];
       if (value === undefined) continue;

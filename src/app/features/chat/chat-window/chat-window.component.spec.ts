@@ -1,6 +1,7 @@
 import { ChangeDetectorRef } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ChatMessageService } from '@axe/application/chat/chat-message.service';
+import { ChatSpeakerService } from '@axe/application/chat/chat-speaker.service';
 import { ObjectChangeService, ObjectDeleteEvent } from '@axe/application/sync/object-change.service';
 import { EventChannel } from '@axe/core/event/event-channel';
 import { childrenChanged$, objectChanged$ } from '@axe/core/sync/object-event-extension';
@@ -35,6 +36,28 @@ describe('ChatWindowComponent', () => {
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  it('leaves the speaker alone when a second window opens', () => {
+    const speaker = TestBed.inject(ChatSpeakerService);
+    const character = GameCharacter.create('術者', 1, '');
+    component.sendFrom = character.identifier;
+    expect(speaker.current()).toBe(character);
+
+    TestBed.createComponent(ChatWindowComponent);
+
+    expect(speaker.current()).toBe(character);
+    character.destroy();
+  });
+
+  it('tells the room who it speaks as once the reader chooses', () => {
+    const speaker = TestBed.inject(ChatSpeakerService);
+    const character = GameCharacter.create('術者', 1, '');
+
+    component.sendFrom = character.identifier;
+
+    expect(speaker.identifier()).toBe(character.identifier);
+    character.destroy();
   });
 
   it('injects a change detector', () => {

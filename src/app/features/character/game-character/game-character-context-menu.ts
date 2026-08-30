@@ -8,6 +8,7 @@ import {
   buildToggleAction,
 } from '@axe/application/ui/tabletop-context-menu-actions';
 import { Network } from '@axe/core/index';
+import { BUFF_VIEW_MODES } from '@axe/domain/character/buff-view-mode';
 import { heldDiceOf } from '@axe/domain/character/character-dice';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { DataElement, DataElementFieldType } from '@axe/domain/data/data-element';
@@ -54,8 +55,6 @@ export function collectRegisteredEffects(char: GameCharacter): string[] {
   }
   return names;
 }
-
-const BUFF_VIEW_MENU_MODES = ['icon', 'detail', 'count'] as const;
 
 function capitalize(value: string): string {
   return value.charAt(0).toUpperCase() + value.slice(1);
@@ -109,7 +108,7 @@ export function buildGameCharacterContextMenu(
           {
             name: t('feature.character.contextMenu.buffView'),
             action: undefined,
-            subActions: BUFF_VIEW_MENU_MODES.map((mode) => ({
+            subActions: BUFF_VIEW_MODES.map((mode) => ({
               name: (buffViewMode === mode ? '✔ ' : '') + t(`feature.character.buff.view${capitalize(mode)}`),
               action: () => callbacks.onSelectBuffView?.(mode),
             })),

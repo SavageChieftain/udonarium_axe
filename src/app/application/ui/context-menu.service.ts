@@ -37,6 +37,8 @@ export class ContextMenuService {
   title: string = '';
   actions: ContextMenuAction[] = [];
   position: ContextMenuPoint = { x: 0, y: 0 };
+  /** Where the menu sits, for a caller that lives above where menus usually go. Zero is the usual place. */
+  layer: number = 0;
 
   get isShow(): boolean {
     return this.panelComponentRef !== null;
@@ -46,13 +48,12 @@ export class ContextMenuService {
     position: ContextMenuPoint,
     actions: ContextMenuAction[],
     title?: string,
-    parentViewContainerRef?: ViewContainerRef
+    options?: { layer?: number; parentViewContainerRef?: ViewContainerRef }
   ) {
     this.close();
     if (!this.rolePermission.canEditTabletop) return;
-    if (!parentViewContainerRef) {
-      parentViewContainerRef = ContextMenuService.defaultParentViewContainerRef;
-    }
+
+    const parentViewContainerRef = options?.parentViewContainerRef ?? ContextMenuService.defaultParentViewContainerRef;
     const injector = parentViewContainerRef.injector;
 
     const panelComponentRef = parentViewContainerRef.createComponent(ContextMenuService.ContextMenuComponentClass, {
@@ -72,6 +73,7 @@ export class ContextMenuService {
     }
 
     childPanelService.title = title != null ? title : '';
+    childPanelService.layer = options?.layer ?? 0;
 
     panelComponentRef.onDestroy(() => {
       childPanelService.panelComponentRef = null;

@@ -1,5 +1,6 @@
 <div
   class="rounded-ui border-ui-border-menu bg-ui-menu text-ui-text shadow-ui-lg absolute z-9900 box-border overflow-visible border border-solid px-0 py-1 whitespace-nowrap select-none [-moz-user-drag:none]"
+  [style.zIndex]="layer() > 0 ? layer() : null"
   [ngClass]="{
     'fixed! max-h-[calc(100dvh-1rem)] overflow-y-auto overscroll-contain': isSubmenu(),
     'max-h-full max-w-full': !isSubmenu(),

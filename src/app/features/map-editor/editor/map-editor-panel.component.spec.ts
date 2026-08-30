@@ -74,6 +74,33 @@ describe('MapEditorPanelComponent', () => {
     expect(component).toBeTruthy();
   });
 
+  describe('dropping on the list of layers', () => {
+    function dropOn(panel: MapEditorPanelComponent): DragEvent {
+      const dropped = { preventDefault: vi.fn(), stopPropagation: vi.fn() } as unknown as DragEvent;
+      (panel as unknown as { onLayerDrop(event: DragEvent): void }).onLayerDrop(dropped);
+      return dropped;
+    }
+
+    it('leaves a drop it has no layer to move for the rest of the page to answer', () => {
+      const dropped = dropOn(component);
+
+      expect(dropped.preventDefault).not.toHaveBeenCalled();
+      expect(dropped.stopPropagation).not.toHaveBeenCalled();
+    });
+
+    it('keeps the drop that moves a layer to itself', () => {
+      const drag = (component as unknown as { layerDrag: { begin(id: string): void; hover(id: string): void } })
+        .layerDrag;
+      drag.begin('a');
+      drag.hover('b');
+
+      const dropped = dropOn(component);
+
+      expect(dropped.preventDefault).toHaveBeenCalled();
+      expect(dropped.stopPropagation).toHaveBeenCalled();
+    });
+  });
+
   it('shows only the game-master notice to anyone else', () => {
     TestBed.inject(ObjectChangeService);
     PeerCursor.createMyCursor();

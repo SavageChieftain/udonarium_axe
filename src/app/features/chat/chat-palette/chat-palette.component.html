@@ -149,6 +149,7 @@
           [class.bg-ui-accent-bg!]="selectedLine() === row.lineIndex"
           [attr.data-line]="row.lineIndex"
           (click)="onClickPaletteRow(row)"
+          (contextmenu)="onPaletteRowMenu(row, $event)"
         >
           {{ row.text }}
         </div>
