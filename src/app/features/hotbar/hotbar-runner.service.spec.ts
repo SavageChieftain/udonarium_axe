@@ -326,10 +326,9 @@ describe('HotbarRunnerService', () => {
       const group = slotOf('group', '', {
         kind: 'group',
         steps: [
-          { page: 0, slotIndex: 2, slotIdentifier: '' },
-          { page: 0, slotIndex: 1, slotIdentifier: '' },
+          { page: 0, slotIndex: 2, slotIdentifier: '', delayMs: 0 },
+          { page: 0, slotIndex: 1, slotIdentifier: '', delayMs: 0 },
         ],
-        delayMs: 0,
       });
 
       expect(run(group, null)).toEqual({ ok: true });
@@ -344,8 +343,7 @@ describe('HotbarRunnerService', () => {
       const request = vi.spyOn(TestBed.inject(UiSignalService), 'requestChatInputText');
       const group = slotOf('group', '', {
         kind: 'group',
-        steps: [{ page: 0, slotIndex: 1, slotIdentifier: slot.identifier }],
-        delayMs: 0,
+        steps: [{ page: 0, slotIndex: 1, slotIdentifier: slot.identifier, delayMs: 0 }],
       });
 
       hotbar.move({ page: 0, slotIndex: 1 }, { page: 0, slotIndex: 7 });
@@ -365,8 +363,7 @@ describe('HotbarRunnerService', () => {
       vi.spyOn(TestBed.inject(TabletopActionService), 'createRangeArea').mockReturnValue(range);
       const group = slotOf('group', '', {
         kind: 'group',
-        steps: [{ page: 0, slotIndex: 1, slotIdentifier: slot.identifier }],
-        delayMs: 0,
+        steps: [{ page: 0, slotIndex: 1, slotIdentifier: slot.identifier, delayMs: 0 }],
       });
 
       hotbar.move({ page: 0, slotIndex: 1 }, { page: 0, slotIndex: 7 });
@@ -391,10 +388,9 @@ describe('HotbarRunnerService', () => {
         const group = slotOf('group', '', {
           kind: 'group',
           steps: [
-            { page: 0, slotIndex: 1, slotIdentifier: '' },
-            { page: 0, slotIndex: 2, slotIdentifier: '' },
+            { page: 0, slotIndex: 1, slotIdentifier: '', delayMs: 0 },
+            { page: 0, slotIndex: 2, slotIdentifier: '', delayMs: 500 },
           ],
-          delayMs: 500,
         });
 
         run(group, null);
@@ -422,10 +418,9 @@ describe('HotbarRunnerService', () => {
         const group = slotOf('group', '', {
           kind: 'group',
           steps: [
-            { page: 0, slotIndex: 1, slotIdentifier: '' },
-            { page: 0, slotIndex: 2, slotIdentifier: '' },
+            { page: 0, slotIndex: 1, slotIdentifier: '', delayMs: 0 },
+            { page: 0, slotIndex: 2, slotIdentifier: '', delayMs: 500 },
           ],
-          delayMs: 500,
         });
 
         expect(run(group, null)).toEqual({ ok: true });
@@ -443,8 +438,7 @@ describe('HotbarRunnerService', () => {
       hotbar.put(0, 1, emptyHotbarSlotDraft('chat'));
       const group = slotOf('group', '', {
         kind: 'group',
-        steps: [{ page: 0, slotIndex: 1, slotIdentifier: '' }],
-        delayMs: 0,
+        steps: [{ page: 0, slotIndex: 1, slotIdentifier: '', delayMs: 0 }],
       });
 
       expect(run(group, character)).toEqual({ ok: false, reason: 'empty' });
@@ -456,8 +450,7 @@ describe('HotbarRunnerService', () => {
 
       const group = slotOf('group', '', {
         kind: 'group',
-        steps: [{ page: 0, slotIndex: 1, slotIdentifier: '' }],
-        delayMs: 0,
+        steps: [{ page: 0, slotIndex: 1, slotIdentifier: '', delayMs: 0 }],
       });
 
       expect(run(group, null)).toEqual({ ok: false, reason: 'empty' });
@@ -498,5 +491,31 @@ describe('HotbarRunnerService', () => {
   it('says a slot with nothing in it is empty', () => {
     expect(run(slotOf('chat', '   '), character)).toEqual({ ok: false, reason: 'empty' });
     expect(run(slotOf('sound', ''), null)).toEqual({ ok: false, reason: 'empty' });
+  });
+
+  describe('an effect told to pay no heed to what is targeted', () => {
+    it('plays on the piece that pressed it', () => {
+      const preset = { identifier: 'preset', name: '守り' };
+      vi.spyOn(TestBed.inject(EffectLibraryService), 'findByName').mockReturnValue(preset as never);
+      const fire = vi.spyOn(TestBed.inject(EffectCastService), 'fire').mockReturnValue({} as never);
+      const atTargets = vi.spyOn(TestBed.inject(EffectCastService), 'fireFromCharacter');
+
+      const slot = slotOf('effect', '守り', { kind: 'effect', mode: 'cast', onSelf: true });
+
+      expect(run(slot, character)).toEqual({ ok: true });
+      expect(fire).toHaveBeenCalledWith(preset, [character], null);
+      expect(atTargets).not.toHaveBeenCalled();
+    });
+
+    it('goes at what is targeted where it is not told to', () => {
+      const preset = { identifier: 'preset', name: '一撃' };
+      vi.spyOn(TestBed.inject(EffectLibraryService), 'findByName').mockReturnValue(preset as never);
+      const atTargets = vi.spyOn(TestBed.inject(EffectCastService), 'fireFromCharacter').mockReturnValue({} as never);
+
+      const slot = slotOf('effect', '一撃', { kind: 'effect', mode: 'cast', onSelf: false });
+
+      expect(run(slot, character)).toEqual({ ok: true });
+      expect(atTargets).toHaveBeenCalledWith(preset, character);
+    });
   });
 });

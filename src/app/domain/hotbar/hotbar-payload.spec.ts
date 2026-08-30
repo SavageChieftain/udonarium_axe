@@ -1,4 +1,9 @@
-import { defaultHotbarPayload, encodeHotbarPayload, parseHotbarPayload } from '@axe/domain/hotbar/hotbar-payload';
+import {
+  defaultHotbarPayload,
+  encodeHotbarPayload,
+  MAX_STEP_DELAY_MS,
+  parseHotbarPayload,
+} from '@axe/domain/hotbar/hotbar-payload';
 import { HOTBAR_SLOT_KINDS } from '@axe/domain/hotbar/hotbar-slot-kind';
 
 describe('hotbar slot payloads', () => {
@@ -68,7 +73,11 @@ describe('hotbar slot payloads', () => {
   });
 
   it('falls back on a value outside what the kind offers', () => {
-    expect(parseHotbarPayload('effect', '{"mode":"explode"}')).toEqual({ kind: 'effect', mode: 'cast' });
+    expect(parseHotbarPayload('effect', '{"mode":"explode"}')).toEqual({
+      kind: 'effect',
+      mode: 'cast',
+      onSelf: false,
+    });
     expect(parseHotbarPayload('turn', '{"action":42}')).toEqual({ kind: 'turn', action: 'next' });
     expect(parseHotbarPayload('chat', '{"colorIndex":-3}')).toEqual({
       kind: 'chat',
@@ -88,5 +97,47 @@ describe('hotbar slot payloads', () => {
   it('writes nothing for a kind that takes no options', () => {
     expect(encodeHotbarPayload({ kind: 'plain' })).toBe('');
     expect(parseHotbarPayload('diceDeploy', '')).toEqual({ kind: 'plain' });
+  });
+
+  describe('what a multi-action waits between its steps', () => {
+    it('gives each step a wait of its own', () => {
+      const payload = parseHotbarPayload(
+        'group',
+        JSON.stringify({
+          steps: [
+            { page: 0, slotIndex: 0, slotIdentifier: 'a' },
+            { page: 0, slotIndex: 1, slotIdentifier: 'b', delayMs: 250 },
+            { page: 0, slotIndex: 2, slotIdentifier: 'c', delayMs: 1000 },
+          ],
+        })
+      );
+
+      expect(payload.kind === 'group' ? payload.steps.map((step) => step.delayMs) : []).toEqual([0, 250, 1000]);
+    });
+
+    it('reads a group written with one wait for the lot as that wait before each step but the first', () => {
+      const payload = parseHotbarPayload(
+        'group',
+        JSON.stringify({
+          delayMs: 400,
+          steps: [
+            { page: 0, slotIndex: 0, slotIdentifier: 'a' },
+            { page: 0, slotIndex: 1, slotIdentifier: 'b' },
+            { page: 0, slotIndex: 2, slotIdentifier: 'c' },
+          ],
+        })
+      );
+
+      expect(payload.kind === 'group' ? payload.steps.map((step) => step.delayMs) : []).toEqual([0, 400, 400]);
+    });
+
+    it('waits no longer than a reader will wait', () => {
+      const payload = parseHotbarPayload(
+        'group',
+        JSON.stringify({ steps: [{ page: 0, slotIndex: 0, slotIdentifier: 'a', delayMs: 99_000 }] })
+      );
+
+      expect(payload.kind === 'group' ? payload.steps[0].delayMs : -1).toBe(MAX_STEP_DELAY_MS);
+    });
   });
 });

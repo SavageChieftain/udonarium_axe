@@ -21,7 +21,9 @@ import {
   encodeHotbarPayload,
   HotbarPayload,
   HotbarStep,
+  MAX_STEP_DELAY_MS,
   parseHotbarPayload,
+  sameHotbarStep,
   TURN_ACTIONS,
 } from '@axe/domain/hotbar/hotbar-payload';
 import { HotbarCell } from '@axe/domain/hotbar/hotbar-size';
@@ -49,6 +51,9 @@ import { TranslocoModule } from '@jsverse/transloco';
  * one a slot laid - and never left behind either: the editor takes its own down when it goes.
  */
 const REHEARSAL_CELL: HotbarCell = { page: -1, slotIndex: -1 };
+
+/** What a step joining a group waits for, until the reader says otherwise. */
+const DEFAULT_STEP_DELAY_MS = 300;
 
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -183,6 +188,12 @@ export class HotbarSlotEditorComponent {
     return options.kind === 'cutIn' && options.soundOnly;
   });
   /** Every filled slot of the reader's own bar, for a group to pick its steps from. */
+  /** Told to pay no heed to what is targeted, the effect plays on the piece that pressed it. */
+  protected readonly effectOnSelf = computed(() => {
+    const options = this.options();
+    return options.kind === 'effect' && options.onSelf;
+  });
+
   protected readonly stepChoices = computed<{ step: HotbarStep; label: string; key: string; chosen: boolean }[]>(() => {
     if (this.kind() !== 'group') return [];
 
@@ -198,27 +209,89 @@ export class HotbarSlotEditorComponent {
       .filter((slot) => slot.pageNo !== here.page || slot.slotNo !== here.slotIndex)
       .sort((left, right) => left.pageNo - right.pageNo || left.slotNo - right.slotNo)
       .map((slot) => ({
-        step: { page: slot.pageNo, slotIndex: slot.slotNo, slotIdentifier: slot.identifier },
+        step: { page: slot.pageNo, slotIndex: slot.slotNo, slotIdentifier: slot.identifier, delayMs: 0 },
         label: hotbarSlotLabel(slot.argument, slot.label),
         key: `${slot.pageNo + 1}-${(slot.slotNo + 1) % 10}`,
-        chosen: taken.some((step) => step.slotIdentifier === slot.identifier),
+        chosen: taken.some((step) =>
+          sameHotbarStep(step, { page: slot.pageNo, slotIndex: slot.slotNo, slotIdentifier: slot.identifier })
+        ),
       }));
   });
+
+  /**
+   * The steps as they will run: in order, each with what it waits for.
+   *
+   * The order is the reader's to set - what was chosen first is rarely what should go first -
+   * and the wait belongs to the step rather than to the group, so that a blow can land a
+   * moment after the swing while the shout that follows waits a breath longer.
+   */
+  protected readonly stepRows = computed<{ step: HotbarStep; label: string; key: string; order: number }[]>(() => {
+    const choices = this.stepChoices();
+    return this.groupSteps().map((step, order) => {
+      const found = choices.find((choice) => sameHotbarStep(step, choice.step));
+      return {
+        step,
+        label: found?.label ?? this.t('feature.hotbar.editor.stepGone'),
+        key: found?.key ?? `${step.page + 1}-${(step.slotIndex + 1) % 10}`,
+        order,
+      };
+    });
+  });
+
+  protected moveStep(order: number, by: number): void {
+    const steps = [...this.groupSteps()];
+    const to = order + by;
+    if (order < 0 || order >= steps.length || to < 0 || to >= steps.length) return;
+    const [held] = steps.splice(order, 1);
+    steps.splice(to, 0, held);
+    this.patchOptions({ steps });
+  }
+
+  protected dropStep(order: number): void {
+    const steps = this.groupSteps().filter((_, index) => index !== order);
+    this.patchOptions({ steps });
+  }
+
+  /** The first step runs on the press itself, so what it would wait for is nothing. */
+  protected setStepDelay(order: number, delayMs: number): void {
+    const held = Number.isFinite(delayMs) ? Math.max(0, Math.min(MAX_STEP_DELAY_MS, Math.floor(delayMs))) : 0;
+    const steps = this.groupSteps().map((step, index) => (index === order ? { ...step, delayMs: held } : step));
+    this.patchOptions({ steps });
+  }
+
+  protected readonly maxStepDelay = MAX_STEP_DELAY_MS;
+
+  /**
+   * Writes down which slot each step means, as the bar has it now.
+   *
+   * A step found by its cell rather than by its identifier is holding an identifier from
+   * another room or from before a file was read in, and saving is where it is put right.
+   */
+  private settleSteps(): void {
+    const steps = this.groupSteps();
+    if (steps.length < 1) return;
+
+    const choices = this.stepChoices();
+    const settled = steps.map((step) => {
+      const found = choices.find((choice) => sameHotbarStep(step, choice.step));
+      return found ? { ...step, ...found.step, delayMs: step.delayMs } : step;
+    });
+    this.patchOptions({ steps: settled });
+  }
 
   protected readonly groupSteps = computed<HotbarStep[]>(() => {
     const options = this.options();
     return options.kind === 'group' ? options.steps : [];
   });
 
-  protected readonly groupDelay = computed(() => {
-    const options = this.options();
-    return options.kind === 'group' ? options.delayMs : 0;
-  });
-
-  /** A step joins the end of the list, so the order is the order they were chosen in. */
+  /** A step joins the end of the list, and is moved from there to wherever it belongs. */
   protected toggleStep(step: HotbarStep, chosen: boolean): void {
-    const steps = this.groupSteps().filter((held) => held.slotIdentifier !== step.slotIdentifier);
-    this.patchOptions({ steps: chosen ? [...steps, step] : steps });
+    const steps = this.groupSteps().filter((held) => !sameHotbarStep(held, step));
+    if (!chosen) return this.patchOptions({ steps });
+    // A step joining a group that already has one waits a moment by default, rather than
+    // arriving on top of what came before it.
+    const delayMs = steps.length > 0 ? DEFAULT_STEP_DELAY_MS : 0;
+    this.patchOptions({ steps: [...steps, { ...step, delayMs }] });
   }
 
   protected readonly docksToPiece = computed(() => {
@@ -333,6 +406,7 @@ export class HotbarSlotEditorComponent {
     const hotbar = this.hotbarStore.ensureOwn();
     if (!hotbar) return;
 
+    this.settleSteps();
     const cell = this.cell();
     hotbar.put(cell.page, cell.slotIndex, this.draft());
     this.panelService.close();

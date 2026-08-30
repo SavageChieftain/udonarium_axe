@@ -20,11 +20,13 @@ export const MAX_STEP_DELAY_MS = 10_000;
  */
 export interface HotbarStep extends HotbarCell {
   slotIdentifier: string;
+  /** How long to wait after the step before this one. The first step of a group runs at once. */
+  delayMs: number;
 }
 
 export type HotbarPayload =
   | { kind: 'chat'; tab: string; gameType: string; colorIndex: number }
-  | { kind: 'effect'; mode: EffectCastMode }
+  | { kind: 'effect'; mode: EffectCastMode; onSelf: boolean }
   | {
       kind: 'range';
       dock: boolean;
@@ -43,8 +45,24 @@ export type HotbarPayload =
   | { kind: 'sound'; local: boolean }
   | { kind: 'cutIn'; soundOnly: boolean }
   | { kind: 'turn'; action: TurnAction }
-  | { kind: 'group'; steps: HotbarStep[]; delayMs: number }
+  | { kind: 'group'; steps: HotbarStep[] }
   | { kind: 'plain' };
+
+/**
+ * Whether a step and a slot are the same slot.
+ *
+ * The identifier is asked for first, and the cell answers where it cannot: a bar read in from
+ * a file makes its slots afresh under new identifiers, and a group written before that would
+ * otherwise point at nothing - which is how a run kept working while the editor showed every
+ * step of it as gone.
+ */
+export function sameHotbarStep(
+  step: HotbarCell & { slotIdentifier: string },
+  slot: HotbarCell & { slotIdentifier: string }
+): boolean {
+  if (step.slotIdentifier && slot.slotIdentifier && step.slotIdentifier === slot.slotIdentifier) return true;
+  return step.page === slot.page && step.slotIndex === slot.slotIndex;
+}
 
 export const EFFECT_MODES: readonly EffectCastMode[] = ['cast', 'field', 'preview'];
 export const TURN_ACTIONS: readonly TurnAction[] = ['next', 'prev', 'reset'];
@@ -54,7 +72,7 @@ export function defaultHotbarPayload(kind: HotbarSlotKind): HotbarPayload {
     case 'chat':
       return { kind: 'chat', tab: '', gameType: '', colorIndex: 0 };
     case 'effect':
-      return { kind: 'effect', mode: 'cast' };
+      return { kind: 'effect', mode: 'cast', onSelf: false };
     case 'range':
       return {
         kind: 'range',
@@ -79,7 +97,7 @@ export function defaultHotbarPayload(kind: HotbarSlotKind): HotbarPayload {
     case 'turn':
       return { kind: 'turn', action: 'next' };
     case 'group':
-      return { kind: 'group', steps: [], delayMs: 0 };
+      return { kind: 'group', steps: [] };
     default:
       return { kind: 'plain' };
   }
@@ -99,7 +117,11 @@ export function parseHotbarPayload(kind: HotbarSlotKind, raw: unknown): HotbarPa
         colorIndex: readIndex(held.colorIndex, fallback.colorIndex),
       };
     case 'effect':
-      return { kind: 'effect', mode: readOneOf(held.mode, EFFECT_MODES, fallback.mode) };
+      return {
+        kind: 'effect',
+        mode: readOneOf(held.mode, EFFECT_MODES, fallback.mode),
+        onSelf: readBoolean(held.onSelf, fallback.onSelf),
+      };
     case 'range':
       return {
         kind: 'range',
@@ -124,11 +146,9 @@ export function parseHotbarPayload(kind: HotbarSlotKind, raw: unknown): HotbarPa
     case 'turn':
       return { kind: 'turn', action: readOneOf(held.action, TURN_ACTIONS, fallback.action) };
     case 'group':
-      return {
-        kind: 'group',
-        steps: readSteps(held.steps),
-        delayMs: Math.min(MAX_STEP_DELAY_MS, readIndex(held.delayMs, fallback.delayMs)),
-      };
+      // A group written before each step had a wait of its own kept one wait for the lot;
+      // it is read as that wait before every step but the first, which is what it meant.
+      return { kind: 'group', steps: readSteps(held.steps, readIndex(held.delayMs, 0)) };
     default:
       return fallback;
   }
@@ -168,14 +188,19 @@ function readIndex(value: unknown, fallback: number): number {
 }
 
 /** Only the cells the bar actually has, so a file naming a sixth page names nothing. */
-function readSteps(value: unknown): HotbarStep[] {
+function readSteps(value: unknown, fallbackDelayMs: number): HotbarStep[] {
   if (!Array.isArray(value)) return [];
 
   const steps: HotbarStep[] = [];
   for (const held of value as unknown[]) {
     const record = held as Record<string, unknown> | null;
     const cell = { page: Number(record?.['page']), slotIndex: Number(record?.['slotIndex']) };
-    if (holdsHotbarCell(cell)) steps.push({ ...cell, slotIdentifier: readString(record?.['slotIdentifier'], '') });
+    if (!holdsHotbarCell(cell)) continue;
+    steps.push({
+      ...cell,
+      slotIdentifier: readString(record?.['slotIdentifier'], ''),
+      delayMs: Math.min(MAX_STEP_DELAY_MS, readIndex(record?.['delayMs'], steps.length < 1 ? 0 : fallbackDelayMs)),
+    });
   }
   return steps;
 }

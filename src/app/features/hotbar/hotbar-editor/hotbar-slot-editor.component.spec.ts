@@ -186,4 +186,150 @@ describe('HotbarSlotEditorComponent', () => {
     expect(run).toHaveBeenCalledOnce();
     expect(hotbar.slotAt(1, 3) ?? null).toBeNull();
   });
+
+  describe('a multi-action', () => {
+    function fillBar(...values: string[]): void {
+      values.forEach((value, index) => {
+        const draft = emptyHotbarSlotDraft('prefill');
+        draft.value = value;
+        hotbar.put(0, index, draft);
+      });
+    }
+
+    function openGroup(): void {
+      component.setFrom({ page: 1, slotIndex: 3 }, emptyHotbarSlotDraft('group'));
+      fixture.detectChanges();
+    }
+
+    function steps(): { slotIdentifier: string; delayMs: number }[] {
+      const options = component.draft().payload;
+      return options.kind === 'group' ? options.steps : [];
+    }
+
+    function rows(): HTMLElement[] {
+      return [...root().querySelectorAll<HTMLElement>('[data-testid="hotbar-editor-step-row"]')];
+    }
+
+    function chooseAll(): void {
+      for (const box of [...root().querySelectorAll<HTMLInputElement>('[data-testid="hotbar-editor-step"]')]) {
+        box.click();
+      }
+      fixture.detectChanges();
+    }
+
+    it('lists what was chosen in the order it will run', () => {
+      fillBar('一つ目', '二つ目', '三つ目');
+      openGroup();
+
+      chooseAll();
+
+      expect(rows()).toHaveLength(3);
+      expect(rows().map((row) => row.textContent?.includes('一つ目'))[0]).toBe(true);
+    });
+
+    it('lets the reader put the steps in any order', () => {
+      fillBar('一つ目', '二つ目');
+      openGroup();
+      chooseAll();
+      const first = steps()[0].slotIdentifier;
+
+      root().querySelectorAll<HTMLButtonElement>('[data-testid="hotbar-editor-step-down"]')[0].click();
+      fixture.detectChanges();
+
+      expect(steps()[1].slotIdentifier).toBe(first);
+    });
+
+    it('gives each step a wait of its own, the first running on the press', () => {
+      fillBar('一つ目', '二つ目');
+      openGroup();
+      chooseAll();
+
+      expect(steps().map((step) => step.delayMs)).toEqual([0, 300]);
+
+      const delay = root().querySelectorAll<HTMLInputElement>('[data-testid="hotbar-editor-step-delay"]')[0];
+      delay.value = '900';
+      delay.dispatchEvent(new Event('input'));
+      fixture.detectChanges();
+
+      expect(steps().map((step) => step.delayMs)).toEqual([0, 900]);
+    });
+
+    it('knows its steps again after the bar was read in afresh', () => {
+      fillBar('一つ目', '二つ目');
+      openGroup();
+      chooseAll();
+      const chosen = steps().map((step) => step.delayMs);
+
+      // Reading a bar in from a file makes every slot again, under new identifiers.
+      const values = ['一つ目', '二つ目'];
+      values.forEach((value, index) => {
+        const draft = emptyHotbarSlotDraft('prefill');
+        draft.value = value;
+        hotbar.put(0, index, draft);
+      });
+      fixture.detectChanges();
+
+      expect(rows().map((row) => row.textContent?.includes('無くなった'))).toEqual([false, false]);
+      expect(steps().map((step) => step.delayMs)).toEqual(chosen);
+      const boxes = [...root().querySelectorAll<HTMLInputElement>('[data-testid="hotbar-editor-step"]')];
+      expect(boxes.map((box) => box.checked)).toEqual([true, true]);
+    });
+
+    it('writes down which slot each step means when it is saved', () => {
+      fillBar('一つ目', '二つ目');
+      openGroup();
+      chooseAll();
+      const values = ['一つ目', '二つ目'];
+      values.forEach((value, index) => {
+        const draft = emptyHotbarSlotDraft('prefill');
+        draft.value = value;
+        hotbar.put(0, index, draft);
+      });
+      fixture.detectChanges();
+
+      click('hotbar-editor-save');
+
+      const saved = hotbar.slotAt(1, 3)!.options;
+      const named = saved.kind === 'group' ? saved.steps.map((step) => step.slotIdentifier) : [];
+      expect(named).toEqual([hotbar.slotAt(0, 0)!.identifier, hotbar.slotAt(0, 1)!.identifier]);
+    });
+
+    it('takes a step out of the run', () => {
+      fillBar('一つ目', '二つ目');
+      openGroup();
+      chooseAll();
+
+      root().querySelectorAll<HTMLButtonElement>('[data-testid="hotbar-editor-step-drop"]')[1].click();
+      fixture.detectChanges();
+
+      expect(steps()).toHaveLength(1);
+    });
+  });
+
+  describe('an effect slot', () => {
+    it('offers to pay no heed to what is targeted, and remembers the answer', () => {
+      const draft = emptyHotbarSlotDraft('effect');
+      draft.value = '守り';
+      component.setFrom({ page: 1, slotIndex: 3 }, draft);
+      fixture.detectChanges();
+
+      const box = root().querySelector<HTMLInputElement>('[data-testid="hotbar-editor-effect-on-self"]')!;
+      expect(box.checked).toBe(false);
+
+      box.click();
+      fixture.detectChanges();
+
+      const options = component.draft().payload;
+      expect(options.kind === 'effect' && options.onSelf).toBe(true);
+    });
+
+    it('asks nothing of a mode that has no targets to ignore', () => {
+      const draft = emptyHotbarSlotDraft('effect');
+      draft.payload = { kind: 'effect', mode: 'field', onSelf: false };
+      component.setFrom({ page: 1, slotIndex: 3 }, draft);
+      fixture.detectChanges();
+
+      expect(root().querySelector('[data-testid="hotbar-editor-effect-on-self"]')).toBeNull();
+    });
+  });
 });

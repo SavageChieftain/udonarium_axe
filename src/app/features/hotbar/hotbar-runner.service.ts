@@ -131,6 +131,11 @@ export class HotbarRunnerService {
       this.effectField.place(preset, character.location.x, character.location.y, character.posZ);
       return OK;
     }
+    // Told to pay no heed to what is targeted, the effect plays on the piece that pressed it,
+    // so a guard put up in the middle of a fight does not fly at whoever happens to be marked.
+    if (options.kind === 'effect' && options.onSelf) {
+      return this.effectCast.fire(preset, [character], null) ? OK : failed('notFound');
+    }
     return this.effectCast.fireFromCharacter(preset, character) ? OK : failed('notFound');
   }
 
@@ -293,8 +298,11 @@ export class HotbarRunnerService {
     let waiting = 0;
     let firstFailure: HotbarFailure | null = null;
 
+    // Each step waits for itself, one after another, so the run keeps the shape it was given.
+    let waitedFor = 0;
     steps.forEach(({ step }, order) => {
-      if (options.delayMs > 0 && order > 0) {
+      waitedFor += order > 0 ? Math.max(0, step.delayMs) : 0;
+      if (waitedFor > 0) {
         waiting += 1;
         // The slot is looked for again when its turn comes: the bar may have changed by then,
         // and so may the piece - one that has left the table takes the rest of the run with it.
@@ -302,7 +310,7 @@ export class HotbarRunnerService {
           this.pending.delete(timer);
           if (character && !this.objectStore.get(character.identifier)) return;
           this.fireStep(hotbar, step, character);
-        }, options.delayMs * order);
+        }, waitedFor);
         this.pending.add(timer);
         return;
       }

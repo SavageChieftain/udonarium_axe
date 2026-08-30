@@ -219,7 +219,14 @@
         "rangeColorAuto": "Back to the default colours",
         "steps": "Slots to run in turn",
         "stepsNone": "Fill another slot and it can be chosen here.",
-        "stepDelay": "Gap"
+        "stepDelay": "Gap",
+        "effectOnSelf": "Ignore targets, play on self",
+        "stepsOrder": "Order and waits",
+        "stepAtOnce": "at once",
+        "stepUp": "Move up",
+        "stepDown": "Move down",
+        "stepDrop": "Remove",
+        "stepGone": "(slot is gone)"
       },
       "kind": {
         "chat": "Chat / dice",

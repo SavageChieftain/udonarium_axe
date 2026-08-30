@@ -219,7 +219,14 @@
         "rangeColorAuto": "既定の色に戻す",
         "steps": "順に撃つ枠",
         "stepsNone": "他の枠に何か登録すると、ここから選べます。",
-        "stepDelay": "間隔"
+        "stepDelay": "間隔",
+        "effectOnSelf": "ターゲットを無視して自分に",
+        "stepsOrder": "実行順と間隔",
+        "stepAtOnce": "すぐ",
+        "stepUp": "上へ",
+        "stepDown": "下へ",
+        "stepDrop": "外す",
+        "stepGone": "（無くなった枠）"
       },
       "kind": {
         "chat": "チャット／ダイス",

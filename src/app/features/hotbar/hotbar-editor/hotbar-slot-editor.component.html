@@ -79,6 +79,17 @@
           }
         </select>
       </label>
+      @if (effectMode() === 'cast') {
+        <label class="flex items-center gap-2">
+          <input
+            type="checkbox"
+            data-testid="hotbar-editor-effect-on-self"
+            [checked]="effectOnSelf()"
+            (change)="patchOptions({ onSelf: $any($event.target).checked })"
+          />
+          <span>{{ 'feature.hotbar.editor.effectOnSelf' | transloco }}</span>
+        </label>
+      }
     }
     @case ('panel') {
       <label class="flex items-center gap-2">
@@ -154,20 +165,67 @@
           <p class="text-ui-muted m-0 text-[11px]">{{ 'feature.hotbar.editor.stepsNone' | transloco }}</p>
         }
       </div>
-      <label class="flex items-center gap-2">
-        <span class="text-ui-muted w-20 shrink-0">{{ 'feature.hotbar.editor.stepDelay' | transloco }}</span>
-        <input
-          type="number"
-          min="0"
-          max="5000"
-          step="100"
-          data-testid="hotbar-editor-step-delay"
-          class="border-ui-border-panel bg-ui-elevated text-ui-text w-24 rounded-[3px] border border-solid px-1.5 py-1"
-          [value]="groupDelay()"
-          (input)="patchOptions({ delayMs: $any($event.target).valueAsNumber || 0 })"
-        />
-        <span class="text-ui-muted text-[11px]">ms</span>
-      </label>
+      @if (stepRows().length) {
+        <div class="flex flex-col gap-1">
+          <span class="text-ui-muted">{{ 'feature.hotbar.editor.stepsOrder' | transloco }}</span>
+          <div class="border-ui-border-panel flex flex-col gap-0.5 rounded-[3px] border border-solid p-1">
+            @for (row of stepRows(); track row.step.slotIdentifier) {
+              <div class="flex items-center gap-1" data-testid="hotbar-editor-step-row">
+                <span class="text-ui-dim w-4 shrink-0 text-right text-[10px]">{{ row.order + 1 }}</span>
+                <span class="text-ui-dim w-8 shrink-0 text-[10px]">{{ row.key }}</span>
+                <span class="min-w-0 flex-1 truncate text-[11px]">{{ row.label }}</span>
+                @if (row.order === 0) {
+                  <span class="text-ui-dim w-24 shrink-0 text-right text-[10px]">{{
+                    'feature.hotbar.editor.stepAtOnce' | transloco
+                  }}</span>
+                } @else {
+                  <input
+                    type="number"
+                    min="0"
+                    [max]="maxStepDelay"
+                    step="100"
+                    data-testid="hotbar-editor-step-delay"
+                    class="border-ui-border-panel bg-ui-elevated text-ui-text w-16 shrink-0 rounded-[3px] border border-solid px-1 py-0.5 text-right"
+                    [value]="row.step.delayMs"
+                    [title]="'feature.hotbar.editor.stepDelay' | transloco"
+                    (input)="setStepDelay(row.order, $any($event.target).valueAsNumber)"
+                  />
+                  <span class="text-ui-dim w-6 shrink-0 text-[10px]">ms</span>
+                }
+                <button
+                  type="button"
+                  class="text-ui-dim hover:text-ui-accent shrink-0 cursor-pointer border-0 bg-transparent p-0 disabled:cursor-default disabled:opacity-30 [&_i]:text-[14px]"
+                  data-testid="hotbar-editor-step-up"
+                  [disabled]="row.order === 0"
+                  [title]="'feature.hotbar.editor.stepUp' | transloco"
+                  (click)="moveStep(row.order, -1)"
+                >
+                  <i class="material-icons">arrow_upward</i>
+                </button>
+                <button
+                  type="button"
+                  class="text-ui-dim hover:text-ui-accent shrink-0 cursor-pointer border-0 bg-transparent p-0 disabled:cursor-default disabled:opacity-30 [&_i]:text-[14px]"
+                  data-testid="hotbar-editor-step-down"
+                  [disabled]="row.order === stepRows().length - 1"
+                  [title]="'feature.hotbar.editor.stepDown' | transloco"
+                  (click)="moveStep(row.order, 1)"
+                >
+                  <i class="material-icons">arrow_downward</i>
+                </button>
+                <button
+                  type="button"
+                  class="text-ui-dim hover:text-ui-danger shrink-0 cursor-pointer border-0 bg-transparent p-0 [&_i]:text-[14px]"
+                  data-testid="hotbar-editor-step-drop"
+                  [title]="'feature.hotbar.editor.stepDrop' | transloco"
+                  (click)="dropStep(row.order)"
+                >
+                  <i class="material-icons">close</i>
+                </button>
+              </div>
+            }
+          </div>
+        </div>
+      }
     }
     @case ('range') {
       <label class="flex items-center gap-2">
