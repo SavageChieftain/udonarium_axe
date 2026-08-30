@@ -1,4 +1,4 @@
-import { convertBlobToWebP, downscaleImageBlob, isAnimatedPng } from '@axe/core/storage/image-downscale';
+import { convertBlobToWebP, downscaleImageBlob, isAnimatedPng, squareCropOf } from '@axe/core/storage/image-downscale';
 
 describe('downscaleImageBlob', () => {
   it('returns nothing for no bytes', async () => {
@@ -27,6 +27,20 @@ describe('downscaleImageBlob', () => {
     // The usual three seconds would crowd the test timeout and fail only under load.
     const result = await downscaleImageBlob(blob, 80, { loadTimeoutMs: 20 });
     expect(result).toBeDefined();
+  });
+});
+
+describe('squareCropOf', () => {
+  it('takes a tall portrait from the top, where the face is', () => {
+    expect(squareCropOf(400, 1200)).toEqual({ sx: 0, sy: 0, side: 400 });
+  });
+
+  it('takes a wide image from the middle across', () => {
+    expect(squareCropOf(1200, 400)).toEqual({ sx: 400, sy: 0, side: 400 });
+  });
+
+  it('leaves a square as it is', () => {
+    expect(squareCropOf(256, 256)).toEqual({ sx: 0, sy: 0, side: 256 });
   });
 });
 

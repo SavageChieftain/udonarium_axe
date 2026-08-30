@@ -1,6 +1,6 @@
 export interface DownscaleOptions {
   /**
-   * Crops to a square about the centre before resampling.
+   * Crops to a square before resampling.
    * For thumbnails and anything else that wants a uniform size.
    */
   square?: boolean;
@@ -12,12 +12,24 @@ export interface DownscaleOptions {
 }
 
 /**
+ * Where to take a square out of an image, against its shorter side.
+ *
+ * A portrait is taller than it is wide and carries the face at the top, so the square is taken
+ * from the top edge rather than the middle - the same part the chat window shows. Sideways, and
+ * with nothing to say which end matters, it is taken from the middle.
+ */
+export function squareCropOf(width: number, height: number): { sx: number; sy: number; side: number } {
+  const side = Math.min(width, height);
+  return { sx: Math.floor((width - side) / 2), sy: 0, side };
+}
+
+/**
  * Resamples an image down to a maximum side through a canvas and writes it back out.
  *
  * - Even within the maximum, a webp re-encode is tried and kept when it comes out smaller.
  * - Outside a browser, or with no canvas, the bytes come back unchanged.
  * - A result larger than the original, as a low-resolution source can give, is discarded.
- * - Asked for a square, it crops about the centre first and always outputs one.
+ * - Asked for a square, it crops one out first and always outputs one.
  */
 export async function downscaleImageBlob(
   blob: Blob | null | undefined,
@@ -50,13 +62,12 @@ export async function downscaleImageBlob(
     let targetH: number;
 
     if (square) {
-      // crop about the centre against the shorter side
-      const side = Math.min(naturalW, naturalH);
-      sx = Math.floor((naturalW - side) / 2);
-      sy = Math.floor((naturalH - side) / 2);
-      sw = side;
-      sh = side;
-      targetW = targetH = Math.min(side, maxDimension);
+      const crop = squareCropOf(naturalW, naturalH);
+      sx = crop.sx;
+      sy = crop.sy;
+      sw = crop.side;
+      sh = crop.side;
+      targetW = targetH = Math.min(crop.side, maxDimension);
     } else {
       const longSide = Math.max(naturalW, naturalH);
       if (longSide <= maxDimension) {

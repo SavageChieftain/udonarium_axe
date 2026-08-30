@@ -30,7 +30,7 @@ export class ChatLogExporter {
     '.tm{flex:0 0 auto;width:48px;color:#888;font-size:.85em;padding-top:11px}' +
     '.tc{flex:0 0 auto;margin-right:4px;padding-top:11px}' +
     '.av{display:inline-block;width:40px;height:40px;vertical-align:middle;margin-right:6px}' +
-    '.ap{border:1px solid #ccc;border-radius:4px;background:#fff;object-fit:cover}' +
+    '.ap{border:1px solid #ccc;border-radius:4px;background:#fff;object-fit:cover;object-position:50% 0}' +
     '.ct{flex:1 1 auto;min-width:0}' +
     '.bq{margin:0 4px 0 0;padding:2px 8px;border-left:3px solid #aaa;color:#666;font-size:.9em;background:#f7f7f7;display:inline-block;max-width:70%;vertical-align:middle}' +
     '.bn{font-weight:bold;margin-right:4px}' +
