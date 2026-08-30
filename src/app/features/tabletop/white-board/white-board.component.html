@@ -55,6 +55,20 @@
         ></div>
       }
 
+      @for (picture of livePictures(); track picture.id) {
+        <img
+          class="pointer-events-none absolute backface-visible"
+          [src]="picture.url | safe: 'resourceUrl'"
+          [style.left.px]="picture.left"
+          [style.top.px]="picture.top"
+          [style.width.px]="picture.width"
+          [style.height.px]="picture.height"
+          [style.transform]="picture.transform"
+          [style.opacity]="picture.opacity"
+          alt=""
+        />
+      }
+
       <div class="absolute inset-0 transform-3d" data-surface-overflow [attr.data-surface]="whiteBoard().identifier">
         @for (mask of masks(); track mask.identifier) {
           <game-table-mask
