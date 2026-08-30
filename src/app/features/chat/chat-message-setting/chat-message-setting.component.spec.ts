@@ -5,6 +5,7 @@ import { ChatTab } from '@axe/domain/chat/chat-tab';
 import { ChatTabList } from '@axe/domain/chat/chat-tab-list';
 import { SYSTEM_CHAT_TAB_IDENTIFIER } from '@axe/domain/chat/constants';
 import { ChatMessageSettingComponent } from '@axe/features/chat/chat-message-setting/chat-message-setting.component';
+import { ChatSoundEventHandlerService } from '@axe/features/chat/chat-sound-event-handler.service';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
 
 describe('ChatMessageSettingComponent', () => {
@@ -101,6 +102,59 @@ describe('ChatMessageSettingComponent', () => {
 
     expect(ChatTabList.instance.chatTabs.map((tab) => tab.chatSimpleDispFlag)).toEqual([0, 1]);
     expect(TestBed.inject(ChatPreferencesService).simple().scope).toBe('perTab');
+  });
+
+  describe('the sound a new message makes', () => {
+    function soundSelect(key: string): HTMLSelectElement {
+      return root().querySelector<HTMLSelectElement>(`select[name="chatSoundType-${key}"]`)!;
+    }
+
+    it('starts silent, on one answer for the room', () => {
+      expect(scopeSelect('soundScope').value).toBe('all');
+      expect(checkboxes('chatSoundEnabled-all')[0].checked).toBe(false);
+      expect(soundSelect('all').value).toBe('notify1');
+    });
+
+    it('keeps what was chosen', () => {
+      checkboxes('chatSoundEnabled-all')[0].click();
+      const select = soundSelect('all');
+      select.value = 'cyber';
+      select.dispatchEvent(new Event('change'));
+      fixture.detectChanges();
+
+      expect(TestBed.inject(ChatPreferencesService).soundOfTab('メイン')).toMatchObject({
+        enabled: true,
+        type: 'cyber',
+      });
+    });
+
+    it('asks for each tab once the answers differ per tab', () => {
+      chooseScope('soundScope', 'perTab');
+
+      expect(checkboxes('chatSoundEnabled-')).toHaveLength(2);
+      expect(soundSelect('雑談')).toBeTruthy();
+    });
+
+    it('writes a per-tab answer onto that tab alone', () => {
+      chooseScope('soundScope', 'perTab');
+
+      const select = soundSelect('雑談');
+      select.value = 'bubble';
+      select.dispatchEvent(new Event('change'));
+      fixture.detectChanges();
+
+      const preferences = TestBed.inject(ChatPreferencesService);
+      expect(preferences.soundOfTab('雑談').type).toBe('bubble');
+      expect(preferences.soundOfTab('メイン').type).toBe('notify1');
+    });
+
+    it('plays what a type sounds like when asked', () => {
+      const preview = vi.spyOn(TestBed.inject(ChatSoundEventHandlerService), 'preview').mockImplementation(() => {});
+
+      root().querySelector<HTMLButtonElement>('button[name="chatSoundPreview-all"]')!.click();
+
+      expect(preview).toHaveBeenCalledWith('notify1', 0.5);
+    });
   });
 
   it('keeps the scope for next time', () => {

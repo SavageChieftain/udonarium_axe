@@ -31,6 +31,12 @@ export class PresetSound {
   static unlock: string = '';
   static sweep: string = '';
   static alarm: string = '';
+  static chatPageTurnLong: string = '';
+  static chatPageTurnShort: string = '';
+  static chatBubble: string = '';
+  static chatCyber: string = '';
+  static chatNotify1: string = '';
+  static chatNotify2: string = '';
 
   // For the effects on the map.
   static fireSmall: string = '';

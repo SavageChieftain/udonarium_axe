@@ -2135,7 +2135,18 @@
         "scope_all": "全体",
         "scope_perTab": "タブ毎",
         "showPortrait": "立ち絵を表示",
-        "enableSimple": "簡易表示を有効にする"
+        "enableSimple": "簡易表示を有効にする",
+        "sectionSound": "発言の効果音",
+        "soundHint": "自分以外の発言で鳴ります。この設定はこの端末だけのものです",
+        "soundEnabled": "鳴らす",
+        "soundType": "効果音タイプ",
+        "soundVolume": "音量",
+        "soundPreview": "試聴",
+        "soundType_pageTurn": "ページめくり",
+        "soundType_bubble": "バブル",
+        "soundType_cyber": "サイバー",
+        "soundType_notify1": "通知1",
+        "soundType_notify2": "通知2"
       },
       "systemAvatar": {
         "title": "システムちゃん",

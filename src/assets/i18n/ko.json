@@ -2135,7 +2135,18 @@
         "scope_all": "전체",
         "scope_perTab": "탭별",
         "showPortrait": "일러스트 표시",
-        "enableSimple": "간이 표시 사용"
+        "enableSimple": "간이 표시 사용",
+        "sectionSound": "발언 효과음",
+        "soundHint": "다른 사람의 발언에서 울립니다. 이 설정은 이 기기에만 적용됩니다",
+        "soundEnabled": "소리 내기",
+        "soundType": "효과음 종류",
+        "soundVolume": "음량",
+        "soundPreview": "미리 듣기",
+        "soundType_pageTurn": "페이지 넘김",
+        "soundType_bubble": "버블",
+        "soundType_cyber": "사이버",
+        "soundType_notify1": "알림1",
+        "soundType_notify2": "알림2"
       },
       "systemAvatar": {
         "title": "시스템쨩",

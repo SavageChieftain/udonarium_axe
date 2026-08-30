@@ -1,3 +1,4 @@
+import { NgTemplateOutlet } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import {
@@ -11,9 +12,11 @@ import { RolePermissionService } from '@axe/application/permission/role-permissi
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { UiSignalService } from '@axe/application/ui/ui-signal.service';
 import { ObjectStore } from '@axe/core/sync/object-store';
+import { CHAT_SOUND_TYPES, ChatSoundSetting, ChatSoundType } from '@axe/domain/chat/chat-sound';
 import { ChatTab } from '@axe/domain/chat/chat-tab';
 import { ChatTabList } from '@axe/domain/chat/chat-tab-list';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
+import { ChatSoundEventHandlerService } from '@axe/features/chat/chat-sound-event-handler.service';
 import { SystemAvatarMenuService } from '@axe/features/chat/system-avatar-menu.service';
 import { SafePipe } from '@axe/ui/pipes/safe.pipe';
 import { TranslocoModule } from '@jsverse/transloco';
@@ -22,7 +25,7 @@ import { TranslocoModule } from '@jsverse/transloco';
   selector: 'chat-message-setting',
   templateUrl: './chat-message-setting.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FormsModule, SafePipe, TranslocoModule],
+  imports: [FormsModule, NgTemplateOutlet, SafePipe, TranslocoModule],
 })
 export class ChatMessageSettingComponent {
   private readonly objectStore = inject(ObjectStore);
@@ -32,6 +35,7 @@ export class ChatMessageSettingComponent {
   private readonly systemAvatarMenu = inject(SystemAvatarMenuService);
   private readonly rolePermission = inject(RolePermissionService);
   private readonly objectChange = inject(ObjectChangeService);
+  private readonly chatSound = inject(ChatSoundEventHandlerService);
 
   readonly systemAvatarVisible = this.systemAvatar.isVisible;
   readonly speakerAvatarVisible = this.systemAvatar.isSpeakerVisible;
@@ -155,6 +159,45 @@ export class ChatMessageSettingComponent {
     this.chatPrefs.setSimple({ scope: 'all', all: simple ? 1 : 0 });
     for (const tab of this.chatTabList.chatTabs) tab.chatSimpleDispFlag = simple ? 1 : 0;
     this.uiSignalService.notifyChatRedraw();
+  }
+
+  readonly soundTypes = CHAT_SOUND_TYPES;
+
+  readonly soundScope = computed(() => this.chatPrefs.sound().scope);
+  readonly soundForAll = computed<ChatSoundSetting>(() => this.chatPrefs.sound().all);
+
+  /** The tabs a sound may be set for, each with what it is set to now. */
+  readonly soundRows = computed<{ name: string; sound: ChatSoundSetting }[]>(() =>
+    this.tabRows().map((row) => ({ name: row.name, sound: this.chatPrefs.soundOfTab(row.name) }))
+  );
+
+  setSoundScope(scope: ChatSettingScope): void {
+    this.chatPrefs.setSound({ ...this.chatPrefs.sound(), scope });
+  }
+
+  setSoundForAll(sound: Partial<ChatSoundSetting>): void {
+    const setting = this.chatPrefs.sound();
+    this.chatPrefs.setSound({ ...setting, all: { ...setting.all, ...sound } });
+  }
+
+  setSoundOfTab(name: string, sound: Partial<ChatSoundSetting>): void {
+    this.chatPrefs.setSoundOfTab(name, { ...this.chatPrefs.soundOfTab(name), ...sound });
+  }
+
+  playSoundPreview(sound: ChatSoundSetting): void {
+    this.chatSound.preview(sound.type, sound.volume);
+  }
+
+  toVolume(value: string): number {
+    return Number(value) / 100;
+  }
+
+  toPercent(volume: number): number {
+    return Math.round(volume * 100);
+  }
+
+  asSoundType(value: string): ChatSoundType {
+    return value as ChatSoundType;
   }
 
   setPortraitOfTab(identifier: string, shown: boolean): void {

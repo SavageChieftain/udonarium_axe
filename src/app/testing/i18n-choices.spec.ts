@@ -1,5 +1,6 @@
 import { readFileSync } from 'node:fs';
 
+import { CHAT_SOUND_TYPES } from '@axe/domain/chat/chat-sound';
 import { HOTBAR_SLOT_KINDS } from '@axe/domain/hotbar/hotbar-slot-kind';
 import { CUT_IN_EASING_NAMES } from '@axe/domain/media/cubic-bezier';
 import { CUT_IN_ENTRANCES, CUT_IN_EXITS } from '@axe/domain/media/cut-in-animation-presets';
@@ -35,6 +36,7 @@ const CHOICES: Record<string, readonly string[]> = {
   'feature.tabletop.dungeonGenerator.field.': FIELD_ATMOSPHERE_IDS,
   'feature.tabletop.dungeonGenerator.prop.': FIELD_PROP_IDS,
   'feature.tabletop.dungeonGenerator.kind.': MAP_KINDS,
+  'feature.chat.messageSetting.soundType_': CHAT_SOUND_TYPES,
   'feature.hotbar.kind.': HOTBAR_SLOT_KINDS,
   'feature.hotbar.kindHint.': HOTBAR_SLOT_KINDS,
   'feature.hotbar.failure.': HOTBAR_FAILURES,

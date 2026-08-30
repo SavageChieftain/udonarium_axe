@@ -50,6 +50,12 @@ Copyright: On-Jin ～音人～
 License: on-jin
 Comment: 配布元: https://on-jin.com/
 
+Files: sounds/otologic/*
+Copyright: OtoLogic
+License: CC-BY-4.0
+Comment: 効果音提供 OtoLogic (https://otologic.jp) / CC BY 4.0
+ 配布元: https://otologic.jp/ 規約: https://otologic.jp/free/license.html
+
 Files: images/skeleton.png
 Copyright: 2020 TK11235
 License: MIT
@@ -98,6 +104,12 @@ License: BSD-3-Clause
  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
  OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+License: CC-BY-4.0
+ Creative Commons Attribution 4.0 International.
+ 求められるクレジットは OtoLogic の素材を使っていると伝わる表記で、可能なら
+ https://otologic.jp または CC BY 4.0 を添えるというものです。
+ ライセンス全文: https://creativecommons.org/licenses/by/4.0/legalcode.ja
 
 License: soundeffect-lab
  効果音ラボの利用規約に従います。規約の全文は配布元を参照してください。

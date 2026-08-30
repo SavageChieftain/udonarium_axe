@@ -1,5 +1,12 @@
 import { DOCUMENT } from '@angular/common';
 import { computed, effect, inject, Injectable, signal } from '@angular/core';
+import {
+  ChatSoundSetting,
+  clampChatSoundVolume,
+  DEFAULT_CHAT_SOUND,
+  DEFAULT_CHAT_SOUND_TYPE,
+  isChatSoundType,
+} from '@axe/domain/chat/chat-sound';
 
 const AUTO_FOLLOW_KEY = 'chat-auto-follow-scroll';
 const STORAGE_KEY = 'chat-preferences';
@@ -35,12 +42,27 @@ export interface ChatScopedSetting {
 const DEFAULT_PORTRAIT: ChatScopedSetting = { scope: 'all', all: 1 };
 const DEFAULT_SIMPLE: ChatScopedSetting = { scope: 'all', all: 0 };
 
+/**
+ * What a reader hears when somebody speaks, either once for the room or tab by tab.
+ *
+ * This is the reader's own ear, so it is never sent anywhere: two people at one table can
+ * hear different things, or nothing at all.
+ */
+export interface ChatScopedSoundSetting {
+  scope: ChatSettingScope;
+  all: ChatSoundSetting;
+  tabs: Record<string, ChatSoundSetting>;
+}
+
+const DEFAULT_SOUND: ChatScopedSoundSetting = { scope: 'all', all: DEFAULT_CHAT_SOUND, tabs: {} };
+
 interface StoredChatPreferences {
   fontSize?: number;
   colors?: string[];
   display?: ChatDisplayPreferences;
   portrait?: ChatScopedSetting;
   simple?: ChatScopedSetting;
+  sound?: ChatScopedSoundSetting;
   /**
    * What each tab was set to, under the tab's name.
    *
@@ -64,6 +86,7 @@ export class ChatPreferencesService {
   readonly display = computed<ChatDisplayPreferences | null>(() => this.stored().display ?? null);
   readonly portrait = computed<ChatScopedSetting>(() => this.stored().portrait ?? DEFAULT_PORTRAIT);
   readonly simple = computed<ChatScopedSetting>(() => this.stored().simple ?? DEFAULT_SIMPLE);
+  readonly sound = computed<ChatScopedSoundSetting>(() => this.stored().sound ?? DEFAULT_SOUND);
 
   constructor() {
     effect(() => {
@@ -102,6 +125,22 @@ export class ChatPreferencesService {
 
   setSimple(setting: ChatScopedSetting): void {
     this.patch({ simple: { ...setting } });
+  }
+
+  setSound(setting: ChatScopedSoundSetting): void {
+    this.patch({ sound: { scope: setting.scope, all: { ...setting.all }, tabs: { ...setting.tabs } } });
+  }
+
+  /** What a tab of this name is set to, falling back to the one answer for the room. */
+  soundOfTab(name: string): ChatSoundSetting {
+    const setting = this.sound();
+    if (setting.scope === 'all') return setting.all;
+    return setting.tabs[name] ?? setting.all;
+  }
+
+  setSoundOfTab(name: string, sound: ChatSoundSetting): void {
+    const setting = this.sound();
+    this.setSound({ ...setting, tabs: { ...setting.tabs, [name]: { ...sound } } });
   }
 
   /** Tabs are remembered by name; see the note on the stored shape. */
@@ -166,6 +205,8 @@ function readStored(): StoredChatPreferences {
     if (portrait) stored.portrait = portrait;
     const simple = readScoped(source['simple']);
     if (simple) stored.simple = simple;
+    const sound = readScopedSound(source['sound']);
+    if (sound) stored.sound = sound;
     return stored;
   } catch {
     /* corrupt or unavailable storage — start from the defaults */
@@ -201,6 +242,34 @@ function readScoped(value: unknown): ChatScopedSetting | null {
   const scope = source['scope'] === 'perTab' ? 'perTab' : 'all';
   const all = Number(source['all']);
   return { scope, all: Number.isFinite(all) && all !== 0 ? 1 : 0 };
+}
+
+function readScopedSound(value: unknown): ChatScopedSoundSetting | null {
+  if (!value || typeof value !== 'object') return null;
+  const source = value as Record<string, unknown>;
+  const tabs: Record<string, ChatSoundSetting> = {};
+  const storedTabs = source['tabs'];
+  if (storedTabs && typeof storedTabs === 'object') {
+    for (const [name, raw] of Object.entries(storedTabs as Record<string, unknown>)) {
+      const sound = readSound(raw);
+      if (sound) tabs[name] = sound;
+    }
+  }
+  return {
+    scope: source['scope'] === 'perTab' ? 'perTab' : 'all',
+    all: readSound(source['all']) ?? DEFAULT_CHAT_SOUND,
+    tabs,
+  };
+}
+
+function readSound(value: unknown): ChatSoundSetting | null {
+  if (!value || typeof value !== 'object') return null;
+  const source = value as Record<string, unknown>;
+  return {
+    enabled: source['enabled'] === true,
+    volume: clampChatSoundVolume(source['volume']),
+    type: isChatSoundType(source['type']) ? source['type'] : DEFAULT_CHAT_SOUND_TYPE,
+  };
 }
 
 function readTabs(value: unknown): Record<string, ChatTabPreferences> | null {

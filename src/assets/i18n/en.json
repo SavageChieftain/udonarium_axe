@@ -2135,7 +2135,18 @@
         "scope_all": "Every tab",
         "scope_perTab": "Each tab",
         "showPortrait": "Show portraits",
-        "enableSimple": "Show messages plainly"
+        "enableSimple": "Show messages plainly",
+        "sectionSound": "Sound on a new message",
+        "soundHint": "Plays for what other people say, on this device only",
+        "soundEnabled": "Play a sound",
+        "soundType": "Sound",
+        "soundVolume": "Volume",
+        "soundPreview": "Listen",
+        "soundType_pageTurn": "Page turn",
+        "soundType_bubble": "Bubble",
+        "soundType_cyber": "Cyber",
+        "soundType_notify1": "Notification 1",
+        "soundType_notify2": "Notification 2"
       },
       "systemAvatar": {
         "title": "System-chan",
