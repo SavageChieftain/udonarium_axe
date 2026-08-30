@@ -30,6 +30,13 @@ export interface PanelOption {
   frameless?: boolean;
 
   /**
+   * Where this panel sits, for one opened by something that lives above where panels go.
+   *
+   * Left out, the panel takes its turn among the others as the reader brings them forward.
+   */
+  layer?: number;
+
+  /**
    * A name that only one panel at a time may hold.
    *
    * A button that opens a panel under this name can close it again with `closeSingle`, so
@@ -43,6 +50,7 @@ interface UIPanelInstance {
 }
 
 type PanelServiceAssignableKey =
+  | 'layer'
   | 'title'
   | 'top'
   | 'left'
@@ -76,6 +84,8 @@ export class PanelService {
   minHeight: number = 100;
   isCutIn: boolean = false;
   cutInIdentifier: string = '';
+  /** Zero for a panel that takes its turn among the others, which is nearly all of them. */
+  layer: number = 0;
   invisible: boolean = false;
   minimizeToContent: boolean = false;
   frameless: boolean = false;
@@ -186,7 +196,7 @@ export class PanelService {
       panelComponentRef.setInput(key, value);
     }
 
-    const serviceOnly = ['isCutIn', 'cutInIdentifier', 'invisible', 'minimizeToContent', 'frameless'] as const;
+    const serviceOnly = ['isCutIn', 'cutInIdentifier', 'invisible', 'minimizeToContent', 'frameless', 'layer'] as const;
     for (const key of serviceOnly) {
       const value = adjusted[key];
       if (value === undefined) continue;

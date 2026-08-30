@@ -5,6 +5,9 @@
  * The rest of the ladder, for reference: panels and cut-in windows 1-10 (201 full screen),
  * widgets 100, hand rail 140, toolbars 150, mobile shell 160, menu FAB 200, context menu
  * 9900, drag ghosts 10000, modal 1899999, dropdowns and text tooltips 2000000.
+ *
+ * Panels are numbered as they are brought forward rather than given a shelf of their own, so
+ * anything that must sit above a particular panel says which shelf it wants.
  */
 export const Z_HOTBAR = 150;
 export const Z_HOTBAR_MOBILE = 155;
@@ -26,3 +29,15 @@ export const Z_HOTBAR_PINNED = 1_900_000;
  * to the pinned bar rides just above it, and everything else keeps its usual place.
  */
 export const Z_CONTEXT_MENU_PINNED = Z_HOTBAR_PINNED + 10;
+
+/**
+ * A panel the bar opens itself, which has to clear the bar it was opened from.
+ *
+ * Panels are numbered from one as they are brought forward, so one opened from the bar would
+ * otherwise be hidden behind it - the reader presses a slot and the editor appears under the
+ * thing they pressed. This is the exception: a panel the bar opens rides just above it,
+ * wherever the bar happens to be sitting, and every other panel keeps its usual place.
+ */
+export function hotbarPanelLayer(pinned: boolean): number {
+  return (pinned ? Z_HOTBAR_PINNED : Z_HOTBAR) + 1;
+}

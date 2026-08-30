@@ -19,7 +19,7 @@ import { HotbarBarComponent } from '@axe/features/hotbar/hotbar-bar/hotbar-bar.c
 import { HotbarRunnerService } from '@axe/features/hotbar/hotbar-runner.service';
 import { ActiveCharacterService } from '@axe/features/pl-tools/active-character.service';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
-import { Z_CONTEXT_MENU_PINNED } from '@axe/ui/z-layers';
+import { Z_CONTEXT_MENU_PINNED, Z_HOTBAR } from '@axe/ui/z-layers';
 
 describe('HotbarBarComponent', () => {
   let fixture: ComponentFixture<HotbarBarComponent>;
@@ -531,12 +531,27 @@ describe('HotbarBarComponent', () => {
   });
 
   it('rises above everything only while it is pinned', () => {
-    const unpinned = bar()!.style.zIndex;
+    expect(Number(bar()!.style.zIndex)).toBe(Z_HOTBAR);
+
     preference.setPinned(true);
     fixture.detectChanges();
 
-    expect(Number(bar()!.style.zIndex)).toBeGreaterThan(Number(unpinned));
     expect(Number(bar()!.style.zIndex)).toBeGreaterThan(1899999);
+  });
+
+  it('opens the editor on the shelf just above wherever the bar is sitting', () => {
+    ownedCharacter('術者');
+    fixture.detectChanges();
+    const open = vi.spyOn(TestBed.inject(PanelService), 'open').mockReturnValue({ setFrom: vi.fn() } as never);
+
+    slots()[4].click();
+    expect((open.mock.calls[0][1] as { layer: number }).layer).toBe(Z_HOTBAR + 1);
+
+    preference.setPinned(true);
+    fixture.detectChanges();
+    slots()[5].click();
+
+    expect((open.mock.calls[1][1] as { layer: number }).layer).toBeGreaterThan(1899999);
   });
 
   it('is not shown to someone who is only watching', () => {

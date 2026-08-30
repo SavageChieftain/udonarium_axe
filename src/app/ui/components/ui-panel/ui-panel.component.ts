@@ -57,6 +57,11 @@ export class UIPanelComponent {
 
   readonly transparency = computed(() => this.panelTransparency.valueOf(this.panelService.panelKind()));
 
+  /** The shelf this panel was opened on, where whatever opened it asked for one. */
+  protected layer(): number {
+    return this.panelService.layer;
+  }
+
   readonly restingOpacity = computed(() => 1 - (this.transparency() / 100) * (1 - PANEL_FLOOR_OPACITY));
 
   private readonly hasFocus = signal(false);

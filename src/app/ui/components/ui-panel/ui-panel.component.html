@@ -15,7 +15,7 @@
   [style.top.px]="top"
   [style.width.px]="width"
   [style.height]="contentMinimized ? 'auto' : isCompact() ? 'calc(100dvh - ' + keyboardInset() + 'px)' : height + 'px'"
-  [style.zIndex]="isFullScreen() || isCompact() ? '201' : null"
+  [style.zIndex]="isFullScreen() || isCompact() ? '201' : layer() > 0 ? layer() : null"
   [style.opacity]="panelOpacity() < 1 ? panelOpacity() : null"
   tabindex="-1"
   (focusin)="onFocusIn()"

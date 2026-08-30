@@ -50,7 +50,7 @@ import { selectControllableCharacters } from '@axe/features/pl-tools/owned-chara
 import { VisualNovelModeService } from '@axe/features/visual-novel/visual-novel-mode.service';
 import { DraggableDirective } from '@axe/ui/directives/draggable.directive';
 import { spotBeside } from '@axe/ui/panel-spot';
-import { Z_CONTEXT_MENU_PINNED, Z_HOTBAR, Z_HOTBAR_MOBILE, Z_HOTBAR_PINNED } from '@axe/ui/z-layers';
+import { hotbarPanelLayer, Z_CONTEXT_MENU_PINNED, Z_HOTBAR, Z_HOTBAR_MOBILE, Z_HOTBAR_PINNED } from '@axe/ui/z-layers';
 import { TranslocoModule } from '@jsverse/transloco';
 
 export interface HotbarCellView {
@@ -336,6 +336,7 @@ export class HotbarBarComponent {
       height: EDITOR_HEIGHT,
       left: spot.left,
       top: spot.top,
+      layer: hotbarPanelLayer(this.preference.pinned()),
       title: this.t('feature.hotbar.editor.title'),
       single: 'hotbar-slot-editor',
     });
