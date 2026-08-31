@@ -2144,6 +2144,8 @@
         "sectionScroll": "스크롤",
         "autoFollowScroll": "스크롤 위치를 최신에 맞추기",
         "autoFollowScrollTooltip": "끄면 같은 탭의 새 메시지로 자동 스크롤하지 않습니다",
+        "vnEmoteBadge": "노벨 모드 연출 표시",
+        "vnEmoteBadgeTooltip": "켜면 노벨 모드에서 지정한 연출 이름이 발언 옆에 작게 표시됩니다. 내보낸 로그에는 포함되지 않습니다",
         "scope": "적용 범위",
         "scope_all": "전체",
         "scope_perTab": "탭별",

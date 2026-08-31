@@ -163,6 +163,12 @@
               </div>
             } @else if (!isSecret() || chatMessage.isSendFromSelf || canRevealSecret) {
               <span [innerHTML]="escapeHtmlAndRuby(chatMessage.text) | linkify | safe"></span>
+              @for (badge of emoteBadges(); track $index) {
+                <span
+                  class="rounded-ui bg-ui-accent-bg text-ui-accent ml-1 px-1 align-middle text-[10px] whitespace-nowrap"
+                  >{{ badge }}</span
+                >
+              }
               @if (attachmentImageFiles().length > 0) {
                 <div class="mt-1.5 flex flex-wrap gap-1.5 whitespace-normal">
                   @for (image of attachmentImageFiles(); track image.identifier) {
@@ -273,6 +279,12 @@
                 </span>
               } @else if (!isSecret() || chatMessage.isSendFromSelf || canRevealSecret) {
                 <span [innerHTML]="escapeHtmlAndRuby(chatMessage.text) | linkify | safe"></span>
+                @for (badge of emoteBadges(); track $index) {
+                  <span
+                    class="rounded-ui bg-ui-accent-bg text-ui-accent ml-1 px-1 align-middle text-[10px] whitespace-nowrap"
+                    >{{ badge }}</span
+                  >
+                }
                 @if (attachmentImageFiles().length > 0) {
                   <span class="ml-1.5 inline-flex align-middle">
                     @for (image of attachmentImageFiles(); track image.identifier) {

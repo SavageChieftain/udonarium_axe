@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ChatPreferencesService } from '@axe/application/chat/chat-preferences.service';
 import {
   DEFAULT_SYSTEM_AVATAR_URL,
   DEFAULT_SYSTEM_DICE_AVATAR_URL,
@@ -9,6 +10,7 @@ import { RolePermissionService } from '@axe/application/permission/role-permissi
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { UiSignalService } from '@axe/application/ui/ui-signal.service';
 import { emitFileLoaded } from '@axe/core/event/domain-events';
+import { getPeerContext } from '@axe/core/network/peer-context-source';
 import { ImageStorage } from '@axe/core/storage/image-storage';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { ChatMessage } from '@axe/domain/chat/chat-message';
@@ -717,7 +719,8 @@ describe('ChatMessageComponent', () => {
     const spoken = (text: string, vnEmote = '') => {
       const message = new ChatMessage();
       message.initialize();
-      message.from = PeerCursor.myCursor?.userId ?? 'test-user';
+      // What `changeable` compares against, so an edit is allowed whatever ran before this.
+      message.from = getPeerContext().userId;
       message.to = '';
       message.name = 'アリス';
       message.tag = '';
@@ -762,6 +765,30 @@ describe('ChatMessageComponent', () => {
 
       expect(message.text).toBe('やっぱりなんでもない');
       expect(message.vnEmote).toBe('shape:shout bubble:shake');
+    });
+
+    it('says nothing about the staging unless the reader asked', () => {
+      TestBed.inject(ChatPreferencesService).setShowVnEmoteBadge(false);
+      fixture.componentRef.setInput('chatMessage', spoken('なんだって！？', 'shape:shout bubble:shake'));
+      expect(component.emoteBadges()).toEqual([]);
+    });
+
+    it('names the staging once the reader asks for it', () => {
+      TestBed.inject(ChatPreferencesService).setShowVnEmoteBadge(true);
+      fixture.componentRef.setInput('chatMessage', spoken('なんだって！？', 'shape:shout bubble:shake'));
+      expect(component.emoteBadges()).toHaveLength(2);
+    });
+
+    it('names the staging of a line said before it was kept apart', () => {
+      TestBed.inject(ChatPreferencesService).setShowVnEmoteBadge(true);
+      fixture.componentRef.setInput('chatMessage', spoken('またね 〔退場〕'));
+      expect(component.emoteBadges()).toHaveLength(1);
+    });
+
+    it('says nothing about a line staged no particular way', () => {
+      TestBed.inject(ChatPreferencesService).setShowVnEmoteBadge(true);
+      fixture.componentRef.setInput('chatMessage', spoken('こんばんは'));
+      expect(component.emoteBadges()).toEqual([]);
     });
 
     it('does not invent a staging for a line that never had one', () => {

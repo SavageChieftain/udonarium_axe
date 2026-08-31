@@ -288,6 +288,18 @@
         (ngModelChange)="setAutoFollowScroll($event)"
       />
     </label>
+    <label
+      class="flex cursor-pointer items-center justify-between gap-2 py-1"
+      [title]="'feature.chat.messageSetting.vnEmoteBadgeTooltip' | transloco"
+    >
+      <span class="text-ui-muted flex-1 text-[12px]">{{ 'feature.chat.messageSetting.vnEmoteBadge' | transloco }}</span>
+      <input
+        type="checkbox"
+        name="vn-emote-badge"
+        [ngModel]="showVnEmoteBadge()"
+        (ngModelChange)="setShowVnEmoteBadge($event)"
+      />
+    </label>
   </section>
 </form>
 

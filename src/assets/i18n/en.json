@@ -2144,6 +2144,8 @@
         "sectionScroll": "Scroll",
         "autoFollowScroll": "Auto-follow latest message",
         "autoFollowScrollTooltip": "When off, new messages on the same tab will not auto-scroll",
+        "vnEmoteBadge": "Show novel-mode expressions",
+        "vnEmoteBadgeTooltip": "When on, the expressions chosen in novel mode appear beside the line. They are never written into an exported log",
         "scope": "Applies to",
         "scope_all": "Every tab",
         "scope_perTab": "Each tab",

@@ -13,6 +13,7 @@ import {
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ChatMessageService } from '@axe/application/chat/chat-message.service';
+import { ChatPreferencesService } from '@axe/application/chat/chat-preferences.service';
 import { SystemAvatarKind, SystemAvatarService } from '@axe/application/chat/system-avatar.service';
 import { decodeI18nMessage } from '@axe/application/i18n/i18n-message';
 import { LanguageService } from '@axe/application/i18n/language.service';
@@ -33,6 +34,7 @@ import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { TextNote } from '@axe/domain/tabletop/text-note';
 import { encodeVnEmote, vnBodyOf, vnEmoteOf } from '@axe/domain/visual-novel/vn-emote';
 import { SystemAvatarMenuService } from '@axe/features/chat/system-avatar-menu.service';
+import { vnEmoteLabels } from '@axe/features/visual-novel/visual-novel-emote-label';
 import { ChatColorStylePipe } from '@axe/ui/pipes/chat-color-style.pipe';
 import { LinkifyPipe } from '@axe/ui/pipes/linkify.pipe';
 import { SafePipe } from '@axe/ui/pipes/safe.pipe';
@@ -62,6 +64,7 @@ export class ChatMessageComponent {
   protected readonly theme = inject(ThemeService);
   private readonly systemAvatar = inject(SystemAvatarService);
   private readonly systemAvatarMenu = inject(SystemAvatarMenuService);
+  private readonly chatPrefs = inject(ChatPreferencesService);
 
   protected get canRevealSecret(): boolean {
     return this.rolePermission.canSeeHidden;
@@ -258,6 +261,16 @@ export class ChatMessageComponent {
     el.style.height = 'auto';
     el.style.height = `${Math.min(el.scrollHeight, 240)}px`;
   }
+
+  /** The words for how novel mode was asked to stage this line, when the reader asked to see them. */
+  readonly emoteBadges = computed<string[]>(() => {
+    if (!this.chatPrefs.showVnEmoteBadge()) return [];
+    const message = this.chatMessageInput();
+    if (!message) return [];
+    this.language.currentLang();
+    this.objectChange.versionOf(message.identifier)();
+    return vnEmoteLabels(vnEmoteOf(message.vnEmote, message.text ?? ''), this.t);
+  });
 
   readonly replyPreview = computed<{ name: string; text: string } | null>(() => {
     const msg = this.chatMessageInput();

@@ -81,12 +81,17 @@ export class ChatMessageSettingComponent {
   }
 
   readonly autoFollowScroll = this.chatPrefs.autoFollowScroll;
+  readonly showVnEmoteBadge = this.chatPrefs.showVnEmoteBadge;
   readonly fontSize = this.chatPrefs.fontSize;
   readonly minFontSize = CHAT_FONT_SIZE_MIN;
   readonly maxFontSize = CHAT_FONT_SIZE_MAX;
 
   setAutoFollowScroll(v: boolean): void {
     this.chatPrefs.setAutoFollowScroll(v);
+  }
+
+  setShowVnEmoteBadge(v: boolean): void {
+    this.chatPrefs.setShowVnEmoteBadge(v);
   }
 
   onChangeFontSize(event: Event): void {
