@@ -1,0 +1,128 @@
+<div class="p-2.5">
+  <div class="mb-1 flex items-center justify-between">
+    <span class="text-ui-muted text-[11px] font-semibold">
+      {{ 'feature.visualNovel.emote.kind' | transloco }}
+    </span>
+    <button
+      type="button"
+      class="text-ui-dim hover:text-ui-accent cursor-pointer border-0 bg-transparent text-[11px] underline"
+      (click)="resetEmote()"
+    >
+      {{ 'feature.visualNovel.emote.reset' | transloco }}
+    </button>
+  </div>
+  <div class="mb-2 grid grid-cols-3 gap-1">
+    @for (kind of messageKindOptions(); track kind) {
+      <button
+        type="button"
+        class="rounded-ui cursor-pointer border border-solid p-1 text-[11px] transition-[color,background]"
+        [class]="
+          selectedKind() === kind
+            ? 'bg-ui-accent-bg border-ui-accent text-ui-accent'
+            : 'border-ui-border-panel text-ui-dim hover:bg-ui-hover bg-transparent'
+        "
+        (click)="selectedKind.set(kind)"
+      >
+        {{ 'feature.visualNovel.kind.' + kind | transloco }}
+      </button>
+    }
+  </div>
+  <div class="text-ui-muted mb-1 text-[11px] font-semibold">
+    {{ 'feature.visualNovel.emote.shape' | transloco }}
+  </div>
+  <div class="mb-2 grid grid-cols-4 gap-1">
+    @for (shape of bubbleShapeOptions; track shape) {
+      <button
+        type="button"
+        class="rounded-ui cursor-pointer border border-solid p-1 text-[11px] transition-[color,background]"
+        [class]="
+          selectedShape() === shape
+            ? 'bg-ui-accent-bg border-ui-accent text-ui-accent'
+            : 'border-ui-border-panel text-ui-dim hover:bg-ui-hover bg-transparent'
+        "
+        (click)="selectedShape.set(shape)"
+      >
+        {{ 'feature.visualNovel.shape.' + shape | transloco }}
+      </button>
+    }
+  </div>
+  <div class="text-ui-muted mb-1 text-[11px] font-semibold">
+    {{ 'feature.visualNovel.emote.bubbleAnim' | transloco }}
+  </div>
+  <div class="mb-2 grid grid-cols-4 gap-1">
+    @for (animation of bubbleAnimationOptions; track animation) {
+      <button
+        type="button"
+        class="rounded-ui cursor-pointer border border-solid p-1 text-[11px] transition-[color,background]"
+        [class]="
+          selectedBubbleAnimation() === animation
+            ? 'bg-ui-accent-bg border-ui-accent text-ui-accent'
+            : 'border-ui-border-panel text-ui-dim hover:bg-ui-hover bg-transparent'
+        "
+        (click)="selectedBubbleAnimation.set(animation)"
+      >
+        {{ 'feature.visualNovel.bubbleAnim.' + animation | transloco }}
+      </button>
+    }
+  </div>
+  <div class="text-ui-muted mb-1 text-[11px] font-semibold">
+    {{ 'feature.visualNovel.emote.portraitAnim' | transloco }}
+  </div>
+  <div class="mb-2 grid grid-cols-4 gap-1">
+    @for (emote of portraitEmoteOptions; track emote) {
+      <button
+        type="button"
+        class="rounded-ui cursor-pointer border border-solid p-1 text-[11px] transition-[color,background]"
+        [class]="
+          selectedPortraitEmote() === emote
+            ? 'bg-ui-accent-bg border-ui-accent text-ui-accent'
+            : 'border-ui-border-panel text-ui-dim hover:bg-ui-hover bg-transparent'
+        "
+        (click)="selectedPortraitEmote.set(emote)"
+      >
+        {{ 'feature.visualNovel.portraitEmote.' + emote | transloco }}
+      </button>
+    }
+  </div>
+  <div class="text-ui-muted mb-1 text-[11px] font-semibold">
+    {{ 'feature.visualNovel.emote.mark' | transloco }}
+  </div>
+  <div class="mb-2 grid grid-cols-4 gap-1">
+    @for (mark of emotionMarkOptions; track mark) {
+      <button
+        type="button"
+        class="rounded-ui cursor-pointer border border-solid p-1 text-[11px] transition-[color,background]"
+        [class]="
+          selectedEmotionMark() === mark
+            ? 'bg-ui-accent-bg border-ui-accent text-ui-accent'
+            : 'border-ui-border-panel text-ui-dim hover:bg-ui-hover bg-transparent'
+        "
+        (click)="selectedEmotionMark.set(mark)"
+      >
+        @if (mark === 'none') {
+          {{ 'feature.visualNovel.portraitEmote.none' | transloco }}
+        } @else {
+          {{ emotionMarkLabel(mark) }}
+        }
+      </button>
+    }
+  </div>
+  <div class="text-ui-muted mb-1 text-[11px] font-semibold">
+    {{ 'feature.visualNovel.emote.stage' | transloco }}
+  </div>
+  <div class="mb-2">
+    <button
+      type="button"
+      class="rounded-ui w-full cursor-pointer border border-solid p-1 text-[11px] transition-[color,background]"
+      [class]="
+        selectedExit()
+          ? 'bg-ui-accent-bg border-ui-accent text-ui-accent'
+          : 'border-ui-border-panel text-ui-dim hover:bg-ui-hover bg-transparent'
+      "
+      [attr.aria-pressed]="selectedExit()"
+      (click)="toggleSelectedExit()"
+    >
+      {{ 'feature.visualNovel.emote.exit' | transloco }}
+    </button>
+  </div>
+</div>

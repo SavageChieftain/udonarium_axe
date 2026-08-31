@@ -2250,6 +2250,7 @@
       "player": "Player",
       "log": "Backlog",
       "settings": {
+        "title": "Display settings",
         "typewriter": "Text speed",
         "portrait": "Portrait entrance",
         "textSize": "Text size",

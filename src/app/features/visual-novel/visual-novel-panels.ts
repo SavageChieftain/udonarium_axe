@@ -8,8 +8,10 @@ import { PanelService } from '@axe/application/ui/panel.service';
  * are put up outside it.
  */
 export const VN_BACKLOG_PANEL = 'vn-backlog';
+export const VN_EMOTE_PANEL = 'vn-emote';
+export const VN_DISPLAY_PANEL = 'vn-display';
 
-export const VISUAL_NOVEL_PANELS: readonly string[] = [VN_BACKLOG_PANEL];
+export const VISUAL_NOVEL_PANELS: readonly string[] = [VN_BACKLOG_PANEL, VN_EMOTE_PANEL, VN_DISPLAY_PANEL];
 
 export function closeVisualNovelPanels(panelService: PanelService): void {
   for (const name of VISUAL_NOVEL_PANELS) panelService.closeSingle(name);

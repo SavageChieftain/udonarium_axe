@@ -2250,6 +2250,7 @@
       "player": "플레이어",
       "log": "로그",
       "settings": {
+        "title": "표시 설정",
         "typewriter": "글자 보내기",
         "portrait": "입화 등장 연출",
         "textSize": "글자 크기",

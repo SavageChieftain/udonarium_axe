@@ -2250,6 +2250,7 @@
       "player": "プレイヤー",
       "log": "ログ",
       "settings": {
+        "title": "表示設定",
         "typewriter": "文字送り",
         "portrait": "立ち絵の登場演出",
         "textSize": "文字サイズ",

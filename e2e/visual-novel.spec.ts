@@ -76,8 +76,8 @@ test.describe('ビジュアルノベルモード', () => {
 
   test('感情表現つきの発言でもチャット・VN表示とも本文のみになること', async ({ page }) => {
     await page.locator('visual-novel-overlay button[title="演出"]').click();
-    await page.locator('visual-novel-overlay button', { hasText: '叫び' }).click();
-    await page.locator('visual-novel-overlay button', { hasText: 'ゆれ' }).click();
+    await page.locator('visual-novel-emote-panel button', { hasText: '叫び' }).click();
+    await page.locator('visual-novel-emote-panel button', { hasText: 'ゆれ' }).click();
     await page.locator('visual-novel-overlay button[title="演出"]').click();
 
     const input = vnMessageInput(page);
@@ -89,7 +89,7 @@ test.describe('ビジュアルノベルモード', () => {
     await expect(page.locator('visual-novel-overlay')).toContainText('なんだって！？', { timeout: 15000 });
 
     await page.locator('visual-novel-overlay button[title="演出"]').click();
-    await page.locator('visual-novel-overlay button', { hasText: 'リセット' }).click();
+    await page.locator('visual-novel-emote-panel button', { hasText: 'リセット' }).click();
     await page.locator('visual-novel-overlay button[title="演出"]').click();
     await expect(page.locator('visual-novel-overlay')).not.toContainText('〔叫び・ゆれ〕');
   });
@@ -161,7 +161,7 @@ test.describe('ビジュアルノベルモード', () => {
 
   test('GM の地の文とロケーション演出が表示できること', async ({ page }) => {
     await page.locator('visual-novel-overlay button[title="演出"]').click();
-    await page.locator('visual-novel-overlay button', { hasText: '地の文' }).click();
+    await page.locator('visual-novel-emote-panel button', { hasText: '地の文' }).click();
     await page.locator('visual-novel-overlay button[title="演出"]').click();
 
     const input = vnMessageInput(page);
@@ -174,7 +174,7 @@ test.describe('ビジュアルノベルモード', () => {
     await expect(page.locator('chat-message').last()).not.toContainText('〔');
 
     await page.locator('visual-novel-overlay button[title="演出"]').click();
-    await page.locator('visual-novel-overlay button', { hasText: 'ロケーション' }).click();
+    await page.locator('visual-novel-emote-panel button', { hasText: 'ロケーション' }).click();
     await page.locator('visual-novel-overlay button[title="演出"]').click();
     await input.fill('忘れられた森');
     await input.press('Enter');
@@ -242,7 +242,7 @@ test.describe('ビジュアルノベルモード', () => {
     await page.locator('visual-novel-overlay button[title="演出"]').click();
 
     await expect(backlogPanel(page)).toBeVisible();
-    await expect(page.locator('visual-novel-overlay button', { hasText: '叫び' })).toBeVisible();
+    await expect(page.locator('visual-novel-emote-panel button', { hasText: '叫び' })).toBeVisible();
   });
 
   test('GM は場面転換で立ち絵と台詞を一掃できること', async ({ page }) => {
@@ -255,7 +255,7 @@ test.describe('ビジュアルノベルモード', () => {
     await expect(page.locator('visual-novel-overlay img[alt="モンスターA"]')).toBeVisible({ timeout: 15000 });
 
     await page.locator('visual-novel-overlay button[title="演出"]').click();
-    await page.locator('visual-novel-overlay button', { hasText: '場面転換' }).click();
+    await page.locator('visual-novel-emote-panel button', { hasText: '場面転換' }).click();
     await page.locator('visual-novel-overlay button[title="演出"]').click();
     await input.fill('〜その夜〜');
     await input.press('Enter');
@@ -272,7 +272,7 @@ test.describe('ビジュアルノベルモード', () => {
     await expect(page.locator('visual-novel-overlay img[alt="モンスターA"]')).toBeVisible({ timeout: 15000 });
 
     await page.locator('visual-novel-overlay button[title="演出"]').click();
-    await page.locator('visual-novel-overlay button', { hasText: 'この発言で退場する' }).click();
+    await page.locator('visual-novel-emote-panel button', { hasText: 'この発言で退場する' }).click();
     await page.locator('visual-novel-overlay button[title="演出"]').click();
     await input.fill('では、またな');
     await input.press('Enter');
@@ -287,9 +287,9 @@ test.describe('ビジュアルノベルモード', () => {
     await input.press('Enter');
     await expect(page.locator('visual-novel-overlay')).toContainText('レイアウトの確認', { timeout: 15000 });
 
-    await page.locator('visual-novel-overlay button[title="演出"]').click();
-    await page.locator('visual-novel-overlay button', { hasText: 'ADV' }).click();
-    await page.locator('visual-novel-overlay button[title="演出"]').click();
+    await page.locator('visual-novel-overlay button[title="表示設定"]').click();
+    await page.locator('visual-novel-display-panel button', { hasText: 'ADV' }).click();
+    await page.locator('visual-novel-overlay button[title="表示設定"]').click();
 
     await expect(page.locator('visual-novel-overlay .vn-bubble-normal')).toHaveCount(0);
     await expect(page.locator('visual-novel-overlay')).toContainText('レイアウトの確認');

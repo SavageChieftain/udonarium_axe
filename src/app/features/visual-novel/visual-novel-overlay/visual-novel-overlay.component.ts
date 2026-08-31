@@ -30,23 +30,13 @@ import { DiceBot } from '@axe/domain/dice/dice-bot';
 import { AudioTag } from '@axe/domain/media/audio-tag';
 import { Jukebox } from '@axe/domain/media/jukebox';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
-import {
-  encodeVnEmote,
-  VN_BUBBLE_ANIMATIONS,
-  VN_BUBBLE_SHAPES,
-  VN_EMOTION_MARK_CHARS,
-  VN_EMOTION_MARKS,
-  VN_PORTRAIT_EMOTES,
-  vnEmoteOf,
-  VnEmotionMark,
-} from '@axe/domain/visual-novel/vn-emote';
+import { encodeVnEmote, VN_EMOTION_MARK_CHARS, vnEmoteOf, VnEmotionMark } from '@axe/domain/visual-novel/vn-emote';
 import {
   isVnPortraitPosSet,
   toPortraitSlot,
   toStageResetAt,
   VN_PORTRAIT_POS_UNSET,
 } from '@axe/domain/visual-novel/vn-portrait-position';
-import { VN_STAGE_TRANSITIONS } from '@axe/domain/visual-novel/vn-stage';
 import { GameCharacterSheetComponent } from '@axe/features/character/game-character-sheet/game-character-sheet.component';
 import { allowsChat } from '@axe/features/chat/chat-input/chat-input-helpers';
 import {
@@ -56,21 +46,22 @@ import {
 import { SystemAvatarMenuService } from '@axe/features/chat/system-avatar-menu.service';
 import { VisualNovelBacklogComponent } from '@axe/features/visual-novel/visual-novel-backlog/visual-novel-backlog.component';
 import { VisualNovelDirectorService } from '@axe/features/visual-novel/visual-novel-director.service';
+import { VisualNovelDisplayPanelComponent } from '@axe/features/visual-novel/visual-novel-display-panel/visual-novel-display-panel.component';
 import { vnEmoteLabel } from '@axe/features/visual-novel/visual-novel-emote-label';
+import { VisualNovelEmotePanelComponent } from '@axe/features/visual-novel/visual-novel-emote-panel/visual-novel-emote-panel.component';
 import { VisualNovelEmoteSelectionService } from '@axe/features/visual-novel/visual-novel-emote-selection.service';
 import { readableMessageName, readableMessageText } from '@axe/features/visual-novel/visual-novel-message';
 import { VisualNovelModeService } from '@axe/features/visual-novel/visual-novel-mode.service';
-import { closeVisualNovelPanels, VN_BACKLOG_PANEL } from '@axe/features/visual-novel/visual-novel-panels';
+import {
+  closeVisualNovelPanels,
+  VISUAL_NOVEL_PANELS,
+  VN_BACKLOG_PANEL,
+  VN_DISPLAY_PANEL,
+  VN_EMOTE_PANEL,
+} from '@axe/features/visual-novel/visual-novel-panels';
 import { VisualNovelPlaybackService } from '@axe/features/visual-novel/visual-novel-playback.service';
 import { VisualNovelSceneService } from '@axe/features/visual-novel/visual-novel-scene.service';
-import {
-  VisualNovelSettingsService,
-  VN_LAYOUTS,
-  VN_PORTRAIT_ANIMATIONS,
-  VN_READABILITY_LEVELS,
-  VN_TEXT_SIZES,
-  VN_TYPEWRITER_SPEEDS,
-} from '@axe/features/visual-novel/visual-novel-settings.service';
+import { VisualNovelSettingsService } from '@axe/features/visual-novel/visual-novel-settings.service';
 import {
   isTypingTarget,
   type VisualNovelCommand,
@@ -88,8 +79,9 @@ import {
   VnStageCharacter,
   VnStageSource,
 } from '@axe/features/visual-novel/visual-novel-stage';
+import { spotBeside } from '@axe/ui/panel-spot';
 import { SafePipe } from '@axe/ui/pipes/safe.pipe';
-import { Z_VISUAL_NOVEL_PANEL } from '@axe/ui/z-layers';
+import { Z_VISUAL_NOVEL_PANEL, Z_VISUAL_NOVEL_PANEL_ABOVE } from '@axe/ui/z-layers';
 import { TranslocoModule } from '@jsverse/transloco';
 import { NgOptionComponent, NgSelectComponent } from '@ng-select/ng-select';
 
@@ -117,7 +109,7 @@ const EMOTION_MARK_COLORS: Record<Exclude<VnEmotionMark, 'none'>, string> = {
 };
 
 /** The balloon, of which one opens at a time. */
-type VisualNovelPopover = 'emote' | 'soundBoard' | 'slotGuide' | 'palette' | 'shortcutHelp';
+type VisualNovelPopover = 'soundBoard' | 'slotGuide' | 'palette' | 'shortcutHelp';
 
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -211,18 +203,8 @@ export class VisualNovelOverlayComponent {
   readonly selectedEmotionMark = this.emoteSelection.emotionMark;
   readonly selectedExit = this.emoteSelection.exited;
 
-  readonly typewriterSpeedOptions = VN_TYPEWRITER_SPEEDS;
-  readonly portraitAnimationOptions = VN_PORTRAIT_ANIMATIONS;
-  readonly textSizeOptions = VN_TEXT_SIZES;
-  readonly layoutOptions = VN_LAYOUTS;
-  readonly readabilityOptions = VN_READABILITY_LEVELS;
-  readonly transitionOptions = VN_STAGE_TRANSITIONS;
   readonly messageKindOptions = this.emoteSelection.messageKindOptions;
   readonly isGameMaster = this.emoteSelection.isGameMaster;
-  readonly bubbleShapeOptions = VN_BUBBLE_SHAPES;
-  readonly bubbleAnimationOptions = VN_BUBBLE_ANIMATIONS;
-  readonly portraitEmoteOptions = VN_PORTRAIT_EMOTES;
-  readonly emotionMarkOptions = VN_EMOTION_MARKS;
   readonly slotIndexes = Array.from({ length: VN_STAGE_SLOT_COUNT }, (_, i) => i);
   readonly shortcutHelpItems = SHORTCUT_HELP_ITEMS;
 
@@ -361,14 +343,6 @@ export class VisualNovelOverlayComponent {
 
   resetEmote(): void {
     this.emoteSelection.reset();
-  }
-
-  toggleSelectedExit(): void {
-    this.emoteSelection.toggleExit();
-  }
-
-  emotionMarkLabel(mark: VnEmotionMark): string {
-    return mark === 'none' ? '' : VN_EMOTION_MARK_CHARS[mark];
   }
 
   readonly stageCharacters = computed<VnStageCharacter[]>(() => {
@@ -823,13 +797,16 @@ export class VisualNovelOverlayComponent {
 
   /** What `Escape` closes before it leaves novel mode. */
   private isAnythingOpen(): boolean {
-    return this.openPopover() !== null || this.panelService.hasSingle(VN_BACKLOG_PANEL);
+    if (this.openPopover() !== null) return true;
+    return VISUAL_NOVEL_PANELS.some((name) => this.panelService.hasSingle(name));
   }
 
   private closeOverlays(): void {
     this.closePopovers();
     closeVisualNovelPanels(this.panelService);
     this.isBacklogOpen.set(false);
+    this.isEmotePanelOpen.set(false);
+    this.isDisplaySettingsOpen.set(false);
   }
 
   isPopover(kind: VisualNovelPopover): boolean {
@@ -872,8 +849,61 @@ export class VisualNovelOverlayComponent {
     this.isBacklogOpen.set(true);
   }
 
-  toggleEmote(): void {
-    this.togglePopover('emote');
+  readonly isEmotePanelOpen = signal(false);
+  readonly isDisplaySettingsOpen = signal(false);
+
+  toggleEmote(event?: Event): void {
+    if (this.panelService.closeSingle(VN_EMOTE_PANEL)) {
+      this.isEmotePanelOpen.set(false);
+      return;
+    }
+    this.closePopovers();
+    const size = { width: 320, height: Math.min(440, Math.max(240, window.innerHeight - 220)) };
+    this.panelService.open<VisualNovelEmotePanelComponent>(VisualNovelEmotePanelComponent, {
+      title: this.t('feature.visualNovel.emote.title'),
+      ...this.spotFor(event, size),
+      ...size,
+      minWidth: 260,
+      minHeight: 180,
+      layer: Z_VISUAL_NOVEL_PANEL_ABOVE,
+      single: VN_EMOTE_PANEL,
+      minimizeToContent: true,
+    });
+    this.isEmotePanelOpen.set(true);
+  }
+
+  toggleDisplaySettings(event?: Event): void {
+    if (this.panelService.closeSingle(VN_DISPLAY_PANEL)) {
+      this.isDisplaySettingsOpen.set(false);
+      return;
+    }
+    this.closePopovers();
+    const size = { width: 320, height: Math.min(520, Math.max(240, window.innerHeight - 160)) };
+    this.panelService.open<VisualNovelDisplayPanelComponent>(VisualNovelDisplayPanelComponent, {
+      title: this.t('feature.visualNovel.settings.title'),
+      ...this.spotFor(event, size),
+      ...size,
+      minWidth: 260,
+      minHeight: 180,
+      layer: Z_VISUAL_NOVEL_PANEL_ABOVE,
+      single: VN_DISPLAY_PANEL,
+      minimizeToContent: true,
+    });
+    this.isDisplaySettingsOpen.set(true);
+  }
+
+  /**
+   * Where a window opened from a button in the bar belongs: just above the button, which is
+   * where the balloon it replaces used to appear. Anywhere fixed would sooner or later be
+   * under the menu button or over the portraits.
+   */
+  private spotFor(event: Event | undefined, size: { width: number; height: number }) {
+    const button = event?.currentTarget;
+    const viewport = { width: window.innerWidth, height: window.innerHeight };
+    if (!(button instanceof HTMLElement)) {
+      return { left: Math.round((viewport.width - size.width) / 2), top: 24 };
+    }
+    return spotBeside(button.getBoundingClientRect(), size, viewport);
   }
 
   toggleSoundBoard(): void {
