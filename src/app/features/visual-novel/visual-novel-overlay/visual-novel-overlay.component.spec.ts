@@ -1231,4 +1231,42 @@ describe('VisualNovelOverlayComponent', () => {
     expect(component.isBacklogOpen()).toBe(false);
     expect(vnMode.active()).toBe(true);
   });
+  describe('clearing the portraits', () => {
+    it('empties the stage and keeps the notice out of the script', () => {
+      const image = addImage();
+      addMessage('やあ', 'モンスターA', image);
+      createComponent();
+      fixture.detectChanges();
+      expect(component.stageCharacters()).toHaveLength(1);
+      const linesBefore = component.messages().length;
+
+      PeerCursor.myCursor.role = PeerRole.GameMaster;
+      TestBed.inject(ObjectChangeService).notifyChanged(PeerCursor.myCursor.identifier);
+      component.resetStage();
+      TestBed.inject(ObjectChangeService).notifyChanged(tab.identifier);
+      fixture.detectChanges();
+
+      // Nothing has been said since, so the reader is still on the last line; the stage is
+      // cleared all the same, and there is no extra line to press through.
+      expect(component.stageCharacters()).toEqual([]);
+      expect(component.messages()).toHaveLength(linesBefore);
+      expect(tab.chatMessages.at(-1)?.isOutOfStory).toBe(true);
+    });
+
+    it('shows the stage as it stood when read back to before the clearing', () => {
+      const image = addImage();
+      addMessage('やあ', 'モンスターA', image);
+      addMessage('こんばんは', 'モンスターA', image);
+      createComponent();
+
+      PeerCursor.myCursor.role = PeerRole.GameMaster;
+      TestBed.inject(ObjectChangeService).notifyChanged(PeerCursor.myCursor.identifier);
+      component.resetStage();
+      TestBed.inject(ObjectChangeService).notifyChanged(tab.identifier);
+      component.jumpTo(0);
+      fixture.detectChanges();
+
+      expect(component.stageCharacters()).toHaveLength(1);
+    });
+  });
 });

@@ -264,6 +264,24 @@ test.describe('ビジュアルノベルモード', () => {
     await expect(page.locator('visual-novel-overlay img[alt="モンスターA"]')).toHaveCount(0);
   });
 
+  test('GM の立ち絵リセットはステージだけを片付け、ノベルの本編には出ないこと', async ({ page }) => {
+    await page.locator('peer-menu').getByRole('button', { name: 'GM', exact: true }).click();
+
+    const input = vnMessageInput(page);
+    await selectVnSpeaker(page, 'モンスターA');
+    await input.fill('まだ舞台にいる');
+    await input.press('Enter');
+    await expect(page.locator('visual-novel-overlay img[alt="モンスターA"]')).toBeVisible({ timeout: 15000 });
+
+    await page.locator('visual-novel-overlay button[title^="表示中のタブの立ち絵"]').click();
+
+    await expect(page.locator('visual-novel-overlay img[alt="モンスターA"]')).toHaveCount(0);
+    // 知らせはチャットログに残るが、ノベル側は最後の発言のまま動かない。
+    await expect(page.locator('chat-message').last()).toContainText('立ち絵をリセット', { timeout: 15000 });
+    await expect(page.locator('visual-novel-overlay')).toContainText('まだ舞台にいる');
+    await expect(page.locator('visual-novel-overlay')).not.toContainText('立ち絵をリセットしました');
+  });
+
   test('退場を指定するとその発言以降は立ち絵が消えること', async ({ page }) => {
     const input = vnMessageInput(page);
     await selectVnSpeaker(page, 'モンスターA');

@@ -106,25 +106,33 @@ function desiredPositions(slots: readonly number[]): number[] {
   return slots.map(leftOfSlot);
 }
 
+/**
+ * Whether a clearing of the stage holds for the line being read.
+ *
+ * Reading back to before it shows the stage as it stood then, the way a scene change does.
+ * Being at the latest line counts as being after it: the notice it leaves is housekeeping and
+ * is kept out of the script, so with nothing said since, the last line said is still "now".
+ */
+export function stageCutFor(resetAt: number, currentTimestamp: number, isLatest: boolean): number {
+  if (resetAt <= 0) return 0;
+  return isLatest || currentTimestamp >= resetAt ? resetAt : 0;
+}
+
 export function buildVnStage(
   window: readonly VnStageSource[],
   resolveUrl: (imageIdentifier: string) => string,
   resolveSlot: (source: VnStageSource) => number = messageSlotOf,
-  resetAt = 0
+  cut = 0
 ): VnStageCharacter[] {
   const current = window[window.length - 1];
   if (!current) return [];
   if (current.emote.kind === 'location' || current.emote.kind === 'scene') return [];
 
-  // Reading back to before the stage was cleared shows it as it stood then, the way a scene
-  // change does. The line only holds while the reader is looking at something said after it.
-  const cut = resetAt > 0 && current.timestamp >= resetAt ? resetAt : 0;
-
   const found = new Map<string, { url: string; slot: number; isFlipped: boolean }>();
   const retired = new Set<string>();
   for (let i = window.length - 1; i >= 0 && found.size < VN_STAGE_MAX; i--) {
     const source = window[i];
-    if (source.timestamp < cut) break;
+    if (cut > 0 && source.timestamp < cut) break;
     if (source.isSystemMessage || source.isDicebot) continue;
     if (source.isDiceCommand) continue;
     if (source.emote.kind === 'scene') break;

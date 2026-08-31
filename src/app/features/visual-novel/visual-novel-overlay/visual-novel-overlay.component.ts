@@ -74,6 +74,7 @@ import {
   slotBandLeft,
   slotBandWidth,
   slotLabelLeftInBand,
+  stageCutFor,
   VN_STAGE_LOOKBACK,
   VN_STAGE_SLOT_COUNT,
   VnStageCharacter,
@@ -373,7 +374,7 @@ export class VisualNovelOverlayComponent {
       window,
       (imageIdentifier) => this.imageService.getEmptyOr(imageIdentifier).url,
       (source) => this.stageSlotOf(source),
-      this.stageResetAt()
+      stageCutFor(this.stageResetAt(), messages[index].timestamp, this.playback.isLatest())
     );
   });
 

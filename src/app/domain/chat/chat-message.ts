@@ -8,6 +8,7 @@ import { ObjectSerializer } from '@axe/core/sync/object-serializer';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { ChatTabList } from '@axe/domain/chat/chat-tab-list';
+import { OUT_OF_STORY_TAG } from '@axe/domain/chat/constants';
 import { type DiceRollDetail, parseDiceRollDetail } from '@axe/domain/dice/dice-roll-detail';
 import { VN_PORTRAIT_POS_UNSET } from '@axe/domain/visual-novel/vn-portrait-position';
 
@@ -209,6 +210,11 @@ export class ChatMessage extends ObjectNode implements ChatMessageContext {
   get isSystemMessage(): boolean {
     return this.from === 'System' || (this.tag ?? '').includes('system-message');
   }
+  /** Whether novel mode should pass this line over rather than have it read out. */
+  get isOutOfStory(): boolean {
+    return this.tags.includes(OUT_OF_STORY_TAG);
+  }
+
   get changeable(): boolean {
     return this.isChangeableBy(getPeerContext().userId);
   }

@@ -96,7 +96,8 @@ export class VisualNovelSceneService {
       tab,
       encodeI18nMessage('feature.visualNovel.stageResetBy', { user: cursor?.name?.trim() || cursor?.identifier || '' }),
       undefined,
-      cursor?.userId
+      cursor?.userId,
+      true
     );
     tab.vnPortraitResetAt = notice.timestamp;
   }

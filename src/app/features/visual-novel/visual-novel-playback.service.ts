@@ -58,7 +58,7 @@ export class VisualNovelPlaybackService {
     this.renderVersion();
     const tab = this.chatTab();
     if (!tab) return [] as ChatMessage[];
-    return tab.chatMessages.filter((message) => message.isDisplayable);
+    return tab.chatMessages.filter((message) => message.isDisplayable && !message.isOutOfStory);
   });
 
   readonly currentIndex = computed(() => {
