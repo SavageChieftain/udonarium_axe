@@ -334,11 +334,34 @@ describe('VisualNovelOverlayComponent', () => {
     expect(anchor?.bottom).toBe('58vh');
   });
 
-  it('puts it at the bottom of the screen when nobody is on stage', () => {
+  it('shows a line in the window at the foot of the screen when its speaker is not on stage', () => {
+    // A balloon with nobody to come from used to float in the middle with its tail on nothing.
     addMessage('こんにちは');
     createComponent();
-    const anchor = component.bubbleAnchor();
-    expect(anchor?.left).toBe(50);
+    expect(component.bubbleAnchor()).toBeNull();
+    expect(component.speechLayout()).toBe('adv');
+  });
+
+  it('leaves the balloon behind once the stage is cleared under it', () => {
+    const image = addImage();
+    addMessage('やあ', 'アリス', image);
+    createComponent();
+    expect(component.speechLayout()).toBe('bubble');
+
+    PeerCursor.myCursor.role = PeerRole.GameMaster;
+    TestBed.inject(ObjectChangeService).notifyChanged(PeerCursor.myCursor.identifier);
+    component.resetStage();
+    TestBed.inject(ObjectChangeService).notifyChanged(tab.identifier);
+    fixture.detectChanges();
+
+    expect(component.stageCharacters()).toEqual([]);
+    expect(component.bubbleAnchor()).toBeNull();
+  });
+
+  it('keeps the chosen layout where the speaker is on stage', () => {
+    addMessage('こんにちは', 'アリス', addImage(), 4);
+    createComponent();
+    expect(component.speechLayout()).toBe('bubble');
   });
 
   it('gives a dice bot message to the mascot and no balloon of its own', () => {

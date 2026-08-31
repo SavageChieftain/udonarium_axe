@@ -152,7 +152,7 @@
   </div>
 }
 
-@if (speechVisible() && settings.layout() === 'adv') {
+@if (speechLayout() === 'adv') {
   <div
     class="pointer-events-auto absolute inset-x-[4%] bottom-[15dvh] z-30 cursor-pointer select-none"
     (click)="userAdvance()"
@@ -188,7 +188,7 @@
   </div>
 }
 
-@if (speechVisible() && settings.layout() === 'nvl') {
+@if (speechLayout() === 'nvl') {
   <div
     class="pointer-events-auto absolute inset-x-0 top-[8dvh] bottom-[14dvh] z-30 cursor-pointer px-[8%] select-none"
     (click)="userAdvance()"

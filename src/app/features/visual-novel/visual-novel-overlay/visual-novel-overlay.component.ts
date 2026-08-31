@@ -61,7 +61,7 @@ import {
 } from '@axe/features/visual-novel/visual-novel-panels';
 import { VisualNovelPlaybackService } from '@axe/features/visual-novel/visual-novel-playback.service';
 import { VisualNovelSceneService } from '@axe/features/visual-novel/visual-novel-scene.service';
-import { VisualNovelSettingsService } from '@axe/features/visual-novel/visual-novel-settings.service';
+import { VisualNovelSettingsService, VnLayout } from '@axe/features/visual-novel/visual-novel-settings.service';
 import {
   isTypingTarget,
   type VisualNovelCommand,
@@ -493,11 +493,26 @@ export class VisualNovelOverlayComponent {
       this.currentMessage() != null && !this.systemSpeaker() && !this.narrationKind() && !this.currentIsDiceCommand()
   );
 
+  /**
+   * Which of the three ways of showing a line this one is shown in.
+   *
+   * A balloon needs somebody to come from. A line whose speaker has no portrait on the stage -
+   * said by a player as themselves, or left standing after the stage was cleared - was drawn
+   * as a balloon anyway, floating in the middle of the screen with its tail pointing at
+   * nothing. Such a line falls back to the window at the foot of the screen.
+   */
+  readonly speechLayout = computed<VnLayout | null>(() => {
+    if (!this.speechVisible()) return null;
+    const layout = this.settings.layout();
+    if (layout === 'bubble' && !this.activeStageCharacter()) return 'adv';
+    return layout;
+  });
+
   readonly bubbleAnchor = computed(() => {
-    if (!this.speechVisible() || this.settings.layout() !== 'bubble') return null;
+    if (this.speechLayout() !== 'bubble') return null;
     const active = this.activeStageCharacter();
-    if (active) return { left: Math.min(83, Math.max(17, active.left)), bottom: '58vh' };
-    return { left: 50, bottom: '22vh' };
+    if (!active) return null;
+    return { left: Math.min(83, Math.max(17, active.left)), bottom: '58vh' };
   });
 
   readonly bubbleTextSizeClass = computed(() => {
