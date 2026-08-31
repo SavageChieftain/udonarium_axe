@@ -9,7 +9,7 @@ import { ChatTab } from '@axe/domain/chat/chat-tab';
 import { ChatTabList } from '@axe/domain/chat/chat-tab-list';
 import { canRoleViewTab } from '@axe/domain/chat/chat-tab-permission';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
-import { parseLegacyVnEmoteSuffix } from '@axe/domain/visual-novel/vn-emote';
+import { vnBodyOf, vnEmoteOf } from '@axe/domain/visual-novel/vn-emote';
 import { readableMessageText } from '@axe/features/visual-novel/visual-novel-message';
 import {
   VisualNovelSettingsService,
@@ -76,10 +76,16 @@ export class VisualNovelPlaybackService {
   readonly currentEmote = computed(() => {
     this.renderVersion();
     this.language.currentLang();
-    return parseLegacyVnEmoteSuffix(readableMessageText(this.currentMessage(), this.translate));
+    const message = this.currentMessage();
+    return vnEmoteOf(message?.vnEmote, readableMessageText(message, this.translate));
   });
 
-  readonly currentFullText = computed(() => this.currentEmote().text);
+  readonly currentFullText = computed(() => {
+    this.renderVersion();
+    this.language.currentLang();
+    const message = this.currentMessage();
+    return vnBodyOf(message?.vnEmote, readableMessageText(message, this.translate));
+  });
 
   private readonly currentGraphemes = computed(() => toGraphemes(this.currentFullText()));
 
@@ -301,17 +307,12 @@ export class VisualNovelPlaybackService {
 
   private restartTypewriter(message: ChatMessage | null): void {
     this.stopTypewriter();
-    const parsed = parseLegacyVnEmoteSuffix(readableMessageText(message, this.translate));
-    const total = toGraphemes(parsed.text).length;
+    const readable = readableMessageText(message, this.translate);
+    const emote = vnEmoteOf(message?.vnEmote, readable);
+    const total = toGraphemes(vnBodyOf(message?.vnEmote, readable)).length;
     const interval = VN_TYPEWRITER_INTERVAL_MS[this.settings.typewriterSpeed()];
     const isDiceCommand = this.currentIsDiceCommand();
-    if (
-      this.revealInstantly ||
-      interval < 1 ||
-      parsed.kind === 'location' ||
-      parsed.kind === 'scene' ||
-      isDiceCommand
-    ) {
+    if (this.revealInstantly || interval < 1 || emote.kind === 'location' || emote.kind === 'scene' || isDiceCommand) {
       this.revealInstantly = false;
       this.typedLength.set(total);
       return;

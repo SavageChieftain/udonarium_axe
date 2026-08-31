@@ -37,6 +37,7 @@ export interface ChatMessageContext {
   sendFrom?: string;
   replyTo?: string;
   quoteOf?: string;
+  vnEmote?: string;
 }
 
 @SyncObject('chat')
@@ -51,6 +52,14 @@ export class ChatMessage extends ObjectNode implements ChatMessageContext {
   @SyncVar() attachmentImageIdentifiers: string = '';
   @SyncVar() imagePos: number;
   @SyncVar() vnPortraitPos: number = VN_PORTRAIT_POS_UNSET;
+  /**
+   * How novel mode is asked to stage this line, read by `vnEmoteOf`.
+   *
+   * Deliberately left without an initialiser: class fields are assigned rather than defined
+   * here, so giving one would write the attribute onto every message ever said, novel mode or
+   * not. Unset reads back as an empty string, which is what an absent staging means anyway.
+   */
+  @SyncVar() vnEmote: string;
   @SyncVar() messColor: string;
   /** The bubble the sender asked for on each theme. Empty is worked out from the colour. */
   @SyncVar() messBubbleLight: string = '';

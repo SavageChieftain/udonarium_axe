@@ -32,7 +32,7 @@ import { Jukebox } from '@axe/domain/media/jukebox';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import {
   buildLegacyVnEmoteSuffix,
-  parseLegacyVnEmoteSuffix,
+  encodeVnEmote,
   VN_BUBBLE_ANIMATIONS,
   VN_BUBBLE_SHAPES,
   VN_EMOTION_MARK_CHARS,
@@ -41,6 +41,7 @@ import {
   VN_PORTRAIT_EMOTES,
   VnBubbleAnimation,
   VnBubbleShape,
+  vnEmoteOf,
   VnEmotionMark,
   VnMessageKind,
   VnPortraitEmote,
@@ -416,7 +417,7 @@ export class VisualNovelOverlayComponent {
         isDicebot: message.isDicebot,
         isGameCharacter: this.isGameCharacterSender(message.sendFrom ?? ''),
         isDiceCommand: this.playback.isDiceCommandAt(i),
-        emote: parseLegacyVnEmoteSuffix(readableMessageText(message, this.t)),
+        emote: vnEmoteOf(message.vnEmote, readableMessageText(message, this.t)),
       });
     }
     return buildVnStage(
@@ -991,28 +992,31 @@ export class VisualNovelOverlayComponent {
       const palette = speaker.chatPalette;
       if (palette) evaluated = palette.evaluate(text, speaker.rootDataElement ?? undefined);
     }
-    const outText =
-      evaluated +
-      buildLegacyVnEmoteSuffix({
-        kind: this.selectedKind(),
-        shape: this.selectedShape(),
-        bubbleAnimation: this.selectedBubbleAnimation(),
-        portraitEmote: this.selectedPortraitEmote(),
-        emotionMark: this.selectedEmotionMark(),
-        flipped: this.speakerFlip() === true,
-        exited: this.selectedExit(),
-      });
+    const emote = encodeVnEmote({
+      kind: this.selectedKind(),
+      shape: this.selectedShape(),
+      bubbleAnimation: this.selectedBubbleAnimation(),
+      portraitEmote: this.selectedPortraitEmote(),
+      emotionMark: this.selectedEmotionMark(),
+      flipped: this.speakerFlip() === true,
+      exited: this.selectedExit(),
+    });
     const attachedSe = this.attachedSe();
     DiceBot.loadGameSystemAsync(this.gameType).then((gameSystem) => {
       this.chatMessageService.sendMessage(
         tab,
-        outText,
+        evaluated,
         gameSystem,
         sendFrom,
         undefined,
         this.portraitIndexOf(sendFrom),
         this.colorOf(sendFrom),
-        [{ text: outText, object: null }]
+        [{ text: evaluated, object: null }],
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        emote
       );
       if (attachedSe) this.jukebox?.play(attachedSe.identifier);
     });

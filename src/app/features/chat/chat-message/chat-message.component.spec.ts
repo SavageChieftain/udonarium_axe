@@ -713,4 +713,66 @@ describe('ChatMessageComponent', () => {
       expect(req?.messageIdentifier).toBe('msg-B');
     });
   });
+  describe('the novel-mode staging', () => {
+    const spoken = (text: string, vnEmote = '') => {
+      const message = new ChatMessage();
+      message.initialize();
+      message.from = PeerCursor.myCursor?.userId ?? 'test-user';
+      message.to = '';
+      message.name = 'アリス';
+      message.tag = '';
+      message.imageIdentifier = '';
+      message.messColor = '#000000';
+      message.text = text;
+      if (vnEmote) message.vnEmote = vnEmote;
+      return message;
+    };
+
+    it('leaves the body alone when the staging is kept beside the line', () => {
+      fixture.componentRef.setInput('chatMessage', spoken('なんだって！？', 'shape:shout bubble:shake'));
+      expect(component.escapeHtmlAndRuby('なんだって！？')).toContain('なんだって！？');
+      expect(component.escapeHtmlAndRuby('なんだって！？')).not.toContain('〔');
+    });
+
+    it('takes the staging off a line said before it was kept apart', () => {
+      fixture.componentRef.setInput('chatMessage', spoken('なんだって！？ 〔叫び・ゆれ〕'));
+      const drawn = component.escapeHtmlAndRuby('なんだって！？ 〔叫び・ゆれ〕');
+      expect(drawn).toContain('なんだって！？');
+      expect(drawn).not.toContain('叫び');
+    });
+
+    it('leaves a bracket it cannot read alone', () => {
+      fixture.componentRef.setInput('chatMessage', spoken('メモ 〔重要〕'));
+      expect(component.escapeHtmlAndRuby('メモ 〔重要〕')).toContain('重要');
+    });
+
+    it('offers the body alone for editing', () => {
+      const message = spoken('なんだって！？ 〔叫び〕');
+      fixture.componentRef.setInput('chatMessage', message);
+      component.startEdit();
+      expect(component.editDraft()).toBe('なんだって！？');
+    });
+
+    it('moves an older line staging beside it when the body is edited', () => {
+      const message = spoken('なんだって！？ 〔叫び・ゆれ〕');
+      fixture.componentRef.setInput('chatMessage', message);
+      component.startEdit();
+      component.editDraft.set('やっぱりなんでもない');
+      component.saveEdit();
+
+      expect(message.text).toBe('やっぱりなんでもない');
+      expect(message.vnEmote).toBe('shape:shout bubble:shake');
+    });
+
+    it('does not invent a staging for a line that never had one', () => {
+      const message = spoken('こんばんは');
+      fixture.componentRef.setInput('chatMessage', message);
+      component.startEdit();
+      component.editDraft.set('こんにちは');
+      component.saveEdit();
+
+      expect(message.text).toBe('こんにちは');
+      expect(message.vnEmote).toBe('');
+    });
+  });
 });

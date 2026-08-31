@@ -19,15 +19,16 @@ import { ObjectChangeService } from '@axe/application/sync/object-change.service
 import { ChatMessage } from '@axe/domain/chat/chat-message';
 import {
   buildLegacyVnEmoteSuffix,
-  parseLegacyVnEmoteSuffix,
-  splitLegacyVnEmoteSuffix,
+  encodeVnEmote,
   VN_BUBBLE_ANIMATIONS,
   VN_BUBBLE_SHAPES,
   VN_EMOTION_MARK_CHARS,
   VN_EMOTION_MARKS,
   VN_PORTRAIT_EMOTES,
+  vnBodyOf,
   VnBubbleAnimation,
   VnBubbleShape,
+  vnEmoteOf,
   VnEmotionMark,
   VnMessageKind,
   VnPortraitEmote,
@@ -98,7 +99,9 @@ export class VisualNovelBacklogComponent {
     this.objectChange.fileVersion();
     this.language.currentLang();
     return this.playback.messages().map((message, index) => {
-      const { text, suffix } = splitLegacyVnEmoteSuffix(readableMessageText(message, this.translate));
+      const readable = readableMessageText(message, this.translate);
+      const text = vnBodyOf(message.vnEmote, readable);
+      const suffix = buildLegacyVnEmoteSuffix(vnEmoteOf(message.vnEmote, readable)).trim();
       const hasPortrait = !message.isSystemMessage && !message.isDicebot;
       return {
         message,
@@ -177,8 +180,9 @@ export class VisualNovelBacklogComponent {
 
   startEditEntry(entry: { message: ChatMessage; index: number }): void {
     if (!entry.message.changeable) return;
-    const parsed = parseLegacyVnEmoteSuffix(entry.message.text ?? '');
-    this.editText.set(parsed.text);
+    const raw = entry.message.text ?? '';
+    const parsed = vnEmoteOf(entry.message.vnEmote, raw);
+    this.editText.set(vnBodyOf(entry.message.vnEmote, raw));
     this.editKind.set(parsed.kind);
     this.editShape.set(parsed.shape);
     this.editBubbleAnimation.set(parsed.bubbleAnimation);
@@ -203,19 +207,18 @@ export class VisualNovelBacklogComponent {
     }
     const text = this.editText().trim();
     if (text.length < 1) return;
-    const next =
-      text +
-      buildLegacyVnEmoteSuffix({
-        kind: this.editKind(),
-        shape: this.editShape(),
-        bubbleAnimation: this.editBubbleAnimation(),
-        portraitEmote: this.editPortraitEmote(),
-        emotionMark: this.editEmotionMark(),
-        flipped: this.editFlipped(),
-        exited: this.editExited(),
-      });
-    if (message.text !== next) {
-      message.text = next;
+    const emote = encodeVnEmote({
+      kind: this.editKind(),
+      shape: this.editShape(),
+      bubbleAnimation: this.editBubbleAnimation(),
+      portraitEmote: this.editPortraitEmote(),
+      emotionMark: this.editEmotionMark(),
+      flipped: this.editFlipped(),
+      exited: this.editExited(),
+    });
+    if (message.text !== text || message.vnEmote !== emote) {
+      message.text = text;
+      message.vnEmote = emote;
       message.fixd = true;
     }
     if (message.vnPortraitPos !== this.editSlot()) {

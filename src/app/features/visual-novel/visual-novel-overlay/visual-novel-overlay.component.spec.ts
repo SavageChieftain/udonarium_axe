@@ -232,7 +232,12 @@ describe('VisualNovelOverlayComponent', () => {
       undefined,
       0,
       expect.any(String),
-      [{ text: 'やあ', object: null }]
+      [{ text: 'やあ', object: null }],
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      ''
     );
     expect(component.text()).toBe('');
   });
@@ -447,7 +452,7 @@ describe('VisualNovelOverlayComponent', () => {
     expect(component.currentIndex()).toBe(0);
   });
 
-  it('adds the chosen expression to the end of the line and keeps it chosen', async () => {
+  it('sends the chosen expression beside the line and keeps it chosen', async () => {
     createComponent();
     const chatMessageService = TestBed.inject(ChatMessageService);
     const sendSpy = vi.spyOn(chatMessageService, 'sendMessage').mockReturnValue(null as unknown as ChatMessage);
@@ -460,7 +465,8 @@ describe('VisualNovelOverlayComponent', () => {
     component.send();
     await vi.waitFor(() => expect(sendSpy).toHaveBeenCalled(), { timeout: 5000 });
 
-    expect(sendSpy.mock.calls[0][1]).toBe('なんだって！？ 〔叫び・ゆれ・ジャンプ〕');
+    expect(sendSpy.mock.calls[0][1]).toBe('なんだって！？');
+    expect(sendSpy.mock.calls[0][12]).toBe('shape:shout bubble:shake portrait:jump');
     expect(component.selectedShape()).toBe('shout');
     expect(component.selectedBubbleAnimation()).toBe('shake');
     expect(component.selectedPortraitEmote()).toBe('jump');
@@ -478,8 +484,10 @@ describe('VisualNovelOverlayComponent', () => {
     component.text.set('一行は森の奥へ進んだ。');
     component.send();
     await vi.waitFor(() => expect(sendSpy).toHaveBeenCalled(), { timeout: 5000 });
-    expect(sendSpy.mock.calls[0][1]).toBe('一行は森の奥へ進んだ。 〔地の文〕');
+    expect(sendSpy.mock.calls[0][1]).toBe('一行は森の奥へ進んだ。');
+    expect(sendSpy.mock.calls[0][12]).toBe('kind:narration');
 
+    // A line said before the staging was kept apart still reads the same way.
     addMessage('一行は森の奥へ進んだ。 〔地の文〕');
     fixture.detectChanges();
     expect(component.narrationKind()).toBe('narration');
@@ -1121,7 +1129,8 @@ describe('VisualNovelOverlayComponent', () => {
     component.text.set('ふりかえる');
     component.send();
     await vi.waitFor(() => expect(sendSpy).toHaveBeenCalled(), { timeout: 5000 });
-    expect(sendSpy.mock.calls[0][1]).toBe('ふりかえる 〔反転〕');
+    expect(sendSpy.mock.calls[0][1]).toBe('ふりかえる');
+    expect(sendSpy.mock.calls[0][12]).toBe('flip');
     character.destroy();
   });
 

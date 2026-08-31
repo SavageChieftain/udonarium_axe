@@ -57,7 +57,7 @@ test.describe('ビジュアルノベルモード', () => {
     await expect(input).toBeFocused();
   });
 
-  test('感情表現つきの発言はチャット末尾にサフィックスが付き、VN表示では本文のみになること', async ({ page }) => {
+  test('感情表現つきの発言でもチャット・VN表示とも本文のみになること', async ({ page }) => {
     await page.locator('visual-novel-overlay button[title="演出"]').click();
     await page.locator('visual-novel-overlay button', { hasText: '叫び' }).click();
     await page.locator('visual-novel-overlay button', { hasText: 'ゆれ' }).click();
@@ -67,9 +67,8 @@ test.describe('ビジュアルノベルモード', () => {
     await input.fill('なんだって！？');
     await input.press('Enter');
 
-    await expect(page.locator('chat-message').last()).toContainText('なんだって！？ 〔叫び・ゆれ〕', {
-      timeout: 15000,
-    });
+    await expect(page.locator('chat-message').last()).toContainText('なんだって！？', { timeout: 15000 });
+    await expect(page.locator('chat-message').last()).not.toContainText('〔');
     await expect(page.locator('visual-novel-overlay')).toContainText('なんだって！？', { timeout: 15000 });
 
     await page.locator('visual-novel-overlay button[title="演出"]').click();
@@ -154,7 +153,8 @@ test.describe('ビジュアルノベルモード', () => {
     await expect(page.locator('visual-novel-overlay .vn-enter-narration')).toContainText('一行は深い森へと', {
       timeout: 15000,
     });
-    await expect(page.locator('chat-message').last()).toContainText('〔地の文〕');
+    await expect(page.locator('chat-message').last()).toContainText('一行は深い森へと足を踏み入れた。');
+    await expect(page.locator('chat-message').last()).not.toContainText('〔');
 
     await page.locator('visual-novel-overlay button[title="演出"]').click();
     await page.locator('visual-novel-overlay button', { hasText: 'ロケーション' }).click();
@@ -184,7 +184,8 @@ test.describe('ビジュアルノベルモード', () => {
 
     await expect(row).toContainText('編集後の発言');
     await expect(row).toContainText('〔もやもや〕');
-    await expect(page.locator('chat-message').last()).toContainText('編集後の発言 〔もやもや〕');
+    await expect(page.locator('chat-message').last()).toContainText('編集後の発言');
+    await expect(page.locator('chat-message').last()).not.toContainText('〔');
   });
 
   test('ログパネルをドラッグで移動できること', async ({ page }) => {
@@ -233,7 +234,7 @@ test.describe('ビジュアルノベルモード', () => {
     await input.fill('では、またな');
     await input.press('Enter');
 
-    await expect(page.locator('chat-message').last()).toContainText('〔退場〕', { timeout: 15000 });
+    await expect(page.locator('chat-message').last()).toContainText('では、またな', { timeout: 15000 });
     await expect(page.locator('visual-novel-overlay img[alt="モンスターA"]')).toHaveCount(0);
   });
 
@@ -281,7 +282,7 @@ test.describe('ビジュアルノベルモード', () => {
 
     await input.fill('ふりむく');
     await input.press('Enter');
-    await expect(page.locator('chat-message').last()).toContainText('〔反転〕', { timeout: 15000 });
+    await expect(page.locator('chat-message').last()).toContainText('ふりむく', { timeout: 15000 });
     await expect(portrait).toHaveClass(/-scale-x-100/);
 
     await page.locator('visual-novel-overlay button[title="前のメッセージ"]').click();

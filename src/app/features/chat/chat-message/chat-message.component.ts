@@ -31,6 +31,7 @@ import { canRoleSpeakTab } from '@axe/domain/chat/chat-tab-permission';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { TextNote } from '@axe/domain/tabletop/text-note';
+import { encodeVnEmote, vnBodyOf, vnEmoteOf } from '@axe/domain/visual-novel/vn-emote';
 import { SystemAvatarMenuService } from '@axe/features/chat/system-avatar-menu.service';
 import { ChatColorStylePipe } from '@axe/ui/pipes/chat-color-style.pipe';
 import { LinkifyPipe } from '@axe/ui/pipes/linkify.pipe';
@@ -201,7 +202,7 @@ export class ChatMessageComponent {
 
   startEdit() {
     if (!this.chatMessage.changeable) return;
-    this.editDraft.set(this.chatMessage.text ?? '');
+    this.editDraft.set(vnBodyOf(this.chatMessage.vnEmote, this.chatMessage.text ?? ''));
     setTimeout(() => {
       const el = this.editingTextArea()?.nativeElement;
       if (el) {
@@ -220,8 +221,12 @@ export class ChatMessageComponent {
       this.cancelEdit();
       return;
     }
-    if (this.chatMessage.text !== next) {
+    // A line said before the staging was kept apart still carries it at the end. Editing the
+    // body would take it away with the rest of the suffix, so it moves beside the line first.
+    const staging = encodeVnEmote(vnEmoteOf(this.chatMessage.vnEmote, this.chatMessage.text ?? ''));
+    if (this.chatMessage.text !== next || this.chatMessage.vnEmote !== staging) {
       this.chatMessage.text = next;
+      if (staging.length > 0) this.chatMessage.vnEmote = staging;
       this.chatMessage.fixd = true;
     }
     this.editDraft.set(null);
@@ -261,7 +266,9 @@ export class ChatMessageComponent {
     this.objectChange.versionOf(msg.replyTo)();
     const target = msg.replyToMessage;
     if (!target) return null;
-    const text = (target.text ?? '').replace(/\s+/g, ' ').trim();
+    const text = vnBodyOf(target.vnEmote, target.text ?? '')
+      .replace(/\s+/g, ' ')
+      .trim();
     return {
       name: target.name ?? '',
       text: text.length > 120 ? text.slice(0, 120) + '…' : text,
@@ -275,7 +282,7 @@ export class ChatMessageComponent {
     this.objectChange.versionOf(msg.quoteOf)();
     const target = this.objectStore.get<ChatMessage>(msg.quoteOf);
     if (!(target instanceof ChatMessage)) return null;
-    const text = (target.text ?? '').trim();
+    const text = vnBodyOf(target.vnEmote, target.text ?? '').trim();
     return {
       name: target.name ?? '',
       text: text.length > 280 ? text.slice(0, 280) + '…' : text,
@@ -430,6 +437,6 @@ export class ChatMessageComponent {
     this.language.currentLang();
     this.objectChange.versionOf(this.chatMessage?.identifier)();
     const decoded = this.isSystemMessage ? decodeI18nMessage(text, this.t) : text;
-    return decorateChatStyleText(decoded);
+    return decorateChatStyleText(vnBodyOf(this.chatMessage?.vnEmote, decoded));
   }
 }

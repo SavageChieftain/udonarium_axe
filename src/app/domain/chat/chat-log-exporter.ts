@@ -1,6 +1,7 @@
 import type { ImageFile } from '@axe/core/storage/image-file';
 import type { ChatMessage } from '@axe/domain/chat/chat-message';
 import type { ChatTab } from '@axe/domain/chat/chat-tab';
+import { vnBodyOf } from '@axe/domain/visual-novel/vn-emote';
 
 export type ChatLogImageSrcResolver = (image: ImageFile) => string;
 /** @deprecated Use {@link ChatLogImageSrcResolver}. Kept as alias for backward compatibility. */
@@ -82,7 +83,7 @@ export class ChatLogExporter {
     const canSee = userId != null ? message.isSentBy(userId) : message.isSendFromSelf;
     str += '：';
     if (!message.isSecret || canSee) {
-      const decodedText = ChatLogExporter.decode(message.text, textDecoder);
+      const decodedText = vnBodyOf(message.vnEmote, ChatLogExporter.decode(message.text, textDecoder));
       if (decodedText) str += ChatLogExporter.escapeHtml(decodedText).replace(/\n/g, '<br>');
       str += ChatLogExporter.formatAttachmentImages(message, imageSrcResolver);
     } else {
@@ -115,7 +116,7 @@ export class ChatLogExporter {
 
     const canSee = userId != null ? message.isSentBy(userId) : message.isSendFromSelf;
     if (!message.isSecret || canSee) {
-      const decodedText = ChatLogExporter.decode(message.text, textDecoder);
+      const decodedText = vnBodyOf(message.vnEmote, ChatLogExporter.decode(message.text, textDecoder));
       if (decodedText) str += ChatLogExporter.escapeHtml(decodedText).replace(/\n/g, '<br>').replace(/→/g, '＞');
       str += ChatLogExporter.formatAttachmentImages(message, imageSrcResolver);
     } else {
@@ -341,7 +342,9 @@ export class ChatLogExporter {
   }): string {
     const { label, icon, target, maxTextLength, textDecoder } = opts;
     const rawName = ChatLogExporter.decode(target.name, textDecoder);
-    const rawText = ChatLogExporter.decode(target.text, textDecoder).replace(/\s+/g, ' ').trim();
+    const rawText = vnBodyOf(target.vnEmote, ChatLogExporter.decode(target.text, textDecoder))
+      .replace(/\s+/g, ' ')
+      .trim();
     const truncated = rawText.length > maxTextLength ? rawText.slice(0, maxTextLength) + '…' : rawText;
     const name = ChatLogExporter.escapeHtml(rawName || label);
     const text = ChatLogExporter.escapeHtml(truncated);

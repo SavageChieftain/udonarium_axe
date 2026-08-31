@@ -33,6 +33,7 @@ describe('copiedMessageContext()', () => {
     message.messBubbleLight = '#fff';
     message.messBubbleDark = '#000';
     message.sendFrom = 'character-1';
+    message.vnEmote = 'shape:shout bubble:shake';
 
     expect(copiedMessageContext(message, 4200)).toEqual({
       originFrom: 'user-1',
@@ -46,6 +47,7 @@ describe('copiedMessageContext()', () => {
       imageIdentifier: 'portrait-1',
       attachmentImageIdentifiers: 'shot-1 shot-2',
       imagePos: 3,
+      vnEmote: 'shape:shout bubble:shake',
       messColor: '#ff0000',
       messBubbleLight: '#fff',
       messBubbleDark: '#000',

@@ -104,7 +104,9 @@ describe('VisualNovelBacklogComponent', () => {
     component.saveEditEntry();
 
     const message = TestBed.inject(VisualNovelPlaybackService).messages()[0];
-    expect(message.text).toBe('こんばんは 〔もやもや〕');
+    // Editing a line said before the staging was kept apart moves it out of the body.
+    expect(message.text).toBe('こんばんは');
+    expect(message.vnEmote).toBe('shape:thought');
     expect(message.vnPortraitPos).toBe(7);
     expect(message.imagePos).toBe(2);
     expect(message.fixd).toBe(true);
