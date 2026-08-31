@@ -444,11 +444,11 @@ test.describe('ビジュアルノベルモード', () => {
     await expect(page.locator('.vn-auto-badge')).toHaveCount(0);
   });
 
-  test('GM は天の声としてノベルモードから発言できること', async ({ page }) => {
+  test('GM はノベルモードから本人名義でも発言できること', async ({ page }) => {
     await expect(page.locator('visual-novel-overlay')).toContainText('モンスターA');
     await page.locator('peer-menu').getByRole('button', { name: 'GM', exact: true }).click();
 
-    await selectVnSpeaker(page, '天の声（GM）');
+    await selectVnSpeaker(page, 'プレイヤー（あなた）');
     const input = vnMessageInput(page);
     await input.fill('では、判定をどうぞ');
     await input.press('Enter');

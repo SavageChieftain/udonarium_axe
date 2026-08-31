@@ -450,7 +450,8 @@ export class VisualNovelOverlayComponent {
       };
     }
     // What the game master says as themselves is addressed to the table rather than spoken in
-    // the scene, so it is given the place the room's own notices get, under their own picture.
+    // the scene, so it is given the place the room's own notices get, under their own picture
+    // rather than in a balloon over a portrait they are not standing behind.
     if (this.playback.currentSpeakerKind() === 'gameMaster' && this.currentEmote().kind === 'normal') {
       return {
         kind: 'system' as SystemAvatarKind,
@@ -591,9 +592,9 @@ export class VisualNovelOverlayComponent {
    * Who a line can be sent as.
    *
    * Characters only, for anybody at the table: novel mode plays a scene, and somebody's own
-   * name has no part in one. The game master is the exception. What they say as themselves is
-   * the word from above that the table already reads at the top of the screen, and until now
-   * the only way to send one was to leave novel mode and use the chat window.
+   * name has no part in one. The game master is the exception, since running the table means
+   * saying things as themselves, and until now that meant leaving novel mode for the chat
+   * window and coming back.
    */
   readonly speakerOptions = computed<{ identifier: string; name: string }[]>(() => {
     const characters = this.gameCharacters();
@@ -603,7 +604,7 @@ export class VisualNovelOverlayComponent {
     const options = cast.map((character) => ({ identifier: character.identifier, name: character.name }));
     const cursor = PeerCursor.myCursor;
     if (this.isGameMaster() && cursor) {
-      options.unshift({ identifier: cursor.identifier, name: this.t('feature.visualNovel.voiceFromAbove') });
+      options.unshift({ identifier: cursor.identifier, name: cursor.name + this.t('feature.chat.input.you') });
     }
     return options;
   });
