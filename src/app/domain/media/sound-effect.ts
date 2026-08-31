@@ -19,6 +19,12 @@ export class PresetSound {
   static healSmall: string = '';
   static healMedium: string = '';
   static healLarge: string = '';
+  static mechDamageSmall: string = '';
+  static mechDamageMedium: string = '';
+  static mechDamageLarge: string = '';
+  static mechHealSmall: string = '';
+  static mechHealMedium: string = '';
+  static mechHealLarge: string = '';
   static cardDraw: string = '';
   static cardPick: string = '';
   static cardPut: string = '';
