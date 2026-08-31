@@ -25,6 +25,71 @@ describe('UIPanelComponent', () => {
     expect(component).toBeTruthy();
   });
 
+  describe('the buttons the content puts in the bar', () => {
+    function controls(): HTMLButtonElement[] {
+      return [...fixture.nativeElement.querySelectorAll('.material-icons')]
+        .filter((icon) => icon.textContent === 'inventory')
+        .map((icon) => icon.closest('button') as HTMLButtonElement);
+    }
+
+    it('draws one for each the content asked for, and presses it', () => {
+      const press = vi.fn();
+      component.panelService.headerControls.set([{ icon: 'inventory', label: '荷物', active: false, press }]);
+      fixture.detectChanges();
+
+      expect(controls()).toHaveLength(1);
+      expect(controls()[0].title).toBe('荷物');
+
+      controls()[0].click();
+
+      expect(press).toHaveBeenCalled();
+    });
+
+    it('shows which of them is on', () => {
+      component.panelService.headerControls.set([
+        { icon: 'inventory', label: '荷物', active: true, press: () => undefined },
+      ]);
+      fixture.detectChanges();
+
+      expect(controls()[0].getAttribute('aria-pressed')).toBe('true');
+    });
+  });
+
+  describe('a panel with its box taken off', () => {
+    function panel(): HTMLElement {
+      return fixture.nativeElement.querySelector('.draggable-panel');
+    }
+
+    function titleBar(): HTMLElement {
+      return panel().firstElementChild as HTMLElement;
+    }
+
+    it('keeps its ground until it is asked to go', () => {
+      fixture.detectChanges();
+
+      expect(component.unboxed).toBe(false);
+      expect(titleBar().style.background).toBe('');
+    });
+
+    it('drops the ground under itself and under its bar', () => {
+      component.panelService.isGhost.set(true);
+      fixture.detectChanges();
+
+      expect(component.unboxed).toBe(true);
+      expect(panel().classList.contains('bg-transparent!')).toBe(true);
+      expect(titleBar().style.background).toBe('transparent');
+    });
+
+    it('leaves the buttons to be found, since nothing else is left to take hold of', () => {
+      component.panelService.isGhost.set(true);
+      fixture.detectChanges();
+
+      const buttons = fixture.nativeElement.querySelectorAll('button');
+      expect(buttons.length).toBeGreaterThan(0);
+      expect((buttons[0].parentElement as HTMLElement).className).toContain('bg-black/60');
+    });
+  });
+
   describe('the bar that fades a panel', () => {
     const STORAGE_KEY = 'ui-panel-transparency';
 

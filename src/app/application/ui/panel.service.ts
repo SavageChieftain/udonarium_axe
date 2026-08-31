@@ -14,6 +14,21 @@ function panelKindOf(childComponent: Type<unknown>): string {
   return selector && selector.length > 0 ? selector : '';
 }
 
+/**
+ * A button the panel's content asks to stand in the title bar.
+ *
+ * A panel of any kind wears the same frame, so what a particular one offers - following the
+ * newest line, taking the box off - has nowhere of its own to sit. The content hands these
+ * over and the frame draws them beside its own.
+ */
+export interface PanelHeaderControl {
+  /** The material icon drawn on it. */
+  icon: string;
+  label: string;
+  active: boolean;
+  press: () => void;
+}
+
 export interface PanelOption {
   title?: string;
   left?: number;
@@ -90,6 +105,14 @@ export class PanelService {
   minimizeToContent: boolean = false;
   frameless: boolean = false;
   readonly isMinimized = signal(false);
+  /** Buttons the content put in the title bar, beside the ones every panel wears. */
+  readonly headerControls = signal<readonly PanelHeaderControl[]>([]);
+  /**
+   * Standing with its box taken off: no ground, no frame, no title, only what it holds.
+   *
+   * The buttons are drawn to stand out instead, since they are all that is left to work it by.
+   */
+  readonly isGhost = signal(false);
   /** What kind of panel this is, taken from the selector of what it was opened with. */
   readonly panelKind = signal('');
   chatTab: ChatTab | null = null;

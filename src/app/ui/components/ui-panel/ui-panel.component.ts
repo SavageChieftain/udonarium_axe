@@ -191,9 +191,14 @@ export class UIPanelComponent {
     return this.panelService.frameless;
   }
 
-  /** Wearing no box of its own: either shrunk to its content, or asked to play without a frame. */
+  /** Wearing no box of its own: shrunk to its content, asked to play without a frame, or gone ghost. */
   get unboxed(): boolean {
-    return this.contentMinimized || this.frameless;
+    return this.contentMinimized || this.frameless || this.panelService.isGhost();
+  }
+
+  /** A ghost keeps its buttons: they are the only thing left to take hold of it by. */
+  get isGhost(): boolean {
+    return this.panelService.isGhost();
   }
 
   get showsTitleBar(): boolean {
