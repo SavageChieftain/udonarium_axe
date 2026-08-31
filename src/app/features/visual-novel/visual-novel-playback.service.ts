@@ -9,7 +9,7 @@ import { ChatTab } from '@axe/domain/chat/chat-tab';
 import { ChatTabList } from '@axe/domain/chat/chat-tab-list';
 import { canRoleViewTab } from '@axe/domain/chat/chat-tab-permission';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
-import { parseVnEmote } from '@axe/features/visual-novel/visual-novel-emote';
+import { parseLegacyVnEmoteSuffix } from '@axe/domain/visual-novel/vn-emote';
 import { readableMessageText } from '@axe/features/visual-novel/visual-novel-message';
 import {
   VisualNovelSettingsService,
@@ -76,7 +76,7 @@ export class VisualNovelPlaybackService {
   readonly currentEmote = computed(() => {
     this.renderVersion();
     this.language.currentLang();
-    return parseVnEmote(readableMessageText(this.currentMessage(), this.translate));
+    return parseLegacyVnEmoteSuffix(readableMessageText(this.currentMessage(), this.translate));
   });
 
   readonly currentFullText = computed(() => this.currentEmote().text);
@@ -301,7 +301,7 @@ export class VisualNovelPlaybackService {
 
   private restartTypewriter(message: ChatMessage | null): void {
     this.stopTypewriter();
-    const parsed = parseVnEmote(readableMessageText(message, this.translate));
+    const parsed = parseLegacyVnEmoteSuffix(readableMessageText(message, this.translate));
     const total = toGraphemes(parsed.text).length;
     const interval = VN_TYPEWRITER_INTERVAL_MS[this.settings.typewriterSpeed()];
     const isDiceCommand = this.currentIsDiceCommand();

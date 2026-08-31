@@ -1,4 +1,4 @@
-import { VN_EMOTE_DEFAULT, VnEmote, VnMessageKind } from '@axe/features/visual-novel/visual-novel-emote';
+import { VN_EMOTE_DEFAULT, VnEmote, VnMessageKind } from '@axe/domain/visual-novel/vn-emote';
 import {
   buildVnStage,
   leftOfSlot,

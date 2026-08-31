@@ -1,5 +1,5 @@
+import { VnEmote } from '@axe/domain/visual-novel/vn-emote';
 import { toPortraitSlot } from '@axe/domain/visual-novel/vn-portrait-position';
-import { VnEmote } from '@axe/features/visual-novel/visual-novel-emote';
 
 export const VN_STAGE_SLOT_COUNT = 12;
 export const VN_STAGE_MAX = 6;

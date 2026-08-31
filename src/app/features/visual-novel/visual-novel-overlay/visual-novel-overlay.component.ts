@@ -31,6 +31,21 @@ import { AudioTag } from '@axe/domain/media/audio-tag';
 import { Jukebox } from '@axe/domain/media/jukebox';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import {
+  buildLegacyVnEmoteSuffix,
+  parseLegacyVnEmoteSuffix,
+  VN_BUBBLE_ANIMATIONS,
+  VN_BUBBLE_SHAPES,
+  VN_EMOTION_MARK_CHARS,
+  VN_EMOTION_MARKS,
+  VN_MESSAGE_KINDS,
+  VN_PORTRAIT_EMOTES,
+  VnBubbleAnimation,
+  VnBubbleShape,
+  VnEmotionMark,
+  VnMessageKind,
+  VnPortraitEmote,
+} from '@axe/domain/visual-novel/vn-emote';
+import {
   isVnPortraitPosSet,
   toPortraitSlot,
   VN_PORTRAIT_POS_UNSET,
@@ -45,21 +60,6 @@ import {
 import { SystemAvatarMenuService } from '@axe/features/chat/system-avatar-menu.service';
 import { VisualNovelBacklogComponent } from '@axe/features/visual-novel/visual-novel-backlog/visual-novel-backlog.component';
 import { VisualNovelDirectorService } from '@axe/features/visual-novel/visual-novel-director.service';
-import {
-  buildVnEmoteSuffix,
-  parseVnEmote,
-  VN_BUBBLE_ANIMATIONS,
-  VN_BUBBLE_SHAPES,
-  VN_EMOTION_MARK_CHARS,
-  VN_EMOTION_MARKS,
-  VN_MESSAGE_KINDS,
-  VN_PORTRAIT_EMOTES,
-  VnBubbleAnimation,
-  VnBubbleShape,
-  VnEmotionMark,
-  VnMessageKind,
-  VnPortraitEmote,
-} from '@axe/features/visual-novel/visual-novel-emote';
 import { readableMessageName, readableMessageText } from '@axe/features/visual-novel/visual-novel-message';
 import { VisualNovelModeService } from '@axe/features/visual-novel/visual-novel-mode.service';
 import { VisualNovelPlaybackService } from '@axe/features/visual-novel/visual-novel-playback.service';
@@ -368,7 +368,7 @@ export class VisualNovelOverlayComponent {
   );
 
   readonly selectedEmoteSuffix = computed(() =>
-    buildVnEmoteSuffix({
+    buildLegacyVnEmoteSuffix({
       kind: this.selectedKind(),
       shape: this.selectedShape(),
       bubbleAnimation: this.selectedBubbleAnimation(),
@@ -416,7 +416,7 @@ export class VisualNovelOverlayComponent {
         isDicebot: message.isDicebot,
         isGameCharacter: this.isGameCharacterSender(message.sendFrom ?? ''),
         isDiceCommand: this.playback.isDiceCommandAt(i),
-        emote: parseVnEmote(readableMessageText(message, this.t)),
+        emote: parseLegacyVnEmoteSuffix(readableMessageText(message, this.t)),
       });
     }
     return buildVnStage(
@@ -993,7 +993,7 @@ export class VisualNovelOverlayComponent {
     }
     const outText =
       evaluated +
-      buildVnEmoteSuffix({
+      buildLegacyVnEmoteSuffix({
         kind: this.selectedKind(),
         shape: this.selectedShape(),
         bubbleAnimation: this.selectedBubbleAnimation(),

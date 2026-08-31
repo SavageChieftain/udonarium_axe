@@ -5,8 +5,8 @@ import { ImageStorage } from '@axe/core/storage/image-storage';
 import { ChatTab } from '@axe/domain/chat/chat-tab';
 import { ChatTabList } from '@axe/domain/chat/chat-tab-list';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
+import { VN_MESSAGE_KINDS } from '@axe/domain/visual-novel/vn-emote';
 import { VisualNovelBacklogComponent } from '@axe/features/visual-novel/visual-novel-backlog/visual-novel-backlog.component';
-import { VN_MESSAGE_KINDS } from '@axe/features/visual-novel/visual-novel-emote';
 import { VisualNovelPlaybackService } from '@axe/features/visual-novel/visual-novel-playback.service';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
 

@@ -17,11 +17,10 @@ import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { ImageService } from '@axe/application/storage/image.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { ChatMessage } from '@axe/domain/chat/chat-message';
-import { isVnPortraitPosSet, VN_PORTRAIT_POS_UNSET } from '@axe/domain/visual-novel/vn-portrait-position';
 import {
-  buildVnEmoteSuffix,
-  parseVnEmote,
-  splitVnEmoteSuffix,
+  buildLegacyVnEmoteSuffix,
+  parseLegacyVnEmoteSuffix,
+  splitLegacyVnEmoteSuffix,
   VN_BUBBLE_ANIMATIONS,
   VN_BUBBLE_SHAPES,
   VN_EMOTION_MARK_CHARS,
@@ -32,7 +31,8 @@ import {
   VnEmotionMark,
   VnMessageKind,
   VnPortraitEmote,
-} from '@axe/features/visual-novel/visual-novel-emote';
+} from '@axe/domain/visual-novel/vn-emote';
+import { isVnPortraitPosSet, VN_PORTRAIT_POS_UNSET } from '@axe/domain/visual-novel/vn-portrait-position';
 import { readableMessageName, readableMessageText } from '@axe/features/visual-novel/visual-novel-message';
 import { VisualNovelPlaybackService } from '@axe/features/visual-novel/visual-novel-playback.service';
 import { VN_STAGE_SLOT_COUNT } from '@axe/features/visual-novel/visual-novel-stage';
@@ -98,7 +98,7 @@ export class VisualNovelBacklogComponent {
     this.objectChange.fileVersion();
     this.language.currentLang();
     return this.playback.messages().map((message, index) => {
-      const { text, suffix } = splitVnEmoteSuffix(readableMessageText(message, this.translate));
+      const { text, suffix } = splitLegacyVnEmoteSuffix(readableMessageText(message, this.translate));
       const hasPortrait = !message.isSystemMessage && !message.isDicebot;
       return {
         message,
@@ -177,7 +177,7 @@ export class VisualNovelBacklogComponent {
 
   startEditEntry(entry: { message: ChatMessage; index: number }): void {
     if (!entry.message.changeable) return;
-    const parsed = parseVnEmote(entry.message.text ?? '');
+    const parsed = parseLegacyVnEmoteSuffix(entry.message.text ?? '');
     this.editText.set(parsed.text);
     this.editKind.set(parsed.kind);
     this.editShape.set(parsed.shape);
@@ -205,7 +205,7 @@ export class VisualNovelBacklogComponent {
     if (text.length < 1) return;
     const next =
       text +
-      buildVnEmoteSuffix({
+      buildLegacyVnEmoteSuffix({
         kind: this.editKind(),
         shape: this.editShape(),
         bubbleAnimation: this.editBubbleAnimation(),
