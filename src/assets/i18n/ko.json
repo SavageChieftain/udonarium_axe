@@ -1308,7 +1308,8 @@
         "viewRich": "리치 표시",
         "viewTable": "간략 표시(표)",
         "viewMinimal": "최소 표시",
-        "tableNoColumns": "표시 항목이 비어 있습니다. 표시 설정에서 항목 이름을 넣으면 열이 됩니다"
+        "tableNoColumns": "표시 항목이 비어 있습니다. 표시 설정에서 항목 이름을 넣으면 열이 됩니다",
+        "tableName": "이름"
       }
     },
     "file": {

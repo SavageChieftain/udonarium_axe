@@ -337,46 +337,50 @@
       </div>
     }
 
-    <div class="flex flex-1 flex-col gap-0.5 overflow-y-auto px-1.5 py-1">
-      @let nothingListed = filteredRows().length < 1;
-      @if (nothingListed && (hasQuery() || !showTree())) {
-        <div
-          class="text-ui-dim flex flex-1 flex-col items-center justify-center gap-2 p-6 text-center [&_.material-icons]:text-[36px]! [&_.material-icons]:opacity-40"
-        >
-          <i class="material-icons">{{ hasQuery() ? 'search_off' : 'inbox' }}</i>
-          <p class="m-0 text-[12px]">
-            @if (hasQuery()) {
-              {{ 'feature.inventory.panel.noMatch' | transloco }}
-            } @else {
-              {{ 'feature.inventory.panel.emptyMessage' | transloco: { name: getTabTitle(selectTab()) } }}
-            }
-          </p>
-        </div>
-      } @else if (showTree()) {
-        @for (node of folderTree().roots; track node.path) {
-          <ng-container *ngTemplateOutlet="folderNode; context: { $implicit: node }"></ng-container>
-        }
-        @if (folderTree().loose.length > 0) {
-          <ng-container
-            *ngTemplateOutlet="
-              folderHeading;
-              context: { $implicit: { path: '', name: '', totalCount: folderTree().loose.length } }
-            "
-          ></ng-container>
-          @if (!isFolderCollapsed('')) {
-            <div class="border-ui-border-panel ml-2.5 flex flex-col gap-0.5 border-l border-solid pl-1.5">
-              @for (row of folderTree().loose; track row.identifier) {
-                <ng-container *ngTemplateOutlet="itemRow; context: { $implicit: row.object }"></ng-container>
+    @if (isTableView()) {
+      <ng-container *ngTemplateOutlet="castTable"></ng-container>
+    } @else {
+      <div class="flex flex-1 flex-col gap-0.5 overflow-y-auto px-1.5 py-1">
+        @let nothingListed = filteredRows().length < 1;
+        @if (nothingListed && (hasQuery() || !showTree())) {
+          <div
+            class="text-ui-dim flex flex-1 flex-col items-center justify-center gap-2 p-6 text-center [&_.material-icons]:text-[36px]! [&_.material-icons]:opacity-40"
+          >
+            <i class="material-icons">{{ hasQuery() ? 'search_off' : 'inbox' }}</i>
+            <p class="m-0 text-[12px]">
+              @if (hasQuery()) {
+                {{ 'feature.inventory.panel.noMatch' | transloco }}
+              } @else {
+                {{ 'feature.inventory.panel.emptyMessage' | transloco: { name: getTabTitle(selectTab()) } }}
               }
-            </div>
+            </p>
+          </div>
+        } @else if (showTree()) {
+          @for (node of folderTree().roots; track node.path) {
+            <ng-container *ngTemplateOutlet="folderNode; context: { $implicit: node }"></ng-container>
+          }
+          @if (folderTree().loose.length > 0) {
+            <ng-container
+              *ngTemplateOutlet="
+                folderHeading;
+                context: { $implicit: { path: '', name: '', totalCount: folderTree().loose.length } }
+              "
+            ></ng-container>
+            @if (!isFolderCollapsed('')) {
+              <div class="border-ui-border-panel ml-2.5 flex flex-col gap-0.5 border-l border-solid pl-1.5">
+                @for (row of folderTree().loose; track row.identifier) {
+                  <ng-container *ngTemplateOutlet="itemRow; context: { $implicit: row.object }"></ng-container>
+                }
+              </div>
+            }
+          }
+        } @else {
+          @for (row of filteredRows(); track row.identifier) {
+            <ng-container *ngTemplateOutlet="itemRow; context: { $implicit: row.object }"></ng-container>
           }
         }
-      } @else {
-        @for (row of filteredRows(); track row.identifier) {
-          <ng-container *ngTemplateOutlet="itemRow; context: { $implicit: row.object }"></ng-container>
-        }
-      }
-    </div>
+      </div>
+    }
 
     @if (selectTab() === 'graveyard') {
       <div class="bg-ui-panel border-ui-border-panel shrink-0 border-t border-solid px-2.5 py-2">
@@ -476,6 +480,131 @@
     </div>
   </div>
 }
+
+<ng-template #castTable>
+  @let table = inventoryTable();
+  @if (table.columns.length < 1) {
+    <div class="text-ui-dim flex flex-1 items-center justify-center p-6 text-center text-[12px]">
+      {{ 'feature.inventory.panel.tableNoColumns' | transloco }}
+    </div>
+  } @else {
+    <div class="flex-1 overflow-auto">
+      <div class="min-w-max">
+        <div
+          class="bg-ui-elevated border-ui-border-panel text-ui-muted sticky top-0 z-1 grid items-center gap-x-2 border-b border-solid px-2 py-1 text-[10px] font-semibold"
+          [style.gridTemplateColumns]="tableColumnTemplate()"
+        >
+          <span class="w-3.5"></span>
+          <span></span>
+          <span>{{ 'feature.inventory.panel.tableName' | transloco }}</span>
+          @for (column of table.columns; track column.name) {
+            <span class="flex items-center justify-center gap-0.5 whitespace-nowrap" [title]="column.name">
+              @if (column.ailment) {
+                <span
+                  class="ring-ui-border-panel inline-flex size-3 shrink-0 items-center justify-center rounded-full text-[9px] ring-1"
+                  [style.background]="ailmentSwatch(column)"
+                  >{{ column.ailment.icon }}</span
+                >
+              }
+              {{ column.name }}
+            </span>
+          }
+        </div>
+
+        @for (row of table.rows; track row.object.identifier) {
+          <div
+            data-testid="inventory-table-row"
+            class="hover:bg-ui-hover border-ui-border-panel grid cursor-pointer items-center gap-x-2 border-b border-solid px-2 py-0.5 text-[12px] transition-colors select-none"
+            [style.gridTemplateColumns]="tableColumnTemplate()"
+            [class.bg-ui-accent-bg!]="selectedIdentifier() === row.object.identifier"
+            [class.opacity-50]="isHiddenRowDimmed(row.object)"
+            [class.italic]="isHiddenRowDimmed(row.object)"
+            (contextmenu)="onContextMenu($event, row.object)"
+            (click)="selectGameObject(row.object)"
+            (dblclick)="focusToObject($event, row.object)"
+          >
+            <i
+              class="material-icons text-ui-accent w-3.5 shrink-0 text-[14px]!"
+              [class.invisible]="currentTurnId() !== row.object.identifier"
+              >play_arrow</i
+            >
+            <span
+              class="bg-ui-input border-ui-border-panel flex size-4.5 shrink-0 items-center justify-center overflow-hidden rounded-sm border border-solid"
+            >
+              @if (row.object.imageFile.url) {
+                <img
+                  class="size-full object-cover object-top"
+                  [src]="row.object.imageFile.url | safe: 'resourceUrl'"
+                  draggable="false"
+                  alt=""
+                />
+              }
+            </span>
+            <span class="flex min-w-0 items-center gap-1 truncate font-semibold" [title]="row.object.name">
+              <span class="truncate">{{ row.object.name }}</span>
+              @if (!canView(row.object)) {
+                <i class="material-icons text-ui-dim shrink-0 text-[12px]!">lock</i>
+              }
+            </span>
+
+            @for (cell of row.cells; track $index) {
+              <span class="flex min-w-0 items-center justify-center">
+                @if (!canView(row.object)) {
+                  <span class="text-ui-dim">-</span>
+                } @else {
+                  @switch (cell.kind) {
+                    @case ('ailment') {
+                      @let ailment = table.columns[$index].ailment!;
+                      <input
+                        class="size-3.5 cursor-pointer [accent-color:var(--ui-accent)]"
+                        type="checkbox"
+                        [title]="ailment.effect || ailment.name"
+                        [checked]="isAilmentOn(row.object, ailment)"
+                        (click)="$event.stopPropagation()"
+                        (change)="toggleAilment($event, row.object, ailment)"
+                      />
+                    }
+                    @case ('numberResource') {
+                      <input
+                        class="border-ui-border-panel text-ui-text hover:border-b-ui-accent focus:border-b-ui-accent w-12 [appearance:textfield] rounded-none border-0 border-b border-solid bg-transparent px-0.5 text-right font-[inherit] text-[12px] font-bold outline-none"
+                        type="number"
+                        name="table-current-value"
+                        [style]="'color:' + cell.element!.nowValueColor"
+                        [title]="cell.element!.currentValue + ' / ' + cell.element!.value"
+                        [(ngModel)]="cell.element!.currentValue"
+                        (click)="$event.stopPropagation()"
+                      />
+                    }
+                    @case ('check') {
+                      <input
+                        class="size-3.5 cursor-pointer [accent-color:var(--ui-accent)]"
+                        type="checkbox"
+                        [checked]="cell.element!.isChecked"
+                        (click)="$event.stopPropagation()"
+                        (change)="cell.element!.value = cell.element!.isChecked ? 0 : 1"
+                      />
+                    }
+                    @case ('calc') {
+                      <span class="text-ui-text truncate font-bold">{{ calcText(cell.element!) }}</span>
+                    }
+                    @case ('value') {
+                      <input
+                        class="border-ui-border-panel text-ui-text hover:border-b-ui-accent focus:border-b-ui-accent w-16 min-w-0 rounded-none border-0 border-b border-solid bg-transparent px-0.5 text-right font-[inherit] text-[12px] outline-none"
+                        name="table-value"
+                        [(ngModel)]="cell.element!.value"
+                        (click)="$event.stopPropagation()"
+                      />
+                    }
+                  }
+                }
+              </span>
+            }
+          </div>
+        }
+      </div>
+    </div>
+  }
+</ng-template>
 
 <ng-template #dataElmTag let-dataElm="dataElm">
   @if (dataElm?.name === newLineString) {

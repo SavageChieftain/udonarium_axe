@@ -1,8 +1,11 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { StatusAilmentService } from '@axe/application/character/status-ailment.service';
 import { GameObjectInventoryService } from '@axe/application/inventory/game-object-inventory.service';
+import { PanelService } from '@axe/application/ui/panel.service';
 import { Network } from '@axe/core/index';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { GameCharacter } from '@axe/domain/character/game-character';
+import { StatusAilmentCatalog } from '@axe/domain/character/status-ailment-catalog';
 import { DataSummarySetting } from '@axe/domain/data/data-summary-setting';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { PeerRole } from '@axe/domain/peer/peer-role';
@@ -22,8 +25,15 @@ describe('GameObjectInventoryComponent', () => {
   });
 
   beforeEach(() => {
+    // The way of reading it is remembered per browser, so a spec that changes it would hand the
+    // next one a table where it expects the full picture.
+    localStorage.removeItem('ui-inventory-view');
     fixture = TestBed.createComponent(GameObjectInventoryComponent);
     component = fixture.componentInstance;
+  });
+
+  afterEach(() => {
+    localStorage.removeItem('ui-inventory-view');
   });
 
   it('should create', () => {
@@ -654,6 +664,94 @@ describe('GameObjectInventoryComponent', () => {
 
         expect(component.hiddenDisplay()).toBe('full');
         expect(component.isHiddenRowDimmed(hidden)).toBe(false);
+      });
+    });
+
+    describe('reading the cast as a table', () => {
+      afterEach(() => {
+        TestBed.inject(StatusAilmentService).save([]);
+        (StatusAilmentCatalog as unknown as Record<string, unknown>)['_instance'] = undefined;
+      });
+
+      function tableRows(): HTMLElement[] {
+        return [...fixture.nativeElement.querySelectorAll('[data-testid="inventory-table-row"]')];
+      }
+
+      it('draws one row a piece, with a column for each display item', () => {
+        putOnTable('ゴブリン');
+        putOnTable('オーク');
+        TestBed.inject(GameObjectInventoryService).dataTag = 'HP MP';
+        component.setViewMode('table');
+        fixture.detectChanges();
+
+        expect(component.inventoryTable().columns.map((column) => column.name)).toEqual(['HP', 'MP']);
+        expect(tableRows()).toHaveLength(2);
+      });
+
+      it('says so when there is nothing to make columns of', () => {
+        putOnTable('ゴブリン');
+        TestBed.inject(GameObjectInventoryService).dataTag = '';
+        component.setViewMode('table');
+        fixture.detectChanges();
+
+        expect(tableRows()).toHaveLength(0);
+        expect(fixture.nativeElement.textContent).toContain('表示項目');
+      });
+
+      it('puts a registered state on a piece when its box is ticked', () => {
+        const goblin = putOnTable('ゴブリン');
+        const ailments = TestBed.inject(StatusAilmentService);
+        ailments.save([]);
+        ailments.add('毒');
+        TestBed.inject(GameObjectInventoryService).dataTag = '毒';
+        component.setViewMode('table');
+        fixture.detectChanges();
+
+        const box = tableRows()[0].querySelector('input[type="checkbox"]') as HTMLInputElement;
+        box.checked = true;
+        box.dispatchEvent(new Event('change'));
+
+        expect(ailments.isOn(goblin, '毒')).toBe(true);
+
+        box.checked = false;
+        box.dispatchEvent(new Event('change'));
+
+        expect(ailments.isOn(goblin, '毒')).toBe(false);
+      });
+    });
+
+    describe('the ways of reading it', () => {
+      it('offers all three in the panel bar', () => {
+        fixture.detectChanges();
+
+        expect(
+          TestBed.inject(PanelService)
+            .headerControls()
+            .map((control) => control.icon)
+        ).toEqual(['view_agenda', 'table_rows', 'dashboard']);
+      });
+
+      it('marks the one being read', () => {
+        component.setViewMode('table');
+        fixture.detectChanges();
+
+        expect(
+          TestBed.inject(PanelService)
+            .headerControls()
+            .map((control) => control.active)
+        ).toEqual([false, true, false]);
+      });
+
+      it('asks the frame to shrink rather than shrinking itself', () => {
+        fixture.detectChanges();
+        const asked: boolean[] = [];
+        TestBed.inject(PanelService).minimizeRequest$.subscribe((minimized) => asked.push(minimized));
+
+        component.setViewMode('minimal');
+        component.setViewMode('rich');
+
+        expect(asked).toEqual([true, false]);
+        expect(component.viewMode()).toBe('rich');
       });
     });
 

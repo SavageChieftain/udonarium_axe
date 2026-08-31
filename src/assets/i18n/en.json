@@ -1308,7 +1308,8 @@
         "viewRich": "Full",
         "viewTable": "Table",
         "viewMinimal": "Minimal",
-        "tableNoColumns": "No display items. Name some in the display settings and they become columns"
+        "tableNoColumns": "No display items. Name some in the display settings and they become columns",
+        "tableName": "Name"
       }
     },
     "file": {
