@@ -18,11 +18,13 @@ function emote(overrides: Partial<VnEmote> = {}): VnEmote {
   return { ...VN_EMOTE_DEFAULT, ...overrides };
 }
 
+/** A different name means a different piece unless the caller says otherwise, as in a room. */
 function source(overrides: Partial<VnStageSource> = {}): VnStageSource {
+  const name = overrides.name ?? 'アリス';
   return {
-    name: 'アリス',
+    name,
     timestamp: 0,
-    sendFrom: 'alice',
+    sendFrom: `id-${name}`,
     imageIdentifier: 'image-alice',
     imagePos: 0,
     vnPortraitPos: -1,
@@ -253,6 +255,32 @@ describe('buildVnStage()', () => {
     );
 
     expect(stage.map((chara) => chara.name)).toEqual(['アリス', 'ボブ']);
+  });
+
+  it('stands a character once, whatever name the line was said under', () => {
+    // A whisper is recorded as "speaker > listener", and a piece can be renamed mid-session.
+    const stage = buildVnStage(
+      [
+        source({ name: 'アリス', sendFrom: 'alice', imagePos: 0 }),
+        source({ name: 'アリス > ボブ', sendFrom: 'alice', imagePos: 0 }),
+      ],
+      resolveUrl
+    );
+
+    expect(stage).toHaveLength(1);
+    expect(stage[0].name).toBe('アリス > ボブ');
+  });
+
+  it('tells two pieces of the same name apart', () => {
+    const stage = buildVnStage(
+      [
+        source({ name: 'ゴブリン', sendFrom: 'goblin-1', imagePos: 2 }),
+        source({ name: 'ゴブリン', sendFrom: 'goblin-2', imagePos: 6 }),
+      ],
+      resolveUrl
+    );
+
+    expect(stage.map((chara) => chara.id)).toEqual(['goblin-1', 'goblin-2']);
   });
 
   it('carries a flip onto the portrait', () => {

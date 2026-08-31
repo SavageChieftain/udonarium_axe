@@ -186,7 +186,7 @@
 }
 
 <div class="pointer-events-none absolute inset-x-0 top-[10dvh] bottom-0 overflow-hidden">
-  @for (chara of stageCharacters(); track chara.name) {
+  @for (chara of stageCharacters(); track chara.id) {
     <div
       class="absolute bottom-0 -translate-x-1/2 transition-[left,scale,filter] duration-300"
       [class]="
