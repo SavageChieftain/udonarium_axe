@@ -83,11 +83,17 @@ export class VisualNovelBacklogComponent {
   readonly emotionMarkOptions = VN_EMOTION_MARKS;
   readonly slotIndexes = Array.from({ length: VN_STAGE_SLOT_COUNT }, (_, i) => i);
 
-  readonly currentIndex = this.playback.currentIndex;
+  /**
+   * The line being read, named rather than numbered.
+   *
+   * The log shows more than the script does, so a position in one is not a position in the
+   * other; the identifier means the same thing in both.
+   */
+  readonly currentIdentifier = computed(() => this.playback.currentMessage()?.identifier ?? '');
 
   readonly filter = signal('');
 
-  readonly editingIndex = signal(-1);
+  readonly editingIdentifier = signal('');
   readonly editText = signal('');
   readonly editKind = signal<VnMessageKind>('normal');
   readonly editShape = signal<VnBubbleShape>('normal');
@@ -103,7 +109,7 @@ export class VisualNovelBacklogComponent {
   readonly entries = computed<VnBacklogEntry[]>(() => {
     this.objectChange.fileVersion();
     this.language.currentLang();
-    return this.playback.messages().map((message, index) => {
+    return this.playback.logMessages().map((message, index) => {
       const readable = readableMessageText(message, this.translate);
       const text = vnBodyOf(message.vnEmote, readable);
       const suffix = vnEmoteLabel(vnEmoteOf(message.vnEmote, readable), this.translate);
@@ -135,9 +141,9 @@ export class VisualNovelBacklogComponent {
   });
 
   /** Reading somewhere of one's own is stepping out of the showcase the game master is running. */
-  jumpTo(index: number): void {
+  jumpTo(identifier: string): void {
     this.director.leaveFollowing();
-    this.playback.jumpTo(index);
+    this.playback.jumpToIdentifier(identifier);
   }
 
   toggleOnlyMine(): void {
@@ -149,9 +155,7 @@ export class VisualNovelBacklogComponent {
   }
 
   scrollToCurrent(): void {
-    const list = this.listElement()?.nativeElement;
-    const row = list?.querySelector<HTMLElement>(`[data-vn-log-index="${this.currentIndex()}"]`);
-    row?.scrollIntoView({ block: 'center' });
+    this.rowFor(this.currentIdentifier())?.scrollIntoView({ block: 'center' });
   }
 
   readonly visibleCount = signal(BACKLOG_PAGE_SIZE);
@@ -161,7 +165,7 @@ export class VisualNovelBacklogComponent {
     const count = this.visibleCount();
     if (entries.length <= count) return entries;
     let start = entries.length - count;
-    const position = entries.findIndex((entry) => entry.index === this.currentIndex());
+    const position = entries.findIndex((entry) => entry.message.identifier === this.currentIdentifier());
     if (position >= 0 && position < start) start = position;
     return entries.slice(start);
   });
@@ -176,13 +180,19 @@ export class VisualNovelBacklogComponent {
     effect(() => {
       const list = this.listElement()?.nativeElement;
       if (!list) return;
-      const row = list.querySelector<HTMLElement>(`[data-vn-log-index="${this.currentIndex()}"]`);
+      const row = this.rowFor(this.currentIdentifier());
       if (row) {
         row.scrollIntoView({ block: 'center' });
       } else {
         list.scrollTop = list.scrollHeight;
       }
     });
+  }
+
+  private rowFor(identifier: string): HTMLElement | null {
+    if (identifier.length < 1) return null;
+    const list = this.listElement()?.nativeElement;
+    return list?.querySelector<HTMLElement>(`[data-vn-log-id="${identifier}"]`) ?? null;
   }
 
   emotionMarkLabel(mark: VnEmotionMark): string {
@@ -203,17 +213,17 @@ export class VisualNovelBacklogComponent {
     this.editExited.set(parsed.exited);
     const pos = entry.message.vnPortraitPos;
     this.editSlot.set(isVnPortraitPosSet(pos) ? pos : VN_PORTRAIT_POS_UNSET);
-    this.editingIndex.set(entry.index);
+    this.editingIdentifier.set(entry.message.identifier);
   }
 
   cancelEditEntry(): void {
-    this.editingIndex.set(-1);
+    this.editingIdentifier.set('');
   }
 
   saveEditEntry(): void {
-    const message = this.playback.messages()[this.editingIndex()];
+    const message = this.playback.logMessages().find((candidate) => candidate.identifier === this.editingIdentifier());
     if (!message?.changeable) {
-      this.editingIndex.set(-1);
+      this.editingIdentifier.set('');
       return;
     }
     const text = this.editText().trim();
@@ -235,6 +245,6 @@ export class VisualNovelBacklogComponent {
     if (message.vnPortraitPos !== this.editSlot()) {
       message.vnPortraitPos = this.editSlot();
     }
-    this.editingIndex.set(-1);
+    this.editingIdentifier.set('');
   }
 }

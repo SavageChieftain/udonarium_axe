@@ -108,7 +108,7 @@ describe('VisualNovelBacklogComponent', () => {
     expect(message.vnPortraitPos).toBe(7);
     expect(message.imagePos).toBe(2);
     expect(message.fixd).toBe(true);
-    expect(component.editingIndex()).toBe(-1);
+    expect(component.editingIdentifier()).toBe('');
   });
 
   it('adds and removes a flip', () => {
@@ -131,7 +131,7 @@ describe('VisualNovelBacklogComponent', () => {
     component.editText.set('書き換え');
     component.cancelEditEntry();
 
-    expect(component.editingIndex()).toBe(-1);
+    expect(component.editingIdentifier()).toBe('');
     expect(TestBed.inject(VisualNovelPlaybackService).messages()[0].text).toBe('そのまま');
   });
 
@@ -158,7 +158,7 @@ describe('VisualNovelBacklogComponent', () => {
     playback.toLatest();
     expect(playback.currentIndex()).toBe(1);
 
-    const rows = fixture.nativeElement.querySelectorAll('[data-vn-log-index]');
+    const rows = fixture.nativeElement.querySelectorAll('[data-vn-log-id]');
     rows[0].click();
 
     expect(playback.currentIndex()).toBe(0);

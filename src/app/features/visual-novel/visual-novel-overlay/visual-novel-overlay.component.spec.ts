@@ -123,6 +123,7 @@ describe('VisualNovelOverlayComponent', () => {
     AudioStorage.instance.audios.forEach((a) => AudioStorage.instance.delete(a.identifier));
     ObjectStore.instance.getObjects(AudioTag).forEach((t) => ObjectStore.instance.delete(t, false));
     localStorage.removeItem('vn-settings');
+    PeerCursor.myCursor.role = PeerRole.Player;
     vi.useRealTimers();
     vi.restoreAllMocks();
   });

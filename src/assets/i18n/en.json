@@ -2257,7 +2257,13 @@
         "motion": "Motion",
         "readability": "Readability",
         "background": "Background (GM)",
-        "layout": "Layout"
+        "layout": "Layout",
+        "asides": "Table talk"
+      },
+      "asides": {
+        "skip": "Skip in the scene",
+        "read": "Read it out",
+        "note": "Skips lines written as the person rather than as a character. What the game master says, rolls, and arrivals still show. Nothing is removed from the log."
       },
       "speed": {
         "off": "Off",

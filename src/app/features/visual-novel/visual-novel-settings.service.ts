@@ -37,6 +37,7 @@ interface VnSettingsSnapshot {
   chatTabIdentifier?: unknown;
   readability?: unknown;
   layout?: unknown;
+  readPlayerAsides?: unknown;
 }
 
 function clampSpeed(value: unknown): number {
@@ -63,6 +64,7 @@ export class VisualNovelSettingsService {
   private readonly _chatTabIdentifier = signal('');
   private readonly _readability = signal<VnReadability>(DEFAULT_VN_READABILITY);
   private readonly _layout = signal<VnLayout>('bubble');
+  private readonly _readPlayerAsides = signal(false);
 
   readonly typewriterSpeed = this._typewriterSpeed.asReadonly();
   readonly portraitAnimation = this._portraitAnimation.asReadonly();
@@ -72,6 +74,8 @@ export class VisualNovelSettingsService {
   readonly chatTabIdentifier = this._chatTabIdentifier.asReadonly();
   readonly readability = this._readability.asReadonly();
   readonly layout = this._layout.asReadonly();
+  /** Whether what the people at the table say to each other is read out as part of the scene. */
+  readonly readPlayerAsides = this._readPlayerAsides.asReadonly();
 
   constructor() {
     this.load();
@@ -116,6 +120,11 @@ export class VisualNovelSettingsService {
     this.save();
   }
 
+  setReadPlayerAsides(read: boolean): void {
+    this._readPlayerAsides.set(read);
+    this.save();
+  }
+
   setChatTabIdentifier(identifier: string): void {
     this._chatTabIdentifier.set(identifier);
     this.save();
@@ -138,6 +147,7 @@ export class VisualNovelSettingsService {
     this._chatTabIdentifier.set(typeof snapshot.chatTabIdentifier === 'string' ? snapshot.chatTabIdentifier : '');
     this._readability.set(pickReadability(snapshot.readability));
     this._layout.set(pick(snapshot.layout, VN_LAYOUTS, 'bubble'));
+    this._readPlayerAsides.set(snapshot.readPlayerAsides === true);
   }
 
   private save(): void {
@@ -153,6 +163,7 @@ export class VisualNovelSettingsService {
           chatTabIdentifier: this._chatTabIdentifier(),
           readability: this._readability(),
           layout: this._layout(),
+          readPlayerAsides: this._readPlayerAsides(),
         })
       );
     } catch {

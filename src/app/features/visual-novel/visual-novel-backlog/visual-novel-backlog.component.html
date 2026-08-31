@@ -55,10 +55,10 @@
     @for (entry of windowedEntries(); track entry.message.identifier) {
       <div
         class="group/log rounded-ui hover:bg-ui-hover flex w-full gap-2 px-2.5 py-1.5 text-left transition-colors [contain-intrinsic-size:auto_3rem] [content-visibility:auto]"
-        [class.bg-ui-accent-bg]="entry.index === currentIndex()"
-        [class.cursor-pointer]="editingIndex() !== entry.index"
-        [attr.data-vn-log-index]="entry.index"
-        (click)="editingIndex() === entry.index ? null : jumpTo(entry.index)"
+        [class.bg-ui-accent-bg]="entry.message.identifier === currentIdentifier()"
+        [class.cursor-pointer]="editingIdentifier() !== entry.message.identifier"
+        [attr.data-vn-log-id]="entry.message.identifier"
+        (click)="editingIdentifier() === entry.message.identifier ? null : jumpTo(entry.message.identifier)"
       >
         <span class="rounded-ui-sm bg-ui-elevated size-9 shrink-0 overflow-hidden">
           @if (entry.imageUrl.length > 0) {
@@ -76,7 +76,7 @@
                 entry.suffix
               }}</span>
             }
-            @if (entry.message.changeable && editingIndex() !== entry.index) {
+            @if (entry.message.changeable && editingIdentifier() !== entry.message.identifier) {
               <button
                 type="button"
                 class="text-ui-dim hover:text-ui-accent ml-auto flex shrink-0 cursor-pointer items-center border-0 bg-transparent p-0.5 opacity-0 transition-[color,opacity] group-hover/log:opacity-100 [&_i]:text-[13px]"
@@ -87,7 +87,7 @@
               </button>
             }
           </span>
-          @if (editingIndex() === entry.index) {
+          @if (editingIdentifier() === entry.message.identifier) {
             <span class="flex flex-col gap-1.5 py-1" (click)="$event.stopPropagation()">
               <textarea
                 class="border-ui-accent bg-ui-input text-ui-text rounded-ui-sm focus:border-ui-accent block max-h-40 w-full resize-none border border-solid px-2 py-1 text-[13px] leading-normal outline-none"

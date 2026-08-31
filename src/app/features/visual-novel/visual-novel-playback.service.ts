@@ -4,6 +4,7 @@ import { LanguageService } from '@axe/application/i18n/language.service';
 import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { ObjectStore } from '@axe/core/sync/object-store';
+import { GameCharacter } from '@axe/domain/character/game-character';
 import { ChatMessage } from '@axe/domain/chat/chat-message';
 import { ChatTab } from '@axe/domain/chat/chat-tab';
 import { ChatTabList } from '@axe/domain/chat/chat-tab-list';
@@ -11,6 +12,7 @@ import { canRoleViewTab } from '@axe/domain/chat/chat-tab-permission';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { vnBodyOf, vnEmoteOf } from '@axe/domain/visual-novel/vn-emote';
 import { readableMessageText } from '@axe/features/visual-novel/visual-novel-message';
+import { isPlayerAside, VnLineSpeaker, VnScriptLine } from '@axe/features/visual-novel/visual-novel-script';
 import {
   VisualNovelSettingsService,
   VN_TYPEWRITER_INTERVAL_MS,
@@ -21,6 +23,20 @@ const AUTO_PLAY_BASE_WAIT_MS = 1200;
 const AUTO_PLAY_PER_CHAR_MS = 35;
 const AUTO_PLAY_MAX_WAIT_MS = 4000;
 const SKIP_INTERVAL_MS = 120;
+
+/**
+ * Whether this line is the one a roll was asked for on.
+ *
+ * The result follows immediately, under the same person and the very next timestamp, and a tab
+ * never gives two lines the same one - so nothing can slip between the two and be taken for it.
+ */
+function isDiceCommandAmong(messages: readonly ChatMessage[], index: number): boolean {
+  const message = messages[index];
+  const next = messages[index + 1];
+  if (!message || !next) return false;
+  if (message.isSystemMessage || message.isDicebot) return false;
+  return next.isDicebot && next.timestamp === message.timestamp + 1 && next.originFrom === message.from;
+}
 
 @Injectable({ providedIn: 'root' })
 export class VisualNovelPlaybackService {
@@ -54,12 +70,48 @@ export class VisualNovelPlaybackService {
     return this.objectStore.get<ChatTab>(this._chatTabIdentifier()) ?? null;
   });
 
-  readonly messages = computed(() => {
+  /**
+   * Everything said on this tab that novel mode will own up to, whether or not it reads it out.
+   *
+   * The backlog shows this. The script below is a part of it.
+   */
+  readonly logMessages = computed(() => {
     this.renderVersion();
     const tab = this.chatTab();
     if (!tab) return [] as ChatMessage[];
     return tab.chatMessages.filter((message) => message.isDisplayable && !message.isOutOfStory);
   });
+
+  /** The lines novel mode reads out, one after another. */
+  readonly messages = computed(() => {
+    const log = this.logMessages();
+    if (this.settings.readPlayerAsides()) return log;
+    if (PeerCursor.myCursor) this.objectChange.versionOf(PeerCursor.myCursor.identifier)();
+    this.objectChange.collectionOf(PeerCursor.aliasName)();
+    return log.filter((message, index) => !isPlayerAside(this.scriptLineOf(message, log, index)));
+  });
+
+  private scriptLineOf(message: ChatMessage, log: readonly ChatMessage[], index: number): VnScriptLine {
+    return {
+      isSystemMessage: message.isSystemMessage,
+      isDicebot: message.isDicebot,
+      isDiceCommand: isDiceCommandAmong(log, index),
+      speaker: this.speakerOf(message),
+    };
+  }
+
+  /**
+   * Who a line was spoken as, taken from what the sender chose rather than from who they are.
+   *
+   * A line with nobody recorded on it is left unknown rather than guessed at from the user it
+   * came from: old rooms carry such lines, and they belong to the story as much as any other.
+   */
+  private speakerOf(message: ChatMessage): VnLineSpeaker {
+    const sender = this.objectStore.get(message.sendFrom ?? '');
+    if (sender instanceof GameCharacter) return 'character';
+    if (sender instanceof PeerCursor) return sender.isGameMaster ? 'gameMaster' : 'player';
+    return 'unknown';
+  }
 
   readonly currentIndex = computed(() => {
     const length = this.messages().length;
@@ -239,8 +291,22 @@ export class VisualNovelPlaybackService {
     if (identifier.length < 1) return;
     const messages = this.messages();
     const index = messages.findIndex((message) => message.identifier === identifier);
-    if (index < 0) return;
-    this.cursor.set(index >= messages.length - 1 ? -1 : index);
+    if (index >= 0) {
+      this.cursor.set(index >= messages.length - 1 ? -1 : index);
+      return;
+    }
+    // A line the script passes over can still be picked out of the backlog. Reading resumes at
+    // the nearest line before it that the script does have, which is the scene it was said in.
+    const log = this.logMessages();
+    const logIndex = log.findIndex((message) => message.identifier === identifier);
+    if (logIndex < 0) return;
+    for (let i = logIndex - 1; i >= 0; i--) {
+      const fallback = messages.findIndex((message) => message.identifier === log[i].identifier);
+      if (fallback >= 0) {
+        this.cursor.set(fallback >= messages.length - 1 ? -1 : fallback);
+        return;
+      }
+    }
   }
 
   toggleAutoPlay(): void {
@@ -291,12 +357,7 @@ export class VisualNovelPlaybackService {
   }
 
   isDiceCommandAt(index: number): boolean {
-    const messages = this.messages();
-    const message = messages[index];
-    const next = messages[index + 1];
-    if (!message || !next) return false;
-    if (message.isSystemMessage || message.isDicebot) return false;
-    return next.isDicebot && next.timestamp === message.timestamp + 1 && next.originFrom === message.from;
+    return isDiceCommandAmong(this.messages(), index);
   }
 
   private clearAutoPlayTimer(): void {

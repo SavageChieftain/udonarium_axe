@@ -190,7 +190,7 @@ test.describe('ビジュアルノベルモード', () => {
     await expect(page.locator('visual-novel-overlay')).toContainText('もとの発言', { timeout: 15000 });
 
     await page.locator('visual-novel-overlay button[title="ログ"]').click();
-    const row = page.locator('visual-novel-backlog [data-vn-log-index="0"]');
+    const row = page.locator('visual-novel-backlog [data-vn-log-id]').first();
     await row.hover();
     await row.locator('button[title="編集"]').click();
 
@@ -262,6 +262,27 @@ test.describe('ビジュアルノベルモード', () => {
 
     await expect(page.locator('visual-novel-overlay .vn-enter-scene')).toContainText('〜その夜〜', { timeout: 15000 });
     await expect(page.locator('visual-novel-overlay img[alt="モンスターA"]')).toHaveCount(0);
+  });
+
+  test('プレイヤー本人の発言はノベル本編に出ず、ログには残ること', async ({ page }) => {
+    const input = vnMessageInput(page);
+    await selectVnSpeaker(page, 'モンスターA');
+    await input.fill('舞台の台詞');
+    await input.press('Enter');
+    await expect(page.locator('visual-novel-overlay')).toContainText('舞台の台詞', { timeout: 15000 });
+
+    // ノベルの入力欄はキャラクターとしてしか喋れないので、雑談は通常のチャットから送る。
+    await openPanel(page, 'チャット');
+    const chatInput = page.locator('chat-window textarea').first();
+    await chatInput.fill('ちょっと待ってください');
+    await chatInput.press('Enter');
+    await expect(page.locator('chat-message').last()).toContainText('ちょっと待ってください', { timeout: 15000 });
+
+    await expect(page.locator('visual-novel-overlay')).toContainText('舞台の台詞');
+    await expect(page.locator('visual-novel-overlay')).not.toContainText('ちょっと待ってください');
+
+    await page.locator('visual-novel-overlay button[title="ログ"]').click();
+    await expect(page.locator('visual-novel-backlog')).toContainText('ちょっと待ってください');
   });
 
   test('GM の立ち絵リセットはステージだけを片付け、ノベルの本編には出ないこと', async ({ page }) => {
@@ -469,11 +490,11 @@ test.describe('ビジュアルノベルモード', () => {
 
     const filter = page.locator('visual-novel-backlog input[placeholder="ログを検索…"]');
     await filter.fill('二つ目');
-    await expect(page.locator('visual-novel-backlog [data-vn-log-index]')).toHaveCount(1);
+    await expect(page.locator('visual-novel-backlog [data-vn-log-id]')).toHaveCount(1);
     await filter.fill('');
-    await expect(page.locator('visual-novel-backlog [data-vn-log-index]')).toHaveCount(2);
+    await expect(page.locator('visual-novel-backlog [data-vn-log-id]')).toHaveCount(2);
 
-    await page.locator('visual-novel-backlog [data-vn-log-index]').filter({ hasText: '一つ目' }).click();
+    await page.locator('visual-novel-backlog [data-vn-log-id]').filter({ hasText: '一つ目' }).click();
     await expect(page.locator('visual-novel-overlay')).toContainText('1 / 2');
   });
 });
