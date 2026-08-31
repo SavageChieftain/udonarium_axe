@@ -95,7 +95,10 @@
           (wheel)="switchTabByWheel($event)"
         >
           @for (chatTab of visibleChatTabs(); track trackByChatTab($index, chatTab)) {
-            <label class="relative inline-block flex-none overflow-visible">
+            <label
+              class="relative inline-block flex-none overflow-visible"
+              (contextmenu)="onChatTabContextMenu($event, chatTab)"
+            >
               <input
                 class="peer hidden"
                 name="chat-tab"

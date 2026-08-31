@@ -71,6 +71,19 @@ export class ChatMessageComponent {
   }
 
   protected readonly chatMessageInput = input<ChatMessage>(null!, { alias: 'chatMessage' });
+
+  /**
+   * Whether the line is only to be read.
+   *
+   * A window that shows a tab's lines going past is for following them, not for working on
+   * them, so it offers none of the buttons that hover over a line.
+   */
+  readonly readOnly = input(false);
+
+  /** Whether the pencil is offered on this line. */
+  get canChange(): boolean {
+    return !this.readOnly() && (this.chatMessage?.changeable ?? false);
+  }
   get chatMessage(): ChatMessage {
     return this.chatMessageInput();
   }
@@ -305,6 +318,7 @@ export class ChatMessageComponent {
   /** Whether a message can be replied to, quoted or made into a note. System messages and those addressed to a player are not.
       ダイスボット (`isDicebot`) は対話可能なメッセージとして扱う (System tag は持つが PC に向けた応答なので)。 */
   get canInteract(): boolean {
+    if (this.readOnly()) return false;
     const msg = this.chatMessage;
     if (!msg) return false;
     if (this.isSystemMessage) return false;

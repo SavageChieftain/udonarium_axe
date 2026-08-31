@@ -458,6 +458,23 @@ test.describe('ビジュアルノベルモード', () => {
     await expect(page.locator('chat-message').last()).toContainText('では、判定をどうぞ');
   });
 
+  test('ノベルモードから発言の流れを別窓で開けること', async ({ page }) => {
+    const input = vnMessageInput(page);
+    await selectVnSpeaker(page, 'モンスターA');
+    await input.fill('舞台の台詞');
+    await input.press('Enter');
+    await expect(page.locator('visual-novel-overlay')).toContainText('舞台の台詞', { timeout: 15000 });
+
+    await page.locator('visual-novel-overlay button[title="発言の流れ"]').click();
+
+    const stream = page.locator('chat-stream');
+    await expect(stream).toBeVisible();
+    await expect(stream).toContainText('舞台の台詞');
+
+    await page.locator('visual-novel-overlay button[title="発言の流れ"]').click();
+    await expect(stream).toHaveCount(0);
+  });
+
   test('発言者の選択肢にプレイヤーが含まれないこと', async ({ page }) => {
     const panel = await openVnSpeakerList(page);
     await expect(panel.getByRole('option').first()).toBeVisible();

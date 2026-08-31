@@ -90,7 +90,7 @@
                   >
                 }
               }
-              @if (chatMessage.changeable) {
+              @if (canChange) {
                 <i
                   class="material-icons text-ui-dim hover:text-ui-accent ml-1 cursor-pointer align-middle text-[14px]! opacity-0 transition-opacity duration-150 group-hover/body:opacity-100"
                   [title]="'feature.chat.messageFix.change' | transloco"
@@ -359,7 +359,7 @@
                     >
                   }
                 }
-                @if (chatMessage.changeable) {
+                @if (canChange) {
                   <i
                     class="material-icons text-ui-dim hover:text-ui-accent ml-1 cursor-pointer align-middle text-[14px]! opacity-0 transition-opacity duration-150 group-hover/body:opacity-100"
                     [title]="'feature.chat.messageFix.change' | transloco"

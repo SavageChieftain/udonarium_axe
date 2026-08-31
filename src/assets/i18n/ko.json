@@ -2109,6 +2109,12 @@
         "shareAsMemo": "공유 메모로 보내기",
         "copyToTab": "다른 탭으로 복사"
       },
+      "stream": {
+        "title": "발언의 흐름",
+        "open": "「{{name}}」을 별창으로 흘리기",
+        "close": "별창 닫기",
+        "gone": "이 탭은 사라졌습니다"
+      },
       "palette": {
         "panelTitle": "채팅 팔레트",
         "panelTitleWith": "{{name}}의 채팅 팔레트",

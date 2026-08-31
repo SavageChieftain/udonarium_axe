@@ -631,6 +631,16 @@
         >
           <i class="material-icons">tune</i>
         </button>
+        <button
+          type="button"
+          class="text-ui-dim hover:text-ui-accent hover:bg-ui-accent-bg rounded-ui flex size-8 cursor-pointer items-center justify-center border-0 bg-transparent transition-[color,background] [&_i]:text-[18px]"
+          [class.text-ui-accent]="isChatStreamOpen()"
+          [title]="'feature.chat.stream.title' | transloco"
+          [attr.aria-label]="'feature.chat.stream.title' | transloco"
+          (click)="toggleChatStream()"
+        >
+          <i class="material-icons">forum</i>
+        </button>
         @if (scene.canDirect()) {
           <button
             type="button"

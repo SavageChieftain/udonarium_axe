@@ -2109,6 +2109,12 @@
         "shareAsMemo": "共有メモにする",
         "copyToTab": "別のタブにコピー"
       },
+      "stream": {
+        "title": "発言の流れ",
+        "open": "「{{name}}」を別窓で流す",
+        "close": "別窓を閉じる",
+        "gone": "このタブは無くなりました"
+      },
       "palette": {
         "panelTitle": "チャットパレット",
         "panelTitleWith": "{{name}} のチャットパレット",

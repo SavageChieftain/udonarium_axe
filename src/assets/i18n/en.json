@@ -2109,6 +2109,12 @@
         "shareAsMemo": "Send to shared memo",
         "copyToTab": "Copy to another tab"
       },
+      "stream": {
+        "title": "Message stream",
+        "open": "Watch \"{{name}}\" in its own window",
+        "close": "Close that window",
+        "gone": "This tab is gone"
+      },
       "palette": {
         "panelTitle": "Chat palette",
         "panelTitleWith": "{{name}} chat palette",

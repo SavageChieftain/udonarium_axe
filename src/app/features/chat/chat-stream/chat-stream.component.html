@@ -1,0 +1,9 @@
+@if (chatTab(); as tab) {
+  <div class="text-ui-text size-full overflow-y-auto overscroll-contain p-1">
+    <chat-tab [chatTab]="tab" [readOnly]="true"></chat-tab>
+  </div>
+} @else {
+  <div class="text-ui-dim flex size-full items-center justify-center p-4 text-center text-xs">
+    {{ 'feature.chat.stream.gone' | transloco }}
+  </div>
+}

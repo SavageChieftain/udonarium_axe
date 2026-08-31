@@ -43,6 +43,7 @@ import {
   ChatPaletteHandle,
   ChatPaletteRegistryService,
 } from '@axe/features/chat/chat-palette/chat-palette-registry.service';
+import { ChatStreamPanelService } from '@axe/features/chat/chat-stream/chat-stream-panel.service';
 import { SystemAvatarMenuService } from '@axe/features/chat/system-avatar-menu.service';
 import { VisualNovelBacklogComponent } from '@axe/features/visual-novel/visual-novel-backlog/visual-novel-backlog.component';
 import { VisualNovelDirectionPanelComponent } from '@axe/features/visual-novel/visual-novel-direction-panel/visual-novel-direction-panel.component';
@@ -154,6 +155,9 @@ export class VisualNovelOverlayComponent {
   readonly scene = inject(VisualNovelSceneService);
   readonly director = inject(VisualNovelDirectorService);
   private readonly emoteSelection = inject(VisualNovelEmoteSelectionService);
+  private readonly chatStreamPanel = inject(ChatStreamPanelService);
+  /** Bumped when a panel is opened or closed, so the buttons that opened them can light up. */
+  private readonly panelVersion = signal(0);
 
   readonly readabilityClass = computed(() => {
     switch (this.settings.readability()) {
@@ -948,6 +952,21 @@ export class VisualNovelOverlayComponent {
     });
     this.isDirectionPanelOpen.set(true);
   }
+
+  /** Whichever tab is being read, in a window of its own, to be watched beside the stage. */
+  toggleChatStream(): void {
+    const tab = this.chatTab();
+    if (!tab) return;
+    this.chatStreamPanel.toggle(tab);
+    this.panelVersion.update((version) => version + 1);
+  }
+
+  readonly isChatStreamOpen = computed(() => {
+    const tab = this.chatTab();
+    if (!tab) return false;
+    this.panelVersion();
+    return this.chatStreamPanel.isOpen(tab);
+  });
 
   toggleDisplaySettings(event?: Event): void {
     if (this.panelService.closeSingle(VN_DISPLAY_PANEL)) {
