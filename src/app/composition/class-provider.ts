@@ -13,6 +13,7 @@ import { ObjectFactory } from '@axe/core/sync/object-factory';
 import { ObjectSerializer } from '@axe/core/sync/object-serializer';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { ObjectSynchronizer } from '@axe/core/sync/object-synchronizer';
+import { StatusAilmentCatalog } from '@axe/domain/character/status-ailment-catalog';
 import { ChatTabList } from '@axe/domain/chat/chat-tab-list';
 import { DataSummarySetting } from '@axe/domain/data/data-summary-setting';
 import { Config } from '@axe/domain/peer/config';
@@ -37,6 +38,7 @@ export const CLASS_SINGLETON_PROVIDERS: Provider[] = [
   { provide: ChatTabList, useFactory: () => ChatTabList.instance },
   { provide: Config, useFactory: () => Config.instance },
   { provide: DataSummarySetting, useFactory: () => DataSummarySetting.instance },
+  { provide: StatusAilmentCatalog, useFactory: () => StatusAilmentCatalog.instance },
   { provide: TableSelecter, useFactory: () => TableSelecter.instance },
   { provide: TurnState, useFactory: () => TurnState.instance },
 ];
