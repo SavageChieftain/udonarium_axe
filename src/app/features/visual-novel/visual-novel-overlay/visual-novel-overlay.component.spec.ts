@@ -1334,4 +1334,45 @@ describe('VisualNovelOverlayComponent', () => {
       expect(component.speechLayout()).toBe('bubble');
     });
   });
+  describe('taking leave with a line', () => {
+    it('keeps the portrait for that line and lets it go on the next', () => {
+      const image = addImage();
+      addMessage('またね 〔退場〕', 'アリス', image);
+      addMessage('行ってしまった', 'ボブ', addImage());
+      createComponent();
+
+      TestBed.inject(VisualNovelPlaybackService).jumpTo(0);
+      fixture.detectChanges();
+      expect(component.stageCharacters().map((chara) => chara.name)).toContain('アリス');
+      expect(component.stageCharacters().find((chara) => chara.name === 'アリス')?.isLeaving).toBe(true);
+
+      component.toLatest();
+      fixture.detectChanges();
+      expect(component.stageCharacters().map((chara) => chara.name)).not.toContain('アリス');
+    });
+
+    it('holds the fade back until the words are all there', () => {
+      addMessage('またね 〔退場〕', 'アリス', addImage());
+      createComponent();
+      TestBed.inject(VisualNovelSettingsService).setTypewriterSpeed('slow');
+      fixture.detectChanges();
+
+      expect(component.isTyping()).toBe(true);
+      expect(component.isLeavingLine()).toBe(false);
+
+      component.userAdvance();
+      fixture.detectChanges();
+      expect(component.isTyping()).toBe(false);
+      expect(component.isLeavingLine()).toBe(true);
+    });
+
+    it('does not fade for a reader who asked for less motion', () => {
+      addMessage('またね 〔退場〕', 'アリス', addImage());
+      createComponent();
+      TestBed.inject(VisualNovelSettingsService).setReduceMotion(true);
+      fixture.detectChanges();
+
+      expect(component.isLeavingLine()).toBe(false);
+    });
+  });
 });

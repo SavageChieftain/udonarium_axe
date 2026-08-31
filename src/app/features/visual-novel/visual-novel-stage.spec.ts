@@ -227,6 +227,21 @@ describe('buildVnStage()', () => {
     expect(stage.map((chara) => chara.name)).toEqual(['ボブ']);
   });
 
+  it('leaves a portrait standing on the very line it takes its leave with', () => {
+    const stage = buildVnStage(
+      [
+        source({ name: 'ボブ', imageIdentifier: 'image-bob', imagePos: 6 }),
+        source({ name: 'アリス', imagePos: 0, emote: emote({ exited: true }) }),
+      ],
+      resolveUrl
+    );
+
+    // They are still there to say goodbye with; the fade carries them off as it is read.
+    expect(stage.map((chara) => chara.name)).toEqual(['アリス', 'ボブ']);
+    expect(stage.find((chara) => chara.name === 'アリス')?.isLeaving).toBe(true);
+    expect(stage.find((chara) => chara.name === 'ボブ')?.isLeaving).toBe(false);
+  });
+
   it('brings it back once it speaks again', () => {
     const stage = buildVnStage(
       [

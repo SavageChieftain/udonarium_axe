@@ -32,6 +32,8 @@ export interface VnStageCharacter {
   slot: number;
   isActive: boolean;
   isFlipped: boolean;
+  /** Standing for the last time: the line being read is the one they leave on. */
+  isLeaving: boolean;
 }
 
 /** The same span the chat portraits use, so slot 0 and slot 11 land on the same edges. */
@@ -128,7 +130,7 @@ export function buildVnStage(
   if (!current) return [];
   if (current.emote.kind === 'location' || current.emote.kind === 'scene') return [];
 
-  const found = new Map<string, { url: string; slot: number; isFlipped: boolean }>();
+  const found = new Map<string, { url: string; slot: number; isFlipped: boolean; isLeaving: boolean }>();
   const retired = new Set<string>();
   for (let i = window.length - 1; i >= 0 && found.size < VN_STAGE_MAX; i--) {
     const source = window[i];
@@ -140,12 +142,28 @@ export function buildVnStage(
     if (source.name.length < 1 || source.imageIdentifier.length < 1) continue;
     if (found.has(source.name) || retired.has(source.name)) continue;
     if (source.emote.exited) {
+      // The line they leave on is still theirs to say. They stand for it and fade as it is
+      // read, rather than being gone before the words they leave with are shown.
       retired.add(source.name);
+      if (i !== window.length - 1) continue;
+      const parting = resolveUrl(source.imageIdentifier);
+      if (parting.length < 1) continue;
+      found.set(source.name, {
+        url: parting,
+        slot: slotOf(resolveSlot(source)),
+        isFlipped: source.emote.flipped,
+        isLeaving: true,
+      });
       continue;
     }
     const url = resolveUrl(source.imageIdentifier);
     if (url.length < 1) continue;
-    found.set(source.name, { url, slot: slotOf(resolveSlot(source)), isFlipped: source.emote.flipped });
+    found.set(source.name, {
+      url,
+      slot: slotOf(resolveSlot(source)),
+      isFlipped: source.emote.flipped,
+      isLeaving: false,
+    });
   }
   if (found.size < 1) return [];
 
@@ -168,5 +186,6 @@ export function buildVnStage(
     slot: info.slot,
     isActive: name === activeName,
     isFlipped: info.isFlipped,
+    isLeaving: info.isLeaving,
   }));
 }

@@ -553,6 +553,18 @@ export class VisualNovelOverlayComponent {
     return this.currentIndex() % 2 === 0 ? 'animate-vn-speak-a' : 'animate-vn-speak-b';
   });
 
+  /**
+   * Whether the line being read is one somebody leaves on.
+   *
+   * The portrait and the line fade away together once the words are all there. Waiting for the
+   * typing to finish rather than starting on a timer means a long parting line is read in full
+   * however long it takes to appear.
+   */
+  readonly isLeavingLine = computed(() => {
+    if (this.settings.reduceMotion()) return false;
+    return this.currentEmote().exited && !this.isTyping();
+  });
+
   readonly portraitAnimationClass = computed(() => {
     if (this.settings.reduceMotion()) return '';
     switch (this.settings.portraitAnimation()) {

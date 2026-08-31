@@ -304,7 +304,7 @@ test.describe('ビジュアルノベルモード', () => {
     await expect(page.locator('visual-novel-overlay')).not.toContainText('立ち絵をリセットしました');
   });
 
-  test('退場を指定するとその発言以降は立ち絵が消えること', async ({ page }) => {
+  test('退場を指定するとその発言では立ち絵が残り、次の発言で消えること', async ({ page }) => {
     const input = vnMessageInput(page);
     await selectVnSpeaker(page, 'モンスターA');
     await input.fill('まだここにいる');
@@ -318,6 +318,13 @@ test.describe('ビジュアルノベルモード', () => {
     await input.press('Enter');
 
     await expect(page.locator('chat-message').last()).toContainText('では、またな', { timeout: 15000 });
+    // 別れの台詞を言うあいだは立ち絵が残り、フェードで見送られる。
+    await expect(page.locator('visual-novel-overlay img[alt="モンスターA"]')).toBeVisible();
+
+    await selectVnSpeaker(page, 'モンスターB');
+    await input.fill('行ってしまった');
+    await input.press('Enter');
+    await expect(page.locator('visual-novel-overlay img[alt="モンスターB"]')).toBeVisible({ timeout: 15000 });
     await expect(page.locator('visual-novel-overlay img[alt="モンスターA"]')).toHaveCount(0);
   });
 

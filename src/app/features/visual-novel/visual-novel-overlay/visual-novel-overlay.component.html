@@ -194,6 +194,7 @@
           ? 'z-10 scale-105 brightness-100 saturate-100 ' + portraitEmoteClass()
           : 'scale-100 brightness-[0.55] saturate-[0.85]'
       "
+      [class.animate-vn-leave]="chara.isLeaving && isLeavingLine()"
       [style.left.%]="chara.left"
     >
       <div [class]="portraitAnimationClass()">
@@ -241,6 +242,7 @@
     [style.left.%]="anchor.left"
     [style.bottom]="anchor.bottom"
     [class]="bubbleAnimationClass()"
+    [class.animate-vn-leave]="isLeavingLine()"
     (click)="userAdvance()"
     (wheel)="onMessageWheel($event)"
   >
@@ -279,6 +281,7 @@
 @if (speechLayout() === 'adv') {
   <div
     class="pointer-events-auto absolute inset-x-[4%] bottom-[15dvh] z-30 cursor-pointer select-none"
+    [class.animate-vn-leave]="isLeavingLine()"
     (click)="userAdvance()"
     (wheel)="onMessageWheel($event)"
   >
@@ -315,6 +318,7 @@
 @if (speechLayout() === 'nvl') {
   <div
     class="pointer-events-auto absolute inset-x-0 top-[8dvh] bottom-[14dvh] z-30 cursor-pointer px-[8%] select-none"
+    [class.animate-vn-leave]="isLeavingLine()"
     (click)="userAdvance()"
     (wheel)="onMessageWheel($event)"
   >
