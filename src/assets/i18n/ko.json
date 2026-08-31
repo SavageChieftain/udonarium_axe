@@ -3344,6 +3344,24 @@
         "center": "가운데",
         "right": "오른쪽"
       }
+    },
+    "statusAilment": {
+      "title": "상태 이상",
+      "hint": "여기에 등록한 상태 이상은 인벤토리 간략 모드에서 열로 늘어서며, 체크하면 말에 붙습니다.",
+      "namePlaceholder": "상태 이상 이름(공백 불가)",
+      "add": "추가",
+      "remove": "이 상태 이상 삭제",
+      "moveUp": "위로",
+      "moveDown": "아래로",
+      "empty": "아직 등록된 것이 없습니다",
+      "readOnly": "등록을 바꿀 수 있는 것은 탁상을 편집할 수 있는 사람뿐입니다",
+      "color": "색",
+      "icon": "아이콘",
+      "iconPlaceholder": "이모지",
+      "rounds": "라운드",
+      "roundsHint": "0이면 해제할 때까지 지속됩니다",
+      "effect": "효과",
+      "effectPlaceholder": "버프에 붙는 한 줄(예: 매 라운드 HP-1)"
     }
   },
   "app": {

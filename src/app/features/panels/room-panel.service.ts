@@ -18,6 +18,10 @@ import { JukeboxComponent } from '@axe/features/media/jukebox/jukebox.component'
 import { OwnedCharacterListPanelComponent } from '@axe/features/pl-tools/owned-character-list/owned-character-list-panel.component';
 import { ReplayWorkspaceComponent } from '@axe/features/replay/replay-workspace/replay-workspace.component';
 import { RoomSnapshotPanelComponent } from '@axe/features/room-archive/room-snapshot-panel/room-snapshot-panel.component';
+import {
+  STATUS_AILMENT_PANEL,
+  StatusAilmentPanelComponent,
+} from '@axe/features/status-ailment/status-ailment-panel/status-ailment-panel.component';
 import { DungeonGeneratorComponent } from '@axe/features/tabletop/dungeon-generator/dungeon-generator.component';
 import { GameTableSettingComponent } from '@axe/features/tabletop/game-table-setting/game-table-setting.component';
 
@@ -86,6 +90,11 @@ export class RoomPanelService {
         return { component: PartyListPanelComponent, option: { width: 460, height: 620 } };
       case 'buffManager':
         return { component: BuffManagerPanelComponent, option: { width: 560, height: 420 } };
+      case 'statusAilment':
+        return {
+          component: StatusAilmentPanelComponent,
+          option: { width: 380, height: 460, single: STATUS_AILMENT_PANEL },
+        };
       case 'effectLibrary':
         return { component: EffectLibraryPanelComponent, option: { width: 360, height: 480 } };
       case 'mapEditor':

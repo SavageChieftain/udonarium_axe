@@ -3107,6 +3107,24 @@
         "center": "中央揃え",
         "right": "右揃え"
       }
+    },
+    "statusAilment": {
+      "title": "状態異常",
+      "hint": "ここに登録した状態異常は、インベントリの簡略モードで列として並び、チェックでコマに付きます。",
+      "namePlaceholder": "状態異常の名前（スペース不可）",
+      "add": "追加",
+      "remove": "この状態異常を消す",
+      "moveUp": "上へ",
+      "moveDown": "下へ",
+      "empty": "まだ何も登録されていません",
+      "readOnly": "登録を変えられるのは卓を編集できる人だけです",
+      "color": "色",
+      "icon": "アイコン",
+      "iconPlaceholder": "絵文字",
+      "rounds": "ラウンド",
+      "roundsHint": "0 なら外すまで続きます",
+      "effect": "効果",
+      "effectPlaceholder": "バフに添える一行（例: 毎ラウンド HP-1）"
     }
   },
   "app": {

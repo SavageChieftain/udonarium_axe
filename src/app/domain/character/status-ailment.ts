@@ -44,6 +44,19 @@ export function impliedBuffTiming(rounds: number): BuffTiming {
   return rounds > 0 ? 'roundEnd' : 'none';
 }
 
+/**
+ * Sets how long a state lasts.
+ *
+ * The moment it ends follows the count while nobody has chosen one: giving a state rounds
+ * means it should run out with them, and taking them away means it should be held. A moment
+ * somebody picked on purpose is left where they put it.
+ */
+export function withRounds(ailment: StatusAilment, rounds: number): StatusAilment {
+  const next = Number.isFinite(rounds) ? Math.max(0, Math.floor(rounds)) : 0;
+  const chosen = ailment.timing !== impliedBuffTiming(ailment.rounds);
+  return { ...ailment, rounds: next, timing: chosen ? ailment.timing : impliedBuffTiming(next) };
+}
+
 export function newStatusAilment(name: string): StatusAilment {
   return { name, color: '', icon: '', rounds: 0, timing: 'none', effect: '' };
 }

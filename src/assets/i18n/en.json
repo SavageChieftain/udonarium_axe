@@ -3107,6 +3107,24 @@
         "center": "Centre",
         "right": "Right"
       }
+    },
+    "statusAilment": {
+      "title": "Status ailments",
+      "hint": "What is registered here stands as a column in the inventory table, and ticking it puts it on the piece.",
+      "namePlaceholder": "Name (no spaces)",
+      "add": "Add",
+      "remove": "Remove this ailment",
+      "moveUp": "Move up",
+      "moveDown": "Move down",
+      "empty": "Nothing registered yet",
+      "readOnly": "Only someone who can edit the table may change the list",
+      "color": "Colour",
+      "icon": "Mark",
+      "iconPlaceholder": "Emoji",
+      "rounds": "Rounds",
+      "roundsHint": "Zero holds it until it is taken away",
+      "effect": "Effect",
+      "effectPlaceholder": "A line to carry on the buff (e.g. HP-1 each round)"
     }
   },
   "app": {

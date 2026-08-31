@@ -7,6 +7,7 @@ import {
   newStatusAilment,
   parseStatusAilments,
   StatusAilment,
+  withRounds,
 } from '@axe/domain/character/status-ailment';
 
 function ailment(overrides: Partial<StatusAilment> = {}): StatusAilment {
@@ -107,6 +108,28 @@ describe('impliedBuffTiming()', () => {
   it('holds a state with no rounds until it is cleared', () => {
     expect(impliedBuffTiming(0)).toBe('none');
     expect(impliedBuffTiming(3)).toBe('roundEnd');
+  });
+});
+
+describe('withRounds()', () => {
+  it('starts counting a held state down once it is given rounds', () => {
+    expect(withRounds(ailment(), 3)).toMatchObject({ rounds: 3, timing: 'roundEnd' });
+  });
+
+  it('holds one whose rounds are taken away', () => {
+    expect(withRounds(ailment({ rounds: 3, timing: 'roundEnd' }), 0)).toMatchObject({ rounds: 0, timing: 'none' });
+  });
+
+  it('leaves a moment somebody picked where they put it', () => {
+    expect(withRounds(ailment({ rounds: 3, timing: 'turnStart' }), 5)).toMatchObject({
+      rounds: 5,
+      timing: 'turnStart',
+    });
+  });
+
+  it('takes nothing below none', () => {
+    expect(withRounds(ailment(), -2).rounds).toBe(0);
+    expect(withRounds(ailment(), Number.NaN).rounds).toBe(0);
   });
 });
 
