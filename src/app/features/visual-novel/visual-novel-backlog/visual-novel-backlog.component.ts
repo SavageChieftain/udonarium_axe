@@ -6,8 +6,6 @@ import {
   effect,
   ElementRef,
   inject,
-  input,
-  output,
   signal,
   viewChild,
 } from '@angular/core';
@@ -33,11 +31,12 @@ import {
   VnPortraitEmote,
 } from '@axe/domain/visual-novel/vn-emote';
 import { isVnPortraitPosSet, VN_PORTRAIT_POS_UNSET } from '@axe/domain/visual-novel/vn-portrait-position';
+import { VisualNovelDirectorService } from '@axe/features/visual-novel/visual-novel-director.service';
 import { vnEmoteLabel } from '@axe/features/visual-novel/visual-novel-emote-label';
+import { VisualNovelEmoteSelectionService } from '@axe/features/visual-novel/visual-novel-emote-selection.service';
 import { readableMessageName, readableMessageText } from '@axe/features/visual-novel/visual-novel-message';
 import { VisualNovelPlaybackService } from '@axe/features/visual-novel/visual-novel-playback.service';
 import { VN_STAGE_SLOT_COUNT } from '@axe/features/visual-novel/visual-novel-stage';
-import { DraggableDirective } from '@axe/ui/directives/draggable.directive';
 import { SafePipe } from '@axe/ui/pipes/safe.pipe';
 import { TranslocoModule } from '@jsverse/transloco';
 
@@ -58,7 +57,7 @@ export interface VnBacklogEntry {
   selector: 'visual-novel-backlog',
   templateUrl: './visual-novel-backlog.component.html',
   host: { class: 'contents' },
-  imports: [DatePipe, DraggableDirective, FormsModule, SafePipe, TranslocoModule],
+  imports: [DatePipe, FormsModule, SafePipe, TranslocoModule],
 })
 export class VisualNovelBacklogComponent {
   private readonly objectChange = inject(ObjectChangeService);
@@ -66,11 +65,17 @@ export class VisualNovelBacklogComponent {
   private readonly translate = inject(TRANSLATE_FN);
   private readonly language = inject(LanguageService);
   private readonly playback = inject(VisualNovelPlaybackService);
+  private readonly director = inject(VisualNovelDirectorService);
+  private readonly emoteSelection = inject(VisualNovelEmoteSelectionService);
 
-  readonly messageKindOptions = input.required<readonly VnMessageKind[]>();
-
-  readonly jump = output<number>();
-  readonly closed = output<void>();
+  /**
+   * Which line the reader is looking at, and where they can go from here.
+   *
+   * The log is a window of its own now rather than a piece of the novel-mode screen, so it
+   * asks for these itself instead of being handed them: a panel is only given values that can
+   * be assigned to a plain field, and nothing can listen to what it emits.
+   */
+  readonly messageKindOptions = this.emoteSelection.messageKindOptions;
 
   readonly bubbleShapeOptions = VN_BUBBLE_SHAPES;
   readonly bubbleAnimationOptions = VN_BUBBLE_ANIMATIONS;
@@ -128,6 +133,12 @@ export class VisualNovelBacklogComponent {
       return entry.text.toLowerCase().includes(keyword) || entry.name.toLowerCase().includes(keyword);
     });
   });
+
+  /** Reading somewhere of one's own is stepping out of the showcase the game master is running. */
+  jumpTo(index: number): void {
+    this.director.leaveFollowing();
+    this.playback.jumpTo(index);
+  }
 
   toggleOnlyMine(): void {
     this.onlyMine.update((only) => !only);

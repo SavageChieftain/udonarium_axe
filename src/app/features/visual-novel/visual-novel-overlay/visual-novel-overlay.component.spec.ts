@@ -3,6 +3,7 @@ import { ChatMessageService } from '@axe/application/chat/chat-message.service';
 import { NO_SYSTEM_AVATAR, SystemAvatarService } from '@axe/application/chat/system-avatar.service';
 import { LanguageService } from '@axe/application/i18n/language.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
+import { PanelService } from '@axe/application/ui/panel.service';
 import { AudioFile } from '@axe/core/storage/audio-file';
 import { AudioStorage } from '@axe/core/storage/audio-storage';
 import { ImageStorage } from '@axe/core/storage/image-storage';
@@ -20,9 +21,11 @@ import { PeerRole } from '@axe/domain/peer/peer-role';
 import { ChatPaletteRegistryService } from '@axe/features/chat/chat-palette/chat-palette-registry.service';
 import { VisualNovelModeService } from '@axe/features/visual-novel/visual-novel-mode.service';
 import { VisualNovelOverlayComponent } from '@axe/features/visual-novel/visual-novel-overlay/visual-novel-overlay.component';
+import { VN_BACKLOG_PANEL } from '@axe/features/visual-novel/visual-novel-panels';
 import { VisualNovelPlaybackService } from '@axe/features/visual-novel/visual-novel-playback.service';
 import { VisualNovelSettingsService } from '@axe/features/visual-novel/visual-novel-settings.service';
 import { leftOfSlot, VN_STAGE_SLOT_COUNT } from '@axe/features/visual-novel/visual-novel-stage';
+import { installPanelLayer } from '@axe/testing/panel-layer';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
 import GameSystemClass from 'bcdice/lib/game_system';
 
@@ -89,6 +92,8 @@ describe('VisualNovelOverlayComponent', () => {
     return jukebox;
   }
 
+  let removePanelLayer: (() => void) | undefined;
+
   function createComponent(): void {
     TestBed.inject(VisualNovelPlaybackService).setChatTab(tab.identifier);
     fixture = TestBed.createComponent(VisualNovelOverlayComponent);
@@ -106,10 +111,12 @@ describe('VisualNovelOverlayComponent', () => {
 
   beforeEach(() => {
     tab = ChatTabList.instance.addChatTab('テストタブ');
+    removePanelLayer = installPanelLayer();
   });
 
   afterEach(() => {
     fixture?.destroy();
+    removePanelLayer?.();
     tab?.destroy();
     for (const character of charactersByName.values()) character.destroy();
     charactersByName.clear();
@@ -429,7 +436,7 @@ describe('VisualNovelOverlayComponent', () => {
     expect(component.displayedText()).toBe('こんにちは');
   });
 
-  it('jumps to any message from the backlog', () => {
+  it('jumps to any message from the backlog and leaves the log standing', () => {
     addMessage('m1');
     addMessage('m2');
     addMessage('m3');
@@ -439,7 +446,30 @@ describe('VisualNovelOverlayComponent', () => {
     fixture.detectChanges();
     expect(component.currentIndex()).toBe(0);
     expect(component.displayedText()).toBe('m1');
-    expect(component.isPopover('backlog')).toBe(false);
+    // Reading somewhere else is what the log is for, so it stays open to be read on.
+    expect(component.isBacklogOpen()).toBe(true);
+  });
+
+  it('opens and closes the log from the same button', () => {
+    addMessage('m1');
+    createComponent();
+    expect(component.isBacklogOpen()).toBe(false);
+
+    component.toggleBacklog();
+    expect(component.isBacklogOpen()).toBe(true);
+
+    component.toggleBacklog();
+    expect(component.isBacklogOpen()).toBe(false);
+  });
+
+  it('takes the log down when novel mode is left', () => {
+    addMessage('m1');
+    createComponent();
+    component.toggleBacklog();
+
+    fixture.destroy();
+
+    expect(TestBed.inject(PanelService).hasSingle(VN_BACKLOG_PANEL)).toBe(false);
   });
 
   it('goes back through the history on the wheel', () => {
@@ -1198,7 +1228,7 @@ describe('VisualNovelOverlayComponent', () => {
     vnMode.activate();
     component.toggleBacklog();
     component.onKeydown(new KeyboardEvent('keydown', { key: 'Escape' }));
-    expect(component.isPopover('backlog')).toBe(false);
+    expect(component.isBacklogOpen()).toBe(false);
     expect(vnMode.active()).toBe(true);
   });
 });

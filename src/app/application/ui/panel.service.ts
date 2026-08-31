@@ -127,6 +127,17 @@ export class PanelService {
     return true;
   }
 
+  /**
+   * Whether a panel is standing under this name.
+   *
+   * `closeSingle` answers the same question but shuts the panel to do it, which is no use to
+   * anything that only wants to know. One still being opened counts as open, for the same
+   * reason it does there.
+   */
+  hasSingle(name: string): boolean {
+    return PanelService.opening.has(name) || PanelService.singles.has(name);
+  }
+
   open<T>(childComponent: Type<T>, option?: PanelOption, parentViewContainerRef?: ViewContainerRef): T {
     if (!parentViewContainerRef) {
       parentViewContainerRef = PanelService.defaultParentViewContainerRef;

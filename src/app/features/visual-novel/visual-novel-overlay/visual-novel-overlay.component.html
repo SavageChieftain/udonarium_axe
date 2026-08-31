@@ -339,14 +339,6 @@
   </div>
 }
 
-@if (isPopover('backlog')) {
-  <visual-novel-backlog
-    [messageKindOptions]="messageKindOptions()"
-    (jump)="jumpTo($event)"
-    (closed)="toggleBacklog()"
-  />
-}
-
 <div
   class="absolute inset-x-0 bottom-0 z-50 pr-[max(4%,env(safe-area-inset-right))] pb-[max(0.75rem,env(safe-area-inset-bottom))] pl-[max(4%,env(safe-area-inset-left))]"
   [style.bottom.px]="keyboardInset()"
@@ -527,7 +519,7 @@
         <button
           type="button"
           class="text-ui-dim hover:text-ui-accent hover:bg-ui-accent-bg rounded-ui flex size-8 cursor-pointer items-center justify-center border-0 bg-transparent transition-[color,background] [&_i]:text-[18px]"
-          [class.text-ui-accent]="isPopover('backlog')"
+          [class.text-ui-accent]="isBacklogOpen()"
           [title]="'feature.visualNovel.log' | transloco"
           [attr.aria-label]="'feature.visualNovel.log' | transloco"
           (click)="toggleBacklog()"

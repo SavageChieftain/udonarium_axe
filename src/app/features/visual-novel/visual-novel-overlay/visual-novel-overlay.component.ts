@@ -60,6 +60,7 @@ import { vnEmoteLabel } from '@axe/features/visual-novel/visual-novel-emote-labe
 import { VisualNovelEmoteSelectionService } from '@axe/features/visual-novel/visual-novel-emote-selection.service';
 import { readableMessageName, readableMessageText } from '@axe/features/visual-novel/visual-novel-message';
 import { VisualNovelModeService } from '@axe/features/visual-novel/visual-novel-mode.service';
+import { closeVisualNovelPanels, VN_BACKLOG_PANEL } from '@axe/features/visual-novel/visual-novel-panels';
 import { VisualNovelPlaybackService } from '@axe/features/visual-novel/visual-novel-playback.service';
 import { VisualNovelSceneService } from '@axe/features/visual-novel/visual-novel-scene.service';
 import {
@@ -88,6 +89,7 @@ import {
   VnStageSource,
 } from '@axe/features/visual-novel/visual-novel-stage';
 import { SafePipe } from '@axe/ui/pipes/safe.pipe';
+import { Z_VISUAL_NOVEL_PANEL } from '@axe/ui/z-layers';
 import { TranslocoModule } from '@jsverse/transloco';
 import { NgOptionComponent, NgSelectComponent } from '@ng-select/ng-select';
 
@@ -115,7 +117,7 @@ const EMOTION_MARK_COLORS: Record<Exclude<VnEmotionMark, 'none'>, string> = {
 };
 
 /** The balloon, of which one opens at a time. */
-type VisualNovelPopover = 'backlog' | 'emote' | 'soundBoard' | 'slotGuide' | 'palette' | 'shortcutHelp';
+type VisualNovelPopover = 'emote' | 'soundBoard' | 'slotGuide' | 'palette' | 'shortcutHelp';
 
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -127,7 +129,7 @@ type VisualNovelPopover = 'backlog' | 'emote' | 'soundBoard' | 'slotGuide' | 'pa
     '(window:keyup)': 'onKeyup($event)',
     '(window:blur)': 'stopSkip()',
   },
-  imports: [FormsModule, SafePipe, TranslocoModule, VisualNovelBacklogComponent, NgSelectComponent, NgOptionComponent],
+  imports: [FormsModule, SafePipe, TranslocoModule, NgSelectComponent, NgOptionComponent],
 })
 export class VisualNovelOverlayComponent {
   protected readonly isCompact = inject(ViewportService).isCompact;
@@ -748,6 +750,8 @@ export class VisualNovelOverlayComponent {
     this._sendFrom.set(this.gameCharacters()[0]?.identifier ?? '');
     this.playback.attach();
     this.destroyRef.onDestroy(() => this.playback.detach());
+    // The windows are put up outside this screen, so leaving novel mode does not take them.
+    this.destroyRef.onDestroy(() => closeVisualNovelPanels(this.panelService));
     // The selection outlives this screen now, and an expression chosen before novel mode was
     // last closed should not be waiting to be sent when it is opened again.
     this.destroyRef.onDestroy(() => this.emoteSelection.reset());
@@ -817,6 +821,17 @@ export class VisualNovelOverlayComponent {
     this.closePopovers();
   }
 
+  /** What `Escape` closes before it leaves novel mode. */
+  private isAnythingOpen(): boolean {
+    return this.openPopover() !== null || this.panelService.hasSingle(VN_BACKLOG_PANEL);
+  }
+
+  private closeOverlays(): void {
+    this.closePopovers();
+    closeVisualNovelPanels(this.panelService);
+    this.isBacklogOpen.set(false);
+  }
+
   isPopover(kind: VisualNovelPopover): boolean {
     return this.openPopover() === kind;
   }
@@ -833,8 +848,28 @@ export class VisualNovelOverlayComponent {
     this.togglePopover('shortcutHelp');
   }
 
+  readonly isBacklogOpen = signal(false);
+
   toggleBacklog(): void {
-    this.togglePopover('backlog');
+    if (this.panelService.closeSingle(VN_BACKLOG_PANEL)) {
+      this.isBacklogOpen.set(false);
+      return;
+    }
+    this.closePopovers();
+    const width = Math.min(700, Math.max(320, window.innerWidth - 48));
+    this.panelService.open<VisualNovelBacklogComponent>(VisualNovelBacklogComponent, {
+      title: this.t('feature.visualNovel.log'),
+      // Off to the side rather than over the middle, which is where the portraits stand.
+      left: Math.max(8, window.innerWidth - width - 24),
+      top: 24,
+      width,
+      height: Math.min(560, Math.max(240, window.innerHeight - 220)),
+      minWidth: 320,
+      minHeight: 200,
+      layer: Z_VISUAL_NOVEL_PANEL,
+      single: VN_BACKLOG_PANEL,
+    });
+    this.isBacklogOpen.set(true);
   }
 
   toggleEmote(): void {
@@ -924,7 +959,7 @@ export class VisualNovelOverlayComponent {
     const action = visualNovelKeyDown(event.key, {
       composing: event.isComposing,
       typing: isTypingTarget(event.target),
-      popoverOpen: this.openPopover() !== null,
+      popoverOpen: this.isAnythingOpen(),
       chord: event.ctrlKey || event.metaKey || event.altKey,
     });
     if (!action) return;
@@ -952,7 +987,7 @@ export class VisualNovelOverlayComponent {
     toggleAutoPlay: () => this.toggleAutoPlay(),
     toggleSlotGuide: () => this.toggleSlotGuide(),
     toggleShortcutHelp: () => this.toggleShortcutHelp(),
-    closePopovers: () => this.closePopovers(),
+    closePopovers: () => this.closeOverlays(),
     exit: () => this.exit(),
   };
 

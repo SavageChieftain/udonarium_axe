@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, type Locator, type Page, test } from '@playwright/test';
 
 import {
   openPanel,
@@ -8,6 +8,23 @@ import {
   vnMessageInput,
   waitAppReady,
 } from './helpers';
+
+/** ログは自前のウィンドウになったので、オーバーレイの外側にいる。 */
+const backlogPanel = (page: Page) =>
+  page.locator('.draggable-panel').filter({ has: page.locator('visual-novel-backlog') });
+
+/**
+ * 開いたばかりのパネルは拡大しながら現れるので、アニメーションが終わってから測る。
+ * 途中で測ると 0.8 倍の寸法を掴んでしまい、前後の比較が壊れる。
+ */
+async function settledBox(locator: Locator) {
+  await locator.evaluate((element) =>
+    Promise.all(element.getAnimations().map((animation) => animation.finished.catch(() => undefined)))
+  );
+  const box = await locator.boundingBox();
+  if (!box) throw new Error('panel not found');
+  return box;
+}
 
 test.describe('ビジュアルノベルモード', () => {
   test.beforeEach(async ({ page }) => {
@@ -173,7 +190,7 @@ test.describe('ビジュアルノベルモード', () => {
     await expect(page.locator('visual-novel-overlay')).toContainText('もとの発言', { timeout: 15000 });
 
     await page.locator('visual-novel-overlay button[title="ログ"]').click();
-    const row = page.locator('visual-novel-overlay [data-vn-log-index="0"]');
+    const row = page.locator('visual-novel-backlog [data-vn-log-index="0"]');
     await row.hover();
     await row.locator('button[title="編集"]').click();
 
@@ -190,16 +207,42 @@ test.describe('ビジュアルノベルモード', () => {
 
   test('ログパネルをドラッグで移動できること', async ({ page }) => {
     await page.locator('visual-novel-overlay button[title="ログ"]').click();
-    const handle = page.locator('visual-novel-overlay .vn-log-handle');
-    const before = await handle.boundingBox();
-    if (!before) throw new Error('handle not found');
-    await page.mouse.move(before.x + 60, before.y + before.height / 2);
+    const panel = backlogPanel(page);
+    const before = await settledBox(panel);
+    await page.mouse.move(before.x + 60, before.y + 14);
     await page.mouse.down();
-    await page.mouse.move(before.x + 60 - 120, before.y + before.height / 2 + 80, { steps: 6 });
+    await page.mouse.move(before.x + 60 - 120, before.y + 14 + 80, { steps: 6 });
     await page.mouse.up();
-    const after = await handle.boundingBox();
-    if (!after) throw new Error('handle not found after drag');
+    const after = await settledBox(panel);
     expect(Math.abs(after.x - before.x)).toBeGreaterThan(50);
+  });
+
+  test('ログパネルを端ドラッグでリサイズできること', async ({ page }) => {
+    await page.locator('visual-novel-overlay button[title="ログ"]').click();
+    const panel = backlogPanel(page);
+    const before = await settledBox(panel);
+
+    const handle = panel.locator('.ui-resize-handler-se');
+    const grip = await handle.boundingBox();
+    if (!grip) throw new Error('resize handle not found');
+    await page.mouse.move(grip.x + grip.width / 2, grip.y + grip.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(grip.x + grip.width / 2 - 160, grip.y + grip.height / 2 - 120, { steps: 6 });
+    await page.mouse.up();
+
+    const after = await settledBox(panel);
+    expect(before.width - after.width).toBeGreaterThan(100);
+    expect(before.height - after.height).toBeGreaterThan(60);
+  });
+
+  test('ログと演出パネルを同時に開いておけること', async ({ page }) => {
+    await page.locator('visual-novel-overlay button[title="ログ"]').click();
+    await expect(backlogPanel(page)).toBeVisible();
+
+    await page.locator('visual-novel-overlay button[title="演出"]').click();
+
+    await expect(backlogPanel(page)).toBeVisible();
+    await expect(page.locator('visual-novel-overlay button', { hasText: '叫び' })).toBeVisible();
   });
 
   test('GM は場面転換で立ち絵と台詞を一掃できること', async ({ page }) => {
@@ -394,13 +437,13 @@ test.describe('ビジュアルノベルモード', () => {
 
     await page.locator('visual-novel-overlay button[title="ログ"]').click();
 
-    const filter = page.locator('visual-novel-overlay input[placeholder="ログを検索…"]');
+    const filter = page.locator('visual-novel-backlog input[placeholder="ログを検索…"]');
     await filter.fill('二つ目');
-    await expect(page.locator('visual-novel-overlay [data-vn-log-index]')).toHaveCount(1);
+    await expect(page.locator('visual-novel-backlog [data-vn-log-index]')).toHaveCount(1);
     await filter.fill('');
-    await expect(page.locator('visual-novel-overlay [data-vn-log-index]')).toHaveCount(2);
+    await expect(page.locator('visual-novel-backlog [data-vn-log-index]')).toHaveCount(2);
 
-    await page.locator('visual-novel-overlay [data-vn-log-index]').filter({ hasText: '一つ目' }).click();
+    await page.locator('visual-novel-backlog [data-vn-log-index]').filter({ hasText: '一つ目' }).click();
     await expect(page.locator('visual-novel-overlay')).toContainText('1 / 2');
   });
 });

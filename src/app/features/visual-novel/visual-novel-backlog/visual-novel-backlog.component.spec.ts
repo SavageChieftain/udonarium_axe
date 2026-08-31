@@ -5,7 +5,6 @@ import { ImageStorage } from '@axe/core/storage/image-storage';
 import { ChatTab } from '@axe/domain/chat/chat-tab';
 import { ChatTabList } from '@axe/domain/chat/chat-tab-list';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
-import { VN_MESSAGE_KINDS } from '@axe/domain/visual-novel/vn-emote';
 import { VisualNovelBacklogComponent } from '@axe/features/visual-novel/visual-novel-backlog/visual-novel-backlog.component';
 import { VisualNovelPlaybackService } from '@axe/features/visual-novel/visual-novel-playback.service';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
@@ -35,7 +34,6 @@ describe('VisualNovelBacklogComponent', () => {
 
   function createComponent(): void {
     fixture = TestBed.createComponent(VisualNovelBacklogComponent);
-    fixture.componentRef.setInput('messageKindOptions', VN_MESSAGE_KINDS);
     component = fixture.componentInstance;
     fixture.detectChanges();
   }
@@ -152,17 +150,18 @@ describe('VisualNovelBacklogComponent', () => {
     expect(component.hiddenCount()).toBe(0);
   });
 
-  it('reports where to jump on a click', () => {
+  it('goes to the line that was clicked', () => {
     addMessage('m1');
     addMessage('m2');
     createComponent();
-    const jumped: number[] = [];
-    component.jump.subscribe((index) => jumped.push(index));
+    const playback = TestBed.inject(VisualNovelPlaybackService);
+    playback.toLatest();
+    expect(playback.currentIndex()).toBe(1);
 
     const rows = fixture.nativeElement.querySelectorAll('[data-vn-log-index]');
     rows[0].click();
 
-    expect(jumped).toEqual([0]);
+    expect(playback.currentIndex()).toBe(0);
   });
 
   it('gives a line back to following the character once its place is dropped', () => {
