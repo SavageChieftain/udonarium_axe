@@ -2,6 +2,7 @@ import { VN_EMOTE_DEFAULT, VnEmote, VnMessageKind } from '@axe/domain/visual-nov
 import {
   buildVnStage,
   leftOfSlot,
+  messageSlotOf,
   slotBandLeft,
   slotBandWidth,
   slotLabelLeftInBand,
@@ -19,6 +20,7 @@ function emote(overrides: Partial<VnEmote> = {}): VnEmote {
 function source(overrides: Partial<VnStageSource> = {}): VnStageSource {
   return {
     name: 'アリス',
+    timestamp: 0,
     sendFrom: 'alice',
     imageIdentifier: 'image-alice',
     imagePos: 0,
@@ -303,5 +305,45 @@ describe('the bands of the slot guide', () => {
       const label = slotBandLeft(slot) + (slotBandWidth(slot) * slotLabelLeftInBand(slot)) / 100;
       expect(label).toBeCloseTo(leftOfSlot(slot), 6);
     }
+  });
+});
+
+describe('clearing the stage', () => {
+  const alice = (timestamp: number) => source({ name: 'アリス', sendFrom: 'alice', timestamp });
+  const bob = (timestamp: number) => source({ name: 'ボブ', sendFrom: 'bob', imageIdentifier: 'image-bob', timestamp });
+
+  it('leaves the stage alone when it was never cleared', () => {
+    const stage = buildVnStage([alice(10), bob(20)], () => 'url', messageSlotOf, 0);
+    expect(stage.map((character) => character.name)).toEqual(['アリス', 'ボブ']);
+  });
+
+  it('drops anybody who last spoke before it was cleared', () => {
+    const stage = buildVnStage([alice(10), bob(30)], () => 'url', messageSlotOf, 20);
+    expect(stage.map((character) => character.name)).toEqual(['ボブ']);
+  });
+
+  it('leaves the log itself alone, notice and all', () => {
+    const notice = source({ isSystemMessage: true, timestamp: 20 });
+    const window = [alice(10), bob(15), notice, alice(30)];
+    expect(buildVnStage(window, () => 'url', messageSlotOf, 20)).toHaveLength(1);
+    expect(window).toHaveLength(4);
+  });
+
+  it('empties the stage as soon as the notice is the line being read', () => {
+    // The notice carries the moment the line was drawn, and a tab never gives two lines the
+    // same one, so nothing a character said can share it.
+    const notice = source({ isSystemMessage: true, timestamp: 20 });
+    expect(buildVnStage([alice(10), bob(15), notice], () => 'url', messageSlotOf, 20)).toEqual([]);
+  });
+
+  it('shows the stage as it stood when read back to before the clearing', () => {
+    // The reader is looking at something said before the line was drawn, so it does not hold.
+    const stage = buildVnStage([alice(10), bob(15)], () => 'url', messageSlotOf, 20);
+    expect(stage.map((character) => character.name)).toEqual(['アリス', 'ボブ']);
+  });
+
+  it('brings a character back who speaks again after it', () => {
+    const stage = buildVnStage([alice(10), bob(15), alice(30)], () => 'url', messageSlotOf, 20);
+    expect(stage.map((character) => character.name)).toEqual(['アリス']);
   });
 });

@@ -13,6 +13,7 @@ export const VN_STAGE_MIN_GAP = LEFT_SPAN / (VN_STAGE_SLOT_COUNT - 1);
 
 export interface VnStageSource {
   name: string;
+  timestamp: number;
   sendFrom: string;
   imageIdentifier: string;
   imagePos: unknown;
@@ -108,16 +109,22 @@ function desiredPositions(slots: readonly number[]): number[] {
 export function buildVnStage(
   window: readonly VnStageSource[],
   resolveUrl: (imageIdentifier: string) => string,
-  resolveSlot: (source: VnStageSource) => number = messageSlotOf
+  resolveSlot: (source: VnStageSource) => number = messageSlotOf,
+  resetAt = 0
 ): VnStageCharacter[] {
   const current = window[window.length - 1];
   if (!current) return [];
   if (current.emote.kind === 'location' || current.emote.kind === 'scene') return [];
 
+  // Reading back to before the stage was cleared shows it as it stood then, the way a scene
+  // change does. The line only holds while the reader is looking at something said after it.
+  const cut = resetAt > 0 && current.timestamp >= resetAt ? resetAt : 0;
+
   const found = new Map<string, { url: string; slot: number; isFlipped: boolean }>();
   const retired = new Set<string>();
   for (let i = window.length - 1; i >= 0 && found.size < VN_STAGE_MAX; i--) {
     const source = window[i];
+    if (source.timestamp < cut) break;
     if (source.isSystemMessage || source.isDicebot) continue;
     if (source.isDiceCommand) continue;
     if (source.emote.kind === 'scene') break;

@@ -16,3 +16,15 @@ export function toPortraitSlot(value: unknown): number | null {
 export function isVnPortraitPosSet(value: unknown): boolean {
   return toPortraitSlot(value) !== null;
 }
+
+/**
+ * When the portraits of a tab were last cleared, as a number.
+ *
+ * Read back from a saved room an attribute is a string, and one never written reads as '',
+ * which is not a moment in time. Anything that is not one means the stage was never cleared.
+ */
+export function toStageResetAt(value: unknown): number {
+  if (value == null || value === '') return 0;
+  const at = Number(value);
+  return Number.isFinite(at) && at > 0 ? at : 0;
+}

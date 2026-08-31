@@ -2377,6 +2377,9 @@
       "backgroundClear": "Clear",
       "stageStay": "Stay",
       "stageExit": "Leave",
+      "stageReset": "Clear the portraits",
+      "stageResetTooltip": "Takes every portrait off the stage on the tab being read. The log is untouched, and reading back shows the stage as it was",
+      "stageResetBy": "{{user}} cleared the portraits.",
       "layout": {
         "bubble": "Bubble",
         "adv": "ADV",

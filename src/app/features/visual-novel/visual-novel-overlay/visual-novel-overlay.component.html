@@ -611,6 +611,17 @@
             <i class="material-icons">co_present</i>
           </button>
         }
+        @if (scene.canDirect()) {
+          <button
+            type="button"
+            class="rounded-ui text-ui-dim hover:text-ui-accent hover:bg-ui-accent-bg flex size-8 cursor-pointer items-center justify-center border-0 bg-transparent transition-[color,background] [&_i]:text-[18px]"
+            [title]="'feature.visualNovel.stageResetTooltip' | transloco"
+            [attr.aria-label]="'feature.visualNovel.stageReset' | transloco"
+            (click)="resetStage()"
+          >
+            <i class="material-icons">group_remove</i>
+          </button>
+        }
       </div>
     }
     <div class="flex w-full flex-wrap items-center gap-1">

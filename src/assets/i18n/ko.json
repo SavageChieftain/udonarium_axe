@@ -2377,6 +2377,9 @@
       "backgroundClear": "해제",
       "stageStay": "머무름",
       "stageExit": "퇴장",
+      "stageReset": "입화 초기화",
+      "stageResetTooltip": "표시 중인 탭의 입화를 모두 내립니다. 로그는 지워지지 않으며, 거슬러 올라가면 당시의 입화가 나옵니다",
+      "stageResetBy": "{{user}}님이 입화를 초기화했습니다.",
       "layout": {
         "bubble": "말풍선",
         "adv": "ADV",

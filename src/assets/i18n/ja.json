@@ -2377,6 +2377,9 @@
       "backgroundClear": "解除",
       "stageStay": "滞在",
       "stageExit": "退場",
+      "stageReset": "立ち絵をリセット",
+      "stageResetTooltip": "表示中のタブの立ち絵をすべて下げます。ログは消えず、さかのぼれば当時の立ち絵が出ます",
+      "stageResetBy": "{{user}}さんが立ち絵をリセットしました。",
       "layout": {
         "bubble": "吹き出し",
         "adv": "ADV",

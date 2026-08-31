@@ -48,6 +48,7 @@ import {
 import {
   isVnPortraitPosSet,
   toPortraitSlot,
+  toStageResetAt,
   VN_PORTRAIT_POS_UNSET,
 } from '@axe/domain/visual-novel/vn-portrait-position';
 import { VN_STAGE_TRANSITIONS } from '@axe/domain/visual-novel/vn-stage';
@@ -413,6 +414,7 @@ export class VisualNovelOverlayComponent {
       const message = messages[i];
       window.push({
         name: readableMessageName(message, this.t),
+        timestamp: message.timestamp,
         sendFrom: message.sendFrom ?? '',
         imageIdentifier: message.imageIdentifier ?? '',
         imagePos: message.imagePos,
@@ -427,9 +429,23 @@ export class VisualNovelOverlayComponent {
     return buildVnStage(
       window,
       (imageIdentifier) => this.imageService.getEmptyOr(imageIdentifier).url,
-      (source) => this.stageSlotOf(source)
+      (source) => this.stageSlotOf(source),
+      this.stageResetAt()
     );
   });
+
+  /** When the portraits of the tab being read were last cleared, if they ever were. */
+  private readonly stageResetAt = computed(() => {
+    const tab = this.chatTab();
+    if (!tab) return 0;
+    this.objectChange.versionOf(tab.identifier)();
+    return toStageResetAt(tab.vnPortraitResetAt);
+  });
+
+  resetStage(): void {
+    const tab = this.chatTab();
+    if (tab) this.scene.resetStage(tab);
+  }
 
   /** A line of its own beats the character's novel-mode place, which beats where it stands in chat. */
   private stageSlotOf(source: VnStageSource): number {
