@@ -1309,7 +1309,10 @@
         "viewTable": "간략 표시(표)",
         "viewMinimal": "최소 표시",
         "tableNoColumns": "표시 항목이 비어 있습니다. 표시 설정에서 항목 이름을 넣으면 열이 됩니다",
-        "tableName": "이름"
+        "tableName": "이름",
+        "filterPanelTitle": "검색과 표시 설정",
+        "filterNone": "좁히지 않음",
+        "displayItemsHint": "상태 이상 이름을 적으면 그 열은 체크 칸이 됩니다"
       }
     },
     "file": {

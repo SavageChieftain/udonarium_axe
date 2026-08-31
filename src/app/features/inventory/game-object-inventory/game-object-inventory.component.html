@@ -57,161 +57,23 @@
     </div>
 
     <div
-      class="bg-ui-panel border-ui-border-panel flex shrink-0 items-center gap-1.5 border-b border-solid px-2.5 py-1.5"
+      class="bg-ui-panel border-ui-border-panel flex shrink-0 items-center gap-1.5 border-b border-solid px-2.5 py-1"
     >
-      <i class="material-icons text-ui-muted text-[18px]!">search</i>
-      <input
-        class="bg-ui-input border-ui-border-panel text-ui-text rounded-ui-sm focus:border-ui-accent box-border min-w-0 flex-1 border border-solid px-1.75 py-1 text-[12px] transition-[border-color] outline-none"
-        name="inventory-search"
-        [(ngModel)]="searchQuery"
-        [placeholder]="'feature.inventory.panel.searchPlaceholder' | transloco"
-      />
+      <button
+        class="text-ui-muted hover:text-ui-accent flex min-w-0 flex-1 cursor-pointer items-center gap-1.5 border-none bg-transparent p-0 text-left text-[11px] hover:shadow-none"
+        type="button"
+        [title]="'feature.inventory.panel.displaySettings' | transloco"
+        (click)="toggleEdit()"
+      >
+        <i class="material-icons text-[15px]!">filter_alt</i>
+        <span class="truncate">{{ filterSummary() }}</span>
+      </button>
       @if (hasQuery() || isHiddenFiltered()) {
         <span class="text-ui-dim shrink-0 text-[11px] whitespace-nowrap"
           >{{ filteredRows().length }} / {{ visibleRows().length }}</span
         >
       }
-      @if (hasQuery()) {
-        <button
-          class="text-ui-muted hover:bg-ui-hover hover:text-ui-text flex size-6 shrink-0 cursor-pointer items-center justify-center rounded-sm border-none bg-transparent p-0 transition-[background,color] [&_.material-icons]:text-base!"
-          type="button"
-          [title]="'feature.inventory.panel.clearSearch' | transloco"
-          (click)="clearSearch()"
-        >
-          <i class="material-icons">close</i>
-        </button>
-      }
-      @if (canSeeHidden()) {
-        <span class="bg-ui-border-panel ml-0.5 h-4 w-px shrink-0"></span>
-        <select
-          class="bg-ui-input border-ui-border-panel text-ui-text rounded-ui-sm shrink-0 cursor-pointer border border-solid px-1 py-0.5 text-[11px] outline-none"
-          name="inventory-hidden-filter"
-          [title]="'feature.inventory.panel.hiddenFilter' | transloco"
-          [ngModel]="hiddenFilter()"
-          (ngModelChange)="hiddenFilter.set($event)"
-        >
-          @for (option of hiddenFilterOptions; track option.value) {
-            <option [value]="option.value">{{ option.labelKey | transloco }}</option>
-          }
-        </select>
-        <button
-          class="text-ui-muted hover:bg-ui-hover hover:text-ui-accent flex size-6 shrink-0 cursor-pointer items-center justify-center rounded-sm border-none bg-transparent p-0 transition-[background,color] [&_.material-icons]:text-[18px]!"
-          [class.text-ui-accent!]="hiddenDisplay() === 'full'"
-          type="button"
-          [title]="
-            (hiddenDisplay() === 'dim'
-              ? 'feature.inventory.panel.hiddenDisplayDim'
-              : 'feature.inventory.panel.hiddenDisplayFull'
-            ) | transloco
-          "
-          (click)="toggleHiddenDisplay()"
-        >
-          <i class="material-icons">{{ hiddenDisplay() === 'dim' ? 'brightness_low' : 'brightness_high' }}</i>
-        </button>
-      }
-      @if (foldersApply() && canEdit()) {
-        <span class="bg-ui-border-panel ml-0.5 h-4 w-px shrink-0"></span>
-        <button
-          class="text-ui-muted hover:bg-ui-hover hover:text-ui-accent flex size-6 shrink-0 cursor-pointer items-center justify-center rounded-sm border-none bg-transparent p-0 transition-[background,color] [&_.material-icons]:text-[18px]!"
-          type="button"
-          [title]="'feature.inventory.panel.newFolder' | transloco"
-          (click)="createFolder()"
-        >
-          <i class="material-icons">create_new_folder</i>
-        </button>
-      }
     </div>
-
-    @if (isEdit()) {
-      <div
-        class="bg-ui-elevated border-ui-border-panel flex shrink-0 flex-col gap-1.5 border-b border-solid px-2.5 py-2"
-      >
-        <div class="flex gap-2.5">
-          <div class="flex min-w-0 flex-1 flex-col gap-0.75">
-            <label class="text-ui-muted text-[10px] font-semibold tracking-wider uppercase">{{
-              'feature.inventory.panel.sortOrder1' | transloco
-            }}</label>
-            <div class="flex gap-1">
-              <input
-                class="bg-ui-input border-ui-border-panel text-ui-text rounded-ui-sm focus:border-ui-accent box-border min-w-0 flex-1 border border-solid px-1.75 py-1 text-[12px] transition-[border-color] outline-none"
-                name="sort-tag"
-                [(ngModel)]="sortTag"
-                [placeholder]="'feature.inventory.panel.tagPlaceholder' | transloco"
-              />
-              <select
-                class="bg-ui-input border-ui-border-panel text-ui-text rounded-ui-sm cursor-pointer border border-solid px-1.5 py-1 text-[12px] outline-none"
-                name="sort-order"
-                [(ngModel)]="sortOrder"
-              >
-                <option value="ASC">{{ 'feature.inventory.panel.asc' | transloco }}</option>
-                <option value="DESC">{{ 'feature.inventory.panel.desc' | transloco }}</option>
-              </select>
-            </div>
-          </div>
-          <div class="flex min-w-0 flex-1 flex-col gap-0.75">
-            <label class="text-ui-muted text-[10px] font-semibold tracking-wider uppercase">{{
-              'feature.inventory.panel.sortOrder2' | transloco
-            }}</label>
-            <div class="flex gap-1">
-              <input
-                class="bg-ui-input border-ui-border-panel text-ui-text rounded-ui-sm focus:border-ui-accent box-border min-w-0 flex-1 border border-solid px-1.75 py-1 text-[12px] transition-[border-color] outline-none"
-                name="sort-tag-2nd"
-                [(ngModel)]="sortTag2nd"
-                [placeholder]="'feature.inventory.panel.tagPlaceholder' | transloco"
-              />
-              <select
-                class="bg-ui-input border-ui-border-panel text-ui-text rounded-ui-sm cursor-pointer border border-solid px-1.5 py-1 text-[12px] outline-none"
-                name="sort-order-2nd"
-                [(ngModel)]="sortOrder2nd"
-              >
-                <option value="ASC">{{ 'feature.inventory.panel.asc' | transloco }}</option>
-                <option value="DESC">{{ 'feature.inventory.panel.desc' | transloco }}</option>
-              </select>
-            </div>
-          </div>
-        </div>
-        <div class="flex min-w-0 flex-1 flex-col gap-0.75">
-          <label class="text-ui-muted text-[10px] font-semibold tracking-wider uppercase">{{
-            'feature.inventory.panel.displayItems' | transloco
-          }}</label>
-          <input
-            class="bg-ui-input border-ui-border-panel text-ui-text rounded-ui-sm focus:border-ui-accent box-border w-full min-w-0 flex-1 border border-solid px-1.75 py-1 text-[12px] transition-[border-color] outline-none"
-            name="data-tag"
-            [(ngModel)]="dataTag"
-            [placeholder]="'feature.inventory.panel.dataTagPlaceholder' | transloco"
-          />
-        </div>
-        <div class="flex flex-wrap gap-1.5">
-          @if (sortTag) {
-            <span
-              class="text-ui-accent bg-ui-accent-bg rounded-ui-sm inline-flex items-center gap-0.5 px-1.5 py-0.5 text-[11px] [&_.material-icons]:text-[12px]!"
-              ><i class="material-icons">sort</i>{{ sortTag }} ({{ sortOrderName }})</span
-            >
-          }
-          @if (sortTag2nd) {
-            <span
-              class="text-ui-accent bg-ui-accent-bg rounded-ui-sm inline-flex items-center gap-0.5 px-1.5 py-0.5 text-[11px] [&_.material-icons]:text-[12px]!"
-              ><i class="material-icons">sort</i>{{ sortTag2nd }} ({{ sortOrderName2nd }})</span
-            >
-          }
-        </div>
-      </div>
-    }
-
-    @if (!isEdit() && sortTag) {
-      <div class="bg-ui-panel border-ui-border-panel flex shrink-0 flex-wrap gap-1.5 border-b border-solid px-2.5 py-1">
-        <span
-          class="text-ui-accent bg-ui-accent-bg rounded-ui-sm inline-flex items-center gap-0.5 px-1.5 py-0.5 text-[11px] [&_.material-icons]:text-[12px]!"
-          ><i class="material-icons">sort</i>{{ sortTag }} ({{ sortOrderName }})</span
-        >
-        @if (sortTag2nd) {
-          <span
-            class="text-ui-accent bg-ui-accent-bg rounded-ui-sm inline-flex items-center gap-0.5 px-1.5 py-0.5 text-[11px] [&_.material-icons]:text-[12px]!"
-            ><i class="material-icons">sort</i>{{ sortTag2nd }} ({{ sortOrderName2nd }})</span
-          >
-        }
-      </div>
-    }
 
     @if (isMultiMove()) {
       <div

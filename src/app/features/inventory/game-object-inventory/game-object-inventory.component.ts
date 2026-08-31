@@ -66,12 +66,15 @@ import {
   buildInventoryRow,
   filterInventoryRows,
   filterInventoryRowsByHidden,
-  INVENTORY_HIDDEN_FILTERS,
   type InventoryHiddenFilter,
   type InventoryRow,
   inventorySearchText,
 } from '@axe/features/inventory/game-object-inventory/inventory-list';
 import { InventoryFilterService } from '@axe/features/inventory/inventory-filter.service';
+import {
+  INVENTORY_FILTER_PANEL,
+  InventoryFilterPanelComponent,
+} from '@axe/features/inventory/inventory-filter-panel/inventory-filter-panel.component';
 import { AutoFocusDirective } from '@axe/ui/directives/auto-focus.directive';
 import { SafePipe } from '@axe/ui/pipes/safe.pipe';
 import { TranslocoModule } from '@jsverse/transloco';
@@ -402,11 +405,6 @@ export class GameObjectInventoryComponent {
     only: 'feature.inventory.panel.hiddenFilterOnly',
     exclude: 'feature.inventory.panel.hiddenFilterExclude',
   };
-
-  readonly hiddenFilterOptions = INVENTORY_HIDDEN_FILTERS.map((value) => ({
-    value,
-    labelKey: this.hiddenFilterLabelKeys[value],
-  }));
 
   readonly hiddenFilter = this.filter.hiddenFilter;
   readonly hiddenDisplay = this.filter.hiddenDisplay;
@@ -827,10 +825,34 @@ export class GameObjectInventoryComponent {
     this.contextMenuService.open(position, actions, gameObject.name);
   }
 
+  /** The search and the settings stand in a window of their own; this opens and closes it. */
   toggleEdit() {
-    if (!this.rolePermission.canEditTabletop) return;
-    this.isEdit.update((v) => !v);
+    if (this.panelService.closeSingle(INVENTORY_FILTER_PANEL)) {
+      this.isEdit.set(false);
+      return;
+    }
+    const coordinate = this.pointerDeviceService.pointers[0];
+    this.panelService.open(InventoryFilterPanelComponent, {
+      title: this.t('feature.inventory.panel.filterPanelTitle'),
+      left: coordinate.x + 40,
+      top: coordinate.y - 40,
+      width: 360,
+      height: 380,
+      single: INVENTORY_FILTER_PANEL,
+    });
+    this.isEdit.set(true);
   }
+
+  /** What is in force, said in one line, so the list shows its own narrowing without the box. */
+  readonly filterSummary = computed<string>(() => {
+    const parts: string[] = [];
+    if (this.hasQuery()) parts.push(`\u201c${this.searchQuery().trim()}\u201d`);
+    if (this.isHiddenFiltered()) {
+      parts.push(this.t(this.hiddenFilterLabelKeys[this.activeHiddenFilter()]));
+    }
+    if (this.sortTag) parts.push(`${this.sortTag} (${this.sortOrderName})`);
+    return parts.length > 0 ? parts.join(' / ') : this.t('feature.inventory.panel.filterNone');
+  });
 
   toggleMultiMove() {
     if (this.isMultiMove()) {

@@ -1309,7 +1309,10 @@
         "viewTable": "Table",
         "viewMinimal": "Minimal",
         "tableNoColumns": "No display items. Name some in the display settings and they become columns",
-        "tableName": "Name"
+        "tableName": "Name",
+        "filterPanelTitle": "Search and display settings",
+        "filterNone": "Nothing narrowed",
+        "displayItemsHint": "Name a registered state and that column becomes a box to tick"
       }
     },
     "file": {
