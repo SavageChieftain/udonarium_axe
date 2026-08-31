@@ -36,14 +36,9 @@ import {
   VN_BUBBLE_SHAPES,
   VN_EMOTION_MARK_CHARS,
   VN_EMOTION_MARKS,
-  VN_MESSAGE_KINDS,
   VN_PORTRAIT_EMOTES,
-  VnBubbleAnimation,
-  VnBubbleShape,
   vnEmoteOf,
   VnEmotionMark,
-  VnMessageKind,
-  VnPortraitEmote,
 } from '@axe/domain/visual-novel/vn-emote';
 import {
   isVnPortraitPosSet,
@@ -62,6 +57,7 @@ import { SystemAvatarMenuService } from '@axe/features/chat/system-avatar-menu.s
 import { VisualNovelBacklogComponent } from '@axe/features/visual-novel/visual-novel-backlog/visual-novel-backlog.component';
 import { VisualNovelDirectorService } from '@axe/features/visual-novel/visual-novel-director.service';
 import { vnEmoteLabel } from '@axe/features/visual-novel/visual-novel-emote-label';
+import { VisualNovelEmoteSelectionService } from '@axe/features/visual-novel/visual-novel-emote-selection.service';
 import { readableMessageName, readableMessageText } from '@axe/features/visual-novel/visual-novel-message';
 import { VisualNovelModeService } from '@axe/features/visual-novel/visual-novel-mode.service';
 import { VisualNovelPlaybackService } from '@axe/features/visual-novel/visual-novel-playback.service';
@@ -160,6 +156,7 @@ export class VisualNovelOverlayComponent {
   private readonly playback = inject(VisualNovelPlaybackService);
   readonly scene = inject(VisualNovelSceneService);
   readonly director = inject(VisualNovelDirectorService);
+  private readonly emoteSelection = inject(VisualNovelEmoteSelectionService);
 
   readonly readabilityClass = computed(() => {
     switch (this.settings.readability()) {
@@ -205,12 +202,12 @@ export class VisualNovelOverlayComponent {
   private readonly openPopover = signal<VisualNovelPopover | null>(null);
   readonly isSkipping = this.playback.isSkipping;
 
-  readonly selectedKind = signal<VnMessageKind>('normal');
-  readonly selectedShape = signal<VnBubbleShape>('normal');
-  readonly selectedBubbleAnimation = signal<VnBubbleAnimation>('none');
-  readonly selectedPortraitEmote = signal<VnPortraitEmote>('none');
-  readonly selectedEmotionMark = signal<VnEmotionMark>('none');
-  readonly selectedExit = signal(false);
+  readonly selectedKind = this.emoteSelection.kind;
+  readonly selectedShape = this.emoteSelection.shape;
+  readonly selectedBubbleAnimation = this.emoteSelection.bubbleAnimation;
+  readonly selectedPortraitEmote = this.emoteSelection.portraitEmote;
+  readonly selectedEmotionMark = this.emoteSelection.emotionMark;
+  readonly selectedExit = this.emoteSelection.exited;
 
   readonly typewriterSpeedOptions = VN_TYPEWRITER_SPEEDS;
   readonly portraitAnimationOptions = VN_PORTRAIT_ANIMATIONS;
@@ -218,14 +215,8 @@ export class VisualNovelOverlayComponent {
   readonly layoutOptions = VN_LAYOUTS;
   readonly readabilityOptions = VN_READABILITY_LEVELS;
   readonly transitionOptions = VN_STAGE_TRANSITIONS;
-  readonly messageKindOptions = computed(() =>
-    this.isGameMaster() ? VN_MESSAGE_KINDS : VN_MESSAGE_KINDS.filter((kind) => kind !== 'scene')
-  );
-
-  readonly isGameMaster = computed(() => {
-    if (PeerCursor.myCursor) this.objectChange.versionOf(PeerCursor.myCursor.identifier)();
-    return PeerCursor.isMyselfGameMaster;
-  });
+  readonly messageKindOptions = this.emoteSelection.messageKindOptions;
+  readonly isGameMaster = this.emoteSelection.isGameMaster;
   readonly bubbleShapeOptions = VN_BUBBLE_SHAPES;
   readonly bubbleAnimationOptions = VN_BUBBLE_ANIMATIONS;
   readonly portraitEmoteOptions = VN_PORTRAIT_EMOTES;
@@ -359,43 +350,19 @@ export class VisualNovelOverlayComponent {
     return { char: VN_EMOTION_MARK_CHARS[mark], colorClass: EMOTION_MARK_COLORS[mark] };
   });
 
-  readonly hasEmoteSelection = computed(
-    () =>
-      this.selectedKind() !== 'normal' ||
-      this.selectedShape() !== 'normal' ||
-      this.selectedBubbleAnimation() !== 'none' ||
-      this.selectedPortraitEmote() !== 'none' ||
-      this.selectedEmotionMark() !== 'none' ||
-      this.selectedExit()
-  );
+  readonly hasEmoteSelection = this.emoteSelection.hasSelection;
 
   readonly selectedEmoteSuffix = computed(() => {
     this.language.currentLang();
-    return vnEmoteLabel(
-      {
-        kind: this.selectedKind(),
-        shape: this.selectedShape(),
-        bubbleAnimation: this.selectedBubbleAnimation(),
-        portraitEmote: this.selectedPortraitEmote(),
-        emotionMark: this.selectedEmotionMark(),
-        flipped: false,
-        exited: this.selectedExit(),
-      },
-      this.t
-    );
+    return vnEmoteLabel(this.emoteSelection.emote(), this.t);
   });
 
   resetEmote(): void {
-    this.selectedKind.set('normal');
-    this.selectedShape.set('normal');
-    this.selectedBubbleAnimation.set('none');
-    this.selectedPortraitEmote.set('none');
-    this.selectedEmotionMark.set('none');
-    this.selectedExit.set(false);
+    this.emoteSelection.reset();
   }
 
   toggleSelectedExit(): void {
-    this.selectedExit.update((exited) => !exited);
+    this.emoteSelection.toggleExit();
   }
 
   emotionMarkLabel(mark: VnEmotionMark): string {
@@ -781,6 +748,9 @@ export class VisualNovelOverlayComponent {
     this._sendFrom.set(this.gameCharacters()[0]?.identifier ?? '');
     this.playback.attach();
     this.destroyRef.onDestroy(() => this.playback.detach());
+    // The selection outlives this screen now, and an expression chosen before novel mode was
+    // last closed should not be waiting to be sent when it is opened again.
+    this.destroyRef.onDestroy(() => this.emoteSelection.reset());
 
     const seTimer = setInterval(() => {
       if (this.isPopover('soundBoard')) this._seTick.update((v) => v + 1);
@@ -1012,15 +982,7 @@ export class VisualNovelOverlayComponent {
       const palette = speaker.chatPalette;
       if (palette) evaluated = palette.evaluate(text, speaker.rootDataElement ?? undefined);
     }
-    const emote = encodeVnEmote({
-      kind: this.selectedKind(),
-      shape: this.selectedShape(),
-      bubbleAnimation: this.selectedBubbleAnimation(),
-      portraitEmote: this.selectedPortraitEmote(),
-      emotionMark: this.selectedEmotionMark(),
-      flipped: this.speakerFlip() === true,
-      exited: this.selectedExit(),
-    });
+    const emote = encodeVnEmote({ ...this.emoteSelection.emote(), flipped: this.speakerFlip() === true });
     const attachedSe = this.attachedSe();
     DiceBot.loadGameSystemAsync(this.gameType).then((gameSystem) => {
       this.chatMessageService.sendMessage(
