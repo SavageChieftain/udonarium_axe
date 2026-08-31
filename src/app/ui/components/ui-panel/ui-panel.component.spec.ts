@@ -55,6 +55,39 @@ describe('UIPanelComponent', () => {
     });
   });
 
+  describe('shrinking when the content asks', () => {
+    it('shrinks the panel when the content asks', () => {
+      fixture.detectChanges();
+
+      component.panelService.minimizeRequest$.emit(true);
+      fixture.detectChanges();
+
+      expect(component.isMinimized()).toBe(true);
+      expect(component.panelService.isMinimized()).toBe(true);
+    });
+
+    it('lets it out again', () => {
+      fixture.detectChanges();
+      component.panelService.minimizeRequest$.emit(true);
+
+      component.panelService.minimizeRequest$.emit(false);
+      fixture.detectChanges();
+
+      expect(component.isMinimized()).toBe(false);
+    });
+
+    it('does nothing when it is already the way it was asked for', () => {
+      fixture.detectChanges();
+      component.panelService.minimizeRequest$.emit(true);
+      const height = component.height;
+
+      component.panelService.minimizeRequest$.emit(true);
+
+      expect(component.isMinimized()).toBe(true);
+      expect(component.height).toBe(height);
+    });
+  });
+
   describe('a panel with its box taken off', () => {
     function panel(): HTMLElement {
       return fixture.nativeElement.querySelector('.draggable-panel');

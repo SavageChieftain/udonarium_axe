@@ -116,6 +116,10 @@ export class UIPanelComponent {
       this.panelService.minWidth = this.minWidthInput();
       this.panelService.minHeight = this.minHeightInput();
     });
+    this.panelService.minimizeRequest$.subscribe((minimized) => {
+      if (minimized === this.isMinimized()) return;
+      this.toggleMinimize();
+    }, this.destroyRef);
     afterNextRender({
       write: () => {
         this.panelService.setDefaultScrollablePanel(this.scrollablePanel().nativeElement);

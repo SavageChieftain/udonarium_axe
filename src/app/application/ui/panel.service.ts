@@ -120,6 +120,14 @@ export class PanelService {
   scrollablePanel: HTMLDivElement | null = null;
   private isScrollablePanelClaimed = false;
   readonly scrollToBottom$ = new EventChannel<void>();
+  /**
+   * Asks the frame to shrink the panel, or to let it out again.
+   *
+   * Shrinking is the frame's own doing - it puts the panel's size aside to give back - so the
+   * content asks rather than writing `isMinimized` itself, which would leave the panel its
+   * full size with nothing drawn in it.
+   */
+  readonly minimizeRequest$ = new EventChannel<boolean>();
   get isShow(): boolean {
     return this.panelComponentRef !== null;
   }

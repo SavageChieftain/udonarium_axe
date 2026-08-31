@@ -1304,7 +1304,11 @@
         "emptyMessage": "{{name}} inventory is empty",
         "cleanGraveyard": "Clear graveyard",
         "confirmCleanTab": "Permanently delete {{count}} items in {{tab}}?",
-        "confirmMultiDelete": "Permanently delete {{count}} items in the graveyard among the selected?"
+        "confirmMultiDelete": "Permanently delete {{count}} items in the graveyard among the selected?",
+        "viewRich": "Full",
+        "viewTable": "Table",
+        "viewMinimal": "Minimal",
+        "tableNoColumns": "No display items. Name some in the display settings and they become columns"
       }
     },
     "file": {

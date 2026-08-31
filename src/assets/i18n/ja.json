@@ -1304,7 +1304,11 @@
         "emptyMessage": "{{name}}インベントリは空です",
         "cleanGraveyard": "墓場を空にする",
         "confirmCleanTab": "{{tab}}に存在する{{count}}個の要素を完全に削除しますか？",
-        "confirmMultiDelete": "選択したもののうち墓場に存在する{{count}}個の要素を完全に削除しますか？"
+        "confirmMultiDelete": "選択したもののうち墓場に存在する{{count}}個の要素を完全に削除しますか？",
+        "viewRich": "リッチ表示",
+        "viewTable": "簡略表示（表）",
+        "viewMinimal": "最小表示",
+        "tableNoColumns": "表示項目が空です。表示設定で項目名を入れると列になります"
       }
     },
     "file": {
