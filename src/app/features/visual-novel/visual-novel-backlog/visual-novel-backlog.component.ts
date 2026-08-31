@@ -18,7 +18,6 @@ import { ImageService } from '@axe/application/storage/image.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { ChatMessage } from '@axe/domain/chat/chat-message';
 import {
-  buildLegacyVnEmoteSuffix,
   encodeVnEmote,
   VN_BUBBLE_ANIMATIONS,
   VN_BUBBLE_SHAPES,
@@ -34,6 +33,7 @@ import {
   VnPortraitEmote,
 } from '@axe/domain/visual-novel/vn-emote';
 import { isVnPortraitPosSet, VN_PORTRAIT_POS_UNSET } from '@axe/domain/visual-novel/vn-portrait-position';
+import { vnEmoteLabel } from '@axe/features/visual-novel/visual-novel-emote-label';
 import { readableMessageName, readableMessageText } from '@axe/features/visual-novel/visual-novel-message';
 import { VisualNovelPlaybackService } from '@axe/features/visual-novel/visual-novel-playback.service';
 import { VN_STAGE_SLOT_COUNT } from '@axe/features/visual-novel/visual-novel-stage';
@@ -101,7 +101,7 @@ export class VisualNovelBacklogComponent {
     return this.playback.messages().map((message, index) => {
       const readable = readableMessageText(message, this.translate);
       const text = vnBodyOf(message.vnEmote, readable);
-      const suffix = buildLegacyVnEmoteSuffix(vnEmoteOf(message.vnEmote, readable)).trim();
+      const suffix = vnEmoteLabel(vnEmoteOf(message.vnEmote, readable), this.translate);
       const hasPortrait = !message.isSystemMessage && !message.isDicebot;
       return {
         message,

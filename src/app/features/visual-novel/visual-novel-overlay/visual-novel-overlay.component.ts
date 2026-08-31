@@ -31,7 +31,6 @@ import { AudioTag } from '@axe/domain/media/audio-tag';
 import { Jukebox } from '@axe/domain/media/jukebox';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import {
-  buildLegacyVnEmoteSuffix,
   encodeVnEmote,
   VN_BUBBLE_ANIMATIONS,
   VN_BUBBLE_SHAPES,
@@ -61,6 +60,7 @@ import {
 import { SystemAvatarMenuService } from '@axe/features/chat/system-avatar-menu.service';
 import { VisualNovelBacklogComponent } from '@axe/features/visual-novel/visual-novel-backlog/visual-novel-backlog.component';
 import { VisualNovelDirectorService } from '@axe/features/visual-novel/visual-novel-director.service';
+import { vnEmoteLabel } from '@axe/features/visual-novel/visual-novel-emote-label';
 import { readableMessageName, readableMessageText } from '@axe/features/visual-novel/visual-novel-message';
 import { VisualNovelModeService } from '@axe/features/visual-novel/visual-novel-mode.service';
 import { VisualNovelPlaybackService } from '@axe/features/visual-novel/visual-novel-playback.service';
@@ -368,17 +368,21 @@ export class VisualNovelOverlayComponent {
       this.selectedExit()
   );
 
-  readonly selectedEmoteSuffix = computed(() =>
-    buildLegacyVnEmoteSuffix({
-      kind: this.selectedKind(),
-      shape: this.selectedShape(),
-      bubbleAnimation: this.selectedBubbleAnimation(),
-      portraitEmote: this.selectedPortraitEmote(),
-      emotionMark: this.selectedEmotionMark(),
-      flipped: false,
-      exited: this.selectedExit(),
-    }).trim()
-  );
+  readonly selectedEmoteSuffix = computed(() => {
+    this.language.currentLang();
+    return vnEmoteLabel(
+      {
+        kind: this.selectedKind(),
+        shape: this.selectedShape(),
+        bubbleAnimation: this.selectedBubbleAnimation(),
+        portraitEmote: this.selectedPortraitEmote(),
+        emotionMark: this.selectedEmotionMark(),
+        flipped: false,
+        exited: this.selectedExit(),
+      },
+      this.t
+    );
+  });
 
   resetEmote(): void {
     this.selectedKind.set('normal');
