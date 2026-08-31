@@ -944,6 +944,7 @@ export class VisualNovelOverlayComponent {
       top: 60,
       width: 800,
       height: Math.min(600, Math.max(360, window.innerHeight - 320)),
+      layer: Z_VISUAL_NOVEL_PANEL,
     };
     const component = this.panelService.open<GameCharacterSheetComponent>(GameCharacterSheetComponent, option);
     component.tabletopObject = object;

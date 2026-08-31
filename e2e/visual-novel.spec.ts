@@ -422,6 +422,18 @@ test.describe('ビジュアルノベルモード', () => {
     const sheetButton = page.locator('visual-novel-overlay button[title="キャラクターシート参照"]');
     await sheetButton.click();
     await expect(page.locator('game-character-sheet')).toBeVisible({ timeout: 10000 });
+
+    // 「見えている」だけでは足りない。ノベルモードの背景は画面全体を覆うので、
+    // シートがその下に潜っていないことまで確かめる。
+    const stacking = await page.evaluate(() => {
+      const overlay = document.querySelector('visual-novel-overlay');
+      const sheet = document.querySelector('game-character-sheet')?.closest('.draggable-panel');
+      if (!(overlay instanceof HTMLElement) || !(sheet instanceof HTMLElement)) return null;
+      return { overlay: Number(getComputedStyle(overlay).zIndex), sheet: Number(getComputedStyle(sheet).zIndex) };
+    });
+    expect(stacking).not.toBeNull();
+    expect(stacking!.sheet).toBeGreaterThan(stacking!.overlay);
+
     await sheetButton.click();
     await expect(page.locator('game-character-sheet')).toHaveCount(0);
   });
