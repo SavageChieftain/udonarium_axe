@@ -2119,7 +2119,9 @@
         "title": "Message stream",
         "open": "Watch \"{{name}}\" in its own window",
         "close": "Close that window",
-        "gone": "This tab is gone"
+        "gone": "This tab is gone",
+        "followLatest": "Follow the newest",
+        "ghost": "Ghost mode"
       },
       "palette": {
         "panelTitle": "Chat palette",
