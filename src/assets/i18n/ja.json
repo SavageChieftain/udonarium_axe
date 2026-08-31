@@ -1402,7 +1402,8 @@
         "timing_none": "消えない",
         "trigger": "トリガーキャラクター",
         "triggerPlaceholder": "未指定なら本人",
-        "triggerUnknown": "{{name}}（卓外）"
+        "triggerUnknown": "{{name}}（卓外）",
+        "iconImage": "画像から選ぶ"
       },
       "importImg": {
         "sourceLabel": "複製元＞",
@@ -3132,7 +3133,9 @@
       "rounds": "ラウンド",
       "roundsHint": "0 なら外すまで続きます",
       "effect": "効果",
-      "effectPlaceholder": "バフに添える一行（例: 毎ラウンド HP-1）"
+      "effectPlaceholder": "バフに添える一行（例: 毎ラウンド HP-1）",
+      "iconImage": "画像",
+      "pickIconImage": "画像から選ぶ"
     }
   },
   "app": {

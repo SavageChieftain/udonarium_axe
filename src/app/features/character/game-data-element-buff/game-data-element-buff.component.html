@@ -14,7 +14,11 @@
                     [style.background]="color()"
                     [title]="'feature.character.buff.icon' | transloco"
                   >
-                    {{ icon() }}
+                    @if (iconUrl()) {
+                      <img class="size-4 object-contain" [src]="iconUrl() | safe: 'resourceUrl'" alt="" />
+                    } @else {
+                      {{ icon() }}
+                    }
                   </summary>
                   <div
                     class="bg-ui-panel border-ui-border-panel rounded-ui-sm absolute top-7 left-0 z-10 w-40 border border-solid p-1 shadow-md"
@@ -31,6 +35,13 @@
                         </button>
                       }
                     </div>
+                    <button
+                      class="border-ui-border-panel hover:bg-ui-hover text-ui-muted hover:text-ui-text mt-1 flex w-full cursor-pointer items-center justify-center gap-1 rounded-xs border border-solid bg-transparent px-1 py-0.5 text-[10px] [&_.material-icons]:text-[13px]!"
+                      type="button"
+                      (click)="chooseIconImage()"
+                    >
+                      <i class="material-icons">image</i>{{ 'feature.character.buff.iconImage' | transloco }}
+                    </button>
                     <div class="text-ui-muted mt-1 mb-0.5 px-0.5 text-[10px] tracking-[0.06em] uppercase select-none">
                       {{ 'feature.character.buff.color' | transloco }}
                     </div>
@@ -57,7 +68,11 @@
                   </div>
                 </details>
               } @else {
-                <span class="shrink-0 text-[13px] leading-none">{{ icon() }}</span>
+                @if (iconUrl()) {
+                  <img class="size-4 shrink-0 object-contain" [src]="iconUrl() | safe: 'resourceUrl'" alt="" />
+                } @else {
+                  <span class="shrink-0 text-[13px] leading-none">{{ icon() }}</span>
+                }
               }
               <div class="relative min-w-0 flex-1">
                 @if (!isTagLocked()) {

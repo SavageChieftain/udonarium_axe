@@ -1402,7 +1402,8 @@
         "timing_none": "사라지지 않음",
         "trigger": "트리거 캐릭터",
         "triggerPlaceholder": "지정하지 않으면 본인",
-        "triggerUnknown": "{{name}}(탁상 밖)"
+        "triggerUnknown": "{{name}}(탁상 밖)",
+        "iconImage": "이미지에서 고르기"
       },
       "importImg": {
         "sourceLabel": "복제 원본＞",
@@ -3369,7 +3370,9 @@
       "rounds": "라운드",
       "roundsHint": "0이면 해제할 때까지 지속됩니다",
       "effect": "효과",
-      "effectPlaceholder": "버프에 붙는 한 줄(예: 매 라운드 HP-1)"
+      "effectPlaceholder": "버프에 붙는 한 줄(예: 매 라운드 HP-1)",
+      "iconImage": "이미지",
+      "pickIconImage": "이미지에서 고르기"
     }
   },
   "app": {

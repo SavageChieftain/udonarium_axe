@@ -30,6 +30,7 @@ import { GameObject } from '@axe/core/sync/game-object';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { turnCache } from '@axe/core/util/turn-cache';
 import { resolveBuffColor } from '@axe/domain/character/buff-appearance';
+import { buffIconUrlOf } from '@axe/domain/character/buff-badge';
 import {
   ancestorFolderPaths,
   FOLDER_SEPARATOR,
@@ -209,6 +210,11 @@ export class GameObjectInventoryComponent {
 
   ailmentSwatch(column: InventoryTableColumn): string {
     return column.ailment ? resolveBuffColor(column.ailment.color) || 'transparent' : 'transparent';
+  }
+
+  ailmentIconUrl(column: InventoryTableColumn): string {
+    this.objectChange.fileVersion();
+    return column.ailment ? buffIconUrlOf(column.ailment.icon) : '';
   }
 
   isAilmentOn(object: TabletopObject, ailment: StatusAilment): boolean {

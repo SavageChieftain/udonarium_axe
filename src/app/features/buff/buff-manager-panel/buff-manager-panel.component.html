@@ -120,7 +120,11 @@
                 [style.width.px]="labelWidthPx"
                 [style.min-width.px]="labelWidthPx"
               >
-                <span class="shrink-0 text-[11px] leading-none">{{ bar.icon }}</span>
+                @if (bar.iconUrl) {
+                  <img class="size-3 shrink-0 object-contain" [src]="bar.iconUrl | safe: 'resourceUrl'" alt="" />
+                } @else {
+                  <span class="shrink-0 text-[11px] leading-none">{{ bar.icon }}</span>
+                }
                 <span
                   class="min-w-0 truncate text-[11px]"
                   [class.text-ui-accent]="selected() === bar.identifier"

@@ -1,6 +1,10 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { StatusAilmentService } from '@axe/application/character/status-ailment.service';
 import { RolePermissionService } from '@axe/application/permission/role-permission.service';
+import { ModalService } from '@axe/application/ui/modal.service';
+import { ImageFile } from '@axe/core/storage/image-file';
+import { ImageStorage } from '@axe/core/storage/image-storage';
+import { newStatusAilment } from '@axe/domain/character/status-ailment';
 import { StatusAilmentCatalog } from '@axe/domain/character/status-ailment-catalog';
 import { StatusAilmentPanelComponent } from '@axe/features/status-ailment/status-ailment-panel/status-ailment-panel.component';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
@@ -88,6 +92,40 @@ describe('StatusAilmentPanelComponent', () => {
 
     component.remove('麻痺');
     expect(service.ailments().map((entry) => entry.name)).toEqual(['毒']);
+  });
+
+  describe('the mark it wears', () => {
+    afterEach(() => vi.restoreAllMocks());
+
+    it('takes a picture in place of the mark', async () => {
+      service.add('毒');
+      vi.spyOn(TestBed.inject(ModalService), 'open').mockResolvedValue('image-1');
+
+      component.chooseIconImage(service.ailments()[0]);
+      await Promise.resolve();
+
+      expect(service.ailments()[0].icon).toBe('image-1');
+    });
+
+    it('draws the picture where the mark would go', () => {
+      vi.spyOn(ImageStorage.instance, 'get').mockImplementation((identifier: string) =>
+        identifier === 'image-1' ? ({ identifier, url: 'blob:poison' } as ImageFile) : null
+      );
+      service.save([{ ...newStatusAilment('毒'), icon: 'image-1' }]);
+      fixture.detectChanges();
+
+      expect(component.iconUrlOf(service.ailments()[0])).toBe('blob:poison');
+      expect(fixture.nativeElement.querySelector('img')).toBeTruthy();
+    });
+
+    it('leaves an emoji as it is', () => {
+      vi.spyOn(ImageStorage.instance, 'get').mockReturnValue(null);
+      service.save([{ ...newStatusAilment('毒'), icon: '☠️' }]);
+      fixture.detectChanges();
+
+      expect(component.iconUrlOf(service.ailments()[0])).toBe('');
+      expect(fixture.nativeElement.textContent).toContain('☠️');
+    });
   });
 
   it('lets nobody who cannot edit the table change the list', () => {

@@ -34,10 +34,15 @@
       <div class="border-ui-border-panel mb-1.5 rounded-[5px] border border-solid px-2 py-1.5">
         <div class="flex items-center gap-1.5">
           <span
-            class="ring-ui-border-panel inline-flex size-5 shrink-0 items-center justify-center rounded-full text-[11px] ring-1"
+            class="ring-ui-border-panel inline-flex size-5 shrink-0 items-center justify-center overflow-hidden rounded-full text-[11px] ring-1"
             [style.background]="swatchOf(ailment.color)"
-            >{{ ailment.icon }}</span
           >
+            @if (iconUrlOf(ailment)) {
+              <img class="size-full object-contain" [src]="iconUrlOf(ailment) | safe: 'resourceUrl'" alt="" />
+            } @else {
+              {{ ailment.icon }}
+            }
+          </span>
           <span class="min-w-0 flex-1 truncate font-semibold">{{ ailment.name }}</span>
           @if (canEdit()) {
             <button
@@ -85,13 +90,29 @@
             </select>
 
             <label class="text-ui-muted">{{ 'feature.statusAilment.icon' | transloco }}</label>
-            <input
-              class="rounded-ui-sm border-ui-border-panel bg-ui-input text-ui-text min-w-0 border border-solid px-1 py-0.5 outline-none"
-              [attr.name]="'ailment-icon-' + ailment.name"
-              [ngModel]="ailment.icon"
-              (ngModelChange)="setIcon(ailment, $event)"
-              [placeholder]="'feature.statusAilment.iconPlaceholder' | transloco"
-            />
+            <div class="flex min-w-0 items-center gap-1">
+              @if (iconUrlOf(ailment)) {
+                <span class="text-ui-dim min-w-0 flex-1 truncate">{{
+                  'feature.statusAilment.iconImage' | transloco
+                }}</span>
+              } @else {
+                <input
+                  class="rounded-ui-sm border-ui-border-panel bg-ui-input text-ui-text min-w-0 flex-1 border border-solid px-1 py-0.5 outline-none"
+                  [attr.name]="'ailment-icon-' + ailment.name"
+                  [ngModel]="ailment.icon"
+                  (ngModelChange)="setIcon(ailment, $event)"
+                  [placeholder]="'feature.statusAilment.iconPlaceholder' | transloco"
+                />
+              }
+              <button
+                class="text-ui-muted hover:bg-ui-hover hover:text-ui-text flex size-5 shrink-0 cursor-pointer items-center justify-center rounded-sm border-none bg-transparent p-0 [&_.material-icons]:text-[14px]!"
+                type="button"
+                [title]="'feature.statusAilment.pickIconImage' | transloco"
+                (click)="chooseIconImage(ailment)"
+              >
+                <i class="material-icons">image</i>
+              </button>
+            </div>
 
             <label class="text-ui-muted">{{ 'feature.statusAilment.rounds' | transloco }}</label>
             <input

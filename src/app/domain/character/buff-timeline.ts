@@ -1,4 +1,4 @@
-import { buffColorOf, buffIconOf, parseBuffStrength } from '@axe/domain/character/buff-badge';
+import { buffColorOf, buffIconOf, buffIconUrlOf, parseBuffStrength } from '@axe/domain/character/buff-badge';
 import { readBuffModifier } from '@axe/domain/character/buff-modifier';
 import { BuffTiming, buffTimingOf, buffTriggerOf } from '@axe/domain/character/buff-timing';
 import { DataElement } from '@axe/domain/data/data-element';
@@ -9,6 +9,8 @@ export interface BuffTimelineBar {
   effect: string;
   strength: string;
   icon: string;
+  /** Where the picture is, for an icon naming one that was brought in. Empty for a mark. */
+  iconUrl: string;
   color: string;
   /** Rounds left, which is how many columns the bar covers. */
   rounds: number;
@@ -47,6 +49,7 @@ export function toTimelineBars(buffRoot: DataElement | null): BuffTimelineBar[] 
         effect,
         strength: parseBuffStrength(effect),
         icon: buffIconOf(data),
+        iconUrl: buffIconUrlOf(buffIconOf(data)),
         color: buffColorOf(data),
         rounds: Number.isFinite(rounds) ? rounds : 0,
         timing: buffTimingOf(data),

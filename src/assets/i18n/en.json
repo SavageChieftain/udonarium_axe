@@ -1402,7 +1402,8 @@
         "timing_none": "Never",
         "trigger": "Trigger character",
         "triggerPlaceholder": "Defaults to the bearer",
-        "triggerUnknown": "{{name}} (off table)"
+        "triggerUnknown": "{{name}} (off table)",
+        "iconImage": "Pick a picture"
       },
       "importImg": {
         "sourceLabel": "Source:",
@@ -3132,7 +3133,9 @@
       "rounds": "Rounds",
       "roundsHint": "Zero holds it until it is taken away",
       "effect": "Effect",
-      "effectPlaceholder": "A line to carry on the buff (e.g. HP-1 each round)"
+      "effectPlaceholder": "A line to carry on the buff (e.g. HP-1 each round)",
+      "iconImage": "Picture",
+      "pickIconImage": "Pick a picture"
     }
   },
   "app": {

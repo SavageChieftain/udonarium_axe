@@ -1,4 +1,6 @@
-import { buffIconOf, parseBuffStrength, toBuffBadges } from '@axe/domain/character/buff-badge';
+import { ImageFile } from '@axe/core/storage/image-file';
+import { ImageStorage } from '@axe/core/storage/image-storage';
+import { buffIconOf, buffIconUrlOf, parseBuffStrength, toBuffBadges } from '@axe/domain/character/buff-badge';
 import { DataElement, DataElementAttribute, DataElementType } from '@axe/domain/data/data-element';
 
 describe('parseBuffStrength()', () => {
@@ -53,7 +55,7 @@ describe('toBuffBadges()', () => {
     const badges = toBuffBadges(root);
 
     expect(badges).toHaveLength(2);
-    expect(badges[0]).toMatchObject({ icon: '☠️', name: '毒', strength: '2', rounds: 3 });
+    expect(badges[0]).toMatchObject({ icon: '☠️', name: '毒', strength: '2', rounds: 3, iconUrl: '' });
     expect(badges[1]).toMatchObject({ name: '加護', strength: '+1', rounds: 1 });
   });
 
@@ -82,5 +84,24 @@ describe('toBuffBadges()', () => {
 
   it('returns nothing when it is unset', () => {
     expect(toBuffBadges(null)).toEqual([]);
+  });
+});
+
+describe('buffIconUrlOf()', () => {
+  afterEach(() => vi.restoreAllMocks());
+
+  it('finds the picture an icon names', () => {
+    vi.spyOn(ImageStorage.instance, 'get').mockImplementation((identifier: string) =>
+      identifier === 'image-1' ? ({ identifier, url: 'blob:poison' } as ImageFile) : null
+    );
+
+    expect(buffIconUrlOf('image-1')).toBe('blob:poison');
+  });
+
+  it('leaves a mark as a mark, since no picture goes by that name', () => {
+    vi.spyOn(ImageStorage.instance, 'get').mockReturnValue(null);
+
+    expect(buffIconUrlOf('☠️')).toBe('');
+    expect(buffIconUrlOf('')).toBe('');
   });
 });

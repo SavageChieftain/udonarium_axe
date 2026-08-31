@@ -363,10 +363,15 @@
             <span class="flex items-center justify-center gap-0.5 whitespace-nowrap" [title]="column.name">
               @if (column.ailment) {
                 <span
-                  class="ring-ui-border-panel inline-flex size-3 shrink-0 items-center justify-center rounded-full text-[9px] ring-1"
+                  class="ring-ui-border-panel inline-flex size-3 shrink-0 items-center justify-center overflow-hidden rounded-full text-[9px] ring-1"
                   [style.background]="ailmentSwatch(column)"
-                  >{{ column.ailment.icon }}</span
                 >
+                  @if (ailmentIconUrl(column)) {
+                    <img class="size-full object-contain" [src]="ailmentIconUrl(column) | safe: 'resourceUrl'" alt="" />
+                  } @else {
+                    {{ column.ailment.icon }}
+                  }
+                </span>
               }
               {{ column.name }}
             </span>

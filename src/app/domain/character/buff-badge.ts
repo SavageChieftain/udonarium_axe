@@ -1,3 +1,4 @@
+import { ImageStorage } from '@axe/core/storage/image-storage';
 import { DEFAULT_BUFF_COLOR } from '@axe/domain/character/buff-appearance';
 import { buffExpires } from '@axe/domain/character/buff-timing';
 import { DataElement, DataElementAttribute } from '@axe/domain/data/data-element';
@@ -5,6 +6,8 @@ import { DataElement, DataElementAttribute } from '@axe/domain/data/data-element
 export interface BuffBadge {
   identifier: string;
   icon: string;
+  /** Where the picture is, for an icon naming one that was brought in. Empty for a mark. */
+  iconUrl: string;
   name: string;
   effect: string;
   strength: string;
@@ -36,6 +39,18 @@ export function buffIconOf(element: DataElement): string {
   return icon.length > 0 ? icon : DEFAULT_ICON;
 }
 
+/**
+ * The picture an icon stands for, or nothing where it is a mark to be written.
+ *
+ * An icon is a mark by default - an emoji, a letter - but it may instead name a picture that
+ * was brought into the room. Which it is, is answered by asking whether a picture goes by that
+ * name rather than by the shape of the text, so no emoji can ever be mistaken for one.
+ */
+export function buffIconUrlOf(icon: string): string {
+  if (icon.length < 1) return '';
+  return ImageStorage.instance.get(icon)?.url ?? '';
+}
+
 /** Folds one buff into a badge of its icon, its strength and the rounds left. */
 export function toBuffBadges(buffRoot: DataElement | null): BuffBadge[] {
   if (!buffRoot) return [];
@@ -55,6 +70,7 @@ export function toBuffBadges(buffRoot: DataElement | null): BuffBadge[] {
       badges.push({
         identifier: data.identifier,
         icon: buffIconOf(data),
+        iconUrl: buffIconUrlOf(buffIconOf(data)),
         name: data.name,
         effect,
         strength: parseBuffStrength(effect),
