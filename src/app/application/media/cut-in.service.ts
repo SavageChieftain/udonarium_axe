@@ -11,6 +11,15 @@ import { GameTable } from '@axe/domain/tabletop/game-table';
 
 const CHAT_TAIL_PATTERN = /\s(@?)(\S+)$/i;
 
+/**
+ * How lately a line has to have been said for its cut-in to still be meant.
+ *
+ * Joining a room and loading one from a file both hand every line that was ever said to the
+ * same event a new line arrives on. Without this, walking in set off every cut-in the evening
+ * had ever named - and since starting one is spoken to the whole room, everybody saw them.
+ */
+const JUST_SAID_MS = 30_000;
+
 @Injectable({ providedIn: 'root' })
 export class CutInService {
   private readonly destroyRef = inject(DestroyRef);
@@ -22,6 +31,11 @@ export class CutInService {
     this.objectChange.messageAdded$.subscribe((event) => {
       const message = this.objectStore.get<ChatMessage>(event.messageIdentifier);
       if (!message || message.tags.includes('secret')) return;
+      // Only the end that said it starts the cut-in. Every end hears the line, and starting
+      // one is spoken to the whole room, so one line would otherwise start it once per person.
+      if (!message.isSendFromSelf) return;
+      // A line older than this arrived by sync or by loading a room, and was not just said.
+      if (Date.now() - message.timestamp > JUST_SAID_MS) return;
       this.activateFromChatText(message.text, message.to ?? '');
     }, this.destroyRef);
   }
