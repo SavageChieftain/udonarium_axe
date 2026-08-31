@@ -1142,13 +1142,50 @@ describe('GameDataElementComponent', () => {
       expect(component.playsSoundOnChange()).toBe(false);
     });
 
+    it('picks the sound of flesh or of a machine', () => {
+      const element = resourceField();
+      fixture.componentRef.setInput('gameDataElement', element);
+
+      expect(component.soundSetOnChange()).toBe('flesh');
+
+      component.setSoundSetOnChange('mech');
+      expect(component.soundSetOnChange()).toBe('mech');
+      expect(element.getAttribute(DataElementAttribute.CHANGE_SOUND_SET)).toBe('mech');
+
+      component.setSoundSetOnChange('flesh');
+      expect(component.soundSetOnChange()).toBe('flesh');
+    });
+
+    it('offers the type only once the sound is on, showing what is stored', async () => {
+      const element = resourceField();
+      element.setAttribute(DataElementAttribute.CHANGE_SOUND_SET, 'mech');
+      fixture.componentRef.setInput('isEdit', true);
+      fixture.componentRef.setInput('gameDataElement', element);
+      fixture.detectChanges();
+      component.fieldOptionsOpen.set(true);
+      fixture.detectChanges();
+
+      const query = () => fixture.nativeElement.querySelector('select[name="data-change-sound-set"]');
+      expect(query()).toBeNull();
+
+      component.toggleChangeSound();
+      fixture.detectChanges();
+      await fixture.whenStable();
+
+      const select = query() as HTMLSelectElement;
+      expect(select).toBeTruthy();
+      expect(select.value).toBe('mech');
+    });
+
     it('leaves anything that is not a resource alone', () => {
       const note = DataElement.create('メモ', 'テキスト');
       fixture.componentRef.setInput('gameDataElement', note);
 
       component.toggleChangeSound();
+      component.setSoundSetOnChange('mech');
 
       expect(note.getAttribute(DataElementAttribute.CHANGE_SOUND)).toBe('');
+      expect(note.getAttribute(DataElementAttribute.CHANGE_SOUND_SET)).toBe('');
     });
   });
 });

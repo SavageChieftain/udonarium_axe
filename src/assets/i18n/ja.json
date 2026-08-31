@@ -3313,6 +3313,7 @@
       "gaugeInverted": "マイナスリソース",
       "changeEffect": "増減でエフェクト",
       "changeSound": "増減で効果音",
+      "changeSoundSet": "効果音のタイプ",
       "columnLabel": "列表示",
       "columnLabelPlaceholder": "空なら名前",
       "columnGroup": "列グループ",
@@ -3358,6 +3359,10 @@
       "newGroup": "グループ",
       "newTag": "タグ",
       "gapCellLabel": "G"
+    },
+    "soundSet": {
+      "flesh": "生身",
+      "mech": "メカ"
     },
     "tableView": {
       "judgeCalc": "判定算出モード",

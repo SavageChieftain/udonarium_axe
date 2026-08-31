@@ -573,6 +573,21 @@
                 (change)="toggleChangeSound()"
               />
             </label>
+            @if (playsSoundOnChange()) {
+              <label class="col-span-full grid-cols-[auto_minmax(6rem,1fr)]">
+                <span>{{ 'feature.dataElement.field.changeSoundSet' | transloco }}</span>
+                <select
+                  class="border-ui-border-input bg-ui-input text-ui-text w-full min-w-0 rounded-(--gde-radius-control) border px-1 py-0.5"
+                  name="data-change-sound-set"
+                  [ngModel]="soundSetOnChange()"
+                  (ngModelChange)="setSoundSetOnChange($event)"
+                >
+                  @for (option of soundSetOptions; track option.value) {
+                    <option [value]="option.value">{{ option.labelKey | transloco }}</option>
+                  }
+                </select>
+              </label>
+            }
           }
           @if (gameDataElement().fieldType === 'image') {
             <label class="col-span-full grid-cols-[auto_auto] justify-start">

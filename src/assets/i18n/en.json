@@ -3313,6 +3313,7 @@
       "gaugeInverted": "Negative resource",
       "changeEffect": "Effect on change",
       "changeSound": "Sound on change",
+      "changeSoundSet": "Sound type",
       "columnLabel": "Column label",
       "columnLabelPlaceholder": "Empty: use name",
       "columnGroup": "Column group",
@@ -3358,6 +3359,10 @@
       "newGroup": "Group",
       "newTag": "Tag",
       "gapCellLabel": "G"
+    },
+    "soundSet": {
+      "flesh": "Flesh",
+      "mech": "Mech"
     },
     "tableView": {
       "judgeCalc": "Judge calc mode",

@@ -1,3 +1,5 @@
+import { ResourceSoundSet } from '@axe/domain/character/resource-feedback';
+
 export type ResourceChangeKind = 'damage' | 'heal';
 
 export type ResourceChangeSeverity = 'small' | 'medium' | 'large';
@@ -11,6 +13,7 @@ export interface ResourceSnapshot {
   inverted?: boolean;
   playsEffect?: boolean;
   playsSound?: boolean;
+  soundSet?: ResourceSoundSet;
   /**
    * How often this end has changed that field.
    * A value arriving by load or sync does not count, which is how a real change is told apart.
@@ -27,6 +30,7 @@ export interface ResourceChange {
   ratio: number;
   playsEffect: boolean;
   playsSound: boolean;
+  soundSet: ResourceSoundSet;
 }
 
 export function resourceChangeSeverity(ratio: number): ResourceChangeSeverity {
@@ -36,8 +40,15 @@ export function resourceChangeSeverity(ratio: number): ResourceChangeSeverity {
   return 'large';
 }
 
+export function loudestChange(changes: readonly ResourceChange[]): ResourceChange | null {
+  return changes.reduce<ResourceChange | null>(
+    (loudest, change) => (loudest === null || change.ratio > loudest.ratio ? change : loudest),
+    null
+  );
+}
+
 export function loudestChangeRatio(changes: readonly ResourceChange[]): number {
-  return changes.reduce((loudest, change) => Math.max(loudest, change.ratio), 0);
+  return loudestChange(changes)?.ratio ?? 0;
 }
 
 export function diffResourceSnapshots(
@@ -68,6 +79,7 @@ export function diffResourceSnapshots(
       ratio: Number.isFinite(max) && max > 0 ? Math.abs(delta) / max : 0,
       playsEffect: next.playsEffect === true,
       playsSound: next.playsSound === true,
+      soundSet: next.soundSet ?? 'flesh',
     });
   }
   return changes;

@@ -35,8 +35,16 @@ describe('diffResourceSnapshots()', () => {
         ratio: 0.15,
         playsEffect: false,
         playsSound: false,
+        soundSet: 'flesh',
       },
     ]);
+  });
+
+  it('carries the sound the resource asked for', () => {
+    const from = before({ hp: { current: 200, max: 200, soundSet: 'mech' } });
+    const to = after({ hp: { current: 170, max: 200, soundSet: 'mech' } });
+
+    expect(diffResourceSnapshots(from, to, nameOf)).toEqual([expect.objectContaining({ soundSet: 'mech' })]);
   });
 
   it('returns a rise as healing', () => {
@@ -149,6 +157,7 @@ describe('loudestChangeRatio()', () => {
         ratio: 0.05,
         playsEffect: true,
         playsSound: false,
+        soundSet: 'flesh' as const,
       },
       {
         identifier: 'b',
@@ -159,6 +168,7 @@ describe('loudestChangeRatio()', () => {
         ratio: 0.5,
         playsEffect: true,
         playsSound: false,
+        soundSet: 'flesh' as const,
       },
     ];
 

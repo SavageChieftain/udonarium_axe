@@ -1,4 +1,4 @@
-import { playsEffectOnChange, playsSoundOnChange } from '@axe/domain/character/resource-feedback';
+import { playsEffectOnChange, playsSoundOnChange, soundSetOnChange } from '@axe/domain/character/resource-feedback';
 import { DataElement, DataElementAttribute, DataElementType } from '@axe/domain/data/data-element';
 
 describe('what a resource does when it moves', () => {
@@ -25,5 +25,12 @@ describe('what a resource does when it moves', () => {
     expect(playsSoundOnChange(resource())).toBe(false);
     expect(playsSoundOnChange(resource({ [DataElementAttribute.CHANGE_SOUND]: 'false' }))).toBe(false);
     expect(playsSoundOnChange(resource({ [DataElementAttribute.CHANGE_SOUND]: 'true' }))).toBe(true);
+  });
+
+  it('sounds like flesh unless the field says it is a machine', () => {
+    expect(soundSetOnChange(resource())).toBe('flesh');
+    expect(soundSetOnChange(resource({ [DataElementAttribute.CHANGE_SOUND_SET]: 'flesh' }))).toBe('flesh');
+    expect(soundSetOnChange(resource({ [DataElementAttribute.CHANGE_SOUND_SET]: 'mech' }))).toBe('mech');
+    expect(soundSetOnChange(resource({ [DataElementAttribute.CHANGE_SOUND_SET]: 'ロボット' }))).toBe('flesh');
   });
 });
