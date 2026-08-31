@@ -10,8 +10,14 @@ import { PanelService } from '@axe/application/ui/panel.service';
 export const VN_BACKLOG_PANEL = 'vn-backlog';
 export const VN_EMOTE_PANEL = 'vn-emote';
 export const VN_DISPLAY_PANEL = 'vn-display';
+export const VN_DIRECTION_PANEL = 'vn-direction';
 
-export const VISUAL_NOVEL_PANELS: readonly string[] = [VN_BACKLOG_PANEL, VN_EMOTE_PANEL, VN_DISPLAY_PANEL];
+export const VISUAL_NOVEL_PANELS: readonly string[] = [
+  VN_BACKLOG_PANEL,
+  VN_EMOTE_PANEL,
+  VN_DISPLAY_PANEL,
+  VN_DIRECTION_PANEL,
+];
 
 export function closeVisualNovelPanels(panelService: PanelService): void {
   for (const name of VISUAL_NOVEL_PANELS) panelService.closeSingle(name);

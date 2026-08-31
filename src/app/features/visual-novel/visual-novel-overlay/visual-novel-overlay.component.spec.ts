@@ -23,6 +23,7 @@ import { VisualNovelModeService } from '@axe/features/visual-novel/visual-novel-
 import { VisualNovelOverlayComponent } from '@axe/features/visual-novel/visual-novel-overlay/visual-novel-overlay.component';
 import { VN_BACKLOG_PANEL } from '@axe/features/visual-novel/visual-novel-panels';
 import { VisualNovelPlaybackService } from '@axe/features/visual-novel/visual-novel-playback.service';
+import { VisualNovelSceneService } from '@axe/features/visual-novel/visual-novel-scene.service';
 import { VisualNovelSettingsService } from '@axe/features/visual-novel/visual-novel-settings.service';
 import { leftOfSlot, VN_STAGE_SLOT_COUNT } from '@axe/features/visual-novel/visual-novel-stage';
 import { installPanelLayer } from '@axe/testing/panel-layer';
@@ -350,7 +351,7 @@ describe('VisualNovelOverlayComponent', () => {
 
     PeerCursor.myCursor.role = PeerRole.GameMaster;
     TestBed.inject(ObjectChangeService).notifyChanged(PeerCursor.myCursor.identifier);
-    component.resetStage();
+    TestBed.inject(VisualNovelSceneService).resetStage(tab);
     TestBed.inject(ObjectChangeService).notifyChanged(tab.identifier);
     fixture.detectChanges();
 
@@ -1266,7 +1267,7 @@ describe('VisualNovelOverlayComponent', () => {
 
       PeerCursor.myCursor.role = PeerRole.GameMaster;
       TestBed.inject(ObjectChangeService).notifyChanged(PeerCursor.myCursor.identifier);
-      component.resetStage();
+      TestBed.inject(VisualNovelSceneService).resetStage(tab);
       TestBed.inject(ObjectChangeService).notifyChanged(tab.identifier);
       fixture.detectChanges();
 
@@ -1285,7 +1286,7 @@ describe('VisualNovelOverlayComponent', () => {
 
       PeerCursor.myCursor.role = PeerRole.GameMaster;
       TestBed.inject(ObjectChangeService).notifyChanged(PeerCursor.myCursor.identifier);
-      component.resetStage();
+      TestBed.inject(VisualNovelSceneService).resetStage(tab);
       TestBed.inject(ObjectChangeService).notifyChanged(tab.identifier);
       component.jumpTo(0);
       fixture.detectChanges();

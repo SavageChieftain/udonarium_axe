@@ -45,6 +45,7 @@ import {
 } from '@axe/features/chat/chat-palette/chat-palette-registry.service';
 import { SystemAvatarMenuService } from '@axe/features/chat/system-avatar-menu.service';
 import { VisualNovelBacklogComponent } from '@axe/features/visual-novel/visual-novel-backlog/visual-novel-backlog.component';
+import { VisualNovelDirectionPanelComponent } from '@axe/features/visual-novel/visual-novel-direction-panel/visual-novel-direction-panel.component';
 import { VisualNovelDirectorService } from '@axe/features/visual-novel/visual-novel-director.service';
 import { VisualNovelDisplayPanelComponent } from '@axe/features/visual-novel/visual-novel-display-panel/visual-novel-display-panel.component';
 import { vnEmoteLabel } from '@axe/features/visual-novel/visual-novel-emote-label';
@@ -56,6 +57,7 @@ import {
   closeVisualNovelPanels,
   VISUAL_NOVEL_PANELS,
   VN_BACKLOG_PANEL,
+  VN_DIRECTION_PANEL,
   VN_DISPLAY_PANEL,
   VN_EMOTE_PANEL,
 } from '@axe/features/visual-novel/visual-novel-panels';
@@ -385,11 +387,6 @@ export class VisualNovelOverlayComponent {
     this.objectChange.versionOf(tab.identifier)();
     return toStageResetAt(tab.vnPortraitResetAt);
   });
-
-  resetStage(): void {
-    const tab = this.chatTab();
-    if (tab) this.scene.resetStage(tab);
-  }
 
   /** A line of its own beats the character's novel-mode place, which beats where it stands in chat. */
   private stageSlotOf(source: VnStageSource): number {
@@ -823,6 +820,7 @@ export class VisualNovelOverlayComponent {
     this.isBacklogOpen.set(false);
     this.isEmotePanelOpen.set(false);
     this.isDisplaySettingsOpen.set(false);
+    this.isDirectionPanelOpen.set(false);
   }
 
   isPopover(kind: VisualNovelPopover): boolean {
@@ -886,6 +884,28 @@ export class VisualNovelOverlayComponent {
       minimizeToContent: true,
     });
     this.isEmotePanelOpen.set(true);
+  }
+
+  readonly isDirectionPanelOpen = signal(false);
+
+  toggleDirection(event?: Event): void {
+    if (this.panelService.closeSingle(VN_DIRECTION_PANEL)) {
+      this.isDirectionPanelOpen.set(false);
+      return;
+    }
+    this.closePopovers();
+    const size = { width: 320, height: Math.min(420, Math.max(240, window.innerHeight - 220)) };
+    this.panelService.open<VisualNovelDirectionPanelComponent>(VisualNovelDirectionPanelComponent, {
+      title: this.t('feature.visualNovel.direction.title'),
+      ...this.spotFor(event, size),
+      ...size,
+      minWidth: 260,
+      minHeight: 180,
+      layer: Z_VISUAL_NOVEL_PANEL_ABOVE,
+      single: VN_DIRECTION_PANEL,
+      minimizeToContent: true,
+    });
+    this.isDirectionPanelOpen.set(true);
   }
 
   toggleDisplaySettings(event?: Event): void {

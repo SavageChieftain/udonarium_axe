@@ -294,7 +294,8 @@ test.describe('ビジュアルノベルモード', () => {
     await input.press('Enter');
     await expect(page.locator('visual-novel-overlay img[alt="モンスターA"]')).toBeVisible({ timeout: 15000 });
 
-    await page.locator('visual-novel-overlay button[title^="表示中のタブの立ち絵"]').click();
+    await page.locator('visual-novel-overlay button[title="進行"]').click();
+    await page.locator('visual-novel-direction-panel button', { hasText: '立ち絵をリセット' }).click();
 
     await expect(page.locator('visual-novel-overlay img[alt="モンスターA"]')).toHaveCount(0);
     // 知らせはチャットログに残るが、ノベル側は最後の発言のまま動かない。
@@ -335,12 +336,14 @@ test.describe('ビジュアルノベルモード', () => {
   });
 
   test('GM だけが上映モードを切り替えられること', async ({ page }) => {
-    const showcase = page.locator('visual-novel-overlay button[title="上映モード（全員の画面を同期）"]');
-    await expect(showcase).toHaveCount(0);
+    const directionButton = page.locator('visual-novel-overlay button[title="進行"]');
+    await expect(directionButton).toHaveCount(0);
 
     await page.locator('peer-menu').getByRole('button', { name: 'GM', exact: true }).click();
-    await expect(showcase).toBeVisible();
+    await expect(directionButton).toBeVisible();
 
+    await directionButton.click();
+    const showcase = page.locator('visual-novel-direction-panel button', { hasText: '上映モード' });
     await showcase.click();
     await expect(page.locator('visual-novel-overlay')).toContainText('上映中（あなたが進行）');
 

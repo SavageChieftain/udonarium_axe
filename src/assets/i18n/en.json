@@ -2260,6 +2260,10 @@
         "layout": "Layout",
         "asides": "Table talk"
       },
+      "direction": {
+        "title": "Direction",
+        "stage": "Stage"
+      },
       "asides": {
         "skip": "Skip in the scene",
         "read": "Read it out",

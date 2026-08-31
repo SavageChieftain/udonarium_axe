@@ -2260,6 +2260,10 @@
         "layout": "표시 레이아웃",
         "asides": "플레이어의 잡담"
       },
+      "direction": {
+        "title": "진행",
+        "stage": "스테이지"
+      },
       "asides": {
         "skip": "본편에 내지 않기",
         "read": "그대로 읽기",
