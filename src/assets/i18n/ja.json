@@ -2245,6 +2245,7 @@
       "next": "次のメッセージ",
       "toLatest": "最新へ",
       "speakerSelect": "発言キャラクター",
+      "voiceFromAbove": "天の声（GM）",
       "inputPlaceholder": "メッセージを入力（Enter で送信）",
       "send": "送信",
       "player": "プレイヤー",

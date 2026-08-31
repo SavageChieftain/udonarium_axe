@@ -444,6 +444,20 @@ test.describe('ビジュアルノベルモード', () => {
     await expect(page.locator('.vn-auto-badge')).toHaveCount(0);
   });
 
+  test('GM は天の声としてノベルモードから発言できること', async ({ page }) => {
+    await expect(page.locator('visual-novel-overlay')).toContainText('モンスターA');
+    await page.locator('peer-menu').getByRole('button', { name: 'GM', exact: true }).click();
+
+    await selectVnSpeaker(page, '天の声（GM）');
+    const input = vnMessageInput(page);
+    await input.fill('では、判定をどうぞ');
+    await input.press('Enter');
+
+    // 立ち絵の吹き出しではなく、システムメッセージと同じ画面上部に出る。
+    await expect(page.locator('visual-novel-overlay')).toContainText('では、判定をどうぞ', { timeout: 15000 });
+    await expect(page.locator('chat-message').last()).toContainText('では、判定をどうぞ');
+  });
+
   test('発言者の選択肢にプレイヤーが含まれないこと', async ({ page }) => {
     const panel = await openVnSpeakerList(page);
     await expect(panel.getByRole('option').first()).toBeVisible();

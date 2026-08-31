@@ -1375,4 +1375,39 @@ describe('VisualNovelOverlayComponent', () => {
       expect(component.isLeavingLine()).toBe(false);
     });
   });
+  describe('speaking from above', () => {
+    it('offers nobody but the cast to a player', () => {
+      addMessage('やあ', 'アリス', addImage());
+      createComponent();
+
+      expect(component.speakerOptions().map((option) => option.identifier)).not.toContain(
+        PeerCursor.myCursor.identifier
+      );
+    });
+
+    it('lets the game master send a line as themselves without leaving novel mode', () => {
+      addMessage('やあ', 'アリス', addImage());
+      createComponent();
+      PeerCursor.myCursor.role = PeerRole.GameMaster;
+      TestBed.inject(ObjectChangeService).notifyChanged(PeerCursor.myCursor.identifier);
+      fixture.detectChanges();
+
+      // First, so it is not hunted for among a long cast.
+      expect(component.speakerOptions()[0].identifier).toBe(PeerCursor.myCursor.identifier);
+    });
+
+    it('takes the offer away again once the role is given up', () => {
+      addMessage('やあ', 'アリス', addImage());
+      createComponent();
+      const objectChange = TestBed.inject(ObjectChangeService);
+      PeerCursor.myCursor.role = PeerRole.GameMaster;
+      objectChange.notifyChanged(PeerCursor.myCursor.identifier);
+      expect(component.speakerOptions()).toHaveLength(2);
+
+      PeerCursor.myCursor.role = PeerRole.Player;
+      objectChange.notifyChanged(PeerCursor.myCursor.identifier);
+
+      expect(component.speakerOptions()).toHaveLength(1);
+    });
+  });
 });

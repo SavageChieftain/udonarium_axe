@@ -2245,6 +2245,7 @@
       "next": "Next message",
       "toLatest": "Jump to latest",
       "speakerSelect": "Speaker",
+      "voiceFromAbove": "Voice from above (GM)",
       "inputPlaceholder": "Type a message (Enter to send)",
       "send": "Send",
       "player": "Player",

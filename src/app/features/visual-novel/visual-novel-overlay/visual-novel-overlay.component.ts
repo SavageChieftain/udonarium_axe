@@ -587,11 +587,25 @@ export class VisualNovelOverlayComponent {
     return all.filter((character) => allowsChat(character, myPeerId));
   });
 
-  readonly speakerOptions = computed(() => {
+  /**
+   * Who a line can be sent as.
+   *
+   * Characters only, for anybody at the table: novel mode plays a scene, and somebody's own
+   * name has no part in one. The game master is the exception. What they say as themselves is
+   * the word from above that the table already reads at the top of the screen, and until now
+   * the only way to send one was to leave novel mode and use the chat window.
+   */
+  readonly speakerOptions = computed<{ identifier: string; name: string }[]>(() => {
     const characters = this.gameCharacters();
     const current = this.objectStore.get(this._sendFrom());
-    if (current instanceof GameCharacter && !characters.includes(current)) return [current, ...characters];
-    return characters;
+    const cast =
+      current instanceof GameCharacter && !characters.includes(current) ? [current, ...characters] : characters;
+    const options = cast.map((character) => ({ identifier: character.identifier, name: character.name }));
+    const cursor = PeerCursor.myCursor;
+    if (this.isGameMaster() && cursor) {
+      options.unshift({ identifier: cursor.identifier, name: this.t('feature.visualNovel.voiceFromAbove') });
+    }
+    return options;
   });
 
   readonly speakerPalette = computed(() => {
