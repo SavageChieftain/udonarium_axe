@@ -421,7 +421,9 @@
           <img
             class="h-[18dvh] drop-shadow-[0_6px_20px_rgba(0,0,0,0.55)]"
             [src]="system.imageUrl | safe: 'resourceUrl'"
-            (contextmenu)="onSystemAvatarContextMenu($event, system.kind)"
+            [class.rounded-full]="system.isSpeaker"
+            [class.object-cover]="system.isSpeaker"
+            (contextmenu)="system.isSpeaker ? null : onSystemAvatarContextMenu($event, system.kind)"
             alt=""
           />
         }
@@ -430,7 +432,9 @@
           [class]="bubbleTextSizeClass()"
         >
           <span class="flex items-center justify-center gap-1.5">
-            @if (!system.isSpeaker) {
+            @if (system.speakerName.length > 0) {
+              <span class="text-[11px] font-bold text-amber-600">{{ system.speakerName }}</span>
+            } @else if (!system.isSpeaker) {
               <span class="text-[11px] font-bold text-amber-600">
                 {{ 'feature.visualNovel.systemChan' | transloco }}
               </span>

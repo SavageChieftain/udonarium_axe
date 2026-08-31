@@ -434,6 +434,7 @@ export class VisualNovelOverlayComponent {
         kind: 'dice' as SystemAvatarKind,
         imageUrl: speaks ? speakerUrl : visible ? this.systemAvatar.diceUrl() : '',
         isSpeaker: speaks,
+        speakerName: '',
         rollerName: roller?.name ?? '',
         rollerImageUrl,
       };
@@ -443,6 +444,19 @@ export class VisualNovelOverlayComponent {
         kind: 'system' as SystemAvatarKind,
         imageUrl: visible ? this.systemAvatar.systemUrl() : '',
         isSpeaker: false,
+        speakerName: '',
+        rollerName: '',
+        rollerImageUrl: '',
+      };
+    }
+    // What the game master says as themselves is addressed to the table rather than spoken in
+    // the scene, so it is given the place the room's own notices get, under their own picture.
+    if (this.playback.currentSpeakerKind() === 'gameMaster' && this.currentEmote().kind === 'normal') {
+      return {
+        kind: 'system' as SystemAvatarKind,
+        imageUrl: this.playerImageUrl(message),
+        isSpeaker: true,
+        speakerName: readableMessageName(message, this.t),
         rollerName: '',
         rollerImageUrl: '',
       };

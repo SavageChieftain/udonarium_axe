@@ -1294,4 +1294,44 @@ describe('VisualNovelOverlayComponent', () => {
       expect(component.stageCharacters()).toHaveLength(1);
     });
   });
+  describe('what the game master says as themselves', () => {
+    function gameMasterSpeaks(text: string): void {
+      PeerCursor.myCursor.role = PeerRole.GameMaster;
+      TestBed.inject(ObjectChangeService).notifyChanged(PeerCursor.myCursor.identifier);
+      tab.addMessage({
+        from: PeerCursor.myCursor.userId,
+        name: 'ゲームマスター',
+        text,
+        timestamp: Date.now(),
+        sendFrom: PeerCursor.myCursor.identifier,
+      });
+    }
+
+    beforeEach(() => {
+      if (!ObjectStore.instance.get(PeerCursor.myCursor.identifier)) PeerCursor.myCursor.initialize();
+    });
+
+    it('gives it the place the room own notices get, under the speaker own picture', () => {
+      gameMasterSpeaks('では、判定をどうぞ');
+      createComponent();
+
+      const above = component.systemSpeaker();
+      expect(above).not.toBeNull();
+      expect(above?.speakerName).toBe('ゲームマスター');
+      expect(above?.isSpeaker).toBe(true);
+      // Not spoken in the scene, so no balloon and no window at the foot of the screen.
+      expect(component.speechLayout()).toBeNull();
+      expect(component.bubbleAnchor()).toBeNull();
+    });
+
+    it('leaves a character line alone', () => {
+      PeerCursor.myCursor.role = PeerRole.GameMaster;
+      TestBed.inject(ObjectChangeService).notifyChanged(PeerCursor.myCursor.identifier);
+      addMessage('やあ', 'アリス', addImage());
+      createComponent();
+
+      expect(component.systemSpeaker()).toBeNull();
+      expect(component.speechLayout()).toBe('bubble');
+    });
+  });
 });

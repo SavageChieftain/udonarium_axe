@@ -91,6 +91,15 @@ export class VisualNovelPlaybackService {
     return log.filter((message, index) => !isPlayerAside(this.scriptLineOf(message, log, index)));
   });
 
+  /** Who the line being read was spoken as. */
+  readonly currentSpeakerKind = computed<VnLineSpeaker>(() => {
+    const message = this.currentMessage();
+    if (!message) return 'unknown';
+    this.objectChange.collectionOf(PeerCursor.aliasName)();
+    if (PeerCursor.myCursor) this.objectChange.versionOf(PeerCursor.myCursor.identifier)();
+    return this.speakerOf(message);
+  });
+
   private scriptLineOf(message: ChatMessage, log: readonly ChatMessage[], index: number): VnScriptLine {
     return {
       isSystemMessage: message.isSystemMessage,
