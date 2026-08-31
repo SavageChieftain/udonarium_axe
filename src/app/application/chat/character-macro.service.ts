@@ -20,7 +20,7 @@ export interface MacroSendOptions {
   portraitIndex?: number;
   colorIndex?: number;
   color?: string;
-  /** Null says to send none at all, which is how the palette has always spoken. */
+  /** Null says to send none at all, which is how the remote controller's notices speak. */
   bubbles?: { light: string; dark: string } | null;
   replyTo?: string;
   quoteOf?: string;

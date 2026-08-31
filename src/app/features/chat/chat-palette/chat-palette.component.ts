@@ -296,6 +296,8 @@ export class ChatPaletteComponent {
     sendTo: string;
     portraitIndex: number;
     messColor: string;
+    messBubbleLight?: string;
+    messBubbleDark?: string;
     replyTo: string;
     quoteOf: string;
   }) {
@@ -311,7 +313,7 @@ export class ChatPaletteComponent {
       color: value.messColor,
       replyTo: value.replyTo,
       quoteOf: value.quoteOf,
-      bubbles: null,
+      bubbles: { light: value.messBubbleLight ?? '', dark: value.messBubbleDark ?? '' },
     });
   }
 

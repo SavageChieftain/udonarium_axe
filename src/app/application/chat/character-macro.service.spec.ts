@@ -107,7 +107,7 @@ describe('CharacterMacroService', () => {
     expect(portraitIndex).toBe(speaker.selectedPortraitIndex);
   });
 
-  it('sends no bubble when the caller asks for none, as the palette does', () => {
+  it('sends no bubble when the caller asks for none, as a notice does', () => {
     const speaker = character('術者');
 
     service.send(speaker, 'ふきだし無し', { tab, bubbles: null });
