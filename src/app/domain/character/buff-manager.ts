@@ -6,7 +6,7 @@ import {
   readBuffModifier,
   writeBuffModifier,
 } from '@axe/domain/character/buff-modifier';
-import { BuffTiming, BuffTurnActor, isBuffDueAt } from '@axe/domain/character/buff-timing';
+import { buffExpires, BuffTiming, BuffTurnActor, isBuffDueAt } from '@axe/domain/character/buff-timing';
 import { StatusAccessor } from '@axe/domain/character/status-accessor';
 import { DataElement, DataElementAttribute, DataElementType } from '@axe/domain/data/data-element';
 
@@ -71,6 +71,7 @@ export class BuffManager {
     const container = this.container;
     if (!container) return;
     for (const data of container.children) {
+      if (!buffExpires(data)) continue;
       const sum = parseInt(String(data.value)) - 1;
       data.value = sum;
     }
@@ -80,6 +81,7 @@ export class BuffManager {
     const container = this.container;
     if (!container) return;
     for (const data of container.children) {
+      if (!buffExpires(data)) continue;
       const sum = parseInt(String(data.value)) + 1;
       data.value = sum;
     }
@@ -89,6 +91,7 @@ export class BuffManager {
     const container = this.container;
     if (!container) return;
     for (const data of [...container.children]) {
+      if (!buffExpires(data)) continue;
       if (parseInt(String(data.value)) <= 0) {
         this.remove(data);
       }

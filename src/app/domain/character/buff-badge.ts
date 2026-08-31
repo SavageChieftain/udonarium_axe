@@ -1,4 +1,5 @@
 import { DEFAULT_BUFF_COLOR } from '@axe/domain/character/buff-appearance';
+import { buffExpires } from '@axe/domain/character/buff-timing';
 import { DataElement, DataElementAttribute } from '@axe/domain/data/data-element';
 
 export interface BuffBadge {
@@ -8,6 +9,8 @@ export interface BuffBadge {
   effect: string;
   strength: string;
   rounds: number;
+  /** Whether the rounds mean anything: a buff that waits to be taken away counts nothing down. */
+  expires: boolean;
   color: string;
 }
 
@@ -56,6 +59,7 @@ export function toBuffBadges(buffRoot: DataElement | null): BuffBadge[] {
         effect,
         strength: parseBuffStrength(effect),
         rounds: Number.isFinite(rounds) ? rounds : 0,
+        expires: buffExpires(data),
         color: buffColorOf(data),
       });
     }

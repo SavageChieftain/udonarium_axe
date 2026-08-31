@@ -1,4 +1,5 @@
 import {
+  buffExpires,
   buffTimingOf,
   buffTriggerOf,
   BuffTurnActor,
@@ -39,6 +40,26 @@ describe('buff-timing', () => {
 
     it('falls back to the round for a timing it does not know', () => {
       expect(buffTimingOf(makeBuff({ [DataElementAttribute.BUFF_TIMING]: 'いつか' }))).toBe('roundEnd');
+    });
+  });
+
+  describe('buffExpires()', () => {
+    it('says a buff on the clock runs out', () => {
+      expect(buffExpires(makeBuff())).toBe(true);
+      expect(buffExpires(makeBuff({ [DataElementAttribute.BUFF_TIMING]: 'turnStart' }))).toBe(true);
+    });
+
+    it('says one that waits to be taken away does not', () => {
+      expect(buffExpires(makeBuff({ [DataElementAttribute.BUFF_TIMING]: 'none' }))).toBe(false);
+      expect(resolveBuffTiming('永続')).toBe('none');
+    });
+
+    it('never counts one down, whichever moment comes round', () => {
+      const held = makeBuff({ [DataElementAttribute.BUFF_TIMING]: 'none' });
+
+      expect(isBuffDueAt(held, 'roundEnd', owner, owner)).toBe(false);
+      expect(isBuffDueAt(held, 'turnStart', owner, owner)).toBe(false);
+      expect(isBuffDueAt(held, 'turnEnd', owner, owner)).toBe(false);
     });
   });
 

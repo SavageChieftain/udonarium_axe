@@ -1391,6 +1391,7 @@
         "timing_roundEnd": "라운드 종료 시",
         "timing_turnStart": "트리거의 차례 시작 시",
         "timing_turnEnd": "트리거의 차례 종료 시",
+        "timing_none": "사라지지 않음",
         "trigger": "트리거 캐릭터",
         "triggerPlaceholder": "지정하지 않으면 본인",
         "triggerUnknown": "{{name}}(탁상 밖)"

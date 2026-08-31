@@ -121,6 +121,15 @@ describe('BuffManager', () => {
       expect(parseInt(b!.value as string)).toBe(2);
     });
 
+    it('leaves one that waits to be taken away where it is', () => {
+      manager.addRound('毒', '', 3, { timing: 'none' });
+
+      manager.decreaseRound();
+      manager.increaseRound();
+
+      expect(parseInt(container.getFirstElementByName('毒')!.value as string)).toBe(3);
+    });
+
     it('does not throw without one', () => {
       const emptyBuff = DataElement.create('空バフ', '');
       const emptyManager = new BuffManager(emptyBuff);
@@ -187,6 +196,14 @@ describe('BuffManager', () => {
 
       expect(container.getFirstElementByName('残る')).toBeTruthy();
       expect(container.getFirstElementByName('消える')).toBeFalsy();
+    });
+
+    it('keeps one that waits to be taken away, whatever its number says', () => {
+      manager.addRound('毒', '', 0, { timing: 'none' });
+
+      manager.deleteZeroRound();
+
+      expect(container.getFirstElementByName('毒')).toBeTruthy();
     });
 
     it('removes one that has run past zero', () => {

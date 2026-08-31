@@ -1391,6 +1391,7 @@
         "timing_roundEnd": "ラウンド終了時",
         "timing_turnStart": "トリガーの手番開始時",
         "timing_turnEnd": "トリガーの手番終了時",
+        "timing_none": "消えない",
         "trigger": "トリガーキャラクター",
         "triggerPlaceholder": "未指定なら本人",
         "triggerUnknown": "{{name}}（卓外）"

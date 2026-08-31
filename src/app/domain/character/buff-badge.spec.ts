@@ -57,6 +57,22 @@ describe('toBuffBadges()', () => {
     expect(badges[1]).toMatchObject({ name: '加護', strength: '+1', rounds: 1 });
   });
 
+  it('marks the one that waits to be taken away as counting nothing down', () => {
+    const root = DataElement.create('buff', '', {});
+    created.push(root);
+    const container = DataElement.create('バフ', '', {});
+    created.push(container);
+    root.appendChild(container);
+    const held = buff('毒', '', 0);
+    held.setAttribute(DataElementAttribute.BUFF_TIMING, 'none');
+    container.appendChild(held);
+    container.appendChild(buff('加護', '', 2));
+
+    const badges = toBuffBadges(root);
+
+    expect(badges.map((badge) => badge.expires)).toEqual([false, true]);
+  });
+
   it('falls back to the default mark without an icon', () => {
     const element = buff('加護', '防+1', 1);
 
