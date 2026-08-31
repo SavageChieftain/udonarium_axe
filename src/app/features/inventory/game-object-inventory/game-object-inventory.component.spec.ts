@@ -10,6 +10,7 @@ import { DataSummarySetting } from '@axe/domain/data/data-summary-setting';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { PeerRole } from '@axe/domain/peer/peer-role';
 import { GameObjectInventoryComponent } from '@axe/features/inventory/game-object-inventory/game-object-inventory.component';
+import { InventoryFilterService } from '@axe/features/inventory/inventory-filter.service';
 import { expectPanelDragRecovery, PanelDragTestHostComponent } from '@axe/testing/panel-drag-recovery';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
 
@@ -25,9 +26,14 @@ describe('GameObjectInventoryComponent', () => {
   });
 
   beforeEach(() => {
-    // The way of reading it is remembered per browser, so a spec that changes it would hand the
-    // next one a table where it expects the full picture.
+    // The way of reading it is remembered per browser, and the narrowing is shared by every
+    // inventory window, so a spec that changes either would hand the next one its leavings.
     localStorage.removeItem('ui-inventory-view');
+    const filter = TestBed.inject(InventoryFilterService);
+    filter.clearSearch();
+    filter.hiddenFilter.set('all');
+    filter.hiddenDisplay.set('dim');
+    filter.isPanelOpen.set(false);
     fixture = TestBed.createComponent(GameObjectInventoryComponent);
     component = fixture.componentInstance;
   });

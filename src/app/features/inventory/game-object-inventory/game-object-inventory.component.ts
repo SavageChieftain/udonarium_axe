@@ -28,7 +28,6 @@ import { Network } from '@axe/core/index';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { GameObject } from '@axe/core/sync/game-object';
 import { ObjectStore } from '@axe/core/sync/object-store';
-import { splitSearchTerms } from '@axe/core/util/text-search';
 import { turnCache } from '@axe/core/util/turn-cache';
 import { resolveBuffColor } from '@axe/domain/character/buff-appearance';
 import {
@@ -68,11 +67,11 @@ import {
   filterInventoryRows,
   filterInventoryRowsByHidden,
   INVENTORY_HIDDEN_FILTERS,
-  type InventoryHiddenDisplay,
   type InventoryHiddenFilter,
   type InventoryRow,
   inventorySearchText,
 } from '@axe/features/inventory/game-object-inventory/inventory-list';
+import { InventoryFilterService } from '@axe/features/inventory/inventory-filter.service';
 import { AutoFocusDirective } from '@axe/ui/directives/auto-focus.directive';
 import { SafePipe } from '@axe/ui/pipes/safe.pipe';
 import { TranslocoModule } from '@jsverse/transloco';
@@ -116,6 +115,7 @@ export class GameObjectInventoryComponent {
   private readonly ailmentService = inject(StatusAilmentService);
   private readonly viewPreference = inject(InventoryViewPreferenceService);
   private readonly isCompact = inject(ViewportService).isCompact;
+  private readonly filter = inject(InventoryFilterService);
   private readonly disclosureService = inject(DisclosureService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly npcDrag = inject(NpcDragService);
@@ -158,15 +158,15 @@ export class GameObjectInventoryComponent {
   readonly selectedIdentifier = signal('');
   readonly multiMoveTargets = signal(new Set<string>());
 
-  readonly isEdit = signal(false);
+  readonly isEdit = this.filter.isPanelOpen;
   readonly isMultiMove = signal(false);
 
-  readonly searchQuery = signal('');
-  readonly searchTerms = computed<string[]>(() => splitSearchTerms(this.searchQuery()));
-  readonly hasQuery = computed<boolean>(() => this.searchTerms().length > 0);
+  readonly searchQuery = this.filter.searchQuery;
+  readonly searchTerms = this.filter.searchTerms;
+  readonly hasQuery = this.filter.hasQuery;
 
   clearSearch(): void {
-    this.searchQuery.set('');
+    this.filter.clearSearch();
   }
 
   setTurnOrder(event: Event, gameObject: GameObject): void {
@@ -408,8 +408,8 @@ export class GameObjectInventoryComponent {
     labelKey: this.hiddenFilterLabelKeys[value],
   }));
 
-  readonly hiddenFilter = signal<InventoryHiddenFilter>('all');
-  readonly hiddenDisplay = signal<InventoryHiddenDisplay>('dim');
+  readonly hiddenFilter = this.filter.hiddenFilter;
+  readonly hiddenDisplay = this.filter.hiddenDisplay;
 
   readonly canSeeHidden = computed<boolean>(() => {
     if (PeerCursor.myCursor) this.objectChange.versionOf(PeerCursor.myCursor.identifier)();
@@ -423,7 +423,7 @@ export class GameObjectInventoryComponent {
   readonly isHiddenFiltered = computed<boolean>(() => this.activeHiddenFilter() !== 'all');
 
   toggleHiddenDisplay(): void {
-    this.hiddenDisplay.update((display) => (display === 'dim' ? 'full' : 'dim'));
+    this.filter.toggleHiddenDisplay();
   }
 
   readonly filteredRows = computed<InventoryRow[]>(() => {
