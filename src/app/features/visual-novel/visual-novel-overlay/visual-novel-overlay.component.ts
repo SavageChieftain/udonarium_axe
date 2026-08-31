@@ -28,7 +28,10 @@ import { canRoleSpeakTab } from '@axe/domain/chat/chat-tab-permission';
 import { DataElement } from '@axe/domain/data/data-element';
 import { DiceBot } from '@axe/domain/dice/dice-bot';
 import { AudioTag } from '@axe/domain/media/audio-tag';
+import { CutIn } from '@axe/domain/media/cut-in';
+import { CutInLauncher } from '@axe/domain/media/cut-in-launcher';
 import { Jukebox } from '@axe/domain/media/jukebox';
+import { presetSoundLabelKey } from '@axe/domain/media/preset-sound-labels';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { encodeVnEmote, VN_EMOTION_MARK_CHARS, vnEmoteOf, VnEmotionMark } from '@axe/domain/visual-novel/vn-emote';
 import {
@@ -696,11 +699,62 @@ export class VisualNovelOverlayComponent {
     this._portraitTick.update((tick) => tick + 1);
   }
 
-  readonly soundEffects = computed(() => {
+  /** What is typed into the sound board, which narrows every list in it. */
+  readonly soundFilter = signal('');
+
+  private matchesSoundFilter(name: string): boolean {
+    const keyword = this.soundFilter().trim().toLowerCase();
+    return keyword.length < 1 || name.toLowerCase().includes(keyword);
+  }
+
+  /** The sounds brought to this room, which is where somebody looks for their own first. */
+  readonly soundEffects = computed<{ identifier: string; name: string }[]>(() => {
     this.objectChange.fileVersion();
     this.objectChange.collectionOf('audio-tag')();
-    return this.audioStorage.audios.filter((audio) => !audio.isHidden && AudioTag.get(audio.identifier)?.tag === 'SE');
+    return this.audioStorage.audios
+      .filter((audio) => !audio.isHidden && AudioTag.get(audio.identifier)?.tag === 'SE')
+      .map((audio) => ({ identifier: audio.identifier, name: audio.name }))
+      .filter((sound) => this.matchesSoundFilter(sound.name));
   });
+
+  /**
+   * The sounds the tool comes with.
+   *
+   * They are kept hidden from the jukebox so its list is the room's own, but a scene wants a
+   * door or a thunderclap without anybody having had to upload one. Named from the same words
+   * the effect library uses, so the same sound reads the same wherever it is offered.
+   */
+  readonly presetSoundEffects = computed<{ identifier: string; name: string }[]>(() => {
+    this.objectChange.fileVersion();
+    this.language.currentLang();
+    return (
+      this.audioStorage.audios
+        .filter((audio) => audio.isHidden)
+        .map((audio) => ({ identifier: audio.identifier, labelKey: presetSoundLabelKey(audio.identifier) }))
+        // A hidden sound with no name of its own is something else the room keeps out of sight.
+        .filter((sound) => sound.labelKey.length > 0)
+        .map((sound) => ({ identifier: sound.identifier, name: this.t(sound.labelKey) }))
+        .filter((sound) => this.matchesSoundFilter(sound.name))
+        .sort((left, right) => left.name.localeCompare(right.name, 'ja'))
+    );
+  });
+
+  /** Cut-ins reach everybody, so a scene can be given a title card from here. */
+  readonly cutIns = computed(() => {
+    this.objectChange.fileVersion();
+    this.objectChange.collectionOf(CutIn.aliasName)();
+    return this.objectStore
+      .getObjects<CutIn>(CutIn)
+      .map((cutIn) => ({ identifier: cutIn.identifier, name: cutIn.name }))
+      .filter((cutIn) => this.matchesSoundFilter(cutIn.name));
+  });
+
+  playCutIn(identifier: string): void {
+    const cutIn = this.objectStore.get<CutIn>(identifier);
+    const launcher = this.objectStore.get<CutInLauncher>('CutInLauncher');
+    if (cutIn instanceof CutIn && launcher) launcher.startCutIn(cutIn);
+    this.closePopovers();
+  }
 
   readonly bgmTracks = computed(() => {
     this.objectChange.fileVersion();

@@ -15,6 +15,8 @@ import { ChatTabList } from '@axe/domain/chat/chat-tab-list';
 import { DataElement } from '@axe/domain/data/data-element';
 import { DiceBot } from '@axe/domain/dice/dice-bot';
 import { AudioTag } from '@axe/domain/media/audio-tag';
+import { CutIn } from '@axe/domain/media/cut-in';
+import { CutInLauncher } from '@axe/domain/media/cut-in-launcher';
 import { Jukebox } from '@axe/domain/media/jukebox';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { PeerRole } from '@axe/domain/peer/peer-role';
@@ -1408,6 +1410,89 @@ describe('VisualNovelOverlayComponent', () => {
       objectChange.notifyChanged(PeerCursor.myCursor.identifier);
 
       expect(component.speakerOptions()).toHaveLength(1);
+    });
+  });
+  describe('the sound board', () => {
+    /** The tool registers its own sounds at start-up, which a test does not run. */
+    function addPresetSound(file: string): string {
+      const audio = AudioStorage.instance.add(`./assets/sounds/soundeffect-lab/${file}.mp3`);
+      audio.isHidden = true;
+      return audio.identifier;
+    }
+
+    it('offers the sounds the tool comes with, under their own names', () => {
+      addPresetSound('barrier');
+      addPresetSound('warp');
+      createComponent();
+
+      const presets = component.presetSoundEffects();
+      expect(presets.length).toBeGreaterThan(0);
+      // Named rather than left as the file path, which says nothing about the sound.
+      expect(presets.every((sound) => sound.name.length > 0 && !sound.name.includes('/'))).toBe(true);
+      expect(presets.map((sound) => sound.name)).toEqual(
+        [...presets.map((sound) => sound.name)].sort((a, b) => a.localeCompare(b, 'ja'))
+      );
+    });
+
+    it('keeps the room own sounds apart from the built-in ones', () => {
+      const audio = AudioStorage.instance.add('test://vn/door.mp3');
+      AudioTag.create(audio.identifier).tag = 'SE';
+      addPresetSound('barrier');
+      createComponent();
+      TestBed.inject(ObjectChangeService).notifyChanged(audio.identifier);
+
+      expect(component.soundEffects().map((sound) => sound.identifier)).toContain(audio.identifier);
+      expect(component.presetSoundEffects().map((sound) => sound.identifier)).not.toContain(audio.identifier);
+    });
+
+    it('leaves out a hidden sound that is not one of them', () => {
+      const hidden = AudioStorage.instance.add('test://vn/secret.mp3');
+      hidden.isHidden = true;
+      createComponent();
+
+      expect(component.presetSoundEffects().map((sound) => sound.identifier)).not.toContain(hidden.identifier);
+    });
+
+    it('narrows every list at once', () => {
+      addPresetSound('barrier');
+      createComponent();
+      const before = component.presetSoundEffects().length;
+
+      component.soundFilter.set('のありえない名前');
+
+      expect(component.presetSoundEffects()).toHaveLength(0);
+      expect(component.soundEffects()).toHaveLength(0);
+      expect(component.cutIns()).toHaveLength(0);
+      expect(before).toBeGreaterThan(0);
+    });
+
+    it('offers the cut-ins of the room', () => {
+      const cutIn = new CutIn();
+      cutIn.initialize();
+      cutIn.name = 'ここで一枚';
+      try {
+        createComponent();
+        TestBed.inject(ObjectChangeService).notifyChanged(cutIn.identifier);
+        expect(component.cutIns().map((entry) => entry.name)).toContain('ここで一枚');
+      } finally {
+        cutIn.destroy();
+      }
+    });
+
+    it('sends a cut-in to everybody rather than playing it alone', () => {
+      const cutIn = new CutIn();
+      cutIn.initialize();
+      cutIn.name = 'ここで一枚';
+      const launcher = ObjectStore.instance.get<CutInLauncher>('CutInLauncher') ?? new CutInLauncher('CutInLauncher');
+      launcher.initialize();
+      const spy = vi.spyOn(launcher, 'startCutIn').mockImplementation(() => undefined);
+      try {
+        createComponent();
+        component.playCutIn(cutIn.identifier);
+        expect(spy).toHaveBeenCalledWith(cutIn);
+      } finally {
+        cutIn.destroy();
+      }
     });
   });
 });

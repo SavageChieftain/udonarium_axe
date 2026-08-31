@@ -391,6 +391,19 @@ test.describe('ビジュアルノベルモード', () => {
     await expect(vnMessageInput(page)).toHaveValue(lineText);
   });
 
+  test('SEボードにプリセット音とカットインが並ぶこと', async ({ page }) => {
+    await page.locator('visual-novel-overlay button[title="SE再生"]').click();
+
+    const board = page.locator('visual-novel-overlay');
+    await expect(board).toContainText('プリセット');
+    await expect(board).toContainText('カットイン');
+
+    // プリセットは名前で引ける。
+    const filter = page.locator('visual-novel-overlay input[placeholder="音・カットインを検索…"]');
+    await filter.fill('障壁');
+    await expect(board.locator('button', { hasText: '障壁' }).first()).toBeVisible();
+  });
+
   test('SEボードに登録音声の一覧が表示されること', async ({ page }) => {
     await page.locator('visual-novel-overlay button[title="SE再生"]').click();
     await expect(page.locator('visual-novel-overlay').getByText('サウンドエフェクト')).toBeVisible();
