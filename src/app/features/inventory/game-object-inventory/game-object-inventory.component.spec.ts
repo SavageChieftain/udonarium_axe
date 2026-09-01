@@ -1,6 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { StatusAilmentService } from '@axe/application/character/status-ailment.service';
 import { GameObjectInventoryService } from '@axe/application/inventory/game-object-inventory.service';
+import { InventoryViewPreferenceService } from '@axe/application/ui/inventory-view-preference.service';
 import { PanelService } from '@axe/application/ui/panel.service';
 import { ViewportService } from '@axe/application/ui/viewport.service';
 import { Network } from '@axe/core/index';
@@ -30,6 +31,7 @@ describe('GameObjectInventoryComponent', () => {
     // The way of reading it is remembered per browser, and the narrowing is shared by every
     // inventory window, so a spec that changes either would hand the next one its leavings.
     localStorage.removeItem('ui-inventory-view');
+    localStorage.removeItem('ui-inventory-parts');
     const filter = TestBed.inject(InventoryFilterService);
     filter.clearSearch();
     filter.hiddenFilter.set('all');
@@ -770,6 +772,43 @@ describe('GameObjectInventoryComponent', () => {
       });
     });
 
+    describe('the strips above the list', () => {
+      function strips(): string {
+        return fixture.nativeElement.textContent ?? '';
+      }
+
+      afterEach(() => localStorage.removeItem('ui-inventory-parts'));
+
+      it('shows them all until one is put away', () => {
+        putOnTable('ゴブリン');
+        fixture.detectChanges();
+
+        expect(strips()).toContain('テーブル');
+      });
+
+      it('closes the space up when one is put away', () => {
+        putOnTable('ゴブリン');
+        fixture.detectChanges();
+        const before = fixture.nativeElement.querySelectorAll('div').length;
+
+        TestBed.inject(InventoryViewPreferenceService).setShown('tabs', false);
+        fixture.detectChanges();
+
+        expect(strips()).not.toContain('テーブル');
+        expect(fixture.nativeElement.querySelectorAll('div').length).toBeLessThan(before);
+      });
+
+      it('keeps a way into the settings, which goes with the tabs', () => {
+        TestBed.inject(InventoryViewPreferenceService).setShown('tabs', false);
+        fixture.detectChanges();
+
+        const settings = TestBed.inject(PanelService)
+          .headerControls()
+          .find((control) => control.icon === 'tune');
+        expect(settings).toBeTruthy();
+      });
+    });
+
     describe('what is on a piece', () => {
       function badges(): HTMLElement[] {
         return [...fixture.nativeElement.querySelectorAll('[data-testid="inventory-buff-badge"]')];
@@ -814,7 +853,7 @@ describe('GameObjectInventoryComponent', () => {
           TestBed.inject(PanelService)
             .headerControls()
             .map((control) => control.icon)
-        ).toEqual(['view_agenda']);
+        ).toEqual(['view_agenda', 'tune']);
 
         component.setViewMode('table');
         fixture.detectChanges();
@@ -823,7 +862,7 @@ describe('GameObjectInventoryComponent', () => {
           TestBed.inject(PanelService)
             .headerControls()
             .map((control) => control.icon)
-        ).toEqual(['table_rows']);
+        ).toEqual(['table_rows', 'tune']);
       });
 
       it('walks round the ways of reading it and back again', () => {

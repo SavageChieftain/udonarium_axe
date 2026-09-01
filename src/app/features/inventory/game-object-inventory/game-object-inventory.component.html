@@ -1,79 +1,85 @@
 @if (!isRoundView()) {
   <div class="text-ui-text bg-ui-panel flex h-full flex-col overflow-hidden text-[13px]">
-    <div class="bg-ui-panel border-ui-border-panel flex shrink-0 items-center gap-1 border-b border-solid px-2 pt-1.5">
-      <form name="game-object-inventory" class="flex min-w-0 flex-1 gap-0.5">
-        @for (inventoryType of inventoryTypes(); track inventoryType) {
-          <label
-            class="text-ui-muted hover:bg-ui-hover hover:text-ui-text relative inline-flex cursor-pointer items-center gap-1 rounded-t-md border border-b-0 border-solid border-transparent px-2.5 py-1.25 text-[12px] whitespace-nowrap transition-[background,color] select-none [&_input[type=radio]]:hidden"
-            [class.bg-ui-elevated!]="selectTab() === inventoryType"
-            [class.text-ui-accent!]="selectTab() === inventoryType"
-            [class.border-ui-border-panel!]="selectTab() === inventoryType"
-            [class.after:absolute]="selectTab() === inventoryType"
-            [class.after:-bottom-px]="selectTab() === inventoryType"
-            [class.after:inset-x-0]="selectTab() === inventoryType"
-            [class.after:h-px]="selectTab() === inventoryType"
-            [class.after:bg-ui-elevated]="selectTab() === inventoryType"
-            [class.after:content-['']]="selectTab() === inventoryType"
-          >
-            <input
-              name="tab"
-              type="radio"
-              value="{{ inventoryType }}"
-              [ngModel]="selectTab()"
-              (ngModelChange)="selectTab.set($event)"
-            />
-            <span>{{ getTabTitle(inventoryType) }}</span>
-            <span
-              class="text-ui-accent bg-ui-accent-bg inline-flex h-4 min-w-4.5 items-center justify-center rounded-lg px-1 text-[10px] font-bold"
-              >{{ getInventory(inventoryType).length }}</span
+    @if (shows('tabs')) {
+      <div
+        class="bg-ui-panel border-ui-border-panel flex shrink-0 items-center gap-1 border-b border-solid px-2 pt-1.5"
+      >
+        <form name="game-object-inventory" class="flex min-w-0 flex-1 gap-0.5">
+          @for (inventoryType of inventoryTypes(); track inventoryType) {
+            <label
+              class="text-ui-muted hover:bg-ui-hover hover:text-ui-text relative inline-flex cursor-pointer items-center gap-1 rounded-t-md border border-b-0 border-solid border-transparent px-2.5 py-1.25 text-[12px] whitespace-nowrap transition-[background,color] select-none [&_input[type=radio]]:hidden"
+              [class.bg-ui-elevated!]="selectTab() === inventoryType"
+              [class.text-ui-accent!]="selectTab() === inventoryType"
+              [class.border-ui-border-panel!]="selectTab() === inventoryType"
+              [class.after:absolute]="selectTab() === inventoryType"
+              [class.after:-bottom-px]="selectTab() === inventoryType"
+              [class.after:inset-x-0]="selectTab() === inventoryType"
+              [class.after:h-px]="selectTab() === inventoryType"
+              [class.after:bg-ui-elevated]="selectTab() === inventoryType"
+              [class.after:content-['']]="selectTab() === inventoryType"
             >
-          </label>
-        }
-      </form>
+              <input
+                name="tab"
+                type="radio"
+                value="{{ inventoryType }}"
+                [ngModel]="selectTab()"
+                (ngModelChange)="selectTab.set($event)"
+              />
+              <span>{{ getTabTitle(inventoryType) }}</span>
+              <span
+                class="text-ui-accent bg-ui-accent-bg inline-flex h-4 min-w-4.5 items-center justify-center rounded-lg px-1 text-[10px] font-bold"
+                >{{ getInventory(inventoryType).length }}</span
+              >
+            </label>
+          }
+        </form>
 
-      <div class="flex shrink-0 gap-1 pb-1">
-        @if (!isMultiMove()) {
+        <div class="flex shrink-0 gap-1 pb-1">
+          @if (!isMultiMove()) {
+            <button
+              class="border-ui-border-panel text-ui-muted hover:bg-ui-accent-bg hover:text-ui-accent hover:border-ui-accent rounded-ui-sm inline-flex size-7 cursor-pointer items-center justify-center border border-solid bg-transparent p-0 transition-[background,color,border-color] [&_.material-icons]:text-base!"
+              type="button"
+              [title]="'feature.inventory.panel.multiMove' | transloco"
+              (click)="toggleMultiMove()"
+            >
+              <i class="material-icons">open_with</i>
+            </button>
+          }
           <button
             class="border-ui-border-panel text-ui-muted hover:bg-ui-accent-bg hover:text-ui-accent hover:border-ui-accent rounded-ui-sm inline-flex size-7 cursor-pointer items-center justify-center border border-solid bg-transparent p-0 transition-[background,color,border-color] [&_.material-icons]:text-base!"
+            [class.bg-ui-accent-bg!]="isEdit()"
+            [class.text-ui-accent!]="isEdit()"
+            [class.border-ui-accent!]="isEdit()"
             type="button"
-            [title]="'feature.inventory.panel.multiMove' | transloco"
-            (click)="toggleMultiMove()"
+            [title]="'feature.inventory.panel.displaySettings' | transloco"
+            (click)="toggleEdit()"
           >
-            <i class="material-icons">open_with</i>
+            <i class="material-icons">tune</i>
           </button>
-        }
+        </div>
+      </div>
+    }
+
+    @if (shows('filter')) {
+      <div
+        class="bg-ui-panel border-ui-border-panel flex shrink-0 items-center gap-1.5 border-b border-solid px-2.5 py-1"
+      >
         <button
-          class="border-ui-border-panel text-ui-muted hover:bg-ui-accent-bg hover:text-ui-accent hover:border-ui-accent rounded-ui-sm inline-flex size-7 cursor-pointer items-center justify-center border border-solid bg-transparent p-0 transition-[background,color,border-color] [&_.material-icons]:text-base!"
-          [class.bg-ui-accent-bg!]="isEdit()"
-          [class.text-ui-accent!]="isEdit()"
-          [class.border-ui-accent!]="isEdit()"
+          class="text-ui-muted hover:text-ui-accent flex min-w-0 flex-1 cursor-pointer items-center gap-1.5 border-none bg-transparent p-0 text-left text-[11px] hover:shadow-none"
           type="button"
           [title]="'feature.inventory.panel.displaySettings' | transloco"
           (click)="toggleEdit()"
         >
-          <i class="material-icons">tune</i>
+          <i class="material-icons text-[15px]!">filter_alt</i>
+          <span class="truncate">{{ filterSummary() }}</span>
         </button>
+        @if (hasQuery() || isHiddenFiltered()) {
+          <span class="text-ui-dim shrink-0 text-[11px] whitespace-nowrap"
+            >{{ filteredRows().length }} / {{ visibleRows().length }}</span
+          >
+        }
       </div>
-    </div>
-
-    <div
-      class="bg-ui-panel border-ui-border-panel flex shrink-0 items-center gap-1.5 border-b border-solid px-2.5 py-1"
-    >
-      <button
-        class="text-ui-muted hover:text-ui-accent flex min-w-0 flex-1 cursor-pointer items-center gap-1.5 border-none bg-transparent p-0 text-left text-[11px] hover:shadow-none"
-        type="button"
-        [title]="'feature.inventory.panel.displaySettings' | transloco"
-        (click)="toggleEdit()"
-      >
-        <i class="material-icons text-[15px]!">filter_alt</i>
-        <span class="truncate">{{ filterSummary() }}</span>
-      </button>
-      @if (hasQuery() || isHiddenFiltered()) {
-        <span class="text-ui-dim shrink-0 text-[11px] whitespace-nowrap"
-          >{{ filteredRows().length }} / {{ visibleRows().length }}</span
-        >
-      }
-    </div>
+    }
 
     @if (isMultiMove()) {
       @let picked = multiMoveTargets().size;
@@ -176,7 +182,7 @@
       </div>
     }
 
-    @if (selectTab() === 'table') {
+    @if (selectTab() === 'table' && shows('round')) {
       <div
         class="bg-ui-panel border-ui-border-panel flex shrink-0 items-center gap-1.5 border-b border-solid px-2.5 py-1.5"
       >

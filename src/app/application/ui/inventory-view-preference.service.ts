@@ -1,7 +1,13 @@
 import { Injectable, signal } from '@angular/core';
+import {
+  formatHiddenChromeParts,
+  type InventoryChromePart,
+  parseHiddenChromeParts,
+} from '@axe/domain/inventory/inventory-chrome';
 import { type InventoryViewMode, isInventoryViewMode } from '@axe/domain/inventory/inventory-view-mode';
 
 const STORAGE_KEY = 'ui-inventory-view';
+const PARTS_STORAGE_KEY = 'ui-inventory-parts';
 
 /**
  * How this reader wants the inventory drawn.
@@ -14,13 +20,31 @@ const STORAGE_KEY = 'ui-inventory-view';
 export class InventoryViewPreferenceService {
   readonly mode = signal<InventoryViewMode>(storedMode());
 
+  /** The strips above the list this reader has put away. Everything is shown by default. */
+  private readonly hidden = signal<readonly InventoryChromePart[]>(storedHiddenParts());
+
   set(mode: InventoryViewMode): void {
     this.mode.set(mode);
-    try {
-      localStorage.setItem(STORAGE_KEY, mode);
-    } catch {
-      // Private browsing refuses the write; the setting still holds for this session.
-    }
+    write(STORAGE_KEY, mode);
+  }
+
+  shows(part: InventoryChromePart): boolean {
+    return !this.hidden().includes(part);
+  }
+
+  setShown(part: InventoryChromePart, shown: boolean): void {
+    const hidden = this.hidden().filter((held) => held !== part);
+    const next = shown ? hidden : [...hidden, part];
+    this.hidden.set(next);
+    write(PARTS_STORAGE_KEY, formatHiddenChromeParts(next));
+  }
+}
+
+function write(key: string, value: string): void {
+  try {
+    localStorage.setItem(key, value);
+  } catch {
+    // Private browsing refuses the write; the setting still holds for this session.
   }
 }
 
@@ -30,5 +54,13 @@ function storedMode(): InventoryViewMode {
     return isInventoryViewMode(stored) ? stored : 'rich';
   } catch {
     return 'rich';
+  }
+}
+
+function storedHiddenParts(): InventoryChromePart[] {
+  try {
+    return parseHiddenChromeParts(localStorage.getItem(PARTS_STORAGE_KEY));
+  } catch {
+    return [];
   }
 }

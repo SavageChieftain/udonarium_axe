@@ -16,6 +16,7 @@ describe('InventoryFilterPanelComponent', () => {
       imports: [InventoryFilterPanelComponent],
       providers: [...TEST_PROVIDERS],
     }).compileComponents();
+    localStorage.removeItem('ui-inventory-parts');
     filter = TestBed.inject(InventoryFilterService);
     filter.clearSearch();
     filter.hiddenFilter.set('all');
@@ -25,6 +26,7 @@ describe('InventoryFilterPanelComponent', () => {
   });
 
   afterEach(() => {
+    localStorage.removeItem('ui-inventory-parts');
     fixture?.destroy();
     filter.clearSearch();
     filter.hiddenFilter.set('all');
@@ -58,6 +60,23 @@ describe('InventoryFilterPanelComponent', () => {
     expect(inventory.sortTag).toBe('行動値');
     expect(inventory.sortOrder).toBe(SortOrder.DESC);
     expect(inventory.dataTags).toEqual(['HP', 'MP', '毒']);
+  });
+
+  it('puts a strip above the list away and brings it back', () => {
+    fixture.detectChanges();
+    const boxes = [...fixture.nativeElement.querySelectorAll('input[type="checkbox"]')] as HTMLInputElement[];
+
+    expect(boxes).toHaveLength(3);
+    expect(boxes.every((box) => box.checked)).toBe(true);
+
+    boxes[0].click();
+    fixture.detectChanges();
+
+    expect(component.shows('tabs')).toBe(false);
+
+    boxes[0].click();
+
+    expect(component.shows('tabs')).toBe(true);
   });
 
   it('offers the hidden filter only to somebody who may see hidden pieces', () => {

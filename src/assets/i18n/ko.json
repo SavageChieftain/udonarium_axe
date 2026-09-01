@@ -1313,7 +1313,12 @@
         "filterNone": "좁히지 않음",
         "displayItemsHint": "상태 이상 이름을 적으면 그 열은 체크 칸이 됩니다",
         "inventoryVisibility": "표시",
-        "viewRound": "라운드 표시"
+        "viewRound": "라운드 표시",
+        "showParts": "표시할 행",
+        "showTabs": "탭",
+        "showFilterLine": "좁히기",
+        "showRoundLine": "라운드 조작",
+        "showPartsHint": "끈 행은 자리를 비우지 않습니다. 이 설정은 이 단말에만 적용됩니다"
       }
     },
     "file": {

@@ -1313,7 +1313,12 @@
         "filterNone": "Nothing narrowed",
         "displayItemsHint": "Name a registered state and that column becomes a box to tick",
         "inventoryVisibility": "Visibility",
-        "viewRound": "Round"
+        "viewRound": "Round",
+        "showParts": "Strips to show",
+        "showTabs": "Tabs",
+        "showFilterLine": "Filter line",
+        "showRoundLine": "Round controls",
+        "showPartsHint": "What is put away closes up. This setting is for this device only"
       }
     },
     "file": {

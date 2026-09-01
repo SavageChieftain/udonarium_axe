@@ -3,7 +3,13 @@ import { FormsModule } from '@angular/forms';
 import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { RolePermissionService } from '@axe/application/permission/role-permission.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
+import { InventoryViewPreferenceService } from '@axe/application/ui/inventory-view-preference.service';
 import { PanelService } from '@axe/application/ui/panel.service';
+import {
+  INVENTORY_CHROME_LABEL_KEYS,
+  INVENTORY_CHROME_PARTS,
+  InventoryChromePart,
+} from '@axe/domain/inventory/inventory-chrome';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import {
   INVENTORY_HIDDEN_FILTERS,
@@ -38,6 +44,7 @@ export class InventoryFilterPanelComponent {
   private readonly rolePermission = inject(RolePermissionService);
   private readonly objectChange = inject(ObjectChangeService);
   private readonly panelService = inject(PanelService);
+  private readonly viewPreference = inject(InventoryViewPreferenceService);
   private readonly t = inject(TRANSLATE_FN);
 
   readonly searchQuery = this.filter.searchQuery;
@@ -99,6 +106,20 @@ export class InventoryFilterPanelComponent {
   }
   set dataTag(value: string) {
     this.filter.dataTag = value;
+  }
+
+  readonly chromeParts = INVENTORY_CHROME_PARTS.map((part) => ({
+    part,
+    labelKey: INVENTORY_CHROME_LABEL_KEYS[part],
+  }));
+
+  /** Whether a strip above the list is being shown. Putting one away closes the space up. */
+  shows(part: InventoryChromePart): boolean {
+    return this.viewPreference.shows(part);
+  }
+
+  setShown(part: InventoryChromePart, shown: boolean): void {
+    this.viewPreference.setShown(part, shown);
   }
 
   clearSearch(): void {

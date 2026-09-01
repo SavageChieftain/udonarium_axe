@@ -1313,7 +1313,12 @@
         "filterNone": "絞り込みなし",
         "displayItemsHint": "状態異常の名前を書くと、その列はチェック欄になります",
         "inventoryVisibility": "表示",
-        "viewRound": "ラウンド表示"
+        "viewRound": "ラウンド表示",
+        "showParts": "表示する行",
+        "showTabs": "タブ",
+        "showFilterLine": "絞り込み",
+        "showRoundLine": "ラウンド操作",
+        "showPartsHint": "外した行は詰まります。この設定はこの端末だけのものです"
       }
     },
     "file": {

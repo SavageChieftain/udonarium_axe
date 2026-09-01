@@ -45,6 +45,7 @@ import { StatusAilment } from '@axe/domain/character/status-ailment';
 import { DataElement, DataElementFieldType } from '@axe/domain/data/data-element';
 import { createCalcPass, evaluateCalcElement } from '@axe/domain/data/data-element-calc-env';
 import { SortOrder } from '@axe/domain/data/data-summary-setting';
+import { InventoryChromePart } from '@axe/domain/inventory/inventory-chrome';
 import {
   INVENTORY_VIEW_LABEL_KEYS,
   InventoryViewMode,
@@ -261,7 +262,7 @@ export class GameObjectInventoryComponent {
    */
   private readonly viewControls = computed<PanelHeaderControl[]>(() => {
     const showing = this.shownViewMode();
-    return [
+    const controls: PanelHeaderControl[] = [
       {
         icon: VIEW_ICONS[showing],
         label: this.t(this.viewLabelKeys[showing]),
@@ -269,7 +270,23 @@ export class GameObjectInventoryComponent {
         press: () => this.setViewMode(nextInventoryViewMode(showing)),
       },
     ];
+    // A way into the settings that no setting can take away: the button beside the tabs goes
+    // with them when the tabs are put away.
+    if (showing !== 'round') {
+      controls.push({
+        icon: 'tune',
+        label: this.t('feature.inventory.panel.displaySettings'),
+        active: this.isEdit(),
+        press: () => this.toggleEdit(),
+      });
+    }
+    return controls;
   });
+
+  /** Whether a strip above the list is being shown. */
+  shows(part: InventoryChromePart): boolean {
+    return this.viewPreference.shows(part);
+  }
 
   /** What is on screen, which is the turn order whenever the panel is shrunk to it. */
   private readonly shownViewMode = computed<InventoryViewMode>(() => (this.isRoundView() ? 'round' : this.viewMode()));
