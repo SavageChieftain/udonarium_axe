@@ -1200,3 +1200,47 @@ describe('what a piece with a shaped sight is shown in the dark', () => {
     expect(isPointVisible(s, -200, 0, PLAYER)).toBe(false);
   });
 });
+
+describe('how far a piece is allowed to see', () => {
+  const bright = { lights: [light({ x: 0, y: 0, brightPx: 900, dimPx: 900 })], sightSegments: [] };
+
+  it('sees as far as the light carries when no range is set on it', () => {
+    const s = scene({ ...bright, visionSources: [source({ x: 0, y: 0, owner: 'p1', rangePx: 0 })] });
+    expect(isPointVisible(s, 700, 0, PLAYER)).toBe(true);
+  });
+
+  it('stops at the range it was given, however brightly the ground is lit', () => {
+    const s = scene({ ...bright, visionSources: [source({ x: 0, y: 0, owner: 'p1', rangePx: 200 })] });
+    expect(isPointVisible(s, 150, 0, PLAYER)).toBe(true);
+    expect(isPointVisible(s, 700, 0, PLAYER)).toBe(false);
+  });
+
+  it('holds to it on a table with no dark on it at all', () => {
+    const s = scene({
+      darknessEnabled: false,
+      fogEnabled: true,
+      lights: [],
+      sightSegments: [],
+      visionSources: [source({ x: 0, y: 0, owner: 'p1', rangePx: 200 })],
+    });
+    expect(isPointVisible(s, 150, 0, PLAYER)).toBe(true);
+    expect(isPointVisible(s, 700, 0, PLAYER)).toBe(false);
+  });
+
+  it('shortens the range with the lobe a look falls in', () => {
+    const lobes = visionLobesOf({
+      shape: VisionShape.CONE_PERIPHERAL,
+      coneAngle: 90,
+      coneCount: 1,
+      backAngle: 90,
+      backScale: 0.4,
+      peripheralScale: 0.25,
+      direction: 0,
+      lobes: '',
+    });
+    const s = scene({ ...bright, visionSources: [source({ x: 0, y: 0, owner: 'p1', rangePx: 400, lobes })] });
+    expect(isPointVisible(s, 350, 0, PLAYER)).toBe(true);
+    expect(isPointVisible(s, -350, 0, PLAYER)).toBe(false);
+    expect(isPointVisible(s, -80, 0, PLAYER)).toBe(true);
+  });
+});

@@ -1873,8 +1873,6 @@
         "fogModeHard": "Hard (forget it)",
         "fogModeHint": "Easy keeps what was seen as a dim memory. Hard puts it back to unexplored once it leaves sight.",
         "fogColor": "Fog colour",
-        "fogSightRange": "Sight range (cells)",
-        "fogSightRangeHint": "How far a look carries with no darkness to stop it. Zero for no limit.",
         "fogReset": "Reset the fog"
       },
       "dungeonGenerator": {

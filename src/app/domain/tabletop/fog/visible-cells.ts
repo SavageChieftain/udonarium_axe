@@ -9,8 +9,6 @@ export interface VisibleCellsOptions {
   scene: VisionScene;
   grid: CellGrid;
   indexes: SegmentIndexes;
-  /** How far a look carries on a table with no dark in it. Zero for as far as the table goes. */
-  sightRangePx: number;
   /** A guard against a board so large that one pass would stall the display. */
   maxCells?: number;
 }
@@ -55,6 +53,12 @@ export function computeVisibleCellsFor(source: SceneVisionSource, options: Visib
   return bits;
 }
 
+/**
+ * The cells worth asking about, which is the ground a look could possibly land on.
+ *
+ * A range set on the piece bounds every one of them, so a short-sighted piece pays for its
+ * own few cells however much of the board is lit.
+ */
 function forEachCandidate(
   source: SceneVisionSource,
   options: VisibleCellsOptions,
@@ -62,38 +66,33 @@ function forEachCandidate(
   visit: (cell: number, cx: number, cy: number) => void
 ): void {
   const { scene, grid } = options;
-  const wholeBoard = (): void => forEachCell(grid, visit);
+  const reach = source.rangePx > 0 ? source.rangePx * widest : Infinity;
+  const withinReach = (minX: number, minY: number, maxX: number, maxY: number): void =>
+    forEachCellInBox(
+      grid,
+      Math.max(minX, source.x - reach),
+      Math.max(minY, source.y - reach),
+      Math.min(maxX, source.x + reach),
+      Math.min(maxY, source.y + reach),
+      visit
+    );
+  const everywhere = (): void => {
+    if (Number.isFinite(reach)) withinReach(-Infinity, -Infinity, Infinity, Infinity);
+    else forEachCell(grid, visit);
+  };
 
-  if (!scene.darknessEnabled) {
-    if (options.sightRangePx > 0) {
-      const reach = options.sightRangePx * widest;
-      forEachCellInBox(grid, source.x - reach, source.y - reach, source.x + reach, source.y + reach, visit);
-    } else {
-      wholeBoard();
-    }
-    return;
-  }
-
-  if (scene.globalIllumination > 0) {
-    wholeBoard();
+  if (!scene.darknessEnabled || scene.globalIllumination > 0) {
+    everywhere();
     return;
   }
 
   for (const light of scene.lights) {
     const pool = lightFloorPool(light);
     if (!pool) continue;
-    forEachCellInBox(
-      grid,
-      pool.cx - pool.dimPx,
-      pool.cy - pool.dimPx,
-      pool.cx + pool.dimPx,
-      pool.cy + pool.dimPx,
-      visit
-    );
+    withinReach(pool.cx - pool.dimPx, pool.cy - pool.dimPx, pool.cx + pool.dimPx, pool.cy + pool.dimPx);
   }
 
   if (seesInDark(source.type) && source.rangePx > 0) {
-    const reach = source.rangePx * widest;
-    forEachCellInBox(grid, source.x - reach, source.y - reach, source.x + reach, source.y + reach, visit);
+    withinReach(-Infinity, -Infinity, Infinity, Infinity);
   }
 }

@@ -1873,8 +1873,6 @@
         "fogModeHard": "하드(기억을 지움)",
         "fogModeHint": "이지는 한 번 본 곳이 어스름한 기억으로 남습니다. 하드는 시야에서 벗어나면 미탐색으로 되돌아갑니다",
         "fogColor": "안개 색",
-        "fogSightRange": "시야 거리(칸)",
-        "fogSightRangeHint": "어둠을 쓰지 않을 때의 시야. 0이면 제한 없음",
         "fogReset": "안개 초기화"
       },
       "dungeonGenerator": {

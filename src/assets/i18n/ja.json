@@ -1873,8 +1873,6 @@
         "fogModeHard": "ハード（記憶を消す）",
         "fogModeHint": "イージーは一度見た場所が薄暗い記憶として残ります。ハードは視界から外れると未踏破に戻ります",
         "fogColor": "霧の色",
-        "fogSightRange": "視界距離(マス)",
-        "fogSightRangeHint": "暗闇を使わないときの見通し。0 で制限なし",
         "fogReset": "霧をリセット"
       },
       "dungeonGenerator": {

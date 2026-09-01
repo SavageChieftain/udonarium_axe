@@ -71,8 +71,6 @@ export class GameTable extends ObjectNode {
   @SyncVar() fogEnabled: boolean = false;
   @SyncVar() fogMode: FogMode = DEFAULT_FOG_MODE;
   @SyncVar() fogColor: string = DEFAULT_FOG_COLOR;
-  /** How far a look carries when there is no dark to stop it. Zero for as far as the table goes. */
-  @SyncVar() fogSightRange: number = 0;
 
   /** The weather over the whole map. Empty for none. */
   @SyncVar() weatherKind: string = '';

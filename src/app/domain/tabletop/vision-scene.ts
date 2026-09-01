@@ -748,12 +748,14 @@ export function isPointVisibleFrom(
   for (const source of sources) {
     const scale = visionLobeScale(source.lobes, source.direction, source.x, source.y, x, y);
     if (scale <= 0) continue;
-    const withinRange = source.rangePx > 0 && distance(x, y, source.x, source.y) <= source.rangePx * scale;
-    if (source.type === VisionType.TRUESIGHT && withinRange) return true;
+    // A range set on a piece is how far it can see, whatever the light is doing. Left at
+    // nothing it is no limit at all, and only seeing in the dark asks to be told a number.
+    if (source.rangePx > 0 && distance(x, y, source.x, source.y) > source.rangePx * scale) continue;
+    if (source.type === VisionType.TRUESIGHT && source.rangePx > 0) return true;
     const between = segmentsAbove(scene.sightSegments, source.z);
     if (!segmentClearBetween(source.x, source.y, source.z, x, y, z, between)) continue;
     if (lit) return true;
-    if (seesInDark(source.type) && withinRange) return true;
+    if (seesInDark(source.type) && source.rangePx > 0) return true;
   }
   return false;
 }

@@ -80,7 +80,7 @@ function eyes(partial: Partial<SceneVisionSource> = {}): SceneVisionSource {
 }
 
 function optionsFor(built: VisionScene): VisibleCellsOptions {
-  return { scene: built, grid: GRID, indexes: new SegmentIndexes(built.sightSegments, 100), sightRangePx: 0 };
+  return { scene: built, grid: GRID, indexes: new SegmentIndexes(built.sightSegments, 100) };
 }
 
 const INSIDE = cellIndexOf(GRID, 6, 6);
@@ -139,6 +139,17 @@ describe('computeVisibleCellsFor', () => {
     const west = computeVisibleCellsFor(eyes({ x: 500, y: 500, direction: 180, lobes }), options);
     expect(west.get(cellIndexOf(GRID, 7, 10))).toBe(true);
     expect(west.get(cellIndexOf(GRID, 12, 10))).toBe(false);
+  });
+
+  it('clears no more ground than the range it was given', () => {
+    const built = scene({ lights: [{ ...torch(), x: 500, y: 500, dimPx: 600 }], sightSegments: [], lightSegments: [] });
+    const options = optionsFor(built);
+    const near = cellIndexOf(GRID, 12, 10);
+    const far = cellIndexOf(GRID, 17, 10);
+    expect(computeVisibleCellsFor(eyes({ x: 500, y: 500, rangePx: 0 }), options).get(far)).toBe(true);
+    const short = computeVisibleCellsFor(eyes({ x: 500, y: 500, rangePx: 150 }), options);
+    expect(short.get(near)).toBe(true);
+    expect(short.get(far)).toBe(false);
   });
 
   it('sees nothing at all when it is blind', () => {

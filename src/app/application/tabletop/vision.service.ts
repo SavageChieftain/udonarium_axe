@@ -287,12 +287,7 @@ export class VisionService {
     const table = this.currentTable();
     if (!scene || !grid || !indexes || !table || !this.active()) return null;
     return perfTimed('cells', () => {
-      const options: VisibleCellsOptions = {
-        scene,
-        grid,
-        indexes,
-        sightRangePx: table.fogSightRange * table.gridSize,
-      };
+      const options: VisibleCellsOptions = { scene, grid, indexes };
       const perSource = new Map<string, CellBits>();
       const shared = new CellBits(cellCount(grid));
       const players = new Set(this.playerVisionOwnerIds());

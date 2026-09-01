@@ -8,7 +8,6 @@ function radius(partial: Partial<Parameters<typeof effectiveSightRadiusPx>[0]> =
     visionType: VisionType.NORMAL,
     visionRangePx: 0,
     ownLightDimPx: 0,
-    fogSightRangePx: 0,
     ...partial,
   });
 }
@@ -22,11 +21,16 @@ describe('effectiveSightRadiusPx', () => {
     expect(radius({ visionType: VisionType.DARKVISION, visionRangePx: 250 })).toBe(250);
   });
 
-  it('takes the longer of the two', () => {
-    expect(radius({ visionType: VisionType.DARKVISION, visionRangePx: 250, ownLightDimPx: 300 })).toBe(300);
+  it('takes the longer of the two, up to the range it was given', () => {
+    expect(radius({ visionType: VisionType.DARKVISION, visionRangePx: 250, ownLightDimPx: 100 })).toBe(250);
+    expect(radius({ visionType: VisionType.DARKVISION, visionRangePx: 250, ownLightDimPx: 300 })).toBe(250);
   });
 
-  it('ignores a range set on a piece that cannot see in the dark anyway', () => {
+  it('holds a piece to the range it was given, however far its lamp throws', () => {
+    expect(radius({ visionRangePx: 100, ownLightDimPx: 300 })).toBe(100);
+  });
+
+  it('leaves a piece that cannot see in the dark with only what its own lamp shows', () => {
     expect(radius({ visionRangePx: 250 })).toBe(0);
   });
 
@@ -34,7 +38,11 @@ describe('effectiveSightRadiusPx', () => {
     expect(radius()).toBe(0);
   });
 
-  it('falls back to the table on a board with no dark on it', () => {
-    expect(radius({ darknessEnabled: false, ownLightDimPx: 300, fogSightRangePx: 400 })).toBe(400);
+  it('is the range itself on a board with no dark on it', () => {
+    expect(radius({ darknessEnabled: false, visionRangePx: 400, ownLightDimPx: 300 })).toBe(400);
+  });
+
+  it('draws nothing for a piece that sees as far as the board goes', () => {
+    expect(radius({ darknessEnabled: false })).toBe(0);
   });
 });

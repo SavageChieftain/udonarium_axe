@@ -73,7 +73,6 @@ export class TableVisionVolumeOverlayComponent {
         ownLightDimPx: character.lightEnabled
           ? Math.max(character.lightBrightRadius, character.lightDimRadius) * gridSize
           : 0,
-        fogSightRangePx: table.fogSightRange * gridSize,
       });
       if (radiusPx < 1) continue;
       const centre = (gridSize * (character.size || 1)) / 2;

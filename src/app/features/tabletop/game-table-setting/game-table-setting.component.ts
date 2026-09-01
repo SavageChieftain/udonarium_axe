@@ -242,13 +242,6 @@ export class GameTableSettingComponent {
     if (this.isEditable && this.selectedTable) this.selectedTable.fogColor = value;
   }
 
-  get tableFogSightRange(): number {
-    return this.selectedTable?.fogSightRange ?? 0;
-  }
-  set tableFogSightRange(value: number) {
-    if (this.isEditable && this.selectedTable) this.selectedTable.fogSightRange = Math.max(0, Number(value) || 0);
-  }
-
   protected readonly fogModes = FOG_MODES;
 
   fogModeLabel(mode: FogMode): string {
