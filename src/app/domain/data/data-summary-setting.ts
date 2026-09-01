@@ -5,13 +5,15 @@ import { ObjectStore } from '@axe/core/sync/object-store';
 import { DEFAULT_STATUS_AILMENT_NAMES } from '@axe/domain/character/builtin-status-ailments';
 
 /**
- * What a table wants to see of everybody at once: what they roll on, then what is wrong with
- * them. The states come from the catalogue a room starts with, so the columns and the boxes
+ * What a table wants to see of everybody at once: how they are holding up, what they roll on,
+ * then what is wrong with them. The states come from the catalogue a room starts with, so the columns and the boxes
  * to tick them are named the same thing without either being written down twice.
  */
+const DEFAULT_RESOURCE_TAGS = ['HP', 'MP'];
+
 const DEFAULT_ABILITY_TAGS = ['敏捷度', '器用度', '筋力', '生命力', '知力', '精神力'];
 
-const DEFAULT_DATA_TAG = [...DEFAULT_ABILITY_TAGS, ...DEFAULT_STATUS_AILMENT_NAMES].join(' ');
+const DEFAULT_DATA_TAG = [...DEFAULT_RESOURCE_TAGS, ...DEFAULT_ABILITY_TAGS, ...DEFAULT_STATUS_AILMENT_NAMES].join(' ');
 
 export enum SortOrder {
   ASC = 'ASC',

@@ -62,11 +62,11 @@ describe('DataSummarySetting', () => {
       expect(DataSummarySetting.instance.sortOrder2nd).toBe(SortOrder.ASC);
     });
 
-    it('starts with the six abilities and every state a room keeps', () => {
+    it('starts with the two pools, the six abilities and every state a room keeps', () => {
       const tags = DataSummarySetting.instance.dataTags;
 
-      expect(tags.slice(0, 6)).toEqual(['敏捷度', '器用度', '筋力', '生命力', '知力', '精神力']);
-      expect(tags.slice(6)).toEqual([...DEFAULT_STATUS_AILMENT_NAMES]);
+      expect(tags.slice(0, 8)).toEqual(['HP', 'MP', '敏捷度', '器用度', '筋力', '生命力', '知力', '精神力']);
+      expect(tags.slice(8)).toEqual([...DEFAULT_STATUS_AILMENT_NAMES]);
     });
   });
 
