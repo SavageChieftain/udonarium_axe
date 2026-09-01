@@ -13,8 +13,8 @@ import { DataSummarySetting } from '@axe/domain/data/data-summary-setting';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { PeerRole } from '@axe/domain/peer/peer-role';
 import { GameObjectInventoryComponent } from '@axe/features/inventory/game-object-inventory/game-object-inventory.component';
-import { InventoryFilterService } from '@axe/features/inventory/inventory-filter.service';
 import { expectPanelDragRecovery, PanelDragTestHostComponent } from '@axe/testing/panel-drag-recovery';
+import { installPanelLayer } from '@axe/testing/panel-layer';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
 
 describe('GameObjectInventoryComponent', () => {
@@ -33,11 +33,6 @@ describe('GameObjectInventoryComponent', () => {
     // inventory window, so a spec that changes either would hand the next one its leavings.
     localStorage.removeItem('ui-inventory-view');
     localStorage.removeItem('ui-inventory-parts');
-    const filter = TestBed.inject(InventoryFilterService);
-    filter.clearSearch();
-    filter.hiddenFilter.set('all');
-    filter.hiddenDisplay.set('dim');
-    filter.isPanelOpen.set(false);
     fixture = TestBed.createComponent(GameObjectInventoryComponent);
     component = fixture.componentInstance;
   });
@@ -819,9 +814,54 @@ describe('GameObjectInventoryComponent', () => {
       expect(icons).not.toContain('create_new_folder');
     });
 
+    describe('a second window on the same table', () => {
+      let closePanelLayer: (() => void) | null = null;
+      let other: ComponentFixture<GameObjectInventoryComponent> | null = null;
+
+      afterEach(() => {
+        other?.destroy();
+        other = null;
+        closePanelLayer?.();
+        closePanelLayer = null;
+        localStorage.removeItem('ui-inventory-view');
+      });
+
+      it('is read its own way, and narrowed on its own', () => {
+        putOnTable('ゴブリン');
+        other = TestBed.createComponent(GameObjectInventoryComponent);
+        fixture.detectChanges();
+        other.detectChanges();
+
+        component.setViewMode('table');
+        component.searchQuery.set('ゴブリン');
+
+        expect(other.componentInstance.viewMode()).toBe('rich');
+        expect(other.componentInstance.searchQuery()).toBe('');
+      });
+
+      it('takes the settings window off the first when it opens its own', () => {
+        closePanelLayer = installPanelLayer();
+        other = TestBed.createComponent(GameObjectInventoryComponent);
+        fixture.detectChanges();
+        other.detectChanges();
+
+        component.toggleEdit();
+        expect(component.isEdit()).toBe(true);
+
+        other.componentInstance.toggleEdit();
+
+        expect(other.componentInstance.isEdit()).toBe(true);
+        expect(component.isEdit()).toBe(false);
+      });
+    });
+
     describe('the strips above the list', () => {
       function strips(): string {
         return fixture.nativeElement.textContent ?? '';
+      }
+
+      function viewPreference(): InventoryViewPreferenceService {
+        return fixture.debugElement.injector.get(InventoryViewPreferenceService);
       }
 
       afterEach(() => localStorage.removeItem('ui-inventory-parts'));
@@ -838,7 +878,7 @@ describe('GameObjectInventoryComponent', () => {
         fixture.detectChanges();
         const before = fixture.nativeElement.querySelectorAll('div').length;
 
-        TestBed.inject(InventoryViewPreferenceService).setShown('tabs', false);
+        viewPreference().setShown('tabs', false);
         fixture.detectChanges();
 
         expect(strips()).not.toContain('テーブル');
@@ -858,7 +898,7 @@ describe('GameObjectInventoryComponent', () => {
       });
 
       it('keeps a way into the settings, which goes with the tabs', () => {
-        TestBed.inject(InventoryViewPreferenceService).setShown('tabs', false);
+        viewPreference().setShown('tabs', false);
         fixture.detectChanges();
 
         const settings = TestBed.inject(PanelService)

@@ -107,6 +107,9 @@ const VIEW_ICONS: Record<InventoryViewMode, string> = {
   host: { class: 'block' },
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [NgClass, NgTemplateOutlet, FormsModule, AutoFocusDirective, SafePipe, TranslocoModule],
+  // A window apiece, so a second inventory can be narrowed and read its own way. What the room
+  // decided - the order, the display items - still comes from the one place it is written down.
+  providers: [InventoryFilterService, InventoryViewPreferenceService],
 })
 export class GameObjectInventoryComponent {
   isCalcElement(element: DataElement): boolean {
@@ -937,14 +940,21 @@ export class GameObjectInventoryComponent {
     this.contextMenuService.open(position, actions, gameObject.name);
   }
 
-  /** The search and the settings stand in a window of their own; this opens and closes it. */
+  /**
+   * The search and the settings stand in a window of their own; this opens and closes it.
+   *
+   * Only one such window stands at a time, and it works on the inventory that asked for it, so
+   * opening it from a second inventory takes it off the first - which learns that the way any
+   * panel does, by being told it has been closed.
+   */
   toggleEdit() {
-    if (this.panelService.closeSingle(INVENTORY_FILTER_PANEL)) {
+    if (this.isEdit()) {
+      this.panelService.closeSingle(INVENTORY_FILTER_PANEL);
       this.isEdit.set(false);
       return;
     }
     const coordinate = this.pointerDeviceService.pointers[0];
-    this.panelService.open(InventoryFilterPanelComponent, {
+    const panel = this.panelService.open(InventoryFilterPanelComponent, {
       title: this.t('feature.inventory.panel.filterPanelTitle'),
       left: coordinate.x + 40,
       top: coordinate.y - 40,
@@ -952,6 +962,9 @@ export class GameObjectInventoryComponent {
       height: 380,
       single: INVENTORY_FILTER_PANEL,
     });
+    panel.filter = this.filter;
+    panel.viewPreference = this.viewPreference;
+    panel.closed = () => this.isEdit.set(false);
     this.isEdit.set(true);
   }
 

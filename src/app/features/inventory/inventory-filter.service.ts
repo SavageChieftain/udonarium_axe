@@ -8,12 +8,12 @@ import type {
 } from '@axe/features/inventory/game-object-inventory/inventory-list';
 
 /**
- * What the inventory is being narrowed to, and how the list is ordered.
+ * What an inventory is being narrowed to, and how its list is ordered.
  *
  * It sits outside the list because the two are in separate windows: the list draws the pieces
  * and a panel of its own holds the search, the filters and the display items. The order and
  * the display items themselves belong to the room and live on the summary setting; only the
- * narrowing is this reader's own.
+ * narrowing is this reader's own, and each inventory window keeps its own.
  */
 @Injectable({ providedIn: 'root' })
 export class InventoryFilterService {

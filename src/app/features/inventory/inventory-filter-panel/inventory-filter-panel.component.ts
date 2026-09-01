@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, DestroyRef, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { RolePermissionService } from '@axe/application/permission/role-permission.service';
@@ -40,17 +40,39 @@ export const INVENTORY_FILTER_PANEL = 'inventory-filter';
   imports: [FormsModule, TranslocoModule],
 })
 export class InventoryFilterPanelComponent {
-  private readonly filter = inject(InventoryFilterService);
   private readonly rolePermission = inject(RolePermissionService);
   private readonly objectChange = inject(ObjectChangeService);
   private readonly panelService = inject(PanelService);
-  private readonly viewPreference = inject(InventoryViewPreferenceService);
   private readonly t = inject(TRANSLATE_FN);
 
-  readonly searchQuery = this.filter.searchQuery;
-  readonly hasQuery = this.filter.hasQuery;
-  readonly hiddenFilter = this.filter.hiddenFilter;
-  readonly hiddenDisplay = this.filter.hiddenDisplay;
+  /**
+   * The inventory being worked on, handed over by the one that opened this window.
+   *
+   * Each inventory keeps its own narrowing and its own way of being read, so this window has
+   * to be told whose it is rather than reaching for the one of each there used to be.
+   */
+  filter = inject(InventoryFilterService);
+  viewPreference = inject(InventoryViewPreferenceService);
+
+  /** Told to that inventory when this window goes, so its button stops looking pressed. */
+  closed: (() => void) | null = null;
+
+  constructor() {
+    inject(DestroyRef).onDestroy(() => this.closed?.());
+  }
+
+  get searchQuery() {
+    return this.filter.searchQuery;
+  }
+  get hasQuery() {
+    return this.filter.hasQuery;
+  }
+  get hiddenFilter() {
+    return this.filter.hiddenFilter;
+  }
+  get hiddenDisplay() {
+    return this.filter.hiddenDisplay;
+  }
 
   private readonly hiddenFilterLabelKeys: Record<InventoryHiddenFilter, string> = {
     all: 'feature.inventory.panel.hiddenFilterAll',

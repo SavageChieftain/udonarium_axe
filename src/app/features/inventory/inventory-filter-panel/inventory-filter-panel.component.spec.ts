@@ -43,6 +43,30 @@ describe('InventoryFilterPanelComponent', () => {
     expect(filter.searchQuery()).toBe('ゴブリン');
   });
 
+  it('works on the inventory that opened it, not on one of its own', () => {
+    // Each inventory window keeps its own narrowing, so this one is told whose it is.
+    const opener = TestBed.runInInjectionContext(() => new InventoryFilterService());
+    component.filter = opener;
+    fixture.detectChanges();
+    const box = fixture.nativeElement.querySelector('input[name="inventory-search"]') as HTMLInputElement;
+
+    box.value = 'オーク';
+    box.dispatchEvent(new Event('input'));
+
+    expect(opener.searchQuery()).toBe('オーク');
+    expect(filter.searchQuery()).toBe('');
+  });
+
+  it('tells the inventory that opened it when it goes', () => {
+    let told = false;
+    component.closed = () => (told = true);
+    fixture.detectChanges();
+
+    fixture.destroy();
+
+    expect(told).toBe(true);
+  });
+
   it('clears the search again', () => {
     filter.searchQuery.set('ゴブリン');
 

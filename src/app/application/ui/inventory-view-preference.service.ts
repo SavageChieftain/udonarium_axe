@@ -10,11 +10,14 @@ const STORAGE_KEY = 'ui-inventory-view';
 const PARTS_STORAGE_KEY = 'ui-inventory-parts';
 
 /**
- * How this reader wants the inventory drawn.
+ * How this reader wants an inventory drawn.
  *
  * Kept here rather than in the room, since it is a way of looking rather than a decision about
  * the table: one player squinting at twelve enemies wants the table where another wants the
  * gauges.
+ *
+ * An inventory window keeps one of these of its own, so a second window can be read another
+ * way. What is written down is the last choice made, which is where the next window starts.
  */
 @Injectable({ providedIn: 'root' })
 export class InventoryViewPreferenceService {
