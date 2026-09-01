@@ -380,6 +380,12 @@
       <table class="w-max min-w-full border-separate border-spacing-0 text-[12px]">
         <thead>
           <tr class="text-ui-muted text-[10px] font-semibold">
+            @if (isMultiMove()) {
+              <th
+                class="bg-ui-elevated border-ui-border-panel sticky top-0 z-1 border-b border-solid p-1"
+                scope="col"
+              ></th>
+            }
             <th
               class="bg-ui-elevated border-ui-border-panel sticky top-0 z-1 border-b border-solid p-1"
               scope="col"
@@ -432,6 +438,17 @@
               (click)="selectGameObject(row.object)"
               (dblclick)="focusToObject($event, row.object)"
             >
+              @if (isMultiMove()) {
+                <td class="border-ui-border-panel w-0 border-b border-solid px-1 py-0.5">
+                  <input
+                    class="size-3.5 cursor-pointer align-middle [accent-color:var(--ui-accent)]"
+                    type="checkbox"
+                    [checked]="multiMoveTargets().has(row.object.identifier)"
+                    (click)="$event.stopPropagation()"
+                    (change)="toggleMultiMoveTarget($event, $any(row.object))"
+                  />
+                </td>
+              }
               <td class="border-ui-border-panel w-0 border-b border-solid px-1 py-0.5">
                 <i
                   class="material-icons text-ui-accent block text-[14px]!"

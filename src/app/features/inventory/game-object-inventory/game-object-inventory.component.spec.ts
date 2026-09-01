@@ -716,6 +716,28 @@ describe('GameObjectInventoryComponent', () => {
         }
       });
 
+      it('offers a box to tick while several are being worked on', () => {
+        const goblin = putOnTable('ゴブリン');
+        TestBed.inject(GameObjectInventoryService).dataTag = 'HP';
+        component.setViewMode('table');
+        fixture.detectChanges();
+
+        expect(tableRows()[0].querySelector('input[type="checkbox"]')).toBeNull();
+
+        component.isMultiMove.set(true);
+        fixture.detectChanges();
+
+        const box = tableRows()[0].querySelector('input[type="checkbox"]') as HTMLInputElement;
+        expect(box).toBeTruthy();
+        // The heading keeps a cell of its own for the column the box stands in.
+        expect(fixture.nativeElement.querySelectorAll('thead th')).toHaveLength(3 + 1);
+
+        box.checked = true;
+        box.dispatchEvent(new Event('change'));
+
+        expect([...component.multiMoveTargets()]).toEqual([goblin.identifier]);
+      });
+
       it('says so when there is nothing to make columns of', () => {
         putOnTable('ゴブリン');
         TestBed.inject(GameObjectInventoryService).dataTag = '';
