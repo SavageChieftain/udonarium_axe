@@ -2136,8 +2136,7 @@
         "open": "「{{name}}」을 별창으로 흘리기",
         "close": "별창 닫기",
         "gone": "이 탭은 사라졌습니다",
-        "followLatest": "최신에 따라가기",
-        "ghost": "투명 모드"
+        "followLatest": "최신에 따라가기"
       },
       "palette": {
         "panelTitle": "채팅 팔레트",
@@ -3442,7 +3441,8 @@
     },
     "panel": {
       "menuTitle": "메뉴",
-      "transparency": "투명도"
+      "transparency": "투명도",
+      "ghost": "투명 모드"
     }
   }
 }

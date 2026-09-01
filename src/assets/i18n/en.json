@@ -2136,8 +2136,7 @@
         "open": "Watch \"{{name}}\" in its own window",
         "close": "Close that window",
         "gone": "This tab is gone",
-        "followLatest": "Follow the newest",
-        "ghost": "Ghost mode"
+        "followLatest": "Follow the newest"
       },
       "palette": {
         "panelTitle": "Chat palette",
@@ -3440,7 +3439,8 @@
     },
     "panel": {
       "menuTitle": "Menu",
-      "transparency": "Transparency"
+      "transparency": "Transparency",
+      "ghost": "Ghost mode"
     }
   },
   "error": {}

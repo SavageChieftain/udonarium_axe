@@ -862,7 +862,80 @@ describe('GameObjectInventoryComponent', () => {
           TestBed.inject(PanelService)
             .headerControls()
             .map((control) => control.icon)
-        ).toEqual(['table_rows', 'tune']);
+        ).toEqual(['table_rows', 'opacity', 'tune']);
+      });
+
+      it('leaves nothing painting over the slab once the box is off', () => {
+        putOnTable('ゴブリン');
+        TestBed.inject(GameObjectInventoryService).dataTag = 'HP';
+        component.setViewMode('table');
+        fixture.detectChanges();
+
+        const tabs = fixture.nativeElement.querySelector('form[name="game-object-inventory"]')
+          ?.parentElement as HTMLElement;
+        const heading = fixture.nativeElement.querySelector('thead th') as HTMLElement;
+        expect(tabs.className).not.toContain('bg-transparent');
+
+        TestBed.inject(PanelService).isGhost.set(true);
+        fixture.detectChanges();
+
+        // The strips sit on the ground the content carries; the heading keeps one of its own,
+        // or the rows would scroll through it.
+        expect(tabs.className).toContain('bg-transparent');
+        expect(heading.closest('table')?.className).toContain('[&_thead_th]:bg-black/70');
+      });
+
+      it('asks the frame for the size the whole list needs', () => {
+        putOnTable('ゴブリン');
+        TestBed.inject(GameObjectInventoryService).dataTag = 'HP';
+        component.setViewMode('table');
+        fixture.detectChanges();
+        const asked: ({ width: number; height: number } | null)[] = [];
+        TestBed.inject(PanelService).resizeRequest$.subscribe((size) => asked.push(size));
+
+        // A window somebody has to scroll defeats the point of floating it over the map.
+        component.fitToContent();
+
+        expect(asked).toHaveLength(1);
+        expect(asked[0]).toMatchObject({ width: expect.any(Number), height: expect.any(Number) });
+      });
+
+      it('gives the size back when the box goes on again', () => {
+        component.setViewMode('table');
+        fixture.detectChanges();
+        const ghostControl = () =>
+          TestBed.inject(PanelService)
+            .headerControls()
+            .find((control) => control.icon === 'opacity')!;
+        ghostControl().press();
+        fixture.detectChanges();
+        const asked: ({ width: number; height: number } | null)[] = [];
+        TestBed.inject(PanelService).resizeRequest$.subscribe((size) => asked.push(size));
+
+        ghostControl().press();
+
+        expect(asked).toEqual([null]);
+      });
+
+      it('offers the box off only for the table, and puts it back on the way out', () => {
+        fixture.detectChanges();
+        const ghostControl = () =>
+          TestBed.inject(PanelService)
+            .headerControls()
+            .find((control) => control.icon === 'opacity');
+
+        expect(ghostControl()).toBeUndefined();
+
+        component.setViewMode('table');
+        fixture.detectChanges();
+        ghostControl()!.press();
+
+        expect(TestBed.inject(PanelService).isGhost()).toBe(true);
+
+        component.setViewMode('rich');
+
+        // A column of gauges over the map with nothing behind it reads as nothing at all.
+        expect(TestBed.inject(PanelService).isGhost()).toBe(false);
       });
 
       it('walks round the ways of reading it and back again', () => {

@@ -121,6 +121,13 @@ export class PanelService {
   private isScrollablePanelClaimed = false;
   readonly scrollToBottom$ = new EventChannel<void>();
   /**
+   * Asks the frame to grow to a size, or to give back the one it had.
+   *
+   * The frame owns the size - it is written on the panel's own element and remembered across a
+   * shrink - so the content asks rather than writing it, the way it asks to be minimised.
+   */
+  readonly resizeRequest$ = new EventChannel<{ width: number; height: number } | null>();
+  /**
    * Asks the frame to shrink the panel, or to let it out again.
    *
    * Shrinking is the frame's own doing - it puts the panel's size aside to give back - so the

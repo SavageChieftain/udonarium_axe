@@ -1,5 +1,6 @@
-import { NgTemplateOutlet } from '@angular/common';
+import { NgClass, NgTemplateOutlet } from '@angular/common';
 import {
+  afterNextRender,
   ChangeDetectionStrategy,
   Component,
   computed,
@@ -7,7 +8,9 @@ import {
   effect,
   ElementRef,
   inject,
+  Injector,
   signal,
+  viewChild,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { StatusAilmentService } from '@axe/application/character/status-ailment.service';
@@ -88,6 +91,8 @@ import { TranslocoModule } from '@jsverse/transloco';
 const FOCUS_BLOCKED_TAGS = new Set(['input', 'button']);
 
 const ROW_BUFF_BADGE_LIMIT = 6;
+/** The panel's own frame around the content it was asked to fit: its bar and its border. */
+const PANEL_FIT_MARGIN_PX = 34;
 const NO_BUFF_BADGES = { shown: [] as BuffBadge[], more: 0 };
 
 const VIEW_ICONS: Record<InventoryViewMode, string> = {
@@ -101,7 +106,7 @@ const VIEW_ICONS: Record<InventoryViewMode, string> = {
   templateUrl: './game-object-inventory.component.html',
   host: { class: 'block' },
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [NgTemplateOutlet, FormsModule, AutoFocusDirective, SafePipe, TranslocoModule],
+  imports: [NgClass, NgTemplateOutlet, FormsModule, AutoFocusDirective, SafePipe, TranslocoModule],
 })
 export class GameObjectInventoryComponent {
   isCalcElement(element: DataElement): boolean {
@@ -132,6 +137,7 @@ export class GameObjectInventoryComponent {
   private readonly destroyRef = inject(DestroyRef);
   private readonly npcDrag = inject(NpcDragService);
   private readonly hostElement = inject<ElementRef<HTMLElement>>(ElementRef);
+  private readonly injector = inject(Injector);
   private readonly t = inject(TRANSLATE_FN);
 
   private dragPending: {
@@ -199,6 +205,11 @@ export class GameObjectInventoryComponent {
   readonly isRoundView = computed(() => this.panelService.isMinimized());
 
   readonly isTableView = computed(() => this.viewMode() === 'table' && !this.isRoundView());
+
+  /** Standing with the panel's box off, which only the table is drawn to survive. */
+  readonly isGhost = this.panelService.isGhost;
+
+  private readonly contentRoot = viewChild<ElementRef<HTMLElement>>('contentRoot');
 
   /**
    * The cast laid out sideways: one row a piece, one column a display item.
@@ -270,6 +281,16 @@ export class GameObjectInventoryComponent {
         press: () => this.setViewMode(nextInventoryViewMode(showing)),
       },
     ];
+    // Only the table is worth floating over the map: the full view is a column of gauges, and
+    // the turn order is already the panel shrunk to nothing.
+    if (showing === 'table') {
+      controls.push({
+        icon: 'opacity',
+        label: this.t('ui.panel.ghost'),
+        active: this.isGhost(),
+        press: () => this.toggleGhost(),
+      });
+    }
     // A way into the settings that no setting can take away: the button beside the tabs goes
     // with them when the tabs are put away.
     if (showing !== 'round') {
@@ -291,10 +312,42 @@ export class GameObjectInventoryComponent {
   /** What is on screen, which is the turn order whenever the panel is shrunk to it. */
   private readonly shownViewMode = computed<InventoryViewMode>(() => (this.isRoundView() ? 'round' : this.viewMode()));
 
+  /**
+   * Takes the panel's box off, and with it the panel's borrowed size.
+   *
+   * Floating over the map, a window somebody has to scroll is worse than no window: the point
+   * of it is to see the whole table at a glance. It grows to hold all of it, and gives the size
+   * back when the box goes on again.
+   */
+  private toggleGhost(): void {
+    const ghost = !this.isGhost();
+    this.isGhost.set(ghost);
+    if (!ghost) {
+      this.panelService.resizeRequest$.emit(null);
+      return;
+    }
+    // The rows have to be laid out under the new ground before they can be measured.
+    afterNextRender({ read: () => this.fitToContent() }, { injector: this.injector });
+  }
+
+  /** Asks the frame for the size the whole list would need, measured as it stands. */
+  fitToContent(): void {
+    const content = this.contentRoot()?.nativeElement;
+    if (!content) return;
+
+    this.panelService.resizeRequest$.emit({
+      width: content.scrollWidth + PANEL_FIT_MARGIN_PX,
+      height: content.scrollHeight + PANEL_FIT_MARGIN_PX,
+    });
+  }
+
   setViewMode(mode: InventoryViewMode): void {
     // Standing on a phone, a panel fills the screen and has nothing to shrink to, so the
     // turn order is passed over rather than left as a way out of the cycle.
     const wanted = mode === 'round' && this.isCompact() ? nextInventoryViewMode(mode) : mode;
+    // The box goes back on with the view that needs it, rather than leaving a full view of
+    // gauges floating over the map with nothing behind it.
+    if (wanted !== 'table') this.isGhost.set(false);
     this.panelService.minimizeRequest$.emit(wanted === 'round');
     if (wanted !== 'round') this.viewPreference.set(wanted);
   }

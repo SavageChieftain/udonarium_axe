@@ -77,7 +77,7 @@ export class ChatStreamComponent {
         },
         {
           icon: 'opacity',
-          label: this.t('feature.chat.stream.ghost'),
+          label: this.t('ui.panel.ghost'),
           active: this.isGhost(),
           press: () => this.isGhost.update((ghost) => !ghost),
         },

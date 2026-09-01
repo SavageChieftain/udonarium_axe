@@ -88,6 +88,53 @@ describe('UIPanelComponent', () => {
     });
   });
 
+  describe('growing to what the content asks for', () => {
+    it('takes the size it is asked for and gives the old one back', () => {
+      fixture.detectChanges();
+      component.width = 450;
+      component.height = 600;
+
+      component.panelService.resizeRequest$.emit({ width: 700, height: 300 });
+
+      expect(component.width).toBe(700);
+      expect(component.height).toBe(300);
+
+      component.panelService.resizeRequest$.emit(null);
+
+      expect(component.width).toBe(450);
+      expect(component.height).toBe(600);
+    });
+
+    it('gives back the size it had before the first ask, not the one after', () => {
+      fixture.detectChanges();
+      component.width = 450;
+
+      component.panelService.resizeRequest$.emit({ width: 700, height: 300 });
+      component.panelService.resizeRequest$.emit({ width: 800, height: 400 });
+      component.panelService.resizeRequest$.emit(null);
+
+      expect(component.width).toBe(450);
+    });
+
+    it('asks for nothing wider than the screen', () => {
+      fixture.detectChanges();
+
+      component.panelService.resizeRequest$.emit({ width: window.innerWidth + 500, height: 300 });
+
+      expect(component.width).toBe(window.innerWidth);
+    });
+
+    it('leaves a panel filling the screen alone', () => {
+      fixture.detectChanges();
+      component.toggleFullScreen();
+      const width = component.width;
+
+      component.panelService.resizeRequest$.emit({ width: 200, height: 200 });
+
+      expect(component.width).toBe(width);
+    });
+  });
+
   describe('the bar of a panel shrunk to its content', () => {
     function panelService(): PanelService {
       return component.panelService;

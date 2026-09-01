@@ -1,8 +1,17 @@
 @if (!isRoundView()) {
-  <div class="text-ui-text bg-ui-panel flex h-full flex-col overflow-hidden text-[13px]">
+  <!--
+    With the panel's box off there is nothing behind the rows but the map, so the content
+    carries a ground of its own rather than reading as text scattered over the table.
+  -->
+  <div
+    class="text-ui-text flex h-full flex-col overflow-hidden text-[13px]"
+    [ngClass]="isGhost() ? 'rounded-ui shadow-ui-md bg-black/60 [backdrop-filter:blur(6px)]' : 'bg-ui-panel'"
+    #contentRoot
+  >
     @if (shows('tabs')) {
       <div
         class="bg-ui-panel border-ui-border-panel flex shrink-0 items-center gap-1 border-b border-solid px-2 pt-1.5"
+        [class.bg-transparent!]="isGhost()"
       >
         <form name="game-object-inventory" class="flex min-w-0 flex-1 gap-0.5">
           @for (inventoryType of inventoryTypes(); track inventoryType) {
@@ -63,6 +72,7 @@
     @if (shows('filter')) {
       <div
         class="bg-ui-panel border-ui-border-panel flex shrink-0 items-center gap-1.5 border-b border-solid px-2.5 py-1"
+        [class.bg-transparent!]="isGhost()"
       >
         <button
           class="text-ui-muted hover:text-ui-accent flex min-w-0 flex-1 cursor-pointer items-center gap-1.5 border-none bg-transparent p-0 text-left text-[11px] hover:shadow-none"
@@ -185,6 +195,7 @@
     @if (selectTab() === 'table' && shows('round')) {
       <div
         class="bg-ui-panel border-ui-border-panel flex shrink-0 items-center gap-1.5 border-b border-solid px-2.5 py-1.5"
+        [class.bg-transparent!]="isGhost()"
       >
         @if (turnRound() > 0) {
           <span class="text-ui-muted shrink-0 text-[11px] font-semibold">{{
@@ -273,7 +284,10 @@
     }
 
     @if (selectTab() === 'graveyard') {
-      <div class="bg-ui-panel border-ui-border-panel shrink-0 border-t border-solid px-2.5 py-2">
+      <div
+        class="bg-ui-panel border-ui-border-panel shrink-0 border-t border-solid px-2.5 py-2"
+        [class.bg-transparent!]="isGhost()"
+      >
         <button
           class="text-ui-danger border-ui-danger hover:bg-ui-danger-bg rounded-ui-sm inline-flex cursor-pointer items-center gap-1 border border-solid bg-transparent px-3 py-1.25 text-[12px] font-semibold transition-[background] disabled:cursor-not-allowed disabled:opacity-40 [&_.material-icons]:text-[15px]!"
           type="button"
@@ -383,7 +397,10 @@
         A table rather than a grid a row at a time: the heading and every row have to agree on
         where a column starts, and only one set of column widths can promise that.
       -->
-      <table class="w-max min-w-full border-separate border-spacing-0 text-[12px]">
+      <table
+        class="w-max min-w-full border-separate border-spacing-0 text-[12px]"
+        [ngClass]="{ '[&_thead_th]:bg-black/70!': isGhost() }"
+      >
         <thead>
           <tr class="text-ui-muted text-[10px] font-semibold">
             @if (isMultiMove()) {

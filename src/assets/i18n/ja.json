@@ -2136,8 +2136,7 @@
         "open": "「{{name}}」を別窓で流す",
         "close": "別窓を閉じる",
         "gone": "このタブは無くなりました",
-        "followLatest": "最新に追従",
-        "ghost": "透明モード"
+        "followLatest": "最新に追従"
       },
       "palette": {
         "panelTitle": "チャットパレット",
@@ -3440,7 +3439,8 @@
     },
     "panel": {
       "menuTitle": "メニュー",
-      "transparency": "透過率"
+      "transparency": "透過率",
+      "ghost": "透明モード"
     }
   },
   "error": {}
