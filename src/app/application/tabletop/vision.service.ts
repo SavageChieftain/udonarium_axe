@@ -5,7 +5,19 @@ import { PERF_VISION_MEMO_MISS, PERF_VISION_SCENE, perfCounters, perfTimed } fro
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { partyIdsOwnedBy } from '@axe/domain/party/party-membership';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
+import { CellBits } from '@axe/domain/tabletop/fog/cell-bits';
+import { cellCount, CellGrid, cellGridOf, cellIndexAt } from '@axe/domain/tabletop/fog/cell-grid';
+import { fogMemoryOn } from '@axe/domain/tabletop/fog/fog-memory';
+import {
+  asFogMode,
+  FOG_EDGE_BLUR_RATIO,
+  FOG_GM_ALPHA_FACTOR,
+  FOG_UNEXPLORED_ALPHA,
+  FOG_VEIL_ALPHA,
+} from '@axe/domain/tabletop/fog/fog-mode';
+import { computeVisibleCellsFor, VisibleCellsOptions } from '@axe/domain/tabletop/fog/visible-cells';
 import { GameTable } from '@axe/domain/tabletop/game-table';
+import { SegmentIndexes } from '@axe/domain/tabletop/los/segment-index';
 import { perimeterSegments, rectangleSegments, TallSegment } from '@axe/domain/tabletop/los/segments';
 import { type SurfaceDims, surfaceInwardDirection, surfacePointTo3D } from '@axe/domain/tabletop/surface-space';
 import { lightSourcesOn } from '@axe/domain/tabletop/table-lights';
@@ -23,6 +35,7 @@ import {
   type LightGlow,
   type LightSegment,
   objectBrightnessFor,
+  type OverlayVision,
   type SceneLight,
   type SceneViewer,
   type SceneVisionSource,
@@ -33,10 +46,13 @@ import {
   type WallLight,
   type WallSilhouette,
 } from '@axe/domain/tabletop/vision-scene';
+import { visionLobesOf } from '@axe/domain/tabletop/vision-shape';
 import { LightSpec, VisionType } from '@axe/domain/tabletop/vision-types';
 
 const GEOMETRY_THROTTLE_MS = 40;
 const RELEVANT_ALIASES = new Set(['character', 'light-source', 'terrain', 'game-table']);
+/** How many table cells one bucket of the sight index spans. */
+const SIGHT_INDEX_BUCKET_CELLS = 2;
 /** What the walls of a place are cut from. A piece walking past moves none of it. */
 const STANDING_ALIASES = new Set(['terrain', 'game-table']);
 /** How many answers to keep, set well above what a single repaint asks for. */
@@ -196,7 +212,10 @@ export class VisionService {
     return table;
   }
 
-  readonly active = computed(() => this.currentTable()?.darknessEnabled ?? false);
+  readonly active = computed(() => {
+    const table = this.currentTable();
+    return (table?.darknessEnabled || table?.fogEnabled) ?? false;
+  });
 
   readonly scene = computed<VisionScene | null>(() => {
     this.geometryEpoch();
@@ -216,6 +235,7 @@ export class VisionService {
     const { sight, light } = standing;
     return {
       darknessEnabled: table.darknessEnabled,
+      fogEnabled: table.fogEnabled,
       darknessLevel: table.darknessLevel,
       ambientColor: table.ambientColor,
       globalIllumination: table.globalIllumination,
@@ -230,6 +250,127 @@ export class VisionService {
       lightSegments: light,
       shadowCasters: this.collectShadowCasters(gridSize),
     };
+  }
+
+  private readonly cellGrid = computed<CellGrid | null>(() => {
+    const table = this.currentTable();
+    if (!table) return null;
+    return cellGridOf(table.width, table.height, table.gridSize, table.gridType);
+  });
+
+  private readonly sightIndexes = computed<SegmentIndexes | null>(() => {
+    const standing = this.standingSegments();
+    const table = this.currentTable();
+    if (!standing || !table) return null;
+    return new SegmentIndexes(standing.sight, table.gridSize * SIGHT_INDEX_BUCKET_CELLS);
+  });
+
+  /**
+   * Which cells each pair of eyes on the table reaches.
+   *
+   * Kept per pair rather than as one answer because three questions are asked of it: what the
+   * reader sees, what the party between them has been shown, and what one piece alone reaches
+   * when its own sight is drawn out.
+   */
+  private readonly visionCells = computed(() => {
+    const scene = this.scene();
+    const grid = this.cellGrid();
+    const indexes = this.sightIndexes();
+    const table = this.currentTable();
+    if (!scene || !grid || !indexes || !table || !this.active()) return null;
+    return perfTimed('cells', () => {
+      const options: VisibleCellsOptions = {
+        scene,
+        grid,
+        indexes,
+        sightRangePx: table.fogSightRange * table.gridSize,
+      };
+      const perSource = new Map<string, CellBits>();
+      const shared = new CellBits(cellCount(grid));
+      const players = new Set(this.playerVisionOwnerIds());
+      for (const source of scene.visionSources) {
+        const cells = computeVisibleCellsFor(source, options);
+        perSource.set(source.sourceId, cells);
+        if (players.has(source.owner)) shared.or(cells);
+      }
+      return { grid, perSource, shared };
+    });
+  });
+
+  /** Null when the reader has no eyes of their own, which is when nothing is cut back to them. */
+  private readonly viewerCells = computed<CellBits | null>(() => {
+    const cells = this.visionCells();
+    const scene = this.scene();
+    if (!cells || !scene) return null;
+    const viewer = this.viewer();
+    if (viewer.isGameMaster) return null;
+    const mine = new CellBits(cellCount(cells.grid));
+    let any = false;
+    for (const source of scene.visionSources) {
+      if (source.type === VisionType.BLIND) continue;
+      if (!viewerShares(viewer, source.owner, source.partyId)) continue;
+      const own = cells.perSource.get(source.sourceId);
+      if (!own) continue;
+      mine.or(own);
+      any = true;
+    }
+    return any ? mine : null;
+  });
+
+  readonly sharedVisibleCells = computed<{ grid: CellGrid; cells: CellBits } | null>(() => {
+    const cells = this.visionCells();
+    return cells ? { grid: cells.grid, cells: cells.shared } : null;
+  });
+
+  readonly exploredCells = computed<CellBits | null>(() => {
+    const cells = this.visionCells();
+    const table = this.currentTable();
+    if (!cells || !table || !table.fogEnabled) return null;
+    const explored = cells.shared.copy();
+    if (asFogMode(table.fogMode) === 'easy') {
+      this.objectChange.collectionOf('fog-memory')();
+      const memory = fogMemoryOn(table);
+      if (memory) {
+        this.objectChange.versionOf(memory.identifier)();
+        explored.or(memory.read(cells.grid));
+      }
+    }
+    return explored;
+  });
+
+  readonly overlayVision = computed<OverlayVision | undefined>(() => {
+    const cells = this.visionCells();
+    const table = this.currentTable();
+    if (!cells || !table) return undefined;
+    const own = this.viewerCells();
+    const dim = this.viewer().isGameMaster ? FOG_GM_ALPHA_FACTOR : 1;
+    return {
+      grid: cells.grid,
+      visible: own ?? cells.shared,
+      explored: this.exploredCells() ?? cells.shared,
+      clipReveals: own !== null,
+      fogEnabled: table.fogEnabled,
+      fogColor: table.fogColor,
+      veilAlpha: FOG_VEIL_ALPHA * dim,
+      unexploredAlpha: FOG_UNEXPLORED_ALPHA * dim,
+      blurPx: table.gridSize * FOG_EDGE_BLUR_RATIO,
+    };
+  });
+
+  visibleCellsOf(identifier: string): { grid: CellGrid; cells: CellBits } | null {
+    const cells = this.visionCells();
+    const own = cells?.perSource.get(identifier);
+    return cells && own ? { grid: cells.grid, cells: own } : null;
+  }
+
+  isHiddenByFog(x: number, y: number): boolean {
+    if (this.viewer().isGameMaster) return false;
+    const explored = this.exploredCells();
+    const cells = this.visionCells();
+    if (!explored || !cells) return false;
+    const index = cellIndexAt(cells.grid, x, y);
+    if (index < 0) return false;
+    return !explored.get(index);
   }
 
   objectBrightness(x: number, y: number, radiusPx = 0, ignoreShadowCasters = false): number {
@@ -249,15 +390,33 @@ export class VisionService {
   wallSilhouettes(face: WallFace): WallSilhouette[] {
     if (!this.active()) return EMPTY_SILHOUETTES;
     const scene = this.scene();
-    if (!scene) return EMPTY_SILHOUETTES;
+    if (!scene || !this.faceIsSeen(scene, face)) return EMPTY_SILHOUETTES;
     return this.recall(`sil:${faceKey(face)}`, () => computeWallSilhouettes(scene, face, scene.gridSize * 1.5));
   }
 
   wallLights(face: WallFace): WallLight[] {
     if (!this.active()) return EMPTY_WALL_LIGHTS;
     const scene = this.scene();
-    if (!scene) return EMPTY_WALL_LIGHTS;
+    if (!scene || !this.faceIsSeen(scene, face)) return EMPTY_WALL_LIGHTS;
     return this.recall(`wl:${faceKey(face)}`, () => computeWallLights(scene, face));
+  }
+
+  /**
+   * A wall lit on the far side of another wall is still a wall nobody can see, so the pool and
+   * the shadows thrown on it are left off rather than shining through what hides them.
+   */
+  private faceIsSeen(scene: VisionScene, face: WallFace): boolean {
+    const viewer = this.viewer();
+    if (viewer.isGameMaster) return true;
+    const x = (face.ax + face.bx) / 2 + face.nx;
+    const y = (face.ay + face.by) / 2 + face.ny;
+    return this.recall(`face:${faceKey(face)}`, () => isPointVisible(scene, x, y, viewer));
+  }
+
+  private lightIsSeen(scene: VisionScene, light: SceneLight): boolean {
+    const viewer = this.viewer();
+    if (viewer.isGameMaster || light.revealToAll) return true;
+    return this.recall(`lseen:${light.sourceId}`, () => isPointVisible(scene, light.x, light.y, viewer, light.z));
   }
 
   ambientBrightness(): number {
@@ -271,7 +430,10 @@ export class VisionService {
     this.geometryEpoch();
     const table = this.currentTable();
     if (!table) return { lights: [], gridSize: 50 };
-    return { lights: this.collectLights(table, table.gridSize), gridSize: table.gridSize };
+    const lights = this.collectLights(table, table.gridSize);
+    const scene = this.scene();
+    const seen = scene && this.active() ? lights.filter((light) => this.lightIsSeen(scene, light)) : lights;
+    return { lights: seen, gridSize: table.gridSize };
   }
 
   lightBeams(): LightBeam[] {
@@ -299,7 +461,7 @@ export class VisionService {
 
   isTokenVisible(character: GameCharacter): boolean {
     const scene = this.scene();
-    if (!scene || !scene.darknessEnabled) return true;
+    if (!scene || !(scene.darknessEnabled || scene.fogEnabled)) return true;
     if (surfaceOf(character) !== 'floor') return true;
     const viewer = this.viewer();
     if (viewer.isGameMaster) return true;
@@ -481,6 +643,7 @@ export class VisionService {
       if (!character.isVisibleOnTable || !character.owner) continue;
       if (surfaceOf(character) !== 'floor') continue;
       const center = (gridSize * (character.size || 1)) / 2;
+      const spec = character.visionSpec;
       sources.push({
         x: character.location.x + center,
         y: character.location.y + center,
@@ -491,6 +654,9 @@ export class VisionService {
         rangePx: character.visionRange * gridSize,
         owner: character.owner,
         partyId: character.partyIdentifier,
+        sourceId: character.identifier,
+        direction: spec.direction,
+        lobes: visionLobesOf(spec),
       });
     }
     return sources;

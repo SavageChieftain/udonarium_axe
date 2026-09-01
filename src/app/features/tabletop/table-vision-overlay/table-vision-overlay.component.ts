@@ -7,11 +7,13 @@ import { computeOverlayPlan, OverlayPlan } from '@axe/domain/tabletop/vision-sce
 import { computeHexMaskGeometry } from '@axe/features/tabletop/game-table-mask/game-table-mask-helpers';
 import {
   animatedGlowBounds,
+  type BakeCanvas,
   bakeOverlayPlan,
   type DirtyRect,
   drawOverlayPlan,
   type OverlayBake,
   overlayScale,
+  overlayScratch,
 } from '@axe/features/tabletop/table-vision-overlay/vision-overlay-render';
 import { translateZCss, Z_OFFSET_DARKNESS_PX } from '@axe/ui/tabletop/z-offset';
 
@@ -41,6 +43,8 @@ export class TableVisionOverlayComponent {
   private scale = 1;
   private animated = false;
   private bake: OverlayBake | null = null;
+  private scratch: BakeCanvas | null = null;
+  private scratchSize = '';
   private dirty: DirtyRect | null = null;
   private rafId: number | null = null;
   private readonly images = new Map<string, HTMLImageElement>();
@@ -56,6 +60,8 @@ export class TableVisionOverlayComponent {
         this.plan = null;
         this.animated = false;
         this.bake = null;
+        this.scratch = null;
+        this.scratchSize = '';
         this.dirty = null;
         this.margin = 0;
         this.scale = 1;
@@ -97,7 +103,8 @@ export class TableVisionOverlayComponent {
       canvas.style.top = this.surfaceOriginY - this.margin + 'px';
       canvas.style.width = cw + 'px';
       canvas.style.height = ch + 'px';
-      this.plan = computeOverlayPlan(scene, viewer);
+      this.plan = computeOverlayPlan(scene, viewer, this.visionService.overlayVision());
+      this.refreshScratch(cw, ch);
       this.animated = scene.lights.some((light) => light.animation && light.animation !== 'none');
       this.ensureImages();
       this.refreshBake();
@@ -105,6 +112,23 @@ export class TableVisionOverlayComponent {
       this.syncLoop();
     });
     this.destroyRef.onDestroy(() => this.stopLoop());
+  }
+
+  /**
+   * The surface a pass is gathered on before it is cut back to what can be seen.
+   *
+   * Only a table that hides something behind a wall needs one, so a plain lit board never
+   * makes a second surface the size of itself.
+   */
+  private refreshScratch(width: number, height: number): void {
+    if (!this.plan?.vision?.clipReveals) {
+      this.scratch = null;
+      this.scratchSize = '';
+      return;
+    }
+    const key = `${width}x${height}@${this.scale}`;
+    this.scratch = overlayScratch(width, height, this.scale, this.scratchSize === key ? this.scratch : null);
+    this.scratchSize = this.scratch ? key : '';
   }
 
   private now(): number {
@@ -152,7 +176,8 @@ export class TableVisionOverlayComponent {
       this.margin,
       this.surfaceOf(),
       this.bake,
-      this.scale
+      this.scale,
+      this.scratch
     );
     this.dirty = animatedGlowBounds(this.plan, this.surfaceWidth, this.surfaceHeight, this.margin, this.surfaceOf());
   }
@@ -180,7 +205,8 @@ export class TableVisionOverlayComponent {
       this.surfaceOf(),
       this.bake,
       dirty,
-      this.scale
+      this.scale,
+      this.scratch
     );
   }
 

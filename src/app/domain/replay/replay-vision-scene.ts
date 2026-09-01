@@ -19,6 +19,7 @@ import {
   type ShadowCaster,
   type VisionScene,
 } from '@axe/domain/tabletop/vision-scene';
+import { asVisionShape, visionLobesOf } from '@axe/domain/tabletop/vision-shape';
 import type { VisionType } from '@axe/domain/tabletop/vision-types';
 
 /**
@@ -80,6 +81,7 @@ export function buildReplayVisionScene(snapshots: readonly ReplayObjectSnapshot[
 
   return {
     darknessEnabled: flag(table, 'darknessEnabled'),
+    fogEnabled: flag(table, 'fogEnabled'),
     darknessLevel: number(table, 'darknessLevel', 1),
     ambientColor: text(table, 'ambientColor') || '#000000',
     globalIllumination: number(table, 'globalIllumination'),
@@ -201,6 +203,18 @@ function visionSourcesOf(snapshots: readonly ReplayObjectSnapshot[], gridSize: n
       rangePx: number(character, 'visionRange') * gridSize,
       owner,
       partyId: text(character, 'partyIdentifier') || undefined,
+      sourceId: character.identifier,
+      direction: number(character, 'rotate') + number(character, 'visionDirection'),
+      lobes: visionLobesOf({
+        shape: asVisionShape(text(character, 'visionShape')),
+        coneAngle: number(character, 'visionConeAngle', 120),
+        coneCount: number(character, 'visionConeCount', 1),
+        backAngle: number(character, 'visionBackAngle', 90),
+        backScale: number(character, 'visionBackScale', 0.4),
+        peripheralScale: number(character, 'visionPeripheralScale', 0.3),
+        direction: 0,
+        lobes: text(character, 'visionLobes'),
+      }),
     });
   }
   return sources;

@@ -1,3 +1,5 @@
+import { CellBits } from '@axe/domain/tabletop/fog/cell-bits';
+import { CellGrid } from '@axe/domain/tabletop/fog/cell-grid';
 import { GridType } from '@axe/domain/tabletop/game-table';
 import { computeLitCells } from '@axe/domain/tabletop/lit-cells';
 import {
@@ -11,6 +13,7 @@ import {
 import { computeVisibilityPolygon } from '@axe/domain/tabletop/los/visibility-polygon';
 import { surfaceFrame } from '@axe/domain/tabletop/surface-space';
 import { TableSurface } from '@axe/domain/tabletop/tabletop-object';
+import { maxLobeScale, VisionLobe, visionLobeScale } from '@axe/domain/tabletop/vision-shape';
 import { VisionType } from '@axe/domain/tabletop/vision-types';
 
 const LIGHT_SAMPLE_COUNT = 64;
@@ -50,6 +53,10 @@ export interface SceneVisionSource {
   rangePx: number;
   owner: string;
   partyId?: string;
+  sourceId: string;
+  /** Where the piece faces, in degrees, with the lobes measured from it. */
+  direction: number;
+  lobes: readonly VisionLobe[];
 }
 
 /** How far above whatever it stands on an eye, or the lamp it carries, sits. */
@@ -129,6 +136,7 @@ export interface WallLight {
 
 export interface VisionScene {
   darknessEnabled: boolean;
+  fogEnabled: boolean;
   darknessLevel: number;
   ambientColor: string;
   globalIllumination: number;
@@ -157,6 +165,25 @@ export interface OverlayShape {
   animation?: string;
 }
 
+/**
+ * What the reader can see and what they remember, in cells.
+ *
+ * `visible` is what their own eyes reach right now and cuts the light back to it, so a lamp
+ * shut in a room stays in that room. `explored` is what the party has been shown, which is
+ * everything on an easy table and only what is in sight on a hard one.
+ */
+export interface OverlayVision {
+  grid: CellGrid;
+  visible: CellBits;
+  explored: CellBits;
+  clipReveals: boolean;
+  fogEnabled: boolean;
+  fogColor: string;
+  veilAlpha: number;
+  unexploredAlpha: number;
+  blurPx: number;
+}
+
 export interface OverlayPlan {
   darknessAlpha: number;
   darknessColor: string;
@@ -165,6 +192,7 @@ export interface OverlayPlan {
   revealCells?: Point[][];
   glows: OverlayShape[];
   shadows: ShadowShape[];
+  vision?: OverlayVision;
 }
 
 export interface LightBeam {
@@ -700,13 +728,27 @@ export function darknessAlphaFor(scene: VisionScene, viewer: SceneViewer): numbe
 
 export function isPointVisible(scene: VisionScene, x: number, y: number, viewer: SceneViewer, z = 0): boolean {
   if (viewer.isGameMaster) return true;
+  return isPointVisibleFrom(scene, x, y, ownedSources(scene, viewer), z);
+}
 
-  const sources = ownedSources(scene, viewer);
-  const lit = isLit(scene, x, y, true, z);
+/**
+ * A table with the dark switched off has nothing to be lit by, so everything counts as lit and
+ * what is left to settle a look is the walls in the way and which way the piece is facing.
+ */
+export function isPointVisibleFrom(
+  scene: VisionScene,
+  x: number,
+  y: number,
+  sources: readonly SceneVisionSource[],
+  z = 0
+): boolean {
+  const lit = !scene.darknessEnabled || isLit(scene, x, y, true, z);
   if (sources.length === 0) return lit;
 
   for (const source of sources) {
-    const withinRange = source.rangePx > 0 && distance(x, y, source.x, source.y) <= source.rangePx;
+    const scale = visionLobeScale(source.lobes, source.direction, source.x, source.y, x, y);
+    if (scale <= 0) continue;
+    const withinRange = source.rangePx > 0 && distance(x, y, source.x, source.y) <= source.rangePx * scale;
     if (source.type === VisionType.TRUESIGHT && withinRange) return true;
     const between = segmentsAbove(scene.sightSegments, source.z);
     if (!segmentClearBetween(source.x, source.y, source.z, x, y, z, between)) continue;
@@ -774,12 +816,14 @@ export function objectBrightnessFor(
   // Nothing below can come out under the base, so a table with no dark in it is at full
   // brightness wherever the light and the sight lines happen to fall.
   if (base >= 1) return 1;
-  const level = objectLightLevel(scene, x, y, radiusPx, ignoreShadowCasters);
+  // A lamp behind a wall lights what is beside it, not the eye on the other side. Light only
+  // counts towards what a thing looks like once the look itself gets there.
+  const seen = isPointVisible(scene, x, y, viewer);
+  const level = seen ? objectLightLevel(scene, x, y, radiusPx, ignoreShadowCasters) : 0;
   if (level >= 1) return 1;
   // Lit or merely in sight, a thing is worth four tenths before any light is added to it, and
   // the light carries it the rest of the way. Nothing in between is a step.
-  const lit = level > 0 || isPointVisible(scene, x, y, viewer);
-  const floor = lit ? SEEN_BRIGHTNESS : base;
+  const floor = seen ? SEEN_BRIGHTNESS : base;
   return Math.max(base, floor + (1 - floor) * level);
 }
 
@@ -904,7 +948,7 @@ function addLightShadows(
   }
 }
 
-export function computeOverlayPlan(scene: VisionScene, viewer: SceneViewer): OverlayPlan {
+export function computeOverlayPlan(scene: VisionScene, viewer: SceneViewer, vision?: OverlayVision): OverlayPlan {
   const glows: OverlayShape[] = [];
   const reveals: OverlayShape[] = [];
   const shadows: ShadowShape[] = [];
@@ -922,6 +966,8 @@ export function computeOverlayPlan(scene: VisionScene, viewer: SceneViewer): Ove
   if (!isGm) {
     for (const source of ownedSources(scene, viewer)) {
       if (!seesInDark(source.type) || source.rangePx <= 0) continue;
+      const reach = source.rangePx * maxLobeScale(source.lobes);
+      if (reach < 1) continue;
       const clipPolygon =
         source.type === VisionType.TRUESIGHT
           ? undefined
@@ -929,32 +975,25 @@ export function computeOverlayPlan(scene: VisionScene, viewer: SceneViewer): Ove
               source.x,
               source.y,
               segmentsAbove(scene.sightSegments, source.z),
-              source.rangePx,
+              reach,
               VISION_SAMPLE_COUNT
             );
-      reveals.push({
-        x: source.x,
-        y: source.y,
-        brightPx: source.rangePx,
-        dimPx: source.rangePx,
-        angle: 360,
-        direction: 0,
-        color: scene.ambientColor,
-        full: true,
-        clipPolygon,
-      });
-      if (source.type === VisionType.THERMAL) {
-        glows.push({
+      for (const lobe of source.lobes) {
+        const radius = source.rangePx * lobe.rangeScale;
+        if (radius < 1) continue;
+        const shape: OverlayShape = {
           x: source.x,
           y: source.y,
-          brightPx: source.rangePx,
-          dimPx: source.rangePx,
-          angle: 360,
-          direction: 0,
-          color: THERMAL_COLOR,
-          full: false,
+          brightPx: radius,
+          dimPx: radius,
+          angle: lobe.angle,
+          direction: source.direction + lobe.direction,
+          color: scene.ambientColor,
+          full: true,
           clipPolygon,
-        });
+        };
+        reveals.push(shape);
+        if (source.type === VisionType.THERMAL) glows.push({ ...shape, color: THERMAL_COLOR, full: false });
       }
     }
   }
@@ -972,5 +1011,6 @@ export function computeOverlayPlan(scene: VisionScene, viewer: SceneViewer): Ove
       : [],
     glows,
     shadows,
+    vision,
   };
 }

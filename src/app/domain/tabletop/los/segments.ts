@@ -135,6 +135,21 @@ export function crossingAlong(
  * A wall stops a look only where it is taller than the look is high as it passes: a head on a
  * roof is seen over the parapet from far enough back, and not from the foot of it.
  */
+export function segmentBlocks(
+  ax: number,
+  ay: number,
+  az: number,
+  bx: number,
+  by: number,
+  bz: number,
+  seg: TallSegment
+): boolean {
+  const at = crossingAlong(ax, ay, bx, by, seg.x1, seg.y1, seg.x2, seg.y2);
+  if (at === null) return false;
+  if (seg.heightPx === undefined) return true;
+  return seg.heightPx >= az + (bz - az) * at;
+}
+
 export function segmentClearBetween(
   ax: number,
   ay: number,
@@ -145,10 +160,7 @@ export function segmentClearBetween(
   segments: readonly TallSegment[]
 ): boolean {
   for (const seg of segments) {
-    const at = crossingAlong(ax, ay, bx, by, seg.x1, seg.y1, seg.x2, seg.y2);
-    if (at === null) continue;
-    if (seg.heightPx === undefined) return false;
-    if (seg.heightPx >= az + (bz - az) * at) return false;
+    if (segmentBlocks(ax, ay, az, bx, by, bz, seg)) return false;
   }
   return true;
 }
