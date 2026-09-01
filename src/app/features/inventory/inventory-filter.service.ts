@@ -71,4 +71,11 @@ export class InventoryFilterService {
   set dataTag(value: string) {
     this.inventoryService.dataTag = value;
   }
+
+  get tableDataTag(): string {
+    return this.inventoryService.tableDataTag;
+  }
+  set tableDataTag(value: string) {
+    this.inventoryService.tableDataTag = value;
+  }
 }

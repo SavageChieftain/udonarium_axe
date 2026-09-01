@@ -54,12 +54,16 @@ describe('InventoryFilterPanelComponent', () => {
   it('writes the order and the display items where the room reads them', () => {
     component.sortTag = '行動値';
     component.sortOrder = SortOrder.DESC;
-    component.dataTag = 'HP MP 毒';
+    component.dataTag = 'HP MP';
+    component.tableDataTag = 'HP MP 毒';
 
     const inventory = TestBed.inject(GameObjectInventoryService);
     expect(inventory.sortTag).toBe('行動値');
     expect(inventory.sortOrder).toBe(SortOrder.DESC);
-    expect(inventory.dataTags).toEqual(['HP', 'MP', '毒']);
+    // The two views keep their own lists: a state is a column of boxes in one and a word and a
+    // number in the other.
+    expect(inventory.dataTags).toEqual(['HP', 'MP']);
+    expect(inventory.tableDataTags).toEqual(['HP', 'MP', '毒']);
   });
 
   it('puts a strip above the list away and brings it back', () => {
@@ -91,6 +95,7 @@ describe('InventoryFilterPanelComponent', () => {
     fixture.detectChanges();
 
     expect(fixture.nativeElement.querySelector('input[name="data-tag"]')).toBeNull();
+    expect(fixture.nativeElement.querySelector('input[name="table-data-tag"]')).toBeNull();
     expect(fixture.nativeElement.querySelector('input[name="inventory-search"]')).toBeTruthy();
   });
 });

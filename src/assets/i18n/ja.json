@@ -1318,7 +1318,9 @@
         "showTabs": "タブ",
         "showFilterLine": "絞り込み",
         "showRoundLine": "ラウンド操作",
-        "showPartsHint": "外した行は詰まります。この設定はこの端末だけのものです"
+        "showPartsHint": "外した行は詰まります。この設定はこの端末だけのものです",
+        "displayItemsRich": "表示項目（リッチ）",
+        "displayItemsTable": "表示項目（簡略）"
       }
     },
     "file": {

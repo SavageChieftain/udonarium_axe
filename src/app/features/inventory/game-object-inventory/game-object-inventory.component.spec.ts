@@ -691,7 +691,7 @@ describe('GameObjectInventoryComponent', () => {
       it('draws one row a piece, with a column for each display item', () => {
         putOnTable('ゴブリン');
         putOnTable('オーク');
-        TestBed.inject(GameObjectInventoryService).dataTag = 'HP MP';
+        TestBed.inject(GameObjectInventoryService).tableDataTag = 'HP MP';
         component.setViewMode('table');
         fixture.detectChanges();
 
@@ -704,7 +704,7 @@ describe('GameObjectInventoryComponent', () => {
         // each row was a grid of its own, sizing its columns to whatever it happened to hold.
         putOnTable('ゴブリン');
         putOnTable('オーク');
-        TestBed.inject(GameObjectInventoryService).dataTag = 'HP MP 敏捷度';
+        TestBed.inject(GameObjectInventoryService).tableDataTag = 'HP MP 敏捷度';
         component.setViewMode('table');
         fixture.detectChanges();
 
@@ -720,7 +720,7 @@ describe('GameObjectInventoryComponent', () => {
 
       it('offers a box to tick while several are being worked on', () => {
         const goblin = putOnTable('ゴブリン');
-        TestBed.inject(GameObjectInventoryService).dataTag = 'HP';
+        TestBed.inject(GameObjectInventoryService).tableDataTag = 'HP';
         component.setViewMode('table');
         fixture.detectChanges();
 
@@ -742,7 +742,7 @@ describe('GameObjectInventoryComponent', () => {
 
       it('says so when there is nothing to make columns of', () => {
         putOnTable('ゴブリン');
-        TestBed.inject(GameObjectInventoryService).dataTag = '';
+        TestBed.inject(GameObjectInventoryService).tableDataTag = '';
         component.setViewMode('table');
         fixture.detectChanges();
 
@@ -755,7 +755,7 @@ describe('GameObjectInventoryComponent', () => {
         const ailments = TestBed.inject(StatusAilmentService);
         ailments.save([]);
         ailments.add('毒');
-        TestBed.inject(GameObjectInventoryService).dataTag = '毒';
+        TestBed.inject(GameObjectInventoryService).tableDataTag = '毒';
         component.setViewMode('table');
         fixture.detectChanges();
 
@@ -886,7 +886,7 @@ describe('GameObjectInventoryComponent', () => {
 
       it('leaves nothing painting over the slab once the box is off', () => {
         putOnTable('ゴブリン');
-        TestBed.inject(GameObjectInventoryService).dataTag = 'HP';
+        TestBed.inject(GameObjectInventoryService).tableDataTag = 'HP';
         component.setViewMode('table');
         fixture.detectChanges();
 
@@ -906,7 +906,7 @@ describe('GameObjectInventoryComponent', () => {
 
       it('asks the frame for the size the whole list needs', () => {
         putOnTable('ゴブリン');
-        TestBed.inject(GameObjectInventoryService).dataTag = 'HP';
+        TestBed.inject(GameObjectInventoryService).tableDataTag = 'HP';
         component.setViewMode('table');
         fixture.detectChanges();
         const asked: ({ width: number; height: number } | null)[] = [];

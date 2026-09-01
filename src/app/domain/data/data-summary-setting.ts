@@ -5,15 +5,32 @@ import { ObjectStore } from '@axe/core/sync/object-store';
 import { DEFAULT_STATUS_AILMENT_NAMES } from '@axe/domain/character/builtin-status-ailments';
 
 /**
- * What a table wants to see of everybody at once: how they are holding up, what they roll on,
- * then what is wrong with them. The states come from the catalogue a room starts with, so the columns and the boxes
- * to tick them are named the same thing without either being written down twice.
+ * What a table wants to see of everybody at once: how they are holding up, and what they roll
+ * on.
  */
 const DEFAULT_RESOURCE_TAGS = ['HP', 'MP'];
 
 const DEFAULT_ABILITY_TAGS = ['敏捷度', '器用度', '筋力', '生命力', '知力', '精神力'];
 
-const DEFAULT_DATA_TAG = [...DEFAULT_RESOURCE_TAGS, ...DEFAULT_ABILITY_TAGS, ...DEFAULT_STATUS_AILMENT_NAMES].join(' ');
+const DEFAULT_DATA_TAG = [...DEFAULT_RESOURCE_TAGS, ...DEFAULT_ABILITY_TAGS].join(' ');
+
+/**
+ * And, in the table, what is wrong with them.
+ *
+ * The full view puts a name and a number on every item, so a long list of states there is a
+ * wall of words; the table gives each one a column of boxes, which is what they are for. The
+ * states come from the catalogue a room starts with, so the columns and the boxes to tick them
+ * are named the same thing without either being written down twice.
+ */
+const DEFAULT_TABLE_DATA_TAG = [
+  ...DEFAULT_RESOURCE_TAGS,
+  ...DEFAULT_ABILITY_TAGS,
+  ...DEFAULT_STATUS_AILMENT_NAMES,
+].join(' ');
+
+function splitDataTag(dataTag: string): string[] {
+  return dataTag != null && dataTag.trim().length > 0 ? dataTag.trim().split(/\s+/) : [];
+}
 
 export enum SortOrder {
   ASC = 'ASC',
@@ -39,6 +56,7 @@ export class DataSummarySetting extends GameObject implements InnerXml {
   @SyncVar() sortOrder2nd: SortOrder = SortOrder.ASC;
 
   @SyncVar() dataTag: string = DEFAULT_DATA_TAG;
+  @SyncVar() tableDataTag: string = DEFAULT_TABLE_DATA_TAG;
 
   @SyncVar() folderPaths: string[] = [];
 
@@ -47,9 +65,19 @@ export class DataSummarySetting extends GameObject implements InnerXml {
   get dataTags(): string[] {
     if (this._dataTag !== this.dataTag) {
       this._dataTag = this.dataTag;
-      this._dataTags = this.dataTag != null && this.dataTag.trim().length > 0 ? this.dataTag.trim().split(/\s+/) : [];
+      this._dataTags = splitDataTag(this.dataTag);
     }
     return this._dataTags;
+  }
+
+  private _tableDataTag!: string;
+  private _tableDataTags!: string[];
+  get tableDataTags(): string[] {
+    if (this._tableDataTag !== this.tableDataTag) {
+      this._tableDataTag = this.tableDataTag;
+      this._tableDataTags = splitDataTag(this.tableDataTag);
+    }
+    return this._tableDataTags;
   }
 
   innerXml(): string {

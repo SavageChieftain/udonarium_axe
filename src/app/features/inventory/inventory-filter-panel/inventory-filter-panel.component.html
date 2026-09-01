@@ -121,12 +121,24 @@
 
       <div class="flex flex-col gap-0.75">
         <label class="text-ui-muted text-[10px] font-semibold tracking-wider uppercase">{{
-          'feature.inventory.panel.displayItems' | transloco
+          'feature.inventory.panel.displayItemsRich' | transloco
         }}</label>
         <input
           class="bg-ui-input border-ui-border-panel text-ui-text rounded-ui-sm focus:border-ui-accent box-border w-full min-w-0 border border-solid px-1.75 py-1 outline-none"
           name="data-tag"
           [(ngModel)]="dataTag"
+          [placeholder]="'feature.inventory.panel.dataTagPlaceholder' | transloco"
+        />
+      </div>
+
+      <div class="flex flex-col gap-0.75">
+        <label class="text-ui-muted text-[10px] font-semibold tracking-wider uppercase">{{
+          'feature.inventory.panel.displayItemsTable' | transloco
+        }}</label>
+        <input
+          class="bg-ui-input border-ui-border-panel text-ui-text rounded-ui-sm focus:border-ui-accent box-border w-full min-w-0 border border-solid px-1.75 py-1 outline-none"
+          name="table-data-tag"
+          [(ngModel)]="tableDataTag"
           [placeholder]="'feature.inventory.panel.dataTagPlaceholder' | transloco"
         />
         <p class="text-ui-dim m-0 text-[10px]">{{ 'feature.inventory.panel.displayItemsHint' | transloco }}</p>

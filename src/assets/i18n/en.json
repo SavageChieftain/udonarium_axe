@@ -1318,7 +1318,9 @@
         "showTabs": "Tabs",
         "showFilterLine": "Filter line",
         "showRoundLine": "Round controls",
-        "showPartsHint": "What is put away closes up. This setting is for this device only"
+        "showPartsHint": "What is put away closes up. This setting is for this device only",
+        "displayItemsRich": "Display items (full)",
+        "displayItemsTable": "Display items (table)"
       }
     },
     "file": {

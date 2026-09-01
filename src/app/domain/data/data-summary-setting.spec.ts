@@ -62,11 +62,31 @@ describe('DataSummarySetting', () => {
       expect(DataSummarySetting.instance.sortOrder2nd).toBe(SortOrder.ASC);
     });
 
-    it('starts with the two pools, the six abilities and every state a room keeps', () => {
-      const tags = DataSummarySetting.instance.dataTags;
+    it('starts the full view on the two pools and the six abilities', () => {
+      expect(DataSummarySetting.instance.dataTags).toEqual([
+        'HP',
+        'MP',
+        '敏捷度',
+        '器用度',
+        '筋力',
+        '生命力',
+        '知力',
+        '精神力',
+      ]);
+    });
 
-      expect(tags.slice(0, 8)).toEqual(['HP', 'MP', '敏捷度', '器用度', '筋力', '生命力', '知力', '精神力']);
+    it('starts the table on those and every state a room keeps', () => {
+      const tags = DataSummarySetting.instance.tableDataTags;
+
+      expect(tags.slice(0, 8)).toEqual(DataSummarySetting.instance.dataTags);
       expect(tags.slice(8)).toEqual([...DEFAULT_STATUS_AILMENT_NAMES]);
+    });
+
+    it('keeps the two lists apart', () => {
+      DataSummarySetting.instance.tableDataTag = 'HP 毒';
+
+      expect(DataSummarySetting.instance.tableDataTags).toEqual(['HP', '毒']);
+      expect(DataSummarySetting.instance.dataTags).not.toEqual(['HP', '毒']);
     });
   });
 

@@ -36,6 +36,8 @@ describe('ChatPaletteComponent', () => {
       ObjectStore.instance.remove(char);
     }
     createdChars.length = 0;
+    // The tab list outlives the fixture, so a tab left behind turns up in whatever runs next.
+    for (const tab of [...ChatTabList.instance.chatTabs]) tab.destroy();
   });
 
   function createChar(name: string): GameCharacter {

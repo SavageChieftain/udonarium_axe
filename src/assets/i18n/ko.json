@@ -1318,7 +1318,9 @@
         "showTabs": "탭",
         "showFilterLine": "좁히기",
         "showRoundLine": "라운드 조작",
-        "showPartsHint": "끈 행은 자리를 비우지 않습니다. 이 설정은 이 단말에만 적용됩니다"
+        "showPartsHint": "끈 행은 자리를 비우지 않습니다. 이 설정은 이 단말에만 적용됩니다",
+        "displayItemsRich": "표시 항목(리치)",
+        "displayItemsTable": "표시 항목(간략)"
       }
     },
     "file": {

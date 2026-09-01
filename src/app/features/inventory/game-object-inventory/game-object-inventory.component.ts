@@ -219,15 +219,23 @@ export class GameObjectInventoryComponent {
    */
   readonly inventoryTable = computed<InventoryTable>(() => {
     this.objectChange.collectionOf('data')();
-    const inventory = this.getInventory(this.selectTab());
+    // The table keeps a list of its own, so the elements are looked up against that rather
+    // than taken from the map the full view's list is cached in.
+    const tags = this.inventoryService.tableDataTags;
     return buildInventoryTable(
       this.filteredRows().map((row) => row.object),
-      this.inventoryService.dataTags,
+      tags,
       this.ailmentService.ailments(),
-      (object) => inventory.dataElementMap.get(object.identifier) ?? [],
+      (object) => this.elementsOf(object, tags),
       this.newLineString
     );
   });
+
+  private elementsOf(object: TabletopObject, tags: readonly string[]): (DataElement | null)[] {
+    const root = object.rootDataElement;
+    if (!root) return tags.map(() => null);
+    return tags.map((tag) => (tag === this.newLineString ? null : DataElement.findElementByReference(root, tag)));
+  }
 
   ailmentSwatch(column: InventoryTableColumn): string {
     return column.ailment ? resolveBuffColor(column.ailment.color) || 'transparent' : 'transparent';

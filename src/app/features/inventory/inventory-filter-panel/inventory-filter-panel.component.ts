@@ -108,6 +108,13 @@ export class InventoryFilterPanelComponent {
     this.filter.dataTag = value;
   }
 
+  get tableDataTag(): string {
+    return this.filter.tableDataTag;
+  }
+  set tableDataTag(value: string) {
+    this.filter.tableDataTag = value;
+  }
+
   readonly chromeParts = INVENTORY_CHROME_PARTS.map((part) => ({
     part,
     labelKey: INVENTORY_CHROME_LABEL_KEYS[part],
