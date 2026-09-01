@@ -1,5 +1,4 @@
 import { StatusAilment } from '@axe/domain/character/status-ailment';
-import { StatusAilmentCatalog } from '@axe/domain/character/status-ailment-catalog';
 
 /**
  * The states a room starts with.
@@ -31,8 +30,11 @@ export const DEFAULT_STATUS_AILMENTS: readonly StatusAilment[] = [
  * A room that has any is left alone, so a table that threw them out and wrote its own is not
  * handed them back.
  */
-export function createDefaultStatusAilments(catalog: StatusAilmentCatalog): StatusAilment[] {
+export function createDefaultStatusAilments(catalog: { ailments: StatusAilment[] }): StatusAilment[] {
   if (catalog.ailments.length > 0) return catalog.ailments;
-  catalog.ailments = DEFAULT_STATUS_AILMENTS;
+  catalog.ailments = [...DEFAULT_STATUS_AILMENTS];
   return catalog.ailments;
 }
+
+/** What the states are called, in the order a table would want their columns. */
+export const DEFAULT_STATUS_AILMENT_NAMES: readonly string[] = DEFAULT_STATUS_AILMENTS.map((ailment) => ailment.name);

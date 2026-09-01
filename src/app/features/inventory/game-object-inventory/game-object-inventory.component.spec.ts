@@ -425,6 +425,8 @@ describe('GameObjectInventoryComponent', () => {
 
     it('searches the shown side of a resource as well as its maximum', () => {
       const goblin = putInShared('ゴブリン');
+      // Only what is on show is searched, so the item has to be one of the columns.
+      TestBed.inject(GameObjectInventoryService).dataTag = 'HP';
       component.selectTab.set('common');
       const hp = goblin.detailDataElement?.getFirstElementByName('HP');
       expect(hp).toBeTruthy();

@@ -2,6 +2,16 @@ import { SyncObject, SyncVar } from '@axe/core/sync/decorator';
 import { GameObject } from '@axe/core/sync/game-object';
 import { InnerXml } from '@axe/core/sync/object-serializer';
 import { ObjectStore } from '@axe/core/sync/object-store';
+import { DEFAULT_STATUS_AILMENT_NAMES } from '@axe/domain/character/builtin-status-ailments';
+
+/**
+ * What a table wants to see of everybody at once: what they roll on, then what is wrong with
+ * them. The states come from the catalogue a room starts with, so the columns and the boxes
+ * to tick them are named the same thing without either being written down twice.
+ */
+const DEFAULT_ABILITY_TAGS = ['敏捷度', '器用度', '筋力', '生命力', '知力', '精神力'];
+
+const DEFAULT_DATA_TAG = [...DEFAULT_ABILITY_TAGS, ...DEFAULT_STATUS_AILMENT_NAMES].join(' ');
 
 export enum SortOrder {
   ASC = 'ASC',
@@ -19,13 +29,14 @@ export class DataSummarySetting extends GameObject implements InnerXml {
     return DataSummarySetting._instance;
   }
 
-  @SyncVar() sortTag: string = 'HP';
-  @SyncVar() sortOrder: SortOrder = SortOrder.ASC;
+  /** The quickest acts first, which is the order a fight is read in. */
+  @SyncVar() sortTag: string = '敏捷度';
+  @SyncVar() sortOrder: SortOrder = SortOrder.DESC;
 
   @SyncVar() sortTag2nd: string = 'name';
   @SyncVar() sortOrder2nd: SortOrder = SortOrder.ASC;
 
-  @SyncVar() dataTag: string = 'HP MP 敏捷度 精神力';
+  @SyncVar() dataTag: string = DEFAULT_DATA_TAG;
 
   @SyncVar() folderPaths: string[] = [];
 
