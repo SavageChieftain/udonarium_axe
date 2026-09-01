@@ -194,6 +194,14 @@ export class VisionService {
     { equal: sameViewer }
   );
 
+  private shownVisionIds(): Set<string> {
+    const shown = new Set<string>();
+    for (const character of this.objectStore.getObjects<GameCharacter>(GameCharacter)) {
+      if (character.showVisionRange) shown.add(character.identifier);
+    }
+    return shown;
+  }
+
   private playerVisionOwnerIds(): string[] {
     return this.objectStore
       .getObjects<PeerCursor>(PeerCursor)
@@ -288,7 +296,14 @@ export class VisionService {
       const perSource = new Map<string, CellBits>();
       const shared = new CellBits(cellCount(grid));
       const players = new Set(this.playerVisionOwnerIds());
+      const viewer = this.viewer();
+      const shown = this.shownVisionIds();
+      // A monster the game master keeps on the table is nobody's eyes: it does not clear the
+      // fog, it is not the reader's, and unless its sight is being drawn nothing asks about it.
       for (const source of scene.visionSources) {
+        const wanted =
+          players.has(source.owner) || shown.has(source.sourceId) || viewerShares(viewer, source.owner, source.partyId);
+        if (!wanted) continue;
         const cells = computeVisibleCellsFor(source, options);
         perSource.set(source.sourceId, cells);
         if (players.has(source.owner)) shared.or(cells);
