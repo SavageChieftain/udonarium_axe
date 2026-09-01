@@ -484,6 +484,15 @@ export class VisionService {
     const half = (scene.gridSize * (character.size || 1)) / 2;
     const x = character.location.x + half;
     const y = character.location.y + half;
+    // Under fog the piece answers to the same cells the fog is drawn from. Asking the sight
+    // lines again would answer for eyes the reader may not have: somebody with no piece of
+    // their own has none, and a table with the dark switched off has nothing to stop a look,
+    // so every piece on the board came out standing in plain view under the fog covering it.
+    const fog = scene.fogEnabled ? this.overlayVision() : undefined;
+    if (fog) {
+      const cell = cellIndexAt(fog.grid, x, y);
+      if (cell >= 0) return fog.visible.get(cell);
+    }
     const z = this.objectZ(character.altitude, character.posZ, scene.gridSize);
     return this.recall(`tok:${x}:${y}:${z}`, () => isPointVisible(scene, x, y, viewer, z));
   }

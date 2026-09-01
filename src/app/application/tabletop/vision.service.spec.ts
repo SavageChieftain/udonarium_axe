@@ -391,6 +391,32 @@ describe('VisionService', () => {
       expect(service.exploredCells()?.get(7)).toBe(false);
     });
 
+    it('hides a piece standing in the fog from a reader with no eyes of their own', () => {
+      const table = makeDarkTable();
+      table.darknessEnabled = false;
+      table.fogEnabled = true;
+      makeMyCursor('p1', PeerRole.Player);
+      const npc = GameCharacter.create('NPC', 1, '');
+      npc.owner = 'p2';
+      npc.location.x = 200;
+      npc.location.y = 200;
+
+      expect(service.isTokenVisible(npc)).toBe(false);
+    });
+
+    it('still shows a reader their own piece wherever it stands', () => {
+      const table = makeDarkTable();
+      table.darknessEnabled = false;
+      table.fogEnabled = true;
+      makeMyCursor('p1', PeerRole.Player);
+      const mine = GameCharacter.create('PC', 1, '');
+      mine.owner = 'p1';
+      mine.location.x = 200;
+      mine.location.y = 200;
+
+      expect(service.isTokenVisible(mine)).toBe(true);
+    });
+
     it('remembers nothing at all with the fog switched off', () => {
       const table = tableRememberingCell('easy', 7);
       table.fogEnabled = false;
