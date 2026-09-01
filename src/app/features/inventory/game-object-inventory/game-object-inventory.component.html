@@ -351,124 +351,151 @@
     </div>
   } @else {
     <div class="flex-1 overflow-auto">
-      <div class="min-w-max">
-        <div
-          class="bg-ui-elevated border-ui-border-panel text-ui-muted sticky top-0 z-1 grid items-center gap-x-2 border-b border-solid px-2 py-1 text-[10px] font-semibold"
-          [style.gridTemplateColumns]="tableColumnTemplate()"
-        >
-          <span class="w-3.5"></span>
-          <span></span>
-          <span>{{ 'feature.inventory.panel.tableName' | transloco }}</span>
-          @for (column of table.columns; track column.name) {
-            <span class="flex items-center justify-center gap-0.5 whitespace-nowrap" [title]="column.name">
-              @if (column.ailment) {
-                <span
-                  class="ring-ui-border-panel inline-flex size-3 shrink-0 items-center justify-center overflow-hidden rounded-full text-[9px] ring-1"
-                  [style.background]="ailmentSwatch(column)"
+      <!--
+        A table rather than a grid a row at a time: the heading and every row have to agree on
+        where a column starts, and only one set of column widths can promise that.
+      -->
+      <table class="w-max min-w-full border-separate border-spacing-0 text-[12px]">
+        <thead>
+          <tr class="text-ui-muted text-[10px] font-semibold">
+            <th
+              class="bg-ui-elevated border-ui-border-panel sticky top-0 z-1 border-b border-solid p-1"
+              scope="col"
+            ></th>
+            <th
+              class="bg-ui-elevated border-ui-border-panel sticky top-0 z-1 border-b border-solid p-1 text-left"
+              scope="col"
+              colspan="2"
+            >
+              {{ 'feature.inventory.panel.tableName' | transloco }}
+            </th>
+            @for (column of table.columns; track column.name) {
+              <th
+                class="bg-ui-elevated border-ui-border-panel sticky top-0 z-1 border-b border-solid px-1.5 py-1 whitespace-nowrap"
+                scope="col"
+                [title]="column.name"
+              >
+                <span class="flex items-center justify-center gap-0.5">
+                  @if (column.ailment) {
+                    <span
+                      class="ring-ui-border-panel inline-flex size-3 shrink-0 items-center justify-center overflow-hidden rounded-full text-[9px] ring-1"
+                      [style.background]="ailmentSwatch(column)"
+                    >
+                      @if (ailmentIconUrl(column)) {
+                        <img
+                          class="size-full object-contain"
+                          [src]="ailmentIconUrl(column) | safe: 'resourceUrl'"
+                          alt=""
+                        />
+                      } @else {
+                        {{ column.ailment.icon }}
+                      }
+                    </span>
+                  }
+                  {{ column.name }}
+                </span>
+              </th>
+            }
+          </tr>
+        </thead>
+        <tbody>
+          @for (row of table.rows; track row.object.identifier) {
+            <tr
+              data-testid="inventory-table-row"
+              class="hover:bg-ui-hover cursor-pointer transition-colors select-none"
+              [class.bg-ui-accent-bg!]="selectedIdentifier() === row.object.identifier"
+              [class.opacity-50]="isHiddenRowDimmed(row.object)"
+              [class.italic]="isHiddenRowDimmed(row.object)"
+              (contextmenu)="onContextMenu($event, row.object)"
+              (click)="selectGameObject(row.object)"
+              (dblclick)="focusToObject($event, row.object)"
+            >
+              <td class="border-ui-border-panel w-0 border-b border-solid px-1 py-0.5">
+                <i
+                  class="material-icons text-ui-accent block text-[14px]!"
+                  [class.invisible]="currentTurnId() !== row.object.identifier"
+                  >play_arrow</i
                 >
-                  @if (ailmentIconUrl(column)) {
-                    <img class="size-full object-contain" [src]="ailmentIconUrl(column) | safe: 'resourceUrl'" alt="" />
-                  } @else {
-                    {{ column.ailment.icon }}
+              </td>
+              <td class="border-ui-border-panel w-0 border-b border-solid py-0.5 pr-1">
+                <span
+                  class="bg-ui-input border-ui-border-panel flex size-4.5 items-center justify-center overflow-hidden rounded-sm border border-solid"
+                >
+                  @if (row.object.imageFile.url) {
+                    <img
+                      class="size-full object-cover object-top"
+                      [src]="row.object.imageFile.url | safe: 'resourceUrl'"
+                      draggable="false"
+                      alt=""
+                    />
                   }
                 </span>
-              }
-              {{ column.name }}
-            </span>
-          }
-        </div>
+              </td>
+              <td class="border-ui-border-panel border-b border-solid px-1 py-0.5">
+                <span class="flex items-center gap-1 font-semibold" [title]="row.object.name">
+                  <span class="max-w-40 truncate">{{ row.object.name }}</span>
+                  @if (!canView(row.object)) {
+                    <i class="material-icons text-ui-dim shrink-0 text-[12px]!">lock</i>
+                  }
+                </span>
+              </td>
 
-        @for (row of table.rows; track row.object.identifier) {
-          <div
-            data-testid="inventory-table-row"
-            class="hover:bg-ui-hover border-ui-border-panel grid cursor-pointer items-center gap-x-2 border-b border-solid px-2 py-0.5 text-[12px] transition-colors select-none"
-            [style.gridTemplateColumns]="tableColumnTemplate()"
-            [class.bg-ui-accent-bg!]="selectedIdentifier() === row.object.identifier"
-            [class.opacity-50]="isHiddenRowDimmed(row.object)"
-            [class.italic]="isHiddenRowDimmed(row.object)"
-            (contextmenu)="onContextMenu($event, row.object)"
-            (click)="selectGameObject(row.object)"
-            (dblclick)="focusToObject($event, row.object)"
-          >
-            <i
-              class="material-icons text-ui-accent w-3.5 shrink-0 text-[14px]!"
-              [class.invisible]="currentTurnId() !== row.object.identifier"
-              >play_arrow</i
-            >
-            <span
-              class="bg-ui-input border-ui-border-panel flex size-4.5 shrink-0 items-center justify-center overflow-hidden rounded-sm border border-solid"
-            >
-              @if (row.object.imageFile.url) {
-                <img
-                  class="size-full object-cover object-top"
-                  [src]="row.object.imageFile.url | safe: 'resourceUrl'"
-                  draggable="false"
-                  alt=""
-                />
-              }
-            </span>
-            <span class="flex min-w-0 items-center gap-1 truncate font-semibold" [title]="row.object.name">
-              <span class="truncate">{{ row.object.name }}</span>
-              @if (!canView(row.object)) {
-                <i class="material-icons text-ui-dim shrink-0 text-[12px]!">lock</i>
-              }
-            </span>
-
-            @for (cell of row.cells; track $index) {
-              <span class="flex min-w-0 items-center justify-center">
-                @if (!canView(row.object)) {
-                  <span class="text-ui-dim">-</span>
-                } @else {
-                  @switch (cell.kind) {
-                    @case ('ailment') {
-                      @let ailment = table.columns[$index].ailment!;
-                      <input
-                        class="size-3.5 cursor-pointer [accent-color:var(--ui-accent)]"
-                        type="checkbox"
-                        [title]="ailment.effect || ailment.name"
-                        [checked]="isAilmentOn(row.object, ailment)"
-                        (click)="$event.stopPropagation()"
-                        (change)="toggleAilment($event, row.object, ailment)"
-                      />
-                    }
-                    @case ('numberResource') {
-                      <input
-                        class="border-ui-border-panel text-ui-text hover:border-b-ui-accent focus:border-b-ui-accent w-12 [appearance:textfield] rounded-none border-0 border-b border-solid bg-transparent px-0.5 text-right font-[inherit] text-[12px] font-bold outline-none"
-                        type="number"
-                        name="table-current-value"
-                        [style]="'color:' + cell.element!.nowValueColor"
-                        [title]="cell.element!.currentValue + ' / ' + cell.element!.value"
-                        [(ngModel)]="cell.element!.currentValue"
-                        (click)="$event.stopPropagation()"
-                      />
-                    }
-                    @case ('check') {
-                      <input
-                        class="size-3.5 cursor-pointer [accent-color:var(--ui-accent)]"
-                        type="checkbox"
-                        [checked]="cell.element!.isChecked"
-                        (click)="$event.stopPropagation()"
-                        (change)="cell.element!.value = cell.element!.isChecked ? 0 : 1"
-                      />
-                    }
-                    @case ('calc') {
-                      <span class="text-ui-text truncate font-bold">{{ calcText(cell.element!) }}</span>
-                    }
-                    @case ('value') {
-                      <input
-                        class="border-ui-border-panel text-ui-text hover:border-b-ui-accent focus:border-b-ui-accent w-16 min-w-0 rounded-none border-0 border-b border-solid bg-transparent px-0.5 text-right font-[inherit] text-[12px] outline-none"
-                        name="table-value"
-                        [(ngModel)]="cell.element!.value"
-                        (click)="$event.stopPropagation()"
-                      />
+              @for (cell of row.cells; track $index) {
+                <td class="border-ui-border-panel border-b border-solid px-1.5 py-0.5 text-center">
+                  @if (!canView(row.object)) {
+                    <span class="text-ui-dim">-</span>
+                  } @else {
+                    @switch (cell.kind) {
+                      @case ('ailment') {
+                        @let ailment = table.columns[$index].ailment!;
+                        <input
+                          class="size-3.5 cursor-pointer align-middle [accent-color:var(--ui-accent)]"
+                          type="checkbox"
+                          [title]="ailment.effect || ailment.name"
+                          [checked]="isAilmentOn(row.object, ailment)"
+                          (click)="$event.stopPropagation()"
+                          (change)="toggleAilment($event, row.object, ailment)"
+                        />
+                      }
+                      @case ('numberResource') {
+                        <input
+                          class="border-ui-border-panel text-ui-text hover:border-b-ui-accent focus:border-b-ui-accent w-12 [appearance:textfield] rounded-none border-0 border-b border-solid bg-transparent px-0.5 text-right font-[inherit] text-[12px] font-bold outline-none"
+                          type="number"
+                          name="table-current-value"
+                          [style]="'color:' + cell.element!.nowValueColor"
+                          [title]="cell.element!.currentValue + ' / ' + cell.element!.value"
+                          [(ngModel)]="cell.element!.currentValue"
+                          (click)="$event.stopPropagation()"
+                        />
+                      }
+                      @case ('check') {
+                        <input
+                          class="size-3.5 cursor-pointer align-middle [accent-color:var(--ui-accent)]"
+                          type="checkbox"
+                          [checked]="cell.element!.isChecked"
+                          (click)="$event.stopPropagation()"
+                          (change)="cell.element!.value = cell.element!.isChecked ? 0 : 1"
+                        />
+                      }
+                      @case ('calc') {
+                        <span class="text-ui-text font-bold">{{ calcText(cell.element!) }}</span>
+                      }
+                      @case ('value') {
+                        <input
+                          class="border-ui-border-panel text-ui-text hover:border-b-ui-accent focus:border-b-ui-accent w-16 rounded-none border-0 border-b border-solid bg-transparent px-0.5 text-right font-[inherit] text-[12px] outline-none"
+                          name="table-value"
+                          [(ngModel)]="cell.element!.value"
+                          (click)="$event.stopPropagation()"
+                        />
+                      }
                     }
                   }
-                }
-              </span>
-            }
-          </div>
-        }
-      </div>
+                </td>
+              }
+            </tr>
+          }
+        </tbody>
+      </table>
     </div>
   }
 </ng-template>

@@ -694,6 +694,25 @@ describe('GameObjectInventoryComponent', () => {
         expect(tableRows()).toHaveLength(2);
       });
 
+      it('gives the heading and every row the same columns', () => {
+        // The heading and the rows have to agree on where a column starts. They did not while
+        // each row was a grid of its own, sizing its columns to whatever it happened to hold.
+        putOnTable('ゴブリン');
+        putOnTable('オーク');
+        TestBed.inject(GameObjectInventoryService).dataTag = 'HP MP 敏捷度';
+        component.setViewMode('table');
+        fixture.detectChanges();
+
+        const headings = fixture.nativeElement.querySelectorAll('thead th');
+        // The marker, the name (which the picture shares), and one for each display item.
+        expect(headings).toHaveLength(2 + 3);
+        expect((headings[1] as HTMLTableCellElement).colSpan).toBe(2);
+        for (const row of tableRows()) {
+          expect(row.querySelectorAll('td')).toHaveLength(3 + 3);
+          expect(row.closest('table')).toBe(headings[0].closest('table'));
+        }
+      });
+
       it('says so when there is nothing to make columns of', () => {
         putOnTable('ゴブリン');
         TestBed.inject(GameObjectInventoryService).dataTag = '';

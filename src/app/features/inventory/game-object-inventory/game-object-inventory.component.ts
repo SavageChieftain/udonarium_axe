@@ -203,11 +203,6 @@ export class GameObjectInventoryComponent {
     );
   });
 
-  /** Wide enough for the marker, the picture and the name, then a column each. */
-  readonly tableColumnTemplate = computed(
-    () => `auto 18px minmax(5rem, 1fr) repeat(${this.inventoryTable().columns.length}, auto)`
-  );
-
   ailmentSwatch(column: InventoryTableColumn): string {
     return column.ailment ? resolveBuffColor(column.ailment.color) || 'transparent' : 'transparent';
   }
