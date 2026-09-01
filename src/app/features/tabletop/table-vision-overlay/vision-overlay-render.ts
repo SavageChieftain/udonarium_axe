@@ -650,26 +650,23 @@ function paintFog(ctx: CanvasRenderingContext2D, plan: OverlayPlan): void {
   const unwalked = (index: number): boolean => !vision.explored.get(index);
 
   ctx.globalCompositeOperation = 'source-over';
-  ctx.fillStyle = vision.fogColor;
+  // Cleared ground carries no mist. Only a shade over it, which is what says the fog has
+  // gone and nobody is standing there now.
   if (vision.veilAlpha > 0) {
+    ctx.fillStyle = vision.veilColor;
     ctx.globalAlpha = vision.veilAlpha;
     fillCells(ctx, vision.grid, remembered, vision.blurPx);
   }
   if (vision.unexploredAlpha > 0) {
+    ctx.fillStyle = vision.fogColor;
     ctx.globalAlpha = vision.unexploredAlpha;
     fillCells(ctx, vision.grid, unwalked, vision.blurPx);
-  }
 
-  // The mottling that keeps a wash from reading as a sheet of paint. It rides in the baked
-  // surface with the wash it sits on, so it costs nothing on a frame of its own.
-  const pattern = fogPattern(ctx);
-  if (pattern) {
-    ctx.fillStyle = pattern;
-    if (vision.veilAlpha > 0) {
-      ctx.globalAlpha = Math.min(1, vision.veilAlpha * CLOUD_OVER_VEIL);
-      fillCells(ctx, vision.grid, remembered, vision.blurPx);
-    }
-    if (vision.unexploredAlpha > 0) {
+    // The mottling that keeps the mist from reading as a sheet of paint. It rides in the
+    // surface baked when the scene changes, so it costs nothing on a frame of its own.
+    const pattern = fogPattern(ctx);
+    if (pattern) {
+      ctx.fillStyle = pattern;
       ctx.globalAlpha = Math.min(1, vision.unexploredAlpha * CLOUD_OVER_UNWALKED);
       fillCells(ctx, vision.grid, unwalked, vision.blurPx);
     }
@@ -677,8 +674,7 @@ function paintFog(ctx: CanvasRenderingContext2D, plan: OverlayPlan): void {
   ctx.globalAlpha = 1;
 }
 
-/** How much of the mottling shows through each of the two washes. */
-const CLOUD_OVER_VEIL = 1;
+/** How much of the mottling shows through the mist. */
 const CLOUD_OVER_UNWALKED = 0.75;
 
 function paintShadows(

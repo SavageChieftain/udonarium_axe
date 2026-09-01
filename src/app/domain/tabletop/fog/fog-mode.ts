@@ -18,7 +18,16 @@ export function asFogMode(value: unknown): FogMode {
  */
 export const DEFAULT_FOG_COLOR = '#aeb9c4';
 
-export const FOG_VEIL_ALPHA = 0.62;
+/**
+ * Ground the party has been shown and cannot see now.
+ *
+ * No mist over it: the fog there has been cleared and stays cleared, and thinning the mist
+ * instead read as a lighter fog rather than as a cleared one. It is shaded a little instead,
+ * which is what tells it apart from ground somebody is standing in.
+ */
+export const FOG_VEIL_COLOR = '#000000';
+
+export const FOG_VEIL_ALPHA = 0.3;
 
 export const FOG_UNEXPLORED_ALPHA = 1;
 

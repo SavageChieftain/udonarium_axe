@@ -179,9 +179,13 @@ export interface OverlayVision {
   clipReveals: boolean;
   fogEnabled: boolean;
   fogColor: string;
+  /** What ground that has been cleared but cannot be seen now is shaded with. */
+  veilColor: string;
   veilAlpha: number;
   unexploredAlpha: number;
   blurPx: number;
+  /** Whether ground once cleared keeps showing what stands on it. */
+  rememberSeen: boolean;
 }
 
 export interface OverlayPlan {

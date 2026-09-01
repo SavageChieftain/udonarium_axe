@@ -14,6 +14,7 @@ import {
   FOG_GM_ALPHA_FACTOR,
   FOG_UNEXPLORED_ALPHA,
   FOG_VEIL_ALPHA,
+  FOG_VEIL_COLOR,
 } from '@axe/domain/tabletop/fog/fog-mode';
 import { computeVisibleCellsFor, VisibleCellsOptions } from '@axe/domain/tabletop/fog/visible-cells';
 import { GameTable } from '@axe/domain/tabletop/game-table';
@@ -194,6 +195,19 @@ export class VisionService {
     { equal: sameViewer }
   );
 
+  /**
+   * Whose eyes make up the party's map.
+   *
+   * The players at the table, so that what the game master keeps aside stays theirs to know.
+   * With no player at the table at all every piece counts instead, which is a room being set
+   * up or run by one person: there is nobody for the master to be keeping anything from.
+   */
+  private partyOwnerIds(sources: readonly SceneVisionSource[]): Set<string> {
+    const players = this.playerVisionOwnerIds();
+    if (players.length > 0) return new Set(players);
+    return new Set(sources.map((source) => source.owner).filter((owner) => owner.length > 0));
+  }
+
   private shownVisionIds(): Set<string> {
     const shown = new Set<string>();
     for (const character of this.objectStore.getObjects<GameCharacter>(GameCharacter)) {
@@ -290,7 +304,7 @@ export class VisionService {
       const options: VisibleCellsOptions = { scene, grid, indexes };
       const perSource = new Map<string, CellBits>();
       const shared = new CellBits(cellCount(grid));
-      const players = new Set(this.playerVisionOwnerIds());
+      const players = this.partyOwnerIds(scene.visionSources);
       const viewer = this.viewer();
       const shown = this.shownVisionIds();
       // A monster the game master keeps on the table is nobody's eyes: it does not clear the
@@ -361,9 +375,11 @@ export class VisionService {
       clipReveals: own !== null,
       fogEnabled: table.fogEnabled,
       fogColor: table.fogColor,
+      veilColor: FOG_VEIL_COLOR,
       veilAlpha: FOG_VEIL_ALPHA * dim,
       unexploredAlpha: FOG_UNEXPLORED_ALPHA * dim,
       blurPx: table.gridSize * FOG_EDGE_BLUR_RATIO,
+      rememberSeen: table.fogEnabled && asFogMode(table.fogMode) === 'easy',
     };
   });
 
@@ -486,7 +502,9 @@ export class VisionService {
     const fog = scene.fogEnabled ? this.overlayVision() : undefined;
     if (fog) {
       const cell = cellIndexAt(fog.grid, x, y);
-      if (cell >= 0) return fog.visible.get(cell);
+      // Ground the party has cleared keeps showing what stands on it, so a monster once
+      // found stays found. It goes again the moment it steps somewhere nobody has been.
+      if (cell >= 0) return fog.visible.get(cell) || (fog.rememberSeen && fog.explored.get(cell));
     }
     const z = this.objectZ(character.altitude, character.posZ, scene.gridSize);
     return this.recall(`tok:${x}:${y}:${z}`, () => isPointVisible(scene, x, y, viewer, z));

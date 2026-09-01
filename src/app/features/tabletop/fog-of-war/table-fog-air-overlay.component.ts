@@ -16,7 +16,6 @@ const SHEET_MARGIN = 0.06;
 /** How much of a sheet the ground it stands for is worth, against the mottling over it. */
 const SHEET_WASH = 0.55;
 const SHEET_BLUR_CELLS = 0.6;
-const VEIL_SHARE = 0.45;
 
 interface Sheet {
   layer: FogAirLayer;
@@ -120,15 +119,14 @@ export class TableFogAirOverlayComponent {
     context.clearRect(-marginX, -marginY, boardWidth + marginX * 2, boardHeight + marginY * 2);
     context.globalCompositeOperation = 'source-over';
 
+    // Only over ground nobody has walked to. Once it is cleared the mist is gone from it,
+    // in the air as well as on the floor.
     const blurPx = SHEET_BLUR_CELLS * gridSizePx;
     const unwalked = (cell: number): boolean => !vision.explored.get(cell);
-    const remembered = (cell: number): boolean => vision.explored.get(cell) && !vision.visible.get(cell);
 
     context.fillStyle = vision.fogColor;
     context.globalAlpha = SHEET_WASH;
     fillCells(context, grid, unwalked, blurPx);
-    context.globalAlpha = SHEET_WASH * VEIL_SHARE;
-    fillCells(context, grid, remembered, blurPx);
 
     const pattern = fogPattern(context);
     if (pattern) {
@@ -138,8 +136,6 @@ export class TableFogAirOverlayComponent {
       context.fillStyle = pattern;
       context.globalAlpha = 1;
       fillCells(context, grid, unwalked, blurPx);
-      context.globalAlpha = VEIL_SHARE;
-      fillCells(context, grid, remembered, blurPx);
     }
     context.globalAlpha = 1;
     context.setTransform(1, 0, 0, 1, 0, 0);

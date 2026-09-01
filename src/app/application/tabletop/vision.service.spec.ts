@@ -417,6 +417,70 @@ describe('VisionService', () => {
       expect(service.isTokenVisible(mine)).toBe(true);
     });
 
+    /** Where a piece at (200, 200) stands, on the twenty cell board these tests use. */
+    const NPC_CELL = 4 * 20 + 4;
+
+    function npcAt(x: number, y: number): GameCharacter {
+      const npc = GameCharacter.create('NPC', 1, '');
+      npc.owner = 'p2';
+      npc.location.x = x;
+      npc.location.y = y;
+      return npc;
+    }
+
+    it('keeps showing a piece once found, while it stands on ground the party has cleared', () => {
+      tableRememberingCell('easy', NPC_CELL);
+      makeMyCursor('p1', PeerRole.Player);
+
+      expect(service.isTokenVisible(npcAt(200, 200))).toBe(true);
+    });
+
+    it('loses it again the moment it steps somewhere nobody has been', () => {
+      tableRememberingCell('easy', NPC_CELL);
+      makeMyCursor('p1', PeerRole.Player);
+
+      expect(service.isTokenVisible(npcAt(600, 600))).toBe(false);
+    });
+
+    it('shows nothing outside the party sight on a hard table', () => {
+      tableRememberingCell('hard', NPC_CELL);
+      makeMyCursor('p1', PeerRole.Player);
+
+      expect(service.isTokenVisible(npcAt(200, 200))).toBe(false);
+    });
+
+    it('clears the fog for a piece the game master owns when nobody else has one', () => {
+      const table = makeDarkTable();
+      table.fogEnabled = true;
+      table.globalIllumination = 1;
+      makeMyCursor('gm', PeerRole.GameMaster);
+      const piece = GameCharacter.create('PC', 1, '');
+      piece.owner = 'gm';
+      piece.location.x = 200;
+      piece.location.y = 200;
+
+      expect(service.sharedVisibleCells()?.cells.get(NPC_CELL)).toBe(true);
+    });
+
+    it('leaves what the game master keeps aside out of the party map', () => {
+      const table = makeDarkTable();
+      table.fogEnabled = true;
+      table.globalIllumination = 1;
+      makeMyCursor('gm', PeerRole.GameMaster);
+      addPeer('p1', PeerRole.Player);
+      const monster = GameCharacter.create('Monster', 1, '');
+      monster.owner = 'gm';
+      monster.location.x = 200;
+      monster.location.y = 200;
+      const pc = GameCharacter.create('PC', 1, '');
+      pc.owner = 'p1';
+      pc.visionRange = 2;
+      pc.location.x = 800;
+      pc.location.y = 800;
+
+      expect(service.sharedVisibleCells()?.cells.get(NPC_CELL)).toBe(false);
+    });
+
     it('remembers nothing at all with the fog switched off', () => {
       const table = tableRememberingCell('easy', 7);
       table.fogEnabled = false;

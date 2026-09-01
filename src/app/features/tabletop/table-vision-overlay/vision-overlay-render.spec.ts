@@ -137,9 +137,11 @@ describe('vision-overlay-render', () => {
         clipReveals: false,
         fogEnabled: true,
         fogColor: '#aeb9c4',
-        veilAlpha: 0.6,
+        veilColor: '#000000',
+        veilAlpha: 0.3,
         unexploredAlpha: 1,
         blurPx: 0,
+        rememberSeen: true,
       };
     }
 
@@ -155,13 +157,33 @@ describe('vision-overlay-render', () => {
       };
     }
 
-    it('covers the ground it has, at the two strengths it has for it', () => {
+    it('shades the ground that has been cleared and covers the ground that has not', () => {
       const { ctx, ops } = fakeContext();
       drawOverlayPlan(ctx, fogPlan(vision([0], [0, 1])), 200, 200);
 
       const fills = ops.filter((o) => o.name === 'fill');
-      expect(fills.map((o) => o.alpha)).toContain(0.6);
+      expect(fills.map((o) => o.alpha)).toContain(0.3);
       expect(fills.map((o) => o.alpha)).toContain(1);
+    });
+
+    it('lays no mist over ground the party has cleared', () => {
+      const { ctx, ops } = fakeContext();
+      // Everything is explored and nothing is in sight, so only the shade is left to draw.
+      drawOverlayPlan(
+        ctx,
+        fogPlan(
+          vision(
+            [],
+            Array.from({ length: 16 }, (_, i) => i)
+          )
+        ),
+        200,
+        200
+      );
+
+      const fills = ops.filter((o) => o.name === 'fill');
+      expect(fills).toHaveLength(1);
+      expect(fills[0].alpha).toBe(0.3);
     });
 
     it('lays nothing over a board that has been walked all over', () => {

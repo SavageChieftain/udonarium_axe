@@ -1871,7 +1871,7 @@
         "fogMode": "How the fog comes back",
         "fogModeEasy": "Easy (keep the memory)",
         "fogModeHard": "Hard (forget it)",
-        "fogModeHint": "Easy keeps what was seen as a dim memory. Hard puts it back to unexplored once it leaves sight.",
+        "fogModeHint": "Easy leaves cleared ground cleared and keeps showing whatever stands on it, until it steps somewhere nobody has been. Hard puts the ground back to unexplored once it leaves sight.",
         "fogColor": "Fog colour",
         "fogReset": "Reset the fog"
       },
