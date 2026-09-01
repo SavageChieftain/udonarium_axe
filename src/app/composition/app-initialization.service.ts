@@ -13,6 +13,8 @@ import { ImageSharingSystem } from '@axe/core/storage/image-sharing-system';
 import { ImageStorage } from '@axe/core/storage/image-storage';
 import { ObjectSynchronizer } from '@axe/core/sync/object-synchronizer';
 import { Alarm } from '@axe/domain/alarm/alarm';
+import { createDefaultStatusAilments } from '@axe/domain/character/builtin-status-ailments';
+import { StatusAilmentCatalog } from '@axe/domain/character/status-ailment-catalog';
 import { ChatTabList } from '@axe/domain/chat/chat-tab-list';
 import { DataSummarySetting } from '@axe/domain/data/data-summary-setting';
 import { MarkDown } from '@axe/domain/data/mark-down';
@@ -47,6 +49,7 @@ export class AppInitializationService {
   private readonly turnState = inject(TurnState);
   private readonly config = inject(Config);
   private readonly dataSummarySetting = inject(DataSummarySetting);
+  private readonly statusAilmentCatalog = inject(StatusAilmentCatalog);
   private readonly ngSelectConfig = inject(NgSelectConfig);
   private readonly keyboardInset = inject(KeyboardInsetService);
 
@@ -72,6 +75,7 @@ export class AppInitializationService {
     this.initializeAudioPresets();
     this.initializeEffectPresets();
     this.initializeCutIns();
+    this.initializeStatusAilments();
     this.initializePeerCursor();
   }
 
@@ -83,6 +87,10 @@ export class AppInitializationService {
 
   private initializeCutIns(): void {
     createDefaultCutIns(this.imageStorage);
+  }
+
+  private initializeStatusAilments(): void {
+    createDefaultStatusAilments(this.statusAilmentCatalog);
   }
 
   private initializeDomainObjects(): void {
