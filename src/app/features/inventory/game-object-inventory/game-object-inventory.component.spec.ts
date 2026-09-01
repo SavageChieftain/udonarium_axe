@@ -782,6 +782,34 @@ describe('GameObjectInventoryComponent', () => {
       });
     });
 
+    describe('working on several at once', () => {
+      function actions(): HTMLButtonElement[] {
+        return [...fixture.nativeElement.querySelectorAll('button')].filter((button) =>
+          ['共有', '個人', '墓場', 'フォルダ'].some((label) => button.textContent?.trim().includes(label))
+        );
+      }
+
+      it('offers nothing to do until something is picked', () => {
+        putOnTable('ゴブリン');
+        component.isMultiMove.set(true);
+        fixture.detectChanges();
+
+        // Moving nowhere used to close the bar and play a sound, which reads as a move that
+        // happened.
+        expect(actions().length).toBeGreaterThan(0);
+        for (const action of actions()) expect(action.disabled).toBe(true);
+      });
+
+      it('offers them once something is picked', () => {
+        const goblin = putOnTable('ゴブリン');
+        component.isMultiMove.set(true);
+        component.multiMoveTargets.set(new Set([goblin.identifier]));
+        fixture.detectChanges();
+
+        for (const action of actions()) expect(action.disabled).toBe(false);
+      });
+    });
+
     it('ticks only the rows the search left when everything is selected', () => {
       putOnTable('ゴブリン');
       putOnTable('村長');

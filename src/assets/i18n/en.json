@@ -1312,7 +1312,8 @@
         "tableName": "Name",
         "filterPanelTitle": "Search and display settings",
         "filterNone": "Nothing narrowed",
-        "displayItemsHint": "Name a registered state and that column becomes a box to tick"
+        "displayItemsHint": "Name a registered state and that column becomes a box to tick",
+        "inventoryVisibility": "Visibility"
       }
     },
     "file": {

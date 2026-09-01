@@ -76,81 +76,103 @@
     </div>
 
     @if (isMultiMove()) {
-      <div
-        class="bg-ui-accent-bg border-ui-border-panel flex shrink-0 flex-wrap items-center gap-1.5 border-b border-solid px-2.5 py-1.5"
-      >
-        <span
-          class="text-ui-accent flex flex-1 items-center gap-1 text-[12px] font-semibold [&_.material-icons]:text-[15px]!"
-        >
-          <i class="material-icons">open_with</i>{{ 'feature.inventory.panel.multiMove' | transloco }}
-        </span>
-        <button
-          class="bg-ui-input border-ui-border-panel text-ui-text hover:bg-ui-hover rounded-ui-sm inline-flex cursor-pointer items-center gap-0.75 border border-solid px-2 py-1 text-[12px] transition-[background] [&_.material-icons]:text-[14px]!"
-          type="button"
-          (click)="allTabBoxCheck()"
-        >
-          {{
-            existsMultiMoveSelectedInTab()
-              ? ('feature.inventory.panel.deselectAll' | transloco)
-              : ('feature.inventory.panel.selectAll' | transloco)
-          }}
-        </button>
-        <span class="text-ui-muted text-[11px] whitespace-nowrap">{{
-          'feature.inventory.panel.selectedCount' | transloco: { count: multiMoveTargets().size }
-        }}</span>
-        @if (foldersApply()) {
+      @let picked = multiMoveTargets().size;
+      <div class="bg-ui-accent-bg border-ui-border-panel shrink-0 border-b border-solid px-2.5 py-1.5">
+        <div class="flex items-center gap-2">
+          <span class="text-ui-accent flex items-center gap-1 text-[12px] font-semibold">
+            <i class="material-icons text-[15px]!">open_with</i>{{ 'feature.inventory.panel.multiMove' | transloco }}
+          </span>
+          <span class="text-ui-muted text-[11px] whitespace-nowrap">{{
+            'feature.inventory.panel.selectedCount' | transloco: { count: picked }
+          }}</span>
+          <span class="flex-1"></span>
           <button
-            class="bg-ui-input border-ui-border-panel text-ui-text hover:bg-ui-hover hover:border-ui-accent hover:text-ui-accent rounded-ui-sm inline-flex cursor-pointer items-center gap-0.75 border border-solid px-2 py-1 text-[12px] transition-[background,color,border-color] [&_.material-icons]:text-[14px]!"
+            class="bg-ui-input border-ui-border-panel text-ui-text hover:bg-ui-hover rounded-ui-sm h-6.5 shrink-0 cursor-pointer border border-solid px-2 text-[11px] transition-[background]"
             type="button"
-            (click)="onMultiMoveFolderMenu()"
+            (click)="allTabBoxCheck()"
           >
-            <i class="material-icons">folder</i>{{ 'feature.inventory.panel.folder' | transloco }}
-          </button>
-        }
-        <span class="text-ui-muted text-[11px] whitespace-nowrap">{{
-          'feature.inventory.panel.moveTargetLabel' | transloco
-        }}</span>
-        @for (loc of multiMoveLocations; track loc.name) {
-          <button
-            class="bg-ui-accent-bg border-ui-accent text-ui-accent hover:bg-ui-accent rounded-ui-sm inline-flex cursor-pointer items-center gap-0.75 border border-solid px-2 py-1 text-[12px] transition-[background,color] hover:text-white [&_.material-icons]:text-[14px]!"
-            type="button"
-            (click)="moveToAndClose(loc.name)"
-          >
-            <i class="material-icons">arrow_forward</i>{{ loc.labelKey | transloco }}
-          </button>
-        }
-        @if (selectTab() === 'graveyard') {
-          <button
-            class="border-ui-danger text-ui-danger hover:bg-ui-danger rounded-ui-sm inline-flex cursor-pointer items-center gap-0.75 border border-solid bg-transparent px-2 py-1 text-[12px] transition-[background,color] hover:text-white [&_.material-icons]:text-[14px]!"
-            type="button"
-            (click)="deleteAndClose()"
-          >
-            <i class="material-icons">delete</i>{{ 'feature.inventory.panel.delete' | transloco }}
-          </button>
-        }
-        @if (selectTab() === 'table') {
-          <button
-            class="bg-ui-input border-ui-border-panel text-ui-text hover:bg-ui-hover hover:border-ui-accent hover:text-ui-accent rounded-ui-sm inline-flex cursor-pointer items-center gap-0.75 border border-solid px-2 py-1 text-[12px] transition-[background,color,border-color] [&_.material-icons]:text-[14px]!"
-            type="button"
-            (click)="multiSetHideInventory(true)"
-          >
-            <i class="material-icons">visibility_off</i>{{ 'feature.inventory.panel.hideInInventory' | transloco }}
+            {{
+              existsMultiMoveSelectedInTab()
+                ? ('feature.inventory.panel.deselectAll' | transloco)
+                : ('feature.inventory.panel.selectAll' | transloco)
+            }}
           </button>
           <button
-            class="bg-ui-input border-ui-border-panel text-ui-text hover:bg-ui-hover hover:border-ui-accent hover:text-ui-accent rounded-ui-sm inline-flex cursor-pointer items-center gap-0.75 border border-solid px-2 py-1 text-[12px] transition-[background,color,border-color] [&_.material-icons]:text-[14px]!"
+            class="text-ui-muted hover:bg-ui-hover hover:text-ui-text flex size-6.5 shrink-0 cursor-pointer items-center justify-center rounded-sm border-none bg-transparent p-0 [&_.material-icons]:text-[16px]!"
             type="button"
-            (click)="multiSetHideInventory(false)"
+            [title]="'feature.inventory.panel.cancel' | transloco"
+            (click)="toggleMultiMove()"
           >
-            <i class="material-icons">visibility</i>{{ 'feature.inventory.panel.showInInventory' | transloco }}
+            <i class="material-icons">close</i>
           </button>
-        }
-        <button
-          class="bg-ui-input border-ui-border-panel text-ui-text hover:bg-ui-hover rounded-ui-sm inline-flex cursor-pointer items-center gap-0.75 border border-solid px-2 py-1 text-[12px] transition-[background] [&_.material-icons]:text-[14px]!"
-          type="button"
-          (click)="toggleMultiMove()"
-        >
-          <i class="material-icons">close</i>{{ 'feature.inventory.panel.cancel' | transloco }}
-        </button>
+        </div>
+
+        <div class="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1">
+          <span class="text-ui-muted shrink-0 text-[10px] font-semibold tracking-wider uppercase">{{
+            'feature.inventory.panel.moveTargetLabel' | transloco
+          }}</span>
+          <div class="flex flex-wrap items-center gap-1">
+            @for (loc of multiMoveLocations; track loc.name) {
+              <button
+                class="bg-ui-accent-bg border-ui-accent text-ui-accent hover:bg-ui-accent rounded-ui-sm h-6.5 cursor-pointer border border-solid px-2 text-[11px] transition-[background,color] hover:text-white disabled:cursor-default disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-inherit"
+                type="button"
+                [disabled]="picked < 1"
+                (click)="moveToAndClose(loc.name)"
+              >
+                {{ loc.labelKey | transloco }}
+              </button>
+            }
+            @if (foldersApply()) {
+              <button
+                class="bg-ui-input border-ui-border-panel text-ui-text hover:bg-ui-hover hover:border-ui-accent hover:text-ui-accent rounded-ui-sm inline-flex h-6.5 cursor-pointer items-center gap-0.75 border border-solid px-2 text-[11px] transition-[background,color,border-color] disabled:cursor-default disabled:opacity-40 [&_.material-icons]:text-[14px]!"
+                type="button"
+                [disabled]="picked < 1"
+                (click)="onMultiMoveFolderMenu()"
+              >
+                <i class="material-icons">folder</i>{{ 'feature.inventory.panel.folder' | transloco }}
+              </button>
+            }
+          </div>
+
+          @if (selectTab() === 'table') {
+            <span class="bg-ui-border-panel h-4 w-px shrink-0"></span>
+            <span class="text-ui-muted shrink-0 text-[10px] font-semibold tracking-wider uppercase">{{
+              'feature.inventory.panel.inventoryVisibility' | transloco
+            }}</span>
+            <div class="flex items-center gap-1">
+              <button
+                class="bg-ui-input border-ui-border-panel text-ui-text hover:bg-ui-hover hover:border-ui-accent hover:text-ui-accent rounded-ui-sm flex size-6.5 cursor-pointer items-center justify-center border border-solid p-0 transition-[background,color,border-color] disabled:cursor-default disabled:opacity-40 [&_.material-icons]:text-[15px]!"
+                type="button"
+                [disabled]="picked < 1"
+                [title]="'feature.inventory.panel.hideInInventory' | transloco"
+                (click)="multiSetHideInventory(true)"
+              >
+                <i class="material-icons">visibility_off</i>
+              </button>
+              <button
+                class="bg-ui-input border-ui-border-panel text-ui-text hover:bg-ui-hover hover:border-ui-accent hover:text-ui-accent rounded-ui-sm flex size-6.5 cursor-pointer items-center justify-center border border-solid p-0 transition-[background,color,border-color] disabled:cursor-default disabled:opacity-40 [&_.material-icons]:text-[15px]!"
+                type="button"
+                [disabled]="picked < 1"
+                [title]="'feature.inventory.panel.showInInventory' | transloco"
+                (click)="multiSetHideInventory(false)"
+              >
+                <i class="material-icons">visibility</i>
+              </button>
+            </div>
+          }
+
+          @if (selectTab() === 'graveyard') {
+            <span class="bg-ui-border-panel h-4 w-px shrink-0"></span>
+            <button
+              class="border-ui-danger text-ui-danger hover:bg-ui-danger rounded-ui-sm inline-flex h-6.5 cursor-pointer items-center gap-0.75 border border-solid bg-transparent px-2 text-[11px] transition-[background,color] hover:text-white disabled:cursor-default disabled:opacity-40 [&_.material-icons]:text-[14px]!"
+              type="button"
+              [disabled]="picked < 1"
+              (click)="deleteAndClose()"
+            >
+              <i class="material-icons">delete</i>{{ 'feature.inventory.panel.delete' | transloco }}
+            </button>
+          }
+        </div>
       </div>
     }
 

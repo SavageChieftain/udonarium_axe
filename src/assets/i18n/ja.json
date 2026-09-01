@@ -1312,7 +1312,8 @@
         "tableName": "名前",
         "filterPanelTitle": "絞り込みと表示設定",
         "filterNone": "絞り込みなし",
-        "displayItemsHint": "状態異常の名前を書くと、その列はチェック欄になります"
+        "displayItemsHint": "状態異常の名前を書くと、その列はチェック欄になります",
+        "inventoryVisibility": "表示"
       }
     },
     "file": {

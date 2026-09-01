@@ -1312,7 +1312,8 @@
         "tableName": "이름",
         "filterPanelTitle": "검색과 표시 설정",
         "filterNone": "좁히지 않음",
-        "displayItemsHint": "상태 이상 이름을 적으면 그 열은 체크 칸이 됩니다"
+        "displayItemsHint": "상태 이상 이름을 적으면 그 열은 체크 칸이 됩니다",
+        "inventoryVisibility": "표시"
       }
     },
     "file": {
