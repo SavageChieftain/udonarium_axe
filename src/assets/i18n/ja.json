@@ -1309,6 +1309,7 @@
         "viewTable": "簡略表示（表）",
         "tableNoColumns": "表示項目が空です。表示設定で項目名を入れると列になります",
         "tableName": "名前",
+        "tableOrder": "順番",
         "filterPanelTitle": "絞り込みと表示設定",
         "filterNone": "絞り込みなし",
         "displayItemsHint": "状態異常の名前を書くと、その列はチェック欄になります",

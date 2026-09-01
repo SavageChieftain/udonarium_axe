@@ -1,3 +1,4 @@
+import { toSortableValue } from '@axe/application/inventory/game-object-inventory-helpers';
 import { findStatusAilment, StatusAilment } from '@axe/domain/character/status-ailment';
 import { DataElement, DataElementFieldType, DataElementType } from '@axe/domain/data/data-element';
 import { TabletopObject } from '@axe/domain/tabletop/tabletop-object';
@@ -17,12 +18,37 @@ export interface InventoryTableCell {
 
 export interface InventoryTableRow {
   object: TabletopObject;
+  /** Where the piece stands in the order, counting from one, ties sharing a place. */
+  order: number;
   cells: InventoryTableCell[];
 }
 
 export interface InventoryTable {
   columns: InventoryTableColumn[];
   rows: InventoryTableRow[];
+}
+
+/**
+ * Numbers the rows as the order they are in, which is the first sort key.
+ *
+ * Two pieces of the same speed act together, so they are given the same number rather than an
+ * arbitrary one apiece; the next number after them is the next one up, not the next seat.
+ */
+function orderNumbers(objects: readonly TabletopObject[], sortTag: string): number[] {
+  const tag = sortTag.trim();
+  let order = 0;
+  let previous: number | string | null = null;
+  let started = false;
+  return objects.map((object) => {
+    if (tag.length < 1) return ++order;
+    const root = object.rootDataElement;
+    const element = root ? DataElement.findElementByReference(root, tag) : null;
+    const value = element ? toSortableValue(element) : null;
+    if (!started || value !== previous) order += 1;
+    started = true;
+    previous = value;
+    return order;
+  });
 }
 
 function cellKind(element: DataElement | null): InventoryCellKind {
@@ -49,7 +75,8 @@ export function buildInventoryTable(
   dataTags: readonly string[],
   ailments: readonly StatusAilment[],
   elementsOf: (object: TabletopObject) => readonly (DataElement | null)[],
-  newLineString: string
+  newLineString: string,
+  sortTag: string
 ): InventoryTable {
   const kept: number[] = [];
   const columns: InventoryTableColumn[] = [];
@@ -59,14 +86,15 @@ export function buildInventoryTable(
     columns.push({ name: tag, ailment: findStatusAilment(ailments, tag) });
   });
 
-  const rows = objects.map((object) => {
+  const orders = orderNumbers(objects, sortTag);
+  const rows = objects.map((object, index) => {
     const elements = elementsOf(object);
     const cells = kept.map((at, column) => {
       if (columns[column].ailment) return { element: null, kind: 'ailment' as const };
       const element = elements[at] ?? null;
       return { element, kind: cellKind(element) };
     });
-    return { object, cells };
+    return { object, order: orders[index], cells };
   });
 
   return { columns, rows };

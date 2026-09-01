@@ -420,9 +420,11 @@
               ></th>
             }
             <th
-              class="bg-ui-elevated border-ui-border-panel sticky top-0 z-1 border-b border-solid p-1"
+              class="bg-ui-elevated border-ui-border-panel sticky top-0 z-1 border-b border-solid p-1 whitespace-nowrap"
               scope="col"
-            ></th>
+            >
+              {{ 'feature.inventory.panel.tableOrder' | transloco }}
+            </th>
             <th
               class="bg-ui-elevated border-ui-border-panel sticky top-0 z-1 border-b border-solid p-1 text-left"
               scope="col"
@@ -483,11 +485,14 @@
                 </td>
               }
               <td class="border-ui-border-panel w-0 border-b border-solid px-1 py-0.5">
-                <i
-                  class="material-icons text-ui-accent block text-[14px]!"
-                  [class.invisible]="currentTurnId() !== row.object.identifier"
-                  >play_arrow</i
-                >
+                <span class="flex items-center justify-end gap-0.5">
+                  <i
+                    class="material-icons text-ui-accent block text-[14px]!"
+                    [class.invisible]="currentTurnId() !== row.object.identifier"
+                    >play_arrow</i
+                  >
+                  <span class="text-ui-muted tabular-nums">{{ row.order }}</span>
+                </span>
               </td>
               <td class="border-ui-border-panel w-0 border-b border-solid py-0.5 pr-1">
                 <span

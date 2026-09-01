@@ -227,7 +227,8 @@ export class GameObjectInventoryComponent {
       tags,
       this.ailmentService.ailments(),
       (object) => this.elementsOf(object, tags),
-      this.newLineString
+      this.newLineString,
+      this.inventoryService.sortTag
     );
   });
 

@@ -8,6 +8,7 @@ import { Network } from '@axe/core/index';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { StatusAilmentCatalog } from '@axe/domain/character/status-ailment-catalog';
+import { DataElement } from '@axe/domain/data/data-element';
 import { DataSummarySetting } from '@axe/domain/data/data-summary-setting';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { PeerRole } from '@axe/domain/peer/peer-role';
@@ -688,6 +689,14 @@ describe('GameObjectInventoryComponent', () => {
         return [...fixture.nativeElement.querySelectorAll('[data-testid="inventory-table-row"]')];
       }
 
+      function orderShown(row: HTMLElement): string {
+        return (row.querySelector('td')?.textContent ?? '').replace('play_arrow', '').trim();
+      }
+
+      function setAbility(character: GameCharacter, value: number): void {
+        DataElement.findElementByReference(character.rootDataElement!, '敏捷度')!.value = value;
+      }
+
       it('draws one row a piece, with a column for each display item', () => {
         putOnTable('ゴブリン');
         putOnTable('オーク');
@@ -716,6 +725,25 @@ describe('GameObjectInventoryComponent', () => {
           expect(row.querySelectorAll('td')).toHaveLength(3 + 3);
           expect(row.closest('table')).toBe(headings[0].closest('table'));
         }
+      });
+
+      it('numbers the rows down the left, letting a tie share a number', () => {
+        const knight = putOnTable('騎士');
+        putOnTable('斥候');
+        putOnTable('盗賊');
+        const goblin = putOnTable('ゴブリン');
+        setAbility(knight, 32);
+        setAbility(goblin, 6);
+        const inventory = TestBed.inject(GameObjectInventoryService);
+        inventory.sortTag = '敏捷度';
+        inventory.tableDataTag = 'HP';
+        component.setViewMode('table');
+        fixture.detectChanges();
+
+        expect(fixture.nativeElement.querySelector('thead th')?.textContent?.trim()).toBe('順番');
+        // The quickest first, the two of a speed together, the slowest last.
+        expect(component.inventoryTable().rows.map((row) => row.order)).toEqual([1, 2, 2, 3]);
+        expect(tableRows().map((row) => orderShown(row))).toEqual(['1', '2', '2', '3']);
       });
 
       it('offers a box to tick while several are being worked on', () => {
