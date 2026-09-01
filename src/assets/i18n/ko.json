@@ -1307,13 +1307,13 @@
         "confirmMultiDelete": "선택한 것 중 무덤에 있는 {{count}}개 요소를 완전히 삭제할까요?",
         "viewRich": "리치 표시",
         "viewTable": "간략 표시(표)",
-        "viewMinimal": "최소 표시",
         "tableNoColumns": "표시 항목이 비어 있습니다. 표시 설정에서 항목 이름을 넣으면 열이 됩니다",
         "tableName": "이름",
         "filterPanelTitle": "검색과 표시 설정",
         "filterNone": "좁히지 않음",
         "displayItemsHint": "상태 이상 이름을 적으면 그 열은 체크 칸이 됩니다",
-        "inventoryVisibility": "표시"
+        "inventoryVisibility": "표시",
+        "viewRound": "라운드 표시"
       }
     },
     "file": {

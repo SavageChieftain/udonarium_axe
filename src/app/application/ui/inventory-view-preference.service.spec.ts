@@ -24,7 +24,7 @@ describe('InventoryViewPreferenceService', () => {
   });
 
   it('ignores a way of reading it has never heard of', () => {
-    localStorage.setItem(STORAGE_KEY, 'compact');
+    localStorage.setItem(STORAGE_KEY, 'minimal');
 
     expect(service().mode()).toBe('rich');
   });
@@ -35,8 +35,8 @@ describe('InventoryViewPreferenceService', () => {
     });
     const preference = service();
 
-    expect(() => preference.set('minimal')).not.toThrow();
-    expect(preference.mode()).toBe('minimal');
+    expect(() => preference.set('table')).not.toThrow();
+    expect(preference.mode()).toBe('table');
     setItem.mockRestore();
   });
 });

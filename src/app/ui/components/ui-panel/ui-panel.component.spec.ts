@@ -88,6 +88,33 @@ describe('UIPanelComponent', () => {
     });
   });
 
+  describe('the bar of a panel shrunk to its content', () => {
+    function panelService(): PanelService {
+      return component.panelService;
+    }
+
+    it('drops the bar for fading it, which a narrow panel has no room for', () => {
+      panelService().minimizeToContent = true;
+      fixture.detectChanges();
+      expect(fixture.nativeElement.querySelector('[data-testid="panel-transparency"]')).toBeTruthy();
+
+      component.toggleMinimize();
+      fixture.detectChanges();
+
+      expect(fixture.nativeElement.querySelector('[data-testid="panel-transparency"]')).toBeNull();
+    });
+
+    it('keeps a way back out of it', () => {
+      panelService().minimizeToContent = true;
+      fixture.detectChanges();
+      component.toggleMinimize();
+      fixture.detectChanges();
+
+      const icons = [...fixture.nativeElement.querySelectorAll('.material-icons')].map((icon) => icon.textContent);
+      expect(icons).toContain('open_in_full');
+    });
+  });
+
   describe('a panel with its box taken off', () => {
     function panel(): HTMLElement {
       return fixture.nativeElement.querySelector('.draggable-panel');

@@ -45,7 +45,11 @@ import { StatusAilment } from '@axe/domain/character/status-ailment';
 import { DataElement, DataElementFieldType } from '@axe/domain/data/data-element';
 import { createCalcPass, evaluateCalcElement } from '@axe/domain/data/data-element-calc-env';
 import { SortOrder } from '@axe/domain/data/data-summary-setting';
-import { INVENTORY_VIEW_LABEL_KEYS, InventoryViewMode } from '@axe/domain/inventory/inventory-view-mode';
+import {
+  INVENTORY_VIEW_LABEL_KEYS,
+  InventoryViewMode,
+  nextInventoryViewMode,
+} from '@axe/domain/inventory/inventory-view-mode';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { OwnedTabletopObject } from '@axe/domain/tabletop/owned-tabletop-object';
@@ -85,7 +89,7 @@ const FOCUS_BLOCKED_TAGS = new Set(['input', 'button']);
 const VIEW_ICONS: Record<InventoryViewMode, string> = {
   rich: 'view_agenda',
   table: 'table_rows',
-  minimal: 'dashboard',
+  round: 'change_circle',
 };
 
 @Component({
@@ -178,12 +182,19 @@ export class GameObjectInventoryComponent {
     this.turnOrderService.setCurrent(gameObject.identifier);
   }
 
-  readonly isPanelMinimized = computed(() => this.panelService.isMinimized());
-
   readonly viewMode = this.viewPreference.mode;
   protected readonly viewLabelKeys = INVENTORY_VIEW_LABEL_KEYS;
 
-  readonly isTableView = computed(() => this.viewMode() === 'table' && !this.isPanelMinimized());
+  /**
+   * Whether the panel is showing the turn order alone.
+   *
+   * The panel shrinks to it, which is the frame's own doing, so this follows what the frame
+   * did rather than the setting: a reader who presses the panel's own minimise button gets
+   * the same thing.
+   */
+  readonly isRoundView = computed(() => this.panelService.isMinimized());
+
+  readonly isTableView = computed(() => this.viewMode() === 'table' && !this.isRoundView());
 
   /**
    * The cast laid out sideways: one row a piece, one column a display item.
@@ -225,29 +236,32 @@ export class GameObjectInventoryComponent {
   }
 
   /**
-   * The three ways of reading it, offered in the panel's own bar.
+   * The one button in the panel's bar that walks through the ways of reading it.
    *
-   * Shrinking is left off a phone, where a panel fills the screen and has nothing to shrink to.
+   * One rather than one apiece: the bar it stands in is shared with the panel's own buttons,
+   * and shrunk to the turn order there is barely room for those.
    */
   private readonly viewControls = computed<PanelHeaderControl[]>(() => {
-    const minimized = this.isPanelMinimized();
-    const mode = this.viewMode();
-    const offered: InventoryViewMode[] = this.isCompact() ? ['rich', 'table'] : ['rich', 'table', 'minimal'];
-    return offered.map((kind) => ({
-      icon: VIEW_ICONS[kind],
-      label: this.t(this.viewLabelKeys[kind]),
-      active: kind === 'minimal' ? minimized : !minimized && mode === kind,
-      press: () => this.setViewMode(kind),
-    }));
+    const showing = this.shownViewMode();
+    return [
+      {
+        icon: VIEW_ICONS[showing],
+        label: this.t(this.viewLabelKeys[showing]),
+        active: showing !== 'rich',
+        press: () => this.setViewMode(nextInventoryViewMode(showing)),
+      },
+    ];
   });
 
+  /** What is on screen, which is the turn order whenever the panel is shrunk to it. */
+  private readonly shownViewMode = computed<InventoryViewMode>(() => (this.isRoundView() ? 'round' : this.viewMode()));
+
   setViewMode(mode: InventoryViewMode): void {
-    if (mode === 'minimal') {
-      this.panelService.minimizeRequest$.emit(true);
-      return;
-    }
-    this.panelService.minimizeRequest$.emit(false);
-    this.viewPreference.set(mode);
+    // Standing on a phone, a panel fills the screen and has nothing to shrink to, so the
+    // turn order is passed over rather than left as a way out of the cycle.
+    const wanted = mode === 'round' && this.isCompact() ? nextInventoryViewMode(mode) : mode;
+    this.panelService.minimizeRequest$.emit(wanted === 'round');
+    if (wanted !== 'round') this.viewPreference.set(wanted);
   }
 
   readonly turnOrderList = computed<GameCharacter[]>(() => {

@@ -1307,13 +1307,13 @@
         "confirmMultiDelete": "Permanently delete {{count}} items in the graveyard among the selected?",
         "viewRich": "Full",
         "viewTable": "Table",
-        "viewMinimal": "Minimal",
         "tableNoColumns": "No display items. Name some in the display settings and they become columns",
         "tableName": "Name",
         "filterPanelTitle": "Search and display settings",
         "filterNone": "Nothing narrowed",
         "displayItemsHint": "Name a registered state and that column becomes a box to tick",
-        "inventoryVisibility": "Visibility"
+        "inventoryVisibility": "Visibility",
+        "viewRound": "Round"
       }
     },
     "file": {

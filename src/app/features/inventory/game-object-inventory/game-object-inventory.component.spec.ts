@@ -2,6 +2,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { StatusAilmentService } from '@axe/application/character/status-ailment.service';
 import { GameObjectInventoryService } from '@axe/application/inventory/game-object-inventory.service';
 import { PanelService } from '@axe/application/ui/panel.service';
+import { ViewportService } from '@axe/application/ui/viewport.service';
 import { Network } from '@axe/core/index';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { GameCharacter } from '@axe/domain/character/game-character';
@@ -748,25 +749,38 @@ describe('GameObjectInventoryComponent', () => {
     });
 
     describe('the ways of reading it', () => {
-      it('offers all three in the panel bar', () => {
+      it('puts one button in the panel bar, wearing the way being read', () => {
         fixture.detectChanges();
 
         expect(
           TestBed.inject(PanelService)
             .headerControls()
             .map((control) => control.icon)
-        ).toEqual(['view_agenda', 'table_rows', 'dashboard']);
-      });
+        ).toEqual(['view_agenda']);
 
-      it('marks the one being read', () => {
         component.setViewMode('table');
         fixture.detectChanges();
 
         expect(
           TestBed.inject(PanelService)
             .headerControls()
-            .map((control) => control.active)
-        ).toEqual([false, true, false]);
+            .map((control) => control.icon)
+        ).toEqual(['table_rows']);
+      });
+
+      it('walks round the ways of reading it and back again', () => {
+        fixture.detectChanges();
+        const asked: boolean[] = [];
+        TestBed.inject(PanelService).minimizeRequest$.subscribe((minimized) => asked.push(minimized));
+
+        TestBed.inject(PanelService).headerControls()[0].press();
+        expect(component.viewMode()).toBe('table');
+
+        fixture.detectChanges();
+        TestBed.inject(PanelService).headerControls()[0].press();
+
+        // The turn order is the panel shrunk to it, which is the frame's own doing.
+        expect(asked).toEqual([false, true]);
       });
 
       it('asks the frame to shrink rather than shrinking itself', () => {
@@ -774,11 +788,24 @@ describe('GameObjectInventoryComponent', () => {
         const asked: boolean[] = [];
         TestBed.inject(PanelService).minimizeRequest$.subscribe((minimized) => asked.push(minimized));
 
-        component.setViewMode('minimal');
+        component.setViewMode('round');
         component.setViewMode('rich');
 
         expect(asked).toEqual([true, false]);
         expect(component.viewMode()).toBe('rich');
+      });
+
+      it('passes the turn order over on a phone, where a panel has nothing to shrink to', () => {
+        const viewport = TestBed.inject(ViewportService) as unknown as {
+          _isCompact: { set(value: boolean): void };
+        };
+        viewport._isCompact.set(true);
+        fixture.detectChanges();
+
+        component.setViewMode('round');
+
+        expect(component.viewMode()).toBe('rich');
+        viewport._isCompact.set(false);
       });
     });
 
