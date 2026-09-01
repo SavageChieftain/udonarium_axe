@@ -109,6 +109,21 @@ describe('save and load round trip', () => {
       expect(memory?.read(grid).equals(bits)).toBe(true);
     });
 
+    it('forgets what it held once the fog is cleared, and says that it has', () => {
+      const table = new GameTable();
+      table.initialize();
+      const grid = cellGridOf(4, 4, 50, GridType.SQUARE);
+      const bits = new CellBits(cellCount(grid));
+      bits.set(3);
+      const memory = ensureFogMemoryOn(table);
+      memory.write(grid, bits);
+
+      memory.reset();
+
+      expect(memory.read(grid).isEmpty).toBe(true);
+      expect(memory.generation).toBe(1);
+    });
+
     it('includes the terrain of a table in its own xml', () => {
       const table = new GameTable();
       table.initialize();

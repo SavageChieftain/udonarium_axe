@@ -10,6 +10,14 @@ export class FogMemory extends ObjectNode {
   @SyncVar() rows: number = 0;
   @SyncVar() gridType: GridType = GridType.SQUARE;
   @SyncVar() bits: string = '';
+  /**
+   * Bumped whenever the record is thrown away.
+   *
+   * Every client keeps its own running total of what the party has been shown, and would
+   * write that total back over an empty record the moment one arrived. The count says which
+   * record a total belongs to, so a clearing reaches the totals as well as the field.
+   */
+  @SyncVar() generation: number = 0;
 
   get grid(): CellGrid {
     return { cols: this.cols, rows: this.rows, type: this.gridType, sizePx: 0 };
@@ -34,6 +42,7 @@ export class FogMemory extends ObjectNode {
 
   reset(): void {
     this.bits = '';
+    this.generation = (this.generation + 1) % 1_000_000;
   }
 }
 

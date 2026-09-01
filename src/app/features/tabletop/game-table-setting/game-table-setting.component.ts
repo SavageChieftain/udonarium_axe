@@ -29,7 +29,7 @@ import { CutIn } from '@axe/domain/media/cut-in';
 import { encodeCutInIdentifiers, parseCutInIdentifiers } from '@axe/domain/media/table-cut-in';
 import { Config } from '@axe/domain/peer/config';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
-import { fogMemoryOn } from '@axe/domain/tabletop/fog/fog-memory';
+import { ensureFogMemoryOn } from '@axe/domain/tabletop/fog/fog-memory';
 import { asFogMode, DEFAULT_FOG_COLOR, FOG_MODES, FogMode } from '@axe/domain/tabletop/fog/fog-mode';
 import { FilterType, GameTable, GridSnapStyle, GridType } from '@axe/domain/tabletop/game-table';
 import { asTableFacingMark, TABLE_FACING_MARKS, TableFacingMark } from '@axe/domain/tabletop/table-facing-mark';
@@ -253,7 +253,7 @@ export class GameTableSettingComponent {
   resetFog(): void {
     const table = this.selectedTable;
     if (!this.isEditable || !table) return;
-    fogMemoryOn(table)?.reset();
+    ensureFogMemoryOn(table).reset();
   }
 
   protected readonly weatherKinds = SKY_AMBIENCE_KINDS;
