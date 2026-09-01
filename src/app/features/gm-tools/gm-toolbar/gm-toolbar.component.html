@@ -94,6 +94,18 @@
     <button
       type="button"
       class="rounded-ui-sm text-ui-text hover:bg-ui-menu-hover hover:text-ui-accent flex size-8 cursor-pointer items-center justify-center border-none bg-transparent transition-colors [&_i]:text-[20px]!"
+      [class.text-ui-accent]="fogEnabled()"
+      [class.bg-ui-accent-bg]="fogEnabled()"
+      [class.text-ui-dim]="!fogEnabled()"
+      [title]="(fogEnabled() ? 'app.fab.fogOn' : 'app.fab.fogOff') | transloco"
+      (click)="toggleFog()"
+    >
+      <i class="material-icons">{{ fogEnabled() ? 'foggy' : 'filter_drama' }}</i>
+    </button>
+
+    <button
+      type="button"
+      class="rounded-ui-sm text-ui-text hover:bg-ui-menu-hover hover:text-ui-accent flex size-8 cursor-pointer items-center justify-center border-none bg-transparent transition-colors [&_i]:text-[20px]!"
       [class.text-ui-accent]="handRail.isOpen()"
       [class.bg-ui-accent-bg]="handRail.isOpen()"
       [title]="'app.fab.handCards' | transloco"

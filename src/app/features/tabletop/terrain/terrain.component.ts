@@ -95,6 +95,7 @@ function sameOrBothEmpty<T>(a: readonly T[], b: readonly T[]): boolean {
   imports: [MovableDirective, RotableDirective, SelectableDirective, NgStyle, SafePipe],
   host: {
     class: 'block',
+    '[style.display]': "isHiddenByFog() ? 'none' : null",
     '(dragstart)': 'onDragstart($event)',
     '(contextmenu)': 'onContextMenu($event)',
   },
@@ -664,6 +665,20 @@ export class TerrainComponent {
       default:
         return 1.0;
     }
+  });
+
+  /**
+   * Ground nobody has walked to yet is not drawn at all.
+   *
+   * The fog is laid on the floor, and a wall stands over it; left drawn, it would rise out of
+   * ground that is meant to be a blank.
+   */
+  readonly isHiddenByFog = computed(() => {
+    const terrain = this.terrain();
+    this.objectChange.versionOf(terrain.identifier)();
+    const w = this.width() * this.gridSize;
+    const d = this.depth() * this.gridSize;
+    return this.visionService.isHiddenByFog(terrain.location.x + w / 2, terrain.location.y + d / 2);
   });
 
   readonly centerBrightness = computed(() => {

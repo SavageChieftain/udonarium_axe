@@ -62,6 +62,7 @@ import { RoomArchiveEventHandlerService } from '@axe/features/room-archive/room-
 import { RoomRestoreBannerComponent } from '@axe/features/room-archive/room-restore-banner/room-restore-banner.component';
 import { StreamingOverlayComponent } from '@axe/features/streaming-overlay/streaming-overlay.component';
 import { CcfoliaRoomImportEventHandlerService } from '@axe/features/tabletop/ccfolia-room-import/ccfolia-room-import-event-handler.service';
+import { FogMemoryWriterService } from '@axe/features/tabletop/fog-of-war/fog-memory-writer.service';
 import { GameTableComponent } from '@axe/features/tabletop/game-table/game-table.component';
 import { ImageDropEventHandlerService } from '@axe/features/tabletop/image-drop/image-drop-event-handler.service';
 import { VisualNovelModeService } from '@axe/features/visual-novel/visual-novel-mode.service';
@@ -173,6 +174,7 @@ export class AppComponent {
     inject(ReplayEventHandlerService);
     inject(ImageDropEventHandlerService);
     inject(CcfoliaRoomImportEventHandlerService);
+    inject(FogMemoryWriterService);
     inject(CutInService);
     inject(GravityService);
     inject(TurnOrderService);

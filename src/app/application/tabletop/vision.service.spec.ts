@@ -6,7 +6,11 @@ import { PERF_VISION_SCENE, perfCounters } from '@axe/core/util/perf-counters';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { PeerRole } from '@axe/domain/peer/peer-role';
-import { GameTable } from '@axe/domain/tabletop/game-table';
+import { CellBits } from '@axe/domain/tabletop/fog/cell-bits';
+import { cellCount, cellGridOf } from '@axe/domain/tabletop/fog/cell-grid';
+import { ensureFogMemoryOn } from '@axe/domain/tabletop/fog/fog-memory';
+import { FogMode } from '@axe/domain/tabletop/fog/fog-mode';
+import { GameTable, GridType } from '@axe/domain/tabletop/game-table';
 import { LightSource } from '@axe/domain/tabletop/light-source';
 import { Terrain } from '@axe/domain/tabletop/terrain';
 import { VisionType } from '@axe/domain/tabletop/vision-types';
@@ -361,6 +365,36 @@ describe('VisionService', () => {
       expect(service.objectBrightness(25, 25, 10)).toBe(1);
 
       expect(perfCounters.drain().get(PERF_VISION_SCENE)).toBeUndefined();
+    });
+  });
+
+  describe('what the party remembers of the board', () => {
+    const GRID = cellGridOf(20, 20, 50, GridType.SQUARE);
+
+    function tableRememberingCell(mode: FogMode, cell: number): GameTable {
+      const table = makeDarkTable();
+      table.fogEnabled = true;
+      table.fogMode = mode;
+      const bits = new CellBits(cellCount(GRID));
+      bits.set(cell);
+      ensureFogMemoryOn(table).write(GRID, bits);
+      return table;
+    }
+
+    it('holds onto ground it has been shown when the table is easy', () => {
+      tableRememberingCell('easy', 7);
+      expect(service.exploredCells()?.get(7)).toBe(true);
+    });
+
+    it('lets it go again when the table is hard', () => {
+      tableRememberingCell('hard', 7);
+      expect(service.exploredCells()?.get(7)).toBe(false);
+    });
+
+    it('remembers nothing at all with the fog switched off', () => {
+      const table = tableRememberingCell('easy', 7);
+      table.fogEnabled = false;
+      expect(service.exploredCells()).toBeNull();
     });
   });
 });

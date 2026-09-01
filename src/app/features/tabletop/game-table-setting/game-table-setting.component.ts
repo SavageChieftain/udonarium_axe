@@ -29,6 +29,8 @@ import { CutIn } from '@axe/domain/media/cut-in';
 import { encodeCutInIdentifiers, parseCutInIdentifiers } from '@axe/domain/media/table-cut-in';
 import { Config } from '@axe/domain/peer/config';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
+import { fogMemoryOn } from '@axe/domain/tabletop/fog/fog-memory';
+import { asFogMode, DEFAULT_FOG_COLOR, FOG_MODES, FogMode } from '@axe/domain/tabletop/fog/fog-mode';
 import { FilterType, GameTable, GridSnapStyle, GridType } from '@axe/domain/tabletop/game-table';
 import { asTableFacingMark, TABLE_FACING_MARKS, TableFacingMark } from '@axe/domain/tabletop/table-facing-mark';
 import { TableSelecter } from '@axe/domain/tabletop/table-selecter';
@@ -217,6 +219,48 @@ export class GameTableSettingComponent {
   }
   set tableAmbientColor(value: string) {
     if (this.isEditable && this.selectedTable) this.selectedTable.ambientColor = value;
+  }
+
+  get tableFogEnabled(): boolean {
+    return this.selectedTable?.fogEnabled ?? false;
+  }
+  set tableFogEnabled(value: boolean) {
+    if (this.isEditable && this.selectedTable) this.selectedTable.fogEnabled = value;
+  }
+
+  get tableFogMode(): FogMode {
+    return asFogMode(this.selectedTable?.fogMode);
+  }
+  set tableFogMode(value: FogMode) {
+    if (this.isEditable && this.selectedTable) this.selectedTable.fogMode = asFogMode(value);
+  }
+
+  get tableFogColor(): string {
+    return this.selectedTable?.fogColor ?? DEFAULT_FOG_COLOR;
+  }
+  set tableFogColor(value: string) {
+    if (this.isEditable && this.selectedTable) this.selectedTable.fogColor = value;
+  }
+
+  get tableFogSightRange(): number {
+    return this.selectedTable?.fogSightRange ?? 0;
+  }
+  set tableFogSightRange(value: number) {
+    if (this.isEditable && this.selectedTable) this.selectedTable.fogSightRange = Math.max(0, Number(value) || 0);
+  }
+
+  protected readonly fogModes = FOG_MODES;
+
+  fogModeLabel(mode: FogMode): string {
+    return this.t(
+      mode === 'hard' ? 'feature.tabletop.tableSetting.fogModeHard' : 'feature.tabletop.tableSetting.fogModeEasy'
+    );
+  }
+
+  resetFog(): void {
+    const table = this.selectedTable;
+    if (!this.isEditable || !table) return;
+    fogMemoryOn(table)?.reset();
   }
 
   protected readonly weatherKinds = SKY_AMBIENCE_KINDS;

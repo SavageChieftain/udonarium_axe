@@ -14,7 +14,10 @@ import { Hotbar } from '@axe/domain/hotbar/hotbar';
 import { emptyHotbarSlotDraft } from '@axe/domain/hotbar/hotbar-draft';
 import { HotbarSlot } from '@axe/domain/hotbar/hotbar-slot';
 import { ReloadCheck } from '@axe/domain/peer/reload-check';
-import { GameTable } from '@axe/domain/tabletop/game-table';
+import { CellBits } from '@axe/domain/tabletop/fog/cell-bits';
+import { cellCount, cellGridOf } from '@axe/domain/tabletop/fog/cell-grid';
+import { ensureFogMemoryOn, fogMemoryOn } from '@axe/domain/tabletop/fog/fog-memory';
+import { GameTable, GridType } from '@axe/domain/tabletop/game-table';
 import { Terrain, TerrainViewState } from '@axe/domain/tabletop/terrain';
 
 describe('save and load round trip', () => {
@@ -86,6 +89,24 @@ describe('save and load round trip', () => {
       expect(xml).toContain('>wall-id</data>');
       expect(xml).toContain('>floor-id</data>');
       expect(xml).toContain('>砂漠</data>');
+    });
+
+    it('carries what the party has explored with the table', () => {
+      const table = new GameTable();
+      table.initialize();
+      const grid = cellGridOf(4, 4, 50, GridType.SQUARE);
+      const bits = new CellBits(cellCount(grid));
+      bits.set(0);
+      bits.set(15);
+      ensureFogMemoryOn(table).write(grid, bits);
+
+      const xml = serializer.toXml(table);
+      expect(xml).toContain('<fog-memory');
+
+      const restored = serializer.parseXml(xml) as GameTable;
+      const memory = fogMemoryOn(restored);
+      expect(memory).not.toBeNull();
+      expect(memory?.read(grid).equals(bits)).toBe(true);
     });
 
     it('includes the terrain of a table in its own xml', () => {

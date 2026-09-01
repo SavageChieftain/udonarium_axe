@@ -95,6 +95,12 @@ export class GmToolbarComponent {
     return table.darknessEnabled;
   });
 
+  protected readonly fogEnabled = computed(() => {
+    const table = this.tabletopService.currentTable;
+    this.objectChange.versionOf(table.identifier)();
+    return table.fogEnabled;
+  });
+
   constructor() {
     effect((onCleanup) => {
       const el = this.barRef()?.nativeElement;
@@ -182,6 +188,13 @@ export class GmToolbarComponent {
   protected toggleDarkness(): void {
     const table = this.tabletopService.currentTable;
     table.darknessEnabled = !table.darknessEnabled;
+    table.update();
+    this.objectChange.notifyChanged(table.identifier);
+  }
+
+  protected toggleFog(): void {
+    const table = this.tabletopService.currentTable;
+    table.fogEnabled = !table.fogEnabled;
     table.update();
     this.objectChange.notifyChanged(table.identifier);
   }

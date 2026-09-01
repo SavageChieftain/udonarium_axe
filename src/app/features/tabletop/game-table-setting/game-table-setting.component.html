@@ -517,6 +517,82 @@
       <div class="mb-3.5 flex flex-col gap-2">
         <div class="border-ui-accent border-l-2 border-solid pl-2">
           <span class="text-ui-text text-[12px] font-semibold tracking-wide">{{
+            'feature.tabletop.tableSetting.sectionFog' | transloco
+          }}</span>
+        </div>
+        <div class="flex flex-col gap-2.5">
+          <label class="text-ui-text flex cursor-pointer items-center gap-1.5 text-[13px] select-none">
+            <input
+              type="checkbox"
+              class="size-3.5 cursor-pointer [accent-color:var(--ui-accent)]"
+              [(ngModel)]="tableFogEnabled"
+              name="tableFogEnabled"
+              [attr.disabled]="!isEditable ? '' : null"
+            />
+            {{ 'feature.tabletop.tableSetting.fogEnabled' | transloco }}
+          </label>
+
+          @if (tableFogEnabled) {
+            <div class="grid grid-cols-[7rem_1fr_2.5rem] items-center gap-x-3 gap-y-2.5">
+              <label class="text-ui-muted text-[11px] whitespace-nowrap">{{
+                'feature.tabletop.tableSetting.fogMode' | transloco
+              }}</label>
+              <select
+                class="rounded-ui-sm border-ui-border-panel bg-ui-input text-ui-text focus:border-ui-accent col-span-2 box-border w-full border border-solid px-2 py-1.25 text-[13px] transition-colors outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                [(ngModel)]="tableFogMode"
+                name="tableFogMode"
+                [attr.disabled]="!isEditable ? '' : null"
+              >
+                @for (mode of fogModes; track mode) {
+                  <option [value]="mode">{{ fogModeLabel(mode) }}</option>
+                }
+              </select>
+
+              <label class="text-ui-muted text-[11px] whitespace-nowrap">{{
+                'feature.tabletop.tableSetting.fogColor' | transloco
+              }}</label>
+              <input
+                type="color"
+                class="rounded-ui-sm border-ui-border-panel col-span-2 h-6.5 w-12 cursor-pointer border border-solid bg-transparent px-0.5 py-px disabled:cursor-not-allowed disabled:opacity-50"
+                [(ngModel)]="tableFogColor"
+                name="tableFogColor"
+                [attr.disabled]="!isEditable ? '' : null"
+              />
+
+              <label class="text-ui-muted text-[11px] whitespace-nowrap">{{
+                'feature.tabletop.tableSetting.fogSightRange' | transloco
+              }}</label>
+              <input
+                type="number"
+                min="0"
+                class="rounded-ui-sm border-ui-border-panel bg-ui-input text-ui-text col-span-2 box-border w-full border border-solid px-2 py-1 text-[13px]"
+                [(ngModel)]="tableFogSightRange"
+                name="tableFogSightRange"
+                [attr.disabled]="!isEditable ? '' : null"
+              />
+            </div>
+            <p class="text-ui-muted m-0 text-[11px]">
+              {{ 'feature.tabletop.tableSetting.fogModeHint' | transloco }}
+            </p>
+            <p class="text-ui-muted m-0 text-[11px]">
+              {{ 'feature.tabletop.tableSetting.fogSightRangeHint' | transloco }}
+            </p>
+            @if (isEditable) {
+              <button
+                type="button"
+                class="rounded-ui-sm border-ui-border-panel bg-ui-input text-ui-text hover:border-ui-accent cursor-pointer self-start border border-solid px-2.5 py-1 text-[12px]"
+                (click)="resetFog()"
+              >
+                {{ 'feature.tabletop.tableSetting.fogReset' | transloco }}
+              </button>
+            }
+          }
+        </div>
+      </div>
+
+      <div class="mb-3.5 flex flex-col gap-2">
+        <div class="border-ui-accent border-l-2 border-solid pl-2">
+          <span class="text-ui-text text-[12px] font-semibold tracking-wide">{{
             'feature.tabletop.tableSetting.sectionWeather' | transloco
           }}</span>
         </div>

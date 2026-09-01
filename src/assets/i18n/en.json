@@ -1366,7 +1366,8 @@
         "moveGraveyard": "Move to graveyard",
         "buffView": "Buff display",
         "invokeEffect": "Play an effect",
-        "deployDice": "Lay out {{count}} dice"
+        "deployDice": "Lay out {{count}} dice",
+        "showVisionRange": "Show range of sight"
       },
       "panel": {
         "sheet": "Character sheet",
@@ -1549,7 +1550,23 @@
         "title": "Vision",
         "visionType": "Vision type",
         "visionRange": "Vision range (cells)",
-        "castsShadow": "Casts shadow (blocks light)"
+        "castsShadow": "Casts shadow (blocks light)",
+        "shape": "Shape of sight",
+        "shapeDome": "All round",
+        "shapeCone": "Ahead",
+        "shapeConeBack": "Ahead and behind",
+        "shapeConeMulti": "Several, evenly spaced",
+        "shapeConePeripheral": "Ahead, with side sight",
+        "shapeCustom": "By hand",
+        "coneAngle": "Spread (degrees)",
+        "coneCount": "How many",
+        "backAngle": "Spread behind (degrees)",
+        "backScale": "Reach behind",
+        "peripheralScale": "Reach to the sides",
+        "visionDirection": "Offset from facing (degrees)",
+        "visionLobes": "Lobes",
+        "visionLobesHint": "direction/spread/reach, separated by ;",
+        "showVisionRange": "Show the range of sight on the table"
       },
       "type": {
         "normal": "Normal",
@@ -1848,7 +1865,17 @@
         "facingMark_none": "Do not show",
         "facingMark_turn": "Turn the picture",
         "facingMark_arrow": "Show an arrowhead",
-        "facingMarkHint": "Lets a piece be turned in 2D. An arrowhead leaves the picture facing you and shows the facing on its own, in 3D as well"
+        "facingMarkHint": "Lets a piece be turned in 2D. An arrowhead leaves the picture facing you and shows the facing on its own, in 3D as well",
+        "sectionFog": "Fog of war",
+        "fogEnabled": "Enable fog of war",
+        "fogMode": "How the fog comes back",
+        "fogModeEasy": "Easy (keep the memory)",
+        "fogModeHard": "Hard (forget it)",
+        "fogModeHint": "Easy keeps what was seen as a dim memory. Hard puts it back to unexplored once it leaves sight.",
+        "fogColor": "Fog colour",
+        "fogSightRange": "Sight range (cells)",
+        "fogSightRangeHint": "How far a look carries with no darkness to stop it. Zero for no limit.",
+        "fogReset": "Reset the fog"
       },
       "dungeonGenerator": {
         "atmosphere": {
@@ -3175,7 +3202,9 @@
       "roomSnapshot": "Auto save / restore",
       "createObject": "Create a piece",
       "replay": "Replay",
-      "recording": "Recording"
+      "recording": "Recording",
+      "fogOn": "Fog of war: on (click to turn off)",
+      "fogOff": "Fog of war: off (click to turn on)"
     },
     "roomDataDefault": "Room data"
   },

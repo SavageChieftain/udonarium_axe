@@ -1366,7 +1366,8 @@
         "moveGraveyard": "墓場に移動",
         "buffView": "バフの表示",
         "invokeEffect": "演出を発動",
-        "deployDice": "ダイスを展開する（{{count}}個）"
+        "deployDice": "ダイスを展開する（{{count}}個）",
+        "showVisionRange": "視界範囲を表示"
       },
       "panel": {
         "sheet": "キャラクターシート",
@@ -1549,7 +1550,23 @@
         "title": "視界",
         "visionType": "視界タイプ",
         "visionRange": "視界範囲(マス)",
-        "castsShadow": "光を遮り影を落とす"
+        "castsShadow": "光を遮り影を落とす",
+        "shape": "視界の形",
+        "shapeDome": "全周",
+        "shapeCone": "前方",
+        "shapeConeBack": "前後",
+        "shapeConeMulti": "複数（等間隔）",
+        "shapeConePeripheral": "前方＋周辺視野",
+        "shapeCustom": "任意",
+        "coneAngle": "視野角(度)",
+        "coneCount": "視野の数",
+        "backAngle": "後方の視野角(度)",
+        "backScale": "後方の距離比",
+        "peripheralScale": "周辺視野の距離比",
+        "visionDirection": "向きのずれ(度)",
+        "visionLobes": "視野の指定",
+        "visionLobesHint": "向き/角度/距離比 を ; で区切って並べます",
+        "showVisionRange": "視界範囲を盤面に表示"
       },
       "type": {
         "normal": "通常視界",
@@ -1848,7 +1865,17 @@
         "facingMark_none": "示さない",
         "facingMark_turn": "コマごと回す",
         "facingMark_arrow": "矢尻で示す",
-        "facingMarkHint": "2Dモードでコマを回せるようにします。矢尻はカメラ追従のまま向きだけを示し、3Dモードでも出ます"
+        "facingMarkHint": "2Dモードでコマを回せるようにします。矢尻はカメラ追従のまま向きだけを示し、3Dモードでも出ます",
+        "sectionFog": "戦場の霧（探索）",
+        "fogEnabled": "戦場の霧を有効化",
+        "fogMode": "霧の戻り方",
+        "fogModeEasy": "イージー（記憶を残す）",
+        "fogModeHard": "ハード（記憶を消す）",
+        "fogModeHint": "イージーは一度見た場所が薄暗い記憶として残ります。ハードは視界から外れると未踏破に戻ります",
+        "fogColor": "霧の色",
+        "fogSightRange": "視界距離(マス)",
+        "fogSightRangeHint": "暗闇を使わないときの見通し。0 で制限なし",
+        "fogReset": "霧をリセット"
       },
       "dungeonGenerator": {
         "atmosphere": {
@@ -3175,7 +3202,9 @@
       "roomSnapshot": "自動保存 / 復元",
       "createObject": "コマを作る",
       "replay": "リプレイ",
-      "recording": "録画"
+      "recording": "録画",
+      "fogOn": "戦場の霧: オン（クリックでオフ）",
+      "fogOff": "戦場の霧: オフ（クリックでオン）"
     },
     "roomDataDefault": "ルームデータ"
   },
