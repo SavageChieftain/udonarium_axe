@@ -18,7 +18,13 @@ import {
 } from '@axe/domain/data/data-element';
 import { OwnedTabletopObject } from '@axe/domain/tabletop/owned-tabletop-object';
 import { moveToBottommost, moveToTopmost } from '@axe/domain/tabletop/tabletop-object-util';
-import { asVisionShape, VISION_SHAPE_DEFAULTS, VisionShape, VisionSpec } from '@axe/domain/tabletop/vision-shape';
+import {
+  asVisionShape,
+  facingBearing,
+  VISION_SHAPE_DEFAULTS,
+  VisionShape,
+  VisionSpec,
+} from '@axe/domain/tabletop/vision-shape';
 import {
   DEFAULT_LIGHT_COLOR,
   LightAnimation,
@@ -117,7 +123,7 @@ export class GameCharacter extends OwnedTabletopObject {
       backAngle: this.visionBackAngle,
       backScale: this.visionBackScale,
       peripheralScale: this.visionPeripheralScale,
-      direction: this.rotate + this.visionDirection,
+      direction: facingBearing(this.rotate, this.visionDirection),
       lobes: this.visionLobes,
     };
   }

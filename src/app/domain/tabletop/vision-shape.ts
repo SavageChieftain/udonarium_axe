@@ -66,6 +66,19 @@ export const VISION_SHAPE_DEFAULTS: Record<Exclude<VisionShape, VisionShape.CUST
 
 export const DOME_LOBES: readonly VisionLobe[] = [{ direction: 0, angle: 360, rangeScale: 1 }];
 
+/**
+ * What a piece with no turn on it is facing.
+ *
+ * A bearing of nothing points to the right of the table, which is how a light is aimed and
+ * how an angle is read off a pair of coordinates. A piece with no turn on it faces up the
+ * table instead, which is where its arrow points, so the two are a quarter turn apart.
+ */
+export const FACING_BEARING_OFFSET = -90;
+
+export function facingBearing(rotateDeg: number, offsetDeg = 0): number {
+  return rotateDeg + offsetDeg + FACING_BEARING_OFFSET;
+}
+
 export function applyVisionShape(target: MutableVisionFields, shape: VisionShape): void {
   target.visionShape = shape;
   if (shape === VisionShape.CUSTOM) return;

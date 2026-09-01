@@ -1,6 +1,8 @@
 import {
   applyVisionShape,
   asVisionShape,
+  FACING_BEARING_OFFSET,
+  facingBearing,
   formatVisionLobes,
   maxLobeScale,
   MutableVisionFields,
@@ -133,5 +135,26 @@ describe('applyVisionShape', () => {
 
   it('reads an unknown name as a dome', () => {
     expect(asVisionShape('nothing like it')).toBe(VisionShape.DOME);
+  });
+});
+
+describe('facingBearing', () => {
+  it('reads a piece with no turn on it as facing up the table', () => {
+    expect(facingBearing(0)).toBe(FACING_BEARING_OFFSET);
+    const lobes = visionLobesOf(spec({ shape: VisionShape.CONE, coneAngle: 90 }));
+    // Up the table is where the arrow over an unturned piece points.
+    expect(visionLobeScale(lobes, facingBearing(0), 0, 0, 0, -100)).toBe(1);
+    expect(visionLobeScale(lobes, facingBearing(0), 0, 0, 0, 100)).toBe(0);
+  });
+
+  it('turns the same way the piece is turned', () => {
+    const lobes = visionLobesOf(spec({ shape: VisionShape.CONE, coneAngle: 90 }));
+    expect(visionLobeScale(lobes, facingBearing(90), 0, 0, 100, 0)).toBe(1);
+    expect(visionLobeScale(lobes, facingBearing(180), 0, 0, 0, 100)).toBe(1);
+    expect(visionLobeScale(lobes, facingBearing(270), 0, 0, -100, 0)).toBe(1);
+  });
+
+  it('adds the offset a piece keeps on top of its turn', () => {
+    expect(facingBearing(30, 15)).toBe(30 + 15 + FACING_BEARING_OFFSET);
   });
 });

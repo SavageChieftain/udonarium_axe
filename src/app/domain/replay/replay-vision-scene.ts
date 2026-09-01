@@ -19,7 +19,7 @@ import {
   type ShadowCaster,
   type VisionScene,
 } from '@axe/domain/tabletop/vision-scene';
-import { asVisionShape, visionLobesOf } from '@axe/domain/tabletop/vision-shape';
+import { asVisionShape, facingBearing, visionLobesOf } from '@axe/domain/tabletop/vision-shape';
 import type { VisionType } from '@axe/domain/tabletop/vision-types';
 
 /**
@@ -204,7 +204,7 @@ function visionSourcesOf(snapshots: readonly ReplayObjectSnapshot[], gridSize: n
       owner,
       partyId: text(character, 'partyIdentifier') || undefined,
       sourceId: character.identifier,
-      direction: number(character, 'rotate') + number(character, 'visionDirection'),
+      direction: facingBearing(number(character, 'rotate'), number(character, 'visionDirection')),
       lobes: visionLobesOf({
         shape: asVisionShape(text(character, 'visionShape')),
         coneAngle: number(character, 'visionConeAngle', 120),
