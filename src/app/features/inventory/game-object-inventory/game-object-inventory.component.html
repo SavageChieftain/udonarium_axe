@@ -44,6 +44,16 @@
         </form>
 
         <div class="flex shrink-0 gap-1 pb-1">
+          @if (foldersApply() && canEdit()) {
+            <button
+              class="border-ui-border-panel text-ui-muted hover:bg-ui-accent-bg hover:text-ui-accent hover:border-ui-accent rounded-ui-sm inline-flex size-7 cursor-pointer items-center justify-center border border-solid bg-transparent p-0 transition-[background,color,border-color] [&_.material-icons]:text-base!"
+              type="button"
+              [title]="'feature.inventory.panel.newFolder' | transloco"
+              (click)="createFolder()"
+            >
+              <i class="material-icons">create_new_folder</i>
+            </button>
+          }
           @if (!isMultiMove()) {
             <button
               class="border-ui-border-panel text-ui-muted hover:bg-ui-accent-bg hover:text-ui-accent hover:border-ui-accent rounded-ui-sm inline-flex size-7 cursor-pointer items-center justify-center border border-solid bg-transparent p-0 transition-[background,color,border-color] [&_.material-icons]:text-base!"

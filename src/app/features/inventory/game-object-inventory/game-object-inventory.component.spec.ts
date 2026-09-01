@@ -772,6 +772,25 @@ describe('GameObjectInventoryComponent', () => {
       });
     });
 
+    it('keeps a button for making a folder beside the list it makes one in', () => {
+      // It stood in the search row, and went with it when the search moved to a panel of its own.
+      putInShared('ゴブリン');
+      component.selectTab.set('common');
+      fixture.detectChanges();
+
+      const icons = [...fixture.nativeElement.querySelectorAll('.material-icons')].map((icon) => icon.textContent);
+      expect(icons).toContain('create_new_folder');
+    });
+
+    it('offers no folder on a tab that keeps none', () => {
+      putOnTable('ゴブリン');
+      component.selectTab.set('table');
+      fixture.detectChanges();
+
+      const icons = [...fixture.nativeElement.querySelectorAll('.material-icons')].map((icon) => icon.textContent);
+      expect(icons).not.toContain('create_new_folder');
+    });
+
     describe('the strips above the list', () => {
       function strips(): string {
         return fixture.nativeElement.textContent ?? '';
