@@ -646,6 +646,30 @@
         @if (!canView(gameObject)) {
           <i class="material-icons text-ui-dim shrink-0 text-[13px]!">lock</i>
         }
+        @if (canView(gameObject)) {
+          @let buffs = buffBadgesOf(gameObject);
+          @for (badge of buffs.shown; track badge.identifier) {
+            <span
+              data-testid="inventory-buff-badge"
+              class="ring-ui-border-panel inline-flex size-4 shrink-0 items-center justify-center overflow-hidden rounded-full text-[10px] leading-none font-normal text-white ring-1"
+              [style.background]="badge.color"
+              [title]="
+                badge.name +
+                (badge.effect ? ' / ' + badge.effect : '') +
+                (badge.expires ? ' (' + badge.rounds + ')' : '')
+              "
+            >
+              @if (badge.iconUrl) {
+                <img class="size-full object-contain" [src]="badge.iconUrl | safe: 'resourceUrl'" alt="" />
+              } @else {
+                {{ badge.icon }}
+              }
+            </span>
+          }
+          @if (buffs.more > 0) {
+            <span class="text-ui-muted shrink-0 text-[10px] font-normal">+{{ buffs.more }}</span>
+          }
+        }
       </div>
       @if (gameObject.rootDataElement && canView(gameObject)) {
         <div class="grid w-full grid-cols-2 items-start gap-x-2 gap-y-0.75">

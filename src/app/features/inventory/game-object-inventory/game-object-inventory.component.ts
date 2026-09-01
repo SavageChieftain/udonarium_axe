@@ -30,7 +30,7 @@ import { GameObject } from '@axe/core/sync/game-object';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { turnCache } from '@axe/core/util/turn-cache';
 import { resolveBuffColor } from '@axe/domain/character/buff-appearance';
-import { buffIconUrlOf } from '@axe/domain/character/buff-badge';
+import { BuffBadge, buffIconUrlOf, toBuffBadges } from '@axe/domain/character/buff-badge';
 import {
   ancestorFolderPaths,
   FOLDER_SEPARATOR,
@@ -85,6 +85,9 @@ import { SafePipe } from '@axe/ui/pipes/safe.pipe';
 import { TranslocoModule } from '@jsverse/transloco';
 
 const FOCUS_BLOCKED_TAGS = new Set(['input', 'button']);
+
+const ROW_BUFF_BADGE_LIMIT = 6;
+const NO_BUFF_BADGES = { shown: [] as BuffBadge[], more: 0 };
 
 const VIEW_ICONS: Record<InventoryViewMode, string> = {
   rich: 'view_agenda',
@@ -216,6 +219,21 @@ export class GameObjectInventoryComponent {
 
   ailmentSwatch(column: InventoryTableColumn): string {
     return column.ailment ? resolveBuffColor(column.ailment.color) || 'transparent' : 'transparent';
+  }
+
+  /**
+   * What is on a piece right now, as the badges that stand over it on the table.
+   *
+   * The full view had no sign of them: a row said what a piece could do and nothing about what
+   * had been done to it, so a poisoned goblin read the same as a clean one.
+   */
+  buffBadgesOf(gameObject: TabletopObject): { shown: BuffBadge[]; more: number } {
+    if (!(gameObject instanceof GameCharacter)) return NO_BUFF_BADGES;
+    this.objectChange.collectionOf('data')();
+    this.objectChange.versionOf(gameObject.identifier)();
+    const badges = toBuffBadges(gameObject.buffDataElement ?? null);
+    // A row keeps its height however much is wrong with the piece; the rest are counted.
+    return { shown: badges.slice(0, ROW_BUFF_BADGE_LIMIT), more: Math.max(0, badges.length - ROW_BUFF_BADGE_LIMIT) };
   }
 
   ailmentIconUrl(column: InventoryTableColumn): string {

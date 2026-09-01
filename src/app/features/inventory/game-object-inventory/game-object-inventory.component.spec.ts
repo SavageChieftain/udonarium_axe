@@ -748,6 +748,42 @@ describe('GameObjectInventoryComponent', () => {
       });
     });
 
+    describe('what is on a piece', () => {
+      function badges(): HTMLElement[] {
+        return [...fixture.nativeElement.querySelectorAll('[data-testid="inventory-buff-badge"]')];
+      }
+
+      it('shows a mark beside the name for each one', () => {
+        const goblin = putOnTable('ゴブリン');
+        goblin.addBuffDataElement();
+        goblin.buffs.addRound('毒', '毎ラウンド HP-2', 3, { icon: '☠️', color: 'green', timing: 'roundEnd' });
+        fixture.detectChanges();
+
+        expect(badges()).toHaveLength(1);
+        expect(badges()[0].textContent?.trim()).toBe('☠️');
+        expect(badges()[0].getAttribute('title')).toContain('毒');
+      });
+
+      it('shows nothing for a piece nothing has been done to', () => {
+        putOnTable('村長');
+        fixture.detectChanges();
+
+        expect(badges()).toHaveLength(0);
+      });
+
+      it('counts the rest rather than growing the row', () => {
+        const goblin = putOnTable('ゴブリン');
+        goblin.addBuffDataElement();
+        for (const name of ['毒', '麻痺', '出血', '恐怖', '暗闇', '沈黙', '鈍足', '混乱']) {
+          goblin.buffs.addRound(name, '', 3);
+        }
+        fixture.detectChanges();
+
+        expect(badges()).toHaveLength(6);
+        expect(fixture.nativeElement.textContent).toContain('+2');
+      });
+    });
+
     describe('the ways of reading it', () => {
       it('puts one button in the panel bar, wearing the way being read', () => {
         fixture.detectChanges();
