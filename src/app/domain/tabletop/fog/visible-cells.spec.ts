@@ -1,4 +1,5 @@
-import { CellGrid, cellGridOf, cellIndexOf } from '@axe/domain/tabletop/fog/cell-grid';
+import { CellBits } from '@axe/domain/tabletop/fog/cell-bits';
+import { cellCount, CellGrid, cellGridOf, cellIndexOf } from '@axe/domain/tabletop/fog/cell-grid';
 import { computeVisibleCellsFor, VisibleCellsOptions } from '@axe/domain/tabletop/fog/visible-cells';
 import { GridType } from '@axe/domain/tabletop/game-table';
 import { SegmentIndexes } from '@axe/domain/tabletop/los/segment-index';
@@ -79,8 +80,8 @@ function eyes(partial: Partial<SceneVisionSource> = {}): SceneVisionSource {
   };
 }
 
-function optionsFor(built: VisionScene): VisibleCellsOptions {
-  return { scene: built, grid: GRID, indexes: new SegmentIndexes(built.sightSegments, 100) };
+function optionsFor(built: VisionScene, blocking?: CellBits): VisibleCellsOptions {
+  return { scene: built, grid: GRID, indexes: new SegmentIndexes(built.sightSegments, 100), blocking };
 }
 
 const INSIDE = cellIndexOf(GRID, 6, 6);
@@ -150,6 +151,54 @@ describe('computeVisibleCellsFor', () => {
     const short = computeVisibleCellsFor(eyes({ x: 500, y: 500, rangePx: 150 }), options);
     expect(short.get(near)).toBe(true);
     expect(short.get(far)).toBe(false);
+  });
+
+  describe('a block of wall standing between the eye and the rest of the board', () => {
+    /** Three cells by three, from (250, 250) to (400, 400). */
+    const PILLAR = rectangleSegments(250, 250, 150, 150, 0).map((edge) => ({ ...edge, heightPx: WALL_HEIGHT }));
+
+    function pillarCells(): CellBits {
+      const bits = new CellBits(cellCount(GRID));
+      for (let col = 5; col <= 7; col++) {
+        for (let row = 5; row <= 7; row++) bits.set(cellIndexOf(GRID, col, row));
+      }
+      return bits;
+    }
+
+    function lookingWest(rangePx = 0): SceneVisionSource {
+      return eyes({ x: 700, y: 325, rangePx });
+    }
+
+    const lit = scene({
+      lights: [{ ...torch(), x: 600, y: 325, dimPx: 500 }],
+      sightSegments: PILLAR,
+      lightSegments: [],
+    });
+
+    /** Open ground just east of the block, the near face of it, and the far side. */
+    const OPEN = cellIndexOf(GRID, 8, 6);
+    const FACE = cellIndexOf(GRID, 7, 6);
+    const BEHIND = cellIndexOf(GRID, 5, 6);
+
+    it('cannot see the face of it on the sight lines alone', () => {
+      const cells = computeVisibleCellsFor(lookingWest(), optionsFor(lit));
+      expect(cells.get(OPEN)).toBe(true);
+      expect(cells.get(FACE)).toBe(false);
+    });
+
+    it('shows the face once it is known to be a wall', () => {
+      expect(computeVisibleCellsFor(lookingWest(), optionsFor(lit, pillarCells())).get(FACE)).toBe(true);
+    });
+
+    it('shows no more of it than the face', () => {
+      expect(computeVisibleCellsFor(lookingWest(), optionsFor(lit, pillarCells())).get(BEHIND)).toBe(false);
+    });
+
+    it('leaves a face out of reach alone', () => {
+      const cells = computeVisibleCellsFor(lookingWest(290), optionsFor(lit, pillarCells()));
+      expect(cells.get(OPEN)).toBe(true);
+      expect(cells.get(FACE)).toBe(false);
+    });
   });
 
   it('sees nothing at all when it is blind', () => {

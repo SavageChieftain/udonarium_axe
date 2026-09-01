@@ -144,3 +144,29 @@ function looseCellAt(grid: CellGrid, x: number, y: number): { col: number; row: 
   }
   return pixelToHexCell(x, y, grid.sizePx, isFlatTopGrid(grid.type));
 }
+
+const NEIGHBOUR_DIRECTIONS = 8;
+
+/**
+ * The cells around one, whatever shape the cells are.
+ *
+ * Found by looking a cell's width away in eight directions rather than by counting columns,
+ * which on a hex board would mean knowing which rows are the shifted ones. A few of the eight
+ * land on the same neighbour; they are dropped rather than reckoned with.
+ */
+export function forEachNeighbourCell(grid: CellGrid, index: number, visit: (neighbour: number) => void): void {
+  if (grid.sizePx <= 0) return;
+  const centre = cellCenterOf(grid, index);
+  let last = -1;
+  for (let i = 0; i < NEIGHBOUR_DIRECTIONS; i++) {
+    const angle = (i / NEIGHBOUR_DIRECTIONS) * Math.PI * 2;
+    const neighbour = cellIndexAt(
+      grid,
+      centre.x + Math.cos(angle) * grid.sizePx,
+      centre.y + Math.sin(angle) * grid.sizePx
+    );
+    if (neighbour < 0 || neighbour === index || neighbour === last) continue;
+    last = neighbour;
+    visit(neighbour);
+  }
+}

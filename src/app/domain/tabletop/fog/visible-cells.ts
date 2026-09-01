@@ -1,5 +1,12 @@
 import { CellBits } from '@axe/domain/tabletop/fog/cell-bits';
-import { cellCount, CellGrid, forEachCell, forEachCellInBox } from '@axe/domain/tabletop/fog/cell-grid';
+import {
+  cellCenterOf,
+  cellCount,
+  CellGrid,
+  forEachCell,
+  forEachCellInBox,
+  forEachNeighbourCell,
+} from '@axe/domain/tabletop/fog/cell-grid';
 import { SegmentIndexes } from '@axe/domain/tabletop/los/segment-index';
 import { isLit, lightFloorPool, SceneVisionSource, seesInDark, VisionScene } from '@axe/domain/tabletop/vision-scene';
 import { maxLobeScale, visionLobeScale } from '@axe/domain/tabletop/vision-shape';
@@ -9,6 +16,8 @@ export interface VisibleCellsOptions {
   scene: VisionScene;
   grid: CellGrid;
   indexes: SegmentIndexes;
+  /** The cells a wall stands on, so that the near face of one can be shown. */
+  blocking?: CellBits;
   /** A guard against a board so large that one pass would stall the display. */
   maxCells?: number;
 }
@@ -27,6 +36,12 @@ export function computeVisibleCellsFor(source: SceneVisionSource, options: Visib
   const budget = options.maxCells ?? DEFAULT_MAX_CELLS;
   let spent = 0;
 
+  const seen: number[] = [];
+  const take = (cell: number): void => {
+    bits.set(cell);
+    seen.push(cell);
+  };
+
   const consider = (cell: number, cx: number, cy: number): void => {
     if (spent >= budget) return;
     if (visited.get(cell)) return;
@@ -38,19 +53,51 @@ export function computeVisibleCellsFor(source: SceneVisionSource, options: Visib
     const reach = Math.hypot(cx - source.x, cy - source.y);
     const withinRange = source.rangePx > 0 && reach <= source.rangePx * scale;
     if (source.type === VisionType.TRUESIGHT && withinRange) {
-      bits.set(cell);
+      take(cell);
       return;
     }
     if (!index.clearBetween(source.x, source.y, source.z, cx, cy, 0)) return;
     if (!scene.darknessEnabled || isLit(scene, cx, cy, true, 0)) {
-      bits.set(cell);
+      take(cell);
       return;
     }
-    if (seesInDark(source.type) && withinRange) bits.set(cell);
+    if (seesInDark(source.type) && withinRange) take(cell);
   };
 
   forEachCandidate(source, options, widest, consider);
+  showNearWalls(source, options, bits, seen);
   return bits;
+}
+
+/**
+ * The face of a wall that is turned towards the eye.
+ *
+ * A wall stops the look that would have landed on it, so the ground either side of it comes
+ * out clear and the wall itself never does: what the reader sees is a shape of fog with no
+ * telling whether something is standing there or the light simply ran out. The ring of wall
+ * cells next to ground that can be seen is shown, which is the near half of a thick wall and
+ * the whole of a thin one, and no further in than that.
+ */
+function showNearWalls(
+  source: SceneVisionSource,
+  options: VisibleCellsOptions,
+  bits: CellBits,
+  seen: readonly number[]
+): void {
+  const blocking = options.blocking;
+  if (!blocking) return;
+  const { grid } = options;
+
+  for (const cell of seen) {
+    forEachNeighbourCell(grid, cell, (neighbour) => {
+      if (bits.get(neighbour) || !blocking.get(neighbour)) return;
+      const centre = cellCenterOf(grid, neighbour);
+      const scale = visionLobeScale(source.lobes, source.direction, source.x, source.y, centre.x, centre.y);
+      if (scale <= 0) return;
+      if (source.rangePx > 0 && Math.hypot(centre.x - source.x, centre.y - source.y) > source.rangePx * scale) return;
+      bits.set(neighbour);
+    });
+  }
 }
 
 /**

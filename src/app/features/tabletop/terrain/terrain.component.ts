@@ -676,9 +676,7 @@ export class TerrainComponent {
   readonly isHiddenByFog = computed(() => {
     const terrain = this.terrain();
     this.objectChange.versionOf(terrain.identifier)();
-    const w = this.width() * this.gridSize;
-    const d = this.depth() * this.gridSize;
-    return this.visionService.isHiddenByFog(terrain.location.x + w / 2, terrain.location.y + d / 2);
+    return this.visionService.isTerrainHiddenByFog(terrain);
   });
 
   readonly centerBrightness = computed(() => {

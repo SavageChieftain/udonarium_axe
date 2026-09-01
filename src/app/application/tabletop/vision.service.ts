@@ -6,7 +6,7 @@ import { GameCharacter } from '@axe/domain/character/game-character';
 import { partyIdsOwnedBy } from '@axe/domain/party/party-membership';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { CellBits } from '@axe/domain/tabletop/fog/cell-bits';
-import { cellCount, CellGrid, cellGridOf, cellIndexAt } from '@axe/domain/tabletop/fog/cell-grid';
+import { cellCount, CellGrid, cellGridOf, cellIndexAt, forEachCellInBox } from '@axe/domain/tabletop/fog/cell-grid';
 import { fogMemoryOn } from '@axe/domain/tabletop/fog/fog-memory';
 import {
   asFogMode,
@@ -24,6 +24,7 @@ import { type SurfaceDims, surfaceInwardDirection, surfacePointTo3D } from '@axe
 import { lightSourcesOn } from '@axe/domain/tabletop/table-lights';
 import { TableSelecter } from '@axe/domain/tabletop/table-selecter';
 import { surfaceOf, TableSurface, TabletopObject } from '@axe/domain/tabletop/tabletop-object';
+import { Terrain } from '@axe/domain/tabletop/terrain';
 import {
   computeLightBeam,
   computeLightGlow,
@@ -280,6 +281,47 @@ export class VisionService {
     return cellGridOf(table.width, table.height, table.gridSize, table.gridType);
   });
 
+  /**
+   * The cells a sight-stopping wall stands on.
+   *
+   * Kept with the walls rather than with the scene, so that a piece walking about does not
+   * cut every terrain on the table into cells again.
+   */
+  private readonly blockingCells = computed<CellBits | null>(() => {
+    this.standingEpoch();
+    const grid = this.cellGrid();
+    const table = this.currentTable();
+    if (!grid || !table) return null;
+    const bits = new CellBits(cellCount(grid));
+    for (const terrain of table.terrains) {
+      if (!terrain.hasWall || !terrain.blocksSightNow || surfaceOf(terrain) !== 'floor') continue;
+      const box = this.terrainBox(terrain, grid.sizePx);
+      forEachCellInBox(grid, box.minX, box.minY, box.maxX, box.maxY, (cell) => bits.set(cell));
+    }
+    return bits;
+  });
+
+  private terrainBox(terrain: Terrain, gridSize: number): { minX: number; minY: number; maxX: number; maxY: number } {
+    const edges = rectangleSegments(
+      terrain.location.x,
+      terrain.location.y,
+      terrain.width * gridSize,
+      terrain.depth * gridSize,
+      terrain.rotate
+    );
+    let minX = Infinity;
+    let minY = Infinity;
+    let maxX = -Infinity;
+    let maxY = -Infinity;
+    for (const edge of edges) {
+      minX = Math.min(minX, edge.x1, edge.x2);
+      minY = Math.min(minY, edge.y1, edge.y2);
+      maxX = Math.max(maxX, edge.x1, edge.x2);
+      maxY = Math.max(maxY, edge.y1, edge.y2);
+    }
+    return { minX, minY, maxX, maxY };
+  }
+
   private readonly sightIndexes = computed<SegmentIndexes | null>(() => {
     const standing = this.standingSegments();
     const table = this.currentTable();
@@ -301,7 +343,7 @@ export class VisionService {
     const table = this.currentTable();
     if (!scene || !grid || !indexes || !table || !this.active()) return null;
     return perfTimed('cells', () => {
-      const options: VisibleCellsOptions = { scene, grid, indexes };
+      const options: VisibleCellsOptions = { scene, grid, indexes, blocking: this.blockingCells() ?? undefined };
       const perSource = new Map<string, CellBits>();
       const shared = new CellBits(cellCount(grid));
       const players = this.partyOwnerIds(scene.visionSources);
@@ -401,6 +443,28 @@ export class VisionService {
     if (!scene?.fogEnabled || !object.isVisibleOnTable || surfaceOf(object) !== 'floor') return false;
     const half = (scene.gridSize * Math.max(sizeCells, 0.25)) / 2;
     return this.isHiddenByFog(object.location.x + half, object.location.y + half);
+  }
+
+  /**
+   * Whether a terrain stands entirely on ground nobody has walked to.
+   *
+   * Any one of the cells it covers is enough to show the whole of it: the near face of a
+   * block is what the party is shown, and hiding the rest of it would leave a wall with a
+   * hole through the middle.
+   */
+  isTerrainHiddenByFog(terrain: Terrain): boolean {
+    if (this.viewer().isGameMaster) return false;
+    const scene = this.scene();
+    const explored = this.exploredCells();
+    const cells = this.visionCells();
+    if (!scene?.fogEnabled || !explored || !cells) return false;
+    if (surfaceOf(terrain) !== 'floor') return false;
+    const box = this.terrainBox(terrain, cells.grid.sizePx);
+    let shown = false;
+    forEachCellInBox(cells.grid, box.minX, box.minY, box.maxX, box.maxY, (cell) => {
+      if (explored.get(cell)) shown = true;
+    });
+    return !shown;
   }
 
   isHiddenByFog(x: number, y: number): boolean {
