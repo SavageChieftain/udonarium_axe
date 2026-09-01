@@ -50,6 +50,7 @@ import { EffectTargetOverlayComponent } from '@axe/features/effect/effect-target
 import { TableEffectOverlayComponent } from '@axe/features/effect/table-effect-overlay/table-effect-overlay.component';
 import { PeerCursorComponent } from '@axe/features/lobby/peer-cursor/peer-cursor.component';
 import { ReplayRouteOverlayComponent } from '@axe/features/replay/replay-route-overlay/replay-route-overlay.component';
+import { TableFogAirOverlayComponent } from '@axe/features/tabletop/fog-of-war/table-fog-air-overlay.component';
 import { beamTopGridGeometry, beamWallFaceGrid } from '@axe/features/tabletop/game-table/beam-top-grid';
 import { GameTableGestureService } from '@axe/features/tabletop/game-table/game-table-gesture.service';
 import { GridLineRender } from '@axe/features/tabletop/game-table/grid-line-render';
@@ -139,6 +140,7 @@ const NO_BEAM_WALL_GRIDS: readonly BeamWallGrid[] = [];
     GameCharacterComponent,
     SafePipe,
     TableMarqueeOverlayComponent,
+    TableFogAirOverlayComponent,
     TableVisionOverlayComponent,
     TableVisionVolumeOverlayComponent,
     TableBeamOverlayComponent,

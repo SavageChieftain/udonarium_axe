@@ -1,6 +1,7 @@
 import { CellGrid, cellPolygonOf } from '@axe/domain/tabletop/fog/cell-grid';
 import { isHexGrid } from '@axe/domain/tabletop/hex-geometry';
 import { OverlayPlan, OverlayShape, OverlayVision, ShadowShape } from '@axe/domain/tabletop/vision-scene';
+import { fogPattern } from '@axe/features/tabletop/table-vision-overlay/fog-texture';
 
 const TWO_PI = Math.PI * 2;
 
@@ -645,18 +646,40 @@ function paintFog(ctx: CanvasRenderingContext2D, plan: OverlayPlan): void {
   const vision = plan.vision;
   if (!vision?.fogEnabled) return;
 
+  const remembered = (index: number): boolean => vision.explored.get(index) && !vision.visible.get(index);
+  const unwalked = (index: number): boolean => !vision.explored.get(index);
+
   ctx.globalCompositeOperation = 'source-over';
   ctx.fillStyle = vision.fogColor;
   if (vision.veilAlpha > 0) {
     ctx.globalAlpha = vision.veilAlpha;
-    fillCells(ctx, vision.grid, (index) => vision.explored.get(index) && !vision.visible.get(index), vision.blurPx);
+    fillCells(ctx, vision.grid, remembered, vision.blurPx);
   }
   if (vision.unexploredAlpha > 0) {
     ctx.globalAlpha = vision.unexploredAlpha;
-    fillCells(ctx, vision.grid, (index) => !vision.explored.get(index), vision.blurPx);
+    fillCells(ctx, vision.grid, unwalked, vision.blurPx);
+  }
+
+  // The mottling that keeps a wash from reading as a sheet of paint. It rides in the baked
+  // surface with the wash it sits on, so it costs nothing on a frame of its own.
+  const pattern = fogPattern(ctx);
+  if (pattern) {
+    ctx.fillStyle = pattern;
+    if (vision.veilAlpha > 0) {
+      ctx.globalAlpha = Math.min(1, vision.veilAlpha * CLOUD_OVER_VEIL);
+      fillCells(ctx, vision.grid, remembered, vision.blurPx);
+    }
+    if (vision.unexploredAlpha > 0) {
+      ctx.globalAlpha = Math.min(1, vision.unexploredAlpha * CLOUD_OVER_UNWALKED);
+      fillCells(ctx, vision.grid, unwalked, vision.blurPx);
+    }
   }
   ctx.globalAlpha = 1;
 }
+
+/** How much of the mottling shows through each of the two washes. */
+const CLOUD_OVER_VEIL = 1;
+const CLOUD_OVER_UNWALKED = 0.75;
 
 function paintShadows(
   ctx: CanvasRenderingContext2D,
