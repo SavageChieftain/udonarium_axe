@@ -71,6 +71,7 @@ import { TableVisionOverlayComponent } from '@axe/features/tabletop/table-vision
 import { TableWeatherOverlayComponent } from '@axe/features/tabletop/table-weather-overlay/table-weather-overlay.component';
 import { TerrainComponent } from '@axe/features/tabletop/terrain/terrain.component';
 import { TextNoteComponent } from '@axe/features/tabletop/text-note/text-note.component';
+import { TableVisionVolumeOverlayComponent } from '@axe/features/tabletop/vision-volume/table-vision-volume-overlay.component';
 import {
   wallLightLayerStyle,
   wallSilhouetteBackground,
@@ -139,6 +140,7 @@ const NO_BEAM_WALL_GRIDS: readonly BeamWallGrid[] = [];
     SafePipe,
     TableMarqueeOverlayComponent,
     TableVisionOverlayComponent,
+    TableVisionVolumeOverlayComponent,
     TableBeamOverlayComponent,
     TableTargetOverlayComponent,
     TableEffectOverlayComponent,

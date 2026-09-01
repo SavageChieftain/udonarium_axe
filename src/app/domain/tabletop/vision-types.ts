@@ -239,6 +239,15 @@ export interface LightConfig {
   visionType?: string;
   visionRange?: number;
   castsShadow?: boolean;
+  visionShape?: string;
+  visionConeAngle?: number;
+  visionConeCount?: number;
+  visionBackAngle?: number;
+  visionBackScale?: number;
+  visionPeripheralScale?: number;
+  visionDirection?: number;
+  visionLobes?: string;
+  showVisionRange?: boolean;
 }
 
 export interface MutableLightFields {

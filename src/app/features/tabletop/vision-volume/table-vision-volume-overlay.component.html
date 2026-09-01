@@ -1,0 +1,13 @@
+<canvas
+  #floorCanvas
+  class="pointer-events-none absolute top-0 left-0 backface-hidden transform-3d"
+  [style.transform]="zTransform"
+></canvas>
+@for (volume of volumes(); track volume.identifier) {
+  @for (ring of volume.rings; track $index) {
+    <div class="backface-visible" [ngStyle]="ringStyle(volume, ring)"></div>
+  }
+  @for (rib of volume.ribs; track $index) {
+    <div class="backface-visible" [ngStyle]="ribStyle(volume, rib)"></div>
+  }
+}

@@ -521,7 +521,12 @@ function fillMask(ctx: CanvasRenderingContext2D, grid: CellGrid, mask: CellMask,
   if (blurPx > 0) ctx.filter = previous;
 }
 
-function fillCells(ctx: CanvasRenderingContext2D, grid: CellGrid, keep: (index: number) => boolean, blurPx = 0): void {
+export function fillCells(
+  ctx: CanvasRenderingContext2D,
+  grid: CellGrid,
+  keep: (index: number) => boolean,
+  blurPx = 0
+): void {
   const previous = ctx.filter;
   if (blurPx > 0) ctx.filter = `blur(${blurPx.toFixed(1)}px)`;
   ctx.beginPath();

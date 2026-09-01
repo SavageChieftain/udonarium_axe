@@ -26,6 +26,114 @@
             name="visionRange"
           />
         </div>
+        <div class="grid grid-cols-[7rem_1fr] items-center gap-x-3 gap-y-2">
+          <label class="text-ui-muted text-[11px]">{{ 'feature.vision.settings.shape' | transloco }}</label>
+          <select
+            class="rounded-ui-sm border-ui-border-panel bg-ui-input text-ui-text box-border w-full border border-solid px-2 py-1 text-[13px]"
+            [ngModel]="visionShape"
+            (ngModelChange)="onVisionShape($event)"
+            name="visionShape"
+          >
+            @for (shape of visionShapes; track shape) {
+              <option [value]="shape">{{ shapeLabel(shape) }}</option>
+            }
+          </select>
+
+          @if (visionShape !== VisionShape.DOME && visionShape !== VisionShape.CUSTOM) {
+            <label class="text-ui-muted text-[11px]">{{ 'feature.vision.settings.coneAngle' | transloco }}</label>
+            <input
+              type="number"
+              min="0"
+              max="360"
+              class="rounded-ui-sm border-ui-border-panel bg-ui-input text-ui-text box-border w-full border border-solid px-2 py-1 text-[13px]"
+              [(ngModel)]="target.visionConeAngle"
+              name="visionConeAngle"
+            />
+          }
+
+          @if (visionShape === VisionShape.CONE_MULTI) {
+            <label class="text-ui-muted text-[11px]">{{ 'feature.vision.settings.coneCount' | transloco }}</label>
+            <input
+              type="number"
+              min="1"
+              max="12"
+              class="rounded-ui-sm border-ui-border-panel bg-ui-input text-ui-text box-border w-full border border-solid px-2 py-1 text-[13px]"
+              [(ngModel)]="target.visionConeCount"
+              name="visionConeCount"
+            />
+          }
+
+          @if (visionShape === VisionShape.CONE_BACK) {
+            <label class="text-ui-muted text-[11px]">{{ 'feature.vision.settings.backAngle' | transloco }}</label>
+            <input
+              type="number"
+              min="0"
+              max="360"
+              class="rounded-ui-sm border-ui-border-panel bg-ui-input text-ui-text box-border w-full border border-solid px-2 py-1 text-[13px]"
+              [(ngModel)]="target.visionBackAngle"
+              name="visionBackAngle"
+            />
+            <label class="text-ui-muted text-[11px]">{{ 'feature.vision.settings.backScale' | transloco }}</label>
+            <input
+              type="number"
+              min="0"
+              max="1"
+              step="0.05"
+              class="rounded-ui-sm border-ui-border-panel bg-ui-input text-ui-text box-border w-full border border-solid px-2 py-1 text-[13px]"
+              [(ngModel)]="target.visionBackScale"
+              name="visionBackScale"
+            />
+          }
+
+          @if (visionShape === VisionShape.CONE_PERIPHERAL) {
+            <label class="text-ui-muted text-[11px]">{{ 'feature.vision.settings.peripheralScale' | transloco }}</label>
+            <input
+              type="number"
+              min="0"
+              max="1"
+              step="0.05"
+              class="rounded-ui-sm border-ui-border-panel bg-ui-input text-ui-text box-border w-full border border-solid px-2 py-1 text-[13px]"
+              [(ngModel)]="target.visionPeripheralScale"
+              name="visionPeripheralScale"
+            />
+          }
+
+          @if (visionShape === VisionShape.CUSTOM) {
+            <label class="text-ui-muted text-[11px]">{{ 'feature.vision.settings.visionLobes' | transloco }}</label>
+            <input
+              type="text"
+              placeholder="0/120/1;180/90/0.5"
+              class="rounded-ui-sm border-ui-border-panel bg-ui-input text-ui-text box-border w-full border border-solid px-2 py-1 text-[13px]"
+              [(ngModel)]="target.visionLobes"
+              name="visionLobes"
+            />
+          }
+
+          @if (visionShape !== VisionShape.DOME) {
+            <label class="text-ui-muted text-[11px]">{{ 'feature.vision.settings.visionDirection' | transloco }}</label>
+            <input
+              type="number"
+              class="rounded-ui-sm border-ui-border-panel bg-ui-input text-ui-text box-border w-full border border-solid px-2 py-1 text-[13px]"
+              [(ngModel)]="target.visionDirection"
+              name="visionDirection"
+            />
+          }
+        </div>
+
+        @if (visionShape === VisionShape.CUSTOM) {
+          <p class="text-ui-muted m-0 text-[11px]">{{ 'feature.vision.settings.visionLobesHint' | transloco }}</p>
+        }
+
+        <label class="flex cursor-pointer items-center gap-1.5 select-none">
+          <input
+            type="checkbox"
+            class="size-3.5 cursor-pointer [accent-color:var(--ui-accent)]"
+            [(ngModel)]="target.showVisionRange"
+            name="showVisionRange"
+          />
+          {{ 'feature.vision.settings.showVisionRange' | transloco }}
+        </label>
+
         <label class="flex cursor-pointer items-center gap-1.5 select-none">
           <input
             type="checkbox"
