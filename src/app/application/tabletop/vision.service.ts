@@ -389,6 +389,20 @@ export class VisionService {
     return cells && own ? { grid: cells.grid, cells: own } : null;
   }
 
+  /**
+   * Whether a thing standing on the floor is on ground nobody has walked to.
+   *
+   * Scenery rather than a piece with eyes: a lamp, a note, a card left on the board. Ground
+   * the party has cleared keeps showing what is on it, so this asks only whether the ground
+   * has been walked to at all.
+   */
+  isPieceHiddenByFog(object: TabletopObject, sizeCells = 1): boolean {
+    const scene = this.scene();
+    if (!scene?.fogEnabled || !object.isVisibleOnTable || surfaceOf(object) !== 'floor') return false;
+    const half = (scene.gridSize * Math.max(sizeCells, 0.25)) / 2;
+    return this.isHiddenByFog(object.location.x + half, object.location.y + half);
+  }
+
   isHiddenByFog(x: number, y: number): boolean {
     if (this.viewer().isGameMaster) return false;
     const explored = this.exploredCells();

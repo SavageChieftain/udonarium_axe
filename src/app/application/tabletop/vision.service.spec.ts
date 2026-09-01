@@ -481,6 +481,36 @@ describe('VisionService', () => {
       expect(service.sharedVisibleCells()?.cells.get(NPC_CELL)).toBe(false);
     });
 
+    it('hides a lamp left standing on ground nobody has walked to', () => {
+      tableRememberingCell('easy', NPC_CELL);
+      makeMyCursor('p1', PeerRole.Player);
+      const lamp = LightSource.create('torch');
+      lamp.location.x = 600;
+      lamp.location.y = 600;
+
+      expect(service.isPieceHiddenByFog(lamp)).toBe(true);
+    });
+
+    it('leaves one standing on ground the party has cleared', () => {
+      tableRememberingCell('easy', NPC_CELL);
+      makeMyCursor('p1', PeerRole.Player);
+      const lamp = LightSource.create('torch');
+      lamp.location.x = 200;
+      lamp.location.y = 200;
+
+      expect(service.isPieceHiddenByFog(lamp)).toBe(false);
+    });
+
+    it('hides nothing from the game master', () => {
+      tableRememberingCell('easy', NPC_CELL);
+      makeMyCursor('gm', PeerRole.GameMaster);
+      const lamp = LightSource.create('torch');
+      lamp.location.x = 600;
+      lamp.location.y = 600;
+
+      expect(service.isPieceHiddenByFog(lamp)).toBe(false);
+    });
+
     it('remembers nothing at all with the fog switched off', () => {
       const table = tableRememberingCell('easy', 7);
       table.fogEnabled = false;

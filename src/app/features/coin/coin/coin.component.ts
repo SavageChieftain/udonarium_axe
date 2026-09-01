@@ -16,6 +16,7 @@ import { RolePermissionService } from '@axe/application/permission/role-permissi
 import { ImageService } from '@axe/application/storage/image.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { TabletopService } from '@axe/application/tabletop/tabletop.service';
+import { VisionService } from '@axe/application/tabletop/vision.service';
 import { ContextMenuSeparator, ContextMenuService } from '@axe/application/ui/context-menu.service';
 import { PanelOption, PanelService } from '@axe/application/ui/panel.service';
 import { PieceContextMenuService } from '@axe/application/ui/piece-context-menu.service';
@@ -49,6 +50,7 @@ const MIN_THICKNESS_PX = 5;
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [MovableDirective, RotableDirective, SelectableDirective, NgStyle, SafePipe],
   host: {
+    '[style.display]': "isHiddenByFog() ? 'none' : null",
     class: 'block',
     '(dragstart)': 'onDragstart($event)',
     '(contextmenu)': 'onContextMenu($event)',
@@ -65,9 +67,17 @@ export class CoinComponent {
   private readonly pointerDeviceService = inject(PointerDeviceService);
   private readonly selectionSignalService = inject(SelectionSignalService);
   private readonly objectChange = inject(ObjectChangeService);
+  private readonly visionService = inject(VisionService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly translateFn = inject(TRANSLATE_FN);
   private readonly coinFlip = inject(CoinFlipService);
+
+  readonly isHiddenByFog = computed(() => {
+    const piece = this.coin();
+    if (!piece) return false;
+    this.objectChange.versionOf(piece.identifier)();
+    return this.visionService.isPieceHiddenByFog(piece, this.size());
+  });
 
   readonly coin = input.required<Coin>();
 
