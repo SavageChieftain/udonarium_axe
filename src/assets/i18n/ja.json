@@ -2091,8 +2091,6 @@
         "writingOthers": "他 {{count}} 人 入力中"
       },
       "input": {
-        "prevPortrait": "前の立ち絵",
-        "nextPortrait": "次の立ち絵",
         "you": "（あなた）",
         "everyone": "全員",
         "textareaPlaceholder": "Enter:送信 Shift+Enter:改行 Ctrl+上下:履歴 Ctrl+左右:タブ切替",
@@ -3183,8 +3181,6 @@
   },
   "feature.controller": {
     "input": {
-      "prevPortrait": "前の立ち絵",
-      "nextPortrait": "次の立ち絵",
       "you": "（あなた）",
       "colorSetting": "色設定",
       "colorSettingWithName": "色設定 - {{name}}",
@@ -3444,6 +3440,13 @@
       "menuTitle": "メニュー",
       "transparency": "透過率",
       "ghost": "透明モード"
+    },
+    "portraitPicker": {
+      "title": "立ち絵",
+      "open": "{{name}}（クリックで立ち絵一覧）",
+      "previous": "前の立ち絵",
+      "next": "次の立ち絵",
+      "unnamed": "立ち絵 {{index}}"
     }
   },
   "error": {}

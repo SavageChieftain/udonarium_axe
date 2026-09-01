@@ -2091,8 +2091,6 @@
         "writingOthers": "{{count}} more typing"
       },
       "input": {
-        "prevPortrait": "Previous portrait",
-        "nextPortrait": "Next portrait",
         "you": " (you)",
         "everyone": "Everyone",
         "textareaPlaceholder": "Enter: send / Shift+Enter: new line / Ctrl+Up/Down: history / Ctrl+Left/Right: switch tab",
@@ -3183,8 +3181,6 @@
   },
   "feature.controller": {
     "input": {
-      "prevPortrait": "Previous portrait",
-      "nextPortrait": "Next portrait",
       "you": " (you)",
       "colorSetting": "Color settings",
       "colorSettingWithName": "Color settings - {{name}}",
@@ -3444,6 +3440,13 @@
       "menuTitle": "Menu",
       "transparency": "Transparency",
       "ghost": "Ghost mode"
+    },
+    "portraitPicker": {
+      "title": "Portraits",
+      "open": "{{name}} (click to choose a portrait)",
+      "previous": "Previous portrait",
+      "next": "Next portrait",
+      "unnamed": "Portrait {{index}}"
     }
   },
   "error": {}

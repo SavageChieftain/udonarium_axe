@@ -1,0 +1,77 @@
+<button
+  type="button"
+  class="flex shrink-0 cursor-pointer items-center border-none bg-transparent p-0 leading-none text-white/75 transition-colors hover:text-white disabled:cursor-default disabled:text-white/25 [&_i]:text-[14px]"
+  [disabled]="selectedIndex() <= 0"
+  (click)="step(-1)"
+  [attr.aria-label]="'ui.portraitPicker.previous' | transloco"
+>
+  <i class="material-icons">chevron_left</i>
+</button>
+<button
+  type="button"
+  class="min-w-0 flex-1 cursor-pointer truncate border-none bg-transparent p-0 text-center text-[10px] leading-none text-white/90 transition-colors hover:text-white"
+  [class.text-ui-accent]="isOpen()"
+  [title]="'ui.portraitPicker.open' | transloco: { name: label() }"
+  aria-haspopup="listbox"
+  [attr.aria-expanded]="isOpen()"
+  (click)="toggle()"
+>
+  {{ label() }}
+</button>
+<button
+  type="button"
+  class="flex shrink-0 cursor-pointer items-center border-none bg-transparent p-0 leading-none text-white/75 transition-colors hover:text-white disabled:cursor-default disabled:text-white/25 [&_i]:text-[14px]"
+  [disabled]="selectedIndex() >= choices().length - 1"
+  (click)="step(1)"
+  [attr.aria-label]="'ui.portraitPicker.next' | transloco"
+>
+  <i class="material-icons">chevron_right</i>
+</button>
+
+<div
+  popover="manual"
+  class="rounded-ui-lg border-ui-border-menu bg-ui-menu text-ui-text shadow-ui-lg fixed inset-auto m-0 flex-col overflow-hidden border border-solid p-0 [backdrop-filter:blur(12px)]"
+  #popover
+>
+  <div
+    class="border-ui-border-separator text-ui-muted flex shrink-0 items-center justify-between gap-2 border-b border-solid px-2 py-1 text-[10px]"
+  >
+    <span class="truncate">{{ 'ui.portraitPicker.title' | transloco }}</span>
+    <span class="shrink-0 tabular-nums">{{ selectedIndex() + 1 }}/{{ choices().length }}</span>
+  </div>
+  <div
+    class="grid min-h-0 flex-1 grid-cols-[repeat(auto-fill,minmax(88px,1fr))] content-start gap-1 overflow-y-auto p-1"
+    role="listbox"
+  >
+    @for (choice of choices(); track choice.index) {
+      @let name =
+        choice.name.length > 0 ? choice.name : ('ui.portraitPicker.unnamed' | transloco: { index: choice.index + 1 });
+      <button
+        type="button"
+        class="rounded-ui-sm border-ui-border-panel hover:border-ui-accent hover:bg-ui-menu-hover relative flex cursor-pointer flex-col items-center gap-1 border border-solid bg-transparent p-1 transition-colors"
+        [class.border-ui-accent]="choice.index === selectedIndex()"
+        [class.bg-ui-selected]="choice.index === selectedIndex()"
+        role="option"
+        [attr.aria-selected]="choice.index === selectedIndex()"
+        [attr.data-current]="choice.index === selectedIndex() ? '' : null"
+        [title]="name"
+        (click)="pick(choice.index)"
+      >
+        <span class="rounded-ui-sm bg-ui-elevated flex h-28 w-full items-center justify-center overflow-hidden">
+          @if (choice.url.length > 0) {
+            <img class="size-full object-contain object-top" [src]="choice.url | safe: 'resourceUrl'" alt="" />
+          } @else {
+            <i class="material-icons text-ui-dim text-[22px]!">person</i>
+          }
+        </span>
+        <span class="text-ui-text w-full truncate text-center text-[10px] leading-tight">{{ name }}</span>
+        @if (choice.index === selectedIndex()) {
+          <i
+            class="material-icons text-ui-accent absolute top-1 right-1 text-[16px]! [text-shadow:0_0_4px_rgba(0,0,0,0.9)]"
+            >check_circle</i
+          >
+        }
+      </button>
+    }
+  </div>
+</div>

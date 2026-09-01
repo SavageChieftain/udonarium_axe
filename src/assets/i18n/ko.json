@@ -2091,8 +2091,6 @@
         "writingOthers": "외 {{count}}명 입력 중"
       },
       "input": {
-        "prevPortrait": "이전 입화",
-        "nextPortrait": "다음 입화",
         "you": "(당신)",
         "everyone": "전원",
         "textareaPlaceholder": "Enter: 전송 Shift+Enter: 줄바꿈 Ctrl+↑↓: 기록 Ctrl+←→: 탭 전환",
@@ -2967,8 +2965,6 @@
     },
     "controller": {
       "input": {
-        "prevPortrait": "이전 입화",
-        "nextPortrait": "다음 입화",
         "you": "(당신)",
         "colorSetting": "색 설정",
         "colorSettingWithName": "색 설정 - {{name}}",
@@ -3446,6 +3442,13 @@
       "menuTitle": "메뉴",
       "transparency": "투명도",
       "ghost": "투명 모드"
+    },
+    "portraitPicker": {
+      "title": "입화",
+      "open": "{{name}} (클릭하여 입화 선택)",
+      "previous": "이전 입화",
+      "next": "다음 입화",
+      "unnamed": "입화 {{index}}"
     }
   }
 }

@@ -28,6 +28,7 @@ import { PeerContext } from '@axe/core/network/peer-context';
 import { ImageFile } from '@axe/core/storage/image-file';
 import { ImageStorage } from '@axe/core/storage/image-storage';
 import { ObjectStore } from '@axe/core/sync/object-store';
+import { portraitNameOf } from '@axe/domain/character/character-portrait';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { ChatMessage } from '@axe/domain/chat/chat-message';
 import { DataElement } from '@axe/domain/data/data-element';
@@ -38,6 +39,7 @@ import { ChatColorSettingComponent } from '@axe/features/chat/chat-color-setting
 import { ChatInputDiceBotHelper } from '@axe/features/chat/chat-input/chat-input-dicebot';
 import { allowsChat } from '@axe/features/chat/chat-input/chat-input-helpers';
 import { ChatInputHistory } from '@axe/features/chat/chat-input/chat-input-history';
+import { PortraitChoice, PortraitPickerComponent } from '@axe/ui/components/portrait-picker/portrait-picker.component';
 import { SafePipe } from '@axe/ui/pipes/safe.pipe';
 import { TranslocoModule } from '@jsverse/transloco';
 import { NgOptionComponent, NgSelectComponent } from '@ng-select/ng-select';
@@ -50,7 +52,16 @@ const COLOR_SETTING_PANEL = 'chat-color-setting';
   selector: 'chat-input',
   templateUrl: './chat-input.component.html',
   host: { class: 'block min-w-0 [container-type:inline-size]' },
-  imports: [NgClass, NgSelectComponent, FormsModule, NgOptionComponent, NgStyle, SafePipe, TranslocoModule],
+  imports: [
+    NgClass,
+    NgSelectComponent,
+    FormsModule,
+    NgOptionComponent,
+    NgStyle,
+    PortraitPickerComponent,
+    SafePipe,
+    TranslocoModule,
+  ],
 })
 export class ChatInputComponent {
   protected readonly isCompact = inject(ViewportService).isCompact;
@@ -274,17 +285,18 @@ export class ChatInputComponent {
     }
   }
 
-  stepPortrait(dir: number) {
-    const next = this.portraitIndex + dir;
-    if (next < 0 || next >= this.portraitCount) return;
-    this.portraitIndex = next;
-  }
-
-  get portraitLabel(): string {
-    const portrait = this.selectedPortrait;
-    if (portrait?.currentValue) return portrait.currentValue as string;
-    return `${this.portraitIndex + 1}/${this.portraitCount}`;
-  }
+  readonly portraitChoices = computed<PortraitChoice[]>(() => {
+    this.objectChange.fileVersion();
+    this.objectChange.versionOf(this._sendFrom())();
+    const object = this.objectStore.get(this._sendFrom());
+    if (!(object instanceof GameCharacter)) return [];
+    const children = (object.imageDataElement?.children ?? []) as DataElement[];
+    return children.map((element, index) => ({
+      index,
+      name: portraitNameOf(element),
+      url: this.imageStorage.get(element.value as string)?.url ?? '',
+    }));
+  });
 
   get isDirect(): boolean {
     return this.sendTo != null && this.sendTo.length > 0;
@@ -346,16 +358,6 @@ export class ChatInputComponent {
       }
     }
     return null;
-  }
-
-  get portraitCount() {
-    const object = this.objectStore.get(this.sendFrom);
-    if (object instanceof GameCharacter) {
-      return object.imageDataElement?.children.length ?? 0;
-    } else if (object instanceof PeerCursor) {
-      return 0;
-    }
-    return 0;
   }
 
   get imageFile(): ImageFile {
