@@ -446,11 +446,12 @@ export class VisionService {
   }
 
   /**
-   * Whether a terrain stands entirely on ground nobody has walked to.
+   * Whether a terrain stands on ground nobody has walked to.
    *
-   * Any one of the cells it covers is enough to show the whole of it: the near face of a
-   * block is what the party is shown, and hiding the rest of it would leave a wall with a
-   * hole through the middle.
+   * A wall is shown from any one of the cells it covers, because what the party is shown of
+   * one is its near face and hiding the rest would leave a hole through the middle of it.
+   * Everything else answers for the cell its middle falls in: a room's floor is one slab, and
+   * shown from any corner it would appear whole the moment a doorway was glimpsed.
    */
   isTerrainHiddenByFog(terrain: Terrain): boolean {
     if (this.viewer().isGameMaster) return false;
@@ -459,9 +460,16 @@ export class VisionService {
     const cells = this.visionCells();
     if (!scene?.fogEnabled || !explored || !cells) return false;
     if (surfaceOf(terrain) !== 'floor') return false;
-    const box = this.terrainBox(terrain, cells.grid.sizePx);
+
+    const grid = cells.grid;
+    const box = this.terrainBox(terrain, grid.sizePx);
+    if (!terrain.blocksSightNow) {
+      const middle = cellIndexAt(grid, (box.minX + box.maxX) / 2, (box.minY + box.maxY) / 2);
+      return middle >= 0 && !explored.get(middle);
+    }
+
     let shown = false;
-    forEachCellInBox(cells.grid, box.minX, box.minY, box.maxX, box.maxY, (cell) => {
+    forEachCellInBox(grid, box.minX, box.minY, box.maxX, box.maxY, (cell) => {
       if (explored.get(cell)) shown = true;
     });
     return !shown;

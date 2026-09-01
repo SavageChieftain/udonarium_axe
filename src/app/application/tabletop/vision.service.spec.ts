@@ -12,7 +12,7 @@ import { ensureFogMemoryOn } from '@axe/domain/tabletop/fog/fog-memory';
 import { FogMode } from '@axe/domain/tabletop/fog/fog-mode';
 import { GameTable, GridType } from '@axe/domain/tabletop/game-table';
 import { LightSource } from '@axe/domain/tabletop/light-source';
-import { Terrain } from '@axe/domain/tabletop/terrain';
+import { Terrain, TerrainViewState } from '@axe/domain/tabletop/terrain';
 import { VisionType } from '@axe/domain/tabletop/vision-types';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
 
@@ -509,6 +509,35 @@ describe('VisionService', () => {
       lamp.location.y = 600;
 
       expect(service.isPieceHiddenByFog(lamp)).toBe(false);
+    });
+
+    function terrainAt(x: number, y: number, cells: number, blocksSight: boolean): Terrain {
+      const terrain = Terrain.create('block', cells, cells, 1, '', '');
+      terrain.mode = TerrainViewState.ALL;
+      terrain.blocksSight = blocksSight;
+      terrain.location.x = x;
+      terrain.location.y = y;
+      return terrain;
+    }
+
+    it('shows a wall from any one of the cells it covers', () => {
+      tableRememberingCell('easy', NPC_CELL);
+      makeMyCursor('p1', PeerRole.Player);
+      // Four cells across, with only its near corner on ground the party has cleared.
+      expect(service.isTerrainHiddenByFog(terrainAt(200, 200, 4, true))).toBe(false);
+    });
+
+    it('holds a floor back until the ground under its middle has been walked to', () => {
+      tableRememberingCell('easy', NPC_CELL);
+      makeMyCursor('p1', PeerRole.Player);
+      expect(service.isTerrainHiddenByFog(terrainAt(200, 200, 4, false))).toBe(true);
+    });
+
+    it('shows that floor once its middle has', () => {
+      tableRememberingCell('easy', NPC_CELL);
+      makeMyCursor('p1', PeerRole.Player);
+      // Placed so that its middle falls on the one cell the party has been shown.
+      expect(service.isTerrainHiddenByFog(terrainAt(125, 125, 4, false))).toBe(false);
     });
 
     it('remembers nothing at all with the fog switched off', () => {
