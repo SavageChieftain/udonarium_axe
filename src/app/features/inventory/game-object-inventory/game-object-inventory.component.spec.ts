@@ -817,6 +817,18 @@ describe('GameObjectInventoryComponent', () => {
         expect(fixture.nativeElement.querySelectorAll('div').length).toBeLessThan(before);
       });
 
+      it('holds the round buttons to a width a hand can aim at, over on the right', () => {
+        fixture.detectChanges();
+
+        const buttons = [...fixture.nativeElement.querySelectorAll('button')].filter((button: HTMLElement) =>
+          ['前へ', '次へ'].some((label) => button.textContent?.includes(label))
+        );
+
+        expect(buttons).toHaveLength(2);
+        for (const button of buttons) expect(button.classList.contains('max-w-40')).toBe(true);
+        expect(buttons[0].classList.contains('ml-auto')).toBe(true);
+      });
+
       it('keeps a way into the settings, which goes with the tabs', () => {
         TestBed.inject(InventoryViewPreferenceService).setShown('tabs', false);
         fixture.detectChanges();
