@@ -16,8 +16,13 @@ import { fillCells, overlayScale } from '@axe/features/tabletop/table-vision-ove
 import { visionVolumeShape, VolumeRib, VolumeRing } from '@axe/features/tabletop/vision-volume/vision-volume-geometry';
 import { translateZCss, Z_OFFSET_VISION_VOLUME_PX } from '@axe/ui/tabletop/z-offset';
 
-const DEFAULT_VOLUME_COLOR = '#7fd7ff';
-const FLOOR_ALPHA = 0.14;
+/** Bright on purpose: the shape is a measuring aid, not scenery. */
+const DEFAULT_VOLUME_COLOR = '#39ff14';
+/** Under this a colour is too dark to read against the board, so the bright one is used. */
+const MIN_VOLUME_LUMINANCE = 0.35;
+const FLOOR_ALPHA = 0.18;
+const RING_OPACITY = '0.75';
+const RIB_OPACITY = '0.55';
 
 interface VisionVolume {
   identifier: string;
@@ -139,7 +144,8 @@ export class TableVisionVolumeOverlayComponent {
 
   private colorOf(character: GameCharacter): string {
     const cursor = character.owner ? PeerCursor.findByUserId(character.owner) : null;
-    return cursor?.chatColorCode?.[0] || DEFAULT_VOLUME_COLOR;
+    const owned = cursor?.chatColorCode?.[0];
+    return owned && luminanceOf(owned) >= MIN_VOLUME_LUMINANCE ? owned : DEFAULT_VOLUME_COLOR;
   }
 
   protected ringStyle(volume: VisionVolume, ring: VolumeRing): Record<string, string> {
@@ -153,7 +159,7 @@ export class TableVisionVolumeOverlayComponent {
       transform: ring.transform,
       'border-radius': '50%',
       border: '1px solid ' + volume.color,
-      opacity: '0.5',
+      opacity: RING_OPACITY,
       'pointer-events': 'none',
     };
     if (ring.clipPath) style['clip-path'] = ring.clipPath;
@@ -172,8 +178,19 @@ export class TableVisionVolumeOverlayComponent {
       'border-top': '1px solid ' + volume.color,
       'border-right': '1px solid ' + volume.color,
       'border-top-right-radius': '100% 100%',
-      opacity: '0.4',
+      opacity: RIB_OPACITY,
       'pointer-events': 'none',
     };
   }
+}
+
+function luminanceOf(color: string): number {
+  const hex = color.trim().replace('#', '');
+  const full = hex.length === 3 ? hex.replace(/(.)/g, '$1$1') : hex;
+  if (full.length < 6) return 1;
+  const r = parseInt(full.slice(0, 2), 16);
+  const g = parseInt(full.slice(2, 4), 16);
+  const b = parseInt(full.slice(4, 6), 16);
+  if (Number.isNaN(r) || Number.isNaN(g) || Number.isNaN(b)) return 1;
+  return (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
 }
