@@ -14,7 +14,25 @@
     <link rel="manifest" href="manifest.webmanifest" crossorigin="use-credentials" />
     <link rel="icon" href="favicon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="assets/icons/icon-180.png" />
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
+    <link rel="preload" href="assets/fonts/material-icons.woff2" as="font" type="font/woff2" crossorigin />
+    <script>
+      (function () {
+        var langs = ['ja', 'en', 'ko'];
+        var stored = null;
+        try {
+          stored = localStorage.getItem('ui-lang');
+        } catch (e) {}
+        var nav = (navigator.language || '').toLowerCase();
+        var lang =
+          langs.indexOf(stored) >= 0 ? stored : nav.indexOf('ja') === 0 ? 'ja' : nav.indexOf('ko') === 0 ? 'ko' : 'en';
+        var link = document.createElement('link');
+        link.rel = 'preload';
+        link.as = 'fetch';
+        link.crossOrigin = 'anonymous';
+        link.href = 'assets/i18n/' + lang + '.json';
+        document.head.appendChild(link);
+      })();
+    </script>
     <!-- テーマフラッシュ防止: Angular起動前に data-theme を適用 -->
     <script>
       (function () {
@@ -42,7 +60,5 @@
         <div class="sk-title">Now Loading.</div>
       </div>
     </app-root>
-
-    <script type="text/javascript" src="https://www.youtube.com/iframe_api"></script>
   </body>
 </html>
