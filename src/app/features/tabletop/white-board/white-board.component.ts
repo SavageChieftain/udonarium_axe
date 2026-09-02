@@ -115,14 +115,20 @@ export class WhiteBoardComponent {
    * They are hung over the picture in the place the paint would have put them, so a board
    * with a moving picture on it looks the same and moves as well.
    */
-  readonly livePictures = computed<(LivePicture & { url: string })[]>(() => {
+  private readonly sceneText = computed(() => this.version().scene);
+
+  private readonly scene = computed(() => {
     perfCounters.bump(PERF_DESERIALIZE_SCENE);
-    return livePicturesOf(deserializeScene(this.version().scene), this.widthPx(), this.heightPx(), (identifier) =>
+    return deserializeScene(this.sceneText());
+  });
+
+  readonly livePictures = computed<(LivePicture & { url: string })[]>(() =>
+    livePicturesOf(this.scene(), this.widthPx(), this.heightPx(), (identifier) =>
       this.animatedImage.isAnimated(identifier)
     )
       .map((picture) => ({ ...picture, url: this.imageStorage.get(picture.imageIdentifier)?.url ?? '' }))
-      .filter((picture) => picture.url.length > 0);
-  });
+      .filter((picture) => picture.url.length > 0)
+  );
 
   /**
    * Tilted about its lower edge, so that standing it up does not sink it into the table.

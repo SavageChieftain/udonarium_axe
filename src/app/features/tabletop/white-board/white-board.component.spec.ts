@@ -1,11 +1,14 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ObjectStore } from '@axe/core/sync/object-store';
+import { PERF_DESERIALIZE_SCENE, perfCounters } from '@axe/core/util/perf-counters';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { GameTable } from '@axe/domain/tabletop/game-table';
 import { TableSelecter } from '@axe/domain/tabletop/table-selecter';
 import { Terrain } from '@axe/domain/tabletop/terrain';
 import { WhiteBoard } from '@axe/domain/tabletop/white-board';
+import { serializeScene } from '@axe/features/map-editor/model/serialize';
 import { WhiteBoardComponent } from '@axe/features/tabletop/white-board/white-board.component';
+import { createBoardScene } from '@axe/features/tabletop/white-board/white-board-scene';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
 
 describe('WhiteBoardComponent', () => {
@@ -41,6 +44,23 @@ describe('WhiteBoardComponent', () => {
 
   afterEach(() => {
     for (const object of ObjectStore.instance.getObjects()) ObjectStore.instance.remove(object);
+  });
+
+  it('parses its drawing only when the drawing itself changes', async () => {
+    perfCounters.enabled = true;
+    perfCounters.clear();
+    component.livePictures();
+
+    board.pitch = 45;
+    await new Promise((resolve) => setTimeout(resolve, 20));
+    component.livePictures();
+    expect(perfCounters.drain().get(PERF_DESERIALIZE_SCENE)).toBe(1);
+
+    board.scene = serializeScene(createBoardScene(6, 4, 50));
+    await new Promise((resolve) => setTimeout(resolve, 20));
+    component.livePictures();
+    expect(perfCounters.drain().get(PERF_DESERIALIZE_SCENE)).toBe(1);
+    perfCounters.enabled = false;
   });
 
   it('is the size it was given, in pixels', () => {
