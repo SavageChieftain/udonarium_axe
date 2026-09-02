@@ -749,7 +749,32 @@ export class TerrainComponent {
    * the whole of it lights the far end of a wall whose near end alone stands in a torch's
    * reach.
    */
-  protected shadedTop(url: string): ShadedBackground {
+  /**
+   * The shading and the veils, worked out once for the scene rather than once a frame.
+   *
+   * Building them takes a gradient stop per cell and a clip path per face, and a template
+   * calls a plain method on every pass of change detection. A flickering lamp ticks twenty
+   * times a second, and every terrain on the board was rebuilding all of it each time.
+   */
+  protected readonly topShade = computed(() => this.shadedTop(this.topFaceImage().url));
+  protected readonly northShade = computed(() =>
+    this.shadedFace(this.northFaceImage().url, this.isSurfaceShading() ? 0.3 : 1, 'north')
+  );
+  protected readonly southShade = computed(() => this.shadedFace(this.southFaceImage().url, 1, 'south'));
+  protected readonly westShade = computed(() =>
+    this.shadedFace(this.westFaceImage().url, this.isSurfaceShading() ? 0.5 : 1, 'west')
+  );
+  protected readonly eastShade = computed(() =>
+    this.shadedFace(this.eastFaceImage().url, this.isSurfaceShading() ? 0.8 : 1, 'east')
+  );
+
+  protected readonly topFog = computed(() => this.topFogStyle());
+  protected readonly northFog = computed(() => this.faceFogStyle('north'));
+  protected readonly southFog = computed(() => this.faceFogStyle('south'));
+  protected readonly westFog = computed(() => this.faceFogStyle('west'));
+  protected readonly eastFog = computed(() => this.faceFogStyle('east'));
+
+  private shadedTop(url: string): ShadedBackground {
     const cover = this.fogCover();
     const texture = this.textureLayout();
     if (!cover || this.isHex() || this.isSlope()) {
@@ -765,7 +790,7 @@ export class TerrainComponent {
     );
   }
 
-  protected shadedFace(url: string, base: number, side: WallSide): ShadedBackground {
+  private shadedFace(url: string, base: number, side: WallSide): ShadedBackground {
     const cover = this.fogCover();
     const texture = this.textureLayout();
     if (!cover) return shadedBackgroundGrid(url, [base * this.ambientBrightness()], 1, 1, texture);
@@ -773,7 +798,7 @@ export class TerrainComponent {
     return shadedBackgroundGrid(url, along, along.length, 1, texture);
   }
 
-  protected faceFogStyle(side: WallSide): Record<string, string> | null {
+  private faceFogStyle(side: WallSide): Record<string, string> | null {
     const cover = this.fogCover();
     if (!cover) return null;
     const height = this.height() * this.gridSize;
@@ -781,7 +806,7 @@ export class TerrainComponent {
     return this.fogVeilStyle(this.fogClip(fogClipRuns(covered, this.gridSize, 0, height), cover));
   }
 
-  protected topFogStyle(): Record<string, string> | null {
+  private topFogStyle(): Record<string, string> | null {
     const cover = this.fogCover();
     if (!cover) return null;
     const rects: FogClipRect[] = [];

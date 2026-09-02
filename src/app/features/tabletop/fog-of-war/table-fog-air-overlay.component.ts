@@ -9,8 +9,6 @@ import { fillCells } from '@axe/features/tabletop/table-vision-overlay/vision-ov
 
 /** How wide a sheet is drawn, in pixels of its own, before it is let up to the size of the board. */
 const SHEET_TARGET_PX = 512;
-const SHEET_MIN_PX = 128;
-const SHEET_MAX_PX = 1024;
 /** How far past the board a sheet reaches, so its drift never uncovers an edge. */
 const SHEET_MARGIN = 0.06;
 /** How much of a sheet the ground it stands for is worth, against the mottling over it. */
@@ -106,7 +104,7 @@ export class TableFogAirOverlayComponent {
     const boardWidth = grid.cols * gridSizePx;
     const boardHeight = grid.rows * gridSizePx;
     const longest = Math.max(boardWidth, boardHeight);
-    const target = Math.min(SHEET_MAX_PX, Math.max(SHEET_MIN_PX, SHEET_TARGET_PX));
+    const target = SHEET_TARGET_PX;
     const scale = Math.min(1, target / longest);
     const marginX = boardWidth * SHEET_MARGIN;
     const marginY = boardHeight * SHEET_MARGIN;

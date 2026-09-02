@@ -35,6 +35,6 @@ export class ChatStreamPanelService {
       layer: Z_VISUAL_NOVEL_PANEL,
       single: name,
     });
-    stream.tabIdentifier = tab.identifier;
+    stream.tabIdentifier.set(tab.identifier);
   }
 }

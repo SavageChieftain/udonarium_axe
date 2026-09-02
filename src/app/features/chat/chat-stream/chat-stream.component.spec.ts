@@ -30,7 +30,7 @@ describe('ChatStreamComponent', () => {
 
   it('shows the lines of the tab it was opened on', () => {
     tab.addMessage({ from: 'alice', name: 'アリス', text: 'なんだって！？', timestamp: 1000 });
-    component.tabIdentifier = tab.identifier;
+    component.tabIdentifier.set(tab.identifier);
     fixture.detectChanges();
 
     expect(component.chatTab()).toBe(tab);
@@ -39,14 +39,14 @@ describe('ChatStreamComponent', () => {
 
   it('offers none of the buttons that hover over a line', () => {
     tab.addMessage({ from: 'alice', name: 'アリス', text: 'やあ', timestamp: 1000 });
-    component.tabIdentifier = tab.identifier;
+    component.tabIdentifier.set(tab.identifier);
     fixture.detectChanges();
 
     expect(fixture.nativeElement.querySelectorAll('chat-message .material-icons')).toHaveLength(0);
   });
 
   it('stays quiet on a tab with nothing said in it', () => {
-    component.tabIdentifier = tab.identifier;
+    component.tabIdentifier.set(tab.identifier);
     fixture.detectChanges();
 
     // The sample lines are there to show a newcomer what a conversation looks like.
@@ -55,7 +55,7 @@ describe('ChatStreamComponent', () => {
 
   describe('the buttons it puts in the panel bar', () => {
     it('offers following the newest line and taking the box off', () => {
-      component.tabIdentifier = tab.identifier;
+      component.tabIdentifier.set(tab.identifier);
       fixture.detectChanges();
 
       const panelService = TestBed.inject(PanelService);
@@ -67,7 +67,7 @@ describe('ChatStreamComponent', () => {
     });
 
     it('takes the box off the panel and puts it back', () => {
-      component.tabIdentifier = tab.identifier;
+      component.tabIdentifier.set(tab.identifier);
       fixture.detectChanges();
       const panelService = TestBed.inject(PanelService);
 
@@ -86,7 +86,7 @@ describe('ChatStreamComponent', () => {
 
   describe('following the newest line', () => {
     it('carries the window down as a line arrives', () => {
-      component.tabIdentifier = tab.identifier;
+      component.tabIdentifier.set(tab.identifier);
       fixture.detectChanges();
       const emit = vi.spyOn(TestBed.inject(PanelService).scrollToBottom$, 'emit');
 
@@ -99,7 +99,7 @@ describe('ChatStreamComponent', () => {
     });
 
     it('stays where it was put once following is turned off', () => {
-      component.tabIdentifier = tab.identifier;
+      component.tabIdentifier.set(tab.identifier);
       fixture.detectChanges();
       TestBed.inject(PanelService).headerControls()[0].press();
       fixture.detectChanges();
@@ -115,7 +115,7 @@ describe('ChatStreamComponent', () => {
     });
 
     it('leaves another tab alone', () => {
-      component.tabIdentifier = tab.identifier;
+      component.tabIdentifier.set(tab.identifier);
       fixture.detectChanges();
       const emit = vi.spyOn(TestBed.inject(PanelService).scrollToBottom$, 'emit');
 
@@ -130,7 +130,7 @@ describe('ChatStreamComponent', () => {
 
   it('draws no rule between the lines once the box is off', () => {
     tab.addMessage({ from: 'alice', name: 'アリス', text: 'やあ', timestamp: 1000 });
-    component.tabIdentifier = tab.identifier;
+    component.tabIdentifier.set(tab.identifier);
     fixture.detectChanges();
 
     const log = fixture.nativeElement.querySelector('div') as HTMLElement;
@@ -143,7 +143,7 @@ describe('ChatStreamComponent', () => {
   });
 
   it('says so once the tab it was opened on is gone', () => {
-    component.tabIdentifier = 'no-such-tab';
+    component.tabIdentifier.set('no-such-tab');
     fixture.detectChanges();
 
     expect(component.chatTab()).toBeNull();

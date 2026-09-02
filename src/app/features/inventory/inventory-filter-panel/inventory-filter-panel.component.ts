@@ -47,11 +47,12 @@ export class InventoryFilterPanelComponent {
   /**
    * The inventory being worked on, handed over by the one that opened this window.
    *
-   * Each inventory keeps its own narrowing and its own way of being read, so this window has
-   * to be told whose it is rather than reaching for the one of each there used to be.
+   * Each inventory keeps its own narrowing and its own way of being read, so this window is
+   * told whose it is rather than reaching for one of its own. Asked for through the injector,
+   * a root pair was built on every opening and thrown away unread on the next line.
    */
-  filter = inject(InventoryFilterService);
-  viewPreference = inject(InventoryViewPreferenceService);
+  filter!: InventoryFilterService;
+  viewPreference!: InventoryViewPreferenceService;
 
   /** Told to that inventory when this window goes, so its button stops looking pressed. */
   closed: (() => void) | null = null;

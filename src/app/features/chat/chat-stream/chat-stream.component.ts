@@ -44,7 +44,13 @@ export class ChatStreamComponent {
   private readonly destroyRef = inject(DestroyRef);
   private readonly t = inject(TRANSLATE_FN);
 
-  tabIdentifier = '';
+  /**
+   * The tab this window is watching, set by whoever opened it.
+   *
+   * A signal rather than a plain field: it is assigned after the window is built, and a
+   * computed reading a plain field would have nothing to tell it the assignment happened.
+   */
+  readonly tabIdentifier = signal('');
 
   readonly logScrollRef = viewChild.required<ElementRef<HTMLDivElement>>('logScroll');
 
@@ -54,7 +60,7 @@ export class ChatStreamComponent {
 
   readonly chatTab = computed<ChatTab | null>(() => {
     this.objectChange.collectionOf(ChatTab.aliasName)();
-    return this.objectStore.get<ChatTab>(this.tabIdentifier) ?? null;
+    return this.objectStore.get<ChatTab>(this.tabIdentifier()) ?? null;
   });
 
   constructor() {
@@ -85,7 +91,7 @@ export class ChatStreamComponent {
     });
 
     this.objectChange.messageAdded$.subscribe((event) => {
-      if (event.tabIdentifier !== this.tabIdentifier) return;
+      if (event.tabIdentifier !== this.tabIdentifier()) return;
       if (!this.followsLatest()) return;
       this.scrollToLatest();
     }, this.destroyRef);

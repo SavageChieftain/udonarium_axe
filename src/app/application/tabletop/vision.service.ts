@@ -512,6 +512,11 @@ export class VisionService {
     return this.isHiddenByFog(object.location.x + half, object.location.y + half);
   }
 
+  /** What the fog over this table is made of, for whatever has to paint some of its own. */
+  fogColor(): string {
+    return this.currentTable()?.fogColor ?? DEFAULT_FOG_COLOR;
+  }
+
   /**
    * Which of the cells a terrain stands on the party has walked to, in the terrain's own rows.
    *
@@ -519,11 +524,6 @@ export class VisionService {
    * not at all, so the faces are cut to this instead. That keeps a wall gathered from a dozen
    * cells in one piece and still lets the fog lie across the part of it nobody has reached.
    */
-  /** What the fog over this table is made of, for whatever has to paint some of its own. */
-  fogColor(): string {
-    return this.currentTable()?.fogColor ?? DEFAULT_FOG_COLOR;
-  }
-
   terrainFogCover(terrain: Terrain): TerrainFogCover | null {
     if (!this.active()) return null;
     const scene = this.scene();
@@ -725,11 +725,10 @@ export class VisionService {
   }
 
   /**
-   * A wall lit on the far side of another wall is still a wall nobody can see, so the pool and
-   * the shadows thrown on it are left off rather than shining through what hides them.
-   */
-  /**
    * The scene as the reader has it, with the lamps they cannot see taken out of it.
+   *
+   * A wall lit on the far side of another wall is still a wall nobody can see, so the pool
+   * and the shadows thrown on it are left off rather than shining through what hides them.
    *
    * A wall is painted at the darkness of the table and lit only where a pool falls on it, so
    * this is what keeps a lamp shut in a room from throwing its pool onto the walls of that

@@ -60,7 +60,6 @@
             ></div>
           }
         } @else {
-          @let topShade = shadedTop(topFaceImage().url);
           <div
             class="chrome-smooth-image-trick absolute size-full bg-size-[100%_100%] bg-no-repeat backface-hidden transform-3d"
             [class.blinking-animation]="!isLocked()"
@@ -68,12 +67,12 @@
               'backface-visibility': isSlope() ? 'visible' : 'hidden',
               transform: 'translateZ(' + (height() / (isSlope() ? 2 : 1)) * gridSize + 'px)' + floorModCss(),
               ...hexFloorDimStyle(),
-              ...topShade.style,
+              ...topShade().style,
             }"
-            [style.background-image]="topShade.image | safe: 'style'"
+            [style.background-image]="topShade().image | safe: 'style'"
             [style.clip-path]="hexFloorClipPath()"
           ></div>
-          @if (topFogStyle(); as veil) {
+          @if (topFog(); as veil) {
             <div class="backface-hidden transform-3d" [ngStyle]="veil"></div>
           }
         }
@@ -162,13 +161,12 @@
                 [style.width.px]="width() * gridSize"
                 [style.height.px]="height() * gridSize"
               >
-                @let northShade = shadedFace(northFaceImage().url, isSurfaceShading() ? 0.3 : 1, 'north');
                 <div
                   class="chrome-smooth-image-trick absolute inset-0 bg-size-[100%_100%] bg-no-repeat backface-hidden"
-                  [ngStyle]="northShade.style"
-                  [style.background-image]="northShade.image | safe: 'style'"
+                  [ngStyle]="northShade().style"
+                  [style.background-image]="northShade().image | safe: 'style'"
                 ></div>
-                @if (faceFogStyle('north'); as veil) {
+                @if (northFog(); as veil) {
                   <div class="backface-hidden" [ngStyle]="veil"></div>
                 }
                 @if (visionService.active()) {
@@ -202,13 +200,12 @@
                 [style.width.px]="width() * gridSize"
                 [style.height.px]="height() * gridSize"
               >
-                @let southShade = shadedFace(southFaceImage().url, 1, 'south');
                 <div
                   class="chrome-smooth-image-trick absolute inset-0 bg-size-[100%_100%] bg-no-repeat backface-hidden"
-                  [ngStyle]="southShade.style"
-                  [style.background-image]="southShade.image | safe: 'style'"
+                  [ngStyle]="southShade().style"
+                  [style.background-image]="southShade().image | safe: 'style'"
                 ></div>
-                @if (faceFogStyle('south'); as veil) {
+                @if (southFog(); as veil) {
                   <div class="backface-hidden" [ngStyle]="veil"></div>
                 }
                 @if (visionService.active()) {
@@ -242,13 +239,12 @@
                 [style.width.px]="depth() * gridSize"
                 [style.height.px]="height() * gridSize"
               >
-                @let westShade = shadedFace(westFaceImage().url, isSurfaceShading() ? 0.5 : 1, 'west');
                 <div
                   class="chrome-smooth-image-trick absolute inset-0 bg-size-[100%_100%] bg-no-repeat backface-hidden"
-                  [ngStyle]="westShade.style"
-                  [style.background-image]="westShade.image | safe: 'style'"
+                  [ngStyle]="westShade().style"
+                  [style.background-image]="westShade().image | safe: 'style'"
                 ></div>
-                @if (faceFogStyle('west'); as veil) {
+                @if (westFog(); as veil) {
                   <div class="backface-hidden" [ngStyle]="veil"></div>
                 }
                 @if (visionService.active()) {
@@ -282,13 +278,12 @@
                 [style.width.px]="depth() * gridSize"
                 [style.height.px]="height() * gridSize"
               >
-                @let eastShade = shadedFace(eastFaceImage().url, isSurfaceShading() ? 0.8 : 1, 'east');
                 <div
                   class="chrome-smooth-image-trick absolute inset-0 bg-size-[100%_100%] bg-no-repeat backface-hidden"
-                  [ngStyle]="eastShade.style"
-                  [style.background-image]="eastShade.image | safe: 'style'"
+                  [ngStyle]="eastShade().style"
+                  [style.background-image]="eastShade().image | safe: 'style'"
                 ></div>
-                @if (faceFogStyle('east'); as veil) {
+                @if (eastFog(); as veil) {
                   <div class="backface-hidden" [ngStyle]="veil"></div>
                 }
                 @if (visionService.active()) {

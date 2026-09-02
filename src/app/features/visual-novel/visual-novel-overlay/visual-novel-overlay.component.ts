@@ -159,8 +159,6 @@ export class VisualNovelOverlayComponent {
   readonly director = inject(VisualNovelDirectorService);
   private readonly emoteSelection = inject(VisualNovelEmoteSelectionService);
   private readonly chatStreamPanel = inject(ChatStreamPanelService);
-  /** Bumped when a panel is opened or closed, so the buttons that opened them can light up. */
-
   readonly readabilityClass = computed(() => {
     switch (this.settings.readability()) {
       case 1:

@@ -19,7 +19,14 @@ import {
   type ShadowCaster,
   type VisionScene,
 } from '@axe/domain/tabletop/vision-scene';
-import { asVisionShape, facingBearing, visionLobesOf } from '@axe/domain/tabletop/vision-shape';
+import {
+  asVisionShape,
+  facingBearing,
+  VISION_SHAPE_DEFAULTS,
+  visionLobesOf,
+  VisionShape,
+  type VisionSpec,
+} from '@axe/domain/tabletop/vision-shape';
 import type { VisionType } from '@axe/domain/tabletop/vision-types';
 
 /**
@@ -105,6 +112,28 @@ export function replayOverlayPlan(
   const scene = buildReplayVisionScene(snapshots);
   if (!scene || !scene.darknessEnabled) return null;
   return computeOverlayPlan(scene, replaySceneViewer(snapshots, viewer));
+}
+
+/**
+ * The shape of a piece's sight, as a snapshot has it.
+ *
+ * A snapshot that never wrote a field falls back to what the table itself starts a piece
+ * with, read from the one place those are written down. Spelled out again here, tuning the
+ * table's defaults would leave the replay drawing a sight the piece never had.
+ */
+function shapeOf(character: ReplayObjectSnapshot): VisionSpec {
+  const shape = asVisionShape(text(character, 'visionShape'));
+  const def = VISION_SHAPE_DEFAULTS[shape === VisionShape.CUSTOM ? VisionShape.CONE : shape];
+  return {
+    shape,
+    coneAngle: number(character, 'visionConeAngle', def.coneAngle),
+    coneCount: number(character, 'visionConeCount', def.coneCount),
+    backAngle: number(character, 'visionBackAngle', def.backAngle),
+    backScale: number(character, 'visionBackScale', def.backScale),
+    peripheralScale: number(character, 'visionPeripheralScale', def.peripheralScale),
+    direction: 0,
+    lobes: text(character, 'visionLobes'),
+  };
 }
 
 function charactersOn(snapshots: readonly ReplayObjectSnapshot[]): ReplayObjectSnapshot[] {
@@ -205,16 +234,7 @@ function visionSourcesOf(snapshots: readonly ReplayObjectSnapshot[], gridSize: n
       partyId: text(character, 'partyIdentifier') || undefined,
       sourceId: character.identifier,
       direction: facingBearing(number(character, 'rotate'), number(character, 'visionDirection')),
-      lobes: visionLobesOf({
-        shape: asVisionShape(text(character, 'visionShape')),
-        coneAngle: number(character, 'visionConeAngle', 120),
-        coneCount: number(character, 'visionConeCount', 1),
-        backAngle: number(character, 'visionBackAngle', 90),
-        backScale: number(character, 'visionBackScale', 0.4),
-        peripheralScale: number(character, 'visionPeripheralScale', 0.3),
-        direction: 0,
-        lobes: text(character, 'visionLobes'),
-      }),
+      lobes: visionLobesOf(shapeOf(character)),
     });
   }
   return sources;

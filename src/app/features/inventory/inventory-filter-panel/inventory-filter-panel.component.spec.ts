@@ -1,6 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { GameObjectInventoryService } from '@axe/application/inventory/game-object-inventory.service';
 import { RolePermissionService } from '@axe/application/permission/role-permission.service';
+import { InventoryViewPreferenceService } from '@axe/application/ui/inventory-view-preference.service';
 import { SortOrder } from '@axe/domain/data/data-summary-setting';
 import { InventoryFilterService } from '@axe/features/inventory/inventory-filter.service';
 import { InventoryFilterPanelComponent } from '@axe/features/inventory/inventory-filter-panel/inventory-filter-panel.component';
@@ -23,6 +24,9 @@ describe('InventoryFilterPanelComponent', () => {
     filter.hiddenDisplay.set('dim');
     fixture = TestBed.createComponent(InventoryFilterPanelComponent);
     component = fixture.componentInstance;
+    // The window is told whose inventory it works on, as the one that opens it does.
+    component.filter = filter;
+    component.viewPreference = TestBed.inject(InventoryViewPreferenceService);
   });
 
   afterEach(() => {
