@@ -372,7 +372,8 @@ export class MovableDirective {
   }
 
   private onInputMoveNow(e: MouseEvent | TouchEvent) {
-    const overDifferentSurface = this.isPointerOverDifferentSurface();
+    const pointerSurface = this.surfaceUnderPointer();
+    const overDifferentSurface = pointerSurface !== null && pointerSurface !== this.surfaceElement();
     if (overDifferentSurface && this.input?.isDragging && this.input.pointer) {
       const rest = this.computeBeamRest(this.input.pointer);
       if (rest) {
@@ -385,17 +386,11 @@ export class MovableDirective {
       }
     }
     if (overDifferentSurface) {
-      this.updateDragPreview();
+      this.updateDragPreview(pointerSurface);
       return;
     }
     perfTimed('collide', () => handleInputMove(this as unknown as MovableInteractionContext, e));
-    perfTimed('dragPreview', () => this.updateDragPreview());
-  }
-
-  private isPointerOverDifferentSurface(): boolean {
-    const pointerSurface = this.surfaceUnderPointer();
-    if (!pointerSurface) return false;
-    return pointerSurface !== this.surfaceElement();
+    perfTimed('dragPreview', () => this.updateDragPreview(pointerSurface));
   }
 
   /** The face under the pointer that this piece could be put down on, or nothing. */
@@ -409,7 +404,7 @@ export class MovableDirective {
   private dragPreviewElement: HTMLElement | null = null;
   private dragPreviewSurface: HTMLElement | null = null;
 
-  private updateDragPreview(): void {
+  private updateDragPreview(targetSurface: HTMLElement | null): void {
     if (!this.input?.isDragging) {
       this.clearDragPreview();
       return;
@@ -419,7 +414,6 @@ export class MovableDirective {
       this.clearDragPreview();
       return;
     }
-    const targetSurface = this.surfaceUnderPointer();
     if (!targetSurface || targetSurface === this.surfaceElement()) {
       this.clearDragPreview();
       return;
