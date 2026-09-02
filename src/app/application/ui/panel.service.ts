@@ -89,6 +89,15 @@ export class PanelService {
   private static readonly singles = new Map<string, ComponentRef<UIPanelInstance>>();
   /** Names spoken for by a panel whose code is still being fetched. */
   private static readonly opening = new Set<string>();
+  /**
+   * Bumped whenever a name is spoken for or let go of, so that `hasSingle` can be followed.
+   *
+   * A button that opens a panel has to know when that panel goes, and it goes by ways the
+   * button never hears about: its own close box, another panel taking the name, the reader
+   * pressing escape. Answering from a flag the button sets itself leaves it lit over a panel
+   * that is no longer there, and the next press opens what it meant to close.
+   */
+  private static readonly singlesVersion = signal(0);
   title: string = '';
   titleTooltip: string = '';
   left: number = 0;
@@ -157,12 +166,19 @@ export class PanelService {
    * asked it to go away.
    */
   closeSingle(name: string): boolean {
-    if (PanelService.opening.delete(name)) return true;
+    if (PanelService.opening.delete(name)) {
+      PanelService.noteSingles();
+      return true;
+    }
 
     const open = PanelService.singles.get(name);
     if (!open) return false;
     open.destroy();
     return true;
+  }
+
+  private static noteSingles(): void {
+    PanelService.singlesVersion.update((version) => version + 1);
   }
 
   /**
@@ -173,6 +189,7 @@ export class PanelService {
    * reason it does there.
    */
   hasSingle(name: string): boolean {
+    PanelService.singlesVersion();
     return PanelService.opening.has(name) || PanelService.singles.has(name);
   }
 
@@ -196,10 +213,16 @@ export class PanelService {
     childPanelService.panelKind.set(panelKindOf(childComponent));
     if (option) this.applyPanelOption(panelComponentRef, childPanelService, option);
     const single = option?.single;
-    if (single) PanelService.singles.set(single, panelComponentRef);
+    if (single) {
+      PanelService.singles.set(single, panelComponentRef);
+      PanelService.noteSingles();
+    }
     panelComponentRef.onDestroy(() => {
       childPanelService.panelComponentRef = null;
-      if (single && PanelService.singles.get(single) === panelComponentRef) PanelService.singles.delete(single);
+      if (single && PanelService.singles.get(single) === panelComponentRef) {
+        PanelService.singles.delete(single);
+        PanelService.noteSingles();
+      }
     });
 
     return bodyComponentRef.instance as T;
@@ -214,7 +237,10 @@ export class PanelService {
     // A panel that fails to arrive says nothing for itself: the promise rejects into nowhere
     // and the reader is left looking at a menu item that appears to do nothing.
     const single = option?.single;
-    if (single) PanelService.opening.add(single);
+    if (single) {
+      PanelService.opening.add(single);
+      PanelService.noteSingles();
+    }
 
     factory()
       .then((childComponent) => {
@@ -228,6 +254,9 @@ export class PanelService {
         // The name is let go of as well, or nothing under it could ever be opened again.
         if (single) PanelService.opening.delete(single);
         Logger.error('[PanelService] パネルを開けませんでした', reason);
+      })
+      .finally(() => {
+        if (single) PanelService.noteSingles();
       });
   }
 

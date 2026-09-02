@@ -489,6 +489,29 @@ describe('VisualNovelOverlayComponent', () => {
     expect(component.isBacklogOpen()).toBe(false);
   });
 
+  it('puts the log button out when the log is closed by its own frame', () => {
+    addMessage('m1');
+    createComponent();
+    component.toggleBacklog();
+    expect(component.isBacklogOpen()).toBe(true);
+
+    // Closed the way a reader closes it, which the button never hears about of its own accord.
+    TestBed.inject(PanelService).closeSingle(VN_BACKLOG_PANEL);
+
+    expect(component.isBacklogOpen()).toBe(false);
+  });
+
+  it('opens the log again after it was closed by its own frame', () => {
+    addMessage('m1');
+    createComponent();
+    component.toggleBacklog();
+    TestBed.inject(PanelService).closeSingle(VN_BACKLOG_PANEL);
+
+    component.toggleBacklog();
+
+    expect(component.isBacklogOpen()).toBe(true);
+  });
+
   it('takes the log down when novel mode is left', () => {
     addMessage('m1');
     createComponent();

@@ -160,7 +160,6 @@ export class VisualNovelOverlayComponent {
   private readonly emoteSelection = inject(VisualNovelEmoteSelectionService);
   private readonly chatStreamPanel = inject(ChatStreamPanelService);
   /** Bumped when a panel is opened or closed, so the buttons that opened them can light up. */
-  private readonly panelVersion = signal(0);
 
   readonly readabilityClass = computed(() => {
     switch (this.settings.readability()) {
@@ -916,10 +915,6 @@ export class VisualNovelOverlayComponent {
   private closeOverlays(): void {
     this.closePopovers();
     closeVisualNovelPanels(this.panelService);
-    this.isBacklogOpen.set(false);
-    this.isEmotePanelOpen.set(false);
-    this.isDisplaySettingsOpen.set(false);
-    this.isDirectionPanelOpen.set(false);
   }
 
   isPopover(kind: VisualNovelPopover): boolean {
@@ -938,13 +933,10 @@ export class VisualNovelOverlayComponent {
     this.togglePopover('shortcutHelp');
   }
 
-  readonly isBacklogOpen = signal(false);
+  readonly isBacklogOpen = computed(() => this.panelService.hasSingle(VN_BACKLOG_PANEL));
 
   toggleBacklog(): void {
-    if (this.panelService.closeSingle(VN_BACKLOG_PANEL)) {
-      this.isBacklogOpen.set(false);
-      return;
-    }
+    if (this.panelService.closeSingle(VN_BACKLOG_PANEL)) return;
     this.closePopovers();
     const width = Math.min(700, Math.max(320, window.innerWidth - 48));
     this.panelService.open<VisualNovelBacklogComponent>(VisualNovelBacklogComponent, {
@@ -959,17 +951,13 @@ export class VisualNovelOverlayComponent {
       layer: Z_VISUAL_NOVEL_PANEL,
       single: VN_BACKLOG_PANEL,
     });
-    this.isBacklogOpen.set(true);
   }
 
-  readonly isEmotePanelOpen = signal(false);
-  readonly isDisplaySettingsOpen = signal(false);
+  readonly isEmotePanelOpen = computed(() => this.panelService.hasSingle(VN_EMOTE_PANEL));
+  readonly isDisplaySettingsOpen = computed(() => this.panelService.hasSingle(VN_DISPLAY_PANEL));
 
   toggleEmote(event?: Event): void {
-    if (this.panelService.closeSingle(VN_EMOTE_PANEL)) {
-      this.isEmotePanelOpen.set(false);
-      return;
-    }
+    if (this.panelService.closeSingle(VN_EMOTE_PANEL)) return;
     this.closePopovers();
     const size = { width: 320, height: Math.min(440, Math.max(240, window.innerHeight - 220)) };
     this.panelService.open<VisualNovelEmotePanelComponent>(VisualNovelEmotePanelComponent, {
@@ -982,16 +970,12 @@ export class VisualNovelOverlayComponent {
       single: VN_EMOTE_PANEL,
       minimizeToContent: true,
     });
-    this.isEmotePanelOpen.set(true);
   }
 
-  readonly isDirectionPanelOpen = signal(false);
+  readonly isDirectionPanelOpen = computed(() => this.panelService.hasSingle(VN_DIRECTION_PANEL));
 
   toggleDirection(event?: Event): void {
-    if (this.panelService.closeSingle(VN_DIRECTION_PANEL)) {
-      this.isDirectionPanelOpen.set(false);
-      return;
-    }
+    if (this.panelService.closeSingle(VN_DIRECTION_PANEL)) return;
     this.closePopovers();
     const size = { width: 320, height: Math.min(420, Math.max(240, window.innerHeight - 220)) };
     this.panelService.open<VisualNovelDirectionPanelComponent>(VisualNovelDirectionPanelComponent, {
@@ -1004,7 +988,6 @@ export class VisualNovelOverlayComponent {
       single: VN_DIRECTION_PANEL,
       minimizeToContent: true,
     });
-    this.isDirectionPanelOpen.set(true);
   }
 
   /** Whichever tab is being read, in a window of its own, to be watched beside the stage. */
@@ -1012,21 +995,15 @@ export class VisualNovelOverlayComponent {
     const tab = this.chatTab();
     if (!tab) return;
     this.chatStreamPanel.toggle(tab);
-    this.panelVersion.update((version) => version + 1);
   }
 
   readonly isChatStreamOpen = computed(() => {
     const tab = this.chatTab();
-    if (!tab) return false;
-    this.panelVersion();
-    return this.chatStreamPanel.isOpen(tab);
+    return tab ? this.chatStreamPanel.isOpen(tab) : false;
   });
 
   toggleDisplaySettings(event?: Event): void {
-    if (this.panelService.closeSingle(VN_DISPLAY_PANEL)) {
-      this.isDisplaySettingsOpen.set(false);
-      return;
-    }
+    if (this.panelService.closeSingle(VN_DISPLAY_PANEL)) return;
     this.closePopovers();
     const size = { width: 320, height: Math.min(520, Math.max(240, window.innerHeight - 160)) };
     this.panelService.open<VisualNovelDisplayPanelComponent>(VisualNovelDisplayPanelComponent, {
@@ -1039,7 +1016,6 @@ export class VisualNovelOverlayComponent {
       single: VN_DISPLAY_PANEL,
       minimizeToContent: true,
     });
-    this.isDisplaySettingsOpen.set(true);
   }
 
   /**
