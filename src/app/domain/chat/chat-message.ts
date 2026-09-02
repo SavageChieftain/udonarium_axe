@@ -8,6 +8,7 @@ import { ObjectSerializer } from '@axe/core/sync/object-serializer';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { ChatTabList } from '@axe/domain/chat/chat-tab-list';
+import { OUT_OF_STORY_TAG } from '@axe/domain/chat/constants';
 import { type DiceRollDetail, parseDiceRollDetail } from '@axe/domain/dice/dice-roll-detail';
 import { VN_PORTRAIT_POS_UNSET } from '@axe/domain/visual-novel/vn-portrait-position';
 
@@ -37,6 +38,8 @@ export interface ChatMessageContext {
   sendFrom?: string;
   replyTo?: string;
   quoteOf?: string;
+  vnEmote?: string;
+  senderRole?: string;
 }
 
 @SyncObject('chat')
@@ -51,6 +54,25 @@ export class ChatMessage extends ObjectNode implements ChatMessageContext {
   @SyncVar() attachmentImageIdentifiers: string = '';
   @SyncVar() imagePos: number;
   @SyncVar() vnPortraitPos: number = VN_PORTRAIT_POS_UNSET;
+  /**
+   * How novel mode is asked to stage this line, read by `vnEmoteOf`.
+   *
+   * Deliberately left without an initialiser: class fields are assigned rather than defined
+   * here, so giving one would write the attribute onto every message ever said, novel mode or
+   * not. Unset reads back as an empty string, which is what an absent staging means anyway.
+   */
+  @SyncVar() vnEmote: string;
+  /**
+   * What the person speaking was when they said it.
+   *
+   * A role is worn now and taken off later, and the cursor that carried it is built afresh on
+   * every connection, so neither can answer for a line already said. Recorded here so that a
+   * reading of the log settles what it is once and keeps that answer.
+   *
+   * Left without an initialiser, as `vnEmote` is: a line from a room that never wrote one has
+   * nothing to say about its speaker, and reads back empty.
+   */
+  @SyncVar() senderRole: string;
   @SyncVar() messColor: string;
   /** The bubble the sender asked for on each theme. Empty is worked out from the colour. */
   @SyncVar() messBubbleLight: string = '';
@@ -200,6 +222,11 @@ export class ChatMessage extends ObjectNode implements ChatMessageContext {
   get isSystemMessage(): boolean {
     return this.from === 'System' || (this.tag ?? '').includes('system-message');
   }
+  /** Whether novel mode should pass this line over rather than have it read out. */
+  get isOutOfStory(): boolean {
+    return this.tags.includes(OUT_OF_STORY_TAG);
+  }
+
   get changeable(): boolean {
     return this.isChangeableBy(getPeerContext().userId);
   }

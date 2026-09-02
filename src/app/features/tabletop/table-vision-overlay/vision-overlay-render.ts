@@ -1,4 +1,7 @@
-import { OverlayPlan, OverlayShape, ShadowShape } from '@axe/domain/tabletop/vision-scene';
+import { CellGrid, cellPolygonOf } from '@axe/domain/tabletop/fog/cell-grid';
+import { isHexGrid } from '@axe/domain/tabletop/hex-geometry';
+import { OverlayPlan, OverlayShape, OverlayVision, ShadowShape } from '@axe/domain/tabletop/vision-scene';
+import { fogPattern } from '@axe/features/tabletop/table-vision-overlay/fog-texture';
 
 const TWO_PI = Math.PI * 2;
 
@@ -327,9 +330,19 @@ export interface OverlayBake {
   scale: number;
 }
 
-interface BakeCanvas {
+export interface BakeCanvas {
   image: CanvasImageSource;
   context: CanvasRenderingContext2D;
+}
+
+/** A surface to gather a pass on before it is cut back to what can be seen. */
+export function overlayScratch(
+  width: number,
+  height: number,
+  scale: number,
+  previous?: BakeCanvas | null
+): BakeCanvas | null {
+  return bakeCanvas(width, height, scale, previous);
 }
 
 function bakeCanvas(width: number, height: number, scale: number, previous?: BakeCanvas | null): BakeCanvas | null {
@@ -375,7 +388,8 @@ export function bakeOverlayPlan(
   margin = 0,
   surface?: OverlaySurface,
   previous?: OverlayBake | null,
-  scale = 1
+  scale = 1,
+  scratch?: BakeCanvas | null
 ): OverlayBake | null {
   const width = widthPx + 2 * margin;
   const height = heightPx + 2 * margin;
@@ -390,12 +404,20 @@ export function bakeOverlayPlan(
   const offsetX = margin - resolved.originX;
   const offsetY = margin - resolved.originY;
 
+  const bounds = { width, height, offsetX, offsetY, scale };
   base.context.translate(offsetX, offsetY);
-  paintDarkness(base.context, plan, resolved);
+  paintDarkness(base.context, plan, resolved, scratch ?? null, bounds);
 
-  base.context.globalCompositeOperation = 'lighter';
-  for (const shape of plan.glows) if (!isAnimated(shape)) drawGlow(base.context, shape, 0);
-  base.context.globalCompositeOperation = 'source-over';
+  const glow = (target: CanvasRenderingContext2D): void => {
+    target.globalCompositeOperation = 'lighter';
+    for (const shape of plan.glows) if (!isAnimated(shape)) drawGlow(target, shape, 0);
+    target.globalCompositeOperation = 'source-over';
+  };
+  if (plan.vision?.clipReveals) {
+    throughVision(base.context, plan.vision, scratch ?? null, bounds, 'lighter', glow);
+  } else {
+    glow(base.context);
+  }
 
   let shadows: BakeCanvas | null = null;
   if (plan.shadows.length > 0) {
@@ -421,8 +443,170 @@ function resolvedSurfaceOf(widthPx: number, heightPx: number, surface?: OverlayS
   };
 }
 
-function paintDarkness(ctx: CanvasRenderingContext2D, plan: OverlayPlan, resolved: ResolvedSurface): void {
-  if (!(plan.darknessAlpha > 0)) return;
+interface PathSink {
+  rect(x: number, y: number, w: number, h: number): void;
+  moveTo(x: number, y: number): void;
+  lineTo(x: number, y: number): void;
+  closePath(): void;
+}
+
+/**
+ * Lays out the cells a mask covers as one path.
+ *
+ * Compositing counts each drawing separately, so what keeps only the seen part of a pass has
+ * to arrive as one drawing; cell by cell, every cell would throw the last one away.
+ */
+function traceCells(sink: PathSink, grid: CellGrid, keep: (index: number) => boolean): boolean {
+  let any = false;
+  if (isHexGrid(grid.type)) {
+    for (let index = 0; index < grid.cols * grid.rows; index++) {
+      if (!keep(index)) continue;
+      const points = cellPolygonOf(grid, index);
+      sink.moveTo(points[0].x, points[0].y);
+      for (let i = 1; i < points.length; i++) sink.lineTo(points[i].x, points[i].y);
+      sink.closePath();
+      any = true;
+    }
+    return any;
+  }
+  const size = grid.sizePx;
+  for (let row = 0; row < grid.rows; row++) {
+    let runFrom = -1;
+    for (let col = 0; col <= grid.cols; col++) {
+      const inside = col < grid.cols && keep(row * grid.cols + col);
+      if (inside) {
+        if (runFrom < 0) runFrom = col;
+        continue;
+      }
+      if (runFrom < 0) continue;
+      sink.rect(runFrom * size, row * size, (col - runFrom) * size, size);
+      any = true;
+      runFrom = -1;
+    }
+  }
+  return any;
+}
+
+type CellMask = { path: Path2D } | { keep: (index: number) => boolean };
+
+/**
+ * The seen cells as a path, worked out once for the scene they belong to.
+ *
+ * A flickering table lays this down twenty times a second, and walking every cell of a large
+ * board that often costs more than the drawing does.
+ */
+const seenPaths = new WeakMap<OverlayVision, CellMask>();
+
+function seenMask(vision: OverlayVision): CellMask {
+  const held = seenPaths.get(vision);
+  if (held) return held;
+  const keep = (index: number): boolean => vision.visible.get(index);
+  let mask: CellMask = { keep };
+  if (typeof Path2D === 'function') {
+    const path = new Path2D();
+    if (traceCells(path, vision.grid, keep)) mask = { path };
+  }
+  seenPaths.set(vision, mask);
+  return mask;
+}
+
+function fillMask(ctx: CanvasRenderingContext2D, grid: CellGrid, mask: CellMask, blurPx: number): void {
+  const previous = ctx.filter;
+  if (blurPx > 0) ctx.filter = `blur(${blurPx.toFixed(1)}px)`;
+  if ('path' in mask) {
+    ctx.fill(mask.path);
+  } else {
+    ctx.beginPath();
+    if (traceCells(ctx, grid, mask.keep)) ctx.fill();
+  }
+  if (blurPx > 0) ctx.filter = previous;
+}
+
+export function fillCells(
+  ctx: CanvasRenderingContext2D,
+  grid: CellGrid,
+  keep: (index: number) => boolean,
+  blurPx = 0
+): void {
+  const previous = ctx.filter;
+  if (blurPx > 0) ctx.filter = `blur(${blurPx.toFixed(1)}px)`;
+  ctx.beginPath();
+  if (traceCells(ctx, grid, keep)) ctx.fill();
+  if (blurPx > 0) ctx.filter = previous;
+}
+
+interface OverlayBounds {
+  width: number;
+  height: number;
+  offsetX: number;
+  offsetY: number;
+  scale: number;
+  patch?: DirtyRect | null;
+}
+
+/**
+ * Draws through what the reader can see.
+ *
+ * With a surface to hand the pass is gathered on it and cut back to the seen cells in one go,
+ * which leaves the edge as soft as the blur makes it. Without one the cells become a plain
+ * clip, which is the same picture with a harder edge.
+ */
+function throughVision(
+  ctx: CanvasRenderingContext2D,
+  vision: OverlayVision,
+  scratch: BakeCanvas | null,
+  bounds: OverlayBounds,
+  composite: GlobalCompositeOperation,
+  draw: (target: CanvasRenderingContext2D) => void
+): void {
+  const mask = seenMask(vision);
+  if (!scratch) {
+    ctx.save();
+    if ('path' in mask) ctx.clip(mask.path);
+    else {
+      ctx.beginPath();
+      if (traceCells(ctx, vision.grid, mask.keep)) ctx.clip();
+    }
+    draw(ctx);
+    ctx.restore();
+    return;
+  }
+
+  const patch = bounds.patch;
+  const target = scratch.context;
+  reset(target, bounds.scale);
+  target.globalCompositeOperation = 'source-over';
+  target.globalAlpha = 1;
+  if (patch) target.clearRect(patch.x, patch.y, patch.width, patch.height);
+  else target.clearRect(0, 0, bounds.width, bounds.height);
+  target.translate(bounds.offsetX, bounds.offsetY);
+  draw(target);
+  target.globalCompositeOperation = 'destination-in';
+  target.fillStyle = 'rgba(0, 0, 0, 1)';
+  fillMask(target, vision.grid, mask, vision.blurPx);
+  target.globalCompositeOperation = 'source-over';
+  reset(target, bounds.scale);
+
+  const previous = ctx.globalCompositeOperation;
+  ctx.setTransform(bounds.scale, 0, 0, bounds.scale, 0, 0);
+  ctx.globalCompositeOperation = composite;
+  blit(ctx, scratch.image, patch ?? null, bounds.width, bounds.height, bounds.scale);
+  ctx.globalCompositeOperation = previous;
+  reset(ctx, bounds.scale);
+  ctx.translate(bounds.offsetX, bounds.offsetY);
+}
+
+function paintDarkness(
+  ctx: CanvasRenderingContext2D,
+  plan: OverlayPlan,
+  resolved: ResolvedSurface,
+  scratch: BakeCanvas | null,
+  bounds: OverlayBounds
+): void {
+  if (!(plan.darknessAlpha > 0)) {
+    paintFog(ctx, plan);
+    return;
+  }
 
   ctx.globalAlpha = plan.darknessAlpha;
   ctx.fillStyle = plan.darknessColor;
@@ -437,13 +621,69 @@ function paintDarkness(ctx: CanvasRenderingContext2D, plan: OverlayPlan, resolve
     ctx.globalAlpha = 1;
   }
   const cells = plan.revealCells;
-  if (cells && cells.length > 0) {
-    carveCells(ctx, cells);
-  } else {
-    for (const shape of plan.reveals) carveReveal(ctx, shape);
+  const carve = (target: CanvasRenderingContext2D): void => {
+    if (cells && cells.length > 0) {
+      carveCells(target, cells);
+    } else {
+      for (const shape of plan.reveals) carveReveal(target, shape);
+    }
+  };
+  const vision = plan.vision;
+  if (vision?.clipReveals) throughVision(ctx, vision, scratch, bounds, 'destination-out', carve);
+  else carve(ctx);
+  // Ground the party has taken is lifted out of the dark whether or not a lamp still stands
+  // in it, which is the whole of what the easy fog promises.
+  if (vision?.clearedStaysLit) {
+    ctx.globalCompositeOperation = 'destination-out';
+    ctx.fillStyle = '#000000';
+    ctx.globalAlpha = 1;
+    fillCells(ctx, vision.grid, (index) => vision.explored.get(index), vision.blurPx);
   }
   ctx.globalCompositeOperation = 'source-over';
+
+  paintFog(ctx, plan);
 }
+
+/**
+ * What the party has never been shown, and what it has been shown but cannot see now.
+ *
+ * The first is laid on solid: it covers the board, the grid and anything drawn flat on them.
+ * The second is a veil, so the ground stays readable as a memory of it.
+ */
+function paintFog(ctx: CanvasRenderingContext2D, plan: OverlayPlan): void {
+  const vision = plan.vision;
+  if (!vision?.fogEnabled) return;
+
+  const remembered = (index: number): boolean => vision.explored.get(index) && !vision.visible.get(index);
+  const unwalked = (index: number): boolean => !vision.explored.get(index);
+
+  ctx.globalCompositeOperation = 'source-over';
+  // Cleared ground carries no mist. Only a shade over it, which is what says the fog has
+  // gone and nobody is standing there now.
+  if (vision.veilAlpha > 0) {
+    ctx.fillStyle = vision.veilColor;
+    ctx.globalAlpha = vision.veilAlpha;
+    fillCells(ctx, vision.grid, remembered, vision.blurPx);
+  }
+  if (vision.unexploredAlpha > 0) {
+    ctx.fillStyle = vision.fogColor;
+    ctx.globalAlpha = vision.unexploredAlpha;
+    fillCells(ctx, vision.grid, unwalked, vision.blurPx);
+
+    // The mottling that keeps the mist from reading as a sheet of paint. It rides in the
+    // surface baked when the scene changes, so it costs nothing on a frame of its own.
+    const pattern = fogPattern(ctx);
+    if (pattern) {
+      ctx.fillStyle = pattern;
+      ctx.globalAlpha = Math.min(1, vision.unexploredAlpha * CLOUD_OVER_UNWALKED);
+      fillCells(ctx, vision.grid, unwalked, vision.blurPx);
+    }
+  }
+  ctx.globalAlpha = 1;
+}
+
+/** How much of the mottling shows through the mist. */
+const CLOUD_OVER_UNWALKED = 0.75;
 
 function paintShadows(
   ctx: CanvasRenderingContext2D,
@@ -472,7 +712,8 @@ export function drawOverlayPlan(
   surface?: OverlaySurface,
   bake?: OverlayBake | null,
   dirty?: DirtyRect | null,
-  scale = 1
+  scale = 1,
+  scratch?: BakeCanvas | null
 ): void {
   const resolved = resolvedSurfaceOf(widthPx, heightPx, surface);
   const offsetX = margin - resolved.originX;
@@ -492,13 +733,22 @@ export function drawOverlayPlan(
 
   if (usable) blit(ctx, usable.base.image, patch, width, height, scale);
 
+  const bounds = { width, height, offsetX, offsetY, scale, patch };
   ctx.translate(offsetX, offsetY);
-  if (!usable) paintDarkness(ctx, plan, resolved);
+  if (!usable) paintDarkness(ctx, plan, resolved, scratch ?? null, { ...bounds, patch: null });
 
-  ctx.globalCompositeOperation = 'lighter';
   // A light that stays put is already in the baked surface, so drawing it again would
   // only add it to itself.
-  for (const shape of plan.glows) if (!usable || isAnimated(shape)) drawGlow(ctx, shape, timeMs);
+  const glow = (target: CanvasRenderingContext2D): void => {
+    target.globalCompositeOperation = 'lighter';
+    for (const shape of plan.glows) if (!usable || isAnimated(shape)) drawGlow(target, shape, timeMs);
+    target.globalCompositeOperation = 'source-over';
+  };
+  if (plan.vision?.clipReveals) {
+    throughVision(ctx, plan.vision, scratch ?? null, bounds, 'lighter', glow);
+  } else {
+    glow(ctx);
+  }
 
   ctx.globalCompositeOperation = 'source-over';
   if (usable) {

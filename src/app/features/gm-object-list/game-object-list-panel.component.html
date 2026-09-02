@@ -28,6 +28,41 @@
           </button>
         }
       </div>
+
+      @if (tickedCharacters().length > 0) {
+        <div class="rounded-ui-sm bg-ui-accent-bg flex flex-wrap items-center gap-2 px-2 py-1.5">
+          <span class="text-ui-accent text-[11px] font-semibold">
+            {{ 'feature.gmObjectList.tickedCount' | transloco: { count: tickedCharacters().length } }}
+          </span>
+          @if (tickedDisagree()) {
+            <span class="text-ui-muted text-[11px]">{{ 'feature.gmObjectList.tickedDiffer' | transloco }}</span>
+          }
+          <span class="flex-1"></span>
+          <button
+            type="button"
+            class="rounded-ui-sm border-ui-accent text-ui-accent hover:bg-ui-menu-hover inline-flex cursor-pointer items-center gap-1 border border-solid px-1.5 py-0.75 text-[11px] [&_.material-icons]:text-[13px]!"
+            (click)="openBulkVision()"
+          >
+            <i class="material-icons">visibility</i>
+            {{ 'feature.gmObjectList.setVision' | transloco }}
+          </button>
+          <button
+            type="button"
+            class="rounded-ui-sm border-ui-border-panel text-ui-dim hover:bg-ui-menu-hover inline-flex cursor-pointer items-center border border-solid px-1.5 py-0.75 text-[11px]"
+            (click)="clearTicks()"
+          >
+            {{ 'feature.gmObjectList.clearTicks' | transloco }}
+          </button>
+        </div>
+      } @else {
+        <button
+          type="button"
+          class="rounded-ui-sm border-ui-border-panel text-ui-dim hover:bg-ui-menu-hover self-start border border-solid px-1.5 py-0.75 text-[11px]"
+          (click)="tickAllShown()"
+        >
+          {{ 'feature.gmObjectList.tickAllShown' | transloco }}
+        </button>
+      }
     </div>
 
     <ul class="m-0 flex-1 list-none overflow-y-auto p-1.5" role="list">
@@ -44,6 +79,16 @@
             (mousedown)="onRowDragBlock($event, row)"
             (touchstart)="onRowDragBlock($event, row)"
           >
+            @if (row.typeKey === 'character') {
+              <input
+                type="checkbox"
+                class="mt-1.5 size-3.5 shrink-0 cursor-pointer [accent-color:var(--ui-accent)]"
+                [checked]="isTicked(row.identifier)"
+                [attr.aria-label]="'feature.gmObjectList.tickRow' | transloco"
+                (click)="$event.stopPropagation()"
+                (change)="toggleTick(row.identifier)"
+              />
+            }
             @if (row.rangeThumbnail; as thumb) {
               <svg
                 class="border-ui-border-panel bg-ui-elevated mt-0.5 size-8 shrink-0 rounded-sm border border-solid p-0.5"

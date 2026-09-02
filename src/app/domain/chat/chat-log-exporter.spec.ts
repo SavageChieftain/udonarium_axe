@@ -528,4 +528,26 @@ describe('ChatLogExporter', () => {
       expect(result).toContain(ChatLogExporter.STYLE_BLOCK);
     });
   });
+  describe('the novel-mode staging', () => {
+    it('writes the body alone when the staging is kept beside the line', () => {
+      const tab = createMockTab('メイン', [
+        createMockMessage({ text: 'なんだって！？', vnEmote: 'shape:shout bubble:shake' } as Partial<ChatMessage>),
+      ]);
+      const html = ChatLogExporter.exportTabHtml(tab);
+      expect(html).toContain('なんだって！？');
+      expect(html).not.toContain('〔');
+    });
+
+    it('takes the staging off a line said before it was kept apart', () => {
+      const tab = createMockTab('メイン', [createMockMessage({ text: 'なんだって！？ 〔叫び・ゆれ〕' })]);
+      const html = ChatLogExporter.exportTabHtml(tab);
+      expect(html).toContain('なんだって！？');
+      expect(html).not.toContain('叫び');
+    });
+
+    it('leaves a bracket it cannot read alone', () => {
+      const tab = createMockTab('メイン', [createMockMessage({ text: 'メモ 〔重要〕' })]);
+      expect(ChatLogExporter.exportTabHtml(tab)).toContain('重要');
+    });
+  });
 });

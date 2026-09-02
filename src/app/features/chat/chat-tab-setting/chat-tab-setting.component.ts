@@ -114,7 +114,7 @@ export class ChatTabSettingComponent {
     return !this.isEmpty && !this.isDeleted;
   }
   get canEditPermission(): boolean {
-    if (PeerCursor.myCursor) this.objectChange.versionOf(PeerCursor.myCursor.identifier)();
+    this.objectChange.trackMyCursor();
     return this.isEditable && canRoleEdit(PeerCursor.myRole);
   }
 

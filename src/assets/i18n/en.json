@@ -301,6 +301,13 @@
       }
     },
     "gmObjectList": {
+      "tickRow": "Tick this piece",
+      "tickAllShown": "Tick every piece shown",
+      "tickedCount": "{{count}} ticked",
+      "tickedDiffer": "They do not agree",
+      "setVision": "Set sight",
+      "clearTicks": "Clear",
+      "visionForTicked": "Sight of {{count}} pieces",
       "searchPlaceholder": "Search by name or owner",
       "gmOnly": "This tool is for the Game Master only",
       "empty": "No matching objects",
@@ -1021,6 +1028,12 @@
         "laser-hit": "Laser impact",
         "laserbeam": "Laser beam",
         "lasergun": "Laser gun",
+        "mech-damage-large": "Mech damage (large)",
+        "mech-damage-medium": "Mech damage (medium)",
+        "mech-damage-small": "Mech damage (small)",
+        "mech-heal-large": "Mech repair (large)",
+        "mech-heal-medium": "Mech repair (medium)",
+        "mech-heal-small": "Mech repair (small)",
         "missile-launch": "Missile launch",
         "poison": "Poison",
         "qigong": "Qigong",
@@ -1298,7 +1311,24 @@
         "emptyMessage": "{{name}} inventory is empty",
         "cleanGraveyard": "Clear graveyard",
         "confirmCleanTab": "Permanently delete {{count}} items in {{tab}}?",
-        "confirmMultiDelete": "Permanently delete {{count}} items in the graveyard among the selected?"
+        "confirmMultiDelete": "Permanently delete {{count}} items in the graveyard among the selected?",
+        "viewRich": "Full",
+        "viewTable": "Table",
+        "tableNoColumns": "No display items. Name some in the display settings and they become columns",
+        "tableName": "Name",
+        "tableOrder": "Order",
+        "filterPanelTitle": "Search and display settings",
+        "filterNone": "Nothing narrowed",
+        "displayItemsHint": "Name a registered state and that column becomes a box to tick",
+        "inventoryVisibility": "Visibility",
+        "viewRound": "Round",
+        "showParts": "Strips to show",
+        "showTabs": "Tabs",
+        "showFilterLine": "Filter line",
+        "showRoundLine": "Round controls",
+        "showPartsHint": "What is put away closes up. This setting is for this device only",
+        "displayItemsRich": "Display items (full)",
+        "displayItemsTable": "Display items (table)"
       }
     },
     "file": {
@@ -1343,7 +1373,8 @@
         "moveGraveyard": "Move to graveyard",
         "buffView": "Buff display",
         "invokeEffect": "Play an effect",
-        "deployDice": "Lay out {{count}} dice"
+        "deployDice": "Lay out {{count}} dice",
+        "showVisionRange": "Show range of sight"
       },
       "panel": {
         "sheet": "Character sheet",
@@ -1385,9 +1416,11 @@
         "timing_roundEnd": "End of round",
         "timing_turnStart": "Start of trigger's turn",
         "timing_turnEnd": "End of trigger's turn",
+        "timing_none": "Never",
         "trigger": "Trigger character",
         "triggerPlaceholder": "Defaults to the bearer",
-        "triggerUnknown": "{{name}} (off table)"
+        "triggerUnknown": "{{name}} (off table)",
+        "iconImage": "Pick a picture"
       },
       "importImg": {
         "sourceLabel": "Source:",
@@ -1524,7 +1557,23 @@
         "title": "Vision",
         "visionType": "Vision type",
         "visionRange": "Vision range (cells)",
-        "castsShadow": "Casts shadow (blocks light)"
+        "castsShadow": "Casts shadow (blocks light)",
+        "shape": "Shape of sight",
+        "shapeDome": "All round",
+        "shapeCone": "Ahead",
+        "shapeConeBack": "Ahead and behind",
+        "shapeConeMulti": "Several, evenly spaced",
+        "shapeConePeripheral": "Ahead, with side sight",
+        "shapeCustom": "By hand",
+        "coneAngle": "Spread (degrees)",
+        "coneCount": "How many",
+        "backAngle": "Spread behind (degrees)",
+        "backScale": "Reach behind",
+        "peripheralScale": "Reach to the sides",
+        "visionDirection": "Offset from facing (degrees)",
+        "visionLobes": "Lobes",
+        "visionLobesHint": "direction/spread/reach, separated by ;",
+        "showVisionRange": "Show the range of sight on the table"
       },
       "type": {
         "normal": "Normal",
@@ -1823,7 +1872,16 @@
         "facingMark_none": "Do not show",
         "facingMark_turn": "Turn the picture",
         "facingMark_arrow": "Show an arrowhead",
-        "facingMarkHint": "Lets a piece be turned in 2D. An arrowhead leaves the picture facing you and shows the facing on its own, in 3D as well"
+        "facingMarkHint": "Lets a piece be turned in 2D. An arrowhead leaves the picture facing you and shows the facing on its own, in 3D as well",
+        "sectionFog": "Fog of war",
+        "fogEnabled": "Enable fog of war",
+        "fogMode": "How the fog comes back",
+        "fogModeEasy": "Easy (cleared ground stays lit)",
+        "fogModeNormal": "Normal (keeps the map)",
+        "fogModeHard": "Hard (forgets the map)",
+        "fogModeHint": "Easy holds cleared ground lit for good, and a piece once found is followed wherever it goes. Normal keeps the ground cleared but lets it darken, and loses a piece that walks into ground nobody has reached. Hard closes the fog again the moment nobody is looking.",
+        "fogColor": "Fog colour",
+        "fogReset": "Reset the fog"
       },
       "dungeonGenerator": {
         "atmosphere": {
@@ -2066,8 +2124,6 @@
         "writingOthers": "{{count}} more typing"
       },
       "input": {
-        "prevPortrait": "Previous portrait",
-        "nextPortrait": "Next portrait",
         "you": " (you)",
         "everyone": "Everyone",
         "textareaPlaceholder": "Enter: send / Shift+Enter: new line / Ctrl+Up/Down: history / Ctrl+Left/Right: switch tab",
@@ -2109,6 +2165,13 @@
         "shareAsMemo": "Send to shared memo",
         "copyToTab": "Copy to another tab"
       },
+      "stream": {
+        "title": "Message stream",
+        "open": "Watch \"{{name}}\" in its own window",
+        "close": "Close that window",
+        "gone": "This tab is gone",
+        "followLatest": "Follow the newest"
+      },
       "palette": {
         "panelTitle": "Chat palette",
         "panelTitleWith": "{{name}} chat palette",
@@ -2144,6 +2207,8 @@
         "sectionScroll": "Scroll",
         "autoFollowScroll": "Auto-follow latest message",
         "autoFollowScrollTooltip": "When off, new messages on the same tab will not auto-scroll",
+        "vnEmoteBadge": "Show novel-mode expressions",
+        "vnEmoteBadgeTooltip": "When on, the expressions chosen in novel mode appear beside the line. They are never written into an exported log",
         "scope": "Applies to",
         "scope_all": "Every tab",
         "scope_perTab": "Each tab",
@@ -2248,13 +2313,24 @@
       "player": "Player",
       "log": "Backlog",
       "settings": {
+        "title": "Display settings",
         "typewriter": "Text speed",
         "portrait": "Portrait entrance",
         "textSize": "Text size",
         "motion": "Motion",
         "readability": "Readability",
         "background": "Background (GM)",
-        "layout": "Layout"
+        "layout": "Layout",
+        "asides": "Table talk"
+      },
+      "direction": {
+        "title": "Direction",
+        "stage": "Stage"
+      },
+      "asides": {
+        "skip": "Skip in the scene",
+        "read": "Read it out",
+        "note": "Skips lines written as the person rather than as a character. What the game master says, rolls, and arrivals still show. Nothing is removed from the log."
       },
       "speed": {
         "off": "Off",
@@ -2320,6 +2396,11 @@
       "seStop": "Stop SE",
       "soundBoardTitle": "Sound effects",
       "soundBoardEmpty": "No sound effects",
+      "soundFilter": "Search sounds and cut-ins…",
+      "presetSounds": "Built-in",
+      "cutIns": "Cut-ins",
+      "cutInPlay": "Play for everybody",
+      "cutInsEmpty": "No cut-ins",
       "portraitPattern": "Portrait pattern",
       "flip": "Flip portrait",
       "seAttach": "Play with next message",
@@ -2375,6 +2456,9 @@
       "backgroundClear": "Clear",
       "stageStay": "Stay",
       "stageExit": "Leave",
+      "stageReset": "Clear the portraits",
+      "stageResetTooltip": "Takes every portrait off the stage on the tab being read. The log is untouched, and reading back shows the stage as it was",
+      "stageResetBy": "{{user}} cleared the portraits.",
       "layout": {
         "bubble": "Bubble",
         "adv": "ADV",
@@ -3071,6 +3155,26 @@
         "center": "Centre",
         "right": "Right"
       }
+    },
+    "statusAilment": {
+      "title": "Status ailments",
+      "hint": "What is registered here stands as a column in the inventory table, and ticking it puts it on the piece.",
+      "namePlaceholder": "Name (no spaces)",
+      "add": "Add",
+      "remove": "Remove this ailment",
+      "moveUp": "Move up",
+      "moveDown": "Move down",
+      "empty": "Nothing registered yet",
+      "readOnly": "Only someone who can edit the table may change the list",
+      "color": "Colour",
+      "icon": "Mark",
+      "iconPlaceholder": "Emoji",
+      "rounds": "Rounds",
+      "roundsHint": "Zero holds it until it is taken away",
+      "effect": "Effect",
+      "effectPlaceholder": "A line to carry on the buff (e.g. HP-1 each round)",
+      "iconImage": "Picture",
+      "pickIconImage": "Pick a picture"
     }
   },
   "app": {
@@ -3104,14 +3208,14 @@
       "roomSnapshot": "Auto save / restore",
       "createObject": "Create a piece",
       "replay": "Replay",
-      "recording": "Recording"
+      "recording": "Recording",
+      "fogOn": "Fog of war: on (click to turn off)",
+      "fogOff": "Fog of war: off (click to turn on)"
     },
     "roomDataDefault": "Room data"
   },
   "feature.controller": {
     "input": {
-      "prevPortrait": "Previous portrait",
-      "nextPortrait": "Next portrait",
       "you": " (you)",
       "colorSetting": "Color settings",
       "colorSettingWithName": "Color settings - {{name}}",
@@ -3280,6 +3384,7 @@
       "gaugeInverted": "Negative resource",
       "changeEffect": "Effect on change",
       "changeSound": "Sound on change",
+      "changeSoundSet": "Sound type",
       "columnLabel": "Column label",
       "columnLabelPlaceholder": "Empty: use name",
       "columnGroup": "Column group",
@@ -3326,6 +3431,10 @@
       "newTag": "Tag",
       "gapCellLabel": "G"
     },
+    "soundSet": {
+      "flesh": "Flesh",
+      "mech": "Mech"
+    },
     "tableView": {
       "judgeCalc": "Judge calc mode",
       "skillLearned": "Skill learn mode"
@@ -3364,7 +3473,15 @@
     },
     "panel": {
       "menuTitle": "Menu",
-      "transparency": "Transparency"
+      "transparency": "Transparency",
+      "ghost": "Ghost mode"
+    },
+    "portraitPicker": {
+      "title": "Portraits",
+      "open": "{{name}} (click to choose a portrait)",
+      "previous": "Previous portrait",
+      "next": "Next portrait",
+      "unnamed": "Portrait {{index}}"
     }
   },
   "error": {}

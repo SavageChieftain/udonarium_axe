@@ -58,6 +58,8 @@ const DEFAULT_SOUND: ChatScopedSoundSetting = { scope: 'all', all: DEFAULT_CHAT_
 
 interface StoredChatPreferences {
   fontSize?: number;
+  /** Whether the chat log says how novel mode was asked to stage a line. Off unless asked for. */
+  showVnEmoteBadge?: boolean;
   colors?: string[];
   display?: ChatDisplayPreferences;
   portrait?: ChatScopedSetting;
@@ -98,6 +100,15 @@ export class ChatPreferencesService {
   readonly hasSimpleAnswer = computed(() => this.stored().simple !== undefined);
   readonly sound = computed<ChatScopedSoundSetting>(() => this.stored().sound ?? DEFAULT_SOUND);
 
+  /**
+   * Whether a line says which novel-mode expression it was sent with.
+   *
+   * Off by default: a serious scene reads worse for "ぶるぶる" standing beside it, and a log
+   * kept for the table reads worse still. Somebody who wants to tell at a glance can turn it
+   * on, and it stays on this browser rather than being handed to the room.
+   */
+  readonly showVnEmoteBadge = computed(() => this.stored().showVnEmoteBadge === true);
+
   constructor() {
     effect(() => {
       const v = this.autoFollowScroll();
@@ -115,6 +126,10 @@ export class ChatPreferencesService {
 
   setAutoFollowScroll(v: boolean): void {
     this.autoFollowScroll.set(v);
+  }
+
+  setShowVnEmoteBadge(v: boolean): void {
+    this.patch({ showVnEmoteBadge: v });
   }
 
   setFontSize(v: number): void {
@@ -217,6 +232,7 @@ function readStored(): StoredChatPreferences {
     const source = parsed as Record<string, unknown>;
     const stored: StoredChatPreferences = {};
     if (typeof source['fontSize'] === 'number') stored.fontSize = clampFontSize(source['fontSize']);
+    if (source['showVnEmoteBadge'] === true) stored.showVnEmoteBadge = true;
     const colors = readColors(source['colors']);
     if (colors) stored.colors = colors;
     const display = readDisplay(source['display']);

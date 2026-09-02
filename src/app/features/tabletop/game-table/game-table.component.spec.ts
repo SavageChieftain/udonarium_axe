@@ -3,6 +3,7 @@ import { MobileLayoutService } from '@axe/application/ui/mobile-layout.service';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { GridType } from '@axe/domain/tabletop/game-table';
+import { TableSurface } from '@axe/domain/tabletop/tabletop-object';
 import { GameTableComponent } from '@axe/features/tabletop/game-table/game-table.component';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
 
@@ -129,6 +130,18 @@ describe('GameTableComponent', () => {
       expect(style?.mask).toContain('data:image/svg+xml');
       expect(style?.['-webkit-mask']).toBe(style?.mask);
       expect(borderStyle?.background).toContain('data:image/svg+xml');
+    });
+  });
+
+  describe('the pools on its walls', () => {
+    it('measures a pool from the end each wall is drawn from', () => {
+      const pool = { localX: 100, localY: 40, radiusX: 80, radiusY: 80, color: '#ffffff', intensity: 1 };
+      const at = (surface: TableSurface) => component['wallPoolStyleFor'](pool, surface, 1000)['mask-image'];
+
+      expect(at('north-wall')).toContain('at 100px');
+      expect(at('east-wall')).toContain('at 100px');
+      expect(at('south-wall')).toContain('at 900px');
+      expect(at('west-wall')).toContain('at 900px');
     });
   });
 

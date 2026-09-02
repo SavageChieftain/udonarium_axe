@@ -4,30 +4,33 @@ import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { GameObjectInventoryService } from '@axe/application/inventory/game-object-inventory.service';
 import { RolePermissionService } from '@axe/application/permission/role-permission.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
+import { ModalService } from '@axe/application/ui/modal.service';
 import { BUFF_COLORS, DEFAULT_BUFF_COLOR } from '@axe/domain/character/buff-appearance';
-import { buffColorOf, buffIconOf, parseBuffStrength } from '@axe/domain/character/buff-badge';
+import { buffColorOf, buffIconOf, buffIconUrlOf, parseBuffStrength } from '@axe/domain/character/buff-badge';
 import { BUFF_TIMINGS, BuffTiming, buffTimingOf, buffTriggerOf } from '@axe/domain/character/buff-timing';
 import { buffTriggerOptions, selectedTriggerValue } from '@axe/domain/character/buff-trigger-options';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { DataElement, DataElementAttribute, DataElementType } from '@axe/domain/data/data-element';
-import { PeerCursor } from '@axe/domain/peer/peer-cursor';
+import { FileSelecterComponent } from '@axe/ui/components/file-selecter/file-selecter.component';
+import { SafePipe } from '@axe/ui/pipes/safe.pipe';
 import { TranslocoModule } from '@jsverse/transloco';
 
 @Component({
   selector: 'game-data-element-buff, [game-data-element-buff]',
   templateUrl: './game-data-element-buff.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FormsModule, TranslocoModule],
+  imports: [FormsModule, SafePipe, TranslocoModule],
   host: { '[attr.inert]': "isReadOnly() ? '' : null" },
 })
 export class GameDataElementBuffComponent {
   private readonly objectChange = inject(ObjectChangeService);
   private readonly rolePermission = inject(RolePermissionService);
   private readonly inventory = inject(GameObjectInventoryService);
+  private readonly modalService = inject(ModalService);
   private readonly t = inject(TRANSLATE_FN);
 
   readonly isReadOnly = computed(() => {
-    if (PeerCursor.myCursor) this.objectChange.versionOf(PeerCursor.myCursor.identifier)();
+    this.objectChange.trackMyCursor();
     return !this.rolePermission.canEditTabletop;
   });
 
@@ -79,6 +82,9 @@ export class GameDataElementBuffComponent {
     this.objectChange.versionOf(element.identifier)();
     return buffIconOf(element);
   });
+
+  /** Where the picture is, for a buff whose mark is one that was brought in. */
+  readonly iconUrl = computed(() => buffIconUrlOf(this.icon()));
 
   readonly colorChoices = BUFF_COLORS;
   readonly defaultColor = DEFAULT_BUFF_COLOR;
@@ -149,6 +155,17 @@ export class GameDataElementBuffComponent {
     if (buffIconOf(element) === icon) element.removeAttribute(DataElementAttribute.BUFF_ICON);
     else element.setAttribute(DataElementAttribute.BUFF_ICON, icon);
     this.objectChange.notifyChanged(element.identifier);
+  }
+
+  /** Puts a picture from the room's images in place of the mark. */
+  chooseIconImage(): void {
+    this.modalService.open<string>(FileSelecterComponent, { isAllowedEmpty: true }).then((identifier) => {
+      if (identifier == null) return;
+      const element = this.gameDataElement();
+      if (identifier.length > 0) element.setAttribute(DataElementAttribute.BUFF_ICON, identifier);
+      else element.removeAttribute(DataElementAttribute.BUFF_ICON);
+      this.objectChange.notifyChanged(element.identifier);
+    });
   }
 
   selectColor(color: string): void {

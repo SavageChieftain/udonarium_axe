@@ -301,6 +301,13 @@
       }
     },
     "gmObjectList": {
+      "tickRow": "선택",
+      "tickAllShown": "표시된 항목 모두 선택",
+      "tickedCount": "{{count}}개 선택됨",
+      "tickedDiffer": "설정이 서로 다릅니다",
+      "setVision": "시야 일괄 설정",
+      "clearTicks": "선택 해제",
+      "visionForTicked": "시야 일괄 설정 ({{count}}개)",
       "searchPlaceholder": "이름·소유자로 검색",
       "gmOnly": "이 도구는 게임 마스터 전용입니다",
       "empty": "해당하는 오브젝트가 없습니다",
@@ -1021,6 +1028,12 @@
         "laser-hit": "광선 착탄",
         "laserbeam": "레이저 조사",
         "lasergun": "광선총",
+        "mech-damage-large": "메카 데미지(대)",
+        "mech-damage-medium": "메카 데미지(중)",
+        "mech-damage-small": "메카 데미지(소)",
+        "mech-heal-large": "메카 회복(대)",
+        "mech-heal-medium": "메카 회복(중)",
+        "mech-heal-small": "메카 회복(소)",
         "missile-launch": "미사일 발사",
         "poison": "독",
         "qigong": "기공",
@@ -1298,7 +1311,24 @@
         "emptyMessage": "{{name}} 인벤토리는 비어 있습니다",
         "cleanGraveyard": "무덤 비우기",
         "confirmCleanTab": "{{tab}}에 있는 {{count}}개 요소를 완전히 삭제할까요?",
-        "confirmMultiDelete": "선택한 것 중 무덤에 있는 {{count}}개 요소를 완전히 삭제할까요?"
+        "confirmMultiDelete": "선택한 것 중 무덤에 있는 {{count}}개 요소를 완전히 삭제할까요?",
+        "viewRich": "리치 표시",
+        "viewTable": "간략 표시(표)",
+        "tableNoColumns": "표시 항목이 비어 있습니다. 표시 설정에서 항목 이름을 넣으면 열이 됩니다",
+        "tableName": "이름",
+        "tableOrder": "순서",
+        "filterPanelTitle": "검색과 표시 설정",
+        "filterNone": "좁히지 않음",
+        "displayItemsHint": "상태 이상 이름을 적으면 그 열은 체크 칸이 됩니다",
+        "inventoryVisibility": "표시",
+        "viewRound": "라운드 표시",
+        "showParts": "표시할 행",
+        "showTabs": "탭",
+        "showFilterLine": "좁히기",
+        "showRoundLine": "라운드 조작",
+        "showPartsHint": "끈 행은 자리를 비우지 않습니다. 이 설정은 이 단말에만 적용됩니다",
+        "displayItemsRich": "표시 항목(리치)",
+        "displayItemsTable": "표시 항목(간략)"
       }
     },
     "file": {
@@ -1343,7 +1373,8 @@
         "moveGraveyard": "무덤으로 이동",
         "buffView": "버프 표시",
         "invokeEffect": "연출 발동",
-        "deployDice": "주사위 펼치기({{count}}개)"
+        "deployDice": "주사위 펼치기({{count}}개)",
+        "showVisionRange": "시야 범위 표시"
       },
       "panel": {
         "sheet": "캐릭터 시트",
@@ -1385,9 +1416,11 @@
         "timing_roundEnd": "라운드 종료 시",
         "timing_turnStart": "트리거의 차례 시작 시",
         "timing_turnEnd": "트리거의 차례 종료 시",
+        "timing_none": "사라지지 않음",
         "trigger": "트리거 캐릭터",
         "triggerPlaceholder": "지정하지 않으면 본인",
-        "triggerUnknown": "{{name}}(탁상 밖)"
+        "triggerUnknown": "{{name}}(탁상 밖)",
+        "iconImage": "이미지에서 고르기"
       },
       "importImg": {
         "sourceLabel": "복제 원본＞",
@@ -1524,7 +1557,23 @@
         "title": "시야",
         "visionType": "시야 유형",
         "visionRange": "시야 범위(칸)",
-        "castsShadow": "빛을 막고 그림자를 드리움"
+        "castsShadow": "빛을 막고 그림자를 드리움",
+        "shape": "시야 형태",
+        "shapeDome": "전방위",
+        "shapeCone": "전방",
+        "shapeConeBack": "전후",
+        "shapeConeMulti": "복수(등간격)",
+        "shapeConePeripheral": "전방＋주변 시야",
+        "shapeCustom": "임의",
+        "coneAngle": "시야각(도)",
+        "coneCount": "시야 개수",
+        "backAngle": "후방 시야각(도)",
+        "backScale": "후방 거리 비율",
+        "peripheralScale": "주변 시야 거리 비율",
+        "visionDirection": "방향 오프셋(도)",
+        "visionLobes": "시야 지정",
+        "visionLobesHint": "방향/각도/거리비 를 ; 로 구분해 나열합니다",
+        "showVisionRange": "시야 범위를 테이블에 표시"
       },
       "type": {
         "normal": "일반 시야",
@@ -1823,7 +1872,16 @@
         "facingMark_none": "표시하지 않음",
         "facingMark_turn": "말째로 회전",
         "facingMark_arrow": "화살촉으로 표시",
-        "facingMarkHint": "2D 모드에서 말을 회전할 수 있게 합니다. 화살촉은 그림을 카메라 쪽으로 둔 채 방향만 나타내며 3D 모드에서도 보입니다"
+        "facingMarkHint": "2D 모드에서 말을 회전할 수 있게 합니다. 화살촉은 그림을 카메라 쪽으로 둔 채 방향만 나타내며 3D 모드에서도 보입니다",
+        "sectionFog": "전장의 안개(탐색)",
+        "fogEnabled": "전장의 안개 활성화",
+        "fogMode": "안개가 돌아오는 방식",
+        "fogModeEasy": "이지 (걷힌 곳은 계속 밝게)",
+        "fogModeNormal": "노멀 (기억을 남김)",
+        "fogModeHard": "하드 (기억을 지움)",
+        "fogModeHint": "이지는 한 번 걷힌 안개가 돌아오지 않고 계속 밝으며, 발견한 적은 어디로 움직여도 위치를 알 수 있습니다. 노멀은 안개는 돌아오지 않지만 떨어진 곳은 어두워지고, 적이 미탐색 지역으로 가면 놓칩니다. 하드는 시야에서 벗어나면 미탐색으로 돌아갑니다.",
+        "fogColor": "안개 색",
+        "fogReset": "안개 초기화"
       },
       "dungeonGenerator": {
         "atmosphere": {
@@ -2066,8 +2124,6 @@
         "writingOthers": "외 {{count}}명 입력 중"
       },
       "input": {
-        "prevPortrait": "이전 입화",
-        "nextPortrait": "다음 입화",
         "you": "(당신)",
         "everyone": "전원",
         "textareaPlaceholder": "Enter: 전송 Shift+Enter: 줄바꿈 Ctrl+↑↓: 기록 Ctrl+←→: 탭 전환",
@@ -2109,6 +2165,13 @@
         "shareAsMemo": "공유 메모로 보내기",
         "copyToTab": "다른 탭으로 복사"
       },
+      "stream": {
+        "title": "발언의 흐름",
+        "open": "「{{name}}」을 별창으로 흘리기",
+        "close": "별창 닫기",
+        "gone": "이 탭은 사라졌습니다",
+        "followLatest": "최신에 따라가기"
+      },
       "palette": {
         "panelTitle": "채팅 팔레트",
         "panelTitleWith": "{{name}}의 채팅 팔레트",
@@ -2144,6 +2207,8 @@
         "sectionScroll": "스크롤",
         "autoFollowScroll": "스크롤 위치를 최신에 맞추기",
         "autoFollowScrollTooltip": "끄면 같은 탭의 새 메시지로 자동 스크롤하지 않습니다",
+        "vnEmoteBadge": "노벨 모드 연출 표시",
+        "vnEmoteBadgeTooltip": "켜면 노벨 모드에서 지정한 연출 이름이 발언 옆에 작게 표시됩니다. 내보낸 로그에는 포함되지 않습니다",
         "scope": "적용 범위",
         "scope_all": "전체",
         "scope_perTab": "탭별",
@@ -2248,13 +2313,24 @@
       "player": "플레이어",
       "log": "로그",
       "settings": {
+        "title": "표시 설정",
         "typewriter": "글자 보내기",
         "portrait": "입화 등장 연출",
         "textSize": "글자 크기",
         "motion": "연출 세기",
         "readability": "글자 가독성",
         "background": "배경(GM)",
-        "layout": "표시 레이아웃"
+        "layout": "표시 레이아웃",
+        "asides": "플레이어의 잡담"
+      },
+      "direction": {
+        "title": "진행",
+        "stage": "스테이지"
+      },
+      "asides": {
+        "skip": "본편에 내지 않기",
+        "read": "그대로 읽기",
+        "note": "캐릭터가 아니라 본인으로서 쓴 발언을 본편에서 건너뜁니다. GM의 발언·주사위·입퇴실 알림은 그대로 나옵니다. 로그에는 남습니다."
       },
       "speed": {
         "off": "없음",
@@ -2320,6 +2396,11 @@
       "seStop": "SE 정지",
       "soundBoardTitle": "사운드 이펙트",
       "soundBoardEmpty": "SE가 없습니다",
+      "soundFilter": "소리·컷인 검색…",
+      "presetSounds": "프리셋",
+      "cutIns": "컷인",
+      "cutInPlay": "모두에게 재생",
+      "cutInsEmpty": "컷인이 없습니다",
       "portraitPattern": "입화 패턴",
       "flip": "입화 좌우 반전",
       "seAttach": "다음 발언과 동시에 재생",
@@ -2375,6 +2456,9 @@
       "backgroundClear": "해제",
       "stageStay": "머무름",
       "stageExit": "퇴장",
+      "stageReset": "입화 초기화",
+      "stageResetTooltip": "표시 중인 탭의 입화를 모두 내립니다. 로그는 지워지지 않으며, 거슬러 올라가면 당시의 입화가 나옵니다",
+      "stageResetBy": "{{user}}님이 입화를 초기화했습니다.",
       "layout": {
         "bubble": "말풍선",
         "adv": "ADV",
@@ -2914,8 +2998,6 @@
     },
     "controller": {
       "input": {
-        "prevPortrait": "이전 입화",
-        "nextPortrait": "다음 입화",
         "you": "(당신)",
         "colorSetting": "색 설정",
         "colorSettingWithName": "색 설정 - {{name}}",
@@ -3084,6 +3166,7 @@
         "gaugeInverted": "마이너스 리소스",
         "changeEffect": "증감 시 이펙트",
         "changeSound": "증감 시 효과음",
+        "changeSoundSet": "효과음 타입",
         "columnLabel": "열 표시",
         "columnLabelPlaceholder": "비우면 이름",
         "columnGroup": "열 그룹",
@@ -3129,6 +3212,10 @@
         "newGroup": "그룹",
         "newTag": "태그",
         "gapCellLabel": "G"
+      },
+      "soundSet": {
+        "flesh": "생체",
+        "mech": "메카"
       },
       "tableView": {
         "judgeCalc": "판정 산출 모드",
@@ -3303,6 +3390,26 @@
         "center": "가운데",
         "right": "오른쪽"
       }
+    },
+    "statusAilment": {
+      "title": "상태 이상",
+      "hint": "여기에 등록한 상태 이상은 인벤토리 간략 모드에서 열로 늘어서며, 체크하면 말에 붙습니다.",
+      "namePlaceholder": "상태 이상 이름(공백 불가)",
+      "add": "추가",
+      "remove": "이 상태 이상 삭제",
+      "moveUp": "위로",
+      "moveDown": "아래로",
+      "empty": "아직 등록된 것이 없습니다",
+      "readOnly": "등록을 바꿀 수 있는 것은 탁상을 편집할 수 있는 사람뿐입니다",
+      "color": "색",
+      "icon": "아이콘",
+      "iconPlaceholder": "이모지",
+      "rounds": "라운드",
+      "roundsHint": "0이면 해제할 때까지 지속됩니다",
+      "effect": "효과",
+      "effectPlaceholder": "버프에 붙는 한 줄(예: 매 라운드 HP-1)",
+      "iconImage": "이미지",
+      "pickIconImage": "이미지에서 고르기"
     }
   },
   "app": {
@@ -3336,7 +3443,9 @@
       "roomSnapshot": "자동 저장 / 복원",
       "createObject": "말 만들기",
       "replay": "리플레이",
-      "recording": "녹화"
+      "recording": "녹화",
+      "fogOn": "전장의 안개: 켬(클릭하면 끔)",
+      "fogOff": "전장의 안개: 끔(클릭하면 켬)"
     },
     "roomDataDefault": "룸 데이터"
   },
@@ -3366,7 +3475,15 @@
     },
     "panel": {
       "menuTitle": "메뉴",
-      "transparency": "투명도"
+      "transparency": "투명도",
+      "ghost": "투명 모드"
+    },
+    "portraitPicker": {
+      "title": "입화",
+      "open": "{{name}} (클릭하여 입화 선택)",
+      "previous": "이전 입화",
+      "next": "다음 입화",
+      "unnamed": "입화 {{index}}"
     }
   }
 }

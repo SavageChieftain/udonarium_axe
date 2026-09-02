@@ -13,3 +13,20 @@ export function playsEffectOnChange(element: DataElement): boolean {
 export function playsSoundOnChange(element: DataElement): boolean {
   return element.getAttribute(DataElementAttribute.CHANGE_SOUND) === 'true';
 }
+
+/** Whose hurt the sound is: a body that bleeds, or a frame that dents. */
+export type ResourceSoundSet = 'flesh' | 'mech';
+
+export interface ResourceSoundSetOption {
+  value: ResourceSoundSet;
+  labelKey: string;
+}
+
+export const RESOURCE_SOUND_SET_OPTIONS: readonly ResourceSoundSetOption[] = [
+  { value: 'flesh', labelKey: 'feature.dataElement.soundSet.flesh' },
+  { value: 'mech', labelKey: 'feature.dataElement.soundSet.mech' },
+];
+
+export function soundSetOnChange(element: DataElement): ResourceSoundSet {
+  return element.getAttribute(DataElementAttribute.CHANGE_SOUND_SET) === 'mech' ? 'mech' : 'flesh';
+}

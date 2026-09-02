@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ChatPreferencesService } from '@axe/application/chat/chat-preferences.service';
 import {
   DEFAULT_SYSTEM_AVATAR_URL,
   DEFAULT_SYSTEM_DICE_AVATAR_URL,
@@ -9,6 +10,7 @@ import { RolePermissionService } from '@axe/application/permission/role-permissi
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { UiSignalService } from '@axe/application/ui/ui-signal.service';
 import { emitFileLoaded } from '@axe/core/event/domain-events';
+import { getPeerContext } from '@axe/core/network/peer-context-source';
 import { ImageStorage } from '@axe/core/storage/image-storage';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { ChatMessage } from '@axe/domain/chat/chat-message';
@@ -711,6 +713,93 @@ describe('ChatMessageComponent', () => {
 
       const req = ui.chatJumpRequest();
       expect(req?.messageIdentifier).toBe('msg-B');
+    });
+  });
+  describe('the novel-mode staging', () => {
+    const spoken = (text: string, vnEmote = '') => {
+      const message = new ChatMessage();
+      message.initialize();
+      // What `changeable` compares against, so an edit is allowed whatever ran before this.
+      message.from = getPeerContext().userId;
+      message.to = '';
+      message.name = 'アリス';
+      message.tag = '';
+      message.imageIdentifier = '';
+      message.messColor = '#000000';
+      message.text = text;
+      if (vnEmote) message.vnEmote = vnEmote;
+      return message;
+    };
+
+    it('leaves the body alone when the staging is kept beside the line', () => {
+      fixture.componentRef.setInput('chatMessage', spoken('なんだって！？', 'shape:shout bubble:shake'));
+      expect(component.escapeHtmlAndRuby('なんだって！？')).toContain('なんだって！？');
+      expect(component.escapeHtmlAndRuby('なんだって！？')).not.toContain('〔');
+    });
+
+    it('takes the staging off a line said before it was kept apart', () => {
+      fixture.componentRef.setInput('chatMessage', spoken('なんだって！？ 〔叫び・ゆれ〕'));
+      const drawn = component.escapeHtmlAndRuby('なんだって！？ 〔叫び・ゆれ〕');
+      expect(drawn).toContain('なんだって！？');
+      expect(drawn).not.toContain('叫び');
+    });
+
+    it('leaves a bracket it cannot read alone', () => {
+      fixture.componentRef.setInput('chatMessage', spoken('メモ 〔重要〕'));
+      expect(component.escapeHtmlAndRuby('メモ 〔重要〕')).toContain('重要');
+    });
+
+    it('offers the body alone for editing', () => {
+      const message = spoken('なんだって！？ 〔叫び〕');
+      fixture.componentRef.setInput('chatMessage', message);
+      component.startEdit();
+      expect(component.editDraft()).toBe('なんだって！？');
+    });
+
+    it('moves an older line staging beside it when the body is edited', () => {
+      const message = spoken('なんだって！？ 〔叫び・ゆれ〕');
+      fixture.componentRef.setInput('chatMessage', message);
+      component.startEdit();
+      component.editDraft.set('やっぱりなんでもない');
+      component.saveEdit();
+
+      expect(message.text).toBe('やっぱりなんでもない');
+      expect(message.vnEmote).toBe('shape:shout bubble:shake');
+    });
+
+    it('says nothing about the staging unless the reader asked', () => {
+      TestBed.inject(ChatPreferencesService).setShowVnEmoteBadge(false);
+      fixture.componentRef.setInput('chatMessage', spoken('なんだって！？', 'shape:shout bubble:shake'));
+      expect(component.emoteBadges()).toEqual([]);
+    });
+
+    it('names the staging once the reader asks for it', () => {
+      TestBed.inject(ChatPreferencesService).setShowVnEmoteBadge(true);
+      fixture.componentRef.setInput('chatMessage', spoken('なんだって！？', 'shape:shout bubble:shake'));
+      expect(component.emoteBadges()).toHaveLength(2);
+    });
+
+    it('names the staging of a line said before it was kept apart', () => {
+      TestBed.inject(ChatPreferencesService).setShowVnEmoteBadge(true);
+      fixture.componentRef.setInput('chatMessage', spoken('またね 〔退場〕'));
+      expect(component.emoteBadges()).toHaveLength(1);
+    });
+
+    it('says nothing about a line staged no particular way', () => {
+      TestBed.inject(ChatPreferencesService).setShowVnEmoteBadge(true);
+      fixture.componentRef.setInput('chatMessage', spoken('こんばんは'));
+      expect(component.emoteBadges()).toEqual([]);
+    });
+
+    it('does not invent a staging for a line that never had one', () => {
+      const message = spoken('こんばんは');
+      fixture.componentRef.setInput('chatMessage', message);
+      component.startEdit();
+      component.editDraft.set('こんにちは');
+      component.saveEdit();
+
+      expect(message.text).toBe('こんにちは');
+      expect(message.vnEmote).toBe('');
     });
   });
 });

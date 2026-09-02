@@ -20,6 +20,33 @@ test.describe('チャットウィンドウ', () => {
     await expect(subTabRadio).toBeChecked();
   });
 
+  test('タブを右クリックして発言だけの別窓を開けること', async ({ page }) => {
+    const input = page.locator('chat-input textarea').first();
+    await input.fill('流れを見たい発言');
+    await input.press('Enter');
+    await expect(page.locator('chat-message').last()).toContainText('流れを見たい発言', { timeout: 15000 });
+
+    await chatTabPill(page, 'メインタブ').click({ button: 'right' });
+    await page.locator('context-menu').getByText('「メインタブ」を別窓で流す').click();
+
+    const stream = page.locator('chat-stream');
+    await expect(stream).toBeVisible();
+    await expect(stream).toContainText('流れを見たい発言');
+    // 読むための窓なので、発言の操作ボタンは出ない。
+    await expect(stream.locator('chat-message .material-icons')).toHaveCount(0);
+  });
+
+  test('別窓は同じ右クリックから閉じられること', async ({ page }) => {
+    await chatTabPill(page, 'サブタブ').click({ button: 'right' });
+    await page.locator('context-menu').getByText('「サブタブ」を別窓で流す').click();
+    await expect(page.locator('chat-stream')).toBeVisible();
+
+    await chatTabPill(page, 'サブタブ').click({ button: 'right' });
+    await page.locator('context-menu').getByText('別窓を閉じる').click();
+
+    await expect(page.locator('chat-stream')).toHaveCount(0);
+  });
+
   test('送信ボタンが表示されること', async ({ page }) => {
     await expect(page.locator('chat-input').getByRole('button', { name: '送信' })).toBeVisible();
   });

@@ -8,6 +8,7 @@ import { ChatTab } from '@axe/domain/chat/chat-tab';
 import { ChatTabList } from '@axe/domain/chat/chat-tab-list';
 import { DataElement } from '@axe/domain/data/data-element';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
+import { PeerRole } from '@axe/domain/peer/peer-role';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
 
 describe('ChatMessageService', () => {
@@ -38,6 +39,21 @@ describe('ChatMessageService', () => {
       expect(toTabSpy).toHaveBeenCalledWith(mainTab, 'hello', undefined);
     }
   ));
+
+  describe('what a line records about who spoke it', () => {
+    it('writes down the role the speaker was wearing at the time', () => {
+      const service = TestBed.inject(ChatMessageService);
+      PeerCursor.createMyCursor();
+      PeerCursor.myCursor.role = PeerRole.GameMaster;
+      const chatTab = new ChatTab();
+      chatTab.initialize();
+      ObjectStore.instance.add(chatTab);
+
+      const message = service.sendMessage(chatTab, 'では、判定を', null, PeerCursor.myCursor.identifier);
+
+      expect(message.senderRole).toBe(PeerRole.GameMaster);
+    });
+  });
 
   describe('the portrait command at the end of a line', () => {
     let service: ChatMessageService;

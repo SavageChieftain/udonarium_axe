@@ -49,16 +49,22 @@ import { isInternalResource } from '@axe/domain/character/internal-resource';
 import { isGaugeInverted, PieceGauge, selectPieceGauges } from '@axe/domain/character/piece-gauge';
 import {
   diffResourceSnapshots,
-  loudestChangeRatio,
+  loudestChange,
   ResourceChange,
+  ResourceChangeKind,
+  ResourceChangeSeverity,
   resourceChangeSeverity,
   ResourceSnapshot,
 } from '@axe/domain/character/resource-change';
-import { playsEffectOnChange, playsSoundOnChange } from '@axe/domain/character/resource-feedback';
+import {
+  playsEffectOnChange,
+  playsSoundOnChange,
+  ResourceSoundSet,
+  soundSetOnChange,
+} from '@axe/domain/character/resource-feedback';
 import { DataElement } from '@axe/domain/data/data-element';
 import { collectDataElements } from '@axe/domain/data/data-element-tree';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
-import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { GridSnapStyle } from '@axe/domain/tabletop/game-table';
 import { isFlatTopGrid, isHexGrid } from '@axe/domain/tabletop/hex-geometry';
 import { asTableFacingMark, TableFacingMark } from '@axe/domain/tabletop/table-facing-mark';
@@ -89,14 +95,24 @@ const DECOR_BASE_FONT_PX = 10;
 const NAME_BASE_FONT_PX = 15;
 const GAUGE_ROW_HEIGHT_PX = 13;
 
-function resourceChangeSound(kind: 'damage' | 'heal', ratio: number): string {
-  const severity = resourceChangeSeverity(ratio);
-  if (kind === 'damage') {
-    if (severity === 'small') return PresetSound.damageSmall;
-    return severity === 'large' ? PresetSound.damageLarge : PresetSound.damageMedium;
-  }
-  if (severity === 'small') return PresetSound.healSmall;
-  return severity === 'large' ? PresetSound.healLarge : PresetSound.healMedium;
+type PresetSoundKey = Exclude<keyof typeof PresetSound, 'prototype'>;
+
+const RESOURCE_CHANGE_SOUND_KEYS: Record<
+  ResourceSoundSet,
+  Record<ResourceChangeKind, Record<ResourceChangeSeverity, PresetSoundKey>>
+> = {
+  flesh: {
+    damage: { small: 'damageSmall', medium: 'damageMedium', large: 'damageLarge' },
+    heal: { small: 'healSmall', medium: 'healMedium', large: 'healLarge' },
+  },
+  mech: {
+    damage: { small: 'mechDamageSmall', medium: 'mechDamageMedium', large: 'mechDamageLarge' },
+    heal: { small: 'mechHealSmall', medium: 'mechHealMedium', large: 'mechHealLarge' },
+  },
+};
+
+function resourceChangeSound(kind: ResourceChangeKind, ratio: number, soundSet: ResourceSoundSet): string {
+  return PresetSound[RESOURCE_CHANGE_SOUND_KEYS[soundSet][kind][resourceChangeSeverity(ratio)]];
 }
 
 const FLOATING_CHANGE_MS = 1300;
@@ -282,7 +298,7 @@ export class GameCharacterComponent {
     const char = this.gameCharacter();
     if (!char) return false;
     this.objectChange.versionOf(char.identifier)();
-    if (PeerCursor.myCursor) this.objectChange.versionOf(PeerCursor.myCursor.identifier)();
+    this.objectChange.trackMyCursor();
     return char.hideName && !this.rolePermission.canSeeHidden;
   });
   readonly hideBuff = computed(() => {
@@ -580,6 +596,7 @@ export class GameCharacterComponent {
         inverted: isGaugeInverted(element),
         playsEffect: playsEffectOnChange(element),
         playsSound: playsSoundOnChange(element),
+        soundSet: soundSetOnChange(element),
         changedBySelf: this.objectStore.localChangeCountOf(element.identifier),
       });
     }
@@ -879,10 +896,10 @@ export class GameCharacterComponent {
     this.hitFlash.set(kind);
 
     const heard = entries.filter((entry) => entry.playsSound);
-    if (heard.length > 0) {
-      const heardKind = heard.some((entry) => entry.kind === 'damage') ? 'damage' : 'heal';
-      SoundEffect.playLocal(resourceChangeSound(heardKind, loudestChangeRatio(heard)));
-    }
+    const loudest = loudestChange(heard);
+    // One line is heard, so all three of what is heard come from it. Taken apart, a point of
+    // damage alongside a large heal was played as a large hurt, in the heal's own voice.
+    if (loudest) SoundEffect.playLocal(resourceChangeSound(loudest.kind, loudest.ratio, loudest.soundSet));
 
     const shown = entries.filter((entry) => entry.playsEffect);
     const char = this.gameCharacter();

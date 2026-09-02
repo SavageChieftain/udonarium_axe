@@ -1,30 +1,12 @@
-<div
-  appDraggable
-  [draggable.handle]="'.vn-log-handle'"
-  [draggable.unhandle]="'input,textarea,button,select,option'"
-  class="border-ui-border-panel bg-ui-panel shadow-ui-md rounded-ui-lg pointer-events-auto absolute top-[6dvh] left-1/2 z-60 flex h-[62dvh] w-[min(44rem,92vw)] -translate-x-1/2 flex-col overflow-hidden border border-solid [backdrop-filter:blur(24px)_saturate(1.5)]"
->
-  <div
-    class="vn-log-handle border-ui-border-titlebar bg-ui-titlebar text-ui-muted flex h-9 shrink-0 cursor-grab items-center gap-2 border-b border-solid px-3 text-xs font-medium active:cursor-grabbing"
-  >
-    <span class="shrink-0">{{ 'feature.visualNovel.log' | transloco }}</span>
+<div class="flex size-full flex-col overflow-hidden">
+  <div class="border-ui-border-separator flex shrink-0 flex-wrap items-center gap-1 border-b border-solid px-2 py-1">
     <input
       type="text"
-      class="border-ui-border-panel bg-ui-input text-ui-text placeholder:text-ui-dim focus:border-ui-accent rounded-ui ml-auto w-48 max-w-[50%] border border-solid px-2 py-1 text-[11px] outline-none"
+      class="border-ui-border-panel bg-ui-input text-ui-text placeholder:text-ui-dim focus:border-ui-accent rounded-ui mr-auto w-48 max-w-[50%] border border-solid px-2 py-1 text-[11px] outline-none"
       [placeholder]="'feature.visualNovel.logFilterPlaceholder' | transloco"
       [ngModel]="filter()"
       (ngModelChange)="filter.set($event)"
     />
-    <button
-      type="button"
-      class="text-ui-dim hover:text-ui-accent flex cursor-pointer items-center border-0 bg-transparent p-0.5 transition-colors"
-      [attr.aria-label]="'feature.visualNovel.log' | transloco"
-      (click)="closed.emit()"
-    >
-      <i class="material-icons text-base!">close</i>
-    </button>
-  </div>
-  <div class="border-ui-border-separator flex shrink-0 items-center gap-1 border-b border-solid px-2 py-1">
     <button
       type="button"
       class="rounded-ui cursor-pointer border border-solid px-1.5 py-0.5 text-[11px] transition-[background,color]"
@@ -73,10 +55,10 @@
     @for (entry of windowedEntries(); track entry.message.identifier) {
       <div
         class="group/log rounded-ui hover:bg-ui-hover flex w-full gap-2 px-2.5 py-1.5 text-left transition-colors [contain-intrinsic-size:auto_3rem] [content-visibility:auto]"
-        [class.bg-ui-accent-bg]="entry.index === currentIndex()"
-        [class.cursor-pointer]="editingIndex() !== entry.index"
-        [attr.data-vn-log-index]="entry.index"
-        (click)="editingIndex() === entry.index ? null : jump.emit(entry.index)"
+        [class.bg-ui-accent-bg]="entry.message.identifier === currentIdentifier()"
+        [class.cursor-pointer]="editingIdentifier() !== entry.message.identifier"
+        [attr.data-vn-log-id]="entry.message.identifier"
+        (click)="editingIdentifier() === entry.message.identifier ? null : jumpTo(entry.message.identifier)"
       >
         <span class="rounded-ui-sm bg-ui-elevated size-9 shrink-0 overflow-hidden">
           @if (entry.imageUrl.length > 0) {
@@ -94,7 +76,7 @@
                 entry.suffix
               }}</span>
             }
-            @if (entry.message.changeable && editingIndex() !== entry.index) {
+            @if (entry.message.changeable && editingIdentifier() !== entry.message.identifier) {
               <button
                 type="button"
                 class="text-ui-dim hover:text-ui-accent ml-auto flex shrink-0 cursor-pointer items-center border-0 bg-transparent p-0.5 opacity-0 transition-[color,opacity] group-hover/log:opacity-100 [&_i]:text-[13px]"
@@ -105,7 +87,7 @@
               </button>
             }
           </span>
-          @if (editingIndex() === entry.index) {
+          @if (editingIdentifier() === entry.message.identifier) {
             <span class="flex flex-col gap-1.5 py-1" (click)="$event.stopPropagation()">
               <textarea
                 class="border-ui-accent bg-ui-input text-ui-text rounded-ui-sm focus:border-ui-accent block max-h-40 w-full resize-none border border-solid px-2 py-1 text-[13px] leading-normal outline-none"

@@ -3,6 +3,7 @@ import { Network } from '@axe/core/index';
 import { resetPeerContextProvider } from '@axe/core/network/peer-context-source';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
+import { PeerRole } from '@axe/domain/peer/peer-role';
 
 describe('PeerCursor', () => {
   let store: ObjectStore;
@@ -182,10 +183,23 @@ describe('PeerCursor', () => {
       expect(cursor.peerId).toBe(Network.peerId);
     });
 
-    it('returns the one that is there already', () => {
-      const cursor1 = PeerCursor.createMyCursor();
-      const cursor2 = PeerCursor.createMyCursor();
-      expect(cursor1).toBe(cursor2);
+    it('builds a new one rather than handing back the one already there', () => {
+      const first = PeerCursor.createMyCursor();
+      first.role = PeerRole.GameMaster;
+
+      const second = PeerCursor.createMyCursor();
+
+      expect(second).not.toBe(first);
+      expect(second.role).toBe(PeerRole.Player);
+      expect(PeerCursor.myCursor).toBe(second);
+    });
+
+    it('takes the one it replaced off the table', () => {
+      const first = PeerCursor.createMyCursor();
+
+      PeerCursor.createMyCursor();
+
+      expect(store.get(first.identifier)).toBeNull();
     });
 
     it('and marks it connected, since you have not dropped', () => {

@@ -184,7 +184,8 @@ export class FileArchiver {
       file.name === 'config.xml' ||
       file.name === 'imagetag.xml' ||
       file.name === 'audiotag.xml' ||
-      file.name === 'summary.xml'
+      file.name === 'summary.xml' ||
+      file.name === 'ailment.xml'
     ) {
       isLoadOk = this.reloadCheck?.isLoadOk() ?? true;
     }

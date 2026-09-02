@@ -25,6 +25,178 @@ describe('UIPanelComponent', () => {
     expect(component).toBeTruthy();
   });
 
+  describe('the buttons the content puts in the bar', () => {
+    function controls(): HTMLButtonElement[] {
+      return [...fixture.nativeElement.querySelectorAll('.material-icons')]
+        .filter((icon) => icon.textContent === 'inventory')
+        .map((icon) => icon.closest('button') as HTMLButtonElement);
+    }
+
+    it('draws one for each the content asked for, and presses it', () => {
+      const press = vi.fn();
+      component.panelService.headerControls.set([{ icon: 'inventory', label: '荷物', active: false, press }]);
+      fixture.detectChanges();
+
+      expect(controls()).toHaveLength(1);
+      expect(controls()[0].title).toBe('荷物');
+
+      controls()[0].click();
+
+      expect(press).toHaveBeenCalled();
+    });
+
+    it('shows which of them is on', () => {
+      component.panelService.headerControls.set([
+        { icon: 'inventory', label: '荷物', active: true, press: () => undefined },
+      ]);
+      fixture.detectChanges();
+
+      expect(controls()[0].getAttribute('aria-pressed')).toBe('true');
+    });
+  });
+
+  describe('shrinking when the content asks', () => {
+    it('shrinks the panel when the content asks', () => {
+      fixture.detectChanges();
+
+      component.panelService.minimizeRequest$.emit(true);
+      fixture.detectChanges();
+
+      expect(component.isMinimized()).toBe(true);
+      expect(component.panelService.isMinimized()).toBe(true);
+    });
+
+    it('lets it out again', () => {
+      fixture.detectChanges();
+      component.panelService.minimizeRequest$.emit(true);
+
+      component.panelService.minimizeRequest$.emit(false);
+      fixture.detectChanges();
+
+      expect(component.isMinimized()).toBe(false);
+    });
+
+    it('does nothing when it is already the way it was asked for', () => {
+      fixture.detectChanges();
+      component.panelService.minimizeRequest$.emit(true);
+      const height = component.height;
+
+      component.panelService.minimizeRequest$.emit(true);
+
+      expect(component.isMinimized()).toBe(true);
+      expect(component.height).toBe(height);
+    });
+  });
+
+  describe('growing to what the content asks for', () => {
+    it('takes the size it is asked for and gives the old one back', () => {
+      fixture.detectChanges();
+      component.width = 450;
+      component.height = 600;
+
+      component.panelService.resizeRequest$.emit({ width: 700, height: 300 });
+
+      expect(component.width).toBe(700);
+      expect(component.height).toBe(300);
+
+      component.panelService.resizeRequest$.emit(null);
+
+      expect(component.width).toBe(450);
+      expect(component.height).toBe(600);
+    });
+
+    it('gives back the size it had before the first ask, not the one after', () => {
+      fixture.detectChanges();
+      component.width = 450;
+
+      component.panelService.resizeRequest$.emit({ width: 700, height: 300 });
+      component.panelService.resizeRequest$.emit({ width: 800, height: 400 });
+      component.panelService.resizeRequest$.emit(null);
+
+      expect(component.width).toBe(450);
+    });
+
+    it('asks for nothing wider than the screen', () => {
+      fixture.detectChanges();
+
+      component.panelService.resizeRequest$.emit({ width: window.innerWidth + 500, height: 300 });
+
+      expect(component.width).toBe(window.innerWidth);
+    });
+
+    it('leaves a panel filling the screen alone', () => {
+      fixture.detectChanges();
+      component.toggleFullScreen();
+      const width = component.width;
+
+      component.panelService.resizeRequest$.emit({ width: 200, height: 200 });
+
+      expect(component.width).toBe(width);
+    });
+  });
+
+  describe('the bar of a panel shrunk to its content', () => {
+    function panelService(): PanelService {
+      return component.panelService;
+    }
+
+    it('drops the bar for fading it, which a narrow panel has no room for', () => {
+      panelService().minimizeToContent = true;
+      fixture.detectChanges();
+      expect(fixture.nativeElement.querySelector('[data-testid="panel-transparency"]')).toBeTruthy();
+
+      component.toggleMinimize();
+      fixture.detectChanges();
+
+      expect(fixture.nativeElement.querySelector('[data-testid="panel-transparency"]')).toBeNull();
+    });
+
+    it('keeps a way back out of it', () => {
+      panelService().minimizeToContent = true;
+      fixture.detectChanges();
+      component.toggleMinimize();
+      fixture.detectChanges();
+
+      const icons = [...fixture.nativeElement.querySelectorAll('.material-icons')].map((icon) => icon.textContent);
+      expect(icons).toContain('open_in_full');
+    });
+  });
+
+  describe('a panel with its box taken off', () => {
+    function panel(): HTMLElement {
+      return fixture.nativeElement.querySelector('.draggable-panel');
+    }
+
+    function titleBar(): HTMLElement {
+      return panel().firstElementChild as HTMLElement;
+    }
+
+    it('keeps its ground until it is asked to go', () => {
+      fixture.detectChanges();
+
+      expect(component.unboxed).toBe(false);
+      expect(titleBar().style.background).toBe('');
+    });
+
+    it('drops the ground under itself and under its bar', () => {
+      component.panelService.isGhost.set(true);
+      fixture.detectChanges();
+
+      expect(component.unboxed).toBe(true);
+      expect(panel().classList.contains('bg-transparent!')).toBe(true);
+      expect(titleBar().style.background).toBe('transparent');
+    });
+
+    it('leaves the buttons to be found, since nothing else is left to take hold of', () => {
+      component.panelService.isGhost.set(true);
+      fixture.detectChanges();
+
+      const buttons = fixture.nativeElement.querySelectorAll('button');
+      expect(buttons.length).toBeGreaterThan(0);
+      expect((buttons[0].parentElement as HTMLElement).className).toContain('bg-black/60');
+    });
+  });
+
   describe('the bar that fades a panel', () => {
     const STORAGE_KEY = 'ui-panel-transparency';
 

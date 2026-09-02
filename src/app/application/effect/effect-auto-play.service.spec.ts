@@ -23,6 +23,7 @@ describe('EffectAutoPlayService', () => {
       ratio,
       playsEffect: true,
       playsSound: false,
+      soundSet: 'flesh',
     };
   }
 

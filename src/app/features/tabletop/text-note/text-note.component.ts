@@ -18,6 +18,7 @@ import { DisclosureService } from '@axe/application/permission/disclosure.servic
 import { RolePermissionService } from '@axe/application/permission/role-permission.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { TabletopService } from '@axe/application/tabletop/tabletop.service';
+import { VisionService } from '@axe/application/tabletop/vision.service';
 import { ContextMenuSeparator, ContextMenuService } from '@axe/application/ui/context-menu.service';
 import { PanelOption, PanelService } from '@axe/application/ui/panel.service';
 import { PieceContextMenuService } from '@axe/application/ui/piece-context-menu.service';
@@ -29,7 +30,6 @@ import { UiSignalService } from '@axe/application/ui/ui-signal.service';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { DataElement } from '@axe/domain/data/data-element';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
-import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { TextNote } from '@axe/domain/tabletop/text-note';
 import { buildTextNoteContextMenu } from '@axe/features/tabletop/text-note/text-note-context-menu';
 import { MovableOption } from '@axe/ui/directives/movable.directive';
@@ -49,6 +49,7 @@ import { decorateChatStyleText } from '@axe/ui/text-decoration/decorate-chat-tex
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [MovableDirective, RotableDirective, SelectableDirective, NgStyle, FormsModule, LinkifyPipe, SafePipe],
   host: {
+    '[style.display]': "isHiddenByFog() ? 'none' : null",
     class: 'block',
     '(dragstart)': 'onDragstart($event)',
     '(mousedown)': 'onMouseDown($event)',
@@ -65,7 +66,7 @@ export class TextNoteComponent {
     const note = this.textNote();
     if (!note) return false;
     this.objectChange.versionOf(note.identifier)();
-    if (PeerCursor.myCursor) this.objectChange.versionOf(PeerCursor.myCursor.identifier)();
+    this.objectChange.trackMyCursor();
     return this.disclosureService.canView(note);
   });
   private readonly elementRef = inject<ElementRef<HTMLElement>>(ElementRef);
@@ -75,9 +76,17 @@ export class TextNoteComponent {
   private readonly inventoryService = inject(GameObjectInventoryService);
   private readonly uiSignalService = inject(UiSignalService);
   private readonly objectChange = inject(ObjectChangeService);
+  private readonly visionService = inject(VisionService);
   protected readonly tabletopService = inject(TabletopService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly translateFn = inject(TRANSLATE_FN);
+
+  readonly isHiddenByFog = computed(() => {
+    const piece = this.textNote();
+    if (!piece) return false;
+    this.objectChange.versionOf(piece.identifier)();
+    return this.visionService.isPieceHiddenByFog(piece, 1);
+  });
 
   constructor() {
     effect(() => {

@@ -19,6 +19,14 @@ import {
   type ShadowCaster,
   type VisionScene,
 } from '@axe/domain/tabletop/vision-scene';
+import {
+  asVisionShape,
+  facingBearing,
+  VISION_SHAPE_DEFAULTS,
+  visionLobesOf,
+  VisionShape,
+  type VisionSpec,
+} from '@axe/domain/tabletop/vision-shape';
 import type { VisionType } from '@axe/domain/tabletop/vision-types';
 
 /**
@@ -80,6 +88,7 @@ export function buildReplayVisionScene(snapshots: readonly ReplayObjectSnapshot[
 
   return {
     darknessEnabled: flag(table, 'darknessEnabled'),
+    fogEnabled: flag(table, 'fogEnabled'),
     darknessLevel: number(table, 'darknessLevel', 1),
     ambientColor: text(table, 'ambientColor') || '#000000',
     globalIllumination: number(table, 'globalIllumination'),
@@ -103,6 +112,28 @@ export function replayOverlayPlan(
   const scene = buildReplayVisionScene(snapshots);
   if (!scene || !scene.darknessEnabled) return null;
   return computeOverlayPlan(scene, replaySceneViewer(snapshots, viewer));
+}
+
+/**
+ * The shape of a piece's sight, as a snapshot has it.
+ *
+ * A snapshot that never wrote a field falls back to what the table itself starts a piece
+ * with, read from the one place those are written down. Spelled out again here, tuning the
+ * table's defaults would leave the replay drawing a sight the piece never had.
+ */
+function shapeOf(character: ReplayObjectSnapshot): VisionSpec {
+  const shape = asVisionShape(text(character, 'visionShape'));
+  const def = VISION_SHAPE_DEFAULTS[shape === VisionShape.CUSTOM ? VisionShape.CONE : shape];
+  return {
+    shape,
+    coneAngle: number(character, 'visionConeAngle', def.coneAngle),
+    coneCount: number(character, 'visionConeCount', def.coneCount),
+    backAngle: number(character, 'visionBackAngle', def.backAngle),
+    backScale: number(character, 'visionBackScale', def.backScale),
+    peripheralScale: number(character, 'visionPeripheralScale', def.peripheralScale),
+    direction: 0,
+    lobes: text(character, 'visionLobes'),
+  };
 }
 
 function charactersOn(snapshots: readonly ReplayObjectSnapshot[]): ReplayObjectSnapshot[] {
@@ -201,6 +232,9 @@ function visionSourcesOf(snapshots: readonly ReplayObjectSnapshot[], gridSize: n
       rangePx: number(character, 'visionRange') * gridSize,
       owner,
       partyId: text(character, 'partyIdentifier') || undefined,
+      sourceId: character.identifier,
+      direction: facingBearing(number(character, 'rotate'), number(character, 'visionDirection')),
+      lobes: visionLobesOf(shapeOf(character)),
     });
   }
   return sources;

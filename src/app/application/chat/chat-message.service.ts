@@ -25,6 +25,7 @@ import { ChatMessage, ChatMessageContext, ChatMessageTargetContext } from '@axe/
 import { copiedMessageContext } from '@axe/domain/chat/chat-message-copy';
 import { ChatTab } from '@axe/domain/chat/chat-tab';
 import { ChatTabList } from '@axe/domain/chat/chat-tab-list';
+import { OUT_OF_STORY_TAG } from '@axe/domain/chat/constants';
 import { DataElement, DataElementFieldType } from '@axe/domain/data/data-element';
 import { DiceBot } from '@axe/domain/dice/dice-bot';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
@@ -109,14 +110,21 @@ export class ChatMessageService {
     return sysTab.addMessage(chatMessage);
   }
 
-  sendSystemMessageToTab(chatTab: ChatTab, text: string, color?: string, from?: string): ChatMessage {
+  sendSystemMessageToTab(
+    chatTab: ChatTab,
+    text: string,
+    color?: string,
+    from?: string,
+    /** Marks the notice as housekeeping, so novel mode keeps it out of the script it reads. */
+    outOfStory = false
+  ): ChatMessage {
     const messageColor = resolveMessageColor(color, '#006633');
     const chatMessage: ChatMessageContext = {
       from,
       name: encodeI18nMessage('common.chat.systemName'),
       imageIdentifier: '',
       timestamp: this.calcTimeStamp(chatTab),
-      tag: 'system-message',
+      tag: outOfStory ? `system-message ${OUT_OF_STORY_TAG}` : 'system-message',
       text,
       imagePos: -1,
       messColor: messageColor,
@@ -171,7 +179,8 @@ export class ChatMessageService {
     attachmentImageIdentifiers?: string[],
     replyTo?: string,
     quoteOf?: string,
-    bubbles?: { light: string; dark: string }
+    bubbles?: { light: string; dark: string },
+    vnEmote?: string
   ): ChatMessage {
     const resolvedMessage = this.resolveAttachmentImageReferences(text, sendFrom, attachmentImageIdentifiers ?? []);
     text = resolvedMessage.text;
@@ -193,6 +202,7 @@ export class ChatMessageService {
       imagePos: this.findImagePos(sendFrom),
       messColor: messageColor,
       sendFrom: sendFrom,
+      senderRole: PeerCursor.myRole,
     };
     if (resolvedMessage.attachmentImageIdentifiers.length > 0) {
       chatMessage.attachmentImageIdentifiers = JSON.stringify(resolvedMessage.attachmentImageIdentifiers);
@@ -205,6 +215,7 @@ export class ChatMessageService {
     }
     if (bubbles?.light) chatMessage.messBubbleLight = bubbles.light;
     if (bubbles?.dark) chatMessage.messBubbleDark = bubbles.dark;
+    if (vnEmote) chatMessage.vnEmote = vnEmote;
 
     const portrait = this.applyPortraitCommand(chatMessage, text, sendFrom, imgIndex);
     this.setLastControlInfoToPeer(sendFrom, portrait.identifier, portrait.index, sendTo);

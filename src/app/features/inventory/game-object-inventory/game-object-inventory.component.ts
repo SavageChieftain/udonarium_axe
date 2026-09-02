@@ -1,5 +1,6 @@
-import { NgTemplateOutlet } from '@angular/common';
+import { NgClass, NgTemplateOutlet } from '@angular/common';
 import {
+  afterNextRender,
   ChangeDetectionStrategy,
   Component,
   computed,
@@ -7,25 +8,32 @@ import {
   effect,
   ElementRef,
   inject,
+  Injector,
   signal,
+  viewChild,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { StatusAilmentService } from '@axe/application/character/status-ailment.service';
 import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { GameObjectInventoryService } from '@axe/application/inventory/game-object-inventory.service';
+import { buildInventoryTable, InventoryTable, InventoryTableColumn } from '@axe/application/inventory/inventory-table';
 import { DisclosureService } from '@axe/application/permission/disclosure.service';
 import { RolePermissionService } from '@axe/application/permission/role-permission.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { TurnOrderService } from '@axe/application/turn/turn-order.service';
 import { ContextMenuService } from '@axe/application/ui/context-menu.service';
-import { PanelOption, PanelService } from '@axe/application/ui/panel.service';
+import { InventoryViewPreferenceService } from '@axe/application/ui/inventory-view-preference.service';
+import { PanelHeaderControl, PanelOption, PanelService } from '@axe/application/ui/panel.service';
 import { SelectionSignalService } from '@axe/application/ui/selection-signal.service';
 import { sheetPanelBox } from '@axe/application/ui/sheet-panel';
+import { ViewportService } from '@axe/application/ui/viewport.service';
 import { Network } from '@axe/core/index';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { GameObject } from '@axe/core/sync/game-object';
 import { ObjectStore } from '@axe/core/sync/object-store';
-import { splitSearchTerms } from '@axe/core/util/text-search';
 import { turnCache } from '@axe/core/util/turn-cache';
+import { resolveBuffColor } from '@axe/domain/character/buff-appearance';
+import { BuffBadge, buffIconUrlOf, toBuffBadges } from '@axe/domain/character/buff-badge';
 import {
   ancestorFolderPaths,
   FOLDER_SEPARATOR,
@@ -36,9 +44,16 @@ import {
   rewriteFolderPath,
 } from '@axe/domain/character/character-folder';
 import { GameCharacter } from '@axe/domain/character/game-character';
+import { StatusAilment } from '@axe/domain/character/status-ailment';
 import { DataElement, DataElementFieldType } from '@axe/domain/data/data-element';
 import { createCalcPass, evaluateCalcElement } from '@axe/domain/data/data-element-calc-env';
 import { SortOrder } from '@axe/domain/data/data-summary-setting';
+import { InventoryChromePart } from '@axe/domain/inventory/inventory-chrome';
+import {
+  INVENTORY_VIEW_LABEL_KEYS,
+  InventoryViewMode,
+  nextInventoryViewMode,
+} from '@axe/domain/inventory/inventory-view-mode';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { OwnedTabletopObject } from '@axe/domain/tabletop/owned-tabletop-object';
@@ -60,24 +75,41 @@ import {
   buildInventoryRow,
   filterInventoryRows,
   filterInventoryRowsByHidden,
-  INVENTORY_HIDDEN_FILTERS,
-  type InventoryHiddenDisplay,
   type InventoryHiddenFilter,
   type InventoryRow,
   inventorySearchText,
 } from '@axe/features/inventory/game-object-inventory/inventory-list';
+import { InventoryFilterService } from '@axe/features/inventory/inventory-filter.service';
+import {
+  INVENTORY_FILTER_PANEL,
+  InventoryFilterPanelComponent,
+} from '@axe/features/inventory/inventory-filter-panel/inventory-filter-panel.component';
 import { AutoFocusDirective } from '@axe/ui/directives/auto-focus.directive';
 import { SafePipe } from '@axe/ui/pipes/safe.pipe';
 import { TranslocoModule } from '@jsverse/transloco';
 
 const FOCUS_BLOCKED_TAGS = new Set(['input', 'button']);
 
+const ROW_BUFF_BADGE_LIMIT = 6;
+/** The panel's own frame around the content it was asked to fit: its bar and its border. */
+const PANEL_FIT_MARGIN_PX = 34;
+const NO_BUFF_BADGES = { shown: [] as BuffBadge[], more: 0 };
+
+const VIEW_ICONS: Record<InventoryViewMode, string> = {
+  rich: 'view_agenda',
+  table: 'table_rows',
+  round: 'change_circle',
+};
+
 @Component({
   selector: 'game-object-inventory',
   templateUrl: './game-object-inventory.component.html',
   host: { class: 'block' },
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [NgTemplateOutlet, FormsModule, AutoFocusDirective, SafePipe, TranslocoModule],
+  imports: [NgClass, NgTemplateOutlet, FormsModule, AutoFocusDirective, SafePipe, TranslocoModule],
+  // A window apiece, so a second inventory can be narrowed and read its own way. What the room
+  // decided - the order, the display items - still comes from the one place it is written down.
+  providers: [InventoryFilterService, InventoryViewPreferenceService],
 })
 export class GameObjectInventoryComponent {
   isCalcElement(element: DataElement): boolean {
@@ -100,10 +132,15 @@ export class GameObjectInventoryComponent {
   private readonly turnOrderService = inject(TurnOrderService);
   private readonly objectChange = inject(ObjectChangeService);
   private readonly rolePermission = inject(RolePermissionService);
+  private readonly ailmentService = inject(StatusAilmentService);
+  private readonly viewPreference = inject(InventoryViewPreferenceService);
+  private readonly isCompact = inject(ViewportService).isCompact;
+  private readonly filter = inject(InventoryFilterService);
   private readonly disclosureService = inject(DisclosureService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly npcDrag = inject(NpcDragService);
   private readonly hostElement = inject<ElementRef<HTMLElement>>(ElementRef);
+  private readonly injector = inject(Injector);
   private readonly t = inject(TRANSLATE_FN);
 
   private dragPending: {
@@ -124,6 +161,9 @@ export class GameObjectInventoryComponent {
       }
     });
     queueMicrotask(() => (this.panelService.title = this.t('common.panel.inventory')));
+    effect(() => {
+      this.panelService.headerControls.set(this.viewControls());
+    });
     this.objectChange.networkOpen$.subscribe(() => {
       this.inventoryTypes.set(['table', 'common', Network.peerId, 'graveyard']);
       if (!this.inventoryTypes().includes(this.selectTab())) {
@@ -139,15 +179,15 @@ export class GameObjectInventoryComponent {
   readonly selectedIdentifier = signal('');
   readonly multiMoveTargets = signal(new Set<string>());
 
-  readonly isEdit = signal(false);
+  readonly isEdit = this.filter.isPanelOpen;
   readonly isMultiMove = signal(false);
 
-  readonly searchQuery = signal('');
-  readonly searchTerms = computed<string[]>(() => splitSearchTerms(this.searchQuery()));
-  readonly hasQuery = computed<boolean>(() => this.searchTerms().length > 0);
+  readonly searchQuery = this.filter.searchQuery;
+  readonly searchTerms = this.filter.searchTerms;
+  readonly hasQuery = this.filter.hasQuery;
 
   clearSearch(): void {
-    this.searchQuery.set('');
+    this.filter.clearSearch();
   }
 
   setTurnOrder(event: Event, gameObject: GameObject): void {
@@ -155,11 +195,178 @@ export class GameObjectInventoryComponent {
     this.turnOrderService.setCurrent(gameObject.identifier);
   }
 
-  readonly isPanelMinimized = computed(() => this.panelService.isMinimized());
+  readonly viewMode = this.viewPreference.mode;
+  protected readonly viewLabelKeys = INVENTORY_VIEW_LABEL_KEYS;
+
+  /**
+   * Whether the panel is showing the turn order alone.
+   *
+   * The panel shrinks to it, which is the frame's own doing, so this follows what the frame
+   * did rather than the setting: a reader who presses the panel's own minimise button gets
+   * the same thing.
+   */
+  readonly isRoundView = computed(() => this.panelService.isMinimized());
+
+  readonly isTableView = computed(() => this.viewMode() === 'table' && !this.isRoundView());
+
+  /** Standing with the panel's box off, which only the table is drawn to survive. */
+  readonly isGhost = this.panelService.isGhost;
+
+  private readonly contentRoot = viewChild<ElementRef<HTMLElement>>('contentRoot');
+
+  /**
+   * The cast laid out sideways: one row a piece, one column a display item.
+   *
+   * The states the room keeps are watched as a whole rather than piece by piece, since ticking
+   * one on writes a buff onto a sheet somewhere below the piece.
+   */
+  readonly inventoryTable = computed<InventoryTable>(() => {
+    this.objectChange.collectionOf('data')();
+    // The table keeps a list of its own, so the elements are looked up against that rather
+    // than taken from the map the full view's list is cached in.
+    const tags = this.inventoryService.tableDataTags;
+    return buildInventoryTable(
+      this.filteredRows().map((row) => row.object),
+      tags,
+      this.ailmentService.ailments(),
+      (object) => this.elementsOf(object, tags),
+      this.newLineString,
+      this.inventoryService.sortTag
+    );
+  });
+
+  private elementsOf(object: TabletopObject, tags: readonly string[]): (DataElement | null)[] {
+    const root = object.rootDataElement;
+    if (!root) return tags.map(() => null);
+    return tags.map((tag) => (tag === this.newLineString ? null : DataElement.findElementByReference(root, tag)));
+  }
+
+  ailmentSwatch(column: InventoryTableColumn): string {
+    return column.ailment ? resolveBuffColor(column.ailment.color) || 'transparent' : 'transparent';
+  }
+
+  /**
+   * What is on a piece right now, as the badges that stand over it on the table.
+   *
+   * The full view had no sign of them: a row said what a piece could do and nothing about what
+   * had been done to it, so a poisoned goblin read the same as a clean one.
+   */
+  buffBadgesOf(gameObject: TabletopObject): { shown: BuffBadge[]; more: number } {
+    if (!(gameObject instanceof GameCharacter)) return NO_BUFF_BADGES;
+    this.objectChange.collectionOf('data')();
+    this.objectChange.versionOf(gameObject.identifier)();
+    const badges = toBuffBadges(gameObject.buffDataElement ?? null);
+    // A row keeps its height however much is wrong with the piece; the rest are counted.
+    return { shown: badges.slice(0, ROW_BUFF_BADGE_LIMIT), more: Math.max(0, badges.length - ROW_BUFF_BADGE_LIMIT) };
+  }
+
+  ailmentIconUrl(column: InventoryTableColumn): string {
+    this.objectChange.fileVersion();
+    return column.ailment ? buffIconUrlOf(column.ailment.icon) : '';
+  }
+
+  isAilmentOn(object: TabletopObject, ailment: StatusAilment): boolean {
+    this.objectChange.collectionOf('data')();
+    this.objectChange.versionOf(object.identifier)();
+    return object instanceof GameCharacter && this.ailmentService.isOn(object, ailment.name);
+  }
+
+  toggleAilment(event: Event, object: TabletopObject, ailment: StatusAilment): void {
+    event.stopPropagation();
+    if (!(object instanceof GameCharacter)) return;
+    this.ailmentService.toggle(object, ailment, (event.target as HTMLInputElement).checked);
+  }
+
+  /**
+   * The one button in the panel's bar that walks through the ways of reading it.
+   *
+   * One rather than one apiece: the bar it stands in is shared with the panel's own buttons,
+   * and shrunk to the turn order there is barely room for those.
+   */
+  private readonly viewControls = computed<PanelHeaderControl[]>(() => {
+    const showing = this.shownViewMode();
+    const controls: PanelHeaderControl[] = [
+      {
+        icon: VIEW_ICONS[showing],
+        label: this.t(this.viewLabelKeys[showing]),
+        active: showing !== 'rich',
+        press: () => this.setViewMode(nextInventoryViewMode(showing)),
+      },
+    ];
+    // Only the table is worth floating over the map: the full view is a column of gauges, and
+    // the turn order is already the panel shrunk to nothing.
+    if (showing === 'table') {
+      controls.push({
+        icon: 'opacity',
+        label: this.t('ui.panel.ghost'),
+        active: this.isGhost(),
+        press: () => this.toggleGhost(),
+      });
+    }
+    // A way into the settings that no setting can take away: the button beside the tabs goes
+    // with them when the tabs are put away.
+    if (showing !== 'round') {
+      controls.push({
+        icon: 'tune',
+        label: this.t('feature.inventory.panel.displaySettings'),
+        active: this.isEdit(),
+        press: () => this.toggleEdit(),
+      });
+    }
+    return controls;
+  });
+
+  /** Whether a strip above the list is being shown. */
+  shows(part: InventoryChromePart): boolean {
+    return this.viewPreference.shows(part);
+  }
+
+  /** What is on screen, which is the turn order whenever the panel is shrunk to it. */
+  private readonly shownViewMode = computed<InventoryViewMode>(() => (this.isRoundView() ? 'round' : this.viewMode()));
+
+  /**
+   * Takes the panel's box off, and with it the panel's borrowed size.
+   *
+   * Floating over the map, a window somebody has to scroll is worse than no window: the point
+   * of it is to see the whole table at a glance. It grows to hold all of it, and gives the size
+   * back when the box goes on again.
+   */
+  private toggleGhost(): void {
+    const ghost = !this.isGhost();
+    this.isGhost.set(ghost);
+    if (!ghost) {
+      this.panelService.resizeRequest$.emit(null);
+      return;
+    }
+    // The rows have to be laid out under the new ground before they can be measured.
+    afterNextRender({ read: () => this.fitToContent() }, { injector: this.injector });
+  }
+
+  /** Asks the frame for the size the whole list would need, measured as it stands. */
+  fitToContent(): void {
+    const content = this.contentRoot()?.nativeElement;
+    if (!content) return;
+
+    this.panelService.resizeRequest$.emit({
+      width: content.scrollWidth + PANEL_FIT_MARGIN_PX,
+      height: content.scrollHeight + PANEL_FIT_MARGIN_PX,
+    });
+  }
+
+  setViewMode(mode: InventoryViewMode): void {
+    // Standing on a phone, a panel fills the screen and has nothing to shrink to, so the
+    // turn order is passed over rather than left as a way out of the cycle.
+    const wanted = mode === 'round' && this.isCompact() ? nextInventoryViewMode(mode) : mode;
+    // The box goes back on with the view that needs it, rather than leaving a full view of
+    // gauges floating over the map with nothing behind it.
+    if (wanted !== 'table') this.isGhost.set(false);
+    this.panelService.minimizeRequest$.emit(wanted === 'round');
+    if (wanted !== 'round') this.viewPreference.set(wanted);
+  }
 
   readonly turnOrderList = computed<GameCharacter[]>(() => {
     this.inventoryService.inventoryVersion();
-    if (PeerCursor.myCursor) this.objectChange.versionOf(PeerCursor.myCursor.identifier)();
+    this.objectChange.trackMyCursor();
     return this.turnOrderService.orderedCharacters(this.rolePermission.canSeeHidden);
   });
 
@@ -302,7 +509,7 @@ export class GameObjectInventoryComponent {
     this.inventoryService.inventoryVersion();
     this.objectChange.fileVersion();
     this.objectChange.collectionOf('character')();
-    if (PeerCursor.myCursor) this.objectChange.versionOf(PeerCursor.myCursor.identifier)();
+    this.objectChange.trackMyCursor();
     return this.baseObjectsOf(this.selectTab()).map((object) =>
       buildInventoryRow(object, object instanceof GameCharacter ? object.folderName : '')
     );
@@ -314,16 +521,11 @@ export class GameObjectInventoryComponent {
     exclude: 'feature.inventory.panel.hiddenFilterExclude',
   };
 
-  readonly hiddenFilterOptions = INVENTORY_HIDDEN_FILTERS.map((value) => ({
-    value,
-    labelKey: this.hiddenFilterLabelKeys[value],
-  }));
-
-  readonly hiddenFilter = signal<InventoryHiddenFilter>('all');
-  readonly hiddenDisplay = signal<InventoryHiddenDisplay>('dim');
+  readonly hiddenFilter = this.filter.hiddenFilter;
+  readonly hiddenDisplay = this.filter.hiddenDisplay;
 
   readonly canSeeHidden = computed<boolean>(() => {
-    if (PeerCursor.myCursor) this.objectChange.versionOf(PeerCursor.myCursor.identifier)();
+    this.objectChange.trackMyCursor();
     return this.rolePermission.canSeeHidden;
   });
 
@@ -334,7 +536,7 @@ export class GameObjectInventoryComponent {
   readonly isHiddenFiltered = computed<boolean>(() => this.activeHiddenFilter() !== 'all');
 
   toggleHiddenDisplay(): void {
-    this.hiddenDisplay.update((display) => (display === 'dim' ? 'full' : 'dim'));
+    this.filter.toggleHiddenDisplay();
   }
 
   readonly filteredRows = computed<InventoryRow[]>(() => {
@@ -403,7 +605,7 @@ export class GameObjectInventoryComponent {
   readonly showTree = computed<boolean>(() => this.foldersApply() && this.hasFolders());
 
   readonly canEdit = computed<boolean>(() => {
-    if (PeerCursor.myCursor) this.objectChange.versionOf(PeerCursor.myCursor.identifier)();
+    this.objectChange.trackMyCursor();
     return this.rolePermission.canEditTabletop;
   });
 
@@ -692,7 +894,7 @@ export class GameObjectInventoryComponent {
   }
 
   canView(gameObject: TabletopObject): boolean {
-    if (PeerCursor.myCursor) this.objectChange.versionOf(PeerCursor.myCursor.identifier)();
+    this.objectChange.trackMyCursor();
     if (gameObject instanceof GameCharacter) return this.disclosureService.canView(gameObject);
     return true;
   }
@@ -738,10 +940,46 @@ export class GameObjectInventoryComponent {
     this.contextMenuService.open(position, actions, gameObject.name);
   }
 
+  /**
+   * The search and the settings stand in a window of their own; this opens and closes it.
+   *
+   * Only one such window stands at a time, and it works on the inventory that asked for it, so
+   * opening it from a second inventory takes it off the first - which learns that the way any
+   * panel does, by being told it has been closed.
+   */
   toggleEdit() {
+    // What this opens can show what the game master has hidden, so it stays theirs to open.
     if (!this.rolePermission.canEditTabletop) return;
-    this.isEdit.update((v) => !v);
+    if (this.isEdit()) {
+      this.panelService.closeSingle(INVENTORY_FILTER_PANEL);
+      this.isEdit.set(false);
+      return;
+    }
+    const coordinate = this.pointerDeviceService.pointers[0];
+    const panel = this.panelService.open(InventoryFilterPanelComponent, {
+      title: this.t('feature.inventory.panel.filterPanelTitle'),
+      left: coordinate.x + 40,
+      top: coordinate.y - 40,
+      width: 360,
+      height: 380,
+      single: INVENTORY_FILTER_PANEL,
+    });
+    panel.filter = this.filter;
+    panel.viewPreference = this.viewPreference;
+    panel.closed = () => this.isEdit.set(false);
+    this.isEdit.set(true);
   }
+
+  /** What is in force, said in one line, so the list shows its own narrowing without the box. */
+  readonly filterSummary = computed<string>(() => {
+    const parts: string[] = [];
+    if (this.hasQuery()) parts.push(`\u201c${this.searchQuery().trim()}\u201d`);
+    if (this.isHiddenFiltered()) {
+      parts.push(this.t(this.hiddenFilterLabelKeys[this.activeHiddenFilter()]));
+    }
+    if (this.sortTag) parts.push(`${this.sortTag} (${this.sortOrderName})`);
+    return parts.length > 0 ? parts.join(' / ') : this.t('feature.inventory.panel.filterNone');
+  });
 
   toggleMultiMove() {
     if (this.isMultiMove()) {

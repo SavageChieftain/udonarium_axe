@@ -37,7 +37,7 @@ export class OwnedCharacterListPanelComponent {
 
   readonly characters = computed<GameCharacter[]>(() => {
     this.objectChange.collectionOf(GameCharacter.aliasName)();
-    if (PeerCursor.myCursor) this.objectChange.versionOf(PeerCursor.myCursor.identifier)();
+    this.objectChange.trackMyCursor();
     const userId = PeerCursor.myCursor?.userId ?? '';
     const all = this.objectStore.getObjects<GameCharacter>(GameCharacter);
     for (const character of all) this.objectChange.versionOf(character.identifier)();

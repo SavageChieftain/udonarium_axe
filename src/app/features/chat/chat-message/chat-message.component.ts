@@ -13,6 +13,7 @@ import {
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ChatMessageService } from '@axe/application/chat/chat-message.service';
+import { ChatPreferencesService } from '@axe/application/chat/chat-preferences.service';
 import { SystemAvatarKind, SystemAvatarService } from '@axe/application/chat/system-avatar.service';
 import { decodeI18nMessage } from '@axe/application/i18n/i18n-message';
 import { LanguageService } from '@axe/application/i18n/language.service';
@@ -31,7 +32,9 @@ import { canRoleSpeakTab } from '@axe/domain/chat/chat-tab-permission';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { TextNote } from '@axe/domain/tabletop/text-note';
+import { encodeVnEmote, vnBodyOf, vnEmoteOf } from '@axe/domain/visual-novel/vn-emote';
 import { SystemAvatarMenuService } from '@axe/features/chat/system-avatar-menu.service';
+import { vnEmoteLabels } from '@axe/features/visual-novel/visual-novel-emote-label';
 import { ChatColorStylePipe } from '@axe/ui/pipes/chat-color-style.pipe';
 import { LinkifyPipe } from '@axe/ui/pipes/linkify.pipe';
 import { SafePipe } from '@axe/ui/pipes/safe.pipe';
@@ -61,12 +64,26 @@ export class ChatMessageComponent {
   protected readonly theme = inject(ThemeService);
   private readonly systemAvatar = inject(SystemAvatarService);
   private readonly systemAvatarMenu = inject(SystemAvatarMenuService);
+  private readonly chatPrefs = inject(ChatPreferencesService);
 
   protected get canRevealSecret(): boolean {
     return this.rolePermission.canSeeHidden;
   }
 
   protected readonly chatMessageInput = input<ChatMessage>(null!, { alias: 'chatMessage' });
+
+  /**
+   * Whether the line is only to be read.
+   *
+   * A window that shows a tab's lines going past is for following them, not for working on
+   * them, so it offers none of the buttons that hover over a line.
+   */
+  readonly readOnly = input(false);
+
+  /** Whether the pencil is offered on this line. */
+  get canChange(): boolean {
+    return !this.readOnly() && (this.chatMessage?.changeable ?? false);
+  }
   get chatMessage(): ChatMessage {
     return this.chatMessageInput();
   }
@@ -201,7 +218,7 @@ export class ChatMessageComponent {
 
   startEdit() {
     if (!this.chatMessage.changeable) return;
-    this.editDraft.set(this.chatMessage.text ?? '');
+    this.editDraft.set(vnBodyOf(this.chatMessage.vnEmote, this.chatMessage.text ?? ''));
     setTimeout(() => {
       const el = this.editingTextArea()?.nativeElement;
       if (el) {
@@ -220,8 +237,12 @@ export class ChatMessageComponent {
       this.cancelEdit();
       return;
     }
-    if (this.chatMessage.text !== next) {
+    // A line said before the staging was kept apart still carries it at the end. Editing the
+    // body would take it away with the rest of the suffix, so it moves beside the line first.
+    const staging = encodeVnEmote(vnEmoteOf(this.chatMessage.vnEmote, this.chatMessage.text ?? ''));
+    if (this.chatMessage.text !== next || this.chatMessage.vnEmote !== staging) {
       this.chatMessage.text = next;
+      if (staging.length > 0) this.chatMessage.vnEmote = staging;
       this.chatMessage.fixd = true;
     }
     this.editDraft.set(null);
@@ -254,6 +275,16 @@ export class ChatMessageComponent {
     el.style.height = `${Math.min(el.scrollHeight, 240)}px`;
   }
 
+  /** The words for how novel mode was asked to stage this line, when the reader asked to see them. */
+  readonly emoteBadges = computed<string[]>(() => {
+    if (!this.chatPrefs.showVnEmoteBadge()) return [];
+    const message = this.chatMessageInput();
+    if (!message) return [];
+    this.language.currentLang();
+    this.objectChange.versionOf(message.identifier)();
+    return vnEmoteLabels(vnEmoteOf(message.vnEmote, message.text ?? ''), this.t);
+  });
+
   readonly replyPreview = computed<{ name: string; text: string } | null>(() => {
     const msg = this.chatMessageInput();
     if (!msg || !msg.replyTo) return null;
@@ -261,7 +292,9 @@ export class ChatMessageComponent {
     this.objectChange.versionOf(msg.replyTo)();
     const target = msg.replyToMessage;
     if (!target) return null;
-    const text = (target.text ?? '').replace(/\s+/g, ' ').trim();
+    const text = vnBodyOf(target.vnEmote, target.text ?? '')
+      .replace(/\s+/g, ' ')
+      .trim();
     return {
       name: target.name ?? '',
       text: text.length > 120 ? text.slice(0, 120) + '…' : text,
@@ -275,7 +308,7 @@ export class ChatMessageComponent {
     this.objectChange.versionOf(msg.quoteOf)();
     const target = this.objectStore.get<ChatMessage>(msg.quoteOf);
     if (!(target instanceof ChatMessage)) return null;
-    const text = (target.text ?? '').trim();
+    const text = vnBodyOf(target.vnEmote, target.text ?? '').trim();
     return {
       name: target.name ?? '',
       text: text.length > 280 ? text.slice(0, 280) + '…' : text,
@@ -285,6 +318,7 @@ export class ChatMessageComponent {
   /** Whether a message can be replied to, quoted or made into a note. System messages and those addressed to a player are not.
       ダイスボット (`isDicebot`) は対話可能なメッセージとして扱う (System tag は持つが PC に向けた応答なので)。 */
   get canInteract(): boolean {
+    if (this.readOnly()) return false;
     const msg = this.chatMessage;
     if (!msg) return false;
     if (this.isSystemMessage) return false;
@@ -332,7 +366,7 @@ export class ChatMessageComponent {
    */
   copyTargets(): ChatTab[] {
     this.objectChange.collectionOf(ChatTab.aliasName)();
-    if (PeerCursor.myCursor) this.objectChange.versionOf(PeerCursor.myCursor.identifier)();
+    this.objectChange.trackMyCursor();
     const role = PeerCursor.myRole;
     const here = this.chatMessage?.tabIdentifier ?? '';
     return this.chatTabList.chatTabs.filter((tab) => tab.identifier !== here && canRoleSpeakTab(tab, role));
@@ -430,6 +464,6 @@ export class ChatMessageComponent {
     this.language.currentLang();
     this.objectChange.versionOf(this.chatMessage?.identifier)();
     const decoded = this.isSystemMessage ? decodeI18nMessage(text, this.t) : text;
-    return decorateChatStyleText(decoded);
+    return decorateChatStyleText(vnBodyOf(this.chatMessage?.vnEmote, decoded));
   }
 }

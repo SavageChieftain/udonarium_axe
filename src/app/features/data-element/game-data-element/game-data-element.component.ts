@@ -15,7 +15,13 @@ import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { ImageStorage } from '@axe/core/storage/image-storage';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { GameCharacter } from '@axe/domain/character/game-character';
-import { playsEffectOnChange, playsSoundOnChange } from '@axe/domain/character/resource-feedback';
+import {
+  playsEffectOnChange,
+  playsSoundOnChange,
+  RESOURCE_SOUND_SET_OPTIONS,
+  ResourceSoundSet,
+  soundSetOnChange,
+} from '@axe/domain/character/resource-feedback';
 import {
   DataElement,
   DataElementAttribute,
@@ -41,7 +47,6 @@ import {
   type TableColumn as DataElementTableColumn,
   type TableColumnHeaderGroup as DataElementTableColumnHeaderGroup,
 } from '@axe/domain/data/table-layout';
-import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import {
   canAcceptChildRole,
   canDropStructureElement,
@@ -105,7 +110,7 @@ export class GameDataElementComponent {
   private readonly rolePermission = inject(RolePermissionService);
 
   readonly isReadOnly = computed(() => {
-    if (PeerCursor.myCursor) this.objectChange.versionOf(PeerCursor.myCursor.identifier)();
+    this.objectChange.trackMyCursor();
     return !this.rolePermission.canEditTabletop;
   });
   private readonly pointerDeviceService = inject(PointerDeviceService);
@@ -122,6 +127,7 @@ export class GameDataElementComponent {
 
   readonly structureDropPosition = signal<DataElementDropPosition | null>(null);
   readonly fieldOptionsOpen = signal(false);
+  readonly soundSetOptions = RESOURCE_SOUND_SET_OPTIONS;
 
   private trackTableDependencies(): void {
     const element = this.gameDataElement();
@@ -811,6 +817,19 @@ export class GameDataElementComponent {
     if (!this.canShowChangeFeedback()) return;
     const element = this.gameDataElement();
     element.setAttribute(DataElementAttribute.CHANGE_SOUND, this.playsSoundOnChange() ? 'false' : 'true');
+    this.objectChange.notifyChanged(element.identifier);
+  }
+
+  soundSetOnChange(): ResourceSoundSet {
+    const element = this.gameDataElement();
+    this.objectChange.versionOf(element.identifier)();
+    return soundSetOnChange(element);
+  }
+
+  setSoundSetOnChange(value: string): void {
+    if (!this.canShowChangeFeedback()) return;
+    const element = this.gameDataElement();
+    element.setAttribute(DataElementAttribute.CHANGE_SOUND_SET, value === 'mech' ? 'mech' : 'flesh');
     this.objectChange.notifyChanged(element.identifier);
   }
 

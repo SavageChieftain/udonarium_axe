@@ -1,0 +1,159 @@
+<div class="p-2.5">
+  <div class="text-ui-muted mb-1 text-[11px] font-semibold">
+    {{ 'feature.visualNovel.settings.layout' | transloco }}
+  </div>
+  <div class="mb-2 grid grid-cols-3 gap-1">
+    @for (layout of layoutOptions; track layout) {
+      <button
+        type="button"
+        class="rounded-ui cursor-pointer border border-solid p-1 text-[11px] transition-[color,background]"
+        [class]="
+          settings.layout() === layout
+            ? 'bg-ui-accent-bg border-ui-accent text-ui-accent'
+            : 'border-ui-border-panel text-ui-dim hover:bg-ui-hover bg-transparent'
+        "
+        (click)="settings.setLayout(layout)"
+      >
+        {{ 'feature.visualNovel.layout.' + layout | transloco }}
+      </button>
+    }
+  </div>
+  <div class="text-ui-muted mb-1 text-[11px] font-semibold">
+    {{ 'feature.visualNovel.settings.readability' | transloco }}
+  </div>
+  <div class="mb-2 grid grid-cols-4 gap-1">
+    @for (level of readabilityOptions; track level) {
+      <button
+        type="button"
+        class="rounded-ui cursor-pointer border border-solid p-1 text-[11px] transition-[color,background]"
+        [class]="
+          settings.readability() === level
+            ? 'bg-ui-accent-bg border-ui-accent text-ui-accent'
+            : 'border-ui-border-panel text-ui-dim hover:bg-ui-hover bg-transparent'
+        "
+        (click)="settings.setReadability(level)"
+      >
+        {{ 'feature.visualNovel.readability.' + level | transloco }}
+      </button>
+    }
+  </div>
+  <div class="border-ui-border-separator mb-2 border-t border-solid"></div>
+  <div class="text-ui-muted mb-1 text-[11px] font-semibold">
+    {{ 'feature.visualNovel.settings.typewriter' | transloco }}
+  </div>
+  <div class="mb-2 grid grid-cols-4 gap-1">
+    @for (speed of typewriterSpeedOptions; track speed) {
+      <button
+        type="button"
+        class="rounded-ui cursor-pointer border border-solid p-1 text-[11px] transition-[color,background]"
+        [class]="
+          settings.typewriterSpeed() === speed
+            ? 'bg-ui-accent-bg border-ui-accent text-ui-accent'
+            : 'border-ui-border-panel text-ui-dim hover:bg-ui-hover bg-transparent'
+        "
+        (click)="settings.setTypewriterSpeed(speed)"
+      >
+        {{ 'feature.visualNovel.speed.' + speed | transloco }}
+      </button>
+    }
+  </div>
+  <div class="text-ui-muted mb-1 text-[11px] font-semibold">
+    {{ 'feature.visualNovel.settings.portrait' | transloco }}
+  </div>
+  <div class="mb-2 grid grid-cols-4 gap-1">
+    @for (animation of portraitAnimationOptions; track animation) {
+      <button
+        type="button"
+        class="rounded-ui cursor-pointer border border-solid p-1 text-[11px] transition-[color,background]"
+        [class]="
+          settings.portraitAnimation() === animation
+            ? 'bg-ui-accent-bg border-ui-accent text-ui-accent'
+            : 'border-ui-border-panel text-ui-dim hover:bg-ui-hover bg-transparent'
+        "
+        (click)="settings.setPortraitAnimation(animation)"
+      >
+        {{ 'feature.visualNovel.anim.' + animation | transloco }}
+      </button>
+    }
+  </div>
+  <div class="text-ui-muted mb-1 text-[11px] font-semibold">
+    {{ 'feature.visualNovel.settings.textSize' | transloco }}
+  </div>
+  <div class="mb-2 grid grid-cols-3 gap-1">
+    @for (size of textSizeOptions; track size) {
+      <button
+        type="button"
+        class="rounded-ui cursor-pointer border border-solid p-1 text-[11px] transition-[color,background]"
+        [class]="
+          settings.textSize() === size
+            ? 'bg-ui-accent-bg border-ui-accent text-ui-accent'
+            : 'border-ui-border-panel text-ui-dim hover:bg-ui-hover bg-transparent'
+        "
+        (click)="settings.setTextSize(size)"
+      >
+        {{ 'feature.visualNovel.textSize.' + size | transloco }}
+      </button>
+    }
+  </div>
+  <div class="text-ui-muted mb-1 text-[11px] font-semibold">
+    {{ 'feature.visualNovel.settings.motion' | transloco }}
+  </div>
+  <div class="grid grid-cols-2 gap-1">
+    <button
+      type="button"
+      class="rounded-ui cursor-pointer border border-solid p-1 text-[11px] transition-[color,background]"
+      [class]="
+        settings.reduceMotion()
+          ? 'border-ui-border-panel text-ui-dim hover:bg-ui-hover bg-transparent'
+          : 'bg-ui-accent-bg border-ui-accent text-ui-accent'
+      "
+      (click)="settings.setReduceMotion(false)"
+    >
+      {{ 'feature.visualNovel.motion.full' | transloco }}
+    </button>
+    <button
+      type="button"
+      class="rounded-ui cursor-pointer border border-solid p-1 text-[11px] transition-[color,background]"
+      [class]="
+        settings.reduceMotion()
+          ? 'bg-ui-accent-bg border-ui-accent text-ui-accent'
+          : 'border-ui-border-panel text-ui-dim hover:bg-ui-hover bg-transparent'
+      "
+      (click)="settings.setReduceMotion(true)"
+    >
+      {{ 'feature.visualNovel.motion.reduced' | transloco }}
+    </button>
+  </div>
+  <div class="text-ui-muted mt-2 mb-1 text-[11px] font-semibold">
+    {{ 'feature.visualNovel.settings.asides' | transloco }}
+  </div>
+  <div class="mb-1 grid grid-cols-2 gap-1">
+    <button
+      type="button"
+      class="rounded-ui cursor-pointer border border-solid p-1 text-[11px] transition-[color,background]"
+      [class]="
+        settings.readPlayerAsides()
+          ? 'border-ui-border-panel text-ui-dim hover:bg-ui-hover bg-transparent'
+          : 'bg-ui-accent-bg border-ui-accent text-ui-accent'
+      "
+      (click)="settings.setReadPlayerAsides(false)"
+    >
+      {{ 'feature.visualNovel.asides.skip' | transloco }}
+    </button>
+    <button
+      type="button"
+      class="rounded-ui cursor-pointer border border-solid p-1 text-[11px] transition-[color,background]"
+      [class]="
+        settings.readPlayerAsides()
+          ? 'bg-ui-accent-bg border-ui-accent text-ui-accent'
+          : 'border-ui-border-panel text-ui-dim hover:bg-ui-hover bg-transparent'
+      "
+      (click)="settings.setReadPlayerAsides(true)"
+    >
+      {{ 'feature.visualNovel.asides.read' | transloco }}
+    </button>
+  </div>
+  <p class="text-ui-dim mb-2 text-[10px] leading-snug">
+    {{ 'feature.visualNovel.asides.note' | transloco }}
+  </p>
+</div>

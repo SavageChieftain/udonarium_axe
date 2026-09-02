@@ -1,0 +1,153 @@
+<div class="text-ui-text bg-ui-panel flex h-full flex-col overflow-hidden text-[12px]">
+  <p class="text-ui-muted border-ui-border-panel m-0 border-b border-solid px-3 py-1.5 text-[11px]">
+    {{ 'feature.statusAilment.hint' | transloco }}
+  </p>
+
+  @if (canEdit()) {
+    <div class="border-ui-border-panel flex shrink-0 items-center gap-1.5 border-b border-solid px-3 py-2">
+      <input
+        class="rounded-ui-sm border-ui-border-panel bg-ui-input text-ui-text focus:border-ui-accent min-w-0 flex-1 border border-solid px-1.5 py-1 outline-none"
+        name="status-ailment-new"
+        [ngModel]="newName()"
+        (ngModelChange)="newName.set($event)"
+        (keydown.enter)="add()"
+        [placeholder]="'feature.statusAilment.namePlaceholder' | transloco"
+      />
+      <button
+        class="bg-ui-accent hover:bg-ui-accent-strong text-ui-on-accent rounded-ui-sm shrink-0 cursor-pointer border-none px-2.5 py-1 font-semibold disabled:cursor-default disabled:opacity-40"
+        type="button"
+        [disabled]="newName().trim().length < 1"
+        (click)="add()"
+      >
+        {{ 'feature.statusAilment.add' | transloco }}
+      </button>
+    </div>
+  } @else {
+    <p class="text-ui-dim m-0 px-3 py-2 text-[11px]">{{ 'feature.statusAilment.readOnly' | transloco }}</p>
+  }
+
+  <div class="min-h-0 flex-1 overflow-y-auto px-3 py-2">
+    @if (ailments().length < 1) {
+      <p class="text-ui-dim m-0 py-6 text-center text-[11px]">{{ 'feature.statusAilment.empty' | transloco }}</p>
+    }
+    @for (ailment of ailments(); track ailment.name; let first = $first; let last = $last) {
+      <div class="border-ui-border-panel mb-1.5 rounded-[5px] border border-solid px-2 py-1.5">
+        <div class="flex items-center gap-1.5">
+          <span
+            class="ring-ui-border-panel inline-flex size-5 shrink-0 items-center justify-center overflow-hidden rounded-full text-[11px] ring-1"
+            [style.background]="swatchOf(ailment.color)"
+          >
+            @if (iconUrlOf(ailment)) {
+              <img class="size-full object-contain" [src]="iconUrlOf(ailment) | safe: 'resourceUrl'" alt="" />
+            } @else {
+              {{ ailment.icon }}
+            }
+          </span>
+          <span class="min-w-0 flex-1 truncate font-semibold">{{ ailment.name }}</span>
+          @if (canEdit()) {
+            <button
+              class="text-ui-muted hover:bg-ui-hover hover:text-ui-text flex size-5 shrink-0 cursor-pointer items-center justify-center rounded-sm border-none bg-transparent p-0 disabled:cursor-default disabled:opacity-30 [&_.material-icons]:text-[14px]!"
+              type="button"
+              [disabled]="first"
+              [title]="'feature.statusAilment.moveUp' | transloco"
+              (click)="move(ailment.name, -1)"
+            >
+              <i class="material-icons">arrow_upward</i>
+            </button>
+            <button
+              class="text-ui-muted hover:bg-ui-hover hover:text-ui-text flex size-5 shrink-0 cursor-pointer items-center justify-center rounded-sm border-none bg-transparent p-0 disabled:cursor-default disabled:opacity-30 [&_.material-icons]:text-[14px]!"
+              type="button"
+              [disabled]="last"
+              [title]="'feature.statusAilment.moveDown' | transloco"
+              (click)="move(ailment.name, 1)"
+            >
+              <i class="material-icons">arrow_downward</i>
+            </button>
+            <button
+              class="text-ui-muted hover:bg-ui-danger-bg hover:text-ui-danger flex size-5 shrink-0 cursor-pointer items-center justify-center rounded-sm border-none bg-transparent p-0 [&_.material-icons]:text-[14px]!"
+              type="button"
+              [title]="'feature.statusAilment.remove' | transloco"
+              (click)="remove(ailment.name)"
+            >
+              <i class="material-icons">delete_outline</i>
+            </button>
+          }
+        </div>
+
+        @if (canEdit()) {
+          <div class="mt-1.5 grid grid-cols-[auto_1fr_auto_1fr] items-center gap-x-2 gap-y-1 text-[11px]">
+            <label class="text-ui-muted">{{ 'feature.statusAilment.color' | transloco }}</label>
+            <select
+              class="rounded-ui-sm border-ui-border-panel bg-ui-input text-ui-text min-w-0 cursor-pointer border border-solid px-1 py-0.5"
+              [attr.name]="'ailment-color-' + ailment.name"
+              [ngModel]="ailment.color"
+              (ngModelChange)="setColor(ailment, $event)"
+            >
+              <option value="">{{ 'feature.character.buff.colorDefault' | transloco }}</option>
+              @for (color of colors; track color.id) {
+                <option [value]="color.id">{{ color.id }}</option>
+              }
+            </select>
+
+            <label class="text-ui-muted">{{ 'feature.statusAilment.icon' | transloco }}</label>
+            <div class="flex min-w-0 items-center gap-1">
+              @if (iconUrlOf(ailment)) {
+                <span class="text-ui-dim min-w-0 flex-1 truncate">{{
+                  'feature.statusAilment.iconImage' | transloco
+                }}</span>
+              } @else {
+                <input
+                  class="rounded-ui-sm border-ui-border-panel bg-ui-input text-ui-text min-w-0 flex-1 border border-solid px-1 py-0.5 outline-none"
+                  [attr.name]="'ailment-icon-' + ailment.name"
+                  [ngModel]="ailment.icon"
+                  (ngModelChange)="setIcon(ailment, $event)"
+                  [placeholder]="'feature.statusAilment.iconPlaceholder' | transloco"
+                />
+              }
+              <button
+                class="text-ui-muted hover:bg-ui-hover hover:text-ui-text flex size-5 shrink-0 cursor-pointer items-center justify-center rounded-sm border-none bg-transparent p-0 [&_.material-icons]:text-[14px]!"
+                type="button"
+                [title]="'feature.statusAilment.pickIconImage' | transloco"
+                (click)="chooseIconImage(ailment)"
+              >
+                <i class="material-icons">image</i>
+              </button>
+            </div>
+
+            <label class="text-ui-muted">{{ 'feature.statusAilment.rounds' | transloco }}</label>
+            <input
+              class="rounded-ui-sm border-ui-border-panel bg-ui-input text-ui-text w-16 border border-solid px-1 py-0.5 text-right outline-none"
+              type="number"
+              min="0"
+              [attr.name]="'ailment-rounds-' + ailment.name"
+              [ngModel]="ailment.rounds"
+              (ngModelChange)="setRounds(ailment, $event)"
+              [title]="'feature.statusAilment.roundsHint' | transloco"
+            />
+
+            <label class="text-ui-muted">{{ 'feature.character.buff.timing' | transloco }}</label>
+            <select
+              class="rounded-ui-sm border-ui-border-panel bg-ui-input text-ui-text min-w-0 cursor-pointer border border-solid px-1 py-0.5"
+              [attr.name]="'ailment-timing-' + ailment.name"
+              [ngModel]="ailment.timing"
+              (ngModelChange)="setTiming(ailment, $event)"
+            >
+              @for (timing of timings; track timing) {
+                <option [value]="timing">{{ 'feature.character.buff.timing_' + timing | transloco }}</option>
+              }
+            </select>
+
+            <label class="text-ui-muted">{{ 'feature.statusAilment.effect' | transloco }}</label>
+            <input
+              class="rounded-ui-sm border-ui-border-panel bg-ui-input text-ui-text col-span-3 min-w-0 border border-solid px-1 py-0.5 outline-none"
+              [attr.name]="'ailment-effect-' + ailment.name"
+              [ngModel]="ailment.effect"
+              (ngModelChange)="setEffect(ailment, $event)"
+              [placeholder]="'feature.statusAilment.effectPlaceholder' | transloco"
+            />
+          </div>
+        }
+      </div>
+    }
+  </div>
+</div>

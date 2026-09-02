@@ -1,0 +1,71 @@
+<div class="p-2.5">
+  <div class="text-ui-muted mb-1 text-[11px] font-semibold">
+    {{ 'feature.visualNovel.direction.stage' | transloco }}
+  </div>
+  <div class="mb-2 flex flex-col gap-1">
+    <button
+      type="button"
+      class="rounded-ui flex cursor-pointer items-center justify-center gap-1 border border-solid p-1 text-[11px] transition-[color,background] [&_i]:text-[14px]"
+      [class]="
+        director.isDirector()
+          ? 'bg-ui-accent-bg border-ui-accent text-ui-accent'
+          : 'border-ui-border-panel text-ui-dim hover:bg-ui-hover bg-transparent'
+      "
+      [attr.aria-pressed]="director.isDirector()"
+      (click)="director.toggleDirecting()"
+    >
+      <i class="material-icons">co_present</i>
+      {{ 'feature.visualNovel.showcase.title' | transloco }}
+    </button>
+    <button
+      type="button"
+      class="border-ui-border-panel text-ui-dim hover:bg-ui-hover hover:text-ui-text rounded-ui flex cursor-pointer items-center justify-center gap-1 border border-solid bg-transparent p-1 text-[11px] transition-[background,color] [&_i]:text-[14px]"
+      [title]="'feature.visualNovel.stageResetTooltip' | transloco"
+      (click)="resetStage()"
+    >
+      <i class="material-icons">group_remove</i>
+      {{ 'feature.visualNovel.stageReset' | transloco }}
+    </button>
+    <p class="text-ui-dim m-0 text-[10px] leading-snug">
+      {{ 'feature.visualNovel.stageResetTooltip' | transloco }}
+    </p>
+  </div>
+  <div class="border-ui-border-separator mb-2 border-t border-solid"></div>
+  <div class="text-ui-muted mb-1 text-[11px] font-semibold">
+    {{ 'feature.visualNovel.settings.background' | transloco }}
+  </div>
+  <div class="mb-2 flex items-center gap-1">
+    <button
+      type="button"
+      class="border-ui-border-panel text-ui-dim hover:bg-ui-hover hover:text-ui-text rounded-ui flex grow cursor-pointer items-center justify-center gap-1 border border-solid bg-transparent p-1 text-[11px] transition-[background,color] [&_i]:text-[14px]"
+      (click)="scene.pickBackground()"
+    >
+      <i class="material-icons">image</i>
+      {{ 'feature.visualNovel.backgroundPick' | transloco }}
+    </button>
+    <button
+      type="button"
+      class="border-ui-border-panel text-ui-dim hover:bg-ui-hover hover:text-ui-text rounded-ui cursor-pointer border border-solid bg-transparent px-2 py-1 text-[11px] transition-[background,color] disabled:cursor-default disabled:opacity-40"
+      [disabled]="!scene.hasBackground()"
+      (click)="scene.clearBackground()"
+    >
+      {{ 'feature.visualNovel.backgroundClear' | transloco }}
+    </button>
+  </div>
+  <div class="mb-2 grid grid-cols-3 gap-1">
+    @for (transition of transitionOptions; track transition) {
+      <button
+        type="button"
+        class="rounded-ui cursor-pointer border border-solid p-1 text-[11px] transition-[color,background]"
+        [class]="
+          scene.transition() === transition
+            ? 'bg-ui-accent-bg border-ui-accent text-ui-accent'
+            : 'border-ui-border-panel text-ui-dim hover:bg-ui-hover bg-transparent'
+        "
+        (click)="scene.setTransition(transition)"
+      >
+        {{ 'feature.visualNovel.transition.' + transition | transloco }}
+      </button>
+    }
+  </div>
+</div>

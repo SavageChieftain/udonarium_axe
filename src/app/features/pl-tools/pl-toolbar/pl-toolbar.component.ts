@@ -76,7 +76,7 @@ export class PlToolbarComponent {
   private savedTop: string | null = null;
 
   readonly isPlayer = computed(() => {
-    if (PeerCursor.myCursor) this.objectChange.versionOf(PeerCursor.myCursor.identifier)();
+    this.objectChange.trackMyCursor();
     return PeerCursor.myRole === PeerRole.Player;
   });
 
@@ -85,7 +85,7 @@ export class PlToolbarComponent {
     if (!identifier) return null;
     this.objectChange.collectionOf(GameCharacter.aliasName)();
     this.objectChange.versionOf(identifier)();
-    if (PeerCursor.myCursor) this.objectChange.versionOf(PeerCursor.myCursor.identifier)();
+    this.objectChange.trackMyCursor();
     const character = this.objectStore.get(identifier);
     if (!(character instanceof GameCharacter)) return null;
     return isOwnedByUser(character, PeerCursor.myCursor?.userId ?? '') ? character : null;

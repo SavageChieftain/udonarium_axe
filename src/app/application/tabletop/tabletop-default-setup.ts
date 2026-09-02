@@ -4,6 +4,7 @@ import { CharacterTemplateFactory } from '@axe/domain/character/character-templa
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { DataElement, DataElementType } from '@axe/domain/data/data-element';
 import { ImageTag } from '@axe/domain/media/image-tag';
+import { Party, PARTY_COLORS } from '@axe/domain/party/party';
 import { GameTable } from '@axe/domain/tabletop/game-table';
 import { TableSelecter } from '@axe/domain/tabletop/table-selecter';
 
@@ -20,6 +21,57 @@ function addBuffRound(character: GameCharacter, name: string, subcom: string, ro
       );
       return;
     }
+  }
+}
+
+/**
+ * What the samples are meant to look like at a glance.
+ *
+ * They all started with the same numbers, which made the table a wall of 24s and told a
+ * newcomer nothing about what the columns are for. Each one is now built to its picture: the
+ * knight can take a hit, the wizard cannot, the scout goes first, and the golem goes last.
+ */
+interface SampleStats {
+  hp: number;
+  mp: number;
+  器用度: number;
+  敏捷度: number;
+  筋力: number;
+  生命力: number;
+  知力: number;
+  精神力: number;
+}
+
+const SAMPLE_STATS: Record<string, SampleStats> = {
+  騎士: { hp: 260, mp: 40, 器用度: 18, 敏捷度: 14, 筋力: 30, 生命力: 28, 知力: 12, 精神力: 16 },
+  魔法使い: { hp: 140, mp: 220, 器用度: 16, 敏捷度: 15, 筋力: 10, 生命力: 14, 知力: 32, 精神力: 28 },
+  斥候: { hp: 180, mp: 80, 器用度: 30, 敏捷度: 32, 筋力: 16, 生命力: 18, 知力: 20, 精神力: 18 },
+  // Two of a kind, told apart by how much they can take. The same 敏捷度 leaves the order to
+  // the second sort, which is what a table sees when two of a species roll the same.
+  ゴブリン: { hp: 90, mp: 20, 器用度: 14, 敏捷度: 22, 筋力: 12, 生命力: 12, 知力: 8, 精神力: 6 },
+  手負いのゴブリン: { hp: 76, mp: 20, 器用度: 14, 敏捷度: 22, 筋力: 10, 生命力: 10, 知力: 8, 精神力: 6 },
+  ゴーレム: { hp: 400, mp: 20, 器用度: 8, 敏捷度: 6, 筋力: 40, 生命力: 45, 知力: 4, 精神力: 30 },
+};
+
+/** Writes a sample's numbers over the ones every new piece is made with. */
+function applySampleStats(character: GameCharacter, profile: keyof typeof SAMPLE_STATS): void {
+  const root = character.rootDataElement;
+  if (!root) return;
+
+  const stats = SAMPLE_STATS[profile];
+  for (const [name, amount] of [
+    ['HP', stats.hp],
+    ['MP', stats.mp],
+  ] as const) {
+    const pool = DataElement.findElementByReference(root, name);
+    if (!pool) continue;
+    pool.value = amount;
+    pool.currentValue = amount;
+  }
+
+  for (const name of ['器用度', '敏捷度', '筋力', '生命力', '知力', '精神力'] as const) {
+    const ability = DataElement.findElementByReference(root, name);
+    if (ability) ability.value = stats[name];
   }
 }
 
@@ -41,10 +93,38 @@ export function makeDefaultTable(imageStorage: ImageStorage): void {
   tableSelecter.viewTableIdentifier = gameTable.identifier;
 }
 
+/** How far a sample piece sees, which is far enough for the fog to open as it walks. */
+const SAMPLE_VISION_RANGE = 2;
+
+/**
+ * The party the sample player characters belong to.
+ *
+ * A room opened for the first time has the fog and the dark to try, and both are read
+ * through a party: what one member has walked to, the others are shown. Left unassigned,
+ * every sample piece would have its own private map and the feature would look broken.
+ *
+ * The monsters are left out of it. A party shares its sight, so a monster in it would show
+ * the players everything it can see.
+ */
+function makeSampleParty(): Party {
+  const party = new Party('testParty_1');
+  party.name = 'パーティ1';
+  party.color = PARTY_COLORS[0];
+  party.initialize();
+  return party;
+}
+
+/** A sample player character: it sees a little, and it sees for the rest of the party. */
+function joinSampleParty(character: GameCharacter, party: Party): void {
+  character.visionRange = SAMPLE_VISION_RANGE;
+  character.partyIdentifier = party.identifier;
+}
+
 export function makeDefaultTabletopObjects(imageStorage: ImageStorage): void {
   let testCharacter: GameCharacter;
   let testFile: ImageFile;
   let fileContext: ImageContext;
+  const party = makeSampleParty();
 
   testCharacter = new GameCharacter('testCharacter_1');
   fileContext = ImageFile.createEmpty('testCharacter_1_image').toContext();
@@ -56,6 +136,8 @@ export function makeDefaultTabletopObjects(imageStorage: ImageStorage): void {
   ImageTag.create(testFile.identifier).tag = 'モンスター';
 
   CharacterTemplateFactory.createDefault(testCharacter, 'モンスターA', 1, testFile.identifier);
+  testCharacter.isNpc = true;
+  applySampleStats(testCharacter, 'ゴブリン');
   addBuffRound(testCharacter, 'テストバフ1', '防+1', 3);
 
   testCharacter = new GameCharacter('testCharacter_2');
@@ -63,6 +145,8 @@ export function makeDefaultTabletopObjects(imageStorage: ImageStorage): void {
   testCharacter.location.y = 8 * 50;
   testCharacter.initialize();
   CharacterTemplateFactory.createDefault(testCharacter, 'モンスターB', 1, testFile.identifier);
+  testCharacter.isNpc = true;
+  applySampleStats(testCharacter, '手負いのゴブリン');
 
   testCharacter = new GameCharacter('testCharacter_3');
   fileContext = ImageFile.createEmpty('testCharacter_3_image').toContext();
@@ -74,6 +158,8 @@ export function makeDefaultTabletopObjects(imageStorage: ImageStorage): void {
   testFile = imageStorage.add(fileContext);
   ImageTag.create(testFile.identifier).tag = 'モンスター';
   CharacterTemplateFactory.createDefault(testCharacter, 'モンスターC', 3, testFile.identifier);
+  testCharacter.isNpc = true;
+  applySampleStats(testCharacter, 'ゴーレム');
 
   testCharacter = new GameCharacter('testCharacter_4');
   fileContext = ImageFile.createEmpty('testCharacter_4_image').toContext();
@@ -86,6 +172,8 @@ export function makeDefaultTabletopObjects(imageStorage: ImageStorage): void {
   testCharacter.location.y = 11 * 50;
   testCharacter.initialize();
   CharacterTemplateFactory.createDefault(testCharacter, 'キャラクターA', 1, testFile.identifier);
+  joinSampleParty(testCharacter, party);
+  applySampleStats(testCharacter, '騎士');
   addBuffRound(testCharacter, 'テストバフ2', '攻撃+10', 1);
 
   testCharacter = new GameCharacter('testCharacter_5');
@@ -96,6 +184,8 @@ export function makeDefaultTabletopObjects(imageStorage: ImageStorage): void {
   testCharacter.location.y = 12 * 50;
   testCharacter.initialize();
   CharacterTemplateFactory.createDefault(testCharacter, 'キャラクターB', 1, testFile.identifier);
+  joinSampleParty(testCharacter, party);
+  applySampleStats(testCharacter, '魔法使い');
   addBuffRound(testCharacter, 'テストバフ2', '攻撃+10', 1);
 
   testCharacter = new GameCharacter('testCharacter_6');
@@ -110,5 +200,7 @@ export function makeDefaultTabletopObjects(imageStorage: ImageStorage): void {
   testCharacter.location.y = 13 * 50;
   testCharacter.initialize();
   CharacterTemplateFactory.createDefault(testCharacter, 'キャラクターC', 1, testFile.identifier);
+  joinSampleParty(testCharacter, party);
+  applySampleStats(testCharacter, '斥候');
   addBuffRound(testCharacter, 'テストバフ3', '', 3);
 }

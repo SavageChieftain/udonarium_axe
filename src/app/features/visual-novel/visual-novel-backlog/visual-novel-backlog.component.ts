@@ -6,8 +6,6 @@ import {
   effect,
   ElementRef,
   inject,
-  input,
-  output,
   signal,
   viewChild,
 } from '@angular/core';
@@ -17,26 +15,28 @@ import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { ImageService } from '@axe/application/storage/image.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { ChatMessage } from '@axe/domain/chat/chat-message';
-import { isVnPortraitPosSet, VN_PORTRAIT_POS_UNSET } from '@axe/domain/visual-novel/vn-portrait-position';
 import {
-  buildVnEmoteSuffix,
-  parseVnEmote,
-  splitVnEmoteSuffix,
+  encodeVnEmote,
   VN_BUBBLE_ANIMATIONS,
   VN_BUBBLE_SHAPES,
   VN_EMOTION_MARK_CHARS,
   VN_EMOTION_MARKS,
   VN_PORTRAIT_EMOTES,
+  vnBodyOf,
   VnBubbleAnimation,
   VnBubbleShape,
+  vnEmoteOf,
   VnEmotionMark,
   VnMessageKind,
   VnPortraitEmote,
-} from '@axe/features/visual-novel/visual-novel-emote';
+} from '@axe/domain/visual-novel/vn-emote';
+import { isVnPortraitPosSet, VN_PORTRAIT_POS_UNSET } from '@axe/domain/visual-novel/vn-portrait-position';
+import { VisualNovelDirectorService } from '@axe/features/visual-novel/visual-novel-director.service';
+import { vnEmoteLabel } from '@axe/features/visual-novel/visual-novel-emote-label';
+import { VisualNovelEmoteSelectionService } from '@axe/features/visual-novel/visual-novel-emote-selection.service';
 import { readableMessageName, readableMessageText } from '@axe/features/visual-novel/visual-novel-message';
 import { VisualNovelPlaybackService } from '@axe/features/visual-novel/visual-novel-playback.service';
 import { VN_STAGE_SLOT_COUNT } from '@axe/features/visual-novel/visual-novel-stage';
-import { DraggableDirective } from '@axe/ui/directives/draggable.directive';
 import { SafePipe } from '@axe/ui/pipes/safe.pipe';
 import { TranslocoModule } from '@jsverse/transloco';
 
@@ -57,7 +57,7 @@ export interface VnBacklogEntry {
   selector: 'visual-novel-backlog',
   templateUrl: './visual-novel-backlog.component.html',
   host: { class: 'contents' },
-  imports: [DatePipe, DraggableDirective, FormsModule, SafePipe, TranslocoModule],
+  imports: [DatePipe, FormsModule, SafePipe, TranslocoModule],
 })
 export class VisualNovelBacklogComponent {
   private readonly objectChange = inject(ObjectChangeService);
@@ -65,11 +65,17 @@ export class VisualNovelBacklogComponent {
   private readonly translate = inject(TRANSLATE_FN);
   private readonly language = inject(LanguageService);
   private readonly playback = inject(VisualNovelPlaybackService);
+  private readonly director = inject(VisualNovelDirectorService);
+  private readonly emoteSelection = inject(VisualNovelEmoteSelectionService);
 
-  readonly messageKindOptions = input.required<readonly VnMessageKind[]>();
-
-  readonly jump = output<number>();
-  readonly closed = output<void>();
+  /**
+   * Which line the reader is looking at, and where they can go from here.
+   *
+   * The log is a window of its own now rather than a piece of the novel-mode screen, so it
+   * asks for these itself instead of being handed them: a panel is only given values that can
+   * be assigned to a plain field, and nothing can listen to what it emits.
+   */
+  readonly messageKindOptions = this.emoteSelection.messageKindOptions;
 
   readonly bubbleShapeOptions = VN_BUBBLE_SHAPES;
   readonly bubbleAnimationOptions = VN_BUBBLE_ANIMATIONS;
@@ -77,11 +83,17 @@ export class VisualNovelBacklogComponent {
   readonly emotionMarkOptions = VN_EMOTION_MARKS;
   readonly slotIndexes = Array.from({ length: VN_STAGE_SLOT_COUNT }, (_, i) => i);
 
-  readonly currentIndex = this.playback.currentIndex;
+  /**
+   * The line being read, named rather than numbered.
+   *
+   * The log shows more than the script does, so a position in one is not a position in the
+   * other; the identifier means the same thing in both.
+   */
+  readonly currentIdentifier = computed(() => this.playback.currentMessage()?.identifier ?? '');
 
   readonly filter = signal('');
 
-  readonly editingIndex = signal(-1);
+  readonly editingIdentifier = signal('');
   readonly editText = signal('');
   readonly editKind = signal<VnMessageKind>('normal');
   readonly editShape = signal<VnBubbleShape>('normal');
@@ -97,8 +109,10 @@ export class VisualNovelBacklogComponent {
   readonly entries = computed<VnBacklogEntry[]>(() => {
     this.objectChange.fileVersion();
     this.language.currentLang();
-    return this.playback.messages().map((message, index) => {
-      const { text, suffix } = splitVnEmoteSuffix(readableMessageText(message, this.translate));
+    return this.playback.logMessages().map((message, index) => {
+      const readable = readableMessageText(message, this.translate);
+      const text = vnBodyOf(message.vnEmote, readable);
+      const suffix = vnEmoteLabel(vnEmoteOf(message.vnEmote, readable), this.translate);
       const hasPortrait = !message.isSystemMessage && !message.isDicebot;
       return {
         message,
@@ -126,6 +140,12 @@ export class VisualNovelBacklogComponent {
     });
   });
 
+  /** Reading somewhere of one's own is stepping out of the showcase the game master is running. */
+  jumpTo(identifier: string): void {
+    this.director.leaveFollowing();
+    this.playback.jumpToIdentifier(identifier);
+  }
+
   toggleOnlyMine(): void {
     this.onlyMine.update((only) => !only);
   }
@@ -135,9 +155,7 @@ export class VisualNovelBacklogComponent {
   }
 
   scrollToCurrent(): void {
-    const list = this.listElement()?.nativeElement;
-    const row = list?.querySelector<HTMLElement>(`[data-vn-log-index="${this.currentIndex()}"]`);
-    row?.scrollIntoView({ block: 'center' });
+    this.rowFor(this.currentIdentifier())?.scrollIntoView({ block: 'center' });
   }
 
   readonly visibleCount = signal(BACKLOG_PAGE_SIZE);
@@ -147,7 +165,7 @@ export class VisualNovelBacklogComponent {
     const count = this.visibleCount();
     if (entries.length <= count) return entries;
     let start = entries.length - count;
-    const position = entries.findIndex((entry) => entry.index === this.currentIndex());
+    const position = entries.findIndex((entry) => entry.message.identifier === this.currentIdentifier());
     if (position >= 0 && position < start) start = position;
     return entries.slice(start);
   });
@@ -162,7 +180,7 @@ export class VisualNovelBacklogComponent {
     effect(() => {
       const list = this.listElement()?.nativeElement;
       if (!list) return;
-      const row = list.querySelector<HTMLElement>(`[data-vn-log-index="${this.currentIndex()}"]`);
+      const row = this.rowFor(this.currentIdentifier());
       if (row) {
         row.scrollIntoView({ block: 'center' });
       } else {
@@ -171,14 +189,21 @@ export class VisualNovelBacklogComponent {
     });
   }
 
+  private rowFor(identifier: string): HTMLElement | null {
+    if (identifier.length < 1) return null;
+    const list = this.listElement()?.nativeElement;
+    return list?.querySelector<HTMLElement>(`[data-vn-log-id="${identifier}"]`) ?? null;
+  }
+
   emotionMarkLabel(mark: VnEmotionMark): string {
     return mark === 'none' ? '' : VN_EMOTION_MARK_CHARS[mark];
   }
 
   startEditEntry(entry: { message: ChatMessage; index: number }): void {
     if (!entry.message.changeable) return;
-    const parsed = parseVnEmote(entry.message.text ?? '');
-    this.editText.set(parsed.text);
+    const raw = entry.message.text ?? '';
+    const parsed = vnEmoteOf(entry.message.vnEmote, raw);
+    this.editText.set(vnBodyOf(entry.message.vnEmote, raw));
     this.editKind.set(parsed.kind);
     this.editShape.set(parsed.shape);
     this.editBubbleAnimation.set(parsed.bubbleAnimation);
@@ -188,39 +213,38 @@ export class VisualNovelBacklogComponent {
     this.editExited.set(parsed.exited);
     const pos = entry.message.vnPortraitPos;
     this.editSlot.set(isVnPortraitPosSet(pos) ? pos : VN_PORTRAIT_POS_UNSET);
-    this.editingIndex.set(entry.index);
+    this.editingIdentifier.set(entry.message.identifier);
   }
 
   cancelEditEntry(): void {
-    this.editingIndex.set(-1);
+    this.editingIdentifier.set('');
   }
 
   saveEditEntry(): void {
-    const message = this.playback.messages()[this.editingIndex()];
+    const message = this.playback.logMessages().find((candidate) => candidate.identifier === this.editingIdentifier());
     if (!message?.changeable) {
-      this.editingIndex.set(-1);
+      this.editingIdentifier.set('');
       return;
     }
     const text = this.editText().trim();
     if (text.length < 1) return;
-    const next =
-      text +
-      buildVnEmoteSuffix({
-        kind: this.editKind(),
-        shape: this.editShape(),
-        bubbleAnimation: this.editBubbleAnimation(),
-        portraitEmote: this.editPortraitEmote(),
-        emotionMark: this.editEmotionMark(),
-        flipped: this.editFlipped(),
-        exited: this.editExited(),
-      });
-    if (message.text !== next) {
-      message.text = next;
+    const emote = encodeVnEmote({
+      kind: this.editKind(),
+      shape: this.editShape(),
+      bubbleAnimation: this.editBubbleAnimation(),
+      portraitEmote: this.editPortraitEmote(),
+      emotionMark: this.editEmotionMark(),
+      flipped: this.editFlipped(),
+      exited: this.editExited(),
+    });
+    if (message.text !== text || message.vnEmote !== emote) {
+      message.text = text;
+      message.vnEmote = emote;
       message.fixd = true;
     }
     if (message.vnPortraitPos !== this.editSlot()) {
       message.vnPortraitPos = this.editSlot();
     }
-    this.editingIndex.set(-1);
+    this.editingIdentifier.set('');
   }
 }

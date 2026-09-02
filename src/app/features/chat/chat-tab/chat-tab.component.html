@@ -12,12 +12,13 @@
             [simpleDispFlagTime]="!!chatTabList?.simpleDispFlagTime"
             [simpleDispFlagUserId]="!!chatTabList?.simpleDispFlagUserId"
             [chatSimpleDispFlag]="!!chatTab?.chatSimpleDispFlag"
+            [readOnly]="readOnly()"
           >
           </chat-message>
         }
       }
     }
-    @if (!chatMessages.length) {
+    @if (!chatMessages.length && !readOnly()) {
       @for (chatMessage of sampleMessages; track chatMessage) {
         <chat-message
           [chatMessage]="chatMessage"

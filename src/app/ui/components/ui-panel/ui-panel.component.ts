@@ -116,6 +116,11 @@ export class UIPanelComponent {
       this.panelService.minWidth = this.minWidthInput();
       this.panelService.minHeight = this.minHeightInput();
     });
+    this.panelService.minimizeRequest$.subscribe((minimized) => {
+      if (minimized === this.isMinimized()) return;
+      this.toggleMinimize();
+    }, this.destroyRef);
+    this.panelService.resizeRequest$.subscribe((size) => this.resizeTo(size), this.destroyRef);
     afterNextRender({
       write: () => {
         this.panelService.setDefaultScrollablePanel(this.scrollablePanel().nativeElement);
@@ -150,13 +155,18 @@ export class UIPanelComponent {
   set top(top: number) {
     this.panelService.top = top;
   }
+  /** Bumped when the size is written from outside a template binding, so the panel redraws. */
+  private readonly sizeVersion = signal(0);
+
   get width() {
+    this.sizeVersion();
     return this.panelService.width;
   }
   set width(width: number) {
     this.panelService.width = width;
   }
   get height() {
+    this.sizeVersion();
     return this.panelService.height;
   }
   set height(height: number) {
@@ -191,9 +201,14 @@ export class UIPanelComponent {
     return this.panelService.frameless;
   }
 
-  /** Wearing no box of its own: either shrunk to its content, or asked to play without a frame. */
+  /** Wearing no box of its own: shrunk to its content, asked to play without a frame, or gone ghost. */
   get unboxed(): boolean {
-    return this.contentMinimized || this.frameless;
+    return this.contentMinimized || this.frameless || this.panelService.isGhost();
+  }
+
+  /** A ghost keeps its buttons: they are the only thing left to take hold of it by. */
+  get isGhost(): boolean {
+    return this.panelService.isGhost();
   }
 
   get showsTitleBar(): boolean {
@@ -253,6 +268,30 @@ export class UIPanelComponent {
       panel.style.top = newOffT + 'px';
     }
   }
+
+  /**
+   * Grows the panel to a size its content asked for, or gives back the one it had.
+   *
+   * The size it had is put aside on the way out and given back on the way in, so a panel that
+   * grew to show everything returns to whatever the reader had set it to.
+   */
+  private resizeTo(size: { width: number; height: number } | null): void {
+    if (this.isFullScreen() || this.isCompact()) return;
+
+    if (size) {
+      if (!this.sizeBeforeFit) this.sizeBeforeFit = { width: this.width, height: this.height };
+      this.width = Math.max(this.minWidth, Math.min(size.width, window.innerWidth));
+      this.height = Math.max(this.minHeight, Math.min(size.height, window.innerHeight));
+    } else {
+      if (!this.sizeBeforeFit) return;
+      this.width = this.sizeBeforeFit.width;
+      this.height = this.sizeBeforeFit.height;
+      this.sizeBeforeFit = null;
+    }
+    this.sizeVersion.update((version) => version + 1);
+  }
+
+  private sizeBeforeFit: { width: number; height: number } | null = null;
 
   toggleMinimize() {
     if (this.isFullScreen()) return;

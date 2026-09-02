@@ -57,7 +57,7 @@ export class ChatMessageSettingComponent {
   ]);
 
   readonly canEditRoom = computed<boolean>(() => {
-    if (PeerCursor.myCursor) this.objectChange.versionOf(PeerCursor.myCursor.identifier)();
+    this.objectChange.trackMyCursor();
     return this.rolePermission.canEditTabletop;
   });
 
@@ -81,12 +81,17 @@ export class ChatMessageSettingComponent {
   }
 
   readonly autoFollowScroll = this.chatPrefs.autoFollowScroll;
+  readonly showVnEmoteBadge = this.chatPrefs.showVnEmoteBadge;
   readonly fontSize = this.chatPrefs.fontSize;
   readonly minFontSize = CHAT_FONT_SIZE_MIN;
   readonly maxFontSize = CHAT_FONT_SIZE_MAX;
 
   setAutoFollowScroll(v: boolean): void {
     this.chatPrefs.setAutoFollowScroll(v);
+  }
+
+  setShowVnEmoteBadge(v: boolean): void {
+    this.chatPrefs.setShowVnEmoteBadge(v);
   }
 
   onChangeFontSize(event: Event): void {
@@ -128,7 +133,7 @@ export class ChatMessageSettingComponent {
    */
   readonly tabRows = computed<{ identifier: string; name: string; portrait: boolean; simple: boolean }[]>(() => {
     this.objectChange.collectionOf('chat-tab')();
-    if (PeerCursor.myCursor) this.objectChange.versionOf(PeerCursor.myCursor.identifier)();
+    this.objectChange.trackMyCursor();
     const role = PeerCursor.myRole;
     return this.chatTabList.chatTabs
       .filter((tab) => !tab.isSystemTab && canRoleViewTab(tab, role))

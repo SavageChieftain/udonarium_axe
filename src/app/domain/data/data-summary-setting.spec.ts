@@ -1,6 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { ObjectSerializer } from '@axe/core/sync/object-serializer';
 import { ObjectStore } from '@axe/core/sync/object-store';
+import { DEFAULT_STATUS_AILMENT_NAMES } from '@axe/domain/character/builtin-status-ailments';
 import { DataSummarySetting, SortOrder } from '@axe/domain/data/data-summary-setting';
 
 describe('DataSummarySetting', () => {
@@ -45,12 +46,12 @@ describe('DataSummarySetting', () => {
   });
 
   describe('the defaults of the synchronised fields', () => {
-    it('starts sorting by the first resource', () => {
-      expect(DataSummarySetting.instance.sortTag).toBe('HP');
+    it('starts sorting by how quick everybody is', () => {
+      expect(DataSummarySetting.instance.sortTag).toBe('敏捷度');
     });
 
-    it('starts sorting upwards', () => {
-      expect(DataSummarySetting.instance.sortOrder).toBe(SortOrder.ASC);
+    it('starts with the quickest at the top, which is the order a fight is read in', () => {
+      expect(DataSummarySetting.instance.sortOrder).toBe(SortOrder.DESC);
     });
 
     it('starts breaking ties by name', () => {
@@ -61,8 +62,31 @@ describe('DataSummarySetting', () => {
       expect(DataSummarySetting.instance.sortOrder2nd).toBe(SortOrder.ASC);
     });
 
-    it('starts with the default tags', () => {
-      expect(DataSummarySetting.instance.dataTag).toBe('HP MP 敏捷度 精神力');
+    it('starts the full view on the two pools and the six abilities', () => {
+      expect(DataSummarySetting.instance.dataTags).toEqual([
+        'HP',
+        'MP',
+        '敏捷度',
+        '器用度',
+        '筋力',
+        '生命力',
+        '知力',
+        '精神力',
+      ]);
+    });
+
+    it('starts the table on those and every state a room keeps', () => {
+      const tags = DataSummarySetting.instance.tableDataTags;
+
+      expect(tags.slice(0, 8)).toEqual(DataSummarySetting.instance.dataTags);
+      expect(tags.slice(8)).toEqual([...DEFAULT_STATUS_AILMENT_NAMES]);
+    });
+
+    it('keeps the two lists apart', () => {
+      DataSummarySetting.instance.tableDataTag = 'HP 毒';
+
+      expect(DataSummarySetting.instance.tableDataTags).toEqual(['HP', '毒']);
+      expect(DataSummarySetting.instance.dataTags).not.toEqual(['HP', '毒']);
     });
   });
 
@@ -113,8 +137,9 @@ describe('DataSummarySetting', () => {
 
   describe('dataTags', () => {
     it('returns them apart by their spaces', () => {
-      const tags = DataSummarySetting.instance.dataTags;
-      expect(tags).toEqual(['HP', 'MP', '敏捷度', '精神力']);
+      DataSummarySetting.instance.dataTag = 'HP MP 敏捷度 精神力';
+
+      expect(DataSummarySetting.instance.dataTags).toEqual(['HP', 'MP', '敏捷度', '精神力']);
     });
 
     it('returns the same list again from the cache', () => {

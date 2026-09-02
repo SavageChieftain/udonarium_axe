@@ -19,6 +19,13 @@ import {
 import { OwnedTabletopObject } from '@axe/domain/tabletop/owned-tabletop-object';
 import { moveToBottommost, moveToTopmost } from '@axe/domain/tabletop/tabletop-object-util';
 import {
+  asVisionShape,
+  facingBearing,
+  VISION_SHAPE_DEFAULTS,
+  VisionShape,
+  VisionSpec,
+} from '@axe/domain/tabletop/vision-shape';
+import {
   DEFAULT_LIGHT_COLOR,
   LightAnimation,
   LightCategory,
@@ -76,6 +83,16 @@ export class GameCharacter extends OwnedTabletopObject {
   @SyncVar() visionRange: number = 0;
   @SyncVar() castsShadow: boolean = true;
 
+  @SyncVar() visionShape: string = VisionShape.DOME;
+  @SyncVar() visionConeAngle: number = VISION_SHAPE_DEFAULTS[VisionShape.CONE].coneAngle;
+  @SyncVar() visionConeCount: number = VISION_SHAPE_DEFAULTS[VisionShape.CONE_MULTI].coneCount;
+  @SyncVar() visionBackAngle: number = VISION_SHAPE_DEFAULTS[VisionShape.CONE_BACK].backAngle;
+  @SyncVar() visionBackScale: number = VISION_SHAPE_DEFAULTS[VisionShape.CONE_BACK].backScale;
+  @SyncVar() visionPeripheralScale: number = VISION_SHAPE_DEFAULTS[VisionShape.CONE_PERIPHERAL].peripheralScale;
+  @SyncVar() visionDirection: number = 0;
+  @SyncVar() visionLobes: string = '';
+  @SyncVar() showVisionRange: boolean = false;
+
   @SyncVar() lightEnabled: boolean = false;
   @SyncVar() lightPreset: string = LightPreset.CUSTOM;
   @SyncVar() lightBrightRadius: number = 0;
@@ -96,6 +113,19 @@ export class GameCharacter extends OwnedTabletopObject {
     if (!element) return;
     element.currentValue = Math.max(0, Math.min(VN_PORTRAIT_SLOT_COUNT - 1, Math.round(pos)));
     this.update();
+  }
+
+  get visionSpec(): VisionSpec {
+    return {
+      shape: asVisionShape(this.visionShape),
+      coneAngle: this.visionConeAngle,
+      coneCount: this.visionConeCount,
+      backAngle: this.visionBackAngle,
+      backScale: this.visionBackScale,
+      peripheralScale: this.visionPeripheralScale,
+      direction: facingBearing(this.rotate, this.visionDirection),
+      lobes: this.visionLobes,
+    };
   }
 
   get lightSpec(): LightSpec {

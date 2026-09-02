@@ -13,6 +13,15 @@
 
     <div class="ml-auto flex shrink-0 items-center gap-0.5">
       <button
+        data-testid="open-status-ailments"
+        type="button"
+        class="text-ui-muted hover:bg-ui-hover hover:text-ui-text rounded-ui-sm flex size-6 cursor-pointer items-center justify-center border-none bg-transparent p-0 [&_.material-icons]:text-[16px]!"
+        [title]="'feature.statusAilment.title' | transloco"
+        (click)="openStatusAilments()"
+      >
+        <i class="material-icons">list_alt</i>
+      </button>
+      <button
         data-testid="chart-back-to-now"
         type="button"
         class="text-ui-muted hover:bg-ui-hover hover:text-ui-text rounded-ui-sm flex size-6 cursor-pointer items-center justify-center border-none bg-transparent p-0 [&_.material-icons]:text-[16px]!"
@@ -111,7 +120,11 @@
                 [style.width.px]="labelWidthPx"
                 [style.min-width.px]="labelWidthPx"
               >
-                <span class="shrink-0 text-[11px] leading-none">{{ bar.icon }}</span>
+                @if (bar.iconUrl) {
+                  <img class="size-3 shrink-0 object-contain" [src]="bar.iconUrl | safe: 'resourceUrl'" alt="" />
+                } @else {
+                  <span class="shrink-0 text-[11px] leading-none">{{ bar.icon }}</span>
+                }
                 <span
                   class="min-w-0 truncate text-[11px]"
                   [class.text-ui-accent]="selected() === bar.identifier"

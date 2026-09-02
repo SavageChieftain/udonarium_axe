@@ -1,4 +1,7 @@
-import { OverlayPlan, OverlayShape } from '@axe/domain/tabletop/vision-scene';
+import { CellBits } from '@axe/domain/tabletop/fog/cell-bits';
+import { cellGridOf } from '@axe/domain/tabletop/fog/cell-grid';
+import { GridType } from '@axe/domain/tabletop/game-table';
+import { OverlayPlan, OverlayShape, OverlayVision } from '@axe/domain/tabletop/vision-scene';
 import {
   animatedGlowBounds,
   animationIntensity,
@@ -46,6 +49,7 @@ function fakeContext(): { ctx: CanvasRenderingContext2D; ops: Op[] } {
     clearRect: record('clearRect'),
     fillRect: record('fillRect'),
     beginPath: record('beginPath'),
+    rect: record('rect'),
     arc: record('arc'),
     fill: record('fill'),
     save: record('save'),
@@ -115,6 +119,88 @@ describe('vision-overlay-render', () => {
       expect(a).toBeGreaterThanOrEqual(0);
       expect(a).toBeLessThanOrEqual(1);
       expect(a).not.toBe(b);
+    });
+  });
+
+  describe('the fog laid over ground the party has not walked to', () => {
+    const grid = cellGridOf(4, 4, 50, GridType.SQUARE);
+
+    function vision(seen: number[], walked: number[]): OverlayVision {
+      const visible = new CellBits(16);
+      const explored = new CellBits(16);
+      for (const cell of seen) visible.set(cell);
+      for (const cell of walked) explored.set(cell);
+      return {
+        grid,
+        visible,
+        explored,
+        clipReveals: false,
+        fogEnabled: true,
+        fogColor: '#aeb9c4',
+        veilColor: '#000000',
+        veilAlpha: 0.3,
+        unexploredAlpha: 1,
+        blurPx: 0,
+        rememberSeen: true,
+        clearedStaysLit: false,
+      };
+    }
+
+    function fogPlan(overlay: OverlayVision): OverlayPlan {
+      return {
+        darknessAlpha: 0,
+        darknessColor: '#05060a',
+        baseRevealAlpha: 0,
+        reveals: [],
+        glows: [],
+        shadows: [],
+        vision: overlay,
+      };
+    }
+
+    it('shades the ground that has been cleared and covers the ground that has not', () => {
+      const { ctx, ops } = fakeContext();
+      drawOverlayPlan(ctx, fogPlan(vision([0], [0, 1])), 200, 200);
+
+      const fills = ops.filter((o) => o.name === 'fill');
+      expect(fills.map((o) => o.alpha)).toContain(0.3);
+      expect(fills.map((o) => o.alpha)).toContain(1);
+    });
+
+    it('lays no mist over ground the party has cleared', () => {
+      const { ctx, ops } = fakeContext();
+      // Everything is explored and nothing is in sight, so only the shade is left to draw.
+      drawOverlayPlan(
+        ctx,
+        fogPlan(
+          vision(
+            [],
+            Array.from({ length: 16 }, (_, i) => i)
+          )
+        ),
+        200,
+        200
+      );
+
+      const fills = ops.filter((o) => o.name === 'fill');
+      expect(fills).toHaveLength(1);
+      expect(fills[0].alpha).toBe(0.3);
+    });
+
+    it('lays nothing over a board that has been walked all over', () => {
+      const all = Array.from({ length: 16 }, (_, i) => i);
+      const { ctx, ops } = fakeContext();
+      drawOverlayPlan(ctx, fogPlan(vision(all, all)), 200, 200);
+
+      expect(ops.some((o) => o.name === 'fill')).toBe(false);
+    });
+
+    it('leaves the fog off a plan that carries none', () => {
+      const off = { ...vision([0], [0]), fogEnabled: false };
+      const { ctx, ops } = fakeContext();
+      drawOverlayPlan(ctx, fogPlan(off), 200, 200);
+
+      expect(ops.some((o) => o.name === 'fill')).toBe(false);
     });
   });
 

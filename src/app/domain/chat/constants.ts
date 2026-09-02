@@ -18,3 +18,13 @@ export const DEFAULT_CHAT_BUBBLE_CODES: readonly string[] = ['', '', ''];
 export const SYSTEM_CHAT_TAB_IDENTIFIER = 'SystemTab';
 
 export const SYSTEM_CHAT_TAB_NAME = 'システム';
+
+/**
+ * The tag on a line that belongs to the room's record but not to the story being read.
+ *
+ * Novel mode reads a tab as a script, one line at a time. Housekeeping a game master does to
+ * the stage still belongs in the chat log, so the table can see what happened, but making
+ * everyone press through "the portraits were cleared" as though it were a line of the scene
+ * defeats the point of clearing them.
+ */
+export const OUT_OF_STORY_TAG = 'out-of-story';

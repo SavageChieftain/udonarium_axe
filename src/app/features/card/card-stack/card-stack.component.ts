@@ -16,6 +16,7 @@ import { RolePermissionService } from '@axe/application/permission/role-permissi
 import { ImageService } from '@axe/application/storage/image.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { TabletopService } from '@axe/application/tabletop/tabletop.service';
+import { VisionService } from '@axe/application/tabletop/vision.service';
 import { ContextMenuSeparator, ContextMenuService } from '@axe/application/ui/context-menu.service';
 import { ModalService } from '@axe/application/ui/modal.service';
 import { MultiMovableService } from '@axe/application/ui/multi-movable.service';
@@ -54,6 +55,7 @@ import { TranslocoModule } from '@jsverse/transloco';
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [MovableDirective, NgClass, RotableDirective, SelectableDirective, NgStyle, SafePipe, TranslocoModule],
   host: {
+    '[style.display]': "isHiddenByFog() ? 'none' : null",
     class: 'block',
     '(carddrop)': 'onCardDrop($event)',
     '(dragstart)': 'onDragstart($event)',
@@ -71,11 +73,19 @@ export class CardStackComponent {
   private readonly pointerDeviceService = inject(PointerDeviceService);
   private readonly selectionSignalService = inject(SelectionSignalService);
   private readonly objectChange = inject(ObjectChangeService);
+  private readonly visionService = inject(VisionService);
   protected readonly tabletopService = inject(TabletopService);
   private readonly modalService = inject(ModalService);
   private readonly multiMovableService = inject(MultiMovableService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly translateFn = inject(TRANSLATE_FN);
+
+  readonly isHiddenByFog = computed(() => {
+    const piece = this.cardStack();
+    if (!piece) return false;
+    this.objectChange.versionOf(piece.identifier)();
+    return this.visionService.isPieceHiddenByFog(piece, this.size);
+  });
 
   readonly cardStack = input.required<CardStack>();
 

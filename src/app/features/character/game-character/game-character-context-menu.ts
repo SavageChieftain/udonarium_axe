@@ -119,6 +119,10 @@ export function buildGameCharacterContextMenu(
       name: t('feature.character.contextMenu.lightSettings'),
       action: () => callbacks.onShowLightSettings(),
     },
+    {
+      name: (char.showVisionRange ? '✔ ' : '') + t('feature.character.contextMenu.showVisionRange'),
+      action: () => (char.showVisionRange = !char.showVisionRange),
+    },
     ...(registeredShapes.length > 0 && callbacks.onInvokeRangeShape
       ? [
           {

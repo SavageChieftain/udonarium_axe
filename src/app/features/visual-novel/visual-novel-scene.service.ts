@@ -1,8 +1,11 @@
 import { computed, inject, Injectable } from '@angular/core';
+import { ChatMessageService } from '@axe/application/chat/chat-message.service';
+import { encodeI18nMessage } from '@axe/application/i18n/i18n-message';
 import { ImageService } from '@axe/application/storage/image.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { ModalService } from '@axe/application/ui/modal.service';
 import { ObjectStore } from '@axe/core/sync/object-store';
+import { ChatTab } from '@axe/domain/chat/chat-tab';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { VnStage, VnStageTransition } from '@axe/domain/visual-novel/vn-stage';
 import { FileSelecterComponent } from '@axe/ui/components/file-selecter/file-selecter.component';
@@ -15,6 +18,7 @@ export class VisualNovelSceneService {
   private readonly objectChange = inject(ObjectChangeService);
   private readonly imageService = inject(ImageService);
   private readonly modalService = inject(ModalService);
+  private readonly chatMessageService = inject(ChatMessageService);
 
   private get stage(): VnStage | null {
     return this.objectStore.get<VnStage>(STAGE_IDENTIFIER) ?? null;
@@ -41,7 +45,7 @@ export class VisualNovelSceneService {
   });
 
   readonly canDirect = computed(() => {
-    if (PeerCursor.myCursor) this.objectChange.versionOf(PeerCursor.myCursor.identifier)();
+    this.objectChange.trackMyCursor();
     return PeerCursor.isMyselfGameMaster;
   });
 
@@ -70,5 +74,31 @@ export class VisualNovelSceneService {
   playTransition(): void {
     if (!this.canDirect()) return;
     this.stage?.playTransition();
+  }
+
+  /**
+   * Clears the portraits standing on a tab, without anybody having to speak to do it.
+   *
+   * A character leaves the stage by saying something marked as leaving, and a scene change
+   * sweeps it by being said, so a cast that has walked out of the scene stands there until
+   * somebody talks. This draws a line across the log instead: nothing said before it stands
+   * while the reader is looking at anything after it, and reading back shows the stage as it
+   * was. The log itself is untouched.
+   *
+   * The line is drawn at the moment of the notice rather than at the clock, because a tab's
+   * timestamps are made to keep going forward whatever the clocks of the peers say, so a line
+   * anywhere else could leave the last thing said standing on the wrong side of it.
+   */
+  resetStage(tab: ChatTab): void {
+    if (!this.canDirect()) return;
+    const cursor = PeerCursor.myCursor;
+    const notice = this.chatMessageService.sendSystemMessageToTab(
+      tab,
+      encodeI18nMessage('feature.visualNovel.stageResetBy', { user: cursor?.name?.trim() || cursor?.identifier || '' }),
+      undefined,
+      cursor?.userId,
+      true
+    );
+    tab.vnPortraitResetAt = notice.timestamp;
   }
 }

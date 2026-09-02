@@ -50,6 +50,7 @@ import { EffectTargetOverlayComponent } from '@axe/features/effect/effect-target
 import { TableEffectOverlayComponent } from '@axe/features/effect/table-effect-overlay/table-effect-overlay.component';
 import { PeerCursorComponent } from '@axe/features/lobby/peer-cursor/peer-cursor.component';
 import { ReplayRouteOverlayComponent } from '@axe/features/replay/replay-route-overlay/replay-route-overlay.component';
+import { TableFogAirOverlayComponent } from '@axe/features/tabletop/fog-of-war/table-fog-air-overlay.component';
 import { beamTopGridGeometry, beamWallFaceGrid } from '@axe/features/tabletop/game-table/beam-top-grid';
 import { GameTableGestureService } from '@axe/features/tabletop/game-table/game-table-gesture.service';
 import { GridLineRender } from '@axe/features/tabletop/game-table/grid-line-render';
@@ -71,6 +72,7 @@ import { TableVisionOverlayComponent } from '@axe/features/tabletop/table-vision
 import { TableWeatherOverlayComponent } from '@axe/features/tabletop/table-weather-overlay/table-weather-overlay.component';
 import { TerrainComponent } from '@axe/features/tabletop/terrain/terrain.component';
 import { TextNoteComponent } from '@axe/features/tabletop/text-note/text-note.component';
+import { TableVisionVolumeOverlayComponent } from '@axe/features/tabletop/vision-volume/table-vision-volume-overlay.component';
 import {
   wallLightLayerStyle,
   wallSilhouetteBackground,
@@ -138,7 +140,9 @@ const NO_BEAM_WALL_GRIDS: readonly BeamWallGrid[] = [];
     GameCharacterComponent,
     SafePipe,
     TableMarqueeOverlayComponent,
+    TableFogAirOverlayComponent,
     TableVisionOverlayComponent,
+    TableVisionVolumeOverlayComponent,
     TableBeamOverlayComponent,
     TableTargetOverlayComponent,
     TableEffectOverlayComponent,
@@ -797,9 +801,13 @@ export class GameTableComponent {
     return face ? this.visionService.wallLights(face) : [];
   }
 
+  /** Whether a wall is drawn from the end its face starts at, which `surfaceFrame` settles. */
+  private wallIsMirrored(surface: TableSurface): boolean {
+    return surface === 'south-wall' || surface === 'west-wall';
+  }
+
   protected wallPoolStyleFor(pool: WallLight, surface: TableSurface, faceLen: number): Record<string, string> {
-    const mirror = surface === 'south-wall' || surface === 'east-wall';
-    return wallLightLayerStyle(pool, mirror, faceLen);
+    return wallLightLayerStyle(pool, this.wallIsMirrored(surface), faceLen);
   }
 
   protected wallSilhouetteBg(silhouette: WallSilhouette): string {
@@ -811,8 +819,7 @@ export class GameTableComponent {
     surface: TableSurface,
     faceLen: number
   ): Record<string, string> {
-    const mirror = surface === 'south-wall' || surface === 'east-wall';
-    return wallSilhouetteStyle(silhouette, mirror, faceLen);
+    return wallSilhouetteStyle(silhouette, this.wallIsMirrored(surface), faceLen);
   }
 
   private watchCurrentTable(): GameTable {

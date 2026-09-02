@@ -6,7 +6,6 @@ import { ChatTab } from '@axe/domain/chat/chat-tab';
 import { ChatTabList } from '@axe/domain/chat/chat-tab-list';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { VisualNovelBacklogComponent } from '@axe/features/visual-novel/visual-novel-backlog/visual-novel-backlog.component';
-import { VN_MESSAGE_KINDS } from '@axe/features/visual-novel/visual-novel-emote';
 import { VisualNovelPlaybackService } from '@axe/features/visual-novel/visual-novel-playback.service';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
 
@@ -35,7 +34,6 @@ describe('VisualNovelBacklogComponent', () => {
 
   function createComponent(): void {
     fixture = TestBed.createComponent(VisualNovelBacklogComponent);
-    fixture.componentRef.setInput('messageKindOptions', VN_MESSAGE_KINDS);
     component = fixture.componentInstance;
     fixture.detectChanges();
   }
@@ -104,11 +102,13 @@ describe('VisualNovelBacklogComponent', () => {
     component.saveEditEntry();
 
     const message = TestBed.inject(VisualNovelPlaybackService).messages()[0];
-    expect(message.text).toBe('こんばんは 〔もやもや〕');
+    // Editing a line said before the staging was kept apart moves it out of the body.
+    expect(message.text).toBe('こんばんは');
+    expect(message.vnEmote).toBe('shape:thought');
     expect(message.vnPortraitPos).toBe(7);
     expect(message.imagePos).toBe(2);
     expect(message.fixd).toBe(true);
-    expect(component.editingIndex()).toBe(-1);
+    expect(component.editingIdentifier()).toBe('');
   });
 
   it('adds and removes a flip', () => {
@@ -131,7 +131,7 @@ describe('VisualNovelBacklogComponent', () => {
     component.editText.set('書き換え');
     component.cancelEditEntry();
 
-    expect(component.editingIndex()).toBe(-1);
+    expect(component.editingIdentifier()).toBe('');
     expect(TestBed.inject(VisualNovelPlaybackService).messages()[0].text).toBe('そのまま');
   });
 
@@ -150,17 +150,18 @@ describe('VisualNovelBacklogComponent', () => {
     expect(component.hiddenCount()).toBe(0);
   });
 
-  it('reports where to jump on a click', () => {
+  it('goes to the line that was clicked', () => {
     addMessage('m1');
     addMessage('m2');
     createComponent();
-    const jumped: number[] = [];
-    component.jump.subscribe((index) => jumped.push(index));
+    const playback = TestBed.inject(VisualNovelPlaybackService);
+    playback.toLatest();
+    expect(playback.currentIndex()).toBe(1);
 
-    const rows = fixture.nativeElement.querySelectorAll('[data-vn-log-index]');
+    const rows = fixture.nativeElement.querySelectorAll('[data-vn-log-id]');
     rows[0].click();
 
-    expect(jumped).toEqual([0]);
+    expect(playback.currentIndex()).toBe(0);
   });
 
   it('gives a line back to following the character once its place is dropped', () => {

@@ -126,7 +126,7 @@ export class HotbarBarComponent {
   /** The bar is the reader's own, and the same one whichever piece they are working. */
   readonly hotbar = computed<Hotbar | null>(() => {
     this.objectChange.collectionOf(Hotbar.aliasName)();
-    if (PeerCursor.myCursor) this.objectChange.versionOf(PeerCursor.myCursor.identifier)();
+    this.objectChange.trackMyCursor();
     const held = this.hotbarStore.own();
     if (held) this.objectChange.versionOf(held.identifier)();
     return held;

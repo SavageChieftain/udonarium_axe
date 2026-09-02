@@ -60,6 +60,7 @@ describe('buff-timeline', () => {
         effect: '',
         strength: '',
         icon: '✦',
+        iconUrl: '',
         color: '#000',
         rounds: r,
         timing: 'roundEnd' as const,

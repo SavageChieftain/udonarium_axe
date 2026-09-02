@@ -14,6 +14,21 @@ function panelKindOf(childComponent: Type<unknown>): string {
   return selector && selector.length > 0 ? selector : '';
 }
 
+/**
+ * A button the panel's content asks to stand in the title bar.
+ *
+ * A panel of any kind wears the same frame, so what a particular one offers - following the
+ * newest line, taking the box off - has nowhere of its own to sit. The content hands these
+ * over and the frame draws them beside its own.
+ */
+export interface PanelHeaderControl {
+  /** The material icon drawn on it. */
+  icon: string;
+  label: string;
+  active: boolean;
+  press: () => void;
+}
+
 export interface PanelOption {
   title?: string;
   left?: number;
@@ -74,6 +89,15 @@ export class PanelService {
   private static readonly singles = new Map<string, ComponentRef<UIPanelInstance>>();
   /** Names spoken for by a panel whose code is still being fetched. */
   private static readonly opening = new Set<string>();
+  /**
+   * Bumped whenever a name is spoken for or let go of, so that `hasSingle` can be followed.
+   *
+   * A button that opens a panel has to know when that panel goes, and it goes by ways the
+   * button never hears about: its own close box, another panel taking the name, the reader
+   * pressing escape. Answering from a flag the button sets itself leaves it lit over a panel
+   * that is no longer there, and the next press opens what it meant to close.
+   */
+  private static readonly singlesVersion = signal(0);
   title: string = '';
   titleTooltip: string = '';
   left: number = 0;
@@ -90,6 +114,14 @@ export class PanelService {
   minimizeToContent: boolean = false;
   frameless: boolean = false;
   readonly isMinimized = signal(false);
+  /** Buttons the content put in the title bar, beside the ones every panel wears. */
+  readonly headerControls = signal<readonly PanelHeaderControl[]>([]);
+  /**
+   * Standing with its box taken off: no ground, no frame, no title, only what it holds.
+   *
+   * The buttons are drawn to stand out instead, since they are all that is left to work it by.
+   */
+  readonly isGhost = signal(false);
   /** What kind of panel this is, taken from the selector of what it was opened with. */
   readonly panelKind = signal('');
   chatTab: ChatTab | null = null;
@@ -97,6 +129,21 @@ export class PanelService {
   scrollablePanel: HTMLDivElement | null = null;
   private isScrollablePanelClaimed = false;
   readonly scrollToBottom$ = new EventChannel<void>();
+  /**
+   * Asks the frame to grow to a size, or to give back the one it had.
+   *
+   * The frame owns the size - it is written on the panel's own element and remembered across a
+   * shrink - so the content asks rather than writing it, the way it asks to be minimised.
+   */
+  readonly resizeRequest$ = new EventChannel<{ width: number; height: number } | null>();
+  /**
+   * Asks the frame to shrink the panel, or to let it out again.
+   *
+   * Shrinking is the frame's own doing - it puts the panel's size aside to give back - so the
+   * content asks rather than writing `isMinimized` itself, which would leave the panel its
+   * full size with nothing drawn in it.
+   */
+  readonly minimizeRequest$ = new EventChannel<boolean>();
   get isShow(): boolean {
     return this.panelComponentRef !== null;
   }
@@ -119,12 +166,31 @@ export class PanelService {
    * asked it to go away.
    */
   closeSingle(name: string): boolean {
-    if (PanelService.opening.delete(name)) return true;
+    if (PanelService.opening.delete(name)) {
+      PanelService.noteSingles();
+      return true;
+    }
 
     const open = PanelService.singles.get(name);
     if (!open) return false;
     open.destroy();
     return true;
+  }
+
+  private static noteSingles(): void {
+    PanelService.singlesVersion.update((version) => version + 1);
+  }
+
+  /**
+   * Whether a panel is standing under this name.
+   *
+   * `closeSingle` answers the same question but shuts the panel to do it, which is no use to
+   * anything that only wants to know. One still being opened counts as open, for the same
+   * reason it does there.
+   */
+  hasSingle(name: string): boolean {
+    PanelService.singlesVersion();
+    return PanelService.opening.has(name) || PanelService.singles.has(name);
   }
 
   open<T>(childComponent: Type<T>, option?: PanelOption, parentViewContainerRef?: ViewContainerRef): T {
@@ -147,10 +213,16 @@ export class PanelService {
     childPanelService.panelKind.set(panelKindOf(childComponent));
     if (option) this.applyPanelOption(panelComponentRef, childPanelService, option);
     const single = option?.single;
-    if (single) PanelService.singles.set(single, panelComponentRef);
+    if (single) {
+      PanelService.singles.set(single, panelComponentRef);
+      PanelService.noteSingles();
+    }
     panelComponentRef.onDestroy(() => {
       childPanelService.panelComponentRef = null;
-      if (single && PanelService.singles.get(single) === panelComponentRef) PanelService.singles.delete(single);
+      if (single && PanelService.singles.get(single) === panelComponentRef) {
+        PanelService.singles.delete(single);
+        PanelService.noteSingles();
+      }
     });
 
     return bodyComponentRef.instance as T;
@@ -165,7 +237,10 @@ export class PanelService {
     // A panel that fails to arrive says nothing for itself: the promise rejects into nowhere
     // and the reader is left looking at a menu item that appears to do nothing.
     const single = option?.single;
-    if (single) PanelService.opening.add(single);
+    if (single) {
+      PanelService.opening.add(single);
+      PanelService.noteSingles();
+    }
 
     factory()
       .then((childComponent) => {
@@ -179,6 +254,9 @@ export class PanelService {
         // The name is let go of as well, or nothing under it could ever be opened again.
         if (single) PanelService.opening.delete(single);
         Logger.error('[PanelService] パネルを開けませんでした', reason);
+      })
+      .finally(() => {
+        if (single) PanelService.noteSingles();
       });
   }
 

@@ -68,6 +68,16 @@ export class GameObjectInventoryService {
     return this.summarySetting.dataTags;
   }
 
+  get tableDataTag(): string {
+    return this.summarySetting.tableDataTag;
+  }
+  set tableDataTag(tableDataTag: string) {
+    this.summarySetting.tableDataTag = tableDataTag;
+  }
+  get tableDataTags(): string[] {
+    return this.summarySetting.tableDataTags;
+  }
+
   get folderPaths(): string[] {
     return this.summarySetting.folderPaths;
   }
@@ -117,7 +127,9 @@ export class GameObjectInventoryService {
   }
 
   private currentSummarySnapshot(): string {
-    return [this.sortTag, this.sortOrder, this.sortTag2nd, this.sortOrder2nd, this.dataTag].join('\n');
+    return [this.sortTag, this.sortOrder, this.sortTag2nd, this.sortOrder2nd, this.dataTag, this.tableDataTag].join(
+      '\n'
+    );
   }
 
   private initialize() {

@@ -442,6 +442,34 @@ describe('GameCharacterComponent', () => {
       }
     });
 
+    it('sounds like a machine when the resource asks for it', async () => {
+      const character = GameCharacter.create('自律機械', 1, '');
+      fixture.componentRef.setInput('gameCharacter', character);
+      const objectChange = TestBed.inject(ObjectChangeService);
+      const hp = DataElement.findElementByReference(character.rootDataElement!, 'HP')!;
+      hp.setAttribute(DataElementAttribute.CHANGE_SOUND_SET, 'mech');
+      const played: string[] = [];
+      vi.spyOn(SoundEffect, 'playLocal').mockImplementation((arg) => {
+        played.push(typeof arg === 'string' ? arg : arg.identifier);
+      });
+      const sounds = { damageLarge: PresetSound.damageLarge, mechDamageLarge: PresetSound.mechDamageLarge };
+      PresetSound.damageLarge = 'flesh-damage-large';
+      PresetSound.mechDamageLarge = 'mech-damage-large';
+
+      try {
+        fixture.detectChanges();
+
+        hp.currentValue = 10;
+        objectChange.notifyChanged(hp.identifier);
+        await fixture.whenStable();
+
+        expect(played).toEqual(['mech-damage-large']);
+      } finally {
+        Object.assign(PresetSound, sounds);
+        character.destroy();
+      }
+    });
+
     it('counts a rise as damage on a resource that runs the other way', async () => {
       const character = GameCharacter.create('狂気', 1, '');
       fixture.componentRef.setInput('gameCharacter', character);

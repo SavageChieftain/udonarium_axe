@@ -3,6 +3,7 @@ import { ChatMessageService } from '@axe/application/chat/chat-message.service';
 import { NO_SYSTEM_AVATAR, SystemAvatarService } from '@axe/application/chat/system-avatar.service';
 import { LanguageService } from '@axe/application/i18n/language.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
+import { PanelService } from '@axe/application/ui/panel.service';
 import { AudioFile } from '@axe/core/storage/audio-file';
 import { AudioStorage } from '@axe/core/storage/audio-storage';
 import { ImageStorage } from '@axe/core/storage/image-storage';
@@ -14,15 +15,20 @@ import { ChatTabList } from '@axe/domain/chat/chat-tab-list';
 import { DataElement } from '@axe/domain/data/data-element';
 import { DiceBot } from '@axe/domain/dice/dice-bot';
 import { AudioTag } from '@axe/domain/media/audio-tag';
+import { CutIn } from '@axe/domain/media/cut-in';
+import { CutInLauncher } from '@axe/domain/media/cut-in-launcher';
 import { Jukebox } from '@axe/domain/media/jukebox';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { PeerRole } from '@axe/domain/peer/peer-role';
 import { ChatPaletteRegistryService } from '@axe/features/chat/chat-palette/chat-palette-registry.service';
 import { VisualNovelModeService } from '@axe/features/visual-novel/visual-novel-mode.service';
 import { VisualNovelOverlayComponent } from '@axe/features/visual-novel/visual-novel-overlay/visual-novel-overlay.component';
+import { VN_BACKLOG_PANEL } from '@axe/features/visual-novel/visual-novel-panels';
 import { VisualNovelPlaybackService } from '@axe/features/visual-novel/visual-novel-playback.service';
+import { VisualNovelSceneService } from '@axe/features/visual-novel/visual-novel-scene.service';
 import { VisualNovelSettingsService } from '@axe/features/visual-novel/visual-novel-settings.service';
 import { leftOfSlot, VN_STAGE_SLOT_COUNT } from '@axe/features/visual-novel/visual-novel-stage';
+import { installPanelLayer } from '@axe/testing/panel-layer';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
 import GameSystemClass from 'bcdice/lib/game_system';
 
@@ -89,6 +95,8 @@ describe('VisualNovelOverlayComponent', () => {
     return jukebox;
   }
 
+  let removePanelLayer: (() => void) | undefined;
+
   function createComponent(): void {
     TestBed.inject(VisualNovelPlaybackService).setChatTab(tab.identifier);
     fixture = TestBed.createComponent(VisualNovelOverlayComponent);
@@ -106,16 +114,19 @@ describe('VisualNovelOverlayComponent', () => {
 
   beforeEach(() => {
     tab = ChatTabList.instance.addChatTab('テストタブ');
+    removePanelLayer = installPanelLayer();
   });
 
   afterEach(() => {
     fixture?.destroy();
+    removePanelLayer?.();
     tab?.destroy();
     for (const character of charactersByName.values()) character.destroy();
     charactersByName.clear();
     AudioStorage.instance.audios.forEach((a) => AudioStorage.instance.delete(a.identifier));
     ObjectStore.instance.getObjects(AudioTag).forEach((t) => ObjectStore.instance.delete(t, false));
     localStorage.removeItem('vn-settings');
+    PeerCursor.myCursor.role = PeerRole.Player;
     vi.useRealTimers();
     vi.restoreAllMocks();
   });
@@ -232,7 +243,12 @@ describe('VisualNovelOverlayComponent', () => {
       undefined,
       0,
       expect.any(String),
-      [{ text: 'やあ', object: null }]
+      [{ text: 'やあ', object: null }],
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      ''
     );
     expect(component.text()).toBe('');
   });
@@ -321,11 +337,34 @@ describe('VisualNovelOverlayComponent', () => {
     expect(anchor?.bottom).toBe('58vh');
   });
 
-  it('puts it at the bottom of the screen when nobody is on stage', () => {
+  it('shows a line in the window at the foot of the screen when its speaker is not on stage', () => {
+    // A balloon with nobody to come from used to float in the middle with its tail on nothing.
     addMessage('こんにちは');
     createComponent();
-    const anchor = component.bubbleAnchor();
-    expect(anchor?.left).toBe(50);
+    expect(component.bubbleAnchor()).toBeNull();
+    expect(component.speechLayout()).toBe('adv');
+  });
+
+  it('leaves the balloon behind once the stage is cleared under it', () => {
+    const image = addImage();
+    addMessage('やあ', 'アリス', image);
+    createComponent();
+    expect(component.speechLayout()).toBe('bubble');
+
+    PeerCursor.myCursor.role = PeerRole.GameMaster;
+    TestBed.inject(ObjectChangeService).notifyChanged(PeerCursor.myCursor.identifier);
+    TestBed.inject(VisualNovelSceneService).resetStage(tab);
+    TestBed.inject(ObjectChangeService).notifyChanged(tab.identifier);
+    fixture.detectChanges();
+
+    expect(component.stageCharacters()).toEqual([]);
+    expect(component.bubbleAnchor()).toBeNull();
+  });
+
+  it('keeps the chosen layout where the speaker is on stage', () => {
+    addMessage('こんにちは', 'アリス', addImage(), 4);
+    createComponent();
+    expect(component.speechLayout()).toBe('bubble');
   });
 
   it('gives a dice bot message to the mascot and no balloon of its own', () => {
@@ -424,7 +463,7 @@ describe('VisualNovelOverlayComponent', () => {
     expect(component.displayedText()).toBe('こんにちは');
   });
 
-  it('jumps to any message from the backlog', () => {
+  it('jumps to any message from the backlog and leaves the log standing', () => {
     addMessage('m1');
     addMessage('m2');
     addMessage('m3');
@@ -434,7 +473,53 @@ describe('VisualNovelOverlayComponent', () => {
     fixture.detectChanges();
     expect(component.currentIndex()).toBe(0);
     expect(component.displayedText()).toBe('m1');
-    expect(component.isPopover('backlog')).toBe(false);
+    // Reading somewhere else is what the log is for, so it stays open to be read on.
+    expect(component.isBacklogOpen()).toBe(true);
+  });
+
+  it('opens and closes the log from the same button', () => {
+    addMessage('m1');
+    createComponent();
+    expect(component.isBacklogOpen()).toBe(false);
+
+    component.toggleBacklog();
+    expect(component.isBacklogOpen()).toBe(true);
+
+    component.toggleBacklog();
+    expect(component.isBacklogOpen()).toBe(false);
+  });
+
+  it('puts the log button out when the log is closed by its own frame', () => {
+    addMessage('m1');
+    createComponent();
+    component.toggleBacklog();
+    expect(component.isBacklogOpen()).toBe(true);
+
+    // Closed the way a reader closes it, which the button never hears about of its own accord.
+    TestBed.inject(PanelService).closeSingle(VN_BACKLOG_PANEL);
+
+    expect(component.isBacklogOpen()).toBe(false);
+  });
+
+  it('opens the log again after it was closed by its own frame', () => {
+    addMessage('m1');
+    createComponent();
+    component.toggleBacklog();
+    TestBed.inject(PanelService).closeSingle(VN_BACKLOG_PANEL);
+
+    component.toggleBacklog();
+
+    expect(component.isBacklogOpen()).toBe(true);
+  });
+
+  it('takes the log down when novel mode is left', () => {
+    addMessage('m1');
+    createComponent();
+    component.toggleBacklog();
+
+    fixture.destroy();
+
+    expect(TestBed.inject(PanelService).hasSingle(VN_BACKLOG_PANEL)).toBe(false);
   });
 
   it('goes back through the history on the wheel', () => {
@@ -447,7 +532,7 @@ describe('VisualNovelOverlayComponent', () => {
     expect(component.currentIndex()).toBe(0);
   });
 
-  it('adds the chosen expression to the end of the line and keeps it chosen', async () => {
+  it('sends the chosen expression beside the line and keeps it chosen', async () => {
     createComponent();
     const chatMessageService = TestBed.inject(ChatMessageService);
     const sendSpy = vi.spyOn(chatMessageService, 'sendMessage').mockReturnValue(null as unknown as ChatMessage);
@@ -460,7 +545,8 @@ describe('VisualNovelOverlayComponent', () => {
     component.send();
     await vi.waitFor(() => expect(sendSpy).toHaveBeenCalled(), { timeout: 5000 });
 
-    expect(sendSpy.mock.calls[0][1]).toBe('なんだって！？ 〔叫び・ゆれ・ジャンプ〕');
+    expect(sendSpy.mock.calls[0][1]).toBe('なんだって！？');
+    expect(sendSpy.mock.calls[0][12]).toBe('shape:shout bubble:shake portrait:jump');
     expect(component.selectedShape()).toBe('shout');
     expect(component.selectedBubbleAnimation()).toBe('shake');
     expect(component.selectedPortraitEmote()).toBe('jump');
@@ -478,8 +564,10 @@ describe('VisualNovelOverlayComponent', () => {
     component.text.set('一行は森の奥へ進んだ。');
     component.send();
     await vi.waitFor(() => expect(sendSpy).toHaveBeenCalled(), { timeout: 5000 });
-    expect(sendSpy.mock.calls[0][1]).toBe('一行は森の奥へ進んだ。 〔地の文〕');
+    expect(sendSpy.mock.calls[0][1]).toBe('一行は森の奥へ進んだ。');
+    expect(sendSpy.mock.calls[0][12]).toBe('kind:narration');
 
+    // A line said before the staging was kept apart still reads the same way.
     addMessage('一行は森の奥へ進んだ。 〔地の文〕');
     fixture.detectChanges();
     expect(component.narrationKind()).toBe('narration');
@@ -1121,7 +1209,8 @@ describe('VisualNovelOverlayComponent', () => {
     component.text.set('ふりかえる');
     component.send();
     await vi.waitFor(() => expect(sendSpy).toHaveBeenCalled(), { timeout: 5000 });
-    expect(sendSpy.mock.calls[0][1]).toBe('ふりかえる 〔反転〕');
+    expect(sendSpy.mock.calls[0][1]).toBe('ふりかえる');
+    expect(sendSpy.mock.calls[0][12]).toBe('flip');
     character.destroy();
   });
 
@@ -1189,7 +1278,244 @@ describe('VisualNovelOverlayComponent', () => {
     vnMode.activate();
     component.toggleBacklog();
     component.onKeydown(new KeyboardEvent('keydown', { key: 'Escape' }));
-    expect(component.isPopover('backlog')).toBe(false);
+    expect(component.isBacklogOpen()).toBe(false);
     expect(vnMode.active()).toBe(true);
+  });
+  describe('clearing the portraits', () => {
+    it('empties the stage and keeps the notice out of the script', () => {
+      const image = addImage();
+      addMessage('やあ', 'モンスターA', image);
+      createComponent();
+      fixture.detectChanges();
+      expect(component.stageCharacters()).toHaveLength(1);
+      const linesBefore = component.messages().length;
+
+      PeerCursor.myCursor.role = PeerRole.GameMaster;
+      TestBed.inject(ObjectChangeService).notifyChanged(PeerCursor.myCursor.identifier);
+      TestBed.inject(VisualNovelSceneService).resetStage(tab);
+      TestBed.inject(ObjectChangeService).notifyChanged(tab.identifier);
+      fixture.detectChanges();
+
+      // Nothing has been said since, so the reader is still on the last line; the stage is
+      // cleared all the same, and there is no extra line to press through.
+      expect(component.stageCharacters()).toEqual([]);
+      expect(component.messages()).toHaveLength(linesBefore);
+      expect(tab.chatMessages.at(-1)?.isOutOfStory).toBe(true);
+    });
+
+    it('shows the stage as it stood when read back to before the clearing', () => {
+      const image = addImage();
+      addMessage('やあ', 'モンスターA', image);
+      addMessage('こんばんは', 'モンスターA', image);
+      createComponent();
+
+      PeerCursor.myCursor.role = PeerRole.GameMaster;
+      TestBed.inject(ObjectChangeService).notifyChanged(PeerCursor.myCursor.identifier);
+      TestBed.inject(VisualNovelSceneService).resetStage(tab);
+      TestBed.inject(ObjectChangeService).notifyChanged(tab.identifier);
+      component.jumpTo(0);
+      fixture.detectChanges();
+
+      expect(component.stageCharacters()).toHaveLength(1);
+    });
+  });
+  describe('what the game master says as themselves', () => {
+    function gameMasterSpeaks(text: string): void {
+      PeerCursor.myCursor.role = PeerRole.GameMaster;
+      TestBed.inject(ObjectChangeService).notifyChanged(PeerCursor.myCursor.identifier);
+      tab.addMessage({
+        from: PeerCursor.myCursor.userId,
+        name: 'ゲームマスター',
+        text,
+        timestamp: Date.now(),
+        sendFrom: PeerCursor.myCursor.identifier,
+      });
+    }
+
+    beforeEach(() => {
+      if (!ObjectStore.instance.get(PeerCursor.myCursor.identifier)) PeerCursor.myCursor.initialize();
+    });
+
+    it('gives it the place the room own notices get, under the speaker own picture', () => {
+      gameMasterSpeaks('では、判定をどうぞ');
+      createComponent();
+
+      const above = component.systemSpeaker();
+      expect(above).not.toBeNull();
+      expect(above?.speakerName).toBe('ゲームマスター');
+      expect(above?.isSpeaker).toBe(true);
+      // Not spoken in the scene, so no balloon and no window at the foot of the screen.
+      expect(component.speechLayout()).toBeNull();
+      expect(component.bubbleAnchor()).toBeNull();
+    });
+
+    it('leaves a character line alone', () => {
+      PeerCursor.myCursor.role = PeerRole.GameMaster;
+      TestBed.inject(ObjectChangeService).notifyChanged(PeerCursor.myCursor.identifier);
+      addMessage('やあ', 'アリス', addImage());
+      createComponent();
+
+      expect(component.systemSpeaker()).toBeNull();
+      expect(component.speechLayout()).toBe('bubble');
+    });
+  });
+  describe('taking leave with a line', () => {
+    it('keeps the portrait for that line and lets it go on the next', () => {
+      const image = addImage();
+      addMessage('またね 〔退場〕', 'アリス', image);
+      addMessage('行ってしまった', 'ボブ', addImage());
+      createComponent();
+
+      TestBed.inject(VisualNovelPlaybackService).jumpTo(0);
+      fixture.detectChanges();
+      expect(component.stageCharacters().map((chara) => chara.name)).toContain('アリス');
+      expect(component.stageCharacters().find((chara) => chara.name === 'アリス')?.isLeaving).toBe(true);
+
+      component.toLatest();
+      fixture.detectChanges();
+      expect(component.stageCharacters().map((chara) => chara.name)).not.toContain('アリス');
+    });
+
+    it('holds the fade back until the words are all there', () => {
+      addMessage('またね 〔退場〕', 'アリス', addImage());
+      createComponent();
+      TestBed.inject(VisualNovelSettingsService).setTypewriterSpeed('slow');
+      fixture.detectChanges();
+
+      expect(component.isTyping()).toBe(true);
+      expect(component.isLeavingLine()).toBe(false);
+
+      component.userAdvance();
+      fixture.detectChanges();
+      expect(component.isTyping()).toBe(false);
+      expect(component.isLeavingLine()).toBe(true);
+    });
+
+    it('does not fade for a reader who asked for less motion', () => {
+      addMessage('またね 〔退場〕', 'アリス', addImage());
+      createComponent();
+      TestBed.inject(VisualNovelSettingsService).setReduceMotion(true);
+      fixture.detectChanges();
+
+      expect(component.isLeavingLine()).toBe(false);
+    });
+  });
+  describe('speaking from above', () => {
+    it('offers nobody but the cast to a player', () => {
+      addMessage('やあ', 'アリス', addImage());
+      createComponent();
+
+      expect(component.speakerOptions().map((option) => option.identifier)).not.toContain(
+        PeerCursor.myCursor.identifier
+      );
+    });
+
+    it('lets the game master send a line as themselves without leaving novel mode', () => {
+      addMessage('やあ', 'アリス', addImage());
+      createComponent();
+      PeerCursor.myCursor.role = PeerRole.GameMaster;
+      TestBed.inject(ObjectChangeService).notifyChanged(PeerCursor.myCursor.identifier);
+      fixture.detectChanges();
+
+      // First, so it is not hunted for among a long cast.
+      expect(component.speakerOptions()[0].identifier).toBe(PeerCursor.myCursor.identifier);
+    });
+
+    it('takes the offer away again once the role is given up', () => {
+      addMessage('やあ', 'アリス', addImage());
+      createComponent();
+      const objectChange = TestBed.inject(ObjectChangeService);
+      PeerCursor.myCursor.role = PeerRole.GameMaster;
+      objectChange.notifyChanged(PeerCursor.myCursor.identifier);
+      expect(component.speakerOptions()).toHaveLength(2);
+
+      PeerCursor.myCursor.role = PeerRole.Player;
+      objectChange.notifyChanged(PeerCursor.myCursor.identifier);
+
+      expect(component.speakerOptions()).toHaveLength(1);
+    });
+  });
+  describe('the sound board', () => {
+    /** The tool registers its own sounds at start-up, which a test does not run. */
+    function addPresetSound(file: string): string {
+      const audio = AudioStorage.instance.add(`./assets/sounds/soundeffect-lab/${file}.mp3`);
+      audio.isHidden = true;
+      return audio.identifier;
+    }
+
+    it('offers the sounds the tool comes with, under their own names', () => {
+      addPresetSound('barrier');
+      addPresetSound('warp');
+      createComponent();
+
+      const presets = component.presetSoundEffects();
+      expect(presets.length).toBeGreaterThan(0);
+      // Named rather than left as the file path, which says nothing about the sound.
+      expect(presets.every((sound) => sound.name.length > 0 && !sound.name.includes('/'))).toBe(true);
+      expect(presets.map((sound) => sound.name)).toEqual(
+        [...presets.map((sound) => sound.name)].sort((a, b) => a.localeCompare(b, 'ja'))
+      );
+    });
+
+    it('keeps the room own sounds apart from the built-in ones', () => {
+      const audio = AudioStorage.instance.add('test://vn/door.mp3');
+      AudioTag.create(audio.identifier).tag = 'SE';
+      addPresetSound('barrier');
+      createComponent();
+      TestBed.inject(ObjectChangeService).notifyChanged(audio.identifier);
+
+      expect(component.soundEffects().map((sound) => sound.identifier)).toContain(audio.identifier);
+      expect(component.presetSoundEffects().map((sound) => sound.identifier)).not.toContain(audio.identifier);
+    });
+
+    it('leaves out a hidden sound that is not one of them', () => {
+      const hidden = AudioStorage.instance.add('test://vn/secret.mp3');
+      hidden.isHidden = true;
+      createComponent();
+
+      expect(component.presetSoundEffects().map((sound) => sound.identifier)).not.toContain(hidden.identifier);
+    });
+
+    it('narrows every list at once', () => {
+      addPresetSound('barrier');
+      createComponent();
+      const before = component.presetSoundEffects().length;
+
+      component.soundFilter.set('のありえない名前');
+
+      expect(component.presetSoundEffects()).toHaveLength(0);
+      expect(component.soundEffects()).toHaveLength(0);
+      expect(component.cutIns()).toHaveLength(0);
+      expect(before).toBeGreaterThan(0);
+    });
+
+    it('offers the cut-ins of the room', () => {
+      const cutIn = new CutIn();
+      cutIn.initialize();
+      cutIn.name = 'ここで一枚';
+      try {
+        createComponent();
+        TestBed.inject(ObjectChangeService).notifyChanged(cutIn.identifier);
+        expect(component.cutIns().map((entry) => entry.name)).toContain('ここで一枚');
+      } finally {
+        cutIn.destroy();
+      }
+    });
+
+    it('sends a cut-in to everybody rather than playing it alone', () => {
+      const cutIn = new CutIn();
+      cutIn.initialize();
+      cutIn.name = 'ここで一枚';
+      const launcher = ObjectStore.instance.get<CutInLauncher>('CutInLauncher') ?? new CutInLauncher('CutInLauncher');
+      launcher.initialize();
+      const spy = vi.spyOn(launcher, 'startCutIn').mockImplementation(() => undefined);
+      try {
+        createComponent();
+        component.playCutIn(cutIn.identifier);
+        expect(spy).toHaveBeenCalledWith(cutIn);
+      } finally {
+        cutIn.destroy();
+      }
+    });
   });
 });

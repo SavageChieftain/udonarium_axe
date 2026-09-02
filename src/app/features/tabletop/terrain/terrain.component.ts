@@ -19,7 +19,7 @@ import { ImageService } from '@axe/application/storage/image.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { TabletopService } from '@axe/application/tabletop/tabletop.service';
 import { TabletopActionService } from '@axe/application/tabletop/tabletop-action.service';
-import { VisionService } from '@axe/application/tabletop/vision.service';
+import { TerrainFogCover, VisionService } from '@axe/application/tabletop/vision.service';
 import { ContextMenuSeparator, ContextMenuService } from '@axe/application/ui/context-menu.service';
 import { buildOverlapContextMenu } from '@axe/application/ui/overlap-context-menu';
 import { PanelOption, PanelService } from '@axe/application/ui/panel.service';
@@ -60,9 +60,16 @@ import { RotableOption } from '@axe/ui/directives/rotable.directive';
 import { RotableDirective } from '@axe/ui/directives/rotable.directive';
 import { SelectableDirective } from '@axe/ui/directives/selectable.directive';
 import { SafePipe } from '@axe/ui/pipes/safe.pipe';
+import { allCleared, fogClipPath, FogClipRect, fogClipRuns } from '@axe/ui/tabletop/fog-clip';
 import { buildHexRingClipPath, calcHexFlowerParams, HexFlowerParams } from '@axe/ui/tabletop/hex-pedestal-geometry';
 import { setupInputHandler, setupMovableRotableForPiece } from '@axe/ui/tabletop/setup-tabletop-piece';
-import { shadedBackgroundImage } from '@axe/ui/tabletop/shaded-background';
+import {
+  ShadedBackground,
+  shadedBackgroundGrid,
+  shadedBackgroundImage,
+  STRETCHED_TEXTURE,
+  TextureLayout,
+} from '@axe/ui/tabletop/shaded-background';
 import { translateZCss, Z_OFFSET_TABLETOP_OBJECT_PX } from '@axe/ui/tabletop/z-offset';
 
 interface TerrainGridBounds {
@@ -95,6 +102,7 @@ function sameOrBothEmpty<T>(a: readonly T[], b: readonly T[]): boolean {
   imports: [MovableDirective, RotableDirective, SelectableDirective, NgStyle, SafePipe],
   host: {
     class: 'block',
+    '[style.display]': "isHiddenByFog() ? 'none' : null",
     '(dragstart)': 'onDragstart($event)',
     '(contextmenu)': 'onContextMenu($event)',
   },
@@ -339,10 +347,15 @@ export class TerrainComponent {
     this.terrainVersion();
     return this.terrain().isTiledTexture;
   });
+  private readonly textureLayout = computed<TextureLayout>(() => {
+    if (!this.isTiledTexture()) return STRETCHED_TEXTURE;
+    const side = `${this.gridSize}px`;
+    return { size: `${side} ${side}`, repeat: 'repeat' };
+  });
   readonly tileStyle = computed((): Record<string, string> => {
     if (!this.isTiledTexture()) return {};
-    const side = `${this.gridSize}px`;
-    return { 'background-size': `${side} ${side}`, 'background-repeat': 'repeat' };
+    const texture = this.textureLayout();
+    return { 'background-size': texture.size, 'background-repeat': texture.repeat };
   });
 
   readonly isSlope = computed(() => {
@@ -666,13 +679,159 @@ export class TerrainComponent {
     }
   });
 
+  private readonly fogCover = computed(() => {
+    const terrain = this.terrain();
+    this.objectChange.versionOf(terrain.identifier)();
+    return this.visionService.terrainFogCover(terrain);
+  });
+
+  /**
+   * Ground nobody has walked to yet is not drawn at all.
+   *
+   * Only when none of it has been: a terrain the party has reached part of stays drawn, and
+   * its faces are cut back to the part instead. The fog is laid on the floor and a wall
+   * stands over it, so what is left drawn over unwalked ground would rise out of a blank.
+   */
+  readonly isHiddenByFog = computed(() => {
+    const cover = this.fogCover();
+    return cover !== null && !cover.cleared.some((cell) => cell);
+  });
+
+  /**
+   * The part of a face the fog covers.
+   *
+   * Covered rather than cut away: a wall is a box, and a box with its faces cut is a shell
+   * with holes in it, which from a low angle is seen straight through. The fog is laid over
+   * the part nobody has reached instead, and the box stays closed.
+   *
+   * A hex board and a slope carry a clip of their own, and two cannot be laid on the one
+   * element, so those are left to be shown or hidden whole as they were.
+   */
+  private fogClip(rects: FogClipRect[], cover: TerrainFogCover | null): string | null {
+    if (!cover || this.isHex() || this.isSlope() || allCleared(cover.cleared) || rects.length === 0) return null;
+    return fogClipPath(rects);
+  }
+
+  private fogVeilStyle(clip: string | null): Record<string, string> | null {
+    if (!clip) return null;
+    return {
+      position: 'absolute',
+      inset: '0',
+      'clip-path': clip,
+      'background-color': this.visionService.fogColor(),
+      'pointer-events': 'none',
+    };
+  }
+
+  /** The cells along one face, its left end first: the west and east faces stand up from the south end. */
+  private edgeIndexes(cover: TerrainFogCover, side: WallSide): number[] {
+    const { cols, rows } = cover;
+    switch (side) {
+      case 'north':
+        return Array.from({ length: cols }, (_, col) => col);
+      case 'south':
+        return Array.from({ length: cols }, (_, col) => (rows - 1) * cols + col);
+      case 'west':
+        return Array.from({ length: rows }, (_, i) => (rows - 1 - i) * cols);
+      default:
+        return Array.from({ length: rows }, (_, i) => (rows - 1 - i) * cols + cols - 1);
+    }
+  }
+
+  private edgeCells(cover: TerrainFogCover, side: WallSide): boolean[] {
+    return this.edgeIndexes(cover, side).map((i) => cover.cleared[i]);
+  }
+
+  /**
+   * The top of a block, shaded a cell at a time.
+   *
+   * The camera looks down on a table, so the top is the face most seen, and one figure for
+   * the whole of it lights the far end of a wall whose near end alone stands in a torch's
+   * reach.
+   */
+  /**
+   * The shading and the veils, worked out once for the scene rather than once a frame.
+   *
+   * Building them takes a gradient stop per cell and a clip path per face, and a template
+   * calls a plain method on every pass of change detection. A flickering lamp ticks twenty
+   * times a second, and every terrain on the board was rebuilding all of it each time.
+   */
+  protected readonly topShade = computed(() => this.shadedTop(this.topFaceImage().url));
+  protected readonly northShade = computed(() =>
+    this.shadedFace(this.northFaceImage().url, this.isSurfaceShading() ? 0.3 : 1, 'north')
+  );
+  protected readonly southShade = computed(() => this.shadedFace(this.southFaceImage().url, 1, 'south'));
+  protected readonly westShade = computed(() =>
+    this.shadedFace(this.westFaceImage().url, this.isSurfaceShading() ? 0.5 : 1, 'west')
+  );
+  protected readonly eastShade = computed(() =>
+    this.shadedFace(this.eastFaceImage().url, this.isSurfaceShading() ? 0.8 : 1, 'east')
+  );
+
+  protected readonly topFog = computed(() => this.topFogStyle());
+  protected readonly northFog = computed(() => this.faceFogStyle('north'));
+  protected readonly southFog = computed(() => this.faceFogStyle('south'));
+  protected readonly westFog = computed(() => this.faceFogStyle('west'));
+  protected readonly eastFog = computed(() => this.faceFogStyle('east'));
+
+  private shadedTop(url: string): ShadedBackground {
+    const cover = this.fogCover();
+    const texture = this.textureLayout();
+    if (!cover || this.isHex() || this.isSlope()) {
+      return shadedBackgroundGrid(url, [this.floorBrightness()], 1, 1, texture);
+    }
+    const shade = this.floorShade();
+    return shadedBackgroundGrid(
+      url,
+      cover.brightness.map((brightness) => shade * brightness),
+      cover.cols,
+      cover.rows,
+      texture
+    );
+  }
+
+  private shadedFace(url: string, base: number, side: WallSide): ShadedBackground {
+    const cover = this.fogCover();
+    const texture = this.textureLayout();
+    if (!cover) return shadedBackgroundGrid(url, [base * this.ambientBrightness()], 1, 1, texture);
+    const along = this.edgeIndexes(cover, side).map((i) => base * cover.brightness[i]);
+    return shadedBackgroundGrid(url, along, along.length, 1, texture);
+  }
+
+  private faceFogStyle(side: WallSide): Record<string, string> | null {
+    const cover = this.fogCover();
+    if (!cover) return null;
+    const height = this.height() * this.gridSize;
+    const covered = this.edgeCells(cover, side).map((cell) => !cell);
+    return this.fogVeilStyle(this.fogClip(fogClipRuns(covered, this.gridSize, 0, height), cover));
+  }
+
+  private topFogStyle(): Record<string, string> | null {
+    const cover = this.fogCover();
+    if (!cover) return null;
+    const rects: FogClipRect[] = [];
+    for (let row = 0; row < cover.rows; row++) {
+      const line = cover.cleared.slice(row * cover.cols, (row + 1) * cover.cols).map((cell) => !cell);
+      rects.push(...fogClipRuns(line, this.gridSize, row * this.gridSize, this.gridSize));
+    }
+    const style = this.fogVeilStyle(this.fogClip(rects, cover));
+    if (!style) return null;
+    // The top face is lifted to the height of the block, and its veil rides with it.
+    const lift = (this.height() / (this.isSlope() ? 2 : 1)) * this.gridSize;
+    return { ...style, transform: `translateZ(${lift}px)` + this.floorModCss() };
+  }
+
   readonly centerBrightness = computed(() => {
     const terrain = this.terrain();
     this.objectChange.versionOf(terrain.identifier)();
     const w = this.width() * this.gridSize;
     const d = this.depth() * this.gridSize;
-    const radius = Math.max(w, d) / 2;
-    return this.visionService.objectBrightness(terrain.location.x + w / 2, terrain.location.y + d / 2, radius, true);
+    return this.visionService.terrainBrightness(
+      terrain,
+      terrain.location.x + w / 2,
+      terrain.location.y + d / 2,
+      Math.max(w, d) / 2
+    );
   });
 
   readonly floorBrightness = computed(() => this.floorShade() * this.centerBrightness());
@@ -732,20 +891,26 @@ export class TerrainComponent {
     return this.visionService.ambientBrightness();
   });
 
-  protected wallLightStyle(pool: WallLight): Record<string, string> {
-    return wallLightLayerStyle(pool, false, 0, this.isTiledTexture() ? this.gridSize : 0);
+  /** A face starts at its north or west end, and the west and east faces stand up from the south. */
+  private faceIsMirrored(side: WallSide): boolean {
+    return side === 'west' || side === 'east';
+  }
+
+  protected wallLightStyle(pool: WallLight, side: WallSide): Record<string, string> {
+    return wallLightLayerStyle(
+      pool,
+      this.faceIsMirrored(side),
+      this.depth() * this.gridSize,
+      this.isTiledTexture() ? this.gridSize : 0
+    );
   }
 
   protected silhouetteBackground(silhouette: WallSilhouette): string {
     return wallSilhouetteBackground(silhouette);
   }
 
-  protected silhouetteStyle(silhouette: WallSilhouette): Record<string, string> {
-    return wallSilhouetteStyle(silhouette);
-  }
-
-  protected faceShade(base: number): number {
-    return base * this.ambientBrightness();
+  protected silhouetteStyle(silhouette: WallSilhouette, side: WallSide): Record<string, string> {
+    return wallSilhouetteStyle(silhouette, this.faceIsMirrored(side), this.depth() * this.gridSize);
   }
 
   private getFloorBounds(width: number = this.width(), depth: number = this.depth()): TerrainGridBounds {

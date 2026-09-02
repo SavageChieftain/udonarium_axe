@@ -77,6 +77,7 @@ export const DataElementAttribute = {
   GAUGE_INVERTED: 'cs-gauge-inverted',
   CHANGE_EFFECT: 'cs-change-effect',
   CHANGE_SOUND: 'cs-change-sound',
+  CHANGE_SOUND_SET: 'cs-change-sound-set',
   BUFF_ICON: 'cs-buff-icon',
   BUFF_COLOR: 'cs-buff-color',
   BUFF_TIMING: 'cs-buff-timing',

@@ -41,3 +41,18 @@ export const Z_CONTEXT_MENU_PINNED = Z_HOTBAR_PINNED + 10;
 export function hotbarPanelLayer(pinned: boolean): number {
   return (pinned ? Z_HOTBAR_PINNED : Z_HOTBAR) + 1;
 }
+
+/**
+ * Novel mode covers the screen, and the windows opened from it have to clear it.
+ *
+ * The overlay paints a backdrop over everything at 160, so a panel numbered from the ordinary
+ * stack would open behind the picture rather than over it.
+ *
+ * Two shelves rather than one because bringing a window forward skips anything on a shelf of
+ * its own, in both directions: two windows sharing a shelf can never be put in front of one
+ * another. The picker is small and only open while something is being chosen, so it rides
+ * above the log, which is the one being read.
+ */
+export const Z_VISUAL_NOVEL_OVERLAY = 160;
+export const Z_VISUAL_NOVEL_PANEL = Z_VISUAL_NOVEL_OVERLAY + 10;
+export const Z_VISUAL_NOVEL_PANEL_ABOVE = Z_VISUAL_NOVEL_PANEL + 1;

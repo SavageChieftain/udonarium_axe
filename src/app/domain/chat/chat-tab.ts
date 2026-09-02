@@ -33,6 +33,18 @@ export class ChatTab extends ObjectNode implements InnerXml {
   );
   @SyncVar() imageIdentifierZpos: number[] = Array.from({ length: PORTRAIT_SLOT_COUNT }, (_, i) => i);
 
+  /**
+   * When novel mode was last asked to clear the portraits standing on this tab.
+   *
+   * The stage is worked out from the log rather than kept anywhere, so clearing it is a line
+   * drawn across the log: nothing said before this stands on the stage while the reader is
+   * looking at anything said after it. It lives on the tab because a room read back from a
+   * file makes its tabs afresh, and a note kept elsewhere under a tab's identifier would be
+   * orphaned by that. Deliberately without an initialiser, so it is written only once asked
+   * for. See `toStageResetAt`.
+   */
+  @SyncVar() vnPortraitResetAt: number;
+
   @SyncVar() count = 0;
   @SyncVar() imageIdentifierDummy = 'test';
 

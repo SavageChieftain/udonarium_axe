@@ -238,6 +238,15 @@ export class ChatTabComponent {
   readonly writingSpeakers = signal<WritingSpeaker[]>([]);
 
   readonly chatTabInput = input<ChatTab | null>(null, { alias: 'chatTab' });
+
+  /**
+   * Whether the lines are only to be read.
+   *
+   * Passed down to each line, and it also keeps the sample lines away: they are there to show
+   * a newcomer what a conversation looks like, and a window opened on a quiet tab on purpose
+   * should look quiet.
+   */
+  readonly readOnly = input(false);
   get chatTab(): ChatTab | null {
     return this.chatTabInput();
   }

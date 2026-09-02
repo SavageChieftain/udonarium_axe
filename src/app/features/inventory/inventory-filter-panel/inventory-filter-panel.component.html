@@ -1,0 +1,156 @@
+<div class="text-ui-text bg-ui-panel flex h-full flex-col gap-2 overflow-y-auto p-3 text-[12px]">
+  <div class="flex items-center gap-1.5">
+    <i class="material-icons text-ui-muted text-[18px]!">search</i>
+    <input
+      class="bg-ui-input border-ui-border-panel text-ui-text rounded-ui-sm focus:border-ui-accent box-border min-w-0 flex-1 border border-solid px-1.75 py-1 outline-none"
+      name="inventory-search"
+      [ngModel]="searchQuery()"
+      (ngModelChange)="searchQuery.set($event)"
+      [placeholder]="'feature.inventory.panel.searchPlaceholder' | transloco"
+    />
+    @if (hasQuery()) {
+      <button
+        class="text-ui-muted hover:bg-ui-hover hover:text-ui-text flex size-6 shrink-0 cursor-pointer items-center justify-center rounded-sm border-none bg-transparent p-0 [&_.material-icons]:text-base!"
+        type="button"
+        [title]="'feature.inventory.panel.clearSearch' | transloco"
+        (click)="clearSearch()"
+      >
+        <i class="material-icons">close</i>
+      </button>
+    }
+  </div>
+
+  @if (canSeeHidden()) {
+    <div class="flex items-center gap-1.5">
+      <label class="text-ui-muted shrink-0 text-[10px] font-semibold tracking-wider uppercase">{{
+        'feature.inventory.panel.hiddenFilter' | transloco
+      }}</label>
+      <select
+        class="bg-ui-input border-ui-border-panel text-ui-text rounded-ui-sm min-w-0 flex-1 cursor-pointer border border-solid px-1 py-0.5 outline-none"
+        name="inventory-hidden-filter"
+        [ngModel]="hiddenFilter()"
+        (ngModelChange)="hiddenFilter.set($event)"
+      >
+        @for (option of hiddenFilterOptions; track option.value) {
+          <option [value]="option.value">{{ option.labelKey | transloco }}</option>
+        }
+      </select>
+      <button
+        class="text-ui-muted hover:bg-ui-hover hover:text-ui-accent flex size-6 shrink-0 cursor-pointer items-center justify-center rounded-sm border-none bg-transparent p-0 [&_.material-icons]:text-[18px]!"
+        [class.text-ui-accent!]="hiddenDisplay() === 'full'"
+        type="button"
+        [title]="
+          (hiddenDisplay() === 'dim'
+            ? 'feature.inventory.panel.hiddenDisplayDim'
+            : 'feature.inventory.panel.hiddenDisplayFull'
+          ) | transloco
+        "
+        (click)="toggleHiddenDisplay()"
+      >
+        <i class="material-icons">{{ hiddenDisplay() === 'dim' ? 'brightness_low' : 'brightness_high' }}</i>
+      </button>
+    </div>
+  }
+
+  <div class="border-ui-border-panel flex flex-col gap-1 border-t border-solid pt-2">
+    <label class="text-ui-muted text-[10px] font-semibold tracking-wider uppercase">{{
+      'feature.inventory.panel.showParts' | transloco
+    }}</label>
+    <div class="flex flex-wrap gap-x-3 gap-y-1">
+      @for (part of chromeParts; track part.part) {
+        <label class="text-ui-text flex cursor-pointer items-center gap-1">
+          <input
+            class="size-3.5 cursor-pointer [accent-color:var(--ui-accent)]"
+            type="checkbox"
+            [checked]="shows(part.part)"
+            (change)="setShown(part.part, !shows(part.part))"
+          />
+          {{ part.labelKey | transloco }}
+        </label>
+      }
+    </div>
+    <p class="text-ui-dim m-0 text-[10px]">{{ 'feature.inventory.panel.showPartsHint' | transloco }}</p>
+  </div>
+
+  @if (canEdit()) {
+    <div class="border-ui-border-panel flex flex-col gap-1.5 border-t border-solid pt-2">
+      <div class="flex gap-2.5">
+        <div class="flex min-w-0 flex-1 flex-col gap-0.75">
+          <label class="text-ui-muted text-[10px] font-semibold tracking-wider uppercase">{{
+            'feature.inventory.panel.sortOrder1' | transloco
+          }}</label>
+          <div class="flex gap-1">
+            <input
+              class="bg-ui-input border-ui-border-panel text-ui-text rounded-ui-sm focus:border-ui-accent box-border min-w-0 flex-1 border border-solid px-1.75 py-1 outline-none"
+              name="sort-tag"
+              [(ngModel)]="sortTag"
+              [placeholder]="'feature.inventory.panel.tagPlaceholder' | transloco"
+            />
+            <select
+              class="bg-ui-input border-ui-border-panel text-ui-text rounded-ui-sm cursor-pointer border border-solid px-1.5 py-1 outline-none"
+              name="sort-order"
+              [(ngModel)]="sortOrder"
+            >
+              <option value="ASC">{{ 'feature.inventory.panel.asc' | transloco }}</option>
+              <option value="DESC">{{ 'feature.inventory.panel.desc' | transloco }}</option>
+            </select>
+          </div>
+        </div>
+        <div class="flex min-w-0 flex-1 flex-col gap-0.75">
+          <label class="text-ui-muted text-[10px] font-semibold tracking-wider uppercase">{{
+            'feature.inventory.panel.sortOrder2' | transloco
+          }}</label>
+          <div class="flex gap-1">
+            <input
+              class="bg-ui-input border-ui-border-panel text-ui-text rounded-ui-sm focus:border-ui-accent box-border min-w-0 flex-1 border border-solid px-1.75 py-1 outline-none"
+              name="sort-tag-2nd"
+              [(ngModel)]="sortTag2nd"
+              [placeholder]="'feature.inventory.panel.tagPlaceholder' | transloco"
+            />
+            <select
+              class="bg-ui-input border-ui-border-panel text-ui-text rounded-ui-sm cursor-pointer border border-solid px-1.5 py-1 outline-none"
+              name="sort-order-2nd"
+              [(ngModel)]="sortOrder2nd"
+            >
+              <option value="ASC">{{ 'feature.inventory.panel.asc' | transloco }}</option>
+              <option value="DESC">{{ 'feature.inventory.panel.desc' | transloco }}</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex flex-col gap-0.75">
+        <label class="text-ui-muted text-[10px] font-semibold tracking-wider uppercase">{{
+          'feature.inventory.panel.displayItemsRich' | transloco
+        }}</label>
+        <input
+          class="bg-ui-input border-ui-border-panel text-ui-text rounded-ui-sm focus:border-ui-accent box-border w-full min-w-0 border border-solid px-1.75 py-1 outline-none"
+          name="data-tag"
+          [(ngModel)]="dataTag"
+          [placeholder]="'feature.inventory.panel.dataTagPlaceholder' | transloco"
+        />
+      </div>
+
+      <div class="flex flex-col gap-0.75">
+        <label class="text-ui-muted text-[10px] font-semibold tracking-wider uppercase">{{
+          'feature.inventory.panel.displayItemsTable' | transloco
+        }}</label>
+        <input
+          class="bg-ui-input border-ui-border-panel text-ui-text rounded-ui-sm focus:border-ui-accent box-border w-full min-w-0 border border-solid px-1.75 py-1 outline-none"
+          name="table-data-tag"
+          [(ngModel)]="tableDataTag"
+          [placeholder]="'feature.inventory.panel.dataTagPlaceholder' | transloco"
+        />
+        <p class="text-ui-dim m-0 text-[10px]">{{ 'feature.inventory.panel.displayItemsHint' | transloco }}</p>
+      </div>
+
+      <button
+        class="border-ui-border-panel text-ui-muted hover:bg-ui-accent-bg hover:text-ui-accent hover:border-ui-accent rounded-ui-sm inline-flex cursor-pointer items-center justify-center gap-1 self-start border border-solid bg-transparent px-2 py-1 [&_.material-icons]:text-[15px]!"
+        type="button"
+        (click)="openStatusAilments()"
+      >
+        <i class="material-icons">list_alt</i>{{ 'feature.statusAilment.title' | transloco }}
+      </button>
+    </div>
+  }
+</div>

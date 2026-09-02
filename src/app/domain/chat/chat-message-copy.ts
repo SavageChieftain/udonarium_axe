@@ -21,6 +21,7 @@ export function copiedMessageContext(message: ChatMessage, timestamp: number): C
     imageIdentifier: message.imageIdentifier,
     attachmentImageIdentifiers: message.attachmentImageIdentifiers,
     imagePos: message.imagePos,
+    vnEmote: message.vnEmote,
     messColor: message.messColor,
     messBubbleLight: message.messBubbleLight,
     messBubbleDark: message.messBubbleDark,

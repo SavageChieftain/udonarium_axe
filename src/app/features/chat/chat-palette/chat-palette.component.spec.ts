@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { CharacterMacroService } from '@axe/application/chat/character-macro.service';
 import { RolePermissionService } from '@axe/application/permission/role-permission.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { ContextMenuService } from '@axe/application/ui/context-menu.service';
@@ -10,6 +11,7 @@ import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { ChatPaletteComponent } from '@axe/features/chat/chat-palette/chat-palette.component';
 import { expectPanelDragRecovery, PanelDragTestHostComponent } from '@axe/testing/panel-drag-recovery';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
+import GameSystemClass from 'bcdice/lib/game_system';
 
 describe('ChatPaletteComponent', () => {
   let component: ChatPaletteComponent;
@@ -34,6 +36,8 @@ describe('ChatPaletteComponent', () => {
       ObjectStore.instance.remove(char);
     }
     createdChars.length = 0;
+    // The tab list outlives the fixture, so a tab left behind turns up in whatever runs next.
+    for (const tab of [...ChatTabList.instance.chatTabs]) tab.destroy();
   });
 
   function createChar(name: string): GameCharacter {
@@ -82,6 +86,33 @@ describe('ChatPaletteComponent', () => {
       childrenChanged$.emit({ identifier: tabId });
 
       expect(objectChange.versionOf(tabId)()).toBe(before + 1);
+    });
+  });
+
+  describe('speaking a line', () => {
+    it('carries the bubble the sender picked, as the chat window does', () => {
+      const speaker = createChar('術者');
+      const tab = ChatTabList.instance.addChatTab('テストタブ');
+      component.character.set(speaker);
+      component.chatTabidentifier.set(tab.identifier);
+      const send = vi.spyOn(TestBed.inject(CharacterMacroService), 'send').mockReturnValue(null);
+
+      component.sendChat({
+        text: 'こんにちは',
+        gameSystem: null as unknown as GameSystemClass,
+        sendFrom: speaker.identifier,
+        sendTo: '',
+        portraitIndex: 0,
+        messColor: '#112233',
+        messBubbleLight: '#ffeeee',
+        messBubbleDark: '#332211',
+        replyTo: '',
+        quoteOf: '',
+      });
+
+      expect(send.mock.calls[0][2]).toEqual(
+        expect.objectContaining({ bubbles: { light: '#ffeeee', dark: '#332211' } })
+      );
     });
   });
 

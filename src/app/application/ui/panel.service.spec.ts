@@ -1,4 +1,4 @@
-import { Component, ComponentRef, ViewContainerRef } from '@angular/core';
+import { Component, ComponentRef, computed, ViewContainerRef } from '@angular/core';
 import { PanelOption, PanelService } from '@axe/application/ui/panel.service';
 import { Logger } from '@axe/core/logging/logger';
 
@@ -293,6 +293,24 @@ describe('PanelService', () => {
       await Promise.resolve();
 
       expect(opened).toHaveBeenCalled();
+    });
+  });
+
+  describe('following a panel that is standing', () => {
+    it('lets a button hear the name being spoken for and let go of', async () => {
+      const service = new PanelService();
+      vi.spyOn(service, 'open').mockReturnValue({} as never);
+      const isOpen = computed(() => service.hasSingle('followed-panel'));
+      expect(isOpen()).toBe(false);
+
+      service.openLazy(() => new Promise<typeof DummyPanelBodyComponent>(() => undefined), {
+        single: 'followed-panel',
+      });
+      expect(isOpen()).toBe(true);
+
+      service.closeSingle('followed-panel');
+
+      expect(isOpen()).toBe(false);
     });
   });
 

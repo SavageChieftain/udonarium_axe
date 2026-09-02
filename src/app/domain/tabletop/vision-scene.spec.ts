@@ -26,6 +26,7 @@ import {
   type WallFace,
   withinCone,
 } from '@axe/domain/tabletop/vision-scene';
+import { DOME_LOBES, visionLobesOf, VisionShape } from '@axe/domain/tabletop/vision-shape';
 import { VisionType } from '@axe/domain/tabletop/vision-types';
 
 const WALL_AT_X100: Segment = { x1: 100, y1: -200, x2: 100, y2: 200 };
@@ -56,12 +57,24 @@ function caster(partial: Partial<ShadowCaster> = {}): ShadowCaster {
 }
 
 function source(partial: Partial<SceneVisionSource> = {}): SceneVisionSource {
-  return { x: 0, y: 0, z: 0, type: VisionType.NORMAL, rangePx: 0, owner: 'p1', ...partial };
+  return {
+    x: 0,
+    y: 0,
+    z: 0,
+    type: VisionType.NORMAL,
+    rangePx: 0,
+    owner: 'p1',
+    sourceId: 'src',
+    direction: 0,
+    lobes: DOME_LOBES,
+    ...partial,
+  };
 }
 
 function scene(partial: Partial<VisionScene> = {}): VisionScene {
   return {
     darknessEnabled: true,
+    fogEnabled: false,
     darknessLevel: 0.9,
     ambientColor: '#05060a',
     globalIllumination: 0,
@@ -1107,5 +1120,141 @@ describe('a lamp carried up a tower', () => {
   it('lights what stands beside it either way, the tower being in neither path', () => {
     expect(isLit(around(25), 50, 0)).toBe(true);
     expect(isLit(around(200), 50, 0)).toBe(true);
+  });
+});
+
+describe('a lamp burning where nobody can see it', () => {
+  const wallBetween = scene({
+    darknessLevel: 0.9,
+    lights: [light({ x: 200, y: 0, brightPx: 50, dimPx: 200 })],
+    visionSources: [source({ x: 0, y: 0, owner: 'p1' })],
+    sightSegments: [WALL_AT_X100],
+    lightSegments: [],
+  });
+
+  it('lights the ground it stands on', () => {
+    expect(isLit(wallBetween, 200, 0, true, 0)).toBe(true);
+  });
+
+  it('is out of reach of the eye behind the wall, which is what the overlay is cut back to', () => {
+    expect(isPointVisible(wallBetween, 200, 0, PLAYER)).toBe(false);
+  });
+
+  it('still shows it to the eye once the wall is gone', () => {
+    const open = scene({
+      darknessLevel: 0.9,
+      lights: [light({ x: 200, y: 0, brightPx: 50, dimPx: 200 })],
+      visionSources: [source({ x: 0, y: 0, owner: 'p1' })],
+      sightSegments: [],
+      lightSegments: [],
+    });
+    expect(objectBrightnessFor(open, PLAYER, 200, 0, 0)).toBeGreaterThan(0.5);
+  });
+});
+
+describe('what a piece with a shaped sight is shown in the dark', () => {
+  const cone = visionLobesOf({
+    shape: VisionShape.CONE,
+    coneAngle: 90,
+    coneCount: 1,
+    backAngle: 90,
+    backScale: 0.4,
+    peripheralScale: 0.3,
+    direction: 0,
+    lobes: '',
+  });
+
+  it('cuts the darkvision it is given to the shape of its sight', () => {
+    const s = scene({
+      visionSources: [source({ type: VisionType.DARKVISION, rangePx: 200, owner: 'p1', lobes: cone })],
+    });
+    const plan = computeOverlayPlan(s, PLAYER);
+    expect(plan.reveals).toHaveLength(1);
+    expect(plan.reveals[0].angle).toBe(90);
+  });
+
+  it('gives a piece with a face on every side a reveal for each of them', () => {
+    const many = visionLobesOf({
+      shape: VisionShape.CONE_MULTI,
+      coneAngle: 60,
+      coneCount: 3,
+      backAngle: 90,
+      backScale: 0.4,
+      peripheralScale: 0.3,
+      direction: 0,
+      lobes: '',
+    });
+    const s = scene({
+      visionSources: [source({ type: VisionType.DARKVISION, rangePx: 200, owner: 'p1', lobes: many })],
+    });
+    expect(computeOverlayPlan(s, PLAYER).reveals).toHaveLength(3);
+  });
+
+  it('does not look behind itself', () => {
+    const s = scene({
+      lights: [light({ x: 0, y: 0, brightPx: 400, dimPx: 400 })],
+      visionSources: [source({ x: 0, y: 0, owner: 'p1', lobes: cone })],
+    });
+    expect(isPointVisible(s, 200, 0, PLAYER)).toBe(true);
+    expect(isPointVisible(s, -200, 0, PLAYER)).toBe(false);
+  });
+});
+
+describe('how far a piece is allowed to see', () => {
+  const bright = { lights: [light({ x: 0, y: 0, brightPx: 900, dimPx: 900 })], sightSegments: [] };
+
+  it('sees as far as the light carries when no range is set on it', () => {
+    const s = scene({ ...bright, visionSources: [source({ x: 0, y: 0, owner: 'p1', rangePx: 0 })] });
+    expect(isPointVisible(s, 700, 0, PLAYER)).toBe(true);
+  });
+
+  it('follows the light past the range, which is what it sees without one', () => {
+    const s = scene({ ...bright, visionSources: [source({ x: 0, y: 0, owner: 'p1', rangePx: 200 })] });
+    expect(isPointVisible(s, 150, 0, PLAYER)).toBe(true);
+    expect(isPointVisible(s, 700, 0, PLAYER)).toBe(true);
+  });
+
+  it('sees only as far as the range where no light falls', () => {
+    const dark = scene({
+      lights: [],
+      sightSegments: [],
+      visionSources: [source({ x: 0, y: 0, owner: 'p1', rangePx: 200, type: VisionType.DARKVISION })],
+    });
+    expect(isPointVisible(dark, 150, 0, PLAYER)).toBe(true);
+    expect(isPointVisible(dark, 700, 0, PLAYER)).toBe(false);
+  });
+
+  it('holds to it on a table with no dark on it at all', () => {
+    const s = scene({
+      darknessEnabled: false,
+      fogEnabled: true,
+      lights: [],
+      sightSegments: [],
+      visionSources: [source({ x: 0, y: 0, owner: 'p1', rangePx: 200 })],
+    });
+    expect(isPointVisible(s, 150, 0, PLAYER)).toBe(true);
+    expect(isPointVisible(s, 700, 0, PLAYER)).toBe(false);
+  });
+
+  it('shortens the range with the lobe a look falls in', () => {
+    const lobes = visionLobesOf({
+      shape: VisionShape.CONE_PERIPHERAL,
+      coneAngle: 90,
+      coneCount: 1,
+      backAngle: 90,
+      backScale: 0.4,
+      peripheralScale: 0.25,
+      direction: 0,
+      lobes: '',
+    });
+    // In the dark, where the range is the whole of what a piece has to see by.
+    const s = scene({
+      lights: [],
+      sightSegments: [],
+      visionSources: [source({ x: 0, y: 0, owner: 'p1', rangePx: 400, lobes, type: VisionType.DARKVISION })],
+    });
+    expect(isPointVisible(s, 350, 0, PLAYER)).toBe(true);
+    expect(isPointVisible(s, -350, 0, PLAYER)).toBe(false);
+    expect(isPointVisible(s, -80, 0, PLAYER)).toBe(true);
   });
 });

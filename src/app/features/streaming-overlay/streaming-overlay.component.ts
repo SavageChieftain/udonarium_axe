@@ -9,6 +9,7 @@ import type { ChatTab } from '@axe/domain/chat/chat-tab';
 import { canRoleViewTab } from '@axe/domain/chat/chat-tab-permission';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { PeerRole } from '@axe/domain/peer/peer-role';
+import { vnBodyOf } from '@axe/domain/visual-novel/vn-emote';
 import {
   buildOverlayFeed,
   DEFAULT_OVERLAY_FEED_OPTIONS,
@@ -48,7 +49,7 @@ export class StreamingOverlayComponent {
   protected readonly feed = computed(() => {
     this.tick();
     this.objectChange.collectionOf('chat-tab')();
-    if (PeerCursor.myCursor) this.objectChange.versionOf(PeerCursor.myCursor.identifier)();
+    this.objectChange.trackMyCursor();
 
     const role = this.viewerRole();
     const sources: OverlaySource[] = [];
@@ -85,7 +86,7 @@ export class StreamingOverlayComponent {
     return {
       identifier: message.identifier,
       name: decodeI18nMessage(message.name, this.t),
-      text: decodeI18nMessage(message.text, this.t),
+      text: vnBodyOf(message.vnEmote, decodeI18nMessage(message.text, this.t)),
       timestamp: message.timestamp,
       order: message.index,
       color: message.messColor,

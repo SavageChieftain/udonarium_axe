@@ -301,6 +301,13 @@
       }
     },
     "gmObjectList": {
+      "tickRow": "選択",
+      "tickAllShown": "表示中をすべて選択",
+      "tickedCount": "{{count}} 件を選択中",
+      "tickedDiffer": "設定が揃っていません",
+      "setVision": "視界を一括設定",
+      "clearTicks": "選択を解除",
+      "visionForTicked": "視界の一括設定（{{count}} 件）",
       "searchPlaceholder": "名前・オーナーで検索",
       "gmOnly": "このツールはゲームマスター専用です",
       "empty": "該当するオブジェクトがありません",
@@ -1021,6 +1028,12 @@
         "laser-hit": "光線の着弾",
         "laserbeam": "レーザー照射",
         "lasergun": "光線銃",
+        "mech-damage-large": "メカのダメージ（大）",
+        "mech-damage-medium": "メカのダメージ（中）",
+        "mech-damage-small": "メカのダメージ（小）",
+        "mech-heal-large": "メカの回復（大）",
+        "mech-heal-medium": "メカの回復（中）",
+        "mech-heal-small": "メカの回復（小）",
         "missile-launch": "ミサイル発射",
         "poison": "毒",
         "qigong": "気功",
@@ -1298,7 +1311,24 @@
         "emptyMessage": "{{name}}インベントリは空です",
         "cleanGraveyard": "墓場を空にする",
         "confirmCleanTab": "{{tab}}に存在する{{count}}個の要素を完全に削除しますか？",
-        "confirmMultiDelete": "選択したもののうち墓場に存在する{{count}}個の要素を完全に削除しますか？"
+        "confirmMultiDelete": "選択したもののうち墓場に存在する{{count}}個の要素を完全に削除しますか？",
+        "viewRich": "リッチ表示",
+        "viewTable": "簡略表示（表）",
+        "tableNoColumns": "表示項目が空です。表示設定で項目名を入れると列になります",
+        "tableName": "名前",
+        "tableOrder": "順番",
+        "filterPanelTitle": "絞り込みと表示設定",
+        "filterNone": "絞り込みなし",
+        "displayItemsHint": "状態異常の名前を書くと、その列はチェック欄になります",
+        "inventoryVisibility": "表示",
+        "viewRound": "ラウンド表示",
+        "showParts": "表示する行",
+        "showTabs": "タブ",
+        "showFilterLine": "絞り込み",
+        "showRoundLine": "ラウンド操作",
+        "showPartsHint": "外した行は詰まります。この設定はこの端末だけのものです",
+        "displayItemsRich": "表示項目（リッチ）",
+        "displayItemsTable": "表示項目（簡略）"
       }
     },
     "file": {
@@ -1343,7 +1373,8 @@
         "moveGraveyard": "墓場に移動",
         "buffView": "バフの表示",
         "invokeEffect": "演出を発動",
-        "deployDice": "ダイスを展開する（{{count}}個）"
+        "deployDice": "ダイスを展開する（{{count}}個）",
+        "showVisionRange": "視界範囲を表示"
       },
       "panel": {
         "sheet": "キャラクターシート",
@@ -1385,9 +1416,11 @@
         "timing_roundEnd": "ラウンド終了時",
         "timing_turnStart": "トリガーの手番開始時",
         "timing_turnEnd": "トリガーの手番終了時",
+        "timing_none": "消えない",
         "trigger": "トリガーキャラクター",
         "triggerPlaceholder": "未指定なら本人",
-        "triggerUnknown": "{{name}}（卓外）"
+        "triggerUnknown": "{{name}}（卓外）",
+        "iconImage": "画像から選ぶ"
       },
       "importImg": {
         "sourceLabel": "複製元＞",
@@ -1524,7 +1557,23 @@
         "title": "視界",
         "visionType": "視界タイプ",
         "visionRange": "視界範囲(マス)",
-        "castsShadow": "光を遮り影を落とす"
+        "castsShadow": "光を遮り影を落とす",
+        "shape": "視界の形",
+        "shapeDome": "全周",
+        "shapeCone": "前方",
+        "shapeConeBack": "前後",
+        "shapeConeMulti": "複数（等間隔）",
+        "shapeConePeripheral": "前方＋周辺視野",
+        "shapeCustom": "任意",
+        "coneAngle": "視野角(度)",
+        "coneCount": "視野の数",
+        "backAngle": "後方の視野角(度)",
+        "backScale": "後方の距離比",
+        "peripheralScale": "周辺視野の距離比",
+        "visionDirection": "向きのずれ(度)",
+        "visionLobes": "視野の指定",
+        "visionLobesHint": "向き/角度/距離比 を ; で区切って並べます",
+        "showVisionRange": "視界範囲を盤面に表示"
       },
       "type": {
         "normal": "通常視界",
@@ -1823,7 +1872,16 @@
         "facingMark_none": "示さない",
         "facingMark_turn": "コマごと回す",
         "facingMark_arrow": "矢尻で示す",
-        "facingMarkHint": "2Dモードでコマを回せるようにします。矢尻はカメラ追従のまま向きだけを示し、3Dモードでも出ます"
+        "facingMarkHint": "2Dモードでコマを回せるようにします。矢尻はカメラ追従のまま向きだけを示し、3Dモードでも出ます",
+        "sectionFog": "戦場の霧（探索）",
+        "fogEnabled": "戦場の霧を有効化",
+        "fogMode": "霧の戻り方",
+        "fogModeEasy": "イージー（晴らした場所は明るいまま）",
+        "fogModeNormal": "ノーマル（記憶を残す）",
+        "fogModeHard": "ハード（記憶を消す）",
+        "fogModeHint": "イージーは一度晴らした霧が戻らず明るいままで、見つけた敵はどこへ動いても位置がわかります。ノーマルは霧こそ戻りませんが、離れた場所は暗くなり、敵も未踏破へ動くと見失います。ハードは視界から外れると未踏破に戻ります",
+        "fogColor": "霧の色",
+        "fogReset": "霧をリセット"
       },
       "dungeonGenerator": {
         "atmosphere": {
@@ -2066,8 +2124,6 @@
         "writingOthers": "他 {{count}} 人 入力中"
       },
       "input": {
-        "prevPortrait": "前の立ち絵",
-        "nextPortrait": "次の立ち絵",
         "you": "（あなた）",
         "everyone": "全員",
         "textareaPlaceholder": "Enter:送信 Shift+Enter:改行 Ctrl+上下:履歴 Ctrl+左右:タブ切替",
@@ -2109,6 +2165,13 @@
         "shareAsMemo": "共有メモにする",
         "copyToTab": "別のタブにコピー"
       },
+      "stream": {
+        "title": "発言の流れ",
+        "open": "「{{name}}」を別窓で流す",
+        "close": "別窓を閉じる",
+        "gone": "このタブは無くなりました",
+        "followLatest": "最新に追従"
+      },
       "palette": {
         "panelTitle": "チャットパレット",
         "panelTitleWith": "{{name}} のチャットパレット",
@@ -2144,6 +2207,8 @@
         "sectionScroll": "スクロール",
         "autoFollowScroll": "スクロール位置を最新に追従",
         "autoFollowScrollTooltip": "オフ時は同一タブ内の新着メッセージで自動スクロールしません",
+        "vnEmoteBadge": "ノベルモードの演出を表示",
+        "vnEmoteBadgeTooltip": "オンにすると、ノベルモードで付けた演出の名前が発言の隣に小さく並びます。書き出したログには入りません",
         "scope": "適用範囲",
         "scope_all": "全体",
         "scope_perTab": "タブ毎",
@@ -2248,13 +2313,24 @@
       "player": "プレイヤー",
       "log": "ログ",
       "settings": {
+        "title": "表示設定",
         "typewriter": "文字送り",
         "portrait": "立ち絵の登場演出",
         "textSize": "文字サイズ",
         "motion": "演出の強さ",
         "readability": "文字の読みやすさ",
         "background": "背景（GM）",
-        "layout": "表示レイアウト"
+        "layout": "表示レイアウト",
+        "asides": "プレイヤーの雑談"
+      },
+      "direction": {
+        "title": "進行",
+        "stage": "ステージ"
+      },
+      "asides": {
+        "skip": "ノベルに出さない",
+        "read": "そのまま読む",
+        "note": "キャラクターではなく本人として書かれた発言を、本編で読み飛ばします。GM の発言・ダイス・入退室の知らせはそのまま出ます。ログには残ります。"
       },
       "speed": {
         "off": "なし",
@@ -2320,6 +2396,11 @@
       "seStop": "SEを停止",
       "soundBoardTitle": "サウンドエフェクト",
       "soundBoardEmpty": "SEがありません",
+      "soundFilter": "音・カットインを検索…",
+      "presetSounds": "プリセット",
+      "cutIns": "カットイン",
+      "cutInPlay": "全員に流す",
+      "cutInsEmpty": "カットインがありません",
       "portraitPattern": "立ち絵パターン",
       "flip": "立ち絵を反転",
       "seAttach": "次の発言と同時に再生",
@@ -2375,6 +2456,9 @@
       "backgroundClear": "解除",
       "stageStay": "滞在",
       "stageExit": "退場",
+      "stageReset": "立ち絵をリセット",
+      "stageResetTooltip": "表示中のタブの立ち絵をすべて下げます。ログは消えず、さかのぼれば当時の立ち絵が出ます",
+      "stageResetBy": "{{user}}さんが立ち絵をリセットしました。",
       "layout": {
         "bubble": "吹き出し",
         "adv": "ADV",
@@ -3071,6 +3155,26 @@
         "center": "中央揃え",
         "right": "右揃え"
       }
+    },
+    "statusAilment": {
+      "title": "状態異常",
+      "hint": "ここに登録した状態異常は、インベントリの簡略モードで列として並び、チェックでコマに付きます。",
+      "namePlaceholder": "状態異常の名前（スペース不可）",
+      "add": "追加",
+      "remove": "この状態異常を消す",
+      "moveUp": "上へ",
+      "moveDown": "下へ",
+      "empty": "まだ何も登録されていません",
+      "readOnly": "登録を変えられるのは卓を編集できる人だけです",
+      "color": "色",
+      "icon": "アイコン",
+      "iconPlaceholder": "絵文字",
+      "rounds": "ラウンド",
+      "roundsHint": "0 なら外すまで続きます",
+      "effect": "効果",
+      "effectPlaceholder": "バフに添える一行（例: 毎ラウンド HP-1）",
+      "iconImage": "画像",
+      "pickIconImage": "画像から選ぶ"
     }
   },
   "app": {
@@ -3104,14 +3208,14 @@
       "roomSnapshot": "自動保存 / 復元",
       "createObject": "コマを作る",
       "replay": "リプレイ",
-      "recording": "録画"
+      "recording": "録画",
+      "fogOn": "戦場の霧: オン（クリックでオフ）",
+      "fogOff": "戦場の霧: オフ（クリックでオン）"
     },
     "roomDataDefault": "ルームデータ"
   },
   "feature.controller": {
     "input": {
-      "prevPortrait": "前の立ち絵",
-      "nextPortrait": "次の立ち絵",
       "you": "（あなた）",
       "colorSetting": "色設定",
       "colorSettingWithName": "色設定 - {{name}}",
@@ -3280,6 +3384,7 @@
       "gaugeInverted": "マイナスリソース",
       "changeEffect": "増減でエフェクト",
       "changeSound": "増減で効果音",
+      "changeSoundSet": "効果音のタイプ",
       "columnLabel": "列表示",
       "columnLabelPlaceholder": "空なら名前",
       "columnGroup": "列グループ",
@@ -3326,6 +3431,10 @@
       "newTag": "タグ",
       "gapCellLabel": "G"
     },
+    "soundSet": {
+      "flesh": "生身",
+      "mech": "メカ"
+    },
     "tableView": {
       "judgeCalc": "判定算出モード",
       "skillLearned": "技能習得モード"
@@ -3364,7 +3473,15 @@
     },
     "panel": {
       "menuTitle": "メニュー",
-      "transparency": "透過率"
+      "transparency": "透過率",
+      "ghost": "透明モード"
+    },
+    "portraitPicker": {
+      "title": "立ち絵",
+      "open": "{{name}}（クリックで立ち絵一覧）",
+      "previous": "前の立ち絵",
+      "next": "次の立ち絵",
+      "unnamed": "立ち絵 {{index}}"
     }
   },
   "error": {}

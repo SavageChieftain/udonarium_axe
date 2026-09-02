@@ -60,7 +60,7 @@ export class GmToolbarComponent {
   protected readonly personaOpen = signal(false);
 
   readonly isGameMaster = computed(() => {
-    if (PeerCursor.myCursor) this.objectChange.versionOf(PeerCursor.myCursor.identifier)();
+    this.objectChange.trackMyCursor();
     return PeerCursor.isMyselfGameMaster;
   });
 
@@ -93,6 +93,12 @@ export class GmToolbarComponent {
     const table = this.tabletopService.currentTable;
     this.objectChange.versionOf(table.identifier)();
     return table.darknessEnabled;
+  });
+
+  protected readonly fogEnabled = computed(() => {
+    const table = this.tabletopService.currentTable;
+    this.objectChange.versionOf(table.identifier)();
+    return table.fogEnabled;
   });
 
   constructor() {
@@ -182,6 +188,13 @@ export class GmToolbarComponent {
   protected toggleDarkness(): void {
     const table = this.tabletopService.currentTable;
     table.darknessEnabled = !table.darknessEnabled;
+    table.update();
+    this.objectChange.notifyChanged(table.identifier);
+  }
+
+  protected toggleFog(): void {
+    const table = this.tabletopService.currentTable;
+    table.fogEnabled = !table.fogEnabled;
     table.update();
     this.objectChange.notifyChanged(table.identifier);
   }

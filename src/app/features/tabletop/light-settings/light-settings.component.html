@@ -26,6 +26,114 @@
             name="visionRange"
           />
         </div>
+        <div class="grid grid-cols-[7rem_1fr] items-center gap-x-3 gap-y-2">
+          <label class="text-ui-muted text-[11px]">{{ 'feature.vision.settings.shape' | transloco }}</label>
+          <select
+            class="rounded-ui-sm border-ui-border-panel bg-ui-input text-ui-text box-border w-full border border-solid px-2 py-1 text-[13px]"
+            [ngModel]="visionShape"
+            (ngModelChange)="onVisionShape($event)"
+            name="visionShape"
+          >
+            @for (shape of visionShapes; track shape) {
+              <option [value]="shape">{{ shapeLabel(shape) }}</option>
+            }
+          </select>
+
+          @if (visionShape !== VisionShape.DOME && visionShape !== VisionShape.CUSTOM) {
+            <label class="text-ui-muted text-[11px]">{{ 'feature.vision.settings.coneAngle' | transloco }}</label>
+            <input
+              type="number"
+              min="0"
+              max="360"
+              class="rounded-ui-sm border-ui-border-panel bg-ui-input text-ui-text box-border w-full border border-solid px-2 py-1 text-[13px]"
+              [(ngModel)]="target.visionConeAngle"
+              name="visionConeAngle"
+            />
+          }
+
+          @if (visionShape === VisionShape.CONE_MULTI) {
+            <label class="text-ui-muted text-[11px]">{{ 'feature.vision.settings.coneCount' | transloco }}</label>
+            <input
+              type="number"
+              min="1"
+              max="12"
+              class="rounded-ui-sm border-ui-border-panel bg-ui-input text-ui-text box-border w-full border border-solid px-2 py-1 text-[13px]"
+              [(ngModel)]="target.visionConeCount"
+              name="visionConeCount"
+            />
+          }
+
+          @if (visionShape === VisionShape.CONE_BACK) {
+            <label class="text-ui-muted text-[11px]">{{ 'feature.vision.settings.backAngle' | transloco }}</label>
+            <input
+              type="number"
+              min="0"
+              max="360"
+              class="rounded-ui-sm border-ui-border-panel bg-ui-input text-ui-text box-border w-full border border-solid px-2 py-1 text-[13px]"
+              [(ngModel)]="target.visionBackAngle"
+              name="visionBackAngle"
+            />
+            <label class="text-ui-muted text-[11px]">{{ 'feature.vision.settings.backScale' | transloco }}</label>
+            <input
+              type="number"
+              min="0"
+              max="1"
+              step="0.05"
+              class="rounded-ui-sm border-ui-border-panel bg-ui-input text-ui-text box-border w-full border border-solid px-2 py-1 text-[13px]"
+              [(ngModel)]="target.visionBackScale"
+              name="visionBackScale"
+            />
+          }
+
+          @if (visionShape === VisionShape.CONE_PERIPHERAL) {
+            <label class="text-ui-muted text-[11px]">{{ 'feature.vision.settings.peripheralScale' | transloco }}</label>
+            <input
+              type="number"
+              min="0"
+              max="1"
+              step="0.05"
+              class="rounded-ui-sm border-ui-border-panel bg-ui-input text-ui-text box-border w-full border border-solid px-2 py-1 text-[13px]"
+              [(ngModel)]="target.visionPeripheralScale"
+              name="visionPeripheralScale"
+            />
+          }
+
+          @if (visionShape === VisionShape.CUSTOM) {
+            <label class="text-ui-muted text-[11px]">{{ 'feature.vision.settings.visionLobes' | transloco }}</label>
+            <input
+              type="text"
+              placeholder="0/120/1;180/90/0.5"
+              class="rounded-ui-sm border-ui-border-panel bg-ui-input text-ui-text box-border w-full border border-solid px-2 py-1 text-[13px]"
+              [(ngModel)]="target.visionLobes"
+              name="visionLobes"
+            />
+          }
+
+          @if (visionShape !== VisionShape.DOME) {
+            <label class="text-ui-muted text-[11px]">{{ 'feature.vision.settings.visionDirection' | transloco }}</label>
+            <input
+              type="number"
+              class="rounded-ui-sm border-ui-border-panel bg-ui-input text-ui-text box-border w-full border border-solid px-2 py-1 text-[13px]"
+              [(ngModel)]="target.visionDirection"
+              name="visionDirection"
+            />
+          }
+        </div>
+
+        @if (visionShape === VisionShape.CUSTOM) {
+          <p class="text-ui-muted m-0 text-[11px]">{{ 'feature.vision.settings.visionLobesHint' | transloco }}</p>
+        }
+
+        <label class="flex cursor-pointer items-center gap-1.5 select-none">
+          <input
+            type="checkbox"
+            class="size-3.5 cursor-pointer [accent-color:var(--ui-accent)]"
+            [(ngModel)]="target.showVisionRange"
+            name="showVisionRange"
+          />
+          {{ 'feature.vision.settings.showVisionRange' | transloco }}
+        </label>
+
         <label class="flex cursor-pointer items-center gap-1.5 select-none">
           <input
             type="checkbox"
@@ -38,159 +146,161 @@
       </div>
     }
 
-    <div class="flex flex-col gap-2">
-      <div class="border-ui-accent border-l-2 border-solid pl-2">
-        <span class="text-[12px] font-semibold tracking-wide">{{ 'feature.light.settings.title' | transloco }}</span>
-      </div>
-
-      <label class="flex cursor-pointer items-center gap-1.5 select-none">
-        <input
-          type="checkbox"
-          class="size-3.5 cursor-pointer [accent-color:var(--ui-accent)]"
-          [(ngModel)]="target.lightEnabled"
-          name="lightEnabled"
-        />
-        {{ 'feature.light.settings.enabled' | transloco }}
-      </label>
-
-      <div class="grid grid-cols-[7rem_1fr_2.5rem] items-center gap-x-3 gap-y-2">
-        <label class="text-ui-muted text-[11px]">{{ 'feature.light.settings.preset' | transloco }}</label>
-        <select
-          class="rounded-ui-sm border-ui-border-panel bg-ui-input text-ui-text col-span-2 box-border w-full border border-solid px-2 py-1 text-[13px]"
-          [ngModel]="target.lightPreset"
-          (ngModelChange)="onPreset($event)"
-          name="lightPreset"
-        >
-          @for (p of presets; track p) {
-            <option [value]="p">{{ presetLabel(p) }}</option>
-          }
-        </select>
-
-        <label class="text-ui-muted text-[11px]">{{ 'feature.light.settings.brightRadius' | transloco }}</label>
-        <input
-          type="range"
-          min="0"
-          max="30"
-          class="w-full cursor-pointer [accent-color:var(--ui-accent)]"
-          [(ngModel)]="target.lightBrightRadius"
-          name="lightBrightRadius"
-        />
-        <span class="text-ui-muted text-right text-[11px]">{{ target.lightBrightRadius }}</span>
-
-        <label class="text-ui-muted text-[11px]">{{ 'feature.light.settings.dimRadius' | transloco }}</label>
-        <input
-          type="range"
-          min="0"
-          max="30"
-          class="w-full cursor-pointer [accent-color:var(--ui-accent)]"
-          [(ngModel)]="target.lightDimRadius"
-          name="lightDimRadius"
-        />
-        <span class="text-ui-muted text-right text-[11px]">{{ target.lightDimRadius }}</span>
-
-        <label class="text-ui-muted text-[11px]">{{ 'feature.light.settings.color' | transloco }}</label>
-        <input
-          type="color"
-          class="rounded-ui-sm border-ui-border-panel col-span-2 h-6.5 w-12 cursor-pointer border border-solid bg-transparent px-0.5 py-px"
-          [(ngModel)]="target.lightColor"
-          name="lightColor"
-        />
-
-        <label class="text-ui-muted text-[11px]">{{ 'feature.light.settings.angle' | transloco }}</label>
-        <input
-          type="range"
-          min="0"
-          max="360"
-          class="w-full cursor-pointer [accent-color:var(--ui-accent)]"
-          [(ngModel)]="target.lightAngle"
-          name="lightAngle"
-        />
-        <span class="text-ui-muted text-right text-[11px]">{{ target.lightAngle }}°</span>
-
-        <label class="text-ui-muted text-[11px]">{{ 'feature.light.settings.direction' | transloco }}</label>
-        <input
-          type="range"
-          min="0"
-          max="360"
-          class="w-full cursor-pointer [accent-color:var(--ui-accent)]"
-          [(ngModel)]="target.lightDirection"
-          name="lightDirection"
-        />
-        <span class="text-ui-muted text-right text-[11px]">{{ target.lightDirection }}°</span>
-
-        @if (target.lightAngle < 360) {
-          <label class="text-ui-muted text-[11px]">{{ 'feature.light.settings.pitch' | transloco }}</label>
-          <input
-            type="range"
-            min="-90"
-            max="90"
-            class="w-full cursor-pointer [accent-color:var(--ui-accent)]"
-            [(ngModel)]="target.lightPitch"
-            name="lightPitch"
-          />
-          <span class="text-ui-muted text-right text-[11px]">{{ target.lightPitch }}°</span>
-        }
-
-        <label class="text-ui-muted text-[11px]">{{ 'feature.light.settings.animation' | transloco }}</label>
-        <select
-          class="rounded-ui-sm border-ui-border-panel bg-ui-input text-ui-text col-span-2 box-border w-full border border-solid px-2 py-1 text-[13px]"
-          [(ngModel)]="target.lightAnimation"
-          name="lightAnimation"
-        >
-          @for (a of animations; track a) {
-            <option [value]="a">{{ animationLabel(a) }}</option>
-          }
-        </select>
-      </div>
-    </div>
-
-    @if (advanced) {
+    @if (showLight) {
       <div class="flex flex-col gap-2">
         <div class="border-ui-accent border-l-2 border-solid pl-2">
-          <span class="text-[12px] font-semibold tracking-wide">{{
-            'feature.light.settings.theatrical' | transloco
-          }}</span>
+          <span class="text-[12px] font-semibold tracking-wide">{{ 'feature.light.settings.title' | transloco }}</span>
         </div>
-        <div class="grid grid-cols-[7rem_1fr] items-center gap-x-3 gap-y-2">
-          <label class="text-ui-muted text-[11px]">{{ 'feature.light.settings.category' | transloco }}</label>
+
+        <label class="flex cursor-pointer items-center gap-1.5 select-none">
+          <input
+            type="checkbox"
+            class="size-3.5 cursor-pointer [accent-color:var(--ui-accent)]"
+            [(ngModel)]="target.lightEnabled"
+            name="lightEnabled"
+          />
+          {{ 'feature.light.settings.enabled' | transloco }}
+        </label>
+
+        <div class="grid grid-cols-[7rem_1fr_2.5rem] items-center gap-x-3 gap-y-2">
+          <label class="text-ui-muted text-[11px]">{{ 'feature.light.settings.preset' | transloco }}</label>
           <select
-            class="rounded-ui-sm border-ui-border-panel bg-ui-input text-ui-text box-border w-full border border-solid px-2 py-1 text-[13px]"
-            [(ngModel)]="target.lightCategory"
-            name="lightCategory"
+            class="rounded-ui-sm border-ui-border-panel bg-ui-input text-ui-text col-span-2 box-border w-full border border-solid px-2 py-1 text-[13px]"
+            [ngModel]="target.lightPreset"
+            (ngModelChange)="onPreset($event)"
+            name="lightPreset"
           >
-            @for (c of categories; track c) {
-              <option [value]="c">{{ categoryLabel(c) }}</option>
+            @for (p of presets; track p) {
+              <option [value]="p">{{ presetLabel(p) }}</option>
+            }
+          </select>
+
+          <label class="text-ui-muted text-[11px]">{{ 'feature.light.settings.brightRadius' | transloco }}</label>
+          <input
+            type="range"
+            min="0"
+            max="30"
+            class="w-full cursor-pointer [accent-color:var(--ui-accent)]"
+            [(ngModel)]="target.lightBrightRadius"
+            name="lightBrightRadius"
+          />
+          <span class="text-ui-muted text-right text-[11px]">{{ target.lightBrightRadius }}</span>
+
+          <label class="text-ui-muted text-[11px]">{{ 'feature.light.settings.dimRadius' | transloco }}</label>
+          <input
+            type="range"
+            min="0"
+            max="30"
+            class="w-full cursor-pointer [accent-color:var(--ui-accent)]"
+            [(ngModel)]="target.lightDimRadius"
+            name="lightDimRadius"
+          />
+          <span class="text-ui-muted text-right text-[11px]">{{ target.lightDimRadius }}</span>
+
+          <label class="text-ui-muted text-[11px]">{{ 'feature.light.settings.color' | transloco }}</label>
+          <input
+            type="color"
+            class="rounded-ui-sm border-ui-border-panel col-span-2 h-6.5 w-12 cursor-pointer border border-solid bg-transparent px-0.5 py-px"
+            [(ngModel)]="target.lightColor"
+            name="lightColor"
+          />
+
+          <label class="text-ui-muted text-[11px]">{{ 'feature.light.settings.angle' | transloco }}</label>
+          <input
+            type="range"
+            min="0"
+            max="360"
+            class="w-full cursor-pointer [accent-color:var(--ui-accent)]"
+            [(ngModel)]="target.lightAngle"
+            name="lightAngle"
+          />
+          <span class="text-ui-muted text-right text-[11px]">{{ target.lightAngle }}°</span>
+
+          <label class="text-ui-muted text-[11px]">{{ 'feature.light.settings.direction' | transloco }}</label>
+          <input
+            type="range"
+            min="0"
+            max="360"
+            class="w-full cursor-pointer [accent-color:var(--ui-accent)]"
+            [(ngModel)]="target.lightDirection"
+            name="lightDirection"
+          />
+          <span class="text-ui-muted text-right text-[11px]">{{ target.lightDirection }}°</span>
+
+          @if (target.lightAngle < 360) {
+            <label class="text-ui-muted text-[11px]">{{ 'feature.light.settings.pitch' | transloco }}</label>
+            <input
+              type="range"
+              min="-90"
+              max="90"
+              class="w-full cursor-pointer [accent-color:var(--ui-accent)]"
+              [(ngModel)]="target.lightPitch"
+              name="lightPitch"
+            />
+            <span class="text-ui-muted text-right text-[11px]">{{ target.lightPitch }}°</span>
+          }
+
+          <label class="text-ui-muted text-[11px]">{{ 'feature.light.settings.animation' | transloco }}</label>
+          <select
+            class="rounded-ui-sm border-ui-border-panel bg-ui-input text-ui-text col-span-2 box-border w-full border border-solid px-2 py-1 text-[13px]"
+            [(ngModel)]="target.lightAnimation"
+            name="lightAnimation"
+          >
+            @for (a of animations; track a) {
+              <option [value]="a">{{ animationLabel(a) }}</option>
             }
           </select>
         </div>
-        <label class="flex cursor-pointer items-center gap-1.5 select-none">
-          <input
-            type="checkbox"
-            class="size-3.5 cursor-pointer [accent-color:var(--ui-accent)]"
-            [(ngModel)]="target.lightIgnoreOcclusion"
-            name="lightIgnoreOcclusion"
-          />
-          {{ 'feature.light.settings.ignoreOcclusion' | transloco }}
-        </label>
-        <label class="flex cursor-pointer items-center gap-1.5 select-none">
-          <input
-            type="checkbox"
-            class="size-3.5 cursor-pointer [accent-color:var(--ui-accent)]"
-            [(ngModel)]="target.lightRevealToAll"
-            name="lightRevealToAll"
-          />
-          {{ 'feature.light.settings.revealToAll' | transloco }}
-        </label>
-        <label class="flex cursor-pointer items-center gap-1.5 select-none">
-          <input
-            type="checkbox"
-            class="size-3.5 cursor-pointer [accent-color:var(--ui-accent)]"
-            [(ngModel)]="target.lightCastShadows"
-            name="lightCastShadows"
-          />
-          {{ 'feature.light.settings.castShadows' | transloco }}
-        </label>
       </div>
+
+      @if (advanced) {
+        <div class="flex flex-col gap-2">
+          <div class="border-ui-accent border-l-2 border-solid pl-2">
+            <span class="text-[12px] font-semibold tracking-wide">{{
+              'feature.light.settings.theatrical' | transloco
+            }}</span>
+          </div>
+          <div class="grid grid-cols-[7rem_1fr] items-center gap-x-3 gap-y-2">
+            <label class="text-ui-muted text-[11px]">{{ 'feature.light.settings.category' | transloco }}</label>
+            <select
+              class="rounded-ui-sm border-ui-border-panel bg-ui-input text-ui-text box-border w-full border border-solid px-2 py-1 text-[13px]"
+              [(ngModel)]="target.lightCategory"
+              name="lightCategory"
+            >
+              @for (c of categories; track c) {
+                <option [value]="c">{{ categoryLabel(c) }}</option>
+              }
+            </select>
+          </div>
+          <label class="flex cursor-pointer items-center gap-1.5 select-none">
+            <input
+              type="checkbox"
+              class="size-3.5 cursor-pointer [accent-color:var(--ui-accent)]"
+              [(ngModel)]="target.lightIgnoreOcclusion"
+              name="lightIgnoreOcclusion"
+            />
+            {{ 'feature.light.settings.ignoreOcclusion' | transloco }}
+          </label>
+          <label class="flex cursor-pointer items-center gap-1.5 select-none">
+            <input
+              type="checkbox"
+              class="size-3.5 cursor-pointer [accent-color:var(--ui-accent)]"
+              [(ngModel)]="target.lightRevealToAll"
+              name="lightRevealToAll"
+            />
+            {{ 'feature.light.settings.revealToAll' | transloco }}
+          </label>
+          <label class="flex cursor-pointer items-center gap-1.5 select-none">
+            <input
+              type="checkbox"
+              class="size-3.5 cursor-pointer [accent-color:var(--ui-accent)]"
+              [(ngModel)]="target.lightCastShadows"
+              name="lightCastShadows"
+            />
+            {{ 'feature.light.settings.castShadows' | transloco }}
+          </label>
+        </div>
+      }
     }
   </div>
 }

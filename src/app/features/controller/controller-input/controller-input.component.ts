@@ -19,9 +19,11 @@ import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { ImageFile } from '@axe/core/storage/image-file';
 import { ImageStorage } from '@axe/core/storage/image-storage';
 import { ObjectStore } from '@axe/core/sync/object-store';
+import { portraitNameOf } from '@axe/domain/character/character-portrait';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { DataElement } from '@axe/domain/data/data-element';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
+import { PortraitChoice, PortraitPickerComponent } from '@axe/ui/components/portrait-picker/portrait-picker.component';
 import { SafePipe } from '@axe/ui/pipes/safe.pipe';
 import { TranslocoModule } from '@jsverse/transloco';
 import { NgOptionComponent, NgSelectComponent } from '@ng-select/ng-select';
@@ -30,7 +32,16 @@ import { NgOptionComponent, NgSelectComponent } from '@ng-select/ng-select';
   changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'controller-input',
   templateUrl: './controller-input.component.html',
-  imports: [NgClass, NgSelectComponent, FormsModule, NgOptionComponent, NgStyle, SafePipe, TranslocoModule],
+  imports: [
+    NgClass,
+    NgSelectComponent,
+    FormsModule,
+    NgOptionComponent,
+    NgStyle,
+    PortraitPickerComponent,
+    SafePipe,
+    TranslocoModule,
+  ],
 })
 export class ControllerInputComponent {
   private readonly destroyRef = inject(DestroyRef);
@@ -54,18 +65,6 @@ export class ControllerInputComponent {
     const object = this.objectStore.get(this.sendFrom());
     if (object instanceof GameCharacter) object.selectedPortraitIndex = num;
     this.portraitIndex.set(num);
-  }
-
-  stepPortrait(dir: number): void {
-    const next = this.portraitIndex() + dir;
-    if (next < 0 || next >= this.portraitCount()) return;
-    this.setPortraitIndex(next);
-  }
-
-  get portraitLabel(): string {
-    const portrait = this.selectedPortrait();
-    if (portrait?.currentValue) return portrait.currentValue as string;
-    return `${this.portraitIndex() + 1}/${this.portraitCount()}`;
   }
 
   get isDirect(): boolean {
@@ -106,15 +105,17 @@ export class ControllerInputComponent {
     return null;
   });
 
-  readonly portraitCount = computed((): number => {
+  readonly portraitChoices = computed<PortraitChoice[]>(() => {
+    this.objectChange.fileVersion();
     this.objectChange.versionOf(this.sendFrom())();
     const object = this.objectStore.get(this.sendFrom());
-    if (object instanceof GameCharacter) {
-      return object.imageDataElement?.children.length ?? 0;
-    } else if (object instanceof PeerCursor) {
-      return 0;
-    }
-    return 0;
+    if (!(object instanceof GameCharacter)) return [];
+    const children = (object.imageDataElement?.children ?? []) as DataElement[];
+    return children.map((element, index) => ({
+      index,
+      name: portraitNameOf(element),
+      url: this.imageStorage.get(element.value as string)?.url ?? '',
+    }));
   });
 
   readonly imageFile = computed((): ImageFile => {

@@ -2,6 +2,7 @@ import { emitSelectGameTable } from '@axe/core/event/domain-events';
 import { SyncObject, SyncVar } from '@axe/core/sync/decorator';
 import { ObjectNode } from '@axe/core/sync/object-node';
 import { DEFAULT_AMBIENCE_DENSITY } from '@axe/domain/effect/ambience/ambience-kind';
+import { DEFAULT_FOG_COLOR, DEFAULT_FOG_MODE, FogMode } from '@axe/domain/tabletop/fog/fog-mode';
 import { GameTableMask } from '@axe/domain/tabletop/game-table-mask';
 import { GameTableScratchMask } from '@axe/domain/tabletop/game-table-scratch-mask';
 import { LightSource } from '@axe/domain/tabletop/light-source';
@@ -66,6 +67,10 @@ export class GameTable extends ObjectNode {
   @SyncVar() darknessLevel: number = 0.92;
   @SyncVar() ambientColor: string = DEFAULT_AMBIENT_COLOR;
   @SyncVar() globalIllumination: number = 0;
+
+  @SyncVar() fogEnabled: boolean = false;
+  @SyncVar() fogMode: FogMode = DEFAULT_FOG_MODE;
+  @SyncVar() fogColor: string = DEFAULT_FOG_COLOR;
 
   /** The weather over the whole map. Empty for none. */
   @SyncVar() weatherKind: string = '';

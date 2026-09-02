@@ -15,6 +15,7 @@ import { downloadBlob } from '@axe/core/util/download-blob';
 import { formatXml } from '@axe/core/util/format-xml';
 import { PromiseQueue } from '@axe/core/util/promise-queue';
 import { xml2element } from '@axe/core/util/xml-util';
+import { StatusAilmentCatalog } from '@axe/domain/character/status-ailment-catalog';
 import { ChatLogExporter, ChatLogImageSrcResolver, ChatLogTextDecoder } from '@axe/domain/chat/chat-log-exporter';
 import { ChatTab } from '@axe/domain/chat/chat-tab';
 import { ChatTabList } from '@axe/domain/chat/chat-tab-list';
@@ -37,6 +38,7 @@ export class SaveDataService {
   private readonly chatTabList = inject(ChatTabList);
   private readonly appConfig = inject(Config);
   private readonly dataSummarySetting = inject(DataSummarySetting);
+  private readonly statusAilmentCatalog = inject(StatusAilmentCatalog);
   private readonly translate = inject(TRANSLATE_FN);
 
   // The exporter would write a raw `@i18n:key:{params}` message, as system notices are,
@@ -78,11 +80,13 @@ export class SaveDataService {
     const chatXml = this.convertToXml(this.chatTabList);
     const configXml = this.convertToXml(this.appConfig);
     const summarySetting = this.convertToXml(this.dataSummarySetting);
+    const ailmentCatalog = this.convertToXml(this.statusAilmentCatalog);
     const files: File[] = [
       new File([roomXml], 'data.xml', { type: 'text/plain' }),
       new File([chatXml], 'chat.xml', { type: 'text/plain' }),
       new File([configXml], 'config.xml', { type: 'text/plain' }),
       new File([summarySetting], 'summary.xml', { type: 'text/plain' }),
+      new File([ailmentCatalog], 'ailment.xml', { type: 'text/plain' }),
     ];
     return { roomXml, chatXml, files };
   }

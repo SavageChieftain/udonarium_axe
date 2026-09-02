@@ -1,4 +1,6 @@
-import { buffIconOf, parseBuffStrength, toBuffBadges } from '@axe/domain/character/buff-badge';
+import { ImageFile } from '@axe/core/storage/image-file';
+import { ImageStorage } from '@axe/core/storage/image-storage';
+import { buffIconOf, buffIconUrlOf, parseBuffStrength, toBuffBadges } from '@axe/domain/character/buff-badge';
 import { DataElement, DataElementAttribute, DataElementType } from '@axe/domain/data/data-element';
 
 describe('parseBuffStrength()', () => {
@@ -53,8 +55,24 @@ describe('toBuffBadges()', () => {
     const badges = toBuffBadges(root);
 
     expect(badges).toHaveLength(2);
-    expect(badges[0]).toMatchObject({ icon: '☠️', name: '毒', strength: '2', rounds: 3 });
+    expect(badges[0]).toMatchObject({ icon: '☠️', name: '毒', strength: '2', rounds: 3, iconUrl: '' });
     expect(badges[1]).toMatchObject({ name: '加護', strength: '+1', rounds: 1 });
+  });
+
+  it('marks the one that waits to be taken away as counting nothing down', () => {
+    const root = DataElement.create('buff', '', {});
+    created.push(root);
+    const container = DataElement.create('バフ', '', {});
+    created.push(container);
+    root.appendChild(container);
+    const held = buff('毒', '', 0);
+    held.setAttribute(DataElementAttribute.BUFF_TIMING, 'none');
+    container.appendChild(held);
+    container.appendChild(buff('加護', '', 2));
+
+    const badges = toBuffBadges(root);
+
+    expect(badges.map((badge) => badge.expires)).toEqual([false, true]);
   });
 
   it('falls back to the default mark without an icon', () => {
@@ -66,5 +84,24 @@ describe('toBuffBadges()', () => {
 
   it('returns nothing when it is unset', () => {
     expect(toBuffBadges(null)).toEqual([]);
+  });
+});
+
+describe('buffIconUrlOf()', () => {
+  afterEach(() => vi.restoreAllMocks());
+
+  it('finds the picture an icon names', () => {
+    vi.spyOn(ImageStorage.instance, 'get').mockImplementation((identifier: string) =>
+      identifier === 'image-1' ? ({ identifier, url: 'blob:poison' } as ImageFile) : null
+    );
+
+    expect(buffIconUrlOf('image-1')).toBe('blob:poison');
+  });
+
+  it('leaves a mark as a mark, since no picture goes by that name', () => {
+    vi.spyOn(ImageStorage.instance, 'get').mockReturnValue(null);
+
+    expect(buffIconUrlOf('☠️')).toBe('');
+    expect(buffIconUrlOf('')).toBe('');
   });
 });

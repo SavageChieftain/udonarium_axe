@@ -1,6 +1,7 @@
 import {
   isVnPortraitPosSet,
   toPortraitSlot,
+  toStageResetAt,
   VN_PORTRAIT_POS_UNSET,
 } from '@axe/domain/visual-novel/vn-portrait-position';
 
@@ -48,5 +49,24 @@ describe('toPortraitSlot()', () => {
   it('finds nothing in a place off the stage', () => {
     expect(toPortraitSlot(-1)).toBeNull();
     expect(toPortraitSlot(12)).toBeNull();
+  });
+});
+
+describe('toStageResetAt()', () => {
+  it('reads a moment as itself', () => {
+    expect(toStageResetAt(1700000000000)).toBe(1700000000000);
+  });
+
+  it('reads a moment written back from a saved room as a string', () => {
+    expect(toStageResetAt('1700000000000')).toBe(1700000000000);
+  });
+
+  it('takes anything that is not a moment as never cleared', () => {
+    expect(toStageResetAt('')).toBe(0);
+    expect(toStageResetAt(null)).toBe(0);
+    expect(toStageResetAt(undefined)).toBe(0);
+    expect(toStageResetAt('いつか')).toBe(0);
+    expect(toStageResetAt(0)).toBe(0);
+    expect(toStageResetAt(-1)).toBe(0);
   });
 });

@@ -108,6 +108,7 @@
   --animate-float-change: floatChange 1300ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
   --animate-buff-swap: buffSwap 160ms ease-out;
   --animate-hit-flash: hitFlash 420ms ease-out;
+  --animate-fog-drift: fogDrift 90s ease-in-out infinite alternate;
   --animate-hit-shake: hitShake 420ms ease-in-out;
   --animate-heal-rise: healRise 760ms ease-out;
   --animate-heal-glow: healGlow 760ms ease-out;
@@ -115,6 +116,7 @@
   --animate-chat-slide-in: chatSlideIn 200ms ease-out;
   --animate-chat-fade-in: chatFadeIn 200ms ease-out;
   --animate-vn-fade-in: vnFadeIn 280ms ease-out;
+  --animate-vn-leave: vnLeave 1600ms ease-in 500ms forwards;
   --animate-vn-slide-in: vnSlideIn 320ms cubic-bezier(0.22, 1, 0.36, 1);
   --animate-vn-bounce-in: vnBounceIn 420ms cubic-bezier(0.34, 1.56, 0.64, 1);
   --animate-vn-shake: vnShake 320ms ease-in-out infinite;
@@ -1219,6 +1221,7 @@ input[type='range']::-moz-range-thumb {
     .animate-buff-swap,
     .animate-fly-in,
     .animate-vn-fade-in,
+    .animate-vn-leave,
     .animate-vn-slide-in,
     .animate-vn-bounce-in,
     .animate-vn-shake,
@@ -1866,6 +1869,16 @@ game-data-element .elm-markdown-view,
 [game-data-element] .elm-markdown-view {
   max-width: min(560px, calc(60vw));
   overflow-x: auto;
+}
+
+/* Taking their leave: held for a beat so the parting line can be read, then gone. */
+@keyframes vnLeave {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
 }
 
 @keyframes vnFadeIn {
@@ -2807,4 +2820,14 @@ body.mobile-layout ui-panel input,
 body.mobile-layout ui-panel textarea {
   -webkit-user-select: text;
   user-select: text;
+}
+
+/* 戦場の霧が空中を漂う。層ごとに duration と負の delay をずらして位相を散らす。 */
+@keyframes fogDrift {
+  from {
+    transform: translate3d(-2.5%, -1.5%, 0);
+  }
+  to {
+    transform: translate3d(2.5%, 1.5%, 0);
+  }
 }

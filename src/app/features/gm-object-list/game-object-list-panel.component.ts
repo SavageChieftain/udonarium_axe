@@ -14,6 +14,7 @@ import { GameCharacter } from '@axe/domain/character/game-character';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { CharacterSheetTarget } from '@axe/domain/tabletop/character-sheet-target';
 import { TableSurface, TabletopObject } from '@axe/domain/tabletop/tabletop-object';
+import { bulkVisionTarget, disagreeingVisionFields } from '@axe/domain/tabletop/vision-bulk';
 import { buildDisclosureContextMenu } from '@axe/features/disclosure/disclosure-context-menu';
 import {
   buildObjectRow,
@@ -22,6 +23,7 @@ import {
   ObjectRow,
 } from '@axe/features/gm-object-list/game-object-list-row';
 import { NpcDragService } from '@axe/features/gm-tools/npc-bar/npc-drag.service';
+import { LightSettingsComponent } from '@axe/features/tabletop/light-settings/light-settings.component';
 import { SafePipe } from '@axe/ui/pipes/safe.pipe';
 import { TranslocoModule } from '@jsverse/transloco';
 
@@ -53,6 +55,7 @@ export class GameObjectListPanelComponent {
   protected readonly search = signal('');
   protected readonly enabledTypes = signal<ReadonlySet<string>>(new Set(OBJECT_LIST_TYPES.map((type) => type.key)));
   protected readonly editingId = signal<string | null>(null);
+  protected readonly tickedIds = signal<ReadonlySet<string>>(new Set());
 
   private readonly surfaceLabelKeys: Record<TableSurface, string> = {
     floor: 'feature.tabletop.contextMenu.surfaceFloor',
@@ -73,12 +76,12 @@ export class GameObjectListPanelComponent {
   });
 
   protected readonly isGameMaster = computed(() => {
-    if (PeerCursor.myCursor) this.objectChange.versionOf(PeerCursor.myCursor.identifier)();
+    this.objectChange.trackMyCursor();
     return PeerCursor.isMyselfGameMaster;
   });
 
   protected readonly rows = computed<ObjectRow[]>(() => {
-    if (PeerCursor.myCursor) this.objectChange.versionOf(PeerCursor.myCursor.identifier)();
+    this.objectChange.trackMyCursor();
     const result: ObjectRow[] = [];
     for (const type of OBJECT_LIST_TYPES) {
       this.objectChange.collectionOf(type.alias)();
@@ -95,6 +98,69 @@ export class GameObjectListPanelComponent {
     const enabled = this.enabledTypes();
     return this.rows().filter((row) => enabled.has(row.typeKey) && matchesObjectRowQuery(row, query));
   });
+
+  /**
+   * The pieces ticked that sight can be set on, which is the characters among them.
+   *
+   * Read from the store afresh rather than from the rows, so that a tick surviving a filter
+   * being narrowed still names the piece it was put against.
+   */
+  protected readonly tickedCharacters = computed<GameCharacter[]>(() => {
+    const ticked = this.tickedIds();
+    this.objectChange.collectionOf(GameCharacter.aliasName)();
+    const result: GameCharacter[] = [];
+    for (const identifier of ticked) {
+      const object = this.objectStore.get(identifier);
+      if (object instanceof GameCharacter) result.push(object);
+    }
+    return result;
+  });
+
+  /** Whether the ticked pieces are of two minds about any of it, followed piece by piece. */
+  protected readonly tickedDisagree = computed(() => {
+    const characters = this.tickedCharacters();
+    for (const character of characters) this.objectChange.versionOf(character.identifier)();
+    return disagreeingVisionFields(characters).length > 0;
+  });
+
+  protected isTicked(identifier: string): boolean {
+    return this.tickedIds().has(identifier);
+  }
+
+  protected toggleTick(identifier: string): void {
+    const next = new Set(this.tickedIds());
+    if (next.has(identifier)) next.delete(identifier);
+    else next.add(identifier);
+    this.tickedIds.set(next);
+  }
+
+  protected tickAllShown(): void {
+    const next = new Set(this.tickedIds());
+    for (const row of this.filteredRows()) if (row.typeKey === 'character') next.add(row.identifier);
+    this.tickedIds.set(next);
+  }
+
+  protected clearTicks(): void {
+    this.tickedIds.set(new Set());
+  }
+
+  /** Sets the sight of every ticked piece at once, in the panel that sets one piece's own. */
+  protected openBulkVision(): void {
+    const characters = this.tickedCharacters();
+    if (characters.length < 1) return;
+    const coordinate = this.pointerDeviceService.pointers[0];
+    const option: PanelOption = {
+      title: this.t('feature.gmObjectList.visionForTicked', { count: characters.length }),
+      left: coordinate.x + 40,
+      top: coordinate.y - 40,
+      width: 360,
+      height: 460,
+    };
+    const component = this.panelService.open<LightSettingsComponent>(LightSettingsComponent, option);
+    component.target = bulkVisionTarget(characters);
+    component.showVision = true;
+    component.showLight = false;
+  }
 
   constructor() {
     queueMicrotask(() => (this.panelService.title = this.t('common.panel.objectList')));
