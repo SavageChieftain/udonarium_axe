@@ -801,9 +801,13 @@ export class GameTableComponent {
     return face ? this.visionService.wallLights(face) : [];
   }
 
+  /** Whether a wall is drawn from the end its face starts at, which `surfaceFrame` settles. */
+  private wallIsMirrored(surface: TableSurface): boolean {
+    return surface === 'south-wall' || surface === 'west-wall';
+  }
+
   protected wallPoolStyleFor(pool: WallLight, surface: TableSurface, faceLen: number): Record<string, string> {
-    const mirror = surface === 'south-wall' || surface === 'east-wall';
-    return wallLightLayerStyle(pool, mirror, faceLen);
+    return wallLightLayerStyle(pool, this.wallIsMirrored(surface), faceLen);
   }
 
   protected wallSilhouetteBg(silhouette: WallSilhouette): string {
@@ -815,8 +819,7 @@ export class GameTableComponent {
     surface: TableSurface,
     faceLen: number
   ): Record<string, string> {
-    const mirror = surface === 'south-wall' || surface === 'east-wall';
-    return wallSilhouetteStyle(silhouette, mirror, faceLen);
+    return wallSilhouetteStyle(silhouette, this.wallIsMirrored(surface), faceLen);
   }
 
   private watchCurrentTable(): GameTable {
