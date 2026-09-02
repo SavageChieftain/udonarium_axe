@@ -7,7 +7,6 @@ import { ObjectStore } from '@axe/core/sync/object-store';
 type ObjectStorePrivate = {
   aliasNameMap: Map<string, Map<string, GameObject> | undefined>;
   garbageMap: Map<string, number>;
-  garbageCollectionTimer: ReturnType<typeof setTimeout> | null;
 };
 
 const asPrivate = (store: ObjectStore): ObjectStorePrivate => store as unknown as ObjectStorePrivate;
@@ -31,12 +30,6 @@ describe('ObjectStore', () => {
     const allObjects = store.getObjects();
     allObjects.forEach((obj) => store.delete(obj, false));
     store.clearDeleteHistory();
-    // Cancel any pending garbageCollectionTimer to prevent leaking timers
-    const privateStore = asPrivate(store);
-    if (privateStore.garbageCollectionTimer != null) {
-      clearTimeout(privateStore.garbageCollectionTimer);
-      privateStore.garbageCollectionTimer = null;
-    }
     vi.clearAllMocks();
   });
 
