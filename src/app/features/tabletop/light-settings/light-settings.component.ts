@@ -32,6 +32,8 @@ export class LightSettingsComponent {
   target: LightTarget | null = null;
   advanced = false;
   showVision = false;
+  /** Off for a reader setting sight alone, where a lamp is nothing to do with what was asked. */
+  showLight = true;
 
   readonly presets = Object.values(LightPreset);
   readonly animations = Object.values(LightAnimation);

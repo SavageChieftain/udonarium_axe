@@ -301,6 +301,13 @@
       }
     },
     "gmObjectList": {
+      "tickRow": "選択",
+      "tickAllShown": "表示中をすべて選択",
+      "tickedCount": "{{count}} 件を選択中",
+      "tickedDiffer": "設定が揃っていません",
+      "setVision": "視界を一括設定",
+      "clearTicks": "選択を解除",
+      "visionForTicked": "視界の一括設定（{{count}} 件）",
       "searchPlaceholder": "名前・オーナーで検索",
       "gmOnly": "このツールはゲームマスター専用です",
       "empty": "該当するオブジェクトがありません",

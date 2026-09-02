@@ -301,6 +301,13 @@
       }
     },
     "gmObjectList": {
+      "tickRow": "선택",
+      "tickAllShown": "표시된 항목 모두 선택",
+      "tickedCount": "{{count}}개 선택됨",
+      "tickedDiffer": "설정이 서로 다릅니다",
+      "setVision": "시야 일괄 설정",
+      "clearTicks": "선택 해제",
+      "visionForTicked": "시야 일괄 설정 ({{count}}개)",
       "searchPlaceholder": "이름·소유자로 검색",
       "gmOnly": "이 도구는 게임 마스터 전용입니다",
       "empty": "해당하는 오브젝트가 없습니다",

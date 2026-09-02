@@ -301,6 +301,13 @@
       }
     },
     "gmObjectList": {
+      "tickRow": "Tick this piece",
+      "tickAllShown": "Tick every piece shown",
+      "tickedCount": "{{count}} ticked",
+      "tickedDiffer": "They do not agree",
+      "setVision": "Set sight",
+      "clearTicks": "Clear",
+      "visionForTicked": "Sight of {{count}} pieces",
       "searchPlaceholder": "Search by name or owner",
       "gmOnly": "This tool is for the Game Master only",
       "empty": "No matching objects",
