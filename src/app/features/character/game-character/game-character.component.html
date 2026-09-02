@@ -57,13 +57,13 @@
           @if (!this.gameCharacter()!.hideInventory) {
             <div
               class="absolute box-border size-full rounded-[25px] border-[6px] border-solid border-[#ffcc80] [-webkit-transform-style:preserve-3d] backface-hidden transform-3d"
-              [ngStyle]="pedestalStyle('#FFCC80')"
+              [ngStyle]="pedestalStyleShown()"
             ></div>
           }
           @if (this.gameCharacter()!.hideInventory) {
             <div
               class="absolute box-border size-full rounded-[25px] border-[6px] border-solid border-[#A0E0FF] [-webkit-transform-style:preserve-3d] backface-hidden transform-3d"
-              [ngStyle]="pedestalStyle('#A0E0FF')"
+              [ngStyle]="pedestalStyleHidden()"
             ></div>
           }
           <div
@@ -74,7 +74,7 @@
             <div
               data-testid="target-ring"
               class="animate-target-ring pointer-events-none absolute box-border size-full rounded-[25px] border-[6px] border-solid border-[#ff3b30] filter-[drop-shadow(0_0_5px_rgba(255,59,48,0.95))] backface-hidden"
-              [ngStyle]="pedestalStyle('#ff3b30')"
+              [ngStyle]="pedestalStyleTargeted()"
             ></div>
           }
           @if (!isLock && canTurn()) {

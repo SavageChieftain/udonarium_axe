@@ -743,26 +743,31 @@ export class GameCharacterComponent {
     return calcHexFlowerParams(this.size(), this.gridSize, isFlatTopGrid(gridType));
   });
 
-  pedestalStyle(borderColor: string): Record<string, string> {
+  private readonly pedestalRing = computed<Record<string, string> | null>(() => {
     const params = this.pedestalHexParams();
-    if (params) {
-      const { outline, bbox, L } = params;
-      const W = bbox.maxX - bbox.minX;
-      const H = bbox.maxY - bbox.minY;
-      const clipPath = buildHexRingClipPath(outline, bbox, 6);
-      return {
-        background: borderColor,
-        clipPath,
-        border: 'none',
-        borderRadius: '0',
-        width: `${W}px`,
-        height: `${H}px`,
-        left: `${bbox.minX + L / 2}px`,
-        top: `${bbox.minY + L / 2}px`,
-      };
-    }
-    return { border: `solid 6px ${borderColor}` };
+    if (!params) return null;
+    const { outline, bbox, L } = params;
+    const W = bbox.maxX - bbox.minX;
+    const H = bbox.maxY - bbox.minY;
+    return {
+      clipPath: buildHexRingClipPath(outline, bbox, 6),
+      border: 'none',
+      borderRadius: '0',
+      width: `${W}px`,
+      height: `${H}px`,
+      left: `${bbox.minX + L / 2}px`,
+      top: `${bbox.minY + L / 2}px`,
+    };
+  });
+
+  private pedestalStyleOf(borderColor: string): Record<string, string> {
+    const ring = this.pedestalRing();
+    return ring ? { background: borderColor, ...ring } : { border: `solid 6px ${borderColor}` };
   }
+
+  protected readonly pedestalStyleShown = computed(() => this.pedestalStyleOf('#FFCC80'));
+  protected readonly pedestalStyleHidden = computed(() => this.pedestalStyleOf('#A0E0FF'));
+  protected readonly pedestalStyleTargeted = computed(() => this.pedestalStyleOf('#ff3b30'));
 
   // The pedestal styles ran as getters on every change-detection pass and built a fresh
   // record each time. Computed, they hand back the same object until something changes,

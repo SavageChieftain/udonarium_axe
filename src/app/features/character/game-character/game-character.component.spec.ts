@@ -10,6 +10,7 @@ import { GameCharacter } from '@axe/domain/character/game-character';
 import { DataElement, DataElementAttribute, DataElementType } from '@axe/domain/data/data-element';
 import { EffectPreset } from '@axe/domain/effect/effect-preset';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
+import { GridType } from '@axe/domain/tabletop/game-table';
 import { GameCharacterComponent } from '@axe/features/character/game-character/game-character.component';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
 
@@ -53,6 +54,47 @@ describe('GameCharacterComponent', () => {
     fixture.detectChanges();
 
     expect((fixture.nativeElement as HTMLElement).style.zIndex).toBe('4');
+  });
+
+  describe('the pedestal', () => {
+    type Pedestals = {
+      pedestalStyleShown(): Record<string, string>;
+      pedestalStyleHidden(): Record<string, string>;
+      pedestalStyleTargeted(): Record<string, string>;
+    };
+
+    it('wears a plain border on a square grid and hands the same style back each pass', () => {
+      fixture.componentRef.setInput('gameCharacter', GameCharacter.create('コマ', 1, ''));
+      fixture.detectChanges();
+      const pedestals = component as unknown as Pedestals;
+
+      expect(pedestals.pedestalStyleShown()).toEqual({ border: 'solid 6px #FFCC80' });
+      expect(pedestals.pedestalStyleShown()).toBe(pedestals.pedestalStyleShown());
+      expect(pedestals.pedestalStyleTargeted()).toEqual({ border: 'solid 6px #ff3b30' });
+    });
+
+    it('cuts one hex ring and colours it three ways', async () => {
+      const table = TestBed.inject(TabletopService).currentTable;
+      table.gridType = GridType.HEX_VERTICAL;
+      await Promise.resolve();
+      fixture.componentRef.setInput('gameCharacter', GameCharacter.create('コマ', 1, ''));
+      fixture.detectChanges();
+      const pedestals = component as unknown as Pedestals;
+
+      const shown = pedestals.pedestalStyleShown();
+      const hidden = pedestals.pedestalStyleHidden();
+      const targeted = pedestals.pedestalStyleTargeted();
+
+      expect(shown['clipPath']).toMatch(/^path\(/);
+      expect(hidden['clipPath']).toBe(shown['clipPath']);
+      expect(targeted['clipPath']).toBe(shown['clipPath']);
+      expect([shown['background'], hidden['background'], targeted['background']]).toEqual([
+        '#FFCC80',
+        '#A0E0FF',
+        '#ff3b30',
+      ]);
+      table.gridType = GridType.SQUARE;
+    });
   });
 
   it('registers its effect in the constructor, so nothing is set up outside an injection context', () => {
