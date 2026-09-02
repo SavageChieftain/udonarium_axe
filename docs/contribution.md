@@ -68,11 +68,15 @@ chore(release): bump version to 1.2.2
 `--no-verify` / `LEFTHOOK=0` / `core.hooksPath` の変更 / lefthook 設定の一時無効化、
 **いずれも禁止**。フックが落ちたら原因を直してから再コミットする。
 
-| フック       | 内容                               |
-| ------------ | ---------------------------------- |
-| `commit-msg` | `commitlint`（メッセージ形式検査） |
-| `pre-commit` | `ng lint` + `ng test`（並列）      |
-| `pre-push`   | `npm run build`                    |
+| フック       | 内容                                                                  |
+| ------------ | --------------------------------------------------------------------- |
+| `commit-msg` | `commitlint`（メッセージ形式検査）                                    |
+| `pre-commit` | staged の `src/` に `eslint` + `vitest related`（関係する spec だけ） |
+| `pre-push`   | `npx vitest run`（全量） + `npm run build`                            |
+
+`pre-commit` の `vitest related` は staged ファイルから import を逆にたどって当たる spec だけを回す
+（[scripts/vitest-related.mjs](../scripts/vitest-related.mjs)。テンプレートは隣の `.ts` に読み替える）。
+全量は `pre-push` と CI が見る。
 
 設定: [../lefthook.yml](../lefthook.yml)
 
