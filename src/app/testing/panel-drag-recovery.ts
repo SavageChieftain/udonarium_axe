@@ -12,6 +12,7 @@ export interface PanelDragRecoveryOptions<T> {
 
 @Component({
   standalone: true,
+  selector: 'panel-drag-test-host',
   changeDetection: ChangeDetectionStrategy.Eager,
   template: '<ng-template #layer></ng-template>',
 })

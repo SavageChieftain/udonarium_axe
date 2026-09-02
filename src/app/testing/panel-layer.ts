@@ -5,6 +5,7 @@ import { UIPanelComponent } from '@axe/ui/components/ui-panel/ui-panel.component
 
 @Component({
   standalone: true,
+  selector: 'panel-layer-test-host',
   changeDetection: ChangeDetectionStrategy.Eager,
   template: '<ng-template #layer></ng-template>',
 })
