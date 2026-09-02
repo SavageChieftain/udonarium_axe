@@ -57,7 +57,7 @@ export class ChatMessageSettingComponent {
   ]);
 
   readonly canEditRoom = computed<boolean>(() => {
-    if (PeerCursor.myCursor) this.objectChange.versionOf(PeerCursor.myCursor.identifier)();
+    this.objectChange.trackMyCursor();
     return this.rolePermission.canEditTabletop;
   });
 
@@ -133,7 +133,7 @@ export class ChatMessageSettingComponent {
    */
   readonly tabRows = computed<{ identifier: string; name: string; portrait: boolean; simple: boolean }[]>(() => {
     this.objectChange.collectionOf('chat-tab')();
-    if (PeerCursor.myCursor) this.objectChange.versionOf(PeerCursor.myCursor.identifier)();
+    this.objectChange.trackMyCursor();
     const role = PeerCursor.myRole;
     return this.chatTabList.chatTabs
       .filter((tab) => !tab.isSystemTab && canRoleViewTab(tab, role))

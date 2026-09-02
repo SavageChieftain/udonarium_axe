@@ -49,7 +49,7 @@ export class StreamingOverlayComponent {
   protected readonly feed = computed(() => {
     this.tick();
     this.objectChange.collectionOf('chat-tab')();
-    if (PeerCursor.myCursor) this.objectChange.versionOf(PeerCursor.myCursor.identifier)();
+    this.objectChange.trackMyCursor();
 
     const role = this.viewerRole();
     const sources: OverlaySource[] = [];

@@ -56,7 +56,7 @@ export class GameTableSettingComponent {
   private readonly t = inject(TRANSLATE_FN);
 
   readonly isReadOnly = computed(() => {
-    if (PeerCursor.myCursor) this.objectChange.versionOf(PeerCursor.myCursor.identifier)();
+    this.objectChange.trackMyCursor();
     return !this.rolePermission.canEditTabletop;
   });
   private readonly modalService = inject(ModalService);
@@ -294,7 +294,7 @@ export class GameTableSettingComponent {
   }
 
   get isGameMaster(): boolean {
-    if (PeerCursor.myCursor) this.objectChange.versionOf(PeerCursor.myCursor.identifier)();
+    this.objectChange.trackMyCursor();
     return PeerCursor.isMyselfGameMaster;
   }
 

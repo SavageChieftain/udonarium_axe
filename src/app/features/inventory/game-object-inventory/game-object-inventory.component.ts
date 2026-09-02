@@ -366,7 +366,7 @@ export class GameObjectInventoryComponent {
 
   readonly turnOrderList = computed<GameCharacter[]>(() => {
     this.inventoryService.inventoryVersion();
-    if (PeerCursor.myCursor) this.objectChange.versionOf(PeerCursor.myCursor.identifier)();
+    this.objectChange.trackMyCursor();
     return this.turnOrderService.orderedCharacters(this.rolePermission.canSeeHidden);
   });
 
@@ -509,7 +509,7 @@ export class GameObjectInventoryComponent {
     this.inventoryService.inventoryVersion();
     this.objectChange.fileVersion();
     this.objectChange.collectionOf('character')();
-    if (PeerCursor.myCursor) this.objectChange.versionOf(PeerCursor.myCursor.identifier)();
+    this.objectChange.trackMyCursor();
     return this.baseObjectsOf(this.selectTab()).map((object) =>
       buildInventoryRow(object, object instanceof GameCharacter ? object.folderName : '')
     );
@@ -525,7 +525,7 @@ export class GameObjectInventoryComponent {
   readonly hiddenDisplay = this.filter.hiddenDisplay;
 
   readonly canSeeHidden = computed<boolean>(() => {
-    if (PeerCursor.myCursor) this.objectChange.versionOf(PeerCursor.myCursor.identifier)();
+    this.objectChange.trackMyCursor();
     return this.rolePermission.canSeeHidden;
   });
 
@@ -605,7 +605,7 @@ export class GameObjectInventoryComponent {
   readonly showTree = computed<boolean>(() => this.foldersApply() && this.hasFolders());
 
   readonly canEdit = computed<boolean>(() => {
-    if (PeerCursor.myCursor) this.objectChange.versionOf(PeerCursor.myCursor.identifier)();
+    this.objectChange.trackMyCursor();
     return this.rolePermission.canEditTabletop;
   });
 
@@ -894,7 +894,7 @@ export class GameObjectInventoryComponent {
   }
 
   canView(gameObject: TabletopObject): boolean {
-    if (PeerCursor.myCursor) this.objectChange.versionOf(PeerCursor.myCursor.identifier)();
+    this.objectChange.trackMyCursor();
     if (gameObject instanceof GameCharacter) return this.disclosureService.canView(gameObject);
     return true;
   }

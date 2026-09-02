@@ -74,7 +74,7 @@ export class EffectLibraryPanelComponent {
   readonly tags = computed<string[]>(() => collectTags(this.library.presets()));
 
   readonly isGameMaster = computed<boolean>(() => {
-    if (PeerCursor.myCursor) this.objectChange.versionOf(PeerCursor.myCursor.identifier)();
+    this.objectChange.trackMyCursor();
     return PeerCursor.isMyselfGameMaster;
   });
 

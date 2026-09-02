@@ -1,9 +1,12 @@
+import { computed } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { NetworkPeerEvent, ObjectChangeService, ObjectDeleteEvent } from '@axe/application/sync/object-change.service';
 import { fileLoaded$ } from '@axe/core/event/domain-events';
 import { EventChannel } from '@axe/core/event/event-channel';
 import { localDispatch } from '@axe/core/network/network-messaging';
 import { childrenChanged$, objectAdded$, objectChanged$, objectRemoved$ } from '@axe/core/sync/object-event-extension';
+import { PeerCursor } from '@axe/domain/peer/peer-cursor';
+import { PeerRole } from '@axe/domain/peer/peer-role';
 
 function nextEvent<T>(channel: { subscribe(fn: (e: T) => void): () => void }): Promise<T> {
   return new Promise<T>((resolve) => {
@@ -239,6 +242,42 @@ describe('ObjectChangeService', () => {
       // returns a signal with no set or update
       expect(typeof (sig as unknown as Record<string, unknown>)['set']).not.toBe('function');
       expect(typeof (sig as unknown as Record<string, unknown>)['update']).not.toBe('function');
+    });
+  });
+
+  describe('trackMyCursor()', () => {
+    afterEach(() => {
+      PeerCursor.myCursor = null!;
+    });
+
+    function roleSeenBy(): () => PeerRole {
+      return TestBed.runInInjectionContext(() =>
+        computed(() => {
+          service.trackMyCursor();
+          return PeerCursor.myRole;
+        })
+      );
+    }
+
+    it('hears the cursor that arrives after it was first asked', () => {
+      const role = roleSeenBy();
+      expect(role()).toBe(PeerRole.Player);
+
+      PeerCursor.createMyCursor();
+      PeerCursor.myCursor.role = PeerRole.GameMaster;
+
+      expect(role()).toBe(PeerRole.GameMaster);
+    });
+
+    it('hears a role change on the cursor it can already see', () => {
+      PeerCursor.createMyCursor();
+      const role = roleSeenBy();
+      expect(role()).toBe(PeerRole.Player);
+
+      PeerCursor.myCursor.role = PeerRole.Guest;
+      service.notifyChanged(PeerCursor.myCursor.identifier);
+
+      expect(role()).toBe(PeerRole.Guest);
     });
   });
 

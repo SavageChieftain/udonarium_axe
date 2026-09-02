@@ -73,12 +73,12 @@ export class GameObjectListPanelComponent {
   });
 
   protected readonly isGameMaster = computed(() => {
-    if (PeerCursor.myCursor) this.objectChange.versionOf(PeerCursor.myCursor.identifier)();
+    this.objectChange.trackMyCursor();
     return PeerCursor.isMyselfGameMaster;
   });
 
   protected readonly rows = computed<ObjectRow[]>(() => {
-    if (PeerCursor.myCursor) this.objectChange.versionOf(PeerCursor.myCursor.identifier)();
+    this.objectChange.trackMyCursor();
     const result: ObjectRow[] = [];
     for (const type of OBJECT_LIST_TYPES) {
       this.objectChange.collectionOf(type.alias)();

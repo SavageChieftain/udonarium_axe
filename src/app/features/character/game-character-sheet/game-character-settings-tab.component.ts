@@ -11,7 +11,6 @@ import {
   countConvertibleCheckTableElements,
 } from '@axe/domain/data/check-table-converter';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
-import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { clampInRange, floatOr, roundOr } from '@axe/features/character/game-character-sheet/numeric-input-helpers';
 import { TranslocoModule } from '@jsverse/transloco';
 
@@ -28,7 +27,7 @@ export class GameCharacterSettingsTabComponent {
   private readonly rolePermission = inject(RolePermissionService);
 
   readonly isReadOnly = computed(() => {
-    if (PeerCursor.myCursor) this.objectChange.versionOf(PeerCursor.myCursor.identifier)();
+    this.objectChange.trackMyCursor();
     return !this.rolePermission.canEditTabletop;
   });
 

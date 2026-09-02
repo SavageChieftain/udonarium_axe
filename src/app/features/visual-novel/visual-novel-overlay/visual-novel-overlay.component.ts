@@ -627,7 +627,7 @@ export class VisualNovelOverlayComponent {
   readonly canSpeak = computed(() => {
     const tab = this.chatTab();
     if (!tab) return false;
-    if (PeerCursor.myCursor) this.objectChange.versionOf(PeerCursor.myCursor.identifier)();
+    this.objectChange.trackMyCursor();
     return canRoleSpeakTab(tab, PeerCursor.myRole);
   });
 

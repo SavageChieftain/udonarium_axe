@@ -47,7 +47,6 @@ import {
   type TableColumn as DataElementTableColumn,
   type TableColumnHeaderGroup as DataElementTableColumnHeaderGroup,
 } from '@axe/domain/data/table-layout';
-import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import {
   canAcceptChildRole,
   canDropStructureElement,
@@ -111,7 +110,7 @@ export class GameDataElementComponent {
   private readonly rolePermission = inject(RolePermissionService);
 
   readonly isReadOnly = computed(() => {
-    if (PeerCursor.myCursor) this.objectChange.versionOf(PeerCursor.myCursor.identifier)();
+    this.objectChange.trackMyCursor();
     return !this.rolePermission.canEditTabletop;
   });
   private readonly pointerDeviceService = inject(PointerDeviceService);

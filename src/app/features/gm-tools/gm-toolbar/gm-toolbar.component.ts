@@ -60,7 +60,7 @@ export class GmToolbarComponent {
   protected readonly personaOpen = signal(false);
 
   readonly isGameMaster = computed(() => {
-    if (PeerCursor.myCursor) this.objectChange.versionOf(PeerCursor.myCursor.identifier)();
+    this.objectChange.trackMyCursor();
     return PeerCursor.isMyselfGameMaster;
   });
 

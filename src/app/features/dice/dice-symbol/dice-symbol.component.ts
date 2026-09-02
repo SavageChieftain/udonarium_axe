@@ -124,7 +124,7 @@ export class DiceSymbolComponent {
   });
   readonly hideName = computed(() => {
     this.objectChange.versionOf(this.diceSymbol().identifier)();
-    if (PeerCursor.myCursor) this.objectChange.versionOf(PeerCursor.myCursor.identifier)();
+    this.objectChange.trackMyCursor();
     return this.diceSymbol().hideName && !this.rolePermission.canSeeHidden;
   });
   readonly size = computed(() => {

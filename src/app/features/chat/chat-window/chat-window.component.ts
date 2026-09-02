@@ -272,7 +272,7 @@ export class ChatWindowComponent {
 
   readonly visibleChatTabs = computed(() => {
     const tabs = this.chatTabsVersion();
-    if (PeerCursor.myCursor) this.objectChange.versionOf(PeerCursor.myCursor.identifier)();
+    this.objectChange.trackMyCursor();
     const role = PeerCursor.myRole;
     return tabs.filter((tab) => canRoleViewTab(tab, role));
   });
@@ -280,7 +280,7 @@ export class ChatWindowComponent {
   readonly canSpeakCurrentTab = computed(() => {
     const tab = this.chatTab();
     if (!tab) return false;
-    if (PeerCursor.myCursor) this.objectChange.versionOf(PeerCursor.myCursor.identifier)();
+    this.objectChange.trackMyCursor();
     this.objectChange.versionOf(tab.identifier)();
     return canRoleSpeakTab(tab, PeerCursor.myRole);
   });

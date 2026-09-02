@@ -44,7 +44,7 @@ export class VisualNovelEmoteSelectionService {
   readonly hasSelection = computed(() => hasVnEmote(this.emote()));
 
   readonly isGameMaster = computed(() => {
-    if (PeerCursor.myCursor) this.objectChange.versionOf(PeerCursor.myCursor.identifier)();
+    this.objectChange.trackMyCursor();
     return PeerCursor.isMyselfGameMaster;
   });
 

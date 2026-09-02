@@ -366,7 +366,7 @@ export class ChatMessageComponent {
    */
   copyTargets(): ChatTab[] {
     this.objectChange.collectionOf(ChatTab.aliasName)();
-    if (PeerCursor.myCursor) this.objectChange.versionOf(PeerCursor.myCursor.identifier)();
+    this.objectChange.trackMyCursor();
     const role = PeerCursor.myRole;
     const here = this.chatMessage?.tabIdentifier ?? '';
     return this.chatTabList.chatTabs.filter((tab) => tab.identifier !== here && canRoleSpeakTab(tab, role));

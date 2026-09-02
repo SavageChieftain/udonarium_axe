@@ -8,7 +8,6 @@ import { BUFF_COLORS, resolveBuffColor } from '@axe/domain/character/buff-appear
 import { buffIconUrlOf } from '@axe/domain/character/buff-badge';
 import { BUFF_TIMINGS, BuffTiming } from '@axe/domain/character/buff-timing';
 import { StatusAilment, withRounds } from '@axe/domain/character/status-ailment';
-import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { FileSelecterComponent } from '@axe/ui/components/file-selecter/file-selecter.component';
 import { SafePipe } from '@axe/ui/pipes/safe.pipe';
 import { TranslocoModule } from '@jsverse/transloco';
@@ -42,7 +41,7 @@ export class StatusAilmentPanelComponent {
   readonly newName = signal('');
 
   readonly canEdit = computed<boolean>(() => {
-    if (PeerCursor.myCursor) this.objectChange.versionOf(PeerCursor.myCursor.identifier)();
+    this.objectChange.trackMyCursor();
     return this.rolePermission.canEditTabletop;
   });
 

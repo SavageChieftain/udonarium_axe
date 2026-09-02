@@ -80,7 +80,7 @@ export class MobileShellComponent {
   protected readonly isMenuOpen = signal(false);
 
   protected readonly isGameMaster = computed(() => {
-    if (PeerCursor.myCursor) this.objectChange.versionOf(PeerCursor.myCursor.identifier)();
+    this.objectChange.trackMyCursor();
     return PeerCursor.isMyselfGameMaster;
   });
 

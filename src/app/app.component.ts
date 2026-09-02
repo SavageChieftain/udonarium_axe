@@ -132,7 +132,7 @@ export class AppComponent {
   readonly modalLayerViewContainerRef = viewChild.required('modalLayer', { read: ViewContainerRef });
 
   readonly isMyselfGameMaster = computed(() => {
-    if (PeerCursor.myCursor) this.objectChange.versionOf(PeerCursor.myCursor.identifier)();
+    this.objectChange.trackMyCursor();
     return PeerCursor.isMyselfGameMaster;
   });
 

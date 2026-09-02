@@ -259,7 +259,7 @@ export class MapEditorPanelComponent implements AfterViewInit {
   private pendingTextInitial = '';
 
   protected readonly isGameMaster = computed(() => {
-    if (PeerCursor.myCursor) this.objectChange.versionOf(PeerCursor.myCursor.identifier)();
+    this.objectChange.trackMyCursor();
     return PeerCursor.isMyselfGameMaster;
   });
 

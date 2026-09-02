@@ -122,13 +122,13 @@ export class HandRailComponent {
   }
 
   readonly canHoldCards = computed(() => {
-    if (PeerCursor.myCursor) this.objectChange.versionOf(PeerCursor.myCursor.identifier)();
+    this.objectChange.trackMyCursor();
     return canRoleEdit(PeerCursor.myRole);
   });
 
   readonly cards = computed<Card[]>(() => {
     this.objectChange.collectionOf(Card.aliasName)();
-    if (PeerCursor.myCursor) this.objectChange.versionOf(PeerCursor.myCursor.identifier)();
+    this.objectChange.trackMyCursor();
     const userId = this.cardGame.myUserId();
     const all = this.objectStore.getObjects<Card>(Card);
     for (const card of all) this.objectChange.versionOf(card.identifier)();

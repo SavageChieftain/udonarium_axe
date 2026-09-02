@@ -10,7 +10,6 @@ import {
   INVENTORY_CHROME_PARTS,
   InventoryChromePart,
 } from '@axe/domain/inventory/inventory-chrome';
-import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import {
   INVENTORY_HIDDEN_FILTERS,
   type InventoryHiddenFilter,
@@ -86,12 +85,12 @@ export class InventoryFilterPanelComponent {
   }));
 
   readonly canSeeHidden = computed<boolean>(() => {
-    if (PeerCursor.myCursor) this.objectChange.versionOf(PeerCursor.myCursor.identifier)();
+    this.objectChange.trackMyCursor();
     return this.rolePermission.canSeeHidden;
   });
 
   readonly canEdit = computed<boolean>(() => {
-    if (PeerCursor.myCursor) this.objectChange.versionOf(PeerCursor.myCursor.identifier)();
+    this.objectChange.trackMyCursor();
     return this.rolePermission.canEditTabletop;
   });
 

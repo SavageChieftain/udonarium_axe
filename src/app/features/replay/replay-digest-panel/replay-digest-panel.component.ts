@@ -39,7 +39,7 @@ export class ReplayDigestPanelComponent {
 
   protected readonly digest = computed(() => {
     // A change of role changes that, and a screen left open follows rather than going stale.
-    if (PeerCursor.myCursor) this.objectChange.versionOf(PeerCursor.myCursor.identifier)();
+    this.objectChange.trackMyCursor();
     const manifest = this.playback.manifest();
     if (!manifest) return EMPTY_REPLAY_DIGEST;
     const events = this.editor.isEditing() ? this.editor.edited() : this.playback.events();

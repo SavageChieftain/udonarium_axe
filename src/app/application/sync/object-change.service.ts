@@ -44,6 +44,7 @@ import {
   objectRemoved$,
   type ObjectStoreEvent,
 } from '@axe/core/sync/object-event-extension';
+import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 
 export type {
   CoinFlipEvent,
@@ -131,6 +132,20 @@ export class ObjectChangeService {
 
   notifyCollectionChanged(aliasName: string): void {
     this._collections.get(aliasName)?.update((v) => v + 1);
+  }
+
+  /**
+   * Follow the cursor of whoever is reading, for anything that answers by their role.
+   *
+   * The cursor is a static that is absent until a room has been joined, so following only
+   * the one that can be seen follows nothing at all while there is none. A computation that
+   * did so kept the default role for as long as it held its answer, and never heard the
+   * cursor arrive. The set of cursors is followed as well, which is how it hears.
+   */
+  trackMyCursor(): void {
+    this.collectionOf(PeerCursor.aliasName)();
+    const cursor = PeerCursor.myCursor;
+    if (cursor) this.versionOf(cursor.identifier)();
   }
 
   /**

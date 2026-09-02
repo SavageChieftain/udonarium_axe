@@ -30,7 +30,6 @@ import { UiSignalService } from '@axe/application/ui/ui-signal.service';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { DataElement } from '@axe/domain/data/data-element';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
-import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { TextNote } from '@axe/domain/tabletop/text-note';
 import { buildTextNoteContextMenu } from '@axe/features/tabletop/text-note/text-note-context-menu';
 import { MovableOption } from '@axe/ui/directives/movable.directive';
@@ -67,7 +66,7 @@ export class TextNoteComponent {
     const note = this.textNote();
     if (!note) return false;
     this.objectChange.versionOf(note.identifier)();
-    if (PeerCursor.myCursor) this.objectChange.versionOf(PeerCursor.myCursor.identifier)();
+    this.objectChange.trackMyCursor();
     return this.disclosureService.canView(note);
   });
   private readonly elementRef = inject<ElementRef<HTMLElement>>(ElementRef);

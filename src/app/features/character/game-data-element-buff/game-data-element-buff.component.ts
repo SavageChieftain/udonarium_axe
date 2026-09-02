@@ -11,7 +11,6 @@ import { BUFF_TIMINGS, BuffTiming, buffTimingOf, buffTriggerOf } from '@axe/doma
 import { buffTriggerOptions, selectedTriggerValue } from '@axe/domain/character/buff-trigger-options';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { DataElement, DataElementAttribute, DataElementType } from '@axe/domain/data/data-element';
-import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { FileSelecterComponent } from '@axe/ui/components/file-selecter/file-selecter.component';
 import { SafePipe } from '@axe/ui/pipes/safe.pipe';
 import { TranslocoModule } from '@jsverse/transloco';
@@ -31,7 +30,7 @@ export class GameDataElementBuffComponent {
   private readonly t = inject(TRANSLATE_FN);
 
   readonly isReadOnly = computed(() => {
-    if (PeerCursor.myCursor) this.objectChange.versionOf(PeerCursor.myCursor.identifier)();
+    this.objectChange.trackMyCursor();
     return !this.rolePermission.canEditTabletop;
   });
 

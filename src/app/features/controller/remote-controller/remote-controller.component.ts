@@ -364,7 +364,7 @@ export class RemoteControllerComponent {
     this.inventoryService.inventoryVersion();
     this.objectChange.fileVersion();
     this.objectChange.collectionOf('character')();
-    if (PeerCursor.myCursor) this.objectChange.versionOf(PeerCursor.myCursor.identifier)();
+    this.objectChange.trackMyCursor();
     return getGameObjects(inventoryType, this.inventoryService).filter((object) => this.canView(object));
   }
 

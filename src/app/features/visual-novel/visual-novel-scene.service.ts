@@ -45,7 +45,7 @@ export class VisualNovelSceneService {
   });
 
   readonly canDirect = computed(() => {
-    if (PeerCursor.myCursor) this.objectChange.versionOf(PeerCursor.myCursor.identifier)();
+    this.objectChange.trackMyCursor();
     return PeerCursor.isMyselfGameMaster;
   });
 

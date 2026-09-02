@@ -86,7 +86,7 @@ export class VisualNovelPlaybackService {
   readonly messages = computed(() => {
     const log = this.logMessages();
     if (this.settings.readPlayerAsides()) return log;
-    if (PeerCursor.myCursor) this.objectChange.versionOf(PeerCursor.myCursor.identifier)();
+    this.objectChange.trackMyCursor();
     this.objectChange.collectionOf(PeerCursor.aliasName)();
     return log.filter((message, index) => !isPlayerAside(this.scriptLineOf(message, log, index)));
   });
@@ -96,7 +96,7 @@ export class VisualNovelPlaybackService {
     const message = this.currentMessage();
     if (!message) return 'unknown';
     this.objectChange.collectionOf(PeerCursor.aliasName)();
-    if (PeerCursor.myCursor) this.objectChange.versionOf(PeerCursor.myCursor.identifier)();
+    this.objectChange.trackMyCursor();
     return this.speakerOf(message);
   });
 
@@ -158,7 +158,7 @@ export class VisualNovelPlaybackService {
 
   readonly availableChatTabs = computed(() => {
     this.objectChange.collectionOf(ChatTab.aliasName)();
-    if (PeerCursor.myCursor) this.objectChange.versionOf(PeerCursor.myCursor.identifier)();
+    this.objectChange.trackMyCursor();
     const role = PeerCursor.myRole;
     return this.chatMessageService.chatTabs.filter((tab) => canRoleViewTab(tab, role));
   });
