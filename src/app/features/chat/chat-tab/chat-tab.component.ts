@@ -45,20 +45,6 @@ interface WritingSpeaker {
   imageFile: ImageFile;
 }
 
-const activeChatTabComponents = new Set<{ writingSpeakers: { set(v: WritingSpeaker[]): void } }>();
-
-if (typeof window !== 'undefined') {
-  (window as unknown as { dbgWriting?: (n: number) => number }).dbgWriting = (n: number) => {
-    const names = ['Alice', 'Bob', 'Carol', 'Dave', 'Eve', 'Frank', 'Grace', 'Henry'];
-    const dummies: WritingSpeaker[] = [];
-    for (let i = 0; i < n; i++) {
-      dummies.push({ peerId: `__debug_${i}`, name: names[i % names.length], imageFile: ImageFile.Empty });
-    }
-    for (const instance of activeChatTabComponents) instance.writingSpeakers.set(dummies);
-    return activeChatTabComponents.size;
-  };
-}
-
 @Component({
   selector: 'chat-tab',
   templateUrl: './chat-tab.component.html',
@@ -159,9 +145,7 @@ export class ChatTabComponent {
       for (const timeout of this.writingSpeakerTimeouts.values()) timeout.stop();
       this.writingSpeakerTimeouts.clear();
       this.writingSpeakerIdentifiers.clear();
-      activeChatTabComponents.delete(this);
     });
-    activeChatTabComponents.add(this);
   }
 
   private readonly rawSampleMessages = buildSampleChatMessages();
