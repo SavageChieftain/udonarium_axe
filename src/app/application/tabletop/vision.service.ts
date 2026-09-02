@@ -17,13 +17,13 @@ import {
 } from '@axe/domain/tabletop/fog/cell-grid';
 import { fogMemoryOn } from '@axe/domain/tabletop/fog/fog-memory';
 import {
-  asFogMode,
   DEFAULT_FOG_COLOR,
   FOG_EDGE_BLUR_RATIO,
   FOG_GM_ALPHA_FACTOR,
   FOG_UNEXPLORED_ALPHA,
   FOG_VEIL_ALPHA,
   FOG_VEIL_COLOR,
+  fogRules,
 } from '@axe/domain/tabletop/fog/fog-mode';
 import { computeVisibleCellsFor, VisibleCellsOptions } from '@axe/domain/tabletop/fog/visible-cells';
 import { GameTable } from '@axe/domain/tabletop/game-table';
@@ -70,6 +70,7 @@ const STANDING_ALIASES = new Set(['terrain', 'game-table']);
 const MEMO_LIMIT = 8192;
 const EMPTY_SILHOUETTES: WallSilhouette[] = [];
 const EMPTY_WALL_LIGHTS: WallLight[] = [];
+const EMPTY_FOUND: ReadonlySet<string> = new Set();
 /** How far towards an open neighbour a wall's face is read, as a share of the way to it. */
 const FACE_READ_STEP = 0.6;
 
@@ -418,7 +419,7 @@ export class VisionService {
     const table = this.currentTable();
     if (!cells || !table || !table.fogEnabled) return null;
     const explored = cells.shared.copy();
-    if (asFogMode(table.fogMode) === 'easy') {
+    if (fogRules(table.fogMode).remembersGround) {
       this.objectChange.collectionOf('fog-memory')();
       const memory = fogMemoryOn(table);
       if (memory) {
@@ -434,20 +435,60 @@ export class VisionService {
     const table = this.currentTable();
     if (!cells || !table) return undefined;
     const own = this.viewerCells();
-    const dim = this.viewer().isGameMaster ? FOG_GM_ALPHA_FACTOR : 1;
+    const isGameMaster = this.viewer().isGameMaster;
+    const dim = isGameMaster ? FOG_GM_ALPHA_FACTOR : 1;
+    const rules = fogRules(table.fogMode);
+    const explored = this.exploredCells() ?? cells.shared;
+    // Ground the party has taken is held in plain sight: it counts as seen, so no veil falls
+    // back over it and the light it was cleared under is not asked about again. Not for the
+    // game master, who is shown the board as it stands rather than as the party holds it.
+    const held = table.fogEnabled && rules.clearedStaysLit && !isGameMaster;
     return {
       grid: cells.grid,
-      visible: own ?? cells.shared,
-      explored: this.exploredCells() ?? cells.shared,
-      clipReveals: own !== null,
+      visible: held ? explored : (own ?? cells.shared),
+      explored,
+      clipReveals: held ? true : own !== null,
       fogEnabled: table.fogEnabled,
       fogColor: table.fogColor,
       veilColor: FOG_VEIL_COLOR,
-      veilAlpha: FOG_VEIL_ALPHA * dim,
+      veilAlpha: held ? 0 : FOG_VEIL_ALPHA * dim,
       unexploredAlpha: FOG_UNEXPLORED_ALPHA * dim,
       blurPx: table.gridSize * FOG_EDGE_BLUR_RATIO,
-      rememberSeen: table.fogEnabled && asFogMode(table.fogMode) === 'easy',
+      rememberSeen: table.fogEnabled && rules.remembersGround,
+      clearedStaysLit: held,
     };
+  });
+
+  /**
+   * The pieces the party can see between them right now, by identifier.
+   *
+   * Drawn from the cells the party's own eyes reach rather than from whoever is looking, so
+   * every client works out the same answer and the record they keep agrees.
+   */
+  readonly partyVisiblePieces = computed<ReadonlySet<string>>(() => {
+    const cells = this.visionCells();
+    const scene = this.scene();
+    if (!cells || !scene) return EMPTY_FOUND;
+    const found = new Set<string>();
+    for (const character of this.objectStore.getObjects<GameCharacter>(GameCharacter)) {
+      if (!character.isVisibleOnTable || surfaceOf(character) !== 'floor') continue;
+      this.objectChange.versionOf(character.identifier)();
+      const half = (scene.gridSize * (character.size || 1)) / 2;
+      const cell = cellIndexAt(cells.grid, character.location.x + half, character.location.y + half);
+      if (cell >= 0 && cells.shared.get(cell)) found.add(character.identifier);
+    }
+    return found;
+  });
+
+  /** The pieces the party has met, on a table that follows what it has found. */
+  readonly foundPieces = computed<ReadonlySet<string>>(() => {
+    const table = this.currentTable();
+    if (!table || !table.fogEnabled || !fogRules(table.fogMode).tracksFoundPieces) return EMPTY_FOUND;
+    this.objectChange.collectionOf('fog-memory')();
+    const memory = fogMemoryOn(table);
+    if (!memory) return EMPTY_FOUND;
+    this.objectChange.versionOf(memory.identifier)();
+    return memory.readFound();
   });
 
   visibleCellsOf(identifier: string): { grid: CellGrid; cells: CellBits } | null {
@@ -576,6 +617,9 @@ export class VisionService {
     y: number
   ): number {
     const dark = 1 - darknessAlphaFor(scene, viewer);
+    // Ground the party has taken is held at full light, which is what the easy fog promises:
+    // cleared once, and bright from then on however the lamps stand.
+    if (this.clearedIsLit(cell)) return 1;
     // Bright exactly where the fog counts the cell as in sight right now. The fog's own
     // answer already holds the whole rule - lamplit and in a line of sight, read at a wall's
     // open sides - and it falls back to the party's shared sight for a reader with no piece
@@ -600,6 +644,13 @@ export class VisionService {
       if (brightness > best) best = brightness;
     });
     return best;
+  }
+
+  /** Whether this cell is ground the party took on a table that keeps what it has taken. */
+  private clearedIsLit(cell: number): boolean {
+    if (cell < 0) return false;
+    const fog = this.overlayVision();
+    return !!fog?.clearedStaysLit && fog.explored.get(cell);
   }
 
   isHiddenByFog(x: number, y: number): boolean {
@@ -754,6 +805,9 @@ export class VisionService {
     // lines again would answer for eyes the reader may not have: somebody with no piece of
     // their own has none, and a table with the dark switched off has nothing to stop a look,
     // so every piece on the board came out standing in plain view under the fog covering it.
+    // A piece the party has met is followed wherever it goes, on a table that says so: what
+    // is being read is the map the party keeps, and a monster they have seen is on it.
+    if (this.foundPieces().has(character.identifier)) return true;
     const fog = scene.fogEnabled ? this.overlayVision() : undefined;
     if (fog) {
       const cell = cellIndexAt(fog.grid, x, y);

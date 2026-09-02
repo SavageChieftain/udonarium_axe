@@ -8,7 +8,7 @@ import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { PeerRole } from '@axe/domain/peer/peer-role';
 import { CellBits } from '@axe/domain/tabletop/fog/cell-bits';
 import { cellCount, cellGridOf } from '@axe/domain/tabletop/fog/cell-grid';
-import { ensureFogMemoryOn } from '@axe/domain/tabletop/fog/fog-memory';
+import { ensureFogMemoryOn, fogMemoryOn } from '@axe/domain/tabletop/fog/fog-memory';
 import { FogMode } from '@axe/domain/tabletop/fog/fog-mode';
 import { GameTable, GridType } from '@axe/domain/tabletop/game-table';
 import { LightSource } from '@axe/domain/tabletop/light-source';
@@ -383,13 +383,89 @@ describe('VisionService', () => {
     }
 
     it('holds onto ground it has been shown when the table is easy', () => {
-      tableRememberingCell('easy', 7);
+      tableRememberingCell('normal', 7);
       expect(service.exploredCells()?.get(7)).toBe(true);
     });
 
     it('lets it go again when the table is hard', () => {
       tableRememberingCell('hard', 7);
       expect(service.exploredCells()?.get(7)).toBe(false);
+    });
+
+    describe('the easy table, which keeps what the party has taken', () => {
+      it('counts ground once cleared as still in sight', () => {
+        tableRememberingCell('easy', 7);
+        makeMyCursor('p1', PeerRole.Player);
+
+        expect(service.overlayVision()?.visible.get(7)).toBe(true);
+      });
+
+      it('lays no veil over it, so it is not dimmed again', () => {
+        tableRememberingCell('easy', 7);
+        makeMyCursor('p1', PeerRole.Player);
+
+        expect(service.overlayVision()?.veilAlpha).toBe(0);
+        expect(service.overlayVision()?.clearedStaysLit).toBe(true);
+      });
+
+      it('holds a wall on that ground at full light, with no lamp anywhere near it', () => {
+        const table = tableRememberingCell('easy', NPC_CELL);
+        makeMyCursor('p1', PeerRole.Player);
+        const wall = terrainAt(200, 200, 1, true);
+        table.appendChild(wall);
+
+        expect(service.terrainFogCover(wall)?.brightness[0]).toBe(1);
+      });
+
+      it('leaves the ground nobody has walked to dark all the same', () => {
+        const table = tableRememberingCell('easy', NPC_CELL);
+        makeMyCursor('p1', PeerRole.Player);
+        const far = terrainAt(800, 800, 1, true);
+        table.appendChild(far);
+
+        expect(service.terrainFogCover(far)?.brightness[0]).toBeLessThan(1);
+      });
+
+      it('shows the game master the board as it stands, not as the party holds it', () => {
+        tableRememberingCell('easy', 7);
+        makeMyCursor('gm', PeerRole.GameMaster);
+
+        expect(service.overlayVision()?.clearedStaysLit).toBe(false);
+        expect(service.overlayVision()?.veilAlpha).toBeGreaterThan(0);
+      });
+
+      it('follows a piece it has met wherever it goes', () => {
+        const table = tableRememberingCell('easy', NPC_CELL);
+        makeMyCursor('p1', PeerRole.Player);
+        const npc = GameCharacter.create('NPC', 1, '');
+        npc.location.x = 800;
+        npc.location.y = 800;
+        fogMemoryOn(table)!.writeFound(new Set([npc.identifier]));
+
+        expect(service.isTokenVisible(npc)).toBe(true);
+      });
+
+      it('follows nobody it has not met', () => {
+        const table = tableRememberingCell('easy', NPC_CELL);
+        makeMyCursor('p1', PeerRole.Player);
+        const npc = GameCharacter.create('NPC', 1, '');
+        npc.location.x = 800;
+        npc.location.y = 800;
+        fogMemoryOn(table)!.writeFound(new Set(['somebody-else']));
+
+        expect(service.isTokenVisible(npc)).toBe(false);
+      });
+
+      it('follows nobody at all on the middle table, however it was met', () => {
+        const table = tableRememberingCell('normal', NPC_CELL);
+        makeMyCursor('p1', PeerRole.Player);
+        const npc = GameCharacter.create('NPC', 1, '');
+        npc.location.x = 800;
+        npc.location.y = 800;
+        fogMemoryOn(table)!.writeFound(new Set([npc.identifier]));
+
+        expect(service.isTokenVisible(npc)).toBe(false);
+      });
     });
 
     it('hides a piece standing in the fog from a reader with no eyes of their own', () => {
@@ -430,14 +506,14 @@ describe('VisionService', () => {
     }
 
     it('keeps showing a piece once found, while it stands on ground the party has cleared', () => {
-      tableRememberingCell('easy', NPC_CELL);
+      tableRememberingCell('normal', NPC_CELL);
       makeMyCursor('p1', PeerRole.Player);
 
       expect(service.isTokenVisible(npcAt(200, 200))).toBe(true);
     });
 
     it('loses it again the moment it steps somewhere nobody has been', () => {
-      tableRememberingCell('easy', NPC_CELL);
+      tableRememberingCell('normal', NPC_CELL);
       makeMyCursor('p1', PeerRole.Player);
 
       expect(service.isTokenVisible(npcAt(600, 600))).toBe(false);
@@ -492,7 +568,7 @@ describe('VisionService', () => {
     });
 
     it('hides a lamp left standing on ground nobody has walked to', () => {
-      tableRememberingCell('easy', NPC_CELL);
+      tableRememberingCell('normal', NPC_CELL);
       makeMyCursor('p1', PeerRole.Player);
       const lamp = LightSource.create('torch');
       lamp.location.x = 600;
@@ -502,7 +578,7 @@ describe('VisionService', () => {
     });
 
     it('leaves one standing on ground the party has cleared', () => {
-      tableRememberingCell('easy', NPC_CELL);
+      tableRememberingCell('normal', NPC_CELL);
       makeMyCursor('p1', PeerRole.Player);
       const lamp = LightSource.create('torch');
       lamp.location.x = 200;
@@ -512,7 +588,7 @@ describe('VisionService', () => {
     });
 
     it('hides nothing from the game master', () => {
-      tableRememberingCell('easy', NPC_CELL);
+      tableRememberingCell('normal', NPC_CELL);
       makeMyCursor('gm', PeerRole.GameMaster);
       const lamp = LightSource.create('torch');
       lamp.location.x = 600;
@@ -531,7 +607,7 @@ describe('VisionService', () => {
     }
 
     it('tells the cells of a terrain the party has walked to from the rest', () => {
-      tableRememberingCell('easy', NPC_CELL);
+      tableRememberingCell('normal', NPC_CELL);
       makeMyCursor('p1', PeerRole.Player);
       // Four cells across, from (200, 200), with only its near corner cleared.
       const cover = service.terrainFogCover(terrainAt(200, 200, 4, true));
@@ -543,7 +619,7 @@ describe('VisionService', () => {
     });
 
     it('answers the same way for a floor as for a wall', () => {
-      tableRememberingCell('easy', NPC_CELL);
+      tableRememberingCell('normal', NPC_CELL);
       makeMyCursor('p1', PeerRole.Player);
       const wall = service.terrainFogCover(terrainAt(200, 200, 4, true));
       const floor = service.terrainFogCover(terrainAt(200, 200, 4, false));
@@ -551,7 +627,7 @@ describe('VisionService', () => {
     });
 
     it('leaves a wall dark that only a brazier it cannot see lights', () => {
-      const table = tableRememberingCell('easy', NPC_CELL);
+      const table = tableRememberingCell('normal', NPC_CELL);
       makeMyCursor('p1', PeerRole.Player);
       // The remembered wall stands beside its own brazier, but a screen wall stands between
       // all of that and the player's piece: lit, remembered, and out of sight.
@@ -582,7 +658,7 @@ describe('VisionService', () => {
     });
 
     it('lights a long wall only where the torch and the line of sight agree', () => {
-      const table = tableRememberingCell('easy', NPC_CELL);
+      const table = tableRememberingCell('normal', NPC_CELL);
       makeMyCursor('p1', PeerRole.Player);
       // One long wall forms the north side of a row of corridors, cross walls part the
       // corridors, and a brazier burns in the far one. Everything was walked in an earlier
@@ -675,7 +751,7 @@ describe('VisionService', () => {
     });
 
     it('shows a reader with no piece of their own the party view, not every lamp on the map', () => {
-      const table = tableRememberingCell('easy', NPC_CELL);
+      const table = tableRememberingCell('normal', NPC_CELL);
       makeMyCursor('p1', PeerRole.Player);
       addPeer('p2', PeerRole.Player);
       // The torch-bearing piece belongs to the other player; the reader has none. Their
@@ -722,7 +798,7 @@ describe('VisionService', () => {
     });
 
     it('hides nothing from the game master, and lights their view by the lamps alone', () => {
-      const table = tableRememberingCell('easy', NPC_CELL);
+      const table = tableRememberingCell('normal', NPC_CELL);
       makeMyCursor('gm', PeerRole.GameMaster);
       const lamp = LightSource.create('torch');
       lamp.lightBrightRadius = 2;
@@ -742,7 +818,7 @@ describe('VisionService', () => {
     });
 
     it('reads a wall by the cell of it the party has reached, not by its middle', () => {
-      const table = tableRememberingCell('easy', NPC_CELL);
+      const table = tableRememberingCell('normal', NPC_CELL);
       makeMyCursor('p1', PeerRole.Player);
       // Ten cells of wall from (200, 200), of which only the first has been cleared, with a
       // lamp off to one side of that end and the rest of it left in the dark.
@@ -771,7 +847,7 @@ describe('VisionService', () => {
     });
 
     it('remembers nothing at all with the fog switched off', () => {
-      const table = tableRememberingCell('easy', 7);
+      const table = tableRememberingCell('normal', 7);
       table.fogEnabled = false;
       expect(service.exploredCells()).toBeNull();
     });

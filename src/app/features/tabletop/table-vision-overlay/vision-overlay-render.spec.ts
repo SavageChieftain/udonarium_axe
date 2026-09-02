@@ -142,6 +142,7 @@ describe('vision-overlay-render', () => {
         unexploredAlpha: 1,
         blurPx: 0,
         rememberSeen: true,
+        clearedStaysLit: false,
       };
     }
 

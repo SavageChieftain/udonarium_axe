@@ -5,11 +5,14 @@ export interface FogRecord {
   generation: number;
   grid: CellGrid;
   bits: CellBits;
+  /** The pieces the party has met, kept alongside the ground and thrown away with it. */
+  found: Set<string>;
 }
 
 export interface StoredFog {
   generation: number;
   bits: CellBits;
+  found: ReadonlySet<string>;
 }
 
 /**
@@ -24,12 +27,18 @@ export function mergeFogRecord(
   held: FogRecord | null,
   grid: CellGrid,
   stored: StoredFog | null,
-  visible: CellBits
+  visible: CellBits,
+  seen: ReadonlySet<string> = new Set()
 ): FogRecord {
   const generation = stored?.generation ?? 0;
   const fresh = !held || !sameCellGrid(held.grid, grid) || held.generation !== generation;
   const bits = fresh ? new CellBits(cellCount(grid)) : held.bits;
-  if (stored) bits.or(stored.bits);
+  const found = fresh ? new Set<string>() : held.found;
+  if (stored) {
+    bits.or(stored.bits);
+    for (const identifier of stored.found) found.add(identifier);
+  }
   bits.or(visible);
-  return { generation, grid, bits };
+  for (const identifier of seen) found.add(identifier);
+  return { generation, grid, bits, found };
 }

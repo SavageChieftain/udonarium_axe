@@ -244,10 +244,14 @@ export class GameTableSettingComponent {
 
   protected readonly fogModes = FOG_MODES;
 
+  private readonly fogModeLabelKeys: Record<FogMode, string> = {
+    easy: 'feature.tabletop.tableSetting.fogModeEasy',
+    normal: 'feature.tabletop.tableSetting.fogModeNormal',
+    hard: 'feature.tabletop.tableSetting.fogModeHard',
+  };
+
   fogModeLabel(mode: FogMode): string {
-    return this.t(
-      mode === 'hard' ? 'feature.tabletop.tableSetting.fogModeHard' : 'feature.tabletop.tableSetting.fogModeEasy'
-    );
+    return this.t(this.fogModeLabelKeys[mode]);
   }
 
   resetFog(): void {

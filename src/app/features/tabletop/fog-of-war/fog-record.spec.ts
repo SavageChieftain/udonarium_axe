@@ -27,18 +27,52 @@ describe('mergeFogRecord', () => {
   });
 
   it('takes in what another client has written down', () => {
-    const record = mergeFogRecord(null, GRID, { generation: 0, bits: bits(5) }, bits(1));
+    const record = mergeFogRecord(null, GRID, { generation: 0, bits: bits(5), found: new Set<string>() }, bits(1));
     expect(record.bits.get(5)).toBe(true);
     expect(record.bits.get(1)).toBe(true);
   });
 
   it('throws its running total away once the record has been cleared', () => {
-    const before = mergeFogRecord(null, GRID, { generation: 0, bits: bits(5) }, bits(1));
-    const after = mergeFogRecord(before, GRID, { generation: 1, bits: new CellBits(cellCount(GRID)) }, bits(3));
+    const before = mergeFogRecord(null, GRID, { generation: 0, bits: bits(5), found: new Set<string>() }, bits(1));
+    const after = mergeFogRecord(
+      before,
+      GRID,
+      { generation: 1, bits: new CellBits(cellCount(GRID)), found: new Set<string>() },
+      bits(3)
+    );
     expect(after.generation).toBe(1);
     expect(after.bits.get(5)).toBe(false);
     expect(after.bits.get(1)).toBe(false);
     expect(after.bits.get(3)).toBe(true);
+  });
+
+  it('adds the pieces the party met to those it already had', () => {
+    const first = mergeFogRecord(null, GRID, null, bits(1), new Set(['goblin']));
+    const second = mergeFogRecord(first, GRID, null, bits(2), new Set(['orc']));
+    expect([...second.found].sort()).toEqual(['goblin', 'orc']);
+  });
+
+  it('takes in the pieces another client wrote down', () => {
+    const record = mergeFogRecord(
+      null,
+      GRID,
+      { generation: 0, bits: bits(5), found: new Set(['ogre']) },
+      bits(1),
+      new Set(['goblin'])
+    );
+    expect([...record.found].sort()).toEqual(['goblin', 'ogre']);
+  });
+
+  it('forgets the pieces it met once the record has been cleared', () => {
+    const before = mergeFogRecord(null, GRID, null, bits(1), new Set(['goblin']));
+    const after = mergeFogRecord(
+      before,
+      GRID,
+      { generation: 1, bits: new CellBits(cellCount(GRID)), found: new Set<string>() },
+      bits(3),
+      new Set(['orc'])
+    );
+    expect([...after.found]).toEqual(['orc']);
   });
 
   it('throws it away when the board is not the board it was written for', () => {

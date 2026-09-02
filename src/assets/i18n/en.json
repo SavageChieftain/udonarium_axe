@@ -1876,9 +1876,10 @@
         "sectionFog": "Fog of war",
         "fogEnabled": "Enable fog of war",
         "fogMode": "How the fog comes back",
-        "fogModeEasy": "Easy (keep the memory)",
-        "fogModeHard": "Hard (forget it)",
-        "fogModeHint": "Easy leaves cleared ground cleared and keeps showing whatever stands on it, until it steps somewhere nobody has been. Hard puts the ground back to unexplored once it leaves sight.",
+        "fogModeEasy": "Easy (cleared ground stays lit)",
+        "fogModeNormal": "Normal (keeps the map)",
+        "fogModeHard": "Hard (forgets the map)",
+        "fogModeHint": "Easy holds cleared ground lit for good, and a piece once found is followed wherever it goes. Normal keeps the ground cleared but lets it darken, and loses a piece that walks into ground nobody has reached. Hard closes the fog again the moment nobody is looking.",
         "fogColor": "Fog colour",
         "fogReset": "Reset the fog"
       },

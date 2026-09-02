@@ -631,6 +631,14 @@ function paintDarkness(
   const vision = plan.vision;
   if (vision?.clipReveals) throughVision(ctx, vision, scratch, bounds, 'destination-out', carve);
   else carve(ctx);
+  // Ground the party has taken is lifted out of the dark whether or not a lamp still stands
+  // in it, which is the whole of what the easy fog promises.
+  if (vision?.clearedStaysLit) {
+    ctx.globalCompositeOperation = 'destination-out';
+    ctx.fillStyle = '#000000';
+    ctx.globalAlpha = 1;
+    fillCells(ctx, vision.grid, (index) => vision.explored.get(index), vision.blurPx);
+  }
   ctx.globalCompositeOperation = 'source-over';
 
   paintFog(ctx, plan);

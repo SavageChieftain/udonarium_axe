@@ -11,6 +11,14 @@ export class FogMemory extends ObjectNode {
   @SyncVar() gridType: GridType = GridType.SQUARE;
   @SyncVar() bits: string = '';
   /**
+   * The pieces the party has laid eyes on, by identifier.
+   *
+   * Kept beside the ground rather than on the pieces themselves: it is the party's record of
+   * what it has met, it is thrown away when the record is, and a piece carries no opinion
+   * about who has seen it.
+   */
+  @SyncVar() found: string = '';
+  /**
    * Bumped whenever the record is thrown away.
    *
    * Every client keeps its own running total of what the party has been shown, and would
@@ -40,8 +48,17 @@ export class FogMemory extends ObjectNode {
     this.bits = encodeCellBits(bits);
   }
 
+  readFound(): Set<string> {
+    return new Set(this.found.length > 0 ? this.found.split(' ') : []);
+  }
+
+  writeFound(found: ReadonlySet<string>): void {
+    this.found = [...found].sort().join(' ');
+  }
+
   reset(): void {
     this.bits = '';
+    this.found = '';
     this.generation = (this.generation + 1) % 1_000_000;
   }
 }

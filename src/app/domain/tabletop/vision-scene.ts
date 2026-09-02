@@ -186,6 +186,13 @@ export interface OverlayVision {
   blurPx: number;
   /** Whether ground once cleared keeps showing what stands on it. */
   rememberSeen: boolean;
+  /**
+   * Whether ground once cleared is held lit, so the dark never closes over it again.
+   *
+   * The lamps that cleared it are gone the moment the party walks on, and what they lit is a
+   * room the party has taken. Left to the lamps, it would go black behind them.
+   */
+  clearedStaysLit: boolean;
 }
 
 export interface OverlayPlan {

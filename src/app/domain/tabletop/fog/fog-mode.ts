@@ -1,13 +1,42 @@
-export const FOG_MODES = ['easy', 'hard'] as const;
+export const FOG_MODES = ['easy', 'normal', 'hard'] as const;
 
 export type FogMode = (typeof FOG_MODES)[number];
 
-export const DEFAULT_FOG_MODE: FogMode = 'easy';
+export const DEFAULT_FOG_MODE: FogMode = 'normal';
 
 export function asFogMode(value: unknown): FogMode {
   return typeof value === 'string' && (FOG_MODES as readonly string[]).includes(value)
     ? (value as FogMode)
     : DEFAULT_FOG_MODE;
+}
+
+/** What a mode of the fog asks for, which is the whole of what tells the three apart. */
+export interface FogRules {
+  /**
+   * Whether ground the party has walked to is written down, so that it stays cleared once
+   * nobody is standing in it. Without it the fog closes behind the party as they go.
+   */
+  remembersGround: boolean;
+  /**
+   * Whether ground once cleared is held in plain sight: lit as though a lamp stood there,
+   * and never veiled again. The party keeps what it has taken.
+   */
+  clearedStaysLit: boolean;
+  /**
+   * Whether a piece once found is followed wherever it goes, the fog notwithstanding. What
+   * is being read is a map the party is keeping, and a monster they have seen is on it.
+   */
+  tracksFoundPieces: boolean;
+}
+
+const RULES: Record<FogMode, FogRules> = {
+  easy: { remembersGround: true, clearedStaysLit: true, tracksFoundPieces: true },
+  normal: { remembersGround: true, clearedStaysLit: false, tracksFoundPieces: false },
+  hard: { remembersGround: false, clearedStaysLit: false, tracksFoundPieces: false },
+};
+
+export function fogRules(mode: unknown): FogRules {
+  return RULES[asFogMode(mode)];
 }
 
 /**

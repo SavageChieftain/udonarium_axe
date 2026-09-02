@@ -6,7 +6,7 @@ import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { CellBits } from '@axe/domain/tabletop/fog/cell-bits';
 import { CellGrid, sameCellGrid } from '@axe/domain/tabletop/fog/cell-grid';
 import { ensureFogMemoryOn, fogMemoryOn } from '@axe/domain/tabletop/fog/fog-memory';
-import { asFogMode } from '@axe/domain/tabletop/fog/fog-mode';
+import { fogRules } from '@axe/domain/tabletop/fog/fog-mode';
 import { GameTable } from '@axe/domain/tabletop/game-table';
 import { TableSelecter } from '@axe/domain/tabletop/table-selecter';
 import { FogRecord, mergeFogRecord } from '@axe/features/tabletop/fog-of-war/fog-record';
@@ -38,11 +38,12 @@ export class FogMemoryWriterService {
     effect(() => {
       const shared = this.vision.sharedVisibleCells();
       const table = this.currentTable();
-      if (!shared || !table || !table.fogEnabled || asFogMode(table.fogMode) !== 'easy') {
+      if (!shared || !table || !table.fogEnabled || !fogRules(table.fogMode).remembersGround) {
         this.forget();
         return;
       }
-      this.remember(table, shared.grid, shared.cells);
+      const met = fogRules(table.fogMode).tracksFoundPieces ? this.vision.partyVisiblePieces() : new Set<string>();
+      this.remember(table, shared.grid, shared.cells, met);
     });
     this.destroyRef.onDestroy(() => this.forget());
   }
@@ -61,12 +62,14 @@ export class FogMemoryWriterService {
     this.timer = null;
   }
 
-  private remember(table: GameTable, grid: CellGrid, visible: CellBits): void {
+  private remember(table: GameTable, grid: CellGrid, visible: CellBits, met: ReadonlySet<string>): void {
     this.objectChange.collectionOf('fog-memory')();
     const memory = fogMemoryOn(table);
     if (memory) this.objectChange.versionOf(memory.identifier)();
-    const stored = memory ? { generation: memory.generation, bits: memory.read(grid) } : null;
-    this.held = mergeFogRecord(this.held, grid, stored, visible);
+    const stored = memory
+      ? { generation: memory.generation, bits: memory.read(grid), found: memory.readFound() }
+      : null;
+    this.held = mergeFogRecord(this.held, grid, stored, visible, met);
     this.schedule(grid);
   }
 
@@ -81,12 +84,16 @@ export class FogMemoryWriterService {
   private flush(grid: CellGrid): void {
     const held = this.held;
     const table = this.tableSelecter.viewTable;
-    if (!held || !table || !table.fogEnabled || asFogMode(table.fogMode) !== 'easy') return;
+    if (!held || !table || !table.fogEnabled || !fogRules(table.fogMode).remembersGround) return;
     if (!sameCellGrid(held.grid, grid)) return;
     const memory = fogMemoryOn(table);
     if (memory && memory.generation !== held.generation) return;
-    if (memory && memory.matches(grid) && memory.read(grid).covers(held.bits)) return;
-    (memory ?? ensureFogMemoryOn(table)).write(grid, held.bits);
+    const groundKnown = !!memory && memory.matches(grid) && memory.read(grid).covers(held.bits);
+    const metKnown = !memory || [...held.found].every((identifier) => memory.readFound().has(identifier));
+    if (groundKnown && metKnown) return;
+    const target = memory ?? ensureFogMemoryOn(table);
+    target.write(grid, held.bits);
+    target.writeFound(held.found);
   }
 
   /**
