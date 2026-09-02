@@ -14,7 +14,7 @@ export class ServiceLocator {
 
   static get<T>(token: abstract new (...args: never[]) => T): T {
     if (!ServiceLocator.injector) {
-      throw new Error('[ServiceLocator] Injector が未初期化です。bootstrapApplication 後に init() してください。');
+      throw new Error('[ServiceLocator] The injector is not set; call init() after bootstrapApplication.');
     }
     return ServiceLocator.injector.get(token);
   }
