@@ -742,25 +742,31 @@ export class GameDataElementComponent {
     void navigator.clipboard?.writeText(referencePath);
   }
 
-  isPopupDataElement(): boolean {
+  private hasFlag(attribute: string): boolean {
     const element = this.gameDataElement();
     this.objectChange.versionOf(element.identifier)();
-    return element.getAttribute(DataElementAttribute.POPUP) === 'true';
+    return element.getAttribute(attribute) === 'true';
+  }
+
+  private toggleFlag(attribute: string): void {
+    const element = this.gameDataElement();
+    if (this.hasFlag(attribute)) element.removeAttribute(attribute);
+    else element.setAttribute(attribute, 'true');
+    this.objectChange.notifyChanged(element.identifier);
+  }
+
+  isPopupDataElement(): boolean {
+    return this.hasFlag(DataElementAttribute.POPUP);
   }
 
   togglePopupDataElement(event?: MouseEvent): void {
     event?.stopPropagation();
     if (this.isImage()) return;
-    const element = this.gameDataElement();
-    if (this.isPopupDataElement()) element.removeAttribute(DataElementAttribute.POPUP);
-    else element.setAttribute(DataElementAttribute.POPUP, 'true');
-    this.objectChange.notifyChanged(element.identifier);
+    this.toggleFlag(DataElementAttribute.POPUP);
   }
 
   isPieceGauge(): boolean {
-    const element = this.gameDataElement();
-    this.objectChange.versionOf(element.identifier)();
-    return element.getAttribute(DataElementAttribute.PIECE_GAUGE) === 'true';
+    return this.hasFlag(DataElementAttribute.PIECE_GAUGE);
   }
 
   canShowPieceGauge(): boolean {
@@ -768,26 +774,18 @@ export class GameDataElementComponent {
   }
 
   isGaugeInverted(): boolean {
-    const element = this.gameDataElement();
-    this.objectChange.versionOf(element.identifier)();
-    return element.getAttribute(DataElementAttribute.GAUGE_INVERTED) === 'true';
+    return this.hasFlag(DataElementAttribute.GAUGE_INVERTED);
   }
 
   toggleGaugeInverted(): void {
     if (!this.canShowPieceGauge()) return;
-    const element = this.gameDataElement();
-    if (this.isGaugeInverted()) element.removeAttribute(DataElementAttribute.GAUGE_INVERTED);
-    else element.setAttribute(DataElementAttribute.GAUGE_INVERTED, 'true');
-    this.objectChange.notifyChanged(element.identifier);
+    this.toggleFlag(DataElementAttribute.GAUGE_INVERTED);
   }
 
   togglePieceGauge(event?: MouseEvent): void {
     event?.stopPropagation();
     if (!this.canShowPieceGauge()) return;
-    const element = this.gameDataElement();
-    if (this.isPieceGauge()) element.removeAttribute(DataElementAttribute.PIECE_GAUGE);
-    else element.setAttribute(DataElementAttribute.PIECE_GAUGE, 'true');
-    this.objectChange.notifyChanged(element.identifier);
+    this.toggleFlag(DataElementAttribute.PIECE_GAUGE);
   }
 
   canShowChangeFeedback(): boolean {
@@ -834,17 +832,12 @@ export class GameDataElementComponent {
   }
 
   isImagePopupOriginal(): boolean {
-    const element = this.gameDataElement();
-    this.objectChange.versionOf(element.identifier)();
-    return element.getAttribute(DataElementAttribute.IMAGE_POPUP_ORIGINAL) === 'true';
+    return this.hasFlag(DataElementAttribute.IMAGE_POPUP_ORIGINAL);
   }
 
   toggleImagePopupOriginal(event?: Event): void {
     event?.stopPropagation();
-    const element = this.gameDataElement();
-    if (this.isImagePopupOriginal()) element.removeAttribute(DataElementAttribute.IMAGE_POPUP_ORIGINAL);
-    else element.setAttribute(DataElementAttribute.IMAGE_POPUP_ORIGINAL, 'true');
-    this.objectChange.notifyChanged(element.identifier);
+    this.toggleFlag(DataElementAttribute.IMAGE_POPUP_ORIGINAL);
   }
 
   canToggleTableViewMode(): boolean {
@@ -865,16 +858,11 @@ export class GameDataElementComponent {
   }
 
   isJudgeModeEnabled(): boolean {
-    const element = this.gameDataElement();
-    this.objectChange.versionOf(element.identifier)();
-    return element.getAttribute(DataElementAttribute.JUDGE_MODE) === 'true';
+    return this.hasFlag(DataElementAttribute.JUDGE_MODE);
   }
 
   toggleJudgeModeEnabled(): void {
-    const element = this.gameDataElement();
-    if (this.isJudgeModeEnabled()) element.removeAttribute(DataElementAttribute.JUDGE_MODE);
-    else element.setAttribute(DataElementAttribute.JUDGE_MODE, 'true');
-    this.objectChange.notifyChanged(element.identifier);
+    this.toggleFlag(DataElementAttribute.JUDGE_MODE);
   }
 
   get gapDistanceText(): string {
@@ -895,20 +883,14 @@ export class GameDataElementComponent {
     return this.attrText(DataElementAttribute.LOOP_HORIZONTAL) === 'true';
   }
   toggleLoopHorizontal(): void {
-    const element = this.gameDataElement();
-    if (this.loopHorizontal) element.removeAttribute(DataElementAttribute.LOOP_HORIZONTAL);
-    else element.setAttribute(DataElementAttribute.LOOP_HORIZONTAL, 'true');
-    this.objectChange.notifyChanged(element.identifier);
+    this.toggleFlag(DataElementAttribute.LOOP_HORIZONTAL);
   }
 
   get loopVertical(): boolean {
     return this.attrText(DataElementAttribute.LOOP_VERTICAL) === 'true';
   }
   toggleLoopVertical(): void {
-    const element = this.gameDataElement();
-    if (this.loopVertical) element.removeAttribute(DataElementAttribute.LOOP_VERTICAL);
-    else element.setAttribute(DataElementAttribute.LOOP_VERTICAL, 'true');
-    this.objectChange.notifyChanged(element.identifier);
+    this.toggleFlag(DataElementAttribute.LOOP_VERTICAL);
   }
 
   shouldRenderTableView(): boolean {
