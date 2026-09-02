@@ -19,16 +19,11 @@ import { WidgetVisibilityService } from '@axe/application/ui/widget-visibility.s
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { findOrphanedOwnership } from '@axe/domain/tabletop/ownership';
-import { BuffManagerPanelComponent } from '@axe/features/buff/buff-manager-panel/buff-manager-panel.component';
 import { HandRailService } from '@axe/features/card/hand-rail/hand-rail.service';
-import { EffectLibraryPanelComponent } from '@axe/features/effect/effect-library-panel/effect-library-panel.component';
-import { GameObjectListPanelComponent } from '@axe/features/gm-object-list/game-object-list-panel.component';
 import { NpcBarComponent } from '@axe/features/gm-tools/npc-bar/npc-bar.component';
 import { NpcBarService } from '@axe/features/gm-tools/npc-bar/npc-bar.service';
 import { NpcDragService } from '@axe/features/gm-tools/npc-bar/npc-drag.service';
-import { PartyListPanelComponent } from '@axe/features/gm-tools/party-list/party-list-panel.component';
-import { MapEditorPanelComponent } from '@axe/features/map-editor/editor/map-editor-panel.component';
-import { DungeonGeneratorComponent } from '@axe/features/tabletop/dungeon-generator/dungeon-generator.component';
+import { RoomPanelService } from '@axe/features/panels/room-panel.service';
 import { DraggableDirective } from '@axe/ui/directives/draggable.directive';
 import { turnIndicatorSignal } from '@axe/ui/turn/turn-indicator.signal';
 import { TranslocoModule } from '@jsverse/transloco';
@@ -44,6 +39,7 @@ export class GmToolbarComponent {
   protected readonly npcBar = inject(NpcBarService);
   protected readonly drag = inject(NpcDragService);
   private readonly panelService = inject(PanelService);
+  private readonly roomPanels = inject(RoomPanelService);
   private readonly objectChange = inject(ObjectChangeService);
   private readonly tabletopService = inject(TabletopService);
   private readonly visionService = inject(VisionService);
@@ -120,65 +116,27 @@ export class GmToolbarComponent {
   }
 
   protected openObjectList(): void {
-    this.panelService.open(GameObjectListPanelComponent, {
-      width: 460,
-      height: 620,
-      left: 100,
-      top: 40,
-      title: this.t('common.panel.objectList'),
-    });
+    this.roomPanels.open('objectList', { left: 100, top: 40 });
   }
 
   protected openPartyList(): void {
-    this.panelService.open(PartyListPanelComponent, {
-      width: 460,
-      height: 620,
-      left: 120,
-      top: 60,
-      title: this.t('feature.gmTools.party.title'),
-    });
+    this.roomPanels.open('partyList', { left: 120, top: 60 });
   }
 
   protected openBuffManager(): void {
-    this.panelService.open(BuffManagerPanelComponent, {
-      width: 560,
-      height: 420,
-      left: 160,
-      top: 100,
-      title: this.t('feature.buffManager.title'),
-    });
+    this.roomPanels.open('buffManager', { left: 160, top: 100 });
   }
 
   protected openEffectLibrary(): void {
-    this.panelService.open(EffectLibraryPanelComponent, {
-      width: 360,
-      height: 480,
-      left: 140,
-      top: 80,
-      title: this.t('feature.effect.panelTitle'),
-    });
+    this.roomPanels.open('effectLibrary', { left: 140, top: 80 });
   }
 
   protected openMapEditor(): void {
-    this.panelService.open(MapEditorPanelComponent, {
-      width: 1100,
-      height: 740,
-      left: 80,
-      top: 60,
-      title: this.t('feature.mapEditor.title'),
-    });
+    this.roomPanels.open('mapEditor', { left: 80, top: 60 });
   }
 
   protected openDungeonGenerator(): void {
-    this.panelService.open(DungeonGeneratorComponent, {
-      width: 460,
-      height: 660,
-      minWidth: 400,
-      minHeight: 520,
-      left: 100,
-      top: 60,
-      title: this.t('feature.tabletop.dungeonGenerator.title'),
-    });
+    this.roomPanels.open('dungeonGenerator', { left: 100, top: 60 });
   }
 
   protected toggleNpcBar(): void {

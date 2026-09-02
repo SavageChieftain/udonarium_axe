@@ -13,7 +13,7 @@ import { DisclosureMode } from '@axe/domain/disclosure/disclosure';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { GameTableMask } from '@axe/domain/tabletop/game-table-mask';
 import { TableSelecter } from '@axe/domain/tabletop/table-selecter';
-import { ImportCharacterComponent } from '@axe/features/character/import-character/import-character.component';
+import { RoomPanelService } from '@axe/features/panels/room-panel.service';
 import { FileSelecterComponent } from '@axe/ui/components/file-selecter/file-selecter.component';
 import { SafePipe } from '@axe/ui/pipes/safe.pipe';
 import { TranslocoModule } from '@jsverse/transloco';
@@ -28,6 +28,7 @@ export class GameCharacterGeneratorComponent {
   private readonly viewContainerRef = inject(ViewContainerRef);
   private readonly modalService = inject(ModalService);
   private readonly panelService = inject(PanelService);
+  private readonly roomPanels = inject(RoomPanelService);
   private readonly imageStorage = inject(ImageStorage);
   private readonly objectSerializer = inject(ObjectSerializer);
   private readonly tableSelecter = inject(TableSelecter);
@@ -82,6 +83,6 @@ export class GameCharacterGeneratorComponent {
   }
 
   openImportCharacter() {
-    this.panelService.open(ImportCharacterComponent, { width: 480, height: 460, left: 100, top: 100 });
+    this.roomPanels.open('characterImport', { left: 100, top: 100 });
   }
 }

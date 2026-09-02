@@ -23,12 +23,10 @@ import { GameCharacter } from '@axe/domain/character/game-character';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { PeerRole } from '@axe/domain/peer/peer-role';
-import { BuffManagerPanelComponent } from '@axe/features/buff/buff-manager-panel/buff-manager-panel.component';
 import { HandRailService } from '@axe/features/card/hand-rail/hand-rail.service';
-import { EffectLibraryPanelComponent } from '@axe/features/effect/effect-library-panel/effect-library-panel.component';
+import { RoomPanelService } from '@axe/features/panels/room-panel.service';
 import { ActiveCharacterService } from '@axe/features/pl-tools/active-character.service';
 import { CharacterPanelService } from '@axe/features/pl-tools/character-panel.service';
-import { OwnedCharacterListPanelComponent } from '@axe/features/pl-tools/owned-character-list/owned-character-list-panel.component';
 import { isOwnedByUser } from '@axe/features/pl-tools/owned-character-list/owned-characters';
 import { DraggableDirective } from '@axe/ui/directives/draggable.directive';
 import { SafePipe } from '@axe/ui/pipes/safe.pipe';
@@ -50,6 +48,7 @@ const BUFF_VIEW_ICONS: Record<BuffViewMode, string> = {
 export class PlToolbarComponent {
   protected readonly isCompact = inject(ViewportService).isCompact;
   private readonly panelService = inject(PanelService);
+  private readonly roomPanels = inject(RoomPanelService);
   private readonly objectChange = inject(ObjectChangeService);
   private readonly objectStore = inject(ObjectStore);
   private readonly characterPanel = inject(CharacterPanelService);
@@ -147,32 +146,14 @@ export class PlToolbarComponent {
   }
 
   protected openOwnedCharacterList(): void {
-    this.panelService.open(OwnedCharacterListPanelComponent, {
-      width: 420,
-      height: 560,
-      left: 100,
-      top: 40,
-      title: this.t('common.panel.ownedCharacters'),
-    });
+    this.roomPanels.open('ownedCharacters', { left: 100, top: 40 });
   }
 
   protected openBuffManager(): void {
-    this.panelService.open(BuffManagerPanelComponent, {
-      width: 560,
-      height: 420,
-      left: 160,
-      top: 100,
-      title: this.t('feature.buffManager.title'),
-    });
+    this.roomPanels.open('buffManager', { left: 160, top: 100 });
   }
 
   protected openEffectLibrary(): void {
-    this.panelService.open(EffectLibraryPanelComponent, {
-      width: 360,
-      height: 480,
-      left: 140,
-      top: 80,
-      title: this.t('feature.effect.panelTitle'),
-    });
+    this.roomPanels.open('effectLibrary', { left: 140, top: 80 });
   }
 }

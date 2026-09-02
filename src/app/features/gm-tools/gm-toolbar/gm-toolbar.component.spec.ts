@@ -16,10 +16,10 @@ import { TEST_PROVIDERS } from '@axe/testing/test-providers';
 describe('GmToolbarComponent', () => {
   let component: GmToolbarComponent;
   let fixture: ComponentFixture<GmToolbarComponent>;
-  let panelStub: { open: ReturnType<typeof vi.fn> };
+  let panelStub: { open: ReturnType<typeof vi.fn>; openLazy: ReturnType<typeof vi.fn> };
 
   beforeEach(async () => {
-    panelStub = { open: vi.fn() };
+    panelStub = { open: vi.fn(), openLazy: vi.fn() };
     await TestBed.configureTestingModule({
       imports: [GmToolbarComponent],
       providers: [...TEST_PROVIDERS],
@@ -44,20 +44,22 @@ describe('GmToolbarComponent', () => {
     expect(widgets.recording()).toBe(true);
   });
 
-  it('opens the object list', () => {
+  it('opens the object list', async () => {
     (component as unknown as { openObjectList: () => void }).openObjectList();
-    expect(panelStub.open).toHaveBeenCalledWith(
-      GameObjectListPanelComponent,
+    expect(panelStub.openLazy).toHaveBeenCalledWith(
+      expect.any(Function),
       expect.objectContaining({ width: 460, height: 620 })
     );
+    await expect(panelStub.openLazy.mock.calls[0][0]()).resolves.toBe(GameObjectListPanelComponent);
   });
 
-  it('opens the map editor', () => {
+  it('opens the map editor', async () => {
     (component as unknown as { openMapEditor: () => void }).openMapEditor();
-    expect(panelStub.open).toHaveBeenCalledWith(
-      MapEditorPanelComponent,
+    expect(panelStub.openLazy).toHaveBeenCalledWith(
+      expect.any(Function),
       expect.objectContaining({ width: 1100, height: 740 })
     );
+    await expect(panelStub.openLazy.mock.calls[0][0]()).resolves.toBe(MapEditorPanelComponent);
   });
 
   it('opens and closes the non-player bar', () => {

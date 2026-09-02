@@ -44,12 +44,12 @@ import { CardComponent } from '@axe/features/card/card/card.component';
 import { CardStackComponent } from '@axe/features/card/card-stack/card-stack.component';
 import type { DeckBuilderResult } from '@axe/features/card/deck-builder-dialog/deck-builder-dialog.component';
 import { GameCharacterComponent } from '@axe/features/character/game-character/game-character.component';
-import { GameCharacterGeneratorComponent } from '@axe/features/character/game-character-generator/game-character-generator.component';
 import { CoinComponent } from '@axe/features/coin/coin/coin.component';
 import { DiceSymbolComponent } from '@axe/features/dice/dice-symbol/dice-symbol.component';
 import { EffectTargetOverlayComponent } from '@axe/features/effect/effect-target-overlay/effect-target-overlay.component';
 import { TableEffectOverlayComponent } from '@axe/features/effect/table-effect-overlay/table-effect-overlay.component';
 import { PeerCursorComponent } from '@axe/features/lobby/peer-cursor/peer-cursor.component';
+import { RoomPanelService } from '@axe/features/panels/room-panel.service';
 import { ReplayRouteOverlayComponent } from '@axe/features/replay/replay-route-overlay/replay-route-overlay.component';
 import { TableFogAirOverlayComponent } from '@axe/features/tabletop/fog-of-war/table-fog-air-overlay.component';
 import { beamTopGridGeometry, beamWallFaceGrid } from '@axe/features/tabletop/game-table/beam-top-grid';
@@ -64,7 +64,6 @@ import {
   computeHexMaskGeometry,
 } from '@axe/features/tabletop/game-table-mask/game-table-mask-helpers';
 import { GameTableScratchMaskComponent } from '@axe/features/tabletop/game-table-scratch-mask/game-table-scratch-mask.component';
-import { GameTableSettingComponent } from '@axe/features/tabletop/game-table-setting/game-table-setting.component';
 import { LightSourceComponent } from '@axe/features/tabletop/light-source/light-source.component';
 import { RangeComponent } from '@axe/features/tabletop/range/range.component';
 import { TableAmbienceComponent } from '@axe/features/tabletop/table-ambience/table-ambience.component';
@@ -182,6 +181,7 @@ export class GameTableComponent {
   protected readonly visionService = inject(VisionService);
   private readonly modalService = inject(ModalService);
   private readonly panelService = inject(PanelService);
+  private readonly roomPanels = inject(RoomPanelService);
   private readonly objectStore = inject(ObjectStore);
   private readonly selectionSignalService = inject(SelectionSignalService);
   private readonly cardTargetService = inject(CardTargetService);
@@ -707,6 +707,12 @@ export class GameTableComponent {
     );
   }
 
+  private async openTableSetting(): Promise<void> {
+    const { GameTableSettingComponent } =
+      await import('@axe/features/tabletop/game-table-setting/game-table-setting.component');
+    await this.modalService.open(GameTableSettingComponent);
+  }
+
   private async openDeckBuilder(position: PointerCoordinate): Promise<void> {
     const { DeckBuilderDialogComponent } =
       await import('@axe/features/card/deck-builder-dialog/deck-builder-dialog.component');
@@ -731,11 +737,7 @@ export class GameTableComponent {
       menuActions.push({
         name: this.t('feature.tabletop.contextMenu.createWithOptions'),
         action: () => {
-          this.panelService.open(GameCharacterGeneratorComponent, {
-            width: 460,
-            height: 420,
-            title: this.t('common.panel.characterGenerator'),
-          });
+          this.roomPanels.open('characterGenerator', { width: 460, height: 420 });
         },
       });
     }
@@ -743,7 +745,7 @@ export class GameTableComponent {
     menuActions.push({
       name: this.t('feature.tabletop.tableSetting.title'),
       action: () => {
-        this.modalService.open(GameTableSettingComponent);
+        void this.openTableSetting();
       },
     });
     return menuActions;
