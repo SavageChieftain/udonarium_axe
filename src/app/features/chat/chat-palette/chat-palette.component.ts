@@ -24,6 +24,7 @@ import { ViewportService } from '@axe/application/ui/viewport.service';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { GameCharacter } from '@axe/domain/character/game-character';
+import { ChatOutgoing } from '@axe/domain/chat/chat-outgoing';
 import { ChatPalette, PaletteIndex } from '@axe/domain/chat/chat-palette';
 import { ChatTab } from '@axe/domain/chat/chat-tab';
 import { ChatTabList } from '@axe/domain/chat/chat-tab-list';
@@ -38,7 +39,6 @@ import { GameDataElementComponent } from '@axe/features/data-element/game-data-e
 import { HotbarFillService } from '@axe/features/hotbar/hotbar-fill.service';
 import { BadgeComponent } from '@axe/ui/components/badge/badge.component';
 import { TranslocoModule } from '@jsverse/transloco';
-import GameSystemClass from 'bcdice/lib/game_system';
 
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -291,18 +291,7 @@ export class ChatPaletteComponent {
     }
   }
 
-  sendChat(value: {
-    text: string;
-    gameSystem: GameSystemClass;
-    sendFrom: string;
-    sendTo: string;
-    portraitIndex: number;
-    messColor: string;
-    messBubbleLight?: string;
-    messBubbleDark?: string;
-    replyTo: string;
-    quoteOf: string;
-  }) {
+  sendChat(value: ChatOutgoing) {
     const character = this.character();
     if (!this.chatTab || !character || !this.palette) return;
 

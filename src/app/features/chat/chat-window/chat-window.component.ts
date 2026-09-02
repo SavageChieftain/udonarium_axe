@@ -26,6 +26,7 @@ import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { ChatMessage, ChatMessageTargetContext } from '@axe/domain/chat/chat-message';
+import { ChatOutgoing } from '@axe/domain/chat/chat-outgoing';
 import { evaluateCharacterReferences, textTargetsCharacter } from '@axe/domain/chat/chat-palette';
 import { ChatTab } from '@axe/domain/chat/chat-tab';
 import { ChatTabList } from '@axe/domain/chat/chat-tab-list';
@@ -43,7 +44,6 @@ import { buildChatTabContextMenu } from '@axe/features/chat/chat-window/chat-tab
 import { BadgeComponent } from '@axe/ui/components/badge/badge.component';
 import { SafePipe } from '@axe/ui/pipes/safe.pipe';
 import { TranslocoModule } from '@jsverse/transloco';
-import GameSystemClass from 'bcdice/lib/game_system';
 
 /**
  * The strip at the foot of the log that who-is-typing hangs over.
@@ -552,18 +552,7 @@ export class ChatWindowComponent {
     return objects;
   }
 
-  sendChat(value: {
-    text: string;
-    gameSystem: GameSystemClass;
-    sendFrom: string;
-    sendTo: string;
-    portraitIndex: number;
-    messColor: string;
-    messBubbleLight?: string;
-    messBubbleDark?: string;
-    replyTo: string;
-    quoteOf: string;
-  }) {
+  sendChat(value: ChatOutgoing) {
     const tab = this.chatTab();
     if (tab && !canRoleSpeakTab(tab, PeerCursor.myRole)) return;
     if (tab) {

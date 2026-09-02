@@ -32,6 +32,7 @@ import { ObjectStore } from '@axe/core/sync/object-store';
 import { portraitNameOf } from '@axe/domain/character/character-portrait';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { ChatMessage } from '@axe/domain/chat/chat-message';
+import { ChatOutgoing } from '@axe/domain/chat/chat-outgoing';
 import { DataElement } from '@axe/domain/data/data-element';
 import { DiceBot } from '@axe/domain/dice/dice-bot';
 import { Config } from '@axe/domain/peer/config';
@@ -44,7 +45,6 @@ import { PortraitChoice, PortraitPickerComponent } from '@axe/ui/components/port
 import { SafePipe } from '@axe/ui/pipes/safe.pipe';
 import { TranslocoModule } from '@jsverse/transloco';
 import { NgOptionComponent, NgSelectComponent } from '@ng-select/ng-select';
-import GameSystemClass from 'bcdice/lib/game_system';
 
 const COLOR_SETTING_PANEL = 'chat-color-setting';
 
@@ -148,18 +148,7 @@ export class ChatInputComponent {
     this.textChange.emit(text);
   }
 
-  readonly chat = output<{
-    text: string;
-    gameSystem: GameSystemClass;
-    sendFrom: string;
-    sendTo: string;
-    portraitIndex: number;
-    messColor: string;
-    messBubbleLight?: string;
-    messBubbleDark?: string;
-    replyTo: string;
-    quoteOf: string;
-  }>();
+  readonly chat = output<ChatOutgoing>();
 
   readonly replyTarget = signal<ChatMessage | null>(null);
   readonly replyToName = computed(() => this.replyTarget()?.name ?? '');
