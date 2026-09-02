@@ -16,6 +16,7 @@ import {
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ChatMessageService } from '@axe/application/chat/chat-message.service';
+import { DiceBotCatalogService } from '@axe/application/dice/dice-bot-catalog.service';
 import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { BatchService } from '@axe/application/ui/batch.service';
@@ -387,8 +388,10 @@ export class ChatInputComponent {
   private writingEventInterval: ReturnType<typeof setTimeout> | null = null;
   private previousWritingLength: number = 0;
 
+  private readonly diceBotCatalog = inject(DiceBotCatalogService);
+
   get diceBotInfos() {
-    return DiceBot.diceBotInfos;
+    return this.diceBotCatalog.infos();
   }
   get myPeer(): PeerCursor {
     return PeerCursor.myCursor;

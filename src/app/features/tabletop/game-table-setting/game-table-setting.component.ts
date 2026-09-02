@@ -1,6 +1,7 @@
 import { NgClass } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, DestroyRef, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { DiceBotCatalogService } from '@axe/application/dice/dice-bot-catalog.service';
 import { SaveDataService } from '@axe/application/file/save-data.service';
 import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { CutInService } from '@axe/application/media/cut-in.service';
@@ -88,8 +89,10 @@ export class GameTableSettingComponent {
   minSize: number = 1;
   maxSize: number = 100;
 
+  private readonly diceBotCatalog = inject(DiceBotCatalogService);
+
   get diceBotInfos() {
-    return DiceBot.diceBotInfos;
+    return this.diceBotCatalog.infos();
   }
 
   get tableBackgroundImage(): ImageFile {

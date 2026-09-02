@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { DiceBotCatalogService } from '@axe/application/dice/dice-bot-catalog.service';
 import { SaveDataService } from '@axe/application/file/save-data.service';
 import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
@@ -98,8 +99,10 @@ export class DiceTableSettingComponent {
     DiceBot.getHelpMessage(gameType).then((_help) => {});
   }
 
+  private readonly diceBotCatalog = inject(DiceBotCatalogService);
+
   get diceBotInfos() {
-    return DiceBot.diceBotInfos;
+    return this.diceBotCatalog.infos();
   }
 
   isEdit = signal(false);

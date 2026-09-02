@@ -16,7 +16,7 @@ export class ChatInputDiceBotHelper {
     DiceBot.getHelpMessage(gameType).then(() => {});
   }
 
-  isGameTypeInList(gameType: string, diceBotInfos: typeof DiceBot.diceBotInfos): boolean {
+  isGameTypeInList(gameType: string, diceBotInfos: readonly (typeof DiceBot.diceBotInfos)[number][]): boolean {
     if (diceBotInfos.length === 0) return true;
     return diceBotInfos.some((info) => info.id === gameType);
   }
