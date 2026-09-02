@@ -1,3 +1,4 @@
+import { canvasToBlobPreferWebP } from '@axe/core/storage/canvas-blob';
 export interface DownscaleOptions {
   /**
    * Crops to a square before resampling.
@@ -179,20 +180,4 @@ export function isAnimatedPng(buffer: ArrayBuffer): boolean {
     offset += 12 + chunkLength;
   }
   return false;
-}
-
-async function canvasToBlobPreferWebP(canvas: HTMLCanvasElement, quality: number): Promise<Blob | null> {
-  const webp = await canvasToBlob(canvas, 'image/webp', quality);
-  if (webp && webp.type === 'image/webp') return webp;
-  return canvasToBlob(canvas, 'image/png', quality);
-}
-
-function canvasToBlob(canvas: HTMLCanvasElement, type: string, quality: number): Promise<Blob | null> {
-  return new Promise((resolve) => {
-    if (typeof canvas.toBlob !== 'function') {
-      resolve(null);
-      return;
-    }
-    canvas.toBlob((blob) => resolve(blob), type, quality);
-  });
 }

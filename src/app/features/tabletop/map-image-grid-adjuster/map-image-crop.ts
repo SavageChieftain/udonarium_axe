@@ -1,3 +1,5 @@
+import { canvasToBlobPreferWebP } from '@axe/core/storage/canvas-blob';
+import { clamp } from '@axe/core/util/clamp';
 export interface GridCounts {
   cols: number;
   rows: number;
@@ -24,10 +26,6 @@ export interface CoveredCells {
   imageX: number;
   imageY: number;
   cellImagePx: number;
-}
-
-function clamp(value: number, min: number, max: number): number {
-  return Math.min(max, Math.max(min, value));
 }
 
 export function computeCoveredCells(
@@ -120,20 +118,4 @@ export async function cropAlignedRegion(
   const blob = await canvasToBlobPreferWebP(canvas, 0.92);
   if (!blob) throw new Error('canvas toBlob unavailable');
   return blob;
-}
-
-async function canvasToBlobPreferWebP(canvas: HTMLCanvasElement, quality: number): Promise<Blob | null> {
-  const webp = await canvasToBlob(canvas, 'image/webp', quality);
-  if (webp && webp.type === 'image/webp') return webp;
-  return canvasToBlob(canvas, 'image/png', quality);
-}
-
-function canvasToBlob(canvas: HTMLCanvasElement, type: string, quality: number): Promise<Blob | null> {
-  return new Promise((resolve) => {
-    if (typeof canvas.toBlob !== 'function') {
-      resolve(null);
-      return;
-    }
-    canvas.toBlob((blob) => resolve(blob), type, quality);
-  });
 }
