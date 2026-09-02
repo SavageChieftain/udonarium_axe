@@ -7,6 +7,7 @@ import { BrowserDynamicTestingModule, platformBrowserDynamicTesting } from '@ang
 import { Logger, LogLevel } from '@axe/core/logging/logger';
 import { resetPeerContextProvider } from '@axe/core/network/peer-context-source';
 import { ObjectStore } from '@axe/core/sync/object-store';
+import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { readdirSync, readFileSync, statSync } from 'fs';
 import { basename, join, resolve } from 'path';
 
@@ -248,19 +249,26 @@ try {
   /* already initialized */
 }
 
-// ObjectStore is a static singleton and the runner shares it across spec files, so whatever the
-// previous file left behind is still in it. Specs that count what they put in - the effect presets,
-// a vote registered under a fixed identifier - then read someone else's leftovers, or fail to
-// register at all because the identifier is taken. Empty it before every test rather than trusting
-// each file to clean up after itself.
+// ObjectStore is a static singleton and every spec in a file shares it. Specs that count what
+// they put in - the effect presets, a vote registered under a fixed identifier - then read the
+// leftovers of the test before them, or fail to register at all because the identifier is taken.
+// Empty it before every test rather than trusting each one to clean up after itself.
 function emptyObjectStore(): void {
   const store = ObjectStore.instance;
   for (const object of store.getObjects()) store.delete(object, false);
   store.clearDeleteHistory();
 }
 
+// The cursor of whoever is reading is a static as well, and it decides what a role is allowed to
+// see. A test that leaves a game master behind hands the next one a game master, which is how a
+// toolbar meant for a player comes out missing. Nothing is anybody until a test says so.
+function forgetMyCursor(): void {
+  PeerCursor.myCursor = null!;
+}
+
 beforeEach(async () => {
   emptyObjectStore();
+  forgetMyCursor();
   resetPeerContextProvider();
   await resolveComponentResources(resourceResolver as Parameters<typeof resolveComponentResources>[0]);
   applyConfigureTestingModuleWrapper();
