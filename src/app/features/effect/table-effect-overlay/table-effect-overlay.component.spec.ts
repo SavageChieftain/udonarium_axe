@@ -1,12 +1,15 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { EffectPlaybackService } from '@axe/application/effect/effect-playback.service';
+import { VisionService } from '@axe/application/tabletop/vision.service';
 import { ObjectStore } from '@axe/core/sync/object-store';
+import { GameCharacter } from '@axe/domain/character/game-character';
 import { EffectPreset } from '@axe/domain/effect/effect-preset';
 import { TableEffectOverlayComponent } from '@axe/features/effect/table-effect-overlay/table-effect-overlay.component';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
 
 describe('TableEffectOverlayComponent', () => {
   let fixture: ComponentFixture<TableEffectOverlayComponent>;
+  let component: TableEffectOverlayComponent;
   let playback: EffectPlaybackService;
   let preset: EffectPreset;
 
@@ -19,6 +22,7 @@ describe('TableEffectOverlayComponent', () => {
       providers: [...TEST_PROVIDERS],
     });
     fixture = TestBed.createComponent(TableEffectOverlayComponent);
+    component = fixture.componentInstance;
     playback = TestBed.inject(EffectPlaybackService);
 
     preset = new EffectPreset();
@@ -38,6 +42,27 @@ describe('TableEffectOverlayComponent', () => {
   function outerLayers(): HTMLElement[] {
     return Array.from((fixture.nativeElement as HTMLElement).querySelectorAll(':scope > div'));
   }
+
+  it('settles which targets are hidden once per cast, not once per frame', () => {
+    const character = GameCharacter.create('的', 1, '');
+    const seen = vi.spyOn(TestBed.inject(VisionService), 'isTokenVisible');
+    playback.play({
+      presetIdentifier: preset.identifier,
+      targets: [{ identifier: character.identifier, x: 100, y: 200, z: 0 }],
+      seed: 3,
+    });
+    const frames = component['renderables'] as () => unknown[];
+
+    playback.now.set(16);
+    frames();
+    playback.now.set(32);
+    frames();
+    playback.now.set(48);
+    expect(frames()).toHaveLength(1);
+
+    expect(seen).toHaveBeenCalledTimes(1);
+    ObjectStore.instance.remove(character);
+  });
 
   it('draws nothing with no effect playing', () => {
     fixture.detectChanges();
