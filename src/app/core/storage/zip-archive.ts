@@ -10,13 +10,13 @@ let isWorkerBroken = false;
 
 export async function createZipBlob(files: readonly File[]): Promise<Blob> {
   const entries: ZipEntry[] = files.map((file) => ({ name: file.name, type: file.type, blob: file }));
-  const response = await requestWorker({ kind: 'zip', entries });
+  const response = await requestWorker((id) => ({ id, kind: 'zip', entries }));
   if (response?.kind === 'zip') return new Blob([response.buffer], { type: ZIP_MIME_TYPE });
   return createZipBlobOnMainThread(files);
 }
 
 export async function readZipEntries(blob: Blob): Promise<ZipEntry[]> {
-  const response = await requestWorker({ kind: 'unzip', blob });
+  const response = await requestWorker((id) => ({ id, kind: 'unzip', blob }));
   if (response?.kind === 'unzip') return response.entries;
   return readZipEntriesOnMainThread(blob);
 }
@@ -49,45 +49,79 @@ export async function readZipEntriesOnMainThread(blob: Blob): Promise<ZipEntry[]
   });
 }
 
-function createWorker(): Worker | null {
+const IDLE_TERMINATE_MS = 30_000;
+
+let worker: Worker | null = null;
+let idleTimer: ReturnType<typeof setTimeout> | null = null;
+let nextRequestId = 1;
+const pending = new Map<number, (response: ZipWorkerResponse | null) => void>();
+
+function disposeWorker(): void {
+  if (idleTimer !== null) clearTimeout(idleTimer);
+  idleTimer = null;
+  worker?.terminate();
+  worker = null;
+}
+
+function scheduleIdleTerminate(): void {
+  if (idleTimer !== null) clearTimeout(idleTimer);
+  idleTimer = setTimeout(() => {
+    if (pending.size < 1) disposeWorker();
+  }, IDLE_TERMINATE_MS);
+}
+
+function settleAll(response: ZipWorkerResponse | null): void {
+  const waiting = [...pending.values()];
+  pending.clear();
+  for (const resolve of waiting) resolve(response);
+}
+
+function ensureWorker(): Worker | null {
   if (isWorkerBroken || typeof Worker === 'undefined') return null;
+  if (worker) return worker;
   try {
-    return new Worker(new URL('./zip-archive.worker', import.meta.url), { type: 'module' });
+    worker = new Worker(new URL('./zip-archive.worker', import.meta.url), { type: 'module' });
   } catch (reason) {
     isWorkerBroken = true;
     Logger.warn('[ZipArchive] ワーカーを起動できないためメインスレッドで処理します', reason);
     return null;
   }
+  worker.addEventListener('message', (event: MessageEvent<ZipWorkerResponse>) => {
+    const resolve = pending.get(event.data.id);
+    if (!resolve) return;
+    pending.delete(event.data.id);
+    if (event.data.ok) {
+      resolve(event.data);
+    } else {
+      Logger.warn('[ZipArchive] ワーカーでの処理に失敗しました', event.data.message);
+      resolve(null);
+    }
+    scheduleIdleTerminate();
+  });
+  worker.addEventListener('error', (event) => {
+    isWorkerBroken = true;
+    Logger.warn('[ZipArchive] ワーカーでの処理に失敗しました', event.message);
+    disposeWorker();
+    settleAll(null);
+  });
+  return worker;
 }
 
-function requestWorker(request: ZipWorkerRequest): Promise<ZipWorkerResponse | null> {
-  const worker = createWorker();
-  if (!worker) return Promise.resolve(null);
+function requestWorker(build: (id: number) => ZipWorkerRequest): Promise<ZipWorkerResponse | null> {
+  const active = ensureWorker();
+  if (!active) return Promise.resolve(null);
 
   return new Promise<ZipWorkerResponse | null>((resolve) => {
-    const finish = (response: ZipWorkerResponse | null) => {
-      worker.terminate();
-      resolve(response);
-    };
-    worker.addEventListener('message', (event: MessageEvent<ZipWorkerResponse>) => {
-      if (event.data.ok) {
-        finish(event.data);
-        return;
-      }
-      Logger.warn('[ZipArchive] ワーカーでの処理に失敗しました', event.data.message);
-      finish(null);
-    });
-    worker.addEventListener('error', (event) => {
-      isWorkerBroken = true;
-      Logger.warn('[ZipArchive] ワーカーでの処理に失敗しました', event.message);
-      finish(null);
-    });
+    const id = nextRequestId++;
+    pending.set(id, resolve);
     try {
-      worker.postMessage(request);
+      active.postMessage(build(id));
     } catch (reason) {
       isWorkerBroken = true;
       Logger.warn('[ZipArchive] ワーカーへ渡せないためメインスレッドで処理します', reason);
-      finish(null);
+      pending.delete(id);
+      disposeWorker();
+      resolve(null);
     }
   });
 }
