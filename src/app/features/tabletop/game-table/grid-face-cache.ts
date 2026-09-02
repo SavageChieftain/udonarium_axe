@@ -1,0 +1,48 @@
+const CAPACITY = 32;
+
+export interface GridLook {
+  readonly gridSize: number;
+  readonly gridType: number;
+  readonly gridColor: string;
+  readonly gridFontColor: string;
+}
+
+export function gridFaceKey(
+  look: GridLook,
+  widthPx: number,
+  heightPx: number,
+  offsetTopPx: number,
+  offsetLeftPx: number,
+  labelPrefix: string,
+  labelMatrix: readonly number[] | null
+): string {
+  return [
+    widthPx,
+    heightPx,
+    look.gridSize,
+    look.gridType,
+    look.gridColor,
+    look.gridFontColor,
+    offsetTopPx,
+    offsetLeftPx,
+    labelPrefix,
+    labelMatrix ? labelMatrix.join(',') : '',
+  ].join('|');
+}
+
+export class GridFaceCache {
+  private readonly faces = new Map<string, string>();
+
+  remember(key: string, make: () => string): string {
+    const kept = this.faces.get(key);
+    if (kept !== undefined) {
+      this.faces.delete(key);
+      this.faces.set(key, kept);
+      return kept;
+    }
+    const made = make();
+    this.faces.set(key, made);
+    if (this.faces.size > CAPACITY) this.faces.delete(this.faces.keys().next().value as string);
+    return made;
+  }
+}

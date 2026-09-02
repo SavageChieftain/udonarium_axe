@@ -54,6 +54,7 @@ import { ReplayRouteOverlayComponent } from '@axe/features/replay/replay-route-o
 import { TableFogAirOverlayComponent } from '@axe/features/tabletop/fog-of-war/table-fog-air-overlay.component';
 import { beamTopGridGeometry, beamWallFaceGrid } from '@axe/features/tabletop/game-table/beam-top-grid';
 import { GameTableGestureService } from '@axe/features/tabletop/game-table/game-table-gesture.service';
+import { GridFaceCache, gridFaceKey } from '@axe/features/tabletop/game-table/grid-face-cache';
 import { GridLineRender } from '@axe/features/tabletop/game-table/grid-line-render';
 import { TableMarqueeOverlayComponent } from '@axe/features/tabletop/game-table/table-marquee-overlay/table-marquee-overlay.component';
 import { GameTableMaskComponent } from '@axe/features/tabletop/game-table-mask/game-table-mask.component';
@@ -416,6 +417,8 @@ export class GameTableComponent {
     return walls;
   });
 
+  private readonly gridFaces = new GridFaceCache();
+
   private wallGridDataUrl(
     widthPx: number,
     heightPx: number,
@@ -424,26 +427,28 @@ export class GameTableComponent {
     labelMatrix: readonly [number, number, number, number] | null
   ): string {
     if (typeof document === 'undefined' || widthPx <= 0 || heightPx <= 0) return '';
-    try {
-      const canvas = document.createElement('canvas');
-      new GridLineRender(canvas).renderViewport(
-        widthPx,
-        heightPx,
-        table.gridSize,
-        table.gridType,
-        table.gridColor,
-        table.gridFontColor,
-        0,
-        0,
-        true,
-        labelPrefix,
-        labelMatrix
-      );
-      perfCounters.bump(PERF_TO_DATA_URL);
-      return canvas.toDataURL();
-    } catch {
-      return '';
-    }
+    return this.gridFaces.remember(gridFaceKey(table, widthPx, heightPx, 0, 0, labelPrefix, labelMatrix), () => {
+      try {
+        const canvas = document.createElement('canvas');
+        new GridLineRender(canvas).renderViewport(
+          widthPx,
+          heightPx,
+          table.gridSize,
+          table.gridType,
+          table.gridColor,
+          table.gridFontColor,
+          0,
+          0,
+          true,
+          labelPrefix,
+          labelMatrix
+        );
+        perfCounters.bump(PERF_TO_DATA_URL);
+        return canvas.toDataURL();
+      } catch {
+        return '';
+      }
+    });
   }
 
   wallBackground(
@@ -664,25 +669,30 @@ export class GameTableComponent {
     prefix: string
   ): string {
     if (typeof document === 'undefined' || widthPx <= 0 || heightPx <= 0) return '';
-    try {
-      const canvas = document.createElement('canvas');
-      new GridLineRender(canvas).renderViewport(
-        widthPx,
-        heightPx,
-        table.gridSize,
-        table.gridType,
-        table.gridColor,
-        table.gridFontColor,
-        offsetTopPx,
-        offsetLeftPx,
-        true,
-        prefix
-      );
-      perfCounters.bump(PERF_TO_DATA_URL);
-      return canvas.toDataURL();
-    } catch {
-      return '';
-    }
+    return this.gridFaces.remember(
+      gridFaceKey(table, widthPx, heightPx, offsetTopPx, offsetLeftPx, prefix, null),
+      () => {
+        try {
+          const canvas = document.createElement('canvas');
+          new GridLineRender(canvas).renderViewport(
+            widthPx,
+            heightPx,
+            table.gridSize,
+            table.gridType,
+            table.gridColor,
+            table.gridFontColor,
+            offsetTopPx,
+            offsetLeftPx,
+            true,
+            prefix
+          );
+          perfCounters.bump(PERF_TO_DATA_URL);
+          return canvas.toDataURL();
+        } catch {
+          return '';
+        }
+      }
+    );
   }
 
   private async openDeckBuilder(position: PointerCoordinate): Promise<void> {

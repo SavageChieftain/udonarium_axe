@@ -273,6 +273,42 @@ describe('GameTableComponent', () => {
     });
   });
 
+  describe('grid faces', () => {
+    it('rasterises a face once and hands the same picture back for the same geometry', () => {
+      vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockImplementation(
+        () => new Proxy({}, { get: () => () => undefined, set: () => true }) as unknown as RenderingContext
+      );
+      const encode = vi.spyOn(HTMLCanvasElement.prototype, 'toDataURL').mockReturnValue('data:image/png;base64,GRID');
+      const table = component.currentTable;
+
+      const first = component['wallGridDataUrl'](500, 200, table, 'N', null);
+      const again = component['wallGridDataUrl'](500, 200, table, 'N', null);
+      const other = component['wallGridDataUrl'](500, 200, table, 'S', [-1, 0, 0, 1]);
+      const face = component['gridFaceDataUrl'](100, 150, 50, 0, table, 'N');
+      const faceAgain = component['gridFaceDataUrl'](100, 150, 50, 0, table, 'N');
+
+      expect(first).toBe('data:image/png;base64,GRID');
+      expect(again).toBe(first);
+      expect(other).toBe('data:image/png;base64,GRID');
+      expect(faceAgain).toBe(face);
+      expect(encode).toHaveBeenCalledTimes(3);
+    });
+
+    it('rasterises again once the grid colour changes', () => {
+      vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockImplementation(
+        () => new Proxy({}, { get: () => () => undefined, set: () => true }) as unknown as RenderingContext
+      );
+      const encode = vi.spyOn(HTMLCanvasElement.prototype, 'toDataURL').mockReturnValue('data:image/png;base64,GRID');
+      const table = component.currentTable;
+
+      component['wallGridDataUrl'](500, 200, table, 'N', null);
+      table.gridColor = '#ff0000ff';
+      component['wallGridDataUrl'](500, 200, table, 'N', null);
+
+      expect(encode).toHaveBeenCalledTimes(2);
+    });
+  });
+
   describe('beam grids', () => {
     function terrainOn(surface: string, isGrid: boolean): Terrain {
       const terrain = Terrain.create('梁', 2, 3, 1, '', '');
