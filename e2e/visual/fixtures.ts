@@ -115,6 +115,8 @@ export interface SnapOptions {
 
 export async function snap(page: Page, name: string, options: SnapOptions = {}) {
   await page.evaluate(() => document.fonts.ready);
+  await page.mouse.move(1279, 799);
+  await page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur());
   await holdAnimationsAt(page, options.animationAt ?? 0);
   await page.waitForTimeout(100);
   if (frozen.has(page)) await page.clock.runFor(16);
