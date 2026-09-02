@@ -28,6 +28,8 @@ import { Room } from '@axe/domain/peer/room';
 import { WhiteBoard } from '@axe/domain/tabletop/white-board';
 type UpdateCallback = (percent: number) => void;
 
+const CHAT_LOG_IMAGE_DECODE_LIMIT = 4;
+
 @Injectable({
   providedIn: 'root',
 })
@@ -300,19 +302,22 @@ export class SaveDataService {
     const keyByIdentifier = new Map<string, string>();
     const srcByKey: Record<string, string> = {};
     let nextIndex = 0;
-    await Promise.all(
-      [...seen.values()].map(async (image) => {
-        const isPortrait = portraitIds.has(image.identifier);
-        const maxDimension = isPortrait
-          ? SaveDataService.PORTRAIT_MAX_DIMENSION
-          : SaveDataService.ATTACHMENT_MAX_DIMENSION;
-        const src = await this.createChatLogImageSrc(image, maxDimension, isPortrait);
-        if (!src) return;
-        const key = `i${nextIndex++}`;
-        keyByIdentifier.set(image.identifier, key);
-        srcByKey[key] = src;
-      })
-    );
+    const images = [...seen.values()];
+    for (let from = 0; from < images.length; from += CHAT_LOG_IMAGE_DECODE_LIMIT) {
+      await Promise.all(
+        images.slice(from, from + CHAT_LOG_IMAGE_DECODE_LIMIT).map(async (image) => {
+          const isPortrait = portraitIds.has(image.identifier);
+          const maxDimension = isPortrait
+            ? SaveDataService.PORTRAIT_MAX_DIMENSION
+            : SaveDataService.ATTACHMENT_MAX_DIMENSION;
+          const src = await this.createChatLogImageSrc(image, maxDimension, isPortrait);
+          if (!src) return;
+          const key = `i${nextIndex++}`;
+          keyByIdentifier.set(image.identifier, key);
+          srcByKey[key] = src;
+        })
+      );
+    }
 
     const resolver: ChatLogImageSrcResolver = (image) => keyByIdentifier.get(image.identifier) ?? '';
     const registryScript = SaveDataService.buildImageRegistryScript(srcByKey);
