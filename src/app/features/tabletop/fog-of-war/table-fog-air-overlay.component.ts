@@ -5,7 +5,7 @@ import { VisionService } from '@axe/application/tabletop/vision.service';
 import { OverlayVision } from '@axe/domain/tabletop/vision-scene';
 import { FogAirLayer, fogAirLayers } from '@axe/features/tabletop/fog-of-war/fog-air-layers';
 import { fogPattern } from '@axe/features/tabletop/table-vision-overlay/fog-texture';
-import { fillCells } from '@axe/features/tabletop/table-vision-overlay/vision-overlay-render';
+import { fillUnwalkedCells } from '@axe/features/tabletop/table-vision-overlay/vision-overlay-render';
 
 /** How wide a sheet is drawn, in pixels of its own, before it is let up to the size of the board. */
 const SHEET_TARGET_PX = 512;
@@ -120,11 +120,10 @@ export class TableFogAirOverlayComponent {
     // Only over ground nobody has walked to. Once it is cleared the mist is gone from it,
     // in the air as well as on the floor.
     const blurPx = SHEET_BLUR_CELLS * gridSizePx;
-    const unwalked = (cell: number): boolean => !vision.explored.get(cell);
 
     context.fillStyle = vision.fogColor;
     context.globalAlpha = SHEET_WASH;
-    fillCells(context, grid, unwalked, blurPx);
+    fillUnwalkedCells(context, vision, blurPx);
 
     const pattern = fogPattern(context);
     if (pattern) {
@@ -133,7 +132,7 @@ export class TableFogAirOverlayComponent {
       shiftPattern(pattern, index * 137, index * 91);
       context.fillStyle = pattern;
       context.globalAlpha = 1;
-      fillCells(context, grid, unwalked, blurPx);
+      fillUnwalkedCells(context, vision, blurPx);
     }
     context.globalAlpha = 1;
     context.setTransform(1, 0, 0, 1, 0, 0);

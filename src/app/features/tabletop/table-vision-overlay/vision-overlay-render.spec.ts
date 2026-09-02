@@ -7,6 +7,7 @@ import {
   animationIntensity,
   bakeOverlayPlan,
   drawOverlayPlan,
+  fillUnwalkedCells,
   hexToRgba,
   MIN_OVERLAY_SCALE,
   OVERLAY_PIXEL_BUDGET,
@@ -157,6 +158,23 @@ describe('vision-overlay-render', () => {
         vision: overlay,
       };
     }
+
+    it('traces the unwalked ground once for a scene and fills from that trace after', () => {
+      const overlay = vision([0], [0, 1]);
+      const first = fakeContext();
+      fillUnwalkedCells(first.ctx, overlay, 0);
+      const second = fakeContext();
+      fillUnwalkedCells(second.ctx, overlay, 0);
+
+      const firstFill = first.ops.find((o) => o.name === 'fill');
+      const secondFill = second.ops.find((o) => o.name === 'fill');
+      expect(firstFill).toBeDefined();
+      if (typeof Path2D === 'function') {
+        expect(secondFill?.args[0]).toBe(firstFill?.args[0]);
+      } else {
+        expect(second.ops.filter((o) => o.name === 'rect')).toHaveLength(4);
+      }
+    });
 
     it('shades the ground that has been cleared and covers the ground that has not', () => {
       const { ctx, ops } = fakeContext();

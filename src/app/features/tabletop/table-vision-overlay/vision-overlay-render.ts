@@ -496,18 +496,34 @@ type CellMask = { path: Path2D } | { keep: (index: number) => boolean };
  * board that often costs more than the drawing does.
  */
 const seenPaths = new WeakMap<OverlayVision, CellMask>();
+const unwalkedPaths = new WeakMap<OverlayVision, CellMask>();
 
-function seenMask(vision: OverlayVision): CellMask {
-  const held = seenPaths.get(vision);
-  if (held) return held;
-  const keep = (index: number): boolean => vision.visible.get(index);
+function cellMaskOf(
+  vision: OverlayVision,
+  held: WeakMap<OverlayVision, CellMask>,
+  keep: (index: number) => boolean
+): CellMask {
+  const kept = held.get(vision);
+  if (kept) return kept;
   let mask: CellMask = { keep };
   if (typeof Path2D === 'function') {
     const path = new Path2D();
     if (traceCells(path, vision.grid, keep)) mask = { path };
   }
-  seenPaths.set(vision, mask);
+  held.set(vision, mask);
   return mask;
+}
+
+function seenMask(vision: OverlayVision): CellMask {
+  return cellMaskOf(vision, seenPaths, (index) => vision.visible.get(index));
+}
+
+function unwalkedMask(vision: OverlayVision): CellMask {
+  return cellMaskOf(vision, unwalkedPaths, (index) => !vision.explored.get(index));
+}
+
+export function fillUnwalkedCells(ctx: CanvasRenderingContext2D, vision: OverlayVision, blurPx = 0): void {
+  fillMask(ctx, vision.grid, unwalkedMask(vision), blurPx);
 }
 
 function fillMask(ctx: CanvasRenderingContext2D, grid: CellGrid, mask: CellMask, blurPx: number): void {
