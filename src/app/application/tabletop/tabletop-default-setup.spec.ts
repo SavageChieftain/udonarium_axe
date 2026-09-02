@@ -3,6 +3,7 @@ import { ImageStorage } from '@axe/core/storage/image-storage';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { DataElement } from '@axe/domain/data/data-element';
+import { Party } from '@axe/domain/party/party';
 
 describe('the pieces a first table is set out with', () => {
   function clearStore(): void {
@@ -27,6 +28,40 @@ describe('the pieces a first table is set out with', () => {
   });
 
   afterEach(() => clearStore());
+
+  describe('the party the sample pieces are set out in', () => {
+    function partyOf(name: string): string {
+      return sample(name).partyIdentifier;
+    }
+
+    it('puts the three player characters in one party', () => {
+      const party = partyOf('キャラクターA');
+      expect(party).toBeTruthy();
+      expect(partyOf('キャラクターB')).toBe(party);
+      expect(partyOf('キャラクターC')).toBe(party);
+    });
+
+    it('builds that party, so it can be read and renamed like any other', () => {
+      const party = ObjectStore.instance.get<Party>(partyOf('キャラクターA'));
+      expect(party).toBeInstanceOf(Party);
+      expect(party!.name).toBe('パーティ1');
+    });
+
+    it('leaves the monsters out of it, since a party shares what it sees', () => {
+      for (const name of ['モンスターA', 'モンスターB', 'モンスターC']) {
+        expect(partyOf(name)).toBe('');
+      }
+    });
+
+    it('gives the player characters eyes, and the monsters none', () => {
+      for (const name of ['キャラクターA', 'キャラクターB', 'キャラクターC']) {
+        expect(sample(name).visionRange).toBe(2);
+      }
+      for (const name of ['モンスターA', 'モンスターB', 'モンスターC']) {
+        expect(sample(name).visionRange).toBe(0);
+      }
+    });
+  });
 
   it('sets out three of a party and three to fight', () => {
     for (const name of [

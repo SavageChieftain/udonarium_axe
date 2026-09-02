@@ -4,6 +4,7 @@ import { CharacterTemplateFactory } from '@axe/domain/character/character-templa
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { DataElement, DataElementType } from '@axe/domain/data/data-element';
 import { ImageTag } from '@axe/domain/media/image-tag';
+import { Party, PARTY_COLORS } from '@axe/domain/party/party';
 import { GameTable } from '@axe/domain/tabletop/game-table';
 import { TableSelecter } from '@axe/domain/tabletop/table-selecter';
 
@@ -92,10 +93,38 @@ export function makeDefaultTable(imageStorage: ImageStorage): void {
   tableSelecter.viewTableIdentifier = gameTable.identifier;
 }
 
+/** How far a sample piece sees, which is far enough for the fog to open as it walks. */
+const SAMPLE_VISION_RANGE = 2;
+
+/**
+ * The party the sample player characters belong to.
+ *
+ * A room opened for the first time has the fog and the dark to try, and both are read
+ * through a party: what one member has walked to, the others are shown. Left unassigned,
+ * every sample piece would have its own private map and the feature would look broken.
+ *
+ * The monsters are left out of it. A party shares its sight, so a monster in it would show
+ * the players everything it can see.
+ */
+function makeSampleParty(): Party {
+  const party = new Party('testParty_1');
+  party.name = 'パーティ1';
+  party.color = PARTY_COLORS[0];
+  party.initialize();
+  return party;
+}
+
+/** A sample player character: it sees a little, and it sees for the rest of the party. */
+function joinSampleParty(character: GameCharacter, party: Party): void {
+  character.visionRange = SAMPLE_VISION_RANGE;
+  character.partyIdentifier = party.identifier;
+}
+
 export function makeDefaultTabletopObjects(imageStorage: ImageStorage): void {
   let testCharacter: GameCharacter;
   let testFile: ImageFile;
   let fileContext: ImageContext;
+  const party = makeSampleParty();
 
   testCharacter = new GameCharacter('testCharacter_1');
   fileContext = ImageFile.createEmpty('testCharacter_1_image').toContext();
@@ -140,6 +169,7 @@ export function makeDefaultTabletopObjects(imageStorage: ImageStorage): void {
   testCharacter.location.y = 11 * 50;
   testCharacter.initialize();
   CharacterTemplateFactory.createDefault(testCharacter, 'キャラクターA', 1, testFile.identifier);
+  joinSampleParty(testCharacter, party);
   applySampleStats(testCharacter, '騎士');
   addBuffRound(testCharacter, 'テストバフ2', '攻撃+10', 1);
 
@@ -151,6 +181,7 @@ export function makeDefaultTabletopObjects(imageStorage: ImageStorage): void {
   testCharacter.location.y = 12 * 50;
   testCharacter.initialize();
   CharacterTemplateFactory.createDefault(testCharacter, 'キャラクターB', 1, testFile.identifier);
+  joinSampleParty(testCharacter, party);
   applySampleStats(testCharacter, '魔法使い');
   addBuffRound(testCharacter, 'テストバフ2', '攻撃+10', 1);
 
@@ -166,6 +197,7 @@ export function makeDefaultTabletopObjects(imageStorage: ImageStorage): void {
   testCharacter.location.y = 13 * 50;
   testCharacter.initialize();
   CharacterTemplateFactory.createDefault(testCharacter, 'キャラクターC', 1, testFile.identifier);
+  joinSampleParty(testCharacter, party);
   applySampleStats(testCharacter, '斥候');
   addBuffRound(testCharacter, 'テストバフ3', '', 3);
 }
