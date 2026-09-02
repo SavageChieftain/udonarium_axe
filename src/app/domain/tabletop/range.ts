@@ -3,8 +3,8 @@ import { ObjectContext } from '@axe/core/sync/game-object';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { generateUuid } from '@axe/core/util/uuid';
 import { GameCharacter } from '@axe/domain/character/game-character';
-import { DataElement, DataElementType } from '@axe/domain/data/data-element';
 import { cellPatternBoundingBox, parseCellPattern } from '@axe/domain/tabletop/cell-pattern';
+import { appendPieceDataElements } from '@axe/domain/tabletop/piece-data-elements';
 import { TabletopObject } from '@axe/domain/tabletop/tabletop-object';
 
 export const RANGE_DEFAULT_FILL_COLOR = '#FFFF00';
@@ -114,17 +114,7 @@ export class RangeArea extends TabletopObject {
     }
     object.createDataElements();
 
-    object.commonDataElement!.appendChild(DataElement.create('name', name, {}, `name_${object.identifier}`));
-    object.commonDataElement!.appendChild(DataElement.create('length', length, {}, `length_${object.identifier}`));
-    object.commonDataElement!.appendChild(DataElement.create('width', width, {}, `width_${object.identifier}`));
-    object.commonDataElement!.appendChild(
-      DataElement.create(
-        'opacity',
-        opacity,
-        { type: DataElementType.NUMBER_RESOURCE, currentValue: opacity },
-        `opacity_${object.identifier}`
-      )
-    );
+    appendPieceDataElements(object, name, { length, width }, opacity);
     object.initialize();
 
     return object;

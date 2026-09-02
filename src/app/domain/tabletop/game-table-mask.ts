@@ -1,7 +1,7 @@
 import { getPeerContext, getPeerContexts } from '@axe/core/network/peer-context-source';
 import { SyncObject, SyncVar } from '@axe/core/sync/decorator';
-import { DataElement, DataElementType } from '@axe/domain/data/data-element';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
+import { appendPieceDataElements } from '@axe/domain/tabletop/piece-data-elements';
 import { TabletopObject } from '@axe/domain/tabletop/tabletop-object';
 
 @SyncObject('table-mask')
@@ -85,17 +85,7 @@ export class GameTableMask extends TabletopObject {
     }
     object.createDataElements();
 
-    object.commonDataElement!.appendChild(DataElement.create('name', name, {}, `name_${object.identifier}`));
-    object.commonDataElement!.appendChild(DataElement.create('width', width, {}, `width_${object.identifier}`));
-    object.commonDataElement!.appendChild(DataElement.create('height', height, {}, `height_${object.identifier}`));
-    object.commonDataElement!.appendChild(
-      DataElement.create(
-        'opacity',
-        opacity,
-        { type: DataElementType.NUMBER_RESOURCE, currentValue: opacity },
-        `opacity_${object.identifier}`
-      )
-    );
+    appendPieceDataElements(object, name, { width, height }, opacity);
     object.initialize();
 
     return object;
