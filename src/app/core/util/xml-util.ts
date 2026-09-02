@@ -26,20 +26,28 @@ export function decodeEntityReference(string: string): string {
   return decodeXML(string);
 }
 
-function sanitizeXml(xml: string): string {
-  let result = '';
-  for (let i = 0; i < xml.length; i++) {
-    const code = xml.charCodeAt(i);
-    if (code <= 0x08 || code === 0x0b || code === 0x0c || (code >= 0x0e && code <= 0x1f)) continue;
-    if (code === 0xfffd || code === 0xfffe || code === 0xffff) continue;
-    if (code >= 0xd800 && code <= 0xdbff) {
-      const next = xml.charCodeAt(i + 1);
-      if (next < 0xdc00 || next > 0xdfff) continue;
-    } else if (code >= 0xdc00 && code <= 0xdfff) {
-      const prev = xml.charCodeAt(i - 1);
-      if (prev < 0xd800 || prev > 0xdbff) continue;
-    }
-    result += xml[i];
+function isUnwantedAt(xml: string, index: number): boolean {
+  const code = xml.charCodeAt(index);
+  if (code <= 0x08 || code === 0x0b || code === 0x0c || (code >= 0x0e && code <= 0x1f)) return true;
+  if (code >= 0xfffd) return true;
+  if (code >= 0xd800 && code <= 0xdbff) {
+    const next = index + 1 < xml.length ? xml.charCodeAt(index + 1) : 0;
+    return next < 0xdc00 || next > 0xdfff;
   }
-  return result.trim();
+  if (code >= 0xdc00 && code <= 0xdfff) {
+    const previous = index > 0 ? xml.charCodeAt(index - 1) : 0;
+    return previous < 0xd800 || previous > 0xdbff;
+  }
+  return false;
+}
+
+export function sanitizeXml(xml: string): string {
+  let kept = '';
+  let from = 0;
+  for (let index = 0; index < xml.length; index++) {
+    if (!isUnwantedAt(xml, index)) continue;
+    kept += xml.slice(from, index);
+    from = index + 1;
+  }
+  return (from === 0 ? xml : kept + xml.slice(from)).trim();
 }

@@ -52,7 +52,7 @@ export class SaveDataService {
   }
 
   createRoomArchiveAsync(): Promise<Blob> {
-    return SaveDataService.queue.add(() => this.fileArchiver.createZipBlobAsync(this.buildRoomFiles()));
+    return SaveDataService.queue.add(() => this.fileArchiver.createZipBlobAsync(this.buildRoomFiles(false)));
   }
 
   buildAssetFiles(wanted: { images: ReadonlySet<string>; audios: ReadonlySet<string> }): File[] {
@@ -75,12 +75,12 @@ export class SaveDataService {
     return this.saveAsync(this.buildRoomFiles(), this.appendTimestamp(fileName), updateCallback);
   }
 
-  private buildRoomXmlParts(): { roomXml: string; chatXml: string; files: File[] } {
-    const roomXml = this.convertToXml(new Room());
-    const chatXml = this.convertToXml(this.chatTabList);
-    const configXml = this.convertToXml(this.appConfig);
-    const summarySetting = this.convertToXml(this.dataSummarySetting);
-    const ailmentCatalog = this.convertToXml(this.statusAilmentCatalog);
+  private buildRoomXmlParts(pretty: boolean): { roomXml: string; chatXml: string; files: File[] } {
+    const roomXml = this.convertToXml(new Room(), pretty);
+    const chatXml = this.convertToXml(this.chatTabList, pretty);
+    const configXml = this.convertToXml(this.appConfig, pretty);
+    const summarySetting = this.convertToXml(this.dataSummarySetting, pretty);
+    const ailmentCatalog = this.convertToXml(this.statusAilmentCatalog, pretty);
     const files: File[] = [
       new File([roomXml], 'data.xml', { type: 'text/plain' }),
       new File([chatXml], 'chat.xml', { type: 'text/plain' }),
@@ -91,8 +91,8 @@ export class SaveDataService {
     return { roomXml, chatXml, files };
   }
 
-  private buildRoomFiles(): File[] {
-    const { roomXml, chatXml, files } = this.buildRoomXmlParts();
+  private buildRoomFiles(pretty = true): File[] {
+    const { roomXml, chatXml, files } = this.buildRoomXmlParts(pretty);
 
     const images: ImageFile[] = this.withCarried(
       [...this.searchImageFiles(roomXml), ...this.searchImageFiles(chatXml)],
@@ -103,11 +103,11 @@ export class SaveDataService {
       if (file) files.push(file);
     }
 
-    const imageTagXml = this.convertToXml(ImageTagList.create(images));
+    const imageTagXml = this.convertToXml(ImageTagList.create(images), pretty);
     files.push(new File([imageTagXml], 'imagetag.xml', { type: 'text/plain' }));
 
     const audios: AudioFile[] = this.audioStorage.audios.filter((a) => !a.isHidden);
-    const audioTagXml = this.convertToXml(AudioTagList.create(audios));
+    const audioTagXml = this.convertToXml(AudioTagList.create(audios), pretty);
     files.push(new File([audioTagXml], 'audiotag.xml', { type: 'text/plain' }));
 
     return files;
@@ -163,9 +163,10 @@ export class SaveDataService {
     });
   }
 
-  private convertToXml(gameObject: GameObject): string {
+  private convertToXml(gameObject: GameObject, pretty = true): string {
     const xmlDeclaration = '<?xml version="1.0" encoding="UTF-8"?>';
-    return formatXml(xmlDeclaration + gameObject.toXml(), { indentation: '  ', lineSeparator: '\n' });
+    const xml = xmlDeclaration + gameObject.toXml();
+    return pretty ? formatXml(xml, { indentation: '  ', lineSeparator: '\n' }) : xml;
   }
   /** Adds the pictures an object names for itself, which no walk of its XML could find. */
   private withCarried(found: ImageFile[], carriers: readonly unknown[]): ImageFile[] {

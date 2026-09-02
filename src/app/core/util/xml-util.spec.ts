@@ -1,4 +1,4 @@
-import { decodeEntityReference, encodeEntityReference, xml2element } from '@axe/core/util/xml-util';
+import { decodeEntityReference, encodeEntityReference, sanitizeXml, xml2element } from '@axe/core/util/xml-util';
 
 describe('XmlUtil', () => {
   describe('encodeEntityReference()', () => {
@@ -38,6 +38,55 @@ describe('XmlUtil', () => {
 
     it('encodes a string carrying non-ascii text', () => {
       expect(encodeEntityReference('テスト&データ')).toBe('テスト&amp;データ');
+    });
+  });
+
+  describe('sanitizeXml()', () => {
+    function sanitizedByHand(xml: string): string {
+      let result = '';
+      for (let i = 0; i < xml.length; i++) {
+        const code = xml.charCodeAt(i);
+        if (code <= 0x08 || code === 0x0b || code === 0x0c || (code >= 0x0e && code <= 0x1f)) continue;
+        if (code === 0xfffd || code === 0xfffe || code === 0xffff) continue;
+        if (code >= 0xd800 && code <= 0xdbff) {
+          const next = i + 1 < xml.length ? xml.charCodeAt(i + 1) : 0;
+          if (next < 0xdc00 || next > 0xdfff) continue;
+        } else if (code >= 0xdc00 && code <= 0xdfff) {
+          const prev = i > 0 ? xml.charCodeAt(i - 1) : 0;
+          if (prev < 0xd800 || prev > 0xdbff) continue;
+        }
+        result += xml[i];
+      }
+      return result.trim();
+    }
+
+    function randomText(seed: number, length: number): string {
+      let state = seed;
+      const next = () => {
+        state = (state * 1103515245 + 12345) & 0x7fffffff;
+        return state;
+      };
+      const pool = [
+        0x0000, 0x0008, 0x0009, 0x000a, 0x000b, 0x000c, 0x000d, 0x001f, 0x0020, 0x0041, 0x3042, 0xd83d, 0xde00, 0xd800,
+        0xdc00, 0xfffd, 0xfffe, 0xffff, 0x00e9,
+      ];
+      let text = '';
+      for (let i = 0; i < length; i++) text += String.fromCharCode(pool[next() % pool.length]);
+      return text;
+    }
+
+    it('drops control characters, lone surrogates and the replacement range', () => {
+      expect(sanitizeXml('a\u0000b\u000bc\ufffdd')).toBe('abcd');
+      expect(sanitizeXml('\ud83d\ude00')).toBe('\ud83d\ude00');
+      expect(sanitizeXml('x\ud83dy\ude00z')).toBe('xyz');
+      expect(sanitizeXml('  keep \t\n ')).toBe('keep');
+    });
+
+    it('agrees with a character by character walk over ten thousand random strings', () => {
+      for (let seed = 1; seed <= 10000; seed++) {
+        const text = randomText(seed, 1 + (seed % 24));
+        expect(sanitizeXml(text)).toBe(sanitizedByHand(text));
+      }
     });
   });
 
