@@ -32,6 +32,8 @@ export const PANEL_NAMES: readonly PanelName[] = [...CHARACTER_PANELS, ...ROOM_P
 
 export const DEFAULT_CHARACTER_PANEL: CharacterPanelName = 'chatPalette';
 
+export const STATUS_AILMENT_PANEL = 'status-ailment';
+
 const LABEL_KEYS: Record<PanelName, string> = {
   chatPalette: 'feature.hotbar.panelName.chatPalette',
   sheet: 'feature.hotbar.panelName.sheet',

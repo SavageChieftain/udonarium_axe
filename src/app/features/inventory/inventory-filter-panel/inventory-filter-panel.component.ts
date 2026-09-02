@@ -10,15 +10,13 @@ import {
   INVENTORY_CHROME_PARTS,
   InventoryChromePart,
 } from '@axe/domain/inventory/inventory-chrome';
+import { STATUS_AILMENT_PANEL } from '@axe/domain/ui/room-panel';
 import {
   INVENTORY_HIDDEN_FILTERS,
   type InventoryHiddenFilter,
 } from '@axe/features/inventory/game-object-inventory/inventory-list';
 import { InventoryFilterService } from '@axe/features/inventory/inventory-filter.service';
-import {
-  STATUS_AILMENT_PANEL,
-  StatusAilmentPanelComponent,
-} from '@axe/features/status-ailment/status-ailment-panel/status-ailment-panel.component';
+import { RoomPanelService } from '@axe/features/panels/room-panel.service';
 import { TranslocoModule } from '@jsverse/transloco';
 
 /** Only one of these, so pressing the button that opened it puts it away. */
@@ -42,6 +40,7 @@ export class InventoryFilterPanelComponent {
   private readonly rolePermission = inject(RolePermissionService);
   private readonly objectChange = inject(ObjectChangeService);
   private readonly panelService = inject(PanelService);
+  private readonly roomPanels = inject(RoomPanelService);
   private readonly t = inject(TRANSLATE_FN);
 
   /**
@@ -162,11 +161,6 @@ export class InventoryFilterPanelComponent {
   /** The states that can be named among the display items, which is where their columns come from. */
   openStatusAilments(): void {
     if (this.panelService.closeSingle(STATUS_AILMENT_PANEL)) return;
-    this.panelService.open(StatusAilmentPanelComponent, {
-      title: this.t('feature.statusAilment.title'),
-      width: 380,
-      height: 460,
-      single: STATUS_AILMENT_PANEL,
-    });
+    this.roomPanels.open('statusAilment');
   }
 }
