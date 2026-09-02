@@ -1,4 +1,4 @@
-import { computed, effect, inject, Injectable } from '@angular/core';
+import { computed, effect, inject, Injectable, signal } from '@angular/core';
 import { EffectPlaybackService } from '@axe/application/effect/effect-playback.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { TabletopService } from '@axe/application/tabletop/tabletop.service';
@@ -19,6 +19,16 @@ export interface WeatherAmbience {
 }
 
 const PERSISTENT_SOURCE = 'ambience';
+const FRAME_STEP_STORAGE_KEY = 'ui-ambience-frame-step';
+
+export function storedAmbienceFrameStepMs(): number {
+  try {
+    const stored = Number(localStorage.getItem(FRAME_STEP_STORAGE_KEY));
+    return Number.isFinite(stored) && stored > 0 ? stored : 0;
+  } catch {
+    return 0;
+  }
+}
 
 /**
  * Ambient effects on the board: weather over the whole map, and ground effects within a marked area.
@@ -55,7 +65,13 @@ export class AmbienceService {
    */
   readonly motionEnabled = this.motion.enabled;
 
-  readonly now = computed<number>(() => this.playbackService.now());
+  readonly frameStepMs = signal(storedAmbienceFrameStepMs());
+
+  readonly now = computed<number>(() => {
+    const step = this.frameStepMs();
+    const now = this.playbackService.now();
+    return step > 0 ? Math.floor(now / step) * step : now;
+  });
 
   constructor() {
     // The draw loop runs for as long as an ambience exists; unlike a cast, it never ends.
