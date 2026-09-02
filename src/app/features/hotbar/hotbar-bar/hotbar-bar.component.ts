@@ -2,7 +2,6 @@ import {
   ChangeDetectionStrategy,
   Component,
   computed,
-  DestroyRef,
   effect,
   ElementRef,
   inject,
@@ -18,6 +17,7 @@ import { ContextMenuService } from '@axe/application/ui/context-menu.service';
 import { HotbarPreferenceService } from '@axe/application/ui/hotbar-preference.service';
 import { MobileLayoutService } from '@axe/application/ui/mobile-layout.service';
 import { PanelService } from '@axe/application/ui/panel.service';
+import { transientSignal } from '@axe/application/ui/transient-signal';
 import { WidgetLayoutService } from '@axe/application/ui/widget-layout.service';
 import { placeWidget, rememberWidget, WIDGET_HOTBAR } from '@axe/application/ui/widget-place';
 import { WidgetVisibilityService } from '@axe/application/ui/widget-visibility.service';
@@ -89,7 +89,6 @@ export class HotbarBarComponent {
   private readonly runner = inject(HotbarRunnerService);
   private readonly layout = inject(WidgetLayoutService);
   private readonly panelService = inject(PanelService);
-  private readonly destroyRef = inject(DestroyRef);
   private readonly contextMenuService = inject(ContextMenuService);
   private readonly hotbarService = inject(HotbarService);
   private readonly hotbarStore = inject(HotbarStoreService);
@@ -105,14 +104,12 @@ export class HotbarBarComponent {
 
   private readonly barRef = viewChild<ElementRef<HTMLElement>>('bar');
   private readonly fileRef = viewChild<ElementRef<HTMLInputElement>>('file');
-  private readonly failing = signal<number | null>(null);
+  private readonly failing = transientSignal<number | null>(null, FLASH_MS);
   private readonly drag = new HotbarSlotDrag();
   /** The slot being carried to another place, which is drawn as though lifted. */
   private readonly carrying = signal<number | null>(null);
-  private failingTimer: ReturnType<typeof setTimeout> | null = null;
   /** Why the last slot pressed would not run, said in the strip above the bar. */
-  protected readonly failure = signal<HotbarFailure | null>(null);
-  private reasonTimer: ReturnType<typeof setTimeout> | null = null;
+  protected readonly failure = transientSignal<HotbarFailure | null>(null, REASON_MS);
 
   readonly pages = Array.from({ length: HOTBAR_PAGES }, (_, page) => page);
 
@@ -167,13 +164,6 @@ export class HotbarBarComponent {
         top: Math.max(8, window.innerHeight - element.offsetHeight - 16),
       }));
       onCleanup(() => rememberWidget(this.layout, WIDGET_HOTBAR, element));
-    });
-
-    this.destroyRef.onDestroy(() => {
-      if (this.failingTimer) clearTimeout(this.failingTimer);
-      this.failingTimer = null;
-      if (this.reasonTimer) clearTimeout(this.reasonTimer);
-      this.reasonTimer = null;
     });
   }
 
@@ -535,18 +525,7 @@ export class HotbarBarComponent {
    * stands in the strip for a moment, where the keys are otherwise explained.
    */
   private flash(slotIndex: number, reason: HotbarFailure): void {
-    if (this.failingTimer) clearTimeout(this.failingTimer);
-    this.failing.set(slotIndex);
-    this.failingTimer = setTimeout(() => {
-      this.failing.set(null);
-      this.failingTimer = null;
-    }, FLASH_MS);
-
-    if (this.reasonTimer) clearTimeout(this.reasonTimer);
-    this.failure.set(reason);
-    this.reasonTimer = setTimeout(() => {
-      this.failure.set(null);
-      this.reasonTimer = null;
-    }, REASON_MS);
+    this.failing.show(slotIndex);
+    this.failure.show(reason);
   }
 }

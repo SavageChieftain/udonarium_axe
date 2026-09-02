@@ -26,6 +26,7 @@ import { SelectionSignalService } from '@axe/application/ui/selection-signal.ser
 import { sheetPanelBox } from '@axe/application/ui/sheet-panel';
 import { sheetPanelTitle } from '@axe/application/ui/sheet-panel';
 import { buildSurfaceSwitchContextMenu } from '@axe/application/ui/surface-switch-context-menu';
+import { transientSignal } from '@axe/application/ui/transient-signal';
 import { UiSignalService } from '@axe/application/ui/ui-signal.service';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { imageFileEqual } from '@axe/core/storage/image-file';
@@ -178,7 +179,7 @@ export class DiceSymbolComponent {
   /** Which of the three paths this throw takes, so a handful does not roll as one. */
   readonly tumble = signal(0);
   /** The face it came to rest on, called out over the die until the callout fades. */
-  readonly rollResult = signal<string | null>(null);
+  readonly rollResult = transientSignal<string | null>(null, RESULT_POPUP_MS);
 
   private rollTimers: ReturnType<typeof setTimeout>[] = [];
 
@@ -341,7 +342,7 @@ export class DiceSymbolComponent {
    */
   private startRoll(): void {
     this.clearRollTimers();
-    this.rollResult.set(null);
+    this.rollResult.clear();
     this.tumble.update((path) => (path + 1) % TUMBLE_PATHS);
     this.animeState.set('inactive');
 
@@ -350,8 +351,7 @@ export class DiceSymbolComponent {
       setTimeout(() => {
         // A die nobody may see calls nothing out; the face is the owner's to read.
         if (!this.isVisible) return;
-        this.rollResult.set(this.diceSymbol().face);
-        this.rollTimers.push(setTimeout(() => this.rollResult.set(null), RESULT_POPUP_MS));
+        this.rollResult.show(this.diceSymbol().face);
       }, TUMBLE_MS)
     );
   }

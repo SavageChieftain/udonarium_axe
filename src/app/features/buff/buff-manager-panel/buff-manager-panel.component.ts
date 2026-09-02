@@ -5,6 +5,7 @@ import { GameObjectInventoryService } from '@axe/application/inventory/game-obje
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { TurnOrderService } from '@axe/application/turn/turn-order.service';
 import { PanelService } from '@axe/application/ui/panel.service';
+import { transientSignal } from '@axe/application/ui/transient-signal';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { describeBuffModifier, parseBuffModifierRequest } from '@axe/domain/character/buff-modifier';
 import {
@@ -282,7 +283,7 @@ export class BuffManagerPanelComponent {
     return request ? describeBuffModifier(request) : '';
   });
 
-  readonly copied = signal(false);
+  readonly copied = transientSignal(false, 1200);
 
   /** The states this room keeps on hand, which are put on pieces as the buffs charted here. */
   openStatusAilments(): void {
@@ -293,8 +294,7 @@ export class BuffManagerPanelComponent {
   async copyCommand(): Promise<void> {
     try {
       await navigator.clipboard.writeText(this.builderCommand());
-      this.copied.set(true);
-      setTimeout(() => this.copied.set(false), 1200);
+      this.copied.show(true);
     } catch {
       /* clipboard unavailable (permission, insecure context) — the text is on screen to copy by hand */
     }

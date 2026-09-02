@@ -18,6 +18,7 @@ import { ObjectChangeService } from '@axe/application/sync/object-change.service
 import { TabletopService } from '@axe/application/tabletop/tabletop.service';
 import { ModalService } from '@axe/application/ui/modal.service';
 import { PanelService } from '@axe/application/ui/panel.service';
+import { transientSignal } from '@axe/application/ui/transient-signal';
 import { ViewportService } from '@axe/application/ui/viewport.service';
 import { isTypingTarget } from '@axe/core/input/typing-target';
 import { ImageFile } from '@axe/core/storage/image-file';
@@ -249,8 +250,8 @@ export class MapEditorPanelComponent implements AfterViewInit {
   protected readonly textDraft = signal('');
   protected readonly addLayerMenuOpen = signal(false);
   protected readonly busy = signal(false);
-  protected readonly notice = signal('');
-  protected readonly errorNotice = signal('');
+  protected readonly notice = transientSignal('', 2500);
+  protected readonly errorNotice = transientSignal('', 2500);
   protected readonly exportScale = signal(1);
   protected readonly renamingLayerId = signal<string | null>(null);
   protected readonly layerDrag = new RowReorder<string>();
@@ -1607,12 +1608,12 @@ export class MapEditorPanelComponent implements AfterViewInit {
         this.objectChange.notifyCollectionChanged('image-tag')
       );
       if (scene) this.state.loadScene(scene);
-      else this.flashError(this.t('feature.mapEditor.actions.loadError'));
+      else this.errorNotice.show(this.t('feature.mapEditor.actions.loadError'));
       return;
     }
     const scene = deserializeScene(new TextDecoder().decode(buffer));
     if (!scene) {
-      this.flashError(this.t('feature.mapEditor.actions.loadError'));
+      this.errorNotice.show(this.t('feature.mapEditor.actions.loadError'));
       return;
     }
     this.state.loadScene(scene);
@@ -1628,9 +1629,9 @@ export class MapEditorPanelComponent implements AfterViewInit {
         resolveImageUrl: (id) => this.imageStorage.get(id)?.url ?? null,
       });
       await this.imageStorage.addAsync(blob);
-      this.flashNotice(this.t('feature.mapEditor.actions.savedImage'));
+      this.notice.show(this.t('feature.mapEditor.actions.savedImage'));
     } catch {
-      this.flashError(this.t('feature.mapEditor.actions.exportError'));
+      this.errorNotice.show(this.t('feature.mapEditor.actions.exportError'));
     } finally {
       this.busy.set(false);
     }
@@ -1653,22 +1654,12 @@ export class MapEditorPanelComponent implements AfterViewInit {
       table.height = scene.rows;
       table.gridSize = scene.cellPx;
       table.gridType = scene.gridType;
-      this.flashNotice(this.t('feature.mapEditor.actions.setTableDone'));
+      this.notice.show(this.t('feature.mapEditor.actions.setTableDone'));
     } catch {
-      this.flashError(this.t('feature.mapEditor.actions.exportError'));
+      this.errorNotice.show(this.t('feature.mapEditor.actions.exportError'));
     } finally {
       this.busy.set(false);
     }
-  }
-
-  private flashNotice(message: string): void {
-    this.notice.set(message);
-    setTimeout(() => this.notice.set(''), 2500);
-  }
-
-  private flashError(message: string): void {
-    this.errorNotice.set(message);
-    setTimeout(() => this.errorNotice.set(''), 2500);
   }
 
   protected zoomPercent(): number {

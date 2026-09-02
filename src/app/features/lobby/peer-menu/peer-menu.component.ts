@@ -8,6 +8,7 @@ import { ObjectChangeService } from '@axe/application/sync/object-change.service
 import { TabletopActionService } from '@axe/application/tabletop/tabletop-action.service';
 import { ModalService } from '@axe/application/ui/modal.service';
 import { PanelService } from '@axe/application/ui/panel.service';
+import { transientSignal } from '@axe/application/ui/transient-signal';
 import { Network } from '@axe/core/index';
 import { Logger } from '@axe/core/logging/logger';
 import { saveIdentity } from '@axe/core/storage/identity-storage';
@@ -59,7 +60,7 @@ export class PeerMenuComponent {
   protected readonly inviteRole = signal<PeerRole>(PeerRole.Player);
   protected readonly includePasswordInInvite = signal(true);
   protected readonly inviteOverlay = signal(false);
-  protected readonly isInviteCopied = signal(false);
+  protected readonly isInviteCopied = transientSignal(false, 2000);
 
   protected readonly inviteLink = computed(() => {
     this.objectChange.networkVersion();
@@ -120,9 +121,7 @@ export class PeerMenuComponent {
 
     try {
       await navigator.clipboard.writeText(link);
-      this.isInviteCopied.set(true);
-      const timer = setTimeout(() => this.isInviteCopied.set(false), 2000);
-      this.destroyRef.onDestroy(() => clearTimeout(timer));
+      this.isInviteCopied.show(true);
     } catch (reason) {
       Logger.warn('[PeerMenu] 招待リンクをクリップボードにコピーできませんでした', reason);
     }

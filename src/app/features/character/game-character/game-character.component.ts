@@ -36,6 +36,7 @@ import { sheetPanelBox } from '@axe/application/ui/sheet-panel';
 import { sheetPanelTitle } from '@axe/application/ui/sheet-panel';
 import { buildSurfaceSwitchContextMenu } from '@axe/application/ui/surface-switch-context-menu';
 import { TabletopOverlapService } from '@axe/application/ui/tabletop-overlap.service';
+import { transientSignal } from '@axe/application/ui/transient-signal';
 import { UiSignalService } from '@axe/application/ui/ui-signal.service';
 import { callResourceChange, resourceChange$ } from '@axe/core/event/domain-events';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
@@ -612,7 +613,7 @@ export class GameCharacterComponent {
   });
 
   readonly floatingChanges = signal<(ResourceChange & { key: number })[]>([]);
-  readonly hitFlash = signal<'damage' | 'heal' | null>(null);
+  readonly hitFlash = transientSignal<'damage' | 'heal' | null>(null, HIT_FLASH_MS);
 
   private previousResources: Map<string, ResourceSnapshot> | null = null;
   private floatingKey = 0;
@@ -898,7 +899,7 @@ export class GameCharacterComponent {
     this.floatingChanges.update((current) => [...current, ...entries].slice(-FLOATING_CHANGE_LIMIT));
 
     const kind = entries.some((entry) => entry.kind === 'damage') ? 'damage' : 'heal';
-    this.hitFlash.set(kind);
+    this.hitFlash.show(kind, kind === 'damage' ? HIT_FLASH_MS : HEAL_AURA_MS);
 
     const heard = entries.filter((entry) => entry.playsSound);
     const loudest = loudestChange(heard);
@@ -909,15 +910,6 @@ export class GameCharacterComponent {
     const shown = entries.filter((entry) => entry.playsEffect);
     const char = this.gameCharacter();
     if (char && shown.length > 0) this.effectAutoPlay.play(char, shown);
-
-    const flashTimer = setTimeout(
-      () => {
-        this.floatingTimers.delete(flashTimer);
-        this.hitFlash.set(null);
-      },
-      kind === 'damage' ? HIT_FLASH_MS : HEAL_AURA_MS
-    );
-    this.floatingTimers.add(flashTimer);
 
     const keys = new Set(entries.map((entry) => entry.key));
     const floatTimer = setTimeout(() => {
