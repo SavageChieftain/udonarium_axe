@@ -86,6 +86,12 @@ import { SafePipe } from '@axe/ui/pipes/safe.pipe';
 import { TranslocoModule } from '@jsverse/transloco';
 
 /** Whether something is being typed into a field, so the board does not steal the key. */
+interface WallView {
+  readonly wall: ActiveWall;
+  readonly pools: readonly { readonly style: Record<string, string> }[];
+  readonly silhouettes: readonly { readonly background: string; readonly style: Record<string, string> }[];
+}
+
 interface ActiveWall {
   surface: TableSurface;
   image: ImageFile;
@@ -191,6 +197,10 @@ export class GameTableComponent {
   readonly gestureService = inject(GameTableGestureService);
 
   constructor() {
+    this.destroyRef.onDestroy(() => {
+      if (this.glideTimer !== null) clearTimeout(this.glideTimer);
+      this.glideTimer = null;
+    });
     // A piece's own change bumps its version, not the collection's, so the order it is
     // laid out in has to be told about separately - and only when the order really moved.
     const seenStackIndex = new Map<string, number>();
@@ -213,9 +223,10 @@ export class GameTableComponent {
     effect(() => {
       const focus = this.selectionSignalService.focusCoordinate();
       if (!focus || !this.gameTable) return;
-      setTimeout(() => {
+      this.glideTimer = setTimeout(() => {
         this.gameTable().nativeElement.style.transition = '0.2s ease-out';
-        setTimeout(() => {
+        this.glideTimer = setTimeout(() => {
+          this.glideTimer = null;
           this.gameTable().nativeElement.style.transition = '';
         }, 100);
         const center = this.tableVisualCenter();
@@ -418,6 +429,7 @@ export class GameTableComponent {
   });
 
   private readonly gridFaces = new GridFaceCache();
+  private glideTimer: ReturnType<typeof setTimeout> | null = null;
 
   private wallGridDataUrl(
     widthPx: number,
@@ -799,10 +811,23 @@ export class GameTableComponent {
     }
   }
 
-  protected wallBaseFilter(): string | null {
+  protected readonly wallBaseFilter = computed<string | null>(() => {
     const brightness = this.visionService.ambientBrightness();
     return brightness < 1 ? 'brightness(' + brightness.toFixed(3) + ')' : null;
-  }
+  });
+
+  protected readonly wallViews = computed<readonly WallView[]>(() =>
+    this.activeWalls().map((wall) => ({
+      wall,
+      pools: this.wallPoolsFor(wall.surface).map((pool) => ({
+        style: this.wallPoolStyleFor(pool, wall.surface, wall.widthPx),
+      })),
+      silhouettes: this.wallSilhouettesFor(wall.surface).map((silhouette) => ({
+        background: this.wallSilhouetteBg(silhouette),
+        style: this.wallSilhouetteStyleFor(silhouette, wall.surface, wall.widthPx),
+      })),
+    }))
+  );
 
   protected wallSilhouettesFor(surface: TableSurface): WallSilhouette[] {
     const face = this.wallFaceFor(surface);

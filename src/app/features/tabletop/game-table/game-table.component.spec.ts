@@ -266,6 +266,20 @@ describe('GameTableComponent', () => {
       expect(component['wallFaceFor']('floor')).toBeNull();
     });
 
+    it('hands the same wall views back while nothing changes', async () => {
+      const table = component.currentTable;
+      table.showNorthWall = true;
+      table.northWallImageIdentifier = picture('blob:north');
+      await Promise.resolve();
+
+      const views = component['wallViews']();
+
+      expect(views.map((view) => view.wall.surface)).toEqual(['north-wall']);
+      expect(views[0].pools).toEqual([]);
+      expect(views[0].silhouettes).toEqual([]);
+      expect(component['wallViews']()).toBe(views);
+    });
+
     it('has no pools or silhouettes on a wall while nothing is lit', () => {
       expect(component['wallPoolsFor']('north-wall')).toEqual([]);
       expect(component['wallSilhouettesFor']('east-wall')).toEqual([]);
@@ -359,6 +373,21 @@ describe('GameTableComponent', () => {
 
       vi.advanceTimersByTime(100);
       expect(tableEl.style.transition).toBe('');
+      vi.useRealTimers();
+    });
+
+    it('drops the glide when the table goes before it lands', () => {
+      vi.useFakeTimers();
+      fixture.detectChanges();
+      const tableEl = component.gameTable().nativeElement;
+
+      TestBed.inject(SelectionSignalService).focusCoordinate.set({ x: 100, y: 100, timestamp: 2 });
+      fixture.detectChanges();
+      fixture.destroy();
+      vi.advanceTimersByTime(200);
+
+      expect(tableEl.style.transition).toBe('');
+      expect(vi.getTimerCount()).toBe(0);
       vi.useRealTimers();
     });
   });
