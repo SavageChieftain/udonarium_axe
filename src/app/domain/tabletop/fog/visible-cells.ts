@@ -16,13 +16,15 @@ export interface VisibleCellsOptions {
   scene: VisionScene;
   grid: CellGrid;
   indexes: SegmentIndexes;
-  /** The cells a wall stands on, so that the near face of one can be shown. */
+  /** The cells a wall stands on, so that one is asked about at its face and not its middle. */
   blocking?: CellBits;
   /** A guard against a board so large that one pass would stall the display. */
   maxCells?: number;
 }
 
 const DEFAULT_MAX_CELLS = 60_000;
+/** How far towards an open neighbour a wall's face is read, as a share of the way to it. */
+const FACE_STEP = 0.6;
 
 export function computeVisibleCellsFor(source: SceneVisionSource, options: VisibleCellsOptions): CellBits {
   const { scene, grid } = options;
@@ -36,10 +38,17 @@ export function computeVisibleCellsFor(source: SceneVisionSource, options: Visib
   const budget = options.maxCells ?? DEFAULT_MAX_CELLS;
   let spent = 0;
 
-  const seen: number[] = [];
-  const take = (cell: number): void => {
-    bits.set(cell);
-    seen.push(cell);
+  const blocking = options.blocking;
+
+  const reaches = (x: number, y: number): boolean => {
+    const scale = visionLobeScale(source.lobes, source.direction, source.x, source.y, x, y);
+    if (scale <= 0) return false;
+    const withinRange = source.rangePx > 0 && Math.hypot(x - source.x, y - source.y) <= source.rangePx * scale;
+    if (!scene.darknessEnabled && source.rangePx > 0 && !withinRange) return false;
+    if (source.type === VisionType.TRUESIGHT && withinRange) return true;
+    if (!index.clearBetween(source.x, source.y, source.z, x, y, 0)) return false;
+    if (!scene.darknessEnabled || isLit(scene, x, y, true, 0)) return true;
+    return seesInDark(source.type) && withinRange;
   };
 
   const consider = (cell: number, cx: number, cy: number): void => {
@@ -48,56 +57,41 @@ export function computeVisibleCellsFor(source: SceneVisionSource, options: Visib
     visited.set(cell);
     spent++;
 
-    const scale = visionLobeScale(source.lobes, source.direction, source.x, source.y, cx, cy);
-    if (scale <= 0) return;
-    const reach = Math.hypot(cx - source.x, cy - source.y);
-    const withinRange = source.rangePx > 0 && reach <= source.rangePx * scale;
-    if (source.type === VisionType.TRUESIGHT && withinRange) {
-      take(cell);
+    if (!blocking?.get(cell)) {
+      if (reaches(cx, cy)) bits.set(cell);
       return;
     }
-    if (!index.clearBetween(source.x, source.y, source.z, cx, cy, 0)) return;
-    if (!scene.darknessEnabled || isLit(scene, cx, cy, true, 0)) {
-      take(cell);
-      return;
-    }
-    if (seesInDark(source.type) && withinRange) take(cell);
+    if (wallFaceIsReached(options.grid, blocking, cell, cx, cy, reaches)) bits.set(cell);
   };
 
   forEachCandidate(source, options, widest, consider);
-  showNearWalls(source, options, bits, seen);
   return bits;
 }
 
 /**
- * The face of a wall that is turned towards the eye.
+ * Whether any face of a wall cell is reached.
  *
- * A wall stops the look that would have landed on it, so the ground either side of it comes
- * out clear and the wall itself never does: what the reader sees is a shape of fog with no
- * telling whether something is standing there or the light simply ran out. The ring of wall
- * cells next to ground that can be seen is shown, which is the near half of a thick wall and
- * the whole of a thin one, and no further in than that.
+ * A wall is asked about at its faces, never at its middle: the middle of a wall is inside
+ * itself, where its own edge stops every look. Which face is a matter of which side of it
+ * stands open, not of which way the eye happens to lie - along a wall the eye lies the way
+ * the wall runs, and a step that way lands in the next stone along, so a wall came out
+ * cleared a cell at a time where it should have cleared the whole stretch a lamp lit.
  */
-function showNearWalls(
-  source: SceneVisionSource,
-  options: VisibleCellsOptions,
-  bits: CellBits,
-  seen: readonly number[]
-): void {
-  const blocking = options.blocking;
-  if (!blocking) return;
-  const { grid } = options;
-
-  for (const cell of seen) {
-    forEachNeighbourCell(grid, cell, (neighbour) => {
-      if (bits.get(neighbour) || !blocking.get(neighbour)) return;
-      const centre = cellCenterOf(grid, neighbour);
-      const scale = visionLobeScale(source.lobes, source.direction, source.x, source.y, centre.x, centre.y);
-      if (scale <= 0) return;
-      if (source.rangePx > 0 && Math.hypot(centre.x - source.x, centre.y - source.y) > source.rangePx * scale) return;
-      bits.set(neighbour);
-    });
-  }
+function wallFaceIsReached(
+  grid: CellGrid,
+  blocking: CellBits,
+  cell: number,
+  cx: number,
+  cy: number,
+  reaches: (x: number, y: number) => boolean
+): boolean {
+  let reached = false;
+  forEachNeighbourCell(grid, cell, (neighbour) => {
+    if (reached || blocking.get(neighbour)) return;
+    const open = cellCenterOf(grid, neighbour);
+    if (reaches(cx + (open.x - cx) * FACE_STEP, cy + (open.y - cy) * FACE_STEP)) reached = true;
+  });
+  return reached;
 }
 
 /**
@@ -123,20 +117,31 @@ function forEachCandidate(
       Math.min(maxY, source.y + reach),
       visit
     );
-  const everywhere = (): void => {
+
+  if (!scene.darknessEnabled) {
     if (Number.isFinite(reach)) withinReach(-Infinity, -Infinity, Infinity, Infinity);
     else forEachCell(grid, visit);
-  };
+    return;
+  }
 
-  if (!scene.darknessEnabled || scene.globalIllumination > 0) {
-    everywhere();
+  // Ground a lamp reaches is worth asking about however far off it is: the range on the piece
+  // says how far it sees with nothing to see by, not how far a lamp carries.
+  if (scene.globalIllumination > 0) {
+    forEachCell(grid, visit);
     return;
   }
 
   for (const light of scene.lights) {
     const pool = lightFloorPool(light);
     if (!pool) continue;
-    withinReach(pool.cx - pool.dimPx, pool.cy - pool.dimPx, pool.cx + pool.dimPx, pool.cy + pool.dimPx);
+    forEachCellInBox(
+      grid,
+      pool.cx - pool.dimPx,
+      pool.cy - pool.dimPx,
+      pool.cx + pool.dimPx,
+      pool.cy + pool.dimPx,
+      visit
+    );
   }
 
   if (seesInDark(source.type) && source.rangePx > 0) {

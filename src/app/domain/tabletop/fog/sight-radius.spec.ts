@@ -21,13 +21,13 @@ describe('effectiveSightRadiusPx', () => {
     expect(radius({ visionType: VisionType.DARKVISION, visionRangePx: 250 })).toBe(250);
   });
 
-  it('takes the longer of the two, up to the range it was given', () => {
+  it('takes the longer of the two', () => {
     expect(radius({ visionType: VisionType.DARKVISION, visionRangePx: 250, ownLightDimPx: 100 })).toBe(250);
-    expect(radius({ visionType: VisionType.DARKVISION, visionRangePx: 250, ownLightDimPx: 300 })).toBe(250);
+    expect(radius({ visionType: VisionType.DARKVISION, visionRangePx: 250, ownLightDimPx: 300 })).toBe(300);
   });
 
-  it('holds a piece to the range it was given, however far its lamp throws', () => {
-    expect(radius({ visionRangePx: 100, ownLightDimPx: 300 })).toBe(100);
+  it('follows the lamp a piece carries past what it can see without one', () => {
+    expect(radius({ visionRangePx: 100, ownLightDimPx: 300 })).toBe(300);
   });
 
   it('leaves a piece that cannot see in the dark with only what its own lamp shows', () => {
@@ -38,7 +38,7 @@ describe('effectiveSightRadiusPx', () => {
     expect(radius()).toBe(0);
   });
 
-  it('is the range itself on a board with no dark on it', () => {
+  it('is the range itself on a board with no dark on it, where a lamp shows nothing new', () => {
     expect(radius({ darknessEnabled: false, visionRangePx: 400, ownLightDimPx: 300 })).toBe(400);
   });
 

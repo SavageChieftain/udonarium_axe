@@ -60,6 +60,7 @@
             ></div>
           }
         } @else {
+          @let topShade = shadedTop(topFaceImage().url);
           <div
             class="chrome-smooth-image-trick absolute size-full bg-size-[100%_100%] bg-no-repeat backface-hidden transform-3d"
             [class.blinking-animation]="!isLocked()"
@@ -67,11 +68,14 @@
               'backface-visibility': isSlope() ? 'visible' : 'hidden',
               transform: 'translateZ(' + (height() / (isSlope() ? 2 : 1)) * gridSize + 'px)' + floorModCss(),
               ...hexFloorDimStyle(),
-              ...tileStyle(),
+              ...topShade.style,
             }"
-            [style.background-image]="shaded(topFaceImage().url, floorBrightness()) | safe: 'style'"
+            [style.background-image]="topShade.image | safe: 'style'"
             [style.clip-path]="hexFloorClipPath()"
           ></div>
+          @if (topFogStyle(); as veil) {
+            <div class="backface-hidden transform-3d" [ngStyle]="veil"></div>
+          }
         }
       }
       @if (showsGrid()) {
@@ -158,27 +162,29 @@
                 [style.width.px]="width() * gridSize"
                 [style.height.px]="height() * gridSize"
               >
+                @let northShade = shadedFace(northFaceImage().url, isSurfaceShading() ? 0.3 : 1, 'north');
                 <div
                   class="chrome-smooth-image-trick absolute inset-0 bg-size-[100%_100%] bg-no-repeat backface-hidden"
-                  [ngStyle]="tileStyle()"
-                  [style.background-image]="
-                    shaded(northFaceImage().url, faceShade(isSurfaceShading() ? 0.3 : 1)) | safe: 'style'
-                  "
+                  [ngStyle]="northShade.style"
+                  [style.background-image]="northShade.image | safe: 'style'"
                 ></div>
+                @if (faceFogStyle('north'); as veil) {
+                  <div class="backface-hidden" [ngStyle]="veil"></div>
+                }
                 @if (visionService.active()) {
                   <div class="pointer-events-none absolute inset-0 overflow-hidden backface-hidden">
                     @for (pool of northLights(); track $index) {
                       <div
                         class="pointer-events-none absolute backface-hidden"
                         [style.background-image]="'url(' + wallImage().url + ')' | safe: 'style'"
-                        [ngStyle]="wallLightStyle(pool)"
+                        [ngStyle]="wallLightStyle(pool, 'north')"
                       ></div>
                     }
                     @for (sil of northSilhouettes(); track $index) {
                       <div
                         class="pointer-events-none absolute backface-hidden"
                         [style.background-image]="silhouetteBackground(sil) | safe: 'style'"
-                        [ngStyle]="silhouetteStyle(sil)"
+                        [ngStyle]="silhouetteStyle(sil, 'north')"
                       ></div>
                     }
                   </div>
@@ -196,25 +202,29 @@
                 [style.width.px]="width() * gridSize"
                 [style.height.px]="height() * gridSize"
               >
+                @let southShade = shadedFace(southFaceImage().url, 1, 'south');
                 <div
                   class="chrome-smooth-image-trick absolute inset-0 bg-size-[100%_100%] bg-no-repeat backface-hidden"
-                  [ngStyle]="tileStyle()"
-                  [style.background-image]="shaded(southFaceImage().url, faceShade(1)) | safe: 'style'"
+                  [ngStyle]="southShade.style"
+                  [style.background-image]="southShade.image | safe: 'style'"
                 ></div>
+                @if (faceFogStyle('south'); as veil) {
+                  <div class="backface-hidden" [ngStyle]="veil"></div>
+                }
                 @if (visionService.active()) {
                   <div class="pointer-events-none absolute inset-0 overflow-hidden backface-hidden">
                     @for (pool of southLights(); track $index) {
                       <div
                         class="pointer-events-none absolute backface-hidden"
                         [style.background-image]="'url(' + wallImage().url + ')' | safe: 'style'"
-                        [ngStyle]="wallLightStyle(pool)"
+                        [ngStyle]="wallLightStyle(pool, 'south')"
                       ></div>
                     }
                     @for (sil of southSilhouettes(); track $index) {
                       <div
                         class="pointer-events-none absolute backface-hidden"
                         [style.background-image]="silhouetteBackground(sil) | safe: 'style'"
-                        [ngStyle]="silhouetteStyle(sil)"
+                        [ngStyle]="silhouetteStyle(sil, 'south')"
                       ></div>
                     }
                   </div>
@@ -232,27 +242,29 @@
                 [style.width.px]="depth() * gridSize"
                 [style.height.px]="height() * gridSize"
               >
+                @let westShade = shadedFace(westFaceImage().url, isSurfaceShading() ? 0.5 : 1, 'west');
                 <div
                   class="chrome-smooth-image-trick absolute inset-0 bg-size-[100%_100%] bg-no-repeat backface-hidden"
-                  [ngStyle]="tileStyle()"
-                  [style.background-image]="
-                    shaded(westFaceImage().url, faceShade(isSurfaceShading() ? 0.5 : 1)) | safe: 'style'
-                  "
+                  [ngStyle]="westShade.style"
+                  [style.background-image]="westShade.image | safe: 'style'"
                 ></div>
+                @if (faceFogStyle('west'); as veil) {
+                  <div class="backface-hidden" [ngStyle]="veil"></div>
+                }
                 @if (visionService.active()) {
                   <div class="pointer-events-none absolute inset-0 overflow-hidden backface-hidden">
                     @for (pool of westLights(); track $index) {
                       <div
                         class="pointer-events-none absolute backface-hidden"
                         [style.background-image]="'url(' + wallImage().url + ')' | safe: 'style'"
-                        [ngStyle]="wallLightStyle(pool)"
+                        [ngStyle]="wallLightStyle(pool, 'west')"
                       ></div>
                     }
                     @for (sil of westSilhouettes(); track $index) {
                       <div
                         class="pointer-events-none absolute backface-hidden"
                         [style.background-image]="silhouetteBackground(sil) | safe: 'style'"
-                        [ngStyle]="silhouetteStyle(sil)"
+                        [ngStyle]="silhouetteStyle(sil, 'west')"
                       ></div>
                     }
                   </div>
@@ -270,27 +282,29 @@
                 [style.width.px]="depth() * gridSize"
                 [style.height.px]="height() * gridSize"
               >
+                @let eastShade = shadedFace(eastFaceImage().url, isSurfaceShading() ? 0.8 : 1, 'east');
                 <div
                   class="chrome-smooth-image-trick absolute inset-0 bg-size-[100%_100%] bg-no-repeat backface-hidden"
-                  [ngStyle]="tileStyle()"
-                  [style.background-image]="
-                    shaded(eastFaceImage().url, faceShade(isSurfaceShading() ? 0.8 : 1)) | safe: 'style'
-                  "
+                  [ngStyle]="eastShade.style"
+                  [style.background-image]="eastShade.image | safe: 'style'"
                 ></div>
+                @if (faceFogStyle('east'); as veil) {
+                  <div class="backface-hidden" [ngStyle]="veil"></div>
+                }
                 @if (visionService.active()) {
                   <div class="pointer-events-none absolute inset-0 overflow-hidden backface-hidden">
                     @for (pool of eastLights(); track $index) {
                       <div
                         class="pointer-events-none absolute backface-hidden"
                         [style.background-image]="'url(' + wallImage().url + ')' | safe: 'style'"
-                        [ngStyle]="wallLightStyle(pool)"
+                        [ngStyle]="wallLightStyle(pool, 'east')"
                       ></div>
                     }
                     @for (sil of eastSilhouettes(); track $index) {
                       <div
                         class="pointer-events-none absolute backface-hidden"
                         [style.background-image]="silhouetteBackground(sil) | safe: 'style'"
-                        [ngStyle]="silhouetteStyle(sil)"
+                        [ngStyle]="silhouetteStyle(sil, 'east')"
                       ></div>
                     }
                   </div>

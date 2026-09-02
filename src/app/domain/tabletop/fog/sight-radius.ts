@@ -17,10 +17,7 @@ export interface SightRadiusInput {
  * piece with no limit set and nothing of its own to see by has no shape to draw.
  */
 export function effectiveSightRadiusPx(input: SightRadiusInput): number {
-  const limit = input.visionRangePx > 0 ? input.visionRangePx : Infinity;
-  const own = input.darknessEnabled
-    ? Math.max(seesInDark(input.visionType) ? Math.max(0, input.visionRangePx) : 0, Math.max(0, input.ownLightDimPx))
-    : limit;
-  const reach = Math.min(limit, own);
-  return Number.isFinite(reach) ? reach : 0;
+  if (!input.darknessEnabled) return Math.max(0, input.visionRangePx);
+  const night = seesInDark(input.visionType) ? Math.max(0, input.visionRangePx) : 0;
+  return Math.max(night, Math.max(0, input.ownLightDimPx));
 }

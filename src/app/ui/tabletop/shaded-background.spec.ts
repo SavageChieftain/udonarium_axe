@@ -1,4 +1,4 @@
-import { shadedBackgroundImage } from '@axe/ui/tabletop/shaded-background';
+import { shadedBackgroundGrid, shadedBackgroundImage } from '@axe/ui/tabletop/shaded-background';
 
 describe('shadedBackgroundImage', () => {
   it('lays nothing over a texture that is already as bright as it gets', () => {
@@ -17,5 +17,57 @@ describe('shadedBackgroundImage', () => {
 
   it('leaves a texture alone when the difference is too small to see', () => {
     expect(shadedBackgroundImage('a.png', 0.9999)).toBe('url(a.png)');
+  });
+});
+
+describe('shadedBackgroundGrid', () => {
+  it('lays the texture bare when every cell is fully lit', () => {
+    const shaded = shadedBackgroundGrid('a.png', [1, 1, 1, 1], 2, 2);
+    expect(shaded.image).toBe('url(a.png)');
+    expect(shaded.style).toEqual({
+      'background-size': '100% 100%',
+      'background-position': '0 0',
+      'background-repeat': 'no-repeat',
+    });
+  });
+
+  it('lays one flat shade when every cell reads the same', () => {
+    const shaded = shadedBackgroundGrid('a.png', [0.3, 0.3, 0.302], 3, 1);
+    expect(shaded.image).toBe(shadedBackgroundImage('a.png', 0.3));
+    expect(shaded.style['background-size']).toBe('100% 100%, 100% 100%');
+  });
+
+  it('runs one gradient across a single row, a stop in the middle of each cell', () => {
+    const shaded = shadedBackgroundGrid('a.png', [1, 0.5], 2, 1);
+    expect(shaded.image).toBe('linear-gradient(to right, rgba(0,0,0,0.000) 25%, rgba(0,0,0,0.500) 75%), url(a.png)');
+    expect(shaded.style['background-size']).toBe('100% 100%, 100% 100%');
+    expect(shaded.style['background-position']).toBe('0 0, 0 0');
+  });
+
+  it('lays a band for each row when there is more than one, top row first', () => {
+    const shaded = shadedBackgroundGrid('a.png', [1, 1, 0, 0], 2, 2);
+    expect(shaded.image).toBe(
+      'linear-gradient(to right, rgba(0,0,0,0.000) 25%, rgba(0,0,0,0.000) 75%), ' +
+        'linear-gradient(to right, rgba(0,0,0,1.000) 25%, rgba(0,0,0,1.000) 75%), url(a.png)'
+    );
+    expect(shaded.style['background-size']).toBe('100% 50%, 100% 50%, 100% 100%');
+    expect(shaded.style['background-position']).toBe('0 0%, 0 100%, 0 0');
+    expect(shaded.style['background-repeat']).toBe('no-repeat, no-repeat, no-repeat');
+  });
+
+  it('spaces three rows evenly down the face', () => {
+    const shaded = shadedBackgroundGrid('a.png', [1, 0.5, 0], 1, 3);
+    expect(shaded.style['background-size']).toBe('100% 33.3333%, 100% 33.3333%, 100% 33.3333%, 100% 100%');
+    expect(shaded.style['background-position']).toBe('0 0%, 0 50%, 0 100%, 0 0');
+  });
+
+  it('keeps a tiled texture tiled under the shade', () => {
+    const shaded = shadedBackgroundGrid('a.png', [1, 0.5], 2, 1, { size: '50px 50px', repeat: 'repeat' });
+    expect(shaded.style['background-size']).toBe('100% 100%, 50px 50px');
+    expect(shaded.style['background-repeat']).toBe('no-repeat, repeat');
+  });
+
+  it('hands the texture back untouched when there is nothing to read', () => {
+    expect(shadedBackgroundGrid('a.png', [], 0, 0).image).toBe('url(a.png)');
   });
 });

@@ -86,6 +86,15 @@ function optionsFor(built: VisionScene, blocking?: CellBits): VisibleCellsOption
 
 const INSIDE = cellIndexOf(GRID, 6, 6);
 
+/** Which columns of row five are cleared, which is the wall these tests lay. */
+function litCols(cells: CellBits): number[] {
+  const cols: number[] = [];
+  for (let col = 0; col < 12; col++) {
+    if (cells.get(cellIndexOf(GRID, col, 5))) cols.push(col);
+  }
+  return cols;
+}
+
 describe('computeVisibleCellsFor', () => {
   it('keeps a torch shut in a room from showing that room to eyes outside it', () => {
     const built = scene();
@@ -142,12 +151,18 @@ describe('computeVisibleCellsFor', () => {
     expect(west.get(cellIndexOf(GRID, 12, 10))).toBe(false);
   });
 
-  it('clears no more ground than the range it was given', () => {
+  it('follows a lamp past the range, which is what a piece sees without one', () => {
     const built = scene({ lights: [{ ...torch(), x: 500, y: 500, dimPx: 600 }], sightSegments: [], lightSegments: [] });
+    const options = optionsFor(built);
+    const far = cellIndexOf(GRID, 17, 10);
+    expect(computeVisibleCellsFor(eyes({ x: 500, y: 500, rangePx: 150 }), options).get(far)).toBe(true);
+  });
+
+  it('clears no more than the range on a table with no dark to see by', () => {
+    const built = scene({ darknessEnabled: false, lights: [], sightSegments: [], lightSegments: [] });
     const options = optionsFor(built);
     const near = cellIndexOf(GRID, 12, 10);
     const far = cellIndexOf(GRID, 17, 10);
-    expect(computeVisibleCellsFor(eyes({ x: 500, y: 500, rangePx: 0 }), options).get(far)).toBe(true);
     const short = computeVisibleCellsFor(eyes({ x: 500, y: 500, rangePx: 150 }), options);
     expect(short.get(near)).toBe(true);
     expect(short.get(far)).toBe(false);
@@ -194,11 +209,53 @@ describe('computeVisibleCellsFor', () => {
       expect(computeVisibleCellsFor(lookingWest(), optionsFor(lit, pillarCells())).get(BEHIND)).toBe(false);
     });
 
-    it('leaves a face out of reach alone', () => {
-      const cells = computeVisibleCellsFor(lookingWest(290), optionsFor(lit, pillarCells()));
+    it('leaves a face out of reach alone where the range is all a piece has', () => {
+      const daylight = scene({
+        darknessEnabled: false,
+        lights: [],
+        sightSegments: PILLAR,
+        lightSegments: [],
+      });
+      const cells = computeVisibleCellsFor(lookingWest(290), optionsFor(daylight, pillarCells()));
       expect(cells.get(OPEN)).toBe(true);
       expect(cells.get(FACE)).toBe(false);
     });
+  });
+
+  it('clears exactly the stretch of a long wall the lamp reaches, where the lamp stands', () => {
+    // Twelve cells of wall across row 5, with a small lamp against the middle of it and the
+    // eye on the near side. What matters is which cells clear, not how many: the cleared
+    // stretch has to sit symmetrically against the lamp, its corners caught by the light.
+    const wall = rectangleSegments(0, 250, 600, 50, 0).map((edge) => ({ ...edge, heightPx: WALL_HEIGHT }));
+    const blocking = new CellBits(cellCount(GRID));
+    for (let col = 0; col < 12; col++) blocking.set(cellIndexOf(GRID, col, 5));
+
+    const built = scene({
+      lights: [{ ...torch(), x: 300, y: 400, dimPx: 150 }],
+      sightSegments: wall,
+      lightSegments: wall,
+    });
+    const cells = computeVisibleCellsFor(eyes({ x: 300, y: 450 }), optionsFor(built, blocking));
+
+    expect(litCols(cells)).toEqual([3, 4, 5, 6, 7, 8]);
+  });
+
+  it('clears that same stretch with the eye off to one end of the wall', () => {
+    // Looking along the wall rather than at it: the way to the eye is the way the wall runs,
+    // so a face read towards the eye lands in the next stone along, and the lit stretch used
+    // to shrink to a cell or two. It must stay against the lamp, not against the eye.
+    const wall = rectangleSegments(0, 250, 600, 50, 0).map((edge) => ({ ...edge, heightPx: WALL_HEIGHT }));
+    const blocking = new CellBits(cellCount(GRID));
+    for (let col = 0; col < 12; col++) blocking.set(cellIndexOf(GRID, col, 5));
+
+    const built = scene({
+      lights: [{ ...torch(), x: 300, y: 400, dimPx: 150 }],
+      sightSegments: wall,
+      lightSegments: wall,
+    });
+    const cells = computeVisibleCellsFor(eyes({ x: 25, y: 425 }), optionsFor(built, blocking));
+
+    expect(litCols(cells)).toEqual([3, 4, 5, 6, 7, 8]);
   });
 
   it('sees nothing at all when it is blind', () => {
@@ -206,5 +263,46 @@ describe('computeVisibleCellsFor', () => {
     expect(computeVisibleCellsFor(eyes({ x: 250, y: 250, type: VisionType.BLIND }), optionsFor(built)).isEmpty).toBe(
       true
     );
+  });
+
+  describe('two corridors with a wall between them', () => {
+    /** A wall right across row 5, from edge to edge, so nothing can be seen past it. */
+    const DIVIDER = rectangleSegments(0, 250, 1000, 50, 0).map((edge) => ({ ...edge, heightPx: WALL_HEIGHT }));
+
+    function dividerCells(): CellBits {
+      const bits = new CellBits(cellCount(GRID));
+      for (let col = 0; col < 20; col++) bits.set(cellIndexOf(GRID, col, 5));
+      return bits;
+    }
+
+    /** A lamp in the far corridor, and the eye in the near one. */
+    const built = scene({
+      lights: [{ ...torch(), x: 500, y: 150, dimPx: 500 }],
+      sightSegments: DIVIDER,
+      lightSegments: DIVIDER,
+    });
+
+    it('keeps the ground beyond the wall out of sight, however brightly it is lit', () => {
+      const cells = computeVisibleCellsFor(eyes({ x: 500, y: 450 }), optionsFor(built, dividerCells()));
+      expect(isLit(built, 525, 175, true, 0)).toBe(true);
+      expect(cells.get(cellIndexOf(GRID, 10, 3))).toBe(false);
+      expect(cells.get(cellIndexOf(GRID, 10, 1))).toBe(false);
+      expect(cells.get(cellIndexOf(GRID, 4, 2))).toBe(false);
+    });
+
+    it('shows the wall itself once a lamp on the near side reaches it', () => {
+      const bothLit = scene({
+        lights: [
+          { ...torch(), x: 500, y: 150, dimPx: 500 },
+          { ...torch(), x: 500, y: 450, dimPx: 300 },
+        ],
+        sightSegments: DIVIDER,
+        lightSegments: DIVIDER,
+      });
+      const cells = computeVisibleCellsFor(eyes({ x: 500, y: 450 }), optionsFor(bothLit, dividerCells()));
+      expect(cells.get(cellIndexOf(GRID, 10, 5))).toBe(true);
+      // Beyond it, nothing: neither the ground nor the far side of the wall.
+      expect(cells.get(cellIndexOf(GRID, 10, 4))).toBe(false);
+    });
   });
 });

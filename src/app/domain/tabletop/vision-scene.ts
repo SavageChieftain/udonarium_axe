@@ -752,14 +752,17 @@ export function isPointVisibleFrom(
   for (const source of sources) {
     const scale = visionLobeScale(source.lobes, source.direction, source.x, source.y, x, y);
     if (scale <= 0) continue;
-    // A range set on a piece is how far it can see, whatever the light is doing. Left at
-    // nothing it is no limit at all, and only seeing in the dark asks to be told a number.
-    if (source.rangePx > 0 && distance(x, y, source.x, source.y) > source.rangePx * scale) continue;
-    if (source.type === VisionType.TRUESIGHT && source.rangePx > 0) return true;
+    // The range on a piece is how far it sees with nothing to see by. Ground a lamp reaches
+    // is seen as far as the lamp carries, so a torch-bearer with two cells of night sight
+    // still sees the whole of the room its torch lights. With no dark on the table there is
+    // nothing to see by or without, and the range is the whole of the limit.
+    const withinRange = source.rangePx > 0 && distance(x, y, source.x, source.y) <= source.rangePx * scale;
+    if (!scene.darknessEnabled && source.rangePx > 0 && !withinRange) continue;
+    if (source.type === VisionType.TRUESIGHT && withinRange) return true;
     const between = segmentsAbove(scene.sightSegments, source.z);
     if (!segmentClearBetween(source.x, source.y, source.z, x, y, z, between)) continue;
     if (lit) return true;
-    if (seesInDark(source.type) && source.rangePx > 0) return true;
+    if (seesInDark(source.type) && withinRange) return true;
   }
   return false;
 }
@@ -822,14 +825,12 @@ export function objectBrightnessFor(
   // Nothing below can come out under the base, so a table with no dark in it is at full
   // brightness wherever the light and the sight lines happen to fall.
   if (base >= 1) return 1;
-  // A lamp behind a wall lights what is beside it, not the eye on the other side. Light only
-  // counts towards what a thing looks like once the look itself gets there.
-  const seen = isPointVisible(scene, x, y, viewer);
-  const level = seen ? objectLightLevel(scene, x, y, radiusPx, ignoreShadowCasters) : 0;
+  const level = objectLightLevel(scene, x, y, radiusPx, ignoreShadowCasters);
   if (level >= 1) return 1;
   // Lit or merely in sight, a thing is worth four tenths before any light is added to it, and
   // the light carries it the rest of the way. Nothing in between is a step.
-  const floor = seen ? SEEN_BRIGHTNESS : base;
+  const lit = level > 0 || isPointVisible(scene, x, y, viewer);
+  const floor = lit ? SEEN_BRIGHTNESS : base;
   return Math.max(base, floor + (1 - floor) * level);
 }
 

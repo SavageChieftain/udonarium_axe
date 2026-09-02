@@ -6,10 +6,19 @@ import { GameCharacter } from '@axe/domain/character/game-character';
 import { partyIdsOwnedBy } from '@axe/domain/party/party-membership';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { CellBits } from '@axe/domain/tabletop/fog/cell-bits';
-import { cellCount, CellGrid, cellGridOf, cellIndexAt, forEachCellInBox } from '@axe/domain/tabletop/fog/cell-grid';
+import {
+  cellCenterOf,
+  cellCount,
+  CellGrid,
+  cellGridOf,
+  cellIndexAt,
+  forEachCellInBox,
+  forEachNeighbourCell,
+} from '@axe/domain/tabletop/fog/cell-grid';
 import { fogMemoryOn } from '@axe/domain/tabletop/fog/fog-memory';
 import {
   asFogMode,
+  DEFAULT_FOG_COLOR,
   FOG_EDGE_BLUR_RATIO,
   FOG_GM_ALPHA_FACTOR,
   FOG_UNEXPLORED_ALPHA,
@@ -61,6 +70,17 @@ const STANDING_ALIASES = new Set(['terrain', 'game-table']);
 const MEMO_LIMIT = 8192;
 const EMPTY_SILHOUETTES: WallSilhouette[] = [];
 const EMPTY_WALL_LIGHTS: WallLight[] = [];
+/** How far towards an open neighbour a wall's face is read, as a share of the way to it. */
+const FACE_READ_STEP = 0.6;
+
+/** The cells a terrain covers, told apart into the ones the party has walked to and the rest. */
+export interface TerrainFogCover {
+  cols: number;
+  rows: number;
+  cleared: boolean[];
+  /** How brightly each cell is lit, read at its open sides. */
+  brightness: number[];
+}
 
 function faceKey(face: WallFace): string {
   return `${face.ax}:${face.ay}:${face.bx}:${face.by}:${face.nx}:${face.ny}:${face.heightPx}`;
@@ -349,15 +369,20 @@ export class VisionService {
       const players = this.partyOwnerIds(scene.visionSources);
       const viewer = this.viewer();
       const shown = this.shownVisionIds();
-      // A monster the game master keeps on the table is nobody's eyes: it does not clear the
-      // fog, it is not the reader's, and unless its sight is being drawn nothing asks about it.
+      // Sight belongs to the piece standing on the table. A piece nobody has claimed is the
+      // party's eyes all the same — user ids change between connections, and nothing on the
+      // piece says whose it is. Only a piece a game master has claimed is theirs to keep aside.
       for (const source of scene.visionSources) {
+        const communal = source.owner === '';
         const wanted =
-          players.has(source.owner) || shown.has(source.sourceId) || viewerShares(viewer, source.owner, source.partyId);
+          communal ||
+          players.has(source.owner) ||
+          shown.has(source.sourceId) ||
+          viewerShares(viewer, source.owner, source.partyId);
         if (!wanted) continue;
         const cells = computeVisibleCellsFor(source, options);
         perSource.set(source.sourceId, cells);
-        if (players.has(source.owner)) shared.or(cells);
+        if (communal || players.has(source.owner)) shared.or(cells);
       }
       return { grid, perSource, shared };
     });
@@ -374,7 +399,7 @@ export class VisionService {
     let any = false;
     for (const source of scene.visionSources) {
       if (source.type === VisionType.BLIND) continue;
-      if (!viewerShares(viewer, source.owner, source.partyId)) continue;
+      if (source.owner !== '' && !viewerShares(viewer, source.owner, source.partyId)) continue;
       const own = cells.perSource.get(source.sourceId);
       if (!own) continue;
       mine.or(own);
@@ -446,33 +471,135 @@ export class VisionService {
   }
 
   /**
-   * Whether a terrain stands on ground nobody has walked to.
+   * Which of the cells a terrain stands on the party has walked to, in the terrain's own rows.
    *
-   * A wall is shown from any one of the cells it covers, because what the party is shown of
-   * one is its near face and hiding the rest would leave a hole through the middle of it.
-   * Everything else answers for the cell its middle falls in: a room's floor is one slab, and
-   * shown from any corner it would appear whole the moment a doorway was glimpsed.
+   * A piece of terrain is one box however many cells it covers, and a box is drawn whole or
+   * not at all, so the faces are cut to this instead. That keeps a wall gathered from a dozen
+   * cells in one piece and still lets the fog lie across the part of it nobody has reached.
    */
-  isTerrainHiddenByFog(terrain: Terrain): boolean {
-    if (this.viewer().isGameMaster) return false;
+  /** What the fog over this table is made of, for whatever has to paint some of its own. */
+  fogColor(): string {
+    return this.currentTable()?.fogColor ?? DEFAULT_FOG_COLOR;
+  }
+
+  terrainFogCover(terrain: Terrain): TerrainFogCover | null {
+    if (!this.active()) return null;
     const scene = this.scene();
-    const explored = this.exploredCells();
     const cells = this.visionCells();
-    if (!scene?.fogEnabled || !explored || !cells) return false;
-    if (surfaceOf(terrain) !== 'floor') return false;
+    if (!scene || !cells) return null;
+    if (surfaceOf(terrain) !== 'floor') return null;
+
+    // The game master is shown everything, and a table with the fog off hides nothing; both
+    // still read their light cell by cell, or a long wall is answered for by its middle and
+    // a wide one by ground beyond its own edge.
+    const gm = this.viewer().isGameMaster;
+    const explored = !gm && scene.fogEnabled ? this.exploredCells() : null;
+    if (!gm && scene.fogEnabled && !explored) return null;
 
     const grid = cells.grid;
-    const box = this.terrainBox(terrain, grid.sizePx);
-    if (!terrain.blocksSightNow) {
-      const middle = cellIndexAt(grid, (box.minX + box.maxX) / 2, (box.minY + box.maxY) / 2);
-      return middle >= 0 && !explored.get(middle);
+    const cols = Math.max(1, Math.round(terrain.width));
+    const rows = Math.max(1, Math.round(terrain.depth));
+    // Held against the explored set itself rather than in the scene-lifetime memo: the fog's
+    // record changes without the scene changing, and a cover read through the memo then kept
+    // answering for the record as it stood one step ago. With no record in play, the cells of
+    // the scene stand in as the key.
+    const memoKey: object = explored ?? cells;
+    let byTerrain = this.coverMemo.get(memoKey);
+    if (!byTerrain) {
+      byTerrain = new Map();
+      this.coverMemo.set(memoKey, byTerrain);
     }
+    const key = `${terrain.identifier}:${terrain.location.x}:${terrain.location.y}:${terrain.rotate}:${cols}x${rows}`;
+    const held = byTerrain.get(key);
+    if (held) return held;
+    const built = this.coverOf(terrain, grid, explored, cols, rows);
+    byTerrain.set(key, built);
+    return built;
+  }
 
-    let shown = false;
-    forEachCellInBox(grid, box.minX, box.minY, box.maxX, box.maxY, (cell) => {
-      if (explored.get(cell)) shown = true;
+  private readonly coverMemo = new WeakMap<object, Map<string, TerrainFogCover>>();
+
+  private coverOf(
+    terrain: Terrain,
+    grid: CellGrid,
+    explored: CellBits | null,
+    cols: number,
+    rows: number
+  ): TerrainFogCover {
+    const size = grid.sizePx;
+    const centreX = terrain.location.x + (cols * size) / 2;
+    const centreY = terrain.location.y + (rows * size) / 2;
+    const turn = (terrain.rotate * Math.PI) / 180;
+    const cos = Math.cos(turn);
+    const sin = Math.sin(turn);
+
+    const scene = this.scene();
+    const viewer = this.viewer();
+    const blocking = this.blockingCells();
+    // The game master sees every cell; a reader sees what the fog says they see.
+    const visible = viewer.isGameMaster ? null : (this.overlayVision()?.visible ?? new CellBits(0));
+    const dark = scene ? 1 - darknessAlphaFor(scene, viewer) : 1;
+
+    const cleared: boolean[] = [];
+    const brightness: number[] = [];
+    for (let row = 0; row < rows; row++) {
+      for (let col = 0; col < cols; col++) {
+        const localX = (col + 0.5 - cols / 2) * size;
+        const localY = (row + 0.5 - rows / 2) * size;
+        const x = centreX + localX * cos - localY * sin;
+        const y = centreY + localX * sin + localY * cos;
+        const cell = cellIndexAt(grid, x, y);
+        const shown = cell >= 0 && (explored?.get(cell) ?? true);
+        cleared.push(shown);
+        brightness.push(
+          shown && scene ? this.cellBrightness(scene, viewer, grid, blocking, visible, cell, x, y) : dark
+        );
+      }
+    }
+    return { cols, rows, cleared, brightness };
+  }
+
+  /**
+   * How brightly one cell of a terrain is lit.
+   *
+   * A wall's cell is read at its open sides, never at its middle: the middle of a wall is
+   * inside the wall, where its own edge stops the look and the light alike.
+   */
+  private cellBrightness(
+    scene: VisionScene,
+    viewer: SceneViewer,
+    grid: CellGrid,
+    blocking: CellBits | null,
+    visible: CellBits | null,
+    cell: number,
+    x: number,
+    y: number
+  ): number {
+    const dark = 1 - darknessAlphaFor(scene, viewer);
+    // Bright exactly where the fog counts the cell as in sight right now. The fog's own
+    // answer already holds the whole rule - lamplit and in a line of sight, read at a wall's
+    // open sides - and it falls back to the party's shared sight for a reader with no piece
+    // of their own. Asking the sight lines again here answered that reader with 'anything a
+    // lamp touches', which lit the walls of rooms nobody could see into.
+    if (visible && !visible.get(cell)) return dark;
+    if (!blocking?.get(cell)) {
+      return objectBrightnessFor(scene, viewer, x, y, grid.sizePx / 2, true);
+    }
+    let best = dark;
+    forEachNeighbourCell(grid, cell, (neighbour) => {
+      if (blocking.get(neighbour)) return;
+      const open = cellCenterOf(grid, neighbour);
+      const brightness = objectBrightnessFor(
+        scene,
+        viewer,
+        x + (open.x - x) * FACE_READ_STEP,
+        y + (open.y - y) * FACE_READ_STEP,
+        0,
+        true
+      );
+      if (brightness > best) best = brightness;
     });
-    return !shown;
+    return best;
   }
 
   isHiddenByFog(x: number, y: number): boolean {
@@ -483,6 +610,38 @@ export class VisionService {
     const index = cellIndexAt(cells.grid, x, y);
     if (index < 0) return false;
     return !explored.get(index);
+  }
+
+  /**
+   * How bright a terrain is drawn, read where the fog has cleared rather than at its middle.
+   *
+   * A wall gathered from a dozen cells is drawn only where the party has reached it, and the
+   * middle of such a wall is usually neither reached nor lit: read there, the one cell of it
+   * standing beside a torch came out as black as the ten behind it.
+   */
+  terrainBrightness(terrain: Terrain, centreX: number, centreY: number, radiusPx: number): number {
+    if (!this.active()) return 1;
+    const scene = this.scene();
+    if (!scene) return 1;
+    const cover = this.terrainFogCover(terrain);
+    if (!cover) return this.objectBrightness(centreX, centreY, radiusPx, true);
+
+    return this.brightestCleared(cover);
+  }
+
+  /**
+   * The brightest of the cells a terrain has been reached at.
+   *
+   * A wall's cell is read at its open sides, never at its middle: the middle of a wall is
+   * inside the wall, where its own edge stops the look and the light alike, so the one cell
+   * of it standing beside a torch came out as black as the ten behind it.
+   */
+  private brightestCleared(cover: TerrainFogCover): number {
+    let best = 0;
+    for (let i = 0; i < cover.cleared.length; i++) {
+      if (cover.cleared[i] && cover.brightness[i] > best) best = cover.brightness[i];
+    }
+    return best;
   }
 
   objectBrightness(x: number, y: number, radiusPx = 0, ignoreShadowCasters = false): number {
@@ -501,15 +660,15 @@ export class VisionService {
 
   wallSilhouettes(face: WallFace): WallSilhouette[] {
     if (!this.active()) return EMPTY_SILHOUETTES;
-    const scene = this.scene();
-    if (!scene || !this.faceIsSeen(scene, face)) return EMPTY_SILHOUETTES;
+    const scene = this.seenScene();
+    if (!scene) return EMPTY_SILHOUETTES;
     return this.recall(`sil:${faceKey(face)}`, () => computeWallSilhouettes(scene, face, scene.gridSize * 1.5));
   }
 
   wallLights(face: WallFace): WallLight[] {
     if (!this.active()) return EMPTY_WALL_LIGHTS;
-    const scene = this.scene();
-    if (!scene || !this.faceIsSeen(scene, face)) return EMPTY_WALL_LIGHTS;
+    const scene = this.seenScene();
+    if (!scene) return EMPTY_WALL_LIGHTS;
     return this.recall(`wl:${faceKey(face)}`, () => computeWallLights(scene, face));
   }
 
@@ -517,12 +676,22 @@ export class VisionService {
    * A wall lit on the far side of another wall is still a wall nobody can see, so the pool and
    * the shadows thrown on it are left off rather than shining through what hides them.
    */
-  private faceIsSeen(scene: VisionScene, face: WallFace): boolean {
-    const viewer = this.viewer();
-    if (viewer.isGameMaster) return true;
-    const x = (face.ax + face.bx) / 2 + face.nx;
-    const y = (face.ay + face.by) / 2 + face.ny;
-    return this.recall(`face:${faceKey(face)}`, () => isPointVisible(scene, x, y, viewer));
+  /**
+   * The scene as the reader has it, with the lamps they cannot see taken out of it.
+   *
+   * A wall is painted at the darkness of the table and lit only where a pool falls on it, so
+   * this is what keeps a lamp shut in a room from throwing its pool onto the walls of that
+   * room for somebody standing outside. Asking instead whether the face as a whole could be
+   * seen took the pools off a long wall whose middle happened to be dark, which is most of a
+   * long wall.
+   */
+  private seenScene(): VisionScene | null {
+    const scene = this.scene();
+    if (!scene || this.viewer().isGameMaster) return scene;
+    return this.recall('seen:scene', () => {
+      const lights = scene.lights.filter((light) => this.lightIsSeen(scene, light));
+      return lights.length === scene.lights.length ? scene : { ...scene, lights };
+    });
   }
 
   private lightIsSeen(scene: VisionScene, light: SceneLight): boolean {
@@ -763,7 +932,7 @@ export class VisionService {
   private collectVisionSources(gridSize: number): SceneVisionSource[] {
     const sources: SceneVisionSource[] = [];
     for (const character of this.objectStore.getObjects(GameCharacter)) {
-      if (!character.isVisibleOnTable || !character.owner) continue;
+      if (!character.isVisibleOnTable) continue;
       if (surfaceOf(character) !== 'floor') continue;
       const center = (gridSize * (character.size || 1)) / 2;
       const spec = character.visionSpec;
