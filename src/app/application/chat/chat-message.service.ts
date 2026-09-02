@@ -202,6 +202,7 @@ export class ChatMessageService {
       imagePos: this.findImagePos(sendFrom),
       messColor: messageColor,
       sendFrom: sendFrom,
+      senderRole: PeerCursor.myRole,
     };
     if (resolvedMessage.attachmentImageIdentifiers.length > 0) {
       chatMessage.attachmentImageIdentifiers = JSON.stringify(resolvedMessage.attachmentImageIdentifiers);

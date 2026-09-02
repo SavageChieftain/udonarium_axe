@@ -73,6 +73,35 @@ describe('VisualNovelPlaybackService', () => {
     expect(playback.messages()).toHaveLength(1);
   });
 
+  describe('what a line says about who spoke it', () => {
+    it('keeps a game master line in the story after they hand over the seat', () => {
+      say('では、判定を', PeerCursor.myCursor.identifier, { senderRole: PeerRole.GameMaster });
+
+      PeerCursor.myCursor.role = PeerRole.Player;
+      TestBed.inject(ObjectChangeService).notifyChanged(PeerCursor.myCursor.identifier);
+
+      expect(playback.messages().map((message) => message.text)).toEqual(['では、判定を']);
+    });
+
+    it('keeps a player aside out of the story once their cursor is gone', () => {
+      say('ちょっと待って', PeerCursor.myCursor.identifier, { senderRole: PeerRole.Player });
+
+      // A reconnect builds a new cursor, so the one the line names is no longer on the table.
+      ObjectStore.instance.delete(PeerCursor.myCursor, false);
+      TestBed.inject(ObjectChangeService).notifyChanged(tab.identifier);
+
+      expect(playback.messages()).toHaveLength(0);
+    });
+
+    it('still reads a line from a room that recorded no role at all', () => {
+      say('むかしむかし', PeerCursor.myCursor.identifier);
+      ObjectStore.instance.delete(PeerCursor.myCursor, false);
+      TestBed.inject(ObjectChangeService).notifyChanged(tab.identifier);
+
+      expect(playback.messages()).toHaveLength(1);
+    });
+  });
+
   it('keeps a roll and the line it was asked for on', () => {
     const player = PeerCursor.myCursor.identifier;
     say('2d6', player);

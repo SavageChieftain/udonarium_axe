@@ -10,6 +10,7 @@ import { ChatTab } from '@axe/domain/chat/chat-tab';
 import { ChatTabList } from '@axe/domain/chat/chat-tab-list';
 import { canRoleViewTab } from '@axe/domain/chat/chat-tab-permission';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
+import { PeerRole } from '@axe/domain/peer/peer-role';
 import { vnBodyOf, vnEmoteOf } from '@axe/domain/visual-novel/vn-emote';
 import { readableMessageText } from '@axe/features/visual-novel/visual-novel-message';
 import { isPlayerAside, VnLineSpeaker, VnScriptLine } from '@axe/features/visual-novel/visual-novel-script';
@@ -112,12 +113,20 @@ export class VisualNovelPlaybackService {
   /**
    * Who a line was spoken as, taken from what the sender chose rather than from who they are.
    *
-   * A line with nobody recorded on it is left unknown rather than guessed at from the user it
+   * The role recorded on the line is asked before the person who said it, so that the reading
+   * of a log settles once and stays settled. A role is worn now and taken off later, and the
+   * cursor that carried it is built afresh on every connection, so asking either would let a
+   * game master handing over the seat take their narration out of the story, and a reconnect
+   * turn the table's chatter back into part of it.
+   *
+   * A line with nothing recorded on it is left unknown rather than guessed at from the user it
    * came from: old rooms carry such lines, and they belong to the story as much as any other.
    */
   private speakerOf(message: ChatMessage): VnLineSpeaker {
     const sender = this.objectStore.get(message.sendFrom ?? '');
     if (sender instanceof GameCharacter) return 'character';
+    const spokenAs = message.senderRole;
+    if (spokenAs) return spokenAs === PeerRole.GameMaster ? 'gameMaster' : 'player';
     if (sender instanceof PeerCursor) return sender.isGameMaster ? 'gameMaster' : 'player';
     return 'unknown';
   }

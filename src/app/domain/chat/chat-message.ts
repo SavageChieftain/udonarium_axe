@@ -39,6 +39,7 @@ export interface ChatMessageContext {
   replyTo?: string;
   quoteOf?: string;
   vnEmote?: string;
+  senderRole?: string;
 }
 
 @SyncObject('chat')
@@ -61,6 +62,17 @@ export class ChatMessage extends ObjectNode implements ChatMessageContext {
    * not. Unset reads back as an empty string, which is what an absent staging means anyway.
    */
   @SyncVar() vnEmote: string;
+  /**
+   * What the person speaking was when they said it.
+   *
+   * A role is worn now and taken off later, and the cursor that carried it is built afresh on
+   * every connection, so neither can answer for a line already said. Recorded here so that a
+   * reading of the log settles what it is once and keeps that answer.
+   *
+   * Left without an initialiser, as `vnEmote` is: a line from a room that never wrote one has
+   * nothing to say about its speaker, and reads back empty.
+   */
+  @SyncVar() senderRole: string;
   @SyncVar() messColor: string;
   /** The bubble the sender asked for on each theme. Empty is worked out from the colour. */
   @SyncVar() messBubbleLight: string = '';
