@@ -32,6 +32,7 @@ import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { isTypingTarget } from '@axe/core/input/typing-target';
 import { ImageFile, imageFileEqual } from '@axe/core/storage/image-file';
 import { ObjectStore } from '@axe/core/sync/object-store';
+import { PERF_TO_DATA_URL, perfCounters } from '@axe/core/util/perf-counters';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
 import { FilterType, GameTable, GridType } from '@axe/domain/tabletop/game-table';
@@ -438,6 +439,7 @@ export class GameTableComponent {
         labelPrefix,
         labelMatrix
       );
+      perfCounters.bump(PERF_TO_DATA_URL);
       return canvas.toDataURL();
     } catch {
       return '';
@@ -676,6 +678,7 @@ export class GameTableComponent {
         true,
         prefix
       );
+      perfCounters.bump(PERF_TO_DATA_URL);
       return canvas.toDataURL();
     } catch {
       return '';

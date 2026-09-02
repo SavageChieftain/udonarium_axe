@@ -1,3 +1,5 @@
+import { PERF_SVG_BUILD, perfCounters } from '@axe/core/util/perf-counters';
+
 /**
  * Builds the shapes of the effects as drawings.
  *
@@ -15,6 +17,7 @@ const VIEW_BOX = 'viewBox="0 0 100 100" preserveAspectRatio="none" xmlns="http:/
 const VIEW_BOX_UNIFORM = 'viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"';
 
 function svg(body: string, uniform = false): string {
+  perfCounters.bump(PERF_SVG_BUILD);
   return `<svg ${uniform ? VIEW_BOX_UNIFORM : VIEW_BOX} width="100%" height="100%">${body}</svg>`;
 }
 

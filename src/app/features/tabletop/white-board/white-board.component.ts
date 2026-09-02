@@ -11,6 +11,7 @@ import { PieceContextMenuService } from '@axe/application/ui/piece-context-menu.
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { ImageStorage } from '@axe/core/storage/image-storage';
 import { ObjectStore } from '@axe/core/sync/object-store';
+import { PERF_DESERIALIZE_SCENE, perfCounters } from '@axe/core/util/perf-counters';
 import { Card } from '@axe/domain/card/card';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { DiceSymbol } from '@axe/domain/dice/dice-symbol';
@@ -114,13 +115,14 @@ export class WhiteBoardComponent {
    * They are hung over the picture in the place the paint would have put them, so a board
    * with a moving picture on it looks the same and moves as well.
    */
-  readonly livePictures = computed<(LivePicture & { url: string })[]>(() =>
-    livePicturesOf(deserializeScene(this.version().scene), this.widthPx(), this.heightPx(), (identifier) =>
+  readonly livePictures = computed<(LivePicture & { url: string })[]>(() => {
+    perfCounters.bump(PERF_DESERIALIZE_SCENE);
+    return livePicturesOf(deserializeScene(this.version().scene), this.widthPx(), this.heightPx(), (identifier) =>
       this.animatedImage.isAnimated(identifier)
     )
       .map((picture) => ({ ...picture, url: this.imageStorage.get(picture.imageIdentifier)?.url ?? '' }))
-      .filter((picture) => picture.url.length > 0)
-  );
+      .filter((picture) => picture.url.length > 0);
+  });
 
   /**
    * Tilted about its lower edge, so that standing it up does not sink it into the table.

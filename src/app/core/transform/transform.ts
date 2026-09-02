@@ -1,5 +1,6 @@
 import { CSSNumber } from '@axe/core/transform/css-number';
 import { Matrix3D } from '@axe/core/transform/matrix-3d';
+import { PERF_TRANSFORM_INIT, perfCounters } from '@axe/core/util/perf-counters';
 
 export interface IPoint2D {
   x: number;
@@ -43,6 +44,7 @@ export class Transform {
     if (!element) return;
 
     this.element = element;
+    perfCounters.bump(PERF_TRANSFORM_INIT);
 
     const style = window.getComputedStyle(element);
 

@@ -1,4 +1,5 @@
 import { Injectable, signal } from '@angular/core';
+import { PERF_ROTATION_NOTIFY, perfCounters } from '@axe/core/util/perf-counters';
 
 export interface TargetChangeData {
   identifier: string;
@@ -83,6 +84,7 @@ export class UiSignalService {
   }
 
   notifyTableViewRotation(x: number, y: number, z: number): void {
+    perfCounters.bump(PERF_ROTATION_NOTIFY);
     this.tableViewRotation.set({ x, y, z });
   }
 
