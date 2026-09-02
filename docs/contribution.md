@@ -97,6 +97,13 @@ chore(release): bump version to 1.2.2
 E2E は載せていない。Playwright は CI だと 5 ブラウザぶん走る設定で、Pull Request
 1 回に何十分もかかる。手元で `npm run e2e` を回す。
 
+演出の見た目は `e2e/visual/` のスクリーンショット比較で守る。
+`npx playwright test --project=visual` が `e2e/visual/__screenshots__/` の基準画像と
+突き合わせる。時計を止め、アニメーションを終端まで送ってから撮るので、同じ機械なら同じ絵になる。
+基準画像は手元の Chromium で作ってコミットし、CI では回さない。
+見た目を変えるつもりの変更で差分が出たら `--update-snapshots` で撮り直し、何がどう変わったかを
+コミット本文に書く。差分の理由が言えないなら、それは退行として直す。
+
 ## リリース
 
 - `package.json` の `version` がリリース番号

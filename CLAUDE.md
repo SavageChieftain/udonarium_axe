@@ -67,17 +67,18 @@ composition → features → ui → application → infrastructure → domain �
 
 ## 開発コマンド
 
-| コマンド               | 用途                                                           |
-| ---------------------- | -------------------------------------------------------------- |
-| `npm start`            | 開発サーバー（`ng serve`）                                     |
-| `npm run build`        | プロダクションビルド（`ng build` + 既定設定コピー + zip 生成） |
-| `npm test`             | ユニットテスト（Angular builder + Vitest）                     |
-| `npx vitest run`       | ユニットテスト（直接 Vitest、上記とは別経路）                  |
-| `npm run e2e`          | Playwright E2E                                                 |
-| `npm run e2e:ui`       | Playwright UI モード                                           |
-| `npm run lint`         | ESLint                                                         |
-| `npm run format`       | Prettier 整形                                                  |
-| `npm run format:check` | Prettier チェックのみ                                          |
+| コマンド                               | 用途                                                                               |
+| -------------------------------------- | ---------------------------------------------------------------------------------- |
+| `npm start`                            | 開発サーバー（`ng serve`）                                                         |
+| `npm run build`                        | プロダクションビルド（`ng build` + 既定設定コピー + zip 生成）                     |
+| `npm test`                             | ユニットテスト（Angular builder + Vitest）                                         |
+| `npx vitest run`                       | ユニットテスト（直接 Vitest、上記とは別経路）                                      |
+| `npm run e2e`                          | Playwright E2E                                                                     |
+| `npm run e2e:ui`                       | Playwright UI モード                                                               |
+| `npx playwright test --project=visual` | 演出のスクリーンショット比較（手元のみ・基準画像は `e2e/visual/__screenshots__/`） |
+| `npm run lint`                         | ESLint                                                                             |
+| `npm run format`                       | Prettier 整形                                                                      |
+| `npm run format:check`                 | Prettier チェックのみ                                                              |
 
 ## コミット・フック規約（要点）
 
