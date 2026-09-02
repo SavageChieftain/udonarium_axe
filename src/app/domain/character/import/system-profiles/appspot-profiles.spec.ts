@@ -1,6 +1,9 @@
 import { parseAppspotCharacterForSystem } from '@axe/domain/character/import/system-profiles/appspot-profiles';
+import { loadLabelMaps } from '@axe/domain/character/import/system-profiles/label-maps';
 
 describe('parseAppspotCharacterForSystem', () => {
+  beforeAll(() => loadLabelMaps());
+
   const dx3 = {
     base: { name: '六条' },
     baseAbility: { body: { total: '5' } },

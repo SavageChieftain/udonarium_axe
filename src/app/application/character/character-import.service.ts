@@ -5,6 +5,7 @@ import { parseImportedCharacterJson } from '@axe/domain/character/import/charact
 import { detectImportFetchPlan, ImportFetchPlan } from '@axe/domain/character/import/import-source';
 import { ImportedCharacter } from '@axe/domain/character/import/imported-character';
 import { ImportedCharacterFactory } from '@axe/domain/character/import/imported-character-factory';
+import { loadLabelMaps } from '@axe/domain/character/import/system-profiles/label-maps';
 import { DisclosureMode } from '@axe/domain/disclosure/disclosure';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 
@@ -47,6 +48,7 @@ export class CharacterImportService {
       return { character: null, error: 'fetch-failed', imageResolved: false, service: serviceOf(plan) };
     }
 
+    await loadLabelMaps();
     const imported = parseImportedCharacterJson(json, plan.kind === 'jsonp' ? plan.system : undefined);
     if (!imported) {
       return { character: null, error: 'unrecognized', imageResolved: false, service: serviceOf(plan) };

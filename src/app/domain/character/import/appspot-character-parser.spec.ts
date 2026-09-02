@@ -1,8 +1,11 @@
 import { isAppspotCharacter, parseAppspotCharacter } from '@axe/domain/character/import/appspot-character-parser';
 import { parseImportedCharacterText } from '@axe/domain/character/import/character-import-format';
 import { ImportedSection } from '@axe/domain/character/import/imported-character';
+import { loadLabelMaps } from '@axe/domain/character/import/system-profiles/label-maps';
 
 describe('parseAppspotCharacter', () => {
+  beforeAll(() => loadLabelMaps());
+
   // built from real data of one system at the sheet warehouse
   const dx3 = {
     base: {

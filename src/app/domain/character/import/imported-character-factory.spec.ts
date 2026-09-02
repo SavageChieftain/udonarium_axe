@@ -5,11 +5,14 @@ import { ImportedCharacterFactory } from '@axe/domain/character/import/imported-
 import { buildCoc6CharasheetCharacter } from '@axe/domain/character/import/system-profiles/coc6-charasheet-profile';
 import { buildCoc7CharasheetCharacter } from '@axe/domain/character/import/system-profiles/coc7-charasheet-profile';
 import { buildDx3AppspotCharacter } from '@axe/domain/character/import/system-profiles/dx3-appspot-profile';
+import { loadLabelMaps } from '@axe/domain/character/import/system-profiles/label-maps';
 import { buildShinobigamiAppspotCharacter } from '@axe/domain/character/import/system-profiles/shinobigami-appspot-profile';
 import { buildYtsheetSw25Character } from '@axe/domain/character/import/system-profiles/ytsheet-sw25-profile';
 import { DataElementFieldType, DataElementRole, DataElementType } from '@axe/domain/data/data-element';
 
 describe('ImportedCharacterFactory', () => {
+  beforeAll(() => loadLabelMaps());
+
   let store: ObjectStore;
 
   beforeEach(() => {

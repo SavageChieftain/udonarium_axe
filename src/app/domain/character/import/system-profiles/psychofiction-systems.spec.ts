@@ -1,6 +1,9 @@
 import { parseAppspotCharacterForSystem } from '@axe/domain/character/import/system-profiles/appspot-profiles';
+import { loadLabelMaps } from '@axe/domain/character/import/system-profiles/label-maps';
 
 describe('PF_APPSPOT_SYSTEMS (registry-driven psycho-fiction imports)', () => {
+  beforeAll(() => loadLabelMaps());
+
   it('takes one system with its skill table, its abilities and its dice bot', () => {
     const result = parseAppspotCharacterForSystem(
       {
