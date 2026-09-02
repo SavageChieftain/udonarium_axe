@@ -124,9 +124,11 @@ export class UIPanelComponent {
     afterNextRender({
       write: () => {
         this.panelService.setDefaultScrollablePanel(this.scrollablePanel().nativeElement);
-        this.timerCheckWindowSize = setInterval(() => {
-          this.chkeWindowMinSize();
-        }, 500);
+        if (this.panelService.cutInIdentifier) {
+          this.timerCheckWindowSize = setInterval(() => {
+            this.chkeWindowMinSize();
+          }, 500);
+        }
       },
     });
     this.destroyRef.onDestroy(() => {

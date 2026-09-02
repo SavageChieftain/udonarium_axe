@@ -460,6 +460,23 @@ describe('UIPanelComponent', () => {
   });
 
   describe('timerCheckWindowSize cleanup', () => {
+    it('watches the window size only for a cut-in panel', async () => {
+      const priv = component as unknown as { timerCheckWindowSize: ReturnType<typeof setInterval> | null };
+      fixture.detectChanges();
+      await fixture.whenStable();
+
+      expect(priv.timerCheckWindowSize).toBeNull();
+    });
+
+    it('watches the window size for a cut-in panel', async () => {
+      const priv = component as unknown as { timerCheckWindowSize: ReturnType<typeof setInterval> | null };
+      component.panelService.cutInIdentifier = 'cut-in';
+      fixture.detectChanges();
+      await fixture.whenStable();
+
+      expect(priv.timerCheckWindowSize).not.toBeNull();
+    });
+
     it('clears the window size timer on teardown', () => {
       const clearIntervalSpy = vi.spyOn(globalThis, 'clearInterval');
       const priv = component as unknown as { timerCheckWindowSize: ReturnType<typeof setInterval> | null };
