@@ -1,5 +1,4 @@
 import { domainPeerDisconnect$ } from '@axe/core/event/domain-events';
-import { Logger } from '@axe/core/logging/logger';
 import { getMyPeerId, getPeerIds } from '@axe/core/network/peer-context-source';
 import { ImageFile } from '@axe/core/storage/image-file';
 import { ImageStorage } from '@axe/core/storage/image-storage';
@@ -262,11 +261,16 @@ export class PeerCursor extends GameObject {
     return null;
   }
 
+  /**
+   * The cursor that stands for whoever is reading, built afresh.
+   *
+   * One already in place is thrown away rather than handed back. It carries a name, a role
+   * and a picture that were settled by whatever put it there, and a caller asking for its
+   * own cursor is asking for one whose state it can count on.
+   */
   static createMyCursor(): PeerCursor {
-    if (PeerCursor.myCursor) {
-      Logger.warn('[PeerCursor] 既に作成済みです');
-      return PeerCursor.myCursor;
-    }
+    const previous = PeerCursor.myCursor;
+    if (previous) ObjectStore.instance.remove(previous);
     PeerCursor.myCursor = new PeerCursor();
     PeerCursor.myCursor.peerId = getMyPeerId();
     PeerCursor.myCursor.isDisConnect = false;
