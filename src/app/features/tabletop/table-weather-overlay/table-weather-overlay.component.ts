@@ -56,6 +56,8 @@ export class TableWeatherOverlayComponent {
    * Above the table means the volume, not the floor. The camera moves even when the board
    * does not, so the projection is worked out afresh on every pass.
    */
+  private readonly reprojectTick = computed(() => Math.floor(this.ambienceService.now() / REPROJECT_INTERVAL_MS));
+
   private readonly projected = computed<ScreenPoint[]>(() => {
     if (!this.ambienceService.weather()) return [];
 
@@ -67,7 +69,7 @@ export class TableWeatherOverlayComponent {
     const depth = table.height * table.gridSize;
     if (width <= 0 || depth <= 0) return [];
 
-    Math.floor(this.ambienceService.now() / REPROJECT_INTERVAL_MS);
+    this.reprojectTick();
 
     const ceiling = Math.max(table.wallHeight, MIN_SKY_CELLS) * table.gridSize;
     const box = [0, ceiling].flatMap((z) => [
