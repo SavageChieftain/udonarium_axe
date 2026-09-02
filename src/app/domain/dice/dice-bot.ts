@@ -1,6 +1,7 @@
 import {
   diceTableMessage$,
   DiceTableMessageEvent,
+  emitDiceBotCatalogLoaded,
   emitDiceRolled,
   emitSendMessage,
   resourceEditMessage$,
@@ -27,7 +28,7 @@ import type StaticLoader from 'bcdice/lib/loader/static_loader';
 @SyncObject('dice-bot')
 export class DiceBot extends GameObject {
   private static loader: StaticLoader;
-  private static queue: PromiseQueue = DiceBot.initializeDiceBotQueue();
+  private static queue: PromiseQueue | null = null;
   private resourceProcessor = new ResourceEditProcessor(
     DiceBot.diceRollAsync.bind(DiceBot),
     DiceBot.loadGameSystemAsync.bind(DiceBot)
@@ -54,7 +55,7 @@ export class DiceBot extends GameObject {
   }
 
   static async diceRollAsync(message: string, gameSystem: GameSystemClass): Promise<DiceRollResult> {
-    return DiceBot.queue.add(() => {
+    return DiceBot.loadingQueue.add(() => {
       try {
         const result = gameSystem.eval(message);
         if (result) {
@@ -91,7 +92,7 @@ export class DiceBot extends GameObject {
   }
 
   static async loadGameSystemAsync(gameType: string): Promise<GameSystemClass> {
-    return await DiceBot.queue.add(() => {
+    return await DiceBot.loadingQueue.add(() => {
       const system = this.loadCustomGameSystem(gameType);
       if (system) {
         return system;
@@ -105,6 +106,15 @@ export class DiceBot extends GameObject {
     });
   }
 
+  private static get loadingQueue(): PromiseQueue {
+    if (!DiceBot.queue) DiceBot.queue = DiceBot.initializeDiceBotQueue();
+    return DiceBot.queue;
+  }
+
+  static ensureLoaded(): Promise<void> {
+    return DiceBot.loadingQueue.add(() => undefined);
+  }
+
   private static initializeDiceBotQueue(): PromiseQueue {
     const queue = new PromiseQueue('DiceBotQueue');
     queue.add(async () => {
@@ -116,6 +126,7 @@ export class DiceBot extends GameObject {
         if (a.sortKey > b.sortKey) return 1;
         return 0;
       });
+      emitDiceBotCatalogLoaded();
     });
     return queue;
   }

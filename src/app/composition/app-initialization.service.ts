@@ -37,6 +37,9 @@ import { VnStage } from '@axe/domain/visual-novel/vn-stage';
 import { Vote } from '@axe/domain/vote/vote';
 import { NgSelectConfig } from '@ng-select/ng-select';
 
+const PREFETCH_IDLE_TIMEOUT_MS = 5000;
+const PREFETCH_FALLBACK_DELAY_MS = 1500;
+
 @Injectable({ providedIn: 'root' })
 export class AppInitializationService {
   private readonly fileArchiver = inject(FileArchiver);
@@ -96,7 +99,7 @@ export class AppInitializationService {
   private initializeDomainObjects(): void {
     const diceBot = new DiceBot('DiceBot');
     diceBot.initialize();
-    DiceBot.getHelpMessage('');
+    prefetchWhenIdle(() => void DiceBot.ensureLoaded());
 
     const jukebox = new Jukebox('Jukebox');
     jukebox.initialize();
@@ -270,4 +273,10 @@ export class AppInitializationService {
       PeerCursor.myCursor.role = normalizePeerRole(storedIdentity.role);
     }
   }
+}
+
+function prefetchWhenIdle(load: () => void): void {
+  const idleCallback = globalThis.requestIdleCallback;
+  if (typeof idleCallback === 'function') idleCallback(load, { timeout: PREFETCH_IDLE_TIMEOUT_MS });
+  else setTimeout(load, PREFETCH_FALLBACK_DELAY_MS);
 }

@@ -35,6 +35,10 @@ describe('DiceBot', () => {
   });
 
   describe('its static members', () => {
+    it('fetches nothing until a roll or a system is asked for', () => {
+      expect(DiceBot['queue']).toBeNull();
+    });
+
     it('lists the systems it knows', () => {
       expect(Array.isArray(DiceBot.diceBotInfos)).toBe(true);
     });
