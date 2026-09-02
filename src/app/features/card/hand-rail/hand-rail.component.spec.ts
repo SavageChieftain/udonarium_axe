@@ -81,6 +81,17 @@ describe('HandRailComponent', () => {
     expect(fixture.nativeElement.querySelector('.hand-rail')).toBeNull();
   });
 
+  it('draws the card text in your hand', async () => {
+    const card = makeCard(handLocationOf('me'));
+    card.faceText = '手札の文章';
+    TestBed.inject(HandRailService).open();
+
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    expect(fixture.nativeElement.querySelector('card-face-preview')).toBeTruthy();
+  });
+
   it('puts a card face up back onto the table and out of the hand', () => {
     const card = makeCard(handLocationOf('me'));
 

@@ -36,6 +36,7 @@ import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { surfaceOf } from '@axe/domain/tabletop/tabletop-object';
 import { CardDrawCountDialogComponent } from '@axe/features/card/card-draw-count-dialog/card-draw-count-dialog.component';
 import { buildCardStackContextMenu } from '@axe/features/card/card-stack/card-stack-context-menu';
+import { CardFaceTextComponent } from '@axe/ui/components/card-face-text/card-face-text.component';
 import { MovableOption } from '@axe/ui/directives/movable.directive';
 import { MovableDirective } from '@axe/ui/directives/movable.directive';
 import { RotableOption } from '@axe/ui/directives/rotable.directive';
@@ -53,7 +54,16 @@ import { TranslocoModule } from '@jsverse/transloco';
   selector: 'card-stack',
   templateUrl: './card-stack.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [MovableDirective, NgClass, RotableDirective, SelectableDirective, NgStyle, SafePipe, TranslocoModule],
+  imports: [
+    MovableDirective,
+    NgClass,
+    RotableDirective,
+    SelectableDirective,
+    NgStyle,
+    SafePipe,
+    TranslocoModule,
+    CardFaceTextComponent,
+  ],
   host: {
     '[style.display]': "isHiddenByFog() ? 'none' : null",
     class: 'block',

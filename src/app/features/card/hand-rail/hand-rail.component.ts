@@ -41,15 +41,15 @@ import {
   layoutHandFan,
 } from '@axe/features/card/hand-rail/hand-fan';
 import { HandRailService } from '@axe/features/card/hand-rail/hand-rail.service';
+import { CardFacePreviewComponent } from '@axe/ui/components/card-face-preview/card-face-preview.component';
 import { DraggableDirective } from '@axe/ui/directives/draggable.directive';
-import { SafePipe } from '@axe/ui/pipes/safe.pipe';
 import { TranslocoModule } from '@jsverse/transloco';
 
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-hand-rail',
   templateUrl: './hand-rail.component.html',
-  imports: [DraggableDirective, NgClass, SafePipe, TranslocoModule],
+  imports: [DraggableDirective, NgClass, TranslocoModule, CardFacePreviewComponent],
 })
 export class HandRailComponent {
   private readonly destroyRef = inject(DestroyRef);

@@ -49,6 +49,7 @@
             [src]="imageFile().url | safe: 'resourceUrl'"
           />
         </div>
+        <card-face-text [card]="topCard" [rotation]="topCard.rotate" />
       }
       @if (!isIconHidden() && !isLock) {
         @for (

@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
-import { Card } from '@axe/domain/card/card';
+import { Card, CardState } from '@axe/domain/card/card';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { DataElement, DataElementAttribute, DataElementRole } from '@axe/domain/data/data-element';
 import { DiceSymbol } from '@axe/domain/dice/dice-symbol';
@@ -131,6 +131,79 @@ describe('GameCharacterSheetComponent', () => {
       component.addDataElement();
 
       expect(card.detailDataElement?.children.length).toBe(beforeCount + 1);
+    } finally {
+      card.destroy();
+    }
+  });
+
+  it('debounces card face text while typing and flushes it on request', () => {
+    vi.useFakeTimers();
+    const card = Card.create('Information', 'front.png', 'back.png');
+    component.tabletopObject = card;
+    const textarea = document.createElement('textarea');
+    textarea.value = 'First draft';
+
+    try {
+      component.setCardOwnFaceText(card, { target: textarea } as unknown as Event);
+      expect(card.faceText).toBe('');
+
+      vi.advanceTimersByTime(65);
+      expect(card.faceText).toBe('');
+      vi.advanceTimersByTime(1);
+      expect(card.faceText).toBe('First draft');
+
+      textarea.value = 'Final draft';
+      component.setCardOwnFaceText(card, { target: textarea } as unknown as Event);
+      component.flushCardOwnFaceText();
+      expect(card.faceText).toBe('Final draft');
+    } finally {
+      vi.useRealTimers();
+      card.destroy();
+    }
+  });
+
+  it('does not put a hidden card face text into the editing DOM', () => {
+    const card = Card.create('Hidden card', 'front.png', 'back.png');
+    card.faceText = 'secret text';
+    card.state = CardState.BACK;
+    card.owner = 'another-user';
+    component.tabletopObject = card;
+
+    try {
+      fixture.detectChanges();
+      expect(fixture.nativeElement.querySelector('[data-card-face-locked]')).toBeTruthy();
+      expect(fixture.nativeElement.querySelector('textarea')).toBeNull();
+      expect(fixture.nativeElement.textContent).not.toContain('secret text');
+      expect(component.cardOwnFaceText(card)).toBe('');
+    } finally {
+      card.destroy();
+    }
+  });
+
+  it('ignores text updates while the card face is hidden', () => {
+    const card = Card.create('Hidden card', 'front.png', 'back.png');
+    card.faceText = 'original secret';
+    card.state = CardState.BACK;
+    card.owner = 'another-user';
+    const textarea = document.createElement('textarea');
+    textarea.value = 'attempted overwrite';
+
+    try {
+      component.setCardOwnFaceText(card, { target: textarea } as unknown as Event);
+      expect(card.faceText).toBe('original secret');
+    } finally {
+      card.destroy();
+    }
+  });
+
+  it('keeps another users claimed face out of the editor even if its state is front', () => {
+    const card = Card.create('Claimed card', 'front.png', 'back.png');
+    card.faceText = 'claimed secret';
+    card.owner = 'another-user';
+
+    try {
+      expect(component.canReadCardFace(card)).toBe(false);
+      expect(component.cardOwnFaceText(card)).toBe('');
     } finally {
       card.destroy();
     }

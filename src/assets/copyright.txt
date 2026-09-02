@@ -27,6 +27,12 @@ Comment: 本プロジェクトで作成した素材です。作り方は次の�
  images/trump/*.webp は数札・エース・裏面が作図、絵札とジョーカーの人物画は
  ローカルの ComfyUI による生成で、指標を重ねたもの。
 
+Files: images/trump/blank_card.png
+Copyright: 2019 Nanasu
+License: MIT
+Comment: Udonarium with Fly 由来。
+ 配布元: https://github.com/NanasuNANA/UdonariumWithFly
+
 Files: images/dice/*
  images/april_dice/*
  sounds/alarm/*

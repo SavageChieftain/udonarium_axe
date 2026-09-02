@@ -36,12 +36,14 @@ import { buildCardContextMenu } from '@axe/features/card/card/card-context-menu'
 import { selectOverlappingCards } from '@axe/features/card/card/overlapping-cards';
 import { elementsAt } from '@axe/features/card/hand-rail/elements-at';
 import { HandDragService } from '@axe/features/card/hand-rail/hand-drag.service';
+import { CardFaceTextComponent } from '@axe/ui/components/card-face-text/card-face-text.component';
 import { MovableOption } from '@axe/ui/directives/movable.directive';
 import { MovableDirective } from '@axe/ui/directives/movable.directive';
 import { RotableOption } from '@axe/ui/directives/rotable.directive';
 import { RotableDirective } from '@axe/ui/directives/rotable.directive';
 import { SelectableDirective } from '@axe/ui/directives/selectable.directive';
 import { SafePipe } from '@axe/ui/pipes/safe.pipe';
+import { containedImageRect } from '@axe/ui/tabletop/contained-image-rect';
 import { DoubleTap } from '@axe/ui/tabletop/double-tap';
 import { hideIconWhileTouched } from '@axe/ui/tabletop/icon-hiding';
 import { setupInputHandler, setupMovableRotableForPiece } from '@axe/ui/tabletop/setup-tabletop-piece';
@@ -52,7 +54,7 @@ import { translateZCss, Z_OFFSET_TABLETOP_OBJECT_PX } from '@axe/ui/tabletop/z-o
   selector: 'card',
   templateUrl: './card.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [MovableDirective, RotableDirective, SelectableDirective, NgStyle, SafePipe],
+  imports: [MovableDirective, RotableDirective, SelectableDirective, NgStyle, SafePipe, CardFaceTextComponent],
   host: {
     '[style.display]': "isHiddenByFog() ? 'none' : null",
     class: 'block',
@@ -217,13 +219,36 @@ export class CardComponent {
     return supersampleFactor(Math.min(natural.width, natural.height), this.size * this.gridSize);
   });
 
-  readonly peekSupersamplePercent = computed(() => this.peekSupersample() * 100 + '%');
-
-  readonly peekSupersampleInset = computed(() => supersampleInsetPercent(this.peekSupersample()) + '%');
-
   readonly peekTransform = computed(() =>
     supersampleTransform({ factor: this.peekSupersample(), anchor: 'center', inner: 'scale(0.9)' })
   );
+
+  private readonly peekFrameRect = computed(() => {
+    const frameWidth = this.size * this.gridSize;
+    const back = this.imageNaturalSize();
+    const frameHeight = back && back.width > 0 ? (frameWidth * back.height) / back.width : frameWidth;
+    return { width: frameWidth, height: frameHeight };
+  });
+
+  readonly peekImageLayout = computed(() => {
+    const frame = this.peekFrameRect();
+    const factor = this.peekSupersample();
+    const width = frame.width * factor;
+    const height = frame.height * factor;
+    return {
+      left: (frame.width - width) / 2,
+      top: (frame.height - height) / 2,
+      width,
+      height,
+    };
+  });
+
+  readonly peekFaceRect = computed(() => {
+    const frame = this.peekFrameRect();
+    const front = this.peekNaturalSize();
+    if (!front) return { left: 0, top: 0, ...frame };
+    return containedImageRect(frame.width, frame.height, front.width, front.height) ?? { left: 0, top: 0, ...frame };
+  });
 
   private readonly handDrag = inject(HandDragService);
 

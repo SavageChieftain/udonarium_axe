@@ -94,6 +94,7 @@ export class GameCharacterSheetComponent {
     return this._tabletopObject();
   }
   set tabletopObject(value: CharacterSheetTarget | null) {
+    this.flushCardOwnFaceText();
     this._tabletopObject.set(value);
     this.editingIds.set(new Set());
     this.activeTab.set('sheet');
@@ -225,6 +226,42 @@ export class GameCharacterSheetComponent {
     const value = (event.target as HTMLInputElement).valueAsNumber;
     if (!Number.isFinite(value)) return;
     c.size = Math.max(1, Math.min(20, Math.round(value)));
+  }
+  private cardFaceTextUpdateTimer: ReturnType<typeof setTimeout> | null = null;
+  private pendingCardFaceText: { card: Card; value: string } | null = null;
+
+  canReadCardFace(c: Card): boolean {
+    this.objectChange.versionOf(c.identifier)();
+    if (PeerCursor.myCursor) this.objectChange.versionOf(PeerCursor.myCursor.identifier)();
+    const isOwnedByAnotherUser = c.hasOwner && !c.isMine;
+    return this.rolePermission.canSeeHidden || (!isOwnedByAnotherUser && c.isVisible);
+  }
+
+  cardOwnFaceText(c: Card): string {
+    this.objectChange.versionOf(c.identifier)();
+    return this.canReadCardFace(c) ? c.faceText : '';
+  }
+  setCardOwnFaceText(c: Card, event: Event): void {
+    if (!this.canReadCardFace(c)) return;
+    if (this.cardFaceTextUpdateTimer) clearTimeout(this.cardFaceTextUpdateTimer);
+    this.pendingCardFaceText = { card: c, value: (event.target as HTMLTextAreaElement).value };
+    this.cardFaceTextUpdateTimer = setTimeout(() => this.flushCardOwnFaceText(), 66);
+  }
+  flushCardOwnFaceText(): void {
+    if (this.cardFaceTextUpdateTimer) clearTimeout(this.cardFaceTextUpdateTimer);
+    this.cardFaceTextUpdateTimer = null;
+    const pending = this.pendingCardFaceText;
+    this.pendingCardFaceText = null;
+    if (pending && this.canReadCardFace(pending.card)) pending.card.faceText = pending.value;
+  }
+  cardOwnFaceFontSize(c: Card): number {
+    this.objectChange.versionOf(c.identifier)();
+    return this.canReadCardFace(c) ? c.faceFontSize : Card.DEFAULT_FACE_FONT_SIZE;
+  }
+  setCardOwnFaceFontSize(c: Card, event: Event): void {
+    if (!this.canReadCardFace(c)) return;
+    const value = (event.target as HTMLInputElement).valueAsNumber;
+    if (Number.isFinite(value)) c.faceFontSize = value;
   }
 
   textNoteTitle(note: TextNote): string {
@@ -434,6 +471,7 @@ export class GameCharacterSheetComponent {
       const char = this.character;
       if (char) untracked(() => char.addExtendData());
     });
+    this.destroyRef.onDestroy(() => this.flushCardOwnFaceText());
   }
 
   toggleEditMode() {
