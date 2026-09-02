@@ -62,6 +62,7 @@ function percentile(sorted: readonly number[], fraction: number): number {
 export class RenderStatsService {
   readonly watching = signal(false);
   readonly stats = signal<RenderStats>(EMPTY_STATS);
+  readonly totals = signal<ReadonlyMap<string, number>>(new Map());
 
   private frames: number[] = [];
   private lastFrameAt = 0;
@@ -72,6 +73,7 @@ export class RenderStatsService {
   private longTasks = 0;
   private longTaskMs = 0;
   private updates: Record<WatchedComponent, number> = { TerrainComponent: 0, GameTableComponent: 0 };
+  private readonly accumulated = new Map<string, number>();
 
   start(): void {
     if (this.watching()) return;
@@ -99,7 +101,9 @@ export class RenderStatsService {
     this.rafHandle = null;
     this.sampleHandle = null;
     this.stopProfiler = null;
+    this.accumulated.clear();
     this.stats.set(EMPTY_STATS);
+    this.totals.set(new Map());
   }
 
   reset(): void {
@@ -107,6 +111,8 @@ export class RenderStatsService {
     this.updates = { TerrainComponent: 0, GameTableComponent: 0 };
     this.longTasks = 0;
     this.longTaskMs = 0;
+    this.accumulated.clear();
+    this.totals.set(new Map());
     perfCounters.clear();
   }
 
@@ -147,6 +153,10 @@ export class RenderStatsService {
     const table = document.getElementById('app-game-table');
     const tableElements = table ? table.querySelectorAll('*').length : 0;
     const sorted = [...this.frames].sort((a, b) => a - b);
+    const counters = perfCounters.drain();
+    for (const [key, count] of counters) {
+      this.accumulated.set(key, (this.accumulated.get(key) ?? 0) + count);
+    }
 
     this.stats.set({
       terrains,
@@ -154,7 +164,7 @@ export class RenderStatsService {
       tableElements,
       elementsPerTerrain: terrains > 0 ? tableElements / terrains : 0,
       updates: { ...this.updates },
-      counters: perfCounters.drain(),
+      counters,
       frameLast: this.frames.at(-1) ?? 0,
       frameP50: percentile(sorted, 0.5),
       frameP95: percentile(sorted, 0.95),
@@ -165,6 +175,7 @@ export class RenderStatsService {
       longTasksAvailable: this.longTaskObserver !== null,
       profilerAvailable: this.stopProfiler !== null,
     });
+    this.totals.set(new Map(this.accumulated));
     this.updates = { TerrainComponent: 0, GameTableComponent: 0 };
     this.longTasks = 0;
     this.longTaskMs = 0;

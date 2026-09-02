@@ -45,6 +45,32 @@ describe('RenderStatsService', () => {
     expect(service.stats().counters.get('visionScene')).toBeUndefined();
   });
 
+  it('keeps a running total across seconds until it is reset', () => {
+    service.start();
+    perfCounters.bump('visionScene');
+    perfCounters.bump('visionScene');
+    vi.advanceTimersByTime(1000);
+    perfCounters.bump('visionScene');
+    perfCounters.add('particles', 40);
+    vi.advanceTimersByTime(1000);
+
+    expect(service.totals().get('visionScene')).toBe(3);
+    expect(service.totals().get('particles')).toBe(40);
+
+    service.reset();
+
+    expect(service.totals().size).toBe(0);
+  });
+
+  it('forgets the totals when the panel is closed', () => {
+    service.start();
+    perfCounters.bump('visionScene');
+    vi.advanceTimersByTime(1000);
+    service.stop();
+
+    expect(service.totals().size).toBe(0);
+  });
+
   it('stops counting when the panel is closed', () => {
     service.start();
     service.stop();

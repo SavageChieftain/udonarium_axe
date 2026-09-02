@@ -29,6 +29,10 @@ export class RenderStatsComponent {
 
   private static readonly named = new Set<string>([PERF_VISION_SCENE, PERF_VISION_MEMO_MISS, PERF_TERRAIN_GRID_RASTER]);
 
+  protected readonly totalCounters = computed(() =>
+    [...this.renderStats.totals()].sort((a, b) => b[1] - a[1]).map(([key, count]) => ({ key, count }))
+  );
+
   protected readonly otherCounters = computed(() =>
     [...this.stats().counters]
       .filter(([key]) => !RenderStatsComponent.named.has(key))
