@@ -1,6 +1,6 @@
 import { cellGridOf } from '@axe/domain/tabletop/fog/cell-grid';
-import { FogMemory } from '@axe/domain/tabletop/fog/fog-memory';
-import { GridType } from '@axe/domain/tabletop/game-table';
+import { ensureFogMemoryOn, FogMemory, fogMemoryIdentifierOf } from '@axe/domain/tabletop/fog/fog-memory';
+import { GameTable, GridType } from '@axe/domain/tabletop/game-table';
 
 describe('FogMemory: the pieces the party has met', () => {
   it('starts out having met nobody', () => {
@@ -30,5 +30,39 @@ describe('FogMemory: the pieces the party has met', () => {
 
     expect(memory.readFound().size).toBe(0);
     expect(memory.bits).toBe('');
+  });
+});
+
+describe('the one record a table keeps', () => {
+  function makeTable(): GameTable {
+    const table = new GameTable();
+    table.initialize();
+    return table;
+  }
+
+  it('names the record after the table it belongs to', () => {
+    const table = makeTable();
+    expect(ensureFogMemoryOn(table).identifier).toBe(fogMemoryIdentifierOf(table));
+    table.destroy();
+  });
+
+  it('hands the same one back rather than hanging a second on the table', () => {
+    const table = makeTable();
+    const first = ensureFogMemoryOn(table);
+
+    expect(ensureFogMemoryOn(table)).toBe(first);
+    expect(table.children.filter((child) => child instanceof FogMemory)).toHaveLength(1);
+
+    table.destroy();
+  });
+
+  it('gives two tables records of their own', () => {
+    const one = makeTable();
+    const other = makeTable();
+
+    expect(ensureFogMemoryOn(one).identifier).not.toBe(ensureFogMemoryOn(other).identifier);
+
+    one.destroy();
+    other.destroy();
   });
 });

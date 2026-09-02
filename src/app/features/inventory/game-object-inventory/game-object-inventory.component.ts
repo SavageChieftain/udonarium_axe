@@ -948,6 +948,8 @@ export class GameObjectInventoryComponent {
    * panel does, by being told it has been closed.
    */
   toggleEdit() {
+    // What this opens can show what the game master has hidden, so it stays theirs to open.
+    if (!this.rolePermission.canEditTabletop) return;
     if (this.isEdit()) {
       this.panelService.closeSingle(INVENTORY_FILTER_PANEL);
       this.isEdit.set(false);

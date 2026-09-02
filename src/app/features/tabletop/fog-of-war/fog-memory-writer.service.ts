@@ -89,7 +89,8 @@ export class FogMemoryWriterService {
     const memory = fogMemoryOn(table);
     if (memory && memory.generation !== held.generation) return;
     const groundKnown = !!memory && memory.matches(grid) && memory.read(grid).covers(held.bits);
-    const metKnown = !memory || [...held.found].every((identifier) => memory.readFound().has(identifier));
+    const known = memory?.readFound();
+    const metKnown = !known || [...held.found].every((identifier) => known.has(identifier));
     if (groundKnown && metKnown) return;
     const target = memory ?? ensureFogMemoryOn(table);
     target.write(grid, held.bits);

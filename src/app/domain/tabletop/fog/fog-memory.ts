@@ -67,10 +67,22 @@ export function fogMemoryOn(table: GameTable): FogMemory | null {
   return table.children.find((child): child is FogMemory => child instanceof FogMemory) ?? null;
 }
 
+/**
+ * The name the record of a table goes under.
+ *
+ * Named after the table rather than given one of its own, so that two clients which both
+ * believe themselves the scribe write the same record instead of hanging a second one on the
+ * table. Two records would leave half the room reading one the other half never wrote to,
+ * and a clearing would reach only one of them.
+ */
+export function fogMemoryIdentifierOf(table: GameTable): string {
+  return `fog-memory_${table.identifier}`;
+}
+
 export function ensureFogMemoryOn(table: GameTable): FogMemory {
   const held = fogMemoryOn(table);
   if (held) return held;
-  const memory = new FogMemory();
+  const memory = new FogMemory(fogMemoryIdentifierOf(table));
   memory.initialize();
   table.appendChild(memory);
   return memory;

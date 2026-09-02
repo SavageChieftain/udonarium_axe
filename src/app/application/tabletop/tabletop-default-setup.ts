@@ -136,6 +136,7 @@ export function makeDefaultTabletopObjects(imageStorage: ImageStorage): void {
   ImageTag.create(testFile.identifier).tag = 'モンスター';
 
   CharacterTemplateFactory.createDefault(testCharacter, 'モンスターA', 1, testFile.identifier);
+  testCharacter.isNpc = true;
   applySampleStats(testCharacter, 'ゴブリン');
   addBuffRound(testCharacter, 'テストバフ1', '防+1', 3);
 
@@ -144,6 +145,7 @@ export function makeDefaultTabletopObjects(imageStorage: ImageStorage): void {
   testCharacter.location.y = 8 * 50;
   testCharacter.initialize();
   CharacterTemplateFactory.createDefault(testCharacter, 'モンスターB', 1, testFile.identifier);
+  testCharacter.isNpc = true;
   applySampleStats(testCharacter, '手負いのゴブリン');
 
   testCharacter = new GameCharacter('testCharacter_3');
@@ -156,6 +158,7 @@ export function makeDefaultTabletopObjects(imageStorage: ImageStorage): void {
   testFile = imageStorage.add(fileContext);
   ImageTag.create(testFile.identifier).tag = 'モンスター';
   CharacterTemplateFactory.createDefault(testCharacter, 'モンスターC', 3, testFile.identifier);
+  testCharacter.isNpc = true;
   applySampleStats(testCharacter, 'ゴーレム');
 
   testCharacter = new GameCharacter('testCharacter_4');

@@ -52,6 +52,14 @@ export interface SceneVisionSource {
   type: VisionType;
   rangePx: number;
   owner: string;
+  /**
+   * Whether the piece is the game master's to run rather than somebody's to play.
+   *
+   * A piece nobody has claimed is the party's eyes, since user ids change between
+   * connections. One marked as the game master's is not: a monster set out on the board
+   * would otherwise clear the fog for the very people it is hiding from.
+   */
+  isNpc?: boolean;
   partyId?: string;
   sourceId: string;
   /** Where the piece faces, in degrees, with the lobes measured from it. */

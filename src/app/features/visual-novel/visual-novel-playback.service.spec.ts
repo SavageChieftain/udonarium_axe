@@ -102,6 +102,19 @@ describe('VisualNovelPlaybackService', () => {
     });
   });
 
+  it('starts at the scene when the line picked out has nothing before it', () => {
+    // The tab opens on an aside, which the script passes over, and a scene line follows it.
+    say('ちょっと待って', PeerCursor.myCursor.identifier, { senderRole: PeerRole.Player });
+    say('では、始めよう', character.identifier);
+    say('こんにちは', character.identifier);
+    TestBed.inject(ObjectChangeService).notifyChanged(tab.identifier);
+    const aside = playback.logMessages()[0];
+
+    playback.jumpToIdentifier(aside.identifier);
+
+    expect(playback.currentMessage()?.text).toBe('では、始めよう');
+  });
+
   it('keeps a roll and the line it was asked for on', () => {
     const player = PeerCursor.myCursor.identifier;
     say('2d6', player);

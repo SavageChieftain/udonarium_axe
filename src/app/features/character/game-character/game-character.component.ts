@@ -897,10 +897,9 @@ export class GameCharacterComponent {
 
     const heard = entries.filter((entry) => entry.playsSound);
     const loudest = loudestChange(heard);
-    if (loudest) {
-      const heardKind = heard.some((entry) => entry.kind === 'damage') ? 'damage' : 'heal';
-      SoundEffect.playLocal(resourceChangeSound(heardKind, loudest.ratio, loudest.soundSet));
-    }
+    // One line is heard, so all three of what is heard come from it. Taken apart, a point of
+    // damage alongside a large heal was played as a large hurt, in the heal's own voice.
+    if (loudest) SoundEffect.playLocal(resourceChangeSound(loudest.kind, loudest.ratio, loudest.soundSet));
 
     const shown = entries.filter((entry) => entry.playsEffect);
     const char = this.gameCharacter();

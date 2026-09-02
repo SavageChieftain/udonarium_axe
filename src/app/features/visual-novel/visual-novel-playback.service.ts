@@ -325,6 +325,9 @@ export class VisualNovelPlaybackService {
         return;
       }
     }
+    // Nothing before it belongs to the scene, which is what a tab opening on an aside looks
+    // like. The first line of the scene is where reading starts, rather than nowhere at all.
+    if (messages.length > 0) this.cursor.set(messages.length > 1 ? 0 : -1);
   }
 
   toggleAutoPlay(): void {

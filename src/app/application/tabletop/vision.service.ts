@@ -372,9 +372,10 @@ export class VisionService {
       const shown = this.shownVisionIds();
       // Sight belongs to the piece standing on the table. A piece nobody has claimed is the
       // party's eyes all the same — user ids change between connections, and nothing on the
-      // piece says whose it is. Only a piece a game master has claimed is theirs to keep aside.
+      // piece says whose it is. A piece marked as the game master's is theirs to keep aside,
+      // claimed or not: a monster set out on the board is not one of the party's eyes.
       for (const source of scene.visionSources) {
-        const communal = source.owner === '';
+        const communal = source.owner === '' && !source.isNpc;
         const wanted =
           communal ||
           players.has(source.owner) ||
@@ -999,6 +1000,7 @@ export class VisionService {
         type: character.visionType as VisionType,
         rangePx: character.visionRange * gridSize,
         owner: character.owner,
+        isNpc: character.isNpc,
         partyId: character.partyIdentifier,
         sourceId: character.identifier,
         direction: spec.direction,

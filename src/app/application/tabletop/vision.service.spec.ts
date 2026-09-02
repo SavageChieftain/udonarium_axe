@@ -750,6 +750,24 @@ describe('VisionService', () => {
       expect(overhead!.brightness[0]).toBeLessThan(0.15);
     });
 
+    it('keeps a monster nobody has claimed out of the party map', () => {
+      const table = makeDarkTable();
+      table.fogEnabled = true;
+      table.fogMode = 'hard';
+      makeMyCursor('p1', PeerRole.Player);
+      const monster = GameCharacter.create('NPC', 1, '');
+      monster.isNpc = true;
+      monster.location.x = 450;
+      monster.location.y = 300;
+      monster.lightEnabled = true;
+      monster.lightBrightRadius = 2;
+      monster.lightDimRadius = 4;
+      table.appendChild(monster);
+
+      const standingCell = 6 * 20 + 9;
+      expect(service.sharedVisibleCells()?.cells.get(standingCell)).toBe(false);
+    });
+
     it('shows a reader with no piece of their own the party view, not every lamp on the map', () => {
       const table = tableRememberingCell('normal', NPC_CELL);
       makeMyCursor('p1', PeerRole.Player);
