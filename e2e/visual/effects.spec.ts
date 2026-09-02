@@ -1,11 +1,11 @@
 import { expect, Page, test } from '@playwright/test';
 
 import { createCharacter } from '../helpers';
-import { closePanels, freeze, prepare, settle, snap } from './fixtures';
+import { closePanels, freeze, prepare, settle, settleLazy, snap } from './fixtures';
 
 async function castOn(page: Page, preset: string) {
   await page.locator('app-pl-toolbar button[title="エフェクト"]').click();
-  await settle(page);
+  await settleLazy(page);
   const panel = page.locator('app-effect-library-panel');
   await expect(panel).toBeVisible();
   await panel.getByPlaceholder('名前・系統で絞り込む').fill(preset);

@@ -8,8 +8,11 @@ test('a line typed into the novel overlay looks the same mid-reveal', async ({ p
   await closePanels(page);
   await openPanel(page, 'ノベルモード');
   await expect(page.locator('visual-novel-overlay')).toBeVisible();
-  await freeze(page);
   const input = vnMessageInput(page);
+  await input.fill('準備');
+  await input.press('Enter');
+  await expect(page.locator('visual-novel-overlay')).toContainText('準備', { timeout: 30000 });
+  await freeze(page);
   await input.fill('やあ、これはテストです。長めの台詞でタイプライタの途中を撮る。');
   await input.press('Enter');
   await settle(page, 600);

@@ -56,6 +56,11 @@ export async function settle(page: Page, ms = 40) {
   await page.clock.runFor(ms);
 }
 
+export async function settleLazy(page: Page) {
+  await page.waitForTimeout(400);
+  await page.clock.runFor(40);
+}
+
 export async function rightClickTable(page: Page, position: { x: number; y: number }): Promise<Locator> {
   await page.locator('#app-table-layer').click({ button: 'right', position });
   await settle(page);
@@ -83,6 +88,7 @@ export async function closeModal(page: Page) {
 export async function openTableSetting(page: Page) {
   const menu = await rightClickTable(page, { x: 900, y: 250 });
   await chooseMenu(page, menu, 'テーブル設定');
+  await settleLazy(page);
   await expect(page.locator('modal select[name="tableGridType"]')).toBeVisible();
 }
 
