@@ -18,7 +18,7 @@ import {
   VisualNovelSettingsService,
   VN_TYPEWRITER_INTERVAL_MS,
 } from '@axe/features/visual-novel/visual-novel-settings.service';
-import { toGraphemes } from '@axe/features/visual-novel/visual-novel-text';
+import { graphemeEnds } from '@axe/features/visual-novel/visual-novel-text';
 
 const AUTO_PLAY_BASE_WAIT_MS = 1200;
 const AUTO_PLAY_PER_CHAR_MS = 35;
@@ -157,11 +157,17 @@ export class VisualNovelPlaybackService {
     return vnBodyOf(message?.vnEmote, readableMessageText(message, this.translate));
   });
 
-  private readonly currentGraphemes = computed(() => toGraphemes(this.currentFullText()));
+  private readonly currentGraphemeEnds = computed(() => graphemeEnds(this.currentFullText()));
 
-  readonly displayedText = computed(() => this.currentGraphemes().slice(0, this.typedLength()).join(''));
+  readonly displayedText = computed(() => {
+    const typed = this.typedLength();
+    if (typed < 1) return '';
+    const ends = this.currentGraphemeEnds();
+    if (typed >= ends.length) return this.currentFullText();
+    return this.currentFullText().slice(0, ends[typed - 1]);
+  });
 
-  readonly isTyping = computed(() => this.typedLength() < this.currentGraphemes().length);
+  readonly isTyping = computed(() => this.typedLength() < this.currentGraphemeEnds().length);
 
   readonly currentIsDiceCommand = computed(() => this.isDiceCommandAt(this.currentIndex()));
 
@@ -259,7 +265,7 @@ export class VisualNovelPlaybackService {
   advance(): void {
     if (this.isTyping()) {
       this.stopTypewriter();
-      this.typedLength.set(this.currentGraphemes().length);
+      this.typedLength.set(this.currentGraphemeEnds().length);
       return;
     }
     const index = this.currentIndex();
@@ -391,7 +397,7 @@ export class VisualNovelPlaybackService {
     this.stopTypewriter();
     const readable = readableMessageText(message, this.translate);
     const emote = vnEmoteOf(message?.vnEmote, readable);
-    const total = toGraphemes(vnBodyOf(message?.vnEmote, readable)).length;
+    const total = graphemeEnds(vnBodyOf(message?.vnEmote, readable)).length;
     const interval = VN_TYPEWRITER_INTERVAL_MS[this.settings.typewriterSpeed()];
     const isDiceCommand = this.currentIsDiceCommand();
     if (this.revealInstantly || interval < 1 || emote.kind === 'location' || emote.kind === 'scene' || isDiceCommand) {
