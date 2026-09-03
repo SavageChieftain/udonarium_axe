@@ -20,6 +20,9 @@ import {
 } from '@skyway-sdk/core';
 import { EventEmitter } from 'eventemitter3';
 
+/** How much the channel may already be holding before the queue waits for it to drain. */
+const SEND_BUFFER_LIMIT_BYTES = 1024 * 1024;
+
 interface Ping {
   from: string;
   ping: number;
@@ -348,19 +351,28 @@ export class SkyWayDataStream extends EventEmitter implements WebRTCConnection {
     if (!this.isQueuing) this.execQueue();
   }
 
+  /**
+   * Sends what is queued, as much of it as the channel will take.
+   *
+   * A message larger than a chunk is queued in pieces, and one piece used to go per turn of
+   * the event loop, so a picture went at the speed the browser got round to it rather than
+   * the speed the line could carry. The channel is asked how much it is already holding and
+   * fed until that reaches the limit, which is what keeps a slow line from being buried.
+   */
   private execQueue = () => {
     if (!this.dataChannel || this.dataChannel.readyState !== 'open') {
       this.isQueuing = false;
       return;
     }
     for (const data of this.sendQueue) {
+      if ((this.dataChannel.bufferedAmount ?? 0) >= SEND_BUFFER_LIMIT_BYTES) break;
       try {
         this.dataChannel.send(data as unknown as ArrayBufferView<ArrayBuffer>);
         this.sendQueue.delete(data);
       } catch (err) {
         Logger.error('[SkyWay] データ送信エラー', err);
+        break;
       }
-      break;
     }
     this.isQueuing = this.sendQueue.size > 0;
     if (this.isQueuing) setZeroTimeout(this.execQueue);
