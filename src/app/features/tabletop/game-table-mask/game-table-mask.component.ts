@@ -307,7 +307,7 @@ export class GameTableMaskComponent {
     return this.tabletopService.gridSize();
   }
   math = Math;
-  readonly viewRotateZ = computed(() => this.uiSignalService.tableViewRotation()?.z ?? 10);
+  readonly viewRotateZ = this.uiSignalService.tableViewRotationZ;
 
   readonly gridType = computed(() => {
     const table = this.tableSelecter.viewTable;

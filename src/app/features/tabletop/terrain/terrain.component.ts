@@ -584,7 +584,7 @@ export class TerrainComponent {
   slopeDirectionState = SlopeDirection;
 
   private _initialized = false;
-  readonly viewRotateZ = computed(() => this.uiSignalService.tableViewRotation()?.z ?? 10);
+  readonly viewRotateZ = this.uiSignalService.tableViewRotationZ;
 
   onDragstart(e: DragEvent) {
     e.stopPropagation();

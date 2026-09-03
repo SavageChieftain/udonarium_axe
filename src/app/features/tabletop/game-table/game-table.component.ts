@@ -209,6 +209,7 @@ export class GameTableComponent {
     this.destroyRef.onDestroy(() => {
       if (this.glideTimer !== null) clearTimeout(this.glideTimer);
       this.glideTimer = null;
+      this.gestureService.destroy();
     });
     // A piece's own change bumps its version, not the collection's, so the order it is
     // laid out in has to be told about separately - and only when the order really moved.

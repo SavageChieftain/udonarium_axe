@@ -37,6 +37,9 @@ export class GameTableGestureService {
 
   tiltLocked = false;
 
+  private frame: number | null = null;
+  private turned = false;
+
   private mouseGesture: TableMouseGesture | null = null;
   private touchGesture: TableTouchGesture | null = null;
   private marqueeGesture: TableMarqueeGesture | null = null;
@@ -79,6 +82,11 @@ export class GameTableGestureService {
     this.touchGesture.onSynthesizeContextMenu = () => this.pointerDeviceService.cancelPendingContextMenu();
   }
 
+  destroy(): void {
+    if (this.frame !== null) cancelAnimationFrame(this.frame);
+    this.frame = null;
+  }
+
   cancelInput(): void {
     if (!this.gridCanvasEl) return;
     this.mouseGesture?.cancel();
@@ -90,6 +98,14 @@ export class GameTableGestureService {
     this.gridCanvasEl.style.opacity = opacity + '';
   }
 
+  /**
+   * Moves the view by the amounts given, and shows the move on the next frame.
+   *
+   * A mouse reports where it is far oftener than the screen is redrawn, and every report used
+   * to write a transform and tell every piece on the table which way it now faces. The sums
+   * are still done here, so anything asking how the view stands is answered at once; the
+   * writing and the telling happen together, once, when the frame comes round.
+   */
   setTransform(tX: number, tY: number, tZ: number, rX: number, rY: number, rZ: number): void {
     if (this.tiltLocked) {
       rX = -this.viewRotateX;
@@ -102,10 +118,16 @@ export class GameTableGestureService {
     this.viewPositionY += tY;
     this.viewPositionZ += tZ;
 
-    if (rX !== 0 || rY !== 0 || rZ !== 0) {
-      this.uiSignalService.notifyTableViewRotation(this.viewRotateX, this.viewRotateY, this.viewRotateZ);
-    }
+    this.turned ||= rX !== 0 || rY !== 0 || rZ !== 0;
+    if (this.frame !== null) return;
+    this.frame = requestAnimationFrame(() => {
+      this.frame = null;
+      this.showTransform();
+    });
+  }
 
+  /** Writes the view out and tells the table which way it faces, both in the one frame. */
+  private showTransform(): void {
     const tx = this.viewPositionX.toFixed(4);
     const ty = this.viewPositionY.toFixed(4);
     const tz = this.viewPositionZ.toFixed(4);
@@ -113,6 +135,10 @@ export class GameTableGestureService {
     const ry = this.viewRotateY.toFixed(4);
     const rz = this.viewRotateZ.toFixed(4);
     this.gameTableEl.style.transform = `translateZ(${tz}px) translateY(${ty}px) translateX(${tx}px) rotateY(${ry}deg) rotateX(${rx}deg) rotateZ(${rz}deg)`;
+
+    if (!this.turned) return;
+    this.turned = false;
+    this.uiSignalService.notifyTableViewRotation(this.viewRotateX, this.viewRotateY, this.viewRotateZ);
   }
 
   private onTableTouchStart(): void {

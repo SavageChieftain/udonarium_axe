@@ -409,7 +409,7 @@ export class GameCharacterComponent {
   math = Math;
 
   viewRotateX = 50;
-  readonly viewRotateZ = computed(() => this.uiSignalService.tableViewRotation()?.z ?? 10);
+  readonly viewRotateZ = this.uiSignalService.tableViewRotationZ;
 
   readonly rotateSignal = computed(() => {
     const char = this.gameCharacter();
