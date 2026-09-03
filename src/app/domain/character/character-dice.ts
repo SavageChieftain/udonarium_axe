@@ -42,7 +42,8 @@ export interface HeldDie {
    * What each of them was showing when it was put away, in that order.
    *
    * A die keeps the face it came to rest on, so a set put away mid-scene comes back out as
-   * it was left. Left off where a die was written onto the sheet by hand.
+   * it was left. Left off where a die was written onto the sheet by hand, and where the die
+   * was kept to its owner: the sheet is read by whoever may read the sheet.
    */
   shown?: string[];
 }
@@ -67,7 +68,8 @@ export function heldDieOfSymbol(symbol: DiceSymbol, count = 1): HeldDie {
     .filter((face): face is DataElement => face instanceof DataElement)
     .map<HeldDieFace>((face) => ({ label: face.name, imageIdentifier: String(face.value ?? '') }));
 
-  return { name: symbol.name, count, faces, shown: Array(count).fill(symbol.face) };
+  const shown: string[] = symbol.hasOwner ? [] : Array(count).fill(symbol.face);
+  return { name: symbol.name, count, faces, shown };
 }
 
 /**

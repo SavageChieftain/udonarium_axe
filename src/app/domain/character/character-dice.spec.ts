@@ -187,6 +187,29 @@ describe('the dice a character keeps', () => {
       expect(heldDiceOf(character)[0].shown).toEqual(['3', '5']);
     });
 
+    it('records none for a die that was kept to its owner', () => {
+      const character = makeCharacter();
+      const symbol = makeSymbol('隠しダイス');
+      symbol.face = '6';
+      symbol.owner = 'somebody';
+
+      storeHeldDie(character, heldDieOfSymbol(symbol));
+
+      expect(heldDiceOf(character)[0].shown).toEqual([]);
+    });
+
+    it('writes nothing where the sheet shows the face of such a die', () => {
+      const character = makeCharacter();
+      const symbol = makeSymbol('隠しダイス');
+      symbol.face = '6';
+      symbol.owner = 'somebody';
+
+      storeHeldDie(character, heldDieOfSymbol(symbol));
+
+      const section = character.detailDataElement!.getFirstElementByName(HELD_DICE_SECTION)!;
+      expect(section.getFirstElementByName(HELD_DICE_SHOWN)?.value).toBe('');
+    });
+
     it('records none for a die written onto the sheet by hand', () => {
       const character = makeCharacter();
 
