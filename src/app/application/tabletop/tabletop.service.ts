@@ -1,6 +1,6 @@
 import { computed, DestroyRef, inject, Injectable, Signal } from '@angular/core';
+import { CoordinateService } from '@axe/application/input/coordinate.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
-import { CoordinateService } from '@axe/core/input/coordinate.service';
 import { ObjectSerializer } from '@axe/core/sync/object-serializer';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { Card } from '@axe/domain/card/card';

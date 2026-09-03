@@ -1,6 +1,6 @@
 import { ApplicationRef, effect, Injector, signal } from '@angular/core';
 import { inject, TestBed } from '@angular/core/testing';
-import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
+import { PointerDeviceService } from '@axe/application/input/pointer-device.service';
 
 describe('PointerDeviceService', () => {
   let service: PointerDeviceService;

@@ -1,5 +1,5 @@
-import { CoordinateService } from '@axe/core/input/coordinate.service';
-import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
+import { CoordinateService } from '@axe/application/input/coordinate.service';
+import { PointerDeviceService } from '@axe/application/input/pointer-device.service';
 import { resolveMovableLocalCoordinate } from '@axe/ui/directives/movable-helpers';
 
 export interface MovableInteractionContext {

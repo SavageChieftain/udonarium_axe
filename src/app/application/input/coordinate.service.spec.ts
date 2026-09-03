@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { CoordinateService } from '@axe/core/input/coordinate.service';
+import { CoordinateService } from '@axe/application/input/coordinate.service';
 import { Transform } from '@axe/core/transform/transform';
 
 describe('CoordinateService', () => {

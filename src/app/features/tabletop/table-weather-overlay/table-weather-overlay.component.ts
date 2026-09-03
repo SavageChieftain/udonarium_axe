@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, DestroyRef, ElementRef, inject, signal } from '@angular/core';
+import { CoordinateService } from '@axe/application/input/coordinate.service';
 import { AmbienceService } from '@axe/application/tabletop/ambience.service';
 import { TabletopService } from '@axe/application/tabletop/tabletop.service';
-import { CoordinateService } from '@axe/core/input/coordinate.service';
 import { skyAmbienceFlash, skyAmbienceLayer, skyAmbienceWash } from '@axe/domain/effect/ambience/ambience-sky';
 import { EffectParticleLayer } from '@axe/domain/effect/effect-particles';
 import { withAlpha } from '@axe/domain/effect/particles/shared';

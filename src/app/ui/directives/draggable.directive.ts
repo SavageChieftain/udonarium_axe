@@ -1,5 +1,5 @@
 import { afterNextRender, DestroyRef, Directive, ElementRef, inject, input, output } from '@angular/core';
-import { PointerCoordinate } from '@axe/core/input/pointer-device.service';
+import { PointerCoordinate } from '@axe/application/input/pointer-device.service';
 import { CSSNumber } from '@axe/core/transform/css-number';
 import { InputHandler } from '@axe/ui/directives/input-handler';
 

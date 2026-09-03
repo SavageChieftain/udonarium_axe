@@ -1,5 +1,5 @@
 import { inject, Injectable } from '@angular/core';
-import { PointerCoordinate, PointerDeviceService } from '@axe/core/input/pointer-device.service';
+import { PointerCoordinate, PointerDeviceService } from '@axe/application/input/pointer-device.service';
 import { Transform } from '@axe/core/transform/transform';
 
 @Injectable({

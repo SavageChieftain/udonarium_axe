@@ -15,6 +15,7 @@ import {
 import { FormsModule } from '@angular/forms';
 import { StatusAilmentService } from '@axe/application/character/status-ailment.service';
 import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
+import { PointerDeviceService } from '@axe/application/input/pointer-device.service';
 import { GameObjectInventoryService } from '@axe/application/inventory/game-object-inventory.service';
 import { buildInventoryTable, InventoryTable, InventoryTableColumn } from '@axe/application/inventory/inventory-table';
 import { DisclosureService } from '@axe/application/permission/disclosure.service';
@@ -27,7 +28,6 @@ import { PanelHeaderControl, PanelService } from '@axe/application/ui/panel.serv
 import { SelectionSignalService } from '@axe/application/ui/selection-signal.service';
 import { ViewportService } from '@axe/application/ui/viewport.service';
 import { Network } from '@axe/core/index';
-import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { GameObject } from '@axe/core/sync/game-object';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { turnCache } from '@axe/core/util/turn-cache';

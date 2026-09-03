@@ -1,14 +1,16 @@
-import { DestroyRef } from '@angular/core';
+export interface DestroyHandle {
+  onDestroy(callback: () => void): () => void;
+}
 
 export interface ReadableChannel<T = void> {
-  subscribe(listener: (event: T) => void, destroyRef?: DestroyRef): () => void;
+  subscribe(listener: (event: T) => void, destroyRef?: DestroyHandle): () => void;
 }
 
 export class EventChannel<T = void> implements ReadableChannel<T> {
   private readonly _listeners = new Set<(event: T) => void>();
   private snapshot: readonly ((event: T) => void)[] = [];
 
-  subscribe(listener: (event: T) => void, destroyRef?: DestroyRef): () => void {
+  subscribe(listener: (event: T) => void, destroyRef?: DestroyHandle): () => void {
     this._listeners.add(listener);
     this.snapshot = [...this._listeners];
     const remove = (): void => {
@@ -50,7 +52,7 @@ export class StickyEventChannel<T = void> extends EventChannel<T> {
     super.emit(event);
   }
 
-  override subscribe(listener: (event: T) => void, destroyRef?: DestroyRef): () => void {
+  override subscribe(listener: (event: T) => void, destroyRef?: DestroyHandle): () => void {
     const remove = super.subscribe(listener, destroyRef);
     if (this.hasLastEvent) listener(this.lastEvent);
     return remove;
