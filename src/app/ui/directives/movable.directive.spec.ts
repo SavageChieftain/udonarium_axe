@@ -117,6 +117,7 @@ describe('MovableDirective drop preview', () => {
     onInputMoveNow(e: MouseEvent): void;
     surfaceUnderPointer(): HTMLElement | null;
     surfaceElement(): HTMLElement;
+    clearDragPreview(): void;
     updateDragPreview(surface: HTMLElement | null): void;
   }
 
@@ -144,22 +145,7 @@ describe('MovableDirective drop preview', () => {
     return directive;
   }
 
-  it('looks again for the face under the piece on the first move of a drag', () => {
-    const directive = mount(false);
-    const own = directive.surfaceElement();
-    const under = document.createElement('div');
-    let looks = 0;
-    // The piece still takes the pointer on this move, so the first look finds its own face.
-    vi.spyOn(directive, 'surfaceUnderPointer').mockImplementation(() => (++looks === 1 ? own : under));
-    const preview = vi.spyOn(directive, 'updateDragPreview').mockImplementation(() => undefined);
-
-    directive.onInputMoveNow(new MouseEvent('mousemove'));
-
-    expect(looks).toBe(2);
-    expect(preview.mock.calls[0][0]).toBe(under);
-  });
-
-  it('keeps the one look per move once the drag is under way', () => {
+  it('looks for the face under the pointer once per move', () => {
     const directive = mount(true);
     const own = directive.surfaceElement();
     const look = vi.spyOn(directive, 'surfaceUnderPointer').mockReturnValue(own);
@@ -169,5 +155,18 @@ describe('MovableDirective drop preview', () => {
 
     expect(look).toHaveBeenCalledTimes(1);
     expect(preview.mock.calls[0][0]).toBe(own);
+  });
+
+  it('is given nothing to draw on the move that grabs, since nothing is being dragged yet', () => {
+    // The input handler sets isDragging after the move callback returns, so the first move
+    // always runs with it unset, and the preview clears itself whatever face it is handed.
+    const directive = mount(false);
+    const own = directive.surfaceElement();
+    vi.spyOn(directive, 'surfaceUnderPointer').mockReturnValue(own);
+    const clear = vi.spyOn(directive, 'clearDragPreview').mockImplementation(() => undefined);
+
+    directive.onInputMoveNow(new MouseEvent('mousemove'));
+
+    expect(clear).toHaveBeenCalled();
   });
 });

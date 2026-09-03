@@ -389,12 +389,8 @@ export class MovableDirective implements MovableInteractionContext {
       this.updateDragPreview(pointerSurface);
       return;
     }
-    // The first move of a drag is what turns this piece's own pointer events off, and only
-    // after that does the hit test see the face under the piece rather than the piece itself.
-    const wasDragging = this.input?.isDragging ?? false;
     perfTimed('collide', () => handleInputMove(this, e));
-    const dropSurface = wasDragging ? pointerSurface : this.surfaceUnderPointer();
-    perfTimed('dragPreview', () => this.updateDragPreview(dropSurface));
+    perfTimed('dragPreview', () => this.updateDragPreview(pointerSurface));
   }
 
   /** The face under the pointer that this piece could be put down on, or nothing. */
