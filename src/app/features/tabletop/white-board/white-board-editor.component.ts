@@ -36,7 +36,6 @@ import {
   SceneGuideLine,
   sceneHeightPx,
   sceneWidthPx,
-  ShapeItem,
   StrokeDash,
   TextAlign,
   TextItem,
@@ -45,18 +44,16 @@ import {
   addImage,
   addLayer,
   addShape,
-  addStroke,
   addText,
   moveLayer,
-  removeImage,
   removeLayer,
-  removeText,
   updateText,
 } from '@axe/features/map-editor/model/scene-ops';
 import { deserializeScene } from '@axe/features/map-editor/model/serialize';
 import { getRasterImage, warmRasterImages } from '@axe/features/map-editor/render/raster-image';
 import { renderScene } from '@axe/features/map-editor/render/render-scene';
 import { detachFromBoard, standingOn } from '@axe/features/tabletop/white-board/white-board-contents';
+import { BoardGesture } from '@axe/features/tabletop/white-board/white-board-gesture';
 import { BoardKeeper } from '@axe/features/tabletop/white-board/white-board-keeper';
 import {
   LayerDrawerAction,
@@ -89,9 +86,6 @@ import {
   addJoint,
   AlignEdge,
   alignMarks,
-  anchorFor,
-  angleFrom,
-  arrowBetween,
   BOARD_SHAPES,
   BOARD_TOOLS,
   BoardPoint,
@@ -104,24 +98,16 @@ import {
   copyMark,
   createBoardScene,
   cropMark,
-  dropJoint,
   fadeMark,
   fileUnder,
   flipMark,
-  freehandLayer,
   GRAPH_SPACINGS,
   groupLayers,
   groupNames,
   guessLineWidth,
-  guidesFor,
-  guideUnder,
-  Handle,
-  handleUnder,
-  highlighterStyle,
   imageLayer,
   isTypingKey,
   jointedShape,
-  jointUnder,
   LayerGroup,
   MARK_SHADOW,
   MarkBox,
@@ -130,37 +116,26 @@ import {
   MarkStyleChange,
   marksWithin,
   markUnder,
-  moveJoint,
-  moveMark,
   NaturalSize,
   newGuide,
   noteAt,
   outlineFor,
   overlaysWanted,
   pathThrough,
-  penStroke,
   pictureOf,
   removeMark,
   renameGroup,
   restack,
   restyleMark,
-  rubOutStrokes,
   ruleBoard,
-  scaleMark,
-  shapeBetween,
   shapeLayer,
   sheetGuides,
   sheetHolding,
   showGroup,
-  smoothStroke,
   SnapGuide,
-  snapPoint,
   snapTo,
   spreadMarks,
-  squareOff,
   stickerAt,
-  straightLine,
-  stretchBy,
   textLayer,
   turnMark,
   uncropMark,
@@ -201,9 +176,6 @@ const TOOL_ICONS: Record<BoardTool, string> = {
 const TOOL_SVG: Partial<Record<BoardTool, string>> = { select: SELECT_SVG, eraser: ERASER_SVG };
 
 /** How near a corner counts as taking hold of it, in the sheet's own pixels at full size. */
-
-/** With shift held, the turn grip falls onto steps, so a picture can be set square again. */
-const TURN_SNAP = 15;
 
 /** How far a copy is set down from what it was copied off, so both can be seen. */
 const DUPLICATE_OFFSET = 16;
@@ -412,22 +384,30 @@ export class WhiteBoardEditorComponent {
     this.imageStorage
   );
   private scene: MapScene = createBoardScene(4, 3, 50);
-  private drawingPoints: number[] = [];
-  private dragFrom: BoardPoint | null = null;
-  private dragTo: BoardPoint | null = null;
-  private grabbed: {
-    refs: MarkRef[];
-    grabX: number;
-    grabY: number;
-    handle: Handle | null;
-    box: MarkBox;
-    turnedTo: number;
-  } | null = null;
-  private hovering: BoardPoint | null = null;
-  private bending: { ref: MarkRef; joint: number } | null = null;
-  private draggingGuide: SceneGuideLine | null = null;
-  private bandFrom: BoardPoint | null = null;
-  private bandTo: BoardPoint | null = null;
+  private readonly gesture = new BoardGesture({
+    scene: () => this.scene,
+    activeLayerId: () => this.activeLayerId(),
+    tool: () => this.tool(),
+    style: () => this.style(),
+    shapeKind: () => this.shapeKind(),
+    filled: () => this.filled(),
+    strokeWidth: () => this.strokeWidth(),
+    keepingShape: () => this.keepingShape,
+    guiding: () => this.guiding(),
+    guides: () => this.guides,
+    grip: () => this.handleSlack(),
+    held: () => this.held(),
+    selected: () => this.selected(),
+    trimming: () => this.trimming(),
+    trimTo: (window) => this.trimming.set(window),
+    laying: () => this.laying(),
+    layTo: (points) => this.laying.set(points),
+    hold: (marks) => this.hold(marks),
+    show: (guides) => this.showing.set(guides),
+    startTyping: (at) => this.startTyping(at, ''),
+    redraw: (pending) => void this.redraw(pending),
+    touched: () => this.touched(),
+  });
 
   readonly minPitch = MIN_BOARD_PITCH;
   readonly maxPitch = MAX_BOARD_PITCH;
@@ -930,7 +910,7 @@ export class WhiteBoardEditorComponent {
     const scale = box.width / this.sceneWidth || 1;
     const at = { x: (event.clientX - box.left) / scale, y: (event.clientY - box.top) / scale };
     // Snapped only where the reader asked for it, and never for a pen, which would step.
-    if (!this.snapping() || this.isPenning()) return at;
+    if (!this.snapping() || this.gesture.isPenning()) return at;
     return snapTo(at, this.scene.cellPx);
   }
 
@@ -953,37 +933,7 @@ export class WhiteBoardEditorComponent {
     (event.target as HTMLElement).setPointerCapture?.(event.pointerId);
     const at = this.pointOf(event);
 
-    switch (this.tool()) {
-      case 'pen':
-      case 'marker':
-        this.drawingPoints = [at.x, at.y];
-        break;
-      case 'eraser':
-        this.rubOut(at);
-        break;
-      case 'line':
-      case 'arrow':
-      case 'shape':
-        this.dragFrom = at;
-        break;
-      case 'text':
-      case 'note':
-        this.startTyping(at, '');
-        break;
-      case 'path':
-        this.laying.update((points) =>
-          this.keepingShape && points.length > 0
-            ? [...points, squareOff(points[points.length - 1], at)]
-            : [...points, at]
-        );
-        void this.redraw();
-        break;
-      case 'select':
-        this.take(at, event.shiftKey);
-        break;
-      case 'sticker':
-        break;
-    }
+    this.gesture.begin(at, event.shiftKey);
   }
 
   protected onPointerMove(event: PointerEvent): void {
@@ -993,47 +943,7 @@ export class WhiteBoardEditorComponent {
       this.panFrom = { x: event.clientX, y: event.clientY };
       return;
     }
-    const at = this.pointOf(event);
-    if (this.draggingGuide) {
-      const guide = this.draggingGuide;
-      guide.at = guide.axis === 'x' ? at.x : at.y;
-      void this.redraw();
-      return;
-    }
-    if (this.laying().length > 0) {
-      this.hovering = at;
-      void this.redraw();
-      return;
-    }
-    if (this.isPenning() && this.drawingPoints.length > 0) {
-      this.drawingPoints.push(at.x, at.y);
-      void this.redraw(this.drawingPoints);
-      return;
-    }
-    if (this.tool() === 'eraser' && event.buttons > 0) {
-      this.rubOut(at);
-      return;
-    }
-    if (this.bending) {
-      const bent = this.guiding() ? snapPoint(this.scene, at, [this.bending.ref], this.guides) : null;
-      if (bent) this.showing.set(bent.guides);
-      moveJoint(this.scene, this.bending.ref, this.bending.joint, bent?.at ?? at);
-      void this.redraw();
-      return;
-    }
-    if (this.grabbed) {
-      this.shift(at);
-      return;
-    }
-    if (this.bandFrom) {
-      this.bandTo = at;
-      void this.redraw();
-      return;
-    }
-    if (this.dragFrom) {
-      this.dragTo = this.reachedTo(at);
-      void this.redraw();
-    }
+    this.gesture.drag(this.pointOf(event), event.buttons > 0);
   }
 
   protected onPointerUp(event: PointerEvent): void {
@@ -1043,47 +953,7 @@ export class WhiteBoardEditorComponent {
       this.sliding.set(false);
       return;
     }
-    const at = this.pointOf(event);
-
-    if (this.isPenning() && this.drawingPoints.length > 3) {
-      addStroke(
-        freehandLayer(this.scene, this.activeLayerId()),
-        penStroke(smoothStroke(this.drawingPoints), this.inkStyle())
-      );
-    }
-    this.drawingPoints = [];
-
-    if (this.dragFrom) {
-      const from = this.dragFrom;
-      // What was previewed is what is laid down: the guides and the shift key had their say
-      // on the way, and a mark that ignored them would land somewhere the reader never saw.
-      const to = this.dragTo ?? this.reachedTo(at);
-      this.dragFrom = null;
-      this.dragTo = null;
-      const far = Math.hypot(to.x - from.x, to.y - from.y) > 4;
-      if (far) {
-        const tool = this.tool();
-        const mark =
-          tool === 'line'
-            ? straightLine(from, to, this.style())
-            : tool === 'arrow'
-              ? arrowBetween(from, to, this.style())
-              : shapeBetween(this.shapeKind(), from, to, this.style(), this.filled());
-        addShape(shapeLayer(this.scene, this.activeLayerId()), mark);
-        this.hold([{ kind: 'shape', id: mark.id }]);
-      }
-    }
-    if (this.bandFrom && this.bandTo) {
-      const area = boxBetweenPoints(this.bandFrom, this.bandTo);
-      if (area.w > 3 || area.h > 3) this.hold(marksWithin(this.scene, area));
-      this.bandFrom = null;
-      this.bandTo = null;
-    }
-    this.grabbed = null;
-    this.bending = null;
-    this.draggingGuide = null;
-    this.showing.set([]);
-    this.touched();
+    this.gesture.end(this.pointOf(event));
   }
 
   private style(): MarkStyle {
@@ -1111,197 +981,9 @@ export class WhiteBoardEditorComponent {
     this.settingChanged();
   }
 
-  /**
-   * The mark as it would be if the pointer were let go here.
-   *
-   * Drawn out and shown while the drag lasts, because dragging out a line and seeing nothing
-   * until it is finished is drawing blind.
-   */
-  private pendingMark(): ShapeItem | null {
-    const from = this.dragFrom;
-    const to = this.dragTo;
-    if (!from || !to) return null;
-    const tool = this.tool();
-    if (tool === 'line') return straightLine(from, to, this.style());
-    if (tool === 'arrow') return arrowBetween(from, to, this.style());
-    if (tool === 'shape') return shapeBetween(this.shapeKind(), from, to, this.style(), this.filled());
-    return null;
-  }
-
-  /**
-   * Where the drag has reached, once the guides and the shift key have had their say.
-   *
-   * A line meant to be upright is never quite upright when it is dragged by hand, and a box
-   * meant to sit under another is never quite under it.
-   */
-  private reachedTo(to: BoardPoint): BoardPoint {
-    const from = this.dragFrom;
-    if (!from) return to;
-    const tool = this.tool();
-    if (this.keepingShape && (tool === 'line' || tool === 'arrow')) {
-      this.showing.set([]);
-      return squareOff(from, to);
-    }
-    if (!this.guiding()) return to;
-
-    const box = {
-      x: Math.min(from.x, to.x),
-      y: Math.min(from.y, to.y),
-      w: Math.abs(to.x - from.x),
-      h: Math.abs(to.y - from.y),
-    };
-    const snap = guidesFor(this.scene, box, [], this.guides);
-    this.showing.set(snap.guides);
-    return { x: to.x + snap.dx, y: to.y + snap.dy };
-  }
-
-  private isPenning(): boolean {
-    return this.tool() === 'pen' || this.tool() === 'marker';
-  }
-
-  /** A marker lets what is under it show through; a pen does not. */
-  private inkStyle() {
-    return this.tool() === 'marker' ? highlighterStyle(this.style()) : this.style();
-  }
-
-  private rubOut(at: BoardPoint): void {
-    rubOutStrokes(freehandLayer(this.scene, this.activeLayerId()), at.x, at.y, this.strokeWidth() * 2);
-    const mark = markUnder(this.scene, at);
-    if (mark?.kind === 'image') removeImage(imageLayer(this.scene, this.activeLayerId()), mark.id);
-    if (mark?.kind === 'text') removeText(textLayer(this.scene, this.activeLayerId()), mark.id);
-    void this.redraw();
-  }
-
-  private take(at: BoardPoint, adding: boolean): void {
-    const laid = guideUnder(this.guides, at);
-    if (laid) {
-      this.draggingGuide = laid;
-      return;
-    }
-    const chosen = this.selected();
-    const window = this.trimming();
-    const picture = chosen && window ? boxOf(this.scene, chosen) : null;
-    if (chosen && window && picture) {
-      const onScreen = { x: picture.x + window.x, y: picture.y + window.y, w: window.w, h: window.h };
-      const grip = handleUnder(at, onScreen, this.handleSlack());
-      if (grip && grip !== 'turn') {
-        this.grabbed = { refs: [chosen], grabX: at.x, grabY: at.y, handle: grip, box: onScreen, turnedTo: 0 };
-      }
-      return;
-    }
-    // A path's own corners are reached for before the box drawn round it, being on the line
-    // itself rather than out at the edges.
-    if (chosen && jointedShape(this.scene, chosen)) {
-      const joint = jointUnder(this.scene, chosen, at, this.handleSlack());
-      if (joint !== null) {
-        if (adding) {
-          if (dropJoint(this.scene, chosen, joint)) this.touched();
-          return;
-        }
-        this.bending = { ref: chosen, joint };
-        return;
-      }
-    }
-
-    const box = chosen ? boxOf(this.scene, chosen) : null;
-    const handle = box ? handleUnder(at, box, this.handleSlack()) : null;
-    if (chosen && box && handle) {
-      this.grabbed = { refs: [chosen], grabX: at.x, grabY: at.y, handle, box, turnedTo: angleFrom(box, at) };
-      return;
-    }
-
-    const mark = markUnder(this.scene, at);
-    if (!mark) {
-      // Nothing under the pointer: a box is dragged out to take everything inside it.
-      if (!adding) this.hold([]);
-      this.bandFrom = at;
-      this.bandTo = at;
-      return;
-    }
-
-    const already = this.held();
-    const has = already.some((entry) => entry.kind === mark.kind && entry.id === mark.id);
-    const next = adding
-      ? has
-        ? already.filter((entry) => !(entry.kind === mark.kind && entry.id === mark.id))
-        : [...already, mark]
-      : has
-        ? already
-        : [mark];
-    this.hold(next);
-    const bounds = boxAround(this.scene, next);
-    if (bounds) {
-      this.grabbed = { refs: next, grabX: at.x, grabY: at.y, handle: null, box: bounds, turnedTo: 0 };
-    }
-  }
-
   /** A handle has to stay big enough to hit however far the sheet is zoomed out. */
   private handleSlack(): number {
     return gripAt(this.zoom());
-  }
-
-  private shift(at: BoardPoint): void {
-    const held = this.grabbed;
-    if (!held) return;
-    const dx = at.x - held.grabX;
-    const dy = at.y - held.grabY;
-    held.grabX = at.x;
-    held.grabY = at.y;
-
-    const window = this.trimming();
-    if (window && held.handle) {
-      const picture = boxOf(this.scene, held.refs[0]);
-      if (!picture) return;
-      this.trimming.set(pullWindow(window, held.handle, dx, dy, picture));
-      void this.redraw();
-      return;
-    }
-
-    if (!held.handle) {
-      let stepX = dx;
-      let stepY = dy;
-      const was = boxAround(this.scene, held.refs);
-      if (this.guiding() && was) {
-        const snap = guidesFor(this.scene, { ...was, x: was.x + dx, y: was.y + dy }, held.refs, this.guides);
-        stepX += snap.dx;
-        stepY += snap.dy;
-        this.showing.set(snap.guides);
-      }
-      for (const ref of held.refs) moveMark(this.scene, ref, stepX, stepY);
-      void this.redraw();
-      return;
-    }
-
-    const box = boxAround(this.scene, held.refs);
-    if (!box) return;
-
-    if (held.handle === 'turn') {
-      this.showing.set([]);
-      const now = angleFrom(box, at);
-      const turned = this.keepingShape ? Math.round(now / TURN_SNAP) * TURN_SNAP : now;
-      for (const ref of held.refs) turnMark(this.scene, ref, turned - held.turnedTo);
-      held.turnedTo = turned;
-      void this.redraw();
-      return;
-    }
-
-    // Stretched away from the side facing the one being pulled, the way a picture is
-    // stretched, and the grip gives in to any line it is pulled near.
-    let reach = at;
-    if (this.guiding()) {
-      const snap = snapPoint(this.scene, at, held.refs, this.guides);
-      reach = snap.at;
-      this.showing.set(snap.guides);
-    }
-    const { kx, ky } = stretchBy(box, held.handle, reach);
-    const anchor = anchorFor(box, held.handle);
-    const anchored = { x: anchor.x, y: anchor.y, w: box.w, h: box.h };
-    // Held down, a corner keeps the shape of what it is pulling, the way it does elsewhere.
-    const even = this.keepingShape && held.handle.length === 2 ? Math.max(kx, ky) : 0;
-    for (const ref of held.refs) {
-      scaleMark(this.scene, ref, anchored, even || kx, even || ky);
-    }
-    void this.redraw();
   }
 
   protected removeSelected(): void {
@@ -1691,7 +1373,7 @@ export class WhiteBoardEditorComponent {
     const at = this.pointOf(event);
     const guide = newGuide(axis, axis === 'x' ? at.x : at.y);
     this.scene.guides = [...this.guides, guide];
-    this.draggingGuide = guide;
+    this.gesture.dragGuide(guide);
     (event.target as HTMLElement).setPointerCapture?.(event.pointerId);
     void this.redraw();
   }
@@ -1798,9 +1480,10 @@ export class WhiteBoardEditorComponent {
     drawGuides(ctx, this.showing(), '#e0457b', zoom);
 
     const laying = this.laying();
-    if (laying.length > 0) drawLaying(ctx, laying, this.hovering, this.ink());
-    if (this.bandFrom && this.bandTo) drawBand(ctx, boxBetweenPoints(this.bandFrom, this.bandTo), zoom);
-    const dragging = this.pendingMark();
+    if (laying.length > 0) drawLaying(ctx, laying, this.gesture.hover, this.ink());
+    const band = this.gesture.band();
+    if (band) drawBand(ctx, band, zoom);
+    const dragging = this.gesture.pendingMark();
     if (dragging) drawPending(ctx, dragging, this.ink());
     if (pending && pending.length > 3) drawFreehand(ctx, pending, this.ink());
   }
@@ -1823,34 +1506,3 @@ function clampSide(value: number): number {
   if (!Number.isFinite(side)) return MIN_SIDE;
   return Math.min(MAX_SIDE, Math.max(MIN_SIDE, side));
 }
-
-/** The box two dragged out corners make, whichever way round they were dragged. */
-function boxBetweenPoints(from: BoardPoint, to: BoardPoint): MarkBox {
-  return {
-    x: Math.min(from.x, to.x),
-    y: Math.min(from.y, to.y),
-    w: Math.abs(to.x - from.x),
-    h: Math.abs(to.y - from.y),
-  };
-}
-
-/** Pulls one side or corner of the trim window in, never past the picture or past itself. */
-function pullWindow(window: MarkBox, grip: Handle, dx: number, dy: number, picture: MarkBox): MarkBox {
-  const next = { ...window };
-  if (grip.includes('w')) {
-    const left = Math.max(0, Math.min(next.x + dx, next.x + next.w - MIN_TRIM));
-    next.w += next.x - left;
-    next.x = left;
-  }
-  if (grip.includes('e')) next.w = Math.max(MIN_TRIM, Math.min(next.w + dx, picture.w - next.x));
-  if (grip.includes('n')) {
-    const top = Math.max(0, Math.min(next.y + dy, next.y + next.h - MIN_TRIM));
-    next.h += next.y - top;
-    next.y = top;
-  }
-  if (grip.includes('s')) next.h = Math.max(MIN_TRIM, Math.min(next.h + dy, picture.h - next.y));
-  return next;
-}
-
-/** How little of a picture may be left, so there is always something to pull back out by. */
-const MIN_TRIM = 8;
