@@ -1,6 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { StatusAilmentService } from '@axe/application/character/status-ailment.service';
 import { GameObjectInventoryService } from '@axe/application/inventory/game-object-inventory.service';
+import { ConfirmService } from '@axe/application/ui/confirm.service';
 import { InventoryViewPreferenceService } from '@axe/application/ui/inventory-view-preference.service';
 import { PanelService } from '@axe/application/ui/panel.service';
 import { ViewportService } from '@axe/application/ui/viewport.service';
@@ -288,35 +289,29 @@ describe('GameObjectInventoryComponent', () => {
       expect(component.hasFolders()).toBe(false);
     });
 
-    it('takes what is inside back to unfiled when a folder is deleted', () => {
+    it('takes what is inside back to unfiled when a folder is deleted', async () => {
       const goblin = putInShared('ゴブリン');
       goblin.folderName = '第1話/洞窟';
       component.selectTab.set('common');
-      vi.stubGlobal(
-        'confirm',
-        vi.fn(() => true)
-      );
+      vi.spyOn(TestBed.inject(ConfirmService), 'ask').mockResolvedValue(true);
 
-      component.deleteFolder('第1話');
+      await component.deleteFolder('第1話');
 
       expect(goblin.folderName).toBe('');
     });
 
-    it('leaves a folder alone when the deletion is called off', () => {
+    it('leaves a folder alone when the deletion is called off', async () => {
       const goblin = putInShared('ゴブリン');
       goblin.folderName = '第1話';
       component.selectTab.set('common');
-      vi.stubGlobal(
-        'confirm',
-        vi.fn(() => false)
-      );
+      vi.spyOn(TestBed.inject(ConfirmService), 'ask').mockResolvedValue(false);
 
-      component.deleteFolder('第1話');
+      await component.deleteFolder('第1話');
 
       expect(goblin.folderName).toBe('第1話');
     });
 
-    it('files what sits in a location nobody claimed, which the shared tab also lists', () => {
+    it('files what sits in a location nobody claimed, which the shared tab also lists', async () => {
       const orphan = GameCharacter.create('置き去り', 1, '');
       orphan.setLocation('some-peer-who-left');
       orphan.folderName = '第1話';
@@ -446,21 +441,16 @@ describe('GameObjectInventoryComponent', () => {
       expect(shared.folderName).toBe('第1話');
     });
 
-    it('leaves the other scope alone when a folder of the same name is deleted', () => {
+    it('leaves the other scope alone when a folder of the same name is deleted', async () => {
       const shared = putInShared('ゴブリン');
       shared.folderName = '第1話';
       const mine = GameCharacter.create('相棒', 1, '');
       mine.setLocation(Network.peerId);
       mine.folderName = '第1話';
-      const originalConfirm = window.confirm;
-      window.confirm = (() => true) as never;
+      vi.spyOn(TestBed.inject(ConfirmService), 'ask').mockResolvedValue(true);
 
-      try {
-        component.selectTab.set(Network.peerId);
-        component.deleteFolder('第1話');
-      } finally {
-        window.confirm = originalConfirm;
-      }
+      component.selectTab.set(Network.peerId);
+      await component.deleteFolder('第1話');
 
       expect(mine.folderName).toBe('');
       expect(shared.folderName).toBe('第1話');

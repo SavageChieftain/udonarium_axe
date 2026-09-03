@@ -22,6 +22,7 @@ import { DisclosureService } from '@axe/application/permission/disclosure.servic
 import { RolePermissionService } from '@axe/application/permission/role-permission.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { TurnOrderService } from '@axe/application/turn/turn-order.service';
+import { ConfirmService } from '@axe/application/ui/confirm.service';
 import { ContextMenuService } from '@axe/application/ui/context-menu.service';
 import { InventoryViewPreferenceService } from '@axe/application/ui/inventory-view-preference.service';
 import { PanelHeaderControl, PanelService } from '@axe/application/ui/panel.service';
@@ -143,6 +144,7 @@ export class GameObjectInventoryComponent {
   private readonly hostElement = inject<ElementRef<HTMLElement>>(ElementRef);
   private readonly injector = inject(Injector);
   private readonly t = inject(TRANSLATE_FN);
+  private readonly confirm = inject(ConfirmService);
 
   private dragPending: {
     character: GameCharacter;
@@ -818,16 +820,20 @@ export class GameObjectInventoryComponent {
     return deepest;
   }
 
-  deleteFolder(folderPath: string): void {
+  async deleteFolder(folderPath: string): Promise<void> {
     if (!this.rolePermission.canEditTabletop) return;
     const characters = this.charactersUnder(folderPath);
-    if (
-      characters.length > 0 &&
-      !confirm(
-        this.t('feature.inventory.contextMenu.confirmDeleteFolder', { name: folderPath, count: characters.length })
-      )
-    )
-      return;
+    if (characters.length > 0) {
+      const asked = await this.confirm.ask({
+        message: this.t('feature.inventory.contextMenu.confirmDeleteFolder', {
+          name: folderPath,
+          count: characters.length,
+        }),
+        okLabel: this.t('common.button.delete'),
+        danger: true,
+      });
+      if (!asked) return;
+    }
     this.undeclareFoldersUnder(folderPath);
     this.setFolderOf(
       characters.map((character) => character.identifier),
@@ -989,7 +995,7 @@ export class GameObjectInventoryComponent {
     this.isMultiMove.update((v) => !v);
   }
 
-  cleanInventory() {
+  async cleanInventory(): Promise<void> {
     if (!this.rolePermission.canEditTabletop) return;
     const rows = this.filteredRows();
     const message = this.hasQuery()
@@ -998,7 +1004,7 @@ export class GameObjectInventoryComponent {
           tab: this.getTabTitle(this.selectTab()),
           count: rows.length,
         });
-    if (!confirm(message)) return;
+    if (!(await this.confirm.ask({ message, okLabel: this.t('common.button.delete'), danger: true }))) return;
     for (const row of rows) {
       this.deleteGameObject(row.object);
     }
@@ -1087,14 +1093,14 @@ export class GameObjectInventoryComponent {
     SoundEffect.play(PresetSound.sweep);
   }
 
-  deleteAndClose() {
-    if (this.multiDelete()) {
+  async deleteAndClose(): Promise<void> {
+    if (await this.multiDelete()) {
       this.toggleMultiMove();
       SoundEffect.play(PresetSound.sweep);
     }
   }
 
-  multiDelete(): boolean {
+  async multiDelete(): Promise<boolean> {
     if (!this.rolePermission.canEditTabletop) return false;
     const inGraveyard: Set<GameCharacter> = new Set();
     for (const gameObjectIdentifier of this.multiMoveTargets()) {
@@ -1105,7 +1111,12 @@ export class GameObjectInventoryComponent {
     }
     if (inGraveyard.size < 1) return false;
 
-    if (!confirm(this.t('feature.inventory.panel.confirmMultiDelete', { count: inGraveyard.size }))) return false;
+    const asked = await this.confirm.ask({
+      message: this.t('feature.inventory.panel.confirmMultiDelete', { count: inGraveyard.size }),
+      okLabel: this.t('common.button.delete'),
+      danger: true,
+    });
+    if (!asked) return false;
     for (const gameObject of inGraveyard) {
       this.deleteGameObject(gameObject);
     }

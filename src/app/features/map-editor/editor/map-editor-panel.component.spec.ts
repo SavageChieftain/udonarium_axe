@@ -1,6 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { TabletopService } from '@axe/application/tabletop/tabletop.service';
+import { ConfirmService } from '@axe/application/ui/confirm.service';
 import { ModalService } from '@axe/application/ui/modal.service';
 import { PanelService } from '@axe/application/ui/panel.service';
 import { ImageFile } from '@axe/core/storage/image-file';
@@ -38,6 +39,7 @@ describe('MapEditorPanelComponent', () => {
   let component: MapEditorPanelComponent;
   let imageStorage: { addAsync: ReturnType<typeof vi.fn>; get: ReturnType<typeof vi.fn> };
   let table: { imageIdentifier: string; width: number; height: number; gridSize: number; gridType: GridType };
+  let ask: ReturnType<typeof vi.spyOn>;
   let modalService: {
     option: unknown;
     title: string;
@@ -57,6 +59,7 @@ describe('MapEditorPanelComponent', () => {
     TestBed.overrideProvider(ImageStorage, { useValue: imageStorage });
     TestBed.overrideProvider(TabletopService, { useValue: { currentTable: table } });
     TestBed.overrideProvider(ModalService, { useValue: modalService });
+    ask = vi.spyOn(TestBed.inject(ConfirmService), 'ask').mockResolvedValue(false);
     fixture = TestBed.createComponent(MapEditorPanelComponent);
     component = fixture.componentInstance;
   });
@@ -351,7 +354,7 @@ describe('MapEditorPanelComponent', () => {
   });
 
   it('deletes the layer when the dialogue agrees', async () => {
-    modalService.open.mockResolvedValue(true);
+    ask.mockResolvedValue(true);
     component['state'].applyCommitted(() =>
       addLayer(component['state'].current, {
         id: 'layer-1',
@@ -373,7 +376,7 @@ describe('MapEditorPanelComponent', () => {
   });
 
   it('keeps the layer when the dialogue refuses', async () => {
-    modalService.open.mockResolvedValue(false);
+    ask.mockResolvedValue(false);
     component['state'].applyCommitted(() =>
       addLayer(component['state'].current, {
         id: 'layer-2',
@@ -394,7 +397,7 @@ describe('MapEditorPanelComponent', () => {
   });
 
   it('keeps the layer when the dialogue is dismissed', async () => {
-    modalService.open.mockResolvedValue(null);
+    ask.mockResolvedValue(false);
     component['state'].applyCommitted(() =>
       addLayer(component['state'].current, {
         id: 'layer-3',
@@ -434,7 +437,7 @@ describe('MapEditorPanelComponent', () => {
     });
     await Promise.resolve();
 
-    expect(modalService.open).not.toHaveBeenCalled();
+    expect(ask).not.toHaveBeenCalled();
     expect(component['state'].current.layers.length).toBe(before);
   });
 
@@ -503,7 +506,7 @@ describe('MapEditorPanelComponent', () => {
   });
 
   it('saves nothing when the crop dialogue is dismissed', async () => {
-    modalService.open.mockResolvedValue(null);
+    ask.mockResolvedValue(false);
     const input = { files: [new File([new Uint8Array([1])], 'x.png', { type: 'image/png' })], value: 'x' };
     const event = { target: input } as unknown as Event;
 

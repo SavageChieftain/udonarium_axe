@@ -1,6 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { VisionService } from '@axe/application/tabletop/vision.service';
+import { ConfirmService } from '@axe/application/ui/confirm.service';
 import { PanelService } from '@axe/application/ui/panel.service';
 import { WidgetVisibilityService } from '@axe/application/ui/widget-visibility.service';
 import { Card } from '@axe/domain/card/card';
@@ -97,28 +98,22 @@ describe('GmToolbarComponent', () => {
       vi.unstubAllGlobals();
     });
 
-    it('releases what an absent owner holds, once confirmed', () => {
+    it('releases what an absent owner holds, once confirmed', async () => {
       const card = Card.create('カード', 'front.png', 'back.png');
       card.owner = 'ghost-user';
-      vi.stubGlobal(
-        'confirm',
-        vi.fn(() => true)
-      );
+      vi.spyOn(TestBed.inject(ConfirmService), 'ask').mockResolvedValue(true);
 
-      (component as unknown as { releaseOrphanedOwnership: () => void }).releaseOrphanedOwnership();
+      await (component as unknown as { releaseOrphanedOwnership: () => Promise<void> }).releaseOrphanedOwnership();
 
       expect(card.owner).toBe('');
     });
 
-    it('releases nothing when the confirmation is dismissed', () => {
+    it('releases nothing when the confirmation is dismissed', async () => {
       const card = Card.create('カード', 'front.png', 'back.png');
       card.owner = 'ghost-user';
-      vi.stubGlobal(
-        'confirm',
-        vi.fn(() => false)
-      );
+      vi.spyOn(TestBed.inject(ConfirmService), 'ask').mockResolvedValue(false);
 
-      (component as unknown as { releaseOrphanedOwnership: () => void }).releaseOrphanedOwnership();
+      await (component as unknown as { releaseOrphanedOwnership: () => Promise<void> }).releaseOrphanedOwnership();
 
       expect(card.owner).toBe('ghost-user');
     });

@@ -16,6 +16,7 @@ import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { RolePermissionService } from '@axe/application/permission/role-permission.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { TabletopService } from '@axe/application/tabletop/tabletop.service';
+import { ConfirmService } from '@axe/application/ui/confirm.service';
 import { ModalService } from '@axe/application/ui/modal.service';
 import { PanelService } from '@axe/application/ui/panel.service';
 import { transientSignal } from '@axe/application/ui/transient-signal';
@@ -90,7 +91,6 @@ import {
 import { RenderHelpers, renderScene } from '@axe/features/map-editor/render/render-scene';
 import { getStampImage, loadStampImage } from '@axe/features/map-editor/render/stamp-image';
 import { createImageTexturePattern } from '@axe/features/map-editor/render/texture-pattern';
-import { ConfirmDialogComponent } from '@axe/ui/components/confirm-dialog/confirm-dialog.component';
 import { FileSelecterComponent } from '@axe/ui/components/file-selecter/file-selecter.component';
 import { reorderRows, RowReorder } from '@axe/ui/dragging/row-reorder';
 import { TranslocoModule } from '@jsverse/transloco';
@@ -167,6 +167,7 @@ export class MapEditorPanelComponent implements AfterViewInit {
   private readonly modalService = inject(ModalService);
   private readonly sanitizer = inject(DomSanitizer);
   protected readonly t = inject(TRANSLATE_FN);
+  private readonly confirm = inject(ConfirmService);
 
   private readonly exportFn = exportSceneToBlob;
   private readonly loadImageFn = loadRasterImage;
@@ -1528,14 +1529,14 @@ export class MapEditorPanelComponent implements AfterViewInit {
 
   protected deleteLayer(layer: MapLayer): void {
     if (layer.locked) return;
-    this.modalService
-      .open<boolean>(ConfirmDialogComponent, {
+    void this.confirm
+      .ask({
         message: this.t('feature.mapEditor.layers.deleteConfirm'),
         okLabel: this.t('common.button.delete'),
         danger: true,
       })
       .then((ok) => {
-        if (ok !== true) return;
+        if (!ok) return;
         this.state.applyCommitted(() => removeLayer(this.state.current, layer.id));
         if (this.state.activeLayerId() === layer.id) this.state.activeLayerId.set(null);
       });

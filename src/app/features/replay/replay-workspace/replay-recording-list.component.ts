@@ -4,7 +4,7 @@ import { RolePermissionService } from '@axe/application/permission/role-permissi
 import { ReplayLibraryService } from '@axe/application/replay/replay-library.service';
 import { ReplayPlaybackService } from '@axe/application/replay/replay-playback.service';
 import { ReplayRecorderService } from '@axe/application/replay/replay-recorder.service';
-import { confirmDialog } from '@axe/core/input/confirm-dialog';
+import { ConfirmService } from '@axe/application/ui/confirm.service';
 import type { ReplayRecordingMeta } from '@axe/core/storage/replay-log-store';
 import { formatSnapshotByteSize, formatSnapshotSavedAt } from '@axe/features/room-archive/snapshot-format';
 import { TranslocoModule } from '@jsverse/transloco';
@@ -21,6 +21,7 @@ export class ReplayRecordingListComponent {
   private readonly playback = inject(ReplayPlaybackService);
   private readonly rolePermission = inject(RolePermissionService);
   private readonly t = inject(TRANSLATE_FN);
+  private readonly confirm = inject(ConfirmService);
 
   protected readonly recordings = this.recorder.recordings;
   protected readonly isBusy = this.library.isBusy;
@@ -73,7 +74,12 @@ export class ReplayRecordingListComponent {
 
   protected async remove(meta: ReplayRecordingMeta): Promise<void> {
     if (!this.canEdit) return;
-    if (!confirmDialog(this.t('feature.replay.panel.removeConfirm', { startedAt: this.startedAtLabel(meta) }))) return;
+    const asked = await this.confirm.ask({
+      message: this.t('feature.replay.panel.removeConfirm', { startedAt: this.startedAtLabel(meta) }),
+      okLabel: this.t('common.button.delete'),
+      danger: true,
+    });
+    if (!asked) return;
     if (this.openedId() === meta.id) await this.playback.close();
     await this.recorder.remove(meta.id);
   }

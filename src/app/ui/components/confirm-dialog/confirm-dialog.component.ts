@@ -1,15 +1,8 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
+import { ConfirmDialogOption } from '@axe/application/ui/confirm-option';
 import { ModalService } from '@axe/application/ui/modal.service';
 import { TranslocoModule } from '@jsverse/transloco';
-
-export interface ConfirmDialogOption {
-  title?: string;
-  message: string;
-  okLabel?: string;
-  cancelLabel?: string;
-  danger?: boolean;
-}
 
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,

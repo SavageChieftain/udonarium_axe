@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/c
 import { FormsModule } from '@angular/forms';
 import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { PartyService } from '@axe/application/party/party.service';
+import { ConfirmService } from '@axe/application/ui/confirm.service';
 import { SelectionSignalService } from '@axe/application/ui/selection-signal.service';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { Party, PARTY_COLORS } from '@axe/domain/party/party';
@@ -19,6 +20,7 @@ export class PartyListPanelComponent {
   private readonly partyService = inject(PartyService);
   private readonly selectionSignalService = inject(SelectionSignalService);
   private readonly t = inject(TRANSLATE_FN);
+  private readonly confirm = inject(ConfirmService);
 
   protected readonly colors = PARTY_COLORS;
   protected readonly parties = this.partyService.parties;
@@ -53,8 +55,13 @@ export class PartyListPanelComponent {
     this.partyService.recolor(party, color);
   }
 
-  protected removeParty(party: Party): void {
-    if (!confirm(this.t('feature.gmTools.party.removeConfirm', { name: this.partyName(party) }))) return;
+  protected async removeParty(party: Party): Promise<void> {
+    const asked = await this.confirm.ask({
+      message: this.t('feature.gmTools.party.removeConfirm', { name: this.partyName(party) }),
+      okLabel: this.t('common.button.delete'),
+      danger: true,
+    });
+    if (!asked) return;
     this.partyService.remove(party);
   }
 

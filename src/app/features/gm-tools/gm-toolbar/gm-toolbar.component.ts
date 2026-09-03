@@ -13,6 +13,7 @@ import { ObjectChangeService } from '@axe/application/sync/object-change.service
 import { TabletopService } from '@axe/application/tabletop/tabletop.service';
 import { VisionService } from '@axe/application/tabletop/vision.service';
 import { TurnOrderService } from '@axe/application/turn/turn-order.service';
+import { ConfirmService } from '@axe/application/ui/confirm.service';
 import { PanelService } from '@axe/application/ui/panel.service';
 import { ViewportService } from '@axe/application/ui/viewport.service';
 import { WidgetVisibilityService } from '@axe/application/ui/widget-visibility.service';
@@ -48,6 +49,7 @@ export class GmToolbarComponent {
   protected readonly handRail = inject(HandRailService);
   protected readonly widgets = inject(WidgetVisibilityService);
   private readonly t = inject(TRANSLATE_FN);
+  private readonly confirm = inject(ConfirmService);
 
   private readonly barRef = viewChild<ElementRef<HTMLElement>>('bar');
   private savedLeft: string | null = null;
@@ -157,10 +159,10 @@ export class GmToolbarComponent {
     this.objectChange.notifyChanged(table.identifier);
   }
 
-  protected releaseOrphanedOwnership(): void {
+  protected async releaseOrphanedOwnership(): Promise<void> {
     const orphaned = findOrphanedOwnership(this.objectStore.getObjects());
     if (orphaned.length === 0) return;
-    if (!confirm(this.t('app.fab.releaseOwnershipConfirm', { count: orphaned.length }))) return;
+    if (!(await this.confirm.ask(this.t('app.fab.releaseOwnershipConfirm', { count: orphaned.length })))) return;
     for (const object of orphaned) object.owner = '';
   }
 

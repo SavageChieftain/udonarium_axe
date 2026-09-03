@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/c
 import { RoomSnapshotService } from '@axe/application/file/room-snapshot.service';
 import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { RolePermissionService } from '@axe/application/permission/role-permission.service';
-import { confirmDialog } from '@axe/core/input/confirm-dialog';
+import { ConfirmService } from '@axe/application/ui/confirm.service';
 import { RoomSnapshotMeta } from '@axe/core/storage/room-snapshot-store';
 import { formatSnapshotByteSize, formatSnapshotSavedAt } from '@axe/features/room-archive/snapshot-format';
 import { TranslocoModule } from '@jsverse/transloco';
@@ -17,6 +17,7 @@ export class RoomSnapshotPanelComponent {
   private readonly roomSnapshot = inject(RoomSnapshotService);
   private readonly rolePermission = inject(RolePermissionService);
   private readonly t = inject(TRANSLATE_FN);
+  private readonly confirm = inject(ConfirmService);
 
   protected readonly snapshots = this.roomSnapshot.snapshots;
   protected readonly isCapturing = this.roomSnapshot.isCapturing;
@@ -50,20 +51,34 @@ export class RoomSnapshotPanelComponent {
 
   protected async restore(meta: RoomSnapshotMeta): Promise<void> {
     if (!this.canEdit) return;
-    if (!confirmDialog(this.t('feature.roomArchive.panel.restoreConfirm', { savedAt: this.savedAtLabel(meta) })))
+    if (
+      !(await this.confirm.ask(
+        this.t('feature.roomArchive.panel.restoreConfirm', { savedAt: this.savedAtLabel(meta) })
+      ))
+    )
       return;
     await this.roomSnapshot.restore(meta.id);
   }
 
   protected async remove(meta: RoomSnapshotMeta): Promise<void> {
     if (!this.canEdit) return;
-    if (!confirmDialog(this.t('feature.roomArchive.panel.removeConfirm', { savedAt: this.savedAtLabel(meta) }))) return;
+    const asked = await this.confirm.ask({
+      message: this.t('feature.roomArchive.panel.removeConfirm', { savedAt: this.savedAtLabel(meta) }),
+      okLabel: this.t('common.button.delete'),
+      danger: true,
+    });
+    if (!asked) return;
     await this.roomSnapshot.remove(meta.id);
   }
 
   protected async clearAll(): Promise<void> {
     if (!this.canEdit) return;
-    if (!confirmDialog(this.t('feature.roomArchive.panel.clearConfirm'))) return;
+    const asked = await this.confirm.ask({
+      message: this.t('feature.roomArchive.panel.clearConfirm'),
+      okLabel: this.t('common.button.delete'),
+      danger: true,
+    });
+    if (!asked) return;
     await this.roomSnapshot.clear();
   }
 }
