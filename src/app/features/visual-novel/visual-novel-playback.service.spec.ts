@@ -70,7 +70,7 @@ describe('VisualNovelPlaybackService', () => {
       });
     }
 
-    it('leaves a secret roll out of the log for anybody but the one who made it', () => {
+    it('leaves a secret roll out of the script for the room', () => {
       beMe('reader');
       saySecret('隠しダイス → 6', 'roller');
       TestBed.inject(ObjectChangeService).notifyChanged(tab.identifier);
@@ -78,21 +78,21 @@ describe('VisualNovelPlaybackService', () => {
       expect(playback.logMessages()).toHaveLength(0);
     });
 
-    it('shows it to the one who made it', () => {
+    it('leaves it out on the screen of the one who made it, who has the chat window for it', () => {
       beMe('roller');
       saySecret('隠しダイス → 6', 'roller');
       TestBed.inject(ObjectChangeService).notifyChanged(tab.identifier);
 
-      expect(playback.logMessages().map((message) => message.text)).toEqual(['隠しダイス → 6']);
+      expect(playback.logMessages()).toHaveLength(0);
     });
 
-    it('shows it to the game master, who may read what is kept back', () => {
+    it('leaves it out for the game master as well', () => {
       beMe('reader');
       PeerCursor.myCursor.role = PeerRole.GameMaster;
       saySecret('隠しダイス → 6', 'roller');
       TestBed.inject(ObjectChangeService).notifyChanged(tab.identifier);
 
-      expect(playback.logMessages()).toHaveLength(1);
+      expect(playback.logMessages()).toHaveLength(0);
     });
 
     it('shows it once it has been opened to the table', () => {

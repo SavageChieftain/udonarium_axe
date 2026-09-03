@@ -2,7 +2,6 @@ import { computed, DestroyRef, effect, inject, Injectable, signal, untracked } f
 import { ChatMessageService } from '@axe/application/chat/chat-message.service';
 import { LanguageService } from '@axe/application/i18n/language.service';
 import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
-import { RolePermissionService } from '@axe/application/permission/role-permission.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { GameCharacter } from '@axe/domain/character/game-character';
@@ -49,7 +48,6 @@ export class VisualNovelPlaybackService {
   private readonly settings = inject(VisualNovelSettingsService);
   private readonly translate = inject(TRANSLATE_FN);
   private readonly language = inject(LanguageService);
-  private readonly rolePermission = inject(RolePermissionService);
 
   private readonly renderVersion = signal(0);
   private readonly cursor = signal(-1);
@@ -78,18 +76,19 @@ export class VisualNovelPlaybackService {
    *
    * The backlog shows this. The script below is a part of it.
    *
-   * A secret roll is left out for everybody but the one who made it: novel mode reads a line
-   * whole and in the middle of the screen, which is no place for what the chat keeps back.
+   * A secret roll is left out of it altogether, the one who made it included.
+   *
+   * Novel mode says a line whole, in the middle of the screen, under a face that announces it
+   * to the room - and the screen is the one thing here that gets shown around, there being a
+   * view of it made for streaming. A roll that was kept back has no business being called out
+   * there by anybody's screen, its own thrower's least of all. It is read in the chat window,
+   * where it is one line among many and only for the eyes it belongs to.
    */
   readonly logMessages = computed(() => {
     this.renderVersion();
-    this.objectChange.trackMyCursor();
     const tab = this.chatTab();
     if (!tab) return [] as ChatMessage[];
-    const seesHidden = this.rolePermission.canSeeHidden;
-    return tab.chatMessages.filter(
-      (message) => message.isDisplayable && !message.isOutOfStory && (seesHidden || !message.isSecretToMe)
-    );
+    return tab.chatMessages.filter((message) => message.isDisplayable && !message.isOutOfStory && !message.isSecret);
   });
 
   /** The lines novel mode reads out, one after another. */
