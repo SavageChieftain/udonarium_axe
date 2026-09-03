@@ -1293,6 +1293,7 @@
         "confirmCleanFiltered": "Permanently delete the {{count}} items currently shown?",
         "multiMove": "Move multiple",
         "displaySettings": "Display settings",
+        "filterSettings": "Filtering and display settings",
         "sortOrder1": "Sort 1st",
         "sortOrder2": "Sort 2nd",
         "tagPlaceholder": "Tag name",

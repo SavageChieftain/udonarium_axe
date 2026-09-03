@@ -87,7 +87,7 @@
         <button
           class="text-ui-muted hover:text-ui-accent flex min-w-0 flex-1 cursor-pointer items-center gap-1.5 border-none bg-transparent p-0 text-left text-[11px] hover:shadow-none"
           type="button"
-          [title]="'feature.inventory.panel.displaySettings' | transloco"
+          [title]="'feature.inventory.panel.filterSettings' | transloco"
           (click)="toggleEdit()"
         >
           <i class="material-icons text-[15px]!">filter_alt</i>
@@ -126,10 +126,11 @@
           <button
             class="text-ui-muted hover:bg-ui-hover hover:text-ui-text flex size-6.5 shrink-0 cursor-pointer items-center justify-center rounded-sm border-none bg-transparent p-0 [&_.material-icons]:text-[16px]!"
             type="button"
+            [attr.aria-label]="'feature.inventory.panel.cancel' | transloco"
             [title]="'feature.inventory.panel.cancel' | transloco"
             (click)="toggleMultiMove()"
           >
-            <i class="material-icons">close</i>
+            <i class="material-icons" aria-hidden="true">close</i>
           </button>
         </div>
 
@@ -170,19 +171,21 @@
                 class="bg-ui-input border-ui-border-panel text-ui-text hover:bg-ui-hover hover:border-ui-accent hover:text-ui-accent rounded-ui-sm flex size-6.5 cursor-pointer items-center justify-center border border-solid p-0 transition-[background,color,border-color] disabled:cursor-default disabled:opacity-40 [&_.material-icons]:text-[15px]!"
                 type="button"
                 [disabled]="picked < 1"
+                [attr.aria-label]="'feature.inventory.panel.hideInInventory' | transloco"
                 [title]="'feature.inventory.panel.hideInInventory' | transloco"
                 (click)="multiSetHideInventory(true)"
               >
-                <i class="material-icons">visibility_off</i>
+                <i class="material-icons" aria-hidden="true">visibility_off</i>
               </button>
               <button
                 class="bg-ui-input border-ui-border-panel text-ui-text hover:bg-ui-hover hover:border-ui-accent hover:text-ui-accent rounded-ui-sm flex size-6.5 cursor-pointer items-center justify-center border border-solid p-0 transition-[background,color,border-color] disabled:cursor-default disabled:opacity-40 [&_.material-icons]:text-[15px]!"
                 type="button"
                 [disabled]="picked < 1"
+                [attr.aria-label]="'feature.inventory.panel.showInInventory' | transloco"
                 [title]="'feature.inventory.panel.showInInventory' | transloco"
                 (click)="multiSetHideInventory(false)"
               >
-                <i class="material-icons">visibility</i>
+                <i class="material-icons" aria-hidden="true">visibility</i>
               </button>
             </div>
           }

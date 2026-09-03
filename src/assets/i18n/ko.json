@@ -1293,6 +1293,7 @@
         "confirmCleanFiltered": "좁혀진 {{count}}개 요소를 완전히 삭제할까요?",
         "multiMove": "일괄 이동",
         "displaySettings": "표시 설정",
+        "filterSettings": "필터와 표시 설정",
         "sortOrder1": "정렬 1순위",
         "sortOrder2": "정렬 2순위",
         "tagPlaceholder": "태그 이름",
