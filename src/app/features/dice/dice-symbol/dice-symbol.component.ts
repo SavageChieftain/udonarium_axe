@@ -374,6 +374,7 @@ export class DiceSymbolComponent {
         })),
         onStoreToOwner: (ownerIdentifier) => this.storeToOwner(ownerIdentifier),
         onRevealed: (face) => this.announceRevealedFace(face),
+        canRevealHidden: this.rolePermission.canSeeHidden,
       },
       this.translateFn
     );
