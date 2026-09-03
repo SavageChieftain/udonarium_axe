@@ -197,6 +197,60 @@ describe('HotbarBarComponent', () => {
     expect(speaker).toBeTruthy();
   });
 
+  /**
+   * A piece this reader may work that is not the one the chat speaks as, settled on the table.
+   *
+   * The tabletop service only announces the collection when a piece moves, and it treats a
+   * piece it has never seen as having moved. Left fresh, the first change to it would reach
+   * the bar through the collection and hide whether the bar watches the piece itself.
+   */
+  async function settledCharacter(name: string): Promise<GameCharacter> {
+    const character = GameCharacter.create(name, 1, '');
+    character.owner = PeerCursor.myCursor.userId;
+    character.setLocation('table');
+    await fixture.whenStable();
+    return character;
+  }
+
+  function bindSlot(character: GameCharacter, slotIndex: number): void {
+    const draft = emptyHotbarSlotDraft('chat');
+    draft.value = '2d6+3 攻撃';
+    draft.characterIdentifier = character.identifier;
+    draft.characterName = character.name;
+    ownHotbar().put(preference.page(), slotIndex, draft);
+    fixture.detectChanges();
+  }
+
+  function cellsOf(): { actor: unknown; actorName: string }[] {
+    return (fixture.componentInstance as unknown as { cells: () => { actor: unknown; actorName: string }[] }).cells();
+  }
+
+  it('draws the piece a slot names by the name it goes by now', async () => {
+    ownedCharacter('術者');
+    const bound = await settledCharacter('斥候');
+    bindSlot(bound, 4);
+    await fixture.whenStable();
+    expect(cellsOf()[4].actorName).toBe('斥候');
+
+    bound.name = '斥候長';
+    await fixture.whenStable();
+
+    expect(cellsOf()[4].actorName).toBe('斥候長');
+  });
+
+  it('drops the piece a slot names from the cell once it may no longer be worked', async () => {
+    ownedCharacter('術者');
+    const bound = await settledCharacter('斥候');
+    bindSlot(bound, 5);
+    await fixture.whenStable();
+    expect(cellsOf()[5].actor).toBe(bound);
+
+    bound.owner = 'someone-else';
+    await fixture.whenStable();
+
+    expect(cellsOf()[5].actor).toBeNull();
+  });
+
   it('keeps a slot pointing at the piece it names while that piece is still in the room', () => {
     ownedCharacter('術者');
     const theirs = GameCharacter.create('ゴブリンA', 1, '');

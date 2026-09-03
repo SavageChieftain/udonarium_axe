@@ -131,6 +131,8 @@ export class HotbarBarComponent {
     return Array.from({ length: HOTBAR_SLOTS_PER_PAGE }, (_, slotIndex) => {
       const slot = hotbar?.slotAt(page, slotIndex) ?? null;
       if (slot) this.objectChange.versionOf(slot.identifier)();
+      // A rename bumps the piece's own version and nothing else, and the cell draws its name.
+      if (slot?.characterIdentifier) this.objectChange.versionOf(slot.characterIdentifier)();
       return hotbarCellView(slot, slotIndex, {
         controllable,
         speaker: this.speaker(),
