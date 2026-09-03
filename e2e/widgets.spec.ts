@@ -61,7 +61,10 @@ test.describe('ウィジェットと言語切替', () => {
     await page.locator('app-language-selector').click();
     await expect(panel).toContainText('Nickname', { timeout: 10000 });
 
-    // 戻せること。切り替えっぱなしで終わらないのを確かめる。
+    // 三つを巡って戻ること。切り替えっぱなしで終わらないのを確かめる。
+    await page.locator('app-language-selector').click();
+    await expect(panel).toContainText('닉네임', { timeout: 10000 });
+
     await page.locator('app-language-selector').click();
     await expect(panel).toContainText('ニックネーム', { timeout: 10000 });
   });
