@@ -1,6 +1,6 @@
 import { GridType } from '@axe/domain/tabletop/game-table';
+import { computeHexMaskGeometry } from '@axe/domain/tabletop/hex-mask-geometry';
 import { createScene, sceneHeightPx, sceneWidthPx } from '@axe/features/map-editor/model/scene';
-import { computeHexMaskGeometry } from '@axe/features/tabletop/game-table-mask/game-table-mask-helpers';
 import { describe, expect, it } from 'vitest';
 
 describe('sceneWidthPx / sceneHeightPx', () => {

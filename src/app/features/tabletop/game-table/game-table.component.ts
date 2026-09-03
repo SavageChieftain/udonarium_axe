@@ -36,6 +36,7 @@ import { PERF_TO_DATA_URL, perfCounters } from '@axe/core/util/perf-counters';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
 import { FilterType, GameTable, GridType } from '@axe/domain/tabletop/game-table';
+import { computeHexMaskGeometry } from '@axe/domain/tabletop/hex-mask-geometry';
 import { SurfaceDims } from '@axe/domain/tabletop/surface-space';
 import { TableSelecter } from '@axe/domain/tabletop/table-selecter';
 import { boardSurfaceOf, surfaceOf, TABLE_SURFACES, TableSurface } from '@axe/domain/tabletop/tabletop-object';
@@ -61,7 +62,6 @@ import { GameTableMaskComponent } from '@axe/features/tabletop/game-table-mask/g
 import {
   buildHexOuterBorderSvg,
   buildHexOutlineMask,
-  computeHexMaskGeometry,
 } from '@axe/features/tabletop/game-table-mask/game-table-mask-helpers';
 import { GameTableScratchMaskComponent } from '@axe/features/tabletop/game-table-scratch-mask/game-table-scratch-mask.component';
 import { LightSourceComponent } from '@axe/features/tabletop/light-source/light-source.component';

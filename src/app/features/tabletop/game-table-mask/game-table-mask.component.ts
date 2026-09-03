@@ -27,6 +27,7 @@ import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
 import { GridType } from '@axe/domain/tabletop/game-table';
 import { GameTableMask } from '@axe/domain/tabletop/game-table-mask';
 import { hexCircumradius, isFlatTopGrid, isHexGrid, pixelToHexCell } from '@axe/domain/tabletop/hex-geometry';
+import { computeHexMaskGeometry } from '@axe/domain/tabletop/hex-mask-geometry';
 import { TableSelecter } from '@axe/domain/tabletop/table-selecter';
 import { ObjectPanelService } from '@axe/features/panels/object-panel.service';
 import { buildGameTableMaskContextMenu } from '@axe/features/tabletop/game-table-mask/game-table-mask-context-menu';
@@ -35,7 +36,6 @@ import {
   buildHexOutlineMask,
   buildMaskCss,
   buildScratchingGridInfos,
-  computeHexMaskGeometry,
   type ScratchGridInfo,
 } from '@axe/features/tabletop/game-table-mask/game-table-mask-helpers';
 import { MovableOption } from '@axe/ui/directives/movable.directive';
