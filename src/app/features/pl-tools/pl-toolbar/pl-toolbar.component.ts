@@ -28,6 +28,7 @@ import { ObjectPanelService } from '@axe/features/panels/object-panel.service';
 import { RoomPanelService } from '@axe/features/panels/room-panel.service';
 import { ActiveCharacterService } from '@axe/features/pl-tools/active-character.service';
 import { isOwnedByUser } from '@axe/features/pl-tools/owned-character-list/owned-characters';
+import { UiIconButtonComponent } from '@axe/ui/components/icon-button/icon-button.component';
 import { DraggableDirective } from '@axe/ui/directives/draggable.directive';
 import { SafePipe } from '@axe/ui/pipes/safe.pipe';
 import { turnIndicatorSignal } from '@axe/ui/turn/turn-indicator.signal';
@@ -43,7 +44,7 @@ const BUFF_VIEW_ICONS: Record<BuffViewMode, string> = {
   changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-pl-toolbar',
   templateUrl: './pl-toolbar.component.html',
-  imports: [DraggableDirective, SafePipe, TranslocoModule],
+  imports: [DraggableDirective, SafePipe, TranslocoModule, UiIconButtonComponent],
 })
 export class PlToolbarComponent {
   protected readonly isCompact = inject(ViewportService).isCompact;

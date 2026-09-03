@@ -1,0 +1,13 @@
+<button
+  type="button"
+  class="rounded-ui-sm text-ui-text hover:bg-ui-menu-hover hover:text-ui-accent flex size-8 cursor-pointer items-center justify-center border-none bg-transparent transition-colors [&_i]:text-[20px]!"
+  [class.text-ui-accent]="active()"
+  [class.bg-ui-accent-bg]="active()"
+  [class.text-ui-dim]="dim()"
+  [class.opacity-45]="faded()"
+  [attr.data-testid]="testId()"
+  [title]="label()"
+  (click)="press.emit($event)"
+>
+  <i class="material-icons">{{ icon() }}</i>
+</button>
