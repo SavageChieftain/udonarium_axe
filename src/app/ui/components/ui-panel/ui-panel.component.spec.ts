@@ -193,7 +193,9 @@ describe('UIPanelComponent', () => {
 
       const buttons = fixture.nativeElement.querySelectorAll('button');
       expect(buttons.length).toBeGreaterThan(0);
-      expect((buttons[0].parentElement as HTMLElement).className).toContain('bg-black/60');
+      const cluster = (buttons[0].parentElement as HTMLElement).className;
+      expect(cluster).toContain('bg-ui-ghost');
+      expect(cluster).not.toContain('bg-black');
     });
   });
 

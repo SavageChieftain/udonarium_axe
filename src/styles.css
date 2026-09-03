@@ -65,6 +65,8 @@
   --color-ui-menu: var(--ui-menu-bg);
   --color-ui-menu-hover: var(--ui-menu-hover);
   --color-ui-input: var(--ui-input-bg);
+  --color-ui-ghost: var(--ui-ghost-bg);
+  --color-ui-ghost-header: var(--ui-ghost-header-bg);
 
   /* テキスト → text-ui-* */
   --color-ui-text: var(--ui-text);
@@ -470,6 +472,8 @@ chat-message > div > div {
   --ui-titlebar-border: rgba(48, 54, 61, 0.6);
   --ui-hover: rgba(255, 255, 255, 0.07);
   --ui-selected: rgba(56, 189, 248, 0.15);
+  --ui-ghost-bg: rgba(0, 0, 0, 0.6);
+  --ui-ghost-header-bg: rgba(0, 0, 0, 0.7);
 
   /* コンテキストメニュー */
   --ui-menu-bg: rgba(13, 17, 23, 0.96);
@@ -542,6 +546,8 @@ chat-message > div > div {
   --ui-titlebar-border: rgba(91, 64, 116, 0.32);
   --ui-hover: rgba(91, 64, 116, 0.08);
   --ui-selected: rgba(234, 118, 203, 0.18);
+  --ui-ghost-bg: rgba(232, 221, 237, 0.72);
+  --ui-ghost-header-bg: rgba(196, 182, 211, 0.92);
 
   --ui-menu-bg: rgba(235, 226, 241, 0.98);
   --ui-menu-border: rgba(91, 64, 116, 0.42);

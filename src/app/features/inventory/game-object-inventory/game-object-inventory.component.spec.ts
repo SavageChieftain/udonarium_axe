@@ -972,7 +972,24 @@ describe('GameObjectInventoryComponent', () => {
         // The strips sit on the ground the content carries; the heading keeps one of its own,
         // or the rows would scroll through it.
         expect(tabs.className).toContain('bg-transparent');
-        expect(heading.closest('table')?.className).toContain('[&_thead_th]:bg-black/70');
+        expect(heading.closest('table')?.className).toContain('[&_thead_th]:bg-ui-ghost-header');
+      });
+
+      it('takes the floating ground from the theme rather than a fixed black', () => {
+        putOnTable('ゴブリン');
+        TestBed.inject(GameObjectInventoryService).tableDataTag = 'HP';
+        component.setViewMode('table');
+        TestBed.inject(PanelService).isGhost.set(true);
+        fixture.detectChanges();
+
+        const strip = fixture.nativeElement.querySelector('form[name="game-object-inventory"]')
+          ?.parentElement as HTMLElement;
+        const content = strip.parentElement as HTMLElement;
+        const table = fixture.nativeElement.querySelector('thead th')?.closest('table') as HTMLElement;
+
+        expect(content.className).toContain('bg-ui-ghost');
+        expect(content.className).not.toContain('bg-black');
+        expect(table.className).not.toContain('bg-black');
       });
 
       it('asks the frame for the size the whole list needs', () => {

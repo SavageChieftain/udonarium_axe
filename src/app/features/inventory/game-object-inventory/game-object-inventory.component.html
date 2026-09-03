@@ -5,7 +5,7 @@
   -->
   <div
     class="text-ui-text flex h-full flex-col overflow-hidden text-[13px]"
-    [ngClass]="isGhost() ? 'rounded-ui shadow-ui-md bg-black/60 [backdrop-filter:blur(6px)]' : 'bg-ui-panel'"
+    [ngClass]="isGhost() ? 'rounded-ui shadow-ui-md bg-ui-ghost [backdrop-filter:blur(6px)]' : 'bg-ui-panel'"
     #contentRoot
   >
     @if (shows('tabs')) {
@@ -412,7 +412,7 @@
       -->
       <table
         class="w-max min-w-full border-separate border-spacing-0 text-[12px]"
-        [ngClass]="{ '[&_thead_th]:bg-black/70!': isGhost() }"
+        [ngClass]="{ '[&_thead_th]:bg-ui-ghost-header!': isGhost() }"
       >
         <thead>
           <tr class="text-ui-muted text-[10px] font-semibold">
