@@ -27,19 +27,18 @@ import { FileArchiver } from '@axe/core/storage/file-archiver';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { Hotbar } from '@axe/domain/hotbar/hotbar';
-import { hotbarSlotColor, hotbarSlotIcon, hotbarSlotLabel } from '@axe/domain/hotbar/hotbar-appearance';
 import { draftOfSlot, emptyHotbarSlotDraft, HotbarSlotDraft } from '@axe/domain/hotbar/hotbar-draft';
 import { findByReference } from '@axe/domain/hotbar/hotbar-reference';
 import { HotbarSet } from '@axe/domain/hotbar/hotbar-set';
 import { HOTBAR_PAGES, HOTBAR_SLOTS_PER_PAGE } from '@axe/domain/hotbar/hotbar-size';
 import { HotbarSlot } from '@axe/domain/hotbar/hotbar-slot';
-import { hotbarSlotNeedsCharacter } from '@axe/domain/hotbar/hotbar-slot-kind';
 import { CutIn } from '@axe/domain/media/cut-in';
 import { presetSoundLabelKey, soundFileName } from '@axe/domain/media/preset-sound-labels';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { PeerRole } from '@axe/domain/peer/peer-role';
 import { HotbarService } from '@axe/features/hotbar/hotbar.service';
 import { findSlotActorAmong } from '@axe/features/hotbar/hotbar-actor';
+import { bindsCharacter, HotbarCellView, hotbarCellView } from '@axe/features/hotbar/hotbar-cell-view';
 import { buildHotbarBarContextMenu, buildHotbarSlotContextMenu } from '@axe/features/hotbar/hotbar-context-menu';
 import { HotbarSlotDrag } from '@axe/features/hotbar/hotbar-drag';
 import { HotbarSlotEditorComponent } from '@axe/features/hotbar/hotbar-editor/hotbar-slot-editor.component';
@@ -53,20 +52,6 @@ import { WidgetPlaceDirective } from '@axe/ui/directives/widget-place.directive'
 import { spotBeside } from '@axe/ui/panel-spot';
 import { hotbarPanelLayer, Z_CONTEXT_MENU_PINNED, Z_HOTBAR, Z_HOTBAR_MOBILE, Z_HOTBAR_PINNED } from '@axe/ui/z-layers';
 import { TranslocoModule } from '@jsverse/transloco';
-
-export interface HotbarCellView {
-  slotIndex: number;
-  slot: HotbarSlot | null;
-  label: string;
-  icon: string;
-  color: string;
-  needsCharacter: boolean;
-  key: string;
-  /** Who this slot acts as: the one it names, or whoever is being controlled. */
-  actor: GameCharacter | null;
-  /** Set only where the slot names someone of its own, to be shown on the slot. */
-  actorName: string;
-}
 
 const FLASH_MS = 600;
 /** Long enough to read the reason a slot would not run, short enough not to nag. */
@@ -146,7 +131,12 @@ export class HotbarBarComponent {
     return Array.from({ length: HOTBAR_SLOTS_PER_PAGE }, (_, slotIndex) => {
       const slot = hotbar?.slotAt(page, slotIndex) ?? null;
       if (slot) this.objectChange.versionOf(slot.identifier)();
-      return this.viewOf(slot, slotIndex, controllable);
+      return hotbarCellView(slot, slotIndex, {
+        controllable,
+        speaker: this.speaker(),
+        referencedName: (named) => this.referencedName(named),
+        keyOf: (index) => this.keyOf(index),
+      });
     });
   });
 
@@ -416,41 +406,6 @@ export class HotbarBarComponent {
     );
   }
 
-  private viewOf(slot: HotbarSlot | null, slotIndex: number, controllable: readonly GameCharacter[]): HotbarCellView {
-    if (!slot) {
-      return {
-        slotIndex,
-        slot: null,
-        label: '',
-        icon: '',
-        color: '',
-        needsCharacter: false,
-        key: this.keyOf(slotIndex),
-        actor: null,
-        actorName: '',
-      };
-    }
-    const kind = slot.slotKind;
-    const named = this.namedCharacter(slot, controllable);
-    return {
-      slotIndex,
-      slot,
-      label: hotbarSlotLabel(slot.argument, slot.label, this.referencedName(slot)),
-      icon: hotbarSlotIcon(kind, slot.argument, slot.icon),
-      color: hotbarSlotColor(kind, slot.color),
-      needsCharacter: hotbarSlotNeedsCharacter(kind),
-      key: this.keyOf(slotIndex),
-      // A slot that names a piece acts as that piece or as nobody. Falling back to whoever the
-      // chat is set to speak as would send someone else's attack under the reader's own name.
-      actor: this.bindsCharacter(slot) ? named : this.speaker(),
-      actorName: named?.name ?? slot.characterName,
-    };
-  }
-
-  private bindsCharacter(slot: HotbarSlot): boolean {
-    return slot.characterIdentifier.trim().length > 0 || slot.characterName.trim().length > 0;
-  }
-
   /** Who a slot naming nobody acts as: whoever the chat is set to speak as. */
   private speaker(): GameCharacter | null {
     const identifier = this.chatSpeaker.identifier();
@@ -461,14 +416,6 @@ export class HotbarBarComponent {
     return speaking instanceof GameCharacter ? speaking : null;
   }
 
-  /** The piece a slot names for itself, found again by name in a room that brought new ones. */
-  private namedCharacter(slot: HotbarSlot, controllable: readonly GameCharacter[]): GameCharacter | null {
-    if (!this.bindsCharacter(slot)) return null;
-
-    if (slot.characterIdentifier) this.objectChange.versionOf(slot.characterIdentifier)();
-    return findSlotActorAmong(slot, controllable)?.character ?? null;
-  }
-
   /**
    * A slot that found its piece by name writes down what it found, so it settles.
    *
@@ -476,7 +423,7 @@ export class HotbarBarComponent {
    * that mean nothing there. Firing such a slot once puts it right.
    */
   private settleActor(slot: HotbarSlot): void {
-    if (!this.bindsCharacter(slot)) return;
+    if (!bindsCharacter(slot)) return;
     // A piece still in the room keeps the slot pointing at it, whether or not the reader may
     // work it today. Only a piece that is gone lets the name find another one in its place.
     if (this.objectStore.get(slot.characterIdentifier) instanceof GameCharacter) return;
