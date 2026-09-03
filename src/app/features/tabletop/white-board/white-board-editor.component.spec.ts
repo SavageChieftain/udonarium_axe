@@ -24,6 +24,10 @@ interface EditorInternals {
   bindToBoard(board: WhiteBoard): void;
   onKeyDown(event: KeyboardEvent): void;
   onKeyUp(event: KeyboardEvent): void;
+  onPointerDown(event: PointerEvent): void;
+  onPointerMove(event: PointerEvent): void;
+  onPointerUp(event: PointerEvent): void;
+  sliding: Signal<boolean>;
   undo(): void;
   touched(): void;
   hold(marks: MarkRef[]): void;
@@ -331,6 +335,122 @@ describe('WhiteBoardEditorComponent', () => {
 
       expect(marks).toHaveLength(21);
       expect(marks[1]).toEqual({ at: 50, px: 100 });
+    });
+  });
+
+  describe('pointer gestures', () => {
+    function pointer(type: string, x: number, y: number, init: PointerEventInit = {}): PointerEvent {
+      const event = new PointerEvent(type, { clientX: x, clientY: y, button: 0, buttons: 1, pointerId: 1, ...init });
+      document.body.dispatchEvent(event);
+      return event;
+    }
+
+    function drag(editor: EditorInternals, from: BoardPoint, through: BoardPoint[], to: BoardPoint, init = {}) {
+      editor.onPointerDown(pointer('pointerdown', from.x, from.y, init));
+      for (const at of through) editor.onPointerMove(pointer('pointermove', at.x, at.y, init));
+      editor.onPointerUp(pointer('pointerup', to.x, to.y, { ...init, buttons: 0 }));
+    }
+
+    function mounted() {
+      const made = mount();
+      made.fixture.detectChanges();
+      return made;
+    }
+
+    it('lays a pen stroke through the points the pointer passed', () => {
+      const { editor } = mounted();
+      editor.tool.set('pen');
+
+      drag(
+        editor,
+        { x: 10, y: 10 },
+        [
+          { x: 40, y: 20 },
+          { x: 80, y: 60 },
+        ],
+        { x: 120, y: 60 }
+      );
+
+      const strokes = freehandLayer(editor.scene).strokes;
+      expect(strokes).toHaveLength(1);
+      expect(strokes[0].points.slice(0, 2)).toEqual([10, 10]);
+      expect(strokes[0].points.slice(-2)).toEqual([80, 60]);
+      expect(strokes[0].width).toBe(4);
+    });
+
+    it('draws a line from where the drag began to where it ended, and takes hold of it', () => {
+      const { editor } = mounted();
+      editor.tool.set('line');
+
+      drag(
+        editor,
+        { x: 100, y: 100 },
+        [
+          { x: 150, y: 120 },
+          { x: 300, y: 140 },
+        ],
+        { x: 300, y: 140 }
+      );
+
+      expect(shapes(editor)).toHaveLength(1);
+      expect(shapes(editor)[0].shape).toBe('line');
+      expect(shapes(editor)[0].points).toEqual([100, 100, 300, 140]);
+      expect(editor.held()).toEqual([{ kind: 'shape', id: shapes(editor)[0].id }]);
+    });
+
+    it('draws nothing from a drag too short to have meant anything', () => {
+      const { editor } = mounted();
+      editor.tool.set('shape');
+
+      drag(editor, { x: 100, y: 100 }, [], { x: 102, y: 101 });
+
+      expect(shapes(editor)).toHaveLength(0);
+    });
+
+    it('takes hold of the mark under the pointer and carries it with the drag', () => {
+      const { editor } = mounted();
+      const rect = addRect(editor, { x: 100, y: 100 }, { x: 200, y: 160 });
+      editor.tool.set('select');
+
+      drag(editor, { x: 150, y: 130 }, [{ x: 170, y: 140 }], { x: 190, y: 150 });
+
+      expect(editor.held()).toEqual([{ kind: 'shape', id: rect.id }]);
+      expect(rect.points.slice(0, 2)).toEqual([120, 110]);
+    });
+
+    it('drags a band over empty sheet and takes hold of everything inside it', () => {
+      const { editor } = mounted();
+      const inside = addRect(editor, { x: 100, y: 100 }, { x: 140, y: 140 });
+      addRect(editor, { x: 600, y: 600 }, { x: 640, y: 640 });
+      editor.tool.set('select');
+
+      drag(editor, { x: 50, y: 50 }, [{ x: 200, y: 200 }], { x: 300, y: 300 });
+
+      expect(editor.held()).toEqual([{ kind: 'shape', id: inside.id }]);
+    });
+
+    it('slides the sheet on the middle button instead of marking it', () => {
+      const { editor } = mounted();
+      editor.tool.set('pen');
+
+      editor.onPointerDown(pointer('pointerdown', 10, 10, { button: 1, buttons: 4 }));
+      expect(editor.sliding()).toBe(true);
+      editor.onPointerMove(pointer('pointermove', 30, 30, { buttons: 4 }));
+      editor.onPointerUp(pointer('pointerup', 30, 30, { button: 1, buttons: 0 }));
+
+      expect(editor.sliding()).toBe(false);
+      expect(freehandLayer(editor.scene).strokes).toHaveLength(0);
+    });
+
+    it('rubs out the words under the eraser', () => {
+      const { editor } = mounted();
+      textLayer(editor.scene).items.push(wordsAt({ x: 200, y: 200 }, 'hello', STYLE));
+      editor.tool.set('eraser');
+
+      editor.onPointerDown(pointer('pointerdown', 210, 210));
+      editor.onPointerUp(pointer('pointerup', 210, 210, { buttons: 0 }));
+
+      expect(textLayer(editor.scene).items).toHaveLength(0);
     });
   });
 
