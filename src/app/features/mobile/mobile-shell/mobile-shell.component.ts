@@ -27,9 +27,9 @@ import {
   type MobileMenuItem,
   sharedMobileMenuItems,
 } from '@axe/features/mobile/mobile-shell/mobile-menu-items';
+import { ObjectPanelService } from '@axe/features/panels/object-panel.service';
 import { RoomPanelService } from '@axe/features/panels/room-panel.service';
 import { ActiveCharacterService } from '@axe/features/pl-tools/active-character.service';
-import { CharacterPanelService } from '@axe/features/pl-tools/character-panel.service';
 import { isOwnedByUser } from '@axe/features/pl-tools/owned-character-list/owned-characters';
 import { VisualNovelModeService } from '@axe/features/visual-novel/visual-novel-mode.service';
 import { TranslocoModule } from '@jsverse/transloco';
@@ -50,7 +50,7 @@ export class MobileShellComponent {
   private readonly turnOrder = inject(TurnOrderService);
   private readonly tabletopService = inject(TabletopService);
   private readonly activeCharacter = inject(ActiveCharacterService);
-  private readonly characterPanel = inject(CharacterPanelService);
+  private readonly objectPanels = inject(ObjectPanelService);
   private readonly objectStore = inject(ObjectStore);
   private readonly fileArchiver = inject(FileArchiver);
   private readonly rolePermission = inject(RolePermissionService);
@@ -207,7 +207,7 @@ export class MobileShellComponent {
     const identifier = this.activeCharacter.identifier();
     const character = identifier ? this.objectStore.get(identifier) : null;
     if (character instanceof GameCharacter && isOwnedByUser(character, PeerCursor.myCursor?.userId ?? '')) {
-      this.characterPanel.openChatPalette(character);
+      this.objectPanels.openChatPalette(character);
       return;
     }
     this.openCharacterList();

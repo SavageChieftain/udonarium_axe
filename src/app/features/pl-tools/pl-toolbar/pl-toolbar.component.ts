@@ -24,9 +24,9 @@ import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { PeerRole } from '@axe/domain/peer/peer-role';
 import { HandRailService } from '@axe/features/card/hand-rail/hand-rail.service';
+import { ObjectPanelService } from '@axe/features/panels/object-panel.service';
 import { RoomPanelService } from '@axe/features/panels/room-panel.service';
 import { ActiveCharacterService } from '@axe/features/pl-tools/active-character.service';
-import { CharacterPanelService } from '@axe/features/pl-tools/character-panel.service';
 import { isOwnedByUser } from '@axe/features/pl-tools/owned-character-list/owned-characters';
 import { DraggableDirective } from '@axe/ui/directives/draggable.directive';
 import { SafePipe } from '@axe/ui/pipes/safe.pipe';
@@ -51,7 +51,7 @@ export class PlToolbarComponent {
   private readonly roomPanels = inject(RoomPanelService);
   private readonly objectChange = inject(ObjectChangeService);
   private readonly objectStore = inject(ObjectStore);
-  private readonly characterPanel = inject(CharacterPanelService);
+  private readonly objectPanels = inject(ObjectPanelService);
   private readonly turnOrder = inject(TurnOrderService);
   private readonly tabletopAction = inject(TabletopActionService);
   protected readonly handRail = inject(HandRailService);
@@ -98,7 +98,7 @@ export class PlToolbarComponent {
 
   protected openActiveChatPalette(): void {
     const character = this.activeCharacter();
-    if (character) this.characterPanel.openChatPalette(character);
+    if (character) this.objectPanels.openChatPalette(character);
   }
 
   protected toggleHandRail(): void {

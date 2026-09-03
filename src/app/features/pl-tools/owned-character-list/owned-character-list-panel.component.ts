@@ -11,8 +11,8 @@ import { DataElement } from '@axe/domain/data/data-element';
 import { Party } from '@axe/domain/party/party';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { ChatPaletteRegistryService } from '@axe/features/chat/chat-palette/chat-palette-registry.service';
+import { ObjectPanelService } from '@axe/features/panels/object-panel.service';
 import { ActiveCharacterService } from '@axe/features/pl-tools/active-character.service';
-import { CharacterPanelService } from '@axe/features/pl-tools/character-panel.service';
 import { resourceElementsOf, resourceMax } from '@axe/features/pl-tools/owned-character-list/character-resources';
 import { isOnTable, selectOwnedCharacters } from '@axe/features/pl-tools/owned-character-list/owned-characters';
 import { SafePipe } from '@axe/ui/pipes/safe.pipe';
@@ -29,7 +29,7 @@ export class OwnedCharacterListPanelComponent {
   private readonly objectStore = inject(ObjectStore);
   private readonly objectChange = inject(ObjectChangeService);
   private readonly selectionSignalService = inject(SelectionSignalService);
-  private readonly characterPanel = inject(CharacterPanelService);
+  private readonly objectPanels = inject(ObjectPanelService);
   private readonly registry = inject(ChatPaletteRegistryService);
   private readonly partyService = inject(PartyService);
   protected readonly activeCharacter = inject(ActiveCharacterService);
@@ -104,15 +104,15 @@ export class OwnedCharacterListPanelComponent {
   }
 
   protected openChatPalette(character: GameCharacter): void {
-    this.characterPanel.openChatPalette(character);
+    this.objectPanels.openChatPalette(character);
   }
 
   protected openSheet(character: GameCharacter): void {
-    this.characterPanel.openSheet(character);
+    this.objectPanels.openCharacterSheet(character);
   }
 
   protected openRemoteController(character: GameCharacter): void {
-    this.characterPanel.openRemoteController(character);
+    this.objectPanels.openRemoteController(character);
   }
 
   protected focusToKoma(character: GameCharacter): void {

@@ -23,9 +23,8 @@ import { ObjectChangeService } from '@axe/application/sync/object-change.service
 import { TurnOrderService } from '@axe/application/turn/turn-order.service';
 import { ContextMenuService } from '@axe/application/ui/context-menu.service';
 import { InventoryViewPreferenceService } from '@axe/application/ui/inventory-view-preference.service';
-import { PanelHeaderControl, PanelOption, PanelService } from '@axe/application/ui/panel.service';
+import { PanelHeaderControl, PanelService } from '@axe/application/ui/panel.service';
 import { SelectionSignalService } from '@axe/application/ui/selection-signal.service';
-import { sheetPanelBox } from '@axe/application/ui/sheet-panel';
 import { ViewportService } from '@axe/application/ui/viewport.service';
 import { Network } from '@axe/core/index';
 import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
@@ -84,6 +83,7 @@ import {
   INVENTORY_FILTER_PANEL,
   InventoryFilterPanelComponent,
 } from '@axe/features/inventory/inventory-filter-panel/inventory-filter-panel.component';
+import { ObjectPanelService } from '@axe/features/panels/object-panel.service';
 import { AutoFocusDirective } from '@axe/ui/directives/auto-focus.directive';
 import { SafePipe } from '@axe/ui/pipes/safe.pipe';
 import { TranslocoModule } from '@jsverse/transloco';
@@ -124,6 +124,7 @@ export class GameObjectInventoryComponent {
   }
 
   private readonly panelService = inject(PanelService);
+  private readonly objectPanels = inject(ObjectPanelService);
   private readonly inventoryService = inject(GameObjectInventoryService);
   private readonly contextMenuService = inject(ContextMenuService);
   private readonly pointerDeviceService = inject(PointerDeviceService);
@@ -1117,58 +1118,15 @@ export class GameObjectInventoryComponent {
   }
 
   private showDetail(gameObject: GameCharacter) {
-    this.selectionSignalService.selectObject(gameObject.identifier, gameObject.aliasName);
-    const coordinate = this.pointerDeviceService.pointers[0];
-    const title = gameObject.name.length
-      ? this.t('feature.character.panel.sheetWithName', { name: gameObject.name })
-      : this.t('feature.character.panel.sheet');
-    const option: PanelOption = {
-      title: title,
-      left: coordinate.x - 800,
-      top: coordinate.y - 300,
-      width: 800,
-      height: 600,
-    };
-    this.panelService.openLazy(
-      () =>
-        import('@axe/features/character/game-character-sheet/game-character-sheet.component').then(
-          (m) => m.GameCharacterSheetComponent
-        ),
-      option,
-      (component) => (component.tabletopObject = gameObject)
-    );
+    this.objectPanels.openCharacterSheet(gameObject);
   }
 
   private showChatPalette(gameObject: GameCharacter) {
-    const coordinate = this.pointerDeviceService.pointers[0];
-    const option: PanelOption = {
-      title: this.t('feature.character.panel.chatPaletteWithName', { name: gameObject.name }),
-      ...sheetPanelBox(coordinate, 760, 500),
-    };
-    this.panelService.openLazy(
-      () => import('@axe/features/chat/chat-palette/chat-palette.component').then((m) => m.ChatPaletteComponent),
-      option,
-      (component) => component.character.set(gameObject)
-    );
+    this.objectPanels.openChatPalette(gameObject);
   }
 
   private showRemoteController(gameObject: GameCharacter) {
-    const coordinate = this.pointerDeviceService.pointers[0];
-    const option: PanelOption = {
-      title: this.t('feature.character.panel.remoteControllerWithName', { name: gameObject.name }),
-      left: coordinate.x - 250,
-      top: coordinate.y - 175,
-      width: 700,
-      height: 600,
-    };
-    this.panelService.openLazy(
-      () =>
-        import('@axe/features/controller/remote-controller/remote-controller.component').then(
-          (m) => m.RemoteControllerComponent
-        ),
-      option,
-      (component) => component.character.set(gameObject)
-    );
+    this.objectPanels.openRemoteController(gameObject);
   }
 
   protected focusToObject(e: Event, gameObject: TabletopObject) {

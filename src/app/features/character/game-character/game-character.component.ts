@@ -71,8 +71,8 @@ import { isFlatTopGrid, isHexGrid } from '@axe/domain/tabletop/hex-geometry';
 import { asTableFacingMark, TableFacingMark } from '@axe/domain/tabletop/table-facing-mark';
 import { buildGameCharacterContextMenu } from '@axe/features/character/game-character/game-character-context-menu';
 import { GameCharacterBuffViewComponent } from '@axe/features/character/game-character-buff-view/game-character-buff-view.component';
-import { GameCharacterSheetComponent } from '@axe/features/character/game-character-sheet/game-character-sheet.component';
 import { GameDataElementBuffComponent } from '@axe/features/character/game-data-element-buff/game-data-element-buff.component';
+import { ObjectPanelService } from '@axe/features/panels/object-panel.service';
 import { LightSettingsComponent } from '@axe/features/tabletop/light-settings/light-settings.component';
 import { MovableOption } from '@axe/ui/directives/movable.directive';
 import { MovableDirective } from '@axe/ui/directives/movable.directive';
@@ -160,6 +160,7 @@ export class GameCharacterComponent {
   private readonly characterDice = inject(CharacterDiceService);
   private readonly elementRef = inject<ElementRef<HTMLElement>>(ElementRef);
   private readonly panelService = inject(PanelService);
+  private readonly objectPanels = inject(ObjectPanelService);
   private readonly pointerDeviceService = inject(PointerDeviceService);
   private readonly objectStore = inject(ObjectStore);
   private readonly selectionSignalService = inject(SelectionSignalService);
@@ -972,48 +973,18 @@ export class GameCharacterComponent {
 
   private showDetail(gameObject: GameCharacter) {
     if (!this.disclosureService.canView(gameObject)) return;
-    const coordinate = this.pointerDeviceService.pointers[0];
     const title = sheetPanelTitle(this.translateFn('feature.character.panel.sheet'), gameObject.name);
-    const option: PanelOption = {
-      title: title,
-      ...sheetPanelBox(coordinate, 800, 600),
-    };
-    const component = this.panelService.open<GameCharacterSheetComponent>(GameCharacterSheetComponent, option);
-    component.tabletopObject = gameObject;
+    this.objectPanels.openSheet(gameObject, title, { width: 800, height: 600 });
   }
 
   private showChatPalette(gameObject: GameCharacter) {
     if (!this.disclosureService.canView(gameObject)) return;
-    const coordinate = this.pointerDeviceService.pointers[0];
-    const option: PanelOption = {
-      title: this.translateFn('feature.character.panel.chatPaletteWithName', { name: gameObject.name }),
-      ...sheetPanelBox(coordinate, 760, 500),
-    };
-    this.panelService.openLazy(
-      () => import('@axe/features/chat/chat-palette/chat-palette.component').then((m) => m.ChatPaletteComponent),
-      option,
-      (component) => component.character.set(gameObject)
-    );
+    this.objectPanels.openChatPalette(gameObject);
   }
 
   private showRemoteController(gameObject: GameCharacter) {
     if (!this.disclosureService.canView(gameObject)) return;
-    const coordinate = this.pointerDeviceService.pointers[0];
-    const option: PanelOption = {
-      title: this.translateFn('feature.character.panel.remoteControllerWithName', { name: gameObject.name }),
-      left: coordinate.x - 250,
-      top: coordinate.y - 175,
-      width: 700,
-      height: 600,
-    };
-    this.panelService.openLazy(
-      () =>
-        import('@axe/features/controller/remote-controller/remote-controller.component').then(
-          (m) => m.RemoteControllerComponent
-        ),
-      option,
-      (component) => component.character.set(gameObject)
-    );
+    this.objectPanels.openRemoteController(gameObject);
   }
 
   private showBuffEdit(gameObject: GameCharacter) {
