@@ -1,7 +1,10 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { RolePermissionService } from '@axe/application/permission/role-permission.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { TabletopService } from '@axe/application/tabletop/tabletop.service';
 import { UiSignalService } from '@axe/application/ui/ui-signal.service';
+import { IPeerContext } from '@axe/core/network/peer-context';
+import { setPeerContextProvider } from '@axe/core/network/peer-context-source';
 import { DiceSymbol } from '@axe/domain/dice/dice-symbol';
 import { DiceSymbolComponent } from '@axe/features/dice/dice-symbol/dice-symbol.component';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
@@ -191,6 +194,65 @@ describe('DiceSymbolComponent', () => {
       fixture.destroy();
 
       expect(clearTimeoutSpy).toHaveBeenCalled();
+    });
+  });
+
+  describe('the name of a die that is somebody’s alone', () => {
+    const created: DiceSymbol[] = [];
+
+    function beMe(userId: string): void {
+      const me = { userId } as IPeerContext;
+      setPeerContextProvider({ peerContext: me, peerContexts: [me], peerIds: [userId], peerId: userId });
+    }
+
+    function show(owner: string): DiceSymbol {
+      const dice = DiceSymbol.create('切り札', 1, 1);
+      dice.owner = owner;
+      created.push(dice);
+      fixture.componentRef.setInput('diceSymbol', dice);
+      fixture.detectChanges();
+      return dice;
+    }
+
+    afterEach(() => {
+      for (const dice of created.splice(0)) dice.destroy();
+    });
+
+    it('is kept from whoever may not read the face', () => {
+      beMe('me');
+
+      show('somebody-else');
+
+      expect(component.hideName()).toBe(true);
+      expect(fixture.nativeElement.textContent).not.toContain('切り札');
+    });
+
+    it('is shown to the one it belongs to', () => {
+      beMe('me');
+
+      show('me');
+
+      expect(component.hideName()).toBe(false);
+      expect(fixture.nativeElement.textContent).toContain('切り札');
+    });
+
+    it('is shown to the game master', () => {
+      beMe('me');
+      vi.spyOn(TestBed.inject(RolePermissionService), 'canSeeHidden', 'get').mockReturnValue(true);
+
+      show('somebody-else');
+
+      expect(component.hideName()).toBe(false);
+      expect(fixture.nativeElement.textContent).toContain('切り札');
+    });
+
+    it('is shown on a die nobody has kept back', () => {
+      beMe('me');
+
+      show('');
+
+      expect(component.hideName()).toBe(false);
+      expect(fixture.nativeElement.textContent).toContain('切り札');
     });
   });
 

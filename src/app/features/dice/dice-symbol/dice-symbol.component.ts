@@ -125,9 +125,11 @@ export class DiceSymbolComponent {
     return this.diceSymbol().name;
   });
   readonly hideName = computed(() => {
-    this.objectChange.versionOf(this.diceSymbol().identifier)();
+    const diceSymbol = this.diceSymbol();
+    this.objectChange.versionOf(diceSymbol.identifier)();
+    this.objectChange.networkVersion();
     this.objectChange.trackMyCursor();
-    return this.diceSymbol().hideName && !this.rolePermission.canSeeHidden;
+    return (diceSymbol.hideName || !diceSymbol.isVisible) && !this.rolePermission.canSeeHidden;
   });
   readonly size = computed(() => {
     this.objectChange.versionOf(this.diceSymbol().identifier)();
@@ -386,7 +388,7 @@ export class DiceSymbolComponent {
     this.contextMenuService.open(
       position,
       surfaceEntries.length > 0 ? [...baseMenu, ContextMenuSeparator, ...surfaceEntries] : baseMenu,
-      this.name()
+      this.hideName() ? '' : this.name()
     );
   }
 
