@@ -5,8 +5,9 @@
     appDraggable
     [draggable.disable]="isCompact()"
     [draggable.unhandle]="'button'"
-    (draggable.end)="rememberSpot()"
-    (draggable.settled)="rememberSpot()"
+    [appWidgetPlace]="widgetName"
+    [widgetFallback]="fallback"
+    [widgetPlaceEnabled]="!isCompact()"
     [ngClass]="
       isCompact()
         ? 'inset-x-2! top-[max(0.75rem,env(safe-area-inset-top))]! z-210 max-w-none! cursor-default flex-col items-stretch gap-2 p-3'

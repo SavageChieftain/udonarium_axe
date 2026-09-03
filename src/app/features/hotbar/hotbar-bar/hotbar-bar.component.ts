@@ -19,7 +19,7 @@ import { MobileLayoutService } from '@axe/application/ui/mobile-layout.service';
 import { PanelService } from '@axe/application/ui/panel.service';
 import { transientSignal } from '@axe/application/ui/transient-signal';
 import { WidgetLayoutService } from '@axe/application/ui/widget-layout.service';
-import { placeWidget, rememberWidget, WIDGET_HOTBAR } from '@axe/application/ui/widget-place';
+import { WIDGET_HOTBAR } from '@axe/application/ui/widget-place';
 import { WidgetVisibilityService } from '@axe/application/ui/widget-visibility.service';
 import { Network } from '@axe/core/network/network';
 import { AudioStorage } from '@axe/core/storage/audio-storage';
@@ -49,6 +49,7 @@ import { ActiveCharacterService } from '@axe/features/pl-tools/active-character.
 import { selectControllableCharacters } from '@axe/features/pl-tools/owned-character-list/owned-characters';
 import { VisualNovelModeService } from '@axe/features/visual-novel/visual-novel-mode.service';
 import { DraggableDirective } from '@axe/ui/directives/draggable.directive';
+import { WidgetPlaceDirective } from '@axe/ui/directives/widget-place.directive';
 import { spotBeside } from '@axe/ui/panel-spot';
 import { hotbarPanelLayer, Z_CONTEXT_MENU_PINNED, Z_HOTBAR, Z_HOTBAR_MOBILE, Z_HOTBAR_PINNED } from '@axe/ui/z-layers';
 import { TranslocoModule } from '@jsverse/transloco';
@@ -79,7 +80,7 @@ const EDITOR = { width: EDITOR_WIDTH, height: EDITOR_HEIGHT };
   selector: 'app-hotbar',
   templateUrl: './hotbar-bar.component.html',
   host: { '(document:keydown)': 'onKeydown($event)' },
-  imports: [DraggableDirective, TranslocoModule],
+  imports: [DraggableDirective, WidgetPlaceDirective, TranslocoModule],
 })
 export class HotbarBarComponent {
   private readonly objectStore = inject(ObjectStore);
@@ -88,6 +89,11 @@ export class HotbarBarComponent {
   private readonly activeCharacter = inject(ActiveCharacterService);
   private readonly runner = inject(HotbarRunnerService);
   private readonly layout = inject(WidgetLayoutService);
+  protected readonly widgetName = WIDGET_HOTBAR;
+  protected readonly fallback = (el: HTMLElement) => ({
+    left: Math.max(8, (window.innerWidth - el.offsetWidth) / 2),
+    top: Math.max(8, window.innerHeight - el.offsetHeight - 16),
+  });
   private readonly panelService = inject(PanelService);
   private readonly contextMenuService = inject(ContextMenuService);
   private readonly hotbarService = inject(HotbarService);
@@ -103,6 +109,7 @@ export class HotbarBarComponent {
   private readonly visualNovel = inject(VisualNovelModeService);
 
   private readonly barRef = viewChild<ElementRef<HTMLElement>>('bar');
+  private readonly place = viewChild(WidgetPlaceDirective);
   private readonly fileRef = viewChild<ElementRef<HTMLInputElement>>('file');
   private readonly failing = transientSignal<number | null>(null, FLASH_MS);
   private readonly drag = new HotbarSlotDrag();
@@ -149,21 +156,12 @@ export class HotbarBarComponent {
   });
 
   constructor() {
-    effect((onCleanup) => {
-      if (!this.shows()) return;
+    effect(() => {
+      if (!this.shows() || !this.mobile.isActive()) return;
       const element = this.barRef()?.nativeElement;
       if (!element) return;
-
-      if (this.mobile.isActive()) {
-        element.style.left = '0px';
-        element.style.top = `${Math.max(0, window.innerHeight * this.mobile.tableRatio() - element.offsetHeight - 8)}px`;
-        return;
-      }
-      placeWidget(this.layout, WIDGET_HOTBAR, element, () => ({
-        left: Math.max(8, (window.innerWidth - element.offsetWidth) / 2),
-        top: Math.max(8, window.innerHeight - element.offsetHeight - 16),
-      }));
-      onCleanup(() => rememberWidget(this.layout, WIDGET_HOTBAR, element));
+      element.style.left = '0px';
+      element.style.top = `${Math.max(0, window.innerHeight * this.mobile.tableRatio() - element.offsetHeight - 8)}px`;
     });
   }
 
@@ -402,12 +400,7 @@ export class HotbarBarComponent {
     if (!element) return;
     element.style.left = `${Math.max(8, (window.innerWidth - element.offsetWidth) / 2)}px`;
     element.style.top = `${Math.max(8, window.innerHeight - element.offsetHeight - 16)}px`;
-    this.rememberSpot();
-  }
-
-  protected rememberSpot(): void {
-    const element = this.barRef()?.nativeElement;
-    if (element && !this.mobile.isActive()) rememberWidget(this.layout, WIDGET_HOTBAR, element);
+    this.place()?.remember();
   }
 
   protected keyOf(slotIndex: number): string {
