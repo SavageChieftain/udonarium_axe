@@ -252,8 +252,6 @@ describe('SaveDataService', () => {
   });
 
   describe('the pictures a composed cut-in is built from', () => {
-    afterEach(() => {});
-
     it("gathers the picture of every layer, not only the cut-in's own", () => {
       const service = TestBed.inject(SaveDataService);
       const privateApi = service as unknown as SaveDataServicePrivateApi;
@@ -278,8 +276,6 @@ describe('SaveDataService', () => {
   });
 
   describe('the pictures a board carries inside its drawing', () => {
-    afterEach(() => {});
-
     it('bundles a sticker that no walk of the XML would have found', () => {
       const service = TestBed.inject(SaveDataService);
       const privateApi = service as unknown as SaveDataServicePrivateApi;

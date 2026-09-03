@@ -41,7 +41,6 @@ import { ChatStreamPanelService } from '@axe/features/chat/chat-stream/chat-stre
 import { ChatTabComponent } from '@axe/features/chat/chat-tab/chat-tab.component';
 import { ChatTabSettingComponent } from '@axe/features/chat/chat-tab-setting/chat-tab-setting.component';
 import { ChatTabStripComponent } from '@axe/features/chat/chat-tab-strip/chat-tab-strip.component';
-import { BadgeComponent } from '@axe/ui/components/badge/badge.component';
 import { SafePipe } from '@axe/ui/pipes/safe.pipe';
 import { TranslocoModule } from '@jsverse/transloco';
 
@@ -55,15 +54,6 @@ const WRITING_STRIP_PX = 32;
 
 const NEAR_BOTTOM_THRESHOLD_PX = 350;
 const AT_BOTTOM_THRESHOLD_PX = 8;
-/**
- * How far the wheel must travel to move one tab.
- * A notch clears it on its own; a trackpad, which sends a stream of small deltas, gathers them up first.
- */
-/**
- * How much of the strip is kept beside the current tab.
- * Brought only just inside, it ends up flush against the arrow that scrolls the strip, and
- * whichever way the strip is still moving it can be carried back out again.
- */
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'chat-window',
@@ -73,7 +63,6 @@ const AT_BOTTOM_THRESHOLD_PX = 8;
     FormsModule,
     NgTemplateOutlet,
     ChatPortraitComponent,
-    BadgeComponent,
     ChatInputComponent,
     SafePipe,
     TranslocoModule,

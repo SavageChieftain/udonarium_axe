@@ -113,4 +113,4 @@ README・`docs/`・`website/` のまとまった日本語は `natural-japanese` 
 ## 留意事項
 
 - `package.json` の `version` がリリース番号。更新は `chore(release): ...` で
-- `ng build` の予算は initial 10MB 警告 / 15MB エラー（[angular.json](angular.json) の `budgets`）
+- `ng build` の予算は initial 3.1MB 警告 / 3.5MB エラー（[angular.json](angular.json) の `budgets`）

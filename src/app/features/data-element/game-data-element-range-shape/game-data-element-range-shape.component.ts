@@ -14,14 +14,13 @@ import {
   RangeShapeFieldValue,
 } from '@axe/domain/data/range-shape-field';
 import { buildRangeShapeThumbnail } from '@axe/features/tabletop/range-shape-editor/range-shape-editor-utils';
-import { SafePipe } from '@axe/ui/pipes/safe.pipe';
 import { TranslocoModule } from '@jsverse/transloco';
 
 @Component({
   selector: 'game-data-element-range-shape',
   templateUrl: './game-data-element-range-shape.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [SafePipe, TranslocoModule],
+  imports: [TranslocoModule],
   host: { class: 'contents' },
 })
 export class GameDataElementRangeShapeComponent {
