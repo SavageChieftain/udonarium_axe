@@ -328,6 +328,11 @@ export class DiceSymbolComponent {
    * A hidden die is thrown without a callout, so the table only ever learns the face when
    * it is opened; without this the number is on the table and nowhere in the log.
    */
+  private onDiceRevealed(face: string): void {
+    this.chat.discloseDieRolls(this.diceSymbol().identifier);
+    this.announceRevealedFace(face);
+  }
+
   private announceRevealedFace(face: string): void {
     const name = this.diceSymbol().name.trim();
     const message =
@@ -375,7 +380,7 @@ export class DiceSymbolComponent {
           name: character.name,
         })),
         onStoreToOwner: (ownerIdentifier) => this.storeToOwner(ownerIdentifier),
-        onRevealed: (face) => this.announceRevealedFace(face),
+        onRevealed: (face) => this.onDiceRevealed(face),
         canRevealHidden: this.rolePermission.canSeeHidden,
       },
       this.translateFn

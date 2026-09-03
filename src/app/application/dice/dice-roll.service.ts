@@ -30,18 +30,24 @@ export class DiceRollService {
 
     const open: RolledDie[] = [];
     const secret: RolledDie[] = [];
+    const secretDice: DiceSymbol[] = [];
     const rolled = thrown.map<RolledDie>((die) => {
       callRollDiceSymbol(die.identifier);
       // The thrower watches their own die roll rather than waiting for the round trip.
       this.objectChange.notifyDiceRolled(die.identifier);
       const result = { name: die.name, face: die.diceRoll(), sides: die.faces.length };
-      (die.hasOwner ? secret : open).push(result);
+      if (die.hasOwner) {
+        secret.push(result);
+        secretDice.push(die);
+      } else {
+        open.push(result);
+      }
       return result;
     });
     SoundEffect.play(PresetSound.diceRoll1);
 
     this.announce(open);
-    this.announceSecret(secret);
+    this.announceSecret(secret, secretDice);
     return rolled;
   }
 
@@ -62,14 +68,15 @@ export class DiceRollService {
    * the face is the whole of what was kept back. The line goes as a secret, which the room
    * sees as a secret die and the thrower reads in full, to open later if they want to.
    */
-  private announceSecret(rolled: readonly RolledDie[]): void {
+  private announceSecret(rolled: readonly RolledDie[], dice: readonly DiceSymbol[]): void {
     const text = this.describe(rolled);
     if (!text) return;
 
     const tab = this.activeChatTab.current();
     const roller = PeerCursor.myCursor?.userId ?? '';
-    if (tab) this.chatMessageService.sendSecretSystemMessageToTab(tab, text, roller);
-    else this.chatMessageService.sendSecretSystemMessageToMainTab(text, roller);
+    const identifiers = dice.map((die) => die.identifier);
+    if (tab) this.chatMessageService.sendSecretSystemMessageToTab(tab, text, roller, undefined, identifiers);
+    else this.chatMessageService.sendSecretSystemMessageToMainTab(text, roller, identifiers);
   }
 
   private describe(rolled: readonly RolledDie[]): string | null {

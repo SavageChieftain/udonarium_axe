@@ -40,6 +40,59 @@ describe('ChatMessageService', () => {
     }
   ));
 
+  describe('opening what a die was thrown on', () => {
+    let service: ChatMessageService;
+    let tab: ChatTab;
+
+    beforeEach(() => {
+      service = TestBed.inject(ChatMessageService);
+      tab = ChatTabList.instance.addChatTab('テストタブ');
+    });
+
+    afterEach(() => {
+      tab.destroy();
+    });
+
+    it('opens the line that die was thrown on', () => {
+      const secret = service.sendSecretSystemMessageToTab(tab, '隠しダイス → 6', 'me', undefined, ['die-a']);
+
+      service.discloseDieRolls('die-a');
+
+      expect(secret.isSecret).toBe(false);
+    });
+
+    it('leaves the throw of another die where it was', () => {
+      service.sendSecretSystemMessageToTab(tab, '隠しダイスA → 6', 'me', undefined, ['die-a']);
+      const other = service.sendSecretSystemMessageToTab(tab, '隠しダイスB → 1', 'me', undefined, ['die-b']);
+
+      service.discloseDieRolls('die-a');
+
+      expect(other.isSecret).toBe(true);
+    });
+
+    it('brings the opened line to the end of the tab', () => {
+      const secret = service.sendSecretSystemMessageToTab(tab, '隠しダイス → 6', 'me', undefined, ['die-a']);
+      service.sendSystemMessageToTab(tab, 'そのあとの発言');
+
+      service.discloseDieRolls('die-a');
+
+      expect(tab.chatMessages[tab.chatMessages.length - 1]).toBe(secret);
+    });
+
+    it('finds the throw in whichever tab it was said in', () => {
+      const another = ChatTabList.instance.addChatTab('べつのタブ');
+      try {
+        const secret = service.sendSecretSystemMessageToTab(another, '隠しダイス → 6', 'me', undefined, ['die-a']);
+
+        service.discloseDieRolls('die-a');
+
+        expect(secret.isSecret).toBe(false);
+      } finally {
+        another.destroy();
+      }
+    });
+  });
+
   describe('what a line records about who spoke it', () => {
     it('writes down the role the speaker was wearing at the time', () => {
       const service = TestBed.inject(ChatMessageService);

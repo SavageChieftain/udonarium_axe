@@ -1,10 +1,13 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ChatMessageService } from '@axe/application/chat/chat-message.service';
 import { RolePermissionService } from '@axe/application/permission/role-permission.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { TabletopService } from '@axe/application/tabletop/tabletop.service';
 import { UiSignalService } from '@axe/application/ui/ui-signal.service';
 import { IPeerContext } from '@axe/core/network/peer-context';
 import { setPeerContextProvider } from '@axe/core/network/peer-context-source';
+import { ChatTab } from '@axe/domain/chat/chat-tab';
+import { ChatTabList } from '@axe/domain/chat/chat-tab-list';
 import { DiceSymbol } from '@axe/domain/dice/dice-symbol';
 import { DiceSymbolComponent } from '@axe/features/dice/dice-symbol/dice-symbol.component';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
@@ -253,6 +256,44 @@ describe('DiceSymbolComponent', () => {
 
       expect(component.hideName()).toBe(false);
       expect(fixture.nativeElement.textContent).toContain('切り札');
+    });
+  });
+
+  describe('opening a die that was somebody’s alone', () => {
+    let tab: ChatTab;
+    let dice: DiceSymbol;
+
+    beforeEach(() => {
+      tab = ChatTabList.instance.addChatTab('テストタブ');
+      dice = DiceSymbol.create('隠しダイス', 1, 1);
+      fixture.componentRef.setInput('diceSymbol', dice);
+    });
+
+    afterEach(() => {
+      dice.destroy();
+      tab.destroy();
+    });
+
+    function reveal(face: string): void {
+      (component as unknown as { onDiceRevealed(face: string): void }).onDiceRevealed(face);
+    }
+
+    it('opens the secret line it was thrown on', () => {
+      const chat = TestBed.inject(ChatMessageService);
+      const secret = chat.sendSecretSystemMessageToTab(tab, '隠しダイス → 6', 'me', undefined, [dice.identifier]);
+
+      reveal('6');
+
+      expect(secret.isSecret).toBe(false);
+    });
+
+    it('leaves the throw of another die kept back', () => {
+      const chat = TestBed.inject(ChatMessageService);
+      const other = chat.sendSecretSystemMessageToTab(tab, 'べつのダイス → 1', 'me', undefined, ['another-die']);
+
+      reveal('6');
+
+      expect(other.isSecret).toBe(true);
     });
   });
 

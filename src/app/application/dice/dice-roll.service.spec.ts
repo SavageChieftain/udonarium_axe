@@ -104,6 +104,23 @@ describe('DiceRollService', () => {
       expect(dice.faces).toContain(rolled.face);
     });
 
+    it('ties the secret line to the die it was thrown from', () => {
+      const dice = myOwnDie('隠しダイス');
+
+      service.roll([dice]);
+
+      expect(sendSecret.mock.calls[0][2]).toEqual([dice.identifier]);
+    });
+
+    it('names every die of a handful thrown in secret', () => {
+      const first = myOwnDie('隠しダイスA');
+      const second = myOwnDie('隠しダイスB');
+
+      service.roll([first, second]);
+
+      expect(sendSecret.mock.calls[0][2]).toEqual([first.identifier, second.identifier]);
+    });
+
     it('splits a handful, sending the open ones in the open and the rest in secret', () => {
       const hidden = myOwnDie('隠しダイス');
       const open = makeDice('見えるダイス');
