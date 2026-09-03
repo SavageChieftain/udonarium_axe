@@ -122,6 +122,7 @@ export class ChatTabComponent {
           message.timestamp <= this.botomTimestamp &&
           this.chatTab?.contains(message)
         ) {
+          this.needUpdate = true;
           this.renderVersion.update((v) => v + 1);
         }
       },

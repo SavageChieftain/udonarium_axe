@@ -1,4 +1,5 @@
 import { TestBed } from '@angular/core/testing';
+import { ChatMessageService } from '@axe/application/chat/chat-message.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { IPeerContext } from '@axe/core/network/peer-context';
 import { setPeerContextProvider } from '@axe/core/network/peer-context-source';
@@ -93,6 +94,19 @@ describe('VisualNovelPlaybackService', () => {
       TestBed.inject(ObjectChangeService).notifyChanged(tab.identifier);
 
       expect(playback.logMessages()).toHaveLength(0);
+    });
+
+    it('reads an opened line after everything said while it was kept back', () => {
+      beMe('reader');
+      saySecret('隠しダイス → 6', 'roller');
+      const secret = tab.chatMessages[tab.chatMessages.length - 1];
+      say('その間の発言', character.identifier);
+
+      TestBed.inject(ChatMessageService).discloseMessage(secret);
+      TestBed.inject(ObjectChangeService).notifyChanged(tab.identifier);
+
+      expect(playback.messages().map((message) => message.text)).toEqual(['その間の発言', '隠しダイス → 6']);
+      expect(playback.currentMessage()).toBe(secret);
     });
 
     it('shows it once it has been opened to the table', () => {

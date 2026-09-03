@@ -419,6 +419,15 @@ export class ChatMessageService {
     return -1;
   }
 
+  discloseMessage(message: ChatMessage): void {
+    if (!message.isSecret) return;
+    message.tag = message.tags.filter((tag) => tag !== 'secret').join(' ');
+    const chatTab = message.parent;
+    if (!(chatTab instanceof ChatTab)) return;
+    message.disclosedAt = this.calcTimeStamp(chatTab);
+    chatTab.appendChild(message);
+  }
+
   /**
    * Says a line again in another tab, as though it had been said there.
    *

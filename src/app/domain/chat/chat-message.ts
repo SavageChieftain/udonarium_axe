@@ -81,6 +81,7 @@ export class ChatMessage extends ObjectNode implements ChatMessageContext {
   @SyncVar() replyTo: string = '';
   @SyncVar() quoteOf: string = '';
   @SyncVar() fixd: boolean = false;
+  @SyncVar() disclosedAt: number;
 
   targetInfo: ChatMessageTargetContext[];
 
@@ -154,8 +155,11 @@ export class ChatMessage extends ObjectNode implements ChatMessageContext {
       .map((identifier) => ImageStorage.instance.get(identifier))
       .filter((image): image is ImageFile => image != null);
   }
+  get placedAt(): number {
+    return this.disclosedAt > 0 ? this.disclosedAt : this.timestamp;
+  }
   override get index(): number {
-    return this.minorIndex + this.timestamp;
+    return this.minorIndex + this.placedAt;
   }
 
   // The reply and the quotation hold the identifier of the message they refer to as text.

@@ -142,7 +142,7 @@ export class ChatTab extends ObjectNode implements InnerXml {
 
   get latestTimeStamp(): number {
     const lastIndex = this.chatMessages.length - 1;
-    return lastIndex < 0 ? 0 : this.chatMessages[lastIndex].timestamp;
+    return lastIndex < 0 ? 0 : this.chatMessages[lastIndex].placedAt;
   }
 
   override onChildAdded(child: ObjectNode) {
