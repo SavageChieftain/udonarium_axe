@@ -136,6 +136,8 @@ export class GameTableGestureService {
     const rz = this.viewRotateZ.toFixed(4);
     this.gameTableEl.style.transform = `translateZ(${tz}px) translateY(${ty}px) translateX(${tx}px) rotateY(${ry}deg) rotateX(${rx}deg) rotateZ(${rz}deg)`;
 
+    this.coordinateService.invalidateTabletopTransform();
+
     if (!this.turned) return;
     this.turned = false;
     this.uiSignalService.notifyTableViewRotation(this.viewRotateX, this.viewRotateY, this.viewRotateZ);

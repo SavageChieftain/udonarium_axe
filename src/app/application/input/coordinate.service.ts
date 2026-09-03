@@ -15,17 +15,63 @@ export class CoordinateService {
   private readonly _transformA: Transform = new Transform(document.body);
   private readonly _transformB: Transform = new Transform(document.body);
 
+  /**
+   * The table's own transform, worked out once for the frame it is asked in.
+   *
+   * Every point converted while something is dragged walks the table's ancestors and reads
+   * each one's computed style, and a drag asks several times per report. What that walk finds
+   * only changes when the view moves, which happens once a frame at most, so the answer is
+   * kept until the frame ends or the view is written out again.
+   */
+  private readonly _transformOrigin: Transform = new Transform(document.body);
+  private originElement: HTMLElement | null = null;
+  private frameArmed = false;
+
+  /** Called when the view has been written out, since that is what the kept answer was about. */
+  invalidateTabletopTransform(): void {
+    this.originElement = null;
+  }
+
+  private originTransform(element: HTMLElement): Transform | null {
+    if (element !== this.tabletopOriginElement) return null;
+    if (this.originElement === element && element.isConnected) return this._transformOrigin;
+
+    this.originElement = element;
+    this._transformOrigin.reinit(element);
+    this.dropAfterFrame();
+    return this._transformOrigin;
+  }
+
+  private dropAfterFrame(): void {
+    if (this.frameArmed || typeof requestAnimationFrame !== 'function') return;
+    this.frameArmed = true;
+    requestAnimationFrame(() => {
+      this.frameArmed = false;
+      this.originElement = null;
+    });
+  }
+
+  /** The kept table transform where it fits, and a pooled one otherwise; only the pooled one is given back. */
+  private borrow(element: HTMLElement, pool: Transform): { transform: Transform; pooled: boolean } {
+    const kept = this.originTransform(element);
+    return kept ? { transform: kept, pooled: false } : { transform: pool.reinit(element), pooled: true };
+  }
+
+  private giveBack(borrowed: { transform: Transform; pooled: boolean }): void {
+    if (borrowed.pooled) borrowed.transform.clear();
+  }
+
   convertToLocal(pointer: PointerCoordinate, element: HTMLElement = document.body): PointerCoordinate {
-    const transformer = this._transformA.reinit(element);
-    const ray = transformer.globalToLocal(pointer.x, pointer.y, pointer.z ?? 0);
-    transformer.clear();
+    const borrowed = this.borrow(element, this._transformA);
+    const ray = borrowed.transform.globalToLocal(pointer.x, pointer.y, pointer.z ?? 0);
+    this.giveBack(borrowed);
     return { x: ray.x, y: ray.y, z: ray.z };
   }
 
   convertToGlobal(pointer: PointerCoordinate, element: HTMLElement = document.body): PointerCoordinate {
-    const transformer = this._transformA.reinit(element);
-    const ray = transformer.localToGlobal(pointer.x, pointer.y, pointer.z ?? 0);
-    transformer.clear();
+    const borrowed = this.borrow(element, this._transformA);
+    const ray = borrowed.transform.localToGlobal(pointer.x, pointer.y, pointer.z ?? 0);
+    this.giveBack(borrowed);
     return { x: ray.x, y: ray.y, z: ray.z };
   }
 
@@ -34,22 +80,22 @@ export class CoordinateService {
     pointers: readonly PointerCoordinate[],
     element: HTMLElement = document.body
   ): PointerCoordinate[] {
-    const transformer = this._transformA.reinit(element);
+    const borrowed = this.borrow(element, this._transformA);
     const result = pointers.map((pointer) => {
-      const ray = transformer.localToGlobal(pointer.x, pointer.y, pointer.z ?? 0);
+      const ray = borrowed.transform.localToGlobal(pointer.x, pointer.y, pointer.z ?? 0);
       return { x: ray.x, y: ray.y, z: ray.z };
     });
-    transformer.clear();
+    this.giveBack(borrowed);
     return result;
   }
 
   convertLocalToLocal(pointer: PointerCoordinate, from: HTMLElement, to: HTMLElement): PointerCoordinate {
-    const fromTransform = this._transformA.reinit(from);
-    const local = fromTransform.globalToLocal(pointer.x, pointer.y, pointer.z ?? 0);
-    const toTransform = this._transformB.reinit(to);
-    const ray = fromTransform.localToLocalUsing(local.x, local.y, 0, toTransform);
-    fromTransform.clear();
-    toTransform.clear();
+    const fromBorrowed = this.borrow(from, this._transformA);
+    const local = fromBorrowed.transform.globalToLocal(pointer.x, pointer.y, pointer.z ?? 0);
+    const toBorrowed = this.borrow(to, this._transformB);
+    const ray = fromBorrowed.transform.localToLocalUsing(local.x, local.y, 0, toBorrowed.transform);
+    this.giveBack(fromBorrowed);
+    this.giveBack(toBorrowed);
     return { x: ray.x, y: ray.y, z: ray.z };
   }
 

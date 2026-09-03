@@ -1,6 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { CoordinateService } from '@axe/application/input/coordinate.service';
 import { Transform } from '@axe/core/transform/transform';
+import { PERF_TRANSFORM_INIT, perfCounters } from '@axe/core/util/perf-counters';
 
 describe('CoordinateService', () => {
   let service: CoordinateService;
@@ -8,6 +9,13 @@ describe('CoordinateService', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({});
     service = TestBed.inject(CoordinateService);
+    perfCounters.enabled = true;
+    perfCounters.drain();
+  });
+
+  afterEach(() => {
+    perfCounters.enabled = false;
+    perfCounters.drain();
   });
 
   it('should be created', () => {
@@ -48,6 +56,64 @@ describe('CoordinateService', () => {
       expect(pooled.z).toBeCloseTo(expected.z);
 
       document.body.removeChild(el);
+    });
+
+    it('walks the table ancestors once for a run of conversions in the same frame', () => {
+      const table = document.createElement('div');
+      document.body.appendChild(table);
+      service.tabletopOriginElement = table;
+      perfCounters.drain();
+
+      service.convertToLocal({ x: 10, y: 10, z: 0 }, table);
+      service.convertToLocal({ x: 20, y: 20, z: 0 }, table);
+      service.convertToGlobal({ x: 30, y: 30, z: 0 }, table);
+
+      expect(perfCounters.drain().get(PERF_TRANSFORM_INIT)).toBe(1);
+
+      service.invalidateTabletopTransform();
+      service.convertToLocal({ x: 40, y: 40, z: 0 }, table);
+
+      expect(perfCounters.drain().get(PERF_TRANSFORM_INIT)).toBe(1);
+      document.body.removeChild(table);
+    });
+
+    it('walks it again for the next frame', async () => {
+      const table = document.createElement('div');
+      document.body.appendChild(table);
+      service.tabletopOriginElement = table;
+
+      service.convertToLocal({ x: 10, y: 10, z: 0 }, table);
+      await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+      perfCounters.drain();
+
+      service.convertToLocal({ x: 20, y: 20, z: 0 }, table);
+
+      expect(perfCounters.drain().get(PERF_TRANSFORM_INIT)).toBe(1);
+      document.body.removeChild(table);
+    });
+
+    it('keeps nothing for an element that is not the table', () => {
+      const el = document.createElement('div');
+      document.body.appendChild(el);
+      perfCounters.drain();
+
+      service.convertToLocal({ x: 10, y: 10, z: 0 }, el);
+      service.convertToLocal({ x: 20, y: 20, z: 0 }, el);
+
+      expect(perfCounters.drain().get(PERF_TRANSFORM_INIT)).toBe(2);
+      document.body.removeChild(el);
+    });
+
+    it('gives the same answer kept as freshly walked', () => {
+      const table = document.createElement('div');
+      document.body.appendChild(table);
+      service.tabletopOriginElement = table;
+
+      const first = service.convertToLocal({ x: 50, y: 60, z: 0 }, table);
+      const kept = service.convertToLocal({ x: 50, y: 60, z: 0 }, table);
+
+      expect(kept).toEqual(first);
+      document.body.removeChild(table);
     });
 
     it('uses one pooled transform for each end and no more', () => {
