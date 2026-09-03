@@ -7,19 +7,23 @@ import { BoardKeeper, BoardKeeperHost, SAVE_DELAY } from '@axe/features/tabletop
 describe('BoardKeeper', () => {
   const scene = createScene(2, 2, 50, 0);
   let board: { scene: string; update: ReturnType<typeof vi.fn>; imageDataElement: null };
-  let host: BoardKeeperHost & { drawBare: ReturnType<typeof vi.fn>; redraw: ReturnType<typeof vi.fn> };
+  let host: BoardKeeperHost;
+  let drawBare: ReturnType<typeof vi.fn<() => Promise<void>>>;
+  let redraw: ReturnType<typeof vi.fn<() => void>>;
   let images: { addAsync: ReturnType<typeof vi.fn>; delete: ReturnType<typeof vi.fn> };
   let keeper: BoardKeeper;
 
   beforeEach(() => {
     vi.useFakeTimers();
     board = { scene: '', update: vi.fn(), imageDataElement: null };
+    drawBare = vi.fn<() => Promise<void>>(() => Promise.resolve());
+    redraw = vi.fn<() => void>();
     host = {
       board: () => board as unknown as WhiteBoard,
       scene: () => scene,
       canvas: () => ({}) as HTMLCanvasElement,
-      drawBare: vi.fn(() => Promise.resolve()),
-      redraw: vi.fn(),
+      drawBare,
+      redraw,
     };
     images = { addAsync: vi.fn(), delete: vi.fn() };
     keeper = new BoardKeeper(host, images as unknown as ImageStorage);
@@ -37,9 +41,9 @@ describe('BoardKeeper', () => {
     vi.advanceTimersByTime(1);
     await vi.runAllTimersAsync();
     expect(board.scene).toBe(serializeScene(scene));
-    expect(host.drawBare).toHaveBeenCalledTimes(1);
+    expect(drawBare).toHaveBeenCalledTimes(1);
     expect(board.update).toHaveBeenCalledTimes(1);
-    expect(host.redraw).toHaveBeenCalledTimes(1);
+    expect(redraw).toHaveBeenCalledTimes(1);
     expect(images.addAsync).not.toHaveBeenCalled();
   });
 
@@ -50,7 +54,7 @@ describe('BoardKeeper', () => {
     expect(board.update).toHaveBeenCalledTimes(1);
 
     vi.advanceTimersByTime(SAVE_DELAY);
-    expect(host.drawBare).not.toHaveBeenCalled();
+    expect(drawBare).not.toHaveBeenCalled();
   });
 
   it('has nothing to put down when nothing is waiting', () => {
