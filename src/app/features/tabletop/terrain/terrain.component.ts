@@ -175,7 +175,9 @@ export class TerrainComponent {
     const grid = this.gridSize;
     const restX = viewport.offsetLeft - Math.floor(viewport.offsetLeft / grid) * grid;
     const restY = viewport.offsetTop - Math.floor(viewport.offsetTop / grid) * grid;
-    if (grid <= 0 || !Number.isInteger(restX) || !Number.isInteger(restY)) {
+    // A turned terrain rotates its canvas about the canvas centre, and growing the canvas
+    // moves that centre, so a turned one is cut afresh however whole the remainder looks.
+    if (grid <= 0 || this.terrainRotate() !== 0 || !Number.isInteger(restX) || !Number.isInteger(restY)) {
       return {
         viewport,
         offsetLeft: viewport.offsetLeft,

@@ -177,6 +177,28 @@ describe('TerrainComponent', () => {
       terrain.destroy();
     });
 
+    it('cuts it afresh for a turned terrain, whose canvas turns about its own centre', async () => {
+      const terrain = Terrain.create('floor', 2, 2, 0, '', '');
+      terrain.isGrid = true;
+      terrain.location.x = 100;
+      terrain.location.y = 100;
+      terrain.rotate = 90;
+      fixture.componentRef.setInput('terrain', terrain);
+      await fixture.whenStable();
+      const style = component.terrainGridCanvasStyle();
+      perfCounters.enabled = true;
+      perfCounters.clear();
+
+      terrain.location.x = 107;
+      objectChanged$.emit({ aliasName: 'terrain', identifier: terrain.identifier, isSendFromSelf: true });
+      await fixture.whenStable();
+
+      expect(perfCounters.drain().get(PERF_TERRAIN_GRID_RASTER)).toBe(1);
+      expect(component.terrainGridCanvasStyle()).toEqual(style);
+
+      terrain.destroy();
+    });
+
     it('cuts it afresh for a terrain standing off the pixel grid', async () => {
       const terrain = Terrain.create('floor', 2, 2, 0, '', '');
       terrain.isGrid = true;
