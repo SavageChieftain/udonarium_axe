@@ -4,6 +4,7 @@ import {
   ChangeDetectionStrategy,
   Component,
   computed,
+  DestroyRef,
   effect,
   ElementRef,
   inject,
@@ -76,6 +77,7 @@ import {
 } from '@axe/features/map-editor/model/scene';
 import { isZipArchive } from '@axe/features/map-editor/model/scene-archive';
 import { packSceneWithImages, unpackSceneWithImages } from '@axe/features/map-editor/model/scene-archive-images';
+import { guessLineWidth, useTextMeasurer } from '@axe/features/map-editor/model/scene-geometry';
 import { moveLayer, removeLayer, removeText, updateText } from '@axe/features/map-editor/model/scene-ops';
 import { deserializeScene } from '@axe/features/map-editor/model/serialize';
 import { generateShapePoints, regularPolygonPoints, starPoints } from '@axe/features/map-editor/model/shape-points';
@@ -324,6 +326,16 @@ export class MapEditorPanelComponent implements AfterViewInit {
   });
 
   constructor() {
+    const stopMeasuring = useTextMeasurer((text, fontSize, bold, italic) => {
+      const ctx = this.board()?.nativeElement.getContext('2d');
+      if (!ctx) return guessLineWidth(text, fontSize);
+      ctx.save();
+      ctx.font = `${italic ? 'italic ' : ''}${bold ? 'bold ' : ''}${fontSize}px sans-serif`;
+      const width = ctx.measureText(text).width;
+      ctx.restore();
+      return width;
+    });
+    inject(DestroyRef).onDestroy(stopMeasuring);
     queueMicrotask(() => (this.panelService.title = this.t('feature.mapEditor.title')));
     effect(() => {
       this.state.sceneTick();

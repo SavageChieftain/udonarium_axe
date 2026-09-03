@@ -411,6 +411,14 @@ describe('taking hold of a mark', () => {
     expect(boxOf(scene, shape)).toEqual({ x: 100, y: 100, w: 100, h: 60 });
   });
 
+  it('boxes a rectangle dragged out backwards the right way round', () => {
+    const scene = createBoardScene(8, 6, 50);
+    const drawn = { ...shapeBetween('rect', { x: 0, y: 0 }, { x: 10, y: 10 }, style), points: [100, 80, -60, -30] };
+    addShape(shapeLayer(scene), drawn);
+
+    expect(boxOf(scene, { kind: 'shape', id: drawn.id })).toEqual({ x: 40, y: 50, w: 60, h: 30 });
+  });
+
   it('moves whatever was taken hold of, whichever sort of mark it is', () => {
     const scene = drawnOn();
     // Taken hold of first and moved after, since moving one changes what is under a point.

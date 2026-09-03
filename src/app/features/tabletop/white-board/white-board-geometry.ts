@@ -1,20 +1,25 @@
-import { ImageItem, MapScene, ShapeItem, TextItem } from '@axe/features/map-editor/model/scene';
+import { MapScene } from '@axe/features/map-editor/model/scene';
+import {
+  BoardPoint,
+  imageBox,
+  MarkBox,
+  shapeBox,
+  strokeBox,
+  textBox,
+  within,
+} from '@axe/features/map-editor/model/scene-geometry';
 
-export interface BoardPoint {
-  x: number;
-  y: number;
-}
-
-/**
- * Where a picture actually sits.
- *
- * A picture is hung by its middle rather than by its corner, which is how it is drawn and how
- * it stays put when it is turned. The hold, the guides and the pointer all have to agree with
- * the paint, so they all ask here.
- */
-export function imageBox(item: ImageItem): MarkBox {
-  return { x: item.x - item.w / 2, y: item.y - item.h / 2, w: item.w, h: item.h };
-}
+export type { BoardPoint, MarkBox } from '@axe/features/map-editor/model/scene-geometry';
+export {
+  guessLineWidth,
+  imageBox,
+  lineWidth,
+  shapeBox,
+  strokeBox,
+  textBox,
+  useTextMeasurer,
+  within,
+} from '@axe/features/map-editor/model/scene-geometry';
 
 /** Everything on the board that can be taken hold of, whatever sort of mark it is. */
 export type MarkKind = 'image' | 'text' | 'shape' | 'stroke';
@@ -22,101 +27,6 @@ export type MarkKind = 'image' | 'text' | 'shape' | 'stroke';
 export interface MarkRef {
   kind: MarkKind;
   id: string;
-}
-
-export interface MarkBox extends BoardPoint {
-  w: number;
-  h: number;
-}
-
-function strokeBox(points: readonly number[]): MarkBox | null {
-  if (points.length < 2) return null;
-  let left = points[0];
-  let right = points[0];
-  let top = points[1];
-  let bottom = points[1];
-  for (let i = 0; i + 1 < points.length; i += 2) {
-    left = Math.min(left, points[i]);
-    right = Math.max(right, points[i]);
-    top = Math.min(top, points[i + 1]);
-    bottom = Math.max(bottom, points[i + 1]);
-  }
-  return { x: left, y: top, w: right - left, h: bottom - top };
-}
-
-/**
- * How wide a line of words is.
- *
- * Counting characters and multiplying by six tenths of the size is right for the alphabet
- * and wrong by nearly half for Japanese, whose characters are a full square each, so a
- * Japanese line could not be taken hold of by its right half. The editor lends the canvas's
- * own measurement; the guess below is what is left when there is no canvas to ask.
- */
-let measureLine: ((text: string, fontSize: number, bold: boolean, italic: boolean) => number) | null = null;
-
-/**
- * Lends a way of measuring words, and hands back the way to stop lending it.
- *
- * The measurer is one thing for the whole module, so an editor that installs one and closes
- * leaves every later reckoning going through a canvas that has gone: open two boards, close
- * the second, and the first is measured by the dead one. Giving it back on the way out costs
- * nothing and keeps the answer to how wide a word is from depending on what was opened when.
- */
-export function useTextMeasurer(measure: typeof measureLine): () => void {
-  const was = measureLine;
-  measureLine = measure;
-  return () => {
-    if (measureLine === measure) measureLine = was;
-  };
-}
-
-/** Full width characters take a whole square; the rest take about six tenths of one. */
-export function guessLineWidth(text: string, fontSize: number): number {
-  let squares = 0;
-  for (const ch of text) squares += isFullWidth(ch) ? 1 : 0.6;
-  return squares * fontSize;
-}
-
-function isFullWidth(ch: string): boolean {
-  const code = ch.codePointAt(0) ?? 0;
-  return (
-    (code >= 0x1100 && code <= 0x115f) ||
-    (code >= 0x2e80 && code <= 0xa4cf) ||
-    (code >= 0xac00 && code <= 0xd7a3) ||
-    (code >= 0xf900 && code <= 0xfaff) ||
-    (code >= 0xfe30 && code <= 0xfe6f) ||
-    (code >= 0xff00 && code <= 0xff60) ||
-    (code >= 0xffe0 && code <= 0xffe6)
-  );
-}
-
-export function lineWidth(text: string, item: TextItem): number {
-  return measureLine ? measureLine(text, item.fontSize, item.bold, item.italic) : guessLineWidth(text, item.fontSize);
-}
-
-/** Words are drawn from their top, and a note carries a card round them. */
-export function textBox(item: TextItem): MarkBox {
-  const lines = item.text.split('\n');
-  const widest = lines.reduce((most, line) => Math.max(most, lineWidth(line, item)), item.fontSize);
-  // The line struck round the letters stands outside them, so the hold has to reach past it.
-  const pad = (item.background ? item.fontSize * 0.5 : 0) + (item.outline?.width ?? 0);
-  // Words are laid out from wherever they are set to start, so a hold on centred or right-hand
-  // words reaches back the way they run rather than forward from the point they are hung on.
-  const left = item.align === 'center' ? item.x - widest / 2 : item.align === 'right' ? item.x - widest : item.x;
-  return {
-    x: left - pad,
-    y: item.y - pad,
-    w: widest + pad * 2,
-    h: lines.length * item.fontSize * 1.2 + pad * 2,
-  };
-}
-
-function shapeBox(item: ShapeItem): MarkBox | null {
-  if (item.shape === 'rect' || item.shape === 'ellipse') {
-    const [x, y, w, h] = item.points;
-    return { x, y, w, h };
-  }
-  return strokeBox(item.points);
 }
 
 /** Where a mark sits and how big it is, so a hold on it can be drawn round it. */
@@ -185,12 +95,6 @@ export function markUnder(scene: MapScene, at: BoardPoint): MarkRef | null {
     }
   }
   return null;
-}
-
-export function within(at: BoardPoint, box: MarkBox, slack: number): boolean {
-  return (
-    at.x >= box.x - slack && at.x <= box.x + box.w + slack && at.y >= box.y - slack && at.y <= box.y + box.h + slack
-  );
 }
 
 /** The corners a hold can be taken by, named for the compass so the maths reads plainly. */
