@@ -119,9 +119,9 @@ function requestWorker(build: (id: number) => ZipWorkerRequest): Promise<ZipWork
     } catch (reason) {
       isWorkerBroken = true;
       Logger.warn('[ZipArchive] ワーカーへ渡せないためメインスレッドで処理します', reason);
-      pending.delete(id);
+      // The worker is stopped, so anything else waiting on it will never hear back either.
       disposeWorker();
-      resolve(null);
+      settleAll(null);
     }
   });
 }

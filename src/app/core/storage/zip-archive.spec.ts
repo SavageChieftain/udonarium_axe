@@ -57,3 +57,37 @@ describe('readZipEntries()', () => {
     await expect(readZipEntries(new Blob([new Uint8Array([0, 1, 2, 3])]))).rejects.toBeDefined();
   });
 });
+
+describe('the shared worker', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    vi.resetModules();
+  });
+
+  it('lets go of every waiting request when the work cannot be handed over', async () => {
+    vi.resetModules();
+    let posts = 0;
+    class FakeWorker {
+      addEventListener(): void {}
+      terminate(): void {}
+      postMessage(): void {
+        posts += 1;
+        if (posts > 1) throw new Error('cannot be cloned');
+      }
+    }
+    vi.stubGlobal('Worker', FakeWorker);
+    const zipArchive = await import('@axe/core/storage/zip-archive');
+    const files = [new File([strToU8('<room />')], 'data.xml', { type: 'text/plain' })];
+
+    // The first went to the worker and is waiting; the second cannot be handed over, which
+    // stops the worker the first was waiting on.
+    const first = zipArchive.createZipBlob(files);
+    const second = zipArchive.createZipBlob(files);
+
+    const [a, b] = await Promise.all([first, second]);
+
+    expect(posts).toBe(2);
+    expect(a.type).toBe('application/zip');
+    expect(b.type).toBe('application/zip');
+  });
+});
