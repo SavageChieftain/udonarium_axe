@@ -16,6 +16,61 @@ describe('BuffManager', () => {
     manager = new BuffManager(buffDataElement);
   });
 
+  describe('snapshot and restore', () => {
+    it('puts back a buff that was taken away, with its note and its rounds', () => {
+      manager.addRound('猛攻撃', '攻撃+2', 3);
+      manager.addRound('加速', '', 1);
+      const taken = manager.snapshot();
+
+      manager.delete('猛攻撃');
+      expect(container.children.map((child) => child.name)).toEqual(['加速']);
+
+      manager.restore(taken);
+
+      expect(container.children.map((child) => child.name)).toEqual(['猛攻撃', '加速']);
+      expect(container.getFirstElementByName('猛攻撃')!.value).toBe(3);
+      expect(container.getFirstElementByName('猛攻撃')!.currentValue).toBe('攻撃+2');
+    });
+
+    it('takes away a buff the snapshot never had', () => {
+      manager.addRound('猛攻撃', '', 3);
+      const taken = manager.snapshot();
+      manager.addRound('加速', '', 2);
+
+      manager.restore(taken);
+
+      expect(container.children.map((child) => child.name)).toEqual(['猛攻撃']);
+    });
+
+    it('counts the rounds back to where they stood', () => {
+      manager.addRound('猛攻撃', '', 3);
+      const taken = manager.snapshot();
+      manager.decreaseRound();
+
+      manager.restore(taken);
+
+      expect(container.getFirstElementByName('猛攻撃')!.value).toBe(3);
+    });
+
+    it('moves nothing on the sheet when the same state is put back twice', () => {
+      const status = {
+        getValue: vi.fn(() => 10),
+        changeValue: vi.fn(),
+      } as unknown as StatusAccessor;
+      const withStatus = new BuffManager(buffDataElement, undefined, () => status);
+      withStatus.addRound('筋力強化', '', 3);
+      const data = container.getFirstElementByName('筋力強化')!;
+      withStatus.applyModifier(data, parseBuffModifierRequest('筋力', '+', '2')!);
+      const taken = withStatus.snapshot();
+      (status.changeValue as ReturnType<typeof vi.fn>).mockClear();
+
+      withStatus.restore(taken);
+      withStatus.restore(taken);
+
+      expect(status.changeValue).not.toHaveBeenCalled();
+    });
+  });
+
   describe('addRound', () => {
     it('adds a buff', () => {
       manager.addRound('マッスルベアー', '筋力+2', 3);

@@ -398,8 +398,26 @@ export class GameObjectInventoryComponent {
     this.turnOrderService.setCurrent(character.identifier);
   }
 
+  readonly actedIds = computed<ReadonlySet<string>>(() => {
+    this.objectChange.versionOf('TurnState')();
+    return new Set(this.turnOrderService.actedIdentifiers);
+  });
+
+  readonly canUndoTurn = computed<boolean>(() => {
+    this.objectChange.versionOf('TurnState')();
+    return this.turnOrderService.canUndo;
+  });
+
   turnNext(): void {
     this.turnOrderService.next();
+  }
+
+  turnAdvanceRound(): void {
+    this.turnOrderService.advanceRound();
+  }
+
+  turnRetreatRound(): void {
+    this.turnOrderService.retreatRound();
   }
 
   turnPrev(): void {

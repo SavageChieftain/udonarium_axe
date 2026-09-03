@@ -60,6 +60,8 @@ export class GameCharacter extends OwnedTabletopObject {
   @SyncVar() isDropShadow: boolean = false;
 
   @SyncVar() hideInventory: boolean = false;
+  /** Kept out of the order of turns. The piece is still listed, and still carries its buffs. */
+  @SyncVar() noTurn: boolean = false;
   @SyncVar() nonTalkFlag: boolean = false;
   @SyncVar() hideName: boolean = false;
   @SyncVar() hideBuff: boolean = false;

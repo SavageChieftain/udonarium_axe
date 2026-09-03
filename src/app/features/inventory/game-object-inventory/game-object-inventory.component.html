@@ -217,7 +217,9 @@
         }
         <button
           type="button"
-          class="rounded-ui-sm text-ui-text border-ui-border-panel hover:border-ui-accent hover:bg-ui-hover ml-auto flex max-w-40 flex-1 cursor-pointer items-center justify-center gap-0.5 border border-solid bg-transparent px-2 py-1 text-[12px] font-semibold transition-colors hover:shadow-none [&_.material-icons]:text-[15px]!"
+          class="rounded-ui-sm text-ui-text border-ui-border-panel hover:border-ui-accent hover:bg-ui-hover ml-auto flex max-w-40 flex-1 cursor-pointer items-center justify-center gap-0.5 border border-solid bg-transparent px-2 py-1 text-[12px] font-semibold transition-colors hover:shadow-none disabled:cursor-not-allowed disabled:opacity-40 [&_.material-icons]:text-[15px]!"
+          [disabled]="!canUndoTurn()"
+          [title]="'feature.turnOrder.undo' | transloco"
           (click)="turnPrev()"
         >
           <i class="material-icons">chevron_left</i>{{ 'feature.turnOrder.prev' | transloco }}
@@ -228,6 +230,23 @@
           (click)="turnNext()"
         >
           {{ 'feature.turnOrder.next' | transloco }}<i class="material-icons">chevron_right</i>
+        </button>
+        <button
+          type="button"
+          class="rounded-ui-sm text-ui-muted border-ui-border-panel hover:border-ui-accent hover:bg-ui-hover hover:text-ui-accent flex size-7 shrink-0 cursor-pointer items-center justify-center border border-solid bg-transparent p-0 transition-colors hover:shadow-none disabled:cursor-not-allowed disabled:opacity-40 [&_.material-icons]:text-[15px]!"
+          [disabled]="!canUndoTurn()"
+          [title]="'feature.turnOrder.retreatRound' | transloco"
+          (click)="turnRetreatRound()"
+        >
+          <i class="material-icons">fast_rewind</i>
+        </button>
+        <button
+          type="button"
+          class="rounded-ui-sm text-ui-muted border-ui-border-panel hover:border-ui-accent hover:bg-ui-hover hover:text-ui-accent flex size-7 shrink-0 cursor-pointer items-center justify-center border border-solid bg-transparent p-0 transition-colors hover:shadow-none [&_.material-icons]:text-[15px]!"
+          [title]="'feature.turnOrder.advanceRound' | transloco"
+          (click)="turnAdvanceRound()"
+        >
+          <i class="material-icons">fast_forward</i>
         </button>
         <button
           type="button"
@@ -324,8 +343,9 @@
         <div class="flex items-center gap-1.5">
           <button
             type="button"
-            class="bg-ui-panel/80 text-ui-text border-ui-border-panel hover:border-ui-accent hover:text-ui-accent shadow-ui-sm flex size-8 cursor-pointer items-center justify-center rounded-full border border-solid backdrop-blur-sm transition-colors hover:shadow-none [&_.material-icons]:text-[18px]!"
-            [title]="'feature.turnOrder.prev' | transloco"
+            class="bg-ui-panel/80 text-ui-text border-ui-border-panel hover:border-ui-accent hover:text-ui-accent shadow-ui-sm flex size-8 cursor-pointer items-center justify-center rounded-full border border-solid backdrop-blur-sm transition-colors hover:shadow-none disabled:cursor-not-allowed disabled:opacity-40 [&_.material-icons]:text-[18px]!"
+            [disabled]="!canUndoTurn()"
+            [title]="'feature.turnOrder.undo' | transloco"
             (click)="turnPrev()"
           >
             <i class="material-icons">keyboard_arrow_up</i>
@@ -340,6 +360,23 @@
           </button>
         </div>
         <div class="flex items-center gap-1.5">
+          <button
+            type="button"
+            class="text-ui-muted hover:bg-ui-hover hover:text-ui-text flex size-7 shrink-0 cursor-pointer items-center justify-center rounded-full border-none bg-transparent p-0 drop-shadow-sm transition-[background,color] hover:shadow-none disabled:cursor-not-allowed disabled:opacity-40 [&_.material-icons]:text-[17px]!"
+            [disabled]="!canUndoTurn()"
+            [title]="'feature.turnOrder.retreatRound' | transloco"
+            (click)="turnRetreatRound()"
+          >
+            <i class="material-icons">fast_rewind</i>
+          </button>
+          <button
+            type="button"
+            class="text-ui-muted hover:bg-ui-hover hover:text-ui-text flex size-7 shrink-0 cursor-pointer items-center justify-center rounded-full border-none bg-transparent p-0 drop-shadow-sm transition-[background,color] hover:shadow-none [&_.material-icons]:text-[17px]!"
+            [title]="'feature.turnOrder.advanceRound' | transloco"
+            (click)="turnAdvanceRound()"
+          >
+            <i class="material-icons">fast_forward</i>
+          </button>
           <button
             type="button"
             class="hover:bg-ui-hover flex size-7 shrink-0 cursor-pointer items-center justify-center rounded-full border-none bg-transparent p-0 drop-shadow-sm transition-[background,color] hover:shadow-none [&_.material-icons]:text-[17px]!"
@@ -367,7 +404,7 @@
       @for (character of turnOrderList(); track character.identifier) {
         <button
           type="button"
-          class="shrink-0 cursor-pointer rounded-full border-none bg-transparent p-0 transition-transform"
+          class="relative shrink-0 cursor-pointer rounded-full border-none bg-transparent p-0 transition-transform"
           [class.scale-105]="currentTurnId() === character.identifier"
           [class.opacity-50]="currentTurnId() && currentTurnId() !== character.identifier"
           [title]="character.name"
@@ -388,6 +425,13 @@
               <i class="material-icons text-ui-dim text-[26px]! opacity-50">person</i>
             }
           </span>
+          @if (actedIds().has(character.identifier) && currentTurnId() !== character.identifier) {
+            <i
+              class="material-icons bg-ui-panel text-ui-dim absolute right-0 bottom-0 rounded-full text-[14px]!"
+              [title]="'feature.turnOrder.acted' | transloco"
+              >check</i
+            >
+          }
         </button>
       } @empty {
         <span class="text-ui-dim px-1 py-2 text-center text-[11px] drop-shadow-sm">{{
@@ -489,11 +533,19 @@
               }
               <td class="border-ui-border-panel w-0 border-b border-solid px-1 py-0.5">
                 <span class="flex items-center justify-end gap-0.5">
-                  <i
-                    class="material-icons text-ui-accent block text-[14px]!"
-                    [class.invisible]="currentTurnId() !== row.object.identifier"
-                    >play_arrow</i
-                  >
+                  @if (currentTurnId() !== row.object.identifier && actedIds().has(row.object.identifier)) {
+                    <i
+                      class="material-icons text-ui-dim block text-[14px]!"
+                      [title]="'feature.turnOrder.acted' | transloco"
+                      >check</i
+                    >
+                  } @else {
+                    <i
+                      class="material-icons text-ui-accent block text-[14px]!"
+                      [class.invisible]="currentTurnId() !== row.object.identifier"
+                      >play_arrow</i
+                    >
+                  }
                   <span class="text-ui-muted tabular-nums">{{ row.order }}</span>
                 </span>
               </td>
@@ -665,11 +717,19 @@
     (touchstart)="onObjectDragBlock($event, gameObject)"
   >
     @if (selectTab() === 'table') {
-      <i
-        class="material-icons text-ui-accent w-3.5 shrink-0 text-[16px]!"
-        [class.invisible]="currentTurnId() !== gameObject.identifier"
-        >play_arrow</i
-      >
+      @if (currentTurnId() !== gameObject.identifier && actedIds().has(gameObject.identifier)) {
+        <i
+          class="material-icons text-ui-dim w-3.5 shrink-0 text-[16px]!"
+          [title]="'feature.turnOrder.acted' | transloco"
+          >check</i
+        >
+      } @else {
+        <i
+          class="material-icons text-ui-accent w-3.5 shrink-0 text-[16px]!"
+          [class.invisible]="currentTurnId() !== gameObject.identifier"
+          >play_arrow</i
+        >
+      }
     }
     @if (isMultiMove()) {
       <input

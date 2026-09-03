@@ -1099,7 +1099,14 @@
       "setCurrent": "この手番にする",
       "buffDecayOn": "バフの残ラウンドを自動で減らす: オン",
       "buffDecayOff": "バフの残ラウンドを自動で減らす: オフ",
-      "buffExpired": "効果が切れました。{{detail}}"
+      "buffExpired": "効果が切れました。{{detail}}",
+      "advanceRound": "ラウンドを進める",
+      "advanceRoundAnnounce": "ラウンドを進めました。",
+      "undoAnnounce": "手番を1つ前に戻しました。",
+      "acted": "行動済み",
+      "undo": "1つ前に戻す",
+      "retreatRound": "ラウンドを戻す",
+      "retreatRoundAnnounce": "ラウンド{{n}}に戻しました。"
     },
     "inventory": {
       "contextMenu": {
@@ -1360,6 +1367,8 @@
         "invokeRangeShape": "登録済み射程を出す",
         "hideInventoryOn": "☑ インベントリ非表示",
         "hideInventoryOff": "☐ インベントリ非表示",
+        "noTurnOn": "☑ 手番をもたない",
+        "noTurnOff": "☐ 手番をもたない",
         "nonTalkOn": "☑ 発言しない",
         "nonTalkOff": "☐ 発言しない",
         "displaySettings": "表示",

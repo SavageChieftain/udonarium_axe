@@ -1099,7 +1099,14 @@
       "setCurrent": "Set as current turn",
       "buffDecayOn": "Count down buff rounds automatically: on",
       "buffDecayOff": "Count down buff rounds automatically: off",
-      "buffExpired": "Effects ended. {{detail}}"
+      "buffExpired": "Effects ended. {{detail}}",
+      "advanceRound": "Advance the round",
+      "advanceRoundAnnounce": "The round was moved on.",
+      "undoAnnounce": "The turn was put back one step.",
+      "acted": "Acted",
+      "undo": "Step back",
+      "retreatRound": "Take the round back",
+      "retreatRoundAnnounce": "Back to round {{n}}."
     },
     "inventory": {
       "contextMenu": {
@@ -1360,6 +1367,8 @@
         "invokeRangeShape": "Invoke registered range",
         "hideInventoryOn": "☑ Hide from inventory",
         "hideInventoryOff": "☐ Hide from inventory",
+        "noTurnOn": "☑ Takes no turn",
+        "noTurnOff": "☐ Takes no turn",
         "nonTalkOn": "☑ Don't speak",
         "nonTalkOff": "☐ Don't speak",
         "displaySettings": "Display",

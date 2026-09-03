@@ -25,6 +25,8 @@ describe('TurnOrderService', () => {
     turnState.round = 0;
     turnState.phase = 'idle';
     turnState.buffDecay = true;
+    turnState.actedIdentifiers = [];
+    turnState.history = '[]';
 
     chars = [new GameCharacter(), new GameCharacter(), new GameCharacter()];
     chars.forEach((c) => c.initialize());
@@ -146,6 +148,20 @@ describe('TurnOrderService', () => {
       expect(buffsOf(buffed[0])[0].value).toBe(1);
     });
 
+    it('puts back a buff that ran out in the step it undoes', () => {
+      buffed[0].buffs.addRound('加速', '', 2);
+
+      advanceToRoundEnd();
+      expect(buffsOf(buffed[0]).map((buff: DataElement) => buff.name)).toEqual(['加速']);
+
+      service.prev();
+
+      expect(buffsOf(buffed[0]).map((buff: DataElement) => buff.name)).toEqual(['猛攻撃', '加速']);
+      expect(buffsOf(buffed[0])[0].value).toBe(1);
+      expect(buffsOf(buffed[0])[1].value).toBe(2);
+      expect(buffsOf(buffed[1]).map((buff: DataElement) => buff.name)).toEqual(['猛攻撃']);
+    });
+
     it("counts a buff down as its trigger's turn opens, and leaves the rest alone", () => {
       // A Sword World enhancement runs out as the caster comes round again, not with the round.
       const [caster, target] = buffed;
@@ -208,6 +224,136 @@ describe('TurnOrderService', () => {
       const announced = sendSpy.mock.calls.map((call: unknown[]) => String(call[0]));
       expect(announced.some((text: string) => text.includes('feature.turnOrder.buffExpired'))).toBe(false);
       expect(buffsOf(buffed[0])[0].value).toBe(4);
+    });
+  });
+
+  describe('pieces that have acted', () => {
+    it('marks whoever was up as having acted when the turn is handed on', () => {
+      service.next(); // round 1 begins
+      service.next(); // first character
+
+      expect(service.isActed(chars[0].identifier)).toBe(false);
+      service.next();
+      expect(service.isActed(chars[0].identifier)).toBe(true);
+    });
+
+    it('hands the turn to the earliest piece that has not acted yet', () => {
+      service.next(); // round 1 begins
+      // The turn is forced onto the last of them, which is what clicking a piece does.
+      service.setCurrent(chars[2].identifier);
+
+      service.next();
+      expect(service.isActed(chars[2].identifier)).toBe(true);
+      expect(turnState.currentIdentifier).toBe(chars[0].identifier);
+
+      // And it keeps going down the order rather than handing the turn back round again.
+      service.next();
+      expect(turnState.currentIdentifier).toBe(chars[1].identifier);
+    });
+
+    it('ends the round once everybody has acted', () => {
+      service.next(); // round 1 begins
+      service.setCurrent(chars[0].identifier);
+      service.next(); // chars[1]
+      service.next(); // chars[2]
+      service.next(); // nobody left
+
+      expect(turnState.phase).toBe('roundEnd');
+    });
+
+    it('clears what was acted when a round opens', () => {
+      service.next(); // round 1 begins
+      service.next(); // first character
+      service.next(); // marks the first as acted
+
+      service.advanceRound();
+
+      expect(turnState.actedIdentifiers).toEqual([]);
+    });
+  });
+
+  it('keeps a piece that takes no turn out of the order', () => {
+    orderedSpy.mockRestore();
+    const inventory = TestBed.inject(GameObjectInventoryService);
+    const [acting, watching] = [new GameCharacter(), new GameCharacter()];
+    [acting, watching].forEach((c) => c.initialize());
+    watching.noTurn = true;
+    vi.spyOn(inventory.tableInventory, 'tabletopObjects', 'get').mockReturnValue([acting, watching]);
+
+    expect(service.orderedCharacters()).toEqual([acting]);
+  });
+
+  describe('advancing the round itself', () => {
+    it('closes the round it is in and opens the next one', () => {
+      service.next(); // round 1 begins
+      service.next(); // first character
+
+      service.advanceRound();
+
+      expect(turnState.round).toBe(2);
+      expect(turnState.phase).toBe('roundStart');
+      expect(turnState.currentIdentifier).toBe('');
+      const announced = sendSpy.mock.calls.map((call: unknown[]) => String(call[0]));
+      expect(announced).toContain('feature.turnOrder.roundEnd');
+      expect(announced).toContain('feature.turnOrder.roundStart');
+    });
+
+    it('takes the round back to where the one before it left off', () => {
+      service.next(); // round 1 begins
+      service.next(); // chars[0] is up
+      service.advanceRound(); // round 2 begins
+
+      service.retreatRound();
+
+      expect(turnState.round).toBe(1);
+      expect(turnState.currentIdentifier).toBe(chars[0].identifier);
+    });
+
+    it('opens the first round from idle without closing one that never began', () => {
+      service.advanceRound();
+
+      expect(turnState.round).toBe(1);
+      expect(turnState.phase).toBe('roundStart');
+      expect(sendSpy.mock.calls.map((call: unknown[]) => String(call[0]))).not.toContain('feature.turnOrder.roundEnd');
+    });
+  });
+
+  describe('stepping the round back', () => {
+    it('puts the acted list back as it was', () => {
+      service.next(); // round 1 begins
+      service.next(); // first character
+      service.next(); // first character has acted
+
+      service.prev();
+
+      expect(turnState.actedIdentifiers).toEqual([]);
+      expect(turnState.currentIdentifier).toBe(chars[0].identifier);
+    });
+
+    it('puts back the buffs a whole round took away', () => {
+      const bearer = GameCharacter.create('ラウンド戻し', 1, '');
+      bearer.addExtendData();
+      bearer.buffs.addRound('祝福', '', 1);
+      orderedSpy.mockReturnValue([bearer]);
+
+      service.next(); // round 1 begins
+      service.next(); // the bearer is up
+      service.advanceRound(); // the round ends and 祝福 runs out
+
+      expect(bearer.buffDataElement?.children[0]?.children ?? []).toHaveLength(0);
+
+      service.retreatRound();
+
+      const left = bearer.buffDataElement?.children[0]?.children ?? [];
+      expect(left.map((buff) => buff.name)).toEqual(['祝福']);
+      expect(left[0].value).toBe(1);
+    });
+
+    it('does nothing once there is nothing left to go back to', () => {
+      service.prev();
+
+      expect(turnState.phase).toBe('idle');
+      expect(turnState.round).toBe(0);
     });
   });
 

@@ -1099,7 +1099,14 @@
       "setCurrent": "이 차례로 지정",
       "buffDecayOn": "버프의 남은 라운드를 자동으로 줄이기: 켬",
       "buffDecayOff": "버프의 남은 라운드를 자동으로 줄이기: 끔",
-      "buffExpired": "효과가 끝났습니다. {{detail}}"
+      "buffExpired": "효과가 끝났습니다. {{detail}}",
+      "advanceRound": "라운드 진행",
+      "advanceRoundAnnounce": "라운드를 진행했습니다.",
+      "undoAnnounce": "차례를 한 단계 되돌렸습니다.",
+      "acted": "행동 완료",
+      "undo": "한 단계 되돌리기",
+      "retreatRound": "라운드 되돌리기",
+      "retreatRoundAnnounce": "라운드 {{n}}(으)로 되돌렸습니다."
     },
     "inventory": {
       "contextMenu": {
@@ -1360,6 +1367,8 @@
         "invokeRangeShape": "등록된 사거리 표시",
         "hideInventoryOn": "☑ 인벤토리 숨김",
         "hideInventoryOff": "☐ 인벤토리 숨김",
+        "noTurnOn": "☑ 차례를 갖지 않음",
+        "noTurnOff": "☐ 차례를 갖지 않음",
         "nonTalkOn": "☑ 발언하지 않음",
         "nonTalkOff": "☐ 발언하지 않음",
         "displaySettings": "표시",
