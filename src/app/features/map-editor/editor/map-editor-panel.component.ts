@@ -36,17 +36,13 @@ import {
 } from '@axe/domain/media/texture-catalog';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { GridType } from '@axe/domain/tabletop/game-table';
-import {
-  imageStampIdentifier,
-  isImageStampId,
-  MAP_STAMP_TAG,
-  toImageStampId,
-} from '@axe/features/map-editor/assets/image-stamp';
-import { STAMP_CATEGORIES, StampCategory, StampDef } from '@axe/features/map-editor/assets/stamp-types';
-import { getStampById, getStampsByCategory, STAMPS } from '@axe/features/map-editor/assets/stamps';
+import { imageStampIdentifier, isImageStampId } from '@axe/features/map-editor/assets/image-stamp';
+import { StampDef } from '@axe/features/map-editor/assets/stamp-types';
+import { getStampById, STAMPS } from '@axe/features/map-editor/assets/stamps';
 import { GestureKind, MapEditorGesture } from '@axe/features/map-editor/editor/map-editor-gesture';
 import { MapEditorLayerDrawerComponent } from '@axe/features/map-editor/editor/map-editor-layer-drawer.component';
 import { mapEditorKeyDown, mapEditorKeyUp } from '@axe/features/map-editor/editor/map-editor-shortcut';
+import { MapEditorStampPickerComponent } from '@axe/features/map-editor/editor/map-editor-stamp-picker.component';
 import {
   EditorTool,
   LineKind,
@@ -150,7 +146,14 @@ interface ToolDef {
     '(keyup)': 'onKeyUp($event)',
   },
   providers: [MapEditorState],
-  imports: [FormsModule, NgClass, NgTemplateOutlet, TranslocoModule, MapEditorLayerDrawerComponent],
+  imports: [
+    FormsModule,
+    NgClass,
+    NgTemplateOutlet,
+    TranslocoModule,
+    MapEditorLayerDrawerComponent,
+    MapEditorStampPickerComponent,
+  ],
 })
 export class MapEditorPanelComponent implements AfterViewInit {
   protected readonly state = inject(MapEditorState);
@@ -176,7 +179,6 @@ export class MapEditorPanelComponent implements AfterViewInit {
   private readonly board = viewChild<ElementRef<HTMLCanvasElement>>('board');
   private readonly fileInput = viewChild<ElementRef<HTMLInputElement>>('fileInput');
   private readonly textureFileInput = viewChild<ElementRef<HTMLInputElement>>('textureFileInput');
-  private readonly stampFileInput = viewChild<ElementRef<HTMLInputElement>>('stampFileInput');
   protected readonly textEditor = viewChild<ElementRef<HTMLElement>>('textEditor');
   private readonly stage = viewChild<ElementRef<HTMLDivElement>>('stage');
 
@@ -229,7 +231,6 @@ export class MapEditorPanelComponent implements AfterViewInit {
   protected readonly textureIds = TEXTURE_IDS;
   protected readonly textureBaseColor = TEXTURE_BASE_COLOR;
   protected readonly textureAssetUrls = TEXTURE_ASSET_URLS;
-  protected readonly stampCategories = STAMP_CATEGORIES;
 
   private readonly renderTick = signal(0);
   private readonly pendingStamps = new Set<string>();
@@ -289,18 +290,10 @@ export class MapEditorPanelComponent implements AfterViewInit {
     return map;
   });
 
-  protected readonly categoryStamps = computed<StampDef[]>(() => getStampsByCategory(this.state.stampCategory()));
-
   protected readonly imageTextures = computed<ImageFile[]>(() => {
     this.objectChange.fileVersion();
     this.objectChange.collectionOf('image-tag')();
     return ImageTag.searchImages([TEXTURE_IMAGE_TAG], this.rolePermission.canSeeHidden);
-  });
-
-  protected readonly stampImages = computed<ImageFile[]>(() => {
-    this.objectChange.fileVersion();
-    this.objectChange.collectionOf('image-tag')();
-    return ImageTag.searchImages([MAP_STAMP_TAG], this.rolePermission.canSeeHidden);
   });
 
   protected readonly canvasCursor = computed(() => {
@@ -386,11 +379,6 @@ export class MapEditorPanelComponent implements AfterViewInit {
     return this.sanitizer.bypassSecurityTrustHtml(
       `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24">${inner}</svg>`
     );
-  }
-
-  protected stampDataUri(def: StampDef, color: string | null): string {
-    const svg = def.svg.split('currentColor').join(color ?? 'currentColor');
-    return 'data:image/svg+xml,' + encodeURIComponent(svg);
   }
 
   private buildHelpers(ctx: CanvasRenderingContext2D): RenderHelpers {
@@ -1373,45 +1361,6 @@ export class MapEditorPanelComponent implements AfterViewInit {
     this.objectChange.notifyCollectionChanged('image-tag');
     this.state.fillMode.set('texture');
     this.state.textureId.set('image:' + imageFile.identifier);
-  }
-
-  protected setStampCategory(cat: StampCategory): void {
-    this.state.stampCategory.set(cat);
-  }
-
-  protected selectStamp(id: string): void {
-    this.state.stampId.set(id);
-  }
-
-  protected selectImageStamp(file: ImageFile): void {
-    this.state.stampId.set(toImageStampId(file.identifier));
-    this.state.stampColor.set(null);
-    this.state.stampSize.set(Math.min(256, Math.max(16, this.state.current.cellPx)));
-  }
-
-  protected isActiveImageStamp(file: ImageFile): boolean {
-    return this.state.stampId() === toImageStampId(file.identifier);
-  }
-
-  protected isImageStampSelected(): boolean {
-    const id = this.state.stampId();
-    return !!id && isImageStampId(id);
-  }
-
-  protected triggerStampUpload(): void {
-    this.stampFileInput()?.nativeElement.click();
-  }
-
-  protected async onStampFileSelected(event: Event): Promise<void> {
-    const input = event.target as HTMLInputElement;
-    const file = input.files?.[0];
-    input.value = '';
-    if (!file || !file.type.startsWith('image/')) return;
-    const imageFile = await this.imageStorage.addAsync(file);
-    const tag = ImageTag.get(imageFile.identifier) ?? ImageTag.create(imageFile.identifier);
-    tag.tag = MAP_STAMP_TAG;
-    this.objectChange.notifyCollectionChanged('image-tag');
-    this.selectImageStamp(imageFile);
   }
 
   protected zoomIn(): void {
