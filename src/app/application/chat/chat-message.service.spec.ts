@@ -93,6 +93,32 @@ describe('ChatMessageService', () => {
     });
   });
 
+  describe('a notice meant for one person', () => {
+    it('is marked as housekeeping when it is asked to be', () => {
+      const service = TestBed.inject(ChatMessageService);
+      const tab = ChatTabList.instance.addChatTab('テストタブ');
+      try {
+        const message = service.sendSystemMessageOnePlayer(tab, 'お知らせ', 'nobody', undefined, true);
+
+        expect(message.isOutOfStory).toBe(true);
+      } finally {
+        tab.destroy();
+      }
+    });
+
+    it('belongs to the story when it is not', () => {
+      const service = TestBed.inject(ChatMessageService);
+      const tab = ChatTabList.instance.addChatTab('テストタブ');
+      try {
+        const message = service.sendSystemMessageOnePlayer(tab, 'お知らせ', 'nobody');
+
+        expect(message.isOutOfStory).toBe(false);
+      } finally {
+        tab.destroy();
+      }
+    });
+  });
+
   describe('what a line records about who spoke it', () => {
     it('writes down the role the speaker was wearing at the time', () => {
       const service = TestBed.inject(ChatMessageService);

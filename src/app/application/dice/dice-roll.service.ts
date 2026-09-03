@@ -26,7 +26,11 @@ export class DiceRollService {
   /** Throws one die, or a handful together. Whatever cannot be seen stays as it was. */
   roll(dice: readonly DiceSymbol[]): RolledDie[] {
     const thrown = dice.filter((die) => die.isVisible);
-    if (thrown.length < 1) return [];
+    const skipped = dice.length - thrown.length;
+    if (thrown.length < 1) {
+      this.announceSkipped(skipped);
+      return [];
+    }
 
     const open: RolledDie[] = [];
     const secret: RolledDie[] = [];
@@ -48,7 +52,19 @@ export class DiceRollService {
 
     this.announce(open);
     this.announceSecret(secret, secretDice);
+    this.announceSkipped(skipped);
     return rolled;
+  }
+
+  private announceSkipped(count: number): void {
+    if (count < 1) return;
+
+    const me = PeerCursor.myCursor;
+    if (!me) return;
+    const tab = this.activeChatTab.current() ?? this.chatMessageService.chatTabs[0];
+    if (!tab) return;
+    const text = this.t('feature.dice.message.notRolled', { count });
+    this.chatMessageService.sendSystemMessageOnePlayer(tab, text, me.identifier, undefined, true);
   }
 
   private announce(rolled: readonly RolledDie[]): void {

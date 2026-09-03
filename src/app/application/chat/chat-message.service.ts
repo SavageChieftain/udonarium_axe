@@ -170,7 +170,13 @@ export class ChatMessageService {
     return this.sendSystemMessageToTab(chatTabList!.chatTabs[0], text, color);
   }
 
-  sendSystemMessageOnePlayer(chatTab: ChatTab, text: string, sendTo: string, color?: string): ChatMessage {
+  sendSystemMessageOnePlayer(
+    chatTab: ChatTab,
+    text: string,
+    sendTo: string,
+    color?: string,
+    outOfStory = false
+  ): ChatMessage {
     const messageColor = resolveMessageColor(color, '#006633');
     const chatMessage: ChatMessageContext = {
       from: this.findId(sendTo),
@@ -178,7 +184,7 @@ export class ChatMessageService {
       name: encodeI18nMessage('common.chat.systemName'),
       imageIdentifier: '',
       timestamp: this.calcTimeStamp(chatTab),
-      tag: 'DiceBot to-pl-system-message',
+      tag: outOfStory ? `DiceBot to-pl-system-message ${OUT_OF_STORY_TAG}` : 'DiceBot to-pl-system-message',
       text: text,
       imagePos: -1,
       messColor: messageColor,

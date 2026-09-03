@@ -827,7 +827,8 @@
       "message": {
         "rolled": "{{who}} rolled {{name}} → {{face}}",
         "rolledMany": "{{who}} rolled {{count}} dice → {{results}}",
-        "rolledManyTotal": "{{who}} rolled {{count}} dice → {{results}} (total {{total}})"
+        "rolledManyTotal": "{{who}} rolled {{count}} dice → {{results}} (total {{total}})",
+        "notRolled": "{{count}} dice you cannot read were not rolled"
       },
       "log": {
         "reveal": "{{name}}'s die reads {{face}}.",

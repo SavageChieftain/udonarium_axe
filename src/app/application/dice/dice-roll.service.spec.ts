@@ -8,6 +8,7 @@ import { setPeerContextProvider } from '@axe/core/network/peer-context-source';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { ChatMessage } from '@axe/domain/chat/chat-message';
 import { ChatTab } from '@axe/domain/chat/chat-tab';
+import { ChatTabList } from '@axe/domain/chat/chat-tab-list';
 import { DiceSymbol, DiceType } from '@axe/domain/dice/dice-symbol';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
@@ -16,6 +17,7 @@ describe('DiceRollService', () => {
   let service: DiceRollService;
   let sendSystemMessage: ReturnType<typeof vi.fn>;
   let sendSecret: ReturnType<typeof vi.fn>;
+  let sendToThrower: ReturnType<typeof vi.fn>;
   const created: { destroy(): void }[] = [];
 
   function makeDice(name: string, type = DiceType.D6): DiceSymbol {
@@ -36,6 +38,9 @@ describe('DiceRollService', () => {
       .mockReturnValue(null as unknown as ChatMessage) as unknown as ReturnType<typeof vi.fn>;
     sendSecret = vi
       .spyOn(TestBed.inject(ChatMessageService), 'sendSecretSystemMessageToMainTab')
+      .mockReturnValue(null as unknown as ChatMessage) as unknown as ReturnType<typeof vi.fn>;
+    sendToThrower = vi
+      .spyOn(TestBed.inject(ChatMessageService), 'sendSystemMessageOnePlayer')
       .mockReturnValue(null as unknown as ChatMessage) as unknown as ReturnType<typeof vi.fn>;
   });
 
@@ -166,6 +171,45 @@ describe('DiceRollService', () => {
 
     expect(rolled).toHaveLength(1);
     expect(theirs.face).toBe(before);
+  });
+
+  describe('the dice left standing', () => {
+    function theirDie(name: string): DiceSymbol {
+      const dice = makeDice(name);
+      dice.owner = 'somebody-else';
+      return dice;
+    }
+
+    beforeEach(() => {
+      created.push(ChatTabList.instance.addChatTab('メインタブ'));
+    });
+
+    it('tells the thrower how many were left out of a handful', () => {
+      service.roll([makeDice('わたしの'), theirDie('ひとの')]);
+
+      expect(sendToThrower).toHaveBeenCalledOnce();
+      expect(sendToThrower.mock.calls[0][1] as string).toContain('1');
+      expect(sendToThrower.mock.calls[0][2]).toBe(PeerCursor.myCursor.identifier);
+    });
+
+    it('says it in one line when nothing could be thrown at all', () => {
+      service.roll([theirDie('ひとの'), theirDie('もうひとつ')]);
+
+      expect(sendToThrower).toHaveBeenCalledOnce();
+      expect(sendToThrower.mock.calls[0][1] as string).toContain('2');
+    });
+
+    it('keeps the notice out of the script novel mode reads', () => {
+      service.roll([theirDie('ひとの')]);
+
+      expect(sendToThrower.mock.calls[0][4]).toBe(true);
+    });
+
+    it('says nothing when every die was thrown', () => {
+      service.roll([makeDice('わたしの')]);
+
+      expect(sendToThrower).not.toHaveBeenCalled();
+    });
   });
 
   it('says nothing when there is nothing to throw', () => {
