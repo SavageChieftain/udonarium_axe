@@ -133,13 +133,13 @@
             <img
               class="image chrome-smooth-image-trick pointer-events-none absolute inset-0 m-auto block size-full object-contain"
               [ngStyle]="{
-                width: imageSupersamplePercent(),
-                height: imageSupersamplePercent(),
+                width: imageView.supersamplePercent(),
+                height: imageView.supersamplePercent(),
                 maxWidth: 'none',
-                margin: imageSupersampleInset(),
-                transform: posterImageTransform(),
+                margin: imageView.supersampleInset(),
+                transform: imageView.posterTransform(),
               }"
-              (load)="onImageLoad($event)"
+              (load)="imageView.onImageLoad($event)"
               [src]="imageFile().url | safe: 'resourceUrl'"
             />
           }
@@ -160,7 +160,7 @@
             >
               <div
                 class="absolute inset-x-0 bottom-0 h-auto w-full [-webkit-transform-style:preserve-3d] transform-3d"
-                [style.height.px]="imageBoxHeightPx()"
+                [style.height.px]="imageView.boxHeightPx()"
               >
                 @let buffEl = this.gameCharacter()!.buffDataElement;
                 @if (buffEl && buffNum() > 0 && !hideBuff()) {
@@ -400,15 +400,15 @@
                   <img
                     class="image chrome-smooth-image-trick inset-x-0 bottom-0 m-auto h-auto align-bottom [-webkit-transform-style:preserve-3d] transform-3d"
                     [ngStyle]="{
-                      height: komaImageHeightSignal() * imageSupersample() + 'px',
+                      height: komaImageHeightSignal() * imageView.supersample() + 'px',
                       width: 'auto',
                       maxWidth: 'none',
                       display: 'inline-block',
                       left: 'auto',
                       right: 'auto',
-                      transform: komaImageTransform(),
+                      transform: imageView.komaTransform(),
                     }"
-                    (load)="onImageLoad($event)"
+                    (load)="imageView.onImageLoad($event)"
                     [src]="imageFile().url | safe: 'resourceUrl'"
                   />
                 }
@@ -416,13 +416,13 @@
                   <img
                     class="image chrome-smooth-image-trick inset-x-0 bottom-0 m-auto h-auto align-bottom [-webkit-transform-style:preserve-3d] transform-3d"
                     [ngStyle]="{
-                      width: imageSupersamplePercent(),
+                      width: imageView.supersamplePercent(),
                       maxWidth: 'none',
-                      marginLeft: imageSupersampleInset(),
-                      marginRight: imageSupersampleInset(),
-                      transform: pieceImageTransform(),
+                      marginLeft: imageView.supersampleInset(),
+                      marginRight: imageView.supersampleInset(),
+                      transform: imageView.pieceTransform(),
                     }"
-                    (load)="onImageLoad($event)"
+                    (load)="imageView.onImageLoad($event)"
                     [src]="imageFile().url | safe: 'resourceUrl'"
                   />
                 }

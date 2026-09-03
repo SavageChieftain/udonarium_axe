@@ -7,7 +7,6 @@ import {
   ElementRef,
   inject,
   input,
-  linkedSignal,
   signal,
 } from '@angular/core';
 import { CharacterDiceService } from '@axe/application/dice/character-dice.service';
@@ -45,8 +44,8 @@ import { SafePipe } from '@axe/ui/pipes/safe.pipe';
 import { makeBillboardTransform, makeLabelOrbitTransform } from '@axe/ui/tabletop/billboard-transform';
 import { DoubleTap } from '@axe/ui/tabletop/double-tap';
 import { hideIconWhileTouched } from '@axe/ui/tabletop/icon-hiding';
+import { pieceImageView } from '@axe/ui/tabletop/piece-image-view';
 import { setupInputHandler, setupMovableRotableForPiece } from '@axe/ui/tabletop/setup-tabletop-piece';
-import { supersampleFactor, supersampleInsetPercent, supersampleTransform } from '@axe/ui/tabletop/supersample';
 import { translateZCss, Z_OFFSET_TALL_OBJECT_PX } from '@axe/ui/tabletop/z-offset';
 
 /** How long the die rolls before it settles, which is the length of the tumble animation. */
@@ -213,51 +212,14 @@ export class DiceSymbolComponent {
     return table.imageBillboard || table.mode2d;
   });
 
-  private readonly imageNaturalSize = linkedSignal<string, { width: number; height: number } | null>({
-    source: () => this.imageFile().url,
-    computation: () => null,
+  readonly imageView = pieceImageView({
+    imageUrl: computed(() => this.imageFile().url),
+    isPoster: this.isPoster,
+    sizePx: computed(() => this.size() * this.gridSize),
+    specifiedHeightPx: computed(() => (this.specifyImageFlag() ? +this.imageHeignt() : null)),
+    billboardEnabled: this.imageBillboardEnabled,
+    billboardTransform: this.billboardTransformImage,
   });
-
-  onImageLoad(event: Event): void {
-    const img = event.target as HTMLImageElement;
-    if (img.naturalWidth <= 0 || img.naturalHeight <= 0) return;
-    this.imageNaturalSize.set({ width: img.naturalWidth, height: img.naturalHeight });
-  }
-
-  readonly imageSupersample = computed(() => {
-    const natural = this.imageNaturalSize();
-    if (!natural) return 1;
-    if (this.specifyImageFlag()) return supersampleFactor(natural.height, +this.imageHeignt());
-    return supersampleFactor(natural.width, this.size() * this.gridSize);
-  });
-
-  readonly imageSupersamplePercent = computed(() => this.imageSupersample() * 100 + '%');
-
-  readonly imageSupersampleInset = computed(() => supersampleInsetPercent(this.imageSupersample()) + '%');
-
-  readonly imageBoxHeightPx = computed(() => {
-    const natural = this.imageNaturalSize();
-    if (!natural || this.imageSupersample() <= 1) return null;
-    if (this.specifyImageFlag()) return +this.imageHeignt();
-    return (this.size() * this.gridSize * natural.height) / natural.width;
-  });
-
-  readonly komaImageTransform = computed(() =>
-    supersampleTransform({
-      factor: this.imageSupersample(),
-      anchor: 'bottom',
-      outer: `translateX(-50%) translateX(${(this.size() * this.gridSize) / 2}px)`,
-      inner: this.imageBillboardEnabled() ? this.billboardTransformImage() : '',
-    })
-  );
-
-  readonly pieceImageTransform = computed(() =>
-    supersampleTransform({
-      factor: this.imageSupersample(),
-      anchor: 'bottom',
-      inner: this.imageBillboardEnabled() ? this.billboardTransformImage() : '',
-    })
-  );
 
   readonly mode2dEnabled = computed(() => {
     if (this.isPoster()) return true;
