@@ -3,6 +3,8 @@ import { ActiveChatTabService } from '@axe/application/chat/active-chat-tab.serv
 import { ChatMessageService } from '@axe/application/chat/chat-message.service';
 import { DiceRollService } from '@axe/application/dice/dice-roll.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
+import { IPeerContext } from '@axe/core/network/peer-context';
+import { setPeerContextProvider } from '@axe/core/network/peer-context-source';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { ChatMessage } from '@axe/domain/chat/chat-message';
 import { ChatTab } from '@axe/domain/chat/chat-tab';
@@ -13,6 +15,7 @@ import { TEST_PROVIDERS } from '@axe/testing/test-providers';
 describe('DiceRollService', () => {
   let service: DiceRollService;
   let sendSystemMessage: ReturnType<typeof vi.fn>;
+  let sendSecret: ReturnType<typeof vi.fn>;
   const created: { destroy(): void }[] = [];
 
   function makeDice(name: string, type = DiceType.D6): DiceSymbol {
@@ -30,6 +33,9 @@ describe('DiceRollService', () => {
     service = TestBed.inject(DiceRollService);
     sendSystemMessage = vi
       .spyOn(TestBed.inject(ChatMessageService), 'sendSystemMessage')
+      .mockReturnValue(null as unknown as ChatMessage) as unknown as ReturnType<typeof vi.fn>;
+    sendSecret = vi
+      .spyOn(TestBed.inject(ChatMessageService), 'sendSecretSystemMessageToMainTab')
       .mockReturnValue(null as unknown as ChatMessage) as unknown as ReturnType<typeof vi.fn>;
   });
 
@@ -58,6 +64,58 @@ describe('DiceRollService', () => {
     expect(text).toContain('わたし');
     expect(text).toContain('ダイスA');
     expect(text).toContain(dice.face);
+  });
+
+  describe('a die that is somebody’s alone', () => {
+    /** A die of my own is one only I can read, which is what makes throwing it a secret. */
+    function myOwnDie(name: string): DiceSymbol {
+      const mine = { userId: 'me' } as IPeerContext;
+      setPeerContextProvider({ peerContext: mine, peerContexts: [mine], peerIds: ['me'], peerId: 'me' });
+      const dice = makeDice(name);
+      dice.owner = 'me';
+      return dice;
+    }
+
+    it('keeps the name and the face out of the open line', () => {
+      const dice = myOwnDie('隠しダイス');
+
+      service.roll([dice]);
+
+      expect(sendSystemMessage).not.toHaveBeenCalled();
+      expect(sendSecret).toHaveBeenCalledOnce();
+      const text = sendSecret.mock.calls[0][0] as string;
+      expect(text).toContain('隠しダイス');
+      expect(text).toContain(dice.face);
+    });
+
+    it('sends the secret line as the one who threw it, so only they read it', () => {
+      const dice = myOwnDie('隠しダイス');
+
+      service.roll([dice]);
+
+      expect(sendSecret.mock.calls[0][1]).toBe('me');
+    });
+
+    it('still throws it, and still hands the face back to the table', () => {
+      const dice = myOwnDie('隠しダイス');
+
+      const [rolled] = service.roll([dice]);
+
+      expect(dice.faces).toContain(rolled.face);
+    });
+
+    it('splits a handful, sending the open ones in the open and the rest in secret', () => {
+      const hidden = myOwnDie('隠しダイス');
+      const open = makeDice('見えるダイス');
+
+      service.roll([open, hidden]);
+
+      expect(sendSystemMessage).toHaveBeenCalledOnce();
+      expect(sendSystemMessage.mock.calls[0][0]).toContain('見えるダイス');
+      expect(sendSystemMessage.mock.calls[0][0]).not.toContain('隠しダイス');
+      expect(sendSecret).toHaveBeenCalledOnce();
+      expect(sendSecret.mock.calls[0][0]).toContain('隠しダイス');
+    });
   });
 
   it('gathers a handful into one line', () => {

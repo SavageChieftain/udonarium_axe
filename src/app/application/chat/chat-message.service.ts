@@ -132,6 +132,32 @@ export class ChatMessageService {
     return chatTab.addMessage(chatMessage);
   }
 
+  /**
+   * A notice only whoever sent it may read, which the room sees as a secret die.
+   *
+   * The line is sent whole and kept back by the view rather than being written short, so
+   * the thrower can read their own result and open it to the table when they choose to.
+   */
+  sendSecretSystemMessageToTab(chatTab: ChatTab, text: string, from?: string, color?: string): ChatMessage {
+    const messageColor = resolveMessageColor(color, '#006633');
+    const chatMessage: ChatMessageContext = {
+      from,
+      name: encodeI18nMessage('common.chat.systemName'),
+      imageIdentifier: '',
+      timestamp: this.calcTimeStamp(chatTab),
+      tag: 'system-message secret',
+      text,
+      imagePos: -1,
+      messColor: messageColor,
+    };
+    return chatTab.addMessage(chatMessage);
+  }
+
+  sendSecretSystemMessageToMainTab(text: string, from?: string): ChatMessage {
+    const chatTabList = this.objectStore.get<ChatTabList>('ChatTabList');
+    return this.sendSecretSystemMessageToTab(chatTabList!.chatTabs[0], text, from);
+  }
+
   sendSystemMessageToMainTab(text: string, color?: string): ChatMessage {
     const chatTabList = this.objectStore.get<ChatTabList>('ChatTabList');
     return this.sendSystemMessageToTab(chatTabList!.chatTabs[0], text, color);
