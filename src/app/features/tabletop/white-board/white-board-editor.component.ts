@@ -57,6 +57,10 @@ import { deserializeScene, serializeScene } from '@axe/features/map-editor/model
 import { getRasterImage, warmRasterImages } from '@axe/features/map-editor/render/raster-image';
 import { renderScene } from '@axe/features/map-editor/render/render-scene';
 import { detachFromBoard, standingOn } from '@axe/features/tabletop/white-board/white-board-contents';
+import {
+  LayerDrawerAction,
+  WhiteBoardLayerDrawerComponent,
+} from '@axe/features/tabletop/white-board/white-board-layer-drawer.component';
 import { hangablePictureIds } from '@axe/features/tabletop/white-board/white-board-live-pictures';
 import {
   drawBand,
@@ -214,7 +218,7 @@ const MAX_SIDE = 40;
   selector: 'white-board-editor',
   templateUrl: './white-board-editor.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FormsModule, TranslocoModule, NgClass],
+  imports: [FormsModule, TranslocoModule, NgClass, WhiteBoardLayerDrawerComponent],
 })
 export class WhiteBoardEditorComponent {
   private readonly modalService = inject(ModalService);
@@ -547,12 +551,54 @@ export class WhiteBoardEditorComponent {
     return groupNames(this.scene);
   }
 
-  protected groupLabel(group: LayerGroup): string {
-    return group.name.length > 0 ? group.name : this.layerName(group.layers[0]);
-  }
-
-  protected isGroupShown(group: LayerGroup): boolean {
-    return group.layers.some((layer) => layer.visible);
+  protected onLayerAction(action: LayerDrawerAction): void {
+    switch (action.kind) {
+      case 'addSheet':
+        this.addSheet();
+        break;
+      case 'makeGroup':
+        this.makeGroup();
+        break;
+      case 'toggleGroup':
+        this.toggleGroup(action.group);
+        break;
+      case 'renameGroup':
+        this.renameGroup(action.group, action.name);
+        break;
+      case 'chooseLayer':
+        this.chooseLayer(action.layer);
+        break;
+      case 'toggleLayer':
+        this.toggleLayer(action.layer);
+        break;
+      case 'toggleLock':
+        this.toggleLock(action.layer);
+        break;
+      case 'renameLayer':
+        this.renameLayer(action.layer, action.name);
+        break;
+      case 'raiseLayer':
+        this.raiseLayer(action.layer);
+        break;
+      case 'lowerLayer':
+        this.lowerLayer(action.layer);
+        break;
+      case 'setLayerOpacity':
+        this.setLayerOpacity(action.layer, action.opacity);
+        break;
+      case 'fileLayer':
+        this.fileLayer(action.layer, action.group);
+        break;
+      case 'clearSheet':
+        this.clearSheet(action.layer);
+        break;
+      case 'dropLayer':
+        this.dropLayer(action.layer);
+        break;
+      case 'takeOff':
+        this.takeOff(action.object);
+        break;
+    }
   }
 
   protected toggleGroup(group: LayerGroup): void {
@@ -560,7 +606,7 @@ export class WhiteBoardEditorComponent {
       this.toggleLayer(group.layers[0]);
       return;
     }
-    showGroup(this.scene, group.name, !this.isGroupShown(group));
+    showGroup(this.scene, group.name, !group.layers.some((layer) => layer.visible));
     this.touched();
   }
 
@@ -586,10 +632,6 @@ export class WhiteBoardEditorComponent {
     this.touched();
   }
 
-  protected layerName(layer: MapLayer): string {
-    return layer.name?.length ? layer.name : this.t(`feature.whiteBoard.layer.${layer.kind}`);
-  }
-
   /**
    * Names a sheet.
    *
@@ -597,8 +639,7 @@ export class WhiteBoardEditorComponent {
    * back to nothing, a sheet falls back to being named after what it holds.
    */
   protected renameLayer(layer: MapLayer, name: string): void {
-    const given = name.trim();
-    layer.name = given === this.t(`feature.whiteBoard.layer.${layer.kind}`) ? '' : given;
+    layer.name = name;
     this.touched();
   }
 
@@ -688,10 +729,6 @@ export class WhiteBoardEditorComponent {
       ...this.tabletopService.cards,
       ...this.tabletopService.diceSymbols,
     ]);
-  }
-
-  protected nameOf(object: TabletopObject): string {
-    return object.name?.length ? object.name : object.aliasName;
   }
 
   protected takeOff(object: TabletopObject): void {
