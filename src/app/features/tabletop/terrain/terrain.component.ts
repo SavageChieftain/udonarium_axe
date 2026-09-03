@@ -159,14 +159,50 @@ export class TerrainComponent {
   }
 
   /**
+   * Where the grid is cut from, and how far the canvas is slid so the cut lands true.
+   *
+   * A terrain dragged across the floor moves the grid under it a pixel at a time, and cutting
+   * the lines again for every pixel is most of what a drag costs. The lines only look
+   * different once the terrain crosses into another cell, so the cut is taken from the corner
+   * of the cell it stands in, one cell wider than it needs, and the canvas is slid back by
+   * the part of a cell it has travelled. Slid a whole number of pixels the cut draws the same
+   * picture; slid a fraction it would not, so a terrain standing off the pixel grid, which a
+   * hex table or a turned terrain can be, is cut afresh as before.
+   */
+  private readonly gridSlide = computed(() => {
+    this.terrainVersion();
+    const viewport = this.getGridViewport(this.getFloorBounds());
+    const grid = this.gridSize;
+    const restX = viewport.offsetLeft - Math.floor(viewport.offsetLeft / grid) * grid;
+    const restY = viewport.offsetTop - Math.floor(viewport.offsetTop / grid) * grid;
+    if (grid <= 0 || !Number.isInteger(restX) || !Number.isInteger(restY)) {
+      return {
+        viewport,
+        offsetLeft: viewport.offsetLeft,
+        offsetTop: viewport.offsetTop,
+        slideX: 0,
+        slideY: 0,
+        grow: 0,
+      };
+    }
+    return {
+      viewport,
+      offsetLeft: viewport.offsetLeft - restX,
+      offsetTop: viewport.offsetTop - restY,
+      slideX: -restX,
+      slideY: -restY,
+      grow: grid,
+    };
+  });
+
+  /**
    * Everything the grid is cut from. The same key cuts the same picture, so it is cut once.
    */
   private readonly gridRasterKey = computed(() => {
-    this.terrainVersion();
     this.objectChange.versionOf(this.tabletopService.tableSelecter.identifier)();
     this.objectChange.versionOf(this.tabletopService.currentTable.identifier)();
     const table = this.currentTable;
-    const terrain = this.terrain();
+    const slide = this.gridSlide();
     const bbox = this.pedestalHexParams()?.bbox;
     return [
       this.width(),
@@ -176,22 +212,16 @@ export class TerrainComponent {
       table.gridColor,
       table.gridFontColor,
       this.terrainRotate(),
-      terrain.location.x,
-      terrain.location.y,
+      slide.offsetLeft,
+      slide.offsetTop,
+      slide.grow,
       bbox ? `${bbox.minX}:${bbox.minY}:${bbox.maxX}:${bbox.maxY}` : '',
       this.hexSlopeSteps().floors.length,
     ].join('|');
   });
 
   private rasterizeGrid(): void {
-    this.setGameTableGrid(
-      this.width(),
-      this.depth(),
-      this.gridSize,
-      this.currentTable.gridType,
-      this.currentTable.gridColor,
-      this.currentTable.gridFontColor
-    );
+    this.setGameTableGrid(this.currentTable.gridType, this.currentTable.gridColor, this.currentTable.gridFontColor);
   }
 
   private readonly inputRef = setupInputHandler({
@@ -538,12 +568,13 @@ export class TerrainComponent {
   }
 
   readonly terrainGridCanvasStyle = computed<Record<string, string>>(() => {
-    const viewport = this.getGridViewport(this.getFloorBounds());
+    const slide = this.gridSlide();
+    const viewport = slide.viewport;
     return {
-      width: `${viewport.canvasWidth}px`,
-      height: `${viewport.canvasHeight}px`,
-      left: `${viewport.canvasLeft}px`,
-      top: `${viewport.canvasTop}px`,
+      width: `${viewport.canvasWidth + slide.grow}px`,
+      height: `${viewport.canvasHeight + slide.grow}px`,
+      left: `${viewport.canvasLeft + slide.slideX}px`,
+      top: `${viewport.canvasTop + slide.slideY}px`,
       'backface-visibility': this.isSlope() ? 'visible' : 'hidden',
       transform: `rotateZ(${-this.terrainRotate()}deg) ${translateZCss(Z_OFFSET_TABLETOP_OBJECT_PX)}`,
     };
@@ -957,28 +988,25 @@ export class TerrainComponent {
   }
 
   private setGameTableGrid(
-    width: number,
-    depth: number,
-    gridSize: number = 50,
     gridType: GridType = GridType.SQUARE,
     gridColor: string = '#000000e6',
     gridFontColor: string = gridColor
   ) {
     if (this.gridCanvases().length < 1) return;
-    const viewport = this.getGridViewport(this.getFloorBounds(width, depth));
+    const slide = this.gridSlide();
 
     perfCounters.bump(PERF_TERRAIN_GRID_RASTER);
     for (const gridCanvas of this.gridCanvases()) {
       const render = new GridLineRender(gridCanvas.nativeElement);
       render.renderViewport(
-        viewport.canvasWidth,
-        viewport.canvasHeight,
-        gridSize,
+        slide.viewport.canvasWidth + slide.grow,
+        slide.viewport.canvasHeight + slide.grow,
+        this.gridSize,
         gridType,
         gridColor,
         gridFontColor,
-        viewport.offsetTop,
-        viewport.offsetLeft
+        slide.offsetTop,
+        slide.offsetLeft
       );
     }
     let opacity: number = 0.0;

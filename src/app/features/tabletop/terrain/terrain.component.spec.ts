@@ -135,6 +135,69 @@ describe('TerrainComponent', () => {
       terrain.destroy();
     });
 
+    it('slides the cut grid across a move within one cell rather than cutting it again', async () => {
+      const terrain = Terrain.create('floor', 2, 2, 0, '', '');
+      terrain.isGrid = true;
+      terrain.location.x = 100;
+      terrain.location.y = 100;
+      fixture.componentRef.setInput('terrain', terrain);
+      await fixture.whenStable();
+      const before = component.terrainGridCanvasStyle();
+      perfCounters.enabled = true;
+      perfCounters.clear();
+
+      terrain.location.x = 107;
+      objectChanged$.emit({ aliasName: 'terrain', identifier: terrain.identifier, isSendFromSelf: true });
+      await fixture.whenStable();
+
+      expect(perfCounters.drain().get(PERF_TERRAIN_GRID_RASTER)).toBeUndefined();
+      const after = component.terrainGridCanvasStyle();
+      expect(after.width).toBe(before.width);
+      expect(Number.parseFloat(after.left) - Number.parseFloat(before.left)).toBe(-7);
+
+      terrain.destroy();
+    });
+
+    it('cuts it again once the terrain crosses into the next cell', async () => {
+      const terrain = Terrain.create('floor', 2, 2, 0, '', '');
+      terrain.isGrid = true;
+      terrain.location.x = 100;
+      terrain.location.y = 100;
+      fixture.componentRef.setInput('terrain', terrain);
+      await fixture.whenStable();
+      perfCounters.enabled = true;
+      perfCounters.clear();
+
+      terrain.location.x = 100 + component.gridSize;
+      objectChanged$.emit({ aliasName: 'terrain', identifier: terrain.identifier, isSendFromSelf: true });
+      await fixture.whenStable();
+
+      expect(perfCounters.drain().get(PERF_TERRAIN_GRID_RASTER)).toBe(1);
+
+      terrain.destroy();
+    });
+
+    it('cuts it afresh for a terrain standing off the pixel grid', async () => {
+      const terrain = Terrain.create('floor', 2, 2, 0, '', '');
+      terrain.isGrid = true;
+      terrain.location.x = 100.5;
+      terrain.location.y = 100;
+      fixture.componentRef.setInput('terrain', terrain);
+      await fixture.whenStable();
+      const style = component.terrainGridCanvasStyle();
+      perfCounters.enabled = true;
+      perfCounters.clear();
+
+      terrain.location.x = 107.5;
+      objectChanged$.emit({ aliasName: 'terrain', identifier: terrain.identifier, isSendFromSelf: true });
+      await fixture.whenStable();
+
+      expect(perfCounters.drain().get(PERF_TERRAIN_GRID_RASTER)).toBe(1);
+      expect(component.terrainGridCanvasStyle()).toEqual(style);
+
+      terrain.destroy();
+    });
+
     it('cuts it again when the table changes the colour of its lines', async () => {
       const terrain = Terrain.create('floor', 1, 1, 0, '', '');
       terrain.isGrid = true;
