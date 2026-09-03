@@ -212,6 +212,16 @@ export class ChatMessage extends ObjectNode implements ChatMessageContext {
   get isSecret(): boolean {
     return this.tags.includes('secret');
   }
+
+  /**
+   * Whether the line is still under wraps for whoever is reading it.
+   *
+   * A secret is kept from the room but never from the one who wrote it, who has to be able
+   * to read their own roll before deciding to open it.
+   */
+  get isSecretToMe(): boolean {
+    return this.isSecret && !this.isSendFromSelf;
+  }
   get chatTabList(): ChatTabList {
     return ObjectStore.instance.get<ChatTabList>('ChatTabList')!;
   }

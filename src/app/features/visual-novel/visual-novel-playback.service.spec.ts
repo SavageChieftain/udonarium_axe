@@ -1,5 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
+import { IPeerContext } from '@axe/core/network/peer-context';
+import { setPeerContextProvider } from '@axe/core/network/peer-context-source';
 import { ImageStorage } from '@axe/core/storage/image-storage';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { GameCharacter } from '@axe/domain/character/game-character';
@@ -49,6 +51,59 @@ describe('VisualNovelPlaybackService', () => {
 
     expect(playback.logMessages().map((message) => message.text)).toEqual(['なんだって！？', 'ちょっと待って']);
     expect(playback.messages().map((message) => message.text)).toEqual(['なんだって！？']);
+  });
+
+  describe('a line kept secret', () => {
+    function beMe(userId: string): void {
+      const me = { userId } as IPeerContext;
+      setPeerContextProvider({ peerContext: me, peerContexts: [me], peerIds: [userId], peerId: userId });
+    }
+
+    function saySecret(text: string, from: string): void {
+      tab.addMessage({
+        from,
+        name: text,
+        text,
+        timestamp: timestamp++,
+        sendFrom: character.identifier,
+        tag: 'system-message secret',
+      });
+    }
+
+    it('leaves a secret roll out of the log for anybody but the one who made it', () => {
+      beMe('reader');
+      saySecret('隠しダイス → 6', 'roller');
+      TestBed.inject(ObjectChangeService).notifyChanged(tab.identifier);
+
+      expect(playback.logMessages()).toHaveLength(0);
+    });
+
+    it('shows it to the one who made it', () => {
+      beMe('roller');
+      saySecret('隠しダイス → 6', 'roller');
+      TestBed.inject(ObjectChangeService).notifyChanged(tab.identifier);
+
+      expect(playback.logMessages().map((message) => message.text)).toEqual(['隠しダイス → 6']);
+    });
+
+    it('shows it to the game master, who may read what is kept back', () => {
+      beMe('reader');
+      PeerCursor.myCursor.role = PeerRole.GameMaster;
+      saySecret('隠しダイス → 6', 'roller');
+      TestBed.inject(ObjectChangeService).notifyChanged(tab.identifier);
+
+      expect(playback.logMessages()).toHaveLength(1);
+    });
+
+    it('shows it once it has been opened to the table', () => {
+      beMe('reader');
+      saySecret('隠しダイス → 6', 'roller');
+      const message = tab.chatMessages[tab.chatMessages.length - 1];
+      message.tag = 'system-message';
+      TestBed.inject(ObjectChangeService).notifyChanged(tab.identifier);
+
+      expect(playback.logMessages()).toHaveLength(1);
+    });
   });
 
   it('reads what the game master says as themselves', () => {

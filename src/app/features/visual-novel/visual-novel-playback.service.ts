@@ -2,6 +2,7 @@ import { computed, DestroyRef, effect, inject, Injectable, signal, untracked } f
 import { ChatMessageService } from '@axe/application/chat/chat-message.service';
 import { LanguageService } from '@axe/application/i18n/language.service';
 import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
+import { RolePermissionService } from '@axe/application/permission/role-permission.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { GameCharacter } from '@axe/domain/character/game-character';
@@ -48,6 +49,7 @@ export class VisualNovelPlaybackService {
   private readonly settings = inject(VisualNovelSettingsService);
   private readonly translate = inject(TRANSLATE_FN);
   private readonly language = inject(LanguageService);
+  private readonly rolePermission = inject(RolePermissionService);
 
   private readonly renderVersion = signal(0);
   private readonly cursor = signal(-1);
@@ -75,12 +77,19 @@ export class VisualNovelPlaybackService {
    * Everything said on this tab that novel mode will own up to, whether or not it reads it out.
    *
    * The backlog shows this. The script below is a part of it.
+   *
+   * A secret roll is left out for everybody but the one who made it: novel mode reads a line
+   * whole and in the middle of the screen, which is no place for what the chat keeps back.
    */
   readonly logMessages = computed(() => {
     this.renderVersion();
+    this.objectChange.trackMyCursor();
     const tab = this.chatTab();
     if (!tab) return [] as ChatMessage[];
-    return tab.chatMessages.filter((message) => message.isDisplayable && !message.isOutOfStory);
+    const seesHidden = this.rolePermission.canSeeHidden;
+    return tab.chatMessages.filter(
+      (message) => message.isDisplayable && !message.isOutOfStory && (seesHidden || !message.isSecretToMe)
+    );
   });
 
   /** The lines novel mode reads out, one after another. */
