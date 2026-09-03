@@ -41,6 +41,7 @@ const names = (a: { name: string }[]) => a.map((x) => x.name);
 const cb = (ownerCandidates: { identifier: string; name: string }[] = []) => ({
   onDiceRoll: vi.fn(),
   onShowDetail: vi.fn(),
+  onRevealed: vi.fn(),
   ownerCandidates,
 });
 
@@ -106,6 +107,29 @@ describe('buildDiceSymbolContextMenu()', () => {
     const menu = buildDiceSymbolContextMenu(dice as unknown as DiceSymbol, 50, cb(), t);
     menu.find((m) => m.name === '削除する')!.action!();
     expect(dice.destroy).toHaveBeenCalled();
+  });
+
+  describe('opening a die nobody could read', () => {
+    it('gives out the face it came to rest on', () => {
+      const dice = makeDice({ isMine: true, hasOwner: true, face: '5' });
+      const callbacks = cb();
+      const menu = buildDiceSymbolContextMenu(dice as unknown as DiceSymbol, 50, callbacks, t);
+
+      menu.find((action) => action.name === 'ダイスを公開')?.action?.();
+
+      expect(dice.owner).toBe('');
+      expect(callbacks.onRevealed).toHaveBeenCalledWith('5');
+    });
+
+    it('says nothing for one that was already there to be read', () => {
+      const dice = makeDice({ isMine: true, hasOwner: false, face: '5' });
+      const callbacks = cb();
+      const menu = buildDiceSymbolContextMenu(dice as unknown as DiceSymbol, 50, callbacks, t);
+
+      menu.find((action) => action.name === 'ダイスを公開')?.action?.();
+
+      expect(callbacks.onRevealed).not.toHaveBeenCalled();
+    });
   });
 
   describe('whose die it is', () => {

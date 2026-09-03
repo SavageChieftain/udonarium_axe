@@ -9,6 +9,7 @@ import {
   input,
   signal,
 } from '@angular/core';
+import { ChatMessageService } from '@axe/application/chat/chat-message.service';
 import { CharacterDiceService } from '@axe/application/dice/character-dice.service';
 import { DiceRollService } from '@axe/application/dice/dice-roll.service';
 import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
@@ -71,6 +72,7 @@ export class DiceSymbolComponent {
   private readonly pieceContextMenu = inject(PieceContextMenuService);
   private readonly diceRollService = inject(DiceRollService);
   private readonly characterDice = inject(CharacterDiceService);
+  private readonly chat = inject(ChatMessageService);
   private readonly objectStore = inject(ObjectStore);
   private readonly elementRef = inject<ElementRef<HTMLElement>>(ElementRef);
   private readonly imageService = inject(ImageService);
@@ -318,6 +320,21 @@ export class DiceSymbolComponent {
     );
   }
 
+  /**
+   * Says what a die that was somebody's alone came to rest on, now that it is everybody's.
+   *
+   * A hidden die is thrown without a callout, so the table only ever learns the face when
+   * it is opened; without this the number is on the table and nowhere in the log.
+   */
+  private announceRevealedFace(face: string): void {
+    const name = this.diceSymbol().name.trim();
+    const message =
+      name.length > 0
+        ? this.translateFn('feature.dice.log.reveal', { name, face })
+        : this.translateFn('feature.dice.log.revealNoName', { face });
+    this.chat.sendSystemMessageToMainTab(message);
+  }
+
   private clearRollTimers(): void {
     for (const timer of this.rollTimers.splice(0)) clearTimeout(timer);
   }
@@ -356,6 +373,7 @@ export class DiceSymbolComponent {
           name: character.name,
         })),
         onStoreToOwner: (ownerIdentifier) => this.storeToOwner(ownerIdentifier),
+        onRevealed: (face) => this.announceRevealedFace(face),
       },
       this.translateFn
     );

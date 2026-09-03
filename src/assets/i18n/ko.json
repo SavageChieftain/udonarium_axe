@@ -828,6 +828,10 @@
         "rolled": "{{who}}이(가) {{name}}을(를) 굴렸습니다 → {{face}}",
         "rolledMany": "{{who}}이(가) 주사위 {{count}}개를 굴렸습니다 → {{results}}",
         "rolledManyTotal": "{{who}}이(가) 주사위 {{count}}개를 굴렸습니다 → {{results}}(합계 {{total}})"
+      },
+      "log": {
+        "reveal": "{{name}}의 눈은 {{face}}입니다.",
+        "revealNoName": "주사위 눈은 {{face}}입니다."
       }
     },
     "effect": {

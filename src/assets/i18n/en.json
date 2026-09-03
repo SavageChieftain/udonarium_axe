@@ -828,6 +828,10 @@
         "rolled": "{{who}} rolled {{name}} → {{face}}",
         "rolledMany": "{{who}} rolled {{count}} dice → {{results}}",
         "rolledManyTotal": "{{who}} rolled {{count}} dice → {{results}} (total {{total}})"
+      },
+      "log": {
+        "reveal": "{{name}}'s die reads {{face}}.",
+        "revealNoName": "The die reads {{face}}."
       }
     },
     "effect": {

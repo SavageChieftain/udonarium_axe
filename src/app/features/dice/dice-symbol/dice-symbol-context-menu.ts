@@ -16,6 +16,8 @@ export function buildDiceSymbolContextMenu(
   callbacks: {
     onDiceRoll: () => void;
     onShowDetail: () => void;
+    /** Called with the face a die that nobody could see has just been opened on. */
+    onRevealed?: (face: string) => void;
     /** The pieces the die can be given to. Left out where there are none to offer. */
     ownerCandidates?: DiceOwnerCandidate[];
     /** Takes the die off the table and onto the sheet of the piece it belongs to. */
@@ -38,8 +40,11 @@ export function buildDiceSymbolContextMenu(
     actions.push({
       name: t('feature.dice.contextMenu.showDice'),
       action: () => {
+        // Only a die that was somebody's to read has a face to call out on being opened.
+        const wasHidden = diceSymbol.hasOwner;
         diceSymbol.owner = '';
         SoundEffect.play(PresetSound.unlock);
+        if (wasHidden) callbacks.onRevealed?.(diceSymbol.face);
       },
     });
   }

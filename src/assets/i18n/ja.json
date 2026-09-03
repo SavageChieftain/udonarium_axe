@@ -828,6 +828,10 @@
         "rolled": "{{who}} が {{name}} を振りました → {{face}}",
         "rolledMany": "{{who}} が ダイス{{count}}個を振りました → {{results}}",
         "rolledManyTotal": "{{who}} が ダイス{{count}}個を振りました → {{results}}（合計 {{total}}）"
+      },
+      "log": {
+        "reveal": "{{name}} の出目は {{face}} です。",
+        "revealNoName": "ダイスの出目は {{face}} です。"
       }
     },
     "effect": {
