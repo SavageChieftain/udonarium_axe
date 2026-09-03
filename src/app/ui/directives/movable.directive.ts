@@ -55,11 +55,11 @@ export interface MovableOption {
 }
 
 @Directive({ selector: '[appMovable]' })
-export class MovableDirective {
+export class MovableDirective implements MovableInteractionContext {
   private readonly elementRef = inject(ElementRef);
   private readonly batchService = inject(BatchService);
-  private readonly pointerDeviceService = inject(PointerDeviceService);
-  private readonly coordinateService = inject(CoordinateService);
+  readonly pointerDeviceService = inject(PointerDeviceService);
+  readonly coordinateService = inject(CoordinateService);
   private readonly tableSelecter = inject(TableSelecter);
   private readonly selectionSignalService = inject(SelectionSignalService);
   private readonly multiMovableService = inject(MultiMovableService);
@@ -90,7 +90,7 @@ export class MovableDirective {
   readonly ondragend = output<PointerEvent>({ alias: 'movable.ondragend' });
   readonly onend = output<PointerEvent>({ alias: 'movable.onend' });
 
-  private get nativeElement(): HTMLElement {
+  get nativeElement(): HTMLElement {
     return this.elementRef.nativeElement;
   }
 
@@ -363,7 +363,7 @@ export class MovableDirective {
     if (this.collidableElements.length < 1) this.findCollidableElements();
 
     if (this._multiAdapter) this.multiMovableService.beginDrag(this._multiAdapter);
-    handleInputStart(this as unknown as MovableInteractionContext, e);
+    handleInputStart(this, e);
   }
 
   onInputMove(e: MouseEvent | TouchEvent) {
@@ -389,7 +389,7 @@ export class MovableDirective {
       this.updateDragPreview(pointerSurface);
       return;
     }
-    perfTimed('collide', () => handleInputMove(this as unknown as MovableInteractionContext, e));
+    perfTimed('collide', () => handleInputMove(this, e));
     perfTimed('dragPreview', () => this.updateDragPreview(pointerSurface));
   }
 
@@ -482,7 +482,7 @@ export class MovableDirective {
       this.maybeSwitchSurfaceOnDrop();
     }
     this.clearDragPreview();
-    handleInputEnd(this as unknown as MovableInteractionContext, e);
+    handleInputEnd(this, e);
     if (this._multiAdapter) this.multiMovableService.endDrag(this._multiAdapter);
   }
 
@@ -588,7 +588,7 @@ export class MovableDirective {
   }
 
   onContextMenu(e: MouseEvent | TouchEvent) {
-    handleContextMenu(this as unknown as MovableInteractionContext, e);
+    handleContextMenu(this, e);
   }
 
   private callSelectedEvent() {
