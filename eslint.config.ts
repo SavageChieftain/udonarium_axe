@@ -42,6 +42,58 @@ const FORBID_FOR_UI = {
   message: LAYER_MESSAGE('features'),
 };
 
+/* feature 同士の import は今ある辺だけを許す。新しい辺は意図してここに足す（増やさない方向）。 */
+const FEATURE_DEPENDENCIES: Record<string, readonly string[]> = {
+  alarm: [],
+  buff: [],
+  card: [],
+  character: ['card', 'data-element', 'disclosure', 'tabletop'],
+  chat: ['data-element', 'hotbar', 'visual-novel'],
+  coin: [],
+  controller: [],
+  'data-element': ['tabletop'],
+  dice: [],
+  disclosure: [],
+  effect: ['hotbar'],
+  file: [],
+  'gm-object-list': ['disclosure', 'gm-tools', 'tabletop'],
+  'gm-tools': ['card', 'chat'],
+  hotbar: ['pl-tools', 'visual-novel'],
+  inventory: ['gm-tools'],
+  'language-selector': [],
+  lobby: [],
+  'map-editor': ['tabletop'],
+  media: [],
+  'pl-tools': ['card', 'chat'],
+  replay: ['room-archive'],
+  'room-archive': [],
+  'status-ailment': [],
+  'streaming-overlay': [],
+  tabletop: ['card', 'character', 'coin', 'dice', 'disclosure', 'effect', 'lobby', 'map-editor', 'replay'],
+  'visual-novel': ['character', 'chat'],
+  vote: [],
+  widgets: [],
+};
+
+const FEATURE_RULES = Object.entries(FEATURE_DEPENDENCIES).map(([feature, allowed]) => ({
+  files: [`src/app/features/${feature}/**/*.ts`],
+  ignores: [`src/app/features/${feature}/**/*.spec.ts`],
+  rules: {
+    'no-restricted-imports': [
+      'error',
+      {
+        patterns: [
+          NO_RELATIVE_IMPORT,
+          {
+            regex: `^@axe/features/(?!(?:${[feature, 'panels', ...allowed].join('|')})/)`,
+            message: `features/${feature} は他の feature を直接 import しない（panels か FEATURE_DEPENDENCIES に挙げた feature のみ）`,
+          },
+        ],
+      },
+    ],
+  },
+}));
+
 export default defineConfig([
   {
     ignores: ['projects/**/*', 'website/**'],
@@ -110,6 +162,7 @@ export default defineConfig([
       'no-restricted-imports': ['error', { patterns: [NO_RELATIVE_IMPORT, FORBID_FOR_UI] }],
     },
   },
+  ...FEATURE_RULES,
   /* composition root: すべての層に依存可能（features を含む）。
    *  明示することで「ここはレイヤー制約から意図的に外している」と宣言する。 */
   {

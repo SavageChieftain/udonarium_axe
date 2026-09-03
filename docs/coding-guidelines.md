@@ -90,6 +90,7 @@
 - **相対パス import 禁止**: `no-restricted-imports` で `^\.` を拒否。
   必ずパスエイリアス (`@axe/*` / `@env/*`) を使う
 - **層境界の自動検査**: `no-restricted-imports` で各レイヤーの逆流 import を error 化
+- **feature 間の import は台帳制**: `eslint.config.ts` の `FEATURE_DEPENDENCIES` に載っている辺と `panels` だけ許す。新しい辺を足すときは台帳に書く（減らす方向で）
   - 詳細: [architecture.md#@axe/core/\*](architecture.md#axecore) 以降の各層 / [../eslint.config.ts](../eslint.config.ts)
 - **Tailwind class 整列**: `eslint-plugin-better-tailwindcss` で canonical 変換 / 並び替え / 改行整形
 
