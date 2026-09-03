@@ -1,4 +1,9 @@
-import { createZipBlob, createZipBlobOnMainThread, readZipEntries } from '@axe/core/storage/zip-archive';
+import {
+  createZipBlob,
+  createZipBlobOnMainThread,
+  forgetZipWorkerTrouble,
+  readZipEntries,
+} from '@axe/core/storage/zip-archive';
 import { strToU8, unzipSync } from 'fflate';
 
 async function unzipBlob(blob: Blob): Promise<Record<string, Uint8Array>> {
@@ -61,11 +66,13 @@ describe('readZipEntries()', () => {
 describe('the shared worker', () => {
   afterEach(() => {
     vi.unstubAllGlobals();
-    vi.resetModules();
+    forgetZipWorkerTrouble();
   });
 
   it('lets go of every waiting request when the work cannot be handed over', async () => {
-    vi.resetModules();
+    // Every spec file in a run shares this module, so another may already have found the
+    // worker wanting and closed the path this test is about.
+    forgetZipWorkerTrouble();
     let posts = 0;
     class FakeWorker {
       addEventListener(): void {}
@@ -76,13 +83,12 @@ describe('the shared worker', () => {
       }
     }
     vi.stubGlobal('Worker', FakeWorker);
-    const zipArchive = await import('@axe/core/storage/zip-archive');
     const files = [new File([strToU8('<room />')], 'data.xml', { type: 'text/plain' })];
 
     // The first went to the worker and is waiting; the second cannot be handed over, which
     // stops the worker the first was waiting on.
-    const first = zipArchive.createZipBlob(files);
-    const second = zipArchive.createZipBlob(files);
+    const first = createZipBlob(files);
+    const second = createZipBlob(files);
 
     const [a, b] = await Promise.all([first, second]);
 

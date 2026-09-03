@@ -76,6 +76,18 @@ function settleAll(response: ZipWorkerResponse | null): void {
   for (const resolve of waiting) resolve(response);
 }
 
+/**
+ * Forgets that the worker was ever found wanting.
+ *
+ * Once a worker cannot be started or handed work, the module stops trying for the rest of
+ * the run — which is right in a browser and awkward in a test run, where every spec file
+ * shares that memory. A test that wants the worker path asks for it back first.
+ */
+export function forgetZipWorkerTrouble(): void {
+  isWorkerBroken = false;
+  disposeWorker();
+}
+
 function ensureWorker(): Worker | null {
   if (isWorkerBroken || typeof Worker === 'undefined') return null;
   if (worker) return worker;
