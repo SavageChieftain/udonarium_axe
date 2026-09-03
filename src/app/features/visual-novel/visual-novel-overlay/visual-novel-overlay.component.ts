@@ -25,6 +25,7 @@ import { AudioStorage } from '@axe/core/storage/audio-storage';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { portraitNameOf } from '@axe/domain/character/character-portrait';
 import { GameCharacter } from '@axe/domain/character/game-character';
+import { chatColorOf } from '@axe/domain/chat/chat-color';
 import { ChatMessage } from '@axe/domain/chat/chat-message';
 import { canRoleSpeakTab } from '@axe/domain/chat/chat-tab-permission';
 import { DataElement } from '@axe/domain/data/data-element';
@@ -1121,7 +1122,6 @@ export class VisualNovelOverlayComponent {
 
   private colorOf(sendFrom: string): string {
     const object = this.objectStore.get(sendFrom);
-    if (object instanceof GameCharacter) return object.chatColorCode[0];
-    return PeerCursor.myCursor?.chatColorCode[0] ?? '#000000';
+    return chatColorOf(object instanceof GameCharacter ? object : PeerCursor.myCursor, 0);
   }
 }

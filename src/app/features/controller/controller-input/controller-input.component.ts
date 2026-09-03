@@ -21,6 +21,7 @@ import { ImageStorage } from '@axe/core/storage/image-storage';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { portraitNameOf } from '@axe/domain/character/character-portrait';
 import { GameCharacter } from '@axe/domain/character/game-character';
+import { chatColorOf, DEFAULT_CHAT_COLOR } from '@axe/domain/chat/chat-color';
 import { DataElement } from '@axe/domain/data/data-element';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { PortraitChoice, PortraitPickerComponent } from '@axe/ui/components/portrait-picker/portrait-picker.component';
@@ -156,11 +157,7 @@ export class ControllerInputComponent {
 
   characterChatColor(num: number) {
     const object = this.objectStore.get(this.sendFrom());
-    if (object instanceof GameCharacter) {
-      return object.chatColorCode[num];
-    } else {
-      return '#000000';
-    }
+    return object instanceof GameCharacter ? chatColorOf(object, num) : DEFAULT_CHAT_COLOR;
   }
 
   shoeColorSetting() {
