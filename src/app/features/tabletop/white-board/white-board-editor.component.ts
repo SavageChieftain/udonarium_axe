@@ -71,6 +71,16 @@ import {
   Ink,
 } from '@axe/features/tabletop/white-board/white-board-painter';
 import {
+  BOARD_ZOOMS,
+  clampZoom,
+  fitZoom,
+  RULER_WIDTH,
+  RulerTick,
+  rulerTicks,
+  scrollKeepingPoint,
+  ZOOM_STEP,
+} from '@axe/features/tabletop/white-board/white-board-rulers';
+import {
   addJoint,
   AlignEdge,
   alignMarks,
@@ -186,32 +196,16 @@ const TOOL_ICONS: Record<BoardTool, string> = {
 
 const TOOL_SVG: Partial<Record<BoardTool, string>> = { select: SELECT_SVG, eraser: ERASER_SVG };
 
-/** The sizes offered in the list. Anything between them is reachable by the wheel. */
-const BOARD_ZOOMS: readonly number[] = [0.25, 0.5, 0.75, 1, 1.5, 2, 3, 4];
-
-const MIN_ZOOM = 0.1;
-const MAX_ZOOM = 8;
-/** How much one notch of the wheel or one press of the buttons changes the size. */
-const ZOOM_STEP = 1.15;
-
 /** How near a corner counts as taking hold of it, in the sheet's own pixels at full size. */
 
 /** With shift held, the turn grip falls onto steps, so a picture can be set square again. */
 const TURN_SNAP = 15;
-
-const RULER_WIDTH = 16;
-const RULER_STEPS: readonly number[] = [50, 100, 200, 500, 1000];
-/** How much room a number wants on a ruler before the next one is written. */
-const RULER_ROOM = 44;
 
 /** How far a copy is set down from what it was copied off, so both can be seen. */
 const DUPLICATE_OFFSET = 16;
 
 /** How far one press of the turn buttons takes a mark round. */
 const TURN_STEP = 15;
-
-/** The room left round the sheet when it is fitted to the panel. */
-const STAGE_MARGIN = 24;
 
 const MIN_SIDE = 1;
 const MAX_SIDE = 40;
@@ -326,11 +320,7 @@ export class WhiteBoardEditorComponent {
   protected zoomToFit(): void {
     const stage = this.stageRef()?.nativeElement;
     if (!stage) return;
-    const room = Math.min(
-      (stage.clientWidth - STAGE_MARGIN) / this.sceneWidth,
-      (stage.clientHeight - STAGE_MARGIN) / this.sceneHeight
-    );
-    this.zoomAbout(room, null);
+    this.zoomAbout(fitZoom(stage, this.sceneWidth, this.sceneHeight), null);
   }
 
   /**
@@ -342,23 +332,19 @@ export class WhiteBoardEditorComponent {
   private zoomAbout(next: number, at: { x: number; y: number } | null): void {
     const stage = this.stageRef()?.nativeElement;
     const was = this.zoom();
-    const now = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, next));
+    const now = clampZoom(next);
     if (Math.abs(now - was) < 0.0001) return;
 
     if (!stage) {
       this.zoom.set(now);
       return;
     }
-    const box = stage.getBoundingClientRect();
-    const holdX = at ? at.x - box.left : stage.clientWidth / 2;
-    const holdY = at ? at.y - box.top : stage.clientHeight / 2;
-    const sheetX = (stage.scrollLeft + holdX) / was;
-    const sheetY = (stage.scrollTop + holdY) / was;
+    const scroll = scrollKeepingPoint(stage, stage.getBoundingClientRect(), at, was, now);
 
     this.zoom.set(now);
     queueMicrotask(() => {
-      stage.scrollLeft = sheetX * now - holdX;
-      stage.scrollTop = sheetY * now - holdY;
+      stage.scrollLeft = scroll.scrollLeft;
+      stage.scrollTop = scroll.scrollTop;
     });
   }
 
@@ -386,13 +372,8 @@ export class WhiteBoardEditorComponent {
   readonly rulerWidth = RULER_WIDTH;
 
   /** The numbers written along a ruler, spaced so they stay apart at whatever size the sheet is. */
-  protected ticks(axis: 'x' | 'y'): { at: number; px: number }[] {
-    const span = axis === 'x' ? this.sceneWidth : this.sceneHeight;
-    const zoom = this.zoom();
-    const step = RULER_STEPS.find((size) => size * zoom >= RULER_ROOM) ?? RULER_STEPS[RULER_STEPS.length - 1];
-    const marks: { at: number; px: number }[] = [];
-    for (let at = 0; at <= span; at += step) marks.push({ at, px: at * zoom });
-    return marks;
+  protected ticks(axis: 'x' | 'y'): RulerTick[] {
+    return rulerTicks(axis === 'x' ? this.sceneWidth : this.sceneHeight, this.zoom());
   }
   /** The lines shown this instant, which last only as long as the drag that raised them. */
   readonly showing = signal<SnapGuide[]>([]);
@@ -815,11 +796,7 @@ export class WhiteBoardEditorComponent {
     const stage = this.stageRef()?.nativeElement;
     const box = boxAround(this.scene, this.held());
     if (!stage || !box) return;
-    const room = Math.min(
-      (stage.clientWidth - STAGE_MARGIN) / Math.max(1, box.w),
-      (stage.clientHeight - STAGE_MARGIN) / Math.max(1, box.h)
-    );
-    this.zoomTo(room);
+    this.zoomTo(fitZoom(stage, Math.max(1, box.w), Math.max(1, box.h)));
     stage.scrollLeft = (box.x + box.w / 2) * this.zoom() - stage.clientWidth / 2;
     stage.scrollTop = (box.y + box.h / 2) * this.zoom() - stage.clientHeight / 2;
   }
