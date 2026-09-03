@@ -65,7 +65,6 @@ import {
   buildInventoryMultiMoveContextMenu,
   buildInventoryObjectContextMenu,
 } from '@axe/features/inventory/game-object-inventory/game-object-inventory-context-menu';
-import { folderPathFromElement } from '@axe/features/inventory/game-object-inventory/inventory-folder-drag';
 import {
   buildFolderTree,
   collectFolderPaths,
@@ -79,6 +78,7 @@ import {
   type InventoryRow,
   inventorySearchText,
 } from '@axe/features/inventory/game-object-inventory/inventory-list';
+import { InventoryObjectDrag } from '@axe/features/inventory/game-object-inventory/inventory-object-drag';
 import { InventoryFilterService } from '@axe/features/inventory/inventory-filter.service';
 import {
   INVENTORY_FILTER_PANEL,
@@ -146,15 +146,26 @@ export class GameObjectInventoryComponent {
   private readonly t = inject(TRANSLATE_FN);
   private readonly confirm = inject(ConfirmService);
 
-  private dragPending: {
-    character: GameCharacter;
-    startX: number;
-    startY: number;
-    dragging: boolean;
-    withNpcBar: boolean;
-    withFolders: boolean;
-  } | null = null;
-  private suppressNextClick = false;
+  protected readonly drag = new InventoryObjectDrag({
+    canFile: () => this.foldersApply() && this.rolePermission.canEditTabletop,
+    canHandOver: () => PeerCursor.isMyselfGameMaster,
+    travellingWith: (character) => {
+      const selected = this.multiMoveTargets();
+      if (this.isMultiMove() && selected.has(character.identifier)) return new Set(selected);
+      return new Set([character.identifier]);
+    },
+    ownsPoint: (x, y) => {
+      const element = document.elementFromPoint(x, y);
+      return !!element && this.hostElement.nativeElement.contains(element);
+    },
+    handOverBegin: (character, x, y) => this.npcDrag.begin(character, x, y),
+    handOverMove: (x, y) => this.npcDrag.move(x, y),
+    handOverEnd: (accepted) => this.npcDrag.end(accepted),
+    fileInto: (identifiers, folderPath) => {
+      this.setFolderOf(identifiers, folderPath);
+      SoundEffect.play(PresetSound.piecePut);
+    },
+  });
 
   constructor() {
     effect(() => {
@@ -1158,99 +1169,8 @@ export class GameObjectInventoryComponent {
     if (gameObject instanceof GameCharacter && PeerCursor.isMyselfGameMaster) event.stopPropagation();
   }
 
-  readonly draggingIdentifiers = signal<ReadonlySet<string>>(new Set());
-  readonly dropFolderPath = signal<string | null>(null);
-
-  isDragging(gameObject: GameObject): boolean {
-    return this.draggingIdentifiers().has(gameObject.identifier);
-  }
-
-  isDropFolder(folderPath: string): boolean {
-    return this.dropFolderPath() === folderPath;
-  }
-
-  onObjectPointerDown(event: PointerEvent, gameObject: GameObject): void {
-    if (event.button !== 0 || !(gameObject instanceof GameCharacter)) return;
-    if ((event.target as HTMLElement).closest('button, input')) return;
-
-    const withNpcBar = PeerCursor.isMyselfGameMaster;
-    const withFolders = this.foldersApply() && this.rolePermission.canEditTabletop;
-    // Arming a drag costs the click that follows it, so do not arm one with nowhere to drop.
-    if (!withNpcBar && !withFolders) return;
-
-    this.dragPending = {
-      character: gameObject,
-      startX: event.clientX,
-      startY: event.clientY,
-      dragging: false,
-      withNpcBar,
-      withFolders,
-    };
-    (event.currentTarget as HTMLElement).setPointerCapture?.(event.pointerId);
-  }
-
-  onObjectPointerMove(event: PointerEvent): void {
-    const pending = this.dragPending;
-    if (!pending) return;
-    if (!pending.dragging) {
-      if (Math.hypot(event.clientX - pending.startX, event.clientY - pending.startY) < 6) return;
-      pending.dragging = true;
-      this.draggingIdentifiers.set(this.draggedIdentifiersFrom(pending.character));
-      if (pending.withNpcBar) this.npcDrag.begin(pending.character, event.clientX, event.clientY);
-    } else if (pending.withNpcBar) {
-      this.npcDrag.move(event.clientX, event.clientY);
-    }
-    this.dropFolderPath.set(pending.withFolders ? this.folderPathUnder(event.clientX, event.clientY) : null);
-  }
-
-  /** Two inventory panels can be open, so only a heading drawn by this one counts as a target. */
-  private folderPathUnder(x: number, y: number): string | null {
-    const element = document.elementFromPoint(x, y);
-    if (!element || !this.hostElement.nativeElement.contains(element)) return null;
-    return folderPathFromElement(element);
-  }
-
-  /** A row can be taken out from under the pointer, and then no release ever arrives. */
-  onObjectDragCancel(): void {
-    this.dragPending = null;
-    this.draggingIdentifiers.set(new Set());
-    this.dropFolderPath.set(null);
-  }
-
-  onObjectPointerUp(event: PointerEvent): void {
-    const pending = this.dragPending;
-    const folderPath = this.dropFolderPath();
-    const dragged = this.draggingIdentifiers();
-    this.dragPending = null;
-    this.draggingIdentifiers.set(new Set());
-    this.dropFolderPath.set(null);
-    if (!pending) return;
-    (event.currentTarget as HTMLElement).releasePointerCapture?.(event.pointerId);
-    if (!pending.dragging) return;
-    this.suppressNextClick = true;
-
-    if (folderPath !== null && pending.withFolders) {
-      if (pending.withNpcBar) this.npcDrag.end(false);
-      this.setFolderOf(dragged, folderPath);
-      SoundEffect.play(PresetSound.piecePut);
-      return;
-    }
-
-    const target = document.elementFromPoint(event.clientX, event.clientY);
-    if (pending.withNpcBar) this.npcDrag.end(!!target?.closest('.npc-bar-dropzone'));
-  }
-
-  private draggedIdentifiersFrom(character: GameCharacter): ReadonlySet<string> {
-    const selected = this.multiMoveTargets();
-    if (this.isMultiMove() && selected.has(character.identifier)) return new Set(selected);
-    return new Set([character.identifier]);
-  }
-
   selectGameObject(gameObject: GameObject) {
-    if (this.suppressNextClick) {
-      this.suppressNextClick = false;
-      return;
-    }
+    if (this.drag.takeSuppressedClick()) return;
     if (gameObject instanceof GameCharacter && !this.canView(gameObject)) return;
     if (this.isMultiMove()) {
       if (this.multiMoveTargets().has(gameObject.identifier)) {

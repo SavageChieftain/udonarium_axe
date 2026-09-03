@@ -13,11 +13,16 @@ import { DataSummarySetting } from '@axe/domain/data/data-summary-setting';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { PeerRole } from '@axe/domain/peer/peer-role';
 import { GameObjectInventoryComponent } from '@axe/features/inventory/game-object-inventory/game-object-inventory.component';
+import { InventoryObjectDrag } from '@axe/features/inventory/game-object-inventory/inventory-object-drag';
 import { expectPanelDragRecovery, PanelDragTestHostComponent } from '@axe/testing/panel-drag-recovery';
 import { installPanelLayer } from '@axe/testing/panel-layer';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
 
 describe('GameObjectInventoryComponent', () => {
+  function drag(panel: GameObjectInventoryComponent): InventoryObjectDrag {
+    return (panel as unknown as { drag: InventoryObjectDrag }).drag;
+  }
+
   let component: GameObjectInventoryComponent;
   let fixture: ComponentFixture<GameObjectInventoryComponent>;
 
@@ -404,11 +409,11 @@ describe('GameObjectInventoryComponent', () => {
       const goblin = putInShared('ゴブリン');
       component.selectTab.set('common');
       vi.spyOn(document, 'elementFromPoint').mockReturnValue(folderHeading('第1話'));
-      component.onObjectPointerDown(pointerAt(0, 0), goblin);
-      component.onObjectPointerMove(pointerAt(40, 40));
+      drag(component).down(pointerAt(0, 0), goblin);
+      drag(component).move(pointerAt(40, 40));
 
-      component.onObjectDragCancel();
-      component.onObjectPointerUp(pointerAt(40, 40));
+      drag(component).cancel();
+      drag(component).up(pointerAt(40, 40));
 
       expect(goblin.folderName).toBe('');
     });
@@ -509,9 +514,9 @@ describe('GameObjectInventoryComponent', () => {
 
     function dragOnto(character: GameCharacter, dropTarget: HTMLElement | null): void {
       vi.spyOn(document, 'elementFromPoint').mockReturnValue(dropTarget);
-      component.onObjectPointerDown(pointerAt(0, 0), character);
-      component.onObjectPointerMove(pointerAt(40, 40));
-      component.onObjectPointerUp(pointerAt(40, 40));
+      drag(component).down(pointerAt(0, 0), character);
+      drag(component).move(pointerAt(40, 40));
+      drag(component).up(pointerAt(40, 40));
     }
 
     it('moves a character dragged onto a folder into it', () => {
