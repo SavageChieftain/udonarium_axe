@@ -59,6 +59,18 @@ import { renderScene } from '@axe/features/map-editor/render/render-scene';
 import { detachFromBoard, standingOn } from '@axe/features/tabletop/white-board/white-board-contents';
 import { hangablePictureIds } from '@axe/features/tabletop/white-board/white-board-live-pictures';
 import {
+  drawBand,
+  drawFreehand,
+  drawGuides,
+  drawHold,
+  drawJoints,
+  drawLaying,
+  drawPending,
+  drawTrimWindow,
+  gripAt,
+  Ink,
+} from '@axe/features/tabletop/white-board/white-board-painter';
+import {
   addJoint,
   AlignEdge,
   alignMarks,
@@ -89,8 +101,6 @@ import {
   guidesFor,
   guideUnder,
   Handle,
-  handleAt,
-  HANDLES,
   handleUnder,
   highlighterStyle,
   imageLayer,
@@ -185,7 +195,6 @@ const MAX_ZOOM = 8;
 const ZOOM_STEP = 1.15;
 
 /** How near a corner counts as taking hold of it, in the sheet's own pixels at full size. */
-const HANDLE_SLACK = 9;
 
 /** With shift held, the turn grip falls onto steps, so a picture can be set square again. */
 const TURN_SNAP = 15;
@@ -1123,55 +1132,6 @@ export class WhiteBoardEditorComponent {
     return { x: to.x + snap.dx, y: to.y + snap.dy };
   }
 
-  private drawGuides(ctx: CanvasRenderingContext2D, guides: readonly SnapGuide[], colour: string): void {
-    if (guides.length < 1) return;
-    ctx.save();
-    ctx.strokeStyle = colour;
-    ctx.lineWidth = 1 / Math.max(0.25, this.zoom());
-    ctx.setLineDash([5, 4]);
-    for (const guide of guides) {
-      ctx.beginPath();
-      if (guide.axis === 'x') {
-        ctx.moveTo(guide.at, guide.from);
-        ctx.lineTo(guide.at, guide.to);
-      } else {
-        ctx.moveTo(guide.from, guide.at);
-        ctx.lineTo(guide.to, guide.at);
-      }
-      ctx.stroke();
-    }
-    ctx.restore();
-  }
-
-  private drawPending(ctx: CanvasRenderingContext2D, item: ShapeItem): void {
-    ctx.save();
-    ctx.strokeStyle = item.stroke?.color ?? this.color();
-    ctx.lineWidth = item.stroke?.width ?? this.strokeWidth();
-    ctx.lineCap = 'round';
-    ctx.lineJoin = 'round';
-    if (item.fill?.type === 'solid') ctx.fillStyle = item.fill.color;
-
-    if (item.shape === 'rect') {
-      const [x, y, w, h] = item.points;
-      if (item.fill?.type === 'solid') ctx.fillRect(x, y, w, h);
-      ctx.strokeRect(x, y, w, h);
-    } else if (item.shape === 'ellipse') {
-      const [x, y, w, h] = item.points;
-      ctx.beginPath();
-      ctx.ellipse(x + w / 2, y + h / 2, Math.abs(w) / 2, Math.abs(h) / 2, 0, 0, Math.PI * 2);
-      if (item.fill?.type === 'solid') ctx.fill();
-      ctx.stroke();
-    } else {
-      ctx.beginPath();
-      ctx.moveTo(item.points[0], item.points[1]);
-      for (let i = 2; i + 1 < item.points.length; i += 2) ctx.lineTo(item.points[i], item.points[i + 1]);
-      if (item.shape === 'polygon') ctx.closePath();
-      if (item.fill?.type === 'solid') ctx.fill();
-      ctx.stroke();
-    }
-    ctx.restore();
-  }
-
   private isPenning(): boolean {
     return this.tool() === 'pen' || this.tool() === 'marker';
   }
@@ -1254,7 +1214,7 @@ export class WhiteBoardEditorComponent {
 
   /** A handle has to stay big enough to hit however far the sheet is zoomed out. */
   private handleSlack(): number {
-    return HANDLE_SLACK / Math.max(0.25, this.zoom());
+    return gripAt(this.zoom());
   }
 
   private shift(at: BoardPoint): void {
@@ -1790,134 +1750,40 @@ export class WhiteBoardEditorComponent {
 
     const wants = overlaysWanted(bare, this.scene.gridVisible);
     await this.paintMarks(ctx, wants.grid, hangingLeftOut);
+    if (!wants.helpers) {
+      if (pending && pending.length > 3) drawFreehand(ctx, pending, this.ink());
+      return;
+    }
 
-    // A path shows its own corners rather than the box round it, since it is the corners that
-    // are moved and the box is only where they happen to reach.
+    const zoom = this.zoom();
     const bendable = this.selected();
     const jointed = bendable ? jointedShape(this.scene, bendable) : null;
     const box = jointed ? null : boxAround(this.scene, this.held());
     const window = this.trimming();
-    if (box && window && wants.helpers) {
-      // What is being trimmed away is greyed over, so what is left is what is being kept.
-      const cut = { x: box.x + window.x, y: box.y + window.y, w: window.w, h: window.h };
-      ctx.save();
-      ctx.fillStyle = 'rgba(0,0,0,0.45)';
-      ctx.beginPath();
-      ctx.rect(box.x, box.y, box.w, box.h);
-      ctx.rect(cut.x, cut.y, cut.w, cut.h);
-      ctx.fill('evenodd');
-      ctx.strokeStyle = '#ffffff';
-      ctx.lineWidth = 1.5 / Math.max(0.25, this.zoom());
-      ctx.strokeRect(cut.x, cut.y, cut.w, cut.h);
-      ctx.fillStyle = '#ffffff';
-      const grip = HANDLE_SLACK / Math.max(0.25, this.zoom());
-      for (const handle of HANDLES) {
-        if (handle === 'turn') continue;
-        const at = handleAt(cut, handle);
-        ctx.fillRect(at.x - grip / 2, at.y - grip / 2, grip, grip);
-      }
-      ctx.restore();
-    } else if (box && wants.helpers) {
-      // The hold is drawn on the sheet but is not part of it, so it is left off the picture.
-      ctx.save();
-      ctx.strokeStyle = '#2f7fd8';
-      ctx.lineWidth = 1.5 / Math.max(0.25, this.zoom());
-      ctx.setLineDash([4, 3]);
-      ctx.strokeRect(box.x, box.y, box.w, box.h);
-      ctx.setLineDash([]);
-      ctx.fillStyle = '#ffffff';
-      const grip = HANDLE_SLACK / Math.max(0.25, this.zoom());
-      const stalk = handleAt(box, 'turn');
-      ctx.beginPath();
-      ctx.moveTo(box.x + box.w / 2, box.y);
-      ctx.lineTo(stalk.x, stalk.y);
-      ctx.stroke();
-      for (const handle of HANDLES) {
-        const at = handleAt(box, handle);
-        if (handle === 'turn') {
-          ctx.beginPath();
-          ctx.arc(at.x, at.y, grip / 2, 0, Math.PI * 2);
-          ctx.fill();
-          ctx.stroke();
-          continue;
-        }
-        ctx.fillRect(at.x - grip / 2, at.y - grip / 2, grip, grip);
-        ctx.strokeRect(at.x - grip / 2, at.y - grip / 2, grip, grip);
-      }
-      ctx.restore();
-    }
+    if (box && window) drawTrimWindow(ctx, box, window, zoom);
+    else if (box) drawHold(ctx, box, zoom);
+    if (jointed) drawJoints(ctx, jointed.points, zoom);
 
-    if (jointed && wants.helpers) {
-      ctx.save();
-      ctx.strokeStyle = '#2f7fd8';
-      ctx.fillStyle = '#ffffff';
-      ctx.lineWidth = 1.5 / Math.max(0.25, this.zoom());
-      const grip = HANDLE_SLACK / Math.max(0.25, this.zoom());
-      for (let joint = 0; joint * 2 + 1 < jointed.points.length; joint += 1) {
-        const x = jointed.points[joint * 2];
-        const y = jointed.points[joint * 2 + 1];
-        ctx.beginPath();
-        ctx.arc(x, y, grip / 2, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.stroke();
-      }
-      ctx.restore();
-    }
-
-    if (wants.helpers) {
-      const standing = this.guiding() ? sheetGuides(this.scene) : [];
-      const laid: SnapGuide[] = this.guides.map((guide) => ({
-        axis: guide.axis,
-        at: guide.at,
-        from: 0,
-        to: guide.axis === 'x' ? this.sceneHeight : this.sceneWidth,
-      }));
-      this.drawGuides(ctx, [...standing, ...laid], 'rgba(70,130,220,0.35)');
-      this.drawGuides(ctx, this.showing(), '#e0457b');
-    }
+    const standing = this.guiding() ? sheetGuides(this.scene) : [];
+    const laid: SnapGuide[] = this.guides.map((guide) => ({
+      axis: guide.axis,
+      at: guide.at,
+      from: 0,
+      to: guide.axis === 'x' ? this.sceneHeight : this.sceneWidth,
+    }));
+    drawGuides(ctx, [...standing, ...laid], 'rgba(70,130,220,0.35)', zoom);
+    drawGuides(ctx, this.showing(), '#e0457b', zoom);
 
     const laying = this.laying();
-    if (laying.length > 0 && wants.helpers) {
-      ctx.save();
-      ctx.strokeStyle = this.color();
-      ctx.lineWidth = this.strokeWidth();
-      ctx.lineJoin = 'round';
-      ctx.lineCap = 'round';
-      ctx.beginPath();
-      ctx.moveTo(laying[0].x, laying[0].y);
-      for (const at of laying.slice(1)) ctx.lineTo(at.x, at.y);
-      if (this.hovering) ctx.lineTo(this.hovering.x, this.hovering.y);
-      ctx.stroke();
-      ctx.fillStyle = '#2f7fd8';
-      for (const at of laying) ctx.fillRect(at.x - 2, at.y - 2, 4, 4);
-      ctx.restore();
-    }
-
-    if (this.bandFrom && this.bandTo && wants.helpers) {
-      const area = boxBetweenPoints(this.bandFrom, this.bandTo);
-      ctx.save();
-      ctx.strokeStyle = '#2f7fd8';
-      ctx.fillStyle = 'rgba(47,127,216,0.12)';
-      ctx.lineWidth = 1 / Math.max(0.25, this.zoom());
-      ctx.setLineDash([3, 3]);
-      ctx.fillRect(area.x, area.y, area.w, area.h);
-      ctx.strokeRect(area.x, area.y, area.w, area.h);
-      ctx.restore();
-    }
-
+    if (laying.length > 0) drawLaying(ctx, laying, this.hovering, this.ink());
+    if (this.bandFrom && this.bandTo) drawBand(ctx, boxBetweenPoints(this.bandFrom, this.bandTo), zoom);
     const dragging = this.pendingMark();
-    if (dragging && wants.helpers) this.drawPending(ctx, dragging);
+    if (dragging) drawPending(ctx, dragging, this.ink());
+    if (pending && pending.length > 3) drawFreehand(ctx, pending, this.ink());
+  }
 
-    if (pending && pending.length > 3) {
-      ctx.strokeStyle = this.color();
-      ctx.lineWidth = this.strokeWidth();
-      ctx.lineCap = 'round';
-      ctx.lineJoin = 'round';
-      ctx.beginPath();
-      ctx.moveTo(pending[0], pending[1]);
-      for (let i = 2; i < pending.length; i += 2) ctx.lineTo(pending[i], pending[i + 1]);
-      ctx.stroke();
-    }
+  private ink(): Ink {
+    return { color: this.color(), width: this.strokeWidth() };
   }
 
   /** Kept once the drawing settles, since a single stroke is a hundred changes on its own. */
