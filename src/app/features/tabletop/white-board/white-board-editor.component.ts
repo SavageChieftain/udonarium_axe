@@ -143,6 +143,7 @@ import {
   wordsAt,
   wordsOf,
 } from '@axe/features/tabletop/white-board/white-board-scene';
+import { BoardKeyAction, boardKeyDown } from '@axe/features/tabletop/white-board/white-board-shortcuts';
 import { FileSelecterComponent } from '@axe/ui/components/file-selecter/file-selecter.component';
 import { TranslocoModule } from '@jsverse/transloco';
 
@@ -202,19 +203,6 @@ const TURN_STEP = 15;
 
 /** The room left round the sheet when it is fitted to the panel. */
 const STAGE_MARGIN = 24;
-
-const TOOL_KEYS: Record<string, BoardTool> = {
-  v: 'select',
-  p: 'pen',
-  m: 'marker',
-  e: 'eraser',
-  l: 'line',
-  a: 'arrow',
-  r: 'shape',
-  t: 'text',
-  n: 'note',
-  i: 'sticker',
-};
 
 const MIN_SIDE = 1;
 const MAX_SIDE = 40;
@@ -1449,91 +1437,69 @@ export class WhiteBoardEditorComponent {
     if (isTypingKey(event.target, event.isComposing)) return;
 
     this.keepingShape = event.shiftKey;
-    if (event.key === ' ') {
-      event.preventDefault();
-      this.panning.set(true);
-      return;
-    }
+    const action = boardKeyDown(event.key, {
+      chord: event.ctrlKey || event.metaKey,
+      shift: event.shiftKey,
+      laying: this.laying().length > 0,
+    });
+    if (!action) return;
+    event.preventDefault();
+    this.run(action);
+  }
 
-    if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'z') {
-      event.preventDefault();
-      if (event.shiftKey) this.redo();
-      else this.undo();
-      return;
-    }
-    if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'y') {
-      event.preventDefault();
-      this.redo();
-      return;
-    }
-    if (this.laying().length > 0 && (event.key === 'Enter' || event.key === 'Escape')) {
-      event.preventDefault();
-      this.finishPath(event.key === 'Enter');
-      return;
-    }
-    if (event.key === 'Delete' || event.key === 'Backspace') {
-      event.preventDefault();
-      this.removeSelected();
-      return;
-    }
-    if (event.ctrlKey || event.metaKey) {
-      const key = event.key.toLowerCase();
-      if (key === '0') {
-        event.preventDefault();
+  private run(action: BoardKeyAction): void {
+    switch (action.command) {
+      case 'panStart':
+        this.panning.set(true);
+        break;
+      case 'undo':
+        this.undo();
+        break;
+      case 'redo':
+        this.redo();
+        break;
+      case 'finishPath':
+        this.finishPath(true);
+        break;
+      case 'dropPath':
+        this.finishPath(false);
+        break;
+      case 'deleteSelection':
+        this.removeSelected();
+        break;
+      case 'zoomReset':
         this.zoomTo(1);
-        return;
-      }
-      if (key === '=' || key === '+') {
-        event.preventDefault();
+        break;
+      case 'zoomIn':
         this.zoomIn();
-        return;
-      }
-      if (key === '-') {
-        event.preventDefault();
+        break;
+      case 'zoomOut':
         this.zoomOut();
-        return;
-      }
-      if (key === '9') {
-        event.preventDefault();
+        break;
+      case 'zoomFit':
         this.zoomToFit();
-        return;
-      }
-      if (key === 'a') {
-        event.preventDefault();
+        break;
+      case 'selectAll':
         this.holdEverything();
-        return;
-      }
-      if (key === 'd') {
-        event.preventDefault();
+        break;
+      case 'duplicate':
         this.duplicateSelected();
-        return;
-      }
-      if (key === 'c') {
-        event.preventDefault();
+        break;
+      case 'copy':
         this.copySelected();
-        return;
-      }
-      if (key === 'v') {
-        event.preventDefault();
+        break;
+      case 'paste':
         this.pasteCopied();
-        return;
-      }
-      if (key === ']') {
-        event.preventDefault();
+        break;
+      case 'bringForward':
         this.bringForward();
-        return;
-      }
-      if (key === '[') {
-        event.preventDefault();
+        break;
+      case 'sendBackward':
         this.sendBackward();
-        return;
-      }
-      return;
-    }
-    const shortcut = TOOL_KEYS[event.key.toLowerCase()];
-    if (shortcut) {
-      event.preventDefault();
-      this.choose(shortcut);
+        break;
+      case 'pickTool':
+        this.choose(action.tool);
+        break;
     }
   }
 
