@@ -105,3 +105,69 @@ describe('MovableDirective', () => {
     });
   });
 });
+
+describe('MovableDirective drop preview', () => {
+  interface Internals {
+    input: {
+      isDragging: boolean;
+      pointer: { x: number; y: number; z: number };
+      cancel(): void;
+      destroy(): void;
+    } | null;
+    onInputMoveNow(e: MouseEvent): void;
+    surfaceUnderPointer(): HTMLElement | null;
+    surfaceElement(): HTMLElement;
+    updateDragPreview(surface: HTMLElement | null): void;
+  }
+
+  @Component({
+    selector: 'preview-host',
+    template: `<div appMovable [movable.option]="{}"></div>`,
+    changeDetection: ChangeDetectionStrategy.Eager,
+    imports: [MovableDirective],
+  })
+  class PreviewHostComponent {}
+
+  function mount(isDragging: boolean): Internals {
+    TestBed.configureTestingModule({ imports: [PreviewHostComponent], providers: [...TEST_PROVIDERS] });
+    const fixture = TestBed.createComponent(PreviewHostComponent);
+    fixture.detectChanges();
+    const directive = fixture.debugElement
+      .query((node) => node.name === 'div')
+      .injector.get(MovableDirective) as unknown as Internals;
+    directive.input = {
+      isDragging,
+      pointer: { x: 0, y: 0, z: 0 },
+      cancel: () => undefined,
+      destroy: () => undefined,
+    };
+    return directive;
+  }
+
+  it('looks again for the face under the piece on the first move of a drag', () => {
+    const directive = mount(false);
+    const own = directive.surfaceElement();
+    const under = document.createElement('div');
+    let looks = 0;
+    // The piece still takes the pointer on this move, so the first look finds its own face.
+    vi.spyOn(directive, 'surfaceUnderPointer').mockImplementation(() => (++looks === 1 ? own : under));
+    const preview = vi.spyOn(directive, 'updateDragPreview').mockImplementation(() => undefined);
+
+    directive.onInputMoveNow(new MouseEvent('mousemove'));
+
+    expect(looks).toBe(2);
+    expect(preview.mock.calls[0][0]).toBe(under);
+  });
+
+  it('keeps the one look per move once the drag is under way', () => {
+    const directive = mount(true);
+    const own = directive.surfaceElement();
+    const look = vi.spyOn(directive, 'surfaceUnderPointer').mockReturnValue(own);
+    const preview = vi.spyOn(directive, 'updateDragPreview').mockImplementation(() => undefined);
+
+    directive.onInputMoveNow(new MouseEvent('mousemove'));
+
+    expect(look).toHaveBeenCalledTimes(1);
+    expect(preview.mock.calls[0][0]).toBe(own);
+  });
+});
