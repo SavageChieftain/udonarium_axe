@@ -8,9 +8,9 @@ import {
   Injector,
   input,
   model,
+  signal,
   viewChild,
 } from '@angular/core';
-import { FormsModule } from '@angular/forms';
 import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { PointerDeviceService } from '@axe/application/input/pointer-device.service';
 import { ContextMenuService } from '@axe/application/ui/context-menu.service';
@@ -36,7 +36,7 @@ const ARROW_STEP_PX = 120;
   selector: 'chat-tab-strip',
   templateUrl: './chat-tab-strip.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FormsModule, BadgeComponent, TranslocoModule],
+  imports: [BadgeComponent, TranslocoModule],
   host: { class: 'contents' },
 })
 export class ChatTabStripComponent {
@@ -50,8 +50,8 @@ export class ChatTabStripComponent {
   readonly selected = model.required<string>();
 
   private readonly container = viewChild<ElementRef<HTMLElement>>('tabPillsContainer');
-  readonly canScrollLeft = model(false);
-  readonly canScrollRight = model(false);
+  protected readonly canScrollLeft = signal(false);
+  protected readonly canScrollRight = signal(false);
   private wheelTravel = 0;
 
   constructor() {
