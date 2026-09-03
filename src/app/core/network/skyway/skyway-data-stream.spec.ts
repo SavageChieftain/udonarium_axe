@@ -284,6 +284,32 @@ describe('sending what is queued', () => {
     expect(inner.isQueuing).toBe(true);
   });
 
+  it('waits on the clock rather than coming straight back to a full channel', () => {
+    vi.useFakeTimers();
+    try {
+      const sent: Uint8Array[] = [];
+      const full = { readyState: 'open', bufferedAmount: 1024 * 1024, send: (data: Uint8Array) => sent.push(data) };
+      const inner = stream();
+      inner.dataChannel = full;
+      inner.sendQueue.add(new Uint8Array([1]));
+
+      inner.execQueue();
+      vi.advanceTimersByTime(49);
+
+      // Nothing has gone and nothing has been tried again: a pass that sends nothing must not
+      // hand the main thread straight back to itself.
+      expect(sent).toHaveLength(0);
+
+      full.bufferedAmount = 0;
+      vi.advanceTimersByTime(1);
+
+      expect(sent).toHaveLength(1);
+      expect(inner.sendQueue.size).toBe(0);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it('keeps what it could not send and stops for this turn', () => {
     const inner = stream();
     inner.dataChannel = {
