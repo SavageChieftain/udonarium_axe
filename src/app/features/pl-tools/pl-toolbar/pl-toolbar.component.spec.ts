@@ -2,7 +2,6 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { BuffViewPreferenceService } from '@axe/application/ui/buff-view-preference.service';
 import { PanelService } from '@axe/application/ui/panel.service';
-import { ObjectStore } from '@axe/core/sync/object-store';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { PeerRole } from '@axe/domain/peer/peer-role';
 import { HandRailService } from '@axe/features/card/hand-rail/hand-rail.service';
@@ -16,7 +15,6 @@ describe('PlToolbarComponent', () => {
   let fixture: ComponentFixture<PlToolbarComponent>;
   let panelStub: { open: ReturnType<typeof vi.fn>; openLazy: ReturnType<typeof vi.fn> };
   let objectChange: ObjectChangeService;
-  let store: ObjectStore;
 
   beforeEach(async () => {
     panelStub = { open: vi.fn(), openLazy: vi.fn() };
@@ -28,13 +26,10 @@ describe('PlToolbarComponent', () => {
     fixture = TestBed.createComponent(PlToolbarComponent);
     component = fixture.componentInstance;
     objectChange = TestBed.inject(ObjectChangeService);
-    store = ObjectStore.instance;
     PeerCursor.createMyCursor();
   });
 
   afterEach(() => {
-    store.getObjects().forEach((object) => store.delete(object, false));
-    store.clearDeleteHistory();
     PeerCursor.myCursor = null!;
   });
 

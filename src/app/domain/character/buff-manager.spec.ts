@@ -1,29 +1,19 @@
-import { ObjectStore } from '@axe/core/sync/object-store';
 import { BuffManager } from '@axe/domain/character/buff-manager';
 import { parseBuffModifierRequest } from '@axe/domain/character/buff-modifier';
 import { StatusAccessor } from '@axe/domain/character/status-accessor';
 import { DataElement, DataElementAttribute, DataElementType } from '@axe/domain/data/data-element';
 
 describe('BuffManager', () => {
-  let store: ObjectStore;
   let buffDataElement: DataElement;
   let container: DataElement;
   let manager: BuffManager;
 
   beforeEach(() => {
-    store = ObjectStore.instance;
-
     buffDataElement = DataElement.create('バフ', '');
     container = DataElement.create('container', '');
     buffDataElement.appendChild(container);
 
     manager = new BuffManager(buffDataElement);
-  });
-
-  afterEach(() => {
-    const allObjects = store.getObjects();
-    allObjects.forEach((obj) => store.delete(obj, false));
-    store.clearDeleteHistory();
   });
 
   describe('addRound', () => {

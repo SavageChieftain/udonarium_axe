@@ -3,7 +3,6 @@ import { PanelService } from '@axe/application/ui/panel.service';
 import { emitSoundOnlyCutIn, emitStartCutIn } from '@axe/core/event/domain-events';
 import { AudioPlayer, VolumeType } from '@axe/core/storage/audio-player';
 import { AudioStorage } from '@axe/core/storage/audio-storage';
-import { ObjectStore } from '@axe/core/sync/object-store';
 import { AudioTag } from '@axe/domain/media/audio-tag';
 import { CutIn } from '@axe/domain/media/cut-in';
 import { CutInEventHandlerService } from '@axe/features/media/cut-in-event-handler.service';
@@ -39,9 +38,6 @@ describe('CutInEventHandlerService', () => {
   });
 
   afterEach(() => {
-    const store = ObjectStore.instance;
-    store.getObjects().forEach((obj) => store.delete(obj, false));
-    store.clearDeleteHistory();
     vi.restoreAllMocks();
   });
 

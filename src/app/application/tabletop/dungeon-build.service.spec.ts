@@ -83,8 +83,6 @@ describe('DungeonBuildService', () => {
   let store: ObjectStore;
 
   function wipe(): void {
-    for (const object of store.getObjects()) store.delete(object, false);
-    store.clearDeleteHistory();
     // The picture store outlives the object store, so a tag made in one test would look missing in the next.
     for (const image of ImageStorage.instance.images) ImageStorage.instance.delete(image.identifier);
   }

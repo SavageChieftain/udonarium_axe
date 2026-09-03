@@ -6,7 +6,6 @@ import { ContextMenuService } from '@axe/application/ui/context-menu.service';
 import { HotbarPreferenceService } from '@axe/application/ui/hotbar-preference.service';
 import { PanelService } from '@axe/application/ui/panel.service';
 import { WidgetVisibilityService } from '@axe/application/ui/widget-visibility.service';
-import { ObjectStore } from '@axe/core/sync/object-store';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { Hotbar } from '@axe/domain/hotbar/hotbar';
 import { emptyHotbarSlotDraft } from '@axe/domain/hotbar/hotbar-draft';
@@ -23,7 +22,6 @@ import { Z_CONTEXT_MENU_PINNED, Z_HOTBAR } from '@axe/ui/z-layers';
 
 describe('HotbarBarComponent', () => {
   let fixture: ComponentFixture<HotbarBarComponent>;
-  let store: ObjectStore;
   let widgets: WidgetVisibilityService;
   let preference: HotbarPreferenceService;
 
@@ -72,7 +70,6 @@ describe('HotbarBarComponent', () => {
     localStorage.removeItem('ui-widgets');
     localStorage.removeItem('ui-hotbar');
     TestBed.configureTestingModule({ imports: [HotbarBarComponent], providers: [...TEST_PROVIDERS] });
-    store = ObjectStore.instance;
     widgets = TestBed.inject(WidgetVisibilityService);
     preference = TestBed.inject(HotbarPreferenceService);
 
@@ -87,8 +84,6 @@ describe('HotbarBarComponent', () => {
 
   afterEach(() => {
     vi.restoreAllMocks();
-    store.getObjects().forEach((object) => store.delete(object, false));
-    store.clearDeleteHistory();
     PeerCursor.myCursor = null!;
     localStorage.removeItem('ui-widgets');
     localStorage.removeItem('ui-hotbar');

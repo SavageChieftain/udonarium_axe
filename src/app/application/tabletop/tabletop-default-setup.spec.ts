@@ -6,11 +6,7 @@ import { DataElement } from '@axe/domain/data/data-element';
 import { Party } from '@axe/domain/party/party';
 
 describe('the pieces a first table is set out with', () => {
-  function clearStore(): void {
-    const store = ObjectStore.instance;
-    for (const object of store.getObjects()) store.delete(object, false);
-    store.clearDeleteHistory();
-  }
+  function clearStore(): void {}
 
   function sample(name: string): GameCharacter {
     const found = ObjectStore.instance.getObjects<GameCharacter>(GameCharacter).find((piece) => piece.name === name);

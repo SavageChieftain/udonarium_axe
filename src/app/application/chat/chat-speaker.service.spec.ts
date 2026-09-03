@@ -1,23 +1,18 @@
 import { TestBed } from '@angular/core/testing';
 import { ChatSpeakerService } from '@axe/application/chat/chat-speaker.service';
-import { ObjectStore } from '@axe/core/sync/object-store';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
 
 describe('ChatSpeakerService', () => {
-  let store: ObjectStore;
   let service: ChatSpeakerService;
 
   beforeEach(() => {
     TestBed.configureTestingModule({ providers: [...TEST_PROVIDERS] });
-    store = ObjectStore.instance;
     service = TestBed.inject(ChatSpeakerService);
   });
 
   afterEach(() => {
-    store.getObjects().forEach((object) => store.delete(object, false));
-    store.clearDeleteHistory();
     PeerCursor.myCursor = null!;
   });
 

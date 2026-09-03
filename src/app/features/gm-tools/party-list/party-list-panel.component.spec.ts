@@ -1,6 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { PartyService } from '@axe/application/party/party.service';
-import { ObjectStore } from '@axe/core/sync/object-store';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { Party } from '@axe/domain/party/party';
 import { PartyListPanelComponent } from '@axe/features/gm-tools/party-list/party-list-panel.component';
@@ -11,7 +10,6 @@ describe('PartyListPanelComponent', () => {
   let component: PartyListPanelComponent;
   let fixture: ComponentFixture<PartyListPanelComponent>;
   let partyService: PartyService;
-  let store: ObjectStore;
 
   interface Panel {
     addParty: () => void;
@@ -39,12 +37,9 @@ describe('PartyListPanelComponent', () => {
     fixture = TestBed.createComponent(PartyListPanelComponent);
     component = fixture.componentInstance;
     partyService = TestBed.inject(PartyService);
-    store = ObjectStore.instance;
   });
 
   afterEach(() => {
-    store.getObjects().forEach((object) => store.delete(object, false));
-    store.clearDeleteHistory();
     vi.unstubAllGlobals();
   });
 

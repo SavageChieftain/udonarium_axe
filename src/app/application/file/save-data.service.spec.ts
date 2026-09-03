@@ -4,7 +4,6 @@ import { FileArchiver } from '@axe/core/storage/file-archiver';
 import { ImageFile, ImageState } from '@axe/core/storage/image-file';
 import { ImageStorage } from '@axe/core/storage/image-storage';
 import { ObjectSerializer } from '@axe/core/sync/object-serializer';
-import { ObjectStore } from '@axe/core/sync/object-store';
 import { CutIn } from '@axe/domain/media/cut-in';
 import { CutInLayer } from '@axe/domain/media/cut-in-layer';
 import { CutInScene } from '@axe/domain/media/cut-in-scene';
@@ -253,11 +252,7 @@ describe('SaveDataService', () => {
   });
 
   describe('the pictures a composed cut-in is built from', () => {
-    afterEach(() => {
-      const store = ObjectStore.instance;
-      store.getObjects().forEach((object) => store.delete(object, false));
-      store.clearDeleteHistory();
-    });
+    afterEach(() => {});
 
     it("gathers the picture of every layer, not only the cut-in's own", () => {
       const service = TestBed.inject(SaveDataService);
@@ -283,11 +278,7 @@ describe('SaveDataService', () => {
   });
 
   describe('the pictures a board carries inside its drawing', () => {
-    afterEach(() => {
-      const store = ObjectStore.instance;
-      store.getObjects().forEach((object) => store.delete(object, false));
-      store.clearDeleteHistory();
-    });
+    afterEach(() => {});
 
     it('bundles a sticker that no walk of the XML would have found', () => {
       const service = TestBed.inject(SaveDataService);

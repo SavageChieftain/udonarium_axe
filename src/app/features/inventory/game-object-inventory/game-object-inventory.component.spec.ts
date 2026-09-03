@@ -5,7 +5,6 @@ import { InventoryViewPreferenceService } from '@axe/application/ui/inventory-vi
 import { PanelService } from '@axe/application/ui/panel.service';
 import { ViewportService } from '@axe/application/ui/viewport.service';
 import { Network } from '@axe/core/index';
-import { ObjectStore } from '@axe/core/sync/object-store';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { StatusAilmentCatalog } from '@axe/domain/character/status-ailment-catalog';
 import { DataElement } from '@axe/domain/data/data-element';
@@ -67,9 +66,6 @@ describe('GameObjectInventoryComponent', () => {
     }
 
     afterEach(() => {
-      const store = ObjectStore.instance;
-      store.getObjects().forEach((object) => store.delete(object, false));
-      store.clearDeleteHistory();
       // Personal folders live on the device, so they outlive the store cleanup too.
       localStorage.clear();
       // The summary settings are a synced singleton, so its folders outlive the store cleanup.

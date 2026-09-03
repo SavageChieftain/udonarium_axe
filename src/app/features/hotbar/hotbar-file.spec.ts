@@ -3,7 +3,6 @@ import { HotbarStoreService } from '@axe/application/hotbar/hotbar-store.service
 import { TabletopService } from '@axe/application/tabletop/tabletop.service';
 import { FileArchiver } from '@axe/core/storage/file-archiver';
 import { ObjectSerializer } from '@axe/core/sync/object-serializer';
-import { ObjectStore } from '@axe/core/sync/object-store';
 import { Hotbar } from '@axe/domain/hotbar/hotbar';
 import { emptyHotbarSlotDraft } from '@axe/domain/hotbar/hotbar-draft';
 import { HotbarSet } from '@axe/domain/hotbar/hotbar-set';
@@ -19,7 +18,6 @@ async function archiveOf(xml: string): Promise<File> {
 }
 
 describe('reading a saved bar back in from its file', () => {
-  const store = ObjectStore.instance;
   let hotbarStore: HotbarStoreService;
 
   beforeEach(() => {
@@ -31,8 +29,6 @@ describe('reading a saved bar back in from its file', () => {
   });
 
   afterEach(() => {
-    store.getObjects().forEach((object) => store.delete(object, false));
-    store.clearDeleteHistory();
     localStorage.removeItem('ui-hotbar-owner');
   });
 

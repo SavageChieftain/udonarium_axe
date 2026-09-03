@@ -5,7 +5,6 @@ import { ModalService } from '@axe/application/ui/modal.service';
 import { PanelService } from '@axe/application/ui/panel.service';
 import { ImageFile } from '@axe/core/storage/image-file';
 import { ImageStorage } from '@axe/core/storage/image-storage';
-import { ObjectStore } from '@axe/core/sync/object-store';
 import { ImageTag } from '@axe/domain/media/image-tag';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { PeerRole } from '@axe/domain/peer/peer-role';
@@ -63,9 +62,6 @@ describe('MapEditorPanelComponent', () => {
   });
 
   afterEach(() => {
-    const store = ObjectStore.instance;
-    store.getObjects().forEach((obj) => store.delete(obj, false));
-    store.clearDeleteHistory();
     ImageStorage.instance.images.forEach((image) => ImageStorage.instance.delete(image.identifier));
     PeerCursor.myCursor = null!;
   });

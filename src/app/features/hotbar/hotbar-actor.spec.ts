@@ -1,21 +1,13 @@
-import { ObjectStore } from '@axe/core/sync/object-store';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { findSlotActor } from '@axe/features/hotbar/hotbar-actor';
 
 describe('finding the piece a slot acts as', () => {
-  const store = ObjectStore.instance;
-
   function character(name: string, owner: string): GameCharacter {
     const held = GameCharacter.create(name, 1, '');
     held.owner = owner;
     held.location.name = 'table';
     return held;
   }
-
-  afterEach(() => {
-    store.getObjects().forEach((object) => store.delete(object, false));
-    store.clearDeleteHistory();
-  });
 
   it('takes the piece the slot names', () => {
     const mine = character('術者', 'me');

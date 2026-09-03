@@ -1,4 +1,3 @@
-import { ObjectStore } from '@axe/core/sync/object-store';
 import { CharacterTemplateFactory } from '@axe/domain/character/character-template-factory';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { playsEffectOnChange, playsSoundOnChange } from '@axe/domain/character/resource-feedback';
@@ -12,17 +11,7 @@ import {
 } from '@axe/domain/data/data-element';
 
 describe('CharacterTemplateFactory', () => {
-  let store: ObjectStore;
-
-  beforeEach(() => {
-    store = ObjectStore.instance;
-  });
-
-  afterEach(() => {
-    const allObjects = store.getObjects();
-    allObjects.forEach((obj) => store.delete(obj, false));
-    store.clearDeleteHistory();
-  });
+  beforeEach(() => {});
 
   describe('createDefault', () => {
     it('gives the character a name, a size and an altitude', () => {

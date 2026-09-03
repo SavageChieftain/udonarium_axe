@@ -1,4 +1,3 @@
-import { ObjectStore } from '@axe/core/sync/object-store';
 import { parseImportedCharacterText } from '@axe/domain/character/import/character-import-format';
 import { createEmptyImportedCharacter } from '@axe/domain/character/import/imported-character';
 import { ImportedCharacterFactory } from '@axe/domain/character/import/imported-character-factory';
@@ -13,16 +12,7 @@ import { DataElementFieldType, DataElementRole, DataElementType } from '@axe/dom
 describe('ImportedCharacterFactory', () => {
   beforeAll(() => loadLabelMaps());
 
-  let store: ObjectStore;
-
-  beforeEach(() => {
-    store = ObjectStore.instance;
-  });
-
-  afterEach(() => {
-    store.getObjects().forEach((obj) => store.delete(obj, false));
-    store.clearDeleteHistory();
-  });
+  beforeEach(() => {});
 
   function buildFromCcfolia(data: Record<string, unknown>) {
     const imported = parseImportedCharacterText(JSON.stringify({ kind: 'character', data }))!;

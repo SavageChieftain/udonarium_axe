@@ -1,23 +1,13 @@
 import { TestBed } from '@angular/core/testing';
-import { ObjectStore } from '@axe/core/sync/object-store';
 import { TableSelecter } from '@axe/domain/tabletop/table-selecter';
 
 describe('TableSelecter', () => {
-  let store: ObjectStore;
-
   beforeEach(() => {
     TestBed.configureTestingModule({});
-    store = ObjectStore.instance;
-    const allObjects = store.getObjects();
-    allObjects.forEach((obj) => store.delete(obj, false));
-    store.clearDeleteHistory();
     (TableSelecter as unknown as Record<string, unknown>)._instance = undefined;
   });
 
   afterEach(() => {
-    const allObjects = store.getObjects();
-    allObjects.forEach((obj) => store.delete(obj, false));
-    store.clearDeleteHistory();
     (TableSelecter as unknown as Record<string, unknown>)._instance = undefined;
     vi.restoreAllMocks();
   });

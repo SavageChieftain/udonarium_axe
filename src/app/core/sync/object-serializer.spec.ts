@@ -1,26 +1,17 @@
 import { TestBed } from '@angular/core/testing';
 import { GameObject } from '@axe/core/sync/game-object';
 import { ObjectSerializer } from '@axe/core/sync/object-serializer';
-import { ObjectStore } from '@axe/core/sync/object-store';
 import { DataElement } from '@axe/domain/data/data-element';
 
 describe('ObjectSerializer', () => {
-  let store: ObjectStore;
   let serializer: ObjectSerializer;
 
   beforeEach(() => {
     TestBed.configureTestingModule({});
-    store = ObjectStore.instance;
     serializer = ObjectSerializer.instance;
-    const allObjects = store.getObjects();
-    allObjects.forEach((obj) => store.delete(obj, false));
-    store.clearDeleteHistory();
   });
 
   afterEach(() => {
-    const allObjects = store.getObjects();
-    allObjects.forEach((obj) => store.delete(obj, false));
-    store.clearDeleteHistory();
     vi.clearAllMocks();
   });
 

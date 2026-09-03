@@ -2,22 +2,11 @@ import { defineSyncAttribute, defineSyncObject, defineSyncVariable } from '@axe/
 import { GameObject } from '@axe/core/sync/game-object';
 import { ObjectFactory } from '@axe/core/sync/object-factory';
 import { ObjectNode } from '@axe/core/sync/object-node';
-import { ObjectStore } from '@axe/core/sync/object-store';
 
 describe('decorator-core', () => {
-  let store: ObjectStore;
-
-  beforeEach(() => {
-    store = ObjectStore.instance;
-    const allObjects = store.getObjects();
-    allObjects.forEach((obj) => store.delete(obj, false));
-    store.clearDeleteHistory();
-  });
+  beforeEach(() => {});
 
   afterEach(() => {
-    const allObjects = store.getObjects();
-    allObjects.forEach((obj) => store.delete(obj, false));
-    store.clearDeleteHistory();
     vi.restoreAllMocks();
   });
 

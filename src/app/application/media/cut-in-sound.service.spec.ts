@@ -3,7 +3,6 @@ import { type CutInSoundHandle, CutInSoundService } from '@axe/application/media
 import { AudioFile } from '@axe/core/storage/audio-file';
 import { AudioPlayer, VolumeType } from '@axe/core/storage/audio-player';
 import { AudioStorage } from '@axe/core/storage/audio-storage';
-import { ObjectStore } from '@axe/core/sync/object-store';
 import { CutInLayer } from '@axe/domain/media/cut-in-layer';
 import { CutInScene } from '@axe/domain/media/cut-in-scene';
 import { encodeCutInSounds } from '@axe/domain/media/cut-in-sound';
@@ -11,14 +10,10 @@ import { TEST_PROVIDERS } from '@axe/testing/test-providers';
 
 describe('CutInSoundService', () => {
   let service: CutInSoundService;
-  let store: ObjectStore;
   let played: AudioFile[];
 
   beforeEach(() => {
     TestBed.configureTestingModule({ providers: [...TEST_PROVIDERS] });
-    store = ObjectStore.instance;
-    store.getObjects().forEach((object) => store.delete(object, false));
-    store.clearDeleteHistory();
 
     played = [];
     vi.spyOn(AudioPlayer.prototype, 'play').mockImplementation((audio?: AudioFile) => {
@@ -37,8 +32,6 @@ describe('CutInSoundService', () => {
     vi.useRealTimers();
     vi.restoreAllMocks();
     AudioStorage.instance.audios.forEach((audio) => AudioStorage.instance.delete(audio.identifier));
-    store.getObjects().forEach((object) => store.delete(object, false));
-    store.clearDeleteHistory();
   });
 
   /** The player one run of a scene made for a sound, of which each run has its own. */

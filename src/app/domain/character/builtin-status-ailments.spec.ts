@@ -1,5 +1,4 @@
 import { TestBed } from '@angular/core/testing';
-import { ObjectStore } from '@axe/core/sync/object-store';
 import { BUFF_COLORS } from '@axe/domain/character/buff-appearance';
 import { parseBuffStrength } from '@axe/domain/character/buff-badge';
 import { BUFF_TIMINGS } from '@axe/domain/character/buff-timing';
@@ -8,16 +7,10 @@ import { formatStatusAilments, newStatusAilment, parseStatusAilments } from '@ax
 import { StatusAilmentCatalog } from '@axe/domain/character/status-ailment-catalog';
 
 describe('the states a room starts with', () => {
-  let store: ObjectStore;
-
-  function clearStore(): void {
-    for (const object of store.getObjects()) store.delete(object, false);
-    store.clearDeleteHistory();
-  }
+  function clearStore(): void {}
 
   beforeEach(() => {
     TestBed.configureTestingModule({});
-    store = ObjectStore.instance;
     clearStore();
     (StatusAilmentCatalog as unknown as Record<string, unknown>)['_instance'] = undefined;
   });

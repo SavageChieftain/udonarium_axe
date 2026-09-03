@@ -16,16 +16,10 @@ describe('DataElement', () => {
     TestBed.configureTestingModule({});
     store = ObjectStore.instance;
     // Clear any existing objects from previous tests
-    const allObjects = store.getObjects();
-    allObjects.forEach((obj) => store.delete(obj, false));
-    store.clearDeleteHistory();
   });
 
   afterEach(() => {
     // Cleanup after each test
-    const allObjects = store.getObjects();
-    allObjects.forEach((obj) => store.delete(obj, false));
-    store.clearDeleteHistory();
     vi.clearAllMocks();
   });
 

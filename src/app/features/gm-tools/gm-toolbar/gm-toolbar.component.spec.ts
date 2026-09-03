@@ -3,7 +3,6 @@ import { ObjectChangeService } from '@axe/application/sync/object-change.service
 import { VisionService } from '@axe/application/tabletop/vision.service';
 import { PanelService } from '@axe/application/ui/panel.service';
 import { WidgetVisibilityService } from '@axe/application/ui/widget-visibility.service';
-import { ObjectStore } from '@axe/core/sync/object-store';
 import { Card } from '@axe/domain/card/card';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { PeerRole } from '@axe/domain/peer/peer-role';
@@ -92,15 +91,9 @@ describe('GmToolbarComponent', () => {
   });
 
   describe('releaseOrphanedOwnership', () => {
-    let store: ObjectStore;
-
-    beforeEach(() => {
-      store = ObjectStore.instance;
-    });
+    beforeEach(() => {});
 
     afterEach(() => {
-      store.getObjects().forEach((obj) => store.delete(obj, false));
-      store.clearDeleteHistory();
       vi.unstubAllGlobals();
     });
 
@@ -133,18 +126,14 @@ describe('GmToolbarComponent', () => {
 
   describe('where the toolbar sits across a change of role', () => {
     let objectChange: ObjectChangeService;
-    let store: ObjectStore;
 
     beforeEach(() => {
-      store = ObjectStore.instance;
       objectChange = TestBed.inject(ObjectChangeService);
       PeerCursor.createMyCursor();
       PeerCursor.myCursor.role = PeerRole.GameMaster;
     });
 
     afterEach(() => {
-      store.getObjects().forEach((obj) => store.delete(obj, false));
-      store.clearDeleteHistory();
       PeerCursor.myCursor = null!;
     });
 

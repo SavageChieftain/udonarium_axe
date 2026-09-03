@@ -11,9 +11,6 @@ describe('ChatMessage', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({});
     store = ObjectStore.instance;
-    const allObjects = store.getObjects();
-    allObjects.forEach((obj) => store.delete(obj, false));
-    store.clearDeleteHistory();
 
     vi.spyOn(Network, 'peerContext', 'get').mockReturnValue({
       peerId: 'test-peer',
@@ -23,9 +20,6 @@ describe('ChatMessage', () => {
   });
 
   afterEach(() => {
-    const allObjects = store.getObjects();
-    allObjects.forEach((obj) => store.delete(obj, false));
-    store.clearDeleteHistory();
     vi.restoreAllMocks();
   });
 

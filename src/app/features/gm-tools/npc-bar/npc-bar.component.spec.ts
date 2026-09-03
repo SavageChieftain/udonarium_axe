@@ -1,6 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { PanelService } from '@axe/application/ui/panel.service';
-import { ObjectStore } from '@axe/core/sync/object-store';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { ChatPaletteRegistryService } from '@axe/features/chat/chat-palette/chat-palette-registry.service';
 import { NpcBarComponent } from '@axe/features/gm-tools/npc-bar/npc-bar.component';
@@ -22,7 +21,6 @@ interface NpcBarInternals {
 describe('NpcBarComponent', () => {
   let component: NpcBarComponent;
   let fixture: ComponentFixture<NpcBarComponent>;
-  let store: ObjectStore;
   let panelStub: { openLazy: ReturnType<typeof vi.fn>; open: ReturnType<typeof vi.fn> };
 
   beforeEach(async () => {
@@ -33,16 +31,8 @@ describe('NpcBarComponent', () => {
     }).compileComponents();
     TestBed.overrideProvider(PanelService, { useValue: panelStub });
     TestBed.overrideProvider(ChatPaletteRegistryService, { useValue: new ChatPaletteRegistryService() });
-    store = ObjectStore.instance;
-    store.getObjects().forEach((obj) => store.delete(obj, false));
-    store.clearDeleteHistory();
     fixture = TestBed.createComponent(NpcBarComponent);
     component = fixture.componentInstance;
-  });
-
-  afterEach(() => {
-    store.getObjects().forEach((obj) => store.delete(obj, false));
-    store.clearDeleteHistory();
   });
 
   it('lists the non-player characters, leaving out the graveyard', () => {

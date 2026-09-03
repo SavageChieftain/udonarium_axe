@@ -1,4 +1,3 @@
-import { ObjectStore } from '@axe/core/sync/object-store';
 import { Card } from '@axe/domain/card/card';
 import { handLocationOf } from '@axe/domain/card/hand-location';
 import { isHandCardOf, reorderHandCards, selectHandCards } from '@axe/features/card/hand-rail/hand-cards';
@@ -11,11 +10,7 @@ function makeCard(locationName: string): Card {
 }
 
 describe('hand-cards', () => {
-  afterEach(() => {
-    const store = ObjectStore.instance;
-    store.getObjects().forEach((object) => store.delete(object, false));
-    store.clearDeleteHistory();
-  });
+  afterEach(() => {});
 
   it('counts only the cards in your own hands as a hand', () => {
     expect(isHandCardOf(makeCard(handLocationOf('me')), 'me')).toBe(true);

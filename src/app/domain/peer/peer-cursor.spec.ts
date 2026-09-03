@@ -13,18 +13,12 @@ describe('PeerCursor', () => {
     // It is put back each time, in case another spec left a stub behind.
     resetPeerContextProvider();
     store = ObjectStore.instance;
-    const allObjects = store.getObjects();
-    allObjects.forEach((obj) => store.delete(obj, false));
-    store.clearDeleteHistory();
     PeerCursor.myCursor = null!;
     (PeerCursor as unknown as Record<string, unknown>)['userIdMap'] = new Map();
     (PeerCursor as unknown as Record<string, unknown>)['peerIdMap'] = new Map();
   });
 
   afterEach(() => {
-    const allObjects = store.getObjects();
-    allObjects.forEach((obj) => store.delete(obj, false));
-    store.clearDeleteHistory();
     PeerCursor.myCursor = null!;
     (PeerCursor as unknown as Record<string, unknown>)['userIdMap'] = new Map();
     (PeerCursor as unknown as Record<string, unknown>)['peerIdMap'] = new Map();

@@ -1,7 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { RangeShapeInvokeService } from '@axe/application/tabletop/range-shape-invoke.service';
 import { TabletopService } from '@axe/application/tabletop/tabletop.service';
-import { ObjectStore } from '@axe/core/sync/object-store';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { RangeShapeFieldValue } from '@axe/domain/data/range-shape-field';
 import { GameTable } from '@axe/domain/tabletop/game-table';
@@ -10,21 +9,10 @@ import { TEST_PROVIDERS } from '@axe/testing/test-providers';
 
 describe('RangeShapeInvokeService', () => {
   let service: RangeShapeInvokeService;
-  let store: ObjectStore;
 
   beforeEach(() => {
     TestBed.configureTestingModule({ providers: [...TEST_PROVIDERS] });
     service = TestBed.inject(RangeShapeInvokeService);
-    store = ObjectStore.instance;
-    const allObjects = store.getObjects();
-    allObjects.forEach((obj) => store.delete(obj, false));
-    store.clearDeleteHistory();
-  });
-
-  afterEach(() => {
-    const allObjects = store.getObjects();
-    allObjects.forEach((obj) => store.delete(obj, false));
-    store.clearDeleteHistory();
   });
 
   function makeField(overrides: Partial<RangeShapeFieldValue> = {}): RangeShapeFieldValue {

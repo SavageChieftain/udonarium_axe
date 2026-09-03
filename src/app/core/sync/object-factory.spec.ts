@@ -1,7 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { GameObject } from '@axe/core/sync/game-object';
 import { ObjectFactory } from '@axe/core/sync/object-factory';
-import { ObjectStore } from '@axe/core/sync/object-store';
 
 describe('ObjectFactory', () => {
   let factory: ObjectFactory;
@@ -13,10 +12,6 @@ describe('ObjectFactory', () => {
 
   afterEach(() => {
     // cleaning up the object store
-    const store = ObjectStore.instance;
-    const allObjects = store.getObjects();
-    allObjects.forEach((obj) => store.delete(obj, false));
-    store.clearDeleteHistory();
     vi.clearAllMocks();
   });
 

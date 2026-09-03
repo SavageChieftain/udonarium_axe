@@ -1,7 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { SelectionSignalService } from '@axe/application/ui/selection-signal.service';
-import { ObjectStore } from '@axe/core/sync/object-store';
 import { Card, CardState } from '@axe/domain/card/card';
 import { handLocationOf } from '@axe/domain/card/hand-location';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
@@ -14,7 +13,6 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 describe('HandRailComponent', () => {
   let component: HandRailComponent;
   let fixture: ComponentFixture<HandRailComponent>;
-  let store: ObjectStore;
 
   function makeCard(locationName: string): Card {
     const card = Card.create('カード', 'front.png', 'back.png');
@@ -29,15 +27,12 @@ describe('HandRailComponent', () => {
     }).compileComponents();
     fixture = TestBed.createComponent(HandRailComponent);
     component = fixture.componentInstance;
-    store = ObjectStore.instance;
     PeerCursor.createMyCursor();
     PeerCursor.myCursor.userId = 'me';
     PeerCursor.myCursor.role = PeerRole.Player;
   });
 
   afterEach(() => {
-    store.getObjects().forEach((object) => store.delete(object, false));
-    store.clearDeleteHistory();
     PeerCursor.myCursor = null!;
   });
 

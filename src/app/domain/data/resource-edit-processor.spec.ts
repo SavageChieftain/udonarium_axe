@@ -1,4 +1,3 @@
-import { ObjectStore } from '@axe/core/sync/object-store';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { ChatMessage } from '@axe/domain/chat/chat-message';
 import { ChatTab } from '@axe/domain/chat/chat-tab';
@@ -6,22 +5,14 @@ import { ResourceEdit, ResourceEditProcessor } from '@axe/domain/data/resource-e
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 
 describe('ResourceEditProcessor', () => {
-  let store: ObjectStore;
   let processor: ResourceEditProcessor;
 
   const mockDiceRollAsync = vi.fn();
   const mockLoadGameSystemAsync = vi.fn();
 
   beforeEach(() => {
-    store = ObjectStore.instance;
     processor = new ResourceEditProcessor(mockDiceRollAsync, mockLoadGameSystemAsync);
     vi.clearAllMocks();
-  });
-
-  afterEach(() => {
-    const allObjects = store.getObjects();
-    allObjects.forEach((obj) => store.delete(obj, false));
-    store.clearDeleteHistory();
   });
 
   describe('parseOption', () => {

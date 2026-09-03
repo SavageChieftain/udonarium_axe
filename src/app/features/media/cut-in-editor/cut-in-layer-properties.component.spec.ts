@@ -1,5 +1,4 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { ObjectStore } from '@axe/core/sync/object-store';
 import { encodeCutInTracks } from '@axe/domain/media/cut-in-keyframe';
 import { CutInLayer } from '@axe/domain/media/cut-in-layer';
 import { CutInLayerPropertiesComponent } from '@axe/features/media/cut-in-editor/cut-in-layer-properties.component';
@@ -8,7 +7,6 @@ import { TEST_PROVIDERS } from '@axe/testing/test-providers';
 describe('CutInLayerPropertiesComponent', () => {
   let fixture: ComponentFixture<CutInLayerPropertiesComponent>;
   let component: CutInLayerPropertiesComponent;
-  let store: ObjectStore;
   let layer: CutInLayer;
 
   beforeEach(async () => {
@@ -19,10 +17,6 @@ describe('CutInLayerPropertiesComponent', () => {
   });
 
   beforeEach(() => {
-    store = ObjectStore.instance;
-    store.getObjects().forEach((object) => store.delete(object, false));
-    store.clearDeleteHistory();
-
     layer = new CutInLayer();
     layer.initialize();
     layer.x = 100;
@@ -32,11 +26,6 @@ describe('CutInLayerPropertiesComponent', () => {
     fixture.componentRef.setInput('layer', layer);
     fixture.componentRef.setInput('isEditable', true);
     fixture.detectChanges();
-  });
-
-  afterEach(() => {
-    store.getObjects().forEach((object) => store.delete(object, false));
-    store.clearDeleteHistory();
   });
 
   function atPlayhead(ms: number): void {

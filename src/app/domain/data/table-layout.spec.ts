@@ -1,5 +1,4 @@
 import { TestBed } from '@angular/core/testing';
-import { ObjectStore } from '@axe/core/sync/object-store';
 import { DataElement, DataElementAttribute } from '@axe/domain/data/data-element';
 import {
   buildTableColumnHeaderGroups,
@@ -28,9 +27,6 @@ function makeColumn(name: string, kind: string = ''): TableColumn {
 describe('table-layout cell helpers', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({});
-    const store = ObjectStore.instance;
-    store.getObjects().forEach((obj) => store.delete(obj, false));
-    store.clearDeleteHistory();
   });
 
   describe('isGapColumn()', () => {

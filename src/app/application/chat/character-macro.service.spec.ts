@@ -2,14 +2,12 @@ import { TestBed } from '@angular/core/testing';
 import { ActiveChatTabService } from '@axe/application/chat/active-chat-tab.service';
 import { CharacterMacroService } from '@axe/application/chat/character-macro.service';
 import { ChatMessageService } from '@axe/application/chat/chat-message.service';
-import { ObjectStore } from '@axe/core/sync/object-store';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { ChatTab } from '@axe/domain/chat/chat-tab';
 import { ChatTabList } from '@axe/domain/chat/chat-tab-list';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
 
 describe('CharacterMacroService', () => {
-  let store: ObjectStore;
   let service: CharacterMacroService;
   let chatMessageService: ChatMessageService;
   let sendMessage: ReturnType<typeof vi.spyOn>;
@@ -27,7 +25,6 @@ describe('CharacterMacroService', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({ providers: [...TEST_PROVIDERS] });
-    store = ObjectStore.instance;
     service = TestBed.inject(CharacterMacroService);
     chatMessageService = TestBed.inject(ChatMessageService);
 
@@ -41,8 +38,6 @@ describe('CharacterMacroService', () => {
 
   afterEach(() => {
     vi.restoreAllMocks();
-    store.getObjects().forEach((object) => store.delete(object, false));
-    store.clearDeleteHistory();
     (ChatTabList as unknown as { _instance: ChatTabList | undefined })._instance = undefined;
   });
 

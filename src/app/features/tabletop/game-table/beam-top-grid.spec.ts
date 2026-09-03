@@ -1,5 +1,4 @@
 import { TestBed } from '@angular/core/testing';
-import { ObjectStore } from '@axe/core/sync/object-store';
 import { SurfaceDims } from '@axe/domain/tabletop/surface-space';
 import { Terrain } from '@axe/domain/tabletop/terrain';
 import { beamTopGridGeometry, beamWallFaceGrid } from '@axe/features/tabletop/game-table/beam-top-grid';
@@ -8,18 +7,8 @@ const dims: SurfaceDims = { widthPx: 500, depthPx: 500, wallHeightPx: 500 };
 const GRID = 50;
 
 describe('beamTopGridGeometry', () => {
-  let store: ObjectStore;
-
   beforeEach(() => {
     TestBed.configureTestingModule({});
-    store = ObjectStore.instance;
-    store.getObjects().forEach((o) => store.delete(o, false));
-    store.clearDeleteHistory();
-  });
-
-  afterEach(() => {
-    store.getObjects().forEach((o) => store.delete(o, false));
-    store.clearDeleteHistory();
   });
 
   it('returns the walkable top of a north-wall beam in floor coordinates', () => {
@@ -58,18 +47,8 @@ describe('beamTopGridGeometry', () => {
 });
 
 describe('beamWallFaceGrid', () => {
-  let store: ObjectStore;
-
   beforeEach(() => {
     TestBed.configureTestingModule({});
-    store = ObjectStore.instance;
-    store.getObjects().forEach((o) => store.delete(o, false));
-    store.clearDeleteHistory();
-  });
-
-  afterEach(() => {
-    store.getObjects().forEach((o) => store.delete(o, false));
-    store.clearDeleteHistory();
   });
 
   function parseMatrix(face: { matrix3d: string }): number[] {

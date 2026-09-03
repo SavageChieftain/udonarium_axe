@@ -1,6 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ChatPreferencesService } from '@axe/application/chat/chat-preferences.service';
-import { ObjectStore } from '@axe/core/sync/object-store';
 import { ChatTab } from '@axe/domain/chat/chat-tab';
 import { ChatTabList } from '@axe/domain/chat/chat-tab-list';
 import { SYSTEM_CHAT_TAB_IDENTIFIER } from '@axe/domain/chat/constants';
@@ -10,7 +9,6 @@ import { TEST_PROVIDERS } from '@axe/testing/test-providers';
 
 describe('ChatMessageSettingComponent', () => {
   let fixture: ComponentFixture<ChatMessageSettingComponent>;
-  const store = ObjectStore.instance;
 
   function root(): HTMLElement {
     return fixture.nativeElement as HTMLElement;
@@ -48,8 +46,6 @@ describe('ChatMessageSettingComponent', () => {
   });
 
   afterEach(() => {
-    store.getObjects().forEach((object) => store.delete(object, false));
-    store.clearDeleteHistory();
     (ChatTabList as unknown as { _instance: ChatTabList | undefined })._instance = undefined;
     localStorage.removeItem('chat-preferences');
   });

@@ -1,6 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { GameObjectInventoryService } from '@axe/application/inventory/game-object-inventory.service';
-import { ObjectStore } from '@axe/core/sync/object-store';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { BuffManagerPanelComponent } from '@axe/features/buff/buff-manager-panel/buff-manager-panel.component';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
@@ -8,7 +7,6 @@ import { TEST_PROVIDERS } from '@axe/testing/test-providers';
 describe('BuffManagerPanelComponent', () => {
   let fixture: ComponentFixture<BuffManagerPanelComponent>;
   let component: BuffManagerPanelComponent;
-  let store: ObjectStore;
 
   function makeCharacter(name: string): GameCharacter {
     const character = GameCharacter.create(name, 1, '');
@@ -27,15 +25,12 @@ describe('BuffManagerPanelComponent', () => {
       imports: [BuffManagerPanelComponent],
       providers: [...TEST_PROVIDERS],
     }).compileComponents();
-    store = ObjectStore.instance;
     fixture = TestBed.createComponent(BuffManagerPanelComponent);
     component = fixture.componentInstance;
   });
 
   afterEach(() => {
     vi.restoreAllMocks();
-    store.getObjects().forEach((object) => store.delete(object, false));
-    store.clearDeleteHistory();
   });
 
   it('leaves out the pieces carrying nothing', () => {

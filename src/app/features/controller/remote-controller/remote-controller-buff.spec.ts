@@ -1,4 +1,3 @@
-import { ObjectStore } from '@axe/core/sync/object-store';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import {
   addBuffRound,
@@ -7,22 +6,13 @@ import {
 } from '@axe/features/controller/remote-controller/remote-controller-buff';
 
 describe('the buffs a remote controller works on', () => {
-  let store: ObjectStore;
-
   function character(name: string): GameCharacter {
     const held = GameCharacter.create(name, 1, '');
     held.addExtendData();
     return held;
   }
 
-  beforeEach(() => {
-    store = ObjectStore.instance;
-  });
-
-  afterEach(() => {
-    store.getObjects().forEach((object) => store.delete(object, false));
-    store.clearDeleteHistory();
-  });
+  beforeEach(() => {});
 
   it('steps every buff down a round and names who it touched', () => {
     const first = character('相手A');

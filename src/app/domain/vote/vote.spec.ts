@@ -1,20 +1,14 @@
 import { TestBed } from '@angular/core/testing';
 import * as domainEvents from '@axe/core/event/domain-events';
-import { ObjectStore } from '@axe/core/sync/object-store';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { Vote } from '@axe/domain/vote/vote';
 
 describe('Vote', () => {
-  let store: ObjectStore;
   let vote: Vote;
   const savedMyCursor = PeerCursor.myCursor;
 
   beforeEach(() => {
     TestBed.configureTestingModule({});
-    store = ObjectStore.instance;
-    const allObjects = store.getObjects();
-    allObjects.forEach((obj) => store.delete(obj, false));
-    store.clearDeleteHistory();
 
     vote = new Vote();
     vote.initialize();
@@ -23,9 +17,6 @@ describe('Vote', () => {
   });
 
   afterEach(() => {
-    const allObjects = store.getObjects();
-    allObjects.forEach((obj) => store.delete(obj, false));
-    store.clearDeleteHistory();
     PeerCursor.myCursor = savedMyCursor;
     vi.clearAllMocks();
     vi.restoreAllMocks();

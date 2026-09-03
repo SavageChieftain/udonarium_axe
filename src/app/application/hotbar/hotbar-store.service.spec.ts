@@ -1,23 +1,18 @@
 import { TestBed } from '@angular/core/testing';
 import { HotbarStoreService } from '@axe/application/hotbar/hotbar-store.service';
-import { ObjectStore } from '@axe/core/sync/object-store';
 import { Hotbar } from '@axe/domain/hotbar/hotbar';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
 
 describe('HotbarStoreService', () => {
-  let store: ObjectStore;
   let service: HotbarStoreService;
 
   beforeEach(() => {
     localStorage.removeItem('ui-hotbar-owner');
     TestBed.configureTestingModule({ providers: [...TEST_PROVIDERS] });
-    store = ObjectStore.instance;
     service = TestBed.inject(HotbarStoreService);
   });
 
   afterEach(() => {
-    store.getObjects().forEach((object) => store.delete(object, false));
-    store.clearDeleteHistory();
     localStorage.removeItem('ui-hotbar-owner');
   });
 

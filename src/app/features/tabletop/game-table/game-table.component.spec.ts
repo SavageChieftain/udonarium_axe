@@ -2,7 +2,6 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { MobileLayoutService } from '@axe/application/ui/mobile-layout.service';
 import { SelectionSignalService } from '@axe/application/ui/selection-signal.service';
 import { ImageStorage } from '@axe/core/storage/image-storage';
-import { ObjectStore } from '@axe/core/sync/object-store';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { GridType } from '@axe/domain/tabletop/game-table';
 import { TableSurface } from '@axe/domain/tabletop/tabletop-object';
@@ -13,7 +12,6 @@ import { TEST_PROVIDERS } from '@axe/testing/test-providers';
 describe('GameTableComponent', () => {
   let component: GameTableComponent;
   let fixture: ComponentFixture<GameTableComponent>;
-  let store: ObjectStore;
 
   beforeEach(async () => {
     TestBed.configureTestingModule({
@@ -23,16 +21,11 @@ describe('GameTableComponent', () => {
   });
 
   beforeEach(() => {
-    store = ObjectStore.instance;
-    store.getObjects().forEach((object) => store.delete(object, false));
-    store.clearDeleteHistory();
     fixture = TestBed.createComponent(GameTableComponent);
     component = fixture.componentInstance;
   });
 
   afterEach(() => {
-    store.getObjects().forEach((object) => store.delete(object, false));
-    store.clearDeleteHistory();
     vi.restoreAllMocks();
     vi.useRealTimers();
   });

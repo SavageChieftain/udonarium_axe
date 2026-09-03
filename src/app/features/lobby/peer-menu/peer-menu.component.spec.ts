@@ -1,5 +1,4 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { ObjectStore } from '@axe/core/sync/object-store';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { PeerRole } from '@axe/domain/peer/peer-role';
 import { PeerMenuComponent } from '@axe/features/lobby/peer-menu/peer-menu.component';
@@ -9,7 +8,6 @@ import { TEST_PROVIDERS } from '@axe/testing/test-providers';
 describe('PeerMenuComponent', () => {
   let component: PeerMenuComponent;
   let fixture: ComponentFixture<PeerMenuComponent>;
-  let store: ObjectStore;
 
   beforeEach(async () => {
     TestBed.configureTestingModule({
@@ -19,15 +17,11 @@ describe('PeerMenuComponent', () => {
   });
 
   beforeEach(() => {
-    store = ObjectStore.instance;
     fixture = TestBed.createComponent(PeerMenuComponent);
     component = fixture.componentInstance;
   });
 
   afterEach(() => {
-    const allObjects = store.getObjects();
-    allObjects.forEach((obj) => store.delete(obj, false));
-    store.clearDeleteHistory();
     PeerCursor.myCursor = null!;
     (PeerCursor as unknown as Record<string, unknown>)['userIdMap'] = new Map();
     (PeerCursor as unknown as Record<string, unknown>)['peerIdMap'] = new Map();
