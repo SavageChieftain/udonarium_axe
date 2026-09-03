@@ -291,55 +291,7 @@
             </div>
           }
           @case ('rangeShape') {
-            <div class="flex w-full min-w-0 flex-wrap items-center gap-2">
-              @if (rangeShapeThumbnail().hasCells) {
-                <svg
-                  [attr.viewBox]="rangeShapeThumbnail().viewBox"
-                  width="36"
-                  height="36"
-                  class="border-ui-border-panel bg-ui-elevated shrink-0 rounded-sm border"
-                  preserveAspectRatio="xMidYMid meet"
-                >
-                  @for (cell of rangeShapeThumbnail().cells; track $index) {
-                    @if (cell.hexPoints) {
-                      <polygon
-                        [attr.points]="cell.hexPoints"
-                        [attr.fill]="rangeShapeValue().gridColor"
-                        [attr.stroke]="rangeShapeValue().rangeColor"
-                        stroke-width="1"
-                      />
-                    } @else {
-                      <rect
-                        [attr.x]="cell.rectX"
-                        [attr.y]="cell.rectY"
-                        [attr.width]="cell.rectSize"
-                        [attr.height]="cell.rectSize"
-                        [attr.fill]="rangeShapeValue().gridColor"
-                        [attr.stroke]="rangeShapeValue().rangeColor"
-                        stroke-width="1"
-                      />
-                    }
-                  }
-                </svg>
-              }
-              <span class="text-ui-muted truncate text-[0.85em]">{{ rangeShapeSummary() }}</span>
-              <div class="ml-auto flex shrink-0 gap-1">
-                <button
-                  type="button"
-                  class="border-ui-border-panel hover:bg-ui-elevated cursor-pointer rounded-sm border px-2 py-0.5 text-[0.85em]"
-                  (click)="openRangeShapeEditor()"
-                >
-                  {{ 'feature.range.custom.edit' | transloco }}
-                </button>
-                <button
-                  type="button"
-                  class="bg-ui-accent hover:bg-ui-accent-strong text-ui-on-accent cursor-pointer rounded-sm px-2 py-0.5 text-[0.85em]"
-                  (click)="spawnRangeShape()"
-                >
-                  {{ 'feature.range.custom.spawn' | transloco }}
-                </button>
-              </div>
-            </div>
+            <game-data-element-range-shape [element]="gameDataElement()" />
           }
           @case ('effect') {
             <div class="flex w-full min-w-0 flex-wrap items-center gap-2">

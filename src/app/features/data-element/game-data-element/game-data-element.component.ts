@@ -9,8 +9,7 @@ import { ObjectChangeService } from '@axe/application/sync/object-change.service
 import { RangeShapeInvokeService } from '@axe/application/tabletop/range-shape-invoke.service';
 import { DataElementDragService } from '@axe/application/ui/data-element-drag.service';
 import { ModalService } from '@axe/application/ui/modal.service';
-import { PanelOption, PanelService } from '@axe/application/ui/panel.service';
-import { sheetPanelBox } from '@axe/application/ui/sheet-panel';
+import { PanelService } from '@axe/application/ui/panel.service';
 import { UiSignalService } from '@axe/application/ui/ui-signal.service';
 import { ImageStorage } from '@axe/core/storage/image-storage';
 import { ObjectStore } from '@axe/core/sync/object-store';
@@ -31,12 +30,6 @@ import {
   DataElementViewMode,
 } from '@axe/domain/data/data-element';
 import { calcSourceIdentifiers, evaluateCalcElement } from '@axe/domain/data/data-element-calc-env';
-import {
-  decodeRangeShapeField,
-  defaultRangeShapeFieldValue,
-  encodeRangeShapeField,
-  RangeShapeFieldValue,
-} from '@axe/domain/data/range-shape-field';
 import {
   buildTableColumnHeaderGroups,
   canRenderAsTable as canRenderAsTableShared,
@@ -62,7 +55,7 @@ import {
 } from '@axe/features/data-element/game-data-element/game-data-element-structure-ops';
 import { GameDataElementTableViewComponent } from '@axe/features/data-element/game-data-element/game-data-element-table-view.component';
 import { escapeHtml, isUrlText } from '@axe/features/data-element/game-data-element/game-data-element-utils';
-import { buildRangeShapeThumbnail } from '@axe/features/tabletop/range-shape-editor/range-shape-editor-utils';
+import { GameDataElementRangeShapeComponent } from '@axe/features/data-element/game-data-element-range-shape/game-data-element-range-shape.component';
 import { FileSelecterComponent } from '@axe/ui/components/file-selecter/file-selecter.component';
 import { LinkifyPipe } from '@axe/ui/pipes/linkify.pipe';
 import { SafePipe } from '@axe/ui/pipes/safe.pipe';
@@ -81,6 +74,7 @@ import { NgOptionComponent, NgSelectComponent } from '@ng-select/ng-select';
     NgOptionComponent,
     GameDataElementTableViewComponent,
     TranslocoModule,
+    GameDataElementRangeShapeComponent,
   ],
   host: {
     class:
@@ -983,61 +977,6 @@ export class GameDataElementComponent {
 
   onSetFieldType(value: DataElementFieldTypeValue): void {
     this.setElementFieldType(value ?? DataElementFieldType.TEXT);
-  }
-
-  readonly rangeShapeValue = computed<RangeShapeFieldValue>(() => {
-    const el = this.gameDataElement();
-    this.objectChange.versionOf(el.identifier)();
-    return decodeRangeShapeField(el.currentValue) ?? defaultRangeShapeFieldValue();
-  });
-
-  readonly rangeShapeSummary = computed<string>(() => {
-    const value = this.rangeShapeValue();
-    if (!value.cellPattern) return this.t('feature.range.custom.emptyShape');
-    const count = value.cellPattern.split(';').filter((s) => s.trim()).length;
-    return this.t('feature.range.custom.cellCount', { count });
-  });
-
-  readonly rangeShapeThumbnail = computed(() => {
-    const value = this.rangeShapeValue();
-    return buildRangeShapeThumbnail(value.cellPattern, value.gridType);
-  });
-
-  protected async openRangeShapeEditor(): Promise<void> {
-    const coordinate = this.pointerDeviceService.pointers[0];
-    const initial = this.rangeShapeValue();
-    const option: PanelOption = {
-      title: this.t('feature.range.custom.editorTitle'),
-      ...sheetPanelBox(coordinate, 640, 540),
-    };
-    const { RangeShapeEditorComponent } =
-      await import('@axe/features/tabletop/range-shape-editor/range-shape-editor.component');
-    const editor = this.panelService.open(RangeShapeEditorComponent, option);
-    editor.initialize({
-      name: initial.name || this.gameDataElement().name,
-      cellPattern: initial.cellPattern,
-      gridType: initial.gridType,
-      gridColor: initial.gridColor,
-      rangeColor: initial.rangeColor,
-      isRotatable: initial.isRotatable,
-    });
-    editor.saved.subscribe((result) => {
-      const el = this.gameDataElement();
-      el.currentValue = encodeRangeShapeField(result);
-      if (result.name && result.name !== el.name) el.name = result.name;
-      this.objectChange.notifyChanged(el.identifier);
-    });
-  }
-
-  protected spawnRangeShape(): void {
-    const value = this.rangeShapeValue();
-    const character = this.findOwningCharacter();
-    if (character) {
-      this.rangeShapeInvoke.spawnForCharacter(character, value);
-      return;
-    }
-    const coordinate = this.pointerDeviceService.pointers[0];
-    this.rangeShapeInvoke.spawnAt({ x: coordinate?.x ?? 0, y: coordinate?.y ?? 0, z: 0 }, value);
   }
 
   private findOwningCharacter(): GameCharacter | null {
