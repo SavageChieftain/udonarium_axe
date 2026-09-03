@@ -1,4 +1,4 @@
-import { NgClass, NgTemplateOutlet } from '@angular/common';
+import { NgClass } from '@angular/common';
 import {
   AfterViewInit,
   ChangeDetectionStrategy,
@@ -23,17 +23,8 @@ import { PanelService } from '@axe/application/ui/panel.service';
 import { transientSignal } from '@axe/application/ui/transient-signal';
 import { ViewportService } from '@axe/application/ui/viewport.service';
 import { isTypingTarget } from '@axe/core/input/typing-target';
-import { ImageFile } from '@axe/core/storage/image-file';
 import { ImageStorage } from '@axe/core/storage/image-storage';
-import { ImageTag } from '@axe/domain/media/image-tag';
-import {
-  isTextureId,
-  TEXTURE_ASSET_URLS,
-  TEXTURE_BASE_COLOR,
-  TEXTURE_IDS,
-  TEXTURE_IMAGE_TAG,
-  TextureId,
-} from '@axe/domain/media/texture-catalog';
+import { isTextureId, TEXTURE_ASSET_URLS } from '@axe/domain/media/texture-catalog';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { GridType } from '@axe/domain/tabletop/game-table';
 import { imageStampIdentifier, isImageStampId } from '@axe/features/map-editor/assets/image-stamp';
@@ -49,10 +40,7 @@ import {
   MapEditorState,
   ShapeGeneratorKind,
 } from '@axe/features/map-editor/editor/map-editor-state';
-import {
-  TextureCropDialogComponent,
-  TextureCropDialogOption,
-} from '@axe/features/map-editor/editor/texture-crop-dialog.component';
+import { MapEditorTexturePickerComponent } from '@axe/features/map-editor/editor/map-editor-texture-picker.component';
 import {
   curveAnchorAt,
   fitImageSize,
@@ -149,10 +137,10 @@ interface ToolDef {
   imports: [
     FormsModule,
     NgClass,
-    NgTemplateOutlet,
     TranslocoModule,
     MapEditorLayerDrawerComponent,
     MapEditorStampPickerComponent,
+    MapEditorTexturePickerComponent,
   ],
 })
 export class MapEditorPanelComponent implements AfterViewInit {
@@ -178,7 +166,6 @@ export class MapEditorPanelComponent implements AfterViewInit {
 
   private readonly board = viewChild<ElementRef<HTMLCanvasElement>>('board');
   private readonly fileInput = viewChild<ElementRef<HTMLInputElement>>('fileInput');
-  private readonly textureFileInput = viewChild<ElementRef<HTMLInputElement>>('textureFileInput');
   protected readonly textEditor = viewChild<ElementRef<HTMLElement>>('textEditor');
   private readonly stage = viewChild<ElementRef<HTMLDivElement>>('stage');
 
@@ -227,10 +214,6 @@ export class MapEditorPanelComponent implements AfterViewInit {
 
   private readonly shortcutToTool = new Map<string, EditorTool>(this.tools.map((d) => [d.key, d.tool]));
   private readonly toolKeys = new Set(this.shortcutToTool.keys());
-
-  protected readonly textureIds = TEXTURE_IDS;
-  protected readonly textureBaseColor = TEXTURE_BASE_COLOR;
-  protected readonly textureAssetUrls = TEXTURE_ASSET_URLS;
 
   private readonly renderTick = signal(0);
   private readonly pendingStamps = new Set<string>();
@@ -288,12 +271,6 @@ export class MapEditorPanelComponent implements AfterViewInit {
       if (url) map.set(layer.id, url);
     }
     return map;
-  });
-
-  protected readonly imageTextures = computed<ImageFile[]>(() => {
-    this.objectChange.fileVersion();
-    this.objectChange.collectionOf('image-tag')();
-    return ImageTag.searchImages([TEXTURE_IMAGE_TAG], this.rolePermission.canSeeHidden);
   });
 
   protected readonly canvasCursor = computed(() => {
@@ -1324,43 +1301,6 @@ export class MapEditorPanelComponent implements AfterViewInit {
 
   protected setFillMode(mode: 'solid' | 'texture'): void {
     this.state.fillMode.set(mode);
-  }
-
-  protected selectTexture(id: TextureId): void {
-    this.state.textureId.set(id);
-    this.state.fillMode.set('texture');
-  }
-
-  protected selectImageTexture(file: ImageFile): void {
-    this.state.textureId.set('image:' + file.identifier);
-    this.state.fillMode.set('texture');
-  }
-
-  protected isActiveImageTexture(file: ImageFile): boolean {
-    return this.state.textureId() === 'image:' + file.identifier;
-  }
-
-  protected triggerTextureUpload(): void {
-    this.textureFileInput()?.nativeElement.click();
-  }
-
-  protected async onTextureFileSelected(event: Event): Promise<void> {
-    const input = event.target as HTMLInputElement;
-    const file = input.files?.[0];
-    input.value = '';
-    if (!file) return;
-    const objectUrl = URL.createObjectURL(file);
-    const blob = await this.modalService
-      .open<Blob | null>(TextureCropDialogComponent, { objectUrl } as TextureCropDialogOption)
-      .catch(() => null);
-    URL.revokeObjectURL(objectUrl);
-    if (!blob) return;
-    const imageFile = await this.imageStorage.addAsync(blob);
-    const tag = ImageTag.create(imageFile.identifier);
-    tag.tag = TEXTURE_IMAGE_TAG;
-    this.objectChange.notifyCollectionChanged('image-tag');
-    this.state.fillMode.set('texture');
-    this.state.textureId.set('image:' + imageFile.identifier);
   }
 
   protected zoomIn(): void {

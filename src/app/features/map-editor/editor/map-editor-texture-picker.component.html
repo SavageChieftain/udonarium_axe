@@ -1,0 +1,40 @@
+<input #textureFileInput class="hidden" type="file" accept="image/*" (change)="onTextureFileSelected($event)" />
+<div class="grid grid-cols-3 gap-1.5">
+  @for (id of textureIds; track id) {
+    <button
+      class="rounded-ui-sm relative size-16 overflow-hidden border-2 border-solid bg-cover bg-center"
+      [class.border-ui-accent]="state.textureId() === id"
+      [class.border-ui-border-panel]="state.textureId() !== id"
+      [style.background-image]="'url(' + textureAssetUrls[id] + ')'"
+      [style.background-color]="textureBaseColor[id]"
+      [title]="'common.textures.' + id | transloco"
+      (click)="selectTexture(id)"
+    >
+      <span class="absolute inset-x-0 bottom-0 truncate bg-black/55 px-0.5 text-center text-[10px] text-white">
+        {{ 'common.textures.' + id | transloco }}
+      </span>
+    </button>
+  }
+  @for (file of imageTextures(); track file.identifier) {
+    <button
+      class="rounded-ui-sm relative size-16 overflow-hidden border-2 border-solid bg-cover bg-center"
+      [class.border-ui-accent]="isActiveImageTexture(file)"
+      [class.border-ui-border-panel]="!isActiveImageTexture(file)"
+      [style.background-image]="'url(' + file.url + ')'"
+      [title]="file.name"
+      (click)="selectImageTexture(file)"
+    >
+      <span class="absolute inset-x-0 bottom-0 truncate bg-black/55 px-0.5 text-center text-[10px] text-white">
+        {{ file.name }}
+      </span>
+    </button>
+  }
+  <button
+    class="rounded-ui-sm border-ui-border-panel text-ui-muted hover:border-ui-accent hover:text-ui-accent flex size-16 flex-col items-center justify-center border-2 border-dashed"
+    [title]="'feature.mapEditor.props.textureAdd' | transloco"
+    (click)="triggerTextureUpload()"
+  >
+    <i class="material-icons text-[28px]!">add</i>
+    <span class="text-[10px]">{{ 'feature.mapEditor.props.textureAdd' | transloco }}</span>
+  </button>
+</div>
