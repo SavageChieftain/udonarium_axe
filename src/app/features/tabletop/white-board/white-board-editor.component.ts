@@ -53,10 +53,11 @@ import {
   removeText,
   updateText,
 } from '@axe/features/map-editor/model/scene-ops';
-import { deserializeScene, serializeScene } from '@axe/features/map-editor/model/serialize';
+import { deserializeScene } from '@axe/features/map-editor/model/serialize';
 import { getRasterImage, warmRasterImages } from '@axe/features/map-editor/render/raster-image';
 import { renderScene } from '@axe/features/map-editor/render/render-scene';
 import { detachFromBoard, standingOn } from '@axe/features/tabletop/white-board/white-board-contents';
+import { BoardKeeper } from '@axe/features/tabletop/white-board/white-board-keeper';
 import {
   LayerDrawerAction,
   WhiteBoardLayerDrawerComponent,
@@ -172,7 +173,6 @@ import { FileSelecterComponent } from '@axe/ui/components/file-selecter/file-sel
 import { TranslocoModule } from '@jsverse/transloco';
 
 /** How long the drawing has to settle before the board keeps a picture of it. */
-const SAVE_DELAY = 600;
 /** How big a sticker goes down, in the board's own pixels. */
 const STICKER_SIZE = 120;
 const SELECT_SVG =
@@ -401,8 +401,17 @@ export class WhiteBoardEditorComponent {
   private wordsWere = '';
   protected readonly wordBoxRef = viewChild<ElementRef<HTMLElement>>('wordBox');
   private board: WhiteBoard | null = null;
+  private readonly keeper = new BoardKeeper(
+    {
+      board: () => this.board,
+      scene: () => this.scene,
+      canvas: () => this.canvasRef()?.nativeElement ?? null,
+      drawBare: () => this.redraw(undefined, true, true),
+      redraw: () => void this.redraw(),
+    },
+    this.imageStorage
+  );
   private scene: MapScene = createBoardScene(4, 3, 50);
-  private saveTimer: ReturnType<typeof setTimeout> | null = null;
   private drawingPoints: number[] = [];
   private dragFrom: BoardPoint | null = null;
   private dragTo: BoardPoint | null = null;
@@ -776,7 +785,7 @@ export class WhiteBoardEditorComponent {
       return width;
     });
     this.destroyRef.onDestroy(() => {
-      this.putDown();
+      this.keeper.putDown();
       stopMeasuring();
     });
   }
@@ -1379,7 +1388,7 @@ export class WhiteBoardEditorComponent {
     this.refreshHistory();
     this.settingChanged();
     void this.redraw();
-    this.keepPicture();
+    this.keeper.keepPicture();
   }
 
   private refreshHistory(): void {
@@ -1805,65 +1814,7 @@ export class WhiteBoardEditorComponent {
     this.history.commit(this.scene);
     this.refreshHistory();
     void this.redraw();
-    this.keepPicture();
-  }
-
-  /**
-   * Closing the panel writes down what was still waiting to be written.
-   *
-   * A drawing is kept a breath after the last stroke rather than on every one of them, so
-   * closing within that breath used to lose the stroke: the timer fired on a component that
-   * had gone, found no canvas, and returned before writing anything. The measurer is given
-   * back too, being a closure over this canvas that outlived it and went on being asked.
-   */
-  private putDown(): void {
-    if (this.saveTimer === null) return;
-    clearTimeout(this.saveTimer);
-    this.saveTimer = null;
-    this.writeScene();
-  }
-
-  /** The drawing itself, which is what must survive; the picture it wears can wait. */
-  private writeScene(): void {
-    if (!this.board) return;
-    this.board.scene = serializeScene(this.scene);
-    this.board.update();
-  }
-
-  private keepPicture(): void {
-    if (this.saveTimer !== null) clearTimeout(this.saveTimer);
-    this.saveTimer = setTimeout(() => {
-      this.saveTimer = null;
-      void this.save();
-    }, SAVE_DELAY);
-  }
-
-  private async save(): Promise<void> {
-    const board = this.board;
-    const canvas = this.canvasRef()?.nativeElement;
-    if (!board || !canvas) return;
-    board.scene = serializeScene(this.scene);
-
-    // Taken off the sheet bare: neither the ruling nor the guides are part of the board.
-    await this.redraw(undefined, true, true);
-    const blob = await new Promise<Blob | null>((resolve) => {
-      if (typeof canvas.toBlob !== 'function') resolve(null);
-      else canvas.toBlob((made) => resolve(made), 'image/webp', 0.92);
-    });
-    if (!blob) {
-      board.update();
-      void this.redraw();
-      return;
-    }
-
-    const file = await this.imageStorage.addAsync(blob);
-    const element = board.imageDataElement?.getFirstElementByName('imageIdentifier');
-    const worn = element?.value;
-    if (element) element.value = file.identifier;
-    board.update();
-    // The picture the board wore before this edit is worn by nothing now.
-    if (typeof worn === 'string' && worn && worn !== file.identifier) this.imageStorage.delete(worn);
-    void this.redraw();
+    this.keeper.keepPicture();
   }
 }
 
