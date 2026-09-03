@@ -288,11 +288,11 @@ describe('GameTableComponent', () => {
       const encode = vi.spyOn(HTMLCanvasElement.prototype, 'toDataURL').mockReturnValue('data:image/png;base64,GRID');
       const table = component.currentTable;
 
-      const first = component['wallGridDataUrl'](500, 200, table, 'N', null);
-      const again = component['wallGridDataUrl'](500, 200, table, 'N', null);
-      const other = component['wallGridDataUrl'](500, 200, table, 'S', [-1, 0, 0, 1]);
-      const face = component['gridFaceDataUrl'](100, 150, 50, 0, table, 'N');
-      const faceAgain = component['gridFaceDataUrl'](100, 150, 50, 0, table, 'N');
+      const first = component['gridFaces'].dataUrl(table, 500, 200, 0, 0, 'N', null);
+      const again = component['gridFaces'].dataUrl(table, 500, 200, 0, 0, 'N', null);
+      const other = component['gridFaces'].dataUrl(table, 500, 200, 0, 0, 'S', [-1, 0, 0, 1]);
+      const face = component['gridFaces'].dataUrl(table, 100, 150, 0, 50, 'N', null);
+      const faceAgain = component['gridFaces'].dataUrl(table, 100, 150, 0, 50, 'N', null);
 
       expect(first).toBe('data:image/png;base64,GRID');
       expect(again).toBe(first);
@@ -308,9 +308,9 @@ describe('GameTableComponent', () => {
       const encode = vi.spyOn(HTMLCanvasElement.prototype, 'toDataURL').mockReturnValue('data:image/png;base64,GRID');
       const table = component.currentTable;
 
-      component['wallGridDataUrl'](500, 200, table, 'N', null);
+      component['gridFaces'].dataUrl(table, 500, 200, 0, 0, 'N', null);
       table.gridColor = '#ff0000ff';
-      component['wallGridDataUrl'](500, 200, table, 'N', null);
+      component['gridFaces'].dataUrl(table, 500, 200, 0, 0, 'N', null);
 
       expect(encode).toHaveBeenCalledTimes(2);
     });

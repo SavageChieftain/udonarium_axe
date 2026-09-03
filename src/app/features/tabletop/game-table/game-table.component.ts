@@ -8,6 +8,7 @@ import {
   effect,
   ElementRef,
   inject,
+  Signal,
   signal,
   viewChild,
 } from '@angular/core';
@@ -32,7 +33,6 @@ import { UiSignalService } from '@axe/application/ui/ui-signal.service';
 import { isTypingTarget } from '@axe/core/input/typing-target';
 import { ImageFile, imageFileEqual } from '@axe/core/storage/image-file';
 import { ObjectStore } from '@axe/core/sync/object-store';
-import { PERF_TO_DATA_URL, perfCounters } from '@axe/core/util/perf-counters';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
 import { FilterType, GameTable, GridType } from '@axe/domain/tabletop/game-table';
@@ -54,8 +54,17 @@ import { RoomPanelService } from '@axe/features/panels/room-panel.service';
 import { ReplayRouteOverlayComponent } from '@axe/features/replay/replay-route-overlay/replay-route-overlay.component';
 import { TableFogAirOverlayComponent } from '@axe/features/tabletop/fog-of-war/table-fog-air-overlay.component';
 import { beamTopGridGeometry, beamWallFaceGrid } from '@axe/features/tabletop/game-table/beam-top-grid';
+import { glideTransform } from '@axe/features/tabletop/game-table/game-table-camera';
 import { GameTableGestureService } from '@axe/features/tabletop/game-table/game-table-gesture.service';
-import { GridFaceCache, gridFaceKey } from '@axe/features/tabletop/game-table/grid-face-cache';
+import {
+  WALL_SIDES,
+  WallBackground,
+  wallBackground,
+  wallFaceFor,
+  wallIsMirrored,
+  WallSurface,
+} from '@axe/features/tabletop/game-table/game-table-walls';
+import { GridFaceCache } from '@axe/features/tabletop/game-table/grid-face-cache';
 import { GridLineRender } from '@axe/features/tabletop/game-table/grid-line-render';
 import { TableMarqueeOverlayComponent } from '@axe/features/tabletop/game-table/table-marquee-overlay/table-marquee-overlay.component';
 import { GameTableMaskComponent } from '@axe/features/tabletop/game-table-mask/game-table-mask.component';
@@ -229,25 +238,14 @@ export class GameTableComponent {
           this.glideTimer = null;
           this.gameTable().nativeElement.style.transition = '';
         }, 100);
-        const center = this.tableVisualCenter();
-        const centerX = center.x;
-        const centerY = center.y;
-        const movedX = focus.x - centerX;
-        const movedY = focus.y - centerY;
-        const rotateZRad = (this.gestureService.viewRotateZ / 180) * Math.PI;
-        const rotatedMovedX = movedX * Math.cos(rotateZRad) - movedY * Math.sin(rotateZRad);
-        const zRotatedMovedY = movedX * Math.sin(rotateZRad) + movedY * Math.cos(rotateZRad);
-        const rotateXRad = (this.gestureService.viewRotateX / 180) * Math.PI;
-        const rotatedMovedY = zRotatedMovedY * Math.cos(rotateXRad);
-        const rotatedMovedZ = zRotatedMovedY * Math.sin(rotateXRad);
-        this.gestureService.setTransform(
-          100 - rotatedMovedX - this.gestureService.viewPositionX,
-          -rotatedMovedY - this.gestureService.viewPositionY,
-          -rotatedMovedZ - this.gestureService.viewPositionZ,
-          0,
-          0,
-          0
-        );
+        const moved = glideTransform(focus, this.tableVisualCenter(), {
+          rotateX: this.gestureService.viewRotateX,
+          rotateZ: this.gestureService.viewRotateZ,
+          positionX: this.gestureService.viewPositionX,
+          positionY: this.gestureService.viewPositionY,
+          positionZ: this.gestureService.viewPositionZ,
+        });
+        this.gestureService.setTransform(moved.x, moved.y, moved.z, 0, 0, 0);
       }, 50);
     });
 
@@ -363,66 +361,33 @@ export class GameTableComponent {
     };
   });
 
+  private readonly wallImages: Record<WallSurface, Signal<ImageFile>> = {
+    'north-wall': this.northWallImage,
+    'south-wall': this.southWallImage,
+    'west-wall': this.westWallImage,
+    'east-wall': this.eastWallImage,
+  };
+
   readonly activeWalls = computed<readonly ActiveWall[]>(() => {
     const state = this.wallState();
     const table = this.watchCurrentTable();
-    const grid = (
-      widthPx: number,
-      heightPx: number,
-      prefix: string,
-      matrix: readonly [number, number, number, number] | null
-    ) => (state.gridShow ? this.wallGridDataUrl(widthPx, heightPx, table, prefix, matrix) : '');
     const walls = [] as ActiveWall[];
-    const north = this.northWallImage();
-    if (state.showNorth && north.url) {
+    for (const side of WALL_SIDES) {
+      const image = this.wallImages[side.surface]();
+      if (!side.shown(table) || !image.url) continue;
+      const widthPx = side.along === 'width' ? state.widthPx : state.depthPx;
+      const gridUrl = state.gridShow
+        ? this.gridFaces.dataUrl(table, widthPx, state.heightPx, 0, 0, side.labelPrefix, side.labelMatrix)
+        : '';
       walls.push({
-        surface: 'north-wall',
-        image: north,
-        containerClass: 'top-0 left-0',
-        containerTransform: 'translateY(-100%) rotateX(90deg) rotateZ(180deg) scaleX(-1)',
-        containerOrigin: '50% 100%',
-        widthPx: state.widthPx,
+        surface: side.surface,
+        image,
+        containerClass: side.containerClass,
+        containerTransform: side.containerTransform,
+        containerOrigin: side.containerOrigin,
+        widthPx,
         heightPx: state.heightPx,
-        ...this.wallBackground(north.url, grid(state.widthPx, state.heightPx, 'N', null)),
-      });
-    }
-    const south = this.southWallImage();
-    if (state.showSouth && south.url) {
-      walls.push({
-        surface: 'south-wall',
-        image: south,
-        containerClass: 'bottom-0 left-0',
-        containerTransform: 'rotateX(-90deg) scaleX(-1)',
-        containerOrigin: '50% 100%',
-        widthPx: state.widthPx,
-        heightPx: state.heightPx,
-        ...this.wallBackground(south.url, grid(state.widthPx, state.heightPx, 'S', [-1, 0, 0, 1])),
-      });
-    }
-    const west = this.westWallImage();
-    if (state.showWest && west.url) {
-      walls.push({
-        surface: 'west-wall',
-        image: west,
-        containerClass: 'top-0 left-0',
-        containerTransform: 'rotateZ(90deg) rotateX(-90deg) scaleX(-1) translateX(-100%) translateY(-100%)',
-        containerOrigin: '0% 0%',
-        widthPx: state.depthPx,
-        heightPx: state.heightPx,
-        ...this.wallBackground(west.url, grid(state.depthPx, state.heightPx, 'W', null)),
-      });
-    }
-    const east = this.eastWallImage();
-    if (state.showEast && east.url) {
-      walls.push({
-        surface: 'east-wall',
-        image: east,
-        containerClass: 'top-0 right-0',
-        containerTransform: 'rotateZ(-90deg) rotateX(-90deg) translateY(-100%) translateX(-100%) scaleX(-1)',
-        containerOrigin: '100% 0%',
-        widthPx: state.depthPx,
-        heightPx: state.heightPx,
-        ...this.wallBackground(east.url, grid(state.depthPx, state.heightPx, 'E', null)),
+        ...wallBackground(image.url, gridUrl),
       });
     }
     return walls;
@@ -431,54 +396,8 @@ export class GameTableComponent {
   private readonly gridFaces = new GridFaceCache();
   private glideTimer: ReturnType<typeof setTimeout> | null = null;
 
-  private wallGridDataUrl(
-    widthPx: number,
-    heightPx: number,
-    table: GameTable,
-    labelPrefix: string,
-    labelMatrix: readonly [number, number, number, number] | null
-  ): string {
-    if (typeof document === 'undefined' || widthPx <= 0 || heightPx <= 0) return '';
-    return this.gridFaces.remember(gridFaceKey(table, widthPx, heightPx, 0, 0, labelPrefix, labelMatrix), () => {
-      try {
-        const canvas = document.createElement('canvas');
-        new GridLineRender(canvas).renderViewport(
-          widthPx,
-          heightPx,
-          table.gridSize,
-          table.gridType,
-          table.gridColor,
-          table.gridFontColor,
-          0,
-          0,
-          true,
-          labelPrefix,
-          labelMatrix
-        );
-        perfCounters.bump(PERF_TO_DATA_URL);
-        return canvas.toDataURL();
-      } catch {
-        return '';
-      }
-    });
-  }
-
-  wallBackground(
-    imageUrl: string,
-    gridUrl: string
-  ): { surfaceBackground: string; surfaceBackgroundSize: string; surfaceBackgroundRepeat: string } {
-    if (!gridUrl) {
-      return {
-        surfaceBackground: `url(${imageUrl})`,
-        surfaceBackgroundSize: '100% 100%',
-        surfaceBackgroundRepeat: 'no-repeat',
-      };
-    }
-    return {
-      surfaceBackground: `url(${gridUrl}), url(${imageUrl})`,
-      surfaceBackgroundSize: '100% 100%, 100% 100%',
-      surfaceBackgroundRepeat: 'no-repeat, no-repeat',
-    };
+  wallBackground(imageUrl: string, gridUrl: string): WallBackground {
+    return wallBackground(imageUrl, gridUrl);
   }
 
   readonly tableSurfaceStyle = computed<Record<string, string>>(() => {
@@ -629,21 +548,11 @@ export class GameTableComponent {
       result.push({
         identifier: terrain.identifier,
         ...geo,
-        dataUrl: this.beamTopGridDataUrl(geo.width, geo.height, geo.left, geo.top, table),
+        dataUrl: this.gridFaces.dataUrl(table, geo.width, geo.height, geo.top, geo.left, '', null),
       });
     }
     return result.length > 0 ? result : NO_BEAM_TOP_GRIDS;
   });
-
-  private beamTopGridDataUrl(
-    widthPx: number,
-    heightPx: number,
-    offsetLeftPx: number,
-    offsetTopPx: number,
-    table: GameTable
-  ): string {
-    return this.gridFaceDataUrl(widthPx, heightPx, offsetLeftPx, offsetTopPx, table, '');
-  }
 
   readonly beamWallGrids = computed<readonly BeamWallGrid[]>(() => {
     const table = this.currentTable;
@@ -666,46 +575,19 @@ export class GameTableComponent {
         matrix3d: face.matrix3d,
         width: face.width,
         height: face.height,
-        dataUrl: this.gridFaceDataUrl(face.width, face.height, face.offsetLeft, face.offsetTop, table, face.prefix),
+        dataUrl: this.gridFaces.dataUrl(
+          table,
+          face.width,
+          face.height,
+          face.offsetTop,
+          face.offsetLeft,
+          face.prefix,
+          null
+        ),
       });
     }
     return result.length > 0 ? result : NO_BEAM_WALL_GRIDS;
   });
-
-  private gridFaceDataUrl(
-    widthPx: number,
-    heightPx: number,
-    offsetLeftPx: number,
-    offsetTopPx: number,
-    table: GameTable,
-    prefix: string
-  ): string {
-    if (typeof document === 'undefined' || widthPx <= 0 || heightPx <= 0) return '';
-    return this.gridFaces.remember(
-      gridFaceKey(table, widthPx, heightPx, offsetTopPx, offsetLeftPx, prefix, null),
-      () => {
-        try {
-          const canvas = document.createElement('canvas');
-          new GridLineRender(canvas).renderViewport(
-            widthPx,
-            heightPx,
-            table.gridSize,
-            table.gridType,
-            table.gridColor,
-            table.gridFontColor,
-            offsetTopPx,
-            offsetLeftPx,
-            true,
-            prefix
-          );
-          perfCounters.bump(PERF_TO_DATA_URL);
-          return canvas.toDataURL();
-        } catch {
-          return '';
-        }
-      }
-    );
-  }
 
   private async openTableSetting(): Promise<void> {
     const { GameTableSettingComponent } =
@@ -796,21 +678,12 @@ export class GameTableComponent {
 
   private wallFaceFor(surface: TableSurface): WallFace | null {
     const table = this.watchCurrentTable();
-    const w = table.width * table.gridSize;
-    const d = table.height * table.gridSize;
-    const hpx = table.wallHeight * table.gridSize;
-    switch (surface) {
-      case 'north-wall':
-        return { ax: 0, ay: 0, bx: w, by: 0, nx: 0, ny: 1, heightPx: hpx };
-      case 'south-wall':
-        return { ax: 0, ay: d, bx: w, by: d, nx: 0, ny: -1, heightPx: hpx };
-      case 'west-wall':
-        return { ax: 0, ay: 0, bx: 0, by: d, nx: 1, ny: 0, heightPx: hpx };
-      case 'east-wall':
-        return { ax: w, ay: 0, bx: w, by: d, nx: -1, ny: 0, heightPx: hpx };
-      default:
-        return null;
-    }
+    return wallFaceFor(
+      surface,
+      table.width * table.gridSize,
+      table.height * table.gridSize,
+      table.wallHeight * table.gridSize
+    );
   }
 
   protected readonly wallBaseFilter = computed<string | null>(() => {
@@ -841,13 +714,8 @@ export class GameTableComponent {
     return face ? this.visionService.wallLights(face) : [];
   }
 
-  /** Whether a wall is drawn from the end its face starts at, which `surfaceFrame` settles. */
-  private wallIsMirrored(surface: TableSurface): boolean {
-    return surface === 'south-wall' || surface === 'west-wall';
-  }
-
   protected wallPoolStyleFor(pool: WallLight, surface: TableSurface, faceLen: number): Record<string, string> {
-    return wallLightLayerStyle(pool, this.wallIsMirrored(surface), faceLen);
+    return wallLightLayerStyle(pool, wallIsMirrored(surface), faceLen);
   }
 
   protected wallSilhouetteBg(silhouette: WallSilhouette): string {
@@ -859,7 +727,7 @@ export class GameTableComponent {
     surface: TableSurface,
     faceLen: number
   ): Record<string, string> {
-    return wallSilhouetteStyle(silhouette, this.wallIsMirrored(surface), faceLen);
+    return wallSilhouetteStyle(silhouette, wallIsMirrored(surface), faceLen);
   }
 
   private watchCurrentTable(): GameTable {

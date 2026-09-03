@@ -1,3 +1,6 @@
+import { PERF_TO_DATA_URL, perfCounters } from '@axe/core/util/perf-counters';
+import { GridLineRender } from '@axe/features/tabletop/game-table/grid-line-render';
+
 const CAPACITY = 32;
 
 export interface GridLook {
@@ -44,5 +47,42 @@ export class GridFaceCache {
     this.faces.set(key, made);
     if (this.faces.size > CAPACITY) this.faces.delete(this.faces.keys().next().value as string);
     return made;
+  }
+
+  dataUrl(
+    look: GridLook,
+    widthPx: number,
+    heightPx: number,
+    offsetTopPx: number,
+    offsetLeftPx: number,
+    labelPrefix: string,
+    labelMatrix: readonly [number, number, number, number] | null
+  ): string {
+    if (typeof document === 'undefined' || widthPx <= 0 || heightPx <= 0) return '';
+    return this.remember(
+      gridFaceKey(look, widthPx, heightPx, offsetTopPx, offsetLeftPx, labelPrefix, labelMatrix),
+      () => {
+        try {
+          const canvas = document.createElement('canvas');
+          new GridLineRender(canvas).renderViewport(
+            widthPx,
+            heightPx,
+            look.gridSize,
+            look.gridType,
+            look.gridColor,
+            look.gridFontColor,
+            offsetTopPx,
+            offsetLeftPx,
+            true,
+            labelPrefix,
+            labelMatrix
+          );
+          perfCounters.bump(PERF_TO_DATA_URL);
+          return canvas.toDataURL();
+        } catch {
+          return '';
+        }
+      }
+    );
   }
 }
