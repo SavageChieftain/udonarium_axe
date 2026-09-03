@@ -24,7 +24,6 @@ import {
   StampLayer,
   TextLayer,
 } from '@axe/features/map-editor/model/scene';
-import { addLayer } from '@axe/features/map-editor/model/scene-ops';
 import { serializeScene } from '@axe/features/map-editor/model/serialize';
 import { exportSceneToBlob } from '@axe/features/map-editor/render/export-image';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
@@ -71,33 +70,6 @@ describe('MapEditorPanelComponent', () => {
 
   it('can be created', () => {
     expect(component).toBeTruthy();
-  });
-
-  describe('dropping on the list of layers', () => {
-    function dropOn(panel: MapEditorPanelComponent): DragEvent {
-      const dropped = { preventDefault: vi.fn(), stopPropagation: vi.fn() } as unknown as DragEvent;
-      (panel as unknown as { onLayerDrop(event: DragEvent): void }).onLayerDrop(dropped);
-      return dropped;
-    }
-
-    it('leaves a drop it has no layer to move for the rest of the page to answer', () => {
-      const dropped = dropOn(component);
-
-      expect(dropped.preventDefault).not.toHaveBeenCalled();
-      expect(dropped.stopPropagation).not.toHaveBeenCalled();
-    });
-
-    it('keeps the drop that moves a layer to itself', () => {
-      const drag = (component as unknown as { layerDrag: { begin(id: string): void; hover(id: string): void } })
-        .layerDrag;
-      drag.begin('a');
-      drag.hover('b');
-
-      const dropped = dropOn(component);
-
-      expect(dropped.preventDefault).toHaveBeenCalled();
-      expect(dropped.stopPropagation).toHaveBeenCalled();
-    });
   });
 
   it('shows only the game-master notice to anyone else', () => {
@@ -351,94 +323,6 @@ describe('MapEditorPanelComponent', () => {
       cells: Record<string, unknown>;
     };
     expect(Object.keys(layer.cells)).toEqual([cellKey(cell.col, cell.row)]);
-  });
-
-  it('deletes the layer when the dialogue agrees', async () => {
-    ask.mockResolvedValue(true);
-    component['state'].applyCommitted(() =>
-      addLayer(component['state'].current, {
-        id: 'layer-1',
-        kind: 'shape',
-        name: 'S',
-        visible: true,
-        locked: false,
-        opacity: 1,
-        items: [],
-      })
-    );
-    const before = component['state'].current.layers.length;
-
-    (component as unknown as { deleteLayer: (layer: { id: string }) => void }).deleteLayer({ id: 'layer-1' });
-    await Promise.resolve();
-
-    expect(component['state'].current.layers.length).toBe(before - 1);
-    expect(component['state'].current.layers.find((l) => l.id === 'layer-1')).toBeUndefined();
-  });
-
-  it('keeps the layer when the dialogue refuses', async () => {
-    ask.mockResolvedValue(false);
-    component['state'].applyCommitted(() =>
-      addLayer(component['state'].current, {
-        id: 'layer-2',
-        kind: 'shape',
-        name: 'S',
-        visible: true,
-        locked: false,
-        opacity: 1,
-        items: [],
-      })
-    );
-    const before = component['state'].current.layers.length;
-
-    (component as unknown as { deleteLayer: (layer: { id: string }) => void }).deleteLayer({ id: 'layer-2' });
-    await Promise.resolve();
-
-    expect(component['state'].current.layers.length).toBe(before);
-  });
-
-  it('keeps the layer when the dialogue is dismissed', async () => {
-    ask.mockResolvedValue(false);
-    component['state'].applyCommitted(() =>
-      addLayer(component['state'].current, {
-        id: 'layer-3',
-        kind: 'shape',
-        name: 'S',
-        visible: true,
-        locked: false,
-        opacity: 1,
-        items: [],
-      })
-    );
-    const before = component['state'].current.layers.length;
-
-    (component as unknown as { deleteLayer: (layer: { id: string }) => void }).deleteLayer({ id: 'layer-3' });
-    await Promise.resolve();
-
-    expect(component['state'].current.layers.length).toBe(before);
-  });
-
-  it('neither asks nor deletes for a locked layer', async () => {
-    component['state'].applyCommitted(() =>
-      addLayer(component['state'].current, {
-        id: 'layer-4',
-        kind: 'shape',
-        name: 'S',
-        visible: true,
-        locked: true,
-        opacity: 1,
-        items: [],
-      })
-    );
-    const before = component['state'].current.layers.length;
-
-    (component as unknown as { deleteLayer: (layer: { id: string; locked: boolean }) => void }).deleteLayer({
-      id: 'layer-4',
-      locked: true,
-    });
-    await Promise.resolve();
-
-    expect(ask).not.toHaveBeenCalled();
-    expect(component['state'].current.layers.length).toBe(before);
   });
 
   it('recolours the selected stamp', () => {

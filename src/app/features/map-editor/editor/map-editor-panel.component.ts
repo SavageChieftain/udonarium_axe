@@ -45,6 +45,7 @@ import {
 import { STAMP_CATEGORIES, StampCategory, StampDef } from '@axe/features/map-editor/assets/stamp-types';
 import { getStampById, getStampsByCategory, STAMPS } from '@axe/features/map-editor/assets/stamps';
 import { GestureKind, MapEditorGesture } from '@axe/features/map-editor/editor/map-editor-gesture';
+import { MapEditorLayerDrawerComponent } from '@axe/features/map-editor/editor/map-editor-layer-drawer.component';
 import { mapEditorKeyDown, mapEditorKeyUp } from '@axe/features/map-editor/editor/map-editor-shortcut';
 import {
   EditorTool,
@@ -66,7 +67,6 @@ import { cellCenter, pointToCell } from '@axe/features/map-editor/model/grid-cel
 import {
   cellKey,
   ImageItem,
-  LayerKind,
   MapLayer,
   MapScene,
   newId,
@@ -78,7 +78,7 @@ import {
 import { isZipArchive } from '@axe/features/map-editor/model/scene-archive';
 import { packSceneWithImages, unpackSceneWithImages } from '@axe/features/map-editor/model/scene-archive-images';
 import { guessLineWidth, useTextMeasurer } from '@axe/features/map-editor/model/scene-geometry';
-import { moveLayer, removeLayer, removeText, updateText } from '@axe/features/map-editor/model/scene-ops';
+import { removeText, updateText } from '@axe/features/map-editor/model/scene-ops';
 import { deserializeScene } from '@axe/features/map-editor/model/serialize';
 import { generateShapePoints, regularPolygonPoints, starPoints } from '@axe/features/map-editor/model/shape-points';
 import { imageTextureIdentifier, isImageTextureId, normalizeTextureId } from '@axe/features/map-editor/model/textures';
@@ -94,7 +94,6 @@ import { RenderHelpers, renderScene } from '@axe/features/map-editor/render/rend
 import { getStampImage, loadStampImage } from '@axe/features/map-editor/render/stamp-image';
 import { createImageTexturePattern } from '@axe/features/map-editor/render/texture-pattern';
 import { FileSelecterComponent } from '@axe/ui/components/file-selecter/file-selecter.component';
-import { reorderRows, RowReorder } from '@axe/ui/dragging/row-reorder';
 import { TranslocoModule } from '@jsverse/transloco';
 
 export function buildShapeKindPoints(kind: ShapeGeneratorKind): string {
@@ -151,7 +150,7 @@ interface ToolDef {
     '(keyup)': 'onKeyUp($event)',
   },
   providers: [MapEditorState],
-  imports: [FormsModule, NgClass, NgTemplateOutlet, TranslocoModule],
+  imports: [FormsModule, NgClass, NgTemplateOutlet, TranslocoModule, MapEditorLayerDrawerComponent],
 })
 export class MapEditorPanelComponent implements AfterViewInit {
   protected readonly state = inject(MapEditorState);
@@ -231,7 +230,6 @@ export class MapEditorPanelComponent implements AfterViewInit {
   protected readonly textureBaseColor = TEXTURE_BASE_COLOR;
   protected readonly textureAssetUrls = TEXTURE_ASSET_URLS;
   protected readonly stampCategories = STAMP_CATEGORIES;
-  protected readonly layerKinds: LayerKind[] = ['cell', 'shape', 'stamp', 'freehand', 'text', 'image'];
 
   private readonly renderTick = signal(0);
   private readonly pendingStamps = new Set<string>();
@@ -251,13 +249,10 @@ export class MapEditorPanelComponent implements AfterViewInit {
     itemId: string | null;
   } | null>(null);
   protected readonly textDraft = signal('');
-  protected readonly addLayerMenuOpen = signal(false);
   protected readonly busy = signal(false);
   protected readonly notice = transientSignal('', 2500);
   protected readonly errorNotice = transientSignal('', 2500);
   protected readonly exportScale = signal(1);
-  protected readonly renamingLayerId = signal<string | null>(null);
-  protected readonly layerDrag = new RowReorder<string>();
 
   private pendingTextFocus = false;
   private pendingTextInitial = '';
@@ -281,11 +276,6 @@ export class MapEditorPanelComponent implements AfterViewInit {
     this.state.sceneTick();
     const s = this.state.current;
     return { cols: s.cols, rows: s.rows, cellPx: s.cellPx };
-  });
-
-  protected readonly layers = computed(() => {
-    this.state.sceneTick();
-    return this.state.layersTopFirst();
   });
 
   protected readonly layerThumbnails = computed<Map<string, string>>(() => {
@@ -1449,73 +1439,6 @@ export class MapEditorPanelComponent implements AfterViewInit {
     this.state.setCellPx(Math.max(16, Math.min(256, Math.round(value))));
   }
 
-  protected setActive(layer: MapLayer): void {
-    this.state.setActiveLayer(layer.id);
-  }
-
-  protected toggleVisible(layer: MapLayer): void {
-    this.state.applyCommitted(() => {
-      const found = this.state.current.layers.find((l) => l.id === layer.id);
-      if (found) found.visible = !found.visible;
-    });
-  }
-
-  protected toggleLocked(layer: MapLayer): void {
-    this.state.applyCommitted(() => {
-      const found = this.state.current.layers.find((l) => l.id === layer.id);
-      if (found) found.locked = !found.locked;
-    });
-  }
-
-  protected setOpacity(layer: MapLayer, value: number): void {
-    this.state.applyCommitted(() => {
-      const found = this.state.current.layers.find((l) => l.id === layer.id);
-      if (found) found.opacity = value;
-    });
-  }
-
-  protected moveLayerUp(layer: MapLayer): void {
-    this.state.applyCommitted(() => moveLayer(this.state.current, layer.id, 1));
-  }
-  protected moveLayerDown(layer: MapLayer): void {
-    this.state.applyCommitted(() => moveLayer(this.state.current, layer.id, -1));
-  }
-
-  protected onLayerDragStart(layer: MapLayer, event: DragEvent): void {
-    this.layerDrag.begin(layer.id);
-    if (event.dataTransfer) {
-      event.dataTransfer.effectAllowed = 'move';
-      event.dataTransfer.setData('text/plain', layer.id);
-    }
-  }
-
-  protected onLayerDragOver(layer: MapLayer, event: DragEvent): void {
-    if (this.layerDrag.held() === null) return;
-    event.preventDefault();
-    event.stopPropagation();
-    if (event.dataTransfer) event.dataTransfer.dropEffect = 'move';
-    this.layerDrag.hover(layer.id);
-  }
-
-  protected onLayerDrop(event: DragEvent): void {
-    const drop = this.layerDrag.release();
-    if (!drop) return;
-
-    event.preventDefault();
-    event.stopPropagation();
-    const order = reorderRows(
-      this.layers().map((layer) => layer.id),
-      drop.held,
-      drop.over,
-      drop.side
-    );
-    if (order) this.state.reorderLayersTopFirst(order);
-  }
-
-  protected onLayerDragEnd(): void {
-    this.layerDrag.cancel();
-  }
-
   private renderLayerThumb(layer: MapLayer): string {
     if (typeof document === 'undefined') return '';
     const scene = this.state.current;
@@ -1539,60 +1462,9 @@ export class MapEditorPanelComponent implements AfterViewInit {
     }
   }
 
-  protected deleteLayer(layer: MapLayer): void {
-    if (layer.locked) return;
-    void this.confirm
-      .ask({
-        message: this.t('feature.mapEditor.layers.deleteConfirm'),
-        okLabel: this.t('common.button.delete'),
-        danger: true,
-      })
-      .then((ok) => {
-        if (!ok) return;
-        this.state.applyCommitted(() => removeLayer(this.state.current, layer.id));
-        if (this.state.activeLayerId() === layer.id) this.state.activeLayerId.set(null);
-      });
-  }
-
-  protected startRename(layer: MapLayer): void {
-    this.renamingLayerId.set(layer.id);
-  }
-
-  protected commitRename(layer: MapLayer, name: string): void {
-    this.state.applyCommitted(() => {
-      const found = this.state.current.layers.find((l) => l.id === layer.id);
-      if (found) found.name = name;
-    });
-    this.renamingLayerId.set(null);
-  }
-
   private isVectorEraseTarget(): boolean {
     const layer = this.state.activeLayer();
     return !!layer && !layer.locked && layer.kind !== 'cell';
-  }
-
-  protected addLayerOfKind(kind: LayerKind): void {
-    const label = this.t('feature.mapEditor.layers.kinds.' + kind);
-    const count = this.state.current.layers.filter((l) => l.kind === kind).length + 1;
-    this.state.addEmptyLayer(kind, label + ' ' + count);
-    this.addLayerMenuOpen.set(false);
-  }
-
-  protected layerIcon(kind: LayerKind): string {
-    switch (kind) {
-      case 'cell':
-        return 'grid_on';
-      case 'shape':
-        return 'category';
-      case 'stamp':
-        return 'approval';
-      case 'freehand':
-        return 'gesture';
-      case 'text':
-        return 'title';
-      case 'image':
-        return 'image';
-    }
   }
 
   protected async save(): Promise<void> {
