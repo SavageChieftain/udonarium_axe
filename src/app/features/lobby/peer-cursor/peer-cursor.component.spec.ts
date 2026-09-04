@@ -12,7 +12,6 @@ import { TEST_PROVIDERS } from '@axe/testing/test-providers';
 describe('PeerCursorComponent', () => {
   let component: PeerCursorComponent;
   let fixture: ComponentFixture<PeerCursorComponent>;
-  let store: ObjectStore;
   let batchService: BatchService;
 
   beforeEach(async () => {
@@ -23,16 +22,14 @@ describe('PeerCursorComponent', () => {
   });
 
   beforeEach(() => {
-    store = ObjectStore.instance;
     batchService = TestBed.inject(BatchService);
     fixture = TestBed.createComponent(PeerCursorComponent);
     component = fixture.componentInstance;
   });
 
   afterEach(() => {
-    const allObjects = store.getObjects();
-    allObjects.forEach((obj) => store.delete(obj, false));
-    store.clearDeleteHistory();
+    for (const object of ObjectStore.instance.getObjects()) ObjectStore.instance.delete(object, false);
+    ObjectStore.instance.clearDeleteHistory();
     PeerCursor.myCursor = null!;
     (PeerCursor as unknown as Record<string, unknown>)['userIdMap'] = new Map();
     (PeerCursor as unknown as Record<string, unknown>)['peerIdMap'] = new Map();

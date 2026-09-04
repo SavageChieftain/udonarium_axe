@@ -1,5 +1,3 @@
-import { ɵChangeDetectionScheduler as ChangeDetectionScheduler } from '@angular/core';
-import { ServiceLocator } from '@axe/core/di/service-locator';
 import { EventChannel } from '@axe/core/event/event-channel';
 import { Logger } from '@axe/core/logging/logger';
 import { Network } from '@axe/core/network/network';
@@ -45,18 +43,18 @@ export function localDispatch(eventName: string, data: unknown, sendFrom?: strin
 }
 
 let _tickScheduled = false;
+let _tick: (() => void) | null = null;
+
+export function setNetworkTick(tick: (() => void) | null): void {
+  _tick = tick;
+}
 
 function scheduleAngularTick(): void {
-  if (_tickScheduled) return;
+  if (_tickScheduled || !_tick) return;
   _tickScheduled = true;
   queueMicrotask(() => {
     _tickScheduled = false;
-    try {
-      const scheduler = ServiceLocator.get(ChangeDetectionScheduler);
-      scheduler.notify(0);
-    } catch {
-      /* DI not ready (e.g. unit tests without TestBed) */
-    }
+    _tick?.();
   });
 }
 

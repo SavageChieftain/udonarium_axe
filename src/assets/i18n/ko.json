@@ -642,7 +642,11 @@
       },
       "field": {
         "name": "카드 이름",
-        "size": "크기"
+        "size": "크기",
+        "text": "카드 문장",
+        "textHint": "루비는 |한자《읽기》, 인용은 줄 맨 앞의 > 로 지정할 수 있습니다.",
+        "fontSize": "글자 크기",
+        "fontColor": "글자 색"
       },
       "drawDialog": {
         "title": "카드 뽑기",
@@ -827,7 +831,12 @@
       "message": {
         "rolled": "{{who}}이(가) {{name}}을(를) 굴렸습니다 → {{face}}",
         "rolledMany": "{{who}}이(가) 주사위 {{count}}개를 굴렸습니다 → {{results}}",
-        "rolledManyTotal": "{{who}}이(가) 주사위 {{count}}개를 굴렸습니다 → {{results}}(합계 {{total}})"
+        "rolledManyTotal": "{{who}}이(가) 주사위 {{count}}개를 굴렸습니다 → {{results}}(합계 {{total}})",
+        "notRolled": "읽을 수 없는 주사위 {{count}}개는 굴리지 않았습니다"
+      },
+      "log": {
+        "reveal": "{{name}}의 눈은 {{face}}입니다.",
+        "revealNoName": "주사위 눈은 {{face}}입니다."
       }
     },
     "effect": {
@@ -1099,7 +1108,14 @@
       "setCurrent": "이 차례로 지정",
       "buffDecayOn": "버프의 남은 라운드를 자동으로 줄이기: 켬",
       "buffDecayOff": "버프의 남은 라운드를 자동으로 줄이기: 끔",
-      "buffExpired": "효과가 끝났습니다. {{detail}}"
+      "buffExpired": "효과가 끝났습니다. {{detail}}",
+      "advanceRound": "라운드 진행",
+      "advanceRoundAnnounce": "라운드를 진행했습니다.",
+      "undoAnnounce": "차례를 한 단계 되돌렸습니다.",
+      "acted": "행동 완료",
+      "undo": "한 단계 되돌리기",
+      "retreatRound": "라운드 되돌리기",
+      "retreatRoundAnnounce": "라운드 {{n}}(으)로 되돌렸습니다."
     },
     "inventory": {
       "contextMenu": {
@@ -1293,6 +1309,7 @@
         "confirmCleanFiltered": "좁혀진 {{count}}개 요소를 완전히 삭제할까요?",
         "multiMove": "일괄 이동",
         "displaySettings": "표시 설정",
+        "filterSettings": "필터와 표시 설정",
         "sortOrder1": "정렬 1순위",
         "sortOrder2": "정렬 2순위",
         "tagPlaceholder": "태그 이름",
@@ -1359,6 +1376,8 @@
         "invokeRangeShape": "등록된 사거리 표시",
         "hideInventoryOn": "☑ 인벤토리 숨김",
         "hideInventoryOff": "☐ 인벤토리 숨김",
+        "noTurnOn": "☑ 차례를 갖지 않음",
+        "noTurnOff": "☐ 차례를 갖지 않음",
         "nonTalkOn": "☑ 발언하지 않음",
         "nonTalkOff": "☐ 발언하지 않음",
         "displaySettings": "표시",
@@ -1638,6 +1657,7 @@
         "createMask": "맵 마스크 만들기",
         "createTerrain": "지형 만들기",
         "createNote": "공유 메모 만들기",
+        "createBlankCard": "빈 카드 만들기",
         "createTrump": "트럼프 덱 만들기",
         "createDice": "주사위 만들기",
         "createCoin": "코인 만들기",
@@ -1881,7 +1901,31 @@
         "fogModeHard": "하드 (기억을 지움)",
         "fogModeHint": "이지는 한 번 걷힌 안개가 돌아오지 않고 계속 밝으며, 발견한 적은 어디로 움직여도 위치를 알 수 있습니다. 노멀은 안개는 돌아오지 않지만 떨어진 곳은 어두워지고, 적이 미탐색 지역으로 가면 놓칩니다. 하드는 시야에서 벗어나면 미탐색으로 돌아갑니다.",
         "fogColor": "안개 색",
-        "fogReset": "안개 초기화"
+        "fogReset": "안개 초기화",
+        "sectionMoveRange": "이동 범위",
+        "moveRangeEnabled": "말을 집어 들면 이동할 수 있는 칸을 표시",
+        "moveRangeAlways": "선택한 말의 이동 범위를 계속 표시",
+        "moveDiagonally": "대각선 이동을 허용한다 (한 칸으로 계산)",
+        "piecesShareCells": "같은 칸에 여러 말을 놓을 수 있음 (끄면 다른 말이 있는 칸은 이동 대상에서 제외)",
+        "moveRangeElementNames": "참조할 항목",
+        "cellDistance": "한 칸의 거리",
+        "cellDistanceUnit": "칸 단위",
+        "moveRangeHint": "항목 이름은 쉼표로 구분하며 시트에서 먼저 찾은 것을 사용합니다. 시트의 값을 한 칸의 거리로 나누어 칸 수로 만듭니다(0이면 나누지 않음). 시트의 단위가 탁자와 다르면 피트와 미터를 환산하고, 시트가 칸이면 그대로 칸 수로 읽습니다.",
+        "zocMode": "ZOC(지배 영역)",
+        "zocMode_none": "없음",
+        "zocMode_stop": "발묶기 (들어가면 이동 종료)",
+        "zocMode_block": "진입 불가 (그 칸에는 들어갈 수 없음)",
+        "zocMode_cost": "이동 코스트 증가 (들어갈 때 추가 소모)",
+        "zocRange": "ZOC 범위",
+        "zocExtraCost": "추가 이동 코스트",
+        "zocAlways": "ZOC 상시 표시",
+        "zocAlwaysHint": "선택한 말에 대한 ZOC를 계속 표시",
+        "zocHint": "NPC 여부가 다른 말을 적으로 보고, 그 주위 칸이 이동을 방해합니다. 자신에게 보이지 않는 말은 ZOC를 만들지 않습니다.",
+        "cellUnit": {
+          "cell": "칸",
+          "metre": "미터",
+          "foot": "피트"
+        }
       },
       "dungeonGenerator": {
         "atmosphere": {
@@ -3445,7 +3489,13 @@
       "replay": "리플레이",
       "recording": "녹화",
       "fogOn": "전장의 안개: 켬(클릭하면 끔)",
-      "fogOff": "전장의 안개: 끔(클릭하면 켬)"
+      "fogOff": "전장의 안개: 끔(클릭하면 켬)",
+      "moveBlockOn": "이동 불가 칠하기(종료)",
+      "moveBlockOff": "이동 불가 칠하기",
+      "moveBlockBrush": "칠하기",
+      "moveBlockErase": "지우개",
+      "moveBlockClear": "전부 지우기",
+      "moveBlockClearConfirm": "칠한 이동 불가 칸을 전부 지울까요?"
     },
     "roomDataDefault": "룸 데이터"
   },

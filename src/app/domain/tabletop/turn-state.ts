@@ -19,4 +19,8 @@ export class TurnState extends GameObject {
   @SyncVar() round: number = 0;
   @SyncVar() phase: TurnPhase = 'idle';
   @SyncVar() buffDecay: boolean = true;
+  /** Who has had their turn this round. Emptied when a round opens. */
+  @SyncVar() actedIdentifiers: string[] = [];
+  /** What the round did, step by step, so that going back puts it all as it was. */
+  @SyncVar() history: string = '[]';
 }

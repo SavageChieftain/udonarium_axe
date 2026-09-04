@@ -1,3 +1,4 @@
+import { GameObject } from '@axe/core/sync/game-object';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { EffectKind, EffectTargeting, ProjectileStyle, SlashStyle } from '@axe/domain/effect/effect-kind';
 import { EffectPreset } from '@axe/domain/effect/effect-preset';
@@ -1655,10 +1656,12 @@ export function applyEffectPresetSeed(preset: EffectPreset, seed: EffectPresetSe
 }
 
 export function createEffectPreset(seed: EffectPresetSeed, identifier?: string): EffectPreset {
-  const preset = new EffectPreset(identifier);
-  applyEffectPresetSeed(preset, seed);
-  preset.initialize();
-  return preset;
+  return GameObject.batch(() => {
+    const preset = new EffectPreset(identifier);
+    applyEffectPresetSeed(preset, seed);
+    preset.initialize();
+    return preset;
+  });
 }
 
 export function createDefaultEffectPresets(): EffectPreset[] {

@@ -148,11 +148,11 @@ export class GameObjectInventoryService {
     this.objectChange.peerDisconnect$.subscribe(() => {
       this.refresh();
     }, this.destroyRef);
-    this.objectChange.objectChanged$.subscribe((e) => {
-      const object = this.objectStore.get(e.identifier);
-      if (!object) return;
-
-      if (object instanceof GameCharacter) {
+    this.objectChange.onObjectChangedForSingleAlias(
+      'character',
+      (e) => {
+        const object = this.objectStore.get(e.identifier);
+        if (!(object instanceof GameCharacter)) return;
         const prevLocation = this.locationMap.get(object.identifier);
         if (object.location.name !== prevLocation) {
           this.locationMap.set(object.identifier, object.location.name);
@@ -160,8 +160,14 @@ export class GameObjectInventoryService {
         } else {
           this.callInventoryUpdate();
         }
-      } else if (object instanceof DataElement) {
-        if (!this.containsInGameCharacter(object)) return;
+      },
+      this.destroyRef
+    );
+    this.objectChange.onObjectChangedForSingleAlias(
+      'data',
+      (e) => {
+        const object = this.objectStore.get(e.identifier);
+        if (!(object instanceof DataElement) || !this.containsInGameCharacter(object)) return;
 
         const prevName = this.tagNameMap.get(object.identifier);
         if (
@@ -179,7 +185,13 @@ export class GameObjectInventoryService {
           this.refreshSort();
         }
         this.callInventoryUpdate();
-      } else if (object instanceof DataSummarySetting) {
+      },
+      this.destroyRef
+    );
+    this.objectChange.onObjectChangedForSingleAlias(
+      'summary-setting',
+      (e) => {
+        if (!(this.objectStore.get(e.identifier) instanceof DataSummarySetting)) return;
         const snapshot = this.currentSummarySnapshot();
         if (snapshot !== this.summarySnapshot) {
           this.summarySnapshot = snapshot;
@@ -187,8 +199,9 @@ export class GameObjectInventoryService {
           this.refreshSort();
         }
         this.callInventoryUpdate();
-      }
-    }, this.destroyRef);
+      },
+      this.destroyRef
+    );
     this.objectChange.objectDeleted$.subscribe((e) => {
       this.locationMap.delete(e.identifier);
       this.tagNameMap.delete(e.identifier);

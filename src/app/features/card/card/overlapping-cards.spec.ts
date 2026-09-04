@@ -1,4 +1,3 @@
-import { ObjectStore } from '@axe/core/sync/object-store';
 import { Card } from '@axe/domain/card/card';
 import { selectOverlappingCards } from '@axe/features/card/card/overlapping-cards';
 import { afterEach, describe, expect, it } from 'vitest';
@@ -13,11 +12,7 @@ function makeCard(x: number, y: number, zindex = 0, posZ = 0): Card {
 }
 
 describe('selectOverlappingCards', () => {
-  afterEach(() => {
-    const store = ObjectStore.instance;
-    store.getObjects().forEach((object) => store.delete(object, false));
-    store.clearDeleteHistory();
-  });
+  afterEach(() => {});
 
   it('counts the card it starts from', () => {
     const origin = makeCard(0, 0);

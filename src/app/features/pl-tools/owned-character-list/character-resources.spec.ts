@@ -1,4 +1,3 @@
-import { ObjectStore } from '@axe/core/sync/object-store';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import {
   DataElement,
@@ -24,11 +23,7 @@ function addResource(character: GameCharacter, name: string, max: number, curren
 }
 
 describe('character-resources', () => {
-  afterEach(() => {
-    const store = ObjectStore.instance;
-    store.getObjects().forEach((object) => store.delete(object, false));
-    store.clearDeleteHistory();
-  });
+  afterEach(() => {});
 
   it('picks up the two usual resources of the default sheet', () => {
     const character = GameCharacter.create('テスト', 1, '');

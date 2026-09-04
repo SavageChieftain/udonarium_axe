@@ -8,6 +8,7 @@ import {
   effect,
   ElementRef,
   inject,
+  Signal,
   signal,
   viewChild,
 } from '@angular/core';
@@ -15,6 +16,9 @@ import { CardTargetService } from '@axe/application/card/card-target.service';
 import { EffectPlaybackService } from '@axe/application/effect/effect-playback.service';
 import { EffectTargetingService } from '@axe/application/effect/effect-targeting.service';
 import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
+import { CoordinateService } from '@axe/application/input/coordinate.service';
+import { PointerCoordinate } from '@axe/application/input/pointer-device.service';
+import { PointerDeviceService } from '@axe/application/input/pointer-device.service';
 import { ImageService } from '@axe/application/storage/image.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { TabletopService } from '@axe/application/tabletop/tabletop.service';
@@ -26,15 +30,13 @@ import { ModalService } from '@axe/application/ui/modal.service';
 import { PanelService } from '@axe/application/ui/panel.service';
 import { SelectionSignalService } from '@axe/application/ui/selection-signal.service';
 import { UiSignalService } from '@axe/application/ui/ui-signal.service';
-import { CoordinateService } from '@axe/core/input/coordinate.service';
-import { PointerCoordinate } from '@axe/core/input/pointer-device.service';
-import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { isTypingTarget } from '@axe/core/input/typing-target';
 import { ImageFile, imageFileEqual } from '@axe/core/storage/image-file';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
 import { FilterType, GameTable, GridType } from '@axe/domain/tabletop/game-table';
+import { computeHexMaskGeometry } from '@axe/domain/tabletop/hex-mask-geometry';
 import { SurfaceDims } from '@axe/domain/tabletop/surface-space';
 import { TableSelecter } from '@axe/domain/tabletop/table-selecter';
 import { boardSurfaceOf, surfaceOf, TABLE_SURFACES, TableSurface } from '@axe/domain/tabletop/tabletop-object';
@@ -43,30 +45,40 @@ import { CardComponent } from '@axe/features/card/card/card.component';
 import { CardStackComponent } from '@axe/features/card/card-stack/card-stack.component';
 import type { DeckBuilderResult } from '@axe/features/card/deck-builder-dialog/deck-builder-dialog.component';
 import { GameCharacterComponent } from '@axe/features/character/game-character/game-character.component';
-import { GameCharacterGeneratorComponent } from '@axe/features/character/game-character-generator/game-character-generator.component';
 import { CoinComponent } from '@axe/features/coin/coin/coin.component';
 import { DiceSymbolComponent } from '@axe/features/dice/dice-symbol/dice-symbol.component';
 import { EffectTargetOverlayComponent } from '@axe/features/effect/effect-target-overlay/effect-target-overlay.component';
 import { TableEffectOverlayComponent } from '@axe/features/effect/table-effect-overlay/table-effect-overlay.component';
 import { PeerCursorComponent } from '@axe/features/lobby/peer-cursor/peer-cursor.component';
+import { RoomPanelService } from '@axe/features/panels/room-panel.service';
 import { ReplayRouteOverlayComponent } from '@axe/features/replay/replay-route-overlay/replay-route-overlay.component';
 import { TableFogAirOverlayComponent } from '@axe/features/tabletop/fog-of-war/table-fog-air-overlay.component';
 import { beamTopGridGeometry, beamWallFaceGrid } from '@axe/features/tabletop/game-table/beam-top-grid';
+import { glideTransform } from '@axe/features/tabletop/game-table/game-table-camera';
 import { GameTableGestureService } from '@axe/features/tabletop/game-table/game-table-gesture.service';
+import {
+  WALL_SIDES,
+  WallBackground,
+  wallBackground,
+  wallFaceFor,
+  wallIsMirrored,
+  WallSurface,
+} from '@axe/features/tabletop/game-table/game-table-walls';
+import { GridFaceCache } from '@axe/features/tabletop/game-table/grid-face-cache';
 import { GridLineRender } from '@axe/features/tabletop/game-table/grid-line-render';
 import { TableMarqueeOverlayComponent } from '@axe/features/tabletop/game-table/table-marquee-overlay/table-marquee-overlay.component';
 import { GameTableMaskComponent } from '@axe/features/tabletop/game-table-mask/game-table-mask.component';
 import {
   buildHexOuterBorderSvg,
   buildHexOutlineMask,
-  computeHexMaskGeometry,
 } from '@axe/features/tabletop/game-table-mask/game-table-mask-helpers';
 import { GameTableScratchMaskComponent } from '@axe/features/tabletop/game-table-scratch-mask/game-table-scratch-mask.component';
-import { GameTableSettingComponent } from '@axe/features/tabletop/game-table-setting/game-table-setting.component';
 import { LightSourceComponent } from '@axe/features/tabletop/light-source/light-source.component';
 import { RangeComponent } from '@axe/features/tabletop/range/range.component';
 import { TableAmbienceComponent } from '@axe/features/tabletop/table-ambience/table-ambience.component';
 import { TableBeamOverlayComponent } from '@axe/features/tabletop/table-beam-overlay/table-beam-overlay.component';
+import { TableMoveBlockOverlayComponent } from '@axe/features/tabletop/table-move-block-overlay/table-move-block-overlay.component';
+import { TableMoveRangeOverlayComponent } from '@axe/features/tabletop/table-move-range-overlay/table-move-range-overlay.component';
 import { TableTargetOverlayComponent } from '@axe/features/tabletop/table-target-overlay/table-target-overlay.component';
 import { TableVisionOverlayComponent } from '@axe/features/tabletop/table-vision-overlay/table-vision-overlay.component';
 import { TableWeatherOverlayComponent } from '@axe/features/tabletop/table-weather-overlay/table-weather-overlay.component';
@@ -84,6 +96,12 @@ import { SafePipe } from '@axe/ui/pipes/safe.pipe';
 import { TranslocoModule } from '@jsverse/transloco';
 
 /** Whether something is being typed into a field, so the board does not steal the key. */
+interface WallView {
+  readonly wall: ActiveWall;
+  readonly pools: readonly { readonly style: Record<string, string> }[];
+  readonly silhouettes: readonly { readonly background: string; readonly style: Record<string, string> }[];
+}
+
 interface ActiveWall {
   surface: TableSurface;
   image: ImageFile;
@@ -145,6 +163,8 @@ const NO_BEAM_WALL_GRIDS: readonly BeamWallGrid[] = [];
     TableVisionVolumeOverlayComponent,
     TableBeamOverlayComponent,
     TableTargetOverlayComponent,
+    TableMoveRangeOverlayComponent,
+    TableMoveBlockOverlayComponent,
     TableEffectOverlayComponent,
     EffectTargetOverlayComponent,
     ReplayRouteOverlayComponent,
@@ -174,6 +194,7 @@ export class GameTableComponent {
   protected readonly visionService = inject(VisionService);
   private readonly modalService = inject(ModalService);
   private readonly panelService = inject(PanelService);
+  private readonly roomPanels = inject(RoomPanelService);
   private readonly objectStore = inject(ObjectStore);
   private readonly selectionSignalService = inject(SelectionSignalService);
   private readonly cardTargetService = inject(CardTargetService);
@@ -189,6 +210,11 @@ export class GameTableComponent {
   readonly gestureService = inject(GameTableGestureService);
 
   constructor() {
+    this.destroyRef.onDestroy(() => {
+      if (this.glideTimer !== null) clearTimeout(this.glideTimer);
+      this.glideTimer = null;
+      this.gestureService.destroy();
+    });
     // A piece's own change bumps its version, not the collection's, so the order it is
     // laid out in has to be told about separately - and only when the order really moved.
     const seenStackIndex = new Map<string, number>();
@@ -211,30 +237,20 @@ export class GameTableComponent {
     effect(() => {
       const focus = this.selectionSignalService.focusCoordinate();
       if (!focus || !this.gameTable) return;
-      setTimeout(() => {
+      this.glideTimer = setTimeout(() => {
         this.gameTable().nativeElement.style.transition = '0.2s ease-out';
-        setTimeout(() => {
+        this.glideTimer = setTimeout(() => {
+          this.glideTimer = null;
           this.gameTable().nativeElement.style.transition = '';
         }, 100);
-        const center = this.tableVisualCenter();
-        const centerX = center.x;
-        const centerY = center.y;
-        const movedX = focus.x - centerX;
-        const movedY = focus.y - centerY;
-        const rotateZRad = (this.gestureService.viewRotateZ / 180) * Math.PI;
-        const rotatedMovedX = movedX * Math.cos(rotateZRad) - movedY * Math.sin(rotateZRad);
-        const zRotatedMovedY = movedX * Math.sin(rotateZRad) + movedY * Math.cos(rotateZRad);
-        const rotateXRad = (this.gestureService.viewRotateX / 180) * Math.PI;
-        const rotatedMovedY = zRotatedMovedY * Math.cos(rotateXRad);
-        const rotatedMovedZ = zRotatedMovedY * Math.sin(rotateXRad);
-        this.gestureService.setTransform(
-          100 - rotatedMovedX - this.gestureService.viewPositionX,
-          -rotatedMovedY - this.gestureService.viewPositionY,
-          -rotatedMovedZ - this.gestureService.viewPositionZ,
-          0,
-          0,
-          0
-        );
+        const moved = glideTransform(focus, this.tableVisualCenter(), {
+          rotateX: this.gestureService.viewRotateX,
+          rotateZ: this.gestureService.viewRotateZ,
+          positionX: this.gestureService.viewPositionX,
+          positionY: this.gestureService.viewPositionY,
+          positionZ: this.gestureService.viewPositionZ,
+        });
+        this.gestureService.setTransform(moved.x, moved.y, moved.z, 0, 0, 0);
       }, 50);
     });
 
@@ -350,116 +366,43 @@ export class GameTableComponent {
     };
   });
 
+  private readonly wallImages: Record<WallSurface, Signal<ImageFile>> = {
+    'north-wall': this.northWallImage,
+    'south-wall': this.southWallImage,
+    'west-wall': this.westWallImage,
+    'east-wall': this.eastWallImage,
+  };
+
   readonly activeWalls = computed<readonly ActiveWall[]>(() => {
     const state = this.wallState();
     const table = this.watchCurrentTable();
-    const grid = (
-      widthPx: number,
-      heightPx: number,
-      prefix: string,
-      matrix: readonly [number, number, number, number] | null
-    ) => (state.gridShow ? this.wallGridDataUrl(widthPx, heightPx, table, prefix, matrix) : '');
     const walls = [] as ActiveWall[];
-    const north = this.northWallImage();
-    if (state.showNorth && north.url) {
+    for (const side of WALL_SIDES) {
+      const image = this.wallImages[side.surface]();
+      if (!side.shown(table) || !image.url) continue;
+      const widthPx = side.along === 'width' ? state.widthPx : state.depthPx;
+      const gridUrl = state.gridShow
+        ? this.gridFaces.dataUrl(table, widthPx, state.heightPx, 0, 0, side.labelPrefix, side.labelMatrix)
+        : '';
       walls.push({
-        surface: 'north-wall',
-        image: north,
-        containerClass: 'top-0 left-0',
-        containerTransform: 'translateY(-100%) rotateX(90deg) rotateZ(180deg) scaleX(-1)',
-        containerOrigin: '50% 100%',
-        widthPx: state.widthPx,
+        surface: side.surface,
+        image,
+        containerClass: side.containerClass,
+        containerTransform: side.containerTransform,
+        containerOrigin: side.containerOrigin,
+        widthPx,
         heightPx: state.heightPx,
-        ...this.wallBackground(north.url, grid(state.widthPx, state.heightPx, 'N', null)),
-      });
-    }
-    const south = this.southWallImage();
-    if (state.showSouth && south.url) {
-      walls.push({
-        surface: 'south-wall',
-        image: south,
-        containerClass: 'bottom-0 left-0',
-        containerTransform: 'rotateX(-90deg) scaleX(-1)',
-        containerOrigin: '50% 100%',
-        widthPx: state.widthPx,
-        heightPx: state.heightPx,
-        ...this.wallBackground(south.url, grid(state.widthPx, state.heightPx, 'S', [-1, 0, 0, 1])),
-      });
-    }
-    const west = this.westWallImage();
-    if (state.showWest && west.url) {
-      walls.push({
-        surface: 'west-wall',
-        image: west,
-        containerClass: 'top-0 left-0',
-        containerTransform: 'rotateZ(90deg) rotateX(-90deg) scaleX(-1) translateX(-100%) translateY(-100%)',
-        containerOrigin: '0% 0%',
-        widthPx: state.depthPx,
-        heightPx: state.heightPx,
-        ...this.wallBackground(west.url, grid(state.depthPx, state.heightPx, 'W', null)),
-      });
-    }
-    const east = this.eastWallImage();
-    if (state.showEast && east.url) {
-      walls.push({
-        surface: 'east-wall',
-        image: east,
-        containerClass: 'top-0 right-0',
-        containerTransform: 'rotateZ(-90deg) rotateX(-90deg) translateY(-100%) translateX(-100%) scaleX(-1)',
-        containerOrigin: '100% 0%',
-        widthPx: state.depthPx,
-        heightPx: state.heightPx,
-        ...this.wallBackground(east.url, grid(state.depthPx, state.heightPx, 'E', null)),
+        ...wallBackground(image.url, gridUrl),
       });
     }
     return walls;
   });
 
-  private wallGridDataUrl(
-    widthPx: number,
-    heightPx: number,
-    table: GameTable,
-    labelPrefix: string,
-    labelMatrix: readonly [number, number, number, number] | null
-  ): string {
-    if (typeof document === 'undefined' || widthPx <= 0 || heightPx <= 0) return '';
-    try {
-      const canvas = document.createElement('canvas');
-      new GridLineRender(canvas).renderViewport(
-        widthPx,
-        heightPx,
-        table.gridSize,
-        table.gridType,
-        table.gridColor,
-        table.gridFontColor,
-        0,
-        0,
-        true,
-        labelPrefix,
-        labelMatrix
-      );
-      return canvas.toDataURL();
-    } catch {
-      return '';
-    }
-  }
+  private readonly gridFaces = new GridFaceCache();
+  private glideTimer: ReturnType<typeof setTimeout> | null = null;
 
-  wallBackground(
-    imageUrl: string,
-    gridUrl: string
-  ): { surfaceBackground: string; surfaceBackgroundSize: string; surfaceBackgroundRepeat: string } {
-    if (!gridUrl) {
-      return {
-        surfaceBackground: `url(${imageUrl})`,
-        surfaceBackgroundSize: '100% 100%',
-        surfaceBackgroundRepeat: 'no-repeat',
-      };
-    }
-    return {
-      surfaceBackground: `url(${gridUrl}), url(${imageUrl})`,
-      surfaceBackgroundSize: '100% 100%, 100% 100%',
-      surfaceBackgroundRepeat: 'no-repeat, no-repeat',
-    };
+  wallBackground(imageUrl: string, gridUrl: string): WallBackground {
+    return wallBackground(imageUrl, gridUrl);
   }
 
   readonly tableSurfaceStyle = computed<Record<string, string>>(() => {
@@ -610,21 +553,11 @@ export class GameTableComponent {
       result.push({
         identifier: terrain.identifier,
         ...geo,
-        dataUrl: this.beamTopGridDataUrl(geo.width, geo.height, geo.left, geo.top, table),
+        dataUrl: this.gridFaces.dataUrl(table, geo.width, geo.height, geo.top, geo.left, '', null),
       });
     }
     return result.length > 0 ? result : NO_BEAM_TOP_GRIDS;
   });
-
-  private beamTopGridDataUrl(
-    widthPx: number,
-    heightPx: number,
-    offsetLeftPx: number,
-    offsetTopPx: number,
-    table: GameTable
-  ): string {
-    return this.gridFaceDataUrl(widthPx, heightPx, offsetLeftPx, offsetTopPx, table, '');
-  }
 
   readonly beamWallGrids = computed<readonly BeamWallGrid[]>(() => {
     const table = this.currentTable;
@@ -647,39 +580,24 @@ export class GameTableComponent {
         matrix3d: face.matrix3d,
         width: face.width,
         height: face.height,
-        dataUrl: this.gridFaceDataUrl(face.width, face.height, face.offsetLeft, face.offsetTop, table, face.prefix),
+        dataUrl: this.gridFaces.dataUrl(
+          table,
+          face.width,
+          face.height,
+          face.offsetTop,
+          face.offsetLeft,
+          face.prefix,
+          null
+        ),
       });
     }
     return result.length > 0 ? result : NO_BEAM_WALL_GRIDS;
   });
 
-  private gridFaceDataUrl(
-    widthPx: number,
-    heightPx: number,
-    offsetLeftPx: number,
-    offsetTopPx: number,
-    table: GameTable,
-    prefix: string
-  ): string {
-    if (typeof document === 'undefined' || widthPx <= 0 || heightPx <= 0) return '';
-    try {
-      const canvas = document.createElement('canvas');
-      new GridLineRender(canvas).renderViewport(
-        widthPx,
-        heightPx,
-        table.gridSize,
-        table.gridType,
-        table.gridColor,
-        table.gridFontColor,
-        offsetTopPx,
-        offsetLeftPx,
-        true,
-        prefix
-      );
-      return canvas.toDataURL();
-    } catch {
-      return '';
-    }
+  private async openTableSetting(): Promise<void> {
+    const { GameTableSettingComponent } =
+      await import('@axe/features/tabletop/game-table-setting/game-table-setting.component');
+    await this.modalService.open(GameTableSettingComponent);
   }
 
   private async openDeckBuilder(position: PointerCoordinate): Promise<void> {
@@ -706,11 +624,7 @@ export class GameTableComponent {
       menuActions.push({
         name: this.t('feature.tabletop.contextMenu.createWithOptions'),
         action: () => {
-          this.panelService.open(GameCharacterGeneratorComponent, {
-            width: 460,
-            height: 420,
-            title: this.t('common.panel.characterGenerator'),
-          });
+          this.roomPanels.open('characterGenerator', { width: 460, height: 420 });
         },
       });
     }
@@ -718,7 +632,7 @@ export class GameTableComponent {
     menuActions.push({
       name: this.t('feature.tabletop.tableSetting.title'),
       action: () => {
-        this.modalService.open(GameTableSettingComponent);
+        void this.openTableSetting();
       },
     });
     return menuActions;
@@ -769,27 +683,31 @@ export class GameTableComponent {
 
   private wallFaceFor(surface: TableSurface): WallFace | null {
     const table = this.watchCurrentTable();
-    const w = table.width * table.gridSize;
-    const d = table.height * table.gridSize;
-    const hpx = table.wallHeight * table.gridSize;
-    switch (surface) {
-      case 'north-wall':
-        return { ax: 0, ay: 0, bx: w, by: 0, nx: 0, ny: 1, heightPx: hpx };
-      case 'south-wall':
-        return { ax: 0, ay: d, bx: w, by: d, nx: 0, ny: -1, heightPx: hpx };
-      case 'west-wall':
-        return { ax: 0, ay: 0, bx: 0, by: d, nx: 1, ny: 0, heightPx: hpx };
-      case 'east-wall':
-        return { ax: w, ay: 0, bx: w, by: d, nx: -1, ny: 0, heightPx: hpx };
-      default:
-        return null;
-    }
+    return wallFaceFor(
+      surface,
+      table.width * table.gridSize,
+      table.height * table.gridSize,
+      table.wallHeight * table.gridSize
+    );
   }
 
-  protected wallBaseFilter(): string | null {
+  protected readonly wallBaseFilter = computed<string | null>(() => {
     const brightness = this.visionService.ambientBrightness();
     return brightness < 1 ? 'brightness(' + brightness.toFixed(3) + ')' : null;
-  }
+  });
+
+  protected readonly wallViews = computed<readonly WallView[]>(() =>
+    this.activeWalls().map((wall) => ({
+      wall,
+      pools: this.wallPoolsFor(wall.surface).map((pool) => ({
+        style: this.wallPoolStyleFor(pool, wall.surface, wall.widthPx),
+      })),
+      silhouettes: this.wallSilhouettesFor(wall.surface).map((silhouette) => ({
+        background: this.wallSilhouetteBg(silhouette),
+        style: this.wallSilhouetteStyleFor(silhouette, wall.surface, wall.widthPx),
+      })),
+    }))
+  );
 
   protected wallSilhouettesFor(surface: TableSurface): WallSilhouette[] {
     const face = this.wallFaceFor(surface);
@@ -801,13 +719,8 @@ export class GameTableComponent {
     return face ? this.visionService.wallLights(face) : [];
   }
 
-  /** Whether a wall is drawn from the end its face starts at, which `surfaceFrame` settles. */
-  private wallIsMirrored(surface: TableSurface): boolean {
-    return surface === 'south-wall' || surface === 'west-wall';
-  }
-
   protected wallPoolStyleFor(pool: WallLight, surface: TableSurface, faceLen: number): Record<string, string> {
-    return wallLightLayerStyle(pool, this.wallIsMirrored(surface), faceLen);
+    return wallLightLayerStyle(pool, wallIsMirrored(surface), faceLen);
   }
 
   protected wallSilhouetteBg(silhouette: WallSilhouette): string {
@@ -819,7 +732,7 @@ export class GameTableComponent {
     surface: TableSurface,
     faceLen: number
   ): Record<string, string> {
-    return wallSilhouetteStyle(silhouette, this.wallIsMirrored(surface), faceLen);
+    return wallSilhouetteStyle(silhouette, wallIsMirrored(surface), faceLen);
   }
 
   private watchCurrentTable(): GameTable {

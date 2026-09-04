@@ -1,4 +1,11 @@
-import { gaugeColor, gaugeRatio, isGaugeInverted, selectPieceGauges } from '@axe/domain/character/piece-gauge';
+import {
+  gaugeColor,
+  gaugeNumbersOf,
+  gaugeRatio,
+  HIDDEN_GAUGE_NUMBERS,
+  isGaugeInverted,
+  selectPieceGauges,
+} from '@axe/domain/character/piece-gauge';
 import { DataElement, DataElementAttribute, DataElementType } from '@axe/domain/data/data-element';
 
 describe('gaugeRatio()', () => {
@@ -88,5 +95,17 @@ describe('selectPieceGauges()', () => {
 
   it('returns nothing when it is unset', () => {
     expect(selectPieceGauges(null)).toEqual([]);
+  });
+});
+
+describe('gaugeNumbersOf()', () => {
+  const gauge = { current: 7, max: 12 } as Parameters<typeof gaugeNumbersOf>[0];
+
+  it('reads out the numbers for whoever may read the piece', () => {
+    expect(gaugeNumbersOf(gauge, true)).toBe('7/12');
+  });
+
+  it('keeps them back from whoever may not', () => {
+    expect(gaugeNumbersOf(gauge, false)).toBe(HIDDEN_GAUGE_NUMBERS);
   });
 });

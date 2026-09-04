@@ -940,6 +940,46 @@
                   (change)="setCardOwnSize(c, $event)"
                 />
               </label>
+              @if (canReadCardFace(c)) {
+                <label class="flex flex-col gap-1 text-[0.78em]">
+                  <span class="text-ui-muted">{{ 'feature.card.field.text' | transloco }}</span>
+                  <textarea
+                    class="bg-ui-input border-ui-border-panel text-ui-text rounded-ui-sm focus:border-ui-accent min-h-20 w-full resize-y border border-solid px-2 py-1 outline-none"
+                    [value]="cardOwnFaceText(c)"
+                    (input)="setCardOwnFaceText(c, $event)"
+                    (blur)="flushCardOwnFaceText()"
+                  ></textarea>
+                  <span class="text-ui-dim text-[0.72em]">{{ 'feature.card.field.textHint' | transloco }}</span>
+                </label>
+                <label class="flex items-center gap-2 text-[0.78em]">
+                  <span class="text-ui-muted">{{ 'feature.card.field.fontSize' | transloco }}</span>
+                  <input
+                    type="number"
+                    min="1"
+                    max="120"
+                    class="bg-ui-input border-ui-border-panel text-ui-text rounded-ui-sm focus:border-ui-accent w-20 border border-solid p-1 outline-none"
+                    [value]="cardOwnFaceFontSize(c)"
+                    (input)="setCardOwnFaceFontSize(c, $event)"
+                  />
+                </label>
+                <label class="flex items-center gap-2 text-[0.78em]">
+                  <span class="text-ui-muted">{{ 'feature.card.field.fontColor' | transloco }}</span>
+                  <input
+                    type="color"
+                    class="bg-ui-input border-ui-border-panel rounded-ui-sm focus:border-ui-accent h-8 w-14 cursor-pointer border border-solid p-0.5 outline-none"
+                    [value]="cardOwnFaceFontColor(c)"
+                    (input)="setCardOwnFaceFontColor(c, $event)"
+                  />
+                </label>
+              } @else {
+                <div
+                  class="text-ui-muted bg-ui-input border-ui-border-panel flex min-h-20 items-center justify-center gap-1.5 rounded-md border border-solid px-3 py-2 text-[0.78em]"
+                  data-card-face-locked
+                >
+                  <i class="material-icons text-[16px]!">lock</i>
+                  <span>{{ 'feature.disclosure.locked' | transloco }}</span>
+                </div>
+              }
             </div>
           </div>
         </section>

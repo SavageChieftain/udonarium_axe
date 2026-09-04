@@ -166,6 +166,18 @@ describe('CharacterDiceService', () => {
       expect(laid.map((die) => die.face)).toEqual(['2', '6']);
     });
 
+    it('lays a die that was kept to its owner out on its first face', () => {
+      const character = makeCharacter();
+      const symbol = makeSymbol('隠しダイス');
+      symbol.face = '6';
+      symbol.owner = 'somebody';
+      service.store(character, symbol);
+
+      const [die] = service.deploy(character);
+
+      expect(die.face).toBe('1');
+    });
+
     it('falls back to the first face for one it no longer has', () => {
       const character = makeCharacter();
       storeHeldDie(character, {

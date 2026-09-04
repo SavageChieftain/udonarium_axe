@@ -12,6 +12,8 @@ import {
   viewChild,
 } from '@angular/core';
 import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
+import { CoordinateService } from '@axe/application/input/coordinate.service';
+import { PointerDeviceService } from '@axe/application/input/pointer-device.service';
 import { GameObjectInventoryService } from '@axe/application/inventory/game-object-inventory.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { TabletopService } from '@axe/application/tabletop/tabletop.service';
@@ -22,8 +24,6 @@ import { PieceContextMenuService } from '@axe/application/ui/piece-context-menu.
 import { sheetPanelBox } from '@axe/application/ui/sheet-panel';
 import { sheetPanelTitle } from '@axe/application/ui/sheet-panel';
 import { UiSignalService } from '@axe/application/ui/ui-signal.service';
-import { CoordinateService } from '@axe/core/input/coordinate.service';
-import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
@@ -32,6 +32,7 @@ import { GameTable } from '@axe/domain/tabletop/game-table';
 import { isHexGrid } from '@axe/domain/tabletop/hex-geometry';
 import { RangeArea } from '@axe/domain/tabletop/range';
 import { TableSelecter } from '@axe/domain/tabletop/table-selecter';
+import { ObjectPanelService } from '@axe/features/panels/object-panel.service';
 import { buildRangeContextMenu } from '@axe/features/tabletop/range/range-context-menu';
 import {
   ClipAreaCorn,
@@ -70,6 +71,7 @@ export class RangeComponent {
   private readonly pieceContextMenu = inject(PieceContextMenuService);
   private readonly elementRef = inject<ElementRef<HTMLElement>>(ElementRef);
   private readonly panelService = inject(PanelService);
+  private readonly objectPanels = inject(ObjectPanelService);
   private readonly pointerDeviceService = inject(PointerDeviceService);
   private readonly coordinateService = inject(CoordinateService);
   protected readonly tabletopService = inject(TabletopService);
@@ -296,7 +298,7 @@ export class RangeComponent {
   math = Math;
 
   viewRotateX = 50;
-  readonly viewRotateZ = computed(() => this.uiSignalService.tableViewRotation()?.z ?? 10);
+  readonly viewRotateZ = this.uiSignalService.tableViewRotationZ;
 
   readonly movableOption = signal<MovableOption>({});
   readonly rotableOption = signal<RotableOption>({});
@@ -445,20 +447,8 @@ export class RangeComponent {
   }
 
   private showDetail(gameObject: RangeArea) {
-    const coordinate = this.pointerDeviceService.pointers[0];
     const title = sheetPanelTitle(this.translateFn('feature.tabletop.panel.range'), gameObject.name);
-    const option: PanelOption = {
-      title: title,
-      ...sheetPanelBox(coordinate, 400, 300),
-    };
-    this.panelService.openLazy(
-      () =>
-        import('@axe/features/character/game-character-sheet/game-character-sheet.component').then(
-          (m) => m.GameCharacterSheetComponent
-        ),
-      option,
-      (component) => (component.tabletopObject = gameObject)
-    );
+    this.objectPanels.openSheet(gameObject, title, { width: 400, height: 300 });
   }
 
   private setRange(degree: number = this.range().rotate) {

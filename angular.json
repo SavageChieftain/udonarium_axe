@@ -57,13 +57,13 @@
               "optimization": true,
               "outputHashing": "all",
               "sourceMap": false,
-              "namedChunks": false,
+              "namedChunks": true,
               "extractLicenses": true,
               "budgets": [
                 {
                   "type": "initial",
-                  "maximumWarning": "10mb",
-                  "maximumError": "15mb"
+                  "maximumWarning": "3.1mb",
+                  "maximumError": "3.5mb"
                 }
               ]
             },

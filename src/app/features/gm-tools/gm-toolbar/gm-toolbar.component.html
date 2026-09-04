@@ -15,169 +15,124 @@
       {{ 'app.fab.gmTools' | transloco }}
     </span>
 
-    <button
-      type="button"
-      class="rounded-ui-sm text-ui-text hover:bg-ui-menu-hover hover:text-ui-accent flex size-8 cursor-pointer items-center justify-center border-none bg-transparent transition-colors [&_i]:text-[20px]!"
-      [title]="'app.fab.objectList' | transloco"
-      (click)="openObjectList()"
-    >
-      <i class="material-icons">category</i>
-    </button>
+    <ui-icon-button icon="category" [label]="'app.fab.objectList' | transloco" (press)="openObjectList()" />
 
-    <button
-      type="button"
-      class="rounded-ui-sm text-ui-text hover:bg-ui-menu-hover hover:text-ui-accent flex size-8 cursor-pointer items-center justify-center border-none bg-transparent transition-colors [&_i]:text-[20px]!"
-      [title]="'feature.mapEditor.title' | transloco"
-      (click)="openMapEditor()"
-    >
-      <i class="material-icons">architecture</i>
-    </button>
-    <button
-      type="button"
-      class="rounded-ui-sm text-ui-text hover:bg-ui-menu-hover hover:text-ui-accent flex size-8 cursor-pointer items-center justify-center border-none bg-transparent transition-colors [&_i]:text-[20px]!"
-      [title]="'feature.tabletop.dungeonGenerator.title' | transloco"
-      (click)="openDungeonGenerator()"
-    >
-      <i class="material-icons">map</i>
-    </button>
+    <ui-icon-button icon="architecture" [label]="'feature.mapEditor.title' | transloco" (press)="openMapEditor()" />
+    <ui-icon-button
+      icon="map"
+      [label]="'feature.tabletop.dungeonGenerator.title' | transloco"
+      (press)="openDungeonGenerator()"
+    />
 
-    <button
-      type="button"
-      class="rounded-ui-sm text-ui-text hover:bg-ui-menu-hover hover:text-ui-accent flex size-8 cursor-pointer items-center justify-center border-none bg-transparent transition-colors [&_i]:text-[20px]!"
-      [title]="'feature.gmTools.party.title' | transloco"
-      (click)="openPartyList()"
-    >
-      <i class="material-icons">group_work</i>
-    </button>
+    <ui-icon-button icon="group_work" [label]="'feature.gmTools.party.title' | transloco" (press)="openPartyList()" />
 
-    <button
-      type="button"
-      class="rounded-ui-sm text-ui-text hover:bg-ui-menu-hover hover:text-ui-accent flex size-8 cursor-pointer items-center justify-center border-none bg-transparent transition-colors [&_i]:text-[20px]!"
-      [title]="'feature.buffManager.title' | transloco"
-      (click)="openBuffManager()"
-    >
-      <i class="material-icons">timeline</i>
-    </button>
+    <ui-icon-button icon="timeline" [label]="'feature.buffManager.title' | transloco" (press)="openBuffManager()" />
 
-    <button
-      type="button"
-      class="rounded-ui-sm text-ui-text hover:bg-ui-menu-hover hover:text-ui-accent flex size-8 cursor-pointer items-center justify-center border-none bg-transparent transition-colors [&_i]:text-[20px]!"
-      [title]="'feature.effect.title' | transloco"
-      (click)="openEffectLibrary()"
-    >
-      <i class="material-icons">auto_awesome</i>
-    </button>
+    <ui-icon-button icon="auto_awesome" [label]="'feature.effect.title' | transloco" (press)="openEffectLibrary()" />
 
-    <button
-      type="button"
-      class="rounded-ui-sm text-ui-text hover:bg-ui-menu-hover hover:text-ui-accent flex size-8 cursor-pointer items-center justify-center border-none bg-transparent transition-colors [&_i]:text-[20px]!"
-      [class.text-ui-accent]="npcBar.isOpen()"
-      [class.bg-ui-accent-bg]="npcBar.isOpen()"
-      [title]="'app.fab.npcBar' | transloco"
-      (click)="toggleNpcBar()"
-    >
-      <i class="material-icons">groups</i>
-    </button>
+    <ui-icon-button
+      icon="groups"
+      [label]="'app.fab.npcBar' | transloco"
+      [active]="npcBar.isOpen()"
+      (press)="toggleNpcBar()"
+    />
 
-    <button
-      type="button"
-      class="rounded-ui-sm text-ui-text hover:bg-ui-menu-hover hover:text-ui-accent flex size-8 cursor-pointer items-center justify-center border-none bg-transparent transition-colors [&_i]:text-[20px]!"
-      [class.text-ui-accent]="darknessEnabled()"
-      [class.bg-ui-accent-bg]="darknessEnabled()"
-      [class.text-ui-dim]="!darknessEnabled()"
-      [title]="(darknessEnabled() ? 'app.fab.darknessOn' : 'app.fab.darknessOff') | transloco"
-      (click)="toggleDarkness()"
-    >
-      <i class="material-icons">{{ darknessEnabled() ? 'bedtime' : 'bedtime_off' }}</i>
-    </button>
+    <ui-icon-button
+      [icon]="darknessEnabled() ? 'bedtime' : 'bedtime_off'"
+      [label]="(darknessEnabled() ? 'app.fab.darknessOn' : 'app.fab.darknessOff') | transloco"
+      [active]="darknessEnabled()"
+      [dim]="!darknessEnabled()"
+      (press)="toggleDarkness()"
+    />
 
-    <button
-      type="button"
-      class="rounded-ui-sm text-ui-text hover:bg-ui-menu-hover hover:text-ui-accent flex size-8 cursor-pointer items-center justify-center border-none bg-transparent transition-colors [&_i]:text-[20px]!"
-      [class.text-ui-accent]="fogEnabled()"
-      [class.bg-ui-accent-bg]="fogEnabled()"
-      [class.text-ui-dim]="!fogEnabled()"
-      [title]="(fogEnabled() ? 'app.fab.fogOn' : 'app.fab.fogOff') | transloco"
-      (click)="toggleFog()"
-    >
-      <i class="material-icons">{{ fogEnabled() ? 'foggy' : 'filter_drama' }}</i>
-    </button>
+    <ui-icon-button
+      [icon]="fogEnabled() ? 'foggy' : 'filter_drama'"
+      [label]="(fogEnabled() ? 'app.fab.fogOn' : 'app.fab.fogOff') | transloco"
+      [active]="fogEnabled()"
+      [dim]="!fogEnabled()"
+      (press)="toggleFog()"
+    />
 
-    <button
-      type="button"
-      class="rounded-ui-sm text-ui-text hover:bg-ui-menu-hover hover:text-ui-accent flex size-8 cursor-pointer items-center justify-center border-none bg-transparent transition-colors [&_i]:text-[20px]!"
-      [class.text-ui-accent]="handRail.isOpen()"
-      [class.bg-ui-accent-bg]="handRail.isOpen()"
-      [title]="'app.fab.handCards' | transloco"
-      (click)="toggleHandRail()"
-    >
-      <i class="material-icons">style</i>
-    </button>
+    <ui-icon-button
+      icon="block"
+      [label]="(moveBlock.isPainting() ? 'app.fab.moveBlockOn' : 'app.fab.moveBlockOff') | transloco"
+      [active]="moveBlock.isPainting()"
+      [dim]="!moveBlock.isPainting()"
+      testId="move-block-toggle"
+      (press)="toggleMoveBlock()"
+    />
 
-    <button
-      type="button"
-      class="rounded-ui-sm text-ui-text hover:bg-ui-menu-hover hover:text-ui-accent flex size-8 cursor-pointer items-center justify-center border-none bg-transparent transition-colors [&_i]:text-[20px]!"
-      [title]="'app.fab.releaseOwnership' | transloco"
-      (click)="releaseOrphanedOwnership()"
-    >
-      <i class="material-icons">key_off</i>
-    </button>
+    @if (moveBlock.isPainting()) {
+      <ui-icon-button
+        icon="brush"
+        [label]="'app.fab.moveBlockBrush' | transloco"
+        [active]="moveBlock.brush() === 'block'"
+        testId="move-block-brush"
+        (press)="useBlockBrush()"
+      />
+      <ui-icon-button
+        icon="ink_eraser"
+        [label]="'app.fab.moveBlockErase' | transloco"
+        [active]="moveBlock.brush() === 'erase'"
+        testId="move-block-erase"
+        (press)="useEraserBrush()"
+      />
+      <ui-icon-button
+        icon="delete_sweep"
+        [label]="'app.fab.moveBlockClear' | transloco"
+        testId="move-block-clear"
+        (press)="clearMoveBlocks()"
+      />
+    }
 
-    <button
-      type="button"
-      data-testid="hotbar-toggle"
-      class="rounded-ui-sm text-ui-text hover:bg-ui-menu-hover hover:text-ui-accent flex size-8 cursor-pointer items-center justify-center border-none bg-transparent transition-colors [&_i]:text-[20px]!"
-      [class.text-ui-accent]="widgets.hotbar()"
-      [class.bg-ui-accent-bg]="widgets.hotbar()"
-      [title]="'feature.hotbar.toggle' | transloco"
-      (click)="widgets.toggleHotbar()"
-    >
-      <i class="material-icons">apps</i>
-    </button>
+    <ui-icon-button
+      icon="style"
+      [label]="'app.fab.handCards' | transloco"
+      [active]="handRail.isOpen()"
+      (press)="toggleHandRail()"
+    />
 
-    <button
-      type="button"
-      class="rounded-ui-sm text-ui-text hover:bg-ui-menu-hover hover:text-ui-accent flex size-8 cursor-pointer items-center justify-center border-none bg-transparent transition-colors [&_i]:text-[20px]!"
-      [class.text-ui-accent]="widgets.clock()"
-      [class.bg-ui-accent-bg]="widgets.clock()"
-      [title]="'app.fab.clock' | transloco"
-      (click)="widgets.toggleClock()"
-    >
-      <i class="material-icons">schedule</i>
-    </button>
+    <ui-icon-button
+      icon="key_off"
+      [label]="'app.fab.releaseOwnership' | transloco"
+      (press)="releaseOrphanedOwnership()"
+    />
 
-    <button
-      type="button"
-      class="rounded-ui-sm text-ui-text hover:bg-ui-menu-hover hover:text-ui-accent flex size-8 cursor-pointer items-center justify-center border-none bg-transparent transition-colors [&_i]:text-[20px]!"
-      [class.text-ui-accent]="widgets.recording()"
-      [class.bg-ui-accent-bg]="widgets.recording()"
-      [title]="'app.fab.recording' | transloco"
-      (click)="widgets.toggleRecording()"
-    >
-      <i class="material-icons">radio_button_checked</i>
-    </button>
+    <ui-icon-button
+      icon="apps"
+      [label]="'feature.hotbar.toggle' | transloco"
+      [active]="widgets.hotbar()"
+      testId="hotbar-toggle"
+      (press)="widgets.toggleHotbar()"
+    />
 
-    <button
-      type="button"
-      class="rounded-ui-sm text-ui-text hover:bg-ui-menu-hover hover:text-ui-accent flex size-8 cursor-pointer items-center justify-center border-none bg-transparent transition-colors [&_i]:text-[20px]!"
-      [class.text-ui-accent]="widgets.connectionQuality()"
-      [class.bg-ui-accent-bg]="widgets.connectionQuality()"
-      [title]="'app.fab.connectionQuality' | transloco"
-      (click)="widgets.toggleConnectionQuality()"
-    >
-      <i class="material-icons">network_check</i>
-    </button>
+    <ui-icon-button
+      icon="schedule"
+      [label]="'app.fab.clock' | transloco"
+      [active]="widgets.clock()"
+      (press)="widgets.toggleClock()"
+    />
 
-    <button
-      type="button"
-      class="rounded-ui-sm text-ui-text hover:bg-ui-menu-hover hover:text-ui-accent flex size-8 cursor-pointer items-center justify-center border-none bg-transparent transition-colors [&_i]:text-[20px]!"
-      [class.text-ui-accent]="widgets.miniPlayer()"
-      [class.bg-ui-accent-bg]="widgets.miniPlayer()"
-      [title]="'app.fab.miniPlayer' | transloco"
-      (click)="widgets.toggleMiniPlayer()"
-    >
-      <i class="material-icons">play_circle</i>
-    </button>
+    <ui-icon-button
+      icon="radio_button_checked"
+      [label]="'app.fab.recording' | transloco"
+      [active]="widgets.recording()"
+      (press)="widgets.toggleRecording()"
+    />
+
+    <ui-icon-button
+      icon="network_check"
+      [label]="'app.fab.connectionQuality' | transloco"
+      [active]="widgets.connectionQuality()"
+      (press)="widgets.toggleConnectionQuality()"
+    />
+
+    <ui-icon-button
+      icon="play_circle"
+      [label]="'app.fab.miniPlayer' | transloco"
+      [active]="widgets.miniPlayer()"
+      (press)="widgets.toggleMiniPlayer()"
+    />
 
     @if (turnIndicator(); as turn) {
       <span

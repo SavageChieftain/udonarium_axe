@@ -19,10 +19,12 @@ import { EffectCastService } from '@axe/application/effect/effect-cast.service';
 import { EffectLibraryService } from '@axe/application/effect/effect-library.service';
 import { EffectPlaybackService } from '@axe/application/effect/effect-playback.service';
 import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
+import { PointerDeviceService } from '@axe/application/input/pointer-device.service';
 import { GameObjectInventoryService } from '@axe/application/inventory/game-object-inventory.service';
 import { DisclosureService } from '@axe/application/permission/disclosure.service';
 import { RolePermissionService } from '@axe/application/permission/role-permission.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
+import { MoveRangeService } from '@axe/application/tabletop/move-range.service';
 import { RangeShapeInvokeService } from '@axe/application/tabletop/range-shape-invoke.service';
 import { TabletopService } from '@axe/application/tabletop/tabletop.service';
 import { VisionService } from '@axe/application/tabletop/vision.service';
@@ -36,9 +38,9 @@ import { sheetPanelBox } from '@axe/application/ui/sheet-panel';
 import { sheetPanelTitle } from '@axe/application/ui/sheet-panel';
 import { buildSurfaceSwitchContextMenu } from '@axe/application/ui/surface-switch-context-menu';
 import { TabletopOverlapService } from '@axe/application/ui/tabletop-overlap.service';
+import { transientSignal } from '@axe/application/ui/transient-signal';
 import { UiSignalService } from '@axe/application/ui/ui-signal.service';
 import { callResourceChange, resourceChange$ } from '@axe/core/event/domain-events';
-import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { getPeerContext } from '@axe/core/network/peer-context-source';
 import { imageFileEqual } from '@axe/core/storage/image-file';
 import { ObjectStore } from '@axe/core/sync/object-store';
@@ -46,7 +48,7 @@ import { BuffBadge, toBuffBadges } from '@axe/domain/character/buff-badge';
 import { BUFF_VIEW_LABEL_KEYS, type BuffViewMode, nextBuffViewMode } from '@axe/domain/character/buff-view-mode';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { isInternalResource } from '@axe/domain/character/internal-resource';
-import { isGaugeInverted, PieceGauge, selectPieceGauges } from '@axe/domain/character/piece-gauge';
+import { gaugeNumbersOf, isGaugeInverted, PieceGauge, selectPieceGauges } from '@axe/domain/character/piece-gauge';
 import {
   diffResourceSnapshots,
   loudestChange,
@@ -70,8 +72,8 @@ import { isFlatTopGrid, isHexGrid } from '@axe/domain/tabletop/hex-geometry';
 import { asTableFacingMark, TableFacingMark } from '@axe/domain/tabletop/table-facing-mark';
 import { buildGameCharacterContextMenu } from '@axe/features/character/game-character/game-character-context-menu';
 import { GameCharacterBuffViewComponent } from '@axe/features/character/game-character-buff-view/game-character-buff-view.component';
-import { GameCharacterSheetComponent } from '@axe/features/character/game-character-sheet/game-character-sheet.component';
 import { GameDataElementBuffComponent } from '@axe/features/character/game-data-element-buff/game-data-element-buff.component';
+import { ObjectPanelService } from '@axe/features/panels/object-panel.service';
 import { LightSettingsComponent } from '@axe/features/tabletop/light-settings/light-settings.component';
 import { MovableOption } from '@axe/ui/directives/movable.directive';
 import { MovableDirective } from '@axe/ui/directives/movable.directive';
@@ -85,8 +87,8 @@ import {
   makeScreenLiftTransform,
 } from '@axe/ui/tabletop/billboard-transform';
 import { buildHexRingClipPath, calcHexFlowerParams, HexFlowerParams } from '@axe/ui/tabletop/hex-pedestal-geometry';
+import { pieceImageView } from '@axe/ui/tabletop/piece-image-view';
 import { setupInputHandler, setupMovableRotableForPiece } from '@axe/ui/tabletop/setup-tabletop-piece';
-import { supersampleFactor, supersampleInsetPercent, supersampleTransform } from '@axe/ui/tabletop/supersample';
 import { translateZCss, Z_OFFSET_TALL_OBJECT_PX } from '@axe/ui/tabletop/z-offset';
 import { TranslocoModule } from '@jsverse/transloco';
 
@@ -159,6 +161,7 @@ export class GameCharacterComponent {
   private readonly characterDice = inject(CharacterDiceService);
   private readonly elementRef = inject<ElementRef<HTMLElement>>(ElementRef);
   private readonly panelService = inject(PanelService);
+  private readonly objectPanels = inject(ObjectPanelService);
   private readonly pointerDeviceService = inject(PointerDeviceService);
   private readonly objectStore = inject(ObjectStore);
   private readonly selectionSignalService = inject(SelectionSignalService);
@@ -171,6 +174,7 @@ export class GameCharacterComponent {
   private readonly destroyRef = inject(DestroyRef);
   private readonly translateFn = inject(TRANSLATE_FN);
   private readonly rangeShapeInvoke = inject(RangeShapeInvokeService);
+  private readonly moveRangeService = inject(MoveRangeService);
   private readonly effectLibrary = inject(EffectLibraryService);
   private readonly effectCast = inject(EffectCastService);
   private readonly effectAutoPlay = inject(EffectAutoPlayService);
@@ -407,7 +411,7 @@ export class GameCharacterComponent {
   math = Math;
 
   viewRotateX = 50;
-  readonly viewRotateZ = computed(() => this.uiSignalService.tableViewRotation()?.z ?? 10);
+  readonly viewRotateZ = this.uiSignalService.tableViewRotationZ;
 
   readonly rotateSignal = computed(() => {
     const char = this.gameCharacter();
@@ -434,56 +438,15 @@ export class GameCharacterComponent {
     return table.imageBillboard || table.mode2d;
   });
 
-  private readonly imageNaturalSize = linkedSignal<string, { width: number; height: number } | null>({
-    source: () => this.imageFile().url,
-    computation: () => null,
+  readonly imageView = pieceImageView({
+    imageUrl: computed(() => this.imageFile().url),
+    isPoster: this.isPoster,
+    sizePx: computed(() => this.size() * this.gridSize),
+    specifiedHeightPx: computed(() => (this.specifyKomaImageFlag() ? this.komaImageHeightSignal() : null)),
+    billboardEnabled: this.imageBillboardEnabled,
+    billboardTransform: this.billboardTransformImage,
+    squarePoster: true,
   });
-
-  onImageLoad(event: Event): void {
-    const img = event.target as HTMLImageElement;
-    if (img.naturalWidth <= 0 || img.naturalHeight <= 0) return;
-    this.imageNaturalSize.set({ width: img.naturalWidth, height: img.naturalHeight });
-  }
-
-  readonly imageSupersample = computed(() => {
-    const natural = this.imageNaturalSize();
-    if (!natural) return 1;
-    if (this.isPoster()) return supersampleFactor(Math.min(natural.width, natural.height), this.size() * this.gridSize);
-    if (this.specifyKomaImageFlag()) return supersampleFactor(natural.height, this.komaImageHeightSignal());
-    return supersampleFactor(natural.width, this.size() * this.gridSize);
-  });
-
-  readonly imageSupersamplePercent = computed(() => this.imageSupersample() * 100 + '%');
-
-  readonly imageSupersampleInset = computed(() => supersampleInsetPercent(this.imageSupersample()) + '%');
-
-  readonly imageBoxHeightPx = computed(() => {
-    const natural = this.imageNaturalSize();
-    if (!natural || this.imageSupersample() <= 1 || this.isPoster()) return null;
-    if (this.specifyKomaImageFlag()) return this.komaImageHeightSignal();
-    return (this.size() * this.gridSize * natural.height) / natural.width;
-  });
-
-  readonly posterImageTransform = computed(() =>
-    supersampleTransform({ factor: this.imageSupersample(), anchor: 'center' })
-  );
-
-  readonly komaImageTransform = computed(() =>
-    supersampleTransform({
-      factor: this.imageSupersample(),
-      anchor: 'bottom',
-      outer: `translateX(-50%) translateX(${(this.size() * this.gridSize) / 2}px)`,
-      inner: this.imageBillboardEnabled() ? this.billboardTransformImage() : '',
-    })
-  );
-
-  readonly pieceImageTransform = computed(() =>
-    supersampleTransform({
-      factor: this.imageSupersample(),
-      anchor: 'bottom',
-      inner: this.imageBillboardEnabled() ? this.billboardTransformImage() : '',
-    })
-  );
 
   private readonly pieceCenterShift = computed(
     () => `translateX(-50%) translateX(${(this.size() * this.gridSize) / 2}px)`
@@ -565,6 +528,25 @@ export class GameCharacterComponent {
     return selectPieceGauges(detail);
   });
 
+  /**
+   * Whether the reader may read the numbers on this piece's bars.
+   *
+   * The same answer that settles whether they may open its sheet: a piece kept to the master
+   * or to a few names has its readings kept with it, wherever those readings are shown.
+   */
+  readonly gaugeNumbersReadable = computed<boolean>(() => {
+    const char = this.gameCharacter();
+    if (!char) return true;
+    this.objectChange.versionOf(char.identifier)();
+    this.objectChange.trackMyCursor();
+    return this.disclosureService.canView(char);
+  });
+
+  readonly gaugeRows = computed<{ gauge: PieceGauge; numbers: string }[]>(() => {
+    const readable = this.gaugeNumbersReadable();
+    return this.pieceGauges().map((gauge) => ({ gauge, numbers: gaugeNumbersOf(gauge, readable) }));
+  });
+
   readonly buffBadges = computed<BuffBadge[]>(() => {
     const char = this.gameCharacter();
     const buffEl = char?.buffDataElement;
@@ -612,7 +594,7 @@ export class GameCharacterComponent {
   });
 
   readonly floatingChanges = signal<(ResourceChange & { key: number })[]>([]);
-  readonly hitFlash = signal<'damage' | 'heal' | null>(null);
+  readonly hitFlash = transientSignal<'damage' | 'heal' | null>(null, HIT_FLASH_MS);
 
   private previousResources: Map<string, ResourceSnapshot> | null = null;
   private floatingKey = 0;
@@ -672,7 +654,7 @@ export class GameCharacterComponent {
   private readonly pieceImageHeightEstimate = computed(() => {
     if (!this.gameCharacter() || this.imageFile().url.length < 1) return 0;
     if (this.specifyKomaImageFlag()) return this.komaImageHeightSignal();
-    const natural = this.imageNaturalSize();
+    const natural = this.imageView.naturalSize();
     if (!natural) return this.size() * this.gridSize;
     return (this.size() * this.gridSize * natural.height) / natural.width;
   });
@@ -743,26 +725,31 @@ export class GameCharacterComponent {
     return calcHexFlowerParams(this.size(), this.gridSize, isFlatTopGrid(gridType));
   });
 
-  pedestalStyle(borderColor: string): Record<string, string> {
+  private readonly pedestalRing = computed<Record<string, string> | null>(() => {
     const params = this.pedestalHexParams();
-    if (params) {
-      const { outline, bbox, L } = params;
-      const W = bbox.maxX - bbox.minX;
-      const H = bbox.maxY - bbox.minY;
-      const clipPath = buildHexRingClipPath(outline, bbox, 6);
-      return {
-        background: borderColor,
-        clipPath,
-        border: 'none',
-        borderRadius: '0',
-        width: `${W}px`,
-        height: `${H}px`,
-        left: `${bbox.minX + L / 2}px`,
-        top: `${bbox.minY + L / 2}px`,
-      };
-    }
-    return { border: `solid 6px ${borderColor}` };
+    if (!params) return null;
+    const { outline, bbox, L } = params;
+    const W = bbox.maxX - bbox.minX;
+    const H = bbox.maxY - bbox.minY;
+    return {
+      clipPath: buildHexRingClipPath(outline, bbox, 6),
+      border: 'none',
+      borderRadius: '0',
+      width: `${W}px`,
+      height: `${H}px`,
+      left: `${bbox.minX + L / 2}px`,
+      top: `${bbox.minY + L / 2}px`,
+    };
+  });
+
+  private pedestalStyleOf(borderColor: string): Record<string, string> {
+    const ring = this.pedestalRing();
+    return ring ? { background: borderColor, ...ring } : { border: `solid 6px ${borderColor}` };
   }
+
+  protected readonly pedestalStyleShown = computed(() => this.pedestalStyleOf('#FFCC80'));
+  protected readonly pedestalStyleHidden = computed(() => this.pedestalStyleOf('#A0E0FF'));
+  protected readonly pedestalStyleTargeted = computed(() => this.pedestalStyleOf('#ff3b30'));
 
   // The pedestal styles ran as getters on every change-detection pass and built a fresh
   // record each time. Computed, they hand back the same object until something changes,
@@ -893,7 +880,7 @@ export class GameCharacterComponent {
     this.floatingChanges.update((current) => [...current, ...entries].slice(-FLOATING_CHANGE_LIMIT));
 
     const kind = entries.some((entry) => entry.kind === 'damage') ? 'damage' : 'heal';
-    this.hitFlash.set(kind);
+    this.hitFlash.show(kind, kind === 'damage' ? HIT_FLASH_MS : HEAL_AURA_MS);
 
     const heard = entries.filter((entry) => entry.playsSound);
     const loudest = loudestChange(heard);
@@ -904,15 +891,6 @@ export class GameCharacterComponent {
     const shown = entries.filter((entry) => entry.playsEffect);
     const char = this.gameCharacter();
     if (char && shown.length > 0) this.effectAutoPlay.play(char, shown);
-
-    const flashTimer = setTimeout(
-      () => {
-        this.floatingTimers.delete(flashTimer);
-        this.hitFlash.set(null);
-      },
-      kind === 'damage' ? HIT_FLASH_MS : HEAL_AURA_MS
-    );
-    this.floatingTimers.add(flashTimer);
 
     const keys = new Set(entries.map((entry) => entry.key));
     const floatTimer = setTimeout(() => {
@@ -936,6 +914,21 @@ export class GameCharacterComponent {
 
   onMoved() {
     SoundEffect.play(PresetSound.piecePut);
+  }
+
+  onPickUp() {
+    this.onMove();
+    const character = this.gameCharacter();
+    if (character) this.moveRangeService.show(character);
+  }
+
+  onPutDown() {
+    this.onMoved();
+    this.moveRangeService.hide();
+  }
+
+  onLetGo() {
+    this.moveRangeService.hide();
   }
 
   checkKey(event: KeyboardEvent | MouseEvent) {
@@ -975,48 +968,18 @@ export class GameCharacterComponent {
 
   private showDetail(gameObject: GameCharacter) {
     if (!this.disclosureService.canView(gameObject)) return;
-    const coordinate = this.pointerDeviceService.pointers[0];
     const title = sheetPanelTitle(this.translateFn('feature.character.panel.sheet'), gameObject.name);
-    const option: PanelOption = {
-      title: title,
-      ...sheetPanelBox(coordinate, 800, 600),
-    };
-    const component = this.panelService.open<GameCharacterSheetComponent>(GameCharacterSheetComponent, option);
-    component.tabletopObject = gameObject;
+    this.objectPanels.openSheet(gameObject, title, { width: 800, height: 600 });
   }
 
   private showChatPalette(gameObject: GameCharacter) {
     if (!this.disclosureService.canView(gameObject)) return;
-    const coordinate = this.pointerDeviceService.pointers[0];
-    const option: PanelOption = {
-      title: this.translateFn('feature.character.panel.chatPaletteWithName', { name: gameObject.name }),
-      ...sheetPanelBox(coordinate, 760, 500),
-    };
-    this.panelService.openLazy(
-      () => import('@axe/features/chat/chat-palette/chat-palette.component').then((m) => m.ChatPaletteComponent),
-      option,
-      (component) => component.character.set(gameObject)
-    );
+    this.objectPanels.openChatPalette(gameObject);
   }
 
   private showRemoteController(gameObject: GameCharacter) {
     if (!this.disclosureService.canView(gameObject)) return;
-    const coordinate = this.pointerDeviceService.pointers[0];
-    const option: PanelOption = {
-      title: this.translateFn('feature.character.panel.remoteControllerWithName', { name: gameObject.name }),
-      left: coordinate.x - 250,
-      top: coordinate.y - 175,
-      width: 700,
-      height: 600,
-    };
-    this.panelService.openLazy(
-      () =>
-        import('@axe/features/controller/remote-controller/remote-controller.component').then(
-          (m) => m.RemoteControllerComponent
-        ),
-      option,
-      (component) => component.character.set(gameObject)
-    );
+    this.objectPanels.openRemoteController(gameObject);
   }
 
   private showBuffEdit(gameObject: GameCharacter) {

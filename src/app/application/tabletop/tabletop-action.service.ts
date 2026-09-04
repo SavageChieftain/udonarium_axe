@@ -1,5 +1,6 @@
 import { inject, Injectable } from '@angular/core';
 import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
+import { PointerCoordinate } from '@axe/application/input/pointer-device.service';
 import { RolePermissionService } from '@axe/application/permission/role-permission.service';
 import {
   getDiceMenuItems,
@@ -15,7 +16,6 @@ import {
 } from '@axe/application/tabletop/tabletop-default-setup';
 import { ContextMenuAction } from '@axe/application/ui/context-menu.service';
 import { SelectionSignalService } from '@axe/application/ui/selection-signal.service';
-import { PointerCoordinate } from '@axe/core/input/pointer-device.service';
 import { ImageStorage } from '@axe/core/storage/image-storage';
 import { Card } from '@axe/domain/card/card';
 import { CardStack } from '@axe/domain/card/card-stack';
@@ -71,8 +71,11 @@ export class TabletopActionService {
     return character;
   }
 
-  private applyCreationDefaults(object: { owner: string; disclosureMode: string; update(): void }): void {
-    object.owner = PeerCursor.myCursor?.userId ?? '';
+  private applyCreationDefaults(
+    object: { owner: string; disclosureMode: string; update(): void },
+    claimForCreator = true
+  ): void {
+    object.owner = claimForCreator ? (PeerCursor.myCursor?.userId ?? '') : '';
     if (PeerCursor.isMyselfGameMaster) object.disclosureMode = DisclosureMode.GameMaster;
     object.update();
   }
@@ -285,6 +288,30 @@ export class TabletopActionService {
     return cardStack;
   }
 
+  /** Create a face-up standalone card that can be filled without preparing an image. */
+  createBlankCard(position: PointerCoordinate): Card {
+    const front = './assets/images/trump/blank_card.webp';
+    const back = TRUMP_BACK_IMAGE_PATH;
+
+    if (!this.imageStorage.get(front)) {
+      const image = this.imageStorage.add(front);
+      ImageTag.create(image.identifier).tag = 'トランプ';
+    }
+    if (!this.imageStorage.get(back)) {
+      const image = this.imageStorage.add(back);
+      ImageTag.create(image.identifier).tag = 'トランプ';
+    }
+
+    const card = Card.create(this.t('feature.tabletop.action.defaultCardName'), front, back);
+    card.location.x = position.x - 25;
+    card.location.y = position.y - 25;
+    card.posZ = position.z;
+    card.faceUp();
+    // Card ownership means "show only to me", so a newly created public card must remain unclaimed.
+    this.applyCreationDefaults(card, false);
+    return card;
+  }
+
   makeDefaultTable() {
     _makeDefaultTable(this.imageStorage);
   }
@@ -303,6 +330,7 @@ export class TabletopActionService {
       this.getCreateTableMaskMenu(position),
       this.getCreateTerrainMenu(position),
       this.getCreateTextNoteMenu(position),
+      this.getCreateBlankCardMenu(position),
       this.getCreateTrumpMenu(position),
       this.getCreateDiceSymbolMenu(position),
       this.getCreateCoinMenu(position),
@@ -373,6 +401,16 @@ export class TabletopActionService {
       name: this.t('feature.tabletop.action.createTrump'),
       action: () => {
         this.createTrump(position);
+        SoundEffect.play(PresetSound.cardPut);
+      },
+    };
+  }
+
+  private getCreateBlankCardMenu(position: PointerCoordinate): ContextMenuAction {
+    return {
+      name: this.t('feature.tabletop.action.createBlankCard'),
+      action: () => {
+        this.createBlankCard(position);
         SoundEffect.play(PresetSound.cardPut);
       },
     };

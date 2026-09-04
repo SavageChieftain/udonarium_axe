@@ -1,9 +1,10 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
+import { MoveBlockService } from '@axe/application/tabletop/move-block.service';
 import { VisionService } from '@axe/application/tabletop/vision.service';
+import { ConfirmService } from '@axe/application/ui/confirm.service';
 import { PanelService } from '@axe/application/ui/panel.service';
 import { WidgetVisibilityService } from '@axe/application/ui/widget-visibility.service';
-import { ObjectStore } from '@axe/core/sync/object-store';
 import { Card } from '@axe/domain/card/card';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { PeerRole } from '@axe/domain/peer/peer-role';
@@ -16,10 +17,10 @@ import { TEST_PROVIDERS } from '@axe/testing/test-providers';
 describe('GmToolbarComponent', () => {
   let component: GmToolbarComponent;
   let fixture: ComponentFixture<GmToolbarComponent>;
-  let panelStub: { open: ReturnType<typeof vi.fn> };
+  let panelStub: { open: ReturnType<typeof vi.fn>; openLazy: ReturnType<typeof vi.fn> };
 
   beforeEach(async () => {
-    panelStub = { open: vi.fn() };
+    panelStub = { open: vi.fn(), openLazy: vi.fn() };
     await TestBed.configureTestingModule({
       imports: [GmToolbarComponent],
       providers: [...TEST_PROVIDERS],
@@ -44,20 +45,45 @@ describe('GmToolbarComponent', () => {
     expect(widgets.recording()).toBe(true);
   });
 
-  it('opens the object list', () => {
-    (component as unknown as { openObjectList: () => void }).openObjectList();
-    expect(panelStub.open).toHaveBeenCalledWith(
-      GameObjectListPanelComponent,
-      expect.objectContaining({ width: 460, height: 620 })
-    );
+  it('takes the brush up and lays it down again, with the eraser only while it is up', () => {
+    PeerCursor.myCursor = Object.assign(new PeerCursor('me'), { role: PeerRole.GameMaster });
+    const moveBlock = TestBed.inject(MoveBlockService);
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('[data-testid="move-block-erase"]')).toBeNull();
+
+    fixture.nativeElement.querySelector('[data-testid="move-block-toggle"]').click();
+    fixture.detectChanges();
+
+    expect(moveBlock.isPainting()).toBe(true);
+    expect(fixture.nativeElement.querySelector('[data-testid="move-block-erase"]')).not.toBeNull();
+
+    fixture.nativeElement.querySelector('[data-testid="move-block-erase"]').click();
+    expect(moveBlock.brush()).toBe('erase');
+
+    fixture.nativeElement.querySelector('[data-testid="move-block-toggle"]').click();
+    fixture.detectChanges();
+
+    expect(moveBlock.isPainting()).toBe(false);
+    expect(fixture.nativeElement.querySelector('[data-testid="move-block-erase"]')).toBeNull();
   });
 
-  it('opens the map editor', () => {
+  it('opens the object list', async () => {
+    (component as unknown as { openObjectList: () => void }).openObjectList();
+    expect(panelStub.openLazy).toHaveBeenCalledWith(
+      expect.any(Function),
+      expect.objectContaining({ width: 460, height: 620 })
+    );
+    await expect(panelStub.openLazy.mock.calls[0][0]()).resolves.toBe(GameObjectListPanelComponent);
+  });
+
+  it('opens the map editor', async () => {
     (component as unknown as { openMapEditor: () => void }).openMapEditor();
-    expect(panelStub.open).toHaveBeenCalledWith(
-      MapEditorPanelComponent,
+    expect(panelStub.openLazy).toHaveBeenCalledWith(
+      expect.any(Function),
       expect.objectContaining({ width: 1100, height: 740 })
     );
+    await expect(panelStub.openLazy.mock.calls[0][0]()).resolves.toBe(MapEditorPanelComponent);
   });
 
   it('opens and closes the non-player bar', () => {
@@ -90,40 +116,28 @@ describe('GmToolbarComponent', () => {
   });
 
   describe('releaseOrphanedOwnership', () => {
-    let store: ObjectStore;
-
-    beforeEach(() => {
-      store = ObjectStore.instance;
-    });
+    beforeEach(() => {});
 
     afterEach(() => {
-      store.getObjects().forEach((obj) => store.delete(obj, false));
-      store.clearDeleteHistory();
       vi.unstubAllGlobals();
     });
 
-    it('releases what an absent owner holds, once confirmed', () => {
+    it('releases what an absent owner holds, once confirmed', async () => {
       const card = Card.create('カード', 'front.png', 'back.png');
       card.owner = 'ghost-user';
-      vi.stubGlobal(
-        'confirm',
-        vi.fn(() => true)
-      );
+      vi.spyOn(TestBed.inject(ConfirmService), 'ask').mockResolvedValue(true);
 
-      (component as unknown as { releaseOrphanedOwnership: () => void }).releaseOrphanedOwnership();
+      await (component as unknown as { releaseOrphanedOwnership: () => Promise<void> }).releaseOrphanedOwnership();
 
       expect(card.owner).toBe('');
     });
 
-    it('releases nothing when the confirmation is dismissed', () => {
+    it('releases nothing when the confirmation is dismissed', async () => {
       const card = Card.create('カード', 'front.png', 'back.png');
       card.owner = 'ghost-user';
-      vi.stubGlobal(
-        'confirm',
-        vi.fn(() => false)
-      );
+      vi.spyOn(TestBed.inject(ConfirmService), 'ask').mockResolvedValue(false);
 
-      (component as unknown as { releaseOrphanedOwnership: () => void }).releaseOrphanedOwnership();
+      await (component as unknown as { releaseOrphanedOwnership: () => Promise<void> }).releaseOrphanedOwnership();
 
       expect(card.owner).toBe('ghost-user');
     });
@@ -131,18 +145,14 @@ describe('GmToolbarComponent', () => {
 
   describe('where the toolbar sits across a change of role', () => {
     let objectChange: ObjectChangeService;
-    let store: ObjectStore;
 
     beforeEach(() => {
-      store = ObjectStore.instance;
       objectChange = TestBed.inject(ObjectChangeService);
       PeerCursor.createMyCursor();
       PeerCursor.myCursor.role = PeerRole.GameMaster;
     });
 
     afterEach(() => {
-      store.getObjects().forEach((obj) => store.delete(obj, false));
-      store.clearDeleteHistory();
       PeerCursor.myCursor = null!;
     });
 

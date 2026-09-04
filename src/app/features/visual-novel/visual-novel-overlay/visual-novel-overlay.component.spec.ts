@@ -1,10 +1,10 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { By } from '@angular/platform-browser';
 import { ChatMessageService } from '@axe/application/chat/chat-message.service';
 import { NO_SYSTEM_AVATAR, SystemAvatarService } from '@axe/application/chat/system-avatar.service';
 import { LanguageService } from '@axe/application/i18n/language.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { PanelService } from '@axe/application/ui/panel.service';
-import { AudioFile } from '@axe/core/storage/audio-file';
 import { AudioStorage } from '@axe/core/storage/audio-storage';
 import { ImageStorage } from '@axe/core/storage/image-storage';
 import { ObjectStore } from '@axe/core/sync/object-store';
@@ -15,8 +15,6 @@ import { ChatTabList } from '@axe/domain/chat/chat-tab-list';
 import { DataElement } from '@axe/domain/data/data-element';
 import { DiceBot } from '@axe/domain/dice/dice-bot';
 import { AudioTag } from '@axe/domain/media/audio-tag';
-import { CutIn } from '@axe/domain/media/cut-in';
-import { CutInLauncher } from '@axe/domain/media/cut-in-launcher';
 import { Jukebox } from '@axe/domain/media/jukebox';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { PeerRole } from '@axe/domain/peer/peer-role';
@@ -27,6 +25,7 @@ import { VN_BACKLOG_PANEL } from '@axe/features/visual-novel/visual-novel-panels
 import { VisualNovelPlaybackService } from '@axe/features/visual-novel/visual-novel-playback.service';
 import { VisualNovelSceneService } from '@axe/features/visual-novel/visual-novel-scene.service';
 import { VisualNovelSettingsService } from '@axe/features/visual-novel/visual-novel-settings.service';
+import { VisualNovelSoundBoardComponent } from '@axe/features/visual-novel/visual-novel-sound-board/visual-novel-sound-board.component';
 import { leftOfSlot, VN_STAGE_SLOT_COUNT } from '@axe/features/visual-novel/visual-novel-stage';
 import { installPanelLayer } from '@axe/testing/panel-layer';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
@@ -67,23 +66,6 @@ describe('VisualNovelOverlayComponent', () => {
 
   function addImage(): string {
     return ImageStorage.instance.add(`test://vn/image-${nextImageId++}.png`).identifier;
-  }
-
-  function makeReadyAudio(identifier: string, name?: string): AudioFile {
-    const audio = AudioFile.createEmpty(identifier);
-    const ctx = (audio as unknown as { context: Record<string, unknown> }).context;
-    ctx['blob'] = new Blob(['x']);
-    ctx['url'] = 'blob:x';
-    ctx['name'] = name ?? identifier;
-    return audio;
-  }
-
-  function addAudio(identifier: string, tag: string, name?: string): AudioFile {
-    const audio = makeReadyAudio(identifier, name);
-    AudioStorage.instance.add(audio);
-    const audioTag = AudioTag.create(identifier);
-    audioTag.tag = tag;
-    return audio;
   }
 
   function ensureJukebox(): Jukebox {
@@ -474,6 +456,22 @@ describe('VisualNovelOverlayComponent', () => {
     expect(component.currentIndex()).toBe(0);
     expect(component.displayedText()).toBe('m1');
     // Reading somewhere else is what the log is for, so it stays open to be read on.
+    expect(component.isBacklogOpen()).toBe(true);
+  });
+
+  it('leaves the log standing when a cut-in is played from the sound board', () => {
+    addMessage('m1');
+    createComponent();
+    component.toggleBacklog();
+    component.toggleSoundBoard();
+    fixture.detectChanges();
+
+    const board = fixture.debugElement.query(By.directive(VisualNovelSoundBoardComponent));
+    expect(board).toBeTruthy();
+    board.componentInstance.played.emit();
+    fixture.detectChanges();
+
+    expect(component.isPopover('soundBoard')).toBe(false);
     expect(component.isBacklogOpen()).toBe(true);
   });
 
@@ -928,45 +926,13 @@ describe('VisualNovelOverlayComponent', () => {
     const sendSpy = vi.spyOn(chatMessageService, 'sendMessage').mockReturnValue(null as unknown as ChatMessage);
     vi.spyOn(DiceBot, 'loadGameSystemAsync').mockResolvedValue(null as unknown as GameSystemClass);
 
-    component.attachSe('audio-1', 'ジャーン');
+    component.attachSe({ identifier: 'audio-1', name: 'ジャーン' });
     component.text.set('ここで効果音');
     component.send();
     await vi.waitFor(() => expect(sendSpy).toHaveBeenCalled(), { timeout: 5000 });
 
     expect(playSpy).toHaveBeenCalledWith('audio-1');
     expect(component.attachedSe()).toBeNull();
-  });
-
-  describe('the sound board', () => {
-    it('returns the sound-effect tracks alone', () => {
-      addAudio('se-1', 'SE', 'ジャーン');
-      addAudio('bgm-1', 'BGM', '戦闘曲');
-      AudioStorage.instance.add(makeReadyAudio('no-tag', 'タグなし'));
-      createComponent();
-
-      expect(component.soundEffects().map((a) => a.identifier)).toEqual(['se-1']);
-    });
-
-    it('plays and stops them through the jukebox', () => {
-      const jukebox = ensureJukebox();
-      const playSpy = vi.spyOn(jukebox, 'play').mockImplementation(() => undefined);
-      const stopSpy = vi.spyOn(jukebox, 'stopSE').mockImplementation(() => undefined);
-      createComponent();
-
-      component.playSoundEffect('se-1');
-      expect(playSpy).toHaveBeenCalledWith('se-1');
-
-      component.stopSoundEffect('se-1');
-      expect(stopSpy).toHaveBeenCalledWith('se-1');
-    });
-
-    it('reports what the jukebox is playing', () => {
-      const jukebox = ensureJukebox();
-      vi.spyOn(jukebox, 'isSePlaying').mockReturnValue(true);
-      createComponent();
-
-      expect(component.isSoundEffectPlaying('se-1')).toBe(true);
-    });
   });
 
   it('puts the rollers name and face on the mascot for a dice result', () => {
@@ -1303,6 +1269,39 @@ describe('VisualNovelOverlayComponent', () => {
       expect(tab.chatMessages.at(-1)?.isOutOfStory).toBe(true);
     });
 
+    it('keeps the stage clearing behind a line that was opened afterwards', () => {
+      const image = addImage();
+      addMessage('やあ', 'モンスターA', image);
+      const secret = tab.addMessage({
+        from: 'test-user',
+        name: 'ダイス',
+        text: '隠しダイス → 6',
+        timestamp: nextTimestamp++,
+        tag: 'system-message secret',
+      });
+      createComponent();
+
+      PeerCursor.myCursor.role = PeerRole.GameMaster;
+      TestBed.inject(ObjectChangeService).notifyChanged(PeerCursor.myCursor.identifier);
+      TestBed.inject(VisualNovelSceneService).resetStage(tab);
+      const notice = tab.chatMessages[tab.chatMessages.length - 1];
+      tab.addMessage({
+        from: 'test-user',
+        name: 'モンスターA',
+        text: 'もどってきた',
+        timestamp: notice.timestamp + 1,
+        imageIdentifier: image,
+        sendFrom: characterFor('モンスターA').identifier,
+      });
+      // and the roll from before the clearing is opened, which brings it to the end of the tab
+      TestBed.inject(ChatMessageService).discloseMessage(secret);
+      TestBed.inject(ObjectChangeService).notifyChanged(tab.identifier);
+      fixture.detectChanges();
+
+      // The clearing lies before what was said since, so that line still stands on the stage.
+      expect(component.stageCharacters()).toHaveLength(1);
+    });
+
     it('shows the stage as it stood when read back to before the clearing', () => {
       const image = addImage();
       addMessage('やあ', 'モンスターA', image);
@@ -1433,89 +1432,6 @@ describe('VisualNovelOverlayComponent', () => {
       objectChange.notifyChanged(PeerCursor.myCursor.identifier);
 
       expect(component.speakerOptions()).toHaveLength(1);
-    });
-  });
-  describe('the sound board', () => {
-    /** The tool registers its own sounds at start-up, which a test does not run. */
-    function addPresetSound(file: string): string {
-      const audio = AudioStorage.instance.add(`./assets/sounds/soundeffect-lab/${file}.mp3`);
-      audio.isHidden = true;
-      return audio.identifier;
-    }
-
-    it('offers the sounds the tool comes with, under their own names', () => {
-      addPresetSound('barrier');
-      addPresetSound('warp');
-      createComponent();
-
-      const presets = component.presetSoundEffects();
-      expect(presets.length).toBeGreaterThan(0);
-      // Named rather than left as the file path, which says nothing about the sound.
-      expect(presets.every((sound) => sound.name.length > 0 && !sound.name.includes('/'))).toBe(true);
-      expect(presets.map((sound) => sound.name)).toEqual(
-        [...presets.map((sound) => sound.name)].sort((a, b) => a.localeCompare(b, 'ja'))
-      );
-    });
-
-    it('keeps the room own sounds apart from the built-in ones', () => {
-      const audio = AudioStorage.instance.add('test://vn/door.mp3');
-      AudioTag.create(audio.identifier).tag = 'SE';
-      addPresetSound('barrier');
-      createComponent();
-      TestBed.inject(ObjectChangeService).notifyChanged(audio.identifier);
-
-      expect(component.soundEffects().map((sound) => sound.identifier)).toContain(audio.identifier);
-      expect(component.presetSoundEffects().map((sound) => sound.identifier)).not.toContain(audio.identifier);
-    });
-
-    it('leaves out a hidden sound that is not one of them', () => {
-      const hidden = AudioStorage.instance.add('test://vn/secret.mp3');
-      hidden.isHidden = true;
-      createComponent();
-
-      expect(component.presetSoundEffects().map((sound) => sound.identifier)).not.toContain(hidden.identifier);
-    });
-
-    it('narrows every list at once', () => {
-      addPresetSound('barrier');
-      createComponent();
-      const before = component.presetSoundEffects().length;
-
-      component.soundFilter.set('のありえない名前');
-
-      expect(component.presetSoundEffects()).toHaveLength(0);
-      expect(component.soundEffects()).toHaveLength(0);
-      expect(component.cutIns()).toHaveLength(0);
-      expect(before).toBeGreaterThan(0);
-    });
-
-    it('offers the cut-ins of the room', () => {
-      const cutIn = new CutIn();
-      cutIn.initialize();
-      cutIn.name = 'ここで一枚';
-      try {
-        createComponent();
-        TestBed.inject(ObjectChangeService).notifyChanged(cutIn.identifier);
-        expect(component.cutIns().map((entry) => entry.name)).toContain('ここで一枚');
-      } finally {
-        cutIn.destroy();
-      }
-    });
-
-    it('sends a cut-in to everybody rather than playing it alone', () => {
-      const cutIn = new CutIn();
-      cutIn.initialize();
-      cutIn.name = 'ここで一枚';
-      const launcher = ObjectStore.instance.get<CutInLauncher>('CutInLauncher') ?? new CutInLauncher('CutInLauncher');
-      launcher.initialize();
-      const spy = vi.spyOn(launcher, 'startCutIn').mockImplementation(() => undefined);
-      try {
-        createComponent();
-        component.playCutIn(cutIn.identifier);
-        expect(spy).toHaveBeenCalledWith(cutIn);
-      } finally {
-        cutIn.destroy();
-      }
     });
   });
 });

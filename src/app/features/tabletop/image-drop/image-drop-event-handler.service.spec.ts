@@ -1,10 +1,10 @@
 import { TestBed } from '@angular/core/testing';
+import { CoordinateService } from '@axe/application/input/coordinate.service';
 import { RolePermissionService } from '@axe/application/permission/role-permission.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { TabletopActionService } from '@axe/application/tabletop/tabletop-action.service';
 import { type ImageDroppedEvent } from '@axe/core/event/domain-events';
 import { EventChannel } from '@axe/core/event/event-channel';
-import { CoordinateService } from '@axe/core/input/coordinate.service';
 import { TableSelecter } from '@axe/domain/tabletop/table-selecter';
 import {
   ImageDropEventHandlerService,

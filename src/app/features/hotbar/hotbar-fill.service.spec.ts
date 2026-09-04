@@ -2,7 +2,6 @@ import { TestBed } from '@angular/core/testing';
 import { HotbarStoreService } from '@axe/application/hotbar/hotbar-store.service';
 import { HotbarPreferenceService } from '@axe/application/ui/hotbar-preference.service';
 import { WidgetVisibilityService } from '@axe/application/ui/widget-visibility.service';
-import { ObjectStore } from '@axe/core/sync/object-store';
 import { emptyHotbarSlotDraft } from '@axe/domain/hotbar/hotbar-draft';
 import { HOTBAR_PAGES, HOTBAR_SLOTS_PER_PAGE } from '@axe/domain/hotbar/hotbar-size';
 import { HotbarFillService } from '@axe/features/hotbar/hotbar-fill.service';
@@ -10,7 +9,6 @@ import { TEST_PROVIDERS } from '@axe/testing/test-providers';
 
 describe('putting something on the bar from elsewhere', () => {
   let service: HotbarFillService;
-  let store: ObjectStore;
   let preference: HotbarPreferenceService;
 
   function draftOf(value: string) {
@@ -22,14 +20,11 @@ describe('putting something on the bar from elsewhere', () => {
     localStorage.removeItem('ui-hotbar-owner');
     localStorage.removeItem('ui-widgets');
     TestBed.configureTestingModule({ providers: [...TEST_PROVIDERS] });
-    store = ObjectStore.instance;
     service = TestBed.inject(HotbarFillService);
     preference = TestBed.inject(HotbarPreferenceService);
   });
 
   afterEach(() => {
-    store.getObjects().forEach((object) => store.delete(object, false));
-    store.clearDeleteHistory();
     localStorage.removeItem('ui-hotbar');
     localStorage.removeItem('ui-hotbar-owner');
     localStorage.removeItem('ui-widgets');

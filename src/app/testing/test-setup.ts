@@ -14,12 +14,12 @@ import { basename, join, resolve } from 'path';
 Logger.setLevel(LogLevel.NONE);
 
 import { ChatMessageService } from '@axe/application/chat/chat-message.service';
+import { LoggerService } from '@axe/application/logging/logger.service';
 import { TabletopService } from '@axe/application/tabletop/tabletop.service';
 import { ContextMenuService } from '@axe/application/ui/context-menu.service';
 import { ModalService } from '@axe/application/ui/modal.service';
 import { PanelService } from '@axe/application/ui/panel.service';
 import { AppConfigService } from '@axe/composition/app-config.service';
-import { LoggerService } from '@axe/core/logging/logger.service';
 import { provideTranslocoTesting } from '@axe/testing/transloco-testing';
 
 const srcAppDir = resolve(process.cwd(), 'src/app');

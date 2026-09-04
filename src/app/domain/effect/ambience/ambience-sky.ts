@@ -1,3 +1,4 @@
+import { PERF_AMBIENCE_LAYER, perfCounters } from '@axe/core/util/perf-counters';
 import {
   ambienceColorOf,
   ambienceDensityOf,
@@ -53,6 +54,7 @@ const DENSITY_PER_AREA: Record<AmbienceKind, number> = {
 };
 
 export function skyAmbienceLayer(spec: SkyAmbienceSpec): EffectParticleLayer {
+  perfCounters.bump(PERF_AMBIENCE_LAYER);
   const width = Math.max(spec.width, 0);
   const height = Math.max(spec.height, 0);
   const layer: EffectParticleLayer = { width, height, originX: 0, originY: 0, particles: [] };

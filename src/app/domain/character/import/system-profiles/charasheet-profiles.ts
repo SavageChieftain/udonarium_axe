@@ -1,5 +1,4 @@
 import { parseCharasheetCharacter } from '@axe/domain/character/import/charasheet-character-parser';
-import { CHARASHEET_LABEL_MAPS } from '@axe/domain/character/import/charasheet-label-maps.generated';
 import { ImportedCharacter } from '@axe/domain/character/import/imported-character';
 import { buildAra2CharasheetCharacter } from '@axe/domain/character/import/system-profiles/ara2-charasheet-profile';
 import { charasheetGameOf } from '@axe/domain/character/import/system-profiles/charasheet-shared';
@@ -10,6 +9,7 @@ import { buildDx3CharasheetCharacter } from '@axe/domain/character/import/system
 import { buildElysionCharasheetCharacter } from '@axe/domain/character/import/system-profiles/elysion-charasheet-profile';
 import { buildGorderCharasheetCharacter } from '@axe/domain/character/import/system-profiles/gorder-charasheet-profile';
 import { buildGracreCharasheetCharacter } from '@axe/domain/character/import/system-profiles/gracre-charasheet-profile';
+import { charasheetLabelMap } from '@axe/domain/character/import/system-profiles/label-maps';
 import { buildMkCharasheetCharacter } from '@axe/domain/character/import/system-profiles/mk-charasheet-profile';
 import { buildNechroCharasheetCharacter } from '@axe/domain/character/import/system-profiles/nechro-charasheet-profile';
 import { buildNw3CharasheetCharacter } from '@axe/domain/character/import/system-profiles/nw3-charasheet-profile';
@@ -48,7 +48,7 @@ export function parseCharasheetCharacterForSystem(
   if (build) return build(parsed);
 
   const game = charasheetGameOf(parsed);
-  const character = parseCharasheetCharacter(parsed, labelMap ?? CHARASHEET_LABEL_MAPS[game] ?? {});
+  const character = parseCharasheetCharacter(parsed, labelMap ?? charasheetLabelMap(game));
   if (character && character.dicebot.trim() === '') {
     character.dicebot = resolveCharasheetDicebot(game);
   }

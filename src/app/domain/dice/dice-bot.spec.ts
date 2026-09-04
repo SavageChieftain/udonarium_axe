@@ -1,23 +1,44 @@
 import { TestBed } from '@angular/core/testing';
-import { ObjectStore } from '@axe/core/sync/object-store';
+import { ChatTabList } from '@axe/domain/chat/chat-tab-list';
 import { DiceBot } from '@axe/domain/dice/dice-bot';
+import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 
 describe('DiceBot', () => {
-  let store: ObjectStore;
-
   beforeEach(() => {
     TestBed.configureTestingModule({});
-    store = ObjectStore.instance;
-    const allObjects = store.getObjects();
-    allObjects.forEach((obj) => store.delete(obj, false));
-    store.clearDeleteHistory();
   });
 
   afterEach(() => {
-    const allObjects = store.getObjects();
-    allObjects.forEach((obj) => store.delete(obj, false));
-    store.clearDeleteHistory();
     vi.restoreAllMocks();
+  });
+
+  describe('the line it answers with', () => {
+    it('wears the colours of the roll it answers, bubble and all', () => {
+      PeerCursor.createMyCursor();
+      const tab = ChatTabList.instance.addChatTab('メイン');
+      const asked = tab.addMessage({
+        from: 'me',
+        name: 'わたし',
+        text: '2d6',
+        timestamp: 1000,
+        messColor: '#ff0000',
+        messBubbleLight: '#ffeeee',
+        messBubbleDark: '#330000',
+      });
+      const bot = new DiceBot();
+      bot.initialize();
+
+      bot['sendResultMessage']({ id: null, result: '(2D6) → 7', isSecret: false }, asked);
+
+      const answer = tab.chatMessages[tab.chatMessages.length - 1];
+      expect(answer.text).toContain('→ 7');
+      expect(answer.messColor).toBe('#ff0000');
+      expect(answer.messBubbleLight).toBe('#ffeeee');
+      expect(answer.messBubbleDark).toBe('#330000');
+
+      bot.destroy();
+      tab.destroy();
+    });
   });
 
   describe('an instance', () => {
@@ -35,6 +56,19 @@ describe('DiceBot', () => {
   });
 
   describe('its static members', () => {
+    it('fetches nothing until a roll or a system is asked for', () => {
+      const kept = DiceBot['queue'];
+      DiceBot['queue'] = null;
+      try {
+        const bot = new DiceBot();
+        bot.initialize();
+        expect(DiceBot['queue']).toBeNull();
+        bot.destroy();
+      } finally {
+        DiceBot['queue'] = kept;
+      }
+    });
+
     it('lists the systems it knows', () => {
       expect(Array.isArray(DiceBot.diceBotInfos)).toBe(true);
     });

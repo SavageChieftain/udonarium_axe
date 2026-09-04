@@ -2,15 +2,16 @@ import { NgStyle } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, inject, input, signal } from '@angular/core';
 import { SaveDataService } from '@axe/application/file/save-data.service';
 import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
+import { PointerDeviceService } from '@axe/application/input/pointer-device.service';
 import { AnimatedImageService } from '@axe/application/media/animated-image.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { TabletopService } from '@axe/application/tabletop/tabletop.service';
 import { ContextMenuService } from '@axe/application/ui/context-menu.service';
 import { PanelOption, PanelService } from '@axe/application/ui/panel.service';
 import { PieceContextMenuService } from '@axe/application/ui/piece-context-menu.service';
-import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { ImageStorage } from '@axe/core/storage/image-storage';
 import { ObjectStore } from '@axe/core/sync/object-store';
+import { PERF_DESERIALIZE_SCENE, perfCounters } from '@axe/core/util/perf-counters';
 import { Card } from '@axe/domain/card/card';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { DiceSymbol } from '@axe/domain/dice/dice-symbol';
@@ -114,13 +115,21 @@ export class WhiteBoardComponent {
    * They are hung over the picture in the place the paint would have put them, so a board
    * with a moving picture on it looks the same and moves as well.
    */
-  readonly livePictures = computed<(LivePicture & { url: string })[]>(() =>
-    livePicturesOf(deserializeScene(this.version().scene), this.widthPx(), this.heightPx(), (identifier) =>
+  private readonly sceneText = computed(() => this.version().scene);
+
+  private readonly scene = computed(() => {
+    perfCounters.bump(PERF_DESERIALIZE_SCENE);
+    return deserializeScene(this.sceneText());
+  });
+
+  readonly livePictures = computed<(LivePicture & { url: string })[]>(() => {
+    this.version();
+    return livePicturesOf(this.scene(), this.widthPx(), this.heightPx(), (identifier) =>
       this.animatedImage.isAnimated(identifier)
     )
       .map((picture) => ({ ...picture, url: this.imageStorage.get(picture.imageIdentifier)?.url ?? '' }))
-      .filter((picture) => picture.url.length > 0)
-  );
+      .filter((picture) => picture.url.length > 0);
+  });
 
   /**
    * Tilted about its lower edge, so that standing it up does not sink it into the table.

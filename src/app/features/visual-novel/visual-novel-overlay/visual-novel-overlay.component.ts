@@ -7,10 +7,12 @@ import {
   inject,
   signal,
   untracked,
+  viewChild,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ChatMessageService } from '@axe/application/chat/chat-message.service';
 import { SystemAvatarKind, SystemAvatarService } from '@axe/application/chat/system-avatar.service';
+import { DiceBotCatalogService } from '@axe/application/dice/dice-bot-catalog.service';
 import { LanguageService } from '@axe/application/i18n/language.service';
 import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { ImageService } from '@axe/application/storage/image.service';
@@ -23,15 +25,12 @@ import { AudioStorage } from '@axe/core/storage/audio-storage';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { portraitNameOf } from '@axe/domain/character/character-portrait';
 import { GameCharacter } from '@axe/domain/character/game-character';
+import { chatColorOf } from '@axe/domain/chat/chat-color';
 import { ChatMessage } from '@axe/domain/chat/chat-message';
 import { canRoleSpeakTab } from '@axe/domain/chat/chat-tab-permission';
 import { DataElement } from '@axe/domain/data/data-element';
 import { DiceBot } from '@axe/domain/dice/dice-bot';
-import { AudioTag } from '@axe/domain/media/audio-tag';
-import { CutIn } from '@axe/domain/media/cut-in';
-import { CutInLauncher } from '@axe/domain/media/cut-in-launcher';
 import { Jukebox } from '@axe/domain/media/jukebox';
-import { presetSoundLabelKey } from '@axe/domain/media/preset-sound-labels';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { encodeVnEmote, VN_EMOTION_MARK_CHARS, vnEmoteOf, VnEmotionMark } from '@axe/domain/visual-novel/vn-emote';
 import {
@@ -74,6 +73,10 @@ import {
   visualNovelKeyDown,
   visualNovelKeyUp,
 } from '@axe/features/visual-novel/visual-novel-shortcut';
+import {
+  AttachedSound,
+  VisualNovelSoundBoardComponent,
+} from '@axe/features/visual-novel/visual-novel-sound-board/visual-novel-sound-board.component';
 import {
   buildVnStage,
   leftOfSlot,
@@ -128,7 +131,14 @@ type VisualNovelPopover = 'soundBoard' | 'slotGuide' | 'palette' | 'shortcutHelp
     '(window:keyup)': 'onKeyup($event)',
     '(window:blur)': 'stopSkip()',
   },
-  imports: [FormsModule, SafePipe, TranslocoModule, NgSelectComponent, NgOptionComponent],
+  imports: [
+    FormsModule,
+    SafePipe,
+    TranslocoModule,
+    NgSelectComponent,
+    NgOptionComponent,
+    VisualNovelSoundBoardComponent,
+  ],
 })
 export class VisualNovelOverlayComponent {
   protected readonly isCompact = inject(ViewportService).isCompact;
@@ -189,8 +199,6 @@ export class VisualNovelOverlayComponent {
         return '';
     }
   });
-
-  private readonly _seTick = signal(0);
   private lastWheelTime = 0;
 
   readonly text = signal('');
@@ -201,6 +209,7 @@ export class VisualNovelOverlayComponent {
    * A flag per kind would mean writing close-the-others every time, and one missed leaves two open.
    */
   private readonly openPopover = signal<VisualNovelPopover | null>(null);
+  private readonly soundBoard = viewChild(VisualNovelSoundBoardComponent);
   readonly isSkipping = this.playback.isSkipping;
 
   readonly selectedKind = this.emoteSelection.kind;
@@ -237,8 +246,10 @@ export class VisualNovelOverlayComponent {
     this.chatMessageService.gameType = gameType;
   }
 
+  private readonly diceBotCatalog = inject(DiceBotCatalogService);
+
   get diceBotInfos() {
-    return DiceBot.diceBotInfos;
+    return this.diceBotCatalog.infos();
   }
 
   readonly chatTab = this.playback.chatTab;
@@ -364,7 +375,7 @@ export class VisualNovelOverlayComponent {
       const message = messages[i];
       window.push({
         name: readableMessageName(message, this.t),
-        timestamp: message.timestamp,
+        placedAt: message.placedAt,
         sendFrom: message.sendFrom ?? '',
         imageIdentifier: message.imageIdentifier ?? '',
         imagePos: message.imagePos,
@@ -380,7 +391,7 @@ export class VisualNovelOverlayComponent {
       window,
       (imageIdentifier) => this.imageService.getEmptyOr(imageIdentifier).url,
       (source) => this.stageSlotOf(source),
-      stageCutFor(this.stageResetAt(), messages[index].timestamp, this.playback.isLatest())
+      stageCutFor(this.stageResetAt(), messages[index].placedAt, this.playback.isLatest())
     );
   });
 
@@ -696,108 +707,14 @@ export class VisualNovelOverlayComponent {
     this._portraitTick.update((tick) => tick + 1);
   }
 
-  /** What is typed into the sound board, which narrows every list in it. */
-  readonly soundFilter = signal('');
-
-  private matchesSoundFilter(name: string): boolean {
-    const keyword = this.soundFilter().trim().toLowerCase();
-    return keyword.length < 1 || name.toLowerCase().includes(keyword);
-  }
-
-  /** The sounds brought to this room, which is where somebody looks for their own first. */
-  readonly soundEffects = computed<{ identifier: string; name: string }[]>(() => {
-    this.objectChange.fileVersion();
-    this.objectChange.collectionOf('audio-tag')();
-    return this.audioStorage.audios
-      .filter((audio) => !audio.isHidden && AudioTag.get(audio.identifier)?.tag === 'SE')
-      .map((audio) => ({ identifier: audio.identifier, name: audio.name }))
-      .filter((sound) => this.matchesSoundFilter(sound.name));
-  });
-
-  /**
-   * The sounds the tool comes with.
-   *
-   * They are kept hidden from the jukebox so its list is the room's own, but a scene wants a
-   * door or a thunderclap without anybody having had to upload one. Named from the same words
-   * the effect library uses, so the same sound reads the same wherever it is offered.
-   */
-  readonly presetSoundEffects = computed<{ identifier: string; name: string }[]>(() => {
-    this.objectChange.fileVersion();
-    this.language.currentLang();
-    return (
-      this.audioStorage.audios
-        .filter((audio) => audio.isHidden)
-        .map((audio) => ({ identifier: audio.identifier, labelKey: presetSoundLabelKey(audio.identifier) }))
-        // A hidden sound with no name of its own is something else the room keeps out of sight.
-        .filter((sound) => sound.labelKey.length > 0)
-        .map((sound) => ({ identifier: sound.identifier, name: this.t(sound.labelKey) }))
-        .filter((sound) => this.matchesSoundFilter(sound.name))
-        .sort((left, right) => left.name.localeCompare(right.name, 'ja'))
-    );
-  });
-
-  /** Cut-ins reach everybody, so a scene can be given a title card from here. */
-  readonly cutIns = computed(() => {
-    this.objectChange.fileVersion();
-    this.objectChange.collectionOf(CutIn.aliasName)();
-    return this.objectStore
-      .getObjects<CutIn>(CutIn)
-      .map((cutIn) => ({ identifier: cutIn.identifier, name: cutIn.name }))
-      .filter((cutIn) => this.matchesSoundFilter(cutIn.name));
-  });
-
-  playCutIn(identifier: string): void {
-    const cutIn = this.objectStore.get<CutIn>(identifier);
-    const launcher = this.objectStore.get<CutInLauncher>('CutInLauncher');
-    if (cutIn instanceof CutIn && launcher) launcher.startCutIn(cutIn);
-    this.closePopovers();
-  }
-
-  readonly bgmTracks = computed(() => {
-    this.objectChange.fileVersion();
-    this.objectChange.collectionOf('audio-tag')();
-    return this.audioStorage.audios.filter(
-      (audio) => !audio.isHidden && (AudioTag.get(audio.identifier)?.tag ?? 'BGM') === 'BGM'
-    );
-  });
-
-  readonly playingBgmIdentifier = computed(() => {
-    this._seTick();
-    const jukebox = this.jukebox;
-    return jukebox?.isPlaying ? jukebox.audioIdentifier : '';
-  });
-
-  playBgm(identifier: string): void {
-    this.jukebox?.play(identifier);
-    this._seTick.update((tick) => tick + 1);
-  }
-
-  stopBgm(): void {
-    this.jukebox?.stop();
-    this._seTick.update((tick) => tick + 1);
-  }
-
   private get jukebox(): Jukebox | null {
     return this.objectStore.get<Jukebox>('Jukebox') ?? null;
   }
 
-  playSoundEffect(identifier: string): void {
-    this.jukebox?.play(identifier);
-  }
+  readonly attachedSe = signal<AttachedSound | null>(null);
 
-  stopSoundEffect(identifier: string): void {
-    this.jukebox?.stopSE(identifier);
-  }
-
-  isSoundEffectPlaying(identifier: string): boolean {
-    this._seTick();
-    return this.jukebox?.isSePlaying(identifier) ?? false;
-  }
-
-  readonly attachedSe = signal<{ identifier: string; name: string } | null>(null);
-
-  attachSe(identifier: string, name: string): void {
-    this.attachedSe.set({ identifier, name });
+  attachSe(sound: AttachedSound): void {
+    this.attachedSe.set(sound);
     this.closePopovers();
   }
 
@@ -840,7 +757,7 @@ export class VisualNovelOverlayComponent {
     this.destroyRef.onDestroy(() => this.emoteSelection.reset());
 
     const seTimer = setInterval(() => {
-      if (this.isPopover('soundBoard')) this._seTick.update((v) => v + 1);
+      if (this.isPopover('soundBoard')) this.soundBoard()?.refresh();
     }, 500);
     this.destroyRef.onDestroy(() => clearInterval(seTimer));
 
@@ -919,7 +836,7 @@ export class VisualNovelOverlayComponent {
     return this.openPopover() === kind;
   }
 
-  private closePopovers(): void {
+  protected closePopovers(): void {
     this.openPopover.set(null);
   }
 
@@ -1205,7 +1122,6 @@ export class VisualNovelOverlayComponent {
 
   private colorOf(sendFrom: string): string {
     const object = this.objectStore.get(sendFrom);
-    if (object instanceof GameCharacter) return object.chatColorCode[0];
-    return PeerCursor.myCursor?.chatColorCode[0] ?? '#000000';
+    return chatColorOf(object instanceof GameCharacter ? object : PeerCursor.myCursor, 0);
   }
 }

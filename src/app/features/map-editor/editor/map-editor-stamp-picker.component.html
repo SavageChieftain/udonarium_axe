@@ -1,0 +1,105 @@
+<div class="flex flex-col gap-2">
+  <div class="font-semibold">{{ 'feature.mapEditor.props.stamp' | transloco }}</div>
+  <div class="flex flex-wrap gap-1">
+    @for (cat of stampCategories; track cat) {
+      <button
+        class="rounded-ui-sm px-1.5 py-0.5 text-[11px]"
+        [class.bg-ui-accent-bg]="state.stampCategory() === cat"
+        [class.bg-ui-input]="state.stampCategory() !== cat"
+        (click)="setStampCategory(cat)"
+      >
+        {{ 'feature.mapEditor.stampCategories.' + cat | transloco }}
+      </button>
+    }
+  </div>
+  @if (state.stampCategory() === 'image') {
+    <input #stampFileInput class="hidden" type="file" accept="image/*" (change)="onStampFileSelected($event)" />
+    <div class="grid grid-cols-4 gap-1">
+      @for (file of stampImages(); track file.identifier) {
+        <button
+          class="rounded-ui-sm flex aspect-square items-center justify-center overflow-hidden border border-solid p-1"
+          [class.border-ui-accent]="isActiveImageStamp(file)"
+          [class.border-ui-border-panel]="!isActiveImageStamp(file)"
+          [title]="file.name"
+          (click)="selectImageStamp(file)"
+        >
+          <img class="max-h-full max-w-full object-contain" [src]="file.url" alt="" />
+        </button>
+      }
+      <button
+        class="rounded-ui-sm border-ui-border-panel text-ui-muted hover:border-ui-accent hover:text-ui-accent flex aspect-square flex-col items-center justify-center border border-dashed"
+        [title]="'feature.mapEditor.props.stampAdd' | transloco"
+        (click)="triggerStampUpload()"
+      >
+        <i class="material-icons text-[24px]!">add</i>
+        <span class="text-[10px]">{{ 'feature.mapEditor.props.stampAdd' | transloco }}</span>
+      </button>
+    </div>
+  } @else {
+    <div class="grid grid-cols-4 gap-1">
+      @for (def of categoryStamps(); track def.id) {
+        <button
+          class="rounded-ui-sm flex aspect-square items-center justify-center border border-solid p-1"
+          [class.border-ui-accent]="state.stampId() === def.id"
+          [class.border-ui-border-panel]="state.stampId() !== def.id"
+          (click)="selectStamp(def.id)"
+        >
+          <img class="size-full" [src]="stampDataUri(def, state.stampColor())" alt="" />
+        </button>
+      }
+    </div>
+  }
+  <label class="flex items-center justify-between gap-2">
+    <span class="text-ui-muted">{{ 'feature.mapEditor.props.stampSize' | transloco }}</span>
+    <input
+      type="range"
+      min="16"
+      max="256"
+      step="8"
+      [ngModel]="state.stampSize()"
+      (ngModelChange)="state.stampSize.set($event)"
+    />
+  </label>
+  <label class="flex items-center justify-between gap-2">
+    <span class="text-ui-muted">{{ 'feature.mapEditor.props.stampRotation' | transloco }}</span>
+    <input
+      type="range"
+      min="0"
+      max="360"
+      step="15"
+      [ngModel]="state.stampRotation()"
+      (ngModelChange)="state.stampRotation.set($event)"
+    />
+  </label>
+  <div class="flex items-center gap-3">
+    <label class="flex items-center gap-1">
+      <input type="checkbox" [ngModel]="state.stampFlipX()" (ngModelChange)="state.stampFlipX.set($event)" />
+      <span class="text-ui-muted">{{ 'feature.mapEditor.props.stampFlip' | transloco }} X</span>
+    </label>
+    <label class="flex items-center gap-1">
+      <input type="checkbox" [ngModel]="state.stampFlipY()" (ngModelChange)="state.stampFlipY.set($event)" />
+      <span class="text-ui-muted">{{ 'feature.mapEditor.props.stampFlip' | transloco }} Y</span>
+    </label>
+  </div>
+  @if (!isImageStampSelected()) {
+    <div class="flex items-center justify-between gap-2">
+      <span class="text-ui-muted">{{ 'feature.mapEditor.props.color' | transloco }}</span>
+      <div class="flex items-center gap-2">
+        <label class="flex items-center gap-1">
+          <input
+            type="checkbox"
+            [ngModel]="state.stampColor() === null"
+            (ngModelChange)="state.stampColor.set($event ? null : '#1a1a1a')"
+          />
+          <span class="text-ui-muted text-[10px]">{{ 'feature.mapEditor.props.stampColorAuto' | transloco }}</span>
+        </label>
+        <input
+          type="color"
+          [ngModel]="state.stampColor() ?? '#1a1a1a'"
+          [disabled]="state.stampColor() === null"
+          (ngModelChange)="state.stampColor.set($event)"
+        />
+      </div>
+    </div>
+  }
+</div>

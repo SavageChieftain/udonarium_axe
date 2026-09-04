@@ -1,6 +1,9 @@
 import { parseCharasheetCharacterForSystem } from '@axe/domain/character/import/system-profiles/charasheet-profiles';
+import { loadLabelMaps } from '@axe/domain/character/import/system-profiles/label-maps';
 
 describe('parseCharasheetCharacterForSystem', () => {
+  beforeAll(() => loadLabelMaps());
+
   it('hands one edition to its own profile', () => {
     const result = parseCharasheetCharacterForSystem({
       pc_name: 'X',

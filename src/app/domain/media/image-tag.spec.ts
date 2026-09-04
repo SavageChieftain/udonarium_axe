@@ -8,15 +8,6 @@ describe('ImageTag', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({});
     store = ObjectStore.instance;
-    const allObjects = store.getObjects();
-    allObjects.forEach((obj) => store.delete(obj, false));
-    store.clearDeleteHistory();
-  });
-
-  afterEach(() => {
-    const allObjects = store.getObjects();
-    allObjects.forEach((obj) => store.delete(obj, false));
-    store.clearDeleteHistory();
   });
 
   describe('create()', () => {

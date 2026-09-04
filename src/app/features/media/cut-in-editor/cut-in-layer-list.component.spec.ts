@@ -1,5 +1,4 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { ObjectStore } from '@axe/core/sync/object-store';
 import { CutInLayer } from '@axe/domain/media/cut-in-layer';
 import { CutInLayerListComponent } from '@axe/features/media/cut-in-editor/cut-in-layer-list.component';
 import { TIMELINE_ROW_H_PX } from '@axe/features/media/cut-in-editor/cut-in-timeline-geometry';
@@ -8,7 +7,6 @@ import { TEST_PROVIDERS } from '@axe/testing/test-providers';
 describe('CutInLayerListComponent', () => {
   let fixture: ComponentFixture<CutInLayerListComponent>;
   let component: CutInLayerListComponent;
-  let store: ObjectStore;
 
   beforeEach(async () => {
     TestBed.configureTestingModule({
@@ -18,16 +16,8 @@ describe('CutInLayerListComponent', () => {
   });
 
   beforeEach(() => {
-    store = ObjectStore.instance;
-    store.getObjects().forEach((object) => store.delete(object, false));
-    store.clearDeleteHistory();
     fixture = TestBed.createComponent(CutInLayerListComponent);
     component = fixture.componentInstance;
-  });
-
-  afterEach(() => {
-    store.getObjects().forEach((object) => store.delete(object, false));
-    store.clearDeleteHistory();
   });
 
   function makeLayer(name: string): CutInLayer {

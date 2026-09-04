@@ -6,7 +6,6 @@ import { ContextMenuService } from '@axe/application/ui/context-menu.service';
 import { HotbarPreferenceService } from '@axe/application/ui/hotbar-preference.service';
 import { PanelService } from '@axe/application/ui/panel.service';
 import { WidgetVisibilityService } from '@axe/application/ui/widget-visibility.service';
-import { ObjectStore } from '@axe/core/sync/object-store';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { Hotbar } from '@axe/domain/hotbar/hotbar';
 import { emptyHotbarSlotDraft } from '@axe/domain/hotbar/hotbar-draft';
@@ -23,7 +22,6 @@ import { Z_CONTEXT_MENU_PINNED, Z_HOTBAR } from '@axe/ui/z-layers';
 
 describe('HotbarBarComponent', () => {
   let fixture: ComponentFixture<HotbarBarComponent>;
-  let store: ObjectStore;
   let widgets: WidgetVisibilityService;
   let preference: HotbarPreferenceService;
 
@@ -72,7 +70,6 @@ describe('HotbarBarComponent', () => {
     localStorage.removeItem('ui-widgets');
     localStorage.removeItem('ui-hotbar');
     TestBed.configureTestingModule({ imports: [HotbarBarComponent], providers: [...TEST_PROVIDERS] });
-    store = ObjectStore.instance;
     widgets = TestBed.inject(WidgetVisibilityService);
     preference = TestBed.inject(HotbarPreferenceService);
 
@@ -87,8 +84,6 @@ describe('HotbarBarComponent', () => {
 
   afterEach(() => {
     vi.restoreAllMocks();
-    store.getObjects().forEach((object) => store.delete(object, false));
-    store.clearDeleteHistory();
     PeerCursor.myCursor = null!;
     localStorage.removeItem('ui-widgets');
     localStorage.removeItem('ui-hotbar');
@@ -200,6 +195,60 @@ describe('HotbarBarComponent', () => {
 
     expect(run).not.toHaveBeenCalled();
     expect(speaker).toBeTruthy();
+  });
+
+  /**
+   * A piece this reader may work that is not the one the chat speaks as, settled on the table.
+   *
+   * The tabletop service only announces the collection when a piece moves, and it treats a
+   * piece it has never seen as having moved. Left fresh, the first change to it would reach
+   * the bar through the collection and hide whether the bar watches the piece itself.
+   */
+  async function settledCharacter(name: string): Promise<GameCharacter> {
+    const character = GameCharacter.create(name, 1, '');
+    character.owner = PeerCursor.myCursor.userId;
+    character.setLocation('table');
+    await fixture.whenStable();
+    return character;
+  }
+
+  function bindSlot(character: GameCharacter, slotIndex: number): void {
+    const draft = emptyHotbarSlotDraft('chat');
+    draft.value = '2d6+3 攻撃';
+    draft.characterIdentifier = character.identifier;
+    draft.characterName = character.name;
+    ownHotbar().put(preference.page(), slotIndex, draft);
+    fixture.detectChanges();
+  }
+
+  function cellsOf(): { actor: unknown; actorName: string }[] {
+    return (fixture.componentInstance as unknown as { cells: () => { actor: unknown; actorName: string }[] }).cells();
+  }
+
+  it('draws the piece a slot names by the name it goes by now', async () => {
+    ownedCharacter('術者');
+    const bound = await settledCharacter('斥候');
+    bindSlot(bound, 4);
+    await fixture.whenStable();
+    expect(cellsOf()[4].actorName).toBe('斥候');
+
+    bound.name = '斥候長';
+    await fixture.whenStable();
+
+    expect(cellsOf()[4].actorName).toBe('斥候長');
+  });
+
+  it('drops the piece a slot names from the cell once it may no longer be worked', async () => {
+    ownedCharacter('術者');
+    const bound = await settledCharacter('斥候');
+    bindSlot(bound, 5);
+    await fixture.whenStable();
+    expect(cellsOf()[5].actor).toBe(bound);
+
+    bound.owner = 'someone-else';
+    await fixture.whenStable();
+
+    expect(cellsOf()[5].actor).toBeNull();
   });
 
   it('keeps a slot pointing at the piece it names while that piece is still in the room', () => {

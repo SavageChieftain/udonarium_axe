@@ -1,5 +1,4 @@
 import { TestBed } from '@angular/core/testing';
-import { ObjectStore } from '@axe/core/sync/object-store';
 import {
   applyEntrance,
   applyExit,
@@ -119,18 +118,8 @@ describe('withExit()', () => {
 });
 
 describe('applying a preset to a layer', () => {
-  let store: ObjectStore;
-
   beforeEach(() => {
     TestBed.configureTestingModule({});
-    store = ObjectStore.instance;
-    store.getObjects().forEach((object) => store.delete(object, false));
-    store.clearDeleteHistory();
-  });
-
-  afterEach(() => {
-    store.getObjects().forEach((object) => store.delete(object, false));
-    store.clearDeleteHistory();
   });
 
   function makeLayer(): CutInLayer {

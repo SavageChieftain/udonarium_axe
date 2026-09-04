@@ -6,9 +6,18 @@ import {
   readBuffModifier,
   writeBuffModifier,
 } from '@axe/domain/character/buff-modifier';
-import { buffExpires, BuffTiming, BuffTurnActor, isBuffDueAt } from '@axe/domain/character/buff-timing';
+import { buffExpires, BuffTiming, buffTimingOf, BuffTurnActor, isBuffDueAt } from '@axe/domain/character/buff-timing';
 import { StatusAccessor } from '@axe/domain/character/status-accessor';
 import { DataElement, DataElementAttribute, DataElementType } from '@axe/domain/data/data-element';
+
+/** Everything one buff is, as plain data, so a step of the round can be put back as it was. */
+export interface BuffSnapshotEntry {
+  name: string;
+  value: number | string;
+  info: string;
+  appearance: BuffAppearance;
+  modifier: BuffModifier | null;
+}
 
 export class BuffManager {
   constructor(
@@ -126,20 +135,107 @@ export class BuffManager {
     return expired;
   }
 
+  /**
+   * Every buff as it stands, in the order they are held.
+   *
+   * The names alone would not put a buff back: what it moved on the sheet has to go back
+   * with it, and a buff that only reads as a note has no number to find it by.
+   */
+  snapshot(): BuffSnapshotEntry[] {
+    const container = this.container;
+    if (!container) return [];
+    return container.children.map((child) => {
+      const data = child as DataElement;
+      return {
+        name: data.name,
+        value: data.value,
+        info: `${data.currentValue ?? ''}`,
+        appearance: readAppearance(data),
+        modifier: readBuffModifier(data),
+      };
+    });
+  }
+
+  /**
+   * Puts the buffs back exactly as the snapshot found them.
+   *
+   * Anything not in it goes, anything missing from it comes back, and what a buff moved on
+   * the sheet is moved again by the difference alone, so putting the same state back twice
+   * moves nothing the second time.
+   */
+  restore(entries: readonly BuffSnapshotEntry[]): void {
+    const container = this.container;
+    if (container) {
+      const wanted = new Set(entries.map((entry) => entry.name));
+      for (const child of [...container.children]) {
+        const data = child as DataElement;
+        if (!wanted.has(data.name)) this.remove(data);
+      }
+    }
+    const restored: DataElement[] = [];
+    for (const entry of entries) {
+      const data = this.find(entry.name) ?? this.appendBuff(entry.name, entry.value, entry.info);
+      if (!data) continue;
+      data.value = entry.value;
+      data.currentValue = entry.info;
+      applyAppearance(data, entry.appearance);
+      this.restoreModifier(data, entry.modifier);
+      restored.push(data);
+    }
+    this.reorder(restored);
+  }
+
+  /** Lays the buffs back in the order they were held, which is the order they are read in. */
+  private reorder(wanted: readonly DataElement[]): void {
+    const container = this.container;
+    if (!container) return;
+    const standing = container.children;
+    if (wanted.length === standing.length && wanted.every((data, index) => standing[index] === data)) return;
+    for (const data of wanted) container.appendChild(data);
+  }
+
+  private appendBuff(name: string, value: number | string, info: string): DataElement | null {
+    const container = this.ensureContainer();
+    if (!container) return null;
+    const created = DataElement.create(name, value, {
+      type: DataElementType.NUMBER_RESOURCE,
+      currentValue: info,
+    });
+    container.appendChild(created);
+    return created;
+  }
+
+  /** Moves the sheet by what the buff has yet to move, which is nothing when it already stands. */
+  private restoreModifier(data: DataElement, wanted: BuffModifier | null): void {
+    const standing = readBuffModifier(data);
+    if (standing && (!wanted || standing.target !== wanted.target || standing.slot !== wanted.slot)) {
+      this.revertModifier(data);
+    }
+    if (!wanted) return;
+    const applied = readBuffModifier(data)?.applied ?? 0;
+    if (applied !== wanted.applied) {
+      this.status()?.changeValue(wanted.target, wanted.slot, wanted.applied - applied);
+    }
+    writeBuffModifier(data, wanted);
+  }
+
+  private ensureContainer(): DataElement | null {
+    if (!this.buffDataElement) return null;
+    const container = this.container;
+    if (container) return container;
+    const created = DataElement.create('バフ/デバフ', '', {}, `${this.buffDataElement.identifier}_container`);
+    this.buffDataElement.appendChild(created);
+    return created;
+  }
+
   /** The buff that goes by this name, once it is there to be found. */
   find(name: string): DataElement | null {
     return this.container?.getFirstElementByName(name) ?? null;
   }
 
   addRound(name: string, info: string = '', round: number = 3, appearance: BuffAppearance = {}): void {
-    if (!this.buffDataElement) return;
-    const container =
-      this.container ??
-      (() => {
-        const newContainer = DataElement.create('バフ/デバフ', '', {}, `${this.buffDataElement!.identifier}_container`);
-        this.buffDataElement!.appendChild(newContainer);
-        return newContainer;
-      })();
+    const container = this.ensureContainer();
+    if (!container) return;
     const data = this.buffDataElement?.getFirstElementByName(name);
     if (data) {
       // Putting the same buff on again starts it over, so whatever it moved goes back first.
@@ -156,6 +252,15 @@ export class BuffManager {
       container.appendChild(created);
     }
   }
+}
+
+function readAppearance(data: DataElement): BuffAppearance {
+  return {
+    timing: buffTimingOf(data),
+    trigger: data.getAttribute(DataElementAttribute.BUFF_TRIGGER) ?? '',
+    color: data.getAttribute(DataElementAttribute.BUFF_COLOR) ?? '',
+    icon: data.getAttribute(DataElementAttribute.BUFF_ICON) ?? '',
+  };
 }
 
 function applyAppearance(data: DataElement, appearance: BuffAppearance): void {

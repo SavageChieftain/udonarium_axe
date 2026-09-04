@@ -14,17 +14,11 @@ describe('ChatTabList', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({});
     store = ObjectStore.instance;
-    const allObjects = store.getObjects();
-    allObjects.forEach((obj) => store.delete(obj, false));
-    store.clearDeleteHistory();
     // Reset singleton
     (ChatTabList as unknown as { _instance: ChatTabList | undefined })._instance = undefined;
   });
 
   afterEach(() => {
-    const allObjects = store.getObjects();
-    allObjects.forEach((obj) => store.delete(obj, false));
-    store.clearDeleteHistory();
     (ChatTabList as unknown as { _instance: ChatTabList | undefined })._instance = undefined;
   });
 

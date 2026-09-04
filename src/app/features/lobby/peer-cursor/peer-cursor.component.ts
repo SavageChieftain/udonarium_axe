@@ -13,11 +13,11 @@ import {
 import { ChatMessageService } from '@axe/application/chat/chat-message.service';
 import { encodeI18nMessage } from '@axe/application/i18n/i18n-message';
 import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
+import { CoordinateService } from '@axe/application/input/coordinate.service';
+import { PointerCoordinate } from '@axe/application/input/pointer-device.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { BatchService } from '@axe/application/ui/batch.service';
 import { callCursorMove, callHeartBeat } from '@axe/core/event/domain-events';
-import { CoordinateService } from '@axe/core/input/coordinate.service';
-import { PointerCoordinate } from '@axe/core/input/pointer-device.service';
 import { getPeerContexts, getPeerIds } from '@axe/core/network/peer-context-source';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { ResettableTimeout } from '@axe/core/util/resettable-timeout';

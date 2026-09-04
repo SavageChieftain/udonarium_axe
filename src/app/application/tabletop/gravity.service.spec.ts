@@ -2,7 +2,6 @@ import { TestBed } from '@angular/core/testing';
 import { GravityService } from '@axe/application/tabletop/gravity.service';
 import { TabletopService } from '@axe/application/tabletop/tabletop.service';
 import { TabletopOverlapRegistryEntry, TabletopOverlapService } from '@axe/application/ui/tabletop-overlap.service';
-import { ObjectStore } from '@axe/core/sync/object-store';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { GameTable } from '@axe/domain/tabletop/game-table';
 import { TableSurface, TabletopObject } from '@axe/domain/tabletop/tabletop-object';
@@ -11,9 +10,6 @@ import { TEST_PROVIDERS } from '@axe/testing/test-providers';
 
 beforeEach(() => {
   TestBed.configureTestingModule({ providers: [...TEST_PROVIDERS] });
-  const store = ObjectStore.instance;
-  for (const obj of store.getObjects()) store.delete(obj, false);
-  store.clearDeleteHistory();
 });
 
 function makeTerrain(opts: {

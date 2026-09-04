@@ -1,25 +1,18 @@
-import { ObjectStore } from '@axe/core/sync/object-store';
 import { parseImportedCharacterText } from '@axe/domain/character/import/character-import-format';
 import { createEmptyImportedCharacter } from '@axe/domain/character/import/imported-character';
 import { ImportedCharacterFactory } from '@axe/domain/character/import/imported-character-factory';
 import { buildCoc6CharasheetCharacter } from '@axe/domain/character/import/system-profiles/coc6-charasheet-profile';
 import { buildCoc7CharasheetCharacter } from '@axe/domain/character/import/system-profiles/coc7-charasheet-profile';
 import { buildDx3AppspotCharacter } from '@axe/domain/character/import/system-profiles/dx3-appspot-profile';
+import { loadLabelMaps } from '@axe/domain/character/import/system-profiles/label-maps';
 import { buildShinobigamiAppspotCharacter } from '@axe/domain/character/import/system-profiles/shinobigami-appspot-profile';
 import { buildYtsheetSw25Character } from '@axe/domain/character/import/system-profiles/ytsheet-sw25-profile';
 import { DataElementFieldType, DataElementRole, DataElementType } from '@axe/domain/data/data-element';
 
 describe('ImportedCharacterFactory', () => {
-  let store: ObjectStore;
+  beforeAll(() => loadLabelMaps());
 
-  beforeEach(() => {
-    store = ObjectStore.instance;
-  });
-
-  afterEach(() => {
-    store.getObjects().forEach((obj) => store.delete(obj, false));
-    store.clearDeleteHistory();
-  });
+  beforeEach(() => {});
 
   function buildFromCcfolia(data: Record<string, unknown>) {
     const imported = parseImportedCharacterText(JSON.stringify({ kind: 'character', data }))!;

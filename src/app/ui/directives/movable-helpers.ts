@@ -1,4 +1,4 @@
-import { PointerCoordinate } from '@axe/core/input/pointer-device.service';
+import { PointerCoordinate } from '@axe/application/input/pointer-device.service';
 import { GridType } from '@axe/domain/tabletop/game-table';
 import { hexCellCenter, hexCircumradius, hexSpacing, hexStartAngle } from '@axe/domain/tabletop/hex-geometry';
 import { WorldBox } from '@axe/domain/tabletop/surface-space';

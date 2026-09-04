@@ -1,9 +1,16 @@
 @if (visible()) {
   <div
-    class="border-ui-border-panel bg-ui-panel rounded-ui-lg shadow-ui-md text-ui-text absolute top-3 left-1/2 z-200 flex max-w-[92vw] -translate-x-1/2 items-center gap-3 border border-solid px-4 py-2.5 [backdrop-filter:blur(24px)_saturate(1.5)] [-webkit-backdrop-filter:blur(24px)_saturate(1.5)]"
+    #banner
+    class="border-ui-border-panel bg-ui-panel rounded-ui-lg shadow-ui-md text-ui-text fixed top-0 left-0 z-200 flex max-w-[92vw] cursor-grab items-center gap-3 border border-solid px-4 py-2.5 [backdrop-filter:blur(24px)_saturate(1.5)] select-none [-webkit-backdrop-filter:blur(24px)_saturate(1.5)] active:cursor-grabbing"
+    appDraggable
+    [draggable.disable]="isCompact()"
+    [draggable.unhandle]="'button'"
+    [appWidgetPlace]="widgetName"
+    [widgetFallback]="fallback"
+    [widgetPlaceEnabled]="!isCompact()"
     [ngClass]="
       isCompact()
-        ? 'inset-x-2! top-[max(0.75rem,env(safe-area-inset-top))] z-210 max-w-none! translate-x-0! flex-col items-stretch gap-2 p-3'
+        ? 'inset-x-2! top-[max(0.75rem,env(safe-area-inset-top))]! z-210 max-w-none! cursor-default flex-col items-stretch gap-2 p-3'
         : ''
     "
   >

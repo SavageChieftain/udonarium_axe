@@ -13,6 +13,7 @@ import {
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
+import { PointerDeviceService } from '@axe/application/input/pointer-device.service';
 import { GameObjectInventoryService } from '@axe/application/inventory/game-object-inventory.service';
 import { DisclosureService } from '@axe/application/permission/disclosure.service';
 import { RolePermissionService } from '@axe/application/permission/role-permission.service';
@@ -20,17 +21,14 @@ import { ObjectChangeService } from '@axe/application/sync/object-change.service
 import { TabletopService } from '@axe/application/tabletop/tabletop.service';
 import { VisionService } from '@axe/application/tabletop/vision.service';
 import { ContextMenuSeparator, ContextMenuService } from '@axe/application/ui/context-menu.service';
-import { PanelOption, PanelService } from '@axe/application/ui/panel.service';
 import { PieceContextMenuService } from '@axe/application/ui/piece-context-menu.service';
-import { SelectionSignalService } from '@axe/application/ui/selection-signal.service';
-import { sheetPanelBox } from '@axe/application/ui/sheet-panel';
 import { sheetPanelTitle } from '@axe/application/ui/sheet-panel';
 import { buildSurfaceSwitchContextMenu } from '@axe/application/ui/surface-switch-context-menu';
 import { UiSignalService } from '@axe/application/ui/ui-signal.service';
-import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { DataElement } from '@axe/domain/data/data-element';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
 import { TextNote } from '@axe/domain/tabletop/text-note';
+import { ObjectPanelService } from '@axe/features/panels/object-panel.service';
 import { buildTextNoteContextMenu } from '@axe/features/tabletop/text-note/text-note-context-menu';
 import { MovableOption } from '@axe/ui/directives/movable.directive';
 import { MovableDirective } from '@axe/ui/directives/movable.directive';
@@ -70,9 +68,8 @@ export class TextNoteComponent {
     return this.disclosureService.canView(note);
   });
   private readonly elementRef = inject<ElementRef<HTMLElement>>(ElementRef);
-  private readonly panelService = inject(PanelService);
+  private readonly objectPanels = inject(ObjectPanelService);
   private readonly pointerDeviceService = inject(PointerDeviceService);
-  private readonly selectionSignalService = inject(SelectionSignalService);
   private readonly inventoryService = inject(GameObjectInventoryService);
   private readonly uiSignalService = inject(UiSignalService);
   private readonly objectChange = inject(ObjectChangeService);
@@ -321,7 +318,7 @@ export class TextNoteComponent {
   private get input() {
     return this.inputRef.current;
   }
-  readonly viewRotateZ = computed(() => this.uiSignalService.tableViewRotation()?.z ?? 10);
+  readonly viewRotateZ = this.uiSignalService.tableViewRotationZ;
 
   onDragstart(e: DragEvent) {
     e.stopPropagation();
@@ -443,20 +440,7 @@ export class TextNoteComponent {
 
   private showDetail(gameObject: TextNote) {
     if (!this.disclosureService.canView(gameObject)) return;
-    this.selectionSignalService.selectObject(gameObject.identifier, gameObject.aliasName);
-    const coordinate = this.pointerDeviceService.pointers[0];
     const title = sheetPanelTitle(this.translateFn('feature.tabletop.panel.textNote'), gameObject.title);
-    const option: PanelOption = {
-      title: title,
-      ...sheetPanelBox(coordinate, 700, 400),
-    };
-    this.panelService.openLazy(
-      () =>
-        import('@axe/features/character/game-character-sheet/game-character-sheet.component').then(
-          (m) => m.GameCharacterSheetComponent
-        ),
-      option,
-      (component) => (component.tabletopObject = gameObject)
-    );
+    this.objectPanels.openSheet(gameObject, title, { width: 700, height: 400 });
   }
 }

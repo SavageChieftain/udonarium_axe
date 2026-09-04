@@ -6,11 +6,7 @@ import { DataElement } from '@axe/domain/data/data-element';
 import { Party } from '@axe/domain/party/party';
 
 describe('the pieces a first table is set out with', () => {
-  function clearStore(): void {
-    const store = ObjectStore.instance;
-    for (const object of store.getObjects()) store.delete(object, false);
-    store.clearDeleteHistory();
-  }
+  function clearStore(): void {}
 
   function sample(name: string): GameCharacter {
     const found = ObjectStore.instance.getObjects<GameCharacter>(GameCharacter).find((piece) => piece.name === name);
@@ -102,6 +98,24 @@ describe('the pieces a first table is set out with', () => {
     // Their order is left to the second sort, which is what a table sees on a tie.
     expect(statOf(sample('モンスターA'), '敏捷度')).toBe(statOf(sample('モンスターB'), '敏捷度'));
     expect(statOf(sample('モンスターA'), 'HP')).not.toBe(statOf(sample('モンスターB'), 'HP'));
+  });
+
+  const walkOf = (name: string) => statOf(sample(name), '移動');
+
+  it('walks each one at a pace that suits it', () => {
+    const walk = walkOf;
+
+    // The scout outruns the goblin, which outruns the robed wizard, which outwalks the
+    // knight under his armour; the golem comes last.
+    expect(walk('キャラクターC')).toBeGreaterThan(walk('モンスターA'));
+    expect(walk('モンスターA')).toBeGreaterThan(walk('キャラクターB'));
+    expect(walk('キャラクターB')).toBeGreaterThan(walk('キャラクターA'));
+    expect(walk('キャラクターA')).toBeGreaterThan(walk('モンスターC'));
+  });
+
+  it('slows the hurt one of a pair that is quick alike', () => {
+    expect(statOf(sample('モンスターA'), '敏捷度')).toBe(statOf(sample('モンスターB'), '敏捷度'));
+    expect(walkOf('モンスターB')).toBeLessThan(walkOf('モンスターA'));
   });
 
   it('starts everybody whole', () => {

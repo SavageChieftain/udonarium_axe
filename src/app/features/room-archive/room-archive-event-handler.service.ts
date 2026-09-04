@@ -1,8 +1,8 @@
 import { DestroyRef, inject, Injectable } from '@angular/core';
 import { RoomSnapshotService } from '@axe/application/file/room-snapshot.service';
+import { PointerDeviceService } from '@axe/application/input/pointer-device.service';
 import { RolePermissionService } from '@axe/application/permission/role-permission.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
-import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { SNAPSHOT_BUSY_RETRY_MS, snapshotDelays } from '@axe/features/room-archive/room-snapshot-schedule';
 
 const IDLE_CALLBACK_TIMEOUT_MS = 10_000;

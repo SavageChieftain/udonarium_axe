@@ -14,6 +14,8 @@ import {
   viewChildren,
 } from '@angular/core';
 import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
+import { CoordinateService } from '@axe/application/input/coordinate.service';
+import { PointerDeviceService } from '@axe/application/input/pointer-device.service';
 import { GameObjectInventoryService } from '@axe/application/inventory/game-object-inventory.service';
 import { ImageService } from '@axe/application/storage/image.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
@@ -22,16 +24,11 @@ import { TabletopActionService } from '@axe/application/tabletop/tabletop-action
 import { TerrainFogCover, VisionService } from '@axe/application/tabletop/vision.service';
 import { ContextMenuSeparator, ContextMenuService } from '@axe/application/ui/context-menu.service';
 import { buildOverlapContextMenu } from '@axe/application/ui/overlap-context-menu';
-import { PanelOption, PanelService } from '@axe/application/ui/panel.service';
 import { PieceContextMenuService } from '@axe/application/ui/piece-context-menu.service';
-import { SelectionSignalService } from '@axe/application/ui/selection-signal.service';
-import { sheetPanelBox } from '@axe/application/ui/sheet-panel';
 import { sheetPanelTitle } from '@axe/application/ui/sheet-panel';
 import { buildSurfaceSwitchContextMenu } from '@axe/application/ui/surface-switch-context-menu';
 import { TabletopOverlapService } from '@axe/application/ui/tabletop-overlap.service';
 import { UiSignalService } from '@axe/application/ui/ui-signal.service';
-import { CoordinateService } from '@axe/core/input/coordinate.service';
-import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { imageFileEqual } from '@axe/core/storage/image-file';
 import { PERF_TERRAIN_GRID_RASTER, perfCounters } from '@axe/core/util/perf-counters';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
@@ -41,6 +38,7 @@ import { TableSelecter } from '@axe/domain/tabletop/table-selecter';
 import { surfaceOf } from '@axe/domain/tabletop/tabletop-object';
 import { DoorStyle, SlopeDirection, Terrain, TerrainFace } from '@axe/domain/tabletop/terrain';
 import { WallFace, WallLight, WallSilhouette } from '@axe/domain/tabletop/vision-scene';
+import { ObjectPanelService } from '@axe/features/panels/object-panel.service';
 import { GridLineRender } from '@axe/features/tabletop/game-table/grid-line-render';
 import {
   computeHexSlopeSteps,
@@ -113,12 +111,11 @@ export class TerrainComponent {
   private readonly contextMenuService = inject(ContextMenuService);
   private readonly pieceContextMenu = inject(PieceContextMenuService);
   private readonly elementRef = inject<ElementRef<HTMLElement>>(ElementRef);
-  private readonly panelService = inject(PanelService);
+  private readonly objectPanels = inject(ObjectPanelService);
   private readonly pointerDeviceService = inject(PointerDeviceService);
   private readonly coordinateService = inject(CoordinateService);
   protected readonly tabletopService = inject(TabletopService);
   protected readonly visionService = inject(VisionService);
-  private readonly selectionSignalService = inject(SelectionSignalService);
   private readonly inventoryService = inject(GameObjectInventoryService);
   private readonly uiSignalService = inject(UiSignalService);
   private readonly objectChange = inject(ObjectChangeService);
@@ -162,14 +159,52 @@ export class TerrainComponent {
   }
 
   /**
+   * Where the grid is cut from, and how far the canvas is slid so the cut lands true.
+   *
+   * A terrain dragged across the floor moves the grid under it a pixel at a time, and cutting
+   * the lines again for every pixel is most of what a drag costs. The lines only look
+   * different once the terrain crosses into another cell, so the cut is taken from the corner
+   * of the cell it stands in, one cell wider than it needs, and the canvas is slid back by
+   * the part of a cell it has travelled. Slid a whole number of pixels the cut draws the same
+   * picture; slid a fraction it would not, so a terrain standing off the pixel grid, which a
+   * hex table or a turned terrain can be, is cut afresh as before.
+   */
+  private readonly gridSlide = computed(() => {
+    this.terrainVersion();
+    const viewport = this.getGridViewport(this.getFloorBounds());
+    const grid = this.gridSize;
+    const restX = viewport.offsetLeft - Math.floor(viewport.offsetLeft / grid) * grid;
+    const restY = viewport.offsetTop - Math.floor(viewport.offsetTop / grid) * grid;
+    // A turned terrain rotates its canvas about the canvas centre, and growing the canvas
+    // moves that centre, so a turned one is cut afresh however whole the remainder looks.
+    if (grid <= 0 || this.terrainRotate() !== 0 || !Number.isInteger(restX) || !Number.isInteger(restY)) {
+      return {
+        viewport,
+        offsetLeft: viewport.offsetLeft,
+        offsetTop: viewport.offsetTop,
+        slideX: 0,
+        slideY: 0,
+        grow: 0,
+      };
+    }
+    return {
+      viewport,
+      offsetLeft: viewport.offsetLeft - restX,
+      offsetTop: viewport.offsetTop - restY,
+      slideX: -restX,
+      slideY: -restY,
+      grow: grid,
+    };
+  });
+
+  /**
    * Everything the grid is cut from. The same key cuts the same picture, so it is cut once.
    */
   private readonly gridRasterKey = computed(() => {
-    this.terrainVersion();
     this.objectChange.versionOf(this.tabletopService.tableSelecter.identifier)();
     this.objectChange.versionOf(this.tabletopService.currentTable.identifier)();
     const table = this.currentTable;
-    const terrain = this.terrain();
+    const slide = this.gridSlide();
     const bbox = this.pedestalHexParams()?.bbox;
     return [
       this.width(),
@@ -179,22 +214,16 @@ export class TerrainComponent {
       table.gridColor,
       table.gridFontColor,
       this.terrainRotate(),
-      terrain.location.x,
-      terrain.location.y,
+      slide.offsetLeft,
+      slide.offsetTop,
+      slide.grow,
       bbox ? `${bbox.minX}:${bbox.minY}:${bbox.maxX}:${bbox.maxY}` : '',
       this.hexSlopeSteps().floors.length,
     ].join('|');
   });
 
   private rasterizeGrid(): void {
-    this.setGameTableGrid(
-      this.width(),
-      this.depth(),
-      this.gridSize,
-      this.currentTable.gridType,
-      this.currentTable.gridColor,
-      this.currentTable.gridFontColor
-    );
+    this.setGameTableGrid(this.currentTable.gridType, this.currentTable.gridColor, this.currentTable.gridFontColor);
   }
 
   private readonly inputRef = setupInputHandler({
@@ -541,12 +570,13 @@ export class TerrainComponent {
   }
 
   readonly terrainGridCanvasStyle = computed<Record<string, string>>(() => {
-    const viewport = this.getGridViewport(this.getFloorBounds());
+    const slide = this.gridSlide();
+    const viewport = slide.viewport;
     return {
-      width: `${viewport.canvasWidth}px`,
-      height: `${viewport.canvasHeight}px`,
-      left: `${viewport.canvasLeft}px`,
-      top: `${viewport.canvasTop}px`,
+      width: `${viewport.canvasWidth + slide.grow}px`,
+      height: `${viewport.canvasHeight + slide.grow}px`,
+      left: `${viewport.canvasLeft + slide.slideX}px`,
+      top: `${viewport.canvasTop + slide.slideY}px`,
       'backface-visibility': this.isSlope() ? 'visible' : 'hidden',
       transform: `rotateZ(${-this.terrainRotate()}deg) ${translateZCss(Z_OFFSET_TABLETOP_OBJECT_PX)}`,
     };
@@ -587,7 +617,7 @@ export class TerrainComponent {
   slopeDirectionState = SlopeDirection;
 
   private _initialized = false;
-  readonly viewRotateZ = computed(() => this.uiSignalService.tableViewRotation()?.z ?? 10);
+  readonly viewRotateZ = this.uiSignalService.tableViewRotationZ;
 
   onDragstart(e: DragEvent) {
     e.stopPropagation();
@@ -955,46 +985,30 @@ export class TerrainComponent {
   }
 
   private showDetail(gameObject: Terrain) {
-    this.selectionSignalService.selectObject(gameObject.identifier, gameObject.aliasName);
-    const coordinate = this.pointerDeviceService.pointers[0];
     const title = sheetPanelTitle(this.translateFn('feature.tabletop.panel.terrain'), gameObject.name);
-    const option: PanelOption = {
-      title: title,
-      ...sheetPanelBox(coordinate, 600, 300),
-    };
-    this.panelService.openLazy(
-      () =>
-        import('@axe/features/character/game-character-sheet/game-character-sheet.component').then(
-          (m) => m.GameCharacterSheetComponent
-        ),
-      option,
-      (component) => (component.tabletopObject = gameObject)
-    );
+    this.objectPanels.openSheet(gameObject, title, { width: 600, height: 300 });
   }
 
   private setGameTableGrid(
-    width: number,
-    depth: number,
-    gridSize: number = 50,
     gridType: GridType = GridType.SQUARE,
     gridColor: string = '#000000e6',
     gridFontColor: string = gridColor
   ) {
     if (this.gridCanvases().length < 1) return;
-    const viewport = this.getGridViewport(this.getFloorBounds(width, depth));
+    const slide = this.gridSlide();
 
     perfCounters.bump(PERF_TERRAIN_GRID_RASTER);
     for (const gridCanvas of this.gridCanvases()) {
       const render = new GridLineRender(gridCanvas.nativeElement);
       render.renderViewport(
-        viewport.canvasWidth,
-        viewport.canvasHeight,
-        gridSize,
+        slide.viewport.canvasWidth + slide.grow,
+        slide.viewport.canvasHeight + slide.grow,
+        this.gridSize,
         gridType,
         gridColor,
         gridFontColor,
-        viewport.offsetTop,
-        viewport.offsetLeft
+        slide.offsetTop,
+        slide.offsetLeft
       );
     }
     let opacity: number = 0.0;

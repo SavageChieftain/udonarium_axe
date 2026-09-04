@@ -1,5 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ImageStorage } from '@axe/core/storage/image-storage';
+import { Card } from '@axe/domain/card/card';
+import { CardStack } from '@axe/domain/card/card-stack';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import {
   DataElement,
@@ -31,6 +33,55 @@ describe('OverviewPanelComponent', () => {
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  it('draws card text over the image in a card pop-up', () => {
+    const image = ImageStorage.instance.add('card-popup-front.png');
+    const card = Card.create('文章カード', image.identifier, 'back.png');
+    card.faceText = 'ポップアップの文章';
+    component.tabletopObject = card;
+
+    try {
+      fixture.detectChanges();
+      expect(fixture.nativeElement.querySelector('card-face-preview')).toBeTruthy();
+    } finally {
+      card.destroy();
+      ImageStorage.instance.delete(image.identifier);
+    }
+  });
+
+  it('keeps the card text on the picture when it is opened out', () => {
+    const image = ImageStorage.instance.add('card-zoom-front.png');
+    const card = Card.create('文章カード', image.identifier, 'back.png');
+    card.faceText = '拡大しても読める文章';
+    component.tabletopObject = card;
+    component.chanageImageView(true);
+
+    try {
+      fixture.detectChanges();
+      const previews = fixture.nativeElement.querySelectorAll('card-face-preview') as NodeListOf<HTMLElement>;
+      expect(previews.length).toBe(2);
+      const opened = previews[previews.length - 1].querySelector('div') as HTMLElement;
+      expect(opened.style.width).toBe('100%');
+      expect(opened.style.height).toBe('100%');
+    } finally {
+      component.chanageImageView(false);
+      card.destroy();
+      ImageStorage.instance.delete(image.identifier);
+    }
+  });
+
+  it('uses the top card text for a deck pop-up', () => {
+    const stack = CardStack.create('文章山札');
+    const card = Card.create('一番上', 'front.png', 'back.png');
+    stack.putOnTop(card);
+    component.tabletopObject = stack;
+
+    try {
+      expect(component.overviewFaceCard).toBe(card);
+    } finally {
+      stack.destroy();
+    }
   });
 
   describe('filtering the empty elements out', () => {

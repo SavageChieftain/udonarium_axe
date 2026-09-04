@@ -1,3 +1,4 @@
+import { PERF_PARTICLES, perfCounters } from '@axe/core/util/perf-counters';
 import { EffectParticle, EffectParticleLayer } from '@axe/domain/effect/effect-particles';
 import { particleTexture } from '@axe/features/effect/effect-canvas/particle-texture';
 
@@ -17,6 +18,7 @@ export function drawParticleLayer(
 ): void {
   context.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
   context.clearRect(0, 0, layer.width, layer.height);
+  perfCounters.add(PERF_PARTICLES, layer.particles.length);
 
   // It walks the list twice; sorting into arrays first would throw seven hundred holders away every frame for a single sheet of weather.
   context.globalCompositeOperation = 'source-over';

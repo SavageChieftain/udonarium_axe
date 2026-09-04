@@ -40,6 +40,123 @@ describe('ChatMessageService', () => {
     }
   ));
 
+  describe('opening what a die was thrown on', () => {
+    let service: ChatMessageService;
+    let tab: ChatTab;
+
+    beforeEach(() => {
+      service = TestBed.inject(ChatMessageService);
+      tab = ChatTabList.instance.addChatTab('テストタブ');
+    });
+
+    afterEach(() => {
+      tab.destroy();
+    });
+
+    it('opens the line that die was thrown on', () => {
+      const secret = service.sendSecretSystemMessageToTab(tab, '隠しダイス → 6', 'me', undefined, ['die-a']);
+
+      service.discloseDieRolls('die-a');
+
+      expect(secret.isSecret).toBe(false);
+    });
+
+    it('leaves the throw of another die where it was', () => {
+      service.sendSecretSystemMessageToTab(tab, '隠しダイスA → 6', 'me', undefined, ['die-a']);
+      const other = service.sendSecretSystemMessageToTab(tab, '隠しダイスB → 1', 'me', undefined, ['die-b']);
+
+      service.discloseDieRolls('die-a');
+
+      expect(other.isSecret).toBe(true);
+    });
+
+    it('brings the opened line to the end of the tab', () => {
+      const secret = service.sendSecretSystemMessageToTab(tab, '隠しダイス → 6', 'me', undefined, ['die-a']);
+      service.sendSystemMessageToTab(tab, 'そのあとの発言');
+
+      service.discloseDieRolls('die-a');
+
+      expect(tab.chatMessages[tab.chatMessages.length - 1]).toBe(secret);
+    });
+
+    it('opens the last throw of that die alone, leaving the earlier ones kept back', () => {
+      const older = service.sendSecretSystemMessageToTab(tab, '隠しダイス → 1', 'me', undefined, ['die-a']);
+      const newer = service.sendSecretSystemMessageToTab(tab, '隠しダイス → 6', 'me', undefined, ['die-a']);
+      const another = service.sendSecretSystemMessageToTab(tab, '隠しダイスB → 3', 'me', undefined, ['die-b']);
+
+      expect(service.discloseDieRolls('die-a')).toBe(1);
+
+      expect(newer.isSecret).toBe(false);
+      expect(older.isSecret).toBe(true);
+      expect(another.isSecret).toBe(true);
+    });
+
+    it('weighs the throws against each other across the tabs', () => {
+      const other = ChatTabList.instance.addChatTab('べつのタブ');
+      try {
+        vi.spyOn(service, 'getTime').mockReturnValueOnce(2000).mockReturnValueOnce(1000);
+        const newer = service.sendSecretSystemMessageToTab(tab, '隠しダイス → 6', 'me', undefined, ['die-a']);
+        const older = service.sendSecretSystemMessageToTab(other, '隠しダイス → 1', 'me', undefined, ['die-a']);
+
+        expect(service.discloseDieRolls('die-a')).toBe(1);
+
+        expect(newer.isSecret).toBe(false);
+        expect(older.isSecret).toBe(true);
+      } finally {
+        other.destroy();
+      }
+    });
+
+    it('says how many lines it opened', () => {
+      service.sendSecretSystemMessageToTab(tab, '隠しダイス → 6', 'me', undefined, ['die-a']);
+
+      expect(service.discloseDieRolls('die-a')).toBe(1);
+    });
+
+    it('says none for a die with no throw of it left kept back', () => {
+      expect(service.discloseDieRolls('die-a')).toBe(0);
+    });
+
+    it('finds the throw in whichever tab it was said in', () => {
+      const another = ChatTabList.instance.addChatTab('べつのタブ');
+      try {
+        const secret = service.sendSecretSystemMessageToTab(another, '隠しダイス → 6', 'me', undefined, ['die-a']);
+
+        service.discloseDieRolls('die-a');
+
+        expect(secret.isSecret).toBe(false);
+      } finally {
+        another.destroy();
+      }
+    });
+  });
+
+  describe('a notice meant for one person', () => {
+    it('is marked as housekeeping when it is asked to be', () => {
+      const service = TestBed.inject(ChatMessageService);
+      const tab = ChatTabList.instance.addChatTab('テストタブ');
+      try {
+        const message = service.sendSystemMessageOnePlayer(tab, 'お知らせ', 'nobody', undefined, true);
+
+        expect(message.isOutOfStory).toBe(true);
+      } finally {
+        tab.destroy();
+      }
+    });
+
+    it('belongs to the story when it is not', () => {
+      const service = TestBed.inject(ChatMessageService);
+      const tab = ChatTabList.instance.addChatTab('テストタブ');
+      try {
+        const message = service.sendSystemMessageOnePlayer(tab, 'お知らせ', 'nobody');
+
+        expect(message.isOutOfStory).toBe(false);
+      } finally {
+        tab.destroy();
+      }
+    });
+  });
+
   describe('what a line records about who spoke it', () => {
     it('writes down the role the speaker was wearing at the time', () => {
       const service = TestBed.inject(ChatMessageService);

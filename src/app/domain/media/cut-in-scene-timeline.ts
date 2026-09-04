@@ -1,3 +1,4 @@
+import { clamp } from '@axe/core/util/clamp';
 import { type CutInEasingName, DEFAULT_CUT_IN_EASING, easingCss } from '@axe/domain/media/cubic-bezier';
 import { effectAt, effectFilter, effectMovesOverTime } from '@axe/domain/media/cut-in-effect';
 import { type CutInKey, keyTimes, sampleTrack, surroundingKeys } from '@axe/domain/media/cut-in-keyframe';
@@ -265,10 +266,6 @@ function isShown(ms: number, startMs: number, endMs: number, running: number): b
 function numberOr(value: unknown, fallback: number): number {
   const read = Number(value);
   return Number.isFinite(read) ? read : fallback;
-}
-
-function clamp(value: number, low: number, high: number): number {
-  return Math.min(high, Math.max(low, value));
 }
 
 function round(value: number): number {

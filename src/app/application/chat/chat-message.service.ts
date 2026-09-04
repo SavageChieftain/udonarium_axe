@@ -26,6 +26,7 @@ import { copiedMessageContext } from '@axe/domain/chat/chat-message-copy';
 import { ChatTab } from '@axe/domain/chat/chat-tab';
 import { ChatTabList } from '@axe/domain/chat/chat-tab-list';
 import { OUT_OF_STORY_TAG } from '@axe/domain/chat/constants';
+import { dieRollTag } from '@axe/domain/chat/die-roll-tag';
 import { DataElement, DataElementFieldType } from '@axe/domain/data/data-element';
 import { DiceBot } from '@axe/domain/dice/dice-bot';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
@@ -132,12 +133,50 @@ export class ChatMessageService {
     return chatTab.addMessage(chatMessage);
   }
 
+  /**
+   * A notice only whoever sent it may read, which the room sees as a secret die.
+   *
+   * The line is sent whole and kept back by the view rather than being written short, so
+   * the thrower can read their own result and open it to the table when they choose to.
+   */
+  sendSecretSystemMessageToTab(
+    chatTab: ChatTab,
+    text: string,
+    from?: string,
+    color?: string,
+    dieIdentifiers: readonly string[] = []
+  ): ChatMessage {
+    const messageColor = resolveMessageColor(color, '#006633');
+    const chatMessage: ChatMessageContext = {
+      from,
+      name: encodeI18nMessage('common.chat.systemName'),
+      imageIdentifier: '',
+      timestamp: this.calcTimeStamp(chatTab),
+      tag: ['system-message', 'secret', ...dieIdentifiers.map(dieRollTag)].join(' '),
+      text,
+      imagePos: -1,
+      messColor: messageColor,
+    };
+    return chatTab.addMessage(chatMessage);
+  }
+
+  sendSecretSystemMessageToMainTab(text: string, from?: string, dieIdentifiers: readonly string[] = []): ChatMessage {
+    const chatTabList = this.objectStore.get<ChatTabList>('ChatTabList');
+    return this.sendSecretSystemMessageToTab(chatTabList!.chatTabs[0], text, from, undefined, dieIdentifiers);
+  }
+
   sendSystemMessageToMainTab(text: string, color?: string): ChatMessage {
     const chatTabList = this.objectStore.get<ChatTabList>('ChatTabList');
     return this.sendSystemMessageToTab(chatTabList!.chatTabs[0], text, color);
   }
 
-  sendSystemMessageOnePlayer(chatTab: ChatTab, text: string, sendTo: string, color?: string): ChatMessage {
+  sendSystemMessageOnePlayer(
+    chatTab: ChatTab,
+    text: string,
+    sendTo: string,
+    color?: string,
+    outOfStory = false
+  ): ChatMessage {
     const messageColor = resolveMessageColor(color, '#006633');
     const chatMessage: ChatMessageContext = {
       from: this.findId(sendTo),
@@ -145,7 +184,7 @@ export class ChatMessageService {
       name: encodeI18nMessage('common.chat.systemName'),
       imageIdentifier: '',
       timestamp: this.calcTimeStamp(chatTab),
-      tag: 'DiceBot to-pl-system-message',
+      tag: outOfStory ? `DiceBot to-pl-system-message ${OUT_OF_STORY_TAG}` : 'DiceBot to-pl-system-message',
       text: text,
       imagePos: -1,
       messColor: messageColor,
@@ -391,6 +430,30 @@ export class ChatMessageService {
     const object = this.objectStore.get(identifier);
     if (object instanceof GameCharacter) return resolveImagePos(object.portraitPosition ?? undefined);
     return -1;
+  }
+
+  discloseDieRolls(dieIdentifier: string): number {
+    const tag = dieRollTag(dieIdentifier);
+    let latest: ChatMessage | null = null;
+    for (const chatTab of this.chatTabs) {
+      for (const message of chatTab.chatMessages) {
+        if (!message.isSecret || !message.tags.includes(tag)) continue;
+        if (!latest || latest.placedAt < message.placedAt) latest = message;
+      }
+    }
+    if (!latest) return 0;
+
+    this.discloseMessage(latest);
+    return 1;
+  }
+
+  discloseMessage(message: ChatMessage): void {
+    if (!message.isSecret) return;
+    message.tag = message.tags.filter((tag) => tag !== 'secret').join(' ');
+    const chatTab = message.parent;
+    if (!(chatTab instanceof ChatTab)) return;
+    message.disclosedAt = this.calcTimeStamp(chatTab);
+    chatTab.appendChild(message);
   }
 
   /**

@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ChatMessageService } from '@axe/application/chat/chat-message.service';
 import { ObjectChangeService, type WritingMessageEvent } from '@axe/application/sync/object-change.service';
 import { PanelService } from '@axe/application/ui/panel.service';
 import { emitMessageAdded } from '@axe/core/event/domain-events';
@@ -138,7 +139,7 @@ describe('ChatTabComponent', () => {
 
     it('still updates for a message older than the top of the view', () => {
       // one message is added and read, which settles the top timestamp
-      type InternalFull = { bottomIndex: number; needUpdate: boolean; topTimestamp: number };
+      type InternalFull = { bottomIndex: number; needUpdate: boolean; topPlacedAt: number };
       const internalFull = () => component as unknown as InternalFull;
 
       const msg0 = new ChatMessage();
@@ -149,7 +150,7 @@ describe('ChatTabComponent', () => {
 
       // settling it
       const _ignored = component.chatMessages;
-      expect(internalFull().topTimestamp).toBe(1000);
+      expect(internalFull().topPlacedAt).toBe(1000);
       internalFull().needUpdate = false; // getter で false になっているはずだが明示的に確認
 
       // an older message arrives
@@ -163,9 +164,53 @@ describe('ChatTabComponent', () => {
       expect(internalFull().needUpdate).toBe(true);
     });
 
+    it('still updates for a line above one that was opened and brought to the end', async () => {
+      // The opened line keeps the old time it was said at, so a window bounded by time would
+      // read as empty and swallow every change to the lines above it.
+      const flush = async () => {
+        await new Promise<void>((resolve) => queueMicrotask(resolve));
+        await new Promise<void>((resolve) => queueMicrotask(resolve));
+      };
+
+      const secret = chatTab.addMessage({ from: 'me', name: 'ダイス', text: '→ 6', timestamp: 1000, tag: 'secret' });
+      const said = chatTab.addMessage({ from: 'me', name: 'アリス', text: 'そのあと', timestamp: 2000 });
+      TestBed.inject(ChatMessageService).discloseMessage(secret);
+      await flush();
+
+      // settling the window over both, with the opened line last
+      const settled = component.chatMessages;
+      expect(chatTab.chatMessages[chatTab.chatMessages.length - 1]).toBe(secret);
+
+      said.text = 'そのあと（直した）';
+      await flush();
+
+      // a fresh slice, which is what redrawing the window looks like from outside
+      expect(component.chatMessages).not.toBe(settled);
+    });
+
+    it('redraws when a line is placed past the end of what is drawn', async () => {
+      const flush = async () => {
+        await new Promise<void>((resolve) => queueMicrotask(resolve));
+        await new Promise<void>((resolve) => queueMicrotask(resolve));
+      };
+
+      const secret = chatTab.addMessage({ from: 'me', name: 'ダイス', text: '→ 6', timestamp: 1000, tag: 'secret' });
+      chatTab.addMessage({ from: 'me', name: 'アリス', text: 'そのあと', timestamp: 2000 });
+      await flush();
+
+      // settling the window over both, which bounds it by the times they were said at
+      const settled = component.chatMessages;
+
+      TestBed.inject(ChatMessageService).discloseMessage(secret);
+      await flush();
+
+      expect(chatTab.chatMessages[chatTab.chatMessages.length - 1]).toBe(secret);
+      expect(component.chatMessages).not.toBe(settled);
+    });
+
     it('widens to an older message while it is at the bottom', () => {
       // one message settles both the bottom and the top timestamp
-      type InternalFull = { bottomIndex: number; topTimestamp: number };
+      type InternalFull = { bottomIndex: number; topPlacedAt: number };
       const internalFull = () => component as unknown as InternalFull;
 
       const msg0 = new ChatMessage();
@@ -175,7 +220,7 @@ describe('ChatTabComponent', () => {
       emitMessageAdded({ tabIdentifier: chatTab.identifier, messageIdentifier: msg0.identifier });
 
       const _ignored = component.chatMessages;
-      expect(internalFull().topTimestamp).toBe(1000);
+      expect(internalFull().topPlacedAt).toBe(1000);
       expect(internalFull().bottomIndex).toBe(0);
 
       // an older message arrives

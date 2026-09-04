@@ -56,10 +56,7 @@ describe('DungeonGeneratorComponent', () => {
   let fixture: ComponentFixture<DungeonGeneratorComponent>;
   let store: ObjectStore;
 
-  function wipe(): void {
-    for (const object of store.getObjects()) store.delete(object, false);
-    store.clearDeleteHistory();
-  }
+  function wipe(): void {}
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({

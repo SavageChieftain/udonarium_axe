@@ -5,6 +5,7 @@ export const WIDGET_CONNECTION_QUALITY = 'connectionQuality';
 export const WIDGET_VOTE = 'vote';
 export const WIDGET_RENDER_STATS = 'renderStats';
 export const WIDGET_HOTBAR = 'hotbar';
+export const WIDGET_ROOM_RESTORE = 'roomRestore';
 
 export function placeWidget(
   layout: WidgetLayoutService,

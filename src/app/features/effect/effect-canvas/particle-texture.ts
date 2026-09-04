@@ -11,11 +11,20 @@ export { withAlpha };
  */
 
 const TEXTURE_SIZE = 128;
-const cache = new Map<string, HTMLCanvasElement>();
+const cache = new Map<ParticleShape, Map<string, HTMLCanvasElement>>();
+
+function shelfFor(shape: ParticleShape): Map<string, HTMLCanvasElement> {
+  let shelf = cache.get(shape);
+  if (!shelf) {
+    shelf = new Map<string, HTMLCanvasElement>();
+    cache.set(shape, shelf);
+  }
+  return shelf;
+}
 
 export function particleTexture(shape: ParticleShape, color: string): HTMLCanvasElement | null {
-  const key = `${shape}:${color}`;
-  const cached = cache.get(key);
+  const shelf = shelfFor(shape);
+  const cached = shelf.get(color);
   if (cached) return cached;
 
   const canvas = createCanvas(TEXTURE_SIZE, TEXTURE_SIZE);
@@ -26,7 +35,7 @@ export function particleTexture(shape: ParticleShape, color: string): HTMLCanvas
 
   if (shape === 'chunk') {
     drawChunk(context, TEXTURE_SIZE, color);
-    cache.set(key, canvas);
+    shelf.set(color, canvas);
     return canvas;
   }
 
@@ -46,7 +55,7 @@ export function particleTexture(shape: ParticleShape, color: string): HTMLCanvas
 
   context.fillStyle = gradient;
   context.fillRect(0, 0, TEXTURE_SIZE, TEXTURE_SIZE);
-  cache.set(key, canvas);
+  shelf.set(color, canvas);
   return canvas;
 }
 

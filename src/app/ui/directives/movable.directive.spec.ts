@@ -105,3 +105,68 @@ describe('MovableDirective', () => {
     });
   });
 });
+
+describe('MovableDirective drop preview', () => {
+  interface Internals {
+    input: {
+      isDragging: boolean;
+      pointer: { x: number; y: number; z: number };
+      cancel(): void;
+      destroy(): void;
+    } | null;
+    onInputMoveNow(e: MouseEvent): void;
+    surfaceUnderPointer(): HTMLElement | null;
+    surfaceElement(): HTMLElement;
+    clearDragPreview(): void;
+    updateDragPreview(surface: HTMLElement | null): void;
+  }
+
+  @Component({
+    selector: 'preview-host',
+    template: `<div appMovable [movable.option]="{}"></div>`,
+    changeDetection: ChangeDetectionStrategy.Eager,
+    imports: [MovableDirective],
+  })
+  class PreviewHostComponent {}
+
+  function mount(isDragging: boolean): Internals {
+    TestBed.configureTestingModule({ imports: [PreviewHostComponent], providers: [...TEST_PROVIDERS] });
+    const fixture = TestBed.createComponent(PreviewHostComponent);
+    fixture.detectChanges();
+    const directive = fixture.debugElement
+      .query((node) => node.name === 'div')
+      .injector.get(MovableDirective) as unknown as Internals;
+    directive.input = {
+      isDragging,
+      pointer: { x: 0, y: 0, z: 0 },
+      cancel: () => undefined,
+      destroy: () => undefined,
+    };
+    return directive;
+  }
+
+  it('looks for the face under the pointer once per move', () => {
+    const directive = mount(true);
+    const own = directive.surfaceElement();
+    const look = vi.spyOn(directive, 'surfaceUnderPointer').mockReturnValue(own);
+    const preview = vi.spyOn(directive, 'updateDragPreview').mockImplementation(() => undefined);
+
+    directive.onInputMoveNow(new MouseEvent('mousemove'));
+
+    expect(look).toHaveBeenCalledTimes(1);
+    expect(preview.mock.calls[0][0]).toBe(own);
+  });
+
+  it('is given nothing to draw on the move that grabs, since nothing is being dragged yet', () => {
+    // The input handler sets isDragging after the move callback returns, so the first move
+    // always runs with it unset, and the preview clears itself whatever face it is handed.
+    const directive = mount(false);
+    const own = directive.surfaceElement();
+    vi.spyOn(directive, 'surfaceUnderPointer').mockReturnValue(own);
+    const clear = vi.spyOn(directive, 'clearDragPreview').mockImplementation(() => undefined);
+
+    directive.onInputMoveNow(new MouseEvent('mousemove'));
+
+    expect(clear).toHaveBeenCalled();
+  });
+});

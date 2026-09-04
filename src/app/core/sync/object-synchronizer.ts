@@ -19,6 +19,9 @@ const OBJECT_SYNC_EVENTS: ReadonlySet<string> = new Set([
   'REQUEST_CATALOG',
 ]);
 
+const CATALOG_BATCH = 2048;
+const CATALOG_TICK_MS = 16;
+
 export class ObjectSynchronizer {
   private static _instance: ObjectSynchronizer;
   static get instance(): ObjectSynchronizer {
@@ -105,6 +108,8 @@ export class ObjectSynchronizer {
   destroy() {
     this.cleanups.forEach((c) => c());
     this.cleanups = [];
+    for (const sender of this.catalogSenders) clearInterval(sender);
+    this.catalogSenders.clear();
   }
 
   requestFullSync(): number {
@@ -139,13 +144,19 @@ export class ObjectSynchronizer {
     return newObject;
   }
 
+  private readonly catalogSenders = new Set<ReturnType<typeof setInterval>>();
+
   private sendCatalog(sendTo: PeerId) {
     const catalog = ObjectStore.instance.getCatalog();
     const interval = setInterval(() => {
-      const count = catalog.length < 2048 ? catalog.length : 2048;
+      const count = catalog.length < CATALOG_BATCH ? catalog.length : CATALOG_BATCH;
       networkSend('SYNCHRONIZE_GAME_OBJECT', catalog.splice(0, count), sendTo);
-      if (catalog.length < 1) clearInterval(interval);
-    });
+      if (catalog.length < 1) {
+        clearInterval(interval);
+        this.catalogSenders.delete(interval);
+      }
+    }, CATALOG_TICK_MS);
+    this.catalogSenders.add(interval);
   }
 
   private addRequestMap(item: CatalogItem, sendFrom: PeerId) {

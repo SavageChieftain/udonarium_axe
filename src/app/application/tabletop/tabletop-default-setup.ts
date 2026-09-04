@@ -40,17 +40,20 @@ interface SampleStats {
   生命力: number;
   知力: number;
   精神力: number;
+  /** How far it walks in a turn, in cells: armour and wounds tell as much as legs do. */
+  移動: number;
 }
 
 const SAMPLE_STATS: Record<string, SampleStats> = {
-  騎士: { hp: 260, mp: 40, 器用度: 18, 敏捷度: 14, 筋力: 30, 生命力: 28, 知力: 12, 精神力: 16 },
-  魔法使い: { hp: 140, mp: 220, 器用度: 16, 敏捷度: 15, 筋力: 10, 生命力: 14, 知力: 32, 精神力: 28 },
-  斥候: { hp: 180, mp: 80, 器用度: 30, 敏捷度: 32, 筋力: 16, 生命力: 18, 知力: 20, 精神力: 18 },
+  騎士: { hp: 260, mp: 40, 器用度: 18, 敏捷度: 14, 筋力: 30, 生命力: 28, 知力: 12, 精神力: 16, 移動: 4 },
+  魔法使い: { hp: 140, mp: 220, 器用度: 16, 敏捷度: 15, 筋力: 10, 生命力: 14, 知力: 32, 精神力: 28, 移動: 5 },
+  斥候: { hp: 180, mp: 80, 器用度: 30, 敏捷度: 32, 筋力: 16, 生命力: 18, 知力: 20, 精神力: 18, 移動: 8 },
   // Two of a kind, told apart by how much they can take. The same 敏捷度 leaves the order to
-  // the second sort, which is what a table sees when two of a species roll the same.
-  ゴブリン: { hp: 90, mp: 20, 器用度: 14, 敏捷度: 22, 筋力: 12, 生命力: 12, 知力: 8, 精神力: 6 },
-  手負いのゴブリン: { hp: 76, mp: 20, 器用度: 14, 敏捷度: 22, 筋力: 10, 生命力: 10, 知力: 8, 精神力: 6 },
-  ゴーレム: { hp: 400, mp: 20, 器用度: 8, 敏捷度: 6, 筋力: 40, 生命力: 45, 知力: 4, 精神力: 30 },
+  // the second sort, which is what a table sees when two of a species roll the same. The
+  // hurt one walks shorter, which is the difference a fight sees before the numbers do.
+  ゴブリン: { hp: 90, mp: 20, 器用度: 14, 敏捷度: 22, 筋力: 12, 生命力: 12, 知力: 8, 精神力: 6, 移動: 6 },
+  手負いのゴブリン: { hp: 76, mp: 20, 器用度: 14, 敏捷度: 22, 筋力: 10, 生命力: 10, 知力: 8, 精神力: 6, 移動: 4 },
+  ゴーレム: { hp: 400, mp: 20, 器用度: 8, 敏捷度: 6, 筋力: 40, 生命力: 45, 知力: 4, 精神力: 30, 移動: 3 },
 };
 
 /** Writes a sample's numbers over the ones every new piece is made with. */
@@ -69,7 +72,7 @@ function applySampleStats(character: GameCharacter, profile: keyof typeof SAMPLE
     pool.currentValue = amount;
   }
 
-  for (const name of ['器用度', '敏捷度', '筋力', '生命力', '知力', '精神力'] as const) {
+  for (const name of ['器用度', '敏捷度', '筋力', '生命力', '知力', '精神力', '移動'] as const) {
     const ability = DataElement.findElementByReference(root, name);
     if (ability) ability.value = stats[name];
   }

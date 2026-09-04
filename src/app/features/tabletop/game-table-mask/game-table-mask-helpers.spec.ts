@@ -1,11 +1,11 @@
 import { GridType } from '@axe/domain/tabletop/game-table';
+import { computeHexMaskGeometry } from '@axe/domain/tabletop/hex-mask-geometry';
 import { boardExtentPx, tableSizeFor } from '@axe/domain/tabletop/map-grid';
 import {
   buildHexOuterBorderSvg,
   buildHexOutlineMask,
   buildMaskCss,
   buildScratchingGridInfos,
-  computeHexMaskGeometry,
   type ScratchGridInfo,
 } from '@axe/features/tabletop/game-table-mask/game-table-mask-helpers';
 import { describe, expect, it } from 'vitest';

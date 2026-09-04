@@ -13,6 +13,7 @@ import {
 import { CardFlipCutInService } from '@axe/application/card/card-flip-cut-in.service';
 import { CardTargetService } from '@axe/application/card/card-target.service';
 import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
+import { PointerDeviceService } from '@axe/application/input/pointer-device.service';
 import { DisclosureService } from '@axe/application/permission/disclosure.service';
 import { RolePermissionService } from '@axe/application/permission/role-permission.service';
 import { ImageService } from '@axe/application/storage/image.service';
@@ -20,13 +21,9 @@ import { ObjectChangeService } from '@axe/application/sync/object-change.service
 import { TabletopService } from '@axe/application/tabletop/tabletop.service';
 import { VisionService } from '@axe/application/tabletop/vision.service';
 import { ContextMenuSeparator, ContextMenuService } from '@axe/application/ui/context-menu.service';
-import { PanelOption, PanelService } from '@axe/application/ui/panel.service';
 import { PieceContextMenuService } from '@axe/application/ui/piece-context-menu.service';
-import { SelectionSignalService } from '@axe/application/ui/selection-signal.service';
-import { sheetPanelBox } from '@axe/application/ui/sheet-panel';
 import { sheetPanelTitle } from '@axe/application/ui/sheet-panel';
 import { buildSurfaceSwitchContextMenu } from '@axe/application/ui/surface-switch-context-menu';
-import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { ImageFile, imageFileEqual } from '@axe/core/storage/image-file';
 import { Card, CardState } from '@axe/domain/card/card';
 import { CardStack } from '@axe/domain/card/card-stack';
@@ -36,12 +33,15 @@ import { buildCardContextMenu } from '@axe/features/card/card/card-context-menu'
 import { selectOverlappingCards } from '@axe/features/card/card/overlapping-cards';
 import { elementsAt } from '@axe/features/card/hand-rail/elements-at';
 import { HandDragService } from '@axe/features/card/hand-rail/hand-drag.service';
+import { ObjectPanelService } from '@axe/features/panels/object-panel.service';
+import { CardFaceTextComponent } from '@axe/ui/components/card-face-text/card-face-text.component';
 import { MovableOption } from '@axe/ui/directives/movable.directive';
 import { MovableDirective } from '@axe/ui/directives/movable.directive';
 import { RotableOption } from '@axe/ui/directives/rotable.directive';
 import { RotableDirective } from '@axe/ui/directives/rotable.directive';
 import { SelectableDirective } from '@axe/ui/directives/selectable.directive';
 import { SafePipe } from '@axe/ui/pipes/safe.pipe';
+import { containedImageRect } from '@axe/ui/tabletop/contained-image-rect';
 import { DoubleTap } from '@axe/ui/tabletop/double-tap';
 import { hideIconWhileTouched } from '@axe/ui/tabletop/icon-hiding';
 import { setupInputHandler, setupMovableRotableForPiece } from '@axe/ui/tabletop/setup-tabletop-piece';
@@ -52,7 +52,7 @@ import { translateZCss, Z_OFFSET_TABLETOP_OBJECT_PX } from '@axe/ui/tabletop/z-o
   selector: 'card',
   templateUrl: './card.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [MovableDirective, RotableDirective, SelectableDirective, NgStyle, SafePipe],
+  imports: [MovableDirective, RotableDirective, SelectableDirective, NgStyle, SafePipe, CardFaceTextComponent],
   host: {
     '[style.display]': "isHiddenByFog() ? 'none' : null",
     class: 'block',
@@ -66,12 +66,11 @@ export class CardComponent {
   private readonly pieceContextMenu = inject(PieceContextMenuService);
   private readonly rolePermission = inject(RolePermissionService);
   private readonly disclosureService = inject(DisclosureService);
-  private readonly panelService = inject(PanelService);
+  private readonly objectPanels = inject(ObjectPanelService);
   private readonly elementRef = inject<ElementRef<HTMLElement>>(ElementRef);
   protected readonly tabletopService = inject(TabletopService);
   private readonly imageService = inject(ImageService);
   private readonly pointerDeviceService = inject(PointerDeviceService);
-  private readonly selectionSignalService = inject(SelectionSignalService);
   private readonly objectChange = inject(ObjectChangeService);
   private readonly visionService = inject(VisionService);
   private readonly destroyRef = inject(DestroyRef);
@@ -217,13 +216,39 @@ export class CardComponent {
     return supersampleFactor(Math.min(natural.width, natural.height), this.size * this.gridSize);
   });
 
-  readonly peekSupersamplePercent = computed(() => this.peekSupersample() * 100 + '%');
-
-  readonly peekSupersampleInset = computed(() => supersampleInsetPercent(this.peekSupersample()) + '%');
+  /** A peeked card is held a little smaller than the one it is drawn over. */
+  protected readonly peekScale = 'scale(0.9)';
 
   readonly peekTransform = computed(() =>
-    supersampleTransform({ factor: this.peekSupersample(), anchor: 'center', inner: 'scale(0.9)' })
+    supersampleTransform({ factor: this.peekSupersample(), anchor: 'center', inner: this.peekScale })
   );
+
+  private readonly peekFrameRect = computed(() => {
+    const frameWidth = this.size * this.gridSize;
+    const back = this.imageNaturalSize();
+    const frameHeight = back && back.width > 0 ? (frameWidth * back.height) / back.width : frameWidth;
+    return { width: frameWidth, height: frameHeight };
+  });
+
+  readonly peekImageLayout = computed(() => {
+    const frame = this.peekFrameRect();
+    const factor = this.peekSupersample();
+    const width = frame.width * factor;
+    const height = frame.height * factor;
+    return {
+      left: (frame.width - width) / 2,
+      top: (frame.height - height) / 2,
+      width,
+      height,
+    };
+  });
+
+  readonly peekFaceRect = computed(() => {
+    const frame = this.peekFrameRect();
+    const front = this.peekNaturalSize();
+    if (!front) return { left: 0, top: 0, ...frame };
+    return containedImageRect(frame.width, frame.height, front.width, front.height) ?? { left: 0, top: 0, ...frame };
+  });
 
   private readonly handDrag = inject(HandDragService);
 
@@ -421,20 +446,7 @@ export class CardComponent {
 
   private showDetail(gameObject: Card) {
     if (!this.disclosureService.canView(gameObject)) return;
-    this.selectionSignalService.selectObject(gameObject.identifier, gameObject.aliasName);
-    const coordinate = this.pointerDeviceService.pointers[0];
     const title = sheetPanelTitle(this.translateFn('feature.card.settingTitle'), gameObject.name);
-    const option: PanelOption = {
-      title: title,
-      ...sheetPanelBox(coordinate, 600, 600),
-    };
-    this.panelService.openLazy(
-      () =>
-        import('@axe/features/character/game-character-sheet/game-character-sheet.component').then(
-          (m) => m.GameCharacterSheetComponent
-        ),
-      option,
-      (component) => (component.tabletopObject = gameObject)
-    );
+    this.objectPanels.openSheet(gameObject, title, { width: 600, height: 600 });
   }
 }

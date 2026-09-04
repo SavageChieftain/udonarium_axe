@@ -4,6 +4,7 @@ import { imageCorners } from '@axe/features/map-editor/model/editor-hit-test';
 import type { EditorTool, LineKind, ShapeGeneratorKind } from '@axe/features/map-editor/model/editor-tool';
 import { cellCenter, pointToCell } from '@axe/features/map-editor/model/grid-cells';
 import type { ImageItem, MapScene, ShapeItem } from '@axe/features/map-editor/model/scene';
+import { shapeBox, strokeBox, textBox } from '@axe/features/map-editor/model/scene-geometry';
 import { generateShapePoints } from '@axe/features/map-editor/model/shape-points';
 
 /**
@@ -249,22 +250,17 @@ function drawSelectionOutline(ctx: CanvasRenderingContext2D, scene: MapScene, la
   } else if (layer.kind === 'text') {
     const item = layer.items.find((i) => i.id === itemId);
     if (item) {
-      const w = Math.max(item.fontSize, item.fontSize * item.text.length * 0.6);
-      ctx.strokeRect(item.x, item.y, w, item.fontSize * 1.2);
+      const box = textBox(item);
+      ctx.strokeRect(box.x, box.y, box.w, box.h);
     }
   } else if (layer.kind === 'shape') {
     const item = layer.items.find((i) => i.id === itemId);
-    if (item) {
-      const p = item.points;
-      if (item.shape === 'rect' || item.shape === 'ellipse') {
-        ctx.strokeRect(p[0] ?? 0, p[1] ?? 0, p[2] ?? 0, p[3] ?? 0);
-      } else {
-        strokePolylineBbox(ctx, p);
-      }
-    }
+    const box = item ? shapeBox(item) : null;
+    if (box) ctx.strokeRect(box.x, box.y, box.w, box.h);
   } else if (layer.kind === 'freehand') {
     const stroke = layer.strokes.find((s) => s.id === itemId);
-    if (stroke) strokePolylineBbox(ctx, stroke.points);
+    const box = stroke ? strokeBox(stroke.points) : null;
+    if (box) ctx.strokeRect(box.x, box.y, box.w, box.h);
   }
   ctx.restore();
 }
@@ -304,20 +300,6 @@ function traceCurvePath(ctx: CanvasRenderingContext2D, verts: number[], closed: 
     ctx.bezierCurveTo(seg.c1x, seg.c1y, seg.c2x, seg.c2y, seg.x, seg.y);
   }
   if (closed) ctx.closePath();
-}
-
-function strokePolylineBbox(ctx: CanvasRenderingContext2D, p: number[]): void {
-  let minX = Infinity;
-  let minY = Infinity;
-  let maxX = -Infinity;
-  let maxY = -Infinity;
-  for (let i = 0; i + 1 < p.length; i += 2) {
-    minX = Math.min(minX, p[i]);
-    maxX = Math.max(maxX, p[i]);
-    minY = Math.min(minY, p[i + 1]);
-    maxY = Math.max(maxY, p[i + 1]);
-  }
-  if (Number.isFinite(minX)) ctx.strokeRect(minX, minY, maxX - minX, maxY - minY);
 }
 
 function drawMeasureBox(ctx: CanvasRenderingContext2D, overlay: EditorOverlay, text: string): void {

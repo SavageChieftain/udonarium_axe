@@ -1,6 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
-import { ObjectStore } from '@axe/core/sync/object-store';
 import { CutIn } from '@axe/domain/media/cut-in';
 import { encodeCutInTracks } from '@axe/domain/media/cut-in-keyframe';
 import { CutInLayer } from '@axe/domain/media/cut-in-layer';
@@ -12,7 +11,6 @@ import { TEST_PROVIDERS } from '@axe/testing/test-providers';
 describe('CutInSceneEditorComponent', () => {
   let fixture: ComponentFixture<CutInSceneEditorComponent>;
   let component: CutInSceneEditorComponent;
-  let store: ObjectStore;
   let cutIn: CutIn;
 
   beforeEach(async () => {
@@ -23,10 +21,6 @@ describe('CutInSceneEditorComponent', () => {
   });
 
   beforeEach(() => {
-    store = ObjectStore.instance;
-    store.getObjects().forEach((object) => store.delete(object, false));
-    store.clearDeleteHistory();
-
     cutIn = new CutIn();
     cutIn.initialize();
     cutIn.width = 640;
@@ -37,11 +31,6 @@ describe('CutInSceneEditorComponent', () => {
     fixture.componentRef.setInput('cutIn', cutIn);
     fixture.componentRef.setInput('isEditable', true);
     fixture.detectChanges();
-  });
-
-  afterEach(() => {
-    store.getObjects().forEach((object) => store.delete(object, false));
-    store.clearDeleteHistory();
   });
 
   type EditorApi = {

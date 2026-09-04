@@ -47,7 +47,7 @@ test.describe('チャット色設定モーダル', () => {
       .getByRole('button', { name: /色設定/ })
       .click();
     await expect(page.locator('chat-color-setting')).toBeVisible({ timeout: 5000 });
-    // 3 色のカラーピッカーが居る (name="color01..color03")。
-    await expect(page.locator('chat-color-setting input[name="color01"]')).toBeAttached();
+    // 編集中の色ぶんのカラーピッカーが居る (name="chat-color-<番号>")。
+    await expect(page.locator('chat-color-setting input[type="color"]').first()).toBeAttached();
   });
 });

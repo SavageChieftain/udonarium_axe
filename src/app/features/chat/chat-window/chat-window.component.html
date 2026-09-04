@@ -76,63 +76,7 @@
       <div
         class="border-ui-border-panel relative z-10 box-border flex min-w-0 flex-wrap items-center gap-1 overflow-visible border-b border-solid p-1.5 select-none @max-[340px]:px-1"
       >
-        @if (canScrollLeft()) {
-          <button
-            type="button"
-            class="rounded-ui-sm border-ui-border-panel bg-ui-panel text-ui-muted hover:border-ui-accent hover:bg-ui-hover hover:text-ui-accent m-0 mr-0.5 inline-flex h-6 w-5 shrink-0 cursor-pointer items-center justify-center border border-solid p-0 transition-colors hover:shadow-none [&_.material-icons]:text-[16px]!"
-            (click)="scrollTabsLeft()"
-            tabindex="-1"
-            [title]="'feature.chat.window.tabScrollLeft' | transloco"
-          >
-            <i class="material-icons align-middle text-base!">chevron_left</i>
-          </button>
-        }
-
-        <div
-          class="-mx-1 flex min-h-7.5 min-w-0 flex-[999_1_160px] scrollbar-none items-center gap-0.75 overflow-x-auto overflow-y-hidden px-1.5 pt-2 pb-0.5 @max-[340px]:order-3 @max-[340px]:basis-full"
-          #tabPillsContainer
-          (scroll)="onTabPillsScroll()"
-          (wheel)="switchTabByWheel($event)"
-        >
-          @for (chatTab of visibleChatTabs(); track trackByChatTab($index, chatTab)) {
-            <label
-              class="relative inline-block flex-none overflow-visible"
-              (contextmenu)="onChatTabContextMenu($event, chatTab)"
-            >
-              <input
-                class="peer hidden"
-                name="chat-tab"
-                type="radio"
-                value="{{ chatTab.identifier }}"
-                ng-control="options"
-                [(ngModel)]="chatTabidentifier"
-              />
-              <div
-                class="chat-tab-pill border-ui-border-panel text-ui-muted peer-checked:border-ui-accent peer-checked:bg-ui-accent-bg peer-checked:text-ui-accent hover:border-ui-accent hover:bg-ui-hover hover:text-ui-text relative inline-flex cursor-pointer items-center rounded-full border border-solid bg-transparent px-2.5 py-0.75 align-middle text-[11px] whitespace-nowrap outline-0 transition-colors peer-checked:font-medium peer-checked:shadow-[0_0_0_1px_var(--ui-accent-glow)]"
-              >
-                {{ chatTab.name }}
-                @if (chatTab.hasUnread) {
-                  <badge
-                    class="pointer-events-none absolute -top-1.5 -right-1.5 z-2"
-                    [count]="chatTab.unreadLength"
-                  ></badge>
-                }
-              </div>
-            </label>
-          }
-        </div>
-
-        @if (canScrollRight()) {
-          <button
-            type="button"
-            class="rounded-ui-sm border-ui-border-panel bg-ui-panel text-ui-muted hover:border-ui-accent hover:bg-ui-hover hover:text-ui-accent m-0 ml-0.5 inline-flex h-6 w-5 shrink-0 cursor-pointer items-center justify-center border border-solid p-0 transition-colors hover:shadow-none [&_.material-icons]:text-[16px]!"
-            (click)="scrollTabsRight()"
-            tabindex="-1"
-            [title]="'feature.chat.window.tabScrollRight' | transloco"
-          >
-            <i class="material-icons align-middle text-base!">chevron_right</i>
-          </button>
-        }
+        <chat-tab-strip [tabs]="visibleChatTabs()" [(selected)]="chatTabidentifier" />
 
         <div
           class="border-ui-border-panel ml-auto flex shrink-0 items-center gap-0.5 border-l border-solid pl-1.5 @max-[500px]:pl-1 @max-[340px]:ml-0"

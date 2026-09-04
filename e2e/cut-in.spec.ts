@@ -9,16 +9,15 @@ test.describe('カットイン一覧', () => {
     await expect(page.locator('app-cut-in-list')).toBeVisible({ timeout: 10000 });
   });
 
-  test('初期状態は「カットインがありません」の空表示であること', async ({ page }) => {
-    await expect(page.locator('app-cut-in-list').getByText('カットインがありません')).toBeVisible();
-    await expect(page.locator('app-cut-in-list').getByRole('button', { name: /カットインを作成/ })).toBeVisible();
+  test('初期状態は見本が並び、どれか選ぶよう促されること', async ({ page }) => {
+    // 既定の部屋には見本のカットインが入っているので、空表示ではなく一覧が出る。
+    await expect(page.locator('app-cut-in-list li[role="option"]').first()).toBeVisible();
+    await expect(page.locator('app-cut-in-list').getByText('左のリストから選択してください')).toBeVisible();
   });
 
-  test('「カットインを作成」で新規エディタが開けること', async ({ page }) => {
-    await page
-      .locator('app-cut-in-list')
-      .getByRole('button', { name: /カットインを作成/ })
-      .click();
+  test('一覧から選ぶとエディタが開けること', async ({ page }) => {
+    await page.locator('app-cut-in-list li[role="option"]').first().click();
+
     await expect(page.locator('app-cut-in-list cut-in-editor')).toBeVisible({ timeout: 5000 });
     // フッターに保存/削除ボタンが現れる。
     await expect(page.locator('app-cut-in-list').getByRole('button', { name: /保存/ })).toBeVisible();

@@ -1,12 +1,12 @@
 import { ChangeDetectionStrategy, Component, computed, DestroyRef, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
+import { PointerDeviceService } from '@axe/application/input/pointer-device.service';
 import { RolePermissionService } from '@axe/application/permission/role-permission.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { ModalService } from '@axe/application/ui/modal.service';
 import { PanelOption, PanelService } from '@axe/application/ui/panel.service';
 import { ViewportService } from '@axe/application/ui/viewport.service';
-import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { AudioFile } from '@axe/core/storage/audio-file';
 import { AudioPlayer, VolumeType } from '@axe/core/storage/audio-player';
 import { AudioStorage } from '@axe/core/storage/audio-storage';
@@ -17,7 +17,7 @@ import { CutInLauncher } from '@axe/domain/media/cut-in-launcher';
 import { Jukebox } from '@axe/domain/media/jukebox';
 import { Playlist } from '@axe/domain/media/playlist';
 import { Config } from '@axe/domain/peer/config';
-import { CutInListComponent } from '@axe/features/media/cut-in-list/cut-in-list.component';
+import { RoomPanelService } from '@axe/features/panels/room-panel.service';
 import { TranslocoModule } from '@jsverse/transloco';
 
 @Component({
@@ -32,6 +32,7 @@ export class JukeboxComponent {
   private readonly modalService = inject(ModalService);
   private readonly objectChange = inject(ObjectChangeService);
   private readonly panelService = inject(PanelService);
+  private readonly roomPanels = inject(RoomPanelService);
   private readonly pointerDeviceService = inject(PointerDeviceService);
   private readonly objectStore = inject(ObjectStore);
   private readonly audioStorage = inject(AudioStorage);
@@ -232,6 +233,6 @@ export class JukeboxComponent {
   openCutInList() {
     const coordinate = this.pointerDeviceService.pointers[0];
     const option: PanelOption = { left: coordinate.x + 25, top: coordinate.y + 25, width: 980, height: 760 };
-    this.panelService.open<CutInListComponent>(CutInListComponent, option);
+    this.roomPanels.open('cutInList', option);
   }
 }

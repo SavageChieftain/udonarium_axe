@@ -1,5 +1,5 @@
 import { inject, Injectable } from '@angular/core';
-import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
+import { PointerDeviceService } from '@axe/application/input/pointer-device.service';
 import { TabletopObject } from '@axe/domain/tabletop/tabletop-object';
 
 export interface TabletopOverlapRegistryEntry {

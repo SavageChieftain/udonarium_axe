@@ -2,7 +2,6 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { BuffViewPreferenceService } from '@axe/application/ui/buff-view-preference.service';
 import { PanelService } from '@axe/application/ui/panel.service';
-import { ObjectStore } from '@axe/core/sync/object-store';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { PeerRole } from '@axe/domain/peer/peer-role';
 import { HandRailService } from '@axe/features/card/hand-rail/hand-rail.service';
@@ -14,12 +13,11 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 describe('PlToolbarComponent', () => {
   let component: PlToolbarComponent;
   let fixture: ComponentFixture<PlToolbarComponent>;
-  let panelStub: { open: ReturnType<typeof vi.fn> };
+  let panelStub: { open: ReturnType<typeof vi.fn>; openLazy: ReturnType<typeof vi.fn> };
   let objectChange: ObjectChangeService;
-  let store: ObjectStore;
 
   beforeEach(async () => {
-    panelStub = { open: vi.fn() };
+    panelStub = { open: vi.fn(), openLazy: vi.fn() };
     await TestBed.configureTestingModule({
       imports: [PlToolbarComponent],
       providers: [...TEST_PROVIDERS],
@@ -28,13 +26,10 @@ describe('PlToolbarComponent', () => {
     fixture = TestBed.createComponent(PlToolbarComponent);
     component = fixture.componentInstance;
     objectChange = TestBed.inject(ObjectChangeService);
-    store = ObjectStore.instance;
     PeerCursor.createMyCursor();
   });
 
   afterEach(() => {
-    store.getObjects().forEach((object) => store.delete(object, false));
-    store.clearDeleteHistory();
     PeerCursor.myCursor = null!;
   });
 
@@ -63,24 +58,26 @@ describe('PlToolbarComponent', () => {
     expect(button.title).toContain('詳細');
   });
 
-  it('opens the list of the characters you own', () => {
+  it('opens the list of the characters you own', async () => {
     (component as unknown as { openOwnedCharacterList: () => void }).openOwnedCharacterList();
-    expect(panelStub.open).toHaveBeenCalledWith(
-      OwnedCharacterListPanelComponent,
+    expect(panelStub.openLazy).toHaveBeenCalledWith(
+      expect.any(Function),
       expect.objectContaining({ width: 420, height: 560 })
     );
+    await expect(panelStub.openLazy.mock.calls[0][0]()).resolves.toBe(OwnedCharacterListPanelComponent);
   });
 
-  it('opens that list from the range button, and no shape menu, while there is nothing to work on', () => {
+  it('opens that list from the range button, and no shape menu, while there is nothing to work on', async () => {
     const toolbar = component as unknown as { toggleRangeMenu: () => void; rangeOpen: () => boolean };
 
     toolbar.toggleRangeMenu();
 
     expect(toolbar.rangeOpen()).toBe(false);
-    expect(panelStub.open).toHaveBeenCalledWith(
-      OwnedCharacterListPanelComponent,
+    expect(panelStub.openLazy).toHaveBeenCalledWith(
+      expect.any(Function),
       expect.objectContaining({ width: 420, height: 560 })
     );
+    await expect(panelStub.openLazy.mock.calls[0][0]()).resolves.toBe(OwnedCharacterListPanelComponent);
   });
 
   it('opens and closes the hand rail', () => {

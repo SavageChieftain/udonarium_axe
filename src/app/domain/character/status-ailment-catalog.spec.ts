@@ -1,20 +1,13 @@
 import { TestBed } from '@angular/core/testing';
 import { ObjectSerializer } from '@axe/core/sync/object-serializer';
-import { ObjectStore } from '@axe/core/sync/object-store';
 import { newStatusAilment } from '@axe/domain/character/status-ailment';
 import { StatusAilmentCatalog } from '@axe/domain/character/status-ailment-catalog';
 
 describe('StatusAilmentCatalog', () => {
-  let store: ObjectStore;
-
-  function clearStore(): void {
-    for (const object of store.getObjects()) store.delete(object, false);
-    store.clearDeleteHistory();
-  }
+  function clearStore(): void {}
 
   beforeEach(() => {
     TestBed.configureTestingModule({});
-    store = ObjectStore.instance;
     clearStore();
     (StatusAilmentCatalog as unknown as Record<string, unknown>)['_instance'] = undefined;
   });

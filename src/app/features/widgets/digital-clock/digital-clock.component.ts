@@ -1,25 +1,16 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  DestroyRef,
-  effect,
-  ElementRef,
-  inject,
-  signal,
-  viewChild,
-} from '@angular/core';
-import { WidgetLayoutService } from '@axe/application/ui/widget-layout.service';
-import { placeWidget, rememberWidget, WIDGET_CLOCK } from '@axe/application/ui/widget-place';
+import { ChangeDetectionStrategy, Component, DestroyRef, inject, signal } from '@angular/core';
+import { WIDGET_CLOCK } from '@axe/application/ui/widget-place';
 import { WidgetVisibilityService } from '@axe/application/ui/widget-visibility.service';
 import { CLOCK_GHOST_PATTERN, formatClockParts } from '@axe/features/widgets/digital-clock/clock-format';
 import { DraggableDirective } from '@axe/ui/directives/draggable.directive';
+import { WidgetPlaceDirective } from '@axe/ui/directives/widget-place.directive';
 import { TranslocoModule } from '@jsverse/transloco';
 
 @Component({
   changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-digital-clock',
   templateUrl: './digital-clock.component.html',
-  imports: [DraggableDirective, TranslocoModule],
+  imports: [DraggableDirective, WidgetPlaceDirective, TranslocoModule],
 })
 export class DigitalClockComponent {
   protected readonly widgets = inject(WidgetVisibilityService);
@@ -28,27 +19,15 @@ export class DigitalClockComponent {
   protected readonly ghost = CLOCK_GHOST_PATTERN;
   protected readonly parts = signal(formatClockParts(new Date()));
 
-  private readonly layout = inject(WidgetLayoutService);
-  private readonly clockRef = viewChild<ElementRef<HTMLElement>>('clock');
+  protected readonly widgetName = WIDGET_CLOCK;
+  protected readonly fallback = (el: HTMLElement) => ({
+    left: Math.max(8, window.innerWidth - el.offsetWidth - 8),
+    top: 8,
+  });
 
   constructor() {
     const timer = setInterval(() => this.parts.set(formatClockParts(new Date())), 1000);
     this.destroyRef.onDestroy(() => clearInterval(timer));
-
-    effect((onCleanup) => {
-      const el = this.clockRef()?.nativeElement;
-      if (!el) return;
-      placeWidget(this.layout, WIDGET_CLOCK, el, () => ({
-        left: Math.max(8, window.innerWidth - el.offsetWidth - 8),
-        top: 8,
-      }));
-      onCleanup(() => rememberWidget(this.layout, WIDGET_CLOCK, el));
-    });
-  }
-
-  protected rememberSpot(): void {
-    const el = this.clockRef()?.nativeElement;
-    if (el) rememberWidget(this.layout, WIDGET_CLOCK, el);
   }
 
   protected close(): void {

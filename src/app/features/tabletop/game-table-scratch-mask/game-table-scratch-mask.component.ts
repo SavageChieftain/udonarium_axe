@@ -1,16 +1,15 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input, signal } from '@angular/core';
 import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
+import { CoordinateService } from '@axe/application/input/coordinate.service';
+import { PointerDeviceService } from '@axe/application/input/pointer-device.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { TabletopService } from '@axe/application/tabletop/tabletop.service';
 import { TabletopActionService } from '@axe/application/tabletop/tabletop-action.service';
 import { ContextMenuService } from '@axe/application/ui/context-menu.service';
-import { PanelOption, PanelService } from '@axe/application/ui/panel.service';
-import { sheetPanelBox } from '@axe/application/ui/sheet-panel';
 import { sheetPanelTitle } from '@axe/application/ui/sheet-panel';
-import { CoordinateService } from '@axe/core/input/coordinate.service';
-import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
 import { GameTableScratchMask } from '@axe/domain/tabletop/game-table-scratch-mask';
+import { ObjectPanelService } from '@axe/features/panels/object-panel.service';
 import { buildScratchMaskContextMenu } from '@axe/features/tabletop/game-table-scratch-mask/game-table-scratch-mask-context-menu';
 import { MovableOption } from '@axe/ui/directives/movable.directive';
 import { MovableDirective } from '@axe/ui/directives/movable.directive';
@@ -25,7 +24,7 @@ import { setupMovableForPiece } from '@axe/ui/tabletop/setup-tabletop-piece';
 })
 export class GameTableScratchMaskComponent {
   private readonly contextMenuService = inject(ContextMenuService);
-  private readonly panelService = inject(PanelService);
+  private readonly objectPanels = inject(ObjectPanelService);
   private readonly pointerDeviceService = inject(PointerDeviceService);
   private readonly coordinateService = inject(CoordinateService);
   private readonly tabletopActionService = inject(TabletopActionService);
@@ -117,19 +116,9 @@ export class GameTableScratchMaskComponent {
 
   openSheet(e: Event) {
     e.stopPropagation();
-    const coordinate = this.pointerDeviceService.pointers[0];
+    const mask = this.gameTableScratchMask();
+    if (!mask) return;
     const title = sheetPanelTitle(this.translateFn('feature.tabletop.panel.scratchMask'), this.name());
-    const option: PanelOption = {
-      title: title,
-      ...sheetPanelBox(coordinate, 400, 300),
-    };
-    this.panelService.openLazy(
-      () =>
-        import('@axe/features/character/game-character-sheet/game-character-sheet.component').then(
-          (m) => m.GameCharacterSheetComponent
-        ),
-      option,
-      (component) => (component.tabletopObject = this.gameTableScratchMask())
-    );
+    this.objectPanels.openSheet(mask, title, { width: 400, height: 300 });
   }
 }

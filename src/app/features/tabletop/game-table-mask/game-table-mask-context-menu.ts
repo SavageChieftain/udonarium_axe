@@ -1,9 +1,9 @@
 import { TranslateFn } from '@axe/application/i18n/translate.token';
+import { PointerCoordinate } from '@axe/application/input/pointer-device.service';
 import { GameObjectInventoryService } from '@axe/application/inventory/game-object-inventory.service';
 import { TabletopActionService } from '@axe/application/tabletop/tabletop-action.service';
 import { ContextMenuAction, ContextMenuSeparator } from '@axe/application/ui/context-menu.service';
 import { buildAltitudeAction } from '@axe/application/ui/tabletop-context-menu-actions';
-import { PointerCoordinate } from '@axe/core/input/pointer-device.service';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
 import { GameTableMask } from '@axe/domain/tabletop/game-table-mask';
 

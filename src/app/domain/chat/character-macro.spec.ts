@@ -1,10 +1,7 @@
-import { ObjectStore } from '@axe/core/sync/object-store';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { buildMacroMessage } from '@axe/domain/chat/character-macro';
 
 describe('building a macro message', () => {
-  let store: ObjectStore;
-
   function speaker(name: string, palette?: string): GameCharacter {
     const character = GameCharacter.create(name, 1, '');
     if (palette !== undefined) character.chatPalette?.setPalette(palette);
@@ -17,14 +14,7 @@ describe('building a macro message', () => {
     return character;
   }
 
-  beforeEach(() => {
-    store = ObjectStore.instance;
-  });
-
-  afterEach(() => {
-    store.getObjects().forEach((object) => store.delete(object, false));
-    store.clearDeleteHistory();
-  });
+  beforeEach(() => {});
 
   it('fills in what a line refers to and keeps one context for the speaker alone', () => {
     const character = speaker('術者', '//威力=7');

@@ -41,6 +41,7 @@ const names = (a: { name: string }[]) => a.map((x) => x.name);
 const cb = (ownerCandidates: { identifier: string; name: string }[] = []) => ({
   onDiceRoll: vi.fn(),
   onShowDetail: vi.fn(),
+  onRevealed: vi.fn(),
   ownerCandidates,
 });
 
@@ -60,7 +61,7 @@ describe('buildDiceSymbolContextMenu()', () => {
   });
 
   it('offers to open a die that is owned, and clears its owner', () => {
-    const dice = makeDice({ isMine: true, owner: 'me' });
+    const dice = makeDice({ isMine: true, hasOwner: true, owner: 'me' });
     const menu = buildDiceSymbolContextMenu(dice as unknown as DiceSymbol, 50, cb(), t);
     const reveal = menu.find((m) => m.name === 'ダイスを公開');
     expect(reveal).toBeDefined();
@@ -71,6 +72,22 @@ describe('buildDiceSymbolContextMenu()', () => {
   it('offers a peek at somebody elses', () => {
     const dice = makeDice({ isMine: false });
     const menu = buildDiceSymbolContextMenu(dice as unknown as DiceSymbol, 50, cb(), t);
+    expect(names(menu)).toContain('自分だけ見る');
+  });
+
+  it('leaves a die that is already somebody else\u2019s where it is', () => {
+    const dice = makeDice({ isMine: false, hasOwner: true, owner: 'somebody' });
+
+    const menu = buildDiceSymbolContextMenu(dice as unknown as DiceSymbol, 50, cb(), t);
+
+    expect(names(menu)).not.toContain('自分だけ見る');
+  });
+
+  it('lets the game master take one that is somebody else\u2019s', () => {
+    const dice = makeDice({ isMine: false, hasOwner: true, owner: 'somebody' });
+
+    const menu = buildDiceSymbolContextMenu(dice as unknown as DiceSymbol, 50, { ...cb(), canRevealHidden: true }, t);
+
     expect(names(menu)).toContain('自分だけ見る');
   });
 
@@ -106,6 +123,47 @@ describe('buildDiceSymbolContextMenu()', () => {
     const menu = buildDiceSymbolContextMenu(dice as unknown as DiceSymbol, 50, cb(), t);
     menu.find((m) => m.name === '削除する')!.action!();
     expect(dice.destroy).toHaveBeenCalled();
+  });
+
+  describe('opening a die nobody could read', () => {
+    it('gives out the face it came to rest on', () => {
+      const dice = makeDice({ isMine: true, hasOwner: true, face: '5' });
+      const callbacks = cb();
+      const menu = buildDiceSymbolContextMenu(dice as unknown as DiceSymbol, 50, callbacks, t);
+
+      menu.find((action) => action.name === 'ダイスを公開')?.action?.();
+
+      expect(dice.owner).toBe('');
+      expect(callbacks.onRevealed).toHaveBeenCalledWith('5');
+    });
+
+    it('offers nothing to open on a die that was already there to be read', () => {
+      const dice = makeDice({ isMine: true, hasOwner: false, face: '5' });
+      const callbacks = cb();
+
+      const menu = buildDiceSymbolContextMenu(dice as unknown as DiceSymbol, 50, callbacks, t);
+
+      expect(names(menu)).not.toContain('ダイスを公開');
+    });
+
+    it('leaves somebody else\u2019s die shut to an ordinary player', () => {
+      const dice = makeDice({ isMine: false, hasOwner: true, owner: 'somebody', face: '5' });
+
+      const menu = buildDiceSymbolContextMenu(dice as unknown as DiceSymbol, 50, cb(), t);
+
+      expect(names(menu)).not.toContain('ダイスを公開');
+    });
+
+    it('lets the game master open one that is somebody else\u2019s', () => {
+      const dice = makeDice({ isMine: false, hasOwner: true, owner: 'somebody', face: '5' });
+      const callbacks = { ...cb(), canRevealHidden: true };
+
+      const menu = buildDiceSymbolContextMenu(dice as unknown as DiceSymbol, 50, callbacks, t);
+      menu.find((action) => action.name === 'ダイスを公開')?.action?.();
+
+      expect(dice.owner).toBe('');
+      expect(callbacks.onRevealed).toHaveBeenCalledWith('5');
+    });
   });
 
   describe('whose die it is', () => {

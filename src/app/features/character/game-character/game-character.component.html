@@ -7,8 +7,9 @@
     [movable.option]="movableOption()"
     [movable.disable]="isLock"
     [appSelectable]="gameCharacter()"
-    (movable.ondragstart)="onMove()"
-    (movable.ondragend)="onMoved()"
+    (movable.ondragstart)="onPickUp()"
+    (movable.ondragend)="onPutDown()"
+    (movable.onend)="onLetGo()"
     (pointerdown)="checkKey($event)"
     #root
   >
@@ -57,13 +58,13 @@
           @if (!this.gameCharacter()!.hideInventory) {
             <div
               class="absolute box-border size-full rounded-[25px] border-[6px] border-solid border-[#ffcc80] [-webkit-transform-style:preserve-3d] backface-hidden transform-3d"
-              [ngStyle]="pedestalStyle('#FFCC80')"
+              [ngStyle]="pedestalStyleShown()"
             ></div>
           }
           @if (this.gameCharacter()!.hideInventory) {
             <div
               class="absolute box-border size-full rounded-[25px] border-[6px] border-solid border-[#A0E0FF] [-webkit-transform-style:preserve-3d] backface-hidden transform-3d"
-              [ngStyle]="pedestalStyle('#A0E0FF')"
+              [ngStyle]="pedestalStyleHidden()"
             ></div>
           }
           <div
@@ -74,7 +75,7 @@
             <div
               data-testid="target-ring"
               class="animate-target-ring pointer-events-none absolute box-border size-full rounded-[25px] border-[6px] border-solid border-[#ff3b30] filter-[drop-shadow(0_0_5px_rgba(255,59,48,0.95))] backface-hidden"
-              [ngStyle]="pedestalStyle('#ff3b30')"
+              [ngStyle]="pedestalStyleTargeted()"
             ></div>
           }
           @if (!isLock && canTurn()) {
@@ -133,13 +134,13 @@
             <img
               class="image chrome-smooth-image-trick pointer-events-none absolute inset-0 m-auto block size-full object-contain"
               [ngStyle]="{
-                width: imageSupersamplePercent(),
-                height: imageSupersamplePercent(),
+                width: imageView.supersamplePercent(),
+                height: imageView.supersamplePercent(),
                 maxWidth: 'none',
-                margin: imageSupersampleInset(),
-                transform: posterImageTransform(),
+                margin: imageView.supersampleInset(),
+                transform: imageView.posterTransform(),
               }"
-              (load)="onImageLoad($event)"
+              (load)="imageView.onImageLoad($event)"
               [src]="imageFile().url | safe: 'resourceUrl'"
             />
           }
@@ -160,7 +161,7 @@
             >
               <div
                 class="absolute inset-x-0 bottom-0 h-auto w-full [-webkit-transform-style:preserve-3d] transform-3d"
-                [style.height.px]="imageBoxHeightPx()"
+                [style.height.px]="imageView.boxHeightPx()"
               >
                 @let buffEl = this.gameCharacter()!.buffDataElement;
                 @if (buffEl && buffNum() > 0 && !hideBuff()) {
@@ -300,7 +301,8 @@
                       [style.font-size.px]="decorFontSizePx"
                       [ngStyle]="{ transform: gaugeStackTransform() }"
                     >
-                      @for (gauge of pieceGauges(); track gauge.identifier) {
+                      @for (row of gaugeRows(); track row.gauge.identifier) {
+                        @let gauge = row.gauge;
                         <div
                           class="flex w-[14em] items-center gap-[0.3em] whitespace-nowrap"
                           data-testid="piece-gauge"
@@ -320,7 +322,7 @@
                           </span>
                           <span
                             class="shrink-0 text-[0.9em] leading-none text-white/85 [text-shadow:0_0.1em_0.2em_#000]"
-                            >{{ gauge.current }}/{{ gauge.max }}</span
+                            >{{ row.numbers }}</span
                           >
                         </div>
                       }
@@ -400,15 +402,15 @@
                   <img
                     class="image chrome-smooth-image-trick inset-x-0 bottom-0 m-auto h-auto align-bottom [-webkit-transform-style:preserve-3d] transform-3d"
                     [ngStyle]="{
-                      height: komaImageHeightSignal() * imageSupersample() + 'px',
+                      height: komaImageHeightSignal() * imageView.supersample() + 'px',
                       width: 'auto',
                       maxWidth: 'none',
                       display: 'inline-block',
                       left: 'auto',
                       right: 'auto',
-                      transform: komaImageTransform(),
+                      transform: imageView.komaTransform(),
                     }"
-                    (load)="onImageLoad($event)"
+                    (load)="imageView.onImageLoad($event)"
                     [src]="imageFile().url | safe: 'resourceUrl'"
                   />
                 }
@@ -416,13 +418,13 @@
                   <img
                     class="image chrome-smooth-image-trick inset-x-0 bottom-0 m-auto h-auto align-bottom [-webkit-transform-style:preserve-3d] transform-3d"
                     [ngStyle]="{
-                      width: imageSupersamplePercent(),
+                      width: imageView.supersamplePercent(),
                       maxWidth: 'none',
-                      marginLeft: imageSupersampleInset(),
-                      marginRight: imageSupersampleInset(),
-                      transform: pieceImageTransform(),
+                      marginLeft: imageView.supersampleInset(),
+                      marginRight: imageView.supersampleInset(),
+                      transform: imageView.pieceTransform(),
                     }"
-                    (load)="onImageLoad($event)"
+                    (load)="imageView.onImageLoad($event)"
                     [src]="imageFile().url | safe: 'resourceUrl'"
                   />
                 }

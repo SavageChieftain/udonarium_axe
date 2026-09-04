@@ -19,13 +19,9 @@ describe('buildTableAmbienceContextMenu', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({});
     store = ObjectStore.instance;
-    for (const object of store.getObjects()) store.delete(object, false);
-    store.clearDeleteHistory();
   });
 
   afterEach(() => {
-    for (const object of store.getObjects()) store.delete(object, false);
-    store.clearDeleteHistory();
     vi.clearAllMocks();
   });
 

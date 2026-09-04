@@ -1,11 +1,11 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { StatusAilmentService } from '@axe/application/character/status-ailment.service';
 import { GameObjectInventoryService } from '@axe/application/inventory/game-object-inventory.service';
+import { ConfirmService } from '@axe/application/ui/confirm.service';
 import { InventoryViewPreferenceService } from '@axe/application/ui/inventory-view-preference.service';
 import { PanelService } from '@axe/application/ui/panel.service';
 import { ViewportService } from '@axe/application/ui/viewport.service';
 import { Network } from '@axe/core/index';
-import { ObjectStore } from '@axe/core/sync/object-store';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { StatusAilmentCatalog } from '@axe/domain/character/status-ailment-catalog';
 import { DataElement } from '@axe/domain/data/data-element';
@@ -13,11 +13,16 @@ import { DataSummarySetting } from '@axe/domain/data/data-summary-setting';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { PeerRole } from '@axe/domain/peer/peer-role';
 import { GameObjectInventoryComponent } from '@axe/features/inventory/game-object-inventory/game-object-inventory.component';
+import { InventoryObjectDrag } from '@axe/features/inventory/game-object-inventory/inventory-object-drag';
 import { expectPanelDragRecovery, PanelDragTestHostComponent } from '@axe/testing/panel-drag-recovery';
 import { installPanelLayer } from '@axe/testing/panel-layer';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
 
 describe('GameObjectInventoryComponent', () => {
+  function drag(panel: GameObjectInventoryComponent): InventoryObjectDrag {
+    return (panel as unknown as { drag: InventoryObjectDrag }).drag;
+  }
+
   let component: GameObjectInventoryComponent;
   let fixture: ComponentFixture<GameObjectInventoryComponent>;
 
@@ -67,9 +72,6 @@ describe('GameObjectInventoryComponent', () => {
     }
 
     afterEach(() => {
-      const store = ObjectStore.instance;
-      store.getObjects().forEach((object) => store.delete(object, false));
-      store.clearDeleteHistory();
       // Personal folders live on the device, so they outlive the store cleanup too.
       localStorage.clear();
       // The summary settings are a synced singleton, so its folders outlive the store cleanup.
@@ -292,35 +294,29 @@ describe('GameObjectInventoryComponent', () => {
       expect(component.hasFolders()).toBe(false);
     });
 
-    it('takes what is inside back to unfiled when a folder is deleted', () => {
+    it('takes what is inside back to unfiled when a folder is deleted', async () => {
       const goblin = putInShared('ゴブリン');
       goblin.folderName = '第1話/洞窟';
       component.selectTab.set('common');
-      vi.stubGlobal(
-        'confirm',
-        vi.fn(() => true)
-      );
+      vi.spyOn(TestBed.inject(ConfirmService), 'ask').mockResolvedValue(true);
 
-      component.deleteFolder('第1話');
+      await component.deleteFolder('第1話');
 
       expect(goblin.folderName).toBe('');
     });
 
-    it('leaves a folder alone when the deletion is called off', () => {
+    it('leaves a folder alone when the deletion is called off', async () => {
       const goblin = putInShared('ゴブリン');
       goblin.folderName = '第1話';
       component.selectTab.set('common');
-      vi.stubGlobal(
-        'confirm',
-        vi.fn(() => false)
-      );
+      vi.spyOn(TestBed.inject(ConfirmService), 'ask').mockResolvedValue(false);
 
-      component.deleteFolder('第1話');
+      await component.deleteFolder('第1話');
 
       expect(goblin.folderName).toBe('第1話');
     });
 
-    it('files what sits in a location nobody claimed, which the shared tab also lists', () => {
+    it('files what sits in a location nobody claimed, which the shared tab also lists', async () => {
       const orphan = GameCharacter.create('置き去り', 1, '');
       orphan.setLocation('some-peer-who-left');
       orphan.folderName = '第1話';
@@ -413,11 +409,11 @@ describe('GameObjectInventoryComponent', () => {
       const goblin = putInShared('ゴブリン');
       component.selectTab.set('common');
       vi.spyOn(document, 'elementFromPoint').mockReturnValue(folderHeading('第1話'));
-      component.onObjectPointerDown(pointerAt(0, 0), goblin);
-      component.onObjectPointerMove(pointerAt(40, 40));
+      drag(component).down(pointerAt(0, 0), goblin);
+      drag(component).move(pointerAt(40, 40));
 
-      component.onObjectDragCancel();
-      component.onObjectPointerUp(pointerAt(40, 40));
+      drag(component).cancel();
+      drag(component).up(pointerAt(40, 40));
 
       expect(goblin.folderName).toBe('');
     });
@@ -450,21 +446,16 @@ describe('GameObjectInventoryComponent', () => {
       expect(shared.folderName).toBe('第1話');
     });
 
-    it('leaves the other scope alone when a folder of the same name is deleted', () => {
+    it('leaves the other scope alone when a folder of the same name is deleted', async () => {
       const shared = putInShared('ゴブリン');
       shared.folderName = '第1話';
       const mine = GameCharacter.create('相棒', 1, '');
       mine.setLocation(Network.peerId);
       mine.folderName = '第1話';
-      const originalConfirm = window.confirm;
-      window.confirm = (() => true) as never;
+      vi.spyOn(TestBed.inject(ConfirmService), 'ask').mockResolvedValue(true);
 
-      try {
-        component.selectTab.set(Network.peerId);
-        component.deleteFolder('第1話');
-      } finally {
-        window.confirm = originalConfirm;
-      }
+      component.selectTab.set(Network.peerId);
+      await component.deleteFolder('第1話');
 
       expect(mine.folderName).toBe('');
       expect(shared.folderName).toBe('第1話');
@@ -523,9 +514,9 @@ describe('GameObjectInventoryComponent', () => {
 
     function dragOnto(character: GameCharacter, dropTarget: HTMLElement | null): void {
       vi.spyOn(document, 'elementFromPoint').mockReturnValue(dropTarget);
-      component.onObjectPointerDown(pointerAt(0, 0), character);
-      component.onObjectPointerMove(pointerAt(40, 40));
-      component.onObjectPointerUp(pointerAt(40, 40));
+      drag(component).down(pointerAt(0, 0), character);
+      drag(component).move(pointerAt(40, 40));
+      drag(component).up(pointerAt(40, 40));
     }
 
     it('moves a character dragged onto a folder into it', () => {
@@ -981,7 +972,24 @@ describe('GameObjectInventoryComponent', () => {
         // The strips sit on the ground the content carries; the heading keeps one of its own,
         // or the rows would scroll through it.
         expect(tabs.className).toContain('bg-transparent');
-        expect(heading.closest('table')?.className).toContain('[&_thead_th]:bg-black/70');
+        expect(heading.closest('table')?.className).toContain('[&_thead_th]:bg-ui-ghost-header');
+      });
+
+      it('takes the floating ground from the theme rather than a fixed black', () => {
+        putOnTable('ゴブリン');
+        TestBed.inject(GameObjectInventoryService).tableDataTag = 'HP';
+        component.setViewMode('table');
+        TestBed.inject(PanelService).isGhost.set(true);
+        fixture.detectChanges();
+
+        const strip = fixture.nativeElement.querySelector('form[name="game-object-inventory"]')
+          ?.parentElement as HTMLElement;
+        const content = strip.parentElement as HTMLElement;
+        const table = fixture.nativeElement.querySelector('thead th')?.closest('table') as HTMLElement;
+
+        expect(content.className).toContain('bg-ui-ghost');
+        expect(content.className).not.toContain('bg-black');
+        expect(table.className).not.toContain('bg-black');
       });
 
       it('asks the frame for the size the whole list needs', () => {

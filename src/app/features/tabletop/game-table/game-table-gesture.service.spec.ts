@@ -1,4 +1,5 @@
 import { TestBed } from '@angular/core/testing';
+import { UiSignalService } from '@axe/application/ui/ui-signal.service';
 import { GameTableGestureService } from '@axe/features/tabletop/game-table/game-table-gesture.service';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
 
@@ -9,6 +10,9 @@ describe('GameTableGestureService', () => {
   const callSetTransform = (rX: number, rY: number, rZ: number): void => {
     service.setTransform(0, 0, 0, rX, rY, rZ);
   };
+
+  /** The view is written out on the next frame, so a test that reads it waits for one. */
+  const nextFrame = (): Promise<void> => new Promise((resolve) => requestAnimationFrame(() => resolve()));
 
   beforeEach(() => {
     TestBed.configureTestingModule({
@@ -48,6 +52,71 @@ describe('GameTableGestureService', () => {
       service.tiltLocked = true;
       callSetTransform(0, 0, 30);
       expect(service.viewRotateZ).toBe(40);
+    });
+  });
+
+  describe('showing the view', () => {
+    it('writes it out once for a run of moves, on the frame after them', async () => {
+      callSetTransform(0, 0, 10);
+      callSetTransform(0, 0, 10);
+      callSetTransform(0, 0, 10);
+      expect(gameTableEl.style.transform).toBe('');
+
+      await nextFrame();
+
+      expect(service.viewRotateZ).toBe(40);
+      expect(gameTableEl.style.transform).toContain('rotateZ(40.0000deg)');
+    });
+
+    it('tells the table which way it faces once for that run', async () => {
+      const rotation = TestBed.inject(UiSignalService).tableViewRotation;
+      callSetTransform(0, 0, 10);
+      callSetTransform(0, 0, 10);
+      await nextFrame();
+
+      expect(rotation()).toEqual({ x: 50, y: 0, z: 30 });
+    });
+
+    it('says nothing about the way it faces when the view was only slid', async () => {
+      const rotation = TestBed.inject(UiSignalService).tableViewRotation;
+      service.setTransform(40, 0, 0, 0, 0, 0);
+      await nextFrame();
+
+      expect(gameTableEl.style.transform).toContain('translateX(140.0000px)');
+      expect(rotation()).toBeNull();
+    });
+
+    it('lets go of the gestures it listens with when the table goes', () => {
+      const root = document.createElement('div');
+      document.body.appendChild(root);
+      service.initialize(
+        root,
+        gameTableEl,
+        document.createElement('div'),
+        document.createElement('canvas'),
+        () => true
+      );
+      service.isTableTransformMode = true;
+      expect(root.style.touchAction).toBe('none');
+
+      root.dispatchEvent(new WheelEvent('wheel', { deltaY: -10, cancelable: true }));
+      const zoomed = service.viewPositionZ;
+      expect(zoomed).not.toBe(0);
+
+      service.destroy();
+      root.dispatchEvent(new WheelEvent('wheel', { deltaY: -10, cancelable: true }));
+
+      expect(service.viewPositionZ).toBe(zoomed);
+      expect(root.style.touchAction).toBe('');
+      root.remove();
+    });
+
+    it('drops a frame it was still waiting for when the table goes', async () => {
+      callSetTransform(0, 0, 10);
+      service.destroy();
+      await nextFrame();
+
+      expect(gameTableEl.style.transform).toBe('');
     });
   });
 });

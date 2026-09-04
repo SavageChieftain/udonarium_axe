@@ -54,7 +54,58 @@ export class GameObject {
   // GameObject Lifecycle
   onStoreRemoved() {}
 
+  /**
+   * Runs a piece of work with every change it makes counted as one.
+   *
+   * Filling an object in field by field says the object changed once per field, and each of
+   * those clones everything the object holds so it can be sent. Seeding a room writes
+   * thousands of fields into a few dozen objects, and every one of them paid that. Inside a
+   * batch the objects are only remembered; when the outermost batch ends each of them says
+   * it changed, once.
+   */
+  static batch<T>(work: () => T): T {
+    GameObject.batching += 1;
+    try {
+      return work();
+    } finally {
+      GameObject.batching -= 1;
+      if (GameObject.batching === 0) GameObject.flushBatch();
+    }
+  }
+
+  private static batching = 0;
+  private static batched: GameObject[] = [];
+
+  private static flushBatch(): void {
+    const changed = GameObject.batched;
+    GameObject.batched = [];
+    for (const object of changed) object.batchPending = false;
+
+    let failure: { reason: unknown } | null = null;
+    for (const object of changed) {
+      try {
+        object.announce();
+      } catch (reason) {
+        failure ??= { reason };
+      }
+    }
+    if (failure) throw failure.reason;
+  }
+
   update() {
+    if (GameObject.batching > 0) {
+      if (!this.batchPending) {
+        this.batchPending = true;
+        GameObject.batched.push(this);
+      }
+      return;
+    }
+    this.announce();
+  }
+
+  private batchPending = false;
+
+  private announce(): void {
     this.versionUp();
     ObjectStore.instance.update(this.identifier);
     GameObject.onUpdate?.(this);

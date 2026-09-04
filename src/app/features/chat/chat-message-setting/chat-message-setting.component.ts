@@ -125,7 +125,7 @@ export class ChatMessageSettingComponent {
   readonly simpleForAll = computed(() => this.chatPrefs.simple().all !== 0);
 
   /**
-   * The tabs a reader may set an answer for, once the answers differ per tab.
+   * The tabs a reader may set a display answer for, once the answers differ per tab.
    *
    * The system tab is left out: what it shows is the room talking to itself, not a place
    * anyone speaks, and it takes what the rest of the room is set to. So is a tab the reader
@@ -178,16 +178,24 @@ export class ChatMessageSettingComponent {
   /**
    * The tabs a sound may be set for, each with what it is set to now.
    *
+   * The system tab is in here, unlike the display answers above: nobody speaks on it, but
+   * the room does, and a notice landing there is as much worth a note - or worth silencing -
+   * as anybody's line. A tab the reader may not read is still left out.
+   *
    * A row is followed by the tab's identifier, two tabs being free to share a name, while the
    * answer itself is kept under the name so that it survives the room being passed around.
    */
-  readonly soundRows = computed<{ identifier: string; name: string; sound: ChatSoundSetting }[]>(() =>
-    this.tabRows().map((row) => ({
-      identifier: row.identifier,
-      name: row.name,
-      sound: this.chatPrefs.soundOfTab(row.name),
-    }))
-  );
+  readonly soundRows = computed<{ identifier: string; name: string; sound: ChatSoundSetting }[]>(() => {
+    this.objectChange.collectionOf('chat-tab')();
+    this.objectChange.trackMyCursor();
+    const role = PeerCursor.myRole;
+    return this.chatTabList.chatTabs
+      .filter((tab) => canRoleViewTab(tab, role))
+      .map((tab) => {
+        this.objectChange.versionOf(tab.identifier)();
+        return { identifier: tab.identifier, name: tab.name, sound: this.chatPrefs.soundOfTab(tab.name) };
+      });
+  });
 
   setSoundScope(scope: ChatSettingScope): void {
     this.chatPrefs.setSound({ ...this.chatPrefs.sound(), scope });

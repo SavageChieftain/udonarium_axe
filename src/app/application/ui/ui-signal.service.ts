@@ -1,4 +1,5 @@
-import { Injectable, signal } from '@angular/core';
+import { computed, Injectable, signal } from '@angular/core';
+import { PERF_ROTATION_NOTIFY, perfCounters } from '@axe/core/util/perf-counters';
 
 export interface TargetChangeData {
   identifier: string;
@@ -42,6 +43,15 @@ export interface ChatJumpRequest {
   timestamp: number;
 }
 
+/** How far the table is turned about the vertical before anybody turns it. */
+const DEFAULT_VIEW_ROTATE_Z = 10;
+
+function sameRotation(a: TableViewRotation | null, b: TableViewRotation | null): boolean {
+  if (a === b) return true;
+  if (!a || !b) return false;
+  return a.x === b.x && a.y === b.y && a.z === b.z;
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -52,7 +62,16 @@ export class UiSignalService {
   readonly targetChange = signal<TargetChangeData | null>(null);
   readonly noteResizeRequest = signal<NoteResizeData | null>(null);
   readonly jumpIndexRequest = signal<JumpIndexData | null>(null);
-  readonly tableViewRotation = signal<TableViewRotation | null>(null);
+  readonly tableViewRotation = signal<TableViewRotation | null>(null, { equal: sameRotation });
+
+  /**
+   * How far the table is turned about the vertical alone.
+   *
+   * Most of what stands on the table only has to be turned back about that one axis, and a
+   * tilt is a far commoner gesture than a turn. Read from here, those pieces are left alone
+   * while the table is tilted rather than being asked to work out a transform again.
+   */
+  readonly tableViewRotationZ = computed(() => this.tableViewRotation()?.z ?? DEFAULT_VIEW_ROTATE_Z);
   readonly chatInputTextRequest = signal<ChatInputTextRequest | null>(null);
   readonly chatReplyRequest = signal<ChatReplyRequest | null>(null);
   readonly chatQuoteRequest = signal<ChatQuoteRequest | null>(null);
@@ -83,6 +102,7 @@ export class UiSignalService {
   }
 
   notifyTableViewRotation(x: number, y: number, z: number): void {
+    perfCounters.bump(PERF_ROTATION_NOTIFY);
     this.tableViewRotation.set({ x, y, z });
   }
 

@@ -2,9 +2,9 @@ import { ChangeDetectionStrategy, Component, DestroyRef, effect, ElementRef, inj
 import { VisionService } from '@axe/application/tabletop/vision.service';
 import { perfCounters, perfTimed } from '@axe/core/util/perf-counters';
 import { GridType } from '@axe/domain/tabletop/game-table';
+import { computeHexMaskGeometry } from '@axe/domain/tabletop/hex-mask-geometry';
 import { HEX_SURFACE_INFLATE_PX, hexSurfaceCells, SurfacePoint } from '@axe/domain/tabletop/surface-cells';
 import { computeOverlayPlan, OverlayPlan } from '@axe/domain/tabletop/vision-scene';
-import { computeHexMaskGeometry } from '@axe/features/tabletop/game-table-mask/game-table-mask-helpers';
 import {
   animatedGlowBounds,
   type BakeCanvas,

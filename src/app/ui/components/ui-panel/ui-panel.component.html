@@ -59,7 +59,7 @@
         class="absolute top-0 right-0 flex h-7 items-center gap-0.5 px-1.5"
         [ngClass]="{
           'top-[env(safe-area-inset-top)]! h-11! px-1!': isCompact(),
-          'rounded-ui shadow-ui-md bg-black/60 [&>button]:text-white!': isGhost,
+          'rounded-ui shadow-ui-md bg-ui-ghost [&>button]:text-ui-text!': isGhost,
         }"
       >
         @for (control of panelService.headerControls(); track control.icon) {

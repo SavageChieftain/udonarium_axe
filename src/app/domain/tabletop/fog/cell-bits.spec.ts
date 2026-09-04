@@ -12,6 +12,17 @@ describe('CellBits', () => {
     for (const index of [1, 6, 9, 18]) expect(bits.get(index)).toBe(false);
   });
 
+  it('lets one cell go without touching the ones beside it', () => {
+    const bits = new CellBits(20);
+    for (const index of [6, 7, 8]) bits.set(index);
+
+    bits.unset(7);
+
+    expect(bits.get(7)).toBe(false);
+    expect(bits.get(6)).toBe(true);
+    expect(bits.get(8)).toBe(true);
+  });
+
   it('ignores cells outside the board', () => {
     const bits = new CellBits(8);
     bits.set(-1);

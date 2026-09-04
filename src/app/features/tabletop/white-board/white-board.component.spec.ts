@@ -1,11 +1,17 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { AnimatedImageService } from '@axe/application/media/animated-image.service';
+import { ImageStorage } from '@axe/core/storage/image-storage';
 import { ObjectStore } from '@axe/core/sync/object-store';
+import { PERF_DESERIALIZE_SCENE, perfCounters } from '@axe/core/util/perf-counters';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { GameTable } from '@axe/domain/tabletop/game-table';
 import { TableSelecter } from '@axe/domain/tabletop/table-selecter';
 import { Terrain } from '@axe/domain/tabletop/terrain';
 import { WhiteBoard } from '@axe/domain/tabletop/white-board';
+import { ImageLayer } from '@axe/features/map-editor/model/scene';
+import { serializeScene } from '@axe/features/map-editor/model/serialize';
 import { WhiteBoardComponent } from '@axe/features/tabletop/white-board/white-board.component';
+import { createBoardScene } from '@axe/features/tabletop/white-board/white-board-scene';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
 
 describe('WhiteBoardComponent', () => {
@@ -41,6 +47,61 @@ describe('WhiteBoardComponent', () => {
 
   afterEach(() => {
     for (const object of ObjectStore.instance.getObjects()) ObjectStore.instance.remove(object);
+  });
+
+  it('parses its drawing only when the drawing itself changes', async () => {
+    perfCounters.enabled = true;
+    perfCounters.clear();
+    component.livePictures();
+
+    board.pitch = 45;
+    await new Promise((resolve) => setTimeout(resolve, 20));
+    component.livePictures();
+    expect(perfCounters.drain().get(PERF_DESERIALIZE_SCENE)).toBe(1);
+
+    board.scene = serializeScene(createBoardScene(6, 4, 50));
+    await new Promise((resolve) => setTimeout(resolve, 20));
+    component.livePictures();
+    expect(perfCounters.drain().get(PERF_DESERIALIZE_SCENE)).toBe(1);
+    perfCounters.enabled = false;
+  });
+
+  it('hangs a picture that was only known to move after the drawing was read', async () => {
+    const image = ImageStorage.instance.add('test://white-board/live.gif');
+    const scene = createBoardScene(6, 4, 50);
+    const layer: ImageLayer = {
+      id: 'pictures',
+      kind: 'image',
+      name: 'pictures',
+      visible: true,
+      locked: false,
+      opacity: 1,
+      items: [
+        {
+          id: 'item-0',
+          imageIdentifier: image.identifier,
+          x: 0,
+          y: 0,
+          w: 60,
+          h: 40,
+          rotation: 0,
+          opacity: 1,
+        },
+      ],
+    };
+    scene.layers = [layer];
+    board.scene = serializeScene(scene);
+    await new Promise((resolve) => setTimeout(resolve, 20));
+
+    let moves = false;
+    vi.spyOn(TestBed.inject(AnimatedImageService), 'isAnimated').mockImplementation(() => moves);
+    expect(component.livePictures()).toEqual([]);
+
+    moves = true;
+    board.update();
+    await new Promise((resolve) => setTimeout(resolve, 20));
+
+    expect(component.livePictures().map((picture) => picture.imageIdentifier)).toEqual([image.identifier]);
   });
 
   it('is the size it was given, in pixels', () => {

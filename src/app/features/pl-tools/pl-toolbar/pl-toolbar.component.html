@@ -12,38 +12,23 @@
       {{ 'app.fab.plTools' | transloco }}
     </span>
 
-    <button
-      type="button"
-      class="rounded-ui-sm text-ui-text hover:bg-ui-menu-hover hover:text-ui-accent flex size-8 cursor-pointer items-center justify-center border-none bg-transparent transition-colors [&_i]:text-[20px]!"
-      [title]="'app.fab.ownedCharacters' | transloco"
-      (click)="openOwnedCharacterList()"
-    >
-      <i class="material-icons">groups</i>
-    </button>
+    <ui-icon-button icon="groups" [label]="'app.fab.ownedCharacters' | transloco" (press)="openOwnedCharacterList()" />
 
-    <button
-      type="button"
-      class="rounded-ui-sm text-ui-text hover:bg-ui-menu-hover hover:text-ui-accent flex size-8 cursor-pointer items-center justify-center border-none bg-transparent transition-colors [&_i]:text-[20px]!"
-      [class.text-ui-accent]="handRail.isOpen()"
-      [class.bg-ui-accent-bg]="handRail.isOpen()"
-      [title]="'app.fab.handCards' | transloco"
-      (click)="toggleHandRail()"
-    >
-      <i class="material-icons">style</i>
-    </button>
+    <ui-icon-button
+      icon="style"
+      [label]="'app.fab.handCards' | transloco"
+      [active]="handRail.isOpen()"
+      (press)="toggleHandRail()"
+    />
 
     <div class="relative flex">
-      <button
-        type="button"
-        class="rounded-ui-sm text-ui-text hover:bg-ui-menu-hover hover:text-ui-accent flex size-8 cursor-pointer items-center justify-center border-none bg-transparent transition-colors [&_i]:text-[20px]!"
-        [class.text-ui-accent]="rangeOpen()"
-        [class.bg-ui-accent-bg]="rangeOpen()"
-        [class.opacity-45]="!activeCharacter()"
-        [title]="(activeCharacter() ? 'feature.plTools.range.title' : 'feature.plTools.range.noActive') | transloco"
-        (click)="toggleRangeMenu()"
-      >
-        <i class="material-icons">radar</i>
-      </button>
+      <ui-icon-button
+        icon="radar"
+        [label]="(activeCharacter() ? 'feature.plTools.range.title' : 'feature.plTools.range.noActive') | transloco"
+        [active]="rangeOpen()"
+        [faded]="!activeCharacter()"
+        (press)="toggleRangeMenu()"
+      />
 
       @if (rangeOpen()) {
         <ul
@@ -61,89 +46,52 @@
       }
     </div>
 
-    <button
-      type="button"
-      class="rounded-ui-sm text-ui-text hover:bg-ui-menu-hover hover:text-ui-accent flex size-8 cursor-pointer items-center justify-center border-none bg-transparent transition-colors [&_i]:text-[20px]!"
-      [title]="'feature.buffManager.title' | transloco"
-      (click)="openBuffManager()"
-    >
-      <i class="material-icons">timeline</i>
-    </button>
+    <ui-icon-button icon="timeline" [label]="'feature.buffManager.title' | transloco" (press)="openBuffManager()" />
 
-    <button
-      type="button"
-      data-testid="buff-view-cycle"
-      class="rounded-ui-sm text-ui-text hover:bg-ui-menu-hover hover:text-ui-accent flex size-8 cursor-pointer items-center justify-center border-none bg-transparent transition-colors [&_i]:text-[20px]!"
-      [title]="('feature.plTools.buffView' | transloco) + ': ' + (buffViewLabelKey() | transloco)"
-      (click)="cycleBuffView()"
-    >
-      <i class="material-icons">{{ buffViewIcon() }}</i>
-    </button>
+    <ui-icon-button
+      [icon]="buffViewIcon()"
+      [label]="('feature.plTools.buffView' | transloco) + ': ' + (buffViewLabelKey() | transloco)"
+      testId="buff-view-cycle"
+      (press)="cycleBuffView()"
+    />
 
-    <button
-      type="button"
-      class="rounded-ui-sm text-ui-text hover:bg-ui-menu-hover hover:text-ui-accent flex size-8 cursor-pointer items-center justify-center border-none bg-transparent transition-colors [&_i]:text-[20px]!"
-      [title]="'feature.effect.title' | transloco"
-      (click)="openEffectLibrary()"
-    >
-      <i class="material-icons">auto_awesome</i>
-    </button>
+    <ui-icon-button icon="auto_awesome" [label]="'feature.effect.title' | transloco" (press)="openEffectLibrary()" />
 
-    <button
-      type="button"
-      data-testid="hotbar-toggle"
-      class="rounded-ui-sm text-ui-text hover:bg-ui-menu-hover hover:text-ui-accent flex size-8 cursor-pointer items-center justify-center border-none bg-transparent transition-colors [&_i]:text-[20px]!"
-      [class.text-ui-accent]="widgets.hotbar()"
-      [class.bg-ui-accent-bg]="widgets.hotbar()"
-      [title]="'feature.hotbar.toggle' | transloco"
-      (click)="widgets.toggleHotbar()"
-    >
-      <i class="material-icons">apps</i>
-    </button>
+    <ui-icon-button
+      icon="apps"
+      [label]="'feature.hotbar.toggle' | transloco"
+      [active]="widgets.hotbar()"
+      testId="hotbar-toggle"
+      (press)="widgets.toggleHotbar()"
+    />
 
-    <button
-      type="button"
-      class="rounded-ui-sm text-ui-text hover:bg-ui-menu-hover hover:text-ui-accent flex size-8 cursor-pointer items-center justify-center border-none bg-transparent transition-colors [&_i]:text-[20px]!"
-      [class.text-ui-accent]="widgets.clock()"
-      [class.bg-ui-accent-bg]="widgets.clock()"
-      [title]="'app.fab.clock' | transloco"
-      (click)="widgets.toggleClock()"
-    >
-      <i class="material-icons">schedule</i>
-    </button>
+    <ui-icon-button
+      icon="schedule"
+      [label]="'app.fab.clock' | transloco"
+      [active]="widgets.clock()"
+      (press)="widgets.toggleClock()"
+    />
 
-    <button
-      type="button"
-      class="rounded-ui-sm text-ui-text hover:bg-ui-menu-hover hover:text-ui-accent flex size-8 cursor-pointer items-center justify-center border-none bg-transparent transition-colors [&_i]:text-[20px]!"
-      [class.text-ui-accent]="widgets.recording()"
-      [class.bg-ui-accent-bg]="widgets.recording()"
-      [title]="'app.fab.recording' | transloco"
-      (click)="widgets.toggleRecording()"
-    >
-      <i class="material-icons">radio_button_checked</i>
-    </button>
+    <ui-icon-button
+      icon="radio_button_checked"
+      [label]="'app.fab.recording' | transloco"
+      [active]="widgets.recording()"
+      (press)="widgets.toggleRecording()"
+    />
 
-    <button
-      type="button"
-      class="rounded-ui-sm text-ui-text hover:bg-ui-menu-hover hover:text-ui-accent flex size-8 cursor-pointer items-center justify-center border-none bg-transparent transition-colors [&_i]:text-[20px]!"
-      [class.text-ui-accent]="widgets.connectionQuality()"
-      [class.bg-ui-accent-bg]="widgets.connectionQuality()"
-      [title]="'app.fab.connectionQuality' | transloco"
-      (click)="widgets.toggleConnectionQuality()"
-    >
-      <i class="material-icons">network_check</i>
-    </button>
+    <ui-icon-button
+      icon="network_check"
+      [label]="'app.fab.connectionQuality' | transloco"
+      [active]="widgets.connectionQuality()"
+      (press)="widgets.toggleConnectionQuality()"
+    />
 
-    <button
-      type="button"
-      class="rounded-ui-sm text-ui-text hover:bg-ui-menu-hover hover:text-ui-accent flex size-8 cursor-pointer items-center justify-center border-none bg-transparent transition-colors [&_i]:text-[20px]!"
-      [class.text-ui-accent]="widgets.miniPlayer()"
-      [class.bg-ui-accent-bg]="widgets.miniPlayer()"
-      [title]="'app.fab.miniPlayer' | transloco"
-      (click)="widgets.toggleMiniPlayer()"
-    >
-      <i class="material-icons">play_circle</i>
-    </button>
+    <ui-icon-button
+      icon="play_circle"
+      [label]="'app.fab.miniPlayer' | transloco"
+      [active]="widgets.miniPlayer()"
+      (press)="widgets.toggleMiniPlayer()"
+    />
 
     @if (turnIndicator(); as turn) {
       <span

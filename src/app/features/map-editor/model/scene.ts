@@ -1,6 +1,6 @@
 import { GridType } from '@axe/domain/tabletop/game-table';
 import { isHexGrid } from '@axe/domain/tabletop/hex-geometry';
-import { computeHexMaskGeometry } from '@axe/features/tabletop/game-table-mask/game-table-mask-helpers';
+import { computeHexMaskGeometry } from '@axe/domain/tabletop/hex-mask-geometry';
 
 export const MAP_SCENE_VERSION = 1;
 

@@ -41,17 +41,33 @@
     }
     @if (isPeeking && frontImage) {
       <img
-        class="pointer-events-none absolute inset-0 m-auto block size-full object-contain filter-[opacity(0.8)] will-change-[opacity] [transform-style:inherit]"
+        class="pointer-events-none absolute block object-contain filter-[opacity(0.8)] will-change-[opacity] [transform-style:inherit]"
         [ngStyle]="{
-          width: peekSupersamplePercent(),
-          height: peekSupersamplePercent(),
+          left: peekImageLayout().left + 'px',
+          top: peekImageLayout().top + 'px',
+          width: peekImageLayout().width + 'px',
+          height: peekImageLayout().height + 'px',
           maxWidth: 'none',
-          margin: peekSupersampleInset(),
           transform: peekTransform(),
         }"
         (load)="onPeekImageLoad($event)"
         [src]="frontImage.url | safe: 'resourceUrl'"
       />
+    }
+    @if (isPeeking && !isFront && frontImage) {
+      <!-- Match the text plane to the front pixels inside the back image's object-contain box. -->
+      <div
+        class="card-peek-face pointer-events-none absolute z-2 origin-center opacity-80"
+        [style.left.px]="peekFaceRect().left"
+        [style.top.px]="peekFaceRect().top"
+        [style.width.px]="peekFaceRect().width"
+        [style.height.px]="peekFaceRect().height"
+        [style.transform]="peekScale"
+      >
+        <card-face-text [card]="card()" />
+      </div>
+    } @else {
+      <card-face-text [card]="card()" />
     }
     @if (!isIconHidden() && !isLock) {
       <div

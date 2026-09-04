@@ -1,16 +1,17 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { MobileLayoutService } from '@axe/application/ui/mobile-layout.service';
-import { ObjectStore } from '@axe/core/sync/object-store';
+import { SelectionSignalService } from '@axe/application/ui/selection-signal.service';
+import { ImageStorage } from '@axe/core/storage/image-storage';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { GridType } from '@axe/domain/tabletop/game-table';
 import { TableSurface } from '@axe/domain/tabletop/tabletop-object';
+import { Terrain } from '@axe/domain/tabletop/terrain';
 import { GameTableComponent } from '@axe/features/tabletop/game-table/game-table.component';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
 
 describe('GameTableComponent', () => {
   let component: GameTableComponent;
   let fixture: ComponentFixture<GameTableComponent>;
-  let store: ObjectStore;
 
   beforeEach(async () => {
     TestBed.configureTestingModule({
@@ -20,16 +21,13 @@ describe('GameTableComponent', () => {
   });
 
   beforeEach(() => {
-    store = ObjectStore.instance;
-    store.getObjects().forEach((object) => store.delete(object, false));
-    store.clearDeleteHistory();
     fixture = TestBed.createComponent(GameTableComponent);
     component = fixture.componentInstance;
   });
 
   afterEach(() => {
-    store.getObjects().forEach((object) => store.delete(object, false));
-    store.clearDeleteHistory();
+    vi.restoreAllMocks();
+    vi.useRealTimers();
   });
 
   it('should create', () => {
@@ -158,6 +156,232 @@ describe('GameTableComponent', () => {
       expect(bg.surfaceBackground).toBe('url(data:image/png;base64,AAA), url(blob:wall)');
       expect(bg.surfaceBackgroundSize).toBe('100% 100%, 100% 100%');
       expect(bg.surfaceBackgroundRepeat).toBe('no-repeat, no-repeat');
+    });
+  });
+
+  describe('walls', () => {
+    function picture(url: string): string {
+      return TestBed.inject(ImageStorage).add(url).identifier;
+    }
+
+    it('raises only the walls that are switched on and have a picture', async () => {
+      const table = component.currentTable;
+      table.showNorthWall = true;
+      table.northWallImageIdentifier = picture('blob:north');
+      table.showSouthWall = true;
+      table.showEastWall = false;
+      table.eastWallImageIdentifier = picture('blob:east');
+      table.showWestWall = true;
+      table.westWallImageIdentifier = picture('blob:west');
+      await Promise.resolve();
+
+      const walls = component.activeWalls();
+
+      expect(walls.map((wall) => wall.surface)).toEqual(['north-wall', 'west-wall']);
+      expect(walls[0]).toMatchObject({
+        containerClass: 'top-0 left-0',
+        containerTransform: 'translateY(-100%) rotateX(90deg) rotateZ(180deg) scaleX(-1)',
+        containerOrigin: '50% 100%',
+        widthPx: table.width * table.gridSize,
+        heightPx: table.wallHeight * table.gridSize,
+        surfaceBackground: 'url(blob:north)',
+      });
+      expect(walls[1]).toMatchObject({
+        containerClass: 'top-0 left-0',
+        containerOrigin: '0% 0%',
+        widthPx: table.height * table.gridSize,
+        heightPx: table.wallHeight * table.gridSize,
+        surfaceBackground: 'url(blob:west)',
+      });
+    });
+
+    it('lays a rasterised grid over each wall while the table shows its grid', async () => {
+      vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockImplementation(
+        () => new Proxy({}, { get: () => () => undefined, set: () => true }) as unknown as RenderingContext
+      );
+      vi.spyOn(HTMLCanvasElement.prototype, 'toDataURL').mockReturnValue('data:image/png;base64,GRID');
+      const table = component.currentTable;
+      table.gridShow = true;
+      table.showSouthWall = true;
+      table.southWallImageIdentifier = picture('blob:south');
+      await Promise.resolve();
+
+      const [south] = component.activeWalls();
+
+      expect(south.surface).toBe('south-wall');
+      expect(south.surfaceBackground).toBe('url(data:image/png;base64,GRID), url(blob:south)');
+      expect(south.surfaceBackgroundSize).toBe('100% 100%, 100% 100%');
+    });
+
+    it('describes each face by the edge it runs along and the way it looks', () => {
+      const table = component.currentTable;
+      table.width = 20;
+      table.height = 10;
+      table.gridSize = 50;
+      table.wallHeight = 4;
+
+      expect(component['wallFaceFor']('north-wall')).toEqual({
+        ax: 0,
+        ay: 0,
+        bx: 1000,
+        by: 0,
+        nx: 0,
+        ny: 1,
+        heightPx: 200,
+      });
+      expect(component['wallFaceFor']('south-wall')).toEqual({
+        ax: 0,
+        ay: 500,
+        bx: 1000,
+        by: 500,
+        nx: 0,
+        ny: -1,
+        heightPx: 200,
+      });
+      expect(component['wallFaceFor']('west-wall')).toEqual({
+        ax: 0,
+        ay: 0,
+        bx: 0,
+        by: 500,
+        nx: 1,
+        ny: 0,
+        heightPx: 200,
+      });
+      expect(component['wallFaceFor']('east-wall')).toEqual({
+        ax: 1000,
+        ay: 0,
+        bx: 1000,
+        by: 500,
+        nx: -1,
+        ny: 0,
+        heightPx: 200,
+      });
+      expect(component['wallFaceFor']('floor')).toBeNull();
+    });
+
+    it('hands the same wall views back while nothing changes', async () => {
+      const table = component.currentTable;
+      table.showNorthWall = true;
+      table.northWallImageIdentifier = picture('blob:north');
+      await Promise.resolve();
+
+      const views = component['wallViews']();
+
+      expect(views.map((view) => view.wall.surface)).toEqual(['north-wall']);
+      expect(views[0].pools).toEqual([]);
+      expect(views[0].silhouettes).toEqual([]);
+      expect(component['wallViews']()).toBe(views);
+    });
+
+    it('has no pools or silhouettes on a wall while nothing is lit', () => {
+      expect(component['wallPoolsFor']('north-wall')).toEqual([]);
+      expect(component['wallSilhouettesFor']('east-wall')).toEqual([]);
+      expect(component['wallBaseFilter']()).toBeNull();
+    });
+  });
+
+  describe('grid faces', () => {
+    it('rasterises a face once and hands the same picture back for the same geometry', () => {
+      vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockImplementation(
+        () => new Proxy({}, { get: () => () => undefined, set: () => true }) as unknown as RenderingContext
+      );
+      const encode = vi.spyOn(HTMLCanvasElement.prototype, 'toDataURL').mockReturnValue('data:image/png;base64,GRID');
+      const table = component.currentTable;
+
+      const first = component['gridFaces'].dataUrl(table, 500, 200, 0, 0, 'N', null);
+      const again = component['gridFaces'].dataUrl(table, 500, 200, 0, 0, 'N', null);
+      const other = component['gridFaces'].dataUrl(table, 500, 200, 0, 0, 'S', [-1, 0, 0, 1]);
+      const face = component['gridFaces'].dataUrl(table, 100, 150, 0, 50, 'N', null);
+      const faceAgain = component['gridFaces'].dataUrl(table, 100, 150, 0, 50, 'N', null);
+
+      expect(first).toBe('data:image/png;base64,GRID');
+      expect(again).toBe(first);
+      expect(other).toBe('data:image/png;base64,GRID');
+      expect(faceAgain).toBe(face);
+      expect(encode).toHaveBeenCalledTimes(3);
+    });
+
+    it('rasterises again once the grid colour changes', () => {
+      vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockImplementation(
+        () => new Proxy({}, { get: () => () => undefined, set: () => true }) as unknown as RenderingContext
+      );
+      const encode = vi.spyOn(HTMLCanvasElement.prototype, 'toDataURL').mockReturnValue('data:image/png;base64,GRID');
+      const table = component.currentTable;
+
+      component['gridFaces'].dataUrl(table, 500, 200, 0, 0, 'N', null);
+      table.gridColor = '#ff0000ff';
+      component['gridFaces'].dataUrl(table, 500, 200, 0, 0, 'N', null);
+
+      expect(encode).toHaveBeenCalledTimes(2);
+    });
+  });
+
+  describe('beam grids', () => {
+    function terrainOn(surface: string, isGrid: boolean): Terrain {
+      const terrain = Terrain.create('梁', 2, 3, 1, '', '');
+      terrain.location.surface = surface;
+      terrain.isGrid = isGrid;
+      component.currentTable.appendChild(terrain);
+      return terrain;
+    }
+
+    it('lists a grid for each gridded terrain that hangs on a wall', async () => {
+      const table = component.currentTable;
+      table.gridShow = true;
+      terrainOn('floor', true);
+      const hung = terrainOn('north-wall', true);
+      terrainOn('east-wall', false);
+      await Promise.resolve();
+
+      const tops = component.beamTopGrids();
+      const faces = component.beamWallGrids();
+
+      expect(tops.map((grid) => grid.identifier)).toEqual([hung.identifier]);
+      expect(faces.map((grid) => grid.identifier)).toEqual([hung.identifier]);
+      expect(faces[0]).toMatchObject({ width: 2 * table.gridSize, height: 3 * table.gridSize });
+      expect(faces[0].matrix3d).toMatch(/^matrix3d\(/);
+    });
+
+    it('lists none while the table hides its grid', async () => {
+      const table = component.currentTable;
+      table.gridShow = false;
+      terrainOn('north-wall', true);
+      await Promise.resolve();
+
+      expect(component.beamTopGrids()).toEqual([]);
+      expect(component.beamWallGrids()).toEqual([]);
+    });
+  });
+
+  describe('camera glide', () => {
+    it('eases the table to the focus and takes the easing off again', () => {
+      vi.useFakeTimers();
+      fixture.detectChanges();
+      const tableEl = component.gameTable().nativeElement;
+
+      TestBed.inject(SelectionSignalService).focusCoordinate.set({ x: 100, y: 100, timestamp: 1 });
+      fixture.detectChanges();
+      vi.advanceTimersByTime(50);
+      expect(tableEl.style.transition).toBe('0.2s ease-out');
+
+      vi.advanceTimersByTime(100);
+      expect(tableEl.style.transition).toBe('');
+      vi.useRealTimers();
+    });
+
+    it('drops the glide when the table goes before it lands', () => {
+      vi.useFakeTimers();
+      fixture.detectChanges();
+      const tableEl = component.gameTable().nativeElement;
+
+      TestBed.inject(SelectionSignalService).focusCoordinate.set({ x: 100, y: 100, timestamp: 2 });
+      fixture.detectChanges();
+      fixture.destroy();
+      vi.advanceTimersByTime(200);
+
+      expect(tableEl.style.transition).toBe('');
+      expect(vi.getTimerCount()).toBe(0);
+      vi.useRealTimers();
     });
   });
 });

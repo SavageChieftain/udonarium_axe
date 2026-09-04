@@ -17,7 +17,6 @@ describe('carrying a hotbar between rooms', () => {
   });
 
   afterEach(() => {
-    store.getObjects().forEach((object) => store.delete(object, false));
     Hotbar.ownerId = '';
     store.clearDeleteHistory();
   });

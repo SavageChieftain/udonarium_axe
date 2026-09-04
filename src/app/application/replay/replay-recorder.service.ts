@@ -1,6 +1,6 @@
 import { DestroyRef, inject, Injectable, signal } from '@angular/core';
+import { PointerDeviceService } from '@axe/application/input/pointer-device.service';
 import { ReplayPreferenceService } from '@axe/application/replay/replay-preference.service';
-import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { Logger } from '@axe/core/logging/logger';
 import { Network } from '@axe/core/network/network';
 import { isNetworkIsolated } from '@axe/core/network/network-isolation';

@@ -10,6 +10,7 @@ import {
   ImageLayer,
   ShapeLayer,
   StampLayer,
+  TextLayer,
 } from '@axe/features/map-editor/model/scene';
 
 describe('MapEditorState', () => {
@@ -335,6 +336,35 @@ describe('MapEditorState', () => {
 
     state.deleteSelection();
     expect(layer.items.length).toBe(0);
+  });
+
+  it('takes hold of Japanese words by their right half as well', () => {
+    state.fontSize.set(20);
+    state.addTextItem(100, 50, 'あいうえお');
+    const layer = state.current.layers.find((l) => l.kind === 'text') as TextLayer;
+    const id = layer.items[0].id;
+
+    expect(state.hitTest(190, 60)?.itemId).toBe(id);
+    expect(state.hitTest(210, 60)).toBeNull();
+  });
+
+  it('takes hold of a rectangle dragged out backwards', () => {
+    state.snapEnabled.set(false);
+    state.addShapeItem('rect', [100, 80, -60, -30], null);
+    const layer = state.current.layers.find((l) => l.kind === 'shape') as ShapeLayer;
+
+    expect(state.hitTest(50, 60)?.itemId).toBe(layer.items[0].id);
+    expect(state.hitTest(120, 60)).toBeNull();
+  });
+
+  it('reaches a little past half a wide line, and no further', () => {
+    state.snapEnabled.set(false);
+    state.strokeWidth.set(20);
+    state.addShapeItem('polyline', [0, 0, 100, 0], null);
+    const layer = state.current.layers.find((l) => l.kind === 'shape') as ShapeLayer;
+
+    expect(state.hitTest(50, 12)?.itemId).toBe(layer.items[0].id);
+    expect(state.hitTest(50, 13)).toBeNull();
   });
 
   it('hit tests a curve along the spline rather than the chord', () => {

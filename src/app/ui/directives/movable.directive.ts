@@ -1,4 +1,6 @@
 import { afterNextRender, DestroyRef, Directive, effect, ElementRef, inject, input, output } from '@angular/core';
+import { CoordinateService } from '@axe/application/input/coordinate.service';
+import { PointerCoordinate, PointerDeviceService } from '@axe/application/input/pointer-device.service';
 import { RolePermissionService } from '@axe/application/permission/role-permission.service';
 import { ObjectChangeEvent, ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { GravityService } from '@axe/application/tabletop/gravity.service';
@@ -6,8 +8,6 @@ import { BatchService } from '@axe/application/ui/batch.service';
 import { MultiMovableService } from '@axe/application/ui/multi-movable.service';
 import { SelectionSignalService } from '@axe/application/ui/selection-signal.service';
 import { TabletopOverlapRegistryEntry, TabletopOverlapService } from '@axe/application/ui/tabletop-overlap.service';
-import { CoordinateService } from '@axe/core/input/coordinate.service';
-import { PointerCoordinate, PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { perfCounters, perfTimed } from '@axe/core/util/perf-counters';
 import { GridSnapStyle, GridType } from '@axe/domain/tabletop/game-table';
 import { isHexGrid } from '@axe/domain/tabletop/hex-geometry';
@@ -55,11 +55,11 @@ export interface MovableOption {
 }
 
 @Directive({ selector: '[appMovable]' })
-export class MovableDirective {
+export class MovableDirective implements MovableInteractionContext {
   private readonly elementRef = inject(ElementRef);
   private readonly batchService = inject(BatchService);
-  private readonly pointerDeviceService = inject(PointerDeviceService);
-  private readonly coordinateService = inject(CoordinateService);
+  readonly pointerDeviceService = inject(PointerDeviceService);
+  readonly coordinateService = inject(CoordinateService);
   private readonly tableSelecter = inject(TableSelecter);
   private readonly selectionSignalService = inject(SelectionSignalService);
   private readonly multiMovableService = inject(MultiMovableService);
@@ -90,7 +90,7 @@ export class MovableDirective {
   readonly ondragend = output<PointerEvent>({ alias: 'movable.ondragend' });
   readonly onend = output<PointerEvent>({ alias: 'movable.onend' });
 
-  private get nativeElement(): HTMLElement {
+  get nativeElement(): HTMLElement {
     return this.elementRef.nativeElement;
   }
 
@@ -363,7 +363,7 @@ export class MovableDirective {
     if (this.collidableElements.length < 1) this.findCollidableElements();
 
     if (this._multiAdapter) this.multiMovableService.beginDrag(this._multiAdapter);
-    handleInputStart(this as unknown as MovableInteractionContext, e);
+    handleInputStart(this, e);
   }
 
   onInputMove(e: MouseEvent | TouchEvent) {
@@ -372,7 +372,8 @@ export class MovableDirective {
   }
 
   private onInputMoveNow(e: MouseEvent | TouchEvent) {
-    const overDifferentSurface = this.isPointerOverDifferentSurface();
+    const pointerSurface = this.surfaceUnderPointer();
+    const overDifferentSurface = pointerSurface !== null && pointerSurface !== this.surfaceElement();
     if (overDifferentSurface && this.input?.isDragging && this.input.pointer) {
       const rest = this.computeBeamRest(this.input.pointer);
       if (rest) {
@@ -385,17 +386,11 @@ export class MovableDirective {
       }
     }
     if (overDifferentSurface) {
-      this.updateDragPreview();
+      this.updateDragPreview(pointerSurface);
       return;
     }
-    perfTimed('collide', () => handleInputMove(this as unknown as MovableInteractionContext, e));
-    perfTimed('dragPreview', () => this.updateDragPreview());
-  }
-
-  private isPointerOverDifferentSurface(): boolean {
-    const pointerSurface = this.surfaceUnderPointer();
-    if (!pointerSurface) return false;
-    return pointerSurface !== this.surfaceElement();
+    perfTimed('collide', () => handleInputMove(this, e));
+    perfTimed('dragPreview', () => this.updateDragPreview(pointerSurface));
   }
 
   /** The face under the pointer that this piece could be put down on, or nothing. */
@@ -409,7 +404,7 @@ export class MovableDirective {
   private dragPreviewElement: HTMLElement | null = null;
   private dragPreviewSurface: HTMLElement | null = null;
 
-  private updateDragPreview(): void {
+  private updateDragPreview(targetSurface: HTMLElement | null): void {
     if (!this.input?.isDragging) {
       this.clearDragPreview();
       return;
@@ -419,7 +414,6 @@ export class MovableDirective {
       this.clearDragPreview();
       return;
     }
-    const targetSurface = this.surfaceUnderPointer();
     if (!targetSurface || targetSurface === this.surfaceElement()) {
       this.clearDragPreview();
       return;
@@ -488,7 +482,7 @@ export class MovableDirective {
       this.maybeSwitchSurfaceOnDrop();
     }
     this.clearDragPreview();
-    handleInputEnd(this as unknown as MovableInteractionContext, e);
+    handleInputEnd(this, e);
     if (this._multiAdapter) this.multiMovableService.endDrag(this._multiAdapter);
   }
 
@@ -594,7 +588,7 @@ export class MovableDirective {
   }
 
   onContextMenu(e: MouseEvent | TouchEvent) {
-    handleContextMenu(this as unknown as MovableInteractionContext, e);
+    handleContextMenu(this, e);
   }
 
   private callSelectedEvent() {

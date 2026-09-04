@@ -46,7 +46,6 @@ describe('HotbarSlotEditorComponent', () => {
 
   afterEach(() => {
     vi.restoreAllMocks();
-    store.getObjects().forEach((object) => store.delete(object, false));
     PeerCursor.myCursor = null!;
     store.clearDeleteHistory();
   });

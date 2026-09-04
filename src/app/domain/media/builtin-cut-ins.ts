@@ -1,5 +1,6 @@
 import { ImageFile } from '@axe/core/storage/image-file';
 import type { ImageStorage } from '@axe/core/storage/image-storage';
+import { GameObject } from '@axe/core/sync/game-object';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { CutIn } from '@axe/domain/media/cut-in';
 import type { CutInClip } from '@axe/domain/media/cut-in-clip';
@@ -436,17 +437,19 @@ export function createDefaultCutIns(imageStorage: ImageStorage): CutIn[] {
   };
   const made: CutIn[] = [];
 
-  for (const seed of DEFAULT_CUT_IN_SEEDS) {
-    const cutIn = new CutIn(seed.identifier);
-    cutIn.initialize();
-    if (ObjectStore.instance.get(seed.identifier) !== cutIn) continue;
+  return GameObject.batch(() => {
+    for (const seed of DEFAULT_CUT_IN_SEEDS) {
+      const cutIn = new CutIn(seed.identifier);
+      cutIn.initialize();
+      if (ObjectStore.instance.get(seed.identifier) !== cutIn) continue;
 
-    // The layers are what a sample is: one made without them would be an empty window
-    // with a name on it, so it is left as a plain cut-in rather than passed off as a sample.
-    if (!applyCutInSeed(cutIn, seed, pictures)) continue;
-    made.push(cutIn);
-  }
-  return made;
+      // The layers are what a sample is: one made without them would be an empty window
+      // with a name on it, so it is left as a plain cut-in rather than passed off as a sample.
+      if (!applyCutInSeed(cutIn, seed, pictures)) continue;
+      made.push(cutIn);
+    }
+    return made;
+  });
 }
 
 /** The faces the samples come with, each one field away from being someone else's. */

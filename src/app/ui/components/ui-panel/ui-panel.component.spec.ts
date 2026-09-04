@@ -1,7 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { PointerDeviceService } from '@axe/application/input/pointer-device.service';
 import { PanelService } from '@axe/application/ui/panel.service';
 import { ViewportService } from '@axe/application/ui/viewport.service';
-import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
 import { UIPanelComponent } from '@axe/ui/components/ui-panel/ui-panel.component';
 
@@ -193,7 +193,9 @@ describe('UIPanelComponent', () => {
 
       const buttons = fixture.nativeElement.querySelectorAll('button');
       expect(buttons.length).toBeGreaterThan(0);
-      expect((buttons[0].parentElement as HTMLElement).className).toContain('bg-black/60');
+      const cluster = (buttons[0].parentElement as HTMLElement).className;
+      expect(cluster).toContain('bg-ui-ghost');
+      expect(cluster).not.toContain('bg-black');
     });
   });
 
@@ -460,6 +462,23 @@ describe('UIPanelComponent', () => {
   });
 
   describe('timerCheckWindowSize cleanup', () => {
+    it('watches the window size only for a cut-in panel', async () => {
+      const priv = component as unknown as { timerCheckWindowSize: ReturnType<typeof setInterval> | null };
+      fixture.detectChanges();
+      await fixture.whenStable();
+
+      expect(priv.timerCheckWindowSize).toBeNull();
+    });
+
+    it('watches the window size for a cut-in panel', async () => {
+      const priv = component as unknown as { timerCheckWindowSize: ReturnType<typeof setInterval> | null };
+      component.panelService.cutInIdentifier = 'cut-in';
+      fixture.detectChanges();
+      await fixture.whenStable();
+
+      expect(priv.timerCheckWindowSize).not.toBeNull();
+    });
+
     it('clears the window size timer on teardown', () => {
       const clearIntervalSpy = vi.spyOn(globalThis, 'clearInterval');
       const priv = component as unknown as { timerCheckWindowSize: ReturnType<typeof setInterval> | null };

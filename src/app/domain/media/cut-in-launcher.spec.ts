@@ -1,25 +1,12 @@
 import { TestBed } from '@angular/core/testing';
 import { soundOnlyCutIn$, stopCutInByBgm$ } from '@axe/core/event/domain-events';
 import { Network } from '@axe/core/index';
-import { ObjectStore } from '@axe/core/sync/object-store';
 import { CutIn } from '@axe/domain/media/cut-in';
 import { CutInLauncher } from '@axe/domain/media/cut-in-launcher';
 
 describe('CutInLauncher', () => {
-  let store: ObjectStore;
-
   beforeEach(() => {
     TestBed.configureTestingModule({});
-    store = ObjectStore.instance;
-    const allObjects = store.getObjects();
-    allObjects.forEach((obj) => store.delete(obj, false));
-    store.clearDeleteHistory();
-  });
-
-  afterEach(() => {
-    const allObjects = store.getObjects();
-    allObjects.forEach((obj) => store.delete(obj, false));
-    store.clearDeleteHistory();
   });
 
   describe('the defaults of the synchronised fields', () => {

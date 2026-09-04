@@ -1,5 +1,6 @@
 import { effect, Injector } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
+import { PointerDeviceService } from '@axe/application/input/pointer-device.service';
 import { readKeyframeBytes } from '@axe/application/replay/replay-keyframe-bytes';
 import {
   REPLAY_BASELINE_GRACE_MS,
@@ -9,7 +10,6 @@ import {
   REPLAY_RECENT_PUBLISH_MS,
   ReplayRecorderService,
 } from '@axe/application/replay/replay-recorder.service';
-import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { Network } from '@axe/core/network/network';
 import { setNetworkIsolated } from '@axe/core/network/network-isolation';
 import { localDispatch } from '@axe/core/network/network-messaging';

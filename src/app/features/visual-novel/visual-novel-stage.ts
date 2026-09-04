@@ -13,7 +13,7 @@ export const VN_STAGE_MIN_GAP = LEFT_SPAN / (VN_STAGE_SLOT_COUNT - 1);
 
 export interface VnStageSource {
   name: string;
-  timestamp: number;
+  placedAt: number;
   sendFrom: string;
   imageIdentifier: string;
   imagePos: unknown;
@@ -127,9 +127,9 @@ function desiredPositions(slots: readonly number[]): number[] {
  * Being at the latest line counts as being after it: the notice it leaves is housekeeping and
  * is kept out of the script, so with nothing said since, the last line said is still "now".
  */
-export function stageCutFor(resetAt: number, currentTimestamp: number, isLatest: boolean): number {
+export function stageCutFor(resetAt: number, currentPlacedAt: number, isLatest: boolean): number {
   if (resetAt <= 0) return 0;
-  return isLatest || currentTimestamp >= resetAt ? resetAt : 0;
+  return isLatest || currentPlacedAt >= resetAt ? resetAt : 0;
 }
 
 export function buildVnStage(
@@ -146,7 +146,7 @@ export function buildVnStage(
   const retired = new Set<string>();
   for (let i = window.length - 1; i >= 0 && found.size < VN_STAGE_MAX; i--) {
     const source = window[i];
-    if (cut > 0 && source.timestamp < cut) break;
+    if (cut > 0 && source.placedAt < cut) break;
     if (source.isSystemMessage || source.isDicebot) continue;
     if (source.isDiceCommand) continue;
     if (source.emote.kind === 'scene') break;

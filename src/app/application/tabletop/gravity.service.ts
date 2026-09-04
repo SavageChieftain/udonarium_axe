@@ -1,8 +1,8 @@
 import { DestroyRef, inject, Injectable } from '@angular/core';
+import { PointerDeviceService } from '@axe/application/input/pointer-device.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { TabletopService } from '@axe/application/tabletop/tabletop.service';
 import { TabletopOverlapRegistryEntry, TabletopOverlapService } from '@axe/application/ui/tabletop-overlap.service';
-import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { perfCounters, perfTimed } from '@axe/core/util/perf-counters';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { SurfaceDims, surfaceWorldBox } from '@axe/domain/tabletop/surface-space';

@@ -1,22 +1,12 @@
 import { TestBed } from '@angular/core/testing';
-import { ObjectStore } from '@axe/core/sync/object-store';
 import { CutInLayer } from '@axe/domain/media/cut-in-layer';
 import { applyLayerPreset, CUT_IN_LAYER_PRESETS, cutInLayerPreset } from '@axe/domain/media/cut-in-layer-presets';
 
 describe('the whole looks a layer may be given', () => {
-  let store: ObjectStore;
   const stage = { width: 640, height: 360 };
 
   beforeEach(() => {
     TestBed.configureTestingModule({});
-    store = ObjectStore.instance;
-    store.getObjects().forEach((object) => store.delete(object, false));
-    store.clearDeleteHistory();
-  });
-
-  afterEach(() => {
-    store.getObjects().forEach((object) => store.delete(object, false));
-    store.clearDeleteHistory();
   });
 
   function makeLayer(): CutInLayer {

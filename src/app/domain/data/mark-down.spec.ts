@@ -1,27 +1,15 @@
 import { TestBed } from '@angular/core/testing';
-import { ObjectStore } from '@axe/core/sync/object-store';
 import { DataElement } from '@axe/domain/data/data-element';
 import { MarkDown } from '@axe/domain/data/mark-down';
 
 describe('MarkDown', () => {
-  let store: ObjectStore;
   let markDown: MarkDown;
 
   beforeEach(() => {
     TestBed.configureTestingModule({});
-    store = ObjectStore.instance;
-    const allObjects = store.getObjects();
-    allObjects.forEach((obj) => store.delete(obj, false));
-    store.clearDeleteHistory();
 
     markDown = new MarkDown();
     markDown.initialize();
-  });
-
-  afterEach(() => {
-    const allObjects = store.getObjects();
-    allObjects.forEach((obj) => store.delete(obj, false));
-    store.clearDeleteHistory();
   });
 
   describe('markDownCheckBox()', () => {

@@ -15,20 +15,20 @@ import {
 import { FormsModule } from '@angular/forms';
 import { StatusAilmentService } from '@axe/application/character/status-ailment.service';
 import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
+import { PointerDeviceService } from '@axe/application/input/pointer-device.service';
 import { GameObjectInventoryService } from '@axe/application/inventory/game-object-inventory.service';
 import { buildInventoryTable, InventoryTable, InventoryTableColumn } from '@axe/application/inventory/inventory-table';
 import { DisclosureService } from '@axe/application/permission/disclosure.service';
 import { RolePermissionService } from '@axe/application/permission/role-permission.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { TurnOrderService } from '@axe/application/turn/turn-order.service';
+import { ConfirmService } from '@axe/application/ui/confirm.service';
 import { ContextMenuService } from '@axe/application/ui/context-menu.service';
 import { InventoryViewPreferenceService } from '@axe/application/ui/inventory-view-preference.service';
-import { PanelHeaderControl, PanelOption, PanelService } from '@axe/application/ui/panel.service';
+import { PanelHeaderControl, PanelService } from '@axe/application/ui/panel.service';
 import { SelectionSignalService } from '@axe/application/ui/selection-signal.service';
-import { sheetPanelBox } from '@axe/application/ui/sheet-panel';
 import { ViewportService } from '@axe/application/ui/viewport.service';
 import { Network } from '@axe/core/index';
-import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { GameObject } from '@axe/core/sync/game-object';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { turnCache } from '@axe/core/util/turn-cache';
@@ -65,7 +65,6 @@ import {
   buildInventoryMultiMoveContextMenu,
   buildInventoryObjectContextMenu,
 } from '@axe/features/inventory/game-object-inventory/game-object-inventory-context-menu';
-import { folderPathFromElement } from '@axe/features/inventory/game-object-inventory/inventory-folder-drag';
 import {
   buildFolderTree,
   collectFolderPaths,
@@ -79,11 +78,13 @@ import {
   type InventoryRow,
   inventorySearchText,
 } from '@axe/features/inventory/game-object-inventory/inventory-list';
+import { InventoryObjectDrag } from '@axe/features/inventory/game-object-inventory/inventory-object-drag';
 import { InventoryFilterService } from '@axe/features/inventory/inventory-filter.service';
 import {
   INVENTORY_FILTER_PANEL,
   InventoryFilterPanelComponent,
 } from '@axe/features/inventory/inventory-filter-panel/inventory-filter-panel.component';
+import { ObjectPanelService } from '@axe/features/panels/object-panel.service';
 import { AutoFocusDirective } from '@axe/ui/directives/auto-focus.directive';
 import { SafePipe } from '@axe/ui/pipes/safe.pipe';
 import { TranslocoModule } from '@jsverse/transloco';
@@ -124,6 +125,7 @@ export class GameObjectInventoryComponent {
   }
 
   private readonly panelService = inject(PanelService);
+  private readonly objectPanels = inject(ObjectPanelService);
   private readonly inventoryService = inject(GameObjectInventoryService);
   private readonly contextMenuService = inject(ContextMenuService);
   private readonly pointerDeviceService = inject(PointerDeviceService);
@@ -142,16 +144,28 @@ export class GameObjectInventoryComponent {
   private readonly hostElement = inject<ElementRef<HTMLElement>>(ElementRef);
   private readonly injector = inject(Injector);
   private readonly t = inject(TRANSLATE_FN);
+  private readonly confirm = inject(ConfirmService);
 
-  private dragPending: {
-    character: GameCharacter;
-    startX: number;
-    startY: number;
-    dragging: boolean;
-    withNpcBar: boolean;
-    withFolders: boolean;
-  } | null = null;
-  private suppressNextClick = false;
+  protected readonly drag = new InventoryObjectDrag({
+    canFile: () => this.foldersApply() && this.rolePermission.canEditTabletop,
+    canHandOver: () => PeerCursor.isMyselfGameMaster,
+    travellingWith: (character) => {
+      const selected = this.multiMoveTargets();
+      if (this.isMultiMove() && selected.has(character.identifier)) return new Set(selected);
+      return new Set([character.identifier]);
+    },
+    ownsPoint: (x, y) => {
+      const element = document.elementFromPoint(x, y);
+      return !!element && this.hostElement.nativeElement.contains(element);
+    },
+    handOverBegin: (character, x, y) => this.npcDrag.begin(character, x, y),
+    handOverMove: (x, y) => this.npcDrag.move(x, y),
+    handOverEnd: (accepted) => this.npcDrag.end(accepted),
+    fileInto: (identifiers, folderPath) => {
+      this.setFolderOf(identifiers, folderPath);
+      SoundEffect.play(PresetSound.piecePut);
+    },
+  });
 
   constructor() {
     effect(() => {
@@ -384,8 +398,26 @@ export class GameObjectInventoryComponent {
     this.turnOrderService.setCurrent(character.identifier);
   }
 
+  readonly actedIds = computed<ReadonlySet<string>>(() => {
+    this.objectChange.versionOf('TurnState')();
+    return new Set(this.turnOrderService.actedIdentifiers);
+  });
+
+  readonly canUndoTurn = computed<boolean>(() => {
+    this.objectChange.versionOf('TurnState')();
+    return this.turnOrderService.canUndo;
+  });
+
   turnNext(): void {
     this.turnOrderService.next();
+  }
+
+  turnAdvanceRound(): void {
+    this.turnOrderService.advanceRound();
+  }
+
+  turnRetreatRound(): void {
+    this.turnOrderService.retreatRound();
   }
 
   turnPrev(): void {
@@ -817,16 +849,20 @@ export class GameObjectInventoryComponent {
     return deepest;
   }
 
-  deleteFolder(folderPath: string): void {
+  async deleteFolder(folderPath: string): Promise<void> {
     if (!this.rolePermission.canEditTabletop) return;
     const characters = this.charactersUnder(folderPath);
-    if (
-      characters.length > 0 &&
-      !confirm(
-        this.t('feature.inventory.contextMenu.confirmDeleteFolder', { name: folderPath, count: characters.length })
-      )
-    )
-      return;
+    if (characters.length > 0) {
+      const asked = await this.confirm.ask({
+        message: this.t('feature.inventory.contextMenu.confirmDeleteFolder', {
+          name: folderPath,
+          count: characters.length,
+        }),
+        okLabel: this.t('common.button.delete'),
+        danger: true,
+      });
+      if (!asked) return;
+    }
     this.undeclareFoldersUnder(folderPath);
     this.setFolderOf(
       characters.map((character) => character.identifier),
@@ -988,7 +1024,7 @@ export class GameObjectInventoryComponent {
     this.isMultiMove.update((v) => !v);
   }
 
-  cleanInventory() {
+  async cleanInventory(): Promise<void> {
     if (!this.rolePermission.canEditTabletop) return;
     const rows = this.filteredRows();
     const message = this.hasQuery()
@@ -997,7 +1033,7 @@ export class GameObjectInventoryComponent {
           tab: this.getTabTitle(this.selectTab()),
           count: rows.length,
         });
-    if (!confirm(message)) return;
+    if (!(await this.confirm.ask({ message, okLabel: this.t('common.button.delete'), danger: true }))) return;
     for (const row of rows) {
       this.deleteGameObject(row.object);
     }
@@ -1086,14 +1122,14 @@ export class GameObjectInventoryComponent {
     SoundEffect.play(PresetSound.sweep);
   }
 
-  deleteAndClose() {
-    if (this.multiDelete()) {
+  async deleteAndClose(): Promise<void> {
+    if (await this.multiDelete()) {
       this.toggleMultiMove();
       SoundEffect.play(PresetSound.sweep);
     }
   }
 
-  multiDelete(): boolean {
+  async multiDelete(): Promise<boolean> {
     if (!this.rolePermission.canEditTabletop) return false;
     const inGraveyard: Set<GameCharacter> = new Set();
     for (const gameObjectIdentifier of this.multiMoveTargets()) {
@@ -1104,7 +1140,12 @@ export class GameObjectInventoryComponent {
     }
     if (inGraveyard.size < 1) return false;
 
-    if (!confirm(this.t('feature.inventory.panel.confirmMultiDelete', { count: inGraveyard.size }))) return false;
+    const asked = await this.confirm.ask({
+      message: this.t('feature.inventory.panel.confirmMultiDelete', { count: inGraveyard.size }),
+      okLabel: this.t('common.button.delete'),
+      danger: true,
+    });
+    if (!asked) return false;
     for (const gameObject of inGraveyard) {
       this.deleteGameObject(gameObject);
     }
@@ -1117,58 +1158,15 @@ export class GameObjectInventoryComponent {
   }
 
   private showDetail(gameObject: GameCharacter) {
-    this.selectionSignalService.selectObject(gameObject.identifier, gameObject.aliasName);
-    const coordinate = this.pointerDeviceService.pointers[0];
-    const title = gameObject.name.length
-      ? this.t('feature.character.panel.sheetWithName', { name: gameObject.name })
-      : this.t('feature.character.panel.sheet');
-    const option: PanelOption = {
-      title: title,
-      left: coordinate.x - 800,
-      top: coordinate.y - 300,
-      width: 800,
-      height: 600,
-    };
-    this.panelService.openLazy(
-      () =>
-        import('@axe/features/character/game-character-sheet/game-character-sheet.component').then(
-          (m) => m.GameCharacterSheetComponent
-        ),
-      option,
-      (component) => (component.tabletopObject = gameObject)
-    );
+    this.objectPanels.openCharacterSheet(gameObject);
   }
 
   private showChatPalette(gameObject: GameCharacter) {
-    const coordinate = this.pointerDeviceService.pointers[0];
-    const option: PanelOption = {
-      title: this.t('feature.character.panel.chatPaletteWithName', { name: gameObject.name }),
-      ...sheetPanelBox(coordinate, 760, 500),
-    };
-    this.panelService.openLazy(
-      () => import('@axe/features/chat/chat-palette/chat-palette.component').then((m) => m.ChatPaletteComponent),
-      option,
-      (component) => component.character.set(gameObject)
-    );
+    this.objectPanels.openChatPalette(gameObject);
   }
 
   private showRemoteController(gameObject: GameCharacter) {
-    const coordinate = this.pointerDeviceService.pointers[0];
-    const option: PanelOption = {
-      title: this.t('feature.character.panel.remoteControllerWithName', { name: gameObject.name }),
-      left: coordinate.x - 250,
-      top: coordinate.y - 175,
-      width: 700,
-      height: 600,
-    };
-    this.panelService.openLazy(
-      () =>
-        import('@axe/features/controller/remote-controller/remote-controller.component').then(
-          (m) => m.RemoteControllerComponent
-        ),
-      option,
-      (component) => component.character.set(gameObject)
-    );
+    this.objectPanels.openRemoteController(gameObject);
   }
 
   protected focusToObject(e: Event, gameObject: TabletopObject) {
@@ -1189,99 +1187,8 @@ export class GameObjectInventoryComponent {
     if (gameObject instanceof GameCharacter && PeerCursor.isMyselfGameMaster) event.stopPropagation();
   }
 
-  readonly draggingIdentifiers = signal<ReadonlySet<string>>(new Set());
-  readonly dropFolderPath = signal<string | null>(null);
-
-  isDragging(gameObject: GameObject): boolean {
-    return this.draggingIdentifiers().has(gameObject.identifier);
-  }
-
-  isDropFolder(folderPath: string): boolean {
-    return this.dropFolderPath() === folderPath;
-  }
-
-  onObjectPointerDown(event: PointerEvent, gameObject: GameObject): void {
-    if (event.button !== 0 || !(gameObject instanceof GameCharacter)) return;
-    if ((event.target as HTMLElement).closest('button, input')) return;
-
-    const withNpcBar = PeerCursor.isMyselfGameMaster;
-    const withFolders = this.foldersApply() && this.rolePermission.canEditTabletop;
-    // Arming a drag costs the click that follows it, so do not arm one with nowhere to drop.
-    if (!withNpcBar && !withFolders) return;
-
-    this.dragPending = {
-      character: gameObject,
-      startX: event.clientX,
-      startY: event.clientY,
-      dragging: false,
-      withNpcBar,
-      withFolders,
-    };
-    (event.currentTarget as HTMLElement).setPointerCapture?.(event.pointerId);
-  }
-
-  onObjectPointerMove(event: PointerEvent): void {
-    const pending = this.dragPending;
-    if (!pending) return;
-    if (!pending.dragging) {
-      if (Math.hypot(event.clientX - pending.startX, event.clientY - pending.startY) < 6) return;
-      pending.dragging = true;
-      this.draggingIdentifiers.set(this.draggedIdentifiersFrom(pending.character));
-      if (pending.withNpcBar) this.npcDrag.begin(pending.character, event.clientX, event.clientY);
-    } else if (pending.withNpcBar) {
-      this.npcDrag.move(event.clientX, event.clientY);
-    }
-    this.dropFolderPath.set(pending.withFolders ? this.folderPathUnder(event.clientX, event.clientY) : null);
-  }
-
-  /** Two inventory panels can be open, so only a heading drawn by this one counts as a target. */
-  private folderPathUnder(x: number, y: number): string | null {
-    const element = document.elementFromPoint(x, y);
-    if (!element || !this.hostElement.nativeElement.contains(element)) return null;
-    return folderPathFromElement(element);
-  }
-
-  /** A row can be taken out from under the pointer, and then no release ever arrives. */
-  onObjectDragCancel(): void {
-    this.dragPending = null;
-    this.draggingIdentifiers.set(new Set());
-    this.dropFolderPath.set(null);
-  }
-
-  onObjectPointerUp(event: PointerEvent): void {
-    const pending = this.dragPending;
-    const folderPath = this.dropFolderPath();
-    const dragged = this.draggingIdentifiers();
-    this.dragPending = null;
-    this.draggingIdentifiers.set(new Set());
-    this.dropFolderPath.set(null);
-    if (!pending) return;
-    (event.currentTarget as HTMLElement).releasePointerCapture?.(event.pointerId);
-    if (!pending.dragging) return;
-    this.suppressNextClick = true;
-
-    if (folderPath !== null && pending.withFolders) {
-      if (pending.withNpcBar) this.npcDrag.end(false);
-      this.setFolderOf(dragged, folderPath);
-      SoundEffect.play(PresetSound.piecePut);
-      return;
-    }
-
-    const target = document.elementFromPoint(event.clientX, event.clientY);
-    if (pending.withNpcBar) this.npcDrag.end(!!target?.closest('.npc-bar-dropzone'));
-  }
-
-  private draggedIdentifiersFrom(character: GameCharacter): ReadonlySet<string> {
-    const selected = this.multiMoveTargets();
-    if (this.isMultiMove() && selected.has(character.identifier)) return new Set(selected);
-    return new Set([character.identifier]);
-  }
-
   selectGameObject(gameObject: GameObject) {
-    if (this.suppressNextClick) {
-      this.suppressNextClick = false;
-      return;
-    }
+    if (this.drag.takeSuppressedClick()) return;
     if (gameObject instanceof GameCharacter && !this.canView(gameObject)) return;
     if (this.isMultiMove()) {
       if (this.multiMoveTargets().has(gameObject.identifier)) {

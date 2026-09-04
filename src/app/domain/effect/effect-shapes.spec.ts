@@ -1,3 +1,4 @@
+import { PERF_SVG_BUILD, perfCounters } from '@axe/core/util/perf-counters';
 import {
   arrowSvg,
   boltSvg,
@@ -116,5 +117,30 @@ describe('the shapes of the effects', () => {
 
     expect(Math.min(...points)).toBe(0);
     expect(Math.max(...points)).toBe(300);
+  });
+
+  describe('remembering', () => {
+    it('hands the same drawing back for the same colours and shape', () => {
+      const colors = { core: '#123456', edge: '#abcdef' };
+      const first = ringSvg(colors, 5, true);
+      const again = ringSvg({ ...colors }, 5, true);
+      const other = ringSvg(colors, 6, true);
+
+      expect(again).toBe(first);
+      expect(other).not.toBe(first);
+    });
+
+    it('builds a drawing once', () => {
+      perfCounters.enabled = true;
+      perfCounters.clear();
+      const colors = { core: '#0f0f0f', edge: '#f0f0f0' };
+
+      crescentSvg(colors, 30);
+      crescentSvg(colors, 30);
+      crescentSvg(colors, 30);
+
+      expect(perfCounters.drain().get(PERF_SVG_BUILD)).toBe(1);
+      perfCounters.enabled = false;
+    });
   });
 });

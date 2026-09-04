@@ -3,15 +3,14 @@ import { FormsModule } from '@angular/forms';
 import { EffectCastService } from '@axe/application/effect/effect-cast.service';
 import { EffectLibraryService } from '@axe/application/effect/effect-library.service';
 import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
+import { PointerDeviceService } from '@axe/application/input/pointer-device.service';
 import { RolePermissionService } from '@axe/application/permission/role-permission.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { RangeShapeInvokeService } from '@axe/application/tabletop/range-shape-invoke.service';
 import { DataElementDragService } from '@axe/application/ui/data-element-drag.service';
 import { ModalService } from '@axe/application/ui/modal.service';
-import { PanelOption, PanelService } from '@axe/application/ui/panel.service';
-import { sheetPanelBox } from '@axe/application/ui/sheet-panel';
+import { PanelService } from '@axe/application/ui/panel.service';
 import { UiSignalService } from '@axe/application/ui/ui-signal.service';
-import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { ImageStorage } from '@axe/core/storage/image-storage';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { GameCharacter } from '@axe/domain/character/game-character';
@@ -31,12 +30,6 @@ import {
   DataElementViewMode,
 } from '@axe/domain/data/data-element';
 import { calcSourceIdentifiers, evaluateCalcElement } from '@axe/domain/data/data-element-calc-env';
-import {
-  decodeRangeShapeField,
-  defaultRangeShapeFieldValue,
-  encodeRangeShapeField,
-  RangeShapeFieldValue,
-} from '@axe/domain/data/range-shape-field';
 import {
   buildTableColumnHeaderGroups,
   canRenderAsTable as canRenderAsTableShared,
@@ -62,7 +55,7 @@ import {
 } from '@axe/features/data-element/game-data-element/game-data-element-structure-ops';
 import { GameDataElementTableViewComponent } from '@axe/features/data-element/game-data-element/game-data-element-table-view.component';
 import { escapeHtml, isUrlText } from '@axe/features/data-element/game-data-element/game-data-element-utils';
-import { buildRangeShapeThumbnail } from '@axe/features/tabletop/range-shape-editor/range-shape-editor-utils';
+import { GameDataElementRangeShapeComponent } from '@axe/features/data-element/game-data-element-range-shape/game-data-element-range-shape.component';
 import { FileSelecterComponent } from '@axe/ui/components/file-selecter/file-selecter.component';
 import { LinkifyPipe } from '@axe/ui/pipes/linkify.pipe';
 import { SafePipe } from '@axe/ui/pipes/safe.pipe';
@@ -81,6 +74,7 @@ import { NgOptionComponent, NgSelectComponent } from '@ng-select/ng-select';
     NgOptionComponent,
     GameDataElementTableViewComponent,
     TranslocoModule,
+    GameDataElementRangeShapeComponent,
   ],
   host: {
     class:
@@ -742,25 +736,31 @@ export class GameDataElementComponent {
     void navigator.clipboard?.writeText(referencePath);
   }
 
-  isPopupDataElement(): boolean {
+  private hasFlag(attribute: string): boolean {
     const element = this.gameDataElement();
     this.objectChange.versionOf(element.identifier)();
-    return element.getAttribute(DataElementAttribute.POPUP) === 'true';
+    return element.getAttribute(attribute) === 'true';
+  }
+
+  private toggleFlag(attribute: string): void {
+    const element = this.gameDataElement();
+    if (this.hasFlag(attribute)) element.removeAttribute(attribute);
+    else element.setAttribute(attribute, 'true');
+    this.objectChange.notifyChanged(element.identifier);
+  }
+
+  isPopupDataElement(): boolean {
+    return this.hasFlag(DataElementAttribute.POPUP);
   }
 
   togglePopupDataElement(event?: MouseEvent): void {
     event?.stopPropagation();
     if (this.isImage()) return;
-    const element = this.gameDataElement();
-    if (this.isPopupDataElement()) element.removeAttribute(DataElementAttribute.POPUP);
-    else element.setAttribute(DataElementAttribute.POPUP, 'true');
-    this.objectChange.notifyChanged(element.identifier);
+    this.toggleFlag(DataElementAttribute.POPUP);
   }
 
   isPieceGauge(): boolean {
-    const element = this.gameDataElement();
-    this.objectChange.versionOf(element.identifier)();
-    return element.getAttribute(DataElementAttribute.PIECE_GAUGE) === 'true';
+    return this.hasFlag(DataElementAttribute.PIECE_GAUGE);
   }
 
   canShowPieceGauge(): boolean {
@@ -768,26 +768,18 @@ export class GameDataElementComponent {
   }
 
   isGaugeInverted(): boolean {
-    const element = this.gameDataElement();
-    this.objectChange.versionOf(element.identifier)();
-    return element.getAttribute(DataElementAttribute.GAUGE_INVERTED) === 'true';
+    return this.hasFlag(DataElementAttribute.GAUGE_INVERTED);
   }
 
   toggleGaugeInverted(): void {
     if (!this.canShowPieceGauge()) return;
-    const element = this.gameDataElement();
-    if (this.isGaugeInverted()) element.removeAttribute(DataElementAttribute.GAUGE_INVERTED);
-    else element.setAttribute(DataElementAttribute.GAUGE_INVERTED, 'true');
-    this.objectChange.notifyChanged(element.identifier);
+    this.toggleFlag(DataElementAttribute.GAUGE_INVERTED);
   }
 
   togglePieceGauge(event?: MouseEvent): void {
     event?.stopPropagation();
     if (!this.canShowPieceGauge()) return;
-    const element = this.gameDataElement();
-    if (this.isPieceGauge()) element.removeAttribute(DataElementAttribute.PIECE_GAUGE);
-    else element.setAttribute(DataElementAttribute.PIECE_GAUGE, 'true');
-    this.objectChange.notifyChanged(element.identifier);
+    this.toggleFlag(DataElementAttribute.PIECE_GAUGE);
   }
 
   canShowChangeFeedback(): boolean {
@@ -834,17 +826,12 @@ export class GameDataElementComponent {
   }
 
   isImagePopupOriginal(): boolean {
-    const element = this.gameDataElement();
-    this.objectChange.versionOf(element.identifier)();
-    return element.getAttribute(DataElementAttribute.IMAGE_POPUP_ORIGINAL) === 'true';
+    return this.hasFlag(DataElementAttribute.IMAGE_POPUP_ORIGINAL);
   }
 
   toggleImagePopupOriginal(event?: Event): void {
     event?.stopPropagation();
-    const element = this.gameDataElement();
-    if (this.isImagePopupOriginal()) element.removeAttribute(DataElementAttribute.IMAGE_POPUP_ORIGINAL);
-    else element.setAttribute(DataElementAttribute.IMAGE_POPUP_ORIGINAL, 'true');
-    this.objectChange.notifyChanged(element.identifier);
+    this.toggleFlag(DataElementAttribute.IMAGE_POPUP_ORIGINAL);
   }
 
   canToggleTableViewMode(): boolean {
@@ -865,16 +852,11 @@ export class GameDataElementComponent {
   }
 
   isJudgeModeEnabled(): boolean {
-    const element = this.gameDataElement();
-    this.objectChange.versionOf(element.identifier)();
-    return element.getAttribute(DataElementAttribute.JUDGE_MODE) === 'true';
+    return this.hasFlag(DataElementAttribute.JUDGE_MODE);
   }
 
   toggleJudgeModeEnabled(): void {
-    const element = this.gameDataElement();
-    if (this.isJudgeModeEnabled()) element.removeAttribute(DataElementAttribute.JUDGE_MODE);
-    else element.setAttribute(DataElementAttribute.JUDGE_MODE, 'true');
-    this.objectChange.notifyChanged(element.identifier);
+    this.toggleFlag(DataElementAttribute.JUDGE_MODE);
   }
 
   get gapDistanceText(): string {
@@ -895,20 +877,14 @@ export class GameDataElementComponent {
     return this.attrText(DataElementAttribute.LOOP_HORIZONTAL) === 'true';
   }
   toggleLoopHorizontal(): void {
-    const element = this.gameDataElement();
-    if (this.loopHorizontal) element.removeAttribute(DataElementAttribute.LOOP_HORIZONTAL);
-    else element.setAttribute(DataElementAttribute.LOOP_HORIZONTAL, 'true');
-    this.objectChange.notifyChanged(element.identifier);
+    this.toggleFlag(DataElementAttribute.LOOP_HORIZONTAL);
   }
 
   get loopVertical(): boolean {
     return this.attrText(DataElementAttribute.LOOP_VERTICAL) === 'true';
   }
   toggleLoopVertical(): void {
-    const element = this.gameDataElement();
-    if (this.loopVertical) element.removeAttribute(DataElementAttribute.LOOP_VERTICAL);
-    else element.setAttribute(DataElementAttribute.LOOP_VERTICAL, 'true');
-    this.objectChange.notifyChanged(element.identifier);
+    this.toggleFlag(DataElementAttribute.LOOP_VERTICAL);
   }
 
   shouldRenderTableView(): boolean {
@@ -1001,61 +977,6 @@ export class GameDataElementComponent {
 
   onSetFieldType(value: DataElementFieldTypeValue): void {
     this.setElementFieldType(value ?? DataElementFieldType.TEXT);
-  }
-
-  readonly rangeShapeValue = computed<RangeShapeFieldValue>(() => {
-    const el = this.gameDataElement();
-    this.objectChange.versionOf(el.identifier)();
-    return decodeRangeShapeField(el.currentValue) ?? defaultRangeShapeFieldValue();
-  });
-
-  readonly rangeShapeSummary = computed<string>(() => {
-    const value = this.rangeShapeValue();
-    if (!value.cellPattern) return this.t('feature.range.custom.emptyShape');
-    const count = value.cellPattern.split(';').filter((s) => s.trim()).length;
-    return this.t('feature.range.custom.cellCount', { count });
-  });
-
-  readonly rangeShapeThumbnail = computed(() => {
-    const value = this.rangeShapeValue();
-    return buildRangeShapeThumbnail(value.cellPattern, value.gridType);
-  });
-
-  protected async openRangeShapeEditor(): Promise<void> {
-    const coordinate = this.pointerDeviceService.pointers[0];
-    const initial = this.rangeShapeValue();
-    const option: PanelOption = {
-      title: this.t('feature.range.custom.editorTitle'),
-      ...sheetPanelBox(coordinate, 640, 540),
-    };
-    const { RangeShapeEditorComponent } =
-      await import('@axe/features/tabletop/range-shape-editor/range-shape-editor.component');
-    const editor = this.panelService.open(RangeShapeEditorComponent, option);
-    editor.initialize({
-      name: initial.name || this.gameDataElement().name,
-      cellPattern: initial.cellPattern,
-      gridType: initial.gridType,
-      gridColor: initial.gridColor,
-      rangeColor: initial.rangeColor,
-      isRotatable: initial.isRotatable,
-    });
-    editor.saved.subscribe((result) => {
-      const el = this.gameDataElement();
-      el.currentValue = encodeRangeShapeField(result);
-      if (result.name && result.name !== el.name) el.name = result.name;
-      this.objectChange.notifyChanged(el.identifier);
-    });
-  }
-
-  protected spawnRangeShape(): void {
-    const value = this.rangeShapeValue();
-    const character = this.findOwningCharacter();
-    if (character) {
-      this.rangeShapeInvoke.spawnForCharacter(character, value);
-      return;
-    }
-    const coordinate = this.pointerDeviceService.pointers[0];
-    this.rangeShapeInvoke.spawnAt({ x: coordinate?.x ?? 0, y: coordinate?.y ?? 0, z: 0 }, value);
   }
 
   private findOwningCharacter(): GameCharacter | null {

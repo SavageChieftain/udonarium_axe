@@ -2,21 +2,15 @@ import { TestBed } from '@angular/core/testing';
 import * as domainEvents from '@axe/core/event/domain-events';
 import { AudioPlayer } from '@axe/core/storage/audio-player';
 import { AudioStorage } from '@axe/core/storage/audio-storage';
-import { ObjectStore } from '@axe/core/sync/object-store';
 import { Alarm } from '@axe/domain/alarm/alarm';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 
 describe('Alarm', () => {
-  let store: ObjectStore;
   let alarm: Alarm;
   const savedMyCursor = PeerCursor.myCursor;
 
   beforeEach(() => {
     TestBed.configureTestingModule({});
-    store = ObjectStore.instance;
-    const allObjects = store.getObjects();
-    allObjects.forEach((obj) => store.delete(obj, false));
-    store.clearDeleteHistory();
 
     alarm = new Alarm();
     alarm.initialize();
@@ -26,9 +20,6 @@ describe('Alarm', () => {
   });
 
   afterEach(() => {
-    const allObjects = store.getObjects();
-    allObjects.forEach((obj) => store.delete(obj, false));
-    store.clearDeleteHistory();
     PeerCursor.myCursor = savedMyCursor;
     vi.clearAllMocks();
     vi.restoreAllMocks();

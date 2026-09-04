@@ -14,6 +14,7 @@ import { FormsModule } from '@angular/forms';
 import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { ModalService } from '@axe/application/ui/modal.service';
 import { ImageStorage } from '@axe/core/storage/image-storage';
+import { clamp } from '@axe/core/util/clamp';
 import { GridType } from '@axe/domain/tabletop/game-table';
 import { isHexGrid } from '@axe/domain/tabletop/hex-geometry';
 import { GridLineRender } from '@axe/features/tabletop/game-table/grid-line-render';
@@ -55,10 +56,6 @@ const MIN_IMAGE_PX = 8;
 type ImageHandle = 'nw' | 'ne' | 'sw' | 'se' | 'n' | 's' | 'e' | 'w';
 type FrameHandle = 'fr' | 'fb';
 type DragMode = { kind: 'move' } | { kind: 'image'; handle: ImageHandle } | { kind: 'frame'; handle: FrameHandle };
-
-function clamp(value: number, min: number, max: number): number {
-  return Math.min(max, Math.max(min, value));
-}
 
 @Component({
   selector: 'app-map-image-grid-adjuster',

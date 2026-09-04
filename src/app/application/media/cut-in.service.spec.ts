@@ -4,7 +4,6 @@ import { IPeerContext } from '@axe/core/network/peer-context';
 import { resetPeerContextProvider, setPeerContextProvider } from '@axe/core/network/peer-context-source';
 import { AudioFile } from '@axe/core/storage/audio-file';
 import { AudioStorage } from '@axe/core/storage/audio-storage';
-import { ObjectStore } from '@axe/core/sync/object-store';
 import { ChatTab } from '@axe/domain/chat/chat-tab';
 import { ChatTabList } from '@axe/domain/chat/chat-tab-list';
 import { CutIn } from '@axe/domain/media/cut-in';
@@ -22,9 +21,6 @@ describe('CutInService.activateFromChatText()', () => {
     TestBed.configureTestingModule({ providers: [...TEST_PROVIDERS] });
 
     // Clean store
-    const store = ObjectStore.instance;
-    store.getObjects().forEach((obj) => store.delete(obj, false));
-    store.clearDeleteHistory();
 
     launcher = new CutInLauncher('CutInLauncher');
     launcher.initialize();
@@ -121,10 +117,6 @@ describe('CutInService.launchForTable()', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({ providers: [...TEST_PROVIDERS] });
 
-    const store = ObjectStore.instance;
-    store.getObjects().forEach((obj) => store.delete(obj, false));
-    store.clearDeleteHistory();
-
     launcher = new CutInLauncher('CutInLauncher');
     launcher.initialize();
     new Jukebox('Jukebox').initialize();
@@ -195,10 +187,6 @@ describe('what a line arriving sets off', () => {
   beforeEach(() => {
     TestBed.resetTestingModule();
     TestBed.configureTestingModule({ providers: [...TEST_PROVIDERS] });
-
-    const store = ObjectStore.instance;
-    store.getObjects().forEach((obj) => store.delete(obj, false));
-    store.clearDeleteHistory();
 
     setPeerContextProvider({
       peerContext: { userId: 'me', peerId: 'me/peer' } as IPeerContext,

@@ -3,11 +3,13 @@ import type { ChatMessage } from '@axe/domain/chat/chat-message';
 import type { ChatTab } from '@axe/domain/chat/chat-tab';
 
 function createMockMessage(overrides: Partial<ChatMessage> = {}): ChatMessage {
+  const timestamp = overrides.timestamp ?? 1000;
   return {
     name: 'テストユーザー',
     text: 'テストメッセージ',
     messColor: '#000000',
-    timestamp: 1000,
+    timestamp,
+    placedAt: timestamp,
     from: 'user-1',
     to: '',
     fixd: false,
@@ -499,6 +501,21 @@ describe('ChatLogExporter', () => {
       const pos3 = result.indexOf('3番目');
       expect(pos1).toBeLessThan(pos2);
       expect(pos2).toBeLessThan(pos3);
+    });
+
+    it('keeps a line opened later where its own tab holds it', () => {
+      // An opened roll sits at the end of its tab under the time it was said at, so merging
+      // the tabs by that time would put it back among the lines it was said between.
+      const tab1 = createMockTab('タブ1', [
+        createMockMessage({ name: 'A', text: '1番目', timestamp: 100 }),
+        createMockMessage({ name: 'A', text: '3番目', timestamp: 50, placedAt: 300 }),
+      ]);
+      const tab2 = createMockTab('タブ2', [createMockMessage({ name: 'B', text: '2番目', timestamp: 200 })]);
+
+      const result = ChatLogExporter.exportAllTabsHtml([tab1, tab2], true);
+
+      expect(result.indexOf('1番目')).toBeLessThan(result.indexOf('2番目'));
+      expect(result.indexOf('2番目')).toBeLessThan(result.indexOf('3番目'));
     });
 
     it('writes an empty body for no tabs at all', () => {

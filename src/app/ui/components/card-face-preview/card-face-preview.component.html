@@ -1,0 +1,28 @@
+<div
+  class="relative overflow-hidden"
+  [class.bg-ui-input]="framed()"
+  [style.width]="widthCss()"
+  [style.height]="heightCss()"
+>
+  @if (imageUrl()) {
+    <img
+      class="absolute inset-0 box-border size-full object-contain"
+      [style.padding.px]="padding()"
+      [src]="imageUrl() | safe: 'resourceUrl'"
+      alt=""
+      draggable="false"
+      (load)="onImageLoad($any($event.target))"
+    />
+    @if (imageRect(); as rect) {
+      <div
+        class="pointer-events-none absolute"
+        [style.left.px]="rect.left"
+        [style.top.px]="rect.top"
+        [style.width.px]="rect.width"
+        [style.height.px]="rect.height"
+      >
+        <card-face-text [card]="card()" [scale]="textScale()" />
+      </div>
+    }
+  }
+</div>

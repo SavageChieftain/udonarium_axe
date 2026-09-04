@@ -2,6 +2,7 @@ import { computed, DestroyRef, inject, Injectable, signal } from '@angular/core'
 import { MotionService } from '@axe/application/ui/motion.service';
 import { effectCast$ } from '@axe/core/event/domain-events';
 import { ObjectStore } from '@axe/core/sync/object-store';
+import { PERF_EFFECT_FRAME, perfCounters } from '@axe/core/util/perf-counters';
 import { EffectCast, normalizeEffectCast } from '@axe/domain/effect/effect-cast';
 import { DefeatReaction, defeatReactionOf } from '@axe/domain/effect/effect-defeat';
 import { EffectPreset } from '@axe/domain/effect/effect-preset';
@@ -172,6 +173,7 @@ export class EffectPlaybackService {
   private tick(): void {
     this.frameHandle = null;
     const now = clock();
+    perfCounters.bump(PERF_EFFECT_FRAME);
     this.now.set(now);
 
     const remaining = this._activeCasts().filter(

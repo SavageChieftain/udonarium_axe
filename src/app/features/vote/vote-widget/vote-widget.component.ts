@@ -1,24 +1,14 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  computed,
-  DestroyRef,
-  effect,
-  ElementRef,
-  inject,
-  signal,
-  viewChild,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, DestroyRef, inject, signal } from '@angular/core';
 import { ChatMessageService } from '@axe/application/chat/chat-message.service';
 import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
-import { WidgetLayoutService } from '@axe/application/ui/widget-layout.service';
-import { placeWidget, rememberWidget, WIDGET_VOTE } from '@axe/application/ui/widget-place';
+import { WIDGET_VOTE } from '@axe/application/ui/widget-place';
 import { ImageFile } from '@axe/core/storage/image-file';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { Vote } from '@axe/domain/vote/vote';
 import { DraggableDirective } from '@axe/ui/directives/draggable.directive';
+import { WidgetPlaceDirective } from '@axe/ui/directives/widget-place.directive';
 import { SafePipe } from '@axe/ui/pipes/safe.pipe';
 import { TranslocoModule } from '@jsverse/transloco';
 
@@ -26,17 +16,19 @@ import { TranslocoModule } from '@jsverse/transloco';
   changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-vote-widget',
   templateUrl: './vote-widget.component.html',
-  imports: [DraggableDirective, SafePipe, TranslocoModule],
+  imports: [DraggableDirective, WidgetPlaceDirective, SafePipe, TranslocoModule],
 })
 export class VoteWidgetComponent {
   private readonly chatMessageService = inject(ChatMessageService);
   private readonly objectStore = inject(ObjectStore);
   private readonly objectChange = inject(ObjectChangeService);
-  private readonly layout = inject(WidgetLayoutService);
+  protected readonly widgetName = WIDGET_VOTE;
+  protected readonly fallback = (el: HTMLElement) => ({
+    left: Math.max(8, (window.innerWidth - el.offsetWidth) / 2),
+    top: Math.max(8, window.innerHeight - el.offsetHeight - 96),
+  });
   private readonly destroyRef = inject(DestroyRef);
   private readonly t = inject(TRANSLATE_FN);
-
-  private readonly panelRef = viewChild<ElementRef<HTMLElement>>('panel');
 
   protected readonly isCollapsed = signal(false);
 
@@ -73,22 +65,6 @@ export class VoteWidgetComponent {
 
   constructor() {
     this.objectChange.startVote$.subscribe(() => this.isCollapsed.set(false), this.destroyRef);
-
-    effect((onCleanup) => {
-      if (!this.isShown()) return;
-      const el = this.panelRef()?.nativeElement;
-      if (!el) return;
-      placeWidget(this.layout, WIDGET_VOTE, el, () => ({
-        left: Math.max(8, (window.innerWidth - el.offsetWidth) / 2),
-        top: Math.max(8, window.innerHeight - el.offsetHeight - 96),
-      }));
-      onCleanup(() => rememberWidget(this.layout, WIDGET_VOTE, el));
-    });
-  }
-
-  protected rememberSpot(): void {
-    const el = this.panelRef()?.nativeElement;
-    if (el) rememberWidget(this.layout, WIDGET_VOTE, el);
   }
 
   protected toggleCollapsed(): void {

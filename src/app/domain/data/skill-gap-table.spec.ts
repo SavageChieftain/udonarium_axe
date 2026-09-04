@@ -1,18 +1,8 @@
-import { ObjectStore } from '@axe/core/sync/object-store';
 import { DataElementAttribute, DataElementRole, DataElementViewMode } from '@axe/domain/data/data-element';
 import { createSkillGapTableElement } from '@axe/domain/data/skill-gap-table';
 
 describe('createSkillGapTableElement', () => {
-  let store: ObjectStore;
-
-  beforeEach(() => {
-    store = ObjectStore.instance;
-  });
-
-  afterEach(() => {
-    store.getObjects().forEach((obj) => store.delete(obj, false));
-    store.clearDeleteHistory();
-  });
+  beforeEach(() => {});
 
   const categories = ['器術', '体術', '忍術', '謀術', '戦術', '妖術'];
   const skillsByCategory = categories.map((category) => Array.from({ length: 11 }, (_, r) => `${category}${r + 2}`));

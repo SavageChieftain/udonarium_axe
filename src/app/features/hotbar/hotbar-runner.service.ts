@@ -32,7 +32,7 @@ import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { RangeArea } from '@axe/domain/tabletop/range';
 import { DEFAULT_CHARACTER_PANEL } from '@axe/domain/ui/room-panel';
 import { findSlotActor } from '@axe/features/hotbar/hotbar-actor';
-import { CharacterPanelService } from '@axe/features/pl-tools/character-panel.service';
+import { ObjectPanelService } from '@axe/features/panels/object-panel.service';
 
 /** Why a slot would not run. The bar says these to the reader, so each one has a word of its own. */
 export const HOTBAR_FAILURES = ['noCharacter', 'notFound', 'noTab', 'offTable', 'empty'] as const;
@@ -58,7 +58,7 @@ export class HotbarRunnerService {
   private readonly rangeShapeInvoke = inject(RangeShapeInvokeService);
   private readonly tabletopAction = inject(TabletopActionService);
   private readonly characterDice = inject(CharacterDiceService);
-  private readonly characterPanel = inject(CharacterPanelService);
+  private readonly objectPanels = inject(ObjectPanelService);
   private readonly panelService = inject(PanelService);
   private readonly selectionSignal = inject(SelectionSignalService);
   private readonly uiSignal = inject(UiSignalService);
@@ -250,9 +250,9 @@ export class HotbarRunnerService {
     const single = `hotbar-${panel}-${character.identifier}`;
     if (this.panelService.closeSingle(single)) return OK;
 
-    if (panel === 'sheet') this.characterPanel.openSheet(character, single);
-    else if (panel === 'remoteController') this.characterPanel.openRemoteController(character, single);
-    else this.characterPanel.openChatPalette(character, single);
+    if (panel === 'sheet') this.objectPanels.openCharacterSheet(character, { single });
+    else if (panel === 'remoteController') this.objectPanels.openRemoteController(character, { single });
+    else this.objectPanels.openChatPalette(character, { single });
     return OK;
   }
 

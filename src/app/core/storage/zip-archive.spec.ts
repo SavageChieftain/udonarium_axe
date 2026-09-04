@@ -1,4 +1,9 @@
-import { createZipBlob, createZipBlobOnMainThread, readZipEntries } from '@axe/core/storage/zip-archive';
+import {
+  createZipBlob,
+  createZipBlobOnMainThread,
+  readZipEntries,
+  useZipWorkerFactory,
+} from '@axe/core/storage/zip-archive';
 import { strToU8, unzipSync } from 'fflate';
 
 async function unzipBlob(blob: Blob): Promise<Record<string, Uint8Array>> {
@@ -55,5 +60,51 @@ describe('readZipEntries()', () => {
 
   it('fails on a broken archive', async () => {
     await expect(readZipEntries(new Blob([new Uint8Array([0, 1, 2, 3])]))).rejects.toBeDefined();
+  });
+});
+
+describe('the shared worker', () => {
+  afterEach(() => {
+    useZipWorkerFactory(null);
+  });
+
+  it('lets go of every waiting request when another worker takes over', async () => {
+    class SilentWorker {
+      addEventListener(): void {}
+      terminate(): void {}
+      postMessage(): void {}
+    }
+    useZipWorkerFactory(() => new SilentWorker() as unknown as Worker);
+    const files = [new File([strToU8('<room />')], 'data.xml', { type: 'text/plain' })];
+
+    const waiting = createZipBlob(files);
+    useZipWorkerFactory(null);
+
+    expect((await waiting).type).toBe('application/zip');
+  });
+
+  it('lets go of every waiting request when the work cannot be handed over', async () => {
+    let posts = 0;
+    class FakeWorker {
+      addEventListener(): void {}
+      terminate(): void {}
+      postMessage(): void {
+        posts += 1;
+        if (posts > 1) throw new Error('cannot be cloned');
+      }
+    }
+    useZipWorkerFactory(() => new FakeWorker() as unknown as Worker);
+    const files = [new File([strToU8('<room />')], 'data.xml', { type: 'text/plain' })];
+
+    // The first went to the worker and is waiting; the second cannot be handed over, which
+    // stops the worker the first was waiting on.
+    const first = createZipBlob(files);
+    const second = createZipBlob(files);
+
+    const [a, b] = await Promise.all([first, second]);
+
+    expect(posts).toBe(2);
+    expect(a.type).toBe('application/zip');
+    expect(b.type).toBe('application/zip');
   });
 });

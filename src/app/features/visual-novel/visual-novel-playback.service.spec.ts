@@ -1,5 +1,8 @@
 import { TestBed } from '@angular/core/testing';
+import { ChatMessageService } from '@axe/application/chat/chat-message.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
+import { IPeerContext } from '@axe/core/network/peer-context';
+import { setPeerContextProvider } from '@axe/core/network/peer-context-source';
 import { ImageStorage } from '@axe/core/storage/image-storage';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { GameCharacter } from '@axe/domain/character/game-character';
@@ -49,6 +52,72 @@ describe('VisualNovelPlaybackService', () => {
 
     expect(playback.logMessages().map((message) => message.text)).toEqual(['なんだって！？', 'ちょっと待って']);
     expect(playback.messages().map((message) => message.text)).toEqual(['なんだって！？']);
+  });
+
+  describe('a line kept secret', () => {
+    function beMe(userId: string): void {
+      const me = { userId } as IPeerContext;
+      setPeerContextProvider({ peerContext: me, peerContexts: [me], peerIds: [userId], peerId: userId });
+    }
+
+    function saySecret(text: string, from: string): void {
+      tab.addMessage({
+        from,
+        name: text,
+        text,
+        timestamp: timestamp++,
+        sendFrom: character.identifier,
+        tag: 'system-message secret',
+      });
+    }
+
+    it('leaves a secret roll out of the script for the room', () => {
+      beMe('reader');
+      saySecret('隠しダイス → 6', 'roller');
+      TestBed.inject(ObjectChangeService).notifyChanged(tab.identifier);
+
+      expect(playback.logMessages()).toHaveLength(0);
+    });
+
+    it('leaves it out on the screen of the one who made it, who has the chat window for it', () => {
+      beMe('roller');
+      saySecret('隠しダイス → 6', 'roller');
+      TestBed.inject(ObjectChangeService).notifyChanged(tab.identifier);
+
+      expect(playback.logMessages()).toHaveLength(0);
+    });
+
+    it('leaves it out for the game master as well', () => {
+      beMe('reader');
+      PeerCursor.myCursor.role = PeerRole.GameMaster;
+      saySecret('隠しダイス → 6', 'roller');
+      TestBed.inject(ObjectChangeService).notifyChanged(tab.identifier);
+
+      expect(playback.logMessages()).toHaveLength(0);
+    });
+
+    it('reads an opened line after everything said while it was kept back', () => {
+      beMe('reader');
+      saySecret('隠しダイス → 6', 'roller');
+      const secret = tab.chatMessages[tab.chatMessages.length - 1];
+      say('その間の発言', character.identifier);
+
+      TestBed.inject(ChatMessageService).discloseMessage(secret);
+      TestBed.inject(ObjectChangeService).notifyChanged(tab.identifier);
+
+      expect(playback.messages().map((message) => message.text)).toEqual(['その間の発言', '隠しダイス → 6']);
+      expect(playback.currentMessage()).toBe(secret);
+    });
+
+    it('shows it once it has been opened to the table', () => {
+      beMe('reader');
+      saySecret('隠しダイス → 6', 'roller');
+      const message = tab.chatMessages[tab.chatMessages.length - 1];
+      message.tag = 'system-message';
+      TestBed.inject(ObjectChangeService).notifyChanged(tab.identifier);
+
+      expect(playback.logMessages()).toHaveLength(1);
+    });
   });
 
   it('reads what the game master says as themselves', () => {

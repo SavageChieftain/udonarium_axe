@@ -61,22 +61,20 @@
               (pointercancel)="onCardPointerCancel($event)"
             >
               <div
-                class="border-ui-border-panel bg-ui-elevated shadow-ui-sm size-full overflow-hidden rounded-sm border border-solid"
+                class="border-ui-border-panel bg-ui-elevated shadow-ui-sm relative size-full overflow-hidden rounded-sm border border-solid"
                 [title]="displayName(card)"
               >
-                @if (imageUrl(card)) {
-                  <img
-                    class="size-full object-contain"
-                    draggable="false"
-                    [src]="imageUrl(card) | safe: 'resourceUrl'"
-                    alt=""
-                  />
-                }
+                <card-face-preview
+                  [card]="card"
+                  [imageUrl]="imageUrl(card)"
+                  [frameWidth]="cardWidthPx"
+                  [frameHeight]="cardHeightPx"
+                />
               </div>
 
               @if (hovered() === card.identifier) {
                 <div
-                  class="bg-ui-panel/90 absolute inset-x-0 bottom-0 flex justify-center gap-0.5 rounded-b-sm py-0.5"
+                  class="bg-ui-panel/90 absolute inset-x-0 bottom-0 z-3 flex justify-center gap-0.5 rounded-b-sm py-0.5"
                   [ngClass]="isTouch() ? 'shadow-ui-sm top-[calc(100%+2px)]! bottom-auto! rounded-sm! py-1' : ''"
                 >
                   <button

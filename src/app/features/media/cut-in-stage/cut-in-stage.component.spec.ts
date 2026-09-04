@@ -1,5 +1,4 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { ObjectStore } from '@axe/core/sync/object-store';
 import { encodeCutInTracks } from '@axe/domain/media/cut-in-keyframe';
 import { CutInLayer } from '@axe/domain/media/cut-in-layer';
 import { CutInScene } from '@axe/domain/media/cut-in-scene';
@@ -8,7 +7,6 @@ import { TEST_PROVIDERS } from '@axe/testing/test-providers';
 
 describe('CutInStageComponent', () => {
   let fixture: ComponentFixture<CutInStageComponent>;
-  let store: ObjectStore;
 
   beforeEach(async () => {
     TestBed.configureTestingModule({
@@ -18,15 +16,10 @@ describe('CutInStageComponent', () => {
   });
 
   beforeEach(() => {
-    store = ObjectStore.instance;
-    store.getObjects().forEach((object) => store.delete(object, false));
-    store.clearDeleteHistory();
     fixture = TestBed.createComponent(CutInStageComponent);
   });
 
   afterEach(() => {
-    store.getObjects().forEach((object) => store.delete(object, false));
-    store.clearDeleteHistory();
     Reflect.deleteProperty(Element.prototype, 'animate');
   });
 
@@ -65,6 +58,7 @@ describe('CutInStageComponent', () => {
       pause: vi.fn(),
       play: vi.fn(),
       currentTime: 0,
+      finished: Promise.reject(new Error('the animation was canceled')),
     }));
     Object.defineProperty(Element.prototype, 'animate', { value: animate, configurable: true, writable: true });
     return animate;

@@ -24,7 +24,7 @@ import { SoundEffect } from '@axe/domain/media/sound-effect';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { RangeArea } from '@axe/domain/tabletop/range';
 import { HotbarRunnerService } from '@axe/features/hotbar/hotbar-runner.service';
-import { CharacterPanelService } from '@axe/features/pl-tools/character-panel.service';
+import { ObjectPanelService } from '@axe/features/panels/object-panel.service';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
 
 describe('HotbarRunnerService', () => {
@@ -78,8 +78,6 @@ describe('HotbarRunnerService', () => {
 
   afterEach(() => {
     vi.restoreAllMocks();
-    store.getObjects().forEach((object) => store.delete(object, false));
-    store.clearDeleteHistory();
     PeerCursor.myCursor = null!;
   });
 
@@ -248,20 +246,20 @@ describe('HotbarRunnerService', () => {
     });
 
     it('opens the panel the slot names, under a name of its own', () => {
-      const panel = TestBed.inject(CharacterPanelService);
-      const openSheet = vi.spyOn(panel, 'openSheet').mockImplementation(() => undefined);
+      const panel = TestBed.inject(ObjectPanelService);
+      const openSheet = vi.spyOn(panel, 'openCharacterSheet').mockImplementation(() => undefined);
       vi.spyOn(TestBed.inject(PanelService), 'closeSingle').mockReturnValue(false);
 
       const slot = slotOf('panel', '', { kind: 'panel', panel: 'sheet' });
 
       expect(run(slot, character)).toEqual({ ok: true });
       expect(openSheet.mock.calls[0][0]).toBe(character);
-      expect(openSheet.mock.calls[0][1]).toContain(character.identifier);
+      expect(openSheet.mock.calls[0][1]?.single).toContain(character.identifier);
     });
 
     it('closes the panel again rather than opening a second one', () => {
-      const panel = TestBed.inject(CharacterPanelService);
-      const openSheet = vi.spyOn(panel, 'openSheet').mockImplementation(() => undefined);
+      const panel = TestBed.inject(ObjectPanelService);
+      const openSheet = vi.spyOn(panel, 'openCharacterSheet').mockImplementation(() => undefined);
       const closeSingle = vi.spyOn(TestBed.inject(PanelService), 'closeSingle').mockReturnValue(true);
 
       const slot = slotOf('panel', '', { kind: 'panel', panel: 'sheet' });

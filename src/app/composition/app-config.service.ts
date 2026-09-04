@@ -1,6 +1,6 @@
 import { inject, Injectable } from '@angular/core';
+import { LoggerService } from '@axe/application/logging/logger.service';
 import { emitLoadConfig } from '@axe/core/event/domain-events';
-import { LoggerService } from '@axe/core/logging/logger.service';
 
 export interface AppConfig {
   backend: {

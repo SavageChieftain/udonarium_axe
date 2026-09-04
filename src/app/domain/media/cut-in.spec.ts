@@ -12,15 +12,6 @@ describe('CutIn', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({});
     store = ObjectStore.instance;
-    const allObjects = store.getObjects();
-    allObjects.forEach((obj) => store.delete(obj, false));
-    store.clearDeleteHistory();
-  });
-
-  afterEach(() => {
-    const allObjects = store.getObjects();
-    allObjects.forEach((obj) => store.delete(obj, false));
-    store.clearDeleteHistory();
   });
 
   describe('the defaults of the synchronised fields', () => {
@@ -359,8 +350,6 @@ describe('CutIn', () => {
       addLayer(scene, '背景');
       addLayer(scene, '文字').tracks = encodeCutInTracks({ opacity: [{ t: 300, v: 1 }] });
       const xml = ObjectSerializer.instance.toXml(cutIn);
-
-      store.getObjects().forEach((object) => store.delete(object, false));
       store.clearDeleteHistory();
       const restored = ObjectSerializer.instance.parseXml(xml) as CutIn;
 

@@ -11,7 +11,7 @@ import {
 import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { ModalService } from '@axe/application/ui/modal.service';
-import { PanelOption, PanelService } from '@axe/application/ui/panel.service';
+import { PanelService } from '@axe/application/ui/panel.service';
 import { sheetPanelTitle } from '@axe/application/ui/sheet-panel';
 import { callShuffleCardStack } from '@axe/core/event/domain-events';
 import { Network } from '@axe/core/index';
@@ -23,6 +23,8 @@ import {
   parseTrumpCardCode,
   TrumpCardLabel,
 } from '@axe/features/card/card-stack-card-list/trump-card-label';
+import { ObjectPanelService } from '@axe/features/panels/object-panel.service';
+import { CardFacePreviewComponent } from '@axe/ui/components/card-face-preview/card-face-preview.component';
 import { FileSelecterComponent } from '@axe/ui/components/file-selecter/file-selecter.component';
 import { TooltipDirective } from '@axe/ui/directives/tooltip.directive';
 import { type DropSide, RowReorder } from '@axe/ui/dragging/row-reorder';
@@ -34,10 +36,11 @@ import { TranslocoModule } from '@jsverse/transloco';
   templateUrl: './card-stack-card-list.component.html',
   host: { class: 'block' },
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [TooltipDirective, SafePipe, TranslocoModule],
+  imports: [TooltipDirective, SafePipe, TranslocoModule, CardFacePreviewComponent],
 })
 export class CardStackCardListComponent {
   private readonly panelService = inject(PanelService);
+  private readonly objectPanels = inject(ObjectPanelService);
   private readonly modalService = inject(ModalService);
   private readonly objectChange = inject(ObjectChangeService);
   private readonly destroyRef = inject(DestroyRef);
@@ -113,22 +116,12 @@ export class CardStackCardListComponent {
   }
 
   showDetail(card: Card): void {
-    const coordinate = { x: this.panelService.left, y: this.panelService.top };
     const title = sheetPanelTitle(this.t('feature.card.settingTitle'), card.name);
-    const option: PanelOption = {
+    this.objectPanels.openSheet(
+      card,
       title,
-      left: coordinate.x + 20,
-      top: coordinate.y + 30,
-      width: 600,
-      height: 600,
-    };
-    this.panelService.openLazy(
-      () =>
-        import('@axe/features/character/game-character-sheet/game-character-sheet.component').then(
-          (m) => m.GameCharacterSheetComponent
-        ),
-      option,
-      (component) => (component.tabletopObject = card)
+      { width: 600, height: 600 },
+      { at: { x: this.panelService.left, y: this.panelService.top }, offset: { x: -20, y: -30 } }
     );
   }
 

@@ -642,7 +642,11 @@
       },
       "field": {
         "name": "Card name",
-        "size": "Size"
+        "size": "Size",
+        "text": "Card text",
+        "textHint": "Use |word《reading》 for ruby text and start a line with > for a quotation.",
+        "fontSize": "Font size",
+        "fontColor": "Font colour"
       },
       "drawDialog": {
         "title": "Draw cards",
@@ -827,7 +831,12 @@
       "message": {
         "rolled": "{{who}} rolled {{name}} → {{face}}",
         "rolledMany": "{{who}} rolled {{count}} dice → {{results}}",
-        "rolledManyTotal": "{{who}} rolled {{count}} dice → {{results}} (total {{total}})"
+        "rolledManyTotal": "{{who}} rolled {{count}} dice → {{results}} (total {{total}})",
+        "notRolled": "{{count}} dice you cannot read were not rolled"
+      },
+      "log": {
+        "reveal": "{{name}}'s die reads {{face}}.",
+        "revealNoName": "The die reads {{face}}."
       }
     },
     "effect": {
@@ -1099,7 +1108,14 @@
       "setCurrent": "Set as current turn",
       "buffDecayOn": "Count down buff rounds automatically: on",
       "buffDecayOff": "Count down buff rounds automatically: off",
-      "buffExpired": "Effects ended. {{detail}}"
+      "buffExpired": "Effects ended. {{detail}}",
+      "advanceRound": "Advance the round",
+      "advanceRoundAnnounce": "The round was moved on.",
+      "undoAnnounce": "The turn was put back one step.",
+      "acted": "Acted",
+      "undo": "Step back",
+      "retreatRound": "Take the round back",
+      "retreatRoundAnnounce": "Back to round {{n}}."
     },
     "inventory": {
       "contextMenu": {
@@ -1293,6 +1309,7 @@
         "confirmCleanFiltered": "Permanently delete the {{count}} items currently shown?",
         "multiMove": "Move multiple",
         "displaySettings": "Display settings",
+        "filterSettings": "Filtering and display settings",
         "sortOrder1": "Sort 1st",
         "sortOrder2": "Sort 2nd",
         "tagPlaceholder": "Tag name",
@@ -1359,6 +1376,8 @@
         "invokeRangeShape": "Invoke registered range",
         "hideInventoryOn": "☑ Hide from inventory",
         "hideInventoryOff": "☐ Hide from inventory",
+        "noTurnOn": "☑ Takes no turn",
+        "noTurnOff": "☐ Takes no turn",
         "nonTalkOn": "☑ Don't speak",
         "nonTalkOff": "☐ Don't speak",
         "displaySettings": "Display",
@@ -1638,6 +1657,7 @@
         "createMask": "Create map mask",
         "createTerrain": "Create terrain",
         "createNote": "Create shared note",
+        "createBlankCard": "Create blank card",
         "createTrump": "Create trump deck",
         "createDice": "Create dice",
         "createCoin": "Create a coin",
@@ -1881,7 +1901,31 @@
         "fogModeHard": "Hard (forgets the map)",
         "fogModeHint": "Easy holds cleared ground lit for good, and a piece once found is followed wherever it goes. Normal keeps the ground cleared but lets it darken, and loses a piece that walks into ground nobody has reached. Hard closes the fog again the moment nobody is looking.",
         "fogColor": "Fog colour",
-        "fogReset": "Reset the fog"
+        "fogReset": "Reset the fog",
+        "sectionMoveRange": "Movement range",
+        "moveRangeEnabled": "Show where a piece can walk while it is picked up",
+        "moveRangeAlways": "Keep showing the reach of the piece that is picked",
+        "moveDiagonally": "Let a piece step across a corner, counted as one cell",
+        "piecesShareCells": "Let two pieces stand on one cell; off, a cell somebody is on is no place to stop",
+        "moveRangeElementNames": "Sheet fields",
+        "cellDistance": "One cell stands for",
+        "cellDistanceUnit": "Cell unit",
+        "moveRangeHint": "Names are comma separated and the first one the sheet has is used. The value is divided by what one cell stands for (0 divides by nothing). Feet and metres are converted where the sheet is written in the other one; a sheet written in cells is read as cells.",
+        "zocMode": "Zone of control",
+        "zocMode_none": "None",
+        "zocMode_stop": "Halt (the walk ends on entering)",
+        "zocMode_block": "No entry (the cell is closed)",
+        "zocMode_cost": "Extra cost (entering costs more)",
+        "zocRange": "Reach",
+        "zocExtraCost": "Extra cost",
+        "zocAlways": "Held ground",
+        "zocAlwaysHint": "Keep showing the ground held against the piece that is picked",
+        "zocHint": "A piece is an enemy where the NPC mark differs from the one being moved, and the cells around it get in the way. A piece you cannot see holds no ground.",
+        "cellUnit": {
+          "cell": "Cells",
+          "metre": "Metres",
+          "foot": "Feet"
+        }
       },
       "dungeonGenerator": {
         "atmosphere": {
@@ -3210,7 +3254,13 @@
       "replay": "Replay",
       "recording": "Recording",
       "fogOn": "Fog of war: on (click to turn off)",
-      "fogOff": "Fog of war: off (click to turn on)"
+      "fogOff": "Fog of war: off (click to turn on)",
+      "moveBlockOn": "Paint no-go cells (done)",
+      "moveBlockOff": "Paint no-go cells",
+      "moveBlockBrush": "Brush",
+      "moveBlockErase": "Eraser",
+      "moveBlockClear": "Wipe them all",
+      "moveBlockClearConfirm": "Wipe every no-go cell you have painted?"
     },
     "roomDataDefault": "Room data"
   },

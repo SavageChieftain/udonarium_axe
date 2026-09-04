@@ -3,8 +3,8 @@
     #panel
     class="rounded-ui-lg border-ui-border-panel bg-ui-panel text-ui-text shadow-ui-md fixed top-0 left-0 z-100 box-border flex w-64 cursor-grab flex-col border border-solid select-none active:cursor-grabbing"
     appDraggable
-    (draggable.end)="rememberSpot()"
-    (draggable.settled)="rememberSpot()"
+    [appWidgetPlace]="widgetName"
+    [widgetFallback]="fallback"
     [draggable.unhandle]="'button'"
   >
     <div class="border-ui-border-panel flex items-center gap-2 border-b border-solid px-2.5 py-1.5">
@@ -63,6 +63,13 @@
       <dd class="m-0 text-right font-semibold">{{ gridRasters() }}</dd>
 
       @for (counter of otherCounters(); track counter.key) {
+        <dt class="text-ui-muted truncate">{{ counter.key }}</dt>
+        <dd class="m-0 text-right font-semibold">{{ counter.count | number: '1.0-1' }}</dd>
+      }
+
+      <dt class="text-ui-muted col-span-2 pt-1.5 text-[10px] tracking-wide uppercase">since reset</dt>
+
+      @for (counter of totalCounters(); track counter.key) {
         <dt class="text-ui-muted truncate">{{ counter.key }}</dt>
         <dd class="m-0 text-right font-semibold">{{ counter.count | number: '1.0-1' }}</dd>
       }

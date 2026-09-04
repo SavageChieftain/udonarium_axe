@@ -7,12 +7,13 @@ import {
   ElementRef,
   inject,
   input,
-  linkedSignal,
   signal,
 } from '@angular/core';
+import { ChatMessageService } from '@axe/application/chat/chat-message.service';
 import { CharacterDiceService } from '@axe/application/dice/character-dice.service';
 import { DiceRollService } from '@axe/application/dice/dice-roll.service';
 import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
+import { PointerDeviceService } from '@axe/application/input/pointer-device.service';
 import { DisclosureService } from '@axe/application/permission/disclosure.service';
 import { RolePermissionService } from '@axe/application/permission/role-permission.service';
 import { ImageService } from '@axe/application/storage/image.service';
@@ -26,8 +27,8 @@ import { SelectionSignalService } from '@axe/application/ui/selection-signal.ser
 import { sheetPanelBox } from '@axe/application/ui/sheet-panel';
 import { sheetPanelTitle } from '@axe/application/ui/sheet-panel';
 import { buildSurfaceSwitchContextMenu } from '@axe/application/ui/surface-switch-context-menu';
+import { transientSignal } from '@axe/application/ui/transient-signal';
 import { UiSignalService } from '@axe/application/ui/ui-signal.service';
-import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { imageFileEqual } from '@axe/core/storage/image-file';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { GameCharacter } from '@axe/domain/character/game-character';
@@ -44,8 +45,8 @@ import { SafePipe } from '@axe/ui/pipes/safe.pipe';
 import { makeBillboardTransform, makeLabelOrbitTransform } from '@axe/ui/tabletop/billboard-transform';
 import { DoubleTap } from '@axe/ui/tabletop/double-tap';
 import { hideIconWhileTouched } from '@axe/ui/tabletop/icon-hiding';
+import { pieceImageView } from '@axe/ui/tabletop/piece-image-view';
 import { setupInputHandler, setupMovableRotableForPiece } from '@axe/ui/tabletop/setup-tabletop-piece';
-import { supersampleFactor, supersampleInsetPercent, supersampleTransform } from '@axe/ui/tabletop/supersample';
 import { translateZCss, Z_OFFSET_TALL_OBJECT_PX } from '@axe/ui/tabletop/z-offset';
 
 /** How long the die rolls before it settles, which is the length of the tumble animation. */
@@ -71,6 +72,7 @@ export class DiceSymbolComponent {
   private readonly pieceContextMenu = inject(PieceContextMenuService);
   private readonly diceRollService = inject(DiceRollService);
   private readonly characterDice = inject(CharacterDiceService);
+  private readonly chat = inject(ChatMessageService);
   private readonly objectStore = inject(ObjectStore);
   private readonly elementRef = inject<ElementRef<HTMLElement>>(ElementRef);
   private readonly imageService = inject(ImageService);
@@ -123,9 +125,11 @@ export class DiceSymbolComponent {
     return this.diceSymbol().name;
   });
   readonly hideName = computed(() => {
-    this.objectChange.versionOf(this.diceSymbol().identifier)();
+    const diceSymbol = this.diceSymbol();
+    this.objectChange.versionOf(diceSymbol.identifier)();
+    this.objectChange.networkVersion();
     this.objectChange.trackMyCursor();
-    return this.diceSymbol().hideName && !this.rolePermission.canSeeHidden;
+    return (diceSymbol.hideName || !diceSymbol.isVisible) && !this.rolePermission.canSeeHidden;
   });
   readonly size = computed(() => {
     this.objectChange.versionOf(this.diceSymbol().identifier)();
@@ -178,7 +182,7 @@ export class DiceSymbolComponent {
   /** Which of the three paths this throw takes, so a handful does not roll as one. */
   readonly tumble = signal(0);
   /** The face it came to rest on, called out over the die until the callout fades. */
-  readonly rollResult = signal<string | null>(null);
+  readonly rollResult = transientSignal<string | null>(null, RESULT_POPUP_MS);
 
   private rollTimers: ReturnType<typeof setTimeout>[] = [];
 
@@ -212,51 +216,14 @@ export class DiceSymbolComponent {
     return table.imageBillboard || table.mode2d;
   });
 
-  private readonly imageNaturalSize = linkedSignal<string, { width: number; height: number } | null>({
-    source: () => this.imageFile().url,
-    computation: () => null,
+  readonly imageView = pieceImageView({
+    imageUrl: computed(() => this.imageFile().url),
+    isPoster: this.isPoster,
+    sizePx: computed(() => this.size() * this.gridSize),
+    specifiedHeightPx: computed(() => (this.specifyImageFlag() ? +this.imageHeignt() : null)),
+    billboardEnabled: this.imageBillboardEnabled,
+    billboardTransform: this.billboardTransformImage,
   });
-
-  onImageLoad(event: Event): void {
-    const img = event.target as HTMLImageElement;
-    if (img.naturalWidth <= 0 || img.naturalHeight <= 0) return;
-    this.imageNaturalSize.set({ width: img.naturalWidth, height: img.naturalHeight });
-  }
-
-  readonly imageSupersample = computed(() => {
-    const natural = this.imageNaturalSize();
-    if (!natural) return 1;
-    if (this.specifyImageFlag()) return supersampleFactor(natural.height, +this.imageHeignt());
-    return supersampleFactor(natural.width, this.size() * this.gridSize);
-  });
-
-  readonly imageSupersamplePercent = computed(() => this.imageSupersample() * 100 + '%');
-
-  readonly imageSupersampleInset = computed(() => supersampleInsetPercent(this.imageSupersample()) + '%');
-
-  readonly imageBoxHeightPx = computed(() => {
-    const natural = this.imageNaturalSize();
-    if (!natural || this.imageSupersample() <= 1) return null;
-    if (this.specifyImageFlag()) return +this.imageHeignt();
-    return (this.size() * this.gridSize * natural.height) / natural.width;
-  });
-
-  readonly komaImageTransform = computed(() =>
-    supersampleTransform({
-      factor: this.imageSupersample(),
-      anchor: 'bottom',
-      outer: `translateX(-50%) translateX(${(this.size() * this.gridSize) / 2}px)`,
-      inner: this.imageBillboardEnabled() ? this.billboardTransformImage() : '',
-    })
-  );
-
-  readonly pieceImageTransform = computed(() =>
-    supersampleTransform({
-      factor: this.imageSupersample(),
-      anchor: 'bottom',
-      inner: this.imageBillboardEnabled() ? this.billboardTransformImage() : '',
-    })
-  );
 
   readonly mode2dEnabled = computed(() => {
     if (this.isPoster()) return true;
@@ -341,7 +308,7 @@ export class DiceSymbolComponent {
    */
   private startRoll(): void {
     this.clearRollTimers();
-    this.rollResult.set(null);
+    this.rollResult.clear();
     this.tumble.update((path) => (path + 1) % TUMBLE_PATHS);
     this.animeState.set('inactive');
 
@@ -350,10 +317,30 @@ export class DiceSymbolComponent {
       setTimeout(() => {
         // A die nobody may see calls nothing out; the face is the owner's to read.
         if (!this.isVisible) return;
-        this.rollResult.set(this.diceSymbol().face);
-        this.rollTimers.push(setTimeout(() => this.rollResult.set(null), RESULT_POPUP_MS));
+        this.rollResult.show(this.diceSymbol().face);
       }, TUMBLE_MS)
     );
+  }
+
+  private onDiceRevealed(face: string): void {
+    const opened = this.chat.discloseDieRolls(this.diceSymbol().identifier);
+    if (opened < 1) this.announceRevealedFace(face);
+  }
+
+  /**
+   * Says what a die that was somebody's alone came to rest on, now that it is everybody's.
+   *
+   * A hidden die is thrown without a callout, so the table only ever learns the face when
+   * it is opened. Said only where there is no throw of it left to open - a face set by hand,
+   * or a throw already opened - since an opened throw gives the number itself.
+   */
+  private announceRevealedFace(face: string): void {
+    const name = this.diceSymbol().name.trim();
+    const message =
+      name.length > 0
+        ? this.translateFn('feature.dice.log.reveal', { name, face })
+        : this.translateFn('feature.dice.log.revealNoName', { face });
+    this.chat.sendSystemMessageToMainTab(message);
   }
 
   private clearRollTimers(): void {
@@ -394,6 +381,8 @@ export class DiceSymbolComponent {
           name: character.name,
         })),
         onStoreToOwner: (ownerIdentifier) => this.storeToOwner(ownerIdentifier),
+        onRevealed: (face) => this.onDiceRevealed(face),
+        canRevealHidden: this.rolePermission.canSeeHidden,
       },
       this.translateFn
     );
@@ -405,7 +394,7 @@ export class DiceSymbolComponent {
     this.contextMenuService.open(
       position,
       surfaceEntries.length > 0 ? [...baseMenu, ContextMenuSeparator, ...surfaceEntries] : baseMenu,
-      this.name()
+      this.hideName() ? '' : this.name()
     );
   }
 

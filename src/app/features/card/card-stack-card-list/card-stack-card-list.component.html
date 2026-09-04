@@ -60,12 +60,17 @@
             <button
               type="button"
               class="group/thumb bg-ui-input border-ui-border-panel hover:border-ui-accent rounded-ui-sm relative size-14 cursor-pointer overflow-hidden border border-solid bg-contain bg-center bg-no-repeat p-0 shadow-sm transition-[border-color,transform,box-shadow] hover:scale-[1.06] hover:shadow-md"
-              [style.background-image]="'url(' + $safeNavigationMigration(card.frontImage?.url) + ')' | safe: 'style'"
               [attr.title]="'feature.inventory.sheet.changeFrontImage' | transloco"
               (click)="setImage(card, 'front')"
             >
+              <card-face-preview
+                [card]="card"
+                [imageUrl]="card.frontImage?.url ?? ''"
+                [frameWidth]="56"
+                [frameHeight]="56"
+              />
               <span
-                class="pointer-events-none absolute inset-0 flex items-center justify-center bg-black/50 text-white opacity-0 transition-opacity group-hover/thumb:opacity-100 [&_.material-icons]:text-[18px]!"
+                class="pointer-events-none absolute inset-0 z-3 flex items-center justify-center bg-black/50 text-white opacity-0 transition-opacity group-hover/thumb:opacity-100 [&_.material-icons]:text-[18px]!"
               >
                 <i class="material-icons">edit</i>
               </span>

@@ -36,7 +36,6 @@ import {
   SceneGuideLine,
   sceneHeightPx,
   sceneWidthPx,
-  ShapeItem,
   StrokeDash,
   TextAlign,
   TextItem,
@@ -45,26 +44,48 @@ import {
   addImage,
   addLayer,
   addShape,
-  addStroke,
   addText,
   moveLayer,
-  removeImage,
   removeLayer,
-  removeText,
   updateText,
 } from '@axe/features/map-editor/model/scene-ops';
-import { deserializeScene, serializeScene } from '@axe/features/map-editor/model/serialize';
+import { deserializeScene } from '@axe/features/map-editor/model/serialize';
 import { getRasterImage, warmRasterImages } from '@axe/features/map-editor/render/raster-image';
 import { renderScene } from '@axe/features/map-editor/render/render-scene';
 import { detachFromBoard, standingOn } from '@axe/features/tabletop/white-board/white-board-contents';
+import { BoardGesture } from '@axe/features/tabletop/white-board/white-board-gesture';
+import { BoardKeeper } from '@axe/features/tabletop/white-board/white-board-keeper';
+import {
+  LayerDrawerAction,
+  WhiteBoardLayerDrawerComponent,
+} from '@axe/features/tabletop/white-board/white-board-layer-drawer.component';
 import { hangablePictureIds } from '@axe/features/tabletop/white-board/white-board-live-pictures';
+import {
+  drawBand,
+  drawFreehand,
+  drawGuides,
+  drawHold,
+  drawJoints,
+  drawLaying,
+  drawPending,
+  drawTrimWindow,
+  gripAt,
+  Ink,
+} from '@axe/features/tabletop/white-board/white-board-painter';
+import {
+  BOARD_ZOOMS,
+  clampZoom,
+  fitZoom,
+  RULER_WIDTH,
+  RulerTick,
+  rulerTicks,
+  scrollKeepingPoint,
+  ZOOM_STEP,
+} from '@axe/features/tabletop/white-board/white-board-rulers';
 import {
   addJoint,
   AlignEdge,
   alignMarks,
-  anchorFor,
-  angleFrom,
-  arrowBetween,
   BOARD_SHAPES,
   BOARD_TOOLS,
   BoardPoint,
@@ -77,26 +98,16 @@ import {
   copyMark,
   createBoardScene,
   cropMark,
-  dropJoint,
   fadeMark,
   fileUnder,
   flipMark,
-  freehandLayer,
   GRAPH_SPACINGS,
   groupLayers,
   groupNames,
   guessLineWidth,
-  guidesFor,
-  guideUnder,
-  Handle,
-  handleAt,
-  HANDLES,
-  handleUnder,
-  highlighterStyle,
   imageLayer,
   isTypingKey,
   jointedShape,
-  jointUnder,
   LayerGroup,
   MARK_SHADOW,
   MarkBox,
@@ -105,37 +116,26 @@ import {
   MarkStyleChange,
   marksWithin,
   markUnder,
-  moveJoint,
-  moveMark,
   NaturalSize,
   newGuide,
   noteAt,
   outlineFor,
   overlaysWanted,
   pathThrough,
-  penStroke,
   pictureOf,
   removeMark,
   renameGroup,
   restack,
   restyleMark,
-  rubOutStrokes,
   ruleBoard,
-  scaleMark,
-  shapeBetween,
   shapeLayer,
   sheetGuides,
   sheetHolding,
   showGroup,
-  smoothStroke,
   SnapGuide,
-  snapPoint,
   snapTo,
   spreadMarks,
-  squareOff,
   stickerAt,
-  straightLine,
-  stretchBy,
   textLayer,
   turnMark,
   uncropMark,
@@ -143,11 +143,11 @@ import {
   wordsAt,
   wordsOf,
 } from '@axe/features/tabletop/white-board/white-board-scene';
+import { BoardKeyAction, boardKeyDown } from '@axe/features/tabletop/white-board/white-board-shortcuts';
 import { FileSelecterComponent } from '@axe/ui/components/file-selecter/file-selecter.component';
 import { TranslocoModule } from '@jsverse/transloco';
 
 /** How long the drawing has to settle before the board keeps a picture of it. */
-const SAVE_DELAY = 600;
 /** How big a sticker goes down, in the board's own pixels. */
 const STICKER_SIZE = 120;
 const SELECT_SVG =
@@ -175,46 +175,13 @@ const TOOL_ICONS: Record<BoardTool, string> = {
 
 const TOOL_SVG: Partial<Record<BoardTool, string>> = { select: SELECT_SVG, eraser: ERASER_SVG };
 
-/** The sizes offered in the list. Anything between them is reachable by the wheel. */
-const BOARD_ZOOMS: readonly number[] = [0.25, 0.5, 0.75, 1, 1.5, 2, 3, 4];
-
-const MIN_ZOOM = 0.1;
-const MAX_ZOOM = 8;
-/** How much one notch of the wheel or one press of the buttons changes the size. */
-const ZOOM_STEP = 1.15;
-
 /** How near a corner counts as taking hold of it, in the sheet's own pixels at full size. */
-const HANDLE_SLACK = 9;
-
-/** With shift held, the turn grip falls onto steps, so a picture can be set square again. */
-const TURN_SNAP = 15;
-
-const RULER_WIDTH = 16;
-const RULER_STEPS: readonly number[] = [50, 100, 200, 500, 1000];
-/** How much room a number wants on a ruler before the next one is written. */
-const RULER_ROOM = 44;
 
 /** How far a copy is set down from what it was copied off, so both can be seen. */
 const DUPLICATE_OFFSET = 16;
 
 /** How far one press of the turn buttons takes a mark round. */
 const TURN_STEP = 15;
-
-/** The room left round the sheet when it is fitted to the panel. */
-const STAGE_MARGIN = 24;
-
-const TOOL_KEYS: Record<string, BoardTool> = {
-  v: 'select',
-  p: 'pen',
-  m: 'marker',
-  e: 'eraser',
-  l: 'line',
-  a: 'arrow',
-  r: 'shape',
-  t: 'text',
-  n: 'note',
-  i: 'sticker',
-};
 
 const MIN_SIDE = 1;
 const MAX_SIDE = 40;
@@ -223,7 +190,7 @@ const MAX_SIDE = 40;
   selector: 'white-board-editor',
   templateUrl: './white-board-editor.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FormsModule, TranslocoModule, NgClass],
+  imports: [FormsModule, TranslocoModule, NgClass, WhiteBoardLayerDrawerComponent],
 })
 export class WhiteBoardEditorComponent {
   private readonly modalService = inject(ModalService);
@@ -329,11 +296,7 @@ export class WhiteBoardEditorComponent {
   protected zoomToFit(): void {
     const stage = this.stageRef()?.nativeElement;
     if (!stage) return;
-    const room = Math.min(
-      (stage.clientWidth - STAGE_MARGIN) / this.sceneWidth,
-      (stage.clientHeight - STAGE_MARGIN) / this.sceneHeight
-    );
-    this.zoomAbout(room, null);
+    this.zoomAbout(fitZoom(stage, this.sceneWidth, this.sceneHeight), null);
   }
 
   /**
@@ -345,23 +308,19 @@ export class WhiteBoardEditorComponent {
   private zoomAbout(next: number, at: { x: number; y: number } | null): void {
     const stage = this.stageRef()?.nativeElement;
     const was = this.zoom();
-    const now = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, next));
+    const now = clampZoom(next);
     if (Math.abs(now - was) < 0.0001) return;
 
     if (!stage) {
       this.zoom.set(now);
       return;
     }
-    const box = stage.getBoundingClientRect();
-    const holdX = at ? at.x - box.left : stage.clientWidth / 2;
-    const holdY = at ? at.y - box.top : stage.clientHeight / 2;
-    const sheetX = (stage.scrollLeft + holdX) / was;
-    const sheetY = (stage.scrollTop + holdY) / was;
+    const scroll = scrollKeepingPoint(stage, stage.getBoundingClientRect(), at, was, now);
 
     this.zoom.set(now);
     queueMicrotask(() => {
-      stage.scrollLeft = sheetX * now - holdX;
-      stage.scrollTop = sheetY * now - holdY;
+      stage.scrollLeft = scroll.scrollLeft;
+      stage.scrollTop = scroll.scrollTop;
     });
   }
 
@@ -389,13 +348,8 @@ export class WhiteBoardEditorComponent {
   readonly rulerWidth = RULER_WIDTH;
 
   /** The numbers written along a ruler, spaced so they stay apart at whatever size the sheet is. */
-  protected ticks(axis: 'x' | 'y'): { at: number; px: number }[] {
-    const span = axis === 'x' ? this.sceneWidth : this.sceneHeight;
-    const zoom = this.zoom();
-    const step = RULER_STEPS.find((size) => size * zoom >= RULER_ROOM) ?? RULER_STEPS[RULER_STEPS.length - 1];
-    const marks: { at: number; px: number }[] = [];
-    for (let at = 0; at <= span; at += step) marks.push({ at, px: at * zoom });
-    return marks;
+  protected ticks(axis: 'x' | 'y'): RulerTick[] {
+    return rulerTicks(axis === 'x' ? this.sceneWidth : this.sceneHeight, this.zoom());
   }
   /** The lines shown this instant, which last only as long as the drag that raised them. */
   readonly showing = signal<SnapGuide[]>([]);
@@ -419,24 +373,41 @@ export class WhiteBoardEditorComponent {
   private wordsWere = '';
   protected readonly wordBoxRef = viewChild<ElementRef<HTMLElement>>('wordBox');
   private board: WhiteBoard | null = null;
+  private readonly keeper = new BoardKeeper(
+    {
+      board: () => this.board,
+      scene: () => this.scene,
+      canvas: () => this.canvasRef()?.nativeElement ?? null,
+      drawBare: () => this.redraw(undefined, true, true),
+      redraw: () => void this.redraw(),
+    },
+    this.imageStorage
+  );
   private scene: MapScene = createBoardScene(4, 3, 50);
-  private saveTimer: ReturnType<typeof setTimeout> | null = null;
-  private drawingPoints: number[] = [];
-  private dragFrom: BoardPoint | null = null;
-  private dragTo: BoardPoint | null = null;
-  private grabbed: {
-    refs: MarkRef[];
-    grabX: number;
-    grabY: number;
-    handle: Handle | null;
-    box: MarkBox;
-    turnedTo: number;
-  } | null = null;
-  private hovering: BoardPoint | null = null;
-  private bending: { ref: MarkRef; joint: number } | null = null;
-  private draggingGuide: SceneGuideLine | null = null;
-  private bandFrom: BoardPoint | null = null;
-  private bandTo: BoardPoint | null = null;
+  private readonly gesture = new BoardGesture({
+    scene: () => this.scene,
+    activeLayerId: () => this.activeLayerId(),
+    tool: () => this.tool(),
+    style: () => this.style(),
+    shapeKind: () => this.shapeKind(),
+    filled: () => this.filled(),
+    strokeWidth: () => this.strokeWidth(),
+    keepingShape: () => this.keepingShape,
+    guiding: () => this.guiding(),
+    guides: () => this.guides,
+    grip: () => this.handleSlack(),
+    held: () => this.held(),
+    selected: () => this.selected(),
+    trimming: () => this.trimming(),
+    trimTo: (window) => this.trimming.set(window),
+    laying: () => this.laying(),
+    layTo: (points) => this.laying.set(points),
+    hold: (marks) => this.hold(marks),
+    show: (guides) => this.showing.set(guides),
+    startTyping: (at) => this.startTyping(at, ''),
+    redraw: (pending) => void this.redraw(pending),
+    touched: () => this.touched(),
+  });
 
   readonly minPitch = MIN_BOARD_PITCH;
   readonly maxPitch = MAX_BOARD_PITCH;
@@ -569,12 +540,54 @@ export class WhiteBoardEditorComponent {
     return groupNames(this.scene);
   }
 
-  protected groupLabel(group: LayerGroup): string {
-    return group.name.length > 0 ? group.name : this.layerName(group.layers[0]);
-  }
-
-  protected isGroupShown(group: LayerGroup): boolean {
-    return group.layers.some((layer) => layer.visible);
+  protected onLayerAction(action: LayerDrawerAction): void {
+    switch (action.kind) {
+      case 'addSheet':
+        this.addSheet();
+        break;
+      case 'makeGroup':
+        this.makeGroup();
+        break;
+      case 'toggleGroup':
+        this.toggleGroup(action.group);
+        break;
+      case 'renameGroup':
+        this.renameGroup(action.group, action.name);
+        break;
+      case 'chooseLayer':
+        this.chooseLayer(action.layer);
+        break;
+      case 'toggleLayer':
+        this.toggleLayer(action.layer);
+        break;
+      case 'toggleLock':
+        this.toggleLock(action.layer);
+        break;
+      case 'renameLayer':
+        this.renameLayer(action.layer, action.name);
+        break;
+      case 'raiseLayer':
+        this.raiseLayer(action.layer);
+        break;
+      case 'lowerLayer':
+        this.lowerLayer(action.layer);
+        break;
+      case 'setLayerOpacity':
+        this.setLayerOpacity(action.layer, action.opacity);
+        break;
+      case 'fileLayer':
+        this.fileLayer(action.layer, action.group);
+        break;
+      case 'clearSheet':
+        this.clearSheet(action.layer);
+        break;
+      case 'dropLayer':
+        this.dropLayer(action.layer);
+        break;
+      case 'takeOff':
+        this.takeOff(action.object);
+        break;
+    }
   }
 
   protected toggleGroup(group: LayerGroup): void {
@@ -582,7 +595,7 @@ export class WhiteBoardEditorComponent {
       this.toggleLayer(group.layers[0]);
       return;
     }
-    showGroup(this.scene, group.name, !this.isGroupShown(group));
+    showGroup(this.scene, group.name, !group.layers.some((layer) => layer.visible));
     this.touched();
   }
 
@@ -608,10 +621,6 @@ export class WhiteBoardEditorComponent {
     this.touched();
   }
 
-  protected layerName(layer: MapLayer): string {
-    return layer.name?.length ? layer.name : this.t(`feature.whiteBoard.layer.${layer.kind}`);
-  }
-
   /**
    * Names a sheet.
    *
@@ -619,8 +628,7 @@ export class WhiteBoardEditorComponent {
    * back to nothing, a sheet falls back to being named after what it holds.
    */
   protected renameLayer(layer: MapLayer, name: string): void {
-    const given = name.trim();
-    layer.name = given === this.t(`feature.whiteBoard.layer.${layer.kind}`) ? '' : given;
+    layer.name = name;
     this.touched();
   }
 
@@ -712,10 +720,6 @@ export class WhiteBoardEditorComponent {
     ]);
   }
 
-  protected nameOf(object: TabletopObject): string {
-    return object.name?.length ? object.name : object.aliasName;
-  }
-
   protected takeOff(object: TabletopObject): void {
     if (!this.board || !boardSurfaceOf(object)) return;
     detachFromBoard(this.board, object);
@@ -761,7 +765,7 @@ export class WhiteBoardEditorComponent {
       return width;
     });
     this.destroyRef.onDestroy(() => {
-      this.putDown();
+      this.keeper.putDown();
       stopMeasuring();
     });
   }
@@ -818,11 +822,7 @@ export class WhiteBoardEditorComponent {
     const stage = this.stageRef()?.nativeElement;
     const box = boxAround(this.scene, this.held());
     if (!stage || !box) return;
-    const room = Math.min(
-      (stage.clientWidth - STAGE_MARGIN) / Math.max(1, box.w),
-      (stage.clientHeight - STAGE_MARGIN) / Math.max(1, box.h)
-    );
-    this.zoomTo(room);
+    this.zoomTo(fitZoom(stage, Math.max(1, box.w), Math.max(1, box.h)));
     stage.scrollLeft = (box.x + box.w / 2) * this.zoom() - stage.clientWidth / 2;
     stage.scrollTop = (box.y + box.h / 2) * this.zoom() - stage.clientHeight / 2;
   }
@@ -910,7 +910,7 @@ export class WhiteBoardEditorComponent {
     const scale = box.width / this.sceneWidth || 1;
     const at = { x: (event.clientX - box.left) / scale, y: (event.clientY - box.top) / scale };
     // Snapped only where the reader asked for it, and never for a pen, which would step.
-    if (!this.snapping() || this.isPenning()) return at;
+    if (!this.snapping() || this.gesture.isPenning()) return at;
     return snapTo(at, this.scene.cellPx);
   }
 
@@ -933,37 +933,7 @@ export class WhiteBoardEditorComponent {
     (event.target as HTMLElement).setPointerCapture?.(event.pointerId);
     const at = this.pointOf(event);
 
-    switch (this.tool()) {
-      case 'pen':
-      case 'marker':
-        this.drawingPoints = [at.x, at.y];
-        break;
-      case 'eraser':
-        this.rubOut(at);
-        break;
-      case 'line':
-      case 'arrow':
-      case 'shape':
-        this.dragFrom = at;
-        break;
-      case 'text':
-      case 'note':
-        this.startTyping(at, '');
-        break;
-      case 'path':
-        this.laying.update((points) =>
-          this.keepingShape && points.length > 0
-            ? [...points, squareOff(points[points.length - 1], at)]
-            : [...points, at]
-        );
-        void this.redraw();
-        break;
-      case 'select':
-        this.take(at, event.shiftKey);
-        break;
-      case 'sticker':
-        break;
-    }
+    this.gesture.begin(at, event.shiftKey);
   }
 
   protected onPointerMove(event: PointerEvent): void {
@@ -973,47 +943,7 @@ export class WhiteBoardEditorComponent {
       this.panFrom = { x: event.clientX, y: event.clientY };
       return;
     }
-    const at = this.pointOf(event);
-    if (this.draggingGuide) {
-      const guide = this.draggingGuide;
-      guide.at = guide.axis === 'x' ? at.x : at.y;
-      void this.redraw();
-      return;
-    }
-    if (this.laying().length > 0) {
-      this.hovering = at;
-      void this.redraw();
-      return;
-    }
-    if (this.isPenning() && this.drawingPoints.length > 0) {
-      this.drawingPoints.push(at.x, at.y);
-      void this.redraw(this.drawingPoints);
-      return;
-    }
-    if (this.tool() === 'eraser' && event.buttons > 0) {
-      this.rubOut(at);
-      return;
-    }
-    if (this.bending) {
-      const bent = this.guiding() ? snapPoint(this.scene, at, [this.bending.ref], this.guides) : null;
-      if (bent) this.showing.set(bent.guides);
-      moveJoint(this.scene, this.bending.ref, this.bending.joint, bent?.at ?? at);
-      void this.redraw();
-      return;
-    }
-    if (this.grabbed) {
-      this.shift(at);
-      return;
-    }
-    if (this.bandFrom) {
-      this.bandTo = at;
-      void this.redraw();
-      return;
-    }
-    if (this.dragFrom) {
-      this.dragTo = this.reachedTo(at);
-      void this.redraw();
-    }
+    this.gesture.drag(this.pointOf(event), event.buttons > 0);
   }
 
   protected onPointerUp(event: PointerEvent): void {
@@ -1023,47 +953,7 @@ export class WhiteBoardEditorComponent {
       this.sliding.set(false);
       return;
     }
-    const at = this.pointOf(event);
-
-    if (this.isPenning() && this.drawingPoints.length > 3) {
-      addStroke(
-        freehandLayer(this.scene, this.activeLayerId()),
-        penStroke(smoothStroke(this.drawingPoints), this.inkStyle())
-      );
-    }
-    this.drawingPoints = [];
-
-    if (this.dragFrom) {
-      const from = this.dragFrom;
-      // What was previewed is what is laid down: the guides and the shift key had their say
-      // on the way, and a mark that ignored them would land somewhere the reader never saw.
-      const to = this.dragTo ?? this.reachedTo(at);
-      this.dragFrom = null;
-      this.dragTo = null;
-      const far = Math.hypot(to.x - from.x, to.y - from.y) > 4;
-      if (far) {
-        const tool = this.tool();
-        const mark =
-          tool === 'line'
-            ? straightLine(from, to, this.style())
-            : tool === 'arrow'
-              ? arrowBetween(from, to, this.style())
-              : shapeBetween(this.shapeKind(), from, to, this.style(), this.filled());
-        addShape(shapeLayer(this.scene, this.activeLayerId()), mark);
-        this.hold([{ kind: 'shape', id: mark.id }]);
-      }
-    }
-    if (this.bandFrom && this.bandTo) {
-      const area = boxBetweenPoints(this.bandFrom, this.bandTo);
-      if (area.w > 3 || area.h > 3) this.hold(marksWithin(this.scene, area));
-      this.bandFrom = null;
-      this.bandTo = null;
-    }
-    this.grabbed = null;
-    this.bending = null;
-    this.draggingGuide = null;
-    this.showing.set([]);
-    this.touched();
+    this.gesture.end(this.pointOf(event));
   }
 
   private style(): MarkStyle {
@@ -1091,246 +981,9 @@ export class WhiteBoardEditorComponent {
     this.settingChanged();
   }
 
-  /**
-   * The mark as it would be if the pointer were let go here.
-   *
-   * Drawn out and shown while the drag lasts, because dragging out a line and seeing nothing
-   * until it is finished is drawing blind.
-   */
-  private pendingMark(): ShapeItem | null {
-    const from = this.dragFrom;
-    const to = this.dragTo;
-    if (!from || !to) return null;
-    const tool = this.tool();
-    if (tool === 'line') return straightLine(from, to, this.style());
-    if (tool === 'arrow') return arrowBetween(from, to, this.style());
-    if (tool === 'shape') return shapeBetween(this.shapeKind(), from, to, this.style(), this.filled());
-    return null;
-  }
-
-  /**
-   * Where the drag has reached, once the guides and the shift key have had their say.
-   *
-   * A line meant to be upright is never quite upright when it is dragged by hand, and a box
-   * meant to sit under another is never quite under it.
-   */
-  private reachedTo(to: BoardPoint): BoardPoint {
-    const from = this.dragFrom;
-    if (!from) return to;
-    const tool = this.tool();
-    if (this.keepingShape && (tool === 'line' || tool === 'arrow')) {
-      this.showing.set([]);
-      return squareOff(from, to);
-    }
-    if (!this.guiding()) return to;
-
-    const box = {
-      x: Math.min(from.x, to.x),
-      y: Math.min(from.y, to.y),
-      w: Math.abs(to.x - from.x),
-      h: Math.abs(to.y - from.y),
-    };
-    const snap = guidesFor(this.scene, box, [], this.guides);
-    this.showing.set(snap.guides);
-    return { x: to.x + snap.dx, y: to.y + snap.dy };
-  }
-
-  private drawGuides(ctx: CanvasRenderingContext2D, guides: readonly SnapGuide[], colour: string): void {
-    if (guides.length < 1) return;
-    ctx.save();
-    ctx.strokeStyle = colour;
-    ctx.lineWidth = 1 / Math.max(0.25, this.zoom());
-    ctx.setLineDash([5, 4]);
-    for (const guide of guides) {
-      ctx.beginPath();
-      if (guide.axis === 'x') {
-        ctx.moveTo(guide.at, guide.from);
-        ctx.lineTo(guide.at, guide.to);
-      } else {
-        ctx.moveTo(guide.from, guide.at);
-        ctx.lineTo(guide.to, guide.at);
-      }
-      ctx.stroke();
-    }
-    ctx.restore();
-  }
-
-  private drawPending(ctx: CanvasRenderingContext2D, item: ShapeItem): void {
-    ctx.save();
-    ctx.strokeStyle = item.stroke?.color ?? this.color();
-    ctx.lineWidth = item.stroke?.width ?? this.strokeWidth();
-    ctx.lineCap = 'round';
-    ctx.lineJoin = 'round';
-    if (item.fill?.type === 'solid') ctx.fillStyle = item.fill.color;
-
-    if (item.shape === 'rect') {
-      const [x, y, w, h] = item.points;
-      if (item.fill?.type === 'solid') ctx.fillRect(x, y, w, h);
-      ctx.strokeRect(x, y, w, h);
-    } else if (item.shape === 'ellipse') {
-      const [x, y, w, h] = item.points;
-      ctx.beginPath();
-      ctx.ellipse(x + w / 2, y + h / 2, Math.abs(w) / 2, Math.abs(h) / 2, 0, 0, Math.PI * 2);
-      if (item.fill?.type === 'solid') ctx.fill();
-      ctx.stroke();
-    } else {
-      ctx.beginPath();
-      ctx.moveTo(item.points[0], item.points[1]);
-      for (let i = 2; i + 1 < item.points.length; i += 2) ctx.lineTo(item.points[i], item.points[i + 1]);
-      if (item.shape === 'polygon') ctx.closePath();
-      if (item.fill?.type === 'solid') ctx.fill();
-      ctx.stroke();
-    }
-    ctx.restore();
-  }
-
-  private isPenning(): boolean {
-    return this.tool() === 'pen' || this.tool() === 'marker';
-  }
-
-  /** A marker lets what is under it show through; a pen does not. */
-  private inkStyle() {
-    return this.tool() === 'marker' ? highlighterStyle(this.style()) : this.style();
-  }
-
-  private rubOut(at: BoardPoint): void {
-    rubOutStrokes(freehandLayer(this.scene, this.activeLayerId()), at.x, at.y, this.strokeWidth() * 2);
-    const mark = markUnder(this.scene, at);
-    if (mark?.kind === 'image') removeImage(imageLayer(this.scene, this.activeLayerId()), mark.id);
-    if (mark?.kind === 'text') removeText(textLayer(this.scene, this.activeLayerId()), mark.id);
-    void this.redraw();
-  }
-
-  private take(at: BoardPoint, adding: boolean): void {
-    const laid = guideUnder(this.guides, at);
-    if (laid) {
-      this.draggingGuide = laid;
-      return;
-    }
-    const chosen = this.selected();
-    const window = this.trimming();
-    const picture = chosen && window ? boxOf(this.scene, chosen) : null;
-    if (chosen && window && picture) {
-      const onScreen = { x: picture.x + window.x, y: picture.y + window.y, w: window.w, h: window.h };
-      const grip = handleUnder(at, onScreen, this.handleSlack());
-      if (grip && grip !== 'turn') {
-        this.grabbed = { refs: [chosen], grabX: at.x, grabY: at.y, handle: grip, box: onScreen, turnedTo: 0 };
-      }
-      return;
-    }
-    // A path's own corners are reached for before the box drawn round it, being on the line
-    // itself rather than out at the edges.
-    if (chosen && jointedShape(this.scene, chosen)) {
-      const joint = jointUnder(this.scene, chosen, at, this.handleSlack());
-      if (joint !== null) {
-        if (adding) {
-          if (dropJoint(this.scene, chosen, joint)) this.touched();
-          return;
-        }
-        this.bending = { ref: chosen, joint };
-        return;
-      }
-    }
-
-    const box = chosen ? boxOf(this.scene, chosen) : null;
-    const handle = box ? handleUnder(at, box, this.handleSlack()) : null;
-    if (chosen && box && handle) {
-      this.grabbed = { refs: [chosen], grabX: at.x, grabY: at.y, handle, box, turnedTo: angleFrom(box, at) };
-      return;
-    }
-
-    const mark = markUnder(this.scene, at);
-    if (!mark) {
-      // Nothing under the pointer: a box is dragged out to take everything inside it.
-      if (!adding) this.hold([]);
-      this.bandFrom = at;
-      this.bandTo = at;
-      return;
-    }
-
-    const already = this.held();
-    const has = already.some((entry) => entry.kind === mark.kind && entry.id === mark.id);
-    const next = adding
-      ? has
-        ? already.filter((entry) => !(entry.kind === mark.kind && entry.id === mark.id))
-        : [...already, mark]
-      : has
-        ? already
-        : [mark];
-    this.hold(next);
-    const bounds = boxAround(this.scene, next);
-    if (bounds) {
-      this.grabbed = { refs: next, grabX: at.x, grabY: at.y, handle: null, box: bounds, turnedTo: 0 };
-    }
-  }
-
   /** A handle has to stay big enough to hit however far the sheet is zoomed out. */
   private handleSlack(): number {
-    return HANDLE_SLACK / Math.max(0.25, this.zoom());
-  }
-
-  private shift(at: BoardPoint): void {
-    const held = this.grabbed;
-    if (!held) return;
-    const dx = at.x - held.grabX;
-    const dy = at.y - held.grabY;
-    held.grabX = at.x;
-    held.grabY = at.y;
-
-    const window = this.trimming();
-    if (window && held.handle) {
-      const picture = boxOf(this.scene, held.refs[0]);
-      if (!picture) return;
-      this.trimming.set(pullWindow(window, held.handle, dx, dy, picture));
-      void this.redraw();
-      return;
-    }
-
-    if (!held.handle) {
-      let stepX = dx;
-      let stepY = dy;
-      const was = boxAround(this.scene, held.refs);
-      if (this.guiding() && was) {
-        const snap = guidesFor(this.scene, { ...was, x: was.x + dx, y: was.y + dy }, held.refs, this.guides);
-        stepX += snap.dx;
-        stepY += snap.dy;
-        this.showing.set(snap.guides);
-      }
-      for (const ref of held.refs) moveMark(this.scene, ref, stepX, stepY);
-      void this.redraw();
-      return;
-    }
-
-    const box = boxAround(this.scene, held.refs);
-    if (!box) return;
-
-    if (held.handle === 'turn') {
-      this.showing.set([]);
-      const now = angleFrom(box, at);
-      const turned = this.keepingShape ? Math.round(now / TURN_SNAP) * TURN_SNAP : now;
-      for (const ref of held.refs) turnMark(this.scene, ref, turned - held.turnedTo);
-      held.turnedTo = turned;
-      void this.redraw();
-      return;
-    }
-
-    // Stretched away from the side facing the one being pulled, the way a picture is
-    // stretched, and the grip gives in to any line it is pulled near.
-    let reach = at;
-    if (this.guiding()) {
-      const snap = snapPoint(this.scene, at, held.refs, this.guides);
-      reach = snap.at;
-      this.showing.set(snap.guides);
-    }
-    const { kx, ky } = stretchBy(box, held.handle, reach);
-    const anchor = anchorFor(box, held.handle);
-    const anchored = { x: anchor.x, y: anchor.y, w: box.w, h: box.h };
-    // Held down, a corner keeps the shape of what it is pulling, the way it does elsewhere.
-    const even = this.keepingShape && held.handle.length === 2 ? Math.max(kx, ky) : 0;
-    for (const ref of held.refs) {
-      scaleMark(this.scene, ref, anchored, even || kx, even || ky);
-    }
-    void this.redraw();
+    return gripAt(this.zoom());
   }
 
   protected removeSelected(): void {
@@ -1417,7 +1070,7 @@ export class WhiteBoardEditorComponent {
     this.refreshHistory();
     this.settingChanged();
     void this.redraw();
-    this.keepPicture();
+    this.keeper.keepPicture();
   }
 
   private refreshHistory(): void {
@@ -1449,91 +1102,69 @@ export class WhiteBoardEditorComponent {
     if (isTypingKey(event.target, event.isComposing)) return;
 
     this.keepingShape = event.shiftKey;
-    if (event.key === ' ') {
-      event.preventDefault();
-      this.panning.set(true);
-      return;
-    }
+    const action = boardKeyDown(event.key, {
+      chord: event.ctrlKey || event.metaKey,
+      shift: event.shiftKey,
+      laying: this.laying().length > 0,
+    });
+    if (!action) return;
+    event.preventDefault();
+    this.run(action);
+  }
 
-    if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'z') {
-      event.preventDefault();
-      if (event.shiftKey) this.redo();
-      else this.undo();
-      return;
-    }
-    if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'y') {
-      event.preventDefault();
-      this.redo();
-      return;
-    }
-    if (this.laying().length > 0 && (event.key === 'Enter' || event.key === 'Escape')) {
-      event.preventDefault();
-      this.finishPath(event.key === 'Enter');
-      return;
-    }
-    if (event.key === 'Delete' || event.key === 'Backspace') {
-      event.preventDefault();
-      this.removeSelected();
-      return;
-    }
-    if (event.ctrlKey || event.metaKey) {
-      const key = event.key.toLowerCase();
-      if (key === '0') {
-        event.preventDefault();
+  private run(action: BoardKeyAction): void {
+    switch (action.command) {
+      case 'panStart':
+        this.panning.set(true);
+        break;
+      case 'undo':
+        this.undo();
+        break;
+      case 'redo':
+        this.redo();
+        break;
+      case 'finishPath':
+        this.finishPath(true);
+        break;
+      case 'dropPath':
+        this.finishPath(false);
+        break;
+      case 'deleteSelection':
+        this.removeSelected();
+        break;
+      case 'zoomReset':
         this.zoomTo(1);
-        return;
-      }
-      if (key === '=' || key === '+') {
-        event.preventDefault();
+        break;
+      case 'zoomIn':
         this.zoomIn();
-        return;
-      }
-      if (key === '-') {
-        event.preventDefault();
+        break;
+      case 'zoomOut':
         this.zoomOut();
-        return;
-      }
-      if (key === '9') {
-        event.preventDefault();
+        break;
+      case 'zoomFit':
         this.zoomToFit();
-        return;
-      }
-      if (key === 'a') {
-        event.preventDefault();
+        break;
+      case 'selectAll':
         this.holdEverything();
-        return;
-      }
-      if (key === 'd') {
-        event.preventDefault();
+        break;
+      case 'duplicate':
         this.duplicateSelected();
-        return;
-      }
-      if (key === 'c') {
-        event.preventDefault();
+        break;
+      case 'copy':
         this.copySelected();
-        return;
-      }
-      if (key === 'v') {
-        event.preventDefault();
+        break;
+      case 'paste':
         this.pasteCopied();
-        return;
-      }
-      if (key === ']') {
-        event.preventDefault();
+        break;
+      case 'bringForward':
         this.bringForward();
-        return;
-      }
-      if (key === '[') {
-        event.preventDefault();
+        break;
+      case 'sendBackward':
         this.sendBackward();
-        return;
-      }
-      return;
-    }
-    const shortcut = TOOL_KEYS[event.key.toLowerCase()];
-    if (shortcut) {
-      event.preventDefault();
-      this.choose(shortcut);
+        break;
+      case 'pickTool':
+        this.choose(action.tool);
+        break;
     }
   }
 
@@ -1742,7 +1373,7 @@ export class WhiteBoardEditorComponent {
     const at = this.pointOf(event);
     const guide = newGuide(axis, axis === 'x' ? at.x : at.y);
     this.scene.guides = [...this.guides, guide];
-    this.draggingGuide = guide;
+    this.gesture.dragGuide(guide);
     (event.target as HTMLElement).setPointerCapture?.(event.pointerId);
     void this.redraw();
   }
@@ -1824,134 +1455,41 @@ export class WhiteBoardEditorComponent {
 
     const wants = overlaysWanted(bare, this.scene.gridVisible);
     await this.paintMarks(ctx, wants.grid, hangingLeftOut);
+    if (!wants.helpers) {
+      if (pending && pending.length > 3) drawFreehand(ctx, pending, this.ink());
+      return;
+    }
 
-    // A path shows its own corners rather than the box round it, since it is the corners that
-    // are moved and the box is only where they happen to reach.
+    const zoom = this.zoom();
     const bendable = this.selected();
     const jointed = bendable ? jointedShape(this.scene, bendable) : null;
     const box = jointed ? null : boxAround(this.scene, this.held());
     const window = this.trimming();
-    if (box && window && wants.helpers) {
-      // What is being trimmed away is greyed over, so what is left is what is being kept.
-      const cut = { x: box.x + window.x, y: box.y + window.y, w: window.w, h: window.h };
-      ctx.save();
-      ctx.fillStyle = 'rgba(0,0,0,0.45)';
-      ctx.beginPath();
-      ctx.rect(box.x, box.y, box.w, box.h);
-      ctx.rect(cut.x, cut.y, cut.w, cut.h);
-      ctx.fill('evenodd');
-      ctx.strokeStyle = '#ffffff';
-      ctx.lineWidth = 1.5 / Math.max(0.25, this.zoom());
-      ctx.strokeRect(cut.x, cut.y, cut.w, cut.h);
-      ctx.fillStyle = '#ffffff';
-      const grip = HANDLE_SLACK / Math.max(0.25, this.zoom());
-      for (const handle of HANDLES) {
-        if (handle === 'turn') continue;
-        const at = handleAt(cut, handle);
-        ctx.fillRect(at.x - grip / 2, at.y - grip / 2, grip, grip);
-      }
-      ctx.restore();
-    } else if (box && wants.helpers) {
-      // The hold is drawn on the sheet but is not part of it, so it is left off the picture.
-      ctx.save();
-      ctx.strokeStyle = '#2f7fd8';
-      ctx.lineWidth = 1.5 / Math.max(0.25, this.zoom());
-      ctx.setLineDash([4, 3]);
-      ctx.strokeRect(box.x, box.y, box.w, box.h);
-      ctx.setLineDash([]);
-      ctx.fillStyle = '#ffffff';
-      const grip = HANDLE_SLACK / Math.max(0.25, this.zoom());
-      const stalk = handleAt(box, 'turn');
-      ctx.beginPath();
-      ctx.moveTo(box.x + box.w / 2, box.y);
-      ctx.lineTo(stalk.x, stalk.y);
-      ctx.stroke();
-      for (const handle of HANDLES) {
-        const at = handleAt(box, handle);
-        if (handle === 'turn') {
-          ctx.beginPath();
-          ctx.arc(at.x, at.y, grip / 2, 0, Math.PI * 2);
-          ctx.fill();
-          ctx.stroke();
-          continue;
-        }
-        ctx.fillRect(at.x - grip / 2, at.y - grip / 2, grip, grip);
-        ctx.strokeRect(at.x - grip / 2, at.y - grip / 2, grip, grip);
-      }
-      ctx.restore();
-    }
+    if (box && window) drawTrimWindow(ctx, box, window, zoom);
+    else if (box) drawHold(ctx, box, zoom);
+    if (jointed) drawJoints(ctx, jointed.points, zoom);
 
-    if (jointed && wants.helpers) {
-      ctx.save();
-      ctx.strokeStyle = '#2f7fd8';
-      ctx.fillStyle = '#ffffff';
-      ctx.lineWidth = 1.5 / Math.max(0.25, this.zoom());
-      const grip = HANDLE_SLACK / Math.max(0.25, this.zoom());
-      for (let joint = 0; joint * 2 + 1 < jointed.points.length; joint += 1) {
-        const x = jointed.points[joint * 2];
-        const y = jointed.points[joint * 2 + 1];
-        ctx.beginPath();
-        ctx.arc(x, y, grip / 2, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.stroke();
-      }
-      ctx.restore();
-    }
-
-    if (wants.helpers) {
-      const standing = this.guiding() ? sheetGuides(this.scene) : [];
-      const laid: SnapGuide[] = this.guides.map((guide) => ({
-        axis: guide.axis,
-        at: guide.at,
-        from: 0,
-        to: guide.axis === 'x' ? this.sceneHeight : this.sceneWidth,
-      }));
-      this.drawGuides(ctx, [...standing, ...laid], 'rgba(70,130,220,0.35)');
-      this.drawGuides(ctx, this.showing(), '#e0457b');
-    }
+    const standing = this.guiding() ? sheetGuides(this.scene) : [];
+    const laid: SnapGuide[] = this.guides.map((guide) => ({
+      axis: guide.axis,
+      at: guide.at,
+      from: 0,
+      to: guide.axis === 'x' ? this.sceneHeight : this.sceneWidth,
+    }));
+    drawGuides(ctx, [...standing, ...laid], 'rgba(70,130,220,0.35)', zoom);
+    drawGuides(ctx, this.showing(), '#e0457b', zoom);
 
     const laying = this.laying();
-    if (laying.length > 0 && wants.helpers) {
-      ctx.save();
-      ctx.strokeStyle = this.color();
-      ctx.lineWidth = this.strokeWidth();
-      ctx.lineJoin = 'round';
-      ctx.lineCap = 'round';
-      ctx.beginPath();
-      ctx.moveTo(laying[0].x, laying[0].y);
-      for (const at of laying.slice(1)) ctx.lineTo(at.x, at.y);
-      if (this.hovering) ctx.lineTo(this.hovering.x, this.hovering.y);
-      ctx.stroke();
-      ctx.fillStyle = '#2f7fd8';
-      for (const at of laying) ctx.fillRect(at.x - 2, at.y - 2, 4, 4);
-      ctx.restore();
-    }
+    if (laying.length > 0) drawLaying(ctx, laying, this.gesture.hover, this.ink());
+    const band = this.gesture.band();
+    if (band) drawBand(ctx, band, zoom);
+    const dragging = this.gesture.pendingMark();
+    if (dragging) drawPending(ctx, dragging, this.ink());
+    if (pending && pending.length > 3) drawFreehand(ctx, pending, this.ink());
+  }
 
-    if (this.bandFrom && this.bandTo && wants.helpers) {
-      const area = boxBetweenPoints(this.bandFrom, this.bandTo);
-      ctx.save();
-      ctx.strokeStyle = '#2f7fd8';
-      ctx.fillStyle = 'rgba(47,127,216,0.12)';
-      ctx.lineWidth = 1 / Math.max(0.25, this.zoom());
-      ctx.setLineDash([3, 3]);
-      ctx.fillRect(area.x, area.y, area.w, area.h);
-      ctx.strokeRect(area.x, area.y, area.w, area.h);
-      ctx.restore();
-    }
-
-    const dragging = this.pendingMark();
-    if (dragging && wants.helpers) this.drawPending(ctx, dragging);
-
-    if (pending && pending.length > 3) {
-      ctx.strokeStyle = this.color();
-      ctx.lineWidth = this.strokeWidth();
-      ctx.lineCap = 'round';
-      ctx.lineJoin = 'round';
-      ctx.beginPath();
-      ctx.moveTo(pending[0], pending[1]);
-      for (let i = 2; i < pending.length; i += 2) ctx.lineTo(pending[i], pending[i + 1]);
-      ctx.stroke();
-    }
+  private ink(): Ink {
+    return { color: this.color(), width: this.strokeWidth() };
   }
 
   /** Kept once the drawing settles, since a single stroke is a hundred changes on its own. */
@@ -1959,65 +1497,7 @@ export class WhiteBoardEditorComponent {
     this.history.commit(this.scene);
     this.refreshHistory();
     void this.redraw();
-    this.keepPicture();
-  }
-
-  /**
-   * Closing the panel writes down what was still waiting to be written.
-   *
-   * A drawing is kept a breath after the last stroke rather than on every one of them, so
-   * closing within that breath used to lose the stroke: the timer fired on a component that
-   * had gone, found no canvas, and returned before writing anything. The measurer is given
-   * back too, being a closure over this canvas that outlived it and went on being asked.
-   */
-  private putDown(): void {
-    if (this.saveTimer === null) return;
-    clearTimeout(this.saveTimer);
-    this.saveTimer = null;
-    this.writeScene();
-  }
-
-  /** The drawing itself, which is what must survive; the picture it wears can wait. */
-  private writeScene(): void {
-    if (!this.board) return;
-    this.board.scene = serializeScene(this.scene);
-    this.board.update();
-  }
-
-  private keepPicture(): void {
-    if (this.saveTimer !== null) clearTimeout(this.saveTimer);
-    this.saveTimer = setTimeout(() => {
-      this.saveTimer = null;
-      void this.save();
-    }, SAVE_DELAY);
-  }
-
-  private async save(): Promise<void> {
-    const board = this.board;
-    const canvas = this.canvasRef()?.nativeElement;
-    if (!board || !canvas) return;
-    board.scene = serializeScene(this.scene);
-
-    // Taken off the sheet bare: neither the ruling nor the guides are part of the board.
-    await this.redraw(undefined, true, true);
-    const blob = await new Promise<Blob | null>((resolve) => {
-      if (typeof canvas.toBlob !== 'function') resolve(null);
-      else canvas.toBlob((made) => resolve(made), 'image/webp', 0.92);
-    });
-    if (!blob) {
-      board.update();
-      void this.redraw();
-      return;
-    }
-
-    const file = await this.imageStorage.addAsync(blob);
-    const element = board.imageDataElement?.getFirstElementByName('imageIdentifier');
-    const worn = element?.value;
-    if (element) element.value = file.identifier;
-    board.update();
-    // The picture the board wore before this edit is worn by nothing now.
-    if (typeof worn === 'string' && worn && worn !== file.identifier) this.imageStorage.delete(worn);
-    void this.redraw();
+    this.keeper.keepPicture();
   }
 }
 
@@ -2026,34 +1506,3 @@ function clampSide(value: number): number {
   if (!Number.isFinite(side)) return MIN_SIDE;
   return Math.min(MAX_SIDE, Math.max(MIN_SIDE, side));
 }
-
-/** The box two dragged out corners make, whichever way round they were dragged. */
-function boxBetweenPoints(from: BoardPoint, to: BoardPoint): MarkBox {
-  return {
-    x: Math.min(from.x, to.x),
-    y: Math.min(from.y, to.y),
-    w: Math.abs(to.x - from.x),
-    h: Math.abs(to.y - from.y),
-  };
-}
-
-/** Pulls one side or corner of the trim window in, never past the picture or past itself. */
-function pullWindow(window: MarkBox, grip: Handle, dx: number, dy: number, picture: MarkBox): MarkBox {
-  const next = { ...window };
-  if (grip.includes('w')) {
-    const left = Math.max(0, Math.min(next.x + dx, next.x + next.w - MIN_TRIM));
-    next.w += next.x - left;
-    next.x = left;
-  }
-  if (grip.includes('e')) next.w = Math.max(MIN_TRIM, Math.min(next.w + dx, picture.w - next.x));
-  if (grip.includes('n')) {
-    const top = Math.max(0, Math.min(next.y + dy, next.y + next.h - MIN_TRIM));
-    next.h += next.y - top;
-    next.y = top;
-  }
-  if (grip.includes('s')) next.h = Math.max(MIN_TRIM, Math.min(next.h + dy, picture.h - next.y));
-  return next;
-}
-
-/** How little of a picture may be left, so there is always something to pull back out by. */
-const MIN_TRIM = 8;

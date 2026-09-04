@@ -642,7 +642,11 @@
       },
       "field": {
         "name": "カード名",
-        "size": "サイズ"
+        "size": "サイズ",
+        "text": "カード文章",
+        "textHint": "ルビは |漢字《かんじ》、引用は行頭の > で指定できます。",
+        "fontSize": "文字サイズ",
+        "fontColor": "文字色"
       },
       "drawDialog": {
         "title": "カードを引く",
@@ -827,7 +831,12 @@
       "message": {
         "rolled": "{{who}} が {{name}} を振りました → {{face}}",
         "rolledMany": "{{who}} が ダイス{{count}}個を振りました → {{results}}",
-        "rolledManyTotal": "{{who}} が ダイス{{count}}個を振りました → {{results}}（合計 {{total}}）"
+        "rolledManyTotal": "{{who}} が ダイス{{count}}個を振りました → {{results}}（合計 {{total}}）",
+        "notRolled": "読めないダイス {{count}} 個は振られませんでした"
+      },
+      "log": {
+        "reveal": "{{name}} の出目は {{face}} です。",
+        "revealNoName": "ダイスの出目は {{face}} です。"
       }
     },
     "effect": {
@@ -1099,7 +1108,14 @@
       "setCurrent": "この手番にする",
       "buffDecayOn": "バフの残ラウンドを自動で減らす: オン",
       "buffDecayOff": "バフの残ラウンドを自動で減らす: オフ",
-      "buffExpired": "効果が切れました。{{detail}}"
+      "buffExpired": "効果が切れました。{{detail}}",
+      "advanceRound": "ラウンドを進める",
+      "advanceRoundAnnounce": "ラウンドを進めました。",
+      "undoAnnounce": "手番を1つ前に戻しました。",
+      "acted": "行動済み",
+      "undo": "1つ前に戻す",
+      "retreatRound": "ラウンドを戻す",
+      "retreatRoundAnnounce": "ラウンド{{n}}に戻しました。"
     },
     "inventory": {
       "contextMenu": {
@@ -1293,6 +1309,7 @@
         "confirmCleanFiltered": "絞り込み中の{{count}}個の要素を完全に削除しますか？",
         "multiMove": "一括移動",
         "displaySettings": "表示設定",
+        "filterSettings": "絞り込みと表示設定",
         "sortOrder1": "並び順 第1",
         "sortOrder2": "並び順 第2",
         "tagPlaceholder": "タグ名",
@@ -1359,6 +1376,8 @@
         "invokeRangeShape": "登録済み射程を出す",
         "hideInventoryOn": "☑ インベントリ非表示",
         "hideInventoryOff": "☐ インベントリ非表示",
+        "noTurnOn": "☑ 手番をもたない",
+        "noTurnOff": "☐ 手番をもたない",
         "nonTalkOn": "☑ 発言しない",
         "nonTalkOff": "☐ 発言しない",
         "displaySettings": "表示",
@@ -1638,6 +1657,7 @@
         "createMask": "マップマスクを作成",
         "createTerrain": "地形を作成",
         "createNote": "共有メモを作成",
+        "createBlankCard": "ブランクカードを作成",
         "createTrump": "トランプの山札を作成",
         "createDice": "ダイスを作成",
         "createCoin": "コインを作成",
@@ -1881,7 +1901,31 @@
         "fogModeHard": "ハード（記憶を消す）",
         "fogModeHint": "イージーは一度晴らした霧が戻らず明るいままで、見つけた敵はどこへ動いても位置がわかります。ノーマルは霧こそ戻りませんが、離れた場所は暗くなり、敵も未踏破へ動くと見失います。ハードは視界から外れると未踏破に戻ります",
         "fogColor": "霧の色",
-        "fogReset": "霧をリセット"
+        "fogReset": "霧をリセット",
+        "sectionMoveRange": "移動範囲",
+        "moveRangeEnabled": "コマを持ち上げたら移動できるマスを表示する",
+        "moveRangeAlways": "選んだコマの移動範囲を出したままにする",
+        "moveDiagonally": "斜め移動を許可する（1 マスとして数える）",
+        "piecesShareCells": "同じマスに複数のコマを置ける（切ると、他のコマがいるマスは移動先に出さない）",
+        "moveRangeElementNames": "参照する項目",
+        "cellDistance": "1 マスの距離",
+        "cellDistanceUnit": "マスの単位",
+        "moveRangeHint": "項目名はカンマ区切りで、シートに先に見つかったものを使う。シートの値を 1 マスの距離で割ってマス数にする（0 なら割らない）。シートの単位が卓と違えば、フィートとメートルは換算する。シートが「マス」ならそのままマス数として読む。",
+        "zocMode": "ZOC（支配領域）",
+        "zocMode_none": "なし",
+        "zocMode_stop": "足止め（入ったらそこで移動終了）",
+        "zocMode_block": "進入不可（そのマスには入れない）",
+        "zocMode_cost": "移動コスト増（入るのに余分に消費）",
+        "zocRange": "ZOC の広さ",
+        "zocExtraCost": "余分な移動コスト",
+        "zocAlways": "ZOC の常時表示",
+        "zocAlwaysHint": "選んだコマに対する ZOC を出したままにする",
+        "zocHint": "NPC かどうかが違うコマを敵とみなし、その周りのマスが移動を妨げる。自分に見えていないコマは ZOC を張らない。",
+        "cellUnit": {
+          "cell": "マス",
+          "metre": "メートル",
+          "foot": "フィート"
+        }
       },
       "dungeonGenerator": {
         "atmosphere": {
@@ -3210,7 +3254,13 @@
       "replay": "リプレイ",
       "recording": "録画",
       "fogOn": "戦場の霧: オン（クリックでオフ）",
-      "fogOff": "戦場の霧: オフ（クリックでオン）"
+      "fogOff": "戦場の霧: オフ（クリックでオン）",
+      "moveBlockOn": "移動不可を塗る（終了）",
+      "moveBlockOff": "移動不可を塗る",
+      "moveBlockBrush": "塗る",
+      "moveBlockErase": "消しゴム",
+      "moveBlockClear": "全部消す",
+      "moveBlockClearConfirm": "塗った移動不可マスを全部消しますか？"
     },
     "roomDataDefault": "ルームデータ"
   },

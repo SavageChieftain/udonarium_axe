@@ -1,4 +1,3 @@
-import { ObjectStore } from '@axe/core/sync/object-store';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { NpcDragService } from '@axe/features/gm-tools/npc-bar/npc-drag.service';
 
@@ -9,18 +8,7 @@ function makeCharacter(name: string, isNpc = false): GameCharacter {
 }
 
 describe('NpcDragService', () => {
-  let store: ObjectStore;
-
-  beforeEach(() => {
-    store = ObjectStore.instance;
-    store.getObjects().forEach((obj) => store.delete(obj, false));
-    store.clearDeleteHistory();
-  });
-
-  afterEach(() => {
-    store.getObjects().forEach((obj) => store.delete(obj, false));
-    store.clearDeleteHistory();
-  });
+  beforeEach(() => {});
 
   it('holds the character and the point through a drag', () => {
     const service = new NpcDragService();

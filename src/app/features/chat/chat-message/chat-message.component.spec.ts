@@ -94,6 +94,45 @@ describe('ChatMessageComponent', () => {
     expect(fixture.nativeElement.textContent).toContain('→ 4');
   });
 
+  describe('opening a line that was kept back', () => {
+    function saySecret(tab: ChatTab, text: string, timestamp: number): ChatMessage {
+      return tab.addMessage({ from: 'me', name: text, text, timestamp, tag: 'system-message secret' });
+    }
+
+    it('moves the opened line to the end of the tab it was said in', () => {
+      const tab = new ChatTab();
+      tab.initialize();
+      try {
+        const secret = saySecret(tab, '隠しダイス → 6', 1000);
+        tab.addMessage({ from: 'someone-else', name: 'あと', text: 'そのあとの発言', timestamp: 1001 });
+        fixture.componentRef.setInput('chatMessage', secret);
+
+        component.discloseMessage();
+
+        expect(secret.isSecret).toBe(false);
+        expect(tab.chatMessages[tab.chatMessages.length - 1]).toBe(secret);
+      } finally {
+        tab.destroy();
+      }
+    });
+
+    it('keeps the time the line was said', () => {
+      const tab = new ChatTab();
+      tab.initialize();
+      try {
+        const secret = saySecret(tab, '隠しダイス → 6', 1000);
+        tab.addMessage({ from: 'someone-else', name: 'あと', text: 'そのあとの発言', timestamp: 1001 });
+        fixture.componentRef.setInput('chatMessage', secret);
+
+        component.discloseMessage();
+
+        expect(secret.timestamp).toBe(1000);
+      } finally {
+        tab.destroy();
+      }
+    });
+  });
+
   it('takes a portrait that arrives later into the thumbnail', () => {
     const identifier = 'late-arriving-image';
     const message = new ChatMessage();

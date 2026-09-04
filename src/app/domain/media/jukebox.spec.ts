@@ -3,7 +3,6 @@ import { updateAudioResource$ } from '@axe/core/event/domain-events';
 import { AudioFile } from '@axe/core/storage/audio-file';
 import { AudioPlayer, VolumeType } from '@axe/core/storage/audio-player';
 import { AudioStorage } from '@axe/core/storage/audio-storage';
-import { ObjectStore } from '@axe/core/sync/object-store';
 import { AudioTag } from '@axe/domain/media/audio-tag';
 import { Jukebox } from '@axe/domain/media/jukebox';
 import { Config } from '@axe/domain/peer/config';
@@ -32,20 +31,11 @@ function stubAudioPlayerStop() {
 }
 
 describe('Jukebox', () => {
-  let store: ObjectStore;
-
   beforeEach(() => {
     TestBed.configureTestingModule({});
-    store = ObjectStore.instance;
-    const allObjects = store.getObjects();
-    allObjects.forEach((obj) => store.delete(obj, false));
-    store.clearDeleteHistory();
   });
 
   afterEach(() => {
-    const allObjects = store.getObjects();
-    allObjects.forEach((obj) => store.delete(obj, false));
-    store.clearDeleteHistory();
     AudioStorage.instance.audios.forEach((a) => AudioStorage.instance.delete(a.identifier));
     vi.restoreAllMocks();
   });

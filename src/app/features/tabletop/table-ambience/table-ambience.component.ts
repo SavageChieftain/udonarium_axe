@@ -1,6 +1,7 @@
 import { NgStyle } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, inject, input, signal } from '@angular/core';
 import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
+import { PointerDeviceService } from '@axe/application/input/pointer-device.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { AmbienceService } from '@axe/application/tabletop/ambience.service';
 import { TabletopService } from '@axe/application/tabletop/tabletop.service';
@@ -8,7 +9,6 @@ import { ContextMenuService } from '@axe/application/ui/context-menu.service';
 import { PanelOption, PanelService } from '@axe/application/ui/panel.service';
 import { PieceContextMenuService } from '@axe/application/ui/piece-context-menu.service';
 import { UiSignalService } from '@axe/application/ui/ui-signal.service';
-import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import {
   groundSurfaceLayer,
   groundSurfaceWash,

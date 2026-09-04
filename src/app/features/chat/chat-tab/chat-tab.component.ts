@@ -45,20 +45,6 @@ interface WritingSpeaker {
   imageFile: ImageFile;
 }
 
-const activeChatTabComponents = new Set<{ writingSpeakers: { set(v: WritingSpeaker[]): void } }>();
-
-if (typeof window !== 'undefined') {
-  (window as unknown as { dbgWriting?: (n: number) => number }).dbgWriting = (n: number) => {
-    const names = ['Alice', 'Bob', 'Carol', 'Dave', 'Eve', 'Frank', 'Grace', 'Henry'];
-    const dummies: WritingSpeaker[] = [];
-    for (let i = 0; i < n; i++) {
-      dummies.push({ peerId: `__debug_${i}`, name: names[i % names.length], imageFile: ImageFile.Empty });
-    }
-    for (const instance of activeChatTabComponents) instance.writingSpeakers.set(dummies);
-    return activeChatTabComponents.size;
-  };
-}
-
 @Component({
   selector: 'chat-tab',
   templateUrl: './chat-tab.component.html',
@@ -129,13 +115,8 @@ export class ChatTabComponent {
       [ChatMessage.aliasName],
       (event) => {
         const message = this.objectStore.get(event.identifier);
-        if (
-          message &&
-          message instanceof ChatMessage &&
-          this.topTimestamp <= message.timestamp &&
-          message.timestamp <= this.botomTimestamp &&
-          this.chatTab?.contains(message)
-        ) {
+        if (message instanceof ChatMessage && this.chatTab?.contains(message) && this.topPlacedAt <= message.placedAt) {
+          this.needUpdate = true;
           this.renderVersion.update((v) => v + 1);
         }
       },
@@ -159,16 +140,13 @@ export class ChatTabComponent {
       for (const timeout of this.writingSpeakerTimeouts.values()) timeout.stop();
       this.writingSpeakerTimeouts.clear();
       this.writingSpeakerIdentifiers.clear();
-      activeChatTabComponents.delete(this);
     });
-    activeChatTabComponents.add(this);
   }
 
   private readonly rawSampleMessages = buildSampleChatMessages();
   sampleMessages: ChatMessage[] = [];
 
-  private topTimestamp = 0;
-  private botomTimestamp = 0;
+  private topPlacedAt = 0;
 
   private needUpdate = true;
 
@@ -206,9 +184,7 @@ export class ChatTabComponent {
       const chatMessages = this.chatTab ? this.chatTab.chatMessages : [];
       this.adjustIndex();
       this._chatMessages = chatMessages.slice(this.topIndex, this.bottomIndex + 1);
-      this.topTimestamp = 0 < this._chatMessages.length ? this._chatMessages[0].timestamp : 0;
-      this.botomTimestamp =
-        0 < this._chatMessages.length ? this._chatMessages[this._chatMessages.length - 1].timestamp : 0;
+      this.topPlacedAt = 0 < this._chatMessages.length ? this._chatMessages[0].placedAt : 0;
     }
     return this._chatMessages;
   }

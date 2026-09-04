@@ -1,7 +1,7 @@
 import { inject, Injectable } from '@angular/core';
 import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
+import { PointerCoordinate } from '@axe/application/input/pointer-device.service';
 import { TabletopService } from '@axe/application/tabletop/tabletop.service';
-import { PointerCoordinate } from '@axe/core/input/pointer-device.service';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { RangeShapeFieldValue } from '@axe/domain/data/range-shape-field';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';

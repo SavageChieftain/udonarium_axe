@@ -1,7 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { PanelService } from '@axe/application/ui/panel.service';
 import { SelectionSignalService } from '@axe/application/ui/selection-signal.service';
-import { ObjectStore } from '@axe/core/sync/object-store';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { Party } from '@axe/domain/party/party';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
@@ -14,7 +13,6 @@ describe('OwnedCharacterListPanelComponent', () => {
   let component: OwnedCharacterListPanelComponent;
   let fixture: ComponentFixture<OwnedCharacterListPanelComponent>;
   let panelStub: { open: ReturnType<typeof vi.fn>; openLazy: ReturnType<typeof vi.fn> };
-  let store: ObjectStore;
 
   function makeCharacter(name: string, owner: string, locationName: string): GameCharacter {
     const character = GameCharacter.create(name, 1, '');
@@ -32,14 +30,11 @@ describe('OwnedCharacterListPanelComponent', () => {
     TestBed.overrideProvider(PanelService, { useValue: panelStub });
     fixture = TestBed.createComponent(OwnedCharacterListPanelComponent);
     component = fixture.componentInstance;
-    store = ObjectStore.instance;
     PeerCursor.createMyCursor();
     PeerCursor.myCursor.userId = 'me';
   });
 
   afterEach(() => {
-    store.getObjects().forEach((object) => store.delete(object, false));
-    store.clearDeleteHistory();
     PeerCursor.myCursor = null!;
   });
 

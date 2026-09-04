@@ -4,6 +4,7 @@ import { IPeerContext } from '@axe/core/network/peer-context';
 import { ObjectSerializer } from '@axe/core/sync/object-serializer';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { ChatMessage } from '@axe/domain/chat/chat-message';
+import { ChatTab } from '@axe/domain/chat/chat-tab';
 
 describe('ChatMessage', () => {
   let store: ObjectStore;
@@ -11,9 +12,6 @@ describe('ChatMessage', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({});
     store = ObjectStore.instance;
-    const allObjects = store.getObjects();
-    allObjects.forEach((obj) => store.delete(obj, false));
-    store.clearDeleteHistory();
 
     vi.spyOn(Network, 'peerContext', 'get').mockReturnValue({
       peerId: 'test-peer',
@@ -23,9 +21,6 @@ describe('ChatMessage', () => {
   });
 
   afterEach(() => {
-    const allObjects = store.getObjects();
-    allObjects.forEach((obj) => store.delete(obj, false));
-    store.clearDeleteHistory();
     vi.restoreAllMocks();
   });
 
@@ -409,6 +404,50 @@ describe('ChatMessage', () => {
       expect(restoredReply.replyTo).toBe(targetId);
       // with the identifiers kept, the link can be made again
       expect(restoredReply.replyToMessage).toBe(restoredTarget);
+    });
+  });
+
+  describe('where a line sits among the others', () => {
+    const reload = (message: ChatMessage): ChatMessage => {
+      const xml = message.toXml();
+      store.delete(message, false);
+      store.clearDeleteHistory();
+      return ObjectSerializer.instance.parseXml(xml) as ChatMessage;
+    };
+
+    it('keeps an opened line behind a later one after it is read back from xml', () => {
+      const opened = new ChatMessage();
+      opened.initialize();
+      opened.setAttribute('timestamp', 1000);
+      opened.disclosedAt = 5000;
+      const later = new ChatMessage();
+      later.initialize();
+      later.setAttribute('timestamp', 2000);
+
+      // as a save writes them, the opened line last
+      const reloadedLater = reload(later);
+      const reloadedOpened = reload(opened);
+
+      const tab = new ChatTab();
+      tab.initialize();
+      try {
+        tab.appendChild(reloadedLater);
+        tab.appendChild(reloadedOpened);
+
+        expect(tab.chatMessages[tab.chatMessages.length - 1]).toBe(reloadedOpened);
+      } finally {
+        tab.destroy();
+      }
+    });
+
+    it('reads a time of opening that came back as text as a number', () => {
+      const message = new ChatMessage();
+      message.initialize();
+      message.setAttribute('timestamp', 1000);
+      message.setAttribute('disclosedAt', '5000');
+
+      expect(message.placedAt).toBe(5000);
+      expect(typeof message.index).toBe('number');
     });
   });
 

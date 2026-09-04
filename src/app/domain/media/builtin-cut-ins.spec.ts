@@ -26,13 +26,9 @@ describe('the cut-ins a new room starts with', () => {
     PresetSound.collapse = 'collapse-sound';
     store = ObjectStore.instance;
     imageStorage = ImageStorage.instance;
-    store.getObjects().forEach((object) => store.delete(object, false));
-    store.clearDeleteHistory();
   });
 
   afterEach(() => {
-    store.getObjects().forEach((object) => store.delete(object, false));
-    store.clearDeleteHistory();
     imageStorage.images.forEach((image) => imageStorage.delete(image.identifier));
   });
 
@@ -269,8 +265,6 @@ describe('the cut-ins a new room starts with', () => {
     const [flash] = made();
     const xml = ObjectSerializer.instance.toXml(flash);
     const names = flash.scene!.layers.map((layer) => layer.name);
-
-    store.getObjects().forEach((object) => store.delete(object, false));
     store.clearDeleteHistory();
     const restored = ObjectSerializer.instance.parseXml(xml) as CutIn;
 

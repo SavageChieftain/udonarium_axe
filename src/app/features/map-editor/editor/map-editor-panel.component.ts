@@ -1,9 +1,10 @@
-import { NgClass, NgTemplateOutlet } from '@angular/common';
+import { NgClass } from '@angular/common';
 import {
   AfterViewInit,
   ChangeDetectionStrategy,
   Component,
   computed,
+  DestroyRef,
   effect,
   ElementRef,
   inject,
@@ -16,43 +17,30 @@ import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { RolePermissionService } from '@axe/application/permission/role-permission.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { TabletopService } from '@axe/application/tabletop/tabletop.service';
+import { ConfirmService } from '@axe/application/ui/confirm.service';
 import { ModalService } from '@axe/application/ui/modal.service';
 import { PanelService } from '@axe/application/ui/panel.service';
+import { transientSignal } from '@axe/application/ui/transient-signal';
 import { ViewportService } from '@axe/application/ui/viewport.service';
 import { isTypingTarget } from '@axe/core/input/typing-target';
-import { ImageFile } from '@axe/core/storage/image-file';
 import { ImageStorage } from '@axe/core/storage/image-storage';
-import { ImageTag } from '@axe/domain/media/image-tag';
-import {
-  isTextureId,
-  TEXTURE_ASSET_URLS,
-  TEXTURE_BASE_COLOR,
-  TEXTURE_IDS,
-  TEXTURE_IMAGE_TAG,
-  TextureId,
-} from '@axe/domain/media/texture-catalog';
+import { isTextureId, TEXTURE_ASSET_URLS } from '@axe/domain/media/texture-catalog';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { GridType } from '@axe/domain/tabletop/game-table';
-import {
-  imageStampIdentifier,
-  isImageStampId,
-  MAP_STAMP_TAG,
-  toImageStampId,
-} from '@axe/features/map-editor/assets/image-stamp';
-import { STAMP_CATEGORIES, StampCategory, StampDef } from '@axe/features/map-editor/assets/stamp-types';
-import { getStampById, getStampsByCategory, STAMPS } from '@axe/features/map-editor/assets/stamps';
+import { imageStampIdentifier, isImageStampId } from '@axe/features/map-editor/assets/image-stamp';
+import { StampDef } from '@axe/features/map-editor/assets/stamp-types';
+import { getStampById, STAMPS } from '@axe/features/map-editor/assets/stamps';
 import { GestureKind, MapEditorGesture } from '@axe/features/map-editor/editor/map-editor-gesture';
+import { MapEditorLayerDrawerComponent } from '@axe/features/map-editor/editor/map-editor-layer-drawer.component';
 import { mapEditorKeyDown, mapEditorKeyUp } from '@axe/features/map-editor/editor/map-editor-shortcut';
+import { MapEditorStampPickerComponent } from '@axe/features/map-editor/editor/map-editor-stamp-picker.component';
 import {
   EditorTool,
   LineKind,
   MapEditorState,
   ShapeGeneratorKind,
 } from '@axe/features/map-editor/editor/map-editor-state';
-import {
-  TextureCropDialogComponent,
-  TextureCropDialogOption,
-} from '@axe/features/map-editor/editor/texture-crop-dialog.component';
+import { MapEditorTexturePickerComponent } from '@axe/features/map-editor/editor/map-editor-texture-picker.component';
 import {
   curveAnchorAt,
   fitImageSize,
@@ -63,7 +51,6 @@ import { cellCenter, pointToCell } from '@axe/features/map-editor/model/grid-cel
 import {
   cellKey,
   ImageItem,
-  LayerKind,
   MapLayer,
   MapScene,
   newId,
@@ -74,7 +61,8 @@ import {
 } from '@axe/features/map-editor/model/scene';
 import { isZipArchive } from '@axe/features/map-editor/model/scene-archive';
 import { packSceneWithImages, unpackSceneWithImages } from '@axe/features/map-editor/model/scene-archive-images';
-import { moveLayer, removeLayer, removeText, updateText } from '@axe/features/map-editor/model/scene-ops';
+import { guessLineWidth, useTextMeasurer } from '@axe/features/map-editor/model/scene-geometry';
+import { removeText, updateText } from '@axe/features/map-editor/model/scene-ops';
 import { deserializeScene } from '@axe/features/map-editor/model/serialize';
 import { generateShapePoints, regularPolygonPoints, starPoints } from '@axe/features/map-editor/model/shape-points';
 import { imageTextureIdentifier, isImageTextureId, normalizeTextureId } from '@axe/features/map-editor/model/textures';
@@ -89,9 +77,7 @@ import {
 import { RenderHelpers, renderScene } from '@axe/features/map-editor/render/render-scene';
 import { getStampImage, loadStampImage } from '@axe/features/map-editor/render/stamp-image';
 import { createImageTexturePattern } from '@axe/features/map-editor/render/texture-pattern';
-import { ConfirmDialogComponent } from '@axe/ui/components/confirm-dialog/confirm-dialog.component';
 import { FileSelecterComponent } from '@axe/ui/components/file-selecter/file-selecter.component';
-import { reorderRows, RowReorder } from '@axe/ui/dragging/row-reorder';
 import { TranslocoModule } from '@jsverse/transloco';
 
 export function buildShapeKindPoints(kind: ShapeGeneratorKind): string {
@@ -148,7 +134,14 @@ interface ToolDef {
     '(keyup)': 'onKeyUp($event)',
   },
   providers: [MapEditorState],
-  imports: [FormsModule, NgClass, NgTemplateOutlet, TranslocoModule],
+  imports: [
+    FormsModule,
+    NgClass,
+    TranslocoModule,
+    MapEditorLayerDrawerComponent,
+    MapEditorStampPickerComponent,
+    MapEditorTexturePickerComponent,
+  ],
 })
 export class MapEditorPanelComponent implements AfterViewInit {
   protected readonly state = inject(MapEditorState);
@@ -166,14 +159,13 @@ export class MapEditorPanelComponent implements AfterViewInit {
   private readonly modalService = inject(ModalService);
   private readonly sanitizer = inject(DomSanitizer);
   protected readonly t = inject(TRANSLATE_FN);
+  private readonly confirm = inject(ConfirmService);
 
   private readonly exportFn = exportSceneToBlob;
   private readonly loadImageFn = loadRasterImage;
 
   private readonly board = viewChild<ElementRef<HTMLCanvasElement>>('board');
   private readonly fileInput = viewChild<ElementRef<HTMLInputElement>>('fileInput');
-  private readonly textureFileInput = viewChild<ElementRef<HTMLInputElement>>('textureFileInput');
-  private readonly stampFileInput = viewChild<ElementRef<HTMLInputElement>>('stampFileInput');
   protected readonly textEditor = viewChild<ElementRef<HTMLElement>>('textEditor');
   private readonly stage = viewChild<ElementRef<HTMLDivElement>>('stage');
 
@@ -223,12 +215,6 @@ export class MapEditorPanelComponent implements AfterViewInit {
   private readonly shortcutToTool = new Map<string, EditorTool>(this.tools.map((d) => [d.key, d.tool]));
   private readonly toolKeys = new Set(this.shortcutToTool.keys());
 
-  protected readonly textureIds = TEXTURE_IDS;
-  protected readonly textureBaseColor = TEXTURE_BASE_COLOR;
-  protected readonly textureAssetUrls = TEXTURE_ASSET_URLS;
-  protected readonly stampCategories = STAMP_CATEGORIES;
-  protected readonly layerKinds: LayerKind[] = ['cell', 'shape', 'stamp', 'freehand', 'text', 'image'];
-
   private readonly renderTick = signal(0);
   private readonly pendingStamps = new Set<string>();
   private readonly pendingImages = new Set<string>();
@@ -247,13 +233,10 @@ export class MapEditorPanelComponent implements AfterViewInit {
     itemId: string | null;
   } | null>(null);
   protected readonly textDraft = signal('');
-  protected readonly addLayerMenuOpen = signal(false);
   protected readonly busy = signal(false);
-  protected readonly notice = signal('');
-  protected readonly errorNotice = signal('');
+  protected readonly notice = transientSignal('', 2500);
+  protected readonly errorNotice = transientSignal('', 2500);
   protected readonly exportScale = signal(1);
-  protected readonly renamingLayerId = signal<string | null>(null);
-  protected readonly layerDrag = new RowReorder<string>();
 
   private pendingTextFocus = false;
   private pendingTextInitial = '';
@@ -279,11 +262,6 @@ export class MapEditorPanelComponent implements AfterViewInit {
     return { cols: s.cols, rows: s.rows, cellPx: s.cellPx };
   });
 
-  protected readonly layers = computed(() => {
-    this.state.sceneTick();
-    return this.state.layersTopFirst();
-  });
-
   protected readonly layerThumbnails = computed<Map<string, string>>(() => {
     this.state.sceneTick();
     this.renderTick();
@@ -293,20 +271,6 @@ export class MapEditorPanelComponent implements AfterViewInit {
       if (url) map.set(layer.id, url);
     }
     return map;
-  });
-
-  protected readonly categoryStamps = computed<StampDef[]>(() => getStampsByCategory(this.state.stampCategory()));
-
-  protected readonly imageTextures = computed<ImageFile[]>(() => {
-    this.objectChange.fileVersion();
-    this.objectChange.collectionOf('image-tag')();
-    return ImageTag.searchImages([TEXTURE_IMAGE_TAG], this.rolePermission.canSeeHidden);
-  });
-
-  protected readonly stampImages = computed<ImageFile[]>(() => {
-    this.objectChange.fileVersion();
-    this.objectChange.collectionOf('image-tag')();
-    return ImageTag.searchImages([MAP_STAMP_TAG], this.rolePermission.canSeeHidden);
   });
 
   protected readonly canvasCursor = computed(() => {
@@ -322,6 +286,16 @@ export class MapEditorPanelComponent implements AfterViewInit {
   });
 
   constructor() {
+    const stopMeasuring = useTextMeasurer((text, fontSize, bold, italic) => {
+      const ctx = this.board()?.nativeElement.getContext('2d');
+      if (!ctx) return guessLineWidth(text, fontSize);
+      ctx.save();
+      ctx.font = `${italic ? 'italic ' : ''}${bold ? 'bold ' : ''}${fontSize}px sans-serif`;
+      const width = ctx.measureText(text).width;
+      ctx.restore();
+      return width;
+    });
+    inject(DestroyRef).onDestroy(stopMeasuring);
     queueMicrotask(() => (this.panelService.title = this.t('feature.mapEditor.title')));
     effect(() => {
       this.state.sceneTick();
@@ -382,11 +356,6 @@ export class MapEditorPanelComponent implements AfterViewInit {
     return this.sanitizer.bypassSecurityTrustHtml(
       `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24">${inner}</svg>`
     );
-  }
-
-  protected stampDataUri(def: StampDef, color: string | null): string {
-    const svg = def.svg.split('currentColor').join(color ?? 'currentColor');
-    return 'data:image/svg+xml,' + encodeURIComponent(svg);
   }
 
   private buildHelpers(ctx: CanvasRenderingContext2D): RenderHelpers {
@@ -1334,82 +1303,6 @@ export class MapEditorPanelComponent implements AfterViewInit {
     this.state.fillMode.set(mode);
   }
 
-  protected selectTexture(id: TextureId): void {
-    this.state.textureId.set(id);
-    this.state.fillMode.set('texture');
-  }
-
-  protected selectImageTexture(file: ImageFile): void {
-    this.state.textureId.set('image:' + file.identifier);
-    this.state.fillMode.set('texture');
-  }
-
-  protected isActiveImageTexture(file: ImageFile): boolean {
-    return this.state.textureId() === 'image:' + file.identifier;
-  }
-
-  protected triggerTextureUpload(): void {
-    this.textureFileInput()?.nativeElement.click();
-  }
-
-  protected async onTextureFileSelected(event: Event): Promise<void> {
-    const input = event.target as HTMLInputElement;
-    const file = input.files?.[0];
-    input.value = '';
-    if (!file) return;
-    const objectUrl = URL.createObjectURL(file);
-    const blob = await this.modalService
-      .open<Blob | null>(TextureCropDialogComponent, { objectUrl } as TextureCropDialogOption)
-      .catch(() => null);
-    URL.revokeObjectURL(objectUrl);
-    if (!blob) return;
-    const imageFile = await this.imageStorage.addAsync(blob);
-    const tag = ImageTag.create(imageFile.identifier);
-    tag.tag = TEXTURE_IMAGE_TAG;
-    this.objectChange.notifyCollectionChanged('image-tag');
-    this.state.fillMode.set('texture');
-    this.state.textureId.set('image:' + imageFile.identifier);
-  }
-
-  protected setStampCategory(cat: StampCategory): void {
-    this.state.stampCategory.set(cat);
-  }
-
-  protected selectStamp(id: string): void {
-    this.state.stampId.set(id);
-  }
-
-  protected selectImageStamp(file: ImageFile): void {
-    this.state.stampId.set(toImageStampId(file.identifier));
-    this.state.stampColor.set(null);
-    this.state.stampSize.set(Math.min(256, Math.max(16, this.state.current.cellPx)));
-  }
-
-  protected isActiveImageStamp(file: ImageFile): boolean {
-    return this.state.stampId() === toImageStampId(file.identifier);
-  }
-
-  protected isImageStampSelected(): boolean {
-    const id = this.state.stampId();
-    return !!id && isImageStampId(id);
-  }
-
-  protected triggerStampUpload(): void {
-    this.stampFileInput()?.nativeElement.click();
-  }
-
-  protected async onStampFileSelected(event: Event): Promise<void> {
-    const input = event.target as HTMLInputElement;
-    const file = input.files?.[0];
-    input.value = '';
-    if (!file || !file.type.startsWith('image/')) return;
-    const imageFile = await this.imageStorage.addAsync(file);
-    const tag = ImageTag.get(imageFile.identifier) ?? ImageTag.create(imageFile.identifier);
-    tag.tag = MAP_STAMP_TAG;
-    this.objectChange.notifyCollectionChanged('image-tag');
-    this.selectImageStamp(imageFile);
-  }
-
   protected zoomIn(): void {
     this.state.zoom.update((z) => Math.min(3, z + 0.25));
     this.draftSignal.update((v) => v + 1);
@@ -1435,73 +1328,6 @@ export class MapEditorPanelComponent implements AfterViewInit {
     this.state.setCellPx(Math.max(16, Math.min(256, Math.round(value))));
   }
 
-  protected setActive(layer: MapLayer): void {
-    this.state.setActiveLayer(layer.id);
-  }
-
-  protected toggleVisible(layer: MapLayer): void {
-    this.state.applyCommitted(() => {
-      const found = this.state.current.layers.find((l) => l.id === layer.id);
-      if (found) found.visible = !found.visible;
-    });
-  }
-
-  protected toggleLocked(layer: MapLayer): void {
-    this.state.applyCommitted(() => {
-      const found = this.state.current.layers.find((l) => l.id === layer.id);
-      if (found) found.locked = !found.locked;
-    });
-  }
-
-  protected setOpacity(layer: MapLayer, value: number): void {
-    this.state.applyCommitted(() => {
-      const found = this.state.current.layers.find((l) => l.id === layer.id);
-      if (found) found.opacity = value;
-    });
-  }
-
-  protected moveLayerUp(layer: MapLayer): void {
-    this.state.applyCommitted(() => moveLayer(this.state.current, layer.id, 1));
-  }
-  protected moveLayerDown(layer: MapLayer): void {
-    this.state.applyCommitted(() => moveLayer(this.state.current, layer.id, -1));
-  }
-
-  protected onLayerDragStart(layer: MapLayer, event: DragEvent): void {
-    this.layerDrag.begin(layer.id);
-    if (event.dataTransfer) {
-      event.dataTransfer.effectAllowed = 'move';
-      event.dataTransfer.setData('text/plain', layer.id);
-    }
-  }
-
-  protected onLayerDragOver(layer: MapLayer, event: DragEvent): void {
-    if (this.layerDrag.held() === null) return;
-    event.preventDefault();
-    event.stopPropagation();
-    if (event.dataTransfer) event.dataTransfer.dropEffect = 'move';
-    this.layerDrag.hover(layer.id);
-  }
-
-  protected onLayerDrop(event: DragEvent): void {
-    const drop = this.layerDrag.release();
-    if (!drop) return;
-
-    event.preventDefault();
-    event.stopPropagation();
-    const order = reorderRows(
-      this.layers().map((layer) => layer.id),
-      drop.held,
-      drop.over,
-      drop.side
-    );
-    if (order) this.state.reorderLayersTopFirst(order);
-  }
-
-  protected onLayerDragEnd(): void {
-    this.layerDrag.cancel();
-  }
-
   private renderLayerThumb(layer: MapLayer): string {
     if (typeof document === 'undefined') return '';
     const scene = this.state.current;
@@ -1525,60 +1351,9 @@ export class MapEditorPanelComponent implements AfterViewInit {
     }
   }
 
-  protected deleteLayer(layer: MapLayer): void {
-    if (layer.locked) return;
-    this.modalService
-      .open<boolean>(ConfirmDialogComponent, {
-        message: this.t('feature.mapEditor.layers.deleteConfirm'),
-        okLabel: this.t('common.button.delete'),
-        danger: true,
-      })
-      .then((ok) => {
-        if (ok !== true) return;
-        this.state.applyCommitted(() => removeLayer(this.state.current, layer.id));
-        if (this.state.activeLayerId() === layer.id) this.state.activeLayerId.set(null);
-      });
-  }
-
-  protected startRename(layer: MapLayer): void {
-    this.renamingLayerId.set(layer.id);
-  }
-
-  protected commitRename(layer: MapLayer, name: string): void {
-    this.state.applyCommitted(() => {
-      const found = this.state.current.layers.find((l) => l.id === layer.id);
-      if (found) found.name = name;
-    });
-    this.renamingLayerId.set(null);
-  }
-
   private isVectorEraseTarget(): boolean {
     const layer = this.state.activeLayer();
     return !!layer && !layer.locked && layer.kind !== 'cell';
-  }
-
-  protected addLayerOfKind(kind: LayerKind): void {
-    const label = this.t('feature.mapEditor.layers.kinds.' + kind);
-    const count = this.state.current.layers.filter((l) => l.kind === kind).length + 1;
-    this.state.addEmptyLayer(kind, label + ' ' + count);
-    this.addLayerMenuOpen.set(false);
-  }
-
-  protected layerIcon(kind: LayerKind): string {
-    switch (kind) {
-      case 'cell':
-        return 'grid_on';
-      case 'shape':
-        return 'category';
-      case 'stamp':
-        return 'approval';
-      case 'freehand':
-        return 'gesture';
-      case 'text':
-        return 'title';
-      case 'image':
-        return 'image';
-    }
   }
 
   protected async save(): Promise<void> {
@@ -1607,12 +1382,12 @@ export class MapEditorPanelComponent implements AfterViewInit {
         this.objectChange.notifyCollectionChanged('image-tag')
       );
       if (scene) this.state.loadScene(scene);
-      else this.flashError(this.t('feature.mapEditor.actions.loadError'));
+      else this.errorNotice.show(this.t('feature.mapEditor.actions.loadError'));
       return;
     }
     const scene = deserializeScene(new TextDecoder().decode(buffer));
     if (!scene) {
-      this.flashError(this.t('feature.mapEditor.actions.loadError'));
+      this.errorNotice.show(this.t('feature.mapEditor.actions.loadError'));
       return;
     }
     this.state.loadScene(scene);
@@ -1628,9 +1403,9 @@ export class MapEditorPanelComponent implements AfterViewInit {
         resolveImageUrl: (id) => this.imageStorage.get(id)?.url ?? null,
       });
       await this.imageStorage.addAsync(blob);
-      this.flashNotice(this.t('feature.mapEditor.actions.savedImage'));
+      this.notice.show(this.t('feature.mapEditor.actions.savedImage'));
     } catch {
-      this.flashError(this.t('feature.mapEditor.actions.exportError'));
+      this.errorNotice.show(this.t('feature.mapEditor.actions.exportError'));
     } finally {
       this.busy.set(false);
     }
@@ -1653,22 +1428,12 @@ export class MapEditorPanelComponent implements AfterViewInit {
       table.height = scene.rows;
       table.gridSize = scene.cellPx;
       table.gridType = scene.gridType;
-      this.flashNotice(this.t('feature.mapEditor.actions.setTableDone'));
+      this.notice.show(this.t('feature.mapEditor.actions.setTableDone'));
     } catch {
-      this.flashError(this.t('feature.mapEditor.actions.exportError'));
+      this.errorNotice.show(this.t('feature.mapEditor.actions.exportError'));
     } finally {
       this.busy.set(false);
     }
-  }
-
-  private flashNotice(message: string): void {
-    this.notice.set(message);
-    setTimeout(() => this.notice.set(''), 2500);
-  }
-
-  private flashError(message: string): void {
-    this.errorNotice.set(message);
-    setTimeout(() => this.errorNotice.set(''), 2500);
   }
 
   protected zoomPercent(): number {

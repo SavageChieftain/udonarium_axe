@@ -111,6 +111,7 @@ export const soundEffect$ = new EventChannel<string>();
 
 export const effectCast$ = new EventChannel<EffectCastEvent>();
 export const diceRolled$ = new EventChannel<DiceRolledEvent>();
+export const diceBotCatalog$ = new EventChannel<void>();
 export const resourceChange$ = new EventChannel<ResourceChangeEvent>();
 
 export const selectGameTable$ = new EventChannel<SelectGameTableEvent>();
@@ -287,3 +288,7 @@ networkMessage$.subscribe((msg) => {
       break;
   }
 });
+
+export function emitDiceBotCatalogLoaded(): void {
+  diceBotCatalog$.emit();
+}

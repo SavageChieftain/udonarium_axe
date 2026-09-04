@@ -1,3 +1,4 @@
+import { PERF_AMBIENCE_LAYER, perfCounters } from '@axe/core/util/perf-counters';
 import {
   ambienceColorOf,
   ambienceDensityOf,
@@ -131,6 +132,7 @@ const VAPOR_PAD_MARGIN_UNITS = 0.2;
  * The origin is the top left of the area, and the canvas spreads a margin beyond it.
  */
 export function groundSurfaceLayer(spec: GroundAmbienceSpec): EffectParticleLayer {
+  perfCounters.bump(PERF_AMBIENCE_LAYER);
   const width = Math.max(spec.width, 0);
   const height = Math.max(spec.height, 0);
   const unit = unitOf(spec);
@@ -173,6 +175,7 @@ export function groundSurfaceLayer(spec: GroundAmbienceSpec): EffectParticleLaye
  * The canvas spreads a margin to the sides and above.
  */
 export function groundVaporLayer(spec: GroundAmbienceSpec): EffectParticleLayer {
+  perfCounters.bump(PERF_AMBIENCE_LAYER);
   const width = Math.max(spec.width, 0);
   const height = Math.max(spec.height, 0);
   const unit = unitOf(spec);

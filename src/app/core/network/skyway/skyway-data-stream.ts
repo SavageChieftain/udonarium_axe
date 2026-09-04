@@ -20,6 +20,12 @@ import {
 } from '@skyway-sdk/core';
 import { EventEmitter } from 'eventemitter3';
 
+/** How much the channel may already be holding before the queue waits for it to drain. */
+const SEND_BUFFER_LIMIT_BYTES = 1024 * 1024;
+
+/** How long the queue waits before asking a full channel again. */
+const SEND_RETRY_MS = 50;
+
 interface Ping {
   from: string;
   ping: number;
@@ -348,22 +354,39 @@ export class SkyWayDataStream extends EventEmitter implements WebRTCConnection {
     if (!this.isQueuing) this.execQueue();
   }
 
+  /**
+   * Sends what is queued, as much of it as the channel will take.
+   *
+   * A message larger than a chunk is queued in pieces, and one piece used to go per turn of
+   * the event loop, so a picture went at the speed the browser got round to it rather than
+   * the speed the line could carry. The channel is asked how much it is already holding and
+   * fed until that reaches the limit, which is what keeps a slow line from being buried.
+   *
+   * A pass that got nothing away waits on the clock before trying again. Coming straight
+   * back would turn a full channel into a loop that holds the main thread doing nothing
+   * until the line drains, which on a slow one is seconds.
+   */
   private execQueue = () => {
     if (!this.dataChannel || this.dataChannel.readyState !== 'open') {
       this.isQueuing = false;
       return;
     }
+    let sent = 0;
     for (const data of this.sendQueue) {
+      if ((this.dataChannel.bufferedAmount ?? 0) >= SEND_BUFFER_LIMIT_BYTES) break;
       try {
         this.dataChannel.send(data as unknown as ArrayBufferView<ArrayBuffer>);
         this.sendQueue.delete(data);
+        sent += 1;
       } catch (err) {
         Logger.error('[SkyWay] データ送信エラー', err);
+        break;
       }
-      break;
     }
     this.isQueuing = this.sendQueue.size > 0;
-    if (this.isQueuing) setZeroTimeout(this.execQueue);
+    if (!this.isQueuing) return;
+    if (sent > 0) setZeroTimeout(this.execQueue);
+    else setTimeout(this.execQueue, SEND_RETRY_MS);
   };
 
   getPeerConnection(): RTCPeerConnection | undefined {

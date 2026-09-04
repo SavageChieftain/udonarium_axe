@@ -87,6 +87,7 @@ feature に紐付かない汎用 UI 部品。
 - **入れる**: 1 機能の UI（component + html）、その feature 専用の context-menu builder / event-handler.service / helpers / spec
 - **入れない**: 他 feature の component を直接 import するのは原則禁止（共通化したいなら `ui/` / `application/` / `domain/` のいずれかへ）
 - feature 間でモデル経由（`domain/*`）以外の結合が必要な場合は、`application/` の薄いサービス経由で橋渡しする
+- feature 同士の直接 import は [eslint.config.ts](../eslint.config.ts) の `FEATURE_DEPENDENCIES` にある辺だけ通る（`panels` と `mobile` は例外）
 - イベント駆動の副作用（パネル開閉、サウンド再生等）は各 feature 配下に `*-event-handler.service.ts` を置き、`providedIn: 'root'` で AppComponent が `inject()` するだけで自動起動する設計
 
 ### `@axe/composition/*` + `src/app/*.ts`（composition root）

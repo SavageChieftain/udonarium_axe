@@ -99,6 +99,6 @@ export class VisualNovelSceneService {
       cursor?.userId,
       true
     );
-    tab.vnPortraitResetAt = notice.timestamp;
+    tab.vnPortraitResetAt = notice.placedAt;
   }
 }

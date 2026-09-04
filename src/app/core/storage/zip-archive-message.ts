@@ -4,9 +4,10 @@ export interface ZipEntry {
   blob: Blob;
 }
 
-export type ZipWorkerRequest = { kind: 'zip'; entries: ZipEntry[] } | { kind: 'unzip'; blob: Blob };
+export type ZipWorkerRequest =
+  { id: number; kind: 'zip'; entries: ZipEntry[] } | { id: number; kind: 'unzip'; blob: Blob };
 
 export type ZipWorkerResponse =
-  | { kind: 'zip'; ok: true; buffer: ArrayBuffer }
-  | { kind: 'unzip'; ok: true; entries: ZipEntry[] }
-  | { kind: 'error'; ok: false; message: string };
+  | { id: number; kind: 'zip'; ok: true; buffer: ArrayBuffer }
+  | { id: number; kind: 'unzip'; ok: true; entries: ZipEntry[] }
+  | { id: number; kind: 'error'; ok: false; message: string };

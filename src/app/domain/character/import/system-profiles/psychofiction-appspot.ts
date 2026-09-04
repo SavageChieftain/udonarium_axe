@@ -1,15 +1,12 @@
 import {
   asString,
-  classifyScalar,
   createEmptyImportedCharacter,
   ImportedCharacter,
-  ImportedField,
-  ImportedGroup,
   ImportedSection,
   ImportedSkillTable,
-  isNonEmptyScalar,
   profileSectionOf,
 } from '@axe/domain/character/import/imported-character';
+import { labeledSection } from '@axe/domain/character/import/system-profiles/labeled-section';
 
 export interface FieldLabel {
   key: string;
@@ -67,25 +64,6 @@ export function isPsychoFictionAppspotCharacter(parsed: unknown, abilityKey: str
   const root = resolveRoot(record, abilityKey);
   const base = asRecord(root['base']);
   return (base != null && typeof base['name'] === 'string') || Array.isArray(root[abilityKey]);
-}
-
-function labeledSection(label: string, array: unknown, fieldLabels: FieldLabel[]): ImportedSection | null {
-  const groups: ImportedGroup[] = [];
-  asArray(array).forEach((element, index) => {
-    const record = asRecord(element);
-    if (!record) return;
-    const name = asString(record['name']).trim();
-    const fields: ImportedField[] = [];
-    for (const field of fieldLabels) {
-      const raw = record[field.key];
-      if (!isNonEmptyScalar(raw)) continue;
-      const classified = classifyScalar(raw);
-      fields.push({ label: field.label, value: classified.value, kind: classified.kind });
-    }
-    if (name === '' && fields.length === 0) return;
-    groups.push({ label: name === '' ? `${label} ${index + 1}` : name, fields });
-  });
-  return groups.length > 0 ? { label, groups } : null;
 }
 
 function buildSkillTable(root: Record<string, unknown>, config: PsychoFictionConfig): ImportedSkillTable {

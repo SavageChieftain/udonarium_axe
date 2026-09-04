@@ -17,16 +17,21 @@ scope.addEventListener('message', (event) => {
 async function run(request: ZipWorkerRequest): Promise<void> {
   try {
     if (request.kind === 'zip') {
-      await runZip(request.entries);
+      await runZip(request.id, request.entries);
     } else {
-      await runUnzip(request.blob);
+      await runUnzip(request.id, request.blob);
     }
   } catch (reason) {
-    scope.postMessage({ kind: 'error', ok: false, message: reason instanceof Error ? reason.message : String(reason) });
+    scope.postMessage({
+      id: request.id,
+      kind: 'error',
+      ok: false,
+      message: reason instanceof Error ? reason.message : String(reason),
+    });
   }
 }
 
-async function runZip(entries: readonly ZipEntry[]): Promise<void> {
+async function runZip(id: number, entries: readonly ZipEntry[]): Promise<void> {
   const zippable: Zippable = {};
   for (const entry of entries) {
     const bytes = new Uint8Array(await entry.blob.arrayBuffer());
@@ -34,14 +39,14 @@ async function runZip(entries: readonly ZipEntry[]): Promise<void> {
   }
   const zipped = zipSync(zippable);
   const buffer = zipped.buffer.slice(zipped.byteOffset, zipped.byteOffset + zipped.byteLength) as ArrayBuffer;
-  scope.postMessage({ kind: 'zip', ok: true, buffer }, [buffer]);
+  scope.postMessage({ id, kind: 'zip', ok: true, buffer }, [buffer]);
 }
 
-async function runUnzip(blob: Blob): Promise<void> {
+async function runUnzip(id: number, blob: Blob): Promise<void> {
   const unzipped = unzipSync(new Uint8Array(await blob.arrayBuffer()));
   const entries: ZipEntry[] = Object.entries(unzipped).map(([name, bytes]) => {
     const type = MimeType.type(name);
     return { name, type, blob: new Blob([bytes], type.length > 0 ? { type } : undefined) };
   });
-  scope.postMessage({ kind: 'unzip', ok: true, entries });
+  scope.postMessage({ id, kind: 'unzip', ok: true, entries });
 }

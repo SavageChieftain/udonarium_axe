@@ -1,3 +1,5 @@
+import { canvasToBlobPreferWebP } from '@axe/core/storage/canvas-blob';
+import { clamp } from '@axe/core/util/clamp';
 import { GridType } from '@axe/domain/tabletop/game-table';
 import { hexCircumradius, hexSpacing, isFlatTopGrid, isHexGrid } from '@axe/domain/tabletop/hex-geometry';
 import {
@@ -30,10 +32,6 @@ const EMPTY_REGION: CoveredRegion = {
   imageW: 0,
   imageH: 0,
 };
-
-function clamp(value: number, min: number, max: number): number {
-  return Math.min(max, Math.max(min, value));
-}
 
 function toImageRegion(
   screenX: number,
@@ -264,20 +262,4 @@ export async function cropImageRegion(
   const blob = await canvasToBlobPreferWebP(canvas, 0.92);
   if (!blob) throw new Error('canvas toBlob unavailable');
   return blob;
-}
-
-async function canvasToBlobPreferWebP(canvas: HTMLCanvasElement, quality: number): Promise<Blob | null> {
-  const webp = await canvasToBlob(canvas, 'image/webp', quality);
-  if (webp && webp.type === 'image/webp') return webp;
-  return canvasToBlob(canvas, 'image/png', quality);
-}
-
-function canvasToBlob(canvas: HTMLCanvasElement, type: string, quality: number): Promise<Blob | null> {
-  return new Promise((resolve) => {
-    if (typeof canvas.toBlob !== 'function') {
-      resolve(null);
-      return;
-    }
-    canvas.toBlob((blob) => resolve(blob), type, quality);
-  });
 }

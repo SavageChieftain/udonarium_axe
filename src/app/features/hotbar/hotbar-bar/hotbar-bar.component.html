@@ -8,8 +8,9 @@
     appDraggable
     [draggable.disable]="mobile.isActive() || preference.locked()"
     [draggable.unhandle]="'button'"
-    (draggable.end)="rememberSpot()"
-    (draggable.settled)="rememberSpot()"
+    [appWidgetPlace]="widgetName"
+    [widgetFallback]="fallback"
+    [widgetPlaceEnabled]="!mobile.isActive()"
     (contextmenu)="openBarMenu($event)"
   >
     <input #file type="file" accept=".zip,.xml" class="hidden" data-testid="hotbar-file" (change)="loadFile($event)" />

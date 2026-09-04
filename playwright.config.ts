@@ -24,16 +24,32 @@ export default defineConfig({
     actionTimeout: 10000,
     navigationTimeout: 15000,
   },
+  snapshotPathTemplate: '{testDir}/visual/__screenshots__/{arg}{ext}',
+  expect: {
+    toHaveScreenshot: { animations: 'allow', caret: 'hide', scale: 'css' },
+  },
   projects: [
     {
       name: 'chromium',
       use: { ...devices['Desktop Chrome'] },
-      testIgnore: /mobile\/.*\.spec\.ts/,
+      testIgnore: [/mobile\/.*\.spec\.ts/, /visual\/.*\.spec\.ts/],
     },
     {
       name: 'mobile',
       use: { ...devices['Pixel 7'], reducedMotion: 'reduce' },
       testMatch: /mobile\/.*\.spec\.ts/,
+    },
+    {
+      name: 'visual',
+      use: {
+        ...devices['Desktop Chrome'],
+        viewport: { width: 1280, height: 800 },
+        deviceScaleFactor: 1,
+        colorScheme: 'light',
+        reducedMotion: 'no-preference',
+      },
+      testMatch: /visual\/.*\.spec\.ts/,
+      retries: 0,
     },
     // Firefox and WebKit are only run in CI to reduce local resource usage.
     ...(isCI
@@ -41,12 +57,12 @@ export default defineConfig({
           {
             name: 'firefox',
             use: { ...devices['Desktop Firefox'] },
-            testIgnore: /mobile\/.*\.spec\.ts/,
+            testIgnore: [/mobile\/.*\.spec\.ts/, /visual\/.*\.spec\.ts/],
           },
           {
             name: 'webkit',
             use: { ...devices['Desktop Safari'] },
-            testIgnore: /mobile\/.*\.spec\.ts/,
+            testIgnore: [/mobile\/.*\.spec\.ts/, /visual\/.*\.spec\.ts/],
           },
           {
             name: 'mobile-safari',

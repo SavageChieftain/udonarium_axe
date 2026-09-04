@@ -83,14 +83,18 @@ test.describe('インベントリの検索とフォルダ', () => {
   });
 
   test('検索ボックスで一覧を絞り込み、クリアで戻せること', async ({ page }) => {
-    const search = page.locator('game-object-inventory input[name="inventory-search"]');
-    await expect(search).toBeVisible();
+    // 検索と絞り込みは自前のパネルに移っており、インベントリの絞り込みボタンから開く。
+    await page.locator('game-object-inventory button[title="絞り込みと表示設定"]').click();
+    const search = page.locator('inventory-filter-panel input[name="inventory-search"]');
+    await expect(search).toBeVisible({ timeout: 5000 });
 
-    await search.fill('該当しないはずの名前zzz');
+    // 一括で流し込むと ngModel が拾わないので、読み手と同じように打ち込む。
+    await search.click();
+    await search.pressSequentially('該当しないはずの名前zzz');
     await expect(items(page)).toHaveCount(0);
     await expect(page.locator('game-object-inventory').getByText('一致するキャラクターがいません')).toBeVisible();
 
-    await page.locator('game-object-inventory button[title="検索をクリア"]').click();
+    await page.locator('inventory-filter-panel button[title="検索をクリア"]').click();
     await expect(search).toHaveValue('');
     await expect(items(page)).toHaveCount(listed);
   });

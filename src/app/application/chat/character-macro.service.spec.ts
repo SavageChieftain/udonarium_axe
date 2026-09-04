@@ -2,14 +2,12 @@ import { TestBed } from '@angular/core/testing';
 import { ActiveChatTabService } from '@axe/application/chat/active-chat-tab.service';
 import { CharacterMacroService } from '@axe/application/chat/character-macro.service';
 import { ChatMessageService } from '@axe/application/chat/chat-message.service';
-import { ObjectStore } from '@axe/core/sync/object-store';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { ChatTab } from '@axe/domain/chat/chat-tab';
 import { ChatTabList } from '@axe/domain/chat/chat-tab-list';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
 
 describe('CharacterMacroService', () => {
-  let store: ObjectStore;
   let service: CharacterMacroService;
   let chatMessageService: ChatMessageService;
   let sendMessage: ReturnType<typeof vi.spyOn>;
@@ -27,7 +25,6 @@ describe('CharacterMacroService', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({ providers: [...TEST_PROVIDERS] });
-    store = ObjectStore.instance;
     service = TestBed.inject(CharacterMacroService);
     chatMessageService = TestBed.inject(ChatMessageService);
 
@@ -41,8 +38,6 @@ describe('CharacterMacroService', () => {
 
   afterEach(() => {
     vi.restoreAllMocks();
-    store.getObjects().forEach((object) => store.delete(object, false));
-    store.clearDeleteHistory();
     (ChatTabList as unknown as { _instance: ChatTabList | undefined })._instance = undefined;
   });
 
@@ -105,6 +100,16 @@ describe('CharacterMacroService', () => {
     const [, , , , , portraitIndex, color] = sendMessage.mock.calls[0];
     expect(color).toBe('#222222');
     expect(portraitIndex).toBe(speaker.selectedPortraitIndex);
+  });
+
+  it('speaks in the bubble the character wears, so a roll can answer in it', () => {
+    const speaker = character('術者');
+    speaker.chatBubbleLight = ['#ffeeee', '#eeffee'];
+    speaker.chatBubbleDark = ['#330000', '#003300'];
+
+    service.send(speaker, 'ふきだし', { tab, colorIndex: 1 });
+
+    expect(sendMessage.mock.calls[0][11]).toEqual({ light: '#eeffee', dark: '#003300' });
   });
 
   it('sends no bubble when the caller asks for none, as a notice does', () => {

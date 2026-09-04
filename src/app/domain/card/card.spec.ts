@@ -2,6 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { Network } from '@axe/core/index';
 import { IPeerContext } from '@axe/core/network/peer-context';
 import { ImageFile } from '@axe/core/storage/image-file';
+import { ObjectSerializer } from '@axe/core/sync/object-serializer';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { Card, CardState } from '@axe/domain/card/card';
 
@@ -12,16 +13,10 @@ describe('Card', () => {
     TestBed.configureTestingModule({});
     store = ObjectStore.instance;
     // Clear any existing objects from previous tests
-    const allObjects = store.getObjects();
-    allObjects.forEach((obj) => store.delete(obj, false));
-    store.clearDeleteHistory();
   });
 
   afterEach(() => {
     // Cleanup after each test
-    const allObjects = store.getObjects();
-    allObjects.forEach((obj) => store.delete(obj, false));
-    store.clearDeleteHistory();
     vi.clearAllMocks();
   });
 
@@ -46,6 +41,47 @@ describe('Card', () => {
       expect(card.identifier).toBe('custom-id');
     });
 
+    it('should create face text fields with compatible defaults', () => {
+      const card = Card.create('Test', 'front.png', 'back.png');
+      expect(card.faceText).toBe('');
+      expect(card.faceFontSize).toBe(18);
+      expect(card.commonDataElement!.getFirstElementByName('text')!.type).toBe('note');
+      expect(card.commonDataElement!.getFirstElementByName('text')!.currentValue).toBe('');
+    });
+
+    it('should lazily add missing face text fields to legacy cards', () => {
+      const card = new Card();
+      card.createDataElements();
+      expect(card.faceText).toBe('');
+      card.faceText = 'Legacy text';
+      card.faceFontSize = 42;
+      expect(card.faceText).toBe('Legacy text');
+      expect(card.faceFontSize).toBe(42);
+      expect(card.commonDataElement!.getFirstElementByName('text')!.type).toBe('note');
+      expect(card.commonDataElement!.getFirstElementByName('text')!.identifier).toBe(`text_${card.identifier}`);
+      expect(card.commonDataElement!.getFirstElementByName('fontsize')!.identifier).toBe(`fontsize_${card.identifier}`);
+    });
+
+    it('should keep the note value and its current value in step', () => {
+      const card = Card.create('Test', 'front.png', 'back.png');
+      try {
+        card.faceText = 'written later';
+        const element = card.commonDataElement!.getFirstElementByName('text')!;
+        expect(element.value).toBe('written later');
+        expect(element.currentValue).toBe('written later');
+      } finally {
+        card.destroy();
+      }
+    });
+
+    it('should normalize invalid face font sizes', () => {
+      const card = Card.create('Test', 'front.png', 'back.png');
+      card.faceFontSize = Number.NaN;
+      expect(card.faceFontSize).toBe(Card.DEFAULT_FACE_FONT_SIZE);
+      card.faceFontSize = 999;
+      expect(card.faceFontSize).toBe(120);
+    });
+
     it('should add card to object store', () => {
       const card = Card.create('Test', 'front.png', 'back.png');
 
@@ -62,6 +98,44 @@ describe('Card', () => {
       expect(backElement).toBeTruthy();
       expect(frontElement!.value).toBe('front.png');
       expect(backElement!.value).toBe('back.png');
+    });
+  });
+
+  describe('face text compatibility', () => {
+    it('reads text and font size from a Fly-compatible card XML', () => {
+      const restored = ObjectSerializer.instance.parseXml(`<card state="0">
+        <data name="card">
+          <data name="image"><data name="imageIdentifier" type="image"></data></data>
+          <data name="common">
+            <data name="name">Information</data>
+            <data name="size">2</data>
+            <data name="fontsize">24</data>
+            <data name="text" type="note">First line\nSecond line</data>
+            <data name="color" type="color">#555555</data>
+          </data>
+          <data name="detail"></data>
+        </data>
+      </card>`) as Card;
+
+      expect(restored.faceText).toBe('First line\nSecond line');
+      expect(restored.faceFontSize).toBe(24);
+      expect(restored.commonDataElement!.getFirstElementByName('color')?.value).toBe('#555555');
+    });
+
+    it('round-trips face text through XML', () => {
+      const card = Card.create('Information', 'front.png', 'back.png');
+      card.faceText = 'Sword & shield\n|剣《つるぎ》';
+      card.faceFontSize = 32;
+      // happy-dom's XML parser rejects attribute names containing dots, so remove only location data.
+      // The assertion still verifies that every card-specific face value survives the round trip.
+      const xml = card.toXml().replace(/location\.[a-z]+="[^"]*"\s*/g, '');
+      for (const object of store.getObjects()) store.delete(object, false);
+      store.clearDeleteHistory();
+
+      const restored = ObjectSerializer.instance.parseXml(xml) as Card;
+
+      expect(restored.faceText).toBe('Sword & shield\n|剣《つるぎ》');
+      expect(restored.faceFontSize).toBe(32);
     });
   });
 
@@ -472,5 +546,23 @@ describe('Card', () => {
       const contexts: { userId: string; isOpen: boolean }[] = [];
       expect(card.isOwnerOnline(contexts)).toBe(false);
     });
+  });
+});
+
+describe('the colour of a card face', () => {
+  it('keeps a colour that was chosen and falls back to the ink for anything else', () => {
+    const card = Card.create('coloured', 'front.png', 'back.png');
+    try {
+      expect(card.faceFontColor).toBe(Card.DEFAULT_FACE_FONT_COLOR);
+      expect(card.commonDataElement!.getFirstElementByName('fontcolor')).toBeNull();
+
+      card.faceFontColor = '#Ff8800';
+      expect(card.faceFontColor).toBe('#Ff8800');
+
+      card.faceFontColor = 'red';
+      expect(card.faceFontColor).toBe(Card.DEFAULT_FACE_FONT_COLOR);
+    } finally {
+      card.destroy();
+    }
   });
 });

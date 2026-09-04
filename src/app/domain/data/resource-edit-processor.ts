@@ -1,6 +1,7 @@
 import { Logger } from '@axe/core/logging/logger';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { GameCharacter } from '@axe/domain/character/game-character';
+import { answerColorsOf } from '@axe/domain/chat/chat-color';
 import { ChatMessage, ChatMessageContext, ChatMessageTargetContext } from '@axe/domain/chat/chat-message';
 import { ChatTab } from '@axe/domain/chat/chat-tab';
 import { findEmbeddedRolls, replaceEmbeddedRolls } from '@axe/domain/data/embedded-roll';
@@ -284,7 +285,7 @@ export class ResourceEditProcessor {
       tag: isSecret ? 'system secret' : 'system',
       name: nameText,
       text,
-      messColor: originalMessage.messColor,
+      ...answerColorsOf(originalMessage),
     };
     const chatTab = ObjectStore.instance.get<ChatTab>(originalMessage.tabIdentifier);
     if (chatTab) {

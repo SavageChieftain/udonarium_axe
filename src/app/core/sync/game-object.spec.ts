@@ -1,4 +1,5 @@
 import { TestBed } from '@angular/core/testing';
+import { GameObject } from '@axe/core/sync/game-object';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { DataElement } from '@axe/domain/data/data-element';
 
@@ -8,15 +9,9 @@ describe('GameObject', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({});
     store = ObjectStore.instance;
-    const allObjects = store.getObjects();
-    allObjects.forEach((obj) => store.delete(obj, false));
-    store.clearDeleteHistory();
   });
 
   afterEach(() => {
-    const allObjects = store.getObjects();
-    allObjects.forEach((obj) => store.delete(obj, false));
-    store.clearDeleteHistory();
     vi.clearAllMocks();
   });
 
@@ -169,6 +164,135 @@ describe('GameObject', () => {
       // travels in the xml the copy can end up with the same one
       expect(cloned).toBeTruthy();
       expect(cloned).not.toBe(obj);
+    });
+  });
+
+  describe('batch()', () => {
+    it('says an object changed once for a run of fields, when the batch ends', () => {
+      const element = DataElement.create('test', 'value', {});
+      element.initialize();
+      const before = store.localChangeCountOf(element.identifier);
+      const wasVersion = element.majorVersion;
+
+      GameObject.batch(() => {
+        element.name = 'one';
+        element.value = 'two';
+        element.currentValue = 'three';
+        expect(store.localChangeCountOf(element.identifier)).toBe(before);
+        expect(element.majorVersion).toBe(wasVersion);
+      });
+
+      expect(store.localChangeCountOf(element.identifier)).toBe(before + 1);
+      expect(element.majorVersion).toBe(wasVersion + 1);
+      expect(element.name).toBe('one');
+    });
+
+    it('says each object in the batch changed once, and no untouched one at all', () => {
+      const one = DataElement.create('one', 'a', {});
+      const two = DataElement.create('two', 'b', {});
+      const quiet = DataElement.create('quiet', 'c', {});
+      [one, two, quiet].forEach((element) => element.initialize());
+      const wasOne = store.localChangeCountOf(one.identifier);
+      const wasTwo = store.localChangeCountOf(two.identifier);
+      const wasQuiet = store.localChangeCountOf(quiet.identifier);
+
+      GameObject.batch(() => {
+        one.name = 'first';
+        one.value = 'again';
+        two.name = 'second';
+      });
+
+      expect(store.localChangeCountOf(one.identifier)).toBe(wasOne + 1);
+      expect(store.localChangeCountOf(two.identifier)).toBe(wasTwo + 1);
+      expect(store.localChangeCountOf(quiet.identifier)).toBe(wasQuiet);
+    });
+
+    it('waits for the outermost batch to end', () => {
+      const element = DataElement.create('test', 'value', {});
+      element.initialize();
+      const before = store.localChangeCountOf(element.identifier);
+
+      GameObject.batch(() => {
+        GameObject.batch(() => {
+          element.name = 'inner';
+        });
+        expect(store.localChangeCountOf(element.identifier)).toBe(before);
+        element.value = 'outer';
+      });
+
+      expect(store.localChangeCountOf(element.identifier)).toBe(before + 1);
+    });
+
+    it('still announces what was changed when the work throws', () => {
+      const element = DataElement.create('test', 'value', {});
+      element.initialize();
+      const before = store.localChangeCountOf(element.identifier);
+
+      expect(() =>
+        GameObject.batch(() => {
+          element.name = 'written';
+          throw new Error('stopped');
+        })
+      ).toThrow('stopped');
+
+      expect(store.localChangeCountOf(element.identifier)).toBe(before + 1);
+      expect(element.name).toBe('written');
+    });
+
+    it('announces the rest of the batch when one of them throws', () => {
+      const first = DataElement.create('first', 'a', {});
+      const second = DataElement.create('second', 'b', {});
+      [first, second].forEach((element) => element.initialize());
+      const wasSecond = store.localChangeCountOf(second.identifier);
+      const previous = GameObject.onUpdate;
+      GameObject.onUpdate = (object) => {
+        if (object === first) throw new Error('listener stopped');
+      };
+
+      try {
+        expect(() =>
+          GameObject.batch(() => {
+            first.name = 'one';
+            second.name = 'two';
+          })
+        ).toThrow('listener stopped');
+      } finally {
+        GameObject.onUpdate = previous;
+      }
+
+      expect(store.localChangeCountOf(second.identifier)).toBe(wasSecond + 1);
+    });
+
+    it('takes an object into a later batch after one of them threw', () => {
+      const first = DataElement.create('first', 'a', {});
+      const second = DataElement.create('second', 'b', {});
+      [first, second].forEach((element) => element.initialize());
+      const previous = GameObject.onUpdate;
+      GameObject.onUpdate = (object) => {
+        if (object === first) throw new Error('listener stopped');
+      };
+
+      try {
+        expect(() =>
+          GameObject.batch(() => {
+            first.name = 'one';
+            second.name = 'two';
+          })
+        ).toThrow('listener stopped');
+      } finally {
+        GameObject.onUpdate = previous;
+      }
+
+      const wasSecond = store.localChangeCountOf(second.identifier);
+      GameObject.batch(() => {
+        second.name = 'again';
+      });
+
+      expect(store.localChangeCountOf(second.identifier)).toBe(wasSecond + 1);
+    });
+
+    it('hands back what the work returned', () => {
+      expect(GameObject.batch(() => 42)).toBe(42);
     });
   });
 });

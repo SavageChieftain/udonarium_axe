@@ -3,11 +3,13 @@ import { Network } from '@axe/core/network/network';
 import { GameObject } from '@axe/core/sync/game-object';
 import { objectAdded$, objectRemoved$ } from '@axe/core/sync/object-event-extension';
 import { ObjectStore } from '@axe/core/sync/object-store';
+import { DataElement } from '@axe/domain/data/data-element';
 
 type ObjectStorePrivate = {
   aliasNameMap: Map<string, Map<string, GameObject> | undefined>;
   garbageMap: Map<string, number>;
-  garbageCollectionTimer: ReturnType<typeof setTimeout> | null;
+  garbageSweepCooldown: ReturnType<typeof setTimeout> | null;
+  runGarbageCollection(ms: number): void;
 };
 
 const asPrivate = (store: ObjectStore): ObjectStorePrivate => store as unknown as ObjectStorePrivate;
@@ -20,23 +22,15 @@ describe('ObjectStore', () => {
     TestBed.configureTestingModule({});
     store = ObjectStore.instance;
     sendSpy = vi.spyOn(Network.instance, 'send').mockImplementation(() => {});
-    // Clear any existing objects from previous tests
-    const allObjects = store.getObjects();
-    allObjects.forEach((obj) => store.delete(obj, false));
-    store.clearDeleteHistory();
+    // The store is a singleton, and its sweep waits a second between runs. A test that
+    // deletes has to start from a state where the next sweep can actually run.
+    const cooldown = asPrivate(store).garbageSweepCooldown;
+    if (cooldown !== null) clearTimeout(cooldown);
+    asPrivate(store).garbageSweepCooldown = null;
   });
 
   afterEach(() => {
     // Cleanup after each test
-    const allObjects = store.getObjects();
-    allObjects.forEach((obj) => store.delete(obj, false));
-    store.clearDeleteHistory();
-    // Cancel any pending garbageCollectionTimer to prevent leaking timers
-    const privateStore = asPrivate(store);
-    if (privateStore.garbageCollectionTimer != null) {
-      clearTimeout(privateStore.garbageCollectionTimer);
-      privateStore.garbageCollectionTimer = null;
-    }
     vi.clearAllMocks();
   });
 
@@ -595,5 +589,24 @@ describe('ObjectStore', () => {
     object.apply(object.toContext());
 
     expect(ObjectStore.instance.localChangeCountOf(object.identifier)).toBe(before + 1);
+  });
+});
+
+describe('sweeping the record of what was deleted', () => {
+  it('sweeps once for a run of deletes rather than once per delete', () => {
+    const store = ObjectStore.instance;
+    const cooldown = asPrivate(store).garbageSweepCooldown;
+    if (cooldown !== null) clearTimeout(cooldown);
+    asPrivate(store).garbageSweepCooldown = null;
+    const sweep = vi.spyOn(asPrivate(store), 'runGarbageCollection');
+
+    for (let i = 0; i < 5; i++) {
+      const object = DataElement.create(`gone-${i}`, '', {});
+      object.initialize();
+      store.delete(object, false);
+    }
+
+    expect(sweep).toHaveBeenCalledTimes(1);
+    sweep.mockRestore();
   });
 });

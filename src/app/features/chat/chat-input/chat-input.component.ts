@@ -16,21 +16,25 @@ import {
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ChatMessageService } from '@axe/application/chat/chat-message.service';
+import { DiceBotCatalogService } from '@axe/application/dice/dice-bot-catalog.service';
 import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
+import { PointerDeviceService } from '@axe/application/input/pointer-device.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { BatchService } from '@axe/application/ui/batch.service';
 import { PanelOption, PanelService } from '@axe/application/ui/panel.service';
 import { UiSignalService } from '@axe/application/ui/ui-signal.service';
 import { ViewportService } from '@axe/application/ui/viewport.service';
 import { callWritingAMessage } from '@axe/core/event/domain-events';
-import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { PeerContext } from '@axe/core/network/peer-context';
 import { ImageFile } from '@axe/core/storage/image-file';
 import { ImageStorage } from '@axe/core/storage/image-storage';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { portraitNameOf } from '@axe/domain/character/character-portrait';
 import { GameCharacter } from '@axe/domain/character/game-character';
+import { ChatBubbleColors, chatBubbleOf, chatColorOf, DEFAULT_CHAT_COLOR } from '@axe/domain/chat/chat-color';
 import { ChatMessage } from '@axe/domain/chat/chat-message';
+import { composeChatOutgoing } from '@axe/domain/chat/chat-outgoing';
+import { ChatOutgoing } from '@axe/domain/chat/chat-outgoing';
 import { DataElement } from '@axe/domain/data/data-element';
 import { DiceBot } from '@axe/domain/dice/dice-bot';
 import { Config } from '@axe/domain/peer/config';
@@ -43,7 +47,6 @@ import { PortraitChoice, PortraitPickerComponent } from '@axe/ui/components/port
 import { SafePipe } from '@axe/ui/pipes/safe.pipe';
 import { TranslocoModule } from '@jsverse/transloco';
 import { NgOptionComponent, NgSelectComponent } from '@ng-select/ng-select';
-import GameSystemClass from 'bcdice/lib/game_system';
 
 const COLOR_SETTING_PANEL = 'chat-color-setting';
 
@@ -147,18 +150,7 @@ export class ChatInputComponent {
     this.textChange.emit(text);
   }
 
-  readonly chat = output<{
-    text: string;
-    gameSystem: GameSystemClass;
-    sendFrom: string;
-    sendTo: string;
-    portraitIndex: number;
-    messColor: string;
-    messBubbleLight?: string;
-    messBubbleDark?: string;
-    replyTo: string;
-    quoteOf: string;
-  }>();
+  readonly chat = output<ChatOutgoing>();
 
   readonly replyTarget = signal<ChatMessage | null>(null);
   readonly replyToName = computed(() => this.replyTarget()?.name ?? '');
@@ -314,12 +306,9 @@ export class ChatInputComponent {
 
   characterChatColor(num: number) {
     const object = this.objectStore.get(this.sendFrom);
-    if (object instanceof GameCharacter) {
-      this.objectChange.versionOf(object.identifier)();
-      return object.chatColorCode[num];
-    } else {
-      return '#000000';
-    }
+    if (!(object instanceof GameCharacter)) return DEFAULT_CHAT_COLOR;
+    this.objectChange.versionOf(object.identifier)();
+    return chatColorOf(object, num);
   }
 
   get selectChatColor() {
@@ -327,11 +316,11 @@ export class ChatInputComponent {
   }
 
   /** The bubble the sender asked for on each theme, which travels with the message. */
-  private chatBubbles(num: number): { light: string; dark: string } {
+  private chatBubbles(num: number): ChatBubbleColors {
     const object = this.objectStore.get(this.sendFrom);
     const source = object instanceof GameCharacter ? object : this.myPeer;
     this.objectChange.versionOf(source.identifier)();
-    return { light: source.chatBubbleLight[num] ?? '', dark: source.chatBubbleDark[num] ?? '' };
+    return chatBubbleOf(source, num);
   }
 
   chatColor(num: number): string {
@@ -342,7 +331,7 @@ export class ChatInputComponent {
 
   playerChatColor(num: number) {
     this.objectChange.versionOf(this.myPeer.identifier)();
-    return this.myPeer.chatColorCode[num];
+    return chatColorOf(this.myPeer, num);
   }
 
   setColorNum(num: number) {
@@ -387,8 +376,10 @@ export class ChatInputComponent {
   private writingEventInterval: ReturnType<typeof setTimeout> | null = null;
   private previousWritingLength: number = 0;
 
+  private readonly diceBotCatalog = inject(DiceBotCatalogService);
+
   get diceBotInfos() {
-    return DiceBot.diceBotInfos;
+    return this.diceBotCatalog.infos();
   }
   get myPeer(): PeerCursor {
     return PeerCursor.myCursor;
@@ -449,29 +440,18 @@ export class ChatInputComponent {
 
     this.chatHistory.push(this.text);
 
-    const message = {
+    const draft = {
       text: this.text,
       sendFrom: this.sendFrom,
       sendTo: this.sendTo,
       portraitIndex: this.portraitIndex,
-      messColor: this.selectChatColor,
+      color: this.selectChatColor,
       bubbles: this.chatBubbles(this.colorSelectNo()),
+      replyTo: this.replyTarget()?.identifier ?? '',
+      quoteOf: this.quoteTarget()?.identifier ?? '',
     };
-    const replyTo = this.replyTarget()?.identifier ?? '';
-    const quoteOf = this.quoteTarget()?.identifier ?? '';
     DiceBot.loadGameSystemAsync(this.gameType).then((gameSystem) => {
-      this.chat.emit({
-        text: message.text,
-        gameSystem: gameSystem,
-        sendFrom: message.sendFrom,
-        sendTo: message.sendTo,
-        portraitIndex: message.portraitIndex,
-        messColor: message.messColor,
-        messBubbleLight: message.bubbles.light,
-        messBubbleDark: message.bubbles.dark,
-        replyTo,
-        quoteOf,
-      });
+      this.chat.emit(composeChatOutgoing({ ...draft, gameSystem }));
     });
     this.text = '';
     this.previousWritingLength = this.text.length;

@@ -10,6 +10,10 @@ type TimeStamp = number;
 
 export type CatalogItem = { identifier: string; version: number };
 
+const GARBAGE_MAP_LIMIT = 100000;
+const GARBAGE_TTL_MS = 10 * 60 * 1000;
+const GARBAGE_SWEEP_INTERVAL_MS = 1000;
+
 export class ObjectStore {
   private static _instance: ObjectStore;
   static get instance(): ObjectStore {
@@ -20,11 +24,11 @@ export class ObjectStore {
   private identifierMap: Map<ObjectIdentifier, GameObject> = new Map();
   private aliasNameMap: Map<ObjectAliasName, Map<ObjectIdentifier, GameObject>> = new Map();
   private garbageMap: Map<ObjectIdentifier, TimeStamp> = new Map();
+  private garbageSweepCooldown: ReturnType<typeof setTimeout> | null = null;
 
   private readonly localChanges: Map<string, number> = new Map();
   private queueMap: Map<ObjectIdentifier, ObjectContext> = new Map();
   private updateQueueTimer: number | null = null;
-  private garbageCollectionTimer: ReturnType<typeof setTimeout> | null = null;
   private readonly updateCallback = () => this.updateQueue();
 
   private constructor() {}
@@ -76,7 +80,23 @@ export class ObjectStore {
 
   private markForDelete(identifier: string) {
     this.garbageMap.set(identifier, performance.now());
-    this.scheduleGarbageCollection(10 * 60 * 1000);
+    this.sweepGarbage();
+  }
+
+  /**
+   * Sweeps the record of what was deleted, at most once a second.
+   *
+   * The cooldown is the whole point of the timer: while one is pending the sweep is skipped.
+   * Below the limit a sweep is a subtraction and a return, but above it every delete would
+   * walk the overflow, and the deletes that get there arrive in runs — clearing a room, or
+   * loading one over another.
+   */
+  private sweepGarbage(): void {
+    if (this.garbageSweepCooldown !== null) return;
+    this.garbageSweepCooldown = setTimeout(() => {
+      this.garbageSweepCooldown = null;
+    }, GARBAGE_SWEEP_INTERVAL_MS);
+    this.runGarbageCollection(GARBAGE_TTL_MS);
   }
 
   get<T extends GameObject>(identifier: string): T | null {
@@ -150,17 +170,9 @@ export class ObjectStore {
     this.garbageMap.clear();
   }
 
-  private scheduleGarbageCollection(ms: number): void {
-    if (this.garbageCollectionTimer !== null) return;
-    this.garbageCollectionTimer = setTimeout(() => {
-      this.garbageCollectionTimer = null;
-    }, 1000);
-    this.runGarbageCollection(ms);
-  }
-
   private runGarbageCollection(ms: number): void {
     const nowDate = performance.now();
-    let checkLength = this.garbageMap.size - 100000;
+    let checkLength = this.garbageMap.size - GARBAGE_MAP_LIMIT;
     if (checkLength <= 0) return;
 
     for (const [identifier, timeStamp] of this.garbageMap) {

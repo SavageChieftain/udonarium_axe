@@ -1,5 +1,4 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { ObjectStore } from '@axe/core/sync/object-store';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { VoteMenuComponent } from '@axe/features/vote/vote-menu/vote-menu.component';
 import { expectPanelDragRecovery, PanelDragTestHostComponent } from '@axe/testing/panel-drag-recovery';
@@ -8,7 +7,6 @@ import { TEST_PROVIDERS } from '@axe/testing/test-providers';
 describe('VoteMenuComponent', () => {
   let component: VoteMenuComponent;
   let fixture: ComponentFixture<VoteMenuComponent>;
-  let store: ObjectStore;
 
   beforeEach(async () => {
     TestBed.configureTestingModule({
@@ -18,15 +16,11 @@ describe('VoteMenuComponent', () => {
   });
 
   beforeEach(() => {
-    store = ObjectStore.instance;
     fixture = TestBed.createComponent(VoteMenuComponent);
     component = fixture.componentInstance;
   });
 
   afterEach(() => {
-    const allObjects = store.getObjects();
-    allObjects.forEach((obj) => store.delete(obj, false));
-    store.clearDeleteHistory();
     PeerCursor.myCursor = null!;
     (PeerCursor as unknown as Record<string, unknown>)['userIdMap'] = new Map();
     (PeerCursor as unknown as Record<string, unknown>)['peerIdMap'] = new Map();

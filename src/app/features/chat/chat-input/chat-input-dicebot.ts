@@ -1,7 +1,7 @@
 import { inject } from '@angular/core';
 import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
+import { PointerDeviceService } from '@axe/application/input/pointer-device.service';
 import { PanelOption, PanelService } from '@axe/application/ui/panel.service';
-import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { DiceBot } from '@axe/domain/dice/dice-bot';
 import { TextViewComponent } from '@axe/ui/components/text-view/text-view.component';
 
@@ -16,7 +16,7 @@ export class ChatInputDiceBotHelper {
     DiceBot.getHelpMessage(gameType).then(() => {});
   }
 
-  isGameTypeInList(gameType: string, diceBotInfos: typeof DiceBot.diceBotInfos): boolean {
+  isGameTypeInList(gameType: string, diceBotInfos: readonly (typeof DiceBot.diceBotInfos)[number][]): boolean {
     if (diceBotInfos.length === 0) return true;
     return diceBotInfos.some((info) => info.id === gameType);
   }

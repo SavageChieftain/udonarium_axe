@@ -1,11 +1,9 @@
-import { ObjectStore } from '@axe/core/sync/object-store';
 import { Hotbar } from '@axe/domain/hotbar/hotbar';
 import { emptyHotbarSlotDraft, HotbarSlotDraft } from '@axe/domain/hotbar/hotbar-draft';
 import { HOTBAR_PAGES, HOTBAR_SLOTS_PER_PAGE } from '@axe/domain/hotbar/hotbar-size';
 import { HotbarSlot } from '@axe/domain/hotbar/hotbar-slot';
 
 describe('Hotbar', () => {
-  let store: ObjectStore;
   let hotbar: Hotbar;
 
   function draft(value: string): HotbarSlotDraft {
@@ -15,14 +13,8 @@ describe('Hotbar', () => {
   }
 
   beforeEach(() => {
-    store = ObjectStore.instance;
     hotbar = new Hotbar();
     hotbar.initialize();
-  });
-
-  afterEach(() => {
-    store.getObjects().forEach((object) => store.delete(object, false));
-    store.clearDeleteHistory();
   });
 
   it('opens with every slot empty, and keeps no object for one', () => {

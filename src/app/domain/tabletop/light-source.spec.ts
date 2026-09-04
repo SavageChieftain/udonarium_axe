@@ -11,13 +11,9 @@ describe('LightSource', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({});
     store = ObjectStore.instance;
-    store.getObjects().forEach((obj) => store.delete(obj, false));
-    store.clearDeleteHistory();
   });
 
   afterEach(() => {
-    store.getObjects().forEach((obj) => store.delete(obj, false));
-    store.clearDeleteHistory();
     vi.clearAllMocks();
   });
 

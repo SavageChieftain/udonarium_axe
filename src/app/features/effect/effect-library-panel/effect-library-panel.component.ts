@@ -9,6 +9,7 @@ import { EffectTargetingService } from '@axe/application/effect/effect-targeting
 import { SaveDataService } from '@axe/application/file/save-data.service';
 import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
+import { ConfirmService } from '@axe/application/ui/confirm.service';
 import { ContextMenuService } from '@axe/application/ui/context-menu.service';
 import { ModalService } from '@axe/application/ui/modal.service';
 import { PanelService } from '@axe/application/ui/panel.service';
@@ -35,7 +36,6 @@ import {
 import { pushRecentEffect, readRecentEffects } from '@axe/features/effect/effect-library-panel/recent-effects';
 import { EffectPresetEditorComponent } from '@axe/features/effect/effect-preset-editor/effect-preset-editor.component';
 import { HotbarFillService } from '@axe/features/hotbar/hotbar-fill.service';
-import { ConfirmDialogComponent } from '@axe/ui/components/confirm-dialog/confirm-dialog.component';
 import { SafePipe } from '@axe/ui/pipes/safe.pipe';
 import { TranslocoModule } from '@jsverse/transloco';
 
@@ -63,6 +63,7 @@ export class EffectLibraryPanelComponent {
   private readonly modalService = inject(ModalService);
   private readonly panelService = inject(PanelService);
   private readonly t = inject(TRANSLATE_FN);
+  private readonly confirm = inject(ConfirmService);
 
   protected readonly gradeLevels = GRADE_LEVELS;
 
@@ -277,14 +278,14 @@ export class EffectLibraryPanelComponent {
   }
 
   protected removePreset(preset: EffectPreset): void {
-    this.modalService
-      .open<boolean>(ConfirmDialogComponent, {
+    void this.confirm
+      .ask({
         message: this.t('feature.effect.removeConfirm', { name: preset.name }),
         okLabel: this.t('common.button.delete'),
         danger: true,
       })
       .then((ok) => {
-        if (ok !== true) return;
+        if (!ok) return;
         this.library.remove(preset);
       });
   }

@@ -26,7 +26,8 @@
           [ngStyle]="tableSurfaceBorderStyle()"
         ></div>
       </div>
-      @for (wall of activeWalls(); track wall.surface) {
+      @for (view of wallViews(); track view.wall.surface) {
+        @let wall = view.wall;
         <div
           class="pointer-events-none absolute backface-visible transform-3d **:backface-visible"
           [attr.data-surface]="wall.surface"
@@ -45,18 +46,18 @@
             [style.filter]="wallBaseFilter()"
           ></div>
           <div class="pointer-events-none absolute inset-0 overflow-hidden backface-visible">
-            @for (pool of wallPoolsFor(wall.surface); track $index) {
+            @for (pool of view.pools; track $index) {
               <div
                 class="pointer-events-none absolute backface-visible"
                 [style.background-image]="'url(' + wall.image.url + ')' | safe: 'style'"
-                [ngStyle]="wallPoolStyleFor(pool, wall.surface, wall.widthPx)"
+                [ngStyle]="pool.style"
               ></div>
             }
-            @for (sil of wallSilhouettesFor(wall.surface); track $index) {
+            @for (sil of view.silhouettes; track $index) {
               <div
                 class="pointer-events-none absolute backface-visible"
-                [style.background-image]="wallSilhouetteBg(sil) | safe: 'style'"
-                [ngStyle]="wallSilhouetteStyleFor(sil, wall.surface, wall.widthPx)"
+                [style.background-image]="sil.background | safe: 'style'"
+                [ngStyle]="sil.style"
               ></div>
             }
           </div>
@@ -281,6 +282,8 @@
       <table-beam-overlay class="contents"></table-beam-overlay>
       <table-fog-air-overlay class="contents"></table-fog-air-overlay>
       <table-vision-volume-overlay class="contents"></table-vision-volume-overlay>
+      <table-move-block-overlay class="contents"></table-move-block-overlay>
+      <table-move-range-overlay class="contents"></table-move-range-overlay>
       <table-target-overlay class="contents"></table-target-overlay>
       <table-effect-overlay class="contents"></table-effect-overlay>
       <effect-target-overlay class="contents"></effect-target-overlay>

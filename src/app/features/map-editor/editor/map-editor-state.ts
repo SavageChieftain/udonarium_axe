@@ -32,6 +32,15 @@ import {
   TextLayer,
 } from '@axe/features/map-editor/model/scene';
 import {
+  imageBox,
+  pointToPolylineDistance,
+  pointToSegmentDistance,
+  shapeBox,
+  strokeSlack,
+  textBox,
+  within,
+} from '@axe/features/map-editor/model/scene-geometry';
+import {
   addImage,
   addLayer,
   addShape,
@@ -544,62 +553,8 @@ export class MapEditorState {
     this.bump();
   }
 
-  private shapeBbox(item: ShapeItem): { minX: number; minY: number; maxX: number; maxY: number } {
-    const p = item.points;
-    if (item.shape === 'rect' || item.shape === 'ellipse') {
-      const x = p[0] ?? 0;
-      const y = p[1] ?? 0;
-      const w = p[2] ?? 0;
-      const h = p[3] ?? 0;
-      return { minX: Math.min(x, x + w), minY: Math.min(y, y + h), maxX: Math.max(x, x + w), maxY: Math.max(y, y + h) };
-    }
-    let minX = Infinity;
-    let minY = Infinity;
-    let maxX = -Infinity;
-    let maxY = -Infinity;
-    for (let i = 0; i + 1 < p.length; i += 2) {
-      minX = Math.min(minX, p[i]);
-      maxX = Math.max(maxX, p[i]);
-      minY = Math.min(minY, p[i + 1]);
-      maxY = Math.max(maxY, p[i + 1]);
-    }
-    if (!Number.isFinite(minX)) return { minX: 0, minY: 0, maxX: 0, maxY: 0 };
-    return { minX, minY, maxX, maxY };
-  }
-
-  private pointToPolylineDistance(px: number, py: number, points: number[]): number {
-    if (points.length < 2) return Infinity;
-    if (points.length < 4) return Math.hypot(px - points[0], py - points[1]);
-    let best = Infinity;
-    for (let i = 0; i + 3 < points.length; i += 2) {
-      const d = this.pointToSegmentDistance(px, py, points[i], points[i + 1], points[i + 2], points[i + 3]);
-      if (d < best) best = d;
-    }
-    return best;
-  }
-
-  private pointToSegmentDistance(px: number, py: number, x1: number, y1: number, x2: number, y2: number): number {
-    const dx = x2 - x1;
-    const dy = y2 - y1;
-    const lenSq = dx * dx + dy * dy;
-    if (lenSq === 0) return Math.hypot(px - x1, py - y1);
-    let t = ((px - x1) * dx + (py - y1) * dy) / lenSq;
-    t = Math.max(0, Math.min(1, t));
-    return Math.hypot(px - (x1 + t * dx), py - (y1 + t * dy));
-  }
-
-  private textBbox(item: TextItem): { minX: number; minY: number; maxX: number; maxY: number } {
-    const lines = item.text.split('\n');
-    const longest = lines.reduce((max, line) => Math.max(max, line.length), 0);
-    const width = Math.max(item.fontSize, item.fontSize * longest * 0.6);
-    const height = item.fontSize * 1.2 * lines.length;
-    let minX = item.x;
-    if (item.align === 'center') minX = item.x - width / 2;
-    else if (item.align === 'right') minX = item.x - width;
-    return { minX, minY: item.y, maxX: minX + width, maxY: item.y + height };
-  }
-
   private hitInLayer(layer: MapLayer, x: number, y: number): string | null {
+    const at = { x, y };
     if (layer.kind === 'stamp') {
       for (let j = layer.items.length - 1; j >= 0; j -= 1) {
         const item = layer.items[j];
@@ -608,46 +563,32 @@ export class MapEditorState {
     } else if (layer.kind === 'text') {
       for (let j = layer.items.length - 1; j >= 0; j -= 1) {
         const item = layer.items[j];
-        const b = this.textBbox(item);
-        if (x >= b.minX && x <= b.maxX && y >= b.minY && y <= b.maxY) return item.id;
+        if (within(at, textBox(item), 0)) return item.id;
       }
     } else if (layer.kind === 'freehand') {
       for (let j = layer.strokes.length - 1; j >= 0; j -= 1) {
         const stroke = layer.strokes[j];
-        if (this.pointToPolylineDistance(x, y, stroke.points) <= Math.max(6, stroke.width / 2 + 2)) return stroke.id;
+        if (pointToPolylineDistance(x, y, stroke.points) <= strokeSlack(stroke.width)) return stroke.id;
       }
     } else if (layer.kind === 'image') {
       for (let j = layer.items.length - 1; j >= 0; j -= 1) {
         const item = layer.items[j];
-        if (
-          x >= item.x - item.w / 2 &&
-          x <= item.x + item.w / 2 &&
-          y >= item.y - item.h / 2 &&
-          y <= item.y + item.h / 2
-        ) {
-          return item.id;
-        }
+        if (within(at, imageBox(item), 0)) return item.id;
       }
     } else if (layer.kind === 'shape') {
       for (let j = layer.items.length - 1; j >= 0; j -= 1) {
         const item = layer.items[j];
+        const slack = strokeSlack(item.stroke ? item.stroke.width : 1);
         if (item.shape === 'line') {
           const p = item.points;
-          const width = item.stroke ? item.stroke.width : 1;
-          if (p.length >= 4 && this.pointToSegmentDistance(x, y, p[0], p[1], p[2], p[3]) <= Math.max(6, width)) {
-            return item.id;
-          }
+          if (p.length >= 4 && pointToSegmentDistance(x, y, p[0], p[1], p[2], p[3]) <= slack) return item.id;
         } else if (item.shape === 'polyline') {
-          const width = item.stroke ? item.stroke.width : 1;
-          if (this.pointToPolylineDistance(x, y, item.points) <= Math.max(6, width)) return item.id;
+          if (pointToPolylineDistance(x, y, item.points) <= slack) return item.id;
         } else if (item.shape === 'curve') {
-          const width = item.stroke ? item.stroke.width : 1;
-          if (this.pointToPolylineDistance(x, y, sampleCurvePoints(item.points, false)) <= Math.max(6, width)) {
-            return item.id;
-          }
+          if (pointToPolylineDistance(x, y, sampleCurvePoints(item.points, false)) <= slack) return item.id;
         } else {
-          const b = this.shapeBbox(item);
-          if (x >= b.minX && x <= b.maxX && y >= b.minY && y <= b.maxY) return item.id;
+          const box = shapeBox(item);
+          if (box && within(at, box, 0)) return item.id;
         }
       }
     }

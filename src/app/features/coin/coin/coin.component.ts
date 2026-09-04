@@ -12,6 +12,7 @@ import {
 } from '@angular/core';
 import { CoinFlipService } from '@axe/application/coin/coin-flip.service';
 import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
+import { PointerDeviceService } from '@axe/application/input/pointer-device.service';
 import { RolePermissionService } from '@axe/application/permission/role-permission.service';
 import { ImageService } from '@axe/application/storage/image.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
@@ -24,7 +25,6 @@ import { SelectionSignalService } from '@axe/application/ui/selection-signal.ser
 import { sheetPanelBox } from '@axe/application/ui/sheet-panel';
 import { sheetPanelTitle } from '@axe/application/ui/sheet-panel';
 import { buildSurfaceSwitchContextMenu } from '@axe/application/ui/surface-switch-context-menu';
-import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { imageFileEqual } from '@axe/core/storage/image-file';
 import { Coin, CoinFace } from '@axe/domain/coin/coin';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';

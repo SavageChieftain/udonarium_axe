@@ -23,7 +23,7 @@ function source(overrides: Partial<VnStageSource> = {}): VnStageSource {
   const name = overrides.name ?? 'アリス';
   return {
     name,
-    timestamp: 0,
+    placedAt: 0,
     sendFrom: `id-${name}`,
     imageIdentifier: 'image-alice',
     imagePos: 0,
@@ -372,8 +372,8 @@ describe('stageCutFor()', () => {
 });
 
 describe('clearing the stage', () => {
-  const alice = (timestamp: number) => source({ name: 'アリス', sendFrom: 'alice', timestamp });
-  const bob = (timestamp: number) => source({ name: 'ボブ', sendFrom: 'bob', imageIdentifier: 'image-bob', timestamp });
+  const alice = (placedAt: number) => source({ name: 'アリス', sendFrom: 'alice', placedAt });
+  const bob = (placedAt: number) => source({ name: 'ボブ', sendFrom: 'bob', imageIdentifier: 'image-bob', placedAt });
 
   it('leaves the stage alone when nothing is cut', () => {
     const stage = buildVnStage([alice(10), bob(20)], () => 'url', messageSlotOf, 0);

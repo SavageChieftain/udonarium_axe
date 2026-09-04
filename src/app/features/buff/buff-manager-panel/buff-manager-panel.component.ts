@@ -5,6 +5,7 @@ import { GameObjectInventoryService } from '@axe/application/inventory/game-obje
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { TurnOrderService } from '@axe/application/turn/turn-order.service';
 import { PanelService } from '@axe/application/ui/panel.service';
+import { transientSignal } from '@axe/application/ui/transient-signal';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { describeBuffModifier, parseBuffModifierRequest } from '@axe/domain/character/buff-modifier';
 import {
@@ -19,10 +20,8 @@ import { BUFF_TIMINGS, BuffTiming } from '@axe/domain/character/buff-timing';
 import { buffTriggerOptions, selectedTriggerValue } from '@axe/domain/character/buff-trigger-options';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { DataElement, DataElementAttribute } from '@axe/domain/data/data-element';
-import {
-  STATUS_AILMENT_PANEL,
-  StatusAilmentPanelComponent,
-} from '@axe/features/status-ailment/status-ailment-panel/status-ailment-panel.component';
+import { STATUS_AILMENT_PANEL } from '@axe/domain/ui/room-panel';
+import { RoomPanelService } from '@axe/features/panels/room-panel.service';
 import { SafePipe } from '@axe/ui/pipes/safe.pipe';
 import { TranslocoModule } from '@jsverse/transloco';
 
@@ -44,6 +43,7 @@ export class BuffManagerPanelComponent {
   private readonly objectChange = inject(ObjectChangeService);
   private readonly inventory = inject(GameObjectInventoryService);
   private readonly panelService = inject(PanelService);
+  private readonly roomPanels = inject(RoomPanelService);
   private readonly turnOrder = inject(TurnOrderService);
   private readonly t = inject(TRANSLATE_FN);
 
@@ -283,24 +283,18 @@ export class BuffManagerPanelComponent {
     return request ? describeBuffModifier(request) : '';
   });
 
-  readonly copied = signal(false);
+  readonly copied = transientSignal(false, 1200);
 
   /** The states this room keeps on hand, which are put on pieces as the buffs charted here. */
   openStatusAilments(): void {
     if (this.panelService.closeSingle(STATUS_AILMENT_PANEL)) return;
-    this.panelService.open(StatusAilmentPanelComponent, {
-      title: this.t('feature.statusAilment.title'),
-      width: 380,
-      height: 460,
-      single: STATUS_AILMENT_PANEL,
-    });
+    this.roomPanels.open('statusAilment');
   }
 
   async copyCommand(): Promise<void> {
     try {
       await navigator.clipboard.writeText(this.builderCommand());
-      this.copied.set(true);
-      setTimeout(() => this.copied.set(false), 1200);
+      this.copied.show(true);
     } catch {
       /* clipboard unavailable (permission, insecure context) — the text is on screen to copy by hand */
     }

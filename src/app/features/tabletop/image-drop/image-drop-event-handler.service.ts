@@ -1,11 +1,11 @@
 import { DestroyRef, inject, Injectable } from '@angular/core';
 import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
+import { CoordinateService } from '@axe/application/input/coordinate.service';
+import { PointerCoordinate } from '@axe/application/input/pointer-device.service';
 import { RolePermissionService } from '@axe/application/permission/role-permission.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { TabletopActionService } from '@axe/application/tabletop/tabletop-action.service';
 import { ImageDroppedEvent } from '@axe/core/event/domain-events';
-import { CoordinateService } from '@axe/core/input/coordinate.service';
-import { PointerCoordinate } from '@axe/core/input/pointer-device.service';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
 import { TableSelecter } from '@axe/domain/tabletop/table-selecter';
 import { characterNameFromFileName } from '@axe/features/tabletop/image-drop/dropped-image-name';

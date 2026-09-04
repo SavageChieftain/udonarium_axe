@@ -229,3 +229,113 @@ describe('clearing away received chunks', () => {
     expect(receivedMap.has('fresh-chunk')).toBe(true);
   });
 });
+
+describe('sending what is queued', () => {
+  interface Internals {
+    dataChannel: unknown;
+    sendQueue: Set<Uint8Array>;
+    execQueue(): void;
+    isQueuing: boolean;
+  }
+
+  function stream(): Internals {
+    const made = SkyWayDataStream.createSubscription(
+      { room: undefined } as never,
+      {
+        peerId: 'peer-a',
+        userId: 'user-a',
+        password: '',
+      } as never
+    );
+    return made as unknown as Internals;
+  }
+
+  function channel(bufferedAmount: number, sent: Uint8Array[]) {
+    return {
+      readyState: 'open',
+      bufferedAmount,
+      send: (data: Uint8Array) => sent.push(data),
+    };
+  }
+
+  it('feeds the channel everything queued while it has room', () => {
+    const sent: Uint8Array[] = [];
+    const inner = stream();
+    inner.dataChannel = channel(0, sent);
+    for (let i = 0; i < 5; i++) inner.sendQueue.add(new Uint8Array([i]));
+
+    inner.execQueue();
+
+    expect(sent).toHaveLength(5);
+    expect(inner.sendQueue.size).toBe(0);
+    expect(inner.isQueuing).toBe(false);
+  });
+
+  it('waits while the channel is already holding a megabyte', () => {
+    const sent: Uint8Array[] = [];
+    const inner = stream();
+    inner.dataChannel = channel(1024 * 1024, sent);
+    inner.sendQueue.add(new Uint8Array([1]));
+
+    inner.execQueue();
+
+    expect(sent).toHaveLength(0);
+    expect(inner.sendQueue.size).toBe(1);
+    expect(inner.isQueuing).toBe(true);
+  });
+
+  it('waits on the clock rather than coming straight back to a full channel', () => {
+    vi.useFakeTimers();
+    try {
+      const sent: Uint8Array[] = [];
+      const full = { readyState: 'open', bufferedAmount: 1024 * 1024, send: (data: Uint8Array) => sent.push(data) };
+      const inner = stream();
+      inner.dataChannel = full;
+      inner.sendQueue.add(new Uint8Array([1]));
+
+      inner.execQueue();
+      vi.advanceTimersByTime(49);
+
+      // Nothing has gone and nothing has been tried again: a pass that sends nothing must not
+      // hand the main thread straight back to itself.
+      expect(sent).toHaveLength(0);
+
+      full.bufferedAmount = 0;
+      vi.advanceTimersByTime(1);
+
+      expect(sent).toHaveLength(1);
+      expect(inner.sendQueue.size).toBe(0);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('keeps what it could not send and stops for this turn', () => {
+    const inner = stream();
+    inner.dataChannel = {
+      readyState: 'open',
+      bufferedAmount: 0,
+      send: () => {
+        throw new Error('closed under us');
+      },
+    };
+    inner.sendQueue.add(new Uint8Array([1]));
+    inner.sendQueue.add(new Uint8Array([2]));
+
+    inner.execQueue();
+
+    expect(inner.sendQueue.size).toBe(2);
+  });
+
+  it('sends nothing through a channel that is not open', () => {
+    const sent: Uint8Array[] = [];
+    const inner = stream();
+    inner.dataChannel = { ...channel(0, sent), readyState: 'connecting' };
+    inner.sendQueue.add(new Uint8Array([1]));
+
+    inner.execQueue();
+
+    expect(sent).toHaveLength(0);
+    expect(inner.isQueuing).toBe(false);
+  });
+});

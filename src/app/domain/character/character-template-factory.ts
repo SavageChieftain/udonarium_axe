@@ -11,6 +11,9 @@ import {
 } from '@axe/domain/data/data-element';
 import { createSkillGapTableElement, DEFAULT_SKILL_TABLE_ROW_NAMES } from '@axe/domain/data/skill-gap-table';
 
+/** How far the sample sheet walks before anybody says otherwise, in cells of the table. */
+export const DEFAULT_SAMPLE_WALK_CELLS = 5;
+
 export class CharacterTemplateFactory {
   static createDefault(character: GameCharacter, name: string, size: number, imageIdentifier: string): void {
     character.createDataElements();
@@ -170,6 +173,19 @@ export class CharacterTemplateFactory {
         )
       );
     }
+    groupElement.appendChild(
+      CharacterTemplateFactory.createFieldElement(
+        '移動',
+        DEFAULT_SAMPLE_WALK_CELLS,
+        {
+          [DataElementAttribute.FIELD_TYPE]: DataElementFieldType.NUMBER,
+          [DataElementAttribute.UNIT]: 'マス',
+          [DataElementAttribute.MIN]: '0',
+          [DataElementAttribute.MAX]: '100',
+        },
+        `移動${character.identifier}`
+      )
+    );
   }
 
   private static appendFormatSampleElements(character: GameCharacter): void {

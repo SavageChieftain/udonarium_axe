@@ -2,8 +2,11 @@ import {
   parseImportedCharacterJson,
   parseImportedCharacterText,
 } from '@axe/domain/character/import/character-import-format';
+import { loadLabelMaps } from '@axe/domain/character/import/system-profiles/label-maps';
 
 describe('parseImportedCharacterText', () => {
+  beforeAll(() => loadLabelMaps());
+
   it('turns a piece from the other tool into the model used here', () => {
     const json = JSON.stringify({
       kind: 'character',

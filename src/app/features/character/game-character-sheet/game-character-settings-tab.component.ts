@@ -1,8 +1,8 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input, output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { PointerDeviceService } from '@axe/application/input/pointer-device.service';
 import { RolePermissionService } from '@axe/application/permission/role-permission.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
-import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { getMyPeerId } from '@axe/core/network/peer-context-source';
 import { normalizeFolderPath } from '@axe/domain/character/character-folder';
 import { GameCharacter } from '@axe/domain/character/game-character';

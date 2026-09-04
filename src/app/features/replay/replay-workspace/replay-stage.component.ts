@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/c
 import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { RolePermissionService } from '@axe/application/permission/role-permission.service';
 import { ReplayPlaybackService } from '@axe/application/replay/replay-playback.service';
-import { confirmDialog } from '@axe/core/input/confirm-dialog';
+import { ConfirmService } from '@axe/application/ui/confirm.service';
 import { formatReplayElapsed, type ReplayLogLine, toReplayLogLine } from '@axe/features/replay/replay-log-line';
 import { EMPTY_REPLAY_DICTIONARY, replayNamesAt } from '@axe/features/replay/replay-names';
 import {
@@ -23,6 +23,7 @@ export class ReplayStageComponent {
   private readonly playback = inject(ReplayPlaybackService);
   private readonly rolePermission = inject(RolePermissionService);
   private readonly t = inject(TRANSLATE_FN);
+  private readonly confirm = inject(ConfirmService);
 
   protected readonly cursor = this.playback.cursor;
   protected readonly isBoardMode = this.playback.isBoardMode;
@@ -140,7 +141,7 @@ export class ReplayStageComponent {
       return;
     }
     if (!this.canEdit) return;
-    if (!confirmDialog(this.t('feature.replay.player.boardConfirm'))) return;
+    if (!(await this.confirm.ask(this.t('feature.replay.player.boardConfirm')))) return;
     await this.playback.enterBoardMode();
   }
 }

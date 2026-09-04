@@ -1,9 +1,9 @@
 import { TestBed } from '@angular/core/testing';
 import { RoomSnapshotService } from '@axe/application/file/room-snapshot.service';
+import { PointerDeviceService } from '@axe/application/input/pointer-device.service';
 import { RolePermissionService } from '@axe/application/permission/role-permission.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { EventChannel } from '@axe/core/event/event-channel';
-import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { RoomArchiveEventHandlerService } from '@axe/features/room-archive/room-archive-event-handler.service';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
 

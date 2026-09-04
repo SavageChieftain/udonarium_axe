@@ -79,17 +79,13 @@ describe('ChatTabSettingComponent', () => {
   });
 
   describe('saves the log whatever the role, in good faith', () => {
-    let store: ObjectStore;
     let saveData: SaveDataService;
 
     beforeEach(() => {
-      store = ObjectStore.instance;
       saveData = TestBed.inject(SaveDataService);
     });
 
     afterEach(() => {
-      store.getObjects().forEach((obj) => store.delete(obj, false));
-      store.clearDeleteHistory();
       PeerCursor.myCursor = null!;
       vi.restoreAllMocks();
     });
@@ -121,15 +117,9 @@ describe('ChatTabSettingComponent', () => {
   });
 
   describe('lets no spectator edit who may read or speak', () => {
-    let store: ObjectStore;
-
-    beforeEach(() => {
-      store = ObjectStore.instance;
-    });
+    beforeEach(() => {});
 
     afterEach(() => {
-      store.getObjects().forEach((obj) => store.delete(obj, false));
-      store.clearDeleteHistory();
       (ChatTabList as unknown as { _instance: ChatTabList | undefined })._instance = undefined;
       PeerCursor.myCursor = null!;
     });

@@ -1,24 +1,13 @@
 import { TestBed } from '@angular/core/testing';
 import { ObjectFactory } from '@axe/core/sync/object-factory';
 import { ObjectSerializer } from '@axe/core/sync/object-serializer';
-import { ObjectStore } from '@axe/core/sync/object-store';
 import { ambiencePalette } from '@axe/domain/effect/ambience/ambience-kind';
 import { GameTable } from '@axe/domain/tabletop/game-table';
 import { TableAmbience } from '@axe/domain/tabletop/table-ambience';
 
 describe('TableAmbience', () => {
-  let store: ObjectStore;
-
   beforeEach(() => {
     TestBed.configureTestingModule({});
-    store = ObjectStore.instance;
-    for (const object of store.getObjects()) store.delete(object, false);
-    store.clearDeleteHistory();
-  });
-
-  afterEach(() => {
-    for (const object of store.getObjects()) store.delete(object, false);
-    store.clearDeleteHistory();
   });
 
   it('is created with a name and an area', () => {
@@ -96,8 +85,6 @@ describe('TableAmbience', () => {
       // The parser of happy-dom refuses an attribute name with a dot in it, so the position is
       // dropped and the rest read back; restoring a position is settled by the shared machinery.
       const xml = ObjectSerializer.instance.toXml(ambience).replace(/location\.[a-z]+="[^"]*"\s*/g, '');
-      for (const object of store.getObjects()) store.delete(object, false);
-      store.clearDeleteHistory();
 
       const restored = ObjectSerializer.instance.parseXml(xml) as TableAmbience;
 

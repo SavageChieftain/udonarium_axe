@@ -3,10 +3,7 @@ import { ObjectChangeService } from '@axe/application/sync/object-change.service
 import { TabletopService } from '@axe/application/tabletop/tabletop.service';
 import { ModalService } from '@axe/application/ui/modal.service';
 import { PanelService } from '@axe/application/ui/panel.service';
-import { ImageFile } from '@axe/core/storage/image-file';
 import { ImageStorage } from '@axe/core/storage/image-storage';
-import { ObjectStore } from '@axe/core/sync/object-store';
-import { ImageTag } from '@axe/domain/media/image-tag';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { PeerRole } from '@axe/domain/peer/peer-role';
 import { GridType } from '@axe/domain/tabletop/game-table';
@@ -24,7 +21,6 @@ import {
   StampLayer,
   TextLayer,
 } from '@axe/features/map-editor/model/scene';
-import { addLayer } from '@axe/features/map-editor/model/scene-ops';
 import { serializeScene } from '@axe/features/map-editor/model/serialize';
 import { exportSceneToBlob } from '@axe/features/map-editor/render/export-image';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
@@ -63,42 +59,12 @@ describe('MapEditorPanelComponent', () => {
   });
 
   afterEach(() => {
-    const store = ObjectStore.instance;
-    store.getObjects().forEach((obj) => store.delete(obj, false));
-    store.clearDeleteHistory();
     ImageStorage.instance.images.forEach((image) => ImageStorage.instance.delete(image.identifier));
     PeerCursor.myCursor = null!;
   });
 
   it('can be created', () => {
     expect(component).toBeTruthy();
-  });
-
-  describe('dropping on the list of layers', () => {
-    function dropOn(panel: MapEditorPanelComponent): DragEvent {
-      const dropped = { preventDefault: vi.fn(), stopPropagation: vi.fn() } as unknown as DragEvent;
-      (panel as unknown as { onLayerDrop(event: DragEvent): void }).onLayerDrop(dropped);
-      return dropped;
-    }
-
-    it('leaves a drop it has no layer to move for the rest of the page to answer', () => {
-      const dropped = dropOn(component);
-
-      expect(dropped.preventDefault).not.toHaveBeenCalled();
-      expect(dropped.stopPropagation).not.toHaveBeenCalled();
-    });
-
-    it('keeps the drop that moves a layer to itself', () => {
-      const drag = (component as unknown as { layerDrag: { begin(id: string): void; hover(id: string): void } })
-        .layerDrag;
-      drag.begin('a');
-      drag.hover('b');
-
-      const dropped = dropOn(component);
-
-      expect(dropped.preventDefault).toHaveBeenCalled();
-      expect(dropped.stopPropagation).toHaveBeenCalled();
-    });
   });
 
   it('shows only the game-master notice to anyone else', () => {
@@ -354,94 +320,6 @@ describe('MapEditorPanelComponent', () => {
     expect(Object.keys(layer.cells)).toEqual([cellKey(cell.col, cell.row)]);
   });
 
-  it('deletes the layer when the dialogue agrees', async () => {
-    modalService.open.mockResolvedValue(true);
-    component['state'].applyCommitted(() =>
-      addLayer(component['state'].current, {
-        id: 'layer-1',
-        kind: 'shape',
-        name: 'S',
-        visible: true,
-        locked: false,
-        opacity: 1,
-        items: [],
-      })
-    );
-    const before = component['state'].current.layers.length;
-
-    (component as unknown as { deleteLayer: (layer: { id: string }) => void }).deleteLayer({ id: 'layer-1' });
-    await Promise.resolve();
-
-    expect(component['state'].current.layers.length).toBe(before - 1);
-    expect(component['state'].current.layers.find((l) => l.id === 'layer-1')).toBeUndefined();
-  });
-
-  it('keeps the layer when the dialogue refuses', async () => {
-    modalService.open.mockResolvedValue(false);
-    component['state'].applyCommitted(() =>
-      addLayer(component['state'].current, {
-        id: 'layer-2',
-        kind: 'shape',
-        name: 'S',
-        visible: true,
-        locked: false,
-        opacity: 1,
-        items: [],
-      })
-    );
-    const before = component['state'].current.layers.length;
-
-    (component as unknown as { deleteLayer: (layer: { id: string }) => void }).deleteLayer({ id: 'layer-2' });
-    await Promise.resolve();
-
-    expect(component['state'].current.layers.length).toBe(before);
-  });
-
-  it('keeps the layer when the dialogue is dismissed', async () => {
-    modalService.open.mockResolvedValue(null);
-    component['state'].applyCommitted(() =>
-      addLayer(component['state'].current, {
-        id: 'layer-3',
-        kind: 'shape',
-        name: 'S',
-        visible: true,
-        locked: false,
-        opacity: 1,
-        items: [],
-      })
-    );
-    const before = component['state'].current.layers.length;
-
-    (component as unknown as { deleteLayer: (layer: { id: string }) => void }).deleteLayer({ id: 'layer-3' });
-    await Promise.resolve();
-
-    expect(component['state'].current.layers.length).toBe(before);
-  });
-
-  it('neither asks nor deletes for a locked layer', async () => {
-    component['state'].applyCommitted(() =>
-      addLayer(component['state'].current, {
-        id: 'layer-4',
-        kind: 'shape',
-        name: 'S',
-        visible: true,
-        locked: true,
-        opacity: 1,
-        items: [],
-      })
-    );
-    const before = component['state'].current.layers.length;
-
-    (component as unknown as { deleteLayer: (layer: { id: string; locked: boolean }) => void }).deleteLayer({
-      id: 'layer-4',
-      locked: true,
-    });
-    await Promise.resolve();
-
-    expect(modalService.open).not.toHaveBeenCalled();
-    expect(component['state'].current.layers.length).toBe(before);
-  });
-
   it('recolours the selected stamp', () => {
     component['state'].stampId.set('door-single');
     component['state'].stampColor.set(null);
@@ -466,89 +344,6 @@ describe('MapEditorPanelComponent', () => {
     component['state'].updateSelectedStamp({ color: null });
 
     expect(layer.items[0].color).toBeNull();
-  });
-
-  it('lists the images tagged as patterns', () => {
-    TestBed.inject(ObjectChangeService);
-    ImageStorage.instance.add('tex-1');
-    ImageStorage.instance.add('other');
-    const tag = ImageTag.create('tex-1');
-    tag.tag = 'テクスチャ';
-    ImageTag.create('other').tag = 'スタンプ';
-
-    const list = (component as unknown as { imageTextures: () => { identifier: string }[] }).imageTextures();
-
-    expect(list.map((f) => f.identifier)).toEqual(['tex-1']);
-  });
-
-  it('selects a pattern by its prefixed id and switches to pattern fill', () => {
-    const file = ImageFile.create('tex-9');
-    (component as unknown as { selectImageTexture: (f: ImageFile) => void }).selectImageTexture(file);
-    expect(component['state'].textureId()).toBe('image:tex-9');
-    expect(component['state'].fillMode()).toBe('texture');
-  });
-
-  it('saves the cropped image and tags it as a pattern', async () => {
-    TestBed.inject(ObjectChangeService);
-    const blob = new Blob([new Uint8Array([1])], { type: 'image/webp' });
-    modalService.open.mockResolvedValue(blob);
-    imageStorage.addAsync.mockResolvedValue({ identifier: 'cropped-1' });
-    const input = { files: [new File([new Uint8Array([1])], 'x.png', { type: 'image/png' })], value: 'x' };
-    const event = { target: input } as unknown as Event;
-
-    await (component as unknown as { onTextureFileSelected: (e: Event) => Promise<void> }).onTextureFileSelected(event);
-
-    expect(imageStorage.addAsync).toHaveBeenCalledWith(blob);
-    const created = ImageTag.get('cropped-1');
-    expect(created).toBeTruthy();
-    expect(created.tag).toBe('テクスチャ');
-    expect(component['state'].textureId()).toBe('image:cropped-1');
-    expect(component['state'].fillMode()).toBe('texture');
-  });
-
-  it('saves nothing when the crop dialogue is dismissed', async () => {
-    modalService.open.mockResolvedValue(null);
-    const input = { files: [new File([new Uint8Array([1])], 'x.png', { type: 'image/png' })], value: 'x' };
-    const event = { target: input } as unknown as Event;
-
-    await (component as unknown as { onTextureFileSelected: (e: Event) => Promise<void> }).onTextureFileSelected(event);
-
-    expect(imageStorage.addAsync).not.toHaveBeenCalled();
-  });
-
-  it('lists the images tagged as stamps', () => {
-    TestBed.inject(ObjectChangeService);
-    ImageStorage.instance.add('stamp-1');
-    ImageStorage.instance.add('other-stamp');
-    ImageTag.create('stamp-1').tag = 'マップスタンプ';
-    ImageTag.create('other-stamp').tag = 'テクスチャ';
-
-    const list = (component as unknown as { stampImages: () => { identifier: string }[] }).stampImages();
-
-    expect(list.map((f) => f.identifier)).toEqual(['stamp-1']);
-  });
-
-  it('selects a stamp by its prefixed id, with automatic colour and a size of one cell', () => {
-    const file = ImageFile.create('stamp-9');
-    component['state'].stampColor.set('#123456');
-    (component as unknown as { selectImageStamp: (f: ImageFile) => void }).selectImageStamp(file);
-    expect(component['state'].stampId()).toBe('media:stamp-9');
-    expect(component['state'].stampColor()).toBeNull();
-    expect(component['state'].stampSize()).toBe(component['state'].current.cellPx);
-  });
-
-  it('saves an uploaded stamp, tags it and selects it', async () => {
-    TestBed.inject(ObjectChangeService);
-    imageStorage.addAsync.mockResolvedValue({ identifier: 'uploaded-stamp' });
-    const input = { files: [new File([new Uint8Array([1])], 'x.png', { type: 'image/png' })], value: 'x' };
-    const event = { target: input } as unknown as Event;
-
-    await (component as unknown as { onStampFileSelected: (e: Event) => Promise<void> }).onStampFileSelected(event);
-
-    const created = ImageTag.get('uploaded-stamp');
-    expect(created).toBeTruthy();
-    expect(created.tag).toBe('マップスタンプ');
-    expect(component['state'].stampId()).toBe('media:uploaded-stamp');
   });
 
   it('commits a line with the current pattern when the stroke is set to use one', () => {

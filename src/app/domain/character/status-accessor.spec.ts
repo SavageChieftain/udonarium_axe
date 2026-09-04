@@ -1,9 +1,7 @@
-import { ObjectStore } from '@axe/core/sync/object-store';
 import { StatusAccessor } from '@axe/domain/character/status-accessor';
 import { DataElement, DataElementType } from '@axe/domain/data/data-element';
 
 describe('StatusAccessor', () => {
-  let store: ObjectStore;
   let detailDataElement: DataElement;
   let accessor: StatusAccessor;
 
@@ -15,7 +13,6 @@ describe('StatusAccessor', () => {
   }
 
   beforeEach(() => {
-    store = ObjectStore.instance;
     detailDataElement = DataElement.create('detail', '');
 
     const resourceGroup = DataElement.create('リソース', '');
@@ -29,12 +26,6 @@ describe('StatusAccessor', () => {
     abilityGroup.appendChild(DataElement.create('メモ', 'テスト用メモ', { type: DataElementType.NOTE }));
 
     accessor = new StatusAccessor(detailDataElement, () => 'テストキャラ');
-  });
-
-  afterEach(() => {
-    const allObjects = store.getObjects();
-    allObjects.forEach((obj) => store.delete(obj, false));
-    store.clearDeleteHistory();
   });
 
   describe('canChangeName', () => {

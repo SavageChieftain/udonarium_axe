@@ -13,7 +13,6 @@ import { SafePipe } from '@axe/ui/pipes/safe.pipe';
 import { TranslocoModule } from '@jsverse/transloco';
 
 /** Only one list, so a second press of whatever opened it puts it away. */
-export const STATUS_AILMENT_PANEL = 'status-ailment';
 
 /**
  * The states this room keeps on hand.

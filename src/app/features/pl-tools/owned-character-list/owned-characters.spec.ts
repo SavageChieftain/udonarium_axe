@@ -1,4 +1,3 @@
-import { ObjectStore } from '@axe/core/sync/object-store';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import {
   isControllableByUser,
@@ -17,11 +16,7 @@ function makeCharacter(owner: string, locationName: string): GameCharacter {
 }
 
 describe('owned-characters', () => {
-  afterEach(() => {
-    const store = ObjectStore.instance;
-    store.getObjects().forEach((object) => store.delete(object, false));
-    store.clearDeleteHistory();
-  });
+  afterEach(() => {});
 
   describe('isOwnedByUser', () => {
     it('works on a character you own', () => {

@@ -1,17 +1,11 @@
 import { TestBed } from '@angular/core/testing';
-import { ObjectStore } from '@axe/core/sync/object-store';
 import { ReloadCheck } from '@axe/domain/peer/reload-check';
 
 describe('ReloadCheck', () => {
-  let store: ObjectStore;
   let reloadCheck: ReloadCheck;
 
   beforeEach(() => {
     TestBed.configureTestingModule({});
-    store = ObjectStore.instance;
-    const allObjects = store.getObjects();
-    allObjects.forEach((obj) => store.delete(obj, false));
-    store.clearDeleteHistory();
 
     reloadCheck = new ReloadCheck('ReloadCheck');
     (reloadCheck as unknown as Record<string, () => void>).createDataElements();
@@ -19,9 +13,6 @@ describe('ReloadCheck', () => {
   });
 
   afterEach(() => {
-    const allObjects = store.getObjects();
-    allObjects.forEach((obj) => store.delete(obj, false));
-    store.clearDeleteHistory();
     vi.restoreAllMocks();
   });
 

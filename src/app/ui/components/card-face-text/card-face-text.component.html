@@ -1,0 +1,12 @@
+@if (visibleText()) {
+  <div
+    class="pointer-events-none absolute inset-0 z-2 flex items-center justify-center overflow-hidden text-center leading-[1.65] wrap-anywhere whitespace-pre-line"
+    [style.color]="fontColor()"
+    [style.font-size.px]="fontSize()"
+    [style.padding.px]="padding()"
+    [style.transform]="transformCss()"
+  >
+    <!-- Keep ruby and surrounding text in one inline formatting context instead of separate flex items. -->
+    <span [innerHTML]="decoratedText() | safe: 'html'"></span>
+  </div>
+}

@@ -1,5 +1,4 @@
 import { TestBed } from '@angular/core/testing';
-import { ObjectStore } from '@axe/core/sync/object-store';
 import { DataElement, DataElementAttribute, DataElementRole } from '@axe/domain/data/data-element';
 import {
   createFieldElement,
@@ -24,13 +23,8 @@ function childNames(element: DataElement): string[] {
 }
 
 describe('rearranging the items', () => {
-  let store: ObjectStore;
-
   beforeEach(() => {
     TestBed.configureTestingModule({});
-    store = ObjectStore.instance;
-    store.getObjects().forEach((object) => store.delete(object, false));
-    store.clearDeleteHistory();
   });
 
   describe('moveStructureElement()', () => {

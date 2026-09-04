@@ -8,10 +8,10 @@ import {
   Type,
   ViewContainerRef,
 } from '@angular/core';
+import { PointerDeviceService } from '@axe/application/input/pointer-device.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { ContextMenuService } from '@axe/application/ui/context-menu.service';
 import { ViewportService } from '@axe/application/ui/viewport.service';
-import { PointerDeviceService } from '@axe/core/input/pointer-device.service';
 import { observeTap, TapGestureHandle } from '@axe/core/input/tap-gesture';
 import { TabletopObject } from '@axe/domain/tabletop/tabletop-object';
 

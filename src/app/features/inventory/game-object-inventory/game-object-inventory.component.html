@@ -5,7 +5,7 @@
   -->
   <div
     class="text-ui-text flex h-full flex-col overflow-hidden text-[13px]"
-    [ngClass]="isGhost() ? 'rounded-ui shadow-ui-md bg-black/60 [backdrop-filter:blur(6px)]' : 'bg-ui-panel'"
+    [ngClass]="isGhost() ? 'rounded-ui shadow-ui-md bg-ui-ghost [backdrop-filter:blur(6px)]' : 'bg-ui-panel'"
     #contentRoot
   >
     @if (shows('tabs')) {
@@ -87,7 +87,7 @@
         <button
           class="text-ui-muted hover:text-ui-accent flex min-w-0 flex-1 cursor-pointer items-center gap-1.5 border-none bg-transparent p-0 text-left text-[11px] hover:shadow-none"
           type="button"
-          [title]="'feature.inventory.panel.displaySettings' | transloco"
+          [title]="'feature.inventory.panel.filterSettings' | transloco"
           (click)="toggleEdit()"
         >
           <i class="material-icons text-[15px]!">filter_alt</i>
@@ -126,10 +126,11 @@
           <button
             class="text-ui-muted hover:bg-ui-hover hover:text-ui-text flex size-6.5 shrink-0 cursor-pointer items-center justify-center rounded-sm border-none bg-transparent p-0 [&_.material-icons]:text-[16px]!"
             type="button"
+            [attr.aria-label]="'feature.inventory.panel.cancel' | transloco"
             [title]="'feature.inventory.panel.cancel' | transloco"
             (click)="toggleMultiMove()"
           >
-            <i class="material-icons">close</i>
+            <i class="material-icons" aria-hidden="true">close</i>
           </button>
         </div>
 
@@ -170,19 +171,21 @@
                 class="bg-ui-input border-ui-border-panel text-ui-text hover:bg-ui-hover hover:border-ui-accent hover:text-ui-accent rounded-ui-sm flex size-6.5 cursor-pointer items-center justify-center border border-solid p-0 transition-[background,color,border-color] disabled:cursor-default disabled:opacity-40 [&_.material-icons]:text-[15px]!"
                 type="button"
                 [disabled]="picked < 1"
+                [attr.aria-label]="'feature.inventory.panel.hideInInventory' | transloco"
                 [title]="'feature.inventory.panel.hideInInventory' | transloco"
                 (click)="multiSetHideInventory(true)"
               >
-                <i class="material-icons">visibility_off</i>
+                <i class="material-icons" aria-hidden="true">visibility_off</i>
               </button>
               <button
                 class="bg-ui-input border-ui-border-panel text-ui-text hover:bg-ui-hover hover:border-ui-accent hover:text-ui-accent rounded-ui-sm flex size-6.5 cursor-pointer items-center justify-center border border-solid p-0 transition-[background,color,border-color] disabled:cursor-default disabled:opacity-40 [&_.material-icons]:text-[15px]!"
                 type="button"
                 [disabled]="picked < 1"
+                [attr.aria-label]="'feature.inventory.panel.showInInventory' | transloco"
                 [title]="'feature.inventory.panel.showInInventory' | transloco"
                 (click)="multiSetHideInventory(false)"
               >
-                <i class="material-icons">visibility</i>
+                <i class="material-icons" aria-hidden="true">visibility</i>
               </button>
             </div>
           }
@@ -214,7 +217,9 @@
         }
         <button
           type="button"
-          class="rounded-ui-sm text-ui-text border-ui-border-panel hover:border-ui-accent hover:bg-ui-hover ml-auto flex max-w-40 flex-1 cursor-pointer items-center justify-center gap-0.5 border border-solid bg-transparent px-2 py-1 text-[12px] font-semibold transition-colors hover:shadow-none [&_.material-icons]:text-[15px]!"
+          class="rounded-ui-sm text-ui-text border-ui-border-panel hover:border-ui-accent hover:bg-ui-hover ml-auto flex max-w-40 flex-1 cursor-pointer items-center justify-center gap-0.5 border border-solid bg-transparent px-2 py-1 text-[12px] font-semibold transition-colors hover:shadow-none disabled:cursor-not-allowed disabled:opacity-40 [&_.material-icons]:text-[15px]!"
+          [disabled]="!canUndoTurn()"
+          [title]="'feature.turnOrder.undo' | transloco"
           (click)="turnPrev()"
         >
           <i class="material-icons">chevron_left</i>{{ 'feature.turnOrder.prev' | transloco }}
@@ -225,6 +230,23 @@
           (click)="turnNext()"
         >
           {{ 'feature.turnOrder.next' | transloco }}<i class="material-icons">chevron_right</i>
+        </button>
+        <button
+          type="button"
+          class="rounded-ui-sm text-ui-muted border-ui-border-panel hover:border-ui-accent hover:bg-ui-hover hover:text-ui-accent flex size-7 shrink-0 cursor-pointer items-center justify-center border border-solid bg-transparent p-0 transition-colors hover:shadow-none disabled:cursor-not-allowed disabled:opacity-40 [&_.material-icons]:text-[15px]!"
+          [disabled]="!canUndoTurn()"
+          [title]="'feature.turnOrder.retreatRound' | transloco"
+          (click)="turnRetreatRound()"
+        >
+          <i class="material-icons">fast_rewind</i>
+        </button>
+        <button
+          type="button"
+          class="rounded-ui-sm text-ui-muted border-ui-border-panel hover:border-ui-accent hover:bg-ui-hover hover:text-ui-accent flex size-7 shrink-0 cursor-pointer items-center justify-center border border-solid bg-transparent p-0 transition-colors hover:shadow-none [&_.material-icons]:text-[15px]!"
+          [title]="'feature.turnOrder.advanceRound' | transloco"
+          (click)="turnAdvanceRound()"
+        >
+          <i class="material-icons">fast_forward</i>
         </button>
         <button
           type="button"
@@ -321,8 +343,9 @@
         <div class="flex items-center gap-1.5">
           <button
             type="button"
-            class="bg-ui-panel/80 text-ui-text border-ui-border-panel hover:border-ui-accent hover:text-ui-accent shadow-ui-sm flex size-8 cursor-pointer items-center justify-center rounded-full border border-solid backdrop-blur-sm transition-colors hover:shadow-none [&_.material-icons]:text-[18px]!"
-            [title]="'feature.turnOrder.prev' | transloco"
+            class="bg-ui-panel/80 text-ui-text border-ui-border-panel hover:border-ui-accent hover:text-ui-accent shadow-ui-sm flex size-8 cursor-pointer items-center justify-center rounded-full border border-solid backdrop-blur-sm transition-colors hover:shadow-none disabled:cursor-not-allowed disabled:opacity-40 [&_.material-icons]:text-[18px]!"
+            [disabled]="!canUndoTurn()"
+            [title]="'feature.turnOrder.undo' | transloco"
             (click)="turnPrev()"
           >
             <i class="material-icons">keyboard_arrow_up</i>
@@ -337,6 +360,23 @@
           </button>
         </div>
         <div class="flex items-center gap-1.5">
+          <button
+            type="button"
+            class="text-ui-muted hover:bg-ui-hover hover:text-ui-text flex size-7 shrink-0 cursor-pointer items-center justify-center rounded-full border-none bg-transparent p-0 drop-shadow-sm transition-[background,color] hover:shadow-none disabled:cursor-not-allowed disabled:opacity-40 [&_.material-icons]:text-[17px]!"
+            [disabled]="!canUndoTurn()"
+            [title]="'feature.turnOrder.retreatRound' | transloco"
+            (click)="turnRetreatRound()"
+          >
+            <i class="material-icons">fast_rewind</i>
+          </button>
+          <button
+            type="button"
+            class="text-ui-muted hover:bg-ui-hover hover:text-ui-text flex size-7 shrink-0 cursor-pointer items-center justify-center rounded-full border-none bg-transparent p-0 drop-shadow-sm transition-[background,color] hover:shadow-none [&_.material-icons]:text-[17px]!"
+            [title]="'feature.turnOrder.advanceRound' | transloco"
+            (click)="turnAdvanceRound()"
+          >
+            <i class="material-icons">fast_forward</i>
+          </button>
           <button
             type="button"
             class="hover:bg-ui-hover flex size-7 shrink-0 cursor-pointer items-center justify-center rounded-full border-none bg-transparent p-0 drop-shadow-sm transition-[background,color] hover:shadow-none [&_.material-icons]:text-[17px]!"
@@ -364,7 +404,7 @@
       @for (character of turnOrderList(); track character.identifier) {
         <button
           type="button"
-          class="shrink-0 cursor-pointer rounded-full border-none bg-transparent p-0 transition-transform"
+          class="relative shrink-0 cursor-pointer rounded-full border-none bg-transparent p-0 transition-transform"
           [class.scale-105]="currentTurnId() === character.identifier"
           [class.opacity-50]="currentTurnId() && currentTurnId() !== character.identifier"
           [title]="character.name"
@@ -385,6 +425,13 @@
               <i class="material-icons text-ui-dim text-[26px]! opacity-50">person</i>
             }
           </span>
+          @if (actedIds().has(character.identifier) && currentTurnId() !== character.identifier) {
+            <i
+              class="material-icons bg-ui-panel text-ui-dim absolute right-0 bottom-0 rounded-full text-[14px]!"
+              [title]="'feature.turnOrder.acted' | transloco"
+              >check</i
+            >
+          }
         </button>
       } @empty {
         <span class="text-ui-dim px-1 py-2 text-center text-[11px] drop-shadow-sm">{{
@@ -409,7 +456,7 @@
       -->
       <table
         class="w-max min-w-full border-separate border-spacing-0 text-[12px]"
-        [ngClass]="{ '[&_thead_th]:bg-black/70!': isGhost() }"
+        [ngClass]="{ '[&_thead_th]:bg-ui-ghost-header!': isGhost() }"
       >
         <thead>
           <tr class="text-ui-muted text-[10px] font-semibold">
@@ -486,11 +533,19 @@
               }
               <td class="border-ui-border-panel w-0 border-b border-solid px-1 py-0.5">
                 <span class="flex items-center justify-end gap-0.5">
-                  <i
-                    class="material-icons text-ui-accent block text-[14px]!"
-                    [class.invisible]="currentTurnId() !== row.object.identifier"
-                    >play_arrow</i
-                  >
+                  @if (currentTurnId() !== row.object.identifier && actedIds().has(row.object.identifier)) {
+                    <i
+                      class="material-icons text-ui-dim block text-[14px]!"
+                      [title]="'feature.turnOrder.acted' | transloco"
+                      >check</i
+                    >
+                  } @else {
+                    <i
+                      class="material-icons text-ui-accent block text-[14px]!"
+                      [class.invisible]="currentTurnId() !== row.object.identifier"
+                      >play_arrow</i
+                    >
+                  }
                   <span class="text-ui-muted tabular-nums">{{ row.order }}</span>
                 </span>
               </td>
@@ -649,24 +704,32 @@
     [class.italic]="isHiddenRowDimmed(gameObject)"
     [class.border-dashed!]="isHiddenRowDimmed(gameObject)"
     [class.border-ui-border-panel!]="isHiddenRowDimmed(gameObject) && selectedIdentifier() !== gameObject.identifier"
-    [class.opacity-40]="isDragging(gameObject)"
+    [class.opacity-40]="drag.isDragging(gameObject)"
     (contextmenu)="onContextMenu($event, gameObject)"
     (click)="selectGameObject(gameObject)"
     (dblclick)="focusToObject($event, gameObject)"
-    (pointerdown)="onObjectPointerDown($event, gameObject)"
-    (pointermove)="onObjectPointerMove($event)"
-    (pointerup)="onObjectPointerUp($event)"
-    (pointercancel)="onObjectDragCancel()"
-    (lostpointercapture)="onObjectDragCancel()"
+    (pointerdown)="drag.down($event, gameObject)"
+    (pointermove)="drag.move($event)"
+    (pointerup)="drag.up($event)"
+    (pointercancel)="drag.cancel()"
+    (lostpointercapture)="drag.cancel()"
     (mousedown)="onObjectDragBlock($event, gameObject)"
     (touchstart)="onObjectDragBlock($event, gameObject)"
   >
     @if (selectTab() === 'table') {
-      <i
-        class="material-icons text-ui-accent w-3.5 shrink-0 text-[16px]!"
-        [class.invisible]="currentTurnId() !== gameObject.identifier"
-        >play_arrow</i
-      >
+      @if (currentTurnId() !== gameObject.identifier && actedIds().has(gameObject.identifier)) {
+        <i
+          class="material-icons text-ui-dim w-3.5 shrink-0 text-[16px]!"
+          [title]="'feature.turnOrder.acted' | transloco"
+          >check</i
+        >
+      } @else {
+        <i
+          class="material-icons text-ui-accent w-3.5 shrink-0 text-[16px]!"
+          [class.invisible]="currentTurnId() !== gameObject.identifier"
+          >play_arrow</i
+        >
+      }
     }
     @if (isMultiMove()) {
       <input
@@ -765,8 +828,8 @@
     [attr.data-folder-path]="node.path"
     [attr.aria-expanded]="!isFolderCollapsed(node.path)"
     [class.text-ui-muted!]="!node.path"
-    [class.bg-ui-accent-bg!]="isDropFolder(node.path)"
-    [class.border-ui-accent!]="isDropFolder(node.path)"
+    [class.bg-ui-accent-bg!]="drag.isDropFolder(node.path)"
+    [class.border-ui-accent!]="drag.isDropFolder(node.path)"
     (click)="toggleFolder(node.path)"
     (contextmenu)="onFolderContextMenu($event, node.path)"
   >

@@ -16,6 +16,10 @@ export function buildDiceSymbolContextMenu(
   callbacks: {
     onDiceRoll: () => void;
     onShowDetail: () => void;
+    /** Called with the face a die that nobody could see has just been opened on. */
+    onRevealed?: (face: string) => void;
+    /** Whether the reader may open a die that is somebody else's, which is the master's to do. */
+    canRevealHidden?: boolean;
     /** The pieces the die can be given to. Left out where there are none to offer. */
     ownerCandidates?: DiceOwnerCandidate[];
     /** Takes the die off the table and onto the sheet of the piece it belongs to. */
@@ -34,17 +38,26 @@ export function buildDiceSymbolContextMenu(
 
   if (actions.length) actions.push(ContextMenuSeparator);
 
-  if (diceSymbol.isMine || diceSymbol.hasOwner) {
+  // A die kept back is the owner's to open, and the master's. Anyone else opening it would
+  // give away the very thing that was kept, and the callout would put it in the log besides.
+  if (diceSymbol.hasOwner && (diceSymbol.isMine || callbacks.canRevealHidden === true)) {
     actions.push({
       name: t('feature.dice.contextMenu.showDice'),
       action: () => {
+        // Only a die that was somebody's to read has a face to call out on being opened.
+        const wasHidden = diceSymbol.hasOwner;
         diceSymbol.owner = '';
         SoundEffect.play(PresetSound.unlock);
+        if (wasHidden) callbacks.onRevealed?.(diceSymbol.face);
       },
     });
   }
 
-  if (!diceSymbol.isMine) {
+  // A die nobody has kept back may be taken by whoever picks it up. One that is already
+  // somebody's is theirs: taking it would make their roll yours to open, which is the very
+  // thing opening it was closed off to protect. The master may take one all the same, being
+  // able to read it either way.
+  if (!diceSymbol.isMine && (!diceSymbol.hasOwner || callbacks.canRevealHidden === true)) {
     actions.push({
       name: t('feature.dice.contextMenu.showSelfOnly'),
       action: () => {

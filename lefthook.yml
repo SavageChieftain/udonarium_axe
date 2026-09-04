@@ -7,13 +7,17 @@ pre-commit:
   parallel: true
   jobs:
     - name: lint
-      glob: '*.{ts,html}'
-      run: npx ng lint
+      glob: 'src/**/*.{ts,html}'
+      run: npx eslint {staged_files}
 
     - name: test
-      run: npx ng test
+      glob: 'src/**/*.{ts,html,css}'
+      run: node scripts/vitest-related.mjs {staged_files}
 
 pre-push:
   jobs:
+    - name: test
+      run: npx vitest run
+
     - name: build
       run: npm run build

@@ -1,17 +1,10 @@
 import { TestBed } from '@angular/core/testing';
-import { ObjectStore } from '@axe/core/sync/object-store';
 import { waitZeroTimeout } from '@axe/core/util/zero-timeout';
 import { Config } from '@axe/domain/peer/config';
 
 describe('Config', () => {
-  let store: ObjectStore;
-
   beforeEach(() => {
     TestBed.configureTestingModule({});
-    store = ObjectStore.instance;
-    const allObjects = store.getObjects();
-    allObjects.forEach((obj) => store.delete(obj, false));
-    store.clearDeleteHistory();
     (Config as unknown as { _instance: Config | undefined })._instance = undefined;
   });
 
@@ -20,9 +13,6 @@ describe('Config', () => {
     // and unless those queues are drained before the objects are deleted an error can be
     // thrown after the test has finished.
     await waitZeroTimeout();
-    const allObjects = store.getObjects();
-    allObjects.forEach((obj) => store.delete(obj, false));
-    store.clearDeleteHistory();
     (Config as unknown as { _instance: Config | undefined })._instance = undefined;
   });
 

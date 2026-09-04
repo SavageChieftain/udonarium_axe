@@ -10,25 +10,23 @@ import {
 } from '@angular/core';
 import { TRANSLATE_FN } from '@axe/application/i18n/translate.token';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
+import { MoveBlockService } from '@axe/application/tabletop/move-block.service';
 import { TabletopService } from '@axe/application/tabletop/tabletop.service';
 import { VisionService } from '@axe/application/tabletop/vision.service';
 import { TurnOrderService } from '@axe/application/turn/turn-order.service';
+import { ConfirmService } from '@axe/application/ui/confirm.service';
 import { PanelService } from '@axe/application/ui/panel.service';
 import { ViewportService } from '@axe/application/ui/viewport.service';
 import { WidgetVisibilityService } from '@axe/application/ui/widget-visibility.service';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { findOrphanedOwnership } from '@axe/domain/tabletop/ownership';
-import { BuffManagerPanelComponent } from '@axe/features/buff/buff-manager-panel/buff-manager-panel.component';
 import { HandRailService } from '@axe/features/card/hand-rail/hand-rail.service';
-import { EffectLibraryPanelComponent } from '@axe/features/effect/effect-library-panel/effect-library-panel.component';
-import { GameObjectListPanelComponent } from '@axe/features/gm-object-list/game-object-list-panel.component';
 import { NpcBarComponent } from '@axe/features/gm-tools/npc-bar/npc-bar.component';
 import { NpcBarService } from '@axe/features/gm-tools/npc-bar/npc-bar.service';
 import { NpcDragService } from '@axe/features/gm-tools/npc-bar/npc-drag.service';
-import { PartyListPanelComponent } from '@axe/features/gm-tools/party-list/party-list-panel.component';
-import { MapEditorPanelComponent } from '@axe/features/map-editor/editor/map-editor-panel.component';
-import { DungeonGeneratorComponent } from '@axe/features/tabletop/dungeon-generator/dungeon-generator.component';
+import { RoomPanelService } from '@axe/features/panels/room-panel.service';
+import { UiIconButtonComponent } from '@axe/ui/components/icon-button/icon-button.component';
 import { DraggableDirective } from '@axe/ui/directives/draggable.directive';
 import { turnIndicatorSignal } from '@axe/ui/turn/turn-indicator.signal';
 import { TranslocoModule } from '@jsverse/transloco';
@@ -37,13 +35,14 @@ import { TranslocoModule } from '@jsverse/transloco';
   changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-gm-toolbar',
   templateUrl: './gm-toolbar.component.html',
-  imports: [DraggableDirective, NpcBarComponent, TranslocoModule],
+  imports: [DraggableDirective, NpcBarComponent, TranslocoModule, UiIconButtonComponent],
 })
 export class GmToolbarComponent {
   protected readonly isCompact = inject(ViewportService).isCompact;
   protected readonly npcBar = inject(NpcBarService);
   protected readonly drag = inject(NpcDragService);
   private readonly panelService = inject(PanelService);
+  private readonly roomPanels = inject(RoomPanelService);
   private readonly objectChange = inject(ObjectChangeService);
   private readonly tabletopService = inject(TabletopService);
   private readonly visionService = inject(VisionService);
@@ -51,7 +50,9 @@ export class GmToolbarComponent {
   private readonly turnOrder = inject(TurnOrderService);
   protected readonly handRail = inject(HandRailService);
   protected readonly widgets = inject(WidgetVisibilityService);
+  protected readonly moveBlock = inject(MoveBlockService);
   private readonly t = inject(TRANSLATE_FN);
+  private readonly confirm = inject(ConfirmService);
 
   private readonly barRef = viewChild<ElementRef<HTMLElement>>('bar');
   private savedLeft: string | null = null;
@@ -120,65 +121,27 @@ export class GmToolbarComponent {
   }
 
   protected openObjectList(): void {
-    this.panelService.open(GameObjectListPanelComponent, {
-      width: 460,
-      height: 620,
-      left: 100,
-      top: 40,
-      title: this.t('common.panel.objectList'),
-    });
+    this.roomPanels.open('objectList', { left: 100, top: 40 });
   }
 
   protected openPartyList(): void {
-    this.panelService.open(PartyListPanelComponent, {
-      width: 460,
-      height: 620,
-      left: 120,
-      top: 60,
-      title: this.t('feature.gmTools.party.title'),
-    });
+    this.roomPanels.open('partyList', { left: 120, top: 60 });
   }
 
   protected openBuffManager(): void {
-    this.panelService.open(BuffManagerPanelComponent, {
-      width: 560,
-      height: 420,
-      left: 160,
-      top: 100,
-      title: this.t('feature.buffManager.title'),
-    });
+    this.roomPanels.open('buffManager', { left: 160, top: 100 });
   }
 
   protected openEffectLibrary(): void {
-    this.panelService.open(EffectLibraryPanelComponent, {
-      width: 360,
-      height: 480,
-      left: 140,
-      top: 80,
-      title: this.t('feature.effect.panelTitle'),
-    });
+    this.roomPanels.open('effectLibrary', { left: 140, top: 80 });
   }
 
   protected openMapEditor(): void {
-    this.panelService.open(MapEditorPanelComponent, {
-      width: 1100,
-      height: 740,
-      left: 80,
-      top: 60,
-      title: this.t('feature.mapEditor.title'),
-    });
+    this.roomPanels.open('mapEditor', { left: 80, top: 60 });
   }
 
   protected openDungeonGenerator(): void {
-    this.panelService.open(DungeonGeneratorComponent, {
-      width: 460,
-      height: 660,
-      minWidth: 400,
-      minHeight: 520,
-      left: 100,
-      top: 60,
-      title: this.t('feature.tabletop.dungeonGenerator.title'),
-    });
+    this.roomPanels.open('dungeonGenerator', { left: 100, top: 60 });
   }
 
   protected toggleNpcBar(): void {
@@ -192,6 +155,23 @@ export class GmToolbarComponent {
     this.objectChange.notifyChanged(table.identifier);
   }
 
+  protected toggleMoveBlock(): void {
+    this.moveBlock.togglePainting();
+  }
+
+  protected useBlockBrush(): void {
+    this.moveBlock.setBrush('block');
+  }
+
+  protected useEraserBrush(): void {
+    this.moveBlock.setBrush('erase');
+  }
+
+  protected async clearMoveBlocks(): Promise<void> {
+    if (!(await this.confirm.ask(this.t('app.fab.moveBlockClearConfirm')))) return;
+    this.moveBlock.clearAll();
+  }
+
   protected toggleFog(): void {
     const table = this.tabletopService.currentTable;
     table.fogEnabled = !table.fogEnabled;
@@ -199,10 +179,10 @@ export class GmToolbarComponent {
     this.objectChange.notifyChanged(table.identifier);
   }
 
-  protected releaseOrphanedOwnership(): void {
+  protected async releaseOrphanedOwnership(): Promise<void> {
     const orphaned = findOrphanedOwnership(this.objectStore.getObjects());
     if (orphaned.length === 0) return;
-    if (!confirm(this.t('app.fab.releaseOwnershipConfirm', { count: orphaned.length }))) return;
+    if (!(await this.confirm.ask(this.t('app.fab.releaseOwnershipConfirm', { count: orphaned.length })))) return;
     for (const object of orphaned) object.owner = '';
   }
 

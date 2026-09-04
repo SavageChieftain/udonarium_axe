@@ -6,6 +6,12 @@ import { DEFAULT_FOG_COLOR, DEFAULT_FOG_MODE, FogMode } from '@axe/domain/tablet
 import { GameTableMask } from '@axe/domain/tabletop/game-table-mask';
 import { GameTableScratchMask } from '@axe/domain/tabletop/game-table-scratch-mask';
 import { LightSource } from '@axe/domain/tabletop/light-source';
+import {
+  DEFAULT_CELL_DISTANCE,
+  DEFAULT_CELL_DISTANCE_UNIT,
+  DEFAULT_MOVE_RANGE_ELEMENT_NAMES,
+} from '@axe/domain/tabletop/move/move-cells';
+import { DEFAULT_ZOC_EXTRA_COST, DEFAULT_ZOC_MODE, DEFAULT_ZOC_RANGE } from '@axe/domain/tabletop/move/zone-of-control';
 import { TableAmbience } from '@axe/domain/tabletop/table-ambience';
 import { DEFAULT_TABLE_FACING_MARK, TableFacingMark } from '@axe/domain/tabletop/table-facing-mark';
 import { Terrain } from '@axe/domain/tabletop/terrain';
@@ -71,6 +77,26 @@ export class GameTable extends ObjectNode {
   @SyncVar() fogEnabled: boolean = false;
   @SyncVar() fogMode: FogMode = DEFAULT_FOG_MODE;
   @SyncVar() fogColor: string = DEFAULT_FOG_COLOR;
+
+  @SyncVar() moveRangeEnabled: boolean = true;
+  @SyncVar() moveRangeElementNames: string = DEFAULT_MOVE_RANGE_ELEMENT_NAMES;
+  /** Whether a piece on squares may step across a corner. A hex board has none to cut. */
+  @SyncVar() moveDiagonally: boolean = true;
+  /** Whether two pieces may stand on one cell. Left off, a piece walks past rather than onto. */
+  @SyncVar() piecesShareCells: boolean = true;
+  /** Whether the piece a reader has picked keeps showing its reach, not only while carried. */
+  @SyncVar() moveRangeAlways: boolean = false;
+  /** Whether the ground held against the piece a reader has picked keeps showing. */
+  @SyncVar() zocAlways: boolean = false;
+  @SyncVar() cellDistance: number = DEFAULT_CELL_DISTANCE;
+  @SyncVar() cellDistanceUnit: string = DEFAULT_CELL_DISTANCE_UNIT;
+
+  /** What the ground around an enemy does to a piece walking into it. One of ZOC_MODES. */
+  @SyncVar() zocMode: string = DEFAULT_ZOC_MODE;
+  /** How many cells out from an enemy that ground reaches. */
+  @SyncVar() zocRange: number = DEFAULT_ZOC_RANGE;
+  /** What entering it costs on top of the one step, where the table charges for it. */
+  @SyncVar() zocExtraCost: number = DEFAULT_ZOC_EXTRA_COST;
 
   /** The weather over the whole map. Empty for none. */
   @SyncVar() weatherKind: string = '';
