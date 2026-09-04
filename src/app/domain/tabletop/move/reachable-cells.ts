@@ -9,13 +9,6 @@ export interface ReachOptions {
   budget?: number;
   /** Whether a step across a corner is a step. A hex board has no corners to cut. */
   cutsCorners?: boolean;
-  /**
-   * Whether a piece may come to rest on a cell it can otherwise walk through.
-   *
-   * A cell somebody is standing on is one you may pass but not stop on, where the table
-   * says two pieces do not share one.
-   */
-  canRest?: (index: number) => boolean;
 }
 
 export function reachableCells(
@@ -27,7 +20,6 @@ export function reachableCells(
 ): CellBits {
   const budget = options.budget ?? DEFAULT_REACH_BUDGET;
   const cutsCorners = options.cutsCorners ?? true;
-  const canRest = options.canRest;
   const total = cellCount(grid);
   const reached = new CellBits(total);
   if (start < 0 || start >= total || cells < 1 || budget < 1) return reached;
@@ -48,7 +40,7 @@ export function reachableCells(
           if (exhausted || seen.get(neighbour)) return;
           seen.set(neighbour);
           if (isBlocked(neighbour)) return;
-          if (!canRest || canRest(neighbour)) reached.set(neighbour);
+          reached.set(neighbour);
           next.push(neighbour);
           spent++;
           if (spent >= budget) exhausted = true;

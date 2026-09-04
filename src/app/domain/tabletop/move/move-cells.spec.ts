@@ -59,17 +59,22 @@ describe('how many cells a piece may walk', () => {
     ).toBe(9);
   });
 
-  it('turns a sheet written in feet into cells', () => {
-    expect(moveCellsOf(characterWith([{ name: '移動', value: 30 }]), NAMES, 5)).toBe(6);
-    expect(moveCellsOf(characterWith([{ name: '移動', value: 25 }]), NAMES, 5)).toBe(5);
+  it('measures a sheet against what one cell of the table stands for', () => {
+    expect(moveCellsOf(characterWith([{ name: '移動', value: 30 }]), NAMES, 5, 'foot')).toBe(6);
+    expect(moveCellsOf(characterWith([{ name: '移動', value: 25 }]), NAMES, 5, 'foot')).toBe(5);
   });
 
   it('rounds a part of a cell down', () => {
-    expect(moveCellsOf(characterWith([{ name: '移動', value: 27 }]), NAMES, 5)).toBe(5);
+    expect(moveCellsOf(characterWith([{ name: '移動', value: 27 }]), NAMES, 5, 'foot')).toBe(5);
   });
 
   it('takes the value as it stands when a cell has no distance set', () => {
-    expect(moveCellsOf(characterWith([{ name: '移動', value: 30 }]), NAMES, 0)).toBe(30);
+    expect(moveCellsOf(characterWith([{ name: '移動', value: 30 }]), NAMES, 0, 'foot')).toBe(30);
+  });
+
+  it('takes the value as it stands where the table counts in cells, whatever it was told to divide by', () => {
+    // A cell standing for five cells says nothing, so the number is left as the cells it is.
+    expect(moveCellsOf(characterWith([{ name: '移動', value: 30 }]), NAMES, 5, 'cell')).toBe(30);
   });
 
   it('reads what is left of a pool rather than its full amount', () => {

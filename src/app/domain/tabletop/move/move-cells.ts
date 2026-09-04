@@ -50,10 +50,11 @@ export function moveCellsOf(
 }
 
 function cellsFrom(amount: number, sheetUnit: MoveUnit | null, tableUnit: string, cellDistance: number): number {
-  if (sheetUnit === 'cell') return Math.floor(amount);
-
   const ruledIn = parseMoveUnit(tableUnit);
-  const measured =
-    isLengthUnit(sheetUnit) && isLengthUnit(ruledIn) ? convertMoveLength(amount, sheetUnit, ruledIn) : amount;
+  // Counted in cells on either side, the number is the answer: there is no length to measure
+  // against, and a cell standing for so many cells is a sentence with nothing in it.
+  if (sheetUnit === 'cell' || !isLengthUnit(ruledIn)) return Math.floor(amount);
+
+  const measured = isLengthUnit(sheetUnit) ? convertMoveLength(amount, sheetUnit, ruledIn) : amount;
   return cellDistance > 0 ? Math.floor(measured / cellDistance) : Math.floor(measured);
 }

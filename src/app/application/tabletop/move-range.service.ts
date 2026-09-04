@@ -51,12 +51,13 @@ export class MoveRangeService {
     const painted = moveBlockMapOn(table)?.read(grid);
     if (painted) blocked.or(painted);
 
-    const taken = table.piecesShareCells
-      ? null
-      : occupiedCells(grid, this.objectStore.getObjects<GameCharacter>(GameCharacter), character.identifier);
+    // Two pieces that may not share a cell may not pass through one either: the ground
+    // somebody stands on is in the way, and a reach has to go round it.
+    if (!table.piecesShareCells) {
+      blocked.or(occupiedCells(grid, this.objectStore.getObjects<GameCharacter>(GameCharacter), character.identifier));
+    }
     const cells = reachableCells(grid, start, walk, (index) => blocked.get(index), {
       cutsCorners: table.moveDiagonally,
-      canRest: taken ? (index) => !taken.get(index) : undefined,
     });
     return { characterIdentifier: character.identifier, grid, cells };
   }

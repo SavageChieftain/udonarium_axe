@@ -120,7 +120,30 @@ describe('MoveRangeService', () => {
 
     const view = service.range()!;
     expect(view.cells.get(cellIndexOf(view.grid, 6, 5))).toBe(false);
-    // Walked past rather than stopped on: the ground beyond it is still within reach.
+    // Round it rather than through it: the ground beyond is reached by another way.
+    expect(view.cells.get(cellIndexOf(view.grid, 7, 5))).toBe(true);
+  });
+
+  it('stands in the way rather than being walked through', () => {
+    table.piecesShareCells = false;
+    // A corridor one cell wide, with somebody standing in it.
+    wallOver(6, 0, 5);
+    wallOver(6, 6, 6);
+    table.appendChild(pieceAt(6, 5, 1));
+    service.show(pieceAt(5, 5, 4));
+
+    const view = service.range()!;
+    expect(view.cells.get(cellIndexOf(view.grid, 7, 5))).toBe(false);
+  });
+
+  it('walks the corridor once the one standing in it may be shared with', () => {
+    table.piecesShareCells = true;
+    wallOver(6, 0, 5);
+    wallOver(6, 6, 6);
+    table.appendChild(pieceAt(6, 5, 1));
+    service.show(pieceAt(5, 5, 4));
+
+    const view = service.range()!;
     expect(view.cells.get(cellIndexOf(view.grid, 7, 5))).toBe(true);
   });
 

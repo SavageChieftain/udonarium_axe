@@ -296,6 +296,11 @@ export class GameTableSettingComponent {
     if (this.isEditable && this.selectedTable) this.selectedTable.moveDiagonally = value;
   }
 
+  /** A cell standing for so many cells says nothing, so the distance is only asked for lengths. */
+  get showsCellDistance(): boolean {
+    return this.tableCellDistanceUnit !== 'cell';
+  }
+
   get tablePiecesShareCells(): boolean {
     return this.selectedTable?.piecesShareCells ?? true;
   }
