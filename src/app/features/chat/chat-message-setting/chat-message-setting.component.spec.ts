@@ -148,6 +148,27 @@ describe('ChatMessageSettingComponent', () => {
       expect(preferences.soundOfTab('メイン').type).toBe('notify1');
     });
 
+    it('offers the system tab a note of its own, though nobody speaks there', () => {
+      const system = new ChatTab(SYSTEM_CHAT_TAB_IDENTIFIER);
+      system.name = 'システム';
+      system.initialize();
+      ChatTabList.instance.appendChild(system);
+      fixture.detectChanges();
+
+      chooseScope('soundScope', 'perTab');
+
+      expect(checkboxes('chatSoundEnabled-')).toHaveLength(3);
+      const select = soundSelect(SYSTEM_CHAT_TAB_IDENTIFIER);
+      expect(select).toBeTruthy();
+      select.value = 'cyber';
+      select.dispatchEvent(new Event('change'));
+      fixture.detectChanges();
+
+      const preferences = TestBed.inject(ChatPreferencesService);
+      expect(preferences.soundOfTab('システム').type).toBe('cyber');
+      expect(preferences.soundOfTab('メイン').type).toBe('notify1');
+    });
+
     it('asks for two tabs of one name without falling over', () => {
       makeTab('雑談');
       fixture.detectChanges();

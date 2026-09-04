@@ -121,6 +121,19 @@ describe('ChatSoundEventHandlerService', () => {
     expect(played).toEqual([{ identifier: 'cyber', volume: 0.8 }]);
   });
 
+  it('sounds the note the system tab is set to for a notice the room posts there', () => {
+    enable({
+      scope: 'perTab',
+      all: { enabled: true, volume: 0.5, type: 'bubble' },
+      tabs: { システム: { enabled: true, volume: 0.3, type: 'cyber' } },
+    });
+    start();
+
+    speak(makeTab('システム'), '誰か が入室しました', undefined, 'system-message');
+
+    expect(played).toEqual([{ identifier: 'cyber', volume: 0.3 }]);
+  });
+
   it('says nothing for an evening of talk handed over on joining', () => {
     enable({ scope: 'all', all: { enabled: true, volume: 0.5, type: 'bubble' }, tabs: {} });
     start();
