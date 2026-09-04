@@ -167,6 +167,11 @@ describe('SkyWayBackend', () => {
     expect(calledUrl).toBe('https://example.com/backend/v1/status');
   });
 
+  // Three attempts of five seconds each and the two waits between them, with room to spare.
+  // Bounded rather than every timer there is, so a repeat left running elsewhere in the worker
+  // cannot spin here for ever.
+  const EVERY_ATTEMPT_MS = 30_000;
+
   describe('retrying a token request through a cold start', () => {
     beforeEach(() => {
       vi.useFakeTimers();
@@ -182,7 +187,7 @@ describe('SkyWayBackend', () => {
       const backend = new SkyWayBackend('http://localhost:3000');
 
       const promise = backend.createSkyWayAuthToken('channel', 'peer-1');
-      await vi.runAllTimersAsync();
+      await vi.advanceTimersByTimeAsync(EVERY_ATTEMPT_MS);
 
       await expect(promise).resolves.toBe('warm-token');
       expect(fetchSpy).toHaveBeenCalledTimes(2);
@@ -195,7 +200,7 @@ describe('SkyWayBackend', () => {
       const backend = new SkyWayBackend('http://localhost:3000');
 
       const promise = backend.createSkyWayAuthToken('channel', 'peer-1');
-      await vi.runAllTimersAsync();
+      await vi.advanceTimersByTimeAsync(EVERY_ATTEMPT_MS);
 
       await expect(promise).resolves.toBe('warm-token');
       expect(fetchSpy).toHaveBeenCalledTimes(2);
@@ -206,7 +211,7 @@ describe('SkyWayBackend', () => {
       const backend = new SkyWayBackend('http://localhost:3000');
 
       const promise = backend.createSkyWayAuthToken('channel', 'peer-1');
-      await vi.runAllTimersAsync();
+      await vi.advanceTimersByTimeAsync(EVERY_ATTEMPT_MS);
 
       await expect(promise).resolves.toBe('');
       expect(fetchSpy).toHaveBeenCalledTimes(3);
@@ -220,7 +225,7 @@ describe('SkyWayBackend', () => {
       const backend = new SkyWayBackend('http://localhost:3000');
 
       const promise = backend.createSkyWayAuthToken('channel', 'peer-1');
-      await vi.runAllTimersAsync();
+      await vi.advanceTimersByTimeAsync(EVERY_ATTEMPT_MS);
 
       await expect(promise).resolves.toBe('warm-token');
       expect(fetchSpy).toHaveBeenCalledTimes(3);
@@ -237,7 +242,7 @@ describe('SkyWayBackend', () => {
       const backend = new SkyWayBackend('http://localhost:3000');
 
       const promise = backend.createSkyWayAuthToken('channel', 'peer-1');
-      await vi.runAllTimersAsync();
+      await vi.advanceTimersByTimeAsync(EVERY_ATTEMPT_MS);
 
       await expect(promise).resolves.toBe('json-token');
       expect(fetchSpy).toHaveBeenCalledTimes(2);
@@ -252,7 +257,7 @@ describe('SkyWayBackend', () => {
       const backend = new SkyWayBackend('http://localhost:3000');
 
       const promise = backend.createSkyWayAuthToken('channel', 'peer-1');
-      await vi.runAllTimersAsync();
+      await vi.advanceTimersByTimeAsync(EVERY_ATTEMPT_MS);
 
       await expect(promise).resolves.toBe('json-token');
       expect(fetchSpy).toHaveBeenCalledTimes(3);
