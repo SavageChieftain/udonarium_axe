@@ -434,15 +434,17 @@ export class ChatMessageService {
 
   discloseDieRolls(dieIdentifier: string): number {
     const tag = dieRollTag(dieIdentifier);
-    let opened = 0;
+    let latest: ChatMessage | null = null;
     for (const chatTab of this.chatTabs) {
-      for (const message of [...chatTab.chatMessages]) {
+      for (const message of chatTab.chatMessages) {
         if (!message.isSecret || !message.tags.includes(tag)) continue;
-        this.discloseMessage(message);
-        opened++;
+        if (!latest || latest.placedAt < message.placedAt) latest = message;
       }
     }
-    return opened;
+    if (!latest) return 0;
+
+    this.discloseMessage(latest);
+    return 1;
   }
 
   discloseMessage(message: ChatMessage): void {

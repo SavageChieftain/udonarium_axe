@@ -79,6 +79,34 @@ describe('ChatMessageService', () => {
       expect(tab.chatMessages[tab.chatMessages.length - 1]).toBe(secret);
     });
 
+    it('opens the last throw of that die alone, leaving the earlier ones kept back', () => {
+      const older = service.sendSecretSystemMessageToTab(tab, '隠しダイス → 1', 'me', undefined, ['die-a']);
+      const newer = service.sendSecretSystemMessageToTab(tab, '隠しダイス → 6', 'me', undefined, ['die-a']);
+      const another = service.sendSecretSystemMessageToTab(tab, '隠しダイスB → 3', 'me', undefined, ['die-b']);
+
+      expect(service.discloseDieRolls('die-a')).toBe(1);
+
+      expect(newer.isSecret).toBe(false);
+      expect(older.isSecret).toBe(true);
+      expect(another.isSecret).toBe(true);
+    });
+
+    it('weighs the throws against each other across the tabs', () => {
+      const other = ChatTabList.instance.addChatTab('べつのタブ');
+      try {
+        vi.spyOn(service, 'getTime').mockReturnValueOnce(2000).mockReturnValueOnce(1000);
+        const newer = service.sendSecretSystemMessageToTab(tab, '隠しダイス → 6', 'me', undefined, ['die-a']);
+        const older = service.sendSecretSystemMessageToTab(other, '隠しダイス → 1', 'me', undefined, ['die-a']);
+
+        expect(service.discloseDieRolls('die-a')).toBe(1);
+
+        expect(newer.isSecret).toBe(false);
+        expect(older.isSecret).toBe(true);
+      } finally {
+        other.destroy();
+      }
+    });
+
     it('says how many lines it opened', () => {
       service.sendSecretSystemMessageToTab(tab, '隠しダイス → 6', 'me', undefined, ['die-a']);
 
