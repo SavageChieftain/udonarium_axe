@@ -31,11 +31,11 @@ export class TableMoveRangeOverlayComponent {
       const range = this.view();
       const canvas = this.canvasRef()?.nativeElement;
       if (!range || !canvas) return;
-      this.paint(canvas, range.grid, range.cells, range.held);
+      this.paint(canvas, range.grid, range.showsReach ? range.cells : null, range.held);
     });
   }
 
-  private paint(canvas: HTMLCanvasElement, grid: CellGrid, cells: CellBits, held: CellBits | null): void {
+  private paint(canvas: HTMLCanvasElement, grid: CellGrid, cells: CellBits | null, held: CellBits | null): void {
     const extent = gridExtentPx(grid);
     const width = Math.max(1, Math.ceil(extent.maxX - extent.minX));
     const height = Math.max(1, Math.ceil(extent.maxY - extent.minY));
@@ -55,26 +55,7 @@ export class TableMoveRangeOverlayComponent {
     context.clearRect(extent.minX, extent.minY, width, height);
 
     if (held) this.paintCells(context, grid, held, MOVE_ZOC_FILL, MOVE_ZOC_BORDER);
-
-    const area = new Path2D();
-    for (const polygon of moveRangePolygons(grid, cells)) {
-      area.moveTo(polygon[0].x, polygon[0].y);
-      for (let corner = 1; corner < polygon.length; corner++) area.lineTo(polygon[corner].x, polygon[corner].y);
-      area.closePath();
-    }
-    context.fillStyle = MOVE_RANGE_FILL;
-    context.fill(area);
-
-    const border = new Path2D();
-    for (const edge of moveRangeOutline(grid, cells)) {
-      border.moveTo(edge.x1, edge.y1);
-      border.lineTo(edge.x2, edge.y2);
-    }
-    context.strokeStyle = MOVE_RANGE_BORDER;
-    context.lineWidth = MOVE_RANGE_BORDER_WIDTH_PX;
-    context.lineJoin = 'round';
-    context.lineCap = 'round';
-    context.stroke(border);
+    if (cells) this.paintCells(context, grid, cells, MOVE_RANGE_FILL, MOVE_RANGE_BORDER);
     context.setTransform(1, 0, 0, 1, 0, 0);
   }
 

@@ -84,6 +84,10 @@ export class GameTable extends ObjectNode {
   @SyncVar() moveDiagonally: boolean = true;
   /** Whether two pieces may stand on one cell. Left off, a piece walks past rather than onto. */
   @SyncVar() piecesShareCells: boolean = true;
+  /** Whether the piece a reader has picked keeps showing its reach, not only while carried. */
+  @SyncVar() moveRangeAlways: boolean = false;
+  /** Whether the ground held against the piece a reader has picked keeps showing. */
+  @SyncVar() zocAlways: boolean = false;
   @SyncVar() cellDistance: number = DEFAULT_CELL_DISTANCE;
   @SyncVar() cellDistanceUnit: string = DEFAULT_CELL_DISTANCE_UNIT;
 

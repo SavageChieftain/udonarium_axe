@@ -1,6 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { MoveRangeService } from '@axe/application/tabletop/move-range.service';
 import { VisionService } from '@axe/application/tabletop/vision.service';
+import { SelectionSignalService } from '@axe/application/ui/selection-signal.service';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { DataElement, DataElementAttribute } from '@axe/domain/data/data-element';
@@ -187,6 +188,52 @@ describe('MoveRangeService', () => {
     service.show(pieceAt(5, 5, 3));
 
     expect(service.range()!.held).toBeNull();
+  });
+
+  describe('what a picked piece keeps showing', () => {
+    function pick(character: GameCharacter): void {
+      TestBed.inject(SelectionSignalService).selectObject(character.identifier, 'character');
+    }
+
+    it('shows nothing for a picked piece where the table was not asked to', () => {
+      pick(pieceAt(5, 5, 2));
+
+      expect(service.range()).toBeNull();
+    });
+
+    it('keeps the reach of a picked piece on the table', () => {
+      table.moveRangeAlways = true;
+      pick(pieceAt(5, 5, 2));
+
+      const view = service.range()!;
+      expect(view.showsReach).toBe(true);
+      expect(countCells(view.cells)).toBe(24);
+    });
+
+    it('keeps the ground held against it without drawing the reach', () => {
+      table.zocAlways = true;
+      table.zocMode = 'stop';
+      const foe = pieceAt(7, 5, 1);
+      foe.isNpc = true;
+      pick(pieceAt(5, 5, 2));
+
+      const view = service.range()!;
+      expect(view.showsReach).toBe(false);
+      expect(view.held!.get(cellIndexOf(view.grid, 6, 5))).toBe(true);
+    });
+
+    it('gives way to the piece in hand', () => {
+      table.moveRangeAlways = true;
+      const picked = pieceAt(5, 5, 2);
+      pick(picked);
+      const carried = pieceAt(1, 1, 1);
+
+      service.show(carried);
+
+      expect(service.range()!.characterIdentifier).toBe(carried.identifier);
+      service.hide();
+      expect(service.range()!.characterIdentifier).toBe(picked.identifier);
+    });
   });
 
   it('reaches a diamond where the table forbids cutting corners', () => {

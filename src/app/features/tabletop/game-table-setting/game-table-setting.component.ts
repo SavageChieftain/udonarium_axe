@@ -308,6 +308,20 @@ export class GameTableSettingComponent {
     return this.tableCellDistanceUnit !== 'cell';
   }
 
+  get tableMoveRangeAlways(): boolean {
+    return this.selectedTable?.moveRangeAlways ?? false;
+  }
+  set tableMoveRangeAlways(value: boolean) {
+    if (this.isEditable && this.selectedTable) this.selectedTable.moveRangeAlways = value;
+  }
+
+  get tableZocAlways(): boolean {
+    return this.selectedTable?.zocAlways ?? false;
+  }
+  set tableZocAlways(value: boolean) {
+    if (this.isEditable && this.selectedTable) this.selectedTable.zocAlways = value;
+  }
+
   get tablePiecesShareCells(): boolean {
     return this.selectedTable?.piecesShareCells ?? true;
   }

@@ -593,6 +593,17 @@
             {{ 'feature.tabletop.tableSetting.moveRangeEnabled' | transloco }}
           </label>
 
+          <label class="text-ui-text flex cursor-pointer items-center gap-1.5 text-[13px] select-none">
+            <input
+              type="checkbox"
+              class="size-3.5 cursor-pointer [accent-color:var(--ui-accent)]"
+              [(ngModel)]="tableMoveRangeAlways"
+              name="tableMoveRangeAlways"
+              [attr.disabled]="!isEditable ? '' : null"
+            />
+            {{ 'feature.tabletop.tableSetting.moveRangeAlways' | transloco }}
+          </label>
+
           @if (showsDiagonalOption) {
             <label class="text-ui-text flex cursor-pointer items-center gap-1.5 text-[13px] select-none">
               <input
@@ -691,6 +702,22 @@
                 name="tableZocRange"
                 [attr.disabled]="!isEditable ? '' : null"
               />
+            }
+
+            @if (showsZocOptions) {
+              <label class="text-ui-muted text-[11px] whitespace-nowrap">{{
+                'feature.tabletop.tableSetting.zocAlways' | transloco
+              }}</label>
+              <label class="text-ui-text col-span-2 flex cursor-pointer items-center gap-1.5 text-[13px] select-none">
+                <input
+                  type="checkbox"
+                  class="size-3.5 cursor-pointer [accent-color:var(--ui-accent)]"
+                  [(ngModel)]="tableZocAlways"
+                  name="tableZocAlways"
+                  [attr.disabled]="!isEditable ? '' : null"
+                />
+                {{ 'feature.tabletop.tableSetting.zocAlwaysHint' | transloco }}
+              </label>
             }
 
             @if (showsZocExtraCost) {

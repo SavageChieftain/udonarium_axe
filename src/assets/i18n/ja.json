@@ -1899,6 +1899,7 @@
         "fogReset": "霧をリセット",
         "sectionMoveRange": "移動範囲",
         "moveRangeEnabled": "コマを持ち上げたら移動できるマスを表示する",
+        "moveRangeAlways": "選んだコマの移動範囲を出したままにする",
         "moveDiagonally": "斜め移動を許可する（1 マスとして数える）",
         "piecesShareCells": "同じマスに複数のコマを置ける（切ると、他のコマがいるマスは移動先に出さない）",
         "moveRangeElementNames": "参照する項目",
@@ -1912,6 +1913,8 @@
         "zocMode_cost": "移動コスト増（入るのに余分に消費）",
         "zocRange": "ZOC の広さ",
         "zocExtraCost": "余分な移動コスト",
+        "zocAlways": "ZOC の常時表示",
+        "zocAlwaysHint": "選んだコマに対する ZOC を出したままにする",
         "zocHint": "NPC かどうかが違うコマを敵とみなし、その周りのマスが移動を妨げる。自分に見えていないコマは ZOC を張らない。",
         "cellUnit": {
           "cell": "マス",

@@ -1899,6 +1899,7 @@
         "fogReset": "안개 초기화",
         "sectionMoveRange": "이동 범위",
         "moveRangeEnabled": "말을 집어 들면 이동할 수 있는 칸을 표시",
+        "moveRangeAlways": "선택한 말의 이동 범위를 계속 표시",
         "moveDiagonally": "대각선 이동을 허용한다 (한 칸으로 계산)",
         "piecesShareCells": "같은 칸에 여러 말을 놓을 수 있음 (끄면 다른 말이 있는 칸은 이동 대상에서 제외)",
         "moveRangeElementNames": "참조할 항목",
@@ -1912,6 +1913,8 @@
         "zocMode_cost": "이동 코스트 증가 (들어갈 때 추가 소모)",
         "zocRange": "ZOC 범위",
         "zocExtraCost": "추가 이동 코스트",
+        "zocAlways": "ZOC 상시 표시",
+        "zocAlwaysHint": "선택한 말에 대한 ZOC를 계속 표시",
         "zocHint": "NPC 여부가 다른 말을 적으로 보고, 그 주위 칸이 이동을 방해합니다. 자신에게 보이지 않는 말은 ZOC를 만들지 않습니다.",
         "cellUnit": {
           "cell": "칸",

@@ -1,5 +1,6 @@
+import { WritableSignal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { MoveRangeService } from '@axe/application/tabletop/move-range.service';
+import { MoveRangeService, MoveRangeView } from '@axe/application/tabletop/move-range.service';
 import { CellBits } from '@axe/domain/tabletop/fog/cell-bits';
 import { cellGridOf, cellIndexOf } from '@axe/domain/tabletop/fog/cell-grid';
 import { GridType } from '@axe/domain/tabletop/game-table';
@@ -20,6 +21,11 @@ describe('TableMoveRangeOverlayComponent', () => {
     const bits = new CellBits(grid.cols * grid.rows);
     for (const index of indexes) bits.set(index);
     return bits;
+  }
+
+  /** What the service holds while a piece is carried, which is what the overlay draws. */
+  function carry(view: MoveRangeView): void {
+    (TestBed.inject(MoveRangeService) as unknown as { held: WritableSignal<MoveRangeView | null> }).held.set(view);
   }
 
   beforeEach(() => {
@@ -56,11 +62,12 @@ describe('TableMoveRangeOverlayComponent', () => {
   });
 
   it('paints the ground an enemy holds under the reach', () => {
-    TestBed.inject(MoveRangeService).range.set({
+    carry({
       characterIdentifier: 'piece',
       grid,
       cells: cellsAt(cellIndexOf(grid, 2, 2)),
       held: cellsAt(cellIndexOf(grid, 3, 3)),
+      showsReach: true,
     });
 
     fixture.detectChanges();
@@ -68,12 +75,27 @@ describe('TableMoveRangeOverlayComponent', () => {
     expect(filled).toEqual([MOVE_ZOC_FILL, MOVE_RANGE_FILL]);
   });
 
+  it('paints the held ground alone where the reach is not to be shown', () => {
+    carry({
+      characterIdentifier: 'piece',
+      grid,
+      cells: cellsAt(cellIndexOf(grid, 2, 2)),
+      held: cellsAt(cellIndexOf(grid, 3, 3)),
+      showsReach: false,
+    });
+
+    fixture.detectChanges();
+
+    expect(filled).toEqual([MOVE_ZOC_FILL]);
+  });
+
   it('paints the reach alone where no enemy holds any', () => {
-    TestBed.inject(MoveRangeService).range.set({
+    carry({
       characterIdentifier: 'piece',
       grid,
       cells: cellsAt(cellIndexOf(grid, 2, 2)),
       held: null,
+      showsReach: true,
     });
 
     fixture.detectChanges();
