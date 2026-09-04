@@ -827,7 +827,7 @@ export class VisualNovelOverlayComponent {
     return VISUAL_NOVEL_PANELS.some((name) => this.panelService.hasSingle(name));
   }
 
-  protected closeOverlays(): void {
+  private closeOverlays(): void {
     this.closePopovers();
     closeVisualNovelPanels(this.panelService);
   }
@@ -836,7 +836,7 @@ export class VisualNovelOverlayComponent {
     return this.openPopover() === kind;
   }
 
-  private closePopovers(): void {
+  protected closePopovers(): void {
     this.openPopover.set(null);
   }
 

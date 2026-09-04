@@ -665,7 +665,7 @@
             <i class="material-icons">volume_up</i>
           </button>
           @if (isPopover('soundBoard')) {
-            <visual-novel-sound-board (attach)="attachSe($event)" (played)="closeOverlays()" />
+            <visual-novel-sound-board (attach)="attachSe($event)" (played)="closePopovers()" />
           }
         </div>
         @if (attachedSe(); as se) {

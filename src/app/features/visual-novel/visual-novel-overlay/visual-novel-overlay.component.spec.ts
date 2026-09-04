@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { By } from '@angular/platform-browser';
 import { ChatMessageService } from '@axe/application/chat/chat-message.service';
 import { NO_SYSTEM_AVATAR, SystemAvatarService } from '@axe/application/chat/system-avatar.service';
 import { LanguageService } from '@axe/application/i18n/language.service';
@@ -24,6 +25,7 @@ import { VN_BACKLOG_PANEL } from '@axe/features/visual-novel/visual-novel-panels
 import { VisualNovelPlaybackService } from '@axe/features/visual-novel/visual-novel-playback.service';
 import { VisualNovelSceneService } from '@axe/features/visual-novel/visual-novel-scene.service';
 import { VisualNovelSettingsService } from '@axe/features/visual-novel/visual-novel-settings.service';
+import { VisualNovelSoundBoardComponent } from '@axe/features/visual-novel/visual-novel-sound-board/visual-novel-sound-board.component';
 import { leftOfSlot, VN_STAGE_SLOT_COUNT } from '@axe/features/visual-novel/visual-novel-stage';
 import { installPanelLayer } from '@axe/testing/panel-layer';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
@@ -454,6 +456,22 @@ describe('VisualNovelOverlayComponent', () => {
     expect(component.currentIndex()).toBe(0);
     expect(component.displayedText()).toBe('m1');
     // Reading somewhere else is what the log is for, so it stays open to be read on.
+    expect(component.isBacklogOpen()).toBe(true);
+  });
+
+  it('leaves the log standing when a cut-in is played from the sound board', () => {
+    addMessage('m1');
+    createComponent();
+    component.toggleBacklog();
+    component.toggleSoundBoard();
+    fixture.detectChanges();
+
+    const board = fixture.debugElement.query(By.directive(VisualNovelSoundBoardComponent));
+    expect(board).toBeTruthy();
+    board.componentInstance.played.emit();
+    fixture.detectChanges();
+
+    expect(component.isPopover('soundBoard')).toBe(false);
     expect(component.isBacklogOpen()).toBe(true);
   });
 
