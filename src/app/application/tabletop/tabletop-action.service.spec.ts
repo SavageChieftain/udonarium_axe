@@ -1,7 +1,9 @@
 import { TestBed } from '@angular/core/testing';
 import { TabletopActionService } from '@axe/application/tabletop/tabletop-action.service';
+import { TRUMP_BACK_IMAGE_PATH } from '@axe/application/tabletop/tabletop-action-helpers';
 import { ImageStorage } from '@axe/core/storage/image-storage';
 import { ObjectStore } from '@axe/core/sync/object-store';
+import { Card, CardState } from '@axe/domain/card/card';
 import { CardStack } from '@axe/domain/card/card-stack';
 import { ImageTag } from '@axe/domain/media/image-tag';
 import { GameTable } from '@axe/domain/tabletop/game-table';
@@ -19,6 +21,31 @@ describe('TabletopActionService', () => {
 
   it('should be created', () => {
     expect(service).toBeTruthy();
+  });
+
+  describe('createBlankCard()', () => {
+    it('creates a standalone card with the blank face at the clicked position', () => {
+      const card = service.createBlankCard({ x: 100, y: 120, z: 3 });
+
+      expect(card instanceof Card).toBe(true);
+      expect(card.location.x).toBe(75);
+      expect(card.location.y).toBe(95);
+      expect(card.posZ).toBe(3);
+      expect(card.state).toBe(CardState.FRONT);
+      expect(card.owner).toBe('');
+      expect(card.frontImage?.url).toContain('blank_card.png');
+      expect(card.backImage?.url).toBe(TRUMP_BACK_IMAGE_PATH);
+      expect(card.imageFile.url).toContain('blank_card.png');
+    });
+
+    it('adds a blank-card action to the context menu', () => {
+      const action = service
+        .makeDefaultContextMenuActions({ x: 0, y: 0, z: 0 })
+        .find((entry) => entry.name === 'ブランクカードを作成');
+
+      expect(action).toBeDefined();
+      expect(action?.action).toBeInstanceOf(Function);
+    });
   });
 
   describe('createWhiteBoard()', () => {

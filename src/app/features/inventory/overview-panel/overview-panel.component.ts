@@ -49,6 +49,7 @@ import {
 import { DiceSymbol } from '@axe/domain/dice/dice-symbol';
 import { TabletopObject } from '@axe/domain/tabletop/tabletop-object';
 import { TextNote } from '@axe/domain/tabletop/text-note'; //
+import { CardFacePreviewComponent } from '@axe/ui/components/card-face-preview/card-face-preview.component';
 import { DraggableDirective } from '@axe/ui/directives/draggable.directive';
 import { LinkifyPipe } from '@axe/ui/pipes/linkify.pipe';
 import { SafePipe } from '@axe/ui/pipes/safe.pipe';
@@ -67,6 +68,7 @@ import { TranslocoModule } from '@jsverse/transloco';
     LinkifyPipe,
     SafePipe,
     TranslocoModule,
+    CardFacePreviewComponent,
   ],
   host: {
     class: 'block',
@@ -118,6 +120,13 @@ export class OverviewPanelComponent {
     return this.tabletopObject && this.tabletopObject.imageFile ? this.tabletopObject.imageFile.url : '';
   });
   readonly hasImage = computed(() => this.imageUrl().length > 0);
+
+  get overviewFaceCard(): Card | null {
+    const object = this.tabletopObject;
+    if (object instanceof Card) return object;
+    if (object instanceof CardStack) return object.topCard;
+    return null;
+  }
 
   readonly objectVersion = computed(() => {
     if (!this.tabletopObject) return 0;

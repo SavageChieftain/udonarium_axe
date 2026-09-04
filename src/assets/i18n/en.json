@@ -642,7 +642,10 @@
       },
       "field": {
         "name": "Card name",
-        "size": "Size"
+        "size": "Size",
+        "text": "Card text",
+        "textHint": "Use |word《reading》 for ruby text and start a line with > for a quotation.",
+        "fontSize": "Font size"
       },
       "drawDialog": {
         "title": "Draw cards",
@@ -1653,6 +1656,7 @@
         "createMask": "Create map mask",
         "createTerrain": "Create terrain",
         "createNote": "Create shared note",
+        "createBlankCard": "Create blank card",
         "createTrump": "Create trump deck",
         "createDice": "Create dice",
         "createCoin": "Create a coin",

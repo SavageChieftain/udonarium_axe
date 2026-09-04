@@ -24,6 +24,7 @@ import {
   TrumpCardLabel,
 } from '@axe/features/card/card-stack-card-list/trump-card-label';
 import { ObjectPanelService } from '@axe/features/panels/object-panel.service';
+import { CardFacePreviewComponent } from '@axe/ui/components/card-face-preview/card-face-preview.component';
 import { FileSelecterComponent } from '@axe/ui/components/file-selecter/file-selecter.component';
 import { TooltipDirective } from '@axe/ui/directives/tooltip.directive';
 import { type DropSide, RowReorder } from '@axe/ui/dragging/row-reorder';
@@ -35,7 +36,7 @@ import { TranslocoModule } from '@jsverse/transloco';
   templateUrl: './card-stack-card-list.component.html',
   host: { class: 'block' },
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [TooltipDirective, SafePipe, TranslocoModule],
+  imports: [TooltipDirective, SafePipe, TranslocoModule, CardFacePreviewComponent],
 })
 export class CardStackCardListComponent {
   private readonly panelService = inject(PanelService);

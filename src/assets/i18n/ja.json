@@ -642,7 +642,10 @@
       },
       "field": {
         "name": "カード名",
-        "size": "サイズ"
+        "size": "サイズ",
+        "text": "カード文章",
+        "textHint": "ルビは |漢字《かんじ》、引用は行頭の > で指定できます。",
+        "fontSize": "文字サイズ"
       },
       "drawDialog": {
         "title": "カードを引く",
@@ -1653,6 +1656,7 @@
         "createMask": "マップマスクを作成",
         "createTerrain": "地形を作成",
         "createNote": "共有メモを作成",
+        "createBlankCard": "ブランクカードを作成",
         "createTrump": "トランプの山札を作成",
         "createDice": "ダイスを作成",
         "createCoin": "コインを作成",

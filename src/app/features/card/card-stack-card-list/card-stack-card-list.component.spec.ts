@@ -33,6 +33,14 @@ describe('CardStackCardListComponent', () => {
     expect(component.cards().length).toBe(2);
   });
 
+  it('draws the text over a card front in the deck detail', () => {
+    stack.cards[0].faceText = '山札内の文章';
+
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('card-face-preview')).toBeTruthy();
+  });
+
   it('returns the name of the card', () => {
     expect(component.cardName(stack.cards[0])).toBe('A');
   });

@@ -642,7 +642,10 @@
       },
       "field": {
         "name": "카드 이름",
-        "size": "크기"
+        "size": "크기",
+        "text": "카드 문장",
+        "textHint": "루비는 |한자《읽기》, 인용은 줄 맨 앞의 > 로 지정할 수 있습니다.",
+        "fontSize": "글자 크기"
       },
       "drawDialog": {
         "title": "카드 뽑기",
@@ -1653,6 +1656,7 @@
         "createMask": "맵 마스크 만들기",
         "createTerrain": "지형 만들기",
         "createNote": "공유 메모 만들기",
+        "createBlankCard": "빈 카드 만들기",
         "createTrump": "트럼프 덱 만들기",
         "createDice": "주사위 만들기",
         "createCoin": "코인 만들기",
