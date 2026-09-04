@@ -216,8 +216,11 @@ export class CardComponent {
     return supersampleFactor(Math.min(natural.width, natural.height), this.size * this.gridSize);
   });
 
+  /** A peeked card is held a little smaller than the one it is drawn over. */
+  protected readonly peekScale = 'scale(0.9)';
+
   readonly peekTransform = computed(() =>
-    supersampleTransform({ factor: this.peekSupersample(), anchor: 'center', inner: 'scale(0.9)' })
+    supersampleTransform({ factor: this.peekSupersample(), anchor: 'center', inner: this.peekScale })
   );
 
   private readonly peekFrameRect = computed(() => {
