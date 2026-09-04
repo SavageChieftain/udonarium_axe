@@ -114,3 +114,98 @@ describe('cutting corners', () => {
     expect(reached.get(cellIndexOf(grid, 5, 5))).toBe(true);
   });
 });
+
+describe('the cells a piece can walk to over ground of its own price', () => {
+  const corridor = cellGridOf(9, 1, 50, GridType.SQUARE);
+  const start = cellIndexOf(corridor, 0, 0);
+
+  it('gets no further for the steps a heavy cell takes', () => {
+    const heavy = cellIndexOf(corridor, 2, 0);
+    const reached = reachableCells(corridor, start, 4, nothingBlocked, {
+      costOf: (index) => (index === heavy ? 2 : 1),
+    });
+
+    expect(countCells(reached)).toBe(3);
+    expect(reached.get(cellIndexOf(corridor, 3, 0))).toBe(true);
+    expect(reached.get(cellIndexOf(corridor, 4, 0))).toBe(false);
+  });
+
+  it('walks as far as ever where every cell costs one', () => {
+    const reached = reachableCells(corridor, start, 4, nothingBlocked, { costOf: () => 1 });
+
+    expect(countCells(reached)).toBe(4);
+  });
+
+  it('never enters a cell that costs everything', () => {
+    const shut = cellIndexOf(corridor, 2, 0);
+    const reached = reachableCells(corridor, start, 8, nothingBlocked, {
+      costOf: (index) => (index === shut ? Infinity : 1),
+    });
+
+    expect(countCells(reached)).toBe(1);
+    expect(reached.get(shut)).toBe(false);
+  });
+
+  it('answers as a wall does for ground nobody may enter', () => {
+    const shut = cellIndexOf(corridor, 2, 0);
+    const priced = reachableCells(corridor, start, 8, nothingBlocked, {
+      costOf: (index) => (index === shut ? Infinity : 1),
+    });
+    const walled = reachableCells(corridor, start, 8, (index) => index === shut);
+
+    expect(priced.equals(walled)).toBe(true);
+  });
+
+  it('goes round heavy ground rather than paying for it', () => {
+    const grid = cellGridOf(5, 5, 50, GridType.SQUARE);
+    const heavy = cellIndexOf(grid, 1, 2);
+    const reached = reachableCells(grid, cellIndexOf(grid, 0, 2), 4, nothingBlocked, {
+      cutsCorners: false,
+      costOf: (index) => (index === heavy ? 5 : 1),
+    });
+
+    expect(reached.get(heavy)).toBe(false);
+    expect(reached.get(cellIndexOf(grid, 2, 2))).toBe(true);
+  });
+
+  it('gives back what it had when the budget runs out on heavy ground', () => {
+    const grid = cellGridOf(40, 40, 50, GridType.SQUARE);
+    const reached = reachableCells(grid, cellIndexOf(grid, 20, 20), 100, nothingBlocked, {
+      budget: 50,
+      costOf: () => 2,
+    });
+
+    expect(countCells(reached)).toBe(50);
+  });
+});
+
+describe('the cells a piece can walk to across ground that holds it', () => {
+  const corridor = cellGridOf(9, 1, 50, GridType.SQUARE);
+  const start = cellIndexOf(corridor, 0, 0);
+
+  it('goes no further than the cell the walk ends in', () => {
+    const holds = cellIndexOf(corridor, 2, 0);
+    const reached = reachableCells(corridor, start, 6, nothingBlocked, { stopsAt: (index) => index === holds });
+
+    expect(reached.get(holds)).toBe(true);
+    expect(countCells(reached)).toBe(2);
+    expect(reached.get(cellIndexOf(corridor, 3, 0))).toBe(false);
+  });
+
+  it('takes the long way round to the ground beyond, where there is walking enough for it', () => {
+    const grid = cellGridOf(5, 5, 50, GridType.SQUARE);
+    const holds = cellIndexOf(grid, 1, 2);
+    const beyond = cellIndexOf(grid, 2, 2);
+    const away = cellIndexOf(grid, 0, 2);
+    const held = { cutsCorners: false, stopsAt: (index: number) => index === holds };
+
+    expect(reachableCells(grid, away, 3, nothingBlocked, held).get(beyond)).toBe(false);
+    expect(reachableCells(grid, away, 4, nothingBlocked, held).get(beyond)).toBe(true);
+  });
+
+  it('holds a piece nowhere when nothing holds it', () => {
+    const reached = reachableCells(corridor, start, 4, nothingBlocked, { stopsAt: () => false });
+
+    expect(countCells(reached)).toBe(4);
+  });
+});
