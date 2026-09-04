@@ -77,22 +77,38 @@ function settleAll(response: ZipWorkerResponse | null): void {
 }
 
 /**
- * Forgets that the worker was ever found wanting.
+ * How a worker is started, and whether one was ever found wanting.
  *
  * Once a worker cannot be started or handed work, the module stops trying for the rest of
- * the run — which is right in a browser and awkward in a test run, where every spec file
- * shares that memory. A test that wants the worker path asks for it back first.
+ * the run, which is right in a browser and awkward in a test run, where one spec file hands
+ * this module to the next. A test that wants to watch a worker being fed hands its own in
+ * here, which forgets the trouble as well.
+ *
+ * A test used to put its class on the global `Worker` instead. Which global that is depends
+ * on where the module happened to be loaded from, so the class sometimes landed somewhere
+ * the module could not see it - rarely, and only under load, which is the worst way for a
+ * test to fail. Handing the factory in leaves nothing for the loading order to decide.
  */
-export function forgetZipWorkerTrouble(): void {
+export function useZipWorkerFactory(factory: (() => Worker) | null): void {
+  makeWorker = factory;
   isWorkerBroken = false;
   disposeWorker();
 }
 
+let makeWorker: (() => Worker) | null = null;
+
+function startWorker(): Worker | null {
+  if (makeWorker) return makeWorker();
+  if (typeof Worker === 'undefined') return null;
+  return new Worker(new URL('./zip-archive.worker', import.meta.url), { type: 'module' });
+}
+
 function ensureWorker(): Worker | null {
-  if (isWorkerBroken || typeof Worker === 'undefined') return null;
+  if (isWorkerBroken) return null;
   if (worker) return worker;
   try {
-    worker = new Worker(new URL('./zip-archive.worker', import.meta.url), { type: 'module' });
+    worker = startWorker();
+    if (!worker) return null;
   } catch (reason) {
     isWorkerBroken = true;
     Logger.warn('[ZipArchive] ワーカーを起動できないためメインスレッドで処理します', reason);

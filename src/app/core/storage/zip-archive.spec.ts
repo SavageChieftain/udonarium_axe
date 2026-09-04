@@ -1,8 +1,8 @@
 import {
   createZipBlob,
   createZipBlobOnMainThread,
-  forgetZipWorkerTrouble,
   readZipEntries,
+  useZipWorkerFactory,
 } from '@axe/core/storage/zip-archive';
 import { strToU8, unzipSync } from 'fflate';
 
@@ -65,14 +65,10 @@ describe('readZipEntries()', () => {
 
 describe('the shared worker', () => {
   afterEach(() => {
-    vi.unstubAllGlobals();
-    forgetZipWorkerTrouble();
+    useZipWorkerFactory(null);
   });
 
   it('lets go of every waiting request when the work cannot be handed over', async () => {
-    // Every spec file in a run shares this module, so another may already have found the
-    // worker wanting and closed the path this test is about.
-    forgetZipWorkerTrouble();
     let posts = 0;
     class FakeWorker {
       addEventListener(): void {}
@@ -82,7 +78,7 @@ describe('the shared worker', () => {
         if (posts > 1) throw new Error('cannot be cloned');
       }
     }
-    vi.stubGlobal('Worker', FakeWorker);
+    useZipWorkerFactory(() => new FakeWorker() as unknown as Worker);
     const files = [new File([strToU8('<room />')], 'data.xml', { type: 'text/plain' })];
 
     // The first went to the worker and is waiting; the second cannot be handed over, which
