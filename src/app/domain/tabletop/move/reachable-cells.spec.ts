@@ -92,3 +92,25 @@ describe('the guard on a board too big to walk in one pass', () => {
     expect(countCells(reached)).toBe(24);
   });
 });
+
+describe('cutting corners', () => {
+  const grid = cellGridOf(9, 9, 50, GridType.SQUARE);
+  const start = cellIndexOf(grid, 4, 4);
+  const nothingBlocks = () => false;
+
+  it('reaches a square of ground where a corner may be cut', () => {
+    const reached = reachableCells(grid, start, 2, nothingBlocks, undefined, true);
+
+    expect(countCells(reached)).toBe(24);
+    expect(reached.get(cellIndexOf(grid, 6, 6))).toBe(true);
+  });
+
+  it('reaches a diamond where it may not', () => {
+    const reached = reachableCells(grid, start, 2, nothingBlocks, undefined, false);
+
+    // Two steps along the sides: the corners of the square are three steps away.
+    expect(countCells(reached)).toBe(12);
+    expect(reached.get(cellIndexOf(grid, 6, 6))).toBe(false);
+    expect(reached.get(cellIndexOf(grid, 5, 5))).toBe(true);
+  });
+});

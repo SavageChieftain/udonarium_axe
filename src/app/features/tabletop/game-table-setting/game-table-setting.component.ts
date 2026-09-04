@@ -33,6 +33,7 @@ import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { ensureFogMemoryOn } from '@axe/domain/tabletop/fog/fog-memory';
 import { asFogMode, DEFAULT_FOG_COLOR, FOG_MODES, FogMode } from '@axe/domain/tabletop/fog/fog-mode';
 import { FilterType, GameTable, GridSnapStyle, GridType } from '@axe/domain/tabletop/game-table';
+import { isHexGrid } from '@axe/domain/tabletop/hex-geometry';
 import {
   DEFAULT_CELL_DISTANCE,
   DEFAULT_CELL_DISTANCE_UNIT,
@@ -281,6 +282,18 @@ export class GameTableSettingComponent {
   }
   set tableMoveRangeElementNames(value: string) {
     if (this.isEditable && this.selectedTable) this.selectedTable.moveRangeElementNames = value;
+  }
+
+  /** A hex board has no corners to cut, so the question is only put on squares. */
+  get showsDiagonalOption(): boolean {
+    return !isHexGrid(this.tableGridType);
+  }
+
+  get tableMoveDiagonally(): boolean {
+    return this.selectedTable?.moveDiagonally ?? true;
+  }
+  set tableMoveDiagonally(value: boolean) {
+    if (this.isEditable && this.selectedTable) this.selectedTable.moveDiagonally = value;
   }
 
   get tableCellDistance(): number {

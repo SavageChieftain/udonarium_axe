@@ -2,7 +2,8 @@ import { cellColRow, CellGrid, cellIndexOf } from '@axe/domain/tabletop/fog/cell
 import { GridType } from '@axe/domain/tabletop/game-table';
 import { isFlatTopGrid, isHexGrid } from '@axe/domain/tabletop/hex-geometry';
 
-export const DIAGONAL_COSTS_ONE_CELL: boolean = true;
+/** A step across a corner is a step, the same as one along a side. */
+export const DIAGONAL_COSTS_ONE_CELL = true;
 
 type Step = readonly [number, number];
 
@@ -20,9 +21,7 @@ const DIAGONAL_STEPS: readonly Step[] = [
   [-1, -1],
 ];
 
-const SQUARE_STEPS: readonly Step[] = DIAGONAL_COSTS_ONE_CELL
-  ? [...ORTHOGONAL_STEPS, ...DIAGONAL_STEPS]
-  : ORTHOGONAL_STEPS;
+const SQUARE_STEPS_WITH_CORNERS: readonly Step[] = [...ORTHOGONAL_STEPS, ...DIAGONAL_STEPS];
 
 const FLAT_TOP_EVEN_COLUMN_STEPS: readonly Step[] = [
   [0, -1],
@@ -60,26 +59,38 @@ const POINTY_TOP_ODD_ROW_STEPS: readonly Step[] = [
   [0, -1],
 ];
 
-function stepsFor(gridType: GridType, col: number, row: number): readonly Step[] {
-  if (!isHexGrid(gridType)) return SQUARE_STEPS;
+/**
+ * Which way a piece may step out of a cell.
+ *
+ * Six ways on a hex board, where every side is a side and there are no corners to cut.
+ * On squares there are corners, and whether a piece may cut them is the table's to say:
+ * allowed, a step across one costs what a step along a side does.
+ */
+function stepsFor(gridType: GridType, col: number, row: number, cutsCorners: boolean): readonly Step[] {
+  if (!isHexGrid(gridType)) return cutsCorners ? SQUARE_STEPS_WITH_CORNERS : ORTHOGONAL_STEPS;
   if (isFlatTopGrid(gridType)) {
     return Math.abs(col % 2) === 1 ? FLAT_TOP_ODD_COLUMN_STEPS : FLAT_TOP_EVEN_COLUMN_STEPS;
   }
   return Math.abs(row % 2) === 1 ? POINTY_TOP_ODD_ROW_STEPS : POINTY_TOP_EVEN_ROW_STEPS;
 }
 
-export function forEachMoveNeighbour(grid: CellGrid, index: number, visit: (neighbour: number) => void): void {
+export function forEachMoveNeighbour(
+  grid: CellGrid,
+  index: number,
+  visit: (neighbour: number) => void,
+  cutsCorners = true
+): void {
   if (grid.cols <= 0 || grid.rows <= 0) return;
   if (index < 0 || index >= grid.cols * grid.rows) return;
   const { col, row } = cellColRow(grid, index);
-  for (const [dx, dy] of stepsFor(grid.type, col, row)) {
+  for (const [dx, dy] of stepsFor(grid.type, col, row, cutsCorners)) {
     const neighbour = cellIndexOf(grid, col + dx, row + dy);
     if (neighbour >= 0) visit(neighbour);
   }
 }
 
-export function moveNeighboursOf(grid: CellGrid, index: number): number[] {
+export function moveNeighboursOf(grid: CellGrid, index: number, cutsCorners = true): number[] {
   const found: number[] = [];
-  forEachMoveNeighbour(grid, index, (neighbour) => found.push(neighbour));
+  forEachMoveNeighbour(grid, index, (neighbour) => found.push(neighbour), cutsCorners);
   return found;
 }

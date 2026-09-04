@@ -1899,6 +1899,7 @@
         "fogReset": "Reset the fog",
         "sectionMoveRange": "Movement range",
         "moveRangeEnabled": "Show where a piece can walk while it is picked up",
+        "moveDiagonally": "Let a piece step across a corner, counted as one cell",
         "moveRangeElementNames": "Sheet fields",
         "cellDistance": "One cell is",
         "cellDistanceUnit": "Unit",

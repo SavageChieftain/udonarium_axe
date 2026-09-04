@@ -112,6 +112,14 @@ describe('MoveRangeService', () => {
     expect(service.range()!.cells.get(cellIndexOf(service.range()!.grid, 7, 5))).toBe(false);
   });
 
+  it('reaches a diamond where the table forbids cutting corners', () => {
+    table.moveDiagonally = false;
+    service.show(pieceAt(5, 5, 2));
+
+    expect(countCells(service.range()!.cells)).toBe(12);
+    expect(service.range()!.cells.get(cellIndexOf(service.range()!.grid, 7, 7))).toBe(false);
+  });
+
   it('turns a sheet written in feet into cells of the table', () => {
     table.cellDistance = 5;
     table.cellDistanceUnit = 'foot';

@@ -1899,6 +1899,7 @@
         "fogReset": "霧をリセット",
         "sectionMoveRange": "移動範囲",
         "moveRangeEnabled": "コマを持ち上げたら移動できるマスを表示する",
+        "moveDiagonally": "斜め移動を許可する（1 マスとして数える）",
         "moveRangeElementNames": "参照する項目",
         "cellDistance": "1 マスの距離",
         "cellDistanceUnit": "マスの単位",

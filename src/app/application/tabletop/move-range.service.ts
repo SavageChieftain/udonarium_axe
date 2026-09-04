@@ -48,7 +48,7 @@ export class MoveRangeService {
     const painted = moveBlockMapOn(table)?.read(grid);
     if (painted) blocked.or(painted);
 
-    const cells = reachableCells(grid, start, walk, (index) => blocked.get(index));
+    const cells = reachableCells(grid, start, walk, (index) => blocked.get(index), undefined, table.moveDiagonally);
     return { characterIdentifier: character.identifier, grid, cells };
   }
 }

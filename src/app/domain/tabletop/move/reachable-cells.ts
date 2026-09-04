@@ -9,7 +9,8 @@ export function reachableCells(
   start: number,
   cells: number,
   isBlocked: (index: number) => boolean,
-  budget: number = DEFAULT_REACH_BUDGET
+  budget: number = DEFAULT_REACH_BUDGET,
+  cutsCorners = true
 ): CellBits {
   const total = cellCount(grid);
   const reached = new CellBits(total);
@@ -24,15 +25,20 @@ export function reachableCells(
   for (let step = 0; step < cells && frontier.length > 0 && !exhausted; step++) {
     const next: number[] = [];
     for (const cell of frontier) {
-      forEachMoveNeighbour(grid, cell, (neighbour) => {
-        if (exhausted || seen.get(neighbour)) return;
-        seen.set(neighbour);
-        if (isBlocked(neighbour)) return;
-        reached.set(neighbour);
-        next.push(neighbour);
-        spent++;
-        if (spent >= budget) exhausted = true;
-      });
+      forEachMoveNeighbour(
+        grid,
+        cell,
+        (neighbour) => {
+          if (exhausted || seen.get(neighbour)) return;
+          seen.set(neighbour);
+          if (isBlocked(neighbour)) return;
+          reached.set(neighbour);
+          next.push(neighbour);
+          spent++;
+          if (spent >= budget) exhausted = true;
+        },
+        cutsCorners
+      );
       if (exhausted) break;
     }
     frontier = next;

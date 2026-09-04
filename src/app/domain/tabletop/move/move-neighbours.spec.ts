@@ -42,3 +42,22 @@ describe('the cells a step reaches on pointy-topped hexes', () => {
     expect(around(6, 6, GridType.HEX_HORIZONTAL, 2, 3)).toEqual(['1,3', '3,3', '2,2', '3,2', '2,4', '3,4'].sort());
   });
 });
+
+describe('a square board that forbids corners', () => {
+  it('steps four ways rather than eight', () => {
+    const grid = cellGridOf(5, 5, 50, GridType.SQUARE);
+    const middle = cellIndexOf(grid, 2, 2);
+
+    expect(moveNeighboursOf(grid, middle, false)).toHaveLength(4);
+    expect(moveNeighboursOf(grid, middle, false)).not.toContain(cellIndexOf(grid, 3, 3));
+    expect(moveNeighboursOf(grid, middle, true)).toHaveLength(8);
+  });
+
+  it('leaves a hex board its six ways either way, having no corners to cut', () => {
+    const grid = cellGridOf(5, 5, 50, GridType.HEX_VERTICAL);
+    const middle = cellIndexOf(grid, 2, 2);
+
+    expect(moveNeighboursOf(grid, middle, false)).toHaveLength(6);
+    expect(moveNeighboursOf(grid, middle, true)).toHaveLength(6);
+  });
+});

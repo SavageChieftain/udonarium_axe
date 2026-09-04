@@ -113,6 +113,20 @@ describe('GameTableSettingComponent', () => {
       expect(component.tableCellDistanceUnit).toBe('cell');
     });
 
+    it('puts the question of corners only to a square board', () => {
+      const table = new GameTable();
+      table.initialize();
+      component.selectedTable = table;
+
+      table.gridType = GridType.SQUARE;
+      expect(component.showsDiagonalOption).toBe(true);
+
+      table.gridType = GridType.HEX_VERTICAL;
+      expect(component.showsDiagonalOption).toBe(false);
+
+      table.destroy();
+    });
+
     it('writes all four onto the table', () => {
       const table = new GameTable();
       table.initialize();
