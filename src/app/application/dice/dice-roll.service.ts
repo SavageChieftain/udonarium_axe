@@ -9,12 +9,17 @@ import { DiceSymbol } from '@axe/domain/dice/dice-symbol';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
 import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 
+interface SecretRoll {
+  die: DiceSymbol;
+  result: RolledDie;
+}
+
 /**
  * Throwing the dice that stand on the table.
  *
- * A throw of several is one throw, so it sounds once and reads as one line. The line goes
- * to the tab the thrower is reading, as a coin does: a die on the table is a die like any
- * other, and its result is of no use in a tab nobody is looking at.
+ * A throw of several open dice is one throw, so it sounds once and reads as one line. The
+ * line goes to the tab the thrower is reading, as a coin does: a die on the table is a die
+ * like any other, and its result is of no use in a tab nobody is looking at.
  */
 @Injectable({ providedIn: 'root' })
 export class DiceRollService {
@@ -33,25 +38,20 @@ export class DiceRollService {
     }
 
     const open: RolledDie[] = [];
-    const secret: RolledDie[] = [];
-    const secretDice: DiceSymbol[] = [];
+    const secret: SecretRoll[] = [];
     const rolled = thrown.map<RolledDie>((die) => {
       callRollDiceSymbol(die.identifier);
       // The thrower watches their own die roll rather than waiting for the round trip.
       this.objectChange.notifyDiceRolled(die.identifier);
       const result = { name: die.name, face: die.diceRoll(), sides: die.faces.length };
-      if (die.hasOwner) {
-        secret.push(result);
-        secretDice.push(die);
-      } else {
-        open.push(result);
-      }
+      if (die.hasOwner) secret.push({ die, result });
+      else open.push(result);
       return result;
     });
     SoundEffect.play(PresetSound.diceRoll1);
 
     this.announce(open);
-    this.announceSecret(secret, secretDice);
+    this.announceSecret(secret);
     this.announceSkipped(skipped);
     return rolled;
   }
@@ -84,15 +84,16 @@ export class DiceRollService {
    * the face is the whole of what was kept back. The line goes as a secret, which the room
    * sees as a secret die and the thrower reads in full, to open later if they want to.
    */
-  private announceSecret(rolled: readonly RolledDie[], dice: readonly DiceSymbol[]): void {
-    const text = this.describe(rolled);
-    if (!text) return;
-
+  private announceSecret(rolls: readonly SecretRoll[]): void {
     const tab = this.activeChatTab.current();
     const roller = PeerCursor.myCursor?.userId ?? '';
-    const identifiers = dice.map((die) => die.identifier);
-    if (tab) this.chatMessageService.sendSecretSystemMessageToTab(tab, text, roller, undefined, identifiers);
-    else this.chatMessageService.sendSecretSystemMessageToMainTab(text, roller, identifiers);
+    for (const { die, result } of rolls) {
+      const text = this.describe([result]);
+      if (!text) continue;
+      const identifiers = [die.identifier];
+      if (tab) this.chatMessageService.sendSecretSystemMessageToTab(tab, text, roller, undefined, identifiers);
+      else this.chatMessageService.sendSecretSystemMessageToMainTab(text, roller, identifiers);
+    }
   }
 
   private describe(rolled: readonly RolledDie[]): string | null {

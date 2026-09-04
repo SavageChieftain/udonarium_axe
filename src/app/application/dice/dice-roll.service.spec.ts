@@ -117,13 +117,47 @@ describe('DiceRollService', () => {
       expect(sendSecret.mock.calls[0][2]).toEqual([dice.identifier]);
     });
 
-    it('names every die of a handful thrown in secret', () => {
+    it('sends a handful thrown in secret as one line for each die', () => {
       const first = myOwnDie('隠しダイスA');
       const second = myOwnDie('隠しダイスB');
 
       service.roll([first, second]);
 
-      expect(sendSecret.mock.calls[0][2]).toEqual([first.identifier, second.identifier]);
+      expect(sendSecret).toHaveBeenCalledTimes(2);
+      expect(sendSecret.mock.calls[0][2]).toEqual([first.identifier]);
+      expect(sendSecret.mock.calls[1][2]).toEqual([second.identifier]);
+    });
+
+    it('keeps each of those lines to the face of its own die', () => {
+      // Opening one die opens the line it belongs to, so a line holding two faces gives away the other.
+      const first = myOwnDie('隠しダイスA');
+      const second = myOwnDie('隠しダイスB');
+
+      service.roll([first, second]);
+
+      const lines = sendSecret.mock.calls.map((call) => call[0] as string);
+      expect(lines[0]).toContain('隠しダイスA');
+      expect(lines[0]).not.toContain('隠しダイスB');
+      expect(lines[1]).toContain('隠しダイスB');
+      expect(lines[1]).not.toContain('隠しダイスA');
+    });
+
+    it('lets one of them be opened without giving away the other', () => {
+      const tab = ChatTabList.instance.addChatTab('メインタブ');
+      created.push(tab);
+      TestBed.inject(ActiveChatTabService).set(tab.identifier);
+      const first = myOwnDie('隠しダイスA');
+      const second = myOwnDie('隠しダイスB');
+      service.roll([first, second]);
+
+      TestBed.inject(ChatMessageService).discloseDieRolls(first.identifier);
+
+      const stillSecret = tab.chatMessages.filter((message) => message.isSecret);
+      expect(stillSecret.map((message) => message.text)).toEqual([
+        expect.stringContaining('隠しダイスB') as unknown as string,
+      ]);
+      const opened = tab.chatMessages.filter((message) => !message.isSecret);
+      expect(opened.map((message) => message.text).join('\n')).not.toContain('隠しダイスB');
     });
 
     it('splits a handful, sending the open ones in the open and the rest in secret', () => {
