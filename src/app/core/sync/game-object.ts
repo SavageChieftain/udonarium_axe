@@ -79,7 +79,17 @@ export class GameObject {
   private static flushBatch(): void {
     const changed = GameObject.batched;
     GameObject.batched = [];
-    for (const object of changed) object.announce();
+    for (const object of changed) object.batchPending = false;
+
+    let failure: { reason: unknown } | null = null;
+    for (const object of changed) {
+      try {
+        object.announce();
+      } catch (reason) {
+        failure ??= { reason };
+      }
+    }
+    if (failure) throw failure.reason;
   }
 
   update() {
@@ -96,7 +106,6 @@ export class GameObject {
   private batchPending = false;
 
   private announce(): void {
-    this.batchPending = false;
     this.versionUp();
     ObjectStore.instance.update(this.identifier);
     GameObject.onUpdate?.(this);

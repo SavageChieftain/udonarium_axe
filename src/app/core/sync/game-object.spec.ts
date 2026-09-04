@@ -239,6 +239,58 @@ describe('GameObject', () => {
       expect(element.name).toBe('written');
     });
 
+    it('announces the rest of the batch when one of them throws', () => {
+      const first = DataElement.create('first', 'a', {});
+      const second = DataElement.create('second', 'b', {});
+      [first, second].forEach((element) => element.initialize());
+      const wasSecond = store.localChangeCountOf(second.identifier);
+      const previous = GameObject.onUpdate;
+      GameObject.onUpdate = (object) => {
+        if (object === first) throw new Error('listener stopped');
+      };
+
+      try {
+        expect(() =>
+          GameObject.batch(() => {
+            first.name = 'one';
+            second.name = 'two';
+          })
+        ).toThrow('listener stopped');
+      } finally {
+        GameObject.onUpdate = previous;
+      }
+
+      expect(store.localChangeCountOf(second.identifier)).toBe(wasSecond + 1);
+    });
+
+    it('takes an object into a later batch after one of them threw', () => {
+      const first = DataElement.create('first', 'a', {});
+      const second = DataElement.create('second', 'b', {});
+      [first, second].forEach((element) => element.initialize());
+      const previous = GameObject.onUpdate;
+      GameObject.onUpdate = (object) => {
+        if (object === first) throw new Error('listener stopped');
+      };
+
+      try {
+        expect(() =>
+          GameObject.batch(() => {
+            first.name = 'one';
+            second.name = 'two';
+          })
+        ).toThrow('listener stopped');
+      } finally {
+        GameObject.onUpdate = previous;
+      }
+
+      const wasSecond = store.localChangeCountOf(second.identifier);
+      GameObject.batch(() => {
+        second.name = 'again';
+      });
+
+      expect(store.localChangeCountOf(second.identifier)).toBe(wasSecond + 1);
+    });
+
     it('hands back what the work returned', () => {
       expect(GameObject.batch(() => 42)).toBe(42);
     });
