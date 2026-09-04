@@ -83,17 +83,14 @@ describe('CardFaceTextComponent', () => {
     expect(face.style.color).toBe('#ff8800');
   });
 
-  it('follows synchronized child values and stack rotation', () => {
+  it('follows synchronized child values and stack rotation', async () => {
     card.faceText = 'before';
     fixture.componentRef.setInput('rotation', 180);
     fixture.detectChanges();
 
     card.faceText = 'after';
     card.faceFontSize = 36;
-    const textElement = card.commonDataElement!.getFirstElementByName('text')!;
-    const fontSizeElement = card.commonDataElement!.getFirstElementByName('fontsize')!;
-    objectChange.notifyChanged(textElement.identifier);
-    objectChange.notifyChanged(fontSizeElement.identifier);
+    await fixture.whenStable();
     fixture.detectChanges();
 
     const face = fixture.nativeElement.querySelector('div') as HTMLDivElement;

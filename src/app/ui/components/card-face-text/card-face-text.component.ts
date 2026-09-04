@@ -18,12 +18,8 @@ export class CardFaceTextComponent {
 
   private trackCardFace(): Card {
     const card = this.card();
+    // A version bumps for anything below it, so the card covers the elements its face is kept in.
     this.objectChange.versionOf(card.identifier)();
-    const common = card.commonDataElement;
-    if (common) {
-      this.objectChange.versionOf(common.identifier)();
-      for (const element of common.children) this.objectChange.versionOf(element.identifier)();
-    }
     return card;
   }
 
