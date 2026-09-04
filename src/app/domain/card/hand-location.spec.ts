@@ -34,3 +34,11 @@ describe('hand-location', () => {
     expect(isHandOf('hand:u1', '')).toBe(false);
   });
 });
+
+describe('being asked before a room is joined', () => {
+  it("says a card is nobody's hand rather than throwing", () => {
+    expect(isHandOf('hand:someone', undefined as unknown as string)).toBe(false);
+    expect(isHandOf('hand:someone', null as unknown as string)).toBe(false);
+    expect(isHandOf('hand:someone', '')).toBe(false);
+  });
+});

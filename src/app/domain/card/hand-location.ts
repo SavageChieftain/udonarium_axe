@@ -13,6 +13,7 @@ export function handHolderOf(locationName: string): string | null {
 }
 
 export function isHandOf(locationName: string, userId: string): boolean {
-  if (userId.length === 0) return false;
+  // Asked before a room has been joined, nobody holds anything.
+  if (!userId) return false;
   return handHolderOf(locationName) === userId;
 }
