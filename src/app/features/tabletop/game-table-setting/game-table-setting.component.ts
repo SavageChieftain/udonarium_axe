@@ -296,6 +296,13 @@ export class GameTableSettingComponent {
     if (this.isEditable && this.selectedTable) this.selectedTable.moveDiagonally = value;
   }
 
+  get tablePiecesShareCells(): boolean {
+    return this.selectedTable?.piecesShareCells ?? true;
+  }
+  set tablePiecesShareCells(value: boolean) {
+    if (this.isEditable && this.selectedTable) this.selectedTable.piecesShareCells = value;
+  }
+
   get tableCellDistance(): number {
     return this.selectedTable?.cellDistance ?? DEFAULT_CELL_DISTANCE;
   }

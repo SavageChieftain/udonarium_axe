@@ -81,6 +81,8 @@ export class GameTable extends ObjectNode {
   @SyncVar() moveRangeElementNames: string = DEFAULT_MOVE_RANGE_ELEMENT_NAMES;
   /** Whether a piece on squares may step across a corner. A hex board has none to cut. */
   @SyncVar() moveDiagonally: boolean = true;
+  /** Whether two pieces may stand on one cell. Left off, a piece walks past rather than onto. */
+  @SyncVar() piecesShareCells: boolean = true;
   @SyncVar() cellDistance: number = DEFAULT_CELL_DISTANCE;
   @SyncVar() cellDistanceUnit: string = DEFAULT_CELL_DISTANCE_UNIT;
 

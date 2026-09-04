@@ -112,6 +112,39 @@ describe('MoveRangeService', () => {
     expect(service.range()!.cells.get(cellIndexOf(service.range()!.grid, 7, 5))).toBe(false);
   });
 
+  it('leaves out the cells other pieces are standing on, where the table forbids sharing', () => {
+    table.piecesShareCells = false;
+    const standing = pieceAt(6, 5, 1);
+    table.appendChild(standing);
+    service.show(pieceAt(5, 5, 2));
+
+    const view = service.range()!;
+    expect(view.cells.get(cellIndexOf(view.grid, 6, 5))).toBe(false);
+    // Walked past rather than stopped on: the ground beyond it is still within reach.
+    expect(view.cells.get(cellIndexOf(view.grid, 7, 5))).toBe(true);
+  });
+
+  it('lets a piece stop on another where the table allows sharing', () => {
+    const standing = pieceAt(6, 5, 1);
+    table.appendChild(standing);
+    service.show(pieceAt(5, 5, 2));
+
+    const view = service.range()!;
+    expect(view.cells.get(cellIndexOf(view.grid, 6, 5))).toBe(true);
+  });
+
+  it('keeps the ground a big piece takes up, not just the cell it stands on', () => {
+    table.piecesShareCells = false;
+    const golem = pieceAt(6, 5, 1);
+    DataElement.findElementByReference(golem.rootDataElement!, 'size')!.value = 2;
+    table.appendChild(golem);
+    service.show(pieceAt(5, 5, 3));
+
+    const view = service.range()!;
+    expect(view.cells.get(cellIndexOf(view.grid, 6, 5))).toBe(false);
+    expect(view.cells.get(cellIndexOf(view.grid, 7, 6))).toBe(false);
+  });
+
   it('reaches a diamond where the table forbids cutting corners', () => {
     table.moveDiagonally = false;
     service.show(pieceAt(5, 5, 2));

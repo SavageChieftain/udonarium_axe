@@ -1900,6 +1900,7 @@
         "sectionMoveRange": "移動範囲",
         "moveRangeEnabled": "コマを持ち上げたら移動できるマスを表示する",
         "moveDiagonally": "斜め移動を許可する（1 マスとして数える）",
+        "piecesShareCells": "同じマスに複数のコマを置ける（切ると、他のコマがいるマスは移動先に出さない）",
         "moveRangeElementNames": "参照する項目",
         "cellDistance": "1 マスの距離",
         "cellDistanceUnit": "マスの単位",

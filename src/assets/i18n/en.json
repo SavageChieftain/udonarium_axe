@@ -1900,6 +1900,7 @@
         "sectionMoveRange": "Movement range",
         "moveRangeEnabled": "Show where a piece can walk while it is picked up",
         "moveDiagonally": "Let a piece step across a corner, counted as one cell",
+        "piecesShareCells": "Let two pieces stand on one cell; off, a cell somebody is on is no place to stop",
         "moveRangeElementNames": "Sheet fields",
         "cellDistance": "One cell is",
         "cellDistanceUnit": "Unit",

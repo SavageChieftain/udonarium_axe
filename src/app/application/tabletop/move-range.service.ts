@@ -1,4 +1,5 @@
 import { inject, Injectable, signal } from '@angular/core';
+import { ObjectStore } from '@axe/core/sync/object-store';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { CellBits } from '@axe/domain/tabletop/fog/cell-bits';
 import { CellGrid, cellGridOf, cellIndexAt } from '@axe/domain/tabletop/fog/cell-grid';
@@ -6,6 +7,7 @@ import { GameTable } from '@axe/domain/tabletop/game-table';
 import { blockedByTerrain } from '@axe/domain/tabletop/move/blocked-cells';
 import { moveBlockMapOn } from '@axe/domain/tabletop/move/move-block-map';
 import { moveCellsOf } from '@axe/domain/tabletop/move/move-cells';
+import { occupiedCells } from '@axe/domain/tabletop/move/occupied-cells';
 import { reachableCells } from '@axe/domain/tabletop/move/reachable-cells';
 import { TableSelecter } from '@axe/domain/tabletop/table-selecter';
 import { surfaceOf } from '@axe/domain/tabletop/tabletop-object';
@@ -19,6 +21,7 @@ export interface MoveRangeView {
 @Injectable({ providedIn: 'root' })
 export class MoveRangeService {
   private readonly tableSelecter = inject(TableSelecter);
+  private readonly objectStore = inject(ObjectStore);
 
   readonly range = signal<MoveRangeView | null>(null);
 
@@ -48,7 +51,13 @@ export class MoveRangeService {
     const painted = moveBlockMapOn(table)?.read(grid);
     if (painted) blocked.or(painted);
 
-    const cells = reachableCells(grid, start, walk, (index) => blocked.get(index), undefined, table.moveDiagonally);
+    const taken = table.piecesShareCells
+      ? null
+      : occupiedCells(grid, this.objectStore.getObjects<GameCharacter>(GameCharacter), character.identifier);
+    const cells = reachableCells(grid, start, walk, (index) => blocked.get(index), {
+      cutsCorners: table.moveDiagonally,
+      canRest: taken ? (index) => !taken.get(index) : undefined,
+    });
     return { characterIdentifier: character.identifier, grid, cells };
   }
 }

@@ -82,7 +82,7 @@ describe('the cells a piece can walk to down a dead end', () => {
 describe('the guard on a board too big to walk in one pass', () => {
   it('gives back what it had when the budget runs out', () => {
     const grid = cellGridOf(40, 40, 50, GridType.SQUARE);
-    const reached = reachableCells(grid, cellIndexOf(grid, 20, 20), 100, nothingBlocked, 50);
+    const reached = reachableCells(grid, cellIndexOf(grid, 20, 20), 100, nothingBlocked, { budget: 50 });
     expect(countCells(reached)).toBe(50);
   });
 
@@ -99,14 +99,14 @@ describe('cutting corners', () => {
   const nothingBlocks = () => false;
 
   it('reaches a square of ground where a corner may be cut', () => {
-    const reached = reachableCells(grid, start, 2, nothingBlocks, undefined, true);
+    const reached = reachableCells(grid, start, 2, nothingBlocks, { cutsCorners: true });
 
     expect(countCells(reached)).toBe(24);
     expect(reached.get(cellIndexOf(grid, 6, 6))).toBe(true);
   });
 
   it('reaches a diamond where it may not', () => {
-    const reached = reachableCells(grid, start, 2, nothingBlocks, undefined, false);
+    const reached = reachableCells(grid, start, 2, nothingBlocks, { cutsCorners: false });
 
     // Two steps along the sides: the corners of the square are three steps away.
     expect(countCells(reached)).toBe(12);
