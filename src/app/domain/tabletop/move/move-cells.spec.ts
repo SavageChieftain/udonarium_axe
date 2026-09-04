@@ -1,3 +1,4 @@
+import { Attributes } from '@axe/core/sync/attributes';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { DataElement, DataElementType } from '@axe/domain/data/data-element';
 import { GameTable } from '@axe/domain/tabletop/game-table';
@@ -15,7 +16,7 @@ function characterWith(fields: { name: string; value: number | string; pool?: nu
   built.push(character);
   const detail = character.detailDataElement!;
   for (const field of fields) {
-    const attributes =
+    const attributes: Attributes =
       field.pool === undefined
         ? {}
         : { type: DataElementType.NUMBER_RESOURCE, currentValue: `${field.pool}`, max: `${field.value}` };
