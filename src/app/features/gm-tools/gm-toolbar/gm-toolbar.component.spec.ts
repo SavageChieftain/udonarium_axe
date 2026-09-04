@@ -1,5 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
+import { MoveBlockService } from '@axe/application/tabletop/move-block.service';
 import { VisionService } from '@axe/application/tabletop/vision.service';
 import { ConfirmService } from '@axe/application/ui/confirm.service';
 import { PanelService } from '@axe/application/ui/panel.service';
@@ -42,6 +43,29 @@ describe('GmToolbarComponent', () => {
 
     button.click();
     expect(widgets.recording()).toBe(true);
+  });
+
+  it('takes the brush up and lays it down again, with the eraser only while it is up', () => {
+    PeerCursor.myCursor = Object.assign(new PeerCursor('me'), { role: PeerRole.GameMaster });
+    const moveBlock = TestBed.inject(MoveBlockService);
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('[data-testid="move-block-erase"]')).toBeNull();
+
+    fixture.nativeElement.querySelector('[data-testid="move-block-toggle"]').click();
+    fixture.detectChanges();
+
+    expect(moveBlock.isPainting()).toBe(true);
+    expect(fixture.nativeElement.querySelector('[data-testid="move-block-erase"]')).not.toBeNull();
+
+    fixture.nativeElement.querySelector('[data-testid="move-block-erase"]').click();
+    expect(moveBlock.brush()).toBe('erase');
+
+    fixture.nativeElement.querySelector('[data-testid="move-block-toggle"]').click();
+    fixture.detectChanges();
+
+    expect(moveBlock.isPainting()).toBe(false);
+    expect(fixture.nativeElement.querySelector('[data-testid="move-block-erase"]')).toBeNull();
   });
 
   it('opens the object list', async () => {

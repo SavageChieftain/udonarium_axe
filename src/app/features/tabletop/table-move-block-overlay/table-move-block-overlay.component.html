@@ -1,0 +1,15 @@
+@if (view(); as blocked) {
+  <canvas
+    #blockCanvas
+    class="absolute top-0 left-0 backface-hidden transform-3d"
+    [class.pointer-events-none]="!blocked.painting"
+    [class.pointer-events-auto]="blocked.painting"
+    [class.cursor-crosshair]="blocked.painting"
+    [class.touch-none]="blocked.painting"
+    [style.transform]="zTransform()"
+    (pointerdown)="onPointerDown($event)"
+    (pointermove)="onPointerMove($event)"
+    (pointerup)="onPointerUp($event)"
+    (pointercancel)="onPointerUp($event)"
+  ></canvas>
+}

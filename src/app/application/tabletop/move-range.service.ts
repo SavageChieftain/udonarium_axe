@@ -4,6 +4,7 @@ import { CellBits } from '@axe/domain/tabletop/fog/cell-bits';
 import { CellGrid, cellGridOf, cellIndexAt } from '@axe/domain/tabletop/fog/cell-grid';
 import { GameTable } from '@axe/domain/tabletop/game-table';
 import { blockedByTerrain } from '@axe/domain/tabletop/move/blocked-cells';
+import { moveBlockMapOn } from '@axe/domain/tabletop/move/move-block-map';
 import { moveCellsOf } from '@axe/domain/tabletop/move/move-cells';
 import { reachableCells } from '@axe/domain/tabletop/move/reachable-cells';
 import { TableSelecter } from '@axe/domain/tabletop/table-selecter';
@@ -44,6 +45,8 @@ export class MoveRangeService {
     if (start < 0) return null;
 
     const blocked = blockedByTerrain(grid, table.terrains);
+    const painted = moveBlockMapOn(table)?.read(grid);
+    if (painted) blocked.or(painted);
 
     const cells = reachableCells(grid, start, walk, (index) => blocked.get(index));
     return { characterIdentifier: character.identifier, grid, cells };

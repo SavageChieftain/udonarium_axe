@@ -23,6 +23,11 @@ export class CellBits {
     this.words[index >> 3] |= 1 << (index & 7);
   }
 
+  unset(index: number): void {
+    if (index < 0 || index >= this.count) return;
+    this.words[index >> 3] &= ~(1 << (index & 7));
+  }
+
   clear(): void {
     this.words.fill(0);
   }
