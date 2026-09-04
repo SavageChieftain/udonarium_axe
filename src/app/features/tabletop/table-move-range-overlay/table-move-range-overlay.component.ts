@@ -8,6 +8,9 @@ import { translateZCss, Z_OFFSET_RANGE_PX } from '@axe/ui/tabletop/z-offset';
 
 export const MOVE_RANGE_FILL = 'rgba(90, 170, 255, 0.28)';
 export const MOVE_RANGE_BORDER = 'rgba(120, 200, 255, 0.95)';
+/** The ground an enemy holds, shown under the reach so the two read as one picture. */
+export const MOVE_ZOC_FILL = 'rgba(230, 80, 80, 0.22)';
+export const MOVE_ZOC_BORDER = 'rgba(240, 120, 120, 0.75)';
 const MOVE_RANGE_BORDER_WIDTH_PX = 3;
 
 @Component({
@@ -28,11 +31,11 @@ export class TableMoveRangeOverlayComponent {
       const range = this.view();
       const canvas = this.canvasRef()?.nativeElement;
       if (!range || !canvas) return;
-      this.paint(canvas, range.grid, range.cells);
+      this.paint(canvas, range.grid, range.cells, range.held);
     });
   }
 
-  private paint(canvas: HTMLCanvasElement, grid: CellGrid, cells: CellBits): void {
+  private paint(canvas: HTMLCanvasElement, grid: CellGrid, cells: CellBits, held: CellBits | null): void {
     const extent = gridExtentPx(grid);
     const width = Math.max(1, Math.ceil(extent.maxX - extent.minX));
     const height = Math.max(1, Math.ceil(extent.maxY - extent.minY));
@@ -50,6 +53,8 @@ export class TableMoveRangeOverlayComponent {
     if (!context) return;
     context.setTransform(scale, 0, 0, scale, -extent.minX * scale, -extent.minY * scale);
     context.clearRect(extent.minX, extent.minY, width, height);
+
+    if (held) this.paintCells(context, grid, held, MOVE_ZOC_FILL, MOVE_ZOC_BORDER);
 
     const area = new Path2D();
     for (const polygon of moveRangePolygons(grid, cells)) {
@@ -71,5 +76,33 @@ export class TableMoveRangeOverlayComponent {
     context.lineCap = 'round';
     context.stroke(border);
     context.setTransform(1, 0, 0, 1, 0, 0);
+  }
+
+  private paintCells(
+    context: CanvasRenderingContext2D,
+    grid: CellGrid,
+    cells: CellBits,
+    fill: string,
+    stroke: string
+  ): void {
+    const area = new Path2D();
+    for (const polygon of moveRangePolygons(grid, cells)) {
+      area.moveTo(polygon[0].x, polygon[0].y);
+      for (let corner = 1; corner < polygon.length; corner++) area.lineTo(polygon[corner].x, polygon[corner].y);
+      area.closePath();
+    }
+    context.fillStyle = fill;
+    context.fill(area);
+
+    const border = new Path2D();
+    for (const edge of moveRangeOutline(grid, cells)) {
+      border.moveTo(edge.x1, edge.y1);
+      border.lineTo(edge.x2, edge.y2);
+    }
+    context.strokeStyle = stroke;
+    context.lineWidth = MOVE_RANGE_BORDER_WIDTH_PX;
+    context.lineJoin = 'round';
+    context.lineCap = 'round';
+    context.stroke(border);
   }
 }

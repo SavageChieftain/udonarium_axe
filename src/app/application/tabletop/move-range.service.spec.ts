@@ -169,6 +169,26 @@ describe('MoveRangeService', () => {
     expect(view.cells.get(cellIndexOf(view.grid, 7, 6))).toBe(false);
   });
 
+  it('hands over the ground the enemies hold, so it can be shown while the piece is up', () => {
+    table.zocMode = 'stop';
+    const foe = pieceAt(7, 5, 1);
+    foe.isNpc = true;
+    service.show(pieceAt(5, 5, 3));
+
+    const view = service.range()!;
+    expect(view.held).not.toBeNull();
+    expect(view.held!.get(cellIndexOf(view.grid, 6, 5))).toBe(true);
+    expect(view.held!.get(cellIndexOf(view.grid, 5, 5))).toBe(false);
+  });
+
+  it('hands over no held ground where the table holds none', () => {
+    const foe = pieceAt(7, 5, 1);
+    foe.isNpc = true;
+    service.show(pieceAt(5, 5, 3));
+
+    expect(service.range()!.held).toBeNull();
+  });
+
   it('reaches a diamond where the table forbids cutting corners', () => {
     table.moveDiagonally = false;
     service.show(pieceAt(5, 5, 2));

@@ -18,6 +18,8 @@ export interface MoveRangeView {
   characterIdentifier: string;
   grid: CellGrid;
   cells: CellBits;
+  /** The ground the enemies hold, which is why the reach stops where it does. */
+  held: CellBits | null;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -69,7 +71,7 @@ export class MoveRangeService {
       costOf: held && mode === 'cost' ? (index) => (held.get(index) ? 1 + extra : 1) : undefined,
       stopsAt: held && mode === 'stop' ? (index) => held.get(index) : undefined,
     });
-    return { characterIdentifier: character.identifier, grid, cells };
+    return { characterIdentifier: character.identifier, grid, cells, held };
   }
 
   /**
