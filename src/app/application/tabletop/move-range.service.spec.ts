@@ -1,5 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { MoveRangeService } from '@axe/application/tabletop/move-range.service';
+import { VisionService } from '@axe/application/tabletop/vision.service';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { DataElement, DataElementAttribute } from '@axe/domain/data/data-element';
@@ -8,7 +9,7 @@ import { GameTable } from '@axe/domain/tabletop/game-table';
 import { countCells } from '@axe/domain/tabletop/move/reachable-cells';
 import { DoorStyle, Terrain } from '@axe/domain/tabletop/terrain';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const GRID = 50;
 
@@ -208,5 +209,141 @@ describe('MoveRangeService', () => {
     service.show(pieceAt(5, 5, 9, 'm'));
 
     expect(countCells(service.range()!.cells)).toBe(120);
+  });
+});
+
+describe('MoveRangeService and the ground an enemy holds', () => {
+  let service: MoveRangeService;
+  let table: GameTable;
+
+  beforeEach(() => {
+    TestBed.configureTestingModule({ providers: [...TEST_PROVIDERS] });
+    table = new GameTable();
+    table.width = 12;
+    table.height = 12;
+    table.gridSize = GRID;
+    table.initialize();
+    service = TestBed.inject(MoveRangeService);
+  });
+
+  afterEach(() => {
+    for (const object of ObjectStore.instance.getObjects()) ObjectStore.instance.remove(object);
+  });
+
+  function pieceAt(col: number, row: number, walk: number): GameCharacter {
+    const character = GameCharacter.create('コマ', 1, '');
+    character.location = { name: 'table', x: col * GRID, y: row * GRID };
+    DataElement.findElementByReference(character.rootDataElement!, '移動')!.value = walk;
+    return character;
+  }
+
+  function monsterAt(col: number, row: number): GameCharacter {
+    const monster = pieceAt(col, row, 1);
+    monster.isNpc = true;
+    return monster;
+  }
+
+  function walkHero(): void {
+    service.show(pieceAt(2, 5, 5));
+  }
+
+  function reached(col: number, row: number): boolean {
+    const view = service.range()!;
+    return view.cells.get(cellIndexOf(view.grid, col, row));
+  }
+
+  it('walks past an enemy on a table that asks for nothing', () => {
+    monsterAt(6, 5);
+    walkHero();
+
+    expect(reached(5, 5)).toBe(true);
+    expect(reached(6, 5)).toBe(true);
+    expect(reached(7, 5)).toBe(true);
+  });
+
+  it('never enters the ground where the table shuts it', () => {
+    table.zocMode = 'block';
+    monsterAt(6, 5);
+    walkHero();
+
+    expect(reached(5, 5)).toBe(false);
+    expect(reached(6, 5)).toBe(false);
+    expect(reached(0, 5)).toBe(true);
+  });
+
+  it('stops on the ground where the table holds it there', () => {
+    table.zocMode = 'stop';
+    monsterAt(6, 5);
+    walkHero();
+
+    expect(reached(5, 5)).toBe(true);
+    expect(reached(6, 5)).toBe(false);
+    expect(reached(7, 5)).toBe(false);
+  });
+
+  it('gets less far for the ground where the table charges for it', () => {
+    table.zocMode = 'cost';
+    table.zocExtraCost = 1;
+    monsterAt(6, 5);
+    walkHero();
+
+    expect(reached(5, 5)).toBe(true);
+    expect(reached(7, 5)).toBe(false);
+  });
+
+  it('walks as far as ever where the table charges nothing for it', () => {
+    table.zocMode = 'cost';
+    table.zocExtraCost = 0;
+    monsterAt(6, 5);
+    walkHero();
+
+    expect(reached(7, 5)).toBe(true);
+  });
+
+  it('holds ground two cells out where the table says two', () => {
+    table.zocMode = 'block';
+    table.zocRange = 2;
+    monsterAt(6, 5);
+    walkHero();
+
+    expect(reached(4, 5)).toBe(false);
+    expect(reached(3, 5)).toBe(true);
+  });
+
+  it('lets a piece on the same side hold no ground at all', () => {
+    table.zocMode = 'block';
+    pieceAt(6, 5, 1);
+    walkHero();
+
+    expect(reached(5, 5)).toBe(true);
+    expect(reached(6, 5)).toBe(true);
+  });
+
+  it('lets a piece nobody can see hold no ground', () => {
+    vi.spyOn(TestBed.inject(VisionService), 'isTokenVisible').mockReturnValue(false);
+    table.zocMode = 'block';
+    monsterAt(6, 5);
+    walkHero();
+
+    expect(reached(5, 5)).toBe(true);
+  });
+
+  it('lets a piece off the table hold no ground', () => {
+    table.zocMode = 'block';
+    monsterAt(6, 5).location = { name: 'graveyard', x: 0, y: 0 };
+    walkHero();
+
+    expect(reached(5, 5)).toBe(true);
+  });
+
+  it('holds no ground against the piece being moved itself', () => {
+    table.zocMode = 'block';
+    const monster = pieceAt(2, 5, 5);
+    monster.isNpc = true;
+
+    service.show(monster);
+
+    expect(reached(3, 5)).toBe(true);
+    expect(reached(4, 5)).toBe(true);
   });
 });

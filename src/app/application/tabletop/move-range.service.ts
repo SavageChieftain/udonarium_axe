@@ -1,4 +1,5 @@
 import { inject, Injectable, signal } from '@angular/core';
+import { VisionService } from '@axe/application/tabletop/vision.service';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { CellBits } from '@axe/domain/tabletop/fog/cell-bits';
@@ -9,6 +10,7 @@ import { moveBlockMapOn } from '@axe/domain/tabletop/move/move-block-map';
 import { moveCellsOf } from '@axe/domain/tabletop/move/move-cells';
 import { occupiedCells } from '@axe/domain/tabletop/move/occupied-cells';
 import { reachableCells } from '@axe/domain/tabletop/move/reachable-cells';
+import { asZocMode, isHostileTo, zoneOfControl } from '@axe/domain/tabletop/move/zone-of-control';
 import { TableSelecter } from '@axe/domain/tabletop/table-selecter';
 import { surfaceOf } from '@axe/domain/tabletop/tabletop-object';
 
@@ -22,6 +24,7 @@ export interface MoveRangeView {
 export class MoveRangeService {
   private readonly tableSelecter = inject(TableSelecter);
   private readonly objectStore = inject(ObjectStore);
+  private readonly vision = inject(VisionService);
 
   readonly range = signal<MoveRangeView | null>(null);
 
@@ -51,15 +54,40 @@ export class MoveRangeService {
     const painted = moveBlockMapOn(table)?.read(grid);
     if (painted) blocked.or(painted);
 
+    const standing = this.objectStore.getObjects<GameCharacter>(GameCharacter);
     // Two pieces that may not share a cell may not pass through one either: the ground
     // somebody stands on is in the way, and a reach has to go round it.
-    if (!table.piecesShareCells) {
-      blocked.or(occupiedCells(grid, this.objectStore.getObjects<GameCharacter>(GameCharacter), character.identifier));
-    }
+    if (!table.piecesShareCells) blocked.or(occupiedCells(grid, standing, character.identifier));
+
+    const mode = asZocMode(table.zocMode);
+    const held = mode === 'none' ? null : this.heldGroundAround(grid, character, standing, table);
+    if (held && mode === 'block') blocked.or(held);
+    const extra = Math.max(0, Math.floor(table.zocExtraCost));
+
     const cells = reachableCells(grid, start, walk, (index) => blocked.get(index), {
       cutsCorners: table.moveDiagonally,
+      costOf: held && mode === 'cost' ? (index) => (held.get(index) ? 1 + extra : 1) : undefined,
+      stopsAt: held && mode === 'stop' ? (index) => held.get(index) : undefined,
     });
     return { characterIdentifier: character.identifier, grid, cells };
+  }
+
+  /**
+   * The ground the enemies on the board hold against this piece.
+   *
+   * Only the ones the person moving can see hold any: a range with a bite taken out of it
+   * where nobody is standing tells the table there is something in the dark there, which is
+   * the one thing the fog is for.
+   */
+  private heldGroundAround(
+    grid: CellGrid,
+    mover: GameCharacter,
+    standing: readonly GameCharacter[],
+    table: GameTable
+  ): CellBits | null {
+    const foes = standing.filter((piece) => isHostileTo(piece, mover) && this.vision.isTokenVisible(piece));
+    const held = zoneOfControl(grid, foes, table.zocRange, table.moveDiagonally);
+    return held.isEmpty ? null : held;
   }
 }
 

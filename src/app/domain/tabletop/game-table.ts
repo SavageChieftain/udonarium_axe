@@ -11,6 +11,7 @@ import {
   DEFAULT_CELL_DISTANCE_UNIT,
   DEFAULT_MOVE_RANGE_ELEMENT_NAMES,
 } from '@axe/domain/tabletop/move/move-cells';
+import { DEFAULT_ZOC_EXTRA_COST, DEFAULT_ZOC_MODE, DEFAULT_ZOC_RANGE } from '@axe/domain/tabletop/move/zone-of-control';
 import { TableAmbience } from '@axe/domain/tabletop/table-ambience';
 import { DEFAULT_TABLE_FACING_MARK, TableFacingMark } from '@axe/domain/tabletop/table-facing-mark';
 import { Terrain } from '@axe/domain/tabletop/terrain';
@@ -85,6 +86,13 @@ export class GameTable extends ObjectNode {
   @SyncVar() piecesShareCells: boolean = true;
   @SyncVar() cellDistance: number = DEFAULT_CELL_DISTANCE;
   @SyncVar() cellDistanceUnit: string = DEFAULT_CELL_DISTANCE_UNIT;
+
+  /** What the ground around an enemy does to a piece walking into it. One of ZOC_MODES. */
+  @SyncVar() zocMode: string = DEFAULT_ZOC_MODE;
+  /** How many cells out from an enemy that ground reaches. */
+  @SyncVar() zocRange: number = DEFAULT_ZOC_RANGE;
+  /** What entering it costs on top of the one step, where the table charges for it. */
+  @SyncVar() zocExtraCost: number = DEFAULT_ZOC_EXTRA_COST;
 
   /** The weather over the whole map. Empty for none. */
   @SyncVar() weatherKind: string = '';
