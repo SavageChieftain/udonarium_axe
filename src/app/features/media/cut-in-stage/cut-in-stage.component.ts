@@ -289,11 +289,11 @@ export class CutInStageComponent {
   }
 
   private clearHandles(): void {
-    for (const handle of this.handles.values()) handle.cancel();
+    for (const handle of this.handles.values()) stopAnimation(handle);
     this.handles.clear();
-    for (const handle of this.wipeHandles.values()) handle.cancel();
+    for (const handle of this.wipeHandles.values()) stopAnimation(handle);
     this.wipeHandles.clear();
-    for (const handle of this.crumbleHandles.values()) handle.cancel();
+    for (const handle of this.crumbleHandles.values()) stopAnimation(handle);
     this.crumbleHandles.clear();
   }
 
@@ -308,4 +308,10 @@ export class CutInStageComponent {
     observer.observe(this.elementRef.nativeElement);
     this.destroyRef.onDestroy(() => observer.disconnect());
   }
+}
+
+/** Stops an animation, with a hand under the promise that says when it ended. */
+function stopAnimation(handle: Animation): void {
+  handle.finished.catch(() => undefined);
+  handle.cancel();
 }

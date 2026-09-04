@@ -58,6 +58,7 @@ describe('CutInStageComponent', () => {
       pause: vi.fn(),
       play: vi.fn(),
       currentTime: 0,
+      finished: Promise.reject(new Error('the animation was canceled')),
     }));
     Object.defineProperty(Element.prototype, 'animate', { value: animate, configurable: true, writable: true });
     return animate;
