@@ -118,8 +118,8 @@ export class ChatTabComponent {
         if (
           message &&
           message instanceof ChatMessage &&
-          this.topTimestamp <= message.timestamp &&
-          message.timestamp <= this.botomTimestamp &&
+          this.topPlacedAt <= message.placedAt &&
+          message.placedAt <= this.bottomPlacedAt &&
           this.chatTab?.contains(message)
         ) {
           this.needUpdate = true;
@@ -152,8 +152,8 @@ export class ChatTabComponent {
   private readonly rawSampleMessages = buildSampleChatMessages();
   sampleMessages: ChatMessage[] = [];
 
-  private topTimestamp = 0;
-  private botomTimestamp = 0;
+  private topPlacedAt = 0;
+  private bottomPlacedAt = 0;
 
   private needUpdate = true;
 
@@ -191,9 +191,9 @@ export class ChatTabComponent {
       const chatMessages = this.chatTab ? this.chatTab.chatMessages : [];
       this.adjustIndex();
       this._chatMessages = chatMessages.slice(this.topIndex, this.bottomIndex + 1);
-      this.topTimestamp = 0 < this._chatMessages.length ? this._chatMessages[0].timestamp : 0;
-      this.botomTimestamp =
-        0 < this._chatMessages.length ? this._chatMessages[this._chatMessages.length - 1].timestamp : 0;
+      this.topPlacedAt = 0 < this._chatMessages.length ? this._chatMessages[0].placedAt : 0;
+      this.bottomPlacedAt =
+        0 < this._chatMessages.length ? this._chatMessages[this._chatMessages.length - 1].placedAt : 0;
     }
     return this._chatMessages;
   }

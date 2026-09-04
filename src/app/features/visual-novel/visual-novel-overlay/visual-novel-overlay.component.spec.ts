@@ -1251,6 +1251,39 @@ describe('VisualNovelOverlayComponent', () => {
       expect(tab.chatMessages.at(-1)?.isOutOfStory).toBe(true);
     });
 
+    it('keeps the stage clearing behind a line that was opened afterwards', () => {
+      const image = addImage();
+      addMessage('やあ', 'モンスターA', image);
+      const secret = tab.addMessage({
+        from: 'test-user',
+        name: 'ダイス',
+        text: '隠しダイス → 6',
+        timestamp: nextTimestamp++,
+        tag: 'system-message secret',
+      });
+      createComponent();
+
+      PeerCursor.myCursor.role = PeerRole.GameMaster;
+      TestBed.inject(ObjectChangeService).notifyChanged(PeerCursor.myCursor.identifier);
+      TestBed.inject(VisualNovelSceneService).resetStage(tab);
+      const notice = tab.chatMessages[tab.chatMessages.length - 1];
+      tab.addMessage({
+        from: 'test-user',
+        name: 'モンスターA',
+        text: 'もどってきた',
+        timestamp: notice.timestamp + 1,
+        imageIdentifier: image,
+        sendFrom: characterFor('モンスターA').identifier,
+      });
+      // and the roll from before the clearing is opened, which brings it to the end of the tab
+      TestBed.inject(ChatMessageService).discloseMessage(secret);
+      TestBed.inject(ObjectChangeService).notifyChanged(tab.identifier);
+      fixture.detectChanges();
+
+      // The clearing lies before what was said since, so that line still stands on the stage.
+      expect(component.stageCharacters()).toHaveLength(1);
+    });
+
     it('shows the stage as it stood when read back to before the clearing', () => {
       const image = addImage();
       addMessage('やあ', 'モンスターA', image);

@@ -269,13 +269,13 @@ export class ChatLogExporter {
 
     while (true) {
       let fastTabIndex = -1;
-      let earliestTimestamp = -1;
+      let earliestPlacedAt = -1;
 
       for (let i = 0; i < tabNum; i++) {
         if (tabs[i].chatMessages.length <= indexList[i]) continue;
-        const ts = tabs[i].chatMessages[indexList[i]].timestamp;
-        if (earliestTimestamp === -1 || ts < earliestTimestamp) {
-          earliestTimestamp = ts;
+        const placedAt = tabs[i].chatMessages[indexList[i]].placedAt;
+        if (earliestPlacedAt === -1 || placedAt < earliestPlacedAt) {
+          earliestPlacedAt = placedAt;
           fastTabIndex = i;
         }
       }

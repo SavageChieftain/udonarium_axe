@@ -375,7 +375,7 @@ export class VisualNovelOverlayComponent {
       const message = messages[i];
       window.push({
         name: readableMessageName(message, this.t),
-        timestamp: message.timestamp,
+        placedAt: message.placedAt,
         sendFrom: message.sendFrom ?? '',
         imageIdentifier: message.imageIdentifier ?? '',
         imagePos: message.imagePos,
@@ -391,7 +391,7 @@ export class VisualNovelOverlayComponent {
       window,
       (imageIdentifier) => this.imageService.getEmptyOr(imageIdentifier).url,
       (source) => this.stageSlotOf(source),
-      stageCutFor(this.stageResetAt(), messages[index].timestamp, this.playback.isLatest())
+      stageCutFor(this.stageResetAt(), messages[index].placedAt, this.playback.isLatest())
     );
   });
 
