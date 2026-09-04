@@ -88,7 +88,7 @@ describe('the guard on a board too big to walk in one pass', () => {
 
   it('walks the whole way when the budget is not in the way', () => {
     const grid = cellGridOf(40, 40, 50, GridType.SQUARE);
-    const reached = reachableCells(grid, cellIndexOf(grid, 20, 20), 2, nothingBlocked, 4000);
+    const reached = reachableCells(grid, cellIndexOf(grid, 20, 20), 2, nothingBlocked, { budget: 4000 });
     expect(countCells(reached)).toBe(24);
   });
 });

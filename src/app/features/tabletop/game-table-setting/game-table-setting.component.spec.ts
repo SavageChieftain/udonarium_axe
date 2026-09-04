@@ -135,12 +135,12 @@ describe('GameTableSettingComponent', () => {
       component.tableMoveRangeEnabled = false;
       component.tableMoveRangeElementNames = 'Speed';
       component.tableCellDistance = 5;
-      component.tableCellDistanceUnit = 'ft';
+      component.tableCellDistanceUnit = 'foot';
 
       expect(table.moveRangeEnabled).toBe(false);
       expect(table.moveRangeElementNames).toBe('Speed');
       expect(table.cellDistance).toBe(5);
-      expect(table.cellDistanceUnit).toBe('ft');
+      expect(table.cellDistanceUnit).toBe('foot');
       table.destroy();
     });
 
