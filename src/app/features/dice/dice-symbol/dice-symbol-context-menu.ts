@@ -53,7 +53,11 @@ export function buildDiceSymbolContextMenu(
     });
   }
 
-  if (!diceSymbol.isMine) {
+  // A die nobody has kept back may be taken by whoever picks it up. One that is already
+  // somebody's is theirs: taking it would make their roll yours to open, which is the very
+  // thing opening it was closed off to protect. The master may take one all the same, being
+  // able to read it either way.
+  if (!diceSymbol.isMine && (!diceSymbol.hasOwner || callbacks.canRevealHidden === true)) {
     actions.push({
       name: t('feature.dice.contextMenu.showSelfOnly'),
       action: () => {

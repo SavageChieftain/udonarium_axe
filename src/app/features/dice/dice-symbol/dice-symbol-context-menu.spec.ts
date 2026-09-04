@@ -75,6 +75,22 @@ describe('buildDiceSymbolContextMenu()', () => {
     expect(names(menu)).toContain('自分だけ見る');
   });
 
+  it('leaves a die that is already somebody else\u2019s where it is', () => {
+    const dice = makeDice({ isMine: false, hasOwner: true, owner: 'somebody' });
+
+    const menu = buildDiceSymbolContextMenu(dice as unknown as DiceSymbol, 50, cb(), t);
+
+    expect(names(menu)).not.toContain('自分だけ見る');
+  });
+
+  it('lets the game master take one that is somebody else\u2019s', () => {
+    const dice = makeDice({ isMine: false, hasOwner: true, owner: 'somebody' });
+
+    const menu = buildDiceSymbolContextMenu(dice as unknown as DiceSymbol, 50, { ...cb(), canRevealHidden: true }, t);
+
+    expect(names(menu)).toContain('自分だけ見る');
+  });
+
   it('offers as many faces as the die has', () => {
     const dice = makeDice({ isVisible: true, faces: ['1', '2', '3', '4', '5', '6'] });
     const menu = buildDiceSymbolContextMenu(dice as unknown as DiceSymbol, 50, cb(), t);
