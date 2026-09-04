@@ -290,7 +290,7 @@ export class TabletopActionService {
 
   /** Create a face-up standalone card that can be filled without preparing an image. */
   createBlankCard(position: PointerCoordinate): Card {
-    const front = './assets/images/trump/blank_card.png';
+    const front = './assets/images/trump/blank_card.webp';
     const back = TRUMP_BACK_IMAGE_PATH;
 
     if (!this.imageStorage.get(front)) {

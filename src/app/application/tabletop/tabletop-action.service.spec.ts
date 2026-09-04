@@ -33,9 +33,9 @@ describe('TabletopActionService', () => {
       expect(card.posZ).toBe(3);
       expect(card.state).toBe(CardState.FRONT);
       expect(card.owner).toBe('');
-      expect(card.frontImage?.url).toContain('blank_card.png');
+      expect(card.frontImage?.url).toContain('blank_card.webp');
       expect(card.backImage?.url).toBe(TRUMP_BACK_IMAGE_PATH);
-      expect(card.imageFile.url).toContain('blank_card.png');
+      expect(card.imageFile.url).toContain('blank_card.webp');
     });
 
     it('adds a blank-card action to the context menu', () => {
