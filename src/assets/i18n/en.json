@@ -1896,7 +1896,13 @@
         "fogModeHard": "Hard (forgets the map)",
         "fogModeHint": "Easy holds cleared ground lit for good, and a piece once found is followed wherever it goes. Normal keeps the ground cleared but lets it darken, and loses a piece that walks into ground nobody has reached. Hard closes the fog again the moment nobody is looking.",
         "fogColor": "Fog colour",
-        "fogReset": "Reset the fog"
+        "fogReset": "Reset the fog",
+        "sectionMoveRange": "Movement range",
+        "moveRangeEnabled": "Show where a piece can walk while it is picked up",
+        "moveRangeElementNames": "Sheet fields",
+        "cellDistance": "One cell is",
+        "cellDistanceUnit": "Unit",
+        "moveRangeHint": "Field names are separated by commas, and the first one the sheet has is used. The value on the sheet is divided by the distance of one cell (0 leaves it as it stands)."
       },
       "dungeonGenerator": {
         "atmosphere": {

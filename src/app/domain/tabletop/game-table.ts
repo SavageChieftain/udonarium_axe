@@ -6,6 +6,11 @@ import { DEFAULT_FOG_COLOR, DEFAULT_FOG_MODE, FogMode } from '@axe/domain/tablet
 import { GameTableMask } from '@axe/domain/tabletop/game-table-mask';
 import { GameTableScratchMask } from '@axe/domain/tabletop/game-table-scratch-mask';
 import { LightSource } from '@axe/domain/tabletop/light-source';
+import {
+  DEFAULT_CELL_DISTANCE,
+  DEFAULT_CELL_DISTANCE_UNIT,
+  DEFAULT_MOVE_RANGE_ELEMENT_NAMES,
+} from '@axe/domain/tabletop/move/move-cells';
 import { TableAmbience } from '@axe/domain/tabletop/table-ambience';
 import { DEFAULT_TABLE_FACING_MARK, TableFacingMark } from '@axe/domain/tabletop/table-facing-mark';
 import { Terrain } from '@axe/domain/tabletop/terrain';
@@ -71,6 +76,11 @@ export class GameTable extends ObjectNode {
   @SyncVar() fogEnabled: boolean = false;
   @SyncVar() fogMode: FogMode = DEFAULT_FOG_MODE;
   @SyncVar() fogColor: string = DEFAULT_FOG_COLOR;
+
+  @SyncVar() moveRangeEnabled: boolean = true;
+  @SyncVar() moveRangeElementNames: string = DEFAULT_MOVE_RANGE_ELEMENT_NAMES;
+  @SyncVar() cellDistance: number = DEFAULT_CELL_DISTANCE;
+  @SyncVar() cellDistanceUnit: string = DEFAULT_CELL_DISTANCE_UNIT;
 
   /** The weather over the whole map. Empty for none. */
   @SyncVar() weatherKind: string = '';

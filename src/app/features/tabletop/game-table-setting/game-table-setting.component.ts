@@ -33,6 +33,11 @@ import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 import { ensureFogMemoryOn } from '@axe/domain/tabletop/fog/fog-memory';
 import { asFogMode, DEFAULT_FOG_COLOR, FOG_MODES, FogMode } from '@axe/domain/tabletop/fog/fog-mode';
 import { FilterType, GameTable, GridSnapStyle, GridType } from '@axe/domain/tabletop/game-table';
+import {
+  DEFAULT_CELL_DISTANCE,
+  DEFAULT_CELL_DISTANCE_UNIT,
+  DEFAULT_MOVE_RANGE_ELEMENT_NAMES,
+} from '@axe/domain/tabletop/move/move-cells';
 import { asTableFacingMark, TABLE_FACING_MARKS, TableFacingMark } from '@axe/domain/tabletop/table-facing-mark';
 import { TableSelecter } from '@axe/domain/tabletop/table-selecter';
 import {
@@ -261,6 +266,36 @@ export class GameTableSettingComponent {
     const table = this.selectedTable;
     if (!this.isEditable || !table) return;
     ensureFogMemoryOn(table).reset();
+  }
+
+  get tableMoveRangeEnabled(): boolean {
+    return this.selectedTable?.moveRangeEnabled ?? true;
+  }
+  set tableMoveRangeEnabled(value: boolean) {
+    if (this.isEditable && this.selectedTable) this.selectedTable.moveRangeEnabled = value;
+  }
+
+  get tableMoveRangeElementNames(): string {
+    return this.selectedTable?.moveRangeElementNames ?? DEFAULT_MOVE_RANGE_ELEMENT_NAMES;
+  }
+  set tableMoveRangeElementNames(value: string) {
+    if (this.isEditable && this.selectedTable) this.selectedTable.moveRangeElementNames = value;
+  }
+
+  get tableCellDistance(): number {
+    return this.selectedTable?.cellDistance ?? DEFAULT_CELL_DISTANCE;
+  }
+  set tableCellDistance(value: number) {
+    if (!this.isEditable || !this.selectedTable) return;
+    const amount = Number(value);
+    this.selectedTable.cellDistance = Number.isFinite(amount) && amount > 0 ? amount : 0;
+  }
+
+  get tableCellDistanceUnit(): string {
+    return this.selectedTable?.cellDistanceUnit ?? DEFAULT_CELL_DISTANCE_UNIT;
+  }
+  set tableCellDistanceUnit(value: string) {
+    if (this.isEditable && this.selectedTable) this.selectedTable.cellDistanceUnit = value;
   }
 
   protected readonly weatherKinds = SKY_AMBIENCE_KINDS;

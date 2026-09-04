@@ -1896,7 +1896,13 @@
         "fogModeHard": "ハード（記憶を消す）",
         "fogModeHint": "イージーは一度晴らした霧が戻らず明るいままで、見つけた敵はどこへ動いても位置がわかります。ノーマルは霧こそ戻りませんが、離れた場所は暗くなり、敵も未踏破へ動くと見失います。ハードは視界から外れると未踏破に戻ります",
         "fogColor": "霧の色",
-        "fogReset": "霧をリセット"
+        "fogReset": "霧をリセット",
+        "sectionMoveRange": "移動範囲",
+        "moveRangeEnabled": "コマを持ち上げたら移動できるマスを表示する",
+        "moveRangeElementNames": "参照する項目",
+        "cellDistance": "1 マスの距離",
+        "cellDistanceUnit": "マスの単位",
+        "moveRangeHint": "項目名はカンマ区切りで、シートに先に見つかったものを使う。シートの値を 1 マスの距離で割ってマス数にする（0 なら割らない）。"
       },
       "dungeonGenerator": {
         "atmosphere": {

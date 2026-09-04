@@ -104,6 +104,44 @@ describe('GameTableSettingComponent', () => {
     });
   });
 
+  describe('how far a piece may walk', () => {
+    it('hands back the defaults with no table selected', () => {
+      component.selectedTable = null;
+      expect(component.tableMoveRangeEnabled).toBe(true);
+      expect(component.tableMoveRangeElementNames).toBe('移動,移動力,Speed,速度');
+      expect(component.tableCellDistance).toBe(1);
+      expect(component.tableCellDistanceUnit).toBe('マス');
+    });
+
+    it('writes all four onto the table', () => {
+      const table = new GameTable();
+      table.initialize();
+      component.selectedTable = table;
+
+      component.tableMoveRangeEnabled = false;
+      component.tableMoveRangeElementNames = 'Speed';
+      component.tableCellDistance = 5;
+      component.tableCellDistanceUnit = 'ft';
+
+      expect(table.moveRangeEnabled).toBe(false);
+      expect(table.moveRangeElementNames).toBe('Speed');
+      expect(table.cellDistance).toBe(5);
+      expect(table.cellDistanceUnit).toBe('ft');
+      table.destroy();
+    });
+
+    it('takes a distance that is not a number as no conversion at all', () => {
+      const table = new GameTable();
+      table.initialize();
+      component.selectedTable = table;
+
+      component.tableCellDistance = Number.NaN;
+
+      expect(table.cellDistance).toBe(0);
+      table.destroy();
+    });
+  });
+
   describe('signal-driven CD', () => {
     it('reads the deleted flag through a collection signal', () => {
       const objectChangeService = TestBed.inject(ObjectChangeService);

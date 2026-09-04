@@ -1896,7 +1896,13 @@
         "fogModeHard": "하드 (기억을 지움)",
         "fogModeHint": "이지는 한 번 걷힌 안개가 돌아오지 않고 계속 밝으며, 발견한 적은 어디로 움직여도 위치를 알 수 있습니다. 노멀은 안개는 돌아오지 않지만 떨어진 곳은 어두워지고, 적이 미탐색 지역으로 가면 놓칩니다. 하드는 시야에서 벗어나면 미탐색으로 돌아갑니다.",
         "fogColor": "안개 색",
-        "fogReset": "안개 초기화"
+        "fogReset": "안개 초기화",
+        "sectionMoveRange": "이동 범위",
+        "moveRangeEnabled": "말을 집어 들면 이동할 수 있는 칸을 표시",
+        "moveRangeElementNames": "참조할 항목",
+        "cellDistance": "한 칸의 거리",
+        "cellDistanceUnit": "칸의 단위",
+        "moveRangeHint": "항목 이름은 쉼표로 구분하며 시트에서 먼저 찾은 것을 사용한다. 시트 값을 한 칸의 거리로 나누어 칸 수로 환산한다(0이면 나누지 않음)."
       },
       "dungeonGenerator": {
         "atmosphere": {
