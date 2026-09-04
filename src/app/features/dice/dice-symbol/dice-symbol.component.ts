@@ -322,17 +322,17 @@ export class DiceSymbolComponent {
     );
   }
 
+  private onDiceRevealed(face: string): void {
+    this.chat.discloseDieRolls(this.diceSymbol().identifier);
+    this.announceRevealedFace(face);
+  }
+
   /**
    * Says what a die that was somebody's alone came to rest on, now that it is everybody's.
    *
    * A hidden die is thrown without a callout, so the table only ever learns the face when
    * it is opened; without this the number is on the table and nowhere in the log.
    */
-  private onDiceRevealed(face: string): void {
-    this.chat.discloseDieRolls(this.diceSymbol().identifier);
-    this.announceRevealedFace(face);
-  }
-
   private announceRevealedFace(face: string): void {
     const name = this.diceSymbol().name.trim();
     const message =
