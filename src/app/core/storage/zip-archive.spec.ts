@@ -68,6 +68,21 @@ describe('the shared worker', () => {
     useZipWorkerFactory(null);
   });
 
+  it('lets go of every waiting request when another worker takes over', async () => {
+    class SilentWorker {
+      addEventListener(): void {}
+      terminate(): void {}
+      postMessage(): void {}
+    }
+    useZipWorkerFactory(() => new SilentWorker() as unknown as Worker);
+    const files = [new File([strToU8('<room />')], 'data.xml', { type: 'text/plain' })];
+
+    const waiting = createZipBlob(files);
+    useZipWorkerFactory(null);
+
+    expect((await waiting).type).toBe('application/zip');
+  });
+
   it('lets go of every waiting request when the work cannot be handed over', async () => {
     let posts = 0;
     class FakeWorker {

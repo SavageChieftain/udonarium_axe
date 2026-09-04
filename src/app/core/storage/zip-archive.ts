@@ -93,6 +93,7 @@ export function useZipWorkerFactory(factory: (() => Worker) | null): void {
   makeWorker = factory;
   isWorkerBroken = false;
   disposeWorker();
+  settleAll(null);
 }
 
 let makeWorker: (() => Worker) | null = null;
