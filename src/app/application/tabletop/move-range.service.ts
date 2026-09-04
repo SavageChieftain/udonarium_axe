@@ -50,16 +50,25 @@ export class MoveRangeService {
   });
 
   private readonly standing = computed<MoveRangeView | null>(() => {
+    // Everything this answer turns on is read before any of it can send us away early, or a
+    // computed that says no once would go on saying it however the table changed afterwards.
+    this.objectChange.versionOf(this.tableSelecter.identifier)();
     const table = this.tableSelecter.viewTable;
+    if (table) this.objectChange.versionOf(table.identifier)();
+    const chosen = this.selection.selectedObject();
+    if (chosen) this.objectChange.versionOf(chosen.identifier)();
+    // The pieces are not children of the table, so their comings and goings and their walks
+    // across it are watched one by one: an enemy that steps aside opens the ground it held.
+    this.objectChange.collectionOf(GameCharacter.aliasName)();
+    const standing = this.objectStore.getObjects<GameCharacter>(GameCharacter);
+    for (const piece of standing) this.objectChange.versionOf(piece.identifier)();
+
     if (!table) return null;
     const wantsReach = table.moveRangeAlways;
     const wantsHeld = table.zocAlways;
     if (!wantsReach && !wantsHeld) return null;
-
-    const chosen = this.selection.selectedObject();
     if (!chosen) return null;
-    this.objectChange.versionOf(chosen.identifier)();
-    this.objectChange.versionOf(table.identifier)();
+
     const character = this.objectStore.get<GameCharacter>(chosen.identifier);
     if (!(character instanceof GameCharacter)) return null;
 
@@ -130,7 +139,17 @@ export class MoveRangeService {
   }
 }
 
+/**
+ * The cell a piece walks out of.
+ *
+ * A piece an odd number of cells across has a middle cell to start from. One an even number
+ * across has its middle on the corner where four cells meet, and asking which cell that
+ * point is in answers with the one down and to the right, which throws the whole reach a
+ * cell that way. It steps back half a cell to the one up and to the left instead.
+ */
 function startCellOf(grid: CellGrid, character: GameCharacter, table: GameTable): number {
-  const half = (table.gridSize * character.size) / 2;
-  return cellIndexAt(grid, character.location.x + half, character.location.y + half);
+  const size = Math.max(1, character.size);
+  const middle = (table.gridSize * size) / 2;
+  const onACorner = size % 2 === 0 ? table.gridSize / 2 : 0;
+  return cellIndexAt(grid, character.location.x + middle - onACorner, character.location.y + middle - onACorner);
 }

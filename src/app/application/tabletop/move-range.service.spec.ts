@@ -1,4 +1,5 @@
 import { TestBed } from '@angular/core/testing';
+import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { MoveRangeService } from '@axe/application/tabletop/move-range.service';
 import { VisionService } from '@axe/application/tabletop/vision.service';
 import { SelectionSignalService } from '@axe/application/ui/selection-signal.service';
@@ -222,6 +223,34 @@ describe('MoveRangeService', () => {
       expect(view.held!.get(cellIndexOf(view.grid, 6, 5))).toBe(true);
     });
 
+    it('answers again once the table is told to keep showing it', () => {
+      const picked = pieceAt(5, 5, 2);
+      pick(picked);
+      expect(service.range()).toBeNull();
+
+      table.moveRangeAlways = true;
+      TestBed.inject(ObjectChangeService).notifyChanged(table.identifier);
+
+      expect(service.range()).not.toBeNull();
+    });
+
+    it('answers again once another piece moves out of the way', () => {
+      table.moveRangeAlways = true;
+      table.piecesShareCells = false;
+      wallOver(6, 0, 5);
+      wallOver(6, 6, 6);
+      const blocking = pieceAt(6, 5, 1);
+      pick(pieceAt(5, 5, 4));
+      const view = service.range()!;
+      expect(view.cells.get(cellIndexOf(view.grid, 7, 5))).toBe(false);
+
+      blocking.location = { name: 'table', x: 1 * GRID, y: 1 * GRID };
+      TestBed.inject(ObjectChangeService).notifyChanged(blocking.identifier);
+
+      const after = service.range()!;
+      expect(after.cells.get(cellIndexOf(after.grid, 7, 5))).toBe(true);
+    });
+
     it('gives way to the piece in hand', () => {
       table.moveRangeAlways = true;
       const picked = pieceAt(5, 5, 2);
@@ -234,6 +263,17 @@ describe('MoveRangeService', () => {
       service.hide();
       expect(service.range()!.characterIdentifier).toBe(picked.identifier);
     });
+  });
+
+  it('walks an even-sized piece out of the cell it stands on rather than the one below right', () => {
+    const golem = pieceAt(5, 5, 1);
+    DataElement.findElementByReference(golem.rootDataElement!, 'size')!.value = 2;
+    service.show(golem);
+
+    const view = service.range()!;
+    // Two across from (5,5): a reach of one steps from that cell, not from (6,6).
+    expect(view.cells.get(cellIndexOf(view.grid, 4, 4))).toBe(true);
+    expect(view.cells.get(cellIndexOf(view.grid, 7, 7))).toBe(false);
   });
 
   it('reaches a diamond where the table forbids cutting corners', () => {
