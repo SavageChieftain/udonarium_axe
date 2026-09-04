@@ -15,6 +15,7 @@ import { GameObject } from '@axe/core/sync/game-object';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { PromiseQueue } from '@axe/core/util/promise-queue';
 import { toHalfWidth } from '@axe/core/util/string-util';
+import { answerColorsOf } from '@axe/domain/chat/chat-color';
 import { ChatMessage, ChatMessageContext, ChatMessageTargetContext } from '@axe/domain/chat/chat-message';
 import { ChatTab } from '@axe/domain/chat/chat-tab';
 import { DiceRollResult, ResourceEditProcessor } from '@axe/domain/data/resource-edit-processor';
@@ -367,7 +368,7 @@ export class DiceBot extends GameObject {
       dicebot: encodeDiceRollDetail(rollResult.detail ?? null),
       name: isSecret ? `<Secret-BCDice：${originalMessage.name}>` : `<BCDice：${originalMessage.name}>`,
       text: multiTargetOption ? `${result}${multiTargetOption}` : result,
-      messColor: originalMessage.messColor,
+      ...answerColorsOf(originalMessage),
     };
 
     if (originalMessage.to != null && 0 < originalMessage.to.length) {

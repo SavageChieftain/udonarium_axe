@@ -27,3 +27,25 @@ export function chatColorOf(source: ChatColorSource | null | undefined, index: n
 export function chatBubbleOf(source: ChatColorSource | null | undefined, index: number): ChatBubbleColors {
   return { light: source?.chatBubbleLight?.[index] ?? '', dark: source?.chatBubbleDark?.[index] ?? '' };
 }
+
+/** The colours a line wears: the text it is written in and the bubble it sits in. */
+export interface ChatLineColors {
+  messColor?: string;
+  messBubbleLight?: string;
+  messBubbleDark?: string;
+}
+
+/**
+ * The colours a line takes from the one it answers.
+ *
+ * A dice result is the system speaking, but the roll was somebody's, and the answer stands
+ * under their name. Wearing their colours - the bubble as well as the text - is what says
+ * whose roll it was without reading a word of it.
+ */
+export function answerColorsOf(asked: ChatLineColors): ChatLineColors {
+  return {
+    messColor: asked.messColor,
+    messBubbleLight: asked.messBubbleLight,
+    messBubbleDark: asked.messBubbleDark,
+  };
+}

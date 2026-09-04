@@ -1,4 +1,4 @@
-import { chatBubbleOf, chatColorOf, DEFAULT_CHAT_COLOR } from '@axe/domain/chat/chat-color';
+import { answerColorsOf, chatBubbleOf, chatColorOf, DEFAULT_CHAT_COLOR } from '@axe/domain/chat/chat-color';
 
 describe('chat colours', () => {
   const speaker = {
@@ -24,5 +24,23 @@ describe('chat colours', () => {
     expect(chatBubbleOf(speaker, 1)).toEqual({ light: '', dark: '#030' });
     expect(chatBubbleOf(speaker, 2)).toEqual({ light: '#eef', dark: '' });
     expect(chatBubbleOf(null, 0)).toEqual({ light: '', dark: '' });
+  });
+});
+
+describe('answerColorsOf()', () => {
+  it('takes the text colour and the bubble of the line it answers', () => {
+    expect(answerColorsOf({ messColor: '#ff0000', messBubbleLight: '#ffeeee', messBubbleDark: '#330000' })).toEqual({
+      messColor: '#ff0000',
+      messBubbleLight: '#ffeeee',
+      messBubbleDark: '#330000',
+    });
+  });
+
+  it('asks for no bubble where the line it answers asked for none', () => {
+    expect(answerColorsOf({ messColor: '#ff0000' })).toEqual({
+      messColor: '#ff0000',
+      messBubbleLight: undefined,
+      messBubbleDark: undefined,
+    });
   });
 });

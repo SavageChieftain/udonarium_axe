@@ -1,5 +1,7 @@
 import { TestBed } from '@angular/core/testing';
+import { ChatTabList } from '@axe/domain/chat/chat-tab-list';
 import { DiceBot } from '@axe/domain/dice/dice-bot';
+import { PeerCursor } from '@axe/domain/peer/peer-cursor';
 
 describe('DiceBot', () => {
   beforeEach(() => {
@@ -8,6 +10,35 @@ describe('DiceBot', () => {
 
   afterEach(() => {
     vi.restoreAllMocks();
+  });
+
+  describe('the line it answers with', () => {
+    it('wears the colours of the roll it answers, bubble and all', () => {
+      PeerCursor.createMyCursor();
+      const tab = ChatTabList.instance.addChatTab('メイン');
+      const asked = tab.addMessage({
+        from: 'me',
+        name: 'わたし',
+        text: '2d6',
+        timestamp: 1000,
+        messColor: '#ff0000',
+        messBubbleLight: '#ffeeee',
+        messBubbleDark: '#330000',
+      });
+      const bot = new DiceBot();
+      bot.initialize();
+
+      bot['sendResultMessage']({ id: null, result: '(2D6) → 7', isSecret: false }, asked);
+
+      const answer = tab.chatMessages[tab.chatMessages.length - 1];
+      expect(answer.text).toContain('→ 7');
+      expect(answer.messColor).toBe('#ff0000');
+      expect(answer.messBubbleLight).toBe('#ffeeee');
+      expect(answer.messBubbleDark).toBe('#330000');
+
+      bot.destroy();
+      tab.destroy();
+    });
   });
 
   describe('an instance', () => {
