@@ -89,6 +89,19 @@ describe('WidgetPlaceDirective', () => {
     expect(layout.spotOf('probe')).toEqual({ left: 210, top: 32 });
   });
 
+  it('leaves the remembered spot alone when placing is switched off', async () => {
+    layout.remember('probe', { left: 120, top: 90 });
+    await render();
+
+    box()!.style.left = '0px';
+    box()!.style.top = '480px';
+    fixture.componentInstance.enabled.set(false);
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    expect(layout.spotOf('probe')).toEqual({ left: 120, top: 90 });
+  });
+
   it('neither places nor remembers while switched off', async () => {
     fixture = TestBed.createComponent(HostComponent);
     fixture.componentInstance.enabled.set(false);
