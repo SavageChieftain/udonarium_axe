@@ -188,6 +188,26 @@ describe('ChatTabComponent', () => {
       expect(component.chatMessages).not.toBe(settled);
     });
 
+    it('redraws when a line is placed past the end of what is drawn', async () => {
+      const flush = async () => {
+        await new Promise<void>((resolve) => queueMicrotask(resolve));
+        await new Promise<void>((resolve) => queueMicrotask(resolve));
+      };
+
+      const secret = chatTab.addMessage({ from: 'me', name: 'ダイス', text: '→ 6', timestamp: 1000, tag: 'secret' });
+      chatTab.addMessage({ from: 'me', name: 'アリス', text: 'そのあと', timestamp: 2000 });
+      await flush();
+
+      // settling the window over both, which bounds it by the times they were said at
+      const settled = component.chatMessages;
+
+      TestBed.inject(ChatMessageService).discloseMessage(secret);
+      await flush();
+
+      expect(chatTab.chatMessages[chatTab.chatMessages.length - 1]).toBe(secret);
+      expect(component.chatMessages).not.toBe(settled);
+    });
+
     it('widens to an older message while it is at the bottom', () => {
       // one message settles both the bottom and the top timestamp
       type InternalFull = { bottomIndex: number; topPlacedAt: number };

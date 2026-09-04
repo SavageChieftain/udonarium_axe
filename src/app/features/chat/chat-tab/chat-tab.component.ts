@@ -115,13 +115,7 @@ export class ChatTabComponent {
       [ChatMessage.aliasName],
       (event) => {
         const message = this.objectStore.get(event.identifier);
-        if (
-          message &&
-          message instanceof ChatMessage &&
-          this.topPlacedAt <= message.placedAt &&
-          message.placedAt <= this.bottomPlacedAt &&
-          this.chatTab?.contains(message)
-        ) {
+        if (message instanceof ChatMessage && this.chatTab?.contains(message) && this.topPlacedAt <= message.placedAt) {
           this.needUpdate = true;
           this.renderVersion.update((v) => v + 1);
         }
@@ -153,7 +147,6 @@ export class ChatTabComponent {
   sampleMessages: ChatMessage[] = [];
 
   private topPlacedAt = 0;
-  private bottomPlacedAt = 0;
 
   private needUpdate = true;
 
@@ -192,8 +185,6 @@ export class ChatTabComponent {
       this.adjustIndex();
       this._chatMessages = chatMessages.slice(this.topIndex, this.bottomIndex + 1);
       this.topPlacedAt = 0 < this._chatMessages.length ? this._chatMessages[0].placedAt : 0;
-      this.bottomPlacedAt =
-        0 < this._chatMessages.length ? this._chatMessages[this._chatMessages.length - 1].placedAt : 0;
     }
     return this._chatMessages;
   }
