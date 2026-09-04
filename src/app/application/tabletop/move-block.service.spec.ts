@@ -136,7 +136,7 @@ describe('a reach that runs into painted ground', () => {
 
     const character = GameCharacter.create('コマ', 1, '');
     character.location = { name: 'table', x: 5 * GRID, y: 5 * GRID };
-    character.detailDataElement!.appendChild(DataElement.create('移動', 3, {}, `移動_${character.identifier}`));
+    DataElement.findElementByReference(character.rootDataElement!, '移動')!.value = 3;
     moveRange.show(character);
 
     const view = moveRange.range()!;

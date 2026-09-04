@@ -100,6 +100,24 @@ describe('the pieces a first table is set out with', () => {
     expect(statOf(sample('モンスターA'), 'HP')).not.toBe(statOf(sample('モンスターB'), 'HP'));
   });
 
+  const walkOf = (name: string) => statOf(sample(name), '移動');
+
+  it('walks each one at a pace that suits it', () => {
+    const walk = walkOf;
+
+    // The scout outruns the goblin, which outruns the robed wizard, which outwalks the
+    // knight under his armour; the golem comes last.
+    expect(walk('キャラクターC')).toBeGreaterThan(walk('モンスターA'));
+    expect(walk('モンスターA')).toBeGreaterThan(walk('キャラクターB'));
+    expect(walk('キャラクターB')).toBeGreaterThan(walk('キャラクターA'));
+    expect(walk('キャラクターA')).toBeGreaterThan(walk('モンスターC'));
+  });
+
+  it('slows the hurt one of a pair that is quick alike', () => {
+    expect(statOf(sample('モンスターA'), '敏捷度')).toBe(statOf(sample('モンスターB'), '敏捷度'));
+    expect(walkOf('モンスターB')).toBeLessThan(walkOf('モンスターA'));
+  });
+
   it('starts everybody whole', () => {
     for (const name of ['キャラクターA', 'モンスターC']) {
       const pool = DataElement.findElementByReference(sample(name).rootDataElement!, 'HP')!;

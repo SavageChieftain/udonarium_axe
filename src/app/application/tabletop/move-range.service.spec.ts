@@ -33,9 +33,9 @@ describe('MoveRangeService', () => {
   function pieceAt(col: number, row: number, walk: number | string | null): GameCharacter {
     const character = GameCharacter.create('コマ', 1, '');
     character.location = { name: 'table', x: col * GRID, y: row * GRID };
-    if (walk !== null) {
-      character.detailDataElement!.appendChild(DataElement.create('移動', walk, {}, `移動_${character.identifier}`));
-    }
+    const field = DataElement.findElementByReference(character.rootDataElement!, '移動')!;
+    if (walk === null) field.destroy();
+    else field.value = walk;
     return character;
   }
 

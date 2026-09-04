@@ -63,7 +63,7 @@ describe('GameCharacterComponent', () => {
   describe('showing where the piece could walk', () => {
     function pieceThatWalks(walk: number): GameCharacter {
       const character = GameCharacter.create('コマ', 1, '');
-      character.detailDataElement!.appendChild(DataElement.create('移動', walk, {}, `移動_${character.identifier}`));
+      DataElement.findElementByReference(character.rootDataElement!, '移動')!.value = walk;
       return character;
     }
 
@@ -121,7 +121,9 @@ describe('GameCharacterComponent', () => {
 
     it('shows nothing for a piece whose sheet says nothing about walking', () => {
       const moveRange = TestBed.inject(MoveRangeService);
-      fixture.componentRef.setInput('gameCharacter', GameCharacter.create('コマ', 1, ''));
+      const character = GameCharacter.create('コマ', 1, '');
+      DataElement.findElementByReference(character.rootDataElement!, '移動')!.destroy();
+      fixture.componentRef.setInput('gameCharacter', character);
       fixture.detectChanges();
 
       movableOf().ondragstart.emit({} as PointerEvent);
