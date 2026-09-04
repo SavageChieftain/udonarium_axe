@@ -1,6 +1,8 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { By } from '@angular/platform-browser';
 import { EffectPlaybackService } from '@axe/application/effect/effect-playback.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
+import { MoveRangeService } from '@axe/application/tabletop/move-range.service';
 import { TabletopService } from '@axe/application/tabletop/tabletop.service';
 import { BuffViewPreferenceService } from '@axe/application/ui/buff-view-preference.service';
 import { UiSignalService } from '@axe/application/ui/ui-signal.service';
@@ -11,9 +13,10 @@ import { DataElement, DataElementAttribute, DataElementType } from '@axe/domain/
 import { DisclosureMode } from '@axe/domain/disclosure/disclosure';
 import { EffectPreset } from '@axe/domain/effect/effect-preset';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
-import { GridType } from '@axe/domain/tabletop/game-table';
+import { GameTable, GridType } from '@axe/domain/tabletop/game-table';
 import { GameCharacterComponent } from '@axe/features/character/game-character/game-character.component';
 import { TEST_PROVIDERS } from '@axe/testing/test-providers';
+import { MovableDirective } from '@axe/ui/directives/movable.directive';
 
 describe('GameCharacterComponent', () => {
   let component: GameCharacterComponent;
@@ -55,6 +58,76 @@ describe('GameCharacterComponent', () => {
     fixture.detectChanges();
 
     expect((fixture.nativeElement as HTMLElement).style.zIndex).toBe('4');
+  });
+
+  describe('showing where the piece could walk', () => {
+    function pieceThatWalks(walk: number): GameCharacter {
+      const character = GameCharacter.create('コマ', 1, '');
+      character.detailDataElement!.appendChild(DataElement.create('移動', walk, {}, `移動_${character.identifier}`));
+      return character;
+    }
+
+    function movableOf(): MovableDirective {
+      return fixture.debugElement.query(By.directive(MovableDirective)).injector.get(MovableDirective);
+    }
+
+    let table: GameTable;
+
+    beforeEach(() => {
+      table = new GameTable();
+      table.width = 12;
+      table.height = 12;
+      table.gridSize = 50;
+      table.initialize();
+    });
+
+    afterEach(() => {
+      table.destroy();
+    });
+
+    it('shows the reach when the piece is picked up and takes it away when it is put down', () => {
+      const moveRange = TestBed.inject(MoveRangeService);
+      fixture.componentRef.setInput('gameCharacter', pieceThatWalks(2));
+      fixture.detectChanges();
+
+      movableOf().ondragstart.emit({} as PointerEvent);
+      expect(moveRange.range()).not.toBeNull();
+
+      movableOf().ondragend.emit({} as PointerEvent);
+      expect(moveRange.range()).toBeNull();
+    });
+
+    it('takes it away when the pointer is let go without a drop', () => {
+      const moveRange = TestBed.inject(MoveRangeService);
+      fixture.componentRef.setInput('gameCharacter', pieceThatWalks(2));
+      fixture.detectChanges();
+      movableOf().ondragstart.emit({} as PointerEvent);
+
+      movableOf().onend.emit({} as PointerEvent);
+
+      expect(moveRange.range()).toBeNull();
+    });
+
+    it('shows nothing when the table has the range turned off', () => {
+      table.moveRangeEnabled = false;
+      const moveRange = TestBed.inject(MoveRangeService);
+      fixture.componentRef.setInput('gameCharacter', pieceThatWalks(2));
+      fixture.detectChanges();
+
+      movableOf().ondragstart.emit({} as PointerEvent);
+
+      expect(moveRange.range()).toBeNull();
+    });
+
+    it('shows nothing for a piece whose sheet says nothing about walking', () => {
+      const moveRange = TestBed.inject(MoveRangeService);
+      fixture.componentRef.setInput('gameCharacter', GameCharacter.create('コマ', 1, ''));
+      fixture.detectChanges();
+
+      movableOf().ondragstart.emit({} as PointerEvent);
+
+      expect(moveRange.range()).toBeNull();
+    });
   });
 
   describe('the pedestal', () => {

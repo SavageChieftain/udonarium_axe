@@ -24,6 +24,7 @@ import { GameObjectInventoryService } from '@axe/application/inventory/game-obje
 import { DisclosureService } from '@axe/application/permission/disclosure.service';
 import { RolePermissionService } from '@axe/application/permission/role-permission.service';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
+import { MoveRangeService } from '@axe/application/tabletop/move-range.service';
 import { RangeShapeInvokeService } from '@axe/application/tabletop/range-shape-invoke.service';
 import { TabletopService } from '@axe/application/tabletop/tabletop.service';
 import { VisionService } from '@axe/application/tabletop/vision.service';
@@ -173,6 +174,7 @@ export class GameCharacterComponent {
   private readonly destroyRef = inject(DestroyRef);
   private readonly translateFn = inject(TRANSLATE_FN);
   private readonly rangeShapeInvoke = inject(RangeShapeInvokeService);
+  private readonly moveRangeService = inject(MoveRangeService);
   private readonly effectLibrary = inject(EffectLibraryService);
   private readonly effectCast = inject(EffectCastService);
   private readonly effectAutoPlay = inject(EffectAutoPlayService);
@@ -912,6 +914,21 @@ export class GameCharacterComponent {
 
   onMoved() {
     SoundEffect.play(PresetSound.piecePut);
+  }
+
+  onPickUp() {
+    this.onMove();
+    const character = this.gameCharacter();
+    if (character) this.moveRangeService.show(character);
+  }
+
+  onPutDown() {
+    this.onMoved();
+    this.moveRangeService.hide();
+  }
+
+  onLetGo() {
+    this.moveRangeService.hide();
   }
 
   checkKey(event: KeyboardEvent | MouseEvent) {

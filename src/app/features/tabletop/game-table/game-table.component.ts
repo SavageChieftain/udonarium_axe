@@ -77,6 +77,7 @@ import { LightSourceComponent } from '@axe/features/tabletop/light-source/light-
 import { RangeComponent } from '@axe/features/tabletop/range/range.component';
 import { TableAmbienceComponent } from '@axe/features/tabletop/table-ambience/table-ambience.component';
 import { TableBeamOverlayComponent } from '@axe/features/tabletop/table-beam-overlay/table-beam-overlay.component';
+import { TableMoveRangeOverlayComponent } from '@axe/features/tabletop/table-move-range-overlay/table-move-range-overlay.component';
 import { TableTargetOverlayComponent } from '@axe/features/tabletop/table-target-overlay/table-target-overlay.component';
 import { TableVisionOverlayComponent } from '@axe/features/tabletop/table-vision-overlay/table-vision-overlay.component';
 import { TableWeatherOverlayComponent } from '@axe/features/tabletop/table-weather-overlay/table-weather-overlay.component';
@@ -161,6 +162,7 @@ const NO_BEAM_WALL_GRIDS: readonly BeamWallGrid[] = [];
     TableVisionVolumeOverlayComponent,
     TableBeamOverlayComponent,
     TableTargetOverlayComponent,
+    TableMoveRangeOverlayComponent,
     TableEffectOverlayComponent,
     EffectTargetOverlayComponent,
     ReplayRouteOverlayComponent,
