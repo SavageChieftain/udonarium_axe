@@ -65,7 +65,7 @@ export class GridFaceCache {
       () => {
         try {
           const canvas = document.createElement('canvas');
-          new GridLineRender(canvas).renderViewport(
+          const drawn = new GridLineRender(canvas).renderViewport(
             widthPx,
             heightPx,
             look.gridSize,
@@ -78,6 +78,7 @@ export class GridFaceCache {
             labelPrefix,
             labelMatrix
           );
+          if (!drawn) return null;
           perfCounters.bump(PERF_TO_DATA_URL);
           return canvas.toDataURL();
         } catch {

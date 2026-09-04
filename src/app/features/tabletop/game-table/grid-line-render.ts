@@ -39,7 +39,9 @@ export class GridLineRender {
   ) {
     this.canvasElement.width = width * gridSize;
     this.canvasElement.height = height * gridSize;
-    const context: CanvasRenderingContext2D = this.canvasElement.getContext('2d')!;
+    // A canvas with nothing to draw on cannot be drawn on.
+    const context = this.canvasElement.getContext('2d');
+    if (!context) return;
 
     if (gridType < 0) return;
 
@@ -68,12 +70,14 @@ export class GridLineRender {
     drawLabels: boolean = true,
     labelPrefix: string = '',
     labelMatrix: readonly [number, number, number, number] | null = null
-  ) {
+  ): boolean {
     this.canvasElement.width = Math.max(1, Math.ceil(widthPx));
     this.canvasElement.height = Math.max(1, Math.ceil(heightPx));
-    const context: CanvasRenderingContext2D = this.canvasElement.getContext('2d')!;
+    // A canvas with nothing to draw on cannot be drawn on.
+    const context = this.canvasElement.getContext('2d');
+    if (!context) return false;
 
-    if (gridType < 0) return;
+    if (gridType < 0) return true;
 
     this.makeBrush(context, gridSize, gridColor, gridFontColor);
 
@@ -107,6 +111,7 @@ export class GridLineRender {
         );
         break;
     }
+    return true;
   }
 
   private drawCellLabel(
