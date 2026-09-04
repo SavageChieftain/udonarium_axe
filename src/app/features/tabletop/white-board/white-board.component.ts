@@ -122,13 +122,14 @@ export class WhiteBoardComponent {
     return deserializeScene(this.sceneText());
   });
 
-  readonly livePictures = computed<(LivePicture & { url: string })[]>(() =>
-    livePicturesOf(this.scene(), this.widthPx(), this.heightPx(), (identifier) =>
+  readonly livePictures = computed<(LivePicture & { url: string })[]>(() => {
+    this.version();
+    return livePicturesOf(this.scene(), this.widthPx(), this.heightPx(), (identifier) =>
       this.animatedImage.isAnimated(identifier)
     )
       .map((picture) => ({ ...picture, url: this.imageStorage.get(picture.imageIdentifier)?.url ?? '' }))
-      .filter((picture) => picture.url.length > 0)
-  );
+      .filter((picture) => picture.url.length > 0);
+  });
 
   /**
    * Tilted about its lower edge, so that standing it up does not sink it into the table.
