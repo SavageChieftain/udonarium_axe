@@ -86,6 +86,31 @@ describe('GameTableGestureService', () => {
       expect(rotation()).toBeNull();
     });
 
+    it('lets go of the gestures it listens with when the table goes', () => {
+      const root = document.createElement('div');
+      document.body.appendChild(root);
+      service.initialize(
+        root,
+        gameTableEl,
+        document.createElement('div'),
+        document.createElement('canvas'),
+        () => true
+      );
+      service.isTableTransformMode = true;
+      expect(root.style.touchAction).toBe('none');
+
+      root.dispatchEvent(new WheelEvent('wheel', { deltaY: -10, cancelable: true }));
+      const zoomed = service.viewPositionZ;
+      expect(zoomed).not.toBe(0);
+
+      service.destroy();
+      root.dispatchEvent(new WheelEvent('wheel', { deltaY: -10, cancelable: true }));
+
+      expect(service.viewPositionZ).toBe(zoomed);
+      expect(root.style.touchAction).toBe('');
+      root.remove();
+    });
+
     it('drops a frame it was still waiting for when the table goes', async () => {
       callSetTransform(0, 0, 10);
       service.destroy();

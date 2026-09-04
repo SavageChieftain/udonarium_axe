@@ -85,6 +85,12 @@ export class GameTableGestureService {
   destroy(): void {
     if (this.frame !== null) cancelAnimationFrame(this.frame);
     this.frame = null;
+    this.mouseGesture?.destroy();
+    this.mouseGesture = null;
+    this.touchGesture?.destroy();
+    this.touchGesture = null;
+    this.marqueeGesture?.cancel();
+    this.marqueeGesture = null;
   }
 
   cancelInput(): void {
