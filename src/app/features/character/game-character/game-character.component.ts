@@ -47,7 +47,7 @@ import { BuffBadge, toBuffBadges } from '@axe/domain/character/buff-badge';
 import { BUFF_VIEW_LABEL_KEYS, type BuffViewMode, nextBuffViewMode } from '@axe/domain/character/buff-view-mode';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { isInternalResource } from '@axe/domain/character/internal-resource';
-import { isGaugeInverted, PieceGauge, selectPieceGauges } from '@axe/domain/character/piece-gauge';
+import { gaugeNumbersOf, isGaugeInverted, PieceGauge, selectPieceGauges } from '@axe/domain/character/piece-gauge';
 import {
   diffResourceSnapshots,
   loudestChange,
@@ -524,6 +524,25 @@ export class GameCharacterComponent {
     this.objectChange.collectionOf('data')();
     for (const element of collectDataElements(detail)) this.objectChange.versionOf(element.identifier)();
     return selectPieceGauges(detail);
+  });
+
+  /**
+   * Whether the reader may read the numbers on this piece's bars.
+   *
+   * The same answer that settles whether they may open its sheet: a piece kept to the master
+   * or to a few names has its readings kept with it, wherever those readings are shown.
+   */
+  readonly gaugeNumbersReadable = computed<boolean>(() => {
+    const char = this.gameCharacter();
+    if (!char) return true;
+    this.objectChange.versionOf(char.identifier)();
+    this.objectChange.trackMyCursor();
+    return this.disclosureService.canView(char);
+  });
+
+  readonly gaugeRows = computed<{ gauge: PieceGauge; numbers: string }[]>(() => {
+    const readable = this.gaugeNumbersReadable();
+    return this.pieceGauges().map((gauge) => ({ gauge, numbers: gaugeNumbersOf(gauge, readable) }));
   });
 
   readonly buffBadges = computed<BuffBadge[]>(() => {

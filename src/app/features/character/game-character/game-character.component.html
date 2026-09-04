@@ -300,7 +300,8 @@
                       [style.font-size.px]="decorFontSizePx"
                       [ngStyle]="{ transform: gaugeStackTransform() }"
                     >
-                      @for (gauge of pieceGauges(); track gauge.identifier) {
+                      @for (row of gaugeRows(); track row.gauge.identifier) {
+                        @let gauge = row.gauge;
                         <div
                           class="flex w-[14em] items-center gap-[0.3em] whitespace-nowrap"
                           data-testid="piece-gauge"
@@ -320,7 +321,7 @@
                           </span>
                           <span
                             class="shrink-0 text-[0.9em] leading-none text-white/85 [text-shadow:0_0.1em_0.2em_#000]"
-                            >{{ gauge.current }}/{{ gauge.max }}</span
+                            >{{ row.numbers }}</span
                           >
                         </div>
                       }

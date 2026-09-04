@@ -8,6 +8,7 @@ import { ImageStorage } from '@axe/core/storage/image-storage';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { GameCharacter } from '@axe/domain/character/game-character';
 import { DataElement, DataElementAttribute, DataElementType } from '@axe/domain/data/data-element';
+import { DisclosureMode } from '@axe/domain/disclosure/disclosure';
 import { EffectPreset } from '@axe/domain/effect/effect-preset';
 import { PresetSound, SoundEffect } from '@axe/domain/media/sound-effect';
 import { GridType } from '@axe/domain/tabletop/game-table';
@@ -197,6 +198,33 @@ describe('GameCharacterComponent', () => {
       try {
         expect(component.pieceGauges().map((gauge) => gauge.name)).toEqual(['HP', 'MP']);
         expect(component.pieceGauges()[0]).toMatchObject({ initial: 'H', ratio: 1 });
+      } finally {
+        character.destroy();
+      }
+    });
+
+    it('keeps the readings back from whoever the piece is not open to', () => {
+      const character = GameCharacter.create('秘密', 1, '');
+      character.disclosureMode = DisclosureMode.GameMaster;
+      fixture.componentRef.setInput('gameCharacter', character);
+
+      try {
+        expect(component.gaugeNumbersReadable()).toBe(false);
+        expect(component.gaugeRows().map((row) => row.numbers)).toEqual(['???/???', '???/???']);
+        // The bar itself still stands, since how full it is can be guessed at anyway.
+        expect(component.gaugeRows()[0].gauge.ratio).toBe(1);
+      } finally {
+        character.destroy();
+      }
+    });
+
+    it('reads the numbers out for a piece the room may look at', () => {
+      const character = GameCharacter.create('公開', 1, '');
+      fixture.componentRef.setInput('gameCharacter', character);
+
+      try {
+        expect(component.gaugeNumbersReadable()).toBe(true);
+        expect(component.gaugeRows()[0].numbers).toMatch(/^\d+\/\d+$/);
       } finally {
         character.destroy();
       }

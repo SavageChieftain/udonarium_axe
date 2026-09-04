@@ -18,6 +18,20 @@ const LOW_COLOR = '#e53935';
 const HALF_THRESHOLD = 0.5;
 const LOW_THRESHOLD = 0.25;
 
+/** What stands in for the numbers beside a bar nobody may read. */
+export const HIDDEN_GAUGE_NUMBERS = '???/???';
+
+/**
+ * The numbers beside a bar, or marks where the piece is not the reader's to look at.
+ *
+ * The bar itself is left as it is. How full it stands can be guessed at from across the
+ * table, and a bar that told nothing would not be worth drawing; what is kept back is the
+ * reading of it, which is the part that can be written down and counted on.
+ */
+export function gaugeNumbersOf(gauge: PieceGauge, readable: boolean): string {
+  return readable ? `${gauge.current}/${gauge.max}` : HIDDEN_GAUGE_NUMBERS;
+}
+
 export function gaugeRatio(current: number, max: number): number {
   if (!Number.isFinite(current) || !Number.isFinite(max) || max <= 0) return 0;
   return Math.min(1, Math.max(0, current / max));
