@@ -536,3 +536,20 @@ describe('Card', () => {
     });
   });
 });
+
+describe('the colour of a card face', () => {
+  it('keeps a colour that was chosen and falls back to the ink for anything else', () => {
+    const card = Card.create('coloured', 'front.png', 'back.png');
+    try {
+      expect(card.faceFontColor).toBe(Card.DEFAULT_FACE_FONT_COLOR);
+
+      card.faceFontColor = '#Ff8800';
+      expect(card.faceFontColor).toBe('#Ff8800');
+
+      card.faceFontColor = 'red';
+      expect(card.faceFontColor).toBe(Card.DEFAULT_FACE_FONT_COLOR);
+    } finally {
+      card.destroy();
+    }
+  });
+});

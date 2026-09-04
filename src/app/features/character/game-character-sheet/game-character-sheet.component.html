@@ -959,7 +959,16 @@
                     max="120"
                     class="bg-ui-input border-ui-border-panel text-ui-text rounded-ui-sm focus:border-ui-accent w-20 border border-solid p-1 outline-none"
                     [value]="cardOwnFaceFontSize(c)"
-                    (change)="setCardOwnFaceFontSize(c, $event)"
+                    (input)="setCardOwnFaceFontSize(c, $event)"
+                  />
+                </label>
+                <label class="flex items-center gap-2 text-[0.78em]">
+                  <span class="text-ui-muted">{{ 'feature.card.field.fontColor' | transloco }}</span>
+                  <input
+                    type="color"
+                    class="bg-ui-input border-ui-border-panel rounded-ui-sm focus:border-ui-accent h-8 w-14 cursor-pointer border border-solid p-0.5 outline-none"
+                    [value]="cardOwnFaceFontColor(c)"
+                    (input)="setCardOwnFaceFontColor(c, $event)"
                   />
                 </label>
               } @else {

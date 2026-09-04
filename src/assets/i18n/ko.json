@@ -645,7 +645,8 @@
         "size": "크기",
         "text": "카드 문장",
         "textHint": "루비는 |한자《읽기》, 인용은 줄 맨 앞의 > 로 지정할 수 있습니다.",
-        "fontSize": "글자 크기"
+        "fontSize": "글자 크기",
+        "fontColor": "글자 색"
       },
       "drawDialog": {
         "title": "카드 뽑기",

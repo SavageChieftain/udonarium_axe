@@ -36,6 +36,7 @@ export class CardFaceTextComponent {
     // Match TextNote's numeric font-size convention, then scale the whole face for previews.
     return (this.trackCardFace().faceFontSize + 9) * this.scale();
   });
+  readonly fontColor = computed(() => this.trackCardFace().faceFontColor);
   readonly padding = computed(() => 8 * this.scale());
   readonly transformCss = computed(() => `rotateZ(${this.rotation()}deg)`);
 }

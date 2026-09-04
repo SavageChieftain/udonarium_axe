@@ -265,6 +265,15 @@ export class GameCharacterSheetComponent {
     if (Number.isFinite(value)) c.faceFontSize = value;
   }
 
+  cardOwnFaceFontColor(c: Card): string {
+    this.objectChange.versionOf(c.identifier)();
+    return this.canReadCardFace(c) ? c.faceFontColor : Card.DEFAULT_FACE_FONT_COLOR;
+  }
+  setCardOwnFaceFontColor(c: Card, event: Event): void {
+    if (!this.canReadCardFace(c)) return;
+    c.faceFontColor = (event.target as HTMLInputElement).value;
+  }
+
   textNoteTitle(note: TextNote): string {
     this.objectChange.versionOf(note.identifier)();
     return note.title;

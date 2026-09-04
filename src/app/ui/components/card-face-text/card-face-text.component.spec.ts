@@ -73,6 +73,16 @@ describe('CardFaceTextComponent', () => {
     expect(fixture.nativeElement.textContent).toContain('private hand');
   });
 
+  it('takes the colour the card was given rather than the theme', () => {
+    card.faceText = 'ink';
+    card.faceFontColor = '#ff8800';
+    fixture.detectChanges();
+
+    const face = fixture.nativeElement.querySelector('div') as HTMLDivElement;
+    expect(face.className).not.toContain('text-ui-text');
+    expect(face.style.color).toBe('#ff8800');
+  });
+
   it('follows synchronized child values and stack rotation', () => {
     card.faceText = 'before';
     fixture.componentRef.setInput('rotation', 180);
@@ -91,7 +101,6 @@ describe('CardFaceTextComponent', () => {
     expect(face.style.fontSize).toBe('45px');
     expect(face.style.transform).toBe('rotateZ(180deg)');
     expect(face.className).not.toContain('text-shadow');
-    expect(face.className).toContain('text-ui-card-ink');
   });
 
   it('scales the font and padding for a preview without changing the text flow', () => {

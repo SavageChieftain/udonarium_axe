@@ -645,7 +645,8 @@
         "size": "Size",
         "text": "Card text",
         "textHint": "Use |word《reading》 for ruby text and start a line with > for a quotation.",
-        "fontSize": "Font size"
+        "fontSize": "Font size",
+        "fontColor": "Font colour"
       },
       "drawDialog": {
         "title": "Draw cards",

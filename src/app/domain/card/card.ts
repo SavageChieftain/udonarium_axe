@@ -7,6 +7,8 @@ import { DataElement, DataElementType } from '@axe/domain/data/data-element';
 import { OwnedTabletopObject } from '@axe/domain/tabletop/owned-tabletop-object';
 import { moveToTopmost } from '@axe/domain/tabletop/tabletop-object-util';
 
+const FACE_FONT_COLOR = /^#[0-9a-f]{6}$/i;
+
 export enum CardState {
   FRONT,
   BACK,
@@ -15,6 +17,7 @@ export enum CardState {
 @SyncObject('card')
 export class Card extends OwnedTabletopObject {
   static readonly DEFAULT_FACE_FONT_SIZE = 18;
+  static readonly DEFAULT_FACE_FONT_COLOR = '#16171c';
   @SyncVar() isLock: boolean = false;
   @SyncVar() dispLockMark: boolean = true;
 
@@ -54,6 +57,13 @@ export class Card extends OwnedTabletopObject {
       ? Math.max(1, Math.min(120, Math.round(value)))
       : Card.DEFAULT_FACE_FONT_SIZE;
     this.setOrCreateCommonValue('fontsize', normalized);
+  }
+  get faceFontColor(): string {
+    const value = String(this.getCommonValue('fontcolor', Card.DEFAULT_FACE_FONT_COLOR));
+    return FACE_FONT_COLOR.test(value) ? value : Card.DEFAULT_FACE_FONT_COLOR;
+  }
+  set faceFontColor(value: string) {
+    this.setOrCreateCommonValue('fontcolor', FACE_FONT_COLOR.test(value) ? value : Card.DEFAULT_FACE_FONT_COLOR);
   }
   private setOrCreateCommonValue(name: string, value: string | number, attributes: Attributes = {}): void {
     const existing = this.commonDataElement?.getFirstElementByName(name);
@@ -138,6 +148,9 @@ export class Card extends OwnedTabletopObject {
     object.commonDataElement!.appendChild(DataElement.create('size', size, {}, `size_${object.identifier}`));
     object.commonDataElement!.appendChild(
       DataElement.create('fontsize', Card.DEFAULT_FACE_FONT_SIZE, {}, `fontsize_${object.identifier}`)
+    );
+    object.commonDataElement!.appendChild(
+      DataElement.create('fontcolor', Card.DEFAULT_FACE_FONT_COLOR, {}, `fontcolor_${object.identifier}`)
     );
     object.commonDataElement!.appendChild(
       DataElement.create('text', '', { type: DataElementType.NOTE, currentValue: '' }, `text_${object.identifier}`)
