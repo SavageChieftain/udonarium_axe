@@ -36,7 +36,7 @@ export function gridFaceKey(
 export class GridFaceCache {
   private readonly faces = new Map<string, string>();
 
-  remember(key: string, make: () => string): string {
+  remember(key: string, make: () => string | null): string {
     const kept = this.faces.get(key);
     if (kept !== undefined) {
       this.faces.delete(key);
@@ -44,6 +44,7 @@ export class GridFaceCache {
       return kept;
     }
     const made = make();
+    if (made === null) return '';
     this.faces.set(key, made);
     if (this.faces.size > CAPACITY) this.faces.delete(this.faces.keys().next().value as string);
     return made;
@@ -80,7 +81,7 @@ export class GridFaceCache {
           perfCounters.bump(PERF_TO_DATA_URL);
           return canvas.toDataURL();
         } catch {
-          return '';
+          return null;
         }
       }
     );
