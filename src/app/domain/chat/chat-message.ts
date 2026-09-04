@@ -156,7 +156,8 @@ export class ChatMessage extends ObjectNode implements ChatMessageContext {
       .filter((image): image is ImageFile => image != null);
   }
   get placedAt(): number {
-    return this.disclosedAt > 0 ? this.disclosedAt : this.timestamp;
+    const disclosedAt = Number(this.disclosedAt);
+    return Number.isFinite(disclosedAt) && disclosedAt > 0 ? disclosedAt : this.timestamp;
   }
   override get index(): number {
     return this.minorIndex + this.placedAt;
