@@ -57,7 +57,16 @@ describe('DiceBot', () => {
 
   describe('its static members', () => {
     it('fetches nothing until a roll or a system is asked for', () => {
-      expect(DiceBot['queue']).toBeNull();
+      const kept = DiceBot['queue'];
+      DiceBot['queue'] = null;
+      try {
+        const bot = new DiceBot();
+        bot.initialize();
+        expect(DiceBot['queue']).toBeNull();
+        bot.destroy();
+      } finally {
+        DiceBot['queue'] = kept;
+      }
     });
 
     it('lists the systems it knows', () => {
