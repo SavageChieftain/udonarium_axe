@@ -79,6 +79,16 @@ describe('ChatMessageService', () => {
       expect(tab.chatMessages[tab.chatMessages.length - 1]).toBe(secret);
     });
 
+    it('says how many lines it opened', () => {
+      service.sendSecretSystemMessageToTab(tab, '隠しダイス → 6', 'me', undefined, ['die-a']);
+
+      expect(service.discloseDieRolls('die-a')).toBe(1);
+    });
+
+    it('says none for a die with no throw of it left kept back', () => {
+      expect(service.discloseDieRolls('die-a')).toBe(0);
+    });
+
     it('finds the throw in whichever tab it was said in', () => {
       const another = ChatTabList.instance.addChatTab('べつのタブ');
       try {

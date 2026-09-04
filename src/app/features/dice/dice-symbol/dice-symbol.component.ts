@@ -323,15 +323,16 @@ export class DiceSymbolComponent {
   }
 
   private onDiceRevealed(face: string): void {
-    this.chat.discloseDieRolls(this.diceSymbol().identifier);
-    this.announceRevealedFace(face);
+    const opened = this.chat.discloseDieRolls(this.diceSymbol().identifier);
+    if (opened < 1) this.announceRevealedFace(face);
   }
 
   /**
    * Says what a die that was somebody's alone came to rest on, now that it is everybody's.
    *
    * A hidden die is thrown without a callout, so the table only ever learns the face when
-   * it is opened; without this the number is on the table and nowhere in the log.
+   * it is opened. Said only where there is no throw of it left to open - a face set by hand,
+   * or a throw already opened - since an opened throw gives the number itself.
    */
   private announceRevealedFace(face: string): void {
     const name = this.diceSymbol().name.trim();

@@ -295,6 +295,26 @@ describe('DiceSymbolComponent', () => {
 
       expect(other.isSecret).toBe(true);
     });
+
+    it('says nothing more of its own once the throw it opened carries the face', () => {
+      const chat = TestBed.inject(ChatMessageService);
+      chat.sendSecretSystemMessageToTab(tab, '隠しダイス → 6', 'me', undefined, [dice.identifier]);
+      const callOut = vi.spyOn(chat, 'sendSystemMessageToMainTab');
+
+      reveal('6');
+
+      expect(callOut).not.toHaveBeenCalled();
+    });
+
+    it('calls the face out where there is no throw of it to open', () => {
+      // A face set by hand leaves nothing in the log, so the call-out is the only record.
+      const callOut = vi.spyOn(TestBed.inject(ChatMessageService), 'sendSystemMessageToMainTab');
+
+      reveal('6');
+
+      expect(callOut).toHaveBeenCalledOnce();
+      expect(callOut.mock.calls[0][0]).toContain('6');
+    });
   });
 
   describe('the throw', () => {

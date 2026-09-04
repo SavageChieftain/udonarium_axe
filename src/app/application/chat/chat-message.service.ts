@@ -432,13 +432,17 @@ export class ChatMessageService {
     return -1;
   }
 
-  discloseDieRolls(dieIdentifier: string): void {
+  discloseDieRolls(dieIdentifier: string): number {
     const tag = dieRollTag(dieIdentifier);
+    let opened = 0;
     for (const chatTab of this.chatTabs) {
       for (const message of [...chatTab.chatMessages]) {
-        if (message.isSecret && message.tags.includes(tag)) this.discloseMessage(message);
+        if (!message.isSecret || !message.tags.includes(tag)) continue;
+        this.discloseMessage(message);
+        opened++;
       }
     }
+    return opened;
   }
 
   discloseMessage(message: ChatMessage): void {
