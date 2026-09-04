@@ -102,6 +102,16 @@ describe('CharacterMacroService', () => {
     expect(portraitIndex).toBe(speaker.selectedPortraitIndex);
   });
 
+  it('speaks in the bubble the character wears, so a roll can answer in it', () => {
+    const speaker = character('術者');
+    speaker.chatBubbleLight = ['#ffeeee', '#eeffee'];
+    speaker.chatBubbleDark = ['#330000', '#003300'];
+
+    service.send(speaker, 'ふきだし', { tab, colorIndex: 1 });
+
+    expect(sendMessage.mock.calls[0][11]).toEqual({ light: '#eeffee', dark: '#003300' });
+  });
+
   it('sends no bubble when the caller asks for none, as a notice does', () => {
     const speaker = character('術者');
 
