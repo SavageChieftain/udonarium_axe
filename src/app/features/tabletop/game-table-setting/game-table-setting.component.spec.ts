@@ -156,6 +156,96 @@ describe('GameTableSettingComponent', () => {
     });
   });
 
+  describe('the ground an enemy holds', () => {
+    let table: GameTable;
+
+    beforeEach(() => {
+      table = new GameTable();
+      table.initialize();
+      component.selectedTable = table;
+    });
+
+    afterEach(() => {
+      table.destroy();
+    });
+
+    it('hands back the defaults with no table selected', () => {
+      component.selectedTable = null;
+
+      expect(component.tableZocMode).toBe('none');
+      expect(component.tableZocRange).toBe(1);
+      expect(component.tableZocExtraCost).toBe(1);
+    });
+
+    it('asks nothing more of a table where an enemy holds no ground', () => {
+      component.tableZocMode = 'none';
+
+      expect(component.showsZocOptions).toBe(false);
+      expect(component.showsZocExtraCost).toBe(false);
+    });
+
+    it('asks how far the ground reaches, and what it costs only where it is charged for', () => {
+      component.tableZocMode = 'stop';
+      expect(component.showsZocOptions).toBe(true);
+      expect(component.showsZocExtraCost).toBe(false);
+
+      component.tableZocMode = 'block';
+      expect(component.showsZocExtraCost).toBe(false);
+
+      component.tableZocMode = 'cost';
+      expect(component.showsZocOptions).toBe(true);
+      expect(component.showsZocExtraCost).toBe(true);
+    });
+
+    it('writes all three onto the table', () => {
+      component.tableZocMode = 'cost';
+      component.tableZocRange = 2;
+      component.tableZocExtraCost = 3;
+
+      expect(table.zocMode).toBe('cost');
+      expect(table.zocRange).toBe(2);
+      expect(table.zocExtraCost).toBe(3);
+    });
+
+    it('reads a table carrying something it does not know as holding no ground', () => {
+      table.zocMode = 'engagement';
+
+      expect(component.tableZocMode).toBe('none');
+    });
+
+    it('takes a reach that is not a whole count as none at all', () => {
+      component.tableZocRange = Number.NaN;
+      component.tableZocExtraCost = -2;
+
+      expect(table.zocRange).toBe(0);
+      expect(table.zocExtraCost).toBe(0);
+    });
+
+    it('shows the boxes only once an enemy holds ground', async () => {
+      function boxes(): string[] {
+        return [...fixture.nativeElement.querySelectorAll('input[type="number"]')].map(
+          (node: Element) => node.getAttribute('name') ?? ''
+        );
+      }
+
+      component.tableZocMode = 'none';
+      fixture.detectChanges();
+      await fixture.whenStable();
+      expect(boxes()).not.toContain('tableZocRange');
+
+      component.tableZocMode = 'stop';
+      fixture.detectChanges();
+      await fixture.whenStable();
+      expect(boxes()).toContain('tableZocRange');
+      expect(boxes()).not.toContain('tableZocExtraCost');
+
+      component.tableZocMode = 'cost';
+      fixture.detectChanges();
+      await fixture.whenStable();
+      expect(boxes()).toContain('tableZocExtraCost');
+    });
+  });
+
   describe('signal-driven CD', () => {
     it('reads the deleted flag through a collection signal', () => {
       const objectChangeService = TestBed.inject(ObjectChangeService);

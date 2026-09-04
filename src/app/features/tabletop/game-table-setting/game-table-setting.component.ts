@@ -40,6 +40,13 @@ import {
   DEFAULT_MOVE_RANGE_ELEMENT_NAMES,
 } from '@axe/domain/tabletop/move/move-cells';
 import { MOVE_UNITS, MoveUnit, parseMoveUnit } from '@axe/domain/tabletop/move/move-units';
+import {
+  asZocMode,
+  DEFAULT_ZOC_EXTRA_COST,
+  DEFAULT_ZOC_RANGE,
+  ZOC_MODES,
+  ZocMode,
+} from '@axe/domain/tabletop/move/zone-of-control';
 import { asTableFacingMark, TABLE_FACING_MARKS, TableFacingMark } from '@axe/domain/tabletop/table-facing-mark';
 import { TableSelecter } from '@axe/domain/tabletop/table-selecter';
 import {
@@ -324,6 +331,41 @@ export class GameTableSettingComponent {
   }
   set tableCellDistanceUnit(value: MoveUnit) {
     if (this.isEditable && this.selectedTable) this.selectedTable.cellDistanceUnit = value;
+  }
+
+  readonly zocModes = ZOC_MODES;
+
+  get tableZocMode(): ZocMode {
+    return asZocMode(this.selectedTable?.zocMode);
+  }
+  set tableZocMode(value: ZocMode) {
+    if (this.isEditable && this.selectedTable) this.selectedTable.zocMode = asZocMode(value);
+  }
+
+  /** A table where an enemy holds no ground is asked nothing about how much of it. */
+  get showsZocOptions(): boolean {
+    return this.tableZocMode !== 'none';
+  }
+
+  /** What it costs on top is a question only for a table that charges for the ground. */
+  get showsZocExtraCost(): boolean {
+    return this.tableZocMode === 'cost';
+  }
+
+  get tableZocRange(): number {
+    return this.selectedTable?.zocRange ?? DEFAULT_ZOC_RANGE;
+  }
+  set tableZocRange(value: number) {
+    if (!this.isEditable || !this.selectedTable) return;
+    this.selectedTable.zocRange = wholeCells(value);
+  }
+
+  get tableZocExtraCost(): number {
+    return this.selectedTable?.zocExtraCost ?? DEFAULT_ZOC_EXTRA_COST;
+  }
+  set tableZocExtraCost(value: number) {
+    if (!this.isEditable || !this.selectedTable) return;
+    this.selectedTable.zocExtraCost = wholeCells(value);
   }
 
   protected readonly weatherKinds = SKY_AMBIENCE_KINDS;
@@ -711,4 +753,10 @@ export class GameTableSettingComponent {
   onSelectGameTable(event: Event): void {
     this.chooseGameTable((event.target as HTMLInputElement).value);
   }
+}
+
+/** A count of cells written into a box, taken as none where it is not a whole one above zero. */
+function wholeCells(value: number): number {
+  const cells = Math.floor(Number(value));
+  return Number.isFinite(cells) && cells > 0 ? cells : 0;
 }
