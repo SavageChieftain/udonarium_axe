@@ -47,6 +47,8 @@ export class Card extends OwnedTabletopObject {
   }
   set faceText(value: string) {
     this.setOrCreateCommonValue('text', value, { type: DataElementType.NOTE, currentValue: value });
+    const element = this.commonDataElement?.getFirstElementByName('text');
+    if (element && element.currentValue !== value) element.currentValue = value;
   }
   get faceFontSize(): number {
     const value = Number(this.getCommonValue('fontsize', Card.DEFAULT_FACE_FONT_SIZE));
@@ -148,9 +150,6 @@ export class Card extends OwnedTabletopObject {
     object.commonDataElement!.appendChild(DataElement.create('size', size, {}, `size_${object.identifier}`));
     object.commonDataElement!.appendChild(
       DataElement.create('fontsize', Card.DEFAULT_FACE_FONT_SIZE, {}, `fontsize_${object.identifier}`)
-    );
-    object.commonDataElement!.appendChild(
-      DataElement.create('fontcolor', Card.DEFAULT_FACE_FONT_COLOR, {}, `fontcolor_${object.identifier}`)
     );
     object.commonDataElement!.appendChild(
       DataElement.create('text', '', { type: DataElementType.NOTE, currentValue: '' }, `text_${object.identifier}`)

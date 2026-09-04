@@ -62,6 +62,18 @@ describe('Card', () => {
       expect(card.commonDataElement!.getFirstElementByName('fontsize')!.identifier).toBe(`fontsize_${card.identifier}`);
     });
 
+    it('should keep the note value and its current value in step', () => {
+      const card = Card.create('Test', 'front.png', 'back.png');
+      try {
+        card.faceText = 'written later';
+        const element = card.commonDataElement!.getFirstElementByName('text')!;
+        expect(element.value).toBe('written later');
+        expect(element.currentValue).toBe('written later');
+      } finally {
+        card.destroy();
+      }
+    });
+
     it('should normalize invalid face font sizes', () => {
       const card = Card.create('Test', 'front.png', 'back.png');
       card.faceFontSize = Number.NaN;
@@ -542,6 +554,7 @@ describe('the colour of a card face', () => {
     const card = Card.create('coloured', 'front.png', 'back.png');
     try {
       expect(card.faceFontColor).toBe(Card.DEFAULT_FACE_FONT_COLOR);
+      expect(card.commonDataElement!.getFirstElementByName('fontcolor')).toBeNull();
 
       card.faceFontColor = '#Ff8800';
       expect(card.faceFontColor).toBe('#Ff8800');
