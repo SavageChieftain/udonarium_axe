@@ -37,7 +37,7 @@ export class MoveRangeService {
     if (table.gridSize <= 0 || table.width <= 0 || table.height <= 0) return null;
     if (surfaceOf(character) !== 'floor') return null;
 
-    const walk = moveCellsOf(character, table.moveRangeElementNames, table.cellDistance);
+    const walk = moveCellsOf(character, table.moveRangeElementNames, table.cellDistance, table.cellDistanceUnit);
     if (walk === null || walk < 1) return null;
 
     const grid = cellGridOf(table.width, table.height, table.gridSize, table.gridType);

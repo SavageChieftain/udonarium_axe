@@ -1,6 +1,6 @@
 import { Attributes } from '@axe/core/sync/attributes';
 import { GameCharacter } from '@axe/domain/character/game-character';
-import { DataElement, DataElementType } from '@axe/domain/data/data-element';
+import { DataElement, DataElementAttribute, DataElementType } from '@axe/domain/data/data-element';
 import { GameTable } from '@axe/domain/tabletop/game-table';
 import { moveCellsOf } from '@axe/domain/tabletop/move/move-cells';
 import { afterEach, describe, expect, it } from 'vitest';
@@ -9,7 +9,9 @@ const NAMES = '移動,移動力,Speed,速度';
 
 const built: GameCharacter[] = [];
 
-function characterWith(fields: { name: string; value: number | string; pool?: number | string }[]): GameCharacter {
+function characterWith(
+  fields: { name: string; value: number | string; pool?: number | string; unit?: string }[]
+): GameCharacter {
   const character = new GameCharacter();
   character.createDataElements();
   character.initialize();
@@ -20,6 +22,7 @@ function characterWith(fields: { name: string; value: number | string; pool?: nu
       field.pool === undefined
         ? {}
         : { type: DataElementType.NUMBER_RESOURCE, currentValue: `${field.pool}`, max: `${field.value}` };
+    if (field.unit !== undefined) attributes[DataElementAttribute.UNIT] = field.unit;
     detail.appendChild(
       DataElement.create(field.name, field.value, attributes, `${field.name}_${character.identifier}`)
     );
@@ -84,11 +87,27 @@ describe('how many cells a piece may walk', () => {
 });
 
 describe('what a table says about walking before anybody changes it', () => {
+  it('measures a sheet in the unit the table is ruled in', () => {
+    // Thirty feet on a table ruled in three-metre cells: nine and a bit metres, three cells.
+    expect(moveCellsOf(characterWith([{ name: '移動', value: 30, unit: 'フィート' }]), NAMES, 3, 'metre')).toBe(3);
+    // Nine metres on a table ruled in five-foot cells: a little under thirty feet, five cells.
+    expect(moveCellsOf(characterWith([{ name: '移動', value: 9, unit: 'm' }]), NAMES, 5, 'foot')).toBe(5);
+  });
+
+  it('reads a sheet written in cells as cells, however the table is ruled', () => {
+    expect(moveCellsOf(characterWith([{ name: '移動', value: 6, unit: 'マス' }]), NAMES, 5, 'foot')).toBe(6);
+  });
+
+  it('takes a sheet with no unit anybody knows to be in the table’s own', () => {
+    expect(moveCellsOf(characterWith([{ name: '移動', value: 30, unit: '間' }]), NAMES, 5, 'foot')).toBe(6);
+    expect(moveCellsOf(characterWith([{ name: '移動', value: 30 }]), NAMES, 5, 'foot')).toBe(6);
+  });
+
   it('shows the range, reads the usual fields and counts one cell as one', () => {
     const table = new GameTable();
     expect(table.moveRangeEnabled).toBe(true);
     expect(table.moveRangeElementNames).toBe(NAMES);
     expect(table.cellDistance).toBe(1);
-    expect(table.cellDistanceUnit).toBe('マス');
+    expect(table.cellDistanceUnit).toBe('cell');
   });
 });

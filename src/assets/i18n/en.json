@@ -1902,7 +1902,12 @@
         "moveRangeElementNames": "Sheet fields",
         "cellDistance": "One cell is",
         "cellDistanceUnit": "Unit",
-        "moveRangeHint": "Field names are separated by commas, and the first one the sheet has is used. The value on the sheet is divided by the distance of one cell (0 leaves it as it stands)."
+        "moveRangeHint": "Names are comma separated and the first one the sheet has is used. The value is divided by what one cell stands for (0 divides by nothing). Feet and metres are converted where the sheet is written in the other one; a sheet written in cells is read as cells.",
+        "cellUnit": {
+          "cell": "Cells",
+          "metre": "Metres",
+          "foot": "Feet"
+        }
       },
       "dungeonGenerator": {
         "atmosphere": {

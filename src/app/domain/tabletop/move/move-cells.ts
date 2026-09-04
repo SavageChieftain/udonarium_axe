@@ -1,9 +1,10 @@
 import { GameCharacter } from '@axe/domain/character/game-character';
-import { DataElement } from '@axe/domain/data/data-element';
+import { DataElement, DataElementAttribute } from '@axe/domain/data/data-element';
+import { convertMoveLength, isLengthUnit, MoveUnit, parseMoveUnit } from '@axe/domain/tabletop/move/move-units';
 
 export const DEFAULT_MOVE_RANGE_ELEMENT_NAMES = '移動,移動力,Speed,速度';
 export const DEFAULT_CELL_DISTANCE = 1;
-export const DEFAULT_CELL_DISTANCE_UNIT = 'マス';
+export const DEFAULT_CELL_DISTANCE_UNIT: MoveUnit = 'cell';
 
 export function parseMoveRangeElementNames(names: string): string[] {
   return names
@@ -21,7 +22,20 @@ function amountOf(element: DataElement): number | null {
   return Number.isFinite(amount) ? amount : null;
 }
 
-export function moveCellsOf(character: GameCharacter, names: string, cellDistance: number): number | null {
+/**
+ * How many cells a piece walks, from what its sheet says and what the table counts in.
+ *
+ * A sheet written in cells is already the answer. A sheet written in a length is measured
+ * against what one cell stands for, and where the two are written in different lengths -
+ * thirty feet on the sheet, a table ruled in metres - the sheet is turned into the table's
+ * unit first. A sheet with no unit anybody knows is taken to be in the table's own.
+ */
+export function moveCellsOf(
+  character: GameCharacter,
+  names: string,
+  cellDistance: number,
+  tableUnit: string = DEFAULT_CELL_DISTANCE_UNIT
+): number | null {
   const root = character.rootDataElement;
   if (!root) return null;
 
@@ -30,7 +44,16 @@ export function moveCellsOf(character: GameCharacter, names: string, cellDistanc
     if (!element) continue;
     const amount = amountOf(element);
     if (amount === null) return null;
-    return cellDistance > 0 ? Math.floor(amount / cellDistance) : amount;
+    return cellsFrom(amount, parseMoveUnit(element.getAttribute(DataElementAttribute.UNIT)), tableUnit, cellDistance);
   }
   return null;
+}
+
+function cellsFrom(amount: number, sheetUnit: MoveUnit | null, tableUnit: string, cellDistance: number): number {
+  if (sheetUnit === 'cell') return Math.floor(amount);
+
+  const ruledIn = parseMoveUnit(tableUnit);
+  const measured =
+    isLengthUnit(sheetUnit) && isLengthUnit(ruledIn) ? convertMoveLength(amount, sheetUnit, ruledIn) : amount;
+  return cellDistance > 0 ? Math.floor(measured / cellDistance) : Math.floor(measured);
 }

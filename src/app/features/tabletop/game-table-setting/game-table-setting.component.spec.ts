@@ -110,7 +110,7 @@ describe('GameTableSettingComponent', () => {
       expect(component.tableMoveRangeEnabled).toBe(true);
       expect(component.tableMoveRangeElementNames).toBe('移動,移動力,Speed,速度');
       expect(component.tableCellDistance).toBe(1);
-      expect(component.tableCellDistanceUnit).toBe('マス');
+      expect(component.tableCellDistanceUnit).toBe('cell');
     });
 
     it('writes all four onto the table', () => {

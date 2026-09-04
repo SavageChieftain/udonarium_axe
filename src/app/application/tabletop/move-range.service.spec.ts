@@ -2,7 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { MoveRangeService } from '@axe/application/tabletop/move-range.service';
 import { ObjectStore } from '@axe/core/sync/object-store';
 import { GameCharacter } from '@axe/domain/character/game-character';
-import { DataElement } from '@axe/domain/data/data-element';
+import { DataElement, DataElementAttribute } from '@axe/domain/data/data-element';
 import { cellIndexOf } from '@axe/domain/tabletop/fog/cell-grid';
 import { GameTable } from '@axe/domain/tabletop/game-table';
 import { countCells } from '@axe/domain/tabletop/move/reachable-cells';
@@ -30,12 +30,16 @@ describe('MoveRangeService', () => {
     for (const object of ObjectStore.instance.getObjects()) ObjectStore.instance.remove(object);
   });
 
-  function pieceAt(col: number, row: number, walk: number | string | null): GameCharacter {
+  function pieceAt(col: number, row: number, walk: number | string | null, unit?: string): GameCharacter {
     const character = GameCharacter.create('コマ', 1, '');
     character.location = { name: 'table', x: col * GRID, y: row * GRID };
     const field = DataElement.findElementByReference(character.rootDataElement!, '移動')!;
-    if (walk === null) field.destroy();
-    else field.value = walk;
+    if (walk === null) {
+      field.destroy();
+      return character;
+    }
+    field.value = walk;
+    if (unit !== undefined) field.setAttribute(DataElementAttribute.UNIT, unit);
     return character;
   }
 
@@ -108,10 +112,37 @@ describe('MoveRangeService', () => {
     expect(service.range()!.cells.get(cellIndexOf(service.range()!.grid, 7, 5))).toBe(false);
   });
 
-  it('turns a sheet written in feet into cells', () => {
+  it('turns a sheet written in feet into cells of the table', () => {
     table.cellDistance = 5;
-    service.show(pieceAt(5, 5, 10));
+    table.cellDistanceUnit = 'foot';
+    service.show(pieceAt(5, 5, 10, 'フィート'));
 
     expect(countCells(service.range()!.cells)).toBe(24);
+  });
+
+  it('reads a sheet written in cells as cells, whatever the table is ruled in', () => {
+    table.cellDistance = 5;
+    table.cellDistanceUnit = 'foot';
+    service.show(pieceAt(5, 5, 2, 'マス'));
+
+    expect(countCells(service.range()!.cells)).toBe(24);
+  });
+
+  it('turns a sheet written in feet into a table ruled in metres', () => {
+    // Thirty feet is nine and a bit metres, which is three cells of three metres.
+    table.cellDistance = 3;
+    table.cellDistanceUnit = 'metre';
+    service.show(pieceAt(5, 5, 30, 'ft'));
+
+    expect(countCells(service.range()!.cells)).toBe(48);
+  });
+
+  it('turns a sheet written in metres into a table ruled in feet', () => {
+    // Nine metres is a little under thirty feet, which is five cells of five feet.
+    table.cellDistance = 5;
+    table.cellDistanceUnit = 'foot';
+    service.show(pieceAt(5, 5, 9, 'm'));
+
+    expect(countCells(service.range()!.cells)).toBe(120);
   });
 });

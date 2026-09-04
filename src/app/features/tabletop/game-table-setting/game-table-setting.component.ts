@@ -38,6 +38,7 @@ import {
   DEFAULT_CELL_DISTANCE_UNIT,
   DEFAULT_MOVE_RANGE_ELEMENT_NAMES,
 } from '@axe/domain/tabletop/move/move-cells';
+import { MOVE_UNITS, MoveUnit, parseMoveUnit } from '@axe/domain/tabletop/move/move-units';
 import { asTableFacingMark, TABLE_FACING_MARKS, TableFacingMark } from '@axe/domain/tabletop/table-facing-mark';
 import { TableSelecter } from '@axe/domain/tabletop/table-selecter';
 import {
@@ -291,10 +292,12 @@ export class GameTableSettingComponent {
     this.selectedTable.cellDistance = Number.isFinite(amount) && amount > 0 ? amount : 0;
   }
 
-  get tableCellDistanceUnit(): string {
-    return this.selectedTable?.cellDistanceUnit ?? DEFAULT_CELL_DISTANCE_UNIT;
+  readonly moveUnits = MOVE_UNITS;
+
+  get tableCellDistanceUnit(): MoveUnit {
+    return parseMoveUnit(this.selectedTable?.cellDistanceUnit) ?? DEFAULT_CELL_DISTANCE_UNIT;
   }
-  set tableCellDistanceUnit(value: string) {
+  set tableCellDistanceUnit(value: MoveUnit) {
     if (this.isEditable && this.selectedTable) this.selectedTable.cellDistanceUnit = value;
   }
 
