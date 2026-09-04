@@ -85,6 +85,19 @@ describe('how many cells a piece may walk', () => {
     expect(moveCellsOf(characterWith([{ name: 'HP', value: 12 }]), NAMES, 1)).toBeNull();
   });
 
+  it('asks the next name where the first field it found holds no number', () => {
+    expect(
+      moveCellsOf(
+        characterWith([
+          { name: '移動', value: '—' },
+          { name: '移動力', value: 6 },
+        ]),
+        NAMES,
+        1
+      )
+    ).toBe(6);
+  });
+
   it('says nothing at all when the field it found is not a number', () => {
     expect(moveCellsOf(characterWith([{ name: '移動', value: 'はやい' }]), NAMES, 1)).toBeNull();
     expect(moveCellsOf(characterWith([{ name: '移動', value: '' }]), NAMES, 1)).toBeNull();

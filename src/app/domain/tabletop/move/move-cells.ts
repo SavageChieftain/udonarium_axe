@@ -43,7 +43,9 @@ export function moveCellsOf(
     const element = DataElement.findElementByReference(root, name);
     if (!element) continue;
     const amount = amountOf(element);
-    if (amount === null) return null;
+    // A field that holds a dash where a number was meant is not an answer, so the next name
+    // the table was given is asked instead of the whole question being given up on.
+    if (amount === null) continue;
     return cellsFrom(amount, parseMoveUnit(element.getAttribute(DataElementAttribute.UNIT)), tableUnit, cellDistance);
   }
   return null;
