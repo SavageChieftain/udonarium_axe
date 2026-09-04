@@ -91,6 +91,7 @@ describe('CardFaceTextComponent', () => {
     expect(face.style.fontSize).toBe('45px');
     expect(face.style.transform).toBe('rotateZ(180deg)');
     expect(face.className).not.toContain('text-shadow');
+    expect(face.className).toContain('text-ui-card-ink');
   });
 
   it('scales the font and padding for a preview without changing the text flow', () => {

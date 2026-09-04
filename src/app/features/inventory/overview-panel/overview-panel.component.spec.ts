@@ -50,6 +50,27 @@ describe('OverviewPanelComponent', () => {
     }
   });
 
+  it('keeps the card text on the picture when it is opened out', () => {
+    const image = ImageStorage.instance.add('card-zoom-front.png');
+    const card = Card.create('文章カード', image.identifier, 'back.png');
+    card.faceText = '拡大しても読める文章';
+    component.tabletopObject = card;
+    component.chanageImageView(true);
+
+    try {
+      fixture.detectChanges();
+      const previews = fixture.nativeElement.querySelectorAll('card-face-preview') as NodeListOf<HTMLElement>;
+      expect(previews.length).toBe(2);
+      const opened = previews[previews.length - 1].querySelector('div') as HTMLElement;
+      expect(opened.style.width).toBe('100%');
+      expect(opened.style.height).toBe('100%');
+    } finally {
+      component.chanageImageView(false);
+      card.destroy();
+      ImageStorage.instance.delete(image.identifier);
+    }
+  });
+
   it('uses the top card text for a deck pop-up', () => {
     const stack = CardStack.create('文章山札');
     const card = Card.create('一番上', 'front.png', 'back.png');

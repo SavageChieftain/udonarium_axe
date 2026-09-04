@@ -72,6 +72,7 @@
   --color-ui-text: var(--ui-text);
   --color-ui-muted: var(--ui-text-muted);
   --color-ui-dim: var(--ui-text-dim);
+  --color-ui-card-ink: var(--ui-card-ink);
 
   /* アクセント / ステータス */
   --color-ui-accent: var(--ui-accent);
@@ -485,6 +486,9 @@ chat-message > div > div {
   --ui-text: #e6edf3;
   --ui-text-muted: #8b949e;
   --ui-text-dim: #484f58;
+
+  /* カードの面に載る字。テーマではなく札の色に従う */
+  --ui-card-ink: #16171c;
 
   /* アクセント (エレクトリックブルー) */
   --ui-accent: #58a6ff;

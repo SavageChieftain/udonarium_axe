@@ -40,6 +40,18 @@ describe('CardFacePreviewComponent', () => {
     expect(fixture.nativeElement.querySelector('card-face-text')?.textContent).toContain('scaled text');
   });
 
+  it('fills the room it was given when no frame is named', () => {
+    fixture.componentRef.setInput('frameWidth', 0);
+    fixture.componentRef.setInput('frameHeight', 0);
+    fixture.componentRef.setInput('framed', false);
+    fixture.detectChanges();
+
+    const frame = fixture.nativeElement.querySelector('div') as HTMLElement;
+    expect(frame.style.width).toBe('100%');
+    expect(frame.style.height).toBe('100%');
+    expect(frame.classList.contains('bg-ui-input')).toBe(false);
+  });
+
   it('reserves padding before fitting a popup image', () => {
     fixture.componentRef.setInput('frameWidth', 250);
     fixture.componentRef.setInput('frameHeight', 330);

@@ -1,4 +1,14 @@
-import { ChangeDetectionStrategy, Component, computed, inject, input, linkedSignal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  DestroyRef,
+  ElementRef,
+  inject,
+  input,
+  linkedSignal,
+  signal,
+} from '@angular/core';
 import { ObjectChangeService } from '@axe/application/sync/object-change.service';
 import { TabletopService } from '@axe/application/tabletop/tabletop.service';
 import { Card } from '@axe/domain/card/card';
@@ -15,20 +25,30 @@ import { containedImageRect } from '@axe/ui/tabletop/contained-image-rect';
 export class CardFacePreviewComponent {
   readonly card = input.required<Card>();
   readonly imageUrl = input('');
-  readonly frameWidth = input.required<number>();
-  readonly frameHeight = input.required<number>();
+  /** A frame of nought fills whatever room the caller has given the preview. */
+  readonly frameWidth = input(0);
+  readonly frameHeight = input(0);
   readonly padding = input(0);
+  readonly framed = input(true);
 
+  private readonly elementRef = inject(ElementRef<HTMLElement>);
+  private readonly destroyRef = inject(DestroyRef);
   private readonly tabletop = inject(TabletopService);
   private readonly objectChange = inject(ObjectChangeService);
+  private readonly hostSize = signal({ width: 0, height: 0 });
   private readonly naturalSize = linkedSignal<string, { width: number; height: number }>({
     source: () => this.imageUrl(),
     computation: () => ({ width: 0, height: 0 }),
   });
 
+  readonly width = computed(() => this.frameWidth() || this.hostSize().width);
+  readonly height = computed(() => this.frameHeight() || this.hostSize().height);
+  readonly widthCss = computed(() => (this.frameWidth() ? `${this.frameWidth()}px` : '100%'));
+  readonly heightCss = computed(() => (this.frameHeight() ? `${this.frameHeight()}px` : '100%'));
+
   readonly imageRect = computed(() => {
     const { width, height } = this.naturalSize();
-    return containedImageRect(this.frameWidth(), this.frameHeight(), width, height, this.padding());
+    return containedImageRect(this.width(), this.height(), width, height, this.padding());
   });
 
   readonly textScale = computed(() => {
@@ -40,7 +60,23 @@ export class CardFacePreviewComponent {
     return width && cardSize && gridSize ? width / (cardSize * gridSize) : 1;
   });
 
+  constructor() {
+    this.watchHostSize();
+  }
+
   protected onImageLoad(image: HTMLImageElement): void {
     this.naturalSize.set({ width: image.naturalWidth, height: image.naturalHeight });
+  }
+
+  private watchHostSize(): void {
+    if (typeof ResizeObserver !== 'function') return;
+
+    const observer = new ResizeObserver((entries) => {
+      const rect = entries[0]?.contentRect;
+      if (!rect) return;
+      this.hostSize.set({ width: Math.round(rect.width), height: Math.round(rect.height) });
+    });
+    observer.observe(this.elementRef.nativeElement);
+    this.destroyRef.onDestroy(() => observer.disconnect());
   }
 }

@@ -1,4 +1,9 @@
-<div class="bg-ui-input relative overflow-hidden" [style.width.px]="frameWidth()" [style.height.px]="frameHeight()">
+<div
+  class="relative overflow-hidden"
+  [class.bg-ui-input]="framed()"
+  [style.width]="widthCss()"
+  [style.height]="heightCss()"
+>
   @if (imageUrl()) {
     <img
       class="absolute inset-0 box-border size-full object-contain"
